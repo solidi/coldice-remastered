@@ -458,7 +458,7 @@ CGrenade *CGrenade::Vest( entvars_t *pevOwner, Vector vecStart )
 	pGrenade->Spawn();
 
 	pGrenade->pev->classname = MAKE_STRING( "vest" );
-	pGrenade->pev->dmg = 200;
+	pGrenade->pev->dmg = gSkillData.plrDmgVest;
 
 	UTIL_SetOrigin( pGrenade->pev, vecStart );
 	pGrenade->pev->angles = UTIL_VecToAngles (pGrenade->pev->velocity);

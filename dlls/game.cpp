@@ -370,6 +370,12 @@ cvar_t	sk_plr_tripmine2 = {"sk_plr_tripmine2","0"};
 cvar_t	sk_plr_tripmine3 = {"sk_plr_tripmine3","0"};
 
 
+// Vest
+cvar_t	sk_plr_vest1 = {"sk_plr_vest1","0"};
+cvar_t	sk_plr_vest2 = {"sk_plr_vest2","0"};
+cvar_t	sk_plr_vest3 = {"sk_plr_vest3","0"};
+
+
 // WORLD WEAPONS
 cvar_t	sk_12mm_bullet1 = {"sk_12mm_bullet1","0"};
 cvar_t	sk_12mm_bullet2 = {"sk_12mm_bullet2","0"};
@@ -810,6 +816,12 @@ void GameDLLInit( void )
 	CVAR_REGISTER ( &sk_plr_tripmine1 );// {"sk_plr_tripmine1","0"};
 	CVAR_REGISTER ( &sk_plr_tripmine2 );// {"sk_plr_tripmine2","0"};
 	CVAR_REGISTER ( &sk_plr_tripmine3 );// {"sk_plr_tripmine3","0"};
+
+
+	// Vest
+	CVAR_REGISTER ( &sk_plr_vest1 );
+	CVAR_REGISTER ( &sk_plr_vest2 );
+	CVAR_REGISTER ( &sk_plr_vest3 );
 
 
 	// WORLD WEAPONS
