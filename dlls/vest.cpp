@@ -77,6 +77,7 @@ int CVest::GetItemInfo(ItemInfo *p)
 	p->iFlags = ITEM_FLAG_SELECTONEMPTY | ITEM_FLAG_LIMITINWORLD | ITEM_FLAG_EXHAUSTIBLE;
 	p->iId = m_iId = WEAPON_VEST;
 	p->iWeight = SATCHEL_WEIGHT;
+	p->pszDisplayName = "Vest Device";
 
 	return 1;
 }

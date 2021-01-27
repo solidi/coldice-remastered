@@ -85,6 +85,7 @@ int CGlock::GetItemInfo(ItemInfo *p)
 	p->iFlags = 0;
 	p->iId = m_iId = WEAPON_GLOCK;
 	p->iWeight = GLOCK_WEIGHT;
+	p->pszDisplayName = "Silenced Handgun";
 
 	return 1;
 }

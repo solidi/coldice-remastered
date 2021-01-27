@@ -209,6 +209,7 @@ typedef struct
 	int		iId;
 	int		iFlags;
 	int		iWeight;// this value used to determine this weapon's importance in autoselection.
+	const char	*pszDisplayName;
 } ItemInfo;
 
 typedef struct
@@ -279,6 +280,7 @@ public:
 	int			iMaxClip( void )	{ return ItemInfoArray[ m_iId ].iMaxClip; }
 	int			iWeight( void )		{ return ItemInfoArray[ m_iId ].iWeight; }
 	int			iFlags( void )		{ return ItemInfoArray[ m_iId ].iFlags; }
+	const char	*pszDisplayName( void )		{ return ItemInfoArray[ m_iId ].pszDisplayName; }
 
 	// int		m_iIdPrimary;										// Unique Id for primary ammo
 	// int		m_iIdSecondary;										// Unique Id for secondary ammo
@@ -307,7 +309,7 @@ public:
 	BOOL AddPrimaryAmmo( int iCount, char *szName, int iMaxClip, int iMaxCarry );
 	BOOL AddSecondaryAmmo( int iCount, char *szName, int iMaxCarry );
 
-	virtual void UpdateItemInfo( void ) {};	// updates HUD state
+	virtual void UpdateItemInfo( void );	// updates HUD state
 
 	int m_iPlayEmptySound;
 	int m_fFireOnEmpty;		// True when the gun is empty and the player is still holding down the
