@@ -34,6 +34,11 @@ public:
 	static CGrenade *ShootContact( entvars_t *pevOwner, Vector vecStart, Vector vecVelocity );
 	static CGrenade *ShootSatchelCharge( entvars_t *pevOwner, Vector vecStart, Vector vecVelocity );
 	static CGrenade *Vest( entvars_t *pevOwner, Vector vecStart );
+	static CGrenade *ShootTimedCluster( entvars_t *pevOwner, Vector vecStart, Vector vecVelocity, float time );
+
+	void EXPORT ClusterTumbleThink( void );
+	void EXPORT ClusterDetonate( void );
+
 	static void UseSatchelCharges( entvars_t *pevOwner, SATCHELCODE code );
 
 	void Explode( Vector vecSrc, Vector vecAim );
@@ -907,6 +912,7 @@ public:
 	int GetItemInfo(ItemInfo *p);
 
 	void PrimaryAttack( void );
+	void SecondaryAttack( void );
 	BOOL Deploy( void );
 	BOOL CanHolster( void );
 	void Holster( int skiplocal = 0 );

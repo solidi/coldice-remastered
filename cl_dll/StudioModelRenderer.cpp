@@ -24,6 +24,8 @@
 
 extern cvar_t *tfc_newmodels;
 
+extern cvar_t *cl_icemodels;
+
 extern extra_player_info_t  g_PlayerExtraInfo[MAX_PLAYERS+1];
 
 // team colors for old TFC models
@@ -1849,6 +1851,7 @@ int CStudioModelRenderer::StudioDrawPlayer( int flags, entity_state_t *pplayer )
 			cl_entity_t saveent = *m_pCurrentEntity;
 
 			model_t *pweaponmodel = IEngineStudio.GetModelByIndex( pplayer->weaponmodel );
+			m_pCurrentEntity->curstate.skin = cl_icemodels->value;
 
 #if defined _TFC
 			if ( pweaponmodel )

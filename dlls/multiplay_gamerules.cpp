@@ -170,6 +170,9 @@ void CHalfLifeMultiplay::RefreshSkillData( void )
 
 	// Vest
 	gSkillData.plrDmgVest = 200;
+
+	// Cluster Grenades
+	gSkillData.plrDmgClusterGrenade = 100;
 }
 
 // longest the intermission can last, in seconds
