@@ -45,11 +45,11 @@ void CHook::Precache( )
 	PRECACHE_MODEL ("models/crossbow_bolt.mdl");
 
 	PRECACHE_SOUND("weapons/xbow_hitbod1.wav");
-	PRECACHE_SOUND("weapons/xbow_hitbod2.wav");
+	PRECACHE_SOUND("weapons/grapple_hit.wav");
 
 	PRECACHE_SOUND("weapons/xbow_fly1.wav");
 	PRECACHE_SOUND("weapons/xbow_hit1.wav");
-	PRECACHE_SOUND("weapons/rocketfire1.wav");
+	PRECACHE_SOUND("grapple_deploy.wav");
 
 	ropesprite = PRECACHE_MODEL("sprites/smoke.spr");
 }
@@ -64,7 +64,7 @@ void CHook::FireHook( ) {
 		return;
 	}
 
-	EMIT_SOUND_DYN(ENT(pev), CHAN_WEAPON, "weapons/rocketfire1.wav", RANDOM_FLOAT(0.95, 1.0), ATTN_NORM, 0, 93 + RANDOM_LONG(0,0xF));
+	EMIT_SOUND_DYN(ENT(pev), CHAN_WEAPON, "grapple_deploy.wav", RANDOM_FLOAT(0.95, 1.0), ATTN_NORM, 0, 93 + RANDOM_LONG(0,0xF));
 
 	pev->owner = edict();
 	Spawn();
@@ -76,7 +76,7 @@ void CHook::FireHook( ) {
 	Vector vecDir = gpGlobals->v_forward;
 	Vector trace_origin = pevOwner->GetGunPosition();
 	if ( pevOwner->pev->flags & FL_DUCKING ) {
-			trace_origin = trace_origin - ( VEC_HULL_MIN - VEC_DUCK_HULL_MIN );
+		trace_origin = trace_origin - ( VEC_HULL_MIN - VEC_DUCK_HULL_MIN );
 	}
 	UTIL_TraceLine( trace_origin + gpGlobals->v_forward * 20, trace_origin + gpGlobals->v_forward * 64, dont_ignore_monsters, NULL, &tr );
 
@@ -116,7 +116,7 @@ void CHook::HookTouch( CBaseEntity *pOther )
 				EMIT_SOUND(ENT(pev), CHAN_WEAPON, "weapons/xbow_hitbod1.wav", 1, ATTN_NORM);
 				break;
 			case 1:
-				EMIT_SOUND(ENT(pev), CHAN_WEAPON, "weapons/xbow_hitbod2.wav", 1, ATTN_NORM);
+				EMIT_SOUND(ENT(pev), CHAN_WEAPON, "grapple_hit.wav", 1, ATTN_NORM);
 				break;
 		}
 		pevOwner->pev->movetype = MOVETYPE_WALK;
