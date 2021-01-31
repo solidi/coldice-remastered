@@ -62,6 +62,7 @@ void CVest::Precache( void )
 	PRECACHE_MODEL("models/p_vest.mdl");
 
 	PRECACHE_SOUND("vest_attack.wav");
+	PRECACHE_SOUND("vest_alive.wav");
 }
 
 int CVest::GetItemInfo(ItemInfo *p)
@@ -125,7 +126,7 @@ void CVest::PrimaryAttack()
 	pev->nextthink = gpGlobals->time + 1.0;
 
 	m_flNextPrimaryAttack = UTIL_WeaponTimeBase() + 2.0;
-	m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 2.0;
+	m_flNextSecondaryAttack = UTIL_WeaponTimeBase();
 	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 2.0;
 }
 
@@ -142,9 +143,28 @@ void CVest::BlowThink() {
 }
 
 void CVest::GoneThink() {
-	m_pPlayer->	pev->health = 0; // without this, player can walk as a ghost.
+	m_pPlayer->pev->health = 0; // without this, player can walk as a ghost.
 	m_pPlayer->Killed(m_pPlayer->pev, pev, GIB_ALWAYS);
 	CGrenade::Vest( m_pPlayer->pev, pev->origin );
+}
+
+void CVest::SecondaryAttack()
+{
+	pev->nextthink = -1;
+	EMIT_SOUND(ENT(m_pPlayer->pev), CHAN_VOICE, "vest_alive.wav", 1, ATTN_NORM);
+	SendWeaponAnim( SATCHEL_RADIO_HOLSTER );
+
+	SetThink( &CVest::RetireThink );
+	pev->nextthink = gpGlobals->time + 1.0;
+
+	m_flNextPrimaryAttack = UTIL_WeaponTimeBase() + 2.0;
+	m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 2.0;
+	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 2.0;
+}
+
+void CVest::RetireThink( )
+{
+	RetireWeapon();
 }
 
 void CVest::WeaponIdle( void )

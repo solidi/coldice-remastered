@@ -1035,11 +1035,13 @@ public:
 	int GetItemInfo(ItemInfo *p);
 	int AddToPlayer( CBasePlayer *pPlayer );
 	void PrimaryAttack( void );
+	void SecondaryAttack( void );
 	BOOL CanDeploy( void );
 	BOOL Deploy( void );
 	BOOL IsUseable( void );
 	void BlowThink( void );
 	void GoneThink( void );
+	void RetireThink( void );
 
 	void Holster( int skiplocal = 0 );
 	void WeaponIdle( void );
