@@ -19,7 +19,7 @@
 #include "weapons.h"
 #include "nodes.h"
 #include "player.h"
-
+#include "game.h"
 
 #define	HANDGRENADE_PRIMARY_VOLUME		450
 
@@ -34,15 +34,16 @@ enum handgrenade_e {
 	HANDGRENADE_DRAW
 };
 
-
+#ifdef CLUSTER_GRENADES
 LINK_ENTITY_TO_CLASS( weapon_handgrenade, CHandGrenade );
-
+#endif
 
 void CHandGrenade::Spawn( )
 {
 	Precache( );
 	m_iId = WEAPON_HANDGRENADE;
 	SET_MODEL(ENT(pev), "models/w_grenade.mdl");
+	pev->skin = icemodels.value;
 
 #ifndef CLIENT_DLL
 	pev->dmg = gSkillData.plrDmgHandGrenade;
@@ -74,6 +75,7 @@ int CHandGrenade::GetItemInfo(ItemInfo *p)
 	p->iId = m_iId = WEAPON_HANDGRENADE;
 	p->iWeight = HANDGRENADE_WEIGHT;
 	p->iFlags = ITEM_FLAG_LIMITINWORLD | ITEM_FLAG_EXHAUSTIBLE;
+	p->pszDisplayName = "6-Pack Cluster Grenades";
 
 	return 1;
 }
@@ -116,12 +118,25 @@ void CHandGrenade::PrimaryAttack()
 	{
 		m_flStartThrow = gpGlobals->time;
 		m_flReleaseThrow = 0;
+		m_fireState = 0;
 
 		SendWeaponAnim( HANDGRENADE_PINPULL );
 		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 0.5;
 	}
 }
 
+void CHandGrenade::SecondaryAttack()
+{
+	if ( !m_flStartThrow && m_pPlayer->m_rgAmmo[ m_iPrimaryAmmoType ] > 0 )
+	{
+		m_flStartThrow = gpGlobals->time;
+		m_flReleaseThrow = 0;
+		m_fireState = 1;
+
+		SendWeaponAnim( HANDGRENADE_PINPULL );
+		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 0.5;
+	}
+}
 
 void CHandGrenade::WeaponIdle( void )
 {
@@ -155,7 +170,11 @@ void CHandGrenade::WeaponIdle( void )
 		if (time < 0)
 			time = 0;
 
-		CGrenade::ShootTimed( m_pPlayer->pev, vecSrc, vecThrow, time );
+		if (m_fireState) {
+			CGrenade::ShootTimed( m_pPlayer->pev, vecSrc, vecThrow, time );
+		} else {
+			CGrenade::ShootTimedCluster( m_pPlayer->pev, vecSrc, vecThrow, time );
+		}
 
 		if ( flVel < 500 )
 		{

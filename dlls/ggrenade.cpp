@@ -26,6 +26,7 @@
 #include "nodes.h"
 #include "soundent.h"
 #include "decals.h"
+#include "game.h"
 
 
 //===================grenade
@@ -417,6 +418,7 @@ CGrenade * CGrenade:: ShootTimed( entvars_t *pevOwner, Vector vecStart, Vector v
 	pGrenade->pev->friction = 0.8;
 
 	SET_MODEL(ENT(pGrenade->pev), "models/w_grenade.mdl");
+	pGrenade->pev->skin = icemodels.value;
 	pGrenade->pev->dmg = 100;
 
 	return pGrenade;
@@ -472,6 +474,92 @@ CGrenade *CGrenade::Vest( entvars_t *pevOwner, Vector vecStart )
 	pGrenade->Explode(vecStart, pGrenade->pev->angles);
 
 	return pGrenade;
+}
+
+CGrenade *CGrenade::ShootTimedCluster( entvars_t *pevOwner, Vector vecStart, Vector vecVelocity, float time )
+{
+    CGrenade *pGrenade = GetClassPtr( (CGrenade *)NULL );
+    pGrenade->Spawn();
+    UTIL_SetOrigin( pGrenade->pev, vecStart );
+    pGrenade->pev->velocity = vecVelocity;
+    pGrenade->pev->angles = UTIL_VecToAngles(pGrenade->pev->velocity);
+    pGrenade->pev->owner = ENT(pevOwner);
+
+    pGrenade->SetTouch( &CGrenade::BounceTouch );    // Bounce if touched
+
+    // Take one second off of the desired detonation time and set the think to PreDetonate. PreDetonate
+    // will insert a DANGER sound into the world sound list and delay detonation for one second so that
+    // the grenade explodes after the exact amount of time specified in the call to ShootTimed().
+
+    pGrenade->pev->dmgtime = gpGlobals->time + time;
+    pGrenade->SetThink( &CGrenade::ClusterTumbleThink );
+    pGrenade->pev->nextthink = gpGlobals->time + 0.1;
+    if (time < 0.1)
+    {
+        pGrenade->pev->nextthink = gpGlobals->time;
+        pGrenade->pev->velocity = Vector( 0, 0, 0 );
+    }
+
+    pGrenade->pev->sequence = RANDOM_LONG( 3, 6 );
+    pGrenade->pev->framerate = 1.0;
+
+    // Tumble through the air
+    // pGrenade->pev->avelocity.x = -400;
+
+    pGrenade->pev->gravity = 0.5;
+    pGrenade->pev->friction = 0.8;
+
+    SET_MODEL(ENT(pGrenade->pev), "models/w_grenade.mdl");
+    pGrenade->pev->skin = icemodels.value;
+    pGrenade->pev->dmg = gSkillData.plrDmgClusterGrenade;
+
+    return pGrenade;
+}
+
+void CGrenade :: ClusterTumbleThink( void )
+{
+    if (!IsInWorld())
+    {
+        UTIL_Remove( this );
+        return;
+    }
+
+    StudioFrameAdvance( );
+    pev->nextthink = gpGlobals->time + 0.1;
+
+    if (pev->dmgtime - 1 < gpGlobals->time)
+    {
+        CSoundEnt::InsertSound ( bits_SOUND_DANGER, pev->origin + pev->velocity * (pev->dmgtime - gpGlobals->time), 400, 0.1 );
+    }
+
+    if (pev->dmgtime <= gpGlobals->time)
+    {
+        SetThink( &CGrenade::ClusterDetonate );
+    }
+    if (pev->waterlevel != 0)
+    {
+        pev->velocity = pev->velocity * 0.5;
+        pev->framerate = 0.2;
+    }
+}
+
+void CGrenade::ClusterDetonate( void )
+{
+    TraceResult tr;
+    Vector vecSpot;// trace starts here!
+
+    vecSpot = pev->origin + Vector ( 0 , 0 , 8 );
+    UTIL_TraceLine ( vecSpot, vecSpot + Vector ( 0, 0, -40 ), ignore_monsters, ENT(pev), & tr);
+
+    Explode( &tr, DMG_BLAST );
+
+    //Launch 6 grenades at random angles
+    CGrenade::ShootTimed(pev, pev->origin, Vector(RANDOM_LONG(-100, 100), RANDOM_LONG(-100, 100), RANDOM_LONG(-100, 100)) * RANDOM_LONG(2, 5), RANDOM_FLOAT(0.50, 2.50));
+    CGrenade::ShootTimed(pev, pev->origin, Vector(RANDOM_LONG(-100, 100), RANDOM_LONG(-100, 100), RANDOM_LONG(-100, 100)) * RANDOM_LONG(2, 5), RANDOM_FLOAT(0.50, 2.50));
+    CGrenade::ShootTimed(pev, pev->origin, Vector(RANDOM_LONG(-100, 100), RANDOM_LONG(-100, 100), RANDOM_LONG(-100, 100)) * RANDOM_LONG(2, 5), RANDOM_FLOAT(0.50, 2.50));
+    CGrenade::ShootTimed(pev, pev->origin, Vector(RANDOM_LONG(-100, 100), RANDOM_LONG(-100, 100), RANDOM_LONG(-100, 100)) * RANDOM_LONG(2, 5), RANDOM_FLOAT(0.50, 2.50));
+    CGrenade::ShootTimed(pev, pev->origin, Vector(RANDOM_LONG(-100, 100), RANDOM_LONG(-100, 100), RANDOM_LONG(-100, 100)) * RANDOM_LONG(2, 5), RANDOM_FLOAT(0.50, 2.50));
+    CGrenade::ShootTimed(pev, pev->origin, Vector(RANDOM_LONG(-100, 100), RANDOM_LONG(-100, 100), RANDOM_LONG(-100, 100)) * RANDOM_LONG(2, 5), RANDOM_FLOAT(0.50, 2.50));
 }
 
 

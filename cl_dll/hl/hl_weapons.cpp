@@ -33,6 +33,7 @@
 
 extern globalvars_t *gpGlobals;
 extern int g_iUser1;
+extern cvar_t	*cl_icemodels;
 
 // Pool of client side entities/entvars_t
 static entvars_t	ev[ 32 ];
@@ -275,7 +276,11 @@ Animate weapon model
 void CBasePlayerWeapon::SendWeaponAnim( int iAnim, int skiplocal, int body )
 {
 	m_pPlayer->pev->weaponanim = iAnim;
-	
+
+	if (cl_icemodels && cl_icemodels->value >= 1) {
+		body = cl_icemodels->value;
+	}
+
 	HUD_SendWeaponAnim( iAnim, body, 0 );
 }
 

@@ -44,6 +44,8 @@ cvar_t	grapplinghook = {"mp_grapplinghook","0", FCVAR_SERVER };
 cvar_t	grapplinghookdeploytime = {"mp_grapplinghookdeploytime","1.0", FCVAR_SERVER };
 #endif
 
+cvar_t	icemodels = {"mp_icemodels", "1", FCVAR_SERVER };
+
 cvar_t  allow_spectators = { "allow_spectators", "0.0", FCVAR_SERVER };		// 0 prevents players from being spectators
 
 cvar_t  mp_chattime = {"mp_chattime","10", FCVAR_SERVER };
@@ -376,6 +378,12 @@ cvar_t	sk_plr_vest2 = {"sk_plr_vest2","0"};
 cvar_t	sk_plr_vest3 = {"sk_plr_vest3","0"};
 
 
+// Cluster Grenades
+cvar_t	sk_plr_cgrenade1 = {"sk_plr_cgrenade1","0"};
+cvar_t	sk_plr_cgrenade2 = {"sk_plr_cgrenade2","0"};
+cvar_t	sk_plr_cgrenade3 = {"sk_plr_cgrenade3","0"};
+
+
 // WORLD WEAPONS
 cvar_t	sk_12mm_bullet1 = {"sk_12mm_bullet1","0"};
 cvar_t	sk_12mm_bullet2 = {"sk_12mm_bullet2","0"};
@@ -497,6 +505,8 @@ void GameDLLInit( void )
 	CVAR_REGISTER (&grapplinghook);
 	CVAR_REGISTER (&grapplinghookdeploytime);
 #endif
+
+	CVAR_REGISTER (&icemodels);
 
 	CVAR_REGISTER (&mp_chattime);
 
@@ -822,6 +832,12 @@ void GameDLLInit( void )
 	CVAR_REGISTER ( &sk_plr_vest1 );
 	CVAR_REGISTER ( &sk_plr_vest2 );
 	CVAR_REGISTER ( &sk_plr_vest3 );
+
+
+	// Cluster Grenades
+	CVAR_REGISTER ( &sk_plr_cgrenade1 );
+	CVAR_REGISTER ( &sk_plr_cgrenade2 );
+	CVAR_REGISTER ( &sk_plr_cgrenade3 );
 
 
 	// WORLD WEAPONS

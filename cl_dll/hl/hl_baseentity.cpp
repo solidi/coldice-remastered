@@ -36,6 +36,8 @@ int gmsgWeapPickup = 0;
 enginefuncs_t g_engfuncs;
 globalvars_t  *gpGlobals;
 
+cvar_t icemodels;
+
 ItemInfo CBasePlayerItem::ItemInfoArray[MAX_WEAPONS];
 
 void EMIT_SOUND_DYN(edict_t *entity, int channel, const char *sample, float volume, float attenuation, int flags, int pitch) { }
@@ -96,6 +98,7 @@ void CGrenade::Spawn( void ) { }
 CGrenade * CGrenade:: ShootTimed( entvars_t *pevOwner, Vector vecStart, Vector vecVelocity, float time ){ return 0; }
 CGrenade *CGrenade::ShootContact( entvars_t *pevOwner, Vector vecStart, Vector vecVelocity ){ return 0; }
 CGrenade *CGrenade::Vest( entvars_t *pevOwner, Vector vecStart ){ return 0; }
+CGrenade *CGrenade::ShootTimedCluster( entvars_t *pevOwner, Vector vecStart, Vector vecVelocity, float time ){ return 0; }
 void CGrenade::DetonateUse( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value ){ }
 
 void UTIL_Remove( CBaseEntity *pEntity ){ }

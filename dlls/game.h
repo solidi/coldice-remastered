@@ -42,6 +42,8 @@ extern cvar_t	grapplinghook;
 extern cvar_t	grapplinghookdeploytime;
 #endif
 
+extern cvar_t	icemodels;
+
 // Engine Cvars
 extern cvar_t	*g_psv_gravity;
 extern cvar_t	*g_psv_aim;
