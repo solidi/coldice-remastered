@@ -418,7 +418,6 @@ CGrenade * CGrenade:: ShootTimed( entvars_t *pevOwner, Vector vecStart, Vector v
 	pGrenade->pev->friction = 0.8;
 
 	SET_MODEL(ENT(pGrenade->pev), "models/w_grenade.mdl");
-	pGrenade->pev->skin = icemodels.value;
 	pGrenade->pev->dmg = 100;
 
 	return pGrenade;
@@ -510,7 +509,6 @@ CGrenade *CGrenade::ShootTimedCluster( entvars_t *pevOwner, Vector vecStart, Vec
     pGrenade->pev->friction = 0.8;
 
     SET_MODEL(ENT(pGrenade->pev), "models/w_grenade.mdl");
-    pGrenade->pev->skin = icemodels.value;
     pGrenade->pev->dmg = gSkillData.plrDmgClusterGrenade;
 
     return pGrenade;
