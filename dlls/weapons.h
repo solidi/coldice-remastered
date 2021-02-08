@@ -38,6 +38,7 @@ public:
 
 	void EXPORT ClusterTumbleThink( void );
 	void EXPORT ClusterDetonate( void );
+	entvars_t *clusterOwner;
 
 	static void UseSatchelCharges( entvars_t *pevOwner, SATCHELCODE code );
 
@@ -85,6 +86,7 @@ public:
 #define	WEAPON_SATCHEL			14
 #define	WEAPON_SNARK			15
 #define	WEAPON_VEST				16
+#define WEAPON_KNIFE			17
 
 #define WEAPON_ALLWEAPONS		(~(1<<WEAPON_SUIT))
 
@@ -111,6 +113,7 @@ public:
 #define SNARK_WEIGHT		5
 #define SATCHEL_WEIGHT		-10
 #define TRIPMINE_WEIGHT		-10
+#define KNIFE_WEIGHT		1
 
 
 // weapon clip/carry ammo capacities
@@ -537,6 +540,39 @@ public:
 	}
 private:
 	unsigned short m_usCrowbar;
+};
+
+class CKnife : public CBasePlayerWeapon
+{
+public:
+	void Spawn( void );
+	void Precache( void );
+	int AddToPlayer( CBasePlayer *pPlayer );
+	int iItemSlot( void ) { return 1; }
+	void EXPORT SwingAgain( void );
+	void EXPORT Smack( void );
+	int GetItemInfo(ItemInfo *p);
+
+	void PrimaryAttack( void );
+	void SecondaryAttack( void );
+	void Throw( void );
+	int Swing( int fFirst );
+	BOOL Deploy( void );
+	void Holster( int skiplocal = 0 );
+	int m_iSwing;
+	TraceResult m_trHit;
+	void FindHullIntersection( const Vector &vecSrc, TraceResult &tr, float *mins, float *maxs, edict_t *pEntity );
+
+	virtual BOOL UseDecrement( void )
+	{
+#if defined( CLIENT_WEAPONS )
+		return TRUE;
+#else
+		return FALSE;
+#endif
+	}
+private:
+	unsigned short m_usKnife;
 };
 
 class CPython : public CBasePlayerWeapon

@@ -271,6 +271,12 @@ void CGameRules::RefreshSkillData ( void )
 	// Cluster Grenades
 	gSkillData.plrDmgClusterGrenade = GetSkillCvar( "sk_plr_cgrenade");
 
+	// Knife
+	gSkillData.plrDmgKnife = GetSkillCvar( "sk_plr_knife");
+
+	// Flying Knife
+	gSkillData.plrDmgFlyingKnife = GetSkillCvar( "sk_plr_flyingknife");
+
 	// MONSTER WEAPONS
 	gSkillData.monDmg12MM = GetSkillCvar( "sk_12mm_bullet");
 	gSkillData.monDmgMP5 = GetSkillCvar ("sk_9mmAR_bullet" );

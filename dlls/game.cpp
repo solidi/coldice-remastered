@@ -382,6 +382,18 @@ cvar_t	sk_plr_cgrenade2 = {"sk_plr_cgrenade2","0"};
 cvar_t	sk_plr_cgrenade3 = {"sk_plr_cgrenade3","0"};
 
 
+// Knife
+cvar_t	sk_plr_knife1 = {"sk_plr_knife1","0"};
+cvar_t	sk_plr_knife2 = {"sk_plr_knife2","0"};
+cvar_t	sk_plr_knife3 = {"sk_plr_knife3","0"};
+
+
+// Flying Knife
+cvar_t	sk_plr_flyingknife1 = {"sk_plr_flyingknife1","0"};
+cvar_t	sk_plr_flyingknife2 = {"sk_plr_flyingknife2","0"};
+cvar_t	sk_plr_flyingknife3 = {"sk_plr_flyingknife3","0"};
+
+
 // WORLD WEAPONS
 cvar_t	sk_12mm_bullet1 = {"sk_12mm_bullet1","0"};
 cvar_t	sk_12mm_bullet2 = {"sk_12mm_bullet2","0"};
@@ -834,6 +846,18 @@ void GameDLLInit( void )
 	CVAR_REGISTER ( &sk_plr_cgrenade1 );
 	CVAR_REGISTER ( &sk_plr_cgrenade2 );
 	CVAR_REGISTER ( &sk_plr_cgrenade3 );
+
+
+	// Knife
+	CVAR_REGISTER ( &sk_plr_knife1 );
+	CVAR_REGISTER ( &sk_plr_knife2 );
+	CVAR_REGISTER ( &sk_plr_knife3 );
+
+
+	// Flying Knife
+	CVAR_REGISTER ( &sk_plr_flyingknife1 );
+	CVAR_REGISTER ( &sk_plr_flyingknife2 );
+	CVAR_REGISTER ( &sk_plr_flyingknife3 );
 
 
 	// WORLD WEAPONS

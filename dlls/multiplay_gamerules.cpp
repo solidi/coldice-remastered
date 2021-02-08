@@ -173,6 +173,12 @@ void CHalfLifeMultiplay::RefreshSkillData( void )
 
 	// Cluster Grenades
 	gSkillData.plrDmgClusterGrenade = 100;
+
+	// Knife
+	gSkillData.plrDmgKnife = 35;
+
+	// Flying Knife
+	gSkillData.plrDmgFlyingKnife = 100;
 }
 
 // longest the intermission can last, in seconds
@@ -574,6 +580,7 @@ void CHalfLifeMultiplay :: PlayerSpawn( CBasePlayer *pPlayer )
 		pPlayer->GiveNamedItem( "weapon_crowbar" );
 		pPlayer->GiveNamedItem( "weapon_9mmhandgun" );
 		pPlayer->GiveAmmo( 68, "9mm", _9MM_MAX_CARRY );// 4 full reloads
+		pPlayer->GiveNamedItem( "weapon_knife" );
 	}
 }
 

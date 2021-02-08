@@ -329,6 +329,9 @@ void W_Precache(void)
 	// crowbar
 	UTIL_PrecacheOtherWeapon( "weapon_crowbar" );
 
+	// knife
+	UTIL_PrecacheOtherWeapon( "weapon_knife" );
+
 	// glock
 	UTIL_PrecacheOtherWeapon( "weapon_9mmhandgun" );
 	UTIL_PrecacheOther( "ammo_9mmclip" );
@@ -589,6 +592,16 @@ CBaseEntity* CBasePlayerItem::Respawn( void )
 		strcmp(STRING(pev->classname), "weapon_handgrenade")) {
 		if (RANDOM_LONG(0, 1)) {
 			pNewWeapon = CBaseEntity::Create("weapon_vest", g_pGameRules->VecWeaponRespawnSpot(this), pev->angles, pev->owner );
+		}
+	}
+
+	// Randomly replace ammo and crowbar with knife.
+	if (strcmp(STRING(pev->classname), "weapon_crowbar") ||
+		strcmp(STRING(pev->classname), "ammo_glockclip") ||
+		strcmp(STRING(pev->classname), "ammo_9mmclip") ||
+		strcmp(STRING(pev->classname), "ammo_bolts")) {
+		if (RANDOM_LONG(0, 1)) {
+			pNewWeapon = CBaseEntity::Create("weapon_knife", g_pGameRules->VecWeaponRespawnSpot(this), pev->angles, pev->owner );
 		}
 	}
 
@@ -1476,6 +1489,11 @@ BOOL CWeaponBox::PackWeapon( CBasePlayerItem *pWeapon )
 	pWeapon->m_pPlayer = NULL;
 
 	//ALERT ( at_console, "packed %s\n", STRING(pWeapon->pev->classname) );
+
+	if (pWeapon->m_iId == WEAPON_KNIFE)
+	{
+		SET_MODEL( ENT(pev), "models/w_knife.mdl");
+	}
 
 	return TRUE;
 }

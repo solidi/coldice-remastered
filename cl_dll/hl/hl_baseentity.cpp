@@ -81,6 +81,19 @@ BOOL UTIL_GetNextBestWeapon( CBasePlayer *pPlayer, CBasePlayerItem *pCurrentWeap
 void UTIL_LogPrintf(char *,...) { }
 void UTIL_ClientPrintAll( int,char const *,char const *,char const *,char const *,char const *) { }
 void ClientPrint( entvars_t *client, int msg_dest, const char *msg_name, const char *param1, const char *param2, const char *param3, const char *param4 ) { }
+void UTIL_BubbleTrail( Vector from, Vector to, int count ) { }
+void UTIL_Sparks( const Vector &position ) { }
+int UTIL_PointContents(const Vector &vec) { return 0; }
+TraceResult	UTIL_GetGlobalTrace(void) { return {0}; }
+
+// WeaponBox
+BOOL CWeaponBox::PackWeapon( CBasePlayerItem *pWeapon ) { return FALSE; }
+void CWeaponBox::Kill( void ) { }
+
+// EHANDLE
+CBaseEntity * EHANDLE::operator =(CBaseEntity *pEntity) { return NULL; }
+CBaseEntity * EHANDLE::operator ->() { return NULL; }
+EHANDLE::operator int () { return 0; }
 
 // CBaseToggle Stubs
 int CBaseToggle::Restore( class CRestore & ) { return 1; }

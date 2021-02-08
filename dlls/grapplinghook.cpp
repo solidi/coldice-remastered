@@ -45,7 +45,7 @@ void CHook::Precache( )
 	PRECACHE_MODEL ("models/crossbow_bolt.mdl");
 
 	PRECACHE_SOUND("weapons/xbow_hitbod1.wav");
-	PRECACHE_SOUND("weapons/grapple_hit.wav");
+	PRECACHE_SOUND("grapple_hit.wav");
 
 	PRECACHE_SOUND("weapons/xbow_fly1.wav");
 	PRECACHE_SOUND("weapons/xbow_hit1.wav");

@@ -72,6 +72,9 @@ void EV_HornetGunFire( struct event_args_s *args  );
 void EV_TripmineFire( struct event_args_s *args  );
 void EV_SnarkFire( struct event_args_s *args  );
 
+// Ice
+void EV_Knife( struct event_args_s *args );
+
 
 void EV_TrainPitchAdjust( struct event_args_s *args );
 }
@@ -1659,6 +1662,48 @@ void EV_SnarkFire( event_args_t *args )
 //======================
 //	   SQUEAK END
 //======================
+
+enum knife_e {
+	KNIFE_IDLE = 0,
+	KNIFE_DRAW,
+	KNIFE_HOLSTER,
+	KNIFE_THROW,
+	KNIFE_ATTACK1HIT,
+	KNIFE_ATTACK1MISS,
+	KNIFE_ATTACK2MISS,
+	KNIFE_ATTACK2HIT,
+	KNIFE_ATTACK3MISS,
+	KNIFE_ATTACK3HIT
+};
+
+void EV_Knife( event_args_t *args )
+{
+	int idx;
+	vec3_t origin;
+	vec3_t angles;
+	vec3_t velocity;
+
+	idx = args->entindex;
+	VectorCopy( args->origin, origin );
+
+	//Play Swing sound
+	gEngfuncs.pEventAPI->EV_PlaySound( idx, origin, CHAN_WEAPON, "knife_miss2.wav", 1, ATTN_NORM, 0, PITCH_NORM);
+
+	if ( EV_IsLocal( idx ) )
+	{
+		gEngfuncs.pEventAPI->EV_WeaponAnimation( KNIFE_ATTACK1MISS, 1 );
+
+		switch( (g_iSwing++) % 3 )
+		{
+			case 0:
+				gEngfuncs.pEventAPI->EV_WeaponAnimation ( KNIFE_ATTACK1MISS, 1 ); break;
+			case 1:
+				gEngfuncs.pEventAPI->EV_WeaponAnimation ( KNIFE_ATTACK2MISS, 1 ); break;
+			case 2:
+				gEngfuncs.pEventAPI->EV_WeaponAnimation ( KNIFE_ATTACK3MISS, 1 ); break;
+		}
+	}
+}
 
 void EV_TrainPitchAdjust( event_args_t *args )
 {
