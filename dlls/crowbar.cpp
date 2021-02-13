@@ -22,18 +22,39 @@
 #include "player.h"
 #include "gamerules.h"
 
+class CFlyingCrowbar : public CBaseEntity
+{
+public:
+
+	void Spawn( void );
+	void Precache( void );
+	void EXPORT BubbleThink( void );
+	void EXPORT SpinTouch( CBaseEntity *pOther );
+	CBasePlayer *m_pPlayer;
+
+private:
+
+   EHANDLE m_hOwner;        // Original owner is stored here so we can
+                            // allow the crowbar to hit the user.
+};
+
+LINK_ENTITY_TO_CLASS( flying_crowbar, CFlyingCrowbar );
+
 
 #define	CROWBAR_BODYHIT_VOLUME 128
 #define	CROWBAR_WALLHIT_VOLUME 512
 
+#ifdef CROWBAR
 LINK_ENTITY_TO_CLASS( weapon_crowbar, CCrowbar );
+#endif
 
 
 
-enum gauss_e {
+enum crowbar_e {
 	CROWBAR_IDLE = 0,
 	CROWBAR_DRAW,
 	CROWBAR_HOLSTER,
+	CROWBAR_THROW,
 	CROWBAR_ATTACK1HIT,
 	CROWBAR_ATTACK1MISS,
 	CROWBAR_ATTACK2MISS,
@@ -59,15 +80,29 @@ void CCrowbar::Precache( void )
 	PRECACHE_MODEL("models/v_crowbar.mdl");
 	PRECACHE_MODEL("models/w_crowbar.mdl");
 	PRECACHE_MODEL("models/p_crowbar.mdl");
-	PRECACHE_SOUND("weapons/cbar_hit1.wav");
+	PRECACHE_SOUND("cbar_hit1.wav");
 	PRECACHE_SOUND("weapons/cbar_hit2.wav");
-	PRECACHE_SOUND("weapons/cbar_hitbod1.wav");
-	PRECACHE_SOUND("weapons/cbar_hitbod2.wav");
-	PRECACHE_SOUND("weapons/cbar_hitbod3.wav");
+	PRECACHE_SOUND("cbar_hitbod1.wav");
+	PRECACHE_SOUND("cbar_hitbod2.wav");
+	PRECACHE_SOUND("cbar_hitbod3.wav");
 	PRECACHE_SOUND("weapons/cbar_miss1.wav");
 
 	m_usCrowbar = PRECACHE_EVENT ( 1, "events/crowbar.sc" );
 }
+
+
+int CCrowbar::AddToPlayer( CBasePlayer *pPlayer )
+{
+	if ( CBasePlayerWeapon::AddToPlayer( pPlayer ) )
+	{
+		MESSAGE_BEGIN( MSG_ONE, gmsgWeapPickup, NULL, pPlayer->pev );
+			WRITE_BYTE( m_iId );
+		MESSAGE_END();
+		return TRUE;
+	}
+	return FALSE;
+}
+
 
 int CCrowbar::GetItemInfo(ItemInfo *p)
 {
@@ -81,6 +116,7 @@ int CCrowbar::GetItemInfo(ItemInfo *p)
 	p->iPosition = 0;
 	p->iId = WEAPON_CROWBAR;
 	p->iWeight = CROWBAR_WEIGHT;
+	p->pszDisplayName = "Standard Crowbar";
 	return 1;
 }
 
@@ -149,6 +185,66 @@ void CCrowbar::PrimaryAttack()
 	{
 		SetThink( &CCrowbar::SwingAgain );
 		pev->nextthink = gpGlobals->time + 0.1;
+	}
+}
+
+
+void CCrowbar::SecondaryAttack()
+{
+	SendWeaponAnim( CROWBAR_THROW );
+	SetThink( &CCrowbar::Throw );
+
+	m_flNextPrimaryAttack = GetNextAttackDelay(0.75);
+	// Just for kicks, set this.
+	// But we destroy this weapon anyway so... thppt.
+	m_flNextSecondaryAttack = gpGlobals->time + 0.75;
+	pev->nextthink = gpGlobals->time + 0.35;
+}
+
+void CCrowbar::Throw() {
+	// Don't throw underwater, and only throw if we were able to detatch
+	// from player.
+	if ( (m_pPlayer->pev->waterlevel != 3) &&
+			(m_pPlayer->RemovePlayerItem( this )) )
+	{
+		// Important! Capture globals before it is stomped on.
+		Vector anglesAim = m_pPlayer->pev->v_angle + m_pPlayer->pev->punchangle;
+		UTIL_MakeVectors( anglesAim );
+
+		// Get the origin, direction, and fix the angle of the throw.
+		Vector vecSrc = m_pPlayer->GetGunPosition( )
+					+ gpGlobals->v_right * 8
+					+ gpGlobals->v_forward * 16;
+
+		Vector vecDir = gpGlobals->v_forward;
+		Vector vecAng = UTIL_VecToAngles (vecDir);
+		vecAng.z = vecDir.z - 90;
+
+		// Create a flying crowbar.
+		CFlyingCrowbar *pFCBar = (CFlyingCrowbar *)Create( "flying_crowbar",
+					vecSrc, Vector(0,0,0), m_pPlayer->edict() );
+
+		// Give the crowbar its velocity, angle, and spin.
+		// Lower the gravity a bit, so it flys.
+		pFCBar->pev->velocity = vecDir * 1000 + m_pPlayer->pev->velocity;
+		pFCBar->pev->angles = vecAng;
+		pFCBar->pev->avelocity.x = -1000;
+		pFCBar->pev->gravity = .25;
+		pFCBar->m_pPlayer = m_pPlayer;
+
+		// Do player weapon anim and sound effect.
+		m_pPlayer->SetAnimation( PLAYER_ATTACK1 );
+		EMIT_SOUND_DYN(ENT(m_pPlayer->pev), CHAN_WEAPON,
+			"weapons/cbar_miss1.wav", 1, ATTN_NORM, 0,
+			94 + RANDOM_LONG(0,0xF));
+
+		// take item off hud
+		m_pPlayer->pev->weapons &= ~(1<<this->m_iId);
+
+		// Destroy this weapon
+		DestroyItem();
+
+		// RetireWeapon();
 	}
 }
 
@@ -256,11 +352,11 @@ int CCrowbar::Swing( int fFirst )
 				switch( RANDOM_LONG(0,2) )
 				{
 				case 0:
-					EMIT_SOUND(ENT(m_pPlayer->pev), CHAN_ITEM, "weapons/cbar_hitbod1.wav", 1, ATTN_NORM); break;
+					EMIT_SOUND(ENT(m_pPlayer->pev), CHAN_ITEM, "cbar_hitbod1.wav", 1, ATTN_NORM); break;
 				case 1:
-					EMIT_SOUND(ENT(m_pPlayer->pev), CHAN_ITEM, "weapons/cbar_hitbod2.wav", 1, ATTN_NORM); break;
+					EMIT_SOUND(ENT(m_pPlayer->pev), CHAN_ITEM, "cbar_hitbod2.wav", 1, ATTN_NORM); break;
 				case 2:
-					EMIT_SOUND(ENT(m_pPlayer->pev), CHAN_ITEM, "weapons/cbar_hitbod3.wav", 1, ATTN_NORM); break;
+					EMIT_SOUND(ENT(m_pPlayer->pev), CHAN_ITEM, "cbar_hitbod3.wav", 1, ATTN_NORM); break;
 				}
 				m_pPlayer->m_iWeaponVolume = CROWBAR_BODYHIT_VOLUME;
 				if ( !pEntity->IsAlive() )
@@ -291,10 +387,10 @@ int CCrowbar::Swing( int fFirst )
 			switch( RANDOM_LONG(0,1) )
 			{
 			case 0:
-				EMIT_SOUND_DYN(ENT(m_pPlayer->pev), CHAN_ITEM, "weapons/cbar_hit1.wav", fvolbar, ATTN_NORM, 0, 98 + RANDOM_LONG(0,3)); 
+				EMIT_SOUND_DYN(ENT(m_pPlayer->pev), CHAN_ITEM, "cbar_hit1.wav", fvolbar, ATTN_NORM, 0, 98 + RANDOM_LONG(0,3));
 				break;
 			case 1:
-				EMIT_SOUND_DYN(ENT(m_pPlayer->pev), CHAN_ITEM, "weapons/cbar_hit2.wav", fvolbar, ATTN_NORM, 0, 98 + RANDOM_LONG(0,3)); 
+				EMIT_SOUND_DYN(ENT(m_pPlayer->pev), CHAN_ITEM, "weapons/cbar_hit2.wav", fvolbar, ATTN_NORM, 0, 98 + RANDOM_LONG(0,3));
 				break;
 			}
 
@@ -314,5 +410,144 @@ int CCrowbar::Swing( int fFirst )
 	return fDidHit;
 }
 
+// =========================================
 
+// =========================================
 
+void CFlyingCrowbar::Spawn( )
+{
+   Precache( );
+
+   // The flying crowbar is MOVETYPE_TOSS, and SOLID_BBOX.
+   // We want it to be affected by gravity, and hit objects
+   // within the game.
+   pev->movetype = MOVETYPE_TOSS;
+   pev->solid = SOLID_BBOX;
+
+   // Use the world crowbar model.
+   SET_MODEL(ENT(pev), "models/w_crowbar.mdl");
+
+   // Set the origin and size for the HL engine collision
+   // tables.
+   UTIL_SetOrigin( pev, pev->origin );
+   UTIL_SetSize(pev, Vector(-4, -4, -4), Vector(4, 4, 4));
+
+   // Store the owner for later use. We want the owner to be able
+   // to hit themselves with the crowbar. The pev->owner gets cleared
+   // later to avoid hitting the player as they throw the crowbar.
+   if ( pev->owner )
+      m_hOwner = Instance( pev->owner );
+
+   // Set the think funtion.
+   SetThink( &CFlyingCrowbar::BubbleThink );
+   pev->nextthink = gpGlobals->time + 0.25;
+
+   // Set the touch function.
+   SetTouch( &CFlyingCrowbar::SpinTouch );
+}
+
+void CFlyingCrowbar::Precache( )
+{
+   PRECACHE_MODEL ("models/w_crowbar.mdl");
+   PRECACHE_SOUND ("cbar_hitbod1.wav");
+   PRECACHE_SOUND ("cbar_hit1.wav");
+   PRECACHE_SOUND ("weapons/cbar_miss1.wav");
+}
+
+void CFlyingCrowbar::SpinTouch( CBaseEntity *pOther )
+{
+   // We touched something in the game. Look to see if the object
+   // is allowed to take damage.
+   if (pOther->pev->takedamage)
+   {
+      // Get the traceline info to the target.
+      TraceResult tr = UTIL_GetGlobalTrace( );
+
+      // Apply damage to the target. If we have an owner stored, use that one,
+      // otherwise count it as self-inflicted.
+      ClearMultiDamage( );
+      pOther->TraceAttack(pev, gSkillData.plrDmgFlyingCrowbar, pev->velocity.Normalize(), &tr,
+                          DMG_NEVERGIB );
+      if (m_hOwner != NULL)
+         ApplyMultiDamage( pev, m_hOwner->pev );
+      else
+         ApplyMultiDamage( pev, pev );
+   }
+
+   // If we hit a player, make a nice squishy thunk sound. Otherwise
+   // make a clang noise and throw a bunch of sparks.
+   if (pOther->IsPlayer()) {
+      EMIT_SOUND_DYN(ENT(pev), CHAN_WEAPON, "cbar_hitbod1.wav",
+                     1.0, ATTN_NORM, 0, 100);
+   }
+   else
+   {
+      EMIT_SOUND_DYN(ENT(pev), CHAN_WEAPON, "cbar_hit1.wav",
+                     1.0, ATTN_NORM, 0, 100);
+      if (UTIL_PointContents(pev->origin) != CONTENTS_WATER)
+      {
+         UTIL_Sparks( pev->origin );
+         UTIL_Sparks( pev->origin );
+         UTIL_Sparks( pev->origin );
+      }
+   }
+
+   // Don't draw the flying crowbar anymore.
+   pev->effects |= EF_NODRAW;
+   pev->solid = SOLID_NOT;
+
+   // Spawn a crowbar weapon
+   CBasePlayerWeapon *pItem = (CBasePlayerWeapon *)Create( "weapon_crowbar",
+                               pev->origin , pev->angles, edict() );
+
+   // Spawn a weapon box
+   CWeaponBox *pWeaponBox = (CWeaponBox *)CBaseEntity::Create(
+                  "weaponbox", pev->origin, pev->angles, edict() );
+
+   // don't let weapon box tilt.
+   pWeaponBox->pev->angles.x = 0;
+   pWeaponBox->pev->angles.z = 0;
+
+   // remove the weapon box after 2 mins.
+   pWeaponBox->pev->nextthink = gpGlobals->time + 120;
+   pWeaponBox->SetThink( &CWeaponBox::Kill );
+
+   // Pack the crowbar in the weapon box
+   pWeaponBox->PackWeapon( pItem );
+
+   // Get the unit vector in the direction of motion.
+   Vector vecDir = pev->velocity.Normalize( );
+
+   // Trace a line along the velocity vector to get the normal at impact.
+   TraceResult tr;
+   UTIL_TraceLine(pev->origin, pev->origin + vecDir * 100,
+                  dont_ignore_monsters, ENT(pev), &tr);
+
+   // Throw the weapon box along the normal so it looks kinda
+   // like a ricochet. This would be better if I actually
+   // calcualted the reflection angle, but I'm lazy. :)
+   pWeaponBox->pev->velocity = tr.vecPlaneNormal * 300;
+
+   // Remove this flying_crowbar from the world.
+   SetThink ( &CBaseEntity::SUB_Remove );
+   pev->nextthink = gpGlobals->time + .1;
+}
+
+void CFlyingCrowbar::BubbleThink( void )
+{
+   // We have no owner. We do this .25 seconds AFTER the crowbar
+   // is thrown so that we don't hit the owner immediately when throwing
+   // it. If is comes back later, we want to be able to hit the owner.
+   pev->owner = NULL;
+
+   // Only think every .25 seconds.
+   pev->nextthink = gpGlobals->time + 0.25;
+
+   // Make a whooshy sound.
+   EMIT_SOUND_DYN(ENT(pev), CHAN_VOICE, "weapons/cbar_miss1.wav",
+                  1, ATTN_NORM, 0, 120);
+
+   // If the crowbar enters water, make some bubbles.
+   if (pev->waterlevel)
+	   UTIL_BubbleTrail( pev->origin - pev->velocity * 0.1, pev->origin, 1 );
+}
