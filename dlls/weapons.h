@@ -518,12 +518,15 @@ class CCrowbar : public CBasePlayerWeapon
 public:
 	void Spawn( void );
 	void Precache( void );
+	int AddToPlayer( CBasePlayer *pPlayer );
 	int iItemSlot( void ) { return 1; }
 	void EXPORT SwingAgain( void );
 	void EXPORT Smack( void );
 	int GetItemInfo(ItemInfo *p);
 
 	void PrimaryAttack( void );
+	void SecondaryAttack( void );
+	void Throw( void );
 	int Swing( int fFirst );
 	BOOL Deploy( void );
 	void Holster( int skiplocal = 0 );

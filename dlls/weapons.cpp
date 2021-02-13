@@ -1494,6 +1494,10 @@ BOOL CWeaponBox::PackWeapon( CBasePlayerItem *pWeapon )
 	{
 		SET_MODEL( ENT(pev), "models/w_knife.mdl");
 	}
+	else if (pWeapon->m_iId == WEAPON_CROWBAR)
+	{
+		SET_MODEL( ENT(pev), "models/w_crowbar.mdl");
+	}
 
 	return TRUE;
 }
