@@ -91,7 +91,8 @@ CClassMenuPanel::CClassMenuPanel(int iTrans, int iRemoveMe, int x,int y,int wide
 	//force the scrollbars on, so after the validate clientClip will be smaller
 	m_pScrollPanel->setScrollBarAutoVisible(false, false);
 	m_pScrollPanel->setScrollBarVisible(true, true);
-	m_pScrollPanel->setBorder( new LineBorder( Color(255 * 0.7,170 * 0.7,0,0) ) );
+	UnpackRGB(r, g, b, RGB_BLUEISH);
+	m_pScrollPanel->setBorder( new LineBorder( Color(r, g, b, 0) ) );
 	m_pScrollPanel->validate();
 
 	int clientWide=m_pScrollPanel->getClient()->getWide();

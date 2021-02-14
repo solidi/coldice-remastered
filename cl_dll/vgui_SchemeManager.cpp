@@ -19,6 +19,7 @@
 #include "hud.h"
 #include "vgui_SchemeManager.h"
 #include "cvardef.h"
+#include "cl_util.h"
 
 #include <string.h>
 
@@ -495,6 +496,7 @@ void CSchemeManager::getFgColor( SchemeHandle_t schemeHandle, int &r, int &g, in
 	r = pScheme->fgColor[0];
 	g = pScheme->fgColor[1];
 	b = pScheme->fgColor[2];
+	UnpackRGB(r, g, b, RGB_BLUEISH);
 	a = pScheme->fgColor[3];
 }
 

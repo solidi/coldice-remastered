@@ -87,7 +87,7 @@ using namespace vgui;
 int iNumberOfTeamColors = 5;
 int iTeamColors[5][3] =
 {
-	{ 255, 170, 0 },	// HL orange (default)
+	{ 0, 160, 255 },	// Cold Ice (default)
 	{ 125, 165, 210 },	// Blue
 	{ 200, 90, 70 },	// Red
 	{ 225, 205, 45 },	// Yellow
@@ -1733,7 +1733,7 @@ CMenuPanel* TeamFortressViewport::CreateTextWindow( int iTextToShow )
 	if ( iTextToShow == SHOW_MOTD )
 	{
 		if (!m_szServerName || !m_szServerName[0])
-			strcpy( cTitle, "Half-Life" );
+			strcpy( cTitle, "Cold Ice Goldsrc" );
 		else
 			strncpy( cTitle, m_szServerName, sizeof(cTitle) );
 		cTitle[sizeof(cTitle)-1] = 0;
