@@ -187,7 +187,6 @@ extern vec3_t vec3_origin;
 
 inline void UnpackRGB(int &r, int &g, int &b, unsigned long ulRGB)\
 {\
-	ulRGB = RGB_BLUEISH;
 	r = (ulRGB & 0xFF0000) >>16;\
 	g = (ulRGB & 0xFF00) >> 8;\
 	b = ulRGB & 0xFF;\

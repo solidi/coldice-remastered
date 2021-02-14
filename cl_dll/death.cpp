@@ -59,7 +59,7 @@ float *GetClientColor( int clientIndex )
 	case 2: return g_ColorRed;
 	case 3: return g_ColorYellow;
 	case 4: return g_ColorGreen;
-	case 0: return g_ColorYellow;
+	case 0: return g_ColorBlue;
 
 		default	: return g_ColorGrey;
 	}
@@ -130,7 +130,7 @@ int CHudDeathNotice :: Draw( float flTime )
 				x = 5 + DrawConsoleString( x, y, rgDeathNoticeList[i].szKiller );
 			}
 
-			r = 255;  g = 80;	b = 0;
+			UnpackRGB( r, g, b, RGB_BLUEISH );
 			if ( rgDeathNoticeList[i].iTeamKill )
 			{
 				r = 10;	g = 240; b = 10;  // display it in sickly green
