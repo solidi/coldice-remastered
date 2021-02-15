@@ -1580,7 +1580,7 @@ void CBasePlayer::PlayerUse ( void )
 		int caps = pObject->ObjectCaps();
 
 		if ( m_afButtonPressed & IN_USE )
-			EMIT_SOUND( ENT(pev), CHAN_ITEM, "common/wpn_select.wav", 0.4, ATTN_NORM);
+			EMIT_SOUND( ENT(pev), CHAN_ITEM, "wpn_select.wav", 0.4, ATTN_NORM);
 
 		if ( ( (pev->button & IN_USE) && (caps & FCAP_CONTINUOUS_USE) ) ||
 			 ( (m_afButtonPressed & IN_USE) && (caps & (FCAP_IMPULSE_USE|FCAP_ONOFF_USE)) ) )

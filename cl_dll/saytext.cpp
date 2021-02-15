@@ -229,7 +229,7 @@ void CHudSayText :: SayTextPrint( const char *pszBuf, int iBufSize, int clientIn
 	}
 
 	m_iFlags |= HUD_ACTIVE;
-	PlaySound( "misc/talk.wav", 1 );
+	PlaySound( "talk.wav", 1 );
 
 	Y_START = ScreenHeight - 60 - ( line_height * (MAX_LINES+2) );
 }

@@ -926,10 +926,10 @@ void ClientPrecache( void )
 
 	// hud sounds
 
-	PRECACHE_SOUND("common/wpn_hudoff.wav");
-	PRECACHE_SOUND("common/wpn_hudon.wav");
-	PRECACHE_SOUND("common/wpn_moveselect.wav");
-	PRECACHE_SOUND("common/wpn_select.wav");
+	PRECACHE_SOUND("wpn_hudoff.wav");
+	PRECACHE_SOUND("wpn_hudon.wav");
+	PRECACHE_SOUND("wpn_moveselect.wav");
+	PRECACHE_SOUND("wpn_select.wav");
 	PRECACHE_SOUND("common/wpn_denyselect.wav");
 
 
