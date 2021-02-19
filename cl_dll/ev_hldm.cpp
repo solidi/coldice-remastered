@@ -66,6 +66,7 @@ void EV_Crowbar( struct event_args_s *args  );
 void EV_FireCrossbow( struct event_args_s *args  );
 void EV_FireCrossbow2( struct event_args_s *args  );
 void EV_FireRpg( struct event_args_s *args  );
+void EV_FireRpgExtreme( struct event_args_s *args  );
 void EV_EgonFire( struct event_args_s *args  );
 void EV_EgonStop( struct event_args_s *args  );
 void EV_HornetGunFire( struct event_args_s *args  );
@@ -1334,6 +1335,7 @@ enum rpg_e {
 	RPG_FIDGET,
 	RPG_RELOAD,		// to reload
 	RPG_FIRE2,		// to empty
+	RPG_FIRE3,		// to empty, with sound!
 	RPG_HOLSTER1,	// loaded
 	RPG_DRAW1,		// loaded
 	RPG_HOLSTER2,	// unloaded
@@ -1358,6 +1360,26 @@ void EV_FireRpg( event_args_t *args )
 	{
 		gEngfuncs.pEventAPI->EV_WeaponAnimation( RPG_FIRE2, 1 );
 	
+		V_PunchAxis( 0, -5.0 );
+	}
+}
+
+void EV_FireRpgExtreme( event_args_t *args )
+{
+	int idx;
+	vec3_t origin;
+
+	idx = args->entindex;
+	VectorCopy( args->origin, origin );
+
+	gEngfuncs.pEventAPI->EV_PlaySound( idx, origin, CHAN_WEAPON, "weapons/rocketfire1.wav", 0.9, ATTN_NORM, 0, PITCH_NORM );
+	gEngfuncs.pEventAPI->EV_PlaySound( idx, origin, CHAN_ITEM, "weapons/glauncher.wav", 0.7, ATTN_NORM, 0, PITCH_NORM );
+
+	//Only play the weapon anims if I shot it.
+	if ( EV_IsLocal( idx ) )
+	{
+		gEngfuncs.pEventAPI->EV_WeaponAnimation( RPG_FIRE3, 1 );
+
 		V_PunchAxis( 0, -5.0 );
 	}
 }

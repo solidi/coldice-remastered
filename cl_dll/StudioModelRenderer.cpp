@@ -1333,6 +1333,10 @@ int CStudioModelRenderer::StudioDrawModel( int flags )
 		if (!strncmp(m_pCurrentEntity->model->name, "models/w_", strlen("models/w_"))) {
 			m_pCurrentEntity->curstate.skin = cl_icemodels->value;
 		}
+
+		if (!strncmp(m_pCurrentEntity->model->name, "models/rpgrocket", strlen("models/rpgrocket"))) {
+			m_pCurrentEntity->curstate.skin = cl_icemodels->value;
+		}
 #endif 
 
 		IEngineStudio.StudioSetRemapColors( m_nTopColor, m_nBottomColor );

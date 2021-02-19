@@ -122,7 +122,7 @@ public:
 #define _357_MAX_CARRY			36
 #define BUCKSHOT_MAX_CARRY		125
 #define BOLT_MAX_CARRY			50
-#define ROCKET_MAX_CARRY		5
+#define ROCKET_MAX_CARRY		10
 #define HANDGRENADE_MAX_CARRY	10
 #define SATCHEL_MAX_CARRY		5
 #define TRIPMINE_MAX_CARRY		5
@@ -140,7 +140,7 @@ public:
 #define MP5_DEFAULT_AMMO		25
 #define SHOTGUN_MAX_CLIP		8
 #define CROSSBOW_MAX_CLIP		5
-#define RPG_MAX_CLIP			1
+#define RPG_MAX_CLIP			5
 #define GAUSS_MAX_CLIP			WEAPON_NOCLIP
 #define EGON_MAX_CLIP			WEAPON_NOCLIP
 #define HORNETGUN_MAX_CLIP		WEAPON_NOCLIP
@@ -158,7 +158,7 @@ public:
 #define MP5_M203_DEFAULT_GIVE		0
 #define SHOTGUN_DEFAULT_GIVE		12
 #define CROSSBOW_DEFAULT_GIVE		5
-#define RPG_DEFAULT_GIVE			1
+#define RPG_DEFAULT_GIVE			5
 #define GAUSS_DEFAULT_GIVE			20
 #define EGON_DEFAULT_GIVE			20
 #define HANDGRENADE_DEFAULT_GIVE	5
@@ -771,6 +771,7 @@ public:
 
 private:
 	unsigned short m_usRpg;
+	unsigned short m_usRpgExtreme;
 
 };
 
@@ -780,15 +781,16 @@ public:
 	int		Save( CSave &save );
 	int		Restore( CRestore &restore );
 	static	TYPEDESCRIPTION m_SaveData[];
-	void Spawn( void );
+	void Spawn( float startEngineTime );
 	void Precache( void );
 	void EXPORT FollowThink( void );
 	void EXPORT IgniteThink( void );
 	void EXPORT RocketTouch( CBaseEntity *pOther );
-	static CRpgRocket *CreateRpgRocket( Vector vecOrigin, Vector vecAngles, CBaseEntity *pOwner, CRpg *pLauncher );
+	static CRpgRocket *CreateRpgRocket( Vector vecOrigin, Vector vecAngles, CBaseEntity *pOwner, CRpg *pLauncher, float startEngineTime, BOOL redRocket );
 
 	int m_iTrail;
 	float m_flIgniteTime;
+	BOOL m_redRocket;
 	CRpg *m_pLauncher;// pointer back to the launcher that fired me. 
 };
 
