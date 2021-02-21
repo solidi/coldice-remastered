@@ -24,7 +24,11 @@
 
 #include <string.h>
 #include <stdio.h>
+
+#include <stdlib.h>
+#ifdef _WIN32
 #include <malloc.h> // _alloca
+#endif
 
 #include "vgui_TeamFortressViewport.h"
 
