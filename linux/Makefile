@@ -4,7 +4,7 @@
 #
 #
 
-OS:=$(shell uname)
+#OS:=$(shell uname)
 HOSTNAME:=$(shell hostname)
 
 ifeq "$(CFG)" ""
@@ -29,9 +29,9 @@ ARCH=i386
 ELF-GC-DYNSTR=./elf-gc-dynstr
 
 ifeq ($(OS),Linux)
-	CC="/valve/bin/gcc-4.6 -m32"
-	CPLUS="/valve/bin/g++-4.6 -m32"
-	CPP_LIB:=-L$(shell /valve/bin/g++-4.6 -m32 -print-file-name=libstdc++.so | xargs dirname) -lstdc++ -ldl -lpthread
+	CC="gcc-4.9 -w -Wfatal-errors -m32"
+	CPLUS="g++-4.9 -w -Wfatal-errors -m32"
+	CPP_LIB:=-L$(shell g++-4.9 -w -Wfatal-errors -m32 -print-file-name=libstdc++.so | xargs dirname) -lstdc++ -ldl -lpthread
 endif
 
 ifeq ($(OS),Darwin)
@@ -57,7 +57,7 @@ ifeq ($(OS),Darwin)
 		AR = libtool -static -o
 	endif
 	ifeq ($(origin CC), default)
-		CC ="$(COMPILER_BIN_DIR)/clang -Qunused-arguments -isysroot $(SDKROOT) -mmacosx-version-min=10.5 -fasm-blocks -I$(SDKROOT)/usr/include/malloc $(ARCH_FLAGS)"
+		CC ="$(COMPILER_BIN_DIR)/clang -w -Qunused-arguments -isysroot $(SDKROOT) -mmacosx-version-min=10.7 -fasm-blocks -I$(SDKROOT)/usr/include/malloc $(ARCH_FLAGS)"
 	endif
 	ifeq ($(origin CXX), default)
 		CPLUS ="$(COMPILER_BIN_DIR)/clang++ -Qunused-arguments -isysroot $(SDKROOT) -mmacosx-version-min=10.5 -fasm-blocks -I$(SDKROOT)/usr/include/malloc $(ARCH_FLAGS)"
@@ -87,9 +87,9 @@ endif
 
 ifeq ($(OS),Darwin)
 # force 387 for FP math so the precision between win32 and linux and osx match
-ARCH_CFLAGS_I486+=-march=pentium-m -mfpmath=387
-ARCH_CFLAGS_I686+=-march=pentium-m -mfpmath=387
-ARCH_CFLAGS_AMD+=-mfpmath=387
+ARCH_CFLAGS_I486+=-march=pentium-m -mfpmath=387 -mno-sse
+ARCH_CFLAGS_I686+=-march=pentium-m -mfpmath=387 -mno-sse
+ARCH_CFLAGS_AMD+=-mfpmath=387 -mno-sse
 endif
 
 
@@ -112,7 +112,7 @@ SHLIBLDFLAGS="-shared -gdwarf-2 -g2"
 else
 SHLIBEXT=so
 SHLIBCFLAGS=
-SHLIBLDFLAGS="-shared -gdwarf-2 -g2 -Wl,-Map,$@_map.txt"
+SHLIBLDFLAGS="-shared -gdwarf-2 -g2"
 endif
 AR=ar
 LIBEXT=a
