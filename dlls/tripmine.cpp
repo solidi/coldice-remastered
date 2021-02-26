@@ -147,7 +147,7 @@ void CTripmineGrenade :: Precache( void )
 {
 	PRECACHE_MODEL("models/v_tripmine.mdl");
 	PRECACHE_SOUND("weapons/mine_deploy.wav");
-	PRECACHE_SOUND("weapons/mine_activate.wav");
+	PRECACHE_SOUND("mine_activate.wav");
 	PRECACHE_SOUND("weapons/mine_charge.wav");
 }
 
@@ -222,7 +222,7 @@ void CTripmineGrenade :: PowerupThink( void  )
 		MakeBeam( );
 
 		// play enabled sound
-        EMIT_SOUND_DYN( ENT(pev), CHAN_VOICE, "weapons/mine_activate.wav", 0.5, ATTN_NORM, 1.0, 75 );
+        EMIT_SOUND_DYN( ENT(pev), CHAN_VOICE, "mine_activate.wav", 0.5, ATTN_NORM, 1.0, 75 );
 	}
 	pev->nextthink = gpGlobals->time + 0.1;
 }
@@ -256,7 +256,7 @@ void CTripmineGrenade :: MakeBeam( void )
 
 	m_pBeam = CBeam::BeamCreate( g_pModelNameLaser, 10 );
 	m_pBeam->PointEntInit( vecTmpEnd, entindex() );
-	m_pBeam->SetColor( 0, 214, 198 );
+	m_pBeam->SetColor( 0, 0, 0 );
 	m_pBeam->SetScrollRate( 255 );
 	m_pBeam->SetBrightness( 64 );
 }
@@ -352,7 +352,9 @@ void CTripmineGrenade::DelayDeathThink( void )
 }
 #endif
 
+#ifdef TRIPMINE
 LINK_ENTITY_TO_CLASS( weapon_tripmine, CTripmine );
+#endif
 
 void CTripmine::Spawn( )
 {
@@ -401,6 +403,7 @@ int CTripmine::GetItemInfo(ItemInfo *p)
 	p->iId = m_iId = WEAPON_TRIPMINE;
 	p->iWeight = TRIPMINE_WEIGHT;
 	p->iFlags = ITEM_FLAG_LIMITINWORLD | ITEM_FLAG_EXHAUSTIBLE;
+	p->pszDisplayName = "Invisible Beam Tripmine";
 
 	return 1;
 }

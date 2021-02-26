@@ -20,7 +20,8 @@ CFLAGS=$(BASE_CFLAGS)  $(ARCH_CFLAGS)  -DCLIENT_WEAPONS \
 		 -DCLUSTER_GRENADES \
 		 -DCROWBAR \
 		 -DKNIFE \
-		 -DRPG
+		 -DRPG \
+		 -DTRIPMINE
 
 #-O3 -ffast-math -fno-strength-reduce
 

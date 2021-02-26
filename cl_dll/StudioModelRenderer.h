@@ -1,4 +1,4 @@
-//========= Copyright © 1996-2002, Valve LLC, All rights reserved. ============
+//========= Copyright ï¿½ 1996-2002, Valve LLC, All rights reserved. ============
 //
 // Purpose: 
 //
@@ -121,6 +121,8 @@ public:
 	cvar_t			*m_pCvarDeveloper;
 	// Draw entities bone hit boxes, etc?
 	cvar_t			*m_pCvarDrawEntities;
+
+	cvar_t			*m_pIceModels;
 
 	// The entity which we are currently rendering.
 	cl_entity_t		*m_pCurrentEntity;		
