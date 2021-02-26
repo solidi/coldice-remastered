@@ -24,8 +24,6 @@
 
 extern cvar_t *tfc_newmodels;
 
-extern cvar_t *cl_icemodels;
-
 extern extra_player_info_t  g_PlayerExtraInfo[MAX_PLAYERS+1];
 
 // team colors for old TFC models
@@ -54,6 +52,7 @@ void CStudioModelRenderer::Init( void )
 	m_pCvarHiModels			= IEngineStudio.GetCvar( "cl_himodels" );
 	m_pCvarDeveloper		= IEngineStudio.GetCvar( "developer" );
 	m_pCvarDrawEntities		= IEngineStudio.GetCvar( "r_drawentities" );
+	m_pIceModels			= gEngfuncs.pfnRegisterVariable ( "cl_icemodels", "1", FCVAR_ARCHIVE );
 
 	m_pChromeSprite			= IEngineStudio.GetChromeSprite();
 
@@ -1325,17 +1324,13 @@ int CStudioModelRenderer::StudioDrawModel( int flags )
 #else
 		m_nTopColor    = m_pCurrentEntity->curstate.colormap & 0xFF;
 		m_nBottomColor = (m_pCurrentEntity->curstate.colormap & 0xFF00) >> 8;
-		if ( m_pCurrentEntity == gEngfuncs.GetViewModel() )
-		{
-			m_pCurrentEntity->curstate.skin = cl_icemodels->value;
-		}
 
 		if (!strncmp(m_pCurrentEntity->model->name, "models/w_", strlen("models/w_"))) {
-			m_pCurrentEntity->curstate.skin = cl_icemodels->value;
-		}
-
-		if (!strncmp(m_pCurrentEntity->model->name, "models/rpgrocket", strlen("models/rpgrocket"))) {
-			m_pCurrentEntity->curstate.skin = cl_icemodels->value;
+			m_pCurrentEntity->curstate.skin = m_pIceModels->value;
+		} else if (!strncmp(m_pCurrentEntity->model->name, "models/v_", strlen("models/v_"))) {
+			m_pCurrentEntity->curstate.skin = m_pIceModels->value;
+		} else if (!strncmp(m_pCurrentEntity->model->name, "models/rpgrocket", strlen("models/rpgrocket"))) {
+			m_pCurrentEntity->curstate.skin = m_pIceModels->value;
 		}
 #endif 
 
@@ -1862,7 +1857,7 @@ int CStudioModelRenderer::StudioDrawPlayer( int flags, entity_state_t *pplayer )
 			cl_entity_t saveent = *m_pCurrentEntity;
 
 			model_t *pweaponmodel = IEngineStudio.GetModelByIndex( pplayer->weaponmodel );
-			m_pCurrentEntity->curstate.skin = cl_icemodels->value;
+			m_pCurrentEntity->curstate.skin = m_pIceModels->value;
 
 #if defined _TFC
 			if ( pweaponmodel )
