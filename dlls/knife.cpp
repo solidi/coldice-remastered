@@ -188,7 +188,7 @@ void CKnife::SecondaryAttack()
 	// Just for kicks, set this. 
 	// But we destroy this weapon anyway so... thppt. 
 	m_flNextSecondaryAttack = gpGlobals->time + 0.75;
-	pev->nextthink = gpGlobals->time + 0.35;
+	pev->nextthink = gpGlobals->time + 0.25;
 }
 
 void CKnife::Throw() {
