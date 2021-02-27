@@ -205,6 +205,27 @@ private:
 //
 //-----------------------------------------------------
 //
+class CHudMOTD : public CHudBase
+{
+public:
+	int Init( void );
+	int VidInit( void );
+	int Draw( float flTime );
+	void Reset( void );
+
+	int MsgFunc_MOTD( const char *pszName, int iSize, void *pbuf );
+
+protected:
+	static int MOTD_DISPLAY_TIME;
+	char m_szMOTD[ MAX_MOTD_LENGTH ];
+	float m_flActiveTill;
+	int m_iLines;
+	float m_flActiveRemaining;
+};
+
+//
+//-----------------------------------------------------
+//
 class CHudStatusBar : public CHudBase
 {
 public:
@@ -611,6 +632,7 @@ public:
 	CHudTextMessage m_TextMessage;
 	CHudStatusIcons m_StatusIcons;
 	CHudBenchmark	m_Benchmark;
+	CHudMOTD        m_MOTD;
 
 	void Init( void );
 	void VidInit( void );

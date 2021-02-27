@@ -95,7 +95,8 @@ int CHudMOTD :: Draw( float fTime )
 	while ( *ch )
 	{
 		int line_length = 0;  // count the length of the current line
-		for ( char *next_line = ch; *next_line != '\n' && *next_line != 0; next_line++ )
+		char *next_line;
+		for ( next_line = ch; *next_line != '\n' && *next_line != 0; next_line++ )
 			line_length += gHUD.m_scrinfo.charWidths[ *next_line ];
 		char *top = next_line;
 		if ( *top == '\n' )
@@ -106,7 +107,9 @@ int CHudMOTD :: Draw( float fTime )
 		// find where to start drawing the line
 		int xpos = (ScreenWidth - line_length) / 2;
 
-		gHUD.DrawHudString( xpos, ypos, ScreenWidth, ch, 255, 180, 0 );
+		int r, g, b;
+		UnpackRGB(r, g, b, RGB_BLUEISH);
+		gHUD.DrawHudString( xpos, ypos, ScreenWidth, ch, r, g, b );
 
 		ypos += LINE_HEIGHT;
 

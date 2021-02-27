@@ -205,9 +205,7 @@ int __MsgFunc_VGUIMenu(const char *pszName, int iSize, void *pbuf)
 
 int __MsgFunc_MOTD(const char *pszName, int iSize, void *pbuf)
 {
-	if (gViewPort)
-		return gViewPort->MsgFunc_MOTD( pszName, iSize, pbuf );
-	return 0;
+	return gHUD.m_MOTD.MsgFunc_MOTD( pszName, iSize, pbuf );
 }
 
 int __MsgFunc_BuildSt(const char *pszName, int iSize, void *pbuf)
@@ -364,6 +362,7 @@ void CHud :: Init( void )
 	m_AmmoSecondary.Init();
 	m_TextMessage.Init();
 	m_StatusIcons.Init();
+	m_MOTD.Init();
 	GetClientVoiceMgr()->Init(&g_VoiceStatusHelper, (vgui::Panel**)&gViewPort);
 
 	m_Menu.Init();
@@ -513,6 +512,7 @@ void CHud :: VidInit( void )
 	m_AmmoSecondary.VidInit();
 	m_TextMessage.VidInit();
 	m_StatusIcons.VidInit();
+	m_MOTD.VidInit();
 	GetClientVoiceMgr()->VidInit();
 }
 
