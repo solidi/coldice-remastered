@@ -31,6 +31,7 @@
 #include "voice_status.h"
 #include "vgui_SpectatorPanel.h"
 
+extern cvar_t *cl_oldscoreboard;
 extern hud_player_info_t	 g_PlayerInfoList[MAX_PLAYERS+1];	   // player info from the engine
 extern extra_player_info_t  g_PlayerExtraInfo[MAX_PLAYERS+1];   // additional player info sent directly to the client dll
 team_info_t			 g_TeamInfo[MAX_TEAMS+1];
@@ -891,6 +892,10 @@ void ScorePanel::DeathMsg( int killer, int victim )
 
 void ScorePanel::Open( void )
 {
+	if (cl_oldscoreboard && cl_oldscoreboard->value) {
+		return;
+	}
+
 	RebuildTeams();
 	setVisible(true);
 	m_HitTestPanel.setVisible(true);

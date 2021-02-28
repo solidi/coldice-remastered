@@ -24,6 +24,7 @@ extern "C"
 
 #include "vgui_TeamFortressViewport.h"
 
+extern cvar_t *cl_oldscoreboard;
 
 extern int g_iAlive;
 
@@ -515,8 +516,9 @@ void IN_Impulse (void)
 void IN_ScoreDown(void)
 {
 	KeyDown(&in_score);
-	if ( gViewPort )
-	{
+	if (cl_oldscoreboard && cl_oldscoreboard->value) {
+		gHUD.m_Scoreboard.UserCmd_ShowScores();
+	} else if ( gViewPort ) {
 		gViewPort->ShowScoreBoard();
 	}
 }
@@ -524,8 +526,9 @@ void IN_ScoreDown(void)
 void IN_ScoreUp(void)
 {
 	KeyUp(&in_score);
-	if ( gViewPort )
-	{
+	if (cl_oldscoreboard && cl_oldscoreboard->value) {
+		gHUD.m_Scoreboard.UserCmd_HideScores();
+	} else if ( gViewPort ) {
 		gViewPort->HideScoreBoard();
 	}
 }

@@ -226,6 +226,45 @@ protected:
 //
 //-----------------------------------------------------
 //
+
+class CHudScoreboard: public CHudBase
+{
+public:
+	int Init( void );
+	void InitHUDData( void );
+	int VidInit( void );
+	int Draw( float flTime );
+	int DrawPlayers( int xoffset, float listslot, int nameoffset = 0, char *team = NULL ); // returns the ypos where it finishes drawing
+	void UserCmd_ShowScores( void );
+	void UserCmd_HideScores( void );
+	int MsgFunc_ScoreInfo2( const char *pszName, int iSize, void *pbuf );
+	int MsgFunc_TeamInfo2( const char *pszName, int iSize, void *pbuf );
+	int MsgFunc_TeamScore2( const char *pszName, int iSize, void *pbuf );
+	void DeathMsg( int killer, int victim );
+
+	enum {
+		MAX_PLAYERS = 32,
+		MAX_TEAMS = 32,
+		MAX_TEAM_NAME = 16,
+	};
+
+	hud_player_info_t m_PlayerInfoList[MAX_PLAYERS+1];	   // player info from the engine
+
+	int m_iNumTeams;
+
+	int m_iLastKilledBy;
+	int m_fLastKillTime;
+	int m_iPlayerNum;
+	int m_iShowscoresHeld;
+
+	cvar_t *cl_showpacketloss;
+
+	void GetAllPlayersInfo( void );
+};
+
+//
+//-----------------------------------------------------
+//
 class CHudStatusBar : public CHudBase
 {
 public:
@@ -633,6 +672,7 @@ public:
 	CHudStatusIcons m_StatusIcons;
 	CHudBenchmark	m_Benchmark;
 	CHudMOTD        m_MOTD;
+	CHudScoreboard  m_Scoreboard;
 
 	void Init( void );
 	void VidInit( void );
