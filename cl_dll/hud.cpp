@@ -34,6 +34,9 @@
 hud_player_info_t	 g_PlayerInfoList[MAX_PLAYERS+1];	   // player info from the engine
 extra_player_info_t  g_PlayerExtraInfo[MAX_PLAYERS+1];   // additional player info sent directly to the client dll
 
+cvar_t *cl_oldmotd;
+cvar_t *cl_oldscoreboard;
+
 class CHLVoiceStatusHelper : public IVoiceStatusHelper
 {
 public:
@@ -205,7 +208,12 @@ int __MsgFunc_VGUIMenu(const char *pszName, int iSize, void *pbuf)
 
 int __MsgFunc_MOTD(const char *pszName, int iSize, void *pbuf)
 {
-	return gHUD.m_MOTD.MsgFunc_MOTD( pszName, iSize, pbuf );
+	if (cl_oldmotd && cl_oldmotd->value) {
+		return gHUD.m_MOTD.MsgFunc_MOTD( pszName, iSize, pbuf );
+	} else if (gViewPort) {
+		return gViewPort->MsgFunc_MOTD( pszName, iSize, pbuf );
+	}
+	return 0;
 }
 
 int __MsgFunc_BuildSt(const char *pszName, int iSize, void *pbuf)
@@ -231,22 +239,28 @@ int __MsgFunc_ServerName(const char *pszName, int iSize, void *pbuf)
 
 int __MsgFunc_ScoreInfo(const char *pszName, int iSize, void *pbuf)
 {
-	if (gViewPort)
+	gHUD.m_Scoreboard.MsgFunc_ScoreInfo2( pszName, iSize, pbuf );
+	if (gViewPort) {
 		return gViewPort->MsgFunc_ScoreInfo( pszName, iSize, pbuf );
+	}
 	return 0;
 }
 
 int __MsgFunc_TeamScore(const char *pszName, int iSize, void *pbuf)
 {
-	if (gViewPort)
+	gHUD.m_Scoreboard.MsgFunc_TeamScore2( pszName, iSize, pbuf );
+	if (gViewPort) {
 		return gViewPort->MsgFunc_TeamScore( pszName, iSize, pbuf );
+	}
 	return 0;
 }
 
 int __MsgFunc_TeamInfo(const char *pszName, int iSize, void *pbuf)
 {
-	if (gViewPort)
+	gHUD.m_Scoreboard.MsgFunc_TeamInfo2( pszName, iSize, pbuf );
+	if (gViewPort) {
 		return gViewPort->MsgFunc_TeamInfo( pszName, iSize, pbuf );
+	}
 	return 0;
 }
 
@@ -320,6 +334,8 @@ void CHud :: Init( void )
 	CVAR_CREATE( "hud_classautokill", "1", FCVAR_ARCHIVE | FCVAR_USERINFO );		// controls whether or not to suicide immediately on TF class switch
 	CVAR_CREATE( "hud_takesshots", "0", FCVAR_ARCHIVE );		// controls whether or not to automatically take screenshots at the end of a round
 
+	cl_oldmotd = CVAR_CREATE( "cl_oldmotd", "1", FCVAR_ARCHIVE );
+	cl_oldscoreboard = CVAR_CREATE( "cl_oldscoreboard", "1", FCVAR_ARCHIVE );
 
 	m_iLogo = 0;
 	m_iFOV = 0;
@@ -363,6 +379,7 @@ void CHud :: Init( void )
 	m_TextMessage.Init();
 	m_StatusIcons.Init();
 	m_MOTD.Init();
+	m_Scoreboard.Init();
 	GetClientVoiceMgr()->Init(&g_VoiceStatusHelper, (vgui::Panel**)&gViewPort);
 
 	m_Menu.Init();
@@ -513,6 +530,7 @@ void CHud :: VidInit( void )
 	m_TextMessage.VidInit();
 	m_StatusIcons.VidInit();
 	m_MOTD.VidInit();
+	m_Scoreboard.VidInit();
 	GetClientVoiceMgr()->VidInit();
 }
 

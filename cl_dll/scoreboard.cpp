@@ -26,12 +26,14 @@
 #include <stdio.h>
 #include "vgui_TeamFortressViewport.h"
 
-DECLARE_COMMAND( m_Scoreboard, ShowScores );
-DECLARE_COMMAND( m_Scoreboard, HideScores );
+//DECLARE_COMMAND( m_Scoreboard, ShowScores );
+//DECLARE_COMMAND( m_Scoreboard, HideScores );
 
-DECLARE_MESSAGE( m_Scoreboard, ScoreInfo );
-DECLARE_MESSAGE( m_Scoreboard, TeamInfo );
-DECLARE_MESSAGE( m_Scoreboard, TeamScore );
+DECLARE_MESSAGE( m_Scoreboard, ScoreInfo2 );
+DECLARE_MESSAGE( m_Scoreboard, TeamInfo2 );
+DECLARE_MESSAGE( m_Scoreboard, TeamScore2 );
+
+extern cvar_t *cl_oldscoreboard;
 
 int CHudScoreboard :: Init( void )
 {
@@ -41,9 +43,9 @@ int CHudScoreboard :: Init( void )
 	//HOOK_COMMAND( "+showscores", ShowScores );
 	//HOOK_COMMAND( "-showscores", HideScores );
 
-	HOOK_MESSAGE( ScoreInfo );
-	HOOK_MESSAGE( TeamScore );
-	HOOK_MESSAGE( TeamInfo );
+	HOOK_MESSAGE( ScoreInfo2 );
+	HOOK_MESSAGE( TeamScore2 );
+	HOOK_MESSAGE( TeamInfo2 );
 
 	InitHUDData();
 
@@ -102,6 +104,10 @@ int SCOREBOARD_WIDTH = 320;
 
 int CHudScoreboard :: Draw( float fTime )
 {
+	if (cl_oldscoreboard && !cl_oldscoreboard->value) {
+		return 1;
+	}
+
 	int can_show_packetloss = 0;
 	int FAR_RIGHT;
 
@@ -130,19 +136,22 @@ int CHudScoreboard :: Draw( float fTime )
 	int ypos = ROW_RANGE_MIN + (list_slot * ROW_GAP);
 	int	xpos = NAME_RANGE_MIN + xpos_rel;
 
-	if ( !gHUD.m_Teamplay ) 
-		gHUD.DrawHudString( xpos, ypos, NAME_RANGE_MAX + xpos_rel, "Player", 255, 140, 0 );
-	else
-		gHUD.DrawHudString( xpos, ypos, NAME_RANGE_MAX + xpos_rel, "Teams", 255, 140, 0 );
+	int r, g, b;
+	UnpackRGB(r, g, b, RGB_BLUEISH);
 
-	gHUD.DrawHudStringReverse( KILLS_RANGE_MAX + xpos_rel, ypos, 0, "kills", 255, 140, 0 );
-	gHUD.DrawHudString( DIVIDER_POS + xpos_rel, ypos, ScreenWidth, "/", 255, 140, 0 );
-	gHUD.DrawHudString( DEATHS_RANGE_MIN + xpos_rel + 5, ypos, ScreenWidth, "deaths", 255, 140, 0 );
-	gHUD.DrawHudString( PING_RANGE_MAX + xpos_rel - 35, ypos, ScreenWidth, "latency", 255, 140, 0 );
+	if ( !gHUD.m_Teamplay ) 
+		gHUD.DrawHudString( xpos, ypos, NAME_RANGE_MAX + xpos_rel, "Player", r, g, b );
+	else
+		gHUD.DrawHudString( xpos, ypos, NAME_RANGE_MAX + xpos_rel, "Teams", r, g, b );
+
+	gHUD.DrawHudStringReverse( KILLS_RANGE_MAX + xpos_rel, ypos, 0, "kills", r, g, b );
+	gHUD.DrawHudString( DIVIDER_POS + xpos_rel, ypos, ScreenWidth, "/", r, g, b );
+	gHUD.DrawHudString( DEATHS_RANGE_MIN + xpos_rel + 5, ypos, ScreenWidth, "deaths", r, g, b );
+	gHUD.DrawHudString( PING_RANGE_MAX + xpos_rel - 35, ypos, ScreenWidth, "latency", r, g, b );
 
 	if ( can_show_packetloss )
 	{
-		gHUD.DrawHudString( PL_RANGE_MAX + xpos_rel - 35, ypos, ScreenWidth, "pkt loss", 255, 140, 0 );
+		gHUD.DrawHudString( PL_RANGE_MAX + xpos_rel - 35, ypos, ScreenWidth, "pkt loss", r, g, b );
 	}
 
 	FAR_RIGHT = can_show_packetloss ? PL_RANGE_MAX : PING_RANGE_MAX;
@@ -151,7 +160,7 @@ int CHudScoreboard :: Draw( float fTime )
 	list_slot += 1.2;
 	ypos = ROW_RANGE_MIN + (list_slot * ROW_GAP);
 	xpos = NAME_RANGE_MIN + xpos_rel;
-	FillRGBA( xpos - 5, ypos, FAR_RIGHT, 1, 255, 140, 0, 255);  // draw the seperator line
+	FillRGBA( xpos - 5, ypos, FAR_RIGHT, 1, r, g, b, 255);  // draw the seperator line
 	
 	list_slot += 0.8;
 
@@ -162,8 +171,9 @@ int CHudScoreboard :: Draw( float fTime )
 		return 1;
 	}
 
+	int i = 0;
 	// clear out team scores
-	for ( int i = 1; i <= m_iNumTeams; i++ )
+	for ( i = 1; i <= m_iNumTeams; i++ )
 	{
 		if ( !g_TeamInfo[i].scores_overriden )
 			g_TeamInfo[i].frags = g_TeamInfo[i].deaths = 0;
@@ -179,8 +189,9 @@ int CHudScoreboard :: Draw( float fTime )
 		if ( g_PlayerExtraInfo[i].teamname[0] == 0 )
 			continue; // skip over players who are not in a team
 
+		int j = 0;
 		// find what team this player is in
-		for ( int j = 1; j <= m_iNumTeams; j++ )
+		for ( j = 1; j <= m_iNumTeams; j++ )
 		{
 			if ( !stricmp( g_PlayerExtraInfo[i].teamname, g_TeamInfo[j].name ) )
 				break;
@@ -251,7 +262,6 @@ int CHudScoreboard :: Draw( float fTime )
 			break;
 
 		xpos = NAME_RANGE_MIN + xpos_rel;
-		int r = 255, g = 225, b = 55; // draw the stuff kinda yellowish
 		
 		if ( team_info->ownteam ) // if it is their team, draw the background different color
 		{
@@ -431,14 +441,14 @@ void CHudScoreboard :: GetAllPlayersInfo( void )
 {
 	for ( int i = 1; i < MAX_PLAYERS; i++ )
 	{
-		GetPlayerInfo( i, &g_PlayerInfoList[i] );
+		gEngfuncs.pfnGetPlayerInfo( i, &g_PlayerInfoList[i] );
 
 		if ( g_PlayerInfoList[i].thisplayer )
 			m_iPlayerNum = i;  // !!!HACK: this should be initialized elsewhere... maybe gotten from the engine
 	}
 }
 
-int CHudScoreboard :: MsgFunc_ScoreInfo( const char *pszName, int iSize, void *pbuf )
+int CHudScoreboard :: MsgFunc_ScoreInfo2( const char *pszName, int iSize, void *pbuf )
 {
 	m_iFlags |= HUD_ACTIVE;
 
@@ -466,7 +476,7 @@ int CHudScoreboard :: MsgFunc_ScoreInfo( const char *pszName, int iSize, void *p
 // accepts two values:
 //		byte: client number
 //		string: client team name
-int CHudScoreboard :: MsgFunc_TeamInfo( const char *pszName, int iSize, void *pbuf )
+int CHudScoreboard :: MsgFunc_TeamInfo2( const char *pszName, int iSize, void *pbuf )
 {
 	BEGIN_READ( pbuf, iSize );
 	short cl = READ_BYTE();
@@ -478,8 +488,9 @@ int CHudScoreboard :: MsgFunc_TeamInfo( const char *pszName, int iSize, void *pb
 
 	// rebuild the list of teams
 
+	int i = 0;
 	// clear out player counts from teams
-	for ( int i = 1; i <= m_iNumTeams; i++ )
+	for ( i = 1; i <= m_iNumTeams; i++ )
 	{
 		g_TeamInfo[i].players = 0;
 	}
@@ -495,8 +506,9 @@ int CHudScoreboard :: MsgFunc_TeamInfo( const char *pszName, int iSize, void *pb
 		if ( g_PlayerExtraInfo[i].teamname[0] == 0 )
 			continue; // skip over players who are not in a team
 
+		int j = 0;
 		// is this player in an existing team?
-		for ( int j = 1; j <= m_iNumTeams; j++ )
+		for ( j = 1; j <= m_iNumTeams; j++ )
 		{
 			if ( g_TeamInfo[j].name[0] == '\0' )
 				break;
@@ -538,13 +550,14 @@ int CHudScoreboard :: MsgFunc_TeamInfo( const char *pszName, int iSize, void *pb
 //		short: teams kills
 //		short: teams deaths 
 // if this message is never received, then scores will simply be the combined totals of the players.
-int CHudScoreboard :: MsgFunc_TeamScore( const char *pszName, int iSize, void *pbuf )
+int CHudScoreboard :: MsgFunc_TeamScore2( const char *pszName, int iSize, void *pbuf )
 {
 	BEGIN_READ( pbuf, iSize );
 	char *TeamName = READ_STRING();
 
+	int i = 0;
 	// find the team matching the name
-	for ( int i = 1; i <= m_iNumTeams; i++ )
+	for ( i = 1; i <= m_iNumTeams; i++ )
 	{
 		if ( !stricmp( TeamName, g_TeamInfo[i].name ) )
 			break;
@@ -578,9 +591,11 @@ void CHudScoreboard :: DeathMsg( int killer, int victim )
 void CHudScoreboard :: UserCmd_ShowScores( void )
 {
 	m_iShowscoresHeld = TRUE;
+	m_iFlags |= HUD_ACTIVE;
 }
 
 void CHudScoreboard :: UserCmd_HideScores( void )
 {
 	m_iShowscoresHeld = FALSE;
+	m_iFlags &= ~HUD_ACTIVE;
 }
