@@ -154,7 +154,7 @@ PM_OBJS = \
 GAME_SHARED_OBJS = \
 	$(GAME_SHARED_OBJ_DIR)/voice_gamemgr.o
 
-all: dirs hl.$(SHLIBEXT)
+all: dirs ice.$(SHLIBEXT)
 
 dirs:
 	-mkdir $(BUILD_OBJ_DIR)
@@ -163,11 +163,11 @@ dirs:
 	-mkdir $(PM_OBJ_DIR)
 	-mkdir $(GAME_SHARED_OBJ_DIR)
 
-hl.$(SHLIBEXT): $(HLDLL_OBJS) $(HLWPN_OBJS) $(PM_OBJS) $(GAME_SHARED_OBJS)
+ice.$(SHLIBEXT): $(HLDLL_OBJS) $(HLWPN_OBJS) $(PM_OBJS) $(GAME_SHARED_OBJS)
 	$(CC) $(LDFLAGS) $(SHLIBLDFLAGS) -o $(BUILD_DIR)/$@ $(HLDLL_OBJS) $(HLWPN_OBJS) $(PM_OBJS) $(GAME_SHARED_OBJS)
-	#p4 edit ../../game/mod/dlls/hl.$(SHLIBEXT)
+	#p4 edit ../../game/mod/dlls/ice.$(SHLIBEXT)
 	cp $(BUILD_DIR)/$@  ../../libs/dlls
-	#./gendbg.sh ../../game/mod/dlls/hl.$(SHLIBEXT)
+	#./gendbg.sh ../../game/mod/dlls/ice.$(SHLIBEXT)
 	
 $(HLWPN_OBJ_DIR)/%.o : $(HLWPN_SRC_DIR)/%.cpp
 	$(DO_HLWPN_CC)

@@ -100,8 +100,7 @@ call ..\..\filecopy.bat $(TargetDir)\$(TargetName).pdb ..\..\..\redist\cl_dlls\$
       </BaseAddress>
     </Link>
     <PostBuildEvent>
-      <Command>call ..\..\filecopy.bat $(TargetPath) ..\..\..\redist\cl_dlls\$(TargetName).dll
-call ..\..\filecopy.bat $(TargetDir)\$(TargetName).pdb ..\..\..\redist\cl_dlls\$(TargetName).pdb</Command>
+      <Command>call ..\..\filecopy.bat $(TargetPath) ..\..\..\redist\cl_dlls\$(TargetName).dll</Command>
     </PostBuildEvent>
     <PostBuildEvent>
       <Message>Performing Post-Build Event</Message>
