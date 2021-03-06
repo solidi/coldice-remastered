@@ -75,6 +75,8 @@ void EV_SnarkFire( struct event_args_s *args  );
 
 // Ice
 void EV_Knife( struct event_args_s *args );
+void EV_ChumtoadFire( struct event_args_s *args );
+void EV_ChumtoadRelease( struct event_args_s *args );
 
 
 void EV_TrainPitchAdjust( struct event_args_s *args );
@@ -1725,6 +1727,83 @@ void EV_Knife( event_args_t *args )
 				gEngfuncs.pEventAPI->EV_WeaponAnimation ( KNIFE_ATTACK3MISS, 1 ); break;
 		}
 	}
+}
+
+enum chumtoad_e {
+	CHUMTOAD_IDLE1 = 0,
+	CHUMTOAD_FIDGETFIT,
+	CHUMTOAD_FIDGETNIP,
+	CHUMTOAD_DOWN,
+	CHUMTOAD_UP,
+	CHUMTOAD_THROW,
+	CHUMTOAD_RELEASE,
+	CHUMTOAD_DRAW
+};
+
+void EV_ChumtoadFire( event_args_t *args )
+{
+	int idx;
+	vec3_t vecSrc, angles, view_ofs, forward;
+	pmtrace_t tr;
+
+	idx = args->entindex;
+	VectorCopy( args->origin, vecSrc );
+	VectorCopy( args->angles, angles );
+
+	AngleVectors ( angles, forward, NULL, NULL );
+
+	if ( !EV_IsLocal ( idx ) )
+		return;
+
+	if ( args->ducking )
+		vecSrc = vecSrc - ( VEC_HULL_MIN - VEC_DUCK_HULL_MIN );
+
+	// Store off the old count
+	gEngfuncs.pEventAPI->EV_PushPMStates();
+
+	// Now add in all of the players.
+	gEngfuncs.pEventAPI->EV_SetSolidPlayers ( idx - 1 );
+	gEngfuncs.pEventAPI->EV_SetTraceHull( 2 );
+	gEngfuncs.pEventAPI->EV_PlayerTrace( vecSrc + forward * 20, vecSrc + forward * 64, PM_NORMAL, -1, &tr );
+
+	//Find space to drop the thing.
+	if ( tr.allsolid == 0 && tr.startsolid == 0 && tr.fraction > 0.25 )
+		 gEngfuncs.pEventAPI->EV_WeaponAnimation ( CHUMTOAD_THROW, 0 );
+
+	gEngfuncs.pEventAPI->EV_PopPMStates();
+}
+
+void EV_ChumtoadRelease( event_args_t *args )
+{
+	int idx;
+	vec3_t vecSrc, angles, view_ofs, forward;
+	pmtrace_t tr;
+
+	idx = args->entindex;
+	VectorCopy( args->origin, vecSrc );
+	VectorCopy( args->angles, angles );
+
+	AngleVectors ( angles, forward, NULL, NULL );
+
+	if ( !EV_IsLocal ( idx ) )
+		return;
+
+	if ( args->ducking )
+		vecSrc = vecSrc - ( VEC_HULL_MIN - VEC_DUCK_HULL_MIN );
+
+	// Store off the old count
+	gEngfuncs.pEventAPI->EV_PushPMStates();
+
+	// Now add in all of the players.
+	gEngfuncs.pEventAPI->EV_SetSolidPlayers ( idx - 1 );
+	gEngfuncs.pEventAPI->EV_SetTraceHull( 2 );
+	gEngfuncs.pEventAPI->EV_PlayerTrace( vecSrc + forward * 20, vecSrc + forward * 64, PM_NORMAL, -1, &tr );
+
+	//Find space to drop the thing.
+	if ( tr.allsolid == 0 && tr.startsolid == 0 && tr.fraction > 0.25 )
+		 gEngfuncs.pEventAPI->EV_WeaponAnimation ( CHUMTOAD_RELEASE, 0 );
+
+	gEngfuncs.pEventAPI->EV_PopPMStates();
 }
 
 void EV_TrainPitchAdjust( event_args_t *args )

@@ -21,7 +21,8 @@ CFLAGS=$(BASE_CFLAGS)  $(ARCH_CFLAGS)  -DCLIENT_WEAPONS \
 		 -DCROWBAR \
 		 -DKNIFE \
 		 -DRPG \
-		 -DTRIPMINE
+		 -DTRIPMINE \
+		 -DCHUMTOAD
 
 #-O3 -ffast-math -fno-strength-reduce
 
@@ -54,6 +55,7 @@ HLDLL_OBJS = \
 	$(HLDLL_OBJ_DIR)/bullsquid.o \
 	$(HLDLL_OBJ_DIR)/buttons.o \
 	$(HLDLL_OBJ_DIR)/cbase.o \
+	$(HLDLL_OBJ_DIR)/chumtoad.o \
 	$(HLDLL_OBJ_DIR)/client.o \
 	$(HLDLL_OBJ_DIR)/combat.o \
 	$(HLDLL_OBJ_DIR)/controller.o \

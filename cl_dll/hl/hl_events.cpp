@@ -32,7 +32,6 @@ void EV_Crowbar( struct event_args_s *args );
 void EV_FireCrossbow( struct event_args_s *args );
 void EV_FireCrossbow2( struct event_args_s *args );
 void EV_FireRpg( struct event_args_s *args );
-void EV_FireRpgExtreme( struct event_args_s *args );
 void EV_EgonFire( struct event_args_s *args );
 void EV_EgonStop( struct event_args_s *args );
 void EV_HornetGunFire( struct event_args_s *args );
@@ -41,6 +40,9 @@ void EV_SnarkFire( struct event_args_s *args );
 
 // Ice
 void EV_Knife( struct event_args_s *args );
+void EV_FireRpgExtreme( struct event_args_s *args );
+void EV_ChumtoadFire( struct event_args_s *args );
+void EV_ChumtoadRelease( struct event_args_s *args );
 
 
 void EV_TrainPitchAdjust( struct event_args_s *args );
@@ -75,7 +77,6 @@ void Game_HookEvents( void )
 	gEngfuncs.pfnHookEvent( "events/crossbow1.sc",				EV_FireCrossbow );
 	gEngfuncs.pfnHookEvent( "events/crossbow2.sc",				EV_FireCrossbow2 );
 	gEngfuncs.pfnHookEvent( "events/rpg.sc",					EV_FireRpg );
-	gEngfuncs.pfnHookEvent( "events/rpg_extreme.sc",			EV_FireRpgExtreme );
 	gEngfuncs.pfnHookEvent( "events/egon_fire.sc",				EV_EgonFire );
 	gEngfuncs.pfnHookEvent( "events/egon_stop.sc",				EV_EgonStop );
 	gEngfuncs.pfnHookEvent( "events/firehornet.sc",				EV_HornetGunFire );
@@ -84,4 +85,7 @@ void Game_HookEvents( void )
 
 	// Ice
 	gEngfuncs.pfnHookEvent( "events/knife.sc",					EV_Knife );
+	gEngfuncs.pfnHookEvent( "events/rpg_extreme.sc",			EV_FireRpgExtreme );
+	gEngfuncs.pfnHookEvent( "events/chumtoadfire.sc",			EV_ChumtoadFire );
+	gEngfuncs.pfnHookEvent( "events/chumtoadrelease.sc",		EV_ChumtoadRelease );
 }

@@ -280,6 +280,11 @@ void CGameRules::RefreshSkillData ( void )
 	// Flying Crowbar
 	gSkillData.plrDmgFlyingCrowbar = GetSkillCvar( "sk_plr_flyingcrowbar");
 
+	// Chumtoad
+	gSkillData.chumtoadHealth = GetSkillCvar( "sk_chumtoad_health");
+	gSkillData.chumtoadDmgBite = GetSkillCvar( "sk_chumtoad_dmg_bite");
+	gSkillData.chumtoadDmgPop = GetSkillCvar( "sk_chumtoad_dmg_pop");
+
 	// MONSTER WEAPONS
 	gSkillData.monDmg12MM = GetSkillCvar( "sk_12mm_bullet");
 	gSkillData.monDmgMP5 = GetSkillCvar ("sk_9mmAR_bullet" );

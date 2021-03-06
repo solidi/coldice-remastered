@@ -395,6 +395,10 @@ void W_Precache(void)
 	UTIL_PrecacheOtherWeapon( "weapon_vest" );
 #endif
 
+#if !defined( OEM_BUILD ) && !defined( HLDEMO_BUILD )
+	UTIL_PrecacheOtherWeapon( "weapon_chumtoad" );
+#endif
+
 
 #if !defined( OEM_BUILD ) && !defined( HLDEMO_BUILD )
 	if ( g_pGameRules->IsDeathmatch() )
@@ -602,6 +606,13 @@ CBaseEntity* CBasePlayerItem::Respawn( void )
 		strcmp(STRING(pev->classname), "ammo_bolts")) {
 		if (RANDOM_LONG(0, 1)) {
 			pNewWeapon = CBaseEntity::Create("weapon_knife", g_pGameRules->VecWeaponRespawnSpot(this), pev->angles, pev->owner );
+		}
+	}
+
+	// Randomly replace snark with chumtoad.
+	if (strcmp(STRING(pev->classname), "weapon_snark")) {
+		if (RANDOM_LONG(0, 1)) {
+			pNewWeapon = CBaseEntity::Create("weapon_chumtoad", g_pGameRules->VecWeaponRespawnSpot(this), pev->angles, pev->owner );
 		}
 	}
 
