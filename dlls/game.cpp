@@ -399,6 +399,19 @@ cvar_t	sk_plr_flyingcrowbar1 = {"sk_plr_flyingcrowbar1","0"};
 cvar_t	sk_plr_flyingcrowbar2 = {"sk_plr_flyingcrowbar2","0"};
 cvar_t	sk_plr_flyingcrowbar3 = {"sk_plr_flyingcrowbar3","0"};
 
+// Chumtoad
+cvar_t	sk_chumtoad_health1 = {"sk_chumtoad_health1","0"};
+cvar_t	sk_chumtoad_health2 = {"sk_chumtoad_health2","0"};
+cvar_t	sk_chumtoad_health3 = {"sk_chumtoad_health3","0"};
+
+cvar_t	sk_chumtoad_dmg_bite1 = {"sk_chumtoad_dmg_bite1","0"};
+cvar_t	sk_chumtoad_dmg_bite2 = {"sk_chumtoad_dmg_bite2","0"};
+cvar_t	sk_chumtoad_dmg_bite3 = {"sk_chumtoad_dmg_bite3","0"};
+
+cvar_t	sk_chumtoad_dmg_pop1 = {"sk_chumtoad_dmg_pop1","0"};
+cvar_t	sk_chumtoad_dmg_pop2 = {"sk_chumtoad_dmg_pop2","0"};
+cvar_t	sk_chumtoad_dmg_pop3 = {"sk_chumtoad_dmg_pop3","0"};
+
 
 // WORLD WEAPONS
 cvar_t	sk_12mm_bullet1 = {"sk_12mm_bullet1","0"};
@@ -866,10 +879,24 @@ void GameDLLInit( void )
 	CVAR_REGISTER ( &sk_plr_flyingknife3 );
 
 
-	// Flying KCrowbarnife
+	// Flying Crowbar
 	CVAR_REGISTER ( &sk_plr_flyingcrowbar1 );
 	CVAR_REGISTER ( &sk_plr_flyingcrowbar2 );
 	CVAR_REGISTER ( &sk_plr_flyingcrowbar3 );
+
+
+	// Chumtoad
+	CVAR_REGISTER ( &sk_chumtoad_health1 );
+	CVAR_REGISTER ( &sk_chumtoad_health2 );
+	CVAR_REGISTER ( &sk_chumtoad_health3 );
+
+	CVAR_REGISTER ( &sk_chumtoad_dmg_bite1 );
+	CVAR_REGISTER ( &sk_chumtoad_dmg_bite2 );
+	CVAR_REGISTER ( &sk_chumtoad_dmg_bite3 );
+
+	CVAR_REGISTER ( &sk_chumtoad_dmg_pop1 );
+	CVAR_REGISTER ( &sk_chumtoad_dmg_pop2 );
+	CVAR_REGISTER ( &sk_chumtoad_dmg_pop3 );
 
 
 	// WORLD WEAPONS

@@ -87,6 +87,7 @@ public:
 #define	WEAPON_SNARK			15
 #define	WEAPON_VEST				16
 #define WEAPON_KNIFE			17
+#define	WEAPON_CHUMTOAD			18
 
 #define WEAPON_ALLWEAPONS		(~(1<<WEAPON_SUIT))
 
@@ -1095,6 +1096,35 @@ public:
 		return FALSE;
 #endif
 	}
+};
+
+class CChumtoad : public CBasePlayerWeapon
+{
+public:
+	void Spawn( void );
+	void Precache( void );
+	int iItemSlot( void ) { return 5; }
+	int GetItemInfo(ItemInfo *p);
+
+	void PrimaryAttack( void );
+	void SecondaryAttack( void );
+	BOOL Deploy( void );
+	void Holster( int skiplocal = 0 );
+	void WeaponIdle( void );
+	int m_fJustThrown;
+
+	virtual BOOL UseDecrement( void )
+	{
+#if defined( CLIENT_WEAPONS )
+		return TRUE;
+#else
+		return FALSE;
+#endif
+	}
+
+private:
+	unsigned short m_usChumtoadFire;
+	unsigned short m_usChumtoadRelease;
 };
 
 #endif // WEAPONS_H

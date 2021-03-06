@@ -113,6 +113,9 @@ struct skilldata_t
 	float plrDmgKnife;
 	float plrDmgFlyingKnife;
 	float plrDmgFlyingCrowbar;
+	float chumtoadHealth;
+	float chumtoadDmgBite;
+	float chumtoadDmgPop;
 	
 // weapons shared by monsters
 	float monDmg9MM;
