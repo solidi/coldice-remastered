@@ -401,6 +401,11 @@ V_CalcViewRoll
 Roll is induced by movement and damage
 ==============
 */
+
+extern cvar_t *cl_rollangle;
+extern cvar_t *cl_rollspeed;
+extern cvar_t *cl_viewroll;
+
 void V_CalcViewRoll ( struct ref_params_s *pparams )
 {
 	float		side;
@@ -409,6 +414,10 @@ void V_CalcViewRoll ( struct ref_params_s *pparams )
 	viewentity = gEngfuncs.GetEntityByIndex( pparams->viewentity );
 	if ( !viewentity )
 		return;
+
+	if (cl_viewroll->value == 1) {
+		pparams->viewangles[ROLL] = V_CalcRoll(pparams->viewangles, pparams->simvel, cl_rollangle->value, cl_rollspeed->value) * 4;
+	}
 
 	side = V_CalcRoll ( viewentity->angles, pparams->simvel, pparams->movevars->rollangle, pparams->movevars->rollspeed );
 
@@ -658,9 +667,14 @@ void V_CalcNormalRefdef ( struct ref_params_s *pparams )
 	view->origin[2] += bob;
 
 	// throw in a little tilt.
+	extern cvar_t *cl_bobtilt;
 	view->angles[YAW]   -= bob * 0.5;
 	view->angles[ROLL]  -= bob * 1;
 	view->angles[PITCH] -= bob * 0.3;
+
+	if (cl_bobtilt->value == 1) {
+		VectorCopy(view->angles, view->curstate.angles);
+	}
 
 	// pushing the view origin down off of the same X/Z plane as the ent's origin will give the
 	// gun a very nice 'shifting' effect when the player looks up/down. If there is a problem
