@@ -178,6 +178,7 @@ void DecalGunshot( TraceResult *pTrace, int iBulletType )
 		case BULLET_MONSTER_MP5:
 		case BULLET_PLAYER_BUCKSHOT:
 		case BULLET_PLAYER_357:
+		case BULLET_PLAYER_RIFLE:
 		default:
 			// smoke and decal
 			UTIL_GunshotDecalTrace( pTrace, DamageDecal( pEntity, DMG_BULLET ) );
@@ -399,6 +400,10 @@ void W_Precache(void)
 	UTIL_PrecacheOtherWeapon( "weapon_chumtoad" );
 #endif
 
+#if !defined( OEM_BUILD ) && !defined( HLDEMO_BUILD )
+	UTIL_PrecacheOtherWeapon( "weapon_sniperrifle" );
+#endif
+
 
 #if !defined( OEM_BUILD ) && !defined( HLDEMO_BUILD )
 	if ( g_pGameRules->IsDeathmatch() )
@@ -613,6 +618,13 @@ CBaseEntity* CBasePlayerItem::Respawn( void )
 	if (strcmp(STRING(pev->classname), "weapon_snark")) {
 		if (RANDOM_LONG(0, 1)) {
 			pNewWeapon = CBaseEntity::Create("weapon_chumtoad", g_pGameRules->VecWeaponRespawnSpot(this), pev->angles, pev->owner );
+		}
+	}
+
+	// Randomly replace snark with crossbow.
+	if (strcmp(STRING(pev->classname), "weapon_crossbow")) {
+		if (RANDOM_LONG(0, 1)) {
+			pNewWeapon = CBaseEntity::Create("weapon_sniperrifle", g_pGameRules->VecWeaponRespawnSpot(this), pev->angles, pev->owner );
 		}
 	}
 

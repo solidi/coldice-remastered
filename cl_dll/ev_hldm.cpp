@@ -77,6 +77,7 @@ void EV_SnarkFire( struct event_args_s *args  );
 void EV_Knife( struct event_args_s *args );
 void EV_ChumtoadFire( struct event_args_s *args );
 void EV_ChumtoadRelease( struct event_args_s *args );
+void EV_FireSniperRifle( struct event_args_s *args );
 
 
 void EV_TrainPitchAdjust( struct event_args_s *args );
@@ -1804,6 +1805,61 @@ void EV_ChumtoadRelease( event_args_t *args )
 		 gEngfuncs.pEventAPI->EV_WeaponAnimation ( CHUMTOAD_RELEASE, 0 );
 
 	gEngfuncs.pEventAPI->EV_PopPMStates();
+}
+
+enum rifle_e
+{
+	RIFLE_DRAW = 0,
+	RIFLE_IDLE,
+	RIFLE_SHOOT,
+	RIFLE_SHOOT_EMPTY,
+	RIFLE_RELOAD,
+	RIFLE_ZOOM_IN,
+	RIFLE_ZOOM_OUT
+};
+
+void EV_FireSniperRifle( event_args_t *args )
+{
+	int idx;
+	vec3_t origin;
+	vec3_t angles;
+	vec3_t velocity;
+
+	vec3_t ShellVelocity;
+	vec3_t ShellOrigin;
+	int shell;
+	vec3_t vecSrc, vecAiming;
+	vec3_t up, right, forward;
+	float flSpread = 0.01;
+
+	idx = args->entindex;
+	VectorCopy( args->origin, origin );
+	VectorCopy( args->angles, angles );
+	VectorCopy( args->velocity, velocity );
+
+	AngleVectors( angles, forward, right, up );
+
+	shell = gEngfuncs.pEventAPI->EV_FindModelIndex ("models/w_762shell.mdl");// brass shell
+
+	if ( EV_IsLocal( idx ) )
+	{
+		// Add muzzle flash to current weapon model
+		EV_MuzzleFlash();
+		gEngfuncs.pEventAPI->EV_WeaponAnimation( RIFLE_SHOOT, 2 );
+
+		V_PunchAxis( 0, gEngfuncs.pfnRandomFloat( -5, 5 ) );
+	}
+
+	EV_GetDefaultShellInfo( args, origin, velocity, ShellVelocity, ShellOrigin, forward, right, up, 20, -12, 4 );
+
+	EV_EjectBrass ( ShellOrigin, Vector(-ShellVelocity.x, ShellVelocity.y, ShellVelocity.z), angles[ YAW ], shell, TE_BOUNCE_SHELL );
+
+	gEngfuncs.pEventAPI->EV_PlaySound( idx, origin, CHAN_WEAPON, "rifle1.wav", 1, ATTN_NORM, 0, 94 + gEngfuncs.pfnRandomLong( 0, 0xf ) );
+
+	EV_GetGunPosition( args, vecSrc, origin );
+	VectorCopy( forward, vecAiming );
+
+	EV_HLDM_FireBullets( idx, forward, right, up, 1, vecSrc, vecAiming, 8192, BULLET_PLAYER_MP5, 0, &tracerCount[idx-1], args->fparam1, args->fparam2 );
 }
 
 void EV_TrainPitchAdjust( event_args_t *args )

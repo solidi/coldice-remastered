@@ -88,6 +88,7 @@ public:
 #define	WEAPON_VEST				16
 #define WEAPON_KNIFE			17
 #define	WEAPON_CHUMTOAD			18
+#define WEAPON_SNIPER_RIFLE		19
 
 #define WEAPON_ALLWEAPONS		(~(1<<WEAPON_SUIT))
 
@@ -188,6 +189,7 @@ typedef	enum
 	BULLET_PLAYER_9MM, // glock
 	BULLET_PLAYER_MP5, // mp5
 	BULLET_PLAYER_357, // python
+	BULLET_PLAYER_RIFLE, // sniper rifle
 	BULLET_PLAYER_BUCKSHOT, // shotgun
 	BULLET_PLAYER_CROWBAR, // crowbar swipe
 
@@ -662,7 +664,7 @@ public:
 	int m_fInZoom; // don't save this
 
 	virtual BOOL UseDecrement( void )
-	{ 
+	{
 #if defined( CLIENT_WEAPONS )
 		return TRUE;
 #else
@@ -713,6 +715,37 @@ public:
 private:
 	unsigned short m_usDoubleFire;
 	unsigned short m_usSingleFire;
+};
+
+class CSniperRifle : public CBasePlayerWeapon
+{
+public:
+	void Spawn( void );
+	void Precache( void );
+	int iItemSlot( void ) { return 3; }
+	int GetItemInfo(ItemInfo *p);
+	int AddToPlayer( CBasePlayer *pPlayer );
+
+	void PrimaryAttack( void );
+	void SecondaryAttack( void );
+	BOOL Deploy( void );
+	void Holster( int skiplocal = 0 );
+	void Reload( void );
+	void WeaponIdle( void );
+	float m_flNextAnimTime;
+	int m_iShell;
+
+	virtual BOOL UseDecrement( void )
+	{
+#if defined( CLIENT_WEAPONS )
+		return TRUE;
+#else
+		return FALSE;
+#endif
+	}
+
+private:
+	unsigned short m_usSniperRifle;
 };
 
 class CLaserSpot : public CBaseEntity
