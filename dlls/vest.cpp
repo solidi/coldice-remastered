@@ -22,12 +22,12 @@
 #include "player.h"
 #include "gamerules.h"
 
-enum satchel_radio_e {
-	SATCHEL_RADIO_IDLE1 = 0,
-	SATCHEL_RADIO_FIDGET1,
-	SATCHEL_RADIO_DRAW,
-	SATCHEL_RADIO_FIRE,
-	SATCHEL_RADIO_HOLSTER
+enum vest_radio_e {
+	VEST_RADIO_IDLE1 = 0,
+	VEST_RADIO_FIDGET1,
+	VEST_RADIO_DRAW,
+	VEST_RADIO_FIRE,
+	VEST_RADIO_HOLSTER
 };
 
 int CVest::AddToPlayer( CBasePlayer *pPlayer )
@@ -63,13 +63,14 @@ void CVest::Precache( void )
 
 	PRECACHE_SOUND("vest_attack.wav");
 	PRECACHE_SOUND("vest_alive.wav");
+	PRECACHE_SOUND("vest_equip.wav");
 }
 
 int CVest::GetItemInfo(ItemInfo *p)
 {
 	p->pszName = STRING(pev->classname);
-	p->pszAmmo1 = "Satchel Charge";
-	p->iMaxAmmo1 = SATCHEL_MAX_CARRY;
+	p->pszAmmo1 = "Dynamite";
+	p->iMaxAmmo1 = 1;
 	p->pszAmmo2 = NULL;
 	p->iMaxAmmo2 = -1;
 	p->iMaxClip = WEAPON_NOCLIP;
@@ -78,7 +79,7 @@ int CVest::GetItemInfo(ItemInfo *p)
 	p->iFlags = ITEM_FLAG_SELECTONEMPTY | ITEM_FLAG_LIMITINWORLD | ITEM_FLAG_EXHAUSTIBLE;
 	p->iId = m_iId = WEAPON_VEST;
 	p->iWeight = SATCHEL_WEIGHT;
-	p->pszDisplayName = "Vest Device";
+	p->pszDisplayName = "Dynamite Vest";
 
 	return 1;
 }
@@ -105,17 +106,18 @@ BOOL CVest::CanDeploy( void )
 
 BOOL CVest::Deploy( )
 {
+	EMIT_SOUND(ENT(m_pPlayer->pev), CHAN_VOICE, "vest_equip.wav", 1, ATTN_NORM);
 	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 1.0;
 	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + UTIL_SharedRandomFloat( m_pPlayer->random_seed, 10, 15 );
 
-	return DefaultDeploy( "models/v_vest_radio.mdl", "models/p_vest.mdl", SATCHEL_RADIO_DRAW, "hive" );
+	return DefaultDeploy( "models/v_vest_radio.mdl", "models/p_vest.mdl", VEST_RADIO_DRAW, "hive" );
 }
 
 void CVest::Holster( int skiplocal )
 {
 	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 0.5;
 	
-	SendWeaponAnim( SATCHEL_RADIO_HOLSTER );
+	SendWeaponAnim( VEST_RADIO_HOLSTER );
 }
 
 void CVest::PrimaryAttack()
@@ -131,7 +133,7 @@ void CVest::PrimaryAttack()
 }
 
 void CVest::BlowThink() {
-	SendWeaponAnim( SATCHEL_RADIO_FIRE );
+	SendWeaponAnim( VEST_RADIO_FIRE );
 	SetThink( &CVest::GoneThink );
 
 	for ( int i = 0; i < RANDOM_LONG(1,3); i++ ) {
@@ -152,7 +154,7 @@ void CVest::SecondaryAttack()
 {
 	pev->nextthink = -1;
 	EMIT_SOUND(ENT(m_pPlayer->pev), CHAN_VOICE, "vest_alive.wav", 1, ATTN_NORM);
-	SendWeaponAnim( SATCHEL_RADIO_HOLSTER );
+	SendWeaponAnim( VEST_RADIO_HOLSTER );
 
 	SetThink( &CVest::RetireThink );
 	pev->nextthink = gpGlobals->time + 1.0;
@@ -172,7 +174,7 @@ void CVest::WeaponIdle( void )
 	if ( m_flTimeWeaponIdle > UTIL_WeaponTimeBase() )
 		return;
 
-	SendWeaponAnim( SATCHEL_RADIO_FIDGET1 );
+	SendWeaponAnim( VEST_RADIO_FIDGET1 );
 	strcpy( m_pPlayer->m_szAnimExtention, "hive" );
 
 	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + UTIL_SharedRandomFloat( m_pPlayer->random_seed, 10, 15 );// how long till we do this again.
