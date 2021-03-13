@@ -22,7 +22,8 @@ CFLAGS=$(BASE_CFLAGS)  $(ARCH_CFLAGS)  -DCLIENT_WEAPONS \
 		 -DKNIFE \
 		 -DRPG \
 		 -DTRIPMINE \
-		 -DCHUMTOAD
+		 -DCHUMTOAD \
+		 -DSNIPER_RIFLE
 
 #-O3 -ffast-math -fno-strength-reduce
 
@@ -121,6 +122,7 @@ HLDLL_OBJS = \
 	$(HLDLL_OBJ_DIR)/scripted.o \
 	$(HLDLL_OBJ_DIR)/shotgun.o \
 	$(HLDLL_OBJ_DIR)/skill.o \
+	$(HLDLL_OBJ_DIR)/sniper_rifle.o \
 	$(HLDLL_OBJ_DIR)/sound.o \
 	$(HLDLL_OBJ_DIR)/soundent.o \
 	$(HLDLL_OBJ_DIR)/spectator.o \
