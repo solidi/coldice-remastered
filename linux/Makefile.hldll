@@ -168,7 +168,7 @@ dirs:
 ice.$(SHLIBEXT): $(HLDLL_OBJS) $(HLWPN_OBJS) $(PM_OBJS) $(GAME_SHARED_OBJS)
 	$(CC) $(LDFLAGS) $(SHLIBLDFLAGS) -o $(BUILD_DIR)/$@ $(HLDLL_OBJS) $(HLWPN_OBJS) $(PM_OBJS) $(GAME_SHARED_OBJS)
 	#p4 edit ../../game/mod/dlls/ice.$(SHLIBEXT)
-	cp $(BUILD_DIR)/$@  ../../libs/dlls
+	#cp $(BUILD_DIR)/$@  ../../libs/dlls
 	#./gendbg.sh ../../game/mod/dlls/ice.$(SHLIBEXT)
 	
 $(HLWPN_OBJ_DIR)/%.o : $(HLWPN_SRC_DIR)/%.cpp
