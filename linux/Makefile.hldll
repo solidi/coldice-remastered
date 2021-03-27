@@ -23,7 +23,8 @@ CFLAGS=$(BASE_CFLAGS)  $(ARCH_CFLAGS)  -DCLIENT_WEAPONS \
 		 -DRPG \
 		 -DTRIPMINE \
 		 -DCHUMTOAD \
-		 -DSNIPER_RIFLE
+		 -DSNIPER_RIFLE \
+		 -DBOLT_GUN
 
 #-O3 -ffast-math -fno-strength-reduce
 

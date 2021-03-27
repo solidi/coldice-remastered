@@ -66,7 +66,7 @@ void CCrossbowBolt::Spawn( )
 
 	pev->gravity = 0.5;
 
-	SET_MODEL(ENT(pev), "models/crossbow_bolt.mdl");
+	SET_MODEL(ENT(pev), "models/w_bolt.mdl");
 
 	UTIL_SetOrigin( pev, pev->origin );
 	UTIL_SetSize(pev, Vector(0, 0, 0), Vector(0, 0, 0));
@@ -79,7 +79,7 @@ void CCrossbowBolt::Spawn( )
 
 void CCrossbowBolt::Precache( )
 {
-	PRECACHE_MODEL ("models/crossbow_bolt.mdl");
+	PRECACHE_MODEL ("models/w_bolt.mdl");
 	PRECACHE_SOUND("weapons/xbow_hitbod1.wav");
 	PRECACHE_SOUND("weapons/xbow_hitbod2.wav");
 	PRECACHE_SOUND("weapons/xbow_fly1.wav");
@@ -153,19 +153,13 @@ void CCrossbowBolt::BoltTouch( CBaseEntity *pOther )
 			pev->velocity = Vector( 0, 0, 0 );
 			pev->avelocity.z = 0;
 			pev->angles.z = RANDOM_LONG(0,360);
-			pev->nextthink = gpGlobals->time + 10.0;
+			pev->nextthink = gpGlobals->time + 2.5;
 		}
 
 		if (UTIL_PointContents(pev->origin) != CONTENTS_WATER)
 		{
 			UTIL_Sparks( pev->origin );
 		}
-	}
-
-	if ( g_pGameRules->IsMultiplayer() )
-	{
-		SetThink( &CCrossbowBolt::ExplodeThink );
-		pev->nextthink = gpGlobals->time + 0.1;
 	}
 }
 
@@ -235,7 +229,9 @@ enum crossbow_e {
 	CROSSBOW_HOLSTER2,	// empty
 };
 
+#ifdef BOLT_GUN
 LINK_ENTITY_TO_CLASS( weapon_crossbow, CCrossbow );
+#endif
 
 void CCrossbow::Spawn( )
 {
@@ -266,7 +262,7 @@ void CCrossbow::Precache( void )
 	PRECACHE_MODEL("models/v_crossbow.mdl");
 	PRECACHE_MODEL("models/p_crossbow.mdl");
 
-	PRECACHE_SOUND("weapons/xbow_fire1.wav");
+	PRECACHE_SOUND("boltgun_fire.wav");
 	PRECACHE_SOUND("weapons/xbow_reload1.wav");
 
 	UTIL_PrecacheOther( "crossbow_bolt" );
@@ -289,6 +285,7 @@ int CCrossbow::GetItemInfo(ItemInfo *p)
 	p->iId = WEAPON_CROSSBOW;
 	p->iFlags = 0;
 	p->iWeight = CROSSBOW_WEIGHT;
+	p->pszDisplayName = "Air-compressed Auto Boltgun";
 	return 1;
 }
 
@@ -433,7 +430,7 @@ void CCrossbow::FireBolt()
 		// HEV suit - indicate out of ammo condition
 		m_pPlayer->SetSuitUpdate("!HEV_AMO0", FALSE, 0);
 
-	m_flNextPrimaryAttack = GetNextAttackDelay(0.75);
+	m_flNextPrimaryAttack = GetNextAttackDelay(0.15);
 
 	m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 0.75;
 

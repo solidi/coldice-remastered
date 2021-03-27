@@ -34,7 +34,7 @@ void CHook::Spawn( )
 	pev->solid = SOLID_BBOX;
 	pev->gravity = -1;
 
-	SET_MODEL(ENT(pev), "models/crossbow_bolt.mdl");
+	SET_MODEL(ENT(pev), "models/w_bolt.mdl");
 
 	UTIL_SetOrigin( pev, pev->origin );
 	UTIL_SetSize(pev, Vector(0, 0, 0), Vector(0, 0, 0));
@@ -42,7 +42,7 @@ void CHook::Spawn( )
 
 void CHook::Precache( )
 {
-	PRECACHE_MODEL ("models/crossbow_bolt.mdl");
+	PRECACHE_MODEL ("models/w_bolt.mdl");
 
 	PRECACHE_SOUND("weapons/xbow_hitbod1.wav");
 	PRECACHE_SOUND("grapple_hit.wav");
