@@ -583,10 +583,17 @@ void CHalfLifeMultiplay :: PlayerSpawn( CBasePlayer *pPlayer )
 
 	if ( addDefault )
 	{
-		pPlayer->GiveNamedItem( "weapon_crowbar" );
-		pPlayer->GiveNamedItem( "weapon_9mmhandgun" );
+		char *pWeaponName;
+		char list[1024];
+		strcpy(list, spawnweaponlist.string);
+		pWeaponName = list;
+		pWeaponName = strtok( pWeaponName, ";" );
+		while ( pWeaponName != NULL && *pWeaponName )
+		{
+			pPlayer->GiveNamedItem(STRING(ALLOC_STRING( pWeaponName )));
+			pWeaponName = strtok( NULL, ";" );
+		}
 		pPlayer->GiveAmmo( 68, "9mm", _9MM_MAX_CARRY );// 4 full reloads
-		pPlayer->GiveNamedItem( "weapon_knife" );
 	}
 }
 
