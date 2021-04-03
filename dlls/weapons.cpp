@@ -596,35 +596,45 @@ CBaseEntity* CBasePlayerItem::Respawn( void )
 	CBaseEntity *pNewWeapon = NULL;
 
 	// Randomly replace explosives with vest.
-	if (strcmp(STRING(pev->classname), "weapon_satchel") ||
-		strcmp(STRING(pev->classname), "weapon_tripmine") ||
-		strcmp(STRING(pev->classname), "weapon_handgrenade")) {
+	if (!strcmp(STRING(pev->classname), "weapon_satchel") ||
+		!strcmp(STRING(pev->classname), "weapon_tripmine") ||
+		!strcmp(STRING(pev->classname), "weapon_handgrenade")) {
 		if (RANDOM_LONG(0, 1)) {
 			pNewWeapon = CBaseEntity::Create("weapon_vest", g_pGameRules->VecWeaponRespawnSpot(this), pev->angles, pev->owner );
 		}
 	}
 
 	// Randomly replace ammo and crowbar with knife.
-	if (strcmp(STRING(pev->classname), "weapon_crowbar") ||
-		strcmp(STRING(pev->classname), "ammo_glockclip") ||
-		strcmp(STRING(pev->classname), "ammo_9mmclip") ||
-		strcmp(STRING(pev->classname), "ammo_bolts")) {
+	if (!strcmp(STRING(pev->classname), "weapon_crowbar") ||
+		!strcmp(STRING(pev->classname), "ammo_glockclip") ||
+		!strcmp(STRING(pev->classname), "ammo_9mmclip") ||
+		!strcmp(STRING(pev->classname), "ammo_bolts")) {
 		if (RANDOM_LONG(0, 1)) {
 			pNewWeapon = CBaseEntity::Create("weapon_knife", g_pGameRules->VecWeaponRespawnSpot(this), pev->angles, pev->owner );
 		}
 	}
 
 	// Randomly replace snark with chumtoad.
-	if (strcmp(STRING(pev->classname), "weapon_snark")) {
+	if (!strcmp(STRING(pev->classname), "weapon_snark")) {
 		if (RANDOM_LONG(0, 1)) {
 			pNewWeapon = CBaseEntity::Create("weapon_chumtoad", g_pGameRules->VecWeaponRespawnSpot(this), pev->angles, pev->owner );
 		}
 	}
+	if (!strcmp(STRING(pev->classname), "weapon_chumtoad")) {
+		if (RANDOM_LONG(0, 1)) {
+			pNewWeapon = CBaseEntity::Create("weapon_snark", g_pGameRules->VecWeaponRespawnSpot(this), pev->angles, pev->owner );
+		}
+	}
 
-	// Randomly replace snark with crossbow.
-	if (strcmp(STRING(pev->classname), "weapon_crossbow")) {
+	// Randomly replace crossbow with sniper rifle.
+	if (!strcmp(STRING(pev->classname), "weapon_crossbow")) {
 		if (RANDOM_LONG(0, 1)) {
 			pNewWeapon = CBaseEntity::Create("weapon_sniperrifle", g_pGameRules->VecWeaponRespawnSpot(this), pev->angles, pev->owner );
+		}
+	}
+	if (!strcmp(STRING(pev->classname), "weapon_sniperrifle")) {
+		if (RANDOM_LONG(0, 1)) {
+			pNewWeapon = CBaseEntity::Create("weapon_crossbow", g_pGameRules->VecWeaponRespawnSpot(this), pev->angles, pev->owner );
 		}
 	}
 
