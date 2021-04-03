@@ -777,7 +777,7 @@ void CBasePlayer::PackDeadPlayerItems( void )
 	pWeaponBox->pev->angles.z = 0;
 
 	pWeaponBox->SetThink( &CWeaponBox::Kill );
-	pWeaponBox->pev->nextthink = gpGlobals->time + 120;
+	pWeaponBox->pev->nextthink = gpGlobals->time + 30;
 
 // back these two lists up to their first elements
 	iPA = 0;
