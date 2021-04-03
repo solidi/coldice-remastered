@@ -185,6 +185,9 @@ void CHalfLifeMultiplay::RefreshSkillData( void )
 
 	// Flying Crowbar
 	gSkillData.plrDmgFlyingCrowbar = 80;
+
+	// Railgun
+	gSkillData.plrDmgRailgun = 100;
 }
 
 // longest the intermission can last, in seconds

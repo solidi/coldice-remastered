@@ -89,6 +89,7 @@ public:
 #define WEAPON_KNIFE			17
 #define	WEAPON_CHUMTOAD			18
 #define WEAPON_SNIPER_RIFLE		19
+#define WEAPON_RAILGUN			20
 
 #define WEAPON_ALLWEAPONS		(~(1<<WEAPON_SUIT))
 
@@ -116,6 +117,7 @@ public:
 #define SATCHEL_WEIGHT		-10
 #define TRIPMINE_WEIGHT		-10
 #define KNIFE_WEIGHT		1
+#define RAILGUN_WEIGHT		20
 
 
 // weapon clip/carry ammo capacities
@@ -131,6 +133,7 @@ public:
 #define SNARK_MAX_CARRY			15
 #define HORNET_MAX_CARRY		8
 #define M203_GRENADE_MAX_CARRY	10
+#define RAILGUN_MAX_CARRY		30
 
 // the maximum amount of ammo each weapon's clip can hold
 #define WEAPON_NOCLIP			-1
@@ -168,6 +171,7 @@ public:
 #define TRIPMINE_DEFAULT_GIVE		1
 #define SNARK_DEFAULT_GIVE			5
 #define HIVEHAND_DEFAULT_GIVE		8
+#define RAILGUN_DEFAULT_GIVE		10
 
 // The amount of ammo given to a player by an ammo item.
 #define AMMO_URANIUMBOX_GIVE	20
@@ -1158,6 +1162,32 @@ public:
 private:
 	unsigned short m_usChumtoadFire;
 	unsigned short m_usChumtoadRelease;
+};
+
+class CRailgun : public CBasePlayerWeapon
+{
+public:
+
+	void Spawn( void );
+	void Precache( void );
+	int iItemSlot( void ) { return 4; }
+	int GetItemInfo(ItemInfo *p);
+	int AddToPlayer( CBasePlayer *pPlayer );
+
+	BOOL Deploy( void );
+	void Holster( void );
+
+	void PrimaryAttack( void );
+	void WeaponIdle( void );
+
+	void StartFire( void );
+	void Fire( Vector vecOrigSrc, Vector vecDirShooting, float flDamage );
+	int m_iBalls;
+	int m_iGlow;
+	int m_iBeam;
+
+	// rail, rail, rail
+	void CreateTrail(Vector,Vector);
 };
 
 #endif // WEAPONS_H

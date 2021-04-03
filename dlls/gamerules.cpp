@@ -288,6 +288,9 @@ void CGameRules::RefreshSkillData ( void )
 	gSkillData.chumtoadDmgBite = GetSkillCvar( "sk_chumtoad_dmg_bite");
 	gSkillData.chumtoadDmgPop = GetSkillCvar( "sk_chumtoad_dmg_pop");
 
+	// Railgun
+	gSkillData.plrDmgRailgun = GetSkillCvar( "sk_plr_railgun");
+
 	// MONSTER WEAPONS
 	gSkillData.monDmg12MM = GetSkillCvar( "sk_12mm_bullet");
 	gSkillData.monDmgMP5 = GetSkillCvar ("sk_9mmAR_bullet" );
