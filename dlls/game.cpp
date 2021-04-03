@@ -419,6 +419,12 @@ cvar_t	sk_chumtoad_dmg_pop1 = {"sk_chumtoad_dmg_pop1","0"};
 cvar_t	sk_chumtoad_dmg_pop2 = {"sk_chumtoad_dmg_pop2","0"};
 cvar_t	sk_chumtoad_dmg_pop3 = {"sk_chumtoad_dmg_pop3","0"};
 
+// Railgun
+cvar_t	sk_plr_railgun1 = {"sk_plr_railgun1","0"};
+cvar_t	sk_plr_railgun2 = {"sk_plr_railgun2","0"};
+cvar_t	sk_plr_railgun3 = {"sk_plr_railgun3","0"};
+
+
 
 // WORLD WEAPONS
 cvar_t	sk_12mm_bullet1 = {"sk_12mm_bullet1","0"};
@@ -911,6 +917,11 @@ void GameDLLInit( void )
 	CVAR_REGISTER ( &sk_chumtoad_dmg_pop1 );
 	CVAR_REGISTER ( &sk_chumtoad_dmg_pop2 );
 	CVAR_REGISTER ( &sk_chumtoad_dmg_pop3 );
+
+	// Railgun
+	CVAR_REGISTER ( &sk_plr_railgun1 );
+	CVAR_REGISTER ( &sk_plr_railgun2 );
+	CVAR_REGISTER ( &sk_plr_railgun3 );
 
 
 	// WORLD WEAPONS

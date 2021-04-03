@@ -24,7 +24,8 @@ CFLAGS=$(BASE_CFLAGS)  $(ARCH_CFLAGS)  -DCLIENT_WEAPONS \
 		 -DTRIPMINE \
 		 -DCHUMTOAD \
 		 -DSNIPER_RIFLE \
-		 -DBOLT_GUN
+		 -DBOLT_GUN \
+		 -DRAILGUN
 
 #-O3 -ffast-math -fno-strength-reduce
 
@@ -114,6 +115,7 @@ HLDLL_OBJS = \
 	$(HLDLL_OBJ_DIR)/plats.o \
 	$(HLDLL_OBJ_DIR)/player.o \
 	$(HLDLL_OBJ_DIR)/python.o \
+	$(HLDLL_OBJ_DIR)/railgun.o \
 	$(HLDLL_OBJ_DIR)/rat.o \
 	$(HLDLL_OBJ_DIR)/roach.o \
 	$(HLDLL_OBJ_DIR)/rpg.o \

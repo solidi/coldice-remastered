@@ -117,6 +117,7 @@ struct skilldata_t
 	float chumtoadHealth;
 	float chumtoadDmgBite;
 	float chumtoadDmgPop;
+	float plrDmgRailgun;
 	
 // weapons shared by monsters
 	float monDmg9MM;

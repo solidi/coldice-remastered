@@ -62,6 +62,7 @@ const char *CBreakable::pSpawnObjects[] =
 	"weapon_knife",		// 23
 	"weapon_chumtoad",	// 24
 	"weapon_sniperrifle",	// 25
+	"weapon_railgun",	// 26
 };
 
 void CBreakable::KeyValue( KeyValueData* pkvd )
