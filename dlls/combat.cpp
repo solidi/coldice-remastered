@@ -796,7 +796,7 @@ void CGib :: Spawn( const char *szGibModel )
 	UTIL_SetSize(pev, Vector( 0, 0, 0), Vector(0, 0, 0));
 
 	pev->nextthink = gpGlobals->time + 4;
-	m_lifeTime = 25;
+	m_lifeTime = 2.5;
 	SetThink ( &CGib::WaitTillLand );
 	SetTouch ( &CGib::BounceGibTouch );
 
