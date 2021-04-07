@@ -198,14 +198,15 @@ void CRailgun::Fire( Vector vecOrigSrc, Vector vecDir, float flDamage )
 	m_pPlayer->m_iWeaponVolume = RAILGUN_PRIMARY_FIRE_VOLUME;
 
 	Vector vecSrc = vecOrigSrc;
-	Vector vecDest = vecSrc + vecDir * 8192;
+	Vector vecDest = vecSrc + vecDir * 4096;
 	edict_t		*pentIgnore;
 	TraceResult tr, beam_tr;
 
 	pentIgnore = ENT( m_pPlayer->pev );
 
 	UTIL_TraceLine(vecSrc, vecDest, dont_ignore_monsters, pentIgnore, &tr);
-	CreateTrail(vecSrc + gpGlobals->v_up * -12 + gpGlobals->v_right * 3 + gpGlobals->v_forward * 32, tr.vecEndPos);
+	if (tr.flFraction > 0.01) // no trail when too close to an entity
+		CreateTrail(vecSrc + gpGlobals->v_up * -12 + gpGlobals->v_right * 3 + gpGlobals->v_forward * 32, tr.vecEndPos);
 
 	if (tr.fAllSolid)
 		return;
