@@ -205,7 +205,7 @@ void CRailgun::Fire( Vector vecOrigSrc, Vector vecDir, float flDamage )
 	pentIgnore = ENT( m_pPlayer->pev );
 
 	UTIL_TraceLine(vecSrc, vecDest, dont_ignore_monsters, pentIgnore, &tr);
-	if (tr.flFraction > 0.01) // no trail when too close to an entity
+	if (tr.flFraction > 0.02) // no trail when too close to an entity
 		CreateTrail(vecSrc + gpGlobals->v_up * -12 + gpGlobals->v_right * 3 + gpGlobals->v_forward * 32, tr.vecEndPos);
 
 	if (tr.fAllSolid)
