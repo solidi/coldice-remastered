@@ -202,6 +202,9 @@ public:
 
 	char m_szTeamName[TEAM_NAME_LENGTH];
 
+	int m_fHasRune;
+	float m_flRuneHealTime;
+
 	virtual void Spawn( void );
 	void Pain( void );
 

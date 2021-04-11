@@ -33,6 +33,7 @@
 #include "weapons.h"
 #include "gamerules.h"
 #include "teamplay_gamerules.h"
+#include "items.h"
 
 extern CGraph WorldGraph;
 extern CSoundEnt *pSoundEnt;
@@ -474,6 +475,8 @@ void CWorld :: Spawn( void )
 	g_fGameOver = FALSE;
 	Precache( );
 	g_flWeaponCheat = CVAR_GET_FLOAT( "sv_cheats" );  // Is the impulse 101 command allowed?
+	if (CVAR_GET_FLOAT( "mp_allowrunes" ))
+		CWorldRunes::Create( );
 }
 
 void CWorld :: Precache( void )
