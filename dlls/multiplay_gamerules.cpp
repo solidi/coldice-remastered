@@ -27,6 +27,7 @@
 #include	"items.h"
 #include	"voice_gamemgr.h"
 #include	"hltv.h"
+#include	"shake.h"
 
 #if !defined ( _WIN32 )
 #include <ctype.h>
@@ -558,6 +559,25 @@ BOOL CHalfLifeMultiplay::FPlayerCanTakeDamage( CBasePlayer *pPlayer, CBaseEntity
 //=========================================================
 void CHalfLifeMultiplay :: PlayerThink( CBasePlayer *pPlayer )
 {
+	if ( pPlayer->m_fHasRune == RUNE_GRAVITY )
+	{
+		pPlayer->pev->gravity = 0.6;
+	} else {
+		pPlayer->pev->gravity = 1.0;
+	}
+
+	if ( pPlayer->m_fHasRune == RUNE_REGEN )
+	{
+		if ( pPlayer->m_flRuneHealTime < gpGlobals->time )
+		{
+			if (pPlayer->pev->health < pPlayer->pev->max_health) {
+				pPlayer->pev->health += 1;
+				UTIL_ScreenFade( pPlayer, Vector(200,0,200), .5, .5, 32, FFADE_IN);
+				pPlayer->m_flRuneHealTime = gpGlobals->time + 1.0;
+			}
+		}
+	}
+
 	if ( g_fGameOver )
 	{
 		// check for button presses
@@ -629,7 +649,10 @@ BOOL CHalfLifeMultiplay :: AllowAutoTargetCrosshair( void )
 //=========================================================
 int CHalfLifeMultiplay :: IPointsForKill( CBasePlayer *pAttacker, CBasePlayer *pKilled )
 {
-	return 1;
+	if ( pAttacker->m_fHasRune == RUNE_FRAG )
+		return 2;
+	else
+		return 1;
 }
 
 

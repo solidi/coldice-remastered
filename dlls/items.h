@@ -26,4 +26,38 @@ public:
 	virtual BOOL MyTouch( CBasePlayer *pPlayer ) { return FALSE; };
 };
 
+#define RUNE_FRAG		1
+#define RUNE_VAMPIRE	2
+#define RUNE_PROTECT	3
+#define RUNE_REGEN		4
+#define RUNE_HASTE		5
+#define RUNE_GRAVITY	6
+#define RUNE_STRENGTH	7
+
+class CWorldRunes : public CBaseEntity
+{
+public:
+	static void Create( void );
+	static void DropRune(CBasePlayer *pPlayer);
+	static void ResetPlayer(CBasePlayer *pPlayer);
+	void Spawn( void );
+	void SpawnRunes( void );
+	void Precache( void );
+	void CreateRune(char *sz_RuneClass);
+
+	CBaseEntity *SelectSpawnPoint(CBaseEntity *pSpot);
+private:
+	CBaseEntity *m_pSpot;
+};
+
+class CRune : public CBaseEntity
+{
+public:
+	void	Spawn( void );
+	void	EXPORT RuneTouch( CBaseEntity *pOther );
+	void	EXPORT Materialize( void );
+	virtual BOOL MyTouch( CBasePlayer *pPlayer ) { return FALSE; };
+	void ShowStatus(CBasePlayer *pPlayer, int r, int g, int b);
+};
+
 #endif // ITEMS_H

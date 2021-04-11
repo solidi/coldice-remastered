@@ -30,6 +30,7 @@
 #include "soundent.h"
 #include "decals.h"
 #include "gamerules.h"
+#include "items.h"
 
 extern CGraph	WorldGraph;
 extern int gEvilImpulse101;

@@ -45,6 +45,7 @@ cvar_t	grapplinghookdeploytime = {"mp_grapplinghookdeploytime","1.0", FCVAR_SERV
 #endif
 
 cvar_t	spawnweaponlist = {"mp_spawnweaponlist","weapon_crowbar;weapon_9mmhandgun;weapon_knife", FCVAR_SERVER };
+cvar_t	allowrunes = {"mp_allowrunes","1", FCVAR_SERVER };
 
 cvar_t  allow_spectators = { "allow_spectators", "0.0", FCVAR_SERVER };		// 0 prevents players from being spectators
 
@@ -549,6 +550,7 @@ void GameDLLInit( void )
 #endif
 
 	CVAR_REGISTER (&spawnweaponlist);
+	CVAR_REGISTER (&allowrunes);
 
 	CVAR_REGISTER (&mp_chattime);
 

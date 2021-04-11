@@ -36,6 +36,7 @@
 #include "game.h"
 #include "pm_shared.h"
 #include "hltv.h"
+#include "items.h"
 
 // #define DUCKFIX
 
@@ -188,6 +189,7 @@ int gmsgTeamNames = 0;
 int gmsgStatusText = 0;
 int gmsgStatusValue = 0; 
 
+int gmsgStatusIcon = 0;
 
 
 void LinkUserMessages( void )
@@ -234,8 +236,8 @@ void LinkUserMessages( void )
 	gmsgTeamNames = REG_USER_MSG( "TeamNames", -1 );
 
 	gmsgStatusText = REG_USER_MSG("StatusText", -1);
-	gmsgStatusValue = REG_USER_MSG("StatusValue", 3); 
-
+	gmsgStatusValue = REG_USER_MSG("StatusValue", 3);
+	gmsgStatusIcon = REG_USER_MSG("StatusIcon", -1);
 }
 
 LINK_ENTITY_TO_CLASS( player, CBasePlayer );
@@ -422,6 +424,34 @@ void CBasePlayer :: TraceAttack( entvars_t *pevAttacker, float flDamage, Vector 
 			break;
 		default:
 			break;
+		}
+
+		CBasePlayer *pVictim = GetClassPtr((CBasePlayer *)pev);
+		CBasePlayer *pAttacker = GetClassPtr((CBasePlayer *)pevAttacker);
+
+		if ( pAttacker->IsPlayer() && pAttacker->m_fHasRune == RUNE_VAMPIRE && (pVictim != pAttacker) )
+		{
+			//under limit, increase damage / 2.
+			if ( pAttacker->pev->health < pAttacker->pev->max_health )
+				pAttacker->pev->health += (flDamage / 2);
+
+			//over the limit, go back to max.
+			if ( pAttacker->pev->health > pAttacker->pev->max_health )
+				pAttacker->pev->health = pAttacker->pev->max_health;
+
+			UTIL_ScreenFade(pAttacker, Vector(200, 0, 0), .5, .5, 32, FFADE_IN);
+		}
+
+		if ( pAttacker->IsPlayer() && pAttacker->m_fHasRune == RUNE_STRENGTH && (pVictim != pAttacker) )
+		{
+			flDamage *= 1.5; // 150%
+			UTIL_ScreenFade(pAttacker, Vector(200, 200, 0), 1, 1, 32, FFADE_IN);
+		}
+
+		if ( m_fHasRune == RUNE_PROTECT )
+		{
+			flDamage *= .5;
+			UTIL_ScreenFade(this, Vector(0, 200, 0), .5, .5, 32, FFADE_IN);
 		}
 
 		SpawnBlood(ptr->vecEndPos, BloodColor(), flDamage);// a little surface blood.
@@ -2901,6 +2931,8 @@ void CBasePlayer::Spawn( void )
 
 // dont let uninitialized value here hurt the player
 	m_flFallVelocity = 0;
+
+	CWorldRunes::ResetPlayer(this);
 
 	g_pGameRules->SetDefaultPlayerTeam( this );
 	g_pGameRules->GetPlayerSpawnSpot( this );

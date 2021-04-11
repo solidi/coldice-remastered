@@ -23,6 +23,7 @@
 #include	"gamerules.h"
 #include	"teamplay_gamerules.h"
 #include	"game.h"
+#include	"items.h"
 
 static char team_names[MAX_TEAMS][MAX_TEAMNAME_LENGTH];
 static int team_scores[MAX_TEAMS];
@@ -468,6 +469,9 @@ int CHalfLifeTeamplay::IPointsForKill( CBasePlayer *pAttacker, CBasePlayer *pKil
 
 	if ( pAttacker != pKilled && PlayerRelationship( pAttacker, pKilled ) == GR_TEAMMATE )
 		return -1;
+
+	if ( pAttacker->m_fHasRune == RUNE_FRAG )
+		return 2;
 
 	return 1;
 }

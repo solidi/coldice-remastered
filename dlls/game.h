@@ -43,6 +43,7 @@ extern cvar_t	grapplinghookdeploytime;
 #endif
 
 extern cvar_t	spawnweaponlist;
+extern cvar_t	allowrunes;
 
 // Engine Cvars
 extern cvar_t	*g_psv_gravity;

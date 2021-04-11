@@ -1074,6 +1074,10 @@ void PM_WalkMove ()
 		wishspeed = pmove->maxspeed;
 	}
 
+	qboolean canHaste = atoi( pmove->PM_Info_ValueForKey( pmove->physinfo, "haste" ) ) == 1 ? true : false;
+	if (canHaste)
+		wishspeed = pmove->maxspeed * 1.5;
+
 	// Set pmove velocity
 	pmove->velocity[2] = 0;
 	PM_Accelerate (wishdir, wishspeed, pmove->movevars->accelerate);

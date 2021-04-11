@@ -39,6 +39,7 @@
 #include "usercmd.h"
 #include "netadr.h"
 #include "pm_shared.h"
+#include "items.h"
 
 #if defined( GRAPPLING_HOOK )
 #include "grapplinghook.h"
@@ -56,6 +57,7 @@ extern DLL_GLOBAL ULONG		g_ulFrameCount;
 extern void CopyToBodyQue(entvars_t* pev);
 extern int giPrecacheGrunt;
 extern int gmsgSayText;
+extern int gmsgStatusIcon;
 
 extern cvar_t allow_spectators;
 
@@ -578,6 +580,17 @@ void ClientCommand( edict_t *pEntity )
 		}
 	}
 #endif
+	else if ( FStrEq(pcmd, "drop_rune" ) )
+	{
+		CBasePlayer *pPlayer = GetClassPtr((CBasePlayer *)pev);
+
+		if ( pPlayer->m_fHasRune )
+		{
+			CWorldRunes::DropRune(pPlayer);
+			CWorldRunes::ResetPlayer(pPlayer);
+			ClientPrint(pPlayer->pev, HUD_PRINTCENTER, "Discarded Rune\n");
+		}
+	}
 	else if ( FStrEq(pcmd, "use" ) )
 	{
 		GetClassPtr((CBasePlayer *)pev)->SelectItem((char *)CMD_ARGV(1));
