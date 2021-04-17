@@ -6,6 +6,8 @@ dlls/releasehl
 cl_dll/debug
 cl_dll/release
 .vs/
+projects/vs2019/Debug/
 projects/vs2019/Release/
 linux/release
+linux/debug
 .DS_Store
