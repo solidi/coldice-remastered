@@ -224,6 +224,8 @@ void CRailgun::Fire( Vector vecOrigSrc, Vector vecDir, float flDamage )
 	}
 	else
 	{
+		m_pPlayer->pev->velocity = m_pPlayer->pev->velocity - gpGlobals->v_forward * 200;
+
 		// Make some balls and a decal
 		DecalGunshot( &tr, BULLET_MONSTER_12MM );
 		
