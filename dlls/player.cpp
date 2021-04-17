@@ -800,6 +800,11 @@ void CBasePlayer::PackDeadPlayerItems( void )
 		}
 	}
 
+	if ( m_fHasRune )
+	{
+		CWorldRunes::DropRune(this);
+	}
+
 // create a box to pack the stuff into.
 	CWeaponBox *pWeaponBox = (CWeaponBox *)CBaseEntity::Create( "weaponbox", pev->origin, pev->angles, edict() );
 

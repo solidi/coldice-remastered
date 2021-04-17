@@ -574,6 +574,10 @@ void CHalfLifeMultiplay :: PlayerThink( CBasePlayer *pPlayer )
 				pPlayer->pev->health += 1;
 				UTIL_ScreenFade( pPlayer, Vector(200,0,200), .5, .5, 32, FFADE_IN);
 				pPlayer->m_flRuneHealTime = gpGlobals->time + 1.0;
+			} else if (pPlayer->pev->armorvalue < pPlayer->pev->max_health) {
+				pPlayer->pev->armorvalue += 1;
+				UTIL_ScreenFade( pPlayer, Vector(200,0,200), .5, .5, 32, FFADE_IN);
+				pPlayer->m_flRuneHealTime = gpGlobals->time + 1.0;
 			}
 		}
 	}
