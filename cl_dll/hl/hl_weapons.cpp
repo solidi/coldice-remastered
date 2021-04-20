@@ -70,6 +70,7 @@ CSqueak g_Snark;
 CVest g_Vest;
 CChumtoad g_Chumtoad;
 CSniperRifle g_SniperRifle;
+CRailgun g_Railgun;
 
 /*
 ======================
@@ -625,6 +626,7 @@ void HUD_InitClientWeapons( void )
 	HUD_PrepEntity( &g_Vest		, &player );
 	HUD_PrepEntity( &g_Chumtoad	, &player );
 	HUD_PrepEntity( &g_SniperRifle	, &player );
+	HUD_PrepEntity( &g_Railgun	, &player );
 }
 
 /*
@@ -760,6 +762,10 @@ void HUD_WeaponsPostThink( local_state_s *from, local_state_s *to, usercmd_t *cm
 
 		case WEAPON_SNIPER_RIFLE:
 			pWeapon = &g_SniperRifle;
+			break;
+
+		case WEAPON_RAILGUN:
+			pWeapon = &g_Railgun;
 			break;
 	}
 

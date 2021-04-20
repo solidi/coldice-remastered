@@ -672,6 +672,21 @@ void CBaseEntity :: SUB_FadeOut ( void  )
 	}
 }
 
+void CBaseEntity :: SUB_FadeOutFast ( void  )
+{
+	if ( pev->renderamt > 35 )
+	{
+		pev->renderamt -= 35;
+		pev->nextthink = gpGlobals->time + 0.1;
+	}
+	else
+	{
+		pev->renderamt = 0;
+		pev->nextthink = gpGlobals->time + 0.2;
+		SetThink ( &CBaseEntity::SUB_Remove );
+	}
+}
+
 //=========================================================
 // WaitTillLand - in order to emit their meaty scent from
 // the proper location, gibs should wait until they stop 
