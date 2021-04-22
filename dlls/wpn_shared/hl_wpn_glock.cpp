@@ -101,6 +101,13 @@ BOOL CGlock::Deploy( )
 	return result;
 }
 
+void CGlock::Holster( int skiplocal )
+{
+	pev->nextthink = -1;
+	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 0.5;
+	SendWeaponAnim( GLOCK_HOLSTER );
+}
+
 void CGlock::SecondaryAttack( void )
 {
 	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + UTIL_SharedRandomFloat( m_pPlayer->random_seed, 10, 15 );
