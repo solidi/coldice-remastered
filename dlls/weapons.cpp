@@ -409,6 +409,10 @@ void W_Precache(void)
 	UTIL_PrecacheOtherWeapon( "weapon_railgun" );
 #endif
 
+#if !defined( OEM_BUILD ) && !defined( HLDEMO_BUILD )
+	UTIL_PrecacheOtherWeapon( "weapon_cannon" );
+#endif
+
 
 #if !defined( OEM_BUILD ) && !defined( HLDEMO_BUILD )
 	if ( g_pGameRules->IsDeathmatch() )
@@ -652,6 +656,18 @@ CBaseEntity* CBasePlayerItem::Respawn( void )
 	if (!strcmp(STRING(pev->classname), "weapon_railgun")) {
 		if (RANDOM_LONG(0, 1)) {
 			pNewWeapon = CBaseEntity::Create("weapon_gauss", g_pGameRules->VecWeaponRespawnSpot(this), pev->angles, pev->owner );
+		}
+	}
+
+	// Randomly replace rpg with cannon.
+	if (!strcmp(STRING(pev->classname), "weapon_rpg")) {
+		if (RANDOM_LONG(0, 1)) {
+			pNewWeapon = CBaseEntity::Create("weapon_cannon", g_pGameRules->VecWeaponRespawnSpot(this), pev->angles, pev->owner );
+		}
+	}
+	if (!strcmp(STRING(pev->classname), "weapon_cannon")) {
+		if (RANDOM_LONG(0, 1)) {
+			pNewWeapon = CBaseEntity::Create("weapon_rpg", g_pGameRules->VecWeaponRespawnSpot(this), pev->angles, pev->owner );
 		}
 	}
 

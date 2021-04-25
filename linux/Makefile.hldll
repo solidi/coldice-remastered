@@ -30,7 +30,8 @@ CFLAGS=$(BASE_CFLAGS)  $(ARCH_CFLAGS) $(DEBUG_CFLAGS) -DCLIENT_WEAPONS \
 		 -DCHUMTOAD \
 		 -DSNIPER_RIFLE \
 		 -DBOLT_GUN \
-		 -DRAILGUN
+		 -DRAILGUN \
+		 -DCANNON
 
 #-O3 -ffast-math -fno-strength-reduce
 
@@ -62,6 +63,7 @@ HLDLL_OBJS = \
 	$(HLDLL_OBJ_DIR)/bmodels.o \
 	$(HLDLL_OBJ_DIR)/bullsquid.o \
 	$(HLDLL_OBJ_DIR)/buttons.o \
+	$(HLDLL_OBJ_DIR)/cannon.o \
 	$(HLDLL_OBJ_DIR)/cbase.o \
 	$(HLDLL_OBJ_DIR)/chumtoad.o \
 	$(HLDLL_OBJ_DIR)/client.o \

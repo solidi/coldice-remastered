@@ -291,6 +291,10 @@ void CGameRules::RefreshSkillData ( void )
 	// Railgun
 	gSkillData.plrDmgRailgun = GetSkillCvar( "sk_plr_railgun");
 
+	// Flak
+	gSkillData.plrDmgFlak = GetSkillCvar( "sk_plr_flak");
+	gSkillData.plrDmgFlakBomb = GetSkillCvar( "sk_plr_flakbomb");
+
 	// MONSTER WEAPONS
 	gSkillData.monDmg12MM = GetSkillCvar( "sk_12mm_bullet");
 	gSkillData.monDmgMP5 = GetSkillCvar ("sk_9mmAR_bullet" );
