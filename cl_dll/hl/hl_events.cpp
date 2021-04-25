@@ -44,6 +44,8 @@ void EV_FireRpgExtreme( struct event_args_s *args );
 void EV_ChumtoadFire( struct event_args_s *args );
 void EV_ChumtoadRelease( struct event_args_s *args );
 void EV_FireSniperRifle( struct event_args_s *args );
+void EV_FireCannon( struct event_args_s *args );
+void EV_FireCannonFlak( struct event_args_s *args );
 
 
 void EV_TrainPitchAdjust( struct event_args_s *args );
@@ -90,4 +92,6 @@ void Game_HookEvents( void )
 	gEngfuncs.pfnHookEvent( "events/chumtoadfire.sc",			EV_ChumtoadFire );
 	gEngfuncs.pfnHookEvent( "events/chumtoadrelease.sc",		EV_ChumtoadRelease );
 	gEngfuncs.pfnHookEvent( "events/sniper_rifle.sc",			EV_FireSniperRifle );
+	gEngfuncs.pfnHookEvent( "events/cannon.sc",					EV_FireCannon );
+	gEngfuncs.pfnHookEvent( "events/cannon_flak.sc",			EV_FireCannonFlak );
 }

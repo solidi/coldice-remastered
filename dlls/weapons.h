@@ -90,6 +90,7 @@ public:
 #define	WEAPON_CHUMTOAD			18
 #define WEAPON_SNIPER_RIFLE		19
 #define WEAPON_RAILGUN			20
+#define WEAPON_CANNON			21
 
 #define WEAPON_ALLWEAPONS		(~(1<<WEAPON_SUIT))
 
@@ -118,6 +119,7 @@ public:
 #define TRIPMINE_WEIGHT		-10
 #define KNIFE_WEIGHT		1
 #define RAILGUN_WEIGHT		20
+#define CANNON_WEIGHT		20
 
 
 // weapon clip/carry ammo capacities
@@ -153,6 +155,7 @@ public:
 #define SATCHEL_MAX_CLIP		WEAPON_NOCLIP
 #define TRIPMINE_MAX_CLIP		WEAPON_NOCLIP
 #define SNARK_MAX_CLIP			WEAPON_NOCLIP
+#define CANNON_MAX_CLIP			WEAPON_NOCLIP
 
 
 // the default amount of ammo that comes with each gun when it spawns
@@ -172,6 +175,7 @@ public:
 #define SNARK_DEFAULT_GIVE			5
 #define HIVEHAND_DEFAULT_GIVE		8
 #define RAILGUN_DEFAULT_GIVE		10
+#define CANNON_DEFAULT_GIVE			10
 
 // The amount of ammo given to a player by an ammo item.
 #define AMMO_URANIUMBOX_GIVE	20
@@ -1190,6 +1194,63 @@ public:
 
 	// rail, rail, rail
 	void CreateTrail(Vector,Vector);
+};
+
+class CCannon : public CBasePlayerWeapon
+{
+public:
+	void Spawn( void );
+	void Precache( void );
+	int iItemSlot( void ) { return 4; }
+	int GetItemInfo(ItemInfo *p);
+	int AddToPlayer( CBasePlayer *pPlayer );
+
+	BOOL Deploy( void );
+	BOOL CanHolster( void );
+	void Holster( int skiplocal = 0 );
+
+	void PrimaryAttack( void );
+	void SecondaryAttack( void );
+	void WeaponIdle( void );
+
+	BOOL ShouldWeaponIdle( void ) { return TRUE; };
+
+	virtual BOOL UseDecrement( void )
+	{
+#if defined( CLIENT_WEAPONS )
+		return TRUE;
+#else
+		return FALSE;
+#endif
+	}
+
+private:
+	unsigned short m_usCannon;
+	unsigned short m_usCannonFlak;
+};
+
+class CFlak : public CGrenade
+{
+public:
+	void Spawn( void );
+	void Precache( void );
+	void EXPORT FlakTouch( CBaseEntity *pOther );
+	static CFlak *CreateFlak( Vector vecOrigin, Vector vecAngles, CBaseEntity *pOwner );
+
+	CSprite *glowSprite;
+};
+
+class CFlakBomb : public CGrenade
+{
+public:
+	void Spawn( void );
+	void Precache( void );
+	void EXPORT BombTouch( CBaseEntity *pOther );
+	void EXPORT BlowUp( void );
+	static CFlakBomb *CreateFlakBomb( Vector vecOrigin, Vector vecAngles, CBaseEntity *pOwner );
+
+	CBaseEntity *owner;
+	int m_iTrail;
 };
 
 #endif // WEAPONS_H

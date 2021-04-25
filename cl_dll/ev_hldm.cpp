@@ -78,6 +78,8 @@ void EV_Knife( struct event_args_s *args );
 void EV_ChumtoadFire( struct event_args_s *args );
 void EV_ChumtoadRelease( struct event_args_s *args );
 void EV_FireSniperRifle( struct event_args_s *args );
+void EV_FireCannon( struct event_args_s *args );
+void EV_FireCannonFlak( struct event_args_s *args );
 
 
 void EV_TrainPitchAdjust( struct event_args_s *args );
@@ -1862,6 +1864,57 @@ void EV_FireSniperRifle( event_args_t *args )
 	VectorCopy( forward, vecAiming );
 
 	EV_HLDM_FireBullets( idx, forward, right, up, 1, vecSrc, vecAiming, 8192, BULLET_PLAYER_MP5, 0, &tracerCount[idx-1], args->fparam1, args->fparam2 );
+}
+
+enum cannon_e {
+	CANNON_IDLE = 0,
+	CANNON_IDLE2,
+	CANNON_FIDGET,
+	CANNON_SPINUP,
+	CANNON_SPIN,
+	CANNON_FIRE2,
+	CANNON_FIRE3,
+	CANNON_HOLSTER1,
+	CANNON_DRAW1
+};
+
+void EV_FireCannon( event_args_t *args )
+{
+	int idx;
+	vec3_t origin;
+
+	idx = args->entindex;
+	VectorCopy( args->origin, origin );
+
+	gEngfuncs.pEventAPI->EV_PlaySound( idx, origin, CHAN_WEAPON, "cannon_fire.wav", 0.9, ATTN_NORM, 0, PITCH_NORM );
+
+	//Only play the weapon anims if I shot it.
+	if ( EV_IsLocal( idx ) )
+	{
+		gEngfuncs.pEventAPI->EV_WeaponAnimation( CANNON_FIRE2, 1 );
+
+		V_PunchAxis( 0, -5.0 );
+	}
+}
+
+void EV_FireCannonFlak( event_args_t *args )
+{
+	int idx;
+	vec3_t origin;
+
+	idx = args->entindex;
+	VectorCopy( args->origin, origin );
+
+	gEngfuncs.pEventAPI->EV_PlaySound( idx, origin, CHAN_WEAPON, "weapons/rocketfire1.wav", 0.9, ATTN_NORM, 0, PITCH_NORM );
+	gEngfuncs.pEventAPI->EV_PlaySound( idx, origin, CHAN_ITEM, "weapons/glauncher.wav", 0.7, ATTN_NORM, 0, PITCH_NORM );
+
+	//Only play the weapon anims if I shot it.
+	if ( EV_IsLocal( idx ) )
+	{
+		gEngfuncs.pEventAPI->EV_WeaponAnimation( CANNON_FIRE2, 1 );
+
+		V_PunchAxis( 0, -5.0 );
+	}
 }
 
 void EV_TrainPitchAdjust( event_args_t *args )

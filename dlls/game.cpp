@@ -425,6 +425,14 @@ cvar_t	sk_plr_railgun1 = {"sk_plr_railgun1","0"};
 cvar_t	sk_plr_railgun2 = {"sk_plr_railgun2","0"};
 cvar_t	sk_plr_railgun3 = {"sk_plr_railgun3","0"};
 
+// Flak
+cvar_t	sk_plr_flak1 = {"sk_plr_flak1","0"};
+cvar_t	sk_plr_flak2 = {"sk_plr_flak2","0"};
+cvar_t	sk_plr_flak3 = {"sk_plr_flak3","0"};
+cvar_t	sk_plr_flakbomb1 = {"sk_plr_flakbomb1","0"};
+cvar_t	sk_plr_flakbomb2 = {"sk_plr_flakbomb2","0"};
+cvar_t	sk_plr_flakbomb3 = {"sk_plr_flakbomb3","0"};
+
 
 
 // WORLD WEAPONS
@@ -924,6 +932,14 @@ void GameDLLInit( void )
 	CVAR_REGISTER ( &sk_plr_railgun1 );
 	CVAR_REGISTER ( &sk_plr_railgun2 );
 	CVAR_REGISTER ( &sk_plr_railgun3 );
+
+	// Flak
+	CVAR_REGISTER ( &sk_plr_flak1 );
+	CVAR_REGISTER ( &sk_plr_flak2 );
+	CVAR_REGISTER ( &sk_plr_flak3 );
+	CVAR_REGISTER ( &sk_plr_flakbomb1 );
+	CVAR_REGISTER ( &sk_plr_flakbomb2 );
+	CVAR_REGISTER ( &sk_plr_flakbomb3 );
 
 
 	// WORLD WEAPONS
