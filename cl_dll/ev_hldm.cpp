@@ -1872,8 +1872,8 @@ enum cannon_e {
 	CANNON_FIDGET,
 	CANNON_SPINUP,
 	CANNON_SPIN,
-	CANNON_FIRE2,
-	CANNON_FIRE3,
+	CANNON_FIRE_BOMB,
+	CANNON_FIRE_FLAK,
 	CANNON_HOLSTER1,
 	CANNON_DRAW1
 };
@@ -1891,7 +1891,7 @@ void EV_FireCannon( event_args_t *args )
 	//Only play the weapon anims if I shot it.
 	if ( EV_IsLocal( idx ) )
 	{
-		gEngfuncs.pEventAPI->EV_WeaponAnimation( CANNON_FIRE2, 1 );
+		gEngfuncs.pEventAPI->EV_WeaponAnimation( CANNON_FIRE_BOMB, 1 );
 
 		V_PunchAxis( 0, -5.0 );
 	}
@@ -1911,7 +1911,7 @@ void EV_FireCannonFlak( event_args_t *args )
 	//Only play the weapon anims if I shot it.
 	if ( EV_IsLocal( idx ) )
 	{
-		gEngfuncs.pEventAPI->EV_WeaponAnimation( CANNON_FIRE2, 1 );
+		gEngfuncs.pEventAPI->EV_WeaponAnimation( CANNON_FIRE_FLAK, 1 );
 
 		V_PunchAxis( 0, -5.0 );
 	}
