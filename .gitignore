@@ -11,3 +11,5 @@ projects/vs2019/Release/
 linux/release
 linux/debug
 .DS_Store
+Debug/
+Release/
