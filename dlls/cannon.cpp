@@ -159,7 +159,7 @@ void CFlak :: Spawn( )
 
 	UTIL_MakeVectors( pev->angles );
 
-	pev->velocity = gpGlobals->v_forward * RANDOM_LONG(600, 900);
+	pev->velocity = gpGlobals->v_forward * RANDOM_LONG(1200, 1800);
 	pev->gravity = 0.5;
 	pev->dmg = gSkillData.plrDmgFlak;
 
