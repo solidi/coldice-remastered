@@ -176,9 +176,13 @@ void CHook::Think ( void )
 	}
 
 	MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
-		WRITE_BYTE( TE_BEAMENTS );
-		WRITE_SHORT( pevOwner->entindex() );
-		WRITE_SHORT( this->entindex() );
+		WRITE_BYTE( TE_BEAMPOINTS);
+		WRITE_COORD( pevOwner->pev->origin.x);
+		WRITE_COORD( pevOwner->pev->origin.y);
+		WRITE_COORD( pevOwner->pev->origin.z + 18);
+		WRITE_COORD( this->pev->origin.x);
+		WRITE_COORD( this->pev->origin.y);
+		WRITE_COORD( this->pev->origin.z);
 		WRITE_SHORT( ropesprite );
 		WRITE_BYTE( 1 );
 		WRITE_BYTE( 0 );
