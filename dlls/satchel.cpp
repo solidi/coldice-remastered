@@ -27,6 +27,7 @@ enum satchel_e {
 	SATCHEL_IDLE1 = 0,
 	SATCHEL_FIDGET1,
 	SATCHEL_DRAW,
+	SATCHEL_DRAW2,
 	SATCHEL_DROP
 };
 
@@ -38,6 +39,25 @@ enum satchel_radio_e {
 	SATCHEL_RADIO_HOLSTER
 };
 
+enum decoy_e {
+	IDLE_1 = 0,
+	IDLE_3,
+	IDLE_2,
+	RUN,
+	WALK,
+	SHOOT,
+	GRENADE_THROW,
+	KICK,
+	KICK_SHORT,
+	DEATH_DURING_RUN,
+	DIE_BACKWARDS,
+	DIE_SIMPLE,
+	JUMP,
+	FLY_UP,
+	FLY_DOWN,
+	FLY_ATTACK,
+	LAND_FROM_JUMP
+};
 
 
 class CSatchelCharge : public CGrenade
@@ -48,6 +68,8 @@ class CSatchelCharge : public CGrenade
 
 	void EXPORT SatchelSlide( CBaseEntity *pOther );
 	void EXPORT SatchelThink( void );
+
+	bool m_transformed;
 
 public:
 	void Deactivate( void );
@@ -86,8 +108,9 @@ void CSatchelCharge :: Spawn( void )
 	pev->friction = 0.8;
 
 	pev->dmg = gSkillData.plrDmgSatchel;
-	// ResetSequenceInfo( );
+
 	pev->sequence = 1;
+	ResetSequenceInfo( );
 }
 
 
@@ -123,7 +146,7 @@ void CSatchelCharge::SatchelSlide( CBaseEntity *pOther )
 
 void CSatchelCharge :: SatchelThink( void )
 {
-	StudioFrameAdvance( );
+	//StudioFrameAdvance( );
 	pev->nextthink = gpGlobals->time + 0.1;
 
 	if (!IsInWorld())
@@ -146,12 +169,36 @@ void CSatchelCharge :: SatchelThink( void )
 	else
 	{
 		pev->velocity.z -= 8;
-	}	
+	}
+
+	if ( !m_transformed && pev->velocity.Length() < 150 ) {
+		MESSAGE_BEGIN( MSG_PVS, SVC_TEMPENTITY, pev->origin );
+			WRITE_BYTE( TE_SMOKE );
+			WRITE_COORD( pev->origin.x );
+			WRITE_COORD( pev->origin.y );
+			WRITE_COORD( pev->origin.z );
+			WRITE_SHORT( g_sModelIndexSmoke );
+			WRITE_BYTE( RANDOM_LONG(0,9) + 40 ); // scale * 10
+			WRITE_BYTE( 12 ); // framerate
+		MESSAGE_END();
+
+		SET_MODEL(ENT(pev), "models/w_hassassin.mdl");
+
+		EMIT_SOUND(ENT(pev), CHAN_VOICE, "decoy_pushthatbutton.wav", 1, ATTN_NORM);
+		EMIT_SOUND(ENT(pev), CHAN_WEAPON, "weapons/explode4.wav", 0.20, ATTN_NORM);
+
+		pev->sequence = RANDOM_LONG(0, 2);
+
+		m_transformed = true;
+	}
 }
 
 void CSatchelCharge :: Precache( void )
 {
 	PRECACHE_MODEL("models/grenade.mdl");
+	PRECACHE_MODEL("models/w_hassassin.mdl");
+	PRECACHE_SOUND("decoy_pushthatbutton.wav");
+	PRECACHE_SOUND("weapons/explode4.wav");
 	PRECACHE_SOUND("weapons/g_bounce1.wav");
 	PRECACHE_SOUND("weapons/g_bounce2.wav");
 	PRECACHE_SOUND("weapons/g_bounce3.wav");
@@ -167,8 +214,9 @@ void CSatchelCharge :: BounceSound( void )
 	}
 }
 
-
+#ifdef DECOY
 LINK_ENTITY_TO_CLASS( weapon_satchel, CSatchel );
+#endif
 
 
 //=========================================================
@@ -249,6 +297,7 @@ int CSatchel::GetItemInfo(ItemInfo *p)
 	p->iFlags = ITEM_FLAG_SELECTONEMPTY | ITEM_FLAG_LIMITINWORLD | ITEM_FLAG_EXHAUSTIBLE;
 	p->iId = m_iId = WEAPON_SATCHEL;
 	p->iWeight = SATCHEL_WEIGHT;
+	p->pszDisplayName = "Female Assassin Decoy Bombs";
 
 	return 1;
 }
@@ -298,7 +347,7 @@ BOOL CSatchel::Deploy( )
 	if ( m_chargeReady )
 		return DefaultDeploy( "models/v_satchel_radio.mdl", "models/p_satchel_radio.mdl", SATCHEL_RADIO_DRAW, "hive" );
 	else
-		return DefaultDeploy( "models/v_satchel.mdl", "models/p_satchel.mdl", SATCHEL_DRAW, "trip" );
+		return DefaultDeploy( "models/v_satchel.mdl", "models/p_satchel.mdl", SATCHEL_DRAW2, "trip" );
 
 	
 	return TRUE;
