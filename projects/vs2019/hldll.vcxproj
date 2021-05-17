@@ -68,9 +68,6 @@
       <ModuleDefinitionFile>$(ProjectDir)..\..\dlls\hl.def</ModuleDefinitionFile>
     </Link>
     <PostBuildEvent>
-      <Command>call ..\..\filecopy.bat $(TargetPath) ..\..\..\redist\dlls\$(TargetName).dll</Command>
-    </PostBuildEvent>
-    <PostBuildEvent>
       <Message>Performing Post-Build Event</Message>
     </PostBuildEvent>
   </ItemDefinitionGroup>
@@ -263,4 +260,7 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
+  <Target Name="AfterBuild">
+    <Copy SourceFiles="$(OutDir)$(TargetName).dll" DestinationFolder="..\..\..\redist\dlls" SkipUnchangedFiles="false" />
+  </Target>
 </Project>
