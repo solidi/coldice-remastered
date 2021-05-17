@@ -4,7 +4,7 @@ on: [push]
 
 env:
   GAME_FILE_PATH: projects/vs2019/hldll.sln
-  CLIENT_FILE_PATH: projects/vs2019/hl_cldll.sln
+  CLIENT_FILE_PATH: projects/vs2019/hl_cdll.sln
 
   # Configuration type to build.
   # You can convert this to a build matrix if you need coverage of multiple configuration types.
