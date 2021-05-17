@@ -1,0 +1,39 @@
+name: MakeBuild
+
+on: [push]
+
+env:
+  BUILD_CONFIGURATION: Release
+
+jobs:
+  Game:
+    runs-on: ubuntu-18.04
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Update sources to include xenial main
+      run: echo "deb http://dk.archive.ubuntu.com/ubuntu/ xenial main" >> /etc/apt/sources.list
+
+    - name: Update sources to include xenial universe
+      run: echo "deb http://dk.archive.ubuntu.com/ubuntu/ xenial universe" >> /etc/apt/sources.list
+
+    - name: Update packages
+      run: apt update -y
+
+    - name: Install make
+      run: apt-get install make
+
+    - name: Install g++-4.8
+      run: apt install g++-4.8 gcc-4.8 -y
+
+    - name: Install headers
+      run: apt-get install gcc-4.8-multilib g++-4.8-multilib -y
+
+    - name: Build ice.co
+      working-directory: src/linux
+      run: make hl CFG=${{env.BUILD_CONFIGURATION}}
+
+    - name: Build client.so
+      working-directory: src/linux
+      run: make hl_cdll CFG=${{env.BUILD_CONFIGURATION}}
