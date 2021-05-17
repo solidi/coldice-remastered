@@ -12,7 +12,7 @@ env:
   BUILD_CONFIGURATION: Release
 
 jobs:
-  build:
+  Prepare:
     runs-on: windows-latest
 
     steps:
@@ -21,6 +21,11 @@ jobs:
     - name: Add MSBuild to PATH
       uses: microsoft/setup-msbuild@v1.0.2
 
+  Game:
+    runs-on: windows-latest
+    needs: Prepare
+
+    steps:
     - name: Restore NuGet packages for ${{env.GAME_FILE_PATH}}
       working-directory: ${{env.GITHUB_WORKSPACE}}
       run: nuget restore ${{env.GAME_FILE_PATH}}
@@ -31,6 +36,11 @@ jobs:
       # See https://docs.microsoft.com/visualstudio/msbuild/msbuild-command-line-reference
       run: msbuild /m /p:Configuration=${{env.BUILD_CONFIGURATION}} ${{env.GAME_FILE_PATH}}
 
+  Client:
+    runs-on: windows-latest
+    needs: Prepare
+
+    steps:
     - name: Restore NuGet packages for ${{env.CLIENT_FILE_PATH}}
       working-directory: ${{env.GITHUB_WORKSPACE}}
       run: nuget restore ${{env.CLIENT_FILE_PATH}}
