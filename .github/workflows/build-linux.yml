@@ -1,4 +1,4 @@
-name: MakeBuild
+name: linux
 
 on: [push]
 
@@ -6,7 +6,7 @@ env:
   BUILD_CONFIGURATION: Release
 
 jobs:
-  Game:
+  ice_so_and_client_so:
     runs-on: ubuntu-18.04
 
     steps:
