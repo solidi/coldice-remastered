@@ -16,7 +16,7 @@ env:
   BUILD_CONFIGURATION: Release
 
 jobs:
-  ice.dll:
+  ice_dll:
     runs-on: windows-latest
 
     steps:
@@ -35,7 +35,7 @@ jobs:
       # See https://docs.microsoft.com/visualstudio/msbuild/msbuild-command-line-reference
       run: msbuild /m /p:Configuration=${{env.BUILD_CONFIGURATION}} ${{env.GAME_FILE_PATH}}
 
-  client.dll:
+  client_dll:
     runs-on: windows-latest
 
     steps:
@@ -52,7 +52,7 @@ jobs:
       working-directory: ${{env.GITHUB_WORKSPACE}}
       run: msbuild /m /p:Configuration=${{env.BUILD_CONFIGURATION}} ${{env.CLIENT_FILE_PATH}}
 
-  makefont.exe:
+  makefont_exe:
     runs-on: windows-latest
 
     steps:
@@ -69,7 +69,7 @@ jobs:
       working-directory: ${{env.GITHUB_WORKSPACE}}
       run: msbuild /m /p:Configuration=${{env.BUILD_CONFIGURATION}} ${{env.MAKEFONT_FILE_PATH}}
 
-  makels.exe:
+  makels_exe:
     runs-on: windows-latest
 
     steps:
@@ -86,7 +86,7 @@ jobs:
       working-directory: ${{env.GITHUB_WORKSPACE}}
       run: msbuild /m /p:Configuration=${{env.BUILD_CONFIGURATION}} ${{env.MAKELS_FILE_PATH}}
 
-  qlumpy.exe:
+  qlumpy_exe:
     runs-on: windows-latest
 
     steps:
@@ -103,7 +103,7 @@ jobs:
       working-directory: ${{env.GITHUB_WORKSPACE}}
       run: msbuild /m /p:Configuration=${{env.BUILD_CONFIGURATION}} ${{env.QLUMPY_FILE_PATH}}
 
-  sprgen.exe:
+  sprgen_exe:
     runs-on: windows-latest
 
     steps:
