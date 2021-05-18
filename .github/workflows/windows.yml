@@ -1,0 +1,121 @@
+name: Windows
+
+on: [push]
+
+env:
+  GAME_FILE_PATH: projects/vs2019/hldll.sln
+  CLIENT_FILE_PATH: projects/vs2019/hl_cdll.sln
+  MAKEFONT_FILE_PATH: utils/makefont/makefont.sln
+  MAKELS_FILE_PATH: utils/makels/makels.sln
+  QLUMPY_FILE_PATH: utils/qlumpy/qlumpy.sln
+  SPRGEN_FILE_PATH: utils/sprgen/sprgen.sln
+
+  # Configuration type to build.
+  # You can convert this to a build matrix if you need coverage of multiple configuration types.
+  # https://docs.github.com/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
+  BUILD_CONFIGURATION: Release
+
+jobs:
+  ice_dll:
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Add MSBuild to PATH
+      uses: microsoft/setup-msbuild@v1.0.2
+
+    - name: Restore NuGet packages for ${{env.GAME_FILE_PATH}}
+      working-directory: ${{env.GITHUB_WORKSPACE}}
+      run: nuget restore ${{env.GAME_FILE_PATH}}
+
+    - name: Build ice.dll
+      working-directory: ${{env.GITHUB_WORKSPACE}}
+      # Add additional options to the MSBuild command line here (like platform or verbosity level).
+      # See https://docs.microsoft.com/visualstudio/msbuild/msbuild-command-line-reference
+      run: msbuild /m /p:Configuration=${{env.BUILD_CONFIGURATION}} ${{env.GAME_FILE_PATH}}
+
+  client_dll:
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Add MSBuild to PATH
+      uses: microsoft/setup-msbuild@v1.0.2
+
+    - name: Restore NuGet packages for ${{env.CLIENT_FILE_PATH}}
+      working-directory: ${{env.GITHUB_WORKSPACE}}
+      run: nuget restore ${{env.CLIENT_FILE_PATH}}
+
+    - name: Build client.dll
+      working-directory: ${{env.GITHUB_WORKSPACE}}
+      run: msbuild /m /p:Configuration=${{env.BUILD_CONFIGURATION}} ${{env.CLIENT_FILE_PATH}}
+
+  makefont_exe:
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Add MSBuild to PATH
+      uses: microsoft/setup-msbuild@v1.0.2
+
+    - name: Restore NuGet packages for ${{env.MAKEFONT_FILE_PATH}}
+      working-directory: ${{env.GITHUB_WORKSPACE}}
+      run: nuget restore ${{env.MAKEFONT_FILE_PATH}}
+
+    - name: Build makefont.exe
+      working-directory: ${{env.GITHUB_WORKSPACE}}
+      run: msbuild /m /p:Configuration=${{env.BUILD_CONFIGURATION}} ${{env.MAKEFONT_FILE_PATH}}
+
+  makels_exe:
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Add MSBuild to PATH
+      uses: microsoft/setup-msbuild@v1.0.2
+
+    - name: Restore NuGet packages for ${{env.MAKELS_FILE_PATH}}
+      working-directory: ${{env.GITHUB_WORKSPACE}}
+      run: nuget restore ${{env.MAKELS_FILE_PATH}}
+
+    - name: Build makels.exe
+      working-directory: ${{env.GITHUB_WORKSPACE}}
+      run: msbuild /m /p:Configuration=${{env.BUILD_CONFIGURATION}} ${{env.MAKELS_FILE_PATH}}
+
+  qlumpy_exe:
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Add MSBuild to PATH
+      uses: microsoft/setup-msbuild@v1.0.2
+
+    - name: Restore NuGet packages for ${{env.QLUMPY_FILE_PATH}}
+      working-directory: ${{env.GITHUB_WORKSPACE}}
+      run: nuget restore ${{env.QLUMPY_FILE_PATH}}
+
+    - name: Build qlumpy.exe
+      working-directory: ${{env.GITHUB_WORKSPACE}}
+      run: msbuild /m /p:Configuration=${{env.BUILD_CONFIGURATION}} ${{env.QLUMPY_FILE_PATH}}
+
+  sprgen_exe:
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Add MSBuild to PATH
+      uses: microsoft/setup-msbuild@v1.0.2
+
+    - name: Restore NuGet packages for ${{env.SPRGEN_FILE_PATH}}
+      working-directory: ${{env.GITHUB_WORKSPACE}}
+      run: nuget restore ${{env.SPRGEN_FILE_PATH}}
+
+    - name: Build sprgen.exe
+      working-directory: ${{env.GITHUB_WORKSPACE}}
+      run: msbuild /m /p:Configuration=${{env.BUILD_CONFIGURATION}} ${{env.SPRGEN_FILE_PATH}}
