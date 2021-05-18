@@ -31,9 +31,9 @@ jobs:
       run: sudo apt-get install gcc-4.8-multilib g++-4.8-multilib -y
 
     - name: Build ice.co
-      working-directory: src/linux
+      working-directory: ./linux
       run: make hl CFG=${{env.BUILD_CONFIGURATION}}
 
     - name: Build client.so
-      working-directory: src/linux
+      working-directory: ./linux
       run: make hl_cdll CFG=${{env.BUILD_CONFIGURATION}}
