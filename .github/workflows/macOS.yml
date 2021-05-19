@@ -12,8 +12,8 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
-    - name: Install command line tools
-      run: xcode-select --install
+    - name: Where is clang?
+      run: xcodebuild -find clang
 
     - name: Build ice.dylib
       working-directory: ./linux
