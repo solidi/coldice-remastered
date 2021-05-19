@@ -12,9 +12,6 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
-    - name: Where is clang?
-      run: /usr/bin/xcode-select -print-path
-
     - name: Install MacOSX10.8.sdk
       run: |
         mkdir /tmp/sdk
