@@ -16,7 +16,7 @@ jobs:
       run: xcodebuild -find clang
 
     - name: Install MacOSX10.8.sdk
-      run: >
+      run: |
         mkdir /tmp/sdk
         cd /tmp/sdk
         curl -sSL https://github.com/phracker/MacOSX-SDKs/releases/download/11.3/MacOSX10.8.sdk.tar.xz > sdk.tar
