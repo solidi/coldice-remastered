@@ -12,6 +12,9 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
+    - name: What again?
+      run: sudo xcode-select -p
+
     - name: Install MacOSX10.8.sdk
       run: |
         mkdir /tmp/sdk
