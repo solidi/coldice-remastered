@@ -37,7 +37,7 @@ endif
 ifeq ($(OS),Darwin)
     OSXVER := $(shell sw_vers -productVersion)
 	DEVELOPER_DIR := $(shell /usr/bin/xcode-select -print-path)
-	ifeq (,$(findstring CommandLineTools, $(sudo xcode-select -p))) #sudo xcode-select -s /Library/Developer/CommandLineTools
+	ifneq (,$(findstring CommandLineTools,$(DEVELOPER_DIR))) #sudo xcode-select -s /Library/Developer/CommandLineTools
 		COMPILER_BIN_DIR := $(DEVELOPER_DIR)/usr/bin
 		SDK_DIR := $(DEVELOPER_DIR)/SDKs
 	else #sudo xcode-select -s /Applications/Xcode.app
