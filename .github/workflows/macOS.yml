@@ -12,6 +12,9 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
+    - name: Install command line tools
+      run: xcode-select --install
+
     - name: Build ice.dylib
       working-directory: ./linux
       run: make hl CFG=${{env.BUILD_CONFIGURATION}}
