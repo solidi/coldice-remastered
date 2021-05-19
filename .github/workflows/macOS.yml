@@ -13,7 +13,7 @@ jobs:
     - uses: actions/checkout@v2
 
     - name: Where is clang?
-      run: xcodebuild -find clang
+      run: /usr/bin/xcode-select -print-path
 
     - name: Install MacOSX10.8.sdk
       run: |
@@ -21,7 +21,7 @@ jobs:
         cd /tmp/sdk
         curl -sSL https://github.com/phracker/MacOSX-SDKs/releases/download/11.3/MacOSX10.8.sdk.tar.xz > sdk.tar
         tar -xvf sdk.tar
-        sudo ln -s /tmp/sdk/MacOSX10.8.sdk /Developer/SDKs/MacOSX10.8.sdk
+        sudo ln -s /tmp/sdk/MacOSX10.8.sdk $(/usr/bin/xcode-select -print-path)/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.8.sdk
         rm sdk.tar
 
     - name: Build ice.dylib
