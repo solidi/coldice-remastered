@@ -37,17 +37,14 @@ endif
 ifeq ($(OS),Darwin)
     OSXVER := $(shell sw_vers -productVersion)
 	DEVELOPER_DIR := $(shell /usr/bin/xcode-select -print-path)
-	#ifeq (,$(findstring 10.7, $(OSXVER))) 
-	#	BUILDING_ON_LION := 0
-	#	COMPILER_BIN_DIR := $(DEVELOPER_DIR)/usr/bin
-	#	SDK_DIR := $(DEVELOPER_DIR)/SDKs
-	#else
-		BUILDING_ON_LION := 1
+	ifeq (,$(findstring CommandLineTools, $(sudo xcode-select -p))) #sudo xcode-select -s /Library/Developer/CommandLineTools
+		COMPILER_BIN_DIR := $(DEVELOPER_DIR)/usr/bin
+		SDK_DIR := $(DEVELOPER_DIR)/SDKs
+	else #sudo xcode-select -s /Applications/Xcode.app
 		COMPILER_BIN_DIR := $(DEVELOPER_DIR)/Toolchains/XcodeDefault.xctoolchain/usr/bin
 		SDK_DIR := $(DEVELOPER_DIR)/Platforms/MacOSX.platform/Developer/SDKs
-	#endif
+	endif
 
-	#SDKROOT ?= $(SDK_DIR)/MacOSX10.6.sdk
 	SDKROOT ?= $(SDK_DIR)/MacOSX10.8.sdk
 
 	ARCH_FLAGS ?= -arch i386 -m32 -march=prescott -gdwarf-2 -g2  -Wno-typedef-redefinition -momit-leaf-frame-pointer -mtune=core2
