@@ -60,7 +60,6 @@ EXTERN	vec3_t		cbox[2];
 EXTERN	int			maxseqgroupsize;
 
 EXTERN	int			split_textures;
-EXTERN	int			clip_texcoords;
 
 #define ROLL	2
 #define PITCH	0
@@ -308,7 +307,7 @@ typedef struct
 	float	fskinheight;
 
 	int		size;
-	void	*pdata;
+	byte	*pdata;
 
 	int		parent;
 } s_texture_t;

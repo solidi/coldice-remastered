@@ -35,8 +35,11 @@
 #include "../../dlls/activity.h"
 #include "../../dlls/activitymap.h"
 
+char g_protected_bones[MAXSTUDIOBONES][32];
+int g_inum_protected_bones = 0;
 
-static int force_powerof2_textures = 0;
+static int override_res_limit = 0;
+static int border_size = 1;
 
 void Sys_Error (char *error, ...) {};
 
@@ -403,6 +406,26 @@ void SimplifyModel (void)
 		}
 		for (k = 0; k < MAXSTUDIOSRCBONES; k++)
 		{
+			// Don't strip protected bones
+			for(j = 0; j < g_inum_protected_bones; j++)
+			{
+				if(!strcmp(model[i]->node[k].name, g_protected_bones[j]))
+				{
+					printf("bone %s marked as protected\n", model[i]->node[k].name);
+					model[i]->boneref[k] = 1;
+				}
+			}
+
+			// Don't strip bone if used by attachments
+			for (j = 0; j < numattachments; j++)
+			{
+				if (stricmp(attachment[j].bonename, model[i]->node[k].name) == 0)
+				{
+					model[i]->boneref[k] = 1;
+					break;
+				}
+			}
+
 			// tag parent bones as used if child has been used
 			if (model[i]->boneref[k])
 			{
@@ -1264,7 +1287,13 @@ void scale_vertex( float *org )
 	org[2] = org[2] * scale_up;
 }
 
-
+float adjust_texcoord( float coord )
+{
+	if((coord-floor(coord)) > 0.5)
+		return ceil(coord);
+	else
+		return floor(coord);
+}
 
 /*
 ============
@@ -1295,141 +1324,20 @@ void TextureCoordRanges( s_mesh_t *pmesh, s_texture_t *ptexture  )
 		}
 		return;
 	}
-
-	// clip texture coords.
-	for (i=0 ; i<pmesh->numtris ; i++) {
-		if (pmesh->triangle[i][0].u > 100.0 || pmesh->triangle[i][1].u > 100.0 || pmesh->triangle[i][2].u > 100.0)
-		{
-			// printf("%d : %f %f %f\n", i, pmesh->triangle[i][0].u, pmesh->triangle[i][1].u, pmesh->triangle[i][2].u );
-		}
-		if (pmesh->triangle[i][0].v > 100.0 || pmesh->triangle[i][1].v > 100.0 || pmesh->triangle[i][2].v > 100.0)
-		{
-			// printf("%d : %f %f %f\n", i, pmesh->triangle[i][0].v, pmesh->triangle[i][1].v, pmesh->triangle[i][2].v );
-		}
-	}
-	for (i=0 ; i<pmesh->numtris ; i++) {
-		for (j = 0; j < 3; j++) {
-			if (pmesh->triangle[i][j].u > 2.0) pmesh->triangle[i][j].u = 2.0;
-			if (pmesh->triangle[i][j].u < -1.0) pmesh->triangle[i][j].u = -1.0;
-			if (pmesh->triangle[i][j].v > 2.0) pmesh->triangle[i][j].v = 2.0;
-			if (pmesh->triangle[i][j].v < -1.0) pmesh->triangle[i][j].v = -1.0;
-		}
-	}
-	// pack texture coords
-
-	if (!clip_texcoords)
-	{
-		int k, n;
-		do 
-		{
-			float min_u = 10;
-			float max_u = -10;
-			float k_max_u, n_min_u;
-			k = -1;
-			n = -1;
-			for (i=0 ; i<pmesh->numtris ; i++) 
-			{
-				float local_min, local_max;
-				local_min = min( pmesh->triangle[i][0].u, min( pmesh->triangle[i][1].u, pmesh->triangle[i][2].u ));
-				local_max = max( pmesh->triangle[i][0].u, max( pmesh->triangle[i][1].u, pmesh->triangle[i][2].u ));
-				if (local_min < min_u) { min_u = local_min; k = i; k_max_u = local_max; }
-				if (local_max > max_u) { max_u = local_max; n = i; n_min_u = local_min; }
-			}
-
-			if (k_max_u + 1.0 < max_u)
-			{
-				//printf("%d %f %f\n", k, k_max_u, max_u ); 
-				for (j = 0; j < 3; j++)
-					pmesh->triangle[k][j].u += 1.0;
-			}
-			else if (n_min_u - 1.0 > min_u)
-			{
-				//printf("%d %f %f\n", n, n_min_u, min_u ); 
-				for (j = 0; j < 3; j++)
-					pmesh->triangle[n][j].u -= 1.0;
-			}
-			else
-			{
-				break;
-			}
-		} while (1);
-		do 
-		{
-			float min_v = 10;
-			float max_v = -10;
-			float k_max_v, n_min_v;
-			k = -1;
-			n = -1;
-			for (i=0 ; i<pmesh->numtris ; i++) 
-			{
-				float local_min, local_max;
-				local_min = min( pmesh->triangle[i][0].v, min( pmesh->triangle[i][1].v, pmesh->triangle[i][2].v ));
-				local_max = max( pmesh->triangle[i][0].v, max( pmesh->triangle[i][1].v, pmesh->triangle[i][2].v ));
-				if (local_min < min_v) { min_v = local_min; k = i; k_max_v = local_max; }
-				if (local_max > max_v) { max_v = local_max; n = i; n_min_v = local_min; }
-			}
-
-			if (k_max_v + 1.0 < max_v)
-			{
-				//printf("%d %f %f\n", k, k_max_v, max_v ); 
-				for (j = 0; j < 3; j++)
-					pmesh->triangle[k][j].v += 1.0;
-			}
-			else if (n_min_v - 1.0 > min_v)
-			{
-				//printf("%d %f %f\n", n, n_min_v, min_v ); 
-				for (j = 0; j < 3; j++)
-					pmesh->triangle[n][j].v -= 1.0;
-			}
-			else
-			{
-				break;
-			}
-		} while (1);
-	}
-	else
-	{
-		for (i=0 ; i<pmesh->numtris ; i++) 
-		{
-			for (j = 0; j < 3; j++) 
-			{
-				if (pmesh->triangle[i][j].u < 0) pmesh->triangle[i][j].u = 0;
-				if (pmesh->triangle[i][j].u > 1) pmesh->triangle[i][j].u = 1;
-				if (pmesh->triangle[i][j].v < 0) pmesh->triangle[i][j].v = 0;
-				if (pmesh->triangle[i][j].v > 1) pmesh->triangle[i][j].v = 1;
-			}
-		}
-	}
+	
 	// convert to pixel coordinates
-	for (i=0 ; i<pmesh->numtris ; i++) {
+	for (i=0; i < pmesh->numtris; i++) {
 		for (j = 0; j < 3; j++) {
-			// FIXME losing texture coord resultion!
-			pmesh->triangle[i][j].s = pmesh->triangle[i][j].u * (ptexture->srcwidth - 1);
-			pmesh->triangle[i][j].t = pmesh->triangle[i][j].v * (ptexture->srcheight - 1);
+			pmesh->triangle[i][j].s = adjust_texcoord(pmesh->triangle[i][j].u*(ptexture->srcwidth));
+			pmesh->triangle[i][j].t = adjust_texcoord(pmesh->triangle[i][j].v*(ptexture->srcheight));
 		}
 	}
 
 	// find the range
-	if (!clip_texcoords)
-	{
-		for (i=0 ; i<pmesh->numtris ; i++) {
-			for (j = 0; j < 3; j++) {
-				ptexture->max_s = max( pmesh->triangle[i][j].s, ptexture->max_s );
-				ptexture->min_s = min( pmesh->triangle[i][j].s, ptexture->min_s );
-				ptexture->max_t = max( pmesh->triangle[i][j].t, ptexture->max_t );
-				ptexture->min_t = min( pmesh->triangle[i][j].t, ptexture->min_t );
-			}
-		}
-	}
-	else
-	{
-		ptexture->max_s = ptexture->srcwidth-1;
-		ptexture->min_s = 0;
-		ptexture->max_t = ptexture->srcheight-1;
-		ptexture->min_t = 0;
-	}
-	//printf("%d %d : ", ptexture->srcwidth, ptexture->srcheight );
-	//printf("%.0f %.0f %.0f %.0f\n", ptexture->min_s, ptexture->max_s, ptexture->min_t, ptexture->max_t );
+	ptexture->max_s = ptexture->srcwidth;
+	ptexture->min_s = 0;
+	ptexture->max_t = ptexture->srcheight;
+	ptexture->min_t = 0;
 }
 
 
@@ -1440,14 +1348,10 @@ void ResetTextureCoordRanges( s_mesh_t *pmesh, s_texture_t *ptexture  )
 	// adjust top, left edge
 	for (i=0 ; i<pmesh->numtris ; i++) {
 		for (j = 0; j < 3; j++) {
-			pmesh->triangle[i][j].s -= ptexture->min_s;
-			// quake wants t inverted
-			pmesh->triangle[i][j].t = (ptexture->max_t - ptexture->min_t) - (pmesh->triangle[i][j].t - ptexture->min_t);
+			pmesh->triangle[i][j].t = -pmesh->triangle[i][j].t+ptexture->srcheight-ptexture->min_t;
 		}
 	}
 }
-
-
 
 /*
 ===============
@@ -1468,7 +1372,8 @@ void Grab_BMP ( char *filename, s_texture_t *ptexture )
 }
 
 #define MIN_DIMENSION 8
-#define MAX_DIMENSION 512
+#define MAX_DIMENSION_HL 512
+#define MAX_DIMENSION_XASH 1024
 
 int GetBestPowerOf2( int value )
 {
@@ -1478,9 +1383,6 @@ int GetBestPowerOf2( int value )
 	for(i=0;i<32;i++)
 	{
 		if ( (1<<i) < MIN_DIMENSION )
-			continue;
-
-		if ( (1<<i) > MAX_DIMENSION )
 			continue;
 
 		power=(1<<i);
@@ -1493,70 +1395,85 @@ int GetBestPowerOf2( int value )
 	return power;
 }
 
-int GetSkinWidth( int rawsize )
-{
-	if ( !force_powerof2_textures )
-	{
-		return (int)( rawsize + 3) & ~3;
-	}
-
-	return GetBestPowerOf2( rawsize );	
-}
-
-int GetSkinHeight( int rawsize )
-{
-	if ( !force_powerof2_textures )
-	{
-		return ( rawsize );
-	}
-
-	return GetBestPowerOf2( rawsize );	
-}
-
 void ResizeTexture( s_texture_t *ptexture )
 {
-	int		i, j, s, t;
+	int		i, j, truewidth;
     byte	*pdest;
-	int		srcadjwidth;
+	int maxres = override_res_limit ? MAX_DIMENSION_XASH : MAX_DIMENSION_HL;
 
-// make the width a multiple of 4; some hardware requires this, and it ensures
-// dword alignment for each scan
+	ptexture->skinwidth = GetBestPowerOf2(ptexture->srcwidth);
+	if (ptexture->skinwidth > maxres)
+	{
+		printf("texture %s with width of %d[resized from %d] is too large, max supported width is %d\n", ptexture->name, ptexture->skinwidth, ptexture->srcwidth, maxres);
+		Error("texture too large after size adjustments\n");
+	}
 
-	ptexture->skintop = ptexture->min_t;
-	ptexture->skinleft = ptexture->min_s;
-
-	ptexture->skinwidth = GetSkinWidth( ptexture->max_s - ptexture->min_s + 1);
-	ptexture->skinheight = GetSkinHeight(ptexture->max_t - ptexture->min_t + 1);
+	ptexture->skinheight = GetBestPowerOf2(ptexture->srcheight);
+	if (ptexture->skinheight > maxres)
+	{
+		printf("texture %s with height of %d[resized from %d] is too large, max supported height is %d\n", ptexture->name, ptexture->skinheight, ptexture->srcheight, maxres);
+		Error("texture too large after size adjustments\n");
+	}
 
 	ptexture->size = ptexture->skinwidth * ptexture->skinheight + 256 * 3;
 
-	printf ("BMP %s [%d %d] (%.0f%%)  %6d bytes\n", ptexture->name,  ptexture->skinwidth, ptexture->skinheight, 
+	printf ("BMP %s [%d %d] -> [%d %d] (%.0f%%)  %6d bytes\n", ptexture->name, ptexture->srcwidth, ptexture->srcheight,  ptexture->skinwidth, ptexture->skinheight, 
 		((ptexture->skinwidth * ptexture->skinheight) / (float)(ptexture->srcwidth * ptexture->srcheight)) * 100.0,
 		ptexture->size );
-	
-	if (ptexture->size > 640 * 480)
-	{
-		printf("%.0f %.0f %.0f %.0f\n", ptexture->min_s, ptexture->max_s, ptexture->min_t, ptexture->max_t );
-		Error("texture too large\n");
-	}
-	pdest = malloc( ptexture->size );
+
+	// Alloc data for resized buffer
+	pdest = (byte*)malloc(ptexture->size);
 	ptexture->pdata = pdest;
 
-	// data is saved as a multiple of 4
-	srcadjwidth = (ptexture->srcwidth + 3) & ~3;
+	// data is actually stored with the width being rounded up to a multiple of 4
+	truewidth = (ptexture->srcwidth + 3) & ~3;
 
-	// move the picture data to the model area, replicating missing data, deleting unused data.
-	for (i = 0, t = ptexture->srcheight - ptexture->skinheight - ptexture->skintop + 10 * ptexture->srcheight; i < ptexture->skinheight; i++, t++) {
-		while (t >= ptexture->srcheight) t -= ptexture->srcheight;
-		while (t < 0) t += ptexture->srcheight;
-		for (j = 0, s = ptexture->skinleft + 10 * ptexture->srcwidth; j < ptexture->skinwidth; j++, s++) {
-			while (s >= ptexture->srcwidth) s -= ptexture->srcwidth;
-			*(pdest++) = *(ptexture->ppicture + s + t * srcadjwidth);
+	// Paste in the texels, leaving a blank of srcres - skinres
+	for(i = 0; i < ptexture->srcheight; i++)
+	{
+		for(j = 0; j < ptexture->srcwidth; j++)
+		{
+			*pdest = *(ptexture->ppicture + i * truewidth + j);
+			pdest++;
+		}
+
+		if(ptexture->srcwidth != ptexture->skinwidth)
+		{
+			// Fill empty spaces with the index of the color at index 255
+			for(j = ptexture->srcwidth; j < ptexture->skinwidth; j++)
+			{
+				if(j <= ptexture->srcwidth + border_size)
+					*pdest = *(ptexture->ppicture + i * truewidth + ptexture->srcwidth - 1);
+				else
+					*pdest = 0xFF;
+					
+				pdest++;
+			}
 		}
 	}
 
-	// TODO: process the texture and flag it if fullbright or transparent are used.
-	// TODO: only save as many palette entries as are actually used.
+	if(ptexture->srcheight != ptexture->skinheight)
+	{
+		// Fill empty spaces with the index of the color at index 255
+		for(i = ptexture->srcheight; i < ptexture->skinheight; i++)
+		{
+			for(j = 0; j < ptexture->skinwidth; j++)
+			{
+				if(i <= ptexture->srcheight + border_size && j <= (ptexture->srcwidth+border_size))
+				{
+					if(j < ptexture->srcwidth)
+						*pdest = *(ptexture->ppicture + (ptexture->srcheight-1) * truewidth + j);
+					else
+						*pdest = *(ptexture->ppicture + (ptexture->srcheight-1) * truewidth + (ptexture->srcwidth-1));
+				}
+				else
+					*pdest = 0xFF;
+
+				pdest++;
+			}
+		}
+	}
+
 	if (gamma != 1.8)
 	{
 		// gamma correct the monster textures to a gamma of 1.8
@@ -2095,7 +2012,7 @@ void Grab_Studio ( s_model_t *pmodel )
 		else if (strcmp( cmd, "triangles" ) == 0) {
 			Grab_Triangles( pmodel );
 		}
-		else 
+		else if( strcmp( cmd, "//" ) != 0 )
 		{
 			printf("unknown studio command\n" );
 		}
@@ -2123,7 +2040,19 @@ void clip_rotations( vec3_t rot )
 	}
 }
 
+/*
+=================
+Cmd_Protected
+=================
+*/
+void Cmd_Protected( )
+{
+	if (!GetToken(false)) 
+		return;
 
+	strcpyn(g_protected_bones[g_inum_protected_bones], token);
+	g_inum_protected_bones++;
+}
 
 
 /*
@@ -3131,7 +3060,11 @@ Cmd_SetTextureRendermode
   	// acceptable strings for rendermode are:
   	// "alpha"
   	// "additive"
-  	// "masked"
+  	// "masked/alphatest"
+	// "fullbright"
+	// "nomips"
+	// "flatshade"
+	// "chrome"
 
 ===================
 */
@@ -3161,18 +3094,50 @@ void Cmd_SetTextureRendermode( void )
 
 	if(!strcmp(token, "additive"))
 	{
+		printf("texture %s set to additive\n", texture[iTextureIndex].name);
 		texture[iTextureIndex].flags |= STUDIO_NF_ADDITIVE;
 		return;
 	}
-	else if(!strcmp(token, "masked"))
+	else if(!strcmp(token, "masked") || !strcmp(token, "alphatest"))
 	{
+		printf("texture %s set to masked/alphatest\n", texture[iTextureIndex].name);
   		texture[iTextureIndex].flags |= STUDIO_NF_MASKED;
+  		return;
+	}
+	else if(!strcmp(token, "fullbright"))
+	{
+		printf("texture %s set to fullbright\n", texture[iTextureIndex].name);
+  		texture[iTextureIndex].flags |= STUDIO_NF_FULLBRIGHT;
+  		return;
+	}
+	else if(!strcmp(token, "chrome"))
+	{
+		printf("texture %s set to chrome\n", texture[iTextureIndex].name);
+  		texture[iTextureIndex].flags |= STUDIO_NF_CHROME;
+  		return;
+	}
+	else if(!strcmp(token, "flatshade"))
+	{
+		printf("texture %s set to flatshade\n", texture[iTextureIndex].name);
+  		texture[iTextureIndex].flags |= STUDIO_NF_FLATSHADE;
+  		return;
+	}
+	else if(!strcmp(token, "nomips"))
+	{
+		printf("texture %s set to flatshade\n", texture[iTextureIndex].name);
+  		texture[iTextureIndex].flags |= STUDIO_NF_NOMIPS;
+  		return;
+	}
+	else if(!strcmp(token, "alpha"))
+	{
+		printf("texture %s set to alpha\n", texture[iTextureIndex].name);
+  		texture[iTextureIndex].flags |= STUDIO_NF_ALPHA;
   		return;
 	}
 	else
 	{
   		printf("\n*********ERROR!!!*************\n");
-  		printf("\ninvalid rendermode at $texrendermode, choices are :\nadditive\nmasked\n");
+  		printf("\ninvalid rendermode at $texrendermode, choices are :\nadditive\nmasked/alphatest\nfullbright\n");
   		exit(1);
 	}
 }
@@ -3220,12 +3185,10 @@ void ParseScript (void)
 				cdtextureset++;
 			}
 		}
-
 		else if (!strcmp (token, "$scale"))
 		{
 			Cmd_ScaleUp ();
 		}
-
 		else if (!strcmp (token, "$root"))
 		{
 			Cmd_Root ();
@@ -3238,43 +3201,34 @@ void ParseScript (void)
 		{
 			Cmd_Controller ();
 		}
-
-
 		else if (!strcmp (token, "$body"))
 		{
 			Cmd_Body();
 		}
-
 		else if (!strcmp (token, "$bodygroup"))
 		{
 			Cmd_Bodygroup();
 		}
-
 		else if (!strcmp (token, "$sequence"))
 		{
 			Cmd_Sequence ();
 		}
-
 		else if (!strcmp (token, "$sequencegroup"))
 		{
 			Cmd_SequenceGroup ();
 		}
-
 		else if (!strcmp (token, "$sequencegroupsize"))
 		{
 			Cmd_SequenceGroupSize ();
 		}
-
 		else if (!strcmp (token, "$eyeposition"))
 		{
 			Cmd_Eyeposition ();
 		}
-
 		else if (!strcmp (token, "$origin"))
 		{
 			Cmd_Origin ();
 		}
-
 		else if (!strcmp (token, "$bbox"))
 		{
 			Cmd_BBox ();
@@ -3299,7 +3253,6 @@ void ParseScript (void)
 		{
 			Cmd_TextureGroup ();
 		}
-
 		else if (!strcmp (token, "$hgroup"))
 		{
 			Cmd_Hitgroup ();
@@ -3318,7 +3271,7 @@ void ParseScript (void)
 		}
 		else if (!strcmp (token, "$cliptotextures"))
 		{
-			clip_texcoords = 0;
+			printf("$cliptotextures is not supported in this program\n");
 		}
 		else if (!strcmp (token, "$renamebone"))
 		{
@@ -3328,6 +3281,10 @@ void ParseScript (void)
   		{
 			Cmd_SetTextureRendermode();
   		}
+		else if (!strcmp (token, "$protected"))
+		{
+			Cmd_Protected();
+		}
   		else
 		{
 			Error ("bad command %s\n", token);
@@ -3398,8 +3355,16 @@ int main (int argc, char **argv)
 				break;
 			case 'p':
 			case '2':
-				force_powerof2_textures = 1;
+				printf("-p and -2 are no longer used\n");
 				break;
+			case 'o':
+				override_res_limit = 1;
+				break;
+			case 'b':
+				i++;
+				border_size = atoi( argv[i] );
+				if(border_size < 0)
+					border_size = 0;
 			case 'i':
 				ignore_warnings = 1;
 				break;
