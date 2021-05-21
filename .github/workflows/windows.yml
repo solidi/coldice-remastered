@@ -134,6 +134,6 @@ jobs:
       working-directory: ${{env.GITHUB_WORKSPACE}}
       run: nuget restore ${{env.STUDIOMDL_FILE_PATH}}
 
-    - name: Build sprgen.exe
+    - name: Build studiomdl.exe
       working-directory: ${{env.GITHUB_WORKSPACE}}
       run: msbuild /m /p:Configuration=${{env.BUILD_CONFIGURATION}} ${{env.STUDIOMDL_FILE_PATH}}
