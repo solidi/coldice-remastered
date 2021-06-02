@@ -3157,6 +3157,15 @@ void CBasePlayer::SelectNextItem( int iItem )
 	}
 }
 
+void CBasePlayer::ChangeGun( const char *pstr )
+{
+    if (m_pActiveItem)
+    {
+        m_pActiveItem->Deploy( );
+        m_pActiveItem->UpdateItemInfo( );
+    }
+}
+
 void CBasePlayer::SelectItem(const char *pstr)
 {
 	if (!pstr)
@@ -3195,8 +3204,19 @@ void CBasePlayer::SelectItem(const char *pstr)
 	if (m_pActiveItem)
 		m_pActiveItem->Holster( );
 	
-	m_pLastItem = m_pActiveItem;
-	m_pActiveItem = pItem;
+	if (holsterweapons.value) {
+		m_pLastItem = pItem;
+
+		if (!m_pActiveItem)
+			m_pActiveItem = pItem;
+		else {
+			m_pLastRef = m_pActiveItem;
+			m_pActiveItem = 0;
+		}
+	} else {
+		m_pLastItem = m_pActiveItem;
+		m_pActiveItem = pItem;
+	}
 
 	if (m_pActiveItem)
 	{
@@ -3208,6 +3228,10 @@ void CBasePlayer::SelectItem(const char *pstr)
 
 void CBasePlayer::SelectLastItem(void)
 {
+	if (holsterweapons.value) {
+		m_pLastItem = m_pLastRef;
+	}
+
 	if (!m_pLastItem)
 	{
 		return;
@@ -3227,8 +3251,14 @@ void CBasePlayer::SelectLastItem(void)
 	CBasePlayerItem *pTemp = m_pActiveItem;
 	m_pActiveItem = m_pLastItem;
 	m_pLastItem = pTemp;
-	m_pActiveItem->Deploy( );
-	m_pActiveItem->UpdateItemInfo( );
+	if (holsterweapons.value) {
+		 m_pLastRef = m_pLastItem;
+		 m_pLastItem = m_pActiveItem;
+		 m_pActiveItem = 0;
+	} else {
+		m_pActiveItem->Deploy( );
+		m_pActiveItem->UpdateItemInfo( );
+	}
 }
 
 //==============================================
@@ -3892,6 +3922,11 @@ void CBasePlayer::ItemPreFrame()
 #endif
 	{
 		return;
+	}
+
+	if (holsterweapons.value && !m_pActiveItem) {
+		m_pActiveItem = m_pLastItem;//We set the chosen weapon to lastitem in selectitem func. //Now we`ll set it to the active weapon and draws it with ChangeGun.
+		ChangeGun(0);
 	}
 
 	if (!m_pActiveItem)
@@ -4708,8 +4743,13 @@ BOOL CBasePlayer :: SwitchWeapon( CBasePlayerItem *pWeapon )
 		m_pActiveItem->Holster( );
 	}
 
-	m_pActiveItem = pWeapon;
-	pWeapon->Deploy( );
+	if (holsterweapons.value) {
+		m_pLastItem = pWeapon;
+		m_pActiveItem = 0;
+	} else {
+		m_pActiveItem = pWeapon;
+		pWeapon->Deploy( );
+	}
 
 	return TRUE;
 }
