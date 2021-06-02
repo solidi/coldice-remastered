@@ -109,9 +109,9 @@ BOOL CRailgun::Deploy( )
 	return DefaultDeploy( "models/v_railgun.mdl", "models/p_railgun.mdl", RAILGUN_DRAW, "gauss" );
 }
 
-void CRailgun::Holster( )
+void CRailgun::Holster( int skiplocal )
 {
-	m_pPlayer->m_flNextAttack = gpGlobals->time + 0.5;
+	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 0.5;
 	SendWeaponAnim( RAILGUN_HOLSTER );
 }
 

@@ -122,7 +122,7 @@ BOOL CKnife::Deploy( )
 
 void CKnife::Holster( int skiplocal /* = 0 */ )
 {
-	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 0.5;
+	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 1.0;
 	SendWeaponAnim( KNIFE_HOLSTER );
 }
 

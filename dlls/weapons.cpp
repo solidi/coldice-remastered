@@ -973,8 +973,12 @@ void CBasePlayerWeapon::SendWeaponAnim( int iAnim, int skiplocal, int body )
 	m_pPlayer->pev->weaponanim = iAnim;
 
 #if defined( CLIENT_WEAPONS )
-	if ( skiplocal && ENGINE_CANSKIP( m_pPlayer->edict() ) )
-		return;
+	//Disabled for holster weapon support.
+	//I am not sure the consequence of this change? I calculate that
+	//is is no harm in showing animations when its not needed from client
+	//prediction standpoint.
+	//if ( skiplocal && ENGINE_CANSKIP( m_pPlayer->edict() ) )
+	//	return;
 #endif
 
 	MESSAGE_BEGIN( MSG_ONE, SVC_WEAPONANIM, NULL, m_pPlayer->pev );

@@ -186,6 +186,7 @@ public:
 	CBasePlayerItem *m_pActiveItem;
 	CBasePlayerItem *m_pClientActiveItem;  // client version of the active item
 	CBasePlayerItem *m_pLastItem;
+	CBasePlayerItem *m_pLastRef;
 	// shared ammo slots
 	int	m_rgAmmo[MAX_AMMO_SLOTS];
 	int	m_rgAmmoLast[MAX_AMMO_SLOTS];
@@ -286,6 +287,8 @@ public:
 	void ItemPostFrame( void );
 	void GiveNamedItem( const char *szName );
 	void EnableControl(BOOL fControl);
+
+	void ChangeGun(const char *pstr);//TROND
 
 	int  GiveAmmo( int iAmount, char *szName, int iMax );
 	void SendAmmoUpdate(void);
