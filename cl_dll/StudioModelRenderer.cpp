@@ -1332,6 +1332,25 @@ int CStudioModelRenderer::StudioDrawModel( int flags )
 		} else if (!strncmp(m_pCurrentEntity->model->name, "models/rpgrocket", strlen("models/rpgrocket"))) {
 			m_pCurrentEntity->curstate.skin = m_pIceModels->value;
 		}
+
+		cl_entity_t *pTarget = gEngfuncs.GetLocalPlayer();
+
+		if ( pTarget && pTarget->curstate.renderfx == kRenderFxGlowShell )
+		{
+			m_pCurrentEntity->curstate.renderfx = kRenderFxGlowShell;
+			m_pCurrentEntity->curstate.rendercolor.r = pTarget->curstate.rendercolor.r;
+			m_pCurrentEntity->curstate.rendercolor.g = pTarget->curstate.rendercolor.g;
+			m_pCurrentEntity->curstate.rendercolor.b = pTarget->curstate.rendercolor.b;
+			m_pCurrentEntity->curstate.renderamt = pTarget->curstate.renderamt;
+		}
+		else
+		{
+			m_pCurrentEntity->curstate.renderfx = kRenderFxNone;
+			m_pCurrentEntity->curstate.rendercolor.r = 0;
+			m_pCurrentEntity->curstate.rendercolor.g = 0;
+			m_pCurrentEntity->curstate.rendercolor.b = 0;
+			m_pCurrentEntity->curstate.renderamt = 0;
+		}
 #endif 
 
 		IEngineStudio.StudioSetRemapColors( m_nTopColor, m_nBottomColor );
