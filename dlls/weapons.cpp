@@ -613,6 +613,20 @@ CBaseEntity* CBasePlayerItem::Respawn( void )
 		}
 	}
 
+	if (!strcmp(STRING(pev->classname), "weapon_vest")) {
+		switch (RANDOM_LONG(0, 3)) {
+			case 0:
+				pNewWeapon = CBaseEntity::Create("weapon_satchel", g_pGameRules->VecWeaponRespawnSpot(this), pev->angles, pev->owner );
+				break;
+			case 1:
+				pNewWeapon = CBaseEntity::Create("weapon_tripmine", g_pGameRules->VecWeaponRespawnSpot(this), pev->angles, pev->owner );
+				break;
+			case 2:
+				pNewWeapon = CBaseEntity::Create("weapon_handgrenade", g_pGameRules->VecWeaponRespawnSpot(this), pev->angles, pev->owner );
+				break;
+		}
+	}
+
 	// Randomly replace ammo and crowbar with knife.
 	if (!strcmp(STRING(pev->classname), "weapon_crowbar") ||
 		!strcmp(STRING(pev->classname), "ammo_glockclip") ||
@@ -620,6 +634,23 @@ CBaseEntity* CBasePlayerItem::Respawn( void )
 		!strcmp(STRING(pev->classname), "ammo_bolts")) {
 		if (RANDOM_LONG(0, 1)) {
 			pNewWeapon = CBaseEntity::Create("weapon_knife", g_pGameRules->VecWeaponRespawnSpot(this), pev->angles, pev->owner );
+		}
+	}
+
+	if (!strcmp(STRING(pev->classname), "weapon_knife")) {
+		switch (RANDOM_LONG(0, 4)) {
+			case 0:
+				pNewWeapon = CBaseEntity::Create("weapon_crowbar", g_pGameRules->VecWeaponRespawnSpot(this), pev->angles, pev->owner );
+				break;
+			case 1:
+				pNewWeapon = CBaseEntity::Create("ammo_glockclip", g_pGameRules->VecWeaponRespawnSpot(this), pev->angles, pev->owner );
+				break;
+			case 2:
+				pNewWeapon = CBaseEntity::Create("ammo_9mmclip", g_pGameRules->VecWeaponRespawnSpot(this), pev->angles, pev->owner );
+				break;
+			case 3:
+				pNewWeapon = CBaseEntity::Create("ammo_bolts", g_pGameRules->VecWeaponRespawnSpot(this), pev->angles, pev->owner );
+				break;
 		}
 	}
 
