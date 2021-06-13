@@ -91,6 +91,7 @@ public:
 #define WEAPON_SNIPER_RIFLE		19
 #define WEAPON_RAILGUN			20
 #define WEAPON_CANNON			21
+#define WEAPON_MAG60			22
 
 #define WEAPON_ALLWEAPONS		(~(1<<WEAPON_SUIT))
 
@@ -120,6 +121,7 @@ public:
 #define KNIFE_WEIGHT		1
 #define RAILGUN_WEIGHT		20
 #define CANNON_WEIGHT		20
+#define MAG60_WEIGHT		15
 
 
 // weapon clip/carry ammo capacities
@@ -156,6 +158,7 @@ public:
 #define TRIPMINE_MAX_CLIP		WEAPON_NOCLIP
 #define SNARK_MAX_CLIP			WEAPON_NOCLIP
 #define CANNON_MAX_CLIP			WEAPON_NOCLIP
+#define MAG60_MAX_CLIP			22
 
 
 // the default amount of ammo that comes with each gun when it spawns
@@ -176,6 +179,7 @@ public:
 #define HIVEHAND_DEFAULT_GIVE		8
 #define RAILGUN_DEFAULT_GIVE		10
 #define CANNON_DEFAULT_GIVE			10
+#define MAG60_DEFAULT_GIVE			44
 
 // The amount of ammo given to a player by an ammo item.
 #define AMMO_URANIUMBOX_GIVE	20
@@ -1253,6 +1257,38 @@ public:
 
 	CBaseEntity *owner;
 	int m_iTrail;
+};
+
+class CMag60 : public CBasePlayerWeapon
+{
+public:
+	void Spawn( void );
+	void Precache( void );
+	int iItemSlot( void ) { return 2; }
+	int GetItemInfo(ItemInfo *p);
+
+	void PrimaryAttack( void );
+	void SecondaryAttack( void );
+	void Fire( float flSpread, float flCycleTime, BOOL fUseAutoAim, int silencer );
+	BOOL Deploy( void );
+	void Holster( int skiplocal );
+	void Reload( void );
+	void WeaponIdle( void );
+
+	virtual BOOL UseDecrement( void )
+	{
+#if defined( CLIENT_WEAPONS )
+		return TRUE;
+#else
+		return FALSE;
+#endif
+	}
+
+private:
+	int m_iShell;
+	int m_iRotated;
+
+	unsigned short m_useFireMag60;
 };
 
 #endif // WEAPONS_H

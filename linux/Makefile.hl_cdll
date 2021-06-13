@@ -30,7 +30,8 @@ CFLAGS=$(BASE_CFLAGS) $(ARCH_CFLAGS) -DCLIENT_DLL -DCLIENT_WEAPONS -DHL_DLL -I/u
 		 -DBOLT_GUN \
 		 -DRAILGUN \
 		 -DCANNON \
-		 -DDECOY
+		 -DDECOY \
+		 -DMAG60
 
 INCLUDEDIRS=-I$(HL_SRC_DIR) -I../dlls -I../tfc -I$(COMMON_SRC_DIR) -I$(PUBLIC_SRC_DIR) -I../pm_shared -I../engine -I../utils/vgui/include -I ../game_shared -I../external
 
@@ -117,6 +118,7 @@ DLL_OBJS = \
 	$(HL1_SERVER_OBJ_DIR)/gauss.o \
 	$(HL1_SERVER_OBJ_DIR)/handgrenade.o \
 	$(HL1_SERVER_OBJ_DIR)/hornetgun.o \
+	$(HL1_SERVER_OBJ_DIR)/mag60.o \
 	$(HL1_SERVER_OBJ_DIR)/mp5.o \
 	$(HL1_SERVER_OBJ_DIR)/python.o \
 	$(HL1_SERVER_OBJ_DIR)/railgun.o \

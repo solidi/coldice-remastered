@@ -32,7 +32,8 @@ CFLAGS=$(BASE_CFLAGS)  $(ARCH_CFLAGS) $(DEBUG_CFLAGS) -DCLIENT_WEAPONS \
 		 -DBOLT_GUN \
 		 -DRAILGUN \
 		 -DCANNON \
-		 -DDECOY
+		 -DDECOY \
+		 -DMAG60
 
 #-O3 -ffast-math -fno-strength-reduce
 
@@ -108,6 +109,7 @@ HLDLL_OBJS = \
 	$(HLDLL_OBJ_DIR)/knife.o \
 	$(HLDLL_OBJ_DIR)/leech.o \
 	$(HLDLL_OBJ_DIR)/lights.o \
+	$(HLDLL_OBJ_DIR)/mag60.o \
 	$(HLDLL_OBJ_DIR)/maprules.o \
 	$(HLDLL_OBJ_DIR)/monstermaker.o \
 	$(HLDLL_OBJ_DIR)/monsters.o \
