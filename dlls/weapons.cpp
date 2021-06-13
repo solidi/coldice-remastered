@@ -413,6 +413,10 @@ void W_Precache(void)
 	UTIL_PrecacheOtherWeapon( "weapon_cannon" );
 #endif
 
+#if !defined( OEM_BUILD ) && !defined( HLDEMO_BUILD )
+	UTIL_PrecacheOtherWeapon( "weapon_mag60" );
+#endif
+
 
 #if !defined( OEM_BUILD ) && !defined( HLDEMO_BUILD )
 	if ( g_pGameRules->IsDeathmatch() )
@@ -699,6 +703,25 @@ CBaseEntity* CBasePlayerItem::Respawn( void )
 	if (!strcmp(STRING(pev->classname), "weapon_cannon")) {
 		if (RANDOM_LONG(0, 1)) {
 			pNewWeapon = CBaseEntity::Create("weapon_rpg", g_pGameRules->VecWeaponRespawnSpot(this), pev->angles, pev->owner );
+		}
+	}
+
+	// Mag 60
+	if (!strcmp(STRING(pev->classname), "weapon_9mmhandgun") ||
+		!strcmp(STRING(pev->classname), "weapon_python")) {
+		if (RANDOM_LONG(0, 1)) {
+			pNewWeapon = CBaseEntity::Create("weapon_mag60", g_pGameRules->VecWeaponRespawnSpot(this), pev->angles, pev->owner );
+		}
+	}
+
+	if (!strcmp(STRING(pev->classname), "weapon_mag60")) {
+		switch (RANDOM_LONG(0, 2)) {
+			case 0:
+				pNewWeapon = CBaseEntity::Create("weapon_9mmhandgun", g_pGameRules->VecWeaponRespawnSpot(this), pev->angles, pev->owner );
+				break;
+			case 1:
+				pNewWeapon = CBaseEntity::Create("weapon_python", g_pGameRules->VecWeaponRespawnSpot(this), pev->angles, pev->owner );
+				break;
 		}
 	}
 

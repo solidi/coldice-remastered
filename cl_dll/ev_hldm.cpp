@@ -80,6 +80,7 @@ void EV_ChumtoadRelease( struct event_args_s *args );
 void EV_FireSniperRifle( struct event_args_s *args );
 void EV_FireCannon( struct event_args_s *args );
 void EV_FireCannonFlak( struct event_args_s *args );
+void EV_FireMag60( struct event_args_s *args  );
 
 
 void EV_TrainPitchAdjust( struct event_args_s *args );
@@ -1915,6 +1916,73 @@ void EV_FireCannonFlak( event_args_t *args )
 
 		V_PunchAxis( 0, -5.0 );
 	}
+}
+
+enum mag60_e {
+	MAG60_IDLE1 = 0,
+	MAG60_IDLE2,
+	MAG60_IDLE3,
+	MAG60_SHOOT,
+	MAG60_SHOOT_SIDEWAYS,
+	MAG60_SHOOT_EMPTY,
+	MAG60_RELOAD,
+	MAG60_RELOAD_SIDEWAYS,
+	MAG60_RELOAD_NOT_EMPTY,
+	MAG60_DRAW,
+	MAG60_HOLSTER,
+	MAG60_BUTTON,
+	MAG60_ROTATE_DOWN,
+	MAG60_ROTATE_UP
+};
+
+void EV_FireMag60( event_args_t *args )
+{
+	int idx;
+	vec3_t origin;
+	vec3_t angles;
+	vec3_t velocity;
+	int empty;
+
+	vec3_t ShellVelocity;
+	vec3_t ShellOrigin;
+	int shell;
+	vec3_t vecSrc, vecAiming;
+	vec3_t up, right, forward;
+
+	idx = args->entindex;
+	VectorCopy( args->origin, origin );
+	VectorCopy( args->angles, angles );
+	VectorCopy( args->velocity, velocity );
+
+	empty = args->bparam1;
+	AngleVectors( angles, forward, right, up );
+
+	shell = gEngfuncs.pEventAPI->EV_FindModelIndex ("models/w_shell.mdl");// brass shell
+
+	if ( EV_IsLocal( idx ) )
+	{
+		EV_MuzzleFlash();
+		gEngfuncs.pEventAPI->EV_WeaponAnimation( args->bparam2 ? MAG60_SHOOT_SIDEWAYS : MAG60_SHOOT, 2 );
+
+		V_PunchAxis( 0, -2.0 );
+	}
+
+	EV_GetDefaultShellInfo( args, origin, velocity, ShellVelocity, ShellOrigin, forward, right, up, 20, -12, 4 );
+
+	EV_EjectBrass ( ShellOrigin, ShellVelocity, angles[ YAW ], shell, TE_BOUNCE_SHELL );
+
+	if ( args->bparam2 )
+	{
+		gEngfuncs.pEventAPI->EV_PlaySound( idx, origin, CHAN_WEAPON, "mag60_fire.wav", gEngfuncs.pfnRandomFloat(0.92, 1.0), ATTN_NORM, 0, 98 + gEngfuncs.pfnRandomLong( 0, 3 ) );
+	} else {
+		gEngfuncs.pEventAPI->EV_PlaySound( idx, origin, CHAN_WEAPON, "mag60_fire.wav", gEngfuncs.pfnRandomFloat(0.92, 1.0), ATTN_NORM, 0, 98 + gEngfuncs.pfnRandomLong( 0, 3 ) );
+	}
+
+	EV_GetGunPosition( args, vecSrc, origin );
+
+	VectorCopy( forward, vecAiming );
+
+	EV_HLDM_FireBullets( idx, forward, right, up, 1, vecSrc, vecAiming, 8192, BULLET_PLAYER_9MM, 0, 0, args->fparam1, args->fparam2 );
 }
 
 void EV_TrainPitchAdjust( event_args_t *args )
