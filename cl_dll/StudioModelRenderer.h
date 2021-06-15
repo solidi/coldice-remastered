@@ -123,6 +123,7 @@ public:
 	cvar_t			*m_pCvarDrawEntities;
 
 	cvar_t			*m_pIceModels;
+	cvar_t			*m_pCvarRighthand;
 
 	// The entity which we are currently rendering.
 	cl_entity_t		*m_pCurrentEntity;		

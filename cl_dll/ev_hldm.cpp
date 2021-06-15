@@ -48,6 +48,7 @@ void V_PunchAxis( int axis, float punch );
 void VectorAngles( const float *forward, float *angles );
 
 extern cvar_t *cl_lw;
+extern cvar_t *m_pCvarRighthand;
 
 extern "C"
 {
@@ -488,7 +489,7 @@ void EV_FireGlock1( event_args_t *args )
 		V_PunchAxis( 0, -2.0 );
 	}
 
-	EV_GetDefaultShellInfo( args, origin, velocity, ShellVelocity, ShellOrigin, forward, right, up, 20, -12, 4 );
+	EV_GetDefaultShellInfo( args, origin, velocity, ShellVelocity, ShellOrigin, forward, right, up, 20, -12, (m_pCvarRighthand->value != 0.0f ? -1 : 1) * 4 );
 
 	EV_EjectBrass ( ShellOrigin, ShellVelocity, angles[ YAW ], shell, TE_BOUNCE_SHELL ); 
 
@@ -538,7 +539,7 @@ void EV_FireGlock2( event_args_t *args )
 		V_PunchAxis( 0, -2.0 );
 	}
 
-	EV_GetDefaultShellInfo( args, origin, velocity, ShellVelocity, ShellOrigin, forward, right, up, 20, -12, 4 );
+	EV_GetDefaultShellInfo( args, origin, velocity, ShellVelocity, ShellOrigin, forward, right, up, 20, -12, (m_pCvarRighthand->value != 0.0f ? -1 : 1) * 4 );
 
 	EV_EjectBrass ( ShellOrigin, ShellVelocity, angles[ YAW ], shell, TE_BOUNCE_SHELL ); 
 
@@ -598,7 +599,7 @@ void EV_FireShotGunDouble( event_args_t *args )
 
 	for ( j = 0; j < 2; j++ )
 	{
-		EV_GetDefaultShellInfo( args, origin, velocity, ShellVelocity, ShellOrigin, forward, right, up, 32, -12, 6 );
+		EV_GetDefaultShellInfo( args, origin, velocity, ShellVelocity, ShellOrigin, forward, right, up, 32, -12, (m_pCvarRighthand->value != 0.0f ? -1 : 1) * 6 );
 
 		EV_EjectBrass ( ShellOrigin, ShellVelocity, angles[ YAW ], shell, TE_BOUNCE_SHOTSHELL ); 
 	}
@@ -651,7 +652,7 @@ void EV_FireShotGunSingle( event_args_t *args )
 		V_PunchAxis( 0, -5.0 );
 	}
 
-	EV_GetDefaultShellInfo( args, origin, velocity, ShellVelocity, ShellOrigin, forward, right, up, 32, -12, 6 );
+	EV_GetDefaultShellInfo( args, origin, velocity, ShellVelocity, ShellOrigin, forward, right, up, 32, -12, (m_pCvarRighthand->value != 0.0f ? -1 : 1) * 6 );
 
 	EV_EjectBrass ( ShellOrigin, ShellVelocity, angles[ YAW ], shell, TE_BOUNCE_SHOTSHELL ); 
 
@@ -708,7 +709,7 @@ void EV_FireMP5( event_args_t *args )
 		V_PunchAxis( 0, gEngfuncs.pfnRandomFloat( -2, 2 ) );
 	}
 
-	EV_GetDefaultShellInfo( args, origin, velocity, ShellVelocity, ShellOrigin, forward, right, up, 20, -12, 4 );
+	EV_GetDefaultShellInfo( args, origin, velocity, ShellVelocity, ShellOrigin, forward, right, up, 20, -12, (m_pCvarRighthand->value != 0.0f ? -1 : 1) * 4 );
 
 	EV_EjectBrass ( ShellOrigin, ShellVelocity, angles[ YAW ], shell, TE_BOUNCE_SHELL ); 
 
@@ -1855,7 +1856,7 @@ void EV_FireSniperRifle( event_args_t *args )
 		V_PunchAxis( 0, gEngfuncs.pfnRandomFloat( -5, 5 ) );
 	}
 
-	EV_GetDefaultShellInfo( args, origin, velocity, ShellVelocity, ShellOrigin, forward, right, up, 20, -12, 4 );
+	EV_GetDefaultShellInfo( args, origin, velocity, ShellVelocity, ShellOrigin, forward, right, up, 20, -12, (m_pCvarRighthand->value != 0.0f ? -1 : 1) * 4 );
 
 	EV_EjectBrass ( ShellOrigin, Vector(-ShellVelocity.x, ShellVelocity.y, ShellVelocity.z), angles[ YAW ], shell, TE_BOUNCE_SHELL );
 
@@ -1967,7 +1968,7 @@ void EV_FireMag60( event_args_t *args )
 		V_PunchAxis( 0, -2.0 );
 	}
 
-	EV_GetDefaultShellInfo( args, origin, velocity, ShellVelocity, ShellOrigin, forward, right, up, 20, -12, 4 );
+	EV_GetDefaultShellInfo( args, origin, velocity, ShellVelocity, ShellOrigin, forward, right, up, 20, -12, (m_pCvarRighthand->value != 0.0f ? -1 : 1) * -10 );
 
 	EV_EjectBrass ( ShellOrigin, ShellVelocity, angles[ YAW ], shell, TE_BOUNCE_SHELL );
 
