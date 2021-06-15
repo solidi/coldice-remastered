@@ -548,6 +548,14 @@ void CStudioModelRenderer::StudioSetUpTransform (int trivial_accept)
 		}
 	}
 
+	extern cvar_t *m_pCvarRighthand;
+	if (m_pCurrentEntity == gEngfuncs.GetViewModel() && !(m_pCvarRighthand->value))
+	{
+		(*m_protationmatrix)[0][1] *= -1;
+		(*m_protationmatrix)[1][1] *= -1;
+		(*m_protationmatrix)[2][1] *= -1;
+	}
+
 	(*m_protationmatrix)[0][3] = modelpos[0];
 	(*m_protationmatrix)[1][3] = modelpos[1];
 	(*m_protationmatrix)[2][3] = modelpos[2];
@@ -2109,8 +2117,18 @@ void CStudioModelRenderer::StudioRenderFinal_Hardware( void )
 			}
 
 			IEngineStudio.GL_SetRenderMode( rendermode );
+
+			extern cvar_t *m_pCvarRighthand;
+			if (m_pCurrentEntity == gEngfuncs.GetViewModel() && !(m_pCvarRighthand->value)) {
+				gEngfuncs.pTriAPI->CullFace( TRI_NONE );
+			}
+
 			IEngineStudio.StudioDrawPoints();
 			IEngineStudio.GL_StudioDrawShadow();
+
+			if (m_pCurrentEntity == gEngfuncs.GetViewModel() && !(m_pCvarRighthand->value)) {
+				gEngfuncs.pTriAPI->CullFace( TRI_FRONT );
+			}
 		}
 	}
 
