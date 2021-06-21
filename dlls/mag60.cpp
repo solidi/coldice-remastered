@@ -53,6 +53,18 @@ void CMag60::Spawn( )
 	FallInit();// get ready to fall down.
 }
 
+int CMag60::AddToPlayer( CBasePlayer *pPlayer )
+{
+	if ( CBasePlayerWeapon::AddToPlayer( pPlayer ) )
+	{
+		MESSAGE_BEGIN( MSG_ONE, gmsgWeapPickup, NULL, pPlayer->pev );
+			WRITE_BYTE( m_iId );
+		MESSAGE_END();
+		return TRUE;
+	}
+	return FALSE;
+}
+
 void CMag60::Precache( void )
 {
 	PRECACHE_MODEL("models/v_mag60.mdl");
