@@ -417,6 +417,9 @@ void W_Precache(void)
 	UTIL_PrecacheOtherWeapon( "weapon_mag60" );
 #endif
 
+#if !defined( OEM_BUILD ) && !defined( HLDEMO_BUILD )
+	UTIL_PrecacheOtherWeapon( "weapon_chaingun" );
+#endif
 
 #if !defined( OEM_BUILD ) && !defined( HLDEMO_BUILD )
 	if ( g_pGameRules->IsDeathmatch() )
@@ -721,6 +724,33 @@ CBaseEntity* CBasePlayerItem::Respawn( void )
 				break;
 			case 1:
 				pNewWeapon = CBaseEntity::Create("weapon_python", g_pGameRules->VecWeaponRespawnSpot(this), pev->angles, pev->owner );
+				break;
+		}
+	}
+
+	// Chaingun
+	if (!strcmp(STRING(pev->classname), "weapon_9mmAR") ||
+		!strcmp(STRING(pev->classname), "weapon_shotgun") ||
+		!strcmp(STRING(pev->classname), "weapon_crossbow") ||
+		!strcmp(STRING(pev->classname), "weapon_sniperrifle")) {
+		if (RANDOM_LONG(0, 1)) {
+			pNewWeapon = CBaseEntity::Create("weapon_chaingun", g_pGameRules->VecWeaponRespawnSpot(this), pev->angles, pev->owner );
+		}
+	}
+
+	if (!strcmp(STRING(pev->classname), "weapon_chaingun")) {
+		switch (RANDOM_LONG(0, 4)) {
+			case 0:
+				pNewWeapon = CBaseEntity::Create("weapon_9mmAR", g_pGameRules->VecWeaponRespawnSpot(this), pev->angles, pev->owner );
+				break;
+			case 1:
+				pNewWeapon = CBaseEntity::Create("weapon_shotgun", g_pGameRules->VecWeaponRespawnSpot(this), pev->angles, pev->owner );
+				break;
+			case 2:
+				pNewWeapon = CBaseEntity::Create("weapon_crossbow", g_pGameRules->VecWeaponRespawnSpot(this), pev->angles, pev->owner );
+				break;
+			case 3:
+				pNewWeapon = CBaseEntity::Create("weapon_sniperrifle", g_pGameRules->VecWeaponRespawnSpot(this), pev->angles, pev->owner );
 				break;
 		}
 	}

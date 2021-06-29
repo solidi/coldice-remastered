@@ -92,6 +92,7 @@ public:
 #define WEAPON_RAILGUN			20
 #define WEAPON_CANNON			21
 #define WEAPON_MAG60			22
+#define WEAPON_CHAINGUN			23
 
 #define WEAPON_ALLWEAPONS		(~(1<<WEAPON_SUIT))
 
@@ -122,6 +123,7 @@ public:
 #define RAILGUN_WEIGHT		20
 #define CANNON_WEIGHT		20
 #define MAG60_WEIGHT		15
+#define CHAINGUN_WEIGHT		20
 
 
 // weapon clip/carry ammo capacities
@@ -138,6 +140,7 @@ public:
 #define HORNET_MAX_CARRY		8
 #define M203_GRENADE_MAX_CARRY	10
 #define RAILGUN_MAX_CARRY		30
+#define CHAINGUN_MAX_CARRY		200
 
 // the maximum amount of ammo each weapon's clip can hold
 #define WEAPON_NOCLIP			-1
@@ -159,6 +162,7 @@ public:
 #define SNARK_MAX_CLIP			WEAPON_NOCLIP
 #define CANNON_MAX_CLIP			WEAPON_NOCLIP
 #define MAG60_MAX_CLIP			22
+#define CHAINGUN_MAX_CLIP		100
 
 
 // the default amount of ammo that comes with each gun when it spawns
@@ -180,6 +184,7 @@ public:
 #define RAILGUN_DEFAULT_GIVE		10
 #define CANNON_DEFAULT_GIVE			10
 #define MAG60_DEFAULT_GIVE			44
+#define CHAINGUN_DEFAULT_GIVE		100
 
 // The amount of ammo given to a player by an ammo item.
 #define AMMO_URANIUMBOX_GIVE	20
@@ -1290,6 +1295,39 @@ private:
 	int m_iRotated;
 
 	unsigned short m_useFireMag60;
+};
+
+class CChaingun : public CBasePlayerWeapon
+{
+public:
+	void Spawn( void );
+	void Precache( void );
+	int iItemSlot( void ) { return 3; }
+	int GetItemInfo(ItemInfo *p);
+	int AddToPlayer( CBasePlayer *pPlayer );
+
+	void PrimaryAttack( void );
+	void Fire( float flSpread, float flCycleTime, BOOL fUseAutoAim );
+	BOOL Deploy( void );
+	void Holster( int skiplocal );
+	void Reload( void );
+	void WeaponIdle( void );
+
+	void SlowDownPlayer( void );
+
+	virtual BOOL UseDecrement( void )
+	{
+#if defined( CLIENT_WEAPONS )
+		return TRUE;
+#else
+		return FALSE;
+#endif
+	}
+
+private:
+	int m_iWeaponMode;
+	int m_fFireMagnitude;
+	int m_useFireChaingun;
 };
 
 #endif // WEAPONS_H

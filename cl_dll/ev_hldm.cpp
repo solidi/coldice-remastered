@@ -82,6 +82,7 @@ void EV_FireSniperRifle( struct event_args_s *args );
 void EV_FireCannon( struct event_args_s *args );
 void EV_FireCannonFlak( struct event_args_s *args );
 void EV_FireMag60( struct event_args_s *args  );
+void EV_FireChaingun( struct event_args_s *args  );
 
 
 void EV_TrainPitchAdjust( struct event_args_s *args );
@@ -1984,6 +1985,64 @@ void EV_FireMag60( event_args_t *args )
 	VectorCopy( forward, vecAiming );
 
 	EV_HLDM_FireBullets( idx, forward, right, up, 1, vecSrc, vecAiming, 8192, BULLET_PLAYER_9MM, 0, 0, args->fparam1, args->fparam2 );
+}
+
+enum chaingun_e
+{
+    CHAINGUN_IDLE = 0,
+	CHAINGUN_IDLE1,
+	CHAINGUN_SPINUP,
+	CHAINGUN_SPINDOWN,
+	CHAINGUN_FIRE,
+	CHAINGUN_DRAW,
+	CHAINGUN_HOLSTER,
+	CHAINGUN_RELOAD,
+};
+
+void EV_FireChaingun( event_args_t *args )
+{
+	int idx;
+	vec3_t origin;
+	vec3_t angles;
+	vec3_t velocity;
+	int empty;
+
+	vec3_t ShellVelocity;
+	vec3_t ShellOrigin;
+	int shell;
+	vec3_t vecSrc, vecAiming;
+	vec3_t up, right, forward;
+
+	idx = args->entindex;
+	VectorCopy( args->origin, origin );
+	VectorCopy( args->angles, angles );
+	VectorCopy( args->velocity, velocity );
+
+	empty = args->bparam1;
+	AngleVectors( angles, forward, right, up );
+
+	shell = gEngfuncs.pEventAPI->EV_FindModelIndex ("models/w_shell.mdl");// brass shell
+
+	if ( EV_IsLocal( idx ) )
+	{
+		EV_MuzzleFlash();
+		if ( args->bparam2 ) {
+			gEngfuncs.pEventAPI->EV_WeaponAnimation( CHAINGUN_FIRE, 2 );
+		}
+		V_PunchAxis( 0, -2.0 );
+	}
+
+	EV_GetDefaultShellInfo( args, origin, velocity, ShellVelocity, ShellOrigin, forward, right, up, 20, -32, (m_pCvarRighthand->value != 0.0f ? -1 : 1) * -10 );
+
+	EV_EjectBrass ( ShellOrigin, ShellVelocity, angles[ YAW ], shell, TE_BOUNCE_SHELL );
+
+	gEngfuncs.pEventAPI->EV_PlaySound( idx, origin, CHAN_WEAPON, "chaingun_fire.wav", gEngfuncs.pfnRandomFloat(0.92, 1.0), ATTN_NORM, 0, 98 + gEngfuncs.pfnRandomLong( 0, 3 ) );
+
+	EV_GetGunPosition( args, vecSrc, origin );
+
+	VectorCopy( forward, vecAiming );
+
+	EV_HLDM_FireBullets( idx, forward, right, up, 1, vecSrc, vecAiming, 8192, BULLET_PLAYER_9MM, 2, &tracerCount[idx-1], args->fparam1, args->fparam2 );
 }
 
 void EV_TrainPitchAdjust( event_args_t *args )

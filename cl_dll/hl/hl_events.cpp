@@ -47,6 +47,7 @@ void EV_FireSniperRifle( struct event_args_s *args );
 void EV_FireCannon( struct event_args_s *args );
 void EV_FireCannonFlak( struct event_args_s *args );
 void EV_FireMag60( struct event_args_s *args  );
+void EV_FireChaingun( struct event_args_s *args  );
 
 
 void EV_TrainPitchAdjust( struct event_args_s *args );
@@ -96,4 +97,5 @@ void Game_HookEvents( void )
 	gEngfuncs.pfnHookEvent( "events/cannon.sc",					EV_FireCannon );
 	gEngfuncs.pfnHookEvent( "events/cannon_flak.sc",			EV_FireCannonFlak );
 	gEngfuncs.pfnHookEvent( "events/mag60.sc",					EV_FireMag60 );
+	gEngfuncs.pfnHookEvent( "events/chaingun.sc",				EV_FireChaingun );
 }
