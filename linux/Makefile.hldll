@@ -34,7 +34,8 @@ CFLAGS=$(BASE_CFLAGS)  $(ARCH_CFLAGS) $(DEBUG_CFLAGS) -DCLIENT_WEAPONS \
 		 -DCANNON \
 		 -DDECOY \
 		 -DMAG60 \
-		 -DCHAINGUN
+		 -DCHAINGUN \
+		 -DGLAUNCHER
 
 #-O3 -ffast-math -fno-strength-reduce
 
@@ -89,6 +90,7 @@ HLDLL_OBJS = \
 	$(HLDLL_OBJ_DIR)/gauss.o \
 	$(HLDLL_OBJ_DIR)/genericmonster.o \
 	$(HLDLL_OBJ_DIR)/ggrenade.o \
+	$(HLDLL_OBJ_DIR)/glauncher.o \
 	$(HLDLL_OBJ_DIR)/globals.o \
 	$(HLDLL_OBJ_DIR)/gman.o \
 	$(HLDLL_OBJ_DIR)/grapplinghook.o \

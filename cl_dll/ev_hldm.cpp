@@ -83,6 +83,7 @@ void EV_FireCannon( struct event_args_s *args );
 void EV_FireCannonFlak( struct event_args_s *args );
 void EV_FireMag60( struct event_args_s *args  );
 void EV_FireChaingun( struct event_args_s *args  );
+void EV_FireGrenadeLauncher( struct event_args_s *args  );
 
 
 void EV_TrainPitchAdjust( struct event_args_s *args );
@@ -2043,6 +2044,41 @@ void EV_FireChaingun( event_args_t *args )
 	VectorCopy( forward, vecAiming );
 
 	EV_HLDM_FireBullets( idx, forward, right, up, 1, vecSrc, vecAiming, 8192, BULLET_PLAYER_9MM, 2, &tracerCount[idx-1], args->fparam1, args->fparam2 );
+}
+
+enum glauncher_e
+{
+	GLAUNCHER_IDLE1 = 0,
+	GLAUNCHER_IDLE2,
+	GLAUNCHER_DRAW,
+	GLAUNCHER_HOLSTER,
+	GLAUNCHER_RELOAD,
+	GLAUNCHER_SHOOT,
+};
+
+void EV_FireGrenadeLauncher( event_args_t *args )
+{
+	int idx;
+	vec3_t origin;
+
+	idx = args->entindex;
+	VectorCopy( args->origin, origin );
+
+	if ( EV_IsLocal( idx ) )
+	{
+		gEngfuncs.pEventAPI->EV_WeaponAnimation( GLAUNCHER_SHOOT, 2 );
+		V_PunchAxis( 0, -10 );
+	}
+
+	switch( gEngfuncs.pfnRandomLong( 0, 1 ) )
+	{
+	case 0:
+		gEngfuncs.pEventAPI->EV_PlaySound( idx, origin, CHAN_WEAPON, "weapons/glauncher.wav", 1, ATTN_NORM, 0, 94 + gEngfuncs.pfnRandomLong( 0, 0xf ) );
+		break;
+	case 1:
+		gEngfuncs.pEventAPI->EV_PlaySound( idx, origin, CHAN_WEAPON, "weapons/glauncher2.wav", 1, ATTN_NORM, 0, 94 + gEngfuncs.pfnRandomLong( 0, 0xf ) );
+		break;
+	}
 }
 
 void EV_TrainPitchAdjust( event_args_t *args )
