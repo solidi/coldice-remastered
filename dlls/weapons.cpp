@@ -422,6 +422,10 @@ void W_Precache(void)
 #endif
 
 #if !defined( OEM_BUILD ) && !defined( HLDEMO_BUILD )
+	UTIL_PrecacheOtherWeapon( "weapon_glauncher" );
+#endif
+
+#if !defined( OEM_BUILD ) && !defined( HLDEMO_BUILD )
 	if ( g_pGameRules->IsDeathmatch() )
 	{
 		UTIL_PrecacheOther( "weaponbox" );// container for dropped deathmatch weapons
@@ -610,148 +614,50 @@ void CBasePlayerItem :: CheckRespawn ( void )
 CBaseEntity* CBasePlayerItem::Respawn( void )
 {
 	CBaseEntity *pNewWeapon = NULL;
+	const char* weaponsList[] = {
+		// swing
+		"weapon_crowbar",
+		"weapon_knife",
 
-	// Randomly replace explosives with vest.
-	if (!strcmp(STRING(pev->classname), "weapon_satchel") ||
-		!strcmp(STRING(pev->classname), "weapon_tripmine") ||
-		!strcmp(STRING(pev->classname), "weapon_handgrenade")) {
-		if (RANDOM_LONG(0, 1)) {
-			pNewWeapon = CBaseEntity::Create("weapon_vest", g_pGameRules->VecWeaponRespawnSpot(this), pev->angles, pev->owner );
-		}
-	}
+		// hand
+		"weapon_9mmhandgun",
+		"weapon_python",
+		"weapon_mag60",
 
-	if (!strcmp(STRING(pev->classname), "weapon_vest")) {
-		switch (RANDOM_LONG(0, 3)) {
-			case 0:
-				pNewWeapon = CBaseEntity::Create("weapon_satchel", g_pGameRules->VecWeaponRespawnSpot(this), pev->angles, pev->owner );
-				break;
-			case 1:
-				pNewWeapon = CBaseEntity::Create("weapon_tripmine", g_pGameRules->VecWeaponRespawnSpot(this), pev->angles, pev->owner );
-				break;
-			case 2:
-				pNewWeapon = CBaseEntity::Create("weapon_handgrenade", g_pGameRules->VecWeaponRespawnSpot(this), pev->angles, pev->owner );
-				break;
-		}
-	}
+		// long
+		"weapon_9mmAR",
+		"weapon_shotgun",
+		"weapon_crossbow",
+		"weapon_sniperrifle",
+		"weapon_chaingun",
+		"weapon_glauncher",
 
-	// Randomly replace ammo and crowbar with knife.
-	if (!strcmp(STRING(pev->classname), "weapon_crowbar") ||
-		!strcmp(STRING(pev->classname), "ammo_glockclip") ||
-		!strcmp(STRING(pev->classname), "ammo_9mmclip") ||
-		!strcmp(STRING(pev->classname), "ammo_bolts")) {
-		if (RANDOM_LONG(0, 1)) {
-			pNewWeapon = CBaseEntity::Create("weapon_knife", g_pGameRules->VecWeaponRespawnSpot(this), pev->angles, pev->owner );
-		}
-	}
+		// heavy
+		"weapon_rpg",
+		"weapon_railgun",
+		"weapon_cannon",
+		"weapon_gauss",
+		"weapon_egon",
 
-	if (!strcmp(STRING(pev->classname), "weapon_knife")) {
-		switch (RANDOM_LONG(0, 4)) {
-			case 0:
-				pNewWeapon = CBaseEntity::Create("weapon_crowbar", g_pGameRules->VecWeaponRespawnSpot(this), pev->angles, pev->owner );
-				break;
-			case 1:
-				pNewWeapon = CBaseEntity::Create("ammo_glockclip", g_pGameRules->VecWeaponRespawnSpot(this), pev->angles, pev->owner );
-				break;
-			case 2:
-				pNewWeapon = CBaseEntity::Create("ammo_9mmclip", g_pGameRules->VecWeaponRespawnSpot(this), pev->angles, pev->owner );
-				break;
-			case 3:
-				pNewWeapon = CBaseEntity::Create("ammo_bolts", g_pGameRules->VecWeaponRespawnSpot(this), pev->angles, pev->owner );
-				break;
-		}
-	}
+		// loose
+		"weapon_satchel",
+		"weapon_tripmine",
+		"weapon_handgrenade",
+		"weapon_vest",
+		"weapon_snark",
+		"weapon_chumtoad",
+	};
 
-	// Randomly replace snark with chumtoad.
-	if (!strcmp(STRING(pev->classname), "weapon_snark")) {
-		if (RANDOM_LONG(0, 1)) {
-			pNewWeapon = CBaseEntity::Create("weapon_chumtoad", g_pGameRules->VecWeaponRespawnSpot(this), pev->angles, pev->owner );
+	for (int i = 0; i < ARRAYSIZE(weaponsList); i++) {
+		if (FStrEq(STRING(pev->classname), weaponsList[i])) {
+			ALERT ( at_aiconsole, "Found %s to change...\n", weaponsList[i] );
+			const char *name = weaponsList[RANDOM_LONG(0, ARRAYSIZE(weaponsList) - 1)];
+			pNewWeapon = CBaseEntity::Create((char *)STRING(ALLOC_STRING(name)), g_pGameRules->VecWeaponRespawnSpot(this), pev->angles, pev->owner );
+			ALERT ( at_aiconsole, "Replaced name with %s!\n", name );
 		}
-	}
-	if (!strcmp(STRING(pev->classname), "weapon_chumtoad")) {
-		if (RANDOM_LONG(0, 1)) {
-			pNewWeapon = CBaseEntity::Create("weapon_snark", g_pGameRules->VecWeaponRespawnSpot(this), pev->angles, pev->owner );
-		}
-	}
 
-	// Randomly replace crossbow with sniper rifle.
-	if (!strcmp(STRING(pev->classname), "weapon_crossbow")) {
-		if (RANDOM_LONG(0, 1)) {
-			pNewWeapon = CBaseEntity::Create("weapon_sniperrifle", g_pGameRules->VecWeaponRespawnSpot(this), pev->angles, pev->owner );
-		}
-	}
-	if (!strcmp(STRING(pev->classname), "weapon_sniperrifle")) {
-		if (RANDOM_LONG(0, 1)) {
-			pNewWeapon = CBaseEntity::Create("weapon_crossbow", g_pGameRules->VecWeaponRespawnSpot(this), pev->angles, pev->owner );
-		}
-	}
-
-	// Randomly replace gauss with railgun.
-	if (!strcmp(STRING(pev->classname), "weapon_gauss")) {
-		if (RANDOM_LONG(0, 1)) {
-			pNewWeapon = CBaseEntity::Create("weapon_railgun", g_pGameRules->VecWeaponRespawnSpot(this), pev->angles, pev->owner );
-		}
-	}
-	if (!strcmp(STRING(pev->classname), "weapon_railgun")) {
-		if (RANDOM_LONG(0, 1)) {
-			pNewWeapon = CBaseEntity::Create("weapon_gauss", g_pGameRules->VecWeaponRespawnSpot(this), pev->angles, pev->owner );
-		}
-	}
-
-	// Randomly replace rpg with cannon.
-	if (!strcmp(STRING(pev->classname), "weapon_rpg")) {
-		if (RANDOM_LONG(0, 1)) {
-			pNewWeapon = CBaseEntity::Create("weapon_cannon", g_pGameRules->VecWeaponRespawnSpot(this), pev->angles, pev->owner );
-		}
-	}
-	if (!strcmp(STRING(pev->classname), "weapon_cannon")) {
-		if (RANDOM_LONG(0, 1)) {
-			pNewWeapon = CBaseEntity::Create("weapon_rpg", g_pGameRules->VecWeaponRespawnSpot(this), pev->angles, pev->owner );
-		}
-	}
-
-	// Mag 60
-	if (!strcmp(STRING(pev->classname), "weapon_9mmhandgun") ||
-		!strcmp(STRING(pev->classname), "weapon_python")) {
-		if (RANDOM_LONG(0, 1)) {
-			pNewWeapon = CBaseEntity::Create("weapon_mag60", g_pGameRules->VecWeaponRespawnSpot(this), pev->angles, pev->owner );
-		}
-	}
-
-	if (!strcmp(STRING(pev->classname), "weapon_mag60")) {
-		switch (RANDOM_LONG(0, 2)) {
-			case 0:
-				pNewWeapon = CBaseEntity::Create("weapon_9mmhandgun", g_pGameRules->VecWeaponRespawnSpot(this), pev->angles, pev->owner );
-				break;
-			case 1:
-				pNewWeapon = CBaseEntity::Create("weapon_python", g_pGameRules->VecWeaponRespawnSpot(this), pev->angles, pev->owner );
-				break;
-		}
-	}
-
-	// Chaingun
-	if (!strcmp(STRING(pev->classname), "weapon_9mmAR") ||
-		!strcmp(STRING(pev->classname), "weapon_shotgun") ||
-		!strcmp(STRING(pev->classname), "weapon_crossbow") ||
-		!strcmp(STRING(pev->classname), "weapon_sniperrifle")) {
-		if (RANDOM_LONG(0, 1)) {
-			pNewWeapon = CBaseEntity::Create("weapon_chaingun", g_pGameRules->VecWeaponRespawnSpot(this), pev->angles, pev->owner );
-		}
-	}
-
-	if (!strcmp(STRING(pev->classname), "weapon_chaingun")) {
-		switch (RANDOM_LONG(0, 4)) {
-			case 0:
-				pNewWeapon = CBaseEntity::Create("weapon_9mmAR", g_pGameRules->VecWeaponRespawnSpot(this), pev->angles, pev->owner );
-				break;
-			case 1:
-				pNewWeapon = CBaseEntity::Create("weapon_shotgun", g_pGameRules->VecWeaponRespawnSpot(this), pev->angles, pev->owner );
-				break;
-			case 2:
-				pNewWeapon = CBaseEntity::Create("weapon_crossbow", g_pGameRules->VecWeaponRespawnSpot(this), pev->angles, pev->owner );
-				break;
-			case 3:
-				pNewWeapon = CBaseEntity::Create("weapon_sniperrifle", g_pGameRules->VecWeaponRespawnSpot(this), pev->angles, pev->owner );
-				break;
+		if (pNewWeapon) {
+			break;
 		}
 	}
 
@@ -1647,6 +1553,10 @@ BOOL CWeaponBox::PackWeapon( CBasePlayerItem *pWeapon )
 	if (pWeapon->m_iId == WEAPON_KNIFE)
 	{
 		SET_MODEL( ENT(pev), "models/w_knife.mdl");
+	}
+	else if (pWeapon->m_iId == WEAPON_GLAUNCHER)
+	{
+		SET_MODEL( ENT(pev), "models/w_glauncher.mdl");
 	}
 	else if (pWeapon->m_iId == WEAPON_CROWBAR)
 	{

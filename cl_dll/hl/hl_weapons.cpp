@@ -74,6 +74,7 @@ CRailgun g_Railgun;
 CCannon g_Cannon;
 CMag60 g_Mag60;
 CChaingun g_Chaingun;
+CGrenadeLauncher g_GrenadeLauncher;
 
 /*
 ======================
@@ -633,6 +634,7 @@ void HUD_InitClientWeapons( void )
 	HUD_PrepEntity( &g_Cannon	, &player );
 	HUD_PrepEntity( &g_Mag60	, &player );
 	HUD_PrepEntity( &g_Chaingun	, &player );
+	HUD_PrepEntity( &g_GrenadeLauncher	, &player );
 }
 
 /*
@@ -784,6 +786,10 @@ void HUD_WeaponsPostThink( local_state_s *from, local_state_s *to, usercmd_t *cm
 
 		case WEAPON_CHAINGUN:
 			pWeapon = &g_Chaingun;
+			break;
+
+		case WEAPON_GLAUNCHER:
+			pWeapon = &g_GrenadeLauncher;
 			break;
 	}
 
