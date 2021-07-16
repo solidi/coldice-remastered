@@ -114,7 +114,7 @@ void CGlock::SecondaryAttack( void )
 	m_flNextPrimaryAttack = m_flNextSecondaryAttack = GetNextAttackDelay(3.2);
 	SetThink( &CGlock::AddSilencer );
 	pev->nextthink = gpGlobals->time + 2.0f;
-	SendWeaponAnim( GLOCK_HOLSTER );
+	SendWeaponAnim( GLOCK_ADD_SILENCER );
 
 	if (m_iSilencer) {
 		m_iSilencer = 0;
