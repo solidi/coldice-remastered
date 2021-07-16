@@ -426,6 +426,10 @@ void W_Precache(void)
 #endif
 
 #if !defined( OEM_BUILD ) && !defined( HLDEMO_BUILD )
+	UTIL_PrecacheOtherWeapon( "weapon_smg" );
+#endif
+
+#if !defined( OEM_BUILD ) && !defined( HLDEMO_BUILD )
 	if ( g_pGameRules->IsDeathmatch() )
 	{
 		UTIL_PrecacheOther( "weaponbox" );// container for dropped deathmatch weapons
@@ -623,6 +627,7 @@ CBaseEntity* CBasePlayerItem::Respawn( void )
 		"weapon_9mmhandgun",
 		"weapon_python",
 		"weapon_mag60",
+		"weapon_smg",
 
 		// long
 		"weapon_9mmAR",
@@ -1557,6 +1562,10 @@ BOOL CWeaponBox::PackWeapon( CBasePlayerItem *pWeapon )
 	else if (pWeapon->m_iId == WEAPON_GLAUNCHER)
 	{
 		SET_MODEL( ENT(pev), "models/w_glauncher.mdl");
+	}
+	else if (pWeapon->m_iId == WEAPON_SMG)
+	{
+		SET_MODEL( ENT(pev), "models/w_smg.mdl");
 	}
 	else if (pWeapon->m_iId == WEAPON_CROWBAR)
 	{

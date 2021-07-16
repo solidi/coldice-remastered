@@ -178,6 +178,7 @@
     <ClCompile Include="..\..\dlls\satchel.cpp" />
     <ClCompile Include="..\..\dlls\shotgun.cpp" />
     <ClCompile Include="..\..\dlls\squeakgrenade.cpp" />
+    <ClCompile Include="..\..\dlls\smg.cpp" />
     <ClCompile Include="..\..\dlls\sniper_rifle.cpp" />
     <ClCompile Include="..\..\dlls\tripmine.cpp" />
     <ClCompile Include="..\..\dlls\vest.cpp" />

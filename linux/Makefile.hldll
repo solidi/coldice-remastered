@@ -35,7 +35,8 @@ CFLAGS=$(BASE_CFLAGS)  $(ARCH_CFLAGS) $(DEBUG_CFLAGS) -DCLIENT_WEAPONS \
 		 -DDECOY \
 		 -DMAG60 \
 		 -DCHAINGUN \
-		 -DGLAUNCHER
+		 -DGLAUNCHER \
+		 -DSMG
 
 #-O3 -ffast-math -fno-strength-reduce
 
@@ -139,6 +140,7 @@ HLDLL_OBJS = \
 	$(HLDLL_OBJ_DIR)/scripted.o \
 	$(HLDLL_OBJ_DIR)/shotgun.o \
 	$(HLDLL_OBJ_DIR)/skill.o \
+	$(HLDLL_OBJ_DIR)/smg.o \
 	$(HLDLL_OBJ_DIR)/sniper_rifle.o \
 	$(HLDLL_OBJ_DIR)/sound.o \
 	$(HLDLL_OBJ_DIR)/soundent.o \
