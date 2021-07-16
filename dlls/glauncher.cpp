@@ -58,7 +58,7 @@ void CGrenadeLauncher::Precache( void )
 	PRECACHE_MODEL("models/w_glauncher.mdl");
 	PRECACHE_MODEL("models/p_glauncher.mdl");
 
-	PRECACHE_MODEL("models/grenade.mdl");
+	PRECACHE_MODEL("models/w_contact_grenade.mdl");
 
 	PRECACHE_SOUND( "weapons/glauncher.wav" );
 	PRECACHE_SOUND( "weapons/glauncher2.wav" );
