@@ -181,6 +181,7 @@
     <ClCompile Include="..\..\dlls\smg.cpp" />
     <ClCompile Include="..\..\dlls\sniper_rifle.cpp" />
     <ClCompile Include="..\..\dlls\tripmine.cpp" />
+    <ClCompile Include="..\..\dlls\usas.cpp" />
     <ClCompile Include="..\..\dlls\vest.cpp" />
     <ClCompile Include="..\..\dlls\wpn_shared\hl_wpn_glock.cpp" />
     <ClCompile Include="..\..\game_shared\vgui_checkbutton2.cpp" />

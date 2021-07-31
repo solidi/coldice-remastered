@@ -430,6 +430,10 @@ void W_Precache(void)
 #endif
 
 #if !defined( OEM_BUILD ) && !defined( HLDEMO_BUILD )
+	UTIL_PrecacheOtherWeapon( "weapon_usas" );
+#endif
+
+#if !defined( OEM_BUILD ) && !defined( HLDEMO_BUILD )
 	if ( g_pGameRules->IsDeathmatch() )
 	{
 		UTIL_PrecacheOther( "weaponbox" );// container for dropped deathmatch weapons
@@ -636,6 +640,7 @@ CBaseEntity* CBasePlayerItem::Respawn( void )
 		"weapon_sniperrifle",
 		"weapon_chaingun",
 		"weapon_glauncher",
+		"weapon_usas",
 
 		// heavy
 		"weapon_rpg",
@@ -1566,6 +1571,10 @@ BOOL CWeaponBox::PackWeapon( CBasePlayerItem *pWeapon )
 	else if (pWeapon->m_iId == WEAPON_SMG)
 	{
 		SET_MODEL( ENT(pev), "models/w_smg.mdl");
+	}
+	else if (pWeapon->m_iId == WEAPON_USAS)
+	{
+		SET_MODEL( ENT(pev), "models/w_usas.mdl");
 	}
 	else if (pWeapon->m_iId == WEAPON_CROWBAR)
 	{

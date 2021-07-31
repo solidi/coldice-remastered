@@ -85,6 +85,7 @@ void EV_FireMag60( struct event_args_s *args  );
 void EV_FireChaingun( struct event_args_s *args  );
 void EV_FireGrenadeLauncher( struct event_args_s *args  );
 void EV_FireSmg( struct event_args_s *args  );
+void EV_FireUsas( struct event_args_s *args  );
 
 
 void EV_TrainPitchAdjust( struct event_args_s *args );
@@ -2142,6 +2143,70 @@ void EV_FireSmg( event_args_t *args )
 	else
 	{
 		EV_HLDM_FireBullets( idx, forward, right, up, 1, vecSrc, vecAiming, 8192, BULLET_PLAYER_MP5, 2, &tracerCount[idx-1], args->fparam1, args->fparam2 );
+	}
+}
+
+enum usas_e {
+	USAS_LONGIDLE = 0,
+	USAS_IDLE1,
+	USAS_LAUNCH,
+	USAS_RELOAD,
+	USAS_DEPLOY,
+	USAS_FIRE1,
+	USAS_FIRE2,
+	USAS_FIRE3,
+	USAS_HOLSTER,
+};
+
+void EV_FireUsas( event_args_t *args )
+{
+	int idx;
+	vec3_t origin;
+	vec3_t angles;
+	vec3_t velocity;
+
+	vec3_t ShellVelocity;
+	vec3_t ShellOrigin;
+	int shell;
+	vec3_t vecSrc, vecAiming;
+	vec3_t vecSpread;
+	vec3_t up, right, forward;
+	float flSpread = 0.01;
+
+	idx = args->entindex;
+	VectorCopy( args->origin, origin );
+	VectorCopy( args->angles, angles );
+	VectorCopy( args->velocity, velocity );
+
+	AngleVectors( angles, forward, right, up );
+
+	shell = gEngfuncs.pEventAPI->EV_FindModelIndex ("models/w_shotgunshell.mdl");// brass shell
+
+	if ( EV_IsLocal( idx ) )
+	{
+		// Add muzzle flash to current weapon model
+		EV_MuzzleFlash();
+		gEngfuncs.pEventAPI->EV_WeaponAnimation( USAS_FIRE1, 2 );
+
+		V_PunchAxis( 0, -5.0 );
+	}
+
+	EV_GetDefaultShellInfo( args, origin, velocity, ShellVelocity, ShellOrigin, forward, right, up, 32, -12, (m_pCvarRighthand->value != 0.0f ? -1 : 1) * 6 );
+
+	EV_EjectBrass ( ShellOrigin, ShellVelocity, angles[ YAW ], shell, TE_BOUNCE_SHOTSHELL ); 
+
+	gEngfuncs.pEventAPI->EV_PlaySound( idx, origin, CHAN_WEAPON, "usas_fire.wav", gEngfuncs.pfnRandomFloat(0.95, 1.0), ATTN_NORM, 0, 93 + gEngfuncs.pfnRandomLong( 0, 0x1f ) );
+
+	EV_GetGunPosition( args, vecSrc, origin );
+	VectorCopy( forward, vecAiming );
+
+	if ( gEngfuncs.GetMaxClients() > 1 )
+	{
+		EV_HLDM_FireBullets( idx, forward, right, up, 4, vecSrc, vecAiming, 2048, BULLET_PLAYER_BUCKSHOT, 0, &tracerCount[idx-1], 0.08716, 0.04362 );
+	}
+	else
+	{
+		EV_HLDM_FireBullets( idx, forward, right, up, 6, vecSrc, vecAiming, 2048, BULLET_PLAYER_BUCKSHOT, 0, &tracerCount[idx-1], 0.08716, 0.08716 );
 	}
 }
 
