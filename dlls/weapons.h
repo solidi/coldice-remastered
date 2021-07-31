@@ -94,6 +94,7 @@ public:
 #define WEAPON_MAG60			22
 #define WEAPON_GLAUNCHER		23
 #define WEAPON_SMG				24
+#define WEAPON_USAS				25
 
 #define WEAPON_ALLWEAPONS		(~(1<<WEAPON_SUIT))
 
@@ -127,6 +128,7 @@ public:
 #define CHAINGUN_WEIGHT		20
 #define GLAUNCHER_WEIGHT	15
 #define SMG_WEIGHT			15
+#define USAS_WEIGHT			15
 
 
 // weapon clip/carry ammo capacities
@@ -168,6 +170,7 @@ public:
 #define CHAINGUN_MAX_CLIP		100
 #define GLAUNCHER_MAX_CLIP		5
 #define SMG_MAX_CLIP			25
+#define USAS_MAX_CLIP			40
 
 
 // the default amount of ammo that comes with each gun when it spawns
@@ -192,6 +195,7 @@ public:
 #define CHAINGUN_DEFAULT_GIVE		100
 #define GLAUNCHER_DEFAULT_GIVE		10
 #define SMG_DEFAULT_GIVE			50
+#define USAS_DEFAULT_GIVE			40
 
 // The amount of ammo given to a player by an ammo item.
 #define AMMO_URANIUMBOX_GIVE	20
@@ -1397,6 +1401,38 @@ private:
 	short m_sFireCount;
 	short m_sMode;
 	unsigned short m_usSmg;
+};
+
+class CUsas : public CBasePlayerWeapon
+{
+public:
+	void Spawn( void );
+	void Precache( void );
+	int iItemSlot( ) { return 3; }
+	int GetItemInfo(ItemInfo *p);
+	int AddToPlayer( CBasePlayer *pPlayer );
+
+	void PrimaryAttack( void );
+
+	BOOL Deploy( );
+	void Holster( int skiplocal = 0 );
+	void Reload( void );
+	void WeaponIdle( void );
+	int m_fInReload;
+	float m_flNextReload;
+	int m_iShell;
+
+	virtual BOOL UseDecrement( void )
+	{
+#if defined( CLIENT_WEAPONS )
+		return TRUE;
+#else
+		return FALSE;
+#endif
+	}
+
+private:
+	unsigned short m_usSingleFire;
 };
 
 #endif // WEAPONS_H

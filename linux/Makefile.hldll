@@ -36,7 +36,8 @@ CFLAGS=$(BASE_CFLAGS)  $(ARCH_CFLAGS) $(DEBUG_CFLAGS) -DCLIENT_WEAPONS \
 		 -DMAG60 \
 		 -DCHAINGUN \
 		 -DGLAUNCHER \
-		 -DSMG
+		 -DSMG \
+		 -DUSAS
 
 #-O3 -ffast-math -fno-strength-reduce
 
@@ -158,6 +159,7 @@ HLDLL_OBJS = \
 	$(HLDLL_OBJ_DIR)/tripmine.o \
 	$(HLDLL_OBJ_DIR)/turret.o \
 	$(HLDLL_OBJ_DIR)/util.o \
+	$(HLDLL_OBJ_DIR)/usas.o \
 	$(HLDLL_OBJ_DIR)/vest.o \
 	$(HLDLL_OBJ_DIR)/weapons.o \
 	$(HLDLL_OBJ_DIR)/world.o \
