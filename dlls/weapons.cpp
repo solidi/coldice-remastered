@@ -31,6 +31,7 @@
 #include "decals.h"
 #include "gamerules.h"
 #include "items.h"
+#include "game.h"
 
 extern CGraph	WorldGraph;
 extern int gEvilImpulse101;
@@ -521,6 +522,12 @@ void CBasePlayerItem :: FallInit( void )
 {
 	pev->movetype = MOVETYPE_TOSS;
 	pev->solid = SOLID_BBOX;
+
+	if (floatingweapons.value) {
+		pev->sequence = 1;
+		pev->animtime = gpGlobals->time;
+		pev->framerate = 1.0;
+	}
 
 	UTIL_SetOrigin( pev, pev->origin );
 	UTIL_SetSize(pev, Vector( 0, 0, 0), Vector(0, 0, 0) );//pointsize until it lands on the ground.
@@ -1563,22 +1570,82 @@ BOOL CWeaponBox::PackWeapon( CBasePlayerItem *pWeapon )
 	if (pWeapon->m_iId == WEAPON_KNIFE)
 	{
 		SET_MODEL( ENT(pev), "models/w_knife.mdl");
-	}
-	else if (pWeapon->m_iId == WEAPON_GLAUNCHER)
-	{
-		SET_MODEL( ENT(pev), "models/w_glauncher.mdl");
-	}
-	else if (pWeapon->m_iId == WEAPON_SMG)
-	{
-		SET_MODEL( ENT(pev), "models/w_smg.mdl");
-	}
-	else if (pWeapon->m_iId == WEAPON_USAS)
-	{
-		SET_MODEL( ENT(pev), "models/w_usas.mdl");
-	}
+	}	
 	else if (pWeapon->m_iId == WEAPON_CROWBAR)
 	{
 		SET_MODEL( ENT(pev), "models/w_crowbar.mdl");
+	}
+
+	if (floatingweapons.value) {
+		if (pWeapon->m_iId == WEAPON_GLAUNCHER)
+		{
+			SET_MODEL( ENT(pev), "models/w_glauncher.mdl");
+		}
+		else if (pWeapon->m_iId == WEAPON_SMG)
+		{
+			SET_MODEL( ENT(pev), "models/w_smg.mdl");
+		}
+		else if (pWeapon->m_iId == WEAPON_USAS)
+		{
+			SET_MODEL( ENT(pev), "models/w_usas.mdl");
+		}
+		else if (pWeapon->m_iId == WEAPON_RPG)
+		{
+			SET_MODEL( ENT(pev), "models/w_rpg.mdl");
+		}
+		else if (pWeapon->m_iId == WEAPON_CROSSBOW)
+		{
+			SET_MODEL( ENT(pev), "models/w_crossbow.mdl");
+		}
+		else if (pWeapon->m_iId == WEAPON_MAG60)
+		{
+			SET_MODEL( ENT(pev), "models/w_mag60.mdl");
+		}
+		else if (pWeapon->m_iId == WEAPON_CHAINGUN)
+		{
+			SET_MODEL( ENT(pev), "models/w_chaingun.mdl");
+		}
+		else if (pWeapon->m_iId == WEAPON_GLOCK)
+		{
+			SET_MODEL( ENT(pev), "models/w_9mmhandguns.mdl");
+		}
+		else if (pWeapon->m_iId == WEAPON_SNIPER_RIFLE)
+		{
+			SET_MODEL( ENT(pev), "models/w_sniperrifle.mdl");
+		}
+		else if (pWeapon->m_iId == WEAPON_SATCHEL)
+		{
+			SET_MODEL( ENT(pev), "models/w_satchel.mdl");
+		}
+		else if (pWeapon->m_iId == WEAPON_VEST)
+		{
+			SET_MODEL( ENT(pev), "models/w_vest.mdl");
+		}
+		else if (pWeapon->m_iId == WEAPON_CANNON)
+		{
+			SET_MODEL( ENT(pev), "models/w_cannon.mdl");
+		}
+		else if (pWeapon->m_iId == WEAPON_CHUMTOAD)
+		{
+			SET_MODEL( ENT(pev), "models/w_chumtoad_nest.mdl");
+		}
+		else if (pWeapon->m_iId == WEAPON_HANDGRENADE)
+		{
+			SET_MODEL( ENT(pev), "models/w_grenade.mdl");
+		}
+		else if (pWeapon->m_iId == WEAPON_TRIPMINE)
+		{
+			SET_MODEL( ENT(pev), "models/v_tripmine.mdl");
+			pev->body = 3;
+		}
+		else if (pWeapon->m_iId == WEAPON_RAILGUN)
+		{
+			SET_MODEL( ENT(pev), "models/w_railgun.mdl");
+		}
+
+		pev->sequence = 1;
+		pev->animtime = gpGlobals->time;
+		pev->framerate = 1.0;
 	}
 
 	return TRUE;

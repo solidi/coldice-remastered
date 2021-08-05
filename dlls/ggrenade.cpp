@@ -263,7 +263,7 @@ void CGrenade::BounceTouch( CBaseEntity *pOther )
 		// add a bit of static friction
 		pev->velocity = pev->velocity * 0.8;
 
-		pev->sequence = RANDOM_LONG( 1, 1 );
+		pev->sequence = 2;
 	}
 	else
 	{
@@ -408,7 +408,7 @@ CGrenade * CGrenade:: ShootTimed( entvars_t *pevOwner, Vector vecStart, Vector v
 		pGrenade->pev->velocity = Vector( 0, 0, 0 );
 	}
 		
-	pGrenade->pev->sequence = RANDOM_LONG( 3, 6 );
+	pGrenade->pev->sequence = RANDOM_LONG( 4, 7 );
 	pGrenade->pev->framerate = 1.0;
 
 	// Tumble through the air
@@ -501,7 +501,7 @@ CGrenade *CGrenade::ShootTimedCluster( entvars_t *pevOwner, Vector vecStart, Vec
         pGrenade->pev->velocity = Vector( 0, 0, 0 );
     }
 
-    pGrenade->pev->sequence = RANDOM_LONG( 3, 6 );
+    pGrenade->pev->sequence = RANDOM_LONG( 4, 7 );
     pGrenade->pev->framerate = 1.0;
 
     // Tumble through the air
