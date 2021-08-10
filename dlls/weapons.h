@@ -95,6 +95,7 @@ public:
 #define WEAPON_GLAUNCHER		23
 #define WEAPON_SMG				24
 #define WEAPON_USAS				25
+#define WEAPON_FISTS			26
 
 #define WEAPON_ALLWEAPONS		(~(1<<WEAPON_SUIT))
 
@@ -107,7 +108,7 @@ public:
 
 
 // weapon weight factors (for auto-switching)   (-1 = noswitch)
-#define CROWBAR_WEIGHT		0
+#define CROWBAR_WEIGHT		1
 #define GLOCK_WEIGHT		10
 #define PYTHON_WEIGHT		15
 #define MP5_WEIGHT			15
@@ -121,7 +122,7 @@ public:
 #define SNARK_WEIGHT		5
 #define SATCHEL_WEIGHT		-10
 #define TRIPMINE_WEIGHT		-10
-#define KNIFE_WEIGHT		1
+#define KNIFE_WEIGHT		2
 #define RAILGUN_WEIGHT		20
 #define CANNON_WEIGHT		20
 #define MAG60_WEIGHT		15
@@ -129,6 +130,7 @@ public:
 #define GLAUNCHER_WEIGHT	15
 #define SMG_WEIGHT			15
 #define USAS_WEIGHT			15
+#define FISTS_WEIGHT		0
 
 
 // weapon clip/carry ammo capacities
@@ -220,6 +222,7 @@ typedef	enum
 	BULLET_PLAYER_RIFLE, // sniper rifle
 	BULLET_PLAYER_BUCKSHOT, // shotgun
 	BULLET_PLAYER_CROWBAR, // crowbar swipe
+	BULLET_PLAYER_FIST,
 
 	BULLET_MONSTER_9MM,
 	BULLET_MONSTER_MP5,
@@ -1433,6 +1436,38 @@ public:
 
 private:
 	unsigned short m_usSingleFire;
+};
+
+class CFists : public CBasePlayerWeapon
+{
+public:
+	void Spawn( void );
+	void Precache( void );
+	int AddToPlayer( CBasePlayer *pPlayer );
+	int iItemSlot( void ) { return 1; }
+	void EXPORT SwingAgain( void );
+	void EXPORT Smack( void );
+	int GetItemInfo(ItemInfo *p);
+
+	void PrimaryAttack( void );
+	int Swing( int fFirst );
+	BOOL Deploy( void );
+	void Holster( int skiplocal = 0 );
+	void WeaponIdle( void );
+	int m_iSwing;
+	TraceResult m_trHit;
+	void FindHullIntersection( const Vector &vecSrc, TraceResult &tr, float *mins, float *maxs, edict_t *pEntity );
+
+	virtual BOOL UseDecrement( void )
+	{
+#if defined( CLIENT_WEAPONS )
+		return TRUE;
+#else
+		return FALSE;
+#endif
+	}
+private:
+	unsigned short m_usFists;
 };
 
 #endif // WEAPONS_H

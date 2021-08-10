@@ -193,6 +193,9 @@ void CHalfLifeMultiplay::RefreshSkillData( void )
 	// Flak
 	gSkillData.plrDmgFlak = 50;
 	gSkillData.plrDmgFlakBomb = 120;
+
+	// Fists
+	gSkillData.plrDmgFists = 5;
 }
 
 // longest the intermission can last, in seconds
