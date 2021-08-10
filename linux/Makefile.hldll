@@ -37,7 +37,8 @@ CFLAGS=$(BASE_CFLAGS)  $(ARCH_CFLAGS) $(DEBUG_CFLAGS) -DCLIENT_WEAPONS \
 		 -DCHAINGUN \
 		 -DGLAUNCHER \
 		 -DSMG \
-		 -DUSAS
+		 -DUSAS \
+		 -DFISTS
 
 #-O3 -ffast-math -fno-strength-reduce
 
@@ -83,6 +84,7 @@ HLDLL_OBJS = \
 	$(HLDLL_OBJ_DIR)/effects.o \
 	$(HLDLL_OBJ_DIR)/egon.o \
 	$(HLDLL_OBJ_DIR)/explode.o \
+	$(HLDLL_OBJ_DIR)/fists.o \
 	$(HLDLL_OBJ_DIR)/flyingmonster.o \
 	$(HLDLL_OBJ_DIR)/func_break.o \
 	$(HLDLL_OBJ_DIR)/func_tank.o \

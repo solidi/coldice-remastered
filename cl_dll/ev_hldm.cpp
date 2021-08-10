@@ -86,6 +86,7 @@ void EV_FireChaingun( struct event_args_s *args  );
 void EV_FireGrenadeLauncher( struct event_args_s *args  );
 void EV_FireSmg( struct event_args_s *args  );
 void EV_FireUsas( struct event_args_s *args  );
+void EV_Fists( struct event_args_s *args  );
 
 
 void EV_TrainPitchAdjust( struct event_args_s *args );
@@ -2207,6 +2208,49 @@ void EV_FireUsas( event_args_t *args )
 	else
 	{
 		EV_HLDM_FireBullets( idx, forward, right, up, 6, vecSrc, vecAiming, 2048, BULLET_PLAYER_BUCKSHOT, 0, &tracerCount[idx-1], 0.08716, 0.08716 );
+	}
+}
+
+enum fists_e {
+	FISTS_IDLE = 0,
+	FISTS_DRAW,
+	FISTS_HOLSTER,
+	FISTS_ATTACK1HIT,
+	FISTS_ATTACK1MISS,
+	FISTS_ATTACK2MISS,
+	FISTS_ATTACK2HIT,
+	FISTS_ATTACK3MISS,
+	FISTS_ATTACK3HIT,
+	FISTS_IDLE2,
+	FISTS_IDLE3
+};
+
+void EV_Fists( event_args_t *args )
+{
+	int idx;
+	vec3_t origin;
+	vec3_t angles;
+	vec3_t velocity;
+
+	idx = args->entindex;
+	VectorCopy( args->origin, origin );
+
+	//Play Swing sound6
+	gEngfuncs.pEventAPI->EV_PlaySound( idx, origin, CHAN_WEAPON, "fists_miss.wav", 1, ATTN_NORM, 0, PITCH_NORM);
+
+	if ( EV_IsLocal( idx ) )
+	{
+		gEngfuncs.pEventAPI->EV_WeaponAnimation( FISTS_ATTACK1MISS, 1 );
+
+		switch( (g_iSwing++) % 3 )
+		{
+			case 0:
+				gEngfuncs.pEventAPI->EV_WeaponAnimation ( FISTS_ATTACK1MISS, 1 ); break;
+			case 1:
+				gEngfuncs.pEventAPI->EV_WeaponAnimation ( FISTS_ATTACK2MISS, 1 ); break;
+			case 2:
+				gEngfuncs.pEventAPI->EV_WeaponAnimation ( FISTS_ATTACK3MISS, 1 ); break;
+		}
 	}
 }
 

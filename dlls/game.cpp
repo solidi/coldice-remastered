@@ -44,7 +44,7 @@ cvar_t	grapplinghook = {"mp_grapplinghook","0", FCVAR_SERVER };
 cvar_t	grapplinghookdeploytime = {"mp_grapplinghookdeploytime","1.0", FCVAR_SERVER };
 #endif
 
-cvar_t	spawnweaponlist = {"mp_spawnweaponlist","weapon_crowbar;weapon_9mmhandgun;weapon_knife", FCVAR_SERVER };
+cvar_t	spawnweaponlist = {"mp_spawnweaponlist","weapon_fists;weapon_crowbar;weapon_9mmhandgun;weapon_knife", FCVAR_SERVER };
 cvar_t	allowrunes = {"mp_allowrunes","1", FCVAR_SERVER };
 cvar_t	holsterweapons = {"mp_holsterweapons","1", FCVAR_SERVER };
 cvar_t	floatingweapons = {"mp_floatingweapons","1", FCVAR_SERVER };
@@ -435,6 +435,10 @@ cvar_t	sk_plr_flakbomb1 = {"sk_plr_flakbomb1","0"};
 cvar_t	sk_plr_flakbomb2 = {"sk_plr_flakbomb2","0"};
 cvar_t	sk_plr_flakbomb3 = {"sk_plr_flakbomb3","0"};
 
+// Fists
+cvar_t	sk_plr_fists1 = {"sk_plr_fists1","0"};
+cvar_t	sk_plr_fists2 = {"sk_plr_fists2","0"};
+cvar_t	sk_plr_fists3 = {"sk_plr_fists3","0"};
 
 
 // WORLD WEAPONS
@@ -944,6 +948,11 @@ void GameDLLInit( void )
 	CVAR_REGISTER ( &sk_plr_flakbomb1 );
 	CVAR_REGISTER ( &sk_plr_flakbomb2 );
 	CVAR_REGISTER ( &sk_plr_flakbomb3 );
+
+	// Fists
+	CVAR_REGISTER ( &sk_plr_fists1 );
+	CVAR_REGISTER ( &sk_plr_fists2 );
+	CVAR_REGISTER ( &sk_plr_fists3 );
 
 
 	// WORLD WEAPONS

@@ -62,6 +62,10 @@ enum decal_e
 	DECAL_SMALLSCORCH3,	// Small scorch mark
 	DECAL_MOMMABIRTH,	// Big momma birth splatter
 	DECAL_MOMMASPLAT,
+	DECAL_CRACK1,
+	DECAL_CRACK2,
+	DECAL_CRACK3,
+	DECAL_CRACK4,
 };
 
 typedef struct 

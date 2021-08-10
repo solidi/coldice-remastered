@@ -193,6 +193,10 @@ void DecalGunshot( TraceResult *pTrace, int iBulletType )
 			// wall decal
 			UTIL_DecalTrace( pTrace, DamageDecal( pEntity, DMG_CLUB ) );
 			break;
+		case BULLET_PLAYER_FIST:
+			// wall decal
+			UTIL_DecalTrace( pTrace, DECAL_CRACK1 + RANDOM_LONG(0,3) );
+			break;
 		}
 	}
 }
@@ -432,6 +436,10 @@ void W_Precache(void)
 
 #if !defined( OEM_BUILD ) && !defined( HLDEMO_BUILD )
 	UTIL_PrecacheOtherWeapon( "weapon_usas" );
+#endif
+
+#if !defined( OEM_BUILD ) && !defined( HLDEMO_BUILD )
+	UTIL_PrecacheOtherWeapon( "weapon_fists" );
 #endif
 
 #if !defined( OEM_BUILD ) && !defined( HLDEMO_BUILD )

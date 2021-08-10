@@ -3644,6 +3644,7 @@ void CBasePlayer::CheatImpulseCommands( int iImpulse )
 		GiveNamedItem( "weapon_glauncher" );
 		GiveNamedItem( "weapon_smg" );
 		GiveNamedItem( "weapon_usas" );
+		GiveNamedItem( "weapon_fists" );
 #endif
 		gEvilImpulse101 = FALSE;
 		break;
@@ -4645,6 +4646,11 @@ void CBasePlayer::DropPlayerItem ( char *pszItemName )
 		// item we want to drop and hit a BREAK;  pWeapon is the item.
 		if ( pWeapon )
 		{
+			if ( FStrEq("weapon_fists", STRING(pWeapon->pev->classname)) ) {
+				ALERT ( at_console, "Fists cannot be dropped!\n" );
+				return;
+			}
+
 			if ( !g_pGameRules->GetNextBestWeapon( this, pWeapon ) )
 				return; // can't drop the item they asked for, may be our last item or something we can't holster
 
