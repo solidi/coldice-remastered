@@ -36,7 +36,8 @@ CFLAGS=$(BASE_CFLAGS) $(ARCH_CFLAGS) -DCLIENT_DLL -DCLIENT_WEAPONS -DHL_DLL -I/u
 		 -DGLAUNCHER \
 		 -DSMG \
 		 -DUSAS \
-		 -DFISTS
+		 -DFISTS \
+		 -DWRENCH
 
 INCLUDEDIRS=-I$(HL_SRC_DIR) -I../dlls -I../tfc -I$(COMMON_SRC_DIR) -I$(PUBLIC_SRC_DIR) -I../pm_shared -I../engine -I../utils/vgui/include -I ../game_shared -I../external
 
@@ -118,6 +119,7 @@ HL1_OBJS = \
 DLL_OBJS = \
 	$(HL1_SERVER_OBJ_DIR)/cannon.o \
 	$(HL1_SERVER_OBJ_DIR)/chaingun.o \
+	$(HL1_SERVER_OBJ_DIR)/chumtoad.o \
 	$(HL1_SERVER_OBJ_DIR)/crossbow.o \
 	$(HL1_SERVER_OBJ_DIR)/crowbar.o \
 	$(HL1_SERVER_OBJ_DIR)/egon.o \
@@ -126,6 +128,7 @@ DLL_OBJS = \
 	$(HL1_SERVER_OBJ_DIR)/glauncher.o \
 	$(HL1_SERVER_OBJ_DIR)/handgrenade.o \
 	$(HL1_SERVER_OBJ_DIR)/hornetgun.o \
+	$(HL1_SERVER_OBJ_DIR)/knife.o \
 	$(HL1_SERVER_OBJ_DIR)/mag60.o \
 	$(HL1_SERVER_OBJ_DIR)/mp5.o \
 	$(HL1_SERVER_OBJ_DIR)/python.o \
@@ -140,8 +143,7 @@ DLL_OBJS = \
 	$(HL1_SERVER_OBJ_DIR)/wpn_shared/hl_wpn_glock.o \
 	$(HL1_SERVER_OBJ_DIR)/usas.o \
 	$(HL1_SERVER_OBJ_DIR)/vest.o \
-	$(HL1_SERVER_OBJ_DIR)/knife.o \
-	$(HL1_SERVER_OBJ_DIR)/chumtoad.o \
+	$(HL1_SERVER_OBJ_DIR)/wrench.o \
 
 
 PUBLIC_OBJS = \

@@ -38,7 +38,8 @@ CFLAGS=$(BASE_CFLAGS)  $(ARCH_CFLAGS) $(DEBUG_CFLAGS) -DCLIENT_WEAPONS \
 		 -DGLAUNCHER \
 		 -DSMG \
 		 -DUSAS \
-		 -DFISTS
+		 -DFISTS \
+		 -DWRENCH
 
 #-O3 -ffast-math -fno-strength-reduce
 
@@ -165,6 +166,7 @@ HLDLL_OBJS = \
 	$(HLDLL_OBJ_DIR)/vest.o \
 	$(HLDLL_OBJ_DIR)/weapons.o \
 	$(HLDLL_OBJ_DIR)/world.o \
+	$(HLDLL_OBJ_DIR)/wrench.o \
 	$(HLDLL_OBJ_DIR)/xen.o \
 	$(HLDLL_OBJ_DIR)/zombie.o
 

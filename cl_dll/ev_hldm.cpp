@@ -87,6 +87,7 @@ void EV_FireGrenadeLauncher( struct event_args_s *args  );
 void EV_FireSmg( struct event_args_s *args  );
 void EV_FireUsas( struct event_args_s *args  );
 void EV_Fists( struct event_args_s *args  );
+void EV_Wrench( struct event_args_s *args  );
 
 
 void EV_TrainPitchAdjust( struct event_args_s *args );
@@ -2250,6 +2251,48 @@ void EV_Fists( event_args_t *args )
 				gEngfuncs.pEventAPI->EV_WeaponAnimation ( FISTS_ATTACK2MISS, 1 ); break;
 			case 2:
 				gEngfuncs.pEventAPI->EV_WeaponAnimation ( FISTS_ATTACK3MISS, 1 ); break;
+		}
+	}
+}
+
+enum wrench_e {
+	WRENCH_IDLE = 0,
+	WRENCH_DRAW,
+	WRENCH_HOLSTER,
+	WRENCH_THROW,
+	WRENCH_ATTACK1HIT,
+	WRENCH_ATTACK1MISS,
+	WRENCH_ATTACK2MISS,
+	WRENCH_ATTACK2HIT,
+	WRENCH_ATTACK3MISS,
+	WRENCH_ATTACK3HIT
+};
+
+void EV_Wrench( event_args_t *args )
+{
+	int idx;
+	vec3_t origin;
+	vec3_t angles;
+	vec3_t velocity;
+
+	idx = args->entindex;
+	VectorCopy( args->origin, origin );
+
+	//Play Swing sound
+	gEngfuncs.pEventAPI->EV_PlaySound( idx, origin, CHAN_WEAPON, "wrench_miss1.wav", 1, ATTN_NORM, 0, PITCH_NORM);
+
+	if ( EV_IsLocal( idx ) )
+	{
+		gEngfuncs.pEventAPI->EV_WeaponAnimation( WRENCH_ATTACK1MISS, 1 );
+
+		switch( (g_iSwing++) % 3 )
+		{
+			case 0:
+				gEngfuncs.pEventAPI->EV_WeaponAnimation ( WRENCH_ATTACK1MISS, 1 ); break;
+			case 1:
+				gEngfuncs.pEventAPI->EV_WeaponAnimation ( WRENCH_ATTACK2MISS, 1 ); break;
+			case 2:
+				gEngfuncs.pEventAPI->EV_WeaponAnimation ( WRENCH_ATTACK3MISS, 1 ); break;
 		}
 	}
 }
