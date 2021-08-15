@@ -78,6 +78,7 @@ CGrenadeLauncher g_GrenadeLauncher;
 CSMG g_Smg;
 CUsas g_Usas;
 CFists g_Fists;
+CWrench g_Wrench;
 
 /*
 ======================
@@ -641,6 +642,7 @@ void HUD_InitClientWeapons( void )
 	HUD_PrepEntity( &g_Smg	, &player );
 	HUD_PrepEntity( &g_Usas	, &player );
 	HUD_PrepEntity( &g_Fists	, &player );
+	HUD_PrepEntity( &g_Wrench	, &player );
 }
 
 /*
@@ -808,6 +810,10 @@ void HUD_WeaponsPostThink( local_state_s *from, local_state_s *to, usercmd_t *cm
 
 		case WEAPON_FISTS:
 			pWeapon = &g_Fists;
+			break;
+
+		case WEAPON_WRENCH:
+			pWeapon = &g_Wrench;
 			break;
 	}
 

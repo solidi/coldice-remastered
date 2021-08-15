@@ -195,7 +195,11 @@ void DecalGunshot( TraceResult *pTrace, int iBulletType )
 			break;
 		case BULLET_PLAYER_FIST:
 			// wall decal
-			UTIL_DecalTrace( pTrace, DECAL_CRACK1 + RANDOM_LONG(0,3) );
+			UTIL_DecalTrace( pTrace, DECAL_CRACK1 + RANDOM_LONG(0,1) );
+			break;
+		case BULLET_PLAYER_WRENCH:
+			// wall decal
+			UTIL_DecalTrace( pTrace, DECAL_CRACK1 + RANDOM_LONG(2,3) );
 			break;
 		}
 	}
@@ -443,6 +447,10 @@ void W_Precache(void)
 #endif
 
 #if !defined( OEM_BUILD ) && !defined( HLDEMO_BUILD )
+	UTIL_PrecacheOtherWeapon( "weapon_wrench" );
+#endif
+
+#if !defined( OEM_BUILD ) && !defined( HLDEMO_BUILD )
 	if ( g_pGameRules->IsDeathmatch() )
 	{
 		UTIL_PrecacheOther( "weaponbox" );// container for dropped deathmatch weapons
@@ -641,6 +649,7 @@ CBaseEntity* CBasePlayerItem::Respawn( void )
 		// swing
 		"weapon_crowbar",
 		"weapon_knife",
+		"weapon_wrench",
 
 		// hand
 		"weapon_9mmhandgun",
@@ -1649,6 +1658,10 @@ BOOL CWeaponBox::PackWeapon( CBasePlayerItem *pWeapon )
 		else if (pWeapon->m_iId == WEAPON_RAILGUN)
 		{
 			SET_MODEL( ENT(pev), "models/w_railgun.mdl");
+		}
+		else if (pWeapon->m_iId == WEAPON_WRENCH)
+		{
+			SET_MODEL( ENT(pev), "models/w_wrench.mdl");
 		}
 
 		pev->sequence = 1;

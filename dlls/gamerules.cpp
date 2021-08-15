@@ -298,6 +298,12 @@ void CGameRules::RefreshSkillData ( void )
 	// Fists
 	gSkillData.plrDmgFists = GetSkillCvar( "sk_plr_fists");
 
+	// Wrench
+	gSkillData.plrDmgWrench = GetSkillCvar( "sk_plr_wrench");
+
+	// Flying Wrench
+	gSkillData.plrDmgFlyingWrench = GetSkillCvar( "sk_plr_flyingwrench");
+
 	// MONSTER WEAPONS
 	gSkillData.monDmg12MM = GetSkillCvar( "sk_12mm_bullet");
 	gSkillData.monDmgMP5 = GetSkillCvar ("sk_9mmAR_bullet" );

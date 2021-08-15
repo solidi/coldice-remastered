@@ -96,6 +96,7 @@ public:
 #define WEAPON_SMG				24
 #define WEAPON_USAS				25
 #define WEAPON_FISTS			26
+#define WEAPON_WRENCH			27
 
 #define WEAPON_ALLWEAPONS		(~(1<<WEAPON_SUIT))
 
@@ -131,6 +132,7 @@ public:
 #define SMG_WEIGHT			15
 #define USAS_WEIGHT			15
 #define FISTS_WEIGHT		0
+#define WRENCH_WEIGHT		3
 
 
 // weapon clip/carry ammo capacities
@@ -223,6 +225,7 @@ typedef	enum
 	BULLET_PLAYER_BUCKSHOT, // shotgun
 	BULLET_PLAYER_CROWBAR, // crowbar swipe
 	BULLET_PLAYER_FIST,
+	BULLET_PLAYER_WRENCH,
 
 	BULLET_MONSTER_9MM,
 	BULLET_MONSTER_MP5,
@@ -1468,6 +1471,40 @@ public:
 	}
 private:
 	unsigned short m_usFists;
+};
+
+class CWrench : public CBasePlayerWeapon
+{
+public:
+	void Spawn( void );
+	void Precache( void );
+	int AddToPlayer( CBasePlayer *pPlayer );
+	int iItemSlot( void ) { return 1; }
+	void EXPORT SwingAgain( void );
+	void EXPORT Smack( void );
+	int GetItemInfo(ItemInfo *p);
+
+	void PrimaryAttack( void );
+	void SecondaryAttack( void );
+	void Throw( void );
+	int Swing( int fFirst );
+	BOOL Deploy( void );
+	void Holster( int skiplocal = 0 );
+	void WeaponIdle( void );
+	int m_iSwing;
+	TraceResult m_trHit;
+	void FindHullIntersection( const Vector &vecSrc, TraceResult &tr, float *mins, float *maxs, edict_t *pEntity );
+
+	virtual BOOL UseDecrement( void )
+	{
+#if defined( CLIENT_WEAPONS )
+		return TRUE;
+#else
+		return FALSE;
+#endif
+	}
+private:
+	unsigned short m_usWrench;
 };
 
 #endif // WEAPONS_H
