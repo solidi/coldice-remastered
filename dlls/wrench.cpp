@@ -30,7 +30,6 @@ public:
 	void Precache( void );
 	void EXPORT BubbleThink( void );
 	void EXPORT SpinTouch( CBaseEntity *pOther );
-	CBasePlayer *m_pPlayer;
 
 private:
 
@@ -212,16 +211,15 @@ void CWrench::Throw() {
 		vecAng.z = vecDir.z - 90;
 
 		// Create a flying wrench.
-		CFlyingWrench *pFCBar = (CFlyingWrench *)Create( "flying_wrench",
+		CFlyingWrench *pWrench = (CFlyingWrench *)Create( "flying_wrench",
 					vecSrc, Vector(0,0,0), m_pPlayer->edict() );
 
 		// Give the wrench its velocity, angle, and spin.
 		// Lower the gravity a bit, so it flys.
-		pFCBar->pev->velocity = vecDir * 1000 + m_pPlayer->pev->velocity;
-		pFCBar->pev->angles = vecAng;
-		pFCBar->pev->avelocity.x = -1000;
-		pFCBar->pev->gravity = .25;
-		pFCBar->m_pPlayer = m_pPlayer;
+		pWrench->pev->velocity = vecDir * 1000 + m_pPlayer->pev->velocity;
+		pWrench->pev->angles = vecAng;
+		pWrench->pev->avelocity.x = -1000;
+		pWrench->pev->gravity = .25;
 
 		// Do player weapon anim and sound effect.
 		m_pPlayer->SetAnimation( PLAYER_ATTACK1 );
@@ -437,6 +435,7 @@ void CFlyingWrench::Spawn( )
 	// within the game.
 	pev->movetype = MOVETYPE_TOSS;
 	pev->solid = SOLID_BBOX;
+	pev->classname = MAKE_STRING("flying_wrench");
 
 	// Use the world wrench model.
 	SET_MODEL(ENT(pev), "models/w_wrench.mdl");
@@ -554,7 +553,7 @@ void CFlyingWrench::BubbleThink( void )
 	// We have no owner. We do this .25 seconds AFTER the wrench
 	// is thrown so that we don't hit the owner immediately when throwing
 	// it. If is comes back later, we want to be able to hit the owner.
-	pev->owner = NULL;
+	// pev->owner = NULL;
 
 	// Only think every .25 seconds.
 	pev->nextthink = gpGlobals->time + 0.25;

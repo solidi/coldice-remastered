@@ -30,7 +30,6 @@ public:
 	void Precache( void );
 	void EXPORT BubbleThink( void );
 	void EXPORT SpinTouch( CBaseEntity *pOther );
-	CBasePlayer *m_pPlayer;
 
 private:
 
@@ -211,16 +210,15 @@ void CKnife::Throw() {
 		vecAng.z = vecDir.z - 90;
 
 		// Create a flying knife.
-		CFlyingKnife *pFCBar = (CFlyingKnife *)Create( "flying_knife", 
+		CFlyingKnife *pKnife = (CFlyingKnife *)Create( "flying_knife", 
 					vecSrc, Vector(0,0,0), m_pPlayer->edict() );
 
 		// Give the crowbar its velocity, angle, and spin. 
 		// Lower the gravity a bit, so it flys. 
-		pFCBar->pev->velocity = vecDir * 1000 + m_pPlayer->pev->velocity;
-		pFCBar->pev->angles = vecAng;
-		pFCBar->pev->avelocity.x = -1000;
-		pFCBar->pev->gravity = .25;
-		pFCBar->m_pPlayer = m_pPlayer;
+		pKnife->pev->velocity = vecDir * 1000 + m_pPlayer->pev->velocity;
+		pKnife->pev->angles = vecAng;
+		pKnife->pev->avelocity.x = -1000;
+		pKnife->pev->gravity = .25;
 
 		// Do player weapon anim and sound effect. 
 		m_pPlayer->SetAnimation( PLAYER_ATTACK1 );
@@ -408,6 +406,7 @@ void CFlyingKnife::Spawn( )
    // within the game.
    pev->movetype = MOVETYPE_TOSS;
    pev->solid = SOLID_BBOX;
+   pev->classname = MAKE_STRING("flying_knife");
 
    // Use the world crowbar model.
    SET_MODEL(ENT(pev), "models/w_knife.mdl");
@@ -522,7 +521,7 @@ void CFlyingKnife::BubbleThink( void )
    // We have no owner. We do this .25 seconds AFTER the crowbar
    // is thrown so that we don't hit the owner immediately when throwing
    // it. If is comes back later, we want to be able to hit the owner.
-   pev->owner = NULL;
+   // pev->owner = NULL;
 
    // Only think every .25 seconds. 
    pev->nextthink = gpGlobals->time + 0.25;
