@@ -697,7 +697,7 @@ void V_CalcNormalRefdef ( struct ref_params_s *pparams )
 	// Include client side punch, too
 	VectorAdd ( pparams->viewangles, (float *)&ev_punchangle, pparams->viewangles);
 
-	V_DropPunchAngle ( pparams->frametime, (float *)&ev_punchangle );
+	V_DropPunchAngle ( pparams->frametime * 2, (float *)&ev_punchangle );
 
 	// smooth out stair step ups
 #if 1

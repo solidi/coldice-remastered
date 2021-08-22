@@ -2246,11 +2246,19 @@ void EV_Fists( event_args_t *args )
 		switch( (g_iSwing++) % 3 )
 		{
 			case 0:
-				gEngfuncs.pEventAPI->EV_WeaponAnimation ( FISTS_ATTACK1MISS, 1 ); break;
+				gEngfuncs.pEventAPI->EV_WeaponAnimation ( FISTS_ATTACK1MISS, 1 );
+				V_PunchAxis(0, gEngfuncs.pfnRandomFloat(-3.0, -5.0)); //pitch, - = up
+				break;
 			case 1:
-				gEngfuncs.pEventAPI->EV_WeaponAnimation ( FISTS_ATTACK2MISS, 1 ); break;
+				gEngfuncs.pEventAPI->EV_WeaponAnimation ( FISTS_ATTACK2MISS, 1 );
+				V_PunchAxis(1, gEngfuncs.pfnRandomFloat(3.0, 5.0)); //yaw, - = right
+				V_PunchAxis(2, gEngfuncs.pfnRandomFloat(-3.0, -5.0)); //roll, - = left
+				break;
 			case 2:
-				gEngfuncs.pEventAPI->EV_WeaponAnimation ( FISTS_ATTACK3MISS, 1 ); break;
+				gEngfuncs.pEventAPI->EV_WeaponAnimation ( FISTS_ATTACK3MISS, 1 );
+				V_PunchAxis(1, gEngfuncs.pfnRandomFloat(-3.0, -5.0)); //yaw, - = right
+				V_PunchAxis(2, gEngfuncs.pfnRandomFloat(3.0, 5.0)); //roll, - = left
+				break;
 		}
 	}
 }
