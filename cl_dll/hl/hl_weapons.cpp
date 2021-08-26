@@ -79,6 +79,7 @@ CSMG g_Smg;
 CUsas g_Usas;
 CFists g_Fists;
 CWrench g_Wrench;
+CSnowball g_Snowball;
 
 /*
 ======================
@@ -643,6 +644,7 @@ void HUD_InitClientWeapons( void )
 	HUD_PrepEntity( &g_Usas	, &player );
 	HUD_PrepEntity( &g_Fists	, &player );
 	HUD_PrepEntity( &g_Wrench	, &player );
+	HUD_PrepEntity( &g_Snowball	, &player );
 }
 
 /*
@@ -814,6 +816,10 @@ void HUD_WeaponsPostThink( local_state_s *from, local_state_s *to, usercmd_t *cm
 
 		case WEAPON_WRENCH:
 			pWeapon = &g_Wrench;
+			break;
+
+		case WEAPON_SNOWBALL:
+			pWeapon = &g_Snowball;
 			break;
 	}
 

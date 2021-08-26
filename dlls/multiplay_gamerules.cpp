@@ -202,6 +202,9 @@ void CHalfLifeMultiplay::RefreshSkillData( void )
 
 	// Flying Wrench
 	gSkillData.plrDmgFlyingWrench = 120;
+
+	// Snowball
+	gSkillData.plrDmgSnowball = 1;
 }
 
 // longest the intermission can last, in seconds

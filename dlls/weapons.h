@@ -97,6 +97,7 @@ public:
 #define WEAPON_USAS				25
 #define WEAPON_FISTS			26
 #define WEAPON_WRENCH			27
+#define WEAPON_SNOWBALL			28
 
 #define WEAPON_ALLWEAPONS		(~(1<<WEAPON_SUIT))
 
@@ -133,6 +134,7 @@ public:
 #define USAS_WEIGHT			15
 #define FISTS_WEIGHT		0
 #define WRENCH_WEIGHT		3
+#define SNOWBALL_WEIGHT		3
 
 
 // weapon clip/carry ammo capacities
@@ -150,6 +152,7 @@ public:
 #define M203_GRENADE_MAX_CARRY	10
 #define RAILGUN_MAX_CARRY		30
 #define CHAINGUN_MAX_CARRY		200
+#define SNOWBALL_MAX_CARRY		10
 
 // the maximum amount of ammo each weapon's clip can hold
 #define WEAPON_NOCLIP			-1
@@ -200,6 +203,7 @@ public:
 #define GLAUNCHER_DEFAULT_GIVE		10
 #define SMG_DEFAULT_GIVE			50
 #define USAS_DEFAULT_GIVE			40
+#define SNOWBALL_DEFAULT_GIVE		5
 
 // The amount of ammo given to a player by an ammo item.
 #define AMMO_URANIUMBOX_GIVE	20
@@ -226,6 +230,7 @@ typedef	enum
 	BULLET_PLAYER_CROWBAR, // crowbar swipe
 	BULLET_PLAYER_FIST,
 	BULLET_PLAYER_WRENCH,
+	BULLET_PLAYER_SNOWBALL,
 
 	BULLET_MONSTER_9MM,
 	BULLET_MONSTER_MP5,
@@ -432,6 +437,7 @@ extern DLL_GLOBAL	short	g_sModelIndexWExplosion;// holds the index for the under
 extern DLL_GLOBAL	short	g_sModelIndexBubbles;// holds the index for the bubbles model
 extern DLL_GLOBAL	short	g_sModelIndexBloodDrop;// holds the sprite index for blood drops
 extern DLL_GLOBAL	short	g_sModelIndexBloodSpray;// holds the sprite index for blood spray (bigger)
+extern DLL_GLOBAL	short	g_sModelIndexSnowballHit;
 
 extern void ClearMultiDamage(void);
 extern void ApplyMultiDamage(entvars_t* pevInflictor, entvars_t* pevAttacker );
@@ -1505,6 +1511,32 @@ public:
 	}
 private:
 	unsigned short m_usWrench;
+};
+
+class CSnowball : public CBasePlayerWeapon
+{
+public:
+	void Spawn( void );
+	void Precache( void );
+	int iItemSlot( void ) { return 5; }
+	int GetItemInfo(ItemInfo *p);
+
+	void PrimaryAttack( void );
+	void SecondaryAttack( void );
+	BOOL Deploy( void );
+	BOOL CanHolster( void );
+	void Holster( int skiplocal = 0 );
+	void WeaponIdle( void );
+	void Throw( void );
+
+	virtual BOOL UseDecrement( void )
+	{
+#if defined( CLIENT_WEAPONS )
+		return TRUE;
+#else
+		return FALSE;
+#endif
+	}
 };
 
 #endif // WEAPONS_H
