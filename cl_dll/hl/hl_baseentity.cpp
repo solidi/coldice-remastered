@@ -36,6 +36,7 @@ int gmsgWeapPickup = 0;
 enginefuncs_t g_engfuncs;
 globalvars_t  *gpGlobals;
 short g_sModelIndexSmoke;
+short g_sModelIndexSnowballHit;
 
 ItemInfo CBasePlayerItem::ItemInfoArray[MAX_WEAPONS];
 

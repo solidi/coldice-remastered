@@ -48,6 +48,7 @@ DLL_GLOBAL	short	g_sModelIndexWExplosion;// holds the index for the underwater e
 DLL_GLOBAL	short	g_sModelIndexBubbles;// holds the index for the bubbles model
 DLL_GLOBAL	short	g_sModelIndexBloodDrop;// holds the sprite index for the initial blood
 DLL_GLOBAL	short	g_sModelIndexBloodSpray;// holds the sprite index for splattered blood
+DLL_GLOBAL	short	g_sModelIndexSnowballHit;
 
 ItemInfo CBasePlayerItem::ItemInfoArray[MAX_WEAPONS];
 AmmoInfo CBasePlayerItem::AmmoInfoArray[MAX_AMMO_SLOTS];
@@ -200,6 +201,10 @@ void DecalGunshot( TraceResult *pTrace, int iBulletType )
 		case BULLET_PLAYER_WRENCH:
 			// wall decal
 			UTIL_DecalTrace( pTrace, DECAL_CRACK1 + RANDOM_LONG(2,3) );
+			break;
+		case BULLET_PLAYER_SNOWBALL:
+			// wall decal
+			UTIL_DecalTrace( pTrace, DECAL_SNOW1 + RANDOM_LONG(0,3) );
 			break;
 		}
 	}
@@ -451,6 +456,10 @@ void W_Precache(void)
 #endif
 
 #if !defined( OEM_BUILD ) && !defined( HLDEMO_BUILD )
+	UTIL_PrecacheOtherWeapon( "weapon_snowball" );
+#endif
+
+#if !defined( OEM_BUILD ) && !defined( HLDEMO_BUILD )
 	if ( g_pGameRules->IsDeathmatch() )
 	{
 		UTIL_PrecacheOther( "weaponbox" );// container for dropped deathmatch weapons
@@ -466,6 +475,8 @@ void W_Precache(void)
 
 	g_sModelIndexLaser = PRECACHE_MODEL( (char *)g_pModelNameLaser );
 	g_sModelIndexLaserDot = PRECACHE_MODEL("sprites/laserdot.spr");
+
+	g_sModelIndexSnowballHit = PRECACHE_MODEL ("sprites/snowballhit.spr");
 
 
 	// used by explosions
@@ -674,12 +685,13 @@ CBaseEntity* CBasePlayerItem::Respawn( void )
 		"weapon_egon",
 
 		// loose
+		"weapon_snowball",
+		"weapon_handgrenade",
 		"weapon_satchel",
 		"weapon_tripmine",
-		"weapon_handgrenade",
-		"weapon_vest",
 		"weapon_snark",
 		"weapon_chumtoad",
+		"weapon_vest",
 	};
 
 	for (int i = 0; i < ARRAYSIZE(weaponsList); i++) {
@@ -1662,6 +1674,10 @@ BOOL CWeaponBox::PackWeapon( CBasePlayerItem *pWeapon )
 		else if (pWeapon->m_iId == WEAPON_WRENCH)
 		{
 			SET_MODEL( ENT(pev), "models/w_wrench.mdl");
+		}
+		else if (pWeapon->m_iId == WEAPON_SNOWBALL)
+		{
+			SET_MODEL( ENT(pev), "models/w_snowball.mdl");
 		}
 
 		pev->sequence = 1;

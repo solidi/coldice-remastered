@@ -66,6 +66,10 @@ enum decal_e
 	DECAL_CRACK2,
 	DECAL_CRACK3,
 	DECAL_CRACK4,
+	DECAL_SNOW1,
+	DECAL_SNOW2,
+	DECAL_SNOW3,
+	DECAL_SNOW4,
 };
 
 typedef struct 
