@@ -49,6 +49,7 @@ void VectorAngles( const float *forward, float *angles );
 
 extern cvar_t *cl_lw;
 extern cvar_t *m_pCvarRighthand;
+extern cvar_t *cl_bulletsmoke;
 
 extern "C"
 {
@@ -453,6 +454,17 @@ void EV_HLDM_FireBullets( int idx, float *forward, float *right, float *up, int 
 				
 				break;
 
+			}
+		}
+
+		if (cl_bulletsmoke && cl_bulletsmoke->value) {
+			physent_t *pe = gEngfuncs.pEventAPI->EV_GetPhysent( tr.ent );
+			if (pe && ( pe->solid == SOLID_BSP || pe->movetype == MOVETYPE_PUSHSTEP )) {
+				int model = gEngfuncs.pEventAPI->EV_FindModelIndex( "sprites/gunsmoke.spr" );
+				TEMPENTITY *t = gEngfuncs.pEfxAPI->R_DefaultSprite(tr.endpos - Vector(forward[0], forward[1], forward[2]) * 20, model, gEngfuncs.pfnRandomLong(12, 18));
+				t->entity.curstate.rendermode = kRenderTransAdd;
+				t->entity.curstate.renderamt = gEngfuncs.pfnRandomLong(120, 140);
+				t->entity.curstate.scale = gEngfuncs.pfnRandomFloat(0.2, 0.3);
 			}
 		}
 
