@@ -44,6 +44,7 @@
 
 
 void V_DropPunchAngle ( float frametime, float *ev_punchangle );
+void V_YawSway ( float currentYaw, float framerate, cl_entity_t *viewModel );
 void VectorAngles( const float *forward, float *angles );
 
 #include "r_studioint.h"
@@ -65,6 +66,7 @@ extern cvar_t	*cl_forwardspeed;
 extern cvar_t	*chase_active;
 extern cvar_t	*scr_ofsx, *scr_ofsy, *scr_ofsz;
 extern cvar_t	*cl_vsmoothing;
+extern cvar_t *cl_weaponsway;
 
 #define	CAM_MODE_RELAX		1
 #define CAM_MODE_FOCUS		2
@@ -666,6 +668,9 @@ void V_CalcNormalRefdef ( struct ref_params_s *pparams )
 	view->angles[YAW]   -= bob * 0.5;
 	view->angles[ROLL]  -= bob * 1;
 	view->angles[PITCH] -= bob * 0.3;
+
+	if (cl_weaponsway->value == 1) V_YawSway(pparams->cl_viewangles[YAW], pparams->frametime, view);
+
 	if (cl_bobtilt->value == 1) VectorCopy(view->angles, view->curstate.angles);
 	// pushing the view origin down off of the same X/Z plane as the ent's origin will give the
 	// gun a very nice 'shifting' effect when the player looks up/down. If there is a problem
@@ -1649,6 +1654,11 @@ void CL_DLLEXPORT V_CalcRefdef( struct ref_params_s *pparams )
 	}
 	else if ( !pparams->paused )
 	{
+#ifdef DEBUG
+		char str[256];
+		sprintf(str, "angles - pitch: %.3f, yaw: %.3f, roll: %.3f\n", pparams->cl_viewangles[PITCH], pparams->cl_viewangles[YAW], pparams->cl_viewangles[ROLL]);
+		gEngfuncs.pfnConsolePrint(str);
+#endif
 		V_CalcNormalRefdef ( pparams );
 	}
 
@@ -1698,6 +1708,58 @@ Client side punch effect
 void V_PunchAxis( int axis, float punch )
 {
 	ev_punchangle[ axis ] = punch;
+}
+
+void V_YawSway ( float currentYaw, float framerate, cl_entity_t *viewModel )
+{
+	static float decay = 0;
+	static float lastYaw = 0;
+	static float accel = 0;
+	static bool clockwise = false;
+	float delta = fabs((lastYaw - currentYaw) * .20);
+
+	if (lastYaw < currentYaw) {
+		clockwise = true;
+	} else if (lastYaw > currentYaw) {
+		clockwise = false;
+	}
+
+	// avoid skip
+	if (delta > 9) {
+		clockwise = !clockwise;
+	}
+
+	// max distance
+	decay = min(max(decay, -6), 6);
+
+	if (delta) {
+		// attack
+		accel += framerate * 1.95;
+		if (accel > 1 ) accel = 1;
+		if (clockwise) {
+			decay -= gEngfuncs.pfnRandomFloat(1.75, 2) * accel;
+		} else {
+			decay += gEngfuncs.pfnRandomFloat(1.75, 2) * accel;
+		}
+	} else {
+		// fade
+		accel -= framerate;
+		if (accel < 0) accel = 0;
+		if (clockwise) {
+			decay += gEngfuncs.pfnRandomFloat(1.0, 1.2) * accel;
+			if (decay > 0) { decay = 0; }
+		} else {
+			decay -= gEngfuncs.pfnRandomFloat(1.0, 1.2) * accel;
+			if (decay < 0) { decay = 0; }
+		}
+	}
+
+	viewModel->angles[YAW] += decay;
+	viewModel->angles[ROLL] += decay;
+	viewModel->angles[PITCH] += decay * .25;
+	viewModel->origin[1] -= decay * .15;
+
+	lastYaw = currentYaw;
 }
 
 /*
