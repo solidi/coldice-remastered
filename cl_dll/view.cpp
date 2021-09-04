@@ -44,7 +44,8 @@
 
 
 void V_DropPunchAngle ( float frametime, float *ev_punchangle );
-void V_YawSway ( float currentYaw, float framerate, cl_entity_t *viewModel );
+void V_WeaponSway ( float currentYaw, float framerate, float clientTime, cl_entity_t *viewModel );
+void V_WeaponFidget( float currentZ, float clientTime, cl_entity_t *viewModel );
 void VectorAngles( const float *forward, float *angles );
 
 #include "r_studioint.h"
@@ -66,7 +67,8 @@ extern cvar_t	*cl_forwardspeed;
 extern cvar_t	*chase_active;
 extern cvar_t	*scr_ofsx, *scr_ofsy, *scr_ofsz;
 extern cvar_t	*cl_vsmoothing;
-extern cvar_t *cl_weaponsway;
+extern cvar_t	*cl_weaponsway;
+extern cvar_t	*cl_weaponfidget;
 
 #define	CAM_MODE_RELAX		1
 #define CAM_MODE_FOCUS		2
@@ -669,7 +671,9 @@ void V_CalcNormalRefdef ( struct ref_params_s *pparams )
 	view->angles[ROLL]  -= bob * 1;
 	view->angles[PITCH] -= bob * 0.3;
 
-	if (cl_weaponsway->value == 1) V_YawSway(pparams->cl_viewangles[YAW], pparams->frametime, view);
+	if (cl_weaponsway->value == 1) V_WeaponSway(pparams->cl_viewangles[YAW], pparams->frametime, pparams->time, view);
+
+	if (cl_weaponfidget->value == 1) V_WeaponFidget(pparams->simvel[2], pparams->time, view);
 
 	if (cl_bobtilt->value == 1) VectorCopy(view->angles, view->curstate.angles);
 	// pushing the view origin down off of the same X/Z plane as the ent's origin will give the
@@ -1656,7 +1660,12 @@ void CL_DLLEXPORT V_CalcRefdef( struct ref_params_s *pparams )
 	{
 #ifdef DEBUG
 		char str[256];
-		sprintf(str, "angles - pitch: %.3f, yaw: %.3f, roll: %.3f\n", pparams->cl_viewangles[PITCH], pparams->cl_viewangles[YAW], pparams->cl_viewangles[ROLL]);
+		sprintf(str, "ftime: %.3f angles - pitch: %.3f, yaw: %.3f, roll: %.3f\nsim - z: %.3f\n",
+		pparams->frametime,
+		pparams->cl_viewangles[PITCH],
+		pparams->cl_viewangles[YAW],
+		pparams->cl_viewangles[ROLL],
+		pparams->simvel[2]);
 		gEngfuncs.pfnConsolePrint(str);
 #endif
 		V_CalcNormalRefdef ( pparams );
@@ -1710,11 +1719,11 @@ void V_PunchAxis( int axis, float punch )
 	ev_punchangle[ axis ] = punch;
 }
 
-void V_YawSway ( float currentYaw, float framerate, cl_entity_t *viewModel )
+void V_WeaponSway ( float currentYaw, float framerate, float clientTime, cl_entity_t *viewModel )
 {
-	static float decay = 0;
+	static float time = 0, time_framerate = 0.05;
+	static float decay = 0, accel = 0;
 	static float lastYaw = 0;
-	static float accel = 0;
 	static bool clockwise = false;
 	float delta = fabs((lastYaw - currentYaw) * .20);
 
@@ -1729,30 +1738,34 @@ void V_YawSway ( float currentYaw, float framerate, cl_entity_t *viewModel )
 		clockwise = !clockwise;
 	}
 
-	// max distance
-	decay = min(max(decay, -6), 6);
+	if (clientTime > time + time_framerate) {
+		time = clientTime;
 
-	if (delta) {
-		// attack
-		accel += framerate * 1.95;
-		if (accel > 1 ) accel = 1;
-		if (clockwise) {
-			decay -= gEngfuncs.pfnRandomFloat(1.75, 2) * accel;
+		if (delta) {
+			// attack
+			accel += framerate * 1.95;
+			if (accel > 1) accel = 1;
+			if (clockwise) {
+				decay -= gEngfuncs.pfnRandomFloat(1.75, 2) * accel;
+			} else {
+				decay += gEngfuncs.pfnRandomFloat(1.75, 2) * accel;
+			}
 		} else {
-			decay += gEngfuncs.pfnRandomFloat(1.75, 2) * accel;
-		}
-	} else {
-		// fade
-		accel -= framerate;
-		if (accel < 0) accel = 0;
-		if (clockwise) {
-			decay += gEngfuncs.pfnRandomFloat(1.0, 1.2) * accel;
-			if (decay > 0) { decay = 0; }
-		} else {
-			decay -= gEngfuncs.pfnRandomFloat(1.0, 1.2) * accel;
-			if (decay < 0) { decay = 0; }
+			// fade
+			accel -= framerate;
+			if (accel < 0) accel = 0;
+			if (clockwise) {
+				decay += gEngfuncs.pfnRandomFloat(1.0, 1.2) * accel;
+				if (decay > 0) { decay = 0; }
+			} else {
+				decay -= gEngfuncs.pfnRandomFloat(1.0, 1.2) * accel;
+				if (decay < 0) { decay = 0; }
+			}
 		}
 	}
+
+	// max distance
+	decay = min(max(decay, -6), 6);
 
 	viewModel->angles[YAW] += decay;
 	viewModel->angles[ROLL] += decay;
@@ -1760,6 +1773,44 @@ void V_YawSway ( float currentYaw, float framerate, cl_entity_t *viewModel )
 	viewModel->origin[1] -= decay * .15;
 
 	lastYaw = currentYaw;
+}
+
+void V_WeaponFidget( float currentZ, float clientTime, cl_entity_t *viewModel )
+{
+	static float time = 0;
+	static float time_framerate = 0.05;
+	static float lastZ = 0;
+	static float kPitch = 0;
+	static float kZ = 0;
+	static float kYaw = 0;
+
+	if (lastZ < -150 && currentZ == 0) {
+		//gEngfuncs.pEventAPI->EV_WeaponAnimation( 99, 0 );
+		float intensity = ((lastZ / 150) * 2) + 1;
+		//char str[256];
+		//sprintf(str, "intensity: %.3f\n", intensity);
+		//gEngfuncs.pfnConsolePrint(str);
+		kZ = -5;
+		kPitch = -15 + intensity;
+		kYaw = 6;
+	}
+
+	if (clientTime > time + time_framerate) {
+		time = clientTime;
+		kZ += 0.75;
+		kPitch += 1.75;
+		kYaw -= 1.25;
+	}
+
+	if (kZ > 0) kZ = 0;
+	if (kPitch > 0) kPitch = 0;
+	if (kYaw < 0) kYaw = 0;
+
+	viewModel->angles[YAW] += kYaw;
+	viewModel->angles[PITCH] += kPitch;
+	viewModel->origin[2] -= kZ;
+
+	lastZ = currentZ;
 }
 
 /*
