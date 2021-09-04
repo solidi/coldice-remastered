@@ -37,8 +37,9 @@ extra_player_info_t  g_PlayerExtraInfo[MAX_PLAYERS+1];   // additional player in
 cvar_t *cl_oldmotd;
 cvar_t *cl_oldscoreboard;
 cvar_t *m_pCvarRighthand;
-cvar_t *cl_weaponsway;
 cvar_t *cl_bulletsmoke;
+cvar_t *cl_weaponsway;
+cvar_t *cl_weaponfidget;
 
 class CHLVoiceStatusHelper : public IVoiceStatusHelper
 {
@@ -348,8 +349,9 @@ void CHud :: Init( void )
 	cl_oldmotd = CVAR_CREATE( "cl_oldmotd", "1", FCVAR_ARCHIVE );
 	cl_oldscoreboard = CVAR_CREATE( "cl_oldscoreboard", "1", FCVAR_ARCHIVE );
 	m_pCvarRighthand = CVAR_CREATE( "cl_righthand", "1", FCVAR_ARCHIVE );
-	cl_weaponsway = CVAR_CREATE( "cl_weaponsway", "1", FCVAR_ARCHIVE );
 	cl_bulletsmoke = CVAR_CREATE( "cl_bulletsmoke", "1", FCVAR_ARCHIVE );
+	cl_weaponsway = CVAR_CREATE( "cl_weaponsway", "1", FCVAR_ARCHIVE );
+	cl_weaponfidget = CVAR_CREATE( "cl_weaponfidget", "1", FCVAR_ARCHIVE );
 
 	m_iLogo = 0;
 	m_iFOV = 0;
