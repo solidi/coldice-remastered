@@ -509,7 +509,9 @@ void EV_FireGlock1( event_args_t *args )
 
 	EV_GetDefaultShellInfo( args, origin, velocity, ShellVelocity, ShellOrigin, forward, right, up, 20, -12, (m_pCvarRighthand->value != 0.0f ? -1 : 1) * 4 );
 
-	EV_EjectBrass ( ShellOrigin, ShellVelocity, angles[ YAW ], shell, TE_BOUNCE_SHELL ); 
+	cl_entity_t *gunModel = gEngfuncs.GetViewModel();
+
+	EV_EjectBrass ( gunModel->attachment[1], ShellVelocity, angles[ YAW ], shell, TE_BOUNCE_SHELL ); 
 
 	if ( args->bparam2 )
 	{
@@ -521,6 +523,12 @@ void EV_FireGlock1( event_args_t *args )
 	EV_GetGunPosition( args, vecSrc, origin );
 	
 	VectorCopy( forward, vecAiming );
+
+	int model = gEngfuncs.pEventAPI->EV_FindModelIndex( "sprites/smokeball2.spr" );
+	TEMPENTITY *t = gEngfuncs.pEfxAPI->R_DefaultSprite(gunModel->attachment[0], model, gEngfuncs.pfnRandomLong(48, 48));
+	t->entity.curstate.rendermode = kRenderTransAdd;
+	t->entity.curstate.renderamt = gEngfuncs.pfnRandomLong(40, 60);
+	t->entity.curstate.scale = gEngfuncs.pfnRandomFloat(0.1, 0.4);
 
 	EV_HLDM_FireBullets( idx, forward, right, up, 1, vecSrc, vecAiming, 8192, BULLET_PLAYER_9MM, 0, 0, args->fparam1, args->fparam2 );
 }

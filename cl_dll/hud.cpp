@@ -41,6 +41,17 @@ cvar_t *cl_bulletsmoke;
 cvar_t *cl_weaponsway;
 cvar_t *cl_weaponfidget;
 
+cvar_t *cl_vmx;
+cvar_t *cl_vmy;
+cvar_t *cl_vmz;
+cvar_t *cl_vmf;
+cvar_t *cl_vmu;
+cvar_t *cl_vmr;
+cvar_t *cl_vmpitch;
+cvar_t *cl_vmroll;
+cvar_t *cl_vmyaw;
+cvar_t *cl_ifov;
+
 class CHLVoiceStatusHelper : public IVoiceStatusHelper
 {
 public:
@@ -352,6 +363,17 @@ void CHud :: Init( void )
 	cl_bulletsmoke = CVAR_CREATE( "cl_bulletsmoke", "1", FCVAR_ARCHIVE );
 	cl_weaponsway = CVAR_CREATE( "cl_weaponsway", "1", FCVAR_ARCHIVE );
 	cl_weaponfidget = CVAR_CREATE( "cl_weaponfidget", "1", FCVAR_ARCHIVE );
+
+	cl_vmx = CVAR_CREATE( "cl_vmx", "0", FCVAR_ARCHIVE );
+	cl_vmy = CVAR_CREATE( "cl_vmy", "0", FCVAR_ARCHIVE );
+	cl_vmz = CVAR_CREATE( "cl_vmz", "0", FCVAR_ARCHIVE );
+	cl_vmf = CVAR_CREATE( "cl_vmf", "0", FCVAR_ARCHIVE );
+	cl_vmu = CVAR_CREATE( "cl_vmu", "0", FCVAR_ARCHIVE );
+	cl_vmr = CVAR_CREATE( "cl_vmr", "0", FCVAR_ARCHIVE );
+	cl_vmpitch = CVAR_CREATE( "cl_vmpitch", "0", FCVAR_ARCHIVE );
+	cl_vmyaw = CVAR_CREATE( "cl_vmyaw", "0", FCVAR_ARCHIVE );
+	cl_vmroll = CVAR_CREATE( "cl_vmroll", "0", FCVAR_ARCHIVE );
+	cl_ifov = CVAR_CREATE( "cl_ifov", "90", FCVAR_ARCHIVE );
 
 	m_iLogo = 0;
 	m_iFOV = 0;

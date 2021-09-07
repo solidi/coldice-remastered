@@ -66,6 +66,8 @@ cvar_t	*cl_pitchspeed;
 cvar_t	*cl_anglespeedkey;
 cvar_t	*cl_vsmoothing;
 
+qboolean g_IronSight;
+
 /*
 ===============================================================================
 
@@ -113,6 +115,8 @@ kbutton_t	in_alt1;
 kbutton_t	in_score;
 kbutton_t	in_break;
 kbutton_t	in_graph;  // Display the netgraph
+
+kbutton_t	in_ironsight;
 
 typedef struct kblist_s
 {
@@ -392,6 +396,16 @@ void IN_LeftDown(void) {KeyDown(&in_left);}
 void IN_LeftUp(void) {KeyUp(&in_left);}
 void IN_RightDown(void) {KeyDown(&in_right);}
 void IN_RightUp(void) {KeyUp(&in_right);}
+
+void IN_IronSightDown( void ) {
+	g_IronSight = true;
+	KeyDown( &in_ironsight );
+}
+
+void IN_IronSightUp( void ) {
+	g_IronSight = false;
+	KeyUp( &in_ironsight );
+}
 
 void IN_ForwardDown(void)
 {
@@ -982,6 +996,8 @@ void InitInput (void)
 	gEngfuncs.pfnAddCommand ("-graph", IN_GraphUp);
 	gEngfuncs.pfnAddCommand ("+break",IN_BreakDown);
 	gEngfuncs.pfnAddCommand ("-break",IN_BreakUp);
+	gEngfuncs.pfnAddCommand ("+ironsight", IN_IronSightDown);
+	gEngfuncs.pfnAddCommand ("-ironsight", IN_IronSightUp);
 
 	lookstrafe			= gEngfuncs.pfnRegisterVariable ( "lookstrafe", "0", FCVAR_ARCHIVE );
 	lookspring			= gEngfuncs.pfnRegisterVariable ( "lookspring", "0", FCVAR_ARCHIVE );
