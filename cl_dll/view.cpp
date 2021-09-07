@@ -46,7 +46,7 @@
 void V_DropPunchAngle ( float frametime, float *ev_punchangle );
 void V_WeaponSway ( float currentYaw, float framerate, float clientTime, cl_entity_t *viewModel );
 void V_WeaponFidget( float currentZ, float clientTime, cl_entity_t *viewModel );
-void V_IronSight( Vector position, float clientTime, cl_entity_t *viewModel, Vector forward, Vector up, Vector right );
+void V_IronSight( Vector position, Vector punch, float clientTime, cl_entity_t *viewModel, Vector forward, Vector up, Vector right );
 void VectorAngles( const float *forward, float *angles );
 
 #include "r_studioint.h"
@@ -688,12 +688,18 @@ void V_CalcNormalRefdef ( struct ref_params_s *pparams )
 
 	if (cl_weaponfidget->value == 1) V_WeaponFidget(pparams->simvel[2], pparams->time, view);
 
-	if (cl_weaponsway->value == 1) V_WeaponSway(pparams->cl_viewangles[YAW], pparams->frametime, pparams->time, view);
+	if (cl_weaponsway->value == 1) {
+		if (!g_IronSight) V_WeaponSway(pparams->cl_viewangles[YAW], pparams->frametime, pparams->time, view);
+	}
 
-	if (!strcmp(view->model->name, "models/v_9mmhandgun.mdl")) {
-		V_IronSight(Vector(2.0,5.0,8.0), pparams->time, view, pparams->forward, pparams->up, pparams->right);
-	} else if (!strcmp(view->model->name, "models/v_357.mdl")) {
-		V_IronSight(Vector(2.0,4.0,6.5), pparams->time, view, pparams->forward, pparams->up, pparams->right);
+	if (view->model != NULL) {
+		if (!strcmp(view->model->name, "models/v_9mmhandgun.mdl")) {
+			V_IronSight(Vector(2.0,5.0,8.0), Vector(0.0,0.0,0.0), pparams->time, view, pparams->forward, pparams->up, pparams->right);
+		} else if (!strcmp(view->model->name, "models/v_357.mdl")) {
+			V_IronSight(Vector(2.0,4.0,6.5), Vector(0.0,0.0,0.0), pparams->time, view, pparams->forward, pparams->up, pparams->right);
+		} else if (!strcmp(view->model->name, "models/v_smg.mdl")) {
+			V_IronSight(Vector(8.0,2.5,-1.4), Vector(0.0,0.0,35.0), pparams->time, view, pparams->forward, pparams->up, pparams->right);
+		}
 	}
 
 	view->angles[YAW]   += cl_vmyaw->value;
@@ -1848,56 +1854,61 @@ void V_WeaponFidget( float currentZ, float clientTime, cl_entity_t *viewModel )
 	lastZ = currentZ;
 }
 
-void V_IronSight( Vector position, float clientTime, cl_entity_t *viewModel, Vector forward, Vector up, Vector right )
+void V_IronSight( Vector position, Vector punch, float clientTime, cl_entity_t *viewModel, Vector forward, Vector up, Vector right )
 {
 	float mxForward = position.x;
 	float mxUp = position.y;
 	float mxRight = position.z;
+	float mxRoll = punch.z;
 	static float time = 0, time_framerate = 0.05;
-	static float kR, kF, kU;
+	static float kR, kF, kU, kRoll;
 
 	if (clientTime > time + time_framerate) {
 		time = clientTime;
 
 		if (g_IronSight) {
-			kR += 1.5; kU += 0.75; kF += 0.75;
+			kR += 1.5; kU += 0.75; kF += 0.75, kRoll += 2.5;
 
 			if (lastFov > -0.1) {
 				gEngfuncs.pEventAPI->EV_WeaponAnimation ( 0, 0 );
 			}
 
-			if (lastFov < -15) {
-				lastFov = -15;
-			}
 			lastFov -= 2.25;
+
+			if (lastFov < -15) lastFov = -15;
+
 			gEngfuncs.Cvar_SetValue("default_fov", 90 + lastFov);
 		} else {
-			kR -= 1.5; kU -= 0.75; kF -= 0.75;
+			kR -= 1.5; kU -= 0.75; kF -= 0.75, kRoll -= 2.5;
 
-			if (lastFov > 0) {
-				lastFov = 0;
-			}
 			lastFov += 2.25;
+
+			if (lastFov > 0) lastFov = 0;
+
 			gEngfuncs.Cvar_SetValue("default_fov", 90 + lastFov);
 		}
 
 		if (kR > mxRight) kR = mxRight;
 		if (kF > mxForward) kF = mxForward;
 		if (kU > mxUp) kU = mxUp;
+		if (kRoll > mxRoll) kRoll = mxRoll;
 		if (kR < 0 ) kR = 0;
 		if (kF < 0) kF = 0;
 		if (kU < 0) kU = 0;
+		if (kRoll < 0) kRoll = 0;
 	}
 
-	viewModel->origin[0] -=  (forward[ 0 ] * kF);
-	viewModel->origin[1] -=  (forward[ 1 ] * kF);
-	viewModel->origin[2] -=  (forward[ 2 ] * kF);
-	viewModel->origin[0] +=  (up[ 0 ] * kU);
-	viewModel->origin[1] +=  (up[ 1 ] * kU);
-	viewModel->origin[2] +=  (up[ 2 ] * kU);
-	viewModel->origin[0] -=  (right[ 0 ] * kR);
-	viewModel->origin[1] -=  (right[ 1 ] * kR);
-	viewModel->origin[2] -=  (right[ 2 ] * kR);
+	viewModel->origin[0] -= (forward[ 0 ] * kF);
+	viewModel->origin[1] -= (forward[ 1 ] * kF);
+	viewModel->origin[2] -= (forward[ 2 ] * kF);
+	viewModel->origin[0] += (up[ 0 ] * kU);
+	viewModel->origin[1] += (up[ 1 ] * kU);
+	viewModel->origin[2] += (up[ 2 ] * kU);
+	viewModel->origin[0] -= (right[ 0 ] * kR);
+	viewModel->origin[1] -= (right[ 1 ] * kR);
+	viewModel->origin[2] -= (right[ 2 ] * kR);
+
+	viewModel->angles[ROLL] += kRoll;
 
 	//gEngfuncs.Cvar_SetValue("default_fov", CVAR_GET_FLOAT("default_fov") + lastFov);
 	//gHUD.m_iFOV += lastFov;
