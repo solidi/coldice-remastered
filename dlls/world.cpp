@@ -74,6 +74,12 @@ DLL_DECALLIST gDecals[] = {
 	{ "{yblood4", 0 },		// DECAL_YBLOOD4
 	{ "{yblood5", 0 },		// DECAL_YBLOOD5
 	{ "{yblood6", 0 },		// DECAL_YBLOOD6
+	{ "{bblood1", 0 },
+	{ "{bblood2", 0 },
+	{ "{bblood3", 0 },
+	{ "{bblood4", 0 },
+	{ "{bblood5", 0 },
+	{ "{bblood6", 0 },
 	{ "{break1", 0 },		// DECAL_GLASSBREAK1
 	{ "{break2", 0 },		// DECAL_GLASSBREAK2
 	{ "{break3", 0 },		// DECAL_GLASSBREAK3
@@ -556,7 +562,7 @@ void CWorld :: Precache( void )
 	}
 	else
 	{
-		PRECACHE_MODEL( "models/hgibs.mdl" );
+		PRECACHE_MODEL( "models/w_hgibs.mdl" );
 		PRECACHE_MODEL( "models/agibs.mdl" );
 	}
 

@@ -1458,7 +1458,7 @@ CGib *CGibShooter :: CreateGib ( void )
 		return NULL;
 
 	CGib *pGib = GetClassPtr( (CGib *)NULL );
-	pGib->Spawn( "models/hgibs.mdl" );
+	pGib->Spawn( "models/w_hgibs.mdl" );
 	pGib->m_bloodColor = BLOOD_COLOR_RED;
 
 	if ( pev->body <= 1 )

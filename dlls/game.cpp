@@ -48,6 +48,7 @@ cvar_t	spawnweaponlist = {"mp_spawnweaponlist","weapon_fists;weapon_crowbar;weap
 cvar_t	allowrunes = {"mp_allowrunes","1", FCVAR_SERVER };
 cvar_t	holsterweapons = {"mp_holsterweapons","1", FCVAR_SERVER };
 cvar_t	floatingweapons = {"mp_floatingweapons","1", FCVAR_SERVER };
+cvar_t	iceblood = {"mp_iceblood","1", FCVAR_SERVER };
 
 cvar_t  allow_spectators = { "allow_spectators", "0.0", FCVAR_SERVER };		// 0 prevents players from being spectators
 
@@ -567,6 +568,7 @@ void GameDLLInit( void )
 	CVAR_REGISTER (&allowrunes);
 	CVAR_REGISTER(&holsterweapons);
 	CVAR_REGISTER(&floatingweapons);
+	CVAR_REGISTER(&iceblood);
 
 	CVAR_REGISTER (&mp_chattime);
 
