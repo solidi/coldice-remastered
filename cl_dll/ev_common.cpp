@@ -149,11 +149,10 @@ EV_GetDefaultShellInfo
 Determine where to eject shells from
 =================
 */
-void EV_GetDefaultShellInfo( event_args_t *args, float *origin, float *velocity, float *ShellVelocity, float *ShellOrigin, float *forward, float *right, float *up, float forwardScale, float upScale, float rightScale )
+void EV_GetDefaultShellInfo( event_args_t *args, float *origin, float *velocity, float *ShellVelocity, float *ShellOrigin, float *forward, float *right, float *up, float forwardScale, float upScale, float rightScale, float fU, float fR  )
 {
 	int i;
 	vec3_t view_ofs;
-	float fR, fU;
 
 	int idx;
 
@@ -173,10 +172,6 @@ void EV_GetDefaultShellInfo( event_args_t *args, float *origin, float *velocity,
 			view_ofs[2] = VEC_DUCK_VIEW;
 		}
 	}
-
-	extern cvar_t *m_pCvarRighthand;
-	fR = (m_pCvarRighthand->value != 0 ? -1 : 1) * gEngfuncs.pfnRandomFloat( 50, 70 );
-	fU = gEngfuncs.pfnRandomFloat( 100, 150 );
 
 	for ( i = 0; i < 3; i++ )
 	{
