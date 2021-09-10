@@ -2927,7 +2927,7 @@ void CBasePlayer::Spawn( void )
 	m_iStepLeft = 0;
 	m_flFieldOfView		= 0.5;// some monsters use this to determine whether or not the player is looking at them.
 
-	m_bloodColor	= BLOOD_COLOR_BLUE;
+	m_bloodColor	= iceblood.value ? BLOOD_COLOR_BLUE : BLOOD_COLOR_RED;
 	m_flNextAttack	= UTIL_WeaponTimeBase();
 	StartSneaking();
 
@@ -3587,7 +3587,6 @@ void CBasePlayer::CheatImpulseCommands( int iImpulse )
 
 	CBaseEntity *pEntity;
 	TraceResult tr;
-	static int color = 0;
 
 	switch ( iImpulse )
 	{
@@ -3655,10 +3654,8 @@ void CBasePlayer::CheatImpulseCommands( int iImpulse )
 	case 102:
 		// Gibbage!!!
 		CGib::SpawnRandomGibs( pev, 1, 1 );
-		
-		UTIL_BloodDrips( pev->origin, g_vecAttackDir, color, 100 );
-		ALERT(at_aiconsole, "Blood color is: %d", color);
-		color++;
+
+		UTIL_BloodDrips( pev->origin, g_vecAttackDir, iceblood.value ? BLOOD_COLOR_BLUE : BLOOD_COLOR_RED, 100 );
 
 		break;
 

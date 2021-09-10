@@ -1,4 +1,4 @@
-//========= Copyright ï¿½ 1996-2002, Valve LLC, All rights reserved. ============
+//========= Copyright © 1996-2002, Valve LLC, All rights reserved. ============
 //
 // Purpose: 
 //
@@ -24,8 +24,7 @@ typedef	enum
 } Bullet;
 
 enum glock_e {
-	GLOCK_NULL = 0,
-	GLOCK_IDLE1,
+	GLOCK_IDLE1 = 0,
 	GLOCK_IDLE2,
 	GLOCK_IDLE3,
 	GLOCK_SHOOT,

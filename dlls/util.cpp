@@ -1211,8 +1211,10 @@ void UTIL_BloodDecalTrace( TraceResult *pTrace, int bloodColor )
 {
 	if ( UTIL_ShouldShowBlood( bloodColor ) )
 	{
-		if ( bloodColor == BLOOD_COLOR_RED || bloodColor == BLOOD_COLOR_BLUE )
+		if ( bloodColor == BLOOD_COLOR_RED )
 			UTIL_DecalTrace( pTrace, DECAL_BLOOD1 + RANDOM_LONG(0,5) );
+		else if ( bloodColor == BLOOD_COLOR_BLUE )
+			UTIL_DecalTrace( pTrace, DECAL_BBLOOD1 + RANDOM_LONG(0,5) );
 		else
 			UTIL_DecalTrace( pTrace, DECAL_YBLOOD1 + RANDOM_LONG(0,5) );
 	}

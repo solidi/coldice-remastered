@@ -22,8 +22,7 @@
 #include "player.h"
 
 enum glock_e {
-	GLOCK_NULL = 0,
-	GLOCK_IDLE1,
+	GLOCK_IDLE1 = 0,
 	GLOCK_IDLE2,
 	GLOCK_IDLE3,
 	GLOCK_SHOOT,
