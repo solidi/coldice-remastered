@@ -46,6 +46,9 @@
 void V_DropPunchAngle ( float frametime, float *ev_punchangle );
 void V_WeaponSway ( float currentYaw, float framerate, float clientTime, cl_entity_t *viewModel );
 void V_WeaponFidget( float currentZ, float clientTime, cl_entity_t *viewModel );
+void V_WeaponSway( float currentYaw, float framerate, float clientTime, cl_entity_t *viewModel );
+void V_WeaponFloat( float currentZ, float clientTime, cl_entity_t *viewModel );
+void V_WeaponDrop( float currentZ, float clientTime, cl_entity_t *viewModel );
 void V_IronSight( Vector position, Vector punch, float clientTime, cl_entity_t *viewModel, Vector forward, Vector up, Vector right );
 void VectorAngles( const float *forward, float *angles );
 
@@ -686,7 +689,12 @@ void V_CalcNormalRefdef ( struct ref_params_s *pparams )
 	view->angles[ROLL]  -= bob * 1;
 	view->angles[PITCH] -= bob * 0.3;
 
-	if (cl_weaponfidget->value == 1) V_WeaponFidget(pparams->simvel[2], pparams->time, view);
+	if (cl_weaponsway->value == 1) V_WeaponSway(pparams->cl_viewangles[YAW], pparams->frametime, pparams->time, view);
+
+	if (cl_weaponfidget->value == 1) {
+		V_WeaponDrop(pparams->simvel[2], pparams->time, view);
+		V_WeaponFloat(pparams->simvel[2], pparams->time, view);
+	}
 
 	if (cl_weaponsway->value == 1) {
 		if (!g_IronSight) V_WeaponSway(pparams->cl_viewangles[YAW], pparams->frametime, pparams->time, view);
@@ -1701,11 +1709,7 @@ void CL_DLLEXPORT V_CalcRefdef( struct ref_params_s *pparams )
 	{
 #ifdef DEBUG
 		char str[256];
-		sprintf(str, "ftime: %.3f angles - pitch: %.3f, yaw: %.3f, roll: %.3f\nsim - z: %.3f\n",
-		pparams->frametime,
-		pparams->cl_viewangles[PITCH],
-		pparams->cl_viewangles[YAW],
-		pparams->cl_viewangles[ROLL],
+		sprintf(str, "sim - z: %.3f\n",
 		pparams->simvel[2]);
 		gEngfuncs.pfnConsolePrint(str);
 #endif
@@ -1816,7 +1820,36 @@ void V_WeaponSway ( float currentYaw, float framerate, float clientTime, cl_enti
 	lastYaw = currentYaw;
 }
 
-void V_WeaponFidget( float currentZ, float clientTime, cl_entity_t *viewModel )
+void V_WeaponFloat( float currentZ, float clientTime, cl_entity_t *viewModel )
+{
+	static float time = 0;
+	static float time_framerate = 0.05;
+	static float lastZ = 0, kPitch = 0, kZ = 0;
+
+	if (clientTime > time + time_framerate) {
+		time = clientTime;
+		if (currentZ != 0) {
+			kZ += 0.75;
+			kPitch -= 1.25;
+
+			if (kZ > 2.5) kZ = 2.5;
+			//if (kPitch < 0) kPitch = 0;
+		} else {
+			kZ -= 1.75;
+			kPitch += 1.75;
+
+			if (kZ < 0) kZ = 0;
+			if (kPitch > 0) kPitch = 0;
+		}
+	}
+
+	viewModel->angles[PITCH] += kPitch;
+	viewModel->origin[2] += kZ;
+
+	lastZ = currentZ;
+}
+
+void V_WeaponDrop( float currentZ, float clientTime, cl_entity_t *viewModel )
 {
 	static float time = 0;
 	static float time_framerate = 0.05;
