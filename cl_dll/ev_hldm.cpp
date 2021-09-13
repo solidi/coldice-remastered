@@ -1648,6 +1648,7 @@ void EV_HornetGunFire( event_args_t *args )
 //======================
 enum tripmine_e {
 	TRIPMINE_IDLE1 = 0,
+	TRIPMINE_SPIN,
 	TRIPMINE_IDLE2,
 	TRIPMINE_ARM1,
 	TRIPMINE_ARM2,
