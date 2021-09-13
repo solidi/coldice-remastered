@@ -44,8 +44,6 @@
 
 
 void V_DropPunchAngle ( float frametime, float *ev_punchangle );
-void V_WeaponSway ( float currentYaw, float framerate, float clientTime, cl_entity_t *viewModel );
-void V_WeaponFidget( float currentZ, float clientTime, cl_entity_t *viewModel );
 void V_WeaponSway( float currentYaw, float framerate, float clientTime, cl_entity_t *viewModel );
 void V_WeaponFloat( float currentZ, float clientTime, cl_entity_t *viewModel );
 void V_WeaponDrop( float currentZ, float clientTime, cl_entity_t *viewModel );
@@ -1873,7 +1871,6 @@ void V_WeaponDrop( float currentZ, float clientTime, cl_entity_t *viewModel )
 	static float kYaw = 0;
 
 	if (lastZ < -150 && currentZ == 0) {
-		gEngfuncs.pfnWeaponAnim(0,0);
 		float intensity = ((lastZ / 150) * 2) + 1;
 		//char str[256];
 		//sprintf(str, "intensity: %.3f\n", intensity);
@@ -1903,9 +1900,10 @@ void V_WeaponDrop( float currentZ, float clientTime, cl_entity_t *viewModel )
 
 void V_IronSight( Vector position, Vector punch, float clientTime, cl_entity_t *viewModel, Vector forward, Vector up, Vector right )
 {
+	extern cvar_t *m_pCvarRighthand;
 	float mxForward = position.x;
 	float mxUp = position.y;
-	float mxRight = position.z;
+	float mxRight = !(m_pCvarRighthand->value) ? position.z * -1 : position.z;
 	float mxRoll = punch.z;
 	static float time = 0, time_framerate = 0.05;
 	static float kR, kF, kU, kRoll;
