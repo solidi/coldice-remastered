@@ -689,8 +689,6 @@ void V_CalcNormalRefdef ( struct ref_params_s *pparams )
 	view->angles[ROLL]  -= bob * 1;
 	view->angles[PITCH] -= bob * 0.3;
 
-	if (cl_weaponsway->value == 1) V_WeaponSway(pparams->cl_viewangles[YAW], pparams->frametime, pparams->time, view);
-
 	if (cl_weaponfidget->value == 1) {
 		V_WeaponDrop(pparams->simvel[2], pparams->time, view);
 		V_WeaponFloat(pparams->simvel[2], pparams->time, view);
@@ -701,15 +699,30 @@ void V_CalcNormalRefdef ( struct ref_params_s *pparams )
 	}
 
 	if (view->model != NULL) {
-		if (!strcmp(view->model->name, "models/v_9mmhandgun.mdl")) {
-			V_IronSight(Vector(2.0,5.0,8.0), Vector(0.0,0.0,0.0), pparams->time, view, pparams->forward, pparams->up, pparams->right);
+		Vector position = Vector(0.0,0.0,0.0), angles = Vector(0.0,0.0,0.0);
+		if (!strcmp(view->model->name, "models/v_9mmhandgun.mdl") ||
+			!strcmp(view->model->name, "models/v_9mmhandguns.mdl")) {
+			position = Vector(2.0,5.0,8.0);
 		} else if (!strcmp(view->model->name, "models/v_357.mdl")) {
-			V_IronSight(Vector(2.0,4.0,6.5), Vector(0.0,0.0,0.0), pparams->time, view, pparams->forward, pparams->up, pparams->right);
+			position = Vector(2.0,4.0,6.5);
 		} else if (!strcmp(view->model->name, "models/v_smg.mdl")) {
-			V_IronSight(Vector(8.0,2.5,-1.4), Vector(0.0,0.0,35.0), pparams->time, view, pparams->forward, pparams->up, pparams->right);
+			position = Vector(8.0,2.5,-1.4);
+			angles = Vector(0.0,0.0,35.0);
+		} else if (!strcmp(view->model->name, "models/v_mag60.mdl")) {
+			position = Vector(3.0,3.5,3.0);
+		} else if (!strcmp(view->model->name, "models/v_9mmAR.mdl")) {
+			position = Vector(4.0,2.2,7.35);
+			angles = Vector(0.0,0.0,5.0);
+		} else if (!strcmp(view->model->name, "models/v_shotgun.mdl")) {
+			position = Vector(3.0,3.0,6.5);
+		} else if (!strcmp(view->model->name, "models/v_glauncher.mdl")) {
+			position = Vector(6.0,4.0,8.0);
 		}
+		if (position != Vector(0.0,0.0,0.0))
+			V_IronSight(position, angles, pparams->time, view, pparams->forward, pparams->up, pparams->right);
 	}
 
+#ifdef DEBUG
 	view->angles[YAW]   += cl_vmyaw->value;
 	view->angles[ROLL]  += cl_vmroll->value;
 	view->angles[PITCH] += cl_vmpitch->value;
@@ -723,6 +736,7 @@ void V_CalcNormalRefdef ( struct ref_params_s *pparams )
 	view->origin[0] -=  (pparams->right[ 0 ] * cl_vmr->value);
 	view->origin[1] -=  (pparams->right[ 1 ] * cl_vmr->value);
 	view->origin[2] -=  (pparams->right[ 2 ] * cl_vmr->value);
+#endif
 
 	if (cl_bobtilt->value == 1) VectorCopy(view->angles, view->curstate.angles);
 	// pushing the view origin down off of the same X/Z plane as the ent's origin will give the
