@@ -51,7 +51,6 @@ enum wrench_e {
 	WRENCH_IDLE = 0,
 	WRENCH_DRAW,
 	WRENCH_HOLSTER,
-	WRENCH_THROW,
 	WRENCH_ATTACK1HIT,
 	WRENCH_ATTACK1MISS,
 	WRENCH_ATTACK2MISS,
@@ -59,7 +58,9 @@ enum wrench_e {
 	WRENCH_ATTACK3MISS,
 	WRENCH_ATTACK3HIT,
 	WRENCH_IDLE2,
-	WRENCH_IDLE3
+	WRENCH_IDLE3,
+	WRENCH_PULL_BACK,
+	WRENCH_THROW2,
 };
 
 void CWrench::Spawn( )
@@ -117,6 +118,8 @@ int CWrench::GetItemInfo(ItemInfo *p)
 
 BOOL CWrench::Deploy( )
 {
+	m_flStartThrow = 0;
+	m_flReleaseThrow = -1;
 	return DefaultDeploy( "models/v_wrench.mdl", "models/p_wrench.mdl", WRENCH_DRAW, "crowbar" );
 }
 
@@ -172,7 +175,7 @@ void CWrench::FindHullIntersection( const Vector &vecSrc, TraceResult &tr, float
 
 void CWrench::PrimaryAttack()
 {
-	if (! Swing( 1 ))
+	if (!m_flStartThrow && !Swing( 1 ))
 	{
 		SetThink( &CWrench::SwingAgain );
 		pev->nextthink = gpGlobals->time + 0.1;
@@ -181,21 +184,17 @@ void CWrench::PrimaryAttack()
 
 void CWrench::SecondaryAttack()
 {
-	SendWeaponAnim( WRENCH_THROW );
-	SetThink( &CWrench::Throw );
-
-	m_flNextPrimaryAttack = GetNextAttackDelay(0.75);
-	// Just for kicks, set this.
-	// But we destroy this weapon anyway so... thppt.
-	m_flNextSecondaryAttack = gpGlobals->time + 0.75;
-	pev->nextthink = gpGlobals->time + 0.15;
+	if ( !m_flStartThrow ) {
+		SendWeaponAnim( WRENCH_PULL_BACK );
+		m_flStartThrow = gpGlobals->time;
+		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 0.5;
+	}
 }
 
 void CWrench::Throw() {
 	// Don't throw underwater, and only throw if we were able to detatch
 	// from player.
-	if ( (m_pPlayer->pev->waterlevel != 3) &&
-			(m_pPlayer->RemovePlayerItem( this )) )
+	if ( (m_pPlayer->pev->waterlevel != 3) )
 	{
 		// Important! Capture globals before it is stomped on.
 		Vector anglesAim = m_pPlayer->pev->v_angle + m_pPlayer->pev->punchangle;
@@ -226,14 +225,6 @@ void CWrench::Throw() {
 		EMIT_SOUND_DYN(ENT(m_pPlayer->pev), CHAN_WEAPON,
 			"wrench_miss1.wav", 1, ATTN_NORM, 0,
 			94 + RANDOM_LONG(0,0xF));
-
-		// take item off hud
-		m_pPlayer->pev->weapons &= ~(1<<this->m_iId);
-
-		// Destroy this weapon
-		DestroyItem();
-
-		// RetireWeapon();
 	}
 }
 
@@ -402,6 +393,26 @@ void CWrench::WeaponIdle( void )
 {
 	if ( m_flTimeWeaponIdle > UTIL_WeaponTimeBase() )
 		return;
+
+	if ( m_flStartThrow )
+	{
+		SendWeaponAnim( WRENCH_THROW2 );
+#ifndef CLIENT_DLL
+		Throw();
+#endif
+		m_flStartThrow = 0;
+		m_flReleaseThrow = 1;
+		m_flTimeWeaponIdle = GetNextAttackDelay(0.75);// ensure that the animation can finish playing
+		m_flNextSecondaryAttack = m_flNextPrimaryAttack = GetNextAttackDelay(2.0);
+		return;
+	}
+	else if ( m_flReleaseThrow > 0 )
+	{
+		m_pPlayer->pev->weapons &= ~(1<<this->m_iId);
+		DestroyItem();
+		RetireWeapon();
+		return;
+	}
 
 	int iAnim;
 	float flAnimTime = 5.34; // Only WRENCH_IDLE has a different time
