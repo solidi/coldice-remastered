@@ -128,6 +128,12 @@ void CKnife::Holster( int skiplocal /* = 0 */ )
 {
 	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 1.0;
 	SendWeaponAnim( KNIFE_HOLSTER );
+
+	if (m_flReleaseThrow > 0) {
+		m_pPlayer->pev->weapons &= ~(1<<WEAPON_KNIFE);
+		SetThink( &CKnife::DestroyItem );
+		pev->nextthink = gpGlobals->time + 0.1;
+	}
 }
 
 void CKnife::FindHullIntersection( const Vector &vecSrc, TraceResult &tr, float *mins, float *maxs, edict_t *pEntity )
@@ -406,8 +412,6 @@ void CKnife::WeaponIdle( void )
 	}
 	else if ( m_flReleaseThrow > 0 )
 	{
-		m_pPlayer->pev->weapons &= ~(1<<this->m_iId);
-		DestroyItem();
 		RetireWeapon();
 		return;
 	}

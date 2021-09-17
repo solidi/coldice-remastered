@@ -127,6 +127,12 @@ void CWrench::Holster( int skiplocal /* = 0 */ )
 {
 	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 0.5;
 	SendWeaponAnim( WRENCH_HOLSTER );
+
+	if (m_flReleaseThrow > 0) {
+		m_pPlayer->pev->weapons &= ~(1<<WEAPON_WRENCH);
+		SetThink( &CWrench::DestroyItem );
+		pev->nextthink = gpGlobals->time + 0.1;
+	}
 }
 
 void CWrench::FindHullIntersection( const Vector &vecSrc, TraceResult &tr, float *mins, float *maxs, edict_t *pEntity )
@@ -408,8 +414,6 @@ void CWrench::WeaponIdle( void )
 	}
 	else if ( m_flReleaseThrow > 0 )
 	{
-		m_pPlayer->pev->weapons &= ~(1<<this->m_iId);
-		DestroyItem();
 		RetireWeapon();
 		return;
 	}

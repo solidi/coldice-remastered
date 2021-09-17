@@ -135,6 +135,12 @@ void CCrowbar::Holster( int skiplocal /* = 0 */ )
 {
 	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 0.5;
 	SendWeaponAnim( CROWBAR_HOLSTER );
+
+	if (m_flReleaseThrow > 0) {
+		m_pPlayer->pev->weapons &= ~(1<<WEAPON_CROWBAR);
+		SetThink( &CCrowbar::DestroyItem );
+		pev->nextthink = gpGlobals->time + 0.1;
+	}
 }
 
 
@@ -423,8 +429,6 @@ void CCrowbar::WeaponIdle( void )
 	}
 	else if ( m_flReleaseThrow > 0 )
 	{
-		m_pPlayer->pev->weapons &= ~(1<<this->m_iId);
-		DestroyItem();
 		RetireWeapon();
 		return;
 	}
