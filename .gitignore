@@ -13,3 +13,4 @@ linux/debug
 .DS_Store
 Debug/
 Release/
+*.vcxproj.user
