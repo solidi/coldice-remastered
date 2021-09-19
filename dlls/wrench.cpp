@@ -126,12 +126,13 @@ BOOL CWrench::Deploy( )
 void CWrench::Holster( int skiplocal /* = 0 */ )
 {
 	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 0.5;
-	SendWeaponAnim( WRENCH_HOLSTER );
 
 	if (m_flReleaseThrow > 0) {
 		m_pPlayer->pev->weapons &= ~(1<<WEAPON_WRENCH);
 		SetThink( &CWrench::DestroyItem );
 		pev->nextthink = gpGlobals->time + 0.1;
+	} else {
+		SendWeaponAnim( WRENCH_HOLSTER );
 	}
 }
 
@@ -192,9 +193,11 @@ void CWrench::SecondaryAttack()
 {
 	if ( !m_flStartThrow ) {
 		SendWeaponAnim( WRENCH_PULL_BACK );
-		m_flStartThrow = gpGlobals->time;
+		m_flStartThrow = 1;
 		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 0.5;
 	}
+
+	m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 0.5;
 }
 
 void CWrench::Throw() {
@@ -400,13 +403,13 @@ void CWrench::WeaponIdle( void )
 	if ( m_flTimeWeaponIdle > UTIL_WeaponTimeBase() )
 		return;
 
-	if ( m_flStartThrow )
+	if ( m_flStartThrow == 1 )
 	{
 		SendWeaponAnim( WRENCH_THROW2 );
 #ifndef CLIENT_DLL
 		Throw();
 #endif
-		m_flStartThrow = 0;
+		m_flStartThrow = 2;
 		m_flReleaseThrow = 1;
 		m_flTimeWeaponIdle = GetNextAttackDelay(0.75);// ensure that the animation can finish playing
 		m_flNextSecondaryAttack = m_flNextPrimaryAttack = GetNextAttackDelay(2.0);
@@ -415,6 +418,7 @@ void CWrench::WeaponIdle( void )
 	else if ( m_flReleaseThrow > 0 )
 	{
 		RetireWeapon();
+		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + UTIL_SharedRandomFloat( m_pPlayer->random_seed, 10, 15 );
 		return;
 	}
 

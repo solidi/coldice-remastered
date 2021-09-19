@@ -904,7 +904,7 @@ void CBasePlayer::Killed( entvars_t *pevAttacker, int iGib )
 	CSound *pSound;
 
 	// Holster weapon immediately, to allow it to cleanup
-	if ( m_pActiveItem )
+	if ( m_pActiveItem && m_pActiveItem->m_pPlayer )
 		m_pActiveItem->Holster( );
 
 	g_pGameRules->PlayerKilled( this, pevAttacker, g_pevLastInflictor );
@@ -3161,6 +3161,10 @@ void CBasePlayer::ChangeGun( const char *pstr )
 {
     if (m_pActiveItem)
     {
+        if (!m_pActiveItem->m_pPlayer) {
+            return;
+        }
+
         m_pActiveItem->Deploy( );
         m_pActiveItem->UpdateItemInfo( );
     }
@@ -3201,7 +3205,7 @@ void CBasePlayer::SelectItem(const char *pstr)
 	ResetAutoaim( );
 
 	// FIX, this needs to queue them up and delay
-	if (m_pActiveItem)
+	if (m_pActiveItem && m_pActiveItem->m_pPlayer)
 		m_pActiveItem->Holster( );
 	
 	if (holsterweapons.value) {
@@ -3218,7 +3222,7 @@ void CBasePlayer::SelectItem(const char *pstr)
 		m_pActiveItem = pItem;
 	}
 
-	if (m_pActiveItem)
+	if (m_pActiveItem && m_pActiveItem->m_pPlayer)
 	{
 		m_pActiveItem->Deploy( );
 		m_pActiveItem->UpdateItemInfo( );
@@ -3974,6 +3978,9 @@ void CBasePlayer::ItemPostFrame()
 	ImpulseCommands();
 
 	if (!m_pActiveItem)
+		return;
+
+	if (!m_pActiveItem->m_pPlayer)
 		return;
 
 	m_pActiveItem->ItemPostFrame( );
@@ -4754,7 +4761,7 @@ BOOL CBasePlayer :: SwitchWeapon( CBasePlayerItem *pWeapon )
 	
 	ResetAutoaim( );
 	
-	if (m_pActiveItem)
+	if (m_pActiveItem && m_pActiveItem->m_pPlayer)
 	{
 		m_pActiveItem->Holster( );
 	}

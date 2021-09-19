@@ -14,3 +14,4 @@ linux/debug
 Debug/
 Release/
 *.vcxproj.user
+*.Build.props
