@@ -51,13 +51,16 @@ enum knife_e {
 	KNIFE_IDLE = 0,
 	KNIFE_DRAW,
 	KNIFE_HOLSTER,
-	KNIFE_THROW,
 	KNIFE_ATTACK1HIT,
 	KNIFE_ATTACK1MISS,
 	KNIFE_ATTACK2MISS,
 	KNIFE_ATTACK2HIT,
 	KNIFE_ATTACK3MISS,
-	KNIFE_ATTACK3HIT
+	KNIFE_ATTACK3HIT,
+	KNIFE_IDLE2,
+	KNIFE_IDLE3,
+	KNIFE_PULL_BACK,
+	KNIFE_THROW2
 };
 
 void CKnife::Spawn( )
@@ -116,13 +119,22 @@ int CKnife::GetItemInfo(ItemInfo *p)
 
 BOOL CKnife::Deploy( )
 {
+	m_flStartThrow = 0;
+	m_flReleaseThrow = -1;
 	return DefaultDeploy( "models/v_knife.mdl", "models/p_knife.mdl", KNIFE_DRAW, "crowbar" );
 }
 
 void CKnife::Holster( int skiplocal /* = 0 */ )
 {
 	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 1.0;
-	SendWeaponAnim( KNIFE_HOLSTER );
+
+	if (m_flReleaseThrow > 0) {
+		m_pPlayer->pev->weapons &= ~(1<<WEAPON_KNIFE);
+		SetThink( &CKnife::DestroyItem );
+		pev->nextthink = gpGlobals->time + 0.1;
+	} else {
+		SendWeaponAnim( KNIFE_HOLSTER );
+	}
 }
 
 void CKnife::FindHullIntersection( const Vector &vecSrc, TraceResult &tr, float *mins, float *maxs, edict_t *pEntity )
@@ -171,7 +183,7 @@ void CKnife::FindHullIntersection( const Vector &vecSrc, TraceResult &tr, float 
 
 void CKnife::PrimaryAttack()
 {
-	if (! Swing( 1 ))
+	if (!m_flStartThrow && !Swing( 1 ))
 	{
 		SetThink( &CKnife::SwingAgain );
 		pev->nextthink = gpGlobals->time + 0.1;
@@ -180,21 +192,20 @@ void CKnife::PrimaryAttack()
 
 void CKnife::SecondaryAttack()
 {
-	SendWeaponAnim( KNIFE_THROW );
-	SetThink( &CKnife::Throw );
+	if ( !m_flStartThrow )
+	{
+		SendWeaponAnim( KNIFE_PULL_BACK );
+		m_flStartThrow = 1;
+		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 0.5;
+	}
 
-	m_flNextPrimaryAttack = GetNextAttackDelay(0.75);
-	// Just for kicks, set this. 
-	// But we destroy this weapon anyway so... thppt. 
-	m_flNextSecondaryAttack = gpGlobals->time + 0.75;
-	pev->nextthink = gpGlobals->time + 0.25;
+	m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 0.5;
 }
 
 void CKnife::Throw() {
 	// Don't throw underwater, and only throw if we were able to detatch 
 	// from player.
-	if ( (m_pPlayer->pev->waterlevel != 3) && 
-			(m_pPlayer->RemovePlayerItem( this )) )
+	if ( (m_pPlayer->pev->waterlevel != 3) )
 	{
 		// Important! Capture globals before it is stomped on.
 		Vector anglesAim = m_pPlayer->pev->v_angle + m_pPlayer->pev->punchangle;
@@ -225,14 +236,6 @@ void CKnife::Throw() {
 		EMIT_SOUND_DYN(ENT(m_pPlayer->pev), CHAN_WEAPON, 
 			"knife_miss2.wav", 1, ATTN_NORM, 0, 
 			94 + RANDOM_LONG(0,0xF));
-
-		// take item off hud
-		m_pPlayer->pev->weapons &= ~(1<<this->m_iId);
-
-		// Destroy this weapon
-		DestroyItem();
-
-		// RetireWeapon();
 	}
 }
 
@@ -391,6 +394,49 @@ int CKnife::Swing( int fFirst )
 		
 	}
 	return fDidHit;
+}
+
+void CKnife::WeaponIdle( void )
+{
+	if ( m_flTimeWeaponIdle > UTIL_WeaponTimeBase() )
+		return;
+
+	if ( m_flStartThrow == 1 )
+	{
+		SendWeaponAnim( KNIFE_THROW2 );
+#ifndef CLIENT_DLL
+		Throw();
+#endif
+		m_flStartThrow = 2;
+		m_flReleaseThrow = 1;
+		m_flTimeWeaponIdle = GetNextAttackDelay(0.75);// ensure that the animation can finish playing
+		m_flNextSecondaryAttack = m_flNextPrimaryAttack = GetNextAttackDelay(2.0);
+		return;
+	}
+	else if ( m_flReleaseThrow > 0 )
+	{
+		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + UTIL_SharedRandomFloat( m_pPlayer->random_seed, 10, 15 );
+		RetireWeapon();
+		return;
+	}
+
+	int iAnim;
+	float flAnimTime = 5.34; // Only CROWBAR_IDLE has a different time
+	switch ( RANDOM_LONG( 0, 2 ) )
+	{
+	case 0:
+		iAnim = KNIFE_IDLE;
+		flAnimTime = 2.7;
+		break;
+	case 1:
+		iAnim = KNIFE_IDLE2;
+		break;
+	case 2:
+		iAnim = KNIFE_IDLE3;
+		break;
+	}
+	SendWeaponAnim( iAnim, 1 );
+	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + flAnimTime;
 }
 
 // =========================================
