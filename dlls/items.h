@@ -33,6 +33,7 @@ public:
 #define RUNE_HASTE		5
 #define RUNE_GRAVITY	6
 #define RUNE_STRENGTH	7
+#define RUNE_CLOAK		8
 
 class CWorldRunes : public CBaseEntity
 {
