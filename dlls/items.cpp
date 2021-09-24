@@ -420,9 +420,9 @@ class CFragRune : public CRune
 		pev->body = RUNE_FRAG - 1;
 		pev->renderfx = kRenderFxGlowShell;
 		pev->renderamt = 5;
-		pev->rendercolor.x = 200;
-		pev->rendercolor.y = 200;
-		pev->rendercolor.z = 200;
+		pev->rendercolor.x = 106;
+		pev->rendercolor.y = 13;
+		pev->rendercolor.z = 173;
 
 		MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
 			WRITE_BYTE( TE_PARTICLEBURST );
@@ -449,9 +449,9 @@ class CFragRune : public CRune
 
 			pPlayer->pev->renderfx = kRenderFxGlowShell;
 			pPlayer->pev->renderamt = 5;
-			pPlayer->pev->rendercolor.x = 200;
-			pPlayer->pev->rendercolor.y = 200;
-			pPlayer->pev->rendercolor.z = 200;
+			pPlayer->pev->rendercolor.x = 106;
+			pPlayer->pev->rendercolor.y = 13;
+			pPlayer->pev->rendercolor.z = 173;
 
 			MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
 				WRITE_BYTE( TE_PARTICLEBURST );
@@ -463,7 +463,7 @@ class CFragRune : public CRune
 				WRITE_BYTE( 5 );
 			MESSAGE_END();
 
-			ShowStatus(pPlayer, 200, 200, 200);
+			ShowStatus(pPlayer, 106, 13, 173);
 
 			return TRUE;
 		}
@@ -859,6 +859,64 @@ class CStrengthRune : public CRune
 };
 LINK_ENTITY_TO_CLASS( rune_strength, CStrengthRune );
 
+class CCloakRune : public CRune
+{
+	void Spawn( void )
+	{
+		Precache( );
+		SET_MODEL(ENT(pev), "models/w_runes.mdl");
+		CRune::Spawn( );
+
+		pev->body = RUNE_CLOAK - 1;
+		pev->renderfx = kRenderFxGlowShell;
+		pev->renderamt = 5;
+		pev->rendercolor.x = 200;
+		pev->rendercolor.y = 200;
+		pev->rendercolor.z = 200;
+
+		MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
+			WRITE_BYTE( TE_PARTICLEBURST );
+			WRITE_COORD(pev->origin.x);
+			WRITE_COORD(pev->origin.y);
+			WRITE_COORD(pev->origin.z);
+			WRITE_SHORT( 50 );
+			WRITE_BYTE((unsigned short)194);
+			WRITE_BYTE( 5 );
+		MESSAGE_END();
+	}
+
+	void Precache( void )
+	{
+		PRECACHE_MODEL ("models/w_runes.mdl");
+		PRECACHE_SOUND ("rune_pickup.wav");
+	}
+
+	BOOL MyTouch( CBasePlayer *pPlayer )
+	{
+		if ( !pPlayer->m_fHasRune )
+		{
+			pPlayer->m_fHasRune = RUNE_CLOAK;
+
+			MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
+				WRITE_BYTE( TE_PARTICLEBURST );
+				WRITE_COORD(pPlayer->pev->origin.x);
+				WRITE_COORD(pPlayer->pev->origin.y);
+				WRITE_COORD(pPlayer->pev->origin.z);
+				WRITE_SHORT( 50 );
+				WRITE_BYTE((unsigned short)194);
+				WRITE_BYTE( 5 );
+			MESSAGE_END();
+
+			ShowStatus(pPlayer, 200, 200, 200);
+
+			return TRUE;
+		}
+
+		return FALSE;
+	}
+};
+LINK_ENTITY_TO_CLASS( rune_cloak, CCloakRune );
+
 //===================================================================
 //===================================================================
 
@@ -880,6 +938,7 @@ void CWorldRunes::Precache( )
 	UTIL_PrecacheOther("rune_haste");
 	UTIL_PrecacheOther("rune_gravity");
 	UTIL_PrecacheOther("rune_strength");
+	UTIL_PrecacheOther("rune_cloak");
 }
 
 CBaseEntity *CWorldRunes::SelectSpawnPoint(CBaseEntity *pSpot)
@@ -914,6 +973,9 @@ void CWorldRunes::DropRune(CBasePlayer *pPlayer) {
 		case RUNE_GRAVITY:
 			sz_Rune = "rune_gravity";
 			break;
+		case RUNE_CLOAK:
+			sz_Rune = "rune_cloak";
+			break;
 		default:
 			sz_Rune = "rune_strength";
 	}
@@ -947,6 +1009,7 @@ void CWorldRunes::SpawnRunes( )
 	CreateRune( "rune_haste" );
 	CreateRune( "rune_gravity" );
 	CreateRune( "rune_strength" );
+	CreateRune( "rune_cloak" );
 
 	SetThink( &CWorldRunes::SpawnRunes );
 	pev->nextthink = gpGlobals->time + 30.0;
@@ -967,6 +1030,7 @@ void CWorldRunes::ResetPlayer(CBasePlayer *pPlayer)
 		WRITE_BYTE(0);
 		WRITE_STRING("dmg_cold");
 	MESSAGE_END();
+	pPlayer->pev->rendermode = kRenderNormal;
 	pPlayer->pev->renderfx = kRenderFxNone;
 	pPlayer->pev->renderamt = 0;
 }

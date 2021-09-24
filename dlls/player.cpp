@@ -2023,6 +2023,11 @@ void CBasePlayer::PreThink(void)
 	{
 		pev->velocity = g_vecZero;
 	}
+
+	if (m_fHasRune == RUNE_CLOAK && pev->rendermode != kRenderTransAlpha) {
+		pev->rendermode = kRenderTransAlpha;
+		pev->renderamt = 50;
+	}
 }
 /* Time based Damage works as follows: 
 	1) There are several types of timebased damage:
