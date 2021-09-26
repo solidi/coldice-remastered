@@ -1980,7 +1980,8 @@ void EV_FireCannonFlak( event_args_t *args )
 }
 
 enum mag60_e {
-	MAG60_IDLE1 = 0,
+	MAG60_AIM = 0,
+	MAG60_IDLE1,
 	MAG60_IDLE2,
 	MAG60_IDLE3,
 	MAG60_SHOOT,
@@ -2151,7 +2152,8 @@ void EV_FireGrenadeLauncher( event_args_t *args )
 
 enum smg_e
 {
-	SMG_IDLE1 = 0,
+	SMG_AIM = 0,
+	SMG_IDLE1,
 	SMG_IDLE2,
 	SMG_IDLE3,
 	SMG_RELOAD,
@@ -2217,7 +2219,8 @@ void EV_FireSmg( event_args_t *args )
 }
 
 enum usas_e {
-	USAS_LONGIDLE = 0,
+	USAS_AIM = 0,
+	USAS_LONGIDLE,
 	USAS_IDLE1,
 	USAS_LAUNCH,
 	USAS_RELOAD,

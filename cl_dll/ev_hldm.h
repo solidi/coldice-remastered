@@ -1,4 +1,4 @@
-//========= Copyright © 1996-2002, Valve LLC, All rights reserved. ============
+//========= Copyright ï¿½ 1996-2002, Valve LLC, All rights reserved. ============
 //
 // Purpose: 
 //
@@ -24,7 +24,8 @@ typedef	enum
 } Bullet;
 
 enum glock_e {
-	GLOCK_IDLE1 = 0,
+	GLOCK_AIM = 0,
+	GLOCK_IDLE1,
 	GLOCK_IDLE2,
 	GLOCK_IDLE3,
 	GLOCK_SHOOT,
@@ -37,7 +38,8 @@ enum glock_e {
 };
 
 enum shotgun_e {
-	SHOTGUN_IDLE = 0,
+	SHOTGUN_AIM = 0,
+	SHOTGUN_IDLE,
 	SHOTGUN_FIRE,
 	SHOTGUN_FIRE2,
 	SHOTGUN_RELOAD,
@@ -51,7 +53,8 @@ enum shotgun_e {
 
 enum mp5_e
 {
-	MP5_LONGIDLE = 0,
+	MP5_AIM = 0,
+	MP5_LONGIDLE,
 	MP5_IDLE1,
 	MP5_LAUNCH,
 	MP5_RELOAD,

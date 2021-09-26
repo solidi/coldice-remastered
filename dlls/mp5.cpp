@@ -25,7 +25,8 @@
 
 enum mp5_e
 {
-	MP5_LONGIDLE = 0,
+	MP5_AIM = 0,
+	MP5_LONGIDLE,
 	MP5_IDLE1,
 	MP5_LAUNCH,
 	MP5_RELOAD,
@@ -269,6 +270,9 @@ void CMP5::WeaponIdle( void )
 	m_pPlayer->GetAutoaimVector( AUTOAIM_5DEGREES );
 
 	if ( m_flTimeWeaponIdle > UTIL_WeaponTimeBase() )
+		return;
+
+	if ( m_pPlayer->pev->button & IN_IRONSIGHT )
 		return;
 
 	int iAnim;

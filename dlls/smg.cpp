@@ -25,7 +25,8 @@
 
 enum smg_e
 {
-	SMG_IDLE1 = 0,
+	SMG_AIM = 0,
+	SMG_IDLE1,
 	SMG_IDLE2,
 	SMG_IDLE3,
 	SMG_RELOAD,
@@ -231,6 +232,9 @@ void CSMG::WeaponIdle( void )
 	m_pPlayer->GetAutoaimVector( AUTOAIM_5DEGREES );
 
 	if ( m_flTimeWeaponIdle > UTIL_WeaponTimeBase() )
+		return;
+
+	if ( m_pPlayer->pev->button & IN_IRONSIGHT )
 		return;
 
 	int iAnim;

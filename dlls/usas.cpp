@@ -27,7 +27,8 @@
 #define VECTOR_CONE_DM_DOUBLESHOTGUN Vector( 0.17365, 0.04362, 0.00 ) // 20 degrees by 5 degrees
 
 enum usas_e {
-	USAS_LONGIDLE = 0,
+	USAS_AIM = 0,
+	USAS_LONGIDLE,
 	USAS_IDLE1,
 	USAS_LAUNCH,
 	USAS_RELOAD,
@@ -199,6 +200,9 @@ void CUsas::WeaponIdle( void )
 	m_pPlayer->GetAutoaimVector( AUTOAIM_5DEGREES );
 
 	if ( m_flTimeWeaponIdle > UTIL_WeaponTimeBase() )
+		return;
+
+	if ( m_pPlayer->pev->button & IN_IRONSIGHT )
 		return;
 
 	int iAnim;

@@ -715,6 +715,8 @@ void V_CalcNormalRefdef ( struct ref_params_s *pparams )
 			position = Vector(3.0,3.0,6.5);
 		} else if (!strcmp(view->model->name, "models/v_glauncher.mdl")) {
 			position = Vector(6.0,4.0,8.0);
+		} else if (!strcmp(view->model->name, "models/v_usas.mdl")) {
+			position = Vector(3.0,3.0,5.5);
 		}
 		if (position != Vector(0.0,0.0,0.0))
 			V_IronSight(position, angles, pparams->time, view, pparams->forward, pparams->up, pparams->right);
@@ -1784,6 +1786,11 @@ void V_WeaponSway ( float currentYaw, float framerate, float clientTime, cl_enti
 	static bool clockwise = false;
 	float delta = fabs((lastYaw - currentYaw) * .20);
 
+	// unstick
+	if (clientTime + 2 < time) {
+		time = 0;
+	}
+
 	if (lastYaw < currentYaw) {
 		clockwise = true;
 	} else if (lastYaw > currentYaw) {
@@ -1809,14 +1816,12 @@ void V_WeaponSway ( float currentYaw, float framerate, float clientTime, cl_enti
 			}
 		} else {
 			// fade
-			accel -= framerate;
-			if (accel < 0) accel = 0;
 			if (clockwise) {
-				decay += gEngfuncs.pfnRandomFloat(1.0, 1.2) * accel;
-				if (decay > 0) { decay = 0; }
+				decay += gEngfuncs.pfnRandomFloat(1.0, 1.2);
+				if (decay > 0.2) { decay = 0; }
 			} else {
-				decay -= gEngfuncs.pfnRandomFloat(1.0, 1.2) * accel;
-				if (decay < 0) { decay = 0; }
+				decay -= gEngfuncs.pfnRandomFloat(1.0, 1.2);
+				if (decay < 0.2) { decay = 0; }
 			}
 		}
 	}
@@ -1837,6 +1842,11 @@ void V_WeaponFloat( float currentZ, float clientTime, cl_entity_t *viewModel )
 	static float time = 0;
 	static float time_framerate = 0.05;
 	static float lastZ = 0, kPitch = 0, kZ = 0;
+
+	// unstick
+	if (clientTime + 2 < time) {
+		time = 0;
+	}
 
 	if (clientTime > time + time_framerate) {
 		time = clientTime;
@@ -1869,6 +1879,11 @@ void V_WeaponDrop( float currentZ, float clientTime, cl_entity_t *viewModel )
 	static float kPitch = 0;
 	static float kZ = 0;
 	static float kYaw = 0;
+
+	// unstick
+	if (clientTime + 2 < time) {
+		time = 0;
+	}
 
 	if (lastZ < -150 && currentZ == 0) {
 		float intensity = ((lastZ / 150) * 2) + 1;
@@ -1907,6 +1922,11 @@ void V_IronSight( Vector position, Vector punch, float clientTime, cl_entity_t *
 	float mxRoll = punch.z;
 	static float time = 0, time_framerate = 0.05;
 	static float kR, kF, kU, kRoll;
+
+	// unstick
+	if (clientTime + 2 < time) {
+		time = 0;
+	}
 
 	if (clientTime > time + time_framerate) {
 		time = clientTime;

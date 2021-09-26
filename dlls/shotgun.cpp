@@ -27,7 +27,8 @@
 #define VECTOR_CONE_DM_DOUBLESHOTGUN Vector( 0.17365, 0.04362, 0.00 ) // 20 degrees by 5 degrees
 
 enum shotgun_e {
-	SHOTGUN_IDLE = 0,
+	SHOTGUN_AIM = 0,
+	SHOTGUN_IDLE,
 	SHOTGUN_FIRE,
 	SHOTGUN_FIRE2,
 	SHOTGUN_RELOAD,
@@ -325,6 +326,9 @@ void CShotgun::WeaponIdle( void )
 	ResetEmptySound( );
 
 	m_pPlayer->GetAutoaimVector( AUTOAIM_5DEGREES );
+
+	if ( m_pPlayer->pev->button & IN_IRONSIGHT )
+		return;
 
 	if ( m_flPumpTime && m_flPumpTime < gpGlobals->time )
 	{

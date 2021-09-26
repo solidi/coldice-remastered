@@ -237,6 +237,9 @@ void CGrenadeLauncher::WeaponIdle( void )
 	if ( m_flTimeWeaponIdle > UTIL_WeaponTimeBase() )
 		return;
 
+	if ( m_pPlayer->pev->button & IN_IRONSIGHT )
+		return;
+
 	int iAnim;
 	switch ( RANDOM_LONG( 0, 1 ) )
 	{

@@ -22,7 +22,8 @@
 #include "player.h"
 
 enum glock_e {
-	GLOCK_IDLE1 = 0,
+	GLOCK_AIM = 0,
+	GLOCK_IDLE1,
 	GLOCK_IDLE2,
 	GLOCK_IDLE3,
 	GLOCK_SHOOT,
@@ -232,6 +233,9 @@ void CGlock::WeaponIdle( void )
 	m_pPlayer->GetAutoaimVector( AUTOAIM_10DEGREES );
 
 	if ( m_flTimeWeaponIdle > UTIL_WeaponTimeBase() )
+		return;
+
+	if ( m_pPlayer->pev->button & IN_IRONSIGHT )
 		return;
 
 	// only idle if the slid isn't back

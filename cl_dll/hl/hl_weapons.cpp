@@ -375,7 +375,7 @@ void CBasePlayerWeapon::ItemPostFrame( void )
 		// reload when reload is pressed, or if no buttons are down and weapon is empty.
 		Reload();
 	}
-	else if ( !(m_pPlayer->pev->button & (IN_ATTACK|IN_ATTACK2) ) )
+	else if ( !(m_pPlayer->pev->button & (IN_ATTACK|IN_ATTACK2|IN_IRONSIGHT) ) )
 	{
 		// no fire buttons down
 

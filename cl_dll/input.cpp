@@ -889,6 +889,11 @@ int CL_ButtonBits( int bResetState )
 		bits |= IN_SCORE;
 	}
 
+	if ( in_ironsight.state & 3 )
+	{
+		bits |= IN_IRONSIGHT;
+	}
+
 	if ( bResetState )
 	{
 		in_attack.state &= ~2;
@@ -905,6 +910,7 @@ int CL_ButtonBits( int bResetState )
 		in_reload.state &= ~2;
 		in_alt1.state &= ~2;
 		in_score.state &= ~2;
+		in_ironsight.state &= ~2;
 	}
 
 	return bits;

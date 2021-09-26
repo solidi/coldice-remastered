@@ -22,7 +22,8 @@
 #include "player.h"
 
 enum mag60_e {
-	MAG60_IDLE1 = 0,
+	MAG60_AIM = 0,
+	MAG60_IDLE1,
 	MAG60_IDLE2,
 	MAG60_IDLE3,
 	MAG60_SHOOT,
@@ -232,6 +233,9 @@ void CMag60::WeaponIdle( void )
 		return;
 
 	if ( m_flTimeWeaponIdle > UTIL_WeaponTimeBase() )
+		return;
+
+	if ( m_pPlayer->pev->button & IN_IRONSIGHT )
 		return;
 
 	// only idle if the slid isn't back
