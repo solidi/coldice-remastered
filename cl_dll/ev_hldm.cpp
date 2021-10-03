@@ -90,6 +90,7 @@ void EV_FireSmg( struct event_args_s *args  );
 void EV_FireUsas( struct event_args_s *args  );
 void EV_Fists( struct event_args_s *args  );
 void EV_Wrench( struct event_args_s *args  );
+void EV_Chainsaw( struct event_args_s *args  );
 
 
 void EV_TrainPitchAdjust( struct event_args_s *args );
@@ -2376,6 +2377,64 @@ void EV_Wrench( event_args_t *args )
 				gEngfuncs.pEventAPI->EV_WeaponAnimation ( WRENCH_ATTACK2MISS, 1 ); break;
 			case 2:
 				gEngfuncs.pEventAPI->EV_WeaponAnimation ( WRENCH_ATTACK3MISS, 1 ); break;
+		}
+	}
+}
+
+enum chainsaw_e {
+	CHAINSAW_IDLE = 0,
+	CHAINSAW_DRAW,
+	CHAINSAW_DRAW_EMPTY,
+	CHAINSAW_ATTACK_START,
+	CHAINSAW_ATTACK_LOOP,
+	CHAINSAW_ATTACK_END,
+	CHAINSAW_RELOAD,
+	CHAINSAW_SLASH1,
+	CHAINSAW_SLASH2,
+	CHAINSAW_SLASH3,
+	CHAINSAW_SLASH4,
+	CHAINSAW_EMPTY,
+	CHAINSAW_HOLSTER,
+};
+
+void EV_Chainsaw( event_args_t *args )
+{
+	int idx;
+	vec3_t origin;
+	vec3_t angles;
+	vec3_t velocity;
+
+	idx = args->entindex;
+	VectorCopy( args->origin, origin );
+
+	if ( EV_IsLocal( idx ) )
+	{
+		// slashing
+		if (args->bparam1) {
+			gEngfuncs.pEventAPI->EV_WeaponAnimation( CHAINSAW_SLASH1, 0 );
+			gEngfuncs.pEventAPI->EV_PlaySound( idx, origin, CHAN_WEAPON, "chainsaw_slash.wav", 1, ATTN_NORM, 0, PITCH_NORM);
+
+			switch( (g_iSwing++) % 3 )
+			{
+				case 0:
+					gEngfuncs.pEventAPI->EV_WeaponAnimation ( CHAINSAW_SLASH1, 0 );
+					V_PunchAxis(1, gEngfuncs.pfnRandomFloat(-5.0, -7.0)); //yaw, - = right
+					V_PunchAxis(2, gEngfuncs.pfnRandomFloat(5.0, 7.0)); //roll, - = left
+					break;
+				case 1:
+					gEngfuncs.pEventAPI->EV_WeaponAnimation ( CHAINSAW_SLASH2, 0 );
+					V_PunchAxis(1, gEngfuncs.pfnRandomFloat(8.0, 10.0)); //yaw, - = right
+					V_PunchAxis(2, gEngfuncs.pfnRandomFloat(-8.0, -10.0)); //roll, - = left
+					break;
+				case 2:
+					gEngfuncs.pEventAPI->EV_WeaponAnimation ( CHAINSAW_SLASH3, 0 );
+					V_PunchAxis(1, gEngfuncs.pfnRandomFloat(-5.0, -7.0)); //yaw, - = right
+					V_PunchAxis(2, gEngfuncs.pfnRandomFloat(5.0, 7.0)); //roll, - = left
+					break;
+			}
+		} else {
+			// out straight
+			V_PunchAxis(0, gEngfuncs.pfnRandomFloat(-3.0, 3.0));
 		}
 	}
 }

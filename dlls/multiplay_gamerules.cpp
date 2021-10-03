@@ -205,6 +205,9 @@ void CHalfLifeMultiplay::RefreshSkillData( void )
 
 	// Snowball
 	gSkillData.plrDmgSnowball = 1;
+
+	// Chainsaw
+	gSkillData.plrDmgChainsaw = 150;
 }
 
 // longest the intermission can last, in seconds

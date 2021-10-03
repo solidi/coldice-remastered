@@ -53,6 +53,7 @@ void EV_FireSmg( struct event_args_s *args  );
 void EV_FireUsas( struct event_args_s *args  );
 void EV_Fists( struct event_args_s *args  );
 void EV_Wrench( struct event_args_s *args  );
+void EV_Chainsaw( struct event_args_s *args );
 
 void EV_TrainPitchAdjust( struct event_args_s *args );
 }
@@ -107,4 +108,5 @@ void Game_HookEvents( void )
 	gEngfuncs.pfnHookEvent( "events/usas.sc",					EV_FireUsas );
 	gEngfuncs.pfnHookEvent( "events/fists.sc",					EV_Fists );
 	gEngfuncs.pfnHookEvent( "events/wrench.sc",					EV_Wrench );
+	gEngfuncs.pfnHookEvent( "events/chainsaw.sc",				EV_Chainsaw );
 }

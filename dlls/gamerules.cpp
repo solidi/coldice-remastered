@@ -307,6 +307,9 @@ void CGameRules::RefreshSkillData ( void )
 	// Snowball
 	gSkillData.plrDmgSnowball = GetSkillCvar( "sk_plr_snowball");
 
+	// Chainsaw
+	gSkillData.plrDmgChainsaw = GetSkillCvar( "sk_plr_chainsaw");
+
 	// MONSTER WEAPONS
 	gSkillData.monDmg12MM = GetSkillCvar( "sk_12mm_bullet");
 	gSkillData.monDmgMP5 = GetSkillCvar ("sk_9mmAR_bullet" );

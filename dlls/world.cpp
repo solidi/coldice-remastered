@@ -105,6 +105,10 @@ DLL_DECALLIST gDecals[] = {
 	{ "{snow2", 0 },
 	{ "{snow3", 0 },
 	{ "{snow4", 0 },
+	{ "{ding6", 0 },
+	{ "{ding7", 0 },
+	{ "{ding8", 0 },
+	{ "{ding9", 0 },
 };
 
 /*
