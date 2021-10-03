@@ -206,6 +206,9 @@ void DecalGunshot( TraceResult *pTrace, int iBulletType )
 			// wall decal
 			UTIL_DecalTrace( pTrace, DECAL_SNOW1 + RANDOM_LONG(0,3) );
 			break;
+		case BULLET_PLAYER_CHAINSAW:
+			UTIL_DecalTrace( pTrace, DECAL_DING6 + RANDOM_LONG(0,3) );
+			break;
 		}
 	}
 }
@@ -460,6 +463,10 @@ void W_Precache(void)
 #endif
 
 #if !defined( OEM_BUILD ) && !defined( HLDEMO_BUILD )
+	UTIL_PrecacheOtherWeapon( "weapon_chainsaw" );
+#endif
+
+#if !defined( OEM_BUILD ) && !defined( HLDEMO_BUILD )
 	if ( g_pGameRules->IsDeathmatch() )
 	{
 		UTIL_PrecacheOther( "weaponbox" );// container for dropped deathmatch weapons
@@ -663,6 +670,7 @@ CBaseEntity* CBasePlayerItem::Respawn( void )
 		"weapon_crowbar",
 		"weapon_knife",
 		"weapon_wrench",
+		"weapon_chainsaw",
 
 		// hand
 		"weapon_9mmhandgun",
@@ -1680,6 +1688,10 @@ BOOL CWeaponBox::PackWeapon( CBasePlayerItem *pWeapon )
 		else if (pWeapon->m_iId == WEAPON_SNOWBALL)
 		{
 			SET_MODEL( ENT(pev), "models/w_snowball.mdl");
+		}
+		else if (pWeapon->m_iId == WEAPON_CHAINSAW)
+		{
+			SET_MODEL( ENT(pev), "models/w_chainsaw.mdl");
 		}
 
 		pev->sequence = 1;

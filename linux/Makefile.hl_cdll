@@ -38,7 +38,8 @@ CFLAGS=$(BASE_CFLAGS) $(ARCH_CFLAGS) -DCLIENT_DLL -DCLIENT_WEAPONS -DHL_DLL -I/u
 		 -DUSAS \
 		 -DFISTS \
 		 -DWRENCH \
-		 -DSNOWBALL
+		 -DSNOWBALL \
+		 -DCHAINSAW
 
 INCLUDEDIRS=-I$(HL_SRC_DIR) -I../dlls -I../tfc -I$(COMMON_SRC_DIR) -I$(PUBLIC_SRC_DIR) -I../pm_shared -I../engine -I../utils/vgui/include -I ../game_shared -I../external
 
@@ -120,6 +121,7 @@ HL1_OBJS = \
 DLL_OBJS = \
 	$(HL1_SERVER_OBJ_DIR)/cannon.o \
 	$(HL1_SERVER_OBJ_DIR)/chaingun.o \
+	$(HL1_SERVER_OBJ_DIR)/chainsaw.o \
 	$(HL1_SERVER_OBJ_DIR)/chumtoad.o \
 	$(HL1_SERVER_OBJ_DIR)/crossbow.o \
 	$(HL1_SERVER_OBJ_DIR)/crowbar.o \

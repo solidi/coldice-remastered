@@ -40,7 +40,8 @@ CFLAGS=$(BASE_CFLAGS)  $(ARCH_CFLAGS) $(DEBUG_CFLAGS) -DCLIENT_WEAPONS \
 		 -DUSAS \
 		 -DFISTS \
 		 -DWRENCH \
-		 -DSNOWBALL
+		 -DSNOWBALL \
+		 -DCHAINSAW
 
 #-O3 -ffast-math -fno-strength-reduce
 
@@ -75,6 +76,7 @@ HLDLL_OBJS = \
 	$(HLDLL_OBJ_DIR)/cannon.o \
 	$(HLDLL_OBJ_DIR)/cbase.o \
 	$(HLDLL_OBJ_DIR)/chaingun.o \
+	$(HLDLL_OBJ_DIR)/chainsaw.o \
 	$(HLDLL_OBJ_DIR)/chumtoad.o \
 	$(HLDLL_OBJ_DIR)/client.o \
 	$(HLDLL_OBJ_DIR)/combat.o \

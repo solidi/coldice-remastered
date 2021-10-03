@@ -89,6 +89,8 @@ void UTIL_BubbleTrail( Vector from, Vector to, int count ) { }
 void UTIL_Sparks( const Vector &position ) { }
 int UTIL_PointContents(const Vector &vec) { return 0; }
 TraceResult	UTIL_GetGlobalTrace(void) { return {0}; }
+void UTIL_FindHullIntersection( const Vector &vecSrc, TraceResult &tr, float *mins, float *maxs, edict_t *pEntity );
+
 
 // WeaponBox
 BOOL CWeaponBox::PackWeapon( CBasePlayerItem *pWeapon ) { return FALSE; }

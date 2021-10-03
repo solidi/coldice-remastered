@@ -98,6 +98,7 @@ public:
 #define WEAPON_FISTS			26
 #define WEAPON_WRENCH			27
 #define WEAPON_SNOWBALL			28
+#define WEAPON_CHAINSAW			29
 
 #define WEAPON_ALLWEAPONS		(~(1<<WEAPON_SUIT))
 
@@ -135,6 +136,7 @@ public:
 #define FISTS_WEIGHT		0
 #define WRENCH_WEIGHT		3
 #define SNOWBALL_WEIGHT		3
+#define CHAINSAW_WEIGHT		5
 
 
 // weapon clip/carry ammo capacities
@@ -231,6 +233,7 @@ typedef	enum
 	BULLET_PLAYER_FIST,
 	BULLET_PLAYER_WRENCH,
 	BULLET_PLAYER_SNOWBALL,
+	BULLET_PLAYER_CHAINSAW,
 
 	BULLET_MONSTER_9MM,
 	BULLET_MONSTER_MP5,
@@ -610,7 +613,6 @@ public:
 	void WeaponIdle( void );
 	int m_iSwing;
 	TraceResult m_trHit;
-	void FindHullIntersection( const Vector &vecSrc, TraceResult &tr, float *mins, float *maxs, edict_t *pEntity );
 
 	virtual BOOL UseDecrement( void )
 	{
@@ -1466,7 +1468,6 @@ public:
 	void WeaponIdle( void );
 	int m_iSwing;
 	TraceResult m_trHit;
-	void FindHullIntersection( const Vector &vecSrc, TraceResult &tr, float *mins, float *maxs, edict_t *pEntity );
 
 	virtual BOOL UseDecrement( void )
 	{
@@ -1500,7 +1501,6 @@ public:
 	void WeaponIdle( void );
 	int m_iSwing;
 	TraceResult m_trHit;
-	void FindHullIntersection( const Vector &vecSrc, TraceResult &tr, float *mins, float *maxs, edict_t *pEntity );
 
 	virtual BOOL UseDecrement( void )
 	{
@@ -1538,6 +1538,38 @@ public:
 		return FALSE;
 #endif
 	}
+};
+
+class CChainsaw : public CBasePlayerWeapon
+{
+public:
+	void Spawn( void );
+	void Precache( void );
+	int AddToPlayer( CBasePlayer *pPlayer );
+	int iItemSlot( void ) { return 1; }
+	void EXPORT SwingAgain( void );
+	void EXPORT Smack( void );
+	int GetItemInfo(ItemInfo *p);
+
+	void PrimaryAttack( void );
+	void SecondaryAttack( void );
+	int Swing( int fFirst, BOOL animation );
+	BOOL Deploy( void );
+	void Holster( int skiplocal = 0 );
+	void WeaponIdle( void );
+	int m_iSwing;
+	TraceResult m_trHit;
+
+	virtual BOOL UseDecrement( void )
+	{
+#if defined( CLIENT_WEAPONS )
+		return TRUE;
+#else
+		return FALSE;
+#endif
+	}
+private:
+	unsigned short m_usChainsaw;
 };
 
 #endif // WEAPONS_H

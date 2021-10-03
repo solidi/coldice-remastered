@@ -161,6 +161,7 @@
     <ClCompile Include="..\..\common\parsemsg.cpp" />
     <ClCompile Include="..\..\dlls\cannon.cpp" />
     <ClCompile Include="..\..\dlls\chaingun.cpp" />
+    <ClCompile Include="..\..\dlls\chainsaw.cpp" />
     <ClCompile Include="..\..\dlls\chumtoad.cpp" />
     <ClCompile Include="..\..\dlls\crossbow.cpp" />
     <ClCompile Include="..\..\dlls\crowbar.cpp" />
