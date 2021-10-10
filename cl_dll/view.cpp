@@ -1932,21 +1932,21 @@ void V_IronSight( Vector position, Vector punch, float clientTime, cl_entity_t *
 		time = clientTime;
 
 		if (g_IronSight) {
-			kR += 1.5; kU += 0.75; kF += 0.75, kRoll += 2.5;
+			kR += 3.0; kU += 1.50; kF += 1.50, kRoll += 5.0;
 
 			if (lastFov > -0.1) {
 				gEngfuncs.pEventAPI->EV_WeaponAnimation ( 0, 0 );
 			}
 
-			lastFov -= 2.25;
+			lastFov -= 5.5;
 
 			if (lastFov < -15) lastFov = -15;
 
 			gEngfuncs.Cvar_SetValue("default_fov", 90 + lastFov);
 		} else {
-			kR -= 1.5; kU -= 0.75; kF -= 0.75, kRoll -= 2.5;
+			kR -= 3.0; kU -= 1.5; kF -= 1.5, kRoll -= 5.0;
 
-			lastFov += 2.25;
+			lastFov += 5.5;
 
 			if (lastFov > 0) lastFov = 0;
 
