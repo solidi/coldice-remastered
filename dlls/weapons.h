@@ -99,6 +99,7 @@ public:
 #define WEAPON_WRENCH			27
 #define WEAPON_SNOWBALL			28
 #define WEAPON_CHAINSAW			29
+#define WEAPON_12GAUGE			30
 
 #define WEAPON_ALLWEAPONS		(~(1<<WEAPON_SUIT))
 
@@ -137,6 +138,7 @@ public:
 #define WRENCH_WEIGHT		3
 #define SNOWBALL_WEIGHT		3
 #define CHAINSAW_WEIGHT		5
+#define GAUGE_SHOTGUN_WEIGHT 14
 
 
 // weapon clip/carry ammo capacities
@@ -180,6 +182,7 @@ public:
 #define GLAUNCHER_MAX_CLIP		5
 #define SMG_MAX_CLIP			25
 #define USAS_MAX_CLIP			40
+#define GAUGE_SHOTGUN_MAX_CLIP	5
 
 
 // the default amount of ammo that comes with each gun when it spawns
@@ -206,6 +209,7 @@ public:
 #define SMG_DEFAULT_GIVE			50
 #define USAS_DEFAULT_GIVE			40
 #define SNOWBALL_DEFAULT_GIVE		5
+#define _12_GAUGE_DEFAULT_GIVE		12
 
 // The amount of ammo given to a player by an ammo item.
 #define AMMO_URANIUMBOX_GIVE	20
@@ -1570,6 +1574,40 @@ public:
 	}
 private:
 	unsigned short m_usChainsaw;
+};
+
+
+class C12Gauge : public CBasePlayerWeapon
+{
+public:
+	void Spawn( void );
+	void Precache( void );
+	int iItemSlot( ) { return 3; }
+	int GetItemInfo(ItemInfo *p);
+	int AddToPlayer( CBasePlayer *pPlayer );
+
+	void PrimaryAttack( void );
+	void SecondaryAttack( void );
+	BOOL Deploy( );
+	void Holster( int skiplocal = 0 );
+	void Reload( void );
+	void WeaponIdle( void );
+	int m_fInReload;
+	float m_flNextReload;
+	int m_iShell;
+
+	virtual BOOL UseDecrement( void )
+	{
+#if defined( CLIENT_WEAPONS )
+		return TRUE;
+#else
+		return FALSE;
+#endif
+	}
+
+private:
+	unsigned short m_usDoubleFire;
+	unsigned short m_usSingleFire;
 };
 
 #endif // WEAPONS_H

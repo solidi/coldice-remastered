@@ -711,6 +711,8 @@ void V_CalcNormalRefdef ( struct ref_params_s *pparams )
 		} else if (!strcmp(view->model->name, "models/v_9mmAR.mdl")) {
 			position = Vector(4.0,2.2,7.35);
 			angles = Vector(0.0,0.0,5.0);
+		} else if (!strcmp(view->model->name, "models/v_12gauge.mdl")) {
+			position = Vector(3.0,3.0,3.5);
 		} else if (!strcmp(view->model->name, "models/v_shotgun.mdl")) {
 			position = Vector(3.0,3.0,6.5);
 		} else if (!strcmp(view->model->name, "models/v_glauncher.mdl")) {

@@ -41,7 +41,8 @@ CFLAGS=$(BASE_CFLAGS)  $(ARCH_CFLAGS) $(DEBUG_CFLAGS) -DCLIENT_WEAPONS \
 		 -DFISTS \
 		 -DWRENCH \
 		 -DSNOWBALL \
-		 -DCHAINSAW
+		 -DCHAINSAW \
+		 -D_12GAUGE
 
 #-O3 -ffast-math -fno-strength-reduce
 
@@ -95,6 +96,7 @@ HLDLL_OBJS = \
 	$(HLDLL_OBJ_DIR)/game.o \
 	$(HLDLL_OBJ_DIR)/gamerules.o \
 	$(HLDLL_OBJ_DIR)/gargantua.o \
+	$(HLDLL_OBJ_DIR)/gauge_shotgun.o \
 	$(HLDLL_OBJ_DIR)/gauss.o \
 	$(HLDLL_OBJ_DIR)/genericmonster.o \
 	$(HLDLL_OBJ_DIR)/ggrenade.o \
