@@ -462,7 +462,7 @@ void EV_HLDM_FireBullets( int idx, float *forward, float *right, float *up, int 
 		if (cl_bulletsmoke && cl_bulletsmoke->value) {
 			physent_t *pe = gEngfuncs.pEventAPI->EV_GetPhysent( tr.ent );
 			if (pe && ( pe->solid == SOLID_BSP || pe->movetype == MOVETYPE_PUSHSTEP )) {
-				if ( gEngfuncs.pfnRandomLong(0, 2) ) {
+				if ( gEngfuncs.pfnRandomLong(0, 2) > 1 ) {
 					int model = gEngfuncs.pEventAPI->EV_FindModelIndex( "sprites/gunsmoke.spr" );
 					TEMPENTITY *t = gEngfuncs.pEfxAPI->R_DefaultSprite(tr.endpos - Vector(forward[0], forward[1], forward[2]) * 20, model, gEngfuncs.pfnRandomLong(12, 18));
 					t->entity.curstate.rendermode = kRenderTransAdd;
@@ -481,7 +481,7 @@ void EV_GunSmoke(vec3_t origin, float scale) {
 		return;
 	}
 
-	if ( gEngfuncs.pfnRandomLong(0, 2) ) {
+	if ( gEngfuncs.pfnRandomLong(0, 2) > 1 ) {
 		int model = gEngfuncs.pEventAPI->EV_FindModelIndex( "sprites/smokeball2.spr" );
 		TEMPENTITY *t = gEngfuncs.pEfxAPI->R_DefaultSprite(origin, model, gEngfuncs.pfnRandomLong(32, 48));
 		t->entity.curstate.rendermode = kRenderTransAdd;
