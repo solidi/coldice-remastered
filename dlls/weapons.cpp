@@ -467,6 +467,10 @@ void W_Precache(void)
 #endif
 
 #if !defined( OEM_BUILD ) && !defined( HLDEMO_BUILD )
+	UTIL_PrecacheOtherWeapon( "weapon_12gauge" );
+#endif
+
+#if !defined( OEM_BUILD ) && !defined( HLDEMO_BUILD )
 	if ( g_pGameRules->IsDeathmatch() )
 	{
 		UTIL_PrecacheOther( "weaponbox" );// container for dropped deathmatch weapons
@@ -680,6 +684,7 @@ CBaseEntity* CBasePlayerItem::Respawn( void )
 
 		// long
 		"weapon_9mmAR",
+		"weapon_12gauge",
 		"weapon_shotgun",
 		"weapon_crossbow",
 		"weapon_sniperrifle",
@@ -1692,6 +1697,10 @@ BOOL CWeaponBox::PackWeapon( CBasePlayerItem *pWeapon )
 		else if (pWeapon->m_iId == WEAPON_CHAINSAW)
 		{
 			SET_MODEL( ENT(pev), "models/w_chainsaw.mdl");
+		}
+		else if (pWeapon->m_iId == WEAPON_12GAUGE)
+		{
+			SET_MODEL( ENT(pev), "models/w_12gauge.mdl");
 		}
 
 		pev->sequence = 1;

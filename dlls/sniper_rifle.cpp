@@ -73,7 +73,7 @@ int CSniperRifle::GetItemInfo(ItemInfo *p)
 	p->iMaxClip = PYTHON_MAX_CLIP;
 	p->iFlags = 0;
 	p->iSlot = 2;
-	p->iPosition = 3;
+	p->iPosition = 4;
 	p->iId = m_iId = WEAPON_SNIPER_RIFLE;
 	p->iWeight = PYTHON_WEIGHT;
 	p->pszDisplayName = "7.65mm Sniper Rifle";

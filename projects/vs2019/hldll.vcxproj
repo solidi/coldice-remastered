@@ -131,6 +131,7 @@
     <ClCompile Include="..\..\dlls\game.cpp" />
     <ClCompile Include="..\..\dlls\gamerules.cpp" />
     <ClCompile Include="..\..\dlls\gargantua.cpp" />
+    <ClCompile Include="..\..\dlls\gauge_shotgun.cpp" />
     <ClCompile Include="..\..\dlls\gauss.cpp" />
     <ClCompile Include="..\..\dlls\genericmonster.cpp" />
     <ClCompile Include="..\..\dlls\ggrenade.cpp" />
