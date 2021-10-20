@@ -62,7 +62,7 @@ void CChainsaw::Precache( void )
 	PRECACHE_MODEL("models/p_chainsaw.mdl");
 
 	PRECACHE_SOUND("chainsaw_draw.wav");
-	PRECACHE_SOUND("chainsaw_slashwav");
+	PRECACHE_SOUND("chainsaw_slash.wav");
 	PRECACHE_SOUND("chainsaw_hit.wav");
 	PRECACHE_SOUND("chainsaw_attack1_start.wav");
 	PRECACHE_SOUND("chainsaw_attack1_loop.wav");
