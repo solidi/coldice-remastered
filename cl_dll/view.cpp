@@ -1870,6 +1870,17 @@ void V_WeaponFloat( float currentZ, float clientTime, cl_entity_t *viewModel )
 	viewModel->angles[PITCH] += kPitch;
 	viewModel->origin[2] += kZ;
 
+	// Water fix
+	if ( kPitch <= -20.0) {
+		kPitch = -20.0;
+	}
+
+/*
+	char str[256];
+	sprintf(str, "V_WeaponFloat: pitch = %.3f kPitch = %.3f\n", viewModel->angles[PITCH], kPitch);
+	gEngfuncs.pfnConsolePrint(str);
+*/
+
 	lastZ = currentZ;
 }
 
@@ -1889,9 +1900,6 @@ void V_WeaponDrop( float currentZ, float clientTime, cl_entity_t *viewModel )
 
 	if (lastZ < -150 && currentZ == 0) {
 		float intensity = ((lastZ / 150) * 2) + 1;
-		//char str[256];
-		//sprintf(str, "intensity: %.3f\n", intensity);
-		//gEngfuncs.pfnConsolePrint(str);
 		kZ = -5;
 		kPitch = -15 + intensity;
 		kYaw = 6;
@@ -1911,6 +1919,12 @@ void V_WeaponDrop( float currentZ, float clientTime, cl_entity_t *viewModel )
 	viewModel->angles[YAW] += kYaw;
 	viewModel->angles[PITCH] += kPitch;
 	viewModel->origin[2] -= kZ;
+
+/*
+	char str[256];
+	sprintf(str, "V_WeaponDrop: pitch = %.3f kPitch = %.3f\n", viewModel->angles[PITCH], kPitch);
+	gEngfuncs.pfnConsolePrint(str);
+*/
 
 	lastZ = currentZ;
 }
