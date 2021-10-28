@@ -29,6 +29,7 @@
 #include "items.h"
 #include "gamerules.h"
 #include "shake.h"
+#include "game.h"
 
 extern int gmsgItemPickup;
 extern int gmsgStatusIcon;
@@ -96,6 +97,9 @@ void CItem::Spawn( void )
 	UTIL_SetOrigin( pev, pev->origin );
 	UTIL_SetSize(pev, Vector(-16, -16, 0), Vector(16, 16, 16));
 	SetTouch(&CItem::ItemTouch);
+
+	pev->sequence = floatingweapons.value;
+	pev->framerate = 1.0;
 
 	if (DROP_TO_FLOOR(ENT(pev)) == 0)
 	{
