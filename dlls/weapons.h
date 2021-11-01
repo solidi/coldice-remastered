@@ -392,6 +392,7 @@ public:
 	virtual BOOL ShouldWeaponIdle( void ) {return FALSE; };
 	virtual void Holster( int skiplocal = 0 );
 	virtual BOOL UseDecrement( void ) { return FALSE; };
+	virtual BOOL SemiAuto( void ) { return FALSE; };
 	
 	int	PrimaryAmmoIndex(); 
 	int	SecondaryAmmoIndex(); 
@@ -414,7 +415,8 @@ public:
 	int		m_fInReload;										// Are we in the middle of a reload;
 
 	int		m_iDefaultAmmo;// how much ammo you get when you pick up this weapon as placed by a level designer.
-	
+	int		m_bFired;
+
 	// hle time creep vars
 	float	m_flPrevPrimaryAttack;
 	float	m_flLastFireTime;			
@@ -655,6 +657,8 @@ public:
 		return FALSE;
 #endif
 	}
+
+	virtual BOOL SemiAuto( void ) { return TRUE; }
 
 private:
 	unsigned short m_usFirePython;

@@ -360,7 +360,10 @@ void CBasePlayerWeapon::ItemPostFrame( void )
 			m_fFireOnEmpty = TRUE;
 		}
 
-		SecondaryAttack();
+		if (SemiAuto() && !m_bFired) {
+			SecondaryAttack();
+			m_bFired = TRUE;
+		}
 		m_pPlayer->pev->button &= ~IN_ATTACK2;
 	}
 	else if ((m_pPlayer->pev->button & IN_ATTACK) && (m_flNextPrimaryAttack <= 0.0))
@@ -370,15 +373,19 @@ void CBasePlayerWeapon::ItemPostFrame( void )
 			m_fFireOnEmpty = TRUE;
 		}
 
-		PrimaryAttack();
+		if (SemiAuto() && !m_bFired) {
+			PrimaryAttack();
+			m_bFired = TRUE;
+		}
 	}
 	else if ( m_pPlayer->pev->button & IN_RELOAD && iMaxClip() != WEAPON_NOCLIP && !m_fInReload ) 
 	{
 		// reload when reload is pressed, or if no buttons are down and weapon is empty.
 		Reload();
 	}
-	else if ( !(m_pPlayer->pev->button & (IN_ATTACK|IN_ATTACK2|IN_IRONSIGHT) ) )
+	else if ( !(m_pPlayer->pev->button & (IN_ATTACK|IN_ATTACK2) ) )
 	{
+		m_bFired = FALSE;
 		// no fire buttons down
 
 		m_fFireOnEmpty = FALSE;
