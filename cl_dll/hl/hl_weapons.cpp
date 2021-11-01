@@ -360,10 +360,7 @@ void CBasePlayerWeapon::ItemPostFrame( void )
 			m_fFireOnEmpty = TRUE;
 		}
 
-		if (SemiAuto() && !m_bFired) {
-			SecondaryAttack();
-			m_bFired = TRUE;
-		}
+		SecondaryAttack();
 		m_pPlayer->pev->button &= ~IN_ATTACK2;
 	}
 	else if ((m_pPlayer->pev->button & IN_ATTACK) && (m_flNextPrimaryAttack <= 0.0))
@@ -373,9 +370,12 @@ void CBasePlayerWeapon::ItemPostFrame( void )
 			m_fFireOnEmpty = TRUE;
 		}
 
-		if (SemiAuto() && !m_bFired) {
-			PrimaryAttack();
+		if (SemiAuto()) {
+			if (!m_bFired)
+				PrimaryAttack();
 			m_bFired = TRUE;
+		} else {
+			PrimaryAttack();
 		}
 	}
 	else if ( m_pPlayer->pev->button & IN_RELOAD && iMaxClip() != WEAPON_NOCLIP && !m_fInReload ) 
