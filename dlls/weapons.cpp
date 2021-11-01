@@ -831,7 +831,13 @@ void CBasePlayerWeapon::ItemPostFrame( void )
 		}
 
 		m_pPlayer->TabulateAmmo();
-		PrimaryAttack();
+		if (SemiAuto()) {
+			if (!m_bFired)
+				PrimaryAttack();
+			m_bFired = TRUE;
+		} else {
+			PrimaryAttack();
+		}
 	}
 	else if ( m_pPlayer->pev->button & IN_RELOAD && iMaxClip() != WEAPON_NOCLIP && !m_fInReload ) 
 	{
@@ -840,6 +846,7 @@ void CBasePlayerWeapon::ItemPostFrame( void )
 	}
 	else if ( !(m_pPlayer->pev->button & (IN_ATTACK|IN_ATTACK2) ) )
 	{
+		m_bFired = FALSE;
 		// no fire buttons down
 
 		m_fFireOnEmpty = FALSE;

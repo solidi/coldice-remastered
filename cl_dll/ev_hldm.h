@@ -65,7 +65,8 @@ enum mp5_e
 };
 
 enum python_e {
-	PYTHON_IDLE1 = 0,
+	PYTHON_AIM = 0,
+	PYTHON_IDLE1,
 	PYTHON_FIDGET,
 	PYTHON_FIRE1,
 	PYTHON_RELOAD,

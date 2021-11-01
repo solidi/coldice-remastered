@@ -24,7 +24,8 @@
 
 
 enum python_e {
-	PYTHON_IDLE1 = 0,
+	PYTHON_AIM = 0,
+	PYTHON_IDLE1,
 	PYTHON_FIDGET,
 	PYTHON_FIRE1,
 	PYTHON_RELOAD,
@@ -34,8 +35,10 @@ enum python_e {
 	PYTHON_IDLE3
 };
 
+#ifdef REVOLVER
 LINK_ENTITY_TO_CLASS( weapon_python, CPython );
 LINK_ENTITY_TO_CLASS( weapon_357, CPython );
+#endif
 
 int CPython::GetItemInfo(ItemInfo *p)
 {
@@ -50,6 +53,7 @@ int CPython::GetItemInfo(ItemInfo *p)
 	p->iPosition = 1;
 	p->iId = m_iId = WEAPON_PYTHON;
 	p->iWeight = PYTHON_WEIGHT;
+	p->pszDisplayName = "44 Magnum Revolver";
 
 	return 1;
 }
@@ -90,6 +94,7 @@ void CPython::Precache( void )
 
 	PRECACHE_SOUND ("weapons/357_reload1.wav");
 	PRECACHE_SOUND ("weapons/357_cock1.wav");
+	PRECACHE_SOUND ("weapons/revolver_fire.wav");
 	PRECACHE_SOUND ("weapons/357_shot1.wav");
 	PRECACHE_SOUND ("weapons/357_shot2.wav");
 
@@ -210,7 +215,7 @@ void CPython::PrimaryAttack()
 		// HEV suit - indicate out of ammo condition
 		m_pPlayer->SetSuitUpdate("!HEV_AMO0", FALSE, 0);
 
-	m_flNextPrimaryAttack = 0.75;
+	m_flNextPrimaryAttack = 0.3;
 	m_flTimeWeaponIdle = UTIL_SharedRandomFloat( m_pPlayer->random_seed, 10, 15 );
 }
 
