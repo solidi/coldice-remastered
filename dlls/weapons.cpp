@@ -873,6 +873,14 @@ void CBasePlayerWeapon::ItemPostFrame( void )
 		WeaponIdle( );
 		return;
 	}
+
+	if (infiniteammo.value) {
+		if (infiniteammo.value == 1)
+			m_iClip = iMaxClip();
+
+		m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] = iMaxAmmo1();
+		m_pPlayer->m_rgAmmo[m_iSecondaryAmmoType] = iMaxAmmo2();
+	}
 	
 	// catch all
 	if ( ShouldWeaponIdle() )
