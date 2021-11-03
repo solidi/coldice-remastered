@@ -557,6 +557,8 @@ public:
 #endif
 	}
 
+	virtual BOOL SemiAuto( void ) { return TRUE; }
+
 private:
 	int m_iShell;
 	int m_iSilencer;
@@ -595,6 +597,9 @@ public:
 		return FALSE;
 #endif
 	}
+
+	virtual BOOL SemiAuto( void ) { return TRUE; }
+
 private:
 	unsigned short m_usCrowbar;
 };
@@ -628,6 +633,9 @@ public:
 		return FALSE;
 #endif
 	}
+
+	virtual BOOL SemiAuto( void ) { return TRUE; }
+
 private:
 	unsigned short m_usKnife;
 };
@@ -767,6 +775,8 @@ public:
 #endif
 	}
 
+	virtual BOOL SemiAuto( void ) { return TRUE; }
+
 private:
 	unsigned short m_usDoubleFire;
 	unsigned short m_usSingleFire;
@@ -798,6 +808,8 @@ public:
 		return FALSE;
 #endif
 	}
+
+	virtual BOOL SemiAuto( void ) { return TRUE; }
 
 private:
 	unsigned short m_usSniperRifle;
@@ -1485,6 +1497,9 @@ public:
 		return FALSE;
 #endif
 	}
+
+	virtual BOOL SemiAuto( void ) { return TRUE; }
+
 private:
 	unsigned short m_usFists;
 };
@@ -1518,6 +1533,9 @@ public:
 		return FALSE;
 #endif
 	}
+
+	virtual BOOL SemiAuto( void ) { return TRUE; }
+
 private:
 	unsigned short m_usWrench;
 };
@@ -1608,6 +1626,8 @@ public:
 		return FALSE;
 #endif
 	}
+
+	virtual BOOL SemiAuto( void ) { return TRUE; }
 
 private:
 	unsigned short m_usDoubleFire;
