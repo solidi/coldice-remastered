@@ -94,7 +94,7 @@ void CPython::Precache( void )
 
 	PRECACHE_SOUND ("weapons/357_reload1.wav");
 	PRECACHE_SOUND ("weapons/357_cock1.wav");
-	PRECACHE_SOUND ("weapons/revolver_fire.wav");
+	PRECACHE_SOUND ("revolver_fire.wav");
 	PRECACHE_SOUND ("weapons/357_shot1.wav");
 	PRECACHE_SOUND ("weapons/357_shot2.wav");
 
