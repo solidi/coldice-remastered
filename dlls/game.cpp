@@ -441,6 +441,25 @@ cvar_t	sk_plr_fists1 = {"sk_plr_fists1","0"};
 cvar_t	sk_plr_fists2 = {"sk_plr_fists2","0"};
 cvar_t	sk_plr_fists3 = {"sk_plr_fists3","0"};
 
+// Wrench
+cvar_t	sk_plr_wrench1 = {"sk_plr_wrench1","0"};
+cvar_t	sk_plr_wrench2 = {"sk_plr_wrench2","0"};
+cvar_t	sk_plr_wrench3 = {"sk_plr_wrench3","0"};
+
+// Flying Wrench
+cvar_t	sk_plr_flyingwrench1 = {"sk_plr_flyingwrench1","0"};
+cvar_t	sk_plr_flyingwrench2 = {"sk_plr_flyingwrench2","0"};
+cvar_t	sk_plr_flyingwrench3 = {"sk_plr_flyingwrench3","0"};
+
+// Snowball
+cvar_t	sk_plr_snowball1 = {"sk_plr_snowball1","0"};
+cvar_t	sk_plr_snowball2 = {"sk_plr_snowball2","0"};
+cvar_t	sk_plr_snowball3 = {"sk_plr_snowball3","0"};
+
+// Snowball
+cvar_t	sk_plr_chainsaw1 = {"sk_plr_chainsaw1","0"};
+cvar_t	sk_plr_chainsaw2 = {"sk_plr_chainsaw2","0"};
+cvar_t	sk_plr_chainsaw3 = {"sk_plr_chainsaw3","0"};
 
 // WORLD WEAPONS
 cvar_t	sk_12mm_bullet1 = {"sk_12mm_bullet1","0"};
@@ -956,6 +975,25 @@ void GameDLLInit( void )
 	CVAR_REGISTER ( &sk_plr_fists2 );
 	CVAR_REGISTER ( &sk_plr_fists3 );
 
+	// Wrench
+	CVAR_REGISTER ( &sk_plr_wrench1 );
+	CVAR_REGISTER ( &sk_plr_wrench2 );
+	CVAR_REGISTER ( &sk_plr_wrench3 );
+
+	// Flying Wrench
+	CVAR_REGISTER ( &sk_plr_flyingwrench1 );
+	CVAR_REGISTER ( &sk_plr_flyingwrench2 );
+	CVAR_REGISTER ( &sk_plr_flyingwrench3 );
+
+	// Snowball
+	CVAR_REGISTER ( &sk_plr_snowball1 );
+	CVAR_REGISTER ( &sk_plr_snowball2 );
+	CVAR_REGISTER ( &sk_plr_snowball3 );
+
+	// Chainsaw
+	CVAR_REGISTER ( &sk_plr_chainsaw1 );
+	CVAR_REGISTER ( &sk_plr_chainsaw2 );
+	CVAR_REGISTER ( &sk_plr_chainsaw3 );
 
 	// WORLD WEAPONS
 	CVAR_REGISTER ( &sk_12mm_bullet1 );// {"sk_12mm_bullet1","0"};
