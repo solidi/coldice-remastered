@@ -51,6 +51,8 @@ float g_ColorGreen[3]	= { 0.6, 1.0, 0.6 };
 float g_ColorYellow[3]	= { 1.0, 0.7, 0.0 };
 float g_ColorGrey[3]	= { 0.8, 0.8, 0.8 };
 
+extern cvar_t *cl_playpoint;
+
 float *GetClientColor( int clientIndex )
 {
 	switch ( g_PlayerExtraInfo[clientIndex].teamnumber )
@@ -188,6 +190,8 @@ int CHudDeathNotice :: MsgFunc_DeathMsg( const char *pszName, int iSize, void *p
 	if (gViewPort)
 		gViewPort->GetAllPlayersInfo();
 
+	PlayKillSound(killer, victim);
+
 	// Get the Killer's name
 	char *killer_name = g_PlayerInfoList[ killer ].name;
 	if ( !killer_name )
@@ -299,6 +303,13 @@ int CHudDeathNotice :: MsgFunc_DeathMsg( const char *pszName, int iSize, void *p
 	return 1;
 }
 
+void CHudDeathNotice::PlayKillSound(int killer, int victim)
+{
+	if (cl_playpoint && !cl_playpoint->value) {
+		return;
+	}
 
-
-
+	if (g_PlayerInfoList[killer].thisplayer && killer != victim) {
+		PlaySound("point.wav", 2);
+	}
+}
