@@ -331,6 +331,7 @@ public:
 	void InitHUDData( void );
 	int VidInit( void );
 	int Draw( float flTime );
+	void PlayKillSound( int killer, int victim );
 	int MsgFunc_DeathMsg( const char *pszName, int iSize, void *pbuf );
 
 private:

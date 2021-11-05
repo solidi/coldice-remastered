@@ -943,6 +943,7 @@ void ClientPrecache( void )
 	PRECACHE_SOUND("wpn_hudon.wav");
 	PRECACHE_SOUND("wpn_moveselect.wav");
 	PRECACHE_SOUND("wpn_select.wav");
+	PRECACHE_SOUND("point.wav");
 	PRECACHE_SOUND("common/wpn_denyselect.wav");
 
 
