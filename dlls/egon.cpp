@@ -49,7 +49,9 @@ enum egon_e {
 	EGON_HOLSTER
 };
 
+#ifdef EGON
 LINK_ENTITY_TO_CLASS( weapon_egon, CEgon );
+#endif
 
 void CEgon::Spawn( )
 {
@@ -90,6 +92,7 @@ BOOL CEgon::Deploy( void )
 {
 	m_deployed = FALSE;
 	m_fireState = FIRE_OFF;
+	m_fireMode = FIRE_WIDE;
 	return DefaultDeploy( "models/v_egon.mdl", "models/p_egon.mdl", EGON_DRAW, "egon" );
 }
 
@@ -128,6 +131,7 @@ int CEgon::GetItemInfo(ItemInfo *p)
 	p->iId = m_iId = WEAPON_EGON;
 	p->iFlags = 0;
 	p->iWeight = EGON_WEIGHT;
+	p->pszDisplayName = "Egon Spengler's Egon";
 
 	return 1;
 }
@@ -239,9 +243,20 @@ void CEgon::Attack( void )
 
 void CEgon::PrimaryAttack( void )
 {
-	m_fireMode = FIRE_WIDE;
 	Attack();
+}
 
+void CEgon::SecondaryAttack( void )
+{
+	if (m_fireMode == FIRE_WIDE)
+		m_fireMode = FIRE_NARROW;
+	else
+		m_fireMode = FIRE_WIDE;
+
+	m_flNextPrimaryAttack = m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 2.5;
+	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 2.5;
+
+	SendWeaponAnim(EGON_FIDGET1);
 }
 
 void CEgon::Fire( const Vector &vecOrigSrc, const Vector &vecDir )
@@ -494,7 +509,7 @@ void CEgon::WeaponIdle( void )
 {
 	ResetEmptySound( );
 
-	if ( m_flTimeWeaponIdle > gpGlobals->time )
+	if ( m_flTimeWeaponIdle > UTIL_WeaponTimeBase() )
 		return;
 
 	if ( m_fireState != FIRE_OFF )
@@ -511,7 +526,7 @@ void CEgon::WeaponIdle( void )
 	}
 	else 
 	{
-		iAnim = EGON_FIDGET1;
+		iAnim = EGON_IDLE1;
 		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 3;
 	}
 
