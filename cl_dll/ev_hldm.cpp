@@ -1547,23 +1547,33 @@ void EV_EgonFire( event_args_t *args )
 
 			int iBeamModelIndex = gEngfuncs.pEventAPI->EV_FindModelIndex( EGON_BEAM_SPRITE );
 
-			float r = 50.0f;
-			float g = 50.0f;
-			float b = 125.0f;
+			float r, r2 = 50.0f;
+			float g, g2 = 50.0f;
+			float b, b2 = 125.0f;
+			float amp = 0.2f;
+
+			if ( iFireMode == FIRE_NARROW ) {
+				r2 = 60.0f;
+				g2 = 120.0f;
+				b2 = 64.0f;
+				amp = 0.01f;
+			}
 
 			if ( IEngineStudio.IsHardware() )
 			{
 				r /= 100.0f;
 				g /= 100.0f;
+				r2 /= 100.0f;
+				g2 /= 100.0f;
 			}
 				
 		
-			pBeam = gEngfuncs.pEfxAPI->R_BeamEntPoint ( idx | 0x1000, tr.endpos, iBeamModelIndex, 99999, 3.5, 0.2, 0.7, 55, 0, 0, r, g, b );
+			pBeam = gEngfuncs.pEfxAPI->R_BeamEntPoint ( idx | 0x1000, tr.endpos, iBeamModelIndex, 99999, 3.5, amp, 0.7, 55, 0, 0, r, g, b );
 
 			if ( pBeam )
 				 pBeam->flags |= ( FBEAM_SINENOISE );
  
-			pBeam2 = gEngfuncs.pEfxAPI->R_BeamEntPoint ( idx | 0x1000, tr.endpos, iBeamModelIndex, 99999, 5.0, 0.08, 0.7, 25, 0, 0, r, g, b );
+			pBeam2 = gEngfuncs.pEfxAPI->R_BeamEntPoint ( idx | 0x1000, tr.endpos, iBeamModelIndex, 99999, 5.0, 0.08, 0.7, 25, 0, 0, r2, g2, b2 );
 		}
 	}
 }
