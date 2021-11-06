@@ -2125,14 +2125,15 @@ void CStudioModelRenderer::StudioRenderFinal_Hardware( void )
 			IEngineStudio.GL_SetRenderMode( rendermode );
 
 			extern cvar_t *m_pCvarRighthand;
-			if (m_pCurrentEntity == gEngfuncs.GetViewModel() && !(m_pCvarRighthand->value)) {
+			extern qboolean g_fXashEngine;
+			if (m_pCurrentEntity == gEngfuncs.GetViewModel() && (!m_pCvarRighthand->value || g_fXashEngine)) {
 				gEngfuncs.pTriAPI->CullFace( TRI_NONE );
 			}
 
 			IEngineStudio.StudioDrawPoints();
 			IEngineStudio.GL_StudioDrawShadow();
 
-			if (m_pCurrentEntity == gEngfuncs.GetViewModel() && !(m_pCvarRighthand->value)) {
+			if (m_pCurrentEntity == gEngfuncs.GetViewModel() && (!m_pCvarRighthand->value || g_fXashEngine)) {
 				gEngfuncs.pTriAPI->CullFace( TRI_FRONT );
 			}
 		}

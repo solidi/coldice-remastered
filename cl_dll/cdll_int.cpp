@@ -50,6 +50,8 @@ cl_enginefunc_t gEngfuncs;
 CHud gHUD;
 TeamFortressViewport *gViewPort = NULL;
 
+qboolean g_fXashEngine = FALSE;
+
 
 #include "particleman.h"
 CSysModule *g_hParticleManModule = NULL;
@@ -155,6 +157,9 @@ int CL_DLLEXPORT Initialize( cl_enginefunc_t *pEnginefuncs, int iVersion )
 
 	EV_HookEvents();
 	CL_LoadParticleMan();
+
+	if (gEngfuncs.pfnGetCvarPointer("host_clientloaded") != NULL)
+		g_fXashEngine = TRUE;
 
 	// get tracker interface, if any
 	return 1;
