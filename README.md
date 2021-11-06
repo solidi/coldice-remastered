@@ -1,7 +1,7 @@
-Cold Ice GoldSrc
-================
+Cold Ice Remastered
+===================
 
-[![Windows](https://github.com/solidi/coldice-goldsrc/actions/workflows/windows.yml/badge.svg)](https://github.com/solidi/coldice-goldsrc/actions/workflows/windows.yml) [![Linux](https://github.com/solidi/coldice-goldsrc/actions/workflows/linux.yml/badge.svg)](https://github.com/solidi/coldice-goldsrc/actions/workflows/linux.yml) [![macOS](https://github.com/solidi/coldice-goldsrc/actions/workflows/macOS.yml/badge.svg)](https://github.com/solidi/coldice-goldsrc/actions/workflows/macOS.yml)
+[![Windows](https://github.com/solidi/coldice-remastered/actions/workflows/windows.yml/badge.svg)](https://github.com/solidi/coldice-remastered/actions/workflows/windows.yml) [![Linux](https://github.com/solidi/coldice-remastered/actions/workflows/linux.yml/badge.svg)](https://github.com/solidi/coldice-remastered/actions/workflows/linux.yml) [![macOS](https://github.com/solidi/coldice-remastered/actions/workflows/macOS.yml/badge.svg)](https://github.com/solidi/coldice-remastered/actions/workflows/macOS.yml)
 
 The rebuild of the Cold Ice 1.75 Modification for Half-Life. See [this post](https://superjumpmagazine.com/building-a-popular-half-life-mod-during-the-rise-of-counter-strike-fec6a5b9fd8f?sk=6d1427b3f1d832df06bd5b07aaa456bb) for the complete archaeological origins from 1999.
 
