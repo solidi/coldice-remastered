@@ -309,7 +309,8 @@ void CHalfLifeMultiplay :: Think ( void )
 	last_time  = time_remaining;
 
 #ifdef DEBUG
-	ALERT(at_console, "NUMBER_OF_ENTITIES(): %d | gpGlobals->maxEntities: %d\n", NUMBER_OF_ENTITIES(), gpGlobals->maxEntities);
+	if (NUMBER_OF_ENTITIES() > 1024)
+		ALERT(at_console, "NUMBER_OF_ENTITIES(): %d | gpGlobals->maxEntities: %d\n", NUMBER_OF_ENTITIES(), gpGlobals->maxEntities);
 #endif
 }
 
@@ -511,6 +512,8 @@ void CHalfLifeMultiplay :: InitHUD( CBasePlayer *pl )
 		MESSAGE_BEGIN( MSG_ONE, SVC_INTERMISSION, NULL, pl->edict() );
 		MESSAGE_END();
 	}
+
+	m_iShownWelcomeMessage = gpGlobals->time + 4.0;
 }
 
 //=========================================================
@@ -611,6 +614,11 @@ void CHalfLifeMultiplay :: PlayerThink( CBasePlayer *pPlayer )
 		pPlayer->m_afButtonPressed = 0;
 		pPlayer->pev->button = 0;
 		pPlayer->m_afButtonReleased = 0;
+	}
+
+	if (m_iShownWelcomeMessage != -1 && m_iShownWelcomeMessage < gpGlobals->time) {
+		ClientPrint( pPlayer->pev, HUD_PRINTTALK, "Welcome to Cold Ice Remastered Beta 1. For commands, type \"help\" in the console.\n" );
+		m_iShownWelcomeMessage = -1;
 	}
 }
 

@@ -639,6 +639,25 @@ void ClientCommand( edict_t *pEntity )
 		if ( pPlayer->IsObserver() )
 			pPlayer->Observer_FindNextPlayer( atoi( CMD_ARGV(1) )?true:false );
 	}
+	else if ( FStrEq( pcmd, "help" )  )	// follow next player
+	{
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "[Help Menu]\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "Deploy hook - \"+hook\"\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "Drop rune - \"drop_rune\"\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "Ice Models - \"cl_icemodels 1\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "Old Scoreboard - \"cl_oldscoreboard 1\"\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "Old MOTD (Message of the Day) - \"cl_oldmotd 1\"\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "Old View Roll - \"cl_viewroll 1\"\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "Old Bob Tilt - \"cl_bobtilt 1\"\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "Right Hand Models - \"cl_righthand 1\"\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "Bullet Smoke - \"cl_bulletsmoke 1\"\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "Gun Smoke - \"cl_gunsmoke 1\"\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "Weapon Sway - \"cl_weaponsway 1\"\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "Weapon Fidget - \"cl_weaponfidget 1\"\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "Use ironsights - \"+ironsight\"\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "Play buzzer/bell for frag - \"cl_playpoint 1\"\n" );
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "For more information, see the ReadMe.\n" );
+	}
 	else if ( g_pGameRules->ClientCommand( GetClassPtr((CBasePlayer *)pev), pcmd ) )
 	{
 		// MenuSelect returns true only if the command is properly handled,  so don't print a warning

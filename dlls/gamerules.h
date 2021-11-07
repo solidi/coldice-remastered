@@ -366,6 +366,7 @@ protected:
 	virtual void GoToIntermission( void );
 	float m_flIntermissionEndTime;
 	BOOL m_iEndIntermissionButtonHit;
+	float m_iShownWelcomeMessage;
 	void SendMOTDToClient( edict_t *client );
 };
 
