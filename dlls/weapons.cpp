@@ -149,6 +149,9 @@ SpawnBlood
 void SpawnBlood(Vector vecSpot, int bloodColor, float flDamage)
 {
 	UTIL_BloodDrips( vecSpot, g_vecAttackDir, bloodColor, (int)flDamage );
+	UTIL_BloodStream(vecSpot, g_vecAttackDir, bloodColor, (int)flDamage * 2 );
+	UTIL_BloodStream(vecSpot, g_vecAttackDir, bloodColor, (int)flDamage * 3 );
+	UTIL_BloodStream(vecSpot, g_vecAttackDir, bloodColor, (int)flDamage * 4 );
 }
 
 
@@ -1719,6 +1722,14 @@ BOOL CWeaponBox::PackWeapon( CBasePlayerItem *pWeapon )
 		else if (pWeapon->m_iId == WEAPON_12GAUGE)
 		{
 			SET_MODEL( ENT(pev), "models/w_12gauge.mdl");
+		}
+		else if (pWeapon->m_iId == WEAPON_EGON)
+		{
+			SET_MODEL( ENT(pev), "models/w_egon.mdl");
+		}
+		else if (pWeapon->m_iId == WEAPON_MP5)
+		{
+			SET_MODEL( ENT(pev), "models/w_9mmAR.mdl");
 		}
 
 		pev->sequence = 1;
