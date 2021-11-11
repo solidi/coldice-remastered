@@ -38,9 +38,10 @@ enum mp5_e
 };
 
 
-
+#ifdef M16
 LINK_ENTITY_TO_CLASS( weapon_mp5, CMP5 );
 LINK_ENTITY_TO_CLASS( weapon_9mmAR, CMP5 );
+#endif
 
 
 //=========================================================
@@ -69,7 +70,7 @@ void CMP5::Precache( void )
 	PRECACHE_MODEL("models/w_9mmAR.mdl");
 	PRECACHE_MODEL("models/p_9mmAR.mdl");
 
-	m_iShell = PRECACHE_MODEL ("models/shell.mdl");// brass shellTE_MODEL
+	m_iShell = PRECACHE_MODEL ("models/w_shell.mdl");// brass shellTE_MODEL
 
 	PRECACHE_MODEL("models/grenade.mdl");	// grenade
 
@@ -79,12 +80,12 @@ void CMP5::Precache( void )
 	PRECACHE_SOUND("items/clipinsert1.wav");
 	PRECACHE_SOUND("items/cliprelease1.wav");
 
-	PRECACHE_SOUND ("weapons/hks1.wav");// H to the K
-	PRECACHE_SOUND ("weapons/hks2.wav");// H to the K
-	PRECACHE_SOUND ("weapons/hks3.wav");// H to the K
+	PRECACHE_SOUND ("m16_hks1.wav");// H to the K
+	PRECACHE_SOUND ("m16_hks2.wav");// H to the K
+	PRECACHE_SOUND ("m16_hks3.wav");// H to the K
 
-	PRECACHE_SOUND( "weapons/glauncher.wav" );
-	PRECACHE_SOUND( "weapons/glauncher2.wav" );
+	PRECACHE_SOUND( "m16_glauncher.wav" );
+	PRECACHE_SOUND( "m16_glauncher2.wav" );
 
 	PRECACHE_SOUND ("weapons/357_cock1.wav");
 
@@ -105,6 +106,7 @@ int CMP5::GetItemInfo(ItemInfo *p)
 	p->iFlags = 0;
 	p->iId = m_iId = WEAPON_MP5;
 	p->iWeight = MP5_WEIGHT;
+	p->pszDisplayName = "M16 Assault Rifle";
 
 	return 1;
 }
