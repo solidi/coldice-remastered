@@ -1578,9 +1578,9 @@ void EV_EgonFire( event_args_t *args )
 
 			int iBeamModelIndex = gEngfuncs.pEventAPI->EV_FindModelIndex( EGON_BEAM_SPRITE );
 
-			float r, r2 = 50.0f;
-			float g, g2 = 50.0f;
-			float b, b2 = 125.0f;
+			float r = 50.0f, r2 = 50.0f;
+			float g = 50.0f, g2 = 50.0f;
+			float b = 125.0f, b2 = 125.0f;
 			float amp = 0.2f;
 
 			if ( iFireMode == FIRE_NARROW ) {
