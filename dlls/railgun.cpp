@@ -90,7 +90,7 @@ int CRailgun::GetItemInfo(ItemInfo *p)
 {
 	p->pszName = STRING(pev->classname);
 	p->pszAmmo1 = "uranium";
-	p->iMaxAmmo1 = RAILGUN_MAX_CARRY;
+	p->iMaxAmmo1 = URANIUM_MAX_CARRY;
 	p->pszAmmo2 = NULL;
 	p->iMaxAmmo2 = -1;
 	p->iMaxClip = WEAPON_NOCLIP;

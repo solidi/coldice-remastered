@@ -142,21 +142,19 @@ public:
 
 
 // weapon clip/carry ammo capacities
-#define URANIUM_MAX_CARRY		100
+#define URANIUM_MAX_CARRY		250
 #define	_9MM_MAX_CARRY			250
-#define _357_MAX_CARRY			36
-#define BUCKSHOT_MAX_CARRY		125
-#define BOLT_MAX_CARRY			50
-#define ROCKET_MAX_CARRY		10
-#define HANDGRENADE_MAX_CARRY	10
-#define SATCHEL_MAX_CARRY		5
-#define TRIPMINE_MAX_CARRY		5
-#define SNARK_MAX_CARRY			15
+#define _357_MAX_CARRY			250
+#define BUCKSHOT_MAX_CARRY		250
+#define BOLT_MAX_CARRY			250
+#define ROCKET_MAX_CARRY		20
+#define HANDGRENADE_MAX_CARRY	20
+#define SATCHEL_MAX_CARRY		20
+#define TRIPMINE_MAX_CARRY		20
+#define SNARK_MAX_CARRY			20
 #define HORNET_MAX_CARRY		8
-#define M203_GRENADE_MAX_CARRY	10
-#define RAILGUN_MAX_CARRY		30
-#define CHAINGUN_MAX_CARRY		200
-#define SNOWBALL_MAX_CARRY		10
+#define M203_GRENADE_MAX_CARRY	20
+#define SNOWBALL_MAX_CARRY		20
 
 // the maximum amount of ammo each weapon's clip can hold
 #define WEAPON_NOCLIP			-1
