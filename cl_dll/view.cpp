@@ -47,6 +47,7 @@ void V_DropPunchAngle ( float frametime, float *ev_punchangle );
 void V_WeaponSway( float currentYaw, float framerate, float clientTime, cl_entity_t *viewModel );
 void V_WeaponFloat( float currentZ, float clientTime, cl_entity_t *viewModel );
 void V_WeaponDrop( float currentZ, float clientTime, cl_entity_t *viewModel );
+void V_WeaponPull( float clientTime, cl_entity_t *viewModel, float move, float *forward, float &k, float &k2, float &time);
 void V_IronSight( Vector position, Vector punch, float clientTime, cl_entity_t *viewModel, Vector forward, Vector up, Vector right );
 void VectorAngles( const float *forward, float *angles );
 
@@ -692,8 +693,13 @@ void V_CalcNormalRefdef ( struct ref_params_s *pparams )
 		V_WeaponFloat(pparams->simvel[2], pparams->time, view);
 	}
 
+	static float kF = 0, kF2 = 0, kR = 0, kR2 = 0, t1 = 0, t2 = 0;
 	if (cl_weaponsway->value == 1) {
-		if (!g_IronSight) V_WeaponSway(pparams->cl_viewangles[YAW], pparams->frametime, pparams->time, view);
+		if (!g_IronSight) {
+			V_WeaponSway(pparams->cl_viewangles[YAW], pparams->frametime, pparams->time, view);
+			V_WeaponPull( pparams->time, view, pparams->cmd->forwardmove, pparams->forward, kF, kF2, t1 );
+			V_WeaponPull( pparams->time, view, pparams->cmd->sidemove, pparams->right, kR, kR2, t2 );
+		}
 	}
 
 	if (view->model != NULL) {
@@ -1725,8 +1731,8 @@ void CL_DLLEXPORT V_CalcRefdef( struct ref_params_s *pparams )
 	{
 #ifdef DEBUG
 		char str[256];
-		sprintf(str, "sim - z: %.3f\n",
-		pparams->simvel[2]);
+		sprintf(str, "sim - x: %.3f sim - y: %.3f cmd fwd: %.3f\n",
+		pparams->simvel[0], pparams->simvel[1], pparams->cmd->forwardmove);
 		gEngfuncs.pfnConsolePrint(str);
 #endif
 		V_CalcNormalRefdef ( pparams );
@@ -1927,6 +1933,44 @@ void V_WeaponDrop( float currentZ, float clientTime, cl_entity_t *viewModel )
 */
 
 	lastZ = currentZ;
+}
+
+void V_WeaponPull( float clientTime, cl_entity_t *viewModel, float move, float *forward, float &kF, float &kF2, float &time )
+{
+	float time_framerate = 0.01;
+
+	// unstick
+	if (clientTime + 2 < time) {
+		time = 0;
+	}
+
+	if (clientTime > time + time_framerate) {
+		time = clientTime;
+
+		if (move > 100) {
+			kF += 0.12;
+		} else {
+			kF -= 0.12;
+		}
+		if (kF > 2.0) kF = 2.0;
+		if (kF < 0) kF = 0;
+
+		if (move < -100) {
+			kF2 -= 0.12;
+		} else {
+			kF2 += 0.12;
+		}
+		if (kF2 < -2.0) kF2 = -2.0;
+		if (kF2 > 0) kF2 = 0;
+	}
+
+	viewModel->origin[0] -= (forward[ 0 ] * kF);
+	viewModel->origin[1] -= (forward[ 1 ] * kF);
+	viewModel->origin[2] -= (forward[ 2 ] * kF);
+
+	viewModel->origin[0] -= (forward[ 0 ] * kF2);
+	viewModel->origin[1] -= (forward[ 1 ] * kF2);
+	viewModel->origin[2] -= (forward[ 2 ] * kF2);
 }
 
 void V_IronSight( Vector position, Vector punch, float clientTime, cl_entity_t *viewModel, Vector forward, Vector up, Vector right )
