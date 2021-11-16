@@ -43,7 +43,9 @@ CFLAGS=$(BASE_CFLAGS)  $(ARCH_CFLAGS) $(DEBUG_CFLAGS) -DCLIENT_WEAPONS \
 		 -DSNOWBALL \
 		 -DCHAINSAW \
 		 -D_12GAUGE \
-		 -DREVOLVER
+		 -DREVOLVER \
+		 -DM16 \
+		 -DEGON
 
 #-O3 -ffast-math -fno-strength-reduce
 

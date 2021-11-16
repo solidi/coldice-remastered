@@ -41,7 +41,9 @@ CFLAGS=$(BASE_CFLAGS) $(ARCH_CFLAGS) -DCLIENT_DLL -DCLIENT_WEAPONS -DHL_DLL -I/u
 		 -DSNOWBALL \
 		 -DCHAINSAW \
 		 -D_12GAUGE \
-		 -DREVOLVER
+		 -DREVOLVER \
+		 -DM16 \
+		 -DEGON
 
 INCLUDEDIRS=-I$(HL_SRC_DIR) -I../dlls -I../tfc -I$(COMMON_SRC_DIR) -I$(PUBLIC_SRC_DIR) -I../pm_shared -I../engine -I../utils/vgui/include -I ../game_shared -I../external
 
