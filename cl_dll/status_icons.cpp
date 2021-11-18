@@ -27,6 +27,8 @@
 
 DECLARE_MESSAGE( m_StatusIcons, StatusIcon );
 
+extern float g_xP, g_yP;
+
 int CHudStatusIcons::Init( void )
 {
 	HOOK_MESSAGE( StatusIcon );
@@ -56,8 +58,8 @@ int CHudStatusIcons::Draw( float flTime )
 	if (gEngfuncs.IsSpectateOnly())
 		return 1;
 	// find starting position to draw from, along right-hand side of screen
-	int x = 5;
-	int y = ScreenHeight / 2;
+	int x = (5) + g_xP;
+	int y = (ScreenHeight / 2) + g_yP;
 	
 	// loop through icon list, and draw any valid icons drawing up from the middle of screen
 	for ( int i = 0; i < MAX_ICONSPRITES; i++ )

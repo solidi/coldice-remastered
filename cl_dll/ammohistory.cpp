@@ -35,6 +35,8 @@ HistoryResource gHR;
 #define MAX_ITEM_NAME	32
 int HISTORY_DRAW_TIME = 5;
 
+extern float g_xP, g_yP;
+
 // keep a list of items
 struct ITEM_INFO
 {
@@ -129,8 +131,8 @@ int HistoryResource :: DrawAmmoHistory( float flTime )
 				ScaleColors(r, g, b, min(scale, 255) );
 
 				// Draw the pic
-				int ypos = ScreenHeight - (AMMO_PICKUP_PICK_HEIGHT + (AMMO_PICKUP_GAP * i));
-				int xpos = ScreenWidth - 24;
+				int ypos = (ScreenHeight - (AMMO_PICKUP_PICK_HEIGHT + (AMMO_PICKUP_GAP * i))) + g_yP;
+				int xpos = (ScreenWidth - 24) + g_xP;
 				if ( spr && *spr )    // weapon isn't loaded yet so just don't draw the pic
 				{ // the dll has to make sure it has sent info the weapons you need
 					SPR_Set( *spr, r, g, b );
@@ -156,8 +158,8 @@ int HistoryResource :: DrawAmmoHistory( float flTime )
 				float scale = (rgAmmoHistory[i].DisplayTime - flTime) * 80;
 				ScaleColors(r, g, b, min(scale, 255) );
 
-				int ypos = ScreenHeight - (AMMO_PICKUP_PICK_HEIGHT + (AMMO_PICKUP_GAP * i));
-				int xpos = ScreenWidth - (weap->rcInactive.right - weap->rcInactive.left);
+				int ypos = (ScreenHeight - (AMMO_PICKUP_PICK_HEIGHT + (AMMO_PICKUP_GAP * i))) + g_yP;
+				int xpos = (ScreenWidth - (weap->rcInactive.right - weap->rcInactive.left)) + g_xP;
 				SPR_Set( weap->hInactive, r, g, b );
 				SPR_DrawAdditive( 0, xpos, ypos, &weap->rcInactive );
 			}
@@ -174,8 +176,8 @@ int HistoryResource :: DrawAmmoHistory( float flTime )
 				float scale = (rgAmmoHistory[i].DisplayTime - flTime) * 80;
 				ScaleColors(r, g, b, min(scale, 255) );
 
-				int ypos = ScreenHeight - (AMMO_PICKUP_PICK_HEIGHT + (AMMO_PICKUP_GAP * i));
-				int xpos = ScreenWidth - (rect.right - rect.left) - 10;
+				int ypos = (ScreenHeight - (AMMO_PICKUP_PICK_HEIGHT + (AMMO_PICKUP_GAP * i))) + g_yP;
+				int xpos = (ScreenWidth - (rect.right - rect.left) - 10) + g_xP;
 
 				SPR_Set( gHUD.GetSprite( rgAmmoHistory[i].iId ), r, g, b );
 				SPR_DrawAdditive( 0, xpos, ypos, &rect );

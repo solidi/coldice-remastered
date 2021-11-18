@@ -27,6 +27,8 @@
 DECLARE_MESSAGE( m_AmmoSecondary, SecAmmoVal );
 DECLARE_MESSAGE( m_AmmoSecondary, SecAmmoIcon );
 
+extern float g_xP, g_yP;
+
 int CHudAmmoSecondary :: Init( void )
 {
 	HOOK_MESSAGE( SecAmmoVal );
