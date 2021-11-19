@@ -36,6 +36,8 @@ DECLARE_MESSAGE(m_Health, Damage )
 
 int giDmgHeight, giDmgWidth;
 
+extern float g_xP, g_yP;
+
 int giDmgFlags[NUM_DMG_TYPES] = 
 {
 	DMG_POISON,
@@ -210,13 +212,13 @@ int CHudHealth::Draw(float flTime)
 		HealthWidth = gHUD.GetSpriteRect(gHUD.m_HUD_number_0).right - gHUD.GetSpriteRect(gHUD.m_HUD_number_0).left;
 		int CrossWidth = gHUD.GetSpriteRect(m_HUD_cross).right - gHUD.GetSpriteRect(m_HUD_cross).left;
 
-		y = ScreenHeight - gHUD.m_iFontHeight - gHUD.m_iFontHeight / 2;
-		x = CrossWidth /2;
+		y = (ScreenHeight - gHUD.m_iFontHeight - gHUD.m_iFontHeight / 2) + g_yP;
+		x = (CrossWidth /2)  + g_xP;
 
 		SPR_Set(gHUD.GetSprite(m_HUD_cross), r, g, b);
 		SPR_DrawAdditive(0, x, y, &gHUD.GetSpriteRect(m_HUD_cross));
 
-		x = CrossWidth + HealthWidth / 2;
+		x = (CrossWidth + HealthWidth / 2) + g_xP;
 
 		x = gHUD.DrawHudNumber(x, y, DHN_3DIGITS | DHN_DRAWZERO, m_iHealth, r, g, b);
 

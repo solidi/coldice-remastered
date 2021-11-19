@@ -652,6 +652,7 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "Right Hand Models - \"cl_righthand 1\"\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "Bullet Smoke - \"cl_bulletsmoke 1\"\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "Gun Smoke - \"cl_gunsmoke 1\"\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "Glass Hud - \"cl_glasshud 1\"\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "Weapon Sway - \"cl_weaponsway 1\"\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "Weapon Fidget - \"cl_weaponfidget 1\"\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "Use ironsights - \"+ironsight\"\n");

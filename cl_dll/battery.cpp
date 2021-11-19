@@ -27,6 +27,8 @@
 
 DECLARE_MESSAGE(m_Battery, Battery)
 
+extern float g_xP, g_yP;
+
 int CHudBattery::Init(void)
 {
 	m_iBat = 0;
@@ -133,8 +135,8 @@ int CHudBattery::Draw(float flTime)
 	
 	int iOffset = (m_prc1->bottom - m_prc1->top)/6;
 
-	y = ScreenHeight - gHUD.m_iFontHeight - gHUD.m_iFontHeight / 2;
-	x = ScreenWidth/5;
+	y = (ScreenHeight - gHUD.m_iFontHeight - gHUD.m_iFontHeight / 2) + g_yP;
+	x = (ScreenWidth/5) + g_xP;
 
 	// make sure we have the right sprite handles
 	if ( !m_hSprite1 )

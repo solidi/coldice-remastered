@@ -44,10 +44,11 @@
 
 
 void V_DropPunchAngle ( float frametime, float *ev_punchangle );
+void V_GlassHud( float bounce, float clientTime );
 void V_WeaponSway( float currentYaw, float framerate, float clientTime, cl_entity_t *viewModel );
 void V_WeaponFloat( float currentZ, float clientTime, cl_entity_t *viewModel );
 void V_WeaponDrop( float currentZ, float clientTime, cl_entity_t *viewModel );
-void V_WeaponPull( float clientTime, cl_entity_t *viewModel, float move, float *forward, float &k, float &k2, float &time);
+void V_WeaponPull( float clientTime, cl_entity_t *viewModel, float move, float *forward, float &k, float &k2, float &time, bool mode);
 void V_IronSight( Vector position, Vector punch, float clientTime, cl_entity_t *viewModel, Vector forward, Vector up, Vector right );
 void VectorAngles( const float *forward, float *angles );
 
@@ -58,6 +59,8 @@ void VectorAngles( const float *forward, float *angles );
 extern engine_studio_api_t IEngineStudio;
 
 extern kbutton_t	in_mlook;
+
+float g_xP, g_yP;
 
 /*
 The view is allowed to move slightly from it's true position for bobbing,
@@ -72,6 +75,7 @@ extern cvar_t	*scr_ofsx, *scr_ofsy, *scr_ofsz;
 extern cvar_t	*cl_vsmoothing;
 extern cvar_t	*cl_weaponsway;
 extern cvar_t	*cl_weaponfidget;
+extern cvar_t	*cl_glasshud;
 
 extern cvar_t *cl_vmx;
 extern cvar_t *cl_vmy;
@@ -688,6 +692,10 @@ void V_CalcNormalRefdef ( struct ref_params_s *pparams )
 	view->angles[ROLL]  -= bob * 1;
 	view->angles[PITCH] -= bob * 0.3;
 
+	if (cl_glasshud->value) {
+		V_GlassHud(bob, pparams->time);
+	}
+
 	if (cl_weaponfidget->value == 1) {
 		V_WeaponDrop(pparams->simvel[2], pparams->time, view);
 		V_WeaponFloat(pparams->simvel[2], pparams->time, view);
@@ -697,8 +705,8 @@ void V_CalcNormalRefdef ( struct ref_params_s *pparams )
 	if (cl_weaponsway->value == 1) {
 		if (!g_IronSight) {
 			V_WeaponSway(pparams->cl_viewangles[YAW], pparams->frametime, pparams->time, view);
-			V_WeaponPull( pparams->time, view, pparams->cmd->forwardmove, pparams->forward, kF, kF2, t1 );
-			V_WeaponPull( pparams->time, view, pparams->cmd->sidemove, pparams->right, kR, kR2, t2 );
+			V_WeaponPull( pparams->time, view, pparams->cmd->forwardmove, pparams->forward, kF, kF2, t1, false );
+			V_WeaponPull( pparams->time, view, pparams->cmd->sidemove, pparams->right, kR, kR2, t2, true );
 		}
 	}
 
@@ -1783,12 +1791,61 @@ Client side punch effect
 */
 void V_PunchAxis( int axis, float punch )
 {
+	if (!axis)
+		g_yP += punch * 10;
+	if (axis == 2)
+		g_xP += punch * 10;
+
 	ev_punchangle[ axis ] = punch;
+}
+
+void V_GlassHud ( float bounce, float clientTime ) {
+	g_yP += ((bounce * .5) * -1);
+	float time_framerate = 0.1;
+	static float time = 0;
+	static int mode = 0;
+	// unstick
+	if (clientTime + 2 < time) {
+		time = 0;
+	}
+	if (clientTime > time + time_framerate) {
+		time = clientTime;
+		if (bounce >= 2.75) {
+			if ( mode > 0 ) mode = -1;
+			else mode = 1;
+		}
+	}
+
+	if (bounce > 0 || bounce < 0)
+		g_xP += 0.15 * mode;
+
+	if (bounce == 0) {
+		if ( g_xP > 0) {
+			g_xP -= 0.5;
+		}
+
+		if ( g_xP < 0) {
+			g_xP += 0.5;
+		}
+
+		if ( g_yP > 0) {
+			g_yP -= 0.25;
+		}
+
+		if ( g_yP < 0) {
+			g_yP += 0.25;
+		}
+	}
+
+	g_xP = min( g_xP, 3.5 );
+	g_xP = max( g_xP, -3.5 );
+	g_yP = min( g_yP, 2.5 );
+	g_yP = max( g_yP, -2.5 );
 }
 
 void V_WeaponSway ( float currentYaw, float framerate, float clientTime, cl_entity_t *viewModel )
 {
-	static float time = 0, time_framerate = 0.05;
+	static float time = 0, time_framerate = 0.01;
 	static float decay = 0, accel = 0;
 	static float lastYaw = 0;
 	static bool clockwise = false;
@@ -1815,27 +1872,30 @@ void V_WeaponSway ( float currentYaw, float framerate, float clientTime, cl_enti
 
 		if (delta) {
 			// attack
-			accel += framerate * 1.95;
+			accel += framerate * 1.10;
 			if (accel > 1) accel = 1;
 			if (clockwise) {
-				decay -= gEngfuncs.pfnRandomFloat(1.75, 2) * accel;
+				decay -= 1.0 * accel;
 			} else {
-				decay += gEngfuncs.pfnRandomFloat(1.75, 2) * accel;
+				decay += 1.0 * accel;
 			}
 		} else {
 			// fade
 			if (clockwise) {
-				decay += gEngfuncs.pfnRandomFloat(1.0, 1.2);
+				decay += 0.25;
 				if (decay > 0.2) { decay = 0; }
 			} else {
-				decay -= gEngfuncs.pfnRandomFloat(1.0, 1.2);
+				decay -= 0.25;
 				if (decay < 0.2) { decay = 0; }
 			}
 		}
 	}
 
 	// max distance
-	decay = min(max(decay, -6), 6);
+	decay = min(max(decay, -4), 4);
+
+	if (cl_glasshud->value)
+		g_xP -= decay / 3;
 
 	viewModel->angles[YAW] += decay;
 	viewModel->angles[ROLL] += decay;
@@ -1875,6 +1935,9 @@ void V_WeaponFloat( float currentZ, float clientTime, cl_entity_t *viewModel )
 
 	viewModel->angles[PITCH] += kPitch;
 	viewModel->origin[2] += kZ;
+
+	if (cl_glasshud->value)
+		g_yP += kZ;
 
 	// Water fix
 	if ( kPitch <= -20.0) {
@@ -1926,6 +1989,8 @@ void V_WeaponDrop( float currentZ, float clientTime, cl_entity_t *viewModel )
 	viewModel->angles[PITCH] += kPitch;
 	viewModel->origin[2] -= kZ;
 
+	if (cl_glasshud->value)
+		g_yP += kZ;
 /*
 	char str[256];
 	sprintf(str, "V_WeaponDrop: pitch = %.3f kPitch = %.3f\n", viewModel->angles[PITCH], kPitch);
@@ -1935,7 +2000,7 @@ void V_WeaponDrop( float currentZ, float clientTime, cl_entity_t *viewModel )
 	lastZ = currentZ;
 }
 
-void V_WeaponPull( float clientTime, cl_entity_t *viewModel, float move, float *forward, float &kF, float &kF2, float &time )
+void V_WeaponPull( float clientTime, cl_entity_t *viewModel, float move, float *forward, float &kF, float &kF2, float &time, bool mode )
 {
 	float time_framerate = 0.01;
 
@@ -1962,6 +2027,9 @@ void V_WeaponPull( float clientTime, cl_entity_t *viewModel, float move, float *
 		}
 		if (kF2 < -2.0) kF2 = -2.0;
 		if (kF2 > 0) kF2 = 0;
+
+		if (mode && cl_glasshud->value)
+			g_xP -= (kF + kF2) / 2;
 	}
 
 	viewModel->origin[0] -= (forward[ 0 ] * kF);
@@ -2060,7 +2128,7 @@ void V_Init (void)
 	v_centermove		= gEngfuncs.pfnRegisterVariable( "v_centermove", "0.15", 0 );
 	v_centerspeed		= gEngfuncs.pfnRegisterVariable( "v_centerspeed","500", 0 );
 
-	cl_bobcycle			= gEngfuncs.pfnRegisterVariable( "cl_bobcycle","0.8", 0 );// best default for my experimental gun wag (sjb)
+	cl_bobcycle			= gEngfuncs.pfnRegisterVariable( "cl_bobcycle","0.6", 0 );// best default for my experimental gun wag (sjb)
 	cl_bob				= gEngfuncs.pfnRegisterVariable( "cl_bob","0.01", 0 );// best default for my experimental gun wag (sjb)
 	cl_bobup			= gEngfuncs.pfnRegisterVariable( "cl_bobup","0.5", 0 );
 	cl_waterdist		= gEngfuncs.pfnRegisterVariable( "cl_waterdist","4", 0 );

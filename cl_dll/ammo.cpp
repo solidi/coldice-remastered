@@ -39,6 +39,7 @@ client_sprite_t *GetSpriteList(client_sprite_t *pList, const char *psz, int iRes
 WeaponsResource gWR;
 
 int g_weaponselect = 0;
+extern float g_yP, g_xP;
 
 void WeaponsResource :: LoadAllWeaponSprites( void )
 {
@@ -873,7 +874,7 @@ int CHudAmmo::Draw(float flTime)
 	ScaleColors(r, g, b, a );
 
 	// Does this weapon have a clip?
-	y = ScreenHeight - gHUD.m_iFontHeight - gHUD.m_iFontHeight/2;
+	y = (ScreenHeight - gHUD.m_iFontHeight - gHUD.m_iFontHeight/2) + g_yP;
 
 	// Does weapon have any ammo at all?
 	if (m_pWeapon->iAmmoType > 0)
@@ -884,7 +885,7 @@ int CHudAmmo::Draw(float flTime)
 		{
 			// room for the number and the '|' and the current ammo
 			
-			x = ScreenWidth - (8 * AmmoWidth) - iIconWidth;
+			x = (ScreenWidth - (8 * AmmoWidth) - iIconWidth) + g_xP;
 			x = gHUD.DrawHudNumber(x, y, iFlags | DHN_3DIGITS, pw->iClip, r, g, b);
 
 			wrect_t rc;
@@ -913,7 +914,7 @@ int CHudAmmo::Draw(float flTime)
 		else
 		{
 			// SPR_Draw a bullets only line
-			x = ScreenWidth - 4 * AmmoWidth - iIconWidth;
+			x = (ScreenWidth - 4 * AmmoWidth - iIconWidth) + g_xP;
 			x = gHUD.DrawHudNumber(x, y, iFlags | DHN_3DIGITS, gWR.CountAmmo(pw->iAmmoType), r, g, b);
 		}
 
@@ -932,7 +933,7 @@ int CHudAmmo::Draw(float flTime)
 		if ((pw->iAmmo2Type != 0) && (gWR.CountAmmo(pw->iAmmo2Type) > 0))
 		{
 			y -= gHUD.m_iFontHeight + gHUD.m_iFontHeight/4;
-			x = ScreenWidth - 4 * AmmoWidth - iIconWidth;
+			x = (ScreenWidth - 4 * AmmoWidth - iIconWidth) + g_xP;
 			x = gHUD.DrawHudNumber(x, y, iFlags|DHN_3DIGITS, gWR.CountAmmo(pw->iAmmo2Type), r, g, b);
 
 			// Draw the ammo Icon
@@ -1027,8 +1028,8 @@ int CHudAmmo::DrawWList(float flTime)
 	else 
 		iActiveSlot = gpActiveSel->iSlot;
 
-	x = 10; //!!!
-	y = 10; //!!!
+	x = 10 + g_xP; //!!!
+	y = 10 + g_yP; //!!!
 	
 
 	// Ensure that there are available choices in the active slot
@@ -1075,12 +1076,12 @@ int CHudAmmo::DrawWList(float flTime)
 
 
 	a = 128; //!!!
-	x = 10;
+	x = 10 + g_xP;
 
 	// Draw all of the buckets
 	for (i = 0; i < MAX_WEAPON_SLOTS; i++)
 	{
-		y = giBucketHeight + 10;
+		y = (giBucketHeight + 10) + g_yP;
 
 		// If this is the active slot, draw the bigger pictures,
 		// otherwise just draw boxes
