@@ -150,6 +150,8 @@ void CHalfLifeMultiplay::RefreshSkillData( void )
 	// Shotgun buckshot
 	gSkillData.plrDmgBuckshot = 20;// fewer pellets in deathmatch
 
+	gSkillData.plrDmgExpBuckshot = 30;
+
 	// Crossbow
 	gSkillData.plrDmgCrossbowClient = 20;
 

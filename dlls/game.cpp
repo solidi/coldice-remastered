@@ -331,6 +331,10 @@ cvar_t	sk_plr_buckshot1 = {"sk_plr_buckshot1","0"};
 cvar_t	sk_plr_buckshot2 = {"sk_plr_buckshot2","0"};
 cvar_t	sk_plr_buckshot3 = {"sk_plr_buckshot3","0"};
 
+cvar_t	sk_plr_expbuckshot1 = {"sk_plr_expbuckshot1","0"};
+cvar_t	sk_plr_expbuckshot2 = {"sk_plr_expbuckshot2","0"};
+cvar_t	sk_plr_expbuckshot3 = {"sk_plr_expbuckshot3","0"};
+
 
 // Crossbow
 cvar_t	sk_plr_xbow_bolt_client1 = {"sk_plr_xbow_bolt_client1","0"};
@@ -865,6 +869,9 @@ void GameDLLInit( void )
 	CVAR_REGISTER ( &sk_plr_buckshot2 );// {"sk_plr_buckshot2","0"};
 	CVAR_REGISTER ( &sk_plr_buckshot3 );// {"sk_plr_buckshot3","0"};
 
+	CVAR_REGISTER ( &sk_plr_expbuckshot1 );
+	CVAR_REGISTER ( &sk_plr_expbuckshot2 );
+	CVAR_REGISTER ( &sk_plr_expbuckshot3 );
 
 	// Crossbow
 	CVAR_REGISTER ( &sk_plr_xbow_bolt_monster1 );// {"sk_plr_xbow_bolt1","0"};

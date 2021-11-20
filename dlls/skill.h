@@ -99,6 +99,7 @@ struct skilldata_t
 	float plrDmgMP5;
 	float plrDmgM203Grenade;
 	float plrDmgBuckshot;
+	float plrDmgExpBuckshot;
 	float plrDmgCrossbowClient;
 	float plrDmgCrossbowMonster;
 	float plrDmgRPG;
