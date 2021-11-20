@@ -463,7 +463,7 @@ void EV_HLDM_FireBullets( int idx, float *forward, float *right, float *up, int 
 		if (cl_bulletsmoke && cl_bulletsmoke->value) {
 			physent_t *pe = gEngfuncs.pEventAPI->EV_GetPhysent( tr.ent );
 			if (pe && ( pe->solid == SOLID_BSP || pe->movetype == MOVETYPE_PUSHSTEP )) {
-				if ( gEngfuncs.pfnRandomLong(0, 2) > 1 ) {
+				if ( gEngfuncs.pfnRandomLong(0, 3) > 2 ) {
 					int model = gEngfuncs.pEventAPI->EV_FindModelIndex( "sprites/gunsmoke.spr" );
 					TEMPENTITY *t = gEngfuncs.pEfxAPI->R_DefaultSprite(tr.endpos - Vector(forward[0], forward[1], forward[2]) * 20, model, gEngfuncs.pfnRandomLong(12, 18));
 					t->entity.curstate.rendermode = kRenderTransAdd;
@@ -482,7 +482,7 @@ void EV_GunSmoke(vec3_t origin, float scale, int idx, int ducking, float *forwar
 		return;
 	}
 
-	if ( gEngfuncs.pfnRandomLong(0, 2) > 1 ) {
+	if ( gEngfuncs.pfnRandomLong(0, 3) > 2 ) {
 		/*
 		vec3_t view_ofs;
 		vec3_t smokeOrigin;
@@ -505,14 +505,17 @@ void EV_GunSmoke(vec3_t origin, float scale, int idx, int ducking, float *forwar
 		}
 */
 		vec3_t smokeOrigin = origin;
-		if ( EV_IsLocal(idx) )
+		if ( EV_IsLocal(idx) ) {
 			smokeOrigin = gEngfuncs.GetViewModel()->attachment[0];
 
-		int model = gEngfuncs.pEventAPI->EV_FindModelIndex( "sprites/smokeball2.spr" );
-		TEMPENTITY *t = gEngfuncs.pEfxAPI->R_DefaultSprite(smokeOrigin, model, gEngfuncs.pfnRandomLong(32, 48));
-		t->entity.curstate.rendermode = kRenderTransAdd;
-		t->entity.curstate.renderamt = gEngfuncs.pfnRandomLong(40, 60);
-		t->entity.curstate.scale = scale;
+			int model = gEngfuncs.pEventAPI->EV_FindModelIndex( "sprites/smokeball2.spr" );
+			TEMPENTITY *t = gEngfuncs.pEfxAPI->R_DefaultSprite(smokeOrigin, model, gEngfuncs.pfnRandomLong(32, 48));
+			t->entity.curstate.rendermode = kRenderTransAdd;
+			t->entity.curstate.renderamt = gEngfuncs.pfnRandomLong(40, 60);
+			t->entity.curstate.scale = scale;
+		} else {
+			// Don't draw for others.
+		}
 	}
 }
 
@@ -657,14 +660,16 @@ void EV_FireShotGunDouble( event_args_t *args )
 
 	AngleVectors( angles, forward, right, up );
 
-	shell = gEngfuncs.pEventAPI->EV_FindModelIndex ("models/shotgunshell.mdl");// brass shell
+	shell = gEngfuncs.pEventAPI->EV_FindModelIndex ("models/w_shotgunshell.mdl");// brass shell
 
 	if ( EV_IsLocal( idx ) )
 	{
 		// Add muzzle flash to current weapon model
 		EV_MuzzleFlash();
 		gEngfuncs.pEventAPI->EV_WeaponAnimation( SHOTGUN_FIRE2, 2 );
-		V_PunchAxis( 0, -10.0 );
+		V_PunchAxis( 0, gEngfuncs.pfnRandomFloat(-10.0, -12.0) );
+		V_PunchAxis(1, gEngfuncs.pfnRandomFloat(-10.0, -12.0)); //yaw, - = right
+		V_PunchAxis(2, gEngfuncs.pfnRandomFloat(10.0, 12.0)); //roll, - = left
 	}
 
 	for ( j = 0; j < 2; j++ )
@@ -685,11 +690,11 @@ void EV_FireShotGunDouble( event_args_t *args )
 
 	if ( gEngfuncs.GetMaxClients() > 1 )
 	{
-		EV_HLDM_FireBullets( idx, forward, right, up, 8, vecSrc, vecAiming, 2048, BULLET_PLAYER_BUCKSHOT, 0, &tracerCount[idx-1], 0.17365, 0.04362 );
+		EV_HLDM_FireBullets( idx, forward, right, up, 8, vecSrc, vecAiming, 2048, BULLET_PLAYER_BUCKSHOT, 1, &tracerCount[idx-1], 0.17365, 0.04362 );
 	}
 	else
 	{
-		EV_HLDM_FireBullets( idx, forward, right, up, 12, vecSrc, vecAiming, 2048, BULLET_PLAYER_BUCKSHOT, 0, &tracerCount[idx-1], 0.08716, 0.08716 );
+		EV_HLDM_FireBullets( idx, forward, right, up, 12, vecSrc, vecAiming, 2048, BULLET_PLAYER_BUCKSHOT, 1, &tracerCount[idx-1], 0.08716, 0.08716 );
 	}
 }
 
@@ -715,7 +720,7 @@ void EV_FireShotGunSingle( event_args_t *args )
 
 	AngleVectors( angles, forward, right, up );
 
-	shell = gEngfuncs.pEventAPI->EV_FindModelIndex ("models/shotgunshell.mdl");// brass shell
+	shell = gEngfuncs.pEventAPI->EV_FindModelIndex ("models/w_shotgunshell.mdl");// brass shell
 
 	if ( EV_IsLocal( idx ) )
 	{
@@ -723,7 +728,9 @@ void EV_FireShotGunSingle( event_args_t *args )
 		EV_MuzzleFlash();
 		gEngfuncs.pEventAPI->EV_WeaponAnimation( SHOTGUN_FIRE, 2 );
 
-		V_PunchAxis( 0, -5.0 );
+		V_PunchAxis(0, gEngfuncs.pfnRandomFloat(-5.0, -7.0) );
+		V_PunchAxis(1, gEngfuncs.pfnRandomFloat(-5.0, -7.0)); //yaw, - = right
+		V_PunchAxis(2, gEngfuncs.pfnRandomFloat(5.0, 7.0)); //roll, - = left
 	}
 
 	float fR = (m_pCvarRighthand->value != 0 ? -1 : 1) * gEngfuncs.pfnRandomFloat( 50, 70 );
@@ -741,11 +748,11 @@ void EV_FireShotGunSingle( event_args_t *args )
 
 	if ( gEngfuncs.GetMaxClients() > 1 )
 	{
-		EV_HLDM_FireBullets( idx, forward, right, up, 4, vecSrc, vecAiming, 2048, BULLET_PLAYER_BUCKSHOT, 0, &tracerCount[idx-1], 0.08716, 0.04362 );
+		EV_HLDM_FireBullets( idx, forward, right, up, 4, vecSrc, vecAiming, 2048, BULLET_PLAYER_BUCKSHOT, 1, &tracerCount[idx-1], 0.08716, 0.04362 );
 	}
 	else
 	{
-		EV_HLDM_FireBullets( idx, forward, right, up, 6, vecSrc, vecAiming, 2048, BULLET_PLAYER_BUCKSHOT, 0, &tracerCount[idx-1], 0.08716, 0.08716 );
+		EV_HLDM_FireBullets( idx, forward, right, up, 6, vecSrc, vecAiming, 2048, BULLET_PLAYER_BUCKSHOT, 1, &tracerCount[idx-1], 0.08716, 0.08716 );
 	}
 }
 //======================

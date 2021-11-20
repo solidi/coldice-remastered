@@ -183,6 +183,7 @@ void DecalGunshot( TraceResult *pTrace, int iBulletType )
 		case BULLET_PLAYER_MP5:
 		case BULLET_MONSTER_MP5:
 		case BULLET_PLAYER_BUCKSHOT:
+		case BULLET_PLAYER_EXPLOSIVE_BUCKSHOT:
 		case BULLET_PLAYER_357:
 		case BULLET_PLAYER_RIFLE:
 		default:
@@ -1730,6 +1731,10 @@ BOOL CWeaponBox::PackWeapon( CBasePlayerItem *pWeapon )
 		else if (pWeapon->m_iId == WEAPON_MP5)
 		{
 			SET_MODEL( ENT(pev), "models/w_9mmAR.mdl");
+		}
+		else if (pWeapon->m_iId == WEAPON_SHOTGUN)
+		{
+			SET_MODEL( ENT(pev), "models/w_shotgun.mdl");
 		}
 
 		pev->sequence = 1;
