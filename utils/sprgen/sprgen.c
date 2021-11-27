@@ -22,7 +22,7 @@
 
 #include "spritegn.h"
 
-#define MAX_BUFFER_SIZE		0x100000
+#define MAX_BUFFER_SIZE		0x200000
 #define MAX_FRAMES			1000
 
 dsprite_t		sprite;
