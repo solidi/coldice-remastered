@@ -45,7 +45,9 @@ CFLAGS=$(BASE_CFLAGS)  $(ARCH_CFLAGS) $(DEBUG_CFLAGS) -DCLIENT_WEAPONS \
 		 -D_12GAUGE \
 		 -DREVOLVER \
 		 -DM16 \
-		 -DEGON
+		 -DEGON \
+		 -DSHOTGUN \
+		 -DNUKE
 
 #-O3 -ffast-math -fno-strength-reduce
 
@@ -135,6 +137,7 @@ HLDLL_OBJS = \
 	$(HLDLL_OBJ_DIR)/mp5.o \
 	$(HLDLL_OBJ_DIR)/nihilanth.o \
 	$(HLDLL_OBJ_DIR)/nodes.o \
+	$(HLDLL_OBJ_DIR)/nuke.o \
 	$(HLDLL_OBJ_DIR)/observer.o \
 	$(HLDLL_OBJ_DIR)/osprey.o \
 	$(HLDLL_OBJ_DIR)/pathcorner.o \

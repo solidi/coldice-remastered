@@ -175,6 +175,7 @@
     <ClCompile Include="..\..\dlls\knife.cpp" />
     <ClCompile Include="..\..\dlls\mag60.cpp" />
     <ClCompile Include="..\..\dlls\mp5.cpp" />
+    <ClCompile Include="..\..\dlls\nuke.cpp" />
     <ClCompile Include="..\..\dlls\python.cpp" />
     <ClCompile Include="..\..\dlls\railgun.cpp" />
     <ClCompile Include="..\..\dlls\rpg.cpp" />

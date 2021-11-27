@@ -474,6 +474,8 @@ void W_Precache(void)
 	UTIL_PrecacheOtherWeapon( "weapon_12gauge" );
 #endif
 
+	UTIL_PrecacheOtherWeapon( "weapon_nuke" );
+
 #if !defined( OEM_BUILD ) && !defined( HLDEMO_BUILD )
 	if ( g_pGameRules->IsDeathmatch() )
 	{
@@ -702,6 +704,7 @@ CBaseEntity* CBasePlayerItem::Respawn( void )
 		"weapon_cannon",
 		"weapon_gauss",
 		"weapon_egon",
+		"weapon_nuke",
 
 		// loose
 		"weapon_snowball",
@@ -1735,6 +1738,10 @@ BOOL CWeaponBox::PackWeapon( CBasePlayerItem *pWeapon )
 		else if (pWeapon->m_iId == WEAPON_SHOTGUN)
 		{
 			SET_MODEL( ENT(pev), "models/w_shotgun.mdl");
+		}
+		else if (pWeapon->m_iId == WEAPON_NUKE)
+		{
+			SET_MODEL( ENT(pev), "models/w_nuke.mdl");
 		}
 
 		pev->sequence = 1;

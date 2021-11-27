@@ -100,6 +100,7 @@ public:
 #define WEAPON_SNOWBALL			28
 #define WEAPON_CHAINSAW			29
 #define WEAPON_12GAUGE			30
+#define WEAPON_NUKE				31
 
 #define WEAPON_ALLWEAPONS		(~(1<<WEAPON_SUIT))
 
@@ -139,6 +140,7 @@ public:
 #define SNOWBALL_WEIGHT		3
 #define CHAINSAW_WEIGHT		5
 #define GAUGE_SHOTGUN_WEIGHT 14
+#define NUKE_WEIGHT 		25
 
 
 // weapon clip/carry ammo capacities
@@ -155,6 +157,7 @@ public:
 #define HORNET_MAX_CARRY		8
 #define M203_GRENADE_MAX_CARRY	20
 #define SNOWBALL_MAX_CARRY		20
+#define NUKE_MAX_CARRY			1
 
 // the maximum amount of ammo each weapon's clip can hold
 #define WEAPON_NOCLIP			-1
@@ -208,6 +211,7 @@ public:
 #define USAS_DEFAULT_GIVE			40
 #define SNOWBALL_DEFAULT_GIVE		5
 #define _12_GAUGE_DEFAULT_GIVE		12
+#define NUKE_DEFAULT_GIVE			1
 
 // The amount of ammo given to a player by an ammo item.
 #define AMMO_URANIUMBOX_GIVE	20
@@ -1632,6 +1636,54 @@ public:
 private:
 	unsigned short m_usDoubleFire;
 	unsigned short m_usSingleFire;
+};
+
+
+class CNuke : public CBasePlayerWeapon
+{
+public:
+	void Spawn( void );
+	void Precache( void );
+	void Reload( void );
+	int iItemSlot( void ) { return 4; }
+	int GetItemInfo(ItemInfo *p);
+	int AddToPlayer( CBasePlayer *pPlayer );
+
+	BOOL Deploy( void );
+	void Holster( int skiplocal = 0 );
+
+	void PrimaryAttack( void );
+	void WeaponIdle( void );
+
+	BOOL ShouldWeaponIdle( void ) { return TRUE; };
+
+	virtual BOOL UseDecrement( void )
+	{
+#if defined( CLIENT_WEAPONS )
+		return TRUE;
+#else
+		return FALSE;
+#endif
+	}
+
+private:
+	unsigned short m_usNuke;
+};
+
+class CNukeRocket : public CGrenade
+{
+public:
+	void Spawn( float startEngineTime );
+	void Precache( void );
+	void EXPORT FollowThink( void );
+	void EXPORT IgniteThink( void );
+	void EXPORT RocketTouch( CBaseEntity *pOther );
+	static CNukeRocket *CreateNukeRocket( Vector vecOrigin, Vector vecAngles, CBaseEntity *pOwner, CNuke *pLauncher, float startEngineTime );
+
+	int m_iTrail;
+	int m_iExp;
+	float m_flIgniteTime;
+	CNuke *m_pLauncher;// pointer back to the launcher that fired me.
 };
 
 #endif // WEAPONS_H

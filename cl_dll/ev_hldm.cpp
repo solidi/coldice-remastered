@@ -93,6 +93,7 @@ void EV_Wrench( struct event_args_s *args  );
 void EV_Chainsaw( struct event_args_s *args  );
 void EV_Fire12GaugeSingle( struct event_args_s *args  );
 void EV_Fire12GaugeDouble( struct event_args_s *args  );
+void EV_FireNuke( struct event_args_s *args  );
 
 void EV_TrainPitchAdjust( struct event_args_s *args );
 }
@@ -2618,6 +2619,42 @@ void EV_Fire12GaugeSingle( event_args_t *args )
 	else
 	{
 		EV_HLDM_FireBullets( idx, forward, right, up, 6, vecSrc, vecAiming, 2048, BULLET_PLAYER_BUCKSHOT, 0, &tracerCount[idx-1], 0.08716, 0.08716 );
+	}
+}
+
+enum nuke_e {
+	NUKE_IDLE = 0,
+	NUKE_FIDGET,
+	NUKE_RELOAD,		// to reload
+	NUKE_FIRE2,		// to empty
+	NUKE_FIRE3,		// to empty, with sound!
+	NUKE_HOLSTER1,	// loaded
+	NUKE_DRAW1,		// loaded
+	NUKE_HOLSTER2,	// unloaded
+	NUKE_DRAW_UL,	// unloaded
+	NUKE_IDLE_UL,	// unloaded idle
+	NUKE_FIDGET_UL,	// unloaded fidget
+};
+
+void EV_FireNuke( event_args_t *args )
+{
+	int idx;
+	vec3_t origin;
+
+	idx = args->entindex;
+	VectorCopy( args->origin, origin );
+
+	gEngfuncs.pEventAPI->EV_PlaySound( idx, origin, CHAN_WEAPON, "weapons/rocketfire1.wav", 0.9, ATTN_NORM, 0, PITCH_NORM );
+	gEngfuncs.pEventAPI->EV_PlaySound( idx, origin, CHAN_ITEM, "weapons/glauncher.wav", 0.7, ATTN_NORM, 0, PITCH_NORM );
+
+	//Only play the weapon anims if I shot it.
+	if ( EV_IsLocal( idx ) )
+	{
+		gEngfuncs.pEventAPI->EV_WeaponAnimation( NUKE_FIRE2, 1 );
+
+		V_PunchAxis(0, gEngfuncs.pfnRandomFloat(-10.0, -15.0) );
+		V_PunchAxis(1, gEngfuncs.pfnRandomFloat(-7.0, -10.0)); //yaw, - = right
+		V_PunchAxis(2, gEngfuncs.pfnRandomFloat(7.0, 10.0)); //roll, - = left
 	}
 }
 
