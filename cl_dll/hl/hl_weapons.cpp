@@ -82,6 +82,7 @@ CWrench g_Wrench;
 CSnowball g_Snowball;
 CChainsaw g_Chainsaw;
 C12Gauge g_12Gauge;
+CNuke g_Nuke;
 
 /*
 ======================
@@ -656,6 +657,7 @@ void HUD_InitClientWeapons( void )
 	HUD_PrepEntity( &g_Snowball	, &player );
 	HUD_PrepEntity( &g_Chainsaw	, &player );
 	HUD_PrepEntity( &g_12Gauge	, &player );
+	HUD_PrepEntity( &g_Nuke	, &player );
 }
 
 /*
@@ -839,6 +841,10 @@ void HUD_WeaponsPostThink( local_state_s *from, local_state_s *to, usercmd_t *cm
 
 		case WEAPON_12GAUGE:
 			pWeapon = &g_12Gauge;
+			break;
+
+		case WEAPON_NUKE:
+			pWeapon = &g_Nuke;
 			break;
 	}
 

@@ -466,6 +466,11 @@ cvar_t	sk_plr_chainsaw1 = {"sk_plr_chainsaw1","0"};
 cvar_t	sk_plr_chainsaw2 = {"sk_plr_chainsaw2","0"};
 cvar_t	sk_plr_chainsaw3 = {"sk_plr_chainsaw3","0"};
 
+// Nuke
+cvar_t	sk_plr_nuke1 = {"sk_plr_nuke1","0"};
+cvar_t	sk_plr_nuke2 = {"sk_plr_nuke2","0"};
+cvar_t	sk_plr_nuke3 = {"sk_plr_nuke3","0"};
+
 // WORLD WEAPONS
 cvar_t	sk_12mm_bullet1 = {"sk_12mm_bullet1","0"};
 cvar_t	sk_12mm_bullet2 = {"sk_12mm_bullet2","0"};
@@ -1003,6 +1008,11 @@ void GameDLLInit( void )
 	CVAR_REGISTER ( &sk_plr_chainsaw1 );
 	CVAR_REGISTER ( &sk_plr_chainsaw2 );
 	CVAR_REGISTER ( &sk_plr_chainsaw3 );
+
+	// Nuke
+	CVAR_REGISTER ( &sk_plr_nuke1 );
+	CVAR_REGISTER ( &sk_plr_nuke2 );
+	CVAR_REGISTER ( &sk_plr_nuke3 );
 
 	// WORLD WEAPONS
 	CVAR_REGISTER ( &sk_12mm_bullet1 );// {"sk_12mm_bullet1","0"};

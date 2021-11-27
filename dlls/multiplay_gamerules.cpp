@@ -210,6 +210,9 @@ void CHalfLifeMultiplay::RefreshSkillData( void )
 
 	// Chainsaw
 	gSkillData.plrDmgChainsaw = 150;
+
+	// Nuke
+	gSkillData.plrDmgNuke = 250;
 }
 
 // longest the intermission can last, in seconds
