@@ -17,6 +17,7 @@
 
 #include "particleman.h"
 extern IParticleMan *g_pParticleMan;
+extern cvar_t *cl_announcehumor;
 
 void Game_AddObjects( void );
 
@@ -368,6 +369,12 @@ void CL_DLLEXPORT HUD_StudioEvent( const struct mstudioevent_s *event, const str
 		break;
 	// Client side sound
 	case 5004:		
+		gEngfuncs.pfnPlaySoundByNameAtLocation( (char *)event->options, 1.0, (float *)&entity->attachment[0] );
+		break;
+	case 5005:
+		if (cl_announcehumor && !cl_announcehumor->value) {
+			return;
+		}
 		gEngfuncs.pfnPlaySoundByNameAtLocation( (char *)event->options, 1.0, (float *)&entity->attachment[0] );
 		break;
 	default:

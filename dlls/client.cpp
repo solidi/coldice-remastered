@@ -657,7 +657,8 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "Weapon Fidget - \"cl_weaponfidget 1\"\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "Use ironsights - \"+ironsight\"\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "Play buzzer/bell for frag - \"cl_playpoint 1\"\n" );
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "For more information, see the ReadMe.\n" );
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "Play announcement/humor on weapons - \"cl_announcehumor 1\"\n" );
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "For more information, see readme.txt\n" );
 	}
 	else if ( g_pGameRules->ClientCommand( GetClassPtr((CBasePlayer *)pev), pcmd ) )
 	{

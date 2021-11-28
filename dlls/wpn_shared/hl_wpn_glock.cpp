@@ -112,14 +112,15 @@ void CGlock::Holster( int skiplocal )
 void CGlock::SecondaryAttack( void )
 {
 	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + UTIL_SharedRandomFloat( m_pPlayer->random_seed, 10, 15 );
-	m_flNextPrimaryAttack = m_flNextSecondaryAttack = GetNextAttackDelay(3.2);
+	m_flNextPrimaryAttack = m_flNextSecondaryAttack = GetNextAttackDelay(2.0);
 	SetThink( &CGlock::AddSilencer );
-	pev->nextthink = gpGlobals->time + 2.0f;
-	SendWeaponAnim( GLOCK_ADD_SILENCER );
+	pev->nextthink = gpGlobals->time + 2.5f;
 
 	if (m_iSilencer) {
+		SendWeaponAnim( GLOCK_HOLSTER );
 		m_iSilencer = 0;
 	} else {
+		SendWeaponAnim( GLOCK_ADD_SILENCER );
 		m_iSilencer = 1;
 	}
 }
