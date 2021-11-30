@@ -323,7 +323,7 @@ void CCannon::Holster( int skiplocal /* = 0 */ )
 	SendWeaponAnim( CANNON_HOLSTER1 );
 }
 
-void CCannon::PrimaryAttack()
+void CCannon::SecondaryAttack()
 {
 	if ( m_pPlayer->m_rgAmmo[ m_iPrimaryAmmoType ] )
 	{
@@ -353,7 +353,7 @@ void CCannon::PrimaryAttack()
 
 		m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType]--;
 
-		m_flNextPrimaryAttack = GetNextAttackDelay(0.75);
+		m_flNextPrimaryAttack = m_flNextSecondaryAttack = GetNextAttackDelay(0.75);
 		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 1.5;
 	}
 	else
@@ -362,7 +362,7 @@ void CCannon::PrimaryAttack()
 	}
 }
 
-void CCannon::SecondaryAttack()
+void CCannon::PrimaryAttack()
 {
 	if ( m_pPlayer->m_rgAmmo[ m_iPrimaryAmmoType ] )
 	{
@@ -403,7 +403,7 @@ void CCannon::SecondaryAttack()
 
 		m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType]--;
 
-		m_flNextSecondaryAttack = GetNextAttackDelay(0.75);
+		m_flNextPrimaryAttack = m_flNextSecondaryAttack = GetNextAttackDelay(0.75);
 		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 1.5;
 	}
 	else
