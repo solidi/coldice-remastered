@@ -646,6 +646,20 @@ void CHalfLifeMultiplay :: PlayerSpawn( CBasePlayer *pPlayer )
 
 	if ( addDefault )
 	{
+		// Give a random melee on every spawn
+		int whichWeapon = RANDOM_LONG(0,3);
+		char *meleeWeapon;
+		if (!whichWeapon) {
+			meleeWeapon = "weapon_crowbar";
+		} else if (whichWeapon == 1) {
+			meleeWeapon = "weapon_knife";
+		} else if (whichWeapon == 2) {
+			meleeWeapon = "weapon_wrench";
+		} else {
+			meleeWeapon = "weapon_chainsaw";
+		}
+		pPlayer->GiveNamedItem(STRING(ALLOC_STRING(meleeWeapon)));
+
 		char *pWeaponName;
 		char list[1024];
 		strcpy(list, spawnweaponlist.string);
@@ -653,7 +667,8 @@ void CHalfLifeMultiplay :: PlayerSpawn( CBasePlayer *pPlayer )
 		pWeaponName = strtok( pWeaponName, ";" );
 		while ( pWeaponName != NULL && *pWeaponName )
 		{
-			pPlayer->GiveNamedItem(STRING(ALLOC_STRING( pWeaponName )));
+			if (!FStrEq(meleeWeapon, pWeaponName))
+				pPlayer->GiveNamedItem(STRING(ALLOC_STRING( pWeaponName )));
 			pWeaponName = strtok( NULL, ";" );
 		}
 		pPlayer->GiveAmmo( 68, "9mm", _9MM_MAX_CARRY );// 4 full reloads
