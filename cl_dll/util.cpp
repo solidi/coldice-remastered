@@ -32,6 +32,8 @@
 
 vec3_t vec3_origin( 0, 0, 0 );
 
+extern cvar_t *m_pIceModels;
+
 double sqrt(double x);
 
 float Length(const float *v)
@@ -129,5 +131,13 @@ HSPRITE LoadSprite(const char *pszName)
 	sprintf(sz, pszName, i);
 
 	return SPR_Load(sz);
+}
+
+unsigned long HudColor()
+{
+	if (m_pIceModels && m_pIceModels->value)
+		return RGB_BLUEISH;
+
+	return RGB_YELLOWISH;
 }
 

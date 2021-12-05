@@ -137,7 +137,7 @@ int CHudScoreboard :: Draw( float fTime )
 	int	xpos = NAME_RANGE_MIN + xpos_rel;
 
 	int r, g, b;
-	UnpackRGB(r, g, b, RGB_BLUEISH);
+	UnpackRGB(r, g, b, HudColor());
 
 	if ( !gHUD.m_Teamplay ) 
 		gHUD.DrawHudString( xpos, ypos, NAME_RANGE_MAX + xpos_rel, "Player", r, g, b );
@@ -289,7 +289,7 @@ int CHudScoreboard :: Draw( float fTime )
 		static char buf[64];
 		sprintf( buf, "%d", team_info->ping );
 		xpos = ((PING_RANGE_MAX - PING_RANGE_MIN) / 2) + PING_RANGE_MIN + xpos_rel + 25;
-		UnpackRGB( r, g, b, RGB_BLUEISH );
+		UnpackRGB( r, g, b, HudColor() );
 		gHUD.DrawHudStringReverse( xpos, ypos, xpos - 50, buf, r, g, b );
 
 	//  Packetloss removed on Kelly 'shipping nazi' Bailey's orders

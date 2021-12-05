@@ -44,6 +44,7 @@ cvar_t *cl_weaponfidget;
 cvar_t *cl_playpoint;
 cvar_t *cl_glasshud;
 cvar_t *cl_announcehumor;
+cvar_t *m_pIceModels;
 
 cvar_t *cl_vmx;
 cvar_t *cl_vmy;

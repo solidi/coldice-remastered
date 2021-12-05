@@ -78,6 +78,8 @@ public:
 	virtual void Reset(void) {return;}
 	virtual void InitHUDData( void ) {}		// called every time a server is connected to
 
+	cvar_t *m_pIceModels;
+
 };
 
 struct HUDLIST {

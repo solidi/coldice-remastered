@@ -132,7 +132,7 @@ int CHudDeathNotice :: Draw( float flTime )
 				x = 5 + DrawConsoleString( x, y, rgDeathNoticeList[i].szKiller );
 			}
 
-			UnpackRGB( r, g, b, RGB_BLUEISH );
+			UnpackRGB( r, g, b, HudColor() );
 			if ( rgDeathNoticeList[i].iTeamKill )
 			{
 				r = 10;	g = 240; b = 10;  // display it in sickly green

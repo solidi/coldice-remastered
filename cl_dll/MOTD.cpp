@@ -108,7 +108,7 @@ int CHudMOTD :: Draw( float fTime )
 		int xpos = (ScreenWidth - line_length) / 2;
 
 		int r, g, b;
-		UnpackRGB(r, g, b, RGB_BLUEISH);
+		UnpackRGB(r, g, b, HudColor());
 		gHUD.DrawHudString( xpos, ypos, ScreenWidth, ch, r, g, b );
 
 		ypos += LINE_HEIGHT;
