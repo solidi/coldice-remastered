@@ -1018,7 +1018,7 @@ void CLabelHeader::paintBackground()
 	if (gViewPort->GetScoreBoard()->m_iHighlightRow == _row)
 	{
 		int r, g, b;
-		UnpackRGB(r, g, b, RGB_BLUEISH);
+		UnpackRGB(r, g, b, HudColor());
 		setBgColor(r, g, b, 0);
 	}
 

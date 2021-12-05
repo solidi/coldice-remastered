@@ -80,7 +80,7 @@ CMessageWindowPanel::CMessageWindowPanel( const char *szMOTD, const char *szTitl
 	// Create the window
 	m_pBackgroundPanel = new CTransparentPanel( iShadeFullscreen ? 255 : 100, MOTD_WINDOW_X, MOTD_WINDOW_Y, MOTD_WINDOW_SIZE_X, MOTD_WINDOW_SIZE_Y );
 	m_pBackgroundPanel->setParent( this );
-	UnpackRGB(r, g, b, RGB_BLUEISH);
+	UnpackRGB(r, g, b, HudColor());
 	m_pBackgroundPanel->setBorder( new LineBorder( Color(r, g, b, 0)) );
 	m_pBackgroundPanel->setVisible( true );
 
@@ -144,7 +144,7 @@ CMessageWindowPanel::CMessageWindowPanel( const char *szMOTD, const char *szTitl
 
 	ColorButton *pButton = new ColorButton( CHudTextMessage::BufferedLocaliseTextString( "#Menu_OK" ), iXPos + XRES(16), iYPos + iYSize - YRES(16) - BUTTON_SIZE_Y, CMENU_SIZE_X, BUTTON_SIZE_Y, FALSE, TRUE);
 	pButton->addActionSignal(new CMenuHandler_TextWindow(HIDE_TEXTWINDOW));
-	UnpackRGB(r, g, b, RGB_BLUEISH);
+	UnpackRGB(r, g, b, HudColor());
 	pButton->setUnArmedBorderColor ( r, g, b, 48 );
 	pButton->setArmedBorderColor ( r, g, b, 0 );
 	pButton->setParent(this);

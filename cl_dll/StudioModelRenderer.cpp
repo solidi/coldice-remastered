@@ -23,6 +23,7 @@
 #include "GameStudioModelRenderer.h"
 
 extern cvar_t *tfc_newmodels;
+extern cvar_t *m_pIceModels;
 
 extern extra_player_info_t  g_PlayerExtraInfo[MAX_PLAYERS+1];
 

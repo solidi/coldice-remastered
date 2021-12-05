@@ -122,7 +122,6 @@ public:
 	// Draw entities bone hit boxes, etc?
 	cvar_t			*m_pCvarDrawEntities;
 
-	cvar_t			*m_pIceModels;
 	cvar_t			*m_pCvarRighthand;
 
 	// The entity which we are currently rendering.
