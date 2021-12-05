@@ -642,23 +642,23 @@ void ClientCommand( edict_t *pEntity )
 	else if ( FStrEq( pcmd, "help" )  )	// follow next player
 	{
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "[Help Menu]\n");
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "Deploy hook - \"+hook\"\n");
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "Drop rune - \"drop_rune\"\n");
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "Ice Models - \"cl_icemodels 1\n");
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "Old Scoreboard - \"cl_oldscoreboard 1\"\n");
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "Old MOTD (Message of the Day) - \"cl_oldmotd 1\"\n");
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "Old View Roll - \"cl_viewroll 1\"\n");
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "Old Bob Tilt - \"cl_bobtilt 1\"\n");
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "Right Hand Models - \"cl_righthand 1\"\n");
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "Bullet Smoke - \"cl_bulletsmoke 1\"\n");
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "Gun Smoke - \"cl_gunsmoke 1\"\n");
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "Glass Hud - \"cl_glasshud 1\"\n");
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "Weapon Sway - \"cl_weaponsway 1\"\n");
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "Weapon Fidget - \"cl_weaponfidget 1\"\n");
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "Use ironsights - \"+ironsight\"\n");
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "Play buzzer/bell for frag - \"cl_playpoint 1\"\n" );
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "Play announcement/humor on weapons - \"cl_announcehumor 1\"\n" );
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "For more information, see readme.txt\n" );
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"+hook\" - Deploy hook\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"+ironsight\" - Use ironsights\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"drop_rune\" - Drop rune\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_icemodels 1\" - Ice Models\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_oldscoreboard 1\" - Old Scoreboard\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_oldmotd 1\" - Old MOTD (Message of the Day)\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_viewroll 1\" - Old View Roll\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_bobtilt 1\" - Old Bob Tilt\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_righthand 1\" - Right/Left Handed Models\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_bulletsmoke 1\" - Bullet Smoke\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_gunsmoke 1\" - Gun Smoke\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_glasshud 1\" - Glass Hud\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_weaponsway 1\" - Weapon Sway\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_weaponfidget 1\" - Weapon Fidget\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_playpoint 1\" - Play buzzer/bell for frag\n" );
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_announcehumor 1\" - Play announcement/humor on weapons\n" );
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "For more, see readme.txt\n" );
 	}
 	else if ( g_pGameRules->ClientCommand( GetClassPtr((CBasePlayer *)pev), pcmd ) )
 	{
