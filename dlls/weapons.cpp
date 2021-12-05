@@ -148,10 +148,14 @@ SpawnBlood
 */
 void SpawnBlood(Vector vecSpot, int bloodColor, float flDamage)
 {
-	UTIL_BloodDrips( vecSpot, g_vecAttackDir, bloodColor, (int)flDamage );
-	UTIL_BloodStream(vecSpot, g_vecAttackDir, bloodColor, (int)flDamage * 2 );
-	UTIL_BloodStream(vecSpot, g_vecAttackDir, bloodColor, (int)flDamage * 3 );
-	UTIL_BloodStream(vecSpot, g_vecAttackDir, bloodColor, (int)flDamage * 4 );
+	int max = moreblood.value > 5 ? 5 : moreblood.value;
+	max = moreblood.value < 1 ? 1 : moreblood.value;
+
+	UTIL_BloodDrips( vecSpot, g_vecAttackDir, bloodColor, (int)flDamage * max );
+
+	for (int i = 1; i <= max; i++) {
+		UTIL_BloodStream(vecSpot, g_vecAttackDir, bloodColor, (int)flDamage * i);
+	}
 }
 
 
@@ -675,19 +679,24 @@ void CBasePlayerItem :: CheckRespawn ( void )
 CBaseEntity* CBasePlayerItem::Respawn( void )
 {
 	CBaseEntity *pNewWeapon = NULL;
-	const char* weaponsList[] = {
+	const char* weaponsList[][8] = {
+		{
 		// swing
 		"weapon_crowbar",
 		"weapon_knife",
 		"weapon_wrench",
-		"weapon_chainsaw",
+		"weapon_chainsaw"
+		},
 
+		{
 		// hand
 		"weapon_9mmhandgun",
 		"weapon_python",
 		"weapon_mag60",
-		"weapon_smg",
+		"weapon_smg"
+		},
 
+		{
 		// long
 		"weapon_9mmAR",
 		"weapon_12gauge",
@@ -696,16 +705,20 @@ CBaseEntity* CBasePlayerItem::Respawn( void )
 		"weapon_sniperrifle",
 		"weapon_chaingun",
 		"weapon_glauncher",
-		"weapon_usas",
+		"weapon_usas"
+		},
 
+		{
 		// heavy
 		"weapon_rpg",
 		"weapon_railgun",
 		"weapon_cannon",
 		"weapon_gauss",
 		"weapon_egon",
-		"weapon_nuke",
+		"weapon_nuke"
+		},
 
+		{
 		// loose
 		"weapon_snowball",
 		"weapon_handgrenade",
@@ -713,19 +726,22 @@ CBaseEntity* CBasePlayerItem::Respawn( void )
 		"weapon_tripmine",
 		"weapon_snark",
 		"weapon_chumtoad",
-		"weapon_vest",
+		"weapon_vest"
+		}
 	};
 
-	for (int i = 0; i < ARRAYSIZE(weaponsList); i++) {
-		if (FStrEq(STRING(pev->classname), weaponsList[i])) {
-			ALERT ( at_aiconsole, "Found %s to change...\n", weaponsList[i] );
-			const char *name = weaponsList[RANDOM_LONG(0, ARRAYSIZE(weaponsList) - 1)];
-			pNewWeapon = CBaseEntity::Create((char *)STRING(ALLOC_STRING(name)), g_pGameRules->VecWeaponRespawnSpot(this), pev->angles, pev->owner );
-			ALERT ( at_aiconsole, "Replaced name with %s!\n", name );
-		}
+	for (int g = 0; g < 5; g++) {
+		for (int i = 0; i < ARRAYSIZE(weaponsList[g]); i++) {
+			if (weaponsList[g][i] != NULL && FStrEq(STRING(pev->classname), weaponsList[g][i])) {
+				ALERT ( at_aiconsole, "Found %s to change...\n", weaponsList[g][i] );
+				const char *name = weaponsList[g][RANDOM_LONG(0, g - 1)];
+				pNewWeapon = CBaseEntity::Create((char *)STRING(ALLOC_STRING(name)), g_pGameRules->VecWeaponRespawnSpot(this), pev->angles, pev->owner );
+				ALERT ( at_aiconsole, "Replaced name with %s!\n", name );
+			}
 
-		if (pNewWeapon) {
-			break;
+			if (pNewWeapon) {
+				break;
+			}
 		}
 	}
 
