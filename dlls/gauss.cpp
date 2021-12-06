@@ -120,6 +120,7 @@ int CGauss::GetItemInfo(ItemInfo *p)
 	p->iId = m_iId = WEAPON_GAUSS;
 	p->iFlags = 0;
 	p->iWeight = GAUSS_WEIGHT;
+	p->pszDisplayName = "Gauss";
 
 	return 1;
 }

@@ -1069,9 +1069,9 @@ void EV_FireGauss( event_args_t *args )
 				0,
 				0,
 				0,
-				m_fPrimaryFire ? 255 : 255,
-				m_fPrimaryFire ? 128 : 255,
-				m_fPrimaryFire ? 0 : 255
+				m_fPrimaryFire ? 0 : 255,
+				m_fPrimaryFire ? 160 : 255,
+				m_fPrimaryFire ? 255 : 255
 			);
 		}
 		else
@@ -1086,9 +1086,9 @@ void EV_FireGauss( event_args_t *args )
 				0,
 				0,
 				0,
-				m_fPrimaryFire ? 255 : 255,
-				m_fPrimaryFire ? 128 : 255,
-				m_fPrimaryFire ? 0 : 255
+				m_fPrimaryFire ? 0 : 255,
+				m_fPrimaryFire ? 160 : 255,
+				m_fPrimaryFire ? 255 : 255
 			);
 		}
 

@@ -1759,6 +1759,10 @@ BOOL CWeaponBox::PackWeapon( CBasePlayerItem *pWeapon )
 		{
 			SET_MODEL( ENT(pev), "models/w_nuke.mdl");
 		}
+		else if (pWeapon->m_iId == WEAPON_GAUSS)
+		{
+			SET_MODEL( ENT(pev), "models/w_gauss.mdl");
+		}
 
 		pev->sequence = 1;
 		pev->animtime = gpGlobals->time;
