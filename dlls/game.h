@@ -48,6 +48,8 @@ extern cvar_t	holsterweapons;
 extern cvar_t   floatingweapons;
 extern cvar_t	iceblood;
 extern cvar_t   infiniteammo;
+extern cvar_t   moreblood;
+extern cvar_t   startwithall;
 
 // Engine Cvars
 extern cvar_t	*g_psv_gravity;

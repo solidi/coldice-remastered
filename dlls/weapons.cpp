@@ -148,10 +148,14 @@ SpawnBlood
 */
 void SpawnBlood(Vector vecSpot, int bloodColor, float flDamage)
 {
-	UTIL_BloodDrips( vecSpot, g_vecAttackDir, bloodColor, (int)flDamage );
-	UTIL_BloodStream(vecSpot, g_vecAttackDir, bloodColor, (int)flDamage * 2 );
-	UTIL_BloodStream(vecSpot, g_vecAttackDir, bloodColor, (int)flDamage * 3 );
-	UTIL_BloodStream(vecSpot, g_vecAttackDir, bloodColor, (int)flDamage * 4 );
+	int max = moreblood.value > 5 ? 5 : moreblood.value;
+	max = moreblood.value < 1 ? 1 : moreblood.value;
+
+	UTIL_BloodDrips( vecSpot, g_vecAttackDir, bloodColor, (int)flDamage * max );
+
+	for (int i = 1; i <= max; i++) {
+		UTIL_BloodStream(vecSpot, g_vecAttackDir, bloodColor, (int)flDamage * i);
+	}
 }
 
 

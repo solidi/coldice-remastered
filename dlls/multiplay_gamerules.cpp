@@ -644,6 +644,11 @@ void CHalfLifeMultiplay :: PlayerSpawn( CBasePlayer *pPlayer )
 		addDefault = FALSE;
 	}
 
+	if (startwithall.value) {
+		pPlayer->CheatImpulseCommands(101);
+		return;
+	}
+
 	if ( addDefault )
 	{
 		// Give a random melee on every spawn
