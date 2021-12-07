@@ -47,7 +47,8 @@ CFLAGS=$(BASE_CFLAGS)  $(ARCH_CFLAGS) $(DEBUG_CFLAGS) -DCLIENT_WEAPONS \
 		 -DM16 \
 		 -DEGON \
 		 -DSHOTGUN \
-		 -DNUKE
+		 -DNUKE \
+		 -DGAUSS
 
 #-O3 -ffast-math -fno-strength-reduce
 

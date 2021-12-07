@@ -41,7 +41,9 @@ enum gauss_e {
 	GAUSS_DRAW
 };
 
+#ifdef GAUSS
 LINK_ENTITY_TO_CLASS( weapon_gauss, CGauss );
+#endif
 
 float CGauss::GetFullChargeTime( void )
 {
