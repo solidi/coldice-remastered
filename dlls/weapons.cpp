@@ -1763,6 +1763,10 @@ BOOL CWeaponBox::PackWeapon( CBasePlayerItem *pWeapon )
 		{
 			SET_MODEL( ENT(pev), "models/w_gauss.mdl");
 		}
+		else if (pWeapon->m_iId == WEAPON_HORNETGUN)
+		{
+			SET_MODEL( ENT(pev), "models/w_hgun.mdl");
+		}
 
 		pev->sequence = 1;
 		pev->animtime = gpGlobals->time;
