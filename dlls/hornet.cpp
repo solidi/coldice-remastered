@@ -90,7 +90,7 @@ void CHornet :: Spawn( void )
 		m_flFlySpeed = HORNET_ORANGE_SPEED;
 	}
 
-	SET_MODEL(ENT( pev ), "models/hornet.mdl");
+	SET_MODEL(ENT( pev ), "models/w_hornet.mdl");
 	UTIL_SetSize( pev, Vector( -4, -4, -4 ), Vector( 4, 4, 4 ) );
 
 	SetTouch( &CHornet::DieTouch );
@@ -117,7 +117,7 @@ void CHornet :: Spawn( void )
 
 void CHornet :: Precache()
 {
-	PRECACHE_MODEL("models/hornet.mdl");
+	PRECACHE_MODEL("models/w_hornet.mdl");
 
 	PRECACHE_SOUND( "agrunt/ag_fire1.wav" );
 	PRECACHE_SOUND( "agrunt/ag_fire2.wav" );
@@ -227,14 +227,14 @@ old colors
 		switch ( m_iHornetType )
 		{
 		case HORNET_TYPE_RED:
-			WRITE_BYTE( 179 );   // r, g, b
-			WRITE_BYTE( 39 );   // r, g, b
-			WRITE_BYTE( 14 );   // r, g, b
+			WRITE_BYTE( 0 );   // r, g, b
+			WRITE_BYTE( 130 );   // r, g, b
+			WRITE_BYTE( 255 );   // r, g, b
 			break;
 		case HORNET_TYPE_ORANGE:
-			WRITE_BYTE( 255 );   // r, g, b
-			WRITE_BYTE( 128 );   // r, g, b
 			WRITE_BYTE( 0 );   // r, g, b
+			WRITE_BYTE( 160 );   // r, g, b
+			WRITE_BYTE( 255 );   // r, g, b
 			break;
 		}
 

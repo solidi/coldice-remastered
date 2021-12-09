@@ -1692,7 +1692,9 @@ void EV_HornetGunFire( event_args_t *args )
 	//Only play the weapon anims if I shot it.
 	if ( EV_IsLocal( idx ) )
 	{
-		V_PunchAxis( 0, gEngfuncs.pfnRandomLong ( 0, 2 ) );
+		V_PunchAxis(PITCH, gEngfuncs.pfnRandomFloat(-2, 2));
+		V_PunchAxis(YAW, gEngfuncs.pfnRandomFloat(-2.0, -2.0)); //yaw, - = right
+		V_PunchAxis(ROLL, gEngfuncs.pfnRandomFloat(2.0, 4.0)); //roll, - = left
 		gEngfuncs.pEventAPI->EV_WeaponAnimation ( HGUN_SHOOT, 1 );
 	}
 
