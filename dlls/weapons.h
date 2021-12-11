@@ -1170,6 +1170,7 @@ public:
 
 private:
 	unsigned short m_usSnarkFire;
+	unsigned short m_usSnarkRelease;
 };
 
 class CVest : public CBasePlayerWeapon

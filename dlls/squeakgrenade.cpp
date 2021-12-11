@@ -37,7 +37,8 @@ enum squeak_e {
 	SQUEAK_FIDGETNIP,
 	SQUEAK_DOWN,
 	SQUEAK_UP,
-	SQUEAK_THROW
+	SQUEAK_THROW,
+	SQUEAK_RELEASE
 };
 
 #ifndef CLIENT_DLL
@@ -439,6 +440,7 @@ void CSqueak::Precache( void )
 	UTIL_PrecacheOther("monster_snark");
 
 	m_usSnarkFire = PRECACHE_EVENT ( 1, "events/snarkfire.sc" );
+	m_usSnarkRelease = PRECACHE_EVENT ( 1, "events/snarkrelease.sc" );
 }
 
 
@@ -554,18 +556,73 @@ void CSqueak::PrimaryAttack()
 
 			m_fJustThrown = 1;
 
-			m_flNextPrimaryAttack = GetNextAttackDelay(0.3);
+			m_flNextPrimaryAttack = m_flNextSecondaryAttack = GetNextAttackDelay(0.3);
 			m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 1.0;
 		}
 	}
 }
 
 
-void CSqueak::SecondaryAttack( void )
+void CSqueak::SecondaryAttack()
 {
+	if ( m_pPlayer->m_rgAmmo[ m_iPrimaryAmmoType ] )
+	{
+		UTIL_MakeVectors( m_pPlayer->pev->v_angle );
+		TraceResult tr;
+		Vector trace_origin;
 
+		// HACK HACK:  Ugly hacks to handle change in origin based on new physics code for players
+		// Move origin up if crouched and start trace a bit outside of body ( 20 units instead of 16 )
+		trace_origin = m_pPlayer->pev->origin;
+		if ( m_pPlayer->pev->flags & FL_DUCKING )
+		{
+			trace_origin = trace_origin - ( VEC_HULL_MIN - VEC_DUCK_HULL_MIN );
+		}
+
+		// find place to toss monster
+		UTIL_TraceLine( trace_origin + gpGlobals->v_forward * 20, trace_origin + gpGlobals->v_forward * 64, dont_ignore_monsters, NULL, &tr );
+
+	int flags;
+#ifdef CLIENT_WEAPONS
+	flags = FEV_NOTHOST;
+#else
+	flags = 0;
+#endif
+
+	    PLAYBACK_EVENT_FULL( flags, m_pPlayer->edict(), m_usSnarkRelease, 0.0, (float *)&g_vecZero, (float *)&g_vecZero, 0.0, 0.0, 0, 0, 0, 0 );
+
+		if ( tr.fAllSolid == 0 && tr.fStartSolid == 0 && tr.flFraction > 0.25 )
+		{
+			// player "shoot" animation
+			m_pPlayer->SetAnimation( PLAYER_ATTACK1 );
+
+#ifndef CLIENT_DLL
+			int dif = m_pPlayer->m_rgAmmo[ m_iPrimaryAmmoType ] * -10;
+			for (int i = 0; i < m_pPlayer->m_rgAmmo[ m_iPrimaryAmmoType ]; i++) {
+				CBaseEntity *pChumtoad = CBaseEntity::Create( "monster_snark", tr.vecEndPos + (gpGlobals->v_right * ((20 * i) + dif)), m_pPlayer->pev->v_angle, m_pPlayer->edict() );
+				pChumtoad->pev->velocity = gpGlobals->v_forward * 200 + m_pPlayer->pev->velocity;
+			}
+#endif
+
+			// play hunt sound
+			float flRndSound = RANDOM_FLOAT ( 0 , 1 );
+
+			if ( flRndSound <= 0.5 )
+				EMIT_SOUND_DYN(ENT(pev), CHAN_VOICE, "sqk_hunt2.wav", 1, ATTN_NORM, 0, 105);
+			else
+				EMIT_SOUND_DYN(ENT(pev), CHAN_VOICE, "sqk_hunt3.wav", 1, ATTN_NORM, 0, 105);
+
+			m_pPlayer->m_iWeaponVolume = QUIET_GUN_VOLUME;
+
+			m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] = 0;
+
+			m_fJustThrown = 1;
+
+			m_flNextPrimaryAttack = m_flNextSecondaryAttack = GetNextAttackDelay(0.3);
+			m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 1.0;
+		}
+	}
 }
-
 
 void CSqueak::WeaponIdle( void )
 {

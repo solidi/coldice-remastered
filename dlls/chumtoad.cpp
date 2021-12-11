@@ -537,7 +537,7 @@ void CChumtoad::PrimaryAttack()
 
 			m_fJustThrown = 1;
 
-			m_flNextPrimaryAttack = GetNextAttackDelay(0.3);
+			m_flNextPrimaryAttack = m_flNextSecondaryAttack = GetNextAttackDelay(0.3);
 			m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 1.0;
 		}
 	}
@@ -577,12 +577,9 @@ void CChumtoad::SecondaryAttack()
 			m_pPlayer->SetAnimation( PLAYER_ATTACK1 );
 
 #ifndef CLIENT_DLL
-			for (int i = 0; i < 4; i++) {
-				int j = 1;
-				if (i < 2) {
-					j = -1;
-				}
-				CBaseEntity *pChumtoad = CBaseEntity::Create( "monster_chumtoad", tr.vecEndPos + (gpGlobals->v_right * 20 * i * j), m_pPlayer->pev->v_angle, m_pPlayer->edict() );
+			int dif = m_pPlayer->m_rgAmmo[ m_iPrimaryAmmoType ] * -10;
+			for (int i = 0; i < m_pPlayer->m_rgAmmo[ m_iPrimaryAmmoType ]; i++) {
+				CBaseEntity *pChumtoad = CBaseEntity::Create( "monster_chumtoad", tr.vecEndPos + (gpGlobals->v_right * ((20 * i) + dif)), m_pPlayer->pev->v_angle, m_pPlayer->edict() );
 				pChumtoad->pev->velocity = gpGlobals->v_forward * 200 + m_pPlayer->pev->velocity;
 			}
 #endif
@@ -601,7 +598,7 @@ void CChumtoad::SecondaryAttack()
 
 			m_fJustThrown = 1;
 
-			m_flNextPrimaryAttack = GetNextAttackDelay(0.3);
+			m_flNextPrimaryAttack = m_flNextSecondaryAttack = GetNextAttackDelay(0.3);
 			m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 1.0;
 		}
 	}
