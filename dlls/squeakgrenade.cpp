@@ -409,8 +409,9 @@ void CSqueakGrenade::SuperBounceTouch( CBaseEntity *pOther )
 
 #endif
 
+#ifdef SNARK
 LINK_ENTITY_TO_CLASS( weapon_snark, CSqueak );
-
+#endif
 
 void CSqueak::Spawn( )
 {
@@ -454,6 +455,7 @@ int CSqueak::GetItemInfo(ItemInfo *p)
 	p->iId = m_iId = WEAPON_SNARK;
 	p->iWeight = SNARK_WEIGHT;
 	p->iFlags = ITEM_FLAG_LIMITINWORLD | ITEM_FLAG_EXHAUSTIBLE;
+	p->pszDisplayName = "Squeak Grenade";
 
 	return 1;
 }
