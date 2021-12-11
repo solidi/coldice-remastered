@@ -1767,6 +1767,10 @@ BOOL CWeaponBox::PackWeapon( CBasePlayerItem *pWeapon )
 		{
 			SET_MODEL( ENT(pev), "models/w_hgun.mdl");
 		}
+		else if (pWeapon->m_iId == WEAPON_SNARK)
+		{
+			SET_MODEL( ENT(pev), "models/w_sqknest.mdl");
+		}
 
 		pev->sequence = 1;
 		pev->animtime = gpGlobals->time;
