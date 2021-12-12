@@ -50,7 +50,7 @@ cvar_t	holsterweapons = {"mp_holsterweapons","1", FCVAR_SERVER };
 cvar_t	floatingweapons = {"mp_floatingweapons","1", FCVAR_SERVER };
 cvar_t	iceblood = {"mp_iceblood","1", FCVAR_SERVER };
 cvar_t	infiniteammo = {"mp_infiniteammo","0", FCVAR_SERVER };
-cvar_t	moreblood = {"mp_moreblood","0", FCVAR_SERVER };
+cvar_t	moreblood = {"mp_moreblood","2", FCVAR_SERVER };
 cvar_t	startwithall = {"mp_startwithall", "0", FCVAR_SERVER};
 
 cvar_t  allow_spectators = { "allow_spectators", "0.0", FCVAR_SERVER };		// 0 prevents players from being spectators
