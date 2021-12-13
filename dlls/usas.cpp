@@ -96,7 +96,7 @@ int CUsas::GetItemInfo(ItemInfo *p)
 	p->iMaxAmmo2 = -1;
 	p->iMaxClip = USAS_MAX_CLIP;
 	p->iSlot = 2;
-	p->iPosition = 7;
+	p->iPosition = 3;
 	p->iFlags = 0;
 	p->iId = m_iId = WEAPON_USAS;
 	p->iWeight = USAS_WEIGHT;

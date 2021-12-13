@@ -285,7 +285,7 @@ int CCannon::GetItemInfo(ItemInfo *p)
 	p->iMaxAmmo2 = -1;
 	p->iMaxClip = CANNON_MAX_CLIP;
 	p->iSlot = 3;
-	p->iPosition = 5;
+	p->iPosition = 6;
 	p->iId = m_iId = WEAPON_CANNON;
 	p->iFlags = 0;
 	p->iWeight = CANNON_WEIGHT;

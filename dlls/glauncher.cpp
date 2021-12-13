@@ -79,8 +79,8 @@ int CGrenadeLauncher::GetItemInfo(ItemInfo *p)
 	p->pszAmmo2 = NULL;
 	p->iMaxAmmo2 = -1;
 	p->iMaxClip = GLAUNCHER_MAX_CLIP;
-	p->iSlot = 2;
-	p->iPosition = 6;
+	p->iSlot = 3;
+	p->iPosition = 5;
 	p->iFlags = 0;
 	p->iId = m_iId = WEAPON_GLAUNCHER;
 	p->iWeight = GLAUNCHER_WEIGHT;

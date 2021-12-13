@@ -77,7 +77,7 @@ int CChaingun::GetItemInfo(ItemInfo *p)
 	p->iMaxAmmo2 = -1;
 	p->iMaxClip = CHAINGUN_MAX_CLIP;
 	p->iSlot = 2;
-	p->iPosition = 5;
+	p->iPosition = 6;
 	p->iFlags = 0;
 	p->iId = m_iId = WEAPON_CHAINGUN;
 	p->iWeight = CHAINGUN_WEIGHT;
