@@ -198,6 +198,7 @@ void CHalfLifeMultiplay::RefreshSkillData( void )
 
 	// Fists
 	gSkillData.plrDmgFists = 5;
+	gSkillData.plrDmgShoryuken = 100;
 
 	// Wrench
 	gSkillData.plrDmgWrench = 40;

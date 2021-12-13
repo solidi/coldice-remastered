@@ -447,6 +447,9 @@ cvar_t	sk_plr_flakbomb3 = {"sk_plr_flakbomb3","0"};
 cvar_t	sk_plr_fists1 = {"sk_plr_fists1","0"};
 cvar_t	sk_plr_fists2 = {"sk_plr_fists2","0"};
 cvar_t	sk_plr_fists3 = {"sk_plr_fists3","0"};
+cvar_t	sk_plr_shoryuken1 = {"sk_plr_shoryuken1","0"};
+cvar_t	sk_plr_shoryuken2 = {"sk_plr_shoryuken2","0"};
+cvar_t	sk_plr_shoryuken3 = {"sk_plr_shoryuken3","0"};
 
 // Wrench
 cvar_t	sk_plr_wrench1 = {"sk_plr_wrench1","0"};
@@ -992,6 +995,9 @@ void GameDLLInit( void )
 	CVAR_REGISTER ( &sk_plr_fists1 );
 	CVAR_REGISTER ( &sk_plr_fists2 );
 	CVAR_REGISTER ( &sk_plr_fists3 );
+	CVAR_REGISTER ( &sk_plr_shoryuken1 );
+	CVAR_REGISTER ( &sk_plr_shoryuken2 );
+	CVAR_REGISTER ( &sk_plr_shoryuken3 );
 
 	// Wrench
 	CVAR_REGISTER ( &sk_plr_wrench1 );

@@ -24,6 +24,7 @@
 
 #define	FISTS_BODYHIT_VOLUME 128
 #define	FISTS_WALLHIT_VOLUME 512
+#define SHORYUKEN 3
 
 #ifdef FISTS
 LINK_ENTITY_TO_CLASS( weapon_fists, CFists );
@@ -61,6 +62,7 @@ void CFists::Precache( void )
 	PRECACHE_SOUND("cbar_hitbod2.wav");
 	PRECACHE_SOUND("cbar_hitbod3.wav");
 	PRECACHE_SOUND("fists_miss.wav");
+	PRECACHE_SOUND("fists_shoryuken.wav");
 
 	m_usFists = PRECACHE_EVENT ( 1, "events/fists.sc" );
 }
@@ -113,6 +115,13 @@ void CFists::PrimaryAttack()
 	}
 }
 
+void CFists::SecondaryAttack()
+{
+	m_pPlayer->pev->velocity = m_pPlayer->pev->velocity + (gpGlobals->v_up * 300);
+	Swing( SHORYUKEN );
+	m_flNextSecondaryAttack = GetNextAttackDelay(1.0);
+}
+
 void CFists::Smack( )
 {
 	DecalGunshot( &m_trHit, BULLET_PLAYER_FIST );
@@ -153,7 +162,7 @@ int CFists::Swing( int fFirst )
 
 	PLAYBACK_EVENT_FULL( FEV_NOTHOST, m_pPlayer->edict(), m_usFists, 
 	0.0, (float *)&g_vecZero, (float *)&g_vecZero, 0, 0, 0,
-	0.0, 0, 0.0 );
+	0.0, fFirst == SHORYUKEN, 0.0 );
 
 	if ( tr.flFraction >= 1.0 )
 	{
@@ -169,14 +178,16 @@ int CFists::Swing( int fFirst )
 	}
 	else
 	{
-		switch( ((m_iSwing++) % 2) + 1 )
-		{
-		case 0:
-			SendWeaponAnim( FISTS_ATTACK1HIT ); break;
-		case 1:
-			SendWeaponAnim( FISTS_ATTACK2HIT ); break;
-		case 2:
-			SendWeaponAnim( FISTS_ATTACK3HIT ); break;
+		if (fFirst == SHORYUKEN) {
+			SendWeaponAnim( FISTS_ATTACK3HIT );
+		} else {
+			switch( ((m_iSwing++) % 2) )
+			{
+			case 0:
+				SendWeaponAnim( FISTS_ATTACK1HIT ); break;
+			case 1:
+				SendWeaponAnim( FISTS_ATTACK2HIT ); break;
+			}
 		}
 
 		// player "shoot" animation
@@ -193,12 +204,12 @@ int CFists::Swing( int fFirst )
 		if ( (m_flNextPrimaryAttack + 1 < UTIL_WeaponTimeBase() ) || g_pGameRules->IsMultiplayer() )
 		{
 			// first swing does full damage
-			pEntity->TraceAttack(m_pPlayer->pev, gSkillData.plrDmgFists, gpGlobals->v_forward, &tr, DMG_CLUB ); 
+			pEntity->TraceAttack(m_pPlayer->pev, fFirst == SHORYUKEN ? gSkillData.plrDmgShoryuken : gSkillData.plrDmgFists, gpGlobals->v_forward, &tr, DMG_CLUB );
 		}
 		else
 		{
 			// subsequent swings do half
-			pEntity->TraceAttack(m_pPlayer->pev, gSkillData.plrDmgFists / 2, gpGlobals->v_forward, &tr, DMG_CLUB ); 
+			pEntity->TraceAttack(m_pPlayer->pev, fFirst == SHORYUKEN ? gSkillData.plrDmgShoryuken : gSkillData.plrDmgFists / 2, gpGlobals->v_forward, &tr, DMG_CLUB );
 		}	
 		ApplyMultiDamage( m_pPlayer->pev, m_pPlayer->pev );
 
@@ -254,7 +265,7 @@ int CFists::Swing( int fFirst )
 
 		m_pPlayer->m_iWeaponVolume = flVol * FISTS_WALLHIT_VOLUME;
 #endif
-		m_flNextPrimaryAttack = GetNextAttackDelay(0.5);
+		m_flNextPrimaryAttack = m_flNextSecondaryAttack = GetNextAttackDelay(0.5);
 		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + UTIL_SharedRandomFloat( m_pPlayer->random_seed, 10, 15 );
 		
 		SetThink( &CFists::Smack );
