@@ -1624,6 +1624,11 @@ BOOL CWeaponBox::PackWeapon( CBasePlayerItem *pWeapon )
 		}
 	}
 
+	// Don't pack fists
+	if ( pWeapon->m_iId == WEAPON_FISTS ) {
+		return FALSE;
+	}
+
 	int iWeaponSlot = pWeapon->iItemSlot();
 	
 	if ( m_rgpPlayerItems[ iWeaponSlot ] )
