@@ -176,6 +176,8 @@ void CSnowball::Throw() {
 
 		// Do player weapon anim and sound effect.
 		m_pPlayer->SetAnimation( PLAYER_ATTACK1 );
+		m_pPlayer->pev->punchangle = Vector(-2, -2, -4);
+
 		EMIT_SOUND_DYN(ENT(m_pPlayer->pev), CHAN_WEAPON,
 			"snowball_throw.wav", 1, ATTN_NORM, 0,
 			94 + RANDOM_LONG(0,0xF));
@@ -252,6 +254,7 @@ void CSnowball::WeaponIdle( void )
 
 		// player "shoot" animation
 		m_pPlayer->SetAnimation( PLAYER_ATTACK1 );
+		m_pPlayer->pev->punchangle = Vector(-2, -2, -4);
 
 		m_flReleaseThrow = 0;
 		m_flStartThrow = 0;

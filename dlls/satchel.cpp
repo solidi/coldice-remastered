@@ -459,6 +459,7 @@ void CSatchel::Throw( void )
 
 		// player "shoot" animation
 		m_pPlayer->SetAnimation( PLAYER_ATTACK1 );
+		m_pPlayer->pev->punchangle = Vector(-4, -2, -4);
 
 		m_chargeReady = 1;
 		

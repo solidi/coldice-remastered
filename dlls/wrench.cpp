@@ -149,6 +149,7 @@ void CWrench::SecondaryAttack()
 {
 	if ( !m_flStartThrow ) {
 		SendWeaponAnim( WRENCH_PULL_BACK );
+		m_pPlayer->pev->punchangle = Vector(-2, -2, 0);
 		m_flStartThrow = 1;
 		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 0.5;
 	}
@@ -187,6 +188,8 @@ void CWrench::Throw() {
 
 		// Do player weapon anim and sound effect.
 		m_pPlayer->SetAnimation( PLAYER_ATTACK1 );
+		m_pPlayer->pev->punchangle = Vector(-4, -4, -6);
+
 		EMIT_SOUND_DYN(ENT(m_pPlayer->pev), CHAN_WEAPON,
 			"wrench_miss1.wav", 1, ATTN_NORM, 0,
 			94 + RANDOM_LONG(0,0xF));

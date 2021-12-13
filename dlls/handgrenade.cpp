@@ -120,6 +120,7 @@ void CHandGrenade::PrimaryAttack()
 		m_fireState = 0;
 
 		SendWeaponAnim( HANDGRENADE_PINPULL );
+		m_pPlayer->pev->punchangle = Vector(0, -3, 0);
 		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 0.5;
 	}
 }
@@ -133,6 +134,7 @@ void CHandGrenade::SecondaryAttack()
 		m_fireState = 1;
 
 		SendWeaponAnim( HANDGRENADE_PINPULL );
+		m_pPlayer->pev->punchangle = Vector(0, -3, 0);
 		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 0.5;
 	}
 }
@@ -190,6 +192,7 @@ void CHandGrenade::WeaponIdle( void )
 
 		// player "shoot" animation
 		m_pPlayer->SetAnimation( PLAYER_ATTACK1 );
+		m_pPlayer->pev->punchangle = Vector(-4, -2, -4);
 
 		m_flReleaseThrow = 0;
 		m_flStartThrow = 0;

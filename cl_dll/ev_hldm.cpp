@@ -553,7 +553,9 @@ void EV_FireGlock1( event_args_t *args )
 		EV_MuzzleFlash();
 		gEngfuncs.pEventAPI->EV_WeaponAnimation( empty ? GLOCK_SHOOT_EMPTY : GLOCK_SHOOT, 2 );
 
-		V_PunchAxis( 0, -2.0 );
+		V_PunchAxis(PITCH, gEngfuncs.pfnRandomFloat(-2.0, -4.0));
+		V_PunchAxis(YAW, gEngfuncs.pfnRandomFloat(-2.0, -4.0));
+		V_PunchAxis(ROLL, gEngfuncs.pfnRandomFloat(2.0, 4.0));
 	}
 
 	float fR = (m_pCvarRighthand->value != 0 ? -1 : 1) * gEngfuncs.pfnRandomFloat( 100, 150 );
@@ -612,7 +614,9 @@ void EV_FireGlock2( event_args_t *args )
 		EV_MuzzleFlash();
 		gEngfuncs.pEventAPI->EV_WeaponAnimation( empty ? GLOCK_SHOOT_EMPTY : GLOCK_SHOOT, 2 );
 
-		V_PunchAxis( 0, -2.0 );
+		V_PunchAxis(PITCH, gEngfuncs.pfnRandomFloat(-2.0, -4.0) );
+		V_PunchAxis(YAW, gEngfuncs.pfnRandomFloat(-2.0, -4.0));
+		V_PunchAxis(ROLL, gEngfuncs.pfnRandomFloat(2.0, 4.0));
 	}
 
 	float fR = (m_pCvarRighthand->value != 0 ? -1 : 1) * gEngfuncs.pfnRandomFloat( 100, 150 );
@@ -677,9 +681,9 @@ void EV_FireShotGunDouble( event_args_t *args )
 		// Add muzzle flash to current weapon model
 		EV_MuzzleFlash();
 		gEngfuncs.pEventAPI->EV_WeaponAnimation( SHOTGUN_FIRE2, 2 );
-		V_PunchAxis( 0, gEngfuncs.pfnRandomFloat(-10.0, -12.0) );
-		V_PunchAxis(1, gEngfuncs.pfnRandomFloat(-10.0, -12.0)); //yaw, - = right
-		V_PunchAxis(2, gEngfuncs.pfnRandomFloat(10.0, 12.0)); //roll, - = left
+		V_PunchAxis(PITCH, gEngfuncs.pfnRandomFloat(-10.0, -12.0) );
+		V_PunchAxis(YAW, gEngfuncs.pfnRandomFloat(-10.0, -12.0)); //yaw, - = right
+		V_PunchAxis(ROLL, gEngfuncs.pfnRandomFloat(10.0, 12.0)); //roll, - = left
 	}
 
 	for ( j = 0; j < 2; j++ )
@@ -741,9 +745,9 @@ void EV_FireShotGunSingle( event_args_t *args )
 		EV_MuzzleFlash();
 		gEngfuncs.pEventAPI->EV_WeaponAnimation( SHOTGUN_FIRE, 2 );
 
-		V_PunchAxis(0, gEngfuncs.pfnRandomFloat(-5.0, -7.0) );
-		V_PunchAxis(1, gEngfuncs.pfnRandomFloat(-5.0, -7.0)); //yaw, - = right
-		V_PunchAxis(2, gEngfuncs.pfnRandomFloat(5.0, 7.0)); //roll, - = left
+		V_PunchAxis(PITCH, gEngfuncs.pfnRandomFloat(-5.0, -7.0) );
+		V_PunchAxis(YAW, gEngfuncs.pfnRandomFloat(-5.0, -7.0)); //yaw, - = right
+		V_PunchAxis(ROLL, gEngfuncs.pfnRandomFloat(5.0, 7.0)); //roll, - = left
 	}
 
 	float fR = (m_pCvarRighthand->value != 0 ? -1 : 1) * gEngfuncs.pfnRandomFloat( 50, 70 );
@@ -807,9 +811,9 @@ void EV_FireMP5( event_args_t *args )
 		EV_MuzzleFlash();
 		gEngfuncs.pEventAPI->EV_WeaponAnimation( MP5_FIRE1 + gEngfuncs.pfnRandomLong(0,2), 2 );
 
-		V_PunchAxis( 0, gEngfuncs.pfnRandomFloat( -2, 2 ) );
-		V_PunchAxis(1, gEngfuncs.pfnRandomFloat(-2.0, -2.0)); //yaw, - = right
-		V_PunchAxis(2, gEngfuncs.pfnRandomFloat(2.0, 4.0)); //roll, - = left
+		V_PunchAxis(PITCH, gEngfuncs.pfnRandomFloat( -2, 2 ) );
+		V_PunchAxis(YAW, gEngfuncs.pfnRandomFloat(-2.0, -2.0)); //yaw, - = right
+		V_PunchAxis(ROLL, gEngfuncs.pfnRandomFloat(2.0, 4.0)); //roll, - = left
 	}
 
 	float fR = (m_pCvarRighthand->value != 0 ? -1 : 1) * gEngfuncs.pfnRandomFloat( 50, 70 );
@@ -862,8 +866,8 @@ void EV_FireMP52( event_args_t *args )
 	if ( EV_IsLocal( idx ) )
 	{
 		gEngfuncs.pEventAPI->EV_WeaponAnimation( MP5_LAUNCH, 2 );
-		V_PunchAxis( 0, -10 );
-		V_PunchAxis(1, gEngfuncs.pfnRandomFloat(8.0, 10.0)); //yaw, - = right
+		V_PunchAxis(PITCH, -10 );
+		V_PunchAxis(YAW, gEngfuncs.pfnRandomFloat(8.0, 10.0)); //yaw, - = right
 	}
 	
 	switch( gEngfuncs.pfnRandomLong( 0, 1 ) )
@@ -911,9 +915,9 @@ void EV_FirePython( event_args_t *args )
 		EV_MuzzleFlash();
 		gEngfuncs.pEventAPI->EV_WeaponAnimation( PYTHON_FIRE1, multiplayer ? 1 : 0 );
 
-		V_PunchAxis(0, gEngfuncs.pfnRandomFloat(-10.0, -15.0) );
-		V_PunchAxis(1, gEngfuncs.pfnRandomFloat(-3.0, -5.0)); //yaw, - = right
-		V_PunchAxis(2, gEngfuncs.pfnRandomFloat(3.0, 5.0)); //roll, - = left
+		V_PunchAxis(PITCH, gEngfuncs.pfnRandomFloat(-10.0, -15.0) );
+		V_PunchAxis(YAW, gEngfuncs.pfnRandomFloat(-3.0, -5.0)); //yaw, - = right
+		V_PunchAxis(ROLL, gEngfuncs.pfnRandomFloat(3.0, 5.0)); //roll, - = left
 	}
 
 	gEngfuncs.pEventAPI->EV_PlaySound( idx, origin, CHAN_WEAPON, "revolver_fire.wav", gEngfuncs.pfnRandomFloat(0.8, 0.9), ATTN_NORM, 0, PITCH_NORM );
@@ -1020,7 +1024,7 @@ void EV_FireGauss( event_args_t *args )
 
 	if ( EV_IsLocal( idx ) )
 	{
-		V_PunchAxis( 0, -2.0 );
+		V_PunchAxis(PITCH, -2.0 );
 		gEngfuncs.pEventAPI->EV_WeaponAnimation( GAUSS_FIRE2, 2 );
 
 		if ( m_fPrimaryFire == false )
@@ -1291,11 +1295,20 @@ void EV_Crowbar( event_args_t *args )
 		switch( (g_iSwing++) % 3 )
 		{
 			case 0:
-				gEngfuncs.pEventAPI->EV_WeaponAnimation ( CROWBAR_ATTACK1MISS, 1 ); break;
+				gEngfuncs.pEventAPI->EV_WeaponAnimation ( CROWBAR_ATTACK1MISS, 1 ); 
+				V_PunchAxis(YAW, gEngfuncs.pfnRandomFloat(-3.0, -5.0));
+				V_PunchAxis(ROLL, gEngfuncs.pfnRandomFloat(3.0, 5.0));
+				break;
 			case 1:
-				gEngfuncs.pEventAPI->EV_WeaponAnimation ( CROWBAR_ATTACK2MISS, 1 ); break;
+				gEngfuncs.pEventAPI->EV_WeaponAnimation ( CROWBAR_ATTACK2MISS, 1 ); 
+				V_PunchAxis(YAW, gEngfuncs.pfnRandomFloat(3.0, 5.0));
+				V_PunchAxis(ROLL, gEngfuncs.pfnRandomFloat(-3.0, -5.0));
+				break;
 			case 2:
-				gEngfuncs.pEventAPI->EV_WeaponAnimation ( CROWBAR_ATTACK3MISS, 1 ); break;
+				gEngfuncs.pEventAPI->EV_WeaponAnimation ( CROWBAR_ATTACK3MISS, 1 ); 
+				V_PunchAxis(YAW, gEngfuncs.pfnRandomFloat(-3.0, -5.0));
+				V_PunchAxis(ROLL, gEngfuncs.pfnRandomFloat(3.0, 5.0));
+				break;
 		}
 	}
 }
@@ -1479,7 +1492,9 @@ void EV_FireRpg( event_args_t *args )
 	{
 		gEngfuncs.pEventAPI->EV_WeaponAnimation( RPG_FIRE2, 1 );
 	
-		V_PunchAxis( 0, -5.0 );
+		V_PunchAxis(PITCH, gEngfuncs.pfnRandomFloat(-5.0, -7.0) );
+		V_PunchAxis(YAW, gEngfuncs.pfnRandomFloat(-2.0, -4.0));
+		V_PunchAxis(ROLL, gEngfuncs.pfnRandomFloat(2.0, 4.0));
 	}
 }
 
@@ -1499,7 +1514,9 @@ void EV_FireRpgExtreme( event_args_t *args )
 	{
 		gEngfuncs.pEventAPI->EV_WeaponAnimation( RPG_FIRE3, 1 );
 
-		V_PunchAxis( 0, -5.0 );
+		V_PunchAxis(PITCH, gEngfuncs.pfnRandomFloat(-7.0, -10.0) );
+		V_PunchAxis(YAW, gEngfuncs.pfnRandomFloat(-2.0, -4.0));
+		V_PunchAxis(ROLL, gEngfuncs.pfnRandomFloat(2.0, 4.0));
 	}
 }
 //======================
@@ -1569,8 +1586,10 @@ void EV_EgonFire( event_args_t *args )
 	}
 
 	//Only play the weapon anims if I shot it.
-	if ( EV_IsLocal( idx ) )
+	if ( EV_IsLocal( idx ) ) {
 		gEngfuncs.pEventAPI->EV_WeaponAnimation ( g_fireAnims1[ gEngfuncs.pfnRandomLong( 0, 3 ) ], 1 );
+		V_PunchAxis(PITCH, gEngfuncs.pfnRandomFloat(4.0, -4.0));
+	}
 
 	if ( iStartup == 1 && EV_IsLocal( idx ) && !pBeam && !pBeam2 && cl_lw->value ) //Adrian: Added the cl_lw check for those lital people that hate weapon prediction.
 	{
@@ -1623,8 +1642,9 @@ void EV_EgonFire( event_args_t *args )
 				r2 /= 100.0f;
 				g2 /= 100.0f;
 			}
-				
-		
+
+			V_PunchAxis(YAW, gEngfuncs.pfnRandomFloat(-4.0, 4.0));
+
 			pBeam = gEngfuncs.pEfxAPI->R_BeamEntPoint ( idx | 0x1000, tr.endpos, iBeamModelIndex, 99999, 3.5, amp, 0.7, 55, 0, 0, r, g, b );
 
 			if ( pBeam )
@@ -1757,8 +1777,10 @@ void EV_TripmineFire( event_args_t *args )
 	gEngfuncs.pEventAPI->EV_PlayerTrace( vecSrc, vecSrc + forward * 128, PM_NORMAL, -1, &tr );
 
 	//Hit something solid
-	if ( tr.fraction < 1.0 )
+	if ( tr.fraction < 1.0 ) {
 		 gEngfuncs.pEventAPI->EV_WeaponAnimation ( TRIPMINE_ARM2, 0 );
+		 V_PunchAxis(PITCH, gEngfuncs.pfnRandomFloat(-2.0, -4.0));
+	}
 	
 	gEngfuncs.pEventAPI->EV_PopPMStates();
 }
@@ -1809,8 +1831,10 @@ void EV_SnarkFire( event_args_t *args )
 	gEngfuncs.pEventAPI->EV_PlayerTrace( vecSrc + forward * 20, vecSrc + forward * 64, PM_NORMAL, -1, &tr );
 
 	//Find space to drop the thing.
-	if ( tr.allsolid == 0 && tr.startsolid == 0 && tr.fraction > 0.25 )
+	if ( tr.allsolid == 0 && tr.startsolid == 0 && tr.fraction > 0.25 ) {
 		 gEngfuncs.pEventAPI->EV_WeaponAnimation ( SQUEAK_THROW, 0 );
+		 V_PunchAxis(PITCH, gEngfuncs.pfnRandomFloat(-2.0, -4.0));
+	}
 	
 	gEngfuncs.pEventAPI->EV_PopPMStates();
 }
@@ -1842,8 +1866,10 @@ void EV_SnarkRelease( event_args_t *args )
 	gEngfuncs.pEventAPI->EV_PlayerTrace( vecSrc + forward * 20, vecSrc + forward * 64, PM_NORMAL, -1, &tr );
 
 	//Find space to drop the thing.
-	if ( tr.allsolid == 0 && tr.startsolid == 0 && tr.fraction > 0.25 )
+	if ( tr.allsolid == 0 && tr.startsolid == 0 && tr.fraction > 0.25 ) {
 		 gEngfuncs.pEventAPI->EV_WeaponAnimation ( SNARK_RELEASE, 0 );
+		 V_PunchAxis(PITCH, gEngfuncs.pfnRandomFloat(-2.0, -4.0));
+	}
 
 	gEngfuncs.pEventAPI->EV_PopPMStates();
 }
@@ -1885,11 +1911,19 @@ void EV_Knife( event_args_t *args )
 		switch( (g_iSwing++) % 3 )
 		{
 			case 0:
-				gEngfuncs.pEventAPI->EV_WeaponAnimation ( KNIFE_ATTACK1MISS, 1 ); break;
+				gEngfuncs.pEventAPI->EV_WeaponAnimation ( KNIFE_ATTACK1MISS, 1 ); 
+				V_PunchAxis(YAW, gEngfuncs.pfnRandomFloat(-3.0, -5.0));
+				V_PunchAxis(ROLL, gEngfuncs.pfnRandomFloat(3.0, 5.0));
+				break;
 			case 1:
-				gEngfuncs.pEventAPI->EV_WeaponAnimation ( KNIFE_ATTACK2MISS, 1 ); break;
+				gEngfuncs.pEventAPI->EV_WeaponAnimation ( KNIFE_ATTACK2MISS, 1 );
+				V_PunchAxis(PITCH, gEngfuncs.pfnRandomFloat(-3.0, -5.0));
+				break;
 			case 2:
-				gEngfuncs.pEventAPI->EV_WeaponAnimation ( KNIFE_ATTACK3MISS, 1 ); break;
+				gEngfuncs.pEventAPI->EV_WeaponAnimation ( KNIFE_ATTACK3MISS, 1 );
+				V_PunchAxis(YAW, gEngfuncs.pfnRandomFloat(-3.0, -5.0));
+				V_PunchAxis(ROLL, gEngfuncs.pfnRandomFloat(3.0, 5.0));
+				break;
 		}
 	}
 }
@@ -1932,8 +1966,10 @@ void EV_ChumtoadFire( event_args_t *args )
 	gEngfuncs.pEventAPI->EV_PlayerTrace( vecSrc + forward * 20, vecSrc + forward * 64, PM_NORMAL, -1, &tr );
 
 	//Find space to drop the thing.
-	if ( tr.allsolid == 0 && tr.startsolid == 0 && tr.fraction > 0.25 )
+	if ( tr.allsolid == 0 && tr.startsolid == 0 && tr.fraction > 0.25 ) {
 		 gEngfuncs.pEventAPI->EV_WeaponAnimation ( CHUMTOAD_THROW, 0 );
+		V_PunchAxis(PITCH, gEngfuncs.pfnRandomFloat(-2.0, -4.0));
+	}
 
 	gEngfuncs.pEventAPI->EV_PopPMStates();
 }
@@ -1965,8 +2001,10 @@ void EV_ChumtoadRelease( event_args_t *args )
 	gEngfuncs.pEventAPI->EV_PlayerTrace( vecSrc + forward * 20, vecSrc + forward * 64, PM_NORMAL, -1, &tr );
 
 	//Find space to drop the thing.
-	if ( tr.allsolid == 0 && tr.startsolid == 0 && tr.fraction > 0.25 )
+	if ( tr.allsolid == 0 && tr.startsolid == 0 && tr.fraction > 0.25 ) {
 		 gEngfuncs.pEventAPI->EV_WeaponAnimation ( CHUMTOAD_RELEASE, 0 );
+		 V_PunchAxis(PITCH, gEngfuncs.pfnRandomFloat(-2.0, -4.0));
+	}
 
 	gEngfuncs.pEventAPI->EV_PopPMStates();
 }
@@ -2011,7 +2049,7 @@ void EV_FireSniperRifle( event_args_t *args )
 		EV_MuzzleFlash();
 		gEngfuncs.pEventAPI->EV_WeaponAnimation( RIFLE_SHOOT, 2 );
 
-		V_PunchAxis( 0, gEngfuncs.pfnRandomFloat( -5, 5 ) );
+		V_PunchAxis(PITCH, gEngfuncs.pfnRandomFloat( -7, -10 ) );
 	}
 
 	float fR = (m_pCvarRighthand->value != 0 ? -1 : 1) * gEngfuncs.pfnRandomFloat( 50, 70 );
@@ -2059,8 +2097,9 @@ void EV_FireCannon( event_args_t *args )
 	if ( EV_IsLocal( idx ) )
 	{
 		gEngfuncs.pEventAPI->EV_WeaponAnimation( CANNON_FIRE_BOMB, 1 );
-
-		V_PunchAxis( 0, -5.0 );
+		V_PunchAxis(PITCH, gEngfuncs.pfnRandomFloat(-5.0, -7.0));
+		V_PunchAxis(YAW, gEngfuncs.pfnRandomFloat(-2.0, -4.0));
+		V_PunchAxis(ROLL, gEngfuncs.pfnRandomFloat(2.0, 4.0));
 	}
 }
 
@@ -2079,8 +2118,8 @@ void EV_FireCannonFlak( event_args_t *args )
 	if ( EV_IsLocal( idx ) )
 	{
 		gEngfuncs.pEventAPI->EV_WeaponAnimation( CANNON_FIRE_FLAK, 1 );
-
-		V_PunchAxis( 0, -5.0 );
+		V_PunchAxis(YAW, gEngfuncs.pfnRandomFloat(-2.0, -4.0));
+		V_PunchAxis(ROLL, gEngfuncs.pfnRandomFloat(2.0, 4.0));
 	}
 }
 
@@ -2131,7 +2170,7 @@ void EV_FireMag60( event_args_t *args )
 		EV_MuzzleFlash();
 		gEngfuncs.pEventAPI->EV_WeaponAnimation( args->bparam2 ? MAG60_SHOOT_SIDEWAYS : MAG60_SHOOT, 2 );
 
-		V_PunchAxis( 0, -2.0 );
+		V_PunchAxis(PITCH, -2.0 );
 	}
 
 	float fR = (m_pCvarRighthand->value != 0 ? -1 : 1) * gEngfuncs.pfnRandomFloat( 50, 70 );
@@ -2201,7 +2240,7 @@ void EV_FireChaingun( event_args_t *args )
 		if ( args->bparam2 ) {
 			gEngfuncs.pEventAPI->EV_WeaponAnimation( CHAINGUN_FIRE, 2 );
 		}
-		V_PunchAxis( 0, -2.0 );
+		V_PunchAxis(PITCH, -2.0 );
 	}
 
 	float fR = (m_pCvarRighthand->value != 0 ? -1 : 1) * gEngfuncs.pfnRandomFloat( 50, 70 );
@@ -2249,7 +2288,7 @@ void EV_FireGrenadeLauncher( event_args_t *args )
 	if ( EV_IsLocal( idx ) )
 	{
 		gEngfuncs.pEventAPI->EV_WeaponAnimation( GLAUNCHER_SHOOT, 2 );
-		V_PunchAxis( 0, -10 );
+		V_PunchAxis(PITCH, -10 );
 	}
 
 	EV_GunSmoke(origin, 0.7, idx, args->ducking, forward, right, up, 0, 0, 0);
@@ -2307,7 +2346,9 @@ void EV_FireSmg( event_args_t *args )
 		EV_MuzzleFlash();
 		gEngfuncs.pEventAPI->EV_WeaponAnimation( SMG_FIRE1, 0 );
 
-		V_PunchAxis( 0, -5.0 );
+		V_PunchAxis(PITCH, gEngfuncs.pfnRandomFloat(-5.0, -7.0));
+		V_PunchAxis(YAW, gEngfuncs.pfnRandomFloat(-2.0, -4.0));
+		V_PunchAxis(ROLL, gEngfuncs.pfnRandomFloat(2.0, 4.0));
 	}
 
 	float fR = (m_pCvarRighthand->value != 0 ? 1 : -1) * gEngfuncs.pfnRandomFloat( 50, 70 );
@@ -2379,7 +2420,7 @@ void EV_FireUsas( event_args_t *args )
 		EV_MuzzleFlash();
 		gEngfuncs.pEventAPI->EV_WeaponAnimation( USAS_FIRE1, 2 );
 
-		V_PunchAxis( 0, -5.0 );
+		V_PunchAxis(PITCH, -5.0 );
 	}
 
 	float fR = (m_pCvarRighthand->value != 0 ? -1 : 1) * gEngfuncs.pfnRandomFloat( 50, 70 );
@@ -2442,20 +2483,20 @@ void EV_Fists( event_args_t *args )
 	{
 		if (args->bparam1) {
 			gEngfuncs.pEventAPI->EV_WeaponAnimation ( FISTS_ATTACK3MISS, 1 );
-			V_PunchAxis(0, gEngfuncs.pfnRandomFloat(-7.0, -10.0)); //yaw, - = right
-			V_PunchAxis(1, gEngfuncs.pfnRandomFloat(-5.0, -8.0)); //yaw, - = right
-			V_PunchAxis(2, gEngfuncs.pfnRandomFloat(5.0, 8.0)); //roll, - = left
+			V_PunchAxis(PITCH, gEngfuncs.pfnRandomFloat(-7.0, -10.0));
+			V_PunchAxis(YAW, gEngfuncs.pfnRandomFloat(-5.0, -8.0));
+			V_PunchAxis(ROLL, gEngfuncs.pfnRandomFloat(5.0, 8.0));
 		} else {
 			switch( (g_iSwing++) % 2 )
 			{
 				case 0:
 					gEngfuncs.pEventAPI->EV_WeaponAnimation ( FISTS_ATTACK1MISS, 1 );
-					V_PunchAxis(0, gEngfuncs.pfnRandomFloat(-3.0, -5.0)); //pitch, - = up
+					V_PunchAxis(PITCH, gEngfuncs.pfnRandomFloat(-3.0, -5.0));
 					break;
 				case 1:
 					gEngfuncs.pEventAPI->EV_WeaponAnimation ( FISTS_ATTACK2MISS, 1 );
-					V_PunchAxis(1, gEngfuncs.pfnRandomFloat(3.0, 5.0)); //yaw, - = right
-					V_PunchAxis(2, gEngfuncs.pfnRandomFloat(-3.0, -5.0)); //roll, - = left
+					V_PunchAxis(YAW, gEngfuncs.pfnRandomFloat(3.0, 5.0));
+					V_PunchAxis(ROLL, gEngfuncs.pfnRandomFloat(-3.0, -5.0));
 					break;
 			}
 		}
@@ -2498,11 +2539,20 @@ void EV_Wrench( event_args_t *args )
 		switch( (g_iSwing++) % 3 )
 		{
 			case 0:
-				gEngfuncs.pEventAPI->EV_WeaponAnimation ( WRENCH_ATTACK1MISS, 1 ); break;
+				gEngfuncs.pEventAPI->EV_WeaponAnimation ( WRENCH_ATTACK1MISS, 1 );
+				V_PunchAxis(YAW, gEngfuncs.pfnRandomFloat(-5.0, -7.0));
+				V_PunchAxis(ROLL, gEngfuncs.pfnRandomFloat(5.0, 7.0));
+				break;
 			case 1:
-				gEngfuncs.pEventAPI->EV_WeaponAnimation ( WRENCH_ATTACK2MISS, 1 ); break;
+				gEngfuncs.pEventAPI->EV_WeaponAnimation ( WRENCH_ATTACK2MISS, 1 );
+				V_PunchAxis(YAW, gEngfuncs.pfnRandomFloat(5.0, 7.0));
+				V_PunchAxis(ROLL, gEngfuncs.pfnRandomFloat(-5.0, -7.0));
+				break;
 			case 2:
-				gEngfuncs.pEventAPI->EV_WeaponAnimation ( WRENCH_ATTACK3MISS, 1 ); break;
+				gEngfuncs.pEventAPI->EV_WeaponAnimation ( WRENCH_ATTACK3MISS, 1 );
+				V_PunchAxis(YAW, gEngfuncs.pfnRandomFloat(-5.0, -7.0));
+				V_PunchAxis(ROLL, gEngfuncs.pfnRandomFloat(5.0, 7.0));
+				break;
 		}
 	}
 }
@@ -2544,23 +2594,23 @@ void EV_Chainsaw( event_args_t *args )
 			{
 				case 0:
 					gEngfuncs.pEventAPI->EV_WeaponAnimation ( CHAINSAW_SLASH1, 0 );
-					V_PunchAxis(1, gEngfuncs.pfnRandomFloat(-5.0, -7.0)); //yaw, - = right
-					V_PunchAxis(2, gEngfuncs.pfnRandomFloat(5.0, 7.0)); //roll, - = left
+					V_PunchAxis(YAW, gEngfuncs.pfnRandomFloat(-5.0, -7.0)); //yaw, - = right
+					V_PunchAxis(ROLL, gEngfuncs.pfnRandomFloat(5.0, 7.0)); //roll, - = left
 					break;
 				case 1:
 					gEngfuncs.pEventAPI->EV_WeaponAnimation ( CHAINSAW_SLASH2, 0 );
-					V_PunchAxis(1, gEngfuncs.pfnRandomFloat(8.0, 10.0)); //yaw, - = right
-					V_PunchAxis(2, gEngfuncs.pfnRandomFloat(-8.0, -10.0)); //roll, - = left
+					V_PunchAxis(YAW, gEngfuncs.pfnRandomFloat(8.0, 10.0)); //yaw, - = right
+					V_PunchAxis(ROLL, gEngfuncs.pfnRandomFloat(-8.0, -10.0)); //roll, - = left
 					break;
 				case 2:
 					gEngfuncs.pEventAPI->EV_WeaponAnimation ( CHAINSAW_SLASH3, 0 );
-					V_PunchAxis(1, gEngfuncs.pfnRandomFloat(-5.0, -7.0)); //yaw, - = right
-					V_PunchAxis(2, gEngfuncs.pfnRandomFloat(5.0, 7.0)); //roll, - = left
+					V_PunchAxis(YAW, gEngfuncs.pfnRandomFloat(-5.0, -7.0)); //yaw, - = right
+					V_PunchAxis(ROLL, gEngfuncs.pfnRandomFloat(5.0, 7.0)); //roll, - = left
 					break;
 			}
 		} else {
 			// out straight
-			V_PunchAxis(0, gEngfuncs.pfnRandomFloat(-3.0, 3.0));
+			V_PunchAxis(PITCH, gEngfuncs.pfnRandomFloat(-3.0, 3.0));
 		}
 	}
 }
@@ -2608,9 +2658,9 @@ void EV_Fire12GaugeDouble( event_args_t *args )
 		// Add muzzle flash to current weapon model
 		EV_MuzzleFlash();
 		gEngfuncs.pEventAPI->EV_WeaponAnimation( GAUGE_SHOTGUN_FIRE, 0 );
-		V_PunchAxis( 0, gEngfuncs.pfnRandomFloat(-5.0, -7.0) );
-		V_PunchAxis(1, gEngfuncs.pfnRandomFloat(-5.0, -7.0)); //yaw, - = right
-		V_PunchAxis(2, gEngfuncs.pfnRandomFloat(5.0, 7.0)); //roll, - = left
+		V_PunchAxis(PITCH, gEngfuncs.pfnRandomFloat(-5.0, -7.0) );
+		V_PunchAxis(YAW, gEngfuncs.pfnRandomFloat(-5.0, -7.0)); //yaw, - = right
+		V_PunchAxis(ROLL, gEngfuncs.pfnRandomFloat(5.0, 7.0)); //roll, - = left
 	}
 
 	for ( j = 0; j < 2; j++ )
@@ -2671,9 +2721,9 @@ void EV_Fire12GaugeSingle( event_args_t *args )
 		// Add muzzle flash to current weapon model
 		EV_MuzzleFlash();
 		gEngfuncs.pEventAPI->EV_WeaponAnimation( GAUGE_SHOTGUN_FIRE, 0 );
-		V_PunchAxis( 0, gEngfuncs.pfnRandomFloat(-3.0, -5.0) );
-		V_PunchAxis(1, gEngfuncs.pfnRandomFloat(-3.0, -5.0)); //yaw, - = right
-		V_PunchAxis(2, gEngfuncs.pfnRandomFloat(3.0, 5.0)); //roll, - = left
+		V_PunchAxis(PITCH, gEngfuncs.pfnRandomFloat(-3.0, -5.0) );
+		V_PunchAxis(YAW, gEngfuncs.pfnRandomFloat(-3.0, -5.0)); //yaw, - = right
+		V_PunchAxis(ROLL, gEngfuncs.pfnRandomFloat(3.0, 5.0)); //roll, - = left
 	}
 
 	float fR = (m_pCvarRighthand->value != 0 ? -1 : 1) * gEngfuncs.pfnRandomFloat( 50, 70 );
@@ -2732,9 +2782,9 @@ void EV_FireNuke( event_args_t *args )
 	{
 		gEngfuncs.pEventAPI->EV_WeaponAnimation( NUKE_FIRE2, 1 );
 
-		V_PunchAxis(0, gEngfuncs.pfnRandomFloat(-10.0, -15.0) );
-		V_PunchAxis(1, gEngfuncs.pfnRandomFloat(-7.0, -10.0)); //yaw, - = right
-		V_PunchAxis(2, gEngfuncs.pfnRandomFloat(7.0, 10.0)); //roll, - = left
+		V_PunchAxis(PITCH, gEngfuncs.pfnRandomFloat(-10.0, -15.0) );
+		V_PunchAxis(YAW, gEngfuncs.pfnRandomFloat(-7.0, -10.0)); //yaw, - = right
+		V_PunchAxis(ROLL, gEngfuncs.pfnRandomFloat(7.0, 10.0)); //roll, - = left
 	}
 }
 
