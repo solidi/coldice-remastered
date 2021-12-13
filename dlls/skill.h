@@ -122,6 +122,7 @@ struct skilldata_t
 	float plrDmgFlak;
 	float plrDmgFlakBomb;
 	float plrDmgFists;
+	float plrDmgShoryuken;
 	float plrDmgWrench;
 	float plrDmgFlyingWrench;
 	float plrDmgSnowball;

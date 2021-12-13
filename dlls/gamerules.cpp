@@ -299,6 +299,7 @@ void CGameRules::RefreshSkillData ( void )
 
 	// Fists
 	gSkillData.plrDmgFists = GetSkillCvar( "sk_plr_fists");
+	gSkillData.plrDmgShoryuken = GetSkillCvar( "sk_plr_shoryuken");
 
 	// Wrench
 	gSkillData.plrDmgWrench = GetSkillCvar( "sk_plr_wrench");
