@@ -148,6 +148,28 @@ void CVest::GoneThink() {
 	m_pPlayer->pev->health = 0; // without this, player can walk as a ghost.
 	m_pPlayer->Killed(m_pPlayer->pev, pev, GIB_ALWAYS);
 	CGrenade::Vest( m_pPlayer->pev, pev->origin );
+
+	STOP_SOUND(ENT(m_pPlayer->pev), CHAN_VOICE, "vest_attack.wav");
+	MESSAGE_BEGIN( MSG_PVS, SVC_TEMPENTITY, m_pPlayer->pev->origin );
+		WRITE_BYTE( TE_BEAMCYLINDER );
+		WRITE_COORD( m_pPlayer->pev->origin.x);
+		WRITE_COORD( m_pPlayer->pev->origin.y);
+		WRITE_COORD( m_pPlayer->pev->origin.z);
+		WRITE_COORD( m_pPlayer->pev->origin.x);
+		WRITE_COORD( m_pPlayer->pev->origin.y);
+		WRITE_COORD( m_pPlayer->pev->origin.z + 600 );
+		WRITE_SHORT( PRECACHE_MODEL( "sprites/lgtning.spr" ) );
+		WRITE_BYTE( 0 ); // startframe
+		WRITE_BYTE( 0 ); // framerate
+		WRITE_BYTE( 4 ); // life
+		WRITE_BYTE( 32 );  // width
+		WRITE_BYTE( 0 );   // noise
+		WRITE_BYTE( 255 );   // r, g, b
+		WRITE_BYTE( 255 );   // r, g, b
+		WRITE_BYTE( 192 );   // r, g, b
+		WRITE_BYTE( 128 ); // brightness
+		WRITE_BYTE( 0 );		// speed
+	MESSAGE_END();
 }
 
 void CVest::SecondaryAttack()
