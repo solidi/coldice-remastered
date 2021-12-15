@@ -1998,11 +1998,48 @@ void CStudioModelRenderer::StudioCalcAttachments( void )
 		exit( -1 );
 	}
 
+	vec3_t oldAim = m_pCurrentEntity->model->aim_punch;
+	vec3_t oldAngles = m_pCurrentEntity->model->aim_angles;
+
 	// calculate attachment points
 	pattachment = (mstudioattachment_t *)((byte *)m_pStudioHeader + m_pStudioHeader->attachmentindex);
 	for (i = 0; i < m_pStudioHeader->numattachments; i++)
 	{
 		VectorTransform( pattachment[i].org, (*m_plighttransform)[pattachment[i].bone],  m_pCurrentEntity->attachment[i] );
+
+		if (i == 1 && m_pCurrentEntity->model->aim_punch != pattachment[1].org) {
+			m_pCurrentEntity->model->aim_punch = pattachment[i].org;
+			ConsolePrint("Loaded aim values!\n");
+			/*char str[256];
+			sprintf(str, "%d: %.1f, %.1f, %.1f\n",
+			i, m_pCurrentEntity->model->aim_punch.x, m_pCurrentEntity->model->aim_punch.y, m_pCurrentEntity->model->aim_punch.z);
+			gEngfuncs.pfnConsolePrint(str);*/
+		}
+
+		if (i == 2 && m_pCurrentEntity->model->aim_angles != pattachment[2].org) {
+			char str[256];
+			/*sprintf(str, "x: %.1f == %.1f\ny: %.1f == %.1f\nz: %.1f == %.1f\n", m_pCurrentEntity->model->aim_angles.x, pattachment[2].org.x, m_pCurrentEntity->model->aim_angles.y, pattachment[2].org.y, m_pCurrentEntity->model->aim_angles.z, pattachment[2].org.z);
+			ConsolePrint(str);*/
+			m_pCurrentEntity->model->aim_angles = pattachment[2].org;
+			ConsolePrint("Loaded angles values!\n");
+			sprintf(str, "%d: %.1f, %.1f, %.1f\n",
+			i, m_pCurrentEntity->model->aim_angles.x, m_pCurrentEntity->model->aim_angles.y, m_pCurrentEntity->model->aim_angles.z);
+			gEngfuncs.pfnConsolePrint(str);
+		}
+	}
+
+	if (i < 2 && Length(m_pCurrentEntity->model->aim_punch) > 1 && m_pCurrentEntity->model->aim_punch == oldAim) {
+		/*char str[256];
+		sprintf(str, "bool: %d x: %.3f == 0\ny: %.3f == 0\nz: %.3f == 0\n", Length(m_pCurrentEntity->model->aim_punch), m_pCurrentEntity->model->aim_punch.x, m_pCurrentEntity->model->aim_punch.y, m_pCurrentEntity->model->aim_punch.z);
+		ConsolePrint(str);*/
+		m_pCurrentEntity->model->aim_punch = Vector(0,0,0);
+		//m_pCurrentEntity->model->aim_angles = Vector(0,0,0);
+		gEngfuncs.pfnConsolePrint("Reset aim!\n");
+	}
+
+	if (i < 3 && Length(m_pCurrentEntity->model->aim_angles) > 1 && m_pCurrentEntity->model->aim_angles == oldAngles) {
+		m_pCurrentEntity->model->aim_angles = Vector(0,0,0);
+		gEngfuncs.pfnConsolePrint("Reset angles!\n");
 	}
 }
 

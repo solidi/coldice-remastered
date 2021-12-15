@@ -711,34 +711,64 @@ void V_CalcNormalRefdef ( struct ref_params_s *pparams )
 	}
 
 	if (view->model != NULL) {
-		Vector position = Vector(0.0,0.0,0.0), angles = Vector(0.0,0.0,0.0);
-		if (!strcmp(view->model->name, "models/v_9mmhandgun.mdl") ||
+		Vector position = view->model->aim_punch, angles = view->model->aim_angles;
+
+		/*if (!strcmp(view->model->name, "models/v_9mmhandgun.mdl") ||
 			!strcmp(view->model->name, "models/v_9mmhandguns.mdl")) {
 			position = Vector(2.0,5.0,8.0);
+			// SD: 5.0, 6.0, 4.0
 		} else if (!strcmp(view->model->name, "models/v_357.mdl")) {
-			position = Vector(2.0,4.0,6.5);
+			position = Vector(2.0,3.0,3.5);
+			// SD: 2.0, 4.5, 6.0
 		} else if (!strcmp(view->model->name, "models/v_smg.mdl")) {
-			position = Vector(8.0,2.5,-1.4);
-			angles = Vector(0.0,0.0,35.0);
+			position = Vector(5.0,3.5,-1.4);
+			angles = Vector(-5.0,0.0,35.0);
+			// SD: 2.0, 2.5, 2.6
 		} else if (!strcmp(view->model->name, "models/v_mag60.mdl")) {
-			position = Vector(3.0,3.5,3.0);
+			position = Vector(3.0,3.5,3.1);
+			// SD: 2.0, 4.5, 6.0
 		} else if (!strcmp(view->model->name, "models/v_9mmAR.mdl")) {
-			position = Vector(4.0,2.2,7.35);
-			angles = Vector(0.0,0.0,5.0);
+			position = Vector(10.0,4.0,12.5);
+			// SD: 2.0, 2.5, 6.0
 		} else if (!strcmp(view->model->name, "models/v_12gauge.mdl")) {
-			position = Vector(3.0,3.0,3.5);
+			position = Vector(3.0,3.0,3.0);
+			// SD: 3.0, 2.5, 5.5
+			// SD angle: 10.0, 0, 0
 		} else if (!strcmp(view->model->name, "models/v_shotgun.mdl")) {
 			position = Vector(3.0,3.0,6.5);
+			//angles = Vector(0.0,0.0,-4.0);
+			// SD: 3.0, 3.0, 5.25
+			// SD angle: 8.0, 0, 0
 		} else if (!strcmp(view->model->name, "models/v_glauncher.mdl")) {
-			position = Vector(6.0,4.0,8.0);
+			position = Vector(2.0,3.0,3.0);
+			// SD: 3.0, 6.0, 6.5
 		} else if (!strcmp(view->model->name, "models/v_usas.mdl")) {
 			position = Vector(3.0,3.0,5.5);
-		}
+			// SD: 1.0, 0.0, 7.0
+		} else if (!strcmp(view->model->name, "models/v_crossbow.mdl")) {
+			position = Vector(2.0,5.0,8.0);
+			angles = Vector(0.0,-7.0,0.0);
+			// SD: 2.0, 5.0, 8.0
+			// SD Angles: 0.0, -8.0, 0.0
+		} else if (!strcmp(view->model->name, "models/v_railgun.mdl")) {
+			position = Vector(2.0,4.0,3.0);
+			// SD: Same
+		} else if (!strcmp(view->model->name, "models/v_snowball.mdl")) {
+			position = Vector(2.0,4.0,4.0);
+			// SD: Same
+		} else if (!strcmp(view->model->name, "models/v_grenade.mdl")) {
+			position = Vector(2.0,4.0,4.0);
+			// SD: Same
+		}else if (!strcmp(view->model->name, "models/v_cannon.mdl")) {
+			position = Vector(5.0, 1.0, 9.25);
+			// SD: 3.0, 0.0, 7.0
+			// SD angles: 0.0, -10.0, 0
+		}*/
 		if (position != Vector(0.0,0.0,0.0))
 			V_IronSight(position, angles, pparams->time, view, pparams->forward, pparams->up, pparams->right);
 	}
 
-#ifdef DEBUG
+//#ifdef DEBUG
 	view->angles[YAW]   += cl_vmyaw->value;
 	view->angles[ROLL]  += cl_vmroll->value;
 	view->angles[PITCH] += cl_vmpitch->value;
@@ -752,7 +782,7 @@ void V_CalcNormalRefdef ( struct ref_params_s *pparams )
 	view->origin[0] -=  (pparams->right[ 0 ] * cl_vmr->value);
 	view->origin[1] -=  (pparams->right[ 1 ] * cl_vmr->value);
 	view->origin[2] -=  (pparams->right[ 2 ] * cl_vmr->value);
-#endif
+//#endif
 
 	if (cl_bobtilt->value == 1) VectorCopy(view->angles, view->curstate.angles);
 	// pushing the view origin down off of the same X/Z plane as the ent's origin will give the
@@ -2047,9 +2077,11 @@ void V_IronSight( Vector position, Vector punch, float clientTime, cl_entity_t *
 	float mxForward = position.x;
 	float mxUp = position.y;
 	float mxRight = !(m_pCvarRighthand->value) ? position.z * -1 : position.z;
+	float mxPitch = punch.x;
+	float mxYaw = punch.y;
 	float mxRoll = punch.z;
 	static float time = 0, time_framerate = 0.05;
-	static float kR, kF, kU, kRoll;
+	static float kR, kF, kU, kPitch, kYaw, kRoll;
 
 	// unstick
 	if (clientTime + 2 < time) {
@@ -2060,7 +2092,12 @@ void V_IronSight( Vector position, Vector punch, float clientTime, cl_entity_t *
 		time = clientTime;
 
 		if (g_IronSight) {
-			kR += 3.0; kU += 1.50; kF += 1.50, kRoll += 5.0;
+			if (mxForward > 0) kF += 1.5; else kF -= 1.5;
+			if (mxUp > 0) kU += 1.5; else kU -= 1.5;
+			if (mxRight > 0) kR += 3.0; else kR -= 3.0;
+			if (mxPitch > 0) kPitch += 2.0; else kPitch -= 2.0;
+			if (mxYaw > 0) kYaw += 2.0; else kYaw -= 2.0;
+			if (mxRoll > 0) kRoll += 5.0; else kRoll -= 5.0;
 
 			if (lastFov > -0.1) {
 				gEngfuncs.pfnPlaySoundByName( "ironsight_on.wav", 1 );
@@ -2073,7 +2110,12 @@ void V_IronSight( Vector position, Vector punch, float clientTime, cl_entity_t *
 
 			gEngfuncs.Cvar_SetValue("default_fov", 90 + lastFov);
 		} else {
-			kR -= 3.0; kU -= 1.5; kF -= 1.5, kRoll -= 5.0;
+			if (mxForward > 0) kF -= 1.5; else kF += 1.5;
+			if (mxUp > 0) kU -= 1.5; else kU += 1.5;
+			if (mxRight > 0) kR -= 3.0; else kR += 3.0;
+			if (mxPitch > 0) kPitch -= 2.0; else kPitch += 2.0;
+			if (mxYaw > 0) kYaw -= 2.0; else kYaw += 2.0;
+			if (mxRoll > 0) kRoll -= 5.0; else kRoll += 5.0;
 
 			lastFov += 5.5;
 
@@ -2086,14 +2128,49 @@ void V_IronSight( Vector position, Vector punch, float clientTime, cl_entity_t *
 			gEngfuncs.Cvar_SetValue("default_fov", 90 + lastFov);
 		}
 
-		if (kR > mxRight) kR = mxRight;
-		if (kF > mxForward) kF = mxForward;
-		if (kU > mxUp) kU = mxUp;
-		if (kRoll > mxRoll) kRoll = mxRoll;
-		if (kR < 0 ) kR = 0;
-		if (kF < 0) kF = 0;
-		if (kU < 0) kU = 0;
-		if (kRoll < 0) kRoll = 0;
+		if (mxForward > 0) {
+			if (kF > mxForward) kF = mxForward;
+			if (kF < 0) kF = 0;
+		} else {
+			if (kF < mxForward) kF = mxForward;
+			if (kF > 0) kF = 0;
+		}
+		if (mxRight > 0) {
+			if (kR > mxRight) kR = mxRight;
+			if (kR < 0) kR = 0;
+		} else {
+			if (kR < mxRight) kR = mxRight;
+			if (kR > 0) kR = 0;
+		}
+		if (mxUp > 0) {
+			if (kU > mxUp) kU = mxUp;
+			if (kU < 0) kU = 0;
+		} else {
+			if (kU < mxUp) kU = mxUp;
+			if (kU > 0) kU = 0;
+		}
+
+		if (mxPitch > 0) {
+			if (kPitch > mxPitch) kPitch = mxPitch;
+			if (kPitch < 0) kPitch = 0;
+		} else {
+			if (kPitch < mxPitch) kPitch = mxPitch;
+			if (kPitch > 0) kPitch = 0;
+		}
+		if (mxYaw > 0) {
+			if (kYaw > mxYaw) kYaw = mxYaw;
+			if (kYaw < 0) kYaw = 0;
+		} else {
+			if (kYaw < mxYaw) kYaw = mxYaw;
+			if (kYaw > 0) kYaw = 0;
+		}
+		if (mxRoll > 0) {
+			if (kRoll > mxRoll) kRoll = mxRoll;
+			if (kRoll < 0) kRoll = 0;
+		} else {
+			if (kRoll < mxRoll) kRoll = mxRoll;
+			if (kRoll > 0) kRoll = 0;
+		}
 	}
 
 	viewModel->origin[0] -= (forward[ 0 ] * kF);
@@ -2106,10 +2183,9 @@ void V_IronSight( Vector position, Vector punch, float clientTime, cl_entity_t *
 	viewModel->origin[1] -= (right[ 1 ] * kR);
 	viewModel->origin[2] -= (right[ 2 ] * kR);
 
+	viewModel->angles[PITCH] += kPitch;
+	viewModel->angles[YAW] += kYaw;
 	viewModel->angles[ROLL] += kRoll;
-
-	//gEngfuncs.Cvar_SetValue("default_fov", CVAR_GET_FLOAT("default_fov") + lastFov);
-	//gHUD.m_iFOV += lastFov;
 }
 
 /*
