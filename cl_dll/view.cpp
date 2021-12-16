@@ -764,11 +764,12 @@ void V_CalcNormalRefdef ( struct ref_params_s *pparams )
 			// SD: 3.0, 0.0, 7.0
 			// SD angles: 0.0, -10.0, 0
 		}*/
-		if (position != Vector(0.0,0.0,0.0))
+		if (Length(position) > 1) {
 			V_IronSight(position, angles, pparams->time, view, pparams->forward, pparams->up, pparams->right);
+		}
 	}
 
-//#ifdef DEBUG
+#ifdef _DEBUG
 	view->angles[YAW]   += cl_vmyaw->value;
 	view->angles[ROLL]  += cl_vmroll->value;
 	view->angles[PITCH] += cl_vmpitch->value;
@@ -782,7 +783,7 @@ void V_CalcNormalRefdef ( struct ref_params_s *pparams )
 	view->origin[0] -=  (pparams->right[ 0 ] * cl_vmr->value);
 	view->origin[1] -=  (pparams->right[ 1 ] * cl_vmr->value);
 	view->origin[2] -=  (pparams->right[ 2 ] * cl_vmr->value);
-//#endif
+#endif
 
 	if (cl_bobtilt->value == 1) VectorCopy(view->angles, view->curstate.angles);
 	// pushing the view origin down off of the same X/Z plane as the ent's origin will give the
@@ -2092,6 +2093,13 @@ void V_IronSight( Vector position, Vector punch, float clientTime, cl_entity_t *
 		time = clientTime;
 
 		if (g_IronSight) {
+#ifdef _DEBUG
+			char str[256];
+			sprintf(str, "aim position: %.1f, %.1f, %.1f\n", position.x, position.y, position.z);
+			gEngfuncs.pfnConsolePrint(str);
+			sprintf(str, "angles position: %.1f, %.1f, %.1f\n", punch.x, punch.y, punch.z);
+			gEngfuncs.pfnConsolePrint(str);
+#endif
 			if (mxForward > 0) kF += 1.5; else kF -= 1.5;
 			if (mxUp > 0) kU += 1.5; else kU -= 1.5;
 			if (mxRight > 0) kR += 3.0; else kR -= 3.0;
