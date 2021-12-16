@@ -721,7 +721,7 @@ void V_CalcNormalRefdef ( struct ref_params_s *pparams )
 			position = Vector(2.0,3.0,3.5);
 			// SD: 2.0, 4.5, 6.0
 		} else if (!strcmp(view->model->name, "models/v_smg.mdl")) {
-			position = Vector(5.0,3.5,-1.4);
+			position = Vector(5.0,4.25,-1.4);
 			angles = Vector(-5.0,0.0,35.0);
 			// SD: 2.0, 2.5, 2.6
 		} else if (!strcmp(view->model->name, "models/v_mag60.mdl")) {
