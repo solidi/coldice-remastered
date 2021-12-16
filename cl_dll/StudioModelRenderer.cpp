@@ -1998,11 +1998,57 @@ void CStudioModelRenderer::StudioCalcAttachments( void )
 		exit( -1 );
 	}
 
+	vec3_t oldAim = m_pCurrentEntity->model->aim_punch;
+	vec3_t oldAngles = m_pCurrentEntity->model->aim_angles;
+
 	// calculate attachment points
 	pattachment = (mstudioattachment_t *)((byte *)m_pStudioHeader + m_pStudioHeader->attachmentindex);
 	for (i = 0; i < m_pStudioHeader->numattachments; i++)
 	{
 		VectorTransform( pattachment[i].org, (*m_plighttransform)[pattachment[i].bone],  m_pCurrentEntity->attachment[i] );
+
+		if (m_pCurrentEntity == gEngfuncs.GetViewModel())
+		{
+			if (i == 1 && m_pCurrentEntity->model->aim_punch != pattachment[1].org) {
+				m_pCurrentEntity->model->aim_punch = pattachment[i].org;
+#ifdef _DEBUG
+				char str[256];
+				sprintf(str, "Loaded aim values! %d: %.1f, %.1f, %.1f\n",
+				i, m_pCurrentEntity->model->aim_punch.x, m_pCurrentEntity->model->aim_punch.y, m_pCurrentEntity->model->aim_punch.z);
+				gEngfuncs.pfnConsolePrint(str);
+#endif
+			}
+
+			if (i == 2 && m_pCurrentEntity->model->aim_angles != pattachment[2].org) {
+				m_pCurrentEntity->model->aim_angles = pattachment[2].org;
+#ifdef _DEBUG
+				char str[256];
+				sprintf(str, "Loaded angles values! %d: %.1f, %.1f, %.1f\n",
+				i, m_pCurrentEntity->model->aim_angles.x, m_pCurrentEntity->model->aim_angles.y, m_pCurrentEntity->model->aim_angles.z);
+				gEngfuncs.pfnConsolePrint(str);
+#endif
+			}
+		}
+	}
+
+	if (m_pCurrentEntity == gEngfuncs.GetViewModel()) {
+		if (i < 2 && Length(m_pCurrentEntity->model->aim_punch) > 1 && m_pCurrentEntity->model->aim_punch == oldAim) {
+			m_pCurrentEntity->model->aim_punch = Vector(0,0,0);
+#ifdef _DEBUG
+			char str[256];
+			sprintf(str, "Reset aim! model is: %s\n", m_pCurrentEntity->model->name);
+			ConsolePrint(str);
+#endif
+		}
+
+		if (i < 3 && Length(m_pCurrentEntity->model->aim_angles) > 1 && m_pCurrentEntity->model->aim_angles == oldAngles) {
+			m_pCurrentEntity->model->aim_angles = Vector(0,0,0);
+#ifdef _DEBUG
+			char str[256];
+			sprintf(str, "Reset angles! model is: %s\n", m_pCurrentEntity->model->name);
+			ConsolePrint(str);
+#endif
+		}
 	}
 }
 

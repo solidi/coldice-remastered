@@ -1,4 +1,4 @@
-//========= Copyright © 1996-2002, Valve LLC, All rights reserved. ============
+//========= Copyright ï¿½ 1996-2002, Valve LLC, All rights reserved. ============
 //
 // Purpose: 
 //
@@ -292,6 +292,10 @@ typedef struct model_s
 // additional model data
 //
 	cache_user_t	cache;		// only access through Mod_Extradata
+
+// Aim points
+	vec3_t			aim_punch;
+	vec3_t			aim_angles;
 
 } model_t;
 
