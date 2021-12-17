@@ -993,7 +993,7 @@ void CWorldRunes::CreateRune(char *sz_RuneClass)
 
 	if ( m_pSpot == NULL )
 	{
-		ALERT ( at_console, "Error Creating Runes\n" );
+		ALERT ( at_console, "Error creating runes. Spawn point not found.\n" );
 		return;
 	}
 
@@ -1005,7 +1005,9 @@ void CWorldRunes::CreateRune(char *sz_RuneClass)
 
 void CWorldRunes::SpawnRunes( )
 {
-	ALERT ( at_console, "Creating Runes\n" );
+#ifdef _DEBUG
+	ALERT ( at_console, "Creating runes...\n" );
+#endif
 	CreateRune( "rune_frag" );
 	CreateRune( "rune_vampire" );
 	CreateRune( "rune_protect" );
@@ -1014,6 +1016,9 @@ void CWorldRunes::SpawnRunes( )
 	CreateRune( "rune_gravity" );
 	CreateRune( "rune_strength" );
 	CreateRune( "rune_cloak" );
+#ifdef _DEBUG
+	ALERT ( at_console, "Runes created.\n" );
+#endif
 
 	SetThink( &CWorldRunes::SpawnRunes );
 	pev->nextthink = gpGlobals->time + 30.0;
