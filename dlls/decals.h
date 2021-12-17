@@ -80,6 +80,9 @@ enum decal_e
 	DECAL_DING7,
 	DECAL_DING8,
 	DECAL_DING9,
+	DECAL_SLASH1,
+	DECAL_SLASH2,
+	DECAL_SLASH3,
 };
 
 typedef struct 
