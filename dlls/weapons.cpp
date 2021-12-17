@@ -217,6 +217,10 @@ void DecalGunshot( TraceResult *pTrace, int iBulletType )
 		case BULLET_PLAYER_CHAINSAW:
 			UTIL_DecalTrace( pTrace, DECAL_DING6 + RANDOM_LONG(0,3) );
 			break;
+		case BULLET_PLAYER_KNIFE:
+			// wall decal
+			UTIL_DecalTrace( pTrace, DECAL_SLASH1 + RANDOM_LONG(0,2) );
+			break;
 		}
 	}
 }

@@ -136,7 +136,7 @@ void CMag60::SecondaryAttack( void )
 
 void CMag60::PrimaryAttack( void )
 {
-	Fire( m_iRotated ? 0.03 : 0.01, m_iRotated ? 0.15 : 0.3, TRUE, m_iRotated );
+	Fire( m_iRotated ? 0.03 : 0.01, m_iRotated ? 0.125 : 0.20, TRUE, m_iRotated );
 }
 
 void CMag60::Fire( float flSpread , float flCycleTime, BOOL fUseAutoAim, int silencer )

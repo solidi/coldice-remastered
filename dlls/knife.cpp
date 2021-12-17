@@ -200,7 +200,7 @@ void CKnife::Throw() {
 
 void CKnife::Smack( )
 {
-	DecalGunshot( &m_trHit, BULLET_PLAYER_CROWBAR );
+	DecalGunshot( &m_trHit, BULLET_PLAYER_KNIFE );
 }
 
 void CKnife::SwingAgain( void )
@@ -510,6 +510,8 @@ void CFlyingKnife::SpinTouch( CBaseEntity *pOther )
    TraceResult tr;
    UTIL_TraceLine(pev->origin, pev->origin + vecDir * 100, 
                   dont_ignore_monsters, ENT(pev), &tr);
+
+    DecalGunshot( &tr, BULLET_PLAYER_KNIFE );
 
    // Throw the weapon box along the normal so it looks kinda
    // like a ricochet. This would be better if I actually 
