@@ -510,6 +510,11 @@ void CHalfLifeMultiplay :: InitHUD( CBasePlayer *pl )
 				WRITE_SHORT( 0 );
 				WRITE_SHORT( GetTeamIndex( plr->m_szTeamName ) + 1 );
 			MESSAGE_END();
+
+			// Show it one time for this player's init.
+			if ( plr == pl ) {
+				m_iShownWelcomeMessage = gpGlobals->time + 4.0;
+			}
 		}
 	}
 
@@ -518,8 +523,6 @@ void CHalfLifeMultiplay :: InitHUD( CBasePlayer *pl )
 		MESSAGE_BEGIN( MSG_ONE, SVC_INTERMISSION, NULL, pl->edict() );
 		MESSAGE_END();
 	}
-
-	m_iShownWelcomeMessage = gpGlobals->time + 4.0;
 }
 
 //=========================================================
