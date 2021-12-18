@@ -1640,7 +1640,6 @@ public:
 	virtual BOOL SemiAuto( void ) { return TRUE; }
 
 private:
-	unsigned short m_usDoubleFire;
 	unsigned short m_usSingleFire;
 };
 
