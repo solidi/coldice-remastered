@@ -737,10 +737,14 @@ CBaseEntity* CBasePlayerItem::Respawn( void )
 	for (int g = 0; g < 5; g++) {
 		for (int i = 0; i < ARRAYSIZE(weaponsList[g]); i++) {
 			if (weaponsList[g][i] != NULL && FStrEq(STRING(pev->classname), weaponsList[g][i])) {
-				ALERT ( at_aiconsole, "Found %s to change...\n", weaponsList[g][i] );
+#ifdef _DEBUG
+				ALERT ( at_aiconsole, "Found %s to change... ", weaponsList[g][i] );
+#endif
 				const char *name = weaponsList[g][RANDOM_LONG(0, g - 1)];
 				pNewWeapon = CBaseEntity::Create((char *)STRING(ALLOC_STRING(name)), g_pGameRules->VecWeaponRespawnSpot(this), pev->angles, pev->owner );
-				ALERT ( at_aiconsole, "Replaced name with %s!\n", name );
+#ifdef _DEBUG
+				ALERT ( at_aiconsole, "replaced with %s!\n", name );
+#endif
 			}
 
 			if (pNewWeapon) {
