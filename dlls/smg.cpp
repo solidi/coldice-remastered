@@ -76,6 +76,17 @@ void CSMG::Precache( void )
 
 	PRECACHE_SOUND ("weapons/357_cock1.wav");
 
+	PRECACHE_SOUND ("smg_selected.wav" );
+	PRECACHE_SOUND ("smg_gruber_nolossoflife.wav" );
+	PRECACHE_SOUND ("smg_gruber_nicesuit.wav" );
+	PRECACHE_SOUND ("smg_gruber_doitmyself.wav" );
+	PRECACHE_SOUND ("smg_gruber_shes.wav" );
+	PRECACHE_SOUND ("smg_gruber_nolossoflife.wav" );
+	PRECACHE_SOUND ("smg_gruber_shootglass.wav" );
+	PRECACHE_SOUND ("smg_gruber_timemagazine.wav" );
+	PRECACHE_SOUND ("smg_gruber_hohoho.wav" );
+	PRECACHE_SOUND ("smg_gruber_troublesome.wav" );
+
 	m_usSmg = PRECACHE_EVENT( 1, "events/smg.sc" );
 }
 
@@ -113,7 +124,14 @@ BOOL CSMG::Deploy( )
 {
 	m_sFireCount = 0;
 	m_sMode = FULL;
-	return DefaultDeploy( "models/v_smg.mdl", "models/p_smg.mdl", SMG_DEPLOY, "mp5" );
+
+	BOOL result = DefaultDeploy( "models/v_smg.mdl", "models/p_smg.mdl", SMG_DEPLOY, "mp5" );
+
+	if (result) {
+		EMIT_SOUND ( ENT(m_pPlayer->pev), CHAN_VOICE, "smg_selected.wav", 1.0, ATTN_NORM );
+	}
+
+	return result;
 }
 
 void CSMG::Holster( int skiplocal )
@@ -203,6 +221,22 @@ void CSMG::PrimaryAttack()
 
 void CSMG::SecondaryAttack( void )
 {
+	// player "shoot" animation
+	m_pPlayer->SetAnimation( PLAYER_ATTACK1 );
+
+	switch (RANDOM_LONG(0,9)) {
+		case 0: EMIT_SOUND ( ENT(m_pPlayer->pev), CHAN_VOICE, "smg_gruber_nolossoflife.wav", 1.0, ATTN_NORM ); break;
+		case 1: EMIT_SOUND ( ENT(m_pPlayer->pev), CHAN_VOICE, "smg_gruber_nicesuit.wav", 1.0, ATTN_NORM ); break;
+		case 2: EMIT_SOUND ( ENT(m_pPlayer->pev), CHAN_VOICE, "smg_gruber_doitmyself.wav", 1.0, ATTN_NORM ); break;
+		case 3: EMIT_SOUND ( ENT(m_pPlayer->pev), CHAN_VOICE, "smg_gruber_shes.wav", 1.0, ATTN_NORM ); break;
+		case 4: EMIT_SOUND ( ENT(m_pPlayer->pev), CHAN_VOICE, "smg_gruber_nolossoflife.wav", 1.0, ATTN_NORM ); break;
+		case 5: EMIT_SOUND ( ENT(m_pPlayer->pev), CHAN_VOICE, "smg_gruber_shootglass.wav", 1.0, ATTN_NORM ); break;
+		case 6: EMIT_SOUND ( ENT(m_pPlayer->pev), CHAN_VOICE, "smg_gruber_timemagazine.wav", 1.0, ATTN_NORM ); break;
+		case 7: EMIT_SOUND ( ENT(m_pPlayer->pev), CHAN_VOICE, "smg_gruber_hohoho.wav", 1.0, ATTN_NORM ); break;
+		case 8: EMIT_SOUND ( ENT(m_pPlayer->pev), CHAN_VOICE, "smg_gruber_troublesome.wav", 1.0, ATTN_NORM ); break;
+		case 9: EMIT_SOUND ( ENT(m_pPlayer->pev), CHAN_VOICE, "smg_selected.wav", 1.0, ATTN_NORM ); break;
+	}
+
 	switch (m_sMode) {
 	case FULL:
 		m_sMode = BURST;
@@ -213,8 +247,9 @@ void CSMG::SecondaryAttack( void )
 	default:
 		m_sMode = FULL;
 	}
+
 	SendWeaponAnim( SMG_SELECT );
-	m_flNextSecondaryAttack = GetNextAttackDelay(1.0);
+	m_flNextSecondaryAttack = GetNextAttackDelay(2.0);
 }
 
 void CSMG::Reload( void )
