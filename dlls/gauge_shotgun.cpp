@@ -116,7 +116,13 @@ int C12Gauge::GetItemInfo(ItemInfo *p)
 
 BOOL C12Gauge::Deploy( )
 {
-	return DefaultDeploy( "models/v_12gauge.mdl", "models/p_12gauge.mdl", GAUGE_SHOTGUN_DRAW, "shotgun" );
+	BOOL result = DefaultDeploy( "models/v_12gauge.mdl", "models/p_12gauge.mdl", GAUGE_SHOTGUN_DRAW, "shotgun" );
+
+	if (result) {
+		EMIT_SOUND ( ENT(m_pPlayer->pev), CHAN_VOICE, "12gauge_jackson.wav", 1.0, ATTN_NORM );
+	}
+
+	return result;
 }
 
 void C12Gauge::Holster( int skiplocal /* = 0 */ )
