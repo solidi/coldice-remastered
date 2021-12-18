@@ -71,10 +71,17 @@ void C12Gauge::Precache( void )
 	PRECACHE_SOUND ("weapons/reload3.wav");	// shotgun reload
 
 	PRECACHE_SOUND ("weapons/357_cock1.wav"); // gun empty sound
-	PRECACHE_SOUND ("weapons/scock1.wav");	// cock gun
+	PRECACHE_SOUND ("12gauge_cock.wav");	// cock gun
+
+	PRECACHE_SOUND ("12gauge_jackson.wav");
+	PRECACHE_SOUND ("12gauge_jackson_shutup.wav");
+	PRECACHE_SOUND ("12gauge_jackson_moneyout.wav");
+	PRECACHE_SOUND ("12gauge_jackson_moneyall.wav");
+	PRECACHE_SOUND ("12gauge_jackson_comeon.wav");
+	PRECACHE_SOUND ("12gauge_jackson_buddy.wav");
+	PRECACHE_SOUND ("12gauge_jackson_dontstallme.wav");
 
 	m_usSingleFire = PRECACHE_EVENT( 1, "events/gauge_single.sc" );
-	m_usDoubleFire = PRECACHE_EVENT( 1, "events/gauge_double.sc" );
 }
 
 int C12Gauge::AddToPlayer( CBasePlayer *pPlayer )
@@ -208,61 +215,31 @@ void C12Gauge::SecondaryAttack( void )
 		return;
 	}
 
-	m_pPlayer->m_iWeaponVolume = LOUD_GUN_VOLUME;
-	m_pPlayer->m_iWeaponFlash = NORMAL_GUN_FLASH;
-
-	m_iClip -= 2;
-
-	int flags;
-#if defined( CLIENT_WEAPONS )
-	flags = FEV_NOTHOST;
-#else
-	flags = 0;
-#endif
-
-	m_pPlayer->pev->effects = (int)(m_pPlayer->pev->effects) | EF_MUZZLEFLASH;
-
 	// player "shoot" animation
 	m_pPlayer->SetAnimation( PLAYER_ATTACK1 );
 
-	Vector vecSrc	 = m_pPlayer->GetGunPosition( );
-	Vector vecAiming = m_pPlayer->GetAutoaimVector( AUTOAIM_5DEGREES );
+	SendWeaponAnim(GAUGE_SHOTGUN_PUMP);
 
-	Vector vecDir;
-	
-#ifdef CLIENT_DLL
-	if ( bIsMultiplayer() )
-#else
-	if ( g_pGameRules->IsMultiplayer() )
-#endif
-	{
-		// tuned for deathmatch
-		vecDir = m_pPlayer->FireBulletsPlayer( 8, vecSrc, vecAiming, VECTOR_CONE_DM_DOUBLEGAUGE_SHOTGUN, 2048, BULLET_PLAYER_BUCKSHOT, 0, 0, m_pPlayer->pev, m_pPlayer->random_seed );
+	switch (RANDOM_LONG(0,6)) {
+		case 0: EMIT_SOUND ( ENT(m_pPlayer->pev), CHAN_VOICE, "12gauge_jackson_shutup.wav", 1.0, ATTN_NORM ); break;
+		case 1: EMIT_SOUND ( ENT(m_pPlayer->pev), CHAN_VOICE, "12gauge_jackson_moneyout.wav", 1.0, ATTN_NORM ); break;
+		case 2: EMIT_SOUND ( ENT(m_pPlayer->pev), CHAN_VOICE, "12gauge_jackson_moneyall.wav", 1.0, ATTN_NORM ); break;
+		case 3: EMIT_SOUND ( ENT(m_pPlayer->pev), CHAN_VOICE, "12gauge_jackson_comeon.wav", 1.0, ATTN_NORM ); break;
+		case 4: EMIT_SOUND ( ENT(m_pPlayer->pev), CHAN_VOICE, "12gauge_jackson_buddy.wav", 1.0, ATTN_NORM ); break;
+		case 5: EMIT_SOUND ( ENT(m_pPlayer->pev), CHAN_VOICE, "12gauge_jackson_dontstallme.wav", 1.0, ATTN_NORM ); break;
+		case 6: EMIT_SOUND ( ENT(m_pPlayer->pev), CHAN_VOICE, "12gauge_jackson.wav", 1.0, ATTN_NORM ); break;
 	}
-	else
-	{
-		// untouched default single player
-		vecDir = m_pPlayer->FireBulletsPlayer( 12, vecSrc, vecAiming, VECTOR_CONE_10DEGREES, 2048, BULLET_PLAYER_BUCKSHOT, 0, 0, m_pPlayer->pev, m_pPlayer->random_seed );
-	}
-		
-	PLAYBACK_EVENT_FULL( flags, m_pPlayer->edict(), m_usDoubleFire, 0.0, (float *)&g_vecZero, (float *)&g_vecZero, vecDir.x, vecDir.y, 0, 0, 0, 0 );
-
-	if (!m_iClip && m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] <= 0)
-		// HEV suit - indicate out of ammo condition
-		m_pPlayer->SetSuitUpdate("!HEV_AMO0", FALSE, 0);
 
 	if (m_iClip != 0)
-		m_flPumpTime = gpGlobals->time + 0.95;
+		m_flPumpTime = gpGlobals->time + 0.25;
 
 	m_flNextPrimaryAttack = GetNextAttackDelay(1.5);
-	m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 1.5;
+	m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 3.0;
+
 	if (m_iClip != 0)
 		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 6.0;
 	else
 		m_flTimeWeaponIdle = 1.5;
-
-	m_fInSpecialReload = 0;
-
 }
 
 void C12Gauge::Reload( void )
@@ -323,7 +300,7 @@ void C12Gauge::WeaponIdle( void )
 	if ( m_flPumpTime && m_flPumpTime < gpGlobals->time )
 	{
 		// play pumping sound
-		EMIT_SOUND_DYN(ENT(m_pPlayer->pev), CHAN_ITEM, "weapons/scock1.wav", 1, ATTN_NORM, 0, 95 + RANDOM_LONG(0,0x1f));
+		EMIT_SOUND_DYN(ENT(m_pPlayer->pev), CHAN_ITEM, "12gauge_cock.wav", 1, ATTN_NORM, 0, 95 + RANDOM_LONG(0,0x1f));
 		m_flPumpTime = 0;
 	}
 
@@ -345,7 +322,7 @@ void C12Gauge::WeaponIdle( void )
 				SendWeaponAnim( GAUGE_SHOTGUN_PUMP );
 				
 				// play cocking sound
-				EMIT_SOUND_DYN(ENT(m_pPlayer->pev), CHAN_ITEM, "weapons/scock1.wav", 1, ATTN_NORM, 0, 95 + RANDOM_LONG(0,0x1f));
+				EMIT_SOUND_DYN(ENT(m_pPlayer->pev), CHAN_ITEM, "12gauge_cock.wav", 1, ATTN_NORM, 0, 95 + RANDOM_LONG(0,0x1f));
 				m_fInSpecialReload = 0;
 				m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 1.5;
 			}
