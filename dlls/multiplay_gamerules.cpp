@@ -510,13 +510,10 @@ void CHalfLifeMultiplay :: InitHUD( CBasePlayer *pl )
 				WRITE_SHORT( 0 );
 				WRITE_SHORT( GetTeamIndex( plr->m_szTeamName ) + 1 );
 			MESSAGE_END();
-
-			// Show it one time for this player's init.
-			if ( plr == pl ) {
-				m_iShownWelcomeMessage = gpGlobals->time + 4.0;
-			}
 		}
 	}
+
+	pl->m_iShownWelcomeMessage = gpGlobals->time + 4.0;
 
 	if ( g_fGameOver )
 	{
@@ -625,9 +622,9 @@ void CHalfLifeMultiplay :: PlayerThink( CBasePlayer *pPlayer )
 		pPlayer->m_afButtonReleased = 0;
 	}
 
-	if (m_iShownWelcomeMessage != -1 && m_iShownWelcomeMessage < gpGlobals->time) {
+	if (pPlayer->m_iShownWelcomeMessage != -1 && pPlayer->m_iShownWelcomeMessage < gpGlobals->time) {
 		ClientPrint( pPlayer->pev, HUD_PRINTTALK, "Welcome to Cold Ice Remastered Beta 1. For commands, type \"help\" in the console.\n" );
-		m_iShownWelcomeMessage = -1;
+		pPlayer->m_iShownWelcomeMessage = -1;
 	}
 }
 

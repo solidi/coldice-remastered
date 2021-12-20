@@ -337,6 +337,7 @@ public:
 	char m_SbarString1[ SBAR_STRING_SIZE ];
 	
 	float m_flNextChatTime;
+	float m_iShownWelcomeMessage;
 	
 };
 
