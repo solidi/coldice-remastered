@@ -22,6 +22,7 @@
 #include "player.h"
 #include "soundent.h"
 #include "gamerules.h"
+#include "game.h"
 
 enum smg_e
 {
@@ -127,9 +128,11 @@ BOOL CSMG::Deploy( )
 
 	BOOL result = DefaultDeploy( "models/v_smg.mdl", "models/p_smg.mdl", SMG_DEPLOY, "mp5" );
 
-	if (result) {
+#ifndef CLIENT_DLL
+	if (result && allowvoiceovers.value) {
 		EMIT_SOUND ( ENT(m_pPlayer->pev), CHAN_VOICE, "smg_selected.wav", 1.0, ATTN_NORM );
 	}
+#endif
 
 	return result;
 }
@@ -224,18 +227,22 @@ void CSMG::SecondaryAttack( void )
 	// player "shoot" animation
 	m_pPlayer->SetAnimation( PLAYER_ATTACK1 );
 
-	switch (RANDOM_LONG(0,9)) {
-		case 0: EMIT_SOUND ( ENT(m_pPlayer->pev), CHAN_VOICE, "smg_gruber_nolossoflife.wav", 1.0, ATTN_NORM ); break;
-		case 1: EMIT_SOUND ( ENT(m_pPlayer->pev), CHAN_VOICE, "smg_gruber_nicesuit.wav", 1.0, ATTN_NORM ); break;
-		case 2: EMIT_SOUND ( ENT(m_pPlayer->pev), CHAN_VOICE, "smg_gruber_doitmyself.wav", 1.0, ATTN_NORM ); break;
-		case 3: EMIT_SOUND ( ENT(m_pPlayer->pev), CHAN_VOICE, "smg_gruber_shes.wav", 1.0, ATTN_NORM ); break;
-		case 4: EMIT_SOUND ( ENT(m_pPlayer->pev), CHAN_VOICE, "smg_gruber_nolossoflife.wav", 1.0, ATTN_NORM ); break;
-		case 5: EMIT_SOUND ( ENT(m_pPlayer->pev), CHAN_VOICE, "smg_gruber_shootglass.wav", 1.0, ATTN_NORM ); break;
-		case 6: EMIT_SOUND ( ENT(m_pPlayer->pev), CHAN_VOICE, "smg_gruber_timemagazine.wav", 1.0, ATTN_NORM ); break;
-		case 7: EMIT_SOUND ( ENT(m_pPlayer->pev), CHAN_VOICE, "smg_gruber_hohoho.wav", 1.0, ATTN_NORM ); break;
-		case 8: EMIT_SOUND ( ENT(m_pPlayer->pev), CHAN_VOICE, "smg_gruber_troublesome.wav", 1.0, ATTN_NORM ); break;
-		case 9: EMIT_SOUND ( ENT(m_pPlayer->pev), CHAN_VOICE, "smg_selected.wav", 1.0, ATTN_NORM ); break;
+#ifndef CLIENT_DLL
+	if (allowvoiceovers.value) {
+		switch (RANDOM_LONG(0,9)) {
+			case 0: EMIT_SOUND ( ENT(m_pPlayer->pev), CHAN_VOICE, "smg_gruber_nolossoflife.wav", 1.0, ATTN_NORM ); break;
+			case 1: EMIT_SOUND ( ENT(m_pPlayer->pev), CHAN_VOICE, "smg_gruber_nicesuit.wav", 1.0, ATTN_NORM ); break;
+			case 2: EMIT_SOUND ( ENT(m_pPlayer->pev), CHAN_VOICE, "smg_gruber_doitmyself.wav", 1.0, ATTN_NORM ); break;
+			case 3: EMIT_SOUND ( ENT(m_pPlayer->pev), CHAN_VOICE, "smg_gruber_shes.wav", 1.0, ATTN_NORM ); break;
+			case 4: EMIT_SOUND ( ENT(m_pPlayer->pev), CHAN_VOICE, "smg_gruber_nolossoflife.wav", 1.0, ATTN_NORM ); break;
+			case 5: EMIT_SOUND ( ENT(m_pPlayer->pev), CHAN_VOICE, "smg_gruber_shootglass.wav", 1.0, ATTN_NORM ); break;
+			case 6: EMIT_SOUND ( ENT(m_pPlayer->pev), CHAN_VOICE, "smg_gruber_timemagazine.wav", 1.0, ATTN_NORM ); break;
+			case 7: EMIT_SOUND ( ENT(m_pPlayer->pev), CHAN_VOICE, "smg_gruber_hohoho.wav", 1.0, ATTN_NORM ); break;
+			case 8: EMIT_SOUND ( ENT(m_pPlayer->pev), CHAN_VOICE, "smg_gruber_troublesome.wav", 1.0, ATTN_NORM ); break;
+			case 9: EMIT_SOUND ( ENT(m_pPlayer->pev), CHAN_VOICE, "smg_selected.wav", 1.0, ATTN_NORM ); break;
+		}
 	}
+#endif
 
 	switch (m_sMode) {
 	case FULL:

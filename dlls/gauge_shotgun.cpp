@@ -21,6 +21,7 @@
 #include "nodes.h"
 #include "player.h"
 #include "gamerules.h"
+#include "game.h"
 
 // special deathmatch shotgun spreads
 #define VECTOR_CONE_DM_GAUGE_SHOTGUN	Vector( 0.08716, 0.04362, 0.00 )// 10 degrees by 5 degrees
@@ -118,9 +119,11 @@ BOOL C12Gauge::Deploy( )
 {
 	BOOL result = DefaultDeploy( "models/v_12gauge.mdl", "models/p_12gauge.mdl", GAUGE_SHOTGUN_DRAW, "shotgun" );
 
-	if (result) {
+#ifndef CLIENT_DLL
+	if (result && allowvoiceovers.value) {
 		EMIT_SOUND ( ENT(m_pPlayer->pev), CHAN_VOICE, "12gauge_jackson.wav", 1.0, ATTN_NORM );
 	}
+#endif
 
 	return result;
 }
@@ -226,15 +229,19 @@ void C12Gauge::SecondaryAttack( void )
 
 	SendWeaponAnim(GAUGE_SHOTGUN_PUMP);
 
-	switch (RANDOM_LONG(0,6)) {
-		case 0: EMIT_SOUND ( ENT(m_pPlayer->pev), CHAN_VOICE, "12gauge_jackson_shutup.wav", 1.0, ATTN_NORM ); break;
-		case 1: EMIT_SOUND ( ENT(m_pPlayer->pev), CHAN_VOICE, "12gauge_jackson_moneyout.wav", 1.0, ATTN_NORM ); break;
-		case 2: EMIT_SOUND ( ENT(m_pPlayer->pev), CHAN_VOICE, "12gauge_jackson_moneyall.wav", 1.0, ATTN_NORM ); break;
-		case 3: EMIT_SOUND ( ENT(m_pPlayer->pev), CHAN_VOICE, "12gauge_jackson_comeon.wav", 1.0, ATTN_NORM ); break;
-		case 4: EMIT_SOUND ( ENT(m_pPlayer->pev), CHAN_VOICE, "12gauge_jackson_buddy.wav", 1.0, ATTN_NORM ); break;
-		case 5: EMIT_SOUND ( ENT(m_pPlayer->pev), CHAN_VOICE, "12gauge_jackson_dontstallme.wav", 1.0, ATTN_NORM ); break;
-		case 6: EMIT_SOUND ( ENT(m_pPlayer->pev), CHAN_VOICE, "12gauge_jackson.wav", 1.0, ATTN_NORM ); break;
+#ifndef CLIENT_DLL
+	if (allowvoiceovers.value) {
+		switch (RANDOM_LONG(0,6)) {
+			case 0: EMIT_SOUND ( ENT(m_pPlayer->pev), CHAN_VOICE, "12gauge_jackson_shutup.wav", 1.0, ATTN_NORM ); break;
+			case 1: EMIT_SOUND ( ENT(m_pPlayer->pev), CHAN_VOICE, "12gauge_jackson_moneyout.wav", 1.0, ATTN_NORM ); break;
+			case 2: EMIT_SOUND ( ENT(m_pPlayer->pev), CHAN_VOICE, "12gauge_jackson_moneyall.wav", 1.0, ATTN_NORM ); break;
+			case 3: EMIT_SOUND ( ENT(m_pPlayer->pev), CHAN_VOICE, "12gauge_jackson_comeon.wav", 1.0, ATTN_NORM ); break;
+			case 4: EMIT_SOUND ( ENT(m_pPlayer->pev), CHAN_VOICE, "12gauge_jackson_buddy.wav", 1.0, ATTN_NORM ); break;
+			case 5: EMIT_SOUND ( ENT(m_pPlayer->pev), CHAN_VOICE, "12gauge_jackson_dontstallme.wav", 1.0, ATTN_NORM ); break;
+			case 6: EMIT_SOUND ( ENT(m_pPlayer->pev), CHAN_VOICE, "12gauge_jackson.wav", 1.0, ATTN_NORM ); break;
+		}
 	}
+#endif
 
 	if (m_iClip != 0)
 		m_flPumpTime = gpGlobals->time + 0.25;

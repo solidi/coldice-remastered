@@ -21,6 +21,7 @@
 #include "nodes.h"
 #include "player.h"
 #include "gamerules.h"
+#include "game.h"
 
 enum vest_radio_e {
 	VEST_RADIO_IDLE1 = 0,
@@ -122,7 +123,10 @@ void CVest::Holster( int skiplocal )
 
 void CVest::PrimaryAttack()
 {
-	EMIT_SOUND(ENT(m_pPlayer->pev), CHAN_VOICE, "vest_attack.wav", 1, ATTN_NORM);
+#ifndef CLIENT_DLL
+	if (allowvoiceovers.value)
+		EMIT_SOUND(ENT(m_pPlayer->pev), CHAN_VOICE, "vest_attack.wav", 1, ATTN_NORM);
+#endif
 
 	SetThink( &CVest::BlowThink );
 	pev->nextthink = gpGlobals->time + 1.0;
@@ -149,7 +153,10 @@ void CVest::GoneThink() {
 	m_pPlayer->Killed(m_pPlayer->pev, pev, GIB_ALWAYS);
 	CGrenade::Vest( m_pPlayer->pev, pev->origin );
 
-	STOP_SOUND(ENT(m_pPlayer->pev), CHAN_VOICE, "vest_attack.wav");
+#ifndef CLIENT_DLL
+	if (allowvoiceovers.value)
+		STOP_SOUND(ENT(m_pPlayer->pev), CHAN_VOICE, "vest_attack.wav");
+#endif
 	MESSAGE_BEGIN( MSG_PVS, SVC_TEMPENTITY, m_pPlayer->pev->origin );
 		WRITE_BYTE( TE_BEAMCYLINDER );
 		WRITE_COORD( m_pPlayer->pev->origin.x);

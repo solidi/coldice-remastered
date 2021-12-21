@@ -22,6 +22,7 @@
 #include "nodes.h"
 #include "player.h"
 #include "gamerules.h"
+#include "game.h"
 
 enum satchel_e {
 	SATCHEL_IDLE1 = 0,
@@ -183,8 +184,10 @@ void CSatchelCharge :: SatchelThink( void )
 		MESSAGE_END();
 
 		SET_MODEL(ENT(pev), "models/w_hassassin.mdl");
-
-		EMIT_SOUND(ENT(pev), CHAN_VOICE, "decoy_pushthatbutton.wav", 1, ATTN_NORM);
+#ifndef CLIENT_DLL
+		if (allowvoiceovers.value)
+			EMIT_SOUND(ENT(pev), CHAN_VOICE, "decoy_pushthatbutton.wav", 1, ATTN_NORM);
+#endif
 		EMIT_SOUND(ENT(pev), CHAN_WEAPON, "weapons/explode4.wav", 0.20, ATTN_NORM);
 
 		pev->sequence = RANDOM_LONG(0, 2);
