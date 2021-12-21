@@ -639,9 +639,9 @@ void ClientCommand( edict_t *pEntity )
 		if ( pPlayer->IsObserver() )
 			pPlayer->Observer_FindNextPlayer( atoi( CMD_ARGV(1) )?true:false );
 	}
-	else if ( FStrEq( pcmd, "help" )  )	// follow next player
+	else if ( FStrEq( pcmd, "help" )  )
 	{
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "[Help Menu]\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "[Client Help Menu]\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"+hook\" - Deploy hook\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"+ironsight\" - Use ironsights\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"drop_rune\" - Drop rune\n");
@@ -658,6 +658,24 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_weaponfidget 1\" - Weapon Fidget\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_playpoint 1\" - Play buzzer/bell for frag\n" );
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_announcehumor 1\" - Play announcement/humor on weapons\n" );
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "For more, see readme.txt\n" );
+	}
+	else if ( FStrEq( pcmd, "help_server" )  )
+	{
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "[Server Help Menu]\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"addbot\" - Add a bot\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"botdontshoot 0\" - Enable or disable bots attacking others\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_grapplinghook 1\" - Allow grappling hook on server\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_grapplinghookdeploytime 1.0\" - Time (seconds) when next grappling hook can deploy\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_spawnweaponlist \"weapon_fists;weapon_crowbar;weapon_9mmhandgun\"\" Modify the player's spawn weapons\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_allowrunes 1\" - Allow powerup runes on server\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_holsterweapons 1\" - Holstering weapons for more realistic gameplay\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_floatingweapons 1\" - Floating world weapons ala Quake\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_infiniteammo 1\" - Infinite ammo ala CS 1.6\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_iceblood 1\" - Enable blue blood\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_moreblood 2\" - Increase blood up to 0-5 times\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_startwithall 0\" - Start with all weapons\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_allowvoiceovers 1\" - Allow public voiceovers\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "For more, see readme.txt\n" );
 	}
 	else if ( g_pGameRules->ClientCommand( GetClassPtr((CBasePlayer *)pev), pcmd ) )
