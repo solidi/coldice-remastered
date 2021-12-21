@@ -20,6 +20,7 @@
 #include "weapons.h"
 #include "nodes.h"
 #include "player.h"
+#include "game.h"
 
 enum mag60_e {
 	MAG60_AIM = 0,
@@ -66,6 +67,26 @@ int CMag60::AddToPlayer( CBasePlayer *pPlayer )
 	return FALSE;
 }
 
+const char *CMag60::pRotateUpBladeSounds[] = 
+{
+	"mag60_blade_arrangement.wav",
+	"mag60_blade_nature.wav",
+	"mag60_blade_capable.wav",
+	"mag60_blade_uphill.wav",
+	"mag60_blade_topping.wav",
+	"mag60_blade_pass.wav",
+};
+
+const char *CMag60::pRotateDownBladeSounds[] = 
+{
+	"mag60_blade_music.wav",
+	"mag60_blade_suckaheads.wav",
+	"mag60_blade_frost.wav",
+	"mag60_blade_usethem.wav",
+	"mag60_blade_trigger.wav",
+	"mag60_blade_dead.wav",
+};
+
 void CMag60::Precache( void )
 {
 	PRECACHE_MODEL("models/v_mag60.mdl");
@@ -78,6 +99,9 @@ void CMag60::Precache( void )
 	PRECACHE_SOUND("items/9mmclip2.wav");
 
 	PRECACHE_SOUND ("mag60_fire.wav");
+
+	PRECACHE_SOUND_ARRAY(pRotateDownBladeSounds);
+	PRECACHE_SOUND_ARRAY(pRotateUpBladeSounds);
 
 	m_useFireMag60 = PRECACHE_EVENT( 1, "events/mag60.sc" );
 }
@@ -95,7 +119,7 @@ int CMag60::GetItemInfo(ItemInfo *p)
 	p->iFlags = 0;
 	p->iId = m_iId = WEAPON_MAG60;
 	p->iWeight = MAG60_WEIGHT;
-	p->pszDisplayName = "Mag 60 Automatic Handgun";
+	p->pszDisplayName = "Blade's Mag 60 Automatic Handgun";
 
 	return 1;
 }
@@ -108,6 +132,13 @@ BOOL CMag60::Deploy( )
 	} else {
 		result = DefaultDeploy( "models/v_mag60.mdl", "models/p_mag60.mdl", MAG60_DRAW, "onehanded", 1 );
 	}
+
+#ifndef CLIENT_DLL
+	if (result && allowvoiceovers.value) {
+		EMIT_SOUND ( ENT(m_pPlayer->pev), CHAN_VOICE, "mag60_blade_music.wav", 1.0, ATTN_NORM );
+	}
+#endif
+
 	return result;
 }
 
@@ -121,16 +152,22 @@ void CMag60::Holster( int skiplocal )
 void CMag60::SecondaryAttack( void )
 {
 	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + UTIL_SharedRandomFloat( m_pPlayer->random_seed, 10, 15 );
-	m_flNextPrimaryAttack = m_flNextSecondaryAttack = GetNextAttackDelay(0.5);
-	//SetThink( &CMag60::Rotate );
-	//pev->nextthink = gpGlobals->time + 0.5f;
+	m_flNextPrimaryAttack = m_flNextSecondaryAttack = GetNextAttackDelay(1.5);
 
 	if (m_iRotated) {
 		m_iRotated = 0;
 		SendWeaponAnim( MAG60_ROTATE_UP );
+#ifndef CLIENT_DLL
+		if (allowvoiceovers.value)
+			EMIT_SOUND(ENT(m_pPlayer->pev), CHAN_VOICE, RANDOM_SOUND_ARRAY(pRotateUpBladeSounds), 1.0, ATTN_NORM );
+#endif
 	} else {
 		m_iRotated = 1;
 		SendWeaponAnim( MAG60_ROTATE_DOWN );
+#ifndef CLIENT_DLL
+		if (allowvoiceovers.value)
+			EMIT_SOUND(ENT(m_pPlayer->pev), CHAN_VOICE, RANDOM_SOUND_ARRAY(pRotateDownBladeSounds), 1.0, ATTN_NORM );
+#endif
 	}
 }
 

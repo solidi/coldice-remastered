@@ -1342,6 +1342,9 @@ public:
 #endif
 	}
 
+	static const char *pRotateUpBladeSounds[];
+	static const char *pRotateDownBladeSounds[];
+
 private:
 	int m_iShell;
 	int m_iRotated;
