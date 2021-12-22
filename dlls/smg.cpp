@@ -59,6 +59,20 @@ void CSMG::Spawn( )
 	FallInit();// get ready to fall down.
 }
 
+const char *CSMG::pHansSounds[] = 
+{
+	"smg_selected.wav",
+	"smg_gruber_nolossoflife.wav",
+	"smg_gruber_nicesuit.wav",
+	"smg_gruber_doitmyself.wav",
+	"smg_gruber_shes.wav",
+	"smg_gruber_nolossoflife.wav",
+	"smg_gruber_shootglass.wav",
+	"smg_gruber_timemagazine.wav",
+	"smg_gruber_hohoho.wav",
+	"smg_gruber_troublesome.wav",
+};
+
 void CSMG::Precache( void )
 {
 	PRECACHE_MODEL("models/v_smg.mdl");
@@ -77,16 +91,7 @@ void CSMG::Precache( void )
 
 	PRECACHE_SOUND ("weapons/357_cock1.wav");
 
-	PRECACHE_SOUND ("smg_selected.wav" );
-	PRECACHE_SOUND ("smg_gruber_nolossoflife.wav" );
-	PRECACHE_SOUND ("smg_gruber_nicesuit.wav" );
-	PRECACHE_SOUND ("smg_gruber_doitmyself.wav" );
-	PRECACHE_SOUND ("smg_gruber_shes.wav" );
-	PRECACHE_SOUND ("smg_gruber_nolossoflife.wav" );
-	PRECACHE_SOUND ("smg_gruber_shootglass.wav" );
-	PRECACHE_SOUND ("smg_gruber_timemagazine.wav" );
-	PRECACHE_SOUND ("smg_gruber_hohoho.wav" );
-	PRECACHE_SOUND ("smg_gruber_troublesome.wav" );
+	PRECACHE_SOUND_ARRAY(pHansSounds);
 
 	m_usSmg = PRECACHE_EVENT( 1, "events/smg.sc" );
 }
@@ -130,7 +135,7 @@ BOOL CSMG::Deploy( )
 
 #ifndef CLIENT_DLL
 	if (result && allowvoiceovers.value) {
-		EMIT_SOUND ( ENT(m_pPlayer->pev), CHAN_VOICE, "smg_selected.wav", 1.0, ATTN_NORM );
+		EMIT_SOUND(ENT(m_pPlayer->pev), CHAN_VOICE, RANDOM_SOUND_ARRAY(pHansSounds), 1.0, ATTN_NORM );
 	}
 #endif
 
@@ -224,23 +229,20 @@ void CSMG::PrimaryAttack()
 
 void CSMG::SecondaryAttack( void )
 {
+	// don't select underwater
+	if (m_pPlayer->pev->waterlevel == 3)
+	{
+		PlayEmptySound( );
+		m_flNextSecondaryAttack = GetNextAttackDelay(0.15);
+		return;
+	}
+
 	// player "shoot" animation
 	m_pPlayer->SetAnimation( PLAYER_ATTACK1 );
 
 #ifndef CLIENT_DLL
 	if (allowvoiceovers.value) {
-		switch (RANDOM_LONG(0,9)) {
-			case 0: EMIT_SOUND ( ENT(m_pPlayer->pev), CHAN_VOICE, "smg_gruber_nolossoflife.wav", 1.0, ATTN_NORM ); break;
-			case 1: EMIT_SOUND ( ENT(m_pPlayer->pev), CHAN_VOICE, "smg_gruber_nicesuit.wav", 1.0, ATTN_NORM ); break;
-			case 2: EMIT_SOUND ( ENT(m_pPlayer->pev), CHAN_VOICE, "smg_gruber_doitmyself.wav", 1.0, ATTN_NORM ); break;
-			case 3: EMIT_SOUND ( ENT(m_pPlayer->pev), CHAN_VOICE, "smg_gruber_shes.wav", 1.0, ATTN_NORM ); break;
-			case 4: EMIT_SOUND ( ENT(m_pPlayer->pev), CHAN_VOICE, "smg_gruber_nolossoflife.wav", 1.0, ATTN_NORM ); break;
-			case 5: EMIT_SOUND ( ENT(m_pPlayer->pev), CHAN_VOICE, "smg_gruber_shootglass.wav", 1.0, ATTN_NORM ); break;
-			case 6: EMIT_SOUND ( ENT(m_pPlayer->pev), CHAN_VOICE, "smg_gruber_timemagazine.wav", 1.0, ATTN_NORM ); break;
-			case 7: EMIT_SOUND ( ENT(m_pPlayer->pev), CHAN_VOICE, "smg_gruber_hohoho.wav", 1.0, ATTN_NORM ); break;
-			case 8: EMIT_SOUND ( ENT(m_pPlayer->pev), CHAN_VOICE, "smg_gruber_troublesome.wav", 1.0, ATTN_NORM ); break;
-			case 9: EMIT_SOUND ( ENT(m_pPlayer->pev), CHAN_VOICE, "smg_selected.wav", 1.0, ATTN_NORM ); break;
-		}
+		EMIT_SOUND(ENT(m_pPlayer->pev), CHAN_VOICE, RANDOM_SOUND_ARRAY(pHansSounds), 1.0, ATTN_NORM );
 	}
 #endif
 

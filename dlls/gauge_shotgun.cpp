@@ -55,6 +55,17 @@ void C12Gauge::Spawn( )
 	FallInit();// get ready to fall
 }
 
+const char *C12Gauge::pJacksonSounds[] = 
+{
+	"12gauge_jackson.wav",
+	"12gauge_jackson_shutup.wav",
+	"12gauge_jackson_moneyout.wav",
+	"12gauge_jackson_moneyall.wav",
+	"12gauge_jackson_comeon.wav",
+	"12gauge_jackson_buddy.wav",
+	"12gauge_jackson_dontstallme.wav",
+};
+
 void C12Gauge::Precache( void )
 {
 	PRECACHE_MODEL("models/v_12gauge.mdl");
@@ -74,13 +85,7 @@ void C12Gauge::Precache( void )
 	PRECACHE_SOUND ("weapons/357_cock1.wav"); // gun empty sound
 	PRECACHE_SOUND ("12gauge_cock.wav");	// cock gun
 
-	PRECACHE_SOUND ("12gauge_jackson.wav");
-	PRECACHE_SOUND ("12gauge_jackson_shutup.wav");
-	PRECACHE_SOUND ("12gauge_jackson_moneyout.wav");
-	PRECACHE_SOUND ("12gauge_jackson_moneyall.wav");
-	PRECACHE_SOUND ("12gauge_jackson_comeon.wav");
-	PRECACHE_SOUND ("12gauge_jackson_buddy.wav");
-	PRECACHE_SOUND ("12gauge_jackson_dontstallme.wav");
+	PRECACHE_SOUND_ARRAY(pJacksonSounds);
 
 	m_usSingleFire = PRECACHE_EVENT( 1, "events/gauge_single.sc" );
 }
@@ -121,7 +126,7 @@ BOOL C12Gauge::Deploy( )
 
 #ifndef CLIENT_DLL
 	if (result && allowvoiceovers.value) {
-		EMIT_SOUND ( ENT(m_pPlayer->pev), CHAN_VOICE, "12gauge_jackson.wav", 1.0, ATTN_NORM );
+		EMIT_SOUND(ENT(m_pPlayer->pev), CHAN_VOICE, RANDOM_SOUND_ARRAY(pJacksonSounds), 1.0, ATTN_NORM );
 	}
 #endif
 
@@ -231,15 +236,7 @@ void C12Gauge::SecondaryAttack( void )
 
 #ifndef CLIENT_DLL
 	if (allowvoiceovers.value) {
-		switch (RANDOM_LONG(0,6)) {
-			case 0: EMIT_SOUND ( ENT(m_pPlayer->pev), CHAN_VOICE, "12gauge_jackson_shutup.wav", 1.0, ATTN_NORM ); break;
-			case 1: EMIT_SOUND ( ENT(m_pPlayer->pev), CHAN_VOICE, "12gauge_jackson_moneyout.wav", 1.0, ATTN_NORM ); break;
-			case 2: EMIT_SOUND ( ENT(m_pPlayer->pev), CHAN_VOICE, "12gauge_jackson_moneyall.wav", 1.0, ATTN_NORM ); break;
-			case 3: EMIT_SOUND ( ENT(m_pPlayer->pev), CHAN_VOICE, "12gauge_jackson_comeon.wav", 1.0, ATTN_NORM ); break;
-			case 4: EMIT_SOUND ( ENT(m_pPlayer->pev), CHAN_VOICE, "12gauge_jackson_buddy.wav", 1.0, ATTN_NORM ); break;
-			case 5: EMIT_SOUND ( ENT(m_pPlayer->pev), CHAN_VOICE, "12gauge_jackson_dontstallme.wav", 1.0, ATTN_NORM ); break;
-			case 6: EMIT_SOUND ( ENT(m_pPlayer->pev), CHAN_VOICE, "12gauge_jackson.wav", 1.0, ATTN_NORM ); break;
-		}
+		EMIT_SOUND(ENT(m_pPlayer->pev), CHAN_VOICE, RANDOM_SOUND_ARRAY(pJacksonSounds), 1.0, ATTN_NORM );
 	}
 #endif
 
@@ -247,7 +244,7 @@ void C12Gauge::SecondaryAttack( void )
 		m_flPumpTime = gpGlobals->time + 0.25;
 
 	m_flNextPrimaryAttack = GetNextAttackDelay(1.5);
-	m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 3.0;
+	m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 2.0;
 
 	if (m_iClip != 0)
 		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 6.0;

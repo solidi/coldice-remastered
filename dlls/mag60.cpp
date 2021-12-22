@@ -135,7 +135,7 @@ BOOL CMag60::Deploy( )
 
 #ifndef CLIENT_DLL
 	if (result && allowvoiceovers.value) {
-		EMIT_SOUND ( ENT(m_pPlayer->pev), CHAN_VOICE, "mag60_blade_music.wav", 1.0, ATTN_NORM );
+		EMIT_SOUND(ENT(m_pPlayer->pev), CHAN_VOICE, RANDOM_SOUND_ARRAY(pRotateUpBladeSounds), 1.0, ATTN_NORM );
 	}
 #endif
 
@@ -151,8 +151,16 @@ void CMag60::Holster( int skiplocal )
 
 void CMag60::SecondaryAttack( void )
 {
+	// don't select underwater
+	if (m_pPlayer->pev->waterlevel == 3)
+	{
+		PlayEmptySound( );
+		m_flNextSecondaryAttack = GetNextAttackDelay(0.15);
+		return;
+	}
+
 	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + UTIL_SharedRandomFloat( m_pPlayer->random_seed, 10, 15 );
-	m_flNextPrimaryAttack = m_flNextSecondaryAttack = GetNextAttackDelay(1.5);
+	m_flNextPrimaryAttack = m_flNextSecondaryAttack = GetNextAttackDelay(0.5);
 
 	if (m_iRotated) {
 		m_iRotated = 0;

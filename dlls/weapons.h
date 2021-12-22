@@ -1441,6 +1441,8 @@ public:
 #endif
 	}
 
+	static const char *pHansSounds[];
+
 private:
 	short m_sFireCount;
 	short m_sMode;
@@ -1639,6 +1641,8 @@ public:
 		return FALSE;
 #endif
 	}
+
+	static const char *pJacksonSounds[];
 
 	virtual BOOL SemiAuto( void ) { return TRUE; }
 
