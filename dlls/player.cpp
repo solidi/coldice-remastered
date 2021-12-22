@@ -3577,7 +3577,7 @@ void CBasePlayer::ImpulseCommands( )
 
 	default:
 		// check all of the cheat impulse commands now
-		CheatImpulseCommands( iImpulse );
+		CheatImpulseCommands( iImpulse, TRUE );
 		break;
 	}
 	
@@ -3586,10 +3586,10 @@ void CBasePlayer::ImpulseCommands( )
 
 //=========================================================
 //=========================================================
-void CBasePlayer::CheatImpulseCommands( int iImpulse )
+void CBasePlayer::CheatImpulseCommands( int iImpulse, BOOL m_iFromClient )
 {
 #if !defined( HLDEMO_BUILD )
-	if ( g_flWeaponCheat == 0.0 )
+	if ( m_iFromClient && g_flWeaponCheat == 0.0 )
 	{
 		return;
 	}

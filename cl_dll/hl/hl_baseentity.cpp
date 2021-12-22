@@ -296,7 +296,7 @@ void CBasePlayer :: FlashlightTurnOn( void ) { }
 void CBasePlayer :: FlashlightTurnOff( void ) { }
 void CBasePlayer :: ForceClientDllUpdate( void ) { }
 void CBasePlayer::ImpulseCommands( ) { }
-void CBasePlayer::CheatImpulseCommands( int iImpulse ) { }
+void CBasePlayer::CheatImpulseCommands( int iImpulse, BOOL m_iFromClient ) { }
 int CBasePlayer::AddPlayerItem( CBasePlayerItem *pItem ) { return FALSE; }
 int CBasePlayer::RemovePlayerItem( CBasePlayerItem *pItem ) { return FALSE; }
 void CBasePlayer::ItemPreFrame() { }

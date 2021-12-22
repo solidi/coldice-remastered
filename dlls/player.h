@@ -266,7 +266,7 @@ public:
 
 	// custom player functions
 	virtual void ImpulseCommands( void );
-	void CheatImpulseCommands( int iImpulse );
+	void CheatImpulseCommands( int iImpulse, BOOL m_iFromClient );
 
 	void StartDeathCam( void );
 	void StartObserver( Vector vecPosition, Vector vecViewAngle );

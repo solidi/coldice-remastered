@@ -646,7 +646,7 @@ void CHalfLifeMultiplay :: PlayerSpawn( CBasePlayer *pPlayer )
 	}
 
 	if (startwithall.value) {
-		pPlayer->CheatImpulseCommands(101);
+		pPlayer->CheatImpulseCommands(101, FALSE);
 		return;
 	}
 
