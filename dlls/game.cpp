@@ -40,7 +40,7 @@ cvar_t	defaultteam = {"mp_defaultteam","0" };
 cvar_t	allowmonsters={"mp_allowmonsters","0", FCVAR_SERVER };
 
 #if defined( GRAPPLING_HOOK )
-cvar_t	grapplinghook = {"mp_grapplinghook","0", FCVAR_SERVER };
+cvar_t	grapplinghook = {"mp_grapplinghook","1", FCVAR_SERVER };
 cvar_t	grapplinghookdeploytime = {"mp_grapplinghookdeploytime","1.0", FCVAR_SERVER };
 #endif
 
