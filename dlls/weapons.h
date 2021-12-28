@@ -1202,6 +1202,9 @@ public:
 		return FALSE;
 #endif
 	}
+
+private:
+	int m_iLightning;
 };
 
 class CChumtoad : public CBasePlayerWeapon

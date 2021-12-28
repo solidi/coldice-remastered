@@ -65,6 +65,8 @@ void CVest::Precache( void )
 	PRECACHE_SOUND("vest_attack.wav");
 	PRECACHE_SOUND("vest_alive.wav");
 	PRECACHE_SOUND("vest_equip.wav");
+
+	m_iLightning = PRECACHE_MODEL( "sprites/lgtning.spr" );
 }
 
 int CVest::GetItemInfo(ItemInfo *p)
@@ -165,7 +167,7 @@ void CVest::GoneThink() {
 		WRITE_COORD( m_pPlayer->pev->origin.x);
 		WRITE_COORD( m_pPlayer->pev->origin.y);
 		WRITE_COORD( m_pPlayer->pev->origin.z + 600 );
-		WRITE_SHORT( PRECACHE_MODEL( "sprites/lgtning.spr" ) );
+		WRITE_SHORT( m_iLightning );
 		WRITE_BYTE( 0 ); // startframe
 		WRITE_BYTE( 0 ); // framerate
 		WRITE_BYTE( 4 ); // life
