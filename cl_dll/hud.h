@@ -700,6 +700,7 @@ public:
 	SCREENINFO	m_scrinfo;
 
 	int	m_iWeaponBits;
+	int	m_iWeaponBits2;
 	int	m_fPlayerDead;
 	int m_iIntermission;
 

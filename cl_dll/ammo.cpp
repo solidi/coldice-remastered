@@ -354,13 +354,29 @@ void CHudAmmo::Think(void)
 	{
 		gWR.iOldWeaponBits = gHUD.m_iWeaponBits;
 
-		for (int i = MAX_WEAPONS-1; i > 0; i-- )
+		for (int i = 31; i > 0; i-- )
 		{
 			WEAPON *p = gWR.GetWeapon(i);
 
 			if ( p )
 			{
 				if ( gHUD.m_iWeaponBits & ( 1 << p->iId ) )
+					gWR.PickupWeapon( p );
+				else
+					gWR.DropWeapon( p );
+			}
+		}
+	}
+
+	if ( gHUD.m_iWeaponBits2 != gWR.iOldWeaponBits2 )
+	{
+		gWR.iOldWeaponBits2 = gHUD.m_iWeaponBits2;
+		for (int i = 63; i > 31; i-- )
+		{
+			WEAPON *p = gWR.GetWeapon(i);
+			if ( p )
+			{
+				if ( gHUD.m_iWeaponBits2 & ( 1 << (p->iId - 32) ) )
 					gWR.PickupWeapon( p );
 				else
 					gWR.DropWeapon( p );

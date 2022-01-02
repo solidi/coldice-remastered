@@ -990,7 +990,10 @@ int CBasePlayerWeapon::AddToPlayer( CBasePlayer *pPlayer )
 {
 	int bResult = CBasePlayerItem::AddToPlayer( pPlayer );
 
-	pPlayer->pev->weapons |= (1<<m_iId);
+	if (m_iId < 32)
+		pPlayer->pev->weapons |= (1<<m_iId);
+	else
+		pPlayer->m_iWeapons2 |= (1<<(m_iId - 32));
 
 	if ( !m_iPrimaryAmmoType )
 	{
