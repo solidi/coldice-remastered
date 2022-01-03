@@ -104,9 +104,9 @@ public:
 
 #define WEAPON_ALLWEAPONS		(~(1<<WEAPON_SUIT))
 
-#define WEAPON_SUIT				31	// ?????
+#define WEAPON_SUIT				256	// ?????
 
-#define MAX_WEAPONS			32
+#define MAX_WEAPONS			64
 
 
 #define MAX_NORMAL_BATTERY	100

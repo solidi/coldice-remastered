@@ -158,6 +158,7 @@ void CL_DLLEXPORT HUD_ProcessPlayerState( struct entity_state_s *dst, const stru
 		g_iUser1 = src->iuser1;
 		g_iUser2 = src->iuser2;
 		g_iUser3 = src->iuser3;
+		gHUD.m_iWeaponBits2 = src->iuser4;
 	}
 }
 
@@ -224,7 +225,7 @@ void CL_DLLEXPORT HUD_TxferPredictionData ( struct entity_state_s *ps, const str
 	VectorCopy( ppcd->vuser3, pcd->vuser3 );
 	VectorCopy( ppcd->vuser4, pcd->vuser4 );
 
-	memcpy( wd, pwd, 32 * sizeof( weapon_data_t ) );
+	memcpy( wd, pwd, MAX_WEAPONS * sizeof( weapon_data_t ) );
 }
 
 #if defined( BEAM_TEST )
