@@ -591,6 +591,20 @@ void ClientCommand( edict_t *pEntity )
 			ClientPrint(pPlayer->pev, HUD_PRINTCENTER, "Discarded Rune\n");
 		}
 	}
+	else if ( FStrEq(pcmd, "snowman" ) )
+	{
+		CBasePlayer *pPlayer = GetClassPtr((CBasePlayer *)pev);
+
+		if (g_flWeaponCheat) {
+			if ( pPlayer->pev->flags & FL_GODMODE ) {
+				pPlayer->pev->flags &= ~FL_GODMODE;
+				ALERT(at_aiconsole, "God mode OFF\n");
+			} else {
+				pPlayer->pev->flags |= FL_GODMODE;
+				ALERT(at_aiconsole, "God mode ON\n");
+			}
+		}
+	}
 	else if ( FStrEq(pcmd, "use" ) )
 	{
 		GetClassPtr((CBasePlayer *)pev)->SelectItem((char *)CMD_ARGV(1));
