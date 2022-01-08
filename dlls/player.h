@@ -70,6 +70,7 @@ typedef enum
 	PLAYER_SUPERJUMP,
 	PLAYER_DIE,
 	PLAYER_ATTACK1,
+	PLAYER_KICK,
 } PLAYER_ANIM;
 
 #define MAX_ID_RANGE 2048
@@ -207,6 +208,7 @@ public:
 
 	int m_fHasRune;
 	float m_flRuneHealTime;
+	float m_fKickTime;
 
 	virtual void Spawn( void );
 	void Pain( void );
