@@ -659,6 +659,7 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"+hook\" - Deploy hook\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"+ironsight\" - Use ironsights\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"drop_rune\" - Drop rune\n");
+ 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"impulse 202\" - Kick\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"snowman\" - God mode (when sv_cheats 1)\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_icemodels 1\" - Ice Models\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_oldscoreboard 1\" - Old Scoreboard\n");
