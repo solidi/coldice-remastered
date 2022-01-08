@@ -406,7 +406,6 @@ void CChumtoadGrenade::SuperBounceTouch( CBaseEntity *pOther )
 
 #ifdef CHUMTOAD
 LINK_ENTITY_TO_CLASS( weapon_chumtoad, CChumtoad );
-LINK_ENTITY_TO_CLASS( weapon_snark, CChumtoad );
 #endif
 
 void CChumtoad::Spawn( )
