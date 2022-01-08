@@ -316,6 +316,9 @@ void CGameRules::RefreshSkillData ( void )
 	// Nuke
 	gSkillData.plrDmgNuke = GetSkillCvar( "sk_plr_nuke");
 
+	// Kick
+	gSkillData.plrDmgKick = GetSkillCvar( "sk_plr_kick" );
+
 	// MONSTER WEAPONS
 	gSkillData.monDmg12MM = GetSkillCvar( "sk_12mm_bullet");
 	gSkillData.monDmgMP5 = GetSkillCvar ("sk_9mmAR_bullet" );

@@ -83,6 +83,9 @@ enum decal_e
 	DECAL_SLASH1,
 	DECAL_SLASH2,
 	DECAL_SLASH3,
+	DECAL_FOOT_CRACK,
+	DECAL_FOOT_L,
+	DECAL_FOOT_R,
 };
 
 typedef struct 

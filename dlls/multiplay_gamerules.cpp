@@ -214,6 +214,9 @@ void CHalfLifeMultiplay::RefreshSkillData( void )
 
 	// Nuke
 	gSkillData.plrDmgNuke = 250;
+
+	// Kick
+	gSkillData.plrDmgKick = 10;
 }
 
 // longest the intermission can last, in seconds
@@ -820,6 +823,11 @@ void CHalfLifeMultiplay::DeathNotice( CBasePlayer *pVictim, entvars_t *pKiller, 
 	else
 	{
 		killer_weapon_name = STRING( pevInflictor->classname );
+	}
+
+	if (gMultiDamage.type & DMG_KICK)
+	{
+		killer_weapon_name = "kick";
 	}
 
 	// strip the monster_* or weapon_* from the inflictor's classname

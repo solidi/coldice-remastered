@@ -112,6 +112,9 @@ DLL_DECALLIST gDecals[] = {
 	{ "{slash1", 0 },
 	{ "{slash2", 0 },
 	{ "{slash3", 0 },
+	{ "{foot_crack", 0 },
+	{ "{foot_l", 0 },
+	{ "{foot_r", 0 },
 };
 
 /*

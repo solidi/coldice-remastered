@@ -1008,6 +1008,10 @@ void CBasePlayer::SetAnimation( PLAYER_ANIM playerAnim )
 
 	switch (playerAnim) 
 	{
+	case PLAYER_KICK:
+		m_IdealActivity = ACT_KICK;
+		break;
+
 	case PLAYER_JUMP:
 		m_IdealActivity = ACT_HOP;
 		break;
@@ -1029,6 +1033,7 @@ void CBasePlayer::SetAnimation( PLAYER_ANIM playerAnim )
 		case ACT_HOP:
 		case ACT_LEAP:
 		case ACT_DIESIMPLE:
+		case ACT_KICK:
 			m_IdealActivity = m_Activity;
 			break;
 		default:
@@ -1039,6 +1044,10 @@ void CBasePlayer::SetAnimation( PLAYER_ANIM playerAnim )
 	case PLAYER_IDLE:
 	case PLAYER_WALK:
 		if ( !FBitSet( pev->flags, FL_ONGROUND ) && (m_Activity == ACT_HOP || m_Activity == ACT_LEAP) )	// Still jumping
+		{
+			m_IdealActivity = m_Activity;
+		}
+		else if ( m_fKickTime > gpGlobals->time && m_Activity == ACT_KICK )
 		{
 			m_IdealActivity = m_Activity;
 		}
@@ -1063,6 +1072,7 @@ void CBasePlayer::SetAnimation( PLAYER_ANIM playerAnim )
 	case ACT_SWIM:
 	case ACT_HOP:
 	case ACT_DIESIMPLE:
+	case ACT_KICK:
 	default:
 		if ( m_Activity == m_IdealActivity)
 			return;
@@ -2953,7 +2963,7 @@ void CBasePlayer::Spawn( void )
 	g_pGameRules->SetDefaultPlayerTeam( this );
 	g_pGameRules->GetPlayerSpawnSpot( this );
 
-    SET_MODEL(ENT(pev), "models/player.mdl");
+    SET_MODEL(ENT(pev), "models/player/iceman/iceman.mdl");
     g_ulModelIndexPlayer = pev->modelindex;
 	pev->sequence		= LookupActivity( ACT_IDLE );
 
@@ -3579,6 +3589,11 @@ void CBasePlayer::ImpulseCommands( )
 			pCan->Spawn( pev );
 		}
 
+		break;
+	case 202:
+		if (m_pActiveItem) {
+			((CBasePlayerWeapon *)m_pActiveItem)->StartKick();
+		}
 		break;
 
 	default:

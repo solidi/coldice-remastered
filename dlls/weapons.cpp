@@ -49,6 +49,7 @@ DLL_GLOBAL	short	g_sModelIndexBubbles;// holds the index for the bubbles model
 DLL_GLOBAL	short	g_sModelIndexBloodDrop;// holds the sprite index for the initial blood
 DLL_GLOBAL	short	g_sModelIndexBloodSpray;// holds the sprite index for splattered blood
 DLL_GLOBAL	short	g_sModelIndexSnowballHit;
+DLL_GLOBAL	short	g_sModelIndexGunsmoke;
 
 ItemInfo CBasePlayerItem::ItemInfoArray[MAX_WEAPONS];
 AmmoInfo CBasePlayerItem::AmmoInfoArray[MAX_AMMO_SLOTS];
@@ -220,6 +221,10 @@ void DecalGunshot( TraceResult *pTrace, int iBulletType )
 		case BULLET_PLAYER_KNIFE:
 			// wall decal
 			UTIL_DecalTrace( pTrace, DECAL_SLASH1 + RANDOM_LONG(0,2) );
+			break;
+		case BULLET_PLAYER_BOOT:
+			// wall decal
+			UTIL_DecalTrace( pTrace, DECAL_FOOT_CRACK + RANDOM_LONG(0,0) );
 			break;
 		}
 	}
@@ -502,9 +507,11 @@ void W_Precache(void)
 	g_sModelIndexLaserDot = PRECACHE_MODEL("sprites/laserdot.spr");
 
 	g_sModelIndexSnowballHit = PRECACHE_MODEL ("sprites/snowballhit.spr");
-	PRECACHE_MODEL ("sprites/gunsmoke.spr");
+	g_sModelIndexGunsmoke = PRECACHE_MODEL ("sprites/gunsmoke.spr");
 	PRECACHE_MODEL ("sprites/smokeball2.spr");
 
+	PRECACHE_MODEL ("models/v_leg.mdl");
+	PRECACHE_SOUND ("kick.wav");
 
 	// used by explosions
 	PRECACHE_MODEL ("models/grenade.mdl");
@@ -1931,6 +1938,151 @@ void CBasePlayerWeapon::PrintState( void )
 	ALERT( at_console, "m_iclip:  %i\n", m_iClip );
 }
 
+enum kick_e {
+	KICK = 0,
+	KICK_2
+};
+
+void CBasePlayerWeapon::StartKick( void )
+{
+	if (!Kick()) {
+		return;
+	}
+
+	if (!CanAttack( m_flNextPrimaryAttack, gpGlobals->time, UseDecrement() )) {
+		return;
+	}
+
+	if ( FBitSet( m_pPlayer->pev->flags, FL_DUCKING ) ) {
+		return;
+	}
+
+	Holster();
+	m_pPlayer->m_fKickTime = gpGlobals->time + 0.75;
+	KickAttack();
+}
+
+void CBasePlayerWeapon::KickAttack( void )
+{
+	m_pPlayer->pev->viewmodel = MAKE_STRING("models/v_leg.mdl");
+
+	TraceResult tr;
+	UTIL_MakeVectors (m_pPlayer->pev->v_angle);
+	Vector vecSrc	= m_pPlayer->GetGunPosition( );
+	Vector vecEnd	= vecSrc + gpGlobals->v_forward * 32;
+
+	UTIL_TraceLine( vecSrc, vecEnd, dont_ignore_monsters, ENT( m_pPlayer->pev ), &tr );
+
+	m_pPlayer->pev->punchangle = Vector(-10, 0, 0);
+
+#ifndef CLIENT_DLL
+	if ( tr.flFraction >= 1.0 )
+	{
+		UTIL_TraceHull( vecSrc, vecEnd, dont_ignore_monsters, head_hull, ENT( m_pPlayer->pev ), &tr );
+		if ( tr.flFraction < 1.0 )
+		{
+			// Calculate the point of intersection of the line (or hull) and the object we hit
+			// This is and approximation of the "best" intersection
+			CBaseEntity *pHit = CBaseEntity::Instance( tr.pHit );
+			if ( !pHit || pHit->IsBSPModel() )
+				UTIL_FindHullIntersection( vecSrc, tr, VEC_DUCK_HULL_MIN, VEC_DUCK_HULL_MAX, m_pPlayer->edict() );
+			vecEnd = tr.vecEndPos;	// This is the point on the actual surface (the hull could have hit space)
+		}
+	}
+#endif
+
+	switch( RANDOM_LONG(0,1) )
+	{
+	case 0:
+		SendWeaponAnim( KICK ); break;
+	case 1:
+		SendWeaponAnim( KICK_2 ); break;
+	}
+
+	// player "shoot" animation
+	m_pPlayer->SetAnimation( PLAYER_KICK );
+
+	if ( tr.flFraction >= 1.0 )
+	{
+		// miss
+		EMIT_SOUND(ENT(m_pPlayer->pev), CHAN_ITEM, "kick.wav", 1, ATTN_NORM);
+	}
+	else
+	{
+
+#ifndef CLIENT_DLL
+
+		CBaseEntity *pEntity = CBaseEntity::Instance(tr.pHit);
+		ClearMultiDamage( );
+
+		pEntity->TraceAttack(m_pPlayer->pev, gSkillData.plrDmgKick, gpGlobals->v_forward, &tr, DMG_KICK ); 
+
+		ApplyMultiDamage( m_pPlayer->pev, m_pPlayer->pev );
+
+		// play thwack, smack, or dong sound
+		float flVol = 1.0;
+		int fHitWorld = TRUE;
+
+		if (pEntity)
+		{
+			if ( pEntity->Classify() != CLASS_NONE && pEntity->Classify() != CLASS_MACHINE )
+			{
+				// play thwack or smack sound
+				EMIT_SOUND(ENT(m_pPlayer->pev), CHAN_ITEM, "fists_hitbod.wav", 1, ATTN_NORM);
+				m_pPlayer->m_iWeaponVolume = 128;
+				flVol = 0.1;
+
+				fHitWorld = FALSE;
+			}
+		}
+
+		// play texture hit sound
+		// UNDONE: Calculate the correct point of intersection when we hit with the hull instead of the line
+
+		if (fHitWorld)
+		{
+			float fvolbar = TEXTURETYPE_PlaySound(&tr, vecSrc, vecSrc + (vecEnd-vecSrc)*2, BULLET_PLAYER_BOOT);
+
+			if ( g_pGameRules->IsMultiplayer() )
+			{
+				// override the volume here, cause we don't play texture sounds in multiplayer, 
+				// and fvolbar is going to be 0 from the above call.
+
+				fvolbar = 1;
+			}
+
+			EMIT_SOUND_DYN(ENT(m_pPlayer->pev), CHAN_ITEM, "fists_hit.wav", fvolbar, ATTN_NORM, 0, 98 + RANDOM_LONG(0,3));
+		}
+
+		m_pPlayer->m_iWeaponVolume = flVol * 512;
+#endif
+	}
+
+	// delay the decal a bit
+	m_trBootHit = tr;
+
+	SetThink( &CBasePlayerWeapon::EndKick );
+	pev->nextthink = gpGlobals->time + 0.28;
+
+	m_flNextPrimaryAttack = m_flNextSecondaryAttack = GetNextAttackDelay(1.0);
+	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + UTIL_SharedRandomFloat( m_pPlayer->random_seed, 10, 15 );
+}
+
+void CBasePlayerWeapon::EndKick( void )
+{
+	if (m_trBootHit.flFraction < 1.0) {
+		UTIL_MakeVectors( m_pPlayer->pev->v_angle );
+		m_pPlayer->pev->velocity = m_pPlayer->pev->velocity + (gpGlobals->v_forward * -300);
+		Vector smoke = m_trBootHit.vecEndPos - gpGlobals->v_forward * 10;
+		CSprite *pSprite = CSprite::SpriteCreate( "sprites/gunsmoke.spr", smoke, TRUE );
+		pSprite->AnimateAndDie( 12 );
+		pSprite->SetTransparency( kRenderTransAdd, 255, 255, 255, 80, kRenderFxNoDissipation );
+		pSprite->SetScale( 0.4 );
+		DecalGunshot( &m_trBootHit, BULLET_PLAYER_BOOT );
+	}
+
+	Deploy();
+}
 
 TYPEDESCRIPTION	CRpg::m_SaveData[] = 
 {

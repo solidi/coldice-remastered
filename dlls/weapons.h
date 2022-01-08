@@ -242,6 +242,7 @@ typedef	enum
 	BULLET_PLAYER_CHAINSAW,
 	BULLET_PLAYER_EXPLOSIVE_BUCKSHOT,
 	BULLET_PLAYER_KNIFE,
+	BULLET_PLAYER_BOOT,
 
 	BULLET_MONSTER_9MM,
 	BULLET_MONSTER_MP5,
@@ -397,6 +398,12 @@ public:
 	virtual void Holster( int skiplocal = 0 );
 	virtual BOOL UseDecrement( void ) { return FALSE; };
 	virtual BOOL SemiAuto( void ) { return FALSE; };
+	virtual BOOL Kick( void ) { return TRUE; };
+
+	TraceResult m_trBootHit;
+	void StartKick( void );
+	void KickAttack( void );
+	void EndKick( void );
 	
 	int	PrimaryAmmoIndex(); 
 	int	SecondaryAmmoIndex(); 
@@ -1680,6 +1687,8 @@ public:
 		return FALSE;
 #endif
 	}
+
+	virtual BOOL Kick( void ) { return FALSE; }
 
 private:
 	unsigned short m_usNuke;

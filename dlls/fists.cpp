@@ -59,8 +59,6 @@ void CFists::Precache( void )
 	PRECACHE_MODEL("models/v_fists.mdl");
 	PRECACHE_SOUND("fists_hit.wav");
 	PRECACHE_SOUND("fists_hitbod.wav");
-	PRECACHE_SOUND("cbar_hitbod2.wav");
-	PRECACHE_SOUND("cbar_hitbod3.wav");
 	PRECACHE_SOUND("fists_miss.wav");
 	PRECACHE_SOUND("fists_shoryuken.wav");
 
@@ -222,15 +220,7 @@ int CFists::Swing( int fFirst )
 			if ( pEntity->Classify() != CLASS_NONE && pEntity->Classify() != CLASS_MACHINE )
 			{
 				// play thwack or smack sound
-				switch( RANDOM_LONG(0,0) )
-				{
-				case 0:
-					EMIT_SOUND(ENT(m_pPlayer->pev), CHAN_ITEM, "fists_hitbod.wav", 1, ATTN_NORM); break;
-				case 1:
-					EMIT_SOUND(ENT(m_pPlayer->pev), CHAN_ITEM, "cbar_hitbod2.wav", 1, ATTN_NORM); break;
-				case 2:
-					EMIT_SOUND(ENT(m_pPlayer->pev), CHAN_ITEM, "cbar_hitbod3.wav", 1, ATTN_NORM); break;
-				}
+				EMIT_SOUND(ENT(m_pPlayer->pev), CHAN_ITEM, "fists_hitbod.wav", 1, ATTN_NORM);
 				m_pPlayer->m_iWeaponVolume = FISTS_BODYHIT_VOLUME;
 				if ( !pEntity->IsAlive() )
 					  return TRUE;
