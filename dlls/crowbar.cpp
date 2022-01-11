@@ -528,6 +528,8 @@ void CFlyingCrowbar::SpinTouch( CBaseEntity *pOther )
    UTIL_TraceLine(pev->origin, pev->origin + vecDir * 100,
                   dont_ignore_monsters, ENT(pev), &tr);
 
+   DecalGunshot( &tr, BULLET_PLAYER_CROWBAR );
+
    // Throw the weapon box along the normal so it looks kinda
    // like a ricochet. This would be better if I actually
    // calcualted the reflection angle, but I'm lazy. :)
