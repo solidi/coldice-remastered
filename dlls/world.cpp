@@ -49,11 +49,11 @@ extern void W_Precache(void);
 // This must match the list in util.h
 //
 DLL_DECALLIST gDecals[] = {
-	{ "{shot1",	0 },		// DECAL_GUNSHOT1 
-	{ "{shot2",	0 },		// DECAL_GUNSHOT2
-	{ "{shot3",0 },			// DECAL_GUNSHOT3
-	{ "{shot4",	0 },		// DECAL_GUNSHOT4
-	{ "{shot5",	0 },		// DECAL_GUNSHOT5
+	{ "{bshot1",	0 },		// DECAL_GUNSHOT1 
+	{ "{bshot2",	0 },		// DECAL_GUNSHOT2
+	{ "{bshot3",0 },			// DECAL_GUNSHOT3
+	{ "{bshot4",	0 },		// DECAL_GUNSHOT4
+	{ "{bshot5",	0 },		// DECAL_GUNSHOT5
 	{ "{lambda01", 0 },		// DECAL_LAMBDA1
 	{ "{lambda02", 0 },		// DECAL_LAMBDA2
 	{ "{lambda03", 0 },		// DECAL_LAMBDA3

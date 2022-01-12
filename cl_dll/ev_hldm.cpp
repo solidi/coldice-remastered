@@ -262,7 +262,7 @@ char *EV_HLDM_DamageDecal( physent_t *pe )
 	else
 	{
 		idx = gEngfuncs.pfnRandomLong( 0, 4 );
-		sprintf( decalname, "{shot%i", idx + 1 );
+		sprintf( decalname, "{bshot%i", idx + 1 );
 	}
 	return decalname;
 }
