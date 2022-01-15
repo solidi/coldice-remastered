@@ -488,6 +488,7 @@ void W_Precache(void)
 #endif
 
 	UTIL_PrecacheOtherWeapon( "weapon_nuke" );
+	UTIL_PrecacheOtherWeapon( "weapon_deagle" );
 
 #if !defined( OEM_BUILD ) && !defined( HLDEMO_BUILD )
 	if ( g_pGameRules->IsDeathmatch() )
@@ -702,6 +703,7 @@ CBaseEntity* CBasePlayerItem::Respawn( void )
 		{
 		// hand
 		"weapon_9mmhandgun",
+		"weapon_deagle",
 		"weapon_python",
 		"weapon_mag60",
 		"weapon_smg"
@@ -1793,6 +1795,10 @@ BOOL CWeaponBox::PackWeapon( CBasePlayerItem *pWeapon )
 		else if (pWeapon->m_iId == WEAPON_SNARK)
 		{
 			SET_MODEL( ENT(pev), "models/w_sqknest.mdl");
+		}
+		else if (pWeapon->m_iId == WEAPON_DEAGLE)
+		{
+			SET_MODEL( ENT(pev), "models/w_deagle.mdl");
 		}
 
 		pev->sequence = 1;
