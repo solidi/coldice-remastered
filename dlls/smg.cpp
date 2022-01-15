@@ -105,7 +105,7 @@ int CSMG::GetItemInfo(ItemInfo *p)
 	p->iMaxAmmo2 = -1;
 	p->iMaxClip = SMG_MAX_CLIP;
 	p->iSlot = 1;
-	p->iPosition = 3;
+	p->iPosition = 4;
 	p->iFlags = 0;
 	p->iId = m_iId = WEAPON_SMG;
 	p->iWeight = SMG_WEIGHT;

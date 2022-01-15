@@ -84,7 +84,6 @@ public:
 #define WEAPON_HANDGRENADE		12
 #define WEAPON_TRIPMINE			13
 #define	WEAPON_SATCHEL			14
-#define	WEAPON_SNARK			31
 #define	WEAPON_VEST				15
 #define WEAPON_KNIFE			16
 #define	WEAPON_CHUMTOAD			17
@@ -101,6 +100,8 @@ public:
 #define WEAPON_CHAINSAW			28
 #define WEAPON_12GAUGE			29
 #define WEAPON_NUKE				30
+#define	WEAPON_SNARK			31
+#define	WEAPON_DEAGLE			32
 
 #define WEAPON_ALLWEAPONS		(~(1<<WEAPON_SUIT))
 
@@ -141,6 +142,7 @@ public:
 #define CHAINSAW_WEIGHT		5
 #define GAUGE_SHOTGUN_WEIGHT 14
 #define NUKE_WEIGHT 		25
+#define DEAGLE_WEIGHT		20
 
 
 // weapon clip/carry ammo capacities
@@ -184,6 +186,7 @@ public:
 #define SMG_MAX_CLIP			25
 #define USAS_MAX_CLIP			40
 #define GAUGE_SHOTGUN_MAX_CLIP	5
+#define DEAGLE_MAX_CLIP			9
 
 
 // the default amount of ammo that comes with each gun when it spawns
@@ -212,6 +215,7 @@ public:
 #define SNOWBALL_DEFAULT_GIVE		5
 #define _12_GAUGE_DEFAULT_GIVE		12
 #define NUKE_DEFAULT_GIVE			1
+#define DEAGLE_DEFAULT_GIVE			9
 
 // The amount of ammo given to a player by an ammo item.
 #define AMMO_URANIUMBOX_GIVE	20
@@ -1708,6 +1712,35 @@ public:
 	int m_iExp;
 	float m_flIgniteTime;
 	CNuke *m_pLauncher;// pointer back to the launcher that fired me.
+};
+
+class CDeagle : public CBasePlayerWeapon
+{
+public:
+	void Spawn( void );
+	void Precache( void );
+	int iItemSlot( void ) { return 2; }
+	int GetItemInfo(ItemInfo *p);
+	int AddToPlayer( CBasePlayer *pPlayer );
+	void PrimaryAttack( void );
+	BOOL Deploy( void );
+	void Holster( int skiplocal = 0 );
+	void Reload( void );
+	void WeaponIdle( void );
+
+	virtual BOOL UseDecrement( void )
+	{ 
+#if defined( CLIENT_WEAPONS )
+		return TRUE;
+#else
+		return FALSE;
+#endif
+	}
+
+	virtual BOOL SemiAuto( void ) { return TRUE; }
+
+private:
+	unsigned short m_usFireDeagle;
 };
 
 #endif // WEAPONS_H

@@ -3680,6 +3680,7 @@ void CBasePlayer::CheatImpulseCommands( int iImpulse, BOOL m_iFromClient )
 		GiveNamedItem( "weapon_chainsaw" );
 		GiveNamedItem( "weapon_12gauge" );
 		GiveNamedItem( "weapon_nuke" );
+		GiveNamedItem( "weapon_deagle" );
 #endif
 		gEvilImpulse101 = FALSE;
 		break;
