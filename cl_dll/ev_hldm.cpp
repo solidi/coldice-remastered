@@ -2739,7 +2739,6 @@ enum deagle_e {
 
 void EV_FireDeagle( event_args_t *args )
 {
-
 	vec3_t ShellVelocity;
 	vec3_t ShellOrigin;
 	int shell = gEngfuncs.pEventAPI->EV_FindModelIndex ("models/w_shell.mdl");// brass shell
@@ -2754,6 +2753,8 @@ void EV_FireDeagle( event_args_t *args )
 	float flSpread = 0.01;
 
 	idx = args->entindex;
+	int empty = args->bparam1;
+
 	VectorCopy( args->origin, origin );
 	VectorCopy( args->angles, angles );
 	VectorCopy( args->velocity, velocity );
@@ -2762,17 +2763,10 @@ void EV_FireDeagle( event_args_t *args )
 
 	if ( EV_IsLocal( idx ) )
 	{
-		// Deagle uses different body in multiplayer versus single player
-		int multiplayer = gEngfuncs.GetMaxClients() == 1 ? 0 : 1;
-
 		// Add muzzle flash to current weapon model
 		EV_MuzzleFlash();
 
-		if (gEngfuncs.pfnRandomLong(0,1))
-		gEngfuncs.pEventAPI->EV_WeaponAnimation( DEAGLE_FIRE_EMPTY, multiplayer ? 1 : 0 );
-		else
-		gEngfuncs.pEventAPI->EV_WeaponAnimation( DEAGLE_FIRE1, multiplayer ? 1 : 0 );
-
+		gEngfuncs.pEventAPI->EV_WeaponAnimation( empty ? DEAGLE_FIRE_EMPTY : DEAGLE_FIRE1, 0 );
 
 		V_PunchAxis(PITCH, gEngfuncs.pfnRandomFloat(-10.0, -15.0) );
 		V_PunchAxis(YAW, gEngfuncs.pfnRandomFloat(-5.0, -7.0)); //yaw, - = right

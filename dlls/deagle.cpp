@@ -156,7 +156,7 @@ void CDeagle::PrimaryAttack()
 	flags = 0;
 #endif
 
-	PLAYBACK_EVENT_FULL( flags, m_pPlayer->edict(), m_usFireDeagle, 0.0, (float *)&g_vecZero, (float *)&g_vecZero, vecDir.x, vecDir.y, 0, 0, 0, 0 );
+	PLAYBACK_EVENT_FULL( flags, m_pPlayer->edict(), m_usFireDeagle, 0.0, (float *)&g_vecZero, (float *)&g_vecZero, vecDir.x, vecDir.y, 0, 0, ( m_iClip == 0 ) ? 1 : 0, 0 );
 
 	if (!m_iClip && m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] <= 0)
 		// HEV suit - indicate out of ammo condition
@@ -171,7 +171,10 @@ void CDeagle::Reload( void )
 	if ( m_pPlayer->ammo_357 <= 0 )
 		return;
 
-	DefaultReload( DEAGLE_MAX_CLIP, DEAGLE_RELOAD, 2.0, 0 );
+	if (m_iClip == 0)
+		DefaultReload( DEAGLE_MAX_CLIP, DEAGLE_RELOAD_EMPTY, 2.0, 0 );
+	else
+		DefaultReload( DEAGLE_MAX_CLIP, DEAGLE_RELOAD, 2.0, 0 );
 }
 
 void CDeagle::WeaponIdle( void )
