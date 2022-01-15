@@ -49,7 +49,8 @@ CFLAGS=$(BASE_CFLAGS)  $(ARCH_CFLAGS) $(DEBUG_CFLAGS) -DCLIENT_WEAPONS \
 		 -DSHOTGUN \
 		 -DNUKE \
 		 -DGAUSS \
-		 -DHIVEHAND
+		 -DHIVEHAND \
+		 -DDEAGLE
 
 #-O3 -ffast-math -fno-strength-reduce
 
@@ -91,6 +92,7 @@ HLDLL_OBJS = \
 	$(HLDLL_OBJ_DIR)/controller.o \
 	$(HLDLL_OBJ_DIR)/crossbow.o \
 	$(HLDLL_OBJ_DIR)/crowbar.o \
+	$(HLDLL_OBJ_DIR)/deagle.o \
 	$(HLDLL_OBJ_DIR)/defaultai.o \
 	$(HLDLL_OBJ_DIR)/doors.o \
 	$(HLDLL_OBJ_DIR)/effects.o \
