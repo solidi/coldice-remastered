@@ -629,6 +629,9 @@ public:
 	cvar_t  *m_pCvarStealMouse;
 	cvar_t	*m_pCvarDraw;
 
+	float m_iShownHelpMessage;
+	void ShowTextTips( void );
+
 	int m_iFontHeight;
 	int DrawHudNumber(int x, int y, int iFlags, int iNumber, int r, int g, int b );
 	int DrawHudString(int x, int y, int iMaxX, char *szString, int r, int g, int b );

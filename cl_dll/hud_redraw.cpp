@@ -37,6 +37,7 @@ extern int g_iVisibleMouse;
 float HUD_GetFOV( void );
 
 extern cvar_t *sensitivity;
+extern cvar_t *cl_showtips;
 
 // Think
 void CHud::Think(void)
@@ -90,6 +91,8 @@ void CHud::Think(void)
 	}
 
 	Bench_CheckStart();
+
+	ShowTextTips();
 }
 
 // Redraw
@@ -343,4 +346,37 @@ int CHud::GetNumWidth( int iNumber, int iFlags )
 
 }	
 
+
+void CHud::ShowTextTips( void ) {
+	if (cl_showtips && !cl_showtips->value) {
+		return;
+	}
+
+	if (m_iShownHelpMessage < m_flTime) {
+		switch (gEngfuncs.pfnRandomLong( 0, 6 )) {
+			case 0:
+				gHUD.m_SayText.SayTextPrint("Tired of blue skins? Type \"cl_icemodels 0\" in the console switches to real-life skins.\n", 128 );
+				break;
+			case 1:
+				gHUD.m_SayText.SayTextPrint("To five-high your friend with your leg, bind \"impulse 202\" to a button to kick.\n", 128 );
+				break;
+			case 2:
+				gHUD.m_SayText.SayTextPrint("Did you know you can shut off the humour? Type \"cl_announcehumor 0\" to make them shut up.\n", 128 );
+				break;
+			case 3:
+				gHUD.m_SayText.SayTextPrint("To stop these tips, type \"cl_showtips 0\".\n", 128 );
+				break;
+			case 4:
+				gHUD.m_SayText.SayTextPrint("For updates to this mod, see http://moddb.com/mods/cold-ice-remastered\n", 128 );
+				break;
+			case 5:
+				gHUD.m_SayText.SayTextPrint("This mod supports a grappling hook. If allowed by the server, bind \"+hook\" to deploy.\n", 128 );
+				break;
+			case 6:
+				gHUD.m_SayText.SayTextPrint("Cold Ice Remastered contains works from the community. For all credits, see readme.txt.\n", 128 );
+				break;
+		}
+		m_iShownHelpMessage = m_flTime + gEngfuncs.pfnRandomFloat( 120, 240 );
+	}
+}
 

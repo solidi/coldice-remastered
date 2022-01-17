@@ -44,6 +44,7 @@ cvar_t *cl_weaponfidget;
 cvar_t *cl_playpoint;
 cvar_t *cl_glasshud;
 cvar_t *cl_announcehumor;
+cvar_t *cl_showtips;
 cvar_t *m_pIceModels;
 
 cvar_t *cl_vmx;
@@ -372,6 +373,7 @@ void CHud :: Init( void )
 	cl_playpoint = CVAR_CREATE( "cl_playpoint", "1", FCVAR_ARCHIVE );
 	cl_glasshud = CVAR_CREATE( "cl_glasshud", "1", FCVAR_ARCHIVE );
 	cl_announcehumor = CVAR_CREATE( "cl_announcehumor", "1", FCVAR_ARCHIVE );
+	cl_showtips = CVAR_CREATE( "cl_showtips", "1", FCVAR_ARCHIVE );
 
 	cl_vmx = CVAR_CREATE( "cl_vmx", "0", FCVAR_ARCHIVE );
 	cl_vmy = CVAR_CREATE( "cl_vmy", "0", FCVAR_ARCHIVE );
@@ -394,6 +396,8 @@ void CHud :: Init( void )
 	cl_lw = gEngfuncs.pfnGetCvarPointer( "cl_lw" );
 
 	m_pSpriteList = NULL;
+
+	m_iShownHelpMessage = gEngfuncs.pfnRandomFloat( 15, 30 );
 
 	// Clear any old HUD list
 	if ( m_pHudList )
