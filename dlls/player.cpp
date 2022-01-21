@@ -3590,7 +3590,7 @@ void CBasePlayer::ImpulseCommands( )
 		}
 
 		break;
-	case 202:
+	case 204:
 		if (m_pActiveItem) {
 			((CBasePlayerWeapon *)m_pActiveItem)->StartKick();
 		}
