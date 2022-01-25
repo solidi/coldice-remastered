@@ -50,7 +50,8 @@ CFLAGS=$(BASE_CFLAGS)  $(ARCH_CFLAGS) $(DEBUG_CFLAGS) -DCLIENT_WEAPONS \
 		 -DNUKE \
 		 -DGAUSS \
 		 -DHIVEHAND \
-		 -DDEAGLE
+		 -DDEAGLE \
+		 -DDUALDEAGLE
 
 #-O3 -ffast-math -fno-strength-reduce
 
@@ -95,6 +96,7 @@ HLDLL_OBJS = \
 	$(HLDLL_OBJ_DIR)/deagle.o \
 	$(HLDLL_OBJ_DIR)/defaultai.o \
 	$(HLDLL_OBJ_DIR)/doors.o \
+	$(HLDLL_OBJ_DIR)/dual_deagle.o \
 	$(HLDLL_OBJ_DIR)/effects.o \
 	$(HLDLL_OBJ_DIR)/egon.o \
 	$(HLDLL_OBJ_DIR)/explode.o \
