@@ -882,8 +882,6 @@ public:
 	int m_fSpotActive;
 	int m_cActiveRockets;// how many missiles in flight from this launcher right now?
 
-	void ProvideDualItem(CBasePlayer *pPlayer, const char *itemName);
-
 	virtual BOOL UseDecrement( void )
 	{ 
 #if defined( CLIENT_WEAPONS )
