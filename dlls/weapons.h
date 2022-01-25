@@ -102,6 +102,7 @@ public:
 #define WEAPON_NUKE				30
 #define	WEAPON_SNARK			31
 #define	WEAPON_DEAGLE			32
+#define WEAPON_DUAL_DEAGLE		33
 
 #define WEAPON_ALLWEAPONS		(~(1<<WEAPON_SUIT))
 
@@ -350,6 +351,8 @@ public:
 
 	// int		m_iIdPrimary;										// Unique Id for primary ammo
 	// int		m_iIdSecondary;										// Unique Id for secondary ammo
+
+	virtual void ProvideDualItem(CBasePlayer *pPlayer, const char *itemName) { return; }
 };
 
 
@@ -401,8 +404,11 @@ public:
 	virtual BOOL ShouldWeaponIdle( void ) {return FALSE; };
 	virtual void Holster( int skiplocal = 0 );
 	virtual BOOL UseDecrement( void ) { return FALSE; };
+
 	virtual BOOL SemiAuto( void ) { return FALSE; };
 	virtual BOOL Kick( void ) { return TRUE; };
+	virtual void ProvideDualItem(CBasePlayer *pPlayer, const char *itemName);
+	virtual void SwapDualWeapon() { return; }
 
 	TraceResult m_trBootHit;
 	void StartKick( void );
@@ -875,6 +881,8 @@ public:
 	CLaserSpot *m_pSpot;
 	int m_fSpotActive;
 	int m_cActiveRockets;// how many missiles in flight from this launcher right now?
+
+	void ProvideDualItem(CBasePlayer *pPlayer, const char *itemName);
 
 	virtual BOOL UseDecrement( void )
 	{ 
@@ -1738,6 +1746,38 @@ public:
 	}
 
 	virtual BOOL SemiAuto( void ) { return TRUE; }
+	void ProvideDualItem(CBasePlayer *pPlayer, const char *itemName);
+	void SwapDualWeapon( void );
+
+private:
+	unsigned short m_usFireDeagle;
+};
+
+class CDualDeagle : public CBasePlayerWeapon
+{
+public:
+	void Spawn( void );
+	void Precache( void );
+	int iItemSlot( void ) { return 6; }
+	int GetItemInfo(ItemInfo *p);
+	int AddToPlayer( CBasePlayer *pPlayer );
+	void PrimaryAttack( void );
+	BOOL Deploy( void );
+	void Holster( int skiplocal = 0 );
+	void Reload( void );
+	void WeaponIdle( void );
+
+	virtual BOOL UseDecrement( void )
+	{ 
+#if defined( CLIENT_WEAPONS )
+		return TRUE;
+#else
+		return FALSE;
+#endif
+	}
+
+	virtual BOOL SemiAuto( void ) { return TRUE; }
+	void SwapDualWeapon( void );
 
 private:
 	unsigned short m_usFireDeagle;

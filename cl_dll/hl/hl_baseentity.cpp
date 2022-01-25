@@ -370,3 +370,6 @@ int CBasePlayerWeapon::ExtractClipAmmo( CBasePlayerWeapon *pWeapon ) { return 0;
 void CBasePlayerWeapon::RetireWeapon( void ) { }
 void CSoundEnt::InsertSound ( int iType, const Vector &vecOrigin, int iVolume, float flDuration ) {}
 void RadiusDamage( Vector vecSrc, entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, float flRadius, int iClassIgnore, int bitsDamageType ){}
+void CBasePlayerWeapon::ProvideDualItem(CBasePlayer *pPlayer, const char *itemName) {}
+BOOL CBasePlayer::HasNamedPlayerItem( const char *pszItemName ) { return FALSE; }
+void CBasePlayer::GiveNamedItem(const char *pszName ) {}

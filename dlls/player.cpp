@@ -3595,6 +3595,11 @@ void CBasePlayer::ImpulseCommands( )
 			((CBasePlayerWeapon *)m_pActiveItem)->StartKick();
 		}
 		break;
+	case 205:
+		if (m_pActiveItem) {
+			((CBasePlayerWeapon *)m_pActiveItem)->SwapDualWeapon();
+		}
+		break;
 
 	default:
 		// check all of the cheat impulse commands now
@@ -3681,6 +3686,7 @@ void CBasePlayer::CheatImpulseCommands( int iImpulse, BOOL m_iFromClient )
 		GiveNamedItem( "weapon_12gauge" );
 		GiveNamedItem( "weapon_nuke" );
 		GiveNamedItem( "weapon_deagle" );
+		GiveNamedItem( "weapon_dual_deagle" );
 #endif
 		gEvilImpulse101 = FALSE;
 		break;
@@ -3827,6 +3833,8 @@ int CBasePlayer::AddPlayerItem( CBasePlayerItem *pItem )
 				pInsert->UpdateItemInfo( );
 				if (m_pActiveItem)
 					m_pActiveItem->UpdateItemInfo( );
+
+				pItem->ProvideDualItem(this, STRING(pItem->pev->classname));
 
 				pItem->Kill( );
 			}

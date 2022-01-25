@@ -342,7 +342,7 @@ public:
 	
 	float m_flNextChatTime;
 	float m_iShownWelcomeMessage;
-	
+	float m_iShownDualMessage;
 };
 
 #define AUTOAIM_2DEGREES  0.0348994967025

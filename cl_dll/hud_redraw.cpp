@@ -353,7 +353,7 @@ void CHud::ShowTextTips( void ) {
 	}
 
 	if (m_iShownHelpMessage < m_flTime) {
-		switch (gEngfuncs.pfnRandomLong( 0, 6 )) {
+		switch (gEngfuncs.pfnRandomLong( 0, 7 )) {
 			case 0:
 				gHUD.m_SayText.SayTextPrint("Tired of blue skins? Type \"cl_icemodels 0\" in the console switches to real-life skins.\n", 128 );
 				break;
@@ -374,6 +374,9 @@ void CHud::ShowTextTips( void ) {
 				break;
 			case 6:
 				gHUD.m_SayText.SayTextPrint("Cold Ice Remastered contains works from the community. For all credits, see readme.txt.\n", 128 );
+				break;
+			case 7:
+				gHUD.m_SayText.SayTextPrint("Swap between single and dual weapons, if available, bind \"impulse 205\".\n", 128 );
 				break;
 		}
 		m_iShownHelpMessage = m_flTime + gEngfuncs.pfnRandomFloat( 120, 240 );

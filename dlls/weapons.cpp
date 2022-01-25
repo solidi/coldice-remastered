@@ -489,6 +489,7 @@ void W_Precache(void)
 
 	UTIL_PrecacheOtherWeapon( "weapon_nuke" );
 	UTIL_PrecacheOtherWeapon( "weapon_deagle" );
+	UTIL_PrecacheOtherWeapon( "weapon_dual_deagle" );
 
 #if !defined( OEM_BUILD ) && !defined( HLDEMO_BUILD )
 	if ( g_pGameRules->IsDeathmatch() )
@@ -803,6 +804,9 @@ void CBasePlayerItem::DefaultTouch( CBaseEntity *pOther )
 		{
 			UTIL_Remove( this );
 		}
+
+		ProvideDualItem(pPlayer, STRING(this->pev->classname));
+
 		return;
 	}
 
@@ -1800,6 +1804,10 @@ BOOL CWeaponBox::PackWeapon( CBasePlayerItem *pWeapon )
 		{
 			SET_MODEL( ENT(pev), "models/w_deagle.mdl");
 		}
+		else if (pWeapon->m_iId == WEAPON_DUAL_DEAGLE)
+		{
+			SET_MODEL( ENT(pev), "models/w_dual_deagle.mdl");
+		}
 
 		pev->sequence = 1;
 		pev->animtime = gpGlobals->time;
@@ -2088,6 +2096,13 @@ void CBasePlayerWeapon::EndKick( void )
 	}
 
 	Deploy();
+}
+
+void CBasePlayerWeapon::ProvideDualItem(CBasePlayer *pPlayer, const char *pszName) {
+	if (pPlayer->m_iShownDualMessage != 1) {
+		ClientPrint( pPlayer->pev, HUD_PRINTTALK, "You picked up a dual weapon. Swap between dual and single using \"impulse 205\".\n" );
+		pPlayer->m_iShownDualMessage = 1;
+	}
 }
 
 TYPEDESCRIPTION	CRpg::m_SaveData[] = 
