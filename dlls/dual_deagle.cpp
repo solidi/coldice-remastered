@@ -21,42 +21,40 @@
 #include "player.h"
 #include "gamerules.h"
 
-enum deagle_e {
-	DEAGLE_IDLE1,
-	DEAGLE_FIDGET,
-	DEAGLE_IDLE_EMPTY,
-	DEAGLE_FIRE1,
-	DEAGLE_FIRE_EMPTY,
-	DEAGLE_RELOAD,
-	DEAGLE_RELOAD_EMPTY,
-	DEAGLE_DRAW,
-	DEAGLE_HOLSTER,
-	DEAGLE_HOLSTER_EMPTY,
+enum dual_deagle_e {
+	DEAGLEDUAL_IDLE,
+	DEAGLEDUAL_FIRE_LEFT,
+	DEAGLEDUAL_FIRE_RIGHT,
+	DEAGLEDUAL_FIRE_LAST_LEFT,
+	DEAGLEDUAL_FIRE_LAST_RIGHT,
+	DEAGLEDUAL_RELOAD,
+	DEAGLEDUAL_DEPLOY,
+	DEAGLEDUAL_HOLSTER,
 };
 
-#ifdef DEAGLE
-LINK_ENTITY_TO_CLASS( weapon_deagle, CDeagle );
+#ifdef DUALDEAGLE
+LINK_ENTITY_TO_CLASS( weapon_dual_deagle, CDualDeagle );
 #endif
 
-int CDeagle::GetItemInfo(ItemInfo *p)
+int CDualDeagle::GetItemInfo(ItemInfo *p)
 {
 	p->pszName = STRING(pev->classname);
 	p->pszAmmo1 = "357";
 	p->iMaxAmmo1 = _357_MAX_CARRY;
 	p->pszAmmo2 = NULL;
 	p->iMaxAmmo2 = -1;
-	p->iMaxClip = DEAGLE_MAX_CLIP;
+	p->iMaxClip = DEAGLE_MAX_CLIP * 2;
 	p->iFlags = 0;
-	p->iSlot = 1;
-	p->iPosition = 2;
-	p->iId = m_iId = WEAPON_DEAGLE;
-	p->iWeight = DEAGLE_WEIGHT;
-	p->pszDisplayName = "Desert Eagle";
+	p->iSlot = 5;
+	p->iPosition = 0;
+	p->iId = m_iId = WEAPON_DUAL_DEAGLE;
+	p->iWeight = DEAGLE_WEIGHT * 2;
+	p->pszDisplayName = "Dual Desert Eagles";
 
 	return 1;
 }
 
-int CDeagle::AddToPlayer( CBasePlayer *pPlayer )
+int CDualDeagle::AddToPlayer( CBasePlayer *pPlayer )
 {
 	if ( CBasePlayerWeapon::AddToPlayer( pPlayer ) )
 	{
@@ -68,46 +66,46 @@ int CDeagle::AddToPlayer( CBasePlayer *pPlayer )
 	return FALSE;
 }
 
-void CDeagle::Spawn( )
+void CDualDeagle::Spawn( )
 {
-	pev->classname = MAKE_STRING("weapon_deagle"); // hack to allow for old names
+	pev->classname = MAKE_STRING("weapon_dual_deagle"); // hack to allow for old names
 	Precache( );
-	m_iId = WEAPON_DEAGLE;
-	SET_MODEL(ENT(pev), "models/w_deagle.mdl");
+	m_iId = WEAPON_DUAL_DEAGLE;
+	SET_MODEL(ENT(pev), "models/w_dual_deagle.mdl");
 
 	m_iDefaultAmmo = DEAGLE_DEFAULT_GIVE;
 
 	FallInit();// get ready to fall down.
 }
 
-void CDeagle::Precache( void )
+void CDualDeagle::Precache( void )
 {
-	PRECACHE_MODEL("models/v_deagle.mdl");
-	PRECACHE_MODEL("models/w_deagle.mdl");
-	PRECACHE_MODEL("models/p_deagle.mdl");
+	PRECACHE_MODEL("models/v_dual_deagle.mdl");
+	PRECACHE_MODEL("models/w_dual_deagle.mdl");
+	PRECACHE_MODEL("models/p_dual_deagle.mdl");
 
 	PRECACHE_SOUND("weapons/357_cock1.wav");
 
 	PRECACHE_SOUND ("deagle_fire.wav");
 
-	m_usFireDeagle = PRECACHE_EVENT( 1, "events/deagle.sc" );
+	m_usFireDeagle = PRECACHE_EVENT( 1, "events/dual_deagle.sc" );
 }
 
-BOOL CDeagle::Deploy( )
+BOOL CDualDeagle::Deploy( )
 {
-	return DefaultDeploy( "models/v_deagle.mdl", "models/p_deagle.mdl", DEAGLE_DRAW, "python", UseDecrement(), pev->body );
+	return DefaultDeploy( "models/v_dual_deagle.mdl", "models/p_dual_deagle.mdl", DEAGLEDUAL_DEPLOY, "akimbo", UseDecrement(), pev->body );
 }
 
-void CDeagle::Holster( int skiplocal /* = 0 */ )
+void CDualDeagle::Holster( int skiplocal /* = 0 */ )
 {
 	m_fInReload = FALSE;// cancel any reload in progress.
 
 	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 1.0;
 	m_flTimeWeaponIdle = UTIL_SharedRandomFloat( m_pPlayer->random_seed, 10, 15 );
-	SendWeaponAnim( DEAGLE_HOLSTER );
+	SendWeaponAnim( DEAGLEDUAL_HOLSTER );
 }
 
-void CDeagle::PrimaryAttack()
+void CDualDeagle::PrimaryAttack()
 {
 	// don't fire underwater
 	if (m_pPlayer->pev->waterlevel == 3)
@@ -156,7 +154,7 @@ void CDeagle::PrimaryAttack()
 	flags = 0;
 #endif
 
-	PLAYBACK_EVENT_FULL( flags, m_pPlayer->edict(), m_usFireDeagle, 0.0, (float *)&g_vecZero, (float *)&g_vecZero, vecDir.x, vecDir.y, 0, 0, ( m_iClip == 0 ) ? 1 : 0, 0 );
+	PLAYBACK_EVENT_FULL( flags, m_pPlayer->edict(), m_usFireDeagle, 0.0, (float *)&g_vecZero, (float *)&g_vecZero, vecDir.x, vecDir.y, 0, 0, m_iClip, 0 );
 
 	if (!m_iClip && m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] <= 0)
 		// HEV suit - indicate out of ammo condition
@@ -166,18 +164,18 @@ void CDeagle::PrimaryAttack()
 	m_flTimeWeaponIdle = UTIL_SharedRandomFloat( m_pPlayer->random_seed, 10, 15 );
 }
 
-void CDeagle::Reload( void )
+void CDualDeagle::Reload( void )
 {
 	if ( m_pPlayer->ammo_357 <= 0 )
 		return;
 
 	if (m_iClip == 0)
-		DefaultReload( DEAGLE_MAX_CLIP, DEAGLE_RELOAD_EMPTY, 2.0, 0 );
+		DefaultReload( DEAGLE_MAX_CLIP, DEAGLEDUAL_RELOAD, 2.0, 0 );
 	else
-		DefaultReload( DEAGLE_MAX_CLIP, DEAGLE_RELOAD, 2.0, 0 );
+		DefaultReload( DEAGLE_MAX_CLIP, DEAGLEDUAL_RELOAD, 2.0, 0 );
 }
 
-void CDeagle::WeaponIdle( void )
+void CDualDeagle::WeaponIdle( void )
 {
 	ResetEmptySound( );
 
@@ -190,46 +188,28 @@ void CDeagle::WeaponIdle( void )
 	float flRand = UTIL_SharedRandomFloat( m_pPlayer->random_seed, 0, 1 );
 	if (flRand <= 0.5)
 	{
-		iAnim = DEAGLE_IDLE1;
+		iAnim = DEAGLEDUAL_IDLE;
 		m_flTimeWeaponIdle = (70.0/30.0);
 	}
 	else if (flRand <= 0.7)
 	{
-		iAnim = DEAGLE_FIDGET;
+		iAnim = DEAGLEDUAL_IDLE;
 		m_flTimeWeaponIdle = (60.0/30.0);
 	}
 	else if (flRand <= 0.9)
 	{
-		iAnim = DEAGLE_IDLE1;
+		iAnim = DEAGLEDUAL_IDLE;
 		m_flTimeWeaponIdle = (88.0/30.0);
 	}
 	else
 	{
-		iAnim = DEAGLE_FIDGET;
+		iAnim = DEAGLEDUAL_IDLE;
 		m_flTimeWeaponIdle = (170.0/30.0);
 	}
 	
 	SendWeaponAnim( iAnim, UseDecrement() ? 1 : 0, 0 );
 }
 
-void CDeagle::ProvideDualItem(CBasePlayer *pPlayer, const char *item) {
-	ALERT(at_console, "ProvideDualItem - weapon_deagle\n");
-	CBasePlayerWeapon::ProvideDualItem(pPlayer, item);
-
-	if (item == NULL) {
-		return;
-	}
-
-#ifndef CLIENT_DLL
-	if (!stricmp(item, "weapon_deagle")) {
-		if (!pPlayer->HasNamedPlayerItem("weapon_dual_deagle")) {
-			pPlayer->GiveNamedItem("weapon_dual_deagle");
-			ALERT(at_console, "GiveNamedItem - weapon_dual_deagle\n");
-		}
-	}
-#endif
-}
-
-void CDeagle::SwapDualWeapon( void ) {
-	m_pPlayer->SelectItem("weapon_dual_deagle");
+void CDualDeagle::SwapDualWeapon( void ) {
+	m_pPlayer->SelectItem("weapon_deagle");
 }
