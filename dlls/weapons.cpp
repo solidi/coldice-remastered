@@ -864,7 +864,13 @@ void CBasePlayerWeapon::ItemPostFrame( void )
 		}
 
 		m_pPlayer->TabulateAmmo();
-		SecondaryAttack();
+		if (SemiAuto()) {
+			if (!m_bFired)
+				SecondaryAttack();
+			m_bFired = TRUE;
+		} else {
+			SecondaryAttack();
+		}
 		m_pPlayer->pev->button &= ~IN_ATTACK2;
 	}
 	else if ((m_pPlayer->pev->button & IN_ATTACK) && CanAttack( m_flNextPrimaryAttack, gpGlobals->time, UseDecrement() ) )

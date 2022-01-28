@@ -96,6 +96,7 @@ void EV_FireNuke( struct event_args_s *args  );
 void EV_SnarkRelease ( struct event_args_s *args );
 void EV_FireDeagle( struct event_args_s *args  );
 void EV_FireDualDeagle( struct event_args_s *args  );
+void EV_FireDualDeagleBoth( struct event_args_s *args  );
 
 void EV_TrainPitchAdjust( struct event_args_s *args );
 }
@@ -2803,6 +2804,7 @@ enum dual_deagle_e {
 	DEAGLEDUAL_RELOAD,
 	DEAGLEDUAL_DEPLOY,
 	DEAGLEDUAL_HOLSTER,
+	DEAGLEDUAL_FIRE_BOTH,
 };
 
 void EV_FireDualDeagle( event_args_t *args )
@@ -2864,6 +2866,68 @@ void EV_FireDualDeagle( event_args_t *args )
 	EV_GunSmoke(origin, 0.6, idx, args->ducking, forward, right, up, 0, 0, 0);
 
 	EV_HLDM_FireBullets( idx, forward, right, up, 1, vecSrc, vecAiming, 8192, BULLET_PLAYER_357, 0, 0, args->fparam1, args->fparam2 );
+}
+
+void EV_FireDualDeagleBoth( event_args_t *args )
+{
+	vec3_t ShellVelocity;
+	vec3_t ShellOrigin;
+	int shell = gEngfuncs.pEventAPI->EV_FindModelIndex ("models/w_shell.mdl");// brass shell
+
+	int idx;
+	vec3_t origin;
+	vec3_t angles;
+	vec3_t velocity;
+
+	vec3_t vecSrc, vecAiming;
+	vec3_t up, right, forward;
+	float flSpread = 0.01;
+
+	idx = args->entindex;
+	int clip = args->bparam1;
+
+	VectorCopy( args->origin, origin );
+	VectorCopy( args->angles, angles );
+	VectorCopy( args->velocity, velocity );
+
+	AngleVectors( angles, forward, right, up );
+
+	if ( EV_IsLocal( idx ) )
+	{
+		// Add muzzle flash to current weapon model
+		EV_MuzzleFlash();
+
+		gEngfuncs.pEventAPI->EV_WeaponAnimation( DEAGLEDUAL_FIRE_BOTH, 0 );
+
+		V_PunchAxis(PITCH, gEngfuncs.pfnRandomFloat(-11.0, -16.0) );
+		V_PunchAxis(YAW, gEngfuncs.pfnRandomFloat(-6.0, -8.0)); //yaw, - = right
+		V_PunchAxis(ROLL, gEngfuncs.pfnRandomFloat(6.0, 8.0)); //roll, - = left
+	}
+
+	gEngfuncs.pEventAPI->EV_PlaySound( idx, origin, CHAN_WEAPON, "deagle_fire.wav", gEngfuncs.pfnRandomFloat(0.8, 0.9), ATTN_NORM, 0, PITCH_NORM );
+	gEngfuncs.pEventAPI->EV_PlaySound( idx, origin, CHAN_ITEM, "deagle_fire.wav", gEngfuncs.pfnRandomFloat(0.9, 1.0), ATTN_NORM, 0, PITCH_NORM );
+
+	float fR = gEngfuncs.pfnRandomFloat( 100, 150 );
+	float fU = gEngfuncs.pfnRandomFloat( 50, 100 );
+	//fR *= -1;
+	EV_GetDefaultShellInfo( args, gEngfuncs.GetViewModel()->attachment[0], velocity, ShellVelocity, ShellOrigin, forward, right, up, -2, -28, (m_pCvarRighthand->value != 0.0f ? -1 : 1) * -4, fU, fR );
+
+	if ( EV_IsLocal( idx ) )
+	{
+		EV_EjectBrass ( ShellOrigin, ShellVelocity, angles[ YAW ], shell, TE_BOUNCE_SHELL );
+
+		fR *= -1;
+		EV_GetDefaultShellInfo( args, gEngfuncs.GetViewModel()->attachment[0], velocity, ShellVelocity, ShellOrigin, forward, right, up, -2, -28, (m_pCvarRighthand->value != 0.0f ? -1 : 1) * -4, fU, fR );
+		EV_EjectBrass ( ShellOrigin, ShellVelocity, angles[ YAW ], shell, TE_BOUNCE_SHELL );
+	}
+
+	EV_GetGunPosition( args, vecSrc, origin );
+
+	VectorCopy( forward, vecAiming );
+
+	EV_GunSmoke(origin, 0.6, idx, args->ducking, forward, right, up, 0, 0, 0);
+
+	EV_HLDM_FireBullets( idx, forward, right, up, 2, vecSrc, vecAiming, 8192, BULLET_PLAYER_357, 0, 0, args->fparam1, args->fparam2 );
 }
 
 void EV_TrainPitchAdjust( event_args_t *args )

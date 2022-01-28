@@ -59,6 +59,7 @@ void EV_FireNuke( struct event_args_s *args  );
 void EV_SnarkRelease( struct event_args_s *args );
 void EV_FireDeagle( struct event_args_s *args );
 void EV_FireDualDeagle( struct event_args_s *args );
+void EV_FireDualDeagleBoth( struct event_args_s *args );
 
 void EV_TrainPitchAdjust( struct event_args_s *args );
 }
@@ -119,4 +120,5 @@ void Game_HookEvents( void )
 	gEngfuncs.pfnHookEvent( "events/snarkrelease.sc",			EV_SnarkRelease );
 	gEngfuncs.pfnHookEvent( "events/deagle.sc",					EV_FireDeagle );
 	gEngfuncs.pfnHookEvent( "events/dual_deagle.sc",			EV_FireDualDeagle );
+	gEngfuncs.pfnHookEvent( "events/dual_deagle_both.sc",		EV_FireDualDeagleBoth );
 }

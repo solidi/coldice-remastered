@@ -363,7 +363,13 @@ void CBasePlayerWeapon::ItemPostFrame( void )
 			m_fFireOnEmpty = TRUE;
 		}
 
-		SecondaryAttack();
+		if (SemiAuto()) {
+			if (!m_bFired)
+				SecondaryAttack();
+			m_bFired = TRUE;
+		} else {
+			SecondaryAttack();
+		}
 		m_pPlayer->pev->button &= ~IN_ATTACK2;
 	}
 	else if ((m_pPlayer->pev->button & IN_ATTACK) && (m_flNextPrimaryAttack <= 0.0))
