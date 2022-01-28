@@ -1780,6 +1780,7 @@ public:
 
 private:
 	unsigned short m_usFireDeagle;
+	unsigned short m_usFireDeagleBoth;
 };
 
 #endif // WEAPONS_H
