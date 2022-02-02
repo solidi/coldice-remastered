@@ -103,6 +103,7 @@ public:
 #define	WEAPON_SNARK			31
 #define	WEAPON_DEAGLE			32
 #define WEAPON_DUAL_DEAGLE		33
+#define WEAPON_DUAL_RPG			34
 
 #define WEAPON_ALLWEAPONS		(~(1<<WEAPON_SUIT))
 
@@ -882,6 +883,9 @@ public:
 	int m_fSpotActive;
 	int m_cActiveRockets;// how many missiles in flight from this launcher right now?
 
+	void ProvideDualItem(CBasePlayer *pPlayer, const char *itemName);
+	void SwapDualWeapon( void );
+
 	virtual BOOL UseDecrement( void )
 	{ 
 #if defined( CLIENT_WEAPONS )
@@ -908,7 +912,7 @@ public:
 	void EXPORT FollowThink( void );
 	void EXPORT IgniteThink( void );
 	void EXPORT RocketTouch( CBaseEntity *pOther );
-	static CRpgRocket *CreateRpgRocket( Vector vecOrigin, Vector vecAngles, CBaseEntity *pOwner, CRpg *pLauncher, float startEngineTime, BOOL redRocket );
+	static CRpgRocket *CreateRpgRocket( Vector vecOrigin, Vector vecAngles, CBaseEntity *pOwner, float startEngineTime, BOOL redRocket );
 
 	int m_iTrail;
 	float m_flIgniteTime;
@@ -1781,6 +1785,51 @@ public:
 private:
 	unsigned short m_usFireDeagle;
 	unsigned short m_usFireDeagleBoth;
+};
+
+
+class CDualRpg : public CBasePlayerWeapon
+{
+public:
+
+	void Spawn( void );
+	void Precache( void );
+	void Reload( void );
+	int iItemSlot( void ) { return 6; }
+	int GetItemInfo(ItemInfo *p);
+	int AddToPlayer( CBasePlayer *pPlayer );
+
+	BOOL Deploy( void );
+	BOOL CanHolster( void );
+	void Holster( int skiplocal = 0 );
+
+	void PrimaryAttack( void );
+	void FireSecondRocket( void );
+	void SecondaryAttack( void );
+	void WeaponIdle( void );
+
+	void UpdateSpot( void );
+	BOOL ShouldWeaponIdle( void ) { return TRUE; };
+
+	CLaserSpot *m_pSpot;
+	int m_fSpotActive;
+	int m_cActiveRockets;// how many missiles in flight from this launcher right now?
+
+	virtual BOOL UseDecrement( void )
+	{ 
+#if defined( CLIENT_WEAPONS )
+		return TRUE;
+#else
+		return FALSE;
+#endif
+	}
+
+	void SwapDualWeapon( void );
+
+private:
+	unsigned short m_usRpg;
+	unsigned short m_usRpgExtreme;
+
 };
 
 #endif // WEAPONS_H

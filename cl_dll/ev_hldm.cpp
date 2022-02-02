@@ -97,6 +97,7 @@ void EV_SnarkRelease ( struct event_args_s *args );
 void EV_FireDeagle( struct event_args_s *args  );
 void EV_FireDualDeagle( struct event_args_s *args  );
 void EV_FireDualDeagleBoth( struct event_args_s *args  );
+void EV_FireDualRpgBoth( struct event_args_s *args  );
 
 void EV_TrainPitchAdjust( struct event_args_s *args );
 }
@@ -2928,6 +2929,37 @@ void EV_FireDualDeagleBoth( event_args_t *args )
 	EV_GunSmoke(origin, 0.6, idx, args->ducking, forward, right, up, 0, 0, 0);
 
 	EV_HLDM_FireBullets( idx, forward, right, up, 2, vecSrc, vecAiming, 8192, BULLET_PLAYER_357, 0, 0, args->fparam1, args->fparam2 );
+}
+
+enum dual_rpg_e {
+	DRAW_LEFT = 0,
+	DRAW_BOTH,
+	IDLE_BOTH,
+	FIRE_BOTH,
+	HOLSTER_BOTH,
+	RELOAD_BOTH,
+};
+
+void EV_FireDualRpgBoth( event_args_t *args )
+{
+	int idx;
+	vec3_t origin;
+
+	idx = args->entindex;
+	VectorCopy( args->origin, origin );
+	
+	gEngfuncs.pEventAPI->EV_PlaySound( idx, origin, CHAN_WEAPON, "weapons/rocketfire1.wav", 0.9, ATTN_NORM, 0, PITCH_NORM );
+	gEngfuncs.pEventAPI->EV_PlaySound( idx, origin, CHAN_ITEM, "weapons/glauncher.wav", 0.7, ATTN_NORM, 0, PITCH_NORM );
+
+	//Only play the weapon anims if I shot it. 
+	if ( EV_IsLocal( idx ) )
+	{
+		gEngfuncs.pEventAPI->EV_WeaponAnimation( FIRE_BOTH, 1 );
+	
+		V_PunchAxis(PITCH, gEngfuncs.pfnRandomFloat(-5.0, -7.0) );
+		V_PunchAxis(YAW, gEngfuncs.pfnRandomFloat(-2.0, -4.0));
+		V_PunchAxis(ROLL, gEngfuncs.pfnRandomFloat(2.0, 4.0));
+	}
 }
 
 void EV_TrainPitchAdjust( event_args_t *args )

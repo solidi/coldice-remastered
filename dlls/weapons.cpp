@@ -490,6 +490,7 @@ void W_Precache(void)
 	UTIL_PrecacheOtherWeapon( "weapon_nuke" );
 	UTIL_PrecacheOtherWeapon( "weapon_deagle" );
 	UTIL_PrecacheOtherWeapon( "weapon_dual_deagle" );
+	UTIL_PrecacheOtherWeapon( "weapon_dual_rpg" );
 
 #if !defined( OEM_BUILD ) && !defined( HLDEMO_BUILD )
 	if ( g_pGameRules->IsDeathmatch() )
@@ -1813,6 +1814,10 @@ BOOL CWeaponBox::PackWeapon( CBasePlayerItem *pWeapon )
 		else if (pWeapon->m_iId == WEAPON_DUAL_DEAGLE)
 		{
 			SET_MODEL( ENT(pev), "models/w_dual_deagle.mdl");
+		}
+		else if (pWeapon->m_iId == WEAPON_DUAL_RPG)
+		{
+			SET_MODEL( ENT(pev), "models/w_dual_rpg.mdl");
 		}
 
 		pev->sequence = 1;
