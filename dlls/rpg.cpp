@@ -106,7 +106,7 @@ LINK_ENTITY_TO_CLASS( rpg_rocket, CRpgRocket );
 
 //=========================================================
 //=========================================================
-CRpgRocket *CRpgRocket::CreateRpgRocket( Vector vecOrigin, Vector vecAngles, CBaseEntity *pOwner, CRpg *pLauncher, float startEngineTime, BOOL redRocket )
+CRpgRocket *CRpgRocket::CreateRpgRocket( Vector vecOrigin, Vector vecAngles, CBaseEntity *pOwner, float startEngineTime, BOOL redRocket )
 {
 	CRpgRocket *pRocket = GetClassPtr( (CRpgRocket *)NULL );
 
@@ -114,8 +114,8 @@ CRpgRocket *CRpgRocket::CreateRpgRocket( Vector vecOrigin, Vector vecAngles, CBa
 	pRocket->pev->angles = vecAngles;
 	pRocket->Spawn(startEngineTime);
 	pRocket->SetTouch( &CRpgRocket::RocketTouch );
-	pRocket->m_pLauncher = pLauncher;// remember what RPG fired me. 
-	pRocket->m_pLauncher->m_cActiveRockets++;// register this missile as active for the launcher
+	//pRocket->m_pLauncher = pLauncher;// remember what RPG fired me. 
+	//pRocket->m_pLauncher->m_cActiveRockets++;// register this missile as active for the launcher
 	pRocket->pev->owner = pOwner->edict();
 	pRocket->m_redRocket = redRocket;
 
@@ -295,12 +295,6 @@ void CRpg::Reload( void )
 {
 	int iResult = 0;
 
-	if ( m_iClip == 1 )
-	{
-		// don't bother with any of this if don't need to reload.
-		return;
-	}
-
 	if ( m_pPlayer->ammo_rockets <= 0 )
 		return;
 
@@ -331,8 +325,7 @@ void CRpg::Reload( void )
 	}
 #endif
 
-	if ( m_iClip == 0 )
-		iResult = DefaultReload( RPG_MAX_CLIP, RPG_RELOAD, 2 );
+	iResult = DefaultReload( RPG_MAX_CLIP, RPG_RELOAD, 2 );
 	
 	if ( iResult )
 		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + UTIL_SharedRandomFloat( m_pPlayer->random_seed, 10, 15 );
@@ -470,7 +463,7 @@ void CRpg::PrimaryAttack()
 		UTIL_MakeVectors( m_pPlayer->pev->v_angle );
 		Vector vecSrc = m_pPlayer->GetGunPosition( ) + gpGlobals->v_forward * 16 + gpGlobals->v_right * 8 + gpGlobals->v_up * -18;
 		
-		CRpgRocket *pRocket = CRpgRocket::CreateRpgRocket( vecSrc, m_pPlayer->pev->v_angle, m_pPlayer, this, 0.0, FALSE );
+		CRpgRocket *pRocket = CRpgRocket::CreateRpgRocket( vecSrc, m_pPlayer->pev->v_angle, m_pPlayer, 0.0, FALSE );
 
 		UTIL_MakeVectors( m_pPlayer->pev->v_angle );// RpgRocket::Create stomps on globals, so remake.
 		pRocket->pev->velocity = pRocket->pev->velocity + gpGlobals->v_forward * DotProduct( m_pPlayer->pev->velocity, gpGlobals->v_forward );
@@ -516,16 +509,16 @@ void CRpg::SecondaryAttack()
 		Vector vecSrc1 = m_pPlayer->GetGunPosition( ) + gpGlobals->v_forward * 32 + gpGlobals->v_right * 16 + gpGlobals->v_up * -18;
 		Vector vecSrc2 = m_pPlayer->GetGunPosition( ) + gpGlobals->v_forward * 32 + gpGlobals->v_right * -16 + gpGlobals->v_up * -18;
 
-		CRpgRocket *pRocket1 = CRpgRocket::CreateRpgRocket( vecSrc1, m_pPlayer->pev->v_angle, m_pPlayer, this, 0.0, FALSE );
-		CRpgRocket *pRocket2 = CRpgRocket::CreateRpgRocket( vecSrc2, m_pPlayer->pev->v_angle, m_pPlayer, this, 0.0, FALSE );
+		CRpgRocket *pRocket1 = CRpgRocket::CreateRpgRocket( vecSrc1, m_pPlayer->pev->v_angle, m_pPlayer, 0.0, FALSE );
+		CRpgRocket *pRocket2 = CRpgRocket::CreateRpgRocket( vecSrc2, m_pPlayer->pev->v_angle, m_pPlayer, 0.0, FALSE );
 
 		Vector vecSrc3 = m_pPlayer->GetGunPosition( ) + gpGlobals->v_forward * 16 + gpGlobals->v_right * 24 + gpGlobals->v_up * -8;
 		Vector vecSrc4 = m_pPlayer->GetGunPosition( ) + gpGlobals->v_forward * 16 + gpGlobals->v_right + gpGlobals->v_up * -8;
 		Vector vecSrc5 = m_pPlayer->GetGunPosition( ) + gpGlobals->v_forward * 16 + gpGlobals->v_right * -24 + gpGlobals->v_up * -8;
 
-		CRpgRocket *pRocket3 = CRpgRocket::CreateRpgRocket( vecSrc3, m_pPlayer->pev->v_angle, m_pPlayer, this, 0.5, TRUE );
-		CRpgRocket *pRocket4 = CRpgRocket::CreateRpgRocket( vecSrc4, m_pPlayer->pev->v_angle, m_pPlayer, this, 0.5, TRUE );
-		CRpgRocket *pRocket5 = CRpgRocket::CreateRpgRocket( vecSrc5, m_pPlayer->pev->v_angle, m_pPlayer, this, 0.5, TRUE );
+		CRpgRocket *pRocket3 = CRpgRocket::CreateRpgRocket( vecSrc3, m_pPlayer->pev->v_angle, m_pPlayer, 0.5, TRUE );
+		CRpgRocket *pRocket4 = CRpgRocket::CreateRpgRocket( vecSrc4, m_pPlayer->pev->v_angle, m_pPlayer, 0.5, TRUE );
+		CRpgRocket *pRocket5 = CRpgRocket::CreateRpgRocket( vecSrc5, m_pPlayer->pev->v_angle, m_pPlayer, 0.5, TRUE );
 
 		UTIL_MakeVectors( m_pPlayer->pev->v_angle );// RpgRocket::Create stomps on globals, so remake.
 
@@ -624,6 +617,23 @@ void CRpg::UpdateSpot( void )
 
 }
 
+void CRpg::ProvideDualItem(CBasePlayer *pPlayer, const char *item) {
+	if (item == NULL) {
+		return;
+	}
+
+#ifndef CLIENT_DLL
+	if (!stricmp(item, "weapon_rpg")) {
+		if (!pPlayer->HasNamedPlayerItem("weapon_dual_rpg")) {
+			pPlayer->GiveNamedItem("weapon_dual_rpg");
+		}
+	}
+#endif
+}
+
+void CRpg::SwapDualWeapon( void ) {
+	m_pPlayer->SelectItem("weapon_dual_rpg");
+}
 
 class CRpgAmmo : public CBasePlayerAmmo
 {

@@ -213,7 +213,6 @@ void CDeagle::WeaponIdle( void )
 }
 
 void CDeagle::ProvideDualItem(CBasePlayer *pPlayer, const char *item) {
-	ALERT(at_console, "ProvideDualItem - weapon_deagle\n");
 	CBasePlayerWeapon::ProvideDualItem(pPlayer, item);
 
 	if (item == NULL) {
