@@ -25,41 +25,40 @@
 #define	WRENCH_BODYHIT_VOLUME 128
 #define	WRENCH_WALLHIT_VOLUME 512
 
-#ifdef WRENCH
-LINK_ENTITY_TO_CLASS( weapon_wrench, CWrench );
+#ifdef DUALWRENCH
+LINK_ENTITY_TO_CLASS( weapon_dual_wrench, CDualWrench );
 #endif
 
-enum wrench_e {
-	WRENCH_IDLE = 0,
-	WRENCH_DRAW,
-	WRENCH_HOLSTER,
-	WRENCH_ATTACK1HIT,
-	WRENCH_ATTACK1MISS,
-	WRENCH_ATTACK2HIT,
-	WRENCH_ATTACK2MISS,
-	WRENCH_ATTACK3HIT,
-	WRENCH_ATTACK3MISS,
-	WRENCH_IDLE2,
-	WRENCH_IDLE3,
-	WRENCH_PULL_BACK,
-	WRENCH_THROW2,
+enum dual_wrench_e {
+	DUAL_WRENCH_IDLE= 0,
+	DUAL_WRENCH_ATTACK1HIT,
+	DUAL_WRENCH_ATTACK1MISS,
+	DUAL_WRENCH_ATTACK2HIT,
+	DUAL_WRENCH_ATTACK2MISS,
+	DUAL_WRENCH_ATTACK3HIT,
+	DUAL_WRENCH_ATTACK3MISS,
+	DUAL_WRENCH_PULL_BACK,
+	DUAL_WRENCH_THROW,
+	DUAL_WRENCH_DRAW,
+	DUAL_WRENCH_HOLSTER,
 };
 
-void CWrench::Spawn( )
+void CDualWrench::Spawn( )
 {
 	Precache( );
-	m_iId = WEAPON_WRENCH;
-	SET_MODEL(ENT(pev), "models/w_wrench.mdl");
+	m_iId = WEAPON_DUAL_WRENCH;
+	SET_MODEL(ENT(pev), "models/w_dual_wrench.mdl");
 	m_iClip = -1;
 
 	FallInit();// get ready to fall down.
 }
 
-void CWrench::Precache( void )
+void CDualWrench::Precache( void )
 {
-	PRECACHE_MODEL("models/v_wrench.mdl");
-	PRECACHE_MODEL("models/w_wrench.mdl");
-	PRECACHE_MODEL("models/p_wrench.mdl");
+	PRECACHE_MODEL("models/v_dual_wrench.mdl");
+	PRECACHE_MODEL("models/w_dual_wrench.mdl");
+	PRECACHE_MODEL("models/p_dual_wrench.mdl");
+
 	PRECACHE_SOUND("wrench_hit1.wav");
 	PRECACHE_SOUND("wrench_hit2.wav");
 	PRECACHE_SOUND("wrench_hitbod1.wav");
@@ -67,10 +66,10 @@ void CWrench::Precache( void )
 	PRECACHE_SOUND("wrench_hitbod3.wav");
 	PRECACHE_SOUND("wrench_miss1.wav");
 
-	m_usWrench = PRECACHE_EVENT ( 1, "events/wrench.sc" );
+	m_usWrench = PRECACHE_EVENT ( 1, "events/dual_wrench.sc" );
 }
 
-int CWrench::AddToPlayer( CBasePlayer *pPlayer )
+int CDualWrench::AddToPlayer( CBasePlayer *pPlayer )
 {
 	if ( CBasePlayerWeapon::AddToPlayer( pPlayer ) )
 	{
@@ -82,7 +81,7 @@ int CWrench::AddToPlayer( CBasePlayer *pPlayer )
 	return FALSE;
 }
 
-int CWrench::GetItemInfo(ItemInfo *p)
+int CDualWrench::GetItemInfo(ItemInfo *p)
 {
 	p->pszName = STRING(pev->classname);
 	p->pszAmmo1 = NULL;
@@ -90,47 +89,47 @@ int CWrench::GetItemInfo(ItemInfo *p)
 	p->pszAmmo2 = NULL;
 	p->iMaxAmmo2 = -1;
 	p->iMaxClip = WEAPON_NOCLIP;
-	p->iSlot = 0;
+	p->iSlot = 5;
 	p->iPosition = 3;
-	p->iId = WEAPON_WRENCH;
-	p->iWeight = WRENCH_WEIGHT;
-	p->pszDisplayName = "40 Pound Monkey Wrench";
+	p->iId = WEAPON_DUAL_WRENCH;
+	p->iWeight = WRENCH_WEIGHT * 2;
+	p->pszDisplayName = "40 Pound Monkey Wrenches";
 	return 1;
 }
 
-BOOL CWrench::Deploy( )
+BOOL CDualWrench::Deploy( )
 {
 	m_flStartThrow = 0;
 	m_flReleaseThrow = -1;
-	return DefaultDeploy( "models/v_wrench.mdl", "models/p_wrench.mdl", WRENCH_DRAW, "crowbar" );
+	return DefaultDeploy( "models/v_dual_wrench.mdl", "models/p_dual_wrench.mdl", DUAL_WRENCH_DRAW, "dual_club" );
 }
 
-void CWrench::Holster( int skiplocal /* = 0 */ )
+void CDualWrench::Holster( int skiplocal /* = 0 */ )
 {
 	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 0.5;
 
 	if (m_flReleaseThrow > 0) {
-		m_pPlayer->pev->weapons &= ~(1<<WEAPON_WRENCH);
-		SetThink( &CWrench::DestroyItem );
+		m_pPlayer->m_iWeapons2 &= ~(1<<(WEAPON_DUAL_WRENCH - 32));
+		SetThink( &CDualWrench::DestroyItem );
 		pev->nextthink = gpGlobals->time + 0.1;
 	} else {
-		SendWeaponAnim( WRENCH_HOLSTER );
+		SendWeaponAnim( DUAL_WRENCH_HOLSTER );
 	}
 }
 
-void CWrench::PrimaryAttack()
+void CDualWrench::PrimaryAttack()
 {
 	if (!m_flStartThrow && !Swing( 1 ))
 	{
-		SetThink( &CWrench::SwingAgain );
+		SetThink( &CDualWrench::SwingAgain );
 		pev->nextthink = gpGlobals->time + 0.1;
 	}
 }
 
-void CWrench::SecondaryAttack()
+void CDualWrench::SecondaryAttack()
 {
 	if ( !m_flStartThrow ) {
-		SendWeaponAnim( WRENCH_PULL_BACK );
+		SendWeaponAnim( DUAL_WRENCH_PULL_BACK );
 		m_pPlayer->pev->punchangle = Vector(-2, -2, 0);
 		m_flStartThrow = 1;
 		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 0.5;
@@ -139,7 +138,7 @@ void CWrench::SecondaryAttack()
 	m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 0.5;
 }
 
-void CWrench::Throw() {
+void CDualWrench::Throw() {
 	// Don't throw underwater, and only throw if we were able to detatch
 	// from player.
 	if ( (m_pPlayer->pev->waterlevel != 3) )
@@ -150,23 +149,35 @@ void CWrench::Throw() {
 
 		// Get the origin, direction, and fix the angle of the throw.
 		Vector vecSrc = m_pPlayer->GetGunPosition( )
-					+ gpGlobals->v_right * 8
+					+ gpGlobals->v_right * 12
 					+ gpGlobals->v_forward * 16;
 
 		Vector vecDir = gpGlobals->v_forward;
 		Vector vecAng = UTIL_VecToAngles (vecDir);
 		vecAng.z = vecDir.z - 90;
 
-		// Create a flying wrench.
+		// Create a flying wrenches
 		CFlyingWrench *pWrench = (CFlyingWrench *)Create( "flying_wrench",
 					vecSrc, Vector(0,0,0), m_pPlayer->edict() );
 
+		Vector vecSrc2 = m_pPlayer->GetGunPosition( )
+					+ gpGlobals->v_right * -12
+					+ gpGlobals->v_forward * 16;
+
+		CFlyingWrench *pWrench2 = (CFlyingWrench *)Create( "flying_wrench",
+					vecSrc2, Vector(0,0,0), m_pPlayer->edict() );
+
 		// Give the wrench its velocity, angle, and spin.
 		// Lower the gravity a bit, so it flys.
-		pWrench->pev->velocity = vecDir * 1000 + m_pPlayer->pev->velocity;
+		pWrench->pev->velocity = vecDir * RANDOM_LONG(900,1000) + m_pPlayer->pev->velocity;
 		pWrench->pev->angles = vecAng;
-		pWrench->pev->avelocity.x = -1000;
-		pWrench->pev->gravity = .25;
+		pWrench->pev->avelocity.x = RANDOM_LONG(-1000,-700);
+		pWrench->pev->gravity = RANDOM_FLOAT(0.25,0.35);
+
+		pWrench2->pev->velocity = vecDir * RANDOM_LONG(800,1000) + m_pPlayer->pev->velocity;
+		pWrench2->pev->angles = vecAng;
+		pWrench2->pev->avelocity.x = RANDOM_LONG(-1000,-700);
+		pWrench2->pev->gravity = RANDOM_FLOAT(0.25,0.35);
 
 		// Do player weapon anim and sound effect.
 		m_pPlayer->SetAnimation( PLAYER_ATTACK1 );
@@ -178,17 +189,17 @@ void CWrench::Throw() {
 	}
 }
 
-void CWrench::Smack( )
+void CDualWrench::Smack( )
 {
 	DecalGunshot( &m_trHit, BULLET_PLAYER_WRENCH );
 }
 
-void CWrench::SwingAgain( void )
+void CDualWrench::SwingAgain( void )
 {
 	Swing( 0 );
 }
 
-int CWrench::Swing( int fFirst )
+int CDualWrench::Swing( int fFirst )
 {
 	int fDidHit = FALSE;
 
@@ -238,11 +249,11 @@ int CWrench::Swing( int fFirst )
 		switch( ((m_iSwing++) % 2) + 1 )
 		{
 		case 0:
-			SendWeaponAnim( WRENCH_ATTACK1HIT ); break;
+			SendWeaponAnim( DUAL_WRENCH_ATTACK1HIT );// break;
 		case 1:
-			SendWeaponAnim( WRENCH_ATTACK2HIT ); break;
+			SendWeaponAnim( DUAL_WRENCH_ATTACK2HIT ); break;
 		case 2:
-			SendWeaponAnim( WRENCH_ATTACK3HIT ); break;
+			SendWeaponAnim( DUAL_WRENCH_ATTACK3HIT ); break;
 		}
 
 		// player "shoot" animation
@@ -259,12 +270,12 @@ int CWrench::Swing( int fFirst )
 		if ( (m_flNextPrimaryAttack + 1 < UTIL_WeaponTimeBase() ) || g_pGameRules->IsMultiplayer() )
 		{
 			// first swing does full damage
-			pEntity->TraceAttack(m_pPlayer->pev, gSkillData.plrDmgWrench, gpGlobals->v_forward, &tr, DMG_CLUB ); 
+			pEntity->TraceAttack(m_pPlayer->pev, gSkillData.plrDmgWrench * 2, gpGlobals->v_forward, &tr, DMG_CLUB ); 
 		}
 		else
 		{
 			// subsequent swings do half
-			pEntity->TraceAttack(m_pPlayer->pev, gSkillData.plrDmgWrench / 2, gpGlobals->v_forward, &tr, DMG_CLUB ); 
+			pEntity->TraceAttack(m_pPlayer->pev, (gSkillData.plrDmgWrench * 2) / 2, gpGlobals->v_forward, &tr, DMG_CLUB ); 
 		}	
 		ApplyMultiDamage( m_pPlayer->pev, m_pPlayer->pev );
 
@@ -331,7 +342,7 @@ int CWrench::Swing( int fFirst )
 		m_flNextPrimaryAttack = GetNextAttackDelay(0.25);
 		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + UTIL_SharedRandomFloat( m_pPlayer->random_seed, 10, 15 );
 		
-		SetThink( &CWrench::Smack );
+		SetThink( &CDualWrench::Smack );
 		pev->nextthink = UTIL_WeaponTimeBase() + 0.2;
 
 		
@@ -339,14 +350,14 @@ int CWrench::Swing( int fFirst )
 	return fDidHit;
 }
 
-void CWrench::WeaponIdle( void )
+void CDualWrench::WeaponIdle( void )
 {
 	if ( m_flTimeWeaponIdle > UTIL_WeaponTimeBase() )
 		return;
 
 	if ( m_flStartThrow == 1 )
 	{
-		SendWeaponAnim( WRENCH_THROW2 );
+		SendWeaponAnim( DUAL_WRENCH_THROW );
 #ifndef CLIENT_DLL
 		Throw();
 #endif
@@ -365,38 +376,23 @@ void CWrench::WeaponIdle( void )
 
 	int iAnim;
 	float flAnimTime = 5.34; // Only WRENCH_IDLE has a different time
-	switch ( RANDOM_LONG( 0, 2 ) )
-	{
-	case 0:
-		iAnim = WRENCH_IDLE;
+	//switch ( RANDOM_LONG( 0, 2 ) )
+	//{
+	//case 0:
+		iAnim = DUAL_WRENCH_IDLE;
 		flAnimTime = 2.7;
-		break;
-	case 1:
-		iAnim = WRENCH_IDLE2;
-		break;
-	case 2:
-		iAnim = WRENCH_IDLE3;
-		break;
-	}
+		//break;
+	//case 1:
+		//iAnim = WRENCH_IDLE2;
+		//break;
+	//case 2:
+		//iAnim = WRENCH_IDLE3;
+		//break;
+	//}
 	SendWeaponAnim( iAnim, 1 );
 	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + flAnimTime;
 }
 
-void CWrench::ProvideDualItem(CBasePlayer *pPlayer, const char *item) {
-	if (item == NULL) {
-		return;
-	}
-
-#ifndef CLIENT_DLL
-	if (!stricmp(item, "weapon_wrench")) {
-		if (!pPlayer->HasNamedPlayerItem("weapon_dual_wrench")) {
-			pPlayer->GiveNamedItem("weapon_dual_wrench");
-			ALERT(at_aiconsole, "Give weapon_dual_wrench!\n");
-		}
-	}
-#endif
-}
-
-void CWrench::SwapDualWeapon( void ) {
-	m_pPlayer->SelectItem("weapon_dual_wrench");
+void CDualWrench::SwapDualWeapon( void ) {
+	m_pPlayer->SelectItem("weapon_wrench");
 }

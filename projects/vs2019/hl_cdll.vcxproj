@@ -168,8 +168,10 @@
     <ClCompile Include="..\..\dlls\deagle.cpp" />
     <ClCompile Include="..\..\dlls\dual_deagle.cpp" />
     <ClCompile Include="..\..\dlls\dual_rpg.cpp" />
+    <ClCompile Include="..\..\dlls\dual_wrench.cpp" />
     <ClCompile Include="..\..\dlls\egon.cpp" />
     <ClCompile Include="..\..\dlls\fists.cpp" />
+    <ClCompile Include="..\..\dlls\flying_wrench.cpp" />
     <ClCompile Include="..\..\dlls\gauge_shotgun.cpp" />
     <ClCompile Include="..\..\dlls\gauss.cpp" />
     <ClCompile Include="..\..\dlls\glauncher.cpp" />

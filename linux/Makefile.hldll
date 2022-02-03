@@ -52,7 +52,8 @@ CFLAGS=$(BASE_CFLAGS)  $(ARCH_CFLAGS) $(DEBUG_CFLAGS) -DCLIENT_WEAPONS \
 		 -DHIVEHAND \
 		 -DDEAGLE \
 		 -DDUALDEAGLE \
-		 -DDUALRPG
+		 -DDUALRPG \
+		 -DDUALWRENCH
 
 #-O3 -ffast-math -fno-strength-reduce
 
@@ -99,11 +100,13 @@ HLDLL_OBJS = \
 	$(HLDLL_OBJ_DIR)/doors.o \
 	$(HLDLL_OBJ_DIR)/dual_deagle.o \
 	$(HLDLL_OBJ_DIR)/dual_rpg.o \
+	$(HLDLL_OBJ_DIR)/dual_wrench.o \
 	$(HLDLL_OBJ_DIR)/effects.o \
 	$(HLDLL_OBJ_DIR)/egon.o \
 	$(HLDLL_OBJ_DIR)/explode.o \
 	$(HLDLL_OBJ_DIR)/fists.o \
 	$(HLDLL_OBJ_DIR)/flyingmonster.o \
+	$(HLDLL_OBJ_DIR)/flying_wrench.o \
 	$(HLDLL_OBJ_DIR)/func_break.o \
 	$(HLDLL_OBJ_DIR)/func_tank.o \
 	$(HLDLL_OBJ_DIR)/game.o \

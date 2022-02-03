@@ -491,6 +491,7 @@ void W_Precache(void)
 	UTIL_PrecacheOtherWeapon( "weapon_deagle" );
 	UTIL_PrecacheOtherWeapon( "weapon_dual_deagle" );
 	UTIL_PrecacheOtherWeapon( "weapon_dual_rpg" );
+	UTIL_PrecacheOtherWeapon( "weapon_dual_wrench" );
 
 #if !defined( OEM_BUILD ) && !defined( HLDEMO_BUILD )
 	if ( g_pGameRules->IsDeathmatch() )
@@ -706,6 +707,7 @@ CBaseEntity* CBasePlayerItem::Respawn( void )
 		// hand
 		"weapon_9mmhandgun",
 		"weapon_deagle",
+		"weapon_dual_deagle",
 		"weapon_python",
 		"weapon_mag60",
 		"weapon_smg"
@@ -726,6 +728,7 @@ CBaseEntity* CBasePlayerItem::Respawn( void )
 		{
 		// heavy
 		"weapon_rpg",
+		"weapon_dual_rpg",
 		"weapon_railgun",
 		"weapon_cannon",
 		"weapon_gauss",
@@ -1818,6 +1821,10 @@ BOOL CWeaponBox::PackWeapon( CBasePlayerItem *pWeapon )
 		else if (pWeapon->m_iId == WEAPON_DUAL_RPG)
 		{
 			SET_MODEL( ENT(pev), "models/w_dual_rpg.mdl");
+		}
+		else if (pWeapon->m_iId == WEAPON_DUAL_WRENCH)
+		{
+			SET_MODEL( ENT(pev), "models/w_dual_wrench.mdl");
 		}
 
 		pev->sequence = 1;

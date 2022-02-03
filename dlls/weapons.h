@@ -104,6 +104,7 @@ public:
 #define	WEAPON_DEAGLE			32
 #define WEAPON_DUAL_DEAGLE		33
 #define WEAPON_DUAL_RPG			34
+#define WEAPON_DUAL_WRENCH		36
 
 #define WEAPON_ALLWEAPONS		(~(1<<WEAPON_SUIT))
 
@@ -1830,6 +1831,58 @@ private:
 	unsigned short m_usRpg;
 	unsigned short m_usRpgExtreme;
 
+};
+
+class CFlyingWrench : public CBaseEntity
+{
+public:
+
+	void Spawn( void );
+	void Precache( void );
+	void EXPORT BubbleThink( void );
+	void EXPORT SpinTouch( CBaseEntity *pOther );
+
+private:
+
+	EHANDLE m_hOwner;		  // Original owner is stored here so we can
+							  // allow the wrench to hit the user.
+};
+
+class CDualWrench : public CBasePlayerWeapon
+{
+public:
+	void Spawn( void );
+	void Precache( void );
+	int AddToPlayer( CBasePlayer *pPlayer );
+	int iItemSlot( void ) { return 6; }
+	void EXPORT SwingAgain( void );
+	void EXPORT Smack( void );
+	int GetItemInfo(ItemInfo *p);
+
+	void PrimaryAttack( void );
+	void SecondaryAttack( void );
+	void Throw( void );
+	int Swing( int fFirst );
+	BOOL Deploy( void );
+	void Holster( int skiplocal = 0 );
+	void WeaponIdle( void );
+	int m_iSwing;
+	TraceResult m_trHit;
+
+	virtual BOOL UseDecrement( void )
+	{
+#if defined( CLIENT_WEAPONS )
+		return TRUE;
+#else
+		return FALSE;
+#endif
+	}
+
+	virtual BOOL SemiAuto( void ) { return TRUE; }
+	void SwapDualWeapon( void );
+
+private:
+	unsigned short m_usWrench;
 };
 
 #endif // WEAPONS_H
