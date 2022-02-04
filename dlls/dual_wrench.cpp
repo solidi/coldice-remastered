@@ -150,6 +150,7 @@ void CDualWrench::Throw() {
 		// Get the origin, direction, and fix the angle of the throw.
 		Vector vecSrc = m_pPlayer->GetGunPosition( )
 					+ gpGlobals->v_right * 12
+					+ gpGlobals->v_up * 8
 					+ gpGlobals->v_forward * 16;
 
 		Vector vecDir = gpGlobals->v_forward;
@@ -162,6 +163,7 @@ void CDualWrench::Throw() {
 
 		Vector vecSrc2 = m_pPlayer->GetGunPosition( )
 					+ gpGlobals->v_right * -12
+					+ gpGlobals->v_up * 8
 					+ gpGlobals->v_forward * 16;
 
 		CFlyingWrench *pWrench2 = (CFlyingWrench *)Create( "flying_wrench",

@@ -1571,6 +1571,9 @@ public:
 #endif
 	}
 
+	void ProvideDualItem(CBasePlayer *pPlayer, const char *itemName);
+	void SwapDualWeapon( void );
+
 	virtual BOOL SemiAuto( void ) { return TRUE; }
 
 private:
