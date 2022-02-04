@@ -98,6 +98,7 @@ void EV_FireDeagle( struct event_args_s *args  );
 void EV_FireDualDeagle( struct event_args_s *args  );
 void EV_FireDualDeagleBoth( struct event_args_s *args  );
 void EV_FireDualRpgBoth( struct event_args_s *args  );
+void EV_FireDualWrench( struct event_args_s *args  );
 
 void EV_TrainPitchAdjust( struct event_args_s *args );
 }
@@ -2959,6 +2960,58 @@ void EV_FireDualRpgBoth( event_args_t *args )
 		V_PunchAxis(PITCH, gEngfuncs.pfnRandomFloat(-5.0, -7.0) );
 		V_PunchAxis(YAW, gEngfuncs.pfnRandomFloat(-2.0, -4.0));
 		V_PunchAxis(ROLL, gEngfuncs.pfnRandomFloat(2.0, 4.0));
+	}
+}
+
+enum dual_wrench_e {
+	DUAL_WRENCH_IDLE= 0,
+	DUAL_WRENCH_ATTACK1HIT,
+	DUAL_WRENCH_ATTACK1MISS,
+	DUAL_WRENCH_ATTACK2HIT,
+	DUAL_WRENCH_ATTACK2MISS,
+	DUAL_WRENCH_ATTACK3HIT,
+	DUAL_WRENCH_ATTACK3MISS,
+	DUAL_WRENCH_PULL_BACK,
+	DUAL_WRENCH_THROW,
+	DUAL_WRENCH_DRAW,
+	DUAL_WRENCH_HOLSTER,
+};
+
+void EV_FireDualWrench( event_args_t *args )
+{
+	int idx;
+	vec3_t origin;
+	vec3_t angles;
+	vec3_t velocity;
+
+	idx = args->entindex;
+	VectorCopy( args->origin, origin );
+
+	//Play Swing sound
+	gEngfuncs.pEventAPI->EV_PlaySound( idx, origin, CHAN_WEAPON, "wrench_miss1.wav", 1, ATTN_NORM, 0, PITCH_NORM);
+
+	if ( EV_IsLocal( idx ) )
+	{
+		gEngfuncs.pEventAPI->EV_WeaponAnimation( DUAL_WRENCH_ATTACK1MISS, 1 );
+
+		switch( (g_iSwing++) % 3 )
+		{
+			case 0:
+				gEngfuncs.pEventAPI->EV_WeaponAnimation ( DUAL_WRENCH_ATTACK1MISS, 1 );
+				V_PunchAxis(YAW, gEngfuncs.pfnRandomFloat(-5.0, -7.0));
+				V_PunchAxis(ROLL, gEngfuncs.pfnRandomFloat(5.0, 7.0));
+				break;
+			case 1:
+				gEngfuncs.pEventAPI->EV_WeaponAnimation ( DUAL_WRENCH_ATTACK2MISS, 1 );
+				V_PunchAxis(YAW, gEngfuncs.pfnRandomFloat(5.0, 7.0));
+				V_PunchAxis(ROLL, gEngfuncs.pfnRandomFloat(-5.0, -7.0));
+				break;
+			case 2:
+				gEngfuncs.pEventAPI->EV_WeaponAnimation ( DUAL_WRENCH_ATTACK3MISS, 1 );
+				V_PunchAxis(YAW, gEngfuncs.pfnRandomFloat(-5.0, -7.0));
+				V_PunchAxis(ROLL, gEngfuncs.pfnRandomFloat(5.0, 7.0));
+				break;
+		}
 	}
 }
 
