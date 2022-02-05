@@ -473,9 +473,11 @@ void EV_HLDM_FireBullets( int idx, float *forward, float *right, float *up, int 
 				if ( gEngfuncs.pfnRandomLong(0, 3) > 2 ) {
 					int model = gEngfuncs.pEventAPI->EV_FindModelIndex( "sprites/gunsmoke.spr" );
 					TEMPENTITY *t = gEngfuncs.pEfxAPI->R_DefaultSprite(tr.endpos - Vector(forward[0], forward[1], forward[2]) * 20, model, gEngfuncs.pfnRandomLong(12, 18));
-					t->entity.curstate.rendermode = kRenderTransAdd;
-					t->entity.curstate.renderamt = gEngfuncs.pfnRandomLong(120, 140);
-					t->entity.curstate.scale = gEngfuncs.pfnRandomFloat(0.2, 0.3);
+					if (t) {
+						t->entity.curstate.rendermode = kRenderTransAdd;
+						t->entity.curstate.renderamt = gEngfuncs.pfnRandomLong(120, 140);
+						t->entity.curstate.scale = gEngfuncs.pfnRandomFloat(0.2, 0.3);
+					}
 				}
 			}
 		}
@@ -517,9 +519,11 @@ void EV_GunSmoke(vec3_t origin, float scale, int idx, int ducking, float *forwar
 
 			int model = gEngfuncs.pEventAPI->EV_FindModelIndex( "sprites/smokeball2.spr" );
 			TEMPENTITY *t = gEngfuncs.pEfxAPI->R_DefaultSprite(smokeOrigin, model, gEngfuncs.pfnRandomLong(32, 48));
-			t->entity.curstate.rendermode = kRenderTransAdd;
-			t->entity.curstate.renderamt = gEngfuncs.pfnRandomLong(40, 60);
-			t->entity.curstate.scale = scale;
+			if (t) {
+				t->entity.curstate.rendermode = kRenderTransAdd;
+				t->entity.curstate.renderamt = gEngfuncs.pfnRandomLong(40, 60);
+				t->entity.curstate.scale = scale;
+			}
 		} else {
 			// Don't draw for others.
 		}
