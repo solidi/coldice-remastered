@@ -104,6 +104,7 @@ public:
 #define	WEAPON_DEAGLE			32
 #define WEAPON_DUAL_DEAGLE		33
 #define WEAPON_DUAL_RPG			34
+#define WEAPON_DUAL_SMG			35
 #define WEAPON_DUAL_WRENCH		36
 
 #define WEAPON_ALLWEAPONS		(~(1<<WEAPON_SUIT))
@@ -1466,6 +1467,9 @@ public:
 #endif
 	}
 
+	void ProvideDualItem(CBasePlayer *pPlayer, const char *itemName);
+	void SwapDualWeapon( void );
+
 	static const char *pHansSounds[];
 
 private:
@@ -1834,6 +1838,42 @@ private:
 	unsigned short m_usRpg;
 	unsigned short m_usRpgExtreme;
 
+};
+
+class CDualSMG : public CBasePlayerWeapon
+{
+public:
+	void Spawn( void );
+	void Precache( void );
+	int iItemSlot( void ) { return 6; }
+	int GetItemInfo(ItemInfo *p);
+	int AddToPlayer( CBasePlayer *pPlayer );
+
+	void PrimaryAttack( void );
+	BOOL Deploy( void );
+	void Holster( int skiplocal = 0 );
+	void Reload( void );
+	void WeaponIdle( void );
+	float m_flNextAnimTime;
+	int m_iShell;
+
+	virtual BOOL UseDecrement( void )
+	{
+#if defined( CLIENT_WEAPONS )
+		return TRUE;
+#else
+		return FALSE;
+#endif
+	}
+
+	void SwapDualWeapon( void );
+
+	static const char *pHansSounds[];
+
+private:
+	short m_sFireCount;
+	short m_sMode;
+	unsigned short m_usSmg;
 };
 
 class CFlyingWrench : public CBaseEntity
