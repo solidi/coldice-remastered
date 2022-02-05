@@ -448,9 +448,6 @@ void WeaponsResource :: SelectSlot( int iSlot, int fAdvance, int iDirection )
 	if (!(gHUD.m_iWeaponBits & (1<<(WEAPON_SUIT)) ))
 		return;
 
-	if ( ! ( gHUD.m_iWeaponBits & ~(1<<(WEAPON_SUIT)) ))
-		return;
-
 	WEAPON *p = NULL;
 	bool fastSwitch = CVAR_GET_FLOAT( "hud_fastswitch" ) != 0;
 
