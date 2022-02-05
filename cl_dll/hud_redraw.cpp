@@ -358,7 +358,7 @@ void CHud::ShowTextTips( void ) {
 				gHUD.m_SayText.SayTextPrint("Tired of blue skins? Type \"cl_icemodels 0\" in the console switches to real-life skins.\n", 128 );
 				break;
 			case 1:
-				gHUD.m_SayText.SayTextPrint("To five-high your friend with your leg, bind \"impulse 204\" to a button to kick.\n", 128 );
+				gHUD.m_SayText.SayTextPrint("To five-high your friend with your leg, bind \"impulse 206\" to a button to kick.\n", 128 );
 				break;
 			case 2:
 				gHUD.m_SayText.SayTextPrint("Did you know you can shut off the humour? Type \"cl_announcehumor 0\" to make them shut up.\n", 128 );
