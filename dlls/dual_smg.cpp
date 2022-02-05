@@ -24,42 +24,31 @@
 #include "gamerules.h"
 #include "game.h"
 
-enum smg_e
-{
-	SMG_AIM = 0,
-	SMG_IDLE1,
-	SMG_IDLE2,
-	SMG_IDLE3,
-	SMG_RELOAD,
-	SMG_DEPLOY,
-	SMG_FIRE1,
-	SMG_SELECT,
-	SMG_HOLSTER,
+enum dual_smg_e
+{	
+	DUAL_SMG_IDLE = 0,
+	DUAL_SMG_FIRE_BOTH1,
+	DUAL_SMG_RELOAD,
+	DUAL_SMG_DEPLOY,
+	DUAL_SMG_HOLSTER,
 };
 
-enum smg_fire_mode_e
-{
-	FULL = 0,
-	BURST,
-	SINGLE,
-};
-
-#ifdef SMG
-LINK_ENTITY_TO_CLASS( weapon_smg, CSMG );
+#ifdef DUALSMG
+LINK_ENTITY_TO_CLASS( weapon_dual_smg, CDualSMG );
 #endif
 
-void CSMG::Spawn( )
+void CDualSMG::Spawn( )
 {
 	Precache( );
-	SET_MODEL(ENT(pev), "models/w_smg.mdl");
-	m_iId = WEAPON_SMG;
+	SET_MODEL(ENT(pev), "models/w_dual_smg.mdl");
+	m_iId = WEAPON_DUAL_SMG;
 
-	m_iDefaultAmmo = SMG_DEFAULT_GIVE;
+	m_iDefaultAmmo = SMG_DEFAULT_GIVE * 2;
 
 	FallInit();// get ready to fall down.
 }
 
-const char *CSMG::pHansSounds[] = 
+const char *CDualSMG::pHansSounds[] = 
 {
 	"smg_selected.wav",
 	"smg_gruber_nolossoflife.wav",
@@ -73,11 +62,11 @@ const char *CSMG::pHansSounds[] =
 	"smg_gruber_troublesome.wav",
 };
 
-void CSMG::Precache( void )
+void CDualSMG::Precache( void )
 {
-	PRECACHE_MODEL("models/v_smg.mdl");
-	PRECACHE_MODEL("models/w_smg.mdl");
-	PRECACHE_MODEL("models/p_smg.mdl");
+	PRECACHE_MODEL("models/v_dual_smg.mdl");
+	PRECACHE_MODEL("models/w_dual_smg.mdl");
+	PRECACHE_MODEL("models/p_dual_smg.mdl");
 
 	m_iShell = PRECACHE_MODEL ("models/w_shell.mdl");// brass shellTE_MODEL
 
@@ -93,28 +82,28 @@ void CSMG::Precache( void )
 
 	PRECACHE_SOUND_ARRAY(pHansSounds);
 
-	m_usSmg = PRECACHE_EVENT( 1, "events/smg.sc" );
+	m_usSmg = PRECACHE_EVENT( 1, "events/dual_smg.sc" );
 }
 
-int CSMG::GetItemInfo(ItemInfo *p)
+int CDualSMG::GetItemInfo(ItemInfo *p)
 {
 	p->pszName = STRING(pev->classname);
 	p->pszAmmo1 = "9mm";
 	p->iMaxAmmo1 = _9MM_MAX_CARRY;
 	p->pszAmmo2 = NULL;
 	p->iMaxAmmo2 = -1;
-	p->iMaxClip = SMG_MAX_CLIP;
-	p->iSlot = 1;
-	p->iPosition = 4;
+	p->iMaxClip = SMG_MAX_CLIP * 2;
+	p->iSlot = 5;
+	p->iPosition = 2;
 	p->iFlags = 0;
-	p->iId = m_iId = WEAPON_SMG;
-	p->iWeight = SMG_WEIGHT;
-	p->pszDisplayName = "Hans Gruber's Submachine gun";
+	p->iId = m_iId = WEAPON_DUAL_SMG;
+	p->iWeight = SMG_WEIGHT * 2;
+	p->pszDisplayName = "Hans Gruber's Submachine guns";
 
 	return 1;
 }
 
-int CSMG::AddToPlayer( CBasePlayer *pPlayer )
+int CDualSMG::AddToPlayer( CBasePlayer *pPlayer )
 {
 	if ( CBasePlayerWeapon::AddToPlayer( pPlayer ) )
 	{
@@ -126,12 +115,11 @@ int CSMG::AddToPlayer( CBasePlayer *pPlayer )
 	return FALSE;
 }
 
-BOOL CSMG::Deploy( )
+BOOL CDualSMG::Deploy( )
 {
 	m_sFireCount = 0;
-	m_sMode = FULL;
 
-	BOOL result = DefaultDeploy( "models/v_smg.mdl", "models/p_smg.mdl", SMG_DEPLOY, "mp5" );
+	BOOL result = DefaultDeploy( "models/v_dual_smg.mdl", "models/p_dual_smg.mdl", DUAL_SMG_DEPLOY, "akimbo" );
 
 #ifndef CLIENT_DLL
 	if (result && allowvoiceovers.value) {
@@ -142,13 +130,13 @@ BOOL CSMG::Deploy( )
 	return result;
 }
 
-void CSMG::Holster( int skiplocal )
+void CDualSMG::Holster( int skiplocal )
 {
 	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 0.5;
-	SendWeaponAnim( SMG_HOLSTER );
+	SendWeaponAnim( DUAL_SMG_HOLSTER );
 }
 
-void CSMG::PrimaryAttack()
+void CDualSMG::PrimaryAttack()
 {
 	// don't fire underwater
 	if (m_pPlayer->pev->waterlevel == 3)
@@ -186,12 +174,12 @@ void CSMG::PrimaryAttack()
 #endif
 	{
 		// optimized multiplayer. Widened to make it easier to hit a moving player
-		vecDir = m_pPlayer->FireBulletsPlayer( 1, vecSrc, vecAiming, VECTOR_CONE_6DEGREES, 8192, BULLET_PLAYER_MP5, 2, 0, m_pPlayer->pev, m_pPlayer->random_seed );
+		vecDir = m_pPlayer->FireBulletsPlayer( 2, vecSrc, vecAiming, VECTOR_CONE_6DEGREES, 8192, BULLET_PLAYER_MP5, 2, 0, m_pPlayer->pev, m_pPlayer->random_seed );
 	}
 	else
 	{
 		// single player spread
-		vecDir = m_pPlayer->FireBulletsPlayer( 1, vecSrc, vecAiming, VECTOR_CONE_3DEGREES, 8192, BULLET_PLAYER_MP5, 2, 0, m_pPlayer->pev, m_pPlayer->random_seed );
+		vecDir = m_pPlayer->FireBulletsPlayer( 2, vecSrc, vecAiming, VECTOR_CONE_3DEGREES, 8192, BULLET_PLAYER_MP5, 2, 0, m_pPlayer->pev, m_pPlayer->random_seed );
 	}
 
   int flags;
@@ -207,19 +195,7 @@ void CSMG::PrimaryAttack()
 		// HEV suit - indicate out of ammo condition
 		m_pPlayer->SetSuitUpdate("!HEV_AMO0", FALSE, 0);
 
-	if (m_sMode == FULL) {
-		m_flNextPrimaryAttack = GetNextAttackDelay(0.1);
-	} else if (m_sMode == BURST) {
-		if (m_sFireCount > 2) {
-			m_flNextPrimaryAttack = GetNextAttackDelay(0.5);
-			m_sFireCount = 0;
-		} else {
-			m_sFireCount++;
-			m_flNextPrimaryAttack = GetNextAttackDelay(0.1);
-		}
-	} else {
-		m_flNextPrimaryAttack = GetNextAttackDelay(0.5);
-	}
+	m_flNextPrimaryAttack = GetNextAttackDelay(0.1);
 
 	if ( m_flNextPrimaryAttack < UTIL_WeaponTimeBase() )
 		m_flNextPrimaryAttack = UTIL_WeaponTimeBase() + 0.1;
@@ -227,49 +203,15 @@ void CSMG::PrimaryAttack()
 	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + UTIL_SharedRandomFloat( m_pPlayer->random_seed, 10, 15 );
 }
 
-void CSMG::SecondaryAttack( void )
-{
-	// don't select underwater
-	if (m_pPlayer->pev->waterlevel == 3)
-	{
-		PlayEmptySound( );
-		m_flNextSecondaryAttack = GetNextAttackDelay(0.15);
-		return;
-	}
-
-	// player "shoot" animation
-	m_pPlayer->SetAnimation( PLAYER_ATTACK1 );
-
-#ifndef CLIENT_DLL
-	if (allowvoiceovers.value) {
-		EMIT_SOUND(ENT(m_pPlayer->pev), CHAN_VOICE, RANDOM_SOUND_ARRAY(pHansSounds), 1.0, ATTN_NORM );
-	}
-#endif
-
-	switch (m_sMode) {
-	case FULL:
-		m_sMode = BURST;
-		break;
-	case BURST:
-		m_sMode = SINGLE;
-		break;
-	default:
-		m_sMode = FULL;
-	}
-
-	SendWeaponAnim( SMG_SELECT );
-	m_flNextSecondaryAttack = GetNextAttackDelay(2.0);
-}
-
-void CSMG::Reload( void )
+void CDualSMG::Reload( void )
 {
 	if ( m_pPlayer->ammo_9mm <= 0 )
 		return;
 
-	DefaultReload( SMG_MAX_CLIP, SMG_RELOAD, 1.5 );
+	DefaultReload( SMG_MAX_CLIP * 2, DUAL_SMG_RELOAD, 1.5 );
 }
 
-void CSMG::WeaponIdle( void )
+void CDualSMG::WeaponIdle( void )
 {
 	ResetEmptySound( );
 
@@ -281,39 +223,11 @@ void CSMG::WeaponIdle( void )
 	if ( m_pPlayer->pev->button & IN_IRONSIGHT )
 		return;
 
-	int iAnim;
-	switch ( RANDOM_LONG( 0, 1 ) )
-	{
-	case 0:	
-		iAnim = SMG_IDLE1;
-		break;
-	
-	default:
-	case 1:
-		iAnim = SMG_IDLE2;
-		break;
-	}
-
-	SendWeaponAnim( iAnim );
+	SendWeaponAnim( DUAL_SMG_IDLE );
 
 	m_flTimeWeaponIdle = UTIL_SharedRandomFloat( m_pPlayer->random_seed, 10, 15 ); // how long till we do this again.
 }
 
-void CSMG::ProvideDualItem(CBasePlayer *pPlayer, const char *item) {
-	if (item == NULL) {
-		return;
-	}
-
-#ifndef CLIENT_DLL
-	if (!stricmp(item, "weapon_smg")) {
-		if (!pPlayer->HasNamedPlayerItem("weapon_dual_smg")) {
-			pPlayer->GiveNamedItem("weapon_dual_smg");
-			ALERT(at_aiconsole, "Give weapon_dual_smg!\n");
-		}
-	}
-#endif
-}
-
-void CSMG::SwapDualWeapon( void ) {
+void CDualSMG::SwapDualWeapon( void ) {
 	m_pPlayer->SelectItem("weapon_dual_smg");
 }

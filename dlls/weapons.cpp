@@ -491,6 +491,7 @@ void W_Precache(void)
 	UTIL_PrecacheOtherWeapon( "weapon_deagle" );
 	UTIL_PrecacheOtherWeapon( "weapon_dual_deagle" );
 	UTIL_PrecacheOtherWeapon( "weapon_dual_rpg" );
+	UTIL_PrecacheOtherWeapon( "weapon_dual_smg" );
 	UTIL_PrecacheOtherWeapon( "weapon_dual_wrench" );
 
 #if !defined( OEM_BUILD ) && !defined( HLDEMO_BUILD )
@@ -1821,6 +1822,10 @@ BOOL CWeaponBox::PackWeapon( CBasePlayerItem *pWeapon )
 		else if (pWeapon->m_iId == WEAPON_DUAL_RPG)
 		{
 			SET_MODEL( ENT(pev), "models/w_dual_rpg.mdl");
+		}
+		else if (pWeapon->m_iId == WEAPON_DUAL_SMG)
+		{
+			SET_MODEL( ENT(pev), "models/w_dual_smg.mdl");
 		}
 		else if (pWeapon->m_iId == WEAPON_DUAL_WRENCH)
 		{
