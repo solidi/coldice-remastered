@@ -39,6 +39,7 @@ client_sprite_t *GetSpriteList(client_sprite_t *pList, const char *psz, int iRes
 WeaponsResource gWR;
 
 int g_weaponselect = 0;
+long oldCrosshairValue;
 extern float g_yP, g_xP;
 
 void WeaponsResource :: LoadAllWeaponSprites( void )
@@ -562,8 +563,10 @@ int CHudAmmo::MsgFunc_HideWeapon( const char *pszName, int iSize, void *pbuf )
 	}
 	else
 	{
+		int r,g,b;
+		UnpackRGB(r,g,b, HudColor());
 		if ( m_pWeapon )
-			SetCrosshair( m_pWeapon->hCrosshair, m_pWeapon->rcCrosshair, 255, 255, 255 );
+			SetCrosshair( m_pWeapon->hCrosshair, m_pWeapon->rcCrosshair, r, g, b );
 	}
 
 	return 1;
@@ -625,19 +628,22 @@ int CHudAmmo::MsgFunc_CurWeapon(const char *pszName, int iSize, void *pbuf )
 
 	m_pWeapon = pWeapon;
 
+	int r,g,b;
+	UnpackRGB(r,g,b, HudColor());
+
 	if ( gHUD.m_iFOV >= 90 )
 	{ // normal crosshairs
 		if (fOnTarget && m_pWeapon->hAutoaim)
-			SetCrosshair(m_pWeapon->hAutoaim, m_pWeapon->rcAutoaim, 255, 255, 255);
+			SetCrosshair(m_pWeapon->hAutoaim, m_pWeapon->rcAutoaim, r, g, b);
 		else
-			SetCrosshair(m_pWeapon->hCrosshair, m_pWeapon->rcCrosshair, 255, 255, 255);
+			SetCrosshair(m_pWeapon->hCrosshair, m_pWeapon->rcCrosshair, r, g, b);
 	}
 	else
 	{ // zoomed crosshairs
 		if (fOnTarget && m_pWeapon->hZoomedAutoaim)
-			SetCrosshair(m_pWeapon->hZoomedAutoaim, m_pWeapon->rcZoomedAutoaim, 255, 255, 255);
+			SetCrosshair(m_pWeapon->hZoomedAutoaim, m_pWeapon->rcZoomedAutoaim, r, g, b);
 		else
-			SetCrosshair(m_pWeapon->hZoomedCrosshair, m_pWeapon->rcZoomedCrosshair, 255, 255, 255);
+			SetCrosshair(m_pWeapon->hZoomedCrosshair, m_pWeapon->rcZoomedCrosshair, r, g, b);
 
 	}
 
@@ -955,6 +961,15 @@ int CHudAmmo::Draw(float flTime)
 			SPR_DrawAdditive(0, x, y - iOffset, &m_pWeapon->rcAmmo2);
 		}
 	}
+
+
+	if ( m_pWeapon && HudColor() != oldCrosshairValue ) {
+		int r,g,b;
+		UnpackRGB(r, g, b, HudColor());
+		SetCrosshair( m_pWeapon->hCrosshair, m_pWeapon->rcCrosshair, r, g, b );
+		oldCrosshairValue = HudColor();
+	}
+
 	return 1;
 }
 

@@ -1212,8 +1212,10 @@ void CHudSpectator::SetModes(int iNewMainMode, int iNewInsetMode)
 			m_crosshairRect.top	 = 0;
 			m_crosshairRect.right	 = 48;
 			m_crosshairRect.bottom = 24;
-						
-			SetCrosshair( m_hCrosshair, m_crosshairRect, 255, 255, 255 );
+
+			int r,g,b;
+			UnpackRGB(r,g,b, HudColor());
+			SetCrosshair( m_hCrosshair, m_crosshairRect, r, g, b );
 		}
 		else
 		{
@@ -1878,8 +1880,10 @@ void CHudSpectator::CheckSettings()
 		m_crosshairRect.top	 = 0;
 		m_crosshairRect.right	 = 48;
 		m_crosshairRect.bottom = 24;
-					
-		SetCrosshair( m_hCrosshair, m_crosshairRect, 255, 255, 255 );
+
+		int r,g,b;
+		UnpackRGB(r,g,b, HudColor());
+		SetCrosshair( m_hCrosshair, m_crosshairRect, r, g, b );
 	}
 	else
 	{
