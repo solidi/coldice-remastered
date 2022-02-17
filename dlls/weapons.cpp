@@ -427,72 +427,28 @@ void W_Precache(void)
 	UTIL_PrecacheOtherWeapon( "weapon_hornetgun" );
 #endif
 
-#if !defined( OEM_BUILD ) && !defined( HLDEMO_BUILD )
 	UTIL_PrecacheOtherWeapon( "weapon_vest" );
-#endif
-
-#if !defined( OEM_BUILD ) && !defined( HLDEMO_BUILD )
 	UTIL_PrecacheOtherWeapon( "weapon_chumtoad" );
-#endif
-
-#if !defined( OEM_BUILD ) && !defined( HLDEMO_BUILD )
 	UTIL_PrecacheOtherWeapon( "weapon_sniperrifle" );
-#endif
-
-#if !defined( OEM_BUILD ) && !defined( HLDEMO_BUILD )
 	UTIL_PrecacheOtherWeapon( "weapon_railgun" );
-#endif
-
-#if !defined( OEM_BUILD ) && !defined( HLDEMO_BUILD )
 	UTIL_PrecacheOtherWeapon( "weapon_cannon" );
-#endif
-
-#if !defined( OEM_BUILD ) && !defined( HLDEMO_BUILD )
 	UTIL_PrecacheOtherWeapon( "weapon_mag60" );
-#endif
-
-#if !defined( OEM_BUILD ) && !defined( HLDEMO_BUILD )
 	UTIL_PrecacheOtherWeapon( "weapon_chaingun" );
-#endif
-
-#if !defined( OEM_BUILD ) && !defined( HLDEMO_BUILD )
 	UTIL_PrecacheOtherWeapon( "weapon_glauncher" );
-#endif
-
-#if !defined( OEM_BUILD ) && !defined( HLDEMO_BUILD )
 	UTIL_PrecacheOtherWeapon( "weapon_smg" );
-#endif
-
-#if !defined( OEM_BUILD ) && !defined( HLDEMO_BUILD )
 	UTIL_PrecacheOtherWeapon( "weapon_usas" );
-#endif
-
-#if !defined( OEM_BUILD ) && !defined( HLDEMO_BUILD )
 	UTIL_PrecacheOtherWeapon( "weapon_fists" );
-#endif
-
-#if !defined( OEM_BUILD ) && !defined( HLDEMO_BUILD )
 	UTIL_PrecacheOtherWeapon( "weapon_wrench" );
-#endif
-
-#if !defined( OEM_BUILD ) && !defined( HLDEMO_BUILD )
 	UTIL_PrecacheOtherWeapon( "weapon_snowball" );
-#endif
-
-#if !defined( OEM_BUILD ) && !defined( HLDEMO_BUILD )
 	UTIL_PrecacheOtherWeapon( "weapon_chainsaw" );
-#endif
-
-#if !defined( OEM_BUILD ) && !defined( HLDEMO_BUILD )
 	UTIL_PrecacheOtherWeapon( "weapon_12gauge" );
-#endif
-
 	UTIL_PrecacheOtherWeapon( "weapon_nuke" );
 	UTIL_PrecacheOtherWeapon( "weapon_deagle" );
 	UTIL_PrecacheOtherWeapon( "weapon_dual_deagle" );
 	UTIL_PrecacheOtherWeapon( "weapon_dual_rpg" );
 	UTIL_PrecacheOtherWeapon( "weapon_dual_smg" );
 	UTIL_PrecacheOtherWeapon( "weapon_dual_wrench" );
+	UTIL_PrecacheOtherWeapon( "weapon_dual_usas" );
 
 #if !defined( OEM_BUILD ) && !defined( HLDEMO_BUILD )
 	if ( g_pGameRules->IsDeathmatch() )
@@ -695,13 +651,14 @@ void CBasePlayerItem :: CheckRespawn ( void )
 CBaseEntity* CBasePlayerItem::Respawn( void )
 {
 	CBaseEntity *pNewWeapon = NULL;
-	const char* weaponsList[][8] = {
+	const char* weaponsList[][9] = {
 		{
 		// swing
 		"weapon_crowbar",
 		"weapon_knife",
 		"weapon_wrench",
-		"weapon_chainsaw"
+		"weapon_chainsaw",
+		"weapon_dual_wrench"
 		},
 
 		{
@@ -723,7 +680,8 @@ CBaseEntity* CBasePlayerItem::Respawn( void )
 		"weapon_sniperrifle",
 		"weapon_chaingun",
 		"weapon_glauncher",
-		"weapon_usas"
+		"weapon_usas",
+		"weapon_dual_usas"
 		},
 
 		{
@@ -1830,6 +1788,10 @@ BOOL CWeaponBox::PackWeapon( CBasePlayerItem *pWeapon )
 		else if (pWeapon->m_iId == WEAPON_DUAL_WRENCH)
 		{
 			SET_MODEL( ENT(pev), "models/w_dual_wrench.mdl");
+		}
+		else if (pWeapon->m_iId == WEAPON_DUAL_USAS)
+		{
+			SET_MODEL( ENT(pev), "models/w_dual_usas.mdl");
 		}
 
 		pev->sequence = 1;

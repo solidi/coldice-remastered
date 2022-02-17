@@ -106,6 +106,7 @@ public:
 #define WEAPON_DUAL_RPG			34
 #define WEAPON_DUAL_SMG			35
 #define WEAPON_DUAL_WRENCH		36
+#define WEAPON_DUAL_USAS		37
 
 #define WEAPON_ALLWEAPONS		(~(1<<WEAPON_SUIT))
 
@@ -188,7 +189,7 @@ public:
 #define CHAINGUN_MAX_CLIP		100
 #define GLAUNCHER_MAX_CLIP		5
 #define SMG_MAX_CLIP			25
-#define USAS_MAX_CLIP			40
+#define USAS_MAX_CLIP			20
 #define GAUGE_SHOTGUN_MAX_CLIP	5
 #define DEAGLE_MAX_CLIP			9
 
@@ -1926,6 +1927,40 @@ public:
 
 private:
 	unsigned short m_usWrench;
+};
+
+class CDualUsas : public CBasePlayerWeapon
+{
+public:
+	void Spawn( void );
+	void Precache( void );
+	int iItemSlot( ) { return 6; }
+	int GetItemInfo(ItemInfo *p);
+	int AddToPlayer( CBasePlayer *pPlayer );
+
+	void PrimaryAttack( void );
+	void SecondaryAttack( void );
+
+	BOOL Deploy( );
+	void Holster( int skiplocal = 0 );
+	void Reload( void );
+	void WeaponIdle( void );
+	int m_fInReload;
+	float m_flNextReload;
+	int m_iShell;
+
+	virtual BOOL UseDecrement( void )
+	{
+#if defined( CLIENT_WEAPONS )
+		return TRUE;
+#else
+		return FALSE;
+#endif
+	}
+
+private:
+	unsigned short m_usSingleFire;
+	unsigned short m_usDualFire;
 };
 
 #endif // WEAPONS_H

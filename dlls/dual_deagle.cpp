@@ -47,7 +47,7 @@ int CDualDeagle::GetItemInfo(ItemInfo *p)
 	p->iMaxClip = DEAGLE_MAX_CLIP * 2;
 	p->iFlags = 0;
 	p->iSlot = 5;
-	p->iPosition = 0;
+	p->iPosition = 1;
 	p->iId = m_iId = WEAPON_DUAL_DEAGLE;
 	p->iWeight = DEAGLE_WEIGHT * 2;
 	p->pszDisplayName = "Dual Desert Eagles";
