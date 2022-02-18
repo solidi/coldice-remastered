@@ -90,7 +90,7 @@ int CDualWrench::GetItemInfo(ItemInfo *p)
 	p->iMaxAmmo2 = -1;
 	p->iMaxClip = WEAPON_NOCLIP;
 	p->iSlot = 5;
-	p->iPosition = 3;
+	p->iPosition = 0;
 	p->iId = WEAPON_DUAL_WRENCH;
 	p->iWeight = WRENCH_WEIGHT * 2;
 	p->pszDisplayName = "40 Pound Monkey Wrenches";
