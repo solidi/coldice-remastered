@@ -106,7 +106,7 @@ BOOL CChainsaw::Deploy( )
 
 	BOOL success = DefaultDeploy( "models/v_chainsaw.mdl", "models/p_chainsaw.mdl", CHAINSAW_DRAW, "crowbar" );
 	
-	if ( success )
+	if ( success && m_pPlayer->pev->waterlevel != 3 )
 		EMIT_SOUND_DYN(ENT(m_pPlayer->pev), CHAN_ITEM, "chainsaw_draw.wav", 1.0, ATTN_NORM, 0, 98 + RANDOM_LONG(0,3));
 
 	return success;
@@ -127,6 +127,13 @@ void CChainsaw::Holster( int skiplocal /* = 0 */ )
 
 void CChainsaw::PrimaryAttack()
 {
+	if (m_pPlayer->pev->waterlevel == 3)
+	{
+		PlayEmptySound( );
+		m_flNextPrimaryAttack = m_flNextSecondaryAttack = GetNextAttackDelay(0.15);
+		return;
+	}
+
 	if (!m_flStartThrow && !Swing( 1, TRUE ))
 	{
 		SetThink( &CChainsaw::SwingAgain );
@@ -136,6 +143,13 @@ void CChainsaw::PrimaryAttack()
 
 void CChainsaw::SecondaryAttack()
 {
+	if (m_pPlayer->pev->waterlevel == 3)
+	{
+		PlayEmptySound( );
+		m_flNextPrimaryAttack = m_flNextSecondaryAttack = GetNextAttackDelay(0.15);
+		return;
+	}
+
 	if (!m_flStartThrow) {
 		m_flStartThrow = CHAINSAW_ATTACK_START;
 		SendWeaponAnim( CHAINSAW_ATTACK_START );
@@ -302,6 +316,13 @@ void CChainsaw::WeaponIdle( void )
 {
 	if ( m_flTimeWeaponIdle > UTIL_WeaponTimeBase() )
 		return;
+
+	if ( m_pPlayer->pev->waterlevel == 3 )
+	{
+		SendWeaponAnim( CHAINSAW_EMPTY );
+		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 1.0;
+		return;
+	}
 
 	if (m_flStartThrow)
 	{

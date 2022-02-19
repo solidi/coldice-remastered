@@ -115,6 +115,12 @@ void CFists::PrimaryAttack()
 
 void CFists::SecondaryAttack()
 {
+	if ( m_pPlayer->pev->waterlevel == 3 )
+	{
+		m_flNextPrimaryAttack = m_flNextSecondaryAttack = GetNextAttackDelay(0.15);
+		return;
+	}
+
 	m_pPlayer->pev->velocity = m_pPlayer->pev->velocity + (gpGlobals->v_up * 300);
 	Swing( SHORYUKEN );
 	m_flNextSecondaryAttack = GetNextAttackDelay(1.0);

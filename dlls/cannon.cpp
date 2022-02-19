@@ -364,6 +364,13 @@ void CCannon::SecondaryAttack()
 
 void CCannon::PrimaryAttack()
 {
+	if ( m_pPlayer->pev->waterlevel == 3 )
+	{
+		PlayEmptySound();
+		m_flNextPrimaryAttack = m_flNextSecondaryAttack = GetNextAttackDelay(0.15);
+		return;
+	}
+
 	if ( m_pPlayer->m_rgAmmo[ m_iPrimaryAmmoType ] )
 	{
 		m_pPlayer->m_iWeaponVolume = LOUD_GUN_VOLUME;

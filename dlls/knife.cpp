@@ -148,6 +148,12 @@ void CKnife::PrimaryAttack()
 
 void CKnife::SecondaryAttack()
 {
+	if ( m_pPlayer->pev->waterlevel == 3 )
+	{
+		m_flNextPrimaryAttack = m_flNextSecondaryAttack = GetNextAttackDelay(0.15);
+		return;
+	}
+
 	if ( !m_flStartThrow )
 	{
 		SendWeaponAnim( KNIFE_PULL_BACK );

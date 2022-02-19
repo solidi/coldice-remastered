@@ -112,6 +112,13 @@ void CChaingun::Holster( int skiplocal )
 
 void CChaingun::PrimaryAttack()
 {
+	if ( m_pPlayer->pev->waterlevel == 3 )
+	{
+		PlayEmptySound();
+		m_flNextPrimaryAttack = m_flNextSecondaryAttack = GetNextAttackDelay(0.15);
+		return;
+	}
+
 	if (m_iClip <= 0)
 	{
 		SendWeaponAnim( CHAINGUN_SPINDOWN );

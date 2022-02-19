@@ -132,6 +132,12 @@ void CSnowball::Holster( int skiplocal /* = 0 */ )
 
 void CSnowball::PrimaryAttack()
 {
+	if ( m_pPlayer->pev->waterlevel == 3 )
+	{
+		m_flNextPrimaryAttack = m_flNextSecondaryAttack = GetNextAttackDelay(0.15);
+		return;
+	}
+
 	if ( !m_flStartThrow && m_pPlayer->m_rgAmmo[ m_iPrimaryAmmoType ] > 0 )
 	{
 		m_flStartThrow = gpGlobals->time;
@@ -188,6 +194,12 @@ void CSnowball::Throw() {
 
 void CSnowball::SecondaryAttack()
 {
+	if ( m_pPlayer->pev->waterlevel == 3 )
+	{
+		m_flNextPrimaryAttack = m_flNextSecondaryAttack = GetNextAttackDelay(0.15);
+		return;
+	}
+
 	if (m_pPlayer->m_rgAmmo[ m_iPrimaryAmmoType ] > 0 ) {
 		SendWeaponAnim( SNOWBALL_PINPULL );
 		SetThink( &CSnowball::Throw );

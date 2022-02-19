@@ -157,6 +157,12 @@ void CCrowbar::PrimaryAttack()
 
 void CCrowbar::SecondaryAttack()
 {
+	if ( m_pPlayer->pev->waterlevel == 3 )
+	{
+		m_flNextPrimaryAttack = m_flNextSecondaryAttack = GetNextAttackDelay(0.15);
+		return;
+	}
+
 	if ( !m_flStartThrow )
 	{
 		SendWeaponAnim( CROWBAR_PULL_BACK );

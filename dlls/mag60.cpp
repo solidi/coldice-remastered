@@ -181,6 +181,13 @@ void CMag60::SecondaryAttack( void )
 
 void CMag60::PrimaryAttack( void )
 {
+	if (m_pPlayer->pev->waterlevel == 3)
+	{
+		PlayEmptySound( );
+		m_flNextPrimaryAttack = m_flNextSecondaryAttack = GetNextAttackDelay(0.15);
+		return;
+	}
+
 	Fire( m_iRotated ? 0.03 : 0.01, m_iRotated ? 0.125 : 0.20, TRUE, m_iRotated );
 }
 

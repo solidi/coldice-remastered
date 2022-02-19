@@ -128,6 +128,12 @@ void CDualWrench::PrimaryAttack()
 
 void CDualWrench::SecondaryAttack()
 {
+	if ( m_pPlayer->pev->waterlevel == 3 )
+	{
+		m_flNextPrimaryAttack = m_flNextSecondaryAttack = GetNextAttackDelay(0.15);
+		return;
+	}
+
 	if ( !m_flStartThrow ) {
 		SendWeaponAnim( DUAL_WRENCH_PULL_BACK );
 		m_pPlayer->pev->punchangle = Vector(-2, -2, 0);
