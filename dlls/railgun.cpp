@@ -265,6 +265,9 @@ void CRailgun::WeaponIdle( void )
 	if (m_flTimeWeaponIdle > gpGlobals->time)
 		return;
 
+	if ( m_pPlayer->pev->button & IN_IRONSIGHT )
+		return;
+
 	int iAnim;
 	float flRand = RANDOM_FLOAT(0, 1);
 	if (flRand <= 0.5)

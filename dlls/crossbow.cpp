@@ -481,6 +481,9 @@ void CCrossbow::WeaponIdle( void )
 	m_pPlayer->GetAutoaimVector( AUTOAIM_2DEGREES );  // get the autoaim vector but ignore it;  used for autoaim crosshair in DM
 
 	ResetEmptySound( );
+
+	if ( m_pPlayer->pev->button & IN_IRONSIGHT )
+		return;
 	
 	if ( m_flTimeWeaponIdle < UTIL_WeaponTimeBase() )
 	{
