@@ -81,7 +81,7 @@ void CDualRpg::Spawn( )
 	Precache( );
 	m_iId = WEAPON_DUAL_RPG;
 
-	SET_MODEL(ENT(pev), "models/w_rpg.mdl");
+	SET_MODEL(ENT(pev), "models/w_dual_rpg.mdl");
 	m_fSpotActive = 1;
 
 #ifdef CLIENT_DLL
