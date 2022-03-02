@@ -107,6 +107,7 @@ public:
 #define WEAPON_DUAL_SMG			35
 #define WEAPON_DUAL_WRENCH		36
 #define WEAPON_DUAL_USAS		37
+#define WEAPON_FREEZEGUN		38
 
 #define WEAPON_ALLWEAPONS		(~(1<<WEAPON_SUIT))
 
@@ -148,6 +149,7 @@ public:
 #define GAUGE_SHOTGUN_WEIGHT 14
 #define NUKE_WEIGHT 		25
 #define DEAGLE_WEIGHT		20
+#define FREEZEGUN_WEIGHT	20
 
 
 // weapon clip/carry ammo capacities
@@ -192,6 +194,7 @@ public:
 #define USAS_MAX_CLIP			20
 #define GAUGE_SHOTGUN_MAX_CLIP	5
 #define DEAGLE_MAX_CLIP			9
+#define FREEZEGUN_MAX_CLIP		30
 
 
 // the default amount of ammo that comes with each gun when it spawns
@@ -221,6 +224,7 @@ public:
 #define _12_GAUGE_DEFAULT_GIVE		12
 #define NUKE_DEFAULT_GIVE			1
 #define DEAGLE_DEFAULT_GIVE			9
+#define FREEZEGUN_DEFAULT_GIVE		60
 
 // The amount of ammo given to a player by an ammo item.
 #define AMMO_URANIUMBOX_GIVE	20
@@ -1961,6 +1965,41 @@ public:
 private:
 	unsigned short m_usSingleFire;
 	unsigned short m_usDualFire;
+};
+
+class CFreezeGun : public CBasePlayerWeapon
+{
+public:
+	void Spawn( void );
+	void Precache( void );
+	int iItemSlot( ) { return 3; }
+	int GetItemInfo(ItemInfo *p);
+	int AddToPlayer( CBasePlayer *pPlayer );
+
+	void PrimaryAttack( void );
+
+	BOOL Deploy( );
+	void Holster( int skiplocal = 0 );
+	void Reload( void );
+	void WeaponIdle( void );
+	int m_fInReload;
+	float m_flNextReload;
+	int m_iShell;
+
+	virtual BOOL UseDecrement( void )
+	{
+#if defined( CLIENT_WEAPONS )
+		return TRUE;
+#else
+		return FALSE;
+#endif
+	}
+
+private:
+	int m_iPlasmaSprite;
+	int m_iMazzlePlasma;
+	int m_fInAttack;
+	unsigned short m_usPlasmaFire;
 };
 
 #endif // WEAPONS_H

@@ -50,6 +50,8 @@ DLL_GLOBAL	short	g_sModelIndexBloodDrop;// holds the sprite index for the initia
 DLL_GLOBAL	short	g_sModelIndexBloodSpray;// holds the sprite index for splattered blood
 DLL_GLOBAL	short	g_sModelIndexSnowballHit;
 DLL_GLOBAL	short	g_sModelIndexGunsmoke;
+DLL_GLOBAL	short	g_Gibs;
+DLL_GLOBAL	short	g_Steamball;
 
 ItemInfo CBasePlayerItem::ItemInfoArray[MAX_WEAPONS];
 AmmoInfo CBasePlayerItem::AmmoInfoArray[MAX_AMMO_SLOTS];
@@ -449,6 +451,7 @@ void W_Precache(void)
 	UTIL_PrecacheOtherWeapon( "weapon_dual_smg" );
 	UTIL_PrecacheOtherWeapon( "weapon_dual_wrench" );
 	UTIL_PrecacheOtherWeapon( "weapon_dual_usas" );
+	UTIL_PrecacheOtherWeapon( "weapon_freezegun" );
 
 #if !defined( OEM_BUILD ) && !defined( HLDEMO_BUILD )
 	if ( g_pGameRules->IsDeathmatch() )
@@ -473,6 +476,11 @@ void W_Precache(void)
 
 	PRECACHE_MODEL ("models/v_leg.mdl");
 	PRECACHE_SOUND ("kick.wav");
+
+	PRECACHE_SOUND("freezing.wav");
+
+	g_Gibs = PRECACHE_MODEL ("models/w_hgibs.mdl");
+	g_Steamball = PRECACHE_MODEL ("sprites/stmbal1.spr");
 
 	// used by explosions
 	PRECACHE_MODEL ("models/grenade.mdl");
@@ -651,7 +659,7 @@ void CBasePlayerItem :: CheckRespawn ( void )
 CBaseEntity* CBasePlayerItem::Respawn( void )
 {
 	CBaseEntity *pNewWeapon = NULL;
-	const char* weaponsList[][9] = {
+	const char* weaponsList[][10] = {
 		{
 		// swing
 		"weapon_crowbar",
@@ -679,9 +687,9 @@ CBaseEntity* CBasePlayerItem::Respawn( void )
 		"weapon_crossbow",
 		"weapon_sniperrifle",
 		"weapon_chaingun",
-		"weapon_glauncher",
 		"weapon_usas",
-		"weapon_dual_usas"
+		"weapon_dual_usas",
+		"weapon_freezegun"
 		},
 
 		{
@@ -692,6 +700,8 @@ CBaseEntity* CBasePlayerItem::Respawn( void )
 		"weapon_cannon",
 		"weapon_gauss",
 		"weapon_egon",
+		"weapon_hornetgun",
+		"weapon_glauncher",
 		"weapon_nuke"
 		},
 
@@ -1792,6 +1802,10 @@ BOOL CWeaponBox::PackWeapon( CBasePlayerItem *pWeapon )
 		else if (pWeapon->m_iId == WEAPON_DUAL_USAS)
 		{
 			SET_MODEL( ENT(pev), "models/w_dual_usas.mdl");
+		}
+		else if (pWeapon->m_iId == WEAPON_FREEZEGUN)
+		{
+			SET_MODEL( ENT(pev), "models/w_freezegun.mdl");
 		}
 
 		pev->sequence = 1;
