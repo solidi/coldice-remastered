@@ -319,6 +319,9 @@ void CGameRules::RefreshSkillData ( void )
 	// Kick
 	gSkillData.plrDmgKick = GetSkillCvar( "sk_plr_kick" );
 
+	// Plasma
+	gSkillData.plrDmgPlasma = GetSkillCvar( "sk_plr_plasma" );
+
 	// MONSTER WEAPONS
 	gSkillData.monDmg12MM = GetSkillCvar( "sk_12mm_bullet");
 	gSkillData.monDmgMP5 = GetSkillCvar ("sk_9mmAR_bullet" );

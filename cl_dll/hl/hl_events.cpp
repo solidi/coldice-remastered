@@ -65,6 +65,7 @@ void EV_FireDualSmg( struct event_args_s *args );
 void EV_FireDualWrench( struct event_args_s *args );
 void EV_FireDualUsas( struct event_args_s *args );
 void EV_FireDualUsasBoth( struct event_args_s *args );
+void EV_FireFreezeGun( struct event_args_s *args );
 
 void EV_TrainPitchAdjust( struct event_args_s *args );
 }
@@ -131,4 +132,5 @@ void Game_HookEvents( void )
 	gEngfuncs.pfnHookEvent( "events/dual_wrench.sc",			EV_FireDualWrench );
 	gEngfuncs.pfnHookEvent( "events/dual_usas.sc",				EV_FireDualUsas );
 	gEngfuncs.pfnHookEvent( "events/dual_usas_both.sc",			EV_FireDualUsasBoth );
+	gEngfuncs.pfnHookEvent( "events/freezegun.sc",				EV_FireFreezeGun );
 }

@@ -56,6 +56,7 @@ CFLAGS=$(BASE_CFLAGS)  $(ARCH_CFLAGS) $(DEBUG_CFLAGS) -DCLIENT_WEAPONS \
 		 -DDUALSMG \
 		 -DDUALWRENCH \
 		 -DDUALUSAS \
+		 -DFREEZEGUN
 
 #-O3 -ffast-math -fno-strength-reduce
 
@@ -111,6 +112,7 @@ HLDLL_OBJS = \
 	$(HLDLL_OBJ_DIR)/fists.o \
 	$(HLDLL_OBJ_DIR)/flyingmonster.o \
 	$(HLDLL_OBJ_DIR)/flying_wrench.o \
+	$(HLDLL_OBJ_DIR)/freezegun.o \
 	$(HLDLL_OBJ_DIR)/func_break.o \
 	$(HLDLL_OBJ_DIR)/func_tank.o \
 	$(HLDLL_OBJ_DIR)/game.o \
@@ -157,6 +159,7 @@ HLDLL_OBJS = \
 	$(HLDLL_OBJ_DIR)/osprey.o \
 	$(HLDLL_OBJ_DIR)/pathcorner.o \
 	$(HLDLL_OBJ_DIR)/plane.o \
+	$(HLDLL_OBJ_DIR)/plasma.o \
 	$(HLDLL_OBJ_DIR)/plats.o \
 	$(HLDLL_OBJ_DIR)/player.o \
 	$(HLDLL_OBJ_DIR)/python.o \

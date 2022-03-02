@@ -217,6 +217,9 @@ void CHalfLifeMultiplay::RefreshSkillData( void )
 
 	// Kick
 	gSkillData.plrDmgKick = 10;
+
+	// Plasma
+	gSkillData.plrDmgPlasma = 25;
 }
 
 // longest the intermission can last, in seconds

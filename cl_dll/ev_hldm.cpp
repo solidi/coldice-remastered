@@ -102,6 +102,7 @@ void EV_FireDualSmg( struct event_args_s *args  );
 void EV_FireDualWrench( struct event_args_s *args  );
 void EV_FireDualUsas( struct event_args_s *args  );
 void EV_FireDualUsasBoth( struct event_args_s *args  );
+void EV_FireFreezeGun( struct event_args_s *args  );
 
 void EV_TrainPitchAdjust( struct event_args_s *args );
 }
@@ -3208,6 +3209,56 @@ void EV_FireDualUsasBoth( event_args_t *args )
 	EV_GunSmoke(origin, 0.6, idx, args->ducking, forward, right, up, 0, 0, 0);
 
 	EV_HLDM_FireBullets( idx, forward, right, up, 8, vecSrc, vecAiming, 2048, BULLET_PLAYER_BUCKSHOT, 0, &tracerCount[idx-1], 0.08716, 0.04362 );
+}
+
+enum freezegun_e {
+	FREEZEGUN_IDLE,
+	FREEZEGUN_RELOAD,
+	FREEZEGUN_DRAW,
+	FREEZEGUN_HOLSTER,
+	FREEZEGUN_SHOOT1,
+	FREEZEGUN_SHOOT2,
+	FREEZEGUN_SHOOT3,
+};
+
+void EV_FireFreezeGun( event_args_t *args )
+{
+	int idx;
+	vec3_t origin;
+	vec3_t angles;
+	vec3_t velocity;
+	vec3_t up, right, forward;
+
+	idx = args->entindex;
+	VectorCopy( args->origin, origin );
+	VectorCopy( args->angles, angles );
+	VectorCopy( args->velocity, velocity );
+
+	AngleVectors( angles, forward, right, up );
+
+	if (EV_IsLocal( idx ))
+	{
+		switch (gEngfuncs.pfnRandomLong(0, 2))
+		{
+		case 0:
+			gEngfuncs.pEventAPI->EV_WeaponAnimation( FREEZEGUN_SHOOT1, 0 );
+			break;
+		case 1:
+			gEngfuncs.pEventAPI->EV_WeaponAnimation( FREEZEGUN_SHOOT2, 0 );
+			break;
+		default:
+			gEngfuncs.pEventAPI->EV_WeaponAnimation( FREEZEGUN_SHOOT3, 0 );
+		}
+
+		V_PunchAxis(PITCH, gEngfuncs.pfnRandomFloat(-7.0, -9.0));
+	}
+
+	int fPrimaryFire = args->bparam2;
+
+	if ( fPrimaryFire )
+	{
+		gEngfuncs.pEventAPI->EV_PlaySound( idx, origin, CHAN_WEAPON, "freezegun_fire.wav", 1, ATTN_NORM, 0, 100 );
+	}
 }
 
 void EV_TrainPitchAdjust( event_args_t *args )

@@ -53,7 +53,8 @@ CFLAGS=$(BASE_CFLAGS) $(ARCH_CFLAGS) -DCLIENT_DLL -DCLIENT_WEAPONS -DHL_DLL -I/u
 		 -DDUALRPG \
 		 -DDUALSMG \
 		 -DDUALWRENCH \
-		 -DDUALUSAS
+		 -DDUALUSAS \
+		 -FREEZEGUN
 
 INCLUDEDIRS=-I$(HL_SRC_DIR) -I../dlls -I../tfc -I$(COMMON_SRC_DIR) -I$(PUBLIC_SRC_DIR) -I../pm_shared -I../engine -I../utils/vgui/include -I ../game_shared -I../external
 
@@ -148,6 +149,7 @@ DLL_OBJS = \
 	$(HL1_SERVER_OBJ_DIR)/egon.o \
 	$(HL1_SERVER_OBJ_DIR)/fists.o \
 	$(HL1_SERVER_OBJ_DIR)/flying_wrench.o \
+	$(HL1_SERVER_OBJ_DIR)/freezegun.o \
 	$(HL1_SERVER_OBJ_DIR)/gauge_shotgun.o \
 	$(HL1_SERVER_OBJ_DIR)/gauss.o \
 	$(HL1_SERVER_OBJ_DIR)/glauncher.o \
@@ -157,6 +159,7 @@ DLL_OBJS = \
 	$(HL1_SERVER_OBJ_DIR)/mag60.o \
 	$(HL1_SERVER_OBJ_DIR)/mp5.o \
 	$(HL1_SERVER_OBJ_DIR)/nuke.o \
+	$(HL1_SERVER_OBJ_DIR)/plasma.o \
 	$(HL1_SERVER_OBJ_DIR)/python.o \
 	$(HL1_SERVER_OBJ_DIR)/railgun.o \
 	$(HL1_SERVER_OBJ_DIR)/rpg.o \

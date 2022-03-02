@@ -133,6 +133,7 @@
     <ClCompile Include="..\..\dlls\fists.cpp" />
     <ClCompile Include="..\..\dlls\flyingmonster.cpp" />
     <ClCompile Include="..\..\dlls\flying_wrench.cpp" />
+    <ClCompile Include="..\..\dlls\freezegun.cpp" />
     <ClCompile Include="..\..\dlls\func_break.cpp" />
     <ClCompile Include="..\..\dlls\func_tank.cpp" />
     <ClCompile Include="..\..\dlls\game.cpp" />
@@ -180,6 +181,7 @@
     <ClCompile Include="..\..\dlls\osprey.cpp" />
     <ClCompile Include="..\..\dlls\pathcorner.cpp" />
     <ClCompile Include="..\..\dlls\plane.cpp" />
+    <ClCompile Include="..\..\dlls\plasma.cpp" />
     <ClCompile Include="..\..\dlls\plats.cpp" />
     <ClCompile Include="..\..\dlls\player.cpp" />
     <ClCompile Include="..\..\dlls\python.cpp" />
@@ -249,6 +251,7 @@
     <ClInclude Include="..\..\dlls\monsters.h" />
     <ClInclude Include="..\..\dlls\nodes.h" />
     <ClInclude Include="..\..\dlls\plane.h" />
+    <ClInclude Include="..\..\dlls\plasma.h" />
     <ClInclude Include="..\..\dlls\player.h" />
     <ClInclude Include="..\..\dlls\saverestore.h" />
     <ClInclude Include="..\..\dlls\schedule.h" />

@@ -928,6 +928,13 @@ void CBasePlayer::Killed( entvars_t *pevAttacker, int iGib )
 		}
 	}
 
+	// Unfreeze after death
+	if (pev->flags & FL_FROZEN) {
+		m_iFreezeCounter = 0;
+		pev->renderamt = 0;
+		pev->flags &= ~FL_FROZEN;
+	}
+
 	SetAnimation( PLAYER_DIE );
 	
 	m_iRespawnFrames = 0;
@@ -1003,13 +1010,17 @@ void CBasePlayer::SetAnimation( PLAYER_ANIM playerAnim )
 	if (pev->flags & FL_FROZEN)
 	{
 		speed = 0;
-		playerAnim = PLAYER_IDLE;
+		playerAnim = PLAYER_FROZEN;
 	}
 
 	switch (playerAnim) 
 	{
 	case PLAYER_KICK:
 		m_IdealActivity = ACT_KICK;
+		break;
+
+	case PLAYER_FROZEN:
+		m_IdealActivity = ACT_FROZEN;
 		break;
 
 	case PLAYER_JUMP:
@@ -1051,6 +1062,10 @@ void CBasePlayer::SetAnimation( PLAYER_ANIM playerAnim )
 		{
 			m_IdealActivity = m_Activity;
 		}
+		else if (pev->flags & FL_FROZEN && m_Activity == ACT_FROZEN)
+		{
+			m_IdealActivity = m_Activity;
+		}
 		else if ( pev->waterlevel > 1 )
 		{
 			if ( speed == 0 )
@@ -1073,6 +1088,7 @@ void CBasePlayer::SetAnimation( PLAYER_ANIM playerAnim )
 	case ACT_HOP:
 	case ACT_DIESIMPLE:
 	case ACT_KICK:
+	case ACT_FROZEN:
 	default:
 		if ( m_Activity == m_IdealActivity)
 			return;
@@ -2716,6 +2732,23 @@ void CBasePlayer::PostThink()
 
 	UpdatePlayerSound();
 
+	if (m_fThawTime <= gpGlobals->time && m_iFreezeCounter >= 0) {
+		if (!FBitSet(pev->flags, FL_GODMODE)) {
+			if (m_iFreezeCounter > 0) {
+				pev->flags |= FL_FROZEN;
+				pev->renderfx = kRenderFxGlowShell;
+				m_iFreezeCounter = --pev->renderamt;
+			} else if (m_iFreezeCounter == 0) {
+				pev->renderfx = kRenderFxNone;
+				m_iFreezeCounter = pev->renderamt = 0;
+				pev->flags &= ~FL_FROZEN;
+				m_iFreezeCounter = -1;
+			}
+		}
+
+		m_fThawTime = gpGlobals->time + 0.1;
+	}
+
 pt_end:
 #if defined( CLIENT_WEAPONS )
 		// Decay timers on weapons
@@ -2932,6 +2965,7 @@ void CBasePlayer::Spawn( void )
 	m_fLongJump			= FALSE;// no longjump module. 
 
 	m_iWeapons2 = FALSE;
+	m_iFreezeCounter 	= 0;
 
 	g_engfuncs.pfnSetPhysicsKeyValue( edict(), "slj", "0" );
 	g_engfuncs.pfnSetPhysicsKeyValue( edict(), "hl", "1" );
@@ -3691,6 +3725,7 @@ void CBasePlayer::CheatImpulseCommands( int iImpulse, BOOL m_iFromClient )
 		GiveNamedItem( "weapon_dual_smg" );
 		GiveNamedItem( "weapon_dual_wrench" );
 		GiveNamedItem( "weapon_dual_usas" );
+		GiveNamedItem( "weapon_freezegun" );
 #endif
 		gEvilImpulse101 = FALSE;
 		break;
