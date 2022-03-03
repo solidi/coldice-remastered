@@ -1807,6 +1807,10 @@ BOOL CWeaponBox::PackWeapon( CBasePlayerItem *pWeapon )
 		{
 			SET_MODEL( ENT(pev), "models/w_freezegun.mdl");
 		}
+		else if (pWeapon->m_iId == WEAPON_PYTHON)
+		{
+			SET_MODEL( ENT(pev), "models/w_357.mdl");
+		}
 
 		pev->sequence = 1;
 		pev->animtime = gpGlobals->time;
