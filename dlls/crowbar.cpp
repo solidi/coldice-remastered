@@ -198,10 +198,13 @@ void CCrowbar::Throw() {
 
 		// Give the crowbar its velocity, angle, and spin.
 		// Lower the gravity a bit, so it flys.
-		pCrowbar->pev->velocity = vecDir * 1000 + m_pPlayer->pev->velocity;
-		pCrowbar->pev->angles = vecAng;
-		pCrowbar->pev->avelocity.x = -1000;
-		pCrowbar->pev->gravity = .25;
+		if (pCrowbar)
+		{
+			pCrowbar->pev->velocity = vecDir * 1000 + m_pPlayer->pev->velocity;
+			pCrowbar->pev->angles = vecAng;
+			pCrowbar->pev->avelocity.x = -1000;
+			pCrowbar->pev->gravity = .25;
+		}
 
 		// Do player weapon anim and sound effect.
 		m_pPlayer->SetAnimation( PLAYER_ATTACK1 );

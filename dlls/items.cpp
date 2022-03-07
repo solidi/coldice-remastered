@@ -998,9 +998,13 @@ void CWorldRunes::CreateRune(char *sz_RuneClass)
 	}
 
 	CBaseEntity *rune = CBaseEntity::Create(sz_RuneClass, m_pSpot->pev->origin, Vector(0, 0, 0), NULL );
-	rune->pev->velocity.x = RANDOM_FLOAT( -300, 300 );
-	rune->pev->velocity.y = RANDOM_FLOAT( -300, 300 );
-	rune->pev->velocity.z = RANDOM_FLOAT( 0, 300 );
+	
+	if (rune)
+	{
+		rune->pev->velocity.x = RANDOM_FLOAT( -300, 300 );
+		rune->pev->velocity.y = RANDOM_FLOAT( -300, 300 );
+		rune->pev->velocity.z = RANDOM_FLOAT( 0, 300 );
+	}
 }
 
 void CWorldRunes::SpawnRunes( )

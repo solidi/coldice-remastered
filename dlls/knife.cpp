@@ -189,10 +189,13 @@ void CKnife::Throw() {
 
 		// Give the crowbar its velocity, angle, and spin. 
 		// Lower the gravity a bit, so it flys. 
-		pKnife->pev->velocity = vecDir * 1000 + m_pPlayer->pev->velocity;
-		pKnife->pev->angles = vecAng;
-		pKnife->pev->avelocity.x = -1000;
-		pKnife->pev->gravity = .25;
+		if (pKnife)
+		{
+			pKnife->pev->velocity = vecDir * 1000 + m_pPlayer->pev->velocity;
+			pKnife->pev->angles = vecAng;
+			pKnife->pev->avelocity.x = -1000;
+			pKnife->pev->gravity = .25;
+		}
 
 		// Do player weapon anim and sound effect. 
 		m_pPlayer->SetAnimation( PLAYER_ATTACK1 );

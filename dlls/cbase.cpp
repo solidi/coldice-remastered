@@ -754,6 +754,11 @@ CBaseEntity * CBaseEntity::Create( char *szName, const Vector &vecOrigin, const 
 	edict_t	*pent;
 	CBaseEntity *pEntity;
 
+	// Do not allow items in dualsonly mode
+	//if (dualsonly.value && strncmp(szName, "weapon_dual_", 12) != 0 ) {
+	//	return NULL;
+	//}
+
 	pent = CREATE_NAMED_ENTITY( MAKE_STRING( szName ));
 	if ( FNullEnt( pent ) )
 	{
