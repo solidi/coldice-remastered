@@ -694,6 +694,7 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_moreblood 2\" - Increase blood up to 0-5 times\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_startwithall 0\" - Start with all weapons\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_allowvoiceovers 1\" - Allow public voiceovers\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_dualsonly 0\" - Replace all weapons with duals only\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "For more, see readme.txt\n" );
 	}
 	else if ( g_pGameRules->ClientCommand( GetClassPtr((CBasePlayer *)pev), pcmd ) )

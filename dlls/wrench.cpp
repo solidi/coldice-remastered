@@ -169,10 +169,13 @@ void CWrench::Throw() {
 
 		// Give the wrench its velocity, angle, and spin.
 		// Lower the gravity a bit, so it flys.
-		pWrench->pev->velocity = vecDir * 1000 + m_pPlayer->pev->velocity;
-		pWrench->pev->angles = vecAng;
-		pWrench->pev->avelocity.x = -1000;
-		pWrench->pev->gravity = .25;
+		if (pWrench)
+		{
+			pWrench->pev->velocity = vecDir * 1000 + m_pPlayer->pev->velocity;
+			pWrench->pev->angles = vecAng;
+			pWrench->pev->avelocity.x = -1000;
+			pWrench->pev->gravity = .25;
+		}
 
 		// Do player weapon anim and sound effect.
 		m_pPlayer->SetAnimation( PLAYER_ATTACK1 );

@@ -177,15 +177,21 @@ void CDualWrench::Throw() {
 
 		// Give the wrench its velocity, angle, and spin.
 		// Lower the gravity a bit, so it flys.
-		pWrench->pev->velocity = vecDir * RANDOM_LONG(900,1000) + m_pPlayer->pev->velocity;
-		pWrench->pev->angles = vecAng;
-		pWrench->pev->avelocity.x = RANDOM_LONG(-1000,-700);
-		pWrench->pev->gravity = RANDOM_FLOAT(0.25,0.35);
+		if (pWrench)
+		{
+			pWrench->pev->velocity = vecDir * RANDOM_LONG(900,1000) + m_pPlayer->pev->velocity;
+			pWrench->pev->angles = vecAng;
+			pWrench->pev->avelocity.x = RANDOM_LONG(-1000,-700);
+			pWrench->pev->gravity = RANDOM_FLOAT(0.25,0.35);
+		}
 
-		pWrench2->pev->velocity = vecDir * RANDOM_LONG(800,1000) + m_pPlayer->pev->velocity;
-		pWrench2->pev->angles = vecAng;
-		pWrench2->pev->avelocity.x = RANDOM_LONG(-1000,-700);
-		pWrench2->pev->gravity = RANDOM_FLOAT(0.25,0.35);
+		if (pWrench2)
+		{
+			pWrench2->pev->velocity = vecDir * RANDOM_LONG(800,1000) + m_pPlayer->pev->velocity;
+			pWrench2->pev->angles = vecAng;
+			pWrench2->pev->avelocity.x = RANDOM_LONG(-1000,-700);
+			pWrench2->pev->gravity = RANDOM_FLOAT(0.25,0.35);
+		}
 
 		// Do player weapon anim and sound effect.
 		m_pPlayer->SetAnimation( PLAYER_ATTACK1 );

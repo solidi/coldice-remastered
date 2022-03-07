@@ -3457,6 +3457,13 @@ void CBasePlayer::GiveNamedItem( const char *pszName )
 
 	int istr = MAKE_STRING(pszName);
 
+	// Do not allow giving items in dualsonly mode
+	if (dualsonly.value) {
+		if (strncmp(pszName, "weapon_fists", 12) != 0 && strncmp(pszName, "weapon_dual_", 12) != 0) {
+			return;
+		}
+	}
+
 	pent = CREATE_NAMED_ENTITY(istr);
 	if ( FNullEnt( pent ) )
 	{

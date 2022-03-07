@@ -51,6 +51,7 @@ extern cvar_t   infiniteammo;
 extern cvar_t   moreblood;
 extern cvar_t   startwithall;
 extern cvar_t   allowvoiceovers;
+extern cvar_t   dualsonly;
 
 // Engine Cvars
 extern cvar_t	*g_psv_gravity;

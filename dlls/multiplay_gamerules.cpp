@@ -659,18 +659,24 @@ void CHalfLifeMultiplay :: PlayerSpawn( CBasePlayer *pPlayer )
 	if ( addDefault )
 	{
 		// Give a random melee on every spawn
-		int whichWeapon = RANDOM_LONG(0,3);
-		char *meleeWeapon;
-		if (!whichWeapon) {
-			meleeWeapon = "weapon_crowbar";
-		} else if (whichWeapon == 1) {
-			meleeWeapon = "weapon_knife";
-		} else if (whichWeapon == 2) {
-			meleeWeapon = "weapon_wrench";
+		char *meleeWeapon = "";
+		if (dualsonly.value)
+		{
+			meleeWeapon = "weapon_fists";
+			pPlayer->GiveNamedItem(STRING(ALLOC_STRING(meleeWeapon)));
 		} else {
-			meleeWeapon = "weapon_chainsaw";
+			int whichWeapon = RANDOM_LONG(0,3);
+			if (!whichWeapon) {
+				meleeWeapon = "weapon_crowbar";
+			} else if (whichWeapon == 1) {
+				meleeWeapon = "weapon_knife";
+			} else if (whichWeapon == 2) {
+				meleeWeapon = "weapon_wrench";
+			} else {
+				meleeWeapon = "weapon_chainsaw";
+			}
+			pPlayer->GiveNamedItem(STRING(ALLOC_STRING(meleeWeapon)));
 		}
-		pPlayer->GiveNamedItem(STRING(ALLOC_STRING(meleeWeapon)));
 
 		char *pWeaponName;
 		char list[1024];
@@ -1151,6 +1157,30 @@ BOOL CHalfLifeMultiplay::IsAllowedToSpawn( CBaseEntity *pEntity )
 {
 //	if ( pEntity->pev->flags & FL_MONSTER )
 //		return FALSE;
+
+	const char* dualWeaponList[5] = {
+		"weapon_dual_wrench",
+		"weapon_dual_deagle",
+		"weapon_dual_smg",
+		"weapon_dual_usas",
+		"weapon_dual_rpg"
+	};
+
+	if (dualsonly.value && strncmp(STRING(pEntity->pev->classname), "weapon_", 7) == 0)
+	{
+		// Allow addition weapons that are thrown
+		if (strncmp(STRING(pEntity->pev->classname), "weapon_fists", 12) == 0 ||
+			strncmp(STRING(pEntity->pev->classname), "weapon_wrench", 12) == 0 ||
+			strncmp(STRING(pEntity->pev->classname), "weapon_crowbar", 14) == 0 ||
+			strncmp(STRING(pEntity->pev->classname), "weapon_knife", 12) == 0)
+			return TRUE;
+
+		if (strncmp(STRING(pEntity->pev->classname), "weapon_dual_", 12) != 0)
+		{
+			CBaseEntity::Create((char *)dualWeaponList[RANDOM_LONG(0,ARRAYSIZE(dualWeaponList)-1)], pEntity->pev->origin, pEntity->pev->angles, pEntity->pev->owner);
+			return FALSE;
+		}
+	}
 
 	return TRUE;
 }

@@ -676,7 +676,8 @@ CBaseEntity* CBasePlayerItem::Respawn( void )
 		"weapon_dual_deagle",
 		"weapon_python",
 		"weapon_mag60",
-		"weapon_smg"
+		"weapon_smg",
+		"weapon_dual_smg"
 		},
 
 		{
@@ -714,24 +715,43 @@ CBaseEntity* CBasePlayerItem::Respawn( void )
 		"weapon_snark",
 		"weapon_chumtoad",
 		"weapon_vest"
+		},
+
+		{
+		// dual
+		"weapon_dual_wrench",
+		"weapon_dual_deagle",
+		"weapon_dual_smg",
+		"weapon_dual_usas",
+		"weapon_dual_rpg"
 		}
 	};
 
-	for (int g = 0; g < 5; g++) {
-		for (int i = 0; i < ARRAYSIZE(weaponsList[g]); i++) {
-			if (weaponsList[g][i] != NULL && FStrEq(STRING(pev->classname), weaponsList[g][i])) {
-#ifdef _DEBUG
-				ALERT ( at_aiconsole, "Found %s to change... ", weaponsList[g][i] );
-#endif
-				const char *name = weaponsList[g][RANDOM_LONG(0, g - 1)];
-				pNewWeapon = CBaseEntity::Create((char *)STRING(ALLOC_STRING(name)), g_pGameRules->VecWeaponRespawnSpot(this), pev->angles, pev->owner );
-#ifdef _DEBUG
-				ALERT ( at_aiconsole, "replaced with %s!\n", name );
-#endif
+	if (dualsonly.value) {
+		if (strncmp(STRING(pev->classname), "weapon_dual_", 12) != 0) {
+			const char *name = weaponsList[5][RANDOM_LONG(0, 4)];
+			if (name)
+			{
+				pNewWeapon = CBaseEntity::Create((char *)STRING(ALLOC_STRING(name)), g_pGameRules->VecWeaponRespawnSpot(this), pev->angles, pev->owner);
 			}
-
-			if (pNewWeapon) {
-				break;
+		}
+	} else {
+		for (int group = 0; (group < ARRAYSIZE(weaponsList) - 1) && pNewWeapon == NULL; group++) {
+			int totalWeapons = ARRAYSIZE(weaponsList[group]);
+			for (int weapon = 0; (weapon < totalWeapons) && pNewWeapon == NULL; weapon++) {
+				if (weaponsList[group][weapon] != NULL && FStrEq(STRING(pev->classname), weaponsList[group][weapon])) {
+	#ifdef _DEBUG
+					ALERT ( at_aiconsole, "Found %s to change... ", weaponsList[group][weapon] );
+	#endif
+					const char *name = weaponsList[group][RANDOM_LONG(0, totalWeapons - 1)];
+					if (name) 
+					{
+						pNewWeapon = CBaseEntity::Create((char *)STRING(ALLOC_STRING(name)), g_pGameRules->VecWeaponRespawnSpot(this), pev->angles, pev->owner);
+	#ifdef _DEBUG
+						ALERT ( at_aiconsole, "replaced with %s!\n", name );
+	#endif
+					}
+				}
 			}
 		}
 	}

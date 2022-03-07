@@ -2084,6 +2084,10 @@ void V_IronSight( Vector position, Vector punch, float clientTime, cl_entity_t *
 	static float time = 0, time_framerate = 0.05;
 	static float kR, kF, kU, kPitch, kYaw, kRoll;
 
+	// No dual wield support
+	if (!strncmp(viewModel->model->name, "models/v_dual_", strlen("models/v_dual_")))
+		return;
+
 	// unstick
 	if (clientTime + 2 < time) {
 		time = 0;
