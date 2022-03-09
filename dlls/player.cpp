@@ -846,7 +846,8 @@ void CBasePlayer::RemoveAllItems( BOOL removeSuit )
 	if (m_pActiveItem)
 	{
 		ResetAutoaim( );
-		m_pActiveItem->Holster( );
+		if (m_pActiveItem->m_pPlayer)
+			m_pActiveItem->Holster( );
 		m_pActiveItem = NULL;
 	}
 

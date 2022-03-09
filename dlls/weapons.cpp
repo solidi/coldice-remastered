@@ -1177,6 +1177,11 @@ BOOL CBasePlayerWeapon :: CanDeploy( void )
 {
 	BOOL bHasAmmo = 0;
 
+	// Bot patch
+	if (!m_pPlayer) {
+		return FALSE;
+	}
+
 	if ( !pszAmmo1() )
 	{
 		// this weapon doesn't use ammo, can always deploy.
