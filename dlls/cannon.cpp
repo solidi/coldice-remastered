@@ -203,9 +203,9 @@ void CFlak :: FlakTouch ( CBaseEntity *pOther )
 			entvars_t *pevOwner = VARS( pev->owner );
 			if (pevOwner)
 			{
-				entvars_t *Owner = VARS( pev->owner );
-				pOther->TraceAttack(Owner, pev->dmg, gpGlobals->v_forward, &tr, DMG_NEVERGIB );
-				ApplyMultiDamage( pev, Owner );
+				ClearMultiDamage();
+				pOther->TraceAttack(pevOwner, pev->dmg, gpGlobals->v_forward, &tr, DMG_NEVERGIB );
+				ApplyMultiDamage( pev, pevOwner );
 
 				if (glowSprite) {
 					UTIL_Remove(glowSprite);
