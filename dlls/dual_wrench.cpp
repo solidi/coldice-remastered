@@ -200,6 +200,9 @@ void CDualWrench::Throw() {
 		EMIT_SOUND_DYN(ENT(m_pPlayer->pev), CHAN_WEAPON,
 			"wrench_miss1.wav", 1, ATTN_NORM, 0,
 			94 + RANDOM_LONG(0,0xF));
+		EMIT_SOUND_DYN(ENT(m_pPlayer->pev), CHAN_ITEM,
+			"wrench_miss1.wav", 1, ATTN_NORM, 0,
+			94 + RANDOM_LONG(0,0xF));
 	}
 }
 
