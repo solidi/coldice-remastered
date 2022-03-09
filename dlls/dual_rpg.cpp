@@ -237,6 +237,8 @@ void CDualRpg::PrimaryAttack()
 
 void CDualRpg::FireSecondRocket() {
 #ifndef CLIENT_DLL
+	EMIT_SOUND(ENT(m_pPlayer->pev), CHAN_ITEM, "weapons/glauncher.wav", 0.9, ATTN_NORM);
+
 	UTIL_MakeVectors( m_pPlayer->pev->v_angle );
 	Vector vecSrc = m_pPlayer->GetGunPosition( ) + gpGlobals->v_forward * 16 + gpGlobals->v_right * -12 + gpGlobals->v_up * -18;
 		
