@@ -953,6 +953,11 @@ void ClientPrecache( void )
 	PRECACHE_SOUND("player/pl_tile4.wav");
 	PRECACHE_SOUND("player/pl_tile5.wav");
 
+	PRECACHE_SOUND("player/pl_snow1.wav");		// walk on snow
+	PRECACHE_SOUND("player/pl_snow2.wav");
+	PRECACHE_SOUND("player/pl_snow3.wav");
+	PRECACHE_SOUND("player/pl_snow4.wav");
+
 	PRECACHE_SOUND("player/pl_swim1.wav");		// breathe bubbles
 	PRECACHE_SOUND("player/pl_swim2.wav");
 	PRECACHE_SOUND("player/pl_swim3.wav");
