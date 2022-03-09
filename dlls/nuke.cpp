@@ -154,6 +154,7 @@ void CNukeRocket :: RocketTouch ( CBaseEntity *pOther )
 
 		if ( plr )
 		{
+			ClearMultiDamage(); // fix nuke as kick
 			plr->TakeDamage(pev, VARS(pev->owner), 200, DMG_RADIATION);
 			UTIL_ScreenFade(plr, Vector(255, 255, 255), 2, 6, 200, FFADE_IN);
 		}
