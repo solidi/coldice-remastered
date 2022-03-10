@@ -32,6 +32,8 @@ client_textmessage_t	g_pCustomMessage;
 char *g_pCustomName = "Custom";
 char g_pCustomText[1024];
 
+extern float g_xP, g_yP;
+
 int CHudMessage::Init(void)
 {
 	HOOK_MESSAGE( HudText );
@@ -110,7 +112,7 @@ int	CHudMessage::XPosition( float x, int width, int totalWidth )
 	else if ( xPos < 0 )
 		xPos = 0;
 
-	return xPos;
+	return xPos + g_xP;
 }
 
 
@@ -134,7 +136,7 @@ int CHudMessage::YPosition( float y, int height )
 	else if ( yPos < 0 )
 		yPos = 0;
 
-	return yPos;
+	return yPos + g_yP;
 }
 
 

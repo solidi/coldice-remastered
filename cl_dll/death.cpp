@@ -52,6 +52,7 @@ float g_ColorYellow[3]	= { 1.0, 0.7, 0.0 };
 float g_ColorGrey[3]	= { 0.8, 0.8, 0.8 };
 
 extern cvar_t *cl_playpoint;
+extern float g_xP, g_yP;
 
 float *GetClientColor( int clientIndex )
 {
@@ -117,10 +118,10 @@ int CHudDeathNotice :: Draw( float flTime )
 		if ( gViewPort && gViewPort->AllowedToPrintText() )
 		{
 			// Draw the death notice
-			y = DEATHNOTICE_TOP + 2 + (20 * i);  //!!!
+			y = (DEATHNOTICE_TOP + 2 + (20 * i)) + g_yP;  //!!!
 
 			int id = (rgDeathNoticeList[i].iId == -1) ? m_HUD_d_skull : rgDeathNoticeList[i].iId;
-			x = ScreenWidth - ConsoleStringLen(rgDeathNoticeList[i].szVictim) - (gHUD.GetSpriteRect(id).right - gHUD.GetSpriteRect(id).left);
+			x = (ScreenWidth - ConsoleStringLen(rgDeathNoticeList[i].szVictim) - (gHUD.GetSpriteRect(id).right - gHUD.GetSpriteRect(id).left)) + g_xP;
 
 			if ( !rgDeathNoticeList[i].iSuicide )
 			{
@@ -149,7 +150,7 @@ int CHudDeathNotice :: Draw( float flTime )
 			{
 				if ( rgDeathNoticeList[i].VictimColor )
 					gEngfuncs.pfnDrawSetTextColor( rgDeathNoticeList[i].VictimColor[0], rgDeathNoticeList[i].VictimColor[1], rgDeathNoticeList[i].VictimColor[2] );
-				x = DrawConsoleString( x, y, rgDeathNoticeList[i].szVictim );
+				x = (DrawConsoleString( x, y, rgDeathNoticeList[i].szVictim )) + g_xP;
 			}
 		}
 	}
