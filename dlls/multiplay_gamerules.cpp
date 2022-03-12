@@ -629,7 +629,11 @@ void CHalfLifeMultiplay :: PlayerThink( CBasePlayer *pPlayer )
 	}
 
 	if (pPlayer->m_iShownWelcomeMessage != -1 && pPlayer->m_iShownWelcomeMessage < gpGlobals->time) {
-		ClientPrint( pPlayer->pev, HUD_PRINTTALK, "Welcome to Cold Ice Remastered Beta 1. For commands, type \"help\" in the console.\n" );
+#ifdef GIT
+		ClientPrint(pPlayer->pev, HUD_PRINTTALK, "Welcome to Cold Ice Remastered Beta 2 (%s). For commands, type \"help\" in the console.\n", GIT);
+#else
+		ClientPrint(pPlayer->pev, HUD_PRINTTALK, "Welcome to Cold Ice Remastered Beta 2. For commands, type \"help\" in the console.\n");
+#endif
 		pPlayer->m_iShownWelcomeMessage = -1;
 	}
 }
