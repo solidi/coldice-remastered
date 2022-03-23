@@ -38,6 +38,21 @@ int m_nPlayerGaitSequences[MAX_CLIENTS];
 // Global engine <-> studio model rendering code interface
 engine_studio_api_t IEngineStudio;
 
+#ifdef _WIN32
+void (*GL_StudioDrawShadow)(void);
+
+__declspec(naked) void ShadowHack(void)
+{
+    _asm
+    {
+        push ebp;
+        mov ebp, esp;
+        push ecx;
+        jmp[GL_StudioDrawShadow];
+    }
+}
+#endif
+
 /////////////////////
 // Implementation of CStudioModelRenderer.h
 
@@ -2144,6 +2159,7 @@ StudioRenderFinal_Hardware
 void CStudioModelRenderer::StudioRenderFinal_Hardware( void )
 {
 	int i;
+	int iShadows = CVAR_GET_FLOAT("cl_shadows");
 	int rendermode;
 
 	rendermode = IEngineStudio.GetForceFaceFlags() ? kRenderTransAdd : m_pCurrentEntity->curstate.rendermode;
@@ -2179,6 +2195,16 @@ void CStudioModelRenderer::StudioRenderFinal_Hardware( void )
 
 			IEngineStudio.StudioDrawPoints();
 			IEngineStudio.GL_StudioDrawShadow();
+
+#ifdef _WIN32
+			if (iShadows == 1)
+			{
+				GL_StudioDrawShadow = (void(*)(void))(((unsigned int)IEngineStudio.GL_StudioDrawShadow) + 35);
+
+				if (IEngineStudio.GetCurrentEntity() != gEngfuncs.GetViewModel())
+					ShadowHack();
+			}
+#endif
 
 			if (m_pCurrentEntity == gEngfuncs.GetViewModel() && (!m_pCvarRighthand->value || g_fXashEngine)) {
 				gEngfuncs.pTriAPI->CullFace( TRI_FRONT );

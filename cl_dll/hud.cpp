@@ -374,6 +374,7 @@ void CHud :: Init( void )
 	cl_glasshud = CVAR_CREATE( "cl_glasshud", "1", FCVAR_ARCHIVE );
 	cl_announcehumor = CVAR_CREATE( "cl_announcehumor", "1", FCVAR_ARCHIVE );
 	cl_showtips = CVAR_CREATE( "cl_showtips", "1", FCVAR_ARCHIVE );
+	CVAR_CREATE("cl_shadows", "0", FCVAR_ARCHIVE);
 
 	cl_vmx = CVAR_CREATE( "cl_vmx", "0", FCVAR_ARCHIVE );
 	cl_vmy = CVAR_CREATE( "cl_vmy", "0", FCVAR_ARCHIVE );
