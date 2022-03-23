@@ -352,33 +352,20 @@ void CHud::ShowTextTips( void ) {
 		return;
 	}
 
+	const char* messageList[9] = {
+		"Tired of blue skins? Type \"cl_icemodels 0\" in the console switches to real-life skins.\n",
+		"To five-high your friend with your leg, bind \"impulse 206\" to a button to kick.\n",
+		"Did you know you can shut off the humour? Type \"cl_announcehumor 0\" to make them shut up.\n",
+		"To stop these tips, type \"cl_showtips 0\".\n",
+		"For updates to this mod, see http://moddb.com/mods/cold-ice-remastered\n",
+		"This mod supports a grappling hook. If allowed by the server, bind \"+hook\" to deploy.\n",
+		"Cold Ice Remastered contains works from the community. For all credits, see readme.txt.\n",
+		"Swap between single and dual weapons, if available, bind \"impulse 205\".\n",
+		"To enable model shadows, type \"cl_shadows 1.\"\n",
+	};
+
 	if (m_iShownHelpMessage < m_flTime) {
-		switch (gEngfuncs.pfnRandomLong( 0, 7 )) {
-			case 0:
-				gHUD.m_SayText.SayTextPrint("Tired of blue skins? Type \"cl_icemodels 0\" in the console switches to real-life skins.\n", 128 );
-				break;
-			case 1:
-				gHUD.m_SayText.SayTextPrint("To five-high your friend with your leg, bind \"impulse 206\" to a button to kick.\n", 128 );
-				break;
-			case 2:
-				gHUD.m_SayText.SayTextPrint("Did you know you can shut off the humour? Type \"cl_announcehumor 0\" to make them shut up.\n", 128 );
-				break;
-			case 3:
-				gHUD.m_SayText.SayTextPrint("To stop these tips, type \"cl_showtips 0\".\n", 128 );
-				break;
-			case 4:
-				gHUD.m_SayText.SayTextPrint("For updates to this mod, see http://moddb.com/mods/cold-ice-remastered\n", 128 );
-				break;
-			case 5:
-				gHUD.m_SayText.SayTextPrint("This mod supports a grappling hook. If allowed by the server, bind \"+hook\" to deploy.\n", 128 );
-				break;
-			case 6:
-				gHUD.m_SayText.SayTextPrint("Cold Ice Remastered contains works from the community. For all credits, see readme.txt.\n", 128 );
-				break;
-			case 7:
-				gHUD.m_SayText.SayTextPrint("Swap between single and dual weapons, if available, bind \"impulse 205\".\n", 128 );
-				break;
-		}
+		gHUD.m_SayText.SayTextPrint(messageList[gEngfuncs.pfnRandomLong(0, 8)], 128);
 		m_iShownHelpMessage = m_flTime + gEngfuncs.pfnRandomFloat( 120, 240 );
 	}
 }
