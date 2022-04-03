@@ -361,8 +361,13 @@ void CHud::ShowTextTips( void ) {
 		"This mod supports a grappling hook. If allowed by the server, bind \"+hook\" to deploy.\n",
 		"Cold Ice Remastered contains works from the community. For all credits, see readme.txt.\n",
 		"Swap between single and dual weapons, if available, bind \"impulse 205\".\n",
-		"To enable model shadows, type \"cl_shadows 1.\"\n",
+		"To enable model shadows, type \"cl_shadows 1.\"\n"
 	};
+
+	// Unstick after a level change
+	if  (m_iShownHelpMessage > (m_flTime + 300)) {
+		m_iShownHelpMessage = gEngfuncs.pfnRandomFloat(15, 30);
+	}
 
 	if (m_iShownHelpMessage < m_flTime) {
 		gHUD.m_SayText.SayTextPrint(messageList[gEngfuncs.pfnRandomLong(0, 8)], 128);
