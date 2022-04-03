@@ -115,7 +115,7 @@ int CCrowbar::GetItemInfo(ItemInfo *p)
 	p->iMaxAmmo2 = -1;
 	p->iMaxClip = WEAPON_NOCLIP;
 	p->iSlot = 0;
-	p->iPosition = 1;
+	p->iPosition = 2;
 	p->iId = WEAPON_CROWBAR;
 	p->iWeight = CROWBAR_WEIGHT;
 	p->pszDisplayName = "Standard Crowbar";

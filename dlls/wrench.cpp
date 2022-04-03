@@ -91,7 +91,7 @@ int CWrench::GetItemInfo(ItemInfo *p)
 	p->iMaxAmmo2 = -1;
 	p->iMaxClip = WEAPON_NOCLIP;
 	p->iSlot = 0;
-	p->iPosition = 3;
+	p->iPosition = 4;
 	p->iId = WEAPON_WRENCH;
 	p->iWeight = WRENCH_WEIGHT;
 	p->pszDisplayName = "40 Pound Monkey Wrench";

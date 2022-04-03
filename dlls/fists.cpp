@@ -86,7 +86,7 @@ int CFists::GetItemInfo(ItemInfo *p)
 	p->iMaxAmmo2 = -1;
 	p->iMaxClip = WEAPON_NOCLIP;
 	p->iSlot = 0;
-	p->iPosition = 0;
+	p->iPosition = 1;
 	p->iId = WEAPON_FISTS;
 	p->iWeight = FISTS_WEIGHT;
 	p->pszDisplayName = "Manos de Piedras";
