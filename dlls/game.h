@@ -52,6 +52,7 @@ extern cvar_t   moreblood;
 extern cvar_t   startwithall;
 extern cvar_t   allowvoiceovers;
 extern cvar_t   dualsonly;
+extern cvar_t   jumpheight;
 
 // Engine Cvars
 extern cvar_t	*g_psv_gravity;
