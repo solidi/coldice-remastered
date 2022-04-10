@@ -2059,6 +2059,11 @@ void CBasePlayer::PreThink(void)
 		pev->rendermode = kRenderTransAlpha;
 		pev->renderamt = 50;
 	}
+
+	if (m_fJumpHeight != atof(CVAR_GET_STRING("sv_jumpheight"))) {
+		g_engfuncs.pfnSetPhysicsKeyValue(edict(), "jumpheight", CVAR_GET_STRING("sv_jumpheight"));
+		m_fJumpHeight = atof(CVAR_GET_STRING("sv_jumpheight"));
+	}
 }
 /* Time based Damage works as follows: 
 	1) There are several types of timebased damage:
@@ -2971,6 +2976,7 @@ void CBasePlayer::Spawn( void )
 	g_engfuncs.pfnSetPhysicsKeyValue( edict(), "slj", "0" );
 	g_engfuncs.pfnSetPhysicsKeyValue( edict(), "hl", "1" );
 	g_engfuncs.pfnSetPhysicsKeyValue(edict(), "jumpheight", CVAR_GET_STRING("sv_jumpheight"));
+	m_fJumpHeight = atof(CVAR_GET_STRING("sv_jumpheight"));
 
 	pev->fov = m_iFOV				= 0;// init field of view.
 	m_iClientFOV		= -1; // make sure fov reset is sent
