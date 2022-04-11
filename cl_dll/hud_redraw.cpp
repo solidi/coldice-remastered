@@ -361,7 +361,7 @@ void CHud::ShowTextTips( void ) {
 		"This mod supports a grappling hook. If allowed by the server, bind \"+hook\" to deploy.\n",
 		"Cold Ice Remastered contains works from the community. For all credits, see readme.txt.\n",
 		"Swap between single and dual weapons, if available, bind \"impulse 205\".\n",
-		"To enable model shadows, type \"cl_shadows 1.\"\n"
+		"To enable experimental model shadows, type \"cl_shadows 1\".\n"
 	};
 
 	// Unstick after a level change

@@ -212,6 +212,7 @@ public:
 	float m_fKickTime;
 	float m_fThawTime;
 	int m_iFreezeCounter;
+	float m_fJumpHeight;
 
 	virtual void Spawn( void );
 	void Pain( void );

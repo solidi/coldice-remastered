@@ -2585,6 +2585,8 @@ void PM_Jump (void)
 	// See if user can super long jump?
 	cansuperjump = atoi( pmove->PM_Info_ValueForKey( pmove->physinfo, "slj" ) ) == 1 ? true : false;
 
+	float jump_height = atoi( pmove->PM_Info_ValueForKey( pmove->physinfo, "jumpheight" ) );
+
 	// Acclerate upward
 	// If we are ducking...
 	if ( ( pmove->bInDuck ) || ( pmove->flags & FL_DUCKING ) )
@@ -2607,12 +2609,12 @@ void PM_Jump (void)
 		}
 		else
 		{
-			pmove->velocity[2] = sqrt(2 * 800 * 45.0);
+			pmove->velocity[2] = sqrt(2 * 800 * jump_height);
 		}
 	}
 	else
 	{
-		pmove->velocity[2] = sqrt(2 * 800 * 45.0);
+		pmove->velocity[2] = sqrt(2 * 800 * jump_height);
 	}
 
 	// Decay it for simulation
