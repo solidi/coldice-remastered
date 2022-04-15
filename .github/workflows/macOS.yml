@@ -7,7 +7,7 @@ env:
 
 jobs:
   ice_dylib_and_client_dylib:
-    runs-on: macOS-10.15
+    runs-on: macos-latest
 
     steps:
     - uses: actions/checkout@v3

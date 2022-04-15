@@ -7,7 +7,7 @@ env:
 
 jobs:
   ice_so_and_client_so:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v3
