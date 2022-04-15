@@ -21,14 +21,10 @@ jobs:
     runs-on: windows-latest
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - name: Add MSBuild to PATH
-      uses: microsoft/setup-msbuild@v1.0.2
-
-    - name: Restore NuGet packages for ${{env.GAME_FILE_PATH}}
-      working-directory: ${{env.GITHUB_WORKSPACE}}
-      run: nuget restore ${{env.GAME_FILE_PATH}}
+      uses: microsoft/setup-msbuild@v1.1
 
     - name: Build ice.dll
       working-directory: ${{env.GITHUB_WORKSPACE}}
@@ -40,14 +36,10 @@ jobs:
     runs-on: windows-latest
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - name: Add MSBuild to PATH
-      uses: microsoft/setup-msbuild@v1.0.2
-
-    - name: Restore NuGet packages for ${{env.CLIENT_FILE_PATH}}
-      working-directory: ${{env.GITHUB_WORKSPACE}}
-      run: nuget restore ${{env.CLIENT_FILE_PATH}}
+      uses: microsoft/setup-msbuild@v1.1
 
     - name: Build client.dll
       working-directory: ${{env.GITHUB_WORKSPACE}}
@@ -57,14 +49,10 @@ jobs:
     runs-on: windows-latest
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - name: Add MSBuild to PATH
-      uses: microsoft/setup-msbuild@v1.0.2
-
-    - name: Restore NuGet packages for ${{env.MAKEFONT_FILE_PATH}}
-      working-directory: ${{env.GITHUB_WORKSPACE}}
-      run: nuget restore ${{env.MAKEFONT_FILE_PATH}}
+      uses: microsoft/setup-msbuild@v1.1
 
     - name: Build makefont.exe
       working-directory: ${{env.GITHUB_WORKSPACE}}
@@ -74,14 +62,10 @@ jobs:
     runs-on: windows-latest
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - name: Add MSBuild to PATH
-      uses: microsoft/setup-msbuild@v1.0.2
-
-    - name: Restore NuGet packages for ${{env.MAKELS_FILE_PATH}}
-      working-directory: ${{env.GITHUB_WORKSPACE}}
-      run: nuget restore ${{env.MAKELS_FILE_PATH}}
+      uses: microsoft/setup-msbuild@v1.1
 
     - name: Build makels.exe
       working-directory: ${{env.GITHUB_WORKSPACE}}
@@ -91,14 +75,10 @@ jobs:
     runs-on: windows-latest
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - name: Add MSBuild to PATH
-      uses: microsoft/setup-msbuild@v1.0.2
-
-    - name: Restore NuGet packages for ${{env.QLUMPY_FILE_PATH}}
-      working-directory: ${{env.GITHUB_WORKSPACE}}
-      run: nuget restore ${{env.QLUMPY_FILE_PATH}}
+      uses: microsoft/setup-msbuild@v1.1
 
     - name: Build qlumpy.exe
       working-directory: ${{env.GITHUB_WORKSPACE}}
@@ -108,14 +88,10 @@ jobs:
     runs-on: windows-latest
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - name: Add MSBuild to PATH
-      uses: microsoft/setup-msbuild@v1.0.2
-
-    - name: Restore NuGet packages for ${{env.SPRGEN_FILE_PATH}}
-      working-directory: ${{env.GITHUB_WORKSPACE}}
-      run: nuget restore ${{env.SPRGEN_FILE_PATH}}
+      uses: microsoft/setup-msbuild@v1.1
 
     - name: Build sprgen.exe
       working-directory: ${{env.GITHUB_WORKSPACE}}
@@ -125,14 +101,10 @@ jobs:
     runs-on: windows-latest
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - name: Add MSBuild to PATH
-      uses: microsoft/setup-msbuild@v1.0.2
-
-    - name: Restore NuGet packages for ${{env.STUDIOMDL_FILE_PATH}}
-      working-directory: ${{env.GITHUB_WORKSPACE}}
-      run: nuget restore ${{env.STUDIOMDL_FILE_PATH}}
+      uses: microsoft/setup-msbuild@v1.1
 
     - name: Build studiomdl.exe
       working-directory: ${{env.GITHUB_WORKSPACE}}
