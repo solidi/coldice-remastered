@@ -2,6 +2,7 @@ Cold Ice Remastered
 ===================
 
 [![Windows](https://github.com/solidi/coldice-remastered/actions/workflows/windows.yml/badge.svg)](https://github.com/solidi/coldice-remastered/actions/workflows/windows.yml) [![Linux](https://github.com/solidi/coldice-remastered/actions/workflows/linux.yml/badge.svg)](https://github.com/solidi/coldice-remastered/actions/workflows/linux.yml) [![macOS](https://github.com/solidi/coldice-remastered/actions/workflows/macOS.yml/badge.svg)](https://github.com/solidi/coldice-remastered/actions/workflows/macOS.yml)
+[![Chat on Discord](https://discordapp.com/api/guilds/790549024373604353/widget.png)](https://discord.gg/Hu2Q6pcJn3)
 
 The rebuild of the Cold Ice 1.75 Modification for Half-Life. See [this post](https://medium.com/super-jump/building-a-popular-half-life-mod-during-the-rise-of-counter-strike-fec6a5b9fd8f?sk=6d1427b3f1d832df06bd5b07aaa456bb) for the complete archaeological origins from 1999.
 
