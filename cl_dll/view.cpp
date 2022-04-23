@@ -1891,6 +1891,9 @@ void V_WeaponSway( float currentYaw, float frameTime, float clientTime, cl_entit
 	lastYaw = currentYaw;
 }
 
+/**
+ * Draw view model as if it is floating in air when the player jumps
+ */
 void V_WeaponFloat( float currentZ, float clientTime, float frameTime, cl_entity_t *viewModel )
 {
 	static float time = 0;
@@ -1918,26 +1921,29 @@ void V_WeaponFloat( float currentZ, float clientTime, float frameTime, cl_entity
 		}
 	}
 
-	viewModel->angles[PITCH] += kPitch;
-	viewModel->origin[2] += kZ;
-
-	if (cl_glasshud->value)
-		g_yP += kZ;
+/*
+	char str[256];
+	sprintf(str, "V_WeaponFloat: kPitch = %.3f kZ = %.3f\n", kPitch, kZ);
+	gEngfuncs.pfnConsolePrint(str);
+*/
 
 	// Water fix
 	if ( kPitch <= -20.0) {
 		kPitch = -20.0;
 	}
 
-/*
-	char str[256];
-	sprintf(str, "V_WeaponFloat: pitch = %.3f kPitch = %.3f\n", viewModel->angles[PITCH], kPitch);
-	gEngfuncs.pfnConsolePrint(str);
-*/
+	viewModel->angles[PITCH] += kPitch;
+	viewModel->origin[ROLL] += kZ;
+
+	if (cl_glasshud->value)
+		g_yP += kZ;
 
 	lastZ = currentZ;
 }
 
+/**
+ * Draw view model as if it is bouncing back when player lands a jump
+ */
 void V_WeaponDrop( float currentZ, float clientTime, float frameTime, cl_entity_t *viewModel )
 {
 	static float time = 0;
@@ -1969,17 +1975,18 @@ void V_WeaponDrop( float currentZ, float clientTime, float frameTime, cl_entity_
 	if (kPitch > 0) kPitch = 0;
 	if (kYaw < 0) kYaw = 0;
 
+/*
+	char str[256];
+	sprintf(str, "V_WeaponDrop: kPitch = %.3f kYaw = %.3f kZ = %.3f\n", kPitch, kYaw, kZ);
+	gEngfuncs.pfnConsolePrint(str);
+*/
+
 	viewModel->angles[YAW] += kYaw;
 	viewModel->angles[PITCH] += kPitch;
-	viewModel->origin[2] -= kZ;
+	viewModel->origin[ROLL] -= kZ;
 
 	if (cl_glasshud->value)
 		g_yP += kZ;
-/*
-	char str[256];
-	sprintf(str, "V_WeaponDrop: pitch = %.3f kPitch = %.3f\n", viewModel->angles[PITCH], kPitch);
-	gEngfuncs.pfnConsolePrint(str);
-*/
 
 	lastZ = currentZ;
 }
