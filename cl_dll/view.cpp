@@ -1788,7 +1788,7 @@ void V_PunchAxis( int axis, float punch )
 
 void V_GlassHud ( float bounce, float clientTime ) {
 	g_yP += ((bounce * .5) * -1);
-	float time_framerate = 0.1;
+	float time_framerate = 0.01;
 	static float time = 0;
 	static int mode = 0;
 	// unstick
@@ -1895,7 +1895,7 @@ void V_WeaponSway ( float currentYaw, float framerate, float clientTime, cl_enti
 void V_WeaponFloat( float currentZ, float clientTime, cl_entity_t *viewModel )
 {
 	static float time = 0;
-	static float time_framerate = 0.05;
+	static float time_framerate = 0.01;
 	static float lastZ = 0, kPitch = 0, kZ = 0;
 
 	// unstick
@@ -1943,7 +1943,7 @@ void V_WeaponFloat( float currentZ, float clientTime, cl_entity_t *viewModel )
 void V_WeaponDrop( float currentZ, float clientTime, cl_entity_t *viewModel )
 {
 	static float time = 0;
-	static float time_framerate = 0.05;
+	static float time_framerate = 0.01;
 	static float lastZ = 0;
 	static float kPitch = 0;
 	static float kZ = 0;
@@ -2037,7 +2037,7 @@ void V_IronSight( Vector position, Vector punch, float clientTime, cl_entity_t *
 	float mxPitch = punch.x;
 	float mxYaw = punch.y;
 	float mxRoll = punch.z;
-	static float time = 0, time_framerate = 0.05;
+	static float time = 0;
 	static float kR, kF, kU, kPitch, kYaw, kRoll;
 
 	// No dual wield support
@@ -2049,7 +2049,7 @@ void V_IronSight( Vector position, Vector punch, float clientTime, cl_entity_t *
 		time = 0;
 	}
 
-	if (clientTime > time + time_framerate) {
+	if (clientTime > time + 0.01) {
 		time = clientTime;
 
 		if (g_IronSight) {
