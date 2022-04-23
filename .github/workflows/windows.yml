@@ -43,7 +43,18 @@ jobs:
 
     - name: Build client.dll
       working-directory: ${{env.GITHUB_WORKSPACE}}
-      run: msbuild /m /p:Configuration=${{env.BUILD_CONFIGURATION}} ${{env.CLIENT_FILE_PATH}}
+      run: |
+        msbuild /m /p:Configuration=${{env.BUILD_CONFIGURATION}} ${{env.CLIENT_FILE_PATH}}
+        [void](New-Item -Force -ItemType Directory $env:TEMP\${{env.BUILD_CONFIGURATION}})
+        [void](New-Item -Force -ItemType Directory $env:TEMP\${{env.BUILD_CONFIGURATION}}\cl_dlls)
+        Copy-Item -Recurse -Force ./projects/vs2019/${{env.BUILD_CONFIGURATION}}/hl_cdll/client.dll $env:TEMP\${{env.BUILD_CONFIGURATION}}\cl_dlls
+        Compress-Archive -LiteralPath $env:TEMP\${{env.BUILD_CONFIGURATION}}\cl_dlls -DestinationPath ./dlls.zip -Force
+
+    - name: Upload client dll
+      uses: actions/upload-artifact@v3
+      with:
+        name: client_dll
+        path: ./dlls.zip
 
   makefont_exe:
     runs-on: windows-latest
