@@ -717,7 +717,7 @@ void V_CalcNormalRefdef ( struct ref_params_s *pparams )
 		Vector position = view->model->aim_punch, angles = view->model->aim_angles;
 
 		if (Length(position) > 1) {
-			V_IronSight(position, angles, pparams->frametime, pparams->time, view, pparams->forward, pparams->up, pparams->right);
+			V_IronSight(position, angles, pparams->time, view, pparams->forward, pparams->up, pparams->right);
 		}
 
 		if (cl_weaponretract->value) {
