@@ -44,13 +44,13 @@
 
 
 void V_DropPunchAngle ( float frametime, float *ev_punchangle );
-void V_GlassHud( float bounce, float clientTime );
-void V_WeaponSway( float currentYaw, float framerate, float clientTime, cl_entity_t *viewModel );
-void V_WeaponFloat( float currentZ, float clientTime, cl_entity_t *viewModel );
-void V_WeaponDrop( float currentZ, float clientTime, cl_entity_t *viewModel );
-void V_WeaponPull( float clientTime, cl_entity_t *viewModel, float move, float *forward, float &k, float &k2, float &time, bool mode);
-void V_IronSight( Vector position, Vector punch, float clientTime, cl_entity_t *viewModel, Vector forward, Vector up, Vector right );
-void V_RetractWeapon(struct ref_params_s* pparams, cl_entity_s* view);
+void V_GlassHud( float bounce, float clientTime, float frameTime );
+void V_WeaponSway( float currentYaw, float frameTime, float clientTime, cl_entity_t *viewModel );
+void V_WeaponFloat( float currentZ, float clientTime, float frameTime, cl_entity_t *viewModel );
+void V_WeaponDrop( float currentZ, float clientTime, float frameTime, cl_entity_t *viewModel );
+void V_WeaponPull( float clientTime, float frameTime, cl_entity_t *viewModel, float move, float *forward, float &k, float &k2, float &time, bool mode);
+void V_IronSight( Vector position, Vector punch, float clientTime, float frameTime, cl_entity_t *viewModel, Vector forward, Vector up, Vector right );
+void V_RetractWeapon( struct ref_params_s* pparams, cl_entity_s* view );
 void VectorAngles( const float *forward, float *angles );
 
 #include "r_studioint.h"
@@ -696,20 +696,20 @@ void V_CalcNormalRefdef ( struct ref_params_s *pparams )
 	view->angles[PITCH] -= bob * 0.3;
 
 	if (cl_glasshud->value) {
-		V_GlassHud(bob, pparams->time);
+		V_GlassHud(bob, pparams->time, pparams->frametime);
 	}
 
 	if (cl_weaponfidget->value == 1) {
-		V_WeaponDrop(pparams->simvel[2], pparams->time, view);
-		V_WeaponFloat(pparams->simvel[2], pparams->time, view);
+		V_WeaponDrop(pparams->simvel[2], pparams->time, pparams->frametime, view);
+		V_WeaponFloat(pparams->simvel[2], pparams->time, pparams->frametime, view);
 	}
 
 	static float kF = 0, kF2 = 0, kR = 0, kR2 = 0, t1 = 0, t2 = 0;
 	if (cl_weaponsway->value == 1) {
 		if (!g_IronSight) {
 			V_WeaponSway(pparams->cl_viewangles[YAW], pparams->frametime, pparams->time, view);
-			V_WeaponPull( pparams->time, view, pparams->cmd->forwardmove, pparams->forward, kF, kF2, t1, false );
-			V_WeaponPull( pparams->time, view, pparams->cmd->sidemove, pparams->right, kR, kR2, t2, true );
+			V_WeaponPull( pparams->time, pparams->frametime, view, pparams->cmd->forwardmove, pparams->forward, kF, kF2, t1, false );
+			V_WeaponPull( pparams->time, pparams->frametime, view, pparams->cmd->sidemove, pparams->right, kR, kR2, t2, true );
 		}
 	}
 
@@ -717,7 +717,7 @@ void V_CalcNormalRefdef ( struct ref_params_s *pparams )
 		Vector position = view->model->aim_punch, angles = view->model->aim_angles;
 
 		if (Length(position) > 1) {
-			V_IronSight(position, angles, pparams->time, view, pparams->forward, pparams->up, pparams->right);
+			V_IronSight(position, angles, pparams->time, pparams->frametime, view, pparams->forward, pparams->up, pparams->right);
 		}
 
 		if (cl_weaponretract->value) {
@@ -1786,16 +1786,15 @@ void V_PunchAxis( int axis, float punch )
 	ev_punchangle[ axis ] = punch;
 }
 
-void V_GlassHud ( float bounce, float clientTime ) {
+void V_GlassHud ( float bounce, float clientTime, float frameTime ) {
 	g_yP += ((bounce * .5) * -1);
-	float time_framerate = 0.01;
 	static float time = 0;
 	static int mode = 0;
 	// unstick
 	if (clientTime + 2 < time) {
 		time = 0;
 	}
-	if (clientTime > time + time_framerate) {
+	if (clientTime > time + frameTime) {
 		time = clientTime;
 		if (bounce >= 2.75) {
 			if ( mode > 0 ) mode = -1;
@@ -1830,9 +1829,9 @@ void V_GlassHud ( float bounce, float clientTime ) {
 	g_yP = max( g_yP, -2.5 );
 }
 
-void V_WeaponSway ( float currentYaw, float framerate, float clientTime, cl_entity_t *viewModel )
+void V_WeaponSway ( float currentYaw, float frameTime, float clientTime, cl_entity_t *viewModel )
 {
-	static float time = 0, time_framerate = 0.01;
+	static float time = 0;
 	static float decay = 0, accel = 0;
 	static float lastYaw = 0;
 	static bool clockwise = false;
@@ -1854,12 +1853,12 @@ void V_WeaponSway ( float currentYaw, float framerate, float clientTime, cl_enti
 		clockwise = !clockwise;
 	}
 
-	if (clientTime > time + time_framerate) {
+	if (clientTime > time + frameTime) {
 		time = clientTime;
 
 		if (delta) {
 			// attack
-			accel += framerate * 1.10;
+			accel += frameTime * 1.10;
 			if (accel > 1) accel = 1;
 			if (clockwise) {
 				decay -= 1.0 * accel;
@@ -1892,10 +1891,9 @@ void V_WeaponSway ( float currentYaw, float framerate, float clientTime, cl_enti
 	lastYaw = currentYaw;
 }
 
-void V_WeaponFloat( float currentZ, float clientTime, cl_entity_t *viewModel )
+void V_WeaponFloat( float currentZ, float clientTime, float frameTime, cl_entity_t *viewModel )
 {
 	static float time = 0;
-	static float time_framerate = 0.01;
 	static float lastZ = 0, kPitch = 0, kZ = 0;
 
 	// unstick
@@ -1903,7 +1901,7 @@ void V_WeaponFloat( float currentZ, float clientTime, cl_entity_t *viewModel )
 		time = 0;
 	}
 
-	if (clientTime > time + time_framerate) {
+	if (clientTime > time + frameTime) {
 		time = clientTime;
 		if (currentZ != 0) {
 			kZ += 0.75;
@@ -1940,10 +1938,9 @@ void V_WeaponFloat( float currentZ, float clientTime, cl_entity_t *viewModel )
 	lastZ = currentZ;
 }
 
-void V_WeaponDrop( float currentZ, float clientTime, cl_entity_t *viewModel )
+void V_WeaponDrop( float currentZ, float clientTime, float frameTime, cl_entity_t *viewModel )
 {
 	static float time = 0;
-	static float time_framerate = 0.01;
 	static float lastZ = 0;
 	static float kPitch = 0;
 	static float kZ = 0;
@@ -1961,7 +1958,7 @@ void V_WeaponDrop( float currentZ, float clientTime, cl_entity_t *viewModel )
 		kYaw = 6;
 	}
 
-	if (clientTime > time + time_framerate) {
+	if (clientTime > time + frameTime) {
 		time = clientTime;
 		kZ += 0.75;
 		kPitch += 1.75;
@@ -1987,16 +1984,14 @@ void V_WeaponDrop( float currentZ, float clientTime, cl_entity_t *viewModel )
 	lastZ = currentZ;
 }
 
-void V_WeaponPull( float clientTime, cl_entity_t *viewModel, float move, float *forward, float &kF, float &kF2, float &time, bool mode )
+void V_WeaponPull( float clientTime, float frameTime, cl_entity_t *viewModel, float move, float *forward, float &kF, float &kF2, float &time, bool mode )
 {
-	float time_framerate = 0.01;
-
 	// unstick
 	if (clientTime + 2 < time) {
 		time = 0;
 	}
 
-	if (clientTime > time + time_framerate) {
+	if (clientTime > time + frameTime) {
 		time = clientTime;
 
 		if (move > 100) {
@@ -2028,7 +2023,7 @@ void V_WeaponPull( float clientTime, cl_entity_t *viewModel, float move, float *
 	viewModel->origin[2] -= (forward[ 2 ] * kF2);
 }
 
-void V_IronSight( Vector position, Vector punch, float clientTime, cl_entity_t *viewModel, Vector forward, Vector up, Vector right )
+void V_IronSight( Vector position, Vector punch, float clientTime, float frameTime, cl_entity_t *viewModel, Vector forward, Vector up, Vector right )
 {
 	extern cvar_t *m_pCvarRighthand;
 	float mxForward = position.x;
@@ -2049,7 +2044,7 @@ void V_IronSight( Vector position, Vector punch, float clientTime, cl_entity_t *
 		time = 0;
 	}
 
-	if (clientTime > time + 0.01) {
+	if (clientTime > time + frameTime) {
 		time = clientTime;
 
 		if (g_IronSight) {
