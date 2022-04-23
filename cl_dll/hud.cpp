@@ -41,6 +41,7 @@ cvar_t *cl_bulletsmoke;
 cvar_t *cl_gunsmoke;
 cvar_t *cl_weaponsway;
 cvar_t *cl_weaponfidget;
+cvar_t * cl_weaponretract;
 cvar_t *cl_playpoint;
 cvar_t *cl_glasshud;
 cvar_t *cl_announcehumor;
@@ -370,6 +371,7 @@ void CHud :: Init( void )
 	cl_gunsmoke = CVAR_CREATE( "cl_gunsmoke", "1", FCVAR_ARCHIVE );
 	cl_weaponsway = CVAR_CREATE( "cl_weaponsway", "1", FCVAR_ARCHIVE );
 	cl_weaponfidget = CVAR_CREATE( "cl_weaponfidget", "1", FCVAR_ARCHIVE );
+	cl_weaponretract = CVAR_CREATE( "cl_weaponretract", "1", FCVAR_ARCHIVE );
 	cl_playpoint = CVAR_CREATE( "cl_playpoint", "1", FCVAR_ARCHIVE );
 	cl_glasshud = CVAR_CREATE( "cl_glasshud", "1", FCVAR_ARCHIVE );
 	cl_announcehumor = CVAR_CREATE( "cl_announcehumor", "1", FCVAR_ARCHIVE );
