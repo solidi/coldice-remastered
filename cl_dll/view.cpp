@@ -1786,7 +1786,7 @@ void V_PunchAxis( int axis, float punch )
 	ev_punchangle[ axis ] = punch;
 }
 
-void V_GlassHud ( float bounce, float clientTime, float frameTime ) {
+void V_GlassHud( float bounce, float clientTime, float frameTime ) {
 	g_yP += ((bounce * .5) * -1);
 	static float time = 0;
 	static int mode = 0;
@@ -1794,7 +1794,7 @@ void V_GlassHud ( float bounce, float clientTime, float frameTime ) {
 	if (clientTime + 2 < time) {
 		time = 0;
 	}
-	if (clientTime > time + frameTime) {
+	if (clientTime >= time + frameTime) {
 		time = clientTime;
 		if (bounce >= 2.75) {
 			if ( mode > 0 ) mode = -1;
@@ -1829,7 +1829,7 @@ void V_GlassHud ( float bounce, float clientTime, float frameTime ) {
 	g_yP = max( g_yP, -2.5 );
 }
 
-void V_WeaponSway ( float currentYaw, float frameTime, float clientTime, cl_entity_t *viewModel )
+void V_WeaponSway( float currentYaw, float frameTime, float clientTime, cl_entity_t *viewModel )
 {
 	static float time = 0;
 	static float decay = 0, accel = 0;
@@ -1853,7 +1853,7 @@ void V_WeaponSway ( float currentYaw, float frameTime, float clientTime, cl_enti
 		clockwise = !clockwise;
 	}
 
-	if (clientTime > time + frameTime) {
+	if (clientTime >= time + frameTime) {
 		time = clientTime;
 
 		if (delta) {
@@ -1901,7 +1901,7 @@ void V_WeaponFloat( float currentZ, float clientTime, float frameTime, cl_entity
 		time = 0;
 	}
 
-	if (clientTime > time + frameTime) {
+	if (clientTime >= time + frameTime) {
 		time = clientTime;
 		if (currentZ != 0) {
 			kZ += 0.75;
@@ -1958,7 +1958,7 @@ void V_WeaponDrop( float currentZ, float clientTime, float frameTime, cl_entity_
 		kYaw = 6;
 	}
 
-	if (clientTime > time + frameTime) {
+	if (clientTime >= time + frameTime) {
 		time = clientTime;
 		kZ += 0.75;
 		kPitch += 1.75;
@@ -1991,7 +1991,7 @@ void V_WeaponPull( float clientTime, float frameTime, cl_entity_t *viewModel, fl
 		time = 0;
 	}
 
-	if (clientTime > time + frameTime) {
+	if (clientTime >= time + frameTime) {
 		time = clientTime;
 
 		if (move > 100) {
@@ -2044,7 +2044,7 @@ void V_IronSight( Vector position, Vector punch, float clientTime, float frameTi
 		time = 0;
 	}
 
-	if (clientTime > time + frameTime) {
+	if (clientTime >= time + frameTime) {
 		time = clientTime;
 
 		if (g_IronSight) {
