@@ -673,6 +673,7 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_glasshud 1\" - Glass Hud\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_weaponsway 1\" - Weapon Sway\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_weaponfidget 1\" - Weapon Fidget\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_weaponretract 1\" - Weapon Retract\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_playpoint 1\" - Play buzzer/bell for frag\n" );
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_announcehumor 1\" - Play announcement/humor on weapons\n" );
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_showtips 1\" - Show random text tips during play\n" );
