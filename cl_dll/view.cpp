@@ -50,6 +50,7 @@ void V_WeaponFloat( float currentZ, float clientTime, cl_entity_t *viewModel );
 void V_WeaponDrop( float currentZ, float clientTime, cl_entity_t *viewModel );
 void V_WeaponPull( float clientTime, cl_entity_t *viewModel, float move, float *forward, float &k, float &k2, float &time, bool mode);
 void V_IronSight( Vector position, Vector punch, float clientTime, cl_entity_t *viewModel, Vector forward, Vector up, Vector right );
+void V_RetractWeapon(struct ref_params_s* pparams, cl_entity_s* view);
 void VectorAngles( const float *forward, float *angles );
 
 #include "r_studioint.h"
@@ -75,6 +76,7 @@ extern cvar_t	*scr_ofsx, *scr_ofsy, *scr_ofsz;
 extern cvar_t	*cl_vsmoothing;
 extern cvar_t	*cl_weaponsway;
 extern cvar_t	*cl_weaponfidget;
+extern cvar_t	*cl_weaponretract;
 extern cvar_t	*cl_glasshud;
 
 extern cvar_t *cl_vmx;
@@ -510,6 +512,7 @@ typedef struct
 	int CurrentAngle;
 } viewinterp_t;
 
+
 /*
 ==================
 V_CalcRefdef
@@ -713,59 +716,12 @@ void V_CalcNormalRefdef ( struct ref_params_s *pparams )
 	if (view->model != NULL) {
 		Vector position = view->model->aim_punch, angles = view->model->aim_angles;
 
-		/*if (!strcmp(view->model->name, "models/v_9mmhandgun.mdl") ||
-			!strcmp(view->model->name, "models/v_9mmhandguns.mdl")) {
-			position = Vector(2.0,5.0,8.0);
-			// SD: 5.0, 6.0, 4.0
-		} else if (!strcmp(view->model->name, "models/v_357.mdl")) {
-			position = Vector(2.0,3.0,3.5);
-			// SD: 2.0, 4.5, 6.0
-		} else if (!strcmp(view->model->name, "models/v_smg.mdl")) {
-			position = Vector(5.0,4.25,-1.4);
-			angles = Vector(-5.0,0.0,35.0);
-			// SD: 2.0, 2.5, 2.6
-		} else if (!strcmp(view->model->name, "models/v_mag60.mdl")) {
-			position = Vector(3.0,3.5,3.1);
-			// SD: 2.0, 4.5, 6.0
-		} else if (!strcmp(view->model->name, "models/v_9mmAR.mdl")) {
-			position = Vector(10.0,4.0,12.5);
-			// SD: 2.0, 2.5, 6.0
-		} else if (!strcmp(view->model->name, "models/v_12gauge.mdl")) {
-			position = Vector(3.0,3.0,3.0);
-			// SD: 3.0, 2.5, 5.5
-			// SD angle: 10.0, 0, 0
-		} else if (!strcmp(view->model->name, "models/v_shotgun.mdl")) {
-			position = Vector(3.0,3.0,6.5);
-			//angles = Vector(0.0,0.0,-4.0);
-			// SD: 3.0, 3.0, 5.25
-			// SD angle: 8.0, 0, 0
-		} else if (!strcmp(view->model->name, "models/v_glauncher.mdl")) {
-			position = Vector(2.0,3.0,3.0);
-			// SD: 3.0, 6.0, 6.5
-		} else if (!strcmp(view->model->name, "models/v_usas.mdl")) {
-			position = Vector(3.0,3.0,5.5);
-			// SD: 1.0, 0.0, 7.0
-		} else if (!strcmp(view->model->name, "models/v_crossbow.mdl")) {
-			position = Vector(2.0,5.0,8.0);
-			angles = Vector(0.0,-7.0,0.0);
-			// SD: 2.0, 5.0, 8.0
-			// SD Angles: 0.0, -8.0, 0.0
-		} else if (!strcmp(view->model->name, "models/v_railgun.mdl")) {
-			position = Vector(2.0,4.0,3.0);
-			// SD: Same
-		} else if (!strcmp(view->model->name, "models/v_snowball.mdl")) {
-			position = Vector(2.0,4.0,4.0);
-			// SD: Same
-		} else if (!strcmp(view->model->name, "models/v_grenade.mdl")) {
-			position = Vector(2.0,4.0,4.0);
-			// SD: Same
-		}else if (!strcmp(view->model->name, "models/v_cannon.mdl")) {
-			position = Vector(5.0, 1.0, 9.25);
-			// SD: 3.0, 0.0, 7.0
-			// SD angles: 0.0, -10.0, 0
-		}*/
 		if (Length(position) > 1) {
 			V_IronSight(position, angles, pparams->time, view, pparams->forward, pparams->up, pparams->right);
+		}
+
+		if (cl_weaponretract->value) {
+			V_RetractWeapon(pparams, view);
 		}
 	}
 
@@ -2198,6 +2154,45 @@ void V_IronSight( Vector position, Vector punch, float clientTime, cl_entity_t *
 	viewModel->angles[PITCH] += kPitch;
 	viewModel->angles[YAW] += kYaw;
 	viewModel->angles[ROLL] += kRoll;
+}
+
+void V_RetractWeapon(struct ref_params_s* pparams, cl_entity_s* view)
+{
+	static float v_dist = 0.0f;
+	cl_entity_t* viewentity;
+	pmtrace_t tr;
+	Vector vecSrc, vecEnd, vecFwd;
+
+	viewentity = gEngfuncs.GetEntityByIndex(pparams->viewentity);
+	if (!viewentity)
+		return;
+
+	VectorCopy(pparams->vieworg, vecSrc);
+	VectorCopy(pparams->forward, vecFwd);
+	VectorCopy(vecSrc + vecFwd * 50, vecEnd);
+
+	gEngfuncs.pEventAPI->EV_SetUpPlayerPrediction(0, 1);
+
+	// Store off the old count
+	gEngfuncs.pEventAPI->EV_PushPMStates();
+
+	// Now add in all of the players.
+	gEngfuncs.pEventAPI->EV_SetSolidPlayers(gEngfuncs.GetLocalPlayer()->index - 1);
+
+	gEngfuncs.pEventAPI->EV_SetTraceHull(2);
+	gEngfuncs.pEventAPI->EV_PlayerTrace(vecSrc, vecEnd, PM_NORMAL, -1, &tr);
+
+	gEngfuncs.pEventAPI->EV_PopPMStates();
+
+	v_dist = lerp(v_dist, -(tr.fraction - 1) * 0.65, pparams->frametime * 15.5f);
+	
+	view->angles[0] += v_dist * 12.25;
+	view->angles[1] -= v_dist * 4.5;
+	for (int i = 0; i < 3; i++)
+	{
+		view->origin[i] -= v_dist * 10.5 * pparams->forward[i];
+		view->origin[i] -= v_dist * 4.5 * pparams->up[i];
+	}
 }
 
 /*
