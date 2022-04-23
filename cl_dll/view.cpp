@@ -49,7 +49,7 @@ void V_WeaponSway( float currentYaw, float framerate, float clientTime, cl_entit
 void V_WeaponFloat( float currentZ, float clientTime, cl_entity_t *viewModel );
 void V_WeaponDrop( float currentZ, float clientTime, cl_entity_t *viewModel );
 void V_WeaponPull( float clientTime, cl_entity_t *viewModel, float move, float *forward, float &k, float &k2, float &time, bool mode);
-void V_IronSight( Vector position, Vector punch, float frameTime, float clientTime, cl_entity_t *viewModel, Vector forward, Vector up, Vector right );
+void V_IronSight( Vector position, Vector punch, float clientTime, cl_entity_t *viewModel, Vector forward, Vector up, Vector right );
 void V_RetractWeapon(struct ref_params_s* pparams, cl_entity_s* view);
 void VectorAngles( const float *forward, float *angles );
 
