@@ -12,7 +12,7 @@
 #include "qlumpy.h"
 
 
-#define MAXLUMP		0x50000         // biggest possible lump
+#define MAXLUMP		0x100000         // biggest possible lump
 
 extern char qproject[];
 
