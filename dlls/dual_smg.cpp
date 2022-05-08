@@ -229,5 +229,5 @@ void CDualSMG::WeaponIdle( void )
 }
 
 void CDualSMG::SwapDualWeapon( void ) {
-	m_pPlayer->SelectItem("weapon_dual_smg");
+	m_pPlayer->SelectItem("weapon_smg");
 }

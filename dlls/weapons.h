@@ -1511,6 +1511,9 @@ public:
 #endif
 	}
 
+	void ProvideDualItem(CBasePlayer *pPlayer, const char *itemName);
+	void SwapDualWeapon( void );
+
 private:
 	unsigned short m_usSingleFire;
 };
@@ -1961,6 +1964,8 @@ public:
 		return FALSE;
 #endif
 	}
+
+	void SwapDualWeapon( void );
 
 private:
 	unsigned short m_usSingleFire;

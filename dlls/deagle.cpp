@@ -223,7 +223,7 @@ void CDeagle::ProvideDualItem(CBasePlayer *pPlayer, const char *item) {
 	if (!stricmp(item, "weapon_deagle")) {
 		if (!pPlayer->HasNamedPlayerItem("weapon_dual_deagle")) {
 			pPlayer->GiveNamedItem("weapon_dual_deagle");
-			ALERT(at_console, "GiveNamedItem - weapon_dual_deagle\n");
+			ALERT(at_aiconsole, "Give weapon_dual_deagle!\n");
 		}
 	}
 #endif

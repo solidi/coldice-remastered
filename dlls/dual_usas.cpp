@@ -262,3 +262,7 @@ void CDualUsas::WeaponIdle( void )
 
 	m_flTimeWeaponIdle = UTIL_SharedRandomFloat( m_pPlayer->random_seed, 10, 15 ); // how long till we do this again.
 }
+
+void CDualUsas::SwapDualWeapon( void ) {
+	m_pPlayer->SelectItem("weapon_usas");
+}

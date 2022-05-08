@@ -222,3 +222,23 @@ void CUsas::WeaponIdle( void )
 
 	m_flTimeWeaponIdle = UTIL_SharedRandomFloat( m_pPlayer->random_seed, 10, 15 ); // how long till we do this again.
 }
+
+void CUsas::ProvideDualItem(CBasePlayer *pPlayer, const char *item) {
+	if (item == NULL) {
+		return;
+	}
+
+#ifndef CLIENT_DLL
+	if (!stricmp(item, "weapon_usas")) {
+		if (!pPlayer->HasNamedPlayerItem("weapon_dual_usas")) {
+			pPlayer->GiveNamedItem("weapon_dual_usas");
+			ALERT(at_aiconsole, "Give weapon_dual_usas!\n");
+		}
+	}
+#endif
+}
+
+void CUsas::SwapDualWeapon( void ) {
+	m_pPlayer->SelectItem("weapon_dual_usas");
+}
+
