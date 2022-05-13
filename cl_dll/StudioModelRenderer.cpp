@@ -1434,13 +1434,11 @@ void CStudioModelRenderer::AppendGlowModel()
 
 	FILE *bfp = fopen(modName, "rb");
 
-	if (bfp != nullptr)
 	// Look for glow models, and attach it
-	/*if (!strcmp(m_pCurrentEntity->model->name, "models/w_battery.mdl")
-		|| !strcmp(m_pCurrentEntity->model->name, "models/w_medkit.mdl") -- std::filesystem::exists(modName))*/
+	if (bfp != NULL)
 	{
-		//if (CVAR_GET_FLOAT("developer") > 5)
-		//	gEngfuncs.Con_Printf("model is %s, %s\n", modName, modelNameLight);
+		if (CVAR_GET_FLOAT("developer") > 5)
+			gEngfuncs.Con_Printf("model is %s, %s\n", modName, modelNameLight);
 
 		cl_entity_t saveent = *m_pCurrentEntity;
 
