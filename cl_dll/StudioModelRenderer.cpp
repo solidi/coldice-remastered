@@ -69,6 +69,7 @@ void CStudioModelRenderer::Init( void )
 	m_pCvarDeveloper		= IEngineStudio.GetCvar( "developer" );
 	m_pCvarDrawEntities		= IEngineStudio.GetCvar( "r_drawentities" );
 	m_pIceModels			= gEngfuncs.pfnRegisterVariable ( "cl_icemodels", "2", FCVAR_ARCHIVE );
+	m_pCvarGlowModels		= gEngfuncs.pfnRegisterVariable ( "cl_glowmodels", "1", FCVAR_ARCHIVE );
 
 	m_pChromeSprite			= IEngineStudio.GetChromeSprite();
 
@@ -1383,9 +1384,94 @@ int CStudioModelRenderer::StudioDrawModel( int flags )
 		IEngineStudio.StudioSetRemapColors( m_nTopColor, m_nBottomColor );
 
 		StudioRenderModel( );
+
+		if (m_pCvarGlowModels && m_pCvarGlowModels->value)
+		{
+			// clientside batterylight lightning effect
+			if (!strcmp(m_pCurrentEntity->model->name, "models/w_battery.mdl") && (m_pCurrentEntity->curstate.body == 0 || m_pCurrentEntity->curstate.body == 3))
+			{
+				dlight_t* dl = gEngfuncs.pEfxAPI->CL_AllocDlight(0);
+				VectorCopy(m_pCurrentEntity->curstate.origin, dl->origin);
+				dl->radius = 20;
+				dl->color.r = 0;
+				dl->color.g = 91;
+				dl->color.b = 91;
+				dl->die = gHUD.m_flTimeDelta + 0.1f + gHUD.m_flTime;
+			}
+
+			AppendGlowModel();
+		}
 	}
 
 	return 1;
+}
+
+// ============================FULLBRIGHTS============================
+// Fullbright attachments support written for HL:E
+// by Bacontsu, much credits to : Admer456, FranticDreamer, and helpful people on TWHL!
+// HOW TO USE : this function will combines 2 models and make one of them with "_light.mdl"
+//				Fullbright (example : modelname_light.mdl)
+void CStudioModelRenderer::AppendGlowModel()
+{
+	vec3_t dir;
+	alight_t lighting;
+	char* modelName = m_pCurrentEntity->model->name;
+	int parentBody = m_pCurrentEntity->curstate.body;
+	int parentSkin = m_pCurrentEntity->curstate.skin;
+	const char* modNameReal = gEngfuncs.pfnGetGameDirectory();
+	char modelNameLight[MAX_MODEL_NAME];
+	char modName[MAX_MODEL_NAME];
+	strcpy(modName, modNameReal);
+	strcat(modName, "/");
+	strcpy(modelNameLight, modelName);
+	int length = strlen(modelNameLight);
+	if (length > 4)
+	{
+		modelNameLight[length - 4] = '\0';
+		strcat(modelNameLight, "_light.mdl");
+		strcat(modName, modelNameLight);
+	}
+
+	FILE *bfp = fopen(modName, "rb");
+
+	// Look for glow models, and attach it
+	if (bfp != NULL)
+	{
+		if (CVAR_GET_FLOAT("developer") > 5)
+			gEngfuncs.Con_Printf("model is %s, %s\n", modName, modelNameLight);
+
+		cl_entity_t saveent = *m_pCurrentEntity;
+
+		model_t* lightmodel = IEngineStudio.Mod_ForName(modName, 1); //load model for fullbrightpart
+		m_pCurrentEntity->curstate.body = parentBody;
+		m_pCurrentEntity->curstate.skin = parentSkin;
+
+		m_pStudioHeader = (studiohdr_t*)IEngineStudio.Mod_Extradata(lightmodel);
+
+		IEngineStudio.StudioSetHeader(m_pStudioHeader);
+
+		StudioMergeBones(lightmodel); //merge both model
+
+		m_pCurrentEntity->curstate.rendermode = kRenderTransAdd;
+
+		lighting.plightvec = dir;
+		IEngineStudio.StudioDynamicLight(m_pCurrentEntity, &lighting);
+
+		// Fullbright
+		lighting.color = Vector(1.0f, 1.0f, 1.0f);
+		lighting.ambientlight = 255;
+		lighting.shadelight = 0;
+
+		IEngineStudio.StudioSetupLighting(&lighting);
+
+		StudioRenderModel();
+
+		StudioCalcAttachments();
+
+		*m_pCurrentEntity = saveent;
+
+		fclose(bfp);
+	}
 }
 
 /*

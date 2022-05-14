@@ -98,6 +98,8 @@ public:
 	// Process movement of player
 	virtual void StudioProcessGait ( entity_state_t *pplayer );
 
+	virtual void AppendGlowModel( void );
+
 public:
 
 	// Client clock
@@ -123,6 +125,7 @@ public:
 	cvar_t			*m_pCvarDrawEntities;
 
 	cvar_t			*m_pCvarRighthand;
+	cvar_t			*m_pCvarGlowModels;
 
 	// The entity which we are currently rendering.
 	cl_entity_t		*m_pCurrentEntity;		
