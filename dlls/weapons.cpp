@@ -1985,9 +1985,178 @@ enum kick_e {
 	KICK_2
 };
 
-void CBasePlayerWeapon::StartKick( void )
+enum punch_e {
+	IDLE1 = 0,
+	DEPLOY,
+	HOLSTER,
+	RIGHT_HIT,
+	RIGHT_MISS,
+	LEFT_MISS
+};
+
+void CBasePlayerWeapon::StartPunch( BOOL hitSomething )
 {
-	if (!Kick()) {
+	if (!CanPunch()) {
+		return;
+	}
+
+	if (m_pPlayer->m_fKickTime >= gpGlobals->time) {
+		return;
+	}
+
+	if (!CanAttack( m_flNextPrimaryAttack, gpGlobals->time, UseDecrement() )) {
+		return;
+	}
+
+	Holster();
+	m_pPlayer->m_fPunchTime = gpGlobals->time + 0.75;
+	PunchAttack(hitSomething);
+}
+
+void CBasePlayerWeapon::PunchAttack( BOOL hitSomething )
+{
+	m_pPlayer->pev->viewmodel = MAKE_STRING("models/v_fists.mdl");
+
+	TraceResult tr;
+	UTIL_MakeVectors (m_pPlayer->pev->v_angle);
+	Vector vecSrc	= m_pPlayer->GetGunPosition( );
+	Vector vecEnd	= vecSrc + gpGlobals->v_forward * 32;
+
+	UTIL_TraceLine( vecSrc, vecEnd, dont_ignore_monsters, ENT( m_pPlayer->pev ), &tr );
+
+	m_pPlayer->pev->punchangle = Vector(-10, 0, 0);
+
+#ifndef CLIENT_DLL
+	if ( tr.flFraction >= 1.0 )
+	{
+		UTIL_TraceHull( vecSrc, vecEnd, dont_ignore_monsters, head_hull, ENT( m_pPlayer->pev ), &tr );
+		if ( tr.flFraction < 1.0 )
+		{
+			// Calculate the point of intersection of the line (or hull) and the object we hit
+			// This is and approximation of the "best" intersection
+			CBaseEntity *pHit = CBaseEntity::Instance( tr.pHit );
+			if ( !pHit || pHit->IsBSPModel() )
+				UTIL_FindHullIntersection( vecSrc, tr, VEC_DUCK_HULL_MIN, VEC_DUCK_HULL_MAX, m_pPlayer->edict() );
+			vecEnd = tr.vecEndPos;	// This is the point on the actual surface (the hull could have hit space)
+		}
+	}
+#endif
+
+	switch( RANDOM_LONG(0,1) )
+	{
+	case 0:
+		SendWeaponAnim( LEFT_MISS ); break;
+	case 1:
+		SendWeaponAnim( RIGHT_MISS ); break;
+	}
+
+	// player "shoot" animation
+	m_pPlayer->SetAnimation( PLAYER_PUNCH );
+
+	// play thwack, smack, or dong sound
+	float flVol = 1.0;
+	int fHitWorld = TRUE;
+
+	if ( tr.flFraction >= 1.0 )
+	{
+		if (hitSomething)
+		{
+			EMIT_SOUND(ENT(m_pPlayer->pev), CHAN_ITEM, "fists_hitbod.wav", 1, ATTN_NORM);
+			m_pPlayer->m_iWeaponVolume = 128;
+			flVol = 0.1;
+			fHitWorld = FALSE;
+
+			UTIL_MakeVectors( m_pPlayer->pev->v_angle );
+			Vector smoke = tr.vecEndPos - gpGlobals->v_forward * 10;
+			CSprite *pSprite = CSprite::SpriteCreate( "sprites/gunsmoke.spr", smoke, TRUE );
+			pSprite->AnimateAndDie( 12 );
+			pSprite->SetTransparency( kRenderTransAdd, 255, 255, 255, 80, kRenderFxNoDissipation );
+			pSprite->SetScale( 0.4 );
+		} else {
+			// miss
+			EMIT_SOUND(ENT(m_pPlayer->pev), CHAN_ITEM, "fists_miss.wav", 1, ATTN_NORM);
+		}
+	}
+	else
+	{
+
+#ifndef CLIENT_DLL
+
+		CBaseEntity *pEntity = CBaseEntity::Instance(tr.pHit);
+		ClearMultiDamage( );
+
+		pEntity->TraceAttack(m_pPlayer->pev, gSkillData.plrDmgFists, gpGlobals->v_forward, &tr, DMG_PUNCH ); 
+
+		ApplyMultiDamage( m_pPlayer->pev, m_pPlayer->pev );
+
+		if (pEntity)
+		{
+			if ( pEntity->Classify() != CLASS_NONE && pEntity->Classify() != CLASS_MACHINE )
+			{
+				// play thwack or smack sound
+				EMIT_SOUND(ENT(m_pPlayer->pev), CHAN_ITEM, "fists_hitbod.wav", 1, ATTN_NORM);
+				m_pPlayer->m_iWeaponVolume = 128;
+				flVol = 0.1;
+
+				fHitWorld = FALSE;
+			}
+		}
+
+		// play texture hit sound
+		// UNDONE: Calculate the correct point of intersection when we hit with the hull instead of the line
+
+		if (fHitWorld)
+		{
+			float fvolbar = TEXTURETYPE_PlaySound(&tr, vecSrc, vecSrc + (vecEnd-vecSrc)*2, BULLET_PLAYER_FIST);
+
+			if ( g_pGameRules->IsMultiplayer() )
+			{
+				// override the volume here, cause we don't play texture sounds in multiplayer, 
+				// and fvolbar is going to be 0 from the above call.
+
+				fvolbar = 1;
+			}
+
+			EMIT_SOUND_DYN(ENT(m_pPlayer->pev), CHAN_ITEM, "fists_hit.wav", fvolbar, ATTN_NORM, 0, 98 + RANDOM_LONG(0,3));
+		}
+
+		m_pPlayer->m_iWeaponVolume = flVol * 512;
+#endif
+	}
+
+	// delay the decal a bit
+	m_trBootHit = tr;
+
+	SetThink( &CBasePlayerWeapon::EndPunch );
+	pev->nextthink = gpGlobals->time + 0.18;
+
+	m_flNextPrimaryAttack = m_flNextSecondaryAttack = GetNextAttackDelay(1.0);
+	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + UTIL_SharedRandomFloat( m_pPlayer->random_seed, 10, 15 );
+}
+
+void CBasePlayerWeapon::EndPunch( void )
+{
+	if (m_trBootHit.flFraction < 1.0) {
+		UTIL_MakeVectors( m_pPlayer->pev->v_angle );
+		m_pPlayer->pev->velocity = m_pPlayer->pev->velocity + (gpGlobals->v_forward * -300);
+		Vector smoke = m_trBootHit.vecEndPos - gpGlobals->v_forward * 10;
+		CSprite *pSprite = CSprite::SpriteCreate( "sprites/gunsmoke.spr", smoke, TRUE );
+		pSprite->AnimateAndDie( 12 );
+		pSprite->SetTransparency( kRenderTransAdd, 255, 255, 255, 80, kRenderFxNoDissipation );
+		pSprite->SetScale( 0.4 );
+		DecalGunshot( &m_trBootHit, BULLET_PLAYER_FIST );
+	}
+
+	Deploy();
+}
+
+void CBasePlayerWeapon::StartKick( BOOL hitSomething )
+{
+	if (!CanKick()) {
+		return;
+	}
+
+	if (m_pPlayer->m_fPunchTime >= gpGlobals->time) {
 		return;
 	}
 
@@ -2001,10 +2170,10 @@ void CBasePlayerWeapon::StartKick( void )
 
 	Holster();
 	m_pPlayer->m_fKickTime = gpGlobals->time + 0.75;
-	KickAttack();
+	KickAttack(hitSomething);
 }
 
-void CBasePlayerWeapon::KickAttack( void )
+void CBasePlayerWeapon::KickAttack( BOOL hitSomething )
 {
 	m_pPlayer->pev->viewmodel = MAKE_STRING("models/v_leg.mdl");
 
@@ -2044,10 +2213,28 @@ void CBasePlayerWeapon::KickAttack( void )
 	// player "shoot" animation
 	m_pPlayer->SetAnimation( PLAYER_KICK );
 
+	float flVol = 1.0;
+	int fHitWorld = TRUE;
+
 	if ( tr.flFraction >= 1.0 )
 	{
-		// miss
-		EMIT_SOUND(ENT(m_pPlayer->pev), CHAN_ITEM, "kick.wav", 1, ATTN_NORM);
+		if (hitSomething)
+		{
+			EMIT_SOUND(ENT(m_pPlayer->pev), CHAN_ITEM, "fists_hitbod.wav", 1, ATTN_NORM);
+			m_pPlayer->m_iWeaponVolume = 128;
+			flVol = 0.1;
+			fHitWorld = FALSE;
+
+			UTIL_MakeVectors( m_pPlayer->pev->v_angle );
+			Vector smoke = tr.vecEndPos - gpGlobals->v_forward * 10;
+			CSprite *pSprite = CSprite::SpriteCreate( "sprites/gunsmoke.spr", smoke, TRUE );
+			pSprite->AnimateAndDie( 12 );
+			pSprite->SetTransparency( kRenderTransAdd, 255, 255, 255, 80, kRenderFxNoDissipation );
+			pSprite->SetScale( 0.4 );
+		} else {
+			// miss
+			EMIT_SOUND(ENT(m_pPlayer->pev), CHAN_ITEM, "kick.wav", 1, ATTN_NORM);
+		}
 	}
 	else
 	{
@@ -2062,9 +2249,6 @@ void CBasePlayerWeapon::KickAttack( void )
 		ApplyMultiDamage( m_pPlayer->pev, m_pPlayer->pev );
 
 		// play thwack, smack, or dong sound
-		float flVol = 1.0;
-		int fHitWorld = TRUE;
-
 		if (pEntity)
 		{
 			if ( pEntity->Classify() != CLASS_NONE && pEntity->Classify() != CLASS_MACHINE )

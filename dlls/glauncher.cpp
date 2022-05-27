@@ -199,7 +199,7 @@ void CGrenadeLauncher::SecondaryAttack( void )
 
 	CGrenade::ShootTimedCluster ( m_pPlayer->pev, 
 							m_pPlayer->pev->origin + m_pPlayer->pev->view_ofs + gpGlobals->v_forward * 16, 
-							gpGlobals->v_forward * 800, 2 );
+							gpGlobals->v_forward * 800, 6 );
 
 	int flags;
 #if defined( CLIENT_WEAPONS )

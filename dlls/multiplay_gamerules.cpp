@@ -843,6 +843,11 @@ void CHalfLifeMultiplay::DeathNotice( CBasePlayer *pVictim, entvars_t *pKiller, 
 		killer_weapon_name = "kick";
 	}
 
+	if (gMultiDamage.type & DMG_PUNCH)
+	{
+		killer_weapon_name = "fists";
+	}
+
 	// strip the monster_* or weapon_* from the inflictor's classname
 	if ( strncmp( killer_weapon_name, "weapon_", 7 ) == 0 )
 		killer_weapon_name += 7;

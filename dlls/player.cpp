@@ -920,6 +920,11 @@ void CBasePlayer::Killed( entvars_t *pevAttacker, int iGib )
 		m_pTank = NULL;
 	}
 
+	if ( pHeldItem != NULL )
+	{
+		pHeldItem = NULL;
+	}
+
 	// this client isn't going to be thinking for a while, so reset the sound until they respawn
 	pSound = CSoundEnt::SoundPointerForIndex( CSoundEnt::ClientSoundIndex( edict() ) );
 	{
@@ -1024,6 +1029,10 @@ void CBasePlayer::SetAnimation( PLAYER_ANIM playerAnim )
 		m_IdealActivity = ACT_FROZEN;
 		break;
 
+	case PLAYER_PUNCH:
+		m_IdealActivity = ACT_PUNCH;
+		break;
+
 	case PLAYER_JUMP:
 		m_IdealActivity = ACT_HOP;
 		break;
@@ -1046,6 +1055,7 @@ void CBasePlayer::SetAnimation( PLAYER_ANIM playerAnim )
 		case ACT_LEAP:
 		case ACT_DIESIMPLE:
 		case ACT_KICK:
+		case ACT_PUNCH:
 			m_IdealActivity = m_Activity;
 			break;
 		default:
@@ -1060,6 +1070,10 @@ void CBasePlayer::SetAnimation( PLAYER_ANIM playerAnim )
 			m_IdealActivity = m_Activity;
 		}
 		else if ( m_fKickTime > gpGlobals->time && m_Activity == ACT_KICK )
+		{
+			m_IdealActivity = m_Activity;
+		}
+		else if ( m_fPunchTime > gpGlobals->time && m_Activity == ACT_PUNCH )
 		{
 			m_IdealActivity = m_Activity;
 		}
@@ -1090,6 +1104,7 @@ void CBasePlayer::SetAnimation( PLAYER_ANIM playerAnim )
 	case ACT_DIESIMPLE:
 	case ACT_KICK:
 	case ACT_FROZEN:
+	case ACT_PUNCH:
 	default:
 		if ( m_Activity == m_IdealActivity)
 			return;
@@ -1605,6 +1620,21 @@ void CBasePlayer::PlayerUse ( void )
 		}
 	}
 
+	if (pHeldItem && !FNullEnt(pHeldItem->pev)) {
+		UTIL_MakeVectors( pev->v_angle + pev->punchangle );
+		Vector vecThrow = gpGlobals->v_forward * 500 + pev->velocity;
+		pHeldItem->pev->movetype = MOVETYPE_TOSS;
+		pHeldItem->pev->velocity = vecThrow;
+
+		if (m_pActiveItem) {
+			((CBasePlayerWeapon *)m_pActiveItem)->StartPunch(TRUE);
+		}
+
+		pHeldItem = NULL;
+
+		return;
+	}
+
 	CBaseEntity *pObject = NULL;
 	CBaseEntity *pClosest = NULL;
 	Vector		vecLOS;
@@ -1616,7 +1646,8 @@ void CBasePlayer::PlayerUse ( void )
 	while ((pObject = UTIL_FindEntityInSphere( pObject, pev->origin, PLAYER_SEARCH_RADIUS )) != NULL)
 	{
 
-		if (pObject->ObjectCaps() & (FCAP_IMPULSE_USE | FCAP_CONTINUOUS_USE | FCAP_ONOFF_USE))
+		if (pObject->ObjectCaps() & (FCAP_IMPULSE_USE | FCAP_CONTINUOUS_USE | FCAP_ONOFF_USE) ||
+			(FClassnameIs ( pObject->pev, "grenade" ) || FClassnameIs ( pObject->pev, "monster_satchel" )) )
 		{
 			// !!!PERFORMANCE- should this check be done on a per case basis AFTER we've determined that
 			// this object is actually usable? This dot is being done for every object within PLAYER_SEARCH_RADIUS
@@ -1647,6 +1678,22 @@ void CBasePlayer::PlayerUse ( void )
 
 		if ( m_afButtonPressed & IN_USE )
 			EMIT_SOUND( ENT(pev), CHAN_ITEM, "wpn_select.wav", 0.4, ATTN_NORM);
+
+		if ( FClassnameIs ( pObject->pev, "grenade" ) || FClassnameIs ( pObject->pev, "monster_satchel" ) ) {
+			UTIL_MakeVectors( pev->v_angle );
+			pHeldItem = pObject;
+			pHeldItem->pev->movetype = MOVETYPE_FLY;
+			pHeldItem->pev->origin = GetGunPosition() + gpGlobals->v_forward * 25 + gpGlobals->v_up * -10;
+
+			// ALERT(at_aiconsole, "[pev->classname=%s, pev->origin=[%.2f,%.2f,%.2f]]\n", STRING(pHeldItem->pev->classname), pHeldItem->pev->origin.x, pHeldItem->pev->origin.y, pHeldItem->pev->origin.z);
+
+			if (m_pActiveItem)
+			{
+				m_pActiveItem->Holster();
+			}
+
+			return;
+		}
 
 		if ( ( (pev->button & IN_USE) && (caps & FCAP_CONTINUOUS_USE) ) ||
 			 ( (m_afButtonPressed & IN_USE) && (caps & (FCAP_IMPULSE_USE|FCAP_ONOFF_USE)) ) )
@@ -2063,6 +2110,12 @@ void CBasePlayer::PreThink(void)
 	if (m_fJumpHeight != atof(CVAR_GET_STRING("sv_jumpheight"))) {
 		g_engfuncs.pfnSetPhysicsKeyValue(edict(), "jumpheight", CVAR_GET_STRING("sv_jumpheight"));
 		m_fJumpHeight = atof(CVAR_GET_STRING("sv_jumpheight"));
+	}
+
+	if (pHeldItem && !FNullEnt(pHeldItem->pev)) {
+		UTIL_MakeVectors( pev->v_angle );
+		pHeldItem->pev->origin = GetGunPosition() + gpGlobals->v_forward * 25 + gpGlobals->v_up * -10;
+		pHeldItem->pev->angles = pev->angles;
 	}
 }
 /* Time based Damage works as follows: 
@@ -3639,14 +3692,35 @@ void CBasePlayer::ImpulseCommands( )
 		}
 
 		break;
-	case 206:
-		if (m_pActiveItem) {
-			((CBasePlayerWeapon *)m_pActiveItem)->StartKick();
-		}
-		break;
 	case 205:
 		if (m_pActiveItem) {
 			((CBasePlayerWeapon *)m_pActiveItem)->SwapDualWeapon();
+		}
+		break;
+	case 206:
+		if (m_pActiveItem) {
+			((CBasePlayerWeapon *)m_pActiveItem)->StartKick(pHeldItem != NULL);
+
+			if (pHeldItem && !FNullEnt(pHeldItem->pev)) {
+				UTIL_MakeVectors( pev->v_angle + pev->punchangle );
+				Vector vecThrow = gpGlobals->v_forward * 1000 + pev->velocity;
+				pHeldItem->pev->movetype = MOVETYPE_TOSS;
+				pHeldItem->pev->velocity = vecThrow;
+				pHeldItem = NULL;
+			}
+		}
+		break;
+	case 207:
+		if (m_pActiveItem) {			
+			((CBasePlayerWeapon *)m_pActiveItem)->StartPunch(pHeldItem != NULL);
+
+			if (pHeldItem && !FNullEnt(pHeldItem->pev)) {
+				UTIL_MakeVectors( pev->v_angle + pev->punchangle );
+				Vector vecThrow = gpGlobals->v_forward * 500 + pev->velocity;
+				pHeldItem->pev->movetype = MOVETYPE_TOSS;
+				pHeldItem->pev->velocity = vecThrow;
+				pHeldItem = NULL;
+			}
 		}
 		break;
 

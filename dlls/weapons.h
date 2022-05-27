@@ -414,14 +414,20 @@ public:
 	virtual BOOL UseDecrement( void ) { return FALSE; };
 
 	virtual BOOL SemiAuto( void ) { return FALSE; };
-	virtual BOOL Kick( void ) { return TRUE; };
+	virtual BOOL CanKick( void ) { return TRUE; };
+	virtual BOOL CanPunch( void ) { return TRUE; };
 	virtual void ProvideDualItem(CBasePlayer *pPlayer, const char *itemName);
+	virtual void ProvideSingleItem(CBasePlayer *pPlayer, const char *itemName) { return; }
 	virtual void SwapDualWeapon() { return; }
 
 	TraceResult m_trBootHit;
-	void StartKick( void );
-	void KickAttack( void );
+	void StartKick( BOOL hitSomething );
+	void KickAttack( BOOL hitSomething );
 	void EndKick( void );
+
+	void StartPunch( BOOL hitSomething );
+	void PunchAttack( BOOL hitSomething );
+	void EndPunch( void );
 	
 	int	PrimaryAmmoIndex(); 
 	int	SecondaryAmmoIndex(); 
@@ -1718,7 +1724,8 @@ public:
 #endif
 	}
 
-	virtual BOOL Kick( void ) { return FALSE; }
+	virtual BOOL CanKick( void ) { return FALSE; }
+	virtual BOOL CanPunch( void ) { return FALSE; }
 
 private:
 	unsigned short m_usNuke;
