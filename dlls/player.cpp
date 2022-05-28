@@ -920,7 +920,7 @@ void CBasePlayer::Killed( entvars_t *pevAttacker, int iGib )
 		m_pTank = NULL;
 	}
 
-	if ( pHeldItem != NULL )
+	if ( pHeldItem != NULL && !FNullEnt(pHeldItem->pev) )
 	{
 		pHeldItem = NULL;
 	}
@@ -1620,18 +1620,8 @@ void CBasePlayer::PlayerUse ( void )
 		}
 	}
 
-	if (pHeldItem && !FNullEnt(pHeldItem->pev)) {
-		UTIL_MakeVectors( pev->v_angle + pev->punchangle );
-		Vector vecThrow = gpGlobals->v_forward * 500 + pev->velocity;
-		pHeldItem->pev->movetype = MOVETYPE_TOSS;
-		pHeldItem->pev->velocity = vecThrow;
-
-		if (m_pActiveItem) {
-			((CBasePlayerWeapon *)m_pActiveItem)->StartPunch(TRUE);
-		}
-
-		pHeldItem = NULL;
-
+	if (ReleaseHeldItem(RANDOM_LONG(100,200))) {
+		((CBasePlayerWeapon *)m_pActiveItem)->StartPunch(TRUE);
 		return;
 	}
 
@@ -1682,6 +1672,8 @@ void CBasePlayer::PlayerUse ( void )
 		if ( FClassnameIs ( pObject->pev, "grenade" ) || FClassnameIs ( pObject->pev, "monster_satchel" ) ) {
 			UTIL_MakeVectors( pev->v_angle );
 			pHeldItem = pObject;
+			pHeldItem->pev->velocity = pHeldItem->pev->avelocity = g_vecZero;
+			pHeldItem->pev->framerate = 0;
 			pHeldItem->pev->movetype = MOVETYPE_FLY;
 			pHeldItem->pev->origin = GetGunPosition() + gpGlobals->v_forward * 25 + gpGlobals->v_up * -10;
 
@@ -2112,10 +2104,15 @@ void CBasePlayer::PreThink(void)
 		m_fJumpHeight = atof(CVAR_GET_STRING("sv_jumpheight"));
 	}
 
+	if (pHeldItem && m_pLastItem != m_pActiveItem) {
+		ReleaseHeldItem(100);
+	}
+
 	if (pHeldItem && !FNullEnt(pHeldItem->pev)) {
 		UTIL_MakeVectors( pev->v_angle );
 		pHeldItem->pev->origin = GetGunPosition() + gpGlobals->v_forward * 25 + gpGlobals->v_up * -10;
 		pHeldItem->pev->angles = pev->angles;
+		pHeldItem->pev->velocity = pev->velocity;
 	}
 }
 /* Time based Damage works as follows: 
@@ -3700,27 +3697,13 @@ void CBasePlayer::ImpulseCommands( )
 	case 206:
 		if (m_pActiveItem) {
 			((CBasePlayerWeapon *)m_pActiveItem)->StartKick(pHeldItem != NULL);
-
-			if (pHeldItem && !FNullEnt(pHeldItem->pev)) {
-				UTIL_MakeVectors( pev->v_angle + pev->punchangle );
-				Vector vecThrow = gpGlobals->v_forward * 1000 + pev->velocity;
-				pHeldItem->pev->movetype = MOVETYPE_TOSS;
-				pHeldItem->pev->velocity = vecThrow;
-				pHeldItem = NULL;
-			}
+			ReleaseHeldItem(RANDOM_LONG(700,900));
 		}
 		break;
 	case 207:
 		if (m_pActiveItem) {			
 			((CBasePlayerWeapon *)m_pActiveItem)->StartPunch(pHeldItem != NULL);
-
-			if (pHeldItem && !FNullEnt(pHeldItem->pev)) {
-				UTIL_MakeVectors( pev->v_angle + pev->punchangle );
-				Vector vecThrow = gpGlobals->v_forward * 500 + pev->velocity;
-				pHeldItem->pev->movetype = MOVETYPE_TOSS;
-				pHeldItem->pev->velocity = vecThrow;
-				pHeldItem = NULL;
-			}
+			ReleaseHeldItem(RANDOM_LONG(300,500));
 		}
 		break;
 
@@ -3731,6 +3714,20 @@ void CBasePlayer::ImpulseCommands( )
 	}
 	
 	pev->impulse = 0;
+}
+
+BOOL CBasePlayer::ReleaseHeldItem(float speed) 
+{
+	if (pHeldItem && !FNullEnt(pHeldItem->pev)) {
+		UTIL_MakeVectors( pev->v_angle + pev->punchangle );
+		Vector vecThrow = gpGlobals->v_forward * speed + pev->velocity;
+		pHeldItem->pev->movetype = MOVETYPE_BOUNCE;
+		pHeldItem->pev->velocity = vecThrow;
+		pHeldItem = NULL;
+		return TRUE;
+	}
+
+	return FALSE;
 }
 
 //=========================================================

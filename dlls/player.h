@@ -300,6 +300,7 @@ public:
 	void EnableControl(BOOL fControl);
 
 	void ChangeGun(const char *pstr);//TROND
+	BOOL ReleaseHeldItem(float speed);
 
 	int  GiveAmmo( int iAmount, char *szName, int iMax );
 	void SendAmmoUpdate(void);
