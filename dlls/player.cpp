@@ -920,10 +920,7 @@ void CBasePlayer::Killed( entvars_t *pevAttacker, int iGib )
 		m_pTank = NULL;
 	}
 
-	if ( pHeldItem != NULL && !FNullEnt(pHeldItem->pev) )
-	{
-		pHeldItem = NULL;
-	}
+	m_iHoldingItem = FALSE;
 
 	// this client isn't going to be thinking for a while, so reset the sound until they respawn
 	pSound = CSoundEnt::SoundPointerForIndex( CSoundEnt::ClientSoundIndex( edict() ) );
@@ -1620,7 +1617,7 @@ void CBasePlayer::PlayerUse ( void )
 		}
 	}
 
-	if (ReleaseHeldItem(RANDOM_LONG(100,200))) {
+	if (m_iHoldingItem && ReleaseHeldItem(RANDOM_LONG(100,200))) {
 		((CBasePlayerWeapon *)m_pActiveItem)->StartPunch(TRUE);
 		return;
 	}
@@ -1671,18 +1668,18 @@ void CBasePlayer::PlayerUse ( void )
 
 		if ( FClassnameIs ( pObject->pev, "grenade" ) || FClassnameIs ( pObject->pev, "monster_satchel" ) ) {
 			UTIL_MakeVectors( pev->v_angle );
-			pHeldItem = pObject;
-			pHeldItem->pev->velocity = pHeldItem->pev->avelocity = g_vecZero;
-			pHeldItem->pev->framerate = 0;
-			pHeldItem->pev->movetype = MOVETYPE_FLY;
-			pHeldItem->pev->origin = GetGunPosition() + gpGlobals->v_forward * 25 + gpGlobals->v_up * -10;
-
-			// ALERT(at_aiconsole, "[pev->classname=%s, pev->origin=[%.2f,%.2f,%.2f]]\n", STRING(pHeldItem->pev->classname), pHeldItem->pev->origin.x, pHeldItem->pev->origin.y, pHeldItem->pev->origin.z);
+			pHeldItem = ENT(pObject->pev);
+			pHeldItem->v.velocity = pHeldItem->v.avelocity = g_vecZero;
+			pHeldItem->v.framerate = 0;
+			pHeldItem->v.movetype = MOVETYPE_FLY;
+			pHeldItem->v.origin = GetGunPosition() + gpGlobals->v_forward * 25 + gpGlobals->v_up * -10;
 
 			if (m_pActiveItem)
 			{
 				m_pActiveItem->Holster();
 			}
+
+			m_iHoldingItem = TRUE;
 
 			return;
 		}
@@ -2104,15 +2101,26 @@ void CBasePlayer::PreThink(void)
 		m_fJumpHeight = atof(CVAR_GET_STRING("sv_jumpheight"));
 	}
 
-	if (pHeldItem && m_pLastItem != m_pActiveItem) {
-		ReleaseHeldItem(100);
-	}
+	if (m_iHoldingItem) {
+		// Update coords
+		if (!FNullEnt(pHeldItem)) {
+			UTIL_MakeVectors( pev->v_angle );
+			pHeldItem->v.origin = GetGunPosition() + gpGlobals->v_forward * 25 + gpGlobals->v_up * -10;
+			pHeldItem->v.angles = pev->angles;
+			pHeldItem->v.velocity = pev->velocity;
+		}
 
-	if (pHeldItem && !FNullEnt(pHeldItem->pev)) {
-		UTIL_MakeVectors( pev->v_angle );
-		pHeldItem->pev->origin = GetGunPosition() + gpGlobals->v_forward * 25 + gpGlobals->v_up * -10;
-		pHeldItem->pev->angles = pev->angles;
-		pHeldItem->pev->velocity = pev->velocity;
+		// Changed weapon
+		if (m_pLastItem != m_pActiveItem) {
+			ALERT(at_aiconsole, "releasing item due to weapon change\n");
+			ReleaseHeldItem(100);
+		}
+
+		// Grenade exploded
+		if (!FNullEnt(pHeldItem) && (pHeldItem->v.effects & EF_NODRAW)) {
+			ALERT(at_aiconsole, "releasing item as entity was no_draw\n");
+			ReleaseHeldItem(100);
+		}
 	}
 }
 /* Time based Damage works as follows: 
@@ -3696,13 +3704,13 @@ void CBasePlayer::ImpulseCommands( )
 		break;
 	case 206:
 		if (m_pActiveItem) {
-			((CBasePlayerWeapon *)m_pActiveItem)->StartKick(pHeldItem != NULL);
+			((CBasePlayerWeapon *)m_pActiveItem)->StartKick(m_iHoldingItem);
 			ReleaseHeldItem(RANDOM_LONG(700,900));
 		}
 		break;
 	case 207:
 		if (m_pActiveItem) {			
-			((CBasePlayerWeapon *)m_pActiveItem)->StartPunch(pHeldItem != NULL);
+			((CBasePlayerWeapon *)m_pActiveItem)->StartPunch(m_iHoldingItem);
 			ReleaseHeldItem(RANDOM_LONG(300,500));
 		}
 		break;
@@ -3718,16 +3726,18 @@ void CBasePlayer::ImpulseCommands( )
 
 BOOL CBasePlayer::ReleaseHeldItem(float speed) 
 {
-	if (pHeldItem && !FNullEnt(pHeldItem->pev)) {
-		UTIL_MakeVectors( pev->v_angle + pev->punchangle );
-		Vector vecThrow = gpGlobals->v_forward * speed + pev->velocity;
-		pHeldItem->pev->movetype = MOVETYPE_BOUNCE;
-		pHeldItem->pev->velocity = vecThrow;
-		pHeldItem = NULL;
-		return TRUE;
+	m_iHoldingItem = FALSE;
+
+	if (FNullEnt(pHeldItem)) {
+		return FALSE;
 	}
 
-	return FALSE;
+	UTIL_MakeVectors( pev->v_angle + pev->punchangle );
+	Vector vecThrow = gpGlobals->v_forward * speed + pev->velocity;
+	pHeldItem->v.movetype = MOVETYPE_BOUNCE;
+	pHeldItem->v.velocity = vecThrow;
+
+	return TRUE;
 }
 
 //=========================================================

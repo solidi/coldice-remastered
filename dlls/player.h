@@ -215,7 +215,9 @@ public:
 	float m_fThawTime;
 	int m_iFreezeCounter;
 	float m_fJumpHeight;
-	CBaseEntity *pHeldItem = NULL;
+
+	edict_t *pHeldItem;
+	BOOL m_iHoldingItem;
 
 	virtual void Spawn( void );
 	void Pain( void );
