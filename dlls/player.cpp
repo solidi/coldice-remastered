@@ -920,7 +920,7 @@ void CBasePlayer::Killed( entvars_t *pevAttacker, int iGib )
 		m_pTank = NULL;
 	}
 
-	m_iHoldingItem = FALSE;
+	ReleaseHeldItem(100);
 
 	// this client isn't going to be thinking for a while, so reset the sound until they respawn
 	pSound = CSoundEnt::SoundPointerForIndex( CSoundEnt::ClientSoundIndex( edict() ) );

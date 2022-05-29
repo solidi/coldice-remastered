@@ -856,6 +856,10 @@ void CBasePlayerWeapon::ItemPostFrame( void )
 			m_fFireOnEmpty = TRUE;
 		}
 
+		if (m_pPlayer->m_iHoldingItem) {
+			m_pPlayer->ReleaseHeldItem(100);
+		}
+
 		m_pPlayer->TabulateAmmo();
 		if (SemiAuto()) {
 			if (!m_bFired)
@@ -871,6 +875,10 @@ void CBasePlayerWeapon::ItemPostFrame( void )
 		if ( (m_iClip == 0 && pszAmmo1()) || (iMaxClip() == -1 && !m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()] ) )
 		{
 			m_fFireOnEmpty = TRUE;
+		}
+
+		if (m_pPlayer->m_iHoldingItem) {
+			m_pPlayer->ReleaseHeldItem(100);
 		}
 
 		m_pPlayer->TabulateAmmo();
