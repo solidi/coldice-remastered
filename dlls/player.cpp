@@ -1636,6 +1636,12 @@ void CBasePlayer::PlayerUse ( void )
 		if (pObject->ObjectCaps() & (FCAP_IMPULSE_USE | FCAP_CONTINUOUS_USE | FCAP_ONOFF_USE) ||
 			(FClassnameIs ( pObject->pev, "grenade" ) || FClassnameIs ( pObject->pev, "monster_satchel" )) )
 		{
+			// allow bots to easily pick up grenades
+			if (pev->flags & FL_FAKECLIENT && FClassnameIs(pObject->pev, "grenade"))
+			{
+				pClosest = pObject;
+			}
+
 			// !!!PERFORMANCE- should this check be done on a per case basis AFTER we've determined that
 			// this object is actually usable? This dot is being done for every object within PLAYER_SEARCH_RADIUS
 			// when player hits the use key. How many objects can be in that area, anyway? (sjb)
