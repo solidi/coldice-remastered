@@ -1637,7 +1637,8 @@ void CBasePlayer::PlayerUse ( void )
 			(FClassnameIs ( pObject->pev, "grenade" ) || FClassnameIs ( pObject->pev, "monster_satchel" )) )
 		{
 			// allow bots to easily pick up grenades
-			if (pev->flags & FL_FAKECLIENT && FClassnameIs(pObject->pev, "grenade"))
+			if (pev->flags & FL_FAKECLIENT && 
+				(FClassnameIs(pObject->pev, "grenade") || FClassnameIs(pObject->pev, "monster_satchel")))
 			{
 				pClosest = pObject;
 			}
