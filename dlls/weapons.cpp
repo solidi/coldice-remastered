@@ -892,6 +892,10 @@ void CBasePlayerWeapon::ItemPostFrame( void )
 	}
 	else if ( m_pPlayer->pev->button & IN_RELOAD && iMaxClip() != WEAPON_NOCLIP && !m_fInReload ) 
 	{
+		if (m_pPlayer->m_iHoldingItem) {
+			m_pPlayer->ReleaseHeldItem(100);
+		}
+
 		// reload when reload is pressed, or if no buttons are down and weapon is empty.
 		Reload();
 	}
