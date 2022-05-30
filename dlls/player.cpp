@@ -1630,7 +1630,7 @@ void CBasePlayer::PlayerUse ( void )
 
 	UTIL_MakeVectors ( pev->v_angle );// so we know which way we are facing
 	
-	while ((pObject = UTIL_FindEntityInSphere( pObject, pev->origin, PLAYER_SEARCH_RADIUS )) != NULL)
+	while ((pObject = UTIL_FindEntityInSphere( pObject, pev->origin, pev->flags & FL_FAKECLIENT ? 128 : PLAYER_SEARCH_RADIUS )) != NULL)
 	{
 
 		if (pObject->ObjectCaps() & (FCAP_IMPULSE_USE | FCAP_CONTINUOUS_USE | FCAP_ONOFF_USE) ||
@@ -3964,6 +3964,11 @@ int CBasePlayer::AddPlayerItem( CBasePlayerItem *pItem )
 
 	while (pInsert)
 	{
+		// Bot patch
+		if (pInsert->m_pPlayer == NULL) {
+			return FALSE;
+		}
+
 		if (FClassnameIs( pInsert->pev, STRING( pItem->pev->classname) ))
 		{
 			if (pItem->AddDuplicate( pInsert ))
