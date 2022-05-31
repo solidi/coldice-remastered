@@ -1618,6 +1618,7 @@ void CBasePlayer::PlayerUse ( void )
 	}
 
 	if (m_iHoldingItem && ReleaseHeldItem(RANDOM_LONG(100,200))) {
+		pev->punchangle = Vector(-4, -2, -4);
 		((CBasePlayerWeapon *)m_pActiveItem)->StartPunch(TRUE);
 		return;
 	}
@@ -1675,13 +1676,14 @@ void CBasePlayer::PlayerUse ( void )
 
 		if ( FClassnameIs ( pObject->pev, "grenade" ) || FClassnameIs ( pObject->pev, "monster_satchel" ) ) {
 			UTIL_MakeVectors( pev->v_angle );
-			pHeldItem = ENT(pObject->pev);
-			pHeldItem->v.velocity = pHeldItem->v.avelocity = g_vecZero;
-			pHeldItem->v.framerate = 0;
-			pHeldItem->v.movetype = MOVETYPE_FLY;
-			pHeldItem->v.origin = GetGunPosition() + gpGlobals->v_forward * 25 + gpGlobals->v_up * -10;
+			pHeldItem = pObject;
+			pHeldItem->pev->velocity = pHeldItem->pev->avelocity = g_vecZero;
+			pHeldItem->pev->framerate = 0;
+			pHeldItem->pev->movetype = MOVETYPE_FLY;
+			pHeldItem->pev->origin = GetGunPosition() + gpGlobals->v_forward * 25 + gpGlobals->v_up * -10;
+			pev->punchangle = Vector(-4, -2, -4);
 
-			if (m_pActiveItem)
+			if (m_pActiveItem && m_pActiveItem->m_pPlayer)
 			{
 				m_pActiveItem->Holster();
 			}
@@ -1953,7 +1955,7 @@ void CBasePlayer::UpdateStatusBar()
 
 
 
-
+inline int FNullEnt( CBaseEntity *ent ) { return (ent == NULL) || FNullEnt( ent->edict() ); }
 
 #define CLIMB_SHAKE_FREQUENCY	22	// how many frames in between screen shakes when climbing
 #define	MAX_CLIMB_SPEED			200	// fastest vertical climbing speed possible
@@ -2112,9 +2114,9 @@ void CBasePlayer::PreThink(void)
 		// Update coords
 		if (!FNullEnt(pHeldItem)) {
 			UTIL_MakeVectors( pev->v_angle );
-			pHeldItem->v.origin = GetGunPosition() + gpGlobals->v_forward * 25 + gpGlobals->v_up * -10;
-			pHeldItem->v.angles = pev->angles;
-			pHeldItem->v.velocity = pev->velocity;
+			pHeldItem->pev->origin = GetGunPosition() + gpGlobals->v_forward * 25 + gpGlobals->v_up * -10;
+			pHeldItem->pev->angles = pev->angles;
+			pHeldItem->pev->velocity = pev->velocity;
 		}
 
 		// Changed weapon
@@ -2124,7 +2126,7 @@ void CBasePlayer::PreThink(void)
 		}
 
 		// Grenade exploded
-		if (!FNullEnt(pHeldItem) && (pHeldItem->v.effects & EF_NODRAW)) {
+		if (!FNullEnt(pHeldItem) && (pHeldItem->pev->effects & EF_NODRAW)) {
 			ALERT(at_aiconsole, "releasing item as entity was no_draw\n");
 			ReleaseHeldItem(100);
 		}
@@ -2912,7 +2914,6 @@ BOOL IsSpawnPointValid( CBaseEntity *pPlayer, CBaseEntity *pSpot )
 
 
 DLL_GLOBAL CBaseEntity	*g_pLastSpawn;
-inline int FNullEnt( CBaseEntity *ent ) { return (ent == NULL) || FNullEnt( ent->edict() ); }
 
 /*
 ============
@@ -3037,6 +3038,8 @@ void CBasePlayer::Spawn( void )
 
 	m_iWeapons2 = FALSE;
 	m_iFreezeCounter 	= 0;
+	pHeldItem = NULL;
+	m_iHoldingItem = FALSE;
 
 	g_engfuncs.pfnSetPhysicsKeyValue( edict(), "slj", "0" );
 	g_engfuncs.pfnSetPhysicsKeyValue( edict(), "hl", "1" );
@@ -3733,18 +3736,16 @@ void CBasePlayer::ImpulseCommands( )
 
 BOOL CBasePlayer::ReleaseHeldItem(float speed) 
 {
-	m_iHoldingItem = FALSE;
-
-	if (FNullEnt(pHeldItem)) {
-		return FALSE;
+	if (m_iHoldingItem && !FNullEnt(pHeldItem)) {
+		UTIL_MakeVectors( pev->v_angle + pev->punchangle );
+		Vector vecThrow = gpGlobals->v_forward * speed + pev->velocity;
+		pHeldItem->pev->movetype = MOVETYPE_BOUNCE;
+		pHeldItem->pev->velocity = vecThrow;
+		m_iHoldingItem = FALSE;
+		return TRUE;
 	}
 
-	UTIL_MakeVectors( pev->v_angle + pev->punchangle );
-	Vector vecThrow = gpGlobals->v_forward * speed + pev->velocity;
-	pHeldItem->v.movetype = MOVETYPE_BOUNCE;
-	pHeldItem->v.velocity = vecThrow;
-
-	return TRUE;
+	return FALSE;
 }
 
 //=========================================================

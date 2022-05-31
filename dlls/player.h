@@ -216,7 +216,7 @@ public:
 	int m_iFreezeCounter;
 	float m_fJumpHeight;
 
-	edict_t *pHeldItem;
+	CBaseEntity *pHeldItem;
 	BOOL m_iHoldingItem;
 
 	virtual void Spawn( void );

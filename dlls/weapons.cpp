@@ -1080,7 +1080,7 @@ int CBasePlayerWeapon::UpdateClientData( CBasePlayer *pPlayer )
 		pPlayer->m_fWeapon = TRUE;
 	}
 
-	if ( m_pNext )
+	if ( m_pNext && m_pNext->m_pPlayer )
 		m_pNext->UpdateClientData( pPlayer );
 
 	return 1;
@@ -2008,7 +2008,7 @@ enum punch_e {
 
 void CBasePlayerWeapon::StartPunch( BOOL hitSomething )
 {
-	if (!CanPunch()) {
+	if (!CanPunch() || m_pPlayer == NULL) {
 		return;
 	}
 
@@ -2164,7 +2164,7 @@ void CBasePlayerWeapon::EndPunch( void )
 
 void CBasePlayerWeapon::StartKick( BOOL hitSomething )
 {
-	if (!CanKick()) {
+	if (!CanKick() || m_pPlayer == NULL) {
 		return;
 	}
 
