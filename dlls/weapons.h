@@ -421,12 +421,12 @@ public:
 	virtual void SwapDualWeapon() { return; }
 
 	TraceResult m_trBootHit;
-	void StartKick( BOOL hitSomething );
-	void KickAttack( BOOL hitSomething );
+	void StartKick( BOOL holdingSomething );
+	void KickAttack( BOOL holdingSomething );
 	void EndKick( void );
 
-	void StartPunch( BOOL hitSomething );
-	void PunchAttack( BOOL hitSomething );
+	void StartPunch( BOOL holdingSomething );
+	void PunchAttack( BOOL holdingSomething );
 	void EndPunch( void );
 	
 	int	PrimaryAmmoIndex(); 

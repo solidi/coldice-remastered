@@ -2006,7 +2006,7 @@ enum punch_e {
 	LEFT_MISS
 };
 
-void CBasePlayerWeapon::StartPunch( BOOL hitSomething )
+void CBasePlayerWeapon::StartPunch( BOOL holdingSomething )
 {
 	if (!CanPunch() || m_pPlayer == NULL) {
 		return;
@@ -2022,10 +2022,10 @@ void CBasePlayerWeapon::StartPunch( BOOL hitSomething )
 
 	Holster();
 	m_pPlayer->m_fPunchTime = gpGlobals->time + 0.75;
-	PunchAttack(hitSomething);
+	PunchAttack(holdingSomething);
 }
 
-void CBasePlayerWeapon::PunchAttack( BOOL hitSomething )
+void CBasePlayerWeapon::PunchAttack( BOOL holdingSomething )
 {
 	m_pPlayer->pev->viewmodel = MAKE_STRING("models/v_fists.mdl");
 
@@ -2071,7 +2071,7 @@ void CBasePlayerWeapon::PunchAttack( BOOL hitSomething )
 
 	if ( tr.flFraction >= 1.0 )
 	{
-		if (hitSomething)
+		if (holdingSomething)
 		{
 			EMIT_SOUND(ENT(m_pPlayer->pev), CHAN_ITEM, "fists_hitbod.wav", 1, ATTN_NORM);
 			m_pPlayer->m_iWeaponVolume = 128;
@@ -2162,7 +2162,7 @@ void CBasePlayerWeapon::EndPunch( void )
 	Deploy();
 }
 
-void CBasePlayerWeapon::StartKick( BOOL hitSomething )
+void CBasePlayerWeapon::StartKick( BOOL holdingSomething )
 {
 	if (!CanKick() || m_pPlayer == NULL) {
 		return;
@@ -2182,10 +2182,10 @@ void CBasePlayerWeapon::StartKick( BOOL hitSomething )
 
 	Holster();
 	m_pPlayer->m_fKickTime = gpGlobals->time + 0.75;
-	KickAttack(hitSomething);
+	KickAttack(holdingSomething);
 }
 
-void CBasePlayerWeapon::KickAttack( BOOL hitSomething )
+void CBasePlayerWeapon::KickAttack( BOOL holdingSomething )
 {
 	m_pPlayer->pev->viewmodel = MAKE_STRING("models/v_leg.mdl");
 
@@ -2212,6 +2212,48 @@ void CBasePlayerWeapon::KickAttack( BOOL hitSomething )
 			vecEnd = tr.vecEndPos;	// This is the point on the actual surface (the hull could have hit space)
 		}
 	}
+
+	// Ignore all of this if holding something
+	if (!holdingSomething) {
+		CBaseEntity *pObject = NULL;
+		CBaseEntity *pClosest = NULL;
+		Vector		vecLOS;
+		float flMaxDot = VIEW_FIELD_NARROW;
+		float flDot;
+		while ((pObject = UTIL_FindEntityInSphere( pObject, pev->origin, pev->flags & FL_FAKECLIENT ? 192 : 96 )) != NULL)
+		{
+			if (FClassnameIs( pObject->pev, "grenade" ) || FClassnameIs( pObject->pev, "monster_satchel" ))
+			{
+				// allow bots to easily interact
+				if (pev->flags & FL_FAKECLIENT)
+				{
+					pClosest = pObject;
+				}
+				vecLOS = (VecBModelOrigin( pObject->pev ) - (pev->origin + pev->view_ofs));
+				vecLOS = UTIL_ClampVectorToBox( vecLOS, pObject->pev->size * 0.5 );
+				flDot = DotProduct (vecLOS , gpGlobals->v_forward);
+				if (flDot > flMaxDot)
+				{
+					pClosest = pObject;
+					flMaxDot = flDot;
+				}
+			}
+		}
+
+		if ( pClosest ) {
+			UTIL_MakeVectors( m_pPlayer->pev->v_angle );
+			Vector smoke = m_pPlayer->GetGunPosition() + gpGlobals->v_forward * 25;
+			CSprite *pSprite = CSprite::SpriteCreate("sprites/gunsmoke.spr", smoke, TRUE);
+			pSprite->AnimateAndDie(12);
+			pSprite->SetTransparency(kRenderTransAdd, 255, 255, 255, 80, kRenderFxNoDissipation);
+			pSprite->SetScale(0.4);
+
+			pClosest->pev->velocity = gpGlobals->v_forward * RANDOM_LONG(600,800) + gpGlobals->v_up * RANDOM_LONG(600,800);
+			pClosest->pev->gravity = 0.5;
+			m_pPlayer->pev->punchangle = Vector(-4, -2, -4);
+			EMIT_SOUND_DYN(ENT(m_pPlayer->pev), CHAN_BODY, "fists_hit.wav", 1, ATTN_NORM, 0, 98 + RANDOM_LONG(0,3));
+		}
+	}
 #endif
 
 	switch( RANDOM_LONG(0,1) )
@@ -2230,7 +2272,7 @@ void CBasePlayerWeapon::KickAttack( BOOL hitSomething )
 
 	if ( tr.flFraction >= 1.0 )
 	{
-		if (hitSomething)
+		if (holdingSomething)
 		{
 			EMIT_SOUND(ENT(m_pPlayer->pev), CHAN_ITEM, "fists_hitbod.wav", 1, ATTN_NORM);
 			m_pPlayer->m_iWeaponVolume = 128;
