@@ -920,6 +920,8 @@ void CBasePlayer::Killed( entvars_t *pevAttacker, int iGib )
 		m_pTank = NULL;
 	}
 
+	ReleaseHeldItem(100);
+
 	// this client isn't going to be thinking for a while, so reset the sound until they respawn
 	pSound = CSoundEnt::SoundPointerForIndex( CSoundEnt::ClientSoundIndex( edict() ) );
 	{
@@ -1024,6 +1026,10 @@ void CBasePlayer::SetAnimation( PLAYER_ANIM playerAnim )
 		m_IdealActivity = ACT_FROZEN;
 		break;
 
+	case PLAYER_PUNCH:
+		m_IdealActivity = ACT_PUNCH;
+		break;
+
 	case PLAYER_JUMP:
 		m_IdealActivity = ACT_HOP;
 		break;
@@ -1046,6 +1052,7 @@ void CBasePlayer::SetAnimation( PLAYER_ANIM playerAnim )
 		case ACT_LEAP:
 		case ACT_DIESIMPLE:
 		case ACT_KICK:
+		case ACT_PUNCH:
 			m_IdealActivity = m_Activity;
 			break;
 		default:
@@ -1060,6 +1067,10 @@ void CBasePlayer::SetAnimation( PLAYER_ANIM playerAnim )
 			m_IdealActivity = m_Activity;
 		}
 		else if ( m_fKickTime > gpGlobals->time && m_Activity == ACT_KICK )
+		{
+			m_IdealActivity = m_Activity;
+		}
+		else if ( m_fPunchTime > gpGlobals->time && m_Activity == ACT_PUNCH )
 		{
 			m_IdealActivity = m_Activity;
 		}
@@ -1090,6 +1101,7 @@ void CBasePlayer::SetAnimation( PLAYER_ANIM playerAnim )
 	case ACT_DIESIMPLE:
 	case ACT_KICK:
 	case ACT_FROZEN:
+	case ACT_PUNCH:
 	default:
 		if ( m_Activity == m_IdealActivity)
 			return;
@@ -1605,6 +1617,12 @@ void CBasePlayer::PlayerUse ( void )
 		}
 	}
 
+	if (m_iHoldingItem && ReleaseHeldItem(RANDOM_LONG(100,200))) {
+		pev->punchangle = Vector(-4, -2, -4);
+		((CBasePlayerWeapon *)m_pActiveItem)->StartPunch(TRUE);
+		return;
+	}
+
 	CBaseEntity *pObject = NULL;
 	CBaseEntity *pClosest = NULL;
 	Vector		vecLOS;
@@ -1613,11 +1631,19 @@ void CBasePlayer::PlayerUse ( void )
 
 	UTIL_MakeVectors ( pev->v_angle );// so we know which way we are facing
 	
-	while ((pObject = UTIL_FindEntityInSphere( pObject, pev->origin, PLAYER_SEARCH_RADIUS )) != NULL)
+	while ((pObject = UTIL_FindEntityInSphere( pObject, pev->origin, pev->flags & FL_FAKECLIENT ? 192 : PLAYER_SEARCH_RADIUS )) != NULL)
 	{
 
-		if (pObject->ObjectCaps() & (FCAP_IMPULSE_USE | FCAP_CONTINUOUS_USE | FCAP_ONOFF_USE))
+		if (pObject->ObjectCaps() & (FCAP_IMPULSE_USE | FCAP_CONTINUOUS_USE | FCAP_ONOFF_USE) ||
+			(FClassnameIs ( pObject->pev, "grenade" ) || FClassnameIs ( pObject->pev, "monster_satchel" )) )
 		{
+			// allow bots to easily pick up grenades
+			if (pev->flags & FL_FAKECLIENT && 
+				(FClassnameIs(pObject->pev, "grenade") || FClassnameIs(pObject->pev, "monster_satchel")))
+			{
+				pClosest = pObject;
+			}
+
 			// !!!PERFORMANCE- should this check be done on a per case basis AFTER we've determined that
 			// this object is actually usable? This dot is being done for every object within PLAYER_SEARCH_RADIUS
 			// when player hits the use key. How many objects can be in that area, anyway? (sjb)
@@ -1647,6 +1673,25 @@ void CBasePlayer::PlayerUse ( void )
 
 		if ( m_afButtonPressed & IN_USE )
 			EMIT_SOUND( ENT(pev), CHAN_ITEM, "wpn_select.wav", 0.4, ATTN_NORM);
+
+		if ( FClassnameIs ( pObject->pev, "grenade" ) || FClassnameIs ( pObject->pev, "monster_satchel" ) ) {
+			UTIL_MakeVectors( pev->v_angle );
+			pHeldItem = pObject;
+			pHeldItem->pev->velocity = pHeldItem->pev->avelocity = g_vecZero;
+			pHeldItem->pev->framerate = 0;
+			pHeldItem->pev->movetype = MOVETYPE_FLY;
+			pHeldItem->pev->origin = GetGunPosition() + gpGlobals->v_forward * 25 + gpGlobals->v_up * -10;
+			pev->punchangle = Vector(-4, -2, -4);
+
+			if (m_pActiveItem && m_pActiveItem->m_pPlayer)
+			{
+				m_pActiveItem->Holster();
+			}
+
+			m_iHoldingItem = TRUE;
+
+			return;
+		}
 
 		if ( ( (pev->button & IN_USE) && (caps & FCAP_CONTINUOUS_USE) ) ||
 			 ( (m_afButtonPressed & IN_USE) && (caps & (FCAP_IMPULSE_USE|FCAP_ONOFF_USE)) ) )
@@ -1910,7 +1955,7 @@ void CBasePlayer::UpdateStatusBar()
 
 
 
-
+inline int FNullEnt( CBaseEntity *ent ) { return (ent == NULL) || FNullEnt( ent->edict() ); }
 
 #define CLIMB_SHAKE_FREQUENCY	22	// how many frames in between screen shakes when climbing
 #define	MAX_CLIMB_SPEED			200	// fastest vertical climbing speed possible
@@ -2063,6 +2108,28 @@ void CBasePlayer::PreThink(void)
 	if (m_fJumpHeight != atof(CVAR_GET_STRING("sv_jumpheight"))) {
 		g_engfuncs.pfnSetPhysicsKeyValue(edict(), "jumpheight", CVAR_GET_STRING("sv_jumpheight"));
 		m_fJumpHeight = atof(CVAR_GET_STRING("sv_jumpheight"));
+	}
+
+	if (m_iHoldingItem) {
+		// Update coords
+		if (!FNullEnt(pHeldItem)) {
+			UTIL_MakeVectors( pev->v_angle );
+			pHeldItem->pev->origin = GetGunPosition() + gpGlobals->v_forward * 25 + gpGlobals->v_up * -10;
+			pHeldItem->pev->angles = pev->angles;
+			pHeldItem->pev->velocity = pev->velocity;
+		}
+
+		// Changed weapon
+		if (m_pLastItem != m_pActiveItem) {
+			ALERT(at_aiconsole, "releasing item due to weapon change\n");
+			ReleaseHeldItem(100);
+		}
+
+		// Grenade exploded
+		if (!FNullEnt(pHeldItem) && (pHeldItem->pev->effects & EF_NODRAW)) {
+			ALERT(at_aiconsole, "releasing item as entity was no_draw\n");
+			ReleaseHeldItem(100);
+		}
 	}
 }
 /* Time based Damage works as follows: 
@@ -2847,7 +2914,6 @@ BOOL IsSpawnPointValid( CBaseEntity *pPlayer, CBaseEntity *pSpot )
 
 
 DLL_GLOBAL CBaseEntity	*g_pLastSpawn;
-inline int FNullEnt( CBaseEntity *ent ) { return (ent == NULL) || FNullEnt( ent->edict() ); }
 
 /*
 ============
@@ -2972,6 +3038,8 @@ void CBasePlayer::Spawn( void )
 
 	m_iWeapons2 = FALSE;
 	m_iFreezeCounter 	= 0;
+	pHeldItem = NULL;
+	m_iHoldingItem = FALSE;
 
 	g_engfuncs.pfnSetPhysicsKeyValue( edict(), "slj", "0" );
 	g_engfuncs.pfnSetPhysicsKeyValue( edict(), "hl", "1" );
@@ -3639,14 +3707,21 @@ void CBasePlayer::ImpulseCommands( )
 		}
 
 		break;
-	case 206:
-		if (m_pActiveItem) {
-			((CBasePlayerWeapon *)m_pActiveItem)->StartKick();
-		}
-		break;
 	case 205:
 		if (m_pActiveItem) {
 			((CBasePlayerWeapon *)m_pActiveItem)->SwapDualWeapon();
+		}
+		break;
+	case 206:
+		if (m_pActiveItem) {
+			((CBasePlayerWeapon *)m_pActiveItem)->StartKick(m_iHoldingItem);
+			ReleaseHeldItem(RANDOM_LONG(700,900));
+		}
+		break;
+	case 207:
+		if (m_pActiveItem) {			
+			((CBasePlayerWeapon *)m_pActiveItem)->StartPunch(m_iHoldingItem);
+			ReleaseHeldItem(RANDOM_LONG(300,500));
 		}
 		break;
 
@@ -3657,6 +3732,20 @@ void CBasePlayer::ImpulseCommands( )
 	}
 	
 	pev->impulse = 0;
+}
+
+BOOL CBasePlayer::ReleaseHeldItem(float speed) 
+{
+	if (m_iHoldingItem && !FNullEnt(pHeldItem)) {
+		UTIL_MakeVectors( pev->v_angle + pev->punchangle );
+		Vector vecThrow = gpGlobals->v_forward * speed + pev->velocity;
+		pHeldItem->pev->movetype = MOVETYPE_BOUNCE;
+		pHeldItem->pev->velocity = vecThrow;
+		m_iHoldingItem = FALSE;
+		return TRUE;
+	}
+
+	return FALSE;
 }
 
 //=========================================================
@@ -3876,6 +3965,11 @@ int CBasePlayer::AddPlayerItem( CBasePlayerItem *pItem )
 
 	while (pInsert)
 	{
+		// Bot patch
+		if (pInsert->m_pPlayer == NULL) {
+			return FALSE;
+		}
+
 		if (FClassnameIs( pInsert->pev, STRING( pItem->pev->classname) ))
 		{
 			if (pItem->AddDuplicate( pInsert ))

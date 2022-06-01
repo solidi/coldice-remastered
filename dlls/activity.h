@@ -97,6 +97,7 @@ typedef enum {
 	ACT_FLINCH_RIGHTLEG,
 	ACT_KICK,
 	ACT_FROZEN,
+	ACT_PUNCH,
 } Activity;
 
 

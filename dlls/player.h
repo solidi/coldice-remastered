@@ -72,6 +72,7 @@ typedef enum
 	PLAYER_ATTACK1,
 	PLAYER_KICK,
 	PLAYER_FROZEN,
+	PLAYER_PUNCH,
 } PLAYER_ANIM;
 
 #define MAX_ID_RANGE 2048
@@ -210,9 +211,13 @@ public:
 	int m_fHasRune;
 	float m_flRuneHealTime;
 	float m_fKickTime;
+	float m_fPunchTime;
 	float m_fThawTime;
 	int m_iFreezeCounter;
 	float m_fJumpHeight;
+
+	CBaseEntity *pHeldItem;
+	BOOL m_iHoldingItem;
 
 	virtual void Spawn( void );
 	void Pain( void );
@@ -297,6 +302,7 @@ public:
 	void EnableControl(BOOL fControl);
 
 	void ChangeGun(const char *pstr);//TROND
+	BOOL ReleaseHeldItem(float speed);
 
 	int  GiveAmmo( int iAmount, char *szName, int iMax );
 	void SendAmmoUpdate(void);
