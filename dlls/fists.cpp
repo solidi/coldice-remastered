@@ -229,8 +229,10 @@ int CFists::Swing( int fFirst )
 				EMIT_SOUND(ENT(m_pPlayer->pev), CHAN_ITEM, "fists_hitbod.wav", 1, ATTN_NORM);
 				m_pPlayer->m_iWeaponVolume = FISTS_BODYHIT_VOLUME;
 				if ( !pEntity->IsAlive() )
+				{
+					  m_flNextPrimaryAttack = GetNextAttackDelay(0.25);
 					  return TRUE;
-				else
+				} else
 					  flVol = 0.1;
 
 				fHitWorld = FALSE;

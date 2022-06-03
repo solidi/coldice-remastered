@@ -271,8 +271,10 @@ int CChainsaw::Swing( int fFirst, BOOL animation )
 				EMIT_SOUND(ENT(m_pPlayer->pev), CHAN_ITEM, "chainsaw_hit.wav", 1, ATTN_NORM);
 				m_pPlayer->m_iWeaponVolume = CHAINSAW_BODYHIT_VOLUME;
 				if ( !pEntity->IsAlive() )
+				{
+					  m_flNextPrimaryAttack = GetNextAttackDelay(0.25);
 					  return TRUE;
-				else
+				} else
 					  flVol = 0.1;
 
 				fHitWorld = FALSE;

@@ -314,8 +314,10 @@ int CKnife::Swing( int fFirst )
 				}
 				m_pPlayer->m_iWeaponVolume = KNIFE_BODYHIT_VOLUME;
 				if ( !pEntity->IsAlive() )
+				{
+					  m_flNextPrimaryAttack = GetNextAttackDelay(0.25);
 					  return TRUE;
-				else
+				} else
 					  flVol = 0.1;
 
 				fHitWorld = FALSE;
