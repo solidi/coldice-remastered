@@ -22,6 +22,7 @@
 #include "player.h"
 #include "soundent.h"
 #include "gamerules.h"
+#include "game.h"
 
 enum w_chumtoad_e {
 	WCHUMTOAD_IDLE1 = 0,
@@ -50,7 +51,6 @@ class CChumtoadGrenade : public CGrenade
 	int  Classify( void );
 	void EXPORT SuperBounceTouch( CBaseEntity *pOther );
 	void EXPORT HuntThink( void );
-	int  BloodColor( void ) { return BLOOD_COLOR_RED; }
 	void Killed( entvars_t *pevAttacker, int iGib );
 	void GibMonster( void );
 
@@ -174,7 +174,7 @@ void CChumtoadGrenade :: Killed( entvars_t *pevAttacker, int iGib )
 
 	CSoundEnt::InsertSound ( bits_SOUND_COMBAT, pev->origin, SMALL_EXPLOSION_VOLUME, 3.0 );
 
-	UTIL_BloodDrips( pev->origin, g_vecZero, BloodColor(), 80 );
+	UTIL_BloodDrips( pev->origin, g_vecZero, iceblood.value ? BLOOD_COLOR_BLUE : BLOOD_COLOR_GREEN, 80 );
 
 	if (m_hOwner != NULL)
 		RadiusDamage ( pev, m_hOwner->pev, pev->dmg, CLASS_NONE, DMG_BLAST );
