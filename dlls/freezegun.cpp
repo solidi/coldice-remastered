@@ -203,7 +203,10 @@ void CFreezeGun::PrimaryAttack()
 
 void CFreezeGun::WeaponIdle( void )
 {
-	if (m_flTimeWeaponIdle > gpGlobals->time)
+	if (m_flTimeWeaponIdle > UTIL_WeaponTimeBase())
+		return;
+
+	if ( m_pPlayer->pev->button & IN_IRONSIGHT )
 		return;
 
 	if (m_fInAttack == 1)
@@ -214,7 +217,7 @@ void CFreezeGun::WeaponIdle( void )
 
 	SendWeaponAnim( FREEZEGUN_IDLE );
 
-	m_flTimeWeaponIdle = gpGlobals->time + RANDOM_FLOAT ( 10, 15 );
+	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + UTIL_SharedRandomFloat( m_pPlayer->random_seed, 10, 15 );
 }
 
 void CFreezeGun::Reload( void )

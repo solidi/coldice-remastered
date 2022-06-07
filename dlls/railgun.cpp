@@ -137,7 +137,7 @@ void CRailgun::PrimaryAttack()
 
 	StartFire();
 
-	m_flTimeWeaponIdle = gpGlobals->time + 1.0;
+	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + UTIL_SharedRandomFloat( m_pPlayer->random_seed, 10, 15 );
 	m_flNextPrimaryAttack = gpGlobals->time + 1.0; 
 }
 
@@ -262,7 +262,7 @@ void CRailgun::WeaponIdle( void )
 {
 	ResetEmptySound( );
 
-	if (m_flTimeWeaponIdle > gpGlobals->time)
+	if (m_flTimeWeaponIdle > UTIL_WeaponTimeBase())
 		return;
 
 	if ( m_pPlayer->pev->button & IN_IRONSIGHT )
@@ -273,17 +273,17 @@ void CRailgun::WeaponIdle( void )
 	if (flRand <= 0.5)
 	{
 		iAnim = RAILGUN_IDLE;
-		m_flTimeWeaponIdle = gpGlobals->time + RANDOM_FLOAT ( 10, 15 );
+		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + UTIL_SharedRandomFloat( m_pPlayer->random_seed, 10, 15 );
 	}
 	else if (flRand <= 0.75)
 	{
 		iAnim = RAILGUN_IDLE2;
-		m_flTimeWeaponIdle = gpGlobals->time + RANDOM_FLOAT ( 10, 15 );
+		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + UTIL_SharedRandomFloat( m_pPlayer->random_seed, 10, 15 );
 	}
 	else
 	{
 		iAnim = RAILGUN_FIDGET;
-		m_flTimeWeaponIdle = gpGlobals->time + 3;
+		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 3;
 	}
 
 	SendWeaponAnim( iAnim );
