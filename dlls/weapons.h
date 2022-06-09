@@ -1793,6 +1793,8 @@ public:
 	void Reload( void );
 	void WeaponIdle( void );
 
+	int m_iAltFire;
+
 	virtual BOOL UseDecrement( void )
 	{ 
 #if defined( CLIENT_WEAPONS )
@@ -1962,6 +1964,7 @@ public:
 	int m_fInReload;
 	float m_flNextReload;
 	int m_iShell;
+	int m_iAltFire;
 
 	virtual BOOL UseDecrement( void )
 	{

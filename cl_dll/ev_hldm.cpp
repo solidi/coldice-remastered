@@ -2841,6 +2841,7 @@ void EV_FireDualDeagle( event_args_t *args )
 
 	idx = args->entindex;
 	int clip = args->bparam1;
+	int end = args->bparam2;
 
 	VectorCopy( args->origin, origin );
 	VectorCopy( args->angles, angles );
@@ -2853,7 +2854,7 @@ void EV_FireDualDeagle( event_args_t *args )
 		// Add muzzle flash to current weapon model
 		EV_MuzzleFlash();
 
-		if (clip < 2)
+		if (end)
 			gEngfuncs.pEventAPI->EV_WeaponAnimation( clip % 2 == 0 ? DEAGLEDUAL_FIRE_LAST_RIGHT : DEAGLEDUAL_FIRE_LAST_LEFT, 0 );
 		else
 			gEngfuncs.pEventAPI->EV_WeaponAnimation( clip % 2 == 0 ? DEAGLEDUAL_FIRE_RIGHT : DEAGLEDUAL_FIRE_LEFT, 0 );
