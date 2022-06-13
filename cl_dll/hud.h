@@ -714,6 +714,7 @@ public:
 	void AddHudElem(CHudBase *p);
 
 	float GetSensitivity();
+	void FlashHud();
 
 };
 
