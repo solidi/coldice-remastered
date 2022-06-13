@@ -660,6 +660,7 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"+ironsight\" - Use ironsights\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"drop_rune\" - Drop rune\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"impulse 206\" - Kick\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"impulse 207\" - Punch\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"impulse 205\" - Swap between single and dual weapon, if available\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"snowman\" - God mode (when sv_cheats 1)\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_icemodels 1\" - Ice Models\n");
@@ -679,6 +680,7 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_showtips 1\" - Show random text tips during play\n" );
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_shadows 1\" - Show rendered shadows underneath models\n" );
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_glowmodels 1\" - Show glow models is available\n" );
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_flashonpickup 1\" - Flash HUD when pickign up weapon or item\n" );
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "For more, see readme.txt\n" );
 	}
 	else if ( FStrEq( pcmd, "help_server" )  )

@@ -520,6 +520,8 @@ int CHudAmmo::MsgFunc_AmmoPickup( const char *pszName, int iSize, void *pbuf )
 	// Add ammo to the history
 	gHR.AddToHistory( HISTSLOT_AMMO, iIndex, abs(iCount) );
 
+	gHUD.FlashHud();
+
 	return 1;
 }
 
@@ -531,6 +533,8 @@ int CHudAmmo::MsgFunc_WeapPickup( const char *pszName, int iSize, void *pbuf )
 	// Add the weapon to the history
 	gHR.AddToHistory( HISTSLOT_WEAP, iIndex );
 
+	gHUD.FlashHud();
+
 	return 1;
 }
 
@@ -541,6 +545,8 @@ int CHudAmmo::MsgFunc_ItemPickup( const char *pszName, int iSize, void *pbuf )
 
 	// Add the weapon to the history
 	gHR.AddToHistory( HISTSLOT_ITEM, szName );
+
+	gHUD.FlashHud();
 
 	return 1;
 }

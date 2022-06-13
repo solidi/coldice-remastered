@@ -31,6 +31,9 @@
 #include "demo_api.h"
 #include "vgui_ScorePanel.h"
 
+#include "screenfade.h"
+#include "shake.h"
+
 hud_player_info_t	 g_PlayerInfoList[MAX_PLAYERS+1];	   // player info from the engine
 extra_player_info_t  g_PlayerExtraInfo[MAX_PLAYERS+1];   // additional player info sent directly to the client dll
 
@@ -46,6 +49,7 @@ cvar_t *cl_playpoint;
 cvar_t *cl_glasshud;
 cvar_t *cl_announcehumor;
 cvar_t *cl_showtips;
+cvar_t *cl_flashonpickup;
 cvar_t *m_pIceModels;
 
 cvar_t *cl_vmx;
@@ -376,6 +380,7 @@ void CHud :: Init( void )
 	cl_glasshud = CVAR_CREATE( "cl_glasshud", "1", FCVAR_ARCHIVE );
 	cl_announcehumor = CVAR_CREATE( "cl_announcehumor", "1", FCVAR_ARCHIVE );
 	cl_showtips = CVAR_CREATE( "cl_showtips", "1", FCVAR_ARCHIVE );
+	cl_flashonpickup = CVAR_CREATE( "cl_flashonpickup", "1", FCVAR_ARCHIVE );
 	CVAR_CREATE("cl_shadows", "0", FCVAR_ARCHIVE);
 
 	cl_vmx = CVAR_CREATE( "cl_vmx", "0", FCVAR_ARCHIVE );
@@ -767,4 +772,25 @@ float CHud::GetSensitivity( void )
 	return m_flMouseSensitivity;
 }
 
+void CHud::FlashHud( void ) {
+	if (cl_flashonpickup && !cl_flashonpickup->value)
+		return;
 
+	screenfade_t sf;
+	gEngfuncs.pfnGetScreenFade( &sf );
+	sf.fader = 255;
+	sf.fadeg = 255;
+	sf.fadeb = 255;
+	sf.fadealpha = 255;
+	sf.fadeFlags = FFADE_IN;
+
+	sf.fadeEnd = gHUD.m_flTime;
+	sf.fadeReset = 0.0;
+	sf.fadeSpeed = 0.0;
+
+	sf.fadeSpeed = sf.fadealpha;
+	sf.fadeReset += 0.25;
+	sf.fadeEnd += sf.fadeReset;
+
+	gEngfuncs.pfnSetScreenFade( &sf );
+}
