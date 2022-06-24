@@ -475,7 +475,7 @@ void W_Precache(void)
 	PRECACHE_MODEL ("sprites/smokeball2.spr");
 
 	PRECACHE_MODEL ("models/v_leg.mdl");
-	PRECACHE_MODEL ("models/v_leg_dual.mdl");
+	PRECACHE_MODEL ("models/v_dual_leg.mdl");
 	PRECACHE_SOUND ("kick.wav");
 
 	PRECACHE_SOUND("freezing.wav");

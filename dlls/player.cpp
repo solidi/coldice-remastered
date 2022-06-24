@@ -3794,7 +3794,7 @@ void CBasePlayer::StartSelacoSlide( void )
 	if (!m_fSelacoSliding && m_fSelacoTime < gpGlobals->time) {
 		if (FBitSet(pev->flags, FL_ONGROUND) && pev->velocity.Length() > 50) {
 			UTIL_MakeVectors(pev->angles);
-			pev->viewmodel = MAKE_STRING("models/v_leg_dual.mdl");
+			pev->viewmodel = MAKE_STRING("models/v_dual_leg.mdl");
 			if (m_pActiveItem) ((CBasePlayerWeapon *)m_pActiveItem)->SendWeaponAnim(2, 0, 0);
 			pev->friction = 0.05;
 			pev->velocity = (gpGlobals->v_forward * 900); // + (gpGlobals->v_up * 200);
