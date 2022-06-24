@@ -33,6 +33,7 @@
 
 extern globalvars_t *gpGlobals;
 extern int g_iUser1;
+extern float g_SlideTime;
 
 // Pool of client side entities/entvars_t
 static entvars_t	ev[ MAX_WEAPONS + 1 ];
@@ -346,6 +347,10 @@ Handles weapon firing, reloading, etc.
 */
 void CBasePlayerWeapon::ItemPostFrame( void )
 {
+	if (g_SlideTime > gEngfuncs.GetClientTime()) {
+		return;
+	}
+
 	if ((m_fInReload) && (m_pPlayer->m_flNextAttack <= 0.0))
 	{
 #if 0 // FIXME, need ammo on client to make this work right

@@ -352,7 +352,7 @@ void CHud::ShowTextTips( void ) {
 		return;
 	}
 
-	const int MESSAGE_SIZE = 10;
+	const int MESSAGE_SIZE = 11;
 
 	const char* messageList[MESSAGE_SIZE] = {
 		"Tired of blue skins? Type \"cl_icemodels 0\" in the console switches to real-life skins.\n",
@@ -364,7 +364,8 @@ void CHud::ShowTextTips( void ) {
 		"Cold Ice Remastered contains works from the community. For all credits, see readme.txt.\n",
 		"Swap between single and dual weapons, if available, bind \"impulse 205\".\n",
 		"To enable experimental model shadows, type \"cl_shadows 1\".\n",
-		"To five-high your friend with your hand, bind \"impulse 207\" to a button to punch.\n"
+		"To five-high your friend with your hand, bind \"impulse 207\" to a button to punch.\n",
+		"While looking ahead, tap \"+forward\" three times to perform a slide kick.\n"
 	};
 
 	// Unstick after a level change

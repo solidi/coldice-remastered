@@ -35,6 +35,8 @@ extern BEAM *pBeam2;
 void ClearEventList( void );
 #endif
 
+float g_SlideTime;
+
 /// USER-DEFINED SERVER MESSAGE HANDLERS
 
 int CHud :: MsgFunc_ResetHUD(const char *pszName, int iSize, void *pbuf )
@@ -137,5 +139,11 @@ int CHud :: MsgFunc_Concuss( const char *pszName, int iSize, void *pbuf )
 		this->m_StatusIcons.EnableIcon("dmg_concuss",255,160,0);
 	else
 		this->m_StatusIcons.DisableIcon("dmg_concuss");
+	return 1;
+}
+
+int CHud :: MsgFunc_SelacoSlide(const char *pszName, int iSize, void *pbuf )
+{
+	g_SlideTime = gEngfuncs.GetClientTime() + 1.25;
 	return 1;
 }

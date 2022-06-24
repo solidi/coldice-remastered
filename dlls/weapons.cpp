@@ -475,6 +475,7 @@ void W_Precache(void)
 	PRECACHE_MODEL ("sprites/smokeball2.spr");
 
 	PRECACHE_MODEL ("models/v_leg.mdl");
+	PRECACHE_MODEL ("models/v_leg_dual.mdl");
 	PRECACHE_SOUND ("kick.wav");
 
 	PRECACHE_SOUND("freezing.wav");
@@ -830,6 +831,10 @@ BOOL CanAttack( float attack_time, float curtime, BOOL isPredicted )
 
 void CBasePlayerWeapon::ItemPostFrame( void )
 {
+	if (m_pPlayer->m_fSelacoTime > gpGlobals->time) {
+		return;
+	}
+
 	if ((m_fInReload) && ( m_pPlayer->m_flNextAttack <= UTIL_WeaponTimeBase() ) )
 	{
 		// complete the reload. 
@@ -2109,6 +2114,7 @@ void CBasePlayerWeapon::PunchAttack( BOOL holdingSomething )
 				EMIT_SOUND(ENT(m_pPlayer->pev), CHAN_ITEM, "fists_hitbod.wav", 1, ATTN_NORM);
 				m_pPlayer->m_iWeaponVolume = 128;
 				flVol = 0.1;
+				pEntity->pev->velocity = (pEntity->pev->velocity + (gpGlobals->v_forward * RANDOM_LONG(100,200)));
 
 				fHitWorld = FALSE;
 			}
@@ -2128,6 +2134,15 @@ void CBasePlayerWeapon::PunchAttack( BOOL holdingSomething )
 
 				fvolbar = 1;
 			}
+
+			// Add smoke
+			UTIL_MakeVectors( m_pPlayer->pev->v_angle );
+			m_pPlayer->pev->velocity = m_pPlayer->pev->velocity + (gpGlobals->v_forward * -300);
+			Vector smoke = tr.vecEndPos - gpGlobals->v_forward * 10;
+			CSprite *pSprite = CSprite::SpriteCreate( "sprites/gunsmoke.spr", smoke, TRUE );
+			pSprite->AnimateAndDie( 12 );
+			pSprite->SetTransparency( kRenderTransAdd, 255, 255, 255, 80, kRenderFxNoDissipation );
+			pSprite->SetScale( 0.4 );
 
 			EMIT_SOUND_DYN(ENT(m_pPlayer->pev), CHAN_ITEM, "fists_hit.wav", fvolbar, ATTN_NORM, 0, 98 + RANDOM_LONG(0,3));
 		}
@@ -2149,13 +2164,6 @@ void CBasePlayerWeapon::PunchAttack( BOOL holdingSomething )
 void CBasePlayerWeapon::EndPunch( void )
 {
 	if (m_trBootHit.flFraction < 1.0) {
-		UTIL_MakeVectors( m_pPlayer->pev->v_angle );
-		m_pPlayer->pev->velocity = m_pPlayer->pev->velocity + (gpGlobals->v_forward * -300);
-		Vector smoke = m_trBootHit.vecEndPos - gpGlobals->v_forward * 10;
-		CSprite *pSprite = CSprite::SpriteCreate( "sprites/gunsmoke.spr", smoke, TRUE );
-		pSprite->AnimateAndDie( 12 );
-		pSprite->SetTransparency( kRenderTransAdd, 255, 255, 255, 80, kRenderFxNoDissipation );
-		pSprite->SetScale( 0.4 );
 		DecalGunshot( &m_trBootHit, BULLET_PLAYER_FIST );
 	}
 
@@ -2311,6 +2319,7 @@ void CBasePlayerWeapon::KickAttack( BOOL holdingSomething )
 				EMIT_SOUND(ENT(m_pPlayer->pev), CHAN_ITEM, "fists_hitbod.wav", 1, ATTN_NORM);
 				m_pPlayer->m_iWeaponVolume = 128;
 				flVol = 0.1;
+				pEntity->pev->velocity = (pEntity->pev->velocity + (gpGlobals->v_forward * RANDOM_LONG(200,300)));
 
 				fHitWorld = FALSE;
 			}
@@ -2330,6 +2339,15 @@ void CBasePlayerWeapon::KickAttack( BOOL holdingSomething )
 
 				fvolbar = 1;
 			}
+
+			// Add smoke
+			UTIL_MakeVectors( m_pPlayer->pev->v_angle );
+			m_pPlayer->pev->velocity = m_pPlayer->pev->velocity + (gpGlobals->v_forward * -300);
+			Vector smoke = tr.vecEndPos - gpGlobals->v_forward * 10;
+			CSprite *pSprite = CSprite::SpriteCreate( "sprites/gunsmoke.spr", smoke, TRUE );
+			pSprite->AnimateAndDie( 12 );
+			pSprite->SetTransparency( kRenderTransAdd, 255, 255, 255, 80, kRenderFxNoDissipation );
+			pSprite->SetScale( 0.4 );
 
 			EMIT_SOUND_DYN(ENT(m_pPlayer->pev), CHAN_ITEM, "fists_hit.wav", fvolbar, ATTN_NORM, 0, 98 + RANDOM_LONG(0,3));
 		}
@@ -2351,13 +2369,6 @@ void CBasePlayerWeapon::KickAttack( BOOL holdingSomething )
 void CBasePlayerWeapon::EndKick( void )
 {
 	if (m_trBootHit.flFraction < 1.0) {
-		UTIL_MakeVectors( m_pPlayer->pev->v_angle );
-		m_pPlayer->pev->velocity = m_pPlayer->pev->velocity + (gpGlobals->v_forward * -300);
-		Vector smoke = m_trBootHit.vecEndPos - gpGlobals->v_forward * 10;
-		CSprite *pSprite = CSprite::SpriteCreate( "sprites/gunsmoke.spr", smoke, TRUE );
-		pSprite->AnimateAndDie( 12 );
-		pSprite->SetTransparency( kRenderTransAdd, 255, 255, 255, 80, kRenderFxNoDissipation );
-		pSprite->SetScale( 0.4 );
 		DecalGunshot( &m_trBootHit, BULLET_PLAYER_BOOT );
 	}
 

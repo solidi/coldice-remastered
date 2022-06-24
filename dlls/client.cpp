@@ -1028,6 +1028,8 @@ void ClientPrecache( void )
 
 	if (giPrecacheGrunt)
 		UTIL_PrecacheOther("monster_human_grunt");
+
+	PRECACHE_SOUND("slide_on_gravel.wav");
 }
 
 /*
