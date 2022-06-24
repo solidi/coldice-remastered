@@ -322,6 +322,11 @@ int __MsgFunc_AllowSpec(const char *pszName, int iSize, void *pbuf)
 	return 0;
 }
 
+int __MsgFunc_SelacoSlide(const char *pszName, int iSize, void *pbuf)
+{
+	return gHUD.MsgFunc_SelacoSlide(pszName, iSize, pbuf );
+}
+
 // This is called every time the DLL is loaded
 void CHud :: Init( void )
 {
@@ -357,6 +362,8 @@ void CHud :: Init( void )
 	
 	HOOK_MESSAGE( SpecFade );
 	HOOK_MESSAGE( ResetFade );
+
+	HOOK_MESSAGE( SelacoSlide );
 
 	// VGUI Menus
 	HOOK_MESSAGE( VGUIMenu );

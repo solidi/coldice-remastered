@@ -228,6 +228,10 @@ int CFists::Swing( int fFirst )
 				// play thwack or smack sound
 				EMIT_SOUND(ENT(m_pPlayer->pev), CHAN_ITEM, "fists_hitbod.wav", 1, ATTN_NORM);
 				m_pPlayer->m_iWeaponVolume = FISTS_BODYHIT_VOLUME;
+				pEntity->pev->velocity = (pEntity->pev->velocity + (gpGlobals->v_forward * RANDOM_LONG(100,200)));
+				if (fFirst == SHORYUKEN)
+					pEntity->pev->velocity.z += RANDOM_LONG(200,300);
+
 				if ( !pEntity->IsAlive() )
 				{
 					  m_flNextPrimaryAttack = GetNextAttackDelay(0.25);

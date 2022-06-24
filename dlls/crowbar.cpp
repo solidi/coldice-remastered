@@ -317,6 +317,8 @@ int CCrowbar::Swing( int fFirst )
 		{
 			if ( pEntity->Classify() != CLASS_NONE && pEntity->Classify() != CLASS_MACHINE )
 			{
+				pEntity->pev->velocity = (pEntity->pev->velocity + (gpGlobals->v_forward * RANDOM_LONG(100,200)));
+
 				// play thwack or smack sound
 				switch( RANDOM_LONG(0,2) )
 				{

@@ -193,6 +193,7 @@ int gmsgStatusValue = 0;
 
 int gmsgStatusIcon = 0;
 
+int gmsgSelacoSlide = 0;
 
 void LinkUserMessages( void )
 {
@@ -240,6 +241,7 @@ void LinkUserMessages( void )
 	gmsgStatusText = REG_USER_MSG("StatusText", -1);
 	gmsgStatusValue = REG_USER_MSG("StatusValue", 3);
 	gmsgStatusIcon = REG_USER_MSG("StatusIcon", -1);
+	gmsgSelacoSlide = REG_USER_MSG("SelacoSlide", 1);
 }
 
 LINK_ENTITY_TO_CLASS( player, CBasePlayer );
@@ -1038,6 +1040,10 @@ void CBasePlayer::SetAnimation( PLAYER_ANIM playerAnim )
 		m_IdealActivity = ACT_PUNCH;
 		break;
 
+	case PLAYER_SLIDE:
+		m_IdealActivity = ACT_SLIDE;
+		break;
+
 	case PLAYER_JUMP:
 		m_IdealActivity = ACT_HOP;
 		break;
@@ -1061,6 +1067,7 @@ void CBasePlayer::SetAnimation( PLAYER_ANIM playerAnim )
 		case ACT_DIESIMPLE:
 		case ACT_KICK:
 		case ACT_PUNCH:
+		case ACT_SLIDE:
 			m_IdealActivity = m_Activity;
 			break;
 		default:
@@ -1083,6 +1090,10 @@ void CBasePlayer::SetAnimation( PLAYER_ANIM playerAnim )
 			m_IdealActivity = m_Activity;
 		}
 		else if (pev->flags & FL_FROZEN && m_Activity == ACT_FROZEN)
+		{
+			m_IdealActivity = m_Activity;
+		}
+		else if ( m_fSelacoTime > gpGlobals->time && m_Activity == ACT_SLIDE )
 		{
 			m_IdealActivity = m_Activity;
 		}
@@ -1110,6 +1121,7 @@ void CBasePlayer::SetAnimation( PLAYER_ANIM playerAnim )
 	case ACT_KICK:
 	case ACT_FROZEN:
 	case ACT_PUNCH:
+	case ACT_SLIDE:
 	default:
 		if ( m_Activity == m_IdealActivity)
 			return;
@@ -2139,6 +2151,12 @@ void CBasePlayer::PreThink(void)
 			ReleaseHeldItem(100);
 		}
 	}
+
+	CalculateToSelacoSlide();
+
+	TraceHitOfSelacoSlide();
+
+	EndSelacoSlide();
 }
 /* Time based Damage works as follows: 
 	1) There are several types of timebased damage:
@@ -3048,6 +3066,10 @@ void CBasePlayer::Spawn( void )
 	m_iFreezeCounter 	= 0;
 	pHeldItem = NULL;
 	m_iHoldingItem = FALSE;
+	m_fSelacoSliding = m_fSelacoHit = FALSE;
+	m_fSelacoTime = m_fSelacoIncrement = m_fSelacoButtonTime = 0;
+	m_fSelacoZ = VEC_VIEW.z;
+	m_fSelacoCount = 0;
 
 	g_engfuncs.pfnSetPhysicsKeyValue( edict(), "slj", "0" );
 	g_engfuncs.pfnSetPhysicsKeyValue( edict(), "hl", "1" );
@@ -3732,6 +3754,11 @@ void CBasePlayer::ImpulseCommands( )
 			ReleaseHeldItem(RANDOM_LONG(300,500));
 		}
 		break;
+	case 208:
+		// Bots only
+		if (FBitSet(pev->flags, FL_FAKECLIENT))
+			StartSelacoSlide();
+		break;
 
 	default:
 		// check all of the cheat impulse commands now
@@ -3740,6 +3767,174 @@ void CBasePlayer::ImpulseCommands( )
 	}
 	
 	pev->impulse = 0;
+}
+
+void CBasePlayer::CalculateToSelacoSlide( void )
+{
+	if (m_fSelacoButtonTime < gpGlobals->time && (m_afButtonPressed & IN_FORWARD))
+	{
+		m_fSelacoButtonTime = gpGlobals->time + 0.65;
+		m_fSelacoCount = 1;
+	}
+
+	if (m_fSelacoCount < 4 && m_fSelacoButtonTime > gpGlobals->time && (m_afButtonReleased & IN_FORWARD)) {
+		m_fSelacoCount++;
+		//ALERT(at_aiconsole, "[%d->m_fSelacoButtonTime=%.2f, pev->v_angle.x=%.2f]\n", m_fSelacoCount, m_fSelacoButtonTime - gpGlobals->time, pev->v_angle.x);
+	}
+
+	if (m_fSelacoCount == 4 && m_fSelacoButtonTime > gpGlobals->time && fabs(pev->v_angle.x) < 22 && (m_afButtonPressed & IN_FORWARD)) {
+		//ALERT(at_aiconsole, "[4->m_fSelacoButtonTime=%.2f, pev->v_angle.x=%.2f]\n", m_fSelacoButtonTime - gpGlobals->time, pev->v_angle.x);
+		m_fSelacoCount = 0;
+		StartSelacoSlide();
+	}
+}
+
+void CBasePlayer::StartSelacoSlide( void )
+{
+	if (!m_fSelacoSliding && m_fSelacoTime < gpGlobals->time) {
+		if (FBitSet(pev->flags, FL_ONGROUND) && pev->velocity.Length() > 50) {
+			UTIL_MakeVectors(pev->angles);
+			pev->viewmodel = MAKE_STRING("models/v_leg_dual.mdl");
+			if (m_pActiveItem) ((CBasePlayerWeapon *)m_pActiveItem)->SendWeaponAnim(2, 0, 0);
+			pev->friction = 0.05;
+			pev->velocity = (gpGlobals->v_forward * 900); // + (gpGlobals->v_up * 200);
+			m_fSelacoTime = gpGlobals->time + 1.25;
+			m_fSelacoSliding = TRUE;
+			SetAnimation( PLAYER_SLIDE );
+			UTIL_ScreenShake( pev->origin, 15.0, 55.0, 1.25, 15.0 );
+			EMIT_SOUND(ENT(pev), CHAN_VOICE, "slide_on_gravel.wav", 1, ATTN_NORM);
+			MESSAGE_BEGIN( MSG_ONE, gmsgSelacoSlide, NULL, pev );
+				WRITE_BYTE( 0 );
+			MESSAGE_END();
+		}
+	}
+}
+
+void CBasePlayer::TraceHitOfSelacoSlide( void )
+{
+	if (m_fSelacoSliding && m_fSelacoTime > gpGlobals->time && m_fSelacoIncrement < gpGlobals->time) {
+		if (!m_fSelacoHit && m_fSelacoZ > -8) {
+			m_fSelacoZ -= 2;
+			pev->view_ofs[2] = m_fSelacoZ;
+			pev->punchangle.z = 15;
+		}
+
+		TraceResult tr;
+
+		if (!m_fSelacoHit)
+		{
+			UTIL_MakeVectors(Vector(0, pev->v_angle.y, 0));
+			Vector vecSrc	= GetGunPosition( );
+			Vector vecEnd	= vecSrc + gpGlobals->v_forward * 32;
+
+			UTIL_TraceLine( vecSrc, vecEnd, dont_ignore_monsters, ENT( pev ), &tr );
+
+		#ifndef CLIENT_DLL
+			if ( tr.flFraction >= 1.0 )
+			{
+				// Important! Human hull for decreased chance of odd bouncing
+				UTIL_TraceHull( vecSrc, vecEnd, dont_ignore_monsters, human_hull, ENT( pev ), &tr );
+				if ( tr.flFraction < 1.0 )
+				{
+					// Calculate the point of intersection of the line (or hull) and the object we hit
+					// This is and approximation of the "best" intersection
+					CBaseEntity *pHit = CBaseEntity::Instance( tr.pHit );
+					if ( !pHit || pHit->IsBSPModel() )
+						UTIL_FindHullIntersection( vecSrc, tr, VEC_DUCK_HULL_MIN, VEC_DUCK_HULL_MAX, edict() );
+					vecEnd = tr.vecEndPos;	// This is the point on the actual surface (the hull could have hit space)
+				}
+			}
+		#endif
+
+			float flVol = 1.0;
+			int fHitWorld = TRUE;
+
+			if ( tr.flFraction < 1.0 )
+			{
+		#ifndef CLIENT_DLL
+
+				CBaseEntity *pEntity = CBaseEntity::Instance(tr.pHit);
+				ClearMultiDamage( );
+
+				pEntity->TraceAttack(pev, gSkillData.plrDmgKick * 4, gpGlobals->v_forward, &tr, DMG_KICK ); 
+
+				ApplyMultiDamage( pev, pev );
+
+				// play thwack, smack, or dong sound
+				if (pEntity)
+				{
+					if ( pEntity->Classify() != CLASS_NONE && pEntity->Classify() != CLASS_MACHINE )
+					{
+						// play thwack or smack sound
+						EMIT_SOUND(ENT(pev), CHAN_ITEM, "fists_hitbod.wav", 1, ATTN_NORM);
+						m_iWeaponVolume = 128;
+						flVol = 0.1;
+						pEntity->pev->velocity = (pEntity->pev->velocity + (gpGlobals->v_forward * RANDOM_LONG(200,300)));
+						pEntity->pev->velocity.z += RANDOM_LONG(200,300);
+
+						fHitWorld = FALSE;
+
+						m_fSelacoHit = TRUE;
+						if (m_pActiveItem) ((CBasePlayerWeapon *)m_pActiveItem)->SendWeaponAnim(3, 0, 0);
+						pev->velocity = pev->velocity / 2;
+						pev->friction = 0.5;
+					}
+				}
+
+				if (fHitWorld)
+				{
+					float fvolbar = TEXTURETYPE_PlaySound(&tr, vecSrc, vecSrc + (vecEnd-vecSrc)*2, BULLET_PLAYER_BOOT);
+
+					if ( g_pGameRules->IsMultiplayer() )
+					{
+						// override the volume here, cause we don't play texture sounds in multiplayer, 
+						// and fvolbar is going to be 0 from the above call.
+						fvolbar = 1;
+					}
+
+					// Add smoke
+					UTIL_MakeVectors( pev->v_angle );
+					Vector smoke = tr.vecEndPos - gpGlobals->v_forward * 10;
+					CSprite *pSprite = CSprite::SpriteCreate( "sprites/gunsmoke.spr", smoke, TRUE );
+					pSprite->AnimateAndDie( 12 );
+					pSprite->SetTransparency( kRenderTransAdd, 255, 255, 255, 80, kRenderFxNoDissipation );
+					pSprite->SetScale( 0.4 );
+
+					EMIT_SOUND_DYN(ENT(pev), CHAN_ITEM, "fists_hit.wav", fvolbar, ATTN_NORM, 0, 98 + RANDOM_LONG(0,3));
+
+					if (m_pActiveItem) ((CBasePlayerWeapon *)m_pActiveItem)->SendWeaponAnim(3, 0, 1);
+					m_fSelacoHit = TRUE;
+					pev->velocity = pev->velocity / 2;
+					pev->friction = 0.5;
+				}
+
+				m_iWeaponVolume = flVol * 512;
+		#endif
+			}
+
+			if (tr.flFraction < 1.0) {
+				DecalGunshot( &tr, BULLET_PLAYER_BOOT );
+				tr.vecEndPos.x += 10;
+				DecalGunshot( &tr, BULLET_PLAYER_BOOT );
+			}
+		}
+
+		m_fSelacoIncrement = gpGlobals->time + 0.03;
+	}
+}
+
+void CBasePlayer::EndSelacoSlide( void )
+{
+	if (m_fSelacoSliding && m_fSelacoTime < gpGlobals->time) {
+		if (m_pActiveItem) m_pActiveItem->Deploy();
+		m_fSelacoSliding = m_fSelacoHit = FALSE;
+		m_fSelacoTime = m_fSelacoIncrement = m_fSelacoButtonTime = 0;
+		m_fSelacoZ = VEC_VIEW.z;
+		pev->friction = 1.0;
+		m_fSelacoCount = 0;
+		pev->view_ofs[2] = m_fSelacoZ;
+		m_fSelacoIncrement = gpGlobals->time + 0.2;
+	}
 }
 
 BOOL CBasePlayer::ReleaseHeldItem(float speed) 

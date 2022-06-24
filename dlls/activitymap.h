@@ -96,5 +96,6 @@ _A(	ACT_FLINCH_RIGHTLEG ),
 _A(	ACT_KICK ),
 _A(	ACT_FROZEN ),
 _A(	ACT_PUNCH ),
+_A(	ACT_SLIDE ),
 0, NULL
 };

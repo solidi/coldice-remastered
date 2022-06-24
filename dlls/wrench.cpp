@@ -285,6 +285,8 @@ int CWrench::Swing( int fFirst )
 		{
 			if ( pEntity->Classify() != CLASS_NONE && pEntity->Classify() != CLASS_MACHINE )
 			{
+				pEntity->pev->velocity = (pEntity->pev->velocity + (gpGlobals->v_forward * RANDOM_LONG(200,300)));
+
 				// play thwack or smack sound
 				switch( RANDOM_LONG(0,2) )
 				{

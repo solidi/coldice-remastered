@@ -98,6 +98,7 @@ typedef enum {
 	ACT_KICK,
 	ACT_FROZEN,
 	ACT_PUNCH,
+	ACT_SLIDE,
 } Activity;
 
 

@@ -73,6 +73,7 @@ typedef enum
 	PLAYER_KICK,
 	PLAYER_FROZEN,
 	PLAYER_PUNCH,
+	PLAYER_SLIDE,
 } PLAYER_ANIM;
 
 #define MAX_ID_RANGE 2048
@@ -215,6 +216,18 @@ public:
 	float m_fThawTime;
 	int m_iFreezeCounter;
 	float m_fJumpHeight;
+
+	void CalculateToSelacoSlide( void );
+	void StartSelacoSlide( void );
+	void TraceHitOfSelacoSlide( void );
+	void EndSelacoSlide( void );
+	float m_fSelacoButtonTime;
+	float m_fSelacoTime;
+	float m_fSelacoIncrement;
+	int m_fSelacoZ;
+	int m_fSelacoCount;
+	BOOL m_fSelacoSliding;
+	BOOL m_fSelacoHit;
 
 	CBaseEntity *pHeldItem;
 	BOOL m_iHoldingItem;
