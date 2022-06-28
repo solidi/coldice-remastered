@@ -18,6 +18,7 @@
 #include "particleman.h"
 extern IParticleMan *g_pParticleMan;
 extern cvar_t *cl_announcehumor;
+extern cvar_t *m_pIceModels;
 
 void Game_AddObjects( void );
 
@@ -326,6 +327,41 @@ void CL_DLLEXPORT HUD_CreateEntities( void )
 extern int g_bACSpinning[33];
 #endif 
 
+// https://github.com/FWGS/xash3d-fwgs/blob/52d1383f14d1de3505efca3639ab0bff061709fc/engine/client/cl_tent.c#L883
+void R_RealMuzzleFlash( const vec3_t pos, int type )
+{
+	TEMPENTITY	*pTemp;
+	int		index;
+	float		scale;
+
+	index = ( type % 10 ) % 3;
+	scale = ( type / 10 ) * 0.1f;
+	if( scale == 0.0f ) scale = 0.5f;
+
+	const char *ice_models[] =
+	{
+		"sprites/ice_muzzleflash1.spr",
+		"sprites/ice_muzzleflash2.spr",
+		"sprites/ice_muzzleflash3.spr",
+	};
+
+	int spr = gEngfuncs.pEventAPI->EV_FindModelIndex(ice_models[index]);
+	pTemp = gEngfuncs.pEfxAPI->R_DefaultSprite((float *)&pos, spr, 10);
+			
+	if( !pTemp ) return;
+	pTemp->entity.curstate.rendermode = kRenderTransAdd;
+	pTemp->entity.curstate.renderamt = 255;
+	pTemp->entity.curstate.framerate = 10;
+	pTemp->entity.curstate.renderfx = 0;
+	pTemp->die = gEngfuncs.GetClientTime() + 0.05; // die at next frame
+	//pTemp->entity.curstate.frame = gEngfuncs.pfnRandomLong( 0, pTemp->frameMax );
+	//pTemp->flags |= FTENT_SPRANIMATE|FTENT_SPRANIMATELOOP;
+	pTemp->entity.curstate.scale = scale;
+
+	if( index == 0 ) pTemp->entity.angles[2] = gEngfuncs.pfnRandomLong( 0, 20 ); // rifle flash
+	else pTemp->entity.angles[2] = gEngfuncs.pfnRandomLong( 0, 359 );
+}
+
 /*
 =========================
 HUD_StudioEvent
@@ -350,12 +386,20 @@ void CL_DLLEXPORT HUD_StudioEvent( const struct mstudioevent_s *event, const str
 	switch( event->event )
 	{
 	case 5001:
-		if ( iMuzzleFlash )
-			gEngfuncs.pEfxAPI->R_MuzzleFlash( (float *)&entity->attachment[0], atoi( event->options) );
+		if ( iMuzzleFlash ) {
+			if (m_pIceModels && m_pIceModels->value)
+				R_RealMuzzleFlash(entity->attachment[0], atoi(event->options));
+			else	
+				gEngfuncs.pEfxAPI->R_MuzzleFlash( (float *)&entity->attachment[0], atoi( event->options) );
+		}
 		break;
 	case 5011:
-		if ( iMuzzleFlash )
-			gEngfuncs.pEfxAPI->R_MuzzleFlash( (float *)&entity->attachment[1], atoi( event->options) );
+		if ( iMuzzleFlash ) {
+			if (m_pIceModels && m_pIceModels->value)
+				R_RealMuzzleFlash(entity->attachment[1], atoi(event->options));
+			else	
+				gEngfuncs.pEfxAPI->R_MuzzleFlash( (float *)&entity->attachment[1], atoi( event->options) );
+		}
 		break;
 	case 5021:
 		if ( iMuzzleFlash )
