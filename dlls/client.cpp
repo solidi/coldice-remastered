@@ -701,6 +701,7 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_allowvoiceovers 1\" - Allow public voiceovers\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_dualsonly 0\" - Replace all weapons with duals only\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_jumpheight 45\" - Adjust the player's jump height\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_icesprites 1\" - Switch between select ice or real environment sprites\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "For more, see readme.txt\n" );
 	}
 	else if ( g_pGameRules->ClientCommand( GetClassPtr((CBasePlayer *)pev), pcmd ) )

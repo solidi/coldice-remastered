@@ -22,6 +22,7 @@
 #include "player.h"
 #include "gamerules.h"
 #include "plasma.h"
+#include "game.h"
 
 enum freezegun_e {
 	FREEZEGUN_IDLE,
@@ -60,7 +61,8 @@ void CFreezeGun::Precache(void)
 	PRECACHE_SOUND("items/9mmclip1.wav");
 
 	m_iPlasmaSprite = PRECACHE_MODEL("sprites/tsplasma.spr");
-	m_iMazzlePlasma = PRECACHE_MODEL("sprites/muzzleflashplasma.spr");
+	m_iMuzzlePlasma = PRECACHE_MODEL("sprites/muzzleflashplasma.spr");
+	m_iIceMuzzlePlasma = PRECACHE_MODEL("sprites/ice_muzzleflashplasma.spr");
 	UTIL_PrecacheOther("plasma");
 
 	m_usPlasmaFire = PRECACHE_EVENT(1, "events/freezegun.sc");
@@ -158,7 +160,10 @@ void CFreezeGun::PrimaryAttack()
 		WRITE_COORD( vecSrcMuzzle.x );	// Send to PAS because of the sound
 		WRITE_COORD( vecSrcMuzzle.y );
 		WRITE_COORD( vecSrcMuzzle.z );
-		WRITE_SHORT( m_iMazzlePlasma );
+		if (icesprites.value)
+			WRITE_SHORT( m_iIceMuzzlePlasma );
+		else
+			WRITE_SHORT( m_iMuzzlePlasma );
 		WRITE_BYTE( 3 ); // scale * 10
 		WRITE_BYTE( 128 ); // framerate
 	MESSAGE_END();
@@ -169,9 +174,15 @@ void CFreezeGun::PrimaryAttack()
 		WRITE_COORD( vecSrcMuzzle.y );	// Y
 		WRITE_COORD( vecSrcMuzzle.z );	// Z
 		WRITE_BYTE( 15 );		// radius * 0.1
-		WRITE_BYTE( 0 );		// r
-		WRITE_BYTE( 113 );		// g
-		WRITE_BYTE( 230 );		// b
+		if (icesprites.value) {
+			WRITE_BYTE( 0 );		// r
+			WRITE_BYTE( 113 );		// g
+			WRITE_BYTE( 230 );		// b
+		} else {
+			WRITE_BYTE( 0 );		// r
+			WRITE_BYTE( 200 );		// g
+			WRITE_BYTE( 0 );		// b
+		}
 		WRITE_BYTE( 5 );		// time * 10
 		WRITE_BYTE( 10 );		// decay * 0.1
 	MESSAGE_END( );

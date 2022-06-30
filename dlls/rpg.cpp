@@ -22,6 +22,7 @@
 #include "nodes.h"
 #include "player.h"
 #include "gamerules.h"
+#include "game.h"
 
 
 
@@ -193,13 +194,19 @@ void CRpgRocket :: IgniteThink( void  )
 		WRITE_SHORT(m_iTrail );	// model
 		WRITE_BYTE( 40 ); // life
 		WRITE_BYTE( 5 );  // width
-		if (m_redRocket) {
-			WRITE_BYTE( 224 );   // r, g, b
-			WRITE_BYTE( 0 );   // r, g, b
-			WRITE_BYTE( 0 );   // r, g, b
+		if (icesprites.value) {
+			if (m_redRocket) {
+				WRITE_BYTE( 224 );   // r, g, b
+				WRITE_BYTE( 0 );   // r, g, b
+				WRITE_BYTE( 0 );   // r, g, b
+			} else {
+				WRITE_BYTE( 0 );   // r, g, b
+				WRITE_BYTE( 160 );   // r, g, b
+				WRITE_BYTE( 255 );   // r, g, b
+			}
 		} else {
-			WRITE_BYTE( 0 );   // r, g, b
-			WRITE_BYTE( 160 );   // r, g, b
+			WRITE_BYTE( 224 );   // r, g, b
+			WRITE_BYTE( 224 );   // r, g, b
 			WRITE_BYTE( 255 );   // r, g, b
 		}
 		WRITE_BYTE( 255 );	// brightness

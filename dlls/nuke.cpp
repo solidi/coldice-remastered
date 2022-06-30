@@ -22,6 +22,7 @@
 #include "player.h"
 #include "gamerules.h"
 #include "shake.h"
+#include "game.h"
 
 enum nuke_e {
 	NUKE_IDLE = 0,
@@ -141,7 +142,10 @@ void CNukeRocket :: RocketTouch ( CBaseEntity *pOther )
 		WRITE_COORD( pev->origin.x );	// Send to PAS because of the sound
 		WRITE_COORD( pev->origin.y );
 		WRITE_COORD( pev->origin.z + 128 );
-		WRITE_SHORT( m_iExp );
+		if (icesprites.value)
+			WRITE_SHORT( m_iIceExp );
+		else
+			WRITE_SHORT( m_iExp );
 		WRITE_BYTE( (pev->dmg - 50) * .40  ); // scale * 10
 		WRITE_BYTE( 20 ); // framerate
 		WRITE_BYTE( TE_EXPLFLAG_NONE );
@@ -168,6 +172,7 @@ void CNukeRocket :: Precache( void )
 	PRECACHE_MODEL("models/rpgrocket.mdl");
 	m_iTrail = PRECACHE_MODEL("sprites/smoke.spr");
 	m_iExp = PRECACHE_MODEL("sprites/nuke2.spr");
+	m_iIceExp = PRECACHE_MODEL("sprites/ice_nuke2.spr");
 	PRECACHE_SOUND ("rocket1.wav");
 	PRECACHE_SOUND ("nuke_explosion.wav");
 }

@@ -89,8 +89,8 @@ void CGauss::Precache( void )
 	PRECACHE_SOUND("weapons/electro6.wav");
 	PRECACHE_SOUND("ambience/pulsemachine.wav");
 	
-	m_iGlow = PRECACHE_MODEL( "sprites/hotglow.spr" );
-	m_iBalls = PRECACHE_MODEL( "sprites/hotglow.spr" );
+	PRECACHE_MODEL( "sprites/hotglow.spr" );
+ 	PRECACHE_MODEL( "sprites/ice_hotglow.spr" );
 	m_iBeam = PRECACHE_MODEL( "sprites/smoke.spr" );
 
 	m_usGaussFire = PRECACHE_EVENT( 1, "events/gauss.sc" );

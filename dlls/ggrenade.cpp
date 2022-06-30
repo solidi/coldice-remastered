@@ -73,7 +73,11 @@ void CGrenade::Explode( TraceResult *pTrace, int bitsDamageType )
 		WRITE_COORD( pev->origin.z );
 		if (iContents != CONTENTS_WATER)
 		{
-			WRITE_SHORT( g_sModelIndexFireball );
+			if (icesprites.value) {
+				WRITE_SHORT( g_sModelIndexIceFireball );
+			} else {
+				WRITE_SHORT( g_sModelIndexFireball );
+			}
 		}
 		else
 		{

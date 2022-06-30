@@ -32,12 +32,11 @@ public:
 	static CPlasma *CreatePlasmaRocket( Vector vecOrigin, Vector vecAngles, CBaseEntity *pOwner );
 
 	float m_iDrips;
-	float m_iGlow;
-	float m_iExplode;
-	float m_flIgniteTime;	
+	int m_iExplode, m_iTrail;
+	int m_iIceExplode, m_iIceTrail;
+	float m_flIgniteTime;
 	float m_flExplodeTime;
 	int m_iPrimaryMode;
-	int m_iTrail;	
 	bool m_bIsAI;
 	CSprite *m_pSprite;
 	CBaseEntity *m_pPlayer;

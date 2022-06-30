@@ -21,6 +21,7 @@
 #include "nodes.h"
 #include "player.h"
 #include "gamerules.h"
+#include "game.h"
 
 enum cannon_e {
 	CANNON_IDLE = 0,
@@ -118,6 +119,7 @@ void CFlakBomb :: Precache( void )
 	PRECACHE_MODEL("models/rpgrocket.mdl");
 	m_iTrail = PRECACHE_MODEL("sprites/smoke.spr");
 	PRECACHE_MODEL("sprites/xspark4.spr");
+	PRECACHE_MODEL("sprites/ice_xspark4.spr");
 	PRECACHE_SOUND ("rocket1.wav");
 }
 
@@ -134,6 +136,7 @@ CFlak *CFlak::CreateFlak( Vector vecOrigin, Vector vecAngles, CBaseEntity *pOwne
 	pFlak->pev->angles = vecAngles;
 	pFlak->Spawn();
 	pFlak->SetTouch( &CFlak::FlakTouch );
+	if (pOwner != NULL)
 	pFlak->pev->owner = pOwner->edict();
 
 	return pFlak;
@@ -163,7 +166,10 @@ void CFlak :: Spawn( )
 	pev->gravity = 0.5;
 	pev->dmg = gSkillData.plrDmgFlak;
 
-	glowSprite = CSprite::SpriteCreate( "sprites/xspark4.spr", pev->origin, TRUE );
+	if (icesprites.value)
+		glowSprite = CSprite::SpriteCreate( "sprites/ice_xspark4.spr", pev->origin, TRUE );
+	else
+		glowSprite = CSprite::SpriteCreate( "sprites/xspark4.spr", pev->origin, TRUE );
 	glowSprite->SetTransparency( kRenderGlow, 255, 255, 255, 255, kRenderFxNoDissipation );
 	glowSprite->SetAttachment( edict(), 0) ;
 	glowSprite->SetScale( 0.5 );
