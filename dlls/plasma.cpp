@@ -25,6 +25,7 @@
 #include "decals.h"
 #include "plasma.h"
 #include "explode.h"
+#include "game.h"
 
 LINK_ENTITY_TO_CLASS( plasma, CPlasma );
 
@@ -88,12 +89,16 @@ void CPlasma :: IgniteThink( void  )
 
 	pev->movetype = MOVETYPE_FLY;
 
+#ifndef CLIENT_DLL
 	// rocket trail
 	MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
 
 		WRITE_BYTE( TE_BEAMFOLLOW );
 		WRITE_SHORT(entindex());	// entity
-		WRITE_SHORT(m_iTrail );	// model
+		if (icesprites.value)
+			WRITE_SHORT(m_iIceTrail );	// model
+		else
+			WRITE_SHORT(m_iTrail );	// model
 		WRITE_BYTE( 15 ); // life
 		WRITE_BYTE( 15 );  // width
 		WRITE_BYTE( 255 );   // r, g, b
@@ -102,6 +107,7 @@ void CPlasma :: IgniteThink( void  )
 		WRITE_BYTE( 255 );	// brightness
 
 	MESSAGE_END();  // move PHS/PVS data sending into here (SEND_ALL, SEND_PVS, SEND_PHS)
+#endif
 
 	m_flIgniteTime = gpGlobals->time + 0.6;
 }
@@ -112,9 +118,12 @@ void CPlasma :: Precache( void )
 {
 	PRECACHE_MODEL("models/plasma.mdl");
 	m_iDrips = PRECACHE_MODEL("sprites/tsplasma.spr");
-	m_iGlow = PRECACHE_MODEL("sprites/particles_blue.spr");
-	m_iExplode = PRECACHE_MODEL ("sprites/plasmablue5.spr");
-	m_iTrail = PRECACHE_MODEL("sprites/plasmatrail.spr");	
+	PRECACHE_MODEL("sprites/ice_particles.spr");
+	PRECACHE_MODEL("sprites/particles.spr");
+	m_iIceExplode = PRECACHE_MODEL ("sprites/ice_plasma5.spr");
+	m_iExplode = PRECACHE_MODEL ("sprites/plasma5.spr");
+	m_iIceTrail = PRECACHE_MODEL("sprites/ice_plasmatrail.spr");
+	m_iTrail = PRECACHE_MODEL("sprites/plasmatrail.spr");
 	PRECACHE_SOUND ("plasma_hitwall.wav");
 }
 
@@ -122,13 +131,25 @@ void CPlasma :: Precache( void )
 
 void CPlasma :: Glow( void )
 {
-	m_pSprite = CSprite::SpriteCreate( "sprites/particles_blue.spr", pev->origin, FALSE );
-	m_pSprite->SetAttachment( edict(), 0 );
-	m_pSprite->pev->scale = 1;
-	m_pSprite->pev->frame = 8;
-	m_pSprite->pev->rendermode = kRenderTransAdd;
-	m_pSprite->pev->renderamt = 255;	
-	m_pSprite->SetTransparency( kRenderTransAdd, 0, 113, 230, 100, kRenderFxDistort );
+#ifndef CLIENT_DLL
+	if (icesprites.value)
+		m_pSprite = CSprite::SpriteCreate( "sprites/ice_particles.spr", pev->origin, FALSE );
+	else
+		m_pSprite = CSprite::SpriteCreate("sprites/particles.spr", pev->origin, FALSE );
+
+	if (m_pSprite != NULL) {
+		m_pSprite->SetAttachment( edict(), 0 );
+		m_pSprite->pev->scale = 1;
+		m_pSprite->pev->frame = 8;
+		m_pSprite->pev->rendermode = kRenderTransAdd;
+		m_pSprite->pev->renderamt = 255;
+
+		if (icesprites.value)	
+			m_pSprite->SetTransparency( kRenderTransAdd, 0, 113, 230, 100, kRenderFxDistort );
+		else
+			m_pSprite->SetTransparency( kRenderTransAdd, 0, 200, 0, 100, kRenderFxDistort );
+	}
+#endif
 }
 
 //=========================================================
@@ -202,15 +223,20 @@ void CPlasma::Explode( void )
 
 	UTIL_MakeVectors( m_pPlayer->pev->v_angle );
 	Vector t = pev->origin - gpGlobals->v_forward * 20;
+#ifndef CLIENT_DLL
 	MESSAGE_BEGIN( MSG_PAS, SVC_TEMPENTITY, pev->origin );
 		WRITE_BYTE( TE_SPRITE );		// This makes a dynamic light and the explosion sprites/sound
 		WRITE_COORD( t.x );	// Send to PAS because of the sound
 		WRITE_COORD( t.y );
 		WRITE_COORD( t.z );
-		WRITE_SHORT( m_iExplode );
+		if (icesprites.value)
+			WRITE_SHORT( m_iIceExplode );
+		else
+			WRITE_SHORT( m_iExplode );
 		WRITE_BYTE( RANDOM_LONG(12, 18) ); // scale * 10
 		WRITE_BYTE( 128 ); // framerate
 	MESSAGE_END();
+#endif
 
 	MESSAGE_BEGIN( MSG_PAS, SVC_TEMPENTITY, pev->origin );
 		WRITE_BYTE( TE_SMOKE );
@@ -222,15 +248,22 @@ void CPlasma::Explode( void )
 		WRITE_BYTE( 10  ); // framerate
 	MESSAGE_END();
 
+#ifndef CLIENT_DLL
 	MESSAGE_BEGIN( MSG_PVS, SVC_TEMPENTITY, pev->origin );
 		WRITE_BYTE(TE_DLIGHT);
 		WRITE_COORD( pev->origin.x );	// X
 		WRITE_COORD( pev->origin.y );	// Y
 		WRITE_COORD( pev->origin.z );	// Z
 		WRITE_BYTE( 15 );		// radius * 0.1
-		WRITE_BYTE( 0 );		// r
-		WRITE_BYTE( 113 );		// g
-		WRITE_BYTE( 230 );		// b
+		if (icesprites.value) {
+			WRITE_BYTE( 0 );		// r
+			WRITE_BYTE( 113 );		// g
+			WRITE_BYTE( 230 );		// b
+		} else {
+			WRITE_BYTE( 0 );		// r
+			WRITE_BYTE( 200 );		// g
+			WRITE_BYTE( 0 );		// b
+		}
 		WRITE_BYTE( 5 );		// time * 10
 		WRITE_BYTE( 10 );		// decay * 0.1
 	MESSAGE_END( );
@@ -241,9 +274,13 @@ void CPlasma::Explode( void )
 		WRITE_COORD(pev->origin.y);
 		WRITE_COORD(pev->origin.z);
 		WRITE_SHORT( 75 );
-		WRITE_BYTE((unsigned short)208);
+		if (icesprites.value)
+			WRITE_BYTE((unsigned short)208);
+		else
+			WRITE_BYTE((unsigned short)176);
 		WRITE_BYTE( 5 );
 	MESSAGE_END();
+#endif
 
 	entvars_t *pevOwner;
 	if ( pev->owner )

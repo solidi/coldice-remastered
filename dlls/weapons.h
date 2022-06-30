@@ -482,6 +482,7 @@ extern DLL_GLOBAL	short	g_sModelIndexBubbles;// holds the index for the bubbles 
 extern DLL_GLOBAL	short	g_sModelIndexBloodDrop;// holds the sprite index for blood drops
 extern DLL_GLOBAL	short	g_sModelIndexBloodSpray;// holds the sprite index for blood spray (bigger)
 extern DLL_GLOBAL	short	g_sModelIndexSnowballHit;
+extern DLL_GLOBAL	short 	g_sModelIndexIceFireball;
 
 extern void ClearMultiDamage(void);
 extern void ApplyMultiDamage(entvars_t* pevInflictor, entvars_t* pevAttacker );
@@ -959,8 +960,6 @@ public:
 	void StartFire( void );
 	void Fire( Vector vecOrigSrc, Vector vecDirShooting, float flDamage );
 	float GetFullChargeTime( void );
-	int m_iBalls;
-	int m_iGlow;
 	int m_iBeam;
 	int m_iSoundState; // don't save this
 
@@ -1742,7 +1741,7 @@ public:
 	static CNukeRocket *CreateNukeRocket( Vector vecOrigin, Vector vecAngles, CBaseEntity *pOwner, CNuke *pLauncher, float startEngineTime );
 
 	int m_iTrail;
-	int m_iExp;
+	int m_iExp, m_iIceExp;
 	float m_flIgniteTime;
 	CNuke *m_pLauncher;// pointer back to the launcher that fired me.
 };
@@ -2012,7 +2011,7 @@ public:
 
 private:
 	int m_iPlasmaSprite;
-	int m_iMazzlePlasma;
+	int m_iIceMuzzlePlasma, m_iMuzzlePlasma;
 	int m_fInAttack;
 	unsigned short m_usPlasmaFire;
 };

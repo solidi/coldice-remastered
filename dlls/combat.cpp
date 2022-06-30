@@ -31,6 +31,7 @@
 #include "func_break.h"
 #include "shake.h"
 #include "player.h"
+#include "game.h"
 
 extern DLL_GLOBAL Vector		g_vecAttackDir;
 extern DLL_GLOBAL int			g_iSkillLevel;
@@ -1633,6 +1634,7 @@ Vector CBaseEntity::FireBulletsPlayer ( ULONG cShots, Vector vecSrc, Vector vecD
 		if (tr.flFraction != 1.0)
 		{
 			CBaseEntity *pEntity = CBaseEntity::Instance(tr.pHit);
+			Vector end = tr.vecEndPos + (tr.vecPlaneNormal * 10);
 
 			if ( iDamage )
 			{
@@ -1664,10 +1666,14 @@ Vector CBaseEntity::FireBulletsPlayer ( ULONG cShots, Vector vecSrc, Vector vecD
 				if ( RANDOM_LONG(0, 3) > 2 ) {
 					MESSAGE_BEGIN( MSG_PAS, SVC_TEMPENTITY, pev->origin );
 						WRITE_BYTE( TE_EXPLOSION );
-						WRITE_COORD( tr.vecEndPos.x );
-						WRITE_COORD( tr.vecEndPos.y );
-						WRITE_COORD( tr.vecEndPos.z );
-						WRITE_SHORT( g_sModelIndexFireball );
+						WRITE_COORD( end.x );
+						WRITE_COORD( end.y );
+						WRITE_COORD( end.z );
+						if (icesprites.value) {
+							WRITE_SHORT( g_sModelIndexIceFireball );
+						} else {
+							WRITE_SHORT( g_sModelIndexFireball );
+						}
 						WRITE_BYTE( 2 ); // scale * 10
 						WRITE_BYTE( 15 ); // framerate
 						WRITE_BYTE( TE_EXPLFLAG_NONE );

@@ -51,6 +51,7 @@ extern cvar_t *cl_lw;
 extern cvar_t *m_pCvarRighthand;
 extern cvar_t *cl_bulletsmoke;
 extern cvar_t *cl_gunsmoke;
+extern cvar_t *m_pIceModels;
 
 extern "C"
 {
@@ -1035,7 +1036,10 @@ void EV_FireGauss( event_args_t *args )
 	EV_GetGunPosition( args, vecSrc, origin );
 
 	m_iBeam = gEngfuncs.pEventAPI->EV_FindModelIndex( "sprites/smoke.spr" );
-	m_iBalls = m_iGlow = gEngfuncs.pEventAPI->EV_FindModelIndex( "sprites/hotglow.spr" );
+	if (m_pIceModels && m_pIceModels->value)
+		m_iBalls = m_iGlow = gEngfuncs.pEventAPI->EV_FindModelIndex( "sprites/ice_hotglow.spr" );
+	else
+		m_iBalls = m_iGlow = gEngfuncs.pEventAPI->EV_FindModelIndex( "sprites/hotglow.spr" );
 	
 	AngleVectors( angles, forward, right, up );
 
@@ -1073,6 +1077,13 @@ void EV_FireGauss( event_args_t *args )
 		if ( tr.allsolid )
 			break;
 
+		int r = 255, g = 128, b = 0;
+		if (m_pIceModels && m_pIceModels->value) {
+			r = 0;
+			g = 113;
+			b = 230;
+		}
+
 		if (fFirstBeam)
 		{
 			if ( EV_IsLocal( idx ) )
@@ -1093,9 +1104,9 @@ void EV_FireGauss( event_args_t *args )
 				0,
 				0,
 				0,
-				m_fPrimaryFire ? 0 : 255,
-				m_fPrimaryFire ? 160 : 255,
-				m_fPrimaryFire ? 255 : 255
+				m_fPrimaryFire ? r : 255,
+				m_fPrimaryFire ? g : 255,
+				m_fPrimaryFire ? b : 255
 			);
 		}
 		else
@@ -1110,9 +1121,9 @@ void EV_FireGauss( event_args_t *args )
 				0,
 				0,
 				0,
-				m_fPrimaryFire ? 0 : 255,
-				m_fPrimaryFire ? 160 : 255,
-				m_fPrimaryFire ? 255 : 255
+				m_fPrimaryFire ? r : 255,
+				m_fPrimaryFire ? g : 255,
+				m_fPrimaryFire ? b : 255
 			);
 		}
 
