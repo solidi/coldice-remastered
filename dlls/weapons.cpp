@@ -2027,6 +2027,10 @@ void CBasePlayerWeapon::StartPunch( BOOL holdingSomething )
 		return;
 	}
 
+	if (m_pPlayer->m_fSelacoTime >= gpGlobals->time) {
+		return;
+	}
+
 	if (!CanAttack( m_flNextPrimaryAttack, gpGlobals->time, UseDecrement() )) {
 		return;
 	}
@@ -2183,6 +2187,10 @@ void CBasePlayerWeapon::StartKick( BOOL holdingSomething )
 	}
 
 	if (m_pPlayer->m_fPunchTime >= gpGlobals->time) {
+		return;
+	}
+
+	if (m_pPlayer->m_fSelacoTime >= gpGlobals->time) {
 		return;
 	}
 
