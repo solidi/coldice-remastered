@@ -1007,22 +1007,42 @@ void CWorldRunes::CreateRune(char *sz_RuneClass)
 	}
 }
 
+static const int RUNE_COUNT = 8;
+const char* runeClassList[RUNE_COUNT] = {
+	"rune_frag",
+	"rune_vampire",
+	"rune_protect",
+	"rune_regen",
+	"rune_haste",
+	"rune_gravity",
+	"rune_strength",
+	"rune_cloak"
+};
+
 void CWorldRunes::SpawnRunes( )
 {
+	int playerCount = 0;
+	int playersPerRunes = 2;
+
+	for ( int i = 1; i <= gpGlobals->maxClients; i++ )
+	{
+		CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
+		if ( plr )
+		{
+			playerCount++;
+		}
+	}
+
 #ifdef _DEBUG
-	ALERT ( at_console, "Creating runes...\n" );
+	ALERT ( at_console, "[playerCount=%d, runeCount=%d] Creating runes...\n", playerCount, fmin((playerCount / playersPerRunes) + 1, RUNE_COUNT) );
 #endif
-	CreateRune( "rune_frag" );
-	CreateRune( "rune_vampire" );
-	CreateRune( "rune_protect" );
-	CreateRune( "rune_regen" );
-	CreateRune( "rune_haste" );
-	CreateRune( "rune_gravity" );
-	CreateRune( "rune_strength" );
-	CreateRune( "rune_cloak" );
+	for ( int i = 0; i < fmin((playerCount / playersPerRunes) + 1, RUNE_COUNT); i++) {
+		char *runeName = (char *)runeClassList[RANDOM_LONG(0,RUNE_COUNT - 1)];
 #ifdef _DEBUG
-	ALERT ( at_console, "Runes created.\n" );
+	ALERT ( at_console, "[runeName=%s]\n", runeName );
 #endif
+		CreateRune(runeName);
+	}
 
 	SetThink( &CWorldRunes::SpawnRunes );
 	pev->nextthink = gpGlobals->time + 30.0;
