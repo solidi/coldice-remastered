@@ -51,6 +51,9 @@ DLL_GLOBAL	short	g_sModelIndexBloodSpray;// holds the sprite index for splattere
 DLL_GLOBAL	short	g_sModelIndexSnowballHit;
 DLL_GLOBAL	short	g_sModelIndexGunsmoke;
 DLL_GLOBAL	short 	g_sModelIndexIceFireball;
+DLL_GLOBAL	short 	g_sModelIndexFire;
+DLL_GLOBAL	short 	g_sModelIndexIceFire;
+DLL_GLOBAL	short	g_sModelConcreteGibs;
 DLL_GLOBAL	short	g_Gibs;
 DLL_GLOBAL	short	g_Steamball;
 
@@ -479,10 +482,14 @@ void W_Precache(void)
 	PRECACHE_MODEL ("sprites/ice_muzzleflash3.spr");
 
 	g_sModelIndexIceFireball = PRECACHE_MODEL ("sprites/ice_zerogxplode.spr");
+	g_sModelIndexFire = PRECACHE_MODEL ("sprites/fire.spr");
+	g_sModelIndexIceFire = PRECACHE_MODEL ("sprites/ice_fire.spr");
+	PRECACHE_SOUND ("fire1.wav");
 
 	PRECACHE_MODEL ("models/v_leg.mdl");
 	PRECACHE_MODEL ("models/v_dual_leg.mdl");
 	PRECACHE_SOUND ("kick.wav");
+	g_sModelConcreteGibs = PRECACHE_MODEL("models/concretegibs.mdl");
 
 	PRECACHE_SOUND("freezing.wav");
 
