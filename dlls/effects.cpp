@@ -1247,6 +1247,9 @@ void CSprite::AnimateThink( void )
 
 	pev->nextthink		= gpGlobals->time + 0.1;
 	m_lastTime			= gpGlobals->time;
+
+	if ( pev->dmgtime > 0 && gpGlobals->time > pev->dmgtime )
+		UTIL_Remove(this);
 }
 
 void CSprite::AnimateUntilDead( void )
@@ -1294,6 +1297,18 @@ void CSprite::Animate( float frames )
 	pev->frame += frames;
 	if ( pev->frame > m_maxFrame )
 	{
+		if (pev->dmg_save > 0) {
+			pev->renderamt -= 20;
+			if (pev->renderamt < 0) pev->renderamt = 0;
+			pev->scale -= 0.05;
+			pev->origin.z -= 2;
+			if (pev->scale < 0) pev->scale = 0;
+			if (pev->renderamt == 235)
+			EMIT_SOUND( edict(), CHAN_BODY, "fire1.wav", 1.0, 1.0 );
+			else if (pev->renderamt == 155)
+			EMIT_SOUND( edict(), CHAN_BODY, "fire1.wav", 1.0, 1.0 );
+		}
+
 		if ( pev->spawnflags & SF_SPRITE_ONCE )
 		{
 			TurnOff();

@@ -65,7 +65,44 @@ void CGrenade::Explode( TraceResult *pTrace, int bitsDamageType )
 	}
 
 	int iContents = UTIL_PointContents ( pev->origin );
-	
+
+	Vector vecSpot = pev->origin ;//+ (pev->mins + pev->maxs) * 0.25;
+	Vector speed = -(pev->velocity) / 4;
+	MESSAGE_BEGIN( MSG_PVS, SVC_TEMPENTITY, vecSpot );
+		WRITE_BYTE( TE_BREAKMODEL);
+
+		// position
+		WRITE_COORD( vecSpot.x );
+		WRITE_COORD( vecSpot.y );
+		WRITE_COORD( vecSpot.z );
+
+		// size
+		WRITE_COORD( 16 );
+		WRITE_COORD( 16 );
+		WRITE_COORD( 16 );
+
+		// velocity
+		WRITE_COORD( speed.x );
+		WRITE_COORD( speed.y );
+		WRITE_COORD( speed.z );
+
+		// randomization
+		WRITE_BYTE( 10 );
+
+		// Model
+		WRITE_SHORT( g_sModelConcreteGibs );	//model id#
+
+		// # of shards
+		WRITE_BYTE( 5 );
+
+		// duration
+		WRITE_BYTE( RANDOM_LONG(5,20) );
+
+		// flags
+
+		WRITE_BYTE( BREAK_CONCRETE );
+	MESSAGE_END();
+
 	MESSAGE_BEGIN( MSG_PAS, SVC_TEMPENTITY, pev->origin );
 		WRITE_BYTE( TE_EXPLOSION );		// This makes a dynamic light and the explosion sprites/sound
 		WRITE_COORD( pev->origin.x );	// Send to PAS because of the sound
@@ -87,6 +124,48 @@ void CGrenade::Explode( TraceResult *pTrace, int bitsDamageType )
 		WRITE_BYTE( 15  ); // framerate
 		WRITE_BYTE( TE_EXPLFLAG_NONE );
 	MESSAGE_END();
+
+	TraceResult tr2;
+	UTIL_TraceLine ( pev->origin, pev->origin + Vector ( 0, 0, -256 ), ignore_monsters, ENT(pev), &tr2);
+	ALERT(at_aiconsole, "[tr2.flFraction=%.2f]\n", tr2.flFraction);
+
+	if (tr2.flFraction < 0.30 && RANDOM_LONG(0,2) == 2) //&& FBitSet( pev->flags, FL_ONGROUND ))
+	{
+		Vector smoke = pev->origin;
+		CSprite *pSprite = NULL;
+		if (icesprites.value)
+			pSprite = CSprite::SpriteCreate( "sprites/ice_fire.spr", smoke, TRUE );
+		else
+			pSprite = CSprite::SpriteCreate( "sprites/fire.spr", smoke, TRUE );
+		pSprite->SetTransparency( kRenderTransAdd, 255, 255, 255, 255, kRenderFxNoDissipation );
+		pSprite->SetScale( RANDOM_FLOAT(1.0, 1.6) );
+		//pSprite->SetScale(1.0);
+		float time = RANDOM_FLOAT(6.0, 12.0);
+		pSprite->pev->dmgtime = gpGlobals->time + time;
+		pSprite->pev->dmg_save = 1;
+		pSprite->pev->framerate = 16;
+		pSprite->TurnOn();
+		pSprite->AnimateUntilDead();
+
+		MESSAGE_BEGIN( MSG_PVS, SVC_TEMPENTITY, pev->origin );
+			WRITE_BYTE(TE_DLIGHT);
+			WRITE_COORD( pev->origin.x );	// X
+			WRITE_COORD( pev->origin.y );	// Y
+			WRITE_COORD( pev->origin.z );	// Z
+			WRITE_BYTE( 15 );		// radius * 0.1
+			if (icesprites.value) {
+				WRITE_BYTE( 0 );		// r
+				WRITE_BYTE( 113 );		// g
+				WRITE_BYTE( 230 );		// b
+			} else {
+				WRITE_BYTE( 255 );		// r
+				WRITE_BYTE( 113 );		// g
+				WRITE_BYTE( 0 );		// b
+			}
+			WRITE_BYTE( time * 10 );		// time * 10
+			WRITE_BYTE( 0 );		// decay * 0.1
+		MESSAGE_END( );
+	}
 
 	CSoundEnt::InsertSound ( bits_SOUND_COMBAT, pev->origin, NORMAL_EXPLOSION_VOLUME, 3.0 );
 	entvars_t *pevOwner;
