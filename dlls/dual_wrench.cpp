@@ -284,15 +284,22 @@ int CDualWrench::Swing( int fFirst )
 
 		ClearMultiDamage( );
 
+		float flDamage = 0;
+		if (FBitSet(pEntity->pev->flags, FL_FROZEN)) {
+			pEntity->pev->renderamt = 100;
+			flDamage = 200;
+			::IceExplode(pEntity, DMG_FREEZE);
+		}
+
 		if ( (m_flNextPrimaryAttack + 1 < UTIL_WeaponTimeBase() ) || g_pGameRules->IsMultiplayer() )
 		{
 			// first swing does full damage
-			pEntity->TraceAttack(m_pPlayer->pev, gSkillData.plrDmgWrench * 2, gpGlobals->v_forward, &tr, DMG_CLUB ); 
+			pEntity->TraceAttack(m_pPlayer->pev, (gSkillData.plrDmgWrench * 2) + flDamage, gpGlobals->v_forward, &tr, DMG_CLUB );
 		}
 		else
 		{
 			// subsequent swings do half
-			pEntity->TraceAttack(m_pPlayer->pev, (gSkillData.plrDmgWrench * 2) / 2, gpGlobals->v_forward, &tr, DMG_CLUB ); 
+			pEntity->TraceAttack(m_pPlayer->pev, ((gSkillData.plrDmgWrench * 2) / 2) + flDamage, gpGlobals->v_forward, &tr, DMG_CLUB );
 		}	
 		ApplyMultiDamage( m_pPlayer->pev, m_pPlayer->pev );
 
