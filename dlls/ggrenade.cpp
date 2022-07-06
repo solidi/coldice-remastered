@@ -127,7 +127,6 @@ void CGrenade::Explode( TraceResult *pTrace, int bitsDamageType )
 
 	TraceResult tr2;
 	UTIL_TraceLine ( pev->origin, pev->origin + Vector ( 0, 0, -256 ), ignore_monsters, ENT(pev), &tr2);
-	ALERT(at_aiconsole, "[tr2.flFraction=%.2f]\n", tr2.flFraction);
 
 	if (tr2.flFraction < 0.30 && RANDOM_LONG(0,2) == 2) //&& FBitSet( pev->flags, FL_ONGROUND ))
 	{

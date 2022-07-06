@@ -205,16 +205,24 @@ int CFists::Swing( int fFirst )
 
 		ClearMultiDamage( );
 
+		float flDamage = 0;
+		if (fFirst == SHORYUKEN && FBitSet(pEntity->pev->flags, FL_FROZEN)) {
+			pEntity->pev->renderamt = 100;
+			flDamage = 200;
+			::IceExplode(pEntity, DMG_FREEZE);
+		}
+
 		if ( (m_flNextPrimaryAttack + 1 < UTIL_WeaponTimeBase() ) || g_pGameRules->IsMultiplayer() )
 		{
 			// first swing does full damage
-			pEntity->TraceAttack(m_pPlayer->pev, fFirst == SHORYUKEN ? gSkillData.plrDmgShoryuken : gSkillData.plrDmgFists, gpGlobals->v_forward, &tr, DMG_CLUB );
+			pEntity->TraceAttack(m_pPlayer->pev, fFirst == SHORYUKEN ? gSkillData.plrDmgShoryuken + flDamage : gSkillData.plrDmgFists, gpGlobals->v_forward, &tr, DMG_PUNCH );
 		}
 		else
 		{
 			// subsequent swings do half
-			pEntity->TraceAttack(m_pPlayer->pev, fFirst == SHORYUKEN ? gSkillData.plrDmgShoryuken : gSkillData.plrDmgFists / 2, gpGlobals->v_forward, &tr, DMG_CLUB );
-		}	
+			pEntity->TraceAttack(m_pPlayer->pev, fFirst == SHORYUKEN ? gSkillData.plrDmgShoryuken + flDamage : gSkillData.plrDmgFists / 2, gpGlobals->v_forward, &tr, DMG_PUNCH );
+		}
+
 		ApplyMultiDamage( m_pPlayer->pev, m_pPlayer->pev );
 
 		// play thwack, smack, or dong sound
