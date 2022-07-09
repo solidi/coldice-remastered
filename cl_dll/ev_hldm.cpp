@@ -1289,6 +1289,7 @@ void EV_FireGauss( event_args_t *args )
 
 enum crowbar_e {
 	CROWBAR_IDLE = 0,
+	CROWBAR_DRAW_LOWKEY,
 	CROWBAR_DRAW,
 	CROWBAR_HOLSTER,
 	CROWBAR_ATTACK1HIT,
@@ -1358,6 +1359,7 @@ enum crossbow_e {
 	CROSSBOW_FIRE2,		// reload
 	CROSSBOW_FIRE3,		// empty
 	CROSSBOW_RELOAD,	// from empty
+	CROSSBOW_DRAW_LOWKEY,
 	CROSSBOW_DRAW1,		// full
 	CROSSBOW_DRAW2,		// empty
 	CROSSBOW_HOLSTER1,	// full
@@ -1499,6 +1501,7 @@ enum rpg_e {
 	RPG_FIRE2,		// to empty
 	RPG_FIRE3,		// to empty, with sound!
 	RPG_HOLSTER1,	// loaded
+	RPG_DRAW_LOWKEY,
 	RPG_DRAW1,		// loaded
 	RPG_HOLSTER2,	// unloaded
 	RPG_DRAW_UL,	// unloaded
@@ -1566,6 +1569,7 @@ enum egon_e {
 	EGON_FIRE2,
 	EGON_FIRE3,
 	EGON_FIRE4,
+	EGON_DRAW_LOWKEY,
 	EGON_DRAW,
 	EGON_HOLSTER
 };
@@ -1726,6 +1730,7 @@ enum hgun_e {
 	HGUN_FIDGETSWAY,
 	HGUN_FIDGETSHAKE,
 	HGUN_DOWN,
+	HGUN_DRAW_LOWKEY,
 	HGUN_UP,
 	HGUN_SHOOT
 };
@@ -1771,6 +1776,7 @@ enum tripmine_e {
 	TRIPMINE_ARM2,
 	TRIPMINE_FIDGET,
 	TRIPMINE_HOLSTER,
+	TRIPMINE_DRAW_LOWKEY,
 	TRIPMINE_DRAW,
 	TRIPMINE_WORLD,
 	TRIPMINE_GROUND,
@@ -1826,6 +1832,7 @@ enum squeak_e {
 	SQUEAK_FIDGETFIT,
 	SQUEAK_FIDGETNIP,
 	SQUEAK_DOWN,
+	SQUEAK_DRAW_LOWKEY,
 	SQUEAK_UP,
 	SQUEAK_THROW,
 	SNARK_RELEASE
@@ -1910,6 +1917,7 @@ void EV_SnarkRelease( event_args_t *args )
 
 enum knife_e {
 	KNIFE_IDLE = 0,
+	KNIFE_DRAW_LOWKEY,
 	KNIFE_DRAW,
 	KNIFE_HOLSTER,
 	KNIFE_THROW,
@@ -1963,6 +1971,7 @@ enum chumtoad_e {
 	CHUMTOAD_FIDGETFIT,
 	CHUMTOAD_FIDGETNIP,
 	CHUMTOAD_DOWN,
+	CHUMTOAD_DRAW_LOWKEY,
 	CHUMTOAD_UP,
 	CHUMTOAD_THROW,
 	CHUMTOAD_RELEASE,
@@ -2041,7 +2050,8 @@ void EV_ChumtoadRelease( event_args_t *args )
 
 enum rifle_e
 {
-	RIFLE_DRAW = 0,
+	RIFLE_DRAW_LOWKEY = 0,
+	RIFLE_DRAW,
 	RIFLE_IDLE,
 	RIFLE_SHOOT,
 	RIFLE_SHOOT_EMPTY,
@@ -2110,6 +2120,7 @@ enum cannon_e {
 	CANNON_FIRE_BOMB,
 	CANNON_FIRE_FLAK,
 	CANNON_HOLSTER1,
+	CANNON_DRAW_LOWKEY,
 	CANNON_DRAW1
 };
 
@@ -2164,6 +2175,7 @@ enum mag60_e {
 	MAG60_RELOAD,
 	MAG60_RELOAD_SIDEWAYS,
 	MAG60_RELOAD_NOT_EMPTY,
+	MAG60_DRAW_LOWKEY,
 	MAG60_DRAW,
 	MAG60_HOLSTER,
 	MAG60_BUTTON,
@@ -2235,6 +2247,7 @@ enum chaingun_e
 	CHAINGUN_SPINUP,
 	CHAINGUN_SPINDOWN,
 	CHAINGUN_FIRE,
+	CHAINGUN_DRAW_LOWKEY,
 	CHAINGUN_DRAW,
 	CHAINGUN_HOLSTER,
 	CHAINGUN_RELOAD,
@@ -2297,6 +2310,7 @@ enum glauncher_e
 {
 	GLAUNCHER_IDLE1 = 0,
 	GLAUNCHER_IDLE2,
+	GLAUNCHER_DRAW_LOWKEY,
 	GLAUNCHER_DRAW,
 	GLAUNCHER_HOLSTER,
 	GLAUNCHER_RELOAD,
@@ -2413,6 +2427,7 @@ enum usas_e {
 	USAS_IDLE1,
 	USAS_LAUNCH,
 	USAS_RELOAD,
+	USAS_DRAW_LOWKEY,
 	USAS_DEPLOY,
 	USAS_FIRE1,
 	USAS_FIRE2,
@@ -2481,6 +2496,7 @@ void EV_FireUsas( event_args_t *args )
 
 enum fists_e {
 	FISTS_IDLE = 0,
+	FISTS_DRAW_LOWKEY,
 	FISTS_DRAW,
 	FISTS_HOLSTER,
 	FISTS_ATTACK1HIT,
@@ -2535,6 +2551,7 @@ void EV_Fists( event_args_t *args )
 
 enum wrench_e {
 	WRENCH_IDLE = 0,
+	WRENCH_DRAW_LOWKEY,
 	WRENCH_DRAW,
 	WRENCH_HOLSTER,
 	WRENCH_ATTACK1HIT,
@@ -2589,6 +2606,7 @@ void EV_Wrench( event_args_t *args )
 
 enum chainsaw_e {
 	CHAINSAW_IDLE = 0,
+	CHAINSAW_DRAW_LOWKEY,
 	CHAINSAW_DRAW,
 	CHAINSAW_DRAW_EMPTY,
 	CHAINSAW_ATTACK_START,
@@ -2648,6 +2666,7 @@ void EV_Chainsaw( event_args_t *args )
 enum gauge_shotgun_e {
 	GAUGE_SHOTGUN_IDLE = 0,
 	GAUGE_SHOTGUN_IDLE4,
+	GUAGE_SHOTGUN_DRAW_LOWKEY,
 	GAUGE_SHOTGUN_DRAW,
 	GAUGE_SHOTGUN_FIRE,
 	GAUGE_SHOTGUN_START_RELOAD,
@@ -2725,6 +2744,7 @@ enum nuke_e {
 	NUKE_FIRE2,		// to empty
 	NUKE_FIRE3,		// to empty, with sound!
 	NUKE_HOLSTER1,	// loaded
+	NUKE_DRAW_LOWKEY,
 	NUKE_DRAW1,		// loaded
 	NUKE_HOLSTER2,	// unloaded
 	NUKE_DRAW_UL,	// unloaded
@@ -2762,6 +2782,7 @@ enum deagle_e {
 	DEAGLE_FIRE_EMPTY,
 	DEAGLE_RELOAD,
 	DEAGLE_RELOAD_EMPTY,
+	DEAGLE_DRAW_LOWKEY,
 	DEAGLE_DRAW,
 	DEAGLE_HOLSTER,
 	DEAGLE_HOLSTER_EMPTY,
@@ -2824,15 +2845,15 @@ void EV_FireDeagle( event_args_t *args )
 }
 
 enum dual_deagle_e {
-	DEAGLEDUAL_IDLE,
-	DEAGLEDUAL_FIRE_LEFT,
-	DEAGLEDUAL_FIRE_RIGHT,
-	DEAGLEDUAL_FIRE_LAST_LEFT,
-	DEAGLEDUAL_FIRE_LAST_RIGHT,
-	DEAGLEDUAL_RELOAD,
-	DEAGLEDUAL_DEPLOY,
-	DEAGLEDUAL_HOLSTER,
-	DEAGLEDUAL_FIRE_BOTH,
+	DUAL_DEAGLE_IDLE,
+	DUAL_DEAGLE_FIRE_LEFT,
+	DUAL_DEAGLE_FIRE_RIGHT,
+	DUAL_DEAGLE_FIRE_LAST_LEFT,
+	DUAL_DEAGLE_FIRE_LAST_RIGHT,
+	DUAL_DEAGLE_RELOAD,
+	DUAL_DEAGLE_DEPLOY,
+	DUAL_DEAGLE_HOLSTER,
+	DUAL_DEAGLE_FIRE_BOTH,
 };
 
 void EV_FireDualDeagle( event_args_t *args )
@@ -2866,9 +2887,9 @@ void EV_FireDualDeagle( event_args_t *args )
 		EV_MuzzleFlash();
 
 		if (end)
-			gEngfuncs.pEventAPI->EV_WeaponAnimation( clip % 2 == 0 ? DEAGLEDUAL_FIRE_LAST_RIGHT : DEAGLEDUAL_FIRE_LAST_LEFT, 0 );
+			gEngfuncs.pEventAPI->EV_WeaponAnimation( clip % 2 == 0 ? DUAL_DEAGLE_FIRE_LAST_RIGHT : DUAL_DEAGLE_FIRE_LAST_LEFT, 0 );
 		else
-			gEngfuncs.pEventAPI->EV_WeaponAnimation( clip % 2 == 0 ? DEAGLEDUAL_FIRE_RIGHT : DEAGLEDUAL_FIRE_LEFT, 0 );
+			gEngfuncs.pEventAPI->EV_WeaponAnimation( clip % 2 == 0 ? DUAL_DEAGLE_FIRE_RIGHT : DUAL_DEAGLE_FIRE_LEFT, 0 );
 
 		V_PunchAxis(PITCH, gEngfuncs.pfnRandomFloat(-10.0, -15.0) );
 		V_PunchAxis(YAW, gEngfuncs.pfnRandomFloat(-5.0, -7.0)); //yaw, - = right
@@ -2926,7 +2947,7 @@ void EV_FireDualDeagleBoth( event_args_t *args )
 		// Add muzzle flash to current weapon model
 		EV_MuzzleFlash();
 
-		gEngfuncs.pEventAPI->EV_WeaponAnimation( DEAGLEDUAL_FIRE_BOTH, 0 );
+		gEngfuncs.pEventAPI->EV_WeaponAnimation( DUAL_DEAGLE_FIRE_BOTH, 0 );
 
 		V_PunchAxis(PITCH, gEngfuncs.pfnRandomFloat(-11.0, -16.0) );
 		V_PunchAxis(YAW, gEngfuncs.pfnRandomFloat(-6.0, -8.0)); //yaw, - = right
@@ -2960,12 +2981,12 @@ void EV_FireDualDeagleBoth( event_args_t *args )
 }
 
 enum dual_rpg_e {
-	DRAW_LEFT = 0,
-	DRAW_BOTH,
-	IDLE_BOTH,
-	FIRE_BOTH,
-	HOLSTER_BOTH,
-	RELOAD_BOTH,
+	DUAL_RPG_DRAW_LEFT = 0,
+	DUAL_RPG_DRAW_BOTH,
+	DUAL_RPG_IDLE_BOTH,
+	DUAL_RPG_FIRE_BOTH,
+	DUAL_RPG_HOLSTER_BOTH,
+	DUAL_RPG_RELOAD_BOTH,
 };
 
 void EV_FireDualRpgBoth( event_args_t *args )
@@ -2982,7 +3003,7 @@ void EV_FireDualRpgBoth( event_args_t *args )
 	//Only play the weapon anims if I shot it. 
 	if ( EV_IsLocal( idx ) )
 	{
-		gEngfuncs.pEventAPI->EV_WeaponAnimation( FIRE_BOTH, 1 );
+		gEngfuncs.pEventAPI->EV_WeaponAnimation( DUAL_RPG_FIRE_BOTH, 1 );
 	
 		V_PunchAxis(PITCH, gEngfuncs.pfnRandomFloat(-5.0, -7.0) );
 		V_PunchAxis(YAW, gEngfuncs.pfnRandomFloat(-2.0, -4.0));
@@ -3233,6 +3254,7 @@ void EV_FireDualUsasBoth( event_args_t *args )
 enum freezegun_e {
 	FREEZEGUN_IDLE,
 	FREEZEGUN_RELOAD,
+	FREEZEGUN_DRAW_LOWKEY,
 	FREEZEGUN_DRAW,
 	FREEZEGUN_HOLSTER,
 	FREEZEGUN_SHOOT1,

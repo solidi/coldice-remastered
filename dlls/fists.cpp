@@ -32,6 +32,7 @@ LINK_ENTITY_TO_CLASS( weapon_fists, CFists );
 
 enum fists_e {
 	FISTS_IDLE = 0,
+	FISTS_DRAW_LOWKEY,
 	FISTS_DRAW,
 	FISTS_HOLSTER,
 	FISTS_ATTACK1HIT,
@@ -91,6 +92,11 @@ int CFists::GetItemInfo(ItemInfo *p)
 	p->iWeight = FISTS_WEIGHT;
 	p->pszDisplayName = "Manos de Piedras";
 	return 1;
+}
+
+BOOL CFists::DeployLowKey( )
+{
+	return DefaultDeploy( "models/v_fists.mdl", iStringNull, FISTS_DRAW_LOWKEY, "crowbar" );
 }
 
 BOOL CFists::Deploy( )

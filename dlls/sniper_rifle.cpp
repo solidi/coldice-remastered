@@ -25,7 +25,8 @@
 
 enum rifle_e
 {
-	RIFLE_DRAW = 0,
+	RIFLE_DRAW_LOWKEY = 0,
+	RIFLE_DRAW,
 	RIFLE_IDLE,
 	RIFLE_SHOOT,
 	RIFLE_SHOOT_EMPTY,
@@ -91,6 +92,11 @@ int CSniperRifle::AddToPlayer( CBasePlayer *pPlayer )
 		return TRUE;
 	}
 	return FALSE;
+}
+
+BOOL CSniperRifle::DeployLowKey( )
+{
+	return DefaultDeploy( "models/v_sniperrifle.mdl", "models/p_sniperrifle.mdl", RIFLE_DRAW_LOWKEY, "rpg" );
 }
 
 BOOL CSniperRifle::Deploy( )

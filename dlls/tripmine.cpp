@@ -34,6 +34,7 @@ enum tripmine_e {
 	TRIPMINE_ARM2,
 	TRIPMINE_FIDGET,
 	TRIPMINE_HOLSTER,
+	TRIPMINE_DRAW_LOWKEY,
 	TRIPMINE_DRAW,
 	TRIPMINE_WORLD,
 	TRIPMINE_GROUND,
@@ -407,6 +408,12 @@ int CTripmine::GetItemInfo(ItemInfo *p)
 	p->pszDisplayName = "Invisible Beam Tripmine";
 
 	return 1;
+}
+
+BOOL CTripmine::DeployLowKey( )
+{
+	pev->body = 0;
+	return DefaultDeploy( "models/v_tripmine.mdl", "models/p_tripmine.mdl", TRIPMINE_DRAW_LOWKEY, "trip" );
 }
 
 BOOL CTripmine::Deploy( )

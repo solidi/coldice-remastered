@@ -39,6 +39,7 @@ enum chumtoad_e {
 	CHUMTOAD_UP,
 	CHUMTOAD_THROW,
 	CHUMTOAD_RELEASE,
+	CHUMTOAD_DRAW_LOWKEY,
 	CHUMTOAD_DRAW,
 };
 
@@ -452,6 +453,12 @@ int CChumtoad::GetItemInfo(ItemInfo *p)
 	p->pszDisplayName = "Chumtoad";
 
 	return 1;
+}
+
+BOOL CChumtoad::DeployLowKey( )
+{
+	m_pPlayer->m_iWeaponVolume = QUIET_GUN_VOLUME;
+	return DefaultDeploy( "models/v_chumtoad.mdl", "models/p_chumtoad.mdl", CHUMTOAD_DRAW_LOWKEY, "squeak" );
 }
 
 BOOL CChumtoad::Deploy( )

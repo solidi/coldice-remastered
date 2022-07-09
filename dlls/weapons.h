@@ -318,6 +318,8 @@ public:
 	virtual BOOL CanDeploy( void ) { return TRUE; };
 	virtual BOOL Deploy( )								// returns is deploy was successful
 		 { return TRUE; };
+	virtual BOOL DeployLowKey( )
+		 { return TRUE; };
 
 	virtual BOOL CanHolster( void ) { return TRUE; };// can this weapon be put away right now?
 	virtual void Holster( int skiplocal = 0 );
@@ -581,6 +583,7 @@ public:
 	void PrimaryAttack( void );
 	void SecondaryAttack( void );
 	void GlockFire( float flSpread, float flCycleTime, BOOL fUseAutoAim, int silencer );
+	BOOL DeployLowKey( void );
 	BOOL Deploy( void );
 	void Holster( int skiplocal );
 	void Reload( void );
@@ -622,6 +625,7 @@ public:
 	void SecondaryAttack( void );
 	void Throw( void );
 	int Swing( int fFirst );
+	BOOL DeployLowKey( void );
 	BOOL Deploy( void );
 	void Holster( int skiplocal = 0 );
 	void WeaponIdle( void );
@@ -658,6 +662,7 @@ public:
 	void SecondaryAttack( void );
 	void Throw( void );
 	int Swing( int fFirst );
+	BOOL DeployLowKey( void );
 	BOOL Deploy( void );
 	void Holster( int skiplocal = 0 );
 	void WeaponIdle( void );
@@ -689,6 +694,7 @@ public:
 	int AddToPlayer( CBasePlayer *pPlayer );
 	void PrimaryAttack( void );
 	void SecondaryAttack( void );
+	BOOL DeployLowKey( void );
 	BOOL Deploy( void );
 	void Holster( int skiplocal = 0 );
 	void Reload( void );
@@ -723,6 +729,7 @@ public:
 	void PrimaryAttack( void );
 	void SecondaryAttack( void );
 	int SecondaryAmmoIndex( void );
+	BOOL DeployLowKey( void );
 	BOOL Deploy( void );
 	void Holster( int skiplocal = 0 );
 	void Reload( void );
@@ -757,7 +764,8 @@ public:
 	void PrimaryAttack( void );
 	void SecondaryAttack( void );
 	int AddToPlayer( CBasePlayer *pPlayer );
-	BOOL Deploy( );
+	BOOL DeployLowKey( void );
+	BOOL Deploy( void );
 	void Holster( int skiplocal = 0 );
 	void Reload( void );
 	void WeaponIdle( void );
@@ -797,7 +805,8 @@ public:
 
 	void PrimaryAttack( void );
 	void SecondaryAttack( void );
-	BOOL Deploy( );
+	BOOL DeployLowKey( void );
+	BOOL Deploy( void );
 	void Holster( int skiplocal = 0 );
 	void Reload( void );
 	void WeaponIdle( void );
@@ -832,6 +841,7 @@ public:
 
 	void PrimaryAttack( void );
 	void SecondaryAttack( void );
+	BOOL DeployLowKey( void );
 	BOOL Deploy( void );
 	void Holster( int skiplocal = 0 );
 	void Reload( void );
@@ -885,6 +895,7 @@ public:
 	int GetItemInfo(ItemInfo *p);
 	int AddToPlayer( CBasePlayer *pPlayer );
 
+	BOOL DeployLowKey( void );
 	BOOL Deploy( void );
 	BOOL CanHolster( void );
 	void Holster( int skiplocal = 0 );
@@ -953,6 +964,7 @@ public:
 	int GetItemInfo(ItemInfo *p);
 	int AddToPlayer( CBasePlayer *pPlayer );
 
+	BOOL DeployLowKey( void );
 	BOOL Deploy( void );
 	void Holster( int skiplocal = 0  );
 
@@ -999,6 +1011,7 @@ public:
 	int GetItemInfo(ItemInfo *p);
 	int AddToPlayer( CBasePlayer *pPlayer );
 
+ 	BOOL DeployLowKey( void );
 	BOOL Deploy( void );
 	void Holster( int skiplocal = 0 );
 
@@ -1061,6 +1074,7 @@ public:
 
 	void PrimaryAttack( void );
 	void SecondaryAttack( void );
+	BOOL DeployLowKey( void );
 	BOOL Deploy( void );
 	BOOL IsUseable( void );
 	void Holster( int skiplocal = 0 );
@@ -1096,6 +1110,7 @@ public:
 
 	void PrimaryAttack( void );
 	void SecondaryAttack( void );
+	BOOL DeployLowKey( void );
 	BOOL Deploy( void );
 	BOOL CanHolster( void );
 	void Holster( int skiplocal = 0 );
@@ -1130,6 +1145,7 @@ public:
 	void SecondaryAttack( void );
 	int AddDuplicate( CBasePlayerItem *pOriginal );
 	BOOL CanDeploy( void );
+	BOOL DeployLowKey( void );
 	BOOL Deploy( void );
 	BOOL IsUseable( void );
 	
@@ -1163,6 +1179,7 @@ public:
 	}
 
 	void PrimaryAttack( void );
+	BOOL DeployLowKey( void );
 	BOOL Deploy( void );
 	void Holster( int skiplocal = 0 );
 	void WeaponIdle( void );
@@ -1191,6 +1208,7 @@ public:
 
 	void PrimaryAttack( void );
 	void SecondaryAttack( void );
+	BOOL DeployLowKey( void );
 	BOOL Deploy( void );
 	void Holster( int skiplocal = 0 );
 	void WeaponIdle( void );
@@ -1221,6 +1239,7 @@ public:
 	void PrimaryAttack( void );
 	void SecondaryAttack( void );
 	BOOL CanDeploy( void );
+	BOOL DeployLowKey( void );
 	BOOL Deploy( void );
 	BOOL IsUseable( void );
 	void BlowThink( void );
@@ -1253,6 +1272,7 @@ public:
 
 	void PrimaryAttack( void );
 	void SecondaryAttack( void );
+	BOOL DeployLowKey( void );
 	BOOL Deploy( void );
 	void Holster( int skiplocal = 0 );
 	void WeaponIdle( void );
@@ -1282,6 +1302,7 @@ public:
 	int GetItemInfo(ItemInfo *p);
 	int AddToPlayer( CBasePlayer *pPlayer );
 
+	BOOL DeployLowKey( void );
 	BOOL Deploy( void );
 	void Holster( int skiplocal = 0 );
 
@@ -1307,6 +1328,7 @@ public:
 	int GetItemInfo(ItemInfo *p);
 	int AddToPlayer( CBasePlayer *pPlayer );
 
+	BOOL DeployLowKey( void );
 	BOOL Deploy( void );
 	BOOL CanHolster( void );
 	void Holster( int skiplocal = 0 );
@@ -1367,6 +1389,7 @@ public:
 	void PrimaryAttack( void );
 	void SecondaryAttack( void );
 	void Fire( float flSpread, float flCycleTime, BOOL fUseAutoAim, int silencer );
+	BOOL DeployLowKey( void );
 	BOOL Deploy( void );
 	void Holster( int skiplocal );
 	void Reload( void );
@@ -1402,6 +1425,7 @@ public:
 
 	void PrimaryAttack( void );
 	void Fire( float flSpread, float flCycleTime, BOOL fUseAutoAim );
+	BOOL DeployLowKey( void );
 	BOOL Deploy( void );
 	void Holster( int skiplocal );
 	void Reload( void );
@@ -1435,6 +1459,7 @@ public:
 
 	void PrimaryAttack( void );
 	void SecondaryAttack( void );
+	BOOL DeployLowKey( void );
 	BOOL Deploy( void );
 	void Holster( int skiplocal = 0 );
 	void Reload( void );
@@ -1464,6 +1489,7 @@ public:
 
 	void PrimaryAttack( void );
 	void SecondaryAttack( void );
+	BOOL DeployLowKey( void );
 	BOOL Deploy( void );
 	void Holster( int skiplocal = 0 );
 	void Reload( void );
@@ -1502,7 +1528,8 @@ public:
 
 	void PrimaryAttack( void );
 
-	BOOL Deploy( );
+	BOOL DeployLowKey( void );
+	BOOL Deploy( void );
 	void Holster( int skiplocal = 0 );
 	void Reload( void );
 	void WeaponIdle( void );
@@ -1540,6 +1567,7 @@ public:
 	void PrimaryAttack( void );
 	void SecondaryAttack( void );
 	int Swing( int fFirst );
+	BOOL DeployLowKey( void );
 	BOOL Deploy( void );
 	void Holster( int skiplocal = 0 );
 	void WeaponIdle( void );
@@ -1577,6 +1605,7 @@ public:
 	void Throw( void );
 	int Swing( int fFirst );
 	BOOL Deploy( void );
+	BOOL DeployLowKey( void );
 	void Holster( int skiplocal = 0 );
 	void WeaponIdle( void );
 	int m_iSwing;
@@ -1610,6 +1639,7 @@ public:
 
 	void PrimaryAttack( void );
 	void SecondaryAttack( void );
+	BOOL DeployLowKey( void );
 	BOOL Deploy( void );
 	BOOL CanHolster( void );
 	void Holster( int skiplocal = 0 );
@@ -1640,6 +1670,7 @@ public:
 	void PrimaryAttack( void );
 	void SecondaryAttack( void );
 	int Swing( int fFirst, BOOL animation );
+	BOOL DeployLowKey( void );
 	BOOL Deploy( void );
 	void Holster( int skiplocal = 0 );
 	void WeaponIdle( void );
@@ -1673,7 +1704,8 @@ public:
 
 	void PrimaryAttack( void );
 	void SecondaryAttack( void );
-	BOOL Deploy( );
+	BOOL DeployLowKey( void );
+	BOOL Deploy( void );
 	void Holster( int skiplocal = 0 );
 	void Reload( void );
 	void WeaponIdle( void );
@@ -1709,6 +1741,7 @@ public:
 	int GetItemInfo(ItemInfo *p);
 	int AddToPlayer( CBasePlayer *pPlayer );
 
+	BOOL DeployLowKey( void );
 	BOOL Deploy( void );
 	void Holster( int skiplocal = 0 );
 
@@ -1758,6 +1791,7 @@ public:
 	int GetItemInfo(ItemInfo *p);
 	int AddToPlayer( CBasePlayer *pPlayer );
 	void PrimaryAttack( void );
+	BOOL DeployLowKey( void );
 	BOOL Deploy( void );
 	void Holster( int skiplocal = 0 );
 	void Reload( void );
@@ -1790,6 +1824,7 @@ public:
 	int AddToPlayer( CBasePlayer *pPlayer );
 	void PrimaryAttack( void );
 	void SecondaryAttack( void );
+	BOOL DeployLowKey( void );
 	BOOL Deploy( void );
 	void Holster( int skiplocal = 0 );
 	void Reload( void );
@@ -1825,7 +1860,7 @@ public:
 	int iItemSlot( void ) { return 6; }
 	int GetItemInfo(ItemInfo *p);
 	int AddToPlayer( CBasePlayer *pPlayer );
-
+	BOOL DeployLowKey( void );
 	BOOL Deploy( void );
 	BOOL CanHolster( void );
 	void Holster( int skiplocal = 0 );
@@ -1869,6 +1904,7 @@ public:
 	int AddToPlayer( CBasePlayer *pPlayer );
 
 	void PrimaryAttack( void );
+	BOOL DeployLowKey( void );
 	BOOL Deploy( void );
 	void Holster( int skiplocal = 0 );
 	void Reload( void );
@@ -1925,6 +1961,7 @@ public:
 	void SecondaryAttack( void );
 	void Throw( void );
 	int Swing( int fFirst );
+	BOOL DeployLowKey( void );
 	BOOL Deploy( void );
 	void Holster( int skiplocal = 0 );
 	void WeaponIdle( void );
@@ -1958,7 +1995,7 @@ public:
 
 	void PrimaryAttack( void );
 	void SecondaryAttack( void );
-
+	BOOL DeployLowKey( void );
 	BOOL Deploy( );
 	void Holster( int skiplocal = 0 );
 	void Reload( void );
@@ -1995,7 +2032,8 @@ public:
 
 	void PrimaryAttack( void );
 
-	BOOL Deploy( );
+	BOOL DeployLowKey( void );
+	BOOL Deploy( void );
 	void Holster( int skiplocal = 0 );
 	void Reload( void );
 	void WeaponIdle( void );

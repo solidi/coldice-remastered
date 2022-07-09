@@ -30,6 +30,7 @@ enum mp5_e
 	MP5_IDLE1,
 	MP5_LAUNCH,
 	MP5_RELOAD,
+	MP5_DRAW_LOWKEY,
 	MP5_DEPLOY,
 	MP5_FIRE1,
 	MP5_FIRE2,
@@ -121,6 +122,11 @@ int CMP5::AddToPlayer( CBasePlayer *pPlayer )
 		return TRUE;
 	}
 	return FALSE;
+}
+
+BOOL CMP5::DeployLowKey( )
+{
+	return DefaultDeploy( "models/v_9mmAR.mdl", "models/p_9mmAR.mdl", MP5_DRAW_LOWKEY, "mp5" );
 }
 
 BOOL CMP5::Deploy( )

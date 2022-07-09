@@ -29,6 +29,7 @@ enum deagle_e {
 	DEAGLE_FIRE_EMPTY,
 	DEAGLE_RELOAD,
 	DEAGLE_RELOAD_EMPTY,
+	DEAGLE_DRAW_LOWKEY,
 	DEAGLE_DRAW,
 	DEAGLE_HOLSTER,
 	DEAGLE_HOLSTER_EMPTY,
@@ -96,6 +97,11 @@ void CDeagle::Precache( void )
 BOOL CDeagle::Deploy( )
 {
 	return DefaultDeploy( "models/v_deagle.mdl", "models/p_deagle.mdl", DEAGLE_DRAW, "python", UseDecrement(), pev->body );
+}
+
+BOOL CDeagle::DeployLowKey( )
+{
+	return DefaultDeploy( "models/v_deagle.mdl", "models/p_deagle.mdl", DEAGLE_DRAW_LOWKEY, "python", UseDecrement(), pev->body );
 }
 
 void CDeagle::Holster( int skiplocal /* = 0 */ )

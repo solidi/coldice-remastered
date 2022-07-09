@@ -27,6 +27,7 @@ enum glauncher_e
 {
 	GLAUNCHER_IDLE1 = 0,
 	GLAUNCHER_IDLE2,
+	GLAUNCHER_DRAW_LOWKEY,
 	GLAUNCHER_DRAW,
 	GLAUNCHER_HOLSTER,
 	GLAUNCHER_RELOAD,
@@ -99,6 +100,11 @@ int CGrenadeLauncher::AddToPlayer( CBasePlayer *pPlayer )
 		return TRUE;
 	}
 	return FALSE;
+}
+
+BOOL CGrenadeLauncher::DeployLowKey( )
+{
+	return DefaultDeploy( "models/v_glauncher.mdl", "models/p_glauncher.mdl", GLAUNCHER_DRAW_LOWKEY, "mp5" );
 }
 
 BOOL CGrenadeLauncher::Deploy( )

@@ -32,6 +32,7 @@ enum cannon_e {
 	CANNON_FIRE_BOMB,
 	CANNON_FIRE_FLAK,
 	CANNON_HOLSTER1,
+	CANNON_DRAW_LOWKEY,
 	CANNON_DRAW1
 };
 
@@ -310,6 +311,11 @@ int CCannon::AddToPlayer( CBasePlayer *pPlayer )
 		return TRUE;
 	}
 	return FALSE;
+}
+
+BOOL CCannon::DeployLowKey( )
+{
+	return DefaultDeploy( "models/v_cannon.mdl", "models/p_cannon.mdl", CANNON_DRAW_LOWKEY, "rpg" );
 }
 
 BOOL CCannon::Deploy( )

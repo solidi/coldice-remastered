@@ -26,6 +26,7 @@
 enum vest_radio_e {
 	VEST_RADIO_IDLE1 = 0,
 	VEST_RADIO_FIDGET1,
+	VEST_RADIO_DRAW_LOWKEY,
 	VEST_RADIO_DRAW,
 	VEST_RADIO_FIRE,
 	VEST_RADIO_HOLSTER
@@ -105,6 +106,13 @@ BOOL CVest::CanDeploy( void )
 	}
 
 	return FALSE;
+}
+
+BOOL CVest::DeployLowKey( )
+{
+	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 1.0;
+	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + UTIL_SharedRandomFloat( m_pPlayer->random_seed, 10, 15 );
+	return DefaultDeploy( "models/v_vest_radio.mdl", "models/p_vest.mdl", VEST_RADIO_DRAW_LOWKEY, "hive" );
 }
 
 BOOL CVest::Deploy( )
