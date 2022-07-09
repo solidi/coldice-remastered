@@ -489,7 +489,7 @@ void W_Precache(void)
 	PRECACHE_MODEL ("models/v_leg.mdl");
 	PRECACHE_MODEL ("models/v_dual_leg.mdl");
 	PRECACHE_SOUND ("kick.wav");
-	g_sModelConcreteGibs = PRECACHE_MODEL("models/concretegibs.mdl");
+	g_sModelConcreteGibs = PRECACHE_MODEL("models/w_concretegibs.mdl");
 
 	PRECACHE_SOUND("freezing.wav");
 
