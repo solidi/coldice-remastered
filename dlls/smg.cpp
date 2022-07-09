@@ -126,6 +126,13 @@ int CSMG::AddToPlayer( CBasePlayer *pPlayer )
 	return FALSE;
 }
 
+BOOL CSMG::DeployLowKey( )
+{
+	m_sFireCount = 0;
+	m_sMode = FULL;
+	return DefaultDeploy( "models/v_smg.mdl", "models/p_smg.mdl", SMG_DEPLOY, "mp5" );
+}
+
 BOOL CSMG::Deploy( )
 {
 	m_sFireCount = 0;

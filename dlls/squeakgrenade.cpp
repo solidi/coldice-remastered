@@ -37,6 +37,7 @@ enum squeak_e {
 	SQUEAK_FIDGETFIT,
 	SQUEAK_FIDGETNIP,
 	SQUEAK_DOWN,
+	SQUEAK_DRAW_LOWKEY,
 	SQUEAK_UP,
 	SQUEAK_THROW,
 	SQUEAK_RELEASE
@@ -462,7 +463,18 @@ int CSqueak::GetItemInfo(ItemInfo *p)
 	return 1;
 }
 
-
+BOOL CSqueak::DeployLowKey( )
+{
+	m_pPlayer->m_iWeaponVolume = QUIET_GUN_VOLUME;
+	BOOL result = DefaultDeploy( "models/v_squeak.mdl", "models/p_squeak.mdl", SQUEAK_DRAW_LOWKEY, "squeak" );
+	
+	if (result)
+	{
+		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 1.7;
+	}
+	
+	return result;
+}
 
 BOOL CSqueak::Deploy( )
 {

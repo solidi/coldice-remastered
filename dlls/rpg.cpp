@@ -34,6 +34,7 @@ enum rpg_e {
 	RPG_FIRE2,		// to empty
 	RPG_FIRE3,		// to empty
 	RPG_HOLSTER1,	// loaded
+	RPG_DRAW_LOWKEY,
 	RPG_DRAW1,		// loaded
 	RPG_HOLSTER2,	// unloaded
 	RPG_DRAW_UL,	// unloaded
@@ -412,6 +413,11 @@ int CRpg::AddToPlayer( CBasePlayer *pPlayer )
 		return TRUE;
 	}
 	return FALSE;
+}
+
+BOOL CRpg::DeployLowKey( )
+{
+	return DefaultDeploy( "models/v_rpg.mdl", "models/p_rpg.mdl", RPG_DRAW_LOWKEY, "rpg" );
 }
 
 BOOL CRpg::Deploy( )

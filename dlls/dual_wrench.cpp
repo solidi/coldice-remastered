@@ -97,6 +97,13 @@ int CDualWrench::GetItemInfo(ItemInfo *p)
 	return 1;
 }
 
+BOOL CDualWrench::DeployLowKey( )
+{
+	m_flStartThrow = 0;
+	m_flReleaseThrow = -1;
+	return DefaultDeploy( "models/v_dual_wrench.mdl", "models/p_dual_wrench.mdl", DUAL_WRENCH_DRAW, "dual_club" );
+}
+
 BOOL CDualWrench::Deploy( )
 {
 	m_flStartThrow = 0;

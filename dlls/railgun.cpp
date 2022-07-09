@@ -38,6 +38,7 @@ enum railgun_e {
 	RAILGUN_FIRE,
 	RAILGUN_FIRE2,
 	RAILGUN_HOLSTER,
+	RAILGUN_DRAW_LOWKEY,
 	RAILGUN_DRAW
 };
 
@@ -102,6 +103,11 @@ int CRailgun::GetItemInfo(ItemInfo *p)
 	p->pszDisplayName = "Quake II Railgun";
 
 	return 1;
+}
+
+BOOL CRailgun::DeployLowKey( )
+{
+	return DefaultDeploy( "models/v_railgun.mdl", "models/p_railgun.mdl", RAILGUN_DRAW_LOWKEY, "gauss" );
 }
 
 BOOL CRailgun::Deploy( )

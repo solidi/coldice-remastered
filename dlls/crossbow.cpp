@@ -223,6 +223,7 @@ enum crossbow_e {
 	CROSSBOW_FIRE2,		// reload
 	CROSSBOW_FIRE3,		// empty
 	CROSSBOW_RELOAD,	// from empty
+	CROSSBOW_DRAW_LOWKEY,
 	CROSSBOW_DRAW1,		// full
 	CROSSBOW_DRAW2,		// empty
 	CROSSBOW_HOLSTER1,	// full
@@ -289,6 +290,10 @@ int CCrossbow::GetItemInfo(ItemInfo *p)
 	return 1;
 }
 
+BOOL CCrossbow::DeployLowKey( )
+{
+	return DefaultDeploy( "models/v_crossbow.mdl", "models/p_crossbow.mdl", CROSSBOW_DRAW_LOWKEY, "bow" );
+}
 
 BOOL CCrossbow::Deploy( )
 {

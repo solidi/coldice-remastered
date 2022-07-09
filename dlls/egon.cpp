@@ -45,6 +45,7 @@ enum egon_e {
 	EGON_FIRE2,
 	EGON_FIRE3,
 	EGON_FIRE4,
+	EGON_DRAW_LOWKEY,
 	EGON_DRAW,
 	EGON_HOLSTER
 };
@@ -87,6 +88,13 @@ void CEgon::Precache( void )
 	m_usEgonStop = PRECACHE_EVENT ( 1, "events/egon_stop.sc" );
 }
 
+BOOL CEgon::DeployLowKey( void )
+{
+	m_deployed = FALSE;
+	m_fireState = FIRE_OFF;
+	m_fireMode = FIRE_WIDE;
+	return DefaultDeploy( "models/v_egon.mdl", "models/p_egon.mdl", EGON_DRAW_LOWKEY, "egon" );
+}
 
 BOOL CEgon::Deploy( void )
 {

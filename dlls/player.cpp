@@ -3932,7 +3932,7 @@ void CBasePlayer::TraceHitOfSelacoSlide( void )
 void CBasePlayer::EndSelacoSlide( void )
 {
 	if (m_fSelacoSliding && m_fSelacoTime < gpGlobals->time) {
-		if (m_pActiveItem) m_pActiveItem->Deploy();
+		if (m_pActiveItem) m_pActiveItem->DeployLowKey();
 		m_fSelacoSliding = m_fSelacoHit = FALSE;
 		m_fSelacoTime = m_fSelacoIncrement = m_fSelacoButtonTime = 0;
 		m_fSelacoZ = VEC_VIEW.z;

@@ -115,6 +115,12 @@ int CDualSMG::AddToPlayer( CBasePlayer *pPlayer )
 	return FALSE;
 }
 
+BOOL CDualSMG::DeployLowKey( )
+{
+	m_sFireCount = 0;
+	return DefaultDeploy( "models/v_dual_smg.mdl", "models/p_dual_smg.mdl", DUAL_SMG_DEPLOY, "akimbo" );
+}
+
 BOOL CDualSMG::Deploy( )
 {
 	m_sFireCount = 0;

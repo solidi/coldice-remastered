@@ -31,6 +31,7 @@ LINK_ENTITY_TO_CLASS( weapon_wrench, CWrench );
 
 enum wrench_e {
 	WRENCH_IDLE = 0,
+	WRENCH_DRAW_LOWKEY,
 	WRENCH_DRAW,
 	WRENCH_HOLSTER,
 	WRENCH_ATTACK1HIT,
@@ -96,6 +97,13 @@ int CWrench::GetItemInfo(ItemInfo *p)
 	p->iWeight = WRENCH_WEIGHT;
 	p->pszDisplayName = "40 Pound Monkey Wrench";
 	return 1;
+}
+
+BOOL CWrench::DeployLowKey( )
+{
+	m_flStartThrow = 0;
+	m_flReleaseThrow = -1;
+	return DefaultDeploy( "models/v_wrench.mdl", "models/p_wrench.mdl", WRENCH_DRAW_LOWKEY, "crowbar" );
 }
 
 BOOL CWrench::Deploy( )

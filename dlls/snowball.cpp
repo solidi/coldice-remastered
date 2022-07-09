@@ -49,8 +49,8 @@ enum snowball_e {
 	SNOWBALL_THROW2,	// medium
 	SNOWBALL_THROW3,	// hard
 	SNOWBALL_HOLSTER,
-	SNOWBALL_DRAW,
-	SNOWBALL_DEPLOY,	// with select sound, bro.
+	SNOWBALL_DRAW_LOWKEY,
+	SNOWBALL_DRAW,	// with select sound, bro.
 };
 
 #ifdef SNOWBALL
@@ -99,10 +99,16 @@ int CSnowball::GetItemInfo(ItemInfo *p)
 	return 1;
 }
 
+BOOL CSnowball::DeployLowKey( )
+{
+	m_flReleaseThrow = -1;
+	return DefaultDeploy( "models/v_snowball.mdl", "models/p_snowball.mdl", SNOWBALL_DRAW_LOWKEY, "crowbar" );
+}
+
 BOOL CSnowball::Deploy( )
 {
 	m_flReleaseThrow = -1;
-	return DefaultDeploy( "models/v_snowball.mdl", "models/p_snowball.mdl", SNOWBALL_DEPLOY, "crowbar" );
+	return DefaultDeploy( "models/v_snowball.mdl", "models/p_snowball.mdl", SNOWBALL_DRAW, "crowbar" );
 }
 
 BOOL CSnowball::CanHolster( void )
@@ -292,7 +298,7 @@ void CSnowball::WeaponIdle( void )
 
 		if ( m_pPlayer->m_rgAmmo[ m_iPrimaryAmmoType ] )
 		{
-			SendWeaponAnim( SNOWBALL_DRAW );
+			SendWeaponAnim( SNOWBALL_DRAW_LOWKEY );
 		}
 		else
 		{

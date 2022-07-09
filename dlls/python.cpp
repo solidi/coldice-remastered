@@ -30,6 +30,7 @@ enum python_e {
 	PYTHON_FIRE1,
 	PYTHON_RELOAD,
 	PYTHON_HOLSTER,
+	PYTHON_DRAW_LOWKEY,
 	PYTHON_DRAW,
 	PYTHON_IDLE2,
 	PYTHON_IDLE3
@@ -99,6 +100,25 @@ void CPython::Precache( void )
 	PRECACHE_SOUND ("weapons/357_shot2.wav");
 
 	m_usFirePython = PRECACHE_EVENT( 1, "events/python.sc" );
+}
+
+BOOL CPython::DeployLowKey( )
+{
+#ifdef CLIENT_DLL
+	if ( bIsMultiplayer() )
+#else
+	if ( g_pGameRules->IsMultiplayer() )
+#endif
+	{
+		// enable laser sight geometry.
+		pev->body = 1;
+	}
+	else
+	{
+		pev->body = 0;
+	}
+
+	return DefaultDeploy( "models/v_357.mdl", "models/p_357.mdl", PYTHON_DRAW_LOWKEY, "python", UseDecrement(), pev->body );
 }
 
 BOOL CPython::Deploy( )

@@ -31,6 +31,7 @@ enum handgrenade_e {
 	HANDGRENADE_THROW2,	// medium
 	HANDGRENADE_THROW3,	// hard
 	HANDGRENADE_HOLSTER,
+	HANDGRENADE_DRAW_LOWKEY,
 	HANDGRENADE_DRAW
 };
 
@@ -79,6 +80,11 @@ int CHandGrenade::GetItemInfo(ItemInfo *p)
 	return 1;
 }
 
+BOOL CHandGrenade::DeployLowKey( )
+{
+	m_flReleaseThrow = -1;
+	return DefaultDeploy( "models/v_grenade.mdl", "models/p_grenade.mdl", HANDGRENADE_DRAW_LOWKEY, "crowbar" );
+}
 
 BOOL CHandGrenade::Deploy( )
 {

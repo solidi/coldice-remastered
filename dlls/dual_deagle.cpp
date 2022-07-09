@@ -93,6 +93,11 @@ void CDualDeagle::Precache( void )
 	m_usFireDeagleBoth = PRECACHE_EVENT( 1, "events/dual_deagle_both.sc" );
 }
 
+BOOL CDualDeagle::DeployLowKey( )
+{
+	return DefaultDeploy( "models/v_dual_deagle.mdl", "models/p_dual_deagle.mdl", DEAGLEDUAL_DEPLOY, "akimbo", UseDecrement(), pev->body );
+}
+
 BOOL CDualDeagle::Deploy( )
 {
 	return DefaultDeploy( "models/v_dual_deagle.mdl", "models/p_dual_deagle.mdl", DEAGLEDUAL_DEPLOY, "akimbo", UseDecrement(), pev->body );

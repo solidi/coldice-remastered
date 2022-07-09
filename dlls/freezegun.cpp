@@ -27,6 +27,7 @@
 enum freezegun_e {
 	FREEZEGUN_IDLE,
 	FREEZEGUN_RELOAD,
+	FREEZEGUN_DRAW_LOWKEY,
 	FREEZEGUN_DRAW,
 	FREEZEGUN_HOLSTER,
 	FREEZEGUN_SHOOT1,
@@ -96,6 +97,11 @@ int CFreezeGun::GetItemInfo(ItemInfo *p)
 	p->pszDisplayName = "Xero n2o Freeze Gun";
 
 	return 1;
+}
+
+BOOL CFreezeGun::DeployLowKey()
+{
+	return DefaultDeploy( "models/v_freezegun.mdl", "models/p_freezegun.mdl", FREEZEGUN_DRAW_LOWKEY, "egon", 0.6 );
 }
 
 BOOL CFreezeGun::Deploy()

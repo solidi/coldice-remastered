@@ -34,6 +34,7 @@ enum shotgun_e {
 	SHOTGUN_RELOAD,
 	SHOTGUN_PUMP,
 	SHOTGUN_START_RELOAD,
+	SHOTGUN_DRAW_LOWKEY,
 	SHOTGUN_DRAW,
 	SHOTGUN_HOLSTER,
 	SHOTGUN_IDLE4,
@@ -113,7 +114,10 @@ int CShotgun::GetItemInfo(ItemInfo *p)
 	return 1;
 }
 
-
+BOOL CShotgun::DeployLowKey( )
+{
+	return DefaultDeploy( "models/v_shotgun.mdl", "models/p_shotgun.mdl", SHOTGUN_DRAW_LOWKEY, "shotgun" );
+}
 
 BOOL CShotgun::Deploy( )
 {

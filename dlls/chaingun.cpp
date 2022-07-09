@@ -30,6 +30,7 @@ enum chaingun_e
 	CHAINGUN_SPINUP,
 	CHAINGUN_SPINDOWN,
 	CHAINGUN_FIRE,
+	CHAINGUN_DRAW_LOWKEY,
 	CHAINGUN_DRAW,
 	CHAINGUN_HOLSTER,
 	CHAINGUN_RELOAD,
@@ -96,6 +97,11 @@ int CChaingun::AddToPlayer( CBasePlayer *pPlayer )
 		return TRUE;
 	}
 	return FALSE;
+}
+
+BOOL CChaingun::DeployLowKey( )
+{
+	return DefaultDeploy( "models/v_chaingun.mdl", "models/p_chaingun.mdl", CHAINGUN_DRAW_LOWKEY, "mp5" );
 }
 
 BOOL CChaingun::Deploy( )

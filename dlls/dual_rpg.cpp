@@ -149,13 +149,13 @@ int CDualRpg::AddToPlayer( CBasePlayer *pPlayer )
 	return FALSE;
 }
 
+BOOL CDualRpg::DeployLowKey( )
+{
+	return DefaultDeploy( "models/v_dual_rpg.mdl", "models/p_dual_rpg.mdl", DRAW_BOTH, "dual_rpg" );
+}
+
 BOOL CDualRpg::Deploy( )
 {
-	if ( m_iClip == 0 )
-	{
-		return DefaultDeploy( "model/v_dual_rpg.mdl", "models/p_dual_rpg.mdl", DRAW_BOTH, "dual_rpg" );
-	}
-
 	return DefaultDeploy( "models/v_dual_rpg.mdl", "models/p_dual_rpg.mdl", DRAW_BOTH, "dual_rpg" );
 }
 

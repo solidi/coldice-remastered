@@ -32,6 +32,7 @@ enum usas_e {
 	USAS_IDLE1,
 	USAS_LAUNCH,
 	USAS_RELOAD,
+	USAS_DRAW_LOWKEY,
 	USAS_DEPLOY,
 	USAS_FIRE1,
 	USAS_FIRE2,
@@ -103,6 +104,11 @@ int CUsas::GetItemInfo(ItemInfo *p)
 	p->pszDisplayName = "USAS-12 Auto Shotgun";
 
 	return 1;
+}
+
+BOOL CUsas::DeployLowKey( )
+{
+	return DefaultDeploy( "models/v_usas.mdl", "models/p_usas.mdl", USAS_DRAW_LOWKEY, "mp5" );
 }
 
 BOOL CUsas::Deploy( )

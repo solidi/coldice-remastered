@@ -2184,7 +2184,7 @@ void CBasePlayerWeapon::EndPunch( void )
 		DecalGunshot( &m_trBootHit, BULLET_PLAYER_FIST );
 	}
 
-	Deploy();
+	DeployLowKey();
 }
 
 void CBasePlayerWeapon::StartKick( BOOL holdingSomething )
@@ -2393,7 +2393,7 @@ void CBasePlayerWeapon::EndKick( void )
 		DecalGunshot( &m_trBootHit, BULLET_PLAYER_BOOT );
 	}
 
-	Deploy();
+	DeployLowKey();
 }
 
 void CBasePlayerWeapon::ProvideDualItem(CBasePlayer *pPlayer, const char *pszName) {

@@ -33,6 +33,7 @@ enum mag60_e {
 	MAG60_RELOAD,
 	MAG60_RELOAD_SIDEWAYS,
 	MAG60_RELOAD_NOT_EMPTY,
+	MAG60_DRAW_LOWKEY,
 	MAG60_DRAW,
 	MAG60_HOLSTER,
 	MAG60_BUTTON,
@@ -124,14 +125,14 @@ int CMag60::GetItemInfo(ItemInfo *p)
 	return 1;
 }
 
+BOOL CMag60::DeployLowKey( )
+{
+	return DefaultDeploy("models/v_mag60.mdl", "models/p_mag60.mdl", MAG60_DRAW_LOWKEY, "onehanded", m_iRotated);
+}
+
 BOOL CMag60::Deploy( )
 {
-	BOOL result = FALSE;
-	if (m_iRotated == 0) {
-		result = DefaultDeploy( "models/v_mag60.mdl", "models/p_mag60.mdl", MAG60_DRAW, "onehanded", 0 );
-	} else {
-		result = DefaultDeploy( "models/v_mag60.mdl", "models/p_mag60.mdl", MAG60_DRAW, "onehanded", 1 );
-	}
+	BOOL result = DefaultDeploy("models/v_mag60.mdl", "models/p_mag60.mdl", MAG60_DRAW, "onehanded", m_iRotated);
 
 #ifndef CLIENT_DLL
 	if (result && allowvoiceovers.value) {

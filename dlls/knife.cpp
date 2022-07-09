@@ -49,6 +49,7 @@ LINK_ENTITY_TO_CLASS( weapon_knife, CKnife );
 
 enum knife_e {
 	KNIFE_IDLE = 0,
+	KNIFE_DRAW_LOWKEY,
 	KNIFE_DRAW,
 	KNIFE_HOLSTER,
 	KNIFE_ATTACK1HIT,
@@ -115,6 +116,13 @@ int CKnife::GetItemInfo(ItemInfo *p)
 	p->iWeight = KNIFE_WEIGHT;
 	p->pszDisplayName = "12-Inch Combat Knife";
 	return 1;
+}
+
+BOOL CKnife::DeployLowKey( )
+{
+	m_flStartThrow = 0;
+	m_flReleaseThrow = -1;
+	return DefaultDeploy( "models/v_knife.mdl", "models/p_knife.mdl", KNIFE_DRAW_LOWKEY, "crowbar" );
 }
 
 BOOL CKnife::Deploy( )

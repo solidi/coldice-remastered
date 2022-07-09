@@ -31,6 +31,7 @@ LINK_ENTITY_TO_CLASS( weapon_chainsaw, CChainsaw );
 
 enum chainsaw_e {
 	CHAINSAW_IDLE = 0,
+	CHAINSAW_DRAW_LOWKEY,
 	CHAINSAW_DRAW,
 	CHAINSAW_DRAW_EMPTY,
 	CHAINSAW_ATTACK_START,
@@ -97,6 +98,19 @@ int CChainsaw::GetItemInfo(ItemInfo *p)
 	p->iWeight = CHAINSAW_WEIGHT;
 	p->pszDisplayName = "Koshak's Chainsaw";
 	return 1;
+}
+
+BOOL CChainsaw::DeployLowKey( )
+{
+	m_flStartThrow = 0;
+	m_flReleaseThrow = -1;
+
+	BOOL success = DefaultDeploy( "models/v_chainsaw.mdl", "models/p_chainsaw.mdl", CHAINSAW_DRAW_LOWKEY, "crowbar" );
+	
+	if ( success && m_pPlayer->pev->waterlevel != 3 )
+		EMIT_SOUND_DYN(ENT(m_pPlayer->pev), CHAN_ITEM, "chainsaw_draw.wav", 1.0, ATTN_NORM, 0, 98 + RANDOM_LONG(0,3));
+
+	return success;
 }
 
 BOOL CChainsaw::Deploy( )

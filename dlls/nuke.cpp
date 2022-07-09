@@ -31,6 +31,7 @@ enum nuke_e {
 	NUKE_FIRE2,		// to empty
 	NUKE_FIRE3,		// to empty
 	NUKE_HOLSTER1,	// loaded
+	NUKE_DRAW_LOWKEY,
 	NUKE_DRAW1,		// loaded
 	NUKE_HOLSTER2,	// unloaded
 	NUKE_DRAW_UL,	// unloaded
@@ -365,6 +366,11 @@ int CNuke::AddToPlayer( CBasePlayer *pPlayer )
 		return TRUE;
 	}
 	return FALSE;
+}
+
+BOOL CNuke::DeployLowKey( )
+{
+	return DefaultDeploy( "models/v_nuke.mdl", "models/p_nuke.mdl", NUKE_DRAW_LOWKEY, "rpg" );
 }
 
 BOOL CNuke::Deploy( )

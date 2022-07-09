@@ -30,6 +30,7 @@ enum glock_e {
 	GLOCK_SHOOT_EMPTY,
 	GLOCK_RELOAD,
 	GLOCK_RELOAD_NOT_EMPTY,
+	GLOCK_DRAW_LOWKEY,
 	GLOCK_DRAW,
 	GLOCK_HOLSTER,
 	GLOCK_ADD_SILENCER
@@ -91,15 +92,14 @@ int CGlock::GetItemInfo(ItemInfo *p)
 	return 1;
 }
 
+BOOL CGlock::DeployLowKey( )
+{
+	return DefaultDeploy( "models/v_9mmhandgun.mdl", "models/p_9mmhandgun.mdl", GLOCK_DRAW_LOWKEY, "onehanded", m_iSilencer );
+}
+
 BOOL CGlock::Deploy( )
 {
-	BOOL result = FALSE;
-	if (m_iSilencer == 0) {
-		result = DefaultDeploy( "models/v_9mmhandgun.mdl", "models/p_9mmhandgun.mdl", GLOCK_DRAW, "onehanded", 0 );
-	} else {
-		result = DefaultDeploy( "models/v_9mmhandguns.mdl", "models/p_9mmhandguns.mdl", GLOCK_DRAW, "onehanded", 1 );
-	}
-	return result;
+	return DefaultDeploy( "models/v_9mmhandgun.mdl", "models/p_9mmhandgun.mdl", GLOCK_DRAW, "onehanded", m_iSilencer );
 }
 
 void CGlock::Holster( int skiplocal )

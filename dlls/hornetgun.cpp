@@ -30,6 +30,7 @@ enum hgun_e {
 	HGUN_FIDGETSWAY,
 	HGUN_FIDGETSHAKE,
 	HGUN_DOWN,
+	HGUN_DRAW_LOWKEY,
 	HGUN_UP,
 	HGUN_SHOOT
 };
@@ -112,6 +113,10 @@ int CHgun::GetItemInfo(ItemInfo *p)
 	return 1;
 }
 
+BOOL CHgun::DeployLowKey( )
+{
+	return DefaultDeploy( "models/v_hgun.mdl", "models/p_hgun.mdl", HGUN_DRAW_LOWKEY, "hive" );
+}
 
 BOOL CHgun::Deploy( )
 {

@@ -30,6 +30,7 @@
 enum gauge_shotgun_e {
 	GAUGE_SHOTGUN_IDLE = 0,
 	GAUGE_SHOTGUN_IDLE4,
+	GAUGE_SHOTGUN_DRAW_LOWKEY,
 	GAUGE_SHOTGUN_DRAW,
 	GAUGE_SHOTGUN_FIRE,
 	GAUGE_SHOTGUN_START_RELOAD,
@@ -118,6 +119,11 @@ int C12Gauge::GetItemInfo(ItemInfo *p)
 	p->pszDisplayName = "Samuel L. Jackson's 12 Gauge Shotgun";
 
 	return 1;
+}
+
+BOOL C12Gauge::DeployLowKey( )
+{
+	return DefaultDeploy( "models/v_12gauge.mdl", "models/p_12gauge.mdl", GAUGE_SHOTGUN_DRAW_LOWKEY, "shotgun" );
 }
 
 BOOL C12Gauge::Deploy( )

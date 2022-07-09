@@ -38,6 +38,7 @@ enum gauss_e {
 	GAUSS_FIRE,
 	GAUSS_FIRE2,
 	GAUSS_HOLSTER,
+	GAUSS_DRAW_LOWKEY,
 	GAUSS_DRAW
 };
 
@@ -125,6 +126,12 @@ int CGauss::GetItemInfo(ItemInfo *p)
 	p->pszDisplayName = "Gauss";
 
 	return 1;
+}
+
+BOOL CGauss::DeployLowKey( )
+{
+	m_pPlayer->m_flPlayAftershock = 0.0;
+	return DefaultDeploy( "models/v_gauss.mdl", "models/p_gauss.mdl", GAUSS_DRAW_LOWKEY, "gauss" );
 }
 
 BOOL CGauss::Deploy( )

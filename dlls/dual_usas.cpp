@@ -104,6 +104,11 @@ int CDualUsas::GetItemInfo(ItemInfo *p)
 	return 1;
 }
 
+BOOL CDualUsas::DeployLowKey( )
+{
+	return DefaultDeploy( "models/v_dual_usas.mdl", "models/p_dual_usas.mdl", DUAL_USAS_DEPLOY, "dual_shotgun" );
+}
+
 BOOL CDualUsas::Deploy( )
 {
 	return DefaultDeploy( "models/v_dual_usas.mdl", "models/p_dual_usas.mdl", DUAL_USAS_DEPLOY, "dual_shotgun" );

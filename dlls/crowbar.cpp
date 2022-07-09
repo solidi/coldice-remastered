@@ -51,6 +51,7 @@ LINK_ENTITY_TO_CLASS( weapon_crowbar, CCrowbar );
 
 enum crowbar_e {
 	CROWBAR_IDLE = 0,
+	CROWBAR_DRAW_LOWKEY,
 	CROWBAR_DRAW,
 	CROWBAR_HOLSTER,
 	CROWBAR_ATTACK1HIT,
@@ -122,7 +123,12 @@ int CCrowbar::GetItemInfo(ItemInfo *p)
 	return 1;
 }
 
-
+BOOL CCrowbar::DeployLowKey( )
+{
+	m_flStartThrow = 0;
+	m_flReleaseThrow = -1;
+	return DefaultDeploy( "models/v_crowbar.mdl", "models/p_crowbar.mdl", CROWBAR_DRAW_LOWKEY, "crowbar" );
+}
 
 BOOL CCrowbar::Deploy( )
 {
