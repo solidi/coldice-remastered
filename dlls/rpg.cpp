@@ -346,7 +346,6 @@ void CRpg::Spawn( )
 	m_iId = WEAPON_RPG;
 
 	SET_MODEL(ENT(pev), "models/w_rpg.mdl");
-	m_fSpotActive = 1;
 
 #ifdef CLIENT_DLL
 	if ( bIsMultiplayer() )
@@ -417,11 +416,14 @@ int CRpg::AddToPlayer( CBasePlayer *pPlayer )
 
 BOOL CRpg::DeployLowKey( )
 {
+	m_fSpotActive = 1;
 	return DefaultDeploy( "models/v_rpg.mdl", "models/p_rpg.mdl", RPG_DRAW_LOWKEY, "rpg" );
 }
 
 BOOL CRpg::Deploy( )
 {
+	m_fSpotActive = 1;
+
 	if ( m_iClip == 0 )
 	{
 		return DefaultDeploy( "models/v_rpg.mdl", "models/p_rpg.mdl", RPG_DRAW_UL, "rpg" );
@@ -449,6 +451,8 @@ void CRpg::Holster( int skiplocal /* = 0 */ )
 	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 0.5;
 	
 	SendWeaponAnim( RPG_HOLSTER1 );
+
+	m_fSpotActive = 0;
 
 #ifndef CLIENT_DLL
 	if (m_pSpot)
