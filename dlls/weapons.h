@@ -1744,8 +1744,9 @@ public:
 	BOOL DeployLowKey( void );
 	BOOL Deploy( void );
 	void Holster( int skiplocal = 0 );
-
+	void FireNuke( BOOL withCamera );
 	void PrimaryAttack( void );
+	void SecondaryAttack( void );
 	void WeaponIdle( void );
 
 	BOOL ShouldWeaponIdle( void ) { return TRUE; };
@@ -1774,11 +1775,15 @@ public:
 	void EXPORT FollowThink( void );
 	void EXPORT IgniteThink( void );
 	void EXPORT RocketTouch( CBaseEntity *pOther );
-	static CNukeRocket *CreateNukeRocket( Vector vecOrigin, Vector vecAngles, CBaseEntity *pOwner, CNuke *pLauncher, float startEngineTime );
+	static CNukeRocket *CreateNukeRocket( Vector vecOrigin, Vector vecAngles, CBaseEntity *pOwner, CNuke *pLauncher, float startEngineTime, BOOL hasCamera );
+	virtual void Killed( entvars_t *pevAttacker, int iGib );
 
 	int m_iTrail;
 	int m_iExp, m_iIceExp;
 	float m_flIgniteTime;
+	float m_yawCenter, m_pitchCenter;
+	BOOL m_iCamera;
+	float m_fBlowUpTime;
 	CNuke *m_pLauncher;// pointer back to the launcher that fired me.
 };
 
