@@ -236,7 +236,7 @@ void CRpgRocket :: FollowThink( void  )
 	flMax = 4096;
 	
 	// Examine all entities within a reasonable radius
-	/*while ((pOther = UTIL_FindEntityByClassname( pOther, "laser_spot" )) != NULL)
+	while ((pOther = UTIL_FindEntityByClassname( pOther, "laser_spot" )) != NULL)
 	{
 		UTIL_TraceLine ( pev->origin, pOther->pev->origin, dont_ignore_monsters, ENT(pev), &tr );
 		// ALERT( at_console, "%f\n", tr.flFraction );
@@ -252,7 +252,7 @@ void CRpgRocket :: FollowThink( void  )
 				vecTarget = vecDir;
 			}
 		}
-	}*/
+	}
 
 	pev->angles = UTIL_VecToAngles( vecTarget );
 
