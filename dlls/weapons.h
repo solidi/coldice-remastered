@@ -1686,8 +1686,6 @@ public:
 #endif
 	}
 
-	virtual BOOL SemiAuto( void ) { return TRUE; }
-
 private:
 	unsigned short m_usChainsaw;
 };
