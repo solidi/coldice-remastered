@@ -47,16 +47,18 @@ LINK_ENTITY_TO_CLASS( weapon_nuke, CNuke );
 
 LINK_ENTITY_TO_CLASS( nuke_rocket, CNukeRocket );
 
-CNukeRocket *CNukeRocket::CreateNukeRocket( Vector vecOrigin, Vector vecAngles, CBaseEntity *pOwner, CNuke *pLauncher, float startEngineTime )
+CNukeRocket *CNukeRocket::CreateNukeRocket( Vector vecOrigin, Vector vecAngles, CBaseEntity *pOwner, CNuke *pLauncher, float startEngineTime, BOOL hasCamera )
 {
 	CNukeRocket *pRocket = GetClassPtr( (CNukeRocket *)NULL );
 
 	UTIL_SetOrigin( pRocket->pev, vecOrigin );
 	pRocket->pev->angles = vecAngles;
+	pRocket->pev->owner = pOwner->edict();
+	pRocket->m_iCamera = hasCamera;
 	pRocket->Spawn(startEngineTime);
 	pRocket->SetTouch( &CNukeRocket::RocketTouch );
 	pRocket->m_pLauncher = pLauncher;// remember what Nuke fired me. 
-	pRocket->pev->owner = pOwner->edict();
+	pRocket->m_fBlowUpTime = gpGlobals->time + 3.0;
 
 	return pRocket;
 }
@@ -86,12 +88,27 @@ void CNukeRocket :: Spawn( float startEngineTime )
 
 	pev->nextthink = gpGlobals->time + startEngineTime;
 	pev->dmg = gSkillData.plrDmgNuke;
+
+	if (m_iCamera) {
+		SET_VIEW(pev->owner, ENT(pev));
+		// flip z to match v_angles
+		pev->angles.x = -pev->angles.x;
+		m_yawCenter = pev->angles.y;
+		m_pitchCenter = pev->angles.x;
+	}
 }
 
 void CNukeRocket :: RocketTouch ( CBaseEntity *pOther )
 {
+	Killed(pev, GIB_ALWAYS);
+}
+
+void CNukeRocket::Killed(entvars_t *pevAttacker, int iGib) {
+	if (m_iCamera) {
+		SET_VIEW(pev->owner, pev->owner);
+	}
+
 	STOP_SOUND( edict(), CHAN_VOICE, "rocket1.wav" );
-	//ExplodeTouch( pOther );
 
 	UTIL_ScreenShake( pev->origin, 48.0, 300.0, 6.0, 0.0 );
 	EMIT_SOUND( ENT(pev), CHAN_VOICE, "nuke_explosion.wav", 1, 0.5 );
@@ -110,9 +127,18 @@ void CNukeRocket :: RocketTouch ( CBaseEntity *pOther )
 		WRITE_BYTE( 1000 ); // life
 		WRITE_BYTE( 200 );  // width
 		WRITE_BYTE( 100 );   // noise
+	if (icesprites.value)
+	{
+		WRITE_BYTE( 0 );   // r, g, b
+		WRITE_BYTE( 113 );   // r, g, b
+		WRITE_BYTE( 230 );   // r, g, b
+	}
+	else
+	{
 		WRITE_BYTE( 255 );   // r, g, b
 		WRITE_BYTE( 160 );   // r, g, b
 		WRITE_BYTE( 100 );   // r, g, b
+	}
 		WRITE_BYTE( 255 );	// brightness
 		WRITE_BYTE( 0 );		// speed
 	MESSAGE_END();
@@ -131,9 +157,18 @@ void CNukeRocket :: RocketTouch ( CBaseEntity *pOther )
 		WRITE_BYTE( 1000 ); // life
 		WRITE_BYTE( 200 );  // width
 		WRITE_BYTE( 100 );   // noise
+	if (icesprites.value)
+	{
+		WRITE_BYTE( 0 );   // r, g, b
+		WRITE_BYTE( 113 );   // r, g, b
+		WRITE_BYTE( 230 );   // r, g, b
+	}
+	else
+	{
 		WRITE_BYTE( 255 );   // r, g, b
 		WRITE_BYTE( 160 );   // r, g, b
 		WRITE_BYTE( 100 );   // r, g, b
+	}
 		WRITE_BYTE( 255 );	// brightness
 		WRITE_BYTE( 0 );		// speed
 	MESSAGE_END();
@@ -142,19 +177,18 @@ void CNukeRocket :: RocketTouch ( CBaseEntity *pOther )
 		WRITE_BYTE( TE_EXPLOSION );		// This makes a dynamic light and the explosion sprites/sound
 		WRITE_COORD( pev->origin.x );	// Send to PAS because of the sound
 		WRITE_COORD( pev->origin.y );
-		WRITE_COORD( pev->origin.z + 128 );
+		WRITE_COORD( pev->origin.z + 512 );
 		if (icesprites.value)
 			WRITE_SHORT( m_iIceExp );
 		else
 			WRITE_SHORT( m_iExp );
-		WRITE_BYTE( (pev->dmg - 50) * .40  ); // scale * 10
+		WRITE_BYTE( 70 ); // scale * 10
 		WRITE_BYTE( 20 ); // framerate
 		WRITE_BYTE( TE_EXPLFLAG_NONE );
 	MESSAGE_END();
 
 	for ( int i = 1; i <= gpGlobals->maxClients; i++ )
 	{
-		// FIXME:  Probably don't need to cast this just to read m_iDeaths
 		CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
 
 		if ( plr )
@@ -180,8 +214,6 @@ void CNukeRocket :: Precache( void )
 
 void CNukeRocket :: IgniteThink( void  )
 {
-	// pev->movetype = MOVETYPE_TOSS;
-
 	pev->movetype = MOVETYPE_FLY;
 	pev->effects |= EF_LIGHT;
 
@@ -208,57 +240,85 @@ void CNukeRocket :: IgniteThink( void  )
 	pev->nextthink = gpGlobals->time + 0.1;
 }
 
-void CNukeRocket :: FollowThink( void  )
+void CNukeRocket :: FollowThink( void )
 {
-	CBaseEntity *pOther = NULL;
-	Vector vecTarget;
-	Vector vecDir;
-	float flMax;
-	TraceResult tr;
+	if (m_fBlowUpTime <= gpGlobals->time) {
+		Killed(pev, GIB_ALWAYS);
+		pev->nextthink = -1;
+		return;
+	}
 
-	UTIL_MakeAimVectors( pev->angles );
-
-	vecTarget = gpGlobals->v_forward;
-	flMax = 4096;
-
-	pev->angles = UTIL_VecToAngles( vecTarget );
-
-	// this acceleration and turning math is totally wrong, but it seems to respond well so don't change it.
-	float flSpeed = pev->velocity.Length();
-	if (gpGlobals->time - m_flIgniteTime < 1.0)
+	if (m_iCamera)
 	{
-		pev->velocity = pev->velocity * 0.2 + vecTarget * (flSpeed * 0.8 + 400);
-		if (pev->waterlevel == 3)
+		entvars_t *pevOwner = VARS( pev->owner );
+		Vector angles, velocity;
+		if (pevOwner)
 		{
-			// go slow underwater
-			if (pev->velocity.Length() > 300)
-			{
-				pev->velocity = pev->velocity.Normalize() * 300;
-			}
-			UTIL_BubbleTrail( pev->origin - pev->velocity * 0.1, pev->origin, 4 );
-		} 
-		else 
-		{
-			if (pev->velocity.Length() > 2000)
-			{
-				pev->velocity = pev->velocity.Normalize() * 2000;
-			}
+			angles = pevOwner->v_angle;
+			angles[0] = 0 - angles[0];
+			angles.x = -angles.x;
+			angles.y = m_yawCenter + UTIL_AngleDistance( angles.y, m_yawCenter );
+			angles.x = m_pitchCenter + UTIL_AngleDistance( angles.x, m_pitchCenter );
+
+			float distY = UTIL_AngleDistance( angles.y, pev->angles.y );
+			pev->avelocity.y = distY * 3;
+			float distX = UTIL_AngleDistance( angles.x, pev->angles.x );
+			pev->avelocity.x = distX  * 3;
+			UTIL_MakeVectors(pev->angles);
+			pev->velocity = gpGlobals->v_forward * 1200;
 		}
 	}
 	else
 	{
-		if (pev->effects & EF_LIGHT)
+		CBaseEntity *pOther = NULL;
+		Vector vecTarget;
+		Vector vecDir;
+		float flMax;
+		TraceResult tr;
+
+		UTIL_MakeAimVectors( pev->angles );
+
+		vecTarget = gpGlobals->v_forward;
+		flMax = 4096;
+
+		pev->angles = UTIL_VecToAngles( vecTarget );
+
+		// this acceleration and turning math is totally wrong, but it seems to respond well so don't change it.
+		float flSpeed = pev->velocity.Length();
+		if (gpGlobals->time - m_flIgniteTime < 1.0)
 		{
-			pev->effects = 0;
-			STOP_SOUND( ENT(pev), CHAN_VOICE, "rocket1.wav" );
+			pev->velocity = pev->velocity * 0.2 + vecTarget * (flSpeed * 0.8 + 400);
+			if (pev->waterlevel == 3)
+			{
+				// go slow underwater
+				if (pev->velocity.Length() > 300)
+				{
+					pev->velocity = pev->velocity.Normalize() * 300;
+				}
+				UTIL_BubbleTrail( pev->origin - pev->velocity * 0.1, pev->origin, 4 );
+			} 
+			else 
+			{
+				if (pev->velocity.Length() > 2000)
+				{
+					pev->velocity = pev->velocity.Normalize() * 2000;
+				}
+			}
 		}
-		pev->velocity = pev->velocity * 0.2 + vecTarget * flSpeed * 0.798;
-		if (pev->waterlevel == 0 && pev->velocity.Length() < 1500)
+		else
 		{
-			Detonate( );
+			if (pev->effects & EF_LIGHT)
+			{
+				pev->effects = 0;
+				STOP_SOUND( ENT(pev), CHAN_VOICE, "rocket1.wav" );
+			}
+			pev->velocity = pev->velocity * 0.2 + vecTarget * flSpeed * 0.798;
+			if (pev->waterlevel == 0 && pev->velocity.Length() < 1500)
+			{
+				Detonate( );
+			}
 		}
 	}
-	// ALERT( at_console, "%.0f\n", flSpeed );
 
 	pev->nextthink = gpGlobals->time + 0.1;
 }
@@ -385,6 +445,7 @@ BOOL CNuke::Deploy( )
 
 void CNuke::Holster( int skiplocal /* = 0 */ )
 {
+	m_pPlayer->pev->fov = m_pPlayer->m_iFOV = 0;
 	m_fInReload = FALSE;// cancel any reload in progress.
 
 	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 0.5;
@@ -392,7 +453,7 @@ void CNuke::Holster( int skiplocal /* = 0 */ )
 	SendWeaponAnim( NUKE_HOLSTER1 );
 }
 
-void CNuke::PrimaryAttack()
+void CNuke::FireNuke(BOOL withCamera)
 {
 	if (m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType])
 	{
@@ -406,7 +467,7 @@ void CNuke::PrimaryAttack()
 		UTIL_MakeVectors( m_pPlayer->pev->v_angle );
 		Vector vecSrc = m_pPlayer->GetGunPosition( ) + gpGlobals->v_forward * 16 + gpGlobals->v_right * 8 + gpGlobals->v_up * -18;
 		
-		CNukeRocket *pRocket = CNukeRocket::CreateNukeRocket( vecSrc, m_pPlayer->pev->v_angle, m_pPlayer, this, 0.0 );
+		CNukeRocket *pRocket = CNukeRocket::CreateNukeRocket( vecSrc, m_pPlayer->pev->v_angle, m_pPlayer, this, 0.0, withCamera );
 
 		UTIL_MakeVectors( m_pPlayer->pev->v_angle );// NukeRocket::Create stomps on globals, so remake.
 		pRocket->pev->velocity = pRocket->pev->velocity + gpGlobals->v_forward * DotProduct( m_pPlayer->pev->velocity, gpGlobals->v_forward );
@@ -421,15 +482,29 @@ void CNuke::PrimaryAttack()
 
 		PLAYBACK_EVENT( flags, m_pPlayer->edict(), m_usNuke );
 
-		m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType]--;
+		// m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType]--;
 
-		m_flNextPrimaryAttack = GetNextAttackDelay(0.75);
+		m_flNextPrimaryAttack = m_flNextSecondaryAttack = GetNextAttackDelay(5.0);
 		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 1.5;
 	}
 	else
 	{
 		PlayEmptySound( );
 	}
+}
+
+void CNuke::PrimaryAttack()
+{
+	FireNuke(FALSE);
+}
+
+void CNuke::SecondaryAttack()
+{
+	m_pPlayer->pev->fov = m_pPlayer->m_iFOV = 70;
+#ifndef CLIENT_DLL
+	// UTIL_ScreenFade(m_pPlayer, Vector(0, 113, 230), 0.5, 3, 200, FFADE_OUT);
+#endif
+	FireNuke(TRUE);
 }
 
 void CNuke::WeaponIdle( void )
