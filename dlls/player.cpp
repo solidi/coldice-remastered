@@ -838,7 +838,7 @@ void CBasePlayer::PackDeadPlayerItems( void )
 	// now pack all of the items in the lists
 		while ( rgpPackWeapons[ iPW ] )
 		{
-			ALERT(at_console, "[rgpPackWeapons[ iPW ]=%s]\n", STRING(rgpPackWeapons[ iPW ]->pev->classname));
+			// ALERT(at_console, "[rgpPackWeapons[ iPW ]=%s]\n", STRING(rgpPackWeapons[ iPW ]->pev->classname));
 			// weapon unhooked from the player. Pack it into der box.
 			pWeaponBox->PackWeapon( rgpPackWeapons[ iPW ] );
 
