@@ -91,7 +91,6 @@ extern cvar_t *cl_vmyaw;
 extern cvar_t *cl_ifov;
 
 extern qboolean g_IronSight;
-static float lastFov = 0;
 
 #define	CAM_MODE_RELAX		1
 #define CAM_MODE_FOCUS		2
@@ -2032,6 +2031,8 @@ void V_WeaponPull( float clientTime, float frameTime, cl_entity_t *viewModel, fl
 
 void V_IronSight( Vector position, Vector punch, float clientTime, float frameTime, cl_entity_t *viewModel, Vector forward, Vector up, Vector right )
 {
+	static float defaultFov = 0;
+	static float lastFov = -1;
 	extern cvar_t *m_pCvarRighthand;
 	float mxForward = position.x;
 	float mxUp = position.y;
@@ -2069,7 +2070,9 @@ void V_IronSight( Vector position, Vector punch, float clientTime, float frameTi
 			if (mxYaw > 0) kYaw += 2.0; else kYaw -= 2.0;
 			if (mxRoll > 0) kRoll += 5.0; else kRoll -= 5.0;
 
-			if (lastFov > -0.1) {
+			if (lastFov == -1) {
+				lastFov = 0;
+				defaultFov = CVAR_GET_FLOAT( "default_fov" );
 				gEngfuncs.pfnPlaySoundByName( "ironsight_on.wav", 1 );
 				gEngfuncs.pEventAPI->EV_WeaponAnimation ( 0, 0 );
 			}
@@ -2078,24 +2081,27 @@ void V_IronSight( Vector position, Vector punch, float clientTime, float frameTi
 
 			if (lastFov < -15) lastFov = -15;
 
-			gEngfuncs.Cvar_SetValue("default_fov", 90 + lastFov);
+			gEngfuncs.Cvar_SetValue("default_fov", defaultFov + lastFov);
 		} else {
-			if (mxForward > 0) kF -= 1.5; else kF += 1.5;
-			if (mxUp > 0) kU -= 1.5; else kU += 1.5;
-			if (mxRight > 0) kR -= 3.0; else kR += 3.0;
-			if (mxPitch > 0) kPitch -= 2.0; else kPitch += 2.0;
-			if (mxYaw > 0) kYaw -= 2.0; else kYaw += 2.0;
-			if (mxRoll > 0) kRoll -= 5.0; else kRoll += 5.0;
+			if (lastFov != -1) {
+				if (mxForward > 0) kF -= 1.5; else kF += 1.5;
+				if (mxUp > 0) kU -= 1.5; else kU += 1.5;
+				if (mxRight > 0) kR -= 3.0; else kR += 3.0;
+				if (mxPitch > 0) kPitch -= 2.0; else kPitch += 2.0;
+				if (mxYaw > 0) kYaw -= 2.0; else kYaw += 2.0;
+				if (mxRoll > 0) kRoll -= 5.0; else kRoll += 5.0;
 
-			lastFov += 5.5;
+				lastFov += 5.5;
 
-			if (lastFov < -0.1) {
-				gEngfuncs.pfnPlaySoundByName( "ironsight_off.wav", 1 );
+				if (lastFov > 0) lastFov = 0;
+
+				gEngfuncs.Cvar_SetValue("default_fov", defaultFov + lastFov);
+
+				if (lastFov == 0) {
+					gEngfuncs.pfnPlaySoundByName( "ironsight_off.wav", 1 );
+					lastFov = -1;
+				}
 			}
-
-			if (lastFov > 0) lastFov = 0;
-
-			gEngfuncs.Cvar_SetValue("default_fov", 90 + lastFov);
 		}
 
 		if (mxForward > 0) {
