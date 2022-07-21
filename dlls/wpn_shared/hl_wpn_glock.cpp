@@ -94,12 +94,12 @@ int CGlock::GetItemInfo(ItemInfo *p)
 
 BOOL CGlock::DeployLowKey( )
 {
-	return DefaultDeploy( "models/v_9mmhandgun.mdl", "models/p_9mmhandgun.mdl", GLOCK_DRAW_LOWKEY, "onehanded", m_iSilencer );
+	return ChangeModel();
 }
 
 BOOL CGlock::Deploy( )
 {
-	return DefaultDeploy( "models/v_9mmhandgun.mdl", "models/p_9mmhandgun.mdl", GLOCK_DRAW, "onehanded", m_iSilencer );
+	return ChangeModel();
 }
 
 void CGlock::Holster( int skiplocal )
@@ -112,7 +112,7 @@ void CGlock::Holster( int skiplocal )
 void CGlock::SecondaryAttack( void )
 {
 	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + UTIL_SharedRandomFloat( m_pPlayer->random_seed, 10, 15 );
-	m_flNextPrimaryAttack = m_flNextSecondaryAttack = GetNextAttackDelay(2.0);
+	m_flNextPrimaryAttack = m_flNextSecondaryAttack = GetNextAttackDelay(2.65);
 	SetThink( &CGlock::AddSilencer );
 	pev->nextthink = gpGlobals->time + 2.5f;
 
@@ -127,10 +127,15 @@ void CGlock::SecondaryAttack( void )
 
 void CGlock::AddSilencer( void )
 {
+	ChangeModel();
+}
+
+BOOL CGlock::ChangeModel( void )
+{
 	if (m_iSilencer == 0) {
-		DefaultDeploy( "models/v_9mmhandgun.mdl", "models/p_9mmhandgun.mdl", GLOCK_DRAW, "onehanded", 0 );
+		return DefaultDeploy( "models/v_9mmhandgun.mdl", "models/p_9mmhandgun.mdl", GLOCK_DRAW, "onehanded", 0 );
 	} else {
-		DefaultDeploy( "models/v_9mmhandguns.mdl", "models/p_9mmhandguns.mdl", GLOCK_DRAW, "onehanded", 1 );
+		return DefaultDeploy( "models/v_9mmhandguns.mdl", "models/p_9mmhandguns.mdl", GLOCK_DRAW, "onehanded", 1 );
 	}
 }
 

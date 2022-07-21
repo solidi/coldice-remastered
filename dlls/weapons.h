@@ -589,6 +589,7 @@ public:
 	void Reload( void );
 	void WeaponIdle( void );
 	void AddSilencer( void );
+	BOOL ChangeModel( void );
 
 	virtual BOOL UseDecrement( void )
 	{ 
