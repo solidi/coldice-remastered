@@ -2174,7 +2174,7 @@ void CBasePlayerWeapon::PunchAttack( BOOL holdingSomething )
 	SetThink( &CBasePlayerWeapon::EndPunch );
 	pev->nextthink = gpGlobals->time + 0.18;
 
-	m_flNextPrimaryAttack = m_flNextSecondaryAttack = GetNextAttackDelay(1.0);
+	m_flNextPrimaryAttack = m_flNextSecondaryAttack = GetNextAttackDelay(0.3);
 	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + UTIL_SharedRandomFloat( m_pPlayer->random_seed, 10, 15 );
 }
 
@@ -2383,7 +2383,7 @@ void CBasePlayerWeapon::KickAttack( BOOL holdingSomething )
 	SetThink( &CBasePlayerWeapon::EndKick );
 	pev->nextthink = gpGlobals->time + 0.28;
 
-	m_flNextPrimaryAttack = m_flNextSecondaryAttack = GetNextAttackDelay(1.0);
+	m_flNextPrimaryAttack = m_flNextSecondaryAttack = GetNextAttackDelay(0.3);
 	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + UTIL_SharedRandomFloat( m_pPlayer->random_seed, 10, 15 );
 }
 
