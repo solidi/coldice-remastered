@@ -3800,6 +3800,7 @@ void CBasePlayer::StartSelacoSlide( void )
 			pev->velocity = (gpGlobals->v_forward * 900); // + (gpGlobals->v_up * 200);
 			m_fSelacoTime = gpGlobals->time + 1.25;
 			m_fSelacoSliding = TRUE;
+			pev->fov = m_iFOV = 105;
 			SetAnimation( PLAYER_SLIDE );
 			UTIL_ScreenShake( pev->origin, 15.0, 55.0, 1.25, 15.0 );
 			EMIT_SOUND(ENT(pev), CHAN_VOICE, "slide_on_gravel.wav", 1, ATTN_NORM);
@@ -3920,8 +3921,8 @@ void CBasePlayer::TraceHitOfSelacoSlide( void )
 
 			if (tr.flFraction < 1.0) {
 				DecalGunshot( &tr, BULLET_PLAYER_BOOT );
-				tr.vecEndPos.x += 10;
-				DecalGunshot( &tr, BULLET_PLAYER_BOOT );
+				//tr.vecEndPos.x += 10;
+				//DecalGunshot( &tr, BULLET_PLAYER_BOOT );
 			}
 		}
 
@@ -3933,6 +3934,7 @@ void CBasePlayer::EndSelacoSlide( void )
 {
 	if (m_fSelacoSliding && m_fSelacoTime < gpGlobals->time) {
 		if (m_pActiveItem) m_pActiveItem->DeployLowKey();
+		pev->fov = m_iFOV = 0;
 		m_fSelacoSliding = m_fSelacoHit = FALSE;
 		m_fSelacoTime = m_fSelacoIncrement = m_fSelacoButtonTime = 0;
 		m_fSelacoZ = VEC_VIEW.z;
