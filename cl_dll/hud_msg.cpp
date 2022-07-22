@@ -35,7 +35,7 @@ extern BEAM *pBeam2;
 void ClearEventList( void );
 #endif
 
-float g_SlideTime;
+float g_SlideTime = 0;
 
 /// USER-DEFINED SERVER MESSAGE HANDLERS
 
