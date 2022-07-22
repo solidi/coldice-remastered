@@ -352,7 +352,7 @@ void CHud::ShowTextTips( void ) {
 		return;
 	}
 
-	const int MESSAGE_SIZE = 11;
+	const int MESSAGE_SIZE = 13;
 
 	const char* messageList[MESSAGE_SIZE] = {
 		"Tired of blue skins? Type \"cl_icemodels 0\" in the console switches to real-life skins.\n",
@@ -365,7 +365,9 @@ void CHud::ShowTextTips( void ) {
 		"Swap between single and dual weapons, if available, bind \"impulse 205\".\n",
 		"To enable experimental model shadows, type \"cl_shadows 1\".\n",
 		"To five-high your friend with your hand, bind \"impulse 207\" to a button to punch.\n",
-		"While looking ahead, tap \"+forward\" three times to perform a slide kick.\n"
+		"While looking ahead, tap \"+forward\" three times to perform a slide kick.\n",
+		"Did you know you can pick up live grenades? Look at a live grenade and tap \"+use\".\n",
+		"Did you know you can kick live grenades? Walk up to a live grenade and kick it!\n"
 	};
 
 	// Unstick after a level change

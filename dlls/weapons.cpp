@@ -2277,8 +2277,9 @@ void CBasePlayerWeapon::KickAttack( BOOL holdingSomething )
 			pSprite->SetTransparency(kRenderTransAdd, 255, 255, 255, 80, kRenderFxNoDissipation);
 			pSprite->SetScale(0.4);
 
-			pClosest->pev->velocity = gpGlobals->v_forward * RANDOM_LONG(600,800) + gpGlobals->v_up * RANDOM_LONG(600,800);
+			pClosest->pev->velocity = gpGlobals->v_forward * RANDOM_LONG(600,800) + gpGlobals->v_up * RANDOM_LONG(400,600);
 			pClosest->pev->gravity = 0.5;
+			pClosest->pev->friction = 0.5;
 			m_pPlayer->pev->punchangle = Vector(-4, -2, -4);
 			EMIT_SOUND_DYN(ENT(m_pPlayer->pev), CHAN_BODY, "fists_hit.wav", 1, ATTN_NORM, 0, 98 + RANDOM_LONG(0,3));
 		}
