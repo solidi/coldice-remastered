@@ -402,12 +402,20 @@ void CL_DLLEXPORT HUD_StudioEvent( const struct mstudioevent_s *event, const str
 		}
 		break;
 	case 5021:
-		if ( iMuzzleFlash )
-			gEngfuncs.pEfxAPI->R_MuzzleFlash( (float *)&entity->attachment[2], atoi( event->options) );
+		if ( iMuzzleFlash ) {
+			if (m_pIceModels && m_pIceModels->value)
+				R_RealMuzzleFlash(entity->attachment[2], atoi(event->options));
+			else	
+				gEngfuncs.pEfxAPI->R_MuzzleFlash( (float *)&entity->attachment[2], atoi( event->options) );
+		}
 		break;
 	case 5031:
-		if ( iMuzzleFlash )
-			gEngfuncs.pEfxAPI->R_MuzzleFlash( (float *)&entity->attachment[3], atoi( event->options) );
+		if ( iMuzzleFlash ) {
+			if (m_pIceModels && m_pIceModels->value)
+				R_RealMuzzleFlash(entity->attachment[3], atoi(event->options));
+			else	
+				gEngfuncs.pEfxAPI->R_MuzzleFlash( (float *)&entity->attachment[3], atoi( event->options) );
+		}
 		break;
 	case 5002:
 		gEngfuncs.pEfxAPI->R_SparkEffect( (float *)&entity->attachment[0], atoi( event->options), -100, 100 );
