@@ -320,7 +320,7 @@ void CHalfLifeMultiplay :: Think ( void )
 	last_frags = frags_remaining;
 	last_time  = time_remaining;
 
-#ifdef DEBUG
+#ifdef _DEBUG
 	if (NUMBER_OF_ENTITIES() > 1024)
 		ALERT(at_console, "NUMBER_OF_ENTITIES(): %d | gpGlobals->maxEntities: %d\n", NUMBER_OF_ENTITIES(), gpGlobals->maxEntities);
 #endif
