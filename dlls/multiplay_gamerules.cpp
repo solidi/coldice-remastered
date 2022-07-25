@@ -197,7 +197,7 @@ void CHalfLifeMultiplay::RefreshSkillData( void )
 	gSkillData.plrDmgFlakBomb = 120;
 
 	// Fists
-	gSkillData.plrDmgFists = 5;
+	gSkillData.plrDmgFists = 20;
 	gSkillData.plrDmgShoryuken = 100;
 
 	// Wrench
@@ -216,7 +216,7 @@ void CHalfLifeMultiplay::RefreshSkillData( void )
 	gSkillData.plrDmgNuke = 250;
 
 	// Kick
-	gSkillData.plrDmgKick = 10;
+	gSkillData.plrDmgKick = 20;
 
 	// Plasma
 	gSkillData.plrDmgPlasma = 25;
