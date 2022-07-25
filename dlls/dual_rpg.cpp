@@ -82,7 +82,6 @@ void CDualRpg::Spawn( )
 	m_iId = WEAPON_DUAL_RPG;
 
 	SET_MODEL(ENT(pev), "models/w_dual_rpg.mdl");
-	m_fSpotActive = 1;
 
 #ifdef CLIENT_DLL
 	if ( bIsMultiplayer() )
@@ -151,11 +150,13 @@ int CDualRpg::AddToPlayer( CBasePlayer *pPlayer )
 
 BOOL CDualRpg::DeployLowKey( )
 {
+	m_fSpotActive = 1;
 	return DefaultDeploy( "models/v_dual_rpg.mdl", "models/p_dual_rpg.mdl", DRAW_BOTH, "dual_rpg" );
 }
 
 BOOL CDualRpg::Deploy( )
 {
+	m_fSpotActive = 1;
 	return DefaultDeploy( "models/v_dual_rpg.mdl", "models/p_dual_rpg.mdl", DRAW_BOTH, "dual_rpg" );
 }
 
@@ -177,6 +178,8 @@ void CDualRpg::Holster( int skiplocal /* = 0 */ )
 	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 0.5;
 	
 	SendWeaponAnim( HOLSTER_BOTH );
+
+	m_fSpotActive = 0;
 
 #ifndef CLIENT_DLL
 	if (m_pSpot)
