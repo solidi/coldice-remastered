@@ -228,6 +228,7 @@ public:
 	int m_fSelacoCount;
 	BOOL m_fSelacoSliding;
 	BOOL m_fSelacoHit;
+	float m_fSelacoLastX, m_fSelacoLastY;
 
 	CBaseEntity *pHeldItem;
 	BOOL m_iHoldingItem;

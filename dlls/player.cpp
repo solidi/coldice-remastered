@@ -3793,16 +3793,27 @@ void CBasePlayer::StartSelacoSlide( void )
 {
 	if (!m_fSelacoSliding && m_fSelacoTime < gpGlobals->time) {
 		if (FBitSet(pev->flags, FL_ONGROUND) && pev->velocity.Length() > 50) {
-			UTIL_MakeVectors(pev->angles);
+			if (m_pActiveItem) {
+				m_pActiveItem->Holster(); 
+			}
 			pev->viewmodel = MAKE_STRING("models/v_dual_leg.mdl");
-			if (m_pActiveItem) ((CBasePlayerWeapon *)m_pActiveItem)->SendWeaponAnim(2, 0, 0);
+			if (m_pActiveItem) { 
+				((CBasePlayerWeapon *)m_pActiveItem)->SendWeaponAnim(2, 0, 0);
+			}
+
+			UTIL_MakeVectors(pev->angles);
 			pev->friction = 0.05;
 			pev->velocity = (gpGlobals->v_forward * 900); // + (gpGlobals->v_up * 200);
+			m_fSelacoLastX = pev->velocity.x;
+			m_fSelacoLastY = pev->velocity.y;
 			m_fSelacoTime = gpGlobals->time + 1.25;
 			m_fSelacoSliding = TRUE;
 			pev->fov = m_iFOV = 105;
+
 			SetAnimation( PLAYER_SLIDE );
+
 			UTIL_ScreenShake( pev->origin, 15.0, 55.0, 1.25, 15.0 );
+
 			EMIT_SOUND(ENT(pev), CHAN_VOICE, "slide_on_gravel.wav", 1, ATTN_NORM);
 			MESSAGE_BEGIN( MSG_ONE, gmsgSelacoSlide, NULL, pev );
 				WRITE_BYTE( 0 );
@@ -3912,7 +3923,7 @@ void CBasePlayer::TraceHitOfSelacoSlide( void )
 					if (m_pActiveItem) ((CBasePlayerWeapon *)m_pActiveItem)->SendWeaponAnim(3, 0, 1);
 					m_fSelacoHit = TRUE;
 					pev->velocity = pev->velocity / 2;
-					pev->friction = 0.5;
+					pev->friction = 0.7;
 				}
 
 				m_iWeaponVolume = flVol * 512;
@@ -3925,6 +3936,19 @@ void CBasePlayer::TraceHitOfSelacoSlide( void )
 				//DecalGunshot( &tr, BULLET_PLAYER_BOOT );
 			}
 		}
+
+		//ALERT(at_aiconsole, "pev->velocity[x=%.2f,y=%.2f]\n", pev->velocity.x, pev->velocity.y);
+		//ALERT(at_aiconsole, "fabs(m_fSelacoLastX - pev->velocity.x)[x=%.2f] fabs(m_fSelacoLastY - pev->velocity.y)[y=%.2f]\n", fabs(m_fSelacoLastX - pev->velocity.x), fabs(m_fSelacoLastY - pev->velocity.y));
+
+		if (fabs(m_fSelacoLastX - pev->velocity.x) > 200 || fabs(m_fSelacoLastY - pev->velocity.y) > 200) {
+			EMIT_SOUND_DYN(ENT(pev), CHAN_ITEM, "fists_hit.wav", 1.0, ATTN_NORM, 0, 98 + RANDOM_LONG(0,3));
+			if (m_pActiveItem) ((CBasePlayerWeapon *)m_pActiveItem)->SendWeaponAnim(3, 0, 1);
+			m_fSelacoHit = TRUE;
+			pev->velocity = pev->velocity / 2;
+			pev->friction = 0.7;
+		}
+		m_fSelacoLastX = pev->velocity.x;
+		m_fSelacoLastY = pev->velocity.y;
 
 		m_fSelacoIncrement = gpGlobals->time + 0.03;
 	}
