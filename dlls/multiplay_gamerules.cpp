@@ -352,6 +352,11 @@ BOOL CHalfLifeMultiplay::IsCoOp( void )
 //=========================================================
 BOOL CHalfLifeMultiplay::FShouldSwitchWeapon( CBasePlayer *pPlayer, CBasePlayerItem *pWeapon )
 {
+	// Bot patch
+	if ( !pWeapon->m_pPlayer ) {
+		return FALSE;
+	}
+
 	if ( !pWeapon->CanDeploy() )
 	{
 		// that weapon can't deploy anyway.
