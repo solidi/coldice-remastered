@@ -90,7 +90,16 @@ called when a player connects to a server
 ============
 */
 BOOL ClientConnect( edict_t *pEntity, const char *pszName, const char *pszAddress, char szRejectReason[ 128 ]  )
-{	
+{
+	char text[256] = "" ;
+	if ( pEntity->v.netname )
+		_snprintf( text, sizeof(text), "+ %s has entered the game\n", STRING(pEntity->v.netname) );
+	text[ sizeof(text) - 1 ] = 0;
+	MESSAGE_BEGIN( MSG_ALL, gmsgSayText, NULL );
+		WRITE_BYTE( ENTINDEX(pEntity) );
+		WRITE_STRING( text );
+	MESSAGE_END();
+
 	return g_pGameRules->ClientConnected( pEntity, pszName, pszAddress, szRejectReason );
 
 // a client connecting during an intermission can cause problems
