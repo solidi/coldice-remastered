@@ -147,9 +147,10 @@ public:
 #define SNOWBALL_WEIGHT		3
 #define CHAINSAW_WEIGHT		5
 #define GAUGE_SHOTGUN_WEIGHT 14
-#define NUKE_WEIGHT 		25
+#define NUKE_WEIGHT 		30
 #define DEAGLE_WEIGHT		20
 #define FREEZEGUN_WEIGHT	20
+#define VEST_WEIGHT			25
 
 
 // weapon clip/carry ammo capacities

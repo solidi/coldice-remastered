@@ -82,7 +82,7 @@ int CVest::GetItemInfo(ItemInfo *p)
 	p->iPosition = 6;
 	p->iFlags = ITEM_FLAG_SELECTONEMPTY | ITEM_FLAG_LIMITINWORLD | ITEM_FLAG_EXHAUSTIBLE;
 	p->iId = m_iId = WEAPON_VEST;
-	p->iWeight = SATCHEL_WEIGHT;
+	p->iWeight = VEST_WEIGHT;
 	p->pszDisplayName = "Leeroy Jenkins Dynamite Vest";
 
 	return 1;
