@@ -812,7 +812,8 @@ void CBasePlayerItem::DefaultTouch( CBaseEntity *pOther )
 			UTIL_Remove( this );
 		}
 
-		ProvideDualItem(pPlayer, STRING(this->pev->classname));
+		if ( pPlayer->pev->deadflag == DEAD_NO )
+			ProvideDualItem(pPlayer, STRING(this->pev->classname));
 
 		return;
 	}
