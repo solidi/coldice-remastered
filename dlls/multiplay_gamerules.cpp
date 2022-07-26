@@ -643,6 +643,42 @@ void CHalfLifeMultiplay :: PlayerThink( CBasePlayer *pPlayer )
 	}
 }
 
+const char *pWeapons[] =
+{
+	"weapon_shotgun",
+	"weapon_9mmAR",
+	"weapon_handgrenade",
+	"weapon_tripmine",
+	"weapon_357",
+	"weapon_crossbow",
+	"weapon_egon",
+	"weapon_gauss",
+	"weapon_rpg",
+	"weapon_satchel",
+	"weapon_snark",
+	"weapon_hornetgun",
+	"weapon_vest",
+	"weapon_chumtoad",
+	"weapon_sniperrifle",
+	"weapon_railgun",
+	"weapon_cannon",
+	"weapon_mag60",
+	"weapon_chaingun",
+	"weapon_glauncher",
+	"weapon_smg",
+	"weapon_usas",
+	"weapon_snowball",
+	"weapon_12gauge",
+	"weapon_nuke",
+	"weapon_deagle",
+	"weapon_dual_deagle",
+	"weapon_dual_rpg",
+	"weapon_dual_smg",
+	"weapon_dual_wrench",
+	"weapon_dual_usas",
+	"weapon_freezegun",
+};
+
 //=========================================================
 //=========================================================
 void CHalfLifeMultiplay :: PlayerSpawn( CBasePlayer *pPlayer )
@@ -699,6 +735,9 @@ void CHalfLifeMultiplay :: PlayerSpawn( CBasePlayer *pPlayer )
 			pWeaponName = strtok( NULL, ";" );
 		}
 		pPlayer->GiveAmmo( 68, "9mm", _9MM_MAX_CARRY );// 4 full reloads
+
+		if (randomweapon.value)
+			pPlayer->GiveNamedItem(STRING(ALLOC_STRING(pWeapons[RANDOM_LONG(0,ARRAYSIZE(pWeapons)-1)])));
 	}
 }
 
