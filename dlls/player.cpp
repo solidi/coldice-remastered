@@ -1655,7 +1655,7 @@ void CBasePlayer::PlayerUse ( void )
 	{
 
 		if (pObject->ObjectCaps() & (FCAP_IMPULSE_USE | FCAP_CONTINUOUS_USE | FCAP_ONOFF_USE) ||
-			(FClassnameIs ( pObject->pev, "grenade" ) || FClassnameIs ( pObject->pev, "monster_satchel" )) )
+			(strstr(interactiveitems.string, STRING(pObject->pev->classname))) )
 		{
 			// allow bots to easily pick up grenades
 			if (pev->flags & FL_FAKECLIENT && 
@@ -1694,17 +1694,19 @@ void CBasePlayer::PlayerUse ( void )
 		if ( m_afButtonPressed & IN_USE )
 			EMIT_SOUND( ENT(pev), CHAN_ITEM, "wpn_select.wav", 0.4, ATTN_NORM);
 
-		if ( FClassnameIs ( pObject->pev, "grenade" ) || FClassnameIs ( pObject->pev, "monster_satchel" ) ) {
+		if (strstr(interactiveitems.string, STRING(pObject->pev->classname))) {
 			UTIL_MakeVectors( pev->v_angle );
 			pHeldItem = pObject;
 			pHeldItem->pev->velocity = pHeldItem->pev->avelocity = g_vecZero;
 			pHeldItem->pev->framerate = 0;
+			pHeldItem->pev->sequence = 0;
 			pHeldItem->pev->movetype = MOVETYPE_FLY;
-			pHeldItem->pev->origin = GetGunPosition() + gpGlobals->v_forward * 25 + gpGlobals->v_up * -10;
+			pHeldItem->pev->origin = GetGunPosition() + gpGlobals->v_forward * 40 + gpGlobals->v_up * -10;
 			pev->punchangle = Vector(-4, -2, -4);
 
 			if (m_pActiveItem && m_pActiveItem->m_pPlayer)
 			{
+				((CBasePlayerWeapon *)m_pActiveItem)->m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + UTIL_SharedRandomFloat(random_seed, 10, 15);
 				m_pActiveItem->Holster();
 			}
 
@@ -2134,7 +2136,7 @@ void CBasePlayer::PreThink(void)
 		// Update coords
 		if (!FNullEnt(pHeldItem)) {
 			UTIL_MakeVectors( pev->v_angle );
-			pHeldItem->pev->origin = GetGunPosition() + gpGlobals->v_forward * 25 + gpGlobals->v_up * -10;
+			pHeldItem->pev->origin = GetGunPosition() + gpGlobals->v_forward * 40 + gpGlobals->v_up * -10;
 			pHeldItem->pev->angles = pev->angles;
 			pHeldItem->pev->velocity = pev->velocity;
 		}
@@ -2145,10 +2147,26 @@ void CBasePlayer::PreThink(void)
 			ReleaseHeldItem(100);
 		}
 
+		BOOL redeploy = FALSE;
+
 		// Grenade exploded
 		if (!FNullEnt(pHeldItem) && (pHeldItem->pev->effects & EF_NODRAW)) {
 			ALERT(at_aiconsole, "releasing item as entity was no_draw\n");
 			ReleaseHeldItem(100);
+			redeploy = TRUE;
+		}
+
+		// Item is sub_fading
+		if (!FNullEnt(pHeldItem) && (pHeldItem->pev->rendermode == kRenderTransTexture && pHeldItem->pev->renderamt < 10)) {
+			ALERT(at_aiconsole, "releasing item as its faded\n");
+			ReleaseHeldItem(100);
+			redeploy = TRUE;
+		}
+
+		// Redeploy weapon if any of above happened
+		if (redeploy && m_pActiveItem && m_pActiveItem->m_pPlayer)
+		{
+			m_pActiveItem->Deploy();
 		}
 	}
 

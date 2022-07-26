@@ -712,6 +712,7 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_jumpheight 45\" - Adjust the player's jump height\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_icesprites 1\" - Switch between select ice or real environment sprites\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_randomweapon 0\" - To spawn with a random weapon\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_interactiveitems \"grenade;monster_satchel;monster_chumtoad;monster_snark\"\" - A semicolon separated list of items that are \"interactive\" (kickable, pickupable)\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "For more, see readme.txt\n" );
 	}
 	else if ( g_pGameRules->ClientCommand( GetClassPtr((CBasePlayer *)pev), pcmd ) )

@@ -55,6 +55,7 @@ extern cvar_t   dualsonly;
 extern cvar_t   jumpheight;
 extern cvar_t   icesprites;
 extern cvar_t   randomweapon;
+extern cvar_t   interactiveitems;
 
 // Engine Cvars
 extern cvar_t	*g_psv_gravity;
