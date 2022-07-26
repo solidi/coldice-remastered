@@ -56,6 +56,7 @@ cvar_t	allowvoiceovers = {"mp_allowvoiceovers", "1", FCVAR_SERVER};
 cvar_t	dualsonly = {"mp_dualsonly","0", FCVAR_SERVER };
 cvar_t	jumpheight = {"sv_jumpheight","45", FCVAR_SERVER };
 cvar_t	icesprites = {"mp_icesprites","1", FCVAR_SERVER };
+cvar_t	randomweapon = {"mp_randomweapon", "0", FCVAR_SERVER };
 
 cvar_t  allow_spectators = { "allow_spectators", "0.0", FCVAR_SERVER };		// 0 prevents players from being spectators
 
@@ -624,6 +625,7 @@ void GameDLLInit( void )
 	CVAR_REGISTER(&dualsonly);
 	CVAR_REGISTER(&jumpheight);
 	CVAR_REGISTER(&icesprites);
+	CVAR_REGISTER(&randomweapon);
 
 	CVAR_REGISTER (&mp_chattime);
 
