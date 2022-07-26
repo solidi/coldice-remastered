@@ -113,6 +113,10 @@ extern int gEvilImpulse101;
 
 void CItem::ItemTouch( CBaseEntity *pOther )
 {
+	// Support if picked up and dropped
+	pev->velocity = pev->velocity * 0.5;
+	pev->avelocity = pev->avelocity * 0.5;
+
 	// if it's not a player, ignore
 	if ( !pOther->IsPlayer() )
 	{
@@ -371,6 +375,10 @@ void CRune::Spawn( void )
 
 void CRune::RuneTouch( CBaseEntity *pOther )
 {
+	// Support if picked up and dropped
+	pev->velocity = pev->velocity * 0.5;
+	pev->avelocity = pev->avelocity * 0.5;
+
 	if ( !(pev->flags & FL_ONGROUND ) )
 	{
 		return;

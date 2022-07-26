@@ -798,6 +798,10 @@ CBaseEntity* CBasePlayerItem::Respawn( void )
 
 void CBasePlayerItem::DefaultTouch( CBaseEntity *pOther )
 {
+	// Support if picked up and dropped
+	pev->velocity = pev->velocity * 0.5;
+	pev->avelocity = pev->avelocity * 0.5;
+
 	// if it's not a player, ignore
 	if ( !pOther->IsPlayer() )
 		return;
@@ -1357,6 +1361,10 @@ void CBasePlayerAmmo::Materialize( void )
 
 void CBasePlayerAmmo :: DefaultTouch( CBaseEntity *pOther )
 {
+	// Support if picked up and dropped
+	pev->velocity = pev->velocity * 0.5;
+	pev->avelocity = pev->avelocity * 0.5;
+
 	if ( !pOther->IsPlayer() )
 	{
 		return;
@@ -2075,6 +2083,50 @@ void CBasePlayerWeapon::PunchAttack( BOOL holdingSomething )
 			vecEnd = tr.vecEndPos;	// This is the point on the actual surface (the hull could have hit space)
 		}
 	}
+
+	// Ignore all of this if holding something
+	if (!holdingSomething) {
+		CBaseEntity *pObject = NULL;
+		CBaseEntity *pClosest = NULL;
+		Vector		vecLOS;
+		float flMaxDot = VIEW_FIELD_ULTRA_NARROW;
+		float flDot;
+
+		while ((pObject = UTIL_FindEntityInSphere( pObject, pev->origin, pev->flags & FL_FAKECLIENT ? 192 : 64 )) != NULL)
+		{
+			if (strstr(interactiveitems.string, STRING(pObject->pev->classname)) != NULL)
+			{
+				// allow bots to easily interact
+				if (pev->flags & FL_FAKECLIENT)
+				{
+					pClosest = pObject;
+				}
+				vecLOS = (VecBModelOrigin( pObject->pev ) - (pev->origin + pev->view_ofs));
+				vecLOS = UTIL_ClampVectorToBox( vecLOS, pObject->pev->size * 0.5 );
+				flDot = DotProduct (vecLOS , gpGlobals->v_forward);
+				if (flDot > flMaxDot)
+				{
+					pClosest = pObject;
+					flMaxDot = flDot;
+				}
+			}
+		}
+
+		if ( pClosest ) {
+			UTIL_MakeVectors( m_pPlayer->pev->v_angle );
+			Vector smoke = m_pPlayer->GetGunPosition() + gpGlobals->v_forward * 25;
+			CSprite *pSprite = CSprite::SpriteCreate("sprites/gunsmoke.spr", smoke, TRUE);
+			pSprite->AnimateAndDie(12);
+			pSprite->SetTransparency(kRenderTransAdd, 255, 255, 255, 80, kRenderFxNoDissipation);
+			pSprite->SetScale(0.4);
+
+			pClosest->pev->velocity = gpGlobals->v_forward * RANDOM_LONG(400,600) + gpGlobals->v_up * RANDOM_LONG(300,500);
+			pClosest->pev->gravity = 0.5;
+			pClosest->pev->friction = 0.5;
+			m_pPlayer->pev->punchangle = Vector(-4, -2, -4);
+			EMIT_SOUND_DYN(ENT(m_pPlayer->pev), CHAN_BODY, "fists_hit.wav", 1, ATTN_NORM, 0, 98 + RANDOM_LONG(0,3));
+		}
+	}
 #endif
 
 	switch( RANDOM_LONG(0,1) )
@@ -2250,9 +2302,10 @@ void CBasePlayerWeapon::KickAttack( BOOL holdingSomething )
 		Vector		vecLOS;
 		float flMaxDot = VIEW_FIELD_NARROW;
 		float flDot;
+
 		while ((pObject = UTIL_FindEntityInSphere( pObject, pev->origin, pev->flags & FL_FAKECLIENT ? 192 : 96 )) != NULL)
 		{
-			if (FClassnameIs( pObject->pev, "grenade" ) || FClassnameIs( pObject->pev, "monster_satchel" ))
+			if (strstr(interactiveitems.string, STRING(pObject->pev->classname)) != NULL)
 			{
 				// allow bots to easily interact
 				if (pev->flags & FL_FAKECLIENT)
