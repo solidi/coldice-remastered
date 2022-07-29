@@ -364,6 +364,7 @@ public:
 	// int		m_iIdSecondary;										// Unique Id for secondary ammo
 
 	virtual void ProvideDualItem(CBasePlayer *pPlayer, const char *itemName) { return; }
+	virtual void ProvideSingleItem(CBasePlayer *pPlayer, const char *itemName) { return; }
 };
 
 
@@ -1847,6 +1848,7 @@ public:
 	}
 
 	virtual BOOL SemiAuto( void ) { return TRUE; }
+	void ProvideSingleItem(CBasePlayer *pPlayer, const char *itemName);
 	void SwapDualWeapon( void );
 
 private:
@@ -1891,6 +1893,7 @@ public:
 #endif
 	}
 
+	void ProvideSingleItem(CBasePlayer *pPlayer, const char *itemName);
 	void SwapDualWeapon( void );
 
 private:
@@ -1926,6 +1929,7 @@ public:
 #endif
 	}
 
+	void ProvideSingleItem(CBasePlayer *pPlayer, const char *itemName);
 	void SwapDualWeapon( void );
 
 	static const char *pHansSounds[];
@@ -1983,6 +1987,7 @@ public:
 	}
 
 	virtual BOOL SemiAuto( void ) { return TRUE; }
+	void ProvideSingleItem(CBasePlayer *pPlayer, const char *itemName);
 	void SwapDualWeapon( void );
 
 private:
@@ -2019,6 +2024,7 @@ public:
 #endif
 	}
 
+	void ProvideSingleItem(CBasePlayer *pPlayer, const char *itemName);
 	void SwapDualWeapon( void );
 
 private:

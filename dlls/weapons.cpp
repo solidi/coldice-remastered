@@ -826,6 +826,7 @@ void CBasePlayerItem::DefaultTouch( CBaseEntity *pOther )
 	{
 		AttachToPlayer( pPlayer );
 		EMIT_SOUND(ENT(pPlayer->pev), CHAN_ITEM, "items/gunpickup2.wav", 1, ATTN_NORM);
+		ProvideSingleItem(pPlayer, STRING(this->pev->classname));
 	}
 
 	SUB_UseTargets( pOther, USE_TOGGLE, 0 ); // UNDONE: when should this happen?
@@ -1661,6 +1662,7 @@ void CWeaponBox::Touch( CBaseEntity *pOther )
 				if ( pPlayer->AddPlayerItem( pItem ) )
 				{
 					pItem->AttachToPlayer( pPlayer );
+					pItem->ProvideSingleItem(pPlayer, STRING(pItem->pev->classname));
 				}
 			}
 		}

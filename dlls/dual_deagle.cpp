@@ -276,6 +276,21 @@ void CDualDeagle::WeaponIdle( void )
 	SendWeaponAnim( iAnim, UseDecrement() ? 1 : 0, 0 );
 }
 
+void CDualDeagle::ProvideSingleItem(CBasePlayer *pPlayer, const char *item) {
+	if (item == NULL) {
+		return;
+	}
+
+#ifndef CLIENT_DLL
+	if (!stricmp(item, "weapon_dual_deagle")) {
+		if (!pPlayer->HasNamedPlayerItem("weapon_deagle")) {
+			ALERT(at_aiconsole, "Give weapon_deagle!\n");
+			pPlayer->GiveNamedItem("weapon_deagle");
+		}
+	}
+#endif
+}
+
 void CDualDeagle::SwapDualWeapon( void ) {
 	m_pPlayer->SelectItem("weapon_deagle");
 }
