@@ -3804,6 +3804,7 @@ void CBasePlayer::CalculateToSelacoSlide( void )
 		//ALERT(at_aiconsole, "[4->m_fSelacoButtonTime=%.2f, pev->v_angle.x=%.2f]\n", m_fSelacoButtonTime - gpGlobals->time, pev->v_angle.x);
 		m_fSelacoCount = 0;
 		StartSelacoSlide();
+		ReleaseHeldItem(RANDOM_LONG(300,500));
 	}
 }
 
