@@ -497,37 +497,13 @@ void EV_HLDM_FireBullets( int idx, float *forward, float *right, float *up, int 
 	}
 }
 
-void EV_GunSmoke(vec3_t origin, float scale, int idx, int ducking, float *forward, float *up, float *right, float fScale, float uScale, float rScale) {
+void EV_GunSmoke(vec3_t smokeOrigin, float scale, int idx, int ducking, float *forward, float *up, float *right, float fScale, float uScale, float rScale) {
 	if (cl_gunsmoke && !cl_gunsmoke->value) {
 		return;
 	}
 
 	if ( gEngfuncs.pfnRandomLong(0, 3) > 2 ) {
-		/*
-		vec3_t view_ofs;
-		vec3_t smokeOrigin;
-		view_ofs[2] = DEFAULT_VIEWHEIGHT;
-
-		if ( EV_IsPlayer( idx ) )
-		{
-			if ( EV_IsLocal( idx ) )
-			{
-				gEngfuncs.pEventAPI->EV_LocalPlayerViewheight( view_ofs );
-			}
-			else if ( ducking == 1 )
-			{
-				view_ofs[2] = VEC_DUCK_VIEW;
-			}
-		}
-
-		for (int i = 0; i < 3; i++) {
-			smokeOrigin[i] = origin[i] + view_ofs[i] + (forward[i] * fScale) + (up[i] * uScale) + (right[i] * rScale);
-		}
-*/
-		vec3_t smokeOrigin = origin;
 		if ( EV_IsLocal(idx) ) {
-			smokeOrigin = gEngfuncs.GetViewModel()->attachment[0];
-
 			int model = gEngfuncs.pEventAPI->EV_FindModelIndex( "sprites/smokeball2.spr" );
 			TEMPENTITY *t = gEngfuncs.pEfxAPI->R_DefaultSprite(smokeOrigin, model, gEngfuncs.pfnRandomLong(32, 48));
 			if (t) {
@@ -598,7 +574,7 @@ void EV_FireGlock1( event_args_t *args )
 	
 	VectorCopy( forward, vecAiming );
 
-	EV_GunSmoke(origin, 0.3, idx, args->ducking, forward, right, up, 0, 0, 0);
+	EV_GunSmoke(gEngfuncs.GetViewModel()->attachment[0], 0.3, idx, args->ducking, forward, right, up, 0, 0, 0);
 
 	EV_HLDM_FireBullets( idx, forward, right, up, 1, vecSrc, vecAiming, 8192, BULLET_PLAYER_9MM, 0, 0, args->fparam1, args->fparam2 );
 }
@@ -659,7 +635,7 @@ void EV_FireGlock2( event_args_t *args )
 	
 	VectorCopy( forward, vecAiming );
 
-	EV_GunSmoke(origin, 0.3, idx, args->ducking, forward, right, up, 0, 0, 0);
+	EV_GunSmoke(gEngfuncs.GetViewModel()->attachment[0], 0.3, idx, args->ducking, forward, right, up, 0, 0, 0);
 
 	EV_HLDM_FireBullets( idx, forward, right, up, 1, vecSrc, vecAiming, 8192, BULLET_PLAYER_9MM, 0, &tracerCount[idx-1], args->fparam1, args->fparam2 );
 	
@@ -723,7 +699,7 @@ void EV_FireShotGunDouble( event_args_t *args )
 	EV_GetGunPosition( args, vecSrc, origin );
 	VectorCopy( forward, vecAiming );
 
-	EV_GunSmoke(origin, 0.8, idx, args->ducking, forward, right, up, 0, 0, 0);
+	EV_GunSmoke(gEngfuncs.GetViewModel()->attachment[0], 0.8, idx, args->ducking, forward, right, up, 0, 0, 0);
 
 	if ( gEngfuncs.GetMaxClients() > 1 )
 	{
@@ -784,7 +760,7 @@ void EV_FireShotGunSingle( event_args_t *args )
 	EV_GetGunPosition( args, vecSrc, origin );
 	VectorCopy( forward, vecAiming );
 
-	EV_GunSmoke(origin, 0.5, idx, args->ducking, forward, right, up, 0, 0, 0);
+	EV_GunSmoke(gEngfuncs.GetViewModel()->attachment[0], 0.5, idx, args->ducking, forward, right, up, 0, 0, 0);
 
 	if ( gEngfuncs.GetMaxClients() > 1 )
 	{
@@ -861,7 +837,7 @@ void EV_FireMP5( event_args_t *args )
 	EV_GetGunPosition( args, vecSrc, origin );
 	VectorCopy( forward, vecAiming );
 
-	EV_GunSmoke(origin, 0.6, idx, args->ducking, forward, right, up, 0, 0, 0);
+	EV_GunSmoke(gEngfuncs.GetViewModel()->attachment[0], 0.6, idx, args->ducking, forward, right, up, 0, 0, 0);
 
 	if ( gEngfuncs.GetMaxClients() > 1 )
 	{
@@ -946,7 +922,7 @@ void EV_FirePython( event_args_t *args )
 	
 	VectorCopy( forward, vecAiming );
 
-	EV_GunSmoke(origin, 0.6, idx, args->ducking, forward, right, up, 0, 0, 0);
+	EV_GunSmoke(gEngfuncs.GetViewModel()->attachment[0], 0.6, idx, args->ducking, forward, right, up, 0, 0, 0);
 
 	EV_HLDM_FireBullets( idx, forward, right, up, 1, vecSrc, vecAiming, 8192, BULLET_PLAYER_357, 0, 0, args->fparam1, args->fparam2 );
 }
@@ -2106,7 +2082,7 @@ void EV_FireSniperRifle( event_args_t *args )
 	EV_GetGunPosition( args, vecSrc, origin );
 	VectorCopy( forward, vecAiming );
 
-	EV_GunSmoke(origin, 0.5, idx, args->ducking, forward, right, up, 0, 0, 0);
+	EV_GunSmoke(gEngfuncs.GetViewModel()->attachment[0], 0.5, idx, args->ducking, forward, right, up, 0, 0, 0);
 
 	EV_HLDM_FireBullets( idx, forward, right, up, 1, vecSrc, vecAiming, 8192, BULLET_PLAYER_MP5, 0, &tracerCount[idx-1], args->fparam1, args->fparam2 );
 }
@@ -2235,7 +2211,7 @@ void EV_FireMag60( event_args_t *args )
 
 	VectorCopy( forward, vecAiming );
 
-	EV_GunSmoke(origin, 0.4, idx, args->ducking, forward, right, up, 0, 0, 0);
+	EV_GunSmoke(gEngfuncs.GetViewModel()->attachment[0], 0.4, idx, args->ducking, forward, right, up, 0, 0, 0);
 
 	EV_HLDM_FireBullets( idx, forward, right, up, 1, vecSrc, vecAiming, 8192, BULLET_PLAYER_9MM, 0, 0, args->fparam1, args->fparam2 );
 }
@@ -2301,7 +2277,7 @@ void EV_FireChaingun( event_args_t *args )
 
 	VectorCopy( forward, vecAiming );
 
-	EV_GunSmoke(origin, 0.6, idx, args->ducking, forward, right, up, 0, 0, 0);
+	EV_GunSmoke(gEngfuncs.GetViewModel()->attachment[0], 0.6, idx, args->ducking, forward, right, up, 0, 0, 0);
 
 	EV_HLDM_FireBullets( idx, forward, right, up, 1, vecSrc, vecAiming, 8192, BULLET_PLAYER_9MM, 2, &tracerCount[idx-1], args->fparam1, args->fparam2 );
 }
@@ -2335,7 +2311,7 @@ void EV_FireGrenadeLauncher( event_args_t *args )
 		V_PunchAxis(PITCH, -10 );
 	}
 
-	EV_GunSmoke(origin, 0.7, idx, args->ducking, forward, right, up, 0, 0, 0);
+	EV_GunSmoke(gEngfuncs.GetViewModel()->attachment[0], 0.7, idx, args->ducking, forward, right, up, 0, 0, 0);
 
 	switch( gEngfuncs.pfnRandomLong( 0, 1 ) )
 	{
@@ -2409,7 +2385,7 @@ void EV_FireSmg( event_args_t *args )
 	EV_GetGunPosition( args, vecSrc, origin );
 	VectorCopy( forward, vecAiming );
 
-	EV_GunSmoke(origin, 0.3, idx, args->ducking, forward, right, up, 0, 0, 0);
+	EV_GunSmoke(gEngfuncs.GetViewModel()->attachment[0], 0.3, idx, args->ducking, forward, right, up, 0, 0, 0);
 
 	if ( gEngfuncs.GetMaxClients() > 1 )
 	{
@@ -2482,7 +2458,7 @@ void EV_FireUsas( event_args_t *args )
 	EV_GetGunPosition( args, vecSrc, origin );
 	VectorCopy( forward, vecAiming );
 
-	EV_GunSmoke(origin, 0.6, idx, args->ducking, forward, right, up, 0, 0, 0);
+	EV_GunSmoke(gEngfuncs.GetViewModel()->attachment[0], 0.6, idx, args->ducking, forward, right, up, 0, 0, 0);
 
 	if ( gEngfuncs.GetMaxClients() > 1 )
 	{
@@ -2725,7 +2701,7 @@ void EV_Fire12GaugeSingle( event_args_t *args )
 	EV_GetGunPosition( args, vecSrc, origin );
 	VectorCopy( forward, vecAiming );
 
-	EV_GunSmoke(origin, 0.5, idx, args->ducking, forward, right, up, 0, 0, 0);
+	EV_GunSmoke(gEngfuncs.GetViewModel()->attachment[0], 0.5, idx, args->ducking, forward, right, up, 0, 0, 0);
 
 	if ( gEngfuncs.GetMaxClients() > 1 )
 	{
@@ -2839,7 +2815,7 @@ void EV_FireDeagle( event_args_t *args )
 
 	VectorCopy( forward, vecAiming );
 
-	EV_GunSmoke(origin, 0.6, idx, args->ducking, forward, right, up, 0, 0, 0);
+	EV_GunSmoke(gEngfuncs.GetViewModel()->attachment[0], 0.6, idx, args->ducking, forward, right, up, 0, 0, 0);
 
 	EV_HLDM_FireBullets( idx, forward, right, up, 1, vecSrc, vecAiming, 8192, BULLET_PLAYER_357, 0, 0, args->fparam1, args->fparam2 );
 }
@@ -2913,7 +2889,10 @@ void EV_FireDualDeagle( event_args_t *args )
 
 	VectorCopy( forward, vecAiming );
 
-	EV_GunSmoke(origin, 0.6, idx, args->ducking, forward, right, up, 0, 0, 0);
+	if (clip % 2 == 0)
+		EV_GunSmoke(gEngfuncs.GetViewModel()->attachment[0], 0.6, idx, args->ducking, forward, right, up, 0, 0, 0);
+	else
+		EV_GunSmoke(gEngfuncs.GetViewModel()->attachment[1], 0.6, idx, args->ducking, forward, right, up, 0, 0, 0);
 
 	EV_HLDM_FireBullets( idx, forward, right, up, 1, vecSrc, vecAiming, 8192, BULLET_PLAYER_357, 0, 0, args->fparam1, args->fparam2 );
 }
@@ -2975,7 +2954,8 @@ void EV_FireDualDeagleBoth( event_args_t *args )
 
 	VectorCopy( forward, vecAiming );
 
-	EV_GunSmoke(origin, 0.6, idx, args->ducking, forward, right, up, 0, 0, 0);
+	EV_GunSmoke(gEngfuncs.GetViewModel()->attachment[0], 0.6, idx, args->ducking, forward, right, up, 0, 0, 0);
+	EV_GunSmoke(gEngfuncs.GetViewModel()->attachment[1], 0.6, idx, args->ducking, forward, right, up, 0, 0, 0);
 
 	EV_HLDM_FireBullets( idx, forward, right, up, 2, vecSrc, vecAiming, 8192, BULLET_PLAYER_357, 0, 0, args->fparam1, args->fparam2 );
 }
@@ -3072,7 +3052,8 @@ void EV_FireDualSmg( event_args_t *args )
 	EV_GetGunPosition( args, vecSrc, origin );
 	VectorCopy( forward, vecAiming );
 
-	EV_GunSmoke(origin, 0.3, idx, args->ducking, forward, right, up, 0, 0, 0);
+	EV_GunSmoke(gEngfuncs.GetViewModel()->attachment[0], 0.3, idx, args->ducking, forward, right, up, 0, 0, 0);
+	EV_GunSmoke(gEngfuncs.GetViewModel()->attachment[1], 0.3, idx, args->ducking, forward, right, up, 0, 0, 0);
 
 	EV_HLDM_FireBullets( idx, forward, right, up, 2, vecSrc, vecAiming, 8192, BULLET_PLAYER_MP5, 2, &tracerCount[idx-1], args->fparam1, args->fparam2 );
 }
@@ -3190,7 +3171,10 @@ void EV_FireDualUsas( event_args_t *args )
 	EV_GetGunPosition( args, vecSrc, origin );
 	VectorCopy( forward, vecAiming );
 
-	EV_GunSmoke(origin, 0.6, idx, args->ducking, forward, right, up, 0, 0, 0);
+	if (clip % 2 == 0)
+		EV_GunSmoke(gEngfuncs.GetViewModel()->attachment[0], 0.6, idx, args->ducking, forward, right, up, 0, 0, 0);
+	else
+		EV_GunSmoke(gEngfuncs.GetViewModel()->attachment[1], 0.6, idx, args->ducking, forward, right, up, 0, 0, 0);
 
 	EV_HLDM_FireBullets( idx, forward, right, up, 4, vecSrc, vecAiming, 2048, BULLET_PLAYER_BUCKSHOT, 0, &tracerCount[idx-1], 0.08716, 0.04362 );
 }
@@ -3246,7 +3230,8 @@ void EV_FireDualUsasBoth( event_args_t *args )
 	EV_GetGunPosition( args, vecSrc, origin );
 	VectorCopy( forward, vecAiming );
 
-	EV_GunSmoke(origin, 0.6, idx, args->ducking, forward, right, up, 0, 0, 0);
+	EV_GunSmoke(gEngfuncs.GetViewModel()->attachment[0], 0.6, idx, args->ducking, forward, right, up, 0, 0, 0);
+	EV_GunSmoke(gEngfuncs.GetViewModel()->attachment[1], 0.6, idx, args->ducking, forward, right, up, 0, 0, 0);
 
 	EV_HLDM_FireBullets( idx, forward, right, up, 8, vecSrc, vecAiming, 2048, BULLET_PLAYER_BUCKSHOT, 0, &tracerCount[idx-1], 0.08716, 0.04362 );
 }
