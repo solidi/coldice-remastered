@@ -3808,6 +3808,12 @@ void CBasePlayer::CalculateToSelacoSlide( void )
 	}
 }
 
+enum SELACO_SLIDE {
+	SLIDE_IDLE = 0,
+	SLIDE_EXTEND,
+	SLIDE_RETRACT
+};
+
 void CBasePlayer::StartSelacoSlide( void )
 {
 	if (!m_fSelacoSliding && m_fSelacoTime < gpGlobals->time) {
@@ -3817,7 +3823,7 @@ void CBasePlayer::StartSelacoSlide( void )
 			}
 			pev->viewmodel = MAKE_STRING("models/v_dual_leg.mdl");
 			if (m_pActiveItem) { 
-				((CBasePlayerWeapon *)m_pActiveItem)->SendWeaponAnim(2, 0, 0);
+				((CBasePlayerWeapon *)m_pActiveItem)->SendWeaponAnim(SLIDE_EXTEND, 0, 0);
 			}
 
 			UTIL_MakeVectors(pev->angles);
@@ -3912,7 +3918,7 @@ void CBasePlayer::TraceHitOfSelacoSlide( void )
 						fHitWorld = FALSE;
 
 						m_fSelacoHit = TRUE;
-						if (m_pActiveItem) ((CBasePlayerWeapon *)m_pActiveItem)->SendWeaponAnim(3, 0, 0);
+						if (m_pActiveItem) ((CBasePlayerWeapon *)m_pActiveItem)->SendWeaponAnim(SLIDE_RETRACT, 0, 0);
 						pev->velocity = pev->velocity / 2;
 						pev->friction = 0.5;
 					}
@@ -3939,7 +3945,7 @@ void CBasePlayer::TraceHitOfSelacoSlide( void )
 
 					EMIT_SOUND_DYN(ENT(pev), CHAN_ITEM, "fists_hit.wav", fvolbar, ATTN_NORM, 0, 98 + RANDOM_LONG(0,3));
 
-					if (m_pActiveItem) ((CBasePlayerWeapon *)m_pActiveItem)->SendWeaponAnim(3, 0, 1);
+					if (m_pActiveItem) ((CBasePlayerWeapon *)m_pActiveItem)->SendWeaponAnim(SLIDE_RETRACT, 0, 0);
 					m_fSelacoHit = TRUE;
 					pev->velocity = pev->velocity / 2;
 					pev->friction = 0.7;
@@ -3961,7 +3967,7 @@ void CBasePlayer::TraceHitOfSelacoSlide( void )
 
 		if (fabs(m_fSelacoLastX - pev->velocity.x) > 200 || fabs(m_fSelacoLastY - pev->velocity.y) > 200) {
 			EMIT_SOUND_DYN(ENT(pev), CHAN_ITEM, "fists_hit.wav", 1.0, ATTN_NORM, 0, 98 + RANDOM_LONG(0,3));
-			if (m_pActiveItem) ((CBasePlayerWeapon *)m_pActiveItem)->SendWeaponAnim(3, 0, 1);
+			if (m_pActiveItem) ((CBasePlayerWeapon *)m_pActiveItem)->SendWeaponAnim(SLIDE_RETRACT, 0, 0);
 			m_fSelacoHit = TRUE;
 			pev->velocity = pev->velocity / 2;
 			pev->friction = 0.7;
