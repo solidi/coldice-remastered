@@ -234,6 +234,21 @@ void CDualSMG::WeaponIdle( void )
 	m_flTimeWeaponIdle = UTIL_SharedRandomFloat( m_pPlayer->random_seed, 10, 15 ); // how long till we do this again.
 }
 
+void CDualSMG::ProvideSingleItem(CBasePlayer *pPlayer, const char *item) {
+	if (item == NULL) {
+		return;
+	}
+
+#ifndef CLIENT_DLL
+	if (!stricmp(item, "weapon_dual_smg")) {
+		if (!pPlayer->HasNamedPlayerItem("weapon_smg")) {
+			ALERT(at_aiconsole, "Give weapon_smg!\n");
+			pPlayer->GiveNamedItem("weapon_smg");
+		}
+	}
+#endif
+}
+
 void CDualSMG::SwapDualWeapon( void ) {
 	m_pPlayer->SelectItem("weapon_smg");
 }

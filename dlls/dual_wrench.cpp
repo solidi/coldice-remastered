@@ -426,6 +426,21 @@ void CDualWrench::WeaponIdle( void )
 	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + flAnimTime;
 }
 
+void CDualWrench::ProvideSingleItem(CBasePlayer *pPlayer, const char *item) {
+	if (item == NULL) {
+		return;
+	}
+
+#ifndef CLIENT_DLL
+	if (!stricmp(item, "weapon_dual_wrench")) {
+		if (!pPlayer->HasNamedPlayerItem("weapon_wrench")) {
+			ALERT(at_aiconsole, "Give weapon_wrench!\n");
+			pPlayer->GiveNamedItem("weapon_wrench");
+		}
+	}
+#endif
+}
+
 void CDualWrench::SwapDualWeapon( void ) {
 	m_pPlayer->SelectItem("weapon_wrench");
 }

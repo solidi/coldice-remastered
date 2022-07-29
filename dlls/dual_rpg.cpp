@@ -372,6 +372,21 @@ void CDualRpg::UpdateSpot( void )
 
 }
 
+void CDualRpg::ProvideSingleItem(CBasePlayer *pPlayer, const char *item) {
+	if (item == NULL) {
+		return;
+	}
+
+#ifndef CLIENT_DLL
+	if (!stricmp(item, "weapon_dual_rpg")) {
+		if (!pPlayer->HasNamedPlayerItem("weapon_rpg")) {
+			ALERT(at_aiconsole, "Give weapon_rpg!\n");
+			pPlayer->GiveNamedItem("weapon_rpg");
+		}
+	}
+#endif
+}
+
 void CDualRpg::SwapDualWeapon( void ) {
 	m_pPlayer->SelectItem("weapon_rpg");
 }
