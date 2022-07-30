@@ -207,7 +207,7 @@ void CHalfLifeMultiplay::RefreshSkillData( void )
 	gSkillData.plrDmgFlyingWrench = 120;
 
 	// Snowball
-	gSkillData.plrDmgSnowball = 1;
+	gSkillData.plrDmgSnowball = 20;
 
 	// Chainsaw
 	gSkillData.plrDmgChainsaw = 150;
