@@ -3854,6 +3854,15 @@ void CBasePlayer::TraceHitOfSelacoSlide( void )
 			m_fSelacoZ -= 2;
 			pev->view_ofs[2] = m_fSelacoZ;
 			pev->punchangle.z = 15;
+
+			if (RANDOM_LONG(0,2) == 1) {
+				UTIL_MakeVectors( pev->v_angle );
+				Vector smoke = pev->origin + (gpGlobals->v_forward * 100) + (gpGlobals->v_up * -30);
+				CSprite *pSprite = CSprite::SpriteCreate( "sprites/gunsmoke.spr", smoke, TRUE );
+				pSprite->AnimateAndDie( 12 );
+				pSprite->SetTransparency( kRenderTransAdd, 255, 255, 255, 80, kRenderFxNoDissipation );
+				pSprite->SetScale( RANDOM_FLOAT(0.7, 1.0) );
+			}
 		}
 
 		TraceResult tr;
