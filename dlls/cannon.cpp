@@ -147,7 +147,7 @@ void CFlak :: Spawn( )
 {
 	Precache( );
 
-	pev->movetype = MOVETYPE_FLY;
+	pev->movetype = MOVETYPE_BOUNCE;
 	pev->solid = SOLID_BBOX;
 
 	SET_MODEL(ENT(pev), "models/cindergibs.mdl");
