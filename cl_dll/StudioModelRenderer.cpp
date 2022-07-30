@@ -1399,7 +1399,9 @@ int CStudioModelRenderer::StudioDrawModel( int flags )
 				dl->die = gHUD.m_flTimeDelta + 0.1f + gHUD.m_flTime;
 			}
 
+#ifdef _WIN32
 			AppendGlowModel();
+#endif
 		}
 	}
 
