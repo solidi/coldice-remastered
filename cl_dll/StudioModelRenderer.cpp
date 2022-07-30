@@ -2277,7 +2277,7 @@ void CStudioModelRenderer::StudioRenderFinal_Hardware( void )
 			IEngineStudio.GL_StudioDrawShadow();
 
 #ifdef _WIN32
-			if (iShadows == 1)
+			if (iShadows == 1 && !g_fXashEngine)
 			{
 				GL_StudioDrawShadow = (void(*)(void))(((unsigned int)IEngineStudio.GL_StudioDrawShadow) + 35);
 

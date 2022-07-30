@@ -158,8 +158,10 @@ int CL_DLLEXPORT Initialize( cl_enginefunc_t *pEnginefuncs, int iVersion )
 	EV_HookEvents();
 	CL_LoadParticleMan();
 
-	if (gEngfuncs.pfnGetCvarPointer("host_clientloaded") != NULL)
+	if (gEngfuncs.pfnGetCvarPointer("host_clientloaded") != NULL) {
 		g_fXashEngine = TRUE;
+		ConsolePrint("Xash3d engine detected. Not all features of the mod are available.");
+	}
 
 	// get tracker interface, if any
 	return 1;
