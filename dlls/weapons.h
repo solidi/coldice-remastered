@@ -593,6 +593,8 @@ public:
 	void AddSilencer( void );
 	BOOL ChangeModel( void );
 
+	int m_iSilencer;
+
 	virtual BOOL UseDecrement( void )
 	{ 
 #if defined( CLIENT_WEAPONS )
@@ -606,7 +608,6 @@ public:
 
 private:
 	int m_iShell;
-	int m_iSilencer;
 
 	unsigned short m_usFireGlock1;
 	unsigned short m_usFireGlock2;

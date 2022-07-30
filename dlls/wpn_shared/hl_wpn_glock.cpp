@@ -103,6 +103,7 @@ BOOL CGlock::DeployLowKey( )
 
 BOOL CGlock::Deploy( )
 {
+	m_iSilencer = 0;
 	return ChangeModel();
 }
 
