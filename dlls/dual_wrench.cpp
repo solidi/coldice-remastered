@@ -322,11 +322,11 @@ int CDualWrench::Swing( int fFirst )
 				switch( RANDOM_LONG(0,2) )
 				{
 				case 0:
-					EMIT_SOUND(ENT(m_pPlayer->pev), CHAN_ITEM, "wrench_hitbod1.wav", 1, ATTN_NORM); break;
+					EMIT_SOUND(ENT(m_pPlayer->pev), CHAN_VOICE, "wrench_hitbod1.wav", 1, ATTN_NORM); break;
 				case 1:
-					EMIT_SOUND(ENT(m_pPlayer->pev), CHAN_ITEM, "wrench_hitbod2.wav", 1, ATTN_NORM); break;
+					EMIT_SOUND(ENT(m_pPlayer->pev), CHAN_VOICE, "wrench_hitbod2.wav", 1, ATTN_NORM); break;
 				case 2:
-					EMIT_SOUND(ENT(m_pPlayer->pev), CHAN_ITEM, "wrench_hitbod3.wav", 1, ATTN_NORM); break;
+					EMIT_SOUND(ENT(m_pPlayer->pev), CHAN_VOICE, "wrench_hitbod3.wav", 1, ATTN_NORM); break;
 				}
 				m_pPlayer->m_iWeaponVolume = WRENCH_BODYHIT_VOLUME;
 				if ( !pEntity->IsAlive() )
