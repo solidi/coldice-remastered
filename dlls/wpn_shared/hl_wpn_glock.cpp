@@ -97,7 +97,7 @@ BOOL CGlock::DeployLowKey( )
 	if (m_iSilencer == 0) {
 		return DefaultDeploy( "models/v_9mmhandgun.mdl", "models/p_9mmhandgun.mdl", GLOCK_DRAW_LOWKEY, "onehanded", 0 );
 	} else {
-		return DefaultDeploy( "models/v_9mmhandguns.mdl", "models/p_9mmhandguns.mdl", GLOCK_DRAW_LOWKEY, "onehanded", 1 );
+		return DefaultDeploy( "models/v_9mmhandguns.mdl", "models/p_9mmhandguns.mdl", GLOCK_DRAW_LOWKEY, "onehanded", 0 );
 	}
 }
 
@@ -140,7 +140,7 @@ BOOL CGlock::ChangeModel( void )
 	if (m_iSilencer == 0) {
 		return DefaultDeploy( "models/v_9mmhandgun.mdl", "models/p_9mmhandgun.mdl", GLOCK_DRAW, "onehanded", 0 );
 	} else {
-		return DefaultDeploy( "models/v_9mmhandguns.mdl", "models/p_9mmhandguns.mdl", GLOCK_DRAW, "onehanded", 1 );
+		return DefaultDeploy( "models/v_9mmhandguns.mdl", "models/p_9mmhandguns.mdl", GLOCK_DRAW, "onehanded", 0 );
 	}
 }
 
