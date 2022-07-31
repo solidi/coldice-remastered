@@ -749,6 +749,10 @@ CBaseEntity* CBasePlayerItem::Respawn( void )
 				pNewWeapon = CBaseEntity::Create((char *)STRING(ALLOC_STRING(name)), g_pGameRules->VecWeaponRespawnSpot(this), pev->angles, pev->owner);
 			}
 		}
+	} else if (snowballfight.value) {
+		if (strncmp(STRING(pev->classname), "weapon_snowball", 15) != 0) {
+			pNewWeapon = CBaseEntity::Create("weapon_snowball", g_pGameRules->VecWeaponRespawnSpot(this), pev->angles, pev->owner);
+		}
 	} else {
 		for (int group = 0; (group < ARRAYSIZE(weaponsList) - 1) && pNewWeapon == NULL; group++) {
 			int totalWeapons = ARRAYSIZE(weaponsList[group]);

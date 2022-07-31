@@ -3588,6 +3588,12 @@ void CBasePlayer::GiveNamedItem( const char *pszName )
 		}
 	}
 
+	if (snowballfight.value) {
+		if (strncmp(pszName, "weapon_snowball", 15) != 0) {
+			return;
+		}
+	}
+
 	pent = CREATE_NAMED_ENTITY(istr);
 	if ( FNullEnt( pent ) )
 	{
