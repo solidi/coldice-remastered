@@ -1400,7 +1400,9 @@ int CStudioModelRenderer::StudioDrawModel( int flags )
 			}
 
 #ifdef _WIN32
-			AppendGlowModel();
+			extern qboolean g_fXashEngine;
+			if (!g_fXashEngine)
+				AppendGlowModel();
 #endif
 		}
 	}
