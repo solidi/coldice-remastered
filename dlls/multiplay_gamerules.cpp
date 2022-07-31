@@ -207,7 +207,10 @@ void CHalfLifeMultiplay::RefreshSkillData( void )
 	gSkillData.plrDmgFlyingWrench = 120;
 
 	// Snowball
-	gSkillData.plrDmgSnowball = 20;
+	if (snowballfight.value)
+		gSkillData.plrDmgSnowball = 150;
+	else
+		gSkillData.plrDmgSnowball = 20;
 
 	// Chainsaw
 	gSkillData.plrDmgChainsaw = 150;
@@ -709,7 +712,12 @@ void CHalfLifeMultiplay :: PlayerSpawn( CBasePlayer *pPlayer )
 		{
 			meleeWeapon = "weapon_fists";
 			pPlayer->GiveNamedItem(STRING(ALLOC_STRING(meleeWeapon)));
-		} else {
+		}
+		else if (snowballfight.value)
+		{
+			pPlayer->GiveNamedItem("weapon_snowball");
+		}
+		else {
 			int whichWeapon = RANDOM_LONG(0,3);
 			if (!whichWeapon) {
 				meleeWeapon = "weapon_crowbar";
@@ -1231,6 +1239,17 @@ BOOL CHalfLifeMultiplay::IsAllowedToSpawn( CBaseEntity *pEntity )
 		if (strncmp(STRING(pEntity->pev->classname), "weapon_dual_", 12) != 0)
 		{
 			CBaseEntity::Create((char *)dualWeaponList[RANDOM_LONG(0,ARRAYSIZE(dualWeaponList)-1)], pEntity->pev->origin, pEntity->pev->angles, pEntity->pev->owner);
+			return FALSE;
+		}
+	}
+
+	if (snowballfight.value && 
+		(strncmp(STRING(pEntity->pev->classname), "weapon_", 7) == 0 ||
+		strncmp(STRING(pEntity->pev->classname), "ammo_", 5) == 0))
+	{
+		if (strncmp(STRING(pEntity->pev->classname), "weapon_snowball", 15) != 0)
+		{
+			CBaseEntity::Create("weapon_snowball", pEntity->pev->origin, pEntity->pev->angles, pEntity->pev->owner);
 			return FALSE;
 		}
 	}

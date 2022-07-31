@@ -181,7 +181,7 @@ void CSnowball::Throw() {
 
 		// Give the wrench its velocity, angle, and spin.
 		// Lower the gravity a bit, so it flys.
-		pSnowball->pev->velocity = vecDir * RANDOM_LONG(500,1000) + m_pPlayer->pev->velocity;
+		pSnowball->pev->velocity = vecDir * RANDOM_LONG(500,1000); // + m_pPlayer->pev->velocity;
 		pSnowball->pev->angles = vecAng;
 		pSnowball->pev->avelocity.x = -1000;
 		pSnowball->pev->gravity = .25;
@@ -207,14 +207,15 @@ void CSnowball::SecondaryAttack()
 	}
 
 	if (m_pPlayer->m_rgAmmo[ m_iPrimaryAmmoType ] > 0 ) {
+		// Reset primary attack if player tapped primary, then secondary
+		m_flReleaseThrow = 0;
+		m_flStartThrow = 0;
+
 		SendWeaponAnim( SNOWBALL_PINPULL );
 		SetThink( &CSnowball::Throw );
 
-		m_flNextPrimaryAttack = GetNextAttackDelay(0.75);
-		// Just for kicks, set this.
-		// But we destroy this weapon anyway so... thppt.
-		m_flNextSecondaryAttack = GetNextAttackDelay(0.75);
-		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 0.5;
+		m_flNextPrimaryAttack = m_flNextSecondaryAttack = GetNextAttackDelay(1.0);
+		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 1.0;
 		pev->nextthink = gpGlobals->time + 0.5;
 	} else {
 		RetireWeapon();
