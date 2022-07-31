@@ -100,18 +100,18 @@ public:
 #define WEAPON_CHAINSAW			28
 #define WEAPON_12GAUGE			29
 #define WEAPON_NUKE				30
-#define	WEAPON_SNARK			31
-#define	WEAPON_DEAGLE			32
-#define WEAPON_DUAL_DEAGLE		33
-#define WEAPON_DUAL_RPG			34
-#define WEAPON_DUAL_SMG			35
-#define WEAPON_DUAL_WRENCH		36
-#define WEAPON_DUAL_USAS		37
-#define WEAPON_FREEZEGUN		38
+#define	WEAPON_SNARK			32
+#define	WEAPON_DEAGLE			33
+#define WEAPON_DUAL_DEAGLE		34
+#define WEAPON_DUAL_RPG			35
+#define WEAPON_DUAL_SMG			36
+#define WEAPON_DUAL_WRENCH		37
+#define WEAPON_DUAL_USAS		38
+#define WEAPON_FREEZEGUN		39
 
 #define WEAPON_ALLWEAPONS		(~(1<<WEAPON_SUIT))
 
-#define WEAPON_SUIT				256	// ?????
+#define WEAPON_SUIT				31	// ?????
 
 #define MAX_WEAPONS			64
 
