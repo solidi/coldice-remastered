@@ -127,12 +127,12 @@ int CMag60::GetItemInfo(ItemInfo *p)
 
 BOOL CMag60::DeployLowKey( )
 {
-	return DefaultDeploy("models/v_mag60.mdl", "models/p_mag60.mdl", MAG60_DRAW_LOWKEY, "onehanded", m_iRotated);
+	return DefaultDeploy("models/v_mag60.mdl", "models/p_mag60.mdl", MAG60_DRAW_LOWKEY, "onehanded", 0);
 }
 
 BOOL CMag60::Deploy( )
 {
-	BOOL result = DefaultDeploy("models/v_mag60.mdl", "models/p_mag60.mdl", MAG60_DRAW, "onehanded", m_iRotated);
+	BOOL result = DefaultDeploy("models/v_mag60.mdl", "models/p_mag60.mdl", MAG60_DRAW, "onehanded", 0);
 
 #ifndef CLIENT_DLL
 	if (result && allowvoiceovers.value) {
@@ -145,6 +145,7 @@ BOOL CMag60::Deploy( )
 
 void CMag60::Holster( int skiplocal )
 {
+	m_iRotated = 0;
 	pev->nextthink = -1;
 	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 0.5;
 	SendWeaponAnim( MAG60_HOLSTER );
@@ -192,7 +193,7 @@ void CMag60::PrimaryAttack( void )
 	Fire( m_iRotated ? 0.03 : 0.01, m_iRotated ? 0.125 : 0.20, TRUE, m_iRotated );
 }
 
-void CMag60::Fire( float flSpread , float flCycleTime, BOOL fUseAutoAim, int silencer )
+void CMag60::Fire( float flSpread , float flCycleTime, BOOL fUseAutoAim, int rotated )
 {
 	if (m_iClip <= 0)
 	{
@@ -246,7 +247,7 @@ void CMag60::Fire( float flSpread , float flCycleTime, BOOL fUseAutoAim, int sil
 	Vector vecDir;
 	vecDir = m_pPlayer->FireBulletsPlayer( 1, vecSrc, vecAiming, Vector( flSpread, flSpread, flSpread ), 8192, BULLET_PLAYER_9MM, 0, 0, m_pPlayer->pev, m_pPlayer->random_seed );
 
-	PLAYBACK_EVENT_FULL( flags, m_pPlayer->edict(), m_useFireMag60, 0.0, (float *)&g_vecZero, (float *)&g_vecZero, vecDir.x, vecDir.y, 0, 0, ( m_iClip == 0 ) ? 1 : 0, silencer );
+	PLAYBACK_EVENT_FULL( flags, m_pPlayer->edict(), m_useFireMag60, 0.0, (float *)&g_vecZero, (float *)&g_vecZero, vecDir.x, vecDir.y, 0, 0, ( m_iClip == 0 ) ? 1 : 0, rotated );
 
 	m_flNextPrimaryAttack = m_flNextSecondaryAttack = GetNextAttackDelay(flCycleTime);
 

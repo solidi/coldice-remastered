@@ -1392,12 +1392,14 @@ public:
 
 	void PrimaryAttack( void );
 	void SecondaryAttack( void );
-	void Fire( float flSpread, float flCycleTime, BOOL fUseAutoAim, int silencer );
+	void Fire( float flSpread, float flCycleTime, BOOL fUseAutoAim, int rotated );
 	BOOL DeployLowKey( void );
 	BOOL Deploy( void );
 	void Holster( int skiplocal );
 	void Reload( void );
 	void WeaponIdle( void );
+
+	int m_iRotated;
 
 	virtual BOOL UseDecrement( void )
 	{
@@ -1413,7 +1415,6 @@ public:
 
 private:
 	int m_iShell;
-	int m_iRotated;
 
 	unsigned short m_useFireMag60;
 };
