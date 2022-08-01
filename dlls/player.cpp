@@ -3779,9 +3779,7 @@ void CBasePlayer::ImpulseCommands( )
 		}
 		break;
 	case 208:
-		// Bots only
-		if (FBitSet(pev->flags, FL_FAKECLIENT))
-			StartSelacoSlide();
+		StartSelacoSlide();
 		break;
 
 	default:
