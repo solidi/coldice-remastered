@@ -144,7 +144,7 @@ void CChaingun::PrimaryAttack()
 	{
 		SendWeaponAnim( CHAINGUN_SPINUP );
 		EMIT_SOUND_DYN(ENT(m_pPlayer->pev), CHAN_WEAPON, "chaingun_spinup.wav", RANDOM_FLOAT(0.92, 1.0), ATTN_NORM, 0, 98 + RANDOM_LONG(0,3));	
-		m_flNextPrimaryAttack = UTIL_WeaponTimeBase() + 1.5;
+		m_flNextPrimaryAttack = UTIL_WeaponTimeBase() + 0.75;
 		m_iWeaponMode = CHAINGUN_FIRE;
 		return;
 	}
@@ -158,7 +158,7 @@ void CChaingun::PrimaryAttack()
 		m_fFireMagnitude++;
 
 	if (m_iWeaponMode == CHAINGUN_FIRE && m_iClip > 0) {
-		Fire (0.04, 1/(float) m_fFireMagnitude, TRUE);
+		Fire (VECTOR_CONE_3DEGREES.x, 1/(float) m_fFireMagnitude, TRUE);
 	}
 }
 
@@ -195,7 +195,7 @@ void CChaingun::Fire( float flSpread, float flCycleTime, BOOL fUseAutoAim )
 	}
 
 	Vector vecDir;
-	vecDir = m_pPlayer->FireBulletsPlayer( 1, vecSrc, vecAiming, Vector( flSpread, flSpread, flSpread ), 8192, BULLET_PLAYER_9MM, 2, 0, m_pPlayer->pev, m_pPlayer->random_seed );
+	vecDir = m_pPlayer->FireBulletsPlayer( 1, vecSrc, vecAiming, Vector( flSpread, flSpread, flSpread ), 8192, BULLET_PLAYER_357, 2, 0, m_pPlayer->pev, m_pPlayer->random_seed );
 
 	PLAYBACK_EVENT_FULL( flags, m_pPlayer->edict(), m_useFireChaingun, 0.0, (float *)&g_vecZero, (float *)&g_vecZero, vecDir.x, vecDir.y, 0, 0, ( m_iClip == 0 ) ? 1 : 0, m_pPlayer->pev->weaponanim != CHAINGUN_FIRE );
 
