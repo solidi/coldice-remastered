@@ -1831,7 +1831,7 @@ void V_GlassHud( float bounce, float clientTime, float frameTime ) {
 void V_WeaponSway( float currentYaw, float frameTime, float clientTime, cl_entity_t *viewModel )
 {
 	static float time = 0;
-	static float decay = 0, accel = 0;
+	static float decay = 0, accel = 0.4;
 	static float lastYaw = 0;
 	static bool clockwise = false;
 	float delta = fabs((lastYaw - currentYaw) * .20);
@@ -1842,10 +1842,14 @@ void V_WeaponSway( float currentYaw, float frameTime, float clientTime, cl_entit
 	}
 
 	if (lastYaw < currentYaw) {
-		clockwise = true;
-	} else if (lastYaw > currentYaw) {
 		clockwise = false;
+	} else if (lastYaw > currentYaw) {
+		clockwise = true;
 	}
+
+	// char sz[80];
+	// sprintf(sz, "[lastYaw=%.2f, currentYaw=%.2f, decay=%.2f, clockwise=%d]\n", lastYaw, currentYaw, decay, clockwise);
+	// ConsolePrint(sz);
 
 	// avoid skip
 	if (delta > 9) {
@@ -1857,27 +1861,25 @@ void V_WeaponSway( float currentYaw, float frameTime, float clientTime, cl_entit
 
 		if (delta) {
 			// attack
-			accel += frameTime * 1.10;
-			if (accel > 1) accel = 1;
 			if (clockwise) {
-				decay -= 1.0 * accel;
+				decay += 0.25 * accel;
 			} else {
-				decay += 1.0 * accel;
+				decay -= 0.25 * accel;
 			}
 		} else {
 			// fade
-			if (clockwise) {
+			if (decay < 0) {
 				decay += 0.25;
-				if (decay > 0.2) { decay = 0; }
+				if (decay > 0.01) { decay = 0; }
 			} else {
 				decay -= 0.25;
-				if (decay < 0.2) { decay = 0; }
+				if (decay < 0.01) { decay = 0; }
 			}
 		}
 	}
 
 	// max distance
-	decay = min(max(decay, -4), 4);
+	decay = min(max(decay, -5), 5);
 
 	if (cl_glasshud->value)
 		g_xP -= decay / 3;
