@@ -707,14 +707,14 @@ void CHalfLifeMultiplay :: PlayerSpawn( CBasePlayer *pPlayer )
 	if ( addDefault )
 	{
 		// Give a random melee on every spawn
-		char *meleeWeapon = "";
+		char *meleeWeapon = "weapon_fists";
 		if (dualsonly.value)
 		{
-			pPlayer->GiveNamedItem("weapon_fists");
+			pPlayer->GiveNamedItem(STRING(ALLOC_STRING(meleeWeapon)));
 		}
 		else if (snowballfight.value)
 		{
-			pPlayer->GiveNamedItem("weapon_fists");
+			pPlayer->GiveNamedItem(STRING(ALLOC_STRING(meleeWeapon)));
 			pPlayer->GiveNamedItem("weapon_snowball");
 		}
 		else
