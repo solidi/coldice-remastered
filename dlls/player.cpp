@@ -3818,27 +3818,6 @@ enum SELACO_SLIDE {
 	SLIDE_RETRACT
 };
 
-void CBasePlayer::CalculateToKick( void )
-{
-	if (m_fKickTime < gpGlobals->time && (m_afButtonPressed & IN_BACK))
-	{
-		m_fKickTime = gpGlobals->time + 0.65;
-		m_fKickCount = 1;
-	}
-
-	if (m_fKickCount < 4 && m_fKickTime > gpGlobals->time && (m_afButtonReleased & IN_BACK)) {
-		m_fKickCount++;
-	}
-
-	if (m_fKickCount == 4 && m_fKickTime > gpGlobals->time && fabs(pev->v_angle.x) < 22 && (m_afButtonPressed & IN_BACK)) {
-		m_fKickCount = 0;
-		if (m_pActiveItem) {
-			((CBasePlayerWeapon *)m_pActiveItem)->StartKick(m_iHoldingItem);
-			ReleaseHeldItem(RANDOM_LONG(300,500));
-		}
-	}
-}
-
 void CBasePlayer::StartSelacoSlide( void )
 {
 	if (!m_fSelacoSliding && m_fSelacoTime < gpGlobals->time) {
