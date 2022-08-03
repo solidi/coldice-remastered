@@ -3995,6 +3995,7 @@ void CBasePlayer::TraceHitOfSelacoSlide( void )
 void CBasePlayer::EndSelacoSlide( void )
 {
 	if (m_fSelacoSliding && m_fSelacoTime < gpGlobals->time) {
+		pev->viewmodel = iStringNull; // in case previous weapon is retired
 		if (m_pActiveItem) m_pActiveItem->DeployLowKey();
 		pev->fov = m_iFOV = 0;
 		m_fSelacoSliding = m_fSelacoHit = FALSE;
