@@ -710,14 +710,15 @@ void CHalfLifeMultiplay :: PlayerSpawn( CBasePlayer *pPlayer )
 		char *meleeWeapon = "";
 		if (dualsonly.value)
 		{
-			meleeWeapon = "weapon_fists";
-			pPlayer->GiveNamedItem(STRING(ALLOC_STRING(meleeWeapon)));
+			pPlayer->GiveNamedItem("weapon_fists");
 		}
 		else if (snowballfight.value)
 		{
+			pPlayer->GiveNamedItem("weapon_fists");
 			pPlayer->GiveNamedItem("weapon_snowball");
 		}
-		else {
+		else
+		{
 			int whichWeapon = RANDOM_LONG(0,3);
 			if (!whichWeapon) {
 				meleeWeapon = "weapon_crowbar";
@@ -1247,6 +1248,10 @@ BOOL CHalfLifeMultiplay::IsAllowedToSpawn( CBaseEntity *pEntity )
 		(strncmp(STRING(pEntity->pev->classname), "weapon_", 7) == 0 ||
 		strncmp(STRING(pEntity->pev->classname), "ammo_", 5) == 0))
 	{
+		if (!stricmp(STRING(pEntity->pev->classname), "weapon_fists")) {
+			return TRUE;
+		}
+
 		if (strncmp(STRING(pEntity->pev->classname), "weapon_snowball", 15) != 0)
 		{
 			CBaseEntity::Create("weapon_snowball", pEntity->pev->origin, pEntity->pev->angles, pEntity->pev->owner);
