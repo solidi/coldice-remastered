@@ -717,6 +717,13 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_snowballfight 0\" - Replace all weapons with deadly snowballs!\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "For more, see readme.txt\n" );
 	}
+#ifdef _DEBUG
+	else if (FStrEq( pcmd, "edicts" )  )
+	{
+		ALERT(at_console, "[NUMBER_OF_ENTITIES()=%d , gpGlobals->maxEntities=%d]\n", NUMBER_OF_ENTITIES(), gpGlobals->maxEntities);
+		ALERT(at_console, "[gpGlobals->maxClients=%d]\n", gpGlobals->maxClients);
+	}
+#endif
 	else if ( g_pGameRules->ClientCommand( GetClassPtr((CBasePlayer *)pev), pcmd ) )
 	{
 		// MenuSelect returns true only if the command is properly handled,  so don't print a warning
