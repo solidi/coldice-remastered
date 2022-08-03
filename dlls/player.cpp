@@ -3799,12 +3799,12 @@ void CBasePlayer::CalculateToSelacoSlide( void )
 		m_fSelacoCount = 1;
 	}
 
-	if (m_fSelacoCount < 4 && m_fSelacoButtonTime > gpGlobals->time && (m_afButtonReleased & IN_FORWARD)) {
+	if (m_fSelacoCount < 3 && m_fSelacoButtonTime > gpGlobals->time && (m_afButtonReleased & IN_FORWARD)) {
 		m_fSelacoCount++;
 		//ALERT(at_aiconsole, "[%d->m_fSelacoButtonTime=%.2f, pev->v_angle.x=%.2f]\n", m_fSelacoCount, m_fSelacoButtonTime - gpGlobals->time, pev->v_angle.x);
 	}
 
-	if (m_fSelacoCount == 4 && m_fSelacoButtonTime > gpGlobals->time && fabs(pev->v_angle.x) < 22 && (m_afButtonPressed & IN_FORWARD)) {
+	if (m_fSelacoCount == 3 && m_fSelacoButtonTime > gpGlobals->time && fabs(pev->v_angle.x) < 22 && (m_afButtonPressed & IN_FORWARD)) {
 		//ALERT(at_aiconsole, "[4->m_fSelacoButtonTime=%.2f, pev->v_angle.x=%.2f]\n", m_fSelacoButtonTime - gpGlobals->time, pev->v_angle.x);
 		m_fSelacoCount = 0;
 		StartSelacoSlide();
