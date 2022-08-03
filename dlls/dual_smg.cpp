@@ -214,7 +214,7 @@ void CDualSMG::Reload( void )
 	if ( m_pPlayer->ammo_9mm <= 0 )
 		return;
 
-	DefaultReload( SMG_MAX_CLIP * 2, DUAL_SMG_RELOAD, 1.5 );
+	DefaultReload( SMG_MAX_CLIP * 2, DUAL_SMG_RELOAD, 2.8 );
 }
 
 void CDualSMG::WeaponIdle( void )

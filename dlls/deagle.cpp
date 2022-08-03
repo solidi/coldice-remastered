@@ -178,9 +178,9 @@ void CDeagle::Reload( void )
 		return;
 
 	if (m_iClip == 0)
-		DefaultReload( DEAGLE_MAX_CLIP, DEAGLE_RELOAD_EMPTY, 2.0, 0 );
+		DefaultReload( DEAGLE_MAX_CLIP, DEAGLE_RELOAD_EMPTY, 1.7, 0 );
 	else
-		DefaultReload( DEAGLE_MAX_CLIP, DEAGLE_RELOAD, 2.0, 0 );
+		DefaultReload( DEAGLE_MAX_CLIP, DEAGLE_RELOAD, 1.7, 0 );
 }
 
 void CDeagle::WeaponIdle( void )

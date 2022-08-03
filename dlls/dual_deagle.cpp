@@ -235,10 +235,7 @@ void CDualDeagle::Reload( void )
 	if ( m_pPlayer->ammo_357 <= 0 )
 		return;
 
-	if (m_iClip == 0)
-		DefaultReload( DEAGLE_MAX_CLIP * 2, DEAGLEDUAL_RELOAD, 2.0, 0 );
-	else
-		DefaultReload( DEAGLE_MAX_CLIP * 2, DEAGLEDUAL_RELOAD, 2.0, 0 );
+	DefaultReload( DEAGLE_MAX_CLIP * 2, DEAGLEDUAL_RELOAD, 2.5, 0 );
 }
 
 void CDualDeagle::WeaponIdle( void )
