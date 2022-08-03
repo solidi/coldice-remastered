@@ -307,15 +307,20 @@ void CSMG::WeaponIdle( void )
 }
 
 void CSMG::ProvideDualItem(CBasePlayer *pPlayer, const char *item) {
-	if (item == NULL) {
+	if (pPlayer == NULL || item == NULL) {
 		return;
 	}
 
 #ifndef CLIENT_DLL
+	CBasePlayerWeapon::ProvideDualItem(pPlayer, item);
+
 	if (!stricmp(item, "weapon_smg")) {
 		if (!pPlayer->HasNamedPlayerItem("weapon_dual_smg")) {
-			pPlayer->GiveNamedItem("weapon_dual_smg");
+#ifdef _DEBUG
 			ALERT(at_aiconsole, "Give weapon_dual_smg!\n");
+#endif
+			pPlayer->GiveNamedItem("weapon_dual_smg");
+			pPlayer->SelectItem("weapon_dual_smg");
 		}
 	}
 #endif
