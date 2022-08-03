@@ -858,6 +858,14 @@ void CBasePlayerWeapon::ItemPostFrame( void )
 		return;
 	}
 
+	if (infiniteammo.value) {
+		if (infiniteammo.value == 1)
+			m_iClip = iMaxClip();
+
+		m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] = iMaxAmmo1();
+		m_pPlayer->m_rgAmmo[m_iSecondaryAmmoType] = iMaxAmmo2();
+	}
+
 	if ((m_fInReload) && ( m_pPlayer->m_flNextAttack <= UTIL_WeaponTimeBase() ) )
 	{
 		// complete the reload. 
@@ -957,14 +965,6 @@ void CBasePlayerWeapon::ItemPostFrame( void )
 		return;
 	}
 
-	if (infiniteammo.value) {
-		if (infiniteammo.value == 1)
-			m_iClip = iMaxClip();
-
-		m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] = iMaxAmmo1();
-		m_pPlayer->m_rgAmmo[m_iSecondaryAmmoType] = iMaxAmmo2();
-	}
-	
 	// catch all
 	if ( ShouldWeaponIdle() )
 	{
