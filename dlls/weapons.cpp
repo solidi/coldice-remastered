@@ -476,6 +476,8 @@ void W_Precache(void)
 
 	g_sModelIndexSnowballHit = PRECACHE_MODEL ("sprites/snowballhit.spr");
 	g_sModelIndexGunsmoke = PRECACHE_MODEL ("sprites/gunsmoke.spr");
+	PRECACHE_MODEL ("sprites/sparks.spr");
+	PRECACHE_MODEL ("sprites/ice_sparks.spr");
 	PRECACHE_MODEL ("sprites/smokeball2.spr");
 	PRECACHE_MODEL ("sprites/ice_muzzleflash1.spr");
 	PRECACHE_MODEL ("sprites/ice_muzzleflash2.spr");
