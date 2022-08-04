@@ -283,6 +283,7 @@ void CDualDeagle::ProvideSingleItem(CBasePlayer *pPlayer, const char *item) {
 		if (!pPlayer->HasNamedPlayerItem("weapon_deagle")) {
 			ALERT(at_aiconsole, "Give weapon_deagle!\n");
 			pPlayer->GiveNamedItem("weapon_deagle");
+			pPlayer->SelectItem("weapon_dual_deagle");
 		}
 	}
 #endif

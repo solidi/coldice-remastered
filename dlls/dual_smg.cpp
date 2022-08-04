@@ -244,6 +244,7 @@ void CDualSMG::ProvideSingleItem(CBasePlayer *pPlayer, const char *item) {
 		if (!pPlayer->HasNamedPlayerItem("weapon_smg")) {
 			ALERT(at_aiconsole, "Give weapon_smg!\n");
 			pPlayer->GiveNamedItem("weapon_smg");
+			pPlayer->SelectItem("weapon_dual_smg");
 		}
 	}
 #endif
