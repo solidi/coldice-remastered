@@ -499,7 +499,7 @@ void EV_HLDM_FireBullets( int idx, float *forward, float *right, float *up, int 
 					if (t) {
 						t->entity.curstate.rendermode = kRenderTransAdd;
 						t->entity.curstate.renderamt = gEngfuncs.pfnRandomLong(220, 240);
-						t->entity.curstate.scale = gEngfuncs.pfnRandomFloat(0.05, 0.1);
+						t->entity.curstate.scale = gEngfuncs.pfnRandomFloat(0.06, 0.08);
 					}
 				}
 			}
