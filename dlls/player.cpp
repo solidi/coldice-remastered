@@ -3830,7 +3830,7 @@ void CBasePlayer::StartSelacoSlide( void )
 				m_pActiveItem->Holster(); 
 			}
 			pev->viewmodel = MAKE_STRING("models/v_dual_leg.mdl");
-			if (m_pActiveItem) { 
+			if (m_pActiveItem && m_pActiveItem->m_pPlayer) {
 				((CBasePlayerWeapon *)m_pActiveItem)->SendWeaponAnim(SLIDE_EXTEND, 0, 0);
 			}
 
