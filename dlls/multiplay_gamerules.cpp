@@ -174,55 +174,9 @@ void CHalfLifeMultiplay::RefreshSkillData( void )
 	// hornet
 	gSkillData.plrDmgHornet = 10;
 
-	// Vest
-	gSkillData.plrDmgVest = 200;
-
-	// Cluster Grenades
-	gSkillData.plrDmgClusterGrenade = 100;
-
-	// Knife
-	gSkillData.plrDmgKnife = 35;
-
-	// Flying Knife
-	gSkillData.plrDmgFlyingKnife = 100;
-
-	// Flying Crowbar
-	gSkillData.plrDmgFlyingCrowbar = 80;
-
-	// Railgun
-	gSkillData.plrDmgRailgun = 100;
-
-	// Flak
-	gSkillData.plrDmgFlak = 50;
-	gSkillData.plrDmgFlakBomb = 120;
-
-	// Fists
-	gSkillData.plrDmgFists = 20;
-	gSkillData.plrDmgShoryuken = 100;
-
-	// Wrench
-	gSkillData.plrDmgWrench = 40;
-
-	// Flying Wrench
-	gSkillData.plrDmgFlyingWrench = 120;
-
 	// Snowball
 	if (snowballfight.value)
 		gSkillData.plrDmgSnowball = 150;
-	else
-		gSkillData.plrDmgSnowball = 20;
-
-	// Chainsaw
-	gSkillData.plrDmgChainsaw = 150;
-
-	// Nuke
-	gSkillData.plrDmgNuke = 250;
-
-	// Kick
-	gSkillData.plrDmgKick = 20;
-
-	// Plasma
-	gSkillData.plrDmgPlasma = 25;
 }
 
 // longest the intermission can last, in seconds
