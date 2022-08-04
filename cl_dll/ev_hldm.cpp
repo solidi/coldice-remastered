@@ -490,6 +490,18 @@ void EV_HLDM_FireBullets( int idx, float *forward, float *right, float *up, int 
 						t->entity.curstate.scale = gEngfuncs.pfnRandomFloat(0.2, 0.3);
 					}
 				}
+
+				if ( gEngfuncs.pfnRandomLong(0, 3) > 2 ) {
+					int model = gEngfuncs.pEventAPI->EV_FindModelIndex( "sprites/sparks.spr" );
+					if (m_pIceModels && m_pIceModels->value)
+						model = gEngfuncs.pEventAPI->EV_FindModelIndex( "sprites/ice_sparks.spr" );
+					TEMPENTITY *t = gEngfuncs.pEfxAPI->R_DefaultSprite(tr.endpos - Vector(forward[0], forward[1], forward[2]) * 40, model, gEngfuncs.pfnRandomLong(12, 18));
+					if (t) {
+						t->entity.curstate.rendermode = kRenderTransAdd;
+						t->entity.curstate.renderamt = gEngfuncs.pfnRandomLong(220, 240);
+						t->entity.curstate.scale = gEngfuncs.pfnRandomFloat(0.05, 0.1);
+					}
+				}
 			}
 		}
 
