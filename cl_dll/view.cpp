@@ -1908,11 +1908,10 @@ void V_WeaponFloat( float currentZ, float clientTime, float frameTime, cl_entity
 	if (clientTime >= time + frameTime) {
 		time = clientTime;
 		if (currentZ != 0) {
-			kZ += 0.75;
-			kPitch -= 1.25;
+			kZ += 0.10;
+			kPitch -= 0.10;
 
 			if (kZ > 2.5) kZ = 2.5;
-			//if (kPitch < 0) kPitch = 0;
 		} else {
 			kZ -= 1.75;
 			kPitch += 1.75;
@@ -1929,8 +1928,8 @@ void V_WeaponFloat( float currentZ, float clientTime, float frameTime, cl_entity
 */
 
 	// Water fix
-	if ( kPitch <= -20.0) {
-		kPitch = -20.0;
+	if ( kPitch <= -15.0) {
+		kPitch = -15.0;
 	}
 
 	viewModel->angles[PITCH] += kPitch;
@@ -1960,9 +1959,9 @@ void V_WeaponDrop( float currentZ, float clientTime, float frameTime, cl_entity_
 
 	if (lastZ < -150 && currentZ == 0) {
 		float intensity = ((lastZ / 150) * 2) + 1;
-		kZ = -5;
-		kPitch = -15 + intensity;
-		kYaw = 6;
+		kZ = -3;
+		kPitch = -10 + intensity;
+		kYaw = 3;
 	}
 
 	if (clientTime >= time + frameTime) {
