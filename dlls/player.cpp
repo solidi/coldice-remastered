@@ -809,7 +809,11 @@ void CBasePlayer::PackDeadPlayerItems( void )
 		CWorldRunes::DropRune(this);
 	}
 
-	if (iPW == 1 && FStrEq("weapon_fists", STRING(rgpPackWeapons[0]->pev->classname)))
+	if (iPW == 0)
+	{
+		// TODO: bot may have not of had an active item?
+	}
+	else if (iPW == 1 && FStrEq("weapon_fists", STRING(rgpPackWeapons[0]->pev->classname)))
 	{
 		// TODO: do something special if only packed fists
 	}
