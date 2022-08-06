@@ -176,7 +176,7 @@ void CHalfLifeMultiplay::RefreshSkillData( void )
 
 	// Snowball
 	if (snowballfight.value)
-		gSkillData.plrDmgSnowball = 150;
+		gSkillData.plrDmgSnowball = 250;
 }
 
 // longest the intermission can last, in seconds
