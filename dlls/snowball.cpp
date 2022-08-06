@@ -440,20 +440,6 @@ void CFlyingSnowball::SpinTouch( CBaseEntity *pOther )
 	{
 		EMIT_SOUND_DYN(ENT(pev), CHAN_WEAPON, "snowball_miss.wav",
 							1.0, ATTN_NORM, 0, 100);
-		if (UTIL_PointContents(pev->origin) != CONTENTS_WATER)
-		{
-			Vector forward = gpGlobals->v_forward;
-			Vector pullOut = pev->origin - forward * 20;
-			MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
-				WRITE_BYTE( TE_SPRITE );
-				WRITE_COORD( pullOut.x );
-				WRITE_COORD( pullOut.y );
-				WRITE_COORD( pullOut.z );
-				WRITE_SHORT( g_sModelIndexSnowballHit );
-				WRITE_BYTE( 15 ); // scale * 10
-				WRITE_BYTE( 128 ); // framerate
-			MESSAGE_END();
-		}
 	}
 
 	// Don't draw the flying snowball anymore.
@@ -467,6 +453,20 @@ void CFlyingSnowball::SpinTouch( CBaseEntity *pOther )
 	TraceResult tr;
 	UTIL_TraceLine(pev->origin, pev->origin + vecDir * 100,
 						dont_ignore_monsters, ENT(pev), &tr);
+
+	if (UTIL_PointContents(pev->origin) != CONTENTS_WATER)
+	{
+		Vector pullOut = tr.vecEndPos + (tr.vecPlaneNormal * 10);
+		MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
+			WRITE_BYTE( TE_SPRITE );
+			WRITE_COORD( pullOut.x );
+			WRITE_COORD( pullOut.y );
+			WRITE_COORD( pullOut.z );
+			WRITE_SHORT( g_sModelIndexSnowballHit );
+			WRITE_BYTE( 15 ); // scale * 10
+			WRITE_BYTE( 128 ); // framerate
+		MESSAGE_END();
+	}
 
 	DecalGunshot( &tr, BULLET_PLAYER_SNOWBALL );
 
