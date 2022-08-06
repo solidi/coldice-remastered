@@ -64,10 +64,11 @@ void CHook::FireHook( ) {
 		return;
 	}
 
-	EMIT_SOUND_DYN(ENT(pev), CHAN_WEAPON, "grapple_deploy.wav", RANDOM_FLOAT(0.95, 1.0), ATTN_NORM, 0, 93 + RANDOM_LONG(0,0xF));
-
 	if (pevOwner)
+	{
+		EMIT_SOUND_DYN(ENT(pevOwner->pev), CHAN_WEAPON, "grapple_deploy.wav", RANDOM_FLOAT(0.95, 1.0), ATTN_NORM, 0, 93 + RANDOM_LONG(0,0xF));
 		pev->owner = ENT(pevOwner->pev);
+	}
 
 	Spawn();
 
