@@ -7,6 +7,7 @@
 #include "weapons.h"
 #include "gamerules.h"
 #include "player.h"
+#include "monsters.h"
 
 #include "grapplinghook.h"
 
@@ -14,8 +15,6 @@
 // Cold Ice Grapple Hook
 // Also see: https://developer.valvesoftware.com/wiki/Grapple_Hook
 //================================================================
-
-#define HOOK_SPEED 1200
 
 LINK_ENTITY_TO_CLASS( grapple_hook, CHook );
 
@@ -85,7 +84,7 @@ void CHook::FireHook( ) {
 
 	pev->origin = tr.vecEndPos;
 	pev->angles = anglesAim;
-	pev->velocity = vecDir * HOOK_SPEED;
+	pev->velocity = vecDir * gSkillData.plrSpeedHook;
 	m_vVecDirHookMove = vecDir;
 
 	m_fActiveHook = TRUE;
@@ -108,7 +107,7 @@ void CHook::HookTouch( CBaseEntity *pOther )
 	{
 		TraceResult tr = UTIL_GetGlobalTrace( );
 		ClearMultiDamage();
-		pOther->TraceAttack(VARS(pev->owner), 5, pev->velocity.Normalize(), &tr, DMG_NEVERGIB );
+		pOther->TraceAttack(VARS(pev->owner), gSkillData.plrDmgHook, pev->velocity.Normalize(), &tr, DMG_NEVERGIB );
 		ApplyMultiDamage( pev, VARS(pev->owner));
 		pev->velocity = Vector( 0, 0, 0 );
 
