@@ -234,6 +234,7 @@ void CDualRpg::PrimaryAttack()
 	else
 	{
 		PlayEmptySound( );
+		m_flNextPrimaryAttack = GetNextAttackDelay(0.15);
 	}
 	UpdateSpot( );
 }
