@@ -2619,12 +2619,14 @@ void EV_Chainsaw( event_args_t *args )
 	idx = args->entindex;
 	VectorCopy( args->origin, origin );
 
+	if (args->bparam1)
+		gEngfuncs.pEventAPI->EV_PlaySound( idx, origin, CHAN_WEAPON, "chainsaw_slash.wav", 1, ATTN_NORM, 0, PITCH_NORM);
+
 	if ( EV_IsLocal( idx ) )
 	{
 		// slashing
 		if (args->bparam1) {
 			gEngfuncs.pEventAPI->EV_WeaponAnimation( CHAINSAW_SLASH1, 0 );
-			gEngfuncs.pEventAPI->EV_PlaySound( idx, origin, CHAN_WEAPON, "chainsaw_slash.wav", 1, ATTN_NORM, 0, PITCH_NORM);
 
 			switch( (g_iSwing++) % 3 )
 			{
