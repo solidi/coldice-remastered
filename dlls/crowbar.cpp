@@ -138,6 +138,11 @@ BOOL CCrowbar::Deploy( )
 	return DefaultDeploy( "models/v_crowbar.mdl", "models/p_crowbar.mdl", CROWBAR_DRAW, "crowbar" );
 }
 
+BOOL CCrowbar::CanSlide()
+{
+	return m_flReleaseThrow < 1;
+}
+
 void CCrowbar::Holster( int skiplocal /* = 0 */ )
 {
 	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 0.5;

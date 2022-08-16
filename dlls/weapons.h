@@ -420,6 +420,7 @@ public:
 	virtual BOOL SemiAuto( void ) { return FALSE; };
 	virtual BOOL CanKick( void ) { return TRUE; };
 	virtual BOOL CanPunch( void ) { return TRUE; };
+	virtual BOOL CanSlide( void ) { return TRUE; };
 	virtual void ProvideDualItem(CBasePlayer *pPlayer, const char *itemName);
 	virtual void ProvideSingleItem(CBasePlayer *pPlayer, const char *itemName) { return; }
 	virtual void SwapDualWeapon() { return; }
@@ -645,6 +646,7 @@ public:
 #endif
 	}
 
+	BOOL CanSlide();
 	virtual BOOL SemiAuto( void ) { return TRUE; }
 
 private:
@@ -682,6 +684,7 @@ public:
 #endif
 	}
 
+	BOOL CanSlide();
 	virtual BOOL SemiAuto( void ) { return TRUE; }
 
 private:
@@ -1628,6 +1631,7 @@ public:
 	void ProvideDualItem(CBasePlayer *pPlayer, const char *itemName);
 	void SwapDualWeapon( void );
 
+	BOOL CanSlide();
 	virtual BOOL SemiAuto( void ) { return TRUE; }
 
 private:
@@ -1988,6 +1992,7 @@ public:
 #endif
 	}
 
+	BOOL CanSlide();
 	virtual BOOL SemiAuto( void ) { return TRUE; }
 	void ProvideSingleItem(CBasePlayer *pPlayer, const char *itemName);
 	void SwapDualWeapon( void );

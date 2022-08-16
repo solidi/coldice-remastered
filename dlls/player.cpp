@@ -3822,8 +3822,32 @@ enum SELACO_SLIDE {
 	SLIDE_RETRACT
 };
 
+void CBasePlayer::CalculateToKick( void )
+{
+	if (m_fKickTime < gpGlobals->time && (m_afButtonPressed & IN_BACK))
+	{
+		m_fKickTime = gpGlobals->time + 0.55;
+		m_fKickCount = 1;
+	}
+
+	if (m_fKickCount < 3 && m_fKickTime > gpGlobals->time && (m_afButtonReleased & IN_BACK)) {
+		m_fKickCount++;
+	}
+
+	if (m_fKickCount == 3 && m_fKickTime > gpGlobals->time && fabs(pev->v_angle.x) < 22 && (m_afButtonPressed & IN_BACK)) {
+		m_fKickCount = 0;
+		if (m_pActiveItem) {
+			((CBasePlayerWeapon *)m_pActiveItem)->StartKick(m_iHoldingItem);
+			ReleaseHeldItem(RANDOM_LONG(300,500));
+		}
+	}
+}
+
 void CBasePlayer::StartSelacoSlide( void )
 {
+	if (m_pActiveItem && !((CBasePlayerWeapon *)m_pActiveItem)->CanSlide())
+		return;
+
 	if (!m_fSelacoSliding && m_fSelacoTime < gpGlobals->time) {
 		if (FBitSet(pev->flags, FL_ONGROUND) && pev->velocity.Length() > 50) {
 			if (m_pActiveItem && m_pActiveItem->m_pPlayer) {
@@ -3984,7 +4008,7 @@ void CBasePlayer::TraceHitOfSelacoSlide( void )
 
 		if (fabs(m_fSelacoLastX - pev->velocity.x) > 200 || fabs(m_fSelacoLastY - pev->velocity.y) > 200) {
 			EMIT_SOUND_DYN(ENT(pev), CHAN_ITEM, "fists_hit.wav", 1.0, ATTN_NORM, 0, 98 + RANDOM_LONG(0,3));
-			if (m_pActiveItem) ((CBasePlayerWeapon *)m_pActiveItem)->SendWeaponAnim(SLIDE_RETRACT, 0, 0);
+			if (m_pActiveItem && m_pActiveItem->m_pPlayer) ((CBasePlayerWeapon *)m_pActiveItem)->SendWeaponAnim(SLIDE_RETRACT, 0, 0);
 			m_fSelacoHit = TRUE;
 			pev->velocity = pev->velocity / 2;
 			pev->friction = 0.7;

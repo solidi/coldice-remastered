@@ -112,6 +112,11 @@ BOOL CDualWrench::Deploy( )
 	return DefaultDeploy( "models/v_dual_wrench.mdl", "models/p_dual_wrench.mdl", DUAL_WRENCH_DRAW, "dual_club" );
 }
 
+BOOL CDualWrench::CanSlide()
+{
+	return m_flReleaseThrow < 1;
+}
+
 void CDualWrench::Holster( int skiplocal /* = 0 */ )
 {
 	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 0.5;

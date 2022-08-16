@@ -133,6 +133,11 @@ BOOL CKnife::Deploy( )
 	return DefaultDeploy( "models/v_knife.mdl", "models/p_knife.mdl", KNIFE_DRAW, "crowbar" );
 }
 
+BOOL CKnife::CanSlide()
+{
+	return m_flReleaseThrow < 1;
+}
+
 void CKnife::Holster( int skiplocal /* = 0 */ )
 {
 	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 1.0;

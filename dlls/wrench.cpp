@@ -114,6 +114,11 @@ BOOL CWrench::Deploy( )
 	return DefaultDeploy( "models/v_wrench.mdl", "models/p_wrench.mdl", WRENCH_DRAW, "crowbar" );
 }
 
+BOOL CWrench::CanSlide()
+{
+	return m_flReleaseThrow < 1;
+}
+
 void CWrench::Holster( int skiplocal /* = 0 */ )
 {
 	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 0.5;
