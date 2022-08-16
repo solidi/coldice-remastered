@@ -266,9 +266,9 @@ void CMag60::Reload( void )
 	int iResult;
 
 	if (m_iRotated > 0)
-		iResult = DefaultReload( 17, MAG60_RELOAD_SIDEWAYS, 1.4 );
+		iResult = DefaultReload( MAG60_MAX_CLIP, MAG60_RELOAD_SIDEWAYS, 1.4 );
 	else
-		iResult = DefaultReload( 17, MAG60_RELOAD, 1.4 );
+		iResult = DefaultReload( MAG60_MAX_CLIP, MAG60_RELOAD, 1.4 );
 
 	if (iResult)
 	{
