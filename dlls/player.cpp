@@ -4107,6 +4107,7 @@ void CBasePlayer::CheatImpulseCommands( int iImpulse, BOOL m_iFromClient )
 		GiveNamedItem( "weapon_deagle" );
 		GiveNamedItem( "weapon_dual_deagle" );
 		GiveNamedItem( "weapon_dual_rpg" );
+		GiveNamedItem( "weapon_dual_mag60" );
 		GiveNamedItem( "weapon_dual_smg" );
 		GiveNamedItem( "weapon_dual_wrench" );
 		GiveNamedItem( "weapon_dual_usas" );

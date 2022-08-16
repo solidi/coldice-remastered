@@ -316,3 +316,27 @@ void CMag60::WeaponIdle( void )
 		SendWeaponAnim( iAnim, 1 );
 	}
 }
+
+void CMag60::ProvideDualItem(CBasePlayer *pPlayer, const char *item) {
+	if (pPlayer == NULL || item == NULL) {
+		return;
+	}
+
+#ifndef CLIENT_DLL
+	CBasePlayerWeapon::ProvideDualItem(pPlayer, item);
+
+	if (!stricmp(item, "weapon_mag60")) {
+		if (!pPlayer->HasNamedPlayerItem("weapon_dual_mag60")) {
+#ifdef _DEBUG
+			ALERT(at_aiconsole, "Give weapon_dual_mag60!\n");
+#endif
+			pPlayer->GiveNamedItem("weapon_dual_mag60");
+			pPlayer->SelectItem("weapon_dual_mag60");
+		}
+	}
+#endif
+}
+
+void CMag60::SwapDualWeapon( void ) {
+	m_pPlayer->SelectItem("weapon_dual_mag60");
+}

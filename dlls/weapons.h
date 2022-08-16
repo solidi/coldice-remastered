@@ -108,6 +108,7 @@ public:
 #define WEAPON_DUAL_WRENCH		37
 #define WEAPON_DUAL_USAS		38
 #define WEAPON_FREEZEGUN		39
+#define WEAPON_DUAL_MAG60		40
 
 #define WEAPON_ALLWEAPONS		(~(1<<WEAPON_SUIT))
 
@@ -1416,6 +1417,9 @@ public:
 	static const char *pRotateUpBladeSounds[];
 	static const char *pRotateDownBladeSounds[];
 
+	void ProvideDualItem(CBasePlayer *pPlayer, const char *itemName);
+	void SwapDualWeapon( void );
+
 private:
 	int m_iShell;
 
@@ -1906,6 +1910,42 @@ private:
 	unsigned short m_usRpg;
 	unsigned short m_usRpgExtreme;
 
+};
+
+class CDualMag60 : public CBasePlayerWeapon
+{
+public:
+	void Spawn( void );
+	void Precache( void );
+	int iItemSlot( void ) { return 6; }
+	int GetItemInfo(ItemInfo *p);
+	int AddToPlayer( CBasePlayer *pPlayer );
+
+	void PrimaryAttack( void );
+	BOOL DeployLowKey( void );
+	BOOL Deploy( void );
+	void Holster( int skiplocal = 0 );
+	void Reload( void );
+	void WeaponIdle( void );
+	float m_flNextAnimTime;
+	int m_iShell;
+
+	virtual BOOL UseDecrement( void )
+	{
+#if defined( CLIENT_WEAPONS )
+		return TRUE;
+#else
+		return FALSE;
+#endif
+	}
+
+	static const char *pBladeSounds[];
+
+	void ProvideSingleItem(CBasePlayer *pPlayer, const char *itemName);
+	void SwapDualWeapon( void );
+
+private:
+	unsigned short m_usMag60;
 };
 
 class CDualSMG : public CBasePlayerWeapon

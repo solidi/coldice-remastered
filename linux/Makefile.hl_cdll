@@ -143,6 +143,7 @@ DLL_OBJS = \
 	$(HL1_SERVER_OBJ_DIR)/deagle.o \
 	$(HL1_SERVER_OBJ_DIR)/dual_deagle.o \
 	$(HL1_SERVER_OBJ_DIR)/dual_rpg.o \
+	$(HL1_SERVER_OBJ_DIR)/dual_mag60.o \
 	$(HL1_SERVER_OBJ_DIR)/dual_smg.o \
 	$(HL1_SERVER_OBJ_DIR)/dual_usas.o \
 	$(HL1_SERVER_OBJ_DIR)/dual_wrench.o \
