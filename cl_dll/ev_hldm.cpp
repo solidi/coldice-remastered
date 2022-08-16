@@ -3124,7 +3124,7 @@ void EV_FireDualSmg( event_args_t *args )
 	{
 		EV_EjectBrass ( ShellOrigin, ShellVelocity, angles[ YAW ], shell, TE_BOUNCE_SHELL );
 
-		EV_GetDefaultShellInfo( args, gEngfuncs.GetViewModel()->attachment[0], velocity, ShellVelocity, ShellOrigin, forward, right, up, 0, -30, 0, fU, fR * -1);
+		EV_GetDefaultShellInfo( args, gEngfuncs.GetViewModel()->attachment[1], velocity, ShellVelocity, ShellOrigin, forward, right, up, 0, -30, 0, fU, fR * -1);
 		EV_EjectBrass ( ShellOrigin, ShellVelocity, angles[ YAW ], shell, TE_BOUNCE_SHELL );
 	}
 
