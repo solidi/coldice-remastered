@@ -87,6 +87,7 @@ CNuke g_Nuke;
 CDeagle g_Deagle;
 CDualDeagle g_DualDeagle;
 CDualRpg g_DualRpg;
+CDualMag60 g_DualMag60;
 CDualSMG g_DualSmg;
 CDualWrench g_DualWrench;
 CDualUsas g_DualUsas;
@@ -685,6 +686,7 @@ void HUD_InitClientWeapons( void )
 	HUD_PrepEntity( &g_Deagle	, &player );
 	HUD_PrepEntity( &g_DualDeagle	, &player );
 	HUD_PrepEntity( &g_DualRpg	, &player );
+	HUD_PrepEntity( &g_DualMag60	, &player );
 	HUD_PrepEntity( &g_DualSmg	, &player );
 	HUD_PrepEntity( &g_DualWrench	, &player );
 	HUD_PrepEntity( &g_DualUsas	, &player );
@@ -888,6 +890,10 @@ void HUD_WeaponsPostThink( local_state_s *from, local_state_s *to, usercmd_t *cm
 
 		case WEAPON_DUAL_RPG:
 			pWeapon = &g_DualRpg;
+			break;
+
+		case WEAPON_DUAL_MAG60:
+			pWeapon = &g_DualMag60;
 			break;
 
 		case WEAPON_DUAL_SMG:

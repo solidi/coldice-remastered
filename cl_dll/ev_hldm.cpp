@@ -99,6 +99,7 @@ void EV_FireDeagle( struct event_args_s *args  );
 void EV_FireDualDeagle( struct event_args_s *args  );
 void EV_FireDualDeagleBoth( struct event_args_s *args  );
 void EV_FireDualRpgBoth( struct event_args_s *args  );
+void EV_FireDualMag60( struct event_args_s *args  );
 void EV_FireDualSmg( struct event_args_s *args  );
 void EV_FireDualWrench( struct event_args_s *args  );
 void EV_FireDualUsas( struct event_args_s *args  );
@@ -3005,6 +3006,73 @@ void EV_FireDualRpgBoth( event_args_t *args )
 	}
 }
 
+enum dual_mag60_e
+{	
+	DUAL_MAG60_IDLE = 0,
+	DUAL_MAG60_FIRE_BOTH1,
+	DUAL_MAG60_RELOAD,
+	DUAL_MAG60_DEPLOY,
+	DUAL_MAG60_HOLSTER,
+};
+
+void EV_FireDualMag60( event_args_t *args )
+{
+	int idx;
+	vec3_t origin;
+	vec3_t angles;
+	vec3_t velocity;
+
+	vec3_t ShellVelocity;
+	vec3_t ShellOrigin;
+	int shell;
+	vec3_t vecSrc, vecAiming;
+	vec3_t up, right, forward;
+	float flSpread = 0.01;
+
+	idx = args->entindex;
+	VectorCopy( args->origin, origin );
+	VectorCopy( args->angles, angles );
+	VectorCopy( args->velocity, velocity );
+
+	AngleVectors( angles, forward, right, up );
+
+	shell = gEngfuncs.pEventAPI->EV_FindModelIndex ("models/w_shell.mdl");// brass shell
+
+	if ( EV_IsLocal( idx ) )
+	{
+		// Add muzzle flash to current weapon model
+		EV_MuzzleFlash();
+		gEngfuncs.pEventAPI->EV_WeaponAnimation( DUAL_MAG60_FIRE_BOTH1, 0 );
+
+		V_PunchAxis(PITCH, gEngfuncs.pfnRandomFloat(-5.0, -7.0));
+		V_PunchAxis(YAW, gEngfuncs.pfnRandomFloat(-2.0, -4.0));
+		V_PunchAxis(ROLL, gEngfuncs.pfnRandomFloat(2.0, 4.0));
+	}
+
+	float fR = gEngfuncs.pfnRandomFloat( 50, 70 );
+	float fU = gEngfuncs.pfnRandomFloat( 100, 150 );
+	EV_GetDefaultShellInfo( args, gEngfuncs.GetViewModel()->attachment[0], velocity, ShellVelocity, ShellOrigin, forward, right, up, 0, -30, 0, fU, fR);
+
+	if ( EV_IsLocal( idx ) )
+	{
+		EV_EjectBrass ( ShellOrigin, ShellVelocity, angles[ YAW ], shell, TE_BOUNCE_SHELL );
+
+		EV_GetDefaultShellInfo( args, gEngfuncs.GetViewModel()->attachment[1], velocity, ShellVelocity, ShellOrigin, forward, right, up, 0, -30, 0, fU, fR * -1);
+		EV_EjectBrass ( ShellOrigin, ShellVelocity, angles[ YAW ], shell, TE_BOUNCE_SHELL );
+	}
+
+	gEngfuncs.pEventAPI->EV_PlaySound( idx, origin, CHAN_WEAPON, "mag60_fire.wav", 1, ATTN_NORM, 0, 94 + gEngfuncs.pfnRandomLong( 0, 0xf ) );
+	gEngfuncs.pEventAPI->EV_PlaySound( idx, origin, CHAN_ITEM, "mag60_fire.wav", 1, ATTN_NORM, 0, 94 + gEngfuncs.pfnRandomLong( 0, 0xf ) );
+
+	EV_GetGunPosition( args, vecSrc, origin );
+	VectorCopy( forward, vecAiming );
+
+	EV_GunSmoke(gEngfuncs.GetViewModel()->attachment[0], 0.3, idx, args->ducking, forward, right, up, 0, 0, 0);
+	EV_GunSmoke(gEngfuncs.GetViewModel()->attachment[1], 0.3, idx, args->ducking, forward, right, up, 0, 0, 0);
+
+	EV_HLDM_FireBullets( idx, forward, right, up, 2, vecSrc, vecAiming, 8192, BULLET_PLAYER_MP5, 2, &tracerCount[idx-1], args->fparam1, args->fparam2 );
+}
+
 enum dual_smg_e
 {	
 	DUAL_SMG_IDLE = 0,
@@ -3056,7 +3124,7 @@ void EV_FireDualSmg( event_args_t *args )
 	{
 		EV_EjectBrass ( ShellOrigin, ShellVelocity, angles[ YAW ], shell, TE_BOUNCE_SHELL );
 
-		EV_GetDefaultShellInfo( args, gEngfuncs.GetViewModel()->attachment[0], velocity, ShellVelocity, ShellOrigin, forward, right, up, 0, -30, 0, fU, fR * -1);
+		EV_GetDefaultShellInfo( args, gEngfuncs.GetViewModel()->attachment[1], velocity, ShellVelocity, ShellOrigin, forward, right, up, 0, -30, 0, fU, fR * -1);
 		EV_EjectBrass ( ShellOrigin, ShellVelocity, angles[ YAW ], shell, TE_BOUNCE_SHELL );
 	}
 

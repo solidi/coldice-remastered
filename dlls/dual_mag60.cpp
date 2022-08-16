@@ -24,49 +24,51 @@
 #include "gamerules.h"
 #include "game.h"
 
-enum dual_smg_e
+enum dual_mag60_e
 {	
-	DUAL_SMG_IDLE = 0,
-	DUAL_SMG_FIRE_BOTH1,
-	DUAL_SMG_RELOAD,
-	DUAL_SMG_DEPLOY,
-	DUAL_SMG_HOLSTER,
+	DUAL_MAG60_IDLE = 0,
+	DUAL_MAG60_FIRE_BOTH1,
+	DUAL_MAG60_RELOAD,
+	DUAL_MAG60_DEPLOY,
+	DUAL_MAG60_HOLSTER,
 };
 
-#ifdef DUALSMG
-LINK_ENTITY_TO_CLASS( weapon_dual_smg, CDualSMG );
+#ifdef DUALMAG60
+LINK_ENTITY_TO_CLASS( weapon_dual_mag60, CDualMag60 );
 #endif
 
-void CDualSMG::Spawn( )
+void CDualMag60::Spawn( )
 {
 	Precache( );
-	SET_MODEL(ENT(pev), "models/w_dual_smg.mdl");
-	m_iId = WEAPON_DUAL_SMG;
+	SET_MODEL(ENT(pev), "models/w_dual_mag60.mdl");
+	m_iId = WEAPON_DUAL_MAG60;
 
-	m_iDefaultAmmo = SMG_DEFAULT_GIVE * 2;
+	m_iDefaultAmmo = MAG60_DEFAULT_GIVE * 2;
 
 	FallInit();// get ready to fall down.
 }
 
-const char *CDualSMG::pHansSounds[] = 
+const char *CDualMag60::pBladeSounds[] = 
 {
-	"smg_selected.wav",
-	"smg_gruber_nolossoflife.wav",
-	"smg_gruber_nicesuit.wav",
-	"smg_gruber_doitmyself.wav",
-	"smg_gruber_shes.wav",
-	"smg_gruber_nolossoflife.wav",
-	"smg_gruber_shootglass.wav",
-	"smg_gruber_timemagazine.wav",
-	"smg_gruber_hohoho.wav",
-	"smg_gruber_troublesome.wav",
+	"mag60_blade_arrangement.wav",
+	"mag60_blade_nature.wav",
+	"mag60_blade_capable.wav",
+	"mag60_blade_uphill.wav",
+	"mag60_blade_topping.wav",
+	"mag60_blade_pass.wav",
+	"mag60_blade_music.wav",
+	"mag60_blade_suckaheads.wav",
+	"mag60_blade_frost.wav",
+	"mag60_blade_usethem.wav",
+	"mag60_blade_trigger.wav",
+	"mag60_blade_dead.wav",
 };
 
-void CDualSMG::Precache( void )
+void CDualMag60::Precache( void )
 {
-	PRECACHE_MODEL("models/v_dual_smg.mdl");
-	PRECACHE_MODEL("models/w_dual_smg.mdl");
-	PRECACHE_MODEL("models/p_dual_smg.mdl");
+	PRECACHE_MODEL("models/v_dual_mag60.mdl");
+	PRECACHE_MODEL("models/w_dual_mag60.mdl");
+	PRECACHE_MODEL("models/p_dual_mag60.mdl");
 
 	m_iShell = PRECACHE_MODEL ("models/w_shell.mdl");// brass shellTE_MODEL
 
@@ -76,34 +78,32 @@ void CDualSMG::Precache( void )
 	PRECACHE_SOUND("items/clipinsert1.wav");
 	PRECACHE_SOUND("items/cliprelease1.wav");
 
-	PRECACHE_SOUND ("smg_fire.wav");
+	PRECACHE_SOUND ("mag60_fire.wav");
 
 	PRECACHE_SOUND ("weapons/357_cock1.wav");
 
-	PRECACHE_SOUND_ARRAY(pHansSounds);
-
-	m_usSmg = PRECACHE_EVENT( 1, "events/dual_smg.sc" );
+	m_usMag60 = PRECACHE_EVENT( 1, "events/dual_mag60.sc" );
 }
 
-int CDualSMG::GetItemInfo(ItemInfo *p)
+int CDualMag60::GetItemInfo(ItemInfo *p)
 {
 	p->pszName = STRING(pev->classname);
 	p->pszAmmo1 = "9mm";
 	p->iMaxAmmo1 = _9MM_MAX_CARRY;
 	p->pszAmmo2 = NULL;
 	p->iMaxAmmo2 = -1;
-	p->iMaxClip = SMG_MAX_CLIP * 2;
+	p->iMaxClip = MAG60_MAX_CLIP * 2;
 	p->iSlot = 5;
-	p->iPosition = 3;
+	p->iPosition = 2;
 	p->iFlags = 0;
-	p->iId = m_iId = WEAPON_DUAL_SMG;
-	p->iWeight = SMG_WEIGHT * 2;
-	p->pszDisplayName = "Hans Gruber's Submachine guns";
+	p->iId = m_iId = WEAPON_DUAL_MAG60;
+	p->iWeight = MAG60_WEIGHT * 2;
+	p->pszDisplayName = "Blade's Mag 60 Automatic Handguns";
 
 	return 1;
 }
 
-int CDualSMG::AddToPlayer( CBasePlayer *pPlayer )
+int CDualMag60::AddToPlayer( CBasePlayer *pPlayer )
 {
 	if ( CBasePlayerWeapon::AddToPlayer( pPlayer ) )
 	{
@@ -115,34 +115,31 @@ int CDualSMG::AddToPlayer( CBasePlayer *pPlayer )
 	return FALSE;
 }
 
-BOOL CDualSMG::DeployLowKey( )
+BOOL CDualMag60::DeployLowKey( )
 {
-	m_sFireCount = 0;
-	return DefaultDeploy( "models/v_dual_smg.mdl", "models/p_dual_smg.mdl", DUAL_SMG_DEPLOY, "akimbo" );
+	return DefaultDeploy( "models/v_dual_mag60.mdl", "models/p_dual_mag60.mdl", DUAL_MAG60_DEPLOY, "akimbo" );
 }
 
-BOOL CDualSMG::Deploy( )
+BOOL CDualMag60::Deploy( )
 {
-	m_sFireCount = 0;
-
-	BOOL result = DefaultDeploy( "models/v_dual_smg.mdl", "models/p_dual_smg.mdl", DUAL_SMG_DEPLOY, "akimbo" );
+	BOOL result = DefaultDeploy( "models/v_dual_mag60.mdl", "models/p_dual_mag60.mdl", DUAL_MAG60_DEPLOY, "akimbo" );
 
 #ifndef CLIENT_DLL
 	if (result && allowvoiceovers.value) {
-		EMIT_SOUND(ENT(m_pPlayer->pev), CHAN_VOICE, RANDOM_SOUND_ARRAY(pHansSounds), 1.0, ATTN_NORM );
+		EMIT_SOUND(ENT(m_pPlayer->pev), CHAN_VOICE, RANDOM_SOUND_ARRAY(pBladeSounds), 1.0, ATTN_NORM );
 	}
 #endif
 
 	return result;
 }
 
-void CDualSMG::Holster( int skiplocal )
+void CDualMag60::Holster( int skiplocal )
 {
 	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 0.5;
-	SendWeaponAnim( DUAL_SMG_HOLSTER );
+	SendWeaponAnim( DUAL_MAG60_HOLSTER );
 }
 
-void CDualSMG::PrimaryAttack()
+void CDualMag60::PrimaryAttack()
 {
 	// don't fire underwater
 	if (m_pPlayer->pev->waterlevel == 3)
@@ -195,7 +192,7 @@ void CDualSMG::PrimaryAttack()
 	flags = 0;
 #endif
 
-	PLAYBACK_EVENT_FULL( flags, m_pPlayer->edict(), m_usSmg, 0.0, (float *)&g_vecZero, (float *)&g_vecZero, vecDir.x, vecDir.y, 0, 0, 0, 0 );
+	PLAYBACK_EVENT_FULL( flags, m_pPlayer->edict(), m_usMag60, 0.0, (float *)&g_vecZero, (float *)&g_vecZero, vecDir.x, vecDir.y, 0, 0, 0, 0 );
 
 	if (!m_iClip && m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] <= 0)
 		// HEV suit - indicate out of ammo condition
@@ -209,15 +206,15 @@ void CDualSMG::PrimaryAttack()
 	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + UTIL_SharedRandomFloat( m_pPlayer->random_seed, 10, 15 );
 }
 
-void CDualSMG::Reload( void )
+void CDualMag60::Reload( void )
 {
 	if ( m_pPlayer->ammo_9mm <= 0 )
 		return;
 
-	DefaultReload( SMG_MAX_CLIP * 2, DUAL_SMG_RELOAD, 2.8 );
+	DefaultReload( MAG60_MAX_CLIP * 2, DUAL_MAG60_RELOAD, 2.5 );
 }
 
-void CDualSMG::WeaponIdle( void )
+void CDualMag60::WeaponIdle( void )
 {
 	ResetEmptySound( );
 
@@ -229,27 +226,27 @@ void CDualSMG::WeaponIdle( void )
 	if ( m_pPlayer->pev->button & IN_IRONSIGHT )
 		return;
 
-	SendWeaponAnim( DUAL_SMG_IDLE );
+	SendWeaponAnim( DUAL_MAG60_IDLE );
 
 	m_flTimeWeaponIdle = UTIL_SharedRandomFloat( m_pPlayer->random_seed, 10, 15 ); // how long till we do this again.
 }
 
-void CDualSMG::ProvideSingleItem(CBasePlayer *pPlayer, const char *item) {
+void CDualMag60::ProvideSingleItem(CBasePlayer *pPlayer, const char *item) {
 	if (item == NULL) {
 		return;
 	}
 
 #ifndef CLIENT_DLL
-	if (!stricmp(item, "weapon_dual_smg")) {
-		if (!pPlayer->HasNamedPlayerItem("weapon_smg")) {
-			ALERT(at_aiconsole, "Give weapon_smg!\n");
-			pPlayer->GiveNamedItem("weapon_smg");
-			pPlayer->SelectItem("weapon_dual_smg");
+	if (!stricmp(item, "weapon_dual_mag60")) {
+		if (!pPlayer->HasNamedPlayerItem("weapon_mag60")) {
+			ALERT(at_aiconsole, "Give weapon_mag60!\n");
+			pPlayer->GiveNamedItem("weapon_mag60");
+			pPlayer->SelectItem("weapon_dual_mag60");
 		}
 	}
 #endif
 }
 
-void CDualSMG::SwapDualWeapon( void ) {
-	m_pPlayer->SelectItem("weapon_smg");
+void CDualMag60::SwapDualWeapon( void ) {
+	m_pPlayer->SelectItem("weapon_mag60");
 }
