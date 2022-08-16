@@ -21,6 +21,7 @@
 #include "nodes.h"
 #include "player.h"
 #include "gamerules.h"
+#include "game.h"
 
 class CFlyingKnife : public CBaseEntity
 {
@@ -388,13 +389,20 @@ void CKnife::WeaponIdle( void )
 		m_flStartThrow = 2;
 		m_flReleaseThrow = 1;
 		m_flTimeWeaponIdle = GetNextAttackDelay(0.75);// ensure that the animation can finish playing
-		m_flNextSecondaryAttack = m_flNextPrimaryAttack = GetNextAttackDelay(2.0);
+		m_flNextSecondaryAttack = m_flNextPrimaryAttack = GetNextAttackDelay(0.75);
 		return;
 	}
 	else if ( m_flReleaseThrow > 0 )
 	{
 		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + UTIL_SharedRandomFloat( m_pPlayer->random_seed, 10, 15 );
-		RetireWeapon();
+#ifndef CLIENT_DLL
+		if (infiniteammo.value) {
+			m_flStartThrow = 0;
+			m_flReleaseThrow = -1;
+			SendWeaponAnim( KNIFE_DRAW );
+		} else
+			RetireWeapon();
+#endif
 		return;
 	}
 
