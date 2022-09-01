@@ -109,6 +109,7 @@ public:
 #define WEAPON_DUAL_USAS		38
 #define WEAPON_FREEZEGUN		39
 #define WEAPON_DUAL_MAG60		40
+#define WEAPON_ROCKETCROWBAR	41
 
 #define WEAPON_ALLWEAPONS		(~(1<<WEAPON_SUIT))
 
@@ -152,6 +153,7 @@ public:
 #define DEAGLE_WEIGHT		20
 #define FREEZEGUN_WEIGHT	20
 #define VEST_WEIGHT			25
+#define ROCKETCROWBAR_WEIGHT 20
 
 
 // weapon clip/carry ammo capacities
@@ -652,6 +654,56 @@ public:
 
 private:
 	unsigned short m_usCrowbar;
+};
+
+class CRocketCrowbar : public CBasePlayerWeapon
+{
+public:
+	void Spawn( void );
+	void Precache( void );
+	int AddToPlayer( CBasePlayer *pPlayer );
+	int iItemSlot( void ) { return 1; }
+	void EXPORT SwingAgain( void );
+	void EXPORT Smack( void );
+	int GetItemInfo(ItemInfo *p);
+
+	void PrimaryAttack( void );
+	void SecondaryAttack( void );
+	int Swing( int fFirst );
+	BOOL DeployLowKey( void );
+	BOOL Deploy( void );
+	void Holster( int skiplocal = 0 );
+	void WeaponIdle( void );
+	int m_iSwing;
+	TraceResult m_trHit;
+
+	virtual BOOL UseDecrement( void )
+	{
+#if defined( CLIENT_WEAPONS )
+		return TRUE;
+#else
+		return FALSE;
+#endif
+	}
+
+	virtual BOOL SemiAuto( void ) { return TRUE; }
+
+private:
+	unsigned short m_usRocketCrowbar;
+};
+
+class CDrunkRocket : public CGrenade
+{
+public:
+	void Spawn( float startEngineTime );
+	void Precache( void );
+	void EXPORT FollowThink( void );
+	void EXPORT IgniteThink( void );
+	void EXPORT RocketTouch( CBaseEntity *pOther );
+	static CDrunkRocket *CreateDrunkRocket( Vector vecOrigin, Vector vecAngles, CBaseEntity *pOwner, float startEngineTime );
+
+	int m_iTrail;
+	float m_flIgniteTime;
 };
 
 class CKnife : public CBasePlayerWeapon

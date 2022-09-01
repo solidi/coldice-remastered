@@ -457,6 +457,7 @@ void W_Precache(void)
 	UTIL_PrecacheOtherWeapon( "weapon_dual_wrench" );
 	UTIL_PrecacheOtherWeapon( "weapon_dual_usas" );
 	UTIL_PrecacheOtherWeapon( "weapon_freezegun" );
+	UTIL_PrecacheOtherWeapon( "weapon_rocketcrowbar" );
 
 #if !defined( OEM_BUILD ) && !defined( HLDEMO_BUILD )
 	if ( g_pGameRules->IsDeathmatch() )
@@ -1889,6 +1890,10 @@ BOOL CWeaponBox::PackWeapon( CBasePlayerItem *pWeapon )
 		else if (pWeapon->m_iId == WEAPON_PYTHON)
 		{
 			SET_MODEL( ENT(pev), "models/w_357.mdl");
+		}
+		else if (pWeapon->m_iId == WEAPON_ROCKETCROWBAR)
+		{
+			SET_MODEL( ENT(pev), "models/w_rocketcrowbar.mdl");
 		}
 
 		pev->sequence = 1;

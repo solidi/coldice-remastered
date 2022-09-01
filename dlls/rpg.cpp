@@ -24,7 +24,7 @@
 #include "gamerules.h"
 #include "game.h"
 
-
+extern DLL_GLOBAL const char *g_MutatorRocketCrowbar;
 
 
 enum rpg_e {
@@ -272,9 +272,13 @@ void CRpgRocket :: FollowThink( void  )
 		} 
 		else 
 		{
-			if (pev->velocity.Length() > 2000)
+			float speed = 2000;
+			if (strstr(mutators.string, g_MutatorRocketCrowbar))
+				speed = 200;
+
+			if (pev->velocity.Length() > speed)
 			{
-				pev->velocity = pev->velocity.Normalize() * 2000;
+				pev->velocity = pev->velocity.Normalize() * speed;
 			}
 		}
 	}
@@ -288,10 +292,18 @@ void CRpgRocket :: FollowThink( void  )
 		pev->velocity = pev->velocity * 0.2 + vecTarget * flSpeed * 0.798;
 		if (pev->waterlevel == 0 && pev->velocity.Length() < 1500)
 		{
-			Detonate( );
+			if (!strstr(mutators.string, g_MutatorRocketCrowbar))
+				Detonate( );
 		}
 	}
 	// ALERT( at_console, "%.0f\n", flSpeed );
+
+	if (strstr(mutators.string, g_MutatorRocketCrowbar))
+	{
+		pev->velocity.x = pev->velocity.x + (RANDOM_FLOAT(-100,100));
+		pev->velocity.y = pev->velocity.y + (RANDOM_FLOAT(-100,100));
+		pev->velocity.z = pev->velocity.z + (RANDOM_FLOAT(-100,100));
+	}
 
 	pev->nextthink = gpGlobals->time + 0.1;
 }

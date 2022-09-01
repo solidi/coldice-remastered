@@ -57,6 +57,8 @@ extern cvar_t   icesprites;
 extern cvar_t   randomweapon;
 extern cvar_t   interactiveitems;
 extern cvar_t   snowballfight;
+extern cvar_t   mutators;
+extern cvar_t   spawnweapons;
 
 // Engine Cvars
 extern cvar_t	*g_psv_gravity;

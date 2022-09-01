@@ -188,6 +188,7 @@
     <ClCompile Include="..\..\dlls\plasma.cpp" />
     <ClCompile Include="..\..\dlls\python.cpp" />
     <ClCompile Include="..\..\dlls\railgun.cpp" />
+    <ClCompile Include="..\..\dlls\rocket_crowbar.cpp" />
     <ClCompile Include="..\..\dlls\rpg.cpp" />
     <ClCompile Include="..\..\dlls\satchel.cpp" />
     <ClCompile Include="..\..\dlls\shotgun.cpp" />

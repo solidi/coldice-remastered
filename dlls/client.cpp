@@ -715,6 +715,9 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_randomweapon 0\" - To spawn with a random weapon\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_interactiveitems \"grenade;monster_satchel;monster_chumtoad;monster_snark\"\" - A semicolon separated list of items that are \"interactive\" (kickable, pickupable)\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_snowballfight 0\" - Replace all weapons with deadly snowballs!\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_mutators\" - Add mutators to gameplay\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_mutators \"rocketcrowbar\"\" - includes rocket crowbar on spawn, makes all rockets act drunk\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_spawnweapons\" - Spawn weapons or not\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "For more, see readme.txt\n" );
 	}
 #ifdef _DEBUG
