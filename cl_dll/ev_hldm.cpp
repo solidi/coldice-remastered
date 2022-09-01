@@ -105,6 +105,7 @@ void EV_FireDualWrench( struct event_args_s *args  );
 void EV_FireDualUsas( struct event_args_s *args  );
 void EV_FireDualUsasBoth( struct event_args_s *args  );
 void EV_FireFreezeGun( struct event_args_s *args  );
+void EV_RocketCrowbar( struct event_args_s *args  );
 
 void EV_TrainPitchAdjust( struct event_args_s *args );
 }
@@ -3366,6 +3367,63 @@ void EV_FireFreezeGun( event_args_t *args )
 	if ( fPrimaryFire )
 	{
 		gEngfuncs.pEventAPI->EV_PlaySound( idx, origin, CHAN_WEAPON, "freezegun_fire.wav", 1, ATTN_NORM, 0, 100 );
+	}
+}
+
+//======================
+//	   CROWBAR START
+//======================
+
+enum rocket_crowbar_e {
+	ROCKET_CROWBAR_IDLE = 0,
+	ROCKET_CROWBAR_DRAW_LOWKEY,
+	ROCKET_CROWBAR_DRAW,
+	ROCKET_CROWBAR_HOLSTER,
+	ROCKET_CROWBAR_ATTACK1HIT,
+	ROCKET_CROWBAR_ATTACK1MISS,
+	ROCKET_CROWBAR_ATTACK2MISS,
+	ROCKET_CROWBAR_ATTACK2HIT,
+	ROCKET_CROWBAR_ATTACK3MISS,
+	ROCKET_CROWBAR_ATTACK3HIT,
+	ROCKET_CROWBAR_IDLE2,
+	ROCKET_CROWBAR_IDLE3
+};
+
+void EV_RocketCrowbar( event_args_t *args )
+{
+	int idx;
+	vec3_t origin;
+	vec3_t angles;
+	vec3_t velocity;
+
+	idx = args->entindex;
+	VectorCopy( args->origin, origin );
+	
+	//Play Swing sound
+	gEngfuncs.pEventAPI->EV_PlaySound( idx, origin, CHAN_WEAPON, "weapons/cbar_miss1.wav", 1, ATTN_NORM, 0, PITCH_NORM);
+
+	if ( EV_IsLocal( idx ) )
+	{
+		gEngfuncs.pEventAPI->EV_WeaponAnimation( ROCKET_CROWBAR_ATTACK1MISS, 1 );
+
+		switch( (g_iSwing++) % 3 )
+		{
+			case 0:
+				gEngfuncs.pEventAPI->EV_WeaponAnimation ( ROCKET_CROWBAR_ATTACK1MISS, 1 );
+				V_PunchAxis(YAW, gEngfuncs.pfnRandomFloat(-3.0, -5.0));
+				V_PunchAxis(ROLL, gEngfuncs.pfnRandomFloat(3.0, 5.0));
+				break;
+			case 1:
+				gEngfuncs.pEventAPI->EV_WeaponAnimation ( ROCKET_CROWBAR_ATTACK2MISS, 1 );
+				V_PunchAxis(YAW, gEngfuncs.pfnRandomFloat(3.0, 5.0));
+				V_PunchAxis(ROLL, gEngfuncs.pfnRandomFloat(-3.0, -5.0));
+				break;
+			case 2:
+				gEngfuncs.pEventAPI->EV_WeaponAnimation ( ROCKET_CROWBAR_ATTACK3MISS, 1 );
+				V_PunchAxis(YAW, gEngfuncs.pfnRandomFloat(-3.0, -5.0));
+				V_PunchAxis(ROLL, gEngfuncs.pfnRandomFloat(3.0, 5.0));
+				break;
+		}
 	}
 }
 

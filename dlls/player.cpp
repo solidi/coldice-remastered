@@ -4112,6 +4112,7 @@ void CBasePlayer::CheatImpulseCommands( int iImpulse, BOOL m_iFromClient )
 		GiveNamedItem( "weapon_dual_wrench" );
 		GiveNamedItem( "weapon_dual_usas" );
 		GiveNamedItem( "weapon_freezegun" );
+		GiveNamedItem( "weapon_rocketcrowbar" );
 #endif
 		gEvilImpulse101 = FALSE;
 		break;

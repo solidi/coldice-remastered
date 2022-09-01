@@ -37,6 +37,7 @@ void EV_EgonStop( struct event_args_s *args );
 void EV_HornetGunFire( struct event_args_s *args );
 void EV_TripmineFire( struct event_args_s *args );
 void EV_SnarkFire( struct event_args_s *args );
+void EV_RocketCrowbar( struct event_args_s *args );
 
 // Ice
 void EV_Knife( struct event_args_s *args );
@@ -135,4 +136,5 @@ void Game_HookEvents( void )
 	gEngfuncs.pfnHookEvent( "events/dual_usas.sc",				EV_FireDualUsas );
 	gEngfuncs.pfnHookEvent( "events/dual_usas_both.sc",			EV_FireDualUsasBoth );
 	gEngfuncs.pfnHookEvent( "events/freezegun.sc",				EV_FireFreezeGun );
+	gEngfuncs.pfnHookEvent( "events/rocketcrowbar.sc",			EV_RocketCrowbar );
 }

@@ -35,6 +35,7 @@
 
 extern DLL_GLOBAL CGameRules	*g_pGameRules;
 extern DLL_GLOBAL BOOL	g_fGameOver;
+extern DLL_GLOBAL const char *g_MutatorRocketCrowbar;
 extern int gmsgDeathMsg;	// client dll messages
 extern int gmsgScoreInfo;
 extern int gmsgMOTD;
@@ -648,10 +649,17 @@ void CHalfLifeMultiplay :: PlayerSpawn( CBasePlayer *pPlayer )
 	
 	addDefault = TRUE;
 
+	pPlayer->GiveNamedItem("weapon_fists");
+
 	while ( pWeaponEntity = UTIL_FindEntityByClassname( pWeaponEntity, "game_player_equip" ))
 	{
 		pWeaponEntity->Touch( pPlayer );
 		addDefault = FALSE;
+	}
+
+	if (strstr(mutators.string, g_MutatorRocketCrowbar)) {
+		pPlayer->GiveNamedItem("weapon_rocketcrowbar");
+		return;
 	}
 
 	if (startwithall.value) {
@@ -661,19 +669,14 @@ void CHalfLifeMultiplay :: PlayerSpawn( CBasePlayer *pPlayer )
 
 	if ( addDefault )
 	{
-		// Give a random melee on every spawn
-		char *meleeWeapon = "weapon_fists";
-		if (dualsonly.value)
+		if (snowballfight.value)
 		{
-			pPlayer->GiveNamedItem(STRING(ALLOC_STRING(meleeWeapon)));
-		}
-		else if (snowballfight.value)
-		{
-			pPlayer->GiveNamedItem(STRING(ALLOC_STRING(meleeWeapon)));
 			pPlayer->GiveNamedItem("weapon_snowball");
 		}
 		else
 		{
+			// Give a random melee
+			char *meleeWeapon = "weapon_chainsaw";
 			int whichWeapon = RANDOM_LONG(0,3);
 			if (!whichWeapon) {
 				meleeWeapon = "weapon_crowbar";
@@ -681,8 +684,6 @@ void CHalfLifeMultiplay :: PlayerSpawn( CBasePlayer *pPlayer )
 				meleeWeapon = "weapon_knife";
 			} else if (whichWeapon == 2) {
 				meleeWeapon = "weapon_wrench";
-			} else {
-				meleeWeapon = "weapon_chainsaw";
 			}
 			pPlayer->GiveNamedItem(STRING(ALLOC_STRING(meleeWeapon)));
 		}
@@ -694,8 +695,9 @@ void CHalfLifeMultiplay :: PlayerSpawn( CBasePlayer *pPlayer )
 		pWeaponName = strtok( pWeaponName, ";" );
 		while ( pWeaponName != NULL && *pWeaponName )
 		{
-			if (!FStrEq(meleeWeapon, pWeaponName))
-				pPlayer->GiveNamedItem(STRING(ALLOC_STRING( pWeaponName )));
+			const char *newWeapon = STRING(ALLOC_STRING(pWeaponName));
+			if (!pPlayer->HasNamedPlayerItem(newWeapon))
+				pPlayer->GiveNamedItem(newWeapon);
 			pWeaponName = strtok( NULL, ";" );
 		}
 		pPlayer->GiveAmmo( 68, "9mm", _9MM_MAX_CARRY );// 4 full reloads
@@ -1174,6 +1176,12 @@ BOOL CHalfLifeMultiplay::IsAllowedToSpawn( CBaseEntity *pEntity )
 {
 //	if ( pEntity->pev->flags & FL_MONSTER )
 //		return FALSE;
+
+	if (!spawnweapons.value &&
+		(strncmp(STRING(pEntity->pev->classname), "weapon_", 7) == 0 || strncmp(STRING(pEntity->pev->classname), "ammo_", 5) == 0))
+	{
+		return FALSE;
+	}
 
 	const char* dualWeaponList[6] = {
 		"weapon_dual_wrench",

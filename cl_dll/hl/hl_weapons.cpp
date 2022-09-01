@@ -92,6 +92,7 @@ CDualSMG g_DualSmg;
 CDualWrench g_DualWrench;
 CDualUsas g_DualUsas;
 CFreezeGun g_FreezeGun;
+CRocketCrowbar g_RocketCrowbar;
 
 /*
 ======================
@@ -691,6 +692,7 @@ void HUD_InitClientWeapons( void )
 	HUD_PrepEntity( &g_DualWrench	, &player );
 	HUD_PrepEntity( &g_DualUsas	, &player );
 	HUD_PrepEntity( &g_FreezeGun	, &player );
+	HUD_PrepEntity( &g_RocketCrowbar	, &player );
 }
 
 /*
@@ -910,6 +912,10 @@ void HUD_WeaponsPostThink( local_state_s *from, local_state_s *to, usercmd_t *cm
 
 		case WEAPON_FREEZEGUN:
 			pWeapon = &g_FreezeGun;
+			break;
+
+		case WEAPON_ROCKETCROWBAR:
+			pWeapon = &g_RocketCrowbar;
 			break;
 	}
 
