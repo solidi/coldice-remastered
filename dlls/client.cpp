@@ -690,7 +690,7 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_showtips 1\" - Show random text tips during play\n" );
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_shadows 1\" - Show rendered shadows underneath models\n" );
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_glowmodels 1\" - Show glow models is available\n" );
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_flashonpickup 1\" - Flash HUD when pickign up weapon or item\n" );
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_flashonpickup 1\" - Flash HUD when picking up weapon or item\n" );
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "For more, see readme.txt\n" );
 	}
 	else if ( FStrEq( pcmd, "help_server" )  )

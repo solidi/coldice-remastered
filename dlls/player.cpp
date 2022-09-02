@@ -46,6 +46,7 @@ extern DLL_GLOBAL	BOOL	g_fDrawLines;
 int gEvilImpulse101;
 extern DLL_GLOBAL int		g_iSkillLevel, gDisplayTitle;
 
+extern DLL_GLOBAL const char *g_MutatorInstaGib;
 
 BOOL gInitHUD = TRUE;
 
@@ -3594,6 +3595,12 @@ void CBasePlayer::GiveNamedItem( const char *pszName )
 
 	if (snowballfight.value) {
 		if (strncmp(pszName, "weapon_fists", 12) != 0 && strncmp(pszName, "weapon_snowball", 15) != 0) {
+			return;
+		}
+	}
+
+	if (strstr(mutators.string, g_MutatorInstaGib)) {
+		if (stricmp(pszName, "weapon_fists") != 0 && stricmp(pszName, "weapon_railgun") != 0) {
 			return;
 		}
 	}

@@ -36,6 +36,7 @@
 extern DLL_GLOBAL CGameRules	*g_pGameRules;
 extern DLL_GLOBAL BOOL	g_fGameOver;
 extern DLL_GLOBAL const char *g_MutatorRocketCrowbar;
+extern DLL_GLOBAL const char *g_MutatorInstaGib;
 extern int gmsgDeathMsg;	// client dll messages
 extern int gmsgScoreInfo;
 extern int gmsgMOTD;
@@ -178,6 +179,9 @@ void CHalfLifeMultiplay::RefreshSkillData( void )
 	// Snowball
 	if (snowballfight.value)
 		gSkillData.plrDmgSnowball = 250;
+	
+	if (strstr(mutators.string, g_MutatorInstaGib))
+		gSkillData.plrDmgRailgun = 800;
 }
 
 // longest the intermission can last, in seconds
@@ -659,6 +663,10 @@ void CHalfLifeMultiplay :: PlayerSpawn( CBasePlayer *pPlayer )
 
 	if (strstr(mutators.string, g_MutatorRocketCrowbar)) {
 		pPlayer->GiveNamedItem("weapon_rocketcrowbar");
+	}
+
+	if (strstr(mutators.string, g_MutatorInstaGib)) {
+		pPlayer->GiveNamedItem("weapon_railgun");
 		return;
 	}
 
@@ -1181,6 +1189,21 @@ BOOL CHalfLifeMultiplay::IsAllowedToSpawn( CBaseEntity *pEntity )
 		(strncmp(STRING(pEntity->pev->classname), "weapon_", 7) == 0 || strncmp(STRING(pEntity->pev->classname), "ammo_", 5) == 0))
 	{
 		return FALSE;
+	}
+
+	if (strstr(mutators.string, g_MutatorInstaGib) &&
+		(strncmp(STRING(pEntity->pev->classname), "weapon_", 7) == 0 || strncmp(STRING(pEntity->pev->classname), "ammo_", 5) == 0))
+	{	
+		if (stricmp(STRING(pEntity->pev->classname), "weapon_railgun") == 0 ||
+			stricmp(STRING(pEntity->pev->classname), "weapon_fists") == 0) {
+			return TRUE;
+		}
+
+		if (stricmp(STRING(pEntity->pev->classname), "ammo_gaussclip") != 0)
+		{
+			CBaseEntity::Create("ammo_gaussclip", pEntity->pev->origin, pEntity->pev->angles, pEntity->pev->owner);
+			return FALSE;
+		}
 	}
 
 	const char* dualWeaponList[6] = {
