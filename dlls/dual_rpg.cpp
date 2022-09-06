@@ -127,7 +127,7 @@ int CDualRpg::GetItemInfo(ItemInfo *p)
 	p->iMaxAmmo2 = ROCKET_MAX_CARRY;
 	p->iMaxClip = RPG_MAX_CLIP * 2;
 	p->iSlot = 5;
-	p->iPosition = 5;
+	p->iPosition = 6;
 	p->iId = m_iId = WEAPON_DUAL_RPG;
 	p->iFlags = 0;
 	p->iWeight = RPG_WEIGHT * 2;

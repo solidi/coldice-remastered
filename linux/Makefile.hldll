@@ -58,7 +58,8 @@ CFLAGS=$(BASE_CFLAGS)  $(ARCH_CFLAGS) $(DEBUG_CFLAGS) -DCLIENT_WEAPONS \
 		 -DDUALUSAS \
 		 -DFREEZEGUN \
 		 -DDUALMAG60 \
-		 -DROCKETCROWBAR
+		 -DROCKETCROWBAR \
+		 -DDUALRAILGUN
 
 #-O3 -ffast-math -fno-strength-reduce
 
@@ -104,6 +105,7 @@ HLDLL_OBJS = \
 	$(HLDLL_OBJ_DIR)/defaultai.o \
 	$(HLDLL_OBJ_DIR)/doors.o \
 	$(HLDLL_OBJ_DIR)/dual_deagle.o \
+	$(HLDLL_OBJ_DIR)/dual_railgun.o \
 	$(HLDLL_OBJ_DIR)/dual_rpg.o \
 	$(HLDLL_OBJ_DIR)/dual_mag60.o \
 	$(HLDLL_OBJ_DIR)/dual_smg.o \

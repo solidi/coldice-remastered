@@ -458,6 +458,7 @@ void W_Precache(void)
 	UTIL_PrecacheOtherWeapon( "weapon_dual_usas" );
 	UTIL_PrecacheOtherWeapon( "weapon_freezegun" );
 	UTIL_PrecacheOtherWeapon( "weapon_rocketcrowbar" );
+	UTIL_PrecacheOtherWeapon( "weapon_dual_railgun" );
 
 #if !defined( OEM_BUILD ) && !defined( HLDEMO_BUILD )
 	if ( g_pGameRules->IsDeathmatch() )
@@ -677,7 +678,7 @@ void CBasePlayerItem :: CheckRespawn ( void )
 CBaseEntity* CBasePlayerItem::Respawn( void )
 {
 	CBaseEntity *pNewWeapon = NULL;
-	const char* weaponsList[][10] = {
+	const char* weaponsList[][11] = {
 		{
 		// swing
 		"weapon_crowbar",
@@ -717,6 +718,7 @@ CBaseEntity* CBasePlayerItem::Respawn( void )
 		"weapon_rpg",
 		"weapon_dual_rpg",
 		"weapon_railgun",
+		"weapon_dual_railgun",
 		"weapon_cannon",
 		"weapon_gauss",
 		"weapon_egon",
@@ -743,6 +745,7 @@ CBaseEntity* CBasePlayerItem::Respawn( void )
 		"weapon_dual_mag60",
 		"weapon_dual_smg",
 		"weapon_dual_usas",
+		"weapon_dual_railgun",
 		"weapon_dual_rpg"
 		}
 	};
@@ -1894,6 +1897,10 @@ BOOL CWeaponBox::PackWeapon( CBasePlayerItem *pWeapon )
 		else if (pWeapon->m_iId == WEAPON_ROCKETCROWBAR)
 		{
 			SET_MODEL( ENT(pev), "models/w_rocketcrowbar.mdl");
+		}
+		else if (pWeapon->m_iId == WEAPON_DUAL_RAILGUN)
+		{
+			SET_MODEL( ENT(pev), "models/w_dual_railgun.mdl");
 		}
 
 		pev->sequence = 1;

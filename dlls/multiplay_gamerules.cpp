@@ -634,11 +634,12 @@ const char *pWeapons[] =
 	"weapon_nuke",
 	"weapon_deagle",
 	"weapon_dual_deagle",
-	"weapon_dual_rpg",
 	"weapon_dual_mag60",
 	"weapon_dual_smg",
 	"weapon_dual_wrench",
 	"weapon_dual_usas",
+	"weapon_dual_railgun",
+	"weapon_dual_rpg",
 	"weapon_freezegun",
 };
 
@@ -1195,6 +1196,7 @@ BOOL CHalfLifeMultiplay::IsAllowedToSpawn( CBaseEntity *pEntity )
 		(strncmp(STRING(pEntity->pev->classname), "weapon_", 7) == 0 || strncmp(STRING(pEntity->pev->classname), "ammo_", 5) == 0))
 	{	
 		if (stricmp(STRING(pEntity->pev->classname), "weapon_railgun") == 0 ||
+			stricmp(STRING(pEntity->pev->classname), "weapon_dual_railgun") == 0 ||
 			stricmp(STRING(pEntity->pev->classname), "weapon_fists") == 0) {
 			return TRUE;
 		}
