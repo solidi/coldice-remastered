@@ -123,14 +123,7 @@ void CRailgun::Holster( int skiplocal )
 
 void CRailgun::PrimaryAttack()
 {
-	if (m_pPlayer->pev->waterlevel == 3)
-	{
-		PlayEmptySound( );
-		m_flNextSecondaryAttack = m_flNextPrimaryAttack = gpGlobals->time + 0.15;
-		return;
-	}
-
-	if (m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] < 2)
+	if (m_pPlayer->pev->waterlevel == 3 || m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] < 2)
 	{
 		PlayEmptySound( );
 		m_flNextSecondaryAttack = m_flNextPrimaryAttack = gpGlobals->time + 0.15;
@@ -144,45 +137,62 @@ void CRailgun::PrimaryAttack()
 	StartFire();
 
 	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + UTIL_SharedRandomFloat( m_pPlayer->random_seed, 10, 15 );
-	m_flNextPrimaryAttack = gpGlobals->time + 1.0; 
+	m_flNextSecondaryAttack = m_flNextPrimaryAttack = gpGlobals->time + 1.0; 
+}
+
+void CRailgun::SecondaryAttack()
+{
+	if (m_pPlayer->pev->waterlevel == 3 || m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] < 2)
+	{
+		PlayEmptySound( );
+		m_flNextSecondaryAttack = m_flNextPrimaryAttack = gpGlobals->time + 0.15;
+		return;
+	}
+
+	m_pPlayer->m_iWeaponVolume = LOUD_GUN_VOLUME;
+
+	m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] -= 2;
+
+	StartFire();
+
+	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + UTIL_SharedRandomFloat( m_pPlayer->random_seed, 10, 15 );
+	m_flNextSecondaryAttack = m_flNextPrimaryAttack = gpGlobals->time + 0.5; 
 }
 
 void CRailgun::CreateTrail(Vector a, Vector b)
 {
 	CBeam *m_pBeam = CBeam::BeamCreate( RAIL_BEAM_SPRITE, 40 );
-	m_pBeam->PointsInit(a,b);
+	m_pBeam->PointsInit(b,a);
 	m_pBeam->SetFlags( BEAM_FSINE );
 	m_pBeam->SetColor( 0, 113, 230 );
-	m_pBeam->LiveForTime( 0.75 );
-	m_pBeam->SetScrollRate ( 10 );
+	m_pBeam->LiveForTime( 0.25 );
+	m_pBeam->SetScrollRate ( 12 );
 	m_pBeam->SetNoise( 20 );
 	m_pBeam->pev->spawnflags |= SF_BEAM_TEMPORARY;
 
 	CBeam *m_inBeam = CBeam::BeamCreate( RAIL_BEAM_SPRITE, 20 );
-	m_inBeam->PointsInit(a,b);
+	m_inBeam->PointsInit(b,a);
 	m_inBeam->SetFlags( BEAM_FSINE );
 	m_inBeam->SetColor( 200, 200, 200 );
 	m_inBeam->pev->spawnflags |= SF_BEAM_TEMPORARY;
-	m_inBeam->LiveForTime( 0.75 );
-	m_inBeam->SetScrollRate ( 10 );
+	m_inBeam->LiveForTime( 0.25 );
+	m_inBeam->SetScrollRate ( 12 );
 	m_inBeam->SetNoise( 10 );
 
 	CBeam *m_lBeam = CBeam::BeamCreate( RAIL_BEAM_SPRITE, 50 );
-	m_lBeam->PointsInit(a,b);
+	m_lBeam->PointsInit(b,a);
 	m_lBeam->SetFlags( BEAM_FSINE );
 	m_lBeam->SetColor( 200, 200, 200 );
-	m_lBeam->SetScrollRate ( 10 );
+	m_lBeam->SetScrollRate ( 12 );
 	m_lBeam->pev->spawnflags |= SF_BEAM_TEMPORARY;
-	m_lBeam->LiveForTime( 0.75 );
+	m_lBeam->LiveForTime( 0.25 );
 }
 
 void CRailgun::StartFire( void )
 {	
 	UTIL_MakeVectors( m_pPlayer->pev->v_angle + m_pPlayer->pev->punchangle );
+	Vector vecSrc = m_pPlayer->GetGunPosition();
 	Vector vecAiming = gpGlobals->v_forward;
-	Vector vecSrc = m_pPlayer->GetGunPosition( ); 
-
-	m_pPlayer->pev->punchangle.x = -20;
 
 	SendWeaponAnim( RAILGUN_FIRE2 );
 
@@ -191,37 +201,30 @@ void CRailgun::StartFire( void )
 
 	EMIT_SOUND(ENT(m_pPlayer->pev), CHAN_WEAPON, "railgun_fire.wav", 0.9, ATTN_NORM);
 
-	Fire( vecSrc, vecAiming, gSkillData.plrDmgRailgun );
+	Fire( vecSrc, vecAiming, (gpGlobals->v_up * -12 + gpGlobals->v_right * 12 + gpGlobals->v_forward * 32), gSkillData.plrDmgRailgun );
+
+	m_pPlayer->pev->punchangle.x = RANDOM_LONG(-5, -8);
 }
 
-void CRailgun::Fire( Vector vecOrigSrc, Vector vecDir, float flDamage )
+void CRailgun::Fire( Vector vecSrc, Vector vecDir, Vector effectSrc, float flDamage )
 {
 	m_pPlayer->m_iWeaponVolume = RAILGUN_PRIMARY_FIRE_VOLUME;
 
-	Vector vecSrc = vecOrigSrc;
-	Vector vecDest = vecSrc + vecDir * 4096;
-	edict_t *pentIgnore;
-	TraceResult tr, beam_tr;
-
-	pentIgnore = ENT(m_pPlayer->pev);
+	Vector vecDest = vecSrc + effectSrc + vecDir * 4096;
+	edict_t *pentIgnore = ENT(m_pPlayer->pev);
+	TraceResult tr;
 
 #ifndef CLIENT_DLL
-	int nMaxPunchThroughs = 5;
+	int nMaxPunchThroughs = RANDOM_LONG(2,4);
 	while (nMaxPunchThroughs > 0)
 	{
-		nMaxPunchThroughs--;
-
-		// Initial from players view
-		if (nMaxPunchThroughs == 4) {
-			vecSrc = vecSrc + gpGlobals->v_up * -12 + gpGlobals->v_right * 3 + gpGlobals->v_forward * 32;
-		}
-
 		UTIL_TraceLine(vecSrc, vecDest, dont_ignore_monsters, pentIgnore, &tr);
 		if (tr.flFraction > 0.02) // no trail when too close to an entity
-			CreateTrail(vecSrc, tr.vecEndPos);
+			CreateTrail(vecSrc + effectSrc, tr.vecEndPos);
 
-		if (tr.fAllSolid)
-			break;
+		effectSrc = Vector(0,0,0);
+		//if (tr.fAllSolid)
+		//	break;
 
 		CBaseEntity *pEntity = CBaseEntity::Instance(tr.pHit);
 
@@ -236,8 +239,6 @@ void CRailgun::Fire( Vector vecOrigSrc, Vector vecDir, float flDamage )
 		}
 		else
 		{
-			m_pPlayer->pev->velocity = m_pPlayer->pev->velocity - gpGlobals->v_forward * 200;
-
 			// Make some balls and a decal
 			DecalGunshot( &tr, BULLET_MONSTER_12MM );
 			
@@ -268,13 +269,15 @@ void CRailgun::Fire( Vector vecOrigSrc, Vector vecDir, float flDamage )
 				WRITE_BYTE( 20 );				    // speed * 100
 			MESSAGE_END();
 
-			nMaxPunchThroughs = 0; // hit end
+			nMaxPunchThroughs--; // only when through solids.
 		}
 
 		// Increase next position
 		vecSrc = tr.vecEndPos + vecDir;
 		pentIgnore = ENT(pEntity->pev);
 	}
+
+	m_pPlayer->pev->velocity = m_pPlayer->pev->velocity - gpGlobals->v_forward * 200;
 #endif
 }
 
@@ -307,4 +310,28 @@ void CRailgun::WeaponIdle( void )
 	}
 
 	SendWeaponAnim( iAnim );
+}
+
+void CRailgun::ProvideDualItem(CBasePlayer *pPlayer, const char *item) {
+	if (pPlayer == NULL || item == NULL) {
+		return;
+	}
+
+#ifndef CLIENT_DLL
+	CBasePlayerWeapon::ProvideDualItem(pPlayer, item);
+
+	if (!stricmp(item, "weapon_railgun")) {
+		if (!pPlayer->HasNamedPlayerItem("weapon_dual_railgun")) {
+#ifdef _DEBUG
+			ALERT(at_aiconsole, "Give weapon_dual_railgun!\n");
+#endif
+			pPlayer->GiveNamedItem("weapon_dual_railgun");
+			pPlayer->SelectItem("weapon_dual_railgun");
+		}
+	}
+#endif
+}
+
+void CRailgun::SwapDualWeapon( void ) {
+	m_pPlayer->SelectItem("weapon_dual_railgun");
 }

@@ -1368,16 +1368,20 @@ public:
 	void Holster( int skiplocal = 0 );
 
 	void PrimaryAttack( void );
+	void SecondaryAttack( void );
 	void WeaponIdle( void );
 
 	void StartFire( void );
-	void Fire( Vector vecOrigSrc, Vector vecDirShooting, float flDamage );
+	void Fire( Vector vecSrc, Vector vecDirShooting, Vector effectSrc, float flDamage );
 	int m_iBalls;
 	int m_iGlow;
 	int m_iBeam;
 
 	// rail, rail, rail
 	void CreateTrail(Vector,Vector);
+
+	void ProvideDualItem(CBasePlayer *pPlayer, const char *itemName);
+	void SwapDualWeapon( void );
 };
 
 class CDualRailgun : public CBasePlayerWeapon
