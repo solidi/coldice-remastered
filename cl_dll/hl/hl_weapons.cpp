@@ -72,6 +72,7 @@ CVest g_Vest;
 CChumtoad g_Chumtoad;
 CSniperRifle g_SniperRifle;
 CRailgun g_Railgun;
+CDualRailgun g_DualRailgun;
 CCannon g_Cannon;
 CMag60 g_Mag60;
 CChaingun g_Chaingun;
@@ -672,6 +673,7 @@ void HUD_InitClientWeapons( void )
 	HUD_PrepEntity( &g_Chumtoad	, &player );
 	HUD_PrepEntity( &g_SniperRifle	, &player );
 	HUD_PrepEntity( &g_Railgun	, &player );
+	HUD_PrepEntity( &g_DualRailgun	, &player );
 	HUD_PrepEntity( &g_Cannon	, &player );
 	HUD_PrepEntity( &g_Mag60	, &player );
 	HUD_PrepEntity( &g_Chaingun	, &player );
@@ -832,6 +834,10 @@ void HUD_WeaponsPostThink( local_state_s *from, local_state_s *to, usercmd_t *cm
 
 		case WEAPON_RAILGUN:
 			pWeapon = &g_Railgun;
+			break;
+
+		case WEAPON_DUAL_RAILGUN:
+			pWeapon = &g_DualRailgun;
 			break;
 
 		case WEAPON_CANNON:

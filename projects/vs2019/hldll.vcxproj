@@ -123,6 +123,7 @@
     <ClCompile Include="..\..\dlls\defaultai.cpp" />
     <ClCompile Include="..\..\dlls\doors.cpp" />
     <ClCompile Include="..\..\dlls\dual_deagle.cpp" />
+    <ClCompile Include="..\..\dlls\dual_railgun.cpp" />
     <ClCompile Include="..\..\dlls\dual_rpg.cpp" />
     <ClCompile Include="..\..\dlls\dual_mag60.cpp" />
     <ClCompile Include="..\..\dlls\dual_smg.cpp" />

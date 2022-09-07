@@ -29,43 +29,40 @@
 #define RAILGUN_PRIMARY_FIRE_VOLUME	450
 #define RAIL_BEAM_SPRITE "sprites/xbeam1.spr"
 
-enum railgun_e {
-	RAILGUN_IDLE = 0,
-	RAILGUN_IDLE2,
-	RAILGUN_FIDGET,
-	RAILGUN_SPINUP,
-	RAILGUN_SPIN,
-	RAILGUN_FIRE,
-	RAILGUN_FIRE2,
-	RAILGUN_HOLSTER,
-	RAILGUN_DRAW_LOWKEY,
-	RAILGUN_DRAW
+enum dual_railgun_e {
+	DUAL_RAILGUN_IDLE = 0,
+	DUAL_RAILGUN_FIRE_BOTH,
+	DUAL_RAILGUN_FIRE_RIGHT,
+	DUAL_RAILGUN_FIRE_LEFT,
+	DUAL_RAILGUN_HOLSTER,
+	DUAL_RAILGUN_DRAW_LOWKEY,
+	DUAL_RAILGUN_DRAW
 };
 
-#ifdef RAILGUN
-LINK_ENTITY_TO_CLASS( weapon_railgun, CRailgun );
+#ifdef DUALRAILGUN
+LINK_ENTITY_TO_CLASS( weapon_dual_railgun, CDualRailgun );
 #endif
 
 //=========================================================
 //=========================================================
 
-void CRailgun::Spawn( )
+void CDualRailgun::Spawn( )
 {
-	pev->classname = MAKE_STRING("weapon_railgun"); 
+	pev->classname = MAKE_STRING("weapon_dual_railgun"); 
 	Precache( );
-	m_iId = WEAPON_RAILGUN;
-	SET_MODEL(ENT(pev), "models/w_railgun.mdl");
+	m_iId = WEAPON_DUAL_RAILGUN;
+	SET_MODEL(ENT(pev), "models/w_dual_railgun.mdl");
 
-	m_iDefaultAmmo = RAILGUN_DEFAULT_GIVE;
+	m_iDefaultAmmo = RAILGUN_DEFAULT_GIVE * 2;
 
 	FallInit();
 }
 
-void CRailgun::Precache( void )
+void CDualRailgun::Precache( void )
 {
-	PRECACHE_MODEL("models/w_railgun.mdl");
-	PRECACHE_MODEL("models/v_railgun.mdl");
-	PRECACHE_MODEL("models/p_railgun.mdl");
+	PRECACHE_MODEL("models/w_dual_railgun.mdl");
+	PRECACHE_MODEL("models/v_dual_railgun.mdl");
+	PRECACHE_MODEL("models/p_dual_railgun.mdl");
 
 	PRECACHE_SOUND("railgun_fire.wav");
 	
@@ -75,7 +72,7 @@ void CRailgun::Precache( void )
 	m_iBeam = PRECACHE_MODEL ( "sprites/smoke.spr" );
 }
 
-int CRailgun::AddToPlayer( CBasePlayer *pPlayer )
+int CDualRailgun::AddToPlayer( CBasePlayer *pPlayer )
 {
 	if ( CBasePlayerWeapon::AddToPlayer( pPlayer ) )
 	{
@@ -87,7 +84,7 @@ int CRailgun::AddToPlayer( CBasePlayer *pPlayer )
 	return FALSE;
 }
 
-int CRailgun::GetItemInfo(ItemInfo *p)
+int CDualRailgun::GetItemInfo(ItemInfo *p)
 {
 	p->pszName = STRING(pev->classname);
 	p->pszAmmo1 = "uranium";
@@ -95,35 +92,42 @@ int CRailgun::GetItemInfo(ItemInfo *p)
 	p->pszAmmo2 = NULL;
 	p->iMaxAmmo2 = -1;
 	p->iMaxClip = WEAPON_NOCLIP;
-	p->iSlot = 3;
-	p->iPosition = 4;
-	p->iId = m_iId = WEAPON_RAILGUN;
+	p->iSlot = 5;
+	p->iPosition = 5;
+	p->iId = m_iId = WEAPON_DUAL_RAILGUN;
 	p->iFlags = 0;
-	p->iWeight = RAILGUN_WEIGHT;
-	p->pszDisplayName = "Quake II Railgun";
+	p->iWeight = RAILGUN_WEIGHT * 2;
+	p->pszDisplayName = "Quake II Railguns";
 
 	return 1;
 }
 
-BOOL CRailgun::DeployLowKey( )
+BOOL CDualRailgun::DeployLowKey( )
 {
-	return DefaultDeploy( "models/v_railgun.mdl", "models/p_railgun.mdl", RAILGUN_DRAW_LOWKEY, "gauss" );
+	return DefaultDeploy( "models/v_dual_railgun.mdl", "models/p_dual_railgun.mdl", DUAL_RAILGUN_DRAW_LOWKEY, "dual_shotgun" );
 }
 
-BOOL CRailgun::Deploy( )
+BOOL CDualRailgun::Deploy( )
 {
-	return DefaultDeploy( "models/v_railgun.mdl", "models/p_railgun.mdl", RAILGUN_DRAW, "gauss" );
+	return DefaultDeploy( "models/v_dual_railgun.mdl", "models/p_dual_railgun.mdl", DUAL_RAILGUN_DRAW, "dual_shotgun" );
 }
 
-void CRailgun::Holster( int skiplocal )
+void CDualRailgun::Holster( int skiplocal )
 {
 	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 0.5;
-	SendWeaponAnim( RAILGUN_HOLSTER );
+	SendWeaponAnim( DUAL_RAILGUN_HOLSTER );
 }
 
-void CRailgun::PrimaryAttack()
+void CDualRailgun::PrimaryAttack()
 {
-	if (m_pPlayer->pev->waterlevel == 3 || m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] < 2)
+	if (m_pPlayer->pev->waterlevel == 3)
+	{
+		PlayEmptySound( );
+		m_flNextSecondaryAttack = m_flNextPrimaryAttack = gpGlobals->time + 0.15;
+		return;
+	}
+
+	if (m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] < 2)
 	{
 		PlayEmptySound( );
 		m_flNextSecondaryAttack = m_flNextPrimaryAttack = gpGlobals->time + 0.15;
@@ -134,32 +138,59 @@ void CRailgun::PrimaryAttack()
 
 	m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] -= 2;
 
-	StartFire();
-
-	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + UTIL_SharedRandomFloat( m_pPlayer->random_seed, 10, 15 );
-	m_flNextSecondaryAttack = m_flNextPrimaryAttack = gpGlobals->time + 1.0; 
-}
-
-void CRailgun::SecondaryAttack()
-{
-	if (m_pPlayer->pev->waterlevel == 3 || m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] < 2)
-	{
-		PlayEmptySound( );
-		m_flNextSecondaryAttack = m_flNextPrimaryAttack = gpGlobals->time + 0.15;
-		return;
+	int right = 16;
+	if (m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] % 4 == 0) {
+		SendWeaponAnim( DUAL_RAILGUN_FIRE_RIGHT );
+	} else {
+		SendWeaponAnim( DUAL_RAILGUN_FIRE_LEFT );
+		right = -12;
 	}
-
-	m_pPlayer->m_iWeaponVolume = LOUD_GUN_VOLUME;
-
-	m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] -= 2;
-
-	StartFire();
+	UTIL_MakeVectors( m_pPlayer->pev->v_angle + m_pPlayer->pev->punchangle );
+	Vector vecAiming = gpGlobals->v_forward;
+	Vector vecSrc = m_pPlayer->GetGunPosition();
+	StartFire(vecAiming, vecSrc, (gpGlobals->v_up * -12 + gpGlobals->v_right * right + gpGlobals->v_forward * 32));
+	m_pPlayer->pev->punchangle.x = RANDOM_LONG(-5, -8);
 
 	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + UTIL_SharedRandomFloat( m_pPlayer->random_seed, 10, 15 );
 	m_flNextSecondaryAttack = m_flNextPrimaryAttack = gpGlobals->time + 0.5; 
 }
 
-void CRailgun::CreateTrail(Vector a, Vector b)
+void CDualRailgun::SecondaryAttack()
+{
+	if (m_pPlayer->pev->waterlevel == 3 || m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] < 2)
+	{
+		PlayEmptySound( );
+		m_flNextSecondaryAttack = m_flNextPrimaryAttack = gpGlobals->time + 0.15;
+		return;
+	}
+
+	m_pPlayer->m_iWeaponVolume = LOUD_GUN_VOLUME;
+
+	m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] -= 4;
+
+	UTIL_MakeVectors( m_pPlayer->pev->v_angle + m_pPlayer->pev->punchangle );
+	Vector vecAiming = gpGlobals->v_forward;
+	Vector vecSrc = m_pPlayer->GetGunPosition();
+	SendWeaponAnim( DUAL_RAILGUN_FIRE_BOTH );
+	
+	StartFire(vecAiming, vecSrc, (gpGlobals->v_up * -12 + gpGlobals->v_right * 16 + gpGlobals->v_forward * 32));
+	SetThink( &CDualRailgun::FireThink );
+	pev->nextthink = gpGlobals->time + 0.2;
+
+	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + UTIL_SharedRandomFloat( m_pPlayer->random_seed, 10, 15 );
+	m_flNextSecondaryAttack = m_flNextPrimaryAttack = gpGlobals->time + 0.75; 
+}
+
+void CDualRailgun::FireThink( void )
+{
+	UTIL_MakeVectors( m_pPlayer->pev->v_angle );
+	Vector vecAiming = gpGlobals->v_forward;
+	Vector vecSrc = m_pPlayer->GetGunPosition();
+	StartFire(vecAiming, vecSrc, (gpGlobals->v_up * -12 + gpGlobals->v_right * -12 + gpGlobals->v_forward * 32));
+	m_pPlayer->pev->punchangle.x = RANDOM_LONG(-8, -12);
+}
+
+void CDualRailgun::CreateTrail(Vector a, Vector b)
 {
 	CBeam *m_pBeam = CBeam::BeamCreate( RAIL_BEAM_SPRITE, 40 );
 	m_pBeam->PointsInit(b,a);
@@ -188,25 +219,17 @@ void CRailgun::CreateTrail(Vector a, Vector b)
 	m_lBeam->LiveForTime( 0.25 );
 }
 
-void CRailgun::StartFire( void )
+void CDualRailgun::StartFire( Vector vecAiming, Vector vecSrc, Vector effectSrc)
 {	
-	UTIL_MakeVectors( m_pPlayer->pev->v_angle + m_pPlayer->pev->punchangle );
-	Vector vecSrc = m_pPlayer->GetGunPosition();
-	Vector vecAiming = gpGlobals->v_forward;
-
-	SendWeaponAnim( RAILGUN_FIRE2 );
-
 	m_pPlayer->pev->effects = (int)(m_pPlayer->pev->effects) | EF_MUZZLEFLASH;
 	m_pPlayer->SetAnimation( PLAYER_ATTACK1 );
 
 	EMIT_SOUND(ENT(m_pPlayer->pev), CHAN_WEAPON, "railgun_fire.wav", 0.9, ATTN_NORM);
 
-	Fire( vecSrc, vecAiming, (gpGlobals->v_up * -12 + gpGlobals->v_right * 12 + gpGlobals->v_forward * 32), gSkillData.plrDmgRailgun );
-
-	m_pPlayer->pev->punchangle.x = RANDOM_LONG(-5, -8);
+	Fire( vecSrc, vecAiming, effectSrc, gSkillData.plrDmgRailgun );
 }
 
-void CRailgun::Fire( Vector vecSrc, Vector vecDir, Vector effectSrc, float flDamage )
+void CDualRailgun::Fire( Vector vecSrc, Vector vecDir, Vector effectSrc, float flDamage )
 {
 	m_pPlayer->m_iWeaponVolume = RAILGUN_PRIMARY_FIRE_VOLUME;
 
@@ -281,7 +304,7 @@ void CRailgun::Fire( Vector vecSrc, Vector vecDir, Vector effectSrc, float flDam
 #endif
 }
 
-void CRailgun::WeaponIdle( void )
+void CDualRailgun::WeaponIdle( void )
 {
 	ResetEmptySound( );
 
@@ -291,47 +314,25 @@ void CRailgun::WeaponIdle( void )
 	if ( m_pPlayer->pev->button & IN_IRONSIGHT )
 		return;
 
-	int iAnim;
-	float flRand = RANDOM_FLOAT(0, 1);
-	if (flRand <= 0.5)
-	{
-		iAnim = RAILGUN_IDLE;
-		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + UTIL_SharedRandomFloat( m_pPlayer->random_seed, 10, 15 );
-	}
-	else if (flRand <= 0.75)
-	{
-		iAnim = RAILGUN_IDLE2;
-		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + UTIL_SharedRandomFloat( m_pPlayer->random_seed, 10, 15 );
-	}
-	else
-	{
-		iAnim = RAILGUN_FIDGET;
-		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 3;
-	}
-
-	SendWeaponAnim( iAnim );
+	SendWeaponAnim( DUAL_RAILGUN_IDLE );
 }
 
-void CRailgun::ProvideDualItem(CBasePlayer *pPlayer, const char *item) {
-	if (pPlayer == NULL || item == NULL) {
+void CDualRailgun::ProvideSingleItem(CBasePlayer *pPlayer, const char *item) {
+	if (item == NULL) {
 		return;
 	}
 
 #ifndef CLIENT_DLL
-	CBasePlayerWeapon::ProvideDualItem(pPlayer, item);
-
-	if (!stricmp(item, "weapon_railgun")) {
-		if (!pPlayer->HasNamedPlayerItem("weapon_dual_railgun")) {
-#ifdef _DEBUG
-			ALERT(at_aiconsole, "Give weapon_dual_railgun!\n");
-#endif
-			pPlayer->GiveNamedItem("weapon_dual_railgun");
+	if (!stricmp(item, "weapon_dual_railgun")) {
+		if (!pPlayer->HasNamedPlayerItem("weapon_railgun")) {
+			ALERT(at_aiconsole, "Give weapon_railgun!\n");
+			pPlayer->GiveNamedItem("weapon_railgun");
 			pPlayer->SelectItem("weapon_dual_railgun");
 		}
 	}
 #endif
 }
 
-void CRailgun::SwapDualWeapon( void ) {
-	m_pPlayer->SelectItem("weapon_dual_railgun");
+void CDualRailgun::SwapDualWeapon( void ) {
+	m_pPlayer->SelectItem("weapon_railgun");
 }

@@ -105,6 +105,9 @@
     <ClCompile Include="..\..\dlls\doors.cpp">
       <Filter>Source Files\dlls</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\dlls\dual_railgun.cpp">
+      <Filter>Source Files\dlls</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\dlls\effects.cpp">
       <Filter>Source Files\dlls</Filter>
     </ClCompile>

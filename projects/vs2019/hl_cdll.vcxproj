@@ -167,6 +167,7 @@
     <ClCompile Include="..\..\dlls\crowbar.cpp" />
     <ClCompile Include="..\..\dlls\deagle.cpp" />
     <ClCompile Include="..\..\dlls\dual_deagle.cpp" />
+    <ClCompile Include="..\..\dlls\dual_railgun.cpp" />
     <ClCompile Include="..\..\dlls\dual_rpg.cpp" />
     <ClCompile Include="..\..\dlls\dual_mag60.cpp" />
     <ClCompile Include="..\..\dlls\dual_smg.cpp" />

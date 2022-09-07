@@ -46,6 +46,7 @@ extern DLL_GLOBAL	BOOL	g_fDrawLines;
 int gEvilImpulse101;
 extern DLL_GLOBAL int		g_iSkillLevel, gDisplayTitle;
 
+extern DLL_GLOBAL const char *g_MutatorInstaGib;
 
 BOOL gInitHUD = TRUE;
 
@@ -3598,6 +3599,14 @@ void CBasePlayer::GiveNamedItem( const char *pszName )
 		}
 	}
 
+	if (strstr(mutators.string, g_MutatorInstaGib)) {
+		if (stricmp(pszName, "weapon_fists") != 0 &&
+			stricmp(pszName, "weapon_railgun") != 0 &&
+			stricmp(pszName, "weapon_dual_railgun") != 0) {
+			return;
+		}
+	}
+
 	pent = CREATE_NAMED_ENTITY(istr);
 	if ( FNullEnt( pent ) )
 	{
@@ -4113,6 +4122,7 @@ void CBasePlayer::CheatImpulseCommands( int iImpulse, BOOL m_iFromClient )
 		GiveNamedItem( "weapon_dual_usas" );
 		GiveNamedItem( "weapon_freezegun" );
 		GiveNamedItem( "weapon_rocketcrowbar" );
+		GiveNamedItem( "weapon_dual_railgun" );
 #endif
 		gEvilImpulse101 = FALSE;
 		break;

@@ -39,3 +39,4 @@ DLL_GLOBAL const Vector	g_vecZero = Vector(0,0,0);
 DLL_GLOBAL int			g_Language;
 
 DLL_GLOBAL const char *g_MutatorRocketCrowbar = "rocketcrowbar";
+DLL_GLOBAL const char *g_MutatorInstaGib = "instagib";

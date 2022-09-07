@@ -110,6 +110,7 @@ public:
 #define WEAPON_FREEZEGUN		39
 #define WEAPON_DUAL_MAG60		40
 #define WEAPON_ROCKETCROWBAR	41
+#define WEAPON_DUAL_RAILGUN		42
 
 #define WEAPON_ALLWEAPONS		(~(1<<WEAPON_SUIT))
 
@@ -1367,16 +1368,52 @@ public:
 	void Holster( int skiplocal = 0 );
 
 	void PrimaryAttack( void );
+	void SecondaryAttack( void );
 	void WeaponIdle( void );
 
 	void StartFire( void );
-	void Fire( Vector vecOrigSrc, Vector vecDirShooting, float flDamage );
+	void Fire( Vector vecSrc, Vector vecDirShooting, Vector effectSrc, float flDamage );
 	int m_iBalls;
 	int m_iGlow;
 	int m_iBeam;
 
 	// rail, rail, rail
 	void CreateTrail(Vector,Vector);
+
+	void ProvideDualItem(CBasePlayer *pPlayer, const char *itemName);
+	void SwapDualWeapon( void );
+};
+
+class CDualRailgun : public CBasePlayerWeapon
+{
+public:
+
+	void Spawn( void );
+	void Precache( void );
+	int iItemSlot( void ) { return 6; }
+	int GetItemInfo(ItemInfo *p);
+	int AddToPlayer( CBasePlayer *pPlayer );
+
+	BOOL DeployLowKey( void );
+	BOOL Deploy( void );
+	void Holster( int skiplocal = 0 );
+
+	void PrimaryAttack( void );
+	void SecondaryAttack( void );
+	void FireThink( void );
+	void WeaponIdle( void );
+
+	void StartFire( Vector vecAiming, Vector vecSrc, Vector effectSrc);
+	void Fire( Vector vecSrc, Vector vecDirShooting, Vector effectSrc, float flDamage );
+	int m_iBalls;
+	int m_iGlow;
+	int m_iBeam;
+
+	// rail, rail, rail
+	void CreateTrail(Vector,Vector);
+
+	void ProvideSingleItem(CBasePlayer *pPlayer, const char *itemName);
+	void SwapDualWeapon( void );
 };
 
 class CCannon : public CBasePlayerWeapon
