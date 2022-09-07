@@ -139,7 +139,7 @@ void CDualRailgun::PrimaryAttack()
 	m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] -= 2;
 
 	int right = 16;
-	if (RANDOM_LONG(0,1)) {
+	if (m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] % 4 == 0) {
 		SendWeaponAnim( DUAL_RAILGUN_FIRE_RIGHT );
 	} else {
 		SendWeaponAnim( DUAL_RAILGUN_FIRE_LEFT );
