@@ -718,6 +718,7 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_mutators\" - Add mutators to gameplay\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_mutators \"rocketcrowbar\"\" - includes rocket crowbar on spawn, makes all rockets act drunk\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_mutators \"instagib\"\" - battle exclusively with railguns that dole one hit kills\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_mutators \"volatile\"\" - where players blow up when fragged\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_spawnweapons\" - Spawn weapons or not\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "For more, see readme.txt\n" );
 	}
