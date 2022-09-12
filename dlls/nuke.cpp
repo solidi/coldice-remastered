@@ -121,7 +121,7 @@ void CNukeRocket::Killed(entvars_t *pevAttacker, int iGib) {
 		WRITE_COORD(pev->origin.x);
 		WRITE_COORD(pev->origin.y);
 		WRITE_COORD(pev->origin.z + 32 + pev->dmg * 2 / .2); // reach damage radius over .3 seconds
-		WRITE_SHORT(PRECACHE_MODEL( "sprites/lgtning.spr" ));
+		WRITE_SHORT(g_sModelLightning);
 		WRITE_BYTE( 0 ); // startframe
 		WRITE_BYTE( 0 ); // framerate
 		WRITE_BYTE( 1000 ); // life
@@ -151,7 +151,7 @@ void CNukeRocket::Killed(entvars_t *pevAttacker, int iGib) {
 		WRITE_COORD(pev->origin.x);
 		WRITE_COORD(pev->origin.y);
 		WRITE_COORD(pev->origin.z + 32 + pev->dmg * 2 / .2); // reach damage radius over .3 seconds
-		WRITE_SHORT(PRECACHE_MODEL( "sprites/lgtning.spr" ));
+		WRITE_SHORT(g_sModelLightning);
 		WRITE_BYTE( 0 ); // startframe
 		WRITE_BYTE( 0 ); // framerate
 		WRITE_BYTE( 1000 ); // life

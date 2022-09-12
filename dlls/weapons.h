@@ -495,6 +495,7 @@ extern DLL_GLOBAL	short 	g_sModelIndexIceFireball;
 extern DLL_GLOBAL	short 	g_sModelIndexFire;
 extern DLL_GLOBAL	short 	g_sModelIndexIceFire;
 extern DLL_GLOBAL	short	g_sModelConcreteGibs;
+extern DLL_GLOBAL	short	g_sModelLightning;
 
 extern void ClearMultiDamage(void);
 extern void ApplyMultiDamage(entvars_t* pevInflictor, entvars_t* pevAttacker );

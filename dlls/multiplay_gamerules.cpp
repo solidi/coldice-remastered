@@ -37,6 +37,7 @@ extern DLL_GLOBAL CGameRules	*g_pGameRules;
 extern DLL_GLOBAL BOOL	g_fGameOver;
 extern DLL_GLOBAL const char *g_MutatorRocketCrowbar;
 extern DLL_GLOBAL const char *g_MutatorInstaGib;
+extern DLL_GLOBAL const char *g_MutatorVolatile;
 extern int gmsgDeathMsg;	// client dll messages
 extern int gmsgScoreInfo;
 extern int gmsgMOTD;
@@ -813,6 +814,16 @@ void CHalfLifeMultiplay :: PlayerKilled( CBasePlayer *pVictim, entvars_t *pKille
 		DeactivateSatchels( pVictim );
 	}
 #endif
+
+	if (strstr(mutators.string, g_MutatorVolatile)) {
+		// No echo boom
+		if (pInflictor && FClassnameIs(pInflictor, "vest"))
+			return;
+		CGrenade::Vest( pVictim->pev, pVictim->pev->origin );
+		pVictim->pev->solid = SOLID_NOT;
+		pVictim->GibMonster();
+		pVictim->pev->effects |= EF_NODRAW;
+	}
 }
 
 //=========================================================

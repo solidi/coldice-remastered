@@ -66,8 +66,6 @@ void CVest::Precache( void )
 	PRECACHE_SOUND("vest_attack.wav");
 	PRECACHE_SOUND("vest_alive.wav");
 	PRECACHE_SOUND("vest_equip.wav");
-
-	m_iLightning = PRECACHE_MODEL( "sprites/lgtning.spr" );
 }
 
 int CVest::GetItemInfo(ItemInfo *p)
@@ -166,7 +164,7 @@ void CVest::GoneThink() {
 #ifndef CLIENT_DLL
 	if (allowvoiceovers.value)
 		STOP_SOUND(ENT(m_pPlayer->pev), CHAN_VOICE, "vest_attack.wav");
-#endif
+
 	MESSAGE_BEGIN( MSG_PVS, SVC_TEMPENTITY, m_pPlayer->pev->origin );
 		WRITE_BYTE( TE_BEAMCYLINDER );
 		WRITE_COORD( m_pPlayer->pev->origin.x);
@@ -175,7 +173,7 @@ void CVest::GoneThink() {
 		WRITE_COORD( m_pPlayer->pev->origin.x);
 		WRITE_COORD( m_pPlayer->pev->origin.y);
 		WRITE_COORD( m_pPlayer->pev->origin.z + 600 );
-		WRITE_SHORT( m_iLightning );
+		WRITE_SHORT( g_sModelLightning );
 		WRITE_BYTE( 0 ); // startframe
 		WRITE_BYTE( 0 ); // framerate
 		WRITE_BYTE( 4 ); // life
@@ -187,6 +185,7 @@ void CVest::GoneThink() {
 		WRITE_BYTE( 128 ); // brightness
 		WRITE_BYTE( 0 );		// speed
 	MESSAGE_END();
+#endif
 }
 
 void CVest::SecondaryAttack()
