@@ -22,6 +22,16 @@
 #include "StudioModelRenderer.h"
 #include "GameStudioModelRenderer.h"
 
+#include "event_api.h"
+#include "view.h"
+
+#include "PlatformHeaders.h"
+
+#ifdef WIN32
+#include <gl/GL.h>
+#include <gl/GLU.h>
+#endif
+
 extern cvar_t *tfc_newmodels;
 extern cvar_t *m_pIceModels;
 
@@ -37,6 +47,8 @@ int m_nPlayerGaitSequences[MAX_CLIENTS];
 
 // Global engine <-> studio model rendering code interface
 engine_studio_api_t IEngineStudio;
+
+extern ref_params_t g_ViewParams;
 
 #ifdef _WIN32
 void (*GL_StudioDrawShadow)(void);
@@ -80,6 +92,57 @@ void CStudioModelRenderer::Init( void )
 	m_plighttransform		= (float (*)[MAXSTUDIOBONES][3][4])IEngineStudio.StudioGetLightTransform();
 	m_paliastransform		= (float (*)[3][4])IEngineStudio.StudioGetAliasTransform();
 	m_protationmatrix		= (float (*)[3][4])IEngineStudio.StudioGetRotationMatrix();
+}
+
+Vector VectorInvertPitch(const Vector in)
+{
+	return Vector(-in[0], in[1], in[2]);
+}
+
+/*
+====================
+StudioDrawPlayerKick
+====================
+*/
+void CStudioModelRenderer::StudioDrawPlayerKick()
+{
+	cl_entity_t* view = gEngfuncs.GetViewModel();
+	static bool bFirstdraw = true;
+	cl_entity_t *player = gEngfuncs.GetLocalPlayer();
+	if (!view || !player)
+		return;
+
+	static cl_entity_t kickmodel = *player;
+
+	if ((player->curstate.eflags & EFLAG_PLAYERSLIDE) == 0)
+	{
+		bFirstdraw = true;
+		return;
+	}
+
+	if (bFirstdraw)
+	{
+		kickmodel = *player;
+		kickmodel.curstate.animtime = m_clTime;
+		kickmodel.curstate.frame = 0;
+		kickmodel.curstate.sequence = 1;
+		kickmodel.curstate.skin = m_pIceModels->value;
+		bFirstdraw = false;
+
+		gEngfuncs.pEventAPI->EV_PlaySound(player->index, view->origin, CHAN_WEAPON, "zombie/claw_miss2.wav", 1, ATTN_NORM, 0, PITCH_NORM);
+
+		V_PunchAxis(0, 1.0f);
+		V_PunchAxis(0, 1.0f);
+	}
+
+	kickmodel.origin = g_ViewParams.vieworg;
+	kickmodel.angles = kickmodel.curstate.angles = VectorInvertPitch(g_ViewParams.cl_viewangles);
+	kickmodel.model = IEngineStudio.Mod_ForName("models/v_dual_leg.mdl", 1);
+
+	m_pCurrentEntity = &kickmodel;
+	glDepthRange(0.0, 0.4);
+	StudioDrawModel(STUDIO_RENDER);
+	glDepthRange(0.0, 1.0);
 }
 
 /*
@@ -1181,7 +1244,7 @@ int CStudioModelRenderer::StudioDrawModel( int flags )
 	alight_t lighting;
 	vec3_t dir;
 
-	m_pCurrentEntity = IEngineStudio.GetCurrentEntity();
+	//m_pCurrentEntity = IEngineStudio.GetCurrentEntity();
 	IEngineStudio.GetTimes( &m_nFrameCount, &m_clTime, &m_clOldTime );
 	IEngineStudio.GetViewInfo( m_vRenderOrigin, m_vUp, m_vRight, m_vNormal );
 	IEngineStudio.GetAliasScale( &m_fSoftwareXScale, &m_fSoftwareYScale );

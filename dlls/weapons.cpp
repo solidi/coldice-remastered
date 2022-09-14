@@ -866,9 +866,9 @@ BOOL CanAttack( float attack_time, float curtime, BOOL isPredicted )
 
 void CBasePlayerWeapon::ItemPostFrame( void )
 {
-	if (m_pPlayer->m_fSelacoTime > gpGlobals->time) {
+	/*if (m_pPlayer->m_fSelacoTime > gpGlobals->time) {
 		return;
-	}
+	}*/
 
 	if (infiniteammo.value) {
 		if (infiniteammo.value == 1)
@@ -899,6 +899,10 @@ void CBasePlayerWeapon::ItemPostFrame( void )
 
 	if ((m_pPlayer->pev->button & IN_ATTACK2) && CanAttack( m_flNextSecondaryAttack, gpGlobals->time, UseDecrement() ) )
 	{
+		/*if (m_pPlayer->m_fSelacoTime > gpGlobals->time) {
+			if (m_pPlayer->m_pActiveItem) m_pPlayer->m_pActiveItem->DeployLowKey();
+		}*/
+
 		if ( pszAmmo2() && !m_pPlayer->m_rgAmmo[SecondaryAmmoIndex()] )
 		{
 			m_fFireOnEmpty = TRUE;
@@ -920,6 +924,10 @@ void CBasePlayerWeapon::ItemPostFrame( void )
 	}
 	else if ((m_pPlayer->pev->button & IN_ATTACK) && CanAttack( m_flNextPrimaryAttack, gpGlobals->time, UseDecrement() ) )
 	{
+		/*if (m_pPlayer->m_fSelacoTime > gpGlobals->time) {
+			if (m_pPlayer->m_pActiveItem) m_pPlayer->m_pActiveItem->DeployLowKey();
+		}*/
+
 		if ( (m_iClip == 0 && pszAmmo1()) || (iMaxClip() == -1 && !m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()] ) )
 		{
 			m_fFireOnEmpty = TRUE;

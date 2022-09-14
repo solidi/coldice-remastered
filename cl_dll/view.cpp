@@ -62,6 +62,7 @@ extern engine_studio_api_t IEngineStudio;
 extern kbutton_t	in_mlook;
 
 float g_xP, g_yP;
+ref_params_t g_ViewParams;
 
 /*
 The view is allowed to move slightly from it's true position for bobbing,
@@ -1731,6 +1732,8 @@ void CL_DLLEXPORT V_CalcRefdef( struct ref_params_s *pparams )
 #endif
 		V_CalcNormalRefdef ( pparams );
 	}
+
+	g_ViewParams = *pparams;
 
 /*
 // Example of how to overlay the whole screen with red at 50 % alpha

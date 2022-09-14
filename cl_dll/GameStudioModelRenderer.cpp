@@ -1,4 +1,4 @@
-//========= Copyright © 1996-2002, Valve LLC, All rights reserved. ============
+//========= Copyright ï¿½ 1996-2002, Valve LLC, All rights reserved. ============
 //
 // Purpose: 
 //
@@ -71,6 +71,7 @@ R_StudioDrawModel
 */
 int R_StudioDrawModel( int flags )
 {
+	g_StudioRenderer.m_pCurrentEntity = IEngineStudio.GetCurrentEntity();
 	return g_StudioRenderer.StudioDrawModel( flags );
 }
 

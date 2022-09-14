@@ -357,7 +357,7 @@ void CBasePlayerWeapon::ItemPostFrame( void )
 
 	// Don't fire weapon during sliding
 	if (g_SlideTime > gEngfuncs.GetClientTime()) {
-		return;
+		//return;
 	}
 
 	if ((m_fInReload) && (m_pPlayer->m_flNextAttack <= 0.0))
@@ -377,6 +377,12 @@ void CBasePlayerWeapon::ItemPostFrame( void )
 
 	if ((m_pPlayer->pev->button & IN_ATTACK2) && (m_flNextSecondaryAttack <= 0.0))
 	{
+		/*
+		if (g_SlideTime > gEngfuncs.GetClientTime()) {
+			m_pPlayer->SelectLastItem();
+			g_SlideTime = 0;
+		}*/
+
 		if ( pszAmmo2() && !m_pPlayer->m_rgAmmo[SecondaryAmmoIndex()] )
 		{
 			m_fFireOnEmpty = TRUE;
@@ -393,6 +399,12 @@ void CBasePlayerWeapon::ItemPostFrame( void )
 	}
 	else if ((m_pPlayer->pev->button & IN_ATTACK) && (m_flNextPrimaryAttack <= 0.0))
 	{
+		/*
+		if (g_SlideTime > gEngfuncs.GetClientTime()) {
+			m_pPlayer->SelectLastItem();
+			g_SlideTime = 0;
+		}*/
+
 		if ( (m_iClip == 0 && pszAmmo1()) || (iMaxClip() == -1 && !m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()] ) )
 		{
 			m_fFireOnEmpty = TRUE;

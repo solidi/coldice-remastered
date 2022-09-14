@@ -1243,6 +1243,8 @@ int AddToFullPack( struct entity_state_s *state, int e, edict_t *ent, edict_t *h
 {
 	int					i;
 
+	auto entity = reinterpret_cast<CBaseEntity*>(GET_PRIVATE(ent));
+
 	// don't send if flagged for NODRAW and it's not the host getting the message
 	if ( ( ent->v.effects & EF_NODRAW ) &&
 		 ( ent != host ) )
@@ -1346,6 +1348,8 @@ int AddToFullPack( struct entity_state_s *state, int e, edict_t *ent, edict_t *h
 	{
 		state->eflags |= EFLAG_SLERP;
 	}
+
+	state->eflags = entity->m_EFlags;
 
 	state->scale	  = ent->v.scale;
 	state->solid	  = ent->v.solid;
