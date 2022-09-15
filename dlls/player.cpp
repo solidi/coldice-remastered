@@ -3359,6 +3359,9 @@ void CBasePlayer::SelectItem(const char *pstr)
 	if (!pstr)
 		return;
 
+	if (!ShouldWeaponSwitch())
+		return;
+
 	CBasePlayerItem *pItem = NULL;
 
 	for (int i = 0; i < MAX_ITEM_TYPES; i++)
@@ -5257,6 +5260,11 @@ BOOL CBasePlayer :: SwitchWeapon( CBasePlayerItem *pWeapon )
 	}
 
 	return TRUE;
+}
+
+BOOL CBasePlayer::ShouldWeaponSwitch()
+{
+	return 0 != m_iAutoWepSwitch;
 }
 
 //=========================================================
