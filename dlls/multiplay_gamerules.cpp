@@ -338,7 +338,7 @@ BOOL CHalfLifeMultiplay::FShouldSwitchWeapon( CBasePlayer *pPlayer, CBasePlayerI
 		return FALSE;
 	}
 
-	if ( pWeapon->iWeight() > pPlayer->m_pActiveItem->iWeight() )
+	if ( pPlayer->ShouldWeaponSwitch() && pWeapon->iWeight() > pPlayer->m_pActiveItem->iWeight() )
 	{
 		return TRUE;
 	}

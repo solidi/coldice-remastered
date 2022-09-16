@@ -230,6 +230,8 @@ public:
 	BOOL m_fSelacoHit;
 	float m_fSelacoLastX, m_fSelacoLastY;
 
+	int m_iAutoWepSwitch;
+
 	CBaseEntity *pHeldItem;
 	BOOL m_iHoldingItem;
 
@@ -269,6 +271,7 @@ public:
 	void PackDeadPlayerItems( void );
 	void RemoveAllItems( BOOL removeSuit );
 	BOOL SwitchWeapon( CBasePlayerItem *pWeapon );
+	BOOL ShouldWeaponSwitch();
 
 	// JOHN:  sends custom messages if player HUD data has changed  (eg health, ammo)
 	virtual void UpdateClientData( void );

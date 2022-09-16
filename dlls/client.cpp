@@ -216,8 +216,10 @@ void ClientPutInServer( edict_t *pEntity )
 	pPlayer = GetClassPtr((CBasePlayer *)pev);
 	pPlayer->SetCustomDecalFrames(-1); // Assume none;
 
+	pPlayer->m_iAutoWepSwitch = 1;
+
 	// Allocate a CBasePlayer for pev, and call spawn
-	pPlayer->Spawn() ;
+	pPlayer->Spawn();
 
 	// Reset interpolation during first frame
 	pPlayer->pev->effects |= EF_NOINTERP;
@@ -691,6 +693,7 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_shadows 1\" - Show rendered shadows underneath models\n" );
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_glowmodels 1\" - Show glow models is available\n" );
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_flashonpickup 1\" - Flash HUD when picking up weapon or item\n" );
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_autowepswitch [0|1]\" - auto switches weapon on pickup\n" );
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "For more, see readme.txt\n" );
 	}
 	else if ( FStrEq( pcmd, "help_server" )  )
@@ -763,6 +766,10 @@ void ClientUserInfoChanged( edict_t *pEntity, char *infobuffer )
 	// Is the client spawned yet?
 	if ( !pEntity->pvPrivateData )
 		return;
+
+	char* pszAutoWepSwitch = g_engfuncs.pfnInfoKeyValue( infobuffer, "cl_autowepswitch");
+	if (strlen(pszAutoWepSwitch))
+		GetClassPtr((CBasePlayer *)&pEntity->v)->m_iAutoWepSwitch = atoi(pszAutoWepSwitch);
 
 	// msg everyone if someone changes their name,  and it isn't the first time (changing no name to current name)
 	if ( pEntity->v.netname && STRING(pEntity->v.netname)[0] != 0 && !FStrEq( STRING(pEntity->v.netname), g_engfuncs.pfnInfoKeyValue( infobuffer, "name" )) )
