@@ -791,7 +791,7 @@ void CHud::FlashHud( void ) {
 	sf.fadealpha = 255;
 	sf.fadeFlags = FFADE_IN;
 
-	sf.fadeEnd = gHUD.m_flTime;
+	sf.fadeEnd = gEngfuncs.GetClientTime();
 	sf.fadeReset = 0.0;
 	sf.fadeSpeed = 0.0;
 
