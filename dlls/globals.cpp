@@ -41,3 +41,4 @@ DLL_GLOBAL int			g_Language;
 DLL_GLOBAL const char *g_MutatorRocketCrowbar = "rocketcrowbar";
 DLL_GLOBAL const char *g_MutatorInstaGib = "instagib";
 DLL_GLOBAL const char *g_MutatorVolatile = "volatile";
+DLL_GLOBAL const char *g_MutatorPlumber = "plumber";
