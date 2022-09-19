@@ -920,7 +920,7 @@ public:
 #endif
 	}
 
-	virtual BOOL SemiAuto( void ) { return TRUE; }
+	virtual BOOL SemiAuto( void ) { return FALSE; }
 
 private:
 	unsigned short m_usSniperRifle;

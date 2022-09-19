@@ -172,35 +172,30 @@ void CSniperRifle::PrimaryAttack()
 
 void CSniperRifle::SecondaryAttack( void )
 {
-#ifdef CLIENT_DLL
-	if ( !bIsMultiplayer() )
-#else
-	if ( !g_pGameRules->IsMultiplayer() )
-#endif
-	{
-		return;
-	}
-
-	if ( m_pPlayer->pev->fov != 0 )
-	{
-		m_pPlayer->pev->fov = m_pPlayer->m_iFOV = 0;  // 0 means reset to default fov
-		SendWeaponAnim( RIFLE_ZOOM_OUT );
-	}
-	else if ( m_pPlayer->pev->fov != 40 )
-	{
-		m_pPlayer->pev->fov = m_pPlayer->m_iFOV = 40;
+	if (m_pPlayer->pev->fov == 0) {
+		m_pPlayer->pev->fov = m_pPlayer->m_iFOV = 90;
 		SendWeaponAnim( RIFLE_ZOOM_IN );
 	}
 
-	m_flNextSecondaryAttack = 0.5;
+	m_pPlayer->pev->fov = m_pPlayer->m_iFOV -= 4;
+
+	if ( m_pPlayer->pev->fov > 10 ) {
+		m_flNextSecondaryAttack = GetNextAttackDelay(0.0);
+	} else if ( m_pPlayer->pev->fov == 10 ) {
+		m_pPlayer->pev->fov = m_pPlayer->m_iFOV = 10;
+		m_flNextSecondaryAttack = GetNextAttackDelay(0.5);
+	} else {
+		m_pPlayer->pev->fov = m_pPlayer->m_iFOV = 0;
+		m_flNextSecondaryAttack = GetNextAttackDelay(0.5);
+	}
 }
 
 void CSniperRifle::Reload( void )
 {
-	if ( m_pPlayer->ammo_9mm <= 0 )
+	if ( m_pPlayer->ammo_357 <= 0 )
 		return;
 
-	DefaultReload( MP5_MAX_CLIP, RIFLE_RELOAD, 1.5 );
+	DefaultReload( PYTHON_MAX_CLIP, RIFLE_RELOAD, 1.5 );
 }
 
 void CSniperRifle::WeaponIdle( void )
@@ -212,20 +207,7 @@ void CSniperRifle::WeaponIdle( void )
 	if ( m_flTimeWeaponIdle > UTIL_WeaponTimeBase() )
 		return;
 
-	int iAnim;
-	switch ( RANDOM_LONG( 0, 1 ) )
-	{
-	case 0:	
-		iAnim = RIFLE_IDLE;
-		break;
-	
-	default:
-	case 1:
-		iAnim = RIFLE_IDLE;
-		break;
-	}
-
-	SendWeaponAnim( iAnim );
+	SendWeaponAnim( RIFLE_IDLE );
 
 	m_flTimeWeaponIdle = UTIL_SharedRandomFloat( m_pPlayer->random_seed, 10, 15 ); // how long till we do this again.
 }
