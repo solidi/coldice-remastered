@@ -31,6 +31,7 @@
 
 //===================grenade
 
+extern DLL_GLOBAL const char *g_MutatorPaintball;
 
 LINK_ENTITY_TO_CLASS( grenade, CGrenade );
 
@@ -177,14 +178,13 @@ void CGrenade::Explode( TraceResult *pTrace, int bitsDamageType )
 
 	RadiusDamage ( pev, pevOwner, pev->dmg, CLASS_NONE, bitsDamageType );
 
-	if ( RANDOM_FLOAT( 0 , 1 ) < 0.5 )
-	{
-		UTIL_DecalTrace( pTrace, DECAL_SCORCH1 );
+	enum decal_e decal = DECAL_SCORCH1;
+	int index = RANDOM_LONG(0, 1);
+	if (strstr(mutators.string, g_MutatorPaintball)) {
+		decal = DECAL_PAINTL1;
+		index = RANDOM_LONG(0, 7);
 	}
-	else
-	{
-		UTIL_DecalTrace( pTrace, DECAL_SCORCH2 );
-	}
+	UTIL_DecalTrace( pTrace, decal + index);
 
 	flRndSound = RANDOM_FLOAT( 0 , 1 );
 

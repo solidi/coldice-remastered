@@ -953,6 +953,8 @@ void CBasePlayer::Killed( entvars_t *pevAttacker, int iGib )
 		pev->flags &= ~FL_FROZEN;
 	}
 
+	m_EFlags = 0;
+
 	SetAnimation( PLAYER_DIE );
 	
 	m_iRespawnFrames = 0;

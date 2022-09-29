@@ -54,6 +54,8 @@ extern DLL_GLOBAL BOOL		g_fGameOver;
 extern DLL_GLOBAL int		g_iSkillLevel;
 extern DLL_GLOBAL ULONG		g_ulFrameCount;
 
+extern DLL_GLOBAL const char *g_MutatorPaintball;
+
 extern void CopyToBodyQue(entvars_t* pev);
 extern int giPrecacheGrunt;
 extern int gmsgSayText;
@@ -723,6 +725,7 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_mutators \"instagib\"\" - battle exclusively with railguns that dole one hit kills\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_mutators \"volatile\"\" - where players blow up when fragged\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_mutators \"plumber\"\" - players battle only with pipe wrenches\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_mutators \"paintball\"\" - weapons and explosions leave paint decals, weapons reduced to 1/4 damage\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_spawnweapons\" - Spawn weapons or not\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "For more, see readme.txt\n" );
 	}
@@ -1251,6 +1254,8 @@ int AddToFullPack( struct entity_state_s *state, int e, edict_t *ent, edict_t *h
 {
 	int					i;
 
+	CBaseEntity* entity = reinterpret_cast<CBaseEntity*>(GET_PRIVATE(ent));
+
 	// don't send if flagged for NODRAW and it's not the host getting the message
 	if ( ( ent->v.effects & EF_NODRAW ) &&
 		 ( ent != host ) )
@@ -1354,6 +1359,13 @@ int AddToFullPack( struct entity_state_s *state, int e, edict_t *ent, edict_t *h
 	{
 		state->eflags |= EFLAG_SLERP;
 	}
+
+	if (strstr(mutators.string, g_MutatorPaintball))
+		entity->m_EFlags |= EFLAG_PAINTBALL;
+	else
+		entity->m_EFlags &= ~EFLAG_PAINTBALL;
+
+	state->eflags = entity->m_EFlags;
 
 	state->scale	  = ent->v.scale;
 	state->solid	  = ent->v.solid;
