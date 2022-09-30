@@ -269,19 +269,25 @@ char *EV_HLDM_DamageDecal( physent_t *pe )
 	static char decalname[ 32 ];
 	int idx;
 
-	if ( pe->classnumber == 1 )
-	{
-		idx = gEngfuncs.pfnRandomLong( 0, 2 );
-		sprintf( decalname, "{break%i", idx + 1 );
-	}
-	else if ( pe->rendermode != kRenderNormal )
-	{
-		sprintf( decalname, "{bproof1" );
-	}
-	else
-	{
-		idx = gEngfuncs.pfnRandomLong( 0, 4 );
-		sprintf( decalname, "{bshot%i", idx + 1 );
+	cl_entity_t *player = gEngfuncs.GetLocalPlayer();
+	if (player && (player->curstate.eflags & EFLAG_PAINTBALL) != 0) {
+		idx = gEngfuncs.pfnRandomLong( 0, 7 );
+		sprintf( decalname, "{paint%i", idx + 1 );
+	} else {
+		if ( pe->classnumber == 1 )
+		{
+			idx = gEngfuncs.pfnRandomLong( 0, 2 );
+			sprintf( decalname, "{break%i", idx + 1 );
+		}
+		else if ( pe->rendermode != kRenderNormal )
+		{
+			sprintf( decalname, "{bproof1" );
+		}
+		else
+		{
+			idx = gEngfuncs.pfnRandomLong( 0, 4 );
+			sprintf( decalname, "{bshot%i", idx + 1 );
+		}
 	}
 	return decalname;
 }

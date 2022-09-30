@@ -115,8 +115,10 @@
 
 
 // entity flags
-#define EFLAG_SLERP				1	// do studio interpolation of this entity
-		
+//#define EFLAG_SLERP				1	// do studio interpolation of this entity
+#define EFLAG_SLERP (1 << 0)
+#define EFLAG_PAINTBALL (1 << 1)
+
 //
 // temp entity events
 //

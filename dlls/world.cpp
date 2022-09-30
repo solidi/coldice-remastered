@@ -119,6 +119,22 @@ DLL_DECALLIST gDecals[] = {
 	{ "{crowbar2", 0 },
 	{ "{crowbar3", 0 },
 	{ "{crowbar4", 0 },
+	{ "{paint1", 0 },
+	{ "{paint2", 0 },
+	{ "{paint3", 0 },
+	{ "{paint4", 0 },
+	{ "{paint5", 0 },
+	{ "{paint6", 0 },
+	{ "{paint7", 0 },
+	{ "{paint8", 0 },
+	{ "{paintl1", 0 },
+	{ "{paintl2", 0 },
+	{ "{paintl3", 0 },
+	{ "{paintl4", 0 },
+	{ "{paintl5", 0 },
+	{ "{paintl6", 0 },
+	{ "{paintl7", 0 },
+	{ "{paintl8", 0 },
 };
 
 /*

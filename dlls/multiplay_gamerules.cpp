@@ -35,10 +35,13 @@
 
 extern DLL_GLOBAL CGameRules	*g_pGameRules;
 extern DLL_GLOBAL BOOL	g_fGameOver;
+
 extern DLL_GLOBAL const char *g_MutatorRocketCrowbar;
 extern DLL_GLOBAL const char *g_MutatorInstaGib;
 extern DLL_GLOBAL const char *g_MutatorVolatile;
 extern DLL_GLOBAL const char *g_MutatorPlumber;
+extern DLL_GLOBAL const char *g_MutatorPaintball;
+
 extern int gmsgDeathMsg;	// client dll messages
 extern int gmsgScoreInfo;
 extern int gmsgMOTD;
@@ -136,6 +139,32 @@ void CHalfLifeMultiplay::RefreshSkillData( void )
 	
 	if (strstr(mutators.string, g_MutatorInstaGib))
 		gSkillData.plrDmgRailgun = 800;
+
+	if (strstr(mutators.string, g_MutatorPaintball))
+	{
+		float multiplier = 0.25;
+		gSkillData.plrDmg9MM *= multiplier;
+		gSkillData.plrDmg357 *= multiplier;
+		gSkillData.plrDmgSniperRifle *= multiplier;
+		gSkillData.plrDmgMP5 *= multiplier;
+		gSkillData.plrDmgM203Grenade *= multiplier;
+		gSkillData.plrDmgBuckshot *= multiplier;
+		gSkillData.plrDmgExpBuckshot *= multiplier;
+		gSkillData.plrDmgCrossbowClient *= multiplier;
+		gSkillData.plrDmgRPG *= multiplier;
+		gSkillData.plrDmgGauss *= multiplier;
+		gSkillData.plrDmgEgonNarrow *= multiplier;
+		gSkillData.plrDmgEgonWide *= multiplier;
+		gSkillData.plrDmgHandGrenade *= multiplier;
+		gSkillData.plrDmgSatchel *= multiplier;
+		gSkillData.plrDmgTripmine *= multiplier;
+		gSkillData.plrDmgVest *= multiplier;
+		gSkillData.plrDmgClusterGrenade *= multiplier;
+		gSkillData.plrDmgRailgun *= multiplier;
+		gSkillData.plrDmgFlak *= multiplier;
+		gSkillData.plrDmgFlakBomb *= multiplier;
+		gSkillData.plrDmgPlasma *= multiplier;
+	}
 }
 
 // longest the intermission can last, in seconds

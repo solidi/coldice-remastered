@@ -25,9 +25,13 @@
 #include "gamerules.h"
 #include "effects.h"
 #include "customentity.h"
+#include "decals.h"
+#include "game.h"
 
 #define RAILGUN_PRIMARY_FIRE_VOLUME	450
 #define RAIL_BEAM_SPRITE "sprites/xbeam1.spr"
+
+extern DLL_GLOBAL const char *g_MutatorPaintball;
 
 enum dual_railgun_e {
 	DUAL_RAILGUN_IDLE = 0,
@@ -263,8 +267,14 @@ void CDualRailgun::Fire( Vector vecSrc, Vector vecDir, Vector effectSrc, float f
 		else
 		{
 			// Make some balls and a decal
-			DecalGunshot( &tr, BULLET_MONSTER_12MM );
-			
+#ifndef CLIENT_DLL
+			int decal = DECAL_GUNSHOT1 + RANDOM_LONG(0,4);
+			if (strstr(mutators.string, g_MutatorPaintball)) {
+				decal = DECAL_PAINT1 + RANDOM_LONG(0, 7);
+			}
+			UTIL_DecalTrace(&tr, decal);
+#endif
+
 			MESSAGE_BEGIN( MSG_PAS, SVC_TEMPENTITY, tr.vecEndPos );
 				WRITE_BYTE( TE_GLOWSPRITE );
 				WRITE_COORD( tr.vecEndPos.x);	// pos
