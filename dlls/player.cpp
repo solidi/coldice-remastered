@@ -193,8 +193,8 @@ int gmsgStatusText = 0;
 int gmsgStatusValue = 0; 
 
 int gmsgStatusIcon = 0;
-
 int gmsgSelacoSlide = 0;
+int gmsgLifeBar = 0;
 
 void LinkUserMessages( void )
 {
@@ -243,6 +243,7 @@ void LinkUserMessages( void )
 	gmsgStatusValue = REG_USER_MSG("StatusValue", 3);
 	gmsgStatusIcon = REG_USER_MSG("StatusIcon", -1);
 	gmsgSelacoSlide = REG_USER_MSG("SelacoSlide", 1);
+	gmsgLifeBar = REG_USER_MSG("LifeBar", 3);
 }
 
 LINK_ENTITY_TO_CLASS( player, CBasePlayer );
@@ -4642,6 +4643,12 @@ void CBasePlayer :: UpdateClientData( void )
 			WRITE_COORD( damageOrigin.x );
 			WRITE_COORD( damageOrigin.y );
 			WRITE_COORD( damageOrigin.z );
+		MESSAGE_END();
+
+		MESSAGE_BEGIN( MSG_PVS, gmsgLifeBar, pev->origin );
+			WRITE_BYTE( pev->health );
+			WRITE_BYTE( pev->armorvalue );
+			WRITE_BYTE( ENTINDEX(edict()) );
 		MESSAGE_END();
 	
 		pev->dmg_take = 0;

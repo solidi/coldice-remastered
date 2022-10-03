@@ -321,6 +321,8 @@ void CL_DLLEXPORT HUD_CreateEntities( void )
 	Game_AddObjects();
 
 	GetClientVoiceMgr()->CreateEntities();
+
+	GetLifeBar()->UpdateSprites();
 }
 
 #if defined( _TFC )

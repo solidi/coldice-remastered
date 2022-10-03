@@ -166,6 +166,7 @@ private:
 
 
 #include "health.h"
+#include "lifebar.h"
 
 
 #define FADE_TIME 100
@@ -679,6 +680,7 @@ public:
 	CHudBenchmark	m_Benchmark;
 	CHudMOTD        m_MOTD;
 	CHudScoreboard  m_Scoreboard;
+	CHudLifeBar		m_LifeBar;
 
 	void Init( void );
 	void VidInit( void );

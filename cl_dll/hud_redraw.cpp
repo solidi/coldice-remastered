@@ -352,7 +352,7 @@ void CHud::ShowTextTips( void ) {
 		return;
 	}
 
-	const int MESSAGE_SIZE = 15;
+	const int MESSAGE_SIZE = 16;
 
 	const char* messageList[MESSAGE_SIZE] = {
 		"Tired of blue skins? Type \"cl_icemodels 0\" in the console switches to real-life skins.\n",
@@ -369,7 +369,8 @@ void CHud::ShowTextTips( void ) {
 		"Did you know you can pick up live grenades? Look at a live grenade and tap \"+use\".\n",
 		"Did you know you can kick live grenades? Walk up to a live grenade and kick it!\n",
 		"Type \"cl_righthand 0\" for weapons held in the left hand.\n",
-		"To drop a rune, type \"drop_rune\" in the console or bind it to a key.\n"
+		"To drop a rune, type \"drop_rune\" in the console or bind it to a key.\n",
+		"To turn off lifemeters of other players, type \"cl_lifemeters 0\" in the console.\n"
 	};
 
 	// Unstick after a level change
