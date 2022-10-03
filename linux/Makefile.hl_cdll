@@ -106,6 +106,7 @@ HL1_OBJS = \
 	$(HL1_OBJ_DIR)/in_camera.o \
 	$(HL1_OBJ_DIR)/input.o \
 	$(HL1_OBJ_DIR)/interpolation.o \
+	$(HL1_OBJ_DIR)/lifebar.o \
 	$(HL1_OBJ_DIR)/menu.o \
 	$(HL1_OBJ_DIR)/message.o \
 	$(HL1_OBJ_DIR)/MOTD.o \

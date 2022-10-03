@@ -51,6 +51,7 @@ cvar_t *cl_announcehumor;
 cvar_t *cl_showtips;
 cvar_t *cl_flashonpickup;
 cvar_t *m_pIceModels;
+cvar_t *cl_lifemeter;
 
 cvar_t *cl_vmx;
 cvar_t *cl_vmy;
@@ -448,6 +449,7 @@ void CHud :: Init( void )
 	m_MOTD.Init();
 	m_Scoreboard.Init();
 	GetClientVoiceMgr()->Init(&g_VoiceStatusHelper, (vgui::Panel**)&gViewPort);
+	GetLifeBar()->Init();
 
 	m_Menu.Init();
 	
@@ -599,6 +601,7 @@ void CHud :: VidInit( void )
 	m_MOTD.VidInit();
 	m_Scoreboard.VidInit();
 	GetClientVoiceMgr()->VidInit();
+	GetLifeBar()->VidInit();
 }
 
 int CHud::MsgFunc_Logo(const char *pszName,  int iSize, void *pbuf)
