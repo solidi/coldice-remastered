@@ -685,7 +685,7 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_righthand 1\" - Right/Left Handed Models\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_bulletsmoke 1\" - Bullet Smoke\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_gunsmoke 1\" - Gun Smoke\n");
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_glasshud 1\" - Glass Hud\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_glasshud 1\" - switch elements of the hud bouncing/bobbing on or off\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_weaponsway 1\" - Weapon Sway\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_weaponfidget 1\" - Weapon Fidget\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_weaponretract 1\" - Weapon Retract\n");
