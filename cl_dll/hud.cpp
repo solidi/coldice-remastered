@@ -391,6 +391,7 @@ void CHud :: Init( void )
 	cl_flashonpickup = CVAR_CREATE( "cl_flashonpickup", "1", FCVAR_ARCHIVE );
 	CVAR_CREATE("cl_shadows", "0", FCVAR_ARCHIVE);
 	CVAR_CREATE( "cl_autowepswitch", "1", FCVAR_ARCHIVE | FCVAR_USERINFO );
+	cl_lifemeter = CVAR_CREATE( "cl_lifemeters", "1", FCVAR_ARCHIVE );
 
 	cl_vmx = CVAR_CREATE( "cl_vmx", "0", FCVAR_ARCHIVE );
 	cl_vmy = CVAR_CREATE( "cl_vmy", "0", FCVAR_ARCHIVE );
