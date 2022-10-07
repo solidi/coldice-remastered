@@ -1777,6 +1777,10 @@ Client side punch effect
 */
 void V_PunchAxis( int axis, float punch )
 {
+	if (g_IronSight) {
+		punch *= 0.2;
+	}
+
 	if (!axis)
 		g_yP += punch * 10;
 	if (axis == 2)
