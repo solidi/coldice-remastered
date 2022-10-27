@@ -611,10 +611,10 @@ void ClientCommand( edict_t *pEntity )
 		if (g_flWeaponCheat) {
 			if ( pPlayer->pev->flags & FL_GODMODE ) {
 				pPlayer->pev->flags &= ~FL_GODMODE;
-				ALERT(at_aiconsole, "God mode OFF\n");
+				ALERT(at_console, "God mode OFF\n");
 			} else {
 				pPlayer->pev->flags |= FL_GODMODE;
-				ALERT(at_aiconsole, "God mode ON\n");
+				ALERT(at_console, "God mode ON\n");
 			}
 		}
 	}

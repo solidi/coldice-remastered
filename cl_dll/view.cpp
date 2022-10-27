@@ -696,6 +696,8 @@ void V_CalcNormalRefdef ( struct ref_params_s *pparams )
 
 	if (cl_glasshud->value) {
 		V_GlassHud(bob, pparams->time, pparams->frametime);
+	} else {
+		g_xP = g_yP = 0;
 	}
 
 	if (cl_weaponfidget->value == 1) {

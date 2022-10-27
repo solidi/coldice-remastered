@@ -3346,12 +3346,7 @@ void CBasePlayer::SelectNextItem( int iItem )
 
 void CBasePlayer::ChangeGun( const char *pstr )
 {
-    if (m_pActiveItem)
-    {
-        if (!m_pActiveItem->m_pPlayer) {
-            return;
-        }
-
+    if (m_pActiveItem && m_pActiveItem->m_pPlayer) {
         m_pActiveItem->Deploy( );
         m_pActiveItem->UpdateItemInfo( );
     }
