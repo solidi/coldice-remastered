@@ -705,6 +705,7 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"botdontshoot 0\" - Enable or disable bots attacking others\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_grapplinghook 1\" - Allow grappling hook on server\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_grapplinghookdeploytime 1.0\" - Time (seconds) when next grappling hook can deploy\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_grapplesky 1\" - Allow player to grapple the sky\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_spawnweaponlist \"weapon_fists;weapon_crowbar;weapon_9mmhandgun\"\" A semicolon separated list of the player's spawn weapons\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_allowrunes 1\" - Allow powerup runes on server\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_holsterweapons 1\" - Holstering weapons for more realistic gameplay\n");

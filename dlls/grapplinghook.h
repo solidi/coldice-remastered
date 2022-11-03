@@ -1,5 +1,9 @@
 #if defined( GRAPPLING_HOOK )
 
+#include "game.h"
+
+extern cvar_t grapplesky;
+
 class CHook : public CBaseEntity
 {
 	void Spawn( void );
