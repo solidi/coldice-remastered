@@ -69,11 +69,26 @@ void CHook::FireHook( ) {
 		pev->owner = ENT(pevOwner->pev);
 	}
 
-	Spawn();
-
 	TraceResult tr;
 	Vector anglesAim = pevOwner->pev->v_angle + pevOwner->pev->punchangle;
 	UTIL_MakeVectors( anglesAim );
+
+	if (!grapplesky.value)
+	{
+		edict_t	*pWorld = g_engfuncs.pfnPEntityOfEntIndex(0);
+		Vector start = pevOwner->GetGunPosition();
+		Vector end = start + gpGlobals->v_forward * 4096;
+		UTIL_TraceLine( start, end, ignore_monsters, edict(), &tr );
+		if ( tr.pHit )
+			pWorld = tr.pHit;
+		if (stricmp(TRACE_TEXTURE( pWorld, start, end ), "sky") == 0) {
+			ClientPrint(pevOwner->pev, HUD_PRINTCENTER, "Cannot grapple sky!");
+			return;
+		}
+	}
+
+	Spawn();
+
 	anglesAim.x = -anglesAim.x;
 	Vector vecDir = gpGlobals->v_forward;
 	Vector trace_origin = pevOwner->GetGunPosition();

@@ -42,6 +42,7 @@ cvar_t	allowmonsters={"mp_allowmonsters","0", FCVAR_SERVER };
 #if defined( GRAPPLING_HOOK )
 cvar_t	grapplinghook = {"mp_grapplinghook","1", FCVAR_SERVER };
 cvar_t	grapplinghookdeploytime = {"mp_grapplinghookdeploytime","1.0", FCVAR_SERVER };
+cvar_t	grapplesky = {"mp_grapplesky","1", FCVAR_SERVER };
 #endif
 
 cvar_t	spawnweaponlist = {"mp_spawnweaponlist","weapon_fists;weapon_crowbar;weapon_9mmhandgun", FCVAR_SERVER };
@@ -623,6 +624,7 @@ void GameDLLInit( void )
 #if defined( GRAPPLING_HOOK )
 	CVAR_REGISTER (&grapplinghook);
 	CVAR_REGISTER (&grapplinghookdeploytime);
+	CVAR_REGISTER (&grapplesky);
 #endif
 
 	CVAR_REGISTER (&spawnweaponlist);
