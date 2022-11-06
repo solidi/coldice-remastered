@@ -335,10 +335,13 @@ public:
 	int VidInit( void );
 	int Draw( float flTime );
 	void PlayKillSound( int killer, int victim );
+	void CalculateUTKills(int killer, int victim);
+	void PlayUTKills();
 	int MsgFunc_DeathMsg( const char *pszName, int iSize, void *pbuf );
 
 private:
 	int m_HUD_d_skull;  // sprite index of skull icon
+	int m_HUD_killspree;
 };
 
 //
