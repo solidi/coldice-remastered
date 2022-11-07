@@ -51,6 +51,22 @@ float g_ColorGreen[3]	= { 0.6, 1.0, 0.6 };
 float g_ColorYellow[3]	= { 1.0, 0.7, 0.0 };
 float g_ColorGrey[3]	= { 0.8, 0.8, 0.8 };
 
+static float m_fLastKillTime = 0;
+static float m_fNextKillSpeakTime = 0;
+static int m_iKillCount = 0;
+
+enum kills {
+	DOUBLE_KILL = 2,
+	MULTI_KILL,
+	ULTRA_KILL,
+	MONSTER_KILL,
+	LUDICROUS_KILL,
+	HS_KILL,
+	WTF_KILL
+};
+
+#define KILL_SPREE_SECS 3
+extern cvar_t *cl_achievements;
 extern cvar_t *cl_playpoint;
 extern float g_xP, g_yP;
 
@@ -91,6 +107,7 @@ void CHudDeathNotice :: InitHUDData( void )
 int CHudDeathNotice :: VidInit( void )
 {
 	m_HUD_d_skull = gHUD.GetSpriteIndex( "d_skull" );
+	m_HUD_killspree = gHUD.GetSpriteIndex( "killspree" );
 
 	return 1;
 }
@@ -155,6 +172,73 @@ int CHudDeathNotice :: Draw( float flTime )
 		}
 	}
 
+	if (cl_achievements && !cl_achievements->value)
+		return 1;
+
+	PlayUTKills();
+
+	// Visualize only if we are on a spree.
+	if (m_iKillCount >= DOUBLE_KILL && m_fLastKillTime > gEngfuncs.GetClientTime()) {
+		UnpackRGB( r, g, b, HudColor() );
+
+		// Draw circle
+		int hard_width = 128, hard_height = 128;
+
+		if (cl_achievements->value == 3) {
+			wrect_t *t = &gHUD.GetSpriteRect(m_HUD_killspree);
+			t->bottom = (hard_height * (((m_fLastKillTime - gEngfuncs.GetClientTime()) / KILL_SPREE_SECS) / 2)) + 64;
+			t->top = hard_height - t->bottom;
+
+			if (t->bottom > 0 && t->top < 64) {
+				SPR_Set(gHUD.GetSprite(m_HUD_killspree), r, g, b);
+				SPR_DrawAdditive(m_iKillCount, (ScreenWidth / 2) - (hard_width / 2), (ScreenHeight / 2) - ((t->bottom - t->top) / 2), t);
+			}
+		}
+
+		int size = 0;
+		// m_iKillCount = MULTI_KILL;
+		switch (m_iKillCount)
+		{
+		case DOUBLE_KILL:
+			size = ConsoleStringLen("Double Kill!");
+			DrawConsoleString((ScreenWidth / 2) - (size / 2), (ScreenHeight / 2) + (hard_width / 2), "Double Kill!");
+			break;
+		case MULTI_KILL:
+			size = ConsoleStringLen("Multi Kill!");
+			DrawConsoleString((ScreenWidth / 2) - (size / 2), (ScreenHeight / 2) + (hard_width / 2), "Multi Kill!");
+			break;
+		case ULTRA_KILL:
+			size = ConsoleStringLen("Ultra Kill!");
+			DrawConsoleString((ScreenWidth / 2) - (size / 2), (ScreenHeight / 2) + (hard_width / 2), "Ultra Kill!");
+			break;
+		case MONSTER_KILL:
+			size = ConsoleStringLen("MONSTER KILL!");
+			DrawConsoleString((ScreenWidth / 2) - (size / 2), (ScreenHeight / 2) + (hard_width / 2), "MONSTER KILL!");
+			break;
+		case LUDICROUS_KILL:
+			size = ConsoleStringLen("LUDICROUS KILL!!");
+			DrawConsoleString((ScreenWidth / 2) - (size / 2),(ScreenHeight / 2) + (hard_width / 2), "LUDICROUS KILL!!");
+			break;
+		case HS_KILL:
+			size = ConsoleStringLen("HOLY SHIT!!!");
+			DrawConsoleString((ScreenWidth / 2) - (size / 2), (ScreenHeight / 2) + (hard_width / 2), "HOLY SHIT!!!");
+			break;
+		case WTF_KILL:
+			size = ConsoleStringLen("WTF!!!!");
+			DrawConsoleString((ScreenWidth / 2) - (size / 2), (ScreenHeight / 2) + (hard_width / 2), "WTF!!!!");
+			break;
+		}
+
+		// Draw the bar
+		if (cl_achievements->value == 2) {
+			y = (ScreenHeight / 2) + (hard_width / 2) - (gHUD.m_iFontHeight / 2);
+			float delta = m_fLastKillTime - gEngfuncs.GetClientTime();
+			float width = (size * 2) * (delta / 3);
+			x = (ScreenWidth / 2) - (width / 2);
+			FillRGBA(x, y, width, gHUD.m_iFontHeight / 2, r, g, b, 120 * delta);
+		}
+	}
+
 	return 1;
 }
 
@@ -191,7 +275,10 @@ int CHudDeathNotice :: MsgFunc_DeathMsg( const char *pszName, int iSize, void *p
 	if (gViewPort)
 		gViewPort->GetAllPlayersInfo();
 
-	PlayKillSound(killer, victim);
+	CalculateUTKills(killer, victim);
+
+	if (!m_iKillCount)
+		PlayKillSound(killer, victim);
 
 	// Get the Killer's name
 	char *killer_name = g_PlayerInfoList[ killer ].name;
@@ -313,4 +400,62 @@ void CHudDeathNotice::PlayKillSound(int killer, int victim)
 	if (g_PlayerInfoList[killer].thisplayer && killer != victim) {
 		PlaySound("point.wav", 2);
 	}
+}
+
+void CHudDeathNotice::CalculateUTKills(int killer, int victim)
+{
+	if (!g_PlayerInfoList[killer].thisplayer)
+		return;
+
+	if (killer == victim)
+		return;
+
+	if (m_fLastKillTime < gEngfuncs.GetClientTime())
+		m_iKillCount = 0;
+	
+	m_iKillCount++;
+	m_iKillCount = min(m_iKillCount, WTF_KILL);
+	// Give some time for kills to add if there is more than one, then play.
+	m_fNextKillSpeakTime = gEngfuncs.GetClientTime() + 0.25;
+	m_fLastKillTime = gEngfuncs.GetClientTime() + KILL_SPREE_SECS;
+}
+
+void CHudDeathNotice::PlayUTKills() {
+	// Unstick kills
+	if ((gEngfuncs.GetClientTime() + 5) < m_fLastKillTime) {
+		m_fLastKillTime = 0;
+		m_iKillCount = 0;
+		m_fNextKillSpeakTime = 0;
+	}
+
+	if (m_fNextKillSpeakTime == 0 || m_fNextKillSpeakTime > gEngfuncs.GetClientTime())
+		return;
+
+	// sound and print
+	switch (m_iKillCount)
+	{
+	case DOUBLE_KILL:
+		PlaySound("doublekill.wav", 1);
+		break;
+	case MULTI_KILL:
+		PlaySound("multikill.wav", 1);
+		break;
+	case ULTRA_KILL:
+		PlaySound("ultrakill.wav", 1);
+		break;
+	case MONSTER_KILL:
+		PlaySound("monsterkill.wav", 1);
+		break;
+	case LUDICROUS_KILL:
+		PlaySound("ludicrouskill.wav", 1);
+		break;
+	case HS_KILL:
+		PlaySound("holyshitkill.wav", 1);
+		break;
+	case WTF_KILL:
+		PlaySound("wtfkill.wav", 1);
+		break;
+	}
+
+	m_fNextKillSpeakTime = 0;
 }

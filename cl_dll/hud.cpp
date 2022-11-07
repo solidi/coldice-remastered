@@ -52,6 +52,7 @@ cvar_t *cl_showtips;
 cvar_t *cl_flashonpickup;
 cvar_t *m_pIceModels;
 cvar_t *cl_lifemeter;
+cvar_t *cl_achievements;
 
 cvar_t *cl_vmx;
 cvar_t *cl_vmy;
@@ -392,6 +393,7 @@ void CHud :: Init( void )
 	CVAR_CREATE("cl_shadows", "0", FCVAR_ARCHIVE);
 	CVAR_CREATE( "cl_autowepswitch", "1", FCVAR_ARCHIVE | FCVAR_USERINFO );
 	cl_lifemeter = CVAR_CREATE( "cl_lifemeters", "1", FCVAR_ARCHIVE );
+	cl_achievements = CVAR_CREATE( "cl_achivements", "3", FCVAR_ARCHIVE );
 
 	cl_vmx = CVAR_CREATE( "cl_vmx", "0", FCVAR_ARCHIVE );
 	cl_vmy = CVAR_CREATE( "cl_vmy", "0", FCVAR_ARCHIVE );
