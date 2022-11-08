@@ -106,6 +106,7 @@ void EV_FireDualUsas( struct event_args_s *args  );
 void EV_FireDualUsasBoth( struct event_args_s *args  );
 void EV_FireFreezeGun( struct event_args_s *args  );
 void EV_RocketCrowbar( struct event_args_s *args  );
+void EV_GravityGun( struct event_args_s *args  );
 
 void EV_TrainPitchAdjust( struct event_args_s *args );
 }
@@ -123,6 +124,7 @@ void EV_TrainPitchAdjust( struct event_args_s *args );
 #define VECTOR_CONE_15DEGREES Vector( 0.13053, 0.13053, 0.13053 )
 #define VECTOR_CONE_20DEGREES Vector( 0.17365, 0.17365, 0.17365 )
 
+#define VectorAverage(a, b, o) {((o)[0] = ((a)[0] + (b)[0]) * 0.5, (o)[1] = ((a)[1] + (b)[1]) * 0.5, (o)[2] = ((a)[2] + (b)[2]) * 0.5);}
 
 // play a strike sound based on the texture that was hit by the attack traceline.  VecSrc/VecEnd are the
 // original traceline endpoints used by the attacker, iBulletType is the type of bullet that hit the texture.
@@ -3430,6 +3432,62 @@ void EV_RocketCrowbar( event_args_t *args )
 				V_PunchAxis(ROLL, gEngfuncs.pfnRandomFloat(3.0, 5.0));
 				break;
 		}
+	}
+}
+
+enum gravitygun_e {
+	GRAVITYGUN_IDLE1 = 0,
+	GRAVITYGUN_HOLD_IDLE,
+	GRAVITYGUN_PICKUP,
+	GRAVITYGUN_FIRE,
+	GRAVITYGUN_DRAW,
+};
+
+void EV_GravityGun(event_args_t* args)
+{
+	int idx;
+	int targidx;
+	int m_iBeam;
+	bool isBspModel;
+	Vector vecSrc, angles, forward;
+	pmtrace_t tr;
+
+	idx = args->entindex;
+	targidx = args->iparam1;
+	isBspModel = args->bparam1;
+	VectorCopy(args->origin, vecSrc);
+	VectorCopy(args->angles, angles);
+
+	m_iBeam = gEngfuncs.pEventAPI->EV_FindModelIndex("sprites/smoke.spr");
+
+	AngleVectors(angles, forward, NULL, NULL);
+
+	if (EV_IsLocal(idx))
+	{
+		if (targidx > 0)
+			gEngfuncs.pEventAPI->EV_WeaponAnimation(GRAVITYGUN_FIRE, 0);
+		else
+			gEngfuncs.pEventAPI->EV_WeaponAnimation(GRAVITYGUN_PICKUP, 0);
+	}
+
+	if (targidx > 0)
+	{
+		cl_entity_t* targent = gEngfuncs.GetEntityByIndex(targidx);
+
+		Vector targpos = targent->origin;
+		targpos[2] += targent->curstate.maxs[2] / 2;
+		if (isBspModel)
+			VectorAverage(targent->curstate.maxs + targent->origin, targent->curstate.mins + targent->origin, targpos);
+
+		int r = 255, g = 128, b = 0;
+		if (m_pIceModels && m_pIceModels->value) {
+			r = 0;
+			g = 113;
+			b = 230;
+		}
+		gEngfuncs.pEfxAPI->R_BeamEntPoint(idx | 0x1000, targpos, m_iBeam, 0.1, 0.4, 0.4, 1, 0.4, 0, 1, r, g, b); 
+
+		gEngfuncs.pEventAPI->EV_PlaySound(idx, args->origin, CHAN_WEAPON, "weapons/gauss2.wav", 0.5, ATTN_NORM, 0, 85 + gEngfuncs.pfnRandomLong(0, 0x1f));
 	}
 }
 

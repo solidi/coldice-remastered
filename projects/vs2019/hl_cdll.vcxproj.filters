@@ -72,6 +72,9 @@
     <ClCompile Include="..\..\dlls\gauss.cpp">
       <Filter>Source Files\_hl\dlls</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\dlls\gravitygun.cpp">
+      <Filter>Source Files\_hl\dlls</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\dlls\handgrenade.cpp">
       <Filter>Source Files\_hl\dlls</Filter>
     </ClCompile>

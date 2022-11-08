@@ -111,6 +111,7 @@ public:
 #define WEAPON_DUAL_MAG60		40
 #define WEAPON_ROCKETCROWBAR	41
 #define WEAPON_DUAL_RAILGUN		42
+#define WEAPON_GRAVITYGUN		43
 
 #define WEAPON_ALLWEAPONS		(~(1<<WEAPON_SUIT))
 
@@ -155,6 +156,7 @@ public:
 #define FREEZEGUN_WEIGHT	20
 #define VEST_WEIGHT			25
 #define ROCKETCROWBAR_WEIGHT 20
+#define GRAVITYGUN_WEIGHT	2
 
 
 // weapon clip/carry ammo capacities
@@ -2203,6 +2205,48 @@ private:
 	int m_iIceMuzzlePlasma, m_iMuzzlePlasma;
 	int m_fInAttack;
 	unsigned short m_usPlasmaFire;
+};
+
+class CGravityGun : public CBasePlayerWeapon
+{
+public:
+	void Spawn();
+	void Precache();
+	int iItemSlot() { return 1; }
+	int GetItemInfo(ItemInfo* p);
+
+	void PrimaryAttack();
+	void SecondaryAttack();
+	BOOL DeployLowKey( void );
+	BOOL Deploy();
+	void Holster();
+
+	void ItemPostFrame();
+	void WeaponIdle();
+
+	CBaseEntity* GetEntity(float dist, bool m_bTakeDamage = false);
+
+	#ifdef CLIENT_DLL
+	CBaseEntity* m_pCurrentEntity;
+	#else
+	EHANDLE m_pCurrentEntity;
+	#endif
+	float m_flNextIdleTime;
+
+	bool m_bResetIdle;
+	bool m_bFoundPotentialTarget;
+
+	virtual BOOL UseDecrement( void )
+	{
+#if defined(CLIENT_WEAPONS)
+		return true;
+#else
+		return false;
+#endif
+	}
+
+private:
+	unsigned short m_usGravGun;
 };
 
 #endif // WEAPONS_H

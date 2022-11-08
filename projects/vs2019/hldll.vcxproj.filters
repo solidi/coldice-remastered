@@ -102,6 +102,9 @@
     <ClCompile Include="..\..\dlls\grapplinghook.cpp">
       <Filter>Source Files\dlls</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\dlls\gravitygun.cpp">
+      <Filter>Source Files\dlls</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\dlls\doors.cpp">
       <Filter>Source Files\dlls</Filter>
     </ClCompile>

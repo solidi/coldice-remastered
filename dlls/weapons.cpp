@@ -460,6 +460,7 @@ void W_Precache(void)
 	UTIL_PrecacheOtherWeapon( "weapon_freezegun" );
 	UTIL_PrecacheOtherWeapon( "weapon_rocketcrowbar" );
 	UTIL_PrecacheOtherWeapon( "weapon_dual_railgun" );
+	UTIL_PrecacheOtherWeapon( "weapon_gravitygun" );
 
 #if !defined( OEM_BUILD ) && !defined( HLDEMO_BUILD )
 	if ( g_pGameRules->IsDeathmatch() )
@@ -688,7 +689,8 @@ CBaseEntity* CBasePlayerItem::Respawn( void )
 		"weapon_knife",
 		"weapon_wrench",
 		"weapon_chainsaw",
-		"weapon_dual_wrench"
+		"weapon_dual_wrench",
+		"weapon_gravitygun"
 		},
 
 		{
@@ -1904,6 +1906,10 @@ BOOL CWeaponBox::PackWeapon( CBasePlayerItem *pWeapon )
 		else if (pWeapon->m_iId == WEAPON_DUAL_RAILGUN)
 		{
 			SET_MODEL( ENT(pev), "models/w_dual_railgun.mdl");
+		}
+		else if (pWeapon->m_iId == WEAPON_GRAVITYGUN)
+		{
+			SET_MODEL( ENT(pev), "models/w_gauss.mdl");
 		}
 
 		pev->sequence = 1;
