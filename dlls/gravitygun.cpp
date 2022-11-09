@@ -42,7 +42,7 @@ void CGravityGun::Spawn()
 	pev->classname = MAKE_STRING("weapon_gravitygun");
 
 	m_iId = WEAPON_GRAVITYGUN;
-	SET_MODEL(ENT(pev), "models/w_gauss.mdl");
+	SET_MODEL(ENT(pev), "models/w_gravitygun.mdl");
 	m_iClip = -1;
 
 	FallInit(); // get ready to fall down.
@@ -51,8 +51,8 @@ void CGravityGun::Spawn()
 void CGravityGun::Precache()
 {
 	PRECACHE_MODEL("models/v_gravitygun.mdl");
-	PRECACHE_MODEL("models/w_gauss.mdl");
-	PRECACHE_MODEL("models/p_gauss.mdl");
+	PRECACHE_MODEL("models/w_gravitygun.mdl");
+	PRECACHE_MODEL("models/p_gravitygun.mdl");
 
 	m_usGravGun = PRECACHE_EVENT(1, "events/gravitygun.sc");
 }
@@ -75,12 +75,12 @@ int CGravityGun::GetItemInfo(ItemInfo* p)
 
 BOOL CGravityGun::DeployLowKey()
 {
-	return DefaultDeploy( "models/v_gravitygun.mdl", "models/p_gauss.mdl", GRAVITYGUN_DRAW, "gauss" );
+	return DefaultDeploy( "models/v_gravitygun.mdl", "models/p_gravitygun.mdl", GRAVITYGUN_DRAW, "gauss" );
 }
 
 BOOL CGravityGun::Deploy()
 {
-	return DefaultDeploy("models/v_gravitygun.mdl", "models/p_gauss.mdl", GRAVITYGUN_DRAW, "gauss");
+	return DefaultDeploy("models/v_gravitygun.mdl", "models/p_gravitygun.mdl", GRAVITYGUN_DRAW, "gauss");
 }
 
 void CGravityGun::Holster()

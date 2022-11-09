@@ -1909,7 +1909,7 @@ BOOL CWeaponBox::PackWeapon( CBasePlayerItem *pWeapon )
 		}
 		else if (pWeapon->m_iId == WEAPON_GRAVITYGUN)
 		{
-			SET_MODEL( ENT(pev), "models/w_gauss.mdl");
+			SET_MODEL( ENT(pev), "models/w_gravitygun.mdl");
 		}
 
 		pev->sequence = 1;
