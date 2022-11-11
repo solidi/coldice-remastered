@@ -59,7 +59,8 @@ CFLAGS=$(BASE_CFLAGS)  $(ARCH_CFLAGS) $(DEBUG_CFLAGS) -DCLIENT_WEAPONS \
 		 -DFREEZEGUN \
 		 -DDUALMAG60 \
 		 -DROCKETCROWBAR \
-		 -DDUALRAILGUN
+		 -DDUALRAILGUN \
+		 -DGRAVITYGUN
 
 #-O3 -ffast-math -fno-strength-reduce
 
@@ -131,6 +132,7 @@ HLDLL_OBJS = \
 	$(HLDLL_OBJ_DIR)/globals.o \
 	$(HLDLL_OBJ_DIR)/gman.o \
 	$(HLDLL_OBJ_DIR)/grapplinghook.o \
+	$(HLDLL_OBJ_DIR)/gravitygun.o \
 	$(HLDLL_OBJ_DIR)/h_ai.o \
 	$(HLDLL_OBJ_DIR)/h_battery.o \
 	$(HLDLL_OBJ_DIR)/h_cine.o \

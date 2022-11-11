@@ -181,6 +181,7 @@
     <ClCompile Include="..\..\dlls\gauge_shotgun.cpp" />
     <ClCompile Include="..\..\dlls\gauss.cpp" />
     <ClCompile Include="..\..\dlls\glauncher.cpp" />
+    <ClCompile Include="..\..\dlls\gravitygun.cpp" />
     <ClCompile Include="..\..\dlls\handgrenade.cpp" />
     <ClCompile Include="..\..\dlls\hornetgun.cpp" />
     <ClCompile Include="..\..\dlls\knife.cpp" />

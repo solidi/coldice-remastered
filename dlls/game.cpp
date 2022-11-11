@@ -504,6 +504,11 @@ cvar_t	sk_plr_hookspeed1 = {"sk_plr_hookspeed1","0"};
 cvar_t	sk_plr_hookspeed2 = {"sk_plr_hookspeed2","0"};
 cvar_t	sk_plr_hookspeed3 = {"sk_plr_hookspeed3","0"};
 
+// Gravity Gun
+cvar_t	sk_plr_gravitygun1 = {"sk_plr_gravitygun1","0"};
+cvar_t	sk_plr_gravitygun2 = {"sk_plr_gravitygun2","0"};
+cvar_t	sk_plr_gravitygun3 = {"sk_plr_gravitygun3","0"};
+
 // WORLD WEAPONS
 cvar_t	sk_12mm_bullet1 = {"sk_12mm_bullet1","0"};
 cvar_t	sk_12mm_bullet2 = {"sk_12mm_bullet2","0"};
@@ -1071,6 +1076,11 @@ void GameDLLInit( void )
 	CVAR_REGISTER ( &sk_plr_plasma1 );
 	CVAR_REGISTER ( &sk_plr_plasma2 );
 	CVAR_REGISTER ( &sk_plr_plasma3 );
+
+	// Gravity Gun
+	CVAR_REGISTER ( &sk_plr_gravitygun1 );
+	CVAR_REGISTER ( &sk_plr_gravitygun2 );
+	CVAR_REGISTER ( &sk_plr_gravitygun3 );
 
 	// Grapple Hook
 	CVAR_REGISTER ( &sk_plr_hook1 );

@@ -62,7 +62,8 @@ CFLAGS=$(BASE_CFLAGS) $(ARCH_CFLAGS) $(DEBUG_CFLAGS) -DCLIENT_DLL -DCLIENT_WEAPO
 		 -DFREEZEGUN \
 		 -DDUALMAG60 \
 		 -DROCKETCROWBAR \
-		 -DDUALRAILGUN
+		 -DDUALRAILGUN \
+		 -DGRAVITYGUN
 
 INCLUDEDIRS=-I$(HL_SRC_DIR) -I../dlls -I../tfc -I$(COMMON_SRC_DIR) -I$(PUBLIC_SRC_DIR) -I../pm_shared -I../engine -I../utils/vgui/include -I ../game_shared -I../external
 
@@ -164,6 +165,7 @@ DLL_OBJS = \
 	$(HL1_SERVER_OBJ_DIR)/gauge_shotgun.o \
 	$(HL1_SERVER_OBJ_DIR)/gauss.o \
 	$(HL1_SERVER_OBJ_DIR)/glauncher.o \
+	$(HL1_SERVER_OBJ_DIR)/gravitygun.o \
 	$(HL1_SERVER_OBJ_DIR)/handgrenade.o \
 	$(HL1_SERVER_OBJ_DIR)/hornetgun.o \
 	$(HL1_SERVER_OBJ_DIR)/knife.o \

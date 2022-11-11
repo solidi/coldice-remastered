@@ -130,6 +130,7 @@ struct skilldata_t
 	float plrDmgNuke;
 	float plrDmgKick;
 	float plrDmgPlasma;
+	float plrDmgGravityGun;
 	float plrDmgHook;
 	float plrSpeedHook;
 	
