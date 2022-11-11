@@ -119,7 +119,7 @@ void CGravityGun::PrimaryAttack()
 			isBspModel = pEntity->IsBSPModel();
 
 			ClearMultiDamage();
-			pEntity->TraceAttack(m_pPlayer->pev, 1, gpGlobals->v_forward, &tr, DMG_ENERGYBEAM);
+			pEntity->TraceAttack(m_pPlayer->pev, gSkillData.plrDmgGravityGun, gpGlobals->v_forward, &tr, DMG_ENERGYBEAM);
 			ApplyMultiDamage(pev, m_pPlayer->pev);
 			pEntity->pev->velocity = gpGlobals->v_forward * 256;
 
