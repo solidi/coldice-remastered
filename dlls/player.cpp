@@ -5272,6 +5272,36 @@ BOOL CBasePlayer::ShouldWeaponSwitch()
 	return 0 != m_iAutoWepSwitch;
 }
 
+void CBasePlayer::DisplayHudMessage(const char *message, int channel, float x, float y, int r, int g, int b, int effect, float fadein, float fadeout, float holdtime, float fxtime)
+{
+	if (m_iDisplayInfoMessage <= 0)
+		return;
+
+	hudtextparms_t hText;
+	memset(&hText, 0, sizeof(hText));
+	hText.channel = channel;
+	hText.x = x;
+	hText.y = y;
+
+	hText.effect = effect;
+
+	hText.r1 = r;
+	hText.g1 = g;
+	hText.b1 = b;
+
+	hText.a1 = 200;
+	hText.r2 = 240;
+	hText.g2 = 110;
+	hText.b2 = 0;
+	hText.a2 = 255;
+	hText.fadeinTime = fadein;
+	hText.fadeoutTime = fadeout;
+	hText.holdTime = holdtime;
+	hText.fxTime  = fxtime;
+
+	UTIL_HudMessage(this, hText, message);
+}
+
 //=========================================================
 // Dead HEV suit prop
 //=========================================================

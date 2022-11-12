@@ -219,6 +219,7 @@ void ClientPutInServer( edict_t *pEntity )
 	pPlayer->SetCustomDecalFrames(-1); // Assume none;
 
 	pPlayer->m_iAutoWepSwitch = 1;
+	pPlayer->m_iDisplayInfoMessage = 1;
 
 	// Allocate a CBasePlayer for pev, and call spawn
 	pPlayer->Spawn();
@@ -677,7 +678,7 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"impulse 208\" - Slide\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"impulse 205\" - Swap between single and dual weapon, if available\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"snowman\" - God mode (when sv_cheats 1)\n");
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_icemodels 1\" - Ice Models\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_icemodels [0|1|2|3]\" - changes models with specific ice skins\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_oldscoreboard 1\" - Old Scoreboard\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_oldmotd 1\" - Old MOTD (Message of the Day)\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_viewroll 1\" - Old View Roll\n");
@@ -696,6 +697,8 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_glowmodels 1\" - Show glow models is available\n" );
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_flashonpickup 1\" - Flash HUD when picking up weapon or item\n" );
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_autowepswitch [0|1]\" - auto switches weapon on pickup\n" );
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_achievements [0|1|2|3]\" - displays fast fragging achievements\n" );
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_infomessage [0|1]\" - displays weapon and rune messages on top center\n" );
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "For more, see readme.txt\n" );
 	}
 	else if ( FStrEq( pcmd, "help_server" )  )
@@ -775,6 +778,10 @@ void ClientUserInfoChanged( edict_t *pEntity, char *infobuffer )
 	char* pszAutoWepSwitch = g_engfuncs.pfnInfoKeyValue( infobuffer, "cl_autowepswitch");
 	if (strlen(pszAutoWepSwitch))
 		GetClassPtr((CBasePlayer *)&pEntity->v)->m_iAutoWepSwitch = atoi(pszAutoWepSwitch);
+
+	char* pszDisplayInfoMessage = g_engfuncs.pfnInfoKeyValue( infobuffer, "cl_infomessage");
+	if (strlen(pszDisplayInfoMessage))
+		GetClassPtr((CBasePlayer *)&pEntity->v)->m_iDisplayInfoMessage = atoi(pszDisplayInfoMessage);
 
 	// msg everyone if someone changes their name,  and it isn't the first time (changing no name to current name)
 	if ( pEntity->v.netname && STRING(pEntity->v.netname)[0] != 0 && !FStrEq( STRING(pEntity->v.netname), g_engfuncs.pfnInfoKeyValue( infobuffer, "name" )) )

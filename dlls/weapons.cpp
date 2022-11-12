@@ -1508,31 +1508,9 @@ void CBasePlayerWeapon::UpdateItemInfo( void )
     ItemInfo iInfo;
     memset(&iInfo, 0, sizeof(iInfo));
 
-    if (GetItemInfo(&iInfo))
-    {
-        if (iInfo.pszDisplayName)
-        {
-            char szText[201];
-            hudtextparms_t hText;
-
-            sprintf(szText, "%s", iInfo.pszDisplayName);
-
-            memset(&hText, 0, sizeof(hText));
-            hText.channel = 1;
-            hText.x = -1;
-            hText.y = 0.1;
-            hText.effect = 0;
-            hText.r1 = hText.g1 = hText.b1 = 255;
-            hText.a1 = 255;
-            hText.r2 = hText.g2 = hText.b2 = 255;
-            hText.a2 = 255;
-            hText.fadeinTime = 0.2;
-            hText.fadeoutTime = 1;
-            hText.holdTime = 1.5;
-            hText.fxTime = 0.5;
-
-            UTIL_HudMessage(m_pPlayer, hText, szText);
-        }
+    if (GetItemInfo(&iInfo) && iInfo.pszDisplayName)
+	{
+		m_pPlayer->DisplayHudMessage(iInfo.pszDisplayName, 7, -1, 0.1, 210, 210, 210, 0, 0.2, 1.0, 1.5, 0.5);
     }
 }
 
