@@ -231,6 +231,7 @@ public:
 	float m_fSelacoLastX, m_fSelacoLastY;
 
 	int m_iAutoWepSwitch;
+	int m_iDisplayInfoMessage;
 
 	CBaseEntity *pHeldItem;
 	BOOL m_iHoldingItem;
@@ -370,6 +371,8 @@ public:
 	float m_flNextChatTime;
 	float m_iShownWelcomeMessage;
 	float m_iShownDualMessage;
+
+	void DisplayHudMessage(char const *message, int channel, float x, float y, int r, int g, int b, int effect, float fadein, float fadeout, float holdtime, float fxtime);
 };
 
 #define AUTOAIM_2DEGREES  0.0348994967025
