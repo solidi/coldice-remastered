@@ -46,5 +46,5 @@ jobs:
     - name: Upload client.so
       uses: actions/upload-artifact@v3
       with:
-        name: client.so
+        name: linux_client
         path: ./linux/release/client.so
