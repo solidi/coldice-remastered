@@ -431,6 +431,8 @@ public:
 	virtual void ProvideSingleItem(CBasePlayer *pPlayer, const char *itemName) { return; }
 	virtual void SwapDualWeapon() { return; }
 
+	void ThrowGrenade( void );
+
 	TraceResult m_trBootHit;
 	void StartKick( BOOL holdingSomething );
 	void KickAttack( BOOL holdingSomething );

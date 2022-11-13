@@ -216,6 +216,7 @@ public:
 	float m_fThawTime;
 	int m_iFreezeCounter;
 	float m_fJumpHeight;
+	float m_fGrenadeTime;
 
 	void CalculateToSelacoSlide( void );
 	void StartSelacoSlide( void );
