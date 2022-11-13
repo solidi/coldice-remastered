@@ -54,9 +54,14 @@ extern cvar_t *cl_forwardspeed;
 extern cvar_t *cl_pitchspeed;
 extern cvar_t *cl_movespeedkey;
 
+static cvar_t* m_rawinput = NULL;
+static bool m_cached_rawinput = false;
 
-static double s_flRawInputUpdateTime = 0.0f;
-static bool m_bRawInput = false;
+static bool IN_UseRawInput()
+{
+	return m_rawinput->value != 0;
+}
+
 static bool m_bMouseThread = false;
 extern globalvars_t *gpGlobals;
 
@@ -156,6 +161,7 @@ DWORD	s_hMouseThreadId = 0;
 HANDLE	s_hMouseThread = 0;
 HANDLE	s_hMouseQuitEvent = 0;
 HANDLE	s_hMouseDoneQuitEvent = 0;
+SDL_bool mouseRelative = SDL_TRUE;
 #endif
 
 /*
@@ -235,6 +241,21 @@ void CL_DLLEXPORT IN_ActivateMouse (void)
 #endif
 		mouseactive = 1;
 	}
+
+#ifdef _WIN32
+	if (!IN_UseRawInput())
+	{
+		SDL_SetRelativeMouseMode(SDL_FALSE);
+		mouseRelative = SDL_FALSE;
+	}
+	else
+	{
+		mouseRelative = SDL_TRUE;
+		SDL_SetRelativeMouseMode(SDL_TRUE);
+	}
+#else
+	SDL_SetRelativeMouseMode(SDL_TRUE);
+#endif
 }
 
 
@@ -255,6 +276,15 @@ void CL_DLLEXPORT IN_DeactivateMouse (void)
 
 		mouseactive = 0;
 	}
+
+#ifdef _WIN32
+	if (IN_UseRawInput())
+	{
+		mouseRelative = SDL_FALSE;
+	}
+
+#endif
+	SDL_SetRelativeMouseMode(SDL_FALSE);
 }
 
 /*
@@ -355,18 +385,19 @@ void IN_ResetMouse( void )
 {
 	// no work to do in SDL
 #ifdef _WIN32
-	if ( !m_bRawInput && mouseactive && gEngfuncs.GetWindowCenterX && gEngfuncs.GetWindowCenterY )
+	if (m_cached_rawinput != IN_UseRawInput())
+	{
+		m_cached_rawinput = IN_UseRawInput();
+		mouseRelative = SDL_TRUE;
+		SDL_SetRelativeMouseMode(SDL_TRUE);
+	}
+
+	if (!IN_UseRawInput() && mouseactive && gEngfuncs.GetWindowCenterX && gEngfuncs.GetWindowCenterY)
 	{
 
 		SetCursorPos ( gEngfuncs.GetWindowCenterX(), gEngfuncs.GetWindowCenterY() );
 		ThreadInterlockedExchange( &old_mouse_pos.x, gEngfuncs.GetWindowCenterX() );
 		ThreadInterlockedExchange( &old_mouse_pos.y, gEngfuncs.GetWindowCenterY() );
-	}
-
-	if ( gpGlobals && gpGlobals->time - s_flRawInputUpdateTime > 1.0f )
-	{
-		s_flRawInputUpdateTime = gpGlobals->time;
-		m_bRawInput = CVAR_GET_FLOAT( "m_rawinput" ) != 0;
 	}
 #endif
 }
@@ -474,7 +505,7 @@ void IN_MouseMove ( float frametime, usercmd_t *cmd)
 	{
 		int deltaX, deltaY;
 #ifdef _WIN32
-		if ( !m_bRawInput )
+		if ( !IN_UseRawInput() )
 		{
 			if ( m_bMouseThread )
 			{
@@ -497,7 +528,7 @@ void IN_MouseMove ( float frametime, usercmd_t *cmd)
 		}
 		
 #ifdef _WIN32
-		if ( !m_bRawInput )
+		if ( !IN_UseRawInput() )
 		{
 			if ( m_bMouseThread )
 			{
@@ -572,6 +603,19 @@ void IN_MouseMove ( float frametime, usercmd_t *cmd)
 
 	gEngfuncs.SetViewAngles( (float *)viewangles );
 
+#ifdef _WIN32
+	if (!IN_UseRawInput() && mouseRelative)
+	{
+		SDL_SetRelativeMouseMode(SDL_FALSE);
+		mouseRelative = SDL_FALSE;
+	}
+	else if (IN_UseRawInput() && !mouseRelative)
+	{
+		SDL_SetRelativeMouseMode(SDL_TRUE);
+		mouseRelative = SDL_TRUE;
+	}
+#endif
+
 /*
 //#define TRACE_TEST
 #if defined( TRACE_TEST )
@@ -598,7 +642,7 @@ void CL_DLLEXPORT IN_Accumulate (void)
 	    if (mouseactive)
 	    {
 #ifdef _WIN32
-			if ( !m_bRawInput )
+			if ( !IN_UseRawInput() )
 			{
 				if ( !m_bMouseThread )
 				{
@@ -1090,11 +1134,12 @@ void IN_Init (void)
 	m_customaccel_exponent	= gEngfuncs.pfnRegisterVariable ( "m_customaccel_exponent", "1", FCVAR_ARCHIVE );
 
 #ifdef _WIN32
-	m_bRawInput				= CVAR_GET_FLOAT( "m_rawinput" ) > 0;
+	m_rawinput = gEngfuncs.pfnGetCvarPointer("m_rawinput");
+	m_cached_rawinput = IN_UseRawInput();
 	m_bMouseThread			= gEngfuncs.CheckParm ("-mousethread", NULL ) != NULL;
 	m_mousethread_sleep			= gEngfuncs.pfnRegisterVariable ( "m_mousethread_sleep", "10", FCVAR_ARCHIVE );
 
-	if ( !m_bRawInput && m_bMouseThread && m_mousethread_sleep ) 
+	if ( !IN_UseRawInput() && m_bMouseThread && m_mousethread_sleep ) 
 	{
 		s_mouseDeltaX = s_mouseDeltaY = 0;
 		
