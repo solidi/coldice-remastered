@@ -42,3 +42,9 @@ jobs:
     - name: Build client.so
       working-directory: ./linux
       run: make hl_cdll CFG=${{env.BUILD_CONFIGURATION}}
+
+    - name: Upload client.so
+      uses: actions/upload-artifact@v3
+      with:
+        name: client.so
+        path: ./linux/Release/client.so
