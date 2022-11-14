@@ -3795,6 +3795,11 @@ void CBasePlayer::ImpulseCommands( )
 	case 208:
 		StartSelacoSlide();
 		break;
+	case 209:
+		if (m_pActiveItem) {			
+			((CBasePlayerWeapon *)m_pActiveItem)->ThrowGrenade();
+		}
+		break;
 
 	default:
 		// check all of the cheat impulse commands now

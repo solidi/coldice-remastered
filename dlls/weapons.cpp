@@ -2033,6 +2033,46 @@ void CBasePlayerWeapon::PrintState( void )
 	ALERT( at_console, "m_iclip:  %i\n", m_iClip );
 }
 
+void CBasePlayerWeapon::ThrowGrenade()
+{
+	if (m_pPlayer->m_fGrenadeTime >= gpGlobals->time) {
+		return;
+	}
+
+	int index = m_pPlayer->GetAmmoIndex("Hand Grenade");
+
+	if (m_pPlayer->m_rgAmmo[index] <= 0)
+		return;
+
+	m_pPlayer->m_fGrenadeTime = gpGlobals->time + 0.75;
+
+	Vector angThrow = m_pPlayer->pev->v_angle + m_pPlayer->pev->punchangle;
+
+	if ( angThrow.x < 0 )
+		angThrow.x = -10 + angThrow.x * ( ( 90 - 10 ) / 90.0 );
+	else
+		angThrow.x = -10 + angThrow.x * ( ( 90 + 10 ) / 90.0 );
+
+	float flVel = ( 90 - angThrow.x ) * 4;
+	if ( flVel > 500 )
+		flVel = 500;
+
+	UTIL_MakeVectors( angThrow );
+	Vector vecSrc = m_pPlayer->pev->origin + m_pPlayer->pev->view_ofs + gpGlobals->v_forward * 16;
+	Vector vecThrow = gpGlobals->v_forward * flVel + m_pPlayer->pev->velocity;
+
+	// alway explode seconds after the pin was pulled
+	float time = RANDOM_FLOAT(4.0, 6.0);
+	CGrenade::ShootTimedCluster(m_pPlayer->pev, vecSrc, vecThrow, time);
+
+	// player "shoot" animation
+	m_pPlayer->SetAnimation( PLAYER_ATTACK1 );
+	EMIT_SOUND(ENT(m_pPlayer->pev), CHAN_BODY, "grenade_throw.wav", 1, ATTN_NORM);
+
+	m_pPlayer->pev->punchangle = Vector(-4, -2, -4);
+	m_pPlayer->m_rgAmmo[index]--;
+}
+
 enum kick_e {
 	KICK = 0,
 	KICK_2
