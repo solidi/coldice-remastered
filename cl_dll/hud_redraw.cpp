@@ -352,7 +352,7 @@ void CHud::ShowTextTips( void ) {
 		return;
 	}
 
-	const int MESSAGE_SIZE = 18;
+	const int MESSAGE_SIZE = 19;
 
 	const char* messageList[MESSAGE_SIZE] = {
 		"Tired of blue skins? Type \"cl_icemodels 0\" in the console switches to real-life skins.\n",
@@ -372,7 +372,8 @@ void CHud::ShowTextTips( void ) {
 		"To drop a rune, type \"drop_rune\" in the console or bind it to a key.\n",
 		"To turn off lifemeters of other players, type \"cl_lifemeters 0\" in the console.\n",
 		"Fast fragging announcements can be reduced by typing \"cl_achievements 1\" in the console.\n",
-		"To turn off weapon and rune messages, type \"cl_infomessage 0\" in the console.\n"
+		"To turn off weapon and rune messages, type \"cl_infomessage 0\" in the console.\n",
+		"Throw a grenade if you have one, bind \"impulse 209\" to a button.\n"
 	};
 
 	// Unstick after a level change
