@@ -273,7 +273,8 @@ void CRpgRocket :: FollowThink( void  )
 		else 
 		{
 			float speed = 2000;
-			if (strstr(mutators.string, g_MutatorRocketCrowbar))
+			if (strstr(mutators.string, g_MutatorRocketCrowbar) ||
+				atoi(mutators.string) == MUTATOR_ROCKETCROWBAR)
 				speed = 200;
 
 			if (pev->velocity.Length() > speed)
@@ -292,13 +293,15 @@ void CRpgRocket :: FollowThink( void  )
 		pev->velocity = pev->velocity * 0.2 + vecTarget * flSpeed * 0.798;
 		if (pev->waterlevel == 0 && pev->velocity.Length() < 1500)
 		{
-			if (!strstr(mutators.string, g_MutatorRocketCrowbar))
+			if (!strstr(mutators.string, g_MutatorRocketCrowbar) ||
+				atoi(mutators.string) == MUTATOR_ROCKETCROWBAR)
 				Detonate( );
 		}
 	}
 	// ALERT( at_console, "%.0f\n", flSpeed );
 
-	if (strstr(mutators.string, g_MutatorRocketCrowbar))
+	if (strstr(mutators.string, g_MutatorRocketCrowbar) ||
+		atoi(mutators.string) == MUTATOR_ROCKETCROWBAR)
 	{
 		pev->velocity.x = pev->velocity.x + (RANDOM_FLOAT(-100,100));
 		pev->velocity.y = pev->velocity.y + (RANDOM_FLOAT(-100,100));

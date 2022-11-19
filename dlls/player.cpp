@@ -3600,7 +3600,8 @@ void CBasePlayer::GiveNamedItem( const char *pszName )
 		}
 	}
 
-	if (strstr(mutators.string, g_MutatorInstaGib)) {
+	if (strstr(mutators.string, g_MutatorInstaGib) ||
+		atoi(mutators.string) == MUTATOR_INSTAGIB) {
 		if (stricmp(pszName, "weapon_fists") != 0 &&
 			stricmp(pszName, "weapon_railgun") != 0 &&
 			stricmp(pszName, "weapon_dual_railgun") != 0) {

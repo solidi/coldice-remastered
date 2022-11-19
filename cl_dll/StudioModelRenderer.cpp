@@ -1009,6 +1009,30 @@ void CStudioModelRenderer::StudioSetupBones ( void )
 			ConcatTransforms ((*m_pbonetransform)[pbones[i].parent], bonematrix, (*m_pbonetransform)[i]);
 			ConcatTransforms ((*m_plighttransform)[pbones[i].parent], bonematrix, (*m_plighttransform)[i]);
 		}
+
+		if (strstr(CVAR_GET_STRING("mp_mutators"), "dkmode") ||
+			atoi(CVAR_GET_STRING("mp_mutators")) == MUTATOR_DKMODE)
+		{
+			if (m_pCurrentEntity != gEngfuncs.GetViewModel())
+			{
+				//m_pPlayerInfo->topcolor;
+				float multiplier = 1;
+				if (!strcmp( pbones[i].name, "Bip01 Head" )) {
+					multiplier = 3;
+					for (int x = 0; x <= 2; x++)
+						for (int y = 0; y <= 2; y++)
+							(*m_pbonetransform)[i][x][y] *= multiplier;
+				}
+
+				if (!strcmp( pbones[i].name, "Bip01 R Arm" ) ||
+					!strcmp( pbones[i].name, "Bip01 L Arm" )) {
+					multiplier = 2;
+					for (int x = 0; x <= 2; x++)
+						for (int y = 0; y <= 2; y++)
+							(*m_pbonetransform)[i][x][y] *= multiplier;
+				}
+			}
+		}
 	}
 }
 
