@@ -143,12 +143,14 @@ void CDualRailgun::PrimaryAttack()
 	m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] -= 2;
 
 	int right = 16;
-	if (m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] % 4 == 0) {
+	if (!m_iAltFire) {
 		SendWeaponAnim( DUAL_RAILGUN_FIRE_RIGHT );
 	} else {
 		SendWeaponAnim( DUAL_RAILGUN_FIRE_LEFT );
 		right = -12;
 	}
+	m_iAltFire++;
+	if (m_iAltFire > 1) m_iAltFire = 0;
 	UTIL_MakeVectors( m_pPlayer->pev->v_angle + m_pPlayer->pev->punchangle );
 	Vector vecAiming = gpGlobals->v_forward;
 	Vector vecSrc = m_pPlayer->GetGunPosition();

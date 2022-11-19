@@ -1414,6 +1414,8 @@ public:
 	int m_iGlow;
 	int m_iBeam;
 
+	int m_iAltFire;
+
 	// rail, rail, rail
 	void CreateTrail(Vector,Vector);
 
