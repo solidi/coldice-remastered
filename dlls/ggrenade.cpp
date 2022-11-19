@@ -104,6 +104,9 @@ void CGrenade::Explode( TraceResult *pTrace, int bitsDamageType )
 		WRITE_BYTE( BREAK_CONCRETE );
 	MESSAGE_END();
 
+	// Paintball makes this small
+	float dmg = ((pev->dmg - 50) * .60);
+
 	MESSAGE_BEGIN( MSG_PAS, SVC_TEMPENTITY, pev->origin );
 		WRITE_BYTE( TE_EXPLOSION );		// This makes a dynamic light and the explosion sprites/sound
 		WRITE_COORD( pev->origin.x );	// Send to PAS because of the sound
@@ -121,7 +124,7 @@ void CGrenade::Explode( TraceResult *pTrace, int bitsDamageType )
 		{
 			WRITE_SHORT( g_sModelIndexWExplosion );
 		}
-		WRITE_BYTE( (pev->dmg - 50) * .60  ); // scale * 10
+		WRITE_BYTE( dmg > 0 ? dmg : 20 ); // scale * 10
 		WRITE_BYTE( 15  ); // framerate
 		WRITE_BYTE( TE_EXPLFLAG_NONE );
 	MESSAGE_END();
