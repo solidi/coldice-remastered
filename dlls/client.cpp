@@ -731,6 +731,7 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_mutators \"volatile\"\" - where players blow up when fragged\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_mutators \"plumber\"\" - players battle only with pipe wrenches\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_mutators \"paintball\"\" - weapons and explosions leave paint decals, weapons reduced to 1/4 damage\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_mutators \"dkmode\"\" - from Goldeneye 007, player head and arms are like Donkey Kong\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_spawnweapons\" - Spawn weapons or not\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "For more, see readme.txt\n" );
 	}
