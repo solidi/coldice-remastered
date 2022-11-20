@@ -4075,6 +4075,8 @@ void CBasePlayer::EndSelacoSlide( void )
 		m_fSelacoCount = 0;
 		pev->view_ofs[2] = m_fSelacoZ;
 		m_fSelacoIncrement = gpGlobals->time + 0.2;
+	}
+}
 
 void CBasePlayer::CalculateToFlip( void )
 {
