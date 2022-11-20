@@ -91,6 +91,8 @@ extern cvar_t *cl_vmyaw;
 extern cvar_t *cl_ifov;
 
 extern qboolean g_IronSight;
+extern float g_SlideTime;
+extern float g_AcrobatTime;
 
 #define	CAM_MODE_RELAX		1
 #define CAM_MODE_FOCUS		2
@@ -707,7 +709,7 @@ void V_CalcNormalRefdef ( struct ref_params_s *pparams )
 
 	static float kF = 0, kF2 = 0, kR = 0, kR2 = 0, t1 = 0, t2 = 0;
 	if (cl_weaponsway->value == 1) {
-		if (!g_IronSight) {
+		if (!g_IronSight && g_AcrobatTime < gEngfuncs.GetClientTime()) {
 			V_WeaponSway(pparams->cl_viewangles[YAW], pparams->frametime, pparams->time, view);
 			V_WeaponPull( pparams->time, pparams->frametime, view, pparams->cmd->forwardmove, pparams->forward, kF, kF2, t1, false );
 			V_WeaponPull( pparams->time, pparams->frametime, view, pparams->cmd->sidemove, pparams->right, kR, kR2, t2, true );
@@ -1762,10 +1764,12 @@ V_DropPunchAngle
 */
 void V_DropPunchAngle ( float frametime, float *ev_punchangle )
 {
-	float	len;
-	
+	float len, strength = 10.0;
+	if (g_AcrobatTime > gEngfuncs.GetClientTime())
+		strength = 90.0;
+
 	len = VectorNormalize ( ev_punchangle );
-	len -= (10.0 + len * 0.5) * frametime;
+	len -= (strength + len * 0.5) * frametime;
 	len = max( len, 0.0 );
 	VectorScale ( ev_punchangle, len, ev_punchangle );
 }
@@ -1779,6 +1783,10 @@ Client side punch effect
 */
 void V_PunchAxis( int axis, float punch )
 {
+	if (g_AcrobatTime > gEngfuncs.GetClientTime()) {
+		return;
+	}
+
 	if (g_IronSight) {
 		punch *= 0.2;
 	}

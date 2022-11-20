@@ -220,6 +220,7 @@ void ClientPutInServer( edict_t *pEntity )
 
 	pPlayer->m_iAutoWepSwitch = 1;
 	pPlayer->m_iDisplayInfoMessage = 1;
+	pPlayer->m_iKeyboardAcrobatics = 1;
 
 	// Allocate a CBasePlayer for pev, and call spawn
 	pPlayer->Spawn();
@@ -678,6 +679,9 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"impulse 207\" - Punch\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"impulse 208\" - Slide\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"impulse 209\" - Grenade\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"impulse 210\" - Roll Right\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"impulse 211\" - Roll Left\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"impulse 212\" - Back Flip\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"snowman\" - God mode (when sv_cheats 1)\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_icemodels [0|1|2|3]\" - changes models with specific ice skins\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_oldscoreboard 1\" - Old Scoreboard\n");
@@ -784,6 +788,10 @@ void ClientUserInfoChanged( edict_t *pEntity, char *infobuffer )
 	char* pszDisplayInfoMessage = g_engfuncs.pfnInfoKeyValue( infobuffer, "cl_infomessage");
 	if (strlen(pszDisplayInfoMessage))
 		GetClassPtr((CBasePlayer *)&pEntity->v)->m_iDisplayInfoMessage = atoi(pszDisplayInfoMessage);
+
+	char* pszKeyboardAcrobatics = g_engfuncs.pfnInfoKeyValue(infobuffer, "cl_keyboardacrobatics");
+	if (strlen(pszKeyboardAcrobatics))
+		GetClassPtr((CBasePlayer *)&pEntity->v)->m_iKeyboardAcrobatics = atoi(pszKeyboardAcrobatics);
 
 	// msg everyone if someone changes their name,  and it isn't the first time (changing no name to current name)
 	if ( pEntity->v.netname && STRING(pEntity->v.netname)[0] != 0 && !FStrEq( STRING(pEntity->v.netname), g_engfuncs.pfnInfoKeyValue( infobuffer, "name" )) )

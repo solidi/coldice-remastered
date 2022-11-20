@@ -99,6 +99,9 @@ typedef enum {
 	ACT_FROZEN,
 	ACT_PUNCH,
 	ACT_SLIDE,
+	ACT_RIGHT_FLIP,
+	ACT_LEFT_FLIP,
+	ACT_BACK_FLIP,
 } Activity;
 
 

@@ -20,6 +20,8 @@
 #include "cl_util.h"
 #include "parsemsg.h"
 #include "r_efx.h"
+#include "view.h"
+#include "in_defs.h"
 
 #include "particleman.h"
 extern IParticleMan *g_pParticleMan;
@@ -36,6 +38,8 @@ void ClearEventList( void );
 #endif
 
 float g_SlideTime = 0;
+float g_AcrobatTime = 0;
+extern cvar_t *cl_antivomit;
 
 /// USER-DEFINED SERVER MESSAGE HANDLERS
 
@@ -142,8 +146,43 @@ int CHud :: MsgFunc_Concuss( const char *pszName, int iSize, void *pbuf )
 	return 1;
 }
 
-int CHud :: MsgFunc_SelacoSlide(const char *pszName, int iSize, void *pbuf )
+int CHud :: MsgFunc_Acrobatics(const char *pszName, int iSize, void *pbuf )
 {
-	g_SlideTime = gEngfuncs.GetClientTime() + 1.25;
+	// Unstick slide after levelchange
+	if ((gEngfuncs.GetClientTime() + 2) < g_SlideTime) {
+		g_SlideTime = 0;
+	}
+
+	if ((gEngfuncs.GetClientTime() + 2) < g_AcrobatTime) {
+		g_AcrobatTime = 0;
+	}
+
+	BEGIN_READ( pbuf, iSize );
+	int mode = READ_BYTE();
+	int axis = 0, amount = 0;
+	switch (mode)
+	{
+	case ACROBATICS_ROLL_RIGHT:
+		axis = ROLL;
+		amount = -360;
+		break;
+	case ACROBATICS_ROLL_LEFT:
+		axis = ROLL;
+		amount = 360;
+		break;
+	case ACROBATICS_FLIP_BACK:
+		axis = PITCH;
+		amount = 360;
+		break;
+	default:
+		g_SlideTime = gEngfuncs.GetClientTime() + 1;
+	}
+
+	if (amount > 0 || amount < 0) {
+		if (!cl_antivomit->value)
+			V_PunchAxis(axis, amount);
+		g_AcrobatTime = gEngfuncs.GetClientTime() + 1;
+	}
+
 	return 1;
 }

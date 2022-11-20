@@ -74,6 +74,9 @@ typedef enum
 	PLAYER_FROZEN,
 	PLAYER_PUNCH,
 	PLAYER_SLIDE,
+	PLAYER_RIGHT_FLIP,
+	PLAYER_LEFT_FLIP,
+	PLAYER_BACK_FLIP,
 } PLAYER_ANIM;
 
 #define MAX_ID_RANGE 2048
@@ -233,6 +236,17 @@ public:
 
 	int m_iAutoWepSwitch;
 	int m_iDisplayInfoMessage;
+
+	void CalculateToFlip( void );
+	void StartRightFlip( void );
+	void StartLeftFlip( void );
+	void StartBackFlip( void );
+	void TraceHitOfFlip( void );
+	int m_iKeyboardAcrobatics;
+	float m_fFlipTime;
+	float m_fFlipButtonTime;
+	int m_fFlipType;
+	int m_fKickCount;
 
 	CBaseEntity *pHeldItem;
 	BOOL m_iHoldingItem;

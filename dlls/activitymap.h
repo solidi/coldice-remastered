@@ -97,5 +97,8 @@ _A(	ACT_KICK ),
 _A(	ACT_FROZEN ),
 _A(	ACT_PUNCH ),
 _A(	ACT_SLIDE ),
+_A(	ACT_RIGHT_FLIP ),
+_A(	ACT_LEFT_FLIP ),
+_A(	ACT_BACK_FLIP ),
 0, NULL
 };
