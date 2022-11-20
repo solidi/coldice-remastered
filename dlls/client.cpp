@@ -1369,7 +1369,8 @@ int AddToFullPack( struct entity_state_s *state, int e, edict_t *ent, edict_t *h
 		state->eflags |= EFLAG_SLERP;
 	}
 
-	if (strstr(mutators.string, g_MutatorPaintball))
+	if (strstr(mutators.string, g_MutatorPaintball) ||
+		atoi(mutators.string) == MUTATOR_PAINTBALL)
 		entity->m_EFlags |= EFLAG_PAINTBALL;
 	else
 		entity->m_EFlags &= ~EFLAG_PAINTBALL;

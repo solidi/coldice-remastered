@@ -137,10 +137,12 @@ void CHalfLifeMultiplay::RefreshSkillData( void )
 	if (snowballfight.value)
 		gSkillData.plrDmgSnowball = 250;
 	
-	if (strstr(mutators.string, g_MutatorInstaGib))
+	if (strstr(mutators.string, g_MutatorInstaGib) ||
+		atoi(mutators.string) == MUTATOR_INSTAGIB)
 		gSkillData.plrDmgRailgun = 800;
 
-	if (strstr(mutators.string, g_MutatorPaintball))
+	if (strstr(mutators.string, g_MutatorPaintball) ||
+		atoi(mutators.string) == MUTATOR_PAINTBALL)
 	{
 		float multiplier = 0.25;
 		gSkillData.plrDmg9MM *= multiplier;
@@ -645,16 +647,19 @@ void CHalfLifeMultiplay :: PlayerSpawn( CBasePlayer *pPlayer )
 		addDefault = FALSE;
 	}
 
-	if (strstr(mutators.string, g_MutatorRocketCrowbar)) {
+	if (strstr(mutators.string, g_MutatorRocketCrowbar) ||
+		atoi(mutators.string) == MUTATOR_ROCKETCROWBAR) {
 		pPlayer->GiveNamedItem("weapon_rocketcrowbar");
 	}
 
-	if (strstr(mutators.string, g_MutatorInstaGib)) {
+	if (strstr(mutators.string, g_MutatorInstaGib) ||
+		atoi(mutators.string) == MUTATOR_INSTAGIB) {
 		pPlayer->GiveNamedItem("weapon_railgun");
 		return;
 	}
 
-	if (strstr(mutators.string, g_MutatorPlumber)) {
+	if (strstr(mutators.string, g_MutatorPlumber) ||
+		atoi(mutators.string) == MUTATOR_PLUMBER) {
 		pPlayer->GiveNamedItem("weapon_wrench");
 		return;
 	}
@@ -802,7 +807,8 @@ void CHalfLifeMultiplay :: PlayerKilled( CBasePlayer *pVictim, entvars_t *pKille
 	}
 #endif
 
-	if (strstr(mutators.string, g_MutatorVolatile)) {
+	if (strstr(mutators.string, g_MutatorVolatile) ||
+		atoi(mutators.string) == MUTATOR_VOLATILE) {
 		// No echo boom
 		if (pInflictor && FClassnameIs(pInflictor, "vest"))
 			return;
@@ -1190,7 +1196,8 @@ BOOL CHalfLifeMultiplay::IsAllowedToSpawn( CBaseEntity *pEntity )
 		return FALSE;
 	}
 
-	if (strstr(mutators.string, g_MutatorInstaGib) &&
+	if ((strstr(mutators.string, g_MutatorInstaGib) ||
+		atoi(mutators.string) == MUTATOR_INSTAGIB) &&
 		(strncmp(STRING(pEntity->pev->classname), "weapon_", 7) == 0 || strncmp(STRING(pEntity->pev->classname), "ammo_", 5) == 0))
 	{	
 		if (stricmp(STRING(pEntity->pev->classname), "weapon_railgun") == 0 ||
@@ -1206,7 +1213,8 @@ BOOL CHalfLifeMultiplay::IsAllowedToSpawn( CBaseEntity *pEntity )
 		}
 	}
 
-	if (strstr(mutators.string, g_MutatorPlumber) &&
+	if ((strstr(mutators.string, g_MutatorPlumber) ||
+		atoi(mutators.string) == MUTATOR_PLUMBER) &&
 		(strncmp(STRING(pEntity->pev->classname), "weapon_", 7) == 0 || strncmp(STRING(pEntity->pev->classname), "ammo_", 5) == 0))
 	{	
 		if (stricmp(STRING(pEntity->pev->classname), "weapon_fists") == 0 ||
