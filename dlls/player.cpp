@@ -3914,8 +3914,8 @@ void CBasePlayer::StartSelacoSlide( void )
 			UTIL_ScreenShake( pev->origin, 15.0, 55.0, 1.25, 15.0 );
 
 			EMIT_SOUND(ENT(pev), CHAN_VOICE, "slide_on_gravel.wav", 1, ATTN_NORM);
-			MESSAGE_BEGIN( MSG_ONE, gmsgSelacoSlide, NULL, pev );
-				WRITE_BYTE( 0 );
+			MESSAGE_BEGIN( MSG_ONE, gmsgAcrobatics, NULL, pev );
+				WRITE_BYTE( ACROBATICS_SELACO_SLIDE );
 			MESSAGE_END();
 		}
 	}
