@@ -53,6 +53,8 @@ cvar_t *cl_flashonpickup;
 cvar_t *m_pIceModels;
 cvar_t *cl_lifemeter;
 cvar_t *cl_achievements;
+cvar_t *cl_antivomit;
+cvar_t *cl_keyboardacrobatics;
 
 cvar_t *cl_vmx;
 cvar_t *cl_vmy;
@@ -324,9 +326,9 @@ int __MsgFunc_AllowSpec(const char *pszName, int iSize, void *pbuf)
 	return 0;
 }
 
-int __MsgFunc_SelacoSlide(const char *pszName, int iSize, void *pbuf)
+int __MsgFunc_Acrobatics(const char *pszName, int iSize, void *pbuf)
 {
-	return gHUD.MsgFunc_SelacoSlide(pszName, iSize, pbuf );
+	return gHUD.MsgFunc_Acrobatics(pszName, iSize, pbuf );
 }
 
 // This is called every time the DLL is loaded
@@ -365,7 +367,7 @@ void CHud :: Init( void )
 	HOOK_MESSAGE( SpecFade );
 	HOOK_MESSAGE( ResetFade );
 
-	HOOK_MESSAGE( SelacoSlide );
+	HOOK_MESSAGE( Acrobatics );
 
 	// VGUI Menus
 	HOOK_MESSAGE( VGUIMenu );
@@ -395,6 +397,8 @@ void CHud :: Init( void )
 	CVAR_CREATE( "cl_infomessage", "1", FCVAR_ARCHIVE | FCVAR_USERINFO );
 	cl_lifemeter = CVAR_CREATE( "cl_lifemeters", "1", FCVAR_ARCHIVE );
 	cl_achievements = CVAR_CREATE( "cl_achivements", "3", FCVAR_ARCHIVE );
+	cl_antivomit = CVAR_CREATE( "cl_antivomit", "0", FCVAR_ARCHIVE );
+	cl_keyboardacrobatics = CVAR_CREATE( "cl_keyboardacrobatics", "1", FCVAR_ARCHIVE | FCVAR_USERINFO );
 
 	cl_vmx = CVAR_CREATE( "cl_vmx", "0", FCVAR_ARCHIVE );
 	cl_vmy = CVAR_CREATE( "cl_vmy", "0", FCVAR_ARCHIVE );

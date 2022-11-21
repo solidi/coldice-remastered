@@ -193,7 +193,7 @@ int gmsgStatusText = 0;
 int gmsgStatusValue = 0; 
 
 int gmsgStatusIcon = 0;
-int gmsgSelacoSlide = 0;
+int gmsgAcrobatics = 0;
 int gmsgLifeBar = 0;
 
 void LinkUserMessages( void )
@@ -242,7 +242,7 @@ void LinkUserMessages( void )
 	gmsgStatusText = REG_USER_MSG("StatusText", -1);
 	gmsgStatusValue = REG_USER_MSG("StatusValue", 3);
 	gmsgStatusIcon = REG_USER_MSG("StatusIcon", -1);
-	gmsgSelacoSlide = REG_USER_MSG("SelacoSlide", 1);
+	gmsgAcrobatics = REG_USER_MSG("Acrobatics", 1);
 	gmsgLifeBar = REG_USER_MSG("LifeBar", 3);
 }
 
@@ -1052,6 +1052,18 @@ void CBasePlayer::SetAnimation( PLAYER_ANIM playerAnim )
 		m_IdealActivity = ACT_SLIDE;
 		break;
 
+	case PLAYER_RIGHT_FLIP:
+		m_IdealActivity = ACT_RIGHT_FLIP;
+		break;
+
+	case PLAYER_LEFT_FLIP:
+		m_IdealActivity = ACT_LEFT_FLIP;
+		break;
+
+	case PLAYER_BACK_FLIP:
+		m_IdealActivity = ACT_BACK_FLIP;
+		break;
+
 	case PLAYER_JUMP:
 		m_IdealActivity = ACT_HOP;
 		break;
@@ -1076,6 +1088,9 @@ void CBasePlayer::SetAnimation( PLAYER_ANIM playerAnim )
 		case ACT_KICK:
 		case ACT_PUNCH:
 		case ACT_SLIDE:
+		case ACT_RIGHT_FLIP:
+		case ACT_LEFT_FLIP:
+		case ACT_BACK_FLIP:
 			m_IdealActivity = m_Activity;
 			break;
 		default:
@@ -1105,6 +1120,18 @@ void CBasePlayer::SetAnimation( PLAYER_ANIM playerAnim )
 		{
 			m_IdealActivity = m_Activity;
 		}
+		else if ( m_fFlipTime > gpGlobals->time && m_Activity == ACT_RIGHT_FLIP )
+		{
+			m_IdealActivity = m_Activity;
+		}
+		else if ( m_fFlipTime > gpGlobals->time && m_Activity == ACT_LEFT_FLIP )
+		{
+			m_IdealActivity = m_Activity;
+		}
+		else if ( m_fFlipTime > gpGlobals->time && m_Activity == ACT_BACK_FLIP )
+		{
+			m_IdealActivity = m_Activity;
+		}
 		else if ( pev->waterlevel > 1 )
 		{
 			if ( speed == 0 )
@@ -1130,6 +1157,9 @@ void CBasePlayer::SetAnimation( PLAYER_ANIM playerAnim )
 	case ACT_FROZEN:
 	case ACT_PUNCH:
 	case ACT_SLIDE:
+	case ACT_RIGHT_FLIP:
+	case ACT_LEFT_FLIP:
+	case ACT_BACK_FLIP:
 	default:
 		if ( m_Activity == m_IdealActivity)
 			return;
@@ -2178,11 +2208,17 @@ void CBasePlayer::PreThink(void)
 		}
 	}
 
-	CalculateToSelacoSlide();
+	if (m_iKeyboardAcrobatics)
+		CalculateToSelacoSlide();
 
 	TraceHitOfSelacoSlide();
 
 	EndSelacoSlide();
+
+	if (m_iKeyboardAcrobatics)
+		CalculateToFlip();
+
+	TraceHitOfFlip();
 }
 /* Time based Damage works as follows: 
 	1) There are several types of timebased damage:
@@ -3097,6 +3133,8 @@ void CBasePlayer::Spawn( void )
 	m_fSelacoZ = VEC_VIEW.z;
 	m_fSelacoCount = 0;
 
+	m_fFlipButtonTime = m_fFlipTime = 0;
+
 	g_engfuncs.pfnSetPhysicsKeyValue( edict(), "slj", "0" );
 	g_engfuncs.pfnSetPhysicsKeyValue( edict(), "hl", "1" );
 	g_engfuncs.pfnSetPhysicsKeyValue(edict(), "jumpheight", CVAR_GET_STRING("sv_jumpheight"));
@@ -3797,9 +3835,18 @@ void CBasePlayer::ImpulseCommands( )
 		StartSelacoSlide();
 		break;
 	case 209:
-		if (m_pActiveItem) {			
+		if (m_pActiveItem) {
 			((CBasePlayerWeapon *)m_pActiveItem)->ThrowGrenade();
 		}
+		break;
+	case 210:
+		StartRightFlip();
+		break;
+	case 211:
+		StartLeftFlip();
+		break;
+	case 212:
+		StartBackFlip();
 		break;
 
 	default:
@@ -3867,8 +3914,8 @@ void CBasePlayer::StartSelacoSlide( void )
 			UTIL_ScreenShake( pev->origin, 15.0, 55.0, 1.25, 15.0 );
 
 			EMIT_SOUND(ENT(pev), CHAN_VOICE, "slide_on_gravel.wav", 1, ATTN_NORM);
-			MESSAGE_BEGIN( MSG_ONE, gmsgSelacoSlide, NULL, pev );
-				WRITE_BYTE( 0 );
+			MESSAGE_BEGIN( MSG_ONE, gmsgAcrobatics, NULL, pev );
+				WRITE_BYTE( ACROBATICS_SELACO_SLIDE );
 			MESSAGE_END();
 		}
 	}
@@ -4028,6 +4075,149 @@ void CBasePlayer::EndSelacoSlide( void )
 		m_fSelacoCount = 0;
 		pev->view_ofs[2] = m_fSelacoZ;
 		m_fSelacoIncrement = gpGlobals->time + 0.2;
+	}
+}
+
+void CBasePlayer::CalculateToFlip( void )
+{
+	if (m_fFlipButtonTime < gpGlobals->time && (m_afButtonPressed & (IN_MOVERIGHT|IN_MOVELEFT|IN_BACK)))
+	{
+		m_fFlipButtonTime = gpGlobals->time + 0.55;
+		m_fKickCount = 1;
+		m_fFlipType = m_afButtonPressed;
+	}
+
+	if (m_fKickCount < 4 && m_fFlipButtonTime > gpGlobals->time &&
+		m_fFlipType == m_afButtonPressed && (m_afButtonPressed & (IN_MOVERIGHT|IN_MOVELEFT|IN_BACK))) {
+		m_fKickCount++;
+	}
+
+	if (m_fKickCount == 4 && m_fFlipButtonTime > gpGlobals->time &&
+		m_fFlipType == m_afButtonPressed && fabs(pev->v_angle.x) < 22 &&
+		(m_afButtonPressed & (IN_MOVERIGHT|IN_MOVELEFT|IN_BACK))) {
+		m_fKickCount = 0;
+		m_fFlipTime = m_fFlipButtonTime = 0;
+		if (m_afButtonPressed & IN_MOVERIGHT)
+			StartRightFlip();
+		else if (m_afButtonPressed & IN_MOVELEFT)
+			StartLeftFlip();
+		else if (m_afButtonPressed & IN_BACK)
+			StartBackFlip();
+		ReleaseHeldItem(RANDOM_LONG(300,500));
+	}
+}
+
+void CBasePlayer::StartRightFlip( void )
+{
+	if (m_fFlipTime < gpGlobals->time) {
+		if (FBitSet(pev->flags, FL_ONGROUND)) {
+			UTIL_MakeVectors(pev->angles);
+			pev->velocity = (gpGlobals->v_right * 300) + (gpGlobals->v_up * 400);
+			m_fFlipTime = gpGlobals->time + 1.0;
+			SetAnimation( PLAYER_RIGHT_FLIP );
+			UTIL_ScreenShake( pev->origin, 15.0, 55.0, 1.25, 15.0 );
+			MESSAGE_BEGIN( MSG_ONE, gmsgAcrobatics, NULL, pev );
+				WRITE_BYTE( ACROBATICS_ROLL_RIGHT );
+			MESSAGE_END();
+		}
+	}
+}
+
+void CBasePlayer::StartLeftFlip( void )
+{
+	if (m_fFlipTime < gpGlobals->time) {
+		if (FBitSet(pev->flags, FL_ONGROUND)) {
+			UTIL_MakeVectors(pev->angles);
+			pev->velocity = (gpGlobals->v_right * -300) + (gpGlobals->v_up * 400);
+			m_fFlipTime = gpGlobals->time + 1.0;
+			SetAnimation( PLAYER_LEFT_FLIP );
+			UTIL_ScreenShake( pev->origin, 15.0, 55.0, 1.25, 15.0 );
+			MESSAGE_BEGIN( MSG_ONE, gmsgAcrobatics, NULL, pev );
+				WRITE_BYTE( ACROBATICS_ROLL_LEFT );
+			MESSAGE_END();
+		}
+	}
+}
+
+void CBasePlayer::StartBackFlip( void )
+{
+	if (m_fFlipTime < gpGlobals->time) {
+		if (FBitSet(pev->flags, FL_ONGROUND)) {
+			UTIL_MakeVectors(pev->angles);
+			pev->velocity = (gpGlobals->v_forward * -300) + (gpGlobals->v_up * 400);
+			m_fFlipTime = gpGlobals->time + 1.0;
+			SetAnimation( PLAYER_BACK_FLIP );
+			UTIL_ScreenShake( pev->origin, 15.0, 55.0, 1.25, 15.0 );
+			MESSAGE_BEGIN( MSG_ONE, gmsgAcrobatics, NULL, pev );
+				WRITE_BYTE( ACROBATICS_FLIP_BACK );
+			MESSAGE_END();
+		}
+	}
+}
+
+void CBasePlayer::TraceHitOfFlip( void )
+{
+	if (m_fFlipTime > gpGlobals->time && m_fSelacoIncrement < gpGlobals->time) {
+		//if (!m_fSelacoHit) {
+			CBaseEntity *pObject = NULL;
+			CBaseEntity *pClosest = NULL;
+
+			UTIL_MakeVectors ( pev->v_angle );// so we know which way we are facing
+
+			while ((pObject = UTIL_FindEntityInSphere( pObject, pev->origin, pev->flags & FL_FAKECLIENT ? 192 : PLAYER_SEARCH_RADIUS )) != NULL)
+			{
+				if (pObject->pev->takedamage != DAMAGE_NO) {
+					if (pObject == this) {
+						continue;
+					}
+
+					if (pObject->Classify() != CLASS_NONE && pObject->Classify() != CLASS_MACHINE && pObject->IsPlayer())
+					{
+						pClosest = pObject;
+					}
+				}
+			}
+			pObject = pClosest;
+
+			float flVol = 1.0;
+
+			if (pObject)
+			{
+				ClearMultiDamage( );
+
+				float flDamage = 0;
+				if (FBitSet(pObject->pev->flags, FL_FROZEN)) {
+					pObject->pev->renderamt = 100;
+					flDamage = 200;
+					::IceExplode(pObject, DMG_FREEZE);
+				}
+
+				TraceResult tr;
+				UTIL_TraceLine(pObject->pev->origin, pObject->pev->origin, dont_ignore_monsters, ENT( pev ), &tr);
+				pObject->TraceAttack(pev, (gSkillData.plrDmgKick * 2) + flDamage, gpGlobals->v_forward, &tr, DMG_KICK);
+				ApplyMultiDamage( pev, pev );
+
+				EMIT_SOUND(ENT(pev), CHAN_ITEM, "fists_hitbod.wav", 1, ATTN_NORM);
+
+				m_iWeaponVolume = 128;
+				flVol = 0.1;
+				pObject->pev->velocity = (pObject->pev->velocity + (gpGlobals->v_forward * RANDOM_LONG(200,300)));
+				pObject->pev->velocity.z += RANDOM_LONG(200,300);
+
+				//m_fSelacoHit = TRUE;
+
+				// Add smoke
+				UTIL_MakeVectors( pev->v_angle );
+				Vector smoke = pObject->pev->origin - gpGlobals->v_forward * 10;
+				CSprite *pSprite = CSprite::SpriteCreate( "sprites/gunsmoke.spr", smoke, TRUE );
+				pSprite->AnimateAndDie( 12 );
+				pSprite->SetTransparency( kRenderTransAdd, 255, 255, 255, 80, kRenderFxNoDissipation );
+				pSprite->SetScale( 0.4 );
+				m_iWeaponVolume = flVol * 512;
+			}
+		//}
+
+		m_fSelacoIncrement = gpGlobals->time + 0.5;
 	}
 }
 

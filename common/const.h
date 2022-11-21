@@ -781,6 +781,11 @@ typedef struct
 	int		hitgroup;		// 0 == generic, non zero is specific body part
 } trace_t;
 
+#define ACROBATICS_SELACO_SLIDE 0
+#define ACROBATICS_ROLL_RIGHT 1
+#define ACROBATICS_ROLL_LEFT 2
+#define ACROBATICS_FLIP_BACK 3
+
 #define MUTATOR_ROCKETCROWBAR 1
 #define MUTATOR_INSTAGIB 2
 #define MUTATOR_VOLATILE 3

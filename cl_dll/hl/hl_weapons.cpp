@@ -351,11 +351,6 @@ Handles weapon firing, reloading, etc.
 */
 void CBasePlayerWeapon::ItemPostFrame( void )
 {
-	// Unstick slide after levelchange
-	if ((gEngfuncs.GetClientTime() + 2) < g_SlideTime) {
-		g_SlideTime = 0;
-	}
-
 	// Don't fire weapon during sliding
 	if (g_SlideTime > gEngfuncs.GetClientTime()) {
 		return;
