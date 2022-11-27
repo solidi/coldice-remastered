@@ -687,6 +687,9 @@ void UTIL_ScreenShake( const Vector &center, float amplitude, float frequency, f
 		if ( !pPlayer || !(pPlayer->pev->flags & FL_ONGROUND) )	// Don't shake if not onground
 			continue;
 
+		if ( pPlayer->pev->flags & FL_FAKECLIENT ) // No bots
+			return;
+
 		localAmplitude = 0;
 
 		if ( radius <= 0 )
@@ -738,6 +741,9 @@ void UTIL_ScreenFadeBuild( ScreenFade &fade, const Vector &color, float fadeTime
 void UTIL_ScreenFadeWrite( const ScreenFade &fade, CBaseEntity *pEntity )
 {
 	if ( !pEntity || !pEntity->IsNetClient() )
+		return;
+
+	if ( pEntity->pev->flags & FL_FAKECLIENT ) // No bots
 		return;
 
 	MESSAGE_BEGIN( MSG_ONE, gmsgFade, NULL, pEntity->edict() );		// use the magic #1 for "one client"
