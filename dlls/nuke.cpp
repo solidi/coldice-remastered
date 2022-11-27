@@ -117,7 +117,7 @@ void CNukeRocket::Killed(entvars_t *pevAttacker, int iGib) {
 	UTIL_ScreenShake( pev->origin, 48.0, 300.0, 6.0, radius );
 	EMIT_SOUND( ENT(pev), CHAN_VOICE, "nuke_explosion.wav", 1, 0.5 );
 
-	MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
+	MESSAGE_BEGIN( MSG_PVS, SVC_TEMPENTITY );
 		WRITE_BYTE(TE_BEAMDISK);
 		WRITE_COORD(pev->origin.x);
 		WRITE_COORD(pev->origin.y);
@@ -147,7 +147,7 @@ void CNukeRocket::Killed(entvars_t *pevAttacker, int iGib) {
 		WRITE_BYTE( 0 );		// speed
 	MESSAGE_END();
 
-	MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
+	MESSAGE_BEGIN( MSG_PVS, SVC_TEMPENTITY );
 		WRITE_BYTE(TE_BEAMCYLINDER);
 		WRITE_COORD(pev->origin.x);
 		WRITE_COORD(pev->origin.y);
