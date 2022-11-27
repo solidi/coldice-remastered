@@ -173,7 +173,7 @@ public:
 #define HORNET_MAX_CARRY		8
 #define M203_GRENADE_MAX_CARRY	20
 #define SNOWBALL_MAX_CARRY		20
-#define NUKE_MAX_CARRY			1
+#define NUKE_MAX_CARRY			3
 
 // the maximum amount of ammo each weapon's clip can hold
 #define WEAPON_NOCLIP			-1
@@ -229,7 +229,7 @@ public:
 #define USAS_DEFAULT_GIVE			40
 #define SNOWBALL_DEFAULT_GIVE		5
 #define _12_GAUGE_DEFAULT_GIVE		12
-#define NUKE_DEFAULT_GIVE			1
+#define NUKE_DEFAULT_GIVE			3
 #define DEAGLE_DEFAULT_GIVE			9
 #define FREEZEGUN_DEFAULT_GIVE		60
 
@@ -1852,6 +1852,7 @@ public:
 	BOOL Deploy( void );
 	void Holster( int skiplocal = 0 );
 	void FireNuke( BOOL withCamera );
+	void Shart();
 	void PrimaryAttack( void );
 	void SecondaryAttack( void );
 	void WeaponIdle( void );

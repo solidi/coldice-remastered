@@ -59,6 +59,8 @@ extern cvar_t   interactiveitems;
 extern cvar_t   snowballfight;
 extern cvar_t   mutators;
 extern cvar_t   spawnweapons;
+extern cvar_t   disallowlist;
+extern cvar_t   nukemode;
 
 // Engine Cvars
 extern cvar_t	*g_psv_gravity;

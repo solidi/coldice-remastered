@@ -110,22 +110,26 @@ void CNukeRocket::Killed(entvars_t *pevAttacker, int iGib) {
 
 	STOP_SOUND( edict(), CHAN_VOICE, "rocket1.wav" );
 
-	UTIL_ScreenShake( pev->origin, 48.0, 300.0, 6.0, 0.0 );
+	int radius = 256;
+	if (nukemode.value >= 2)
+		radius = 0;
+
+	UTIL_ScreenShake( pev->origin, 48.0, 300.0, 6.0, radius );
 	EMIT_SOUND( ENT(pev), CHAN_VOICE, "nuke_explosion.wav", 1, 0.5 );
 
-	MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
+	MESSAGE_BEGIN( MSG_PVS, SVC_TEMPENTITY );
 		WRITE_BYTE(TE_BEAMDISK);
 		WRITE_COORD(pev->origin.x);
 		WRITE_COORD(pev->origin.y);
 		WRITE_COORD(pev->origin.z + 32);
 		WRITE_COORD(pev->origin.x);
 		WRITE_COORD(pev->origin.y);
-		WRITE_COORD(pev->origin.z + 32 + pev->dmg * 2 / .2); // reach damage radius over .3 seconds
+		WRITE_COORD(pev->origin.z + pev->dmg * 3); // reach damage radius over .3 seconds
 		WRITE_SHORT(g_sModelLightning);
 		WRITE_BYTE( 0 ); // startframe
 		WRITE_BYTE( 0 ); // framerate
-		WRITE_BYTE( 1000 ); // life
-		WRITE_BYTE( 200 );  // width
+		WRITE_BYTE( 25 ); // life
+		WRITE_BYTE( 100 );  // width
 		WRITE_BYTE( 100 );   // noise
 	if (icesprites.value)
 	{
@@ -143,19 +147,19 @@ void CNukeRocket::Killed(entvars_t *pevAttacker, int iGib) {
 		WRITE_BYTE( 0 );		// speed
 	MESSAGE_END();
 
-	MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
+	MESSAGE_BEGIN( MSG_PVS, SVC_TEMPENTITY );
 		WRITE_BYTE(TE_BEAMCYLINDER);
 		WRITE_COORD(pev->origin.x);
 		WRITE_COORD(pev->origin.y);
 		WRITE_COORD(pev->origin.z + 32);
 		WRITE_COORD(pev->origin.x);
 		WRITE_COORD(pev->origin.y);
-		WRITE_COORD(pev->origin.z + 32 + pev->dmg * 2 / .2); // reach damage radius over .3 seconds
+		WRITE_COORD(pev->origin.z + pev->dmg * 3);
 		WRITE_SHORT(g_sModelLightning);
 		WRITE_BYTE( 0 ); // startframe
 		WRITE_BYTE( 0 ); // framerate
-		WRITE_BYTE( 1000 ); // life
-		WRITE_BYTE( 200 );  // width
+		WRITE_BYTE( 25 ); // life
+		WRITE_BYTE( 100 );  // width
 		WRITE_BYTE( 100 );   // noise
 	if (icesprites.value)
 	{
@@ -177,26 +181,34 @@ void CNukeRocket::Killed(entvars_t *pevAttacker, int iGib) {
 		WRITE_BYTE( TE_EXPLOSION );		// This makes a dynamic light and the explosion sprites/sound
 		WRITE_COORD( pev->origin.x );	// Send to PAS because of the sound
 		WRITE_COORD( pev->origin.y );
-		WRITE_COORD( pev->origin.z + 512 );
+		WRITE_COORD( pev->origin.z + 256 );
 		if (icesprites.value)
 			WRITE_SHORT( m_iIceExp );
 		else
 			WRITE_SHORT( m_iExp );
-		WRITE_BYTE( 70 ); // scale * 10
+		WRITE_BYTE( 50 ); // scale * 10
 		WRITE_BYTE( 20 ); // framerate
 		WRITE_BYTE( TE_EXPLFLAG_NONE );
 	MESSAGE_END();
 
-	for ( int i = 1; i <= gpGlobals->maxClients; i++ )
+	if (nukemode.value >= 2)
 	{
-		CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
-
-		if ( plr )
+		for ( int i = 1; i <= gpGlobals->maxClients; i++ )
 		{
-			ClearMultiDamage(); // fix nuke as kick
-			plr->TakeDamage(pev, VARS(pev->owner), gSkillData.plrDmgNuke, DMG_RADIATION);
-			UTIL_ScreenFade(plr, Vector(255, 255, 255), 2, 6, 200, FFADE_IN);
+			CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
+
+			if ( plr )
+			{
+				ClearMultiDamage(); // fix nuke as kick
+				plr->TakeDamage(pev, VARS(pev->owner), gSkillData.plrDmgNuke, DMG_RADIATION);
+				UTIL_ScreenFade(plr, Vector(255, 255, 255), 2, 6, 200, FFADE_IN);
+			}
 		}
+	}
+	else
+	{
+		RadiusDamage(pev, VARS(pev->owner), pev->dmg, CLASS_NONE, DMG_RADIATION);
+		pev->owner = NULL;
 	}
 
 	UTIL_Remove( this );
@@ -365,19 +377,7 @@ void CNuke::Spawn( )
 
 	SET_MODEL(ENT(pev), "models/w_nuke.mdl");
 
-#ifdef CLIENT_DLL
-	if ( bIsMultiplayer() )
-#else
-	if ( g_pGameRules->IsMultiplayer() )
-#endif
-	{
-		// more default ammo in multiplay. 
-		m_iDefaultAmmo = NUKE_DEFAULT_GIVE * 2;
-	}
-	else
-	{
-		m_iDefaultAmmo = NUKE_DEFAULT_GIVE;
-	}
+	m_iDefaultAmmo = NUKE_DEFAULT_GIVE;
 
 	FallInit();// get ready to fall down.
 }
@@ -394,6 +394,7 @@ void CNuke::Precache( void )
 
 	PRECACHE_SOUND("weapons/rocketfire1.wav");
 	PRECACHE_SOUND("weapons/glauncher.wav"); // alternative fire sound
+	PRECACHE_SOUND("shart.wav");
 
 	m_usNuke = PRECACHE_EVENT ( 1, "events/nuke1.sc" );
 }
@@ -482,7 +483,7 @@ void CNuke::FireNuke(BOOL withCamera)
 
 		PLAYBACK_EVENT( flags, m_pPlayer->edict(), m_usNuke );
 
-		// m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType]--;
+		m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType]--;
 
 		m_flNextPrimaryAttack = m_flNextSecondaryAttack = GetNextAttackDelay(5.0);
 		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 1.5;
@@ -493,13 +494,57 @@ void CNuke::FireNuke(BOOL withCamera)
 	}
 }
 
+void CNuke::Shart()
+{
+#ifndef CLIENT_DLL
+	UTIL_MakeVectors(m_pPlayer->pev->v_angle);
+	Vector vecSrc = m_pPlayer->GetGunPosition() + gpGlobals->v_forward * 16 + gpGlobals->v_right * 8 + gpGlobals->v_up * -18;
+	EMIT_SOUND(ENT(pev), CHAN_WEAPON, "shart.wav", 1, ATTN_NORM);
+	MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
+		WRITE_BYTE( TE_BUBBLETRAIL );
+		WRITE_COORD( vecSrc.x );	// mins
+		WRITE_COORD( vecSrc.y );
+		WRITE_COORD( vecSrc.z );
+		WRITE_COORD( vecSrc.x + gpGlobals->v_forward.x * 64 );	// maxz
+		WRITE_COORD( vecSrc.y + gpGlobals->v_forward.y * 64 );
+		WRITE_COORD( vecSrc.z + gpGlobals->v_forward.z * 64 );
+		WRITE_COORD( 100 );			// height
+		WRITE_SHORT( g_sModelIndexBubbles );
+		WRITE_BYTE( 20 ); // count
+		WRITE_COORD( 8 ); // speed
+	MESSAGE_END();
+	ClientPrint(m_pPlayer->pev, HUD_PRINTCENTER, "Nuke does nothing on this server!");
+	SendWeaponAnim( NUKE_FIRE2 );
+	m_pPlayer->SetAnimation( PLAYER_ATTACK1 );
+	m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType]--;
+	m_flNextPrimaryAttack = m_flNextSecondaryAttack = GetNextAttackDelay(1.5);
+	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 1.5;
+#endif
+}
+
 void CNuke::PrimaryAttack()
 {
+#ifndef CLIENT_DLL
+	if (!nukemode.value)
+	{
+		Shart();
+		return;
+	}
+#endif
+
 	FireNuke(FALSE);
 }
 
 void CNuke::SecondaryAttack()
 {
+#ifndef CLIENT_DLL
+	if (!nukemode.value)
+	{
+		Shart();
+		return;
+	}
+#endif
+
 	m_pPlayer->pev->fov = m_pPlayer->m_iFOV = 70;
 #ifndef CLIENT_DLL
 	// UTIL_ScreenFade(m_pPlayer, Vector(0, 113, 230), 0.5, 3, 200, FFADE_OUT);

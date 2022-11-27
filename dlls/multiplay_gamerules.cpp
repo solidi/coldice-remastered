@@ -1196,6 +1196,11 @@ BOOL CHalfLifeMultiplay::IsAllowedToSpawn( CBaseEntity *pEntity )
 		return FALSE;
 	}
 
+	if (disallowlist.string && strstr(disallowlist.string, STRING(pEntity->pev->classname))) {
+		ALERT(at_aiconsole, "%s has been disallowed on the server.\n", STRING(pEntity->pev->classname));
+		return FALSE;
+	}
+
 	if ((strstr(mutators.string, g_MutatorInstaGib) ||
 		atoi(mutators.string) == MUTATOR_INSTAGIB) &&
 		(strncmp(STRING(pEntity->pev->classname), "weapon_", 7) == 0 || strncmp(STRING(pEntity->pev->classname), "ammo_", 5) == 0))
