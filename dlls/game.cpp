@@ -62,6 +62,7 @@ cvar_t	interactiveitems = {"mp_interactiveitems","grenade;monster_satchel;monste
 cvar_t	snowballfight = {"mp_snowballfight","0", FCVAR_SERVER };
 cvar_t	mutators = {"mp_mutators","", FCVAR_SERVER };
 cvar_t	spawnweapons = {"mp_spawnweapons","1", FCVAR_SERVER };
+cvar_t	disallowlist = {"sv_disallowlist","", FCVAR_SERVER };
 
 cvar_t  allow_spectators = { "allow_spectators", "0.0", FCVAR_SERVER };		// 0 prevents players from being spectators
 
@@ -649,6 +650,7 @@ void GameDLLInit( void )
 	CVAR_REGISTER(&snowballfight);
 	CVAR_REGISTER(&mutators);
 	CVAR_REGISTER(&spawnweapons);
+	CVAR_REGISTER(&disallowlist);
 
 	CVAR_REGISTER (&mp_chattime);
 

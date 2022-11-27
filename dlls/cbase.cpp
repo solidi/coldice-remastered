@@ -130,6 +130,11 @@ int DispatchSpawn( edict_t *pent )
 {
 	CBaseEntity *pEntity = (CBaseEntity *)GET_PRIVATE(pent);
 
+	if (disallowlist.string && strstr(disallowlist.string, STRING(pEntity->pev->classname))) {
+		ALERT(at_aiconsole, "%s has been disallowed on the server.\n", STRING(pEntity->pev->classname));
+		return -1;
+	}
+
 	if (pEntity)
 	{
 		// Initialize these or entities who don't link to the world won't have anything in here

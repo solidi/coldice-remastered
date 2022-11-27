@@ -3625,6 +3625,11 @@ void CBasePlayer::GiveNamedItem( const char *pszName )
 
 	int istr = MAKE_STRING(pszName);
 
+	if (disallowlist.string && strstr(disallowlist.string, pszName)) {
+		ALERT(at_aiconsole, "%s has been disallowed on the server.\n", pszName);
+		return;
+	}
+
 	// Do not allow giving items in dualsonly mode
 	if (dualsonly.value) {
 		if (strncmp(pszName, "weapon_fists", 12) != 0 && strncmp(pszName, "weapon_dual_", 12) != 0) {
