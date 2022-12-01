@@ -978,8 +978,6 @@ CBaseEntity *CWorldRunes::SelectSpawnPoint(CBaseEntity *pSpot)
 }
 
 void CWorldRunes::DropRune(CBasePlayer *pPlayer) {
-	UTIL_MakeVectors ( pPlayer->pev->angles );
-
 	char *sz_Rune;
 	switch (pPlayer->m_fHasRune)
 	{
