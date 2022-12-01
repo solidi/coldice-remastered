@@ -1834,6 +1834,9 @@ float VectorNormalize(float *v)
 
 void CBasePlayer::ClimbingPhysics()
 {
+	if (!acrobatics.value)
+		return;
+
 	UTIL_MakeVectors(pev->angles);
 
 	// trace starts
@@ -4104,6 +4107,9 @@ enum SELACO_SLIDE {
 
 void CBasePlayer::StartSelacoSlide( void )
 {
+	if (!acrobatics.value)
+		return;
+
 	if (m_pActiveItem && !((CBasePlayerWeapon *)m_pActiveItem)->CanSlide())
 		return;
 
@@ -4326,13 +4332,17 @@ void CBasePlayer::CalculateToFlip( void )
 
 void CBasePlayer::StartRightFlip( void )
 {
+	if (!acrobatics.value)
+		return;
+
 	if (m_fFlipTime < gpGlobals->time) {
 		if (FBitSet(pev->flags, FL_ONGROUND)) {
+			EMIT_SOUND(ENT(pev), CHAN_VOICE, "wrench_miss1.wav", 1, ATTN_NORM);
 			UTIL_MakeVectors(pev->angles);
 			pev->velocity = (gpGlobals->v_right * 300) + (gpGlobals->v_up * 400);
 			m_fFlipTime = gpGlobals->time + 1.0;
 			SetAnimation( PLAYER_RIGHT_FLIP );
-			UTIL_ScreenShake( pev->origin, 15.0, 55.0, 1.25, 15.0 );
+			//UTIL_ScreenShake( pev->origin, 15.0, 55.0, 1.25, 15.0 );
 			MESSAGE_BEGIN( MSG_ONE, gmsgAcrobatics, NULL, pev );
 				WRITE_BYTE( ACROBATICS_ROLL_RIGHT );
 			MESSAGE_END();
@@ -4342,13 +4352,17 @@ void CBasePlayer::StartRightFlip( void )
 
 void CBasePlayer::StartLeftFlip( void )
 {
+	if (!acrobatics.value)
+		return;
+
 	if (m_fFlipTime < gpGlobals->time) {
 		if (FBitSet(pev->flags, FL_ONGROUND)) {
+			EMIT_SOUND(ENT(pev), CHAN_VOICE, "wrench_miss1.wav", 1, ATTN_NORM);
 			UTIL_MakeVectors(pev->angles);
 			pev->velocity = (gpGlobals->v_right * -300) + (gpGlobals->v_up * 400);
 			m_fFlipTime = gpGlobals->time + 1.0;
 			SetAnimation( PLAYER_LEFT_FLIP );
-			UTIL_ScreenShake( pev->origin, 15.0, 55.0, 1.25, 15.0 );
+			//UTIL_ScreenShake( pev->origin, 15.0, 55.0, 1.25, 15.0 );
 			MESSAGE_BEGIN( MSG_ONE, gmsgAcrobatics, NULL, pev );
 				WRITE_BYTE( ACROBATICS_ROLL_LEFT );
 			MESSAGE_END();
@@ -4358,13 +4372,17 @@ void CBasePlayer::StartLeftFlip( void )
 
 void CBasePlayer::StartBackFlip( void )
 {
+	if (!acrobatics.value)
+		return;
+
 	if (m_fFlipTime < gpGlobals->time) {
 		if (FBitSet(pev->flags, FL_ONGROUND)) {
+			EMIT_SOUND(ENT(pev), CHAN_VOICE, "wrench_miss1.wav", 1, ATTN_NORM);
 			UTIL_MakeVectors(pev->angles);
 			pev->velocity = (gpGlobals->v_forward * -300) + (gpGlobals->v_up * 400);
 			m_fFlipTime = gpGlobals->time + 1.0;
 			SetAnimation( PLAYER_BACK_FLIP );
-			UTIL_ScreenShake( pev->origin, 15.0, 55.0, 1.25, 15.0 );
+			//UTIL_ScreenShake( pev->origin, 15.0, 55.0, 1.25, 15.0 );
 			MESSAGE_BEGIN( MSG_ONE, gmsgAcrobatics, NULL, pev );
 				WRITE_BYTE( ACROBATICS_FLIP_BACK );
 			MESSAGE_END();

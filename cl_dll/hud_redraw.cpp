@@ -352,7 +352,7 @@ void CHud::ShowTextTips( void ) {
 		return;
 	}
 
-	const int MESSAGE_SIZE = 23;
+	const int MESSAGE_SIZE = 24;
 
 	const char* messageList[MESSAGE_SIZE] = {
 		"Tired of blue skins? Type \"cl_icemodels 0\" in the console switches to real-life skins.\n",
@@ -377,7 +377,8 @@ void CHud::ShowTextTips( void ) {
 		"To turn off keyboard flips and slide, type \"cl_keyboardacrobatics 0\".\n",
 		"To turn screen roll while flipping, type \"cl_antivomit 0\" in the console.\n",
 		"Bind \"impulse 210\" to a button to perform a right flip.\n",
-		"Tap \"+back\" three times to perform a backflip.\n"
+		"Tap \"+back\" three times to perform a backflip.\n",
+		"Tap \"+jump\" two times against a wall to perform a wall climb.\n"
 	};
 
 	// Unstick after a level change

@@ -61,6 +61,7 @@ extern cvar_t   mutators;
 extern cvar_t   spawnweapons;
 extern cvar_t   disallowlist;
 extern cvar_t   nukemode;
+extern cvar_t   acrobatics;
 
 // Engine Cvars
 extern cvar_t	*g_psv_gravity;
