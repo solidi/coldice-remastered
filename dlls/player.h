@@ -77,6 +77,7 @@ typedef enum
 	PLAYER_RIGHT_FLIP,
 	PLAYER_LEFT_FLIP,
 	PLAYER_BACK_FLIP,
+	PLAYER_PULL_UP,
 } PLAYER_ANIM;
 
 #define MAX_ID_RANGE 2048
@@ -388,6 +389,11 @@ public:
 	float m_iShownDualMessage;
 
 	void DisplayHudMessage(char const *message, int channel, float x, float y, int r, int g, int b, int effect, float fadein, float fadeout, float holdtime, float fxtime);
+
+	bool canClimb;
+	bool isClimbing;
+	TraceResult climbTr1, climbTr2, headTr;
+	void ClimbingPhysics( void );
 };
 
 #define AUTOAIM_2DEGREES  0.0348994967025

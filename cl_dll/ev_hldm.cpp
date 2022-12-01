@@ -2504,7 +2504,8 @@ enum fists_e {
 	FISTS_ATTACK3MISS,
 	FISTS_ATTACK3HIT,
 	FISTS_IDLE2,
-	FISTS_IDLE3
+	FISTS_IDLE3,
+	FISTS_PULLUP
 };
 
 void EV_Fists( event_args_t *args )

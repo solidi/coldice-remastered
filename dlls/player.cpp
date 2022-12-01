@@ -1077,6 +1077,10 @@ void CBasePlayer::SetAnimation( PLAYER_ANIM playerAnim )
 		m_IdealActivity = GetDeathActivity( );
 		break;
 
+	case PLAYER_PULL_UP:
+		m_IdealActivity = ACT_PULL_UP;
+		break;
+
 	case PLAYER_ATTACK1:	
 		switch( m_Activity )
 		{
@@ -1091,6 +1095,7 @@ void CBasePlayer::SetAnimation( PLAYER_ANIM playerAnim )
 		case ACT_RIGHT_FLIP:
 		case ACT_LEFT_FLIP:
 		case ACT_BACK_FLIP:
+		case ACT_PULL_UP:
 			m_IdealActivity = m_Activity;
 			break;
 		default:
@@ -1100,7 +1105,7 @@ void CBasePlayer::SetAnimation( PLAYER_ANIM playerAnim )
 		break;
 	case PLAYER_IDLE:
 	case PLAYER_WALK:
-		if ( !FBitSet( pev->flags, FL_ONGROUND ) && (m_Activity == ACT_HOP || m_Activity == ACT_LEAP) )	// Still jumping
+		if ( !FBitSet( pev->flags, FL_ONGROUND ) && (m_Activity == ACT_HOP || m_Activity == ACT_LEAP || m_Activity == ACT_PULL_UP) )	// Still jumping
 		{
 			m_IdealActivity = m_Activity;
 		}
@@ -1160,6 +1165,7 @@ void CBasePlayer::SetAnimation( PLAYER_ANIM playerAnim )
 	case ACT_RIGHT_FLIP:
 	case ACT_LEFT_FLIP:
 	case ACT_BACK_FLIP:
+	case ACT_PULL_UP:
 	default:
 		if ( m_Activity == m_IdealActivity)
 			return;
@@ -1774,6 +1780,210 @@ void CBasePlayer::PlayerUse ( void )
 	}
 }
 
+void VectorAngles( const float *forward, float *angles )
+{
+	float	tmp, yaw, pitch;
+
+	if (forward[1] == 0 && forward[0] == 0)
+	{
+		yaw = 0;
+		if (forward[2] > 0)
+			pitch = 90;
+		else
+			pitch = 270;
+	}
+	else
+	{
+		yaw = (atan2(forward[1], forward[0]) * 180 / M_PI);
+		if (yaw < 0)
+			yaw += 360;
+
+		tmp = sqrt (forward[0]*forward[0] + forward[1]*forward[1]);
+		pitch = (atan2(forward[2], tmp) * 180 / M_PI);
+		if (pitch < 0)
+			pitch += 360;
+	}
+
+	angles[0] = pitch;
+	angles[1] = yaw;
+	angles[2] = 0;
+}
+
+float VectorNormalize(float *v)
+{
+	float	length, ilength;
+
+	length = v[0]*v[0] + v[1]*v[1] + v[2]*v[2];
+	length = sqrt (length);		// FIXME
+
+	if (length)
+	{
+		ilength = 1/length;
+		v[0] *= ilength;
+		v[1] *= ilength;
+		v[2] *= ilength;
+	}
+
+	return length;
+
+}
+
+#define	YAW 1
+
+#define VectorCopy(a,b) {(b)[0]=(a)[0];(b)[1]=(a)[1];(b)[2]=(a)[2];}
+
+void CBasePlayer::ClimbingPhysics()
+{
+	UTIL_MakeVectors(pev->angles);
+
+	// trace starts
+	Vector headSrc = pev->origin + gpGlobals->v_up * 30;
+	Vector vecSrc2 = pev->origin + gpGlobals->v_up * 60 + Vector(gpGlobals->v_forward.x * 40, gpGlobals->v_forward.y * 40, 0);
+
+	// trace ends
+	Vector headEnd = headSrc + Vector(gpGlobals->v_forward.x * 40, gpGlobals->v_forward.y * 40, 0);
+	Vector vecEnd2 = vecSrc2 - gpGlobals->v_up * 60;
+
+	// detect if we can actually climb something
+	if (!isClimbing)
+	{
+		UTIL_TraceLine(headSrc, headEnd, ignore_monsters, ENT(pev), &headTr);
+		UTIL_TraceLine(vecSrc2, vecEnd2, ignore_monsters, ENT(pev), &climbTr2);
+
+		Vector vecSrc1 = Vector(pev->origin.x, pev->origin.y, climbTr2.vecEndPos.z);
+
+		// angle filtering
+		Vector realForward;
+		VectorCopy(gpGlobals->v_forward, realForward);
+		realForward.z = 0; // ignore this axis
+		VectorNormalize(realForward);
+
+		Vector vecEnd1 = vecSrc1 + realForward * 40;
+
+		UTIL_TraceLine(vecSrc1, vecEnd1, ignore_monsters, ENT(pev), &climbTr1);
+	}
+
+	if (headTr.flFraction != 1 && climbTr1.flFraction == 1 && climbTr2.flFraction != 1)
+	{
+		canClimb = true;
+	}
+	else
+	{
+		canClimb = false;
+	}
+
+	// detect jump button
+	if (pev->button & IN_JUMP && canClimb && !isClimbing && !(pev->button & IN_BACK) && !this->IsOnLadder())
+	{
+		isClimbing = true;
+		if (m_pActiveItem)
+		{
+			((CBasePlayerWeapon *)m_pActiveItem)->SendWeaponAnim( 12 );
+			pev->viewmodel = MAKE_STRING("models/v_fists.mdl");
+			pev->weaponmodel = 0;
+			m_flNextAttack = UTIL_WeaponTimeBase() + 0.5;
+
+			SetAnimation( PLAYER_PULL_UP );
+		}
+	}
+
+	// cancel climbing
+	if ((pev->button & IN_BACK && isClimbing) || (pev->button & IN_MOVELEFT && isClimbing) || (pev->button & IN_MOVERIGHT && isClimbing))
+	{
+		// climbing is canceled
+		pev->movetype = MOVETYPE_WALK;
+		isClimbing = false;
+
+		if (m_pActiveItem)
+		{
+			m_pActiveItem->DeployLowKey();
+		}
+	}
+
+	// climbing stage 1
+	if (isClimbing)
+	{
+		pev->movetype = MOVETYPE_FLY;
+
+		// starts climbing
+		Vector endTarget;
+
+		endTarget.x = climbTr1.vecEndPos.x;
+		endTarget.y = climbTr1.vecEndPos.y;
+		endTarget.z = climbTr2.vecEndPos.z + 20;
+
+		// player location
+		float distanceX = climbTr1.vecEndPos.x - pev->origin.x;
+		float distanceY = climbTr1.vecEndPos.y - pev->origin.y;
+
+		// normalize
+		if (fabs(distanceX) > fabs(distanceY))
+		{
+			endTarget.y = pev->origin.y;
+		}
+		else
+		{
+			endTarget.x = pev->origin.x;
+		}
+
+		pev->velocity = pev->velocity + (endTarget - pev->origin) * (300 / (1 / gpGlobals->frametime)) / 7;
+		// pev->punchangle.x = lerp(pev->punchangle.x, 15, gpGlobals->frametime * 17); // sway camera
+
+		// cap player climbing speed
+		if (pev->velocity.Length() > 300.0f)
+		{
+			pev->velocity = pev->velocity.Normalize() * 300.0f;
+		}
+
+		// trace until infront of player is clear, and under the player is filled
+		TraceResult under, forward;
+		UTIL_TraceLine(pev->origin, pev->origin + gpGlobals->v_forward * 40, ignore_monsters, ENT(pev), &forward);
+		UTIL_TraceLine(pev->origin, pev->origin - gpGlobals->v_up * 40, ignore_monsters, ENT(pev), &under);
+
+
+		if (under.flFraction != 1 && forward.flFraction == 1)
+		{
+			// climbing is finished
+			pev->movetype = MOVETYPE_WALK;
+			isClimbing = false;
+			if (m_pActiveItem)
+			{
+				m_pActiveItem->DeployLowKey();
+			}
+		}
+
+		// cancel climbing when player looks away >= 90 degree
+		Vector angDiff;
+		Vector vecDiff = endTarget - pev->origin;
+		vecDiff.z = 0; // ignore this axis
+		VectorNormalize(vecDiff);
+		VectorAngles(vecDiff, angDiff);
+
+		float finalAngle;
+
+		if (angDiff[YAW] > 180)
+			finalAngle = angDiff[YAW] - 360.0f;
+		else
+			finalAngle = angDiff[YAW];
+
+		if (pev->v_angle[YAW] < 0 && finalAngle == 180)
+			finalAngle *= -1;
+
+		if (fabs(finalAngle - pev->v_angle[YAW]) >= 90.0f)
+		{
+			// climbing is finished
+			pev->movetype = MOVETYPE_WALK;
+			isClimbing = false;
+			if (m_pActiveItem)
+			{
+				m_pActiveItem->DeployLowKey();
+			}
+		}
+#ifdef DEBUG
+		ALERT(at_console, "climbing diff finalAngle=%.4f pev->v_angle[YAW]=%.4f\n", finalAngle, pev->v_angle[YAW]);
+#endif
+	}
+}
 
 
 void CBasePlayer::Jump()
@@ -1849,7 +2059,7 @@ void CBasePlayer::Duck( )
 {
 	if (pev->button & IN_DUCK) 
 	{
-		if ( m_IdealActivity != ACT_LEAP )
+		if ( m_IdealActivity != ACT_LEAP && m_IdealActivity != ACT_PULL_UP )
 		{
 			SetAnimation( PLAYER_WALK );
 		}
@@ -2219,6 +2429,8 @@ void CBasePlayer::PreThink(void)
 		CalculateToFlip();
 
 	TraceHitOfFlip();
+
+	ClimbingPhysics();
 }
 /* Time based Damage works as follows: 
 	1) There are several types of timebased damage:
