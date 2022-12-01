@@ -501,6 +501,7 @@ void W_Precache(void)
 	g_sModelLightning = PRECACHE_MODEL("sprites/lgtning.spr");
 
 	PRECACHE_SOUND("freezing.wav");
+	PRECACHE_SOUND("wallclimb.wav");
 
 	g_Gibs = PRECACHE_MODEL ("models/w_hgibs.mdl");
 	g_Steamball = PRECACHE_MODEL ("sprites/stmbal1.spr");
