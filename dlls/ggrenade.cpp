@@ -221,13 +221,15 @@ void CGrenade::Smoke( void )
 	}
 	else
 	{
+		// Paintball makes this small
+		float dmg = ((pev->dmg - 50) * .80);
 		MESSAGE_BEGIN( MSG_PVS, SVC_TEMPENTITY, pev->origin );
 			WRITE_BYTE( TE_SMOKE );
 			WRITE_COORD( pev->origin.x );
 			WRITE_COORD( pev->origin.y );
 			WRITE_COORD( pev->origin.z );
 			WRITE_SHORT( g_sModelIndexSmoke );
-			WRITE_BYTE( (pev->dmg - 50) * 0.80 ); // scale * 10
+			WRITE_BYTE( dmg > 0 ? dmg : 20 ); // scale * 10
 			WRITE_BYTE( 12  ); // framerate
 		MESSAGE_END();
 	}

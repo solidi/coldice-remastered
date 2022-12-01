@@ -1007,7 +1007,9 @@ void CWorldRunes::DropRune(CBasePlayer *pPlayer) {
 		default:
 			sz_Rune = "rune_strength";
 	}
-	CRune *rune = (CRune *)CBaseEntity::Create(sz_Rune, pPlayer->pev->origin + gpGlobals->v_forward * 10, pPlayer->pev->angles, pPlayer->edict());
+
+	UTIL_MakeVectors(pPlayer->pev->v_angle);
+	CRune *rune = (CRune *)CBaseEntity::Create(sz_Rune, pPlayer->GetGunPosition( ) + gpGlobals->v_forward * 32, pPlayer->pev->angles, pPlayer->edict());
 	rune->pev->velocity = gpGlobals->v_forward * 300 + gpGlobals->v_forward * 100;
 }
 
