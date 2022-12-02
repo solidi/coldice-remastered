@@ -192,9 +192,11 @@ int gmsgTeamNames = 0;
 int gmsgStatusText = 0;
 int gmsgStatusValue = 0; 
 
+// Cold Ice Remastered
 int gmsgStatusIcon = 0;
 int gmsgAcrobatics = 0;
 int gmsgLifeBar = 0;
+int gmsgReceiveW = 0;
 
 void LinkUserMessages( void )
 {
@@ -244,6 +246,7 @@ void LinkUserMessages( void )
 	gmsgStatusIcon = REG_USER_MSG("StatusIcon", -1);
 	gmsgAcrobatics = REG_USER_MSG("Acrobatics", 1);
 	gmsgLifeBar = REG_USER_MSG("LifeBar", 3);
+	gmsgReceiveW = REG_USER_MSG("ReceiveW", 1);
 }
 
 LINK_ENTITY_TO_CLASS( player, CBasePlayer );
@@ -4950,6 +4953,41 @@ void CBasePlayer::SendAmmoUpdate(void)
 	}
 }
 
+void CBasePlayer::SendWeatherInfo(void)
+{
+	// Server must have it enabled
+	if (!weather.value) {
+		MESSAGE_BEGIN(MSG_ONE, gmsgReceiveW, NULL, pev);
+			WRITE_BYTE(0);
+		MESSAGE_END();
+		return;
+	}
+
+	if (pev->flags & FL_FAKECLIENT) // No bots
+		return;
+
+	if (UTIL_FindEntityByClassname(NULL, "env_rain") ||
+		UTIL_FindEntityByClassname(NULL, "func_rain"))
+	{
+		MESSAGE_BEGIN(MSG_ONE, gmsgReceiveW, NULL, pev);
+		WRITE_BYTE(1);
+		MESSAGE_END();
+	}
+	else if (UTIL_FindEntityByClassname(NULL, "env_snow")||
+			UTIL_FindEntityByClassname(NULL, "func_snow"))
+	{
+		MESSAGE_BEGIN(MSG_ONE, gmsgReceiveW, NULL, pev);
+		WRITE_BYTE(2);
+		MESSAGE_END();
+	}
+	else
+	{
+		MESSAGE_BEGIN(MSG_ONE, gmsgReceiveW, NULL, pev);
+		WRITE_BYTE(0);
+		MESSAGE_END();
+	}
+}
+
 /*
 =========================================================
 	UpdateClientData
@@ -4971,6 +5009,8 @@ void CBasePlayer :: UpdateClientData( void )
 		MESSAGE_BEGIN( MSG_ONE, gmsgResetHUD, NULL, pev );
 			WRITE_BYTE( 0 );
 		MESSAGE_END();
+
+		SendWeatherInfo();
 
 		if ( !m_fGameHUDInitialized )
 		{

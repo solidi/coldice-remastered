@@ -390,6 +390,8 @@ public:
 
 	void DisplayHudMessage(char const *message, int channel, float x, float y, int r, int g, int b, int effect, float fadein, float fadeout, float holdtime, float fxtime);
 
+	void SendWeatherInfo(void);
+
 	bool canClimb;
 	bool isClimbing;
 	TraceResult climbTr1, climbTr2, headTr;

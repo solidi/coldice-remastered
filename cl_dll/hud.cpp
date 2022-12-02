@@ -34,6 +34,8 @@
 #include "screenfade.h"
 #include "shake.h"
 
+#include "rain.h"
+
 hud_player_info_t	 g_PlayerInfoList[MAX_PLAYERS+1];	   // player info from the engine
 extra_player_info_t  g_PlayerExtraInfo[MAX_PLAYERS+1];   // additional player info sent directly to the client dll
 
@@ -55,6 +57,7 @@ cvar_t *cl_lifemeter;
 cvar_t *cl_achievements;
 cvar_t *cl_antivomit;
 cvar_t *cl_keyboardacrobatics;
+cvar_t *cl_weather;
 
 cvar_t *cl_vmx;
 cvar_t *cl_vmy;
@@ -399,6 +402,7 @@ void CHud :: Init( void )
 	cl_achievements = CVAR_CREATE( "cl_achievements", "3", FCVAR_ARCHIVE );
 	cl_antivomit = CVAR_CREATE( "cl_antivomit", "0", FCVAR_ARCHIVE );
 	cl_keyboardacrobatics = CVAR_CREATE( "cl_keyboardacrobatics", "1", FCVAR_ARCHIVE | FCVAR_USERINFO );
+	cl_weather = CVAR_CREATE( "cl_weather", "3", FCVAR_ARCHIVE | FCVAR_USERINFO );
 
 	cl_vmx = CVAR_CREATE( "cl_vmx", "0", FCVAR_ARCHIVE );
 	cl_vmy = CVAR_CREATE( "cl_vmy", "0", FCVAR_ARCHIVE );
@@ -458,6 +462,7 @@ void CHud :: Init( void )
 	m_Scoreboard.Init();
 	GetClientVoiceMgr()->Init(&g_VoiceStatusHelper, (vgui::Panel**)&gViewPort);
 	GetLifeBar()->Init();
+	InitRain();
 
 	m_Menu.Init();
 	
