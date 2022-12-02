@@ -2428,3 +2428,11 @@ void CTriggerCamera::Move()
 	float fraction = 2 * gpGlobals->frametime;
 	pev->velocity = ((pev->movedir * pev->speed) * fraction) + (pev->velocity * (1-fraction));
 }
+
+class CWeather : public CBaseTrigger
+{
+public:
+	void Spawn(void) { InitTrigger(); }
+};
+
+LINK_ENTITY_TO_CLASS(env_snow, CWeather);
