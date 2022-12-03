@@ -5766,9 +5766,9 @@ void CBasePlayer::DisplayHudMessage(const char *message, int channel, float x, f
 	hText.b1 = b;
 
 	hText.a1 = 200;
-	hText.r2 = 240;
-	hText.g2 = 110;
-	hText.b2 = 0;
+	hText.r2 = 0;
+	hText.g2 = 113;
+	hText.b2 = 230;
 	hText.a2 = 255;
 	hText.fadeinTime = fadein;
 	hText.fadeoutTime = fadeout;

@@ -791,6 +791,9 @@ void UTIL_HudMessage( CBaseEntity *pEntity, const hudtextparms_t &textparms, con
 	if ( !pEntity || !pEntity->IsNetClient() )
 		return;
 
+	if ( pEntity->pev->flags & FL_FAKECLIENT ) // No bots
+		return;
+
 	MESSAGE_BEGIN( MSG_ONE, SVC_TEMPENTITY, NULL, pEntity->edict() );
 		WRITE_BYTE( TE_TEXTMESSAGE );
 		WRITE_BYTE( textparms.channel & 0xFF );
