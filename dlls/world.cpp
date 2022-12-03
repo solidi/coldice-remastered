@@ -34,6 +34,7 @@
 #include "gamerules.h"
 #include "teamplay_gamerules.h"
 #include "items.h"
+#include "game.h"
 
 extern CGraph WorldGraph;
 extern CSoundEnt *pSoundEnt;
