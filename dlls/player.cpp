@@ -4127,6 +4127,8 @@ void CBasePlayer::StartSelacoSlide( void )
 				((CBasePlayerWeapon *)m_pActiveItem)->SendWeaponAnim(SLIDE_EXTEND, 0, 0);
 			}
 
+			//m_EFlags |= EFLAG_PLAYERSLIDE;
+
 			UTIL_MakeVectors(pev->angles);
 			pev->friction = 0.05;
 			pev->velocity = (gpGlobals->v_forward * 900); // + (gpGlobals->v_up * 200);
@@ -4144,18 +4146,21 @@ void CBasePlayer::StartSelacoSlide( void )
 			MESSAGE_BEGIN( MSG_ONE, gmsgAcrobatics, NULL, pev );
 				WRITE_BYTE( ACROBATICS_SELACO_SLIDE );
 			MESSAGE_END();
+
+			m_fSelacoZ = VEC_DUCK_HULL_MIN.z;
+			pev->view_ofs[2] = m_fSelacoZ;
+			pev->punchangle.z = 15;
 		}
 	}
 }
 
 void CBasePlayer::TraceHitOfSelacoSlide( void )
 {
-	if (m_fSelacoSliding && m_fSelacoTime > gpGlobals->time && m_fSelacoIncrement < gpGlobals->time) {
-		if (!m_fSelacoHit && m_fSelacoZ > -8) {
-			m_fSelacoZ -= 2;
-			pev->view_ofs[2] = m_fSelacoZ;
-			pev->punchangle.z = 15;
+	if (m_fSelacoSliding) {
+		if (!m_fSelacoHit)
+			pev->friction = 0.05; // Singleplayer override
 
+		if (m_fSelacoTime > gpGlobals->time && m_fSelacoIncrement < gpGlobals->time) {
 			if (RANDOM_LONG(0,2) == 1) {
 				UTIL_MakeVectors( pev->v_angle );
 				Vector smoke = pev->origin + (gpGlobals->v_forward * 100) + (gpGlobals->v_up * -30);
@@ -4164,128 +4169,126 @@ void CBasePlayer::TraceHitOfSelacoSlide( void )
 				pSprite->SetTransparency( kRenderTransAdd, 255, 255, 255, 80, kRenderFxNoDissipation );
 				pSprite->SetScale( RANDOM_FLOAT(0.7, 1.0) );
 			}
-		}
 
-		TraceResult tr;
+			TraceResult tr;
 
-		if (!m_fSelacoHit)
-		{
-			UTIL_MakeVectors(Vector(0, pev->v_angle.y, 0));
-			Vector vecSrc	= GetGunPosition( );
-			Vector vecEnd	= vecSrc + gpGlobals->v_forward * 32;
-
-			UTIL_TraceLine( vecSrc, vecEnd, dont_ignore_monsters, ENT( pev ), &tr );
-
-		#ifndef CLIENT_DLL
-			if ( tr.flFraction >= 1.0 )
+			if (!m_fSelacoHit)
 			{
-				// Important! Human hull for decreased chance of odd bouncing
-				UTIL_TraceHull( vecSrc, vecEnd, dont_ignore_monsters, human_hull, ENT( pev ), &tr );
+				UTIL_MakeVectors(Vector(0, pev->v_angle.y, 0));
+				Vector vecSrc	= GetGunPosition( );
+				Vector vecEnd	= vecSrc + gpGlobals->v_forward * 32;
+
+				UTIL_TraceLine( vecSrc, vecEnd, dont_ignore_monsters, ENT( pev ), &tr );
+
+			#ifndef CLIENT_DLL
+				if ( tr.flFraction >= 1.0 )
+				{
+					// Important! Human hull for decreased chance of odd bouncing
+					UTIL_TraceHull( vecSrc, vecEnd, dont_ignore_monsters, human_hull, ENT( pev ), &tr );
+					if ( tr.flFraction < 1.0 )
+					{
+						// Calculate the point of intersection of the line (or hull) and the object we hit
+						// This is and approximation of the "best" intersection
+						CBaseEntity *pHit = CBaseEntity::Instance( tr.pHit );
+						if ( !pHit || pHit->IsBSPModel() )
+							UTIL_FindHullIntersection( vecSrc, tr, VEC_DUCK_HULL_MIN, VEC_DUCK_HULL_MAX, edict() );
+						vecEnd = tr.vecEndPos;	// This is the point on the actual surface (the hull could have hit space)
+					}
+				}
+			#endif
+
+				float flVol = 1.0;
+				int fHitWorld = TRUE;
+
 				if ( tr.flFraction < 1.0 )
 				{
-					// Calculate the point of intersection of the line (or hull) and the object we hit
-					// This is and approximation of the "best" intersection
-					CBaseEntity *pHit = CBaseEntity::Instance( tr.pHit );
-					if ( !pHit || pHit->IsBSPModel() )
-						UTIL_FindHullIntersection( vecSrc, tr, VEC_DUCK_HULL_MIN, VEC_DUCK_HULL_MAX, edict() );
-					vecEnd = tr.vecEndPos;	// This is the point on the actual surface (the hull could have hit space)
-				}
-			}
-		#endif
+			#ifndef CLIENT_DLL
 
-			float flVol = 1.0;
-			int fHitWorld = TRUE;
+					CBaseEntity *pEntity = CBaseEntity::Instance(tr.pHit);
+					ClearMultiDamage( );
 
-			if ( tr.flFraction < 1.0 )
-			{
-		#ifndef CLIENT_DLL
+					float flDamage = 0;
+					if (FBitSet(pEntity->pev->flags, FL_FROZEN)) {
+						pEntity->pev->renderamt = 100;
+						flDamage = 200;
+						::IceExplode(pEntity, DMG_FREEZE);
+					}
+					pEntity->TraceAttack(pev, (gSkillData.plrDmgKick * 4) + flDamage, gpGlobals->v_forward, &tr, DMG_KICK );
 
-				CBaseEntity *pEntity = CBaseEntity::Instance(tr.pHit);
-				ClearMultiDamage( );
+					ApplyMultiDamage( pev, pev );
 
-				float flDamage = 0;
-				if (FBitSet(pEntity->pev->flags, FL_FROZEN)) {
-					pEntity->pev->renderamt = 100;
-					flDamage = 200;
-					::IceExplode(pEntity, DMG_FREEZE);
-				}
-				pEntity->TraceAttack(pev, (gSkillData.plrDmgKick * 4) + flDamage, gpGlobals->v_forward, &tr, DMG_KICK );
-
-				ApplyMultiDamage( pev, pev );
-
-				// play thwack, smack, or dong sound
-				if (pEntity)
-				{
-					if ( pEntity->Classify() != CLASS_NONE && pEntity->Classify() != CLASS_MACHINE )
+					// play thwack, smack, or dong sound
+					if (pEntity)
 					{
-						// play thwack or smack sound
-						EMIT_SOUND(ENT(pev), CHAN_ITEM, "fists_hitbod.wav", 1, ATTN_NORM);
-						m_iWeaponVolume = 128;
-						flVol = 0.1;
-						pEntity->pev->velocity = (pEntity->pev->velocity + (gpGlobals->v_forward * RANDOM_LONG(200,300)));
-						pEntity->pev->velocity.z += RANDOM_LONG(200,300);
+						if ( pEntity->Classify() != CLASS_NONE && pEntity->Classify() != CLASS_MACHINE )
+						{
+							// play thwack or smack sound
+							EMIT_SOUND(ENT(pev), CHAN_ITEM, "fists_hitbod.wav", 1, ATTN_NORM);
+							m_iWeaponVolume = 128;
+							flVol = 0.1;
+							pEntity->pev->velocity = (pEntity->pev->velocity + (gpGlobals->v_forward * RANDOM_LONG(200,300)));
+							pEntity->pev->velocity.z += RANDOM_LONG(200,300);
 
-						fHitWorld = FALSE;
+							fHitWorld = FALSE;
 
-						m_fSelacoHit = TRUE;
+							m_fSelacoHit = TRUE;
+							if (m_pActiveItem) ((CBasePlayerWeapon *)m_pActiveItem)->SendWeaponAnim(SLIDE_RETRACT, 0, 0);
+							pev->velocity = pev->velocity / 2;
+							pev->friction = 0.5;
+						}
+					}
+
+					if (fHitWorld)
+					{
+						float fvolbar = TEXTURETYPE_PlaySound(&tr, vecSrc, vecSrc + (vecEnd-vecSrc)*2, BULLET_PLAYER_BOOT);
+
+						if ( g_pGameRules->IsMultiplayer() )
+						{
+							// override the volume here, cause we don't play texture sounds in multiplayer, 
+							// and fvolbar is going to be 0 from the above call.
+							fvolbar = 1;
+						}
+
+						// Add smoke
+						UTIL_MakeVectors( pev->v_angle );
+						Vector smoke = tr.vecEndPos - gpGlobals->v_forward * 10;
+						CSprite *pSprite = CSprite::SpriteCreate( "sprites/gunsmoke.spr", smoke, TRUE );
+						pSprite->AnimateAndDie( 12 );
+						pSprite->SetTransparency( kRenderTransAdd, 255, 255, 255, 80, kRenderFxNoDissipation );
+						pSprite->SetScale( 0.4 );
+
+						EMIT_SOUND_DYN(ENT(pev), CHAN_ITEM, "fists_hit.wav", fvolbar, ATTN_NORM, 0, 98 + RANDOM_LONG(0,3));
+
 						if (m_pActiveItem) ((CBasePlayerWeapon *)m_pActiveItem)->SendWeaponAnim(SLIDE_RETRACT, 0, 0);
+						m_fSelacoHit = TRUE;
 						pev->velocity = pev->velocity / 2;
-						pev->friction = 0.5;
-					}
-				}
-
-				if (fHitWorld)
-				{
-					float fvolbar = TEXTURETYPE_PlaySound(&tr, vecSrc, vecSrc + (vecEnd-vecSrc)*2, BULLET_PLAYER_BOOT);
-
-					if ( g_pGameRules->IsMultiplayer() )
-					{
-						// override the volume here, cause we don't play texture sounds in multiplayer, 
-						// and fvolbar is going to be 0 from the above call.
-						fvolbar = 1;
+						pev->friction = 0.7;
 					}
 
-					// Add smoke
-					UTIL_MakeVectors( pev->v_angle );
-					Vector smoke = tr.vecEndPos - gpGlobals->v_forward * 10;
-					CSprite *pSprite = CSprite::SpriteCreate( "sprites/gunsmoke.spr", smoke, TRUE );
-					pSprite->AnimateAndDie( 12 );
-					pSprite->SetTransparency( kRenderTransAdd, 255, 255, 255, 80, kRenderFxNoDissipation );
-					pSprite->SetScale( 0.4 );
-
-					EMIT_SOUND_DYN(ENT(pev), CHAN_ITEM, "fists_hit.wav", fvolbar, ATTN_NORM, 0, 98 + RANDOM_LONG(0,3));
-
-					if (m_pActiveItem) ((CBasePlayerWeapon *)m_pActiveItem)->SendWeaponAnim(SLIDE_RETRACT, 0, 0);
-					m_fSelacoHit = TRUE;
-					pev->velocity = pev->velocity / 2;
-					pev->friction = 0.7;
+					m_iWeaponVolume = flVol * 512;
+			#endif
 				}
 
-				m_iWeaponVolume = flVol * 512;
-		#endif
+				if (tr.flFraction < 1.0) {
+					DecalGunshot( &tr, BULLET_PLAYER_BOOT );
+				}
 			}
 
-			if (tr.flFraction < 1.0) {
-				DecalGunshot( &tr, BULLET_PLAYER_BOOT );
-				//tr.vecEndPos.x += 10;
-				//DecalGunshot( &tr, BULLET_PLAYER_BOOT );
+			//ALERT(at_aiconsole, "pev->velocity[x=%.2f,y=%.2f]\n", pev->velocity.x, pev->velocity.y);
+			//ALERT(at_aiconsole, "fabs(m_fSelacoLastX - pev->velocity.x)[x=%.2f] fabs(m_fSelacoLastY - pev->velocity.y)[y=%.2f]\n", fabs(m_fSelacoLastX - pev->velocity.x), fabs(m_fSelacoLastY - pev->velocity.y));
+
+			if (fabs(m_fSelacoLastX - pev->velocity.x) > 200 || fabs(m_fSelacoLastY - pev->velocity.y) > 200) {
+				EMIT_SOUND_DYN(ENT(pev), CHAN_ITEM, "fists_hit.wav", 1.0, ATTN_NORM, 0, 98 + RANDOM_LONG(0,3));
+				if (m_pActiveItem && m_pActiveItem->m_pPlayer) ((CBasePlayerWeapon *)m_pActiveItem)->SendWeaponAnim(SLIDE_RETRACT, 0, 0);
+				m_fSelacoHit = TRUE;
+				pev->velocity = pev->velocity / 2;
+				pev->friction = 0.7;
 			}
+			m_fSelacoLastX = pev->velocity.x;
+			m_fSelacoLastY = pev->velocity.y;
+
+			m_fSelacoIncrement = gpGlobals->time + 0.03;
 		}
-
-		//ALERT(at_aiconsole, "pev->velocity[x=%.2f,y=%.2f]\n", pev->velocity.x, pev->velocity.y);
-		//ALERT(at_aiconsole, "fabs(m_fSelacoLastX - pev->velocity.x)[x=%.2f] fabs(m_fSelacoLastY - pev->velocity.y)[y=%.2f]\n", fabs(m_fSelacoLastX - pev->velocity.x), fabs(m_fSelacoLastY - pev->velocity.y));
-
-		if (fabs(m_fSelacoLastX - pev->velocity.x) > 200 || fabs(m_fSelacoLastY - pev->velocity.y) > 200) {
-			EMIT_SOUND_DYN(ENT(pev), CHAN_ITEM, "fists_hit.wav", 1.0, ATTN_NORM, 0, 98 + RANDOM_LONG(0,3));
-			if (m_pActiveItem && m_pActiveItem->m_pPlayer) ((CBasePlayerWeapon *)m_pActiveItem)->SendWeaponAnim(SLIDE_RETRACT, 0, 0);
-			m_fSelacoHit = TRUE;
-			pev->velocity = pev->velocity / 2;
-			pev->friction = 0.7;
-		}
-		m_fSelacoLastX = pev->velocity.x;
-		m_fSelacoLastY = pev->velocity.y;
-
-		m_fSelacoIncrement = gpGlobals->time + 0.03;
 	}
 }
 
@@ -4302,6 +4305,7 @@ void CBasePlayer::EndSelacoSlide( void )
 		m_fSelacoCount = 0;
 		pev->view_ofs[2] = m_fSelacoZ;
 		m_fSelacoIncrement = gpGlobals->time + 0.2;
+		//m_EFlags &= ~EFLAG_PLAYERSLIDE;
 	}
 }
 
