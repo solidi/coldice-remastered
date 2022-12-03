@@ -34,6 +34,7 @@
 #include "gamerules.h"
 #include "teamplay_gamerules.h"
 #include "items.h"
+#include "game.h"
 
 extern CGraph WorldGraph;
 extern CSoundEnt *pSoundEnt;
@@ -42,6 +43,15 @@ extern CBaseEntity				*g_pLastSpawn;
 DLL_GLOBAL edict_t				*g_pBodyQueueHead;
 CGlobalState					gGlobalState;
 extern DLL_GLOBAL	int			gDisplayTitle;
+
+extern DLL_GLOBAL const char *g_szMutators[] = {
+	"rocketcrowbar",
+	"instagib",
+	"volatile",
+	"paintball",
+	"plumber",
+	"dkmode",
+};
 
 extern void W_Precache(void);
 
@@ -518,6 +528,7 @@ void CWorld :: Spawn( void )
 {
 	g_fGameOver = FALSE;
 	Precache( );
+	RandomizeMutators();
 	g_flWeaponCheat = CVAR_GET_FLOAT( "sv_cheats" );  // Is the impulse 101 command allowed?
 	if (CVAR_GET_FLOAT( "mp_allowrunes" ))
 		CWorldRunes::Create( );
@@ -712,6 +723,30 @@ void CWorld :: Precache( void )
 	{
 		CVAR_SET_FLOAT( "mp_defaultteam", 0 );
 	}
+}
+
+void CWorld :: RandomizeMutators( void )
+{
+	if (!randommutators.value)
+		return;
+
+	char result[128] = {""};
+	int count = 0;
+	while (count < 3)
+	{
+		int index = RANDOM_LONG(0,(int)ARRAYSIZE(g_szMutators) - 1);
+		const char *tryIt = g_szMutators[index];
+		if (!strstr(result, tryIt))
+		{
+			if (strlen(result))
+				strcat(result, ";");
+			strcat(result, g_szMutators[index]);
+			count++;
+		}
+	}
+
+	ALERT(at_aiconsole, "Mutators set to %\n", result);
+	CVAR_SET_STRING("mp_mutators", result);
 }
 
 

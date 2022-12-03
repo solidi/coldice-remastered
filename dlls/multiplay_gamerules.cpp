@@ -586,6 +586,11 @@ void CHalfLifeMultiplay :: PlayerThink( CBasePlayer *pPlayer )
 #else
 		ClientPrint(pPlayer->pev, HUD_PRINTTALK, "Welcome to Cold Ice Remastered Beta 3. For commands, type \"help\" in the console.\n");
 #endif
+
+		// Display Mutators
+		if (strlen(CVAR_GET_STRING("mp_mutators")) > 1)
+			pPlayer->DisplayHudMessage(UTIL_VarArgs("Mutators Active: %s", CVAR_GET_STRING("mp_mutators")), 2, .02, .16, 210, 210, 210, 2, .015, 2, 5, .25);
+
 		pPlayer->m_iShownWelcomeMessage = -1;
 	}
 }
