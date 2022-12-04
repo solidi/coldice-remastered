@@ -678,7 +678,7 @@ void CHalfLifeMultiplay :: PlayerSpawn( CBasePlayer *pPlayer )
 
 	if (strstr(mutators.string, g_MutatorPlumber) ||
 		atoi(mutators.string) == MUTATOR_PLUMBER) {
-		pPlayer->GiveNamedItem("weapon_wrench");
+		pPlayer->GiveNamedItem("weapon_dual_wrench");
 	}
 
 	if (startwithall.value) {
