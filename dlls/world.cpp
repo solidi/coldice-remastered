@@ -44,6 +44,7 @@ DLL_GLOBAL edict_t				*g_pBodyQueueHead;
 CGlobalState					gGlobalState;
 extern DLL_GLOBAL	int			gDisplayTitle;
 
+DLL_GLOBAL extern const char *g_MutatorSuperJump;
 extern DLL_GLOBAL const char *g_szMutators[] = {
 	"rocketcrowbar",
 	"instagib",
@@ -51,6 +52,8 @@ extern DLL_GLOBAL const char *g_szMutators[] = {
 	"paintball",
 	"plumber",
 	"dkmode",
+	"superjump",
+	"megaspeed",
 };
 
 extern void W_Precache(void);
@@ -722,6 +725,18 @@ void CWorld :: Precache( void )
 	else
 	{
 		CVAR_SET_FLOAT( "mp_defaultteam", 0 );
+	}
+
+	// Mutators
+	if ((strstr(mutators.string, g_MutatorSuperJump) ||
+		atoi(mutators.string) == MUTATOR_SUPERJUMP))
+	{
+		CVAR_SET_FLOAT("sv_jumpheight", 299);
+	}
+	else
+	{
+		if (CVAR_GET_FLOAT("sv_jumpheight") == 299)
+			CVAR_SET_FLOAT("sv_jumpheight", 45);
 	}
 }
 

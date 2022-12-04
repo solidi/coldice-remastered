@@ -792,6 +792,8 @@ typedef struct
 #define MUTATOR_PLUMBER 4
 #define MUTATOR_PAINTBALL 5
 #define MUTATOR_DKMODE 6
+#define MUTATOR_SUPERJUMP 7
+#define MUTATOR_MEGASPEED 8
 
 #endif
 

@@ -41,6 +41,8 @@ extern DLL_GLOBAL const char *g_MutatorInstaGib;
 extern DLL_GLOBAL const char *g_MutatorVolatile;
 extern DLL_GLOBAL const char *g_MutatorPlumber;
 extern DLL_GLOBAL const char *g_MutatorPaintball;
+extern DLL_GLOBAL const char *g_MutatorSuperJump;
+extern DLL_GLOBAL const char *g_MutatorMegaSpeed;
 
 extern int gmsgDeathMsg;	// client dll messages
 extern int gmsgScoreInfo;
@@ -521,6 +523,13 @@ float CHalfLifeMultiplay :: FlPlayerFallDamage( CBasePlayer *pPlayer )
 {
 	int iFallDamage = (int)falldamage.value;
 
+	// Mutators
+	if ((strstr(mutators.string, g_MutatorSuperJump) ||
+		atoi(mutators.string) == MUTATOR_SUPERJUMP))
+	{
+		return 0;
+	}
+
 	switch ( iFallDamage )
 	{
 	case 1://progressive
@@ -652,6 +661,10 @@ void CHalfLifeMultiplay :: PlayerSpawn( CBasePlayer *pPlayer )
 		addDefault = FALSE;
 	}
 
+	if ((strstr(mutators.string, g_MutatorMegaSpeed) ||
+		atoi(mutators.string) == MUTATOR_MEGASPEED))
+		g_engfuncs.pfnSetPhysicsKeyValue(pPlayer->edict(), "haste", "1");
+
 	if (strstr(mutators.string, g_MutatorRocketCrowbar) ||
 		atoi(mutators.string) == MUTATOR_ROCKETCROWBAR) {
 		pPlayer->GiveNamedItem("weapon_rocketcrowbar");
@@ -659,22 +672,19 @@ void CHalfLifeMultiplay :: PlayerSpawn( CBasePlayer *pPlayer )
 
 	if (strstr(mutators.string, g_MutatorInstaGib) ||
 		atoi(mutators.string) == MUTATOR_INSTAGIB) {
-		pPlayer->GiveNamedItem("weapon_railgun");
-		return;
+		pPlayer->GiveNamedItem("weapon_dual_railgun");
+		pPlayer->GiveAmmo(URANIUM_MAX_CARRY, "uranium", URANIUM_MAX_CARRY);
 	}
 
 	if (strstr(mutators.string, g_MutatorPlumber) ||
 		atoi(mutators.string) == MUTATOR_PLUMBER) {
 		pPlayer->GiveNamedItem("weapon_wrench");
-		return;
 	}
 
 	if (startwithall.value) {
 		pPlayer->CheatImpulseCommands(101, FALSE);
-		return;
 	}
-
-	if ( addDefault )
+	else if ( addDefault )
 	{
 		if (snowballfight.value)
 		{
@@ -1206,6 +1216,7 @@ BOOL CHalfLifeMultiplay::IsAllowedToSpawn( CBaseEntity *pEntity )
 		return FALSE;
 	}
 
+/*
 	if ((strstr(mutators.string, g_MutatorInstaGib) ||
 		atoi(mutators.string) == MUTATOR_INSTAGIB) &&
 		(strncmp(STRING(pEntity->pev->classname), "weapon_", 7) == 0 || strncmp(STRING(pEntity->pev->classname), "ammo_", 5) == 0))
@@ -1222,7 +1233,9 @@ BOOL CHalfLifeMultiplay::IsAllowedToSpawn( CBaseEntity *pEntity )
 			return FALSE;
 		}
 	}
+*/
 
+/*
 	if ((strstr(mutators.string, g_MutatorPlumber) ||
 		atoi(mutators.string) == MUTATOR_PLUMBER) &&
 		(strncmp(STRING(pEntity->pev->classname), "weapon_", 7) == 0 || strncmp(STRING(pEntity->pev->classname), "ammo_", 5) == 0))
@@ -1239,6 +1252,7 @@ BOOL CHalfLifeMultiplay::IsAllowedToSpawn( CBaseEntity *pEntity )
 			return FALSE;
 		}
 	}
+*/
 
 	const char* dualWeaponList[6] = {
 		"weapon_dual_wrench",
