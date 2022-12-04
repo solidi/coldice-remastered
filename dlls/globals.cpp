@@ -48,3 +48,7 @@ DLL_GLOBAL const char *g_MutatorPlumber = "plumber";
 DLL_GLOBAL const char *g_MutatorDKMode = "dkmode";
 DLL_GLOBAL const char *g_MutatorSuperJump = "superjump";
 DLL_GLOBAL const char *g_MutatorMegaSpeed = "megaspeed";
+DLL_GLOBAL const char *g_MutatorLightsOut = "lightsout";
+DLL_GLOBAL const char *g_MutatorSlowmo = "slowmo";
+DLL_GLOBAL const char *g_MutatorIce = "ice";
+DLL_GLOBAL const char *g_MutatorTopsyTurvy = "topsyturvy";

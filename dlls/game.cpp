@@ -609,6 +609,21 @@ void GameDLLInit( void )
 	g_psv_aim = CVAR_GET_POINTER( "sv_aim" );
 	g_footsteps = CVAR_GET_POINTER( "mp_footsteps" );
 
+	cvar_t *g_fps_max = CVAR_GET_POINTER("fps_max");
+	BOOL using_sys_timescale = FALSE;
+	cvar_t *g_sys_timescale = (cvar_t*)((char*)CVAR_GET_POINTER("fps_max") - 36);
+
+	bool pointingToGarbage = abs(g_sys_timescale->name - g_fps_max->name) > 1024; // heuristic
+	if (!pointingToGarbage) {
+		using_sys_timescale = memcmp(g_sys_timescale->name, "sys_timescale", 14) == 0;
+	}
+
+	if (using_sys_timescale) {
+		CVAR_REGISTER(g_sys_timescale);
+	} else {
+		g_engfuncs.pfnServerPrint("Failed to register sys_timescale cvar, falling back to old slowmotion implementation\n");
+	}
+
 	CVAR_REGISTER (&displaysoundlist);
 	CVAR_REGISTER( &allow_spectators );
 

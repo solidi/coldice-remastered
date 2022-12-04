@@ -2898,6 +2898,12 @@ void PM_CheckParamters( void )
 		pmove->angles[ROLL]	=	PM_CalcRoll ( v_angle, pmove->velocity, pmove->movevars->rollangle, pmove->movevars->rollspeed )*4;
 		pmove->angles[PITCH] =	v_angle[PITCH];
 		pmove->angles[YAW]   =	v_angle[YAW];
+
+		if (atoi(pmove->PM_Info_ValueForKey( pmove->physinfo, "topsy")))
+		{
+			pmove->angles[ROLL] = 180;
+			pmove->punchangle[ROLL] = 180;
+		}
 	}
 	else
 	{
