@@ -794,6 +794,10 @@ typedef struct
 #define MUTATOR_DKMODE 6
 #define MUTATOR_SUPERJUMP 7
 #define MUTATOR_MEGASPEED 8
+#define MUTATOR_LIGHTSOUT 9
+#define MUTATOR_SLOWMO 10
+#define MUTATOR_ICE 11
+#define MUTATOR_TOPSYTURVY 12
 
 #endif
 

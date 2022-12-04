@@ -1,4 +1,4 @@
-//========= Copyright © 1996-2002, Valve LLC, All rights reserved. ============
+//========= Copyright ï¿½ 1996-2002, Valve LLC, All rights reserved. ============
 //
 // Purpose: 
 //
@@ -415,6 +415,11 @@ void IN_ScaleMouse( float *x, float *y )
 
 	// This is the default sensitivity
 	float mouse_senstivity = ( gHUD.GetSensitivity() != 0 ) ? gHUD.GetSensitivity() : sensitivity->value;
+
+	if (strstr(CVAR_GET_STRING("mp_mutators"), "topsyturvy"))
+	{
+		mouse_senstivity *= -1;
+	}
 
 	// Using special accleration values
 	if ( m_customaccel->value != 0 ) 

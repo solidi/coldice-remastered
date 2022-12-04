@@ -23,8 +23,9 @@
 #include "extdll.h"
 #include "util.h"
 #include "cbase.h"
+#include "game.h"
 
-
+extern DLL_GLOBAL const char *g_MutatorLightsOut;
 
 class CLight : public CPointEntity
 {
@@ -169,12 +170,23 @@ void CEnvLight::KeyValue( KeyValueData* pkvd )
 		b = pow( b / 114.0, 0.6 ) * 264;
 
 		pkvd->fHandled = TRUE;
-		sprintf( szColor, "%d", r );
-		CVAR_SET_STRING( "sv_skycolor_r", szColor );
-		sprintf( szColor, "%d", g );
-		CVAR_SET_STRING( "sv_skycolor_g", szColor );
-		sprintf( szColor, "%d", b );
-		CVAR_SET_STRING( "sv_skycolor_b", szColor );
+
+		if ((strstr(mutators.string, g_MutatorLightsOut) ||
+			atoi(mutators.string) == MUTATOR_LIGHTSOUT))
+		{
+			CVAR_SET_STRING("sv_skycolor_r", "0");
+			CVAR_SET_STRING("sv_skycolor_g", "0");
+			CVAR_SET_STRING("sv_skycolor_b", "0");
+		}
+		else
+		{
+			sprintf( szColor, "%d", r );
+			CVAR_SET_STRING( "sv_skycolor_r", szColor );
+			sprintf( szColor, "%d", g );
+			CVAR_SET_STRING( "sv_skycolor_g", szColor );
+			sprintf( szColor, "%d", b );
+			CVAR_SET_STRING( "sv_skycolor_b", szColor );
+		}
 	}
 	else
 	{

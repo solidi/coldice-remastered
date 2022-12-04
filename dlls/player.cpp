@@ -47,6 +47,7 @@ int gEvilImpulse101;
 extern DLL_GLOBAL int		g_iSkillLevel, gDisplayTitle;
 
 extern DLL_GLOBAL const char *g_MutatorInstaGib;
+extern DLL_GLOBAL const char *g_MutatorIce;
 
 BOOL gInitHUD = TRUE;
 
@@ -4303,7 +4304,11 @@ void CBasePlayer::EndSelacoSlide( void )
 		m_fSelacoSliding = m_fSelacoHit = FALSE;
 		m_fSelacoTime = m_fSelacoIncrement = m_fSelacoButtonTime = 0;
 		m_fSelacoZ = VEC_VIEW.z;
-		pev->friction = 1.0;
+		if ((strstr(mutators.string, g_MutatorIce) ||
+		atoi(mutators.string) == MUTATOR_ICE))
+			pev->friction = 0.3;
+		else
+			pev->friction = 1.0;
 		m_fSelacoCount = 0;
 		pev->view_ofs[2] = m_fSelacoZ;
 		m_fSelacoIncrement = gpGlobals->time + 0.2;

@@ -45,6 +45,7 @@ CGlobalState					gGlobalState;
 extern DLL_GLOBAL	int			gDisplayTitle;
 
 DLL_GLOBAL extern const char *g_MutatorSuperJump;
+DLL_GLOBAL extern const char *g_MutatorLightsOut;
 extern DLL_GLOBAL const char *g_szMutators[] = {
 	"rocketcrowbar",
 	"instagib",
@@ -54,6 +55,10 @@ extern DLL_GLOBAL const char *g_szMutators[] = {
 	"dkmode",
 	"superjump",
 	"megaspeed",
+	"lightsout",
+	"slowmo",
+	"ice",
+	"topsyturvy",
 };
 
 extern void W_Precache(void);
@@ -620,7 +625,14 @@ void CWorld :: Precache( void )
 //
 
 	// 0 normal
-	LIGHT_STYLE(0, "m");
+	if ((strstr(mutators.string, g_MutatorLightsOut) ||
+		atoi(mutators.string) == MUTATOR_LIGHTSOUT))
+	{
+		LIGHT_STYLE(0, "b");
+		CVAR_SET_STRING("mp_flashlight", "1");
+	}
+	else
+		LIGHT_STYLE(0, "m");
 	
 	// 1 FLICKER (first variety)
 	LIGHT_STYLE(1, "mmnmmommommnonmmonqnmmo");

@@ -43,6 +43,10 @@ extern DLL_GLOBAL const char *g_MutatorPlumber;
 extern DLL_GLOBAL const char *g_MutatorPaintball;
 extern DLL_GLOBAL const char *g_MutatorSuperJump;
 extern DLL_GLOBAL const char *g_MutatorMegaSpeed;
+extern DLL_GLOBAL const char *g_MutatorLightsOut;
+extern DLL_GLOBAL const char *g_MutatorSlowmo;
+extern DLL_GLOBAL const char *g_MutatorIce;
+extern DLL_GLOBAL const char *g_MutatorTopsyTurvy;
 
 extern int gmsgDeathMsg;	// client dll messages
 extern int gmsgScoreInfo;
@@ -183,6 +187,10 @@ extern cvar_t mp_chattime;
 void CHalfLifeMultiplay :: Think ( void )
 {
 	g_VoiceGameMgr.Update(gpGlobals->frametime);
+
+	if ((strstr(mutators.string, g_MutatorSlowmo) ||
+		atoi(mutators.string) == MUTATOR_SLOWMO) && CVAR_GET_FLOAT("sys_timescale") != 0.49)
+		CVAR_SET_FLOAT("sys_timescale", 0.49);
 
 	///// Check game rules /////
 	static int last_frags;
@@ -554,6 +562,15 @@ BOOL CHalfLifeMultiplay::FPlayerCanTakeDamage( CBasePlayer *pPlayer, CBaseEntity
 //=========================================================
 void CHalfLifeMultiplay :: PlayerThink( CBasePlayer *pPlayer )
 {
+	if (strstr(mutators.string, g_MutatorLightsOut) ||
+		atoi(mutators.string) == MUTATOR_LIGHTSOUT)
+	{
+		if (pPlayer->IsAlive())
+			pPlayer->m_iFlashBattery = 100;
+		else
+			pPlayer->FlashlightTurnOff();
+	}
+
 	if ( pPlayer->m_fHasRune == RUNE_GRAVITY )
 	{
 		pPlayer->pev->gravity = 0.6;
@@ -664,6 +681,15 @@ void CHalfLifeMultiplay :: PlayerSpawn( CBasePlayer *pPlayer )
 	if ((strstr(mutators.string, g_MutatorMegaSpeed) ||
 		atoi(mutators.string) == MUTATOR_MEGASPEED))
 		g_engfuncs.pfnSetPhysicsKeyValue(pPlayer->edict(), "haste", "1");
+
+	if ((strstr(mutators.string, g_MutatorIce) ||
+		atoi(mutators.string) == MUTATOR_ICE))
+		pPlayer->pev->friction = 0.3;
+
+	if (strstr(mutators.string, g_MutatorTopsyTurvy) ||
+		atoi(mutators.string) == MUTATOR_TOPSYTURVY) {
+		g_engfuncs.pfnSetPhysicsKeyValue(pPlayer->edict(), "topsy", "1");
+	}
 
 	if (strstr(mutators.string, g_MutatorRocketCrowbar) ||
 		atoi(mutators.string) == MUTATOR_ROCKETCROWBAR) {
