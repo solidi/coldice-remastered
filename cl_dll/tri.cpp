@@ -20,6 +20,8 @@
 
 #include "particleman.h"
 #include "tri.h"
+#include "rain.h"
+
 extern IParticleMan *g_pParticleMan;
 
 /*
@@ -57,6 +59,11 @@ void CL_DLLEXPORT HUD_DrawTransparentTriangles( void )
 
 	if ( g_pParticleMan )
 		 g_pParticleMan->Update();
+
+	ProcessFXObjects();
+	ProcessRain();
+	DrawRain();
+	DrawFXObjects();
 }
 
 void DrawCrosshair()
