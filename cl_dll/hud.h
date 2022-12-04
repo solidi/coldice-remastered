@@ -604,6 +604,14 @@ private:
 //-----------------------------------------------------
 //
 
+typedef struct
+{
+	HSPRITE spr;
+	wrect_t rc;
+	int r;
+	int g;
+	int b;
+} crosspr_s;
 
 class CHud
 {
@@ -723,6 +731,7 @@ public:
 	float GetSensitivity();
 	void FlashHud();
 
+	crosspr_s crossspr;
 };
 
 extern CHud gHUD;

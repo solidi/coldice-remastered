@@ -126,6 +126,7 @@ HL1_OBJS = \
 	$(HL1_OBJ_DIR)/text_message.o \
 	$(HL1_OBJ_DIR)/train.o \
 	$(HL1_OBJ_DIR)/tri.o \
+	$(HL1_OBJ_DIR)/triapihud.o \
 	$(HL1_OBJ_DIR)/util.o \
 	$(HL1_OBJ_DIR)/view.o \
 	$(HL1_OBJ_DIR)/vgui_int.o \

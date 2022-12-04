@@ -27,6 +27,11 @@
 #include <stdarg.h>  // "
 #include <string.h> // for strncpy()
 
+void TRI_SprDrawGeneric(int frame, int x, int y, const wrect_t* prc, bool changepos = true, bool swap = true);
+void TRI_SprDrawAdditive(int frame, int x, int y, const wrect_t* prc, bool changepos = true, bool swap = true);
+void TRI_SprSet(HSPRITE spr, int r, int g, int b);
+void TRI_FillRGBA(int x, int y, int width, int height, int r, int g, int b, int a, bool swap = true);
+
 // Macros to hook function calls into the HUD object
 #define HOOK_MESSAGE(x) gEngfuncs.pfnHookUserMsg(#x, __MsgFunc_##x );
 
@@ -47,24 +52,28 @@ inline char* CVAR_GET_STRING( const char *x ) {	return gEngfuncs.pfnGetCvarStrin
 inline struct cvar_s *CVAR_CREATE( const char *cv, const char *val, const int flags ) {	return gEngfuncs.pfnRegisterVariable( (char*)cv, (char*)val, flags ); }
 
 #define SPR_Load (*gEngfuncs.pfnSPR_Load)
-#define SPR_Set (*gEngfuncs.pfnSPR_Set)
+#define SPR_Set_OLD (*gEngfuncs.pfnSPR_Set)
 #define SPR_Frames (*gEngfuncs.pfnSPR_Frames)
 #define SPR_GetList (*gEngfuncs.pfnSPR_GetList)
 
 // SPR_Draw  draws a the current sprite as solid
-#define SPR_Draw (*gEngfuncs.pfnSPR_Draw)
+#define SPR_Draw_OLD (*gEngfuncs.pfnSPR_Draw)
 // SPR_DrawHoles  draws the current sprites,  with color index255 not drawn (transparent)
 #define SPR_DrawHoles (*gEngfuncs.pfnSPR_DrawHoles)
 // SPR_DrawAdditive  adds the sprites RGB values to the background  (additive transulency)
-#define SPR_DrawAdditive (*gEngfuncs.pfnSPR_DrawAdditive)
+#define SPR_DrawAdditive_OLD (*gEngfuncs.pfnSPR_DrawAdditive)
 
 // SPR_EnableScissor  sets a clipping rect for HUD sprites.  (0,0) is the top-left hand corner of the screen.
 #define SPR_EnableScissor (*gEngfuncs.pfnSPR_EnableScissor)
 // SPR_DisableScissor  disables the clipping rect
 #define SPR_DisableScissor (*gEngfuncs.pfnSPR_DisableScissor)
 //
-#define FillRGBA (*gEngfuncs.pfnFillRGBA)
+#define FillRGBA_OLD (*gEngfuncs.pfnFillRGBA)
 
+#define SPR_Draw (TRI_SprDrawGeneric)
+#define SPR_Set (TRI_SprSet)
+#define SPR_DrawAdditive (TRI_SprDrawAdditive)
+#define FillRGBA (TRI_FillRGBA)
 
 // ScreenHeight returns the height of the screen, in pixels
 #define ScreenHeight (gHUD.m_scrinfo.iHeight)
@@ -83,6 +92,7 @@ inline struct cvar_s *CVAR_CREATE( const char *cv, const char *val, const int fl
 #define GetScreenInfo (*gEngfuncs.pfnGetScreenInfo)
 #define ServerCmd (*gEngfuncs.pfnServerCmd)
 #define EngineClientCmd (*gEngfuncs.pfnClientCmd)
+//void SetCrosshair(HSPRITE hspr, wrect_t rc, int r, int g, int b);
 #define SetCrosshair (*gEngfuncs.pfnSetCrosshair)
 #define AngleVectors (*gEngfuncs.pfnAngleVectors)
 
@@ -97,8 +107,11 @@ inline 	int						TextMessageDrawChar( int x, int y, int number, int r, int g, in
 	return gEngfuncs.pfnDrawCharacter( x, y, number, r, g, b ); 
 }
 
+void TRI_SprAdjustSize(int* x, int* y, int* w, int* h, bool changepos = true, bool swap = true);
+
 inline int DrawConsoleString( int x, int y, const char *string )
 {
+	TRI_SprAdjustSize(&x, &y, 0, 0);
 	return gEngfuncs.pfnDrawConsoleString( x, y, (char*) string );
 }
 
@@ -111,6 +124,12 @@ inline int ConsoleStringLen( const char *string )
 {
 	int _width, _height;
 	GetConsoleStringSize( string, &_width, &_height );
+
+	int w = _width;
+	TRI_SprAdjustSize(0, 0, &w, 0);
+	if (w)
+		_width = _width * _width / w;
+
 	return _width;
 }
 

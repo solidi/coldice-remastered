@@ -1,4 +1,4 @@
-//========= Copyright © 1996-2002, Valve LLC, All rights reserved. ============
+//========= Copyright ï¿½ 1996-2002, Valve LLC, All rights reserved. ============
 //
 // Purpose: 
 //
@@ -20,6 +20,8 @@
 
 #include "particleman.h"
 #include "tri.h"
+#include "rain.h"
+
 extern IParticleMan *g_pParticleMan;
 
 /*
@@ -57,4 +59,40 @@ void CL_DLLEXPORT HUD_DrawTransparentTriangles( void )
 
 	if ( g_pParticleMan )
 		 g_pParticleMan->Update();
+
+	ProcessFXObjects();
+	ProcessRain();
+	DrawRain();
+	DrawFXObjects();
+}
+
+void DrawCrosshair()
+{
+	if (gHUD.crossspr.spr != 0)
+	{
+		static float oldtime = 0;
+		float flTime = gEngfuncs.GetClientTime();
+
+		int y = ScreenHeight;
+		int x = ScreenWidth;
+
+		if (oldtime != flTime)
+		{
+			SPR_Set(gHUD.crossspr.spr, 128, 128, 128);
+			SPR_DrawAdditive(0, x, y, &gHUD.crossspr.rc, false);
+		}
+		oldtime = flTime;
+	}
+}
+
+/*
+=================
+HUD_DrawOrthoTriangles
+Orthogonal Triangles -- (relative to resolution,
+smackdab on the screen) add them here
+=================
+*/
+void HUD_DrawOrthoTriangles()
+{
+	//DrawCrosshair();
 }
