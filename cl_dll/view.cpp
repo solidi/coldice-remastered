@@ -728,7 +728,8 @@ void V_CalcNormalRefdef ( struct ref_params_s *pparams )
 		}
 	}
 
-	if (strstr(CVAR_GET_STRING("mp_mutators"), "topsyturvy"))
+	if (strstr(CVAR_GET_STRING("mp_mutators"), "topsyturvy") ||
+		atoi(CVAR_GET_STRING("mp_mutators")) == MUTATOR_TOPSYTURVY)
 		view->angles[ROLL] = 180;
 
 #ifdef _DEBUG

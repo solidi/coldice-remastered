@@ -635,7 +635,8 @@ void CL_AdjustAngles ( float frametime, float *viewangles )
 
 	if (!(in_strafe.state & 1))
 	{
-		if (strstr(CVAR_GET_STRING("mp_mutators"), "topsyturvy"))
+		if (strstr(CVAR_GET_STRING("mp_mutators"), "topsyturvy") ||
+			atoi(CVAR_GET_STRING("mp_mutators")) == MUTATOR_TOPSYTURVY)
 		{
 			viewangles[YAW] += speed*cl_yawspeed->value*CL_KeyState (&in_right);
 			viewangles[YAW] -= speed*cl_yawspeed->value*CL_KeyState (&in_left);
@@ -658,7 +659,8 @@ void CL_AdjustAngles ( float frametime, float *viewangles )
 	up = CL_KeyState (&in_lookup);
 	down = CL_KeyState(&in_lookdown);
 	
-	if (strstr(CVAR_GET_STRING("mp_mutators"), "topsyturvy"))
+	if (strstr(CVAR_GET_STRING("mp_mutators"), "topsyturvy") ||
+	 	atoi(CVAR_GET_STRING("mp_mutators")) == MUTATOR_TOPSYTURVY)
 	{
 		viewangles[PITCH] += speed*cl_pitchspeed->value * up;
 		viewangles[PITCH] -= speed*cl_pitchspeed->value * down;
