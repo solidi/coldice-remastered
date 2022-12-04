@@ -36,6 +36,8 @@
 extern CGraph	WorldGraph;
 extern int gEvilImpulse101;
 
+extern DLL_GLOBAL const char *g_MutatorInstaGib;
+
 
 #define NOT_USED 255
 
@@ -768,6 +770,13 @@ CBaseEntity* CBasePlayerItem::Respawn( void )
 		if (strncmp(STRING(pev->classname), "weapon_snowball", 15) != 0) {
 			pNewWeapon = CBaseEntity::Create("weapon_snowball", g_pGameRules->VecWeaponRespawnSpot(this), pev->angles, pev->owner);
 		}
+	/*
+	} else if (strstr(mutators.string, g_MutatorInstaGib) ||
+		atoi(mutators.string) == MUTATOR_INSTAGIB) {
+		if (strcmp(STRING(pev->classname), "ammo_gaussclip") != 0) {
+			pNewWeapon = CBaseEntity::Create("ammo_gaussclip", g_pGameRules->VecWeaponRespawnSpot(this), pev->angles, pev->owner);
+		}
+	*/
 	} else {
 		for (int group = 0; (group < ARRAYSIZE(weaponsList) - 1) && pNewWeapon == NULL; group++) {
 			int totalWeapons = ARRAYSIZE(weaponsList[group]);

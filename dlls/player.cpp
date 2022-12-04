@@ -3862,6 +3862,7 @@ void CBasePlayer::GiveNamedItem( const char *pszName )
 		}
 	}
 
+/*
 	if (strstr(mutators.string, g_MutatorInstaGib) ||
 		atoi(mutators.string) == MUTATOR_INSTAGIB) {
 		if (stricmp(pszName, "weapon_fists") != 0 &&
@@ -3870,6 +3871,7 @@ void CBasePlayer::GiveNamedItem( const char *pszName )
 			return;
 		}
 	}
+*/
 
 	pent = CREATE_NAMED_ENTITY(istr);
 	if ( FNullEnt( pent ) )

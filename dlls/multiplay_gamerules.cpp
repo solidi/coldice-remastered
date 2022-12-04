@@ -672,22 +672,19 @@ void CHalfLifeMultiplay :: PlayerSpawn( CBasePlayer *pPlayer )
 
 	if (strstr(mutators.string, g_MutatorInstaGib) ||
 		atoi(mutators.string) == MUTATOR_INSTAGIB) {
-		pPlayer->GiveNamedItem("weapon_railgun");
-		return;
+		pPlayer->GiveNamedItem("weapon_dual_railgun");
+		pPlayer->GiveAmmo(URANIUM_MAX_CARRY, "uranium", URANIUM_MAX_CARRY);
 	}
 
 	if (strstr(mutators.string, g_MutatorPlumber) ||
 		atoi(mutators.string) == MUTATOR_PLUMBER) {
 		pPlayer->GiveNamedItem("weapon_wrench");
-		return;
 	}
 
 	if (startwithall.value) {
 		pPlayer->CheatImpulseCommands(101, FALSE);
-		return;
 	}
-
-	if ( addDefault )
+	else if ( addDefault )
 	{
 		if (snowballfight.value)
 		{
@@ -1219,6 +1216,7 @@ BOOL CHalfLifeMultiplay::IsAllowedToSpawn( CBaseEntity *pEntity )
 		return FALSE;
 	}
 
+/*
 	if ((strstr(mutators.string, g_MutatorInstaGib) ||
 		atoi(mutators.string) == MUTATOR_INSTAGIB) &&
 		(strncmp(STRING(pEntity->pev->classname), "weapon_", 7) == 0 || strncmp(STRING(pEntity->pev->classname), "ammo_", 5) == 0))
@@ -1235,7 +1233,9 @@ BOOL CHalfLifeMultiplay::IsAllowedToSpawn( CBaseEntity *pEntity )
 			return FALSE;
 		}
 	}
+*/
 
+/*
 	if ((strstr(mutators.string, g_MutatorPlumber) ||
 		atoi(mutators.string) == MUTATOR_PLUMBER) &&
 		(strncmp(STRING(pEntity->pev->classname), "weapon_", 7) == 0 || strncmp(STRING(pEntity->pev->classname), "ammo_", 5) == 0))
@@ -1252,6 +1252,7 @@ BOOL CHalfLifeMultiplay::IsAllowedToSpawn( CBaseEntity *pEntity )
 			return FALSE;
 		}
 	}
+*/
 
 	const char* dualWeaponList[6] = {
 		"weapon_dual_wrench",
