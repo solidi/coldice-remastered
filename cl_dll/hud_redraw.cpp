@@ -39,6 +39,8 @@ float HUD_GetFOV( void );
 extern cvar_t *sensitivity;
 extern cvar_t *cl_showtips;
 
+extern cvar_t *cl_hudbend;
+
 // Think
 void CHud::Think(void)
 {
@@ -94,6 +96,8 @@ void CHud::Think(void)
 
 	ShowTextTips();
 }
+
+void HUD_DrawOrthoTriangles();
 
 // Redraw
 // step through the local data,  placing the appropriate graphics & text as appropriate
@@ -179,6 +183,8 @@ int CHud :: Redraw( float flTime, int intermission )
 		}
 	}
 
+	HUD_DrawOrthoTriangles();
+
 	// are we in demo mode? do we need to draw the logo in the top corner?
 	if (m_iLogo)
 	{
@@ -242,6 +248,7 @@ int CHud :: DrawHudNumberString( int xpos, int ypos, int iMinX, int iNumber, int
 {
 	char szString[32];
 	sprintf( szString, "%d", iNumber );
+	// TRI_SprAdjustSize(&xpos, &ypos, 0, 0);
 	return DrawHudStringReverse( xpos, ypos, iMinX, szString, r, g, b );
 
 }
@@ -256,6 +263,13 @@ int CHud :: DrawHudNumber( int x, int y, int iFlags, int iNumber, int r, int g, 
 {
 	int iWidth = GetSpriteRect(m_HUD_number_0).right - GetSpriteRect(m_HUD_number_0).left;
 	int k;
+	float drift = 1;
+	if (x > (ScreenWidth / 2))
+		drift *= -1;
+	// No drift when off
+	if (!cl_hudbend->value)
+		drift = 0;
+	float numScale = 24 * cl_hudbend->value;
 	
 	if (iNumber > 0)
 	{
@@ -264,7 +278,7 @@ int CHud :: DrawHudNumber( int x, int y, int iFlags, int iNumber, int r, int g, 
 		{
 			 k = iNumber/100;
 			SPR_Set(GetSprite(m_HUD_number_0 + k), r, g, b );
-			SPR_DrawAdditive( 0, x, y, &GetSpriteRect(m_HUD_number_0 + k));
+			SPR_DrawAdditive( 0, x, y - (drift), &GetSpriteRect(m_HUD_number_0 + k));
 			x += iWidth;
 		}
 		else if (iFlags & (DHN_3DIGITS))
@@ -278,7 +292,7 @@ int CHud :: DrawHudNumber( int x, int y, int iFlags, int iNumber, int r, int g, 
 		{
 			k = (iNumber % 100)/10;
 			SPR_Set(GetSprite(m_HUD_number_0 + k), r, g, b );
-			SPR_DrawAdditive( 0, x, y, &GetSpriteRect(m_HUD_number_0 + k));
+			SPR_DrawAdditive( 0, x, y - (drift * numScale), &GetSpriteRect(m_HUD_number_0 + k));
 			x += iWidth;
 		}
 		else if (iFlags & (DHN_3DIGITS | DHN_2DIGITS))
@@ -290,7 +304,7 @@ int CHud :: DrawHudNumber( int x, int y, int iFlags, int iNumber, int r, int g, 
 		// SPR_Draw ones
 		k = iNumber % 10;
 		SPR_Set(GetSprite(m_HUD_number_0 + k), r, g, b );
-		SPR_DrawAdditive(0,  x, y, &GetSpriteRect(m_HUD_number_0 + k));
+		SPR_DrawAdditive(0,  x, y - (drift * (numScale * 2)), &GetSpriteRect(m_HUD_number_0 + k));
 		x += iWidth;
 	} 
 	else if (iFlags & DHN_DRAWZERO) 
@@ -312,7 +326,7 @@ int CHud :: DrawHudNumber( int x, int y, int iFlags, int iNumber, int r, int g, 
 
 		// SPR_Draw ones
 		
-		SPR_DrawAdditive( 0,  x, y, &GetSpriteRect(m_HUD_number_0));
+		SPR_DrawAdditive( 0,  x, y - (drift * (numScale * 2)), &GetSpriteRect(m_HUD_number_0));
 		x += iWidth;
 	}
 

@@ -64,6 +64,9 @@ void InitInput (void);
 void EV_HookEvents( void );
 void IN_Commands( void );
 
+void TriHud_Init();
+void TriHUD_VidInit();
+
 /*
 ================================
 HUD_GetHullBounds
@@ -158,6 +161,8 @@ int CL_DLLEXPORT Initialize( cl_enginefunc_t *pEnginefuncs, int iVersion )
 	EV_HookEvents();
 	CL_LoadParticleMan();
 
+	TriHud_Init();
+
 	if (gEngfuncs.pfnGetCvarPointer("host_clientloaded") != NULL) {
 		g_fXashEngine = TRUE;
 		ConsolePrint("Xash3d engine detected. Not all features of the mod are available.");
@@ -184,6 +189,8 @@ int CL_DLLEXPORT HUD_VidInit( void )
 	gHUD.VidInit();
 
 	VGui_Startup();
+
+	TriHUD_VidInit();
 
 	return 1;
 }

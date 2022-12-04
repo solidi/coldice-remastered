@@ -28,6 +28,7 @@
 DECLARE_MESSAGE(m_Battery, Battery)
 
 extern float g_xP, g_yP;
+extern cvar_t *cl_hudbend;
 
 int CHudBattery::Init(void)
 {
@@ -133,10 +134,13 @@ int CHudBattery::Draw(float flTime)
 
 	ScaleColors(r, g, b, a );
 	
+	int SuitWidth = gHUD.GetSpriteRect(gHUD.GetSpriteIndex("suit_full")).right - gHUD.GetSpriteRect(gHUD.GetSpriteIndex("suit_full")).left;
 	int iOffset = (m_prc1->bottom - m_prc1->top)/6;
 
-	y = (ScreenHeight - gHUD.m_iFontHeight - gHUD.m_iFontHeight / 2) + g_yP;
-	x = (ScreenWidth/5) + g_xP;
+	float up = cl_hudbend->value ? 1.5 : 1;
+	float right = cl_hudbend->value ? 15 : 0;
+	y = (ScreenHeight - gHUD.m_iFontHeight * up - gHUD.m_iFontHeight / 2) + g_yP;
+	x = (SuitWidth * 3.5) + right + g_xP;
 
 	// make sure we have the right sprite handles
 	if ( !m_hSprite1 )
@@ -144,17 +148,19 @@ int CHudBattery::Draw(float flTime)
 	if ( !m_hSprite2 )
 		m_hSprite2 = gHUD.GetSprite( gHUD.GetSpriteIndex( "suit_full" ) );
 
+	float numScale = (24 * cl_hudbend->value) * 4; //4 steps
+
 	SPR_Set(m_hSprite1, r, g, b );
-	SPR_DrawAdditive( 0,  x, y - iOffset, m_prc1);
+	SPR_DrawAdditive( 0,  x, y - iOffset - numScale, m_prc1);
 
 	if (rc.bottom > rc.top)
 	{
 		SPR_Set(m_hSprite2, r, g, b );
-		SPR_DrawAdditive( 0, x, y - iOffset + (rc.top - m_prc2->top), &rc);
+		SPR_DrawAdditive( 0, x, (y - iOffset + (rc.top - m_prc2->top)) - numScale, &rc);
 	}
 
 	x += (m_prc1->right - m_prc1->left);
-	x = gHUD.DrawHudNumber(x, y, DHN_3DIGITS | DHN_DRAWZERO, m_iBat, r, g, b);
+	x = gHUD.DrawHudNumber(x, y - numScale, DHN_3DIGITS | DHN_DRAWZERO, m_iBat, r, g, b);
 
 	return 1;
 }

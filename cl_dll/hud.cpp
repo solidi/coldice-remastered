@@ -58,6 +58,8 @@ cvar_t *cl_achievements;
 cvar_t *cl_antivomit;
 cvar_t *cl_keyboardacrobatics;
 cvar_t *cl_weather;
+cvar_t *cl_hudscale;
+cvar_t *cl_hudbend;
 
 cvar_t *cl_vmx;
 cvar_t *cl_vmy;
@@ -403,6 +405,8 @@ void CHud :: Init( void )
 	cl_antivomit = CVAR_CREATE( "cl_antivomit", "0", FCVAR_ARCHIVE );
 	cl_keyboardacrobatics = CVAR_CREATE( "cl_keyboardacrobatics", "1", FCVAR_ARCHIVE | FCVAR_USERINFO );
 	cl_weather = CVAR_CREATE( "cl_weather", "3", FCVAR_ARCHIVE | FCVAR_USERINFO );
+	cl_hudscale = CVAR_CREATE( "cl_hudscale", "0", FCVAR_ARCHIVE );
+	cl_hudbend = CVAR_CREATE( "cl_hudbend", "0.0", FCVAR_ARCHIVE );
 
 	cl_vmx = CVAR_CREATE( "cl_vmx", "0", FCVAR_ARCHIVE );
 	cl_vmy = CVAR_CREATE( "cl_vmy", "0", FCVAR_ARCHIVE );
