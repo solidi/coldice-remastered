@@ -43,6 +43,7 @@ extern DLL_GLOBAL const char *g_MutatorPlumber;
 extern DLL_GLOBAL const char *g_MutatorPaintball;
 extern DLL_GLOBAL const char *g_MutatorSuperJump;
 extern DLL_GLOBAL const char *g_MutatorMegaSpeed;
+extern DLL_GLOBAL const char *g_MutatorLightsOut;
 extern DLL_GLOBAL const char *g_MutatorSlowmo;
 extern DLL_GLOBAL const char *g_MutatorIce;
 extern DLL_GLOBAL const char *g_MutatorTopsyTurvy;
@@ -557,10 +558,41 @@ BOOL CHalfLifeMultiplay::FPlayerCanTakeDamage( CBasePlayer *pPlayer, CBaseEntity
 	return TRUE;
 }
 
+void CHalfLifeMultiplay::FPlayerTookDamage( float flDamage, CBasePlayer *pVictim, CBaseEntity *pKiller)
+{
+	CBasePlayer *pPlayerAttacker = NULL;
+
+	if ( g_GameMode == GAME_ICEMAN )
+	{
+		if (pKiller && pKiller->IsPlayer())
+		{
+			pPlayerAttacker = (CBasePlayer *)pKiller;
+			if ( pPlayerAttacker != pVictim && pVictim->IsArmoredMan )
+			{
+				pPlayerAttacker->m_fArmoredManHits += flDamage;
+				ALERT(at_notice, UTIL_VarArgs("Total damage against Iceman is: %.2f\n",
+					pPlayerAttacker->m_fArmoredManHits));
+			}
+			else if ( pPlayerAttacker != pVictim && !pPlayerAttacker->IsArmoredMan && !pVictim->IsArmoredMan )
+			{
+				ClientPrint(pPlayerAttacker->pev, HUD_PRINTCENTER, "Destroy the Iceman!\nNot your teammate!");
+			}
+		}
+	}
+}
 //=========================================================
 //=========================================================
 void CHalfLifeMultiplay :: PlayerThink( CBasePlayer *pPlayer )
 {
+	if (strstr(mutators.string, g_MutatorLightsOut) ||
+		atoi(mutators.string) == MUTATOR_LIGHTSOUT)
+	{
+		if (pPlayer->IsAlive())
+			pPlayer->m_iFlashBattery = 100;
+		else
+			pPlayer->FlashlightTurnOff();
+	}
+
 	if ( pPlayer->m_fHasRune == RUNE_GRAVITY )
 	{
 		pPlayer->pev->gravity = 0.6;
