@@ -558,28 +558,6 @@ BOOL CHalfLifeMultiplay::FPlayerCanTakeDamage( CBasePlayer *pPlayer, CBaseEntity
 	return TRUE;
 }
 
-void CHalfLifeMultiplay::FPlayerTookDamage( float flDamage, CBasePlayer *pVictim, CBaseEntity *pKiller)
-{
-	CBasePlayer *pPlayerAttacker = NULL;
-
-	if ( g_GameMode == GAME_ICEMAN )
-	{
-		if (pKiller && pKiller->IsPlayer())
-		{
-			pPlayerAttacker = (CBasePlayer *)pKiller;
-			if ( pPlayerAttacker != pVictim && pVictim->IsArmoredMan )
-			{
-				pPlayerAttacker->m_fArmoredManHits += flDamage;
-				ALERT(at_notice, UTIL_VarArgs("Total damage against Iceman is: %.2f\n",
-					pPlayerAttacker->m_fArmoredManHits));
-			}
-			else if ( pPlayerAttacker != pVictim && !pPlayerAttacker->IsArmoredMan && !pVictim->IsArmoredMan )
-			{
-				ClientPrint(pPlayerAttacker->pev, HUD_PRINTCENTER, "Destroy the Iceman!\nNot your teammate!");
-			}
-		}
-	}
-}
 //=========================================================
 //=========================================================
 void CHalfLifeMultiplay :: PlayerThink( CBasePlayer *pPlayer )
