@@ -38,8 +38,13 @@ DLL_GLOBAL BOOL			g_fGameOver;
 DLL_GLOBAL const Vector	g_vecZero = Vector(0,0,0);
 DLL_GLOBAL int			g_Language;
 
+extern const char *g_szMutators;
+
 DLL_GLOBAL const char *g_MutatorRocketCrowbar = "rocketcrowbar";
 DLL_GLOBAL const char *g_MutatorInstaGib = "instagib";
 DLL_GLOBAL const char *g_MutatorVolatile = "volatile";
 DLL_GLOBAL const char *g_MutatorPaintball = "paintball";
 DLL_GLOBAL const char *g_MutatorPlumber = "plumber";
+DLL_GLOBAL const char *g_MutatorDKMode = "dkmode";
+DLL_GLOBAL const char *g_MutatorSuperJump = "superjump";
+DLL_GLOBAL const char *g_MutatorMegaSpeed = "megaspeed";

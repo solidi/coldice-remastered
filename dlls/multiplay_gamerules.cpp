@@ -41,6 +41,8 @@ extern DLL_GLOBAL const char *g_MutatorInstaGib;
 extern DLL_GLOBAL const char *g_MutatorVolatile;
 extern DLL_GLOBAL const char *g_MutatorPlumber;
 extern DLL_GLOBAL const char *g_MutatorPaintball;
+extern DLL_GLOBAL const char *g_MutatorSuperJump;
+extern DLL_GLOBAL const char *g_MutatorMegaSpeed;
 
 extern int gmsgDeathMsg;	// client dll messages
 extern int gmsgScoreInfo;
@@ -521,6 +523,13 @@ float CHalfLifeMultiplay :: FlPlayerFallDamage( CBasePlayer *pPlayer )
 {
 	int iFallDamage = (int)falldamage.value;
 
+	// Mutators
+	if ((strstr(mutators.string, g_MutatorSuperJump) ||
+		atoi(mutators.string) == MUTATOR_SUPERJUMP))
+	{
+		return 0;
+	}
+
 	switch ( iFallDamage )
 	{
 	case 1://progressive
@@ -651,6 +660,10 @@ void CHalfLifeMultiplay :: PlayerSpawn( CBasePlayer *pPlayer )
 		pWeaponEntity->Touch( pPlayer );
 		addDefault = FALSE;
 	}
+
+	if ((strstr(mutators.string, g_MutatorMegaSpeed) ||
+		atoi(mutators.string) == MUTATOR_MEGASPEED))
+		g_engfuncs.pfnSetPhysicsKeyValue(pPlayer->edict(), "haste", "1");
 
 	if (strstr(mutators.string, g_MutatorRocketCrowbar) ||
 		atoi(mutators.string) == MUTATOR_ROCKETCROWBAR) {
