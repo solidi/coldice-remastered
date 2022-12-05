@@ -806,4 +806,5 @@ public:
 	void KeyValue( KeyValueData *pkvd );
 
 	void RandomizeMutators( void );
+	void SetGameMode( void );
 };

@@ -536,6 +536,7 @@ void CWorld :: Spawn( void )
 {
 	g_fGameOver = FALSE;
 	Precache( );
+	SetGameMode();
 	RandomizeMutators();
 	g_flWeaponCheat = CVAR_GET_FLOAT( "sv_cheats" );  // Is the impulse 101 command allowed?
 	if (CVAR_GET_FLOAT( "mp_allowrunes" ))
@@ -776,6 +777,41 @@ void CWorld :: RandomizeMutators( void )
 	CVAR_SET_STRING("mp_mutators", result);
 }
 
+extern DLL_GLOBAL int g_GameMode;
+const char *szGameModeList [] =
+{
+	"ffa",
+	"iceman",
+};
+
+void CWorld :: SetGameMode( void )
+{
+	char textfile[64];
+	g_GameMode = -1;
+
+	for (int i = 0; i <= GAME_ICEMAN; i++)
+	{
+		if (strcmp(szGameModeList[i], gamemode.string) == 0 || atoi(gamemode.string) == i)
+		{
+			g_GameMode = i;
+			ALERT(at_console,"i=%d\nGamemode set to: %s\n", i, szGameModeList[i]);
+
+
+			if (g_GameMode == GAME_ICEMAN)
+				CVAR_SET_STRING( "mp_teamlist", "commando;iceman" );
+			
+			sprintf(textfile, "modes/%s.txt", szGameModeList[i]);
+			CVAR_SET_STRING("motdfile", textfile);
+		}
+	}
+
+	if ( g_GameMode == -1 )
+	{
+		g_GameMode = 0;
+		//CVAR_SET_STRING( "motdfile", "ffa.txt");
+		//CVAR_SET_STRING( "hla_gamemode", "ffa" );
+	}
+}
 
 //
 // Just to ignore the "wad" field.

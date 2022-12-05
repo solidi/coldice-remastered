@@ -64,6 +64,10 @@ extern cvar_t   nukemode;
 extern cvar_t   acrobatics;
 extern cvar_t   weather;
 extern cvar_t   randommutators;
+extern cvar_t   gamemode;
+extern cvar_t   roundlimit;
+extern cvar_t   roundtimelimit;
+extern cvar_t   roundtimeleft;
 
 // Engine Cvars
 extern cvar_t	*g_psv_gravity;

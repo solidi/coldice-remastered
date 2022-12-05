@@ -31,6 +31,8 @@ static int num_teams = 0;
 
 extern DLL_GLOBAL BOOL		g_fGameOver;
 
+extern DLL_GLOBAL int g_GameMode;
+
 CHalfLifeTeamplay :: CHalfLifeTeamplay()
 {
 	m_DisableDeathMessages = FALSE;
@@ -137,6 +139,13 @@ void CHalfLifeTeamplay :: Think ( void )
 
 	last_frags = frags_remaining;
 	last_time  = time_remaining;
+
+	switch ( g_GameMode )
+	{
+		case GAME_ICEMAN:
+			IcemanArena();
+			break;
+	}
 }
 
 //=========================================================

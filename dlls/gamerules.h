@@ -84,6 +84,7 @@ public:
 	virtual float FlPlayerFallDamage( CBasePlayer *pPlayer ) = 0;// this client just hit the ground after a fall. How much damage?
 	virtual BOOL  FPlayerCanTakeDamage( CBasePlayer *pPlayer, CBaseEntity *pAttacker ) {return TRUE;};// can this player take damage from this attacker?
 	virtual BOOL ShouldAutoAim( CBasePlayer *pPlayer, edict_t *target ) { return TRUE; }
+	virtual void FPlayerTookDamage( float flDamage, CBasePlayer *pVictim, CBaseEntity *pKiller) {}
 
 // Client spawn/respawn control
 	virtual void PlayerSpawn( CBasePlayer *pPlayer ) = 0;// called by CBasePlayer::Spawn just before releasing player into the game
@@ -361,12 +362,40 @@ public:
 	// Immediately end a multiplayer game
 	virtual void EndMultiplayerGame( void ) { GoToIntermission(); }
 
+	// Cold Ice Remastered Game Modes
+	virtual void IcemanArena( void );
+	virtual int CheckClients( void );
+	virtual void InsertClientsIntoArena ( void );
+	virtual BOOL CheckGameTimer( void );
+	virtual void CheckRounds( void );
+	virtual void SetRoundLimits( void );
+	virtual void SuckAllToSpectator( void );
+	virtual void DisplayWinnersGoods( CBasePlayer *pPlayer );
+	virtual void ResetGameMode( void );
+	virtual void ClientUserInfoChanged( CBasePlayer *pPlayer, char *infobuffer );
+	virtual void FPlayerTookDamage( float flDamage, CBasePlayer *pVictim, CBaseEntity *pKiller);
+
 protected:
 	virtual void ChangeLevel( void );
 	virtual void GoToIntermission( void );
 	float m_flIntermissionEndTime;
 	BOOL m_iEndIntermissionButtonHit;
 	void SendMOTDToClient( edict_t *client );
+
+	// Cold Ice Remastered Game Modes
+	CBasePlayer *pArmoredMan;
+	BOOL g_GameInProgress;
+	float flUpdateTime;
+	float m_flRoundTimeLimit;
+	int m_iSuccessfulRounds;
+	BOOL _30secwarning;
+	BOOL _15secwarning;
+	BOOL _3secwarning;
+	int m_iPlayersInArena[32];
+	int m_iCountDown;
 };
 
 extern DLL_GLOBAL CGameRules*	g_pGameRules;
+
+#define GAME_FFA	0
+#define	GAME_ICEMAN	1

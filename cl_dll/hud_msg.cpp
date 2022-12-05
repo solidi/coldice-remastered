@@ -186,3 +186,28 @@ int CHud :: MsgFunc_Acrobatics(const char *pszName, int iSize, void *pbuf )
 
 	return 1;
 }
+
+int CHud :: MsgFunc_PlayCSound( const char *pszName, int iSize, void *pbuf )
+{
+	BEGIN_READ( pbuf, iSize );
+	int index = READ_BYTE();
+	switch (index)
+	{
+		case CLIENT_SOUND_PREPAREFORBATTLE:
+			PlaySound("prepareforbattle.wav", 1);
+			break;
+		case CLIENT_SOUND_OUTSTANDING:
+			PlaySound("outstanding.wav", 1);
+			break;
+		case CLIENT_SOUND_HULIMATING_DEAFEAT:
+			PlaySound("humiliatingdefeat.wav", 1);
+			break;
+		case CLIENT_SOUND_MASSACRE:
+			PlaySound("massacre.wav", 1);
+			break;
+		case CLIENT_SOUND_KILLINGMACHINE:
+			PlaySound("killingmachine.wav", 1);
+			break;
+	}
+	return 1;
+}

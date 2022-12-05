@@ -198,6 +198,7 @@ int gmsgStatusIcon = 0;
 int gmsgAcrobatics = 0;
 int gmsgLifeBar = 0;
 int gmsgReceiveW = 0;
+int gmsgPlayClientSound = 0;
 
 void LinkUserMessages( void )
 {
@@ -248,6 +249,7 @@ void LinkUserMessages( void )
 	gmsgAcrobatics = REG_USER_MSG("Acrobatics", 1);
 	gmsgLifeBar = REG_USER_MSG("LifeBar", 3);
 	gmsgReceiveW = REG_USER_MSG("ReceiveW", 1);
+	gmsgPlayClientSound = REG_USER_MSG("PlayCSound", 1);
 }
 
 LINK_ENTITY_TO_CLASS( player, CBasePlayer );
@@ -708,6 +710,8 @@ int CBasePlayer :: TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, 
 			else
 				SetSuitUpdate("!HEV_HLTH1", FALSE, SUIT_NEXT_IN_10MIN);	// health dropping
 		}
+
+	g_pGameRules->FPlayerTookDamage(fTookDamage, this, pAttacker);
 
 	return fTookDamage;
 }
@@ -5783,6 +5787,16 @@ void CBasePlayer::DisplayHudMessage(const char *message, int channel, float x, f
 	hText.fxTime  = fxtime;
 
 	UTIL_HudMessage(this, hText, message);
+}
+
+void CBasePlayer::ExitObserver( void )
+{
+	if ( HasWeapons() )
+		RemoveAllItems( TRUE );
+
+	pev->iuser1 = pev->iuser2 = 0;
+	m_iHideHUD = 0;
+	Spawn();
 }
 
 //=========================================================
