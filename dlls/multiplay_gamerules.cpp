@@ -1124,8 +1124,8 @@ void CHalfLifeMultiplay :: PlayerThink( CBasePlayer *pPlayer )
 	{
 		if (pPlayer->IsAlive())
 			pPlayer->m_iFlashBattery = 100;
-		else
-			pPlayer->FlashlightTurnOff();
+		//else
+		//	pPlayer->FlashlightTurnOff();
 	}
 
 	if ( pPlayer->m_fHasRune == RUNE_GRAVITY )
