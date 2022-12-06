@@ -47,6 +47,7 @@ extern DLL_GLOBAL const char *g_MutatorLightsOut;
 extern DLL_GLOBAL const char *g_MutatorSlowmo;
 extern DLL_GLOBAL const char *g_MutatorIce;
 extern DLL_GLOBAL const char *g_MutatorTopsyTurvy;
+extern DLL_GLOBAL const char *g_MutatorBarrels;
 
 extern int gmsgDeathMsg;	// client dll messages
 extern int gmsgScoreInfo;
@@ -1262,6 +1263,11 @@ void CHalfLifeMultiplay :: PlayerSpawn( CBasePlayer *pPlayer )
 	if (strstr(mutators.string, g_MutatorPlumber) ||
 		atoi(mutators.string) == MUTATOR_PLUMBER) {
 		pPlayer->GiveNamedItem("weapon_dual_wrench");
+	}
+
+	if (strstr(mutators.string, g_MutatorBarrels) ||
+		atoi(mutators.string) == MUTATOR_BARRELS) {
+		pPlayer->GiveNamedItem("weapon_gravitygun");
 	}
 
 	if (startwithall.value) {

@@ -30,6 +30,7 @@
 #include "monsters.h"
 #include "weapons.h"
 #include "effects.h"
+#include "gamerules.h"
 
 extern Vector VecBModelOrigin( entvars_t* pevBModel );
 
@@ -880,6 +881,12 @@ void CBaseTurret::SearchThink(void)
 			m_vecGoalAngles.y -= 360;
 		MoveTurret();
 	}
+
+	if (g_pGameRules->IsMultiplayer() && pev->dmgtime && pev->dmgtime < gpGlobals->time)
+	{
+		SetThink( &CBaseEntity::SUB_StartFadeOut );
+		pev->nextthink = gpGlobals->time + 2.0;
+	}
 }
 
 
@@ -1160,13 +1167,16 @@ LINK_ENTITY_TO_CLASS( monster_sentry, CSentry );
 void CSentry::Precache()
 {
 	CBaseTurret::Precache( );
-	PRECACHE_MODEL ("models/sentry.mdl");	
+	PRECACHE_MODEL ("models/w_sentry.mdl");	
+	PRECACHE_SOUND("weapons/hks1.wav");
+	PRECACHE_SOUND("weapons/hks2.wav");
+	PRECACHE_SOUND("weapons/hks3.wav");
 }
 
 void CSentry::Spawn()
 { 
 	Precache( );
-	SET_MODEL(ENT(pev), "models/sentry.mdl");
+	SET_MODEL(ENT(pev), "models/w_sentry.mdl");
 	pev->health			= gSkillData.sentryHealth;
 	m_HackedGunPos		= Vector( 0, 0, 48 );
 	pev->view_ofs.z		= 48;
@@ -1177,6 +1187,14 @@ void CSentry::Spawn()
 	m_iRetractHeight = 64;
 	m_iDeployHeight = 64;
 	m_iMinPitch	= -60;
+	if ( g_pGameRules->IsMultiplayer() )
+	{
+		pev->movetype = MOVETYPE_TOSS;
+		pev->solid = SOLID_BBOX;
+		m_iRetractHeight = 0;
+		m_iAutoStart = TRUE;
+		pev->dmgtime = gpGlobals->time + 25.0;
+	}
 	UTIL_SetSize(pev, Vector(-16, -16, -m_iRetractHeight), Vector(16, 16, m_iRetractHeight));
 
 	SetTouch(&CSentry::SentryTouch);
@@ -1186,6 +1204,12 @@ void CSentry::Spawn()
 
 void CSentry::Shoot(Vector &vecSrc, Vector &vecDirToEnemy)
 {
+	if (g_pGameRules->IsMultiplayer() && RANDOM_LONG(0, 100) > 90)
+	{
+		CBaseEntity *pRocket = CBaseEntity::Create("rpg_rocket", vecSrc, UTIL_VecToAngles(vecDirToEnemy), edict());
+		pev->nextthink = gpGlobals->time + 1;
+	}
+
 	FireBullets( 1, vecSrc, vecDirToEnemy, TURRET_SPREAD, TURRET_RANGE, BULLET_MONSTER_MP5, 1 );
 	
 	switch(RANDOM_LONG(0,2))
@@ -1299,7 +1323,11 @@ void CSentry ::	SentryDeath( void )
 	if (m_fSequenceFinished && pev->dmgtime + 5 < gpGlobals->time)
 	{
 		pev->framerate = 0;
-		SetThink( NULL );
+		if (g_pGameRules->IsMultiplayer())
+		{
+			SetThink( &CBaseEntity::SUB_StartFadeOut );
+			pev->nextthink = gpGlobals->time + 2.0;
+		}
 	}
 }
 

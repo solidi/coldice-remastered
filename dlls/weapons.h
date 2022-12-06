@@ -1008,6 +1008,7 @@ public:
 	void EXPORT RocketTouch( CBaseEntity *pOther );
 	static CRpgRocket *CreateRpgRocket( Vector vecOrigin, Vector vecAngles, CBaseEntity *pOwner, float startEngineTime, BOOL redRocket );
 
+	void Spawn( void );
 	int m_iTrail;
 	float m_flIgniteTime;
 	BOOL m_redRocket;

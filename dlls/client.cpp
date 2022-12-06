@@ -651,7 +651,20 @@ void ClientCommand( edict_t *pEntity )
 		else
 			ClientPrint( pev, HUD_PRINTCONSOLE, "Spectator mode is disabled.\n" );
 			
-	}	
+	}
+#ifdef _DEBUG
+	else if ( FStrEq(pcmd, "barrel") ) 
+	{
+		UTIL_MakeVectors( pev->v_angle );
+		Vector vecSrc = pev->origin + pev->view_ofs + gpGlobals->v_forward * 64 + gpGlobals->v_up * 18;
+		CBaseEntity *pExplosion = CBaseEntity::Create( "monster_barrel", vecSrc, Vector(0, pev->v_angle.y, 0), NULL );
+	}
+	else if ( FStrEq( pcmd, "sx" ) )
+	{
+		CBasePlayer * pPlayer = GetClassPtr((CBasePlayer *)pev);
+		pPlayer->ExitObserver();
+	}
+#endif
 	else if ( FStrEq( pcmd, "specmode" )  )	// new spectator mode
 	{
 		CBasePlayer * pPlayer = GetClassPtr((CBasePlayer *)pev);
@@ -732,7 +745,7 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_jumpheight 45\" - Adjust the player's jump height\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_icesprites [0|1]\" - Switch between select ice or real environment sprites\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_randomweapon [0|1]\" - To spawn with a random weapon\n");
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_interactiveitems \"grenade;monster_satchel;monster_chumtoad;monster_snark;func_barrel\"\" - A semicolon separated list of items that are \"interactive\" (kickable, pickupable)\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_interactiveitems \"grenade;monster_satchel;monster_chumtoad;monster_snark;monster_barrel\"\" - A semicolon separated list of items that are \"interactive\" (kickable, pickupable)\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_snowballfight [0|1]\" - Replace all weapons with deadly snowballs!\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_mutators\" - Add mutators to gameplay\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_mutators \"rocketcrowbar\"\" - spawn with a rocket crowbar, makes all rockets act drunk\n");
@@ -742,11 +755,14 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_mutators \"paintball\"\" - weapons and explosions leave paint decals, weapons reduced to 1/4 damage\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_mutators \"dkmode\"\" - from Goldeneye 007, player head and arms are like Donkey Kong\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_mutators \"superjump\"\" - jump three times the height, disables fall damage.\n");
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_mutators \"megaspeed\"\" - run 50% faster\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_mutators \"megaspeed\"\" - run faster than normal\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_mutators \"lightsout\"\" - all the lights are turned out, but your flashight has unlimited battery\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_mutators \"slowmo\"\" - everything is slowed down by half!\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_mutators \"ice\"\" - all the ground is covered in ice\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_mutators \"topsyturvy\"\" - everything is turned upside down\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_mutators \"turrets\"\" - sentry guns randomly appear, firing bullets and rockets at everyone\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_mutators \"barrels\"\" - start with the gravitygun, flaming explosive barrels spawn to throw at others\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_mutators \"chumxplode\"\" - a killer chumtoad appears directly after an explosion\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_spawnweapons\" - Spawn weapons or not\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_disallowlist\" a list of entities that will not spawn\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_nukemode \"[0|1|2]\"\" - 2 - nuke kills all, 1 - radius damage, 0 - sharts nothing but bubbles\n");

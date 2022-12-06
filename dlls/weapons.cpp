@@ -464,6 +464,9 @@ void W_Precache(void)
 	UTIL_PrecacheOtherWeapon( "weapon_dual_railgun" );
 	UTIL_PrecacheOtherWeapon( "weapon_gravitygun" );
 
+	UTIL_PrecacheOther( "monster_barrel" );
+	UTIL_PrecacheOther( "monster_sentry" );
+
 #if !defined( OEM_BUILD ) && !defined( HLDEMO_BUILD )
 	if ( g_pGameRules->IsDeathmatch() )
 	{
