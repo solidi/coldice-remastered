@@ -713,6 +713,7 @@ public:
 	int  _cdecl MsgFunc_Concuss( const char *pszName, int iSize, void *pbuf );
 	
 	int  _cdecl MsgFunc_Acrobatics( const char *pszName, int iSize, void *pbuf );
+	int  _cdecl MsgFunc_PlayCSound( const char *pszName, int iSize, void *pbuf );
 
 	// Screen information
 	SCREENINFO	m_scrinfo;

@@ -336,6 +336,11 @@ int __MsgFunc_Acrobatics(const char *pszName, int iSize, void *pbuf)
 	return gHUD.MsgFunc_Acrobatics(pszName, iSize, pbuf );
 }
 
+int __MsgFunc_PlayCSound(const char *pszName, int iSize, void *pbuf)
+{
+	return gHUD.MsgFunc_PlayCSound(pszName, iSize, pbuf );
+}
+
 // This is called every time the DLL is loaded
 void CHud :: Init( void )
 {
@@ -373,6 +378,7 @@ void CHud :: Init( void )
 	HOOK_MESSAGE( ResetFade );
 
 	HOOK_MESSAGE( Acrobatics );
+	HOOK_MESSAGE( PlayCSound );
 
 	// VGUI Menus
 	HOOK_MESSAGE( VGUIMenu );

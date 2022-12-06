@@ -849,7 +849,8 @@ void UTIL_HudMessageAll( const hudtextparms_t &textparms, const char *pMessage )
 extern int gmsgTextMsg, gmsgSayText;
 void UTIL_ClientPrintAll( int msg_dest, const char *msg_name, const char *param1, const char *param2, const char *param3, const char *param4 )
 {
-	MESSAGE_BEGIN( MSG_ALL, gmsgTextMsg );
+	//ALERT(at_aiconsole, "UTIL_ClientPrintAll - msg_dest=%d msg_name=%s\n", msg_dest, msg_name);
+	MESSAGE_BEGIN( MSG_BROADCAST, gmsgTextMsg );
 		WRITE_BYTE( msg_dest );
 		WRITE_STRING( msg_name );
 
@@ -867,6 +868,10 @@ void UTIL_ClientPrintAll( int msg_dest, const char *msg_name, const char *param1
 
 void ClientPrint( entvars_t *client, int msg_dest, const char *msg_name, const char *param1, const char *param2, const char *param3, const char *param4 )
 {
+	// No messages to bots
+	if (client->flags & FL_FAKECLIENT)
+		return;
+
 	MESSAGE_BEGIN( MSG_ONE, gmsgTextMsg, NULL, client );
 		WRITE_BYTE( msg_dest );
 		WRITE_STRING( msg_name );
@@ -896,7 +901,7 @@ void UTIL_SayText( const char *pText, CBaseEntity *pEntity )
 
 void UTIL_SayTextAll( const char *pText, CBaseEntity *pEntity )
 {
-	MESSAGE_BEGIN( MSG_ALL, gmsgSayText, NULL );
+	MESSAGE_BEGIN( MSG_BROADCAST, gmsgSayText, NULL );
 		WRITE_BYTE( pEntity->entindex() );
 		WRITE_STRING( pText );
 	MESSAGE_END();

@@ -223,6 +223,8 @@ void CHudSayText :: SayTextPrint( const char *pszBuf, int iBufSize, int clientIn
 				g_iNameLengths[i] = strlen( pName ) + (nameInString - pszBuf);
 				g_pflNameColors[i] = GetClientColor( clientIndex );
 			}
+
+			PlaySound( "talk.wav", 1 ); // only if an actual player is speaking
 		}
 	}
 
@@ -238,7 +240,6 @@ void CHudSayText :: SayTextPrint( const char *pszBuf, int iBufSize, int clientIn
 	}
 
 	m_iFlags |= HUD_ACTIVE;
-	PlaySound( "talk.wav", 1 );
 
 	Y_START = ScreenHeight - 60 - ( line_height * (MAX_LINES+2) );
 }

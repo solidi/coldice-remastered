@@ -238,6 +238,16 @@ public:
 	int m_iAutoWepSwitch;
 	int m_iDisplayInfoMessage;
 
+	BOOL HasDisconnected;
+	BOOL IsInArena;
+	float m_fArmoredManHits;
+	int m_iGameModeWins;
+	int m_iGameModePlays;
+	float m_flForceToObserverTime;
+	BOOL IsArmoredMan;
+	void ExitObserver( void );
+	BOOL IsSpectator( void ) { return ( m_afPhysicsFlags & PFLAG_OBSERVER ? TRUE : FALSE ); };
+
 	void CalculateToFlip( void );
 	void StartRightFlip( void );
 	void StartLeftFlip( void );
