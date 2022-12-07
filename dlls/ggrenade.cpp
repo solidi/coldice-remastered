@@ -31,7 +31,7 @@
 
 //===================grenade
 
-extern DLL_GLOBAL const char *g_MutatorPaintball;
+extern DLL_GLOBAL const char *g_MutatorPaintball, *g_MutatorChumXplode;
 
 LINK_ENTITY_TO_CLASS( grenade, CGrenade );
 
@@ -189,6 +189,18 @@ void CGrenade::Explode( TraceResult *pTrace, int bitsDamageType )
 		index = RANDOM_LONG(0, 7);
 	}
 	UTIL_DecalTrace( pTrace, decal + index);
+
+	if (strstr(mutators.string, g_MutatorChumXplode) ||
+		atoi(mutators.string) == MUTATOR_CHUMXPLODE)
+	{
+		CBaseEntity *pChumtoad = CBaseEntity::Create("monster_chumtoad", pev->origin, pev->angles, ENT(pevOwner));
+		if (pChumtoad)
+		{
+			pChumtoad->pev->velocity.x = RANDOM_FLOAT( -400, 400 );
+			pChumtoad->pev->velocity.y = RANDOM_FLOAT( -400, 400 );
+			pChumtoad->pev->velocity.z = RANDOM_FLOAT( 0, 400 );
+		}
+	}
 
 	flRndSound = RANDOM_FLOAT( 0 , 1 );
 

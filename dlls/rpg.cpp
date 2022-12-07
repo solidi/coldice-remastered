@@ -124,6 +124,32 @@ CRpgRocket *CRpgRocket::CreateRpgRocket( Vector vecOrigin, Vector vecAngles, CBa
 	return pRocket;
 }
 
+/**
+ * Turrets and creation, without angle adjustment.
+ */
+void CRpgRocket :: Spawn( void )
+{
+	Precache( );
+	// motor
+	pev->movetype = MOVETYPE_BOUNCE;
+	pev->solid = SOLID_BBOX;
+
+	SET_MODEL(ENT(pev), "models/rpgrocket.mdl");
+	UTIL_SetSize(pev, Vector( 0, 0, 0), Vector(0, 0, 0));
+	UTIL_SetOrigin( pev, pev->origin );
+
+	pev->classname = MAKE_STRING("rpg_rocket");
+
+	SetThink( &CRpgRocket::IgniteThink );
+	SetTouch( &CRpgRocket::ExplodeTouch );
+
+	pev->velocity = gpGlobals->v_forward * 250;
+	pev->gravity = 0.5;
+
+	pev->nextthink = gpGlobals->time;
+	pev->dmg = gSkillData.plrDmgRPG;
+}
+
 //=========================================================
 //=========================================================
 void CRpgRocket :: Spawn( float startEngineTime )

@@ -34,6 +34,9 @@
 extern int gmsgItemPickup;
 extern int gmsgStatusIcon;
 
+extern DLL_GLOBAL const char *g_MutatorTurrets;
+extern DLL_GLOBAL const char *g_MutatorBarrels;
+
 class CWorldItem : public CBaseEntity
 {
 public:
@@ -1022,12 +1025,36 @@ void CWorldRunes::CreateRune(char *sz_RuneClass)
 	}
 
 	CBaseEntity *rune = CBaseEntity::Create(sz_RuneClass, m_pSpot->pev->origin, Vector(0, 0, 0), NULL );
-	
+
 	if (rune)
 	{
 		rune->pev->velocity.x = RANDOM_FLOAT( -300, 300 );
 		rune->pev->velocity.y = RANDOM_FLOAT( -300, 300 );
 		rune->pev->velocity.z = RANDOM_FLOAT( 0, 300 );
+	}
+
+	if (strstr(mutators.string, g_MutatorTurrets) ||
+		atoi(mutators.string) == MUTATOR_TURRETS) {
+		CBaseEntity *turret = CBaseEntity::Create("monster_sentry",
+			m_pSpot->pev->origin, Vector(0, 0, 0), NULL );
+		if (turret)
+		{
+			turret->pev->velocity.x = RANDOM_FLOAT( -400, 400 );
+			turret->pev->velocity.y = RANDOM_FLOAT( -400, 400 );
+			turret->pev->velocity.z = RANDOM_FLOAT( 0, 400 );
+		}
+	}
+
+	if (strstr(mutators.string, g_MutatorBarrels) ||
+		atoi(mutators.string) == MUTATOR_BARRELS) {
+		CBaseEntity *barrel = CBaseEntity::Create("monster_barrel", 
+			m_pSpot->pev->origin, Vector(0, 0, 0), NULL );
+		if (barrel)
+		{
+			barrel->pev->velocity.x = RANDOM_FLOAT( -400, 400 );
+			barrel->pev->velocity.y = RANDOM_FLOAT( -400, 400 );
+			barrel->pev->velocity.z = RANDOM_FLOAT( 0, 400 );
+		}
 	}
 }
 
