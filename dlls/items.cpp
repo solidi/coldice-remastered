@@ -953,7 +953,6 @@ LINK_ENTITY_TO_CLASS( rune_cloak, CCloakRune );
 
 void CWorldRunes::Spawn( )
 {
-	m_pSpot = NULL;
 	Precache( );
 
 	SetThink( &CWorldRunes::SpawnRunes );
@@ -972,8 +971,9 @@ void CWorldRunes::Precache( )
 	UTIL_PrecacheOther("rune_cloak");
 }
 
-CBaseEntity *CWorldRunes::SelectSpawnPoint(CBaseEntity *pSpot)
+CBaseEntity *CWorldRunes::SelectSpawnPoint()
 {
+	CBaseEntity *pSpot = NULL;
 	for ( int i = RANDOM_LONG(1,8); i > 0; i-- )
 		pSpot = UTIL_FindEntityByClassname( pSpot, "info_player_deathmatch" );
 
@@ -1016,9 +1016,9 @@ void CWorldRunes::DropRune(CBasePlayer *pPlayer) {
 
 void CWorldRunes::CreateRune(char *sz_RuneClass)
 {
-	m_pSpot = SelectSpawnPoint( m_pSpot );
+	CBaseEntity *m_pSpot = SelectSpawnPoint();
 
-	if ( m_pSpot == NULL )
+	if (m_pSpot == NULL)
 	{
 		ALERT ( at_console, "Error creating runes. Spawn point not found.\n" );
 		return;
@@ -1035,25 +1035,33 @@ void CWorldRunes::CreateRune(char *sz_RuneClass)
 
 	if (strstr(mutators.string, g_MutatorTurrets) ||
 		atoi(mutators.string) == MUTATOR_TURRETS) {
-		CBaseEntity *turret = CBaseEntity::Create("monster_sentry",
-			m_pSpot->pev->origin, Vector(0, 0, 0), NULL );
-		if (turret)
+		m_pSpot = SelectSpawnPoint();
+		if (m_pSpot)
 		{
-			turret->pev->velocity.x = RANDOM_FLOAT( -400, 400 );
-			turret->pev->velocity.y = RANDOM_FLOAT( -400, 400 );
-			turret->pev->velocity.z = RANDOM_FLOAT( 0, 400 );
+			CBaseEntity *turret = CBaseEntity::Create("monster_sentry",
+				m_pSpot->pev->origin, Vector(0, 0, 0), NULL );
+			if (turret)
+			{
+				turret->pev->velocity.x = RANDOM_FLOAT( -400, 400 );
+				turret->pev->velocity.y = RANDOM_FLOAT( -400, 400 );
+				turret->pev->velocity.z = RANDOM_FLOAT( 0, 400 );
+			}
 		}
 	}
 
 	if (strstr(mutators.string, g_MutatorBarrels) ||
 		atoi(mutators.string) == MUTATOR_BARRELS) {
-		CBaseEntity *barrel = CBaseEntity::Create("monster_barrel", 
-			m_pSpot->pev->origin, Vector(0, 0, 0), NULL );
-		if (barrel)
+		m_pSpot = SelectSpawnPoint();
+		if (m_pSpot)
 		{
-			barrel->pev->velocity.x = RANDOM_FLOAT( -400, 400 );
-			barrel->pev->velocity.y = RANDOM_FLOAT( -400, 400 );
-			barrel->pev->velocity.z = RANDOM_FLOAT( 0, 400 );
+			CBaseEntity *barrel = CBaseEntity::Create("monster_barrel", 
+				m_pSpot->pev->origin, Vector(0, 0, 0), NULL );
+			if (barrel)
+			{
+				barrel->pev->velocity.x = RANDOM_FLOAT( -400, 400 );
+				barrel->pev->velocity.y = RANDOM_FLOAT( -400, 400 );
+				barrel->pev->velocity.z = RANDOM_FLOAT( 0, 400 );
+			}
 		}
 	}
 }

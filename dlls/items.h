@@ -46,9 +46,7 @@ public:
 	void Precache( void );
 	void CreateRune(char *sz_RuneClass);
 
-	CBaseEntity *SelectSpawnPoint(CBaseEntity *pSpot);
-private:
-	CBaseEntity *m_pSpot;
+	CBaseEntity *SelectSpawnPoint();
 };
 
 class CRune : public CBaseEntity
