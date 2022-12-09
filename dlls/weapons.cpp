@@ -507,6 +507,9 @@ void W_Precache(void)
 
 	PRECACHE_SOUND("freezing.wav");
 	PRECACHE_SOUND("wallclimb.wav");
+	PRECACHE_SOUND("hohoho.wav");
+	PRECACHE_SOUND("merrychristmas.wav");
+	PRECACHE_SOUND("sleighbell.wav");
 
 	g_Gibs = PRECACHE_MODEL ("models/w_hgibs.mdl");
 	g_Steamball = PRECACHE_MODEL ("sprites/stmbal1.spr");

@@ -55,5 +55,6 @@ DLL_GLOBAL const char *g_MutatorTopsyTurvy = "topsyturvy";
 DLL_GLOBAL const char *g_MutatorTurrets = "turrets";
 DLL_GLOBAL const char *g_MutatorBarrels = "barrels";
 DLL_GLOBAL const char *g_MutatorChumXplode = "chumxplode";
+DLL_GLOBAL const char *g_MutatorSantaHat = "santahat";
 
 DLL_GLOBAL int g_GameMode;

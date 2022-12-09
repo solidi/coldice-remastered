@@ -48,6 +48,7 @@ extern DLL_GLOBAL int		g_iSkillLevel, gDisplayTitle;
 
 extern DLL_GLOBAL const char *g_MutatorInstaGib;
 extern DLL_GLOBAL const char *g_MutatorIce;
+extern DLL_GLOBAL const char *g_MutatorSantaHat;
 
 BOOL gInitHUD = TRUE;
 
@@ -2443,6 +2444,22 @@ void CBasePlayer::PreThink(void)
 	TraceHitOfFlip();
 
 	ClimbingPhysics();
+
+	if (m_flNextSantaSound && m_flNextSantaSound < gpGlobals->time)
+	{
+		switch (RANDOM_LONG(0,3))
+		{
+			case 0:
+				EMIT_SOUND(ENT(pev), CHAN_VOICE, "hohoho.wav", 1, ATTN_NORM);
+				break;
+			case 1:
+				EMIT_SOUND(ENT(pev), CHAN_VOICE, "sleighbell.wav", 1, ATTN_NORM);
+				break;
+			default:
+				EMIT_SOUND(ENT(pev), CHAN_VOICE, "merrychristmas.wav", 1, ATTN_NORM);
+		}
+		m_flNextSantaSound = gpGlobals->time + RANDOM_FLOAT(10,15);
+	}
 }
 /* Time based Damage works as follows: 
 	1) There are several types of timebased damage:
@@ -3428,6 +3445,15 @@ void CBasePlayer::Spawn( void )
 	m_lastx = m_lasty = 0;
 	
 	m_flNextChatTime = gpGlobals->time;
+
+	if (strstr(mutators.string, g_MutatorSantaHat) ||
+		atoi(mutators.string) == MUTATOR_SANTAHAT) {
+		m_flNextSantaSound = gpGlobals->time + RANDOM_FLOAT(10,15);
+	}
+	else
+	{
+		m_flNextSantaSound = 0;
+	}
 
 	g_pGameRules->PlayerSpawn( this );
 }

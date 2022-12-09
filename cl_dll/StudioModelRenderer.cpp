@@ -1946,6 +1946,10 @@ int CStudioModelRenderer::StudioDrawPlayer( int flags, entity_state_t *pplayer )
 			m_pCurrentEntity->curstate.body = 1; // force helmet
 		}
 
+		if (strstr(CVAR_GET_STRING("mp_mutators"), "santahat") ||
+			atoi(CVAR_GET_STRING("mp_mutators")) == MUTATOR_SANTAHAT)
+			m_pCurrentEntity->curstate.body = 2;
+
 		lighting.plightvec = dir;
 		IEngineStudio.StudioDynamicLight(m_pCurrentEntity, &lighting );
 

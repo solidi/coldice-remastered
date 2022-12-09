@@ -262,6 +262,8 @@ public:
 	CBaseEntity *pHeldItem;
 	BOOL m_iHoldingItem;
 
+	float m_flNextSantaSound;
+
 	virtual void Spawn( void );
 	void Pain( void );
 
