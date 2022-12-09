@@ -22,6 +22,8 @@
 #include "StudioModelRenderer.h"
 #include "GameStudioModelRenderer.h"
 
+#include "event_api.h"
+
 extern cvar_t *tfc_newmodels;
 extern cvar_t *m_pIceModels;
 
