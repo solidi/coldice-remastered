@@ -197,7 +197,8 @@ void CHalfLifeMultiplay :: Think ( void )
 {
 	g_VoiceGameMgr.Update(gpGlobals->frametime);
 
-	if (m_flCheckMutators < gpGlobals->time)
+	if (strlen(mutators.string) &&
+		(m_flCheckMutators < gpGlobals->time || m_flChaosCheck < gpGlobals->time))
 	{
 		if ((strstr(mutators.string, g_MutatorChaos) ||
 			atoi(mutators.string) == MUTATOR_CHAOS))
@@ -216,12 +217,13 @@ void CHalfLifeMultiplay :: Think ( void )
 		}
 
 		if ((strstr(mutators.string, g_MutatorSlowmo) ||
-			atoi(mutators.string) == MUTATOR_SLOWMO) && CVAR_GET_FLOAT("sys_timescale") != 0.49)
+			atoi(mutators.string) == MUTATOR_SLOWMO) && CVAR_GET_FLOAT("sys_timescale") != 0.49f)
 			CVAR_SET_FLOAT("sys_timescale", 0.49);
 		else
 		{
 			if ((!strstr(mutators.string, g_MutatorSlowmo) &&
-				atoi(mutators.string) != MUTATOR_SLOWMO) && CVAR_GET_FLOAT("sys_timescale") == 0.49)
+				atoi(mutators.string) != MUTATOR_SLOWMO) &&
+				CVAR_GET_FLOAT("sys_timescale") > 0.48f && CVAR_GET_FLOAT("sys_timescale") < 0.50f)
 				CVAR_SET_FLOAT("sys_timescale", 1.0);
 		}
 
@@ -237,16 +239,54 @@ void CHalfLifeMultiplay :: Think ( void )
 		for (int i = 1; i <= gpGlobals->maxClients; i++)
 		{
 			CBaseEntity *pPlayer = UTIL_PlayerByIndex( i );
-			if (pPlayer && pPlayer->IsPlayer())
+			CBasePlayer *pl = (CBasePlayer *)pPlayer;
+			if (pPlayer && pPlayer->IsPlayer() && !pl->IsObserver())
 			{
 				if (m_flChaosCheck > gpGlobals->time + 24)
-					((CBasePlayer *)pPlayer)->m_iShowMutatorMessage = gpGlobals->time + 1.0;
+					pl->m_iShowMutatorMessage = gpGlobals->time + 1.0;
 
 				if (strstr(mutators.string, g_MutatorTopsyTurvy) ||
 					atoi(mutators.string) == MUTATOR_TOPSYTURVY) {
 					g_engfuncs.pfnSetPhysicsKeyValue(pPlayer->edict(), "topsy", "1");
 				} else {
 					g_engfuncs.pfnSetPhysicsKeyValue(pPlayer->edict(), "topsy", "0");
+				}
+
+				if ((strstr(mutators.string, g_MutatorIce) ||
+					atoi(mutators.string) == MUTATOR_ICE))
+					pPlayer->pev->friction = 0.3;
+				else if (pPlayer->pev->friction == 0.3)
+					pPlayer->pev->friction = 1.0;
+
+				if ((strstr(mutators.string, g_MutatorMegaSpeed) ||
+					atoi(mutators.string) == MUTATOR_MEGASPEED))
+					g_engfuncs.pfnSetPhysicsKeyValue(pPlayer->edict(), "haste", "1");
+				else if (((CBasePlayer *)pPlayer)->m_fHasRune != RUNE_HASTE)
+					g_engfuncs.pfnSetPhysicsKeyValue(pPlayer->edict(), "haste", "0");
+
+				if (strstr(mutators.string, g_MutatorRocketCrowbar) ||
+					atoi(mutators.string) == MUTATOR_ROCKETCROWBAR) {
+					if (!pl->HasNamedPlayerItem("weapon_rocketcrowbar"))
+						pl->GiveNamedItem("weapon_rocketcrowbar");
+				}
+
+				if (strstr(mutators.string, g_MutatorInstaGib) ||
+					atoi(mutators.string) == MUTATOR_INSTAGIB) {
+					if (!pl->HasNamedPlayerItem("weapon_dual_railgun"))
+						pl->GiveNamedItem("weapon_dual_railgun");
+					pPlayer->GiveAmmo(URANIUM_MAX_CARRY, "uranium", URANIUM_MAX_CARRY);
+				}
+
+				if (strstr(mutators.string, g_MutatorPlumber) ||
+					atoi(mutators.string) == MUTATOR_PLUMBER) {
+					if (!pl->HasNamedPlayerItem("weapon_dual_wrench"))
+						pl->GiveNamedItem("weapon_dual_wrench");
+				}
+
+				if (strstr(mutators.string, g_MutatorBarrels) ||
+					atoi(mutators.string) == MUTATOR_BARRELS) {
+					if (!pl->HasNamedPlayerItem("weapon_gravitygun"))
+						pl->GiveNamedItem("weapon_gravitygun");
 				}
 			}
 
@@ -262,8 +302,7 @@ void CHalfLifeMultiplay :: Think ( void )
 					CVAR_SET_FLOAT("sv_jumpheight", 45);
 			}
 		}
-
-		m_flCheckMutators = gpGlobals->time + 1.0;
+		m_flCheckMutators = gpGlobals->time + 25.0;
 	}
 
 	///// Check game rules /////
@@ -1304,6 +1343,12 @@ void CHalfLifeMultiplay :: PlayerSpawn( CBasePlayer *pPlayer )
 		pWeaponEntity->Touch( pPlayer );
 		addDefault = FALSE;
 	}
+
+	if (strstr(mutators.string, g_MutatorTopsyTurvy) ||
+		atoi(mutators.string) == MUTATOR_TOPSYTURVY)
+		g_engfuncs.pfnSetPhysicsKeyValue(pPlayer->edict(), "topsy", "1");
+	else
+		g_engfuncs.pfnSetPhysicsKeyValue(pPlayer->edict(), "topsy", "0");
 
 	if ((strstr(mutators.string, g_MutatorMegaSpeed) ||
 		atoi(mutators.string) == MUTATOR_MEGASPEED))
