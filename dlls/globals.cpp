@@ -40,6 +40,7 @@ DLL_GLOBAL int			g_Language;
 
 extern const char *g_szMutators;
 
+DLL_GLOBAL const char *g_MutatorChaos = "chaos";
 DLL_GLOBAL const char *g_MutatorRocketCrowbar = "rocketcrowbar";
 DLL_GLOBAL const char *g_MutatorInstaGib = "instagib";
 DLL_GLOBAL const char *g_MutatorVolatile = "volatile";

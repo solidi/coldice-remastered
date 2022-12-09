@@ -200,13 +200,16 @@ void CHalfLifeMultiplay :: Think ( void )
 	if (m_flCheckMutators < gpGlobals->time)
 	{
 		if ((strstr(mutators.string, g_MutatorChaos) ||
-			atoi(mutators.string) == MUTATOR_CHAOS)
+			atoi(mutators.string) == MUTATOR_CHAOS))
 		{
 			if (m_flChaosCheck < gpGlobals->time)
 			{
 				CBaseEntity *pWorld = CBaseEntity::Instance(NULL);
 				if (pWorld)
+				{
 					((CWorld *)pWorld)->RandomizeMutators();
+					CWorldRunes::Create(); // fire spawners like turrets if needed
+				}
 
 				m_flChaosCheck = gpGlobals->time + 25.0;
 			}
@@ -216,7 +219,11 @@ void CHalfLifeMultiplay :: Think ( void )
 			atoi(mutators.string) == MUTATOR_SLOWMO) && CVAR_GET_FLOAT("sys_timescale") != 0.49)
 			CVAR_SET_FLOAT("sys_timescale", 0.49);
 		else
-			CVAR_SET_FLOAT("sys_timescale", 1.0);
+		{
+			if ((!strstr(mutators.string, g_MutatorSlowmo) &&
+				atoi(mutators.string) != MUTATOR_SLOWMO) && CVAR_GET_FLOAT("sys_timescale") == 0.49)
+				CVAR_SET_FLOAT("sys_timescale", 1.0);
+		}
 
 		if ((strstr(mutators.string, g_MutatorLightsOut) ||
 			atoi(mutators.string) == MUTATOR_LIGHTSOUT))
@@ -241,6 +248,18 @@ void CHalfLifeMultiplay :: Think ( void )
 				} else {
 					g_engfuncs.pfnSetPhysicsKeyValue(pPlayer->edict(), "topsy", "0");
 				}
+			}
+
+			if ((strstr(mutators.string, g_MutatorSuperJump) ||
+				atoi(mutators.string) == MUTATOR_SUPERJUMP) && CVAR_GET_FLOAT("sv_jumpheight") != 299)
+			{
+				CVAR_SET_FLOAT("sv_jumpheight", 299);
+			}
+			else
+			{
+				if ((!strstr(mutators.string, g_MutatorSuperJump) &&
+					atoi(mutators.string) != MUTATOR_SUPERJUMP) && CVAR_GET_FLOAT("sv_jumpheight") == 299)
+					CVAR_SET_FLOAT("sv_jumpheight", 45);
 			}
 		}
 

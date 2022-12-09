@@ -46,6 +46,7 @@ extern DLL_GLOBAL	int			gDisplayTitle;
 
 DLL_GLOBAL extern const char *g_MutatorSuperJump;
 DLL_GLOBAL extern const char *g_MutatorLightsOut;
+DLL_GLOBAL extern const char *g_MutatorChaos;
 extern DLL_GLOBAL const char *g_szMutators[] = {
 	"chaos",
 	"rocketcrowbar",
@@ -745,24 +746,16 @@ void CWorld :: Precache( void )
 	{
 		CVAR_SET_FLOAT( "mp_defaultteam", 0 );
 	}
-
-	// Mutators
-	if ((strstr(mutators.string, g_MutatorSuperJump) ||
-		atoi(mutators.string) == MUTATOR_SUPERJUMP))
-	{
-		CVAR_SET_FLOAT("sv_jumpheight", 299);
-	}
-	else
-	{
-		if (CVAR_GET_FLOAT("sv_jumpheight") == 299)
-			CVAR_SET_FLOAT("sv_jumpheight", 45);
-	}
 }
 
 void CWorld :: RandomizeMutators( void )
 {
 	char result[128] = {""};
 	int count = 0;
+	if ((strstr(mutators.string, g_MutatorChaos) ||
+		atoi(mutators.string) == MUTATOR_CHAOS))
+		strcat(result, "chaos");
+
 	while (count < 3)
 	{
 		int index = RANDOM_LONG(1,(int)ARRAYSIZE(g_szMutators) - 1);
