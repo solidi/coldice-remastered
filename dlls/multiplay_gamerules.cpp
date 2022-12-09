@@ -49,6 +49,7 @@ extern DLL_GLOBAL const char *g_MutatorSlowmo;
 extern DLL_GLOBAL const char *g_MutatorIce;
 extern DLL_GLOBAL const char *g_MutatorTopsyTurvy;
 extern DLL_GLOBAL const char *g_MutatorBarrels;
+extern DLL_GLOBAL const char *g_MutatorLoopback;
 
 extern int gmsgDeathMsg;	// client dll messages
 extern int gmsgScoreInfo;
@@ -1551,7 +1552,28 @@ void CHalfLifeMultiplay :: PlayerKilled( CBasePlayer *pVictim, entvars_t *pKille
 	{
 		// if a player dies in a deathmatch game and the killer is a client, award the killer some points
 		pKiller->frags += IPointsForKill( peKiller, pVictim );
-		
+
+		if (strstr(mutators.string, g_MutatorLoopback) ||
+			atoi(mutators.string) == MUTATOR_LOOPBACK)
+		{
+			MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
+				WRITE_BYTE( TE_TELEPORT	); 
+				WRITE_COORD(pKiller->origin.x);
+				WRITE_COORD(pKiller->origin.y);
+				WRITE_COORD(pKiller->origin.z);
+			MESSAGE_END();
+			UTIL_ScreenFade(peKiller, Vector(200,200,200), .15, .15, 200, FFADE_IN);
+
+			pKiller->origin = pVictim->pev->origin;
+
+			MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
+				WRITE_BYTE( TE_TELEPORT	); 
+				WRITE_COORD(pKiller->origin.x);
+				WRITE_COORD(pKiller->origin.y);
+				WRITE_COORD(pKiller->origin.z);
+			MESSAGE_END();
+		}
+
 		FireTargets( "game_playerkill", ktmp, ktmp, USE_TOGGLE, 0 );
 	}
 	else
