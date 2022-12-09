@@ -50,6 +50,7 @@ extern DLL_GLOBAL const char *g_MutatorIce;
 extern DLL_GLOBAL const char *g_MutatorTopsyTurvy;
 extern DLL_GLOBAL const char *g_MutatorBarrels;
 extern DLL_GLOBAL const char *g_MutatorLoopback;
+extern DLL_GLOBAL const char *g_MutatorMaxPack;
 
 extern int gmsgDeathMsg;	// client dll messages
 extern int gmsgScoreInfo;
@@ -2137,14 +2138,22 @@ float CHalfLifeMultiplay::FlHEVChargerRechargeTime( void )
 //=========================================================
 int CHalfLifeMultiplay::DeadPlayerWeapons( CBasePlayer *pPlayer )
 {
-	return GR_PLR_DROP_GUN_ACTIVE;
+	if (strstr(mutators.string, g_MutatorMaxPack) ||
+		atoi(mutators.string) == MUTATOR_MAXPACK)
+		return GR_PLR_DROP_GUN_ALL;
+	else
+		return GR_PLR_DROP_GUN_ACTIVE;
 }
 
 //=========================================================
 //=========================================================
 int CHalfLifeMultiplay::DeadPlayerAmmo( CBasePlayer *pPlayer )
 {
-	return GR_PLR_DROP_AMMO_ACTIVE;
+	if (strstr(mutators.string, g_MutatorMaxPack) ||
+		atoi(mutators.string) == MUTATOR_MAXPACK)
+		return GR_PLR_DROP_AMMO_ALL;
+	else
+		return GR_PLR_DROP_AMMO_ACTIVE;
 }
 
 edict_t *CHalfLifeMultiplay::GetPlayerSpawnSpot( CBasePlayer *pPlayer )
