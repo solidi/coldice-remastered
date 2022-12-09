@@ -763,6 +763,8 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_mutators \"turrets\"\" - sentry guns randomly appear, firing bullets and rockets at everyone\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_mutators \"barrels\"\" - start with the gravitygun, flaming explosive barrels spawn to throw at others\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_mutators \"chumxplode\"\" - a killer chumtoad appears directly after an explosion\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_mutators \"santahat\"\" - everyone wears a santa hat and says hohoho randomly\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_mutators \"sanic\"\" - evil santa and sanic with a santa hat team up against you\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_spawnweapons\" - Spawn weapons or not\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_disallowlist\" a list of entities that will not spawn\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_nukemode \"[0|1|2]\"\" - 2 - nuke kills all, 1 - radius damage, 0 - sharts nothing but bubbles\n");

@@ -496,6 +496,7 @@ void W_Precache(void)
 	g_sModelIndexIceFireball = PRECACHE_MODEL ("sprites/ice_zerogxplode.spr");
 	g_sModelIndexFire = PRECACHE_MODEL ("sprites/fire.spr");
 	g_sModelIndexIceFire = PRECACHE_MODEL ("sprites/ice_fire.spr");
+	PRECACHE_MODEL ("sprites/sanic.spr");
 	PRECACHE_SOUND ("fire1.wav");
 
 	PRECACHE_MODEL ("models/v_leg.mdl");
