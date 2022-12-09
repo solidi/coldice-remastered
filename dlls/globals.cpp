@@ -60,5 +60,6 @@ DLL_GLOBAL const char *g_MutatorSantaHat = "santahat";
 DLL_GLOBAL const char *g_MutatorSanic = "sanic";
 DLL_GLOBAL const char *g_MutatorCoolFlesh = "coolflesh";
 DLL_GLOBAL const char *g_MutatorLoopback = "loopback";
+DLL_GLOBAL const char *g_MutatorMaxPack = "maxpack";
 
 DLL_GLOBAL int g_GameMode;
