@@ -508,6 +508,7 @@ void W_Precache(void)
 
 	PRECACHE_SOUND("freezing.wav");
 	PRECACHE_SOUND("wallclimb.wav");
+	PRECACHE_SOUND("delicious.wav");
 	PRECACHE_SOUND("hohoho.wav");
 	PRECACHE_SOUND("merrychristmas.wav");
 	PRECACHE_SOUND("sleighbell.wav");

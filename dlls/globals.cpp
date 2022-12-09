@@ -58,5 +58,6 @@ DLL_GLOBAL const char *g_MutatorBarrels = "barrels";
 DLL_GLOBAL const char *g_MutatorChumXplode = "chumxplode";
 DLL_GLOBAL const char *g_MutatorSantaHat = "santahat";
 DLL_GLOBAL const char *g_MutatorSanic = "sanic";
+DLL_GLOBAL const char *g_MutatorCoolFlesh = "coolflesh";
 
 DLL_GLOBAL int g_GameMode;

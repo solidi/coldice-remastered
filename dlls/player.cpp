@@ -49,6 +49,7 @@ extern DLL_GLOBAL int		g_iSkillLevel, gDisplayTitle;
 extern DLL_GLOBAL const char *g_MutatorInstaGib;
 extern DLL_GLOBAL const char *g_MutatorIce;
 extern DLL_GLOBAL const char *g_MutatorSantaHat;
+extern DLL_GLOBAL const char *g_MutatorCoolFlesh;
 
 BOOL gInitHUD = TRUE;
 
@@ -1746,6 +1747,19 @@ void CBasePlayer::PlayerUse ( void )
 
 		if ( m_afButtonPressed & IN_USE )
 			EMIT_SOUND( ENT(pev), CHAN_ITEM, "wpn_select.wav", 0.4, ATTN_NORM);
+
+		if (strstr(mutators.string, g_MutatorCoolFlesh) ||
+			atoi(mutators.string) == MUTATOR_COOLFLESH)
+		{
+			if (strstr("gib", STRING(pObject->pev->classname)))
+			{
+				UTIL_ScreenFade(this, Vector(0, 113, 230), 1, 1, 128, FFADE_IN);
+				TakeHealth(gSkillData.healthkitCapacity, DMG_GENERIC);
+				EMIT_SOUND(ENT(pev), CHAN_VOICE, "delicious.wav", 1.0, ATTN_NORM);
+				UTIL_Remove(pObject);
+				return;
+			}
+		}
 
 		if (strstr(interactiveitems.string, STRING(pObject->pev->classname))) {
 			UTIL_MakeVectors( pev->v_angle );
