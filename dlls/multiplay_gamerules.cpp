@@ -36,6 +36,7 @@
 extern DLL_GLOBAL CGameRules	*g_pGameRules;
 extern DLL_GLOBAL BOOL	g_fGameOver;
 
+extern DLL_GLOBAL const char *g_MutatorChaos;
 extern DLL_GLOBAL const char *g_MutatorRocketCrowbar;
 extern DLL_GLOBAL const char *g_MutatorInstaGib;
 extern DLL_GLOBAL const char *g_MutatorVolatile;
@@ -126,6 +127,8 @@ CHalfLifeMultiplay :: CHalfLifeMultiplay()
 	}
 
 	ResetGameMode();
+	m_flCheckMutators = gpGlobals->time + 1.0;
+	m_flChaosCheck = gpGlobals->time + 25.0;
 }
 
 BOOL CHalfLifeMultiplay::ClientCommand( CBasePlayer *pPlayer, const char *pcmd )
@@ -194,9 +197,55 @@ void CHalfLifeMultiplay :: Think ( void )
 {
 	g_VoiceGameMgr.Update(gpGlobals->frametime);
 
-	if ((strstr(mutators.string, g_MutatorSlowmo) ||
-		atoi(mutators.string) == MUTATOR_SLOWMO) && CVAR_GET_FLOAT("sys_timescale") != 0.49)
-		CVAR_SET_FLOAT("sys_timescale", 0.49);
+	if (m_flCheckMutators < gpGlobals->time)
+	{
+		if ((strstr(mutators.string, g_MutatorChaos) ||
+			atoi(mutators.string) == MUTATOR_CHAOS)
+		{
+			if (m_flChaosCheck < gpGlobals->time)
+			{
+				CBaseEntity *pWorld = CBaseEntity::Instance(NULL);
+				if (pWorld)
+					((CWorld *)pWorld)->RandomizeMutators();
+
+				m_flChaosCheck = gpGlobals->time + 25.0;
+			}
+		}
+
+		if ((strstr(mutators.string, g_MutatorSlowmo) ||
+			atoi(mutators.string) == MUTATOR_SLOWMO) && CVAR_GET_FLOAT("sys_timescale") != 0.49)
+			CVAR_SET_FLOAT("sys_timescale", 0.49);
+		else
+			CVAR_SET_FLOAT("sys_timescale", 1.0);
+
+		if ((strstr(mutators.string, g_MutatorLightsOut) ||
+			atoi(mutators.string) == MUTATOR_LIGHTSOUT))
+		{
+			LIGHT_STYLE(0, "b");
+			CVAR_SET_STRING("mp_flashlight", "1");
+		}
+		else
+			LIGHT_STYLE(0, "m");
+
+		for (int i = 1; i <= gpGlobals->maxClients; i++)
+		{
+			CBaseEntity *pPlayer = UTIL_PlayerByIndex( i );
+			if (pPlayer && pPlayer->IsPlayer())
+			{
+				if (m_flChaosCheck > gpGlobals->time + 24)
+					((CBasePlayer *)pPlayer)->m_iShowMutatorMessage = gpGlobals->time + 1.0;
+
+				if (strstr(mutators.string, g_MutatorTopsyTurvy) ||
+					atoi(mutators.string) == MUTATOR_TOPSYTURVY) {
+					g_engfuncs.pfnSetPhysicsKeyValue(pPlayer->edict(), "topsy", "1");
+				} else {
+					g_engfuncs.pfnSetPhysicsKeyValue(pPlayer->edict(), "topsy", "0");
+				}
+			}
+		}
+
+		m_flCheckMutators = gpGlobals->time + 1.0;
+	}
 
 	///// Check game rules /////
 	static int last_frags;
@@ -993,6 +1042,7 @@ void CHalfLifeMultiplay :: InitHUD( CBasePlayer *pl )
 	}
 
 	pl->m_iShownWelcomeMessage = gpGlobals->time + 4.0;
+	pl->m_iShowMutatorMessage = gpGlobals->time + 4.0;
 
 	if ( g_fGameOver )
 	{
@@ -1243,11 +1293,6 @@ void CHalfLifeMultiplay :: PlayerSpawn( CBasePlayer *pPlayer )
 	if ((strstr(mutators.string, g_MutatorIce) ||
 		atoi(mutators.string) == MUTATOR_ICE))
 		pPlayer->pev->friction = 0.3;
-
-	if (strstr(mutators.string, g_MutatorTopsyTurvy) ||
-		atoi(mutators.string) == MUTATOR_TOPSYTURVY) {
-		g_engfuncs.pfnSetPhysicsKeyValue(pPlayer->edict(), "topsy", "1");
-	}
 
 	if (strstr(mutators.string, g_MutatorRocketCrowbar) ||
 		atoi(mutators.string) == MUTATOR_ROCKETCROWBAR) {

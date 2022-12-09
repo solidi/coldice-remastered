@@ -399,6 +399,7 @@ public:
 	float m_flNextChatTime;
 	float m_iShownWelcomeMessage;
 	float m_iShownDualMessage;
+	float m_iShowMutatorMessage;
 
 	void DisplayHudMessage(char const *message, int channel, float x, float y, int r, int g, int b, int effect, float fadein, float fadeout, float holdtime, float fxtime);
 

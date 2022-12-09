@@ -393,6 +393,9 @@ protected:
 	BOOL _3secwarning;
 	int m_iPlayersInArena[32];
 	int m_iCountDown;
+
+	float m_flCheckMutators;
+	float m_flChaosCheck;
 };
 
 extern DLL_GLOBAL CGameRules*	g_pGameRules;
