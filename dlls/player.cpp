@@ -4197,7 +4197,7 @@ void CBasePlayer::StartSelacoSlide( void )
 				WRITE_BYTE( ACROBATICS_SELACO_SLIDE );
 			MESSAGE_END();
 
-			m_fSelacoZ = VEC_DUCK_HULL_MIN.z;
+			m_fSelacoZ = VEC_DUCK_HULL_MIN.z + 6;
 			pev->view_ofs[2] = m_fSelacoZ;
 			pev->punchangle.z = 15;
 		}
@@ -4211,7 +4211,7 @@ void CBasePlayer::TraceHitOfSelacoSlide( void )
 			pev->friction = 0.05; // Singleplayer override
 
 		if (m_fSelacoTime > gpGlobals->time && m_fSelacoIncrement < gpGlobals->time) {
-			if (RANDOM_LONG(0,2) == 1) {
+			if (RANDOM_LONG(0,2) == 1 && pev->velocity.Length() > 100) {
 				UTIL_MakeVectors( pev->v_angle );
 				Vector smoke = pev->origin + (gpGlobals->v_forward * 100) + (gpGlobals->v_up * -30);
 				CSprite *pSprite = CSprite::SpriteCreate( "sprites/gunsmoke.spr", smoke, TRUE );
@@ -4226,7 +4226,7 @@ void CBasePlayer::TraceHitOfSelacoSlide( void )
 			{
 				UTIL_MakeVectors(Vector(0, pev->v_angle.y, 0));
 				Vector vecSrc	= GetGunPosition( );
-				Vector vecEnd	= vecSrc + gpGlobals->v_forward * 32;
+				Vector vecEnd	= vecSrc + gpGlobals->v_forward * 64;
 
 				UTIL_TraceLine( vecSrc, vecEnd, dont_ignore_monsters, ENT( pev ), &tr );
 
@@ -4327,7 +4327,7 @@ void CBasePlayer::TraceHitOfSelacoSlide( void )
 			//ALERT(at_aiconsole, "pev->velocity[x=%.2f,y=%.2f]\n", pev->velocity.x, pev->velocity.y);
 			//ALERT(at_aiconsole, "fabs(m_fSelacoLastX - pev->velocity.x)[x=%.2f] fabs(m_fSelacoLastY - pev->velocity.y)[y=%.2f]\n", fabs(m_fSelacoLastX - pev->velocity.x), fabs(m_fSelacoLastY - pev->velocity.y));
 
-			if (fabs(m_fSelacoLastX - pev->velocity.x) > 200 || fabs(m_fSelacoLastY - pev->velocity.y) > 200) {
+			if (fabs(m_fSelacoLastX - pev->velocity.x) > 300 || fabs(m_fSelacoLastY - pev->velocity.y) > 300) {
 				EMIT_SOUND_DYN(ENT(pev), CHAN_ITEM, "fists_hit.wav", 1.0, ATTN_NORM, 0, 98 + RANDOM_LONG(0,3));
 				if (m_pActiveItem && m_pActiveItem->m_pPlayer) ((CBasePlayerWeapon *)m_pActiveItem)->SendWeaponAnim(SLIDE_RETRACT, 0, 0);
 				m_fSelacoHit = TRUE;
@@ -4399,7 +4399,6 @@ void CBasePlayer::StartRightFlip( void )
 
 	if (m_fFlipTime < gpGlobals->time) {
 		if (FBitSet(pev->flags, FL_ONGROUND)) {
-			EMIT_SOUND(ENT(pev), CHAN_VOICE, "wrench_miss1.wav", 1, ATTN_NORM);
 			UTIL_MakeVectors(pev->angles);
 			pev->velocity = (gpGlobals->v_right * 300) + (gpGlobals->v_up * 400);
 			m_fFlipTime = gpGlobals->time + 1.0;
@@ -4419,7 +4418,6 @@ void CBasePlayer::StartLeftFlip( void )
 
 	if (m_fFlipTime < gpGlobals->time) {
 		if (FBitSet(pev->flags, FL_ONGROUND)) {
-			EMIT_SOUND(ENT(pev), CHAN_VOICE, "wrench_miss1.wav", 1, ATTN_NORM);
 			UTIL_MakeVectors(pev->angles);
 			pev->velocity = (gpGlobals->v_right * -300) + (gpGlobals->v_up * 400);
 			m_fFlipTime = gpGlobals->time + 1.0;
@@ -4439,7 +4437,6 @@ void CBasePlayer::StartBackFlip( void )
 
 	if (m_fFlipTime < gpGlobals->time) {
 		if (FBitSet(pev->flags, FL_ONGROUND)) {
-			EMIT_SOUND(ENT(pev), CHAN_VOICE, "wrench_miss1.wav", 1, ATTN_NORM);
 			UTIL_MakeVectors(pev->angles);
 			pev->velocity = (gpGlobals->v_forward * -300) + (gpGlobals->v_up * 400);
 			m_fFlipTime = gpGlobals->time + 1.0;
@@ -4455,64 +4452,64 @@ void CBasePlayer::StartBackFlip( void )
 void CBasePlayer::TraceHitOfFlip( void )
 {
 	if (m_fFlipTime > gpGlobals->time && m_fSelacoIncrement < gpGlobals->time) {
-		//if (!m_fSelacoHit) {
-			CBaseEntity *pObject = NULL;
-			CBaseEntity *pClosest = NULL;
+		CBaseEntity *pObject = NULL;
+		CBaseEntity *pClosest = NULL;
 
-			UTIL_MakeVectors ( pev->v_angle );// so we know which way we are facing
+		UTIL_MakeVectors ( pev->v_angle );// so we know which way we are facing
 
-			while ((pObject = UTIL_FindEntityInSphere( pObject, pev->origin, pev->flags & FL_FAKECLIENT ? 192 : PLAYER_SEARCH_RADIUS )) != NULL)
-			{
-				if (pObject->pev->takedamage != DAMAGE_NO) {
-					if (pObject == this) {
-						continue;
-					}
-
-					if (pObject->Classify() != CLASS_NONE && pObject->Classify() != CLASS_MACHINE && pObject->IsPlayer())
-					{
-						pClosest = pObject;
-					}
-				}
-			}
-			pObject = pClosest;
-
-			float flVol = 1.0;
-
-			if (pObject)
-			{
-				ClearMultiDamage( );
-
-				float flDamage = 0;
-				if (FBitSet(pObject->pev->flags, FL_FROZEN)) {
-					pObject->pev->renderamt = 100;
-					flDamage = 200;
-					::IceExplode(pObject, DMG_FREEZE);
+		while ((pObject = UTIL_FindEntityInSphere( pObject, pev->origin, pev->flags & FL_FAKECLIENT ? 192 : PLAYER_SEARCH_RADIUS )) != NULL)
+		{
+			if (pObject->pev->takedamage != DAMAGE_NO) {
+				if (pObject == this) {
+					continue;
 				}
 
-				TraceResult tr;
-				UTIL_TraceLine(pObject->pev->origin, pObject->pev->origin, dont_ignore_monsters, ENT( pev ), &tr);
-				pObject->TraceAttack(pev, (gSkillData.plrDmgKick * 2) + flDamage, gpGlobals->v_forward, &tr, DMG_KICK);
-				ApplyMultiDamage( pev, pev );
-
-				EMIT_SOUND(ENT(pev), CHAN_ITEM, "fists_hitbod.wav", 1, ATTN_NORM);
-
-				m_iWeaponVolume = 128;
-				flVol = 0.1;
-				pObject->pev->velocity = (pObject->pev->velocity + (gpGlobals->v_forward * RANDOM_LONG(200,300)));
-				pObject->pev->velocity.z += RANDOM_LONG(200,300);
-
-				//m_fSelacoHit = TRUE;
-
-				// Add smoke
-				UTIL_MakeVectors( pev->v_angle );
-				Vector smoke = pObject->pev->origin - gpGlobals->v_forward * 10;
-				CSprite *pSprite = CSprite::SpriteCreate( "sprites/gunsmoke.spr", smoke, TRUE );
-				pSprite->AnimateAndDie( 12 );
-				pSprite->SetTransparency( kRenderTransAdd, 255, 255, 255, 80, kRenderFxNoDissipation );
-				pSprite->SetScale( 0.4 );
-				m_iWeaponVolume = flVol * 512;
+				if (pObject->Classify() != CLASS_NONE && pObject->Classify() != CLASS_MACHINE && pObject->IsPlayer())
+				{
+					pClosest = pObject;
+				}
 			}
-		//}
+		}
+		pObject = pClosest;
+
+		float flVol = 1.0;
+
+		if (pObject)
+		{
+			ClearMultiDamage( );
+
+			float flDamage = 0;
+			if (FBitSet(pObject->pev->flags, FL_FROZEN)) {
+				pObject->pev->renderamt = 100;
+				flDamage = 200;
+				::IceExplode(pObject, DMG_FREEZE);
+			}
+
+			TraceResult tr;
+			UTIL_TraceLine(pObject->pev->origin, pObject->pev->origin, dont_ignore_monsters, ENT( pev ), &tr);
+			pObject->TraceAttack(pev, (gSkillData.plrDmgKick * 2) + flDamage, gpGlobals->v_forward, &tr, DMG_KICK);
+			ApplyMultiDamage( pev, pev );
+
+			EMIT_SOUND(ENT(pev), CHAN_ITEM, "fists_hitbod.wav", 1, ATTN_NORM);
+
+			m_iWeaponVolume = 128;
+			flVol = 0.1;
+			pObject->pev->velocity = (pObject->pev->velocity + (gpGlobals->v_forward * RANDOM_LONG(200,300)));
+			pObject->pev->velocity.z += RANDOM_LONG(200,300);
+
+			// Add smoke
+			UTIL_MakeVectors( pev->v_angle );
+			Vector smoke = pObject->pev->origin - gpGlobals->v_forward * 10;
+			CSprite *pSprite = CSprite::SpriteCreate( "sprites/gunsmoke.spr", smoke, TRUE );
+			pSprite->AnimateAndDie( 12 );
+			pSprite->SetTransparency( kRenderTransAdd, 255, 255, 255, 80, kRenderFxNoDissipation );
+			pSprite->SetScale( 0.4 );
+			m_iWeaponVolume = flVol * 512;
+		}
+		else
+		{
+			EMIT_SOUND(ENT(pev), CHAN_VOICE, "wrench_miss1.wav", 1, ATTN_NORM);
+		}
 
 		m_fSelacoIncrement = gpGlobals->time + 0.5;
 	}
