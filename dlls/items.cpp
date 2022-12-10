@@ -393,6 +393,11 @@ void CRune::RuneTouch( CBaseEntity *pOther )
 		return;
 	}
 
+	if ( pOther->pev->deadflag != DEAD_NO )
+	{
+		return;
+	}
+
 	CBasePlayer *pPlayer = (CBasePlayer *)pOther;
 
 	if (MyTouch( pPlayer ))
