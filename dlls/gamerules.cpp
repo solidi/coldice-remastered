@@ -517,11 +517,18 @@ void CGameRules::CheckMutators(void)
 			if (pWorld)
 				((CWorld *)pWorld)->RandomizeMutators();
 
-			m_flChaosCheck = gpGlobals->time + 45.0;
+			m_flChaosCheck = gpGlobals->time + chaostime.value;
 		}
 	}
 
+	// Let the game breathe between changes, also allows some changes like sys_timeframe to work
 	if (strcmp(m_flCheckMutators, mutators.string) != 0)
+	{
+		m_flDetectedMutatorChange = gpGlobals->time + 2.0;
+		strcpy(m_flCheckMutators, mutators.string);
+	}
+
+	if (m_flDetectedMutatorChange && m_flDetectedMutatorChange < gpGlobals->time)
 	{
 		if ((strstr(mutators.string, g_MutatorSlowmo) ||
 			atoi(mutators.string) == MUTATOR_SLOWMO) && CVAR_GET_FLOAT("sys_timescale") != 0.49f)
@@ -639,7 +646,7 @@ void CGameRules::CheckMutators(void)
 					CVAR_SET_FLOAT("sys_timescale", 1.0);
 			}
 		}
-		strcpy(m_flCheckMutators, mutators.string);
+		m_flDetectedMutatorChange = 0;
 	}
 }
 

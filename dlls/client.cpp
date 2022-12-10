@@ -779,6 +779,7 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_acrobatics [0|1]\" allow or disallow wall climbing, slides, and flips\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_weather [0|1]\" allow or disallow weather effects on server\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_randommutators \"[0|1]\"\" - selects three random mutators on change map change\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_chaostime\" - how many seconds until chaos mutators are rotated\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_gamemode \"ffa\"\" - game mode is deathmatch\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_gamemode \"iceman\"\" - game mode is iceman - defeat him!\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_roundlimit\" - Sets the maximum amount of game rounds before a map change\n");

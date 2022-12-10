@@ -169,6 +169,7 @@ public:
 private:
 	char m_flCheckMutators[128];
 	float m_flChaosCheck;
+	float m_flDetectedMutatorChange;
 };
 
 extern CGameRules *InstallGameRules( void );
