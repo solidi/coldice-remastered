@@ -1167,52 +1167,11 @@ void CHalfLifeMultiplay :: PlayerThink( CBasePlayer *pPlayer )
 #else
 		ClientPrint(pPlayer->pev, HUD_PRINTTALK, "Welcome to Cold Ice Remastered Beta 3. For commands, type \"help\" in the console.\n");
 #endif
-
-		// Display Mutators
-		if (strlen(CVAR_GET_STRING("mp_mutators")) > 1)
-			pPlayer->DisplayHudMessage(UTIL_VarArgs("Mutators Active: %s", CVAR_GET_STRING("mp_mutators")), 2, .02, .16, 210, 210, 210, 2, .015, 2, 5, .25);
-
 		pPlayer->m_iShownWelcomeMessage = -1;
 	}
-}
 
-const char *pWeapons[] =
-{
-	"weapon_shotgun",
-	"weapon_9mmAR",
-	"weapon_handgrenade",
-	"weapon_tripmine",
-	"weapon_357",
-	"weapon_crossbow",
-	"weapon_egon",
-	"weapon_gauss",
-	"weapon_rpg",
-	"weapon_satchel",
-	"weapon_snark",
-	"weapon_hornetgun",
-	"weapon_vest",
-	"weapon_chumtoad",
-	"weapon_sniperrifle",
-	"weapon_railgun",
-	"weapon_cannon",
-	"weapon_mag60",
-	"weapon_chaingun",
-	"weapon_glauncher",
-	"weapon_smg",
-	"weapon_usas",
-	"weapon_snowball",
-	"weapon_12gauge",
-	"weapon_nuke",
-	"weapon_deagle",
-	"weapon_dual_deagle",
-	"weapon_dual_mag60",
-	"weapon_dual_smg",
-	"weapon_dual_wrench",
-	"weapon_dual_usas",
-	"weapon_dual_railgun",
-	"weapon_dual_rpg",
-	"weapon_freezegun",
-};
+	g_pGameRules->UpdateMutatorMessage(pPlayer);
+}
 
 //=========================================================
 //=========================================================
@@ -1233,8 +1192,6 @@ void CHalfLifeMultiplay :: PlayerSpawn( CBasePlayer *pPlayer )
 		addDefault = FALSE;
 	}
 
-	g_pGameRules->SpawnMutators(pPlayer);
-
 	if (startwithall.value) {
 		pPlayer->CheatImpulseCommands(101, FALSE);
 	}
@@ -1253,7 +1210,8 @@ void CHalfLifeMultiplay :: PlayerSpawn( CBasePlayer *pPlayer )
 				meleeWeapon = "weapon_crowbar";
 			} else if (whichWeapon == 1) {
 				meleeWeapon = "weapon_knife";
-			} else if (whichWeapon == 2) {
+			} else if (whichWeapon == 2 && (!strstr(mutators.string, g_MutatorPlumber) &&
+				atoi(mutators.string) != MUTATOR_PLUMBER)) {
 				meleeWeapon = "weapon_wrench";
 			}
 			pPlayer->GiveNamedItem(STRING(ALLOC_STRING(meleeWeapon)));
@@ -1272,9 +1230,6 @@ void CHalfLifeMultiplay :: PlayerSpawn( CBasePlayer *pPlayer )
 			pWeaponName = strtok( NULL, ";" );
 		}
 		pPlayer->GiveAmmo( 68, "9mm", _9MM_MAX_CARRY );// 4 full reloads
-
-		if (randomweapon.value)
-			pPlayer->GiveNamedItem(STRING(ALLOC_STRING(pWeapons[RANDOM_LONG(0,ARRAYSIZE(pWeapons)-1)])));
 	}
 
 	if (g_GameMode == GAME_ICEMAN)
@@ -1311,6 +1266,8 @@ void CHalfLifeMultiplay :: PlayerSpawn( CBasePlayer *pPlayer )
 			MESSAGE_END();
 		}
 	}
+
+	g_pGameRules->SpawnMutators(pPlayer);
 }
 
 //=========================================================
