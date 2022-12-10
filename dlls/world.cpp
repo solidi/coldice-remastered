@@ -56,7 +56,7 @@ extern DLL_GLOBAL const char *g_szMutators[] = {
 	"plumber",
 	"dkmode",
 	"superjump",
-	"megaspeed",
+	"megarun",
 	"lightsout",
 	"slowmo",
 	"ice",
@@ -68,6 +68,9 @@ extern DLL_GLOBAL const char *g_szMutators[] = {
 	"sanic",
 	"coolflesh",
 	"loopback",
+	"infiniteammo",
+	"randomweapon",
+	"speedup",
 };
 
 extern void W_Precache(void);

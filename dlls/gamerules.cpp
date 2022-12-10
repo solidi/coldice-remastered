@@ -51,6 +51,9 @@ extern DLL_GLOBAL const char *g_MutatorTopsyTurvy;
 extern DLL_GLOBAL const char *g_MutatorBarrels;
 extern DLL_GLOBAL const char *g_MutatorLoopback;
 extern DLL_GLOBAL const char *g_MutatorMaxPack;
+extern DLL_GLOBAL const char *g_MutatorInfiniteAmmo;
+extern DLL_GLOBAL const char *g_MutatorRandomWeapon;
+extern DLL_GLOBAL const char *g_MutatorSpeedUp;
 
 //=========================================================
 //=========================================================
@@ -424,6 +427,44 @@ CGameRules *InstallGameRules( void )
 	}
 }
 
+const char *pWeapons[] =
+{
+	"weapon_shotgun",
+	"weapon_9mmAR",
+	"weapon_handgrenade",
+	"weapon_tripmine",
+	"weapon_357",
+	"weapon_crossbow",
+	"weapon_egon",
+	"weapon_gauss",
+	"weapon_rpg",
+	"weapon_satchel",
+	"weapon_snark",
+	"weapon_hornetgun",
+	"weapon_vest",
+	"weapon_chumtoad",
+	"weapon_sniperrifle",
+	"weapon_railgun",
+	"weapon_cannon",
+	"weapon_mag60",
+	"weapon_chaingun",
+	"weapon_glauncher",
+	"weapon_smg",
+	"weapon_usas",
+	"weapon_snowball",
+	"weapon_12gauge",
+	"weapon_nuke",
+	"weapon_deagle",
+	"weapon_dual_deagle",
+	"weapon_dual_mag60",
+	"weapon_dual_smg",
+	"weapon_dual_wrench",
+	"weapon_dual_usas",
+	"weapon_dual_railgun",
+	"weapon_dual_rpg",
+	"weapon_freezegun",
+};
+
 void CGameRules::SpawnMutators(CBasePlayer *pPlayer)
 {
 	if (strstr(mutators.string, g_MutatorTopsyTurvy) ||
@@ -460,6 +501,9 @@ void CGameRules::SpawnMutators(CBasePlayer *pPlayer)
 		atoi(mutators.string) == MUTATOR_BARRELS) {
 		pPlayer->GiveNamedItem("weapon_gravitygun");
 	}
+
+	if (randomweapon.value)
+		pPlayer->GiveNamedItem(STRING(ALLOC_STRING(pWeapons[RANDOM_LONG(0,ARRAYSIZE(pWeapons)-1)])));
 }
 
 void CGameRules::CheckMutators(void)
@@ -505,8 +549,7 @@ void CGameRules::CheckMutators(void)
 			CBasePlayer *pl = (CBasePlayer *)pPlayer;
 			if (pPlayer && pPlayer->IsPlayer() && !pl->IsObserver())
 			{
-				if (m_flChaosCheck > gpGlobals->time + 44)
-					pl->m_iShowMutatorMessage = gpGlobals->time + 1.0;
+				pl->m_iShowMutatorMessage = gpGlobals->time + 2.0;
 
 				if (strstr(mutators.string, g_MutatorTopsyTurvy) ||
 					atoi(mutators.string) == MUTATOR_TOPSYTURVY) {
@@ -564,8 +607,39 @@ void CGameRules::CheckMutators(void)
 					atoi(mutators.string) != MUTATOR_SUPERJUMP) && CVAR_GET_FLOAT("sv_jumpheight") == 299)
 					CVAR_SET_FLOAT("sv_jumpheight", 45);
 			}
+
+			if ((strstr(mutators.string, g_MutatorInfiniteAmmo) ||
+				atoi(mutators.string) == MUTATOR_INFINITEAMMO) && infiniteammo.value != 1)
+				CVAR_SET_FLOAT("mp_infiniteammo", 1);
+			else
+			{
+				if ((!strstr(mutators.string, g_MutatorInfiniteAmmo) &&
+					atoi(mutators.string) != MUTATOR_INFINITEAMMO) && infiniteammo.value)
+					CVAR_SET_FLOAT("mp_infiniteammo", 0);
+			}
+
+			if ((strstr(mutators.string, g_MutatorRandomWeapon) ||
+				atoi(mutators.string) == MUTATOR_RANDOMWEAPON) && randomweapon.value != 1)
+				CVAR_SET_FLOAT("mp_randomweapon", 1);
+			else
+			{
+				if ((!strstr(mutators.string, g_MutatorRandomWeapon) &&
+					atoi(mutators.string) != MUTATOR_RANDOMWEAPON) && randomweapon.value)
+					CVAR_SET_FLOAT("mp_randomweapon", 0);
+			}
+
+			if ((strstr(mutators.string, g_MutatorSpeedUp) ||
+				atoi(mutators.string) == MUTATOR_SPEEDUP) && CVAR_GET_FLOAT("sys_timescale") != 1.49f)
+				CVAR_SET_FLOAT("sys_timescale", 1.49);
+			else
+			{
+				if ((!strstr(mutators.string, g_MutatorSpeedUp) &&
+					atoi(mutators.string) != MUTATOR_SPEEDUP) &&
+					CVAR_GET_FLOAT("sys_timescale") > 1.48f && CVAR_GET_FLOAT("sys_timescale") < 1.50f)
+					CVAR_SET_FLOAT("sys_timescale", 1.0);
+			}
 		}
-		strcpy(m_flCheckMutators, mutators.string); //m_flCheckMutators = gpGlobals->time + 25.0;
+		strcpy(m_flCheckMutators, mutators.string);
 	}
 }
 
