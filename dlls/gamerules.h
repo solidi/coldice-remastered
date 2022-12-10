@@ -160,8 +160,15 @@ public:
 	virtual BOOL AllowGrapplingHook( void ) = FALSE;
 #endif
 
+	virtual void SpawnMutators( CBasePlayer *pPlayer );
+	virtual void CheckMutators( void );
+	virtual void UpdateMutatorMessage( CBasePlayer *pPlayer );
+
 	// Immediately end a multiplayer game
 	virtual void EndMultiplayerGame( void ) {}
+private:
+	char m_flCheckMutators[128];
+	float m_flChaosCheck;
 };
 
 extern CGameRules *InstallGameRules( void );
@@ -393,9 +400,6 @@ protected:
 	BOOL _3secwarning;
 	int m_iPlayersInArena[32];
 	int m_iCountDown;
-
-	char m_flCheckMutators[128];
-	float m_flChaosCheck;
 };
 
 extern DLL_GLOBAL CGameRules*	g_pGameRules;

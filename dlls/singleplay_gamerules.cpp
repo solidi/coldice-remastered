@@ -41,6 +41,7 @@ CHalfLifeRules::CHalfLifeRules( void )
 //=========================================================
 void CHalfLifeRules::Think ( void )
 {
+	g_pGameRules->CheckMutators();
 }
 
 //=========================================================
@@ -121,6 +122,8 @@ float CHalfLifeRules::FlPlayerFallDamage( CBasePlayer *pPlayer )
 //=========================================================
 void CHalfLifeRules :: PlayerSpawn( CBasePlayer *pPlayer )
 {
+	pPlayer->GiveNamedItem("weapon_fists");
+	g_pGameRules->SpawnMutators(pPlayer);
 }
 
 //=========================================================
@@ -134,6 +137,7 @@ BOOL CHalfLifeRules :: AllowAutoTargetCrosshair( void )
 //=========================================================
 void CHalfLifeRules :: PlayerThink( CBasePlayer *pPlayer )
 {
+	g_pGameRules->UpdateMutatorMessage(pPlayer);
 }
 
 
