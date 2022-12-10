@@ -394,7 +394,7 @@ protected:
 	int m_iPlayersInArena[32];
 	int m_iCountDown;
 
-	float m_flCheckMutators;
+	char m_flCheckMutators[128];
 	float m_flChaosCheck;
 };
 

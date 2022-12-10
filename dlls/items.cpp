@@ -971,11 +971,11 @@ void CWorldRunes::Precache( )
 	UTIL_PrecacheOther("rune_cloak");
 }
 
-CBaseEntity *CWorldRunes::SelectSpawnPoint()
+CBaseEntity *CWorldRunes::SelectSpawnPoint(const char *spot)
 {
 	CBaseEntity *pSpot = NULL;
 	for ( int i = RANDOM_LONG(1,8); i > 0; i-- )
-		pSpot = UTIL_FindEntityByClassname( pSpot, "info_player_deathmatch" );
+		pSpot = UTIL_FindEntityByClassname( pSpot, spot);
 
 	return pSpot;
 }
@@ -1014,9 +1014,25 @@ void CWorldRunes::DropRune(CBasePlayer *pPlayer) {
 	rune->pev->velocity = gpGlobals->v_forward * 300 + gpGlobals->v_forward * 100;
 }
 
+const char *pPlaces[] =
+{
+	"info_intermission",
+	"info_player_start",
+	"item_healthkit",
+	"item_battery",
+	"ammo_rpgclip",
+	"ammo_9mmAR",
+	"ammo_ARgrenades",
+	"ammo_357",
+	"ammo_buckshot",
+	"ammo_9mmclip",
+	"ammo_gaussclip",
+	"ammo_crossbow",
+};
+
 void CWorldRunes::CreateRune(char *sz_RuneClass)
 {
-	CBaseEntity *m_pSpot = SelectSpawnPoint();
+	CBaseEntity *m_pSpot = SelectSpawnPoint("info_player_deathmatch");
 
 	if (m_pSpot == NULL)
 	{
@@ -1035,7 +1051,7 @@ void CWorldRunes::CreateRune(char *sz_RuneClass)
 
 	if (strstr(mutators.string, g_MutatorTurrets) ||
 		atoi(mutators.string) == MUTATOR_TURRETS) {
-		m_pSpot = SelectSpawnPoint();
+		m_pSpot = SelectSpawnPoint(pPlaces[RANDOM_LONG(0,ARRAYSIZE(pPlaces)-1)]);
 		if (m_pSpot)
 		{
 			CBaseEntity *turret = CBaseEntity::Create("monster_sentry",
@@ -1051,7 +1067,7 @@ void CWorldRunes::CreateRune(char *sz_RuneClass)
 
 	if (strstr(mutators.string, g_MutatorBarrels) ||
 		atoi(mutators.string) == MUTATOR_BARRELS) {
-		m_pSpot = SelectSpawnPoint();
+		m_pSpot = SelectSpawnPoint(pPlaces[RANDOM_LONG(0,ARRAYSIZE(pPlaces)-1)]);
 		if (m_pSpot)
 		{
 			CBaseEntity *barrel = CBaseEntity::Create("monster_barrel", 

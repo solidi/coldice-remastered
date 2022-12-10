@@ -129,8 +129,8 @@ CHalfLifeMultiplay :: CHalfLifeMultiplay()
 	}
 
 	ResetGameMode();
-	m_flCheckMutators = gpGlobals->time + 1.0;
-	m_flChaosCheck = gpGlobals->time + 25.0;
+	strcpy(m_flCheckMutators, CVAR_GET_STRING("mp_mutators"));// gpGlobals->time + 1.0;
+	m_flChaosCheck = gpGlobals->time + 4.0;
 }
 
 BOOL CHalfLifeMultiplay::ClientCommand( CBasePlayer *pPlayer, const char *pcmd )
@@ -199,25 +199,21 @@ void CHalfLifeMultiplay :: Think ( void )
 {
 	g_VoiceGameMgr.Update(gpGlobals->frametime);
 
-	if (strlen(mutators.string) &&
-		(m_flCheckMutators < gpGlobals->time || m_flChaosCheck < gpGlobals->time))
+	if ((strstr(mutators.string, g_MutatorChaos) ||
+		atoi(mutators.string) == MUTATOR_CHAOS))
 	{
-		if ((strstr(mutators.string, g_MutatorChaos) ||
-			atoi(mutators.string) == MUTATOR_CHAOS))
+		if (m_flChaosCheck < gpGlobals->time)
 		{
-			if (m_flChaosCheck < gpGlobals->time)
-			{
-				CBaseEntity *pWorld = CBaseEntity::Instance(NULL);
-				if (pWorld)
-				{
-					((CWorld *)pWorld)->RandomizeMutators();
-					CWorldRunes::Create(); // fire spawners like turrets if needed
-				}
+			CBaseEntity *pWorld = CBaseEntity::Instance(NULL);
+			if (pWorld)
+				((CWorld *)pWorld)->RandomizeMutators();
 
-				m_flChaosCheck = gpGlobals->time + 25.0;
-			}
+			m_flChaosCheck = gpGlobals->time + 45.0;
 		}
+	}
 
+	if (strlen(mutators.string) && strcmp(m_flCheckMutators, mutators.string) != 0)
+	{
 		if ((strstr(mutators.string, g_MutatorSlowmo) ||
 			atoi(mutators.string) == MUTATOR_SLOWMO) && CVAR_GET_FLOAT("sys_timescale") != 0.49f)
 			CVAR_SET_FLOAT("sys_timescale", 0.49);
@@ -244,7 +240,7 @@ void CHalfLifeMultiplay :: Think ( void )
 			CBasePlayer *pl = (CBasePlayer *)pPlayer;
 			if (pPlayer && pPlayer->IsPlayer() && !pl->IsObserver())
 			{
-				if (m_flChaosCheck > gpGlobals->time + 24)
+				if (m_flChaosCheck > gpGlobals->time + 44)
 					pl->m_iShowMutatorMessage = gpGlobals->time + 1.0;
 
 				if (strstr(mutators.string, g_MutatorTopsyTurvy) ||
@@ -304,7 +300,7 @@ void CHalfLifeMultiplay :: Think ( void )
 					CVAR_SET_FLOAT("sv_jumpheight", 45);
 			}
 		}
-		m_flCheckMutators = gpGlobals->time + 25.0;
+		strcpy(m_flCheckMutators, mutators.string); //m_flCheckMutators = gpGlobals->time + 25.0;
 	}
 
 	///// Check game rules /////
