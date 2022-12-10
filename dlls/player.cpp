@@ -3324,7 +3324,10 @@ edict_t *EntSelectSpawnPoint( CBaseEntity *pPlayer )
 			{
 				// if ent is a client, kill em (unless they are ourselves)
 				if ( ent->IsPlayer() && !(ent->edict() == player) )
+				{
+					ClearMultiDamage();
 					ent->TakeDamage( VARS(INDEXENT(0)), VARS(INDEXENT(0)), 300, DMG_GENERIC );
+				}
 			}
 			goto ReturnSpot;
 		}

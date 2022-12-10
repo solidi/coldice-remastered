@@ -194,6 +194,7 @@ void ClientKill( edict_t *pEntity )
 	pl->m_fNextSuicideTime = gpGlobals->time + 1;  // don't let them suicide for 5 seconds after suiciding
 
 	// have the player kill themself
+	ClearMultiDamage();
 	pev->health = 0;
 	pl->Killed( pev, GIB_NEVER );
 
