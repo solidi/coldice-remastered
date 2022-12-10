@@ -745,9 +745,10 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_jumpheight 45\" - Adjust the player's jump height\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_icesprites [0|1]\" - Switch between select ice or real environment sprites\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_randomweapon [0|1]\" - To spawn with a random weapon\n");
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_interactiveitems \"grenade;monster_satchel;monster_chumtoad;monster_snark;monster_barrel\"\" - A semicolon separated list of items that are \"interactive\" (kickable, pickupable)\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_interactiveitems \"grenade;monster_satchel;monster_chumtoad;monster_snark;monster_barrel;gib\"\" - A semicolon separated list of items that are \"interactive\" (kickable, pickupable)\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_snowballfight [0|1]\" - Replace all weapons with deadly snowballs!\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_mutators\" - Add mutators to gameplay\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_mutators \"chaos\"\" - randomly selects three mutators every 30 seconds!\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_mutators \"rocketcrowbar\"\" - spawn with a rocket crowbar, makes all rockets act drunk\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_mutators \"instagib\"\" - spawn with dual railguns that dole one hit kills\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_mutators \"volatile\"\" - where players blow up when fragged\n");
@@ -763,6 +764,10 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_mutators \"turrets\"\" - sentry guns randomly appear, firing bullets and rockets at everyone\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_mutators \"barrels\"\" - start with the gravitygun, flaming explosive barrels spawn to throw at others\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_mutators \"chumxplode\"\" - a killer chumtoad appears directly after an explosion\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_mutators \"santahat\"\" - everyone wears a santa hat and says hohoho randomly\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_mutators \"sanic\"\" - evil santa and sanic with a santa hat team up against you\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_mutators \"coolflesh\"\" - gibs stay longer, pick up gibs to eat and gain a healthkit worth of repair\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_mutators \"loopback\"\" - teleport to the place of your last frag\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_spawnweapons\" - Spawn weapons or not\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_disallowlist\" a list of entities that will not spawn\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_nukemode \"[0|1|2]\"\" - 2 - nuke kills all, 1 - radius damage, 0 - sharts nothing but bubbles\n");

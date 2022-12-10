@@ -36,6 +36,7 @@
 extern DLL_GLOBAL CGameRules	*g_pGameRules;
 extern DLL_GLOBAL BOOL	g_fGameOver;
 
+extern DLL_GLOBAL const char *g_MutatorChaos;
 extern DLL_GLOBAL const char *g_MutatorRocketCrowbar;
 extern DLL_GLOBAL const char *g_MutatorInstaGib;
 extern DLL_GLOBAL const char *g_MutatorVolatile;
@@ -48,6 +49,8 @@ extern DLL_GLOBAL const char *g_MutatorSlowmo;
 extern DLL_GLOBAL const char *g_MutatorIce;
 extern DLL_GLOBAL const char *g_MutatorTopsyTurvy;
 extern DLL_GLOBAL const char *g_MutatorBarrels;
+extern DLL_GLOBAL const char *g_MutatorLoopback;
+extern DLL_GLOBAL const char *g_MutatorMaxPack;
 
 extern int gmsgDeathMsg;	// client dll messages
 extern int gmsgScoreInfo;
@@ -126,6 +129,8 @@ CHalfLifeMultiplay :: CHalfLifeMultiplay()
 	}
 
 	ResetGameMode();
+	m_flCheckMutators = gpGlobals->time + 1.0;
+	m_flChaosCheck = gpGlobals->time + 25.0;
 }
 
 BOOL CHalfLifeMultiplay::ClientCommand( CBasePlayer *pPlayer, const char *pcmd )
@@ -194,9 +199,113 @@ void CHalfLifeMultiplay :: Think ( void )
 {
 	g_VoiceGameMgr.Update(gpGlobals->frametime);
 
-	if ((strstr(mutators.string, g_MutatorSlowmo) ||
-		atoi(mutators.string) == MUTATOR_SLOWMO) && CVAR_GET_FLOAT("sys_timescale") != 0.49)
-		CVAR_SET_FLOAT("sys_timescale", 0.49);
+	if (strlen(mutators.string) &&
+		(m_flCheckMutators < gpGlobals->time || m_flChaosCheck < gpGlobals->time))
+	{
+		if ((strstr(mutators.string, g_MutatorChaos) ||
+			atoi(mutators.string) == MUTATOR_CHAOS))
+		{
+			if (m_flChaosCheck < gpGlobals->time)
+			{
+				CBaseEntity *pWorld = CBaseEntity::Instance(NULL);
+				if (pWorld)
+				{
+					((CWorld *)pWorld)->RandomizeMutators();
+					CWorldRunes::Create(); // fire spawners like turrets if needed
+				}
+
+				m_flChaosCheck = gpGlobals->time + 25.0;
+			}
+		}
+
+		if ((strstr(mutators.string, g_MutatorSlowmo) ||
+			atoi(mutators.string) == MUTATOR_SLOWMO) && CVAR_GET_FLOAT("sys_timescale") != 0.49f)
+			CVAR_SET_FLOAT("sys_timescale", 0.49);
+		else
+		{
+			if ((!strstr(mutators.string, g_MutatorSlowmo) &&
+				atoi(mutators.string) != MUTATOR_SLOWMO) &&
+				CVAR_GET_FLOAT("sys_timescale") > 0.48f && CVAR_GET_FLOAT("sys_timescale") < 0.50f)
+				CVAR_SET_FLOAT("sys_timescale", 1.0);
+		}
+
+		if ((strstr(mutators.string, g_MutatorLightsOut) ||
+			atoi(mutators.string) == MUTATOR_LIGHTSOUT))
+		{
+			LIGHT_STYLE(0, "b");
+			CVAR_SET_STRING("mp_flashlight", "1");
+		}
+		else
+			LIGHT_STYLE(0, "m");
+
+		for (int i = 1; i <= gpGlobals->maxClients; i++)
+		{
+			CBaseEntity *pPlayer = UTIL_PlayerByIndex( i );
+			CBasePlayer *pl = (CBasePlayer *)pPlayer;
+			if (pPlayer && pPlayer->IsPlayer() && !pl->IsObserver())
+			{
+				if (m_flChaosCheck > gpGlobals->time + 24)
+					pl->m_iShowMutatorMessage = gpGlobals->time + 1.0;
+
+				if (strstr(mutators.string, g_MutatorTopsyTurvy) ||
+					atoi(mutators.string) == MUTATOR_TOPSYTURVY) {
+					g_engfuncs.pfnSetPhysicsKeyValue(pPlayer->edict(), "topsy", "1");
+				} else {
+					g_engfuncs.pfnSetPhysicsKeyValue(pPlayer->edict(), "topsy", "0");
+				}
+
+				if ((strstr(mutators.string, g_MutatorIce) ||
+					atoi(mutators.string) == MUTATOR_ICE))
+					pPlayer->pev->friction = 0.3;
+				else if (pPlayer->pev->friction == 0.3)
+					pPlayer->pev->friction = 1.0;
+
+				if ((strstr(mutators.string, g_MutatorMegaSpeed) ||
+					atoi(mutators.string) == MUTATOR_MEGASPEED))
+					g_engfuncs.pfnSetPhysicsKeyValue(pPlayer->edict(), "haste", "1");
+				else if (((CBasePlayer *)pPlayer)->m_fHasRune != RUNE_HASTE)
+					g_engfuncs.pfnSetPhysicsKeyValue(pPlayer->edict(), "haste", "0");
+
+				if (strstr(mutators.string, g_MutatorRocketCrowbar) ||
+					atoi(mutators.string) == MUTATOR_ROCKETCROWBAR) {
+					if (!pl->HasNamedPlayerItem("weapon_rocketcrowbar"))
+						pl->GiveNamedItem("weapon_rocketcrowbar");
+				}
+
+				if (strstr(mutators.string, g_MutatorInstaGib) ||
+					atoi(mutators.string) == MUTATOR_INSTAGIB) {
+					if (!pl->HasNamedPlayerItem("weapon_dual_railgun"))
+						pl->GiveNamedItem("weapon_dual_railgun");
+					pPlayer->GiveAmmo(URANIUM_MAX_CARRY, "uranium", URANIUM_MAX_CARRY);
+				}
+
+				if (strstr(mutators.string, g_MutatorPlumber) ||
+					atoi(mutators.string) == MUTATOR_PLUMBER) {
+					if (!pl->HasNamedPlayerItem("weapon_dual_wrench"))
+						pl->GiveNamedItem("weapon_dual_wrench");
+				}
+
+				if (strstr(mutators.string, g_MutatorBarrels) ||
+					atoi(mutators.string) == MUTATOR_BARRELS) {
+					if (!pl->HasNamedPlayerItem("weapon_gravitygun"))
+						pl->GiveNamedItem("weapon_gravitygun");
+				}
+			}
+
+			if ((strstr(mutators.string, g_MutatorSuperJump) ||
+				atoi(mutators.string) == MUTATOR_SUPERJUMP) && CVAR_GET_FLOAT("sv_jumpheight") != 299)
+			{
+				CVAR_SET_FLOAT("sv_jumpheight", 299);
+			}
+			else
+			{
+				if ((!strstr(mutators.string, g_MutatorSuperJump) &&
+					atoi(mutators.string) != MUTATOR_SUPERJUMP) && CVAR_GET_FLOAT("sv_jumpheight") == 299)
+					CVAR_SET_FLOAT("sv_jumpheight", 45);
+			}
+		}
+		m_flCheckMutators = gpGlobals->time + 25.0;
+	}
 
 	///// Check game rules /////
 	static int last_frags;
@@ -993,6 +1102,7 @@ void CHalfLifeMultiplay :: InitHUD( CBasePlayer *pl )
 	}
 
 	pl->m_iShownWelcomeMessage = gpGlobals->time + 4.0;
+	pl->m_iShowMutatorMessage = gpGlobals->time + 4.0;
 
 	if ( g_fGameOver )
 	{
@@ -1236,6 +1346,12 @@ void CHalfLifeMultiplay :: PlayerSpawn( CBasePlayer *pPlayer )
 		addDefault = FALSE;
 	}
 
+	if (strstr(mutators.string, g_MutatorTopsyTurvy) ||
+		atoi(mutators.string) == MUTATOR_TOPSYTURVY)
+		g_engfuncs.pfnSetPhysicsKeyValue(pPlayer->edict(), "topsy", "1");
+	else
+		g_engfuncs.pfnSetPhysicsKeyValue(pPlayer->edict(), "topsy", "0");
+
 	if ((strstr(mutators.string, g_MutatorMegaSpeed) ||
 		atoi(mutators.string) == MUTATOR_MEGASPEED))
 		g_engfuncs.pfnSetPhysicsKeyValue(pPlayer->edict(), "haste", "1");
@@ -1243,11 +1359,6 @@ void CHalfLifeMultiplay :: PlayerSpawn( CBasePlayer *pPlayer )
 	if ((strstr(mutators.string, g_MutatorIce) ||
 		atoi(mutators.string) == MUTATOR_ICE))
 		pPlayer->pev->friction = 0.3;
-
-	if (strstr(mutators.string, g_MutatorTopsyTurvy) ||
-		atoi(mutators.string) == MUTATOR_TOPSYTURVY) {
-		g_engfuncs.pfnSetPhysicsKeyValue(pPlayer->edict(), "topsy", "1");
-	}
 
 	if (strstr(mutators.string, g_MutatorRocketCrowbar) ||
 		atoi(mutators.string) == MUTATOR_ROCKETCROWBAR) {
@@ -1442,7 +1553,28 @@ void CHalfLifeMultiplay :: PlayerKilled( CBasePlayer *pVictim, entvars_t *pKille
 	{
 		// if a player dies in a deathmatch game and the killer is a client, award the killer some points
 		pKiller->frags += IPointsForKill( peKiller, pVictim );
-		
+
+		if (strstr(mutators.string, g_MutatorLoopback) ||
+			atoi(mutators.string) == MUTATOR_LOOPBACK)
+		{
+			MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
+				WRITE_BYTE( TE_TELEPORT	); 
+				WRITE_COORD(pKiller->origin.x);
+				WRITE_COORD(pKiller->origin.y);
+				WRITE_COORD(pKiller->origin.z);
+			MESSAGE_END();
+			UTIL_ScreenFade(peKiller, Vector(200,200,200), .15, .15, 200, FFADE_IN);
+
+			pKiller->origin = pVictim->pev->origin;
+
+			MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
+				WRITE_BYTE( TE_TELEPORT	); 
+				WRITE_COORD(pKiller->origin.x);
+				WRITE_COORD(pKiller->origin.y);
+				WRITE_COORD(pKiller->origin.z);
+			MESSAGE_END();
+		}
+
 		FireTargets( "game_playerkill", ktmp, ktmp, USE_TOGGLE, 0 );
 	}
 	else
@@ -2006,14 +2138,22 @@ float CHalfLifeMultiplay::FlHEVChargerRechargeTime( void )
 //=========================================================
 int CHalfLifeMultiplay::DeadPlayerWeapons( CBasePlayer *pPlayer )
 {
-	return GR_PLR_DROP_GUN_ACTIVE;
+	if (strstr(mutators.string, g_MutatorMaxPack) ||
+		atoi(mutators.string) == MUTATOR_MAXPACK)
+		return GR_PLR_DROP_GUN_ALL;
+	else
+		return GR_PLR_DROP_GUN_ACTIVE;
 }
 
 //=========================================================
 //=========================================================
 int CHalfLifeMultiplay::DeadPlayerAmmo( CBasePlayer *pPlayer )
 {
-	return GR_PLR_DROP_AMMO_ACTIVE;
+	if (strstr(mutators.string, g_MutatorMaxPack) ||
+		atoi(mutators.string) == MUTATOR_MAXPACK)
+		return GR_PLR_DROP_AMMO_ALL;
+	else
+		return GR_PLR_DROP_AMMO_ACTIVE;
 }
 
 edict_t *CHalfLifeMultiplay::GetPlayerSpawnSpot( CBasePlayer *pPlayer )

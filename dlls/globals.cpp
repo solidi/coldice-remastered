@@ -40,6 +40,7 @@ DLL_GLOBAL int			g_Language;
 
 extern const char *g_szMutators;
 
+DLL_GLOBAL const char *g_MutatorChaos = "chaos";
 DLL_GLOBAL const char *g_MutatorRocketCrowbar = "rocketcrowbar";
 DLL_GLOBAL const char *g_MutatorInstaGib = "instagib";
 DLL_GLOBAL const char *g_MutatorVolatile = "volatile";
@@ -55,5 +56,10 @@ DLL_GLOBAL const char *g_MutatorTopsyTurvy = "topsyturvy";
 DLL_GLOBAL const char *g_MutatorTurrets = "turrets";
 DLL_GLOBAL const char *g_MutatorBarrels = "barrels";
 DLL_GLOBAL const char *g_MutatorChumXplode = "chumxplode";
+DLL_GLOBAL const char *g_MutatorSantaHat = "santahat";
+DLL_GLOBAL const char *g_MutatorSanic = "sanic";
+DLL_GLOBAL const char *g_MutatorCoolFlesh = "coolflesh";
+DLL_GLOBAL const char *g_MutatorLoopback = "loopback";
+DLL_GLOBAL const char *g_MutatorMaxPack = "maxpack";
 
 DLL_GLOBAL int g_GameMode;

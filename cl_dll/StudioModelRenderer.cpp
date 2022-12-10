@@ -22,6 +22,8 @@
 #include "StudioModelRenderer.h"
 #include "GameStudioModelRenderer.h"
 
+#include "event_api.h"
+
 extern cvar_t *tfc_newmodels;
 extern cvar_t *m_pIceModels;
 
@@ -1236,7 +1238,10 @@ int CStudioModelRenderer::StudioDrawModel( int flags )
 		m_fDoInterp = 0;
 		
 		// draw as though it were a player
-		result = StudioDrawPlayer( flags, &deadplayer );
+		if (strstr(CVAR_GET_STRING("mp_mutators"), "sanic"))
+			result = 1;
+		else
+			result = StudioDrawPlayer( flags, &deadplayer );
 		
 		m_fDoInterp = save_interp;
 		return result;
@@ -1823,6 +1828,30 @@ StudioDrawPlayer
 */
 int CStudioModelRenderer::StudioDrawPlayer( int flags, entity_state_t *pplayer )
 {
+	if (strstr(CVAR_GET_STRING("mp_mutators"), "sanic"))
+	{
+		static TEMPENTITY *t[32];
+		int c = pplayer->number - 1;
+
+		if (t[c] == NULL) {
+			int model = gEngfuncs.pEventAPI->EV_FindModelIndex("sprites/sanic.spr");
+			t[c] = gEngfuncs.pEfxAPI->R_DefaultSprite(pplayer->origin, model, 0);
+			t[c]->entity.curstate.rendermode = kRenderNormal;
+			t[c]->entity.curstate.scale = 0.70;
+			t[c]->entity.curstate.framerate = 0;
+			t[c]->entity.curstate.frame = c % ((int)t[c]->frameMax - 1);
+			t[c]->clientIndex = c;
+			t[c]->flags |= FTENT_PERSIST;
+			t[c]->die = gEngfuncs.GetClientTime() + 15;
+		} else {
+			t[c]->entity.origin = pplayer->origin;
+			if (t[c]->die < gEngfuncs.GetClientTime())
+				t[c] = NULL;
+		}
+
+		return 1;
+	}
+
 	alight_t lighting;
 	vec3_t dir;
 
@@ -1945,6 +1974,10 @@ int CStudioModelRenderer::StudioDrawPlayer( int flags, entity_state_t *pplayer )
 		{
 			m_pCurrentEntity->curstate.body = 1; // force helmet
 		}
+
+		if (strstr(CVAR_GET_STRING("mp_mutators"), "santahat") ||
+			atoi(CVAR_GET_STRING("mp_mutators")) == MUTATOR_SANTAHAT)
+			m_pCurrentEntity->curstate.body = 2;
 
 		lighting.plightvec = dir;
 		IEngineStudio.StudioDynamicLight(m_pCurrentEntity, &lighting );

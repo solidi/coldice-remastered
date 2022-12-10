@@ -496,6 +496,7 @@ void W_Precache(void)
 	g_sModelIndexIceFireball = PRECACHE_MODEL ("sprites/ice_zerogxplode.spr");
 	g_sModelIndexFire = PRECACHE_MODEL ("sprites/fire.spr");
 	g_sModelIndexIceFire = PRECACHE_MODEL ("sprites/ice_fire.spr");
+	PRECACHE_MODEL ("sprites/sanic.spr");
 	PRECACHE_SOUND ("fire1.wav");
 
 	PRECACHE_MODEL ("models/v_leg.mdl");
@@ -507,6 +508,10 @@ void W_Precache(void)
 
 	PRECACHE_SOUND("freezing.wav");
 	PRECACHE_SOUND("wallclimb.wav");
+	PRECACHE_SOUND("delicious.wav");
+	PRECACHE_SOUND("hohoho.wav");
+	PRECACHE_SOUND("merrychristmas.wav");
+	PRECACHE_SOUND("sleighbell.wav");
 
 	g_Gibs = PRECACHE_MODEL ("models/w_hgibs.mdl");
 	g_Steamball = PRECACHE_MODEL ("sprites/stmbal1.spr");

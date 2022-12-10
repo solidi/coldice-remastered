@@ -46,7 +46,9 @@ extern DLL_GLOBAL	int			gDisplayTitle;
 
 DLL_GLOBAL extern const char *g_MutatorSuperJump;
 DLL_GLOBAL extern const char *g_MutatorLightsOut;
+DLL_GLOBAL extern const char *g_MutatorChaos;
 extern DLL_GLOBAL const char *g_szMutators[] = {
+	"chaos",
 	"rocketcrowbar",
 	"instagib",
 	"volatile",
@@ -62,6 +64,10 @@ extern DLL_GLOBAL const char *g_szMutators[] = {
 	"turrets",
 	"barrels",
 	"chumxplode",
+	"santahat",
+	"sanic",
+	"coolflesh",
+	"loopback",
 };
 
 extern void W_Precache(void);
@@ -540,7 +546,8 @@ void CWorld :: Spawn( void )
 	g_fGameOver = FALSE;
 	Precache( );
 	SetGameMode();
-	RandomizeMutators();
+	if (randommutators.value)
+		RandomizeMutators();
 	g_flWeaponCheat = CVAR_GET_FLOAT( "sv_cheats" );  // Is the impulse 101 command allowed?
 	if (CVAR_GET_FLOAT( "mp_allowrunes" ))
 		CWorldRunes::Create( );
@@ -742,30 +749,19 @@ void CWorld :: Precache( void )
 	{
 		CVAR_SET_FLOAT( "mp_defaultteam", 0 );
 	}
-
-	// Mutators
-	if ((strstr(mutators.string, g_MutatorSuperJump) ||
-		atoi(mutators.string) == MUTATOR_SUPERJUMP))
-	{
-		CVAR_SET_FLOAT("sv_jumpheight", 299);
-	}
-	else
-	{
-		if (CVAR_GET_FLOAT("sv_jumpheight") == 299)
-			CVAR_SET_FLOAT("sv_jumpheight", 45);
-	}
 }
 
 void CWorld :: RandomizeMutators( void )
 {
-	if (!randommutators.value)
-		return;
-
 	char result[128] = {""};
 	int count = 0;
+	if ((strstr(mutators.string, g_MutatorChaos) ||
+		atoi(mutators.string) == MUTATOR_CHAOS))
+		strcat(result, "chaos");
+
 	while (count < 3)
 	{
-		int index = RANDOM_LONG(0,(int)ARRAYSIZE(g_szMutators) - 1);
+		int index = RANDOM_LONG(1,(int)ARRAYSIZE(g_szMutators) - 1);
 		const char *tryIt = g_szMutators[index];
 		if (!strstr(result, tryIt))
 		{
