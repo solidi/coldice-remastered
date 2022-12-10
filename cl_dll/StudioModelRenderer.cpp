@@ -1238,7 +1238,8 @@ int CStudioModelRenderer::StudioDrawModel( int flags )
 		m_fDoInterp = 0;
 		
 		// draw as though it were a player
-		if (strstr(CVAR_GET_STRING("mp_mutators"), "sanic"))
+		if (strstr(CVAR_GET_STRING("mp_mutators"), "sanic") ||
+			atoi(CVAR_GET_STRING("mp_mutators")) == MUTATOR_SANIC)
 			result = 1;
 		else
 			result = StudioDrawPlayer( flags, &deadplayer );
@@ -1828,7 +1829,8 @@ StudioDrawPlayer
 */
 int CStudioModelRenderer::StudioDrawPlayer( int flags, entity_state_t *pplayer )
 {
-	if (strstr(CVAR_GET_STRING("mp_mutators"), "sanic"))
+	if (strstr(CVAR_GET_STRING("mp_mutators"), "sanic") ||
+		atoi(CVAR_GET_STRING("mp_mutators")) == MUTATOR_SANIC)
 	{
 		static TEMPENTITY *t[32];
 		int c = pplayer->number - 1;
