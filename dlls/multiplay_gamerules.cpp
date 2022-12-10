@@ -212,7 +212,7 @@ void CHalfLifeMultiplay :: Think ( void )
 		}
 	}
 
-	if (strlen(mutators.string) && strcmp(m_flCheckMutators, mutators.string) != 0)
+	if (strcmp(m_flCheckMutators, mutators.string) != 0)
 	{
 		if ((strstr(mutators.string, g_MutatorSlowmo) ||
 			atoi(mutators.string) == MUTATOR_SLOWMO) && CVAR_GET_FLOAT("sys_timescale") != 0.49f)
@@ -253,7 +253,7 @@ void CHalfLifeMultiplay :: Think ( void )
 				if ((strstr(mutators.string, g_MutatorIce) ||
 					atoi(mutators.string) == MUTATOR_ICE))
 					pPlayer->pev->friction = 0.3;
-				else if (pPlayer->pev->friction == 0.3)
+				else if (pPlayer->pev->friction > 0.2 && pPlayer->pev->friction < 0.4)
 					pPlayer->pev->friction = 1.0;
 
 				if ((strstr(mutators.string, g_MutatorMegaSpeed) ||
