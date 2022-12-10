@@ -2297,7 +2297,7 @@ void CBasePlayerWeapon::PunchAttack( BOOL holdingSomething )
 	m_trBootHit = tr;
 
 	SetThink( &CBasePlayerWeapon::EndPunch );
-	pev->nextthink = gpGlobals->time + 0.18;
+	pev->nextthink = gpGlobals->time + 0.28;
 
 	m_flNextPrimaryAttack = m_flNextSecondaryAttack = GetNextAttackDelay(0.3);
 	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + UTIL_SharedRandomFloat( m_pPlayer->random_seed, 10, 15 );
