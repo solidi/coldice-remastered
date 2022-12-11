@@ -512,8 +512,15 @@ void CHalfLifeMultiplay::LastManStanding( void )
 			CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
 
 			//player must exist, and must be alive
-			if ( plr && plr->IsPlayer() )
+			if ( plr && plr->IsPlayer() && !plr->HasDisconnected )
 			{
+				if ( plr->m_flForceToObserverTime && plr->m_flForceToObserverTime < gpGlobals->time )
+				{
+					edict_t *pentSpawnSpot = g_pGameRules->GetPlayerSpawnSpot( plr );
+					plr->StartObserver(plr->pev->origin, VARS(pentSpawnSpot)->angles);
+					plr->m_flForceToObserverTime = 0;
+				}
+
 				//player cannot be disconnected client
 				//and is currently in this game of LMS.
 				if ( plr->IsInArena && plr->pev->frags > 0 )
@@ -525,11 +532,12 @@ void CHalfLifeMultiplay::LastManStanding( void )
 				else
 				{
 					//for clients who connected while game in progress.
-					if ( plr->IsAlive() )
+					if ( plr->IsSpectator() )
 						ClientPrint(plr->pev, HUD_PRINTCENTER, "LMS round in progress.\n");
 					else {
 						// Send them to observer
-						plr->m_flForceToObserverTime = gpGlobals->time;
+						if (!plr->IsInArena)
+							plr->m_flForceToObserverTime = gpGlobals->time;
 					}
 				}
 			}
