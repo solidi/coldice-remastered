@@ -2207,8 +2207,8 @@ int	TeamFortressViewport::KeyInput( int down, int keynum, const char *pszCurrent
 	// Enter gets out of Spectator Mode by bringing up the Team Menu
 	if (m_iUser1 && gEngfuncs.Con_IsVisible() == false )
 	{
-		if ( down && (keynum == K_ENTER || keynum == K_KP_ENTER) )
-			ShowVGUIMenu( MENU_TEAM );
+		//if ( down && (keynum == K_ENTER || keynum == K_KP_ENTER) )
+			//ShowVGUIMenu( MENU_TEAM );
 	}
 
 	// Open Text Window?

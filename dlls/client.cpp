@@ -786,6 +786,7 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_roundlimit\" - Sets the maximum amount of game rounds before a map change\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_roundtimelimit\" - Sets the maximum amount of time a round will run\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_startwithlives\" - Sets the starting lifes during last man standing\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_roundfraglimit\" - Sets the max frags in a round during an 1 on 1 arena\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "For more, see readme.txt\n" );
 	}
 #ifdef _DEBUG

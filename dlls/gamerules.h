@@ -373,6 +373,7 @@ public:
 	// Cold Ice Remastered Game Modes
 	virtual void IcemanArena( void );
 	virtual void LastManStanding( void );
+	virtual void Arena( void );
 	virtual int CheckClients( void );
 	virtual void InsertClientsIntoArena ( void );
 	virtual BOOL CheckGameTimer( void );
@@ -402,6 +403,7 @@ protected:
 	BOOL _3secwarning;
 	int m_iPlayersInArena[32];
 	int m_iCountDown;
+	int m_iPlayer1, m_iPlayer2;
 };
 
 extern DLL_GLOBAL CGameRules*	g_pGameRules;
