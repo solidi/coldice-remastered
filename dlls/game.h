@@ -66,6 +66,7 @@ extern cvar_t   weather;
 extern cvar_t   randommutators;
 extern cvar_t   chaostime;
 extern cvar_t   gamemode;
+extern cvar_t   randomgamemodes;
 extern cvar_t   roundlimit;
 extern cvar_t   roundtimelimit;
 extern cvar_t   roundtimeleft;

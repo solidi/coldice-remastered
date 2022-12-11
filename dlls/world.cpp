@@ -786,6 +786,7 @@ const char *szGameModeList [] =
 	"iceman",
 	"lms",
 	"arena",
+	"snowball",
 };
 
 void CWorld :: SetGameMode( void )
@@ -793,16 +794,33 @@ void CWorld :: SetGameMode( void )
 	char textfile[64];
 	g_GameMode = -1;
 
-	for (int i = 0; i <= GAME_ARENA; i++)
+	// Randomize if set
+	if (CVAR_GET_FLOAT("mp_randomgamemodes") > 0)
+	{
+		CVAR_SET_STRING("mp_snowballfight", "0");
+		CVAR_SET_STRING("mp_gamemode",
+			szGameModeList[RANDOM_LONG(0,(int)ARRAYSIZE(szGameModeList) - 1)]);
+	}
+
+	for (int i = 0; i <= GAME_SNOWBALL; i++)
 	{
 		if (strcmp(szGameModeList[i], gamemode.string) == 0 || atoi(gamemode.string) == i)
 		{
 			g_GameMode = i;
 			ALERT(at_console,"i=%d\nGamemode set to: %s\n", i, szGameModeList[i]);
 
-			if (g_GameMode == GAME_ICEMAN)
+			// Set up starting information
+			switch (g_GameMode)
+			{
+			case GAME_ICEMAN:
 				CVAR_SET_STRING( "mp_teamlist", "commando;iceman" );
-			
+				break;
+
+			case GAME_SNOWBALL:
+				CVAR_SET_STRING("mp_snowballfight", "1");
+				break;
+			}
+
 			sprintf(textfile, "modes/%s.txt", szGameModeList[i]);
 			CVAR_SET_STRING("motdfile", textfile);
 		}
