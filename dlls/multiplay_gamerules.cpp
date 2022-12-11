@@ -1759,8 +1759,12 @@ void CHalfLifeMultiplay :: PlayerKilled( CBasePlayer *pVictim, entvars_t *pKille
 			case GAME_LMS:
 				pVictim->pev->frags -= 1;
 
-				if ( !pVictim->pev->frags )
+				if ( !pVictim->pev->frags ) {
 					UTIL_ClientPrintAll(HUD_PRINTTALK, UTIL_VarArgs("* %s has been eliminated from the round!\n", STRING(pVictim->pev->netname)));
+					MESSAGE_BEGIN( MSG_ONE_UNRELIABLE, gmsgPlayClientSound, NULL, pVictim->edict() );
+						WRITE_BYTE(CLIENT_SOUND_HULIMATING_DEAFEAT);
+					MESSAGE_END();
+				}
 				break;
 		}
 	}
