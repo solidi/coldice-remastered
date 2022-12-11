@@ -784,6 +784,7 @@ const char *szGameModeList [] =
 {
 	"ffa",
 	"iceman",
+	"lms",
 };
 
 void CWorld :: SetGameMode( void )
@@ -791,13 +792,12 @@ void CWorld :: SetGameMode( void )
 	char textfile[64];
 	g_GameMode = -1;
 
-	for (int i = 0; i <= GAME_ICEMAN; i++)
+	for (int i = 0; i <= GAME_LMS; i++)
 	{
 		if (strcmp(szGameModeList[i], gamemode.string) == 0 || atoi(gamemode.string) == i)
 		{
 			g_GameMode = i;
 			ALERT(at_console,"i=%d\nGamemode set to: %s\n", i, szGameModeList[i]);
-
 
 			if (g_GameMode == GAME_ICEMAN)
 				CVAR_SET_STRING( "mp_teamlist", "commando;iceman" );
