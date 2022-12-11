@@ -815,6 +815,7 @@ typedef struct
 #define GAME_ICEMAN 1
 #define GAME_LMS 2
 #define GAME_ARENA 3
+#define GAME_SNOWBALL 4
 
 #define CLIENT_SOUND_PREPAREFORBATTLE 1
 #define CLIENT_SOUND_OUTSTANDING 2
