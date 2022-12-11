@@ -122,8 +122,6 @@ CHalfLifeMultiplay :: CHalfLifeMultiplay()
 	}
 
 	ResetGameMode();
-	//strcpy(m_flCheckMutators, CVAR_GET_STRING("mp_mutators"));// gpGlobals->time + 1.0;
-	//m_flChaosCheck = gpGlobals->time + 4.0;
 }
 
 BOOL CHalfLifeMultiplay::ClientCommand( CBasePlayer *pPlayer, const char *pcmd )
@@ -283,6 +281,9 @@ void CHalfLifeMultiplay :: Think ( void )
 	{
 		case GAME_ICEMAN:
 			IcemanArena();
+			break;
+		case GAME_LMS:
+			LastManStanding();
 			break;
 	}
 
@@ -479,6 +480,141 @@ void CHalfLifeMultiplay::IcemanArena( void )
 	flUpdateTime = gpGlobals->time + 1.5;
 }
 
+void CHalfLifeMultiplay::LastManStanding( void )
+{
+	if ( flUpdateTime > gpGlobals->time )
+		return;
+
+	if ( m_flRoundTimeLimit )
+	{
+		if ( CheckGameTimer() )
+			return;
+	}
+
+//===================================================
+
+	//access this when game is in progress.
+	//we are checking for the last man here.
+
+//===================================================
+
+	if ( g_GameInProgress )
+	{
+		int clients_alive = 0;
+		int client_index = 0;
+		const char *client_name;
+
+		for ( int i = 1; i <= gpGlobals->maxClients; i++ )
+		{
+			CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
+
+			//player must exist, and must be alive
+			if ( plr && plr->IsPlayer() )
+			{
+				//player cannot be disconnected client
+				//and is currently in this game of LMS.
+				if ( plr->IsInArena && plr->pev->frags > 0 )
+				{
+					clients_alive++;
+					client_index = i;
+					client_name = STRING(plr->pev->netname);
+				}
+				else
+				{
+					//for clients who connected while game in progress.
+					if ( plr->IsAlive() )
+						ClientPrint(plr->pev, HUD_PRINTCENTER, "LMS round in progress.\n");
+					else {
+						// Send them to observer
+						plr->m_flForceToObserverTime = gpGlobals->time;
+					}
+				}
+			}
+		}
+
+		//found victor / or draw.
+		if ( clients_alive <= 1 )
+		{
+			//stop timer / end game.
+			m_flRoundTimeLimit = 0;
+			g_GameInProgress = FALSE;
+
+			if ( clients_alive == 1 )
+			{
+				UTIL_ClientPrintAll(HUD_PRINTCENTER, UTIL_VarArgs("%s is the last man standing!\n", client_name ));
+
+				CheckRounds();
+
+				CBasePlayer *pl = (CBasePlayer *)UTIL_PlayerByIndex( client_index );
+				MESSAGE_BEGIN( MSG_ONE_UNRELIABLE, gmsgPlayClientSound, NULL, pl->edict() );
+					WRITE_BYTE(CLIENT_SOUND_LMS);
+				MESSAGE_END();
+				DisplayWinnersGoods( pl );
+			}	
+			else
+			{
+				UTIL_ClientPrintAll(HUD_PRINTCENTER, "No man is left standing!\n");
+			}
+
+			flUpdateTime = gpGlobals->time + 5.0;
+			return;
+		}
+
+		flUpdateTime = gpGlobals->time;
+		return;
+	}
+
+//===================================================
+
+	//if the game is not in progress
+	//make sure there is more than one player
+	//dub and recheck then spawn the 
+	//players out of observer.
+
+//===================================================
+
+	int clients = 0;
+	clients = CheckClients();
+
+	if ( clients > 1 )
+	{
+		if ( m_iCountDown > 0 )
+		{
+			if (m_iCountDown == 2) {
+				MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
+					WRITE_BYTE(CLIENT_SOUND_PICKUPYOURWEAPON);
+				MESSAGE_END();
+			}
+			UTIL_ClientPrintAll(HUD_PRINTCENTER,
+				UTIL_VarArgs("Prepare for LMS battle\n\n%i...\n", m_iCountDown));
+			SuckAllToSpectator(); // in case players join during a countdown.
+			m_iCountDown--;
+			flUpdateTime = gpGlobals->time + 1.0;
+			return;
+		}
+
+		ALERT(at_console, "Players in LMS: ");
+
+		//frags + time.
+		SetRoundLimits();
+		InsertClientsIntoArena();
+		ALERT(at_console, "\n");
+
+		m_iCountDown = 3;
+		
+		g_GameInProgress = TRUE;
+		UTIL_ClientPrintAll(HUD_PRINTCENTER, "Last man standing has begun!\n");
+	}
+	else
+	{
+		SuckAllToSpectator();
+		m_flRoundTimeLimit = 0;
+		UTIL_ClientPrintAll(HUD_PRINTCENTER, "Waiting for other players to begin\n\n'LMS'\n");
+	}
+
+	flUpdateTime = gpGlobals->time + 5.0;
+}
+
 int CHalfLifeMultiplay::CheckClients ( void )
 {
 	int clients = 0;
@@ -511,10 +647,12 @@ void CHalfLifeMultiplay::InsertClientsIntoArena ( void )
 
 		if ( plr && plr->IsPlayer() )
 		{ 
-			ALERT(at_aiconsole, "485 - sending gmsgScoreInfo\n");
 			MESSAGE_BEGIN( MSG_ALL, gmsgScoreInfo );
 			WRITE_BYTE( ENTINDEX(plr->edict()) );
-			WRITE_SHORT( 0 );
+			if ( g_GameMode == GAME_LMS )
+				WRITE_SHORT( plr->pev->frags = startwithlives.value );
+			else
+				WRITE_SHORT( 0 );
 			WRITE_SHORT( plr->m_iDeaths = 0 );
 			WRITE_SHORT( 0 );
 			WRITE_SHORT( 0 );
@@ -696,7 +834,6 @@ void CHalfLifeMultiplay::SuckAllToSpectator( void )
 
 		if ( pPlayer && pPlayer->IsPlayer() && !pPlayer->IsSpectator() )
 		{ 
-			ALERT(at_aiconsole, "649 - sending gmsgScoreInfo\n");
 			MESSAGE_BEGIN( MSG_ALL, gmsgScoreInfo );
 			WRITE_BYTE( ENTINDEX(pPlayer->edict()) );
 			WRITE_SHORT( pPlayer->pev->frags = 0 );
@@ -1281,6 +1418,16 @@ BOOL CHalfLifeMultiplay :: FPlayerCanRespawn( CBasePlayer *pPlayer )
 
 		return FALSE;
 	}
+	else if ( g_GameMode == GAME_LMS )
+	{
+		if ( pPlayer->pev->frags <= 0 )
+		{
+			if ( !pPlayer->m_flForceToObserverTime )
+				pPlayer->m_flForceToObserverTime = gpGlobals->time + 3.0;
+
+			return FALSE;
+		}
+	}
 
 	return TRUE;
 }
@@ -1305,6 +1452,8 @@ int CHalfLifeMultiplay :: IPointsForKill( CBasePlayer *pAttacker, CBasePlayer *p
 {
 	if ( pAttacker->m_fHasRune == RUNE_FRAG )
 		return 2;
+	else if ( g_GameMode == GAME_LMS )
+		return 0;
 	else
 		return 1;
 }
@@ -1343,6 +1492,12 @@ void CHalfLifeMultiplay :: PlayerKilled( CBasePlayer *pVictim, entvars_t *pKille
 						MESSAGE_END();
 					}
 				}
+				break;
+			case GAME_LMS:
+				pVictim->pev->frags -= 1;
+
+				if ( !pVictim->pev->frags )
+					UTIL_ClientPrintAll(HUD_PRINTTALK, UTIL_VarArgs("* %s has been eliminated from the round!\n", STRING(pVictim->pev->netname)));
 				break;
 		}
 	}

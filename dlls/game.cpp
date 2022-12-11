@@ -72,6 +72,7 @@ cvar_t	gamemode = {"mp_gamemode","ffa", FCVAR_SERVER };
 cvar_t	roundlimit = {"mp_roundlimit","0", FCVAR_SERVER };
 cvar_t	roundtimelimit = {"mp_roundtimelimit","2", FCVAR_SERVER };
 cvar_t	roundtimeleft = {"mp_roundtimeleft","0", FCVAR_SERVER | FCVAR_UNLOGGED };
+cvar_t	startwithlives = {"mp_startwithlives","5", FCVAR_SERVER };
 
 cvar_t  allow_spectators = { "allow_spectators", "0.0", FCVAR_SERVER };		// 0 prevents players from being spectators
 
@@ -684,6 +685,7 @@ void GameDLLInit( void )
 	CVAR_REGISTER(&roundlimit);
 	CVAR_REGISTER(&roundtimelimit);
 	CVAR_REGISTER(&roundtimeleft);
+	CVAR_REGISTER(&startwithlives);
 
 	CVAR_REGISTER (&mp_chattime);
 

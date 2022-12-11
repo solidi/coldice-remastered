@@ -147,6 +147,9 @@ void CHalfLifeTeamplay :: Think ( void )
 		case GAME_ICEMAN:
 			IcemanArena();
 			break;
+		case GAME_LMS:
+			LastManStanding();
+			break;
 	}
 }
 
