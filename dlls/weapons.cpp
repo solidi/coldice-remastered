@@ -1286,8 +1286,12 @@ BOOL CBasePlayerWeapon :: DefaultDeploy( char *szViewModel, char *szWeaponModel,
 		return FALSE;
 
 	m_pPlayer->TabulateAmmo();
+	if (szWeaponModel == iStringNull)
+		m_pPlayer->pev->weaponmodel = 0;
+	else
+		m_pPlayer->pev->weaponmodel = MAKE_STRING(szWeaponModel);
 	m_pPlayer->pev->viewmodel = MAKE_STRING(szViewModel);
-	m_pPlayer->pev->weaponmodel = MAKE_STRING(szWeaponModel);
+
 	strcpy( m_pPlayer->m_szAnimExtention, szAnimExt );
 	SendWeaponAnim( iAnim, skiplocal, body );
 
