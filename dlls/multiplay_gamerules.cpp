@@ -285,6 +285,9 @@ void CHalfLifeMultiplay :: Think ( void )
 		case GAME_LMS:
 			LastManStanding();
 			break;
+		case GAME_ARENA:
+			Arena();
+			break;
 	}
 
 #ifdef _DEBUG
@@ -615,6 +618,237 @@ void CHalfLifeMultiplay::LastManStanding( void )
 	flUpdateTime = gpGlobals->time + 5.0;
 }
 
+void CHalfLifeMultiplay::Arena ( void )
+{
+	if ( flUpdateTime > gpGlobals->time )
+		return;
+
+	if ( m_flRoundTimeLimit )
+	{
+		if ( CheckGameTimer() )
+			return;
+	}
+
+	if ( g_GameInProgress )
+	{
+		CBasePlayer *pPlayer1 = (CBasePlayer *)UTIL_PlayerByIndex( m_iPlayer1 );
+		CBasePlayer *pPlayer2 = (CBasePlayer *)UTIL_PlayerByIndex( m_iPlayer2 );
+
+		// when a player disconnects...
+		if ( pPlayer1 == NULL || pPlayer2 == NULL ||
+			pPlayer1->HasDisconnected || pPlayer2->HasDisconnected )
+		{
+			//stop timer / end game.
+			m_flRoundTimeLimit = 0;
+			g_GameInProgress = FALSE;
+
+			CheckRounds();
+
+			if (pPlayer1->HasDisconnected && pPlayer1->HasDisconnected)
+			{
+				UTIL_ClientPrintAll(HUD_PRINTCENTER,
+					UTIL_VarArgs("No victors, starting another round.\n"));
+				MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
+					WRITE_BYTE(CLIENT_SOUND_HULIMATING_DEAFEAT);
+				MESSAGE_END();
+			}
+			else
+			{
+				if ( pPlayer1->HasDisconnected )
+				{
+					UTIL_ClientPrintAll(HUD_PRINTCENTER,
+						UTIL_VarArgs("%s is the victor!\n",
+						STRING(pPlayer2->pev->netname)));
+					DisplayWinnersGoods( pPlayer2 );
+					MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
+						WRITE_BYTE(CLIENT_SOUND_OUTSTANDING);
+					MESSAGE_END();
+				}
+				else
+				{
+					UTIL_ClientPrintAll(HUD_PRINTCENTER,
+						UTIL_VarArgs("%s is the victor!\n",
+						STRING(pPlayer1->pev->netname)));
+					DisplayWinnersGoods( pPlayer1 );
+					MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
+						WRITE_BYTE(CLIENT_SOUND_OUTSTANDING);
+					MESSAGE_END();
+				}
+			}
+
+			flUpdateTime = gpGlobals->time + 5.0;
+			return;
+		}
+
+		for ( int i = 1; i <= gpGlobals->maxClients; i++ )
+		{
+			CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
+
+			//player must exist
+			if ( plr && plr->IsPlayer() && !plr->HasDisconnected )
+			{
+				// Force spectate on those that died.
+				if ( plr != pPlayer1 && plr != pPlayer2 &&
+					plr->m_flForceToObserverTime && plr->m_flForceToObserverTime < gpGlobals->time )
+				{
+					edict_t *pentSpawnSpot = g_pGameRules->GetPlayerSpawnSpot( plr );
+					plr->StartObserver(plr->pev->origin, VARS(pentSpawnSpot)->angles);
+					plr->m_flForceToObserverTime = 0;
+				}
+
+				// is currently in this game of arena.
+				// and frags are >= set server value.
+				if ( plr->IsInArena && plr->pev->frags >= roundfraglimit.value )
+				{
+					//stop timer / end game.
+					m_flRoundTimeLimit = 0;
+					g_GameInProgress = FALSE;
+
+					UTIL_ClientPrintAll(HUD_PRINTCENTER, UTIL_VarArgs("%s is the victor!\n", STRING(plr->pev->netname)/*client_name*/ ));
+
+					CheckRounds();
+
+					DisplayWinnersGoods( plr );
+					MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
+						WRITE_BYTE(CLIENT_SOUND_OUTSTANDING);
+					MESSAGE_END();
+					flUpdateTime = gpGlobals->time + 5.0;
+					return;
+				}
+				else
+				{
+					//for clients who connected while game in progress.
+					if ( plr->IsSpectator() )
+						ClientPrint(plr->pev, HUD_PRINTCENTER, 
+							UTIL_VarArgs("Arena in progress\n%s (%.0f/%.0f)\nVs.\n%s (%.0f/%.0f)\n",
+							STRING(pPlayer1->pev->netname),
+							pPlayer1->pev->health,
+							pPlayer1->pev->armorvalue,
+							STRING(pPlayer2->pev->netname),
+							pPlayer2->pev->health,
+							pPlayer2->pev->armorvalue));
+					else {
+						// Send them to observer
+						if (!plr->IsInArena)
+							plr->m_flForceToObserverTime = gpGlobals->time;
+					}
+				}
+			}
+		}
+
+		flUpdateTime = gpGlobals->time + 1.5;
+		return;
+	}
+
+//=======================================================
+// execute below if we are waiting for players to join
+//=======================================================
+
+	int clients = CheckClients();
+
+	ALERT( at_notice, UTIL_VarArgs("CheckClients(): %i\n", clients ));
+
+	if ( clients > 1 )
+	{
+		if ( m_iCountDown > 0 )
+		{
+			if (m_iCountDown == 2) {
+				MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
+					WRITE_BYTE(CLIENT_SOUND_PREPARETOFIGHT);
+				MESSAGE_END();
+			}
+			SuckAllToSpectator(); // in case players join during a countdown.
+			UTIL_ClientPrintAll(HUD_PRINTCENTER,
+				UTIL_VarArgs("Prepare for Arena battle\n\n%i...\n", m_iCountDown));
+			m_iCountDown--;
+			flUpdateTime = gpGlobals->time + 1.0;
+			return;
+		}
+
+		ALERT(at_console, "Players in Arena: ");
+
+		m_iPlayer1 = m_iPlayersInArena[RANDOM_LONG( 0, clients-1 )];
+		m_iPlayer2 = m_iPlayersInArena[RANDOM_LONG( 0, clients-1 )];
+
+		while ( m_iPlayer1 == m_iPlayer2 )
+		{
+			m_iPlayer2 = RANDOM_LONG( 0, m_iPlayersInArena[RANDOM_LONG( 0, clients-1 )] );
+		}
+
+		ALERT( at_notice,
+			UTIL_VarArgs("player1: %i | player2: %i \n",
+			m_iPlayer1, m_iPlayer2 ));
+
+		CBasePlayer *pPlayer1 = (CBasePlayer *)UTIL_PlayerByIndex( m_iPlayer1 );
+		CBasePlayer *pPlayer2 = (CBasePlayer *)UTIL_PlayerByIndex( m_iPlayer2 );
+
+		//frags + time
+		SetRoundLimits();
+
+		//Should really be using InsertClientsIntoArena...
+		for ( int i = 1; i <= gpGlobals->maxClients; i++ )
+		{
+			CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
+
+			if ( plr && plr->IsPlayer() )
+			{ 
+				if ( m_iPlayer1 == i || m_iPlayer2 == i )
+				{
+					MESSAGE_BEGIN( MSG_ALL, gmsgScoreInfo );
+					WRITE_BYTE( ENTINDEX(plr->edict()) );
+					WRITE_SHORT( plr->pev->frags = 0 );
+					WRITE_SHORT( plr->m_iDeaths = 0 );
+					WRITE_SHORT( 0 );
+					WRITE_SHORT( 0 );
+					MESSAGE_END();
+
+					ALERT(at_console, "| %s ", STRING(plr->pev->netname) );
+
+					plr->ExitObserver();
+					plr->IsInArena = TRUE;
+					plr->m_iGameModePlays++;
+				}
+				else
+				{
+					if ( !plr->IsSpectator() )
+					{
+						//just incase player played previous round
+						MESSAGE_BEGIN( MSG_ALL, gmsgScoreInfo );
+						WRITE_BYTE( ENTINDEX(plr->edict()) );
+						WRITE_SHORT( plr->pev->frags = 0 );
+						WRITE_SHORT( plr->m_iDeaths = 0 );
+						WRITE_SHORT( 0 );
+						WRITE_SHORT( 0 );
+						MESSAGE_END();
+
+						edict_t *pentSpawnSpot = g_pGameRules->GetPlayerSpawnSpot(plr);
+						plr->StartObserver(plr->pev->origin, VARS(pentSpawnSpot)->angles);
+					}
+				}
+			}
+		}
+
+		ALERT(at_console, "\n");
+
+		m_iCountDown = 3;
+
+		g_GameInProgress = TRUE;
+		UTIL_ClientPrintAll(HUD_PRINTCENTER,
+			UTIL_VarArgs("Arena has begun!\n\n%s Vs. %s",
+			STRING(pPlayer1->pev->netname),
+			STRING(pPlayer2->pev->netname)));
+	}
+	else
+	{
+		SuckAllToSpectator();
+		m_flRoundTimeLimit = 0;
+		UTIL_ClientPrintAll(HUD_PRINTCENTER, "Waiting for other players to begin\n\n'Arena'\n");
+	}
+
+
+	flUpdateTime = gpGlobals->time + 5.0;
+}
+
 int CHalfLifeMultiplay::CheckClients ( void )
 {
 	int clients = 0;
@@ -651,6 +885,8 @@ void CHalfLifeMultiplay::InsertClientsIntoArena ( void )
 			WRITE_BYTE( ENTINDEX(plr->edict()) );
 			if ( g_GameMode == GAME_LMS )
 				WRITE_SHORT( plr->pev->frags = startwithlives.value );
+			else if ( g_GameMode == GAME_ARENA  )
+				WRITE_SHORT( plr->pev->frags = 0 );
 			else
 				WRITE_SHORT( 0 );
 			WRITE_SHORT( plr->m_iDeaths = 0 );
@@ -1411,15 +1647,16 @@ void CHalfLifeMultiplay :: PlayerSpawn( CBasePlayer *pPlayer )
 //=========================================================
 BOOL CHalfLifeMultiplay :: FPlayerCanRespawn( CBasePlayer *pPlayer )
 {
-	if ( g_GameMode == GAME_ICEMAN )
+	switch (g_GameMode)
 	{
+	case GAME_ICEMAN:
 		if ( !pPlayer->m_flForceToObserverTime )
 			pPlayer->m_flForceToObserverTime = gpGlobals->time + 3.0;
 
 		return FALSE;
-	}
-	else if ( g_GameMode == GAME_LMS )
-	{
+		break;
+
+	case GAME_LMS:
 		if ( pPlayer->pev->frags <= 0 )
 		{
 			if ( !pPlayer->m_flForceToObserverTime )
@@ -1427,6 +1664,24 @@ BOOL CHalfLifeMultiplay :: FPlayerCanRespawn( CBasePlayer *pPlayer )
 
 			return FALSE;
 		}
+		break;
+
+	case GAME_ARENA:
+		if ( !g_GameInProgress )
+			return FALSE; 
+
+		CBasePlayer *pPlayer1 = (CBasePlayer *)UTIL_PlayerByIndex( m_iPlayer1 );
+		CBasePlayer *pPlayer2 = (CBasePlayer *)UTIL_PlayerByIndex( m_iPlayer2 );
+
+		if (pPlayer1 && pPlayer1 == pPlayer)
+			return TRUE;
+		if (pPlayer2 && pPlayer2 == pPlayer)
+			return TRUE;
+
+		if ( !pPlayer->m_flForceToObserverTime )
+				pPlayer->m_flForceToObserverTime = gpGlobals->time + 3.0;
+		return FALSE;
+		break;
 	}
 
 	return TRUE;

@@ -785,6 +785,7 @@ const char *szGameModeList [] =
 	"ffa",
 	"iceman",
 	"lms",
+	"arena",
 };
 
 void CWorld :: SetGameMode( void )
@@ -792,7 +793,7 @@ void CWorld :: SetGameMode( void )
 	char textfile[64];
 	g_GameMode = -1;
 
-	for (int i = 0; i <= GAME_LMS; i++)
+	for (int i = 0; i <= GAME_ARENA; i++)
 	{
 		if (strcmp(szGameModeList[i], gamemode.string) == 0 || atoi(gamemode.string) == i)
 		{
@@ -810,8 +811,8 @@ void CWorld :: SetGameMode( void )
 	if ( g_GameMode == -1 )
 	{
 		g_GameMode = 0;
-		//CVAR_SET_STRING( "motdfile", "ffa.txt");
-		//CVAR_SET_STRING( "hla_gamemode", "ffa" );
+		CVAR_SET_STRING( "motdfile", "motd.txt");
+		CVAR_SET_STRING( "mp_gamemode", "ffa" );
 	}
 }
 

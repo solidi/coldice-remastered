@@ -69,10 +69,11 @@ cvar_t	weather = {"sv_weather","1", FCVAR_SERVER };
 cvar_t	randommutators = {"mp_randommutators","0", FCVAR_SERVER };
 cvar_t	chaostime = {"mp_chaostime","45", FCVAR_SERVER };
 cvar_t	gamemode = {"mp_gamemode","ffa", FCVAR_SERVER };
-cvar_t	roundlimit = {"mp_roundlimit","0", FCVAR_SERVER };
-cvar_t	roundtimelimit = {"mp_roundtimelimit","2", FCVAR_SERVER };
+cvar_t	roundlimit = {"mp_roundlimit","10", FCVAR_SERVER };
+cvar_t	roundtimelimit = {"mp_roundtimelimit","5", FCVAR_SERVER };
 cvar_t	roundtimeleft = {"mp_roundtimeleft","0", FCVAR_SERVER | FCVAR_UNLOGGED };
 cvar_t	startwithlives = {"mp_startwithlives","5", FCVAR_SERVER };
+cvar_t	roundfraglimit = {"mp_roundfraglimit","5", FCVAR_SERVER };
 
 cvar_t  allow_spectators = { "allow_spectators", "0.0", FCVAR_SERVER };		// 0 prevents players from being spectators
 
@@ -686,6 +687,7 @@ void GameDLLInit( void )
 	CVAR_REGISTER(&roundtimelimit);
 	CVAR_REGISTER(&roundtimeleft);
 	CVAR_REGISTER(&startwithlives);
+	CVAR_REGISTER(&roundfraglimit);
 
 	CVAR_REGISTER (&mp_chattime);
 
