@@ -405,7 +405,7 @@ int CNuke::GetItemInfo(ItemInfo *p)
 	p->pszAmmo1 = "nuke";
 	p->iMaxAmmo1 = NUKE_MAX_CARRY;
 	p->pszAmmo2 = NULL;
-	p->iMaxAmmo2 = 1;
+	p->iMaxAmmo2 = -1;
 	p->iMaxClip = WEAPON_NOCLIP;
 	p->iSlot = 3;
 	p->iPosition = 7;
@@ -491,6 +491,7 @@ void CNuke::FireNuke(BOOL withCamera)
 	else
 	{
 		PlayEmptySound( );
+		m_flNextPrimaryAttack = m_flNextSecondaryAttack = GetNextAttackDelay(0.15);
 	}
 }
 
