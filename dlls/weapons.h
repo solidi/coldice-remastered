@@ -436,11 +436,11 @@ public:
 	TraceResult m_trBootHit;
 	void StartKick( BOOL holdingSomething );
 	void KickAttack( BOOL holdingSomething );
-	void EndKick( void );
+	void EXPORT EndKick( void );
 
 	void StartPunch( BOOL holdingSomething );
 	void PunchAttack( BOOL holdingSomething );
-	void EndPunch( void );
+	void EXPORT EndPunch( void );
 	
 	int	PrimaryAmmoIndex(); 
 	int	SecondaryAmmoIndex(); 
@@ -600,7 +600,7 @@ public:
 	void Holster( int skiplocal );
 	void Reload( void );
 	void WeaponIdle( void );
-	void AddSilencer( void );
+	void EXPORT AddSilencer( void );
 	BOOL ChangeModel( void );
 
 	int m_iSilencer;
@@ -1309,8 +1309,8 @@ public:
 	BOOL DeployLowKey( void );
 	BOOL Deploy( void );
 	BOOL IsUseable( void );
-	void BlowThink( void );
-	void GoneThink( void );
+	void EXPORT BlowThink( void );
+	void EXPORT GoneThink( void );
 	void RetireThink( void );
 
 	void Holster( int skiplocal = 0 );
@@ -1754,7 +1754,7 @@ public:
 	BOOL CanHolster( void );
 	void Holster( int skiplocal = 0 );
 	void WeaponIdle( void );
-	void Throw( void );
+	void EXPORT Throw( void );
 
 	virtual BOOL UseDecrement( void )
 	{

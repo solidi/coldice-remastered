@@ -42,7 +42,7 @@ public:
 	static void DropRune(CBasePlayer *pPlayer);
 	static void ResetPlayer(CBasePlayer *pPlayer);
 	void Spawn( void );
-	void SpawnRunes( void );
+	void EXPORT SpawnRunes( void );
 	void Precache( void );
 	void CreateRune(char *sz_RuneClass);
 
