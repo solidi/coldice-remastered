@@ -468,10 +468,7 @@ void W_Precache(void)
 	UTIL_PrecacheOther( "monster_sentry" );
 
 #if !defined( OEM_BUILD ) && !defined( HLDEMO_BUILD )
-	if ( g_pGameRules->IsDeathmatch() )
-	{
-		UTIL_PrecacheOther( "weaponbox" );// container for dropped deathmatch weapons
-	}
+	UTIL_PrecacheOther( "weaponbox" );// container for dropped deathmatch weapons
 #endif
 
 	g_sModelIndexFireball = PRECACHE_MODEL ("sprites/zerogxplode.spr");// fireball
@@ -1149,6 +1146,11 @@ int CBasePlayerWeapon::UpdateClientData( CBasePlayer *pPlayer )
 
 void CBasePlayerWeapon::SendWeaponAnim( int iAnim, int skiplocal, int body )
 {
+	if ( m_pPlayer == NULL )
+	{
+		return;
+	}
+
 	if ( UseDecrement() )
 		skiplocal = 1;
 	else

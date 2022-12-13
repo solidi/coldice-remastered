@@ -1897,7 +1897,8 @@ engine sets cd to 0 before calling.
 void UpdateClientData ( const edict_t *ent, int sendweapons, struct clientdata_s *cd )
 {
 	CBasePlayer* ppl = (CBasePlayer*)CBasePlayer::Instance((entvars_t *)&ent->v);
-	cd->iuser4 = ppl->m_iWeapons2;
+	if (ppl)
+		cd->iuser4 = ppl->m_iWeapons2;
 
 	if ( !ent || !ent->pvPrivateData )
 		return;
