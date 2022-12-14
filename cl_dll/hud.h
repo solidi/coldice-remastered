@@ -711,9 +711,11 @@ public:
 	void _cdecl MsgFunc_ViewMode( const char *pszName, int iSize, void *pbuf );
 	int _cdecl MsgFunc_SetFOV(const char *pszName,  int iSize, void *pbuf);
 	int  _cdecl MsgFunc_Concuss( const char *pszName, int iSize, void *pbuf );
-	
+
+	// Cold Ice Remastered
 	int  _cdecl MsgFunc_Acrobatics( const char *pszName, int iSize, void *pbuf );
 	int  _cdecl MsgFunc_PlayCSound( const char *pszName, int iSize, void *pbuf );
+	int  _cdecl MsgFunc_Mutators( const char *pszName, int iSize, void *pbuf );
 
 	// Screen information
 	SCREENINFO	m_scrinfo;
@@ -733,6 +735,8 @@ public:
 	void FlashHud();
 
 	crosspr_s crossspr;
+
+	char szActiveMutators[64];
 };
 
 extern CHud gHUD;
