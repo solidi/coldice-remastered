@@ -1380,7 +1380,9 @@ int CStudioModelRenderer::StudioDrawModel( int flags )
 		m_nTopColor    = m_pCurrentEntity->curstate.colormap & 0xFF;
 		m_nBottomColor = (m_pCurrentEntity->curstate.colormap & 0xFF00) >> 8;
 
-		m_pCurrentEntity->curstate.skin = m_pIceModels->value;
+		if ((m_pCurrentEntity->model && (strstr(m_pCurrentEntity->model->name, "w_"))) ||
+			m_pCurrentEntity == gEngfuncs.GetViewModel())
+			m_pCurrentEntity->curstate.skin = m_pIceModels->value;
 
 		if ( m_pCurrentEntity == gEngfuncs.GetViewModel() )
 		{
