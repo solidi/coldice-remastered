@@ -71,6 +71,7 @@ extern DLL_GLOBAL const char *g_szMutators[] = {
 	"infiniteammo",
 	"randomweapon",
 	"speedup",
+	"maxpack",
 };
 
 extern void W_Precache(void);
@@ -766,6 +767,19 @@ void CWorld :: RandomizeMutators( void )
 	{
 		int index = RANDOM_LONG(1,(int)ARRAYSIZE(g_szMutators) - 1);
 		const char *tryIt = g_szMutators[index];
+
+		// Skip mutators that break multiplayer
+		if (g_pGameRules->IsMultiplayer())
+		{
+			if (strstr(tryIt, "slowmo") || strstr(tryIt, "speedup"))
+				continue;
+		}
+		else
+		{
+			if (strstr(tryIt, "maxpack"))
+				continue;
+		}
+
 		if (!strstr(result, tryIt))
 		{
 			if (strlen(result))
