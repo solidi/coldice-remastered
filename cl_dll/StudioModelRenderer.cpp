@@ -1012,8 +1012,9 @@ void CStudioModelRenderer::StudioSetupBones ( void )
 			ConcatTransforms ((*m_plighttransform)[pbones[i].parent], bonematrix, (*m_plighttransform)[i]);
 		}
 
-		if (strstr(CVAR_GET_STRING("mp_mutators"), "dkmode") ||
-			atoi(CVAR_GET_STRING("mp_mutators")) == MUTATOR_DKMODE)
+		if (gHUD.szActiveMutators != NULL &&
+			(strstr(gHUD.szActiveMutators, "dkmode") ||
+			atoi(gHUD.szActiveMutators) == MUTATOR_DKMODE))
 		{
 			if (m_pCurrentEntity != gEngfuncs.GetViewModel())
 			{
@@ -1238,8 +1239,9 @@ int CStudioModelRenderer::StudioDrawModel( int flags )
 		m_fDoInterp = 0;
 		
 		// draw as though it were a player
-		if (strstr(CVAR_GET_STRING("mp_mutators"), "sanic") ||
-			atoi(CVAR_GET_STRING("mp_mutators")) == MUTATOR_SANIC)
+		if (gHUD.szActiveMutators != NULL &&
+			(strstr(gHUD.szActiveMutators, "sanic") ||
+			atoi(gHUD.szActiveMutators) == MUTATOR_SANIC))
 			result = 1;
 		else
 			result = StudioDrawPlayer( flags, &deadplayer );
@@ -1831,8 +1833,9 @@ StudioDrawPlayer
 */
 int CStudioModelRenderer::StudioDrawPlayer( int flags, entity_state_t *pplayer )
 {
-	if (strstr(CVAR_GET_STRING("mp_mutators"), "sanic") ||
-		atoi(CVAR_GET_STRING("mp_mutators")) == MUTATOR_SANIC)
+	if (gHUD.szActiveMutators != NULL &&
+		(strstr(gHUD.szActiveMutators, "sanic") ||
+		atoi(gHUD.szActiveMutators) == MUTATOR_SANIC))
 	{
 		static TEMPENTITY *t[32];
 		int c = pplayer->number - 1;
@@ -1979,8 +1982,9 @@ int CStudioModelRenderer::StudioDrawPlayer( int flags, entity_state_t *pplayer )
 			m_pCurrentEntity->curstate.body = 1; // force helmet
 		}
 
-		if (strstr(CVAR_GET_STRING("mp_mutators"), "santahat") ||
-			atoi(CVAR_GET_STRING("mp_mutators")) == MUTATOR_SANTAHAT)
+		if (gHUD.szActiveMutators != NULL &&
+			(strstr(gHUD.szActiveMutators, "santahat") ||
+			atoi(gHUD.szActiveMutators) == MUTATOR_SANTAHAT))
 			m_pCurrentEntity->curstate.body = 2;
 
 		lighting.plightvec = dir;

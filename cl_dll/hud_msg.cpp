@@ -220,3 +220,10 @@ int CHud :: MsgFunc_PlayCSound( const char *pszName, int iSize, void *pbuf )
 	}
 	return 1;
 }
+
+int CHud :: MsgFunc_Mutators( const char *pszName, int iSize, void *pbuf )
+{
+	BEGIN_READ( pbuf, iSize );
+	strncpy( gHUD.szActiveMutators, READ_STRING(), 64 );
+	return 1;
+}

@@ -416,8 +416,9 @@ void IN_ScaleMouse( float *x, float *y )
 	// This is the default sensitivity
 	float mouse_senstivity = ( gHUD.GetSensitivity() != 0 ) ? gHUD.GetSensitivity() : sensitivity->value;
 
-	if (strstr(CVAR_GET_STRING("mp_mutators"), "topsyturvy") ||
-		atoi(CVAR_GET_STRING("mp_mutators")) == MUTATOR_TOPSYTURVY)
+	if (gHUD.szActiveMutators != NULL &&
+		(strstr(gHUD.szActiveMutators, "topsyturvy") ||
+		atoi(gHUD.szActiveMutators) == MUTATOR_TOPSYTURVY))
 	{
 		mouse_senstivity *= -1;
 	}

@@ -201,6 +201,7 @@ int gmsgAcrobatics = 0;
 int gmsgLifeBar = 0;
 int gmsgReceiveW = 0;
 int gmsgPlayClientSound = 0;
+int gmsgMutators = 0;
 
 void LinkUserMessages( void )
 {
@@ -252,6 +253,7 @@ void LinkUserMessages( void )
 	gmsgLifeBar = REG_USER_MSG("LifeBar", 3);
 	gmsgReceiveW = REG_USER_MSG("ReceiveW", 1);
 	gmsgPlayClientSound = REG_USER_MSG("PlayCSound", 1);
+	gmsgMutators = REG_USER_MSG("Mutators", -1);
 }
 
 LINK_ENTITY_TO_CLASS( player, CBasePlayer );

@@ -341,6 +341,11 @@ int __MsgFunc_PlayCSound(const char *pszName, int iSize, void *pbuf)
 	return gHUD.MsgFunc_PlayCSound(pszName, iSize, pbuf );
 }
 
+int __MsgFunc_Mutators(const char *pszName, int iSize, void *pbuf)
+{
+	return gHUD.MsgFunc_Mutators(pszName, iSize, pbuf );
+}
+
 // This is called every time the DLL is loaded
 void CHud :: Init( void )
 {
@@ -379,6 +384,7 @@ void CHud :: Init( void )
 
 	HOOK_MESSAGE( Acrobatics );
 	HOOK_MESSAGE( PlayCSound );
+	HOOK_MESSAGE( Mutators );
 
 	// VGUI Menus
 	HOOK_MESSAGE( VGUIMenu );

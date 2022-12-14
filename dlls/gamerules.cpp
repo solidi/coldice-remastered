@@ -33,6 +33,7 @@ DLL_GLOBAL CGameRules*	g_pGameRules = NULL;
 extern DLL_GLOBAL BOOL	g_fGameOver;
 extern int gmsgDeathMsg;	// client dll messages
 extern int gmsgMOTD;
+extern int gmsgMutators;
 
 int g_teamplay = 0;
 
@@ -646,6 +647,11 @@ void CGameRules::CheckMutators(void)
 					CVAR_SET_FLOAT("sys_timescale", 1.0);
 			}
 		}
+
+		MESSAGE_BEGIN( MSG_BROADCAST, gmsgMutators );
+			WRITE_STRING( mutators.string );
+		MESSAGE_END();
+
 		m_flDetectedMutatorChange = 0;
 	}
 }
