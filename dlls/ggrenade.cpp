@@ -193,7 +193,10 @@ void CGrenade::Explode( TraceResult *pTrace, int bitsDamageType )
 	if (strstr(mutators.string, g_MutatorChumXplode) ||
 		atoi(mutators.string) == MUTATOR_CHUMXPLODE)
 	{
-		CBaseEntity *pChumtoad = CBaseEntity::Create("monster_chumtoad", pev->origin, pev->angles, ENT(pevOwner));
+		edict_t *owner = NULL;
+		if (pevOwner)
+			owner = ENT(pevOwner);
+		CBaseEntity *pChumtoad = CBaseEntity::Create("monster_chumtoad", pev->origin, pev->angles, owner);
 		if (pChumtoad)
 		{
 			pChumtoad->pev->velocity.x = RANDOM_FLOAT( -400, 400 );
