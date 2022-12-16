@@ -285,5 +285,6 @@
   </ImportGroup>
   <Target Name="AfterBuild">
     <Copy SourceFiles="$(OutDir)$(TargetName).dll" DestinationFolder="..\..\..\libs\dlls" SkipUnchangedFiles="false" />
+    <Copy SourceFiles="$(OutDir)$(TargetName).pdb" DestinationFolder="..\..\..\libs\pdbs" SkipUnchangedFiles="false" />
   </Target>
 </Project>

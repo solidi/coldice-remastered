@@ -30,7 +30,19 @@ jobs:
       working-directory: ${{env.GITHUB_WORKSPACE}}
       # Add additional options to the MSBuild command line here (like platform or verbosity level).
       # See https://docs.microsoft.com/visualstudio/msbuild/msbuild-command-line-reference
-      run: msbuild /m /p:Configuration=${{env.BUILD_CONFIGURATION}} ${{env.GAME_FILE_PATH}}
+      run: |
+        msbuild /m /p:Configuration=${{env.BUILD_CONFIGURATION}} ${{env.GAME_FILE_PATH}}
+        [void](New-Item -Force -ItemType Directory $env:TEMP\${{env.BUILD_CONFIGURATION}})
+        [void](New-Item -Force -ItemType Directory $env:TEMP\${{env.BUILD_CONFIGURATION}}\dlls)
+        Copy-Item -Recurse -Force ./projects/vs2019/${{env.BUILD_CONFIGURATION}}/hldll/ice.dll $env:TEMP\${{env.BUILD_CONFIGURATION}}\dlls
+        Copy-Item -Recurse -Force ./projects/vs2019/${{env.BUILD_CONFIGURATION}}/hldll/ice.pdb $env:TEMP\${{env.BUILD_CONFIGURATION}}\dlls
+        Compress-Archive -LiteralPath $env:TEMP\${{env.BUILD_CONFIGURATION}}\dlls -DestinationPath ./dlls.zip -Force
+
+    - name: Upload ice dll
+      uses: actions/upload-artifact@v3
+      with:
+        name: ice_dll
+        path: ./dlls.zip
 
   client_dll:
     runs-on: windows-latest
@@ -48,13 +60,14 @@ jobs:
         [void](New-Item -Force -ItemType Directory $env:TEMP\${{env.BUILD_CONFIGURATION}})
         [void](New-Item -Force -ItemType Directory $env:TEMP\${{env.BUILD_CONFIGURATION}}\cl_dlls)
         Copy-Item -Recurse -Force ./projects/vs2019/${{env.BUILD_CONFIGURATION}}/hl_cdll/client.dll $env:TEMP\${{env.BUILD_CONFIGURATION}}\cl_dlls
-        Compress-Archive -LiteralPath $env:TEMP\${{env.BUILD_CONFIGURATION}}\cl_dlls -DestinationPath ./dlls.zip -Force
+        Copy-Item -Recurse -Force ./projects/vs2019/${{env.BUILD_CONFIGURATION}}/hl_cdll/client.pdb $env:TEMP\${{env.BUILD_CONFIGURATION}}\cl_dlls
+        Compress-Archive -LiteralPath $env:TEMP\${{env.BUILD_CONFIGURATION}}\cl_dlls -DestinationPath ./cl_dlls.zip -Force
 
     - name: Upload client dll
       uses: actions/upload-artifact@v3
       with:
         name: client_dll
-        path: ./dlls.zip
+        path: ./cl_dlls.zip
 
   makefont_exe:
     runs-on: windows-latest
