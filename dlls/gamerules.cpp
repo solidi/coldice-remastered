@@ -542,14 +542,35 @@ void CGameRules::CheckMutators(void)
 				CVAR_SET_FLOAT("sys_timescale", 1.0);
 		}
 
+		if (strcmp(szSkyColor[0], "0") != 0 && strlen(szSkyColor[0]))
+		{
+			CVAR_SET_STRING("sv_skycolor_r", szSkyColor[0]);
+			CVAR_SET_STRING("sv_skycolor_g", szSkyColor[1]);
+			CVAR_SET_STRING("sv_skycolor_b", szSkyColor[2]);
+		}
+		else
+		{
+			strcpy(szSkyColor[0], CVAR_GET_STRING("sv_skycolor_r"));
+			strcpy(szSkyColor[1], CVAR_GET_STRING("sv_skycolor_g"));
+			strcpy(szSkyColor[2], CVAR_GET_STRING("sv_skycolor_b"));
+		}
+
 		if ((strstr(mutators.string, g_MutatorLightsOut) ||
 			atoi(mutators.string) == MUTATOR_LIGHTSOUT))
 		{
 			LIGHT_STYLE(0, "b");
 			CVAR_SET_STRING("mp_flashlight", "1");
+			CVAR_SET_STRING("sv_skycolor_r", "0");
+			CVAR_SET_STRING("sv_skycolor_g", "0");
+			CVAR_SET_STRING("sv_skycolor_b", "0");
 		}
 		else
+		{
 			LIGHT_STYLE(0, "m");
+			CVAR_SET_STRING("sv_skycolor_r", szSkyColor[0]);
+			CVAR_SET_STRING("sv_skycolor_g", szSkyColor[1]);
+			CVAR_SET_STRING("sv_skycolor_b", szSkyColor[2]);
+		}
 
 		for (int i = 1; i <= gpGlobals->maxClients; i++)
 		{

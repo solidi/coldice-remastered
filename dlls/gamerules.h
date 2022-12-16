@@ -170,6 +170,7 @@ private:
 	char m_flCheckMutators[128];
 	float m_flChaosCheck;
 	float m_flDetectedMutatorChange;
+	char szSkyColor[3][6] = {{""}, {""}, {""}};
 };
 
 extern CGameRules *InstallGameRules( void );
