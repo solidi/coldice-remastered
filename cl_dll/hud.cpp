@@ -60,6 +60,7 @@ cvar_t *cl_keyboardacrobatics;
 cvar_t *cl_weather;
 cvar_t *cl_hudscale;
 cvar_t *cl_hudbend;
+cvar_t *cl_wallclimbindicator;
 
 cvar_t *cl_vmx;
 cvar_t *cl_vmy;
@@ -419,6 +420,7 @@ void CHud :: Init( void )
 	cl_weather = CVAR_CREATE( "cl_weather", "3", FCVAR_ARCHIVE | FCVAR_USERINFO );
 	cl_hudscale = CVAR_CREATE( "cl_hudscale", "0", FCVAR_ARCHIVE );
 	cl_hudbend = CVAR_CREATE( "cl_hudbend", "0.0", FCVAR_ARCHIVE );
+	cl_wallclimbindicator = CVAR_CREATE( "cl_wallclimbindicator", "1", FCVAR_ARCHIVE );
 
 	cl_vmx = CVAR_CREATE( "cl_vmx", "0", FCVAR_ARCHIVE );
 	cl_vmy = CVAR_CREATE( "cl_vmy", "0", FCVAR_ARCHIVE );
@@ -478,6 +480,7 @@ void CHud :: Init( void )
 	m_Scoreboard.Init();
 	GetClientVoiceMgr()->Init(&g_VoiceStatusHelper, (vgui::Panel**)&gViewPort);
 	GetLifeBar()->Init();
+	m_WallClimb.Init();
 	InitRain();
 
 	m_Menu.Init();
@@ -631,6 +634,7 @@ void CHud :: VidInit( void )
 	m_Scoreboard.VidInit();
 	GetClientVoiceMgr()->VidInit();
 	GetLifeBar()->VidInit();
+	m_WallClimb.VidInit();
 }
 
 int CHud::MsgFunc_Logo(const char *pszName,  int iSize, void *pbuf)

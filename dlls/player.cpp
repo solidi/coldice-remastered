@@ -1891,8 +1891,16 @@ void CBasePlayer::ClimbingPhysics()
 		UTIL_TraceLine(vecSrc1, vecEnd1, ignore_monsters, ENT(pev), &climbTr1);
 	}
 
-	if (headTr.flFraction != 1 && climbTr1.flFraction == 1 && climbTr2.flFraction != 1)
+	if ((headTr.flFraction != 1 && climbTr1.flFraction == 1 && climbTr2.flFraction != 1) ||
+		// Waist height climb
+		(headTr.flFraction == 1 && climbTr1.flFraction == 1 && climbTr2.flFraction < 0.7))
 	{
+		if (m_flNextWallClimb < gpGlobals->time) {
+			MESSAGE_BEGIN( MSG_ONE, gmsgAcrobatics, NULL, pev);
+				WRITE_BYTE(ACROBATICS_WALLCLIMB);
+			MESSAGE_END();
+			m_flNextWallClimb = gpGlobals->time + 1.5;
+		}
 		canClimb = true;
 	}
 	else
@@ -3392,6 +3400,7 @@ void CBasePlayer::Spawn( void )
 	m_fSelacoTime = m_fSelacoIncrement = m_fSelacoButtonTime = 0;
 	m_fSelacoZ = VEC_VIEW.z;
 	m_fSelacoCount = 0;
+	m_flNextWallClimb = 0;
 
 	m_fFlipButtonTime = m_fFlipTime = 0;
 

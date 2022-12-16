@@ -141,6 +141,7 @@ HL1_OBJS = \
 	$(HL1_OBJ_DIR)/vgui_TeamFortressViewport.o \
 	$(HL1_OBJ_DIR)/vgui_SpectatorPanel.o \
 	$(HL1_OBJ_DIR)/vgui_teammenu.o \
+	$(HL1_OBJ_DIR)/wallclimb.o \
 	$(HL1_OBJ_DIR)/voice_status.o \
 	$(HL1_OBJ_DIR)/hud_servers.o \
 	

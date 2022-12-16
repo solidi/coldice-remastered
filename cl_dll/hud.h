@@ -604,6 +604,18 @@ private:
 //-----------------------------------------------------
 //
 
+class CHudWallClimb: public CHudBase
+{
+public:
+	int Init( void );
+	int VidInit( void );
+	int Draw(float flTime);
+
+private:
+	HSPRITE m_hSprite;
+	int m_iPos;
+};
+
 typedef struct
 {
 	HSPRITE spr;
@@ -692,6 +704,7 @@ public:
 	CHudMOTD        m_MOTD;
 	CHudScoreboard  m_Scoreboard;
 	CHudLifeBar		m_LifeBar;
+	CHudWallClimb   m_WallClimb;
 
 	void Init( void );
 	void VidInit( void );
