@@ -38,6 +38,7 @@ void ClearEventList( void );
 #endif
 
 float g_SlideTime = 0;
+float g_WallClimb = 0;
 float g_AcrobatTime = 0;
 extern cvar_t *cl_antivomit;
 
@@ -99,6 +100,10 @@ void CHud :: MsgFunc_InitHUD( const char *pszName, int iSize, void *pbuf )
 	//Probably not a good place to put this.
 	pBeam = pBeam2 = NULL;
 #endif
+
+	g_WallClimb = 0;
+	g_SlideTime = 0;
+	g_AcrobatTime = 0;
 }
 
 
@@ -173,6 +178,10 @@ int CHud :: MsgFunc_Acrobatics(const char *pszName, int iSize, void *pbuf )
 	case ACROBATICS_FLIP_BACK:
 		axis = PITCH;
 		amount = 360;
+		break;
+	case ACROBATICS_WALLCLIMB:
+		g_WallClimb = gEngfuncs.GetClientTime() + 1;
+		gHUD.m_WallClimb.m_iFlags |= HUD_ACTIVE;
 		break;
 	default:
 		g_SlideTime = gEngfuncs.GetClientTime() + 1;

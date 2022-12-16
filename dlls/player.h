@@ -409,6 +409,7 @@ public:
 	bool isClimbing;
 	TraceResult climbTr1, climbTr2, headTr;
 	void ClimbingPhysics( void );
+	float m_flNextWallClimb;
 };
 
 #define AUTOAIM_2DEGREES  0.0348994967025

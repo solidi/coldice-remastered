@@ -33,6 +33,7 @@ int grgLogoFrame[MAX_LOGO_FRAMES] =
 
 
 extern int g_iVisibleMouse;
+extern float g_WallClimb;
 
 float HUD_GetFOV( void );
 
@@ -228,6 +229,15 @@ int CHud :: Redraw( float flTime, int intermission )
 	}
 	*/
 
+	if (g_WallClimb && g_WallClimb < gEngfuncs.GetClientTime())
+	{
+		gHUD.m_WallClimb.m_iFlags &= ~HUD_ACTIVE;
+		g_WallClimb = 0;
+	}
+
+	if (!g_WallClimb && gHUD.m_WallClimb.m_iFlags & HUD_ACTIVE)
+		gHUD.m_WallClimb.m_iFlags &= ~HUD_ACTIVE;
+
 	return 1;
 }
 
@@ -366,7 +376,7 @@ void CHud::ShowTextTips( void ) {
 		return;
 	}
 
-	const int MESSAGE_SIZE = 25;
+	const int MESSAGE_SIZE = 26;
 
 	const char* messageList[MESSAGE_SIZE] = {
 		"Tired of blue skins? Type \"cl_icemodels 0\" in the console switches to real-life skins.\n",
@@ -392,8 +402,9 @@ void CHud::ShowTextTips( void ) {
 		"To turn screen roll while flipping, type \"cl_antivomit 0\" in the console.\n",
 		"Bind \"impulse 210\" to a button to perform a right flip.\n",
 		"Tap \"+back\" three times to perform a backflip.\n",
-		"Tap \"+jump\" two times against a wall to perform a wall climb.\n",
-		"To turn off weather effects, type \"cl_weather 0\" into the console.\n"
+		"Tap \"+jump\" against a wall to perform a wall climb.\n",
+		"To turn off weather effects, type \"cl_weather 0\" into the console.\n",
+		"Type \"cl_wallclimbindicator 0\" to turn off the hint above.\n",
 	};
 
 	// Unstick after a level change
