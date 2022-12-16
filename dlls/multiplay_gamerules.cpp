@@ -591,7 +591,7 @@ void CHalfLifeMultiplay::LastManStanding( void )
 	{
 		if ( m_iCountDown > 0 )
 		{
-			if (m_iCountDown == 2) {
+			if (m_iCountDown == 3) {
 				MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
 					WRITE_BYTE(CLIENT_SOUND_PICKUPYOURWEAPON);
 				MESSAGE_END();
