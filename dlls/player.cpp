@@ -2415,9 +2415,18 @@ void CBasePlayer::PreThink(void)
 		pev->velocity = g_vecZero;
 	}
 
-	if (m_fHasRune == RUNE_CLOAK && pev->rendermode != kRenderTransAlpha) {
-		pev->rendermode = kRenderTransAlpha;
-		pev->renderamt = 50;
+	if (m_fHasRune == RUNE_CLOAK) {
+		if (pev->rendermode != kRenderTransAlpha)
+			pev->rendermode = kRenderTransAlpha;
+
+		float amount = 0;
+		if (m_pActiveItem)
+		{
+			float attacktime = ((CBasePlayerWeapon *)m_pActiveItem)->m_flNextPrimaryAttack + ((CBasePlayerWeapon *)m_pActiveItem)->m_flNextSecondaryAttack;
+			amount = 200 + (attacktime * 200);
+		}
+
+		pev->renderamt = amount + 50;
 	}
 
 	if (m_fJumpHeight != atof(CVAR_GET_STRING("sv_jumpheight"))) {
