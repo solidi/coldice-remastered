@@ -780,7 +780,7 @@ void CHalfLifeMultiplay::Arena ( void )
 
 		while ( m_iPlayer1 == m_iPlayer2 )
 		{
-			m_iPlayer2 = RANDOM_LONG( 0, m_iPlayersInArena[RANDOM_LONG( 0, clients-1 )] );
+			m_iPlayer2 = RANDOM_LONG( 1, m_iPlayersInArena[RANDOM_LONG( 0, clients-1 )] );
 		}
 
 		ALERT( at_notice,
