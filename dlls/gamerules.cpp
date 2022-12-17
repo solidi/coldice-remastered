@@ -428,44 +428,6 @@ CGameRules *InstallGameRules( void )
 	}
 }
 
-const char *pWeapons[] =
-{
-	"weapon_shotgun",
-	"weapon_9mmAR",
-	"weapon_handgrenade",
-	"weapon_tripmine",
-	"weapon_357",
-	"weapon_crossbow",
-	"weapon_egon",
-	"weapon_gauss",
-	"weapon_rpg",
-	"weapon_satchel",
-	"weapon_snark",
-	"weapon_hornetgun",
-	"weapon_vest",
-	"weapon_chumtoad",
-	"weapon_sniperrifle",
-	"weapon_railgun",
-	"weapon_cannon",
-	"weapon_mag60",
-	"weapon_chaingun",
-	"weapon_glauncher",
-	"weapon_smg",
-	"weapon_usas",
-	"weapon_snowball",
-	"weapon_12gauge",
-	"weapon_nuke",
-	"weapon_deagle",
-	"weapon_dual_deagle",
-	"weapon_dual_mag60",
-	"weapon_dual_smg",
-	"weapon_dual_wrench",
-	"weapon_dual_usas",
-	"weapon_dual_railgun",
-	"weapon_dual_rpg",
-	"weapon_freezegun",
-};
-
 void CGameRules::SpawnMutators(CBasePlayer *pPlayer)
 {
 	if (strstr(mutators.string, g_MutatorTopsyTurvy) ||
@@ -504,7 +466,7 @@ void CGameRules::SpawnMutators(CBasePlayer *pPlayer)
 	}
 
 	if (randomweapon.value)
-		pPlayer->GiveNamedItem(STRING(ALLOC_STRING(pWeapons[RANDOM_LONG(0,ARRAYSIZE(pWeapons)-1)])));
+		pPlayer->GiveRandomWeapon(NULL);
 }
 
 void CGameRules::CheckMutators(void)

@@ -715,7 +715,8 @@ int CBasePlayer :: TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, 
 				SetSuitUpdate("!HEV_HLTH1", FALSE, SUIT_NEXT_IN_10MIN);	// health dropping
 		}
 
-	g_pGameRules->FPlayerTookDamage(fTookDamage, this, pAttacker);
+	if (fTookDamage)
+		g_pGameRules->FPlayerTookDamage(flDamage, this, pAttacker);
 
 	return fTookDamage;
 }
@@ -3895,7 +3896,74 @@ void CBloodSplat::Spray ( void )
 
 //==============================================
 
+const char *pWeapons[] =
+{
+	"weapon_shotgun",
+	"weapon_9mmAR",
+	"weapon_handgrenade",
+	"weapon_tripmine",
+	"weapon_357",
+	"weapon_crossbow",
+	"weapon_egon",
+	"weapon_gauss",
+	"weapon_rpg",
+	"weapon_satchel",
+	"weapon_snark",
+	"weapon_hornetgun",
+	"weapon_vest",
+	"weapon_chumtoad",
+	"weapon_sniperrifle",
+	"weapon_railgun",
+	"weapon_cannon",
+	"weapon_mag60",
+	"weapon_chaingun",
+	"weapon_glauncher",
+	"weapon_smg",
+	"weapon_usas",
+	"weapon_snowball",
+	"weapon_12gauge",
+	"weapon_nuke",
+	"weapon_deagle",
+	"weapon_dual_deagle",
+	"weapon_dual_mag60",
+	"weapon_dual_smg",
+	"weapon_dual_wrench",
+	"weapon_dual_usas",
+	"weapon_dual_railgun",
+	"weapon_dual_rpg",
+	"weapon_freezegun",
+};
 
+void CBasePlayer::GiveRandomWeapon(const char *szIgnoreList)
+{
+	int random = RANDOM_LONG(0, ARRAYSIZE(pWeapons) - 1);
+	while (szIgnoreList != NULL && strstr(pWeapons[random], szIgnoreList))
+	{
+		random = RANDOM_LONG(0, ARRAYSIZE(pWeapons) - 1);
+	}
+	GiveNamedItem(STRING(ALLOC_STRING(pWeapons[random])));
+}
+
+void CBasePlayer::GiveMelees()
+{
+	GiveNamedItem("weapon_knife");
+	GiveNamedItem("weapon_dual_wrench");
+	GiveNamedItem("weapon_chainsaw");
+	GiveNamedItem("weapon_rocketcrowbar");
+}
+
+void CBasePlayer::GiveExplosives()
+{
+	GiveNamedItem("weapon_handgrenade");
+	GiveNamedItem("weapon_handgrenade");
+	GiveNamedItem("weapon_tripmine");
+	GiveNamedItem("weapon_tripmine");
+	GiveNamedItem("weapon_satchel");
+	GiveNamedItem("weapon_satchel");
+	GiveNamedItem("weapon_chumtoad");
+	GiveNamedItem("weapon_snark");
+	GiveNamedItem("weapon_freezegun");
+}
 
 void CBasePlayer::GiveNamedItem( const char *pszName )
 {

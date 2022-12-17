@@ -410,6 +410,10 @@ public:
 	TraceResult climbTr1, climbTr2, headTr;
 	void ClimbingPhysics( void );
 	float m_flNextWallClimb;
+
+	void GiveRandomWeapon(const char *szIgnoreList);
+	void GiveMelees();
+	void GiveExplosives();
 };
 
 #define AUTOAIM_2DEGREES  0.0348994967025

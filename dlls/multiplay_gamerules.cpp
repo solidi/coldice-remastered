@@ -1585,15 +1585,17 @@ void CHalfLifeMultiplay :: PlayerSpawn( CBasePlayer *pPlayer )
 		else
 		{
 			// Give a random melee
-			char *meleeWeapon = "weapon_chainsaw";
-			int whichWeapon = RANDOM_LONG(0,3);
-			if (!whichWeapon) {
-				meleeWeapon = "weapon_crowbar";
-			} else if (whichWeapon == 1) {
-				meleeWeapon = "weapon_knife";
-			} else if (whichWeapon == 2 && (!strstr(mutators.string, g_MutatorPlumber) &&
-				atoi(mutators.string) != MUTATOR_PLUMBER)) {
-				meleeWeapon = "weapon_wrench";
+			char *meleeWeapon = "weapon_crowbar";
+			if (g_GameMode == GAME_FFA) {
+				int whichWeapon = RANDOM_LONG(0,3);
+				if (!whichWeapon) {
+					meleeWeapon = "weapon_chainsaw";
+				} else if (whichWeapon == 1) {
+					meleeWeapon = "weapon_knife";
+				} else if (whichWeapon == 2 && (!strstr(mutators.string, g_MutatorPlumber) &&
+					atoi(mutators.string) != MUTATOR_PLUMBER)) {
+					meleeWeapon = "weapon_wrench";
+				}
 			}
 			pPlayer->GiveNamedItem(STRING(ALLOC_STRING(meleeWeapon)));
 		}
@@ -1617,12 +1619,12 @@ void CHalfLifeMultiplay :: PlayerSpawn( CBasePlayer *pPlayer )
 	{
 		if ( pPlayer->IsArmoredMan )
 		{
-			pPlayer->pev->health = 200;
-			pPlayer->pev->armorvalue = 200;
-			pPlayer->pev->maxspeed = CVAR_GET_FLOAT("sv_maxspeed") * .5;
-
-			pPlayer->CheatImpulseCommands(101, FALSE);
-
+			pPlayer->GiveMelees();
+			pPlayer->GiveExplosives();
+			pPlayer->pev->health = pPlayer->pev->armorvalue = 200;
+			pPlayer->pev->maxspeed = CVAR_GET_FLOAT("sv_maxspeed");
+			g_engfuncs.pfnSetPhysicsKeyValue(pPlayer->edict(), "haste", "1");
+			pPlayer->m_fHasRune = RUNE_CLOAK;
 			g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer->edict()),
 				g_engfuncs.pfnGetInfoKeyBuffer(pPlayer->edict()), "model", "iceman");
 			g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer->edict()),
@@ -1635,7 +1637,8 @@ void CHalfLifeMultiplay :: PlayerSpawn( CBasePlayer *pPlayer )
 		}
 		else
 		{
-			pPlayer->pev->maxspeed = CVAR_GET_FLOAT("sv_maxspeed");
+			pPlayer->GiveRandomWeapon("weapon_nuke");
+			pPlayer->pev->maxspeed = CVAR_GET_FLOAT("sv_maxspeed") * .5;
 			g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer->edict()),
 				g_engfuncs.pfnGetInfoKeyBuffer(pPlayer->edict()), "model", "commando");
 			g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer->edict()),
@@ -2151,6 +2154,18 @@ int CHalfLifeMultiplay :: WeaponShouldRespawn( CBasePlayerItem *pWeapon )
 //=========================================================
 BOOL CHalfLifeMultiplay::CanHavePlayerItem( CBasePlayer *pPlayer, CBasePlayerItem *pItem )
 {
+	if (g_GameMode == GAME_ICEMAN)
+	{
+		if (pPlayer->IsArmoredMan)
+		{
+			if (!strcmp(STRING(pItem->pev->classname), "weapon_vest"))
+				return FALSE;
+		}
+
+		if (!strcmp(STRING(pItem->pev->classname), "weapon_nuke"))
+			return FALSE;
+	}
+
 	if ( weaponstay.value > 0 )
 	{
 		if ( pItem->iFlags() & ITEM_FLAG_LIMITINWORLD )
