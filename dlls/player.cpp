@@ -50,6 +50,7 @@ extern DLL_GLOBAL const char *g_MutatorInstaGib;
 extern DLL_GLOBAL const char *g_MutatorIce;
 extern DLL_GLOBAL const char *g_MutatorSantaHat;
 extern DLL_GLOBAL const char *g_MutatorCoolFlesh;
+extern DLL_GLOBAL const char *g_MutatorTopsyTurvy;
 
 BOOL gInitHUD = TRUE;
 
@@ -1865,13 +1866,19 @@ void CBasePlayer::ClimbingPhysics()
 
 	UTIL_MakeVectors(pev->angles);
 
+	int normal = 1;
+	if (strstr(mutators.string, g_MutatorTopsyTurvy) ||
+		atoi(mutators.string) == MUTATOR_TOPSYTURVY) {
+		normal = -1;
+	}
+
 	// trace starts
-	Vector headSrc = pev->origin + gpGlobals->v_up * 30;
-	Vector vecSrc2 = pev->origin + gpGlobals->v_up * 60 + Vector(gpGlobals->v_forward.x * 40, gpGlobals->v_forward.y * 40, 0);
+	Vector headSrc = pev->origin + (gpGlobals->v_up * normal) * 30;
+	Vector vecSrc2 = pev->origin + (gpGlobals->v_up * normal) * 60 + Vector(gpGlobals->v_forward.x * 40, gpGlobals->v_forward.y * 40, 0);
 
 	// trace ends
 	Vector headEnd = headSrc + Vector(gpGlobals->v_forward.x * 40, gpGlobals->v_forward.y * 40, 0);
-	Vector vecEnd2 = vecSrc2 - gpGlobals->v_up * 60;
+	Vector vecEnd2 = vecSrc2 - (gpGlobals->v_up * normal) * 60;
 
 	// detect if we can actually climb something
 	if (!isClimbing)
@@ -1976,7 +1983,7 @@ void CBasePlayer::ClimbingPhysics()
 		// trace until infront of player is clear, and under the player is filled
 		TraceResult under, forward;
 		UTIL_TraceLine(pev->origin, pev->origin + gpGlobals->v_forward * 40, ignore_monsters, ENT(pev), &forward);
-		UTIL_TraceLine(pev->origin, pev->origin - gpGlobals->v_up * 40, ignore_monsters, ENT(pev), &under);
+		UTIL_TraceLine(pev->origin, pev->origin - (gpGlobals->v_up * normal) * 40, ignore_monsters, ENT(pev), &under);
 
 
 		if (under.flFraction != 1 && forward.flFraction == 1)
