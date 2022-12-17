@@ -723,6 +723,7 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_weather [0|1]\" - allow or disallow weather effects on client\n" );
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_hudscale\" - experimental scaling factor of HUD elements\n" );
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_hudbend\" - experimental bending factor of HUD elements\n" );
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_wallclimbindicator\" - shows when wallclimb is available\n" );
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "For more, see readme.txt\n" );
 	}
 	else if ( FStrEq( pcmd, "help_server" )  )
