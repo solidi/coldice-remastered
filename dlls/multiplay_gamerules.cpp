@@ -2463,6 +2463,9 @@ void CHalfLifeMultiplay :: GoToIntermission( void )
 	m_flIntermissionEndTime = gpGlobals->time + ( (int)mp_chattime.value );
 	g_flIntermissionStartTime = gpGlobals->time;
 
+	// Clear previous message at intermission
+	if (g_GameMode != GAME_FFA)
+		UTIL_ClientPrintAll(HUD_PRINTCENTER, "");
 	g_fGameOver = TRUE;
 	m_iEndIntermissionButtonHit = FALSE;
 }
