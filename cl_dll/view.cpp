@@ -514,6 +514,17 @@ typedef struct
 } viewinterp_t;
 
 
+void V_DoPunchAngles(struct ref_params_s *pparams)
+{
+	// Add in the punchangle, if any
+	VectorAdd ( pparams->viewangles, pparams->punchangle, pparams->viewangles );
+
+	// Include client side punch, too
+	VectorAdd ( pparams->viewangles, (float *)&ev_punchangle, pparams->viewangles);
+
+	V_DropPunchAngle ( pparams->frametime * 2, (float *)&ev_punchangle );
+}
+
 /*
 ==================
 V_CalcRefdef
@@ -669,7 +680,10 @@ void V_CalcNormalRefdef ( struct ref_params_s *pparams )
 			pparams->vieworg[ i ] += -ofs[2] * camForward[ i ];
 		}
 	}
-	
+
+	if (g_AcrobatTime > gEngfuncs.GetClientTime())
+		V_DoPunchAngles(pparams);
+
 	// Give gun our viewangles
 	VectorCopy ( pparams->cl_viewangles, view->angles );
 	
@@ -774,13 +788,8 @@ void V_CalcNormalRefdef ( struct ref_params_s *pparams )
 		view->origin[2] += 0.5;
 	}
 
-	// Add in the punchangle, if any
-	VectorAdd ( pparams->viewangles, pparams->punchangle, pparams->viewangles );
-
-	// Include client side punch, too
-	VectorAdd ( pparams->viewangles, (float *)&ev_punchangle, pparams->viewangles);
-
-	V_DropPunchAngle ( pparams->frametime * 2, (float *)&ev_punchangle );
+	if (g_AcrobatTime < gEngfuncs.GetClientTime())
+		V_DoPunchAngles(pparams);
 
 	// smooth out stair step ups
 #if 1
