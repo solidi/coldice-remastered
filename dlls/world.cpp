@@ -72,6 +72,12 @@ extern DLL_GLOBAL const char *g_szMutators[] = {
 	"randomweapon",
 	"speedup",
 	"maxpack",
+	"rockets",
+	"invisible",
+	"grenades",
+	"astronaut",
+	"snowballs",
+	"pushy",
 };
 
 extern void W_Precache(void);

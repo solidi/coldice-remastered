@@ -55,6 +55,11 @@ extern DLL_GLOBAL const char *g_MutatorMaxPack;
 extern DLL_GLOBAL const char *g_MutatorInfiniteAmmo;
 extern DLL_GLOBAL const char *g_MutatorRandomWeapon;
 extern DLL_GLOBAL const char *g_MutatorSpeedUp;
+extern DLL_GLOBAL const char *g_MutatorRockets;
+extern DLL_GLOBAL const char *g_MutatorGrenades;
+extern DLL_GLOBAL const char *g_MutatorSnowball;
+extern DLL_GLOBAL const char *g_MutatorPushy;
+extern DLL_GLOBAL const char *g_MutatorGravity;
 
 //=========================================================
 //=========================================================
@@ -428,6 +433,43 @@ CGameRules *InstallGameRules( void )
 	}
 }
 
+void CGameRules::WeaponMutators( CBasePlayerWeapon *pWeapon )
+{
+	if (pWeapon && pWeapon->m_pPlayer)
+	{
+		if (strstr(mutators.string, g_MutatorRockets) ||
+			atoi(mutators.string) == MUTATOR_ROCKETS)
+		{
+			if (!pWeapon->m_bFired && RANDOM_LONG(0,10) == 2) {
+				pWeapon->ThrowRocket(FALSE);
+			}
+		}
+		
+		if (strstr(mutators.string, g_MutatorGrenades) ||
+			atoi(mutators.string) == MUTATOR_GRENADES)
+		{
+			if (!pWeapon->m_bFired && RANDOM_LONG(0,10) == 2) {
+				pWeapon->ThrowGrenade(FALSE);
+			}
+		}
+		
+		if (strstr(mutators.string, g_MutatorSnowball) ||
+			atoi(mutators.string) == MUTATOR_SNOWBALL)
+		{
+			if (!pWeapon->m_bFired && RANDOM_LONG(0,10) == 2) {
+				pWeapon->ThrowSnowball(FALSE);
+			}
+		}
+
+		if (strstr(mutators.string, g_MutatorPushy) ||
+			atoi(mutators.string) == MUTATOR_PUSHY)
+		{
+			UTIL_MakeVectors( pWeapon->m_pPlayer->pev->v_angle );
+			pWeapon->m_pPlayer->pev->velocity = pWeapon->m_pPlayer->pev->velocity - gpGlobals->v_forward * RANDOM_FLOAT(50,100) * 5;
+		}
+	}
+}
+
 void CGameRules::SpawnMutators(CBasePlayer *pPlayer)
 {
 	if (strstr(mutators.string, g_MutatorTopsyTurvy) ||
@@ -493,6 +535,8 @@ void CGameRules::CheckMutators(void)
 
 	if (m_flDetectedMutatorChange && m_flDetectedMutatorChange < gpGlobals->time)
 	{
+		RefreshSkillData();
+
 		if ((strstr(mutators.string, g_MutatorSlowmo) ||
 			atoi(mutators.string) == MUTATOR_SLOWMO) && CVAR_GET_FLOAT("sys_timescale") != 0.49f)
 			CVAR_SET_FLOAT("sys_timescale", 0.49);
@@ -597,6 +641,18 @@ void CGameRules::CheckMutators(void)
 				if ((!strstr(mutators.string, g_MutatorSuperJump) &&
 					atoi(mutators.string) != MUTATOR_SUPERJUMP) && CVAR_GET_FLOAT("sv_jumpheight") == 299)
 					CVAR_SET_FLOAT("sv_jumpheight", 45);
+			}
+
+			if ((strstr(mutators.string, g_MutatorGravity) ||
+				atoi(mutators.string) == MUTATOR_GRAVITY) && CVAR_GET_FLOAT("sv_gravity") != 199)
+			{
+				CVAR_SET_FLOAT("sv_gravity", 199);
+			}
+			else
+			{
+				if ((!strstr(mutators.string, g_MutatorGravity) &&
+					atoi(mutators.string) != MUTATOR_GRAVITY) && CVAR_GET_FLOAT("sv_gravity") == 199)
+					CVAR_SET_FLOAT("sv_gravity", 800);
 			}
 
 			if ((strstr(mutators.string, g_MutatorInfiniteAmmo) ||

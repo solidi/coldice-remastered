@@ -22,6 +22,7 @@ class CBasePlayerItem;
 class CBasePlayer;
 class CItem;
 class CBasePlayerAmmo;
+class CBasePlayerWeapon;
 
 // weapon respawning return codes
 enum
@@ -161,6 +162,7 @@ public:
 #endif
 
 	virtual void SpawnMutators( CBasePlayer *pPlayer );
+	virtual void WeaponMutators( CBasePlayerWeapon *pWeapon );
 	virtual void CheckMutators( void );
 	virtual void UpdateMutatorMessage( CBasePlayer *pPlayer );
 

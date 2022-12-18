@@ -36,6 +36,7 @@ extern int gmsgStatusIcon;
 
 extern DLL_GLOBAL const char *g_MutatorTurrets;
 extern DLL_GLOBAL const char *g_MutatorBarrels;
+extern DLL_GLOBAL const char *g_MutatorInvisible;
 
 class CWorldItem : public CBaseEntity
 {
@@ -426,6 +427,19 @@ void CRune::ShowStatus(CBasePlayer *pPlayer, int r, int g, int b) {
 	UTIL_ScreenFade( pPlayer, Vector(r, g, b), 1, 1, 64, FFADE_IN);
 }
 
+void CRune::ShellPlayer(CBasePlayer *pPlayer, int r, int g, int b)
+{
+	if (strstr(mutators.string, g_MutatorInvisible) ||
+		atoi(mutators.string) == MUTATOR_INVISIBLE)
+		return;
+
+	pPlayer->pev->renderfx = kRenderFxGlowShell;
+	pPlayer->pev->renderamt = 5;
+	pPlayer->pev->rendercolor.x = r;
+	pPlayer->pev->rendercolor.y = g;
+	pPlayer->pev->rendercolor.z = b;
+}
+
 //===================================================================
 //===================================================================
 
@@ -467,11 +481,7 @@ class CFragRune : public CRune
 		{
 			pPlayer->m_fHasRune = RUNE_FRAG;
 
-			pPlayer->pev->renderfx = kRenderFxGlowShell;
-			pPlayer->pev->renderamt = 5;
-			pPlayer->pev->rendercolor.x = 106;
-			pPlayer->pev->rendercolor.y = 13;
-			pPlayer->pev->rendercolor.z = 173;
+			ShellPlayer(pPlayer, 106, 13, 173);
 
 			MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
 				WRITE_BYTE( TE_PARTICLEBURST );
@@ -533,11 +543,7 @@ class CVampireRune : public CRune
 		{
 			pPlayer->m_fHasRune = RUNE_VAMPIRE;
 
-			pPlayer->pev->renderfx = kRenderFxGlowShell;
-			pPlayer->pev->renderamt = 5;
-			pPlayer->pev->rendercolor.x = 200;
-			pPlayer->pev->rendercolor.y = 0;
-			pPlayer->pev->rendercolor.z = 0;
+			ShellPlayer(pPlayer, 200, 0, 0);
 
 			MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
 				WRITE_BYTE( TE_PARTICLEBURST );
@@ -599,11 +605,7 @@ class CProtectRune : public CRune
 		{
 			pPlayer->m_fHasRune = RUNE_PROTECT;
 
-			pPlayer->pev->renderfx = kRenderFxGlowShell;
-			pPlayer->pev->renderamt = 5;
-			pPlayer->pev->rendercolor.x = 0;
-			pPlayer->pev->rendercolor.y = 200;
-			pPlayer->pev->rendercolor.z = 0;
+			ShellPlayer(pPlayer, 0, 200, 0);
 
 			MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
 				WRITE_BYTE( TE_PARTICLEBURST );
@@ -665,11 +667,7 @@ class CRegenRune : public CRune
 		{
 			pPlayer->m_fHasRune = RUNE_REGEN;
 
-			pPlayer->pev->renderfx = kRenderFxGlowShell;
-			pPlayer->pev->renderamt = 5;
-			pPlayer->pev->rendercolor.x = 200;
-			pPlayer->pev->rendercolor.y = 0;
-			pPlayer->pev->rendercolor.z = 200;
+			ShellPlayer(pPlayer, 200, 0, 200);
 
 			MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
 				WRITE_BYTE( TE_PARTICLEBURST );
@@ -731,11 +729,7 @@ class CHasteRune : public CRune
 		{
 			pPlayer->m_fHasRune = RUNE_HASTE;
 
-			pPlayer->pev->renderfx = kRenderFxGlowShell;
-			pPlayer->pev->renderamt = 5;
-			pPlayer->pev->rendercolor.x = 200;
-			pPlayer->pev->rendercolor.y = 128;
-			pPlayer->pev->rendercolor.z = 0;
+			ShellPlayer(pPlayer, 200, 128, 0);
 
 			g_engfuncs.pfnSetPhysicsKeyValue( pPlayer->edict(), "haste", "1" );
 
@@ -799,11 +793,7 @@ class CGravityRune : public CRune
 		{
 			pPlayer->m_fHasRune = RUNE_GRAVITY;
 
-			pPlayer->pev->renderfx = kRenderFxGlowShell;
-			pPlayer->pev->renderamt = 5;
-			pPlayer->pev->rendercolor.x = 0;
-			pPlayer->pev->rendercolor.y = 115;
-			pPlayer->pev->rendercolor.z = 230;
+			ShellPlayer(pPlayer, 0, 115, 230);
 
 			MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
 				WRITE_BYTE( TE_PARTICLEBURST );
@@ -865,11 +855,7 @@ class CStrengthRune : public CRune
 		{
 			pPlayer->m_fHasRune = RUNE_STRENGTH;
 
-			pPlayer->pev->renderfx = kRenderFxGlowShell;
-			pPlayer->pev->renderamt = 5;
-			pPlayer->pev->rendercolor.x = 200;
-			pPlayer->pev->rendercolor.y = 200;
-			pPlayer->pev->rendercolor.z = 0;
+			ShellPlayer(pPlayer, 200, 200, 0);
 
 			MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
 				WRITE_BYTE( TE_PARTICLEBURST );

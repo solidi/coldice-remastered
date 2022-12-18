@@ -431,7 +431,9 @@ public:
 	virtual void ProvideSingleItem(CBasePlayer *pPlayer, const char *itemName) { return; }
 	virtual void SwapDualWeapon() { return; }
 
-	void ThrowGrenade( void );
+	void ThrowGrenade( BOOL m_iCheckAmmo );
+	void ThrowSnowball( BOOL m_iCheckAmmo );
+	void ThrowRocket( BOOL m_iCheckAmmo );
 
 	TraceResult m_trBootHit;
 	void StartKick( BOOL holdingSomething );
@@ -2253,6 +2255,23 @@ public:
 
 private:
 	unsigned short m_usGravGun;
+};
+
+class CFlyingSnowball : public CBaseEntity
+{
+public:
+
+	void Spawn( void );
+	void Precache( void );
+	void EXPORT BubbleThink( void );
+	void EXPORT SpinTouch( CBaseEntity *pOther );
+
+	static CFlyingSnowball *Shoot( entvars_t *pevOwner, Vector vecStart, Vector vecVelocity, CBasePlayer *m_pPlayer );
+
+private:
+
+	EHANDLE m_hOwner;		 // Original owner is stored here so we can
+							// allow the wrench to hit the user.
 };
 
 #endif // WEAPONS_H

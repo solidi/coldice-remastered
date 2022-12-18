@@ -44,6 +44,7 @@ extern DLL_GLOBAL const char *g_MutatorSuperJump;
 extern DLL_GLOBAL const char *g_MutatorLightsOut;
 extern DLL_GLOBAL const char *g_MutatorLoopback;
 extern DLL_GLOBAL const char *g_MutatorMaxPack;
+extern DLL_GLOBAL const char *g_MutatorPushy;
 
 extern int gmsgDeathMsg;	// client dll messages
 extern int gmsgScoreInfo;
@@ -174,6 +175,13 @@ void CHalfLifeMultiplay::RefreshSkillData( void )
 		gSkillData.plrDmgFlak *= multiplier;
 		gSkillData.plrDmgFlakBomb *= multiplier;
 		gSkillData.plrDmgPlasma *= multiplier;
+	}
+
+	if (strstr(mutators.string, g_MutatorPushy) ||
+		atoi(mutators.string) == MUTATOR_PUSHY)
+	{
+		float multiplier = 0.10;
+		gSkillData.plrDmgRPG *= multiplier;
 	}
 }
 

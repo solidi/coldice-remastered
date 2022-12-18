@@ -51,6 +51,9 @@ extern DLL_GLOBAL const char *g_MutatorIce;
 extern DLL_GLOBAL const char *g_MutatorSantaHat;
 extern DLL_GLOBAL const char *g_MutatorCoolFlesh;
 extern DLL_GLOBAL const char *g_MutatorTopsyTurvy;
+extern DLL_GLOBAL const char *g_MutatorInvisible;
+extern DLL_GLOBAL const char *g_MutatorPlumber;
+extern DLL_GLOBAL const char *g_MutatorRocketCrowbar;
 
 BOOL gInitHUD = TRUE;
 
@@ -2415,7 +2418,9 @@ void CBasePlayer::PreThink(void)
 		pev->velocity = g_vecZero;
 	}
 
-	if (m_fHasRune == RUNE_CLOAK) {
+	if (m_fHasRune == RUNE_CLOAK ||
+			strstr(mutators.string, g_MutatorInvisible) ||
+			atoi(mutators.string) == MUTATOR_INVISIBLE) {
 		if (pev->rendermode != kRenderTransAlpha)
 			pev->rendermode = kRenderTransAlpha;
 
@@ -3963,8 +3968,12 @@ void CBasePlayer::GiveRandomWeapon(const char *szIgnoreList)
 void CBasePlayer::GiveMelees()
 {
 	GiveNamedItem("weapon_knife");
-	GiveNamedItem("weapon_dual_wrench");
+	if (!strstr(mutators.string, g_MutatorPlumber) &&
+		atoi(mutators.string) != MUTATOR_PLUMBER)
+		GiveNamedItem("weapon_dual_wrench");
 	GiveNamedItem("weapon_chainsaw");
+	if (!strstr(mutators.string, g_MutatorRocketCrowbar) &&
+		atoi(mutators.string) != MUTATOR_ROCKETCROWBAR)
 	GiveNamedItem("weapon_rocketcrowbar");
 }
 
@@ -4205,7 +4214,7 @@ void CBasePlayer::ImpulseCommands( )
 		break;
 	case 209:
 		if (m_pActiveItem) {
-			((CBasePlayerWeapon *)m_pActiveItem)->ThrowGrenade();
+			((CBasePlayerWeapon *)m_pActiveItem)->ThrowGrenade(TRUE);
 		}
 		break;
 	case 210:
