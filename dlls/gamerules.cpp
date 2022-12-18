@@ -602,7 +602,8 @@ void CGameRules::CheckMutators(void)
 				if ((strstr(mutators.string, g_MutatorMegaSpeed) ||
 					atoi(mutators.string) == MUTATOR_MEGASPEED))
 					g_engfuncs.pfnSetPhysicsKeyValue(pPlayer->edict(), "haste", "1");
-				else if (((CBasePlayer *)pPlayer)->m_fHasRune != RUNE_HASTE)
+				else if (((CBasePlayer *)pPlayer)->m_fHasRune != RUNE_HASTE &&
+						 !((CBasePlayer *)pPlayer)->IsArmoredMan)
 					g_engfuncs.pfnSetPhysicsKeyValue(pPlayer->edict(), "haste", "0");
 
 				if (strstr(mutators.string, g_MutatorRocketCrowbar) ||

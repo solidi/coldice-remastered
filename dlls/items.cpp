@@ -417,6 +417,9 @@ void CRune::RuneTouch( CBaseEntity *pOther )
 }
 
 void CRune::ShowStatus(CBasePlayer *pPlayer, int r, int g, int b) {
+	if (pPlayer->pev->flags & FL_FAKECLIENT)
+		return;
+
 	MESSAGE_BEGIN( MSG_ONE, gmsgStatusIcon, NULL, pPlayer->pev );
 		WRITE_BYTE(1);
 		WRITE_STRING("dmg_cold");
@@ -1125,10 +1128,13 @@ void CWorldRunes::ResetPlayer(CBasePlayer *pPlayer)
 	pPlayer->m_fHasRune = 0;
 	pPlayer->m_flRuneHealTime = 0;
 	g_engfuncs.pfnSetPhysicsKeyValue( pPlayer->edict(), "haste", "0" );
-	MESSAGE_BEGIN( MSG_ONE, gmsgStatusIcon, NULL, pPlayer->pev );
-		WRITE_BYTE(0);
-		WRITE_STRING("dmg_cold");
-	MESSAGE_END();
+	if (!FBitSet(pPlayer->pev->flags, FL_FAKECLIENT))
+	{
+		MESSAGE_BEGIN( MSG_ONE, gmsgStatusIcon, NULL, pPlayer->pev );
+			WRITE_BYTE(0);
+			WRITE_STRING("dmg_cold");
+		MESSAGE_END();
+	}
 	pPlayer->pev->rendermode = kRenderNormal;
 	pPlayer->pev->renderfx = kRenderFxNone;
 	pPlayer->pev->renderamt = 0;
