@@ -50,6 +50,7 @@ extern int gmsgDeathMsg;	// client dll messages
 extern int gmsgScoreInfo;
 extern int gmsgMOTD;
 extern int gmsgServerName;
+extern int gmsgStatusIcon;
 
 extern DLL_GLOBAL int g_GameMode;
 extern int gmsgPlayClientSound;
@@ -354,8 +355,19 @@ void CHalfLifeMultiplay::IcemanArena( void )
 			}
 		}
 
+		if (m_fSendArmoredManMessage < gpGlobals->time)
+		{
+			MESSAGE_BEGIN( MSG_ONE, gmsgStatusIcon, NULL, pArmoredMan->pev );
+				WRITE_BYTE(1);
+				WRITE_STRING("iceman");
+				WRITE_BYTE(0);
+				WRITE_BYTE(113);
+				WRITE_BYTE(230);
+			MESSAGE_END();
+		}
+
 		//commandos all dead or armored man defeated.
-		if ( clients_alive <= 1 || !pArmoredMan->IsAlive() )
+		if ( clients_alive <= 1 || !pArmoredMan->IsAlive() || pArmoredMan->HasDisconnected )
 		{
 			//stop timer / end game.
 			m_flRoundTimeLimit = 0;
@@ -364,6 +376,11 @@ void CHalfLifeMultiplay::IcemanArena( void )
 			//hack to allow for logical code below.
 			if ( pArmoredMan->HasDisconnected )
 				pArmoredMan->pev->health = 0;
+
+			MESSAGE_BEGIN( MSG_ONE, gmsgStatusIcon, NULL, pArmoredMan->pev );
+				WRITE_BYTE(0);
+				WRITE_STRING("iceman");
+			MESSAGE_END();
 
 			//armored man is alive.
 			if ( pArmoredMan->IsAlive() && clients_alive == 1 )
@@ -440,7 +457,7 @@ void CHalfLifeMultiplay::IcemanArena( void )
 			return;
 		}
 
-		flUpdateTime = gpGlobals->time;
+		flUpdateTime = gpGlobals->time + 1.5;
 		return;
 	}
 
@@ -474,6 +491,8 @@ void CHalfLifeMultiplay::IcemanArena( void )
 		pArmoredMan->IsArmoredMan = TRUE;
 
 		InsertClientsIntoArena();
+
+		m_fSendArmoredManMessage = gpGlobals->time + 1.0;
 
 		m_iCountDown = 3;
 		
