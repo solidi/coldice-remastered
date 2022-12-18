@@ -45,7 +45,7 @@ cvar_t	grapplinghookdeploytime = {"mp_grapplinghookdeploytime","1.0", FCVAR_SERV
 cvar_t	grapplesky = {"mp_grapplesky","1", FCVAR_SERVER };
 #endif
 
-cvar_t	spawnweaponlist = {"mp_spawnweaponlist","weapon_fists;weapon_crowbar;weapon_9mmhandgun", FCVAR_SERVER };
+cvar_t	spawnweaponlist = {"mp_spawnweaponlist","weapon_9mmhandgun", FCVAR_SERVER };
 cvar_t	allowrunes = {"mp_allowrunes","1", FCVAR_SERVER };
 cvar_t	holsterweapons = {"mp_holsterweapons","1", FCVAR_SERVER };
 cvar_t	floatingweapons = {"mp_floatingweapons","1", FCVAR_SERVER };
