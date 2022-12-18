@@ -64,5 +64,11 @@ DLL_GLOBAL const char *g_MutatorMaxPack = "maxpack";
 DLL_GLOBAL const char *g_MutatorInfiniteAmmo = "infiniteammo";
 DLL_GLOBAL const char *g_MutatorRandomWeapon = "randomweapon";
 DLL_GLOBAL const char *g_MutatorSpeedUp = "speedup";
+DLL_GLOBAL const char *g_MutatorRockets = "rockets";
+DLL_GLOBAL const char *g_MutatorInvisible = "invisible";
+DLL_GLOBAL const char *g_MutatorGrenades = "grenades";
+DLL_GLOBAL const char *g_MutatorGravity = "astronaut";
+DLL_GLOBAL const char *g_MutatorSnowball = "snowballs";
+DLL_GLOBAL const char *g_MutatorPushy = "pushy";
 
 DLL_GLOBAL int g_GameMode;

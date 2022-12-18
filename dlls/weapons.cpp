@@ -37,6 +37,9 @@ extern CGraph	WorldGraph;
 extern int gEvilImpulse101;
 
 extern DLL_GLOBAL const char *g_MutatorInstaGib;
+extern DLL_GLOBAL const char *g_MutatorRockets;
+extern DLL_GLOBAL const char *g_MutatorGrenades;
+extern DLL_GLOBAL const char *g_MutatorSnowball;
 
 
 #define NOT_USED 255
@@ -932,10 +935,16 @@ void CBasePlayerWeapon::ItemPostFrame( void )
 		m_pPlayer->TabulateAmmo();
 		if (SemiAuto()) {
 			if (!m_bFired)
+			{
 				SecondaryAttack();
+				if (!m_fFireOnEmpty)
+					g_pGameRules->WeaponMutators(this);
+			}
 			m_bFired = TRUE;
 		} else {
 			SecondaryAttack();
+			if (!m_fFireOnEmpty)
+				g_pGameRules->WeaponMutators(this);
 		}
 		m_pPlayer->pev->button &= ~IN_ATTACK2;
 	}
@@ -953,10 +962,16 @@ void CBasePlayerWeapon::ItemPostFrame( void )
 		m_pPlayer->TabulateAmmo();
 		if (SemiAuto()) {
 			if (!m_bFired)
+			{
 				PrimaryAttack();
+				if (!m_fFireOnEmpty)
+					g_pGameRules->WeaponMutators(this);
+			}
 			m_bFired = TRUE;
 		} else {
 			PrimaryAttack();
+			if (!m_fFireOnEmpty)
+				g_pGameRules->WeaponMutators(this);
 		}
 	}
 	else if ( m_pPlayer->pev->button & IN_RELOAD && iMaxClip() != WEAPON_NOCLIP && !m_fInReload ) 
@@ -2061,16 +2076,21 @@ void CBasePlayerWeapon::PrintState( void )
 	ALERT( at_console, "m_iclip:  %i\n", m_iClip );
 }
 
-void CBasePlayerWeapon::ThrowGrenade()
+void CBasePlayerWeapon::ThrowGrenade(BOOL m_iCheckAmmo)
 {
 	if (m_pPlayer->m_fGrenadeTime >= gpGlobals->time) {
 		return;
 	}
 
-	int index = m_pPlayer->GetAmmoIndex("Hand Grenade");
+	if (m_iCheckAmmo)
+	{
+		int index = m_pPlayer->GetAmmoIndex("Hand Grenade");
 
-	if (m_pPlayer->m_rgAmmo[index] <= 0)
-		return;
+		if (m_pPlayer->m_rgAmmo[index] <= 0)
+			return;
+
+		m_pPlayer->m_rgAmmo[index]--;
+	}
 
 	m_pPlayer->m_fGrenadeTime = gpGlobals->time + 0.75;
 
@@ -2098,7 +2118,81 @@ void CBasePlayerWeapon::ThrowGrenade()
 	EMIT_SOUND(ENT(m_pPlayer->pev), CHAN_BODY, "grenade_throw.wav", 1, ATTN_NORM);
 
 	m_pPlayer->pev->punchangle = Vector(-4, -2, -4);
-	m_pPlayer->m_rgAmmo[index]--;
+}
+
+void CBasePlayerWeapon::ThrowSnowball(BOOL m_iCheckAmmo)
+{
+	if (m_pPlayer->m_fGrenadeTime >= gpGlobals->time) {
+		return;
+	}
+
+	if (m_iCheckAmmo)
+	{
+		int index = m_pPlayer->GetAmmoIndex("Hand Grenade");
+
+		if (m_pPlayer->m_rgAmmo[index] <= 0)
+			return;
+
+		m_pPlayer->m_rgAmmo[index]--;
+	}
+
+	m_pPlayer->m_fGrenadeTime = gpGlobals->time + 0.75;
+
+	Vector angThrow = m_pPlayer->pev->v_angle + m_pPlayer->pev->punchangle;
+
+	if ( angThrow.x < 0 )
+		angThrow.x = -10 + angThrow.x * ( ( 90 - 10 ) / 90.0 );
+	else
+		angThrow.x = -10 + angThrow.x * ( ( 90 + 10 ) / 90.0 );
+
+	float flVel = ( 90 - angThrow.x ) * 4;
+	if ( flVel > 500 )
+		flVel = 500;
+
+	UTIL_MakeVectors( angThrow );
+	Vector vecSrc = m_pPlayer->pev->origin + m_pPlayer->pev->view_ofs + gpGlobals->v_forward * 16;
+	Vector vecThrow = gpGlobals->v_forward * flVel + m_pPlayer->pev->velocity;
+
+	// alway explode seconds after the pin was pulled
+	CFlyingSnowball::Shoot(m_pPlayer->pev, vecSrc, vecThrow, m_pPlayer);
+
+	// player "shoot" animation
+	m_pPlayer->SetAnimation( PLAYER_ATTACK1 );
+
+	m_pPlayer->pev->punchangle = Vector(-4, -2, -4);
+}
+
+void CBasePlayerWeapon::ThrowRocket(BOOL m_iCheckAmmo)
+{
+	if (m_pPlayer->m_fGrenadeTime >= gpGlobals->time) {
+		return;
+	}
+
+	if (m_iCheckAmmo)
+	{
+		int index = m_pPlayer->GetAmmoIndex("rockets");
+
+		if (m_pPlayer->m_rgAmmo[index] <= 0)
+			return;
+
+		m_pPlayer->m_rgAmmo[index]--;
+	}
+
+	m_pPlayer->m_fGrenadeTime = gpGlobals->time + 0.75;
+
+	UTIL_MakeVectors( m_pPlayer->pev->v_angle );
+	Vector vecSrc = m_pPlayer->GetGunPosition( ) + gpGlobals->v_forward * 16 + gpGlobals->v_right * 8 + gpGlobals->v_up * -18;
+	
+	CRpgRocket *pRocket = CRpgRocket::CreateRpgRocket( vecSrc, m_pPlayer->pev->v_angle, m_pPlayer, 0.0, FALSE );
+
+	UTIL_MakeVectors( m_pPlayer->pev->v_angle );// RpgRocket::Create stomps on globals, so remake.
+	if (pRocket)
+		pRocket->pev->velocity = pRocket->pev->velocity + gpGlobals->v_forward * DotProduct( m_pPlayer->pev->velocity, gpGlobals->v_forward );
+
+	// player "shoot" animation
+	m_pPlayer->SetAnimation( PLAYER_ATTACK1 );
+
+	m_pPlayer->pev->punchangle = Vector(-4, -2, -4);
 }
 
 enum kick_e {

@@ -57,6 +57,7 @@ public:
 	void	EXPORT Materialize( void );
 	virtual BOOL MyTouch( CBasePlayer *pPlayer ) { return FALSE; };
 	void ShowStatus(CBasePlayer *pPlayer, int r, int g, int b);
+	void ShellPlayer(CBasePlayer *pPlayer, int r, int g, int b);
 };
 
 #endif // ITEMS_H

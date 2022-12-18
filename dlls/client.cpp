@@ -774,6 +774,12 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_mutators \"infiniteammo\"\" - all weapons have infinite ammo\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_mutators \"randomweapon\"\" - spawn with a randomly selected weapon\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_mutators \"speedup\"\" - everything is sped up by half!\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_mutators \"rockets\"\" - a random chance of rockets throw on attack!\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_mutators \"invisible\"\" - everyone is partially invisible!\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_mutators \"grenades\"\" - a random chance of a grenade throw on attack\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_mutators \"astronaut\"\" - gravity is turned down\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_mutators \"snowballs\"\" - a random chance of snowballs throw on attack\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_mutators \"pushy\"\" - all weapon attacks push you back like a gauss attack\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_spawnweapons\" - Spawn weapons or not\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_disallowlist\" a list of entities that will not spawn\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_nukemode \"[0|1|2]\"\" - 2 - nuke kills all, 1 - radius damage, 0 - sharts nothing but bubbles\n");

@@ -22,23 +22,6 @@
 #include "player.h"
 #include "game.h"
 
-class CFlyingSnowball : public CBaseEntity
-{
-public:
-
-	void Spawn( void );
-	void Precache( void );
-	void EXPORT BubbleThink( void );
-	void EXPORT SpinTouch( CBaseEntity *pOther );
-
-	static CFlyingSnowball *Shoot( entvars_t *pevOwner, Vector vecStart, Vector vecVelocity, CBasePlayer *m_pPlayer );
-
-private:
-
-	EHANDLE m_hOwner;		 // Original owner is stored here so we can
-							// allow the wrench to hit the user.
-};
-
 LINK_ENTITY_TO_CLASS( flying_snowball, CFlyingSnowball );
 
 enum snowball_e {
@@ -354,7 +337,8 @@ CFlyingSnowball * CFlyingSnowball::Shoot( entvars_t *pevOwner, Vector vecStart, 
 	pSnowball->pev->friction = 0.8;
 
 	SET_MODEL(ENT(pSnowball->pev), "models/w_snowball.mdl");
-	EMIT_SOUND_DYN(ENT(m_pPlayer->pev), CHAN_WEAPON, "snowball_throw.wav", 1, ATTN_NORM, 0, 94 + RANDOM_LONG(0,0xF));
+	if (m_pPlayer)
+		EMIT_SOUND_DYN(ENT(m_pPlayer->pev), CHAN_WEAPON, "snowball_throw.wav", 1, ATTN_NORM, 0, 94 + RANDOM_LONG(0,0xF));
 
 	return pSnowball;
 }
