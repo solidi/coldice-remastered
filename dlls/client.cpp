@@ -658,7 +658,7 @@ void ClientCommand( edict_t *pEntity )
 	{
 		UTIL_MakeVectors( pev->v_angle );
 		Vector vecSrc = pev->origin + pev->view_ofs + gpGlobals->v_forward * 64 + gpGlobals->v_up * 18;
-		CBaseEntity *pExplosion = CBaseEntity::Create( "monster_barrel", vecSrc, Vector(0, pev->v_angle.y, 0), NULL );
+		CBaseEntity::Create( "monster_barrel", vecSrc, Vector(0, pev->v_angle.y, 0), NULL );
 	}
 	else if ( FStrEq( pcmd, "sx" ) )
 	{

@@ -21,6 +21,7 @@
 #include "explode.h"
 #include "game.h"
 #include "weapons.h"
+#include "monsters.h"
 
 extern DLL_GLOBAL const char *g_MutatorPaintball;
 
@@ -30,33 +31,22 @@ extern DLL_GLOBAL const char *g_MutatorPaintball;
 
 class CBarrel : public CBaseEntity
 {
+public:
 	void Precache ( void );
-	void KeyValue( KeyValueData *pkvd );
 	void Spawn( void );
-	void Think( void );
-	void Touch( CBaseEntity *pOther );
+	void EXPORT BarrelThink( void );
+	void EXPORT BarrelTouch( CBaseEntity *pOther );
 	void StartFlames( void );
-	void Explode( entvars_t* pevAttacker, int bitsDamageType );
+	void BarrelExplode( void );
 	int TakeDamage( entvars_t* pevInflictor, entvars_t* pevAttacker, float flDamage, int bitsDamageType );
-	int ObjectCaps( void ) { return FCAP_DONT_SAVE; }
 
+private:
 	CSprite *pSprite = NULL;
 	EHANDLE pLastAttacker;
 	float m_fTimeToDie = 0;
 };
 
 LINK_ENTITY_TO_CLASS( monster_barrel, CBarrel );
-
-void CBarrel::KeyValue( KeyValueData *pkvd )
-{
-	/*if (FStrEq(pkvd->szKeyName, "iMagnitude"))
-	{
-		m_iMagnitude = atoi(pkvd->szValue);
-		pkvd->fHandled = TRUE;
-	}
-	else*/
-		CBaseEntity::KeyValue( pkvd );
-}
 
 void CBarrel::Precache( void )
 {
@@ -75,7 +65,11 @@ void CBarrel::Spawn( void )
 	pev->solid = SOLID_BBOX;
 	pev->health = 40;
 	pev->takedamage = DAMAGE_AIM;
-	pev->dmg = 75;
+	pev->dmg = gSkillData.plrDmgHandGrenade;
+	pev->classname = MAKE_STRING("monster_barrel");
+
+	if ( pev->owner )
+		pLastAttacker = Instance( pev->owner );
 
 	if ( pev->spawnflags & SF_BARREL )
 		SET_MODEL( edict(), "models/w_barrel.mdl");
@@ -91,35 +85,56 @@ void CBarrel::Spawn( void )
 	UTIL_SetSize(pev, VEC_HUMAN_HULL_MIN, VEC_HUMAN_HULL_MAX);
 	//pev->angles = g_vecZero;
 	m_fTimeToDie = gpGlobals->time + 25.0;
+
+	SetTouch(&CBarrel::BarrelTouch);
+	SetThink(&CBarrel::BarrelThink);
+	pev->nextthink = gpGlobals->time + 0.1;
+
+	//ALERT(at_aiconsole, "Created %s[%p]\n", STRING(pev->classname), pev);
 }
 
-void CBarrel::Think( void )
+void CBarrel::BarrelThink( void )
 {
+	if (!IsInWorld())
+	{
+		SetTouch( NULL );
+		UTIL_Remove( this );
+		return;
+	}
+
+/*
 	if (pSprite) {
 		pSprite->pev->origin = pev->origin;
 		pSprite->pev->origin.z += 32;
 
 		if (pSprite->pev->dmgtime > 0 && pSprite->pev->dmgtime < gpGlobals->time)
 		{
-			Explode(NULL, DMG_BURN);
-			pev->nextthink = -1;
+			pSprite = NULL;
+			//ALERT(at_aiconsole, "called think %s[%p]\n", STRING(pev->classname), pev);
+			SetThink(&CBarrel::BarrelExplode);
+			pev->nextthink = gpGlobals->time + 0.1;
 			return;
 		}
 	}
+*/
 
 	if (m_fTimeToDie && m_fTimeToDie < gpGlobals->time) {
-		if (pSprite == NULL) {
+		/*if (pSprite == NULL) {
 			StartFlames();
-		}
+		}*/
+		SetThink(&CBarrel::BarrelExplode);
+		pev->nextthink = gpGlobals->time + 0.1;
 		m_fTimeToDie = 0;
 	}
 
-	pev->nextthink = gpGlobals->time + 0.1;
+	pev->nextthink = gpGlobals->time + 0.25;
 }
 
-void CBarrel::Touch( CBaseEntity *pOther )
+void CBarrel::BarrelTouch( CBaseEntity *pOther )
 {
-	//ALERT(at_aiconsole, "touched at vel=%.2f\n", pev->velocity.Length());
+	//ALERT(at_aiconsole, "touched at vel=%.2f %s[%p]\n", pev->velocity.Length(), STRING(pev->classname), pev);
+	if (pev->health <= 0)
+		return;
 
 	if (pev->velocity.Length() > 100)
 	{
@@ -132,8 +147,13 @@ void CBarrel::Touch( CBaseEntity *pOther )
 		}
 	}
 
-	if (pev->velocity.Length() > 450)
-		Explode(pOther->pev, DMG_BURN);
+	if (pev->velocity.Length() > 500) {
+		//ALERT(at_aiconsole, "called touch %s[%p]\n", STRING(pev->classname), pev);
+		SetTouch(NULL);
+		//pLastAttacker = pOther;
+		SetThink(&CBarrel::BarrelExplode);
+		pev->nextthink = gpGlobals->time + 0.1;
+	}
 
 	// Support if picked up and dropped
 	pev->velocity = pev->velocity * 0.5;
@@ -142,6 +162,9 @@ void CBarrel::Touch( CBaseEntity *pOther )
 
 int CBarrel::TakeDamage( entvars_t* pevInflictor, entvars_t* pevAttacker, float flDamage, int bitsDamageType )
 {
+	if (!pev->takedamage)
+		return 0;
+
 	switch ( RANDOM_LONG(0,1) )
 	{
 	case 0:	EMIT_SOUND(ENT(pev), CHAN_VOICE, "debris/bustmetal1.wav", 1.0, 1.0);	
@@ -150,23 +173,28 @@ int CBarrel::TakeDamage( entvars_t* pevInflictor, entvars_t* pevAttacker, float 
 		break;
 	}
 
-	pLastAttacker = CBaseEntity :: Instance( pevAttacker );
+	pLastAttacker = CBaseEntity::Instance(pevAttacker);
 	pev->health -= flDamage;
 
+/*
 	if (pev->health <= 20)
 	{
 		if (pSprite == NULL) {
 			StartFlames();
 		}
 	}
+*/
 
 	if (pev->health <= 0)
 	{
-		Explode(pevAttacker, bitsDamageType);
+		//ALERT(at_aiconsole, "take damage %s[%p]\n", STRING(pev->classname), pev);
+		pev->takedamage = DAMAGE_NO;
+		SetThink(&CBarrel::BarrelExplode);
+		pev->nextthink = gpGlobals->time + 0.1;
 		return 0;
 	}
 
-	return TRUE;
+	return 1;
 }
 
 void CBarrel::StartFlames( void )
@@ -179,29 +207,37 @@ void CBarrel::StartFlames( void )
 		pSprite = CSprite::SpriteCreate( "sprites/ice_fire.spr", origin, TRUE );
 	else
 		pSprite = CSprite::SpriteCreate( "sprites/fire.spr", origin, TRUE );
-
-	pSprite->SetTransparency( kRenderTransAdd, 255, 255, 255, 255, kRenderFxNoDissipation );
-	pSprite->SetScale( RANDOM_FLOAT(0.75, 1.0) );
-	float time = RANDOM_FLOAT(3.0, 6.0);
-	pSprite->pev->dmgtime = gpGlobals->time + time;
-	pSprite->pev->dmg_save = 1;
-	pSprite->pev->framerate = 16;
-	pSprite->TurnOn();
-	pSprite->AnimateUntilDead();
+	if (pSprite != NULL)
+	{
+		pSprite->SetTransparency( kRenderTransAdd, 255, 255, 255, 255, kRenderFxNoDissipation );
+		pSprite->SetScale( RANDOM_FLOAT(0.75, 1.0) );
+		float time = RANDOM_FLOAT(3.0, 6.0);
+		pSprite->pev->dmgtime = gpGlobals->time + time;
+		pSprite->pev->dmg_save = 1;
+		pSprite->pev->framerate = 16;
+		pSprite->TurnOn();
+		pSprite->AnimateUntilDead();
+	}
 }
 
-void CBarrel::Explode(entvars_t* pevAttacker, int bitsDamageType) {
+void CBarrel::BarrelExplode( void ) {
+	//ALERT(at_aiconsole, "SUB_Remove %s[%p]\n", STRING(pev->classname), pev);
+	SetTouch( NULL );
+	pev->effects |= EF_NODRAW;
+	pev->solid = SOLID_NOT;
+	pev->health = 0;
+	pev->takedamage = DAMAGE_NO;
+
+/*
 	if (pSprite) {
 		pSprite->TurnOff();
 	}
-
-	if (pevAttacker == NULL && pLastAttacker)
-		pevAttacker = VARS(pLastAttacker->edict());
+*/
 
 	Vector vecSpot = pev->origin;
 	Vector speed = -(pev->velocity) / 4;
 	MESSAGE_BEGIN( MSG_PVS, SVC_TEMPENTITY, vecSpot );
-		WRITE_BYTE( TE_BREAKMODEL);
+		WRITE_BYTE(TE_BREAKMODEL);
 
 		// position
 		WRITE_COORD( vecSpot.x );
@@ -269,7 +305,12 @@ void CBarrel::Explode(entvars_t* pevAttacker, int bitsDamageType) {
 	}
 	UTIL_DecalTrace(&tr, decal + index);
 
-	Killed( pevAttacker, GIB_ALWAYS );
+	entvars_t *attacker;
+	if (pLastAttacker != NULL)
+		attacker = VARS(pLastAttacker->edict());
+	::RadiusDamage( pev->origin, pev, attacker, pev->dmg, pev->dmg, CLASS_NONE, DMG_BURN );
+	pLastAttacker = NULL;
 
-	::RadiusDamage( pev->origin, pev, pevAttacker, pev->dmg, pev->dmg, CLASS_NONE, bitsDamageType );
+	SetThink( &CBaseEntity::SUB_Remove );
+	pev->nextthink = gpGlobals->time + 0.1;
 }

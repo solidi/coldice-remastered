@@ -125,6 +125,13 @@ void CGravityGun::PrimaryAttack()
 
 			m_flTimeWeaponIdle = UTIL_WeaponTimeBase();
 		}
+
+		if (pEntity && strstr(STRING(pEntity->pev->classname), "worldspawn"))
+		{
+			UTIL_MakeVectors( m_pPlayer->pev->v_angle );
+			Vector vecSrc = pev->origin + pev->view_ofs + gpGlobals->v_forward * 64 + gpGlobals->v_up * 18;
+			m_pCurrentEntity = CBaseEntity::Create( "monster_barrel", vecSrc, Vector(0, pev->v_angle.y, 0), m_pPlayer->edict());
+		}
 		#endif
 	}
 
@@ -180,7 +187,9 @@ void CGravityGun::ItemPostFrame()
 		}
 		else
 		{
-			if (!strncmp("weapon_", STRING(m_pCurrentEntity->pev->classname), 7) || !strncmp("item_", STRING(m_pCurrentEntity->pev->classname), 5))
+			if (strcmp("player", STRING(m_pCurrentEntity->pev->classname)) == 0)
+				m_pCurrentEntity = NULL;
+			else if (!strncmp("weapon_", STRING(m_pCurrentEntity->pev->classname), 7) || !strncmp("item_", STRING(m_pCurrentEntity->pev->classname), 5))
 				m_pCurrentEntity->pev->velocity = ((m_pPlayer->pev->origin - m_pCurrentEntity->pev->origin) + gpGlobals->v_forward * 86 + Vector(0, 0, 24)) * 35;
 			else
 				m_pCurrentEntity->pev->velocity = ((m_pPlayer->pev->origin - m_pCurrentEntity->pev->origin) + gpGlobals->v_forward * 86) * 35;
@@ -194,12 +203,13 @@ CBaseEntity* CGravityGun::GetEntity(float fldist, bool m_bTakeDamage)
 {
 	TraceResult tr;
 
+	UTIL_MakeVectors( m_pPlayer->pev->v_angle );
 	Vector forward = m_pPlayer->GetAutoaimVector(0.0f);
-	Vector vecSrc = m_pPlayer->GetGunPosition();
+	Vector vecSrc = m_pPlayer->GetGunPosition() + gpGlobals->v_forward * 32;
 	Vector vecEnd = vecSrc + forward * fldist;
 	CBaseEntity* pEntity = NULL;
 
-	UTIL_TraceLine(vecSrc, vecEnd, dont_ignore_monsters, ENT(m_pPlayer->pev), &tr);
+	UTIL_TraceLine(vecSrc, vecEnd, dont_ignore_monsters, NULL, &tr);
 
 	if (!tr.pHit)
 		pEntity = UTIL_FindEntityInSphere(pEntity, tr.vecEndPos, 2.0f);
