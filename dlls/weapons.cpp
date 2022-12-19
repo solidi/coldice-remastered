@@ -2292,9 +2292,12 @@ void CBasePlayerWeapon::PunchAttack( BOOL holdingSomething )
 			UTIL_MakeVectors( m_pPlayer->pev->v_angle );
 			Vector smoke = m_pPlayer->GetGunPosition() + gpGlobals->v_forward * 25;
 			CSprite *pSprite = CSprite::SpriteCreate("sprites/gunsmoke.spr", smoke, TRUE);
-			pSprite->AnimateAndDie(12);
-			pSprite->SetTransparency(kRenderTransAdd, 255, 255, 255, 80, kRenderFxNoDissipation);
-			pSprite->SetScale(0.4);
+			if (pSprite != NULL)
+			{
+				pSprite->AnimateAndDie(12);
+				pSprite->SetTransparency(kRenderTransAdd, 255, 255, 255, 80, kRenderFxNoDissipation);
+				pSprite->SetScale(0.4);
+			}
 
 			pClosest->pev->velocity = gpGlobals->v_forward * RANDOM_LONG(400,600) + gpGlobals->v_up * RANDOM_LONG(300,500);
 			pClosest->pev->gravity = 0.5;
@@ -2332,9 +2335,12 @@ void CBasePlayerWeapon::PunchAttack( BOOL holdingSomething )
 			UTIL_MakeVectors( m_pPlayer->pev->v_angle );
 			Vector smoke = tr.vecEndPos - gpGlobals->v_forward * 10;
 			CSprite *pSprite = CSprite::SpriteCreate( "sprites/gunsmoke.spr", smoke, TRUE );
-			pSprite->AnimateAndDie( 12 );
-			pSprite->SetTransparency( kRenderTransAdd, 255, 255, 255, 80, kRenderFxNoDissipation );
-			pSprite->SetScale( 0.4 );
+			if (pSprite != NULL)
+			{
+				pSprite->AnimateAndDie( 12 );
+				pSprite->SetTransparency( kRenderTransAdd, 255, 255, 255, 80, kRenderFxNoDissipation );
+				pSprite->SetScale( 0.4 );
+			}
 		} else {
 			// miss
 			EMIT_SOUND(ENT(m_pPlayer->pev), CHAN_ITEM, "fists_miss.wav", 1, ATTN_NORM);
@@ -2386,9 +2392,12 @@ void CBasePlayerWeapon::PunchAttack( BOOL holdingSomething )
 			m_pPlayer->pev->velocity = m_pPlayer->pev->velocity + (gpGlobals->v_forward * -300);
 			Vector smoke = tr.vecEndPos - gpGlobals->v_forward * 10;
 			CSprite *pSprite = CSprite::SpriteCreate( "sprites/gunsmoke.spr", smoke, TRUE );
-			pSprite->AnimateAndDie( 12 );
-			pSprite->SetTransparency( kRenderTransAdd, 255, 255, 255, 80, kRenderFxNoDissipation );
-			pSprite->SetScale( 0.4 );
+			if (pSprite != NULL)
+			{
+				pSprite->AnimateAndDie( 12 );
+				pSprite->SetTransparency( kRenderTransAdd, 255, 255, 255, 80, kRenderFxNoDissipation );
+				pSprite->SetScale( 0.4 );
+			}
 
 			EMIT_SOUND_DYN(ENT(m_pPlayer->pev), CHAN_ITEM, "fists_hit.wav", fvolbar, ATTN_NORM, 0, 98 + RANDOM_LONG(0,3));
 		}
@@ -2503,9 +2512,12 @@ void CBasePlayerWeapon::KickAttack( BOOL holdingSomething )
 			UTIL_MakeVectors( m_pPlayer->pev->v_angle );
 			Vector smoke = m_pPlayer->GetGunPosition() + gpGlobals->v_forward * 25;
 			CSprite *pSprite = CSprite::SpriteCreate("sprites/gunsmoke.spr", smoke, TRUE);
-			pSprite->AnimateAndDie(12);
-			pSprite->SetTransparency(kRenderTransAdd, 255, 255, 255, 80, kRenderFxNoDissipation);
-			pSprite->SetScale(0.4);
+			if (pSprite != NULL)
+			{
+				pSprite->AnimateAndDie(12);
+				pSprite->SetTransparency(kRenderTransAdd, 255, 255, 255, 80, kRenderFxNoDissipation);
+				pSprite->SetScale(0.4);
+			}
 
 			pClosest->pev->velocity = gpGlobals->v_forward * RANDOM_LONG(600,800) + gpGlobals->v_up * RANDOM_LONG(400,600);
 			pClosest->pev->gravity = 0.5;
@@ -2542,9 +2554,12 @@ void CBasePlayerWeapon::KickAttack( BOOL holdingSomething )
 			UTIL_MakeVectors( m_pPlayer->pev->v_angle );
 			Vector smoke = tr.vecEndPos - gpGlobals->v_forward * 10;
 			CSprite *pSprite = CSprite::SpriteCreate( "sprites/gunsmoke.spr", smoke, TRUE );
-			pSprite->AnimateAndDie( 12 );
-			pSprite->SetTransparency( kRenderTransAdd, 255, 255, 255, 80, kRenderFxNoDissipation );
-			pSprite->SetScale( 0.4 );
+			if (pSprite != NULL)
+			{
+				pSprite->AnimateAndDie( 12 );
+				pSprite->SetTransparency( kRenderTransAdd, 255, 255, 255, 80, kRenderFxNoDissipation );
+				pSprite->SetScale( 0.4 );
+			}
 		} else {
 			// miss
 			EMIT_SOUND(ENT(m_pPlayer->pev), CHAN_ITEM, "kick.wav", 1, ATTN_NORM);
@@ -2597,9 +2612,12 @@ void CBasePlayerWeapon::KickAttack( BOOL holdingSomething )
 			m_pPlayer->pev->velocity = m_pPlayer->pev->velocity + (gpGlobals->v_forward * -300);
 			Vector smoke = tr.vecEndPos - gpGlobals->v_forward * 10;
 			CSprite *pSprite = CSprite::SpriteCreate( "sprites/gunsmoke.spr", smoke, TRUE );
-			pSprite->AnimateAndDie( 12 );
-			pSprite->SetTransparency( kRenderTransAdd, 255, 255, 255, 80, kRenderFxNoDissipation );
-			pSprite->SetScale( 0.4 );
+			if (pSprite != NULL)
+			{
+				pSprite->AnimateAndDie( 12 );
+				pSprite->SetTransparency( kRenderTransAdd, 255, 255, 255, 80, kRenderFxNoDissipation );
+				pSprite->SetScale( 0.4 );
+			}
 
 			EMIT_SOUND_DYN(ENT(m_pPlayer->pev), CHAN_ITEM, "fists_hit.wav", fvolbar, ATTN_NORM, 0, 98 + RANDOM_LONG(0,3));
 		}

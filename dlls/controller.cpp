@@ -849,9 +849,12 @@ void CController :: RunAI( void )
 		if (m_pBall[i] == NULL)
 		{
 			m_pBall[i] = CSprite::SpriteCreate( "sprites/xspark4.spr", pev->origin, TRUE );
-			m_pBall[i]->SetTransparency( kRenderGlow, 255, 255, 255, 255, kRenderFxNoDissipation );
-			m_pBall[i]->SetAttachment( edict(), (i + 3) );
-			m_pBall[i]->SetScale( 1.0 );
+			if (m_pBall[i] != NULL)
+			{
+				m_pBall[i]->SetTransparency( kRenderGlow, 255, 255, 255, 255, kRenderFxNoDissipation );
+				m_pBall[i]->SetAttachment( edict(), (i + 3) );
+				m_pBall[i]->SetScale( 1.0 );
+			}
 		}
 
 		float t = m_iBallTime[i] - gpGlobals->time;

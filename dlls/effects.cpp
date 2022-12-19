@@ -1230,12 +1230,15 @@ void CSprite::SpriteInit( const char *pSpriteName, const Vector &origin )
 CSprite *CSprite::SpriteCreate( const char *pSpriteName, const Vector &origin, BOOL animate )
 {
 	CSprite *pSprite = GetClassPtr( (CSprite *)NULL );
-	pSprite->SpriteInit( pSpriteName, origin );
-	pSprite->pev->classname = MAKE_STRING("env_sprite");
-	pSprite->pev->solid = SOLID_NOT;
-	pSprite->pev->movetype = MOVETYPE_NOCLIP;
-	if ( animate )
-		pSprite->TurnOn();
+	if (pSprite != NULL)
+	{
+		pSprite->SpriteInit( pSpriteName, origin );
+		pSprite->pev->classname = MAKE_STRING("env_sprite");
+		pSprite->pev->solid = SOLID_NOT;
+		pSprite->pev->movetype = MOVETYPE_NOCLIP;
+		if ( animate )
+			pSprite->TurnOn();
+	}
 
 	return pSprite;
 }

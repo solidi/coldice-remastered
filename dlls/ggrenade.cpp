@@ -140,15 +140,18 @@ void CGrenade::Explode( TraceResult *pTrace, int bitsDamageType )
 			pSprite = CSprite::SpriteCreate( "sprites/ice_fire.spr", smoke, TRUE );
 		else
 			pSprite = CSprite::SpriteCreate( "sprites/fire.spr", smoke, TRUE );
-		pSprite->SetTransparency( kRenderTransAdd, 255, 255, 255, 255, kRenderFxNoDissipation );
-		pSprite->SetScale( RANDOM_FLOAT(1.0, 1.6) );
-		//pSprite->SetScale(1.0);
 		float time = RANDOM_FLOAT(6.0, 12.0);
-		pSprite->pev->dmgtime = gpGlobals->time + time;
-		pSprite->pev->dmg_save = 1;
-		pSprite->pev->framerate = 16;
-		pSprite->TurnOn();
-		pSprite->AnimateUntilDead();
+		if (pSprite != NULL)
+		{
+			pSprite->SetTransparency( kRenderTransAdd, 255, 255, 255, 255, kRenderFxNoDissipation );
+			pSprite->SetScale( RANDOM_FLOAT(1.0, 1.6) );
+			//pSprite->SetScale(1.0);
+			pSprite->pev->dmgtime = gpGlobals->time + time;
+			pSprite->pev->dmg_save = 1;
+			pSprite->pev->framerate = 16;
+			pSprite->TurnOn();
+			pSprite->AnimateUntilDead();
+		}
 
 		MESSAGE_BEGIN( MSG_PVS, SVC_TEMPENTITY, pev->origin );
 			WRITE_BYTE(TE_DLIGHT);

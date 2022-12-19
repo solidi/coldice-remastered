@@ -4322,9 +4322,12 @@ void CBasePlayer::TraceHitOfSelacoSlide( void )
 				UTIL_MakeVectors( pev->v_angle );
 				Vector smoke = pev->origin + (gpGlobals->v_forward * 100) + (gpGlobals->v_up * -30);
 				CSprite *pSprite = CSprite::SpriteCreate( "sprites/gunsmoke.spr", smoke, TRUE );
-				pSprite->AnimateAndDie( 12 );
-				pSprite->SetTransparency( kRenderTransAdd, 255, 255, 255, 80, kRenderFxNoDissipation );
-				pSprite->SetScale( RANDOM_FLOAT(0.7, 1.0) );
+				if (pSprite != NULL)
+				{
+					pSprite->AnimateAndDie( 12 );
+					pSprite->SetTransparency( kRenderTransAdd, 255, 255, 255, 80, kRenderFxNoDissipation );
+					pSprite->SetScale( RANDOM_FLOAT(0.7, 1.0) );
+				}
 			}
 
 			TraceResult tr;
@@ -4410,9 +4413,12 @@ void CBasePlayer::TraceHitOfSelacoSlide( void )
 						UTIL_MakeVectors( pev->v_angle );
 						Vector smoke = tr.vecEndPos - gpGlobals->v_forward * 10;
 						CSprite *pSprite = CSprite::SpriteCreate( "sprites/gunsmoke.spr", smoke, TRUE );
-						pSprite->AnimateAndDie( 12 );
-						pSprite->SetTransparency( kRenderTransAdd, 255, 255, 255, 80, kRenderFxNoDissipation );
-						pSprite->SetScale( 0.4 );
+						if (pSprite != NULL)
+						{
+							pSprite->AnimateAndDie( 12 );
+							pSprite->SetTransparency( kRenderTransAdd, 255, 255, 255, 80, kRenderFxNoDissipation );
+							pSprite->SetScale( 0.4 );
+						}
 
 						EMIT_SOUND_DYN(ENT(pev), CHAN_ITEM, "fists_hit.wav", fvolbar, ATTN_NORM, 0, 98 + RANDOM_LONG(0,3));
 
@@ -4608,9 +4614,12 @@ void CBasePlayer::TraceHitOfFlip( void )
 			UTIL_MakeVectors( pev->v_angle );
 			Vector smoke = pObject->pev->origin - gpGlobals->v_forward * 10;
 			CSprite *pSprite = CSprite::SpriteCreate( "sprites/gunsmoke.spr", smoke, TRUE );
-			pSprite->AnimateAndDie( 12 );
-			pSprite->SetTransparency( kRenderTransAdd, 255, 255, 255, 80, kRenderFxNoDissipation );
-			pSprite->SetScale( 0.4 );
+			if (pSprite != NULL)
+			{
+				pSprite->AnimateAndDie( 12 );
+				pSprite->SetTransparency( kRenderTransAdd, 255, 255, 255, 80, kRenderFxNoDissipation );
+				pSprite->SetScale( 0.4 );
+			}
 			m_iWeaponVolume = flVol * 512;
 		}
 		else

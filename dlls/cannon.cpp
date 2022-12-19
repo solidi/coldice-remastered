@@ -171,10 +171,13 @@ void CFlak :: Spawn( )
 		glowSprite = CSprite::SpriteCreate( "sprites/ice_xspark4.spr", pev->origin, TRUE );
 	else
 		glowSprite = CSprite::SpriteCreate( "sprites/xspark4.spr", pev->origin, TRUE );
-	glowSprite->SetTransparency( kRenderGlow, 255, 255, 255, 255, kRenderFxNoDissipation );
-	glowSprite->SetAttachment( edict(), 0) ;
-	glowSprite->SetScale( 0.5 );
-	glowSprite->SUB_StartFadeOut();
+	if (glowSprite != NULL)
+	{
+		glowSprite->SetTransparency( kRenderGlow, 255, 255, 255, 255, kRenderFxNoDissipation );
+		glowSprite->SetAttachment( edict(), 0) ;
+		glowSprite->SetScale( 0.5 );
+		glowSprite->SUB_StartFadeOut();
+	}
 
 	MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
 		WRITE_BYTE( TE_BEAMFOLLOW );
@@ -349,7 +352,7 @@ void CCannon::SecondaryAttack()
 		UTIL_MakeVectors( m_pPlayer->pev->v_angle );
 		Vector vecSrc = m_pPlayer->GetGunPosition( ) + gpGlobals->v_forward * 4 + gpGlobals->v_right * 8 + gpGlobals->v_up * -4;
 		
-		CFlakBomb *flakBomb = CFlakBomb::CreateFlakBomb( vecSrc, m_pPlayer->pev->v_angle, m_pPlayer );
+		CFlakBomb::CreateFlakBomb( vecSrc, m_pPlayer->pev->v_angle, m_pPlayer );
 
 		UTIL_MakeVectors( m_pPlayer->pev->v_angle );// RpgRocket::Create stomps on globals, so remake.
 #endif
