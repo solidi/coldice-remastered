@@ -5275,8 +5275,12 @@ void CBasePlayer :: UpdateClientData( void )
 			WRITE_COORD( damageOrigin.z );
 		MESSAGE_END();
 
+		// For both bots reporting odd numbers, and iceman
+		int health = pev->health;
+		if (pev->health > 100)
+			health = 100;
 		MESSAGE_BEGIN( MSG_PVS, gmsgLifeBar, pev->origin );
-			WRITE_BYTE( pev->health );
+			WRITE_BYTE( health );
 			WRITE_BYTE( pev->armorvalue );
 			WRITE_BYTE( ENTINDEX(edict()) );
 		MESSAGE_END();
