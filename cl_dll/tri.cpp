@@ -24,6 +24,8 @@
 
 extern IParticleMan *g_pParticleMan;
 
+extern cvar_t *cl_weather;
+
 /*
 =================
 HUD_DrawNormalTriangles
@@ -59,6 +61,9 @@ void CL_DLLEXPORT HUD_DrawTransparentTriangles( void )
 
 	if ( g_pParticleMan )
 		 g_pParticleMan->Update();
+
+	if( !cl_weather->value )
+		return;
 
 	ProcessFXObjects();
 	ProcessRain();
