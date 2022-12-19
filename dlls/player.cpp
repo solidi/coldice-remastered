@@ -2444,7 +2444,7 @@ void CBasePlayer::PreThink(void)
 
 	if (m_iHoldingItem) {
 		// Update coords
-		if (!FNullEnt(pHeldItem)) {
+		if (pHeldItem != NULL) {
 			UTIL_MakeVectors( pev->v_angle );
 			pHeldItem->pev->origin = GetGunPosition() + gpGlobals->v_forward * 40 + gpGlobals->v_up * -10;
 			pHeldItem->pev->angles = pev->angles;
@@ -2460,14 +2460,14 @@ void CBasePlayer::PreThink(void)
 		BOOL redeploy = FALSE;
 
 		// Grenade exploded
-		if (!FNullEnt(pHeldItem) && (pHeldItem->pev->effects & EF_NODRAW)) {
+		if (pHeldItem != NULL && (pHeldItem->pev->effects & EF_NODRAW)) {
 			ALERT(at_aiconsole, "releasing item as entity was no_draw\n");
 			ReleaseHeldItem(100);
 			redeploy = TRUE;
 		}
 
 		// Item is sub_fading
-		if (!FNullEnt(pHeldItem) && (pHeldItem->pev->rendermode == kRenderTransTexture && pHeldItem->pev->renderamt < 10)) {
+		if (pHeldItem != NULL && (pHeldItem->pev->rendermode == kRenderTransTexture && pHeldItem->pev->renderamt < 10)) {
 			ALERT(at_aiconsole, "releasing item as its faded\n");
 			ReleaseHeldItem(100);
 			redeploy = TRUE;
@@ -4624,7 +4624,7 @@ void CBasePlayer::TraceHitOfFlip( void )
 
 BOOL CBasePlayer::ReleaseHeldItem(float speed) 
 {
-	if (m_iHoldingItem && !FNullEnt(pHeldItem)) {
+	if (m_iHoldingItem && pHeldItem != NULL) {
 		UTIL_MakeVectors( pev->v_angle + pev->punchangle );
 		Vector vecThrow = gpGlobals->v_forward * speed + pev->velocity;
 		pHeldItem->pev->movetype = MOVETYPE_BOUNCE;

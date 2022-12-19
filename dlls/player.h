@@ -259,7 +259,7 @@ public:
 	int m_fFlipType;
 	int m_fKickCount;
 
-	CBaseEntity *pHeldItem;
+	EHANDLE pHeldItem;
 	BOOL m_iHoldingItem;
 
 	float m_flNextSantaSound;
