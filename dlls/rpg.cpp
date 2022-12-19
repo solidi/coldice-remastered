@@ -183,11 +183,13 @@ void CRpgRocket :: Spawn( float startEngineTime )
 //=========================================================
 void CRpgRocket :: RocketTouch ( CBaseEntity *pOther )
 {
+	/*
 	if ( m_pLauncher )
 	{
 		// my launcher is still around, tell it I'm dead.
 		m_pLauncher->m_cActiveRockets--;
 	}
+	*/
 
 	STOP_SOUND( edict(), CHAN_VOICE, "rocket1.wav" );
 	ExplodeTouch( pOther );
