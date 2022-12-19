@@ -700,9 +700,18 @@ void CGameRules::UpdateMutatorMessage( CBasePlayer *pPlayer )
 {
 	if (pPlayer->m_iShowMutatorMessage != -1 && pPlayer->m_iShowMutatorMessage < gpGlobals->time) {
 		// Display Mutators
-		if (strlen(CVAR_GET_STRING("mp_mutators")) > 1)
-			pPlayer->DisplayHudMessage(UTIL_VarArgs("Mutators Active: %s", CVAR_GET_STRING("mp_mutators")), 2, .02, .16, 210, 210, 210, 2, .015, 2, 5, .25);
+		if (strlen(mutators.string) > 1)
+			pPlayer->DisplayHudMessage(UTIL_VarArgs("Mutators Active: %s", mutators.string), 2, .02, .18, 210, 210, 210, 2, .015, 2, 5, .25);
 
 		pPlayer->m_iShowMutatorMessage = -1;
+	}
+}
+
+void CGameRules::UpdateGameModeMessage( CBasePlayer *pPlayer )
+{
+	if (pPlayer->m_iShowGameModeMessage != -1 && pPlayer->m_iShowGameModeMessage < gpGlobals->time) {
+		if (strcmp(gamemode.string, "ffa"))
+			pPlayer->DisplayHudMessage(UTIL_VarArgs("Game Mode is %s", gamemode.string), 3, .02, .14, 210, 210, 210, 2, .015, 2, 5, .25);
+		pPlayer->m_iShowGameModeMessage = -1;
 	}
 }

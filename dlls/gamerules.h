@@ -165,6 +165,7 @@ public:
 	virtual void WeaponMutators( CBasePlayerWeapon *pWeapon );
 	virtual void CheckMutators( void );
 	virtual void UpdateMutatorMessage( CBasePlayer *pPlayer );
+	virtual void UpdateGameModeMessage( CBasePlayer *pPlayer );
 
 	// Immediately end a multiplayer game
 	virtual void EndMultiplayerGame( void ) {}
