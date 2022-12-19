@@ -130,13 +130,13 @@ int DispatchSpawn( edict_t *pent )
 {
 	CBaseEntity *pEntity = (CBaseEntity *)GET_PRIVATE(pent);
 
-	if (disallowlist.string && strstr(disallowlist.string, STRING(pEntity->pev->classname))) {
-		ALERT(at_aiconsole, "%s has been disallowed on the server.\n", STRING(pEntity->pev->classname));
-		return -1;
-	}
-
 	if (pEntity)
 	{
+		if (disallowlist.string && strstr(disallowlist.string, STRING(pEntity->pev->classname))) {
+			ALERT(at_aiconsole, "%s has been disallowed on the server.\n", STRING(pEntity->pev->classname));
+			return -1;
+		}
+
 		// Initialize these or entities who don't link to the world won't have anything in here
 		pEntity->pev->absmin = pEntity->pev->origin - Vector(1,1,1);
 		pEntity->pev->absmax = pEntity->pev->origin + Vector(1,1,1);
