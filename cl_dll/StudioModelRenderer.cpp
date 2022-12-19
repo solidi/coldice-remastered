@@ -1384,8 +1384,7 @@ int CStudioModelRenderer::StudioDrawModel( int flags )
 
 		/*if ((m_pCurrentEntity->model && (strstr(m_pCurrentEntity->model->name, "w_"))) ||
 			m_pCurrentEntity == gEngfuncs.GetViewModel())*/
-		if (m_pIceModels->value > 0)
-			m_pCurrentEntity->curstate.skin = m_pIceModels->value;
+		m_pCurrentEntity->curstate.skin = m_pIceModels->value;
 
 		if ( m_pCurrentEntity == gEngfuncs.GetViewModel() )
 		{
@@ -2059,8 +2058,7 @@ int CStudioModelRenderer::StudioDrawPlayer( int flags, entity_state_t *pplayer )
 			cl_entity_t saveent = *m_pCurrentEntity;
 
 			model_t *pweaponmodel = IEngineStudio.GetModelByIndex( pplayer->weaponmodel );
-			if (m_pIceModels->value > 0)
-				m_pCurrentEntity->curstate.skin = m_pIceModels->value;
+			m_pCurrentEntity->curstate.skin = m_pIceModels->value;
 
 #if defined _TFC
 			if ( pweaponmodel )
