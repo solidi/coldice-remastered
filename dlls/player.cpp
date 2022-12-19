@@ -5799,33 +5799,36 @@ void CBasePlayer::DropPlayerItem ( char *pszItemName )
 				m_iWeapons2 &= ~(1<<(pWeapon->m_iId - 32));// take item off hud
 
 			CWeaponBox *pWeaponBox = (CWeaponBox *)CBaseEntity::Create( "weaponbox", pev->origin + gpGlobals->v_forward * 10, pev->angles, edict() );
-			pWeaponBox->pev->angles.x = 0;
-			pWeaponBox->pev->angles.z = 0;
-			pWeaponBox->PackWeapon( pWeapon );
-			pWeaponBox->pev->velocity = gpGlobals->v_forward * 300 + gpGlobals->v_forward * 100;
-			
-			// drop half of the ammo for this weapon.
-			int	iAmmoIndex;
-
-			iAmmoIndex = GetAmmoIndex ( pWeapon->pszAmmo1() ); // ???
-			
-			if ( iAmmoIndex != -1 )
+			if (pWeaponBox != NULL)
 			{
-				// this weapon weapon uses ammo, so pack an appropriate amount.
-				if ( pWeapon->iFlags() & ITEM_FLAG_EXHAUSTIBLE )
+				pWeaponBox->pev->angles.x = 0;
+				pWeaponBox->pev->angles.z = 0;
+				pWeaponBox->PackWeapon( pWeapon );
+				pWeaponBox->pev->velocity = gpGlobals->v_forward * 300 + gpGlobals->v_forward * 100;
+
+				// drop half of the ammo for this weapon.
+				int	iAmmoIndex;
+
+				iAmmoIndex = GetAmmoIndex ( pWeapon->pszAmmo1() ); // ???
+				
+				if ( iAmmoIndex != -1 )
 				{
-					// pack up all the ammo, this weapon is its own ammo type
-					pWeaponBox->PackAmmo( MAKE_STRING(pWeapon->pszAmmo1()), m_rgAmmo[ iAmmoIndex ] );
-					m_rgAmmo[ iAmmoIndex ] = 0; 
+					// this weapon weapon uses ammo, so pack an appropriate amount.
+					if ( pWeapon->iFlags() & ITEM_FLAG_EXHAUSTIBLE )
+					{
+						// pack up all the ammo, this weapon is its own ammo type
+						pWeaponBox->PackAmmo( MAKE_STRING(pWeapon->pszAmmo1()), m_rgAmmo[ iAmmoIndex ] );
+						m_rgAmmo[ iAmmoIndex ] = 0; 
+
+					}
+					else
+					{
+						// pack half of the ammo
+						pWeaponBox->PackAmmo( MAKE_STRING(pWeapon->pszAmmo1()), m_rgAmmo[ iAmmoIndex ] / 2 );
+						m_rgAmmo[ iAmmoIndex ] /= 2; 
+					}
 
 				}
-				else
-				{
-					// pack half of the ammo
-					pWeaponBox->PackAmmo( MAKE_STRING(pWeapon->pszAmmo1()), m_rgAmmo[ iAmmoIndex ] / 2 );
-					m_rgAmmo[ iAmmoIndex ] /= 2; 
-				}
-
 			}
 
 			return;// we're done, so stop searching with the FOR loop.
