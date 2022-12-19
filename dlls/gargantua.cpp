@@ -897,10 +897,13 @@ void CGargantua::DeathEffect( void )
 	}
 
 	CBaseEntity *pSmoker = CBaseEntity::Create( "env_smoker", pev->origin, g_vecZero, NULL );
-	pSmoker->pev->health = 1;	// 1 smoke balls
-	pSmoker->pev->scale = 46;	// 4.6X normal size
-	pSmoker->pev->dmg = 0;		// 0 radial distribution
-	pSmoker->pev->nextthink = gpGlobals->time + 2.5;	// Start in 2.5 seconds
+	if (pSmoker != NULL)
+	{
+		pSmoker->pev->health = 1;	// 1 smoke balls
+		pSmoker->pev->scale = 46;	// 4.6X normal size
+		pSmoker->pev->dmg = 0;		// 0 radial distribution
+		pSmoker->pev->nextthink = gpGlobals->time + 2.5;	// Start in 2.5 seconds
+	}
 }
 
 
@@ -1352,15 +1355,18 @@ void SpawnExplosion( Vector center, float randomRange, float time, int magnitude
 	center.y += RANDOM_FLOAT( -randomRange, randomRange );
 
 	CBaseEntity *pExplosion = CBaseEntity::Create( "env_explosion", center, g_vecZero, NULL );
-	sprintf( buf, "%3d", magnitude );
-	kvd.szKeyName = "iMagnitude";
-	kvd.szValue = buf;
-	pExplosion->KeyValue( &kvd );
-	pExplosion->pev->spawnflags |= SF_ENVEXPLOSION_NODAMAGE;
+	if (pExplosion != NULL)
+	{
+		sprintf( buf, "%3d", magnitude );
+		kvd.szKeyName = "iMagnitude";
+		kvd.szValue = buf;
+		pExplosion->KeyValue( &kvd );
+		pExplosion->pev->spawnflags |= SF_ENVEXPLOSION_NODAMAGE;
 
-	pExplosion->Spawn();
-	pExplosion->SetThink( &CBaseEntity::SUB_CallUseToggle );
-	pExplosion->pev->nextthink = gpGlobals->time + time;
+		pExplosion->Spawn();
+		pExplosion->SetThink( &CBaseEntity::SUB_CallUseToggle );
+		pExplosion->pev->nextthink = gpGlobals->time + time;
+	}
 }
 
 

@@ -1004,8 +1004,9 @@ void CWorldRunes::DropRune(CBasePlayer *pPlayer) {
 	}
 
 	UTIL_MakeVectors(pPlayer->pev->v_angle);
-	CRune *rune = (CRune *)CBaseEntity::Create(sz_Rune, pPlayer->GetGunPosition( ) + gpGlobals->v_forward * 32, pPlayer->pev->angles, pPlayer->edict());
-	rune->pev->velocity = gpGlobals->v_forward * 300 + gpGlobals->v_forward * 100;
+	CRune *pRune = (CRune *)CBaseEntity::Create(sz_Rune, pPlayer->GetGunPosition( ) + gpGlobals->v_forward * 32, pPlayer->pev->angles, pPlayer->edict());
+	if (pRune != NULL)
+		pRune->pev->velocity = gpGlobals->v_forward * 300 + gpGlobals->v_forward * 100;
 }
 
 const char *pPlaces[] =
@@ -1034,13 +1035,13 @@ void CWorldRunes::CreateRune(char *sz_RuneClass)
 		return;
 	}
 
-	CBaseEntity *rune = CBaseEntity::Create(sz_RuneClass, m_pSpot->pev->origin, Vector(0, 0, 0), NULL );
+	CBaseEntity *pRune = CBaseEntity::Create(sz_RuneClass, m_pSpot->pev->origin, Vector(0, 0, 0), NULL );
 
-	if (rune)
+	if (pRune)
 	{
-		rune->pev->velocity.x = RANDOM_FLOAT( -300, 300 );
-		rune->pev->velocity.y = RANDOM_FLOAT( -300, 300 );
-		rune->pev->velocity.z = RANDOM_FLOAT( 0, 300 );
+		pRune->pev->velocity.x = RANDOM_FLOAT( -300, 300 );
+		pRune->pev->velocity.y = RANDOM_FLOAT( -300, 300 );
+		pRune->pev->velocity.z = RANDOM_FLOAT( 0, 300 );
 	}
 
 	if (strstr(mutators.string, g_MutatorTurrets) ||
@@ -1048,13 +1049,13 @@ void CWorldRunes::CreateRune(char *sz_RuneClass)
 		m_pSpot = SelectSpawnPoint(pPlaces[RANDOM_LONG(0,ARRAYSIZE(pPlaces)-1)]);
 		if (m_pSpot)
 		{
-			CBaseEntity *turret = CBaseEntity::Create("monster_sentry",
+			CBaseEntity *pTurret = CBaseEntity::Create("monster_sentry",
 				m_pSpot->pev->origin, Vector(0, 0, 0), NULL );
-			if (turret)
+			if (pTurret)
 			{
-				turret->pev->velocity.x = RANDOM_FLOAT( -400, 400 );
-				turret->pev->velocity.y = RANDOM_FLOAT( -400, 400 );
-				turret->pev->velocity.z = RANDOM_FLOAT( 0, 400 );
+				pTurret->pev->velocity.x = RANDOM_FLOAT( -400, 400 );
+				pTurret->pev->velocity.y = RANDOM_FLOAT( -400, 400 );
+				pTurret->pev->velocity.z = RANDOM_FLOAT( 0, 400 );
 			}
 		}
 	}
@@ -1064,13 +1065,13 @@ void CWorldRunes::CreateRune(char *sz_RuneClass)
 		m_pSpot = SelectSpawnPoint(pPlaces[RANDOM_LONG(0,ARRAYSIZE(pPlaces)-1)]);
 		if (m_pSpot)
 		{
-			CBaseEntity *barrel = CBaseEntity::Create("monster_barrel", 
+			CBaseEntity *pBarrel = CBaseEntity::Create("monster_barrel", 
 				m_pSpot->pev->origin, Vector(0, 0, 0), NULL );
-			if (barrel)
+			if (pBarrel)
 			{
-				barrel->pev->velocity.x = RANDOM_FLOAT( -400, 400 );
-				barrel->pev->velocity.y = RANDOM_FLOAT( -400, 400 );
-				barrel->pev->velocity.z = RANDOM_FLOAT( 0, 400 );
+				pBarrel->pev->velocity.x = RANDOM_FLOAT( -400, 400 );
+				pBarrel->pev->velocity.y = RANDOM_FLOAT( -400, 400 );
+				pBarrel->pev->velocity.z = RANDOM_FLOAT( 0, 400 );
 			}
 		}
 	}

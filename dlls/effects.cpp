@@ -2186,14 +2186,17 @@ void CEnvBeverage::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE 
 
 	CBaseEntity *pCan = CBaseEntity::Create( "item_sodacan", pev->origin, pev->angles, edict() );	
 
-	if ( pev->skin == 6 )
+	if (pCan != NULL)
 	{
-		// random
-		pCan->pev->skin = RANDOM_LONG( 0, 5 );
-	}
-	else
-	{
-		pCan->pev->skin = pev->skin;
+		if ( pev->skin == 6 )
+		{
+			// random
+			pCan->pev->skin = RANDOM_LONG( 0, 5 );
+		}
+		else
+		{
+			pCan->pev->skin = pev->skin;
+		}
 	}
 
 	pev->frags = 1;

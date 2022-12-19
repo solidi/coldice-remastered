@@ -551,7 +551,8 @@ void CSqueak::PrimaryAttack()
 
 #ifndef CLIENT_DLL
 			CBaseEntity *pSqueak = CBaseEntity::Create( "monster_snark", tr.vecEndPos, m_pPlayer->pev->v_angle, m_pPlayer->edict() );
-			pSqueak->pev->velocity = gpGlobals->v_forward * 200 + m_pPlayer->pev->velocity;
+			if (pSqueak != NULL)
+				pSqueak->pev->velocity = gpGlobals->v_forward * 200 + m_pPlayer->pev->velocity;
 #endif
 
 			// play hunt sound
@@ -611,8 +612,9 @@ void CSqueak::SecondaryAttack()
 #ifndef CLIENT_DLL
 			int dif = m_pPlayer->m_rgAmmo[ m_iPrimaryAmmoType ] * -10;
 			for (int i = 0; i < m_pPlayer->m_rgAmmo[ m_iPrimaryAmmoType ]; i++) {
-				CBaseEntity *pChumtoad = CBaseEntity::Create( "monster_snark", tr.vecEndPos + (gpGlobals->v_right * ((20 * i) + dif)), m_pPlayer->pev->v_angle, m_pPlayer->edict() );
-				pChumtoad->pev->velocity = gpGlobals->v_forward * 200 + m_pPlayer->pev->velocity;
+				CBaseEntity *pSnark = CBaseEntity::Create( "monster_snark", tr.vecEndPos + (gpGlobals->v_right * ((20 * i) + dif)), m_pPlayer->pev->v_angle, m_pPlayer->edict() );
+				if (pSnark != NULL)
+					pSnark->pev->velocity = gpGlobals->v_forward * 200 + m_pPlayer->pev->velocity;
 			}
 #endif
 

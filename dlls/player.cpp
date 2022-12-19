@@ -841,34 +841,37 @@ void CBasePlayer::PackDeadPlayerItems( void )
 	// create a box to pack the stuff into.
 		CWeaponBox *pWeaponBox = (CWeaponBox *)CBaseEntity::Create( "weaponbox", pev->origin, pev->angles, edict() );
 
-		pWeaponBox->pev->angles.x = 0;// don't let weaponbox tilt.
-		pWeaponBox->pev->angles.z = 0;
-
-		pWeaponBox->SetThink( &CWeaponBox::Kill );
-		pWeaponBox->pev->nextthink = gpGlobals->time + 30;
-
-	// back these two lists up to their first elements
-		iPA = 0;
-		iPW = 0;
-
-	// pack the ammo
-		while ( iPackAmmo[ iPA ] != -1 )
+		if (pWeaponBox != NULL)
 		{
-			pWeaponBox->PackAmmo( MAKE_STRING( CBasePlayerItem::AmmoInfoArray[ iPackAmmo[ iPA ] ].pszName ), m_rgAmmo[ iPackAmmo[ iPA ] ] );
-			iPA++;
+			pWeaponBox->pev->angles.x = 0;// don't let weaponbox tilt.
+			pWeaponBox->pev->angles.z = 0;
+
+			pWeaponBox->SetThink( &CWeaponBox::Kill );
+			pWeaponBox->pev->nextthink = gpGlobals->time + 30;
+
+		// back these two lists up to their first elements
+			iPA = 0;
+			iPW = 0;
+
+		// pack the ammo
+			while ( iPackAmmo[ iPA ] != -1 )
+			{
+				pWeaponBox->PackAmmo( MAKE_STRING( CBasePlayerItem::AmmoInfoArray[ iPackAmmo[ iPA ] ].pszName ), m_rgAmmo[ iPackAmmo[ iPA ] ] );
+				iPA++;
+			}
+
+		// now pack all of the items in the lists
+			while ( rgpPackWeapons[ iPW ] )
+			{
+				// ALERT(at_console, "[rgpPackWeapons[ iPW ]=%s]\n", STRING(rgpPackWeapons[ iPW ]->pev->classname));
+				// weapon unhooked from the player. Pack it into der box.
+				pWeaponBox->PackWeapon( rgpPackWeapons[ iPW ] );
+
+				iPW++;
+			}
+
+			pWeaponBox->pev->velocity = pev->velocity * 1.2;// weaponbox has player's velocity, then some.
 		}
-
-	// now pack all of the items in the lists
-		while ( rgpPackWeapons[ iPW ] )
-		{
-			// ALERT(at_console, "[rgpPackWeapons[ iPW ]=%s]\n", STRING(rgpPackWeapons[ iPW ]->pev->classname));
-			// weapon unhooked from the player. Pack it into der box.
-			pWeaponBox->PackWeapon( rgpPackWeapons[ iPW ] );
-
-			iPW++;
-		}
-
-		pWeaponBox->pev->velocity = pev->velocity * 1.2;// weaponbox has player's velocity, then some.
 	}
 
 	RemoveAllItems( TRUE );// now strip off everything that wasn't handled by the code above.

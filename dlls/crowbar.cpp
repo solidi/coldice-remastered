@@ -541,31 +541,34 @@ void CFlyingCrowbar::SpinTouch( CBaseEntity *pOther )
    CWeaponBox *pWeaponBox = (CWeaponBox *)CBaseEntity::Create(
                   "weaponbox", pev->origin, pev->angles, edict() );
 
-   // don't let weapon box tilt.
-   pWeaponBox->pev->angles.x = 0;
-   pWeaponBox->pev->angles.z = 0;
+   if (pWeaponBox != NULL)
+   {
+      // don't let weapon box tilt.
+      pWeaponBox->pev->angles.x = 0;
+      pWeaponBox->pev->angles.z = 0;
 
-   // remove the weapon box after 2 mins.
-   pWeaponBox->pev->nextthink = gpGlobals->time + 120;
-   pWeaponBox->SetThink( &CWeaponBox::Kill );
+      // remove the weapon box after 2 mins.
+      pWeaponBox->pev->nextthink = gpGlobals->time + 120;
+      pWeaponBox->SetThink( &CWeaponBox::Kill );
 
-   // Pack the crowbar in the weapon box
-   pWeaponBox->PackWeapon( pItem );
+      // Pack the crowbar in the weapon box
+      pWeaponBox->PackWeapon( pItem );
 
-   // Get the unit vector in the direction of motion.
-   Vector vecDir = pev->velocity.Normalize( );
+      // Get the unit vector in the direction of motion.
+      Vector vecDir = pev->velocity.Normalize( );
 
-   // Trace a line along the velocity vector to get the normal at impact.
-   TraceResult tr;
-   UTIL_TraceLine(pev->origin, pev->origin + vecDir * 100,
-                  dont_ignore_monsters, ENT(pev), &tr);
+      // Trace a line along the velocity vector to get the normal at impact.
+      TraceResult tr;
+      UTIL_TraceLine(pev->origin, pev->origin + vecDir * 100,
+                     dont_ignore_monsters, ENT(pev), &tr);
 
-   DecalGunshot( &tr, BULLET_PLAYER_CROWBAR );
+      DecalGunshot( &tr, BULLET_PLAYER_CROWBAR );
 
-   // Throw the weapon box along the normal so it looks kinda
-   // like a ricochet. This would be better if I actually
-   // calcualted the reflection angle, but I'm lazy. :)
-   pWeaponBox->pev->velocity = tr.vecPlaneNormal * 300;
+      // Throw the weapon box along the normal so it looks kinda
+      // like a ricochet. This would be better if I actually
+      // calcualted the reflection angle, but I'm lazy. :)
+      pWeaponBox->pev->velocity = tr.vecPlaneNormal * 300;
+   }
 
    // Remove this flying_crowbar from the world.
    SetThink ( &CBaseEntity::SUB_Remove );

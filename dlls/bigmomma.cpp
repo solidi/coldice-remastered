@@ -602,8 +602,8 @@ int CBigMomma :: TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, fl
 void CBigMomma :: LayHeadcrab( void )
 {
 	CBaseEntity *pChild = CBaseEntity::Create( BIG_CHILDCLASS, pev->origin, pev->angles, edict() );
-
-	pChild->pev->spawnflags |= SF_MONSTER_FALL_TO_GROUND;
+	if (pChild != NULL)
+		pChild->pev->spawnflags |= SF_MONSTER_FALL_TO_GROUND;
 
 	// Is this the second crab in a pair?
 	if ( HasMemory( bits_MEMORY_CHILDPAIR ) )

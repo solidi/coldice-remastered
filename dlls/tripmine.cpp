@@ -468,7 +468,7 @@ void CTripmine::PrimaryAttack( void )
 		{
 			Vector angles = UTIL_VecToAngles( tr.vecPlaneNormal );
 
-			CBaseEntity *pEnt = CBaseEntity::Create( "monster_tripmine", tr.vecEndPos + tr.vecPlaneNormal * 8, angles, m_pPlayer->edict() );
+			CBaseEntity::Create( "monster_tripmine", tr.vecEndPos + tr.vecPlaneNormal * 8, angles, m_pPlayer->edict() );
 
 			m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType]--;
 

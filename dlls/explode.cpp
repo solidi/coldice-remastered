@@ -270,13 +270,16 @@ void ExplosionCreate( const Vector &center, const Vector &angles, edict_t *pOwne
 	char			buf[128];
 
 	CBaseEntity *pExplosion = CBaseEntity::Create( "env_explosion", center, angles, pOwner );
-	sprintf( buf, "%3d", magnitude );
-	kvd.szKeyName = "iMagnitude";
-	kvd.szValue = buf;
-	pExplosion->KeyValue( &kvd );
-	if ( !doDamage )
-		pExplosion->pev->spawnflags |= SF_ENVEXPLOSION_NODAMAGE;
+	if (pExplosion != NULL)
+	{
+		sprintf( buf, "%3d", magnitude );
+		kvd.szKeyName = "iMagnitude";
+		kvd.szValue = buf;
+		pExplosion->KeyValue( &kvd );
+		if ( !doDamage )
+			pExplosion->pev->spawnflags |= SF_ENVEXPLOSION_NODAMAGE;
 
-	pExplosion->Spawn();
-	pExplosion->Use( NULL, NULL, USE_TOGGLE, 0 );
+		pExplosion->Spawn();
+		pExplosion->Use( NULL, NULL, USE_TOGGLE, 0 );
+	}
 }

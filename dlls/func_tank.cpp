@@ -907,7 +907,7 @@ void CFuncTankRocket::Fire( const Vector &barrelEnd, const Vector &forward, entv
 		{
 			for ( i = 0; i < bulletCount; i++ )
 			{
-				CBaseEntity *pRocket = CBaseEntity::Create( "rpg_rocket", barrelEnd, pev->angles, edict() );
+				CBaseEntity::Create( "rpg_rocket", barrelEnd, pev->angles, edict() );
 			}
 			CFuncTank::Fire( barrelEnd, forward, pev );
 		}
