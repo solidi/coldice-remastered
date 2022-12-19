@@ -37,6 +37,7 @@ extern int gmsgStatusIcon;
 extern DLL_GLOBAL const char *g_MutatorTurrets;
 extern DLL_GLOBAL const char *g_MutatorBarrels;
 extern DLL_GLOBAL const char *g_MutatorInvisible;
+extern DLL_GLOBAL const char *g_MutatorMegaSpeed;
 
 class CWorldItem : public CBaseEntity
 {
@@ -1104,7 +1105,7 @@ void CWorldRunes::SpawnRunes( )
 	}
 
 #ifdef _DEBUG
-	ALERT ( at_console, "[playerCount=%d, runeCount=%d] Creating runes...\n", playerCount, fmin((playerCount / playersPerRunes) + 1, RUNE_COUNT) );
+	ALERT ( at_console, "[playerCount=%d, runeCount=%.2f] Creating runes...\n", playerCount, fmin((playerCount / playersPerRunes) + 1, RUNE_COUNT) );
 #endif
 	for ( int i = 0; i < fmin((playerCount / playersPerRunes) + 1, RUNE_COUNT); i++) {
 		char *runeName = (char *)runeClassList[RANDOM_LONG(0,RUNE_COUNT - 1)];
@@ -1128,7 +1129,10 @@ void CWorldRunes::ResetPlayer(CBasePlayer *pPlayer)
 {
 	pPlayer->m_fHasRune = 0;
 	pPlayer->m_flRuneHealTime = 0;
-	g_engfuncs.pfnSetPhysicsKeyValue( pPlayer->edict(), "haste", "0" );
+	if (!pPlayer->IsArmoredMan &&
+		!strstr(mutators.string, g_MutatorMegaSpeed) &&
+		atoi(mutators.string) != MUTATOR_MEGASPEED)
+		g_engfuncs.pfnSetPhysicsKeyValue( pPlayer->edict(), "haste", "0" );
 	if (!FBitSet(pPlayer->pev->flags, FL_FAKECLIENT))
 	{
 		MESSAGE_BEGIN( MSG_ONE, gmsgStatusIcon, NULL, pPlayer->pev );
