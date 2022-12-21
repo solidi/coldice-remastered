@@ -688,8 +688,10 @@ void CGameRules::CheckMutators(void)
 			}
 		}
 
+		char szMutators[64];
+		strncpy(szMutators, mutators.string, sizeof(szMutators));
 		MESSAGE_BEGIN( MSG_BROADCAST, gmsgMutators );
-			WRITE_STRING( mutators.string );
+			WRITE_STRING(szMutators);
 		MESSAGE_END();
 
 		m_flDetectedMutatorChange = 0;
@@ -700,7 +702,7 @@ void CGameRules::UpdateMutatorMessage( CBasePlayer *pPlayer )
 {
 	if (pPlayer->m_iShowMutatorMessage != -1 && pPlayer->m_iShowMutatorMessage < gpGlobals->time) {
 		// Display Mutators
-		if (strlen(mutators.string) > 1)
+		if (strlen(mutators.string) > 1 && strlen(mutators.string) < 64)
 			pPlayer->DisplayHudMessage(UTIL_VarArgs("Mutators Active: %s", mutators.string), 2, .02, .18, 210, 210, 210, 2, .015, 2, 5, .25);
 
 		pPlayer->m_iShowMutatorMessage = -1;
