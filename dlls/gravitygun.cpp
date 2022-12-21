@@ -59,6 +59,18 @@ void CGravityGun::Precache()
 	m_usGravGun = PRECACHE_EVENT(1, "events/gravitygun.sc");
 }
 
+int CGravityGun::AddToPlayer( CBasePlayer *pPlayer )
+{
+	if ( CBasePlayerWeapon::AddToPlayer( pPlayer ) )
+	{
+		MESSAGE_BEGIN( MSG_ONE, gmsgWeapPickup, NULL, pPlayer->pev );
+			WRITE_BYTE( m_iId );
+		MESSAGE_END();
+		return TRUE;
+	}
+	return FALSE;
+}
+
 int CGravityGun::GetItemInfo(ItemInfo* p)
 {
 	p->pszName = STRING(pev->classname);

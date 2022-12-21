@@ -2220,6 +2220,7 @@ class CGravityGun : public CBasePlayerWeapon
 public:
 	void Spawn();
 	void Precache();
+	int AddToPlayer( CBasePlayer *pPlayer );
 	int iItemSlot() { return 1; }
 	int GetItemInfo(ItemInfo* p);
 
