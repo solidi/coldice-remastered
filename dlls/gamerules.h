@@ -384,6 +384,7 @@ public:
 	virtual void CheckRounds( void );
 	virtual void SetRoundLimits( void );
 	virtual void SuckAllToSpectator( void );
+	virtual void RemoveItemsThatDamage( void );
 	virtual void DisplayWinnersGoods( CBasePlayer *pPlayer );
 	virtual void ResetGameMode( void );
 	virtual void ClientUserInfoChanged( CBasePlayer *pPlayer, char *infobuffer );

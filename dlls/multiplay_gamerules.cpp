@@ -791,6 +791,7 @@ void CHalfLifeMultiplay::Arena ( void )
 				MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
 					WRITE_BYTE(CLIENT_SOUND_PREPARETOFIGHT);
 				MESSAGE_END();
+				RemoveItemsThatDamage();
 			}
 			SuckAllToSpectator(); // in case players join during a countdown.
 			UTIL_ClientPrintAll(HUD_PRINTCENTER,
@@ -1094,6 +1095,31 @@ void CHalfLifeMultiplay::CheckRounds( void )
 		ALERT( at_notice, UTIL_VarArgs("SuccessfulRounds = %i\n", m_iSuccessfulRounds ));
 		if ( m_iSuccessfulRounds >= CVAR_GET_FLOAT("mp_roundlimit") )
 			GoToIntermission();
+	}
+}
+
+void CHalfLifeMultiplay::RemoveItemsThatDamage( void )
+{
+	const char *pRemoveThese[] =
+	{
+		"monster_satchel",
+		"monster_tripmine",
+		"monster_chumtoad",
+		"monster_snark",
+	};
+
+	CBaseEntity *pEntity = NULL;
+	for (int itemIndex = 0; itemIndex < ARRAYSIZE(pRemoveThese); itemIndex++)
+	{
+		while ((pEntity = UTIL_FindEntityByClassname(pEntity, pRemoveThese[itemIndex])) != NULL)
+		{
+			ALERT(at_aiconsole, "Remove %s at [x=%.2f,y=%.2f,z=%.2f]\n", 
+				pRemoveThese[itemIndex],
+				pEntity->pev->origin.x,
+				pEntity->pev->origin.y,
+				pEntity->pev->origin.z);
+			UTIL_Remove(pEntity);
+		}
 	}
 }
 
