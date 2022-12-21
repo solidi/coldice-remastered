@@ -831,12 +831,11 @@ void CWorld :: SetGameMode( void )
 			szGameModeList[RANDOM_LONG(0,(int)ARRAYSIZE(szGameModeList) - 1)]);
 	}
 
-	for (int i = 0; i <= GAME_SNOWBALL; i++)
+	for (int i = 0; i < ARRAYSIZE(szGameModeList); i++)
 	{
 		if (strcmp(szGameModeList[i], gamemode.string) == 0 || atoi(gamemode.string) == i)
 		{
 			g_GameMode = i;
-			ALERT(at_console,"i=%d\nGamemode set to: %s\n", i, szGameModeList[i]);
 
 			// Set up starting information
 			switch (g_GameMode)
@@ -861,6 +860,8 @@ void CWorld :: SetGameMode( void )
 		CVAR_SET_STRING( "motdfile", "motd.txt");
 		CVAR_SET_STRING( "mp_gamemode", "ffa" );
 	}
+
+	ALERT(at_console,"Gamemode set to %s\n", szGameModeList[g_GameMode]);
 }
 
 //
