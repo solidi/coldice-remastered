@@ -2436,3 +2436,4 @@ public:
 };
 
 LINK_ENTITY_TO_CLASS(env_snow, CWeather);
+LINK_ENTITY_TO_CLASS(env_rain, CWeather);
