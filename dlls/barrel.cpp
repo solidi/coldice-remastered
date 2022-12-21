@@ -127,6 +127,17 @@ void CBarrel::BarrelThink( void )
 		m_fTimeToDie = 0;
 	}
 
+	if (pev->waterlevel == 3)
+	{
+		// go slow underwater
+		if (pev->velocity.Length() > 300)
+		{
+			pev->velocity = pev->velocity.Normalize() * 300;
+		}
+
+		UTIL_BubbleTrail( pev->origin - pev->velocity * 0.1, pev->origin, 4 );
+	}
+
 	pev->nextthink = gpGlobals->time + 0.25;
 }
 
