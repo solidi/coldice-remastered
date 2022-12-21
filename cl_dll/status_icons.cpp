@@ -50,6 +50,8 @@ void CHudStatusIcons::Reset( void )
 {
 	memset( m_IconList, 0, sizeof m_IconList );
 	m_iFlags &= ~HUD_ACTIVE;
+
+	DrawMutators();
 }
 
 // Draw status icons along the left-hand side of the screen
@@ -59,7 +61,7 @@ int CHudStatusIcons::Draw( float flTime )
 		return 1;
 	// find starting position to draw from, along right-hand side of screen
 	int x = (5) + g_xP;
-	int y = (ScreenHeight / 2) + g_yP;
+	int y = (ScreenHeight / 1.5) + g_yP;
 	
 	// loop through icon list, and draw any valid icons drawing up from the middle of screen
 	for ( int i = 0; i < MAX_ICONSPRITES; i++ )
@@ -162,4 +164,37 @@ void CHudStatusIcons::DisableIcon( char *pszIconName )
 			return;
 		}
 	}
+}
+
+void CHudStatusIcons::DrawMutators( void )
+{
+	if (gHUD.szActiveMutators != NULL &&
+		(strstr(gHUD.szActiveMutators, "coolflesh") ||
+		atoi(gHUD.szActiveMutators) == MUTATOR_COOLFLESH))
+	{
+		m_iFlags |= HUD_ACTIVE;
+		EnableIcon("coolflesh",0,113,230);
+	}
+	else
+		DisableIcon("coolflesh");
+
+	if (gHUD.szActiveMutators != NULL &&
+		(strstr(gHUD.szActiveMutators, "santahat") ||
+		atoi(gHUD.szActiveMutators) == MUTATOR_SANTAHAT))
+	{
+		m_iFlags |= HUD_ACTIVE;
+		EnableIcon("santahat",0,113,230);
+	}
+	else
+		DisableIcon("santahat");
+
+	if (gHUD.szActiveMutators != NULL &&
+		(strstr(gHUD.szActiveMutators, "volatile") ||
+		atoi(gHUD.szActiveMutators) == MUTATOR_VOLATILE))
+	{
+		m_iFlags |= HUD_ACTIVE;
+		EnableIcon("volatile",0,113,230);
+	}
+	else
+		DisableIcon("volatile");
 }

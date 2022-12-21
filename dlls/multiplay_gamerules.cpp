@@ -357,13 +357,16 @@ void CHalfLifeMultiplay::IcemanArena( void )
 
 		if (m_fSendArmoredManMessage < gpGlobals->time)
 		{
-			MESSAGE_BEGIN( MSG_ONE, gmsgStatusIcon, NULL, pArmoredMan->pev );
-				WRITE_BYTE(1);
-				WRITE_STRING("iceman");
-				WRITE_BYTE(0);
-				WRITE_BYTE(113);
-				WRITE_BYTE(230);
-			MESSAGE_END();
+			if (!FBitSet(pArmoredMan->pev->flags, FL_FAKECLIENT))
+			{
+				MESSAGE_BEGIN( MSG_ONE, gmsgStatusIcon, NULL, pArmoredMan->pev );
+					WRITE_BYTE(1);
+					WRITE_STRING("iceman");
+					WRITE_BYTE(0);
+					WRITE_BYTE(113);
+					WRITE_BYTE(230);
+				MESSAGE_END();
+			}
 		}
 
 		//commandos all dead or armored man defeated.
@@ -372,15 +375,17 @@ void CHalfLifeMultiplay::IcemanArena( void )
 			//stop timer / end game.
 			m_flRoundTimeLimit = 0;
 			g_GameInProgress = FALSE;
-
 			//hack to allow for logical code below.
 			if ( pArmoredMan->HasDisconnected )
 				pArmoredMan->pev->health = 0;
 
-			MESSAGE_BEGIN( MSG_ONE, gmsgStatusIcon, NULL, pArmoredMan->pev );
-				WRITE_BYTE(0);
-				WRITE_STRING("iceman");
-			MESSAGE_END();
+			if (!FBitSet(pArmoredMan->pev->flags, FL_FAKECLIENT))
+			{
+				MESSAGE_BEGIN( MSG_ONE, gmsgStatusIcon, NULL, pArmoredMan->pev );
+					WRITE_BYTE(0);
+					WRITE_STRING("iceman");
+				MESSAGE_END();
+			}
 
 			//armored man is alive.
 			if ( pArmoredMan->IsAlive() && clients_alive == 1 )

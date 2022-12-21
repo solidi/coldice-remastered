@@ -234,5 +234,6 @@ int CHud :: MsgFunc_Mutators( const char *pszName, int iSize, void *pbuf )
 {
 	BEGIN_READ( pbuf, iSize );
 	strncpy( gHUD.szActiveMutators, READ_STRING(), 64 );
+	this->m_StatusIcons.DrawMutators();
 	return 1;
 }
