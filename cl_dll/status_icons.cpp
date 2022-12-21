@@ -168,12 +168,16 @@ void CHudStatusIcons::DisableIcon( char *pszIconName )
 
 void CHudStatusIcons::DrawMutators( void )
 {
+	int r, g, b;
+	UnpackRGB(r,g,b, HudColor());
+	ScaleColors(r, g, b, 128);
+
 	if (gHUD.szActiveMutators != NULL &&
 		(strstr(gHUD.szActiveMutators, "coolflesh") ||
 		atoi(gHUD.szActiveMutators) == MUTATOR_COOLFLESH))
 	{
 		m_iFlags |= HUD_ACTIVE;
-		EnableIcon("coolflesh",0,113,230);
+		EnableIcon("coolflesh",r,g,b);
 	}
 	else
 		DisableIcon("coolflesh");
@@ -183,7 +187,7 @@ void CHudStatusIcons::DrawMutators( void )
 		atoi(gHUD.szActiveMutators) == MUTATOR_SANTAHAT))
 	{
 		m_iFlags |= HUD_ACTIVE;
-		EnableIcon("santahat",0,113,230);
+		EnableIcon("santahat",r,g,b);
 	}
 	else
 		DisableIcon("santahat");
@@ -193,7 +197,7 @@ void CHudStatusIcons::DrawMutators( void )
 		atoi(gHUD.szActiveMutators) == MUTATOR_VOLATILE))
 	{
 		m_iFlags |= HUD_ACTIVE;
-		EnableIcon("volatile",0,113,230);
+		EnableIcon("volatile",r,g,b);
 	}
 	else
 		DisableIcon("volatile");
