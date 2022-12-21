@@ -637,7 +637,8 @@ void CL_AdjustAngles ( float frametime, float *viewangles )
 	{
 		if (gHUD.szActiveMutators != NULL &&
 			(strstr(gHUD.szActiveMutators, "topsyturvy") ||
-			atoi(gHUD.szActiveMutators) == MUTATOR_TOPSYTURVY))
+			atoi(gHUD.szActiveMutators) == MUTATOR_TOPSYTURVY) &&
+			(g_iUser1 < 1 && !gEngfuncs.IsSpectateOnly()))
 		{
 			viewangles[YAW] += speed*cl_yawspeed->value*CL_KeyState (&in_right);
 			viewangles[YAW] -= speed*cl_yawspeed->value*CL_KeyState (&in_left);
@@ -662,7 +663,8 @@ void CL_AdjustAngles ( float frametime, float *viewangles )
 	
 	if (gHUD.szActiveMutators != NULL &&
 		(strstr(gHUD.szActiveMutators, "topsyturvy") ||
-		atoi(gHUD.szActiveMutators) == MUTATOR_TOPSYTURVY))
+		atoi(gHUD.szActiveMutators) == MUTATOR_TOPSYTURVY) &&
+		(g_iUser1 < 1 && !gEngfuncs.IsSpectateOnly()))
 	{
 		viewangles[PITCH] += speed*cl_pitchspeed->value * up;
 		viewangles[PITCH] -= speed*cl_pitchspeed->value * down;

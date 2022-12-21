@@ -744,7 +744,8 @@ void V_CalcNormalRefdef ( struct ref_params_s *pparams )
 
 	if (gHUD.szActiveMutators != NULL &&
 		(strstr(gHUD.szActiveMutators, "topsyturvy") ||
-		atoi(gHUD.szActiveMutators) == MUTATOR_TOPSYTURVY))
+		atoi(gHUD.szActiveMutators) == MUTATOR_TOPSYTURVY) &&
+		(g_iUser1 < 1 && !gEngfuncs.IsSpectateOnly()))
 		view->angles[ROLL] = 180;
 
 #ifdef _DEBUG
