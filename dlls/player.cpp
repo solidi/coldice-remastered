@@ -4581,7 +4581,7 @@ void CBasePlayer::TraceHitOfFlip( void )
 					continue;
 				}
 
-				if (pObject->Classify() != CLASS_NONE && pObject->Classify() != CLASS_MACHINE && pObject->IsPlayer())
+				if (pObject->Classify() != CLASS_NONE && pObject->Classify() != CLASS_MACHINE)
 				{
 					pClosest = pObject;
 				}
