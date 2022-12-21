@@ -305,10 +305,10 @@ void CBarrel::BarrelExplode( void ) {
 	}
 	UTIL_DecalTrace(&tr, decal + index);
 
-	entvars_t *attacker;
+	entvars_t *attacker = NULL;
 	if (pLastAttacker != NULL)
 		attacker = VARS(pLastAttacker->edict());
-	::RadiusDamage( pev->origin, pev, attacker, pev->dmg, pev->dmg, CLASS_NONE, DMG_BURN );
+	::RadiusDamage( pev->origin, pev, attacker, pev->dmg, pev->dmg  * 2.5, CLASS_NONE, DMG_BURN );
 	pLastAttacker = NULL;
 
 	SetThink( &CBaseEntity::SUB_Remove );

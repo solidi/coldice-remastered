@@ -54,6 +54,8 @@ void CGravityGun::Precache()
 	PRECACHE_MODEL("models/w_gravitygun.mdl");
 	PRECACHE_MODEL("models/p_gravitygun.mdl");
 
+	PRECACHE_SOUND("weapons/rocketfire1.wav");
+
 	m_usGravGun = PRECACHE_EVENT(1, "events/gravitygun.sc");
 }
 
@@ -131,6 +133,7 @@ void CGravityGun::PrimaryAttack()
 			UTIL_MakeVectors( m_pPlayer->pev->v_angle );
 			Vector vecSrc = pev->origin + pev->view_ofs + gpGlobals->v_forward * 64 + gpGlobals->v_up * 18;
 			m_pCurrentEntity = CBaseEntity::Create( "monster_barrel", vecSrc, Vector(0, pev->v_angle.y, 0), m_pPlayer->edict());
+			EMIT_SOUND(ENT(m_pPlayer->pev), CHAN_WEAPON, "weapons/rocketfire1.wav", 1.0, ATTN_NORM);
 		}
 		#endif
 	}
