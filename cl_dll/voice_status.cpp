@@ -619,7 +619,7 @@ void CVoiceStatus::UpdateBanButton(int iClient)
 		{
 			pPanel->setImage(m_pScoreboardSpeaking);
 		}
-		pPanel->setFgColor(255, 170, 0, 1);
+		pPanel->setFgColor(0, 113, 230, 1);
 	}
 	else if (bNeverSpoken)
 	{
