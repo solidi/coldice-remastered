@@ -519,6 +519,7 @@ public:
 	int VidInit( void );
 	void Reset( void );
 	int Draw(float flTime);
+	void DrawMutators( void );
 	int MsgFunc_StatusIcon(const char *pszName, int iSize, void *pbuf);
 
 	enum { 
