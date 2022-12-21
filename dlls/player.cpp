@@ -836,6 +836,10 @@ void CBasePlayer::PackDeadPlayerItems( void )
 	{
 		// TODO: do something special if only packed fists
 	}
+	else if (iPW == 1 && FStrEq("weapon_nuke", STRING(rgpPackWeapons[0]->pev->classname)))
+	{
+		// TODO: do something special if only packed nuke
+	}
 	else
 	{
 	// create a box to pack the stuff into.

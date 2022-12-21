@@ -1737,6 +1737,11 @@ BOOL CWeaponBox::PackWeapon( CBasePlayerItem *pWeapon )
 		return FALSE;
 	}
 
+	// Don't pack nuke
+	if ( pWeapon->m_iId == WEAPON_NUKE ) {
+		return FALSE;
+	}
+
 	int iWeaponSlot = pWeapon->iItemSlot();
 	
 	if ( m_rgpPlayerItems[ iWeaponSlot ] )
