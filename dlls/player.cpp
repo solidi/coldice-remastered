@@ -51,7 +51,6 @@ extern DLL_GLOBAL const char *g_MutatorIce;
 extern DLL_GLOBAL const char *g_MutatorSantaHat;
 extern DLL_GLOBAL const char *g_MutatorCoolFlesh;
 extern DLL_GLOBAL const char *g_MutatorTopsyTurvy;
-extern DLL_GLOBAL const char *g_MutatorInvisible;
 extern DLL_GLOBAL const char *g_MutatorPlumber;
 extern DLL_GLOBAL const char *g_MutatorRocketCrowbar;
 
@@ -2425,12 +2424,7 @@ void CBasePlayer::PreThink(void)
 		pev->velocity = g_vecZero;
 	}
 
-	if (m_fHasRune == RUNE_CLOAK ||
-			strstr(mutators.string, g_MutatorInvisible) ||
-			atoi(mutators.string) == MUTATOR_INVISIBLE) {
-		if (pev->rendermode != kRenderTransAlpha)
-			pev->rendermode = kRenderTransAlpha;
-
+	if (pev->rendermode == kRenderTransAlpha) {
 		float amount = 0;
 		if (m_pActiveItem)
 		{

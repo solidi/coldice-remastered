@@ -36,7 +36,6 @@ extern int gmsgStatusIcon;
 
 extern DLL_GLOBAL const char *g_MutatorTurrets;
 extern DLL_GLOBAL const char *g_MutatorBarrels;
-extern DLL_GLOBAL const char *g_MutatorInvisible;
 extern DLL_GLOBAL const char *g_MutatorMegaSpeed;
 
 class CWorldItem : public CBaseEntity
@@ -433,10 +432,6 @@ void CRune::ShowStatus(CBasePlayer *pPlayer, int r, int g, int b) {
 
 void CRune::ShellPlayer(CBasePlayer *pPlayer, int r, int g, int b)
 {
-	if (strstr(mutators.string, g_MutatorInvisible) ||
-		atoi(mutators.string) == MUTATOR_INVISIBLE)
-		return;
-
 	pPlayer->pev->renderfx = kRenderFxGlowShell;
 	pPlayer->pev->renderamt = 5;
 	pPlayer->pev->rendercolor.x = r;
@@ -920,6 +915,7 @@ class CCloakRune : public CRune
 		if ( !pPlayer->m_fHasRune )
 		{
 			pPlayer->m_fHasRune = RUNE_CLOAK;
+			pPlayer->pev->rendermode = kRenderTransAlpha;
 
 			MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
 				WRITE_BYTE( TE_PARTICLEBURST );

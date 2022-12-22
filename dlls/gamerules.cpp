@@ -60,6 +60,7 @@ extern DLL_GLOBAL const char *g_MutatorGrenades;
 extern DLL_GLOBAL const char *g_MutatorSnowball;
 extern DLL_GLOBAL const char *g_MutatorPushy;
 extern DLL_GLOBAL const char *g_MutatorGravity;
+extern DLL_GLOBAL const char *g_MutatorInvisible;
 
 //=========================================================
 //=========================================================
@@ -507,6 +508,19 @@ void CGameRules::SpawnMutators(CBasePlayer *pPlayer)
 		pPlayer->GiveNamedItem("weapon_gravitygun");
 	}
 
+	if (strstr(mutators.string, g_MutatorInvisible) ||
+		atoi(mutators.string) == MUTATOR_INVISIBLE) {
+		if (pPlayer->pev->renderfx == kRenderFxGlowShell)
+			pPlayer->pev->renderfx = kRenderFxNone;
+		if (pPlayer->pev->rendermode != kRenderTransAlpha)
+			pPlayer->pev->rendermode = kRenderTransAlpha;
+	}
+	else
+	{
+		if (pPlayer->pev->rendermode == kRenderTransAlpha)
+			pPlayer->pev->rendermode = kRenderNormal;
+	}
+
 	if (randomweapon.value)
 		pPlayer->GiveRandomWeapon(NULL);
 }
@@ -629,6 +643,22 @@ void CGameRules::CheckMutators(void)
 					atoi(mutators.string) == MUTATOR_BARRELS) {
 					if (!pl->HasNamedPlayerItem("weapon_gravitygun"))
 						pl->GiveNamedItem("weapon_gravitygun");
+				}
+
+				if (strstr(mutators.string, g_MutatorInvisible) ||
+					atoi(mutators.string) == MUTATOR_INVISIBLE) {
+					if (pPlayer->pev->renderfx == kRenderFxGlowShell)
+						pPlayer->pev->renderfx = kRenderFxNone;
+					if (pl->pev->rendermode != kRenderTransAlpha)
+						pl->pev->rendermode = kRenderTransAlpha;
+				}
+				else
+				{
+					if (pl->m_fHasRune != RUNE_CLOAK)
+					{
+						if (pl->pev->rendermode == kRenderTransAlpha)
+							pl->pev->rendermode = kRenderNormal;
+					}
 				}
 			}
 

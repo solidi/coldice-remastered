@@ -1684,7 +1684,7 @@ void CHalfLifeMultiplay :: PlayerSpawn( CBasePlayer *pPlayer )
 			pPlayer->pev->health = pPlayer->pev->armorvalue = 200;
 			pPlayer->pev->maxspeed = CVAR_GET_FLOAT("sv_maxspeed");
 			g_engfuncs.pfnSetPhysicsKeyValue(pPlayer->edict(), "haste", "1");
-			pPlayer->m_fHasRune = RUNE_CLOAK;
+			pPlayer->GiveNamedItem("rune_cloak");
 			g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer->edict()),
 				g_engfuncs.pfnGetInfoKeyBuffer(pPlayer->edict()), "model", "iceman");
 			g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer->edict()),
