@@ -760,9 +760,9 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_mutators \"superjump\"\" - jump three times the height, disables fall damage.\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_mutators \"megarun\"\" - run faster than normal\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_mutators \"lightsout\"\" - all the lights are turned out, but your flashight has unlimited battery\n");
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_mutators \"slowmo\"\" - everything is slowed down by half!\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_mutators \"slowmo\"\" - everything is slowed down by half! (sp only!)\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_mutators \"ice\"\" - all the ground is covered in ice\n");
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_mutators \"topsyturvy\"\" - everything is turned upside down\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_mutators \"topsyturvy\"\" - everything is turned upside down (sp only!)\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_mutators \"turrets\"\" - sentry guns randomly appear, firing bullets and rockets at everyone\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_mutators \"barrels\"\" - start with the gravitygun, flaming explosive barrels spawn to throw at others\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_mutators \"chumxplode\"\" - a killer chumtoad appears directly after an explosion\n");
@@ -770,10 +770,10 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_mutators \"sanic\"\" - evil santa and sanic with a santa hat team up against you\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_mutators \"coolflesh\"\" - gibs stay longer, pick up gibs to eat and gain a healthkit worth of repair\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_mutators \"loopback\"\" - teleport to the place of your last frag\n");
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_mutators \"maxpack\"\" - drop all weapons and ammo in play\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_mutators \"maxpack\"\" - drop all weapons and ammo in play (mp only!)\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_mutators \"infiniteammo\"\" - all weapons have infinite ammo\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_mutators \"randomweapon\"\" - spawn with a randomly selected weapon\n");
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_mutators \"speedup\"\" - everything is sped up by half!\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_mutators \"speedup\"\" - everything is sped up by half! (sp only!)\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_mutators \"rockets\"\" - a random chance of rockets throw on attack!\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_mutators \"invisible\"\" - everyone is partially invisible!\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_mutators \"grenades\"\" - a random chance of a grenade throw on attack\n");

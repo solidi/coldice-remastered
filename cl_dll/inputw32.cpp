@@ -416,12 +416,15 @@ void IN_ScaleMouse( float *x, float *y )
 	// This is the default sensitivity
 	float mouse_senstivity = ( gHUD.GetSensitivity() != 0 ) ? gHUD.GetSensitivity() : sensitivity->value;
 
-	if (gHUD.szActiveMutators != NULL &&
-		(strstr(gHUD.szActiveMutators, "topsyturvy") ||
-		atoi(gHUD.szActiveMutators) == MUTATOR_TOPSYTURVY) &&
-		(g_iUser1 < 1 && !gEngfuncs.IsSpectateOnly()))
+	if (gEngfuncs.GetMaxClients() == 1)
 	{
-		mouse_senstivity *= -1;
+		if (gHUD.szActiveMutators != NULL &&
+			(strstr(gHUD.szActiveMutators, "topsyturvy") ||
+			atoi(gHUD.szActiveMutators) == MUTATOR_TOPSYTURVY) &&
+			(g_iUser1 < 1 && !gEngfuncs.IsSpectateOnly()))
+		{
+			mouse_senstivity *= -1;
+		}
 	}
 
 	// Using special accleration values

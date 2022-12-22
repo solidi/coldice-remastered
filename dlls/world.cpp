@@ -777,7 +777,9 @@ void CWorld :: RandomizeMutators( void )
 		// Skip mutators that break multiplayer
 		if (g_pGameRules->IsMultiplayer())
 		{
-			if (strstr(tryIt, "slowmo") || strstr(tryIt, "speedup"))
+			if (strstr(tryIt, "slowmo") ||
+				strstr(tryIt, "speedup") ||
+				strstr(tryIt, "topsyturvy"))
 				continue;
 		}
 		else

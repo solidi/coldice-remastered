@@ -2899,11 +2899,14 @@ void PM_CheckParamters( void )
 		pmove->angles[PITCH] =	v_angle[PITCH];
 		pmove->angles[YAW]   =	v_angle[YAW];
 
-		if (atoi(pmove->PM_Info_ValueForKey( pmove->physinfo, "topsy")) &&
-			(!pmove->spectator && pmove->iuser1 < 1))
+		if (!pmove->multiplayer)
 		{
-			pmove->angles[ROLL] = 180;
-			pmove->punchangle[ROLL] = 180;
+			if (atoi(pmove->PM_Info_ValueForKey( pmove->physinfo, "topsy")) &&
+				(!pmove->spectator && pmove->iuser1 < 1))
+			{
+				pmove->angles[ROLL] = 180;
+				pmove->punchangle[ROLL] = 180;
+			}
 		}
 	}
 	else
