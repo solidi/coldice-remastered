@@ -135,13 +135,19 @@ void CHook::HookTouch( CBaseEntity *pOther )
 				EMIT_SOUND(ENT(pev), CHAN_WEAPON, "grapple_hit.wav", 1, ATTN_NORM);
 				break;
 		}
-		pevOwner->pev->movetype = MOVETYPE_WALK;
-		pevOwner->pev->gravity = 1;
+
+		if (pevOwner)
+		{
+			pevOwner->pev->movetype = MOVETYPE_WALK;
+			pevOwner->pev->gravity = 1;
+		}
 
 		m_fActiveHook = FALSE;
 		m_fHookInWall = FALSE;
 		m_fPlayerAtEnd = FALSE;
-		SUB_Remove();
+
+		SetThink(&CBaseEntity::SUB_Remove);
+		pev->nextthink = gpGlobals->time + 0.1;
 
 		if ( !g_pGameRules->IsMultiplayer() )
 		{
@@ -161,7 +167,7 @@ void CHook::HookTouch( CBaseEntity *pOther )
 		pev->avelocity.z = 0;
 		pev->angles.z = RANDOM_LONG(0,360);
 		SetThink( &CHook::Think );
-		pev->nextthink = gpGlobals->time + 0.01;
+		pev->nextthink = gpGlobals->time + 0.1;
 
 		m_fHookInWall = TRUE;
 		m_fActiveHook = TRUE;
@@ -173,8 +179,11 @@ void CHook::HookTouch( CBaseEntity *pOther )
 
 void CHook::KillHook( void )
 {
-	pevOwner->pev->movetype = MOVETYPE_WALK;
-	pevOwner->pev->gravity = 1;
+	if (pevOwner)
+	{
+		pevOwner->pev->movetype = MOVETYPE_WALK;
+		pevOwner->pev->gravity = 1;
+	}
 
 	m_fActiveHook = FALSE;
 	m_fHookInWall = FALSE;
@@ -185,9 +194,13 @@ void CHook::KillHook( void )
 
 void CHook::Think ( void )
 {
-	if ( !pevOwner->IsAlive( ) )
+	if ( pevOwner && !pevOwner->IsAlive() )
 	{
-		KillHook();
+		m_fActiveHook = FALSE;
+		m_fHookInWall = FALSE;
+		m_fPlayerAtEnd = FALSE;
+		SetThink(&CBaseEntity::SUB_Remove);
+		pev->nextthink = gpGlobals->time + 0.1;
 		return;
 	}
 
@@ -236,6 +249,6 @@ void CHook::Think ( void )
 		}
 	}
 
-	pev->nextthink = gpGlobals->time + 0.01;
+	pev->nextthink = gpGlobals->time + 0.1;
 }
 #endif
