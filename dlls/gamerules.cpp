@@ -720,7 +720,7 @@ void CGameRules::CheckMutators(void)
 
 		char szMutators[64];
 		strncpy(szMutators, mutators.string, sizeof(szMutators));
-		MESSAGE_BEGIN( MSG_BROADCAST, gmsgMutators );
+		MESSAGE_BEGIN( MSG_ALL, gmsgMutators );
 			WRITE_STRING(szMutators);
 		MESSAGE_END();
 

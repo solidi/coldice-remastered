@@ -1186,6 +1186,9 @@ void CBasePlayerWeapon::SendWeaponAnim( int iAnim, int skiplocal, int body )
 	//	return;
 #endif
 
+	if ( m_pPlayer->pev->flags & FL_FAKECLIENT ) // No bots
+		return;
+
 	MESSAGE_BEGIN( MSG_ONE, SVC_WEAPONANIM, NULL, m_pPlayer->pev );
 		WRITE_BYTE( iAnim );						// sequence number
 		WRITE_BYTE( pev->body );					// weaponmodel bodygroup.
