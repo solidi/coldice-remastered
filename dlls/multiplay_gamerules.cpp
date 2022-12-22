@@ -1800,11 +1800,11 @@ void CHalfLifeMultiplay :: PlayerKilled( CBasePlayer *pVictim, entvars_t *pKille
 				if ( !pVictim->IsArmoredMan )
 				{
 					int clientsLeft = 0;
-					for (int i = 0; i < 32; i++) {
-						if (m_iPlayersInArena[i] > 0)
+					for (int i = 1; i <= gpGlobals->maxClients; i++) {
+						if (m_iPlayersInArena[i-1] > 0)
 						{
-							CBaseEntity *pPlayer = UTIL_PlayerByIndex( m_iPlayersInArena[i] );
-							if (pPlayer && pPlayer->IsAlive())
+							CBasePlayer *pPlayer = (CBasePlayer *)UTIL_PlayerByIndex(m_iPlayersInArena[i-1]);
+							if (pPlayer && pPlayer->IsAlive() && !pPlayer->HasDisconnected)
 								clientsLeft++;
 						}
 					}
