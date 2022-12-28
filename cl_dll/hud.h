@@ -753,6 +753,23 @@ public:
 	char szActiveMutators[64];
 };
 
+#ifdef _WIN32
+class CImguiManager
+{
+public:
+	bool Init();
+	bool VidInit();
+	void Draw();
+	void DrawChapter();
+
+	// chapter selection variables
+	bool isMenuOpen = false;
+	int page;
+	bool skillMode[4];
+};
+extern CImguiManager g_ImGUIManager;
+#endif
+
 extern CHud gHUD;
 
 extern int g_iPlayerClass;

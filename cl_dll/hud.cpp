@@ -210,6 +210,11 @@ void __CmdFunc_ToggleServerBrowser( void )
 	}
 }
 
+void __CmdFunc_ImguiChapter( void )
+{
+	EngineClientCmd("map c0a0.bsp");
+}
+
 // TFFree Command Menu Message Handlers
 int __MsgFunc_ValClass(const char *pszName, int iSize, void *pbuf)
 {
@@ -365,6 +370,10 @@ void CHud :: Init( void )
 	HOOK_COMMAND( "special", InputPlayerSpecial );
 	HOOK_COMMAND( "togglebrowser", ToggleServerBrowser );
 
+#ifndef _WIN32
+	HOOK_COMMAND( "imgui_chapter", ImguiChapter );
+#endif
+
 	HOOK_MESSAGE( ValClass );
 	HOOK_MESSAGE( TeamNames );
 	HOOK_MESSAGE( Feign );
@@ -482,6 +491,9 @@ void CHud :: Init( void )
 	GetLifeBar()->Init();
 	m_WallClimb.Init();
 	InitRain();
+#ifdef _WIN32
+	g_ImGUIManager.Init();
+#endif
 
 	m_Menu.Init();
 	
@@ -635,6 +647,9 @@ void CHud :: VidInit( void )
 	GetClientVoiceMgr()->VidInit();
 	GetLifeBar()->VidInit();
 	m_WallClimb.VidInit();
+#ifdef _WIN32
+	g_ImGUIManager.VidInit();
+#endif
 }
 
 int CHud::MsgFunc_Logo(const char *pszName,  int iSize, void *pbuf)

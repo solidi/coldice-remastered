@@ -48,6 +48,9 @@ extern "C"
 
 cl_enginefunc_t gEngfuncs;
 CHud gHUD;
+#ifdef _WIN32
+CImguiManager g_ImGUIManager;
+#endif
 TeamFortressViewport *gViewPort = NULL;
 
 qboolean g_fXashEngine = FALSE;
