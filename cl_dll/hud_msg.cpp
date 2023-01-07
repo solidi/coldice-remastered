@@ -257,7 +257,7 @@ int CHud :: MsgFunc_Particle( const char *pszName, int iSize, void *pbuf )
 
 	strcat(fileName, sz);
 
-	gEngfuncs.Con_Printf("MsgFunc_Particle entindex=%d,fileName=%s\n", entindex, fileName);
+	// gEngfuncs.Con_Printf("MsgFunc_Particle entindex=%d,fileName=%s\n", entindex, fileName);
 
 	ParticleSystem *pSystem = new ParticleSystem(entindex, fileName);
 	g_pParticleSystems.AddSystem(pSystem, fileName);
