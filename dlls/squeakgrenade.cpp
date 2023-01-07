@@ -622,9 +622,9 @@ void CSqueak::SecondaryAttack()
 			float flRndSound = RANDOM_FLOAT ( 0 , 1 );
 
 			if ( flRndSound <= 0.5 )
-				EMIT_SOUND_DYN(ENT(pev), CHAN_VOICE, "sqk_hunt2.wav", 1, ATTN_NORM, 0, 105);
+				EMIT_SOUND_DYN(ENT(pev), CHAN_VOICE, "squeek/sqk_hunt2.wav", 1, ATTN_NORM, 0, 105);
 			else
-				EMIT_SOUND_DYN(ENT(pev), CHAN_VOICE, "sqk_hunt3.wav", 1, ATTN_NORM, 0, 105);
+				EMIT_SOUND_DYN(ENT(pev), CHAN_VOICE, "squeek/sqk_hunt3.wav", 1, ATTN_NORM, 0, 105);
 
 			m_pPlayer->m_iWeaponVolume = QUIET_GUN_VOLUME;
 
