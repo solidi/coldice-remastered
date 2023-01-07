@@ -112,6 +112,7 @@ public:
 #define WEAPON_ROCKETCROWBAR	41
 #define WEAPON_DUAL_RAILGUN		42
 #define WEAPON_GRAVITYGUN		43
+#define WEAPON_FLAMETHROWER		44
 
 #define WEAPON_ALLWEAPONS		(~(1<<WEAPON_SUIT))
 
@@ -157,6 +158,7 @@ public:
 #define VEST_WEIGHT			25
 #define ROCKETCROWBAR_WEIGHT 20
 #define GRAVITYGUN_WEIGHT	2
+#define FLAMETHROWER_WEIGHT	18
 
 
 // weapon clip/carry ammo capacities
@@ -174,6 +176,7 @@ public:
 #define M203_GRENADE_MAX_CARRY	20
 #define SNOWBALL_MAX_CARRY		20
 #define NUKE_MAX_CARRY			3
+#define FUEL_MAX_CARRY			250
 
 // the maximum amount of ammo each weapon's clip can hold
 #define WEAPON_NOCLIP			-1
@@ -202,6 +205,7 @@ public:
 #define GAUGE_SHOTGUN_MAX_CLIP	5
 #define DEAGLE_MAX_CLIP			9
 #define FREEZEGUN_MAX_CLIP		30
+#define FLAMETHROWER_MAX_CLIP	100
 
 
 // the default amount of ammo that comes with each gun when it spawns
@@ -232,6 +236,7 @@ public:
 #define NUKE_DEFAULT_GIVE			3
 #define DEAGLE_DEFAULT_GIVE			9
 #define FREEZEGUN_DEFAULT_GIVE		60
+#define FLAMETHROWER_DEFAULT_GIVE	100
 
 // The amount of ammo given to a player by an ammo item.
 #define AMMO_URANIUMBOX_GIVE	20
@@ -502,6 +507,7 @@ extern DLL_GLOBAL	short 	g_sModelIndexFire;
 extern DLL_GLOBAL	short 	g_sModelIndexIceFire;
 extern DLL_GLOBAL	short	g_sModelConcreteGibs;
 extern DLL_GLOBAL	short	g_sModelLightning;
+extern DLL_GLOBAL	short	g_sModelIndexFlame;
 
 extern void ClearMultiDamage(void);
 extern void ApplyMultiDamage(entvars_t* pevInflictor, entvars_t* pevAttacker );
@@ -2256,6 +2262,46 @@ public:
 
 private:
 	unsigned short m_usGravGun;
+};
+
+class CFlameThrower : public CBasePlayerWeapon
+{
+public:
+   void Spawn( void );
+   void Precache( void );
+   int iItemSlot( void ) { return 5; }
+   int GetItemInfo(ItemInfo *p);
+   int AddToPlayer( CBasePlayer *pPlayer );
+
+   void Fire( void );
+   void UseAmmo( int count );
+   void EndAttack( void );
+   void PrimaryAttack( void );
+   void SecondaryAttack( void );
+   BOOL DeployLowKey( void );
+   BOOL Deploy( void );
+   void Holster( int skiplocal = 0 );
+   void Reload( void );
+   void WeaponIdle( void );
+
+	virtual BOOL UseDecrement( void )
+	{ 
+#if defined( CLIENT_WEAPONS )
+		return TRUE;
+#else
+		return FALSE;
+#endif
+	}
+
+private:
+	unsigned short m_usFlameStream;
+	unsigned short m_usFlameThrower;
+	unsigned short m_usFlameThrowerEnd;
+
+	int m_fireMode;
+	float sctime;
+	float DangerSoundTime;
+	float m_flAmmoUseTime;// since we use < 1 point of ammo per update, we subtract ammo on a timer.
 };
 
 class CFlyingSnowball : public CBaseEntity

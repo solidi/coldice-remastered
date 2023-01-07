@@ -21,6 +21,8 @@
 #include "cl_util.h"
 #include <stdlib.h>
 #include <memory.h>
+#include "particlemgr.h"
+#include "particlesys.h"
 
 int CL_ButtonBits( int );
 void CL_ResetButtonBits( int bits );
@@ -29,8 +31,16 @@ extern float v_idlescale;
 float in_fov;
 extern void HUD_SetCmdBits( int bits );
 
+extern cvar_t *cl_icemodels;
+
 int CHud::UpdateClientData(client_data_t *cdata, float time)
 {
+	if (!SetPLFlames)
+	{
+		g_pParticleSystems.RefreshFlameSystem(cl_icemodels ? cl_icemodels->value : 0);
+		SetPLFlames = 1;
+	}
+
 	memcpy(m_vecOrigin, cdata->origin, sizeof(vec3_t));
 	memcpy(m_vecAngles, cdata->viewangles, sizeof(vec3_t));
 	

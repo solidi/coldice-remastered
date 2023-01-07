@@ -163,6 +163,10 @@
     <ClCompile Include="..\..\cl_dll\view.cpp" />
     <ClCompile Include="..\..\cl_dll\voice_status.cpp" />
     <ClCompile Include="..\..\cl_dll\wallclimb.cpp" />
+    <ClCompile Include="..\..\cl_dll\FlameSystem.cpp" />
+    <ClCompile Include="..\..\cl_dll\particlemgr.cpp" />
+    <ClCompile Include="..\..\cl_dll\particlemsg.cpp" />
+    <ClCompile Include="..\..\cl_dll\particlesys.cpp" />
     <ClCompile Include="..\..\common\parsemsg.cpp" />
     <ClCompile Include="..\..\dlls\cannon.cpp" />
     <ClCompile Include="..\..\dlls\chaingun.cpp" />
@@ -180,6 +184,9 @@
     <ClCompile Include="..\..\dlls\dual_wrench.cpp" />
     <ClCompile Include="..\..\dlls\egon.cpp" />
     <ClCompile Include="..\..\dlls\fists.cpp" />
+    <ClCompile Include="..\..\dlls\flame.cpp" />
+    <ClCompile Include="..\..\dlls\flameball.cpp" />
+    <ClCompile Include="..\..\dlls\flamethrower.cpp" />
     <ClCompile Include="..\..\dlls\flying_wrench.cpp" />
     <ClCompile Include="..\..\dlls\freezegun.cpp" />
     <ClCompile Include="..\..\dlls\gauge_shotgun.cpp" />
@@ -263,6 +270,10 @@
     <ClInclude Include="..\..\cl_dll\vgui_SpectatorPanel.h" />
     <ClInclude Include="..\..\cl_dll\view.h" />
     <ClInclude Include="..\..\cl_dll\wrect.h" />
+    <ClInclude Include="..\..\cl_dll\FlameSystem.h" />
+    <ClInclude Include="..\..\cl_dll\gl_dlight.h" />
+    <ClInclude Include="..\..\cl_dll\particlemgr.h" />
+    <ClInclude Include="..\..\cl_dll\particlesys.h" />
     <ClInclude Include="..\..\common\parsemsg.h" />
     <ClInclude Include="..\..\common\PlatformHeaders.h" />
     <ClInclude Include="..\..\external\imgui\backends\imgui_impl_opengl2.h" />

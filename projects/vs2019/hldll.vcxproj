@@ -134,6 +134,9 @@
     <ClCompile Include="..\..\dlls\egon.cpp" />
     <ClCompile Include="..\..\dlls\explode.cpp" />
     <ClCompile Include="..\..\dlls\fists.cpp" />
+    <ClCompile Include="..\..\dlls\flame.cpp" />
+    <ClCompile Include="..\..\dlls\flameball.cpp" />
+    <ClCompile Include="..\..\dlls\flamethrower.cpp" />
     <ClCompile Include="..\..\dlls\flyingmonster.cpp" />
     <ClCompile Include="..\..\dlls\flying_wrench.cpp" />
     <ClCompile Include="..\..\dlls\freezegun.cpp" />
@@ -246,6 +249,8 @@
     <ClInclude Include="..\..\dlls\enginecallback.h" />
     <ClInclude Include="..\..\dlls\explode.h" />
     <ClInclude Include="..\..\dlls\extdll.h" />
+    <ClInclude Include="..\..\dlls\flame.h" />
+    <ClInclude Include="..\..\dlls\flameball.h" />
     <ClInclude Include="..\..\dlls\flyingmonster.h" />
     <ClInclude Include="..\..\dlls\func_break.h" />
     <ClInclude Include="..\..\dlls\gamerules.h" />

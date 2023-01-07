@@ -127,6 +127,9 @@ void CGib :: SpawnStickyGibs( entvars_t *pevVictim, Vector vecOrigin, int cGibs 
 	}
 }
 
+extern int gmsgParticle;
+extern int gmsgFlameMsg;
+
 void CGib :: SpawnHeadGib( entvars_t *pevVictim )
 {
 	CGib *pGib = GetClassPtr( (CGib *)NULL );
@@ -216,6 +219,21 @@ void CGib :: SpawnRandomGibs( entvars_t *pevVictim, int cGibs, int human )
 
 		if ( pevVictim )
 		{
+			pGib->pev->playerclass = 1;
+			pGib->pev->colormap = pGib->entindex();
+			pGib->m_burnParticleEnabled = 1;
+			MESSAGE_BEGIN( MSG_ALL, gmsgParticle );
+				WRITE_SHORT( pGib->entindex() );
+				WRITE_STRING( "Burn1.aur" );
+			MESSAGE_END();
+
+			/*
+			MESSAGE_BEGIN( MSG_ALL, gmsgFlameMsg );
+				WRITE_SHORT( pGib->entindex() );
+				WRITE_BYTE( 1 );
+			MESSAGE_END();
+			*/
+
 			// spawn the gib somewhere in the monster's bounding volume
 			pGib->pev->origin.x = pevVictim->absmin.x + pevVictim->size.x * (RANDOM_FLOAT ( 0 , 1 ) );
 			pGib->pev->origin.y = pevVictim->absmin.y + pevVictim->size.y * (RANDOM_FLOAT ( 0 , 1 ) );
@@ -298,8 +316,13 @@ void CBaseMonster::FadeMonster( void )
 	pev->avelocity = g_vecZero;
 	pev->animtime = gpGlobals->time;
 	pev->effects |= EF_NOINTERP;
+	// Flames
+	pev->playerclass = 0;
 	SUB_StartFadeOut();
 }
+
+extern int gmsgDelPart;
+extern int gmsgFlameKill;
 
 //=========================================================
 // GibMonster - create some gore and get rid of a monster's
@@ -309,6 +332,19 @@ void CBaseMonster :: GibMonster( void )
 {
 	TraceResult	tr;
 	BOOL		gibbed = FALSE;
+
+	if (m_burnParticleEnabled > 0 && !IsPlayer())
+	{
+		MESSAGE_BEGIN( MSG_ALL, gmsgDelPart );
+			WRITE_SHORT( entindex() );
+			WRITE_BYTE( m_burnParticleEnabled );
+		MESSAGE_END();
+		pev->playerclass = 0;
+	}
+
+	MESSAGE_BEGIN(MSG_ALL, gmsgFlameKill);
+		WRITE_SHORT( entindex() );
+	MESSAGE_END();
 
 	EMIT_SOUND(ENT(pev), CHAN_WEAPON, "common/bodysplat.wav", 1, ATTN_NORM);		
 
@@ -664,8 +700,21 @@ void CBaseEntity :: SUB_StartFadeOut ( void )
 
 void CBaseEntity :: SUB_FadeOut ( void  )
 {
+	if (m_burnParticleEnabled > 0 && !IsPlayer())
+	{
+		MESSAGE_BEGIN( MSG_ALL, gmsgDelPart );
+			WRITE_SHORT( entindex() );
+			WRITE_BYTE( m_burnParticleEnabled );
+		MESSAGE_END();
+		m_burnParticleEnabled = 0;
+	}
+
 	if ( pev->renderamt > 7 )
 	{
+		// Flames
+		if (pev->playerclass)
+			pev->playerclass = 0;
+
 		pev->renderamt -= 7;
 		pev->nextthink = gpGlobals->time + 0.1;
 	}

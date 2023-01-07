@@ -1570,11 +1570,26 @@ void UTIL_BubbleTrail( Vector from, Vector to, int count )
 	MESSAGE_END();
 }
 
+extern int gmsgDelPart;
+extern int gmsgFlameKill;
 
 void UTIL_Remove( CBaseEntity *pEntity )
 {
 	if ( !pEntity )
 		return;
+
+	if (pEntity->m_burnParticleEnabled > 0 && !pEntity->IsPlayer())
+	{
+		MESSAGE_BEGIN( MSG_ALL, gmsgDelPart );
+			WRITE_SHORT( pEntity->entindex() );
+			WRITE_BYTE( pEntity->m_burnParticleEnabled );
+		MESSAGE_END();
+		pEntity->pev->playerclass = 0;
+		MESSAGE_BEGIN( MSG_ALL, gmsgFlameKill );
+			WRITE_SHORT( pEntity->entindex() );
+		MESSAGE_END();
+		pEntity->m_burnParticleEnabled = 0;
+	}	
 
 	pEntity->UpdateOnRemove();
 	pEntity->pev->flags |= FL_KILLME;

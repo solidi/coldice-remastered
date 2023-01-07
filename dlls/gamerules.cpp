@@ -352,6 +352,9 @@ void CGameRules::RefreshSkillData ( void )
 	// Gravity Gun
 	gSkillData.plrDmgGravityGun = GetSkillCvar( "sk_plr_gravitygun" );
 
+	// Flame Thrower
+	gSkillData.plrDmgFlameThrower = GetSkillCvar( "sk_plr_flamethrower" );
+
 	// Grapple Hook
 	gSkillData.plrDmgHook = GetSkillCvar( "sk_plr_hook" );
 	gSkillData.plrSpeedHook = GetSkillCvar( "sk_plr_hookspeed" );

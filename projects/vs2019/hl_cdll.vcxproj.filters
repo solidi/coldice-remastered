@@ -93,6 +93,15 @@
     <ClCompile Include="..\..\dlls\wpn_shared\hl_wpn_glock.cpp">
       <Filter>Source Files\_hl\dlls\wpn_shared</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\dlls\flame.cpp">
+      <Filter>Source Files\_hl\dlls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\dlls\flameball.cpp">
+      <Filter>Source Files\_hl\dlls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\dlls\flamethrower.cpp">
+      <Filter>Source Files\_hl\dlls</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\dlls\squeakgrenade.cpp">
       <Filter>Source Files\_hl\dlls</Filter>
     </ClCompile>

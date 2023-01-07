@@ -69,6 +69,9 @@ void EV_FireDualUsasBoth( struct event_args_s *args );
 void EV_FireFreezeGun( struct event_args_s *args );
 void EV_RocketCrowbar( struct event_args_s *args );
 void EV_GravityGun( struct event_args_s *args  );
+void EV_FireFlameStream( struct event_args_s *args  );
+void EV_FireFlameThrower( struct event_args_s *args  );
+void EV_EndFlameThrower( struct event_args_s *args  );
 
 void EV_TrainPitchAdjust( struct event_args_s *args );
 }
@@ -139,4 +142,7 @@ void Game_HookEvents( void )
 	gEngfuncs.pfnHookEvent( "events/freezegun.sc",				EV_FireFreezeGun );
 	gEngfuncs.pfnHookEvent( "events/rocketcrowbar.sc",			EV_RocketCrowbar );
 	gEngfuncs.pfnHookEvent( "events/gravitygun.sc",				EV_GravityGun );
+	gEngfuncs.pfnHookEvent( "events/flamestream.sc",			EV_FireFlameStream );
+	gEngfuncs.pfnHookEvent( "events/flamethrower.sc",			EV_FireFlameThrower );
+	gEngfuncs.pfnHookEvent( "events/flamethrowerend.sc",		EV_EndFlameThrower );
 }

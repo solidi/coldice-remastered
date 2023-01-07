@@ -22,6 +22,9 @@
 #include "r_efx.h"
 #include "view.h"
 #include "in_defs.h"
+#include "particlesys.h"
+#include "particlemgr.h"
+#include "FlameSystem.h"
 
 #include "particleman.h"
 extern IParticleMan *g_pParticleMan;
@@ -41,6 +44,7 @@ float g_SlideTime = 0;
 float g_WallClimb = 0;
 float g_AcrobatTime = 0;
 extern cvar_t *cl_antivomit;
+extern cvar_t *cl_icemodels;
 
 /// USER-DEFINED SERVER MESSAGE HANDLERS
 
@@ -236,4 +240,61 @@ int CHud :: MsgFunc_Mutators( const char *pszName, int iSize, void *pbuf )
 	strncpy( gHUD.szActiveMutators, READ_STRING(), 64 );
 	this->m_StatusIcons.DrawMutators();
 	return 1;
+}
+
+int CHud :: MsgFunc_Particle( const char *pszName, int iSize, void *pbuf )
+{
+	BEGIN_READ( pbuf, iSize );
+	int entindex = READ_SHORT();
+	char *sz = READ_STRING();
+	char fileName[64];
+	strcpy(fileName, "aurora/");
+
+	if (cl_icemodels && cl_icemodels->value)
+	{
+		strcat(fileName, "ice_");
+	}
+
+	strcat(fileName, sz);
+
+	gEngfuncs.Con_Printf("MsgFunc_Particle entindex=%d,fileName=%s\n", entindex, fileName);
+
+	ParticleSystem *pSystem = new ParticleSystem(entindex, fileName);
+	g_pParticleSystems.AddSystem(pSystem, fileName);
+	
+	return 1;
+}
+
+void CHud :: MsgFunc_DelPart( const char *pszName, int iSize, void *pbuf )
+{
+	BEGIN_READ( pbuf, iSize );
+	int entindex = READ_SHORT();
+	int del = READ_BYTE();
+
+	for (int i = 0; i <= del + 1; i++)
+		g_pParticleSystems.DeleteSystemWithEntity(entindex);
+
+	return;
+}
+
+void CHud :: MsgFunc_FlameMsg( const char *pszName, int iSize, void *pbuf )
+{
+	BEGIN_READ( pbuf, iSize );
+	int n;
+	int s;
+
+	n = READ_SHORT();
+	s = READ_BYTE();
+	
+	FlameSystem.SetState(n, s);
+}
+
+void CHud :: MsgFunc_FlameKill( const char *pszName, int iSize, void *pbuf )
+{
+	BEGIN_READ( pbuf, iSize );
+	int n;
+
+	n = READ_SHORT();
+	
+	FlameSystem.Extinguish(n);
 }

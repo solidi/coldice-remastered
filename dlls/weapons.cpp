@@ -60,6 +60,7 @@ DLL_GLOBAL	short 	g_sModelIndexFire;
 DLL_GLOBAL	short 	g_sModelIndexIceFire;
 DLL_GLOBAL	short	g_sModelConcreteGibs;
 DLL_GLOBAL	short	g_sModelLightning;
+DLL_GLOBAL	short	g_sModelIndexFlame;
 DLL_GLOBAL	short	g_Gibs;
 DLL_GLOBAL	short	g_Steamball;
 
@@ -466,6 +467,7 @@ void W_Precache(void)
 	UTIL_PrecacheOtherWeapon( "weapon_rocketcrowbar" );
 	UTIL_PrecacheOtherWeapon( "weapon_dual_railgun" );
 	UTIL_PrecacheOtherWeapon( "weapon_gravitygun" );
+	UTIL_PrecacheOtherWeapon( "weapon_flamethrower" );
 
 	UTIL_PrecacheOther( "monster_barrel" );
 	UTIL_PrecacheOther( "monster_sentry" );
@@ -496,12 +498,15 @@ void W_Precache(void)
 	g_sModelIndexIceFireball = PRECACHE_MODEL ("sprites/ice_zerogxplode.spr");
 	g_sModelIndexFire = PRECACHE_MODEL ("sprites/fire.spr");
 	g_sModelIndexIceFire = PRECACHE_MODEL ("sprites/ice_fire.spr");
+	g_sModelIndexFlame = PRECACHE_MODEL ("sprites/flamesteam.spr");
 	PRECACHE_MODEL ("sprites/sanic.spr");
 	PRECACHE_MODEL ("sprites/lifebar.spr");
+	PRECACHE_SOUND ("fire1.wav");
+
+	// Weather
 	PRECACHE_MODEL ("sprites/rain.spr");
 	PRECACHE_MODEL ("sprites/snowflake.spr");
 	PRECACHE_MODEL ("sprites/ripple.spr");
-	PRECACHE_SOUND ("fire1.wav");
 
 	PRECACHE_MODEL ("models/v_leg.mdl");
 	PRECACHE_MODEL ("models/v_dual_leg.mdl");
@@ -755,7 +760,8 @@ CBaseEntity* CBasePlayerItem::Respawn( void )
 		"weapon_tripmine",
 		"weapon_snark",
 		"weapon_chumtoad",
-		"weapon_vest"
+		"weapon_vest",
+		"weapon_flamethrower"
 		},
 
 		{
@@ -1939,6 +1945,10 @@ BOOL CWeaponBox::PackWeapon( CBasePlayerItem *pWeapon )
 		else if (pWeapon->m_iId == WEAPON_GRAVITYGUN)
 		{
 			SET_MODEL( ENT(pev), "models/w_gravitygun.mdl");
+		}
+		else if (pWeapon->m_iId == WEAPON_FLAMETHROWER)
+		{
+			SET_MODEL( ENT(pev), "models/w_flamethrower.mdl");
 		}
 
 		pev->sequence = 1;

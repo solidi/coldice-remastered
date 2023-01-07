@@ -205,6 +205,10 @@ int gmsgLifeBar = 0;
 int gmsgReceiveW = 0;
 int gmsgPlayClientSound = 0;
 int gmsgMutators = 0;
+int gmsgParticle = 0;
+int gmsgDelPart = 0;
+int gmsgFlameMsg = 0;
+int gmsgFlameKill = 0;
 
 void LinkUserMessages( void )
 {
@@ -257,6 +261,10 @@ void LinkUserMessages( void )
 	gmsgReceiveW = REG_USER_MSG("ReceiveW", 1);
 	gmsgPlayClientSound = REG_USER_MSG("PlayCSound", 1);
 	gmsgMutators = REG_USER_MSG("Mutators", -1);
+	gmsgParticle = REG_USER_MSG("Particle", -1);
+	gmsgDelPart = REG_USER_MSG("DelPart", -1);
+	gmsgFlameMsg = REG_USER_MSG("FlameMsg", -1);
+	gmsgFlameKill = REG_USER_MSG("FlameKill", -1);
 }
 
 LINK_ENTITY_TO_CLASS( player, CBasePlayer );
@@ -2039,6 +2047,34 @@ void CBasePlayer::ClimbingPhysics()
 	}
 }
 
+void CBasePlayer::PlayerBurn(void)
+{
+	if (m_fBurnTime > 10)
+		m_fBurnTime = 10;
+
+	if (pev->waterlevel >= 2)
+	{
+		m_fBurnTime = 0;
+		m_hFlameOwner = NULL;
+	}
+
+	if (m_fBurnTime > 0 && FPA == 0)
+	{
+		MESSAGE_BEGIN( MSG_ALL, gmsgFlameMsg );
+			WRITE_SHORT( entindex() );
+			WRITE_BYTE( 1 );
+		MESSAGE_END();
+		
+		FPA = 1;
+	}
+
+	if (m_hFlameOwner != NULL)
+		TakeDamage( pev, m_hFlameOwner->pev, 2, DMG_BURN | DMG_NEVERGIB );
+	else
+		TakeDamage( pev, pev, 2, DMG_BURN | DMG_NEVERGIB );
+
+	m_fBurnTime = m_fBurnTime - 0.1;
+}
 
 void CBasePlayer::Jump()
 {
@@ -2506,6 +2542,27 @@ void CBasePlayer::PreThink(void)
 				EMIT_SOUND(ENT(pev), CHAN_VOICE, "merrychristmas.wav", 1, ATTN_NORM);
 		}
 		m_flNextSantaSound = gpGlobals->time + RANDOM_FLOAT(10,15);
+	}
+
+	if (m_fBurnTime <= 0 && m_hFlameOwner != NULL)
+		m_hFlameOwner = NULL;
+
+	if (m_fBurnTime > 0 && nextburntime <= gpGlobals->time)
+	{
+		PlayerBurn();
+		nextburntime = gpGlobals->time + 0.1;
+	}
+
+	if (m_fBurnTime <= 0 && FPA == 1)
+	{
+		FPA = 0;
+		
+		MESSAGE_BEGIN( MSG_ALL, gmsgFlameMsg );
+			WRITE_SHORT( entindex() );
+			WRITE_BYTE( 0 );
+		MESSAGE_END();
+	
+		m_hFlameOwner = NULL;
 	}
 }
 /* Time based Damage works as follows: 
@@ -3506,6 +3563,19 @@ void CBasePlayer::Spawn( void )
 		m_flNextSantaSound = 0;
 	}
 
+	// Flames
+	pev->playerclass = 0;
+	m_fBurnTime = 0.0;
+	m_hFlameOwner = NULL;
+	MESSAGE_BEGIN( MSG_ALL, gmsgFlameKill );
+		WRITE_SHORT( entindex() );
+	MESSAGE_END();
+	MESSAGE_BEGIN( MSG_ALL, gmsgFlameMsg );
+		WRITE_SHORT( entindex() );
+		WRITE_BYTE( 0 );
+	MESSAGE_END();
+	FPA = 0;
+
 	g_pGameRules->PlayerSpawn( this );
 }
 
@@ -3954,6 +4024,7 @@ const char *pWeapons[] =
 	"weapon_dual_railgun",
 	"weapon_dual_rpg",
 	"weapon_freezegun",
+	"weapon_flamethrower",
 };
 
 void CBasePlayer::GiveRandomWeapon(const char *szIgnoreList)
@@ -4729,6 +4800,7 @@ void CBasePlayer::CheatImpulseCommands( int iImpulse, BOOL m_iFromClient )
 		GiveNamedItem( "weapon_rocketcrowbar" );
 		GiveNamedItem( "weapon_dual_railgun" );
 		GiveNamedItem( "weapon_gravitygun" );
+		GiveNamedItem( "weapon_flamethrower" );
 #endif
 		gEvilImpulse101 = FALSE;
 		break;

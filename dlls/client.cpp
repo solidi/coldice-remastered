@@ -120,10 +120,21 @@ called when a player disconnects from a server
 GLOBALS ASSUMED SET:  g_fGameOver
 ============
 */
+extern int gmsgFlameKill;
+extern int gmsgDelPart;
 void ClientDisconnect( edict_t *pEntity )
 {
 	if (g_fGameOver)
 		return;
+
+	pEntity->v.playerclass = 0;
+	/*MESSAGE_BEGIN( MSG_ALL, gmsgDelPart );
+		WRITE_SHORT( ENTINDEX(pEntity) );
+		WRITE_BYTE( 10 );
+	MESSAGE_END();*/
+	MESSAGE_BEGIN( MSG_ALL, gmsgFlameKill );
+		WRITE_SHORT( ENTINDEX(pEntity) );
+	MESSAGE_END();
 
 	char text[256] = "" ;
 	if ( pEntity->v.netname )
@@ -1493,10 +1504,10 @@ int AddToFullPack( struct entity_state_s *state, int e, edict_t *ent, edict_t *h
 
 	// HACK:  Somewhat...
 	// Class is overridden for non-players to signify a breakable glass object ( sort of a class? )
-	if ( !player )
-	{
+	//if ( !player )
+	//{
 		state->playerclass  = ent->v.playerclass;
-	}
+	//}
 
 	// Special stuff for players only
 	if ( player )

@@ -522,6 +522,11 @@ cvar_t	sk_plr_gravitygun1 = {"sk_plr_gravitygun1","0"};
 cvar_t	sk_plr_gravitygun2 = {"sk_plr_gravitygun2","0"};
 cvar_t	sk_plr_gravitygun3 = {"sk_plr_gravitygun3","0"};
 
+// Flame Thrower
+cvar_t	sk_plr_flamethrower1 = {"sk_plr_flamethrower1","0"};
+cvar_t	sk_plr_flamethrower2 = {"sk_plr_flamethrower2","0"};
+cvar_t	sk_plr_flamethrower3 = {"sk_plr_flamethrower3","0"};
+
 // WORLD WEAPONS
 cvar_t	sk_12mm_bullet1 = {"sk_12mm_bullet1","0"};
 cvar_t	sk_12mm_bullet2 = {"sk_12mm_bullet2","0"};
@@ -1122,6 +1127,11 @@ void GameDLLInit( void )
 	CVAR_REGISTER ( &sk_plr_gravitygun1 );
 	CVAR_REGISTER ( &sk_plr_gravitygun2 );
 	CVAR_REGISTER ( &sk_plr_gravitygun3 );
+
+	// Flame Thrower
+	CVAR_REGISTER ( &sk_plr_flamethrower1 );
+	CVAR_REGISTER ( &sk_plr_flamethrower2 );
+	CVAR_REGISTER ( &sk_plr_flamethrower3 );
 
 	// Grapple Hook
 	CVAR_REGISTER ( &sk_plr_hook1 );

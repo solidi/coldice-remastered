@@ -33,6 +33,7 @@
 #include "wrect.h"
 #include "cl_dll.h"
 #include "ammo.h"
+#include "FlameSystem.h"
 
 #define DHN_DRAWZERO 1
 #define DHN_2DIGITS  2
@@ -78,7 +79,6 @@ public:
 	virtual void Reset(void) {return;}
 	virtual void InitHUDData( void ) {}		// called every time a server is connected to
 
-	cvar_t *m_pIceModels;
 
 };
 
@@ -617,6 +617,18 @@ private:
 	int m_iPos;
 };
 
+class CHudParticle: public CHudBase
+{
+public:
+	int Init( void );
+	int VidInit( void );
+	int Draw(float flTime);
+	int MsgFunc_Particle(const char *pszName, int iSize, void *pbuf );
+	void Reset( void );
+private:
+	void SetParticles( void );
+};
+
 typedef struct
 {
 	HSPRITE spr;
@@ -664,6 +676,9 @@ public:
 	int DrawHudNumberString( int xpos, int ypos, int iMinX, int iNumber, int r, int g, int b );
 	int GetNumWidth(int iNumber, int iFlags);
 
+	int m_iIceModels;
+	bool SetPLFlames;
+
 private:
 	// the memory for these arrays are allocated in the first call to CHud::VidInit(), when the hud.txt and associated sprites are loaded.
 	// freed in ~CHud()
@@ -706,6 +721,7 @@ public:
 	CHudScoreboard  m_Scoreboard;
 	CHudLifeBar		m_LifeBar;
 	CHudWallClimb   m_WallClimb;
+	CHudParticle	m_Particle;
 
 	void Init( void );
 	void VidInit( void );
@@ -730,6 +746,10 @@ public:
 	int  _cdecl MsgFunc_Acrobatics( const char *pszName, int iSize, void *pbuf );
 	int  _cdecl MsgFunc_PlayCSound( const char *pszName, int iSize, void *pbuf );
 	int  _cdecl MsgFunc_Mutators( const char *pszName, int iSize, void *pbuf );
+	int _cdecl MsgFunc_Particle( const char *pszName, int iSize, void *pbuf );
+	void _cdecl MsgFunc_DelPart( const char *pszName, int iSize, void *pbuf );
+	void _cdecl MsgFunc_FlameMsg( const char *pszName, int iSize, void *pbuf );
+	void _cdecl MsgFunc_FlameKill( const char *pszName, int iSize, void *pbuf );
 
 	// Screen information
 	SCREENINFO	m_scrinfo;

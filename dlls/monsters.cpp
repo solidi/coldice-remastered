@@ -108,6 +108,7 @@ TYPEDESCRIPTION	CBaseMonster::m_SaveData[] =
 
 	DEFINE_FIELD( CBaseMonster, m_scriptState, FIELD_INTEGER ),
 	DEFINE_FIELD( CBaseMonster, m_pCine, FIELD_CLASSPTR ),
+	DEFINE_FIELD( CBaseMonster, m_fBurnTime, FIELD_FLOAT ),
 };
 
 //IMPLEMENT_SAVERESTORE( CBaseMonster, CBaseToggle );
@@ -512,7 +513,74 @@ CSound* CBaseMonster :: PBestScent ( void )
 	return NULL;
 }
 
+extern int gmsgFlameMsg;
+void CBaseMonster :: Burn( void )
+{
+	if (m_fBurnTime > 10)
+		m_fBurnTime = 10;
 
+	if (pev->waterlevel >= 2)
+	{
+		m_fBurnTime = 0;
+	}
+
+	if (m_fBurnTime > 0)
+	{
+		MESSAGE_BEGIN( MSG_ALL, gmsgFlameMsg );
+			WRITE_SHORT( entindex() );
+			WRITE_BYTE( 1 );
+		MESSAGE_END();
+		PFA = 1;
+	}
+
+	if (m_fBurnTime > 0)
+	{
+		float flAdjustedDamage;
+		float flDist;
+		CBaseEntity *pEntity = NULL;
+	
+		while ((pEntity = UTIL_FindEntityInSphere(pEntity, Center(), (pev->size.x + pev->size.y + pev->size.z) / 5 )) != NULL)
+		{
+			if ( pEntity->pev->takedamage != DAMAGE_NO )
+			{
+				if (pEntity != this)
+					flDist = (pEntity->Center() - pev->origin).Length();
+				else
+					flDist = 0;
+				flAdjustedDamage = (pev->size.x + pev->size.y + pev->size.z) / 45;
+				flAdjustedDamage -= flDist / (pev->size.x + pev->size.y + pev->size.z / 5) * flAdjustedDamage;
+
+				//ALERT(at_console,"size = %f dmg = %f \n",(pev->size.x + pev->size.y + pev->size.z) / 4,flAdjustedDamage);
+				if ( FVisible( pEntity ) || pEntity == this )
+				{
+					if (flAdjustedDamage > 0 )
+					{
+						pEntity->TakeDamage ( pev, pev, flAdjustedDamage, DMG_BURN | DMG_NEVERGIB );
+					}
+
+					/*
+					if (RANDOM_LONG(1,0) && pEntity->pev->takedamage && pEntity != this)
+					{
+						pEntity->burntime = pEntity->burntime + 1;
+					}
+					*/
+				}
+			}
+		}
+
+		m_fBurnTime = m_fBurnTime - 0.1;
+	}
+
+	if (m_fBurnTime <= 0 && PFA == 1)
+	{
+		MESSAGE_BEGIN( MSG_ALL, gmsgFlameMsg );
+			WRITE_SHORT( entindex() );
+			WRITE_BYTE( 0 );
+		MESSAGE_END();
+
+		PFA = 0;
+	}
+}
 
 //=========================================================
 // Monster Think - calls out to core AI functions and handles this
@@ -2043,6 +2111,10 @@ void CBaseMonster :: MonsterInit ( void )
 
 	// set eye position
 	SetEyePosition();
+
+	// Flames
+	pev->playerclass = 0;
+	m_fBurnTime = 0.0;
 
 	SetThink( &CBaseMonster::MonsterInitThink );
 	pev->nextthink = gpGlobals->time + 0.1;

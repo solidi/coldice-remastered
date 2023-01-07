@@ -325,6 +325,8 @@ void CFlockingFlyer :: SpawnCommonCode( )
 	pev->movetype	= MOVETYPE_FLY;
 	pev->takedamage	= DAMAGE_NO;
 	pev->health		= 1;
+	// Flames
+	pev->playerclass = 0;
 
 	m_fPathBlocked	= FALSE;// obstacles will be detected
 	m_flFieldOfView	= 0.2;

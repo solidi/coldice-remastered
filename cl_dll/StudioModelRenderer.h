@@ -191,4 +191,6 @@ public:
 	float			(*m_plighttransform)[ MAXSTUDIOBONES ][ 3 ][ 4 ];
 };
 
+extern float(*BoneOrigin)[MAXSTUDIOBONES][3][4];
+
 #endif // STUDIOMODELRENDERER_H
