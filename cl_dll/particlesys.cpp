@@ -952,7 +952,7 @@ particle * ParticleSystem::ManualSpray(int Count, Vector Origin)
 
 	for (int i = 0; i < Count; i++)
 	{
-		//if (m_pMainParticle && m_pMainParticle->pType && m_pMainParticle->pType->m_pSprayType)
+		if (m_pMainParticle)// && m_pMainParticle->pType && m_pMainParticle->pType->m_pSprayType)
 		{
 			pChild = m_pMainParticle->pType->m_pSprayType->CreateParticle(this);
 
@@ -977,6 +977,10 @@ particle * ParticleSystem::ManualSpray(int Count, Vector Origin)
 					pChild->velocity.z -= SinLookup(fSprayPitch) * fSprayForce;
 				}
 			}
+		}
+		else
+		{
+			gEngfuncs.Con_Printf("m_pMainParticle was NULL!!!\n");
 		}
 	}
 
