@@ -24,7 +24,7 @@ ParticleSystemManager::~ParticleSystemManager( void )
 
 void ParticleSystemManager::Setup( int mode )
 {
-	gEngfuncs.Con_DPrintf("::: ParticleSystemManager::Setup( mode=%d )\n", mode);
+	// gEngfuncs.Con_DPrintf("::: ParticleSystemManager::Setup( mode=%d )\n", mode);
 	g_pParticleSystems.ClearSystems();
 
 	ExpSmoke = new ParticleSystem(0, "aurora/SmokeExp.aur", 0, 0, Vector(1, 1, 1));
@@ -83,7 +83,7 @@ void ParticleSystemManager::RefreshFlameSystem( int mode )
 
 void ParticleSystemManager::AddSystem( ParticleSystem* pNewSystem, const char *tag )
 {
-	gEngfuncs.Con_Printf("::: add pNewSystem->m_iEntIndex=%d tag=%s\n", pNewSystem->m_iEntIndex, tag);
+	// gEngfuncs.Con_Printf("::: add pNewSystem->m_iEntIndex=%d tag=%s\n", pNewSystem->m_iEntIndex, tag);
 	pNewSystem->tag = tag;
 	pNewSystem->m_pNextSystem = m_pFirstSystem;
 	m_pFirstSystem = pNewSystem;
