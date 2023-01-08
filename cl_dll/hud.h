@@ -750,6 +750,7 @@ public:
 	void _cdecl MsgFunc_DelPart( const char *pszName, int iSize, void *pbuf );
 	void _cdecl MsgFunc_FlameMsg( const char *pszName, int iSize, void *pbuf );
 	void _cdecl MsgFunc_FlameKill( const char *pszName, int iSize, void *pbuf );
+	void _cdecl MsgFunc_MParticle( const char *pszName, int iSize, void *pbuf );
 
 	// Screen information
 	SCREENINFO	m_scrinfo;

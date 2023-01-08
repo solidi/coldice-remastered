@@ -128,7 +128,7 @@ void CGib :: SpawnStickyGibs( entvars_t *pevVictim, Vector vecOrigin, int cGibs 
 }
 
 extern int gmsgParticle;
-extern int gmsgFlameMsg;
+extern int gmsgMultiParticle;
 
 void CGib :: SpawnHeadGib( entvars_t *pevVictim )
 {
@@ -185,12 +185,25 @@ void CGib :: SpawnHeadGib( entvars_t *pevVictim )
 			pGib->pev->velocity = pGib->pev->velocity * 4;
 		}
 	}
+
+	if (CBaseEntity::Instance(ENT(pevVictim))->m_fBurnTime > 0)
+	{
+		pGib->pev->playerclass = 1;
+		pGib->pev->colormap = pGib->entindex();
+		pGib->m_burnParticleEnabled = 1;
+		MESSAGE_BEGIN( MSG_ALL, gmsgParticle );
+			WRITE_SHORT( pGib->entindex() );
+			WRITE_STRING( "gib_flame_trail.aur" );
+		MESSAGE_END();
+	}	
+
 	pGib->LimitVelocity();
 }
 
 void CGib :: SpawnRandomGibs( entvars_t *pevVictim, int cGibs, int human )
 {
 	int cSplat;
+	int *gibsIndex = new int[cGibs + 1];
 
 	for ( cSplat = 0 ; cSplat < cGibs ; cSplat++ )
 	{
@@ -217,22 +230,16 @@ void CGib :: SpawnRandomGibs( entvars_t *pevVictim, int cGibs, int human )
 			}
 		}
 
+		gibsIndex[cSplat] = pGib->entindex();
+
 		if ( pevVictim )
 		{
-			pGib->pev->playerclass = 1;
-			pGib->pev->colormap = pGib->entindex();
-			pGib->m_burnParticleEnabled = 1;
-			MESSAGE_BEGIN( MSG_ALL, gmsgParticle );
-				WRITE_SHORT( pGib->entindex() );
-				WRITE_STRING( "Burn1.aur" );
-			MESSAGE_END();
-
-			/*
-			MESSAGE_BEGIN( MSG_ALL, gmsgFlameMsg );
-				WRITE_SHORT( pGib->entindex() );
-				WRITE_BYTE( 1 );
-			MESSAGE_END();
-			*/
+			if (CBaseEntity::Instance(ENT(pevVictim))->m_fBurnTime > 0)
+			{
+				pGib->pev->playerclass = 1;
+				pGib->pev->colormap = pGib->entindex();
+				pGib->m_burnParticleEnabled = 1;
+			}
 
 			// spawn the gib somewhere in the monster's bounding volume
 			pGib->pev->origin.x = pevVictim->absmin.x + pevVictim->size.x * (RANDOM_FLOAT ( 0 , 1 ) );
@@ -272,6 +279,18 @@ void CGib :: SpawnRandomGibs( entvars_t *pevVictim, int cGibs, int human )
 			UTIL_SetSize ( pGib->pev, Vector( 0 , 0 , 0 ), Vector ( 0, 0, 0 ) );
 		}
 		pGib->LimitVelocity();
+	}
+
+	ALERT(at_aiconsole, "CBaseEntity::Instance(ENT(pevVictim))->m_fBurnTime = %.2f\n", CBaseEntity::Instance(ENT(pevVictim))->m_fBurnTime);
+
+	if (CBaseEntity::Instance(ENT(pevVictim))->m_fBurnTime > 0)
+	{
+		MESSAGE_BEGIN( MSG_ALL, gmsgMultiParticle );
+			WRITE_STRING( "gib_flame_trail.aur" );
+			WRITE_BYTE( cGibs );
+			for (cSplat = 0; cSplat < cGibs; cSplat++)
+				WRITE_SHORT( gibsIndex[cSplat] );
+		MESSAGE_END();
 	}
 }
 

@@ -298,3 +298,30 @@ void CHud :: MsgFunc_FlameKill( const char *pszName, int iSize, void *pbuf )
 	
 	FlameSystem.Extinguish(n);
 }
+
+void CHud :: MsgFunc_MParticle( const char *pszName, int iSize, void *pbuf )
+{
+	BEGIN_READ( pbuf, iSize );
+
+	char *sz = READ_STRING();
+	int count = READ_BYTE();
+	int entindex;
+
+	char fileName[64];
+	strcpy(fileName, "aurora/");
+	if (cl_icemodels && cl_icemodels->value)
+	{
+		strcat(fileName, "ice_");
+	}
+	strcat(fileName, sz);
+
+	for (int i = 0; i < count; i++)
+	{
+		entindex = READ_SHORT();
+
+		gEngfuncs.Con_Printf("MsgFunc_MParticle entindex=%d,fileName=%s\n", entindex, fileName);
+
+		ParticleSystem *pSystem = new ParticleSystem(entindex, fileName);
+		g_pParticleSystems.AddSystem(pSystem, fileName); 
+	}
+}

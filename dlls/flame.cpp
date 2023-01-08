@@ -117,11 +117,6 @@ void CFlame::FlameThink( void )
 {
 	if (gpGlobals->time >= starttime)
 	{
-		/*
-		pev->iuser1 = -1;
-		pev->iuser2 = -1;
-		pev->iuser3 = 1;
-		*/
 		UTIL_Remove(this);
 		return;
 	}
@@ -149,7 +144,6 @@ void CFlame::FlameThink( void )
 					if (pEntity->edict() != pev->owner)
 					{
 						pEntity->m_fBurnTime = pEntity->m_fBurnTime + 0.2;
-						//pEntity->fdst = 1;
 
 						if (pEntity->IsPlayer())
 						{
@@ -182,7 +176,6 @@ void CFlame::FlameTouch( CBaseEntity *pOther )
 			if (FVisible(pEntity))
 			{
 				float flDist = (pEntity->Center() - pev->origin).Length();
-
 				float flAdjustedDamage = 3;
 
 				flAdjustedDamage *= 1 - (flDist / 20.);
@@ -198,17 +191,11 @@ void CFlame::FlameTouch( CBaseEntity *pOther )
 	if (pOther && pOther->pev->takedamage)
 	{
 		pOther->m_fBurnTime += 1;
-		//pOther->fdst = 1;
 
 		if (pOther->IsPlayer())
 			pOther->m_hFlameOwner = Instance(pev->owner);
 	}
 
 	pev->velocity = Vector(0, 0, 0);
-	/*
-	pev->iuser1 = -1;
-	pev->iuser2 = -1;
-	pev->iuser3 = 1;
-	*/
 	UTIL_Remove(this);
 }

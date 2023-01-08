@@ -377,6 +377,12 @@ int __MsgFunc_FlameKill(const char *pszName, int iSize, void *pbuf)
 	return 1;
 }
 
+int __MsgFunc_MParticle(const char *pszName, int iSize, void *pbuf)
+{
+	gHUD.MsgFunc_MParticle( pszName, iSize, pbuf );
+	return 1;
+}
+
 // This is called every time the DLL is loaded
 void CHud :: Init( void )
 {
@@ -428,6 +434,7 @@ void CHud :: Init( void )
 	HOOK_MESSAGE( DelPart );
 	HOOK_MESSAGE( FlameMsg );
 	HOOK_MESSAGE( FlameKill );
+	HOOK_MESSAGE( MParticle );
 
 	CVAR_CREATE( "hud_classautokill", "1", FCVAR_ARCHIVE | FCVAR_USERINFO );		// controls whether or not to suicide immediately on TF class switch
 	CVAR_CREATE( "hud_takesshots", "0", FCVAR_ARCHIVE );		// controls whether or not to automatically take screenshots at the end of a round
