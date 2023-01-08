@@ -46,12 +46,7 @@ void CFlameBall::Spawn( void )
 
 	pev->solid = SOLID_BBOX;
 
-	SET_MODEL(ENT(pev), "sprites/flamesteam.spr");
-	pev->rendermode = kRenderTransAdd;
-	pev->rendercolor.x = 255;
-	pev->rendercolor.y = 255;
-	pev->rendercolor.z = 255;
-	pev->renderamt = 255;
+	SET_MODEL(ENT(pev), "sprites/null.spr");
 	if ( RANDOM_FLOAT( 0 , 1 ) < 0.5 )
 	{
 		pev->scale = 1;
@@ -77,7 +72,7 @@ CFlameBall *CFlameBall::ShootFlameBall( entvars_t *pevOwner, Vector vecStart, Ve
 	pFlame->pev->playerclass = 1;
 	pFlame->pev->colormap = pFlame->entindex();
 
-	pFlame->pev->gravity = 1.5;
+	pFlame->pev->gravity = 1.0;
 	UTIL_SetOrigin( pFlame->pev, vecStart );
 	pFlame->pev->velocity = vecVelocity;
 	pFlame->pev->velocity.x *= RANDOM_FLOAT(0.8, 1);
@@ -94,13 +89,6 @@ CFlameBall *CFlameBall::ShootFlameBall( entvars_t *pevOwner, Vector vecStart, Ve
 	pFlame->pev->dmg = gSkillData.plrDmgFlameThrower;
 
 #ifndef CLIENT_DLL
-	if (icesprites.value)
-	{
-		pFlame->pev->rendercolor.x = 0;
-		pFlame->pev->rendercolor.y = 113;
-		pFlame->pev->rendercolor.z = 230;
-	}
-
 	MESSAGE_BEGIN( MSG_ALL, gmsgParticle );
 		WRITE_SHORT( pFlame->entindex() );
 		WRITE_STRING( "FlameSteam1.aur" );
@@ -196,13 +184,10 @@ void CFlameBall::Explode( TraceResult *pTrace, int bitsDamageType )
 	{
 		if (pEntity->pev->takedamage)
 		{
-			if (FVisible(pEntity))
-			{
-				pEntity->m_fBurnTime += RANDOM_LONG(1,3);
+			pEntity->m_fBurnTime += RANDOM_LONG(1,3);
 
-				if (pEntity->IsPlayer())
-					pEntity->m_hFlameOwner = Instance(pevOwner);
-			}
+			if (pEntity->IsPlayer())
+				pEntity->m_hFlameOwner = Instance(pevOwner);
 		}
 	}
 	// ---- 
