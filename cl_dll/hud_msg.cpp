@@ -271,6 +271,8 @@ void CHud :: MsgFunc_DelPart( const char *pszName, int iSize, void *pbuf )
 	int entindex = READ_SHORT();
 	int del = READ_BYTE();
 
+	// gEngfuncs.Con_Printf("MsgFunc_DelPart entindex=%d,del=%d\n", entindex, del);
+
 	for (int i = 0; i <= del + 1; i++)
 		g_pParticleSystems.DeleteSystemWithEntity(entindex);
 
@@ -319,7 +321,7 @@ void CHud :: MsgFunc_MParticle( const char *pszName, int iSize, void *pbuf )
 	{
 		entindex = READ_SHORT();
 
-		gEngfuncs.Con_Printf("MsgFunc_MParticle entindex=%d,fileName=%s\n", entindex, fileName);
+		// gEngfuncs.Con_Printf("MsgFunc_MParticle entindex=%d,fileName=%s\n", entindex, fileName);
 
 		ParticleSystem *pSystem = new ParticleSystem(entindex, fileName);
 		g_pParticleSystems.AddSystem(pSystem, fileName); 
