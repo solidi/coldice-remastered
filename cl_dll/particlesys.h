@@ -202,7 +202,7 @@ public:
 	int				m_iEntIndex;
 	float			DieTime;
 	float			EmitTime;
-	const char *tag;
+	char 			tag[32];
 
 	Vector ManualOrigin;
 

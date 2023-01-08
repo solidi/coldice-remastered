@@ -20,7 +20,9 @@ public:
 	void Setup( int mode );
 	void RefreshFlameSystem( int mode );
 
-//private:
+	bool reset;
+
+private:
 	ParticleSystem* m_pFirstSystem;
 	std::list <particle *> SortedList;
 };

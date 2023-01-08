@@ -87,12 +87,12 @@ ParticleType::ParticleType( ParticleType *pNext )
 
 particle* ParticleType::CreateParticle(ParticleSystem *pSys)//particle *pPart)
 {
-	if (!pSys) 
+	if (!pSys)
 		return NULL;
 
 	particle *pPart = pSys->ActivateParticle();
 
-	if (!pPart) 
+	if (!pPart)
 		return NULL;
 
 	pPart->age = 0.0;
@@ -229,6 +229,10 @@ ParticleSystem::ParticleSystem(int entindex, char *szFilename, float _EmitTime, 
 	ManualOrigin = _ManualOrigin;
 	pModel = NULL;
 	m_pMainType = NULL;
+	// In case particles fail to init from file
+	m_pAllParticles = NULL;
+	m_pActiveParticle = NULL;
+	m_pMainParticle = NULL;
 
 	if (!c_bCosTableInit)
 	{
@@ -318,7 +322,8 @@ void ParticleSystem::AllocateParticles( int iParticles )
 ParticleSystem::~ParticleSystem( void )
 {
 	//gEngfuncs.Con_Printf(":: particle system deleted \n");
-	delete [] m_pAllParticles;
+	if (m_pAllParticles)
+		delete [] m_pAllParticles;
 
 	ParticleType *pType = m_pFirstType;
 	ParticleType *pNext;
@@ -685,7 +690,7 @@ bool ParticleSystem::UpdateSystem( float frametime, /*vec3_t &right, vec3_t &up,
 	//	gEngfuncs.Con_Printf("0\n");
 
 	if (DieTime != 0 && DieTime < gEngfuncs.GetClientTime())
-		return 0;
+		return false;
 
 	//if (m_iEntIndex > 0)
 	//	gEngfuncs.Con_Printf("1\n");
@@ -724,8 +729,11 @@ bool ParticleSystem::UpdateSystem( float frametime, /*vec3_t &right, vec3_t &up,
 	}
 	else if (source && source->curstate.playerclass == 0)
 	{
-		m_pMainParticle->age_death = 0; // die now
-		m_pMainParticle = NULL;
+		if (m_pMainParticle)
+		{
+			m_pMainParticle->age_death = 0; // die now
+			m_pMainParticle = NULL;
+		}
 	}
 
 	particle* pParticle = m_pActiveParticle;
@@ -781,7 +789,7 @@ void ParticleSystem::DrawSystem(std::list <particle *> &List)
 	//if (m_iEntIndex > 0)
 		//gEngfuncs.Con_Printf("ParticleSystemManager::DrawSystem m_iEntIndex=%d\n", m_iEntIndex);
 
-	for( pParticle = m_pActiveParticle; pParticle; pParticle = pParticle->nextpart )
+	for ( pParticle = m_pActiveParticle; pParticle; pParticle = pParticle->nextpart )
 	{
 		//if (m_iEntIndex > 0)
 		//	gEngfuncs.Con_Printf("ParticleSystemManager::DrawSystem pParticle->pType->m_szName=%s\n", pParticle->pType->m_szName);

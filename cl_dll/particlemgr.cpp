@@ -56,9 +56,9 @@ void ParticleSystemManager::RefreshFlameSystem( int mode )
 {
 	for (int i = 1; i <= gEngfuncs.GetMaxClients(); i++)
 	{
+		char temp[32];
 		if (mode)
 		{
-			char temp[80];
 			sprintf(temp, "ice_fburst1 - %d", i);
 			g_pParticleSystems.AddSystem(new ParticleSystem(i, "aurora/ice_fburst1.aur"), temp);
 			sprintf(temp, "ice_fburst2 - %d", i);
@@ -68,7 +68,6 @@ void ParticleSystemManager::RefreshFlameSystem( int mode )
 		}
 		else
 		{
-			char temp[80];
 			sprintf(temp, "fburst1 - %d", i); 
 			g_pParticleSystems.AddSystem(new ParticleSystem(i, "aurora/fburst1.aur"), temp);
 			sprintf(temp, "fburst2 - %d", i); 
@@ -84,7 +83,7 @@ void ParticleSystemManager::RefreshFlameSystem( int mode )
 void ParticleSystemManager::AddSystem( ParticleSystem* pNewSystem, const char *tag )
 {
 	// gEngfuncs.Con_Printf("::: add pNewSystem->m_iEntIndex=%d tag=%s\n", pNewSystem->m_iEntIndex, tag);
-	pNewSystem->tag = tag;
+	strcpy(pNewSystem->tag, tag);
 	pNewSystem->m_pNextSystem = m_pFirstSystem;
 	m_pFirstSystem = pNewSystem;
 }
@@ -243,6 +242,13 @@ void ParticleSystemManager::UpdateSystems( float frametime, int sky ) //LRC - no
 	}
 
 	gEngfuncs.pTriAPI->RenderMode(kRenderNormal);
+
+	if (reset)
+	{
+		Setup(gHUD.m_iIceModels);
+		FlameSystem.Init();
+		reset = false;
+	}
 }
 
 void ParticleSystemManager::ClearSystems( void )

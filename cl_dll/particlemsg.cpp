@@ -41,9 +41,7 @@ void CHudParticle::SetParticles()
 		if (gHUD.m_iIceModels != cl_icemodels->value)
 		{
 			gEngfuncs.Con_DPrintf("::: SetParticles -> Do Refresh\n");
-			g_pParticleSystems.Setup(cl_icemodels->value);
-			FlameSystem.Init();
-			//g_pParticleSystems.RefreshFlameSystem(cl_icemodels->value);
+			g_pParticleSystems.reset = true;
 			gHUD.m_iIceModels = cl_icemodels->value;
 		}
 	}
