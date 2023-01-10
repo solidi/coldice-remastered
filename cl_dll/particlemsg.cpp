@@ -16,7 +16,7 @@ int CHudParticle::Init( void )
 int CHudParticle::VidInit( void )
 {
 	m_iFlags |= HUD_ACTIVE;
-	gEngfuncs.Con_DPrintf("::: VidInit -> SetParticles\n");
+	// gEngfuncs.Con_DPrintf("::: VidInit -> SetParticles\n");
 	gHUD.m_iIceModels = -1; // always clear on vidinit
 	SetParticles();
 	return 1;
@@ -40,7 +40,7 @@ void CHudParticle::SetParticles()
 	{
 		if (gHUD.m_iIceModels != cl_icemodels->value)
 		{
-			gEngfuncs.Con_DPrintf("::: SetParticles -> Do Refresh\n");
+			// gEngfuncs.Con_DPrintf("::: SetParticles -> Do Refresh\n");
 			g_pParticleSystems.reset = true;
 			gHUD.m_iIceModels = cl_icemodels->value;
 		}

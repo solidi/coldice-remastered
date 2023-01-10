@@ -41,12 +41,17 @@
 
 enum flamethrower_e
 {
-	FLAMETHROWER_LONGIDLE,
 	FLAMETHROWER_IDLE1,
-	FLAMETHROWER_RELOAD,
+	FLAMETHROWER_FIDGET,
+	FLAMETHROWER_ON,
+	FLAMETHROWER_CYCLE,
+	FLAMETHROWER_OFF,
+	FLAMETHROWER_FIRE1,
+	FLAMETHROWER_FIRE2,
+	FLAMETHROWER_FIRE3,
+	FLAMETHROWER_FIRE4,
 	FLAMETHROWER_DEPLOY,
 	FLAMETHROWER_HOLSTER,
-	FLAMETHROWER_SHOOT,
 };
 
 LINK_ENTITY_TO_CLASS( weapon_flamethrower, CFlameThrower );
@@ -368,7 +373,7 @@ void CFlameThrower::Reload( void )
 
 	if (m_iClip == 0)
 	{
-		iResult = DefaultReload( FLAMETHROWER_MAX_CLIP, FLAMETHROWER_RELOAD, 4.3 );
+		iResult = DefaultReload( FLAMETHROWER_MAX_CLIP, FLAMETHROWER_OFF, 4.3 );
 		EMIT_SOUND(ENT(pev), CHAN_ITEM, "flamethrower_reload.wav", 1, ATTN_NORM);
 	}
 
@@ -400,7 +405,7 @@ void CFlameThrower::WeaponIdle( void )
 		 break;
 
 	default:
-		 iAnim = FLAMETHROWER_LONGIDLE;
+		 iAnim = FLAMETHROWER_FIDGET;
 		 break;
 	}
 

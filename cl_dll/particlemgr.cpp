@@ -76,7 +76,7 @@ void ParticleSystemManager::RefreshFlameSystem( int mode )
 			g_pParticleSystems.AddSystem(new ParticleSystem(i, "aurora/fburst3.aur"), temp);
 		}
 
-		gEngfuncs.Con_DPrintf("::: loaded client %d to flamethrower\n", i);
+		// gEngfuncs.Con_DPrintf("::: loaded client %d to flamethrower\n", i);
 	}
 }
 
@@ -256,10 +256,10 @@ void ParticleSystemManager::ClearSystems( void )
 	ParticleSystem *pSystem = m_pFirstSystem;
 	ParticleSystem *pTemp;
 
-	while( pSystem )
+	while ( pSystem )
 	{
 		pTemp = pSystem->m_pNextSystem;
-		gEngfuncs.Con_DPrintf("::: delete pSystem->m_iEntIndex=%d, tag=%s\n", pSystem->m_iEntIndex, pSystem->tag);
+		// gEngfuncs.Con_DPrintf("::: delete pSystem->m_iEntIndex=%d, tag=%s\n", pSystem->m_iEntIndex, pSystem->tag);
 		delete pSystem;
 		pSystem = pTemp;
 	}

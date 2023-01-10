@@ -3497,19 +3497,22 @@ void EV_GravityGun(event_args_t* args)
 
 enum flamethrower_e
 {
-	FLAMETHROWER_LONGIDLE,
 	FLAMETHROWER_IDLE1,
-	FLAMETHROWER_RELOAD,
+	FLAMETHROWER_FIDGET,
+	FLAMETHROWER_ON,
+	FLAMETHROWER_CYCLE,
+	FLAMETHROWER_OFF,
+	FLAMETHROWER_FIRE1,
+	FLAMETHROWER_FIRE2,
+	FLAMETHROWER_FIRE3,
+	FLAMETHROWER_FIRE4,
 	FLAMETHROWER_DEPLOY,
 	FLAMETHROWER_HOLSTER,
-	FLAMETHROWER_SHOOT,
 };
-
-#include "tri.h"
 
 void EV_FireFlameStream( event_args_t *args )
 {
-	int idx ;
+	int idx;
 	vec3_t origin,angles,forward,right,up;
 
 	idx = args->entindex;
@@ -3526,7 +3529,7 @@ void EV_FireFlameStream( event_args_t *args )
 		gEngfuncs.pEventAPI->EV_PlaySound( idx, origin, CHAN_STATIC, "flamerun.wav", 1, ATTN_NORM, 0, PITCH_NORM );
 
 	if ( EV_IsLocal( idx ) )
-		gEngfuncs.pEventAPI->EV_WeaponAnimation ( FLAMETHROWER_SHOOT, 1 );
+		gEngfuncs.pEventAPI->EV_WeaponAnimation ( FLAMETHROWER_FIRE3, 0 );
 }
 
 void EV_FireFlameThrower( event_args_t *args )
@@ -3539,15 +3542,12 @@ void EV_FireFlameThrower( event_args_t *args )
 
 	gEngfuncs.pEventAPI->EV_PlaySound( idx, origin, CHAN_WEAPON, "flamethrower.wav", 0.9, ATTN_NORM, 0, PITCH_NORM );
 
-	//Only play the weapon anims if I shot it. 
 	if ( EV_IsLocal( idx ) )
 	{
-		gEngfuncs.pEventAPI->EV_WeaponAnimation( FLAMETHROWER_SHOOT, 0 );
-	/*
-		V_PunchAxis(PITCH, gEngfuncs.pfnRandomFloat(-5.0, -7.0) );
-		V_PunchAxis(YAW, gEngfuncs.pfnRandomFloat(-2.0, -4.0));
-		V_PunchAxis(ROLL, gEngfuncs.pfnRandomFloat(2.0, 4.0));
-	*/
+		gEngfuncs.pEventAPI->EV_WeaponAnimation( FLAMETHROWER_FIRE4, 0 );
+		V_PunchAxis(PITCH, gEngfuncs.pfnRandomFloat(-2.0, -4.0) );
+		V_PunchAxis(YAW, gEngfuncs.pfnRandomFloat(-1.0, -2.0));
+		V_PunchAxis(ROLL, gEngfuncs.pfnRandomFloat(1.0, 2.0));
 	}
 }
 
@@ -3562,7 +3562,7 @@ void EV_EndFlameThrower( event_args_t *args )
 	gEngfuncs.pEventAPI->EV_StopAllSounds(idx,CHAN_STATIC);
 
 	if ( EV_IsLocal( idx ) )
-		gEngfuncs.pEventAPI->EV_WeaponAnimation ( 6, 1 );
+		gEngfuncs.pEventAPI->EV_WeaponAnimation ( FLAMETHROWER_OFF, 0 );
 	
 	if ( args->iparam1 )
 		gEngfuncs.pEventAPI->EV_PlaySound( idx, origin, CHAN_WEAPON, "flamethrowerend.wav", 1, 0.6, 0, 100 );
