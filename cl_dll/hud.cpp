@@ -52,7 +52,7 @@ cvar_t *cl_glasshud;
 cvar_t *cl_announcehumor;
 cvar_t *cl_showtips;
 cvar_t *cl_flashonpickup;
-cvar_t *m_pIceModels;
+cvar_t *cl_icemodels;
 cvar_t *cl_lifemeter;
 cvar_t *cl_achievements;
 cvar_t *cl_antivomit;
@@ -61,6 +61,7 @@ cvar_t *cl_weather;
 cvar_t *cl_hudscale;
 cvar_t *cl_hudbend;
 cvar_t *cl_wallclimbindicator;
+cvar_t *cl_particlesystem;
 
 cvar_t *cl_vmx;
 cvar_t *cl_vmy;
@@ -352,6 +353,36 @@ int __MsgFunc_Mutators(const char *pszName, int iSize, void *pbuf)
 	return gHUD.MsgFunc_Mutators(pszName, iSize, pbuf );
 }
 
+int __MsgFunc_Particle(const char *pszName,  int iSize, void *pbuf )
+{
+	gHUD.MsgFunc_Particle( pszName, iSize, pbuf );
+	return 0;
+}
+
+int __MsgFunc_DelPart(const char *pszName, int iSize, void *pbuf)
+{
+	gHUD.MsgFunc_DelPart( pszName, iSize, pbuf );
+	return 1;
+}
+
+int __MsgFunc_FlameMsg(const char *pszName, int iSize, void *pbuf)
+{
+	gHUD.MsgFunc_FlameMsg( pszName, iSize, pbuf );
+	return 1;
+}
+
+int __MsgFunc_FlameKill(const char *pszName, int iSize, void *pbuf)
+{
+	gHUD.MsgFunc_FlameKill( pszName, iSize, pbuf );
+	return 1;
+}
+
+int __MsgFunc_MParticle(const char *pszName, int iSize, void *pbuf)
+{
+	gHUD.MsgFunc_MParticle( pszName, iSize, pbuf );
+	return 1;
+}
+
 // This is called every time the DLL is loaded
 void CHud :: Init( void )
 {
@@ -392,12 +423,18 @@ void CHud :: Init( void )
 	HOOK_MESSAGE( SpecFade );
 	HOOK_MESSAGE( ResetFade );
 
+	// VGUI Menus
+	HOOK_MESSAGE( VGUIMenu );
+
+	// Cold Ice Remastered
 	HOOK_MESSAGE( Acrobatics );
 	HOOK_MESSAGE( PlayCSound );
 	HOOK_MESSAGE( Mutators );
-
-	// VGUI Menus
-	HOOK_MESSAGE( VGUIMenu );
+	HOOK_MESSAGE( Particle );
+	HOOK_MESSAGE( DelPart );
+	HOOK_MESSAGE( FlameMsg );
+	HOOK_MESSAGE( FlameKill );
+	HOOK_MESSAGE( MParticle );
 
 	CVAR_CREATE( "hud_classautokill", "1", FCVAR_ARCHIVE | FCVAR_USERINFO );		// controls whether or not to suicide immediately on TF class switch
 	CVAR_CREATE( "hud_takesshots", "0", FCVAR_ARCHIVE );		// controls whether or not to automatically take screenshots at the end of a round
@@ -430,6 +467,7 @@ void CHud :: Init( void )
 	cl_hudscale = CVAR_CREATE( "cl_hudscale", "0", FCVAR_ARCHIVE );
 	cl_hudbend = CVAR_CREATE( "cl_hudbend", "0.0", FCVAR_ARCHIVE );
 	cl_wallclimbindicator = CVAR_CREATE( "cl_wallclimbindicator", "1", FCVAR_ARCHIVE );
+	cl_particlesystem = CVAR_CREATE( "cl_particlesystem", "1", FCVAR_ARCHIVE );
 
 	cl_vmx = CVAR_CREATE( "cl_vmx", "0", FCVAR_ARCHIVE );
 	cl_vmy = CVAR_CREATE( "cl_vmy", "0", FCVAR_ARCHIVE );
@@ -494,6 +532,7 @@ void CHud :: Init( void )
 #ifdef _WIN32
 	g_ImGUIManager.Init();
 #endif
+	m_Particle.Init();
 
 	m_Menu.Init();
 	
@@ -650,6 +689,7 @@ void CHud :: VidInit( void )
 #ifdef _WIN32
 	g_ImGUIManager.VidInit();
 #endif
+	m_Particle.VidInit();
 }
 
 int CHud::MsgFunc_Logo(const char *pszName,  int iSize, void *pbuf)

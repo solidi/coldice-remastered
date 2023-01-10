@@ -228,7 +228,7 @@ float V_CalcBob ( struct ref_params_s *pparams )
 	bob = sqrt( vel[0] * vel[0] + vel[1] * vel[1] ) * cl_bob->value;
 	bob = bob * 0.3 + bob * 0.7 * sin(cycle);
 	bob = min( bob, 4 );
-	bob = max( bob, -7 );
+	bob = fmax( bob, -7 );
 	return bob;
 	
 }
@@ -1788,7 +1788,7 @@ void V_DropPunchAngle ( float frametime, float *ev_punchangle )
 
 	len = VectorNormalize ( ev_punchangle );
 	len -= (strength + len * 0.5) * frametime;
-	len = max( len, 0.0 );
+	len = fmax( len, 0.0 );
 	VectorScale ( ev_punchangle, len, ev_punchangle );
 }
 
@@ -1855,9 +1855,9 @@ void V_GlassHud( float bounce, float clientTime, float frameTime ) {
 	}
 
 	g_xP = min( g_xP, 3.5 );
-	g_xP = max( g_xP, -3.5 );
+	g_xP = fmax( g_xP, -3.5 );
 	g_yP = min( g_yP, 2.5 );
-	g_yP = max( g_yP, -2.5 );
+	g_yP = fmax( g_yP, -2.5 );
 }
 
 void V_WeaponSway( float currentYaw, float frameTime, float clientTime, cl_entity_t *viewModel )
@@ -1911,7 +1911,7 @@ void V_WeaponSway( float currentYaw, float frameTime, float clientTime, cl_entit
 	}
 
 	// max distance
-	decay = min(max(decay, -5), 5);
+	decay = min(fmax(decay, -5), 5);
 
 	if (cl_glasshud->value)
 		g_xP -= decay / 3;

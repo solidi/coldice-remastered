@@ -32,7 +32,7 @@
 
 vec3_t vec3_origin( 0, 0, 0 );
 
-extern cvar_t *m_pIceModels;
+extern cvar_t *cl_icemodels;
 
 double sqrt(double x);
 
@@ -135,7 +135,7 @@ HSPRITE LoadSprite(const char *pszName)
 
 unsigned long HudColor()
 {
-	if (m_pIceModels && m_pIceModels->value)
+	if (cl_icemodels && cl_icemodels->value)
 		return RGB_BLUEISH;
 
 	return RGB_YELLOWISH;

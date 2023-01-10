@@ -120,10 +120,21 @@ called when a player disconnects from a server
 GLOBALS ASSUMED SET:  g_fGameOver
 ============
 */
+extern int gmsgFlameKill;
+extern int gmsgDelPart;
 void ClientDisconnect( edict_t *pEntity )
 {
 	if (g_fGameOver)
 		return;
+
+	pEntity->v.playerclass = 0;
+	/*MESSAGE_BEGIN( MSG_ALL, gmsgDelPart );
+		WRITE_SHORT( ENTINDEX(pEntity) );
+		WRITE_BYTE( 10 );
+	MESSAGE_END();*/
+	MESSAGE_BEGIN( MSG_ALL, gmsgFlameKill );
+		WRITE_SHORT( ENTINDEX(pEntity) );
+	MESSAGE_END();
 
 	char text[256] = "" ;
 	if ( pEntity->v.netname )
@@ -705,6 +716,11 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_viewroll [0|1]\" - Old View Roll\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_bobtilt [0|1]\" - Old Bob Tilt\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_righthand [0|1]\" - Right/Left Handed Models\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "For more, type help_more\n" );
+	}
+	else if ( FStrEq( pcmd, "help_more" )  )
+	{
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "[Client Help More]\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_bulletsmoke [0|1]\" - Bullet Smoke\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_gunsmoke [0|1]\" - Gun Smoke\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_glasshud [0|1]\" - switch elements of the hud bouncing/bobbing on or off\n");
@@ -723,7 +739,8 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_weather [0|1]\" - allow or disallow weather effects on client\n" );
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_hudscale\" - experimental scaling factor of HUD elements\n" );
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_hudbend\" - experimental bending factor of HUD elements\n" );
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_wallclimbindicator\" - shows when wallclimb is available\n" );
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_wallclimbindicator [0|1]\" - shows when wallclimb is available\n" );
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_particlesystem [0|1]\" enables or disables special effects like the flamethrower\n" );
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "For more, see readme.txt\n" );
 	}
 	else if ( FStrEq( pcmd, "help_server" )  )
@@ -762,6 +779,11 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_mutators \"lightsout\"\" - all the lights are turned out, but your flashight has unlimited battery\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_mutators \"slowmo\"\" - everything is slowed down by half! (sp only!)\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_mutators \"ice\"\" - all the ground is covered in ice\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "For more, type help_server_more\n" );
+	}
+	else if ( FStrEq( pcmd, "help_server_more" )  )
+	{
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "[Server Help More]\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_mutators \"topsyturvy\"\" - everything is turned upside down (sp only!)\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_mutators \"turrets\"\" - sentry guns randomly appear, firing bullets and rockets at everyone\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_mutators \"barrels\"\" - start with the gravitygun, flaming explosive barrels spawn to throw at others\n");
@@ -1493,10 +1515,10 @@ int AddToFullPack( struct entity_state_s *state, int e, edict_t *ent, edict_t *h
 
 	// HACK:  Somewhat...
 	// Class is overridden for non-players to signify a breakable glass object ( sort of a class? )
-	if ( !player )
-	{
+	//if ( !player )
+	//{
 		state->playerclass  = ent->v.playerclass;
-	}
+	//}
 
 	// Special stuff for players only
 	if ( player )

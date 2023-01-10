@@ -207,6 +207,8 @@ void CGrenade::Explode( TraceResult *pTrace, int bitsDamageType )
 			pChumtoad->pev->velocity.z = RANDOM_FLOAT( 0, 400 );
 		}
 	}
+	// Flames
+	pev->playerclass = 0;
 
 	flRndSound = RANDOM_FLOAT( 0 , 1 );
 

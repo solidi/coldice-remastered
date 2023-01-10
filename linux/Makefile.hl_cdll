@@ -145,6 +145,10 @@ HL1_OBJS = \
 	$(HL1_OBJ_DIR)/wallclimb.o \
 	$(HL1_OBJ_DIR)/voice_status.o \
 	$(HL1_OBJ_DIR)/hud_servers.o \
+	$(HL1_OBJ_DIR)/FlameSystem.o \
+	$(HL1_OBJ_DIR)/particlemgr.o \
+	$(HL1_OBJ_DIR)/particlemsg.o \
+	$(HL1_OBJ_DIR)/particlesys.o \
 	
 
 DLL_OBJS = \
@@ -164,6 +168,9 @@ DLL_OBJS = \
 	$(HL1_SERVER_OBJ_DIR)/dual_wrench.o \
 	$(HL1_SERVER_OBJ_DIR)/egon.o \
 	$(HL1_SERVER_OBJ_DIR)/fists.o \
+	$(HL1_SERVER_OBJ_DIR)/flame.o \
+	$(HL1_SERVER_OBJ_DIR)/flameball.o \
+	$(HL1_SERVER_OBJ_DIR)/flamethrower.o \
 	$(HL1_SERVER_OBJ_DIR)/flying_wrench.o \
 	$(HL1_SERVER_OBJ_DIR)/freezegun.o \
 	$(HL1_SERVER_OBJ_DIR)/gauge_shotgun.o \

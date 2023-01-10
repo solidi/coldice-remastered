@@ -51,7 +51,7 @@ extern cvar_t *cl_lw;
 extern cvar_t *m_pCvarRighthand;
 extern cvar_t *cl_bulletsmoke;
 extern cvar_t *cl_gunsmoke;
-extern cvar_t *m_pIceModels;
+extern cvar_t *cl_icemodels;
 
 extern "C"
 {
@@ -107,6 +107,9 @@ void EV_FireDualUsasBoth( struct event_args_s *args  );
 void EV_FireFreezeGun( struct event_args_s *args  );
 void EV_RocketCrowbar( struct event_args_s *args  );
 void EV_GravityGun( struct event_args_s *args  );
+void EV_FireFlameStream( struct event_args_s *args  );
+void EV_FireFlameThrower( struct event_args_s *args  );
+void EV_EndFlameThrower( struct event_args_s *args  );
 
 void EV_TrainPitchAdjust( struct event_args_s *args );
 }
@@ -503,7 +506,7 @@ void EV_HLDM_FireBullets( int idx, float *forward, float *right, float *up, int 
 
 				if ( gEngfuncs.pfnRandomLong(0, 3) > 2 ) {
 					int model = gEngfuncs.pEventAPI->EV_FindModelIndex( "sprites/sparks.spr" );
-					if (m_pIceModels && m_pIceModels->value)
+					if (cl_icemodels && cl_icemodels->value)
 						model = gEngfuncs.pEventAPI->EV_FindModelIndex( "sprites/ice_sparks.spr" );
 					TEMPENTITY *t = gEngfuncs.pEfxAPI->R_DefaultSprite(tr.endpos - Vector(forward[0], forward[1], forward[2]) * 40, model, gEngfuncs.pfnRandomLong(12, 18));
 					if (t) {
@@ -1034,7 +1037,7 @@ void EV_FireGauss( event_args_t *args )
 	EV_GetGunPosition( args, vecSrc, origin );
 
 	m_iBeam = gEngfuncs.pEventAPI->EV_FindModelIndex( "sprites/smoke.spr" );
-	if (m_pIceModels && m_pIceModels->value)
+	if (cl_icemodels && cl_icemodels->value)
 		m_iBalls = m_iGlow = gEngfuncs.pEventAPI->EV_FindModelIndex( "sprites/ice_hotglow.spr" );
 	else
 		m_iBalls = m_iGlow = gEngfuncs.pEventAPI->EV_FindModelIndex( "sprites/hotglow.spr" );
@@ -1076,7 +1079,7 @@ void EV_FireGauss( event_args_t *args )
 			break;
 
 		int r = 255, g = 128, b = 0;
-		if (m_pIceModels && m_pIceModels->value) {
+		if (cl_icemodels && cl_icemodels->value) {
 			r = 0;
 			g = 113;
 			b = 230;
@@ -3481,7 +3484,7 @@ void EV_GravityGun(event_args_t* args)
 			VectorAverage(targent->curstate.maxs + targent->origin, targent->curstate.mins + targent->origin, targpos);
 
 		int r = 255, g = 128, b = 0;
-		if (m_pIceModels && m_pIceModels->value) {
+		if (cl_icemodels && cl_icemodels->value) {
 			r = 0;
 			g = 113;
 			b = 230;
@@ -3490,6 +3493,79 @@ void EV_GravityGun(event_args_t* args)
 
 		gEngfuncs.pEventAPI->EV_PlaySound(idx, args->origin, CHAN_WEAPON, "weapons/gauss2.wav", 0.5, ATTN_NORM, 0, 85 + gEngfuncs.pfnRandomLong(0, 0x1f));
 	}
+}
+
+enum flamethrower_e
+{
+	FLAMETHROWER_IDLE1,
+	FLAMETHROWER_FIDGET,
+	FLAMETHROWER_ON,
+	FLAMETHROWER_CYCLE,
+	FLAMETHROWER_OFF,
+	FLAMETHROWER_FIRE1,
+	FLAMETHROWER_FIRE2,
+	FLAMETHROWER_FIRE3,
+	FLAMETHROWER_FIRE4,
+	FLAMETHROWER_DEPLOY,
+	FLAMETHROWER_HOLSTER,
+};
+
+void EV_FireFlameStream( event_args_t *args )
+{
+	int idx;
+	vec3_t origin,angles,forward,right,up;
+
+	idx = args->entindex;
+	VectorCopy( args->origin, origin );
+	int iStartup = args->bparam1;
+	VectorCopy( args->origin, origin );
+	VectorCopy( args->angles, angles );
+
+	AngleVectors( angles, forward, right, up );
+
+	if ( iStartup )
+		gEngfuncs.pEventAPI->EV_PlaySound( idx, origin, CHAN_WEAPON, "flameburst.wav", 1, ATTN_NORM, 0, PITCH_NORM );
+	else
+		gEngfuncs.pEventAPI->EV_PlaySound( idx, origin, CHAN_STATIC, "flamerun.wav", 1, ATTN_NORM, 0, PITCH_NORM );
+
+	if ( EV_IsLocal( idx ) )
+		gEngfuncs.pEventAPI->EV_WeaponAnimation ( FLAMETHROWER_FIRE3, 0 );
+}
+
+void EV_FireFlameThrower( event_args_t *args )
+{
+	int idx;
+	vec3_t origin;
+
+	idx = args->entindex;
+	VectorCopy( args->origin, origin );
+
+	gEngfuncs.pEventAPI->EV_PlaySound( idx, origin, CHAN_WEAPON, "flamethrower.wav", 0.9, ATTN_NORM, 0, PITCH_NORM );
+
+	if ( EV_IsLocal( idx ) )
+	{
+		gEngfuncs.pEventAPI->EV_WeaponAnimation( FLAMETHROWER_FIRE4, 0 );
+		V_PunchAxis(PITCH, gEngfuncs.pfnRandomFloat(-2.0, -4.0) );
+		V_PunchAxis(YAW, gEngfuncs.pfnRandomFloat(-1.0, -2.0));
+		V_PunchAxis(ROLL, gEngfuncs.pfnRandomFloat(1.0, 2.0));
+	}
+}
+
+void EV_EndFlameThrower( event_args_t *args )
+{
+	int idx;
+	vec3_t origin;
+
+	idx = args->entindex;
+	VectorCopy ( args->origin, origin );
+
+	gEngfuncs.pEventAPI->EV_StopAllSounds(idx,CHAN_STATIC);
+
+	if ( EV_IsLocal( idx ) )
+		gEngfuncs.pEventAPI->EV_WeaponAnimation ( FLAMETHROWER_OFF, 0 );
+	
+	if ( args->iparam1 )
+		gEngfuncs.pEventAPI->EV_PlaySound( idx, origin, CHAN_WEAPON, "flamethrowerend.wav", 1, 0.6, 0, 100 );
 }
 
 void EV_TrainPitchAdjust( event_args_t *args )

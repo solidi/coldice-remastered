@@ -363,6 +363,10 @@ public:
 
 	enum EGON_FIRESTATE { FIRE_OFF, FIRE_CHARGE };
 	int m_fireState;
+
+	int m_burnParticleEnabled;
+	float m_fBurnTime;
+	EHANDLE m_hFlameOwner;
 };
 
 

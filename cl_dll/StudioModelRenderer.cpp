@@ -25,7 +25,7 @@
 #include "event_api.h"
 
 extern cvar_t *tfc_newmodels;
-extern cvar_t *m_pIceModels;
+extern cvar_t *cl_icemodels;
 
 extern extra_player_info_t  g_PlayerExtraInfo[MAX_PLAYERS+1];
 
@@ -70,7 +70,7 @@ void CStudioModelRenderer::Init( void )
 	m_pCvarHiModels			= IEngineStudio.GetCvar( "cl_himodels" );
 	m_pCvarDeveloper		= IEngineStudio.GetCvar( "developer" );
 	m_pCvarDrawEntities		= IEngineStudio.GetCvar( "r_drawentities" );
-	m_pIceModels			= gEngfuncs.pfnRegisterVariable ( "cl_icemodels", "2", FCVAR_ARCHIVE );
+	cl_icemodels			= gEngfuncs.pfnRegisterVariable ( "cl_icemodels", "2", FCVAR_ARCHIVE );
 	m_pCvarGlowModels		= gEngfuncs.pfnRegisterVariable ( "cl_glowmodels", "1", FCVAR_ARCHIVE );
 
 	m_pChromeSprite			= IEngineStudio.GetChromeSprite();
@@ -1203,6 +1203,11 @@ StudioDrawModel
 
 ====================
 */
+
+Vector cs_vo;
+Vector cs_va;
+float(*BoneOrigin)[MAXSTUDIOBONES][3][4];
+
 int CStudioModelRenderer::StudioDrawModel( int flags )
 {
 	alight_t lighting;
@@ -1384,7 +1389,7 @@ int CStudioModelRenderer::StudioDrawModel( int flags )
 
 		/*if ((m_pCurrentEntity->model && (strstr(m_pCurrentEntity->model->name, "w_"))) ||
 			m_pCurrentEntity == gEngfuncs.GetViewModel())*/
-		m_pCurrentEntity->curstate.skin = m_pIceModels->value;
+		m_pCurrentEntity->curstate.skin = cl_icemodels->value;
 
 		if ( m_pCurrentEntity == gEngfuncs.GetViewModel() )
 		{
@@ -1444,6 +1449,8 @@ int CStudioModelRenderer::StudioDrawModel( int flags )
 #endif
 		}
 	}
+
+	FlameSystem.Process(m_pCurrentEntity, IEngineStudio);
 
 	return 1;
 }
@@ -2055,6 +2062,9 @@ int CStudioModelRenderer::StudioDrawPlayer( int flags, entity_state_t *pplayer )
 		IEngineStudio.StudioSetRemapColors( m_nTopColor, m_nBottomColor );
 
 		StudioRenderModel( );
+
+		FlameSystem.Process(m_pCurrentEntity, IEngineStudio);
+
 		m_pPlayerInfo = NULL;
 
 		if (pplayer->weaponmodel)
@@ -2062,7 +2072,7 @@ int CStudioModelRenderer::StudioDrawPlayer( int flags, entity_state_t *pplayer )
 			cl_entity_t saveent = *m_pCurrentEntity;
 
 			model_t *pweaponmodel = IEngineStudio.GetModelByIndex( pplayer->weaponmodel );
-			m_pCurrentEntity->curstate.skin = m_pIceModels->value;
+			m_pCurrentEntity->curstate.skin = cl_icemodels->value;
 
 #if defined _TFC
 			if ( pweaponmodel )

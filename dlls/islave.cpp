@@ -541,6 +541,9 @@ void CISlave :: Spawn()
 
 	m_voicePitch		= RANDOM_LONG( 85, 110 );
 
+	// Flames
+	pev->playerclass	= 0;
+
 	MonsterInit();
 }
 

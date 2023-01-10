@@ -110,9 +110,25 @@ void CBaseEntity::UpdateOnRemove( void )
 		gGlobalState.EntitySetState( pev->globalname, GLOBAL_DEAD );
 }
 
+extern int gmsgDelPart;
+extern int gmsgFlameKill;
 // Convenient way to delay removing oneself
 void CBaseEntity :: SUB_Remove( void )
 {
+	//ALERT(at_aiconsole, "sub_remove %s[%p]\n", STRING(pev->classname), pev);
+	if (m_burnParticleEnabled > 0 && !IsPlayer())
+	{
+		MESSAGE_BEGIN( MSG_ALL, gmsgDelPart );
+			WRITE_SHORT( entindex() );
+			WRITE_BYTE( m_burnParticleEnabled );
+		MESSAGE_END();
+		m_burnParticleEnabled = 0;
+		MESSAGE_BEGIN( MSG_ALL, gmsgFlameKill );
+			WRITE_SHORT( entindex() );
+		MESSAGE_END();
+		pev->playerclass = 0;
+	}
+
 	UpdateOnRemove();
 	if (pev->health > 0)
 	{

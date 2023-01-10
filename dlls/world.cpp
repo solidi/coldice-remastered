@@ -305,6 +305,8 @@ static void InitBodyQue(void)
 }
 
 
+extern int gmsgFlameKill;
+
 //
 // make a body que entry for the given ent so the ent can be respawned elsewhere
 //
@@ -316,6 +318,10 @@ void CopyToBodyQue(entvars_t *pev)
 		return;
 
 	entvars_t *pevHead	= VARS(g_pBodyQueueHead);
+
+	MESSAGE_BEGIN( MSG_ALL, gmsgFlameKill );
+		WRITE_SHORT( ENTINDEX(ENT(pevHead)) );
+	MESSAGE_END();
 
 	pevHead->angles		= pev->angles;
 	pevHead->model		= pev->model;

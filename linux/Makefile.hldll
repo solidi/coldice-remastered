@@ -118,6 +118,9 @@ HLDLL_OBJS = \
 	$(HLDLL_OBJ_DIR)/egon.o \
 	$(HLDLL_OBJ_DIR)/explode.o \
 	$(HLDLL_OBJ_DIR)/fists.o \
+	$(HLDLL_OBJ_DIR)/flame.o \
+	$(HLDLL_OBJ_DIR)/flameball.o \
+	$(HLDLL_OBJ_DIR)/flamethrower.o \
 	$(HLDLL_OBJ_DIR)/flyingmonster.o \
 	$(HLDLL_OBJ_DIR)/flying_wrench.o \
 	$(HLDLL_OBJ_DIR)/freezegun.o \

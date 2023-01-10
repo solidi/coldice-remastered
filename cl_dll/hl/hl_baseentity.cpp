@@ -373,3 +373,5 @@ void RadiusDamage( Vector vecSrc, entvars_t *pevInflictor, entvars_t *pevAttacke
 void CBasePlayerWeapon::ProvideDualItem(CBasePlayer *pPlayer, const char *itemName) {}
 BOOL CBasePlayer::HasNamedPlayerItem( const char *pszItemName ) { return FALSE; }
 void CBasePlayer::GiveNamedItem(const char *pszName ) {}
+
+void CPointEntity::Spawn( void ) { }

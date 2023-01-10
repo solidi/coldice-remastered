@@ -21,10 +21,12 @@
 #include "particleman.h"
 #include "tri.h"
 #include "rain.h"
+#include "particlemgr.h"
 
 extern IParticleMan *g_pParticleMan;
 
 extern cvar_t *cl_weather;
+extern cvar_t *cl_particlesystem;
 
 /*
 =================
@@ -51,6 +53,9 @@ HUD_DrawTransparentTriangles
 Render any triangles with transparent rendermode needs here
 =================
 */
+static float fOldTime, fTime;
+extern ParticleSystemManager g_pParticleSystems; 
+
 void CL_DLLEXPORT HUD_DrawTransparentTriangles( void )
 {
 //	RecClDrawTransparentTriangles();
@@ -62,13 +67,25 @@ void CL_DLLEXPORT HUD_DrawTransparentTriangles( void )
 	if ( g_pParticleMan )
 		 g_pParticleMan->Update();
 
-	if( !cl_weather->value )
-		return;
+	if (cl_particlesystem->value)
+	{
+		fOldTime = fTime;
+		fTime = gEngfuncs.GetClientTime();
+		float timedelta = fTime - fOldTime;
+		if (timedelta < 0) 
+			timedelta = 0;
+		if (timedelta > 0.5) 
+			timedelta = 0.5;
+		g_pParticleSystems.UpdateSystems(timedelta, FALSE);
+	}
 
-	ProcessFXObjects();
-	ProcessRain();
-	DrawRain();
-	DrawFXObjects();
+	if (cl_weather->value)
+	{
+		ProcessFXObjects();
+		ProcessRain();
+		DrawRain();
+		DrawFXObjects();
+	}
 }
 
 void DrawCrosshair()

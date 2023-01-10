@@ -415,6 +415,10 @@ public:
 	void GiveRandomWeapon(const char *szIgnoreList);
 	void GiveMelees();
 	void GiveExplosives();
+
+	float nextburntime;
+	byte FPA;
+	void PlayerBurn(void);
 };
 
 #define AUTOAIM_2DEGREES  0.0348994967025
