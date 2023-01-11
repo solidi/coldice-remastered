@@ -1473,8 +1473,6 @@ public:
 	void Precache( void );
 	void EXPORT FlakTouch( CBaseEntity *pOther );
 	static CFlak *CreateFlak( Vector vecOrigin, Vector vecAngles, CBaseEntity *pOwner );
-
-	CSprite *glowSprite;
 };
 
 class CFlakBomb : public CGrenade

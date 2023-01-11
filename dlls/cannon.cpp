@@ -167,16 +167,18 @@ void CFlak :: Spawn( )
 	pev->gravity = 0.5;
 	pev->dmg = gSkillData.plrDmgFlak;
 
+	CSprite *glowing;
 	if (icesprites.value)
-		glowSprite = CSprite::SpriteCreate( "sprites/ice_xspark4.spr", pev->origin, TRUE );
+		glowing = CSprite::SpriteCreate( "sprites/ice_xspark4.spr", pev->origin, TRUE );
 	else
-		glowSprite = CSprite::SpriteCreate( "sprites/xspark4.spr", pev->origin, TRUE );
-	if (glowSprite != NULL)
+		glowing = CSprite::SpriteCreate( "sprites/xspark4.spr", pev->origin, TRUE );
+	if (glowing != NULL)
 	{
-		glowSprite->SetTransparency( kRenderGlow, 255, 255, 255, 255, kRenderFxNoDissipation );
-		glowSprite->SetAttachment( edict(), 0) ;
-		glowSprite->SetScale( 0.5 );
-		glowSprite->SUB_StartFadeOut();
+		glowing->SetTransparency( kRenderGlow, 255, 255, 255, 255, kRenderFxNoDissipation );
+		glowing->SetAttachment( edict(), 0 );
+		glowing->SetScale( 0.5 );
+		glowing->SetThink( &CBaseEntity::SUB_FadeOutFast );
+		glowing->pev->nextthink = gpGlobals->time + 0.1;
 	}
 
 	MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
@@ -216,12 +218,7 @@ void CFlak :: FlakTouch ( CBaseEntity *pOther )
 				ClearMultiDamage();
 				pOther->TraceAttack(pevOwner, pev->dmg, gpGlobals->v_forward, &tr, DMG_NEVERGIB );
 				ApplyMultiDamage( pev, pevOwner );
-
-				if (glowSprite) {
-					UTIL_Remove(glowSprite);
-					glowSprite = NULL;
-				}
-				SUB_Remove();
+				UTIL_Remove(this);
 			}
 		}
 
@@ -353,8 +350,6 @@ void CCannon::SecondaryAttack()
 		Vector vecSrc = m_pPlayer->GetGunPosition( ) + gpGlobals->v_forward * 4 + gpGlobals->v_right * 8 + gpGlobals->v_up * -4;
 		
 		CFlakBomb::CreateFlakBomb( vecSrc, m_pPlayer->pev->v_angle, m_pPlayer );
-
-		UTIL_MakeVectors( m_pPlayer->pev->v_angle );// RpgRocket::Create stomps on globals, so remake.
 #endif
 
 		int flags;
@@ -396,22 +391,20 @@ void CCannon::PrimaryAttack()
 		m_pPlayer->SetAnimation( PLAYER_ATTACK1 );
 
 		UTIL_MakeVectors( m_pPlayer->pev->v_angle );
-		Vector vecSrc1 = m_pPlayer->GetGunPosition( ) + gpGlobals->v_forward * 4 + gpGlobals->v_right * RANDOM_LONG(-18, 18) + gpGlobals->v_up * RANDOM_LONG(-36, 36);
+		Vector vecSrc1 = m_pPlayer->GetGunPosition( ) + gpGlobals->v_forward * 4 + gpGlobals->v_right * RANDOM_LONG(-18, 18) + gpGlobals->v_up * RANDOM_LONG(-18, 18);
 		CFlak::CreateFlak( vecSrc1, m_pPlayer->pev->v_angle, m_pPlayer );
 
-		Vector vecSrc2 = m_pPlayer->GetGunPosition( ) + gpGlobals->v_forward * 4 + gpGlobals->v_right * RANDOM_LONG(-18, 18) + gpGlobals->v_up * RANDOM_LONG(-36, 36);
+		Vector vecSrc2 = m_pPlayer->GetGunPosition( ) + gpGlobals->v_forward * 4 + gpGlobals->v_right * RANDOM_LONG(-18, 18) + gpGlobals->v_up * RANDOM_LONG(-18, 18);
 		CFlak::CreateFlak( vecSrc2, m_pPlayer->pev->v_angle, m_pPlayer );
 
-		Vector vecSrc3 = m_pPlayer->GetGunPosition( ) + gpGlobals->v_forward * 4 + gpGlobals->v_right * RANDOM_LONG(-18, 18) + gpGlobals->v_up * RANDOM_LONG(-36, 36);
+		Vector vecSrc3 = m_pPlayer->GetGunPosition( ) + gpGlobals->v_forward * 4 + gpGlobals->v_right * RANDOM_LONG(-18, 18) + gpGlobals->v_up * RANDOM_LONG(-18, 18);
 		CFlak::CreateFlak( vecSrc3, m_pPlayer->pev->v_angle, m_pPlayer );
 
-		Vector vecSrc4 = m_pPlayer->GetGunPosition( ) + gpGlobals->v_forward * 4 + gpGlobals->v_right * RANDOM_LONG(-18, 18) + gpGlobals->v_up * RANDOM_LONG(-36, 36);
+		Vector vecSrc4 = m_pPlayer->GetGunPosition( ) + gpGlobals->v_forward * 4 + gpGlobals->v_right * RANDOM_LONG(-18, 18) + gpGlobals->v_up * RANDOM_LONG(-18, 18);
 		CFlak::CreateFlak( vecSrc4, m_pPlayer->pev->v_angle, m_pPlayer );
 
-		Vector vecSrc5 = m_pPlayer->GetGunPosition( ) + gpGlobals->v_forward * 4 + gpGlobals->v_right * RANDOM_LONG(-18, 18) + gpGlobals->v_up * RANDOM_LONG(-36, 36);
+		Vector vecSrc5 = m_pPlayer->GetGunPosition( ) + gpGlobals->v_forward * 4 + gpGlobals->v_right * RANDOM_LONG(-18, 18) + gpGlobals->v_up * RANDOM_LONG(-18, 18);
 		CFlak::CreateFlak( vecSrc5, m_pPlayer->pev->v_angle, m_pPlayer );
-
-		UTIL_MakeVectors( m_pPlayer->pev->v_angle );// RpgRocket::Create stomps on globals, so remake.
 #endif
 
 		int flags;
