@@ -146,9 +146,6 @@ void CFreezeGun::PrimaryAttack()
 	flags = 0;
 #endif
 
-	// m_pPlayer->pev->effects = (int)(m_pPlayer->pev->effects) | EF_MUZZLEFLASH;
-	// EMIT_SOUND(ENT(m_pPlayer->pev), CHAN_WEAPON, "freezegun_fire.wav", 1.0, ATTN_NORM );
-
 	m_pPlayer->SetAnimation(PLAYER_ATTACK1);
 	UTIL_MakeVectors( m_pPlayer->pev->v_angle );
 	Vector vecSrc = m_pPlayer->GetGunPosition( ) + gpGlobals->v_forward * 16 + gpGlobals->v_right * 8 + gpGlobals->v_up * -8;
@@ -161,18 +158,21 @@ void CFreezeGun::PrimaryAttack()
 	Vector vecSrcMuzzle = m_pPlayer->GetGunPosition( ) + gpGlobals->v_forward * 50 + gpGlobals->v_right * 8 + gpGlobals->v_up * -8;
 
 	TraceResult tr;
-	MESSAGE_BEGIN( MSG_PAS, SVC_TEMPENTITY, vecSrcMuzzle );
-		WRITE_BYTE( TE_SPRITE );		// This makes a dynamic light and the explosion sprites/sound
-		WRITE_COORD( vecSrcMuzzle.x );	// Send to PAS because of the sound
-		WRITE_COORD( vecSrcMuzzle.y );
-		WRITE_COORD( vecSrcMuzzle.z );
-		if (icesprites.value)
-			WRITE_SHORT( m_iIceMuzzlePlasma );
-		else
-			WRITE_SHORT( m_iMuzzlePlasma );
-		WRITE_BYTE( 3 ); // scale * 10
-		WRITE_BYTE( 128 ); // framerate
-	MESSAGE_END();
+	if (m_pPlayer && !FBitSet(m_pPlayer->pev->flags, FL_FAKECLIENT))
+	{
+		MESSAGE_BEGIN( MSG_ONE, SVC_TEMPENTITY, vecSrcMuzzle, m_pPlayer->edict() );
+			WRITE_BYTE( TE_SPRITE );		// This makes a dynamic light and the explosion sprites/sound
+			WRITE_COORD( vecSrcMuzzle.x );	// Send to PAS because of the sound
+			WRITE_COORD( vecSrcMuzzle.y );
+			WRITE_COORD( vecSrcMuzzle.z );
+			if (icesprites.value)
+				WRITE_SHORT( m_iIceMuzzlePlasma );
+			else
+				WRITE_SHORT( m_iMuzzlePlasma );
+			WRITE_BYTE( 3 ); // scale * 10
+			WRITE_BYTE( 128 ); // framerate
+		MESSAGE_END();
+	}
 
 	MESSAGE_BEGIN( MSG_PVS, SVC_TEMPENTITY, vecSrcMuzzle  );
 		WRITE_BYTE(TE_DLIGHT);
@@ -193,8 +193,6 @@ void CFreezeGun::PrimaryAttack()
 		WRITE_BYTE( 10 );		// decay * 0.1
 	MESSAGE_END( );
 #endif
-
-	// SendWeaponAnim(FREEZEGUN_SHOOT1);
 
 	PLAYBACK_EVENT_FULL(
 		flags,

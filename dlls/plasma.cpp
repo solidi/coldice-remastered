@@ -87,14 +87,11 @@ void CPlasma :: Spawn( void )
 
 void CPlasma :: IgniteThink( void  )
 {
-	// pev->movetype = MOVETYPE_TOSS;
-
 	pev->movetype = MOVETYPE_FLY;
 
 #ifndef CLIENT_DLL
 	// rocket trail
-	MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
-
+	MESSAGE_BEGIN( MSG_PVS, SVC_TEMPENTITY );
 		WRITE_BYTE( TE_BEAMFOLLOW );
 		WRITE_SHORT(entindex());	// entity
 		if (icesprites.value)
@@ -119,7 +116,6 @@ void CPlasma :: IgniteThink( void  )
 void CPlasma :: Precache( void )
 {
 	PRECACHE_MODEL("models/plasma.mdl");
-	m_iDrips = PRECACHE_MODEL("sprites/tsplasma.spr");
 	PRECACHE_MODEL("sprites/ice_particles.spr");
 	PRECACHE_MODEL("sprites/particles.spr");
 	m_iIceExplode = PRECACHE_MODEL ("sprites/ice_plasma5.spr");
@@ -134,22 +130,25 @@ void CPlasma :: Precache( void )
 void CPlasma :: Glow( void )
 {
 #ifndef CLIENT_DLL
+	CSprite *plasmaSprite = NULL;
 	if (icesprites.value)
-		m_pSprite = CSprite::SpriteCreate( "sprites/ice_particles.spr", pev->origin, FALSE );
+		plasmaSprite = CSprite::SpriteCreate( "sprites/ice_particles.spr", pev->origin, FALSE );
 	else
-		m_pSprite = CSprite::SpriteCreate("sprites/particles.spr", pev->origin, FALSE );
+		plasmaSprite = CSprite::SpriteCreate("sprites/particles.spr", pev->origin, FALSE );
 
-	if (m_pSprite != NULL) {
-		m_pSprite->SetAttachment( edict(), 0 );
-		m_pSprite->pev->scale = 1;
-		m_pSprite->pev->frame = 8;
-		m_pSprite->pev->rendermode = kRenderTransAdd;
-		m_pSprite->pev->renderamt = 255;
+	if (plasmaSprite != NULL) {
+		plasmaSprite->SetAttachment( edict(), 0 );
+		plasmaSprite->pev->scale = 1;
+		plasmaSprite->pev->frame = 8;
+		plasmaSprite->pev->rendermode = kRenderTransAdd;
+		plasmaSprite->pev->renderamt = 255;
 
-		if (icesprites.value)	
-			m_pSprite->SetTransparency( kRenderTransAdd, 0, 113, 230, 100, kRenderFxDistort );
+		if (icesprites.value)
+			plasmaSprite->SetTransparency( kRenderTransAdd, 0, 113, 230, 100, kRenderFxDistort );
 		else
-			m_pSprite->SetTransparency( kRenderTransAdd, 0, 200, 0, 100, kRenderFxDistort );
+			plasmaSprite->SetTransparency( kRenderTransAdd, 0, 200, 0, 100, kRenderFxDistort );
+
+		m_pSprite = plasmaSprite;
 	}
 #endif
 }
@@ -158,28 +157,11 @@ void CPlasma :: Glow( void )
 
 void CPlasma :: FlyThink( void  )
 {
-	Vector vecEnd = pev->origin.Normalize();
-
-	MESSAGE_BEGIN( MSG_PAS, SVC_TEMPENTITY, pev->origin );
-		WRITE_BYTE( TE_SPRITE_SPRAY );		// This makes a dynamic light and the explosion sprites/sound
-		WRITE_COORD( pev->origin.x );	// Send to PAS because of the sound
-		WRITE_COORD( pev->origin.y );
-		WRITE_COORD( pev->origin.z );
-		WRITE_COORD( vecEnd.x );
-		WRITE_COORD( vecEnd.y );
-		WRITE_COORD( vecEnd.z );
-		WRITE_SHORT( m_iDrips );
-		WRITE_BYTE( 2 ); // count
-		WRITE_BYTE( 20 ); // speed
-		WRITE_BYTE( 80 );
-	MESSAGE_END();
-
-	if (pev->waterlevel == 3)
+	if (pev->waterlevel == 3 || UTIL_PointContents(pev->origin) == CONTENT_WATER)
 	{
-		entvars_t *pevOwner = VARS(pev->owner);
 		ClearEffects();
-		SetThink( &CBaseEntity::SUB_Remove );
-		pev->nextthink = gpGlobals->time;
+		UTIL_Remove(this);
+		return;
 	}
 
 	if (!m_iPrimaryMode)
@@ -194,9 +176,8 @@ void CPlasma::RocketTouch( CBaseEntity *pOther )
 {
 	if (pOther->pev->takedamage)
 	{
-		entvars_t *pevOwner;
-		pevOwner = VARS( pev->owner );
-		pOther->TakeDamage( pev, pevOwner, pev->dmg / 2, DMG_GENERIC | DMG_PARALYZE | DMG_ENERGYBEAM | DMG_FREEZE );
+		pOther->TakeDamage( pev, VARS(pev->owner), pev->dmg / 2,
+			DMG_GENERIC | DMG_PARALYZE | DMG_ENERGYBEAM | DMG_FREEZE );
 	}
 
 	Explode();
@@ -204,27 +185,24 @@ void CPlasma::RocketTouch( CBaseEntity *pOther )
 
 void CPlasma::Explode( void )
 {
-	if (pev->waterlevel == 3)
+	pev->model = iStringNull;
+	pev->solid = SOLID_NOT;
+	pev->effects |= EF_NODRAW;
+	SetTouch( NULL );
+	SetThink( NULL );
+
+	if (pev->waterlevel == 3 || UTIL_PointContents(pev->origin) == CONTENT_WATER)
 	{
 		ClearEffects();
-		SetThink( &CBaseEntity::SUB_Remove );
-		pev->nextthink = gpGlobals->time;
-	}
-
-	if ( UTIL_PointContents(pev->origin) == CONTENT_WATER )
-	{
-		UTIL_Remove( this );
+		UTIL_Remove(this);
 		return;
 	}	
 
-	SetTouch( NULL );
-	SetThink( NULL );
 	EMIT_SOUND(ENT(pev), CHAN_ITEM, "plasma_hitwall.wav", 1, ATTN_NORM);
-
-	TraceResult tr;
 
 	UTIL_MakeVectors( m_pPlayer->pev->v_angle );
 	Vector t = pev->origin - gpGlobals->v_forward * 20;
+
 #ifndef CLIENT_DLL
 	MESSAGE_BEGIN( MSG_PAS, SVC_TEMPENTITY, pev->origin );
 		WRITE_BYTE( TE_SPRITE );		// This makes a dynamic light and the explosion sprites/sound
@@ -238,19 +216,7 @@ void CPlasma::Explode( void )
 		WRITE_BYTE( RANDOM_LONG(12, 18) ); // scale * 10
 		WRITE_BYTE( 128 ); // framerate
 	MESSAGE_END();
-#endif
 
-	MESSAGE_BEGIN( MSG_PAS, SVC_TEMPENTITY, pev->origin );
-		WRITE_BYTE( TE_SMOKE );
-		WRITE_COORD( pev->origin.x );
-		WRITE_COORD( pev->origin.y );
-		WRITE_COORD( pev->origin.z );
-		WRITE_SHORT( g_sModelIndexSmoke );
-		WRITE_BYTE( 10 ); // scale * 10
-		WRITE_BYTE( 10  ); // framerate
-	MESSAGE_END();
-
-#ifndef CLIENT_DLL
 	MESSAGE_BEGIN( MSG_PVS, SVC_TEMPENTITY, pev->origin );
 		WRITE_BYTE(TE_DLIGHT);
 		WRITE_COORD( pev->origin.x );	// X
@@ -269,19 +235,6 @@ void CPlasma::Explode( void )
 		WRITE_BYTE( 5 );		// time * 10
 		WRITE_BYTE( 10 );		// decay * 0.1
 	MESSAGE_END( );
-
-	MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
-		WRITE_BYTE( TE_PARTICLEBURST );
-		WRITE_COORD(pev->origin.x);
-		WRITE_COORD(pev->origin.y);
-		WRITE_COORD(pev->origin.z);
-		WRITE_SHORT( 75 );
-		if (icesprites.value)
-			WRITE_BYTE((unsigned short)208);
-		else
-			WRITE_BYTE((unsigned short)176);
-		WRITE_BYTE( 5 );
-	MESSAGE_END();
 #endif
 
 	entvars_t *pevOwner;
@@ -307,17 +260,17 @@ void CPlasma::Explode( void )
 	}
 
 	pev->velocity = g_vecZero;
-	pev->nextthink = gpGlobals->time + 0.3;
-	UTIL_Remove ( this );
-	UTIL_Remove( m_pSprite );
-	m_pSprite = NULL;
+	ClearEffects();
+	UTIL_Remove(this);
 }
 
 void CPlasma::ClearEffects()
 {
+#ifndef CLIENT_DLL
 	if (m_pSprite)
 	{
 		UTIL_Remove( m_pSprite );
 		m_pSprite = NULL;
 	}
+#endif
 }

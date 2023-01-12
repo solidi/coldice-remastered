@@ -27,19 +27,18 @@ public:
 	void Explode( void );
 	void EXPORT RocketTouch( CBaseEntity *pOther );
 	void EXPORT FlyThink( void );
-	void EXPORT IgniteThink( void );	
-	void ClearEffects();	
+	void EXPORT IgniteThink( void );
+	void ClearEffects();
 	static CPlasma *CreatePlasmaRocket( Vector vecOrigin, Vector vecAngles, CBaseEntity *pOwner );
 
-	float m_iDrips;
 	int m_iExplode, m_iTrail;
 	int m_iIceExplode, m_iIceTrail;
 	float m_flIgniteTime;
 	float m_flExplodeTime;
 	int m_iPrimaryMode;
 	bool m_bIsAI;
-	CSprite *m_pSprite;
-	CBaseEntity *m_pPlayer;
+	EHANDLE m_pSprite;
+	EHANDLE m_pPlayer;
 };
 
 #endif // PLASMA_H

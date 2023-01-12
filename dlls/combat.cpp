@@ -281,8 +281,6 @@ void CGib :: SpawnRandomGibs( entvars_t *pevVictim, int cGibs, int human )
 		pGib->LimitVelocity();
 	}
 
-	ALERT(at_aiconsole, "CBaseEntity::Instance(ENT(pevVictim))->m_fBurnTime = %.2f\n", CBaseEntity::Instance(ENT(pevVictim))->m_fBurnTime);
-
 	if (CBaseEntity::Instance(ENT(pevVictim))->m_fBurnTime > 0)
 	{
 		MESSAGE_BEGIN( MSG_ALL, gmsgMultiParticle );
