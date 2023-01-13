@@ -3755,7 +3755,7 @@ void CBasePlayer::SelectNextItem( int iItem )
 	}
 }
 
-void CBasePlayer::ChangeGun( const char *pstr )
+void CBasePlayer::ChangeGun()
 {
     if (m_pActiveItem && m_pActiveItem->m_pPlayer) {
         m_pActiveItem->Deploy( );
@@ -5098,9 +5098,9 @@ void CBasePlayer::ItemPreFrame()
 		return;
 	}
 
-	if (holsterweapons.value && !m_pActiveItem) {
+	if (holsterweapons.value && !m_pActiveItem && HasWeapons()) {
 		m_pActiveItem = m_pLastItem;//We set the chosen weapon to lastitem in selectitem func. //Now we`ll set it to the active weapon and draws it with ChangeGun.
-		ChangeGun(0);
+		ChangeGun();
 	}
 
 	if (!m_pActiveItem)

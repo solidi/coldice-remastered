@@ -347,7 +347,7 @@ public:
 	void GiveNamedItem( const char *szName );
 	void EnableControl(BOOL fControl);
 
-	void ChangeGun(const char *pstr);//TROND
+	void ChangeGun();
 	BOOL ReleaseHeldItem(float speed);
 
 	int  GiveAmmo( int iAmount, char *szName, int iMax );
