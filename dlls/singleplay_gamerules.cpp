@@ -129,7 +129,7 @@ void CHalfLifeRules :: PlayerSpawn( CBasePlayer *pPlayer )
 	{
 		edict_t *pentTarget = NULL;
 
-		while ((pentTarget = FIND_ENTITY_BY_TARGETNAME(pentTarget, "elestartmm")) != nullptr)
+		while ((pentTarget = FIND_ENTITY_BY_TARGETNAME(pentTarget, "elestartmm")) != NULL)
 		{
 			if (FNullEnt(pentTarget))
 				break;
