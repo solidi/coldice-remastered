@@ -123,6 +123,24 @@ float CHalfLifeRules::FlPlayerFallDamage( CBasePlayer *pPlayer )
 void CHalfLifeRules :: PlayerSpawn( CBasePlayer *pPlayer )
 {
 	pPlayer->GiveNamedItem("weapon_fists");
+
+	// Elevator unstick
+	if (!stricmp(STRING(gpGlobals->mapname), "c1a2"))
+	{
+		edict_t *pentTarget = NULL;
+
+		while ((pentTarget = FIND_ENTITY_BY_TARGETNAME(pentTarget, "elestartmm")) != nullptr)
+		{
+			if (FNullEnt(pentTarget))
+				break;
+
+			CBaseEntity *pTarget = CBaseEntity::Instance(pentTarget);
+
+			if (pTarget)
+				pTarget->Use(pPlayer->m_hActivator, pPlayer, USE_TOGGLE, 0);
+		}
+	}
+
 	g_pGameRules->SpawnMutators(pPlayer);
 }
 
