@@ -235,12 +235,26 @@ GLuint thumbnail18 = 0, thumbnail19 = 0;
 
 void __CmdFunc_OpenChapter()
 {
+	if (gEngfuncs.GetMaxClients() > 1) {
+		gEngfuncs.Con_Printf("Must be in single player mode!\n");
+		return;
+	}
+
 	EngineClientCmd("disconnect");
 	g_ImGUIManager.isMenuOpen = !g_ImGUIManager.isMenuOpen;
 }
 
 bool CImguiManager::Init()
 {
+	const char *modName = gEngfuncs.pfnGetGameDirectory();
+
+	if (modName == NULL)
+		return false;
+
+	// Must be _sp folder
+	if (!strstr(modName, "_sp"))
+		return false;
+
 	HOOK_COMMAND("imgui_chapter", OpenChapter);
 	mainWindow = SDL_GetWindowFromID(1);
 	// mainContext = SDL_GL_CreateContext(mainWindow);

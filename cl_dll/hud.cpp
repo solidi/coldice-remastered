@@ -213,6 +213,10 @@ void __CmdFunc_ToggleServerBrowser( void )
 
 void __CmdFunc_ImguiChapter( void )
 {
+	if (gEngfuncs.GetMaxClients() > 1) {
+		gEngfuncs.Con_Printf("Must be in single player mode!\n");
+		return;
+	}
 	EngineClientCmd("map c0a0.bsp");
 }
 
