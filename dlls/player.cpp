@@ -1716,7 +1716,9 @@ void CBasePlayer::PlayerUse ( void )
 
 	if (m_iHoldingItem && ReleaseHeldItem(RANDOM_LONG(100,200))) {
 		pev->punchangle = Vector(-4, -2, -4);
-		((CBasePlayerWeapon *)m_pActiveItem)->StartPunch(TRUE);
+		if (m_pActiveItem) {
+			((CBasePlayerWeapon *)m_pActiveItem)->StartPunch(TRUE);
+		}
 		return;
 	}
 
