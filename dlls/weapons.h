@@ -38,7 +38,6 @@ public:
 
 	void EXPORT ClusterTumbleThink( void );
 	void EXPORT ClusterDetonate( void );
-	entvars_t *clusterOwner;
 
 	static void UseSatchelCharges( entvars_t *pevOwner, SATCHELCODE code );
 

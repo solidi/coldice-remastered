@@ -549,7 +549,6 @@ CGrenade * CGrenade :: ShootSatchelCharge( entvars_t *pevOwner, Vector vecStart,
 	pGrenade->pev->velocity = vecVelocity;
 	pGrenade->pev->angles = g_vecZero;
 	pGrenade->pev->owner = ENT(pevOwner);
-	pGrenade->clusterOwner = pevOwner;
 	
 	// Detonate in "time" seconds
 	pGrenade->SetThink( &CGrenade::SUB_DoNothing );
@@ -592,7 +591,6 @@ CGrenade *CGrenade::ShootTimedCluster( entvars_t *pevOwner, Vector vecStart, Vec
     pGrenade->pev->velocity = vecVelocity;
     pGrenade->pev->angles = UTIL_VecToAngles(pGrenade->pev->velocity);
     pGrenade->pev->owner = ENT(pevOwner);
-	pGrenade->clusterOwner = pevOwner;
 
     pGrenade->SetTouch( &CGrenade::BounceTouch );    // Bounce if touched
 
@@ -659,15 +657,17 @@ void CGrenade::ClusterDetonate( void )
     vecSpot = pev->origin + Vector ( 0 , 0 , 8 );
     UTIL_TraceLine ( vecSpot, vecSpot + Vector ( 0, 0, -40 ), ignore_monsters, ENT(pev), & tr);
 
+    entvars_t *owner = VARS(pev->owner);
+
     Explode( &tr, DMG_BLAST );
 
-    //Launch 6 grenades at random angles
-    CGrenade::ShootTimed(clusterOwner, pev->origin, Vector(RANDOM_LONG(-100, 100), RANDOM_LONG(-100, 100), RANDOM_LONG(-100, 100)) * RANDOM_LONG(2, 5), RANDOM_FLOAT(0.50, 2.50));
-    CGrenade::ShootTimed(clusterOwner, pev->origin, Vector(RANDOM_LONG(-100, 100), RANDOM_LONG(-100, 100), RANDOM_LONG(-100, 100)) * RANDOM_LONG(2, 5), RANDOM_FLOAT(0.50, 2.50));
-    CGrenade::ShootTimed(clusterOwner, pev->origin, Vector(RANDOM_LONG(-100, 100), RANDOM_LONG(-100, 100), RANDOM_LONG(-100, 100)) * RANDOM_LONG(2, 5), RANDOM_FLOAT(0.50, 2.50));
-    CGrenade::ShootTimed(clusterOwner, pev->origin, Vector(RANDOM_LONG(-100, 100), RANDOM_LONG(-100, 100), RANDOM_LONG(-100, 100)) * RANDOM_LONG(2, 5), RANDOM_FLOAT(0.50, 2.50));
-    CGrenade::ShootTimed(clusterOwner, pev->origin, Vector(RANDOM_LONG(-100, 100), RANDOM_LONG(-100, 100), RANDOM_LONG(-100, 100)) * RANDOM_LONG(2, 5), RANDOM_FLOAT(0.50, 2.50));
-    CGrenade::ShootTimed(clusterOwner, pev->origin, Vector(RANDOM_LONG(-100, 100), RANDOM_LONG(-100, 100), RANDOM_LONG(-100, 100)) * RANDOM_LONG(2, 5), RANDOM_FLOAT(0.50, 2.50));
+    // Launch grenades at random angles
+    CGrenade::ShootTimed(owner, pev->origin, Vector(RANDOM_LONG(-100, 100), RANDOM_LONG(-100, 100), RANDOM_LONG(-100, 100)) * RANDOM_LONG(2, 5), RANDOM_FLOAT(0.50, 2.50));
+    CGrenade::ShootTimed(owner, pev->origin, Vector(RANDOM_LONG(-100, 100), RANDOM_LONG(-100, 100), RANDOM_LONG(-100, 100)) * RANDOM_LONG(2, 5), RANDOM_FLOAT(0.50, 2.50));
+    CGrenade::ShootTimed(owner, pev->origin, Vector(RANDOM_LONG(-100, 100), RANDOM_LONG(-100, 100), RANDOM_LONG(-100, 100)) * RANDOM_LONG(2, 5), RANDOM_FLOAT(0.50, 2.50));
+    CGrenade::ShootTimed(owner, pev->origin, Vector(RANDOM_LONG(-100, 100), RANDOM_LONG(-100, 100), RANDOM_LONG(-100, 100)) * RANDOM_LONG(2, 5), RANDOM_FLOAT(0.50, 2.50));
+    CGrenade::ShootTimed(owner, pev->origin, Vector(RANDOM_LONG(-100, 100), RANDOM_LONG(-100, 100), RANDOM_LONG(-100, 100)) * RANDOM_LONG(2, 5), RANDOM_FLOAT(0.50, 2.50));
+    CGrenade::ShootTimed(owner, pev->origin, Vector(RANDOM_LONG(-100, 100), RANDOM_LONG(-100, 100), RANDOM_LONG(-100, 100)) * RANDOM_LONG(2, 5), RANDOM_FLOAT(0.50, 2.50));
 }
 
 
