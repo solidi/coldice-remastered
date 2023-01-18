@@ -99,23 +99,23 @@ public:
 #define WEAPON_CHAINSAW			28
 #define WEAPON_12GAUGE			29
 #define WEAPON_NUKE				30
-#define	WEAPON_SNARK			32
-#define	WEAPON_DEAGLE			33
-#define WEAPON_DUAL_DEAGLE		34
-#define WEAPON_DUAL_RPG			35
-#define WEAPON_DUAL_SMG			36
-#define WEAPON_DUAL_WRENCH		37
-#define WEAPON_DUAL_USAS		38
-#define WEAPON_FREEZEGUN		39
-#define WEAPON_DUAL_MAG60		40
-#define WEAPON_ROCKETCROWBAR	41
-#define WEAPON_DUAL_RAILGUN		42
-#define WEAPON_GRAVITYGUN		43
-#define WEAPON_FLAMETHROWER		44
+#define WEAPON_SUIT				31
+#define WEAPON_NONE_32			32
+#define	WEAPON_SNARK			33
+#define	WEAPON_DEAGLE			34
+#define WEAPON_DUAL_DEAGLE		35
+#define WEAPON_DUAL_RPG			36
+#define WEAPON_DUAL_SMG			37
+#define WEAPON_DUAL_WRENCH		38
+#define WEAPON_DUAL_USAS		39
+#define WEAPON_FREEZEGUN		40
+#define WEAPON_DUAL_MAG60		41
+#define WEAPON_ROCKETCROWBAR	42
+#define WEAPON_DUAL_RAILGUN		43
+#define WEAPON_GRAVITYGUN		44
+#define WEAPON_FLAMETHROWER		45
 
 #define WEAPON_ALLWEAPONS		(~(1<<WEAPON_SUIT))
-
-#define WEAPON_SUIT				31	// ?????
 
 #define MAX_WEAPONS			64
 
@@ -1280,6 +1280,7 @@ public:
 	void Precache( void );
 	int iItemSlot( void ) { return 5; }
 	int GetItemInfo(ItemInfo *p);
+	int AddToPlayer( CBasePlayer *pPlayer );
 
 	void PrimaryAttack( void );
 	void SecondaryAttack( void );
