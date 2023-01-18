@@ -86,9 +86,7 @@ int CSniperRifle::AddToPlayer( CBasePlayer *pPlayer )
 {
 	if ( CBasePlayerWeapon::AddToPlayer( pPlayer ) )
 	{
-		MESSAGE_BEGIN( MSG_ONE, gmsgWeapPickup, NULL, pPlayer->pev );
-			WRITE_BYTE( m_iId );
-		MESSAGE_END();
+		WeaponPickup(pPlayer, m_iId);
 		return TRUE;
 	}
 	return FALSE;

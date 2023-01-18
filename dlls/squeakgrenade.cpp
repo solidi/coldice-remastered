@@ -444,6 +444,15 @@ void CSqueak::Precache( void )
 	m_usSnarkRelease = PRECACHE_EVENT ( 1, "events/snarkrelease.sc" );
 }
 
+int CSqueak::AddToPlayer( CBasePlayer *pPlayer )
+{
+	if ( CBasePlayerWeapon::AddToPlayer( pPlayer ) )
+	{
+		WeaponPickup(pPlayer, m_iId);
+		return TRUE;
+	}
+	return FALSE;
+}
 
 int CSqueak::GetItemInfo(ItemInfo *p)
 {
