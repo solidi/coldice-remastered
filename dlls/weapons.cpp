@@ -2676,6 +2676,15 @@ void CBasePlayerWeapon::ProvideDualItem(CBasePlayer *pPlayer, const char *pszNam
 	}
 }
 
+void CBasePlayerWeapon::WeaponPickup(CBasePlayer *pPlayer, int weaponId) {
+	if ( pPlayer->pev->flags & FL_FAKECLIENT ) // No bots
+		return;
+
+	MESSAGE_BEGIN( MSG_ONE, gmsgWeapPickup, NULL, pPlayer->pev );
+		WRITE_BYTE( weaponId );
+	MESSAGE_END();
+}
+
 TYPEDESCRIPTION	CRpg::m_SaveData[] = 
 {
 	DEFINE_FIELD( CRpg, m_fSpotActive, FIELD_INTEGER ),

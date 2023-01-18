@@ -434,6 +434,7 @@ public:
 	virtual void ProvideDualItem(CBasePlayer *pPlayer, const char *itemName);
 	virtual void ProvideSingleItem(CBasePlayer *pPlayer, const char *itemName) { return; }
 	virtual void SwapDualWeapon() { return; }
+	virtual void WeaponPickup(CBasePlayer *pPlayer, int weaponId);
 
 	void ThrowGrenade( BOOL m_iCheckAmmo );
 	void ThrowSnowball( BOOL m_iCheckAmmo );
