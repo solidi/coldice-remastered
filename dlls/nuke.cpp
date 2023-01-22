@@ -47,7 +47,9 @@ LINK_ENTITY_TO_CLASS( weapon_nuke, CNuke );
 
 LINK_ENTITY_TO_CLASS( nuke_rocket, CNukeRocket );
 
-CNukeRocket *CNukeRocket::CreateNukeRocket( Vector vecOrigin, Vector vecAngles, CBaseEntity *pOwner, CNuke *pLauncher, float startEngineTime, BOOL hasCamera )
+extern int gmsgNukeCrosshair;
+
+CNukeRocket *CNukeRocket::CreateNukeRocket( Vector vecOrigin, Vector vecAngles, CBaseEntity *pOwner, float startEngineTime, BOOL hasCamera )
 {
 	CNukeRocket *pRocket = GetClassPtr( (CNukeRocket *)NULL );
 
@@ -57,8 +59,7 @@ CNukeRocket *CNukeRocket::CreateNukeRocket( Vector vecOrigin, Vector vecAngles, 
 	pRocket->m_iCamera = hasCamera;
 	pRocket->Spawn(startEngineTime);
 	pRocket->SetTouch( &CNukeRocket::RocketTouch );
-	pRocket->m_pLauncher = pLauncher;// remember what Nuke fired me. 
-	pRocket->m_fBlowUpTime = gpGlobals->time + 3.0;
+	pRocket->pev->dmgtime = gpGlobals->time + 3.0;
 
 	return pRocket;
 }
@@ -90,11 +91,16 @@ void CNukeRocket :: Spawn( float startEngineTime )
 	pev->dmg = gSkillData.plrDmgNuke;
 
 	if (m_iCamera) {
-		SET_VIEW(pev->owner, ENT(pev));
-		// flip z to match v_angles
-		pev->angles.x = -pev->angles.x;
-		m_yawCenter = pev->angles.y;
-		m_pitchCenter = pev->angles.x;
+		if (pev->owner && !FBitSet(pev->owner->v.flags, FL_FAKECLIENT)) {
+			SET_VIEW(pev->owner, ENT(pev));
+			MESSAGE_BEGIN(MSG_ONE, gmsgNukeCrosshair, NULL, pev->owner);
+				WRITE_BYTE( 1 );
+			MESSAGE_END();
+			// flip z to match v_angles
+			pev->angles.x = -pev->angles.x;
+			m_yawCenter = pev->angles.y;
+			m_pitchCenter = pev->angles.x;
+		}
 	}
 }
 
@@ -105,7 +111,17 @@ void CNukeRocket :: RocketTouch ( CBaseEntity *pOther )
 
 void CNukeRocket::Killed(entvars_t *pevAttacker, int iGib) {
 	if (m_iCamera) {
-		SET_VIEW(pev->owner, pev->owner);
+		if (pev->owner && !FBitSet(pev->owner->v.flags, FL_FAKECLIENT))
+		{
+			SET_VIEW(pev->owner, pev->owner);
+			CBasePlayer *pPlayer = CBaseEntity::Instance(pev->owner);
+			if (pPlayer) {
+				pPlayer->pev->fov = pPlayer->m_iFOV = 0;
+				MESSAGE_BEGIN(MSG_ONE, gmsgNukeCrosshair, NULL, pev->owner);
+					WRITE_BYTE(0);
+				MESSAGE_END();
+			}
+		}
 	}
 
 	STOP_SOUND( edict(), CHAN_VOICE, "rocket1.wav" );
@@ -201,7 +217,7 @@ void CNukeRocket::Killed(entvars_t *pevAttacker, int iGib) {
 			{
 				ClearMultiDamage(); // fix nuke as kick
 				plr->TakeDamage(pev, VARS(pev->owner), gSkillData.plrDmgNuke, DMG_RADIATION);
-				UTIL_ScreenFade(plr, Vector(255, 255, 255), 2, 6, 200, FFADE_IN);
+				UTIL_ScreenFade(plr, Vector(255, 255, 255), 2, 4, 200, FFADE_IN);
 			}
 		}
 	}
@@ -254,7 +270,7 @@ void CNukeRocket :: IgniteThink( void  )
 
 void CNukeRocket :: FollowThink( void )
 {
-	if (m_fBlowUpTime <= gpGlobals->time) {
+	if (pev->dmgtime <= gpGlobals->time) {
 		Killed(pev, GIB_ALWAYS);
 		pev->nextthink = -1;
 		return;
@@ -459,6 +475,18 @@ void CNuke::FireNuke(BOOL withCamera)
 		m_pPlayer->m_iWeaponVolume = LOUD_GUN_VOLUME;
 		m_pPlayer->m_iWeaponFlash = BRIGHT_GUN_FLASH;
 
+		if (withCamera)
+		{
+			if (!pNukeRocket)
+				m_flNextPrimaryAttack = GetNextAttackDelay(0.5);
+			else
+				m_flNextPrimaryAttack = GetNextAttackDelay(3.0);
+		}
+		else
+		{
+			m_flNextPrimaryAttack = GetNextAttackDelay(3.0);
+		}
+
 #ifndef CLIENT_DLL
 		// player "shoot" animation
 		m_pPlayer->SetAnimation( PLAYER_ATTACK1 );
@@ -466,10 +494,9 @@ void CNuke::FireNuke(BOOL withCamera)
 		UTIL_MakeVectors( m_pPlayer->pev->v_angle );
 		Vector vecSrc = m_pPlayer->GetGunPosition( ) + gpGlobals->v_forward * 16 + gpGlobals->v_right * 8 + gpGlobals->v_up * -18;
 		
-		CNukeRocket *pRocket = CNukeRocket::CreateNukeRocket( vecSrc, m_pPlayer->pev->v_angle, m_pPlayer, this, 0.0, withCamera );
-
+		pNukeRocket = CNukeRocket::CreateNukeRocket( vecSrc, m_pPlayer->pev->v_angle, m_pPlayer, 0.0, withCamera );
 		UTIL_MakeVectors( m_pPlayer->pev->v_angle );// NukeRocket::Create stomps on globals, so remake.
-		pRocket->pev->velocity = pRocket->pev->velocity + gpGlobals->v_forward * DotProduct( m_pPlayer->pev->velocity, gpGlobals->v_forward );
+		pNukeRocket->pev->velocity = pNukeRocket->pev->velocity + gpGlobals->v_forward * DotProduct( m_pPlayer->pev->velocity, gpGlobals->v_forward );
 #endif
 
 		int flags;
@@ -483,8 +510,8 @@ void CNuke::FireNuke(BOOL withCamera)
 
 		m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType]--;
 
-		m_flNextPrimaryAttack = m_flNextSecondaryAttack = GetNextAttackDelay(5.0);
-		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 1.5;
+		m_flNextSecondaryAttack = GetNextAttackDelay(3.0);
+		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 3.0;
 	}
 	else
 	{
@@ -530,6 +557,14 @@ void CNuke::PrimaryAttack()
 		return;
 	}
 #endif
+
+	if (pNukeRocket)
+	{
+		pNukeRocket->pev->dmgtime = gpGlobals->time;
+		pNukeRocket = NULL;
+		m_flNextPrimaryAttack = GetNextAttackDelay(3.0);
+		return;
+	}
 
 	FireNuke(FALSE);
 }

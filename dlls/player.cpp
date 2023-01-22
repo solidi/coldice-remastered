@@ -210,6 +210,7 @@ int gmsgDelPart = 0;
 int gmsgFlameMsg = 0;
 int gmsgFlameKill = 0;
 int gmsgMultiParticle = 0;
+int gmsgNukeCrosshair = 0;
 
 void LinkUserMessages( void )
 {
@@ -267,6 +268,7 @@ void LinkUserMessages( void )
 	gmsgFlameMsg = REG_USER_MSG("FlameMsg", -1);
 	gmsgFlameKill = REG_USER_MSG("FlameKill", -1);
 	gmsgMultiParticle = REG_USER_MSG("MParticle", -1);
+	gmsgNukeCrosshair = REG_USER_MSG("NukeCross", 1);
 }
 
 LINK_ENTITY_TO_CLASS( player, CBasePlayer );

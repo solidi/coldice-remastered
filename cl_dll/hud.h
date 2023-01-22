@@ -629,6 +629,19 @@ private:
 	void SetParticles( void );
 };
 
+class CHudNukeCrosshair : public CHudBase
+{
+public:
+	int Init( void );
+	int VidInit( void );
+	int Draw(float flTime);
+	int MsgFunc_NukeCross(const char *pszName,  int iSize, void *pbuf);
+	int m_iHudMode;
+private:
+	HSPRITE m_hCrosshair;
+	HSPRITE m_hStatic;
+};
+
 typedef struct
 {
 	HSPRITE spr;
@@ -722,6 +735,7 @@ public:
 	CHudLifeBar		m_LifeBar;
 	CHudWallClimb   m_WallClimb;
 	CHudParticle	m_Particle;
+	CHudNukeCrosshair	m_NukeCrosshair;
 
 	void Init( void );
 	void VidInit( void );
