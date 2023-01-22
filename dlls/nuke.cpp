@@ -114,7 +114,7 @@ void CNukeRocket::Killed(entvars_t *pevAttacker, int iGib) {
 		if (pev->owner && !FBitSet(pev->owner->v.flags, FL_FAKECLIENT))
 		{
 			SET_VIEW(pev->owner, pev->owner);
-			CBasePlayer *pPlayer = CBaseEntity::Instance(pev->owner);
+			CBasePlayer *pPlayer = (CBasePlayer *)GET_PRIVATE(pev->owner);
 			if (pPlayer) {
 				pPlayer->pev->fov = pPlayer->m_iFOV = 0;
 				MESSAGE_BEGIN(MSG_ONE, gmsgNukeCrosshair, NULL, pev->owner);
