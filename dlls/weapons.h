@@ -1881,6 +1881,7 @@ public:
 
 private:
 	unsigned short m_usNuke;
+	EHANDLE pNukeRocket;
 };
 
 class CNukeRocket : public CGrenade
@@ -1891,7 +1892,7 @@ public:
 	void EXPORT FollowThink( void );
 	void EXPORT IgniteThink( void );
 	void EXPORT RocketTouch( CBaseEntity *pOther );
-	static CNukeRocket *CreateNukeRocket( Vector vecOrigin, Vector vecAngles, CBaseEntity *pOwner, CNuke *pLauncher, float startEngineTime, BOOL hasCamera );
+	static CNukeRocket *CreateNukeRocket( Vector vecOrigin, Vector vecAngles, CBaseEntity *pOwner, float startEngineTime, BOOL hasCamera );
 	virtual void Killed( entvars_t *pevAttacker, int iGib );
 
 	int m_iTrail;
@@ -1899,8 +1900,6 @@ public:
 	float m_flIgniteTime;
 	float m_yawCenter, m_pitchCenter;
 	BOOL m_iCamera;
-	float m_fBlowUpTime;
-	CNuke *m_pLauncher;// pointer back to the launcher that fired me.
 };
 
 class CDeagle : public CBasePlayerWeapon

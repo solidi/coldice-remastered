@@ -532,6 +532,7 @@ void CHud :: Init( void )
 	GetClientVoiceMgr()->Init(&g_VoiceStatusHelper, (vgui::Panel**)&gViewPort);
 	GetLifeBar()->Init();
 	m_WallClimb.Init();
+	m_NukeCrosshair.Init();
 	InitRain();
 #ifdef _WIN32
 	g_ImGUIManager.Init();
@@ -690,6 +691,7 @@ void CHud :: VidInit( void )
 	GetClientVoiceMgr()->VidInit();
 	GetLifeBar()->VidInit();
 	m_WallClimb.VidInit();
+	m_NukeCrosshair.VidInit();
 #ifdef _WIN32
 	g_ImGUIManager.VidInit();
 #endif
