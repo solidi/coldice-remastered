@@ -63,6 +63,9 @@ void CHook::FireHook( ) {
 		return;
 	}
 
+	if ( pevOwner && !pevOwner->IsAlive() )
+		return;
+
 	if (pevOwner)
 	{
 		EMIT_SOUND_DYN(ENT(pevOwner->pev), CHAN_WEAPON, "grapple_deploy.wav", RANDOM_FLOAT(0.95, 1.0), ATTN_NORM, 0, 93 + RANDOM_LONG(0,0xF));
@@ -76,7 +79,7 @@ void CHook::FireHook( ) {
 	if (!grapplesky.value)
 	{
 		edict_t	*pWorld = g_engfuncs.pfnPEntityOfEntIndex(0);
-		Vector start = pevOwner->GetGunPosition();
+		Vector start = pevOwner->pev->origin + pevOwner->pev->view_ofs;
 		Vector end = start + gpGlobals->v_forward * 4096;
 		UTIL_TraceLine( start, end, ignore_monsters, edict(), &tr );
 		if ( tr.pHit )
@@ -91,7 +94,7 @@ void CHook::FireHook( ) {
 
 	anglesAim.x = -anglesAim.x;
 	Vector vecDir = gpGlobals->v_forward;
-	Vector trace_origin = pevOwner->GetGunPosition();
+	Vector trace_origin = pevOwner->pev->origin + pevOwner->pev->view_ofs;
 	if ( pevOwner->pev->flags & FL_DUCKING ) {
 		trace_origin = trace_origin - ( VEC_HULL_MIN - VEC_DUCK_HULL_MIN );
 	}

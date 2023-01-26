@@ -37,6 +37,9 @@
 #include "pm_shared.h"
 #include "hltv.h"
 #include "items.h"
+#if defined( GRAPPLING_HOOK )
+#include "grapplinghook.h"
+#endif
 
 // #define DUCKFIX
 
@@ -3581,6 +3584,13 @@ void CBasePlayer::Spawn( void )
 		WRITE_BYTE( 0 );
 	MESSAGE_END();
 	FPA = 0;
+
+#if defined( GRAPPLING_HOOK )
+	if (pGrapplingHook) {
+		pGrapplingHook->KillHook();
+		pGrapplingHook = NULL;
+	}
+#endif
 
 	g_pGameRules->PlayerSpawn( this );
 }
