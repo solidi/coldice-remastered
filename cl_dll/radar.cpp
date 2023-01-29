@@ -135,12 +135,12 @@ int CHudRadar::Draw(float flTime)
 	int num_players = gHUD.m_PlayersInRadar;
 
 	if (!cl_radar->value)
-		return;
+		return 1;
 
 	ProcessPlayerState();
 
 	if (num_players < 2)
-		return;
+		return 1;
 
 	UnpackRGB(r, g, b, HudColor());
 
