@@ -42,6 +42,7 @@ int g_weaponselect = 0;
 long oldCrosshairValue;
 extern float g_yP, g_xP;
 extern cvar_t *cl_hudbend;
+extern cvar_t *cl_radar;
 
 void WeaponsResource :: LoadAllWeaponSprites( void )
 {
@@ -1080,7 +1081,10 @@ int CHudAmmo::DrawWList(float flTime)
 	else 
 		iActiveSlot = gpActiveSel->iSlot;
 
-	x = 10 + g_xP; //!!!
+	int right_margin = cl_radar->value ? 128 : 0;
+	if (gHUD.m_PlayersInRadar < 2)
+		right_margin = 0;
+	x = right_margin + 10 + g_xP; //!!!
 	y = 10 + g_yP; //!!!
 	
 
@@ -1129,7 +1133,7 @@ int CHudAmmo::DrawWList(float flTime)
 
 
 	a = 128; //!!!
-	x = 10 + g_xP;
+	x = right_margin + 10 + g_xP;
 
 	// Draw all of the buckets
 	for (i = 0; i < MAX_WEAPON_SLOTS; i++)

@@ -118,6 +118,7 @@ HL1_OBJS = \
 	$(HL1_OBJ_DIR)/message.o \
 	$(HL1_OBJ_DIR)/MOTD.o \
 	$(HL1_OBJ_DIR)/nukecrosshair.o \
+	$(HL1_OBJ_DIR)/radar.o \
 	$(HL1_OBJ_DIR)/rain.o \
 	$(HL1_OBJ_DIR)/saytext.o \
 	$(HL1_OBJ_DIR)/scoreboard.o \

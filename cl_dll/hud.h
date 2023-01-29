@@ -642,6 +642,23 @@ private:
 	HSPRITE m_hStatic;
 };
 
+typedef struct {
+	float angle, distance, height;
+} RADAR;
+
+class CHudRadar: public CHudBase
+{
+public:
+	int Init( void );
+	int VidInit( void );
+	int Draw(float flTime);
+	void ProcessPlayerState( void );
+
+private:
+	int radar_height, radar_width;
+	RADAR m_RadarInfo[32];
+};
+
 typedef struct
 {
 	HSPRITE spr;
@@ -736,6 +753,7 @@ public:
 	CHudWallClimb   m_WallClimb;
 	CHudParticle	m_Particle;
 	CHudNukeCrosshair	m_NukeCrosshair;
+	CHudRadar	m_Radar;
 
 	void Init( void );
 	void VidInit( void );
@@ -786,6 +804,7 @@ public:
 	crosspr_s crossspr;
 
 	char szActiveMutators[64];
+	int m_PlayersInRadar;
 };
 
 #ifdef _WIN32
