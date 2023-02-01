@@ -62,6 +62,7 @@ cvar_t *cl_hudscale;
 cvar_t *cl_hudbend;
 cvar_t *cl_wallclimbindicator;
 cvar_t *cl_particlesystem;
+cvar_t *cl_radar;
 
 cvar_t *cl_vmx;
 cvar_t *cl_vmy;
@@ -472,6 +473,7 @@ void CHud :: Init( void )
 	cl_hudbend = CVAR_CREATE( "cl_hudbend", "0.0", FCVAR_ARCHIVE );
 	cl_wallclimbindicator = CVAR_CREATE( "cl_wallclimbindicator", "1", FCVAR_ARCHIVE );
 	cl_particlesystem = CVAR_CREATE( "cl_particlesystem", "1", FCVAR_ARCHIVE );
+	cl_radar = CVAR_CREATE( "cl_radar", "1", FCVAR_ARCHIVE );
 
 	cl_vmx = CVAR_CREATE( "cl_vmx", "0", FCVAR_ARCHIVE );
 	cl_vmy = CVAR_CREATE( "cl_vmy", "0", FCVAR_ARCHIVE );
@@ -533,6 +535,7 @@ void CHud :: Init( void )
 	GetLifeBar()->Init();
 	m_WallClimb.Init();
 	m_NukeCrosshair.Init();
+	m_Radar.Init();
 	InitRain();
 #ifdef _WIN32
 	g_ImGUIManager.Init();
@@ -692,6 +695,7 @@ void CHud :: VidInit( void )
 	GetLifeBar()->VidInit();
 	m_WallClimb.VidInit();
 	m_NukeCrosshair.VidInit();
+	m_Radar.VidInit();
 #ifdef _WIN32
 	g_ImGUIManager.VidInit();
 #endif
