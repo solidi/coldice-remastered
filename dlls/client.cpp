@@ -741,6 +741,7 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_hudbend\" - experimental bending factor of HUD elements\n" );
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_wallclimbindicator [0|1]\" - shows when wallclimb is available\n" );
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_particlesystem [0|1]\" enables or disables special effects like the flamethrower\n" );
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_radar [0|1]\" enables or disables player radar\n" );
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "For more, see readme.txt\n" );
 	}
 	else if ( FStrEq( pcmd, "help_server" )  )
