@@ -448,6 +448,8 @@ public:
 	void StartPunch( BOOL holdingSomething );
 	void PunchAttack( BOOL holdingSomething );
 	void EXPORT EndPunch( void );
+
+	void EjectBrassLate( void );
 	
 	int	PrimaryAmmoIndex(); 
 	int	SecondaryAmmoIndex(); 

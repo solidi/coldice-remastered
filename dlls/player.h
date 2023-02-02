@@ -419,6 +419,8 @@ public:
 	float nextburntime;
 	byte FPA;
 	void PlayerBurn(void);
+
+	float m_flEjectBrass;
 };
 
 #define AUTOAIM_2DEGREES  0.0348994967025

@@ -922,6 +922,12 @@ void CBasePlayerWeapon::ItemPostFrame( void )
 		m_fInReload = FALSE;
 	}
 
+	if (m_pPlayer->m_flEjectBrass != 0 && m_pPlayer->m_flEjectBrass <= gpGlobals->time)
+	{
+		m_pPlayer->m_flEjectBrass = 0;
+		EjectBrassLate();
+	}
+
 	if ( !(m_pPlayer->pev->button & IN_ATTACK ) )
 	{
 		m_flLastFireTime = 0.0f;
@@ -2674,6 +2680,22 @@ void CBasePlayerWeapon::ProvideDualItem(CBasePlayer *pPlayer, const char *pszNam
 		ClientPrint( pPlayer->pev, HUD_PRINTTALK, "You picked up a dual weapon. Swap between dual and single using \"impulse 205\".\n" );
 		pPlayer->m_iShownDualMessage = 1;
 	}
+}
+
+void CBasePlayerWeapon::EjectBrassLate()
+{
+	Vector vecUp, vecRight, vecShellVelocity;
+	int m_iShell = PRECACHE_MODEL("models/w_762shell.mdl");
+
+	UTIL_MakeVectors(m_pPlayer->pev->v_angle + m_pPlayer->pev->punchangle);
+
+	vecUp = RANDOM_FLOAT(50, 70) * gpGlobals->v_up;
+	vecRight = RANDOM_FLOAT(-100, -130) * gpGlobals->v_right;
+
+	vecShellVelocity = (m_pPlayer->pev->velocity + vecRight + vecUp) + gpGlobals->v_forward * 25;
+
+	EjectBrass(pev->origin + m_pPlayer->pev->view_ofs + gpGlobals->v_up * -9 + gpGlobals->v_forward * 20 + gpGlobals->v_right * 8,
+		vecShellVelocity, pev->angles.y, m_iShell, TE_BOUNCE_SHELL);
 }
 
 void CBasePlayerWeapon::WeaponPickup(CBasePlayer *pPlayer, int weaponId) {

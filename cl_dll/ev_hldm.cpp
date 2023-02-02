@@ -2068,9 +2068,6 @@ void EV_FireSniperRifle( event_args_t *args )
 	vec3_t angles;
 	vec3_t velocity;
 
-	vec3_t ShellVelocity;
-	vec3_t ShellOrigin;
-	int shell;
 	vec3_t vecSrc, vecAiming;
 	vec3_t up, right, forward;
 	float flSpread = 0.01;
@@ -2082,8 +2079,6 @@ void EV_FireSniperRifle( event_args_t *args )
 
 	AngleVectors( angles, forward, right, up );
 
-	shell = gEngfuncs.pEventAPI->EV_FindModelIndex ("models/w_762shell.mdl");// brass shell
-
 	if ( EV_IsLocal( idx ) )
 	{
 		// Add muzzle flash to current weapon model
@@ -2091,15 +2086,6 @@ void EV_FireSniperRifle( event_args_t *args )
 		gEngfuncs.pEventAPI->EV_WeaponAnimation( RIFLE_SHOOT, 2 );
 
 		V_PunchAxis(PITCH, gEngfuncs.pfnRandomFloat( -7, -10 ) );
-	}
-
-	float fR = (m_pCvarRighthand->value != 0 ? -1 : 1) * gEngfuncs.pfnRandomFloat( 50, 70 );
-	float fU = gEngfuncs.pfnRandomFloat( 100, 150 );
-	EV_GetDefaultShellInfo( args, gEngfuncs.GetViewModel()->attachment[0], velocity, ShellVelocity, ShellOrigin, forward, right, up, 0, -32, (m_pCvarRighthand->value != 0.0f ? -1 : 1) * 0, fU, fR);
-
-	if ( EV_IsLocal( idx ) )
-	{
-		EV_EjectBrass ( ShellOrigin, Vector(-ShellVelocity.x, ShellVelocity.y, ShellVelocity.z), angles[ YAW ], shell, TE_BOUNCE_SHELL );
 	}
 
 	gEngfuncs.pEventAPI->EV_PlaySound( idx, origin, CHAN_WEAPON, "rifle1.wav", 1, ATTN_NORM, 0, 94 + gEngfuncs.pfnRandomLong( 0, 0xf ) );
