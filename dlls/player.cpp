@@ -1907,7 +1907,7 @@ void CBasePlayer::ClimbingPhysics()
 	Vector vecEnd2 = vecSrc2 - (gpGlobals->v_up * normal) * 60;
 
 	// detect if we can actually climb something
-	if (!isClimbing)
+	if (!isClimbing && !IsOnLadder())
 	{
 		UTIL_TraceLine(headSrc, headEnd, ignore_monsters, ENT(pev), &headTr);
 		UTIL_TraceLine(vecSrc2, vecEnd2, ignore_monsters, ENT(pev), &climbTr2);
