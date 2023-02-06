@@ -65,6 +65,11 @@ float g_flIntermissionStartTime = 0;
 
 CVoiceGameMgr	g_VoiceGameMgr;
 
+#ifdef _DEBUG
+cvar_t debug_disconnects;
+DLL_GLOBAL float g_iKickSomeone;
+#endif
+
 class CMultiplayGameMgrHelper : public IVoiceGameMgrHelper
 {
 public:
@@ -124,6 +129,12 @@ CHalfLifeMultiplay :: CHalfLifeMultiplay()
 	}
 
 	ResetGameMode();
+
+#ifdef _DEBUG
+	debug_disconnects = { "Disconnect.debug", "0", FCVAR_SERVER };
+	CVAR_REGISTER(&debug_disconnects);
+	g_iKickSomeone = gpGlobals->time + RANDOM_FLOAT(1,2);
+#endif
 }
 
 BOOL CHalfLifeMultiplay::ClientCommand( CBasePlayer *pPlayer, const char *pcmd )
@@ -1612,6 +1623,51 @@ void CHalfLifeMultiplay :: PlayerThink( CBasePlayer *pPlayer )
 
 	g_pGameRules->UpdateMutatorMessage(pPlayer);
 	g_pGameRules->UpdateGameModeMessage(pPlayer);
+
+#ifdef _DEBUG
+	if (debug_disconnects.value && g_iKickSomeone < gpGlobals->time) {
+
+		int bot_clients = 0;
+		for ( int i = 1; i <= gpGlobals->maxClients; i++ )
+		{
+			CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
+			if ( plr && plr->pev->flags & FL_FAKECLIENT )
+			{
+				bot_clients++;
+			}
+		}
+
+		CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( RANDOM_LONG(1, bot_clients) );
+
+		if (RANDOM_LONG(0,1) == 1)
+		{
+			if ( plr && plr->pev->flags & FL_FAKECLIENT )
+			{
+				char cmd[80];
+				strcpy(cmd, "");
+				if (RANDOM_LONG(0,1))
+				{
+					sprintf(cmd, "kick \"%s\"\n", STRING(plr->pev->netname));
+					SERVER_COMMAND(cmd);
+					ALERT(at_aiconsole, "rotate client: %s", cmd);
+				}
+				else
+				{
+					ClearMultiDamage();
+					plr->pev->health = 0;
+					plr->Killed( plr->pev, GIB_NEVER );
+				}
+			}
+		}
+		else
+		{
+			ALERT(at_aiconsole, "adding bot...\n");
+			SERVER_COMMAND("addbot\n");
+		}
+
+		g_iKickSomeone = gpGlobals->time + RANDOM_LONG(2, 4);
+	}
+#endif
 }
 
 //=========================================================
@@ -2932,6 +2988,10 @@ void CHalfLifeMultiplay :: ChangeLevel( void )
 	szRules[ 0 ] = '\0';
 
 	curplayers = CountPlayers();
+
+#ifdef _DEBUG
+	g_iKickSomeone = 0;
+#endif
 
 	// Has the map cycle filename changed?
 	if ( stricmp( mapcfile, szPreviousMapCycleFile ) )
