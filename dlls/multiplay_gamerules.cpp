@@ -66,7 +66,6 @@ float g_flIntermissionStartTime = 0;
 CVoiceGameMgr	g_VoiceGameMgr;
 
 #ifdef _DEBUG
-cvar_t debug_disconnects;
 DLL_GLOBAL float g_iKickSomeone;
 #endif
 
@@ -131,8 +130,6 @@ CHalfLifeMultiplay :: CHalfLifeMultiplay()
 	ResetGameMode();
 
 #ifdef _DEBUG
-	debug_disconnects = { "Disconnect.debug", "0", FCVAR_SERVER };
-	CVAR_REGISTER(&debug_disconnects);
 	g_iKickSomeone = gpGlobals->time + RANDOM_FLOAT(1,2);
 #endif
 }

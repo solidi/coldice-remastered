@@ -610,6 +610,10 @@ cvar_t	sk_player_leg1	= { "sk_player_leg1","1" };
 cvar_t	sk_player_leg2	= { "sk_player_leg2","1" };
 cvar_t	sk_player_leg3	= { "sk_player_leg3","1" };
 
+#ifdef _DEBUG
+cvar_t	debug_disconnects = { "Disconnect.debug", "0", FCVAR_SERVER };
+#endif
+
 // END Cvars for Skill Level settings
 
 // Register your console variables here
@@ -1223,6 +1227,10 @@ void GameDLLInit( void )
 	CVAR_REGISTER ( &sk_player_leg2 );
 	CVAR_REGISTER ( &sk_player_leg3 );
 // END REGISTER CVARS FOR SKILL LEVEL STUFF
+
+#ifdef _DEBUG
+	CVAR_REGISTER ( &debug_disconnects );
+#endif
 
 	SERVER_COMMAND( "exec skill.cfg\n" );
 }

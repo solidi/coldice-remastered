@@ -78,4 +78,9 @@ extern cvar_t	*g_psv_gravity;
 extern cvar_t	*g_psv_aim;
 extern cvar_t	*g_footsteps;
 
+// Debug Cvars
+#ifdef _DEBUG
+extern cvar_t	debug_disconnects;
+#endif
+
 #endif		// GAME_H
