@@ -800,6 +800,8 @@ void CTargetCDAudio::Play( void )
 
 //=====================================
 
+EHANDLE g_AirstrikeActivator;
+
 //
 // trigger_hurt - hurts anything that touches it. if the trigger has a targetname, firing it will toggle state
 //
@@ -1001,10 +1003,16 @@ void CBaseTrigger :: HurtTouch ( CBaseEntity *pOther )
 	}
 #endif
 
+	entvars_t *attacker = pev;
+	if (g_AirstrikeActivator && pev->targetname && strstr(STRING(pev->targetname), "strike_pain"))
+	{
+		attacker = g_AirstrikeActivator->pev;
+	}
+
 	if ( fldmg < 0 )
 		pOther->TakeHealth( -fldmg, m_bitsDamageInflict );
 	else
-		pOther->TakeDamage( pev, pev, fldmg, m_bitsDamageInflict );
+		pOther->TakeDamage( pev, attacker, fldmg, m_bitsDamageInflict );
 
 	// Store pain time so we can get all of the other entities on this frame
 	pev->pain_finished = gpGlobals->time;
@@ -1134,7 +1142,11 @@ void CBaseTrigger :: MultiTouch( CBaseEntity *pOther )
 				return;         // not facing the right way
 		}
 #endif
-		
+
+		if (pev->target && strstr(STRING(pev->target), "strike_mm")) {
+			g_AirstrikeActivator = pOther;
+		}
+
 		ActivateMultiTrigger( pOther );
 	}
 }
