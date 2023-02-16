@@ -146,6 +146,9 @@ public:
 
 	RandomRange SpawnOfset[3];
 
+	int m_ViewAttachment = 0;
+	int m_PlayerAttachment = 0;
+
 	ParticleType *m_pNext;
 
 	char m_szName[MAX_TYPENAME];
