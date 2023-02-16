@@ -50,6 +50,7 @@ enum flamethrower_e
 	FLAMETHROWER_FIRE2,
 	FLAMETHROWER_FIRE3,
 	FLAMETHROWER_FIRE4,
+	FLAMETHROWER_DEPLOY_LOWKEY,
 	FLAMETHROWER_DEPLOY,
 	FLAMETHROWER_HOLSTER,
 };
@@ -141,7 +142,7 @@ BOOL CFlameThrower::Deploy( )
 {
 	m_fireState = 0;
 	m_pPlayer->pev->playerclass = 0;
-	return DefaultDeploy( "models/v_flamethrower.mdl", "models/p_flamethrower.mdl", FLAMETHROWER_DEPLOY, "egon" );
+	return DefaultDeploy( "models/v_flamethrower.mdl", "models/p_flamethrower.mdl", FLAMETHROWER_DEPLOY_LOWKEY, "egon" );
 }
 
 BOOL CFlameThrower::DeployLowKey( )
@@ -343,8 +344,6 @@ void CFlameThrower::SecondaryAttack( void )
 	PLAYBACK_EVENT( flags, m_pPlayer->edict(), m_usFlameThrower );
 
 	m_iClip--;
-
-	m_pPlayer->SetAnimation( PLAYER_ATTACK1 );
 
 	UTIL_MakeVectors( m_pPlayer->pev->v_angle + m_pPlayer->pev->punchangle );
 
