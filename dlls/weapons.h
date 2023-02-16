@@ -114,6 +114,7 @@ public:
 #define WEAPON_DUAL_RAILGUN		43
 #define WEAPON_GRAVITYGUN		44
 #define WEAPON_FLAMETHROWER		45
+#define WEAPON_DUAL_FLAMETHROWER	46
 
 #define WEAPON_ALLWEAPONS		(~(1<<WEAPON_SUIT))
 
@@ -2293,6 +2294,9 @@ public:
 #endif
 	}
 
+	void ProvideDualItem(CBasePlayer *pPlayer, const char *itemName);
+	void SwapDualWeapon( void );
+
 private:
 	unsigned short m_usFlameStream;
 	unsigned short m_usFlameThrower;
@@ -2302,6 +2306,53 @@ private:
 	float sctime;
 	float DangerSoundTime;
 	float m_flAmmoUseTime;// since we use < 1 point of ammo per update, we subtract ammo on a timer.
+};
+
+class CDualFlameThrower : public CBasePlayerWeapon
+{
+public:
+   void Spawn( void );
+   void Precache( void );
+   int iItemSlot( void ) { return 6; }
+   int GetItemInfo(ItemInfo *p);
+   int AddToPlayer( CBasePlayer *pPlayer );
+
+   void Fire( void );
+   void UseAmmo( int count );
+   void EndAttack( void );
+   void PrimaryAttack( void );
+   void SecondaryAttack( void );
+   BOOL DeployLowKey( void );
+   BOOL Deploy( void );
+   void Holster( int skiplocal = 0 );
+   void Reload( void );
+   void WeaponIdle( void );
+
+   // Secondary flameball launch while holding fire down
+   BOOL ShouldWeaponIdle( void ) { return TRUE; };
+
+	virtual BOOL UseDecrement( void )
+	{ 
+#if defined( CLIENT_WEAPONS )
+		return TRUE;
+#else
+		return FALSE;
+#endif
+	}
+
+	void ProvideSingleItem(CBasePlayer *pPlayer, const char *itemName);
+	void SwapDualWeapon( void );
+
+private:
+	unsigned short m_usFlameStream;
+	unsigned short m_usFlameThrower;
+	unsigned short m_usFlameThrowerEnd;
+
+	int m_fireMode;
+	float sctime;
+	float DangerSoundTime;
+	float m_flAmmoUseTime;
+	float m_fSecondaryFireTime;
 };
 
 class CFlyingSnowball : public CBaseEntity

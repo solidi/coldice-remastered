@@ -3,7 +3,7 @@
 class CFlame : public CPointEntity
 {
 public:
-	static CFlame *CreateFlameStream( entvars_t *pevOwner, Vector vecStart,  Vector velocity );
+	static CFlame *CreateFlameStream( entvars_t *pevOwner, Vector vecStart,  Vector velocity, float damage );
 	void Spawn( void );
 	void EXPORT FlameThink( void );
 	void EXPORT FlameTouch( CBaseEntity *pOther );

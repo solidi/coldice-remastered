@@ -65,6 +65,9 @@ void ParticleSystemManager::RefreshFlameSystem( int mode )
 			g_pParticleSystems.AddSystem(new ParticleSystem(i, "aurora/ice_fburst2.aur"), temp);
 			sprintf(temp, "ice_fburst3 - %d", i);
 			g_pParticleSystems.AddSystem(new ParticleSystem(i, "aurora/ice_fburst3.aur"), temp);
+			g_pParticleSystems.AddSystem(new ParticleSystem(i, "aurora/ice_left_fburst1.aur"), temp);
+			g_pParticleSystems.AddSystem(new ParticleSystem(i, "aurora/ice_left_fburst2.aur"), temp);
+			g_pParticleSystems.AddSystem(new ParticleSystem(i, "aurora/ice_left_fburst3.aur"), temp);
 		}
 		else
 		{
@@ -74,6 +77,9 @@ void ParticleSystemManager::RefreshFlameSystem( int mode )
 			g_pParticleSystems.AddSystem(new ParticleSystem(i, "aurora/fburst2.aur"), temp);
 			sprintf(temp, "fburst3 - %d", i);
 			g_pParticleSystems.AddSystem(new ParticleSystem(i, "aurora/fburst3.aur"), temp);
+			g_pParticleSystems.AddSystem(new ParticleSystem(i, "aurora/left_fburst1.aur"), temp);
+			g_pParticleSystems.AddSystem(new ParticleSystem(i, "aurora/left_fburst2.aur"), temp);
+			g_pParticleSystems.AddSystem(new ParticleSystem(i, "aurora/left_fburst3.aur"), temp);
 		}
 
 		// gEngfuncs.Con_DPrintf("::: loaded client %d to flamethrower\n", i);

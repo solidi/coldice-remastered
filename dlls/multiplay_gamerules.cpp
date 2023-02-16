@@ -2415,13 +2415,14 @@ BOOL CHalfLifeMultiplay::IsAllowedToSpawn( CBaseEntity *pEntity )
 	}
 */
 
-	const char* dualWeaponList[6] = {
+	const char* dualWeaponList[7] = {
 		"weapon_dual_wrench",
 		"weapon_dual_deagle",
 		"weapon_dual_mag60",
 		"weapon_dual_smg",
 		"weapon_dual_usas",
-		"weapon_dual_rpg"
+		"weapon_dual_rpg",
+		"weapon_dual_flamethrower"
 	};
 
 	if (dualsonly.value && strncmp(STRING(pEntity->pev->classname), "weapon_", 7) == 0)

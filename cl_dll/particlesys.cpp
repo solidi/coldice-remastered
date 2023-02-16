@@ -387,7 +387,6 @@ ParticleType *ParticleSystem::ParseType( char *&szFile )
 				pType->m_bIsDefined = true; // record the fact that it's defined, so we won't need to add it to the list
 			}
 		}
-
 		else if (!stricmp(szToken, "spawnofsetx"))
 		{
 			szFile = gEngfuncs.COM_ParseFile(szFile, szToken);
@@ -624,23 +623,17 @@ ParticleType *ParticleSystem::ParseType( char *&szFile )
 			}
 			*/
 		}
-/*		else if ( !stricmp( szToken, "collision" ) )
+		else if ( !stricmp( szToken, "viewattachment" ) )
 		{
-			szFile = gEngfuncs.COM_ParseFile(szFile,szToken);
-			if ( !stricmp( szToken, "none" ) )
-			{
-				pType->m_iCollision = COLLISION_NONE;
-			}
-			else if ( !stricmp( szToken, "die" ) )
-			{
-				pType->m_iCollision = COLLISION_DIE;
-			}
-			else if ( !stricmp( szToken, "bounce" ) )
-			{
-				pType->m_iCollision = COLLISION_BOUNCE;
-			}
+			szFile = gEngfuncs.COM_ParseFile(szFile, szToken);
+			pType->m_ViewAttachment = atoi(szToken);
 		}
-*/
+		else if ( !stricmp( szToken, "playerattachment" ) )
+		{
+			szFile = gEngfuncs.COM_ParseFile(szFile, szToken);
+			pType->m_PlayerAttachment = atoi(szToken);
+		}
+
 		// get the next token
 		szFile = gEngfuncs.COM_ParseFile(szFile, szToken);
 	}
@@ -686,40 +679,26 @@ bool ParticleSystem::UpdateSystem( float frametime, /*vec3_t &right, vec3_t &up,
 	// the entity emitting this system
 //	cl_entity_t *source = gEngfuncs.GetEntityByIndex( m_iEntIndex );
 
-	//if (m_iEntIndex > 0)
-	//	gEngfuncs.Con_Printf("0\n");
-
 	if (DieTime != 0 && DieTime < gEngfuncs.GetClientTime())
 		return false;
-
-	//if (m_iEntIndex > 0)
-	//	gEngfuncs.Con_Printf("1\n");
 
 	cl_entity_t *source = UTIL_GetClientEntityWithServerIndex( m_iEntIndex );//gEngfuncs.GetEntityByIndex(m_iEntIndex);/*UTIL_GetClientEntityWithServerIndex( m_iEntIndex );*/ // buz
 
 	//if (m_iEntIndex > 0)
 	//	gEngfuncs.Con_Printf("sourceNULL?=%d,ManualOrigin.x=%.2f,ManualOrigin.y=%.2f,ManualOrigin.z=%.2f,m_pMainParticleNULL?=%d,playerclass=%d\n", source == NULL, ManualOrigin.x, ManualOrigin.y, ManualOrigin.z, m_pMainParticle == NULL, source->curstate.playerclass);
 
-	if ( (source || ManualOrigin != Vector(0, 0, 0)) && m_pMainParticle == NULL)
+	if ((source || ManualOrigin != Vector(0, 0, 0)) && m_pMainParticle == NULL)
 	{
-		//if (m_iEntIndex > 0)
-			//gEngfuncs.Con_Printf("2\n");
 		if (ManualOrigin != Vector(0, 0, 0) || source->curstate.playerclass)
 		{
 			ParticleType *pType = m_pMainType;
 
-			//if (m_iEntIndex > 0)
-			//	gEngfuncs.Con_Printf("3\n");
 			if (pType)
 			{
-				//if (m_iEntIndex > 0)
-				//	gEngfuncs.Con_Printf("4\n");
 				m_pMainParticle = pType->CreateParticle(this);
 
 				if (m_pMainParticle)
 				{
-					//if (m_iEntIndex > 0)
-					//	gEngfuncs.Con_Printf("5\n");
 					m_pMainParticle->m_iEntIndex = m_iEntIndex;
 					m_pMainParticle->origin = ManualOrigin;
 					m_pMainParticle->age_death = -1; // never die
@@ -738,9 +717,6 @@ bool ParticleSystem::UpdateSystem( float frametime, /*vec3_t &right, vec3_t &up,
 
 	particle* pParticle = m_pActiveParticle;
 	particle* pLast = NULL;
-
-	//if (m_iEntIndex > 0)
-	//	gEngfuncs.Con_Printf("6\n");
 
 	while( pParticle )
 	{
@@ -1006,8 +982,6 @@ bool ParticleSystem::UpdateParticle(particle *part, float frametime, int message
 	// is this particle bound to an entity?
 	if (part->m_iEntIndex)
 	{
-		//if (m_iEntIndex > 0)
-		//	gEngfuncs.Con_Printf("7\n");
 		if (source && source->curstate.playerclass)
 		{
 			part->origin = source->curstate.origin;
@@ -1015,20 +989,14 @@ bool ParticleSystem::UpdateParticle(particle *part, float frametime, int message
 		else if (ManualOrigin != Vector(0, 0, 0))
 		{
 			part->origin = ManualOrigin;
-			//if (m_iEntIndex > 0)
-			//	gEngfuncs.Con_Printf("8\n");
 		}
 		else
 		{
-			//if (m_iEntIndex > 0)
-			//	gEngfuncs.Con_Printf("9\n");
 			return false;
 		}
 	}
 	else
 	{
-		//if (m_iEntIndex > 0)
-		//	gEngfuncs.Con_Printf("10\n");
 		// not tied to an entity, check whether it's time to die
 		if (part->age_death >= 0 && part->age > part->age_death)
 			return false;
@@ -1108,111 +1076,113 @@ bool ParticleSystem::UpdateParticle(particle *part, float frametime, int message
 		//particle *pChild = ActivateParticle();
 		if (part->pType->m_pSprayType && ((source && source->curstate.messagenum == messagenum) || (ManualOrigin != Vector(0,0,0) && EmitTime >= gEngfuncs.GetClientTime())))
 		{
-			particle *pChild = part->pType->m_pSprayType->CreateParticle(this);//pChild);
+			particle *pChild = part->pType->m_pSprayType->CreateParticle(this);
 
 			if (pChild)
 			{
-					if(part->m_iEntIndex > 0 && part->m_iEntIndex <= gEngfuncs.GetMaxClients()) 
+				if (part->m_iEntIndex > 0 && part->m_iEntIndex <= gEngfuncs.GetMaxClients()) 
+				{
+					cl_entity_t *view = gEngfuncs.GetViewModel();
+
+					if (view != NULL && EV_IsLocal( part->m_iEntIndex ) && !CL_IsThirdPerson())
 					{
-						cl_entity_t *view = gEngfuncs.GetViewModel();
-
-						if (view != NULL && EV_IsLocal( part->m_iEntIndex ) && !CL_IsThirdPerson())
-							pChild->origin = view->attachment[0] +
-							Vector(part->pType->m_pSprayType->SpawnOfset[0].GetInstance(),
-								part->pType->m_pSprayType->SpawnOfset[1].GetInstance(),
-								part->pType->m_pSprayType->SpawnOfset[2].GetInstance());
-
-						else if(source)
-							pChild->origin = source->attachment[0] +
-							Vector(part->pType->m_pSprayType->SpawnOfset[0].GetInstance(),
-								part->pType->m_pSprayType->SpawnOfset[1].GetInstance(),
-								part->pType->m_pSprayType->SpawnOfset[2].GetInstance());
-						else
-						{
-							pChild->origin = part->origin + 
-							Vector(part->pType->m_pSprayType->SpawnOfset[0].GetInstance(),
-								part->pType->m_pSprayType->SpawnOfset[1].GetInstance(),
-								part->pType->m_pSprayType->SpawnOfset[2].GetInstance());
-						}
-
-						vec3_t up, right, forward,angles;
-
-						if (view != NULL && EV_IsLocal( part->m_iEntIndex ) && !CL_IsThirdPerson())
-						{
-							angles = view->curstate.angles;
-							angles[0] = angles[0]  * -1.;
-							angles[1] = angles[1] + 3;
-						}
-						else
-						{
-							angles = source->curstate.angles;
-
-							if(!EV_IsLocal( part->m_iEntIndex ))
-								angles[0] = angles[0] * 9;
-							else if( CL_IsThirdPerson() )
-								angles[0] = angles[0] * -3;
-							else
-								angles[0] = angles[0] * 9;
-						}
-
-						AngleVectors( angles, forward, right, up );
-						
-						if (!stricmp(pChild->pType->m_szName, "FlameThrFlame"))
-							pChild->velocity = (forward + right * gEngfuncs.pfnRandomFloat(-0.01,0.01) + up * gEngfuncs.pfnRandomLong(-0.01,0.01)) * 1000 + source->curstate.velocity;
-						else
-							pChild->velocity = (forward + right * gEngfuncs.pfnRandomFloat(-0.05,0.05) + up * gEngfuncs.pfnRandomLong(-0.05,0.05)) * 1000 + source->curstate.velocity;
+						pChild->origin = view->attachment[part->pType->m_ViewAttachment] +
+						Vector(part->pType->m_pSprayType->SpawnOfset[0].GetInstance(),
+							part->pType->m_pSprayType->SpawnOfset[1].GetInstance(),
+							part->pType->m_pSprayType->SpawnOfset[2].GetInstance());
+					}
+					else if (source)
+					{
+						pChild->origin = source->attachment[part->pType->m_PlayerAttachment] +
+						Vector(part->pType->m_pSprayType->SpawnOfset[0].GetInstance(),
+							part->pType->m_pSprayType->SpawnOfset[1].GetInstance(),
+							part->pType->m_pSprayType->SpawnOfset[2].GetInstance());
 					}
 					else
 					{
+						pChild->origin = part->origin + 
+						Vector(part->pType->m_pSprayType->SpawnOfset[0].GetInstance(),
+							part->pType->m_pSprayType->SpawnOfset[1].GetInstance(),
+							part->pType->m_pSprayType->SpawnOfset[2].GetInstance());
+					}
 
-						cl_entity_t *ent = NULL;
-						ent = gEngfuncs.GetEntityByIndex(part->m_iEntIndex);
-						
-						if(ent && ent->model && ent->model->name && strnicmp (ent->model->name + 7, "W_molotov", 9) == 0)
+					vec3_t up, right, forward, angles;
+
+					if (view != NULL && EV_IsLocal( part->m_iEntIndex ) && !CL_IsThirdPerson())
+					{
+						angles = view->curstate.angles;
+						angles[0] = angles[0]  * -1.;
+						angles[1] = angles[1] + 3;
+					}
+					else
+					{
+						angles = source->curstate.angles;
+
+						if (!EV_IsLocal( part->m_iEntIndex ))
+							angles[0] = angles[0] * 9;
+						else if ( CL_IsThirdPerson() )
+							angles[0] = angles[0] * -3;
+						else
+							angles[0] = angles[0] * 9;
+					}
+
+					AngleVectors( angles, forward, right, up );
+
+					if (!stricmp(pChild->pType->m_szName, "FlameThrFlame"))
+						pChild->velocity = (forward + right * gEngfuncs.pfnRandomFloat(-0.01,0.01) + up * gEngfuncs.pfnRandomLong(-0.01,0.01)) * 1000 + source->curstate.velocity;
+					else
+						pChild->velocity = (forward + right * gEngfuncs.pfnRandomFloat(-0.05,0.05) + up * gEngfuncs.pfnRandomLong(-0.05,0.05)) * 1000 + source->curstate.velocity;
+				}
+				else
+				{
+					cl_entity_t *ent = NULL;
+					ent = gEngfuncs.GetEntityByIndex(part->m_iEntIndex);
+					
+					if (ent && ent->model && ent->model->name && strnicmp (ent->model->name + 7, "W_molotov", 9) == 0)
+					{
+						pChild->origin = ent->attachment[0] +
+							Vector(part->pType->m_pSprayType->SpawnOfset[0].GetInstance(),
+								part->pType->m_pSprayType->SpawnOfset[1].GetInstance(),
+								part->pType->m_pSprayType->SpawnOfset[2].GetInstance());
+
+						vec3_t up, right, forward,angles;
+
+						float fSprayForce = part->pType->m_SprayForce.GetInstance();
+						pChild->velocity = part->velocity;
+
+						if (fSprayForce)
 						{
-							pChild->origin = ent->attachment[0] +
-								Vector(part->pType->m_pSprayType->SpawnOfset[0].GetInstance(),
+							float fSprayPitch = part->pType->m_SprayPitch.GetInstance();
+							float fSprayYaw = part->pType->m_SprayYaw.GetInstance();
+							float fForceCosPitch = fSprayForce*CosLookup(fSprayPitch);
+							vec3_t vecSprayVel;
+							pChild->velocity.x += CosLookup(fSprayYaw) * fForceCosPitch;
+							pChild->velocity.y += SinLookup(fSprayYaw) * fForceCosPitch;
+							pChild->velocity.z -= SinLookup(fSprayPitch) * fSprayForce;
+						}
+					}
+					else
+					{
+						pChild->origin = part->origin + 
+							Vector( part->pType->m_pSprayType->SpawnOfset[0].GetInstance(), 
 									part->pType->m_pSprayType->SpawnOfset[1].GetInstance(),
 									part->pType->m_pSprayType->SpawnOfset[2].GetInstance());
 
-							vec3_t up, right, forward,angles;
+						float fSprayForce = part->pType->m_SprayForce.GetInstance();
+						pChild->velocity = part->velocity;
 
-							float fSprayForce = part->pType->m_SprayForce.GetInstance();
-							pChild->velocity = part->velocity;
-
-							if (fSprayForce)
-							{
-								float fSprayPitch = part->pType->m_SprayPitch.GetInstance();
-								float fSprayYaw = part->pType->m_SprayYaw.GetInstance();
-								float fForceCosPitch = fSprayForce*CosLookup(fSprayPitch);
-								vec3_t vecSprayVel;
-								pChild->velocity.x += CosLookup(fSprayYaw) * fForceCosPitch;
-								pChild->velocity.y += SinLookup(fSprayYaw) * fForceCosPitch;
-								pChild->velocity.z -= SinLookup(fSprayPitch) * fSprayForce;
-							}
-						}
-						else
+						if (fSprayForce)
 						{
-							pChild->origin = part->origin + 
-								Vector( part->pType->m_pSprayType->SpawnOfset[0].GetInstance(), 
-										part->pType->m_pSprayType->SpawnOfset[1].GetInstance(),
-										part->pType->m_pSprayType->SpawnOfset[2].GetInstance());
-
-							float fSprayForce = part->pType->m_SprayForce.GetInstance();
-							pChild->velocity = part->velocity;
-
-							if (fSprayForce)
-							{
-								float fSprayPitch = part->pType->m_SprayPitch.GetInstance();
-								float fSprayYaw = part->pType->m_SprayYaw.GetInstance();
-								float fForceCosPitch = fSprayForce*CosLookup(fSprayPitch);
-								vec3_t vecSprayVel;
-								pChild->velocity.x += CosLookup(fSprayYaw) * fForceCosPitch;
-								pChild->velocity.y += SinLookup(fSprayYaw) * fForceCosPitch;
-								pChild->velocity.z -= SinLookup(fSprayPitch) * fSprayForce;
-							}
+							float fSprayPitch = part->pType->m_SprayPitch.GetInstance();
+							float fSprayYaw = part->pType->m_SprayYaw.GetInstance();
+							float fForceCosPitch = fSprayForce*CosLookup(fSprayPitch);
+							vec3_t vecSprayVel;
+							pChild->velocity.x += CosLookup(fSprayYaw) * fForceCosPitch;
+							pChild->velocity.y += SinLookup(fSprayYaw) * fForceCosPitch;
+							pChild->velocity.z -= SinLookup(fSprayPitch) * fSprayForce;
 						}
 					}
+				}
 			}
 		}
 	}
@@ -1265,16 +1235,11 @@ void ParticleSystem::DrawParticle(particle *part, vec3_t &right, vec3_t &up)
 
 	for (particle *pDraw = part; pDraw; pDraw = pDraw->m_pOverlay)
 	{
-		//gEngfuncs.Con_Printf("0: %s\n", pDraw->pType->m_szName);
-	
 		if (pDraw->pType->m_hSprite == 0)
 			continue;
 
-		//gEngfuncs.Con_Printf("1: %s\n", pDraw->pType->m_szName);
-
 		if (pDraw->pType->m_iDrawCond)
 		{
-			//gEngfuncs.Con_Printf("2: %s\n", pDraw->pType->m_szName);
 			if (iContents == 0)
 				iContents = gEngfuncs.PM_PointContents(origin, NULL);
 
@@ -1297,12 +1262,8 @@ void ParticleSystem::DrawParticle(particle *part, vec3_t &right, vec3_t &up)
 		while (pDraw->frame < 0)
 			pDraw->frame += pModel->numframes;
 
-		//gEngfuncs.Con_Printf("4: %s\n", pDraw->pType->m_szName);
-
 		if ( !gEngfuncs.pTriAPI->SpriteTexture( pModel, int(pDraw->frame) ))
 			continue;
-
-		//gEngfuncs.Con_Printf("5: %s\n", pDraw->pType->m_szName);
 
 		//gl.glDisable(GL_DEPTH_TEST);
 
