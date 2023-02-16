@@ -110,6 +110,9 @@ void EV_GravityGun( struct event_args_s *args  );
 void EV_FireFlameStream( struct event_args_s *args  );
 void EV_FireFlameThrower( struct event_args_s *args  );
 void EV_EndFlameThrower( struct event_args_s *args  );
+void EV_FireDualFlameStream( struct event_args_s *args  );
+void EV_FireDualFlameThrower( struct event_args_s *args  );
+void EV_EndDualFlameThrower( struct event_args_s *args  );
 
 void EV_TrainPitchAdjust( struct event_args_s *args );
 }
@@ -3538,6 +3541,80 @@ void EV_FireFlameThrower( event_args_t *args )
 }
 
 void EV_EndFlameThrower( event_args_t *args )
+{
+	int idx;
+	vec3_t origin;
+
+	idx = args->entindex;
+	VectorCopy ( args->origin, origin );
+
+	gEngfuncs.pEventAPI->EV_StopAllSounds(idx,CHAN_STATIC);
+
+	if ( EV_IsLocal( idx ) )
+		gEngfuncs.pEventAPI->EV_WeaponAnimation ( FLAMETHROWER_OFF, 0 );
+	
+	if ( args->iparam1 )
+		gEngfuncs.pEventAPI->EV_PlaySound( idx, origin, CHAN_WEAPON, "flamethrowerend.wav", 1, 0.6, 0, 100 );
+}
+
+enum dual_flamethrower_e
+{
+	DUAL_FLAMETHROWER_IDLE1,
+	DUAL_FLAMETHROWER_FIDGET,
+	DUAL_FLAMETHROWER_ON,
+	DUAL_FLAMETHROWER_CYCLE,
+	DUAL_FLAMETHROWER_OFF,
+	DUAL_FLAMETHROWER_FIRE1,
+	DUAL_FLAMETHROWER_FIRE2,
+	DUAL_FLAMETHROWER_FIRE3,
+	DUAL_FLAMETHROWER_FIRE4,
+	DUAL_FLAMETHROWER_DEPLOY_LOWKEY,
+	DUAL_FLAMETHROWER_DEPLOY,
+	DUAL_FLAMETHROWER_HOLSTER,
+};
+
+void EV_FireDualFlameStream( event_args_t *args )
+{
+	int idx;
+	vec3_t origin,angles,forward,right,up;
+
+	idx = args->entindex;
+	VectorCopy( args->origin, origin );
+	int iStartup = args->bparam1;
+	VectorCopy( args->origin, origin );
+	VectorCopy( args->angles, angles );
+
+	AngleVectors( angles, forward, right, up );
+
+	if ( iStartup )
+		gEngfuncs.pEventAPI->EV_PlaySound( idx, origin, CHAN_WEAPON, "flameburst.wav", 1, ATTN_NORM, 0, PITCH_NORM );
+	else
+		gEngfuncs.pEventAPI->EV_PlaySound( idx, origin, CHAN_STATIC, "flamerun.wav", 1, ATTN_NORM, 0, PITCH_NORM );
+
+	if ( EV_IsLocal( idx ) )
+		gEngfuncs.pEventAPI->EV_WeaponAnimation ( FLAMETHROWER_FIRE3, 0 );
+}
+
+void EV_FireDualFlameThrower( event_args_t *args )
+{
+	int idx;
+	vec3_t origin;
+
+	idx = args->entindex;
+	VectorCopy( args->origin, origin );
+
+	gEngfuncs.pEventAPI->EV_PlaySound( idx, origin, CHAN_WEAPON, "flamethrower.wav", 0.9, ATTN_NORM, 0, PITCH_NORM );
+
+	if ( EV_IsLocal( idx ) )
+	{
+		gEngfuncs.pEventAPI->EV_WeaponAnimation( FLAMETHROWER_FIRE4, 0 );
+		V_PunchAxis(PITCH, gEngfuncs.pfnRandomFloat(-2.0, -4.0) );
+		V_PunchAxis(YAW, gEngfuncs.pfnRandomFloat(-1.0, -2.0));
+		V_PunchAxis(ROLL, gEngfuncs.pfnRandomFloat(1.0, 2.0));
+	}
+}
+
+void EV_EndDualFlameThrower( event_args_t *args )
 {
 	int idx;
 	vec3_t origin;

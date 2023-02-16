@@ -14,7 +14,7 @@
 
 extern int gmsgParticle;
 
-CFlame *CFlame::CreateFlameStream( entvars_t *pevOwner, Vector vecStart, Vector velocity )
+CFlame *CFlame::CreateFlameStream( entvars_t *pevOwner, Vector vecStart, Vector velocity, float damage )
 {
 	CFlame *pFlame = GetClassPtr( (CFlame *)NULL );
 #ifndef CLIENT_DLL
@@ -30,7 +30,7 @@ CFlame *CFlame::CreateFlameStream( entvars_t *pevOwner, Vector vecStart, Vector 
 	pFlame->pev->rendercolor.y = 0;
 	pFlame->pev->rendercolor.z = 0;
 	pFlame->pev->renderamt = 0;
-	pFlame->pev->dmg = gSkillData.plrDmgFlameThrower;
+	pFlame->pev->dmg = damage;
 	pFlame->pev->classname = MAKE_STRING( "flamestream" );
 
 	return pFlame;
@@ -132,7 +132,7 @@ void CFlame::FlameThink( void )
 				if (FVisible(pEntity))
 				{
 					float flDist = (pEntity->Center() - pev->origin).Length();
-					float flAdjustedDamage = 3;
+					float flAdjustedDamage = pev->dmg;
 
 					flAdjustedDamage *= 1 - (flDist / 20.);
 
@@ -176,7 +176,7 @@ void CFlame::FlameTouch( CBaseEntity *pOther )
 			if (FVisible(pEntity))
 			{
 				float flDist = (pEntity->Center() - pev->origin).Length();
-				float flAdjustedDamage = 3;
+				float flAdjustedDamage = pev->dmg;
 
 				flAdjustedDamage *= 1 - (flDist / 20.);
 

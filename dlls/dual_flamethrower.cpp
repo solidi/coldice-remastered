@@ -13,19 +13,6 @@
 *
 ****/
 
-/*
-
-		Entry for Half-Life Mod - FlatLine Arena
-		Copyright (c) 2005-2019, Napoleon. All rights reserved.
-		
-===== flamethrower.cpp ========================================================
-
-		Contains the code for weapon flamethrower
-		Based on code by Ghoul BB and Valve (gargantua monster)
-		Modified Valve code. Additional code by Napoleon. 
-
-*/
-
 #include "extdll.h"
 #include "util.h"
 #include "cbase.h"
@@ -39,42 +26,43 @@
 #include "flameball.h"
 #include "game.h"
 
-enum flamethrower_e
+enum dual_flamethrower_e
 {
-	FLAMETHROWER_IDLE1,
-	FLAMETHROWER_FIDGET,
-	FLAMETHROWER_ON,
-	FLAMETHROWER_CYCLE,
-	FLAMETHROWER_OFF,
-	FLAMETHROWER_FIRE1,
-	FLAMETHROWER_FIRE2,
-	FLAMETHROWER_FIRE3,
-	FLAMETHROWER_FIRE4,
-	FLAMETHROWER_DEPLOY,
-	FLAMETHROWER_HOLSTER,
+	DUAL_FLAMETHROWER_IDLE1,
+	DUAL_FLAMETHROWER_FIDGET,
+	DUAL_FLAMETHROWER_ON,
+	DUAL_FLAMETHROWER_CYCLE,
+	DUAL_FLAMETHROWER_OFF,
+	DUAL_FLAMETHROWER_FIRE1,
+	DUAL_FLAMETHROWER_FIRE2,
+	DUAL_FLAMETHROWER_FIRE3,
+	DUAL_FLAMETHROWER_FIRE4,
+	DUAL_FLAMETHROWER_DEPLOY_LOWKEY,
+	DUAL_FLAMETHROWER_DEPLOY,
+	DUAL_FLAMETHROWER_HOLSTER,
 };
 
-#ifdef FLAMETHROWER
-LINK_ENTITY_TO_CLASS( weapon_flamethrower, CFlameThrower );
+#ifdef DUALFLAMETHROWER
+LINK_ENTITY_TO_CLASS( weapon_dual_flamethrower, CDualFlameThrower );
 #endif
 
-void CFlameThrower::Spawn( )
+void CDualFlameThrower::Spawn( )
 {
-	pev->classname = MAKE_STRING("weapon_flamethrower");
+	pev->classname = MAKE_STRING("weapon_dual_flamethrower");
 	Precache( );
-	SET_MODEL(ENT(pev), "models/w_flamethrower.mdl");
-	m_iId = WEAPON_FLAMETHROWER;
+	SET_MODEL(ENT(pev), "models/w_dual_flamethrower.mdl");
+	m_iId = WEAPON_DUAL_FLAMETHROWER;
 
-	m_iDefaultAmmo = FLAMETHROWER_DEFAULT_GIVE;
+	m_iDefaultAmmo = FLAMETHROWER_DEFAULT_GIVE * 2;
 
 	FallInit();
 }
 
-void CFlameThrower::Precache( void )
+void CDualFlameThrower::Precache( void )
 {
-	PRECACHE_MODEL("models/v_flamethrower.mdl");
-	PRECACHE_MODEL("models/w_flamethrower.mdl");
-	PRECACHE_MODEL("models/p_flamethrower.mdl");
+	PRECACHE_MODEL("models/v_dual_flamethrower.mdl");
+	PRECACHE_MODEL("models/w_dual_flamethrower.mdl");
+	PRECACHE_MODEL("models/p_dual_flamethrower.mdl");
 
 	PRECACHE_MODEL("sprites/flamesteam.spr");
 	PRECACHE_MODEL("sprites/null.spr");
@@ -101,15 +89,15 @@ void CFlameThrower::Precache( void )
 
 	PRECACHE_SOUND("weapons/357_cock1.wav");
 
-	m_usFlameStream = PRECACHE_EVENT ( 1, "events/flamestream.sc" );
-	m_usFlameThrower = PRECACHE_EVENT ( 1, "events/flamethrower.sc" );
-	m_usFlameThrowerEnd = PRECACHE_EVENT ( 1, "events/flamethrowerend.sc" );
+	m_usFlameStream = PRECACHE_EVENT ( 1, "events/dual_flamestream.sc" );
+	m_usFlameThrower = PRECACHE_EVENT ( 1, "events/dual_flamethrower.sc" );
+	m_usFlameThrowerEnd = PRECACHE_EVENT ( 1, "events/dual_flamethrowerend.sc" );
 
 	UTIL_PrecacheOther("flamestream");
 	UTIL_PrecacheOther("flameball");
 }
 
-int CFlameThrower::GetItemInfo(ItemInfo *p)
+int CDualFlameThrower::GetItemInfo(ItemInfo *p)
 {
 	p->pszName = STRING(pev->classname);
 	p->pszAmmo1 = "uranium";
@@ -117,17 +105,17 @@ int CFlameThrower::GetItemInfo(ItemInfo *p)
 	p->pszAmmo2 = NULL;
 	p->iMaxAmmo2 = -1;
 	p->iMaxClip = FLAMETHROWER_MAX_CLIP;
-	p->iSlot = 4;
+	p->iSlot = 5;
 	p->iPosition = 7;
 	p->iFlags = 0;
-	p->iId = m_iId = WEAPON_FLAMETHROWER;
-	p->iWeight = FLAMETHROWER_WEIGHT;
-	p->pszDisplayName = "Napoleon's Flamethrower";
+	p->iId = m_iId = WEAPON_DUAL_FLAMETHROWER;
+	p->iWeight = FLAMETHROWER_WEIGHT * 2;
+	p->pszDisplayName = "Viserion's Flamethrowers";
 
 	return 1;
 }
 
-int CFlameThrower::AddToPlayer( CBasePlayer *pPlayer )
+int CDualFlameThrower::AddToPlayer( CBasePlayer *pPlayer )
 {
 	if ( CBasePlayerWeapon::AddToPlayer( pPlayer ) )
 	{
@@ -137,28 +125,28 @@ int CFlameThrower::AddToPlayer( CBasePlayer *pPlayer )
 	return FALSE;
 }
 
-BOOL CFlameThrower::Deploy( )
+BOOL CDualFlameThrower::Deploy( )
 {
 	m_fireState = 0;
 	m_pPlayer->pev->playerclass = 0;
-	return DefaultDeploy( "models/v_flamethrower.mdl", "models/p_flamethrower.mdl", FLAMETHROWER_DEPLOY, "egon" );
+	return DefaultDeploy( "models/v_dual_flamethrower.mdl", "models/p_dual_flamethrower.mdl", DUAL_FLAMETHROWER_DEPLOY, "dual_egon" );
 }
 
-BOOL CFlameThrower::DeployLowKey( )
+BOOL CDualFlameThrower::DeployLowKey( )
 {
 	m_fireState = 0;
 	m_pPlayer->pev->playerclass = 0;
-	return DefaultDeploy( "models/v_flamethrower.mdl", "models/p_flamethrower.mdl", FLAMETHROWER_DEPLOY, "egon" );
+	return DefaultDeploy( "models/v_dual_flamethrower.mdl", "models/p_dual_flamethrower.mdl", DUAL_FLAMETHROWER_DEPLOY_LOWKEY, "dual_egon" );
 }
 
-void CFlameThrower::Holster( int skiplocal )
+void CDualFlameThrower::Holster( int skiplocal )
 {
 	m_pPlayer->pev->playerclass = 0;
 	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 0.5;
-	SendWeaponAnim( FLAMETHROWER_HOLSTER );
+	SendWeaponAnim( DUAL_FLAMETHROWER_HOLSTER );
 }
 
-void CFlameThrower::Fire( void )
+void CDualFlameThrower::Fire( void )
 {
 	if ( gpGlobals->time >= m_flAmmoUseTime )
 	{
@@ -167,7 +155,7 @@ void CFlameThrower::Fire( void )
 		Vector start = m_pPlayer->pev->origin + m_pPlayer->pev->view_ofs + gpGlobals->v_right * 1.2 + gpGlobals->v_forward * 16 + gpGlobals->v_up * -4;
 
 #ifndef CLIENT_DLL
-		CFlame *Flame = CFlame::CreateFlameStream( m_pPlayer->pev, start, gpGlobals->v_forward * 1000, gSkillData.plrDmgFlameThrower / 10 );
+		CFlame *Flame = CFlame::CreateFlameStream( m_pPlayer->pev, start, gpGlobals->v_forward * 1000, gSkillData.plrDmgFlameThrower / 5 );
 
 		if (DangerSoundTime < gpGlobals->time)
 		{
@@ -210,7 +198,7 @@ void CFlameThrower::Fire( void )
 	}
 }
 
-void CFlameThrower::EndAttack( void )
+void CDualFlameThrower::EndAttack( void )
 {
 	bool bMakeNoise = false;
 		
@@ -227,7 +215,7 @@ void CFlameThrower::EndAttack( void )
 	m_pPlayer->pev->playerclass = 0;
 }
 
-void CFlameThrower::UseAmmo( int count )
+void CDualFlameThrower::UseAmmo( int count )
 {
 	m_pPlayer->m_fWeapon = FALSE;
 	if (!m_pPlayer->pev->playerclass)
@@ -239,7 +227,7 @@ void CFlameThrower::UseAmmo( int count )
 		 m_iClip = 0;
 }
 
-void CFlameThrower::PrimaryAttack( void )
+void CDualFlameThrower::PrimaryAttack( void )
 {
 	// don't fire underwater
 	if ( m_pPlayer->pev->waterlevel == 3 )
@@ -312,7 +300,7 @@ void CFlameThrower::PrimaryAttack( void )
 	}
 }
 
-void CFlameThrower::SecondaryAttack( void )
+void CDualFlameThrower::SecondaryAttack( void )
 {
 	m_pPlayer->pev->playerclass = 0;
 
@@ -344,14 +332,14 @@ void CFlameThrower::SecondaryAttack( void )
 
 	m_iClip--;
 
-	m_pPlayer->SetAnimation( PLAYER_ATTACK1 );
-
 	UTIL_MakeVectors( m_pPlayer->pev->v_angle + m_pPlayer->pev->punchangle );
 
 #ifndef CLIENT_DLL
 	CFlameBall::ShootFlameBall( m_pPlayer->pev, 
-		m_pPlayer->pev->origin + m_pPlayer->pev->view_ofs + gpGlobals->v_forward * 32 + gpGlobals->v_right * 1.2 + gpGlobals->v_up * -4,
+		m_pPlayer->pev->origin + m_pPlayer->pev->view_ofs + gpGlobals->v_forward * 32 + gpGlobals->v_right * 16 + gpGlobals->v_up * -4,
 		gpGlobals->v_forward * 900 );
+
+	m_fSecondaryFireTime = gpGlobals->time + 0.15;
 #endif
 
 	m_flNextPrimaryAttack = m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 0.25;
@@ -360,7 +348,7 @@ void CFlameThrower::SecondaryAttack( void )
 	m_pPlayer->pev->punchangle.x -= 1;
 }
 
-void CFlameThrower::Reload( void )
+void CDualFlameThrower::Reload( void )
 {
 	int iResult = 0;
 	m_pPlayer->pev->playerclass = 0;
@@ -373,7 +361,7 @@ void CFlameThrower::Reload( void )
 
 	if (m_iClip == 0)
 	{
-		iResult = DefaultReload( FLAMETHROWER_MAX_CLIP, FLAMETHROWER_OFF, 4.3 );
+		iResult = DefaultReload( FLAMETHROWER_MAX_CLIP, DUAL_FLAMETHROWER_OFF, 4.3 );
 		EMIT_SOUND(ENT(pev), CHAN_ITEM, "flamethrower_reload.wav", 1, ATTN_NORM);
 	}
 
@@ -383,16 +371,27 @@ void CFlameThrower::Reload( void )
 	}
 }
 
-void CFlameThrower::WeaponIdle( void )
+void CDualFlameThrower::WeaponIdle( void )
 {
-	m_pPlayer->pev->playerclass = 0;
-
 	ResetEmptySound();
 
 	m_pPlayer->GetAutoaimVector( AUTOAIM_5DEGREES );
 
+#ifndef CLIENT_DLL
+	if (m_fSecondaryFireTime && m_fSecondaryFireTime <= gpGlobals->time)
+	{
+		UTIL_MakeVectors( m_pPlayer->pev->v_angle + m_pPlayer->pev->punchangle );
+		CFlameBall::ShootFlameBall( m_pPlayer->pev, 
+			m_pPlayer->pev->origin + m_pPlayer->pev->view_ofs + gpGlobals->v_forward * 32 + gpGlobals->v_right * -16 + gpGlobals->v_up * -4,
+			gpGlobals->v_forward * 900 );
+		m_fSecondaryFireTime = 0;
+	}
+#endif
+
 	if (m_flTimeWeaponIdle > UTIL_WeaponTimeBase())
 		return;
+
+	m_pPlayer->pev->playerclass = 0;
 
 	if ( m_fireState != 0 )
 		 EndAttack();
@@ -401,11 +400,11 @@ void CFlameThrower::WeaponIdle( void )
 	switch ( RANDOM_LONG( 0, 1 ) )
 	{
 	case 0:
-		 iAnim = FLAMETHROWER_IDLE1;
+		 iAnim = DUAL_FLAMETHROWER_IDLE1;
 		 break;
 
 	default:
-		 iAnim = FLAMETHROWER_FIDGET;
+		 iAnim = DUAL_FLAMETHROWER_FIDGET;
 		 break;
 	}
 
@@ -414,26 +413,22 @@ void CFlameThrower::WeaponIdle( void )
 	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + RANDOM_FLOAT ( 10, 15 );
 }
 
-void CFlameThrower::ProvideDualItem(CBasePlayer *pPlayer, const char *item) {
-	if (pPlayer == NULL || item == NULL) {
+void CDualFlameThrower::ProvideSingleItem(CBasePlayer *pPlayer, const char *item) {
+	if (item == NULL) {
 		return;
 	}
 
 #ifndef CLIENT_DLL
-	CBasePlayerWeapon::ProvideDualItem(pPlayer, item);
-
-	if (!stricmp(item, "weapon_flamethrower")) {
-		if (!pPlayer->HasNamedPlayerItem("weapon_dual_flamethrower")) {
-#ifdef _DEBUG
-			ALERT(at_aiconsole, "Give weapon_dual_flamethrower!\n");
-#endif
-			pPlayer->GiveNamedItem("weapon_dual_flamethrower");
+	if (!stricmp(item, "weapon_dual_flamethrower")) {
+		if (!pPlayer->HasNamedPlayerItem("weapon_flamethrower")) {
+			ALERT(at_aiconsole, "Give weapon_flamethrower!\n");
+			pPlayer->GiveNamedItem("weapon_flamethrower");
 			pPlayer->SelectItem("weapon_dual_flamethrower");
 		}
 	}
 #endif
 }
 
-void CFlameThrower::SwapDualWeapon( void ) {
-	m_pPlayer->SelectItem("weapon_dual_flamethrower");
+void CDualFlameThrower::SwapDualWeapon( void ) {
+	m_pPlayer->SelectItem("weapon_flamethrower");
 }
