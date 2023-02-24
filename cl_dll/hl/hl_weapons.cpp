@@ -97,6 +97,7 @@ CRocketCrowbar g_RocketCrowbar;
 CGravityGun g_GravityGun;
 CFlameThrower g_FlameThrower;
 CDualFlameThrower g_DualFlameThrower;
+CAshpod g_Ashpod;
 
 /*
 ======================
@@ -701,6 +702,7 @@ void HUD_InitClientWeapons( void )
 	HUD_PrepEntity( &g_GravityGun	, &player );
 	HUD_PrepEntity( &g_FlameThrower	, &player );
 	HUD_PrepEntity( &g_DualFlameThrower	, &player );
+	HUD_PrepEntity( &g_Ashpod	, &player );
 }
 
 /*
@@ -940,6 +942,10 @@ void HUD_WeaponsPostThink( local_state_s *from, local_state_s *to, usercmd_t *cm
 
 		case WEAPON_DUAL_FLAMETHROWER:
 			pWeapon = &g_DualFlameThrower;
+			break;
+
+		case WEAPON_ASHPOD:
+			pWeapon = &g_Ashpod;
 			break;
 	}
 

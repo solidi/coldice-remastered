@@ -421,6 +421,8 @@ public:
 	void PlayerBurn(void);
 
 	float m_flEjectBrass;
+
+	CBaseEntity *m_pPortal[2];
 };
 
 #define AUTOAIM_2DEGREES  0.0348994967025

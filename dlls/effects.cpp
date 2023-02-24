@@ -22,6 +22,7 @@
 #include "decals.h"
 #include "func_break.h"
 #include "shake.h"
+#include "player.h"
 
 #define	SF_GIBSHOOTER_REPEATABLE	1 // allows a gibshooter to be refired
 
@@ -2286,4 +2287,115 @@ void CItemSoda::CanTouch ( CBaseEntity *pOther )
 	SetTouch ( NULL );
 	SetThink ( &CItemSoda::SUB_Remove );
 	pev->nextthink = gpGlobals->time;
+}
+
+class CPortalEntity : public CBaseEntity
+{
+public:
+	void Spawn() override;
+	void Precache() override;
+	void EXPORT Think() override;
+
+	float m_flPortalCooldown;
+};
+
+LINK_ENTITY_TO_CLASS(ent_portal, CPortalEntity);
+
+void CPortalEntity::Spawn()
+{
+	Precache();
+	pev->solid = SOLID_NOT;
+	pev->movetype = MOVETYPE_NONE;
+
+	SET_MODEL(ENT(pev), "models/w_portal.mdl");
+	UTIL_SetSize(pev, Vector(0, 0, 0), Vector(0, 0, 0));
+
+	pev->nextthink = gpGlobals->time + 0.01f;
+}
+
+void CPortalEntity::Precache()
+{
+	PRECACHE_MODEL("models/w_portal.mdl");
+	PRECACHE_SOUND("portal_enter1.wav");
+	PRECACHE_SOUND("portal_enter2.wav");
+}
+
+void CPortalEntity::Think()
+{
+	pev->nextthink = gpGlobals->time + 0.01f;
+
+	if (m_flPortalCooldown > gpGlobals->time) return;
+
+	CBaseEntity* pFound = NULL; //UTIL_FindEntityInSphere(nullptr, pev->origin, 20);
+	while ((pFound = UTIL_FindEntityInSphere(pFound, pev->origin, 48)) != NULL)
+	{
+		if (pFound)
+		{
+			if (FClassnameIs(pFound->pev, "ent_portal"))
+				return;
+
+			// Get portal owner
+			CBaseEntity* pOwner = CBaseEntity::Instance(pev->owner);
+			if (pOwner)
+			{
+				CBasePlayer* pPlayer = static_cast<CBasePlayer*>(pOwner);
+				if (pPlayer)
+				{
+					// Get second portal
+					CBaseEntity* pOtherPortal = pPlayer->m_pPortal[!((bool)pev->skin)];
+					if (pOtherPortal)
+					{
+						CPortalEntity* pOtherPortalCasted = static_cast<CPortalEntity*>(pOtherPortal);
+						if (pOtherPortalCasted)
+						{
+							EMIT_SOUND(ENT(pev), CHAN_BODY, "portal_enter1.wav", 1, ATTN_NORM);
+
+							// Get second portal's origin
+							Vector teleportOrg = pOtherPortalCasted->pev->origin;
+							Vector diff = (pFound->pev->origin - pev->origin);
+
+							// some offsetting, unfinished!
+							Vector forward, right, up;
+							g_engfuncs.pfnAngleVectors(Vector(0, pOtherPortalCasted->pev->angles.y - this->pev->angles.y, 0), forward, right, up);
+							Vector forwardOffset = forward * diff.x;
+							Vector rightOffset = right * diff.y * -1;
+							Vector upOffset = up * diff.z;
+
+							Vector forwardSpeedOffset = forward * pFound->pev->velocity.x * -1;
+							Vector rightSpeedOffset = right * pFound->pev->velocity.y;
+							Vector upSpeedOffset;
+
+							// Apply the offsetting
+							teleportOrg = teleportOrg + forwardOffset + rightOffset + upOffset;
+							teleportOrg = teleportOrg + forward * 20;
+							teleportOrg.z += 20.0f;
+
+							MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
+								WRITE_BYTE( TE_TELEPORT	); 
+								WRITE_COORD(pFound->pev->origin.x);
+								WRITE_COORD(pFound->pev->origin.y);
+								WRITE_COORD(pFound->pev->origin.z);
+							MESSAGE_END();
+
+							// Move someone who touched this
+							UTIL_SetOrigin(pFound->pev, teleportOrg);
+							pFound->pev->fixangle = 1;
+							pFound->pev->v_angle.y = pFound->pev->angles.y = pFound->pev->angles.y + 180 + (pOtherPortalCasted->pev->angles.y - pev->angles.y); 
+							pFound->pev->velocity = forwardSpeedOffset + rightSpeedOffset + Vector(0, 0, pFound->pev->velocity.z);
+							this->m_flPortalCooldown = pOtherPortalCasted->m_flPortalCooldown = gpGlobals->time;
+						
+							MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
+								WRITE_BYTE( TE_TELEPORT	); 
+								WRITE_COORD(pFound->pev->origin.x);
+								WRITE_COORD(pFound->pev->origin.y);
+								WRITE_COORD(pFound->pev->origin.z);
+							MESSAGE_END();
+
+							EMIT_SOUND(ENT(pOtherPortalCasted->pev), CHAN_BODY, "portal_enter2.wav", 1, ATTN_NORM);
+						}
+					}
+				}
+			}
+		}
+	}
 }

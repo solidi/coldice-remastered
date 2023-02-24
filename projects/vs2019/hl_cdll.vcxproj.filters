@@ -57,6 +57,9 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\dlls\ashpod.cpp">
+      <Filter>Source Files\_hl\dlls</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\dlls\crossbow.cpp">
       <Filter>Source Files\_hl\dlls</Filter>
     </ClCompile>
