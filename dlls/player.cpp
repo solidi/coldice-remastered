@@ -214,6 +214,7 @@ int gmsgFlameMsg = 0;
 int gmsgFlameKill = 0;
 int gmsgMultiParticle = 0;
 int gmsgNukeCrosshair = 0;
+int gmsgPortal = 0;
 
 void LinkUserMessages( void )
 {
@@ -272,6 +273,7 @@ void LinkUserMessages( void )
 	gmsgFlameKill = REG_USER_MSG("FlameKill", -1);
 	gmsgMultiParticle = REG_USER_MSG("MParticle", -1);
 	gmsgNukeCrosshair = REG_USER_MSG("NukeCross", 1);
+	gmsgPortal = REG_USER_MSG("Portal", -1);
 }
 
 LINK_ENTITY_TO_CLASS( player, CBasePlayer );
@@ -5281,6 +5283,38 @@ void CBasePlayer :: UpdateClientData( void )
 		MESSAGE_END();
 
 		// cache FOV change at end of function, so weapon updates can see that FOV has changed
+	}
+
+// Send portal entity over to client
+	if ( !g_pGameRules->IsDeathmatch() )
+	{
+		if (m_pPortal[0] && m_pPortal[1])
+		{
+			MESSAGE_BEGIN(MSG_ONE, gmsgPortal, NULL, pev);
+			//WRITE_BYTE(m_pPortal[0]->entindex()); // first portal;
+			WRITE_COORD(m_pPortal[0]->pev->origin.x); // coord;
+			WRITE_COORD(m_pPortal[0]->pev->origin.y); // coord;
+			WRITE_COORD(m_pPortal[0]->pev->origin.z); // coord;
+			WRITE_COORD(m_pPortal[0]->pev->angles.x); // angle;
+			WRITE_COORD(m_pPortal[0]->pev->angles.y); // angle;
+			WRITE_COORD(m_pPortal[0]->pev->angles.z); // angle;
+
+			//WRITE_BYTE(m_pPortal[1]->entindex()); // second portal;
+			WRITE_COORD(m_pPortal[1]->pev->origin.x); // coord;
+			WRITE_COORD(m_pPortal[1]->pev->origin.y); // coord;
+			WRITE_COORD(m_pPortal[1]->pev->origin.z); // coord;
+			WRITE_COORD(m_pPortal[1]->pev->angles.x); // angle;
+			WRITE_COORD(m_pPortal[1]->pev->angles.y); // angle;
+			WRITE_COORD(m_pPortal[1]->pev->angles.z); // angle;
+			MESSAGE_END();
+		}
+		else
+		{
+			MESSAGE_BEGIN(MSG_ONE, gmsgPortal, NULL, pev);
+			WRITE_BYTE(0); // first portal;
+			WRITE_BYTE(0); // second portal;
+			MESSAGE_END();
+		}
 	}
 
 	// HACKHACK -- send the message to display the game title

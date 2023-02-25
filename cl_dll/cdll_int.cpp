@@ -50,6 +50,7 @@ cl_enginefunc_t gEngfuncs;
 CHud gHUD;
 #ifdef _WIN32
 CImguiManager g_ImGUIManager;
+CPortalRenderer gPortalRenderer;
 #endif
 TeamFortressViewport *gViewPort = NULL;
 
@@ -229,6 +230,12 @@ redraw the HUD.
 int CL_DLLEXPORT HUD_Redraw( float time, int intermission )
 {
 //	RecClHudRedraw(time, intermission);
+
+#ifdef _WIN32
+	extern cvar_t *cl_portalmirror;
+	if (cl_portalmirror->value)
+		gPortalRenderer.DrawPortal();
+#endif
 
 	gHUD.Redraw( time, intermission );
 

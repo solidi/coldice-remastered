@@ -9,6 +9,9 @@
 #define STUDIOMODELRENDERER_H
 #if defined( _WIN32 )
 #pragma once
+#include <iostream>
+#include <string>
+#include <vector>
 #endif
 
 /*
