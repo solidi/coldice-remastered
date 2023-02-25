@@ -106,6 +106,7 @@ void HUD_DrawOrthoTriangles();
 // returns 1 if they've changed, 0 otherwise
 int CHud :: Redraw( float flTime, int intermission )
 {
+#ifdef _WIN32
 	extern cvar_t *cl_portalmirror;
 	if (cl_portalmirror->value)
 	{
@@ -114,6 +115,7 @@ int CHud :: Redraw( float flTime, int intermission )
 		gHUD.DrawHudString(100, 100, 512, (char *)port1.c_str(), 0, 0, 255);
 		gHUD.DrawHudString(100, 130, 512, (char *)port2.c_str(), 255, 0, 0);
 	}
+#endif
 
 	m_fOldTime = m_flTime;	// save time of previous redraw
 	m_flTime = flTime;
