@@ -512,7 +512,7 @@ void CHud :: Init( void )
 	cl_wallclimbindicator = CVAR_CREATE( "cl_wallclimbindicator", "1", FCVAR_ARCHIVE );
 	cl_particlesystem = CVAR_CREATE( "cl_particlesystem", "1", FCVAR_ARCHIVE );
 	cl_radar = CVAR_CREATE( "cl_radar", "1", FCVAR_ARCHIVE );
-	cl_portalmirror = CVAR_CREATE("cl_portalmirror", "1", FCVAR_ARCHIVE);
+	cl_portalmirror = CVAR_CREATE("cl_portalmirror", "0", FCVAR_ARCHIVE);
 
 	cl_vmx = CVAR_CREATE( "cl_vmx", "0", FCVAR_ARCHIVE );
 	cl_vmy = CVAR_CREATE( "cl_vmy", "0", FCVAR_ARCHIVE );
