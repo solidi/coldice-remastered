@@ -405,7 +405,7 @@ int CHudHealth::DrawDamage(float flTime)
 
 		if ( m_bitsDamage & giDmgFlags[i] )
 		{
-			pdmg->fExpire = min( flTime + DMG_IMAGE_LIFE, pdmg->fExpire );
+			pdmg->fExpire = fmin( flTime + DMG_IMAGE_LIFE, pdmg->fExpire );
 
 			if ( pdmg->fExpire <= flTime		// when the time has expired
 				&& a < 40 )						// and the flash is at the low point of the cycle

@@ -67,9 +67,9 @@ int CHudLifeBar::MsgFunc_LifeBar(const char *pszName,  int iSize, void *pbuf )
 	int index = READ_BYTE();
 
 	if (health > 100) health = 0; // ignore high values from bots
-	health = min(fmax(health, 0), 100);
+	health = fmin(fmax(health, 0), 100);
 	if (armor > 100) armor = 0;
-	armor = min(fmax(armor, 0), 100);
+	armor = fmin(fmax(armor, 0), 100);
 
 	GetLifeBar()->m_LifeBarData[index].health = health;
 	GetLifeBar()->m_LifeBarData[index].armor = armor;

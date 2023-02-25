@@ -293,7 +293,7 @@ void CGameStudioModelRenderer::StudioEstimateGait( entity_state_t *pplayer )
 
 	dt = (m_clTime - m_clOldTime);
 	dt = fmax( 0.0, dt );
-	dt = min( 1.0, dt );
+	dt = fmin( 1.0, dt );
 
 	if (dt == 0 || m_pPlayerInfo->renderframe == m_nFrameCount)
 	{
@@ -369,7 +369,7 @@ void CGameStudioModelRenderer::StudioProcessGait( entity_state_t *pplayer )
 
 	dt = (m_clTime - m_clOldTime);
 	dt = fmax( 0.0, dt );
-	dt = min( 1.0, dt );
+	dt = fmin( 1.0, dt );
 
 	StudioEstimateGait( pplayer );
 
@@ -403,7 +403,7 @@ void CGameStudioModelRenderer::StudioProcessGait( entity_state_t *pplayer )
 	}
 
 	float blend_yaw = ( flYaw / 90.0 ) * 128.0 + 127.0;
-	blend_yaw = min( 255.0, blend_yaw );
+	blend_yaw = fmin( 255.0, blend_yaw );
 	blend_yaw = fmax( 0.0, blend_yaw );
 	
 	blend_yaw = 255.0 - blend_yaw;
@@ -570,7 +570,7 @@ void CGameStudioModelRenderer::SetupClientAnimation( entity_state_t *pplayer )
 
 	curtime = gEngfuncs.GetClientTime();
 	dt = curtime - oldtime;
-	dt = min( 1.0, fmax( 0.0, dt ) );
+	dt = fmin( 1.0, fmax( 0.0, dt ) );
 
 	oldtime = curtime;
 	st = &g_clientstate;

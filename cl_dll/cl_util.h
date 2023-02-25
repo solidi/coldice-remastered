@@ -182,7 +182,7 @@ inline void PlaySound( char *szSound, float vol ) { gEngfuncs.pfnPlaySoundByName
 inline void PlaySound( int iSound, float vol ) { gEngfuncs.pfnPlaySoundByIndex( iSound, vol ); }
 
 //#define max(a, b)  (((a) > (b)) ? (a) : (b))
-#define min(a, b)  (((a) < (b)) ? (a) : (b))
+//#define min(a, b)  (((a) < (b)) ? (a) : (b))
 
 void ScaleColors( int &r, int &g, int &b, int a );
 

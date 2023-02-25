@@ -129,7 +129,7 @@ int CHudDeathNotice :: Draw( float flTime )
 			continue;
 		}
 
-		rgDeathNoticeList[i].flDisplayTime = min( rgDeathNoticeList[i].flDisplayTime, gHUD.m_flTime + DEATHNOTICE_DISPLAY_TIME );
+		rgDeathNoticeList[i].flDisplayTime = fmin( rgDeathNoticeList[i].flDisplayTime, gHUD.m_flTime + DEATHNOTICE_DISPLAY_TIME );
 
 		// Only draw if the viewport will let me
 		if ( gViewPort && gViewPort->AllowedToPrintText() )
@@ -414,7 +414,7 @@ void CHudDeathNotice::CalculateUTKills(int killer, int victim)
 		m_iKillCount = 0;
 	
 	m_iKillCount++;
-	m_iKillCount = min(m_iKillCount, WTF_KILL);
+	m_iKillCount = fmin(m_iKillCount, WTF_KILL);
 	// Give some time for kills to add if there is more than one, then play.
 	m_fNextKillSpeakTime = gEngfuncs.GetClientTime() + 0.25;
 	m_fLastKillTime = gEngfuncs.GetClientTime() + KILL_SPREE_SECS;

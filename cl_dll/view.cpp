@@ -227,7 +227,7 @@ float V_CalcBob ( struct ref_params_s *pparams )
 
 	bob = sqrt( vel[0] * vel[0] + vel[1] * vel[1] ) * cl_bob->value;
 	bob = bob * 0.3 + bob * 0.7 * sin(cycle);
-	bob = min( bob, 4 );
+	bob = fmin( bob, 4 );
 	bob = fmax( bob, -7 );
 	return bob;
 	
@@ -870,7 +870,7 @@ void V_CalcNormalRefdef ( struct ref_params_s *pparams )
 			if ( dt > 0.0 )
 			{
 				frac = ( t - ViewInterp.OriginTime[ foundidx & ORIGIN_MASK] ) / dt;
-				frac = min( 1.0, frac );
+				frac = fmin( 1.0, frac );
 				VectorSubtract( ViewInterp.Origins[ ( foundidx + 1 ) & ORIGIN_MASK ], ViewInterp.Origins[ foundidx & ORIGIN_MASK ], delta );
 				VectorMA( ViewInterp.Origins[ foundidx & ORIGIN_MASK ], frac, delta, neworg );
 
@@ -1985,9 +1985,9 @@ void V_GlassHud( float bounce, float clientTime, float frameTime ) {
 		}
 	}
 
-	g_xP = min( g_xP, 3.5 );
+	g_xP = fmin( g_xP, 3.5 );
 	g_xP = fmax( g_xP, -3.5 );
-	g_yP = min( g_yP, 2.5 );
+	g_yP = fmin( g_yP, 2.5 );
 	g_yP = fmax( g_yP, -2.5 );
 }
 
@@ -2042,7 +2042,7 @@ void V_WeaponSway( float currentYaw, float frameTime, float clientTime, cl_entit
 	}
 
 	// max distance
-	decay = min(fmax(decay, -5), 5);
+	decay = fmin(fmax(decay, -5), 5);
 
 	if (cl_glasshud->value)
 		g_xP -= decay / 3;
