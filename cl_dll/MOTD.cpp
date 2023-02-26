@@ -81,7 +81,7 @@ int CHudMOTD :: Draw( float fTime )
 	// Don't let time go negative ( level transition? )
 	fElapsed = fmax( 0.0, fElapsed );
 	// Don't let time go hugely positive ( first connection to active server ? )
-	fElapsed = min( 1.0, fElapsed );
+	fElapsed = fmin( 1.0, fElapsed );
 
 	// Remember last timestamp
 	sfLastTime = gHUD.m_flTime;

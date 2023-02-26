@@ -817,6 +817,7 @@ typedef struct
 #define MUTATOR_GRAVITY 28
 #define MUTATOR_SNOWBALL 29
 #define MUTATOR_PUSHY 30
+#define MUTATOR_PORTAL 31
 
 #define GAME_FFA 0
 #define GAME_ICEMAN 1

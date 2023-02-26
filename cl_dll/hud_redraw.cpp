@@ -19,6 +19,7 @@
 #include "hud.h"
 #include "cl_util.h"
 #include "bench.h"
+#include <string>
 
 #include "vgui_TeamFortressViewport.h"
 
@@ -105,6 +106,17 @@ void HUD_DrawOrthoTriangles();
 // returns 1 if they've changed, 0 otherwise
 int CHud :: Redraw( float flTime, int intermission )
 {
+#ifdef _WIN32
+	extern cvar_t *cl_portalmirror;
+	if (cl_portalmirror->value)
+	{
+		std::string port1 = "Portal 1 origin: " + std::to_string(gHUD.portal1finalorg.x) + " " + std::to_string(gHUD.portal1finalorg.y) + " " + std::to_string(gHUD.portal1finalorg.z);
+		std::string port2 = "Portal 2 origin: " + std::to_string(gHUD.portal2finalorg.x) + " " + std::to_string(gHUD.portal2finalorg.y) + " " + std::to_string(gHUD.portal2finalorg.z);
+		gHUD.DrawHudString(100, 100, 512, (char *)port1.c_str(), 0, 0, 255);
+		gHUD.DrawHudString(100, 130, 512, (char *)port2.c_str(), 255, 0, 0);
+	}
+#endif
+
 	m_fOldTime = m_flTime;	// save time of previous redraw
 	m_flTime = flTime;
 	m_flTimeDelta = (double)m_flTime - m_fOldTime;
@@ -149,6 +161,11 @@ int CHud :: Redraw( float flTime, int intermission )
 
 	// if no redrawing is necessary
 	// return 0;
+
+#ifdef _WIN32
+	if (cl_portalmirror->value)
+		glDepthRange(0.0f, 0.0f);
+#endif
 	
 	// draw all registered HUD elements
 	if ( m_pCvarDraw->value )
@@ -206,6 +223,11 @@ int CHud :: Redraw( float flTime, int intermission )
 
 		SPR_DrawAdditive(i, x, y, NULL);
 	}
+
+#ifdef _WIN32
+	if (cl_portalmirror->value)
+		glDepthRange(0.0f, 1.0f);
+#endif
 
 	/*
 	if ( g_iVisibleMouse )

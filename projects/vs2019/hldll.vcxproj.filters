@@ -54,6 +54,9 @@
     <ClCompile Include="..\..\dlls\apache.cpp">
       <Filter>Source Files\dlls</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\dlls\ashpod.cpp">
+      <Filter>Source Files\dlls</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\dlls\barnacle.cpp">
       <Filter>Source Files\dlls</Filter>
     </ClCompile>

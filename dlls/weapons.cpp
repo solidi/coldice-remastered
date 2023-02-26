@@ -469,6 +469,7 @@ void W_Precache(void)
 	UTIL_PrecacheOtherWeapon( "weapon_gravitygun" );
 	UTIL_PrecacheOtherWeapon( "weapon_flamethrower" );
 	UTIL_PrecacheOtherWeapon( "weapon_dual_flamethrower" );
+	UTIL_PrecacheOtherWeapon( "weapon_ashpod" );
 
 	UTIL_PrecacheOther( "monster_barrel" );
 	UTIL_PrecacheOther( "monster_sentry" );
@@ -711,7 +712,8 @@ CBaseEntity* CBasePlayerItem::Respawn( void )
 		"weapon_wrench",
 		"weapon_chainsaw",
 		"weapon_dual_wrench",
-		"weapon_gravitygun"
+		"weapon_gravitygun",
+		"weapon_ashpod"
 		},
 
 		{
@@ -1961,6 +1963,10 @@ BOOL CWeaponBox::PackWeapon( CBasePlayerItem *pWeapon )
 		else if (pWeapon->m_iId == WEAPON_DUAL_FLAMETHROWER)
 		{
 			SET_MODEL( ENT(pev), "models/w_dual_flamethrower.mdl");
+		}
+		else if (pWeapon->m_iId == WEAPON_ASHPOD)
+		{
+			SET_MODEL( ENT(pev), "models/w_portalgun.mdl");
 		}
 
 		pev->sequence = 1;

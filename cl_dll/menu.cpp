@@ -187,8 +187,8 @@ int CHudMenu :: Draw( float flTime )
 			{
 				sptr++;
 			}
-			strncpy( menubuf, ptr, min( ( sptr - ptr), (int)sizeof( menubuf ) ));
-			menubuf[ min( ( sptr - ptr), (int)(sizeof( menubuf )-1) ) ] = '\0';
+			strncpy( menubuf, ptr, fmin( ( sptr - ptr), (int)sizeof( menubuf ) ));
+			menubuf[ (int)fmin( ( sptr - ptr), (int)(sizeof( menubuf )-1) ) ] = '\0';
 			
 			if ( menu_ralign )
 			{		

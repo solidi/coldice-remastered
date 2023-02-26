@@ -115,6 +115,7 @@ public:
 #define WEAPON_GRAVITYGUN		44
 #define WEAPON_FLAMETHROWER		45
 #define WEAPON_DUAL_FLAMETHROWER	46
+#define WEAPON_ASHPOD	47
 
 #define WEAPON_ALLWEAPONS		(~(1<<WEAPON_SUIT))
 
@@ -159,6 +160,7 @@ public:
 #define ROCKETCROWBAR_WEIGHT 20
 #define GRAVITYGUN_WEIGHT	2
 #define FLAMETHROWER_WEIGHT	18
+#define ASHPOD_WEIGHT	3
 
 
 // weapon clip/carry ammo capacities
@@ -2353,6 +2355,40 @@ private:
 	float DangerSoundTime;
 	float m_flAmmoUseTime;
 	float m_fSecondaryFireTime;
+};
+
+class CAshpod : public CBasePlayerWeapon
+{
+public:
+	void Spawn( void );
+	void Precache( void );
+	BOOL AddToPlayer( CBasePlayer *pPlayer );
+	int iItemSlot( void ) { return 1; }
+	int GetItemInfo(ItemInfo *p);
+
+	void PrimaryAttack( void );
+	void SecondaryAttack( void );
+	void PortalFire( int state );
+	BOOL DeployLowKey( void );
+	BOOL Deploy( void );
+	void Holster( int skiplocal );
+	void WeaponIdle( void );
+
+	virtual BOOL UseDecrement( void )
+	{ 
+#if defined( CLIENT_WEAPONS )
+		return TRUE;
+#else
+		return FALSE;
+#endif
+	}
+
+	virtual BOOL SemiAuto( void ) { return TRUE; }
+
+private:
+	int m_iTrail;
+	int m_iIceTrail;
+	int m_iShell;
 };
 
 class CFlyingSnowball : public CBaseEntity

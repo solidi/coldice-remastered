@@ -63,7 +63,8 @@ CFLAGS=$(BASE_CFLAGS)  $(ARCH_CFLAGS) $(DEBUG_CFLAGS) -DCLIENT_WEAPONS \
 		 -DDUALRAILGUN \
 		 -DGRAVITYGUN \
 		 -DFLAMETHROWER \
-		 -DDUALFLAMETHROWER
+		 -DDUALFLAMETHROWER \
+		 -DASHPOD
 
 #-O3 -ffast-math -fno-strength-reduce
 
@@ -88,6 +89,7 @@ HLDLL_OBJS = \
 	$(HLDLL_OBJ_DIR)/animating.o \
 	$(HLDLL_OBJ_DIR)/animation.o \
 	$(HLDLL_OBJ_DIR)/apache.o \
+	$(HLDLL_OBJ_DIR)/ashpod.o \
 	$(HLDLL_OBJ_DIR)/barnacle.o \
 	$(HLDLL_OBJ_DIR)/barney.o \
 	$(HLDLL_OBJ_DIR)/barrel.o \

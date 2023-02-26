@@ -63,6 +63,7 @@ cvar_t *cl_hudbend;
 cvar_t *cl_wallclimbindicator;
 cvar_t *cl_particlesystem;
 cvar_t *cl_radar;
+cvar_t *cl_portalmirror;
 
 cvar_t *cl_vmx;
 cvar_t *cl_vmy;
@@ -168,6 +169,42 @@ int __MsgFunc_Concuss(const char *pszName, int iSize, void *pbuf)
 int __MsgFunc_GameMode(const char *pszName, int iSize, void *pbuf )
 {
 	return gHUD.MsgFunc_GameMode( pszName, iSize, pbuf );
+}
+
+int __MsgFunc_Portal(const char* pszName, int iSize, void* pbuf)
+{
+	BEGIN_READ(pbuf, iSize);
+	//gPortalRenderer.portal1index = READ_BYTE();
+	//gPortalRenderer.portal2index = READ_BYTE();
+
+	Vector portal1org;
+	for (int i = 0; i < 3; i++)
+		portal1org[i] = READ_COORD();
+
+	Vector portal1ang;
+	for (int i = 0; i < 3; i++)
+		portal1ang[i] = READ_COORD();
+
+	Vector portal2org;
+	for (int i = 0; i < 3; i++)
+		portal2org[i] = READ_COORD();
+
+	Vector portal2ang;
+	for (int i = 0; i < 3; i++)
+		portal2ang[i] = READ_COORD();
+
+#ifdef _WIN32
+	gPortalRenderer.m_Portal1[0] = portal1org;
+	gPortalRenderer.m_Portal1[1] = portal1ang;
+
+	gPortalRenderer.m_Portal2[0] = portal2org;
+	gPortalRenderer.m_Portal2[1] = portal2ang;
+
+	// set rendering status
+	gPortalRenderer.m_bIsDrawingPortal = portal1org != vec3_origin && portal2org != vec3_origin;
+#endif
+
+	return 1;
 }
 
 // TFFree Command Menu
@@ -440,6 +477,7 @@ void CHud :: Init( void )
 	HOOK_MESSAGE( FlameMsg );
 	HOOK_MESSAGE( FlameKill );
 	HOOK_MESSAGE( MParticle );
+	HOOK_MESSAGE( Portal );
 
 	CVAR_CREATE( "hud_classautokill", "1", FCVAR_ARCHIVE | FCVAR_USERINFO );		// controls whether or not to suicide immediately on TF class switch
 	CVAR_CREATE( "hud_takesshots", "0", FCVAR_ARCHIVE );		// controls whether or not to automatically take screenshots at the end of a round
@@ -474,6 +512,7 @@ void CHud :: Init( void )
 	cl_wallclimbindicator = CVAR_CREATE( "cl_wallclimbindicator", "1", FCVAR_ARCHIVE );
 	cl_particlesystem = CVAR_CREATE( "cl_particlesystem", "1", FCVAR_ARCHIVE );
 	cl_radar = CVAR_CREATE( "cl_radar", "1", FCVAR_ARCHIVE );
+	cl_portalmirror = CVAR_CREATE("cl_portalmirror", "0", FCVAR_ARCHIVE);
 
 	cl_vmx = CVAR_CREATE( "cl_vmx", "0", FCVAR_ARCHIVE );
 	cl_vmy = CVAR_CREATE( "cl_vmy", "0", FCVAR_ARCHIVE );
@@ -539,6 +578,7 @@ void CHud :: Init( void )
 	InitRain();
 #ifdef _WIN32
 	g_ImGUIManager.Init();
+	gPortalRenderer.Init();
 #endif
 	m_Particle.Init();
 

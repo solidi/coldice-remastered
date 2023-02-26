@@ -138,6 +138,7 @@
     <ClCompile Include="..\..\cl_dll\message.cpp" />
     <ClCompile Include="..\..\cl_dll\MOTD.cpp" />
     <ClCompile Include="..\..\cl_dll\nukecrosshair.cpp" />
+    <ClCompile Include="..\..\cl_dll\portalrenderer.cpp" />
     <ClCompile Include="..\..\cl_dll\radar.cpp" />
     <ClCompile Include="..\..\cl_dll\rain.cpp" />
     <ClCompile Include="..\..\cl_dll\saytext.cpp" />
@@ -170,6 +171,7 @@
     <ClCompile Include="..\..\cl_dll\particlemsg.cpp" />
     <ClCompile Include="..\..\cl_dll\particlesys.cpp" />
     <ClCompile Include="..\..\common\parsemsg.cpp" />
+    <ClCompile Include="..\..\dlls\ashpod.cpp" />
     <ClCompile Include="..\..\dlls\cannon.cpp" />
     <ClCompile Include="..\..\dlls\chaingun.cpp" />
     <ClCompile Include="..\..\dlls\chainsaw.cpp" />

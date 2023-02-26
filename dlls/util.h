@@ -351,6 +351,8 @@ extern int BuildChangeList( LEVELLIST *pLevelList, int maxList );
 
 extern void UTIL_FindHullIntersection( const Vector &vecSrc, TraceResult &tr, float *mins, float *maxs, edict_t *pEntity );
 
+extern void UTIL_VectorAngles( const float *forward, float *angles );
+
 //
 // How did I ever live without ASSERT?
 //
