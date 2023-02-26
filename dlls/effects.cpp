@@ -2329,7 +2329,7 @@ void CPortalEntity::Think()
 	CBaseEntity* pFound = NULL; //UTIL_FindEntityInSphere(nullptr, pev->origin, 20);
 	while ((pFound = UTIL_FindEntityInSphere(pFound, pev->origin, 48)) != NULL)
 	{
-		if (pFound)
+		if (pFound && FBitSet(pFound->ObjectCaps(), FCAP_PORTAL))
 		{
 			if (FClassnameIs(pFound->pev, "ent_portal"))
 				return;
@@ -2382,7 +2382,7 @@ void CPortalEntity::Think()
 							pFound->pev->fixangle = 1;
 							pFound->pev->v_angle.y = pFound->pev->angles.y = pFound->pev->angles.y + 180 + (pOtherPortalCasted->pev->angles.y - pev->angles.y); 
 							pFound->pev->velocity = forwardSpeedOffset + rightSpeedOffset + Vector(0, 0, pFound->pev->velocity.z);
-							this->m_flPortalCooldown = pOtherPortalCasted->m_flPortalCooldown = gpGlobals->time;
+							this->m_flPortalCooldown = pOtherPortalCasted->m_flPortalCooldown = gpGlobals->time + 0.5;
 						
 							MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
 								WRITE_BYTE( TE_TELEPORT	); 
@@ -2390,6 +2390,17 @@ void CPortalEntity::Think()
 								WRITE_COORD(pFound->pev->origin.y);
 								WRITE_COORD(pFound->pev->origin.z);
 							MESSAGE_END();
+
+							TraceResult trace;
+							UTIL_TraceHull(pFound->pev->origin, pFound->pev->origin, dont_ignore_monsters, head_hull, pFound->edict(), &trace );
+							if (trace.fStartSolid)
+							{
+								if (pFound->IsPlayer() && pFound->IsAlive()) {
+									ClearMultiDamage();
+									pFound->pev->health = 0;
+									pFound->Killed( pFound->pev, GIB_NEVER );
+								}
+							}
 
 							EMIT_SOUND(ENT(pOtherPortalCasted->pev), CHAN_BODY, "portal_enter2.wav", 1, ATTN_NORM);
 						}

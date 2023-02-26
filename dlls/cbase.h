@@ -42,6 +42,9 @@ CBaseEntity
 // UNDONE: This will ignore transition volumes (trigger_transition), but not the PVS!!!
 #define		FCAP_FORCE_TRANSITION		0x00000080		// ALWAYS goes across transitions
 
+#define		FCAP_PORTAL					0x00000100		// Now you're thinking with portals
+
+
 #include "archtypes.h"     // DAL
 #include "saverestore.h"
 #include "schedule.h"
