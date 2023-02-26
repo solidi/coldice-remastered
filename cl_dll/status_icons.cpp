@@ -201,4 +201,14 @@ void CHudStatusIcons::DrawMutators( void )
 	}
 	else
 		DisableIcon("volatile");
+
+	if (gHUD.szActiveMutators != NULL &&
+		(strstr(gHUD.szActiveMutators, "portal") ||
+		atoi(gHUD.szActiveMutators) == MUTATOR_PORTAL))
+	{
+		m_iFlags |= HUD_ACTIVE;
+		EnableIcon("portal",r,g,b);
+	}
+	else
+		DisableIcon("portal");
 }
