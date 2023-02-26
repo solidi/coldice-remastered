@@ -61,6 +61,7 @@ extern DLL_GLOBAL const char *g_MutatorSnowball;
 extern DLL_GLOBAL const char *g_MutatorPushy;
 extern DLL_GLOBAL const char *g_MutatorGravity;
 extern DLL_GLOBAL const char *g_MutatorInvisible;
+extern DLL_GLOBAL const char *g_MutatorPortal;
 
 //=========================================================
 //=========================================================
@@ -511,6 +512,11 @@ void CGameRules::SpawnMutators(CBasePlayer *pPlayer)
 		pPlayer->GiveNamedItem("weapon_gravitygun");
 	}
 
+	if (strstr(mutators.string, g_MutatorPortal) ||
+		atoi(mutators.string) == MUTATOR_PORTAL) {
+		pPlayer->GiveNamedItem("weapon_ashpod");
+	}
+
 	if (strstr(mutators.string, g_MutatorInvisible) ||
 		atoi(mutators.string) == MUTATOR_INVISIBLE) {
 		if (pPlayer->pev->renderfx == kRenderFxGlowShell)
@@ -646,6 +652,12 @@ void CGameRules::CheckMutators(void)
 					atoi(mutators.string) == MUTATOR_BARRELS) {
 					if (!pl->HasNamedPlayerItem("weapon_gravitygun"))
 						pl->GiveNamedItem("weapon_gravitygun");
+				}
+
+				if (strstr(mutators.string, g_MutatorPortal) ||
+					atoi(mutators.string) == MUTATOR_PORTAL) {
+					if (!pl->HasNamedPlayerItem("weapon_ashpod"))
+						pl->GiveNamedItem("weapon_ashpod");
 				}
 
 				if (strstr(mutators.string, g_MutatorInvisible) ||
