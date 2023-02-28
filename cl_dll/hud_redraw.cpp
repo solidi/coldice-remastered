@@ -398,7 +398,7 @@ void CHud::ShowTextTips( void ) {
 		return;
 	}
 
-	const int MESSAGE_SIZE = 26;
+	const int MESSAGE_SIZE = 27;
 
 	const char* messageList[MESSAGE_SIZE] = {
 		"Tired of blue skins? Type \"cl_icemodels 0\" in the console switches to real-life skins.\n",
@@ -427,6 +427,7 @@ void CHud::ShowTextTips( void ) {
 		"Tap \"+jump\" against a wall to perform a wall climb.\n",
 		"To turn off weather effects, type \"cl_weather 0\" into the console.\n",
 		"Type \"cl_wallclimbindicator 0\" to turn off the hint above.\n",
+		"Join our Cold Ice Discord at discord.com/invite/Hu2Q6pcJn3\n",
 	};
 
 	// Unstick after a level change
