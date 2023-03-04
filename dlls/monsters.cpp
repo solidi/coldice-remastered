@@ -333,7 +333,9 @@ void CBaseMonster :: Look ( int iDistance )
 			{
 				// the looker will want to consider this entity
 				// don't check anything else about an entity that can't be seen, or an entity that you don't care about.
-				if ( IRelationship( pSightEnt ) != R_NO && FInViewCone( pSightEnt ) && !FBitSet( pSightEnt->pev->flags, FL_NOTARGET ) && FVisible( pSightEnt ) )
+				if ( (IRelationship( pSightEnt ) != R_NO ||
+					 (pev->owner != NULL && pSightEnt->pev->owner != NULL && pev->owner != pSightEnt->pev->owner)) &&
+					 FInViewCone( pSightEnt ) && !FBitSet( pSightEnt->pev->flags, FL_NOTARGET ) && FVisible( pSightEnt ) )
 				{
 					if ( pSightEnt->IsPlayer() )
 					{
@@ -386,6 +388,12 @@ void CBaseMonster :: Look ( int iDistance )
 						break;
 					case    R_AL:
 						break;
+					case R_NO:
+						if (pev->owner != pSightEnt->pev->owner)
+						{
+							iSighted |= bits_COND_SEE_NEMESIS;
+							break;
+						}
 					default:
 						ALERT ( at_aiconsole, "%s can't assess %s\n", STRING(pev->classname), STRING(pSightEnt->pev->classname ) );
 						break;
@@ -1241,6 +1249,9 @@ void CBaseMonster :: PushEnemy( CBaseEntity *pEnemy, Vector &vecLastKnownPos )
 	int i;
 
 	if (pEnemy == NULL)
+		return;
+
+	if (pEnemy->edict() == pev->owner)
 		return;
 
 	// UNDONE: blah, this is bad, we should use a stack but I'm too lazy to code one.
@@ -2160,11 +2171,13 @@ void CBaseMonster :: StartMonster ( void )
 		pev->origin.z += 1;
 		DROP_TO_FLOOR ( ENT(pev) );
 		// Try to move the monster to make sure it's not stuck in a brush.
+#ifdef _DEBUG
 		if (!WALK_MOVE ( ENT(pev), 0, 0, WALKMOVE_NORMAL ) )
 		{
 			ALERT(at_error, "Monster %s stuck in wall--level design error", STRING(pev->classname));
 			pev->effects = EF_BRIGHTFIELD;
 		}
+#endif
 	}
 	else 
 	{
@@ -3433,7 +3446,7 @@ BOOL CBaseMonster :: GetEnemy ( void )
 	{
 		pNewEnemy = BestVisibleEnemy();
 
-		if ( pNewEnemy != m_hEnemy && pNewEnemy != NULL)
+		if ( pNewEnemy != m_hEnemy && pNewEnemy != NULL && pNewEnemy->edict() != pev->owner )
 		{
 			// DO NOT mess with the monster's m_hEnemy pointer unless the schedule the monster is currently running will be interrupted
 			// by COND_NEW_ENEMY. This will eliminate the problem of monsters getting a new enemy while they are in a schedule that doesn't care,

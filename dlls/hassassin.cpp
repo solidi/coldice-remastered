@@ -281,12 +281,12 @@ void CHAssassin :: Spawn()
 {
 	Precache( );
 
-	SET_MODEL(ENT(pev), "models/hassassin.mdl");
+	SET_MODEL(ENT(pev), "models/w_hassassin.mdl");
 	UTIL_SetSize(pev, VEC_HUMAN_HULL_MIN, VEC_HUMAN_HULL_MAX);
 
 	pev->solid			= SOLID_SLIDEBOX;
 	pev->movetype		= MOVETYPE_STEP;
-	m_bloodColor		= BLOOD_COLOR_RED;
+	m_bloodColor		= iceblood.value ? BLOOD_COLOR_BLUE : BLOOD_COLOR_RED;
 	pev->effects		= 0;
 	pev->health			= gSkillData.hassassinHealth;
 	m_flFieldOfView		= VIEW_FIELD_WIDE; // indicates the width of this monster's forward view cone ( as a dotproduct result )
@@ -308,7 +308,7 @@ void CHAssassin :: Spawn()
 //=========================================================
 void CHAssassin :: Precache()
 {
-	PRECACHE_MODEL("models/hassassin.mdl");
+	PRECACHE_MODEL("models/w_hassassin.mdl");
 
 	PRECACHE_SOUND("weapons/pl_gun1.wav");
 	PRECACHE_SOUND("weapons/pl_gun2.wav");
