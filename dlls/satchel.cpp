@@ -193,6 +193,18 @@ void CSatchelCharge :: SatchelThink( void )
 		pev->sequence = RANDOM_LONG(0, 2);
 
 		m_transformed = true;
+
+#ifndef CLIENT_DLL
+		if (g_pGameRules->FAllowMonsters())
+		{
+			CBaseEntity *pAssassin = CBaseEntity::Create( "monster_human_assassin", pev->origin, pev->angles, NULL );
+			if (pAssassin)
+			{
+				pAssassin->pev->owner = pev->owner;
+				UTIL_Remove( this );
+			}
+		}
+#endif
 	}
 }
 
@@ -433,6 +445,26 @@ void CSatchel::PrimaryAttack()
 			}
 		}
 
+#ifndef CLIENT_DLL
+		if (g_pGameRules->FAllowMonsters())
+		{
+			CBaseEntity *pAssassin = NULL;
+			while ((pAssassin = UTIL_FindEntityInSphere( pAssassin, m_pPlayer->pev->origin, 4096 )) != NULL)
+			{
+				if (FClassnameIs( pAssassin->pev, "monster_human_assassin"))
+				{
+					if (pAssassin->pev->owner == pPlayer)
+					{
+						CGrenade::Vest( VARS(pAssassin->pev->owner), pAssassin->pev->origin );
+						pAssassin->pev->solid = SOLID_NOT;
+						((CBaseMonster *)pAssassin)->GibMonster();
+						pAssassin->pev->effects |= EF_NODRAW;
+					}
+				}
+			}
+		}
+#endif
+
 		m_chargeReady = 2;
 		m_flNextPrimaryAttack = GetNextAttackDelay(0.5);
 		m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 0.5;
@@ -564,6 +596,29 @@ void DeactivateSatchels( CBasePlayer *pOwner )
 		}
 
 		pFind = FIND_ENTITY_BY_CLASSNAME( pFind, "monster_satchel" );
+	}
+}
+
+void DeactivateAssassins( CBasePlayer *pOwner )
+{
+	edict_t *pFind; 
+
+	pFind = FIND_ENTITY_BY_CLASSNAME( NULL, "monster_human_assassin" );
+
+	while ( !FNullEnt( pFind ) )
+	{
+		CBaseEntity *pEnt = CBaseEntity::Instance( pFind );
+
+		if ( pEnt )
+		{
+			if ( pEnt->pev->owner == pOwner->edict() )
+			{
+				pEnt->pev->solid = SOLID_NOT;
+				UTIL_Remove( pEnt );
+			}
+		}
+
+		pFind = FIND_ENTITY_BY_CLASSNAME( pFind, "monster_human_assassin" );
 	}
 }
 

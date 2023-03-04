@@ -1962,6 +1962,8 @@ void CHalfLifeMultiplay :: PlayerKilled( CBasePlayer *pVictim, entvars_t *pKille
 	if ( pVictim->HasNamedPlayerItem("weapon_satchel") )
 	{
 		DeactivateSatchels( pVictim );
+		if (g_pGameRules->FAllowMonsters())
+			DeactivateAssassins( pVictim );
 	}
 #endif
 
@@ -1991,6 +1993,13 @@ void CHalfLifeMultiplay::DeathNotice( CBasePlayer *pVictim, entvars_t *pKiller, 
 	// Hack to fix name change
 	char *tau = "tau_cannon";
 	char *gluon = "gluon gun";
+
+	// For assassin kills
+	if (pevInflictor != NULL 
+		&& strncmp(STRING( pevInflictor->classname ), "monster_human_assassin", 22) == 0)
+	{
+		pKiller = VARS(Killer->pev->owner);
+	}
 
 	if ( pKiller->flags & FL_CLIENT )
 	{
@@ -2038,6 +2047,9 @@ void CHalfLifeMultiplay::DeathNotice( CBasePlayer *pVictim, entvars_t *pKiller, 
 		killer_weapon_name += 5;
 	else if ( strncmp( killer_weapon_name, "player", 6 ) == 0 )
 		killer_weapon_name = "flamethrower";
+
+	if ( strncmp( killer_weapon_name, "human_assassin", 14 ) == 0 )
+		killer_weapon_name = "vest";
 
 	MESSAGE_BEGIN( MSG_ALL, gmsgDeathMsg );
 		WRITE_BYTE( killer_index );						// the killer

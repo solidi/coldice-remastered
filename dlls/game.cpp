@@ -37,7 +37,7 @@ cvar_t	decalfrequency = {"decalfrequency","30", FCVAR_SERVER };
 cvar_t	teamlist = {"mp_teamlist","hgrunt;scientist", FCVAR_SERVER };
 cvar_t	teamoverride = {"mp_teamoverride","1" };
 cvar_t	defaultteam = {"mp_defaultteam","0" };
-cvar_t	allowmonsters={"mp_allowmonsters","0", FCVAR_SERVER };
+cvar_t	allowmonsters={"mp_allowmonsters","1", FCVAR_SERVER };
 
 #if defined( GRAPPLING_HOOK )
 cvar_t	grapplinghook = {"mp_grapplinghook","1", FCVAR_SERVER };
