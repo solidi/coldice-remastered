@@ -130,7 +130,7 @@ CHalfLifeMultiplay :: CHalfLifeMultiplay()
 	ResetGameMode();
 
 #ifdef _DEBUG
-	g_iKickSomeone = gpGlobals->time + RANDOM_FLOAT(1,2);
+	g_iKickSomeone = gpGlobals->time + debug_disconnects_time.value;
 #endif
 }
 
@@ -1662,9 +1662,9 @@ void CHalfLifeMultiplay :: PlayerThink( CBasePlayer *pPlayer )
 			SERVER_COMMAND("addbot\n");
 		}
 
-		g_iKickSomeone = gpGlobals->time + RANDOM_LONG(2, 4);
+		g_iKickSomeone = gpGlobals->time + debug_disconnects_time.value;
 	}
-#endif
+//#endif
 }
 
 //=========================================================

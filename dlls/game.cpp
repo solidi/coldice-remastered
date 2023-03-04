@@ -612,6 +612,7 @@ cvar_t	sk_player_leg3	= { "sk_player_leg3","1" };
 
 #ifdef _DEBUG
 cvar_t	debug_disconnects = { "Disconnect.debug", "0", FCVAR_SERVER };
+cvar_t	debug_disconnects_time = { "Disconnect.time", "0.25", FCVAR_SERVER };
 #endif
 
 // END Cvars for Skill Level settings
@@ -1230,6 +1231,7 @@ void GameDLLInit( void )
 
 #ifdef _DEBUG
 	CVAR_REGISTER ( &debug_disconnects );
+	CVAR_REGISTER ( &debug_disconnects_time );
 #endif
 
 	SERVER_COMMAND( "exec skill.cfg\n" );

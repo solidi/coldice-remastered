@@ -81,6 +81,7 @@ extern cvar_t	*g_footsteps;
 // Debug Cvars
 #ifdef _DEBUG
 extern cvar_t	debug_disconnects;
+extern cvar_t	debug_disconnects_time;
 #endif
 
 #endif		// GAME_H
