@@ -1664,7 +1664,7 @@ void CHalfLifeMultiplay :: PlayerThink( CBasePlayer *pPlayer )
 
 		g_iKickSomeone = gpGlobals->time + debug_disconnects_time.value;
 	}
-//#endif
+#endif
 }
 
 //=========================================================
