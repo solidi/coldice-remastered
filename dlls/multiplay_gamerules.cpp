@@ -1480,6 +1480,12 @@ void CHalfLifeMultiplay :: ClientDisconnected( edict_t *pClient )
 			pPlayer->HasDisconnected = TRUE;
 			pPlayer->IsInArena = FALSE;
 
+			if (pPlayer->pev->flags & FL_FAKECLIENT)
+			{
+				pPlayer->pev->frags = 0;
+				pPlayer->m_iDeaths = 0;
+			}
+
 			if ( !pPlayer->IsSpectator() )
 			{
 				MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
