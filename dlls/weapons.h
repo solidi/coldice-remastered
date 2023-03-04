@@ -1457,8 +1457,6 @@ public:
 	void SecondaryAttack( void );
 	void WeaponIdle( void );
 
-	BOOL ShouldWeaponIdle( void ) { return TRUE; };
-
 	virtual BOOL UseDecrement( void )
 	{
 #if defined( CLIENT_WEAPONS )
@@ -1870,8 +1868,6 @@ public:
 	void PrimaryAttack( void );
 	void SecondaryAttack( void );
 	void WeaponIdle( void );
-
-	BOOL ShouldWeaponIdle( void ) { return TRUE; };
 
 	virtual BOOL UseDecrement( void )
 	{
