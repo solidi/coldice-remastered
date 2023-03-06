@@ -156,6 +156,7 @@
     <ClCompile Include="..\..\dlls\gman.cpp" />
     <ClCompile Include="..\..\dlls\grapplinghook.cpp" />
     <ClCompile Include="..\..\dlls\gravitygun.cpp" />
+    <ClCompile Include="..\..\dlls\gungame_gamerules.cpp" />
     <ClCompile Include="..\..\dlls\handgrenade.cpp" />
     <ClCompile Include="..\..\dlls\hassassin.cpp" />
     <ClCompile Include="..\..\dlls\headcrab.cpp" />
@@ -257,6 +258,7 @@
     <ClInclude Include="..\..\dlls\func_break.h" />
     <ClInclude Include="..\..\dlls\gamerules.h" />
     <ClInclude Include="..\..\dlls\grapplinghook.h" />
+    <ClInclude Include="..\..\dlls\gungame_gamerules.h" />
     <ClInclude Include="..\..\dlls\hornet.h" />
     <ClInclude Include="..\..\dlls\items.h" />
     <ClInclude Include="..\..\dlls\monsterevent.h" />

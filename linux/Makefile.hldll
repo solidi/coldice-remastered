@@ -143,6 +143,7 @@ HLDLL_OBJS = \
 	$(HLDLL_OBJ_DIR)/gman.o \
 	$(HLDLL_OBJ_DIR)/grapplinghook.o \
 	$(HLDLL_OBJ_DIR)/gravitygun.o \
+	$(HLDLL_OBJ_DIR)/gungame_gamerules.o \
 	$(HLDLL_OBJ_DIR)/h_ai.o \
 	$(HLDLL_OBJ_DIR)/h_battery.o \
 	$(HLDLL_OBJ_DIR)/h_cine.o \

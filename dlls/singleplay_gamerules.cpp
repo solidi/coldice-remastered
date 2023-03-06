@@ -334,6 +334,16 @@ int CHalfLifeRules::DeadPlayerAmmo( CBasePlayer *pPlayer )
 	return GR_PLR_DROP_AMMO_NO;
 }
 
+BOOL CHalfLifeRules::IsAllowedSingleWeapon( CBaseEntity *pEntity )
+{
+	return TRUE;
+}
+
+BOOL CHalfLifeRules::IsAllowedToDropWeapon( void )
+{
+	return FALSE;
+}
+
 //=========================================================
 //=========================================================
 int CHalfLifeRules::PlayerRelationship( CBaseEntity *pPlayer, CBaseEntity *pTarget )
