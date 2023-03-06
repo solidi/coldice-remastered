@@ -64,7 +64,7 @@ extern DLL_GLOBAL const char *g_MutatorGravity;
 extern DLL_GLOBAL const char *g_MutatorInvisible;
 extern DLL_GLOBAL const char *g_MutatorPortal;
 
-extern DLL_GLOBAL const char *g_GameMode;
+extern DLL_GLOBAL int g_GameMode;
 
 //=========================================================
 //=========================================================
