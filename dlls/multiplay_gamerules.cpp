@@ -2538,6 +2538,16 @@ int CHalfLifeMultiplay::DeadPlayerAmmo( CBasePlayer *pPlayer )
 		return GR_PLR_DROP_AMMO_ACTIVE;
 }
 
+BOOL CHalfLifeMultiplay::IsAllowedSingleWeapon( CBaseEntity *pEntity )
+{
+	return TRUE;
+}
+
+BOOL CHalfLifeMultiplay::IsAllowedToDropWeapon( void )
+{
+	return TRUE;
+}
+
 edict_t *CHalfLifeMultiplay::GetPlayerSpawnSpot( CBasePlayer *pPlayer )
 {
 	edict_t *pentSpawnSpot = CGameRules::GetPlayerSpawnSpot( pPlayer );	

@@ -5837,11 +5837,11 @@ int CBasePlayer :: GetCustomDecalFrames( void )
 //=========================================================
 void CBasePlayer::DropPlayerItem ( char *pszItemName )
 {
-	if ( !g_pGameRules->IsMultiplayer() || (weaponstay.value > 0) )
-	{
-		// no dropping in single player.
+	if ( !g_pGameRules->IsAllowedToDropWeapon())
 		return;
-	}
+
+	if ( weaponstay.value > 0 )
+		return;
 
 	if ( !strlen( pszItemName ) )
 	{

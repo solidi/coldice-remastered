@@ -141,6 +141,9 @@ public:
 // What happens to a dead player's ammo	
 	virtual int DeadPlayerAmmo( CBasePlayer *pPlayer ) = 0;// Do I drop ammo when the player dies? How much?
 
+	virtual BOOL IsAllowedSingleWeapon( CBaseEntity *pEntity ) = 0;
+	virtual BOOL IsAllowedToDropWeapon( void ) = 0;
+
 // Teamplay stuff
 	virtual const char *GetTeamID( CBaseEntity *pEntity ) = 0;// what team is this entity on?
 	virtual int PlayerRelationship( CBaseEntity *pPlayer, CBaseEntity *pTarget ) = 0;// What is the player's relationship with this entity?
@@ -257,6 +260,9 @@ public:
 // What happens to a dead player's ammo	
 	virtual int DeadPlayerAmmo( CBasePlayer *pPlayer );
 
+	virtual BOOL IsAllowedSingleWeapon( CBaseEntity *pEntity );
+	virtual BOOL IsAllowedToDropWeapon( void );
+
 // Monsters
 	virtual BOOL FAllowMonsters( void );
 
@@ -356,6 +362,9 @@ public:
 
 // What happens to a dead player's ammo	
 	virtual int DeadPlayerAmmo( CBasePlayer *pPlayer );
+
+	virtual BOOL IsAllowedSingleWeapon( CBaseEntity *pEntity );
+	virtual BOOL IsAllowedToDropWeapon( void );
 
 // Teamplay stuff	
 	virtual const char *GetTeamID( CBaseEntity *pEntity ) {return "";}

@@ -816,6 +816,7 @@ const char *szGameModeList [] =
 	"lms",
 	"arena",
 	"snowball",
+	"gungame",
 };
 
 void CWorld :: SetGameMode( void )

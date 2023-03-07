@@ -26,6 +26,7 @@
 #include	"skill.h"
 #include	"game.h"
 #include	"items.h"
+#include	"gungame_gamerules.h"
 
 extern edict_t *EntSelectSpawnPoint( CBaseEntity *pPlayer );
 
@@ -62,6 +63,8 @@ extern DLL_GLOBAL const char *g_MutatorPushy;
 extern DLL_GLOBAL const char *g_MutatorGravity;
 extern DLL_GLOBAL const char *g_MutatorInvisible;
 extern DLL_GLOBAL const char *g_MutatorPortal;
+
+extern DLL_GLOBAL int g_GameMode;
 
 //=========================================================
 //=========================================================
@@ -423,6 +426,13 @@ CGameRules *InstallGameRules( void )
 			g_teamplay = 1;
 			return new CHalfLifeTeamplay;
 		}
+
+		if (g_GameMode == GAME_GUNGAME)
+		{
+			g_teamplay = 0;
+			return new CHalfLifeGunGame;
+		}
+
 		if ((int)gpGlobals->deathmatch == 1)
 		{
 			// vanilla deathmatch

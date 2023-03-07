@@ -230,6 +230,15 @@ int CHud :: MsgFunc_PlayCSound( const char *pszName, int iSize, void *pbuf )
 		case CLIENT_SOUND_PREPARETOFIGHT:
 			PlaySound("preparetofight.wav", 1);
 			break;
+		case CLIENT_SOUND_TAKENLEAD:
+			PlaySound("takenlead.wav", 1);
+			break;
+		case CLIENT_SOUND_TIEDLEAD:
+			PlaySound("tiedlead.wav", 1);
+			break;
+		case CLIENT_SOUND_LOSTLEAD:
+			PlaySound("lostlead.wav", 1);
+			break;
 	}
 	return 1;
 }

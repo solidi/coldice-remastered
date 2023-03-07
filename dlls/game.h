@@ -72,6 +72,7 @@ extern cvar_t   roundtimelimit;
 extern cvar_t   roundtimeleft;
 extern cvar_t   startwithlives;
 extern cvar_t   roundfraglimit;
+extern cvar_t   ggstartlevel;
 
 // Engine Cvars
 extern cvar_t	*g_psv_gravity;
