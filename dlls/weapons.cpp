@@ -364,8 +364,8 @@ void W_Precache(void)
 	// common world objects
 	UTIL_PrecacheOther( "item_suit" );
 	UTIL_PrecacheOther( "item_battery" );
-	UTIL_PrecacheOther( "item_antidote" );
-	UTIL_PrecacheOther( "item_security" );
+	//UTIL_PrecacheOther( "item_antidote" );
+	//UTIL_PrecacheOther( "item_security" );
 	UTIL_PrecacheOther( "item_longjump" );
 #if defined( GRAPPLING_HOOK )
 	UTIL_PrecacheOther( "grapple_hook" );
