@@ -76,6 +76,7 @@ cvar_t	roundtimeleft = {"mp_roundtimeleft","0", FCVAR_SERVER | FCVAR_UNLOGGED };
 cvar_t	startwithlives = {"mp_startwithlives","5", FCVAR_SERVER };
 cvar_t	roundfraglimit = {"mp_roundfraglimit","5", FCVAR_SERVER };
 cvar_t	ggstartlevel = {"mp_ggstartlevel","0", FCVAR_SERVER };
+cvar_t	spawnitems = {"mp_spawnitems","1", FCVAR_SERVER };
 
 cvar_t  allow_spectators = { "allow_spectators", "0.0", FCVAR_SERVER };		// 0 prevents players from being spectators
 
@@ -688,6 +689,7 @@ void GameDLLInit( void )
 	CVAR_REGISTER(&snowballfight);
 	CVAR_REGISTER(&mutators);
 	CVAR_REGISTER(&spawnweapons);
+	CVAR_REGISTER(&spawnitems);
 	CVAR_REGISTER(&disallowlist);
 	CVAR_REGISTER(&nukemode);
 	CVAR_REGISTER(&acrobatics);

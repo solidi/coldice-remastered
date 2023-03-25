@@ -2390,6 +2390,12 @@ BOOL CHalfLifeMultiplay::IsAllowedToSpawn( CBaseEntity *pEntity )
 		return FALSE;
 	}
 
+	if (!spawnitems.value &&
+		strncmp(STRING(pEntity->pev->classname), "item_", 5) == 0)
+	{
+		return FALSE;
+	}
+
 	if (disallowlist.string && strstr(disallowlist.string, STRING(pEntity->pev->classname))) {
 		ALERT(at_aiconsole, "%s has been disallowed on the server.\n", STRING(pEntity->pev->classname));
 		return FALSE;
