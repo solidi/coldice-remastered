@@ -169,7 +169,7 @@ void CHalfLifeGunGame::Think( void )
 			{
 				plr->DisplayHudMessage(UTIL_VarArgs("Round %d of %d\nYour Level: %d | Top Level: %d", 
 					m_iSuccessfulRounds+1, (int)roundlimit.value, (int)plr->pev->fuser4, m_iTopLevel),
-					10, -1, 0.83, 255, 255, 255, 0, 0, 0, 60, 0);
+					TXT_CHANNEL_GAME_INFO, -1, 0.83, 255, 255, 255, 0, 0, 0, 60, 0);
 			}
 		}
 
@@ -301,7 +301,7 @@ int CHalfLifeGunGame::IPointsForKill( CBasePlayer *pAttacker, CBasePlayer *pKill
 
 								plr->DisplayHudMessage(UTIL_VarArgs("Winner of Round %d is %s!\n", 
 									m_iSuccessfulRounds, STRING(pAttacker->pev->netname)),
-									10, -1, 0.83, 255, 255, 255, 0, 0, 0, 60, 0);
+									TXT_CHANNEL_GAME_INFO, -1, 0.83, 255, 255, 255, 0, 0, 0, 60, 0);
 							}
 						}
 

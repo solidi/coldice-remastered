@@ -493,8 +493,8 @@ class CFragRune : public CRune
 			MESSAGE_END();
 
 			ShowStatus(pPlayer, 106, 13, 173);
-			pPlayer->DisplayHudMessage("Frag Rune", 6, -1, 0.07, 106, 13, 173, 0, 0.2, 1.0, 1.5, 0.5);
-			pPlayer->DisplayHudMessage("This rune will increase your frags by double!", 7, -1, 0.1, 210, 210, 210, 0, 0.2, 1.0, 1.5, 0.5);
+			pPlayer->DisplayHudMessage("Frag Rune", TXT_CHANNEL_RUNE_TITLE, -1, 0.07, 106, 13, 173, 0, 0.2, 1.0, 1.5, 0.5);
+			pPlayer->DisplayHudMessage("This rune will increase your frags by double!", TXT_CHANNEL_RUNE_DESC, -1, 0.1, 210, 210, 210, 0, 0.2, 1.0, 1.5, 0.5);
 
 			return TRUE;
 		}
@@ -555,8 +555,8 @@ class CVampireRune : public CRune
 			MESSAGE_END();
 
 			ShowStatus(pPlayer, 200, 0, 0);
-			pPlayer->DisplayHudMessage("Vampire Rune", 6, -1, 0.07, 200, 0, 0, 0, 0.2, 1.0, 1.5, 0.5);
-			pPlayer->DisplayHudMessage("This rune will give you health and armor for the damage you deal!", 7, -1, 0.1, 210, 210, 210, 0, 0.2, 1.0, 1.5, 0.5);
+			pPlayer->DisplayHudMessage("Vampire Rune", TXT_CHANNEL_RUNE_TITLE, -1, 0.07, 200, 0, 0, 0, 0.2, 1.0, 1.5, 0.5);
+			pPlayer->DisplayHudMessage("This rune will give you health and armor for the damage you deal!", TXT_CHANNEL_RUNE_DESC, -1, 0.1, 210, 210, 210, 0, 0.2, 1.0, 1.5, 0.5);
 
 			return TRUE;
 		}
@@ -617,8 +617,8 @@ class CProtectRune : public CRune
 			MESSAGE_END();
 
 			ShowStatus(pPlayer, 0, 200, 0);
-			pPlayer->DisplayHudMessage("Protect Rune", 6, -1, 0.07, 0, 200, 0, 0, 0.2, 1.0, 1.5, 0.5);
-			pPlayer->DisplayHudMessage("This rune will protect you from half the damage!", 7, -1, 0.1, 210, 210, 210, 0, 0.2, 1.0, 1.5, 0.5);
+			pPlayer->DisplayHudMessage("Protect Rune", TXT_CHANNEL_RUNE_TITLE, -1, 0.07, 0, 200, 0, 0, 0.2, 1.0, 1.5, 0.5);
+			pPlayer->DisplayHudMessage("This rune will protect you from half the damage!", TXT_CHANNEL_RUNE_DESC, -1, 0.1, 210, 210, 210, 0, 0.2, 1.0, 1.5, 0.5);
 
 			return TRUE;
 		}
@@ -679,8 +679,8 @@ class CRegenRune : public CRune
 			MESSAGE_END();
 
 			ShowStatus(pPlayer, 200, 0, 200);
-			pPlayer->DisplayHudMessage("Health Regeneration Rune", 6, -1, 0.07, 200, 0, 200, 0, 0.2, 1.0, 1.5, 0.5);
-			pPlayer->DisplayHudMessage("This rune will slowly regenerate your current health!", 7, -1, 0.1, 210, 210, 210, 0, 0.2, 1.0, 1.5, 0.5);
+			pPlayer->DisplayHudMessage("Health Regeneration Rune", TXT_CHANNEL_RUNE_TITLE, -1, 0.07, 200, 0, 200, 0, 0.2, 1.0, 1.5, 0.5);
+			pPlayer->DisplayHudMessage("This rune will slowly regenerate your current health!", TXT_CHANNEL_RUNE_DESC, -1, 0.1, 210, 210, 210, 0, 0.2, 1.0, 1.5, 0.5);
 
 			return TRUE;
 		}
@@ -743,8 +743,8 @@ class CHasteRune : public CRune
 			MESSAGE_END();
 
 			ShowStatus(pPlayer, 200, 128, 0);
-			pPlayer->DisplayHudMessage("Haste Rune", 6, -1, 0.07, 200, 128, 0, 0, 0.2, 1.0, 1.5, 0.5);
-			pPlayer->DisplayHudMessage("This rune will makes you run twice as fast!", 7, -1, 0.1, 210, 210, 210, 0, 0.2, 1.0, 1.5, 0.5);
+			pPlayer->DisplayHudMessage("Haste Rune", TXT_CHANNEL_RUNE_TITLE, -1, 0.07, 200, 128, 0, 0, 0.2, 1.0, 1.5, 0.5);
+			pPlayer->DisplayHudMessage("This rune will makes you run twice as fast!", TXT_CHANNEL_RUNE_DESC, -1, 0.1, 210, 210, 210, 0, 0.2, 1.0, 1.5, 0.5);
 
 			return TRUE;
 		}
@@ -805,8 +805,8 @@ class CGravityRune : public CRune
 			MESSAGE_END();
 
 			ShowStatus(pPlayer, 0, 115, 230);
-			pPlayer->DisplayHudMessage("Gravity Rune", 6, -1, 0.07, 0, 115, 230, 0, 0.2, 1.0, 1.5, 0.5);
-			pPlayer->DisplayHudMessage("This rune will reduce your gravity by 80%!", 7, -1, 0.1, 210, 210, 210, 0, 0.2, 1.0, 1.5, 0.5);
+			pPlayer->DisplayHudMessage("Gravity Rune", TXT_CHANNEL_RUNE_TITLE, -1, 0.07, 0, 115, 230, 0, 0.2, 1.0, 1.5, 0.5);
+			pPlayer->DisplayHudMessage("This rune will reduce your gravity by 80%!", TXT_CHANNEL_RUNE_DESC, -1, 0.1, 210, 210, 210, 0, 0.2, 1.0, 1.5, 0.5);
 
 			return TRUE;
 		}
@@ -867,8 +867,8 @@ class CStrengthRune : public CRune
 			MESSAGE_END();
 
 			ShowStatus(pPlayer, 200, 200, 0);
-			pPlayer->DisplayHudMessage("Strength Rune", 6, -1, 0.07, 200, 200, 0, 0, 0.2, 1.0, 1.5, 0.5);
-			pPlayer->DisplayHudMessage("This rune will increase your attack damage by 50%!", 7, -1, 0.1, 210, 210, 210, 0, 0.2, 1.0, 1.5, 0.5);
+			pPlayer->DisplayHudMessage("Strength Rune", TXT_CHANNEL_RUNE_TITLE, -1, 0.07, 200, 200, 0, 0, 0.2, 1.0, 1.5, 0.5);
+			pPlayer->DisplayHudMessage("This rune will increase your attack damage by 50%!", TXT_CHANNEL_RUNE_DESC, -1, 0.1, 210, 210, 210, 0, 0.2, 1.0, 1.5, 0.5);
 
 			return TRUE;
 		}
@@ -928,8 +928,8 @@ class CCloakRune : public CRune
 			MESSAGE_END();
 
 			ShowStatus(pPlayer, 200, 200, 200);
-			pPlayer->DisplayHudMessage("Cloak Rune", 6, -1, 0.07, 200, 200, 200, 0, 0.2, 1.0, 1.5, 0.5);
-			pPlayer->DisplayHudMessage("This rune will make you semi-transparent!", 7, -1, 0.1, 210, 210, 210, 0, 0.2, 1.0, 1.5, 0.5);
+			pPlayer->DisplayHudMessage("Cloak Rune", TXT_CHANNEL_RUNE_TITLE, -1, 0.07, 200, 200, 200, 0, 0.2, 1.0, 1.5, 0.5);
+			pPlayer->DisplayHudMessage("This rune will make you semi-transparent!", TXT_CHANNEL_RUNE_DESC, -1, 0.1, 210, 210, 210, 0, 0.2, 1.0, 1.5, 0.5);
 
 			return TRUE;
 		}
