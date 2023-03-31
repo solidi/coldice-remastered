@@ -758,7 +758,8 @@ void CGameRules::UpdateMutatorMessage( CBasePlayer *pPlayer )
 	if (pPlayer->m_iShowMutatorMessage != -1 && pPlayer->m_iShowMutatorMessage < gpGlobals->time) {
 		// Display Mutators
 		if (strlen(mutators.string) > 2 && strlen(mutators.string) < 64)
-			pPlayer->DisplayHudMessage(UTIL_VarArgs("Mutators Active: %s", mutators.string), 2, .02, .18, 210, 210, 210, 2, .015, 2, 5, .25);
+			pPlayer->DisplayHudMessage(UTIL_VarArgs("Mutators Active: %s", mutators.string),
+			TXT_CHANNEL_MUTATOR_TITLE, .02, .18, 210, 210, 210, 2, .015, 2, 5, .25);
 
 		pPlayer->m_iShowMutatorMessage = -1;
 	}
