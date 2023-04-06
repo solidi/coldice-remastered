@@ -31,6 +31,222 @@
 #include "weapons.h"
 #include "gamerules.h"
 
+//=================================
+//	used for file extentions 
+//=================================
+
+char *COM_FileExtension (char *in)
+{
+	static char exten[8];
+	int             i;
+
+	while (*in && *in != '.')
+		in++;
+	
+	if (!*in)
+		return "";
+	
+	in++;
+	
+	for (i=0 ; i<7 && *in ; i++,in++)
+		exten[i] = *in;
+	
+	exten[i] = 0;
+	
+	return exten;
+}
+
+
+//=================================
+//	New system for safely precaching and set models.
+//	Copyright© 2005 XashXT Group. All Rights Reserved.
+//	Minor edit by Napoleon to fit FlatLine Arena.
+//=================================
+void SET_MODEL( edict_t *e, string_t s, char *c )		//	set the default model if not found
+{
+	if (FStringNull( s ))SET_MODEL( e, c );
+	
+	else SET_MODEL( e, s );
+}
+
+void SET_MODEL( edict_t *e, string_t model ){ SET_MODEL( e, STRING(model)); }
+
+void SET_MODEL( edict_t *e, const char *model )
+{
+	if(!model || !(*model)) 
+	{
+		g_engfuncs.pfnSetModel(e, "models/null.mdl");	// set the null.mdl 
+		
+		return;
+	}
+	
+	//	is this brush model?
+	if (model[0] == '*')
+	{
+		g_engfuncs.pfnSetModel(e, model);
+		
+		return;
+	}
+
+	//	verify file exists
+	byte *data = LOAD_FILE_FOR_ME((char*)model, NULL);
+	
+	if (data)
+	{
+		FREE_FILE( data );
+		g_engfuncs.pfnSetModel(e, model);
+		
+		return;
+	}
+
+	char *ext = COM_FileExtension((char *)model);
+	
+	if (FStrEq( ext, "mdl"))		// we're looking for model file .mdl 
+	{
+		//	this is the error model file 
+		g_engfuncs.pfnSetModel(e, "models/error.mdl");
+	}
+	
+	else if (FStrEq( ext, "spr"))	// we're looking for model file .spr 
+	{
+		//	this is the rror sprite file 
+		g_engfuncs.pfnSetModel(e, "sprites/error.spr");
+	}
+	
+	else							// we somehow have something else...
+	{
+		//	set null model file instead 
+		g_engfuncs.pfnSetModel(e, "models/null.mdl");
+	}
+}
+
+int PRECACHE_MODEL( string_t s, char *e )	//	precache default model file if not found
+{
+	if (FStringNull( s )) 
+		return PRECACHE_MODEL( e );
+	
+	return PRECACHE_MODEL( s );
+}
+
+int PRECACHE_MODEL( string_t s ){ return PRECACHE_MODEL( (char*)STRING(s)); }
+
+int PRECACHE_MODEL( char* s )
+{
+	if(!s || !*s)
+	{
+		ALERT(at_console,"ERROR: modelname not specified\n");
+		
+		return g_sModelIndexNullModel; 			//	set null model file 
+	}
+	
+	//	no need to precacahe brush, it will fail anyway...
+	if (s[0] == '*') return 0;
+
+	//	verify file exists
+	byte *data = LOAD_FILE_FOR_ME(s, NULL);
+	if (data)
+	{
+		FREE_FILE( data );
+		
+		return g_engfuncs.pfnPrecacheModel(s);	
+	}
+          
+	char *ext = COM_FileExtension( s );
+	
+	if (FStrEq( ext, "mdl"))		// we found missing .mdl file 
+	{
+		//	this is model
+		ALERT(at_console,"ERROR: model \"%s\" not found!\n",s); // Tell the world about it, for some reason it will only print with developer 1
+		
+		return g_sModelIndexErrorModel;
+	}
+	
+	else if (FStrEq( ext, "spr"))	// we found missing .spr file 
+	{
+		//	this is sprite
+		ALERT(at_console,"ERROR: sprite \"%s\" not found!\n",s); // Tell the world about it, for some reason it will only print with developer 1
+		
+		return g_sModelIndexErrorSprite;
+	}
+	
+	else							// we found a missing file, but we're not sure if it's .mdl or .spr...
+	{
+		//	unknown format...
+		ALERT(at_console,"ERROR: invalid name \"%s\"!\n",s); // Tell the world about it, for some reason it will only print with developer 1
+		
+		return g_sModelIndexNullModel; //	set null model
+	}
+}
+
+int PRECACHE_SOUND( string_t s, char *e )	//	precache default sound if not found
+{
+	if (FStringNull( s ))
+		return PRECACHE_SOUND( e );
+	
+	return PRECACHE_SOUND( s );
+}
+
+int PRECACHE_SOUND( string_t s ){ return PRECACHE_SOUND( (char*)STRING(s)); }
+
+int PRECACHE_SOUND( char* s )
+{
+	if(!s || !*s) return g_sSoundIndexNullSound; //	set null sound
+	
+	//	NOTE: Engine function as predicted for sound folder
+	//	But LOAD_FILE_FOR_ME don't known about this. Set it manualy
+
+	char path[256];				//	g-cont.
+	char *sound = s;			//	sounds from model events can contains a symbol '*'.
+	
+	//	remove this for sucessfully loading a sound	
+    if (sound[0] == '*')sound++;				//	only for fake path, engine needs this prefix!
+		sprintf(path, "sound/%s", sound);
+	
+	//	verify file exists
+	byte *data = LOAD_FILE_FOR_ME(path, NULL);
+	
+	if (data)
+	{
+		FREE_FILE( data );
+		
+		return g_engfuncs.pfnPrecacheSound(s);
+	}
+	
+	char *ext = COM_FileExtension( s );
+
+	if (FStrEq( ext, "wav"))	// The file is .wav 
+	{
+		//	this is sound
+		ALERT(at_console,"ERROR: sound \"%s\" not found!\n",s); // Tell the world about it, for some reason it will only print with developer 1
+		
+		return g_sSoundIndexNullSound; //	set null sound
+	}
+	
+	else						// Somehow, we're not sure for the sound file format...
+	{
+		//	unknown format
+		ALERT(at_console,"ERROR: invalid name \"%s\"!\n",s); // Tell the world about it, for some reason it will only print with developer 1
+		
+		return g_sSoundIndexNullSound; //	set null sound
+	}
+}
+
+unsigned short PRECACHE_EVENT( int type, const char* psz )	// Use for missing events 
+{
+	byte *data = LOAD_FILE_FOR_ME((char*)psz, NULL);
+	
+	if (data)
+	{
+		FREE_FILE( data );
+		
+		return g_engfuncs.pfnPrecacheEvent(type, psz);
+	}
+
+	ALERT(at_console,"ERROR: event \"%s\" not found!\n", psz); 			// Tell the world about it, for some reason it will only print with developer 1
+	
+	return g_engfuncs.pfnPrecacheEvent( type, "events/crowbar.sc" );	// This is a placeholder.
+}
+
 float UTIL_WeaponTimeBase( void )
 {
 #if defined( CLIENT_WEAPONS )

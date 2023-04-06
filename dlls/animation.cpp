@@ -182,6 +182,7 @@ int IsSoundEvent( int eventNumber )
 	return 0;
 }
 
+extern int PRECACHE_SOUND(char *s); 
 
 void SequencePrecache( void *pmodel, const char *pSequenceName )
 {

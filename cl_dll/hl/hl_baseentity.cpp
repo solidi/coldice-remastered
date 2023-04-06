@@ -30,6 +30,13 @@ This file contains "stubs" of class member implementations so that we can predic
 #include	"soundent.h"
 #include	"skill.h"
 
+// Safe Precache System Stubs. The original did not used hl_baseemtity
+// if you have custom model and sprites precahe you might have to add more...
+void SET_MODEL(struct edict_s *,char const *){ }
+int PRECACHE_MODEL(char *) {return 0; }
+int PRECACHE_SOUND(char *) { return 0; }
+unsigned short PRECACHE_EVENT(int,char const *){return 0; }
+
 // Globals used by game logic
 const Vector g_vecZero = Vector( 0, 0, 0 );
 int gmsgWeapPickup = 0;
