@@ -1375,7 +1375,7 @@ extern int gmsgGameMode;
 void CHalfLifeMultiplay :: UpdateGameMode( CBasePlayer *pPlayer )
 {
 	MESSAGE_BEGIN( MSG_ONE, gmsgGameMode, NULL, pPlayer->edict() );
-		WRITE_BYTE( g_GameMode );  // game mode none
+		WRITE_BYTE( g_GameMode > GAME_ICEMAN ? 0 : g_GameMode );  // game mode none
 	MESSAGE_END();
 }
 
