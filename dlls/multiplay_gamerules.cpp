@@ -666,6 +666,8 @@ void CHalfLifeMultiplay::LastManStanding( void )
 	flUpdateTime = gpGlobals->time + 5.0;
 }
 
+extern int gmsgStatusText;
+
 void CHalfLifeMultiplay::Arena ( void )
 {
 	if ( flUpdateTime > gpGlobals->time )
@@ -735,6 +737,20 @@ void CHalfLifeMultiplay::Arena ( void )
 			//player must exist
 			if ( plr && plr->IsPlayer() && !plr->HasDisconnected )
 			{
+				if (plr == pPlayer1 || plr == pPlayer2)
+				{
+					char message[64];
+					if (plr == pPlayer1)
+						sprintf(message, "Fighting %s", STRING(pPlayer2->pev->netname));
+					else
+						sprintf(message, "Fighting %s", STRING(pPlayer1->pev->netname));
+
+					MESSAGE_BEGIN( MSG_ONE, gmsgStatusText, NULL, plr->edict() );
+						WRITE_BYTE( 0 );
+						WRITE_STRING( message );
+					MESSAGE_END();
+				}
+
 				// Force spectate on those that died.
 				if ( plr != pPlayer1 && plr != pPlayer2 &&
 					plr->m_flForceToObserverTime && plr->m_flForceToObserverTime < gpGlobals->time )
@@ -1375,7 +1391,7 @@ extern int gmsgGameMode;
 void CHalfLifeMultiplay :: UpdateGameMode( CBasePlayer *pPlayer )
 {
 	MESSAGE_BEGIN( MSG_ONE, gmsgGameMode, NULL, pPlayer->edict() );
-		WRITE_BYTE( g_GameMode );  // game mode none
+		WRITE_BYTE( g_GameMode > GAME_ICEMAN ? 0 : g_GameMode );  // game mode none
 	MESSAGE_END();
 }
 
