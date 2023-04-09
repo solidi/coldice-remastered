@@ -37,6 +37,7 @@ DECLARE_MESSAGE( m_StatusBar, StatusValue );
 
 float *GetClientColor( int clientIndex );
 extern float g_ColorYellow[3];
+extern float g_ColorBlue[3];
 
 int CHudStatusBar :: Init( void )
 {
@@ -182,7 +183,7 @@ int CHudStatusBar :: Draw( float fTime )
 	{
 		for ( int i = 0; i < MAX_STATUSBAR_LINES; i++ )
 		{
-			m_pflNameColors[i] = g_ColorYellow;
+			m_pflNameColors[i] = HudColor() == RGB_BLUEISH ? g_ColorBlue : g_ColorYellow;
 			ParseStatusString( i );
 		}
 		m_bReparseString = FALSE;
