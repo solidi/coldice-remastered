@@ -177,6 +177,8 @@ private:
 	float m_flChaosCheck;
 	float m_flDetectedMutatorChange;
 	char szSkyColor[3][6] = {{""}, {""}, {""}};
+	BOOL m_JopeCheck = FALSE;
+	char m_szJopeName[32][64];
 };
 
 extern CGameRules *InstallGameRules( void );

@@ -71,5 +71,6 @@ DLL_GLOBAL const char *g_MutatorGravity = "astronaut";
 DLL_GLOBAL const char *g_MutatorSnowball = "snowballs";
 DLL_GLOBAL const char *g_MutatorPushy = "pushy";
 DLL_GLOBAL const char *g_MutatorPortal = "portal";
+DLL_GLOBAL const char *g_MutatorJope = "jope";
 
 DLL_GLOBAL int g_GameMode;
