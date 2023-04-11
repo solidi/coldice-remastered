@@ -211,4 +211,14 @@ void CHudStatusIcons::DrawMutators( void )
 	}
 	else
 		DisableIcon("portal");
+
+	if (gHUD.szActiveMutators != NULL &&
+		(strstr(gHUD.szActiveMutators, "jope") ||
+		atoi(gHUD.szActiveMutators) == MUTATOR_JOPE))
+	{
+		m_iFlags |= HUD_ACTIVE;
+		EnableIcon("jope",r,g,b);
+	}
+	else
+		DisableIcon("jope");
 }

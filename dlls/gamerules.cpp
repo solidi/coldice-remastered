@@ -63,6 +63,7 @@ extern DLL_GLOBAL const char *g_MutatorPushy;
 extern DLL_GLOBAL const char *g_MutatorGravity;
 extern DLL_GLOBAL const char *g_MutatorInvisible;
 extern DLL_GLOBAL const char *g_MutatorPortal;
+extern DLL_GLOBAL const char *g_MutatorJope;
 
 extern DLL_GLOBAL int g_GameMode;
 
@@ -611,6 +612,29 @@ void CGameRules::CheckMutators(void)
 			CVAR_SET_STRING("sv_skycolor_b", szSkyColor[2]);
 		}
 
+		if (m_JopeCheck) {
+			UTIL_ClientPrintAll(HUD_PRINTCENTER, "KING JOPE HAS BEEN DETHRONED!\n");
+			m_JopeCheck = FALSE;
+			for (int i = 1; i <= gpGlobals->maxClients; i++)
+			{
+				CBaseEntity *pPlayer = UTIL_PlayerByIndex( i );
+				CBasePlayer *pl = (CBasePlayer *)pPlayer;
+				if (pPlayer && pPlayer->IsPlayer() && !pl->IsObserver())
+				{
+					if (m_szJopeName[i - 1] && m_szJopeName[i - 1][0] != 0 && strlen(m_szJopeName[i - 1])) {
+						g_engfuncs.pfnSetClientKeyValue(pl->entindex(), g_engfuncs.pfnGetInfoKeyBuffer(pl->edict()),
+							"name", m_szJopeName[i - 1]);
+					}
+				}
+			}
+		}
+
+		if (strstr(mutators.string, g_MutatorJope) ||
+			atoi(mutators.string) == MUTATOR_JOPE) {
+			m_JopeCheck = TRUE;
+			UTIL_ClientPrintAll(HUD_PRINTCENTER, "ALL HAIL KING JOPE!\n");
+		}
+
 		for (int i = 1; i <= gpGlobals->maxClients; i++)
 		{
 			CBaseEntity *pPlayer = UTIL_PlayerByIndex( i );
@@ -684,6 +708,12 @@ void CGameRules::CheckMutators(void)
 						if (pl->pev->rendermode == kRenderTransAlpha)
 							pl->pev->rendermode = kRenderNormal;
 					}
+				}
+
+				if (m_JopeCheck) {
+					strcpy(m_szJopeName[pl->entindex() - 1], STRING(pl->pev->netname));
+					g_engfuncs.pfnSetClientKeyValue(pl->entindex(), g_engfuncs.pfnGetInfoKeyBuffer(pl->edict()),
+						"name", "Jope");
 				}
 			}
 
@@ -769,7 +799,7 @@ void CGameRules::UpdateGameModeMessage( CBasePlayer *pPlayer )
 {
 	if (pPlayer->m_iShowGameModeMessage != -1 && pPlayer->m_iShowGameModeMessage < gpGlobals->time) {
 		if (strlen(gamemode.string) > 1 && strcmp(gamemode.string, "ffa"))
-			pPlayer->DisplayHudMessage(UTIL_VarArgs("Game Mode is %s", gamemode.string), 3, .02, .14, 210, 210, 210, 2, .015, 2, 5, .25);
+			pPlayer->DisplayHudMessage(UTIL_VarArgs("Game Mode is %s", gamemode.string), TXT_CHANNEL_GAME_TITLE, .02, .14, 210, 210, 210, 2, .015, 2, 5, .25);
 		pPlayer->m_iShowGameModeMessage = -1;
 	}
 }
