@@ -372,6 +372,9 @@ The entity's studio model description indicated an event was
 fired during this frame, handle the event by it's tag ( e.g., muzzleflash, sound )
 =========================
 */
+extern float g_DeploySoundTime;
+extern ref_params_t g_ViewParams;
+
 void CL_DLLEXPORT HUD_StudioEvent( const struct mstudioevent_s *event, const struct cl_entity_s *entity )
 {
 //	RecClStudioEvent(event, entity);
@@ -384,6 +387,11 @@ void CL_DLLEXPORT HUD_StudioEvent( const struct mstudioevent_s *event, const str
 		iMuzzleFlash = 0;
 
 #endif 
+
+	if (g_ViewParams.paused)
+	{
+		return;
+	}
 
 	switch( event->event )
 	{
@@ -423,14 +431,20 @@ void CL_DLLEXPORT HUD_StudioEvent( const struct mstudioevent_s *event, const str
 		gEngfuncs.pEfxAPI->R_SparkEffect( (float *)&entity->attachment[0], atoi( event->options), -100, 100 );
 		break;
 	// Client side sound
-	case 5004:		
+	case 5004:
 		gEngfuncs.pfnPlaySoundByNameAtLocation( (char *)event->options, 1.0, (float *)&entity->attachment[0] );
 		break;
 	case 5005:
 		if (cl_announcehumor && !cl_announcehumor->value) {
 			return;
 		}
+		if ( g_DeploySoundTime && g_DeploySoundTime > gEngfuncs.GetClientTime() )
+			return;
+#ifdef _DEBUG
+		gEngfuncs.Con_Printf(" >>>> [%7.2f] HUD_StudioEvent(5005, %s)!\n", gEngfuncs.GetClientTime(), (char *)event->options);
+#endif
 		gEngfuncs.pfnPlaySoundByNameAtLocation( (char *)event->options, 1.0, (float *)&entity->attachment[0] );
+		g_DeploySoundTime = gEngfuncs.GetClientTime() + 1.0;
 		break;
 	default:
 		break;
