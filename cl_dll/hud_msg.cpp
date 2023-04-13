@@ -43,6 +43,7 @@ void ClearEventList( void );
 float g_SlideTime = 0;
 float g_WallClimb = 0;
 float g_AcrobatTime = 0;
+float g_DeploySoundTime = 0;
 extern cvar_t *cl_antivomit;
 extern cvar_t *cl_icemodels;
 
@@ -108,6 +109,7 @@ void CHud :: MsgFunc_InitHUD( const char *pszName, int iSize, void *pbuf )
 	g_WallClimb = 0;
 	g_SlideTime = 0;
 	g_AcrobatTime = 0;
+	g_DeploySoundTime = 0;
 }
 
 
@@ -204,6 +206,10 @@ int CHud :: MsgFunc_PlayCSound( const char *pszName, int iSize, void *pbuf )
 {
 	BEGIN_READ( pbuf, iSize );
 	int index = READ_BYTE();
+
+	// Mute any incoming deploy sounds
+	g_DeploySoundTime = gEngfuncs.GetClientTime() + 1.0;
+
 	switch (index)
 	{
 		case CLIENT_SOUND_PREPAREFORBATTLE:
