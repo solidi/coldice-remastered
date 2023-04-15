@@ -221,4 +221,14 @@ void CHudStatusIcons::DrawMutators( void )
 	}
 	else
 		DisableIcon("jope");
+
+	if (gHUD.szActiveMutators != NULL &&
+		(strstr(gHUD.szActiveMutators, "plumber") ||
+		atoi(gHUD.szActiveMutators) == MUTATOR_PLUMBER))
+	{
+		m_iFlags |= HUD_ACTIVE;
+		EnableIcon("plumber",r,g,b);
+	}
+	else
+		DisableIcon("plumber");
 }
