@@ -2333,7 +2333,7 @@ void V_IronSight( Vector position, Vector punch, float clientTime, float frameTi
 
 void V_RetractWeapon(struct ref_params_s* pparams, cl_entity_s* view)
 {
-	static float v_dist = 0.0f;
+	extern float g_RetractDistance;
 	cl_entity_t* viewentity;
 	pmtrace_t tr;
 	Vector vecSrc, vecEnd, vecFwd;
@@ -2359,14 +2359,17 @@ void V_RetractWeapon(struct ref_params_s* pparams, cl_entity_s* view)
 
 	gEngfuncs.pEventAPI->EV_PopPMStates();
 
-	v_dist = lerp(v_dist, -(tr.fraction - 1) * 0.65, pparams->frametime * 15.5f);
-	
-	view->angles[0] += v_dist * 12.25;
-	view->angles[1] -= v_dist * 4.5;
+	g_RetractDistance = lerp(g_RetractDistance, -(tr.fraction - 1) * 0.65, pparams->frametime * 15.5f);
+
+	// Bounds check
+	g_RetractDistance = fmin(fmax(g_RetractDistance, -1), 1);
+
+	view->angles[0] += g_RetractDistance * 12.25;
+	view->angles[1] -= g_RetractDistance * 4.5;
 	for (int i = 0; i < 3; i++)
 	{
-		view->origin[i] -= v_dist * 10.5 * pparams->forward[i];
-		view->origin[i] -= v_dist * 4.5 * pparams->up[i];
+		view->origin[i] -= g_RetractDistance * 10.5 * pparams->forward[i];
+		view->origin[i] -= g_RetractDistance * 4.5 * pparams->up[i];
 	}
 }
 
