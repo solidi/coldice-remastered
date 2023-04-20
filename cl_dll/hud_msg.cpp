@@ -44,6 +44,7 @@ float g_SlideTime = 0;
 float g_WallClimb = 0;
 float g_AcrobatTime = 0;
 float g_DeploySoundTime = 0;
+float g_RetractDistance = 0;
 extern cvar_t *cl_antivomit;
 extern cvar_t *cl_icemodels;
 
@@ -110,6 +111,7 @@ void CHud :: MsgFunc_InitHUD( const char *pszName, int iSize, void *pbuf )
 	g_SlideTime = 0;
 	g_AcrobatTime = 0;
 	g_DeploySoundTime = 0;
+	g_RetractDistance = 0;
 }
 
 
