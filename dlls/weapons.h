@@ -515,6 +515,15 @@ extern DLL_GLOBAL	short	g_sModelConcreteGibs;
 extern DLL_GLOBAL	short	g_sModelLightning;
 extern DLL_GLOBAL	short	g_sModelIndexFlame;
 
+// 	safe precaching system by g-cont 
+//	WARNING!!! this is critical stuff! do not edit this
+extern DLL_GLOBAL	short			g_sModelIndexNullModel;		//	null model index
+extern DLL_GLOBAL	short			g_sModelIndexErrorModel;	//	error model index
+extern DLL_GLOBAL	short			g_sModelIndexNullSprite;	//	null sprite index
+extern DLL_GLOBAL	short			g_sModelIndexErrorSprite;	//	error sprite index
+extern DLL_GLOBAL	short			g_sSoundIndexNullSound;		//	null sound index
+extern DLL_GLOBAL	unsigned short	g_usEventIndexNullEvent;	//	null event index
+
 extern void ClearMultiDamage(void);
 extern void ApplyMultiDamage(entvars_t* pevInflictor, entvars_t* pevAttacker );
 extern void AddMultiDamage( entvars_t *pevInflictor, CBaseEntity *pEntity, float flDamage, int bitsDamageType);

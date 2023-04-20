@@ -64,6 +64,15 @@ DLL_GLOBAL	short	g_sModelIndexFlame;
 DLL_GLOBAL	short	g_Gibs;
 DLL_GLOBAL	short	g_Steamball;
 
+//	safe precaching system by g-cont 
+//	WARNING!!! this is critical stuff! do not edit this
+DLL_GLOBAL	short			g_sModelIndexNullModel; 	//	null model index
+DLL_GLOBAL	short			g_sModelIndexErrorModel;	//	error model index
+DLL_GLOBAL	short			g_sModelIndexNullSprite;	//	null sprite index
+DLL_GLOBAL	short			g_sModelIndexErrorSprite;	//	error sprite index
+DLL_GLOBAL	short			g_sSoundIndexNullSound;		//	null sound index
+DLL_GLOBAL	unsigned short	g_usEventIndexNullEvent;	//	null event index
+
 ItemInfo CBasePlayerItem::ItemInfoArray[MAX_WEAPONS];
 AmmoInfo CBasePlayerItem::AmmoInfoArray[MAX_AMMO_SLOTS];
 
@@ -358,6 +367,14 @@ void W_Precache(void)
 	memset( CBasePlayerItem::ItemInfoArray, 0, sizeof(CBasePlayerItem::ItemInfoArray) );
 	memset( CBasePlayerItem::AmmoInfoArray, 0, sizeof(CBasePlayerItem::AmmoInfoArray) );
 	giAmmoIndex = 0;
+
+	//	safe precaching system by g-cont 
+	//	WARNING!!! this is critical stuff! do not edit this
+	g_sSoundIndexNullSound 		=	g_engfuncs.pfnPrecacheSound	( "common/null.wav" );		//	Null sound file 
+	g_sModelIndexNullModel 		=	g_engfuncs.pfnPrecacheModel	( "models/null.mdl" );		//	Null model file 
+	g_sModelIndexErrorModel 	=	g_engfuncs.pfnPrecacheModel	( "models/error.mdl" );		//	Error model file 
+	g_sModelIndexNullSprite 	=	g_engfuncs.pfnPrecacheModel	( "sprites/null.spr" );		//	Null sprite file 
+	g_sModelIndexErrorSprite 	=	g_engfuncs.pfnPrecacheModel	( "sprites/error.spr" );	//	Error sprite file 
 
 	// custom items...
 
