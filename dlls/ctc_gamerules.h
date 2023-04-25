@@ -23,7 +23,9 @@ public:
 	virtual void PlayerThink( CBasePlayer *pPlayer );
 	virtual int IPointsForKill( CBasePlayer *pAttacker, CBasePlayer *pKilled );
 	virtual void PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller, entvars_t *pInflictor );
+#if defined( GRAPPLING_HOOK )
 	virtual BOOL AllowGrapplingHook( CBasePlayer *pPlayer );
+#endif
 	virtual void PlayerSpawn( CBasePlayer *pPlayer );
 	virtual void ClientDisconnected( edict_t *pClient );
 	virtual int DeadPlayerWeapons( CBasePlayer *pPlayer );
