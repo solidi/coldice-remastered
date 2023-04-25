@@ -27,6 +27,7 @@
 #include	"game.h"
 #include	"items.h"
 #include	"gungame_gamerules.h"
+#include	"ctc_gamerules.h"
 
 extern edict_t *EntSelectSpawnPoint( CBaseEntity *pPlayer );
 
@@ -433,6 +434,11 @@ CGameRules *InstallGameRules( void )
 			g_teamplay = 0;
 			return new CHalfLifeGunGame;
 		}
+		else if (g_GameMode == GAME_CTC)
+		{
+			g_teamplay = 0;
+			return new CHalfLifeCaptureTheChumtoad;
+		}
 
 		if ((int)gpGlobals->deathmatch == 1)
 		{
@@ -802,4 +808,9 @@ void CGameRules::UpdateGameModeMessage( CBasePlayer *pPlayer )
 			pPlayer->DisplayHudMessage(UTIL_VarArgs("Game Mode is %s", gamemode.string), TXT_CHANNEL_GAME_TITLE, .02, .14, 210, 210, 210, 2, .015, 2, 5, .25);
 		pPlayer->m_iShowGameModeMessage = -1;
 	}
+}
+
+BOOL CGameRules::IsCtC()
+{
+	return g_GameMode == GAME_CTC;
 }

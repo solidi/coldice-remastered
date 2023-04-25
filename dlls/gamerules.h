@@ -161,7 +161,7 @@ public:
 	virtual BOOL FAllowMonsters( void ) = 0;//are monsters allowed
 
 #if defined( GRAPPLING_HOOK )
-	virtual BOOL AllowGrapplingHook( void ) = FALSE;
+	virtual BOOL AllowGrapplingHook( CBasePlayer *pPlayer ) = FALSE;
 #endif
 
 	virtual void SpawnMutators( CBasePlayer *pPlayer );
@@ -169,6 +169,11 @@ public:
 	virtual void CheckMutators( void );
 	virtual void UpdateMutatorMessage( CBasePlayer *pPlayer );
 	virtual void UpdateGameModeMessage( CBasePlayer *pPlayer );
+
+	virtual BOOL IsCtC();
+	virtual void CaptureCharm( CBasePlayer *pPlayer ) { };
+	virtual CBaseEntity *DropCharm( CBasePlayer *pPlayer, Vector origin ) { return NULL; };
+	virtual BOOL CanRandomizeWeapon(const char *name) { return TRUE; }
 
 	// Immediately end a multiplayer game
 	virtual void EndMultiplayerGame( void ) {}
@@ -269,7 +274,7 @@ public:
 	virtual BOOL FAllowMonsters( void );
 
 #if defined( GRAPPLING_HOOK )
-	virtual BOOL AllowGrapplingHook( void );
+	virtual BOOL AllowGrapplingHook( CBasePlayer *pPlayer );
 #endif
 
 // Teamplay stuff	
@@ -379,7 +384,7 @@ public:
 	virtual BOOL FAllowMonsters( void );
 
 #if defined( GRAPPLING_HOOK )
-	virtual BOOL AllowGrapplingHook( void );
+	virtual BOOL AllowGrapplingHook( CBasePlayer *pPlayer );
 #endif
 
 	// Immediately end a multiplayer game
@@ -400,6 +405,9 @@ public:
 	virtual void ResetGameMode( void );
 	virtual void ClientUserInfoChanged( CBasePlayer *pPlayer, char *infobuffer );
 	virtual void FPlayerTookDamage( float flDamage, CBasePlayer *pVictim, CBaseEntity *pKiller);
+	virtual void CaptureCharm( CBasePlayer *pPlayer ) { };
+	virtual CBaseEntity *DropCharm( CBasePlayer *pPlayer, Vector origin ) { return NULL; };
+	virtual BOOL CanRandomizeWeapon(const char *name) { return TRUE; }
 
 protected:
 	virtual void ChangeLevel( void );

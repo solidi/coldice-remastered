@@ -584,7 +584,7 @@ void ClientCommand( edict_t *pEntity )
 	{
 		CBasePlayer *plr = GetClassPtr((CBasePlayer *)pev);
 
-		if ( g_pGameRules->AllowGrapplingHook() )
+		if ( g_pGameRules->AllowGrapplingHook(plr) )
 		{
 			if (plr->pGrapplingHook == NULL && plr->m_flNextHook < gpGlobals->time) {
 				plr->pGrapplingHook = CHook::HookCreate(plr);
@@ -599,7 +599,7 @@ void ClientCommand( edict_t *pEntity )
 	{
 		CBasePlayer *plr = GetClassPtr((CBasePlayer *)pev);
 
-		if ( g_pGameRules->AllowGrapplingHook() ) {
+		if ( g_pGameRules->AllowGrapplingHook(plr) ) {
 			if (plr->pGrapplingHook) {
 				plr->pGrapplingHook->KillHook();
 				plr->pGrapplingHook = NULL;
@@ -818,12 +818,14 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_gamemode \"lms\"\" - game mode is last man standing\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_gamemode \"snowball\"\" - game mode is snowballs and grenades!\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_gamemode \"gungame\"\" - get frags with specific weapons and level up!\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_gamemode \"ctc\"\" - capture the chumtoad, hold on to it to receive points!\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_randomgamemodes \"[0|1]\"\" - selects a random gamemode on map change\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_roundlimit\" - Sets the maximum amount of game rounds before a map change\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_roundtimelimit\" - Sets the maximum amount of time a round will run\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_roundfraglimit\" - Sets the max frags in a round during an 1 on 1 arena\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_startwithlives\" - Sets the starting lifes during last man standing\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_ggstartlevel\" - Sets default start level of gun game\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_ctcsecondsforpoint\" - amount of second holding chumtoad for a point\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "For more, see readme.txt\n" );
 	}
 #ifdef _DEBUG

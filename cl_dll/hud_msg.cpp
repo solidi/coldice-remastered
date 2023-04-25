@@ -247,6 +247,24 @@ int CHud :: MsgFunc_PlayCSound( const char *pszName, int iSize, void *pbuf )
 		case CLIENT_SOUND_LOSTLEAD:
 			PlaySound("lostlead.wav", 1);
 			break;
+		case CLIENT_SOUND_WHICKEDSICK:
+			PlaySound("whickedsick.wav", 1);
+			break;
+		case CLIENT_SOUND_UNSTOPPABLE:
+			PlaySound("unstoppable2.wav", 1);
+			break;
+		case CLIENT_SOUND_MANIAC:
+			PlaySound("maniac.wav", 1);
+			break;
+		case CLIENT_SOUND_IMPRESSIVE:
+			PlaySound("impressive.wav", 1);
+			break;
+		case CLIENT_SOUND_EXCELLENT:
+			PlaySound("excellent.wav", 1);
+			break;
+		case CLIENT_SOUND_BULLSEYE:
+			PlaySound("bullseye.wav", 1);
+			break;
 	}
 	return 1;
 }

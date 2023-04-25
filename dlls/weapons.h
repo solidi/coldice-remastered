@@ -1356,6 +1356,7 @@ public:
 	void SecondaryAttack( void );
 	BOOL DeployLowKey( void );
 	BOOL Deploy( void );
+	BOOL CanHolster( void );
 	void Holster( int skiplocal = 0 );
 	void WeaponIdle( void );
 	int m_fJustThrown;
@@ -1450,7 +1451,6 @@ public:
 
 	BOOL DeployLowKey( void );
 	BOOL Deploy( void );
-	BOOL CanHolster( void );
 	void Holster( int skiplocal = 0 );
 
 	void PrimaryAttack( void );

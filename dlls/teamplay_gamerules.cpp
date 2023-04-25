@@ -187,7 +187,7 @@ extern int gmsgScoreInfo;
 void CHalfLifeTeamplay :: UpdateGameMode( CBasePlayer *pPlayer )
 {
 	MESSAGE_BEGIN( MSG_ONE, gmsgGameMode, NULL, pPlayer->edict() );
-		WRITE_BYTE( 1 );  // game mode teamplay
+		WRITE_BYTE( GAME_TEAMPLAY );  // game mode teamplay
 	MESSAGE_END();
 }
 

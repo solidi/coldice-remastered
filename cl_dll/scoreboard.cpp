@@ -139,18 +139,22 @@ int CHudScoreboard :: Draw( float fTime )
 	int r, g, b;
 	UnpackRGB(r, g, b, HudColor());
 
-	if ( !gHUD.m_Teamplay ) 
+	if ( gHUD.m_Teamplay != GAME_TEAMPLAY && gHUD.m_Teamplay != GAME_ICEMAN ) 
 		gHUD.DrawHudString( xpos, ypos, NAME_RANGE_MAX + xpos_rel, "Player", r, g, b );
 	else
 		gHUD.DrawHudString( xpos, ypos, NAME_RANGE_MAX + xpos_rel, "Teams", r, g, b );
 
 	if (gHUD.m_Teamplay == GAME_LMS)
-		gHUD.DrawHudStringReverse( KILLS_RANGE_MAX + xpos_rel, ypos, 0, "lives left", r, g, b );
+		gHUD.DrawHudStringReverse( KILLS_RANGE_MAX + xpos_rel, ypos, 0, "Lives Left", r, g, b );
+	else if (gHUD.m_Teamplay == GAME_GUNGAME)
+		gHUD.DrawHudStringReverse( KILLS_RANGE_MAX + xpos_rel, ypos, 0, "Level", r, g, b );
+	else if (gHUD.m_Teamplay == GAME_CTC)
+		gHUD.DrawHudStringReverse( KILLS_RANGE_MAX + xpos_rel, ypos, 0, "Points", r, g, b );
 	else
-		gHUD.DrawHudStringReverse( KILLS_RANGE_MAX + xpos_rel, ypos, 0, "kills", r, g, b );
+		gHUD.DrawHudStringReverse( KILLS_RANGE_MAX + xpos_rel, ypos, 0, "Kills", r, g, b );
 	gHUD.DrawHudString( DIVIDER_POS + xpos_rel, ypos, ScreenWidth, "/", r, g, b );
-	gHUD.DrawHudString( DEATHS_RANGE_MIN + xpos_rel + 5, ypos, ScreenWidth, "deaths", r, g, b );
-	gHUD.DrawHudString( PING_RANGE_MAX + xpos_rel - 35, ypos, ScreenWidth, "latency", r, g, b );
+	gHUD.DrawHudString( DEATHS_RANGE_MIN + xpos_rel + 5, ypos, ScreenWidth, "Deaths", r, g, b );
+	gHUD.DrawHudString( PING_RANGE_MAX + xpos_rel - 35, ypos, ScreenWidth, "Latency", r, g, b );
 
 	if ( can_show_packetloss )
 	{
@@ -167,7 +171,7 @@ int CHudScoreboard :: Draw( float fTime )
 	
 	list_slot += 0.8;
 
-	if ( !gHUD.m_Teamplay )
+	if ( gHUD.m_Teamplay != GAME_TEAMPLAY && gHUD.m_Teamplay != GAME_ICEMAN )
 	{
 		// it's not teamplay,  so just draw a simple player list
 		DrawPlayers( xpos_rel, list_slot );

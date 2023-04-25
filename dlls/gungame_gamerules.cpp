@@ -187,13 +187,6 @@ void CHalfLifeGunGame::Think( void )
 	}
 }
 
-void CHalfLifeGunGame::UpdateGameMode( CBasePlayer *pPlayer )
-{
-	MESSAGE_BEGIN( MSG_ONE, gmsgGameMode, NULL, pPlayer->edict() );
-		WRITE_BYTE( 0 );
-	MESSAGE_END();
-}
-
 void CHalfLifeGunGame::PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller, entvars_t *pInflictor )
 {
 	CHalfLifeMultiplay::PlayerKilled( pVictim, pKiller, pInflictor );

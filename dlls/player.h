@@ -259,6 +259,10 @@ public:
 	int m_fFlipType;
 	int m_fKickCount;
 
+	BOOL m_iHoldingChumtoad;
+	int m_iChumtoadCounter;
+	int m_iCaptureTime;
+
 	EHANDLE pHeldItem;
 	BOOL m_iHoldingItem;
 

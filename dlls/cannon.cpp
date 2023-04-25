@@ -321,11 +321,6 @@ BOOL CCannon::Deploy( )
 	return DefaultDeploy( "models/v_cannon.mdl", "models/p_cannon.mdl", CANNON_DRAW1, "rpg" );
 }
 
-BOOL CCannon::CanHolster( void )
-{
-	return TRUE;
-}
-
 void CCannon::Holster( int skiplocal /* = 0 */ )
 {
 	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 0.5;
