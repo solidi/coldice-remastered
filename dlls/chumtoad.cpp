@@ -120,6 +120,13 @@ void CCaptureChumtoad::Spawn( void )
 
 	pev->dmg = gSkillData.chumtoadDmgPop;
 
+	// This chumtoad has a shell
+	pev->renderfx = kRenderFxGlowShell;
+	pev->renderamt = 10;
+	pev->rendercolor.x = 0;
+	pev->rendercolor.y = 200;
+	pev->rendercolor.z = 0;
+
 	m_flDie = gpGlobals->time + SQUEEK_DETONATE_DELAY;
 
 	m_flFieldOfView = 0; // 180 degrees
