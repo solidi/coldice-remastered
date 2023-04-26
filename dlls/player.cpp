@@ -3785,6 +3785,9 @@ void CBasePlayer::SelectItem(const char *pstr)
 	if (pItem == m_pActiveItem)
 		return;
 
+	if (m_pActiveItem && !m_pActiveItem->CanHolster())
+		return;
+
 	ResetAutoaim( );
 
 	// FIX, this needs to queue them up and delay

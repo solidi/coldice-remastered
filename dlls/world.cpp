@@ -562,8 +562,8 @@ float g_flWeaponCheat;
 void CWorld :: Spawn( void )
 {
 	g_fGameOver = FALSE;
-	Precache( );
 	SetGameMode();
+	Precache( );
 	if (randommutators.value)
 		RandomizeMutators();
 	g_flWeaponCheat = CVAR_GET_FLOAT( "sv_cheats" );  // Is the impulse 101 command allowed?
@@ -813,11 +813,13 @@ extern DLL_GLOBAL int g_GameMode;
 const char *szGameModeList [] =
 {
 	"ffa",
+	"teamplay",
 	"iceman",
 	"lms",
 	"arena",
 	"snowball",
 	"gungame",
+	"ctc",
 };
 
 void CWorld :: SetGameMode( void )
@@ -827,12 +829,14 @@ void CWorld :: SetGameMode( void )
 
 	CVAR_SET_STRING("mp_snowballfight", "0");
 
+/*
 	if (!g_pGameRules->IsMultiplayer())
 	{
 		CVAR_SET_STRING("mp_gamemode", "ffa");
 		g_GameMode = 0;
 		return;
 	}
+*/
 
 	// Randomize if set
 	if (CVAR_GET_FLOAT("mp_randomgamemodes") > 0)

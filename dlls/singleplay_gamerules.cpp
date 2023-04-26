@@ -362,7 +362,7 @@ BOOL CHalfLifeRules :: FAllowMonsters( void )
 //=========================================================
 //=========================================================
 #if defined( GRAPPLING_HOOK )
-BOOL CHalfLifeRules :: AllowGrapplingHook( void )
+BOOL CHalfLifeRules :: AllowGrapplingHook( CBasePlayer *pPlayer )
 {
 	return FALSE;
 }

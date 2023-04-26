@@ -121,6 +121,7 @@
     <ClCompile Include="..\..\dlls\controller.cpp" />
     <ClCompile Include="..\..\dlls\crossbow.cpp" />
     <ClCompile Include="..\..\dlls\crowbar.cpp" />
+    <ClCompile Include="..\..\dlls\ctc_gamerules.cpp" />
     <ClCompile Include="..\..\dlls\deagle.cpp" />
     <ClCompile Include="..\..\dlls\defaultai.cpp" />
     <ClCompile Include="..\..\dlls\doors.cpp" />
@@ -245,6 +246,7 @@
     <ClInclude Include="..\..\dlls\cbase.h" />
     <ClInclude Include="..\..\dlls\cdll_dll.h" />
     <ClInclude Include="..\..\dlls\client.h" />
+    <ClInclude Include="..\..\dlls\ctc_gamerules.h" />
     <ClInclude Include="..\..\dlls\decals.h" />
     <ClInclude Include="..\..\dlls\defaultai.h" />
     <ClInclude Include="..\..\dlls\doors.h" />
