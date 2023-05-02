@@ -72,5 +72,8 @@ DLL_GLOBAL const char *g_MutatorSnowball = "snowballs";
 DLL_GLOBAL const char *g_MutatorPushy = "pushy";
 DLL_GLOBAL const char *g_MutatorPortal = "portal";
 DLL_GLOBAL const char *g_MutatorJope = "jope";
+DLL_GLOBAL const char *g_MutatorInverse = "inverse";
+DLL_GLOBAL const char *g_MutatorSildenafil = "sildenafil";
+DLL_GLOBAL const char *g_MutatorOldtime = "oldtime";
 
 DLL_GLOBAL int g_GameMode;

@@ -35,6 +35,7 @@
 #include "shake.h"
 
 #include "rain.h"
+#include "colorcor.h"
 
 hud_player_info_t	 g_PlayerInfoList[MAX_PLAYERS+1];	   // player info from the engine
 extra_player_info_t  g_PlayerExtraInfo[MAX_PLAYERS+1];   // additional player info sent directly to the client dll
@@ -524,6 +525,14 @@ void CHud :: Init( void )
 	cl_vmyaw = CVAR_CREATE( "cl_vmyaw", "0", FCVAR_ARCHIVE );
 	cl_vmroll = CVAR_CREATE( "cl_vmroll", "0", FCVAR_ARCHIVE );
 	cl_ifov = CVAR_CREATE( "cl_ifov", "90", FCVAR_ARCHIVE );
+
+	// Experimental color correction system
+	CVAR_CREATE( "colorcor_r", "1", FCVAR_ARCHIVE ); // Red color correction
+	CVAR_CREATE( "colorcor_g", "1", FCVAR_ARCHIVE ); // Green color correction
+	CVAR_CREATE( "colorcor_b", "1", FCVAR_ARCHIVE ); // Blue color correction
+	CVAR_CREATE( "colorcor_alpha", "1.0", FCVAR_ARCHIVE ); // Alpha chanel color correction
+	CVAR_CREATE( "colorcor_inverse", "0", FCVAR_ARCHIVE ); // Inverse color correction
+	CVAR_CREATE( "colorcor_blackwhite", "0", FCVAR_ARCHIVE ); // Black and white
 
 	m_iLogo = 0;
 	m_iFOV = 0;

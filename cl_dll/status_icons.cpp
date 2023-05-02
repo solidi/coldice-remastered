@@ -168,67 +168,32 @@ void CHudStatusIcons::DisableIcon( char *pszIconName )
 
 void CHudStatusIcons::DrawMutators( void )
 {
+	ToggleMutatorIcon(MUTATOR_COOLFLESH, "coolflesh");
+	ToggleMutatorIcon(MUTATOR_SANTAHAT, "santahat");
+	ToggleMutatorIcon(MUTATOR_VOLATILE, "volatile");
+	ToggleMutatorIcon(MUTATOR_PORTAL, "portal");
+	ToggleMutatorIcon(MUTATOR_JOPE, "jope");
+	ToggleMutatorIcon(MUTATOR_PLUMBER, "plumber");
+	ToggleMutatorIcon(MUTATOR_INVERSE, "inverse");
+	ToggleMutatorIcon(MUTATOR_OLDTIME, "oldtime");
+	ToggleMutatorIcon(MUTATOR_SILDENAFIL, "sildenafil");
+	ToggleMutatorIcon(MUTATOR_GRAVITY, "astronaut");
+	ToggleMutatorIcon(MUTATOR_INVISIBLE, "invisible");
+}
+
+void CHudStatusIcons::ToggleMutatorIcon(int mutatorId, const char *mutator)
+{
 	int r, g, b;
 	UnpackRGB(r,g,b, HudColor());
 	ScaleColors(r, g, b, 128);
 
 	if (gHUD.szActiveMutators != NULL &&
-		(strstr(gHUD.szActiveMutators, "coolflesh") ||
-		atoi(gHUD.szActiveMutators) == MUTATOR_COOLFLESH))
+		(strstr(gHUD.szActiveMutators, mutator) ||
+		atoi(gHUD.szActiveMutators) == mutatorId))
 	{
 		m_iFlags |= HUD_ACTIVE;
-		EnableIcon("coolflesh",r,g,b);
+		EnableIcon((char *)mutator,r,g,b);
 	}
 	else
-		DisableIcon("coolflesh");
-
-	if (gHUD.szActiveMutators != NULL &&
-		(strstr(gHUD.szActiveMutators, "santahat") ||
-		atoi(gHUD.szActiveMutators) == MUTATOR_SANTAHAT))
-	{
-		m_iFlags |= HUD_ACTIVE;
-		EnableIcon("santahat",r,g,b);
-	}
-	else
-		DisableIcon("santahat");
-
-	if (gHUD.szActiveMutators != NULL &&
-		(strstr(gHUD.szActiveMutators, "volatile") ||
-		atoi(gHUD.szActiveMutators) == MUTATOR_VOLATILE))
-	{
-		m_iFlags |= HUD_ACTIVE;
-		EnableIcon("volatile",r,g,b);
-	}
-	else
-		DisableIcon("volatile");
-
-	if (gHUD.szActiveMutators != NULL &&
-		(strstr(gHUD.szActiveMutators, "portal") ||
-		atoi(gHUD.szActiveMutators) == MUTATOR_PORTAL))
-	{
-		m_iFlags |= HUD_ACTIVE;
-		EnableIcon("portal",r,g,b);
-	}
-	else
-		DisableIcon("portal");
-
-	if (gHUD.szActiveMutators != NULL &&
-		(strstr(gHUD.szActiveMutators, "jope") ||
-		atoi(gHUD.szActiveMutators) == MUTATOR_JOPE))
-	{
-		m_iFlags |= HUD_ACTIVE;
-		EnableIcon("jope",r,g,b);
-	}
-	else
-		DisableIcon("jope");
-
-	if (gHUD.szActiveMutators != NULL &&
-		(strstr(gHUD.szActiveMutators, "plumber") ||
-		atoi(gHUD.szActiveMutators) == MUTATOR_PLUMBER))
-	{
-		m_iFlags |= HUD_ACTIVE;
-		EnableIcon("plumber",r,g,b);
-	}
-	else
-		DisableIcon("plumber");
+		DisableIcon((char *)mutator);
 }

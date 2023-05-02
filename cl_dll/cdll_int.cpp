@@ -46,6 +46,8 @@ extern "C"
 #include "vgui_TeamFortressViewport.h"
 #include "../public/interface.h"
 
+#include "colorcor.h"
+
 cl_enginefunc_t gEngfuncs;
 CHud gHUD;
 #ifdef _WIN32
@@ -192,6 +194,10 @@ int CL_DLLEXPORT HUD_VidInit( void )
 //	RecClHudVidInit();
 	gHUD.VidInit();
 
+#ifndef __APPLE__
+	gColorCor.InitScreen();
+#endif
+
 	VGui_Startup();
 
 	TriHUD_VidInit();
@@ -238,6 +244,10 @@ int CL_DLLEXPORT HUD_Redraw( float time, int intermission )
 #endif
 
 	gHUD.Redraw( time, intermission );
+
+#ifndef __APPLE__
+	gColorCor.DrawColorCor();
+#endif
 
 	return 1;
 }

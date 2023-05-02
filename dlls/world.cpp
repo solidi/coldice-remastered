@@ -80,6 +80,9 @@ extern DLL_GLOBAL const char *g_szMutators[] = {
 	"pushy",
 	"portal",
 	"jope",
+	"inverse",
+	"sildenafil",
+	"oldtime",
 };
 
 extern void W_Precache(void);
