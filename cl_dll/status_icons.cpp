@@ -145,11 +145,11 @@ void CHudStatusIcons::EnableIcon( char *pszIconName, unsigned char red, unsigned
 	strcpy( m_IconList[i].szSpriteName, pszIconName );
 
 	// Hack: Play Timer sound when a grenade icon is played (in 0.8 seconds)
-	if ( strstr(m_IconList[i].szSpriteName, "grenade") )
-	{
-		cl_entity_t *pthisplayer = gEngfuncs.GetLocalPlayer();
-		gEngfuncs.pEventAPI->EV_PlaySound( pthisplayer->index, pthisplayer->origin, CHAN_STATIC, "weapons/timer.wav", 1.0, ATTN_NORM, 0, PITCH_NORM );
-	}
+	// if ( strstr(m_IconList[i].szSpriteName, "grenade") )
+	// {
+	//	cl_entity_t *pthisplayer = gEngfuncs.GetLocalPlayer();
+	//	gEngfuncs.pEventAPI->EV_PlaySound( pthisplayer->index, pthisplayer->origin, CHAN_STATIC, "weapons/timer.wav", 1.0, ATTN_NORM, 0, PITCH_NORM );
+	//}
 }
 
 void CHudStatusIcons::DisableIcon( char *pszIconName )
@@ -179,6 +179,10 @@ void CHudStatusIcons::DrawMutators( void )
 	ToggleMutatorIcon(MUTATOR_SILDENAFIL, "sildenafil");
 	ToggleMutatorIcon(MUTATOR_GRAVITY, "astronaut");
 	ToggleMutatorIcon(MUTATOR_INVISIBLE, "invisible");
+	ToggleMutatorIcon(MUTATOR_GRENADES, "grenades");
+	ToggleMutatorIcon(MUTATOR_ROCKETS, "rockets");
+	ToggleMutatorIcon(MUTATOR_SPEEDUP, "speedup");
+	ToggleMutatorIcon(MUTATOR_CHUMXPLODE, "chumxplode");
 }
 
 void CHudStatusIcons::ToggleMutatorIcon(int mutatorId, const char *mutator)
