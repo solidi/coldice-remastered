@@ -105,6 +105,7 @@
     <ClCompile Include="..\..\cl_dll\ammo_secondary.cpp" />
     <ClCompile Include="..\..\cl_dll\battery.cpp" />
     <ClCompile Include="..\..\cl_dll\cdll_int.cpp" />
+    <ClCompile Include="..\..\cl_dll\colorcor.cpp" />
     <ClCompile Include="..\..\cl_dll\com_weapons.cpp" />
     <ClCompile Include="..\..\cl_dll\death.cpp" />
     <ClCompile Include="..\..\cl_dll\demo.cpp" />
@@ -249,6 +250,7 @@
     <ClInclude Include="..\..\cl_dll\camera.h" />
     <ClInclude Include="..\..\cl_dll\cl_dll.h" />
     <ClInclude Include="..\..\cl_dll\cl_util.h" />
+    <ClInclude Include="..\..\cl_dll\colorcor.h" />
     <ClInclude Include="..\..\cl_dll\com_weapons.h" />
     <ClInclude Include="..\..\cl_dll\demo.h" />
     <ClInclude Include="..\..\cl_dll\eventscripts.h" />

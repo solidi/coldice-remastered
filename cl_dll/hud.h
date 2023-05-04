@@ -550,6 +550,7 @@ private:
 
 	icon_sprite_t m_IconList[MAX_ICONSPRITES];
 
+	void ToggleMutatorIcon(int mutatorId, const char *mutator);
 };
 
 //

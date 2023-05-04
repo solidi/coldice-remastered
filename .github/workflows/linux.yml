@@ -37,6 +37,9 @@ jobs:
     - name: Install headers
       run: sudo apt-get install gcc-4.8-multilib g++-4.8-multilib -y
 
+    - name: Install GL headers
+      run: sudo apt install libgl-dev -y
+
     - name: Build ice.so
       working-directory: ./linux
       run: make hl CFG=${{env.BUILD_CONFIGURATION}}

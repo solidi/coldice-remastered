@@ -819,6 +819,9 @@ typedef struct
 #define MUTATOR_PUSHY 30
 #define MUTATOR_PORTAL 31
 #define MUTATOR_JOPE 32
+#define MUTATOR_INVERSE 33
+#define MUTATOR_OLDTIME 34
+#define MUTATOR_SILDENAFIL 35
 
 #define GAME_FFA 0
 #define GAME_TEAMPLAY 1
