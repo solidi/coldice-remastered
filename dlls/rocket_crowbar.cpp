@@ -200,9 +200,9 @@ void CRocketCrowbar::Spawn( )
 {
 	Precache( );
 	m_iId = WEAPON_ROCKETCROWBAR;
-	SET_MODEL(ENT(pev), "models/w_rocketcrowbar.mdl");
+	SET_MODEL(ENT(pev), "models/w_weapons.mdl");
+	pev->body = WEAPON_ROCKETCROWBAR - 1;
 	m_iClip = -1;
-	pev->body = 1;
 
 	UTIL_PrecacheOther( "drunk_rocket" );
 
@@ -212,7 +212,7 @@ void CRocketCrowbar::Spawn( )
 void CRocketCrowbar::Precache( void )
 {
 	PRECACHE_MODEL("models/v_rocketcrowbar.mdl");
-	PRECACHE_MODEL("models/w_rocketcrowbar.mdl");
+	PRECACHE_MODEL("models/w_weapons.mdl");
 	PRECACHE_MODEL("models/p_rocketcrowbar.mdl");
 	PRECACHE_SOUND("cbar_hit1.wav");
 	PRECACHE_SOUND("weapons/cbar_hit2.wav");

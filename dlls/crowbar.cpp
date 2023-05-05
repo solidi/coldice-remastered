@@ -72,7 +72,9 @@ void CCrowbar::Spawn( )
 {
 	Precache( );
 	m_iId = WEAPON_CROWBAR;
-	SET_MODEL(ENT(pev), "models/w_crowbar.mdl");
+	SET_MODEL(ENT(pev), "models/w_weapons.mdl");
+	pev->body = WEAPON_CROWBAR - 1;
+
 	m_iClip = -1;
 
 	FallInit();// get ready to fall down.
@@ -82,7 +84,7 @@ void CCrowbar::Spawn( )
 void CCrowbar::Precache( void )
 {
 	PRECACHE_MODEL("models/v_crowbar.mdl");
-	PRECACHE_MODEL("models/w_crowbar.mdl");
+	PRECACHE_MODEL("models/w_weapons.mdl");
 	PRECACHE_MODEL("models/p_crowbar.mdl");
 	PRECACHE_SOUND("cbar_hit1.wav");
 	PRECACHE_SOUND("weapons/cbar_hit2.wav");
@@ -460,7 +462,8 @@ void CFlyingCrowbar::Spawn( )
    pev->classname = MAKE_STRING("flying_crowbar");
 
    // Use the world crowbar model.
-   SET_MODEL(ENT(pev), "models/w_crowbar.mdl");
+   SET_MODEL(ENT(pev), "models/w_weapons.mdl");
+   pev->body = WEAPON_CROWBAR - 1;
 
    // Set the origin and size for the HL engine collision
    // tables.
@@ -483,7 +486,7 @@ void CFlyingCrowbar::Spawn( )
 
 void CFlyingCrowbar::Precache( )
 {
-   PRECACHE_MODEL ("models/w_crowbar.mdl");
+   PRECACHE_MODEL ("models/w_weapons.mdl");
    PRECACHE_SOUND ("cbar_hitbod1.wav");
    PRECACHE_SOUND ("cbar_hit1.wav");
    PRECACHE_SOUND ("weapons/cbar_miss1.wav");
