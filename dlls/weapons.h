@@ -127,42 +127,41 @@ public:
 
 
 // weapon weight factors (for auto-switching)   (-1 = noswitch)
-#define CROWBAR_WEIGHT		1
-#define GLOCK_WEIGHT		10
-#define PYTHON_WEIGHT		15
-#define MP5_WEIGHT			15
-#define SHOTGUN_WEIGHT		15
-#define CROSSBOW_WEIGHT		10
-#define RPG_WEIGHT			20
-#define GAUSS_WEIGHT		20
-#define EGON_WEIGHT			20
-#define HORNETGUN_WEIGHT	10
-#define HANDGRENADE_WEIGHT	5
-#define SNARK_WEIGHT		5
-#define SATCHEL_WEIGHT		-10
-#define TRIPMINE_WEIGHT		-10
-#define KNIFE_WEIGHT		2
-#define RAILGUN_WEIGHT		20
-#define CANNON_WEIGHT		20
-#define MAG60_WEIGHT		15
-#define CHAINGUN_WEIGHT		20
-#define GLAUNCHER_WEIGHT	15
-#define SMG_WEIGHT			15
-#define USAS_WEIGHT			15
-#define FISTS_WEIGHT		0
-#define WRENCH_WEIGHT		3
-#define SNOWBALL_WEIGHT		3
-#define CHAINSAW_WEIGHT		5
-#define GAUGE_SHOTGUN_WEIGHT 14
-#define NUKE_WEIGHT 		30
-#define DEAGLE_WEIGHT		20
-#define FREEZEGUN_WEIGHT	20
-#define VEST_WEIGHT			25
-#define ROCKETCROWBAR_WEIGHT 20
-#define GRAVITYGUN_WEIGHT	2
-#define FLAMETHROWER_WEIGHT	18
-#define ASHPOD_WEIGHT	3
-
+#define SATCHEL_WEIGHT			-10
+#define TRIPMINE_WEIGHT			-10
+#define FISTS_WEIGHT			0
+#define CROWBAR_WEIGHT			1
+#define KNIFE_WEIGHT			2
+#define WRENCH_WEIGHT			3
+#define CHAINSAW_WEIGHT			4
+#define GRAVITYGUN_WEIGHT		5
+#define ROCKETCROWBAR_WEIGHT 	6
+#define ASHPOD_WEIGHT			7
+#define HANDGRENADE_WEIGHT		10
+#define SNARK_WEIGHT			10
+#define SNOWBALL_WEIGHT			10
+#define GLOCK_WEIGHT			11
+#define PYTHON_WEIGHT			12
+#define DEAGLE_WEIGHT			13
+#define MAG60_WEIGHT			14
+#define SMG_WEIGHT				15
+#define HORNETGUN_WEIGHT		10
+#define GAUGE_SHOTGUN_WEIGHT 	14
+#define MP5_WEIGHT				15
+#define CROSSBOW_WEIGHT			10
+#define SHOTGUN_WEIGHT			15
+#define GLAUNCHER_WEIGHT		15
+#define USAS_WEIGHT				15
+#define FLAMETHROWER_WEIGHT		18
+#define RPG_WEIGHT				20
+#define GAUSS_WEIGHT			20
+#define EGON_WEIGHT				20
+#define RAILGUN_WEIGHT			20
+#define CANNON_WEIGHT			20
+#define CHAINGUN_WEIGHT			20
+#define FREEZEGUN_WEIGHT		20
+#define VEST_WEIGHT				25
+#define NUKE_WEIGHT 			30
 
 // weapon clip/carry ammo capacities
 #define URANIUM_MAX_CARRY		250
