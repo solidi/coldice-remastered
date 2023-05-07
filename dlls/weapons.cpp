@@ -1821,7 +1821,9 @@ BOOL CWeaponBox::PackWeapon( CBasePlayerItem *pWeapon )
 	}
 	else if (pWeapon->m_iId == WEAPON_SMG)
 	{
-		SET_MODEL( ENT(pev), "models/w_smg.mdl");
+		SET_MODEL( ENT(pev), "models/w_weapons.mdl");
+		pev->body = WEAPON_SMG - 1;
+		pev->sequence = ((WEAPON_SMG - 1) * 2) + floating;
 	}
 	else if (pWeapon->m_iId == WEAPON_USAS)
 	{
@@ -1837,7 +1839,9 @@ BOOL CWeaponBox::PackWeapon( CBasePlayerItem *pWeapon )
 	}
 	else if (pWeapon->m_iId == WEAPON_MAG60)
 	{
-		SET_MODEL( ENT(pev), "models/w_mag60.mdl");
+		SET_MODEL( ENT(pev), "models/w_weapons.mdl");
+		pev->body = WEAPON_MAG60 - 1;
+		pev->sequence = ((WEAPON_MAG60 - 1) * 2) + floating;
 	}
 	else if (pWeapon->m_iId == WEAPON_CHAINGUN)
 	{
@@ -1845,7 +1849,9 @@ BOOL CWeaponBox::PackWeapon( CBasePlayerItem *pWeapon )
 	}
 	else if (pWeapon->m_iId == WEAPON_GLOCK)
 	{
-		SET_MODEL( ENT(pev), "models/w_9mmhandguns.mdl");
+		SET_MODEL( ENT(pev), "models/w_weapons.mdl");
+		pev->body = WEAPON_GLOCK - 1;
+		pev->sequence = ((WEAPON_GLOCK - 1) * 2) + floating;
 	}
 	else if (pWeapon->m_iId == WEAPON_SNIPER_RIFLE)
 	{
@@ -1930,7 +1936,9 @@ BOOL CWeaponBox::PackWeapon( CBasePlayerItem *pWeapon )
 	}
 	else if (pWeapon->m_iId == WEAPON_DEAGLE)
 	{
-		SET_MODEL( ENT(pev), "models/w_deagle.mdl");
+		SET_MODEL( ENT(pev), "models/w_weapons.mdl");
+		pev->body = WEAPON_DEAGLE - 1;
+		pev->sequence = ((WEAPON_DEAGLE - 1) * 2) + floating;
 	}
 	else if (pWeapon->m_iId == WEAPON_DUAL_DEAGLE)
 	{
@@ -1962,7 +1970,9 @@ BOOL CWeaponBox::PackWeapon( CBasePlayerItem *pWeapon )
 	}
 	else if (pWeapon->m_iId == WEAPON_PYTHON)
 	{
-		SET_MODEL( ENT(pev), "models/w_357.mdl");
+		SET_MODEL( ENT(pev), "models/w_weapons.mdl");
+		pev->body = WEAPON_PYTHON - 1;
+		pev->sequence = ((WEAPON_PYTHON - 1) * 2) + floating;
 	}
 	else if (pWeapon->m_iId == WEAPON_ROCKETCROWBAR)
 	{
