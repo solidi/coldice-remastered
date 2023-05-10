@@ -43,7 +43,8 @@ LINK_ENTITY_TO_CLASS( weapon_sniperrifle, CSniperRifle );
 void CSniperRifle::Spawn( )
 {
 	Precache( );
-	SET_MODEL(ENT(pev), "models/w_sniperrifle.mdl");
+	SET_MODEL(ENT(pev), "models/w_weapons.mdl");
+	pev->body = WEAPON_SNIPER_RIFLE - 1;
 	m_iId = WEAPON_SNIPER_RIFLE;
 
 	m_iDefaultAmmo = MP5_DEFAULT_GIVE;
@@ -54,7 +55,7 @@ void CSniperRifle::Spawn( )
 void CSniperRifle::Precache( void )
 {
 	PRECACHE_MODEL("models/v_sniperrifle.mdl");
-	PRECACHE_MODEL("models/w_sniperrifle.mdl");
+	PRECACHE_MODEL("models/w_weapons.mdl");
 	PRECACHE_MODEL("models/p_sniperrifle.mdl");
 
 	m_iShell = PRECACHE_MODEL("models/w_762shell.mdl");// brass shellTE_MODEL
@@ -76,7 +77,7 @@ int CSniperRifle::GetItemInfo(ItemInfo *p)
 	p->iSlot = 2;
 	p->iPosition = 5;
 	p->iId = m_iId = WEAPON_SNIPER_RIFLE;
-	p->iWeight = PYTHON_WEIGHT;
+	p->iWeight = SNIPERRIFLE_WEIGHT;
 	p->pszDisplayName = "7.65mm Sniper Rifle";
 
 	return 1;

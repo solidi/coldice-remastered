@@ -49,7 +49,8 @@ void C12Gauge::Spawn( )
 {
 	Precache( );
 	m_iId = WEAPON_12GAUGE;
-	SET_MODEL(ENT(pev), "models/w_12gauge.mdl");
+	SET_MODEL(ENT(pev), "models/w_weapons.mdl");
+	pev->body = WEAPON_12GAUGE - 1;
 
 	m_iDefaultAmmo = _12_GAUGE_DEFAULT_GIVE;
 
@@ -70,7 +71,7 @@ const char *C12Gauge::pJacksonSounds[] =
 void C12Gauge::Precache( void )
 {
 	PRECACHE_MODEL("models/v_12gauge.mdl");
-	PRECACHE_MODEL("models/w_12gauge.mdl");
+	PRECACHE_MODEL("models/w_weapons.mdl");
 	PRECACHE_MODEL("models/p_12gauge.mdl");
 
 	m_iShell = PRECACHE_MODEL ("models/w_shotgunshell.mdl");// shotgun shell
@@ -78,12 +79,10 @@ void C12Gauge::Precache( void )
 	PRECACHE_SOUND("items/9mmclip1.wav");
 
 	PRECACHE_SOUND ("12gauge_fire.wav");
-	PRECACHE_SOUND ("weapons/sbarrel1.wav");//shotgun
 
 	PRECACHE_SOUND ("weapons/reload1.wav");	// shotgun reload
 	PRECACHE_SOUND ("weapons/reload3.wav");	// shotgun reload
 
-	PRECACHE_SOUND ("weapons/357_cock1.wav"); // gun empty sound
 	PRECACHE_SOUND ("12gauge_cock.wav");	// cock gun
 
 	PRECACHE_SOUND_ARRAY(pJacksonSounds);
