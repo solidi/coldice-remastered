@@ -600,7 +600,7 @@ void CBasePlayerItem :: FallInit( void )
 	pev->solid = SOLID_BBOX;
 
 	if (floatingweapons.value) {
-		pev->sequence = 1;
+		pev->sequence = ((m_iId - 1) * 2) + 1;
 		pev->animtime = gpGlobals->time;
 		pev->framerate = 1.0;
 	}
