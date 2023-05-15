@@ -34,15 +34,11 @@ enum vest_radio_e {
 
 int CVest::AddToPlayer( CBasePlayer *pPlayer )
 {
-	int bResult = CBasePlayerItem::AddToPlayer( pPlayer );
-
-	pPlayer->pev->weapons |= (1<<m_iId);
-
-	if ( bResult )
+	if ( CBasePlayerWeapon::AddToPlayer( pPlayer ) )
 	{
-		return AddWeapon( );
+		WeaponPickup(pPlayer, m_iId);
+		return TRUE;
 	}
-
 	return FALSE;
 }
 
@@ -78,7 +74,7 @@ int CVest::GetItemInfo(ItemInfo *p)
 	p->iMaxClip = WEAPON_NOCLIP;
 	p->iSlot = 4;
 	p->iPosition = 6;
-	p->iFlags = ITEM_FLAG_SELECTONEMPTY | ITEM_FLAG_LIMITINWORLD | ITEM_FLAG_EXHAUSTIBLE;
+	p->iFlags = 0;
 	p->iId = m_iId = WEAPON_VEST;
 	p->iWeight = VEST_WEIGHT;
 	p->pszDisplayName = "Leeroy Jenkins Dynamite Vest";
