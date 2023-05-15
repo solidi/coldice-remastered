@@ -47,7 +47,8 @@ void CAshpod::Spawn( )
 	Precache( );
 	m_iId = WEAPON_ASHPOD;
 	SET_MODEL(ENT(pev), "models/w_weapons.mdl");
-	pev->body = WEAPON_ASHPOD - 1;
+	SetBodygroup(0, WEAPON_ASHPOD - 1);
+	SetBodygroup(1, WEAPON_ASHPOD - 1);
 
 	FallInit();// get ready to fall down.
 }

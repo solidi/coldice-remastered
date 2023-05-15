@@ -32,6 +32,7 @@
 #include "gamerules.h"
 #include "items.h"
 #include "game.h"
+#include "animation.h"
 
 extern CGraph	WorldGraph;
 extern int gEvilImpulse101;
@@ -2033,7 +2034,8 @@ BOOL CWeaponBox::PackWeapon( CBasePlayerItem *pWeapon )
 	else if (pWeapon->m_iId == WEAPON_ASHPOD)
 	{
 		SET_MODEL( ENT(pev), "models/w_weapons.mdl");
-		pev->body = WEAPON_ASHPOD - 1;
+		SetBodygroup(GET_MODEL_PTR(ENT(pev)), pev, 0, WEAPON_ASHPOD - 1);
+		SetBodygroup(GET_MODEL_PTR(ENT(pev)), pev, 1, WEAPON_ASHPOD - 1);
 		pev->sequence = ((WEAPON_ASHPOD - 1) * 2) + floating;
 	}
 
