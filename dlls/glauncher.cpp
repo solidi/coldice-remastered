@@ -45,7 +45,8 @@ void CGrenadeLauncher::Spawn( )
 {
 	Precache();
 
-	SET_MODEL(ENT(pev), "models/w_glauncher.mdl");
+	SET_MODEL(ENT(pev), "models/w_weapons.mdl");
+	pev->body = WEAPON_GLAUNCHER;
 
 	m_iId = WEAPON_GLAUNCHER;
 	m_iDefaultAmmo = GLAUNCHER_DEFAULT_GIVE;
@@ -56,7 +57,7 @@ void CGrenadeLauncher::Spawn( )
 void CGrenadeLauncher::Precache( void )
 {
 	PRECACHE_MODEL("models/v_glauncher.mdl");
-	PRECACHE_MODEL("models/w_glauncher.mdl");
+	PRECACHE_MODEL("models/w_weapons.mdl");
 	PRECACHE_MODEL("models/p_glauncher.mdl");
 
 	PRECACHE_MODEL("models/w_contact_grenade.mdl");

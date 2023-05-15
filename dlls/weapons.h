@@ -94,18 +94,18 @@ public:
 #define WEAPON_GAUSS				22
 #define WEAPON_EGON					23
 #define WEAPON_HORNETGUN			24
-#define WEAPON_HANDGRENADE			25
-#define WEAPON_TRIPMINE				26
-#define	WEAPON_SATCHEL				27
-#define	WEAPON_VEST					28
-#define	WEAPON_CHUMTOAD				29
-#define WEAPON_RAILGUN				30
+#define WEAPON_RAILGUN				25
+#define WEAPON_GLAUNCHER			26
+#define WEAPON_CANNON				27
+#define WEAPON_NUKE					28
+#define WEAPON_HANDGRENADE			29
+#define WEAPON_TRIPMINE				30
 #define WEAPON_SUIT					31
 #define WEAPON_NONE_32				32
-#define WEAPON_FISTS				33
-#define WEAPON_CANNON				34
-#define WEAPON_GLAUNCHER			35
-#define WEAPON_NUKE					36
+#define	WEAPON_SATCHEL				33
+#define	WEAPON_VEST					34
+#define	WEAPON_CHUMTOAD				35
+#define WEAPON_FISTS				36
 #define WEAPON_SNOWBALL				37
 #define	WEAPON_SNARK				38
 #define WEAPON_DUAL_DEAGLE			39
@@ -127,8 +127,6 @@ public:
 
 
 // weapon weight factors (for auto-switching)   (-1 = noswitch)
-#define SATCHEL_WEIGHT			-10
-#define TRIPMINE_WEIGHT			-10
 #define FISTS_WEIGHT			0
 #define CROWBAR_WEIGHT			1
 #define KNIFE_WEIGHT			2
@@ -137,8 +135,6 @@ public:
 #define GRAVITYGUN_WEIGHT		5
 #define ROCKETCROWBAR_WEIGHT 	6
 #define ASHPOD_WEIGHT			7
-#define HANDGRENADE_WEIGHT		10
-#define SNARK_WEIGHT			10
 #define SNOWBALL_WEIGHT			10
 #define GLOCK_WEIGHT			11
 #define PYTHON_WEIGHT			12
@@ -153,16 +149,20 @@ public:
 #define SNIPERRIFLE_WEIGHT		25
 #define CHAINGUN_WEIGHT			26
 #define FREEZEGUN_WEIGHT		27
-#define HORNETGUN_WEIGHT		30
-#define GLAUNCHER_WEIGHT		35
-#define FLAMETHROWER_WEIGHT		38
-#define RPG_WEIGHT				30
-#define GAUSS_WEIGHT			30
-#define EGON_WEIGHT				30
-#define RAILGUN_WEIGHT			30
-#define CANNON_WEIGHT			30
-#define VEST_WEIGHT				35
-#define NUKE_WEIGHT 			40
+#define RPG_WEIGHT				31
+#define GAUSS_WEIGHT			32
+#define EGON_WEIGHT				33
+#define HORNETGUN_WEIGHT		34
+#define RAILGUN_WEIGHT			35
+#define GLAUNCHER_WEIGHT		36
+#define CANNON_WEIGHT			37
+#define NUKE_WEIGHT 			38
+#define HANDGRENADE_WEIGHT		10
+#define SATCHEL_WEIGHT			-10
+#define TRIPMINE_WEIGHT			-10
+#define SNARK_WEIGHT			10
+#define VEST_WEIGHT				40
+#define FLAMETHROWER_WEIGHT		37
 
 // weapon clip/carry ammo capacities
 #define URANIUM_MAX_CARRY		250
