@@ -63,7 +63,8 @@ void CFlameThrower::Spawn( )
 {
 	pev->classname = MAKE_STRING("weapon_flamethrower");
 	Precache( );
-	SET_MODEL(ENT(pev), "models/w_flamethrower.mdl");
+	SET_MODEL(ENT(pev), "models/w_weapons.mdl");
+	pev->body = WEAPON_FLAMETHROWER - 1;
 	m_iId = WEAPON_FLAMETHROWER;
 
 	m_iDefaultAmmo = FLAMETHROWER_DEFAULT_GIVE;
@@ -74,13 +75,14 @@ void CFlameThrower::Spawn( )
 void CFlameThrower::Precache( void )
 {
 	PRECACHE_MODEL("models/v_flamethrower.mdl");
-	PRECACHE_MODEL("models/w_flamethrower.mdl");
+	PRECACHE_MODEL("models/w_weapons.mdl");
 	PRECACHE_MODEL("models/p_flamethrower.mdl");
 
 	PRECACHE_MODEL("sprites/flamesteam.spr");
 	PRECACHE_MODEL("sprites/null.spr");
 
 	// Particles
+	/*
 	PRECACHE_MODEL ("sprites/flameline.spr");
 	PRECACHE_MODEL ("sprites/blacksmoke.spr");
 	PRECACHE_MODEL ("sprites/black_smoke1.spr");
@@ -90,17 +92,12 @@ void CFlameThrower::Precache( void )
 	PRECACHE_MODEL ("sprites/flamepart11.spr");
 	PRECACHE_MODEL ("sprites/flamepart12.spr");
 	PRECACHE_MODEL ("sprites/flamepart13.spr");
-
-	PRECACHE_SOUND("items/9mmclip1.wav");
+	*/
 
 	PRECACHE_SOUND("flamethrower_reload.wav");
 	PRECACHE_SOUND("flame_hitwall.wav");
-	PRECACHE_SOUND("items/clipinsert1.wav");
-	PRECACHE_SOUND("items/cliprelease1.wav");
 	PRECACHE_SOUND("flamethrower.wav");
 	PRECACHE_SOUND("flamethrowerend.wav");
-
-	PRECACHE_SOUND("weapons/357_cock1.wav");
 
 	m_usFlameStream = PRECACHE_EVENT ( 1, "events/flamestream.sc" );
 	m_usFlameThrower = PRECACHE_EVENT ( 1, "events/flamethrower.sc" );

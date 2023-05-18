@@ -1876,7 +1876,9 @@ BOOL CWeaponBox::PackWeapon( CBasePlayerItem *pWeapon )
 	}
 	else if (pWeapon->m_iId == WEAPON_VEST)
 	{
-		SET_MODEL( ENT(pev), "models/w_vest.mdl");
+		SET_MODEL( ENT(pev), "models/w_weapons.mdl");
+		pev->body = WEAPON_VEST - 1;
+		pev->sequence = ((WEAPON_VEST - 1) * 2) + floating;
 	}
 	else if (pWeapon->m_iId == WEAPON_CANNON)
 	{
@@ -1886,7 +1888,9 @@ BOOL CWeaponBox::PackWeapon( CBasePlayerItem *pWeapon )
 	}
 	else if (pWeapon->m_iId == WEAPON_CHUMTOAD)
 	{
-		SET_MODEL( ENT(pev), "models/w_chumtoad_nest.mdl");
+		SET_MODEL( ENT(pev), "models/w_weapons.mdl");
+		pev->body = WEAPON_CHUMTOAD - 1;
+		pev->sequence = ((WEAPON_CHUMTOAD - 1) * 2) + floating;
 	}
 	else if (pWeapon->m_iId == WEAPON_HANDGRENADE)
 	{
@@ -1911,7 +1915,9 @@ BOOL CWeaponBox::PackWeapon( CBasePlayerItem *pWeapon )
 	}
 	else if (pWeapon->m_iId == WEAPON_SNOWBALL)
 	{
-		SET_MODEL( ENT(pev), "models/w_snowball.mdl");
+		SET_MODEL( ENT(pev), "models/w_weapons.mdl");
+		pev->body = WEAPON_SNOWBALL - 1;
+		pev->sequence = ((WEAPON_SNOWBALL - 1) * 2) + floating;
 	}
 	else if (pWeapon->m_iId == WEAPON_CHAINSAW)
 	{
@@ -1963,7 +1969,9 @@ BOOL CWeaponBox::PackWeapon( CBasePlayerItem *pWeapon )
 	}
 	else if (pWeapon->m_iId == WEAPON_SNARK)
 	{
-		SET_MODEL( ENT(pev), "models/w_sqknest.mdl");
+		SET_MODEL( ENT(pev), "models/w_weapons.mdl");
+		pev->body = WEAPON_SNARK - 1;
+		pev->sequence = ((WEAPON_SNARK - 1) * 2) + floating;
 	}
 	else if (pWeapon->m_iId == WEAPON_DEAGLE)
 	{
@@ -2025,7 +2033,9 @@ BOOL CWeaponBox::PackWeapon( CBasePlayerItem *pWeapon )
 	}
 	else if (pWeapon->m_iId == WEAPON_FLAMETHROWER)
 	{
-		SET_MODEL( ENT(pev), "models/w_flamethrower.mdl");
+		SET_MODEL( ENT(pev), "models/w_weapons.mdl");
+		pev->body = WEAPON_FLAMETHROWER - 1;
+		pev->sequence = ((WEAPON_FLAMETHROWER - 1) * 2) + floating;
 	}
 	else if (pWeapon->m_iId == WEAPON_DUAL_FLAMETHROWER)
 	{

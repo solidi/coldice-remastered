@@ -44,7 +44,8 @@ void CSnowball::Spawn( )
 {
 	Precache( );
 	m_iId = WEAPON_SNOWBALL;
-	SET_MODEL(ENT(pev), "models/w_snowball.mdl");
+	SET_MODEL(ENT(pev), "models/w_weapons.mdl");
+	pev->body = WEAPON_SNOWBALL - 1;
 
 #ifndef CLIENT_DLL
 	pev->dmg = gSkillData.plrDmgSnowball;
@@ -57,7 +58,7 @@ void CSnowball::Spawn( )
 
 void CSnowball::Precache( void )
 {
-	PRECACHE_MODEL("models/w_snowball.mdl");
+	PRECACHE_MODEL("models/w_weapons.mdl");
 	PRECACHE_MODEL("models/v_snowball.mdl");
 	PRECACHE_MODEL("models/p_snowball.mdl");
 
@@ -336,7 +337,9 @@ CFlyingSnowball * CFlyingSnowball::Shoot( entvars_t *pevOwner, Vector vecStart, 
 	pSnowball->pev->gravity = 0.5;
 	pSnowball->pev->friction = 0.8;
 
-	SET_MODEL(ENT(pSnowball->pev), "models/w_snowball.mdl");
+	SET_MODEL(ENT(pSnowball->pev), "models/w_weapons.mdl");
+	pSnowball->pev->body = WEAPON_SNOWBALL - 1;
+
 	if (m_pPlayer)
 		EMIT_SOUND_DYN(ENT(m_pPlayer->pev), CHAN_WEAPON, "snowball_throw.wav", 1, ATTN_NORM, 0, 94 + RANDOM_LONG(0,0xF));
 
@@ -357,7 +360,8 @@ void CFlyingSnowball::Spawn( )
 	pev->gravity = .25;
 
 	// Use the world wrench model.
-	SET_MODEL(ENT(pev), "models/w_snowball.mdl");
+	SET_MODEL(ENT(pev), "models/w_weapons.mdl");
+	pev->body = WEAPON_SNOWBALL - 1;
 
 	// Set the origin and size for the HL engine collision
 	// tables.
@@ -387,7 +391,7 @@ void CFlyingSnowball::Spawn( )
 
 void CFlyingSnowball::Precache( )
 {
-	PRECACHE_MODEL ("models/w_snowball.mdl");
+	PRECACHE_MODEL ("models/w_weapons.mdl");
 
 	PRECACHE_SOUND ("snowball_miss.wav");
 	PRECACHE_SOUND ("snowball_hitbod.wav");

@@ -46,7 +46,8 @@ void CVest::Spawn( )
 {
 	Precache( );
 	m_iId = WEAPON_VEST;
-	SET_MODEL(ENT(pev), "models/w_vest.mdl");
+	SET_MODEL(ENT(pev), "models/w_weapons.mdl");
+	pev->body = WEAPON_VEST - 1;
 
 	m_iDefaultAmmo = SATCHEL_DEFAULT_GIVE;
 
@@ -56,7 +57,7 @@ void CVest::Spawn( )
 void CVest::Precache( void )
 {
 	PRECACHE_MODEL("models/v_vest_radio.mdl");
-	PRECACHE_MODEL("models/w_vest.mdl");
+	PRECACHE_MODEL("models/w_weapons.mdl");
 	PRECACHE_MODEL("models/p_vest.mdl");
 
 	PRECACHE_SOUND("vest_attack.wav");
