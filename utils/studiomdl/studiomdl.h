@@ -316,11 +316,11 @@ EXTERN	int numtextures;
 EXTERN  float gamma;
 EXTERN	int numskinref;
 EXTERN  int numskinfamilies;
-EXTERN  int skinref[256][MAXSTUDIOSKINS]; // [skin][skinref], returns texture index
+EXTERN  int skinref[MAXSTUDIOSKINS][MAXSTUDIOSKINS]; // [skin][skinref], returns texture index
 EXTERN	int numtexturegroups;
 EXTERN	int numtexturelayers[32];
 EXTERN	int numtexturereps[32];
-EXTERN  int texturegroup[32][32][128];
+EXTERN  int texturegroup[32][32][MAXSTUDIOSKINS];
 
 typedef struct 
 {
