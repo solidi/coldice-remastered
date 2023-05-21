@@ -48,7 +48,8 @@ void CDualWrench::Spawn( )
 {
 	Precache( );
 	m_iId = WEAPON_DUAL_WRENCH;
-	SET_MODEL(ENT(pev), "models/w_dual_wrench.mdl");
+	SET_MODEL(ENT(pev), "models/w_weapons.mdl");
+	pev->body = WEAPON_DUAL_WRENCH - 1;
 	m_iClip = -1;
 
 	FallInit();// get ready to fall down.
@@ -57,7 +58,7 @@ void CDualWrench::Spawn( )
 void CDualWrench::Precache( void )
 {
 	PRECACHE_MODEL("models/v_dual_wrench.mdl");
-	PRECACHE_MODEL("models/w_dual_wrench.mdl");
+	PRECACHE_MODEL("models/w_weapons.mdl");
 	PRECACHE_MODEL("models/p_dual_wrench.mdl");
 
 	PRECACHE_SOUND("wrench_hit1.wav");

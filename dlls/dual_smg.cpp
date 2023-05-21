@@ -40,7 +40,8 @@ LINK_ENTITY_TO_CLASS( weapon_dual_smg, CDualSMG );
 void CDualSMG::Spawn( )
 {
 	Precache( );
-	SET_MODEL(ENT(pev), "models/w_dual_smg.mdl");
+	SET_MODEL(ENT(pev), "models/w_weapons.mdl");
+	pev->body = WEAPON_DUAL_SMG;
 	m_iId = WEAPON_DUAL_SMG;
 
 	m_iDefaultAmmo = SMG_DEFAULT_GIVE * 2;
@@ -65,7 +66,7 @@ const char *CDualSMG::pHansSounds[] =
 void CDualSMG::Precache( void )
 {
 	PRECACHE_MODEL("models/v_dual_smg.mdl");
-	PRECACHE_MODEL("models/w_dual_smg.mdl");
+	PRECACHE_MODEL("models/w_weapons.mdl");
 	PRECACHE_MODEL("models/p_dual_smg.mdl");
 
 	m_iShell = PRECACHE_MODEL ("models/w_shell.mdl");// brass shellTE_MODEL

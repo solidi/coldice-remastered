@@ -40,7 +40,8 @@ LINK_ENTITY_TO_CLASS( weapon_dual_mag60, CDualMag60 );
 void CDualMag60::Spawn( )
 {
 	Precache( );
-	SET_MODEL(ENT(pev), "models/w_dual_mag60.mdl");
+	SET_MODEL(ENT(pev), "models/w_weapons.mdl");
+	pev->body = WEAPON_DUAL_MAG60;
 	m_iId = WEAPON_DUAL_MAG60;
 
 	m_iDefaultAmmo = MAG60_DEFAULT_GIVE * 2;
@@ -67,7 +68,7 @@ const char *CDualMag60::pBladeSounds[] =
 void CDualMag60::Precache( void )
 {
 	PRECACHE_MODEL("models/v_dual_mag60.mdl");
-	PRECACHE_MODEL("models/w_dual_mag60.mdl");
+	PRECACHE_MODEL("models/w_weapons.mdl");
 	PRECACHE_MODEL("models/p_dual_mag60.mdl");
 
 	m_iShell = PRECACHE_MODEL ("models/w_shell.mdl");// brass shellTE_MODEL

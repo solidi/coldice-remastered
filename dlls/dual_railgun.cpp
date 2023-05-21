@@ -55,7 +55,8 @@ void CDualRailgun::Spawn( )
 	pev->classname = MAKE_STRING("weapon_dual_railgun"); 
 	Precache( );
 	m_iId = WEAPON_DUAL_RAILGUN;
-	SET_MODEL(ENT(pev), "models/w_dual_railgun.mdl");
+	SET_MODEL(ENT(pev), "models/w_weapons.mdl");
+	pev->body = WEAPON_DUAL_RAILGUN - 1;
 
 	m_iDefaultAmmo = RAILGUN_DEFAULT_GIVE * 2;
 
@@ -64,7 +65,7 @@ void CDualRailgun::Spawn( )
 
 void CDualRailgun::Precache( void )
 {
-	PRECACHE_MODEL("models/w_dual_railgun.mdl");
+	PRECACHE_MODEL("models/w_weapons.mdl");
 	PRECACHE_MODEL("models/v_dual_railgun.mdl");
 	PRECACHE_MODEL("models/p_dual_railgun.mdl");
 
