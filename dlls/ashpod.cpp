@@ -46,7 +46,9 @@ void CAshpod::Spawn( )
 	pev->classname = MAKE_STRING("weapon_ashpod");
 	Precache( );
 	m_iId = WEAPON_ASHPOD;
-	SET_MODEL(ENT(pev), "models/w_portalgun.mdl");
+	SET_MODEL(ENT(pev), "models/w_weapons.mdl");
+	SetBodygroup(0, WEAPON_ASHPOD - 1);
+	SetBodygroup(1, WEAPON_ASHPOD - 1);
 
 	FallInit();// get ready to fall down.
 }
@@ -54,7 +56,7 @@ void CAshpod::Spawn( )
 void CAshpod::Precache( void )
 {
 	PRECACHE_MODEL("models/v_portalgun.mdl");
-	PRECACHE_MODEL("models/w_portalgun.mdl");
+	PRECACHE_MODEL("models/w_weapons.mdl");
 	PRECACHE_MODEL("models/p_portalgun.mdl");
 
 	m_iShell = PRECACHE_MODEL ("models/w_shell.mdl");// brass shell

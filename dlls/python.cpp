@@ -74,7 +74,8 @@ void CPython::Spawn( )
 	pev->classname = MAKE_STRING("weapon_357"); // hack to allow for old names
 	Precache( );
 	m_iId = WEAPON_PYTHON;
-	SET_MODEL(ENT(pev), "models/w_357.mdl");
+	SET_MODEL(ENT(pev), "models/w_weapons.mdl");
+	pev->body = WEAPON_PYTHON - 1;
 
 	m_iDefaultAmmo = PYTHON_DEFAULT_GIVE;
 
@@ -85,7 +86,7 @@ void CPython::Spawn( )
 void CPython::Precache( void )
 {
 	PRECACHE_MODEL("models/v_357.mdl");
-	PRECACHE_MODEL("models/w_357.mdl");
+	PRECACHE_MODEL("models/w_weapons.mdl");
 	PRECACHE_MODEL("models/p_357.mdl");
 
 	PRECACHE_MODEL("models/w_357ammobox.mdl");

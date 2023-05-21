@@ -45,7 +45,8 @@ void CDualUsas::Spawn( )
 {
 	Precache( );
 	m_iId = WEAPON_DUAL_USAS;
-	SET_MODEL(ENT(pev), "models/w_dual_usas.mdl");
+	SET_MODEL(ENT(pev), "models/w_weapons.mdl");
+	pev->body = WEAPON_DUAL_USAS - 1;
 
 	m_iDefaultAmmo = USAS_DEFAULT_GIVE * 2;
 
@@ -55,7 +56,7 @@ void CDualUsas::Spawn( )
 void CDualUsas::Precache( void )
 {
 	PRECACHE_MODEL("models/v_dual_usas.mdl");
-	PRECACHE_MODEL("models/w_dual_usas.mdl");
+	PRECACHE_MODEL("models/w_weapons.mdl");
 	PRECACHE_MODEL("models/p_dual_usas.mdl");
 
 	m_iShell = PRECACHE_MODEL ("models/w_shotgunshell.mdl");// shotgun shell

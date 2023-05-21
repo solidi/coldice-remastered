@@ -72,7 +72,8 @@ void CDeagle::Spawn( )
 	pev->classname = MAKE_STRING("weapon_deagle"); // hack to allow for old names
 	Precache( );
 	m_iId = WEAPON_DEAGLE;
-	SET_MODEL(ENT(pev), "models/w_deagle.mdl");
+	SET_MODEL(ENT(pev), "models/w_weapons.mdl");
+	pev->body = WEAPON_DEAGLE - 1;
 
 	m_iDefaultAmmo = DEAGLE_DEFAULT_GIVE;
 
@@ -82,7 +83,7 @@ void CDeagle::Spawn( )
 void CDeagle::Precache( void )
 {
 	PRECACHE_MODEL("models/v_deagle.mdl");
-	PRECACHE_MODEL("models/w_deagle.mdl");
+	PRECACHE_MODEL("models/w_weapons.mdl");
 	PRECACHE_MODEL("models/p_deagle.mdl");
 
 	PRECACHE_SOUND("weapons/357_cock1.wav");

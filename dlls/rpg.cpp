@@ -388,7 +388,8 @@ void CRpg::Spawn( )
 	Precache( );
 	m_iId = WEAPON_RPG;
 
-	SET_MODEL(ENT(pev), "models/w_rpg.mdl");
+	SET_MODEL(ENT(pev), "models/w_weapons.mdl");
+	pev->body = WEAPON_RPG - 1;
 
 #ifdef CLIENT_DLL
 	if ( bIsMultiplayer() )
@@ -410,7 +411,7 @@ void CRpg::Spawn( )
 
 void CRpg::Precache( void )
 {
-	PRECACHE_MODEL("models/w_rpg.mdl");
+	PRECACHE_MODEL("models/w_weapons.mdl");
 	PRECACHE_MODEL("models/v_rpg.mdl");
 	PRECACHE_MODEL("models/p_rpg.mdl");
 

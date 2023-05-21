@@ -43,7 +43,8 @@ void CFreezeGun::Spawn()
 {
 	Precache();
 	m_iId = WEAPON_FREEZEGUN;
-	SET_MODEL(ENT(pev), "models/w_freezegun.mdl");
+	SET_MODEL(ENT(pev), "models/w_weapons.mdl");
+	pev->body = WEAPON_FREEZEGUN - 1;
 
 	m_iDefaultAmmo = FREEZEGUN_DEFAULT_GIVE;
 
@@ -53,7 +54,7 @@ void CFreezeGun::Spawn()
 void CFreezeGun::Precache(void)
 {
 	PRECACHE_MODEL("models/v_freezegun.mdl");
-	PRECACHE_MODEL("models/w_freezegun.mdl");
+	PRECACHE_MODEL("models/w_weapons.mdl");
 	PRECACHE_MODEL("models/p_freezegun.mdl");
 
 	PRECACHE_SOUND("freezegun_fire.wav");

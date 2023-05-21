@@ -69,7 +69,8 @@ void CKnife::Spawn( )
 {
 	Precache( );
 	m_iId = WEAPON_KNIFE;
-	SET_MODEL(ENT(pev), "models/w_knife.mdl");
+	SET_MODEL(ENT(pev), "models/w_weapons.mdl");
+	pev->body = WEAPON_KNIFE - 1;
 	m_iClip = -1;
 
 	FallInit();// get ready to fall down.
@@ -78,7 +79,7 @@ void CKnife::Spawn( )
 void CKnife::Precache( void )
 {
 	PRECACHE_MODEL("models/v_knife.mdl");
-	PRECACHE_MODEL("models/w_knife.mdl");
+	PRECACHE_MODEL("models/w_weapons.mdl");
 	PRECACHE_MODEL("models/p_knife.mdl");
 	PRECACHE_SOUND("knife_hit_wall1.wav");
 	PRECACHE_SOUND("knife_hit_wall2.wav");
@@ -444,7 +445,8 @@ void CFlyingKnife::Spawn( )
    pev->classname = MAKE_STRING("flying_knife");
 
    // Use the world crowbar model.
-   SET_MODEL(ENT(pev), "models/w_knife.mdl");
+   SET_MODEL(ENT(pev), "models/w_weapons.mdl");
+   pev->body = WEAPON_KNIFE - 1;
 
    // Set the origin and size for the HL engine collision
    // tables.
@@ -467,7 +469,7 @@ void CFlyingKnife::Spawn( )
 
 void CFlyingKnife::Precache( )
 {
-   PRECACHE_MODEL ("models/w_knife.mdl");
+   PRECACHE_MODEL ("models/w_weapons.mdl");
    PRECACHE_SOUND ("knife_hit_flesh1.wav");
    PRECACHE_SOUND ("knife_hit_wall1.wav");
    PRECACHE_SOUND ("knife_miss2.wav");

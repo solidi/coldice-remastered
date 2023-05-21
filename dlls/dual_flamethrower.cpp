@@ -50,7 +50,8 @@ void CDualFlameThrower::Spawn( )
 {
 	pev->classname = MAKE_STRING("weapon_dual_flamethrower");
 	Precache( );
-	SET_MODEL(ENT(pev), "models/w_dual_flamethrower.mdl");
+	SET_MODEL(ENT(pev), "models/w_weapons.mdl");
+	pev->body = WEAPON_DUAL_FLAMETHROWER - 1;
 	m_iId = WEAPON_DUAL_FLAMETHROWER;
 
 	m_iDefaultAmmo = FLAMETHROWER_DEFAULT_GIVE * 2;
@@ -61,7 +62,7 @@ void CDualFlameThrower::Spawn( )
 void CDualFlameThrower::Precache( void )
 {
 	PRECACHE_MODEL("models/v_dual_flamethrower.mdl");
-	PRECACHE_MODEL("models/w_dual_flamethrower.mdl");
+	PRECACHE_MODEL("models/w_weapons.mdl");
 	PRECACHE_MODEL("models/p_dual_flamethrower.mdl");
 
 	PRECACHE_MODEL("sprites/flamesteam.spr");

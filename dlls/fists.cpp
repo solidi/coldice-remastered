@@ -50,7 +50,8 @@ void CFists::Spawn( )
 {
 	Precache( );
 	m_iId = WEAPON_FISTS;
-	SET_MODEL(ENT(pev), "models/w_crowbar.mdl");
+	SET_MODEL(ENT(pev), "models/w_weapons.mdl");
+	pev->body = WEAPON_CROWBAR - 1;
 
 	m_iClip = -1;
 	FallInit();// get ready to fall down.

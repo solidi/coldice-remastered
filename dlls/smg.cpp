@@ -51,7 +51,8 @@ LINK_ENTITY_TO_CLASS( weapon_smg, CSMG );
 void CSMG::Spawn( )
 {
 	Precache( );
-	SET_MODEL(ENT(pev), "models/w_smg.mdl");
+	SET_MODEL(ENT(pev), "models/w_weapons.mdl");
+	pev->body = WEAPON_SMG - 1;
 	m_iId = WEAPON_SMG;
 
 	m_iDefaultAmmo = SMG_DEFAULT_GIVE;

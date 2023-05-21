@@ -50,7 +50,8 @@ void CChainsaw::Spawn( )
 {
 	Precache( );
 	m_iId = WEAPON_CHAINSAW;
-	SET_MODEL(ENT(pev), "models/w_chainsaw.mdl");
+	SET_MODEL(ENT(pev), "models/w_weapons.mdl");
+	pev->body = WEAPON_CHAINSAW - 1;
 	m_iClip = -1;
 
 	FallInit();// get ready to fall down.
@@ -59,7 +60,7 @@ void CChainsaw::Spawn( )
 void CChainsaw::Precache( void )
 {
 	PRECACHE_MODEL("models/v_chainsaw.mdl");
-	PRECACHE_MODEL("models/w_chainsaw.mdl");
+	PRECACHE_MODEL("models/w_weapons.mdl");
 	PRECACHE_MODEL("models/p_chainsaw.mdl");
 
 	PRECACHE_SOUND("chainsaw_draw.wav");

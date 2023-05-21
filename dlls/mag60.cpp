@@ -49,7 +49,8 @@ void CMag60::Spawn( )
 {
 	Precache( );
 	m_iId = WEAPON_MAG60;
-	SET_MODEL(ENT(pev), "models/w_mag60.mdl");
+	SET_MODEL(ENT(pev), "models/w_weapons.mdl");
+	pev->body = WEAPON_MAG60 - 1;
 
 	m_iDefaultAmmo = MAG60_DEFAULT_GIVE;
 
@@ -89,7 +90,7 @@ const char *CMag60::pRotateDownBladeSounds[] =
 void CMag60::Precache( void )
 {
 	PRECACHE_MODEL("models/v_mag60.mdl");
-	PRECACHE_MODEL("models/w_mag60.mdl");
+	PRECACHE_MODEL("models/w_weapons.mdl");
 	PRECACHE_MODEL("models/p_mag60.mdl");
 
 	m_iShell = PRECACHE_MODEL ("models/w_shell.mdl");// brass shell

@@ -391,7 +391,8 @@ void CNuke::Spawn( )
 	Precache( );
 	m_iId = WEAPON_NUKE;
 
-	SET_MODEL(ENT(pev), "models/w_nuke.mdl");
+	SET_MODEL(ENT(pev), "models/w_weapons.mdl");
+	pev->body = WEAPON_NUKE - 1;
 
 	m_iDefaultAmmo = NUKE_DEFAULT_GIVE;
 
@@ -400,7 +401,7 @@ void CNuke::Spawn( )
 
 void CNuke::Precache( void )
 {
-	PRECACHE_MODEL("models/w_nuke.mdl");
+	PRECACHE_MODEL("models/w_weapons.mdl");
 	PRECACHE_MODEL("models/v_nuke.mdl");
 	PRECACHE_MODEL("models/p_nuke.mdl");
 

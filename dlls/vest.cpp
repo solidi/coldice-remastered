@@ -34,15 +34,11 @@ enum vest_radio_e {
 
 int CVest::AddToPlayer( CBasePlayer *pPlayer )
 {
-	int bResult = CBasePlayerItem::AddToPlayer( pPlayer );
-
-	pPlayer->pev->weapons |= (1<<m_iId);
-
-	if ( bResult )
+	if ( CBasePlayerWeapon::AddToPlayer( pPlayer ) )
 	{
-		return AddWeapon( );
+		WeaponPickup(pPlayer, m_iId);
+		return TRUE;
 	}
-
 	return FALSE;
 }
 
@@ -50,7 +46,8 @@ void CVest::Spawn( )
 {
 	Precache( );
 	m_iId = WEAPON_VEST;
-	SET_MODEL(ENT(pev), "models/w_vest.mdl");
+	SET_MODEL(ENT(pev), "models/w_weapons.mdl");
+	pev->body = WEAPON_VEST - 1;
 
 	m_iDefaultAmmo = SATCHEL_DEFAULT_GIVE;
 
@@ -60,7 +57,7 @@ void CVest::Spawn( )
 void CVest::Precache( void )
 {
 	PRECACHE_MODEL("models/v_vest_radio.mdl");
-	PRECACHE_MODEL("models/w_vest.mdl");
+	PRECACHE_MODEL("models/w_weapons.mdl");
 	PRECACHE_MODEL("models/p_vest.mdl");
 
 	PRECACHE_SOUND("vest_attack.wav");
@@ -78,7 +75,7 @@ int CVest::GetItemInfo(ItemInfo *p)
 	p->iMaxClip = WEAPON_NOCLIP;
 	p->iSlot = 4;
 	p->iPosition = 6;
-	p->iFlags = ITEM_FLAG_SELECTONEMPTY | ITEM_FLAG_LIMITINWORLD | ITEM_FLAG_EXHAUSTIBLE;
+	p->iFlags = 0;
 	p->iId = m_iId = WEAPON_VEST;
 	p->iWeight = VEST_WEIGHT;
 	p->pszDisplayName = "Leeroy Jenkins Dynamite Vest";

@@ -242,7 +242,7 @@ LINK_ENTITY_TO_CLASS( flak, CFlak );
 
 void CCannon::Precache( void )
 {
-	PRECACHE_MODEL("models/w_cannon.mdl");
+	PRECACHE_MODEL("models/w_weapons.mdl");
 	PRECACHE_MODEL("models/v_cannon.mdl");
 	PRECACHE_MODEL("models/p_cannon.mdl");
 
@@ -264,7 +264,8 @@ void CCannon::Spawn( )
 	Precache( );
 	m_iId = WEAPON_CANNON;
 
-	SET_MODEL(ENT(pev), "models/w_cannon.mdl");
+	SET_MODEL(ENT(pev), "models/w_weapons.mdl");
+	pev->body = WEAPON_CANNON - 1;
 
 #ifdef CLIENT_DLL
 	if ( bIsMultiplayer() )
@@ -452,47 +453,3 @@ void CCannon::WeaponIdle( void )
 		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 1;
 	}
 }
-
-//=========================================================
-//=========================================================
-
-class CCannonAmmo : public CBasePlayerAmmo
-{
-	void Spawn( void )
-	{ 
-		Precache( );
-		SET_MODEL(ENT(pev), "models/w_rpgammo.mdl");
-		CBasePlayerAmmo::Spawn( );
-	}
-	void Precache( void )
-	{
-		PRECACHE_MODEL ("models/w_rpgammo.mdl");
-		PRECACHE_SOUND("items/9mmclip1.wav");
-	}
-	BOOL AddAmmo( CBaseEntity *pOther ) 
-	{ 
-		int iGive;
-
-#ifdef CLIENT_DLL
-	if ( bIsMultiplayer() )
-#else
-	if ( g_pGameRules->IsMultiplayer() )
-#endif
-		{
-			// hand out more ammo per rocket in multiplayer.
-			iGive = AMMO_RPGCLIP_GIVE * 2;
-		}
-		else
-		{
-			iGive = AMMO_RPGCLIP_GIVE;
-		}
-
-		if (pOther->GiveAmmo( iGive, "rockets", ROCKET_MAX_CARRY ) != -1)
-		{
-			EMIT_SOUND(ENT(pev), CHAN_ITEM, "items/9mmclip1.wav", 1, ATTN_NORM);
-			return TRUE;
-		}
-		return FALSE;
-	}
-};
-LINK_ENTITY_TO_CLASS( ammo_flak, CCannonAmmo );

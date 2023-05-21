@@ -81,7 +81,8 @@ void CDualRpg::Spawn( )
 	Precache( );
 	m_iId = WEAPON_DUAL_RPG;
 
-	SET_MODEL(ENT(pev), "models/w_dual_rpg.mdl");
+	SET_MODEL(ENT(pev), "models/w_weapons.mdl");
+	pev->body = WEAPON_DUAL_RPG - 1;
 
 #ifdef CLIENT_DLL
 	if ( bIsMultiplayer() )
@@ -102,7 +103,7 @@ void CDualRpg::Spawn( )
 
 void CDualRpg::Precache( void )
 {
-	PRECACHE_MODEL("models/w_dual_rpg.mdl");
+	PRECACHE_MODEL("models/w_weapons.mdl");
 	PRECACHE_MODEL("models/v_dual_rpg.mdl");
 	PRECACHE_MODEL("models/p_dual_rpg.mdl");
 

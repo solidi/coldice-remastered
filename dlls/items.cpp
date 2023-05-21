@@ -190,12 +190,13 @@ class CItemSuit : public CItem
 	void Spawn( void )
 	{ 
 		Precache( );
-		SET_MODEL(ENT(pev), "models/w_suit.mdl");
+		SET_MODEL(ENT(pev), "models/w_weapons.mdl");
+		pev->body = WEAPON_SUIT - 1;
 		CItem::Spawn( );
 	}
 	void Precache( void )
 	{
-		PRECACHE_MODEL ("models/w_suit.mdl");
+		PRECACHE_MODEL ("models/w_weapons.mdl");
 	}
 	BOOL MyTouch( CBasePlayer *pPlayer )
 	{

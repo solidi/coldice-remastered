@@ -42,7 +42,8 @@ void CGravityGun::Spawn()
 	pev->classname = MAKE_STRING("weapon_gravitygun");
 
 	m_iId = WEAPON_GRAVITYGUN;
-	SET_MODEL(ENT(pev), "models/w_gravitygun.mdl");
+	SET_MODEL(ENT(pev), "models/w_weapons.mdl");
+	pev->body = WEAPON_GRAVITYGUN - 1;
 	m_iClip = -1;
 
 	FallInit(); // get ready to fall down.
@@ -51,7 +52,7 @@ void CGravityGun::Spawn()
 void CGravityGun::Precache()
 {
 	PRECACHE_MODEL("models/v_gravitygun.mdl");
-	PRECACHE_MODEL("models/w_gravitygun.mdl");
+	PRECACHE_MODEL("models/w_weapons.mdl");
 	PRECACHE_MODEL("models/p_gravitygun.mdl");
 
 	PRECACHE_SOUND("weapons/rocketfire1.wav");

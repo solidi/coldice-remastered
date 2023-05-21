@@ -36,7 +36,8 @@ void CFlyingWrench::Spawn( )
 	pev->classname = MAKE_STRING("flying_wrench");
 
 	// Use the world wrench model.
-	SET_MODEL(ENT(pev), "models/w_wrench.mdl");
+	SET_MODEL(ENT(pev), "models/w_weapons.mdl");
+	pev->body = WEAPON_WRENCH - 1;
 
 	// Set the origin and size for the HL engine collision
 	// tables.
@@ -59,7 +60,7 @@ void CFlyingWrench::Spawn( )
 
 void CFlyingWrench::Precache( )
 {
-	PRECACHE_MODEL ("models/w_wrench.mdl");
+	PRECACHE_MODEL ("models/w_weapons.mdl");
 	PRECACHE_SOUND ("wrench_hitbod1.wav");
 	PRECACHE_SOUND ("wrench_hit1.wav");
 	PRECACHE_SOUND ("wrench_miss1.wav");

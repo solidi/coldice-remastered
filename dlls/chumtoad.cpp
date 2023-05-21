@@ -773,7 +773,8 @@ void CChumtoad::Spawn( )
 {
 	Precache( );
 	m_iId = WEAPON_CHUMTOAD;
-	SET_MODEL(ENT(pev), "models/w_chumtoad_nest.mdl");
+	SET_MODEL(ENT(pev), "models/w_weapons.mdl");
+	pev->body = WEAPON_CHUMTOAD - 1;
 
 	FallInit();//get ready to fall down.
 
@@ -788,7 +789,7 @@ void CChumtoad::Spawn( )
 
 void CChumtoad::Precache( void )
 {
-	PRECACHE_MODEL("models/w_chumtoad_nest.mdl");
+	PRECACHE_MODEL("models/w_weapons.mdl");
 	PRECACHE_MODEL("models/v_chumtoad.mdl");
 	PRECACHE_MODEL("models/p_chumtoad.mdl");
 	PRECACHE_SOUND("chumtoad_hunt2.wav");

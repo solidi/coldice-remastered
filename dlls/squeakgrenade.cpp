@@ -419,7 +419,8 @@ void CSqueak::Spawn( )
 {
 	Precache( );
 	m_iId = WEAPON_SNARK;
-	SET_MODEL(ENT(pev), "models/w_sqknest.mdl");
+	SET_MODEL(ENT(pev), "models/w_weapons.mdl");
+	pev->body = WEAPON_SNARK - 1;
 
 	FallInit();//get ready to fall down.
 
@@ -433,7 +434,7 @@ void CSqueak::Spawn( )
 
 void CSqueak::Precache( void )
 {
-	PRECACHE_MODEL("models/w_sqknest.mdl");
+	PRECACHE_MODEL("models/w_weapons.mdl");
 	PRECACHE_MODEL("models/v_squeak.mdl");
 	PRECACHE_MODEL("models/p_squeak.mdl");
 	PRECACHE_SOUND("squeek/sqk_hunt2.wav");
