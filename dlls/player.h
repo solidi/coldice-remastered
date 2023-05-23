@@ -290,7 +290,7 @@ public:
 	virtual void StartSneaking( void ) { m_tSneaking = gpGlobals->time - 1; }
 	virtual void StopSneaking( void ) { m_tSneaking = gpGlobals->time + 30; }
 	virtual BOOL IsSneaking( void ) { return m_tSneaking <= gpGlobals->time; }
-	virtual BOOL IsAlive( void ) { return (pev->deadflag == DEAD_NO) && pev->health > 0; }
+	virtual BOOL IsAlive( void ) { return (pev->deadflag == DEAD_NO || pev->deadflag == DEAD_FAKING) && pev->health > 0; }
 	virtual BOOL ShouldFadeOnDeath( void ) { return FALSE; }
 	virtual	BOOL IsPlayer( void ) { return TRUE; }			// Spectators should return FALSE for this, they aren't "players" as far as game logic is concerned
 
@@ -427,6 +427,8 @@ public:
 	float m_flEjectBrass;
 
 	CBaseEntity *m_pPortal[2];
+
+	float m_fFeignTime;
 };
 
 #define AUTOAIM_2DEGREES  0.0348994967025

@@ -212,7 +212,7 @@ int CFists::Swing( int fFirst )
 		ClearMultiDamage( );
 
 		float flDamage = 0;
-		if (fFirst == SHORYUKEN && FBitSet(pEntity->pev->flags, FL_FROZEN)) {
+		if (pEntity->pev->deadflag != DEAD_FAKING && fFirst == SHORYUKEN && FBitSet(pEntity->pev->flags, FL_FROZEN)) {
 			pEntity->pev->renderamt = 100;
 			flDamage = 200;
 			::IceExplode(pEntity, DMG_FREEZE);

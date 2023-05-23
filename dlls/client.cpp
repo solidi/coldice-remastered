@@ -568,6 +568,40 @@ void ClientCommand( edict_t *pEntity )
 		// player is dropping an item. 
 		GetClassPtr((CBasePlayer *)pev)->DropPlayerItem((char *)CMD_ARGV(1));
 	}
+	else if ( FStrEq(pcmd, "feign" ) )
+	{
+		CBasePlayer *player = GetClassPtr((CBasePlayer *)pev);
+		entvars_t *p = player->pev;
+		if (player->m_fFeignTime < gpGlobals->time)
+		{
+			if (p->deadflag == DEAD_NO && FBitSet(pev->flags, FL_ONGROUND) && pev->velocity.Length() < 100)
+			{
+				player->SetAnimation( PLAYER_DIE );
+				p->view_ofs[2] = VEC_DUCK_HULL_MIN.z + 2;
+				player->EnableControl(FALSE);
+				UTIL_SetSize(pev, VEC_DUCK_HULL_MIN, VEC_DUCK_HULL_MAX);
+				if (RANDOM_LONG(0,1))
+					EMIT_SOUND(ENT(pev), CHAN_VOICE, "common/bodydrop3.wav", 1, ATTN_NORM);
+				else
+					EMIT_SOUND(ENT(pev), CHAN_VOICE, "common/bodydrop4.wav", 1, ATTN_NORM);
+				p->deadflag = DEAD_FAKING;
+			}
+			else if (p->deadflag == DEAD_FAKING)
+			{
+				player->SetAnimation( PLAYER_IDLE );
+				p->view_ofs[2] = VEC_VIEW.z;
+				player->EnableControl(TRUE);
+				UTIL_SetSize(pev, VEC_HULL_MIN, VEC_HULL_MAX);
+				if (RANDOM_LONG(0,1))
+					EMIT_SOUND(ENT(pev), CHAN_VOICE, "player/pl_step1.wav", 1, ATTN_NORM);
+				else
+					EMIT_SOUND(ENT(pev), CHAN_VOICE, "player/pl_step2.wav", 1, ATTN_NORM);
+				p->deadflag = DEAD_NO;
+			}
+			
+			player->m_fFeignTime = gpGlobals->time + 1.0;
+		}
+	}
 	else if ( FStrEq(pcmd, "fov" ) )
 	{
 		if ( g_flWeaponCheat && CMD_ARGC() > 1)
@@ -701,6 +735,7 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"+hook\" - Deploy hook\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"+ironsight\" - Use ironsights\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"drop_rune\" - Drop rune\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"feign\" - Fake your death\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"impulse 205\" - Swap between single and dual weapon, if available\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"impulse 206\" - Kick\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"impulse 207\" - Punch\n");

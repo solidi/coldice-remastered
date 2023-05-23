@@ -1046,7 +1046,9 @@ void HUD_WeaponsPostThink( local_state_s *from, local_state_s *to, usercmd_t *cm
 	player.ammo_hornets		= (int)from->client.vuser2[0];
 	player.ammo_rockets		= (int)from->client.ammo_rockets;
 
-	
+	if ( player.pev->flags & FL_FROZEN )
+		return;
+
 	// Point to current weapon object
 	if ( from->client.m_iId )
 	{
@@ -1061,7 +1063,7 @@ void HUD_WeaponsPostThink( local_state_s *from, local_state_s *to, usercmd_t *cm
 	
 	// Don't go firing anything if we have died or are spectating
 	// Or if we don't have a weapon model deployed
-	if ( ( player.pev->deadflag != ( DEAD_DISCARDBODY + 1 ) ) && 
+	if ( ( player.pev->deadflag != ( DEAD_DISCARDBODY + 1 ) && player.pev->deadflag != DEAD_FAKING ) && 
 		 !CL_IsDead() && player.pev->viewmodel && !g_iUser1 )
 	{
 		if ( player.m_flNextAttack <= 0 )
@@ -1074,7 +1076,7 @@ void HUD_WeaponsPostThink( local_state_s *from, local_state_s *to, usercmd_t *cm
 	to->client.m_iId					= from->client.m_iId;
 
 	// Now see if we issued a changeweapon command ( and we're not dead )
-	if ( cmd->weaponselect && ( player.pev->deadflag != ( DEAD_DISCARDBODY + 1 ) ) )
+	if ( cmd->weaponselect && ( player.pev->deadflag != ( DEAD_DISCARDBODY + 1 ) && player.pev->deadflag != DEAD_FAKING ) )
 	{
 		// Switched to a different weapon?
 		if ( from->weapondata[ cmd->weaponselect ].m_iId == cmd->weaponselect )
