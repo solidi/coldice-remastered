@@ -584,6 +584,8 @@ void ClientCommand( edict_t *pEntity )
 					EMIT_SOUND(ENT(pev), CHAN_VOICE, "common/bodydrop3.wav", 1, ATTN_NORM);
 				else
 					EMIT_SOUND(ENT(pev), CHAN_VOICE, "common/bodydrop4.wav", 1, ATTN_NORM);
+				if (player->m_pActiveItem)
+					player->m_pActiveItem->Holster();
 				p->deadflag = DEAD_FAKING;
 			}
 			else if (p->deadflag == DEAD_FAKING)
@@ -596,6 +598,8 @@ void ClientCommand( edict_t *pEntity )
 					EMIT_SOUND(ENT(pev), CHAN_VOICE, "player/pl_step1.wav", 1, ATTN_NORM);
 				else
 					EMIT_SOUND(ENT(pev), CHAN_VOICE, "player/pl_step2.wav", 1, ATTN_NORM);
+				if (player->m_pActiveItem)
+					player->m_pActiveItem->DeployLowKey();
 				p->deadflag = DEAD_NO;
 			}
 			
