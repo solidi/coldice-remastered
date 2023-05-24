@@ -398,7 +398,7 @@ void CHud::ShowTextTips( void ) {
 		return;
 	}
 
-	const int MESSAGE_SIZE = 27;
+	const int MESSAGE_SIZE = 28;
 
 	const char* messageList[MESSAGE_SIZE] = {
 		"Tired of blue skins? Type \"cl_icemodels 0\" in the console switches to real-life skins.\n",
@@ -428,6 +428,7 @@ void CHud::ShowTextTips( void ) {
 		"To turn off weather effects, type \"cl_weather 0\" into the console.\n",
 		"Type \"cl_wallclimbindicator 0\" to turn off the hint above.\n",
 		"Join our Cold Ice Discord at discord.com/invite/Hu2Q6pcJn3\n",
+		"To fake your death, type \"feign\" in the console or bind it to a key.\n",
 	};
 
 	// Unstick after a level change

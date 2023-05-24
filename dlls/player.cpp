@@ -1074,6 +1074,12 @@ void CBasePlayer::SetAnimation( PLAYER_ANIM playerAnim )
 		playerAnim = PLAYER_FROZEN;
 	}
 
+	if (pev->deadflag == DEAD_FAKING)
+	{
+		speed = 0;
+		playerAnim = PLAYER_DIE;
+	}
+
 	switch (playerAnim) 
 	{
 	case PLAYER_KICK:
@@ -2347,6 +2353,9 @@ void CBasePlayer::PreThink(void)
 		return;
 	}
 
+	if (pev->deadflag == DEAD_FAKING)
+		return;
+		
 	if (pev->deadflag >= DEAD_DYING)
 	{
 		PlayerDeathThink();
@@ -4431,7 +4440,7 @@ void CBasePlayer::TraceHitOfSelacoSlide( void )
 					ClearMultiDamage( );
 
 					float flDamage = 0;
-					if (FBitSet(pEntity->pev->flags, FL_FROZEN)) {
+					if (pEntity->pev->deadflag != DEAD_FAKING && FBitSet(pEntity->pev->flags, FL_FROZEN)) {
 						pEntity->pev->renderamt = 100;
 						flDamage = 200;
 						::IceExplode(pEntity, DMG_FREEZE);
@@ -4655,7 +4664,7 @@ void CBasePlayer::TraceHitOfFlip( void )
 			ClearMultiDamage( );
 
 			float flDamage = 0;
-			if (FBitSet(pObject->pev->flags, FL_FROZEN)) {
+			if (pObject->pev->deadflag != DEAD_FAKING && FBitSet(pObject->pev->flags, FL_FROZEN)) {
 				pObject->pev->renderamt = 100;
 				flDamage = 200;
 				::IceExplode(pObject, DMG_FREEZE);

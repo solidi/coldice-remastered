@@ -297,7 +297,7 @@ int CDualWrench::Swing( int fFirst )
 		ClearMultiDamage( );
 
 		float flDamage = 0;
-		if (FBitSet(pEntity->pev->flags, FL_FROZEN)) {
+		if (pEntity->pev->deadflag != DEAD_FAKING && FBitSet(pEntity->pev->flags, FL_FROZEN)) {
 			pEntity->pev->renderamt = 100;
 			flDamage = 200;
 			::IceExplode(pEntity, DMG_FREEZE);

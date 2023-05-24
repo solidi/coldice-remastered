@@ -91,10 +91,11 @@
 
 // edict->deadflag values
 #define	DEAD_NO					0 // alive
-#define	DEAD_DYING				1 // playing death animation or still falling off of a ledge waiting to hit ground
-#define	DEAD_DEAD				2 // dead. lying still.
-#define DEAD_RESPAWNABLE		3
-#define DEAD_DISCARDBODY		4
+#define	DEAD_FAKING				1 
+#define	DEAD_DYING				2 // playing death animation or still falling off of a ledge waiting to hit ground
+#define	DEAD_DEAD				3 // dead. lying still.
+#define DEAD_RESPAWNABLE		4
+#define DEAD_DISCARDBODY		5
 
 #define	DAMAGE_NO				0
 #define	DAMAGE_YES				1
