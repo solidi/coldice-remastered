@@ -77,7 +77,7 @@ const char *CSMG::pHansSounds[] =
 void CSMG::Precache( void )
 {
 	PRECACHE_MODEL("models/v_smg.mdl");
-	PRECACHE_MODEL("models/w_smg.mdl");
+	PRECACHE_MODEL("models/w_weapons.mdl");
 	PRECACHE_MODEL("models/p_smg.mdl");
 
 	m_iShell = PRECACHE_MODEL ("models/w_shell.mdl");// brass shellTE_MODEL
