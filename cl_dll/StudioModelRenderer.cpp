@@ -24,7 +24,10 @@
 
 #include "event_api.h"
 
-#ifdef _WIN32
+#include "view.h"
+#include "PlatformHeaders.h"
+
+#ifndef __APPLE__
 #define GL_CLAMP_TO_EDGE 0x812F
 static GLuint g_iBlankTex = 0;
 #endif
@@ -1446,7 +1449,7 @@ int CStudioModelRenderer::StudioDrawModel( int flags )
 
 		IEngineStudio.StudioSetRemapColors( m_nTopColor, m_nBottomColor );
 
-#ifdef _WIN32
+#ifndef __APPLE__
 		if (cl_portalmirror->value)
 		{
 			if (!strcmp(m_pCurrentEntity->model->name, "models/w_portal.mdl"))
@@ -2301,7 +2304,7 @@ void CStudioModelRenderer::StudioCalcAttachments( void )
 		}
 	}
 
-#ifdef _WIN32
+#ifndef __APPLE__
 	if (cl_portalmirror->value)
 	{
 		if (!strcmp(m_pCurrentEntity->model->name, "models/w_portal.mdl"))

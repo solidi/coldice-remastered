@@ -934,7 +934,7 @@ void V_CalcNormalRefdef ( struct ref_params_s *pparams )
 	v_origin = pparams->vieworg;
 
 /** PORTAL */
-#ifdef _WIN32
+#ifndef __APPLE__
 	if (gEngfuncs.IsSpectateOnly() || g_iUser1)
 		return;
 

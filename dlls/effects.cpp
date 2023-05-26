@@ -2365,9 +2365,17 @@ void CPortalEntity::Think()
 							Vector rightSpeedOffset = right * pFound->pev->velocity.y;
 							Vector upSpeedOffset;
 
+							// check if the other portal is facign down of us, hacky hacky time
+							float otherPortalAngle = pOtherPortalCasted->pev->angles.x;
+							ALERT(at_console, "angle: %f\n", otherPortalAngle);
+
+							// Apply the offsetting
+							Vector otherPortalForward;
+							g_engfuncs.pfnAngleVectors(pOtherPortalCasted->pev->angles, otherPortalForward, NULL, NULL);
+
 							// Apply the offsetting
 							teleportOrg = teleportOrg + forwardOffset + rightOffset + upOffset;
-							teleportOrg = teleportOrg + forward * 20;
+							teleportOrg = teleportOrg + ((otherPortalAngle > 180 && otherPortalAngle < 360) ? up * -130 : otherPortalForward * 30);
 							teleportOrg.z += 20.0f;
 
 							MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );

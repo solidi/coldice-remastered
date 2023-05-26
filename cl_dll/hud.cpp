@@ -195,7 +195,7 @@ int __MsgFunc_Portal(const char* pszName, int iSize, void* pbuf)
 	for (int i = 0; i < 3; i++)
 		portal2ang[i] = READ_COORD();
 
-#ifdef _WIN32
+#ifndef __APPLE__
 	gPortalRenderer.m_Portal1[0] = portal1org;
 	gPortalRenderer.m_Portal1[1] = portal1ang;
 
@@ -589,6 +589,8 @@ void CHud :: Init( void )
 	InitRain();
 #ifdef _WIN32
 	g_ImGUIManager.Init();
+#endif
+#ifndef __APPLE__
 	gPortalRenderer.Init();
 #endif
 	m_Particle.Init();

@@ -119,7 +119,7 @@ void HUD_DrawOrthoTriangles()
 	//DrawCrosshair();
 }
 
-#ifdef _WIN32
+#ifndef __APPLE__
 #ifndef GL_TEXTURE_RECTANGLE_NV
 #define GL_TEXTURE_RECTANGLE_NV 0x84F5
 #endif // !GL_TEXTURE_RECTANGLE_NV

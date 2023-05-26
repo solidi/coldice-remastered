@@ -35,9 +35,10 @@
 #include "ammo.h"
 #include "FlameSystem.h"
 
-#ifdef _WIN32
 #include "PlatformHeaders.h"
-#include <gl/GL.h>
+
+#ifndef __APPLE__
+#include "GL/gl.h"
 #endif
 
 #define DHN_DRAWZERO 1
@@ -831,7 +832,9 @@ public:
 	bool skillMode[4];
 };
 extern CImguiManager g_ImGUIManager;
+#endif
 
+#ifndef __APPLE__
 class CPortalRenderer
 {
 public:

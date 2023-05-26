@@ -20,7 +20,8 @@
 //
 
 
-#include <filesystem>
+#ifndef __APPLE__
+
 #include "stdio.h"
 #include "stdlib.h"
 
@@ -34,7 +35,7 @@
 
 #include "PlatformHeaders.h"
 #include "SDL2/SDL.h"
-#include <gl/GL.h>
+#include "GL/gl.h"
 
 #ifndef GL_TEXTURE_RECTANGLE_NV
 #define GL_TEXTURE_RECTANGLE_NV 0x84F5
@@ -255,3 +256,5 @@ void CPortalRenderer::CapturePortalView(int pass)
 	glCopyTexImage2D(GL_TEXTURE_RECTANGLE_NV, 0, GL_RGBA8, 0, 0, ScreenWidth, ScreenHeight, 0);
 	R_ResetScreenStuff();
 }
+
+#endif
