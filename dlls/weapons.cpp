@@ -809,11 +809,15 @@ CBaseEntity* CBasePlayerItem::Respawn( void )
 #ifdef _DEBUG
 					ALERT ( at_aiconsole, "Found %s to change... ", weaponsList[group][weapon] );
 #endif
-					char name[128];
-					sprintf(name, weaponsList[group][RANDOM_LONG(0, totalWeapons - 1)]);
+					char name[128] = "";
+					const char *weapon = weaponsList[group][RANDOM_LONG(0, totalWeapons - 1)];
+					if (weapon != NULL)
+						sprintf(name, weapon);
 					while (!g_pGameRules->CanRandomizeWeapon(name))
 					{
-						sprintf(name, weaponsList[group][RANDOM_LONG(0, totalWeapons - 1)]);
+						const char *innerWeapon = weaponsList[group][RANDOM_LONG(0, totalWeapons - 1)];
+						if (innerWeapon != NULL)
+							sprintf(name, innerWeapon);
 					}
 
 					if (name)
