@@ -784,7 +784,7 @@ CBaseEntity* CBasePlayerItem::Respawn( void )
 
 	if (dualsonly.value) {
 		if (strncmp(STRING(pev->classname), "weapon_dual_", 12) != 0) {
-			const char *name = weaponsList[5][RANDOM_LONG(0, 5)];
+			const char *name = weaponsList[5][RANDOM_LONG(0, 7)];
 			if (name)
 			{
 				pNewWeapon = CBaseEntity::Create((char *)STRING(ALLOC_STRING(name)), g_pGameRules->VecWeaponRespawnSpot(this), pev->angles, pev->owner);
