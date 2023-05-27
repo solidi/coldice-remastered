@@ -804,7 +804,7 @@ void CChumtoad::Precache( void )
 int CChumtoad::GetItemInfo(ItemInfo *p)
 {
 	p->pszName = STRING(pev->classname);
-	p->pszAmmo1 = "Snarks";
+	p->pszAmmo1 = "Chumtoads";
 #ifndef CLIENT_DLL
 	p->iMaxAmmo1 = g_pGameRules->IsCtC() ? 1 : SNARK_MAX_CARRY;
 #endif
