@@ -6,6 +6,7 @@
 #include <stdio.h>
 
 #define PI_180 (3.14159265358979 / 180.0)
+#define MAX_DISTANCE 1000
 
 extern cvar_t *cl_radar;
 
@@ -45,9 +46,9 @@ void CHudRadar::ProcessPlayerState(void)
 		{1.0f, 0.6f, 0.0f }
 	};
 
-	for (int i = 0; i < 32; i++)
+	for (int i = 1; i <= 32; i++)
 	{
-		cl_entity_s *pClient = gEngfuncs.GetEntityByIndex(i+1);
+		cl_entity_s *pClient = gEngfuncs.GetEntityByIndex(i);
 		
 		if (!pClient)
 			continue;
@@ -62,17 +63,18 @@ void CHudRadar::ProcessPlayerState(void)
 		if (!pClient->player)
 			continue;
 
+		// Bot is not sending messages, due to disconnect or spectator
+		if (pClient->curstate.messagenum < localPlayer->curstate.messagenum)
+			continue;
+
 		v_other = pClient->origin - localPlayer->origin;
 		distanceLocal = v_other.Length();
 
-		if (distanceLocal < 1000)
-		{
-			v_player[num_players] = v_other;
-			player_distance[num_players] = distanceLocal;
-			// Player is 72 units high, adjust height diff to linear scale
-			player_height[num_players] = ((pClient->origin.z - localPlayer->origin.z) / 72);
-			num_players++;
-		}
+		v_player[num_players] = v_other;
+		player_distance[num_players] = distanceLocal <= MAX_DISTANCE ? distanceLocal : MAX_DISTANCE;
+		// Player is 72 units high, adjust height diff to linear scale
+		player_height[num_players] = ((pClient->origin.z - localPlayer->origin.z) / 72);
+		num_players++;
 	}
 
 #ifdef _DEBUG
@@ -160,8 +162,8 @@ int CHudRadar::Draw(float flTime)
 		float height = m_RadarInfo[index].height;
 		radians = angle * PI_180; // convert degrees to radians
 
-		// calculate distance from center of circle (max = 1000 units)
-		dist = (distance / 1000.0) * (radar_width / 2);
+		// calculate distance from center of circle (max = MAX_DISTANCE units)
+		dist = (distance / MAX_DISTANCE) * (radar_width / 2);
 
 		x = (int)(sin(radians) * dist);
 		y = (int)(cos(radians) * dist);
