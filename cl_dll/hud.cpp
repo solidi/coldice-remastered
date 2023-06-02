@@ -536,8 +536,6 @@ void CHud :: Init( void )
 	CVAR_CREATE( "colorcor_inverse", "0", FCVAR_ARCHIVE ); // Inverse color correction
 	CVAR_CREATE( "colorcor_blackwhite", "0", FCVAR_ARCHIVE ); // Black and white
 
-	gHUD.m_ExtraViewModel = {};
-
 	m_iLogo = 0;
 	m_iFOV = 0;
 
