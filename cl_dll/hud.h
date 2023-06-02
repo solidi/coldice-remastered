@@ -809,6 +809,10 @@ public:
 	void AddHudElem(CHudBase *p);
 
 	float GetSensitivity();
+
+	cl_entity_t m_ExtraViewModel;
+	float m_flExtraViewModelTime = 0.0f;
+
 	void FlashHud();
 
 	crosspr_s crossspr;

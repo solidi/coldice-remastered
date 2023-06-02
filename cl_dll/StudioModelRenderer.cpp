@@ -2444,7 +2444,23 @@ void CStudioModelRenderer::StudioRenderFinal_Hardware( void )
 				gEngfuncs.pTriAPI->CullFace( TRI_NONE );
 			}
 
+			if ((m_pCurrentEntity->curstate.effects & EF_VIEWMODEL) != 0)
+			{
+				// tune this if needed
+				// the real viewmodel will always be always visible
+				// and draw over the fake one
+#ifndef __APPLE__
+				glDepthRange(0.0f, 0.4f);
+#endif
+			}
 			IEngineStudio.StudioDrawPoints();
+			if ((m_pCurrentEntity->curstate.effects & EF_VIEWMODEL) != 0)
+			{
+#ifndef __APPLE__
+				glDepthRange(0.0f, 1.0f);
+#endif
+			}
+
 			IEngineStudio.GL_StudioDrawShadow();
 
 #ifdef _WIN32

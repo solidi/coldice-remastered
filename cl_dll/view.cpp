@@ -929,6 +929,10 @@ void V_CalcNormalRefdef ( struct ref_params_s *pparams )
 		}
 	}
 
+	gHUD.m_ExtraViewModel.origin = view->origin;
+	gHUD.m_ExtraViewModel.angles = view->angles;
+	gHUD.m_ExtraViewModel.curstate.angles = view->curstate.angles;
+
 	lasttime = pparams->time;
 
 	v_origin = pparams->vieworg;

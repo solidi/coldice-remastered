@@ -15,6 +15,12 @@
 #include "bench.h"
 #include "Exports.h"
 
+#include "studio.h"
+#include "com_model.h"
+#include "r_studioint.h"
+
+extern engine_studio_api_s IEngineStudio;
+
 #include "particleman.h"
 extern IParticleMan *g_pParticleMan;
 extern cvar_t *cl_announcehumor;
@@ -451,6 +457,36 @@ void CL_DLLEXPORT HUD_StudioEvent( const struct mstudioevent_s *event, const str
 	}
 }
 
+void LoadTempViewModel(const char *modelName, int sequence)
+{
+	model_s* pModel = IEngineStudio.Mod_ForName(modelName, 0);
+	if (!pModel)
+		return;
+
+	studiohdr_t* pHdr = static_cast<studiohdr_t*>(IEngineStudio.Mod_Extradata(pModel));
+
+	if (!pHdr)
+		return;
+
+	cl_entity_s* pExtraModel = &gHUD.m_ExtraViewModel;
+
+	auto pseqdesc = (mstudioseqdesc_t*)((byte*)pHdr + pHdr->seqindex) + sequence;
+
+	memcpy(pExtraModel, gEngfuncs.GetLocalPlayer(), sizeof(cl_entity_s));
+
+	pExtraModel->player = 0;
+	pExtraModel->index = 0;
+	pExtraModel->model = pModel;
+	pExtraModel->curstate.frame = 0;
+	pExtraModel->curstate.animtime = gEngfuncs.GetClientTime();
+	pExtraModel->curstate.sequence = sequence;
+	pExtraModel->curstate.effects |= EF_VIEWMODEL &~ EF_NODRAW;
+	pExtraModel->curstate.skin = cl_icemodels->value;
+
+	//gEngfuncs.Con_Printf("gHUD.m_flExtraViewModelTime set increase to: %f\n", pseqdesc->numframes / pseqdesc->fps);
+	gHUD.m_flExtraViewModelTime = gEngfuncs.GetClientTime() + (pseqdesc->numframes / pseqdesc->fps);
+}
+
 /*
 =================
 CL_UpdateTEnts
@@ -480,6 +516,35 @@ void CL_DLLEXPORT HUD_TempEntUpdate (
 
 	if ( g_pParticleMan )
 		 g_pParticleMan->SetVariables( cl_gravity, vAngles );
+
+	cl_entity_t *player = gEngfuncs.GetLocalPlayer();
+	extern int cam_thirdperson;
+	if (player && !cam_thirdperson)
+	{
+		if (gHUD.m_flExtraViewModelTime == 0)
+		{
+			if ((player->curstate.eflags & EFLAG_DEADHANDS))
+			{
+				LoadTempViewModel("models/v_fists.mdl", 13);
+			}
+		}
+	}
+
+	// hold it
+	if (player && (player->curstate.eflags & EFLAG_DEADHANDS))
+		gHUD.m_flExtraViewModelTime = gEngfuncs.GetClientTime() + 0.01;
+
+	if (cam_thirdperson)
+		gHUD.m_flExtraViewModelTime = 0;
+
+	if (gHUD.m_flExtraViewModelTime > gEngfuncs.GetClientTime())
+	{
+		Callback_AddVisibleEntity(&gHUD.m_ExtraViewModel);
+	}
+	else if (gHUD.m_flExtraViewModelTime < gEngfuncs.GetClientTime() && gHUD.m_flExtraViewModelTime != 0)
+	{
+		gHUD.m_flExtraViewModelTime = 0;
+	}
 
 	// Nothing to simulate
 	if ( !*ppTempEntActive )		
