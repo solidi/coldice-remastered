@@ -362,11 +362,6 @@ void CBasePlayerWeapon::ItemPostFrame( void )
 		g_SlideTime = 0;
 	}
 
-	// Don't fire weapon during sliding
-	if (g_SlideTime > gEngfuncs.GetClientTime()) {
-		return;
-	}
-
 	if ((m_fInReload) && (m_pPlayer->m_flNextAttack <= 0.0))
 	{
 #if 0 // FIXME, need ammo on client to make this work right

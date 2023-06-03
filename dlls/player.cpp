@@ -2510,7 +2510,8 @@ void CBasePlayer::PreThink(void)
 	if (m_iKeyboardAcrobatics)
 		CalculateToSelacoSlide();
 
-	TraceHitOfSelacoSlide();
+	if (!m_fSelacoHit)
+		TraceHitOfSelacoSlide();
 
 	EndSelacoSlide();
 
@@ -3465,7 +3466,7 @@ void CBasePlayer::Spawn( void )
 	m_afPhysicsFlags	= 0;
 	m_fLongJump			= FALSE;// no longjump module. 
 
-	m_EFlags &= ~EFLAG_DEADHANDS;
+	m_EFlags = 0;
 	m_iWeapons2 = FALSE;
 	m_iFreezeCounter 	= 0;
 	pHeldItem = NULL;
@@ -4351,19 +4352,11 @@ void CBasePlayer::StartSelacoSlide( void )
 
 	if (!m_fSelacoSliding && m_fSelacoTime < gpGlobals->time) {
 		if (FBitSet(pev->flags, FL_ONGROUND) && pev->velocity.Length() > 50) {
-			if (m_pActiveItem && m_pActiveItem->m_pPlayer) {
-				m_pActiveItem->Holster(); 
-			}
-			pev->viewmodel = MAKE_STRING("models/v_dual_leg.mdl");
-			if (m_pActiveItem && m_pActiveItem->m_pPlayer) {
-				((CBasePlayerWeapon *)m_pActiveItem)->SendWeaponAnim(SLIDE_EXTEND, 0, 0);
-			}
-
-			//m_EFlags |= EFLAG_PLAYERSLIDE;
+			m_EFlags |= EFLAG_SLIDE;
 
 			UTIL_MakeVectors(pev->angles);
 			pev->friction = 0.05;
-			pev->velocity = (gpGlobals->v_forward * 900); // + (gpGlobals->v_up * 200);
+			pev->velocity = (gpGlobals->v_forward * 900);
 			m_fSelacoLastX = pev->velocity.x;
 			m_fSelacoLastY = pev->velocity.y;
 			m_fSelacoTime = gpGlobals->time + 1.25;
@@ -4467,7 +4460,6 @@ void CBasePlayer::TraceHitOfSelacoSlide( void )
 							fHitWorld = FALSE;
 
 							m_fSelacoHit = TRUE;
-							if (m_pActiveItem) ((CBasePlayerWeapon *)m_pActiveItem)->SendWeaponAnim(SLIDE_RETRACT, 0, 0);
 							pev->velocity = pev->velocity / 2;
 							pev->friction = 0.5;
 						}
@@ -4497,7 +4489,6 @@ void CBasePlayer::TraceHitOfSelacoSlide( void )
 
 						EMIT_SOUND_DYN(ENT(pev), CHAN_ITEM, "fists_hit.wav", fvolbar, ATTN_NORM, 0, 98 + RANDOM_LONG(0,3));
 
-						if (m_pActiveItem) ((CBasePlayerWeapon *)m_pActiveItem)->SendWeaponAnim(SLIDE_RETRACT, 0, 0);
 						m_fSelacoHit = TRUE;
 						pev->velocity = pev->velocity / 2;
 						pev->friction = 0.7;
@@ -4517,11 +4508,55 @@ void CBasePlayer::TraceHitOfSelacoSlide( void )
 
 			if (fabs(m_fSelacoLastX - pev->velocity.x) > 300 || fabs(m_fSelacoLastY - pev->velocity.y) > 300) {
 				EMIT_SOUND_DYN(ENT(pev), CHAN_ITEM, "fists_hit.wav", 1.0, ATTN_NORM, 0, 98 + RANDOM_LONG(0,3));
-				if (m_pActiveItem && m_pActiveItem->m_pPlayer) ((CBasePlayerWeapon *)m_pActiveItem)->SendWeaponAnim(SLIDE_RETRACT, 0, 0);
 				m_fSelacoHit = TRUE;
 				pev->velocity = pev->velocity / 2;
 				pev->friction = 0.7;
 			}
+
+			// Apply radius for good measure
+			if (m_fSelacoHit)
+			{
+				CBaseEntity *pObject = NULL;
+				CBaseEntity *pClosest = NULL;
+				while ((pObject = UTIL_FindEntityInSphere( pObject, pev->origin, PLAYER_SEARCH_RADIUS )) != NULL)
+				{
+					if (pObject->pev->takedamage != DAMAGE_NO) {
+						if (pObject == this) {
+							continue;
+						}
+
+						//if (pObject->Classify() != CLASS_NONE && pObject->Classify() != CLASS_MACHINE)
+						{
+							pClosest = pObject;
+						}
+					}
+				}
+				pObject = pClosest;
+
+				float flVol = 1.0;
+
+				if (pObject)
+				{
+					ClearMultiDamage();
+
+					float flDamage = 0;
+					if (pObject->pev->deadflag != DEAD_FAKING && FBitSet(pObject->pev->flags, FL_FROZEN)) {
+						pObject->pev->renderamt = 100;
+						flDamage = 200;
+						::IceExplode(pObject, DMG_FREEZE);
+					}
+
+					TraceResult tr;
+					UTIL_TraceLine(pObject->pev->origin, pObject->pev->origin, dont_ignore_monsters, ENT( pev ), &tr);
+					pObject->TraceAttack(pev, (gSkillData.plrDmgKick * 2) + flDamage, gpGlobals->v_forward, &tr, DMG_KICK);
+					ApplyMultiDamage( pev, pev );
+
+					EMIT_SOUND(ENT(pev), CHAN_ITEM, "fists_hitbod.wav", 1, ATTN_NORM);
+				}
+
+				m_EFlags |= EFLAG_SLIDE_RETRACT & ~EFLAG_SLIDE;
+			}
+
 			m_fSelacoLastX = pev->velocity.x;
 			m_fSelacoLastY = pev->velocity.y;
 
@@ -4533,8 +4568,6 @@ void CBasePlayer::TraceHitOfSelacoSlide( void )
 void CBasePlayer::EndSelacoSlide( void )
 {
 	if (m_fSelacoSliding && m_fSelacoTime < gpGlobals->time) {
-		pev->viewmodel = iStringNull; // in case previous weapon is retired
-		if (m_pActiveItem) m_pActiveItem->DeployLowKey();
 		pev->fov = m_iFOV = 0;
 		m_fSelacoSliding = m_fSelacoHit = FALSE;
 		m_fSelacoTime = m_fSelacoIncrement = m_fSelacoButtonTime = 0;
@@ -4547,7 +4580,8 @@ void CBasePlayer::EndSelacoSlide( void )
 		m_fSelacoCount = 0;
 		pev->view_ofs[2] = m_fSelacoZ;
 		m_fSelacoIncrement = gpGlobals->time + 0.2;
-		//m_EFlags &= ~EFLAG_PLAYERSLIDE;
+
+		m_EFlags &= ~EFLAG_SLIDE_RETRACT & ~EFLAG_SLIDE;
 	}
 }
 

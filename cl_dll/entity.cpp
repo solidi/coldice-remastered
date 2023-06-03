@@ -527,12 +527,34 @@ void CL_DLLEXPORT HUD_TempEntUpdate (
 			{
 				LoadTempViewModel("models/v_fists.mdl", 13);
 			}
+			else if ((player->curstate.eflags & EFLAG_SLIDE))
+			{
+				LoadTempViewModel("models/v_dual_leg.mdl", 1);
+			}
 		}
 	}
 
 	// hold it
 	if (player && (player->curstate.eflags & EFLAG_DEADHANDS))
 		gHUD.m_flExtraViewModelTime = gEngfuncs.GetClientTime() + 0.01;
+
+	//static bool extra = false;
+	if (player && (player->curstate.eflags & EFLAG_SLIDE))
+	{
+		gHUD.m_flExtraViewModelTime = gEngfuncs.GetClientTime() + 0.01;
+		//extra = true;
+	}
+
+/*
+	if (player && extra && (player->curstate.eflags & EFLAG_SLIDE_RETRACT))
+	{
+		gHUD.m_flExtraViewModelTime = gEngfuncs.GetClientTime() + 0.55;
+		gHUD.m_ExtraViewModel.curstate.sequence = 2;
+		gHUD.m_ExtraViewModel.curstate.frame = 0;
+		gHUD.m_ExtraViewModel.curstate.animtime = gEngfuncs.GetClientTime();
+		extra = 0;
+	}
+*/
 
 	if (cam_thirdperson)
 		gHUD.m_flExtraViewModelTime = 0;

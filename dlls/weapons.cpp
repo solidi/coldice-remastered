@@ -913,10 +913,6 @@ BOOL CanAttack( float attack_time, float curtime, BOOL isPredicted )
 
 void CBasePlayerWeapon::ItemPostFrame( void )
 {
-	if (m_pPlayer->m_fSelacoTime > gpGlobals->time) {
-		return;
-	}
-
 	if (infiniteammo.value) {
 		if (infiniteammo.value == 1)
 			m_iClip = iMaxClip();
