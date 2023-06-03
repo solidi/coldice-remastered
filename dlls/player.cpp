@@ -994,8 +994,6 @@ void CBasePlayer::Killed( entvars_t *pevAttacker, int iGib )
 		pev->flags &= ~FL_FROZEN;
 	}
 
-	m_EFlags = 0;
-
 	SetAnimation( PLAYER_DIE );
 	
 	m_iRespawnFrames = 0;
@@ -1470,6 +1468,9 @@ void CBasePlayer::PlayerDeathThink(void)
 			pev->velocity = g_vecZero;
 		else    
 			pev->velocity = flForward * pev->velocity.Normalize();
+
+		if (!FBitSet(pev->effects, EF_NODRAW))
+			m_EFlags |= EFLAG_DEADHANDS;
 	}
 
 	if ( HasWeapons() )
@@ -1526,6 +1527,7 @@ void CBasePlayer::PlayerDeathThink(void)
 // choose to respawn.
 	if ( g_pGameRules->IsMultiplayer() && ( gpGlobals->time > (m_fDeadTime + 6) ) && !(m_afPhysicsFlags & PFLAG_OBSERVER) )
 	{
+		m_EFlags &= ~EFLAG_DEADHANDS;
 		// go to dead camera. 
 		StartDeathCam();
 	}
@@ -3463,6 +3465,7 @@ void CBasePlayer::Spawn( void )
 	m_afPhysicsFlags	= 0;
 	m_fLongJump			= FALSE;// no longjump module. 
 
+	m_EFlags &= ~EFLAG_DEADHANDS;
 	m_iWeapons2 = FALSE;
 	m_iFreezeCounter 	= 0;
 	pHeldItem = NULL;

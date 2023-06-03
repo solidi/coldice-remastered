@@ -1307,6 +1307,9 @@ BOOL CBasePlayerWeapon :: CanDeploy( void )
 		return FALSE;
 	}
 
+	if (m_pPlayer->pev->deadflag == DEAD_FAKING)
+		return FALSE;
+
 	if ( !pszAmmo1() )
 	{
 		// this weapon doesn't use ammo, can always deploy.

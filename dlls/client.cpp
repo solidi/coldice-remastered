@@ -586,7 +586,10 @@ void ClientCommand( edict_t *pEntity )
 					EMIT_SOUND(ENT(pev), CHAN_VOICE, "common/bodydrop4.wav", 1, ATTN_NORM);
 				if (player->m_pActiveItem)
 					player->m_pActiveItem->Holster();
+				player->pev->viewmodel = 0; 
+				player->pev->weaponmodel = 0;
 				p->deadflag = DEAD_FAKING;
+				player->m_EFlags |= EFLAG_DEADHANDS;
 			}
 			else if (p->deadflag == DEAD_FAKING)
 			{
