@@ -120,6 +120,8 @@
 #define EFLAG_SLERP (1 << 0)
 #define EFLAG_PAINTBALL (1 << 1)
 #define EFLAG_DEADHANDS (1 << 2)
+#define EFLAG_SLIDE (1 << 3)
+#define EFLAG_SLIDE_RETRACT (1 << 4)
 
 //
 // temp entity events
