@@ -792,6 +792,7 @@ class CGravityRune : public CRune
 		if ( !pPlayer->m_fHasRune )
 		{
 			pPlayer->m_fHasRune = RUNE_GRAVITY;
+			pPlayer->pev->gravity = 0.6;
 
 			ShellPlayer(pPlayer, 0, 115, 230);
 
@@ -993,6 +994,7 @@ void CWorldRunes::DropRune(CBasePlayer *pPlayer) {
 			break;
 		case RUNE_GRAVITY:
 			sz_Rune = "rune_gravity";
+			pPlayer->pev->gravity = 1;
 			break;
 		case RUNE_CLOAK:
 			sz_Rune = "rune_cloak";

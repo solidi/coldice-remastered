@@ -27,6 +27,7 @@
 #include "saverestore.h"
 #include "trains.h"			// trigger_camera has train functionality
 #include "gamerules.h"
+#include "items.h"
 
 #define	SF_TRIGGER_PUSH_START_OFF	2//spawnflag that makes trigger_push spawn turned OFF
 #define SF_TRIGGER_HURT_TARGETONCE	1// Only fire hurt target once
@@ -2082,6 +2083,12 @@ void CTriggerGravity::GravityTouch( CBaseEntity *pOther )
 		return;
 
 	pOther->pev->gravity = pev->gravity;
+
+	if ( pOther->pev->gravity == 1 && 
+		((CBasePlayer *)pOther)->m_fHasRune == RUNE_GRAVITY )
+	{
+		pOther->pev->gravity = 0.6;
+	}
 }
 
 
