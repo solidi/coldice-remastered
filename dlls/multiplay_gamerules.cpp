@@ -1596,13 +1596,6 @@ void CHalfLifeMultiplay :: PlayerThink( CBasePlayer *pPlayer )
 		//	pPlayer->FlashlightTurnOff();
 	}
 
-	if ( pPlayer->m_fHasRune == RUNE_GRAVITY )
-	{
-		pPlayer->pev->gravity = 0.6;
-	} else {
-		pPlayer->pev->gravity = 1.0;
-	}
-
 	if ( pPlayer->m_fHasRune == RUNE_REGEN )
 	{
 		if ( pPlayer->m_flRuneHealTime < gpGlobals->time )
