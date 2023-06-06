@@ -822,15 +822,15 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_mutators \"lightsout\"\" - all the lights are turned out, but your flashight has unlimited battery\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_mutators \"slowmo\"\" - everything is slowed down by half! (sp only!)\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_mutators \"ice\"\" - all the ground is covered in ice\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_mutators \"topsyturvy\"\" - everything is turned upside down (sp only!)\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_mutators \"turrets\"\" - sentry guns randomly appear, firing bullets and rockets at everyone\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_mutators \"barrels\"\" - start with the gravitygun, flaming explosive barrels spawn to throw at others\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_mutators \"chumxplode\"\" - a killer chumtoad appears directly after an explosion\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "For more, type help_server_more\n" );
 	}
 	else if ( FStrEq( pcmd, "help_server_more" )  )
 	{
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "[Server Help More]\n");
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_mutators \"topsyturvy\"\" - everything is turned upside down (sp only!)\n");
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_mutators \"turrets\"\" - sentry guns randomly appear, firing bullets and rockets at everyone\n");
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_mutators \"barrels\"\" - start with the gravitygun, flaming explosive barrels spawn to throw at others\n");
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_mutators \"chumxplode\"\" - a killer chumtoad appears directly after an explosion\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_mutators \"santahat\"\" - everyone wears a santa hat and says hohoho randomly\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_mutators \"sanic\"\" - evil santa and sanic with a santa hat team up against you\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_mutators \"coolflesh\"\" - gibs stay longer, pick up gibs to eat and gain a healthkit worth of repair\n");
@@ -847,6 +847,10 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_mutators \"pushy\"\" - all weapon attacks push you back like a gauss attack\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_mutators \"portal\"\" - now you're thinking with portals\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_mutators \"jope\"\" - all hail king jope!\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_mutators \"inverse\"\" - colors are inverted\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_mutators \"sildenafil\"\" - screen goes blue\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_mutators \"oldtime\"\" - screen goes blac and white\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_mutators \"longjump\"\" - everyone receives a long jump module\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_spawnweapons\" - Spawn weapons or not\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_spawnitems\" - Spawn items or not\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_disallowlist\" a list of entities that will not spawn\n");
