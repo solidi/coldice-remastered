@@ -65,6 +65,7 @@ extern DLL_GLOBAL const char *g_MutatorGravity;
 extern DLL_GLOBAL const char *g_MutatorInvisible;
 extern DLL_GLOBAL const char *g_MutatorPortal;
 extern DLL_GLOBAL const char *g_MutatorJope;
+extern DLL_GLOBAL const char *g_MutatorLongJump;
 
 extern DLL_GLOBAL int g_GameMode;
 
@@ -534,6 +535,12 @@ void CGameRules::SpawnMutators(CBasePlayer *pPlayer)
 		pPlayer->GiveNamedItem("weapon_ashpod");
 	}
 
+	if (strstr(mutators.string, g_MutatorLongJump) ||
+		atoi(mutators.string) == MUTATOR_LONGJUMP) {
+		if (pPlayer->pev->weapons & (1<<WEAPON_SUIT))
+			pPlayer->GiveNamedItem("item_longjump");
+	}
+
 	if (strstr(mutators.string, g_MutatorInvisible) ||
 		atoi(mutators.string) == MUTATOR_INVISIBLE) {
 		if (pPlayer->pev->renderfx == kRenderFxGlowShell)
@@ -698,6 +705,12 @@ void CGameRules::CheckMutators(void)
 					atoi(mutators.string) == MUTATOR_PORTAL) {
 					if (!pl->HasNamedPlayerItem("weapon_ashpod"))
 						pl->GiveNamedItem("weapon_ashpod");
+				}
+
+				if (strstr(mutators.string, g_MutatorLongJump) ||
+					atoi(mutators.string) == MUTATOR_LONGJUMP) {
+					if (!pl->m_fLongJump && (pPlayer->pev->weapons & (1<<WEAPON_SUIT)))
+						pl->GiveNamedItem("item_longjump");
 				}
 
 				if (strstr(mutators.string, g_MutatorInvisible) ||
