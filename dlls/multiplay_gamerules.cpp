@@ -97,6 +97,7 @@ CHalfLifeMultiplay :: CHalfLifeMultiplay()
 
 	RefreshSkillData();
 	m_flIntermissionEndTime = 0;
+	m_iFirstBloodDecided = FALSE;
 	g_flIntermissionStartTime = 0;
 	
 	// 11/8/98
@@ -1856,6 +1857,8 @@ int CHalfLifeMultiplay :: IPointsForKill( CBasePlayer *pAttacker, CBasePlayer *p
 //=========================================================
 // PlayerKilled - someone/something killed this player
 //=========================================================
+#define	HITGROUP_HEAD 1
+
 void CHalfLifeMultiplay :: PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller, entvars_t *pInflictor )
 {
 	DeathNotice( pVictim, pKiller, pInflictor );
@@ -1917,6 +1920,23 @@ void CHalfLifeMultiplay :: PlayerKilled( CBasePlayer *pVictim, entvars_t *pKille
 	{
 		// if a player dies in a deathmatch game and the killer is a client, award the killer some points
 		pKiller->frags += IPointsForKill( peKiller, pVictim );
+
+		if (!m_iFirstBloodDecided)
+		{
+			UTIL_ClientPrintAll(HUD_PRINTCENTER, UTIL_VarArgs("%s achieves first blood!\n", STRING(pKiller->netname) ));
+			MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
+				WRITE_BYTE(CLIENT_SOUND_FIRSTBLOOD);
+			MESSAGE_END();
+			pKiller->health = 100;
+			m_iFirstBloodDecided = TRUE;
+		}
+		else if (pVictim->m_LastHitGroup == HITGROUP_HEAD)
+		{
+			MESSAGE_BEGIN( MSG_ONE_UNRELIABLE, gmsgPlayClientSound, NULL, pKiller );
+				WRITE_BYTE(CLIENT_SOUND_HEADSHOT);
+			MESSAGE_END();
+			pKiller->health += 5;
+		}
 
 		if (strstr(mutators.string, g_MutatorLoopback) ||
 			atoi(mutators.string) == MUTATOR_LOOPBACK)

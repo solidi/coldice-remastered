@@ -265,6 +265,12 @@ int CHud :: MsgFunc_PlayCSound( const char *pszName, int iSize, void *pbuf )
 		case CLIENT_SOUND_BULLSEYE:
 			PlaySound("bullseye.wav", 1);
 			break;
+		case CLIENT_SOUND_HEADSHOT:
+			PlaySound("headshot.wav", 1);
+			break;
+		case CLIENT_SOUND_FIRSTBLOOD:
+			PlaySound("firstblood.wav", 1);
+			break;
 	}
 	return 1;
 }

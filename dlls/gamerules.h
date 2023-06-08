@@ -429,6 +429,7 @@ protected:
 	int m_iPlayersInArena[32];
 	int m_iCountDown;
 	int m_iPlayer1, m_iPlayer2;
+	BOOL m_iFirstBloodDecided;
 };
 
 extern DLL_GLOBAL CGameRules*	g_pGameRules;
