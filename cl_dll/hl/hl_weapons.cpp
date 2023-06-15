@@ -98,6 +98,7 @@ CGravityGun g_GravityGun;
 CFlameThrower g_FlameThrower;
 CDualFlameThrower g_DualFlameThrower;
 CAshpod g_Ashpod;
+CSawedOff g_SawedOff;
 
 /*
 ======================
@@ -701,6 +702,7 @@ void HUD_InitClientWeapons( void )
 	HUD_PrepEntity( &g_FlameThrower	, &player );
 	HUD_PrepEntity( &g_DualFlameThrower	, &player );
 	HUD_PrepEntity( &g_Ashpod	, &player );
+	HUD_PrepEntity( &g_SawedOff	, &player );
 }
 
 /*
@@ -945,6 +947,10 @@ void HUD_WeaponsPostThink( local_state_s *from, local_state_s *to, usercmd_t *cm
 		case WEAPON_ASHPOD:
 			pWeapon = &g_Ashpod;
 			break;
+
+		case WEAPON_SAWEDOFF:
+			pWeapon = &g_SawedOff;
+			break;
 	}
 
 	// Store pointer to our destination entity_state_t so we can get our origin, etc. from it
@@ -1125,6 +1131,28 @@ void HUD_WeaponsPostThink( local_state_s *from, local_state_s *to, usercmd_t *cm
 	{
 		 from->client.vuser2[ 1 ] = ( ( CRpg * )player.m_pActiveItem)->m_fSpotActive;
 		 from->client.vuser2[ 2 ] = ( ( CRpg * )player.m_pActiveItem)->m_cActiveRockets;
+	}
+
+	// Barrel smoke
+	if (pWeapon && pWeapon->m_iId == WEAPON_SAWEDOFF && 
+		(pWeapon->m_flNextPrimaryAttack > 0 || pWeapon->m_flNextSecondaryAttack > 0))
+	{
+		static TEMPENTITY *t[20];
+		static int c = 0;
+		int model = gEngfuncs.pEventAPI->EV_FindModelIndex( "sprites/gunsmoke.spr" );
+		vec3_t dir = Vector(0, 0, 10);
+
+		if (c == 20) c = 0;
+
+		if (c % 2 == 0) 
+			t[c] = gEngfuncs.pEfxAPI->R_TempSprite(gEngfuncs.GetViewModel()->attachment[0], (float *)&dir, 0.05, model, kRenderTransAdd, kRenderFxNoDissipation, 0, 2, FTENT_SPRANIMATE);
+		else
+			t[c] = gEngfuncs.pEfxAPI->R_TempSprite(gEngfuncs.GetViewModel()->attachment[1], (float *)&dir, 0.05, model, kRenderTransAdd, kRenderFxNoDissipation, 0, 2, FTENT_SPRANIMATE);
+
+		if (t[c]) {
+			t[c]->entity.curstate.renderamt = gEngfuncs.pfnRandomLong(10, 30);
+		}
+		c++;
 	}
 
 	// Make sure that weapon animation matches what the game .dll is telling us

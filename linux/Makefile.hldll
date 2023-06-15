@@ -64,7 +64,8 @@ CFLAGS=$(BASE_CFLAGS)  $(ARCH_CFLAGS) $(DEBUG_CFLAGS) -DCLIENT_WEAPONS \
 		 -DGRAVITYGUN \
 		 -DFLAMETHROWER \
 		 -DDUALFLAMETHROWER \
-		 -DASHPOD
+		 -DASHPOD \
+		 -DSAWEDOFF
 
 #-O3 -ffast-math -fno-strength-reduce
 
@@ -188,6 +189,7 @@ HLDLL_OBJS = \
 	$(HLDLL_OBJ_DIR)/rocket_crowbar.o \
 	$(HLDLL_OBJ_DIR)/rpg.o \
 	$(HLDLL_OBJ_DIR)/satchel.o \
+	$(HLDLL_OBJ_DIR)/sawedoff.o \
 	$(HLDLL_OBJ_DIR)/schedule.o \
 	$(HLDLL_OBJ_DIR)/scientist.o \
 	$(HLDLL_OBJ_DIR)/scripted.o \
