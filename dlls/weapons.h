@@ -2391,6 +2391,42 @@ private:
 	int m_iShell;
 };
 
+class CSawedOff : public CBasePlayerWeapon
+{
+public:
+	void Spawn( void );
+	void Precache( void );
+	int iItemSlot( ) { return 2; }
+	int GetItemInfo(ItemInfo *p);
+	int AddToPlayer( CBasePlayer *pPlayer );
+
+	void PrimaryAttack( void );
+	void SecondaryAttack( void );
+	BOOL DeployLowKey( void );
+	BOOL Deploy( void );
+	void Holster( int skiplocal = 0 );
+	void Reload( void );
+	void WeaponIdle( void );
+	int m_fInReload;
+	float m_flNextReload;
+	int m_iShell;
+
+	virtual BOOL UseDecrement( void )
+	{ 
+#if defined( CLIENT_WEAPONS )
+		return TRUE;
+#else
+		return FALSE;
+#endif
+	}
+
+	virtual BOOL SemiAuto( void ) { return TRUE; }
+
+private:
+	unsigned short m_usDoubleFire;
+	unsigned short m_usSingleFire;
+};
+
 class CFlyingSnowball : public CBaseEntity
 {
 public:
