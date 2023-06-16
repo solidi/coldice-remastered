@@ -47,7 +47,7 @@ cvar_t *cl_bulletsmoke;
 cvar_t *cl_gunsmoke;
 cvar_t *cl_weaponsway;
 cvar_t *cl_weaponfidget;
-cvar_t * cl_weaponretract;
+cvar_t *cl_weaponretract;
 cvar_t *cl_playpoint;
 cvar_t *cl_glasshud;
 cvar_t *cl_announcehumor;

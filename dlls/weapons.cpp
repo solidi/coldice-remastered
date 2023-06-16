@@ -471,6 +471,7 @@ void W_Precache(void)
 	UTIL_PrecacheOtherWeapon( "weapon_flamethrower" );
 	UTIL_PrecacheOtherWeapon( "weapon_dual_flamethrower" );
 	UTIL_PrecacheOtherWeapon( "weapon_ashpod" );
+	UTIL_PrecacheOtherWeapon( "weapon_sawedoff" );
 
 	UTIL_PrecacheOther( "monster_barrel" );
 	UTIL_PrecacheOther( "monster_sentry" );
@@ -727,7 +728,8 @@ CBaseEntity* CBasePlayerItem::Respawn( void )
 		"weapon_mag60",
 		"weapon_dual_mag60"
 		"weapon_smg",
-		"weapon_dual_smg"
+		"weapon_dual_smg",
+		"weapon_sawedoff"
 		},
 
 		{

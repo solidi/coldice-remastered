@@ -82,41 +82,42 @@ public:
 #define	WEAPON_DEAGLE				10
 #define WEAPON_MAG60				11
 #define WEAPON_SMG					12
-#define WEAPON_MP5					13
-#define WEAPON_12GAUGE				14
-#define WEAPON_SHOTGUN				15
-#define WEAPON_USAS					16
-#define WEAPON_CROSSBOW				17
-#define WEAPON_SNIPER_RIFLE			18
-#define WEAPON_CHAINGUN				19
-#define WEAPON_FREEZEGUN			20
-#define WEAPON_RPG					21
-#define WEAPON_GAUSS				22
-#define WEAPON_EGON					23
-#define WEAPON_HORNETGUN			24
-#define WEAPON_RAILGUN				25
-#define WEAPON_GLAUNCHER			26
-#define WEAPON_CANNON				27
-#define WEAPON_NUKE					28
-#define WEAPON_SNOWBALL				29
-#define WEAPON_HANDGRENADE			30
+#define WEAPON_SAWEDOFF				13
+#define WEAPON_MP5					14
+#define WEAPON_12GAUGE				15
+#define WEAPON_SHOTGUN				16
+#define WEAPON_USAS					17
+#define WEAPON_CROSSBOW				18
+#define WEAPON_SNIPER_RIFLE			19
+#define WEAPON_CHAINGUN				20
+#define WEAPON_FREEZEGUN			21
+#define WEAPON_RPG					22
+#define WEAPON_GAUSS				23
+#define WEAPON_EGON					24
+#define WEAPON_HORNETGUN			25
+#define WEAPON_RAILGUN				26
+#define WEAPON_GLAUNCHER			27
+#define WEAPON_CANNON				28
+#define WEAPON_NUKE					29
+#define WEAPON_SNOWBALL				30
 #define WEAPON_SUIT					31
 #define WEAPON_NONE_32				32
-#define	WEAPON_SATCHEL				33
-#define WEAPON_TRIPMINE				34
-#define	WEAPON_SNARK				35
-#define	WEAPON_CHUMTOAD				36
-#define	WEAPON_VEST					37
-#define WEAPON_FLAMETHROWER			38
-#define WEAPON_DUAL_WRENCH			39
-#define WEAPON_DUAL_DEAGLE			40
-#define WEAPON_DUAL_MAG60			41
-#define WEAPON_DUAL_SMG				42
-#define WEAPON_DUAL_USAS			43
-#define WEAPON_DUAL_RAILGUN			44
-#define WEAPON_DUAL_RPG				45
-#define WEAPON_DUAL_FLAMETHROWER	46
-#define WEAPON_FISTS				47
+#define WEAPON_HANDGRENADE			33
+#define	WEAPON_SATCHEL				34
+#define WEAPON_TRIPMINE				35
+#define	WEAPON_SNARK				36
+#define	WEAPON_CHUMTOAD				37
+#define	WEAPON_VEST					38
+#define WEAPON_FLAMETHROWER			39
+#define WEAPON_DUAL_WRENCH			40
+#define WEAPON_DUAL_DEAGLE			41
+#define WEAPON_DUAL_MAG60			42
+#define WEAPON_DUAL_SMG				43
+#define WEAPON_DUAL_USAS			44
+#define WEAPON_DUAL_RAILGUN			45
+#define WEAPON_DUAL_RPG				46
+#define WEAPON_DUAL_FLAMETHROWER	47
+#define WEAPON_FISTS				48
 
 #define WEAPON_ALLWEAPONS		(~(1<<WEAPON_SUIT))
 
@@ -141,6 +142,7 @@ public:
 #define DEAGLE_WEIGHT			13
 #define MAG60_WEIGHT			14
 #define SMG_WEIGHT				15
+#define SAWEDOFF_WEIGHT			16
 #define MP5_WEIGHT				20
 #define GAUGE_SHOTGUN_WEIGHT 	21
 #define SHOTGUN_WEIGHT			22
@@ -209,6 +211,7 @@ public:
 #define DEAGLE_MAX_CLIP			9
 #define FREEZEGUN_MAX_CLIP		30
 #define FLAMETHROWER_MAX_CLIP	100
+#define SAWEDOFF_MAX_CLIP		2
 
 
 // the default amount of ammo that comes with each gun when it spawns
@@ -2386,6 +2389,42 @@ private:
 	int m_iTrail;
 	int m_iIceTrail;
 	int m_iShell;
+};
+
+class CSawedOff : public CBasePlayerWeapon
+{
+public:
+	void Spawn( void );
+	void Precache( void );
+	int iItemSlot( ) { return 2; }
+	int GetItemInfo(ItemInfo *p);
+	int AddToPlayer( CBasePlayer *pPlayer );
+
+	void PrimaryAttack( void );
+	void SecondaryAttack( void );
+	BOOL DeployLowKey( void );
+	BOOL Deploy( void );
+	void Holster( int skiplocal = 0 );
+	void Reload( void );
+	void WeaponIdle( void );
+	int m_fInReload;
+	float m_flNextReload;
+	int m_iShell;
+
+	virtual BOOL UseDecrement( void )
+	{ 
+#if defined( CLIENT_WEAPONS )
+		return TRUE;
+#else
+		return FALSE;
+#endif
+	}
+
+	virtual BOOL SemiAuto( void ) { return TRUE; }
+
+private:
+	unsigned short m_usDoubleFire;
+	unsigned short m_usSingleFire;
 };
 
 class CFlyingSnowball : public CBaseEntity

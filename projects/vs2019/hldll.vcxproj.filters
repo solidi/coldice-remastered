@@ -300,6 +300,9 @@
     <ClCompile Include="..\..\dlls\satchel.cpp">
       <Filter>Source Files\dlls</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\dlls\sawedoff.cpp">
+      <Filter>Source Files\dlls</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\dlls\schedule.cpp">
       <Filter>Source Files\dlls</Filter>
     </ClCompile>

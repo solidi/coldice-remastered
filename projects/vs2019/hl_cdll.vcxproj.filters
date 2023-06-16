@@ -126,6 +126,9 @@
     <ClCompile Include="..\..\dlls\satchel.cpp">
       <Filter>Source Files\_hl\dlls</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\dlls\sawedoff.cpp">
+      <Filter>Source Files\_hl\dlls</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\dlls\shotgun.cpp">
       <Filter>Source Files\_hl\dlls</Filter>
     </ClCompile>

@@ -763,8 +763,8 @@ void ClientCommand( edict_t *pEntity )
 	else if ( FStrEq( pcmd, "help_more" )  )
 	{
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "[Client Help More]\n");
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_bulletsmoke [0|1]\" - Bullet Smoke\n");
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_gunsmoke [0|1]\" - Gun Smoke\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_bulletsmoke [0|1]\" - turn on or off bullet smoke and flare effects\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_gunsmoke [0|1]\" - turn on or off gun smoke effects when fired\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_glasshud [0|1]\" - switch elements of the hud bouncing/bobbing on or off\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_weaponsway [0|1]\" - Weapon Sway\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_weaponfidget [0|1]\" - Weapon Fidget\n");
