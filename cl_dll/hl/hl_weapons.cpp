@@ -34,6 +34,7 @@
 extern globalvars_t *gpGlobals;
 extern int g_iUser1;
 extern float g_SlideTime;
+extern cvar_t *cl_gunsmoke;
 
 // Pool of client side entities/entvars_t
 static entvars_t	ev[ MAX_WEAPONS + 1 ];
@@ -1137,22 +1138,25 @@ void HUD_WeaponsPostThink( local_state_s *from, local_state_s *to, usercmd_t *cm
 	if (pWeapon && pWeapon->m_iId == WEAPON_SAWEDOFF && 
 		(pWeapon->m_flNextPrimaryAttack > 0 || pWeapon->m_flNextSecondaryAttack > 0))
 	{
-		static TEMPENTITY *t[20];
-		static int c = 0;
-		int model = gEngfuncs.pEventAPI->EV_FindModelIndex( "sprites/gunsmoke.spr" );
-		vec3_t dir = Vector(0, 0, 10);
+		if (cl_gunsmoke && cl_gunsmoke->value)
+		{
+			static TEMPENTITY *t[20];
+			static int c = 0;
+			int model = gEngfuncs.pEventAPI->EV_FindModelIndex( "sprites/gunsmoke.spr" );
+			vec3_t dir = Vector(0, 0, 10);
 
-		if (c == 20) c = 0;
+			if (c == 20) c = 0;
 
-		if (c % 2 == 0) 
-			t[c] = gEngfuncs.pEfxAPI->R_TempSprite(gEngfuncs.GetViewModel()->attachment[0], (float *)&dir, 0.05, model, kRenderTransAdd, kRenderFxNoDissipation, 0, 2, FTENT_SPRANIMATE);
-		else
-			t[c] = gEngfuncs.pEfxAPI->R_TempSprite(gEngfuncs.GetViewModel()->attachment[1], (float *)&dir, 0.05, model, kRenderTransAdd, kRenderFxNoDissipation, 0, 2, FTENT_SPRANIMATE);
+			if (pWeapon->m_iClip % 2 == 0) 
+				t[c] = gEngfuncs.pEfxAPI->R_TempSprite(gEngfuncs.GetViewModel()->attachment[0], (float *)&dir, 0.05, model, kRenderTransAdd, kRenderFxNoDissipation, 0, 2, FTENT_SPRANIMATE);
+			else
+				t[c] = gEngfuncs.pEfxAPI->R_TempSprite(gEngfuncs.GetViewModel()->attachment[1], (float *)&dir, 0.05, model, kRenderTransAdd, kRenderFxNoDissipation, 0, 2, FTENT_SPRANIMATE);
 
-		if (t[c]) {
-			t[c]->entity.curstate.renderamt = gEngfuncs.pfnRandomLong(10, 30);
+			if (t[c]) {
+				t[c]->entity.curstate.renderamt = gEngfuncs.pfnRandomLong(10, 30);
+			}
+			c++;
 		}
-		c++;
 	}
 
 	// Make sure that weapon animation matches what the game .dll is telling us
