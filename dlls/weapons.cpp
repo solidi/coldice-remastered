@@ -472,6 +472,7 @@ void W_Precache(void)
 	UTIL_PrecacheOtherWeapon( "weapon_dual_flamethrower" );
 	UTIL_PrecacheOtherWeapon( "weapon_ashpod" );
 	UTIL_PrecacheOtherWeapon( "weapon_sawedoff" );
+	UTIL_PrecacheOtherWeapon( "weapon_dual_sawedoff" );
 
 	UTIL_PrecacheOther( "monster_barrel" );
 	UTIL_PrecacheOther( "monster_sentry" );
@@ -729,7 +730,8 @@ CBaseEntity* CBasePlayerItem::Respawn( void )
 		"weapon_dual_mag60"
 		"weapon_smg",
 		"weapon_dual_smg",
-		"weapon_sawedoff"
+		"weapon_sawedoff",
+		"weapon_dual_sawedoff"
 		},
 
 		{
@@ -777,6 +779,7 @@ CBaseEntity* CBasePlayerItem::Respawn( void )
 		"weapon_dual_deagle",
 		"weapon_dual_mag60",
 		"weapon_dual_smg",
+		"weapon_dual_sawedoff",
 		"weapon_dual_usas",
 		"weapon_dual_railgun",
 		"weapon_dual_rpg",
@@ -786,7 +789,7 @@ CBaseEntity* CBasePlayerItem::Respawn( void )
 
 	if (dualsonly.value) {
 		if (strncmp(STRING(pev->classname), "weapon_dual_", 12) != 0) {
-			const char *name = weaponsList[5][RANDOM_LONG(0, 7)];
+			const char *name = weaponsList[5][RANDOM_LONG(0, 8)];
 			if (name)
 			{
 				pNewWeapon = CBaseEntity::Create((char *)STRING(ALLOC_STRING(name)), g_pGameRules->VecWeaponRespawnSpot(this), pev->angles, pev->owner);

@@ -172,7 +172,7 @@ void CSawedOff::PrimaryAttack()
 		vecDir = m_pPlayer->FireBulletsPlayer( 12, vecSrc, vecAiming, VECTOR_CONE_10DEGREES, 2048, BULLET_PLAYER_BUCKSHOT, 1, 0, m_pPlayer->pev, m_pPlayer->random_seed );
 	}
 
-	PLAYBACK_EVENT_FULL( flags, m_pPlayer->edict(), m_usSingleFire, 0.0, (float *)&g_vecZero, (float *)&g_vecZero, vecDir.x, vecDir.y, 0, 0, 0, 0 );
+	PLAYBACK_EVENT_FULL( flags, m_pPlayer->edict(), m_usSingleFire, 0.0, (float *)&g_vecZero, (float *)&g_vecZero, vecDir.x, vecDir.y, 0, 0, m_iClip, 0 );
 
 
 	if (!m_iClip && m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] <= 0)
@@ -374,4 +374,28 @@ void CSawedOff::WeaponIdle( void )
 			SendWeaponAnim( iAnim );
 		}
 	}
+}
+
+void CSawedOff::ProvideDualItem(CBasePlayer *pPlayer, const char *item) {
+	if (pPlayer == NULL || item == NULL) {
+		return;
+	}
+
+#ifndef CLIENT_DLL
+	CBasePlayerWeapon::ProvideDualItem(pPlayer, item);
+
+	if (!stricmp(item, "weapon_sawedoff")) {
+		if (!pPlayer->HasNamedPlayerItem("weapon_dual_sawedoff")) {
+#ifdef _DEBUG
+			ALERT(at_aiconsole, "Give weapon_dual_sawedoff!\n");
+#endif
+			pPlayer->GiveNamedItem("weapon_dual_sawedoff");
+			pPlayer->SelectItem("weapon_dual_sawedoff");
+		}
+	}
+#endif
+}
+
+void CSawedOff::SwapDualWeapon( void ) {
+	m_pPlayer->SelectItem("weapon_dual_sawedoff");
 }

@@ -100,6 +100,7 @@ CFlameThrower g_FlameThrower;
 CDualFlameThrower g_DualFlameThrower;
 CAshpod g_Ashpod;
 CSawedOff g_SawedOff;
+CDualSawedOff g_DualSawedOff;
 
 /*
 ======================
@@ -704,6 +705,7 @@ void HUD_InitClientWeapons( void )
 	HUD_PrepEntity( &g_DualFlameThrower	, &player );
 	HUD_PrepEntity( &g_Ashpod	, &player );
 	HUD_PrepEntity( &g_SawedOff	, &player );
+	HUD_PrepEntity( &g_DualSawedOff	, &player );
 }
 
 /*
@@ -952,6 +954,10 @@ void HUD_WeaponsPostThink( local_state_s *from, local_state_s *to, usercmd_t *cm
 		case WEAPON_SAWEDOFF:
 			pWeapon = &g_SawedOff;
 			break;
+
+		case WEAPON_DUAL_SAWEDOFF:
+			pWeapon = &g_DualSawedOff;
+			break;
 	}
 
 	// Store pointer to our destination entity_state_t so we can get our origin, etc. from it
@@ -1135,7 +1141,7 @@ void HUD_WeaponsPostThink( local_state_s *from, local_state_s *to, usercmd_t *cm
 	}
 
 	// Barrel smoke
-	if (pWeapon && pWeapon->m_iId == WEAPON_SAWEDOFF && 
+	if (pWeapon && (pWeapon->m_iId == WEAPON_SAWEDOFF || pWeapon->m_iId == WEAPON_DUAL_SAWEDOFF) && 
 		(pWeapon->m_flNextPrimaryAttack > 0 || pWeapon->m_flNextSecondaryAttack > 0))
 	{
 		if (cl_gunsmoke && cl_gunsmoke->value)
@@ -1147,10 +1153,17 @@ void HUD_WeaponsPostThink( local_state_s *from, local_state_s *to, usercmd_t *cm
 
 			if (c == 20) c = 0;
 
-			if (pWeapon->m_iClip % 2 == 0) 
-				t[c] = gEngfuncs.pEfxAPI->R_TempSprite(gEngfuncs.GetViewModel()->attachment[0], (float *)&dir, 0.05, model, kRenderTransAdd, kRenderFxNoDissipation, 0, 2, FTENT_SPRANIMATE);
-			else
-				t[c] = gEngfuncs.pEfxAPI->R_TempSprite(gEngfuncs.GetViewModel()->attachment[1], (float *)&dir, 0.05, model, kRenderTransAdd, kRenderFxNoDissipation, 0, 2, FTENT_SPRANIMATE);
+			if (pWeapon->m_iClip == 0) 
+			{
+				t[c] = gEngfuncs.pEfxAPI->R_TempSprite(gEngfuncs.GetViewModel()->attachment[c % 2 == 0 ? 1 : 0], (float *)&dir, 0.05, model, kRenderTransAdd, kRenderFxNoDissipation, 0, 2, FTENT_SPRANIMATE);
+			}
+			else 
+			{
+				if (pWeapon->m_iClip % 2 == 0) 
+					t[c] = gEngfuncs.pEfxAPI->R_TempSprite(gEngfuncs.GetViewModel()->attachment[0], (float *)&dir, 0.05, model, kRenderTransAdd, kRenderFxNoDissipation, 0, 2, FTENT_SPRANIMATE);
+				else
+					t[c] = gEngfuncs.pEfxAPI->R_TempSprite(gEngfuncs.GetViewModel()->attachment[1], (float *)&dir, 0.05, model, kRenderTransAdd, kRenderFxNoDissipation, 0, 2, FTENT_SPRANIMATE);
+			}
 
 			if (t[c]) {
 				t[c]->entity.curstate.renderamt = gEngfuncs.pfnRandomLong(10, 30);

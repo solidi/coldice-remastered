@@ -1578,6 +1578,7 @@ int AddToFullPack( struct entity_state_s *state, int e, edict_t *ent, edict_t *h
 	if ( player )
 	{
 		memcpy( state->basevelocity, ent->v.basevelocity, 3 * sizeof( float ) );
+		memcpy( state->velocity, ent->v.velocity, 3 * sizeof( float ) );
 
 		state->weaponmodel  = MODEL_INDEX( STRING( ent->v.weaponmodel ) );
 		state->gaitsequence = ent->v.gaitsequence;
