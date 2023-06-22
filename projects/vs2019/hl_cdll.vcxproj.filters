@@ -69,6 +69,9 @@
     <ClCompile Include="..\..\dlls\dual_flamethrower.cpp">
       <Filter>Source Files\_hl\dlls</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\dlls\dual_sawedoff.cpp">
+      <Filter>Source Files\_hl\dlls</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\dlls\egon.cpp">
       <Filter>Source Files\_hl\dlls</Filter>
     </ClCompile>

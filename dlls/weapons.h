@@ -113,11 +113,12 @@ public:
 #define WEAPON_DUAL_DEAGLE			41
 #define WEAPON_DUAL_MAG60			42
 #define WEAPON_DUAL_SMG				43
-#define WEAPON_DUAL_USAS			44
-#define WEAPON_DUAL_RAILGUN			45
-#define WEAPON_DUAL_RPG				46
-#define WEAPON_DUAL_FLAMETHROWER	47
-#define WEAPON_FISTS				48
+#define WEAPON_DUAL_SAWEDOFF		44
+#define WEAPON_DUAL_USAS			45
+#define WEAPON_DUAL_RAILGUN			46
+#define WEAPON_DUAL_RPG				47
+#define WEAPON_DUAL_FLAMETHROWER	48
+#define WEAPON_FISTS				49
 
 #define WEAPON_ALLWEAPONS		(~(1<<WEAPON_SUIT))
 
@@ -2407,9 +2408,47 @@ public:
 	void Holster( int skiplocal = 0 );
 	void Reload( void );
 	void WeaponIdle( void );
-	int m_fInReload;
-	float m_flNextReload;
 	int m_iShell;
+	int m_iAltFire;
+
+	virtual BOOL UseDecrement( void )
+	{ 
+#if defined( CLIENT_WEAPONS )
+		return TRUE;
+#else
+		return FALSE;
+#endif
+	}
+
+	void ProvideDualItem(CBasePlayer *pPlayer, const char *itemName);
+	void SwapDualWeapon( void );
+
+	virtual BOOL SemiAuto( void ) { return TRUE; }
+
+private:
+	unsigned short m_usDoubleFire;
+	unsigned short m_usSingleFire;
+};
+
+
+class CDualSawedOff : public CBasePlayerWeapon
+{
+public:
+	void Spawn( void );
+	void Precache( void );
+	int iItemSlot( ) { return 2; }
+	int GetItemInfo(ItemInfo *p);
+	int AddToPlayer( CBasePlayer *pPlayer );
+
+	void PrimaryAttack( void );
+	void SecondaryAttack( void );
+	BOOL DeployLowKey( void );
+	BOOL Deploy( void );
+	void Holster( int skiplocal = 0 );
+	void Reload( void );
+	void WeaponIdle( void );
+	int m_iShell;
+	int m_iAltFire;
 
 	virtual BOOL UseDecrement( void )
 	{ 
@@ -2421,6 +2460,9 @@ public:
 	}
 
 	virtual BOOL SemiAuto( void ) { return TRUE; }
+
+	void ProvideSingleItem(CBasePlayer *pPlayer, const char *itemName);
+	void SwapDualWeapon( void );
 
 private:
 	unsigned short m_usDoubleFire;

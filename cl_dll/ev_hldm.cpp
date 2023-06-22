@@ -115,6 +115,8 @@ void EV_FireDualFlameThrower( struct event_args_s *args  );
 void EV_EndDualFlameThrower( struct event_args_s *args  );
 void EV_FireSawedOff( struct event_args_s *args  );
 void EV_FireSawedOffDouble( struct event_args_s *args  );
+void EV_FireDualSawedOff( struct event_args_s *args  );
+void EV_FireDualSawedOffDouble( struct event_args_s *args  );
 
 void EV_TrainPitchAdjust( struct event_args_s *args );
 }
@@ -444,10 +446,17 @@ void EV_HLDM_FireBullets( int idx, float *forward, float *right, float *up, int 
 			{
 				if (cl_bulletsmoke && cl_bulletsmoke->value && gEngfuncs.pfnRandomLong(0, 1))
 				{
+					vec3_t vel = vecDir * gEngfuncs.pfnRandomLong(400, 600);
+					cl_entity_t *player = gEngfuncs.GetLocalPlayer();
+					if (player)
+					{
+						//gEngfuncs.Con_DPrintf("vel=[%.2f,%.2f,%.2f\n]",player->curstate.velocity[0], player->curstate.velocity[1],player->curstate.velocity[2]);
+						vel = vecDir * gEngfuncs.pfnRandomLong(400, 600) + player->curstate.velocity;
+					}
 					int model = gEngfuncs.pEventAPI->EV_FindModelIndex( "sprites/hotglow.spr");
 					if (cl_icemodels && cl_icemodels->value)
 						model = gEngfuncs.pEventAPI->EV_FindModelIndex( "sprites/ice_hotglow.spr");
-					gEngfuncs.pEfxAPI->R_TempSprite(vecGunPosition, vecDir * gEngfuncs.pfnRandomLong(400, 600),
+					gEngfuncs.pEfxAPI->R_TempSprite(vecGunPosition, vel,
 													0.018, model, kRenderTransAdd, kRenderFxNoDissipation,
 													gEngfuncs.pfnRandomLong(250, 255), 0.25, FTENT_SLOWGRAVITY | FTENT_FADEOUT);
 				}
@@ -3750,6 +3759,108 @@ void EV_FireSawedOffDouble( event_args_t *args )
 	EV_GunSmoke(gEngfuncs.GetViewModel()->attachment[1], 0.8, idx, args->ducking, forward, right, up, 0, 0, 0);
 
 	EV_HLDM_FireBullets( idx, forward, right, up, 16, vecSrc, vecAiming, 2048, BULLET_PLAYER_BUCKSHOT_SPECIAL, 1, &tracerCount[idx-1], 0.17365, 0.04362 );
+}
+
+enum dual_sawedoff_e {
+	DUAL_SAWEDOFF_IDLE = 0,
+	DUAL_SAWEDOFF_SHOOTBOTH,
+	DUAL_SAWEDOFF_SHOOT_RIGHT,
+	DUAL_SAWEDOFF_SHOOT_LEFT,
+	DUAL_SAWEDOFF_DRAW,
+	DUAL_SAWEDOFF_RELOAD,
+	DUAL_SAWEDOFF_HOLSTER,
+};
+
+void EV_FireDualSawedOff( event_args_t *args )
+{
+	int idx;
+	vec3_t origin;
+	vec3_t angles;
+	vec3_t velocity;
+
+	int j;
+	vec3_t ShellVelocity;
+	vec3_t ShellOrigin;
+	vec3_t vecSrc, vecAiming;
+	vec3_t vecSpread;
+	vec3_t up, right, forward;
+	float flSpread = 0.01;
+
+	idx = args->entindex;
+	VectorCopy( args->origin, origin );
+	VectorCopy( args->angles, angles );
+	VectorCopy( args->velocity, velocity );
+
+	AngleVectors( angles, forward, right, up );
+
+	int clip = args->bparam1;
+
+	if ( EV_IsLocal( idx ) )
+	{
+		// Add muzzle flash to current weapon model
+		EV_MuzzleFlash();
+		if (clip == 2)
+			gEngfuncs.pEventAPI->EV_WeaponAnimation( DUAL_SAWEDOFF_SHOOT_RIGHT, 0 );
+		else
+			gEngfuncs.pEventAPI->EV_WeaponAnimation( DUAL_SAWEDOFF_SHOOT_LEFT, 0 );
+		V_PunchAxis(PITCH, gEngfuncs.pfnRandomFloat(-15.0, -17.0) );
+	}
+
+	gEngfuncs.pEventAPI->EV_PlaySound( idx, origin, CHAN_WEAPON, "sawedoff.wav", gEngfuncs.pfnRandomFloat(0.98, 1.0), ATTN_NORM, 0, 85 + gEngfuncs.pfnRandomLong( 0, 0x1f ) );
+
+	EV_GetGunPosition( args, vecSrc, origin );
+	VectorCopy( forward, vecAiming );
+
+	if (clip % 2 == 0)
+		EV_GunSmoke(gEngfuncs.GetViewModel()->attachment[0], 0.8, idx, args->ducking, forward, right, up, 0, 0, 0);
+	else
+		EV_GunSmoke(gEngfuncs.GetViewModel()->attachment[1], 0.8, idx, args->ducking, forward, right, up, 0, 0, 0);
+
+
+	EV_HLDM_FireBullets( idx, forward, right, up, 8, vecSrc, vecAiming, 2048, BULLET_PLAYER_BUCKSHOT_SPECIAL, 1, &tracerCount[idx-1], 0.17365, 0.04362 );
+}
+
+void EV_FireDualSawedOffDouble( event_args_t *args )
+{
+	int idx;
+	vec3_t origin;
+	vec3_t angles;
+	vec3_t velocity;
+
+	int j;
+	vec3_t ShellVelocity;
+	vec3_t ShellOrigin;
+	vec3_t vecSrc, vecAiming;
+	vec3_t vecSpread;
+	vec3_t up, right, forward;
+	float flSpread = 0.01;
+
+	idx = args->entindex;
+	VectorCopy( args->origin, origin );
+	VectorCopy( args->angles, angles );
+	VectorCopy( args->velocity, velocity );
+
+	AngleVectors( angles, forward, right, up );
+
+	if ( EV_IsLocal( idx ) )
+	{
+		// Add muzzle flash to current weapon model
+		EV_MuzzleFlash();
+		gEngfuncs.pEventAPI->EV_WeaponAnimation( DUAL_SAWEDOFF_SHOOTBOTH, 0 );
+		V_PunchAxis(PITCH, gEngfuncs.pfnRandomFloat(-20.0, -22.0) );
+	}
+
+	gEngfuncs.pEventAPI->EV_PlaySound( idx, origin, CHAN_WEAPON, "sawedoff.wav", gEngfuncs.pfnRandomFloat(0.98, 1.0), ATTN_NORM, 0, 85 + gEngfuncs.pfnRandomLong( 0, 0x1f ) );
+	gEngfuncs.pEventAPI->EV_PlaySound( idx, origin, CHAN_WEAPON, "sawedoff.wav", gEngfuncs.pfnRandomFloat(0.98, 1.0), ATTN_NORM, 0, 85 + gEngfuncs.pfnRandomLong( 0, 0x1f ) );
+
+	EV_GetGunPosition( args, vecSrc, origin );
+	VectorCopy( forward, vecAiming );
+
+	EV_GunSmoke(gEngfuncs.GetViewModel()->attachment[0], 0.8, idx, args->ducking, forward, right, up, 0, 0, 0);
+	EV_GunSmoke(gEngfuncs.GetViewModel()->attachment[1], 0.8, idx, args->ducking, forward, right, up, 0, 0, 0);
+
+	EV_HLDM_FireBullets( idx, forward, right, up, 16, vecSrc, vecAiming, 2048, BULLET_PLAYER_BUCKSHOT_SPECIAL, 1, &tracerCount[idx-1], 0.17365, 0.04362 );
+	EV_HLDM_FireBullets( idx, forward, right * -1, up, 16, vecSrc, vecAiming, 2048, BULLET_PLAYER_BUCKSHOT_SPECIAL, 1, &tracerCount[idx-1], 0.17365, 0.04362 );
 }
 
 void EV_TrainPitchAdjust( event_args_t *args )
