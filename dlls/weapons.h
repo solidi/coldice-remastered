@@ -2408,9 +2408,8 @@ public:
 	void Holster( int skiplocal = 0 );
 	void Reload( void );
 	void WeaponIdle( void );
-	int m_fInReload;
-	float m_flNextReload;
 	int m_iShell;
+	int m_iAltFire;
 
 	virtual BOOL UseDecrement( void )
 	{ 
@@ -2449,6 +2448,7 @@ public:
 	void Reload( void );
 	void WeaponIdle( void );
 	int m_iShell;
+	int m_iAltFire;
 
 	virtual BOOL UseDecrement( void )
 	{ 

@@ -104,11 +104,13 @@ int CDualSawedOff::GetItemInfo(ItemInfo *p)
 
 BOOL CDualSawedOff::DeployLowKey( )
 {
+	m_iAltFire = SAWEDOFF_MAX_CLIP * 2;
 	return DefaultDeploy( "models/v_dual_sawedoff.mdl", "models/p_dual_sawedoff.mdl", DUAL_SAWEDOFF_DRAW, "dual_shotgun" );
 }
 
 BOOL CDualSawedOff::Deploy( )
 {
+	m_iAltFire = SAWEDOFF_MAX_CLIP * 2;
 	return DefaultDeploy( "models/v_dual_sawedoff.mdl", "models/p_dual_sawedoff.mdl", DUAL_SAWEDOFF_DRAW, "dual_shotgun" );
 }
 
@@ -157,15 +159,16 @@ void CDualSawedOff::PrimaryAttack()
 	Vector vecAiming = m_pPlayer->GetAutoaimVector( AUTOAIM_5DEGREES );
 	Vector vecDir = m_pPlayer->FireBulletsPlayer( 16, vecSrc, vecAiming, VECTOR_CONE_DM_SHOTGUN, 2048, BULLET_PLAYER_BUCKSHOT, 1, 0, m_pPlayer->pev, m_pPlayer->random_seed );
 
-	PLAYBACK_EVENT_FULL( flags, m_pPlayer->edict(), m_usSingleFire, 0.0, (float *)&g_vecZero, (float *)&g_vecZero, vecDir.x, vecDir.y, 0, 0, m_iClip, 0 );
-
+	m_iAltFire -= SAWEDOFF_MAX_CLIP;
+	PLAYBACK_EVENT_FULL( flags, m_pPlayer->edict(), m_usSingleFire, 0.0, (float *)&g_vecZero, (float *)&g_vecZero, vecDir.x, vecDir.y, 0, 0, m_iAltFire, 0 );
+	if (m_iAltFire <= 0) m_iAltFire = SAWEDOFF_MAX_CLIP * 2;
 
 	if (!m_iClip && m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] <= 0)
 		// HEV suit - indicate out of ammo condition
 		m_pPlayer->SetSuitUpdate("!HEV_AMO0", FALSE, 0);
 
-	m_flNextPrimaryAttack = GetNextAttackDelay(0.75);
-	m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 0.75;
+	m_flNextPrimaryAttack = GetNextAttackDelay(0.5);
+	m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 0.5;
 	if (m_iClip != 0)
 		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 5.0;
 	else
@@ -219,8 +222,8 @@ void CDualSawedOff::SecondaryAttack( void )
 		// HEV suit - indicate out of ammo condition
 		m_pPlayer->SetSuitUpdate("!HEV_AMO0", FALSE, 0);
 
-	m_flNextPrimaryAttack = GetNextAttackDelay(1.5);
-	m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 1.5;
+	m_flNextPrimaryAttack = GetNextAttackDelay(0.75);
+	m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 0.75;
 	if (m_iClip != 0)
 		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 6.0;
 	else
@@ -236,7 +239,7 @@ void CDualSawedOff::Reload( void )
 	if (m_flNextPrimaryAttack > UTIL_WeaponTimeBase())
 		return;
 
-	DefaultReload( SAWEDOFF_MAX_CLIP * 2, DUAL_SAWEDOFF_RELOAD, 1.8 );
+	DefaultReload( SAWEDOFF_MAX_CLIP * 2, DUAL_SAWEDOFF_RELOAD, 1.5 );
 }
 
 void CDualSawedOff::WeaponIdle( void )
