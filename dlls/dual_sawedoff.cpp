@@ -133,8 +133,7 @@ void CDualSawedOff::PrimaryAttack()
 	if (m_iClip <= 1)
 	{
 		Reload( );
-		if (m_iClip == 0)
-			PlayEmptySound( );
+		PlayEmptySound( );
 		return;
 	}
 
