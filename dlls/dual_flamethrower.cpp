@@ -105,7 +105,7 @@ int CDualFlameThrower::GetItemInfo(ItemInfo *p)
 	p->iMaxAmmo1 = FUEL_MAX_CARRY;
 	p->pszAmmo2 = NULL;
 	p->iMaxAmmo2 = -1;
-	p->iMaxClip = FLAMETHROWER_MAX_CLIP;
+	p->iMaxClip = WEAPON_NOCLIP;
 	p->iSlot = 5;
 	p->iPosition = 7;
 	p->iFlags = 0;
