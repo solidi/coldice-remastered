@@ -168,8 +168,12 @@ void SpawnBlood(Vector vecSpot, int bloodColor, float flDamage)
 
 	UTIL_BloodDrips( vecSpot, g_vecAttackDir, bloodColor, (int)flDamage * max );
 
-	for (int i = 1; i <= max; i++) {
-		UTIL_BloodStream(vecSpot, g_vecAttackDir, bloodColor, (int)flDamage * i);
+	// Streams in single player looks white?
+	if (gpGlobals->deathmatch)
+	{
+		for (int i = 1; i <= max; i++) {
+			UTIL_BloodStream(vecSpot, g_vecAttackDir, bloodColor, (int)flDamage * i);
+		}
 	}
 }
 

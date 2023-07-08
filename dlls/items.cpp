@@ -948,6 +948,9 @@ void CWorldRunes::Spawn( )
 {
 	Precache( );
 
+	if (!gpGlobals->deathmatch)
+		return;
+
 	SetThink( &CWorldRunes::SpawnRunes );
 	pev->nextthink = gpGlobals->time + 5.0;
 }
