@@ -1827,8 +1827,10 @@ BOOL CWeaponBox::PackWeapon( CBasePlayerItem *pWeapon )
 	}
 	else if (pWeapon->m_iId == WEAPON_ASHPOD)
 	{
-		SetBodygroup(GET_MODEL_PTR(ENT(pev)), pev, 0, WEAPON_ASHPOD - 1);
-		SetBodygroup(GET_MODEL_PTR(ENT(pev)), pev, 1, WEAPON_ASHPOD - 1);
+		SET_MODEL( ENT(pev), "models/w_portalgun.mdl");
+		pev->sequence = floating;
+		//SetBodygroup(GET_MODEL_PTR(ENT(pev)), pev, 0, WEAPON_ASHPOD - 1);
+		//SetBodygroup(GET_MODEL_PTR(ENT(pev)), pev, 1, WEAPON_ASHPOD - 1);
 	}
 
 	return TRUE;

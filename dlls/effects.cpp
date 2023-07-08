@@ -2329,7 +2329,7 @@ void CPortalEntity::Think()
 	CBaseEntity* pFound = NULL; //UTIL_FindEntityInSphere(nullptr, pev->origin, 20);
 	while ((pFound = UTIL_FindEntityInSphere(pFound, pev->origin, 48)) != NULL)
 	{
-		if (pFound && FBitSet(pFound->ObjectCaps(), FCAP_PORTAL))
+		if (pFound && FBitSet(pFound->ObjectCaps(), FCAP_PORTAL), pFound->IsAlive())
 		{
 			if (FClassnameIs(pFound->pev, "ent_portal"))
 				return;
@@ -2416,5 +2416,18 @@ void CPortalEntity::Think()
 				}
 			}
 		}
+	}
+}
+
+void DeactivatePortals( CBasePlayer *pPlayer )
+{
+	if (pPlayer->m_pPortal[0])
+	{
+		UTIL_Remove(pPlayer->m_pPortal[0]);
+	}
+
+	if (pPlayer->m_pPortal[1])
+	{
+		UTIL_Remove(pPlayer->m_pPortal[1]);
 	}
 }

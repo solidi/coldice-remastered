@@ -426,7 +426,7 @@ public:
 
 	float m_flEjectBrass;
 
-	CBaseEntity *m_pPortal[2];
+	EHANDLE m_pPortal[2];
 
 	float m_fFeignTime;
 };

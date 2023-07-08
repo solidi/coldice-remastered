@@ -2000,6 +2000,7 @@ void CHalfLifeMultiplay :: PlayerKilled( CBasePlayer *pVictim, entvars_t *pKille
 		if (g_pGameRules->FAllowMonsters())
 			DeactivateAssassins( pVictim );
 	}
+	DeactivatePortals( pVictim );
 #endif
 
 	if (strstr(mutators.string, g_MutatorVolatile) ||

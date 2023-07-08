@@ -22,6 +22,7 @@ extern int gmsgWeapPickup;
 
 void DeactivateSatchels( CBasePlayer *pOwner );
 void DeactivateAssassins( CBasePlayer *pOwner );
+void DeactivatePortals( CBasePlayer *pOwner );
 
 // Contact Grenade / Timed grenade / Satchel Charge
 class CGrenade : public CBaseMonster
