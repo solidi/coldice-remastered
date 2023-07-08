@@ -1929,13 +1929,15 @@ int CStudioModelRenderer::StudioDrawPlayer( int flags, entity_state_t *pplayer )
 		if (t[c] == NULL) {
 			int model = gEngfuncs.pEventAPI->EV_FindModelIndex("sprites/sanic.spr");
 			t[c] = gEngfuncs.pEfxAPI->R_DefaultSprite(pplayer->origin, model, 0);
-			t[c]->entity.curstate.rendermode = kRenderNormal;
-			t[c]->entity.curstate.scale = 0.70;
-			t[c]->entity.curstate.framerate = 0;
-			t[c]->entity.curstate.frame = c % ((int)t[c]->frameMax - 1);
-			t[c]->clientIndex = c;
-			t[c]->flags |= FTENT_PERSIST;
-			t[c]->die = gEngfuncs.GetClientTime() + 15;
+			if (t[c]) {
+				t[c]->entity.curstate.rendermode = kRenderNormal;
+				t[c]->entity.curstate.scale = 0.70;
+				t[c]->entity.curstate.framerate = 0;
+				t[c]->entity.curstate.frame = c % ((int)t[c]->frameMax - 1);
+				t[c]->clientIndex = c;
+				t[c]->flags |= FTENT_PERSIST;
+				t[c]->die = gEngfuncs.GetClientTime() + 15;
+			}
 		} else {
 			t[c]->entity.origin = pplayer->origin;
 			if (t[c]->die < gEngfuncs.GetClientTime())
