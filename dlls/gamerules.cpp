@@ -563,6 +563,12 @@ void CGameRules::CheckMutators(void)
 	if ((strstr(mutators.string, g_MutatorChaos) ||
 		atoi(mutators.string) == MUTATOR_CHAOS))
 	{
+		// Reset if going long
+		if (m_flChaosCheck > (gpGlobals->time + chaostime.value))
+		{
+			m_flChaosCheck = 0;
+		}
+
 		if (m_flChaosCheck < gpGlobals->time)
 		{
 			CBaseEntity *pWorld = CBaseEntity::Instance(NULL);
@@ -580,7 +586,8 @@ void CGameRules::CheckMutators(void)
 		strcpy(m_flCheckMutators, mutators.string);
 	}
 
-	if (m_flDetectedMutatorChange && m_flDetectedMutatorChange < gpGlobals->time)
+	if (strlen(m_flCheckMutators) > 0 &&
+		m_flDetectedMutatorChange && m_flDetectedMutatorChange < gpGlobals->time)
 	{
 		RefreshSkillData();
 
