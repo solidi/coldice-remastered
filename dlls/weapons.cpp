@@ -2481,6 +2481,10 @@ void CBasePlayerWeapon::KickAttack( BOOL holdingSomething )
 
 		ApplyMultiDamage( m_pPlayer->pev, m_pPlayer->pev );
 
+		int speed = -300;
+		if ( !FNullEnt(tr.pHit) && VARS(tr.pHit)->rendermode != 0)
+			speed = 300;
+
 		// play thwack, smack, or dong sound
 		if (pEntity)
 		{
@@ -2513,7 +2517,7 @@ void CBasePlayerWeapon::KickAttack( BOOL holdingSomething )
 
 			// Add smoke
 			UTIL_MakeVectors( m_pPlayer->pev->v_angle );
-			m_pPlayer->pev->velocity = m_pPlayer->pev->velocity + (gpGlobals->v_forward * -300);
+			m_pPlayer->pev->velocity = m_pPlayer->pev->velocity + (gpGlobals->v_forward * speed);
 			Vector smoke = tr.vecEndPos - gpGlobals->v_forward * 10;
 			CSprite *pSprite = CSprite::SpriteCreate( "sprites/gunsmoke.spr", smoke, TRUE );
 			if (pSprite != NULL)
