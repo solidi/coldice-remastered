@@ -68,6 +68,8 @@ typedef struct cvar_s cvar_t;
 
 #define	MAX_MOTD_LENGTH				1536
 
+void TempEntity_Initialize();
+void CL_TempEntInit();
 //
 //-----------------------------------------------------
 //
