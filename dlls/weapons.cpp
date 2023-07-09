@@ -612,6 +612,11 @@ void CBasePlayerItem :: FallInit( void )
 		pev->framerate = 1.0;
 	}
 
+	if (m_iId == WEAPON_ASHPOD || m_iId == WEAPON_HANDGRENADE)
+	{
+		pev->sequence = floatingweapons.value;
+	}
+
 	UTIL_SetOrigin( pev, pev->origin );
 	UTIL_SetSize(pev, Vector( 0, 0, 0), Vector(0, 0, 0) );//pointsize until it lands on the ground.
 	
