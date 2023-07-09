@@ -32,6 +32,11 @@ extern vec3_t v_origin;
 
 int g_iAlive = 1;
 
+const int MAX_TEMPENTS = 2048;
+static TEMPENTITY gTempEnts[MAX_TEMPENTS];
+static TEMPENTITY* gpTempEntFree = NULL;
+static TEMPENTITY* gpTempEntActive = NULL;
+
 /*
 ========================
 HUD_AddEntity
@@ -505,6 +510,9 @@ void CL_DLLEXPORT HUD_TempEntUpdate (
 {
 //	RecClTempEntUpdate(frametime, client_time, cl_gravity, ppTempEntFree, ppTempEntActive, Callback_AddVisibleEntity, Callback_TempEntPlaySound);
 
+	ppTempEntFree = &gpTempEntFree;
+	ppTempEntActive = &gpTempEntActive;
+
 	static int gTempEntFrame = 0;
 	int			i;
 	TEMPENTITY	*pTemp, *pnext, *pprev;
@@ -946,3 +954,165 @@ cl_entity_t CL_DLLEXPORT *HUD_GetUserEntity( int index )
 #endif
 }
 
+void CL_TempEntInit()
+{
+	memset(gTempEnts, 0, sizeof(gTempEnts));
+
+	for (int i = 0; i < MAX_TEMPENTS - 1; ++i)
+	{
+		gTempEnts[i].next = &gTempEnts[i + 1];
+	}
+
+	gTempEnts[MAX_TEMPENTS - 1].next = NULL;
+
+	gpTempEntFree = gTempEnts;
+	gpTempEntActive = NULL;
+}
+
+void R_KillAttachedTents(int client)
+{
+	// TODO: off by one here?
+	if (client < 0 || client > gEngfuncs.GetMaxClients())
+	{
+		gEngfuncs.Con_Printf("Bad client in R_KillAttachedTents()!\n");
+		return;
+	}
+
+	const float time = gEngfuncs.GetClientTime();
+
+	for (TEMPENTITY* i = gpTempEntActive; i; i = i->next)
+	{
+		if ((i->flags & FTENT_PLYRATTACHMENT) != 0 && i->clientIndex == client)
+		{
+			i->die = time;
+		}
+	}
+}
+
+void CL_TempEntPrepare(TEMPENTITY* pTemp, model_s* model)
+{
+	memset(&pTemp->entity, 0, sizeof(pTemp->entity));
+
+	pTemp->flags = 0;
+	pTemp->entity.curstate.colormap = 0;
+	pTemp->die = gEngfuncs.GetClientTime() + 0.75f;
+	pTemp->entity.model = model;
+	pTemp->entity.curstate.rendermode = 0;
+	pTemp->entity.curstate.renderfx = 0;
+	pTemp->fadeSpeed = 0.5;
+	pTemp->hitSound = 0;
+	pTemp->clientIndex = -1;
+	pTemp->bounceFactor = 1;
+	pTemp->hitcallback = 0;
+	pTemp->callback = 0;
+}
+
+TEMPENTITY* CL_TempEntAlloc(float* org, model_s* model)
+{
+	if (!gpTempEntFree)
+	{
+		gEngfuncs.Con_DPrintf("Overflow %d temporary ents!\n", MAX_TEMPENTS);
+		return NULL;
+	}
+
+	if (!model)
+	{
+		gEngfuncs.Con_DPrintf("efx.CL_TempEntAlloc: No model\n");
+		return NULL;
+	}
+
+	TEMPENTITY* ent = gpTempEntFree;
+	gpTempEntFree = ent->next;
+
+	CL_TempEntPrepare(ent, model);
+
+	ent->priority = 0;
+
+	ent->entity.origin.x = org[0];
+	ent->entity.origin.y = org[1];
+	ent->entity.origin.z = org[2];
+
+	ent->next = gpTempEntActive;
+	gpTempEntActive = ent;
+
+	return ent;
+}
+
+TEMPENTITY* CL_TempEntAllocNoModel(float* org)
+{
+	if (!gpTempEntFree)
+	{
+		gEngfuncs.Con_DPrintf("Overflow %d temporary ents!\n", MAX_TEMPENTS);
+		return NULL;
+	}
+
+	TEMPENTITY* ent = gpTempEntFree;
+	gpTempEntFree = ent->next;
+
+	CL_TempEntPrepare(ent, NULL);
+
+	ent->priority = 0;
+
+	ent->entity.origin.x = org[0];
+	ent->entity.origin.y = org[1];
+	ent->entity.origin.z = org[2];
+
+	ent->next = gpTempEntActive;
+	gpTempEntActive = ent;
+
+	return ent;
+}
+
+TEMPENTITY* CL_TempEntAllocHigh(float* org, model_s* model)
+{
+	if (!model)
+	{
+		gEngfuncs.Con_DPrintf("temporary ent model invalid\n");
+		return NULL;
+	}
+
+	TEMPENTITY* ent = gpTempEntFree;
+
+	if (gpTempEntFree)
+	{
+		gpTempEntFree = gpTempEntFree->next;
+		ent->next = gpTempEntActive;
+		gpTempEntActive = ent;
+	}
+	else
+	{
+		ent = gpTempEntActive;
+
+		while (ent && ent->priority != 0)
+		{
+			ent = ent->next;
+		}
+
+		if (!ent)
+		{
+			gEngfuncs.Con_DPrintf("Couldn't alloc a high priority TENT!\n");
+			return NULL;
+		}
+	}
+
+	CL_TempEntPrepare(ent, model);
+
+	ent->priority = 1;
+
+	ent->entity.origin.x = org[0];
+	ent->entity.origin.y = org[1];
+	ent->entity.origin.z = org[2];
+
+	return ent;
+}
+
+void TempEntity_Initialize()
+{
+	// Override engine temp entity allocation to use our own list.
+	auto efx = gEngfuncs.pEfxAPI;
+
+	efx->R_KillAttachedTents = &R_KillAttachedTents;
+	efx->CL_TempEntAlloc = &CL_TempEntAlloc;
+	efx->CL_TempEntAllocNoModel = &CL_TempEntAllocNoModel;
+	efx->CL_TempEntAllocHigh = &CL_TempEntAllocHigh;
+}
