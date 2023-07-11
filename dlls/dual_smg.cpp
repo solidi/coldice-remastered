@@ -29,6 +29,7 @@ enum dual_smg_e
 	DUAL_SMG_IDLE = 0,
 	DUAL_SMG_FIRE_BOTH1,
 	DUAL_SMG_RELOAD,
+	DUAL_SMG_DEPLOY_LOWKEY,
 	DUAL_SMG_DEPLOY,
 	DUAL_SMG_HOLSTER,
 };
@@ -117,7 +118,7 @@ int CDualSMG::AddToPlayer( CBasePlayer *pPlayer )
 BOOL CDualSMG::DeployLowKey( )
 {
 	m_sFireCount = 0;
-	return DefaultDeploy( "models/v_dual_smg.mdl", "models/p_dual_smg.mdl", DUAL_SMG_DEPLOY, "akimbo" );
+	return DefaultDeploy( "models/v_dual_smg.mdl", "models/p_dual_smg.mdl", DUAL_SMG_DEPLOY_LOWKEY, "akimbo" );
 }
 
 BOOL CDualSMG::Deploy( )

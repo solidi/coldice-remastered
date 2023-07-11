@@ -32,6 +32,7 @@ enum gauss_e {
 	GRAVITYGUN_HOLD_IDLE,
 	GRAVITYGUN_PICKUP,
 	GRAVITYGUN_FIRE,
+	GRAVITYGUN_DRAW_LOWKEY,
 	GRAVITYGUN_DRAW,
 };
 
@@ -88,7 +89,7 @@ int CGravityGun::GetItemInfo(ItemInfo* p)
 
 BOOL CGravityGun::DeployLowKey()
 {
-	return DefaultDeploy( "models/v_gravitygun.mdl", "models/p_gravitygun.mdl", GRAVITYGUN_DRAW, "gauss" );
+	return DefaultDeploy( "models/v_gravitygun.mdl", "models/p_gravitygun.mdl", GRAVITYGUN_DRAW_LOWKEY, "gauss" );
 }
 
 BOOL CGravityGun::Deploy()

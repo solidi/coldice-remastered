@@ -22,15 +22,16 @@
 #include "gamerules.h"
 
 enum dual_deagle_e {
-	DEAGLEDUAL_IDLE,
-	DEAGLEDUAL_FIRE_LEFT,
-	DEAGLEDUAL_FIRE_RIGHT,
-	DEAGLEDUAL_FIRE_LAST_LEFT,
-	DEAGLEDUAL_FIRE_LAST_RIGHT,
-	DEAGLEDUAL_RELOAD,
-	DEAGLEDUAL_DEPLOY,
-	DEAGLEDUAL_HOLSTER,
-	DEAGLEDUAL_FIRE_BOTH,
+	DUAL_DEAGLE_IDLE,
+	DUAL_DEAGLE_FIRE_LEFT,
+	DUAL_DEAGLE_FIRE_RIGHT,
+	DUAL_DEAGLE_FIRE_LAST_LEFT,
+	DUAL_DEAGLE_FIRE_LAST_RIGHT,
+	DUAL_DEAGLE_RELOAD,
+	DUAL_DEAGLE_DEPLOY_LOWKEY,
+	DUAL_DEAGLE_DEPLOY,
+	DUAL_DEAGLE_HOLSTER,
+	DUAL_DEAGLE_FIRE_BOTH,
 };
 
 #ifdef DUALDEAGLE
@@ -94,12 +95,12 @@ void CDualDeagle::Precache( void )
 
 BOOL CDualDeagle::DeployLowKey( )
 {
-	return DefaultDeploy( "models/v_dual_deagle.mdl", "models/p_dual_deagle.mdl", DEAGLEDUAL_DEPLOY, "akimbo", UseDecrement(), pev->body );
+	return DefaultDeploy( "models/v_dual_deagle.mdl", "models/p_dual_deagle.mdl", DUAL_DEAGLE_DEPLOY_LOWKEY, "akimbo", UseDecrement(), pev->body );
 }
 
 BOOL CDualDeagle::Deploy( )
 {
-	return DefaultDeploy( "models/v_dual_deagle.mdl", "models/p_dual_deagle.mdl", DEAGLEDUAL_DEPLOY, "akimbo", UseDecrement(), pev->body );
+	return DefaultDeploy( "models/v_dual_deagle.mdl", "models/p_dual_deagle.mdl", DUAL_DEAGLE_DEPLOY, "akimbo", UseDecrement(), pev->body );
 }
 
 void CDualDeagle::Holster( int skiplocal /* = 0 */ )
@@ -108,7 +109,7 @@ void CDualDeagle::Holster( int skiplocal /* = 0 */ )
 
 	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 1.0;
 	m_flTimeWeaponIdle = UTIL_SharedRandomFloat( m_pPlayer->random_seed, 10, 15 );
-	SendWeaponAnim( DEAGLEDUAL_HOLSTER );
+	SendWeaponAnim( DUAL_DEAGLE_HOLSTER );
 }
 
 void CDualDeagle::PrimaryAttack()
@@ -234,7 +235,7 @@ void CDualDeagle::Reload( void )
 	if ( m_pPlayer->ammo_357 <= 0 )
 		return;
 
-	DefaultReload( DEAGLE_MAX_CLIP * 2, DEAGLEDUAL_RELOAD, 2.5, 0 );
+	DefaultReload( DEAGLE_MAX_CLIP * 2, DUAL_DEAGLE_RELOAD, 2.5, 0 );
 }
 
 void CDualDeagle::WeaponIdle( void )
@@ -250,22 +251,22 @@ void CDualDeagle::WeaponIdle( void )
 	float flRand = UTIL_SharedRandomFloat( m_pPlayer->random_seed, 0, 1 );
 	if (flRand <= 0.5)
 	{
-		iAnim = DEAGLEDUAL_IDLE;
+		iAnim = DUAL_DEAGLE_IDLE;
 		m_flTimeWeaponIdle = (70.0/30.0);
 	}
 	else if (flRand <= 0.7)
 	{
-		iAnim = DEAGLEDUAL_IDLE;
+		iAnim = DUAL_DEAGLE_IDLE;
 		m_flTimeWeaponIdle = (60.0/30.0);
 	}
 	else if (flRand <= 0.9)
 	{
-		iAnim = DEAGLEDUAL_IDLE;
+		iAnim = DUAL_DEAGLE_IDLE;
 		m_flTimeWeaponIdle = (88.0/30.0);
 	}
 	else
 	{
-		iAnim = DEAGLEDUAL_IDLE;
+		iAnim = DUAL_DEAGLE_IDLE;
 		m_flTimeWeaponIdle = (170.0/30.0);
 	}
 	

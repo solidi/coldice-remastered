@@ -31,6 +31,7 @@ enum dual_sawedoff_e {
 	DUAL_SAWEDOFF_SHOOTBOTH,
 	DUAL_SAWEDOFF_SHOOT_RIGHT,
 	DUAL_SAWEDOFF_SHOOT_LEFT,
+	DUAL_SAWEDOFF_DRAW_LOWKEY,
 	DUAL_SAWEDOFF_DRAW,
 	DUAL_SAWEDOFF_RELOAD,
 	DUAL_SAWEDOFF_HOLSTER,
@@ -105,7 +106,7 @@ int CDualSawedOff::GetItemInfo(ItemInfo *p)
 BOOL CDualSawedOff::DeployLowKey( )
 {
 	m_iAltFire = SAWEDOFF_MAX_CLIP * 2;
-	return DefaultDeploy( "models/v_dual_sawedoff.mdl", "models/p_dual_sawedoff.mdl", DUAL_SAWEDOFF_DRAW, "dual_shotgun" );
+	return DefaultDeploy( "models/v_dual_sawedoff.mdl", "models/p_dual_sawedoff.mdl", DUAL_SAWEDOFF_DRAW_LOWKEY, "dual_shotgun" );
 }
 
 BOOL CDualSawedOff::Deploy( )

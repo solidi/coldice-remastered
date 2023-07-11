@@ -25,6 +25,7 @@ extern engine_studio_api_s IEngineStudio;
 extern IParticleMan *g_pParticleMan;
 extern cvar_t *cl_announcehumor;
 extern cvar_t *cl_icemodels;
+extern cvar_t *cl_voiceoverpath;
 
 void Game_AddObjects( void );
 
@@ -454,7 +455,12 @@ void CL_DLLEXPORT HUD_StudioEvent( const struct mstudioevent_s *event, const str
 #ifdef _DEBUG
 		gEngfuncs.Con_Printf(" >>>> [%7.2f] HUD_StudioEvent(5005, %s)!\n", gEngfuncs.GetClientTime(), (char *)event->options);
 #endif
-		gEngfuncs.pfnPlaySoundByNameAtLocation( (char *)event->options, 1.0, (float *)&entity->attachment[0] );
+		char soundPath[128];
+		if (cl_voiceoverpath->string && strlen(cl_voiceoverpath->string))
+			sprintf(soundPath, "%s/%s", cl_voiceoverpath->string, (char *)event->options);
+		else
+			strcpy(soundPath, (char *)event->options);
+		gEngfuncs.pfnPlaySoundByNameAtLocation( soundPath, 1.0, (float *)&entity->attachment[0] );
 		g_DeploySoundTime = gEngfuncs.GetClientTime() + 1.0;
 		break;
 	default:
