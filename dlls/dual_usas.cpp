@@ -31,6 +31,7 @@ enum dual_usas_e
 	DUAL_USAS_IDLE = 0,
 	DUAL_USAS_FIRE_BOTH1,
 	DUAL_USAS_RELOAD,
+	DUAL_USAS_DEPLOY_LOWKEY,
 	DUAL_USAS_DEPLOY,
 	DUAL_USAS_HOLSTER,
 	DUAL_USAS_FIRE_LEFT,
@@ -105,7 +106,7 @@ int CDualUsas::GetItemInfo(ItemInfo *p)
 
 BOOL CDualUsas::DeployLowKey( )
 {
-	return DefaultDeploy( "models/v_dual_usas.mdl", "models/p_dual_usas.mdl", DUAL_USAS_DEPLOY, "dual_shotgun" );
+	return DefaultDeploy( "models/v_dual_usas.mdl", "models/p_dual_usas.mdl", DUAL_USAS_DEPLOY_LOWKEY, "dual_shotgun" );
 }
 
 BOOL CDualUsas::Deploy( )

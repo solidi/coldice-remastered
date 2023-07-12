@@ -67,6 +67,7 @@ cvar_t *cl_radar;
 cvar_t *cl_portalmirror;
 cvar_t *cl_screeneffects;
 cvar_t *cl_customtempents;
+cvar_t *cl_voiceoverpath;
 
 cvar_t *cl_vmx;
 cvar_t *cl_vmy;
@@ -518,6 +519,7 @@ void CHud :: Init( void )
 	cl_portalmirror = CVAR_CREATE("cl_portalmirror", "0", FCVAR_ARCHIVE);
 	cl_screeneffects = CVAR_CREATE("cl_screeneffects", "1", FCVAR_ARCHIVE);
 	cl_customtempents = CVAR_CREATE("cl_customtempents", "1", FCVAR_ARCHIVE);
+	cl_voiceoverpath = CVAR_CREATE("cl_voiceoverpath", "", FCVAR_ARCHIVE);
 
 	cl_vmx = CVAR_CREATE( "cl_vmx", "0", FCVAR_ARCHIVE );
 	cl_vmy = CVAR_CREATE( "cl_vmy", "0", FCVAR_ARCHIVE );

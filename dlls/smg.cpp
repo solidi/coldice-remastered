@@ -31,6 +31,7 @@ enum smg_e
 	SMG_IDLE2,
 	SMG_IDLE3,
 	SMG_RELOAD,
+	SMG_DEPLOY_LOWKEY,
 	SMG_DEPLOY,
 	SMG_FIRE1,
 	SMG_SELECT,
@@ -129,7 +130,7 @@ BOOL CSMG::DeployLowKey( )
 {
 	m_sFireCount = 0;
 	m_sMode = FULL;
-	return DefaultDeploy( "models/v_smg.mdl", "models/p_smg.mdl", SMG_DEPLOY, "mp5" );
+	return DefaultDeploy( "models/v_smg.mdl", "models/p_smg.mdl", SMG_DEPLOY_LOWKEY, "mp5" );
 }
 
 BOOL CSMG::Deploy( )

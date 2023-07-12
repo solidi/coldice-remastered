@@ -40,6 +40,7 @@ enum dual_wrench_e {
 	DUAL_WRENCH_ATTACK3MISS,
 	DUAL_WRENCH_PULL_BACK,
 	DUAL_WRENCH_THROW,
+	DUAL_WRENCH_DRAW_LOWKEY,
 	DUAL_WRENCH_DRAW,
 	DUAL_WRENCH_HOLSTER,
 };
@@ -101,7 +102,7 @@ BOOL CDualWrench::DeployLowKey( )
 {
 	m_flStartThrow = 0;
 	m_flReleaseThrow = -1;
-	return DefaultDeploy( "models/v_dual_wrench.mdl", "models/p_dual_wrench.mdl", DUAL_WRENCH_DRAW, "dual_club" );
+	return DefaultDeploy( "models/v_dual_wrench.mdl", "models/p_dual_wrench.mdl", DUAL_WRENCH_DRAW_LOWKEY, "dual_club" );
 }
 
 BOOL CDualWrench::Deploy( )

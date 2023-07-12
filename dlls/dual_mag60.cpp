@@ -29,6 +29,7 @@ enum dual_mag60_e
 	DUAL_MAG60_IDLE = 0,
 	DUAL_MAG60_FIRE_BOTH1,
 	DUAL_MAG60_RELOAD,
+	DUAL_MAG60_DEPLOY_LOWKEY,
 	DUAL_MAG60_DEPLOY,
 	DUAL_MAG60_HOLSTER,
 };
@@ -116,7 +117,7 @@ int CDualMag60::AddToPlayer( CBasePlayer *pPlayer )
 
 BOOL CDualMag60::DeployLowKey( )
 {
-	return DefaultDeploy( "models/v_dual_mag60.mdl", "models/p_dual_mag60.mdl", DUAL_MAG60_DEPLOY, "akimbo" );
+	return DefaultDeploy( "models/v_dual_mag60.mdl", "models/p_dual_mag60.mdl", DUAL_MAG60_DEPLOY_LOWKEY, "akimbo" );
 }
 
 BOOL CDualMag60::Deploy( )

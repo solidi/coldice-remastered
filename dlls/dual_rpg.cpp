@@ -24,6 +24,7 @@
 
 enum rpg_e {
 	DRAW_LEFT = 0,
+	DRAW_BOTH_LOWKEY,
 	DRAW_BOTH,
 	IDLE_BOTH,
 	FIRE_BOTH,
@@ -150,7 +151,7 @@ int CDualRpg::AddToPlayer( CBasePlayer *pPlayer )
 BOOL CDualRpg::DeployLowKey( )
 {
 	m_fSpotActive = 1;
-	return DefaultDeploy( "models/v_dual_rpg.mdl", "models/p_dual_rpg.mdl", DRAW_BOTH, "dual_rpg" );
+	return DefaultDeploy( "models/v_dual_rpg.mdl", "models/p_dual_rpg.mdl", DRAW_BOTH_LOWKEY, "dual_rpg" );
 }
 
 BOOL CDualRpg::Deploy( )

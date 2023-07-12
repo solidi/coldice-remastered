@@ -33,6 +33,7 @@ enum sawedoff_e {
 	SAWEDOFF_SHOOTRIGHT,
 	SAWEDOFF_SHOOTBOTH,
 	SAWEDOFF_RELOAD,
+	SAWEDOFF_DRAW_LOWKEY,
 	SAWEDOFF_DRAW,
 	SAWEDOFF_HOLSTER,
 };
@@ -105,7 +106,7 @@ int CSawedOff::GetItemInfo(ItemInfo *p)
 
 BOOL CSawedOff::DeployLowKey( )
 {
-	return DefaultDeploy( "models/v_sawedoff.mdl", "models/p_sawedoff.mdl", SAWEDOFF_DRAW, "shotgun" );
+	return DefaultDeploy( "models/v_sawedoff.mdl", "models/p_sawedoff.mdl", SAWEDOFF_DRAW_LOWKEY, "shotgun" );
 }
 
 BOOL CSawedOff::Deploy( )
