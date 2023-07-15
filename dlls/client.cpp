@@ -752,7 +752,7 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"impulse 211\" - Roll Left\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"impulse 212\" - Back Flip\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"snowman\" - God mode (when sv_cheats 1)\n");
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_icemodels [0|1|2|3]\" - changes models with specific ice skins\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_icemodels [0-6]\" - changes models with specific ice skins\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_oldscoreboard [0|1]\" - Old Scoreboard\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_oldmotd [0|1]\" - Old MOTD (Message of the Day)\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_viewroll [0|1]\" - Old View Roll\n");
