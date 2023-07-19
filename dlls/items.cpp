@@ -406,10 +406,6 @@ void CRune::RuneTouch( CBaseEntity *pOther )
 	{
 		EMIT_SOUND( pPlayer->edict(), CHAN_ITEM, "rune_pickup.wav", 1, ATTN_NORM );
 
-		MESSAGE_BEGIN( MSG_ONE, gmsgItemPickup, NULL, pPlayer->pev );
-			WRITE_STRING( STRING(pev->classname) );
-		MESSAGE_END();
-
 		SUB_UseTargets( pOther, USE_TOGGLE, 0 );
 		SetTouch( NULL );
 
@@ -417,17 +413,18 @@ void CRune::RuneTouch( CBaseEntity *pOther )
 	}
 }
 
-void CRune::ShowStatus(CBasePlayer *pPlayer, int r, int g, int b) {
+void CRune::ShowStatus(CBasePlayer *pPlayer, const char* icon, int r, int g, int b) {
 	if (pPlayer->pev->flags & FL_FAKECLIENT)
 		return;
 
 	MESSAGE_BEGIN( MSG_ONE, gmsgStatusIcon, NULL, pPlayer->pev );
 		WRITE_BYTE(1);
-		WRITE_STRING("dmg_cold");
+		WRITE_STRING(icon);
 		WRITE_BYTE(r);
 		WRITE_BYTE(g);
 		WRITE_BYTE(b);
 	MESSAGE_END();
+
 	UTIL_ScreenFade( pPlayer, Vector(r, g, b), 1, 1, 64, FFADE_IN);
 }
 
@@ -493,7 +490,7 @@ class CFragRune : public CRune
 				WRITE_BYTE( 5 );
 			MESSAGE_END();
 
-			ShowStatus(pPlayer, 106, 13, 173);
+			ShowStatus(pPlayer, "rune_frag", 106, 13, 173);
 			pPlayer->DisplayHudMessage("Frag Rune", TXT_CHANNEL_RUNE_TITLE, -1, 0.07, 106, 13, 173, 0, 0.2, 1.0, 1.5, 0.5);
 			pPlayer->DisplayHudMessage("This rune will increase your frags by double!", TXT_CHANNEL_RUNE_DESC, -1, 0.1, 210, 210, 210, 0, 0.2, 1.0, 1.5, 0.5);
 
@@ -555,7 +552,7 @@ class CVampireRune : public CRune
 				WRITE_BYTE( 5 );
 			MESSAGE_END();
 
-			ShowStatus(pPlayer, 200, 0, 0);
+			ShowStatus(pPlayer, "rune_vampire", 200, 0, 0);
 			pPlayer->DisplayHudMessage("Vampire Rune", TXT_CHANNEL_RUNE_TITLE, -1, 0.07, 200, 0, 0, 0, 0.2, 1.0, 1.5, 0.5);
 			pPlayer->DisplayHudMessage("This rune will give you health and armor for the damage you deal!", TXT_CHANNEL_RUNE_DESC, -1, 0.1, 210, 210, 210, 0, 0.2, 1.0, 1.5, 0.5);
 
@@ -588,7 +585,7 @@ class CProtectRune : public CRune
 			WRITE_COORD(pev->origin.y);
 			WRITE_COORD(pev->origin.z);
 			WRITE_SHORT( 50 );
-			WRITE_BYTE((unsigned short)178);
+			WRITE_BYTE((unsigned short)237);
 			WRITE_BYTE( 5 );
 		MESSAGE_END();
 	}
@@ -613,11 +610,11 @@ class CProtectRune : public CRune
 				WRITE_COORD(pPlayer->pev->origin.y);
 				WRITE_COORD(pPlayer->pev->origin.z);
 				WRITE_SHORT( 50 );
-				WRITE_BYTE((unsigned short)178);
+				WRITE_BYTE((unsigned short)237);
 				WRITE_BYTE( 5 );
 			MESSAGE_END();
 
-			ShowStatus(pPlayer, 0, 200, 0);
+			ShowStatus(pPlayer, "rune_protect", 0, 200, 0);
 			pPlayer->DisplayHudMessage("Protect Rune", TXT_CHANNEL_RUNE_TITLE, -1, 0.07, 0, 200, 0, 0, 0.2, 1.0, 1.5, 0.5);
 			pPlayer->DisplayHudMessage("This rune will protect you from half the damage!", TXT_CHANNEL_RUNE_DESC, -1, 0.1, 210, 210, 210, 0, 0.2, 1.0, 1.5, 0.5);
 
@@ -679,7 +676,7 @@ class CRegenRune : public CRune
 				WRITE_BYTE( 5 );
 			MESSAGE_END();
 
-			ShowStatus(pPlayer, 200, 0, 200);
+			ShowStatus(pPlayer, "rune_regen", 200, 0, 200);
 			pPlayer->DisplayHudMessage("Health Regeneration Rune", TXT_CHANNEL_RUNE_TITLE, -1, 0.07, 200, 0, 200, 0, 0.2, 1.0, 1.5, 0.5);
 			pPlayer->DisplayHudMessage("This rune will slowly regenerate your current health!", TXT_CHANNEL_RUNE_DESC, -1, 0.1, 210, 210, 210, 0, 0.2, 1.0, 1.5, 0.5);
 
@@ -743,7 +740,7 @@ class CHasteRune : public CRune
 				WRITE_BYTE( 5 );
 			MESSAGE_END();
 
-			ShowStatus(pPlayer, 200, 128, 0);
+			ShowStatus(pPlayer, "rune_haste", 200, 128, 0);
 			pPlayer->DisplayHudMessage("Haste Rune", TXT_CHANNEL_RUNE_TITLE, -1, 0.07, 200, 128, 0, 0, 0.2, 1.0, 1.5, 0.5);
 			pPlayer->DisplayHudMessage("This rune will makes you run twice as fast!", TXT_CHANNEL_RUNE_DESC, -1, 0.1, 210, 210, 210, 0, 0.2, 1.0, 1.5, 0.5);
 
@@ -806,7 +803,7 @@ class CGravityRune : public CRune
 				WRITE_BYTE( 5 );
 			MESSAGE_END();
 
-			ShowStatus(pPlayer, 0, 115, 230);
+			ShowStatus(pPlayer, "rune_gravity", 0, 115, 230);
 			pPlayer->DisplayHudMessage("Gravity Rune", TXT_CHANNEL_RUNE_TITLE, -1, 0.07, 0, 115, 230, 0, 0.2, 1.0, 1.5, 0.5);
 			pPlayer->DisplayHudMessage("This rune will reduce your gravity by 80%!", TXT_CHANNEL_RUNE_DESC, -1, 0.1, 210, 210, 210, 0, 0.2, 1.0, 1.5, 0.5);
 
@@ -829,9 +826,9 @@ class CStrengthRune : public CRune
 		pev->body = RUNE_STRENGTH - 1;
 		pev->renderfx = kRenderFxGlowShell;
 		pev->renderamt = 5;
-		pev->rendercolor.x = 200;
-		pev->rendercolor.y = 200;
-		pev->rendercolor.z = 0;
+		pev->rendercolor.x = 106;
+		pev->rendercolor.y = 13;
+		pev->rendercolor.z = 173;
 
 		MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
 			WRITE_BYTE( TE_PARTICLEBURST );
@@ -839,7 +836,7 @@ class CStrengthRune : public CRune
 			WRITE_COORD(pev->origin.y);
 			WRITE_COORD(pev->origin.z);
 			WRITE_SHORT( 50 );
-			WRITE_BYTE((unsigned short)194);
+			WRITE_BYTE((unsigned short)42);
 			WRITE_BYTE( 5 );
 		MESSAGE_END();
 	}
@@ -856,7 +853,7 @@ class CStrengthRune : public CRune
 		{
 			pPlayer->m_fHasRune = RUNE_STRENGTH;
 
-			ShellPlayer(pPlayer, 200, 200, 0);
+			ShellPlayer(pPlayer, 106, 13, 173);
 
 			MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
 				WRITE_BYTE( TE_PARTICLEBURST );
@@ -864,12 +861,12 @@ class CStrengthRune : public CRune
 				WRITE_COORD(pPlayer->pev->origin.y);
 				WRITE_COORD(pPlayer->pev->origin.z);
 				WRITE_SHORT( 50 );
-				WRITE_BYTE((unsigned short)194);
+				WRITE_BYTE((unsigned short)42);
 				WRITE_BYTE( 5 );
 			MESSAGE_END();
 
-			ShowStatus(pPlayer, 200, 200, 0);
-			pPlayer->DisplayHudMessage("Strength Rune", TXT_CHANNEL_RUNE_TITLE, -1, 0.07, 200, 200, 0, 0, 0.2, 1.0, 1.5, 0.5);
+			ShowStatus(pPlayer, "rune_strength", 106, 13, 173);
+			pPlayer->DisplayHudMessage("Strength Rune", TXT_CHANNEL_RUNE_TITLE, -1, 0.07, 106, 13, 173, 0, 0.2, 1.0, 1.5, 0.5);
 			pPlayer->DisplayHudMessage("This rune will increase your attack damage by 50%!", TXT_CHANNEL_RUNE_DESC, -1, 0.1, 210, 210, 210, 0, 0.2, 1.0, 1.5, 0.5);
 
 			return TRUE;
@@ -901,7 +898,7 @@ class CCloakRune : public CRune
 			WRITE_COORD(pev->origin.y);
 			WRITE_COORD(pev->origin.z);
 			WRITE_SHORT( 50 );
-			WRITE_BYTE((unsigned short)194);
+			WRITE_BYTE((unsigned short)10);
 			WRITE_BYTE( 5 );
 		MESSAGE_END();
 	}
@@ -925,11 +922,11 @@ class CCloakRune : public CRune
 				WRITE_COORD(pPlayer->pev->origin.y);
 				WRITE_COORD(pPlayer->pev->origin.z);
 				WRITE_SHORT( 50 );
-				WRITE_BYTE((unsigned short)194);
+				WRITE_BYTE((unsigned short)10);
 				WRITE_BYTE( 5 );
 			MESSAGE_END();
 
-			ShowStatus(pPlayer, 200, 200, 200);
+			ShowStatus(pPlayer, "rune_cloak", 200, 200, 200);
 			pPlayer->DisplayHudMessage("Cloak Rune", TXT_CHANNEL_RUNE_TITLE, -1, 0.07, 200, 200, 200, 0, 0.2, 1.0, 1.5, 0.5);
 			pPlayer->DisplayHudMessage("This rune will make you semi-transparent!", TXT_CHANNEL_RUNE_DESC, -1, 0.1, 210, 210, 210, 0, 0.2, 1.0, 1.5, 0.5);
 
@@ -940,6 +937,66 @@ class CCloakRune : public CRune
 	}
 };
 LINK_ENTITY_TO_CLASS( rune_cloak, CCloakRune );
+
+class CAmmoRune : public CRune
+{
+	void Spawn( void )
+	{
+		Precache( );
+		SET_MODEL(ENT(pev), "models/w_runes.mdl");
+		CRune::Spawn( );
+
+		pev->body = RUNE_AMMO - 1;
+		pev->renderfx = kRenderFxGlowShell;
+		pev->renderamt = 5;
+		pev->rendercolor.x = 200;
+		pev->rendercolor.y = 200;
+		pev->rendercolor.z = 0;
+
+		MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
+			WRITE_BYTE( TE_PARTICLEBURST );
+			WRITE_COORD(pev->origin.x);
+			WRITE_COORD(pev->origin.y);
+			WRITE_COORD(pev->origin.z);
+			WRITE_SHORT( 50 );
+			WRITE_BYTE((unsigned short)194);
+			WRITE_BYTE( 5 );
+		MESSAGE_END();
+	}
+
+	void Precache( void )
+	{
+		PRECACHE_MODEL ("models/w_runes.mdl");
+		PRECACHE_SOUND ("rune_pickup.wav");
+	}
+
+	BOOL MyTouch( CBasePlayer *pPlayer )
+	{
+		if ( !pPlayer->m_fHasRune )
+		{
+			pPlayer->m_fHasRune = RUNE_AMMO;
+
+			MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
+				WRITE_BYTE( TE_PARTICLEBURST );
+				WRITE_COORD(pPlayer->pev->origin.x);
+				WRITE_COORD(pPlayer->pev->origin.y);
+				WRITE_COORD(pPlayer->pev->origin.z);
+				WRITE_SHORT( 50 );
+				WRITE_BYTE((unsigned short)194);
+				WRITE_BYTE( 5 );
+			MESSAGE_END();
+
+			ShowStatus(pPlayer, "rune_ammo", 200, 200, 0);
+			pPlayer->DisplayHudMessage("Ammo Rune", TXT_CHANNEL_RUNE_TITLE, -1, 0.07, 200, 200, 0, 0, 0.2, 1.0, 1.5, 0.5);
+			pPlayer->DisplayHudMessage("This rune will regenerate ammo!", TXT_CHANNEL_RUNE_DESC, -1, 0.1, 210, 210, 210, 0, 0.2, 1.0, 1.5, 0.5);
+
+			return TRUE;
+		}
+
+		return FALSE;
+	}
+};
+LINK_ENTITY_TO_CLASS( rune_ammo, CAmmoRune );
 
 //===================================================================
 //===================================================================
@@ -965,6 +1022,7 @@ void CWorldRunes::Precache( )
 	UTIL_PrecacheOther("rune_gravity");
 	UTIL_PrecacheOther("rune_strength");
 	UTIL_PrecacheOther("rune_cloak");
+	UTIL_PrecacheOther("rune_ammo");
 }
 
 CBaseEntity *CWorldRunes::SelectSpawnPoint(const char *spot)
@@ -1002,6 +1060,9 @@ void CWorldRunes::DropRune(CBasePlayer *pPlayer) {
 		case RUNE_CLOAK:
 			sz_Rune = "rune_cloak";
 			break;
+		case RUNE_AMMO:
+			sz_Rune = "rune_ammo";
+			break;
 		default:
 			sz_Rune = "rune_strength";
 	}
@@ -1010,6 +1071,14 @@ void CWorldRunes::DropRune(CBasePlayer *pPlayer) {
 	CRune *pRune = (CRune *)CBaseEntity::Create(sz_Rune, pPlayer->GetGunPosition( ) + gpGlobals->v_forward * 32, pPlayer->pev->angles, pPlayer->edict());
 	if (pRune != NULL)
 		pRune->pev->velocity = gpGlobals->v_forward * 300 + gpGlobals->v_forward * 100;
+
+	if (!FBitSet(pPlayer->pev->flags, FL_FAKECLIENT))
+	{
+		MESSAGE_BEGIN( MSG_ONE, gmsgStatusIcon, NULL, pPlayer->pev );
+			WRITE_BYTE(0);
+			WRITE_STRING(sz_Rune);
+		MESSAGE_END();
+	}
 }
 
 const char *pPlaces[] =
@@ -1080,7 +1149,7 @@ void CWorldRunes::CreateRune(char *sz_RuneClass)
 	}
 }
 
-static const int RUNE_COUNT = 8;
+static const int RUNE_COUNT = 9;
 const char* runeClassList[RUNE_COUNT] = {
 	"rune_frag",
 	"rune_vampire",
@@ -1089,7 +1158,8 @@ const char* runeClassList[RUNE_COUNT] = {
 	"rune_haste",
 	"rune_gravity",
 	"rune_strength",
-	"rune_cloak"
+	"rune_cloak",
+	"rune_ammo"
 };
 
 void CWorldRunes::SpawnRunes( )
@@ -1135,13 +1205,6 @@ void CWorldRunes::ResetPlayer(CBasePlayer *pPlayer)
 		!strstr(mutators.string, g_MutatorMegaSpeed) &&
 		atoi(mutators.string) != MUTATOR_MEGASPEED)
 		g_engfuncs.pfnSetPhysicsKeyValue( pPlayer->edict(), "haste", "0" );
-	if (!FBitSet(pPlayer->pev->flags, FL_FAKECLIENT))
-	{
-		MESSAGE_BEGIN( MSG_ONE, gmsgStatusIcon, NULL, pPlayer->pev );
-			WRITE_BYTE(0);
-			WRITE_STRING("dmg_cold");
-		MESSAGE_END();
-	}
 	pPlayer->pev->rendermode = kRenderNormal;
 	pPlayer->pev->renderfx = kRenderFxNone;
 	pPlayer->pev->renderamt = 0;
