@@ -1612,6 +1612,26 @@ void CHalfLifeMultiplay :: PlayerThink( CBasePlayer *pPlayer )
 			}
 		}
 	}
+	else if ( pPlayer->m_fHasRune == RUNE_AMMO )
+	{
+		if ( pPlayer->m_flRuneHealTime < gpGlobals->time )
+		{
+			if (pPlayer->m_pActiveItem)
+			{
+				CBasePlayerWeapon *pWeapon = (CBasePlayerWeapon*)pPlayer->m_pActiveItem;
+
+				if (pPlayer->m_rgAmmo[pWeapon->m_iPrimaryAmmoType] < pWeapon->iMaxAmmo1()) {
+					pPlayer->m_rgAmmo[pWeapon->m_iPrimaryAmmoType] += 1;
+					UTIL_ScreenFade( pPlayer, Vector(200,200,0), .5, .5, 32, FFADE_IN);
+					pPlayer->m_flRuneHealTime = gpGlobals->time + 1.0;
+				} else if (pPlayer->m_rgAmmo[pWeapon->m_iSecondaryAmmoType] < pWeapon->iMaxAmmo2()) {
+					pPlayer->m_rgAmmo[pWeapon->m_iSecondaryAmmoType] += 1;
+					UTIL_ScreenFade( pPlayer, Vector(200,200,0), .5, .5, 32, FFADE_IN);
+					pPlayer->m_flRuneHealTime = gpGlobals->time + 1.0;
+				}
+			}
+		}
+	}
 
 	if ( g_fGameOver )
 	{

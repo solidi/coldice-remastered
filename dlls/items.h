@@ -34,6 +34,7 @@ public:
 #define RUNE_GRAVITY	6
 #define RUNE_STRENGTH	7
 #define RUNE_CLOAK		8
+#define RUNE_AMMO		9
 
 class CWorldRunes : public CBaseEntity
 {
@@ -56,7 +57,7 @@ public:
 	void	EXPORT RuneTouch( CBaseEntity *pOther );
 	void	EXPORT Materialize( void );
 	virtual BOOL MyTouch( CBasePlayer *pPlayer ) { return FALSE; };
-	void ShowStatus(CBasePlayer *pPlayer, int r, int g, int b);
+	void ShowStatus(CBasePlayer *pPlayer, const char *icon, int r, int g, int b);
 	void ShellPlayer(CBasePlayer *pPlayer, int r, int g, int b);
 };
 
