@@ -702,6 +702,9 @@ void CBaseMonster :: Killed( entvars_t *pevAttacker, int iGib )
 // SET A FUTURE THINK AND A RENDERMODE!!
 void CBaseEntity :: SUB_StartFadeOut ( void )
 {
+	if (pev->renderfx == kRenderFxGlowShell)
+		pev->renderfx = kRenderFxNone;
+
 	if (pev->rendermode == kRenderNormal)
 	{
 		pev->renderamt = 255;

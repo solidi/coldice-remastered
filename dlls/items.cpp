@@ -364,18 +364,26 @@ void CRune::Spawn( void )
 	pev->angles.x = 0;
 	pev->angles.z = 0;
 	pev->movetype = MOVETYPE_TOSS;
-	pev->solid = SOLID_TRIGGER;
+	pev->solid = SOLID_NOT;
 	UTIL_SetOrigin( pev, pev->origin );
-	UTIL_SetSize(pev, Vector(-16, -16, 0), Vector(16, 16, 16));
 
 	SetTouch( &CRune::RuneTouch );
-	SetThink( &CBaseEntity::SUB_StartFadeOut );
-	pev->nextthink = gpGlobals->time + 25.0;
+	SetThink( &CRune::MakeTrigger );
+	pev->nextthink = gpGlobals->time + 0.25;
 
 	//animate
 	pev->sequence = 0;
-	pev->animtime = gpGlobals->time;
+	pev->animtime = gpGlobals->time + RANDOM_FLOAT(0.0, 0.75);
 	pev->framerate = 1.0;
+}
+
+// Allow rune to spawn without collisions
+void CRune::MakeTrigger( void )
+{
+	pev->solid = SOLID_TRIGGER;
+	UTIL_SetSize(pev, Vector(-16, -16, 0), Vector(16, 16, 16));
+	SetThink( &CBaseEntity::SUB_StartFadeOut );
+	pev->nextthink = gpGlobals->time + 25.0;
 }
 
 void CRune::RuneTouch( CBaseEntity *pOther )
@@ -405,6 +413,10 @@ void CRune::RuneTouch( CBaseEntity *pOther )
 	if (MyTouch( pPlayer ))
 	{
 		EMIT_SOUND( pPlayer->edict(), CHAN_ITEM, "rune_pickup.wav", 1, ATTN_NORM );
+
+		MESSAGE_BEGIN( MSG_ONE, gmsgItemPickup, NULL, pPlayer->pev );
+			WRITE_STRING( STRING(pev->classname) );
+		MESSAGE_END();
 
 		SUB_UseTargets( pOther, USE_TOGGLE, 0 );
 		SetTouch( NULL );

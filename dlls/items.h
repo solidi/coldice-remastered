@@ -54,6 +54,7 @@ class CRune : public CBaseEntity
 {
 public:
 	void	Spawn( void );
+	void	EXPORT MakeTrigger( void );
 	void	EXPORT RuneTouch( CBaseEntity *pOther );
 	void	EXPORT Materialize( void );
 	virtual BOOL MyTouch( CBasePlayer *pPlayer ) { return FALSE; };

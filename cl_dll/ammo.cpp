@@ -558,8 +558,9 @@ int CHudAmmo::MsgFunc_ItemPickup( const char *pszName, int iSize, void *pbuf )
 	BEGIN_READ( pbuf, iSize );
 	const char *szName = READ_STRING();
 
-	// Add the weapon to the history
-	gHR.AddToHistory( HISTSLOT_ITEM, szName );
+	// Add the item to the history, except runes
+	if (strncmp(szName, "rune_", 5) != 0)
+		gHR.AddToHistory( HISTSLOT_ITEM, szName );
 
 	gHUD.FlashHud();
 
