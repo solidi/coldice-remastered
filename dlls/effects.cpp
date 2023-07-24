@@ -2329,8 +2329,11 @@ void CPortalEntity::Think()
 	CBaseEntity* pFound = NULL; //UTIL_FindEntityInSphere(nullptr, pev->origin, 20);
 	while ((pFound = UTIL_FindEntityInSphere(pFound, pev->origin, 48)) != NULL)
 	{
-		if (pFound && FBitSet(pFound->ObjectCaps(), FCAP_PORTAL), pFound->IsAlive())
+		if (pFound && FBitSet(pFound->ObjectCaps(), FCAP_PORTAL))
 		{
+			if (pFound->IsPlayer() && !pFound->IsAlive())
+				return; // no dead guys
+
 			if (FClassnameIs(pFound->pev, "ent_portal"))
 				return;
 
@@ -2367,7 +2370,10 @@ void CPortalEntity::Think()
 
 							// check if the other portal is facign down of us, hacky hacky time
 							float otherPortalAngle = pOtherPortalCasted->pev->angles.x;
-							ALERT(at_console, "angle: %f\n", otherPortalAngle);
+							//ALERT(at_console, "angle: %f\n", otherPortalAngle);
+
+							if (pFound->IsPlayer())
+								UTIL_ScreenFade(pFound, Vector(200,200,200), .16, .16, 200, FFADE_IN);
 
 							// Apply the offsetting
 							Vector otherPortalForward;
@@ -2390,7 +2396,7 @@ void CPortalEntity::Think()
 							pFound->pev->fixangle = 1;
 							pFound->pev->v_angle.y = pFound->pev->angles.y = pFound->pev->angles.y + 180 + (pOtherPortalCasted->pev->angles.y - pev->angles.y); 
 							pFound->pev->velocity = forwardSpeedOffset + rightSpeedOffset + Vector(0, 0, pFound->pev->velocity.z);
-							this->m_flPortalCooldown = pOtherPortalCasted->m_flPortalCooldown = gpGlobals->time + 0.5;
+							this->m_flPortalCooldown = pOtherPortalCasted->m_flPortalCooldown = gpGlobals->time + 0.05;
 						
 							MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
 								WRITE_BYTE( TE_TELEPORT	); 
