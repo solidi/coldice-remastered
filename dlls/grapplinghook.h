@@ -16,6 +16,8 @@ public:
 	void FireHook( void );
 	void KillHook( void );
 
+	virtual int ObjectCaps( void ) { return CBaseEntity::ObjectCaps() & ~FCAP_ACROSS_TRANSITION | FCAP_PORTAL; }
+
 private:
 	Vector m_vPlayerHangOrigin;
 	BOOL m_fPlayerAtEnd;

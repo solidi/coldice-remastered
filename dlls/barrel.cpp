@@ -40,6 +40,8 @@ public:
 	void BarrelExplode( void );
 	int TakeDamage( entvars_t* pevInflictor, entvars_t* pevAttacker, float flDamage, int bitsDamageType );
 
+	virtual int ObjectCaps( void ) { return (CBaseEntity::ObjectCaps() & ~FCAP_ACROSS_TRANSITION) | FCAP_PORTAL; }
+
 private:
 	CSprite *pSprite = NULL;
 	EHANDLE pLastAttacker;

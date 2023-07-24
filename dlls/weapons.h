@@ -60,6 +60,8 @@ public:
 	virtual int	BloodColor( void ) { return DONT_BLEED; }
 	virtual void Killed( entvars_t *pevAttacker, int iGib );
 
+	virtual int ObjectCaps( void ) { return (CBaseEntity::ObjectCaps() & ~FCAP_ACROSS_TRANSITION) | FCAP_PORTAL; }
+
 	BOOL m_fRegisteredSound;// whether or not this grenade has issued its DANGER sound to the world sound list yet.
 };
 
@@ -2106,6 +2108,8 @@ public:
 	void EXPORT BubbleThink( void );
 	void EXPORT SpinTouch( CBaseEntity *pOther );
 
+	virtual int ObjectCaps( void ) { return (CBaseEntity::ObjectCaps() & ~FCAP_ACROSS_TRANSITION) | FCAP_PORTAL; }
+
 private:
 
 	EHANDLE m_hOwner;		  // Original owner is stored here so we can
@@ -2480,6 +2484,8 @@ public:
 	void EXPORT SpinTouch( CBaseEntity *pOther );
 
 	static CFlyingSnowball *Shoot( entvars_t *pevOwner, Vector vecStart, Vector vecVelocity, CBasePlayer *m_pPlayer );
+
+	virtual int ObjectCaps( void ) { return (CBaseEntity::ObjectCaps() & ~FCAP_ACROSS_TRANSITION) | FCAP_PORTAL; }
 
 private:
 

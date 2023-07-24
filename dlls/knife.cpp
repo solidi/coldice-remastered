@@ -32,6 +32,8 @@ public:
 	void EXPORT BubbleThink( void );
 	void EXPORT SpinTouch( CBaseEntity *pOther );
 
+	virtual int ObjectCaps( void ) { return (CBaseEntity::ObjectCaps() & ~FCAP_ACROSS_TRANSITION) | FCAP_PORTAL; }
+
 private:
 
    EHANDLE m_hOwner;        // Original owner is stored here so we can

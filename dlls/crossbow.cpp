@@ -43,6 +43,8 @@ class CCrossbowBolt : public CBaseEntity
 
 	int m_iTrail;
 
+	virtual int ObjectCaps( void ) { return (CBaseEntity::ObjectCaps() & ~FCAP_ACROSS_TRANSITION) | FCAP_PORTAL; }
+
 public:
 	static CCrossbowBolt *BoltCreate( void );
 };

@@ -31,6 +31,8 @@ public:
 	void ClearEffects();
 	static CPlasma *CreatePlasmaRocket( Vector vecOrigin, Vector vecAngles, CBaseEntity *pOwner );
 
+	virtual int ObjectCaps( void ) { return (CBaseEntity::ObjectCaps() & ~FCAP_ACROSS_TRANSITION) | FCAP_PORTAL; }
+
 	int m_iExplode, m_iTrail;
 	int m_iIceExplode, m_iIceTrail;
 	float m_flIgniteTime;
