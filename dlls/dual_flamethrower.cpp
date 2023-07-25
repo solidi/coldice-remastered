@@ -222,10 +222,10 @@ void CDualFlameThrower::UseAmmo( int count )
 	if (!m_pPlayer->pev->playerclass)
 		m_pPlayer->pev->playerclass = 1;
 
-	if ( m_iClip >= count )
-		 m_iClip -= count;
+	if ( m_pPlayer->m_rgAmmo[ m_iPrimaryAmmoType ] >= count )
+		 m_pPlayer->m_rgAmmo[ m_iPrimaryAmmoType ] -= count;
 	else
-		 m_iClip = 0;
+		 m_pPlayer->m_rgAmmo[ m_iPrimaryAmmoType ] = 0;
 }
 
 void CDualFlameThrower::PrimaryAttack( void )
@@ -259,7 +259,7 @@ void CDualFlameThrower::PrimaryAttack( void )
 	{
 		case 0:
 		{
-			if (m_iClip <= 0)
+			if (m_pPlayer->m_rgAmmo[ m_iPrimaryAmmoType ] <= 0)
 			{
 				m_flNextPrimaryAttack = m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 0.25;
 				PlayEmptySound( );
@@ -290,7 +290,7 @@ void CDualFlameThrower::PrimaryAttack( void )
 				sctime = gpGlobals->time + 6.51;
 			}
 
-			if (m_iClip <= 0)
+			if (m_pPlayer->m_rgAmmo[ m_iPrimaryAmmoType ] <= 0)
 			{
 				EndAttack();
 				m_flNextPrimaryAttack = m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 1.0;
@@ -312,7 +312,7 @@ void CDualFlameThrower::SecondaryAttack( void )
 		return;
 	}
 
-	if (m_iClip <= 0)
+	if (m_pPlayer->m_rgAmmo[ m_iPrimaryAmmoType ] <= 0)
 	{
 		PlayEmptySound();
 		m_flNextPrimaryAttack = m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 0.15;
@@ -331,7 +331,7 @@ void CDualFlameThrower::SecondaryAttack( void )
 
 	PLAYBACK_EVENT( flags, m_pPlayer->edict(), m_usFlameThrower );
 
-	m_iClip--;
+	m_pPlayer->m_rgAmmo[ m_iPrimaryAmmoType ]--;
 
 	UTIL_MakeVectors( m_pPlayer->pev->v_angle + m_pPlayer->pev->punchangle );
 
