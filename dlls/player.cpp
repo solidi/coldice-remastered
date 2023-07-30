@@ -4095,6 +4095,14 @@ void CBasePlayer::GiveNamedItem( const char *pszName )
 		}
 	}
 
+	if (g_pGameRules->IsCtC() && pev->fuser4 == 0)
+	{
+		if (strcmp(pszName, "weapon_chumtoad") == 0) {
+			ALERT(at_console, "Not allowed a chumtoad without capturing it.\n");
+			return;
+		}
+	}
+
 /*
 	if (strstr(mutators.string, g_MutatorInstaGib) ||
 		atoi(mutators.string) == MUTATOR_INSTAGIB) {

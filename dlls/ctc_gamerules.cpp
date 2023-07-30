@@ -169,9 +169,9 @@ void CHalfLifeCaptureTheChumtoad::CaptureCharm( CBasePlayer *pPlayer )
 
 	pPlayer->pev->renderfx = kRenderFxGlowShell;
 	pPlayer->pev->renderamt = 10;
-	pPlayer->pev->rendercolor.x = 0;
-	pPlayer->pev->rendercolor.y = 200;
-	pPlayer->pev->rendercolor.z = 0;
+	pPlayer->pev->rendercolor = Vector(0, 200, 0);
+
+	pPlayer->pev->fuser4 = 1;
 
 	UTIL_ClientPrintAll(HUD_PRINTTALK, "[CtC]: %s has captured the chumtoad!\n",
 	STRING(pPlayer->pev->netname));
@@ -192,6 +192,8 @@ CBaseEntity *CHalfLifeCaptureTheChumtoad::DropCharm( CBasePlayer *pPlayer, Vecto
 	pPlayer->pev->rendermode = kRenderNormal;
 	pPlayer->pev->renderfx = kRenderFxNone;
 	pPlayer->pev->renderamt = 0;
+
+	pPlayer->pev->fuser4 = 0;
 
 	UTIL_ClientPrintAll(HUD_PRINTTALK, "[CtC]: %s has dropped the chumtoad!\n",
 		STRING(pPlayer->pev->netname));
@@ -241,6 +243,7 @@ void CHalfLifeCaptureTheChumtoad::PlayerThink( CBasePlayer *pPlayer )
 				{
 					ClientPrint(pPlayer->pev, HUD_PRINTCENTER, "The chumtoad slipped away!\n");
 					CBasePlayerWeapon *weapon = (CBasePlayerWeapon *)pPlayer->m_pActiveItem;
+					weapon->SendWeaponAnim( 5 );
 					weapon->PrimaryAttack();
 				}
 			}
@@ -357,7 +360,8 @@ BOOL CHalfLifeCaptureTheChumtoad::FPlayerCanTakeDamage( CBasePlayer *pPlayer, CB
 BOOL CHalfLifeCaptureTheChumtoad::IsAllowedToSpawn( CBaseEntity *pEntity )
 {
 	if (strcmp(STRING(pEntity->pev->classname), "weapon_chumtoad") == 0 ||
-		strcmp(STRING(pEntity->pev->classname), "weapon_snark") == 0)
+		strcmp(STRING(pEntity->pev->classname), "weapon_snark") == 0 ||
+		strcmp(STRING(pEntity->pev->classname), "rune_ammo") == 0)
 		return FALSE;
 
 	return TRUE;
