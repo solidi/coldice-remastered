@@ -260,7 +260,6 @@ void CHalfLifeCaptureTheChumtoad::PlayerThink( CBasePlayer *pPlayer )
 						WRITE_SHORT( pPlayer->m_iDeaths );
 						WRITE_SHORT( 0 );
 						WRITE_SHORT( 0 );
-						WRITE_SHORT( 0 );
 					MESSAGE_END();
 
 					UTIL_ClientPrintAll(HUD_PRINTTALK, "[CtC]: %s has scored a point!\n", 

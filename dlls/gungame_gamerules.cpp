@@ -288,7 +288,6 @@ int CHalfLifeGunGame::IPointsForKill( CBasePlayer *pAttacker, CBasePlayer *pKill
 									WRITE_SHORT( plr->m_iDeaths = 0 );
 									WRITE_SHORT( 0 );
 									WRITE_SHORT( 0 );
-									WRITE_SHORT( 0 );
 								MESSAGE_END();
 
 								if (plr->IsAlive())
