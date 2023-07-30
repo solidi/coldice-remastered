@@ -4,6 +4,7 @@
 #include "con_nprint.h"
 #include <string.h>
 #include <stdio.h>
+#include "com_model.h"
 
 #define PI_180 (3.14159265358979 / 180.0)
 #define MAX_DISTANCE 1000
@@ -34,8 +35,9 @@ int CHudRadar::VidInit(void)
 
 void CHudRadar::ProcessPlayerState(void)
 {
-	Vector v_player[32], v_other, v_radar;
-	float distanceLocal, player_distance[32], player_height[32], view_angle;
+	Vector v_player[MAX_PLAYERS * 2], v_other, v_radar;
+	bool b_specials[MAX_PLAYERS * 2] = {false};
+	float distanceLocal, player_distance[MAX_PLAYERS * 2], player_height[MAX_PLAYERS * 2], view_angle;
 	int num_players = 0;
 	cl_entity_t *localPlayer = gEngfuncs.GetLocalPlayer();
 
@@ -46,22 +48,37 @@ void CHudRadar::ProcessPlayerState(void)
 		{1.0f, 0.6f, 0.0f }
 	};
 
-	for (int i = 1; i <= 32; i++)
+	for (int i = 1; i <= MAX_EDICTS; i++)
 	{
 		cl_entity_s *pClient = gEngfuncs.GetEntityByIndex(i);
 		
 		if (!pClient)
 			continue;
 
+		if (!pClient->model)
+			continue;
+
 		// Don't show an icon for dead or spectating players (ie: invisible entities).
 		if (pClient->curstate.effects & EF_NODRAW)
 			continue;
 
-		if (pClient->curstate.health <= 0)
-			continue;
+		if (gHUD.m_GameMode == GAME_CTC)
+		{
+			if (!strcmp(pClient->model->name, "models/w_chumtoad.mdl")) // loose toad
+				b_specials[num_players] = true;
+			else if (pClient->curstate.fuser4 > 0) // running with toad
+				b_specials[num_players] = true;
+			else
+				b_specials[num_players] = false;
+		}
 
-		if (!pClient->player)
-			continue;
+		if (!b_specials[num_players])
+			if (!pClient->player)
+				continue;
+
+		if (pClient->player)
+			if (pClient->curstate.health <= 0)
+				continue;
 
 		// Bot is not sending messages, due to disconnect or spectator
 		if (pClient->curstate.messagenum < localPlayer->curstate.messagenum)
@@ -111,6 +128,7 @@ void CHudRadar::ProcessPlayerState(void)
 		radarInfo.distance = player_distance[index];
 		radarInfo.height = player_height[index];
 		radarInfo.angle = view_angle;
+		radarInfo.special = b_specials[index];
 		m_RadarInfo[index] = radarInfo;
 
 #ifdef _DEBUG
@@ -180,7 +198,19 @@ int CHudRadar::Draw(float flTime)
 			alpha = fmax(alpha + (height * 10), 200);
 		}
 
-		FillRGBA(pos_x, pos_y, size, size, r, g, b, alpha);
+		int fr = r, fg = g, fb = b;
+		if ((gEngfuncs.GetLocalPlayer()->index - 1) == index)
+		{
+			fr = 200; fg = 200; fb = 200;
+		}
+
+		if (m_RadarInfo[index].special)
+		{
+			size *= 2;
+			fr = 240; fg = 0; fb = 0;
+		}
+
+		FillRGBA(pos_x, pos_y, size, size, fr, fg, fb, alpha);
 	}
 
 	return 1;

@@ -118,7 +118,7 @@ void CHud :: MsgFunc_InitHUD( const char *pszName, int iSize, void *pbuf )
 int CHud :: MsgFunc_GameMode(const char *pszName, int iSize, void *pbuf )
 {
 	BEGIN_READ( pbuf, iSize );
-	m_Teamplay = READ_BYTE();
+	m_GameMode = m_Teamplay = READ_BYTE();
 
 	return 1;
 }

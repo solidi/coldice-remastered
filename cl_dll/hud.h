@@ -653,6 +653,7 @@ private:
 
 typedef struct {
 	float angle, distance, height;
+	bool special;
 } RADAR;
 
 class CHudRadar: public CHudBase
@@ -701,6 +702,7 @@ public:
 	int		m_iHideHUDDisplay;
 	int		m_iFOV;
 	int		m_Teamplay;
+	int		m_GameMode;
 	int		m_iRes;
 	cvar_t  *m_pCvarStealMouse;
 	cvar_t	*m_pCvarDraw;
