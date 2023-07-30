@@ -758,6 +758,7 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_viewroll [0|1]\" - Old View Roll\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_bobtilt [0|1]\" - Old Bob Tilt\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_righthand [0|1]\" - Right/Left Handed Models\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_infomessage [0|1]\" - display weapon and rune pick up messages\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "For more, type help_more\n" );
 	}
 	else if ( FStrEq( pcmd, "help_more" )  )
