@@ -66,6 +66,7 @@ extern DLL_GLOBAL const char *g_MutatorInvisible;
 extern DLL_GLOBAL const char *g_MutatorPortal;
 extern DLL_GLOBAL const char *g_MutatorJope;
 extern DLL_GLOBAL const char *g_MutatorLongJump;
+extern DLL_GLOBAL const char *g_MutatorSlowBullets;
 
 extern DLL_GLOBAL int g_GameMode;
 
@@ -796,6 +797,18 @@ void CGameRules::CheckMutators(void)
 					atoi(mutators.string) != MUTATOR_SPEEDUP) &&
 					CVAR_GET_FLOAT("sys_timescale") > 1.48f && CVAR_GET_FLOAT("sys_timescale") < 1.50f)
 					CVAR_SET_FLOAT("sys_timescale", 1.0);
+			}
+
+			if ((strstr(mutators.string, g_MutatorSlowBullets) ||
+				atoi(mutators.string) == MUTATOR_SLOWBULLETS) && CVAR_GET_FLOAT("sv_slowbullets") != 2)
+			{
+				CVAR_SET_FLOAT("sv_slowbullets", 2);
+			}
+			else
+			{
+				if ((!strstr(mutators.string, g_MutatorSlowBullets) &&
+					atoi(mutators.string) != MUTATOR_SLOWBULLETS) && CVAR_GET_FLOAT("sv_slowbullets") == 2)
+					CVAR_SET_FLOAT("sv_slowbullets", 0);
 			}
 		}
 

@@ -62,4 +62,7 @@ extern int	InconsistentFile( const edict_t *player, const char *filename, char *
 
 extern int AllowLagCompensation( void );
 
+extern void OnFreeEntPrivateData( edict_s *pEdict );
+extern int ShouldCollide( edict_t *pentTouched, edict_t *pentOther );
+
 #endif		// CLIENT_H

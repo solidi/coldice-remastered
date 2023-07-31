@@ -192,6 +192,7 @@ BOOL CBaseMonster :: FInViewCone ( CBaseEntity *pEntity ) { return FALSE; }
 BOOL CBaseMonster :: FInViewCone ( Vector *pOrigin ) { return FALSE; }
 BOOL CBaseEntity :: FVisible ( CBaseEntity *pEntity ) { return FALSE; }
 BOOL CBaseEntity :: FVisible ( const Vector &vecOrigin ) { return FALSE; }
+BOOL CBaseEntity :: ShouldCollide( CBaseEntity *pOther ) { return FALSE; }
 void CBaseMonster :: MakeIdealYaw( Vector vecTarget ) { }
 float	CBaseMonster::FlYawDiff ( void ) { return 0.0; }
 float CBaseMonster::ChangeYaw ( int yawSpeed ) { return 0; }

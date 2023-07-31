@@ -291,7 +291,7 @@ int CHud :: MsgFunc_Particle( const char *pszName, int iSize, void *pbuf )
 	char fileName[64];
 	strcpy(fileName, "aurora/");
 
-	if (cl_icemodels && cl_icemodels->value)
+	if (cl_icemodels && (cl_icemodels->value > 0 && cl_icemodels->value < 4))
 	{
 		strcat(fileName, "ice_");
 	}

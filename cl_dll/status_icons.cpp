@@ -184,6 +184,7 @@ void CHudStatusIcons::DrawMutators( void )
 	ToggleMutatorIcon(MUTATOR_SPEEDUP, "speedup");
 	ToggleMutatorIcon(MUTATOR_CHUMXPLODE, "chumxplode");
 	ToggleMutatorIcon(MUTATOR_LONGJUMP, "longjump");
+	ToggleMutatorIcon(MUTATOR_SLOWBULLETS, "slowbullets");
 }
 
 void CHudStatusIcons::ToggleMutatorIcon(int mutatorId, const char *mutator)

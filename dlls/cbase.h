@@ -67,6 +67,7 @@ CBaseEntity
 
 extern "C" CBASE_DLLEXPORT int GetEntityAPI( DLL_FUNCTIONS *pFunctionTable, int interfaceVersion );
 extern "C" CBASE_DLLEXPORT int GetEntityAPI2( DLL_FUNCTIONS *pFunctionTable, int *interfaceVersion );
+extern "C" CBASE_DLLEXPORT int GetNewDLLFunctions( NEW_DLL_FUNCTIONS *pFunctionTable, int *interfaceVersion );
 
 extern int DispatchSpawn( edict_t *pent );
 extern void DispatchKeyValue( edict_t *pentKeyvalue, KeyValueData *pkvd );
@@ -348,6 +349,8 @@ public:
 
 	virtual	BOOL FVisible ( CBaseEntity *pEntity );
 	virtual	BOOL FVisible ( const Vector &vecOrigin );
+
+	virtual BOOL ShouldCollide( CBaseEntity *pOther );
 
 	//We use this variables to store each ammo count.
 	int ammo_9mm;
