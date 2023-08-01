@@ -854,6 +854,7 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_mutators \"sildenafil\"\" - screen goes blue\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_mutators \"oldtime\"\" - screen goes blac and white\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_mutators \"longjump\"\" - everyone receives a long jump module\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_mutators \"slowbullets\"\" - bullets travel slowly to target\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_spawnweapons\" - Spawn weapons or not\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_spawnitems\" - Spawn items or not\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_disallowlist\" a list of entities that will not spawn\n");
@@ -2253,5 +2254,25 @@ AllowLagCompensation
 */
 int AllowLagCompensation( void )
 {
+	return 1;
+}
+
+/*
+================================
+ShouldCollide
+
+  Called when the engine believes two entities are about to collide. Return 0 if you
+  want the two entities to just pass through each other without colliding or calling the
+  touch function.
+================================
+*/
+int ShouldCollide( edict_t *pentTouched, edict_t *pentOther )
+{
+	CBaseEntity *pTouch = CBaseEntity::Instance( pentTouched );
+	CBaseEntity *pOther = CBaseEntity::Instance( pentOther );
+
+	if ( pTouch && pOther )
+		return pOther->ShouldCollide( pTouch );
+
 	return 1;
 }

@@ -827,6 +827,7 @@ typedef struct
 #define MUTATOR_OLDTIME 34
 #define MUTATOR_SILDENAFIL 35
 #define MUTATOR_LONGJUMP 36
+#define MUTATOR_SLOWBULLETS 37
 
 #define GAME_FFA 0
 #define GAME_TEAMPLAY 1

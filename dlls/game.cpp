@@ -78,6 +78,7 @@ cvar_t	roundfraglimit = {"mp_roundfraglimit","5", FCVAR_SERVER };
 cvar_t	ggstartlevel = {"mp_ggstartlevel","0", FCVAR_SERVER };
 cvar_t	spawnitems = {"mp_spawnitems","1", FCVAR_SERVER };
 cvar_t	ctcsecondsforpoint = {"mp_ctcsecondsforpoint","10", FCVAR_SERVER };
+cvar_t	slowbullets = {"sv_slowbullets","0", FCVAR_SERVER };
 
 cvar_t  allow_spectators = { "allow_spectators", "0.0", FCVAR_SERVER };		// 0 prevents players from being spectators
 
@@ -706,6 +707,7 @@ void GameDLLInit( void )
 	CVAR_REGISTER(&randomgamemodes);
 	CVAR_REGISTER(&ggstartlevel);
 	CVAR_REGISTER(&ctcsecondsforpoint);
+	CVAR_REGISTER(&slowbullets);
 
 	CVAR_REGISTER (&mp_chattime);
 
@@ -1243,3 +1245,6 @@ void GameDLLInit( void )
 	SERVER_COMMAND( "exec skill.cfg\n" );
 }
 
+void GameDLLShutdown()
+{
+}

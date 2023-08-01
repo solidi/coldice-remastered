@@ -17,6 +17,7 @@
 #define GAME_H
 
 extern void GameDLLInit( void );
+extern void GameDLLShutdown( void );
 
 
 extern cvar_t	displaysoundlist;
@@ -75,6 +76,7 @@ extern cvar_t   startwithlives;
 extern cvar_t   roundfraglimit;
 extern cvar_t   ggstartlevel;
 extern cvar_t   ctcsecondsforpoint;
+extern cvar_t   slowbullets;
 
 // Engine Cvars
 extern cvar_t	*g_psv_gravity;

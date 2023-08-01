@@ -2437,3 +2437,107 @@ void DeactivatePortals( CBasePlayer *pPlayer )
 		UTIL_Remove(pPlayer->m_pPortal[1]);
 	}
 }
+
+extern int gmsgParticle;
+
+LINK_ENTITY_TO_CLASS( tracer, CTracer );
+
+CTracer *CTracer::CreateTracer( Vector vecOrigin, Vector vecAngles, CBaseEntity *pOwner, string_t weaponname )
+{
+	CTracer *tracer = GetClassPtr( (CTracer *)NULL );
+
+	UTIL_SetOrigin( tracer->pev, vecOrigin );
+	tracer->pev->angles = vecAngles;
+	tracer->Spawn();
+	tracer->SetTouch( &CTracer::TracerTouch );
+	if (pOwner != NULL)
+		tracer->pev->owner = pOwner->edict();
+	// store fired weapon id for credit later
+	tracer->pev->iuser4 = weaponname;
+
+	return tracer;
+}
+
+void CTracer::Spawn( )
+{
+	Precache( );
+
+	pev->movetype = MOVETYPE_FLY;
+	pev->solid = SOLID_BBOX;
+
+	SET_MODEL(ENT(pev), "models/w_tracer.mdl");
+	UTIL_SetSize(pev, Vector(-4, -4, -4), Vector(4, 4, 4));
+	UTIL_SetOrigin( pev, pev->origin );
+	pev->avelocity.z = RANDOM_FLOAT ( -100, -500 );
+
+	pev->classname = MAKE_STRING("tracer");
+
+	UTIL_MakeVectors( pev->angles );
+	pev->angles.x = -(pev->angles.x);
+
+	pev->velocity = gpGlobals->v_forward * RANDOM_LONG(250, 500);
+	pev->gravity = 0.0;
+	pev->dmg = gSkillData.plrDmg9MM;
+
+	m_burnParticleEnabled = 1;
+	pev->colormap = entindex();
+	pev->playerclass = 1;
+	MESSAGE_BEGIN( MSG_ALL, gmsgParticle );
+		WRITE_SHORT( entindex() );
+		WRITE_STRING( "tracer_fire.aur" );
+	MESSAGE_END();
+}
+
+BOOL CTracer::ShouldCollide( CBaseEntity *pOther )
+{
+	if (pev->modelindex == pOther->pev->modelindex)
+		return FALSE;
+
+	return TRUE;
+}
+
+void CTracer::TracerTouch( CBaseEntity *pOther )
+{
+	TraceResult tr = UTIL_GetGlobalTrace();
+
+	// it's not another tracer
+	if (tr.pHit && tr.pHit->v.modelindex == pev->modelindex)
+	{
+		return;
+	}
+
+	if (tr.pHit == NULL)
+	{
+		ALERT(at_aiconsole, "null!\n");
+		return;
+	}
+
+	if (pOther->edict() == pev->owner)
+	{
+		ALERT(at_aiconsole, "owner!\n");
+		return;
+	}
+
+	if ( pOther->pev->takedamage )
+	{
+		entvars_t *pevOwner = VARS( pev->owner );
+		if (pevOwner)
+		{
+			ClearMultiDamage();
+			pOther->TraceAttack(pevOwner, pev->dmg, gpGlobals->v_forward, &tr, DMG_NEVERGIB );
+			ApplyMultiDamage( pev, pevOwner );
+			//::RadiusDamage( tr.vecEndPos, pev, pevOwner, gSkillData.plrDmgExpBuckshot, 32, CLASS_NONE, DMG_BLAST );
+		}
+	}
+	else
+	{
+		UTIL_Sparks(pev->origin);
+	}
+
+	UTIL_Remove(this);
+}
+
+void CTracer::Precache( void )
+{
+	PRECACHE_MODEL("models/w_tracer.mdl");
+}

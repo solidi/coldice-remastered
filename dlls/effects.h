@@ -206,4 +206,16 @@ public:
 	Vector  m_firePosition;
 };
 
+class CTracer : public CBaseEntity
+{
+public:
+	void Spawn( void );
+	void Precache( void );
+	void EXPORT TracerTouch( CBaseEntity *pOther );
+	BOOL EXPORT ShouldCollide( CBaseEntity *pOther );
+	static CTracer *CreateTracer( Vector vecOrigin, Vector vecAngles, CBaseEntity *pOwner, string_t weaponname );
+
+	virtual int ObjectCaps( void ) { return (CBaseEntity::ObjectCaps() & ~FCAP_ACROSS_TRANSITION) | FCAP_PORTAL; }
+};
+
 #endif		//EFFECTS_H
