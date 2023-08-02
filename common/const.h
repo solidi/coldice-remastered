@@ -122,6 +122,7 @@
 #define EFLAG_DEADHANDS (1 << 2)
 #define EFLAG_SLIDE (1 << 3)
 #define EFLAG_SLIDE_RETRACT (1 << 4)
+#define EFLAG_PLAYERKICK (1 << 5)
 
 //
 // temp entity events

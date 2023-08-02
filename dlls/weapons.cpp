@@ -2100,11 +2100,6 @@ void CBasePlayerWeapon::ThrowRocket(BOOL m_iCheckAmmo)
 	m_pPlayer->pev->punchangle = Vector(-4, -2, -4);
 }
 
-enum kick_e {
-	KICK = 0,
-	KICK_2
-};
-
 enum punch_e {
 	IDLE1 = 0,
 	DEPLOY,
@@ -2133,7 +2128,7 @@ void CBasePlayerWeapon::StartPunch( BOOL holdingSomething )
 	}
 
 	Holster();
-	m_pPlayer->m_fPunchTime = gpGlobals->time + 0.75;
+	m_pPlayer->m_fPunchTime = gpGlobals->time + 0.55;
 	PunchAttack(holdingSomething);
 }
 
@@ -2344,7 +2339,7 @@ void CBasePlayerWeapon::StartKick( BOOL holdingSomething )
 		return;
 	}
 
-	if (!CanAttack( m_flNextPrimaryAttack, gpGlobals->time, UseDecrement() )) {
+	if (m_pPlayer->m_fKickTime >= gpGlobals->time) {
 		return;
 	}
 
@@ -2352,15 +2347,13 @@ void CBasePlayerWeapon::StartKick( BOOL holdingSomething )
 		return;
 	}
 
-	Holster();
-	m_pPlayer->m_fKickTime = gpGlobals->time + 0.75;
+	m_pPlayer->m_EFlags |= EFLAG_PLAYERKICK;
+	m_pPlayer->m_fKickTime = gpGlobals->time + 0.55;
 	KickAttack(holdingSomething);
 }
 
 void CBasePlayerWeapon::KickAttack( BOOL holdingSomething )
 {
-	m_pPlayer->pev->viewmodel = MAKE_STRING("models/v_leg.mdl");
-
 	TraceResult tr;
 	UTIL_MakeVectors (m_pPlayer->pev->v_angle);
 	Vector vecSrc	= m_pPlayer->GetGunPosition( );
@@ -2432,14 +2425,6 @@ void CBasePlayerWeapon::KickAttack( BOOL holdingSomething )
 		}
 	}
 #endif
-
-	switch( RANDOM_LONG(0,1) )
-	{
-	case 0:
-		SendWeaponAnim( KICK ); break;
-	case 1:
-		SendWeaponAnim( KICK_2 ); break;
-	}
 
 	// player "shoot" animation
 	m_pPlayer->SetAnimation( PLAYER_KICK );
@@ -2551,7 +2536,7 @@ void CBasePlayerWeapon::EndKick( void )
 		DecalGunshot( &m_trBootHit, BULLET_PLAYER_BOOT );
 	}
 
-	DeployLowKey();
+	m_pPlayer->m_EFlags &= ~EFLAG_PLAYERKICK;
 }
 
 void CBasePlayerWeapon::ProvideDualItem(CBasePlayer *pPlayer, const char *pszName) {

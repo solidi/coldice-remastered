@@ -545,6 +545,10 @@ void CL_DLLEXPORT HUD_TempEntUpdate (
 			{
 				LoadTempViewModel("models/v_dual_leg.mdl", 1);
 			}
+			else if ((player->curstate.eflags & EFLAG_PLAYERKICK))
+			{
+				LoadTempViewModel("models/v_leg.mdl", 2);
+			}
 		}
 	}
 
