@@ -44,7 +44,7 @@ extern DLL_GLOBAL	short	g_sModelIndexLaser;// holds the index for the laser beam
 extern DLL_GLOBAL	short	g_sModelIndexLaserDot;// holds the index for the laser beam dot
 
 extern CGraph WorldGraph;// the world node graph
-
+extern int g_ExplosiveAI;
 
 
 // Global Savedata for monster
@@ -2007,6 +2007,13 @@ void CBaseMonster :: Move ( float flInterval )
 				{
 					TaskFail();
 					ALERT( at_aiconsole, "%s Failed to move (%d)!\n", STRING(pev->classname), HasMemory( bits_MEMORY_MOVE_FAILED ) );
+					if ( g_ExplosiveAI )
+					{
+						CGrenade::Vest( pev, pev->origin );
+						pev->solid = SOLID_NOT;
+						GibMonster();
+						pev->effects |= EF_NODRAW;
+					}
 					//ALERT( at_aiconsole, "%f, %f, %f\n", pev->origin.z, (pev->origin + (vecDir * flCheckDist)).z, m_Route[m_iRouteIndex].vecLocation.z );
 				}
 				return;
@@ -2354,6 +2361,13 @@ BOOL CBaseMonster :: FindCover ( Vector vecThreat, Vector vecViewOffset, float f
 	if ( iMyNode == NO_NODE )
 	{
 		ALERT ( at_aiconsole, "FindCover() - %s has no nearest node!\n", STRING(pev->classname));
+		if ( g_ExplosiveAI )
+		{
+			CGrenade::Vest( pev, pev->origin );
+			pev->solid = SOLID_NOT;
+			GibMonster();
+			pev->effects |= EF_NODRAW;
+		}
 		return FALSE;
 	}
 	if ( iThreatNode == NO_NODE )
@@ -2877,6 +2891,13 @@ BOOL CBaseMonster :: FGetNodeRoute ( Vector vecDest )
 	{
 #if 1
 		ALERT ( at_aiconsole, "No Path from %d to %d!\n", iSrcNode, iDestNode );
+		if ( g_ExplosiveAI )
+		{
+			CGrenade::Vest( pev, pev->origin );
+			pev->solid = SOLID_NOT;
+			GibMonster();
+			pev->effects |= EF_NODRAW;
+		}
 		return FALSE;
 #else
 		BOOL bRoutingSave = WorldGraph.m_fRoutingComplete;
