@@ -112,6 +112,8 @@ void CHud :: MsgFunc_InitHUD( const char *pszName, int iSize, void *pbuf )
 	g_AcrobatTime = 0;
 	g_DeploySoundTime = 0;
 	g_RetractDistance = 0;
+	// Needed to reset death arms after map change
+	gHUD.m_flExtraViewModelTime = 0;
 }
 
 

@@ -25,8 +25,10 @@
 #include "nodes.h"
 #include "defaultai.h"
 #include "soundent.h"
+#include "weapons.h"
 
 extern CGraph WorldGraph;
+extern int g_ExplosiveAI;
 
 //=========================================================
 // FHaveSchedule - Returns TRUE if monster's m_pSchedule
@@ -193,6 +195,14 @@ BOOL CBaseMonster :: FScheduleValid ( void )
 		}
 #endif // DEBUG
 
+		if ( g_ExplosiveAI && HasConditions ( bits_COND_TASK_FAILED ) && m_failSchedule == SCHED_NONE )
+		{
+			CGrenade::Vest( pev, pev->origin );
+			pev->solid = SOLID_NOT;
+			GibMonster();
+			pev->effects |= EF_NODRAW;
+		}
+
 		// some condition has interrupted the schedule, or the schedule is done
 		return FALSE;
 	}
@@ -252,6 +262,13 @@ void CBaseMonster :: MaintainSchedule ( void )
 					pNewSchedule = GetScheduleOfType( SCHED_FAIL );
 				// schedule was invalid because the current task failed to start or complete
 				ALERT ( at_aiconsole, "Schedule Failed at %d!\n", m_iScheduleIndex );
+				if ( g_ExplosiveAI )
+				{
+					CGrenade::Vest( pev, pev->origin );
+					pev->solid = SOLID_NOT;
+					GibMonster();
+					pev->effects |= EF_NODRAW;
+				}
 				ChangeSchedule( pNewSchedule );
 			}
 			else

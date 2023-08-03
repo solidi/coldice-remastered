@@ -85,6 +85,7 @@ extern DLL_GLOBAL const char *g_szMutators[] = {
 	"oldtime",
 	"longjump",
 	"slowbullets",
+	"explosiveai",
 };
 
 extern void W_Precache(void);
@@ -792,7 +793,8 @@ void CWorld :: RandomizeMutators( void )
 		{
 			if (strstr(tryIt, "slowmo") ||
 				strstr(tryIt, "speedup") ||
-				strstr(tryIt, "topsyturvy"))
+				strstr(tryIt, "topsyturvy") ||
+				strstr(tryIt, "explosiveai"))
 				continue;
 		}
 		else

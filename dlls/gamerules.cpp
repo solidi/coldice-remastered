@@ -38,6 +38,7 @@ extern int gmsgMOTD;
 extern int gmsgMutators;
 
 int g_teamplay = 0;
+int g_ExplosiveAI = 0;
 
 extern DLL_GLOBAL const char *g_MutatorChaos;
 extern DLL_GLOBAL const char *g_MutatorRocketCrowbar;
@@ -67,6 +68,7 @@ extern DLL_GLOBAL const char *g_MutatorPortal;
 extern DLL_GLOBAL const char *g_MutatorJope;
 extern DLL_GLOBAL const char *g_MutatorLongJump;
 extern DLL_GLOBAL const char *g_MutatorSlowBullets;
+extern DLL_GLOBAL const char *g_MutatorExplosiveAI;
 
 extern DLL_GLOBAL int g_GameMode;
 
@@ -809,6 +811,18 @@ void CGameRules::CheckMutators(void)
 				if ((!strstr(mutators.string, g_MutatorSlowBullets) &&
 					atoi(mutators.string) != MUTATOR_SLOWBULLETS) && CVAR_GET_FLOAT("sv_slowbullets") == 2)
 					CVAR_SET_FLOAT("sv_slowbullets", 0);
+			}
+
+			if ((strstr(mutators.string, g_MutatorExplosiveAI) ||
+				atoi(mutators.string) == MUTATOR_EXPLOSIVEAI) && g_ExplosiveAI != 1)
+			{
+				g_ExplosiveAI = 1;
+			}
+			else
+			{
+				if ((!strstr(mutators.string, g_MutatorExplosiveAI) &&
+					atoi(mutators.string) != MUTATOR_EXPLOSIVEAI) && g_ExplosiveAI == 1)
+					g_ExplosiveAI = 0;
 			}
 		}
 
