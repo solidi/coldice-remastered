@@ -40,6 +40,7 @@
 #include "netadr.h"
 #include "pm_shared.h"
 #include "items.h"
+#include "func_break.h"
 
 #if defined( GRAPPLING_HOOK )
 #include "grapplinghook.h"
@@ -877,9 +878,19 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_startwithlives\" - Sets the starting lifes during last man standing\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_ggstartlevel\" - Sets default start level of gun game\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_ctcsecondsforpoint\" - amount of second holding chumtoad for a point\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_breakabletime\" - amount of seconds before a breakable entity respawns\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "For more, see readme.txt\n" );
 	}
 #ifdef _DEBUG
+	else if (FStrEq( pcmd, "rtx" ))
+	{
+		CBaseEntity *breakable = UTIL_FindEntityByClassname(NULL, "func_breakable");
+		while (breakable != NULL)
+		{
+			((CBreakable *)breakable)->Restart();
+			breakable = UTIL_FindEntityByClassname(breakable, "func_breakable");
+		}
+	}
 	else if (FStrEq( pcmd, "edicts" )  )
 	{
 		ALERT(at_console, "[NUMBER_OF_ENTITIES()=%d , gpGlobals->maxEntities=%d]\n", NUMBER_OF_ENTITIES(), gpGlobals->maxEntities);

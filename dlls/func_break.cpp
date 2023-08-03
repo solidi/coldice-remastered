@@ -26,6 +26,7 @@
 #include "func_break.h"
 #include "decals.h"
 #include "explode.h"
+#include "game.h"
 
 extern DLL_GLOBAL Vector		g_vecAttackDir;
 
@@ -188,6 +189,11 @@ void CBreakable::Spawn( void )
     m_angle			= pev->angles.y;
 	pev->angles.y	= 0;
 
+	m_flHealth = pev->health;
+	m_flLastTargetName = pev->targetname;
+	m_strCurrentTarget = pev->target;
+	m_fOriginalOrigin = pev->origin;
+
 	// HACK:  matGlass can receive decals, we need the client to know about this
 	//  so use class to store the material flag
 	if ( m_Material == matGlass )
@@ -206,6 +212,33 @@ void CBreakable::Spawn( void )
 		pev->flags |= FL_WORLDBRUSH;
 }
 
+void CBreakable::Restart( void )
+{
+	pev->solid = SOLID_BBOX;
+	pev->movetype = MOVETYPE_PUSH;
+	pev->takedamage = DAMAGE_YES;
+	pev->deadflag = DEAD_NO;
+	pev->health	= m_flHealth;
+	pev->effects &= ~EF_NODRAW;
+
+	m_angle = pev->angles.y;
+	pev->angles.y = 0;
+	
+	SET_MODEL(ENT(pev), STRING(pev->model) );
+
+	if ( pev->friction > 399 )
+		pev->friction = 399;
+
+	//m_maxSpeed = 400 - pev->friction;
+
+	UTIL_SetOrigin(pev, m_fOriginalOrigin);
+
+	SetBits( pev->flags, FL_FLOAT );
+	pev->friction = 0;
+	//m_soundTime = 0;
+
+	EMIT_SOUND( ENT(pev), CHAN_BODY, "goldeneye_respawn.wav", 1, 1.0 );
+}
 
 const char *CBreakable::pSoundsWood[] = 
 {
@@ -317,6 +350,8 @@ void CBreakable::MaterialSoundRandom( edict_t *pEdict, Materials soundMaterial, 
 void CBreakable::Precache( void )
 {
 	const char *pGibName;
+
+	PRECACHE_SOUND("goldeneye_respawn.wav");
 
     switch (m_Material) 
 	{
@@ -598,7 +633,8 @@ int CBreakable :: TakeDamage( entvars_t* pevInflictor, entvars_t* pevAttacker, f
 	pev->health -= flDamage;
 	if (pev->health <= 0)
 	{
-		Killed( pevAttacker, GIB_NORMAL );
+		if (breakabletime.value <= 0)
+			Killed( pevAttacker, GIB_NORMAL );
 		Die();
 		return 0;
 	}
@@ -773,11 +809,24 @@ void CBreakable::Die( void )
 	pev->targetname = 0;
 
 	pev->solid = SOLID_NOT;
+
+	if (breakabletime.value > 0)
+	{
+		pev->deadflag = DEAD_DEAD;
+		pev->takedamage = DAMAGE_NO;
+		pev->effects = EF_NODRAW;
+		SetThink( &CBreakable::Restart );
+		pev->nextthink = pev->ltime + breakabletime.value;
+	}
+	else
+	{
+		SetThink( &CBreakable::SUB_Remove );
+		pev->nextthink = pev->ltime + 0.1;
+	}
+
 	// Fire targets on break
 	SUB_UseTargets( NULL, USE_TOGGLE, 0 );
 
-	SetThink( &CBreakable::SUB_Remove );
-	pev->nextthink = pev->ltime + 0.1;
 	if ( m_iszSpawnObject )
 		CBaseEntity::Create( (char *)STRING(m_iszSpawnObject), VecBModelOrigin(pev), pev->angles, edict() );
 

@@ -30,6 +30,7 @@ public:
 	void EXPORT BreakTouch( CBaseEntity *pOther );
 	void Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );
 	void DamageSound( void );
+	void Restart( void );
 
 	// breakables use an overridden takedamage
 	virtual int TakeDamage( entvars_t* pevInflictor, entvars_t* pevAttacker, float flDamage, int bitsDamageType );
@@ -69,6 +70,11 @@ public:
 	float		m_angle;
 	int			m_iszGibModel;
 	int			m_iszSpawnObject;
+
+	float	m_flHealth;
+	Vector m_fOriginalOrigin;
+	string_t m_strCurrentTarget;
+	string_t m_flLastTargetName;
 };
 
 #endif	// FUNC_BREAK_H
