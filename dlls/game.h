@@ -77,6 +77,7 @@ extern cvar_t   roundfraglimit;
 extern cvar_t   ggstartlevel;
 extern cvar_t   ctcsecondsforpoint;
 extern cvar_t   slowbullets;
+extern cvar_t   breakabletime;
 
 // Engine Cvars
 extern cvar_t	*g_psv_gravity;
