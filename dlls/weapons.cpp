@@ -41,7 +41,8 @@ extern DLL_GLOBAL const char *g_MutatorInstaGib;
 extern DLL_GLOBAL const char *g_MutatorRockets;
 extern DLL_GLOBAL const char *g_MutatorGrenades;
 extern DLL_GLOBAL const char *g_MutatorSnowball;
-
+extern DLL_GLOBAL const char *g_MutatorPaintball;
+extern int g_ItemsExplode;
 
 #define NOT_USED 255
 
@@ -607,6 +608,12 @@ void CBasePlayerItem :: FallInit( void )
 	pev->movetype = MOVETYPE_TOSS;
 	pev->solid = SOLID_BBOX;
 
+	if (g_ItemsExplode)
+	{
+		pev->takedamage = DAMAGE_YES;
+		pev->health = 1;
+	}
+
 	if (floatingweapons.value) {
 		pev->sequence = ((m_iId - 1) * 2) + 1;
 		pev->animtime = gpGlobals->time;
@@ -667,6 +674,12 @@ void CBasePlayerItem::Materialize( void )
 		EMIT_SOUND_DYN( ENT(pev), CHAN_WEAPON, "items/suitchargeok1.wav", 1, ATTN_NORM, 0, 150 );
 		pev->effects &= ~EF_NODRAW;
 		pev->effects |= EF_MUZZLEFLASH;
+
+		if (g_ItemsExplode)
+		{
+			pev->health = 1;
+			pev->takedamage = DAMAGE_YES;
+		}
 	}
 
 	pev->solid = SOLID_TRIGGER;
@@ -675,6 +688,63 @@ void CBasePlayerItem::Materialize( void )
 	SetTouch (&CBasePlayerItem::DefaultTouch);
 	SetThink (NULL);
 
+}
+
+int CBasePlayerItem::TakeDamage( entvars_t* pevInflictor, entvars_t* pevAttacker, float flDamage, int bitsDamageType )
+{
+	if ( !pev->takedamage )
+		return 0;
+
+	if ( pev->effects & EF_NODRAW )
+		return 0;
+
+	if (pevInflictor == pevAttacker)
+		return 0;
+
+#ifndef CLIENT_DLL
+	if (pev->health > 0 && flDamage > 0)
+	{
+		pev->takedamage = DAMAGE_NO;
+		pev->dmg = RANDOM_LONG(50, 100);
+		int iContents = UTIL_PointContents ( pev->origin );
+		MESSAGE_BEGIN( MSG_PAS, SVC_TEMPENTITY, pev->origin );
+			WRITE_BYTE( TE_EXPLOSION );		// This makes a dynamic light and the explosion sprites/sound
+			WRITE_COORD( pev->origin.x );	// Send to PAS because of the sound
+			WRITE_COORD( pev->origin.y );
+			WRITE_COORD( pev->origin.z );
+			if (iContents != CONTENTS_WATER)
+			{
+				if (icesprites.value) {
+					WRITE_SHORT( g_sModelIndexIceFireball );
+				} else {
+					WRITE_SHORT( g_sModelIndexFireball );
+				}
+			}
+			else
+			{
+				WRITE_SHORT( g_sModelIndexWExplosion );
+			}
+			WRITE_BYTE( (pev->dmg) * .60  ); // scale * 10
+			WRITE_BYTE( 15 ); // framerate
+			WRITE_BYTE( TE_EXPLFLAG_NONE );
+		MESSAGE_END();
+		TraceResult tr;
+		UTIL_TraceLine ( pev->origin, pev->origin + Vector ( 0, 0, -128 ), ignore_monsters, ENT(pev), &tr);
+		enum decal_e decal = DECAL_SCORCH1;
+		int index = RANDOM_LONG(0, 1);
+		if (strstr(mutators.string, g_MutatorPaintball) ||
+			atoi(mutators.string) == MUTATOR_PAINTBALL) {
+			decal = DECAL_PAINTL1;
+			index = RANDOM_LONG(0, 7);
+		}
+		UTIL_DecalTrace(&tr, decal + index);
+		::RadiusDamage( pev->origin, pev, pevAttacker, pev->dmg, pev->dmg  * 2.5, CLASS_NONE, DMG_BURN );
+		
+		Respawn();
+		Kill();
+	}
+#endif
+	return 1;
 }
 
 //=========================================================
@@ -1428,6 +1498,59 @@ void CBasePlayerWeapon::Holster( int skiplocal /* = 0 */ )
 	m_pPlayer->pev->weaponmodel = 0;
 }
 
+int CBasePlayerAmmo::TakeDamage( entvars_t* pevInflictor, entvars_t* pevAttacker, float flDamage, int bitsDamageType )
+{
+	if ( !pev->takedamage )
+		return 0;
+
+	if ( pev->effects & EF_NODRAW )
+		return 0;
+
+#ifndef CLIENT_DLL
+	if (pev->health > 0 && flDamage > 0)
+	{
+		pev->takedamage = DAMAGE_NO;
+		pev->dmg = RANDOM_LONG(50, 100);
+		int iContents = UTIL_PointContents ( pev->origin );
+		MESSAGE_BEGIN( MSG_PAS, SVC_TEMPENTITY, pev->origin );
+			WRITE_BYTE( TE_EXPLOSION );		// This makes a dynamic light and the explosion sprites/sound
+			WRITE_COORD( pev->origin.x );	// Send to PAS because of the sound
+			WRITE_COORD( pev->origin.y );
+			WRITE_COORD( pev->origin.z );
+			if (iContents != CONTENTS_WATER)
+			{
+				if (icesprites.value) {
+					WRITE_SHORT( g_sModelIndexIceFireball );
+				} else {
+					WRITE_SHORT( g_sModelIndexFireball );
+				}
+			}
+			else
+			{
+				WRITE_SHORT( g_sModelIndexWExplosion );
+			}
+			WRITE_BYTE( (pev->dmg) * .60  ); // scale * 10
+			WRITE_BYTE( 15 ); // framerate
+			WRITE_BYTE( TE_EXPLFLAG_NONE );
+		MESSAGE_END();
+		TraceResult tr;
+		UTIL_TraceLine ( pev->origin, pev->origin + Vector ( 0, 0, -128 ), ignore_monsters, ENT(pev), &tr);
+		enum decal_e decal = DECAL_SCORCH1;
+		int index = RANDOM_LONG(0, 1);
+		if (strstr(mutators.string, g_MutatorPaintball) ||
+			atoi(mutators.string) == MUTATOR_PAINTBALL) {
+			decal = DECAL_PAINTL1;
+			index = RANDOM_LONG(0, 7);
+		}
+		UTIL_DecalTrace(&tr, decal + index);
+		::RadiusDamage( pev->origin, pev, pevAttacker, pev->dmg, pev->dmg  * 2.5, CLASS_NONE, DMG_BURN );
+		
+		Respawn();
+	}
+#endif
+	return 1;
+}
+
 void CBasePlayerAmmo::Spawn( void )
 {
 	pev->movetype = MOVETYPE_TOSS;
@@ -1437,6 +1560,17 @@ void CBasePlayerAmmo::Spawn( void )
 
 	pev->sequence = floatingweapons.value;
 	pev->framerate = 1.0;
+
+	if (g_ItemsExplode)
+	{
+		// Engine does not support traceline with solid_trigger
+		// set owner to NULL if want the bbox to explode by own hand
+		//pev->solid = SOLID_BBOX;
+		//UTIL_SetSize(pev, Vector(-16, -16, 0), Vector(16, 16, 72));
+		//pev->owner = NULL;
+		pev->takedamage = DAMAGE_YES;
+		pev->health = 1;
+	}
 	
 	SetTouch( &CBasePlayerAmmo::DefaultTouch );
 }
@@ -1458,6 +1592,12 @@ void CBasePlayerAmmo::Materialize( void )
 {
 	if ( pev->effects & EF_NODRAW )
 	{
+		if (g_ItemsExplode)
+		{
+			pev->health = 1;
+			pev->takedamage = DAMAGE_YES;
+		}
+
 		// changing from invisible state to visible.
 		EMIT_SOUND_DYN( ENT(pev), CHAN_WEAPON, "items/suitchargeok1.wav", 1, ATTN_NORM, 0, 150 );
 		pev->effects &= ~EF_NODRAW;
@@ -1657,6 +1797,71 @@ void CWeaponBox::Spawn( void )
 	UTIL_SetSize( pev, g_vecZero, g_vecZero );
 
 	SET_MODEL( ENT(pev), "models/w_weaponbox.mdl");
+
+	if (g_ItemsExplode)
+	{
+		pev->health = 1;
+		pev->takedamage = DAMAGE_YES;
+		//pev->sequence = 1;
+		//pev->flags		|= FL_MONSTER;
+		//UTIL_SetSize(pev, Vector( -4, -4, -4), Vector(4, 4, 4));	// Uses point-sized, and can be stepped over
+		//UTIL_SetOrigin(pev, pev->origin);
+	}
+}
+
+int CWeaponBox::TakeDamage( entvars_t* pevInflictor, entvars_t* pevAttacker, float flDamage, int bitsDamageType)
+{
+	if ( !pev->takedamage )
+		return 0;
+
+	if ( pev->effects & EF_NODRAW )
+		return 0;
+
+#ifndef CLIENT_DLL
+	if (pev->health > 0 && pev->health > 0 && flDamage > 0)
+	{
+		pev->takedamage = DAMAGE_NO;
+		pev->dmg = RANDOM_LONG(50, 100);
+		int iContents = UTIL_PointContents ( pev->origin );
+		MESSAGE_BEGIN( MSG_PAS, SVC_TEMPENTITY, pev->origin );
+			WRITE_BYTE( TE_EXPLOSION );		// This makes a dynamic light and the explosion sprites/sound
+			WRITE_COORD( pev->origin.x );	// Send to PAS because of the sound
+			WRITE_COORD( pev->origin.y );
+			WRITE_COORD( pev->origin.z );
+			if (iContents != CONTENTS_WATER)
+			{
+				if (icesprites.value) {
+					WRITE_SHORT( g_sModelIndexIceFireball );
+				} else {
+					WRITE_SHORT( g_sModelIndexFireball );
+				}
+			}
+			else
+			{
+				WRITE_SHORT( g_sModelIndexWExplosion );
+			}
+			WRITE_BYTE( (pev->dmg) * .60  ); // scale * 10
+			WRITE_BYTE( 15 ); // framerate
+			WRITE_BYTE( TE_EXPLFLAG_NONE );
+		MESSAGE_END();
+		TraceResult tr;
+		UTIL_TraceLine ( pev->origin, pev->origin + Vector ( 0, 0, -128 ), ignore_monsters, ENT(pev), &tr);
+		enum decal_e decal = DECAL_SCORCH1;
+		int index = RANDOM_LONG(0, 1);
+		if (strstr(mutators.string, g_MutatorPaintball) ||
+			atoi(mutators.string) == MUTATOR_PAINTBALL) {
+			decal = DECAL_PAINTL1;
+			index = RANDOM_LONG(0, 7);
+		}
+		UTIL_DecalTrace(&tr, decal + index);
+		::RadiusDamage( pev->origin, pev, pevAttacker, pev->dmg, pev->dmg  * 2.5, CLASS_NONE, DMG_BURN );
+		
+		pev->takedamage = DAMAGE_NO;
+		SetThink(&CWeaponBox::Kill);
+		pev->nextthink = gpGlobals->time + 0.1;
+	}
+#endif
+	return 1;
 }
 
 //=========================================================
