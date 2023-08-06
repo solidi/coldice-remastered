@@ -39,6 +39,7 @@ extern int gmsgMutators;
 
 int g_teamplay = 0;
 int g_ExplosiveAI = 0;
+int g_ItemsExplode = 0;
 
 extern DLL_GLOBAL const char *g_MutatorChaos;
 extern DLL_GLOBAL const char *g_MutatorRocketCrowbar;
@@ -69,6 +70,7 @@ extern DLL_GLOBAL const char *g_MutatorJope;
 extern DLL_GLOBAL const char *g_MutatorLongJump;
 extern DLL_GLOBAL const char *g_MutatorSlowBullets;
 extern DLL_GLOBAL const char *g_MutatorExplosiveAI;
+extern DLL_GLOBAL const char *g_MutatorItemsExplode;
 
 extern DLL_GLOBAL int g_GameMode;
 
@@ -561,6 +563,69 @@ void CGameRules::SpawnMutators(CBasePlayer *pPlayer)
 		pPlayer->GiveRandomWeapon(NULL);
 }
 
+const char *entityList[] =
+{
+	"weapon_crowbar",
+	"weapon_knife"
+	"weapon_wrench",
+	"weapon_chainsaw",
+	"weapon_rocketcrowbar",
+	"weapon_gravitygun",
+	"weapon_ashpod",
+	"weapon_9mmhandgun",
+	"weapon_357",
+	"weapon_deagle",
+	"weapon_mag60",
+	"weapon_smg",
+	"weapon_sawedoff",
+	"weapon_dual_sawedoff",
+	"weapon_shotgun",
+	"weapon_9mmAR",
+	"weapon_12gauage",
+	"weapon_shotgun",
+	"weapon_usas",
+	"weapon_crossbow",
+	"weapon_sniperrifle",
+	"weapon_chaingun",
+	"weapon_freezegun",
+	"weapon_rpg",
+	"weapon_gauss",
+	"weapon_egon",
+	"weapon_hornetgun",
+	"weapon_railgun",
+	"weapon_glauncher",
+	"weapon_cannon",
+	"weapon_nuke",
+	"weapon_snowball",
+	"weapon_grenade",
+	"weapon_tripmine",
+	"weapon_satchel",
+	"weapon_snark",
+	"weapon_chumtoad",
+	"weapon_vest",
+	"weapon_flamethrower",
+	"weapon_dual_wrench",
+	"weapon_dual_deagle",
+	"weapon_dual_mag60",
+	"weapon_dual_smg",
+	"weapon_dual_usas",
+	"weapon_dual_railgun",
+	"weapon_dual_rpg",
+	"weapon_dual_flamethrower",
+	"ammo_rpgclip",
+	"ammo_9mmAR",
+	"ammo_ARgrenades",
+	"ammo_357",
+	"ammo_buckshot",
+	"ammo_9mmclip",
+	"ammo_gaussclip",
+	"ammo_crossbow",
+	"item_healthkit",
+	"item_battery",
+	"item_longjump",
+	"weaponbox",
+};
+
 void CGameRules::CheckMutators(void)
 {
 	if ((strstr(mutators.string, g_MutatorChaos) ||
@@ -823,6 +888,42 @@ void CGameRules::CheckMutators(void)
 				if ((!strstr(mutators.string, g_MutatorExplosiveAI) &&
 					atoi(mutators.string) != MUTATOR_EXPLOSIVEAI) && g_ExplosiveAI == 1)
 					g_ExplosiveAI = 0;
+			}
+
+			if ((strstr(mutators.string, g_MutatorItemsExplode) ||
+				atoi(mutators.string) == MUTATOR_ITEMSEXPLODE) && g_ItemsExplode != 1)
+			{
+				g_ItemsExplode = 1;
+
+				CBaseEntity *pEntity = NULL;
+				for (int itemIndex = 0; itemIndex < ARRAYSIZE(entityList); itemIndex++)
+				{
+					while ((pEntity = UTIL_FindEntityByClassname(pEntity, entityList[itemIndex])) != NULL)
+					{
+						// ALERT(at_aiconsole, "setting damage for %s at [x=%.2f,y=%.2f,z=%.2f]\n", entityList[itemIndex], pEntity->pev->origin.x, pEntity->pev->origin.y, pEntity->pev->origin.z);
+						pEntity->pev->takedamage = DAMAGE_YES;
+						pEntity->pev->health = 1;
+					}
+				}
+			}
+			else
+			{
+				if ((!strstr(mutators.string, g_MutatorItemsExplode) &&
+					atoi(mutators.string) != MUTATOR_ITEMSEXPLODE) && g_ItemsExplode == 1)
+				{
+					g_ItemsExplode = 0;
+
+					CBaseEntity *pEntity = NULL;
+					for (int itemIndex = 0; itemIndex < ARRAYSIZE(entityList); itemIndex++)
+					{
+						while ((pEntity = UTIL_FindEntityByClassname(pEntity, entityList[itemIndex])) != NULL)
+						{
+							// ALERT(at_aiconsole, "setting damage for %s at [x=%.2f,y=%.2f,z=%.2f]\n", entityList[itemIndex], pEntity->pev->origin.x, pEntity->pev->origin.y, pEntity->pev->origin.z);
+							pEntity->pev->takedamage = DAMAGE_NO;
+							pEntity->pev->health = 0;
+						}
+					}
+				}
 			}
 		}
 

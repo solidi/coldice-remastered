@@ -354,6 +354,7 @@ void CBasePlayerItem::Drop( void ) { }
 void CBasePlayerItem::Kill( void ) { }
 void CBasePlayerItem::Holster( int skiplocal ) { }
 void CBasePlayerItem::AttachToPlayer ( CBasePlayer *pPlayer ) { }
+int CBasePlayerItem :: TakeDamage( entvars_t* pevInflictor, entvars_t* pevAttacker, float flDamage, int bitsDamageType) { return -1; }
 int CBasePlayerWeapon::AddDuplicate( CBasePlayerItem *pOriginal ) { return 0; }
 int CBasePlayerWeapon::AddToPlayer( CBasePlayer *pPlayer ) { return FALSE; }
 void CBasePlayerWeapon::WeaponPickup(CBasePlayer *pPlayer, int weaponId) { }
@@ -367,6 +368,7 @@ void CBasePlayerAmmo::Spawn( void ) { }
 CBaseEntity* CBasePlayerAmmo::Respawn( void ) { return this; }
 void CBasePlayerAmmo::Materialize( void ) { }
 void CBasePlayerAmmo :: DefaultTouch( CBaseEntity *pOther ) { }
+int CBasePlayerAmmo :: TakeDamage( entvars_t* pevInflictor, entvars_t* pevAttacker, float flDamage, int bitsDamageType) { return -1; }
 int CBasePlayerWeapon::ExtractAmmo( CBasePlayerWeapon *pWeapon ) { return 0; }
 int CBasePlayerWeapon::ExtractClipAmmo( CBasePlayerWeapon *pWeapon ) { return 0; }	
 void CBasePlayerWeapon::RetireWeapon( void ) { }

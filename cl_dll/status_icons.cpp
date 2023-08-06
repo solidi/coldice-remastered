@@ -187,6 +187,19 @@ void CHudStatusIcons::DrawMutators( void )
 	ToggleMutatorIcon(MUTATOR_SLOWBULLETS, "slowbullets");
 	ToggleMutatorIcon(MUTATOR_EXPLOSIVEAI, "explosiveai");
 	ToggleMutatorIcon(MUTATOR_PAINTBALL, "paintball");
+	ToggleMutatorIcon(MUTATOR_ITEMSEXPLODE, "itemsexplode");
+	ToggleMutatorIcon(MUTATOR_LIGHTSOUT, "lightsout");
+	ToggleMutatorIcon(MUTATOR_ICE, "ice");
+	ToggleMutatorIcon(MUTATOR_PUSHY, "pushy");
+	ToggleMutatorIcon(MUTATOR_SUPERJUMP, "superjump");
+	ToggleMutatorIcon(MUTATOR_BARRELS, "barrels");
+	ToggleMutatorIcon(MUTATOR_SANIC, "sanic");
+	ToggleMutatorIcon(MUTATOR_SANIC, "snowball");
+	ToggleMutatorIcon(MUTATOR_LOOPBACK, "loopback");
+	ToggleMutatorIcon(MUTATOR_TURRETS, "turrets");
+	ToggleMutatorIcon(MUTATOR_INFINITEAMMO, "infiniteammo");
+	ToggleMutatorIcon(MUTATOR_RANDOMWEAPON, "randomweapon");
+	ToggleMutatorIcon(MUTATOR_ROCKETCROWBAR, "rocketcrowbar");
 }
 
 void CHudStatusIcons::ToggleMutatorIcon(int mutatorId, const char *mutator)

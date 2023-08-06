@@ -30,13 +30,16 @@
 #include "gamerules.h"
 #include "shake.h"
 #include "game.h"
+#include "decals.h"
 
 extern int gmsgItemPickup;
 extern int gmsgStatusIcon;
+extern int g_ItemsExplode;
 
 extern DLL_GLOBAL const char *g_MutatorTurrets;
 extern DLL_GLOBAL const char *g_MutatorBarrels;
 extern DLL_GLOBAL const char *g_MutatorMegaSpeed;
+extern DLL_GLOBAL const char *g_MutatorPaintball;
 
 class CWorldItem : public CBaseEntity
 {
@@ -104,6 +107,12 @@ void CItem::Spawn( void )
 
 	pev->sequence = floatingweapons.value;
 	pev->framerate = 1.0;
+
+	if (g_ItemsExplode)
+	{
+		pev->takedamage = DAMAGE_YES;
+		pev->health = 1;
+	}
 
 	if (DROP_TO_FLOOR(ENT(pev)) == 0)
 	{
@@ -178,9 +187,68 @@ void CItem::Materialize( void )
 		EMIT_SOUND_DYN( ENT(pev), CHAN_WEAPON, "items/suitchargeok1.wav", 1, ATTN_NORM, 0, 150 );
 		pev->effects &= ~EF_NODRAW;
 		pev->effects |= EF_MUZZLEFLASH;
+
+		if (g_ItemsExplode)
+		{
+			pev->health = 1;
+			pev->takedamage = DAMAGE_YES;
+		}
 	}
 
 	SetTouch( &CItem::ItemTouch );
+}
+
+int CItem::TakeDamage( entvars_t* pevInflictor, entvars_t* pevAttacker, float flDamage, int bitsDamageType )
+{
+	if ( !pev->takedamage )
+		return 0;
+
+	if ( pev->effects & EF_NODRAW )
+		return 0;
+
+#ifndef CLIENT_DLL
+	if (pev->health > 0 && flDamage > 0)
+	{
+		pev->takedamage = DAMAGE_NO;
+		pev->dmg = RANDOM_LONG(50, 100);
+		int iContents = UTIL_PointContents ( pev->origin );
+		MESSAGE_BEGIN( MSG_PAS, SVC_TEMPENTITY, pev->origin );
+			WRITE_BYTE( TE_EXPLOSION );		// This makes a dynamic light and the explosion sprites/sound
+			WRITE_COORD( pev->origin.x );	// Send to PAS because of the sound
+			WRITE_COORD( pev->origin.y );
+			WRITE_COORD( pev->origin.z );
+			if (iContents != CONTENTS_WATER)
+			{
+				if (icesprites.value) {
+					WRITE_SHORT( g_sModelIndexIceFireball );
+				} else {
+					WRITE_SHORT( g_sModelIndexFireball );
+				}
+			}
+			else
+			{
+				WRITE_SHORT( g_sModelIndexWExplosion );
+			}
+			WRITE_BYTE( (pev->dmg) * .60  ); // scale * 10
+			WRITE_BYTE( 15 ); // framerate
+			WRITE_BYTE( TE_EXPLFLAG_NONE );
+		MESSAGE_END();
+		TraceResult tr;
+		UTIL_TraceLine ( pev->origin, pev->origin + Vector ( 0, 0, -128 ), ignore_monsters, ENT(pev), &tr);
+		enum decal_e decal = DECAL_SCORCH1;
+		int index = RANDOM_LONG(0, 1);
+		if (strstr(mutators.string, g_MutatorPaintball) ||
+			atoi(mutators.string) == MUTATOR_PAINTBALL) {
+			decal = DECAL_PAINTL1;
+			index = RANDOM_LONG(0, 7);
+		}
+		UTIL_DecalTrace(&tr, decal + index);
+		::RadiusDamage( pev->origin, pev, pevAttacker, pev->dmg, pev->dmg  * 2.5, CLASS_NONE, DMG_BURN );
+		
+		Respawn();
+	}
+#endif
+	return 1;
 }
 
 #define SF_SUIT_SHORTLOGON		0x0001
