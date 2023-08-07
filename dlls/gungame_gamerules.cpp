@@ -375,6 +375,11 @@ BOOL CHalfLifeGunGame::IsAllowedToSpawn( CBaseEntity *pEntity )
 	return TRUE;
 }
 
+int CHalfLifeGunGame::WeaponShouldRespawn( CBasePlayerItem *pWeapon )
+{
+	return GR_WEAPON_RESPAWN_NO;
+}
+
 int CHalfLifeGunGame::DeadPlayerWeapons( CBasePlayer *pPlayer )
 {
 	return GR_PLR_DROP_GUN_NO;

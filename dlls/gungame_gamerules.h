@@ -28,6 +28,7 @@ public:
 	virtual int DeadPlayerAmmo( CBasePlayer *pPlayer );
 	virtual BOOL IsAllowedSingleWeapon( CBaseEntity *pEntity );
 	virtual BOOL IsAllowedToDropWeapon( void );
+	virtual int WeaponShouldRespawn( CBasePlayerItem *pWeapon );
 
 private:
 	float m_fGoToIntermission;
