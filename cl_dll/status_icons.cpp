@@ -200,6 +200,7 @@ void CHudStatusIcons::DrawMutators( void )
 	ToggleMutatorIcon(MUTATOR_INFINITEAMMO, "infiniteammo");
 	ToggleMutatorIcon(MUTATOR_RANDOMWEAPON, "randomweapon");
 	ToggleMutatorIcon(MUTATOR_ROCKETCROWBAR, "rocketcrowbar");
+	ToggleMutatorIcon(MUTATOR_NOTTHEBEES, "notthebees");
 }
 
 void CHudStatusIcons::ToggleMutatorIcon(int mutatorId, const char *mutator)

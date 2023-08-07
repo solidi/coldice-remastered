@@ -23,6 +23,7 @@ class CBasePlayer;
 class CItem;
 class CBasePlayerAmmo;
 class CBasePlayerWeapon;
+class CBaseMonster;
 
 // weapon respawning return codes
 enum
@@ -101,6 +102,7 @@ public:
 // Client kills/scoring
 	virtual int IPointsForKill( CBasePlayer *pAttacker, CBasePlayer *pKilled ) = 0;// how many points do I award whoever kills this player?
 	virtual void PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller, entvars_t *pInflictor ) = 0;// Called each time a player dies
+	virtual void MonsterKilled( CBaseMonster *pVictim, entvars_t *pKiller ) {};// Called each time a monster dies
 	virtual void DeathNotice( CBasePlayer *pVictim, entvars_t *pKiller, entvars_t *pInflictor )=  0;// Call this from within a GameRules class to report an obituary.
 // Weapon retrieval
 	virtual BOOL CanHavePlayerItem( CBasePlayer *pPlayer, CBasePlayerItem *pWeapon );// The player is touching an CBasePlayerItem, do I give it to him?
@@ -177,6 +179,10 @@ public:
 
 	// Immediately end a multiplayer game
 	virtual void EndMultiplayerGame( void ) {}
+
+protected:
+	int m_iNotTheBees;
+
 private:
 	char m_flCheckMutators[128];
 	float m_flChaosCheck = 0;
@@ -230,6 +236,7 @@ public:
 // Client kills/scoring
 	virtual int IPointsForKill( CBasePlayer *pAttacker, CBasePlayer *pKilled );
 	virtual void PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller, entvars_t *pInflictor );
+	virtual void MonsterKilled( CBaseMonster *pVictim, entvars_t *pKiller );
 	virtual void DeathNotice( CBasePlayer *pVictim, entvars_t *pKiller, entvars_t *pInflictor );
 
 // Weapon retrieval

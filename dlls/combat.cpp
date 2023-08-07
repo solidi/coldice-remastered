@@ -32,6 +32,7 @@
 #include "shake.h"
 #include "player.h"
 #include "game.h"
+#include "gamerules.h"
 
 extern DLL_GLOBAL Vector		g_vecAttackDir;
 extern DLL_GLOBAL int			g_iSkillLevel;
@@ -659,6 +660,8 @@ void CBaseMonster :: Killed( entvars_t *pevAttacker, int iGib )
 	}
 
 	Remember( bits_MEMORY_KILLED );
+
+	g_pGameRules->MonsterKilled(this, pevAttacker );
 
 	// clear the deceased's sound channels.(may have been firing or reloading when killed)
 	EMIT_SOUND(ENT(pev), CHAN_WEAPON, "common/null.wav", 1, ATTN_NORM);

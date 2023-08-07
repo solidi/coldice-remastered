@@ -189,6 +189,93 @@ void CHalfLifeRules :: PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller, e
 {
 }
 
+void CHalfLifeRules :: MonsterKilled( CBaseMonster *pVictim, entvars_t *pKiller )
+{
+	if (m_iNotTheBees && strcmp("hornet", STRING(pVictim->pev->classname)) != 0)
+	{
+		CBaseEntity *ktmp = CBaseEntity::Instance( pKiller );
+		BOOL isPlayer = FALSE;
+		if ( ktmp && (ktmp->Classify() == CLASS_PLAYER) )
+			isPlayer = TRUE;
+		Vector angles;
+
+		if (isPlayer) 
+			angles = UTIL_VecToAngles((pKiller->origin + pKiller->view_ofs ) - pVictim->pev->origin);
+
+		CBaseEntity *hornet = CBaseEntity::Create( "hornet", pVictim->GetGunPosition( ) + gpGlobals->v_up * -16, isPlayer ? angles : gpGlobals->v_up, pVictim->edict() );
+		if (hornet != NULL)
+		{
+			if (isPlayer)
+			{
+				hornet->pev->velocity = ( ( pKiller->origin + pKiller->view_ofs ) - hornet->pev->origin ).Normalize() * RANDOM_LONG(100, 200);
+				//hornet->pev->velocity.z += 100;
+			}
+			else
+				hornet->pev->velocity = gpGlobals->v_up * RANDOM_LONG(100, 200);
+		}
+
+		hornet = CBaseEntity::Create( "hornet", pVictim->GetGunPosition( ) + gpGlobals->v_up * 8, isPlayer ? angles : gpGlobals->v_up, pVictim->edict() );
+		if (hornet != NULL)
+		{
+			if (isPlayer)
+			{
+				hornet->pev->velocity = ( ( pKiller->origin + pKiller->view_ofs ) - hornet->pev->origin ).Normalize() * RANDOM_LONG(100, 200);
+				//hornet->pev->velocity.z += 100;
+			}
+			else
+				hornet->pev->velocity = gpGlobals->v_up * RANDOM_LONG(100, 200);
+		}
+
+		hornet = CBaseEntity::Create( "hornet", pVictim->GetGunPosition( ) + gpGlobals->v_up * -16 + gpGlobals->v_forward * 24, isPlayer ? angles : gpGlobals->v_forward, pVictim->edict() );
+		if (hornet != NULL)
+		{
+			if (isPlayer)
+			{
+				hornet->pev->velocity = ( ( pKiller->origin + pKiller->view_ofs ) - hornet->pev->origin ).Normalize() * RANDOM_LONG(100, 200);
+				//hornet->pev->velocity.z += 100;
+			}
+			else
+				hornet->pev->velocity = gpGlobals->v_forward * RANDOM_LONG(100, 200);
+		}
+
+		hornet = CBaseEntity::Create( "hornet", pVictim->GetGunPosition( ) + gpGlobals->v_up * -16 + gpGlobals->v_forward * -24, isPlayer ? angles : gpGlobals->v_forward * -1, pVictim->edict() );
+		if (hornet != NULL)
+		{
+			if (isPlayer)
+			{
+				hornet->pev->velocity = ( ( pKiller->origin + pKiller->view_ofs ) - hornet->pev->origin ).Normalize() * RANDOM_LONG(100, 200);
+				//hornet->pev->velocity.z += 100;
+			}
+			else
+				hornet->pev->velocity = (gpGlobals->v_forward * -1) * RANDOM_LONG(100, 200);
+		}
+
+		hornet = CBaseEntity::Create( "hornet", pVictim->GetGunPosition( ) + gpGlobals->v_up * -16 + gpGlobals->v_right * 24, isPlayer ? angles : gpGlobals->v_right, pVictim->edict() );
+		if (hornet != NULL)
+		{
+			if (isPlayer)
+			{
+				hornet->pev->velocity = ( ( pKiller->origin + pKiller->view_ofs ) - hornet->pev->origin ).Normalize() * RANDOM_LONG(100, 200);
+				//hornet->pev->velocity.z += 100;
+			}
+			else
+				hornet->pev->velocity = gpGlobals->v_right * RANDOM_LONG(100, 200);
+		}
+
+		hornet = CBaseEntity::Create( "hornet", pVictim->GetGunPosition( ) + gpGlobals->v_up * -16 + gpGlobals->v_right * -24, isPlayer ? angles : gpGlobals->v_right * -1, pVictim->edict() );
+		if (hornet != NULL)
+		{
+			if (isPlayer)
+			{
+				hornet->pev->velocity = ( ( pKiller->origin + pKiller->view_ofs ) - hornet->pev->origin ).Normalize() * RANDOM_LONG(100, 200);
+				//hornet->pev->velocity.z += 100;
+			}
+			else
+				hornet->pev->velocity = (gpGlobals->v_right * -1) * RANDOM_LONG(100, 200);
+		}
+	}
+}
+
 //=========================================================
 // Deathnotice
 //=========================================================
