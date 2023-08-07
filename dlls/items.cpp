@@ -510,6 +510,10 @@ void CRune::ShowStatus(CBasePlayer *pPlayer, const char* icon, int r, int g, int
 
 void CRune::ShellPlayer(CBasePlayer *pPlayer, int r, int g, int b)
 {
+	// Don't shell player if they are invisible
+	if (pPlayer->pev->rendermode == kRenderTransAlpha)
+		return;
+
 	pPlayer->pev->renderfx = kRenderFxGlowShell;
 	pPlayer->pev->renderamt = 5;
 	pPlayer->pev->rendercolor.x = r;
@@ -1056,6 +1060,8 @@ class CAmmoRune : public CRune
 		{
 			pPlayer->m_fHasRune = RUNE_AMMO;
 
+			ShellPlayer(pPlayer, 200, 200, 0);
+
 			MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
 				WRITE_BYTE( TE_PARTICLEBURST );
 				WRITE_COORD(pPlayer->pev->origin.x);
@@ -1187,13 +1193,17 @@ void CWorldRunes::CreateRune(char *sz_RuneClass)
 		return;
 	}
 
-	CBaseEntity *pRune = CBaseEntity::Create(sz_RuneClass, m_pSpot->pev->origin, Vector(0, 0, 0), NULL );
+	CBaseEntity *rune = CBaseEntity::Create(sz_RuneClass, m_pSpot->pev->origin, Vector(0, 0, 0), NULL );
 
-	if (pRune)
+	if (rune)
 	{
-		pRune->pev->velocity.x = RANDOM_FLOAT( -300, 300 );
-		pRune->pev->velocity.y = RANDOM_FLOAT( -300, 300 );
-		pRune->pev->velocity.z = RANDOM_FLOAT( 0, 300 );
+		rune->pev->velocity.x = RANDOM_FLOAT( -300, 300 );
+		rune->pev->velocity.y = RANDOM_FLOAT( -300, 300 );
+		rune->pev->velocity.z = RANDOM_FLOAT( 0, 300 );
+	}
+	else
+	{
+		ALERT (at_console, "%s did not spawn.\n", sz_RuneClass);
 	}
 
 	if (strstr(mutators.string, g_MutatorTurrets) ||
