@@ -200,6 +200,12 @@ void CHudStatusIcons::DrawMutators( void )
 	ToggleMutatorIcon(MUTATOR_INFINITEAMMO, "infiniteammo");
 	ToggleMutatorIcon(MUTATOR_RANDOMWEAPON, "randomweapon");
 	ToggleMutatorIcon(MUTATOR_ROCKETCROWBAR, "rocketcrowbar");
+	ToggleMutatorIcon(MUTATOR_NOTTHEBEES, "notthebees");
+	ToggleMutatorIcon(MUTATOR_INSTAGIB, "instagib");
+	ToggleMutatorIcon(MUTATOR_MEGASPEED, "megarun");
+	ToggleMutatorIcon(MUTATOR_MAXPACK, "maxpack");
+	ToggleMutatorIcon(MUTATOR_DKMODE, "dkmode");
+	ToggleMutatorIcon(MUTATOR_SLOWMO, "slowmo");
 }
 
 void CHudStatusIcons::ToggleMutatorIcon(int mutatorId, const char *mutator)

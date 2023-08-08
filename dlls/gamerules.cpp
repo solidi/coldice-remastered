@@ -71,6 +71,7 @@ extern DLL_GLOBAL const char *g_MutatorLongJump;
 extern DLL_GLOBAL const char *g_MutatorSlowBullets;
 extern DLL_GLOBAL const char *g_MutatorExplosiveAI;
 extern DLL_GLOBAL const char *g_MutatorItemsExplode;
+extern DLL_GLOBAL const char *g_MutatorNotTheBees;
 
 extern DLL_GLOBAL int g_GameMode;
 
@@ -924,6 +925,18 @@ void CGameRules::CheckMutators(void)
 						}
 					}
 				}
+			}
+
+			if ((strstr(mutators.string, g_MutatorNotTheBees) ||
+				atoi(mutators.string) == MUTATOR_NOTTHEBEES) && m_iNotTheBees != 1)
+			{
+				m_iNotTheBees = 1;
+			}
+			else
+			{
+				if ((!strstr(mutators.string, g_MutatorNotTheBees) &&
+					atoi(mutators.string) != MUTATOR_NOTTHEBEES) && m_iNotTheBees == 1)
+					m_iNotTheBees = 0;
 			}
 		}
 
