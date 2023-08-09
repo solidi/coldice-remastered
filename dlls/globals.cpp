@@ -80,5 +80,6 @@ DLL_GLOBAL const char *g_MutatorSlowBullets = "slowbullets";
 DLL_GLOBAL const char *g_MutatorExplosiveAI = "explosiveai";
 DLL_GLOBAL const char *g_MutatorItemsExplode = "itemsexplode";
 DLL_GLOBAL const char *g_MutatorNotTheBees = "notthebees";
+DLL_GLOBAL const char *g_MutatorDontShoot = "dontshoot";
 
 DLL_GLOBAL int g_GameMode;

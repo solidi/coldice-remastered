@@ -206,6 +206,7 @@ void CHudStatusIcons::DrawMutators( void )
 	ToggleMutatorIcon(MUTATOR_MAXPACK, "maxpack");
 	ToggleMutatorIcon(MUTATOR_DKMODE, "dkmode");
 	ToggleMutatorIcon(MUTATOR_SLOWMO, "slowmo");
+	ToggleMutatorIcon(MUTATOR_DONTSHOOT, "dontshoot");
 }
 
 void CHudStatusIcons::ToggleMutatorIcon(int mutatorId, const char *mutator)

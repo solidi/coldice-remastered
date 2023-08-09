@@ -167,7 +167,7 @@ public:
 #endif
 
 	virtual void SpawnMutators( CBasePlayer *pPlayer );
-	virtual void WeaponMutators( CBasePlayerWeapon *pWeapon );
+	virtual BOOL WeaponMutators( CBasePlayerWeapon *pWeapon );
 	virtual void CheckMutators( void );
 	virtual void UpdateMutatorMessage( CBasePlayer *pPlayer );
 	virtual void UpdateGameModeMessage( CBasePlayer *pPlayer );
@@ -181,7 +181,8 @@ public:
 	virtual void EndMultiplayerGame( void ) {}
 
 protected:
-	int m_iNotTheBees;
+	BOOL m_iNotTheBees;
+	BOOL m_iDontShoot;
 
 private:
 	char m_flCheckMutators[128];
