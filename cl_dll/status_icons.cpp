@@ -72,6 +72,13 @@ int CHudStatusIcons::Draw( float flTime )
 			
 			SPR_Set( m_IconList[i].spr, m_IconList[i].r, m_IconList[i].g, m_IconList[i].b );
 			SPR_DrawAdditive( 0, x, y, &m_IconList[i].rc );
+
+			// Label the icon for clarity
+			const char *szSpriteName = m_IconList[i].szSpriteName;
+			if (strncmp(szSpriteName, "rune_", 5) == 0)
+				szSpriteName += 5;
+			int size = ConsoleStringLen(szSpriteName);
+			DrawConsoleString(x + (((m_IconList[i].rc.right - m_IconList[i].rc.left) / 2) - (size / 2)), y + (m_IconList[i].rc.bottom - m_IconList[i].rc.top) - 3, szSpriteName);
 		}
 	}
 	
@@ -206,6 +213,7 @@ void CHudStatusIcons::DrawMutators( void )
 	ToggleMutatorIcon(MUTATOR_MAXPACK, "maxpack");
 	ToggleMutatorIcon(MUTATOR_DKMODE, "dkmode");
 	ToggleMutatorIcon(MUTATOR_SLOWMO, "slowmo");
+	ToggleMutatorIcon(MUTATOR_DONTSHOOT, "dontshoot");
 }
 
 void CHudStatusIcons::ToggleMutatorIcon(int mutatorId, const char *mutator)

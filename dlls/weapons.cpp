@@ -1031,6 +1031,8 @@ void CBasePlayerWeapon::ItemPostFrame( void )
 		m_flLastFireTime = 0.0f;
 	}
 
+	BOOL canFire = FALSE;
+
 	if ((m_pPlayer->pev->button & IN_ATTACK2) && CanAttack( m_flNextSecondaryAttack, gpGlobals->time, UseDecrement() ) )
 	{
 		if ( pszAmmo2() && !m_pPlayer->m_rgAmmo[SecondaryAmmoIndex()] )
@@ -1043,18 +1045,21 @@ void CBasePlayerWeapon::ItemPostFrame( void )
 		}
 
 		m_pPlayer->TabulateAmmo();
+
 		if (SemiAuto()) {
 			if (!m_bFired)
 			{
-				SecondaryAttack();
 				if (!m_fFireOnEmpty)
-					g_pGameRules->WeaponMutators(this);
+					canFire = g_pGameRules->WeaponMutators(this);
+				if (canFire)
+					SecondaryAttack();
 			}
 			m_bFired = TRUE;
 		} else {
-			SecondaryAttack();
 			if (!m_fFireOnEmpty)
-				g_pGameRules->WeaponMutators(this);
+				canFire = g_pGameRules->WeaponMutators(this);
+			if (canFire)
+				SecondaryAttack();
 		}
 		m_pPlayer->pev->button &= ~IN_ATTACK2;
 	}
@@ -1073,15 +1078,17 @@ void CBasePlayerWeapon::ItemPostFrame( void )
 		if (SemiAuto()) {
 			if (!m_bFired)
 			{
-				PrimaryAttack();
 				if (!m_fFireOnEmpty)
-					g_pGameRules->WeaponMutators(this);
+					canFire = g_pGameRules->WeaponMutators(this);
+				if (canFire)
+					PrimaryAttack();
 			}
 			m_bFired = TRUE;
 		} else {
-			PrimaryAttack();
 			if (!m_fFireOnEmpty)
-				g_pGameRules->WeaponMutators(this);
+				canFire = g_pGameRules->WeaponMutators(this);
+			if (canFire)
+				PrimaryAttack();
 		}
 	}
 	else if ( m_pPlayer->pev->button & IN_RELOAD && iMaxClip() != WEAPON_NOCLIP && !m_fInReload ) 

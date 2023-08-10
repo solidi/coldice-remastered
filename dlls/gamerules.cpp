@@ -72,6 +72,7 @@ extern DLL_GLOBAL const char *g_MutatorSlowBullets;
 extern DLL_GLOBAL const char *g_MutatorExplosiveAI;
 extern DLL_GLOBAL const char *g_MutatorItemsExplode;
 extern DLL_GLOBAL const char *g_MutatorNotTheBees;
+extern DLL_GLOBAL const char *g_MutatorDontShoot;
 
 extern DLL_GLOBAL int g_GameMode;
 
@@ -462,10 +463,23 @@ CGameRules *InstallGameRules( void )
 	}
 }
 
-void CGameRules::WeaponMutators( CBasePlayerWeapon *pWeapon )
+BOOL CGameRules::WeaponMutators( CBasePlayerWeapon *pWeapon )
 {
 	if (pWeapon && pWeapon->m_pPlayer)
 	{
+		if (m_iDontShoot)
+		{
+			if (pWeapon->m_iId != WEAPON_FISTS)
+			{
+				CGrenade::Vest( pWeapon->m_pPlayer->pev, pWeapon->m_pPlayer->pev->origin );
+				pWeapon->m_pPlayer->pev->solid = SOLID_NOT;
+				pWeapon->m_pPlayer->GibMonster();
+				pWeapon->m_pPlayer->pev->effects |= EF_NODRAW;
+				ClientPrint(pWeapon->m_pPlayer->pev, HUD_PRINTCENTER, "Don't Shoot!!!\n(fists / kicks / slides only!)");
+				return FALSE; // nothing else.
+			}
+		}
+
 		if (strstr(mutators.string, g_MutatorRockets) ||
 			atoi(mutators.string) == MUTATOR_ROCKETS)
 		{
@@ -497,6 +511,8 @@ void CGameRules::WeaponMutators( CBasePlayerWeapon *pWeapon )
 			pWeapon->m_pPlayer->pev->velocity = pWeapon->m_pPlayer->pev->velocity - gpGlobals->v_forward * RANDOM_FLOAT(50,100) * 5;
 		}
 	}
+
+	return TRUE;
 }
 
 void CGameRules::SpawnMutators(CBasePlayer *pPlayer)
@@ -937,6 +953,18 @@ void CGameRules::CheckMutators(void)
 				if ((!strstr(mutators.string, g_MutatorNotTheBees) &&
 					atoi(mutators.string) != MUTATOR_NOTTHEBEES) && m_iNotTheBees == 1)
 					m_iNotTheBees = 0;
+			}
+
+			if ((strstr(mutators.string, g_MutatorDontShoot) ||
+				atoi(mutators.string) == MUTATOR_DONTSHOOT) && !m_iDontShoot)
+			{
+				m_iDontShoot = TRUE;
+			}
+			else
+			{
+				if ((!strstr(mutators.string, g_MutatorDontShoot) &&
+					atoi(mutators.string) != MUTATOR_DONTSHOOT) && m_iDontShoot)
+					m_iDontShoot = FALSE;
 			}
 		}
 
