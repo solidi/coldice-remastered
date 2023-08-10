@@ -966,6 +966,18 @@ void CGameRules::CheckMutators(void)
 					atoi(mutators.string) != MUTATOR_DONTSHOOT) && m_iDontShoot)
 					m_iDontShoot = FALSE;
 			}
+
+			if ((strstr(mutators.string, g_MutatorVolatile) ||
+				atoi(mutators.string) == MUTATOR_VOLATILE) && !m_iVolatile)
+			{
+				m_iVolatile = TRUE;
+			}
+			else
+			{
+				if ((!strstr(mutators.string, g_MutatorVolatile) &&
+					atoi(mutators.string) != MUTATOR_VOLATILE) && m_iVolatile)
+					m_iVolatile = FALSE;
+			}
 		}
 
 		char szMutators[64];

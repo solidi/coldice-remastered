@@ -183,6 +183,7 @@ public:
 protected:
 	BOOL m_iNotTheBees;
 	BOOL m_iDontShoot;
+	BOOL m_iVolatile;
 
 private:
 	char m_flCheckMutators[128];

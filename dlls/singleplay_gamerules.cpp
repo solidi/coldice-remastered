@@ -274,6 +274,13 @@ void CHalfLifeRules :: MonsterKilled( CBaseMonster *pVictim, entvars_t *pKiller 
 				hornet->pev->velocity = (gpGlobals->v_right * -1) * RANDOM_LONG(100, 200);
 		}
 	}
+
+	if (m_iVolatile) {
+		CGrenade::Vest( pVictim->pev, pVictim->pev->origin );
+		pVictim->pev->solid = SOLID_NOT;
+		pVictim->GibMonster();
+		pVictim->pev->effects |= EF_NODRAW;
+	}
 }
 
 //=========================================================

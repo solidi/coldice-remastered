@@ -37,7 +37,6 @@ extern DLL_GLOBAL CGameRules	*g_pGameRules;
 extern DLL_GLOBAL BOOL	g_fGameOver;
 
 extern DLL_GLOBAL const char *g_MutatorInstaGib;
-extern DLL_GLOBAL const char *g_MutatorVolatile;
 extern DLL_GLOBAL const char *g_MutatorPlumber;
 extern DLL_GLOBAL const char *g_MutatorPaintball;
 extern DLL_GLOBAL const char *g_MutatorSuperJump;
@@ -2023,8 +2022,7 @@ void CHalfLifeMultiplay :: PlayerKilled( CBasePlayer *pVictim, entvars_t *pKille
 	DeactivatePortals( pVictim );
 #endif
 
-	if (strstr(mutators.string, g_MutatorVolatile) ||
-		atoi(mutators.string) == MUTATOR_VOLATILE) {
+	if (m_iVolatile) {
 		// No echo boom
 		if (pInflictor && FClassnameIs(pInflictor, "vest"))
 			return;
