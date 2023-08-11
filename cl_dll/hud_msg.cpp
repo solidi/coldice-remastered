@@ -293,7 +293,7 @@ int CHud :: MsgFunc_Particle( const char *pszName, int iSize, void *pbuf )
 	char fileName[64];
 	strcpy(fileName, "aurora/");
 
-	if (cl_icemodels && (cl_icemodels->value > 0 && cl_icemodels->value < 4))
+	if (cl_icemodels && (cl_icemodels->value >= SKIN_INVERSE && cl_icemodels->value <= SKIN_EDITION))
 	{
 		strcat(fileName, "ice_");
 	}
@@ -354,7 +354,7 @@ void CHud :: MsgFunc_MParticle( const char *pszName, int iSize, void *pbuf )
 
 	char fileName[64];
 	strcpy(fileName, "aurora/");
-	if (cl_icemodels && cl_icemodels->value)
+	if (cl_icemodels && (cl_icemodels->value >= SKIN_INVERSE && cl_icemodels->value <= SKIN_EDITION))
 	{
 		strcat(fileName, "ice_");
 	}

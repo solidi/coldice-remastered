@@ -409,7 +409,7 @@ void CL_DLLEXPORT HUD_StudioEvent( const struct mstudioevent_s *event, const str
 	{
 	case 5001:
 		if ( iMuzzleFlash ) {
-			if (cl_icemodels && cl_icemodels->value)
+			if (cl_icemodels && (cl_icemodels->value >= SKIN_INVERSE && cl_icemodels->value <= SKIN_EDITION))
 				R_RealMuzzleFlash(entity->attachment[0], atoi(event->options));
 			else	
 				gEngfuncs.pEfxAPI->R_MuzzleFlash( (float *)&entity->attachment[0], atoi( event->options) );
@@ -417,7 +417,7 @@ void CL_DLLEXPORT HUD_StudioEvent( const struct mstudioevent_s *event, const str
 		break;
 	case 5011:
 		if ( iMuzzleFlash ) {
-			if (cl_icemodels && cl_icemodels->value)
+			if (cl_icemodels && (cl_icemodels->value >= SKIN_INVERSE && cl_icemodels->value <= SKIN_EDITION))
 				R_RealMuzzleFlash(entity->attachment[1], atoi(event->options));
 			else	
 				gEngfuncs.pEfxAPI->R_MuzzleFlash( (float *)&entity->attachment[1], atoi( event->options) );
@@ -425,7 +425,7 @@ void CL_DLLEXPORT HUD_StudioEvent( const struct mstudioevent_s *event, const str
 		break;
 	case 5021:
 		if ( iMuzzleFlash ) {
-			if (cl_icemodels && cl_icemodels->value)
+			if (cl_icemodels && (cl_icemodels->value >= SKIN_INVERSE && cl_icemodels->value <= SKIN_EDITION))
 				R_RealMuzzleFlash(entity->attachment[2], atoi(event->options));
 			else	
 				gEngfuncs.pEfxAPI->R_MuzzleFlash( (float *)&entity->attachment[2], atoi( event->options) );
@@ -433,7 +433,7 @@ void CL_DLLEXPORT HUD_StudioEvent( const struct mstudioevent_s *event, const str
 		break;
 	case 5031:
 		if ( iMuzzleFlash ) {
-			if (cl_icemodels && cl_icemodels->value)
+			if (cl_icemodels && (cl_icemodels->value >= SKIN_INVERSE && cl_icemodels->value <= SKIN_EDITION))
 				R_RealMuzzleFlash(entity->attachment[3], atoi(event->options));
 			else	
 				gEngfuncs.pEfxAPI->R_MuzzleFlash( (float *)&entity->attachment[3], atoi( event->options) );

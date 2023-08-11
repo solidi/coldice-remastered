@@ -454,7 +454,7 @@ void EV_HLDM_FireBullets( int idx, float *forward, float *right, float *up, int 
 						vel = vecDir * gEngfuncs.pfnRandomLong(400, 600) + player->curstate.velocity;
 					}
 					int model = gEngfuncs.pEventAPI->EV_FindModelIndex( "sprites/hotglow.spr");
-					if (cl_icemodels && cl_icemodels->value)
+					if (cl_icemodels && (cl_icemodels->value >= SKIN_INVERSE && cl_icemodels->value <= SKIN_EDITION))
 						model = gEngfuncs.pEventAPI->EV_FindModelIndex( "sprites/ice_hotglow.spr");
 					gEngfuncs.pEfxAPI->R_TempSprite(vecGunPosition, vel,
 													0.018, model, kRenderTransAdd, kRenderFxNoDissipation,
@@ -536,7 +536,7 @@ void EV_HLDM_FireBullets( int idx, float *forward, float *right, float *up, int 
 
 				if ( gEngfuncs.pfnRandomLong(0, 3) > 2 ) {
 					int model = gEngfuncs.pEventAPI->EV_FindModelIndex( "sprites/sparks.spr" );
-					if (cl_icemodels && cl_icemodels->value)
+					if (cl_icemodels && (cl_icemodels->value >= SKIN_INVERSE && cl_icemodels->value <= SKIN_EDITION))
 						model = gEngfuncs.pEventAPI->EV_FindModelIndex( "sprites/ice_sparks.spr" );
 					TEMPENTITY *t = gEngfuncs.pEfxAPI->R_DefaultSprite(tr.endpos - Vector(forward[0], forward[1], forward[2]) * 40, model, gEngfuncs.pfnRandomLong(12, 18));
 					if (t) {
@@ -1067,7 +1067,7 @@ void EV_FireGauss( event_args_t *args )
 	EV_GetGunPosition( args, vecSrc, origin );
 
 	m_iBeam = gEngfuncs.pEventAPI->EV_FindModelIndex( "sprites/smoke.spr" );
-	if (cl_icemodels && cl_icemodels->value)
+	if (cl_icemodels && (cl_icemodels->value >= SKIN_INVERSE && cl_icemodels->value <= SKIN_EDITION))
 		m_iBalls = m_iGlow = gEngfuncs.pEventAPI->EV_FindModelIndex( "sprites/ice_hotglow.spr" );
 	else
 		m_iBalls = m_iGlow = gEngfuncs.pEventAPI->EV_FindModelIndex( "sprites/hotglow.spr" );
@@ -1109,7 +1109,7 @@ void EV_FireGauss( event_args_t *args )
 			break;
 
 		int r = 255, g = 128, b = 0;
-		if (cl_icemodels && cl_icemodels->value) {
+		if (cl_icemodels && (cl_icemodels->value >= SKIN_INVERSE && cl_icemodels->value <= SKIN_EDITION)) {
 			r = 0;
 			g = 113;
 			b = 230;
@@ -3508,7 +3508,7 @@ void EV_GravityGun(event_args_t* args)
 			VectorAverage(targent->curstate.maxs + targent->origin, targent->curstate.mins + targent->origin, targpos);
 
 		int r = 255, g = 128, b = 0;
-		if (cl_icemodels && cl_icemodels->value) {
+		if (cl_icemodels && (cl_icemodels->value >= SKIN_INVERSE && cl_icemodels->value <= SKIN_EDITION)) {
 			r = 0;
 			g = 113;
 			b = 230;
