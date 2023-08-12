@@ -102,6 +102,7 @@ typedef enum {
 	ACT_RIGHT_FLIP,
 	ACT_LEFT_FLIP,
 	ACT_BACK_FLIP,
+	ACT_FRONT_FLIP,
 	ACT_PULL_UP,
 } Activity;
 

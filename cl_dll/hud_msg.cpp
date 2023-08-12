@@ -189,6 +189,10 @@ int CHud :: MsgFunc_Acrobatics(const char *pszName, int iSize, void *pbuf )
 		axis = PITCH;
 		amount = 360;
 		break;
+	case ACROBATICS_FLIP_FRONT:
+		axis = PITCH;
+		amount = -360;
+		break;
 	case ACROBATICS_WALLCLIMB:
 		g_WallClimb = gEngfuncs.GetClientTime() + 1;
 		gHUD.m_WallClimb.m_iFlags |= HUD_ACTIVE;

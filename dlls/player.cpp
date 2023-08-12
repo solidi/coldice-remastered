@@ -1108,6 +1108,10 @@ void CBasePlayer::SetAnimation( PLAYER_ANIM playerAnim )
 		m_IdealActivity = ACT_BACK_FLIP;
 		break;
 
+	case PLAYER_FRONT_FLIP:
+		m_IdealActivity = ACT_FRONT_FLIP;
+		break;
+
 	case PLAYER_JUMP:
 		m_IdealActivity = ACT_HOP;
 		break;
@@ -1139,6 +1143,7 @@ void CBasePlayer::SetAnimation( PLAYER_ANIM playerAnim )
 		case ACT_RIGHT_FLIP:
 		case ACT_LEFT_FLIP:
 		case ACT_BACK_FLIP:
+		case ACT_FRONT_FLIP:
 		case ACT_PULL_UP:
 			m_IdealActivity = m_Activity;
 			break;
@@ -1181,6 +1186,10 @@ void CBasePlayer::SetAnimation( PLAYER_ANIM playerAnim )
 		{
 			m_IdealActivity = m_Activity;
 		}
+		else if ( m_fFlipTime > gpGlobals->time && m_Activity == ACT_FRONT_FLIP )
+		{
+			m_IdealActivity = m_Activity;
+		}
 		else if ( pev->waterlevel > 1 )
 		{
 			if ( speed == 0 )
@@ -1209,6 +1218,7 @@ void CBasePlayer::SetAnimation( PLAYER_ANIM playerAnim )
 	case ACT_RIGHT_FLIP:
 	case ACT_LEFT_FLIP:
 	case ACT_BACK_FLIP:
+	case ACT_FRONT_FLIP:
 	case ACT_PULL_UP:
 	default:
 		if ( m_Activity == m_IdealActivity)
@@ -1871,6 +1881,10 @@ void CBasePlayer::ClimbingPhysics()
 	if (!acrobatics.value)
 		return;
 
+	// Prevent running double jump flip with grapple attempt
+	if (m_fFlipTime >= gpGlobals->time)
+		return;
+
 	UTIL_MakeVectors(pev->angles);
 
 	int normal = 1;
@@ -2089,8 +2103,15 @@ void CBasePlayer::Jump()
 
 	if ( !(pev->flags & FL_ONGROUND) || !pev->groundentity )
 	{
+		m_iJumpCount++;
+
+		if (pev->velocity.Length2D() > 100 && m_iJumpCount == 3)
+			StartFrontFlip();
+
 		return;
 	}
+
+	m_iJumpCount = 1;
 
 // many features in this function use v_forward, so makevectors now.
 	UTIL_MakeVectors (pev->angles);
@@ -4633,7 +4654,7 @@ void CBasePlayer::StartRightFlip( void )
 		if (FBitSet(pev->flags, FL_ONGROUND)) {
 			UTIL_MakeVectors(pev->angles);
 			pev->velocity = (gpGlobals->v_right * 300) + (gpGlobals->v_up * 400);
-			m_fFlipTime = gpGlobals->time + 1.0;
+			m_fFlipTime = gpGlobals->time + 0.75;
 			SetAnimation( PLAYER_RIGHT_FLIP );
 			//UTIL_ScreenShake( pev->origin, 15.0, 55.0, 1.25, 15.0 );
 			MESSAGE_BEGIN( MSG_ONE, gmsgAcrobatics, NULL, pev );
@@ -4652,9 +4673,8 @@ void CBasePlayer::StartLeftFlip( void )
 		if (FBitSet(pev->flags, FL_ONGROUND)) {
 			UTIL_MakeVectors(pev->angles);
 			pev->velocity = (gpGlobals->v_right * -300) + (gpGlobals->v_up * 400);
-			m_fFlipTime = gpGlobals->time + 1.0;
+			m_fFlipTime = gpGlobals->time + 0.75;
 			SetAnimation( PLAYER_LEFT_FLIP );
-			//UTIL_ScreenShake( pev->origin, 15.0, 55.0, 1.25, 15.0 );
 			MESSAGE_BEGIN( MSG_ONE, gmsgAcrobatics, NULL, pev );
 				WRITE_BYTE( ACROBATICS_ROLL_LEFT );
 			MESSAGE_END();
@@ -4671,13 +4691,26 @@ void CBasePlayer::StartBackFlip( void )
 		if (FBitSet(pev->flags, FL_ONGROUND)) {
 			UTIL_MakeVectors(pev->angles);
 			pev->velocity = (gpGlobals->v_forward * -300) + (gpGlobals->v_up * 400);
-			m_fFlipTime = gpGlobals->time + 1.0;
+			m_fFlipTime = gpGlobals->time + 0.75;
 			SetAnimation( PLAYER_BACK_FLIP );
-			//UTIL_ScreenShake( pev->origin, 15.0, 55.0, 1.25, 15.0 );
 			MESSAGE_BEGIN( MSG_ONE, gmsgAcrobatics, NULL, pev );
 				WRITE_BYTE( ACROBATICS_FLIP_BACK );
 			MESSAGE_END();
 		}
+	}
+}
+
+void CBasePlayer::StartFrontFlip( void )
+{
+	if (!acrobatics.value)
+		return;
+
+	if (m_fFlipTime < gpGlobals->time) {
+		m_fFlipTime = gpGlobals->time + 0.75;
+		SetAnimation( PLAYER_FRONT_FLIP );
+		MESSAGE_BEGIN( MSG_ONE, gmsgAcrobatics, NULL, pev );
+			WRITE_BYTE( ACROBATICS_FLIP_FRONT );
+		MESSAGE_END();
 	}
 }
 
