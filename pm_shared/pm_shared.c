@@ -2555,13 +2555,13 @@ void PM_Jump (void)
 		return;
 	}
 
-	int duck_pressed = (( pmove->oldbuttons ^ pmove->cmd.buttons ) & pmove->cmd.buttons) & IN_JUMP ? 1 : 0;
+	int jump_pressed = (( pmove->oldbuttons ^ pmove->cmd.buttons ) & pmove->cmd.buttons) & IN_JUMP ? 1 : 0;
 	float jump_multipler = 1.0;
 
 	// No more effect
 	if ( pmove->onground == -1 )
 	{
-		if (duck_pressed)
+		if (jump_pressed)
 		{
 			if (pmove->iuser4 >= 1)
 				return;
