@@ -2106,7 +2106,7 @@ void CBasePlayer::Jump()
 		m_iJumpCount++;
 
 		if (pev->velocity.Length2D() > 100 && m_iJumpCount == 3)
-			StartFrontFlip();
+			StartFrontFlip(FALSE);
 
 		return;
 	}
@@ -4336,6 +4336,9 @@ void CBasePlayer::ImpulseCommands( )
 	case 212:
 		StartBackFlip();
 		break;
+	case 213:
+		StartFrontFlip(TRUE);
+		break;
 
 	default:
 		// check all of the cheat impulse commands now
@@ -4700,12 +4703,17 @@ void CBasePlayer::StartBackFlip( void )
 	}
 }
 
-void CBasePlayer::StartFrontFlip( void )
+void CBasePlayer::StartFrontFlip( BOOL addVelocity )
 {
 	if (!acrobatics.value)
 		return;
 
 	if (m_fFlipTime < gpGlobals->time) {
+		if (addVelocity)
+		{
+			UTIL_MakeVectors(pev->angles);
+			pev->velocity = (gpGlobals->v_forward * 300) + (gpGlobals->v_up * 400);
+		}
 		m_fFlipTime = gpGlobals->time + 0.75;
 		SetAnimation( PLAYER_FRONT_FLIP );
 		MESSAGE_BEGIN( MSG_ONE, gmsgAcrobatics, NULL, pev );

@@ -253,7 +253,7 @@ public:
 	void StartRightFlip( void );
 	void StartLeftFlip( void );
 	void StartBackFlip( void );
-	void StartFrontFlip( void );
+	void StartFrontFlip( BOOL addVelocity );
 	void TraceHitOfFlip( void );
 	int m_iKeyboardAcrobatics;
 	float m_fFlipTime;
