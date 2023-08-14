@@ -398,7 +398,7 @@ void CHud::ShowTextTips( void ) {
 		return;
 	}
 
-	const int MESSAGE_SIZE = 30;
+	const int MESSAGE_SIZE = 32;
 
 	const char* messageList[MESSAGE_SIZE] = {
 		"Tired of blue skins? Type \"cl_icemodels 0\" in the console switches to real-life skins.\n",
@@ -431,6 +431,8 @@ void CHud::ShowTextTips( void ) {
 		"To fake your death, type \"feign\" in the console or bind it to a key.\n",
 		"Custom voiceover support is available. Try cl_voiceoverpath \"hev\".\n",
 		"Type \"cl_icemodels 4\" in the console for real-life skins with a blue hev.\n",
+		"Tap \"+jump\" two times to perform a double jump.\n",
+		"Tap \"+jump\" three times while running to perform a frontflip.\n",
 	};
 
 	// Unstick after a level change
