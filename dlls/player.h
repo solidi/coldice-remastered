@@ -77,6 +77,7 @@ typedef enum
 	PLAYER_RIGHT_FLIP,
 	PLAYER_LEFT_FLIP,
 	PLAYER_BACK_FLIP,
+	PLAYER_FRONT_FLIP,
 	PLAYER_PULL_UP,
 } PLAYER_ANIM;
 
@@ -252,6 +253,7 @@ public:
 	void StartRightFlip( void );
 	void StartLeftFlip( void );
 	void StartBackFlip( void );
+	void StartFrontFlip( BOOL addVelocity );
 	void TraceHitOfFlip( void );
 	int m_iKeyboardAcrobatics;
 	float m_fFlipTime;
@@ -428,6 +430,7 @@ public:
 
 	EHANDLE m_pPortal[2];
 
+	int m_iJumpCount;
 	float m_fFeignTime;
 };
 

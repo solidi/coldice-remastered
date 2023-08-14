@@ -2555,15 +2555,33 @@ void PM_Jump (void)
 		return;
 	}
 
+	int jump_pressed = (( pmove->oldbuttons ^ pmove->cmd.buttons ) & pmove->cmd.buttons) & IN_JUMP ? 1 : 0;
+	float jump_multipler = 1.0;
+
 	// No more effect
- 	if ( pmove->onground == -1 )
+	if ( pmove->onground == -1 )
 	{
-		// Flag that we jumped.
-		// HACK HACK HACK
-		// Remove this when the game .dll no longer does physics code!!!!
-		pmove->oldbuttons |= IN_JUMP;	// don't jump again until released
-		return;		// in air, so no effect
+		if (jump_pressed)
+		{
+			if (pmove->iuser4 >= 1)
+				return;
+			else
+			{
+				pmove->iuser4 = 1;
+				jump_multipler = 2.0;
+			} 
+		}
+		else
+		{
+			// Flag that we jumped.
+			// HACK HACK HACK
+			// Remove this when the game .dll no longer does physics code!!!!
+			pmove->oldbuttons |= IN_JUMP;	// don't jump again until released
+			return;		// in air, so no effect
+		}
 	}
+	else
+		pmove->iuser4 = 0;
 
 	if ( pmove->oldbuttons & IN_JUMP )
 		return;		// don't pogo stick
@@ -2614,7 +2632,7 @@ void PM_Jump (void)
 	}
 	else
 	{
-		pmove->velocity[2] = sqrt(2 * 800 * jump_height);
+		pmove->velocity[2] = sqrt(2 * 800 * jump_height * jump_multipler);
 	}
 
 	// Decay it for simulation

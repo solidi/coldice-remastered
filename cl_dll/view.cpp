@@ -1922,7 +1922,7 @@ void V_DropPunchAngle ( float frametime, float *ev_punchangle )
 {
 	float len, strength = 10.0;
 	if (g_AcrobatTime > gEngfuncs.GetClientTime())
-		strength = 90.0;
+		strength = 105.0;
 
 	len = VectorNormalize ( ev_punchangle );
 	len -= (strength + len * 0.5) * frametime;
@@ -1949,7 +1949,7 @@ void V_PunchAxis( int axis, float punch )
 
 	if (!axis)
 		g_yP += punch * 10;
-	if (axis == 2)
+	if (axis == ROLL)
 		g_xP += punch * 10;
 
 	ev_punchangle[ axis ] = punch;
