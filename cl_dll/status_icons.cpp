@@ -214,6 +214,7 @@ void CHudStatusIcons::DrawMutators( void )
 	ToggleMutatorIcon(MUTATOR_DKMODE, "dkmode");
 	ToggleMutatorIcon(MUTATOR_SLOWMO, "slowmo");
 	ToggleMutatorIcon(MUTATOR_DONTSHOOT, "dontshoot");
+	ToggleMutatorIcon(MUTATOR_999, "999");
 }
 
 void CHudStatusIcons::ToggleMutatorIcon(int mutatorId, const char *mutator)

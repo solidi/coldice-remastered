@@ -73,6 +73,7 @@ extern DLL_GLOBAL const char *g_MutatorExplosiveAI;
 extern DLL_GLOBAL const char *g_MutatorItemsExplode;
 extern DLL_GLOBAL const char *g_MutatorNotTheBees;
 extern DLL_GLOBAL const char *g_MutatorDontShoot;
+extern DLL_GLOBAL const char *g_Mutator999;
 
 extern DLL_GLOBAL int g_GameMode;
 
@@ -578,6 +579,13 @@ void CGameRules::SpawnMutators(CBasePlayer *pPlayer)
 
 	if (randomweapon.value)
 		pPlayer->GiveRandomWeapon(NULL);
+
+	if (strstr(mutators.string, g_Mutator999) ||
+		atoi(mutators.string) == MUTATOR_999) {
+		pPlayer->pev->max_health = 999;
+		pPlayer->pev->health = 999;
+		pPlayer->pev->armorvalue = 999;
+	}
 }
 
 const char *entityList[] =
@@ -825,6 +833,21 @@ void CGameRules::CheckMutators(void)
 					strcpy(m_szJopeName[pl->entindex() - 1], STRING(pl->pev->netname));
 					g_engfuncs.pfnSetClientKeyValue(pl->entindex(), g_engfuncs.pfnGetInfoKeyBuffer(pl->edict()),
 						"name", "Jope");
+				}
+				
+				if (strstr(mutators.string, g_Mutator999) ||
+					atoi(mutators.string) == MUTATOR_999) {
+					pl->pev->max_health = 999;
+					pl->pev->health = 999;
+					pl->pev->armorvalue = 999;
+				}
+				else
+				{
+					pl->pev->max_health = 100;
+					if (pl->pev->health > 100)
+						pl->pev->health = 100;
+					if (pl->pev->armorvalue > 100)
+						pl->pev->armorvalue = 100;	
 				}
 			}
 
