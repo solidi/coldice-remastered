@@ -834,6 +834,7 @@ typedef struct
 #define MUTATOR_ITEMSEXPLODE 39
 #define MUTATOR_NOTTHEBEES 40
 #define MUTATOR_DONTSHOOT 41
+#define MUTATOR_999 42
 
 #define GAME_FFA 0
 #define GAME_TEAMPLAY 1
