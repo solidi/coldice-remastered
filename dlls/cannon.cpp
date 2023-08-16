@@ -194,6 +194,14 @@ void CFlak :: Spawn( )
 	MESSAGE_END();  // move PHS/PVS data sending into here (SEND_ALL, SEND_PVS, SEND_PHS)
 }
 
+BOOL CFlak::ShouldCollide( CBaseEntity *pOther )
+{
+	if (pev->modelindex == pOther->pev->modelindex)
+		return FALSE;
+
+	return TRUE;
+}
+
 void CFlak :: FlakTouch ( CBaseEntity *pOther )
 {
 	TraceResult tr = UTIL_GetGlobalTrace( );

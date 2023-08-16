@@ -1486,6 +1486,7 @@ class CFlak : public CGrenade
 public:
 	void Spawn( void );
 	void Precache( void );
+	BOOL EXPORT ShouldCollide( CBaseEntity *pOther );
 	void EXPORT FlakTouch( CBaseEntity *pOther );
 	static CFlak *CreateFlak( Vector vecOrigin, Vector vecAngles, CBaseEntity *pOwner );
 };
