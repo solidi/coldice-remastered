@@ -2377,12 +2377,18 @@ void CPortalEntity::Think()
 
 							// Apply the offsetting
 							Vector otherPortalForward;
-							g_engfuncs.pfnAngleVectors(pOtherPortalCasted->pev->angles, otherPortalForward, NULL, NULL);
-
-							// Apply the offsetting
+							Vector ang = Vector(0, pOtherPortalCasted->pev->angles.y, 0);
+							
+							g_engfuncs.pfnAngleVectors(ang, otherPortalForward, NULL, NULL);
 							teleportOrg = teleportOrg + forwardOffset + rightOffset + upOffset;
 							teleportOrg = teleportOrg + ((otherPortalAngle > 180 && otherPortalAngle < 360) ? up * -130 : otherPortalForward * 30);
-							teleportOrg.z += 20.0f;
+							teleportOrg.z += 10.0f;
+
+							if (otherPortalAngle > 45 && otherPortalAngle < 135)
+							{
+								teleportOrg = teleportOrg + Vector(0,0,25);
+								pFound->pev->velocity = pFound->pev->velocity + Vector(0, 0, 300);
+							}
 
 							MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
 								WRITE_BYTE( TE_TELEPORT	); 
