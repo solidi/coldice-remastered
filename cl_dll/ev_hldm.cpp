@@ -42,6 +42,7 @@ static int tracerCount[ 32 ];
 extern "C"
 {
 #include "pm_shared.h"
+int CL_IsThirdPerson( void );
 }
 
 void V_PunchAxis( int axis, float punch );
@@ -557,6 +558,9 @@ void EV_GunSmoke(vec3_t smokeOrigin, float scale, int idx, int ducking, float *f
 		return;
 	}
 
+	if (CL_IsThirdPerson())
+		return;
+
 	if ( gEngfuncs.pfnRandomLong(0, 3) > 2 ) {
 		if ( EV_IsLocal(idx) ) {
 			int model = gEngfuncs.pEventAPI->EV_FindModelIndex( "sprites/smokeball2.spr" );
@@ -566,8 +570,6 @@ void EV_GunSmoke(vec3_t smokeOrigin, float scale, int idx, int ducking, float *f
 				t->entity.curstate.renderamt = gEngfuncs.pfnRandomLong(40, 60);
 				t->entity.curstate.scale = scale;
 			}
-		} else {
-			// Don't draw for others.
 		}
 	}
 }
