@@ -169,8 +169,10 @@ public:
 	virtual void SpawnMutators( CBasePlayer *pPlayer );
 	virtual BOOL WeaponMutators( CBasePlayerWeapon *pWeapon );
 	virtual void CheckMutators( void );
+	virtual void CheckGameMode( void );
 	virtual void UpdateMutatorMessage( CBasePlayer *pPlayer );
 	virtual void UpdateGameModeMessage( CBasePlayer *pPlayer );
+	virtual void ResetGameMode( void ) {};
 
 	virtual BOOL IsCtC();
 	virtual void CaptureCharm( CBasePlayer *pPlayer ) { };
@@ -181,15 +183,17 @@ public:
 	virtual void EndMultiplayerGame( void ) {}
 
 protected:
-	BOOL m_iNotTheBees;
-	BOOL m_iDontShoot;
-	BOOL m_iVolatile;
+	BOOL m_iNotTheBees = 0;
+	BOOL m_iDontShoot = 0;
+	BOOL m_iVolatile = 0;
 
 private:
 	char m_flCheckMutators[128];
 	float m_flChaosCheck = 0;
 	float m_flDetectedMutatorChange;
 	char szSkyColor[3][6] = {{""}, {""}, {""}};
+	char m_flCheckGameMode[64] = "";
+	float m_flDetectedGameModeChange = 0;
 	BOOL m_JopeCheck = FALSE;
 	char m_szJopeName[32][64];
 };

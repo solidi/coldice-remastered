@@ -86,6 +86,7 @@ void CHalfLifeTeamplay :: Think ( void )
 	g_VoiceGameMgr.Update(gpGlobals->frametime);
 
 	g_pGameRules->CheckMutators();
+	g_pGameRules->CheckGameMode();
 
 	if ( g_fGameOver )   // someone else quit the game already
 	{
