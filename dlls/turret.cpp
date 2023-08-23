@@ -1209,7 +1209,7 @@ void CSentry::Shoot(Vector &vecSrc, Vector &vecDirToEnemy)
 {
 	if (g_pGameRules->IsMultiplayer() && RANDOM_LONG(0, 100) > 90)
 	{
-		CBaseEntity::Create("rpg_rocket", vecSrc, UTIL_VecToAngles(vecDirToEnemy), edict());
+		CBaseEntity::Create("rpg_rocket", vecSrc, UTIL_VecToAngles(Vector(vecDirToEnemy.x, vecDirToEnemy.y, vecDirToEnemy.z * -1)), edict());
 		pev->nextthink = gpGlobals->time + 1;
 	}
 
