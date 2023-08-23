@@ -1948,6 +1948,7 @@ void CHalfLifeMultiplay :: PlayerKilled( CBasePlayer *pVictim, entvars_t *pKille
 				WRITE_BYTE(CLIENT_SOUND_FIRSTBLOOD);
 			MESSAGE_END();
 			pKiller->health = 100;
+			pKiller->frags += 1;
 			m_iFirstBloodDecided = TRUE;
 		}
 		else if (pVictim->m_LastHitGroup == HITGROUP_HEAD)
