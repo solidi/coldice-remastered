@@ -262,7 +262,7 @@ BOOL CRocketCrowbar::Deploy( )
 
 void CRocketCrowbar::Holster( int skiplocal /* = 0 */ )
 {
-	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 0.5;
+	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 0.25;
 	SendWeaponAnim( ROCKET_CROWBAR_HOLSTER, 0, 1 );
 }
 

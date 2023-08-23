@@ -146,7 +146,7 @@ void CMag60::Holster( int skiplocal )
 {
 	m_iRotated = 0;
 	pev->nextthink = -1;
-	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 0.5;
+	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 0.25;
 	SendWeaponAnim( MAG60_HOLSTER );
 }
 

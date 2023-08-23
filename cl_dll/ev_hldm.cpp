@@ -3471,6 +3471,7 @@ enum gravitygun_e {
 	GRAVITYGUN_FIRE,
 	GRAVITYGUN_DRAW_LOWKEY,
 	GRAVITYGUN_DRAW,
+	GRAVITYGUN_HOLSTER,
 };
 
 void EV_GravityGun(event_args_t* args)

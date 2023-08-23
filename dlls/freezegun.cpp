@@ -110,7 +110,7 @@ BOOL CFreezeGun::Deploy()
 
 void CFreezeGun::Holster( int skiplocal )
 {
-	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 0.5;
+	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 0.25;
 	m_fInAttack = 0;
 	SendWeaponAnim( FREEZEGUN_HOLSTER );
 }

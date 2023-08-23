@@ -110,7 +110,7 @@ void CSniperRifle::Holster( int skiplocal )
 		m_pPlayer->pev->fov = m_pPlayer->m_iFOV = 0;
 	}
 
-	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 1.0;
+	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 0.25;
 	m_flTimeWeaponIdle = UTIL_SharedRandomFloat( m_pPlayer->random_seed, 10, 15 );
 	SendWeaponAnim( RIFLE_HOLSTER );
 }

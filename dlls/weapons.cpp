@@ -1439,7 +1439,7 @@ BOOL CBasePlayerWeapon :: DefaultDeploy( char *szViewModel, char *szWeaponModel,
 	strcpy( m_pPlayer->m_szAnimExtention, szAnimExt );
 	SendWeaponAnim( iAnim, skiplocal, body );
 
-	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 0.5;
+	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 0.25;
 	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 1.0;
 	m_flLastFireTime = 0.0;
 
@@ -1746,7 +1746,7 @@ void CBasePlayerWeapon::UpdateItemInfo( void )
 
     if (GetItemInfo(&iInfo) && iInfo.pszDisplayName)
 	{
-		m_pPlayer->DisplayHudMessage(iInfo.pszDisplayName, TXT_CHANNEL_WEAPON_TITLE, -1, 0.1, 210, 210, 210, 0, 0.2, 1.0, 1.5, 0.5);
+		m_pPlayer->DisplayHudMessage(iInfo.pszDisplayName, TXT_CHANNEL_WEAPON_TITLE, -1, 0.1, 210, 210, 210, 0, 0.2, 0.2, 0.75, 0.25);
     }
 }
 
@@ -2738,7 +2738,7 @@ void CBasePlayerWeapon::KickAttack( BOOL holdingSomething )
 	SetThink( &CBasePlayerWeapon::EndKick );
 	pev->nextthink = gpGlobals->time + 0.28;
 
-	m_flNextPrimaryAttack = m_flNextSecondaryAttack = GetNextAttackDelay(0.3);
+	// m_flNextPrimaryAttack = m_flNextSecondaryAttack = GetNextAttackDelay(0.3);
 	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + UTIL_SharedRandomFloat( m_pPlayer->random_seed, 10, 15 );
 }
 
