@@ -2459,7 +2459,7 @@ CTracer *CTracer::CreateTracer( Vector vecOrigin, Vector vecAngles, CBaseEntity 
 	if (pOwner != NULL)
 		tracer->pev->owner = pOwner->edict();
 	// store fired weapon id for credit later
-	tracer->pev->iuser4 = weaponname;
+	tracer->pev->iuser3 = weaponname;
 
 	return tracer;
 }

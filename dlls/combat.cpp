@@ -1628,16 +1628,16 @@ Vector CBaseEntity::FireBulletsPlayer ( ULONG cShots, Vector vecSrc, Vector vecD
 		pevAttacker = pev;  // the default attacker is ourselves
 
 	if (slowbullets.value && NUMBER_OF_ENTITIES() < 1024) {
-		UTIL_MakeVectors( pev->v_angle );
+		UTIL_MakeVectors( pev->v_angle + pev->punchangle);
+		CBaseEntity *entity = CBaseEntity::Instance(pevAttacker);
+		string_t weapon = 0;
+		if (entity && ((CBasePlayer *)entity)->m_pActiveItem) {
+			weapon = ((CBasePlayer *)entity)->m_pActiveItem->pev->classname;
+		}
 		for ( ULONG iShot = 1; iShot <= cShots; iShot++ )
 		{
 			Vector vecSrc1 = pev->origin + pev->view_ofs + gpGlobals->v_forward * 28 + gpGlobals->v_right * RANDOM_LONG(-8, 8) + gpGlobals->v_up * RANDOM_LONG(-8, 8);
-			CBaseEntity *entity = CBaseEntity::Instance(pev);
-			string_t weapon = 0;
-			if (entity && ((CBasePlayer *)entity)->m_pActiveItem) {
-				weapon = ((CBasePlayer *)entity)->m_pActiveItem->pev->classname;
-			}
-			CTracer::CreateTracer( vecSrc1, pev->v_angle, CBaseEntity::Instance(pev), weapon );
+			CTracer::CreateTracer( vecSrc1, pev->v_angle, CBaseEntity::Instance(pevAttacker), weapon );
 		}
 	} else {
 		ClearMultiDamage();
