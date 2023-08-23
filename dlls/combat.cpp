@@ -1201,6 +1201,17 @@ void RadiusDamage( Vector vecSrc, entvars_t *pevInflictor, entvars_t *pevAttacke
 				{
 					pEntity->TakeDamage ( pevInflictor, pevAttacker, flAdjustedDamage, bitsDamageType );
 				}
+
+				//if (pEntity->edict() != pev->owner)
+				if (bitsDamageType == DMG_BURN)
+				{
+					pEntity->m_fBurnTime = pEntity->m_fBurnTime + RANDOM_FLOAT(1.0, 3.0);
+
+					if (pEntity->IsPlayer())
+					{
+						pEntity->m_hFlameOwner = CBaseEntity::Instance(pevAttacker);
+					}
+				}
 			}
 		}
 	}
