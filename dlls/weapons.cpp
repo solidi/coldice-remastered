@@ -894,7 +894,7 @@ CBaseEntity* CBasePlayerItem::Respawn( void )
 #ifdef _DEBUG
 					ALERT ( at_aiconsole, "Found %s to change... ", weaponsList[group][weapon] );
 #endif
-					char name[128] = "";
+					char name[64] = "";
 					const char *weapon = weaponsList[group][RANDOM_LONG(0, totalWeapons - 1)];
 					if (weapon != NULL)
 						sprintf(name, weapon);
@@ -905,7 +905,7 @@ CBaseEntity* CBasePlayerItem::Respawn( void )
 							sprintf(name, innerWeapon);
 					}
 
-					if (name)
+					if (strlen(name))
 					{
 						pNewWeapon = CBaseEntity::Create((char *)STRING(ALLOC_STRING(name)), g_pGameRules->VecWeaponRespawnSpot(this), pev->angles, pev->owner);
 #ifdef _DEBUG
