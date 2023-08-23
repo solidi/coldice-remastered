@@ -46,7 +46,7 @@ void CGrenade::Explode( Vector vecSrc, Vector vecAim )
 	TraceResult tr;
 	UTIL_TraceLine ( pev->origin, pev->origin + Vector ( 0, 0, -32 ),  ignore_monsters, ENT(pev), & tr);
 
-	Explode( &tr, DMG_BLAST );
+	Explode( &tr, DMG_BLAST | DMG_BURN );
 }
 
 // UNDONE: temporary scorching for PreAlpha - find a less sleazy permenant solution.
@@ -286,7 +286,7 @@ void CGrenade::Detonate( void )
 	vecSpot = pev->origin + Vector ( 0 , 0 , 8 );
 	UTIL_TraceLine ( vecSpot, vecSpot + Vector ( 0, 0, -40 ),  ignore_monsters, ENT(pev), & tr);
 
-	Explode( &tr, DMG_BLAST );
+	Explode( &tr, DMG_BLAST | DMG_BURN );
 }
 
 
@@ -303,7 +303,7 @@ void CGrenade::ExplodeTouch( CBaseEntity *pOther )
 	vecSpot = pev->origin - pev->velocity.Normalize() * 32;
 	UTIL_TraceLine( vecSpot, vecSpot + pev->velocity.Normalize() * 64, ignore_monsters, ENT(pev), &tr );
 
-	Explode( &tr, DMG_BLAST );
+	Explode( &tr, DMG_BLAST | DMG_BURN );
 }
 
 
@@ -659,7 +659,7 @@ void CGrenade::ClusterDetonate( void )
 
     entvars_t *owner = VARS(pev->owner);
 
-    Explode( &tr, DMG_BLAST );
+    Explode( &tr, DMG_BLAST | DMG_BURN );
 
     // Launch grenades at random angles
     CGrenade::ShootTimed(owner, pev->origin, Vector(RANDOM_LONG(-100, 100), RANDOM_LONG(-100, 100), RANDOM_LONG(-100, 100)) * RANDOM_LONG(2, 5), RANDOM_FLOAT(0.50, 2.50));

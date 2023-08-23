@@ -1697,7 +1697,7 @@ Vector CBaseEntity::FireBulletsPlayer ( ULONG cShots, Vector vecSrc, Vector vecD
 							WRITE_BYTE( TE_EXPLFLAG_NONE );
 						MESSAGE_END();
 
-						::RadiusDamage( tr.vecEndPos, pev, pev, gSkillData.plrDmgExpBuckshot, 32, CLASS_NONE, DMG_BLAST );
+						::RadiusDamage( tr.vecEndPos, pev, pev, gSkillData.plrDmgExpBuckshot, 32, CLASS_NONE, DMG_BLAST | DMG_BURN );
 					}
 
 					break;
