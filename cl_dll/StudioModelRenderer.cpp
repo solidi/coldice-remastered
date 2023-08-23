@@ -79,7 +79,7 @@ void CStudioModelRenderer::Init( void )
 	m_pCvarHiModels			= IEngineStudio.GetCvar( "cl_himodels" );
 	m_pCvarDeveloper		= IEngineStudio.GetCvar( "developer" );
 	m_pCvarDrawEntities		= IEngineStudio.GetCvar( "r_drawentities" );
-	cl_icemodels			= gEngfuncs.pfnRegisterVariable ( "cl_icemodels", "2", FCVAR_ARCHIVE );
+	cl_icemodels			= gEngfuncs.pfnRegisterVariable ( "cl_icemodels", "4", FCVAR_ARCHIVE );
 	m_pCvarGlowModels		= gEngfuncs.pfnRegisterVariable ( "cl_glowmodels", "1", FCVAR_ARCHIVE );
 
 	m_pChromeSprite			= IEngineStudio.GetChromeSprite();
