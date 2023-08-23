@@ -2106,7 +2106,7 @@ void CBasePlayer::Jump()
 		m_iJumpCount++;
 
 		if (pev->velocity.Length2D() > 100 && m_iJumpCount == 3)
-			StartFrontFlip(FALSE);
+			StartFrontFlip(TRUE);
 
 		return;
 	}
