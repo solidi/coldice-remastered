@@ -1013,6 +1013,48 @@ void CGameRules::CheckMutators(void)
 	}
 }
 
+void CGameRules::CheckGameMode( void )
+{
+	// Blank at map start
+	if (!strlen(m_flCheckGameMode))
+		strcpy(m_flCheckGameMode, gamemode.string);
+
+	if (strcmp(m_flCheckGameMode, gamemode.string) != 0)
+	{
+		m_flDetectedGameModeChange = gpGlobals->time + 5.0;
+		strcpy(m_flCheckGameMode, gamemode.string);
+		UTIL_ClientPrintAll(HUD_PRINTTALK, "Game mode has changed to \"%s\". Ending current game in 5 seconds.\n", m_flCheckGameMode);
+	}
+
+	if (m_flDetectedGameModeChange && m_flDetectedGameModeChange < gpGlobals->time)
+	{
+		// changelevel.
+		g_fGameOver = TRUE;
+
+		/*
+		for (int i = 1; i <= gpGlobals->maxClients; i++)
+		{
+			CBaseEntity *pPlayer = UTIL_PlayerByIndex( i );
+			CBasePlayer *pl = (CBasePlayer *)pPlayer;
+			if (pPlayer && pPlayer->IsPlayer() && !pl->IsObserver())
+			{
+				pl->m_iShowGameModeMessage = gpGlobals->time + 1.0;
+			}
+		}
+
+		g_pGameRules->ResetGameMode();
+		CBaseEntity *pWorld = CBaseEntity::Instance(NULL);
+		if (pWorld)
+			((CWorld *)pWorld)->SetGameMode();
+		if (g_pGameRules)
+			delete g_pGameRules;
+		g_pGameRules = InstallGameRules();
+		*/
+
+		m_flDetectedGameModeChange = 0;
+	}
+}
+
 void CGameRules::UpdateMutatorMessage( CBasePlayer *pPlayer )
 {
 	if (pPlayer->m_iShowMutatorMessage != -1 && pPlayer->m_iShowMutatorMessage < gpGlobals->time) {

@@ -208,6 +208,7 @@ void CHalfLifeMultiplay :: Think ( void )
 	g_VoiceGameMgr.Update(gpGlobals->frametime);
 
 	g_pGameRules->CheckMutators();
+	g_pGameRules->CheckGameMode();
 
 	///// Check game rules /////
 	static int last_frags;
