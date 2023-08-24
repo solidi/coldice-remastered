@@ -816,8 +816,8 @@ void CWorld :: RandomizeMutators( void )
 		}
 	}
 
-	ALERT(at_aiconsole, "Mutators set to %\n", result);
-	CVAR_SET_STRING("mp_mutators", result);
+	ALERT(at_aiconsole, "Mutators set to \"%s\"\n", result);
+	CVAR_SET_STRING("sv_mutators", result);
 }
 
 extern DLL_GLOBAL int g_GameMode;
