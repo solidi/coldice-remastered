@@ -602,9 +602,10 @@ void ClientCommand( edict_t *pEntity )
 					EMIT_SOUND(ENT(pev), CHAN_VOICE, "player/pl_step1.wav", 1, ATTN_NORM);
 				else
 					EMIT_SOUND(ENT(pev), CHAN_VOICE, "player/pl_step2.wav", 1, ATTN_NORM);
+				p->deadflag = DEAD_NO;
 				if (player->m_pActiveItem)
 					player->m_pActiveItem->DeployLowKey();
-				p->deadflag = DEAD_NO;
+				player->m_EFlags &= ~EFLAG_DEADHANDS;
 			}
 			
 			player->m_fFeignTime = gpGlobals->time + 1.0;
