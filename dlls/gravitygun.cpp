@@ -27,13 +27,14 @@
 LINK_ENTITY_TO_CLASS(weapon_gravitygun, CGravityGun);
 #endif
 
-enum gauss_e {
+enum gravitygun_e {
 	GRAVITYGUN_IDLE1 = 0,
 	GRAVITYGUN_HOLD_IDLE,
 	GRAVITYGUN_PICKUP,
 	GRAVITYGUN_FIRE,
 	GRAVITYGUN_DRAW_LOWKEY,
 	GRAVITYGUN_DRAW,
+	GRAVITYGUN_HOLSTER,
 };
 
 void CGravityGun::Spawn()
@@ -99,8 +100,8 @@ BOOL CGravityGun::Deploy()
 
 void CGravityGun::Holster()
 {
-	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 0.5;
-	SendWeaponAnim(GRAVITYGUN_DRAW);
+	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 0.25;
+	SendWeaponAnim(GRAVITYGUN_HOLSTER);
 
 	STOP_SOUND(ENT(m_pPlayer->pev), CHAN_WEAPON, "ambience/pulsemachine.wav");
 }

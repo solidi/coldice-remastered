@@ -116,7 +116,7 @@ BOOL CSawedOff::Deploy( )
 
 void CSawedOff::Holster( int skiplocal /* = 0 */ )
 {
-	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 0.5;
+	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 0.25;
 	SendWeaponAnim( SAWEDOFF_HOLSTER );
 }
 

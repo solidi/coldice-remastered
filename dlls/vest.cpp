@@ -105,7 +105,7 @@ BOOL CVest::CanDeploy( void )
 
 BOOL CVest::DeployLowKey( )
 {
-	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 1.0;
+	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 0.25;
 	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + UTIL_SharedRandomFloat( m_pPlayer->random_seed, 10, 15 );
 	return DefaultDeploy( "models/v_vest_radio.mdl", "models/p_vest.mdl", VEST_RADIO_DRAW_LOWKEY, "hive" );
 }
@@ -113,7 +113,7 @@ BOOL CVest::DeployLowKey( )
 BOOL CVest::Deploy( )
 {
 	EMIT_SOUND(ENT(m_pPlayer->pev), CHAN_VOICE, "vest_equip.wav", 1, ATTN_NORM);
-	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 1.0;
+	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 0.25;
 	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + UTIL_SharedRandomFloat( m_pPlayer->random_seed, 10, 15 );
 
 	return DefaultDeploy( "models/v_vest_radio.mdl", "models/p_vest.mdl", VEST_RADIO_DRAW, "hive" );
@@ -121,7 +121,7 @@ BOOL CVest::Deploy( )
 
 void CVest::Holster( int skiplocal )
 {
-	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 0.5;
+	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 0.25;
 	
 	SendWeaponAnim( VEST_RADIO_HOLSTER );
 }

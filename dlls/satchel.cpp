@@ -353,7 +353,7 @@ BOOL CSatchel::CanDeploy( void )
 
 BOOL CSatchel::DeployLowKey( )
 {
-	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 1.0;
+	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 0.25;
 
 	BOOL result = FALSE;
 
@@ -372,7 +372,7 @@ BOOL CSatchel::DeployLowKey( )
 
 BOOL CSatchel::Deploy( )
 {
-	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 1.0;
+	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 0.25;
 
 	BOOL result = FALSE;
 

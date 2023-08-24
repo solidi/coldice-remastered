@@ -138,7 +138,7 @@ BOOL C12Gauge::Deploy( )
 
 void C12Gauge::Holster( int skiplocal /* = 0 */ )
 {
-	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 0.5;
+	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 0.25;
 	SendWeaponAnim( GAUGE_SHOTGUN_HOLSTER );
 }
 
