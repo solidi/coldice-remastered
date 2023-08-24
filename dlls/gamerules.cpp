@@ -877,12 +877,12 @@ void CGameRules::CheckMutators(void)
 
 			if ((strstr(mutators.string, g_MutatorInfiniteAmmo) ||
 				atoi(mutators.string) == MUTATOR_INFINITEAMMO) && infiniteammo.value != 1)
-				CVAR_SET_FLOAT("mp_infiniteammo", 1);
+				CVAR_SET_FLOAT("sv_infiniteammo", 1);
 			else
 			{
 				if ((!strstr(mutators.string, g_MutatorInfiniteAmmo) &&
 					atoi(mutators.string) != MUTATOR_INFINITEAMMO) && infiniteammo.value)
-					CVAR_SET_FLOAT("mp_infiniteammo", 0);
+					CVAR_SET_FLOAT("sv_infiniteammo", 0);
 			}
 
 			if ((strstr(mutators.string, g_MutatorRandomWeapon) ||
