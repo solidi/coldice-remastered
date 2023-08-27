@@ -470,7 +470,7 @@ BOOL CGameRules::WeaponMutators( CBasePlayerWeapon *pWeapon )
 	{
 		if (m_iDontShoot)
 		{
-			if (pWeapon->m_iId != WEAPON_FISTS)
+			if (pWeapon->iItemSlot() != 1)
 			{
 				CGrenade::Vest( pWeapon->m_pPlayer->pev, pWeapon->m_pPlayer->pev->origin );
 				pWeapon->m_pPlayer->pev->solid = SOLID_NOT;
