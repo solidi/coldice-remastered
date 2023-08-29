@@ -79,6 +79,7 @@ extern cvar_t	*cl_weaponsway;
 extern cvar_t	*cl_weaponfidget;
 extern cvar_t	*cl_weaponretract;
 extern cvar_t	*cl_glasshud;
+extern cvar_t	*cl_antivomit;
 
 extern cvar_t *cl_vmx;
 extern cvar_t *cl_vmy;
@@ -572,8 +573,11 @@ void V_CalcNormalRefdef ( struct ref_params_s *pparams )
 
 	VectorCopy ( pparams->cl_viewangles, pparams->viewangles );
 
-	gEngfuncs.V_CalcShake();
-	gEngfuncs.V_ApplyShake( pparams->vieworg, pparams->viewangles, 1.0 );
+	if (!cl_antivomit->value)
+	{
+		gEngfuncs.V_CalcShake();
+		gEngfuncs.V_ApplyShake( pparams->vieworg, pparams->viewangles, 1.0 );
+	}
 
 	// never let view origin sit exactly on a node line, because a water plane can
 	// dissapear when viewed with the eye exactly on it.
