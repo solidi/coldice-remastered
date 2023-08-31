@@ -168,6 +168,7 @@ public:
 
 	virtual void SpawnMutators( CBasePlayer *pPlayer );
 	virtual BOOL WeaponMutators( CBasePlayerWeapon *pWeapon );
+	virtual void GiveMutators( CBasePlayer *pPlayer );
 	virtual void CheckMutators( void );
 	virtual void CheckGameMode( void );
 	virtual void UpdateMutatorMessage( CBasePlayer *pPlayer );

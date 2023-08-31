@@ -273,7 +273,7 @@ int CHalfLifeGunGame::IPointsForKill( CBasePlayer *pAttacker, CBasePlayer *pKill
 
 						m_hLeader = pAttacker;
 						m_iSuccessfulRounds++;
-						m_fGoToIntermission = gpGlobals->time + 4.0;
+						m_fGoToIntermission = gpGlobals->time + 8.0;
 						m_iTopLevel = 0;
 
 						for ( int i = 1; i <= gpGlobals->maxClients; i++ )
@@ -322,6 +322,7 @@ int CHalfLifeGunGame::IPointsForKill( CBasePlayer *pAttacker, CBasePlayer *pKill
 				if (pAttacker->IsAlive())
 				{
 					pAttacker->RemoveAllItems(FALSE);
+					GiveMutators(pAttacker);
 					pAttacker->GiveNamedItem(g_WeaponId[newLevel]);
 				}
 				m_hVoiceHandle = pAttacker;
@@ -353,13 +354,13 @@ void CHalfLifeGunGame::PlayerSpawn( CBasePlayer *pPlayer )
 		
 		int currentLevel = (int)pPlayer->pev->fuser4;
 		pPlayer->GiveNamedItem(g_WeaponId[currentLevel]);
-		pPlayer->GiveAmmo(AMMO_GLOCKCLIP_GIVE * 2, "9mm", _9MM_MAX_CARRY);
-		pPlayer->GiveAmmo(AMMO_357BOX_GIVE * 2, "357", _357_MAX_CARRY);
-		pPlayer->GiveAmmo(AMMO_BUCKSHOTBOX_GIVE * 2, "buckshot", BUCKSHOT_MAX_CARRY);
-		pPlayer->GiveAmmo(AMMO_CROSSBOWCLIP_GIVE * 2, "bolts", BOLT_MAX_CARRY);
-		pPlayer->GiveAmmo(AMMO_M203BOX_GIVE, "ARgrenades", M203_GRENADE_MAX_CARRY);
-		pPlayer->GiveAmmo(AMMO_RPGCLIP_GIVE, "rockets", ROCKET_MAX_CARRY);
-		pPlayer->GiveAmmo(AMMO_URANIUMBOX_GIVE * 2, "uranium", URANIUM_MAX_CARRY);
+		pPlayer->GiveAmmo(AMMO_GLOCKCLIP_GIVE * 4, "9mm", _9MM_MAX_CARRY);
+		pPlayer->GiveAmmo(AMMO_357BOX_GIVE * 4, "357", _357_MAX_CARRY);
+		pPlayer->GiveAmmo(AMMO_BUCKSHOTBOX_GIVE * 4, "buckshot", BUCKSHOT_MAX_CARRY);
+		pPlayer->GiveAmmo(AMMO_CROSSBOWCLIP_GIVE * 4, "bolts", BOLT_MAX_CARRY);
+		pPlayer->GiveAmmo(AMMO_M203BOX_GIVE * 2, "ARgrenades", M203_GRENADE_MAX_CARRY);
+		pPlayer->GiveAmmo(AMMO_RPGCLIP_GIVE * 2, "rockets", ROCKET_MAX_CARRY);
+		pPlayer->GiveAmmo(AMMO_URANIUMBOX_GIVE * 4, "uranium", URANIUM_MAX_CARRY);
 
 		ClientPrint(pPlayer->pev, HUD_PRINTTALK, UTIL_VarArgs("[GunGame]: You need %d frags to reach level %s.\n",
 			g_iFrags[currentLevel] - ((int)pPlayer->pev->frags), g_WeaponId[currentLevel+1]));

@@ -532,37 +532,7 @@ void CGameRules::SpawnMutators(CBasePlayer *pPlayer)
 		atoi(mutators.string) == MUTATOR_ICE))
 		pPlayer->pev->friction = 0.3;
 
-	if (strstr(mutators.string, g_MutatorRocketCrowbar) ||
-		atoi(mutators.string) == MUTATOR_ROCKETCROWBAR) {
-		pPlayer->GiveNamedItem("weapon_rocketcrowbar");
-	}
-
-	if (strstr(mutators.string, g_MutatorInstaGib) ||
-		atoi(mutators.string) == MUTATOR_INSTAGIB) {
-		pPlayer->GiveNamedItem("weapon_dual_railgun");
-		pPlayer->GiveAmmo(URANIUM_MAX_CARRY, "uranium", URANIUM_MAX_CARRY);
-	}
-
-	if (strstr(mutators.string, g_MutatorPlumber) ||
-		atoi(mutators.string) == MUTATOR_PLUMBER) {
-		pPlayer->GiveNamedItem("weapon_dual_wrench");
-	}
-
-	if (strstr(mutators.string, g_MutatorBarrels) ||
-		atoi(mutators.string) == MUTATOR_BARRELS) {
-		pPlayer->GiveNamedItem("weapon_gravitygun");
-	}
-
-	if (strstr(mutators.string, g_MutatorPortal) ||
-		atoi(mutators.string) == MUTATOR_PORTAL) {
-		pPlayer->GiveNamedItem("weapon_ashpod");
-	}
-
-	if (strstr(mutators.string, g_MutatorLongJump) ||
-		atoi(mutators.string) == MUTATOR_LONGJUMP) {
-		if (pPlayer->pev->weapons & (1<<WEAPON_SUIT))
-			pPlayer->GiveNamedItem("item_longjump");
-	}
+	GiveMutators(pPlayer);
 
 	if (strstr(mutators.string, g_MutatorInvisible) ||
 		atoi(mutators.string) == MUTATOR_INVISIBLE) {
@@ -585,6 +555,46 @@ void CGameRules::SpawnMutators(CBasePlayer *pPlayer)
 		pPlayer->pev->max_health = 999;
 		pPlayer->pev->health = 999;
 		pPlayer->pev->armorvalue = 999;
+	}
+}
+
+void CGameRules::GiveMutators(CBasePlayer *pPlayer)
+{
+	if (strstr(mutators.string, g_MutatorRocketCrowbar) ||
+		atoi(mutators.string) == MUTATOR_ROCKETCROWBAR) {
+		if (!pPlayer->HasNamedPlayerItem("weapon_rocketcrowbar"))
+			pPlayer->GiveNamedItem("weapon_rocketcrowbar");
+	}
+
+	if (strstr(mutators.string, g_MutatorInstaGib) ||
+		atoi(mutators.string) == MUTATOR_INSTAGIB) {
+		if (!pPlayer->HasNamedPlayerItem("weapon_dual_railgun"))
+			pPlayer->GiveNamedItem("weapon_dual_railgun");
+		pPlayer->GiveAmmo(URANIUM_MAX_CARRY, "uranium", URANIUM_MAX_CARRY);
+	}
+
+	if (strstr(mutators.string, g_MutatorPlumber) ||
+		atoi(mutators.string) == MUTATOR_PLUMBER) {
+		if (!pPlayer->HasNamedPlayerItem("weapon_dual_wrench"))
+			pPlayer->GiveNamedItem("weapon_dual_wrench");
+	}
+
+	if (strstr(mutators.string, g_MutatorBarrels) ||
+		atoi(mutators.string) == MUTATOR_BARRELS) {
+		if (!pPlayer->HasNamedPlayerItem("weapon_gravitygun"))
+			pPlayer->GiveNamedItem("weapon_gravitygun");
+	}
+
+	if (strstr(mutators.string, g_MutatorPortal) ||
+		atoi(mutators.string) == MUTATOR_PORTAL) {
+		if (!pPlayer->HasNamedPlayerItem("weapon_ashpod"))
+			pPlayer->GiveNamedItem("weapon_ashpod");
+	}
+
+	if (strstr(mutators.string, g_MutatorLongJump) ||
+		atoi(mutators.string) == MUTATOR_LONGJUMP) {
+		if (!pPlayer->m_fLongJump && (pPlayer->pev->weapons & (1<<WEAPON_SUIT)))
+			pPlayer->GiveNamedItem("item_longjump");
 	}
 }
 
@@ -776,42 +786,7 @@ void CGameRules::CheckMutators(void)
 						 !((CBasePlayer *)pPlayer)->IsArmoredMan)
 					g_engfuncs.pfnSetPhysicsKeyValue(pPlayer->edict(), "haste", "0");
 
-				if (strstr(mutators.string, g_MutatorRocketCrowbar) ||
-					atoi(mutators.string) == MUTATOR_ROCKETCROWBAR) {
-					if (!pl->HasNamedPlayerItem("weapon_rocketcrowbar"))
-						pl->GiveNamedItem("weapon_rocketcrowbar");
-				}
-
-				if (strstr(mutators.string, g_MutatorInstaGib) ||
-					atoi(mutators.string) == MUTATOR_INSTAGIB) {
-					if (!pl->HasNamedPlayerItem("weapon_dual_railgun"))
-						pl->GiveNamedItem("weapon_dual_railgun");
-					pPlayer->GiveAmmo(URANIUM_MAX_CARRY, "uranium", URANIUM_MAX_CARRY);
-				}
-
-				if (strstr(mutators.string, g_MutatorPlumber) ||
-					atoi(mutators.string) == MUTATOR_PLUMBER) {
-					if (!pl->HasNamedPlayerItem("weapon_dual_wrench"))
-						pl->GiveNamedItem("weapon_dual_wrench");
-				}
-
-				if (strstr(mutators.string, g_MutatorBarrels) ||
-					atoi(mutators.string) == MUTATOR_BARRELS) {
-					if (!pl->HasNamedPlayerItem("weapon_gravitygun"))
-						pl->GiveNamedItem("weapon_gravitygun");
-				}
-
-				if (strstr(mutators.string, g_MutatorPortal) ||
-					atoi(mutators.string) == MUTATOR_PORTAL) {
-					if (!pl->HasNamedPlayerItem("weapon_ashpod"))
-						pl->GiveNamedItem("weapon_ashpod");
-				}
-
-				if (strstr(mutators.string, g_MutatorLongJump) ||
-					atoi(mutators.string) == MUTATOR_LONGJUMP) {
-					if (!pl->m_fLongJump && (pPlayer->pev->weapons & (1<<WEAPON_SUIT)))
-						pl->GiveNamedItem("item_longjump");
-				}
+				GiveMutators(pl);
 
 				if (strstr(mutators.string, g_MutatorInvisible) ||
 					atoi(mutators.string) == MUTATOR_INVISIBLE) {
