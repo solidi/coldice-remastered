@@ -60,7 +60,7 @@ int CHudStatusIcons::Draw( float flTime )
 	if (gEngfuncs.IsSpectateOnly())
 		return 1;
 	// find starting position to draw from, along right-hand side of screen
-	int x = (5) + g_xP;
+	int x = 12 + g_xP;
 	int y = (ScreenHeight / 1.5) + g_yP;
 	
 	// loop through icon list, and draw any valid icons drawing up from the middle of screen
@@ -68,7 +68,7 @@ int CHudStatusIcons::Draw( float flTime )
 	{
 		if ( m_IconList[i].spr )
 		{
-			y -= ( m_IconList[i].rc.bottom - m_IconList[i].rc.top ) + 5;
+			y -= ( m_IconList[i].rc.bottom - m_IconList[i].rc.top ) + 18;
 			
 			SPR_Set( m_IconList[i].spr, m_IconList[i].r, m_IconList[i].g, m_IconList[i].b );
 			SPR_DrawAdditive( 0, x, y, &m_IconList[i].rc );
@@ -78,7 +78,7 @@ int CHudStatusIcons::Draw( float flTime )
 			if (strncmp(szSpriteName, "rune_", 5) == 0)
 				szSpriteName += 5;
 			int size = ConsoleStringLen(szSpriteName);
-			DrawConsoleString(x + (((m_IconList[i].rc.right - m_IconList[i].rc.left) / 2) - (size / 2)), y + (m_IconList[i].rc.bottom - m_IconList[i].rc.top) - 3, szSpriteName);
+			DrawConsoleString(x + (((m_IconList[i].rc.right - m_IconList[i].rc.left) / 2) - (size / 2)), y + (m_IconList[i].rc.bottom - m_IconList[i].rc.top), szSpriteName);
 		}
 	}
 	
