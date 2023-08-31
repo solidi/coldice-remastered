@@ -1388,6 +1388,7 @@ BOOL CHalfLifeMultiplay :: ClientConnected( edict_t *pEntity, const char *pszNam
 
 extern int gmsgSayText;
 extern int gmsgGameMode;
+extern int gmsgMutators;
 
 void CHalfLifeMultiplay :: UpdateGameMode( CBasePlayer *pPlayer )
 {
@@ -1421,6 +1422,12 @@ void CHalfLifeMultiplay :: InitHUD( CBasePlayer *pl )
 	}
 
 	UpdateGameMode( pl );
+
+	char szMutators[64];
+	strncpy(szMutators, mutators.string, sizeof(szMutators));
+	MESSAGE_BEGIN( MSG_ALL, gmsgMutators );
+		WRITE_STRING(szMutators);
+	MESSAGE_END();
 
 	// sending just one score makes the hud scoreboard active;  otherwise
 	// it is just disabled for single play
