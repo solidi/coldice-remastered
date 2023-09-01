@@ -130,8 +130,6 @@ void CAshpod::SecondaryAttack()
 
 void CAshpod::PortalFire( int state )
 {
-	SendWeaponAnim(1);
-
 	TraceResult tr;
 	UTIL_MakeVectors(m_pPlayer->pev->v_angle);
 	Vector vecSrc = m_pPlayer->pev->origin + m_pPlayer->pev->view_ofs;
@@ -143,10 +141,12 @@ void CAshpod::PortalFire( int state )
 		Vector angle;
 		UTIL_VectorAngles(tr.vecPlaneNormal, angle);
 
+#ifndef CLIENT_DLL
 		auto pPortal = CBaseEntity::Create("ent_portal", tr.vecEndPos - gpGlobals->v_forward * 3, angle, m_pPlayer->edict());
 		if (pPortal)
 		{
-#ifndef CLIENT_DLL
+			SendWeaponAnim(PORTALGUN_SHOOT1);
+
 			if (state)
 				EMIT_SOUND(ENT(pev), CHAN_WEAPON, "portalgun_shoot_red.wav", 1, ATTN_NORM);
 			else
@@ -181,54 +181,42 @@ void CAshpod::PortalFire( int state )
 				WRITE_BYTE( 185 ); // Brightness
 				WRITE_BYTE( 10 );
 			MESSAGE_END( );
-#endif
 
 			pPortal->pev->skin = state;
 
-#ifndef CLIENT_DLL
 			if (m_pPlayer->m_pPortal[state])
 				UTIL_Remove(m_pPlayer->m_pPortal[state]);
 			m_pPlayer->m_pPortal[state] = pPortal;
-#endif
 		}
+#endif
 	}
 
 	m_flNextPrimaryAttack = m_flNextSecondaryAttack = GetNextAttackDelay(0.2);
+	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + UTIL_SharedRandomFloat( m_pPlayer->random_seed, 10, 15 );
 }
 
 void CAshpod::WeaponIdle( void )
 {
-	ResetEmptySound( );
-
-	m_pPlayer->GetAutoaimVector( AUTOAIM_10DEGREES );
-
 	if ( m_flTimeWeaponIdle > UTIL_WeaponTimeBase() )
 		return;
 
-	if ( m_pPlayer->pev->button & IN_IRONSIGHT )
-		return;
+	int iAnim;
+	float flRand = UTIL_SharedRandomFloat( m_pPlayer->random_seed, 0.0, 1.0 );
 
-	// only idle if the slid isn't back
-	if (m_iClip != 0)
+	if (flRand <= 0.3 + 0 * 0.75)
 	{
-		int iAnim;
-		float flRand = UTIL_SharedRandomFloat( m_pPlayer->random_seed, 0.0, 1.0 );
-
-		if (flRand <= 0.3 + 0 * 0.75)
-		{
-			iAnim = PORTALGUN_IDLE;
-			m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 49.0 / 16;
-		}
-		else if (flRand <= 0.6 + 0 * 0.875)
-		{
-			iAnim = PORTALGUN_IDLE;
-			m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 60.0 / 16.0;
-		}
-		else
-		{
-			iAnim = PORTALGUN_IDLE;
-			m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 40.0 / 16.0;
-		}
-		SendWeaponAnim( iAnim, 1 );
+		iAnim = PORTALGUN_IDLE;
+		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 49.0 / 16;
 	}
+	else if (flRand <= 0.6 + 0 * 0.875)
+	{
+		iAnim = PORTALGUN_IDLE;
+		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 60.0 / 16.0;
+	}
+	else
+	{
+		iAnim = PORTALGUN_IDLE;
+		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 40.0 / 16.0;
+	}
+	SendWeaponAnim( iAnim );
 }

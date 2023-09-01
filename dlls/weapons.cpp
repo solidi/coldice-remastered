@@ -1068,6 +1068,9 @@ void CBasePlayerWeapon::ItemPostFrame( void )
 		if ( (m_iClip == 0 && pszAmmo1()) || (iMaxClip() == -1 && !m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()] ) )
 		{
 			m_fFireOnEmpty = TRUE;
+			// Hack for portal and gravity gun jam
+			if (iMaxClip() == -1 && PrimaryAmmoIndex() == -1)
+				canFire = TRUE;
 		}
 
 		if (m_pPlayer->m_iHoldingItem) {
