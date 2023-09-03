@@ -105,12 +105,14 @@ BOOL CGlock::DeployLowKey( )
 BOOL CGlock::Deploy( )
 {
 	m_iSilencer = 0;
+	pev->body = 0;
 	return ChangeModel();
 }
 
 void CGlock::Holster( int skiplocal )
 {
 	pev->nextthink = -1;
+	pev->body = 0;
 	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 0.25;
 	SendWeaponAnim( GLOCK_HOLSTER );
 }
