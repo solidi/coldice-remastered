@@ -2698,6 +2698,11 @@ BOOL CHalfLifeMultiplay::IsAllowedToDropWeapon( void )
 	return TRUE;
 }
 
+BOOL CHalfLifeMultiplay::IsAllowedToHolsterWeapon( void )
+{
+	return holsterweapons.value;
+}
+
 edict_t *CHalfLifeMultiplay::GetPlayerSpawnSpot( CBasePlayer *pPlayer )
 {
 	edict_t *pentSpawnSpot = CGameRules::GetPlayerSpawnSpot( pPlayer );	

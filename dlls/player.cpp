@@ -3828,7 +3828,7 @@ void CBasePlayer::SelectItem(const char *pstr)
 	if (m_pActiveItem && m_pActiveItem->m_pPlayer)
 		m_pActiveItem->Holster( );
 	
-	if (holsterweapons.value) {
+	if (g_pGameRules->IsAllowedToHolsterWeapon()) {
 		m_pLastItem = pItem;
 
 		if (!m_pActiveItem)
@@ -3852,7 +3852,7 @@ void CBasePlayer::SelectItem(const char *pstr)
 
 void CBasePlayer::SelectLastItem(void)
 {
-	if (holsterweapons.value) {
+	if (g_pGameRules->IsAllowedToHolsterWeapon()) {
 		m_pLastItem = m_pLastRef;
 	}
 
@@ -3875,7 +3875,7 @@ void CBasePlayer::SelectLastItem(void)
 	CBasePlayerItem *pTemp = m_pActiveItem;
 	m_pActiveItem = m_pLastItem;
 	m_pLastItem = pTemp;
-	if (holsterweapons.value) {
+	if (g_pGameRules->IsAllowedToHolsterWeapon()) {
 		 m_pLastRef = m_pLastItem;
 		 m_pLastItem = m_pActiveItem;
 		 m_pActiveItem = 0;
@@ -5191,7 +5191,7 @@ void CBasePlayer::ItemPreFrame()
 		return;
 	}
 
-	if (holsterweapons.value && !m_pActiveItem && HasWeapons()) {
+	if (g_pGameRules->IsAllowedToHolsterWeapon() && !m_pActiveItem && HasWeapons()) {
 		m_pActiveItem = m_pLastItem;//We set the chosen weapon to lastitem in selectitem func. //Now we`ll set it to the active weapon and draws it with ChangeGun.
 		ChangeGun();
 	}
@@ -6103,7 +6103,7 @@ BOOL CBasePlayer :: SwitchWeapon( CBasePlayerItem *pWeapon )
 		m_pActiveItem->Holster( );
 	}
 
-	if (holsterweapons.value) {
+	if (g_pGameRules->IsAllowedToHolsterWeapon()) {
 		m_pLastItem = pWeapon;
 		m_pActiveItem = 0;
 	} else {

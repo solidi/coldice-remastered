@@ -23,6 +23,7 @@
 #include	"gamerules.h"
 #include	"skill.h"
 #include	"items.h"
+#include	"game.h"
 
 extern DLL_GLOBAL CGameRules	*g_pGameRules;
 extern DLL_GLOBAL BOOL	g_fGameOver;
@@ -436,6 +437,11 @@ BOOL CHalfLifeRules::IsAllowedSingleWeapon( CBaseEntity *pEntity )
 BOOL CHalfLifeRules::IsAllowedToDropWeapon( void )
 {
 	return FALSE;
+}
+
+BOOL CHalfLifeRules::IsAllowedToHolsterWeapon( void )
+{
+	return holsterweapons.value;
 }
 
 //=========================================================

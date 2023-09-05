@@ -145,6 +145,7 @@ public:
 
 	virtual BOOL IsAllowedSingleWeapon( CBaseEntity *pEntity ) = 0;
 	virtual BOOL IsAllowedToDropWeapon( void ) = 0;
+	virtual BOOL IsAllowedToHolsterWeapon( void ) = 0;
 
 // Teamplay stuff
 	virtual const char *GetTeamID( CBaseEntity *pEntity ) = 0;// what team is this entity on?
@@ -283,6 +284,7 @@ public:
 
 	virtual BOOL IsAllowedSingleWeapon( CBaseEntity *pEntity );
 	virtual BOOL IsAllowedToDropWeapon( void );
+	virtual BOOL IsAllowedToHolsterWeapon( void );
 
 // Monsters
 	virtual BOOL FAllowMonsters( void );
@@ -386,6 +388,7 @@ public:
 
 	virtual BOOL IsAllowedSingleWeapon( CBaseEntity *pEntity );
 	virtual BOOL IsAllowedToDropWeapon( void );
+	virtual BOOL IsAllowedToHolsterWeapon( void );
 
 // Teamplay stuff	
 	virtual const char *GetTeamID( CBaseEntity *pEntity ) {return "";}

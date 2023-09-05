@@ -402,3 +402,8 @@ BOOL CHalfLifeGunGame::IsAllowedToDropWeapon( void )
 {
 	return FALSE;
 }
+
+BOOL CHalfLifeGunGame::IsAllowedToHolsterWeapon( void )
+{
+	return FALSE;
+}
