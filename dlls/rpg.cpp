@@ -542,13 +542,13 @@ void CRpg::PrimaryAttack()
 
 		m_iClip--; 
 				
-		m_flNextPrimaryAttack = GetNextAttackDelay(0.75);
+		m_flNextPrimaryAttack = m_flNextSecondaryAttack = GetNextAttackDelay(0.75);
 		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 1.5;
 	}
 	else
 	{
 		PlayEmptySound( );
-		m_flNextPrimaryAttack = GetNextAttackDelay(0.15);
+		m_flNextPrimaryAttack = m_flNextSecondaryAttack = GetNextAttackDelay(0.15);
 	}
 	UpdateSpot( );
 }
@@ -606,6 +606,7 @@ void CRpg::SecondaryAttack()
 	else
 	{
 		PlayEmptySound( );
+		m_flNextPrimaryAttack = m_flNextSecondaryAttack = GetNextAttackDelay(0.15);
 	}
 	UpdateSpot( );
 }
