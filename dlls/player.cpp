@@ -6397,6 +6397,9 @@ float IceExplode(CBaseEntity *pEntity, int bitsDamageType)
 	if (!pEntity->IsPlayer())
 		return 0;
 
+	if (!g_pGameRules->FPlayerCanTakeDamage(((CBasePlayer *)pEntity), pEntity))
+		return 0;
+
 	if (((CBasePlayer *)pEntity)->m_iFreezeCounter < 5)
 		EMIT_SOUND(ENT(pEntity->pev), CHAN_BODY, "freezing.wav", 1, ATTN_NORM);
 	
