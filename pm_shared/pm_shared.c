@@ -2561,7 +2561,7 @@ void PM_Jump (void)
 	// No more effect
 	if ( pmove->onground == -1 )
 	{
-		if (jump_pressed)
+		if (jump_pressed && !pmove->flSwimTime)
 		{
 			if (pmove->iuser4 >= 1)
 				return;
@@ -2569,6 +2569,7 @@ void PM_Jump (void)
 			{
 				pmove->iuser4 = 1;
 				jump_multipler = 2.0;
+				pmove->flSwimTime = 1000;
 			} 
 		}
 		else
