@@ -1885,6 +1885,9 @@ void CBasePlayer::ClimbingPhysics()
 	if (m_fFlipTime >= gpGlobals->time)
 		return;
 
+	if (m_flNextAttack > UTIL_WeaponTimeBase())
+		return;
+
 	UTIL_MakeVectors(pev->angles);
 
 	int normal = 1;
