@@ -820,12 +820,62 @@ void CWorld :: RandomizeMutators( void )
 	CVAR_SET_STRING("sv_mutators", result);
 }
 
+/*
+const char *pSwappable[] =
+{
+	"weapon_shotgun",
+	"weapon_9mmAR",
+	"weapon_handgrenade",
+	"weapon_tripmine",
+	"weapon_357",
+	"weapon_crossbow",
+	"weapon_egon",
+	"weapon_gauss",
+	"weapon_rpg",
+	"weapon_satchel",
+	"weapon_snark",
+	"weapon_hornetgun",
+	"weapon_vest",
+	"weapon_chumtoad",
+	"weapon_sniperrifle",
+	"weapon_railgun",
+	"weapon_cannon",
+	"weapon_mag60",
+	"weapon_chaingun",
+	"weapon_glauncher",
+	"weapon_smg",
+	"weapon_usas",
+	"weapon_snowball",
+	"weapon_12gauge",
+	"weapon_nuke",
+	"weapon_deagle",
+	"weapon_dual_deagle",
+	"weapon_dual_mag60",
+	"weapon_dual_smg",
+	"weapon_dual_wrench",
+	"weapon_dual_usas",
+	"weapon_dual_railgun",
+	"weapon_dual_rpg",
+	"weapon_dual_flamethrower",
+	"weapon_freezegun",
+	"weapon_ashpod",
+	"ammo_rpgclip",
+	"ammo_9mmAR",
+	"ammo_ARgrenades",
+	"ammo_357",
+	"ammo_buckshot",
+	"ammo_9mmclip",
+	"ammo_gaussclip",
+	"ammo_crossbow",
+};
+*/
+
 extern DLL_GLOBAL int g_GameMode;
 const char *szGameModeList [] =
 {
 	"ffa",
 	"teamplay",
-	"iceman",
+	"jvs",
 	"lms",
 	"arena",
 	"snowball",
@@ -867,7 +917,7 @@ void CWorld :: SetGameMode( void )
 			switch (g_GameMode)
 			{
 			case GAME_ICEMAN:
-				CVAR_SET_STRING( "mp_teamlist", "commando;iceman" );
+				CVAR_SET_STRING( "mp_teamlist", "jesus;santa" );
 				break;
 
 			case GAME_SNOWBALL:

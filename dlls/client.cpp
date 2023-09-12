@@ -235,14 +235,14 @@ void ClientPutInServer( edict_t *pEntity )
 	pPlayer->m_iDisplayInfoMessage = 1;
 	pPlayer->m_iKeyboardAcrobatics = 1;
 
+	pPlayer->pev->iuser1 = 0;	// disable any spec modes
+	pPlayer->pev->iuser2 = 0; 
+
 	// Allocate a CBasePlayer for pev, and call spawn
 	pPlayer->Spawn();
 
 	// Reset interpolation during first frame
 	pPlayer->pev->effects |= EF_NOINTERP;
-
-	pPlayer->pev->iuser1 = 0;	// disable any spec modes
-	pPlayer->pev->iuser2 = 0; 
 }
 
 #include "voice_gamemgr.h"
@@ -872,7 +872,7 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_randommutators \"[0|1]\"\" - selects three random mutators on map change\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_chaostime\" - how many seconds until chaos mutators are rotated\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_gamemode \"ffa\"\" - game mode is deathmatch\n");
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_gamemode \"iceman\"\" - game mode is iceman - defeat him!\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_gamemode \"jvs\"\" - game mode is Jesus vs Santa - defeat him!\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_gamemode \"lms\"\" - game mode is last man standing\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_gamemode \"snowball\"\" - game mode is snowballs and grenades!\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_gamemode \"gungame\"\" - get frags with specific weapons and level up!\n");

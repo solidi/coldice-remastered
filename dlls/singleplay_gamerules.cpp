@@ -103,6 +103,10 @@ void CHalfLifeRules :: InitHUD( CBasePlayer *pl )
 {
 }
 
+void CHalfLifeRules :: UpdateGameMode( CBasePlayer *pl )
+{
+}
+
 //=========================================================
 //=========================================================
 void CHalfLifeRules :: ClientDisconnected( edict_t *pClient )

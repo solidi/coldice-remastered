@@ -28,6 +28,7 @@
 #include	"items.h"
 #include	"gungame_gamerules.h"
 #include	"ctc_gamerules.h"
+#include	"jvs_gamerules.h"
 
 extern edict_t *EntSelectSpawnPoint( CBaseEntity *pPlayer );
 
@@ -447,6 +448,11 @@ CGameRules *InstallGameRules( void )
 		{
 			g_teamplay = 0;
 			return new CHalfLifeCaptureTheChumtoad;
+		}
+		else if (g_GameMode == GAME_ICEMAN)
+		{
+			g_teamplay = 0;
+			return new CHalfLifeJesusVsSanta;
 		}
 
 		if ((int)gpGlobals->deathmatch == 1)
