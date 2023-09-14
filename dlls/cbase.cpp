@@ -813,7 +813,14 @@ CBaseEntity * CBaseEntity::Create( char *szName, const Vector &vecOrigin, const 
 	pEntity->pev->owner = pentOwner;
 	pEntity->pev->origin = vecOrigin;
 	pEntity->pev->angles = vecAngles;
-	DispatchSpawn( pEntity->edict() );
+	int result = DispatchSpawn( pEntity->edict() );
+
+	if (result == -1)
+	{
+		UTIL_Remove(pEntity);
+		return NULL;
+	}
+
 	return pEntity;
 }
 

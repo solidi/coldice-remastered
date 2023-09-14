@@ -1002,7 +1002,18 @@ void CBasePlayerWeapon::ItemPostFrame( void )
 		if (infiniteammo.value == 1)
 			m_iClip = iMaxClip();
 
-		m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] = iMaxAmmo1();
+		if (g_pGameRules->IsCtC())
+		{
+			if (pszAmmo1())
+			{
+				if (strcmp(pszAmmo1(), "Chumtoads"))
+					m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] = iMaxAmmo1();
+			}
+		}
+		else
+		{
+			m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] = iMaxAmmo1();
+		}
 		m_pPlayer->m_rgAmmo[m_iSecondaryAmmoType] = iMaxAmmo2();
 	}
 
