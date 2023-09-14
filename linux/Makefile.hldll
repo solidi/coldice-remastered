@@ -164,6 +164,7 @@ HLDLL_OBJS = \
 	$(HLDLL_OBJ_DIR)/ichthyosaur.o \
 	$(HLDLL_OBJ_DIR)/islave.o \
 	$(HLDLL_OBJ_DIR)/items.o \
+	$(HLDLL_OBJ_DIR)/jvs_gamerules.o \
 	$(HLDLL_OBJ_DIR)/knife.o \
 	$(HLDLL_OBJ_DIR)/leech.o \
 	$(HLDLL_OBJ_DIR)/lights.o \

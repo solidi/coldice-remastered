@@ -297,9 +297,6 @@ void CHalfLifeMultiplay :: Think ( void )
 
 	switch ( g_GameMode )
 	{
-		case GAME_ICEMAN:
-			IcemanArena();
-			break;
 		case GAME_LMS:
 			LastManStanding();
 			break;
@@ -312,216 +309,6 @@ void CHalfLifeMultiplay :: Think ( void )
 	if (NUMBER_OF_ENTITIES() > 1024)
 		ALERT(at_console, "NUMBER_OF_ENTITIES(): %d | gpGlobals->maxEntities: %d\n", NUMBER_OF_ENTITIES(), gpGlobals->maxEntities);
 #endif
-}
-
-void CHalfLifeMultiplay::IcemanArena( void )
-{
-	if ( flUpdateTime > gpGlobals->time )
-		return;
-
-	if ( m_flRoundTimeLimit )
-	{
-		if ( CheckGameTimer() )
-			return;
-	}
-
-	if ( g_GameInProgress )
-	{
-		int clients_alive = 0;
-
-		for ( int i = 1; i <= gpGlobals->maxClients; i++ )
-		{
-			CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
-
-			if ( plr && plr->IsPlayer() && !plr->HasDisconnected )
-			{
-				// Force spectate on those that died.
-				if ( plr->m_flForceToObserverTime && plr->m_flForceToObserverTime < gpGlobals->time )
-				{
-					edict_t *pentSpawnSpot = g_pGameRules->GetPlayerSpawnSpot( plr );
-					plr->StartObserver(plr->pev->origin, VARS(pentSpawnSpot)->angles);
-					plr->m_flForceToObserverTime = 0;
-				}
-
-				if ( plr->IsInArena && plr->IsAlive() )
-				{
-					clients_alive++; 
-				}
-				else
-				{
-					//for clients who connected while game in progress.
-					if ( plr->IsSpectator() )
-						ClientPrint(plr->pev, HUD_PRINTCENTER,
-							UTIL_VarArgs("Iceman Arena in progress\nIceman: %s (%.0f/%.0f)\n",
-								STRING(pArmoredMan->pev->netname),
-								pArmoredMan->pev->health,
-								pArmoredMan->pev->armorvalue ));
-					else {
-						// Send them to observer
-						plr->m_flForceToObserverTime = gpGlobals->time;
-					}
-				}
-			}
-		}
-
-		if (m_fSendArmoredManMessage < gpGlobals->time)
-		{
-			if (!FBitSet(pArmoredMan->pev->flags, FL_FAKECLIENT))
-			{
-				MESSAGE_BEGIN( MSG_ONE, gmsgStatusIcon, NULL, pArmoredMan->pev );
-					WRITE_BYTE(1);
-					WRITE_STRING("iceman");
-					WRITE_BYTE(0);
-					WRITE_BYTE(113);
-					WRITE_BYTE(230);
-				MESSAGE_END();
-			}
-		}
-
-		//commandos all dead or armored man defeated.
-		if ( clients_alive <= 1 || !pArmoredMan->IsAlive() || pArmoredMan->HasDisconnected )
-		{
-			//stop timer / end game.
-			m_flRoundTimeLimit = 0;
-			g_GameInProgress = FALSE;
-			//hack to allow for logical code below.
-			if ( pArmoredMan->HasDisconnected )
-				pArmoredMan->pev->health = 0;
-
-			if (!FBitSet(pArmoredMan->pev->flags, FL_FAKECLIENT))
-			{
-				MESSAGE_BEGIN( MSG_ONE, gmsgStatusIcon, NULL, pArmoredMan->pev );
-					WRITE_BYTE(0);
-					WRITE_STRING("iceman");
-				MESSAGE_END();
-			}
-
-			//armored man is alive.
-			if ( pArmoredMan->IsAlive() && clients_alive == 1 )
-			{
-				UTIL_ClientPrintAll(HUD_PRINTCENTER, UTIL_VarArgs("%s has defeated all commandos!\n", STRING(pArmoredMan->pev->netname) ));
-
-				CheckRounds();
-
-				DisplayWinnersGoods( pArmoredMan );
-				MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
-					WRITE_BYTE(CLIENT_SOUND_KILLINGMACHINE);
-				MESSAGE_END();
-			}
-			//the man has been killed.
-			else if ( !pArmoredMan->IsAlive() )
-			{
-				//find highest damage amount.
-				float highest = -99999;
-				BOOL IsEqual = FALSE;
-				CBasePlayer *highballer = NULL;
-
-				for ( int i = 1; i <= gpGlobals->maxClients; i++ )
-				{
-					CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
-
-					if ( plr && plr->IsPlayer() && plr->IsInArena )
-					{
-						if ( highest <= plr->m_fArmoredManHits )
-						{
-							if ( highest == plr->m_fArmoredManHits )
-							{
-								IsEqual = TRUE;
-								break;
-							}
-
-							highest = plr->m_fArmoredManHits;
-							highballer = plr;
-						}
-					}
-				}
-
-				if ( !IsEqual && highballer )
-				{
-					CheckRounds();
-					UTIL_ClientPrintAll(HUD_PRINTCENTER,
-						UTIL_VarArgs("Iceman has been destroyed!\n\n%s doled the most damage!\n",
-						STRING(highballer->pev->netname)));
-					DisplayWinnersGoods( highballer );
-					MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
-						WRITE_BYTE(CLIENT_SOUND_OUTSTANDING);
-					MESSAGE_END();
-				}
-				else
-				{
-					UTIL_ClientPrintAll(HUD_PRINTCENTER, "Iceman has been destroyed!\n");
-					UTIL_ClientPrintAll(HUD_PRINTTALK, "* No winners in this round!");
-					MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
-						WRITE_BYTE(CLIENT_SOUND_HULIMATING_DEAFEAT);
-					MESSAGE_END();
-				}
-
-			}
-			//everyone died.
-			else
-			{
-				UTIL_ClientPrintAll(HUD_PRINTCENTER, "Everyone has been killed!\n");
-				UTIL_ClientPrintAll(HUD_PRINTTALK, "* No winners in this round!");
-				MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
-					WRITE_BYTE(CLIENT_SOUND_HULIMATING_DEAFEAT);
-				MESSAGE_END();
-			}
-
-			flUpdateTime = gpGlobals->time + 5.0;
-			return;
-		}
-
-		flUpdateTime = gpGlobals->time + 1.5;
-		return;
-	}
-
-	int clients = CheckClients();
-
-	if ( clients > 1 )
-	{
-		if ( m_iCountDown > 0 )
-		{
-			if (m_iCountDown == 2) {
-				MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
-					WRITE_BYTE(CLIENT_SOUND_PREPAREFORBATTLE);
-				MESSAGE_END();
-			}
-			SuckAllToSpectator(); // in case players join during a countdown.
-			UTIL_ClientPrintAll(HUD_PRINTCENTER,
-				UTIL_VarArgs("Prepare for Iceman battle\n\n%i...\n", m_iCountDown));
-			m_iCountDown--;
-			flUpdateTime = gpGlobals->time + 1.0;
-			return;
-		}
-
-		ALERT(at_console, "Players in arena:\n");
-
-		//frags + time.
-		SetRoundLimits();
-
-		int armoredman = m_iPlayersInArena[RANDOM_LONG(0, clients-1)];
-		ALERT(at_console, "clients set to %d, armor man set to index=%d\n", clients, armoredman);
-		pArmoredMan = (CBasePlayer *)UTIL_PlayerByIndex( armoredman );
-		pArmoredMan->IsArmoredMan = TRUE;
-
-		InsertClientsIntoArena();
-
-		m_fSendArmoredManMessage = gpGlobals->time + 1.0;
-
-		m_iCountDown = 3;
-		
-		g_GameInProgress = TRUE;
-		UTIL_ClientPrintAll(HUD_PRINTCENTER, UTIL_VarArgs("Iceman Arena has begun!\n%s is the Iceman!\n", STRING(pArmoredMan->pev->netname)));
-		UTIL_ClientPrintAll(HUD_PRINTTALK, UTIL_VarArgs("* %d players have entered the arena!\n", clients));
-	}
-	else
-	{
-		SuckAllToSpectator();
-		m_flRoundTimeLimit = 0;
-		UTIL_ClientPrintAll(HUD_PRINTCENTER, "Waiting for other players to begin\n\n'Iceman Arena'\n");
-	}
-
-	flUpdateTime = gpGlobals->time + 1.5;
 }
 
 void CHalfLifeMultiplay::LastManStanding( void )
@@ -930,6 +717,7 @@ int CHalfLifeMultiplay::CheckClients ( void )
 			clients++;
 			plr->IsInArena = FALSE;
 			plr->IsArmoredMan = FALSE;
+			plr->pev->fuser4 = 0;
 			plr->m_fArmoredManHits = 0;
 			plr->m_flForceToObserverTime = 0;
 			m_iPlayersInArena[clients-1] = i;
@@ -1002,51 +790,6 @@ BOOL CHalfLifeMultiplay::CheckGameTimer( void )
 		BOOL IsEqual = FALSE;
 		CBasePlayer *highballer = NULL;
 
-		if ( g_GameMode == GAME_ICEMAN )
-		{
-			//find highest damage amount.
-			for ( int i = 1; i <= gpGlobals->maxClients; i++ )
-			{
-				CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
-
-				if ( plr && plr->IsPlayer() && plr->IsInArena )
-				{
-					if ( highest <= plr->m_fArmoredManHits )
-					{
-						if ( highest == plr->m_fArmoredManHits )
-						{
-							IsEqual = TRUE;
-							break;
-						}
-
-						highest = plr->m_fArmoredManHits;
-						highballer = plr;
-					}
-				}
-			}
-
-			if ( !IsEqual && highballer )
-			{
-				CheckRounds();
-				UTIL_ClientPrintAll(HUD_PRINTCENTER, 
-					UTIL_VarArgs("Time is up!\n\n%s doled the most damage!\n",
-					STRING(highballer->pev->netname)));
-				DisplayWinnersGoods( highballer );
-
-				MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
-					WRITE_BYTE(CLIENT_SOUND_OUTSTANDING);
-				MESSAGE_END();
-			}
-			else
-			{
-				UTIL_ClientPrintAll(HUD_PRINTCENTER, "Time is up!\nNo one has won!\n");
-				UTIL_ClientPrintAll(HUD_PRINTTALK, "* No winners in this round!");
-				MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
-					WRITE_BYTE(CLIENT_SOUND_HULIMATING_DEAFEAT);
-				MESSAGE_END();
-			}
-		}
-		else
 		{
 			for ( int i = 1; i <= gpGlobals->maxClients; i++ )
 			{
@@ -1186,48 +929,6 @@ void CHalfLifeMultiplay::DisplayWinnersGoods( CBasePlayer *pPlayer )
 		pPlayer->m_iGameModeWins,
 		pPlayer->m_iGameModePlays,
 		((float)pPlayer->m_iGameModeWins / (float)pPlayer->m_iGameModePlays) * 100 ));
-}
-
-extern int gmsgTeamInfo;
-
-void CHalfLifeMultiplay::ClientUserInfoChanged( CBasePlayer *pPlayer, char *infobuffer )
-{
-	// prevent skin/color/model changes
-	char *iceman = "iceman";
-	char *commando = "commando";
-	char *mdls = g_engfuncs.pfnInfoKeyValue( infobuffer, "model" );
-
-	if ( g_GameMode == GAME_ICEMAN )
-	{
-		if ( strcmp( mdls, iceman ) || strcmp( mdls, commando ) )
-		{
-			if ( pPlayer->IsArmoredMan )
-			{
-				g_engfuncs.pfnSetClientKeyValue( ENTINDEX( pPlayer->edict() ),
-					g_engfuncs.pfnGetInfoKeyBuffer( pPlayer->edict() ), "model", iceman );
-				g_engfuncs.pfnSetClientKeyValue( ENTINDEX( pPlayer->edict() ),
-					g_engfuncs.pfnGetInfoKeyBuffer( pPlayer->edict() ), "team", iceman );
-				
-				strncpy( pPlayer->m_szTeamName, "iceman", TEAM_NAME_LENGTH );
-			}
-			else
-			{
-				g_engfuncs.pfnSetClientKeyValue( ENTINDEX( pPlayer->edict() ),
-					g_engfuncs.pfnGetInfoKeyBuffer( pPlayer->edict() ), "model", commando );
-				g_engfuncs.pfnSetClientKeyValue( ENTINDEX( pPlayer->edict() ),
-					g_engfuncs.pfnGetInfoKeyBuffer( pPlayer->edict() ), "team", commando );
-				strncpy( pPlayer->m_szTeamName, "commando", TEAM_NAME_LENGTH );
-			}
-
-			// notify everyone's HUD of the team change
-			MESSAGE_BEGIN( MSG_ALL, gmsgTeamInfo );
-				WRITE_BYTE( ENTINDEX(pPlayer->edict()) );
-				WRITE_STRING( pPlayer->m_szTeamName );
-			MESSAGE_END();
-
-			ClientPrint(pPlayer->pev, HUD_PRINTCONSOLE, "Models changed due to Iceman arena!\n");
-		}
-	}
 }
 
 void CHalfLifeMultiplay::ResetGameMode( void )
@@ -1569,28 +1270,6 @@ BOOL CHalfLifeMultiplay::FPlayerCanTakeDamage( CBasePlayer *pPlayer, CBaseEntity
 	return TRUE;
 }
 
-void CHalfLifeMultiplay::FPlayerTookDamage( float flDamage, CBasePlayer *pVictim, CBaseEntity *pKiller)
-{
-	CBasePlayer *pPlayerAttacker = NULL;
-
-	if ( g_GameMode == GAME_ICEMAN )
-	{
-		if (pKiller && pKiller->IsPlayer())
-		{
-			pPlayerAttacker = (CBasePlayer *)pKiller;
-			if ( pPlayerAttacker != pVictim && pVictim->IsArmoredMan )
-			{
-				pPlayerAttacker->m_fArmoredManHits += flDamage;
-				ALERT(at_notice, UTIL_VarArgs("Total damage against Iceman is: %.2f\n",
-					pPlayerAttacker->m_fArmoredManHits));
-			}
-			else if ( pPlayerAttacker != pVictim && !pPlayerAttacker->IsArmoredMan && !pVictim->IsArmoredMan )
-			{
-				ClientPrint(pPlayerAttacker->pev, HUD_PRINTCENTER, "Destroy the Iceman!\nNot your teammate!");
-			}
-		}
-	}
-}
 //=========================================================
 //=========================================================
 void CHalfLifeMultiplay :: PlayerThink( CBasePlayer *pPlayer )
@@ -1771,42 +1450,6 @@ void CHalfLifeMultiplay :: PlayerSpawn( CBasePlayer *pPlayer )
 		pPlayer->GiveAmmo( 68, "9mm", _9MM_MAX_CARRY );// 4 full reloads
 	}
 
-	if (g_GameMode == GAME_ICEMAN)
-	{
-		if ( pPlayer->IsArmoredMan )
-		{
-			pPlayer->GiveMelees();
-			pPlayer->GiveExplosives();
-			pPlayer->pev->health = pPlayer->pev->armorvalue = 200;
-			pPlayer->pev->maxspeed = CVAR_GET_FLOAT("sv_maxspeed");
-			g_engfuncs.pfnSetPhysicsKeyValue(pPlayer->edict(), "haste", "1");
-			pPlayer->GiveNamedItem("rune_cloak");
-			g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer->edict()),
-				g_engfuncs.pfnGetInfoKeyBuffer(pPlayer->edict()), "model", "iceman");
-			g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer->edict()),
-				g_engfuncs.pfnGetInfoKeyBuffer(pPlayer->edict()), "team", "iceman");
-			strncpy( pPlayer->m_szTeamName, "iceman", TEAM_NAME_LENGTH );
-			MESSAGE_BEGIN( MSG_ALL, gmsgTeamInfo );
-				WRITE_BYTE( ENTINDEX(pPlayer->edict()) );
-				WRITE_STRING( pPlayer->m_szTeamName );
-			MESSAGE_END();
-		}
-		else
-		{
-			pPlayer->GiveRandomWeapon("weapon_nuke");
-			pPlayer->pev->maxspeed = CVAR_GET_FLOAT("sv_maxspeed") * .5;
-			g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer->edict()),
-				g_engfuncs.pfnGetInfoKeyBuffer(pPlayer->edict()), "model", "commando");
-			g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer->edict()),
-				g_engfuncs.pfnGetInfoKeyBuffer(pPlayer->edict()), "team", "commando");
-			strncpy( pPlayer->m_szTeamName, "commando", TEAM_NAME_LENGTH );
-			MESSAGE_BEGIN( MSG_ALL, gmsgTeamInfo );
-				WRITE_BYTE( ENTINDEX(pPlayer->edict()) );
-				WRITE_STRING( pPlayer->m_szTeamName );
-			MESSAGE_END();
-		}
-	}
-
 	g_pGameRules->SpawnMutators(pPlayer);
 }
 
@@ -1816,13 +1459,6 @@ BOOL CHalfLifeMultiplay :: FPlayerCanRespawn( CBasePlayer *pPlayer )
 {
 	switch (g_GameMode)
 	{
-	case GAME_ICEMAN:
-		if ( !pPlayer->m_flForceToObserverTime )
-			pPlayer->m_flForceToObserverTime = gpGlobals->time + 3.0;
-
-		return FALSE;
-		break;
-
 	case GAME_LMS:
 		if ( pPlayer->pev->frags <= 0 )
 		{
@@ -1894,29 +1530,6 @@ void CHalfLifeMultiplay :: PlayerKilled( CBasePlayer *pVictim, entvars_t *pKille
 	{
 		switch( g_GameMode )
 		{
-			case GAME_ICEMAN:
-				if ( !pVictim->IsArmoredMan )
-				{
-					int clientsLeft = 0;
-					for (int i = 1; i <= gpGlobals->maxClients; i++) {
-						if (m_iPlayersInArena[i-1] > 0)
-						{
-							CBasePlayer *pPlayer = (CBasePlayer *)UTIL_PlayerByIndex(m_iPlayersInArena[i-1]);
-							if (pPlayer && pPlayer->IsAlive() && !pPlayer->HasDisconnected)
-								clientsLeft++;
-						}
-					}
-					UTIL_ClientPrintAll(HUD_PRINTTALK,
-						UTIL_VarArgs("* %s has been eliminated! %d commandos remain!\n",
-						STRING(pVictim->pev->netname), clientsLeft > 0 ? clientsLeft - 1 : 0));
-					if (clientsLeft > 1)
-					{
-						MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
-							WRITE_BYTE(CLIENT_SOUND_MASSACRE);
-						MESSAGE_END();
-					}
-				}
-				break;
 			case GAME_LMS:
 				pVictim->pev->frags -= 1;
 
@@ -2431,18 +2044,6 @@ int CHalfLifeMultiplay :: WeaponShouldRespawn( CBasePlayerItem *pWeapon )
 //=========================================================
 BOOL CHalfLifeMultiplay::CanHavePlayerItem( CBasePlayer *pPlayer, CBasePlayerItem *pItem )
 {
-	if (g_GameMode == GAME_ICEMAN)
-	{
-		if (pPlayer->IsArmoredMan)
-		{
-			if (!strcmp(STRING(pItem->pev->classname), "weapon_vest"))
-				return FALSE;
-		}
-
-		if (!strcmp(STRING(pItem->pev->classname), "weapon_nuke"))
-			return FALSE;
-	}
-
 	if ( weaponstay.value > 0 )
 	{
 		if ( pItem->iFlags() & ITEM_FLAG_LIMITINWORLD )

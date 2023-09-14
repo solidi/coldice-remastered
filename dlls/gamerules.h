@@ -80,7 +80,7 @@ public:
 	virtual BOOL ClientConnected( edict_t *pEntity, const char *pszName, const char *pszAddress, char szRejectReason[ 128 ] ) = 0;// a client just connected to the server (player hasn't spawned yet)
 	virtual void InitHUD( CBasePlayer *pl ) = 0;		// the client dll is ready for updating
 	virtual void ClientDisconnected( edict_t *pClient ) = 0;// a client just disconnected from the server
-	virtual void UpdateGameMode( CBasePlayer *pPlayer ) {}  // the client needs to be informed of the current game mode
+	virtual void UpdateGameMode( CBasePlayer *pPlayer ) = 0;// the client needs to be informed of the current game mode
 
 // Client damage rules
 	virtual float FlPlayerFallDamage( CBasePlayer *pPlayer ) = 0;// this client just hit the ground after a fall. How much damage?
@@ -180,6 +180,7 @@ public:
 	virtual void CaptureCharm( CBasePlayer *pPlayer ) { };
 	virtual CBaseEntity *DropCharm( CBasePlayer *pPlayer, Vector origin ) { return NULL; };
 	virtual BOOL CanRandomizeWeapon(const char *name) { return TRUE; }
+	virtual BOOL IsArmoredMan( CBasePlayer *pPlayer ) = 0;
 
 	// Immediately end a multiplayer game
 	virtual void EndMultiplayerGame( void ) {}
@@ -229,6 +230,7 @@ public:
 	virtual BOOL ClientConnected( edict_t *pEntity, const char *pszName, const char *pszAddress, char szRejectReason[ 128 ] );
 	virtual void InitHUD( CBasePlayer *pl );		// the client dll is ready for updating
 	virtual void ClientDisconnected( edict_t *pClient );
+	virtual void UpdateGameMode( CBasePlayer *pPlayer );
 
 // Client damage rules
 	virtual float FlPlayerFallDamage( CBasePlayer *pPlayer );
@@ -292,6 +294,8 @@ public:
 #if defined( GRAPPLING_HOOK )
 	virtual BOOL AllowGrapplingHook( CBasePlayer *pPlayer );
 #endif
+
+	virtual BOOL IsArmoredMan( CBasePlayer *pPlayer ) { return FALSE; }
 
 // Teamplay stuff	
 	virtual const char *GetTeamID( CBaseEntity *pEntity ) {return "";};
@@ -407,8 +411,9 @@ public:
 	// Immediately end a multiplayer game
 	virtual void EndMultiplayerGame( void ) { GoToIntermission(); }
 
+	virtual BOOL IsArmoredMan( CBasePlayer *pPlayer ) { return FALSE; }
+
 	// Cold Ice Remastered Game Modes
-	virtual void IcemanArena( void );
 	virtual void LastManStanding( void );
 	virtual void Arena( void );
 	virtual int CheckClients( void );
@@ -420,8 +425,6 @@ public:
 	virtual void RemoveItemsThatDamage( void );
 	virtual void DisplayWinnersGoods( CBasePlayer *pPlayer );
 	virtual void ResetGameMode( void );
-	virtual void ClientUserInfoChanged( CBasePlayer *pPlayer, char *infobuffer );
-	virtual void FPlayerTookDamage( float flDamage, CBasePlayer *pVictim, CBaseEntity *pKiller);
 	virtual void CaptureCharm( CBasePlayer *pPlayer ) { };
 	virtual CBaseEntity *DropCharm( CBasePlayer *pPlayer, Vector origin ) { return NULL; };
 	virtual BOOL CanRandomizeWeapon(const char *name) { return TRUE; }

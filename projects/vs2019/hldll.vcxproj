@@ -175,6 +175,7 @@
     <ClCompile Include="..\..\dlls\ichthyosaur.cpp" />
     <ClCompile Include="..\..\dlls\islave.cpp" />
     <ClCompile Include="..\..\dlls\items.cpp" />
+    <ClCompile Include="..\..\dlls\jvs_gamerules.cpp" />
     <ClCompile Include="..\..\dlls\knife.cpp" />
     <ClCompile Include="..\..\dlls\leech.cpp" />
     <ClCompile Include="..\..\dlls\lights.cpp" />
@@ -265,6 +266,7 @@
     <ClInclude Include="..\..\dlls\gungame_gamerules.h" />
     <ClInclude Include="..\..\dlls\hornet.h" />
     <ClInclude Include="..\..\dlls\items.h" />
+    <ClInclude Include="..\..\dlls\jvs_gamerules.h" />
     <ClInclude Include="..\..\dlls\monsterevent.h" />
     <ClInclude Include="..\..\dlls\monsters.h" />
     <ClInclude Include="..\..\dlls\nodes.h" />

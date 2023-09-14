@@ -71,6 +71,13 @@ void CHudRadar::ProcessPlayerState(void)
 			else
 				b_specials[num_players] = false;
 		}
+		else if (gHUD.m_GameMode == GAME_ICEMAN)
+		{
+			if (pClient->curstate.fuser4 > 0) // iceman
+				b_specials[num_players] = true;
+			else
+				b_specials[num_players] = false;
+		}
 
 		if (!b_specials[num_players])
 			if (!pClient->player)
