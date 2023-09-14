@@ -180,6 +180,7 @@ public:
 	virtual void CaptureCharm( CBasePlayer *pPlayer ) { };
 	virtual CBaseEntity *DropCharm( CBasePlayer *pPlayer, Vector origin ) { return NULL; };
 	virtual BOOL CanRandomizeWeapon(const char *name) { return TRUE; }
+	virtual BOOL IsArmoredMan( CBasePlayer *pPlayer ) = 0;
 
 	// Immediately end a multiplayer game
 	virtual void EndMultiplayerGame( void ) {}
@@ -294,6 +295,8 @@ public:
 	virtual BOOL AllowGrapplingHook( CBasePlayer *pPlayer );
 #endif
 
+	virtual BOOL IsArmoredMan( CBasePlayer *pPlayer ) { return FALSE; }
+
 // Teamplay stuff	
 	virtual const char *GetTeamID( CBaseEntity *pEntity ) {return "";};
 	virtual int PlayerRelationship( CBaseEntity *pPlayer, CBaseEntity *pTarget );
@@ -407,6 +410,8 @@ public:
 
 	// Immediately end a multiplayer game
 	virtual void EndMultiplayerGame( void ) { GoToIntermission(); }
+
+	virtual BOOL IsArmoredMan( CBasePlayer *pPlayer ) { return FALSE; }
 
 	// Cold Ice Remastered Game Modes
 	virtual void LastManStanding( void );

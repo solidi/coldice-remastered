@@ -6400,6 +6400,9 @@ float IceExplode(CBaseEntity *pEntity, int bitsDamageType)
 	if (!pEntity->IsPlayer())
 		return 0;
 
+	if (g_pGameRules->IsArmoredMan(((CBasePlayer *)pEntity)))
+		return 0;
+
 	if (!g_pGameRules->FPlayerCanTakeDamage(((CBasePlayer *)pEntity), pEntity))
 		return 0;
 
