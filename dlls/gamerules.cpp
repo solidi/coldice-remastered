@@ -75,6 +75,7 @@ extern DLL_GLOBAL const char *g_MutatorItemsExplode;
 extern DLL_GLOBAL const char *g_MutatorNotTheBees;
 extern DLL_GLOBAL const char *g_MutatorDontShoot;
 extern DLL_GLOBAL const char *g_Mutator999;
+extern DLL_GLOBAL const char *g_MutatorBerserker;
 
 extern DLL_GLOBAL int g_GameMode;
 
@@ -601,6 +602,13 @@ void CGameRules::GiveMutators(CBasePlayer *pPlayer)
 		atoi(mutators.string) == MUTATOR_LONGJUMP) {
 		if (!pPlayer->m_fLongJump && (pPlayer->pev->weapons & (1<<WEAPON_SUIT)))
 			pPlayer->GiveNamedItem("item_longjump");
+	}
+
+	if (strstr(mutators.string, g_MutatorBerserker) ||
+		atoi(mutators.string) == MUTATOR_BERSERKER) {
+		pPlayer->RemoveAllItems(FALSE);
+		pPlayer->GiveNamedItem("weapon_fists");
+		pPlayer->GiveNamedItem("weapon_chainsaw");
 	}
 }
 
