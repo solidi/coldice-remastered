@@ -173,9 +173,13 @@ void CChainsaw::SecondaryAttack()
 		m_flStartThrow = CHAINSAW_ATTACK_END;
 		m_flNextSecondaryAttack = m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 0.25;
 	} else if (m_flStartThrow == CHAINSAW_ATTACK_END) {
-		Swing( 1, FALSE );
+		if (Swing( 1, FALSE ))
+		{
+			UTIL_MakeVectors(Vector(0, m_pPlayer->pev->angles.y, 0));
+			m_pPlayer->pev->velocity = m_pPlayer->pev->velocity + (gpGlobals->v_forward * 1000);
+		}
 		EMIT_SOUND_DYN(ENT(m_pPlayer->pev), CHAN_WEAPON, "chainsaw_attack1_loop.wav", 1.0, ATTN_NORM, 0, 98 + RANDOM_LONG(0,3));
-		m_flNextSecondaryAttack = m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 0.25;
+		m_flNextSecondaryAttack = m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 0.15;
 	}
 }
 
