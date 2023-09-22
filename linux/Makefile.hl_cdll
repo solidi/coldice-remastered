@@ -124,6 +124,7 @@ HL1_OBJS = \
 	$(HL1_OBJ_DIR)/message.o \
 	$(HL1_OBJ_DIR)/MOTD.o \
 	$(HL1_OBJ_DIR)/nukecrosshair.o \
+	$(HL1_OBJ_DIR)/objective.o \
 	$(HL1_OBJ_DIR)/portalrenderer.o \
 	$(HL1_OBJ_DIR)/radar.o \
 	$(HL1_OBJ_DIR)/rain.o \

@@ -181,6 +181,7 @@ extern int gmsgSayText;
 extern int gmsgTeamInfo;
 extern int gmsgTeamNames;
 extern int gmsgScoreInfo;
+extern int gmsgObjective;
 
 void CHalfLifeTeamplay :: UpdateGameMode( CBasePlayer *pPlayer )
 {
@@ -268,6 +269,16 @@ void CHalfLifeTeamplay::InitHUD( CBasePlayer *pPlayer )
 			MESSAGE_END();
 		}
 	}
+
+	if (!FBitSet(pPlayer->pev->flags, FL_FAKECLIENT))
+	{
+		MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL, pPlayer->edict());
+			WRITE_BYTE(1);
+			WRITE_STRING("Teamplay");
+			WRITE_STRING(UTIL_VarArgs("Don't hurt %s", pPlayer->m_szTeamName));
+			WRITE_BYTE(0);
+		MESSAGE_END();
+	}
 }
 
 
@@ -317,6 +328,16 @@ void CHalfLifeTeamplay::ChangePlayerTeam( CBasePlayer *pPlayer, const char *pTea
 		WRITE_SHORT( 0 );
 		WRITE_SHORT( g_pGameRules->GetTeamIndex( pPlayer->m_szTeamName ) + 1 );
 	MESSAGE_END();
+
+	if (!FBitSet(pPlayer->pev->flags, FL_FAKECLIENT))
+	{
+		MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL, pPlayer->edict());
+			WRITE_BYTE(1);
+			WRITE_STRING("Teamplay");
+			WRITE_STRING(UTIL_VarArgs("Don't hurt %s", pPlayer->m_szTeamName));
+			WRITE_BYTE(0);
+		MESSAGE_END();
+	}
 }
 
 

@@ -27,6 +27,7 @@
 extern int gmsgPlayClientSound;
 extern int gmsgStatusIcon;
 extern int gmsgTeamInfo;
+extern int gmsgObjective;
 
 CHalfLifeJesusVsSanta::CHalfLifeJesusVsSanta()
 {
@@ -66,7 +67,7 @@ void CHalfLifeJesusVsSanta::Think( void )
 
 				if ( plr->IsInArena && plr->IsAlive() )
 				{
-					clients_alive++; 
+					clients_alive++;
 				}
 				else
 				{
@@ -83,6 +84,23 @@ void CHalfLifeJesusVsSanta::Think( void )
 					}
 				}
 			}
+		}
+
+		MESSAGE_BEGIN(MSG_ALL, gmsgObjective, NULL);
+			WRITE_BYTE(1);
+			WRITE_STRING(UTIL_VarArgs("Defeat %s as Jesus", STRING(pArmoredMan->pev->netname)));
+			WRITE_STRING(UTIL_VarArgs("Survivors remain: %d", clients_alive - 1));
+			WRITE_BYTE(float(clients_alive - 1) / (m_iPlayersInGame - 1) * 100);
+		MESSAGE_END();
+
+		if (pArmoredMan)
+		{
+			MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL, pArmoredMan->edict());
+				WRITE_BYTE(1);
+				WRITE_STRING("Defeat all Santas");
+				WRITE_STRING(UTIL_VarArgs("Santas alive: %d", clients_alive - 1));
+				WRITE_BYTE(float(clients_alive - 1) / (m_iPlayersInGame - 1) * 100);
+			MESSAGE_END();
 		}
 
 		if (m_fSendArmoredManMessage < gpGlobals->time)
@@ -246,6 +264,21 @@ void CHalfLifeJesusVsSanta::Think( void )
 	}
 
 	flUpdateTime = gpGlobals->time + 1.5;
+}
+
+void CHalfLifeJesusVsSanta::InitHUD( CBasePlayer *pPlayer )
+{
+	CHalfLifeMultiplay::InitHUD( pPlayer );
+
+	if (!FBitSet(pPlayer->pev->flags, FL_FAKECLIENT))
+	{
+		MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL, pPlayer->edict());
+			WRITE_BYTE(1);
+			WRITE_STRING("Jesus vs Santa");
+			WRITE_STRING("");
+			WRITE_BYTE(0);
+		MESSAGE_END();
+	}
 }
 
 BOOL CHalfLifeJesusVsSanta::CheckGameTimer( void )

@@ -161,7 +161,7 @@ int CHudRadar::Draw(float flTime)
 	float dist;
 	int num_players = gHUD.m_PlayersInRadar;
 
-	if (!cl_radar->value)
+	if (!cl_radar->value || g_iUser1 || gHUD.m_iShowingWeaponMenu)
 		return 1;
 
 	ProcessPlayerState();
@@ -171,7 +171,8 @@ int CHudRadar::Draw(float flTime)
 
 	UnpackRGB(r, g, b, HudColor());
 
-	x = y = 0;
+	x = 0;
+	y = 16;
 	radar_height = radar_width = 128;
 
 	FillRGBA(x, y, radar_width, radar_height, r, g, b, 10);

@@ -215,6 +215,7 @@ int gmsgFlameKill = 0;
 int gmsgMultiParticle = 0;
 int gmsgNukeCrosshair = 0;
 int gmsgPortal = 0;
+int gmsgObjective = 0;
 
 void LinkUserMessages( void )
 {
@@ -274,6 +275,7 @@ void LinkUserMessages( void )
 	gmsgMultiParticle = REG_USER_MSG("MParticle", -1);
 	gmsgNukeCrosshair = REG_USER_MSG("NukeCross", 1);
 	gmsgPortal = REG_USER_MSG("Portal", -1);
+	gmsgObjective = REG_USER_MSG("Objective", -1);
 }
 
 LINK_ENTITY_TO_CLASS( player, CBasePlayer );

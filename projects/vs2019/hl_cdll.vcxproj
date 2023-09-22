@@ -139,6 +139,7 @@
     <ClCompile Include="..\..\cl_dll\message.cpp" />
     <ClCompile Include="..\..\cl_dll\MOTD.cpp" />
     <ClCompile Include="..\..\cl_dll\nukecrosshair.cpp" />
+    <ClCompile Include="..\..\cl_dll\objective.cpp" />
     <ClCompile Include="..\..\cl_dll\portalrenderer.cpp" />
     <ClCompile Include="..\..\cl_dll\radar.cpp" />
     <ClCompile Include="..\..\cl_dll\rain.cpp" />

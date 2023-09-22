@@ -18,6 +18,7 @@ class CHalfLifeJesusVsSanta : public CHalfLifeMultiplay
 public:
 	CHalfLifeJesusVsSanta();
 	virtual const char *GetGameDescription( void ) { return "Cold Ice Remastered Jesus vs. Santa"; }
+	virtual void InitHUD( CBasePlayer *pPlayer );
 	virtual void ClientUserInfoChanged( CBasePlayer *pPlayer, char *infobuffer );
 	virtual void Think ( void );
 	virtual BOOL CheckGameTimer( void );

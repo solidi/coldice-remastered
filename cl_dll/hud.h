@@ -670,6 +670,20 @@ private:
 	RADAR m_RadarInfo[32];
 };
 
+class CHudObjective : public CHudBase
+{
+public:
+	int Init( void );
+	int VidInit( void );
+	int Draw(float flTime);
+	int MsgFunc_Objective(const char *pszName,  int iSize, void *pbuf);
+private:
+	int show;
+	int percent;
+	char string1[128];
+	char string2[128];
+};
+
 typedef struct
 {
 	HSPRITE spr;
@@ -707,6 +721,8 @@ public:
 	int		m_iRes;
 	cvar_t  *m_pCvarStealMouse;
 	cvar_t	*m_pCvarDraw;
+
+	int		m_iShowingWeaponMenu;
 
 	Vector portal1finalorg;
 	Vector portal2finalorg;
@@ -769,6 +785,7 @@ public:
 	CHudParticle	m_Particle;
 	CHudNukeCrosshair	m_NukeCrosshair;
 	CHudRadar	m_Radar;
+	CHudObjective	m_Objective;
 
 	void Init( void );
 	void VidInit( void );

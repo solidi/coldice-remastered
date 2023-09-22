@@ -27,6 +27,7 @@
 extern int gmsgGameMode;
 extern int gmsgScoreInfo;
 extern int gmsgPlayClientSound;
+extern int gmsgObjective;
 
 #define SPAWN_TIME 30.0
 
@@ -46,6 +47,13 @@ void CHalfLifeCaptureTheChumtoad::Think( void )
 		edict_t *pEdict = FIND_ENTITY_BY_CLASSNAME(NULL, "monster_ctctoad");
 		edict_t *pChumtoad = NULL;
 		BOOL foundToad = FALSE;
+
+		MESSAGE_BEGIN(MSG_ALL, gmsgObjective, NULL);
+			WRITE_BYTE(1);
+			WRITE_STRING("Capture and hold the chumtoad to score points");
+			WRITE_STRING(m_fChumtoadInPlay ? "The chumtoad is being held" : "The chumtoad is loose");
+			WRITE_BYTE(0);
+		MESSAGE_END();
 
 		// Find toad, remove extras
 		while (!FNullEnt(pEdict))
@@ -134,6 +142,21 @@ void CHalfLifeCaptureTheChumtoad::Think( void )
 		}
 
 		m_fChumtoadPlayTimer = gpGlobals->time + 1.0;
+	}
+}
+
+void CHalfLifeCaptureTheChumtoad::InitHUD( CBasePlayer *pPlayer )
+{
+	CHalfLifeMultiplay::InitHUD( pPlayer );
+
+	if (!FBitSet(pPlayer->pev->flags, FL_FAKECLIENT))
+	{
+		MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL, pPlayer->edict());
+			WRITE_BYTE(1);
+			WRITE_STRING("Jesus vs Santa");
+			WRITE_STRING("");
+			WRITE_BYTE(0);
+		MESSAGE_END();
 	}
 }
 
