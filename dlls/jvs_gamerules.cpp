@@ -87,16 +87,14 @@ void CHalfLifeJesusVsSanta::Think( void )
 		}
 
 		MESSAGE_BEGIN(MSG_ALL, gmsgObjective, NULL);
-			WRITE_BYTE(1);
 			WRITE_STRING(UTIL_VarArgs("Defeat %s as Jesus", STRING(pArmoredMan->pev->netname)));
 			WRITE_STRING(UTIL_VarArgs("Survivors remain: %d", clients_alive - 1));
 			WRITE_BYTE(float(clients_alive - 1) / (m_iPlayersInGame - 1) * 100);
 		MESSAGE_END();
 
-		if (pArmoredMan)
+		if (pArmoredMan && !FBitSet(pArmoredMan->pev->flags, FL_FAKECLIENT))
 		{
 			MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL, pArmoredMan->edict());
-				WRITE_BYTE(1);
 				WRITE_STRING("Defeat all Santas");
 				WRITE_STRING(UTIL_VarArgs("Santas alive: %d", clients_alive - 1));
 				WRITE_BYTE(float(clients_alive - 1) / (m_iPlayersInGame - 1) * 100);
@@ -273,7 +271,6 @@ void CHalfLifeJesusVsSanta::InitHUD( CBasePlayer *pPlayer )
 	if (!FBitSet(pPlayer->pev->flags, FL_FAKECLIENT))
 	{
 		MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL, pPlayer->edict());
-			WRITE_BYTE(1);
 			WRITE_STRING("Jesus vs Santa");
 			WRITE_STRING("");
 			WRITE_BYTE(0);

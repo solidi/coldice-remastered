@@ -373,7 +373,6 @@ void CHalfLifeMultiplay::LastManStanding( void )
 		}
 
 		MESSAGE_BEGIN(MSG_ALL, gmsgObjective, NULL);
-			WRITE_BYTE(1);
 			WRITE_STRING("Last man standing");
 			WRITE_STRING(UTIL_VarArgs("Players alive: %d", clients_alive - 1));
 			WRITE_BYTE(float((clients_alive - 1)) / (m_iPlayersInGame - 1) * 100);
@@ -656,18 +655,18 @@ void CHalfLifeMultiplay::Arena ( void )
 				if ( m_iPlayer1 == i || m_iPlayer2 == i )
 				{
 					MESSAGE_BEGIN( MSG_ALL, gmsgScoreInfo );
-					WRITE_BYTE( ENTINDEX(plr->edict()) );
-					WRITE_SHORT( plr->pev->frags = 0 );
-					WRITE_SHORT( plr->m_iDeaths = 0 );
-					WRITE_SHORT( 0 );
-					WRITE_SHORT( 0 );
+						WRITE_BYTE( ENTINDEX(plr->edict()) );
+						WRITE_SHORT( plr->pev->frags = 0 );
+						WRITE_SHORT( plr->m_iDeaths = 0 );
+						WRITE_SHORT( 0 );
+						WRITE_SHORT( 0 );
 					MESSAGE_END();
 
 					ALERT(at_console, "| %s ", STRING(plr->pev->netname) );
 
 					plr->ExitObserver();
 					plr->IsInArena = TRUE;
-					plr->m_iGameModePlays++;
+					plr->m_iRoundPlays++;
 				}
 				else
 				{
@@ -675,11 +674,11 @@ void CHalfLifeMultiplay::Arena ( void )
 					{
 						//just incase player played previous round
 						MESSAGE_BEGIN( MSG_ALL, gmsgScoreInfo );
-						WRITE_BYTE( ENTINDEX(plr->edict()) );
-						WRITE_SHORT( plr->pev->frags = 0 );
-						WRITE_SHORT( plr->m_iDeaths = 0 );
-						WRITE_SHORT( 0 );
-						WRITE_SHORT( 0 );
+							WRITE_BYTE( ENTINDEX(plr->edict()) );
+							WRITE_SHORT( plr->pev->frags = 0 );
+							WRITE_SHORT( plr->m_iDeaths = 0 );
+							WRITE_SHORT( 0 );
+							WRITE_SHORT( 0 );
 						MESSAGE_END();
 
 						edict_t *pentSpawnSpot = g_pGameRules->GetPlayerSpawnSpot(plr);
@@ -699,19 +698,23 @@ void CHalfLifeMultiplay::Arena ( void )
 			STRING(pPlayer1->pev->netname),
 			STRING(pPlayer2->pev->netname)));
 
-		MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL, pPlayer1->edict());
-			WRITE_BYTE(1);
-			WRITE_STRING(UTIL_VarArgs("Defeat: %s", STRING(pPlayer2->pev->netname)));
-			WRITE_STRING(UTIL_VarArgs("Frags to go: %d", int(roundfraglimit.value - pPlayer1->pev->frags)));
-			WRITE_BYTE(0);
-		MESSAGE_END();
+		if (!FBitSet(pPlayer1->pev->flags, FL_FAKECLIENT))
+		{
+			MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL, pPlayer1->edict());
+				WRITE_STRING(UTIL_VarArgs("Defeat: %s", STRING(pPlayer2->pev->netname)));
+				WRITE_STRING(UTIL_VarArgs("Frags to go: %d", int(roundfraglimit.value - pPlayer1->pev->frags)));
+				WRITE_BYTE(0);
+			MESSAGE_END();
+		}
 
-		MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL, pPlayer2->edict());
-			WRITE_BYTE(1);
-			WRITE_STRING(UTIL_VarArgs("Defeat: %s", STRING(pPlayer1->pev->netname)));
-			WRITE_STRING(UTIL_VarArgs("Frags to go: %d", int(roundfraglimit.value - pPlayer2->pev->frags)));
-			WRITE_BYTE(0);
-		MESSAGE_END();
+		if (!FBitSet(pPlayer2->pev->flags, FL_FAKECLIENT))
+		{
+			MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL, pPlayer2->edict());
+				WRITE_STRING(UTIL_VarArgs("Defeat: %s", STRING(pPlayer1->pev->netname)));
+				WRITE_STRING(UTIL_VarArgs("Frags to go: %d", int(roundfraglimit.value - pPlayer2->pev->frags)));
+				WRITE_BYTE(0);
+			MESSAGE_END();
+		}
 	}
 	else
 	{
@@ -759,24 +762,30 @@ void CHalfLifeMultiplay::InsertClientsIntoArena ( void )
 
 		if ( plr && plr->IsPlayer() )
 		{ 
-			MESSAGE_BEGIN( MSG_ALL, gmsgScoreInfo );
-			WRITE_BYTE( ENTINDEX(plr->edict()) );
-			if ( g_GameMode == GAME_LMS )
-				WRITE_SHORT( plr->pev->frags = startwithlives.value );
-			else if ( g_GameMode == GAME_ARENA  )
-				WRITE_SHORT( plr->pev->frags = 0 );
-			else
+			//UpdateGameMode( plr );
+
+			MESSAGE_BEGIN(MSG_ONE, gmsgScoreInfo, NULL, plr->edict());
+				WRITE_BYTE( ENTINDEX(plr->edict()) );
+				if ( g_GameMode == GAME_LMS )
+					WRITE_SHORT( plr->pev->frags = startwithlives.value );
+				else if ( g_GameMode == GAME_ARENA  )
+					WRITE_SHORT( plr->pev->frags = 0 );
+				else
+					WRITE_SHORT( 0 );
+				WRITE_SHORT( plr->m_iDeaths = 0 );
 				WRITE_SHORT( 0 );
-			WRITE_SHORT( plr->m_iDeaths = 0 );
-			WRITE_SHORT( 0 );
-			WRITE_SHORT( 0 );
+				WRITE_SHORT( 0 );
 			MESSAGE_END();
 
-			ALERT(at_console, "%s\n", STRING(plr->pev->netname));
+			MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL, plr->edict() );
+				WRITE_STRING("");
+				WRITE_STRING("");
+				WRITE_BYTE(0);
+			MESSAGE_END();
 
 			plr->ExitObserver();
 			plr->IsInArena = TRUE;
-			plr->m_iGameModePlays++;
+			plr->m_iRoundPlays++;
 			m_iPlayersInGame++;
 		}
 	}
@@ -933,7 +942,6 @@ void CHalfLifeMultiplay::SuckAllToSpectator( void )
 				WRITE_BYTE( ENTINDEX(pPlayer->edict()) );
 				WRITE_SHORT( pPlayer->pev->frags = 0 );
 				WRITE_SHORT( pPlayer->m_iDeaths = 0 );
-				WRITE_SHORT( pPlayer->m_iGameModeWins );
 				WRITE_SHORT( 0 );
 				WRITE_SHORT( 0 );
 			MESSAGE_END();
@@ -947,14 +955,14 @@ void CHalfLifeMultiplay::SuckAllToSpectator( void )
 void CHalfLifeMultiplay::DisplayWinnersGoods( CBasePlayer *pPlayer )
 {
 	//increase his win count
-	pPlayer->m_iGameModeWins++;
+	pPlayer->m_iRoundWins++;
 
 	//and display to the world what he does best!
 	UTIL_ClientPrintAll(HUD_PRINTTALK, UTIL_VarArgs("* %s has won round #%d!\n", STRING(pPlayer->pev->netname), m_iSuccessfulRounds));
 	UTIL_ClientPrintAll(HUD_PRINTTALK, UTIL_VarArgs("* %s record is %i for %i [%.1f%%]\n", STRING(pPlayer->pev->netname),
-		pPlayer->m_iGameModeWins,
-		pPlayer->m_iGameModePlays,
-		((float)pPlayer->m_iGameModeWins / (float)pPlayer->m_iGameModePlays) * 100 ));
+		pPlayer->m_iRoundWins,
+		pPlayer->m_iRoundPlays,
+		((float)pPlayer->m_iRoundWins / (float)pPlayer->m_iRoundPlays) * 100 ));
 }
 
 void CHalfLifeMultiplay::ResetGameMode( void )
@@ -1158,10 +1166,9 @@ void CHalfLifeMultiplay :: InitHUD( CBasePlayer *pl )
 
 	if (!FBitSet(pl->pev->flags, FL_FAKECLIENT))
 	{
-		if (!g_GameMode)
+		if (!g_GameMode && !FBitSet(pl->pev->flags, FL_FAKECLIENT))
 		{
 			MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL, pl->edict());
-				WRITE_BYTE(1);
 				WRITE_STRING("Frag 'em");
 				WRITE_STRING("");
 				WRITE_BYTE(0);
@@ -1170,7 +1177,6 @@ void CHalfLifeMultiplay :: InitHUD( CBasePlayer *pl )
 		else if (g_GameMode == GAME_LMS)
 		{
 			MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL, pl->edict());
-				WRITE_BYTE(1);
 				WRITE_STRING("Last man standing");
 				WRITE_STRING("");
 				WRITE_BYTE(0);
@@ -1179,7 +1185,6 @@ void CHalfLifeMultiplay :: InitHUD( CBasePlayer *pl )
 		else if (g_GameMode == GAME_ARENA)
 		{
 			MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL,  pl->edict());
-				WRITE_BYTE(1);
 				WRITE_STRING("Arena mode");
 				WRITE_STRING("");
 				WRITE_BYTE(0);
@@ -1188,7 +1193,6 @@ void CHalfLifeMultiplay :: InitHUD( CBasePlayer *pl )
 		else if (g_GameMode == GAME_SNOWBALL)
 		{
 			MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL,  pl->edict());
-				WRITE_BYTE(1);
 				WRITE_STRING("Fight with snowballs");
 				WRITE_STRING("");
 				WRITE_BYTE(0);
@@ -1613,7 +1617,6 @@ void CHalfLifeMultiplay :: PlayerKilled( CBasePlayer *pVictim, entvars_t *pKille
 				if (ktmp)
 				{
 					MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL, ktmp->edict());
-						WRITE_BYTE(1);
 						WRITE_STRING(UTIL_VarArgs("Defeat: %s", STRING(pVictim->pev->netname)));
 						WRITE_STRING(UTIL_VarArgs("Frags to go: %d", int(roundfraglimit.value - ktmp->pev->frags)));
 						WRITE_BYTE((ktmp->pev->frags / roundfraglimit.value) * 100);

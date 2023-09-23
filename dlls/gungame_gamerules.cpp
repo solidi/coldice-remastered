@@ -207,10 +207,10 @@ void CHalfLifeGunGame::InitHUD( CBasePlayer *pPlayer )
 	if (!FBitSet(pPlayer->pev->flags, FL_FAKECLIENT))
 	{
 		MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL, pPlayer->edict());
-			WRITE_BYTE(1);
 			WRITE_STRING("Get through your weapon list");
 			WRITE_STRING(UTIL_VarArgs("Your progress: %d of %d", (int)pPlayer->pev->fuser4 + 1, MAXLEVEL));
 			WRITE_BYTE(0);
+			WRITE_STRING(UTIL_VarArgs("Best of %d", (int)roundlimit.value));
 		MESSAGE_END();
 	}
 }

@@ -164,10 +164,19 @@ int CHudRadar::Draw(float flTime)
 	if (!cl_radar->value || g_iUser1 || gHUD.m_iShowingWeaponMenu)
 		return 1;
 
-	ProcessPlayerState();
-
-	if (num_players < 2)
+	if (gHUD.m_Scoreboard.m_iShowscoresHeld)
 		return 1;
+
+	if (gHUD.m_Health.m_iHealth <= 0)
+		return 1;
+
+	if (gHUD.m_iIntermission)
+		return 1;
+	
+	if (gEngfuncs.GetMaxClients() == 1)
+		return;
+
+	ProcessPlayerState();
 
 	UnpackRGB(r, g, b, HudColor());
 

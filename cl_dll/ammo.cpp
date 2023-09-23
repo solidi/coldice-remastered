@@ -1086,7 +1086,7 @@ int CHudAmmo::DrawWList(float flTime)
 	else 
 		iActiveSlot = gpActiveSel->iSlot;
 
-	int right_margin = 0;
+	int right_margin = cl_radar->value ? 128 : 0;
 	if (gHUD.m_PlayersInRadar < 2)
 		right_margin = 0;
 	x = right_margin + 10 + g_xP; //!!!

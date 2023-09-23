@@ -677,11 +677,14 @@ public:
 	int VidInit( void );
 	int Draw(float flTime);
 	int MsgFunc_Objective(const char *pszName,  int iSize, void *pbuf);
+
 private:
-	int show;
-	int percent;
-	char string1[128];
-	char string2[128];
+	int m_iPercent;
+	char m_szGoalMessage[128];
+	char m_szInfoMessage[128];
+	char m_szWinsMessage[128];
+	int m_iRoundWins;
+	int m_iRoundPlays;
 };
 
 typedef struct

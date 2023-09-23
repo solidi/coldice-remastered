@@ -49,7 +49,6 @@ void CHalfLifeCaptureTheChumtoad::Think( void )
 		BOOL foundToad = FALSE;
 
 		MESSAGE_BEGIN(MSG_ALL, gmsgObjective, NULL);
-			WRITE_BYTE(1);
 			WRITE_STRING("Capture and hold the chumtoad to score points");
 			WRITE_STRING(m_fChumtoadInPlay ? "The chumtoad is being held" : "The chumtoad is loose");
 			WRITE_BYTE(0);
@@ -152,8 +151,7 @@ void CHalfLifeCaptureTheChumtoad::InitHUD( CBasePlayer *pPlayer )
 	if (!FBitSet(pPlayer->pev->flags, FL_FAKECLIENT))
 	{
 		MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL, pPlayer->edict());
-			WRITE_BYTE(1);
-			WRITE_STRING("Jesus vs Santa");
+			WRITE_STRING("Capture the chumtoad");
 			WRITE_STRING("");
 			WRITE_BYTE(0);
 		MESSAGE_END();
