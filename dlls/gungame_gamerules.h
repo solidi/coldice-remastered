@@ -18,6 +18,7 @@ class CHalfLifeGunGame : public CHalfLifeMultiplay
 public:
 	CHalfLifeGunGame();
 
+	virtual void InitHUD( CBasePlayer *pPlayer );
 	virtual void PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller, entvars_t *pInflictor );
 	virtual int IPointsForKill( CBasePlayer *pAttacker, CBasePlayer *pKilled );
 	virtual const char *GetGameDescription( void ) { return "Cold Ice Remastered GunGame"; }

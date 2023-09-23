@@ -404,6 +404,7 @@ void CHudAmmo::Think(void)
 		gHUD.m_iKeyBits &= ~IN_ATTACK;
 
 		PlaySound("wpn_select.wav", 1);
+		gHUD.m_iShowingWeaponMenu = 0;
 	}
 
 }
@@ -479,6 +480,7 @@ void WeaponsResource :: SelectSlot( int iSlot, int fAdvance, int iDirection )
 			gpLastSel = p;
 			ServerCmd( p->szName );
 			g_weaponselect = p->iId;
+			gHUD.m_iShowingWeaponMenu = 0;
 		}
 
 		return;
@@ -488,6 +490,7 @@ void WeaponsResource :: SelectSlot( int iSlot, int fAdvance, int iDirection )
 	{
 		PlaySound( "wpn_hudon.wav", 1 );
 		p = GetFirstPos( iSlot );
+		gHUD.m_iShowingWeaponMenu = 1;
 	}
 	else
 	{
@@ -777,6 +780,7 @@ void CHudAmmo::UserCmd_Close(void)
 		gpLastSel = gpActiveSel;
 		gpActiveSel = NULL;
 		PlaySound("wpn_hudoff.wav", 1);
+		gHUD.m_iShowingWeaponMenu = 0;
 	}
 	else
 		EngineClientCmd("escape");

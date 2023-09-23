@@ -50,6 +50,7 @@ extern int gmsgScoreInfo;
 extern int gmsgMOTD;
 extern int gmsgServerName;
 extern int gmsgStatusIcon;
+extern int gmsgObjective;
 
 extern DLL_GLOBAL int g_GameMode;
 extern int gmsgPlayClientSound;
@@ -371,6 +372,12 @@ void CHalfLifeMultiplay::LastManStanding( void )
 			}
 		}
 
+		MESSAGE_BEGIN(MSG_ALL, gmsgObjective, NULL);
+			WRITE_STRING("Last man standing");
+			WRITE_STRING(UTIL_VarArgs("Players alive: %d", clients_alive - 1));
+			WRITE_BYTE(float((clients_alive - 1)) / (m_iPlayersInGame - 1) * 100);
+		MESSAGE_END();
+
 		//found victor / or draw.
 		if ( clients_alive <= 1 )
 		{
@@ -648,18 +655,18 @@ void CHalfLifeMultiplay::Arena ( void )
 				if ( m_iPlayer1 == i || m_iPlayer2 == i )
 				{
 					MESSAGE_BEGIN( MSG_ALL, gmsgScoreInfo );
-					WRITE_BYTE( ENTINDEX(plr->edict()) );
-					WRITE_SHORT( plr->pev->frags = 0 );
-					WRITE_SHORT( plr->m_iDeaths = 0 );
-					WRITE_SHORT( 0 );
-					WRITE_SHORT( 0 );
+						WRITE_BYTE( ENTINDEX(plr->edict()) );
+						WRITE_SHORT( plr->pev->frags = 0 );
+						WRITE_SHORT( plr->m_iDeaths = 0 );
+						WRITE_SHORT( 0 );
+						WRITE_SHORT( 0 );
 					MESSAGE_END();
 
 					ALERT(at_console, "| %s ", STRING(plr->pev->netname) );
 
 					plr->ExitObserver();
 					plr->IsInArena = TRUE;
-					plr->m_iGameModePlays++;
+					plr->m_iRoundPlays++;
 				}
 				else
 				{
@@ -667,11 +674,11 @@ void CHalfLifeMultiplay::Arena ( void )
 					{
 						//just incase player played previous round
 						MESSAGE_BEGIN( MSG_ALL, gmsgScoreInfo );
-						WRITE_BYTE( ENTINDEX(plr->edict()) );
-						WRITE_SHORT( plr->pev->frags = 0 );
-						WRITE_SHORT( plr->m_iDeaths = 0 );
-						WRITE_SHORT( 0 );
-						WRITE_SHORT( 0 );
+							WRITE_BYTE( ENTINDEX(plr->edict()) );
+							WRITE_SHORT( plr->pev->frags = 0 );
+							WRITE_SHORT( plr->m_iDeaths = 0 );
+							WRITE_SHORT( 0 );
+							WRITE_SHORT( 0 );
 						MESSAGE_END();
 
 						edict_t *pentSpawnSpot = g_pGameRules->GetPlayerSpawnSpot(plr);
@@ -690,6 +697,24 @@ void CHalfLifeMultiplay::Arena ( void )
 			UTIL_VarArgs("Arena has begun!\n\n%s Vs. %s",
 			STRING(pPlayer1->pev->netname),
 			STRING(pPlayer2->pev->netname)));
+
+		if (!FBitSet(pPlayer1->pev->flags, FL_FAKECLIENT))
+		{
+			MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL, pPlayer1->edict());
+				WRITE_STRING(UTIL_VarArgs("Defeat: %s", STRING(pPlayer2->pev->netname)));
+				WRITE_STRING(UTIL_VarArgs("Frags to go: %d", int(roundfraglimit.value - pPlayer1->pev->frags)));
+				WRITE_BYTE(0);
+			MESSAGE_END();
+		}
+
+		if (!FBitSet(pPlayer2->pev->flags, FL_FAKECLIENT))
+		{
+			MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL, pPlayer2->edict());
+				WRITE_STRING(UTIL_VarArgs("Defeat: %s", STRING(pPlayer1->pev->netname)));
+				WRITE_STRING(UTIL_VarArgs("Frags to go: %d", int(roundfraglimit.value - pPlayer2->pev->frags)));
+				WRITE_BYTE(0);
+			MESSAGE_END();
+		}
 	}
 	else
 	{
@@ -729,30 +754,39 @@ int CHalfLifeMultiplay::CheckClients ( void )
 
 void CHalfLifeMultiplay::InsertClientsIntoArena ( void )
 {
+	m_iPlayersInGame = 0;
+
 	for ( int i = 1; i <= gpGlobals->maxClients; i++ )
 	{
 		CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
 
 		if ( plr && plr->IsPlayer() )
 		{ 
-			MESSAGE_BEGIN( MSG_ALL, gmsgScoreInfo );
-			WRITE_BYTE( ENTINDEX(plr->edict()) );
-			if ( g_GameMode == GAME_LMS )
-				WRITE_SHORT( plr->pev->frags = startwithlives.value );
-			else if ( g_GameMode == GAME_ARENA  )
-				WRITE_SHORT( plr->pev->frags = 0 );
-			else
+			//UpdateGameMode( plr );
+
+			MESSAGE_BEGIN(MSG_ONE, gmsgScoreInfo, NULL, plr->edict());
+				WRITE_BYTE( ENTINDEX(plr->edict()) );
+				if ( g_GameMode == GAME_LMS )
+					WRITE_SHORT( plr->pev->frags = startwithlives.value );
+				else if ( g_GameMode == GAME_ARENA  )
+					WRITE_SHORT( plr->pev->frags = 0 );
+				else
+					WRITE_SHORT( 0 );
+				WRITE_SHORT( plr->m_iDeaths = 0 );
 				WRITE_SHORT( 0 );
-			WRITE_SHORT( plr->m_iDeaths = 0 );
-			WRITE_SHORT( 0 );
-			WRITE_SHORT( 0 );
+				WRITE_SHORT( 0 );
 			MESSAGE_END();
 
-			ALERT(at_console, "%s\n", STRING(plr->pev->netname));
+			MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL, plr->edict() );
+				WRITE_STRING("");
+				WRITE_STRING("");
+				WRITE_BYTE(0);
+			MESSAGE_END();
 
 			plr->ExitObserver();
 			plr->IsInArena = TRUE;
-			plr->m_iGameModePlays++;
+			plr->m_iRoundPlays++;
+			m_iPlayersInGame++;
 		}
 	}
 }
@@ -905,11 +939,11 @@ void CHalfLifeMultiplay::SuckAllToSpectator( void )
 		if ( pPlayer && pPlayer->IsPlayer() && !pPlayer->IsSpectator() )
 		{ 
 			MESSAGE_BEGIN( MSG_ALL, gmsgScoreInfo );
-			WRITE_BYTE( ENTINDEX(pPlayer->edict()) );
-			WRITE_SHORT( pPlayer->pev->frags = 0 );
-			WRITE_SHORT( pPlayer->m_iDeaths = 0 );
-			WRITE_SHORT( 0 );
-			WRITE_SHORT( 0 );
+				WRITE_BYTE( ENTINDEX(pPlayer->edict()) );
+				WRITE_SHORT( pPlayer->pev->frags = 0 );
+				WRITE_SHORT( pPlayer->m_iDeaths = 0 );
+				WRITE_SHORT( 0 );
+				WRITE_SHORT( 0 );
 			MESSAGE_END();
 
 			edict_t *pentSpawnSpot = g_pGameRules->GetPlayerSpawnSpot( pPlayer );
@@ -921,14 +955,14 @@ void CHalfLifeMultiplay::SuckAllToSpectator( void )
 void CHalfLifeMultiplay::DisplayWinnersGoods( CBasePlayer *pPlayer )
 {
 	//increase his win count
-	pPlayer->m_iGameModeWins++;
+	pPlayer->m_iRoundWins++;
 
 	//and display to the world what he does best!
 	UTIL_ClientPrintAll(HUD_PRINTTALK, UTIL_VarArgs("* %s has won round #%d!\n", STRING(pPlayer->pev->netname), m_iSuccessfulRounds));
 	UTIL_ClientPrintAll(HUD_PRINTTALK, UTIL_VarArgs("* %s record is %i for %i [%.1f%%]\n", STRING(pPlayer->pev->netname),
-		pPlayer->m_iGameModeWins,
-		pPlayer->m_iGameModePlays,
-		((float)pPlayer->m_iGameModeWins / (float)pPlayer->m_iGameModePlays) * 100 ));
+		pPlayer->m_iRoundWins,
+		pPlayer->m_iRoundPlays,
+		((float)pPlayer->m_iRoundWins / (float)pPlayer->m_iRoundPlays) * 100 ));
 }
 
 void CHalfLifeMultiplay::ResetGameMode( void )
@@ -1129,6 +1163,42 @@ void CHalfLifeMultiplay :: InitHUD( CBasePlayer *pl )
 	MESSAGE_BEGIN( MSG_ALL, gmsgMutators );
 		WRITE_STRING(szMutators);
 	MESSAGE_END();
+
+	if (!FBitSet(pl->pev->flags, FL_FAKECLIENT))
+	{
+		if (!g_GameMode && !FBitSet(pl->pev->flags, FL_FAKECLIENT))
+		{
+			MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL, pl->edict());
+				WRITE_STRING("Frag 'em");
+				WRITE_STRING("");
+				WRITE_BYTE(0);
+			MESSAGE_END();
+		}
+		else if (g_GameMode == GAME_LMS)
+		{
+			MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL, pl->edict());
+				WRITE_STRING("Last man standing");
+				WRITE_STRING("");
+				WRITE_BYTE(0);
+			MESSAGE_END();
+		}
+		else if (g_GameMode == GAME_ARENA)
+		{
+			MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL,  pl->edict());
+				WRITE_STRING("Arena mode");
+				WRITE_STRING("");
+				WRITE_BYTE(0);
+			MESSAGE_END();
+		}
+		else if (g_GameMode == GAME_SNOWBALL)
+		{
+			MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL,  pl->edict());
+				WRITE_STRING("Fight with snowballs");
+				WRITE_STRING("");
+				WRITE_BYTE(0);
+			MESSAGE_END();
+		}
+	}
 
 	// sending just one score makes the hud scoreboard active;  otherwise
 	// it is just disabled for single play
@@ -1526,6 +1596,9 @@ void CHalfLifeMultiplay :: PlayerKilled( CBasePlayer *pVictim, entvars_t *pKille
 {
 	DeathNotice( pVictim, pKiller, pInflictor );
 
+	CBasePlayer *peKiller = NULL;
+	CBaseEntity *ktmp = CBaseEntity::Instance( pKiller );
+
 	if ( g_GameInProgress )
 	{
 		switch( g_GameMode )
@@ -1540,6 +1613,16 @@ void CHalfLifeMultiplay :: PlayerKilled( CBasePlayer *pVictim, entvars_t *pKille
 					MESSAGE_END();
 				}
 				break;
+			case GAME_ARENA:
+				if (ktmp)
+				{
+					MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL, ktmp->edict());
+						WRITE_STRING(UTIL_VarArgs("Defeat: %s", STRING(pVictim->pev->netname)));
+						WRITE_STRING(UTIL_VarArgs("Frags to go: %d", int(roundfraglimit.value - ktmp->pev->frags)));
+						WRITE_BYTE((ktmp->pev->frags / roundfraglimit.value) * 100);
+					MESSAGE_END();
+				}
+				break;
 		}
 	}
 
@@ -1547,8 +1630,7 @@ void CHalfLifeMultiplay :: PlayerKilled( CBasePlayer *pVictim, entvars_t *pKille
 
 
 	FireTargets( "game_playerdie", pVictim, pVictim, USE_TOGGLE, 0 );
-	CBasePlayer *peKiller = NULL;
-	CBaseEntity *ktmp = CBaseEntity::Instance( pKiller );
+
 	if ( ktmp && (ktmp->Classify() == CLASS_PLAYER) )
 		peKiller = (CBasePlayer*)ktmp;
 

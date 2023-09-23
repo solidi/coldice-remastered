@@ -450,6 +450,7 @@ protected:
 	int m_iCountDown;
 	int m_iPlayer1, m_iPlayer2;
 	BOOL m_iFirstBloodDecided;
+	int m_iPlayersInGame;
 };
 
 extern DLL_GLOBAL CGameRules*	g_pGameRules;

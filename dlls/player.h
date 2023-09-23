@@ -242,8 +242,8 @@ public:
 	BOOL HasDisconnected;
 	BOOL IsInArena;
 	float m_fArmoredManHits;
-	int m_iGameModeWins;
-	int m_iGameModePlays;
+	int m_iRoundWins;
+	int m_iRoundPlays;
 	float m_flForceToObserverTime;
 	BOOL IsArmoredMan;
 	void ExitObserver( void );

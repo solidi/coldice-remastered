@@ -161,17 +161,27 @@ int CHudRadar::Draw(float flTime)
 	float dist;
 	int num_players = gHUD.m_PlayersInRadar;
 
-	if (!cl_radar->value)
+	if (!cl_radar->value || g_iUser1 || gHUD.m_iShowingWeaponMenu)
+		return 1;
+
+	if (gHUD.m_Scoreboard.m_iShowscoresHeld)
+		return 1;
+
+	if (gHUD.m_Health.m_iHealth <= 0)
+		return 1;
+
+	if (gHUD.m_iIntermission)
+		return 1;
+	
+	if (gEngfuncs.GetMaxClients() == 1)
 		return 1;
 
 	ProcessPlayerState();
 
-	if (num_players < 2)
-		return 1;
-
 	UnpackRGB(r, g, b, HudColor());
 
-	x = y = 0;
+	x = 0;
+	y = 16;
 	radar_height = radar_width = 128;
 
 	FillRGBA(x, y, radar_width, radar_height, r, g, b, 10);

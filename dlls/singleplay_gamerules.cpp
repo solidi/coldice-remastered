@@ -30,6 +30,7 @@ extern DLL_GLOBAL BOOL	g_fGameOver;
 extern int gmsgDeathMsg;	// client dll messages
 extern int gmsgScoreInfo;
 extern int gmsgMOTD;
+extern int gmsgObjective;
 
 //=========================================================
 //=========================================================
@@ -101,6 +102,15 @@ BOOL CHalfLifeRules :: ClientConnected( edict_t *pEntity, const char *pszName, c
 
 void CHalfLifeRules :: InitHUD( CBasePlayer *pl )
 {
+	if (!FBitSet(pl->pev->flags, FL_FAKECLIENT))
+	{
+		MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL, pl->edict());
+			WRITE_STRING("");
+			WRITE_STRING("");
+			WRITE_BYTE(0);
+			WRITE_STRING("");
+		MESSAGE_END();
+	}
 }
 
 void CHalfLifeRules :: UpdateGameMode( CBasePlayer *pl )

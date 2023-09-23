@@ -68,6 +68,7 @@ cvar_t *cl_portalmirror;
 cvar_t *cl_screeneffects;
 cvar_t *cl_customtempents;
 cvar_t *cl_voiceoverpath;
+cvar_t *cl_objectives;
 
 cvar_t *cl_vmx;
 cvar_t *cl_vmy;
@@ -520,6 +521,7 @@ void CHud :: Init( void )
 	cl_screeneffects = CVAR_CREATE("cl_screeneffects", "0", FCVAR_ARCHIVE);
 	cl_customtempents = CVAR_CREATE("cl_customtempents", "1", FCVAR_ARCHIVE);
 	cl_voiceoverpath = CVAR_CREATE("cl_voiceoverpath", "", FCVAR_ARCHIVE);
+	cl_objectives = CVAR_CREATE("cl_objectives", "1", FCVAR_ARCHIVE);
 
 	cl_vmx = CVAR_CREATE( "cl_vmx", "0", FCVAR_ARCHIVE );
 	cl_vmy = CVAR_CREATE( "cl_vmy", "0", FCVAR_ARCHIVE );
@@ -590,6 +592,7 @@ void CHud :: Init( void )
 	m_WallClimb.Init();
 	m_NukeCrosshair.Init();
 	m_Radar.Init();
+	m_Objective.Init();
 	InitRain();
 #ifdef _WIN32
 	g_ImGUIManager.Init();
@@ -759,6 +762,7 @@ void CHud :: VidInit( void )
 	m_WallClimb.VidInit();
 	m_NukeCrosshair.VidInit();
 	m_Radar.VidInit();
+	m_Objective.VidInit();
 #ifdef _WIN32
 	g_ImGUIManager.VidInit();
 #endif

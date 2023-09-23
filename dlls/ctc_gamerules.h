@@ -19,6 +19,7 @@ public:
 	CHalfLifeCaptureTheChumtoad();
 
 	virtual const char *GetGameDescription( void ) { return "Cold Ice Remastered Capture The Chumtoad"; }
+	virtual void InitHUD( CBasePlayer *pPlayer );
 	virtual void Think( void );
 	virtual void PlayerThink( CBasePlayer *pPlayer );
 	virtual int IPointsForKill( CBasePlayer *pAttacker, CBasePlayer *pKilled );

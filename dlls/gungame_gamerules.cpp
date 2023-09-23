@@ -31,6 +31,7 @@ extern CVoiceGameMgr g_VoiceGameMgr;
 extern int gmsgGameMode;
 extern int gmsgPlayClientSound;
 extern int gmsgScoreInfo;
+extern int gmsgObjective;
 
 #define MAXLEVEL 44
 int g_iFrags[MAXLEVEL+1] = { 1, 3, 5, 6, 9, 12, 15, 18, 21, 26, 29, 30, 31, 32, 33, 34, 35,
@@ -173,6 +174,15 @@ void CHalfLifeGunGame::Think( void )
 				plr->DisplayHudMessage(UTIL_VarArgs("Round %d of %d\nYour Level: %d | Top Level: %d", 
 					m_iSuccessfulRounds+1, (int)roundlimit.value, (int)plr->pev->fuser4, m_iTopLevel),
 					TXT_CHANNEL_GAME_INFO, -1, 0.83, 255, 255, 255, 0, 0, 0, 60, 0);
+				
+				int result = ((plr->pev->fuser4 + 1) / MAXLEVEL) * 100;
+				ALERT(at_console, ">> result = %d\n", result);
+				MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL, plr->edict());
+					WRITE_BYTE(1);
+					WRITE_STRING("Get through your weapon list");
+					WRITE_STRING(UTIL_VarArgs("Your progress: %d of %d", (int)plr->pev->fuser4 + 1, MAXLEVEL));
+					WRITE_BYTE(result);
+				MESSAGE_END();
 			}
 		}
 
@@ -187,6 +197,21 @@ void CHalfLifeGunGame::Think( void )
 		}
 
 		m_fRefreshStats = -1;
+	}
+}
+
+void CHalfLifeGunGame::InitHUD( CBasePlayer *pPlayer )
+{
+	CHalfLifeMultiplay::InitHUD( pPlayer );
+
+	if (!FBitSet(pPlayer->pev->flags, FL_FAKECLIENT))
+	{
+		MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL, pPlayer->edict());
+			WRITE_STRING("Get through your weapon list");
+			WRITE_STRING(UTIL_VarArgs("Your progress: %d of %d", (int)pPlayer->pev->fuser4 + 1, MAXLEVEL));
+			WRITE_BYTE(0);
+			WRITE_STRING(UTIL_VarArgs("Best of %d", (int)roundlimit.value));
+		MESSAGE_END();
 	}
 }
 
