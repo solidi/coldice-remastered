@@ -790,6 +790,7 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_radar [0|1]\" enables or disables player radar\n" );
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_customtempents [0|1]\" - allow or disallow increased temporary entites\n" );
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_voiceoverpath [string]\" - folder path to custom voiceovers\n" );
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_objectives [0|1]\" - show objective read out on HUD\n" );
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "For more, see readme.txt\n" );
 	}
 	else if ( FStrEq( pcmd, "help_server" )  )

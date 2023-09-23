@@ -8,6 +8,7 @@
 DECLARE_MESSAGE( m_Objective, Objective );
 
 extern cvar_t *cl_radar;
+extern cvar_t *cl_objectives;
 
 int CHudObjective::Init()
 {
@@ -54,6 +55,9 @@ int CHudObjective::Draw(float flTime)
 		return 1;
 
 	if (gViewPort->IsScoreBoardVisible())
+		return 1;
+
+	if (!cl_objectives->value)
 		return 1;
 
 	int r, g, b;
