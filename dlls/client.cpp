@@ -669,11 +669,11 @@ void ClientCommand( edict_t *pEntity )
 			if ( pPlayer->pev->flags & FL_GODMODE ) {
 				pPlayer->pev->flags &= ~FL_GODMODE;
 				pPlayer->pev->flags &= ~FL_NOTARGET; // chumtoads and things
-				ALERT(at_console, "God mode OFF\n");
+				ClientPrint(pPlayer->pev, HUD_PRINTCONSOLE, "God mode OFF\n");
 			} else {
 				pPlayer->pev->flags |= FL_GODMODE;
 				pPlayer->pev->flags |= FL_NOTARGET;
-				ALERT(at_console, "God mode ON\n");
+				ClientPrint(pPlayer->pev, HUD_PRINTCONSOLE, "God mode ON\n");
 			}
 		}
 	}

@@ -2058,6 +2058,12 @@ void CBasePlayer::ClimbingPhysics()
 
 void CBasePlayer::PlayerBurn(void)
 {
+	if (pev->flags & FL_GODMODE || pev->takedamage == DAMAGE_NO)
+	{
+		m_fBurnTime = 0;
+		return;
+	}
+
 	if (m_fBurnTime > 10)
 		m_fBurnTime = 10;
 
