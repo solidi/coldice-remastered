@@ -1572,6 +1572,16 @@ BOOL CHalfLifeMultiplay :: AllowAutoTargetCrosshair( void )
 	return ( aimcrosshair.value != 0 );
 }
 
+BOOL CHalfLifeMultiplay::ShouldAutoAim( CBasePlayer *pPlayer, edict_t *target )
+{
+	// players, only
+	CBaseEntity *pTgt = CBaseEntity::Instance( target );
+	if ( pTgt && pTgt->IsPlayer() )
+		return TRUE;
+
+	return FALSE;
+}
+
 //=========================================================
 // IPointsForKill - how many points awarded to anyone
 // that kills this player?

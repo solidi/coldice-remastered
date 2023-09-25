@@ -360,9 +360,8 @@ void CDualRpg::UpdateSpot( void )
 			m_pSpot = CLaserSpot::CreateSpot();
 		}
 
-		UTIL_MakeVectors( m_pPlayer->pev->v_angle );
-		Vector vecSrc = m_pPlayer->GetGunPosition( );;
-		Vector vecAiming = gpGlobals->v_forward;
+		Vector vecSrc = m_pPlayer->GetGunPosition( );
+		Vector vecAiming = m_pPlayer->GetAutoaimVector( AUTOAIM_10DEGREES );
 
 		TraceResult tr;
 		UTIL_TraceLine ( vecSrc, vecSrc + vecAiming * 8192, dont_ignore_monsters, ENT(m_pPlayer->pev), &tr );

@@ -874,7 +874,7 @@ void CChumtoad::PrimaryAttack()
 {
 	if ( m_pPlayer->m_rgAmmo[ m_iPrimaryAmmoType ] )
 	{
-		UTIL_MakeVectors( m_pPlayer->pev->v_angle );
+		Vector vecAiming = m_pPlayer->GetAutoaimVector( AUTOAIM_10DEGREES );
 		TraceResult tr;
 		Vector trace_origin;
 
@@ -887,7 +887,7 @@ void CChumtoad::PrimaryAttack()
 		}
 
 		// find place to toss monster
-		UTIL_TraceLine( trace_origin + gpGlobals->v_forward * 20, trace_origin + gpGlobals->v_forward * 64, dont_ignore_monsters, NULL, &tr );
+		UTIL_TraceLine( trace_origin + vecAiming * 20, trace_origin + vecAiming * 64, dont_ignore_monsters, NULL, &tr );
 
 	int flags;
 #ifdef CLIENT_WEAPONS
@@ -911,10 +911,10 @@ void CChumtoad::PrimaryAttack()
 				pChumtoad = g_pGameRules->DropCharm(m_pPlayer, tr.vecEndPos);
 			}
 			else
-				pChumtoad = CBaseEntity::Create( "monster_chumtoad", tr.vecEndPos, m_pPlayer->pev->v_angle, m_pPlayer->edict() );
+				pChumtoad = CBaseEntity::Create( "monster_chumtoad", tr.vecEndPos, vecAiming, m_pPlayer->edict() );
 
 			if (pChumtoad)
-				pChumtoad->pev->velocity = gpGlobals->v_forward * 200 + m_pPlayer->pev->velocity;
+				pChumtoad->pev->velocity = vecAiming * 200 + m_pPlayer->pev->velocity;
 #endif
 
 			// play hunt sound
@@ -941,7 +941,7 @@ void CChumtoad::SecondaryAttack()
 {
 	if ( m_pPlayer->m_rgAmmo[ m_iPrimaryAmmoType ] )
 	{
-		UTIL_MakeVectors( m_pPlayer->pev->v_angle );
+		Vector vecAiming = m_pPlayer->GetAutoaimVector( AUTOAIM_10DEGREES );
 		TraceResult tr;
 		Vector trace_origin;
 
@@ -954,7 +954,7 @@ void CChumtoad::SecondaryAttack()
 		}
 
 		// find place to toss monster
-		UTIL_TraceLine( trace_origin + gpGlobals->v_forward * 20, trace_origin + gpGlobals->v_forward * 64, dont_ignore_monsters, NULL, &tr );
+		UTIL_TraceLine( trace_origin + vecAiming * 20, trace_origin + vecAiming * 64, dont_ignore_monsters, NULL, &tr );
 
 	int flags;
 #ifdef CLIENT_WEAPONS
@@ -980,10 +980,10 @@ void CChumtoad::SecondaryAttack()
 					pChumtoad = g_pGameRules->DropCharm(m_pPlayer, tr.vecEndPos + (gpGlobals->v_right * ((20 * i) + dif)));
 				}
 				else
-					pChumtoad = CBaseEntity::Create( "monster_chumtoad", tr.vecEndPos + (gpGlobals->v_right * ((20 * i) + dif)), m_pPlayer->pev->v_angle, m_pPlayer->edict() );
+					pChumtoad = CBaseEntity::Create( "monster_chumtoad", tr.vecEndPos + (gpGlobals->v_right * ((20 * i) + dif)), vecAiming, m_pPlayer->edict() );
 
 				if (pChumtoad)
-					pChumtoad->pev->velocity = gpGlobals->v_forward * 200 + m_pPlayer->pev->velocity;
+					pChumtoad->pev->velocity = vecAiming * 200 + m_pPlayer->pev->velocity;
 			}
 #endif
 
@@ -1009,6 +1009,8 @@ void CChumtoad::SecondaryAttack()
 
 void CChumtoad::WeaponIdle( void )
 {
+	m_pPlayer->GetAutoaimVector( AUTOAIM_10DEGREES );
+
 	if ( m_flTimeWeaponIdle > UTIL_WeaponTimeBase() )
 		return;
 

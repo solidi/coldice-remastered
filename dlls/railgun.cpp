@@ -192,10 +192,9 @@ void CRailgun::CreateTrail(Vector a, Vector b)
 }
 
 void CRailgun::StartFire( void )
-{	
-	UTIL_MakeVectors( m_pPlayer->pev->v_angle + m_pPlayer->pev->punchangle );
+{
 	Vector vecSrc = m_pPlayer->GetGunPosition();
-	Vector vecAiming = gpGlobals->v_forward;
+	Vector vecAiming = m_pPlayer->GetAutoaimVector( AUTOAIM_10DEGREES );
 
 	SendWeaponAnim( RAILGUN_FIRE2 );
 
@@ -204,7 +203,7 @@ void CRailgun::StartFire( void )
 
 	EMIT_SOUND(ENT(m_pPlayer->pev), CHAN_WEAPON, "railgun_fire.wav", 0.9, ATTN_NORM);
 
-	Fire( vecSrc, vecAiming, (gpGlobals->v_up * -12 + gpGlobals->v_right * 12 + gpGlobals->v_forward * 32), gSkillData.plrDmgRailgun );
+	Fire( vecSrc, vecAiming, (gpGlobals->v_up * -12 + gpGlobals->v_right * 12 + vecAiming * 32), gSkillData.plrDmgRailgun );
 
 	m_pPlayer->pev->punchangle.x = RANDOM_LONG(-5, -8);
 }
@@ -293,6 +292,8 @@ void CRailgun::Fire( Vector vecSrc, Vector vecDir, Vector effectSrc, float flDam
 
 void CRailgun::WeaponIdle( void )
 {
+	m_pPlayer->GetAutoaimVector( AUTOAIM_10DEGREES );
+
 	ResetEmptySound( );
 
 	if (m_flTimeWeaponIdle > UTIL_WeaponTimeBase())

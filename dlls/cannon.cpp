@@ -69,15 +69,10 @@ void CFlakBomb :: Spawn( )
 
 	pev->classname = MAKE_STRING("flak_bomb");
 
-	//SetTouch( &CFlakBomb::ExplodeTouch );
 	SetThink( &CFlakBomb::BlowUp );
 	pev->nextthink = gpGlobals->time + 1.0;
-	
-	pev->angles.x -= 8;
-	UTIL_MakeVectors( pev->angles );
-	//pev->angles.x = -(pev->angles.x + 30);
+	pev->velocity = pev->angles * RANDOM_LONG(700, 900);
 
-	pev->velocity = gpGlobals->v_forward * RANDOM_LONG(700, 900);
 	pev->gravity = 0.5;
 
 	pev->dmg = gSkillData.plrDmgFlakBomb;
@@ -138,7 +133,7 @@ CFlak *CFlak::CreateFlak( Vector vecOrigin, Vector vecAngles, CBaseEntity *pOwne
 	pFlak->Spawn();
 	pFlak->SetTouch( &CFlak::FlakTouch );
 	if (pOwner != NULL)
-	pFlak->pev->owner = pOwner->edict();
+		pFlak->pev->owner = pOwner->edict();
 
 	return pFlak;
 }
@@ -160,10 +155,8 @@ void CFlak :: Spawn( )
 
 	SetThink( &CBaseEntity::SUB_FadeOut );
 	pev->nextthink = gpGlobals->time + 5.0;
+	pev->velocity = pev->angles * RANDOM_LONG(1200, 1800);
 
-	UTIL_MakeVectors( pev->angles );
-
-	pev->velocity = gpGlobals->v_forward * RANDOM_LONG(1200, 1800);
 	pev->gravity = 0.5;
 	pev->dmg = gSkillData.plrDmgFlak;
 
@@ -348,10 +341,9 @@ void CCannon::SecondaryAttack()
 		// player "shoot" animation
 		m_pPlayer->SetAnimation( PLAYER_ATTACK1 );
 
-		UTIL_MakeVectors( m_pPlayer->pev->v_angle );
-		Vector vecSrc = m_pPlayer->GetGunPosition( ) + gpGlobals->v_forward * 4 + gpGlobals->v_right * 8 + gpGlobals->v_up * -4;
-		
-		CFlakBomb::CreateFlakBomb( vecSrc, m_pPlayer->pev->v_angle, m_pPlayer );
+		Vector vecAiming = m_pPlayer->GetAutoaimVector( AUTOAIM_10DEGREES );
+		Vector vecSrc = m_pPlayer->GetGunPosition( ) + vecAiming * 4 + gpGlobals->v_right * 8 + gpGlobals->v_up * -4;
+		CFlakBomb::CreateFlakBomb( vecSrc, vecAiming, m_pPlayer );
 #endif
 
 		int flags;
@@ -392,21 +384,21 @@ void CCannon::PrimaryAttack()
 		// player "shoot" animation
 		m_pPlayer->SetAnimation( PLAYER_ATTACK1 );
 
-		UTIL_MakeVectors( m_pPlayer->pev->v_angle );
-		Vector vecSrc1 = m_pPlayer->GetGunPosition( ) + gpGlobals->v_forward * 4 + gpGlobals->v_right * RANDOM_LONG(-18, 18) + gpGlobals->v_up * RANDOM_LONG(-18, 18);
-		CFlak::CreateFlak( vecSrc1, m_pPlayer->pev->v_angle, m_pPlayer );
+		Vector vecAiming = m_pPlayer->GetAutoaimVector( AUTOAIM_10DEGREES );
+		Vector vecSrc1 = m_pPlayer->GetGunPosition( ) + vecAiming * 4 + gpGlobals->v_right * RANDOM_LONG(-18, 18) + gpGlobals->v_up * RANDOM_LONG(-18, 18);
+		CFlak::CreateFlak( vecSrc1, vecAiming, m_pPlayer );
 
-		Vector vecSrc2 = m_pPlayer->GetGunPosition( ) + gpGlobals->v_forward * 4 + gpGlobals->v_right * RANDOM_LONG(-18, 18) + gpGlobals->v_up * RANDOM_LONG(-18, 18);
-		CFlak::CreateFlak( vecSrc2, m_pPlayer->pev->v_angle, m_pPlayer );
+		Vector vecSrc2 = m_pPlayer->GetGunPosition( ) + vecAiming * 4 + gpGlobals->v_right * RANDOM_LONG(-18, 18) + gpGlobals->v_up * RANDOM_LONG(-18, 18);
+		CFlak::CreateFlak( vecSrc2, vecAiming, m_pPlayer );
 
-		Vector vecSrc3 = m_pPlayer->GetGunPosition( ) + gpGlobals->v_forward * 4 + gpGlobals->v_right * RANDOM_LONG(-18, 18) + gpGlobals->v_up * RANDOM_LONG(-18, 18);
-		CFlak::CreateFlak( vecSrc3, m_pPlayer->pev->v_angle, m_pPlayer );
+		Vector vecSrc3 = m_pPlayer->GetGunPosition( ) + vecAiming * 4 + gpGlobals->v_right * RANDOM_LONG(-18, 18) + gpGlobals->v_up * RANDOM_LONG(-18, 18);
+		CFlak::CreateFlak( vecSrc3, vecAiming, m_pPlayer );
 
-		Vector vecSrc4 = m_pPlayer->GetGunPosition( ) + gpGlobals->v_forward * 4 + gpGlobals->v_right * RANDOM_LONG(-18, 18) + gpGlobals->v_up * RANDOM_LONG(-18, 18);
-		CFlak::CreateFlak( vecSrc4, m_pPlayer->pev->v_angle, m_pPlayer );
+		Vector vecSrc4 = m_pPlayer->GetGunPosition( ) + vecAiming * 4 + gpGlobals->v_right * RANDOM_LONG(-18, 18) + gpGlobals->v_up * RANDOM_LONG(-18, 18);
+		CFlak::CreateFlak( vecSrc4, vecAiming, m_pPlayer );
 
-		Vector vecSrc5 = m_pPlayer->GetGunPosition( ) + gpGlobals->v_forward * 4 + gpGlobals->v_right * RANDOM_LONG(-18, 18) + gpGlobals->v_up * RANDOM_LONG(-18, 18);
-		CFlak::CreateFlak( vecSrc5, m_pPlayer->pev->v_angle, m_pPlayer );
+		Vector vecSrc5 = m_pPlayer->GetGunPosition( ) + vecAiming * 4 + gpGlobals->v_right * RANDOM_LONG(-18, 18) + gpGlobals->v_up * RANDOM_LONG(-18, 18);
+		CFlak::CreateFlak( vecSrc5, vecAiming, m_pPlayer );
 #endif
 
 		int flags;
@@ -431,6 +423,8 @@ void CCannon::PrimaryAttack()
 
 void CCannon::WeaponIdle( void )
 {
+	m_pPlayer->GetAutoaimVector( AUTOAIM_10DEGREES );
+
 	ResetEmptySound( );
 
 	if ( m_flTimeWeaponIdle > UTIL_WeaponTimeBase() )

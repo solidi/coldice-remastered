@@ -157,28 +157,28 @@ void CDualWrench::SecondaryAttack()
 	m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 0.5;
 }
 
-void CDualWrench::Throw() {
+void CDualWrench::Throw()
+{
 	// Don't throw underwater, and only throw if we were able to detatch
 	// from player.
 	if ( (m_pPlayer->pev->waterlevel != 3) )
 	{
 		// Important! Capture globals before it is stomped on.
-		Vector anglesAim = m_pPlayer->pev->v_angle + m_pPlayer->pev->punchangle;
-		UTIL_MakeVectors( anglesAim );
+		Vector vecAiming = m_pPlayer->GetAutoaimVector( AUTOAIM_5DEGREES );
 
 		// Get the origin, direction, and fix the angle of the throw.
 		Vector vecSrc = m_pPlayer->GetGunPosition( )
 					+ gpGlobals->v_right * 12
 					+ gpGlobals->v_up * 8
-					+ gpGlobals->v_forward * 16;
+					+ vecAiming * 16;
 
-		Vector vecDir = gpGlobals->v_forward;
-		Vector vecAng = UTIL_VecToAngles (vecDir);
+		Vector vecDir = vecAiming;
+		Vector vecAng = UTIL_VecToAngles(vecDir);
 		vecAng.z = vecDir.z - 90;
 
 		// Create a flying wrenches
 		CFlyingWrench *pWrench = (CFlyingWrench *)Create( "flying_wrench",
-					vecSrc, Vector(0,0,0), m_pPlayer->edict() );
+					vecSrc, vecAiming, m_pPlayer->edict() );
 
 		Vector vecSrc2 = m_pPlayer->GetGunPosition( )
 					+ gpGlobals->v_right * -12
@@ -186,7 +186,7 @@ void CDualWrench::Throw() {
 					+ gpGlobals->v_forward * 16;
 
 		CFlyingWrench *pWrench2 = (CFlyingWrench *)Create( "flying_wrench",
-					vecSrc2, Vector(0,0,0), m_pPlayer->edict() );
+					vecSrc2, vecAiming, m_pPlayer->edict() );
 
 		// Give the wrench its velocity, angle, and spin.
 		// Lower the gravity a bit, so it flys.
@@ -391,6 +391,8 @@ int CDualWrench::Swing( int fFirst )
 
 void CDualWrench::WeaponIdle( void )
 {
+	m_pPlayer->GetAutoaimVector( AUTOAIM_10DEGREES );
+
 	if ( m_flTimeWeaponIdle > UTIL_WeaponTimeBase() )
 		return;
 

@@ -317,11 +317,10 @@ void CGauss::SecondaryAttack()
 void CGauss::StartFire( void )
 {
 	float flDamage;
-	
-	UTIL_MakeVectors( m_pPlayer->pev->v_angle + m_pPlayer->pev->punchangle );
-	Vector vecAiming = gpGlobals->v_forward;
+
 	Vector vecSrc = m_pPlayer->GetGunPosition( ); // + gpGlobals->v_up * -8 + gpGlobals->v_right * 8;
-	
+	Vector vecAiming = m_pPlayer->GetAutoaimVector( AUTOAIM_10DEGREES );
+
 	if ( gpGlobals->time - m_pPlayer->m_flStartCharge > GetFullChargeTime() )
 	{
 		flDamage = 200;
@@ -549,6 +548,8 @@ void CGauss::Fire( Vector vecOrigSrc, Vector vecDir, float flDamage )
 
 void CGauss::WeaponIdle( void )
 {
+	m_pPlayer->GetAutoaimVector( AUTOAIM_10DEGREES );
+
 	ResetEmptySound( );
 
 	// play aftershock static discharge

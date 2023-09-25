@@ -56,6 +56,7 @@ extern DLL_GLOBAL const char *g_MutatorCoolFlesh;
 extern DLL_GLOBAL const char *g_MutatorTopsyTurvy;
 extern DLL_GLOBAL const char *g_MutatorPlumber;
 extern DLL_GLOBAL const char *g_MutatorRocketCrowbar;
+extern DLL_GLOBAL const char *g_MutatorAutoaim;
 
 BOOL gInitHUD = TRUE;
 
@@ -5717,6 +5718,10 @@ Vector CBasePlayer :: GetAutoaimVector( float flDelta )
 		// flDelta *= 0.5;
 	}
 
+	BOOL m_autoaim = (strstr(mutators.string, g_MutatorAutoaim) || atoi(mutators.string) == MUTATOR_AUTOAIM);
+	if (m_autoaim)
+		flDelta = 0.45;
+
 	BOOL m_fOldTargeting = m_fOnTarget;
 	Vector angles = AutoaimDeflection(vecSrc, flDist, flDelta );
 
@@ -5737,14 +5742,17 @@ Vector CBasePlayer :: GetAutoaimVector( float flDelta )
 	if (angles.y < -180)
 		angles.y += 360;
 
-	if (angles.x > 25)
-		angles.x = 25;
-	if (angles.x < -25)
-		angles.x = -25;
-	if (angles.y > 12)
-		angles.y = 12;
-	if (angles.y < -12)
-		angles.y = -12;
+	if (!m_autoaim)
+	{
+		if (angles.x > 25)
+			angles.x = 25;
+		if (angles.x < -25)
+			angles.x = -25;
+		if (angles.y > 12)
+			angles.y = 12;
+		if (angles.y < -12)
+			angles.y = -12;
+	}
 
 
 	// always use non-sticky autoaim
@@ -5758,10 +5766,13 @@ Vector CBasePlayer :: GetAutoaimVector( float flDelta )
 		m_vecAutoAim = angles * 0.9;
 	}
 
+	if (m_autoaim)
+		m_vecAutoAim = angles;
+
 	// m_vecAutoAim = m_vecAutoAim * 0.99;
 
 	// Don't send across network if sv_aim is 0
-	if ( g_psv_aim->value != 0 )
+	if ( g_psv_aim->value != 0 || m_autoaim )
 	{
 		if ( m_vecAutoAim.x != m_lastx ||
 			 m_vecAutoAim.y != m_lasty )
@@ -5789,10 +5800,15 @@ Vector CBasePlayer :: AutoaimDeflection( Vector &vecSrc, float flDist, float flD
 	edict_t		*bestent;
 	TraceResult tr;
 
-	if ( g_psv_aim->value == 0 )
+	BOOL m_autoaim = (strstr(mutators.string, g_MutatorAutoaim) || atoi(mutators.string) == MUTATOR_AUTOAIM);
+
+	if (!m_autoaim)
 	{
-		m_fOnTarget = FALSE;
-		return g_vecZero;
+		if ( g_psv_aim->value == 0 )
+		{
+			m_fOnTarget = FALSE;
+			return g_vecZero;
+		}
 	}
 
 	UTIL_MakeVectors( pev->v_angle + pev->punchangle + m_vecAutoAim );

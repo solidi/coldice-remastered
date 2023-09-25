@@ -403,17 +403,14 @@ void CCrossbow::FireBolt()
 	// player "shoot" animation
 	m_pPlayer->SetAnimation( PLAYER_ATTACK1 );
 
-	Vector anglesAim = m_pPlayer->pev->v_angle + m_pPlayer->pev->punchangle;
-	UTIL_MakeVectors( anglesAim );
-	
-	anglesAim.x		= -anglesAim.x;
-	Vector vecSrc	 = m_pPlayer->GetGunPosition( ) - gpGlobals->v_up * 2;
-	Vector vecDir	 = gpGlobals->v_forward;
+	Vector vecAiming = m_pPlayer->GetAutoaimVector( AUTOAIM_10DEGREES );
+	Vector vecSrc = m_pPlayer->GetGunPosition( ) - vecAiming * 2;
+	Vector vecDir = vecAiming;
 
 #ifndef CLIENT_DLL
 	CCrossbowBolt *pBolt = CCrossbowBolt::BoltCreate();
 	pBolt->pev->origin = vecSrc;
-	pBolt->pev->angles = anglesAim;
+	pBolt->pev->angles = UTIL_VecToAngles(vecAiming);
 	pBolt->pev->owner = m_pPlayer->edict();
 
 	if (m_pPlayer->pev->waterlevel == 3)

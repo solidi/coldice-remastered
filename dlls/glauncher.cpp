@@ -144,12 +144,12 @@ void CGrenadeLauncher::PrimaryAttack()
 	// player "shoot" animation
 	m_pPlayer->SetAnimation( PLAYER_ATTACK1 );
 
- 	UTIL_MakeVectors( m_pPlayer->pev->v_angle + m_pPlayer->pev->punchangle );
+	Vector vecAiming = m_pPlayer->GetAutoaimVector( AUTOAIM_10DEGREES );
 
 	// we don't add in player velocity anymore.
 	CGrenade::ShootContact( m_pPlayer->pev, 
-							m_pPlayer->pev->origin + m_pPlayer->pev->view_ofs + gpGlobals->v_forward * 16, 
-							gpGlobals->v_forward * 800 );
+							m_pPlayer->pev->origin + m_pPlayer->pev->view_ofs + vecAiming * 16, 
+							vecAiming * 800 );
 
 	int flags;
 #if defined( CLIENT_WEAPONS )
@@ -196,15 +196,15 @@ void CGrenadeLauncher::SecondaryAttack( void )
 	// player "shoot" animation
 	m_pPlayer->SetAnimation( PLAYER_ATTACK1 );
 
- 	UTIL_MakeVectors( m_pPlayer->pev->v_angle + m_pPlayer->pev->punchangle );
+	Vector vecAiming = m_pPlayer->GetAutoaimVector( AUTOAIM_10DEGREES );
 
 	if (RANDOM_LONG(0,2) == 0) {
 		EMIT_SOUND_DYN(ENT(m_pPlayer->pev), CHAN_VOICE, "glauncher_bad.wav", RANDOM_FLOAT(0.92, 1.0), ATTN_NORM, 0, 98 + RANDOM_LONG(0,3));	
 	}
 
-	CGrenade::ShootTimedCluster ( m_pPlayer->pev, 
-							m_pPlayer->pev->origin + m_pPlayer->pev->view_ofs + gpGlobals->v_forward * 16, 
-							gpGlobals->v_forward * 800, 6 );
+	CGrenade::ShootTimedCluster(m_pPlayer->pev, 
+							m_pPlayer->pev->origin + m_pPlayer->pev->view_ofs + vecAiming * 16, 
+							vecAiming * 800, 6 );
 
 	int flags;
 #if defined( CLIENT_WEAPONS )

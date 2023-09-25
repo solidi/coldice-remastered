@@ -492,14 +492,17 @@ void CSatchel::Throw( void )
 {
 	if ( m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] )
 	{
+		Vector vecAiming = m_pPlayer->GetAutoaimVector( AUTOAIM_5DEGREES );
 		Vector vecSrc = m_pPlayer->pev->origin;
-
-		Vector vecThrow = gpGlobals->v_forward * 274 + m_pPlayer->pev->velocity;
+		Vector vecThrow = vecAiming * 274 + m_pPlayer->pev->velocity;
 
 #ifndef CLIENT_DLL
-		CBaseEntity *pSatchel = Create( "monster_satchel", vecSrc, Vector( 0, 0, 0), m_pPlayer->edict() );
-		pSatchel->pev->velocity = vecThrow;
-		pSatchel->pev->avelocity.y = 400;
+		CBaseEntity *pSatchel = Create( "monster_satchel", vecSrc, vecAiming, m_pPlayer->edict() );
+		if (pSatchel)
+		{
+			pSatchel->pev->velocity = vecThrow;
+			pSatchel->pev->avelocity.y = 400;
+		}
 
 		m_pPlayer->pev->viewmodel = MAKE_STRING("models/v_satchel_radio.mdl");
 		m_pPlayer->pev->weaponmodel = MAKE_STRING("models/p_satchel_radio.mdl");
@@ -525,6 +528,8 @@ void CSatchel::Throw( void )
 
 void CSatchel::WeaponIdle( void )
 {
+	m_pPlayer->GetAutoaimVector( AUTOAIM_10DEGREES );
+
 	if ( m_flTimeWeaponIdle > UTIL_WeaponTimeBase() )
 		return;
 

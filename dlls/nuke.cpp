@@ -54,7 +54,8 @@ CNukeRocket *CNukeRocket::CreateNukeRocket( Vector vecOrigin, Vector vecAngles, 
 	CNukeRocket *pRocket = GetClassPtr( (CNukeRocket *)NULL );
 
 	UTIL_SetOrigin( pRocket->pev, vecOrigin );
-	pRocket->pev->angles = vecAngles;
+	pRocket->pev->angles = UTIL_VecToAngles(vecAngles);
+	pRocket->pev->velocity = vecAngles * RANDOM_LONG(1200, 1600);
 	pRocket->pev->owner = pOwner->edict();
 	pRocket->m_iCamera = hasCamera;
 	pRocket->Spawn(startEngineTime);
@@ -80,11 +81,6 @@ void CNukeRocket :: Spawn( float startEngineTime )
 	SetThink( &CNukeRocket::IgniteThink );
 	SetTouch( &CNukeRocket::ExplodeTouch );
 
-	pev->angles.x -= 30;
-	UTIL_MakeVectors( pev->angles );
-	pev->angles.x = -(pev->angles.x + 30);
-
-	pev->velocity = gpGlobals->v_forward * 250;
 	pev->gravity = 0.5;
 
 	pev->nextthink = gpGlobals->time + startEngineTime;
@@ -492,12 +488,9 @@ void CNuke::FireNuke(BOOL withCamera)
 		// player "shoot" animation
 		m_pPlayer->SetAnimation( PLAYER_ATTACK1 );
 
-		UTIL_MakeVectors( m_pPlayer->pev->v_angle );
-		Vector vecSrc = m_pPlayer->GetGunPosition( ) + gpGlobals->v_forward * 16 + gpGlobals->v_right * 8 + gpGlobals->v_up * -18;
-		
-		pNukeRocket = CNukeRocket::CreateNukeRocket( vecSrc, m_pPlayer->pev->v_angle, m_pPlayer, 0.0, withCamera );
-		UTIL_MakeVectors( m_pPlayer->pev->v_angle );// NukeRocket::Create stomps on globals, so remake.
-		pNukeRocket->pev->velocity = pNukeRocket->pev->velocity + gpGlobals->v_forward * DotProduct( m_pPlayer->pev->velocity, gpGlobals->v_forward );
+		Vector vecAiming = m_pPlayer->GetAutoaimVector( AUTOAIM_10DEGREES );
+		Vector vecSrc = m_pPlayer->GetGunPosition( ) + vecAiming * 16 + gpGlobals->v_right * 8 + gpGlobals->v_up * -18;
+		CNukeRocket::CreateNukeRocket( vecSrc, vecAiming, m_pPlayer, 0.0, withCamera );
 #endif
 
 		int flags;
@@ -590,6 +583,8 @@ void CNuke::SecondaryAttack()
 void CNuke::WeaponIdle( void )
 {
 	ResetEmptySound( );
+
+	m_pPlayer->GetAutoaimVector( AUTOAIM_10DEGREES );
 
 	if ( m_flTimeWeaponIdle > UTIL_WeaponTimeBase() )
 		return;

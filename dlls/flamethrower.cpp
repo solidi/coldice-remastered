@@ -81,20 +81,6 @@ void CFlameThrower::Precache( void )
 	PRECACHE_MODEL("sprites/flamesteam.spr");
 	PRECACHE_MODEL("sprites/null.spr");
 
-	// Particles
-	/*
-	PRECACHE_MODEL ("sprites/flameline.spr");
-	PRECACHE_MODEL ("sprites/blacksmoke.spr");
-	PRECACHE_MODEL ("sprites/black_smoke1.spr");
-    PRECACHE_MODEL ("sprites/flamepart1.spr");
-	PRECACHE_MODEL ("sprites/flamepart3.spr");
-	PRECACHE_MODEL ("sprites/flamepart9.spr");
-	PRECACHE_MODEL ("sprites/flamepart11.spr");
-	PRECACHE_MODEL ("sprites/flamepart12.spr");
-	PRECACHE_MODEL ("sprites/flamepart13.spr");
-	*/
-
-	PRECACHE_SOUND("flamethrower_reload.wav");
 	PRECACHE_SOUND("flame_hitwall.wav");
 	PRECACHE_SOUND("flamethrower.wav");
 	PRECACHE_SOUND("flamethrowerend.wav");
@@ -253,8 +239,7 @@ void CFlameThrower::PrimaryAttack( void )
 		return;
 	}
 
-	UTIL_MakeVectors( m_pPlayer->pev->v_angle + m_pPlayer->pev->punchangle );
-	Vector vecAiming = gpGlobals->v_forward;
+	Vector vecAiming = m_pPlayer->GetAutoaimVector( AUTOAIM_10DEGREES );
 	Vector vecSrc = m_pPlayer->GetGunPosition();
 
 	int flags;
@@ -342,41 +327,18 @@ void CFlameThrower::SecondaryAttack( void )
 
 	m_pPlayer->m_rgAmmo[ m_iPrimaryAmmoType ]--;
 
-	UTIL_MakeVectors( m_pPlayer->pev->v_angle + m_pPlayer->pev->punchangle );
+	Vector vecAiming = m_pPlayer->GetAutoaimVector( AUTOAIM_10DEGREES );
 
 #ifndef CLIENT_DLL
 	CFlameBall::ShootFlameBall( m_pPlayer->pev, 
-		m_pPlayer->pev->origin + m_pPlayer->pev->view_ofs + gpGlobals->v_forward * 32 + gpGlobals->v_right * 1.2 + gpGlobals->v_up * -4,
-		gpGlobals->v_forward * 900 );
+		m_pPlayer->pev->origin + m_pPlayer->pev->view_ofs + vecAiming * 32 + gpGlobals->v_right * 1.2 + gpGlobals->v_up * -4,
+		vecAiming * 900 );
 #endif
 
 	m_flNextPrimaryAttack = m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 0.25;
 	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 5;
 
 	m_pPlayer->pev->punchangle.x -= 1;
-}
-
-void CFlameThrower::Reload( void )
-{
-	int iResult = 0;
-	m_pPlayer->pev->playerclass = 0;
-
-	if ( m_iClip == FLAMETHROWER_MAX_CLIP )
-	{
-		m_flNextPrimaryAttack = UTIL_WeaponTimeBase() + 0.5;
-		return;
-	}
-
-	if (m_iClip == 0)
-	{
-		iResult = DefaultReload( FLAMETHROWER_MAX_CLIP, FLAMETHROWER_OFF, 4.3 );
-		EMIT_SOUND(ENT(pev), CHAN_ITEM, "flamethrower_reload.wav", 1, ATTN_NORM);
-	}
-
-	if (iResult)
-	{
-		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + RANDOM_FLOAT ( 10, 15 );
-	}
 }
 
 void CFlameThrower::WeaponIdle( void )

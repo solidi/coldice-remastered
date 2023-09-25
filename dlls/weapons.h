@@ -618,7 +618,7 @@ public:
 
 	void PrimaryAttack( void );
 	void SecondaryAttack( void );
-	void GlockFire( float flSpread, float flCycleTime, BOOL fUseAutoAim, int silencer );
+	void GlockFire( float flSpread, float flCycleTime, int silencer );
 	BOOL DeployLowKey( void );
 	BOOL Deploy( void );
 	void Holster( int skiplocal );
@@ -1515,7 +1515,7 @@ public:
 
 	void PrimaryAttack( void );
 	void SecondaryAttack( void );
-	void Fire( float flSpread, float flCycleTime, BOOL fUseAutoAim, int rotated );
+	void Fire( float flSpread, float flCycleTime, int rotated );
 	BOOL DeployLowKey( void );
 	BOOL Deploy( void );
 	void Holster( int skiplocal );
@@ -1555,7 +1555,7 @@ public:
 	int AddToPlayer( CBasePlayer *pPlayer );
 
 	void PrimaryAttack( void );
-	void Fire( float flSpread, float flCycleTime, BOOL fUseAutoAim );
+	void Fire( float flSpread, float flCycleTime );
 	BOOL DeployLowKey( void );
 	BOOL Deploy( void );
 	void Holster( int skiplocal );
@@ -2296,7 +2296,6 @@ public:
    BOOL DeployLowKey( void );
    BOOL Deploy( void );
    void Holster( int skiplocal = 0 );
-   void Reload( void );
    void WeaponIdle( void );
 
 	virtual BOOL UseDecrement( void )
@@ -2339,7 +2338,6 @@ public:
    BOOL DeployLowKey( void );
    BOOL Deploy( void );
    void Holster( int skiplocal = 0 );
-   void Reload( void );
    void WeaponIdle( void );
 
    // Secondary flameball launch while holding fire down
