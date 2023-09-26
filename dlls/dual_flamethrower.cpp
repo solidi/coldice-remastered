@@ -81,7 +81,6 @@ void CDualFlameThrower::Precache( void )
 
 	PRECACHE_SOUND("items/9mmclip1.wav");
 
-	PRECACHE_SOUND("flamethrower_reload.wav");
 	PRECACHE_SOUND("flame_hitwall.wav");
 	PRECACHE_SOUND("items/clipinsert1.wav");
 	PRECACHE_SOUND("items/cliprelease1.wav");
@@ -244,9 +243,8 @@ void CDualFlameThrower::PrimaryAttack( void )
 		return;
 	}
 
-	UTIL_MakeVectors( m_pPlayer->pev->v_angle + m_pPlayer->pev->punchangle );
-	Vector vecAiming = gpGlobals->v_forward;
 	Vector vecSrc = m_pPlayer->GetGunPosition();
+	Vector vecAiming = m_pPlayer->GetAutoaimVector( AUTOAIM_10DEGREES );
 
 	int flags;
 #if defined( CLIENT_WEAPONS )
@@ -333,12 +331,12 @@ void CDualFlameThrower::SecondaryAttack( void )
 
 	m_pPlayer->m_rgAmmo[ m_iPrimaryAmmoType ]--;
 
-	UTIL_MakeVectors( m_pPlayer->pev->v_angle + m_pPlayer->pev->punchangle );
+	Vector vecAiming = m_pPlayer->GetAutoaimVector( AUTOAIM_10DEGREES );
 
 #ifndef CLIENT_DLL
 	CFlameBall::ShootFlameBall( m_pPlayer->pev, 
-		m_pPlayer->pev->origin + m_pPlayer->pev->view_ofs + gpGlobals->v_forward * 32 + gpGlobals->v_right * 16 + gpGlobals->v_up * -4,
-		gpGlobals->v_forward * 900 );
+		m_pPlayer->pev->origin + m_pPlayer->pev->view_ofs + vecAiming * 32 + gpGlobals->v_right * 16 + gpGlobals->v_up * -4,
+		vecAiming * 900 );
 
 	m_fSecondaryFireTime = gpGlobals->time + 0.15;
 #endif
@@ -347,29 +345,6 @@ void CDualFlameThrower::SecondaryAttack( void )
 	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 5;
 
 	m_pPlayer->pev->punchangle.x -= 1;
-}
-
-void CDualFlameThrower::Reload( void )
-{
-	int iResult = 0;
-	m_pPlayer->pev->playerclass = 0;
-
-	if ( m_iClip == FLAMETHROWER_MAX_CLIP )
-	{
-		m_flNextPrimaryAttack = UTIL_WeaponTimeBase() + 0.5;
-		return;
-	}
-
-	if (m_iClip == 0)
-	{
-		iResult = DefaultReload( FLAMETHROWER_MAX_CLIP, DUAL_FLAMETHROWER_OFF, 4.3 );
-		EMIT_SOUND(ENT(pev), CHAN_ITEM, "flamethrower_reload.wav", 1, ATTN_NORM);
-	}
-
-	if (iResult)
-	{
-		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + RANDOM_FLOAT ( 10, 15 );
-	}
 }
 
 void CDualFlameThrower::WeaponIdle( void )

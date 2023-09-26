@@ -139,7 +139,8 @@ void CSnowball::PrimaryAttack()
 	}
 }
 
-void CSnowball::Throw() {
+void CSnowball::Throw()
+{
 	// Don't throw underwater, and only throw if we were able to detatch
 	// from player.
 	if ( (m_pPlayer->pev->waterlevel != 3) )
@@ -147,28 +148,30 @@ void CSnowball::Throw() {
 		SendWeaponAnim( SNOWBALL_THROW1 );
 
 		// Important! Capture globals before it is stomped on.
-		Vector anglesAim = m_pPlayer->pev->v_angle + m_pPlayer->pev->punchangle;
-		UTIL_MakeVectors( anglesAim );
+		Vector vecAiming = m_pPlayer->GetAutoaimVector( AUTOAIM_5DEGREES );
 
 		// Get the origin, direction, and fix the angle of the throw.
 		Vector vecSrc = m_pPlayer->GetGunPosition( )
 					+ gpGlobals->v_right * 8
-					+ gpGlobals->v_forward * 16;
+					+ vecAiming * 16;
 
-		Vector vecDir = gpGlobals->v_forward;
-		Vector vecAng = UTIL_VecToAngles (vecDir);
+		Vector vecDir = vecAiming;
+		Vector vecAng = UTIL_VecToAngles(vecDir);
 		vecAng.z = vecDir.z - 90;
 
 		// Create a flying snowball.
 		CFlyingSnowball *pSnowball = (CFlyingSnowball *)Create( "flying_snowball",
-					vecSrc, Vector(0,0,0), m_pPlayer->edict() );
+					vecSrc, vecAiming, m_pPlayer->edict() );
 
 		// Give the wrench its velocity, angle, and spin.
 		// Lower the gravity a bit, so it flys.
-		pSnowball->pev->velocity = vecDir * RANDOM_LONG(500,1000); // + m_pPlayer->pev->velocity;
-		pSnowball->pev->angles = vecAng;
-		pSnowball->pev->avelocity.x = -1000;
-		pSnowball->pev->gravity = .25;
+		if (pSnowball)
+		{
+			pSnowball->pev->velocity = vecAiming * RANDOM_LONG(500,1000); // + m_pPlayer->pev->velocity;
+			pSnowball->pev->angles = vecAng;
+			pSnowball->pev->avelocity.x = -1000;
+			pSnowball->pev->gravity = .25;
+		}
 
 		// Do player weapon anim and sound effect.
 		m_pPlayer->SetAnimation( PLAYER_ATTACK1 );
@@ -211,13 +214,16 @@ void CSnowball::WeaponIdle( void )
 	if ( m_flReleaseThrow == 0 && m_flStartThrow )
 		 m_flReleaseThrow = gpGlobals->time;
 
+	m_pPlayer->GetAutoaimVector( AUTOAIM_10DEGREES );
+
 	if ( m_flTimeWeaponIdle > UTIL_WeaponTimeBase() )
 		return;
 
 	if ( m_flStartThrow )
 	{
-		Vector angThrow = m_pPlayer->pev->v_angle + m_pPlayer->pev->punchangle;
-
+		Vector angThrow = m_pPlayer->GetAutoaimVector( AUTOAIM_10DEGREES );
+		float flVel = RANDOM_LONG(500, 700);
+/*
 		if ( angThrow.x < 0 )
 			angThrow.x = -10 + angThrow.x * ( ( 90 - 10 ) / 90.0 );
 		else
@@ -228,10 +234,10 @@ void CSnowball::WeaponIdle( void )
 			flVel = 500;
 
 		UTIL_MakeVectors( angThrow );
+*/
 
-		Vector vecSrc = m_pPlayer->pev->origin + m_pPlayer->pev->view_ofs + gpGlobals->v_forward * 16;
-
-		Vector vecThrow = gpGlobals->v_forward * flVel + m_pPlayer->pev->velocity;
+		Vector vecSrc = m_pPlayer->pev->origin + m_pPlayer->pev->view_ofs + angThrow * 16;
+		Vector vecThrow = angThrow * flVel + m_pPlayer->pev->velocity;
 
 		// alway explode 3 seconds after the pin was pulled
 		float time = m_flStartThrow - gpGlobals->time + 3.0;
@@ -326,10 +332,10 @@ CFlyingSnowball * CFlyingSnowball::Shoot( entvars_t *pevOwner, Vector vecStart, 
 {
 	CFlyingSnowball *pSnowball = GetClassPtr( (CFlyingSnowball *)NULL );
 	pSnowball->pev->owner = ENT(pevOwner);
+	pSnowball->pev->angles = vecVelocity;
 	pSnowball->Spawn();
 	UTIL_SetOrigin( pSnowball->pev, vecStart );
 	pSnowball->pev->velocity = vecVelocity;
-	pSnowball->pev->angles = UTIL_VecToAngles(pSnowball->pev->velocity);
 
 	// Tumble through the air
 	pSnowball->pev->avelocity.x = -400;
@@ -357,7 +363,7 @@ void CFlyingSnowball::Spawn( )
 	pev->solid = SOLID_BBOX;
 	pev->classname = MAKE_STRING("flying_snowball");
 
-	pev->gravity = .25;
+	pev->gravity = 0.25;
 
 	// Use the world wrench model.
 	SET_MODEL(ENT(pev), "models/w_weapons.mdl");
@@ -369,10 +375,9 @@ void CFlyingSnowball::Spawn( )
 	UTIL_SetSize(pev, Vector( 0, 0, 0), Vector(0, 0, 0));
 
 	pev->angles.x -= 30;
-	UTIL_MakeVectors( pev->angles );
+	//UTIL_MakeVectors( pev->angles );
 	pev->angles.x = -(pev->angles.x + 30);
 
-	pev->velocity = gpGlobals->v_forward * 250;
 	pev->gravity = 0.5;
 
 	// Store the owner for later use. We want the owner to be able

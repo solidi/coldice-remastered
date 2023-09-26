@@ -189,10 +189,10 @@ void CMag60::PrimaryAttack( void )
 		return;
 	}
 
-	Fire( m_iRotated ? 0.03 : 0.01, m_iRotated ? 0.125 : 0.20, TRUE, m_iRotated );
+	Fire( m_iRotated ? 0.03 : 0.01, m_iRotated ? 0.125 : 0.20, m_iRotated );
 }
 
-void CMag60::Fire( float flSpread , float flCycleTime, BOOL fUseAutoAim, int rotated )
+void CMag60::Fire( float flSpread , float flCycleTime, int rotated )
 {
 	if (m_iClip <= 0)
 	{
@@ -231,20 +231,9 @@ void CMag60::Fire( float flSpread , float flCycleTime, BOOL fUseAutoAim, int rot
 		m_pPlayer->m_iWeaponFlash = NORMAL_GUN_FLASH;
 	}
 
-	Vector vecSrc	 = m_pPlayer->GetGunPosition( );
-	Vector vecAiming;
-	
-	if ( fUseAutoAim )
-	{
-		vecAiming = m_pPlayer->GetAutoaimVector( AUTOAIM_10DEGREES );
-	}
-	else
-	{
-		vecAiming = gpGlobals->v_forward;
-	}
-
-	Vector vecDir;
-	vecDir = m_pPlayer->FireBulletsPlayer( 1, vecSrc, vecAiming, Vector( flSpread, flSpread, flSpread ), 8192, BULLET_PLAYER_9MM, 0, 0, m_pPlayer->pev, m_pPlayer->random_seed );
+	Vector vecSrc = m_pPlayer->GetGunPosition( );
+	Vector vecAiming = m_pPlayer->GetAutoaimVector( AUTOAIM_10DEGREES );
+	Vector vecDir = m_pPlayer->FireBulletsPlayer( 1, vecSrc, vecAiming, Vector( flSpread, flSpread, flSpread ), 8192, BULLET_PLAYER_9MM, 0, 0, m_pPlayer->pev, m_pPlayer->random_seed );
 
 	PLAYBACK_EVENT_FULL( flags, m_pPlayer->edict(), m_useFireMag60, 0.0, (float *)&g_vecZero, (float *)&g_vecZero, vecDir.x, vecDir.y, 0, 0, ( m_iClip == 0 ) ? 1 : 0, rotated );
 

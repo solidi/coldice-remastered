@@ -146,15 +146,12 @@ void CFreezeGun::PrimaryAttack()
 #endif
 
 	m_pPlayer->SetAnimation(PLAYER_ATTACK1);
-	UTIL_MakeVectors( m_pPlayer->pev->v_angle );
-	Vector vecSrc = m_pPlayer->GetGunPosition( ) + gpGlobals->v_forward * 16 + gpGlobals->v_right * 8 + gpGlobals->v_up * -8;
+	Vector vecAiming = m_pPlayer->GetAutoaimVector( AUTOAIM_10DEGREES );
+	Vector vecSrc = m_pPlayer->GetGunPosition( ) + vecAiming * 16 + gpGlobals->v_right * 8 + gpGlobals->v_up * -8;
 
 #ifndef CLIENT_DLL	
-	CPlasma *pPlasma = CPlasma::CreatePlasmaRocket( vecSrc, m_pPlayer->pev->v_angle, m_pPlayer );
-	UTIL_MakeVectors( m_pPlayer->pev->v_angle );
-	pPlasma->pev->velocity = pPlasma->pev->velocity + gpGlobals->v_forward * 2000;
-	
-	Vector vecSrcMuzzle = m_pPlayer->GetGunPosition( ) + gpGlobals->v_forward * 50 + gpGlobals->v_right * 8 + gpGlobals->v_up * -8;
+	CPlasma::CreatePlasmaRocket( vecSrc, vecAiming, m_pPlayer );
+	Vector vecSrcMuzzle = m_pPlayer->GetGunPosition( ) + vecAiming * 50 + gpGlobals->v_right * 8 + gpGlobals->v_up * -8;
 
 	TraceResult tr;
 	if (m_pPlayer && !FBitSet(m_pPlayer->pev->flags, FL_FAKECLIENT))
@@ -217,6 +214,8 @@ void CFreezeGun::PrimaryAttack()
 
 void CFreezeGun::WeaponIdle( void )
 {
+	m_pPlayer->GetAutoaimVector( AUTOAIM_10DEGREES );
+
 	if (m_flTimeWeaponIdle > UTIL_WeaponTimeBase())
 		return;
 

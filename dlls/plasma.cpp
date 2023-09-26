@@ -35,13 +35,11 @@ CPlasma *CPlasma::CreatePlasmaRocket( Vector vecOrigin, Vector vecAngles, CBaseE
 {
 	CPlasma *pPlasma = GetClassPtr( (CPlasma *)NULL );
 	UTIL_SetOrigin( pPlasma->pev, vecOrigin );
-	pPlasma->pev->angles = vecAngles;
 	pPlasma->m_iPrimaryMode = TRUE;
-	pPlasma->pev->angles = vecAngles;
 	pPlasma->pev->owner = pOwner->edict();
 	pPlasma->pev->classname = MAKE_STRING("plasma");
-	pPlasma->Spawn();
  	pPlasma->pev->angles = vecAngles;
+	pPlasma->Spawn();
 	pPlasma->m_pPlayer = pOwner;
 
 	return pPlasma;
@@ -62,7 +60,8 @@ void CPlasma :: Spawn( void )
 	SET_MODEL(ENT(pev), "models/plasma.mdl");
 	UTIL_SetSize(pev, Vector( 0, 0, 0), Vector(0, 0, 0));
 	UTIL_SetOrigin( pev, pev->origin );
-	UTIL_MakeVectors( pev->angles );
+	pev->velocity = pev->angles * RANDOM_LONG(1800, 2200);
+
 	if( m_bIsAI )
 	{
 		pev->gravity = 0.5;

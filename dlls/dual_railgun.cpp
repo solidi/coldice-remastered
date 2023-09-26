@@ -150,10 +150,10 @@ void CDualRailgun::PrimaryAttack()
 	}
 	m_iAltFire++;
 	if (m_iAltFire > 1) m_iAltFire = 0;
-	UTIL_MakeVectors( m_pPlayer->pev->v_angle + m_pPlayer->pev->punchangle );
-	Vector vecAiming = gpGlobals->v_forward;
+
+	Vector vecAiming = m_pPlayer->GetAutoaimVector( AUTOAIM_10DEGREES );
 	Vector vecSrc = m_pPlayer->GetGunPosition();
-	StartFire(vecAiming, vecSrc, (gpGlobals->v_up * -12 + gpGlobals->v_right * right + gpGlobals->v_forward * 32));
+	StartFire(vecAiming, vecSrc, (gpGlobals->v_up * -12 + gpGlobals->v_right * right + vecAiming * 32));
 	m_pPlayer->pev->punchangle.x = RANDOM_LONG(-5, -8);
 
 	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + UTIL_SharedRandomFloat( m_pPlayer->random_seed, 10, 15 );
@@ -173,12 +173,11 @@ void CDualRailgun::SecondaryAttack()
 
 	m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] -= 4;
 
-	UTIL_MakeVectors( m_pPlayer->pev->v_angle + m_pPlayer->pev->punchangle );
-	Vector vecAiming = gpGlobals->v_forward;
+	Vector vecAiming = m_pPlayer->GetAutoaimVector( AUTOAIM_10DEGREES );
 	Vector vecSrc = m_pPlayer->GetGunPosition();
 	SendWeaponAnim( DUAL_RAILGUN_FIRE_BOTH );
 	
-	StartFire(vecAiming, vecSrc, (gpGlobals->v_up * -12 + gpGlobals->v_right * 16 + gpGlobals->v_forward * 32));
+	StartFire(vecAiming, vecSrc, (gpGlobals->v_up * -12 + gpGlobals->v_right * 16 + vecAiming * 32));
 	SetThink( &CDualRailgun::FireThink );
 	pev->nextthink = gpGlobals->time + 0.2;
 
@@ -188,10 +187,9 @@ void CDualRailgun::SecondaryAttack()
 
 void CDualRailgun::FireThink( void )
 {
-	UTIL_MakeVectors( m_pPlayer->pev->v_angle );
-	Vector vecAiming = gpGlobals->v_forward;
+	Vector vecAiming = m_pPlayer->GetAutoaimVector( AUTOAIM_10DEGREES );
 	Vector vecSrc = m_pPlayer->GetGunPosition();
-	StartFire(vecAiming, vecSrc, (gpGlobals->v_up * -12 + gpGlobals->v_right * -12 + gpGlobals->v_forward * 32));
+	StartFire(vecAiming, vecSrc, (gpGlobals->v_up * -12 + gpGlobals->v_right * -12 + vecAiming * 32));
 	m_pPlayer->pev->punchangle.x = RANDOM_LONG(-8, -12);
 }
 
@@ -318,6 +316,8 @@ void CDualRailgun::Fire( Vector vecSrc, Vector vecDir, Vector effectSrc, float f
 
 void CDualRailgun::WeaponIdle( void )
 {
+	m_pPlayer->GetAutoaimVector( AUTOAIM_10DEGREES );
+
 	ResetEmptySound( );
 
 	if (m_flTimeWeaponIdle > UTIL_WeaponTimeBase())

@@ -176,13 +176,20 @@ void CHalfLifeGunGame::Think( void )
 					TXT_CHANNEL_GAME_INFO, -1, 0.83, 255, 255, 255, 0, 0, 0, 60, 0);
 				
 				int result = ((plr->pev->fuser4 + 1) / MAXLEVEL) * 100;
-				ALERT(at_console, ">> result = %d\n", result);
-				MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL, plr->edict());
-					WRITE_BYTE(1);
-					WRITE_STRING("Get through your weapon list");
-					WRITE_STRING(UTIL_VarArgs("Your progress: %d of %d", (int)plr->pev->fuser4 + 1, MAXLEVEL));
-					WRITE_BYTE(result);
-				MESSAGE_END();
+
+				if (!FBitSet(plr->pev->flags, FL_FAKECLIENT))
+				{
+					MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL, plr->edict());
+						WRITE_STRING("Get through your weapon list");
+						WRITE_STRING(UTIL_VarArgs("Your progress: %d of %d", (int)plr->pev->fuser4 + 1, MAXLEVEL));
+						WRITE_BYTE(result);
+						//if (plr->m_iRoundWins > 0)
+						//	WRITE_STRING(UTIL_VarArgs("Won %d rounds: %d to go", plr->m_iRoundWins, (int)roundlimit.value - m_iSuccessfulRounds));
+						//else
+						// WRITE_STRING(UTIL_VarArgs("Round %d: %d to go", m_iSuccessfulRounds + 1, (int)roundlimit.value - 1));
+						// WRITE_STRING(UTIL_VarArgs("Next weapon: %s", g_WeaponId[(int)plr->pev->fuser4 + 1]));
+					MESSAGE_END();
+				}
 			}
 		}
 

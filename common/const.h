@@ -836,6 +836,7 @@ typedef struct
 #define MUTATOR_DONTSHOOT 41
 #define MUTATOR_999 42
 #define MUTATOR_BERSERKER 43
+#define MUTATOR_AUTOAIM 44
 
 #define GAME_FFA 0
 #define GAME_TEAMPLAY 1

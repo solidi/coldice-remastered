@@ -41,7 +41,8 @@ CDrunkRocket *CDrunkRocket::CreateDrunkRocket( Vector vecOrigin, Vector vecAngle
 	CDrunkRocket *pRocket = GetClassPtr( (CDrunkRocket *)NULL );
 
 	UTIL_SetOrigin( pRocket->pev, vecOrigin );
-	pRocket->pev->angles = vecAngles;
+	pRocket->pev->angles = UTIL_VecToAngles(vecAngles);
+	pRocket->pev->velocity = vecAngles * RANDOM_LONG(200,250);
 	pRocket->Spawn(startEngineTime);
 	pRocket->SetTouch( &CRpgRocket::RocketTouch );
 	pRocket->pev->owner = pOwner->edict();
@@ -68,11 +69,6 @@ void CDrunkRocket::Spawn( float startEngineTime )
 	SetThink( &CDrunkRocket::IgniteThink );
 	SetTouch( &CDrunkRocket::ExplodeTouch );
 
-	pev->angles.x -= 30;
-	UTIL_MakeVectors( pev->angles );
-	pev->angles.x = -(pev->angles.x + 30);
-
-	pev->velocity = gpGlobals->v_forward * 250;
 	pev->gravity = 0.5;
 
 	pev->nextthink = gpGlobals->time + startEngineTime;
@@ -280,11 +276,9 @@ void CRocketCrowbar::SecondaryAttack()
 	if (!Swing( 1 ))
 	{
 #ifndef CLIENT_DLL
-		UTIL_MakeVectors( m_pPlayer->pev->v_angle );
-		Vector vecSrc = m_pPlayer->GetGunPosition( ) + gpGlobals->v_forward * 16 + gpGlobals->v_right * 8 + gpGlobals->v_up * -18;
-		CDrunkRocket *pRocket = CDrunkRocket::CreateDrunkRocket( vecSrc, m_pPlayer->pev->v_angle, m_pPlayer, 0.0 );
-		UTIL_MakeVectors( m_pPlayer->pev->v_angle );
-		pRocket->pev->velocity = pRocket->pev->velocity + gpGlobals->v_forward * DotProduct( m_pPlayer->pev->velocity, gpGlobals->v_forward );
+		Vector vecAiming = m_pPlayer->GetAutoaimVector( AUTOAIM_10DEGREES );
+		Vector vecSrc = m_pPlayer->GetGunPosition( ) + vecAiming * 16 + gpGlobals->v_right * 8;
+		CDrunkRocket::CreateDrunkRocket( vecSrc, vecAiming, m_pPlayer, 0.0 );
 #endif
 
 		SetThink( &CRocketCrowbar::SwingAgain );
@@ -457,6 +451,8 @@ int CRocketCrowbar::Swing( int fFirst )
 
 void CRocketCrowbar::WeaponIdle( void )
 {
+	m_pPlayer->GetAutoaimVector( AUTOAIM_10DEGREES );
+
 	if ( m_flTimeWeaponIdle > UTIL_WeaponTimeBase() )
 		return;
 

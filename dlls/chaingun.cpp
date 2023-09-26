@@ -157,11 +157,11 @@ void CChaingun::PrimaryAttack()
 		m_fFireMagnitude++;
 
 	if (m_iWeaponMode == CHAINGUN_FIRE && m_iClip > 0) {
-		Fire (VECTOR_CONE_3DEGREES.x, 1/(float) m_fFireMagnitude, TRUE);
+		Fire(VECTOR_CONE_3DEGREES.x, 1/(float) m_fFireMagnitude);
 	}
 }
 
-void CChaingun::Fire( float flSpread, float flCycleTime, BOOL fUseAutoAim )
+void CChaingun::Fire( float flSpread, float flCycleTime )
 {
 	m_iClip--;
 
@@ -182,19 +182,8 @@ void CChaingun::Fire( float flSpread, float flCycleTime, BOOL fUseAutoAim )
 	m_pPlayer->m_iWeaponFlash = BRIGHT_GUN_FLASH;
 
 	Vector vecSrc = m_pPlayer->GetGunPosition( );
-	Vector vecAiming;
-	
-	if ( fUseAutoAim )
-	{
-		vecAiming = m_pPlayer->GetAutoaimVector( AUTOAIM_10DEGREES );
-	}
-	else
-	{
-		vecAiming = gpGlobals->v_forward;
-	}
-
-	Vector vecDir;
-	vecDir = m_pPlayer->FireBulletsPlayer( 1, vecSrc, vecAiming, Vector( flSpread, flSpread, flSpread ), 8192, BULLET_PLAYER_357, 2, 0, m_pPlayer->pev, m_pPlayer->random_seed );
+	Vector vecAiming = m_pPlayer->GetAutoaimVector( AUTOAIM_10DEGREES );
+	Vector vecDir = m_pPlayer->FireBulletsPlayer( 1, vecSrc, vecAiming, Vector( flSpread, flSpread, flSpread ), 8192, BULLET_PLAYER_357, 2, 0, m_pPlayer->pev, m_pPlayer->random_seed );
 
 	PLAYBACK_EVENT_FULL( flags, m_pPlayer->edict(), m_useFireChaingun, 0.0, (float *)&g_vecZero, (float *)&g_vecZero, vecDir.x, vecDir.y, 0, 0, ( m_iClip == 0 ) ? 1 : 0, m_pPlayer->pev->weaponanim != CHAINGUN_FIRE );
 
@@ -230,6 +219,8 @@ void CChaingun::Reload( void )
 
 void CChaingun::WeaponIdle( void )
 {
+	m_pPlayer->GetAutoaimVector( AUTOAIM_10DEGREES );
+
 	if (m_iWeaponMode == CHAINGUN_FIRE)
 	{
 		SendWeaponAnim( CHAINGUN_SPINDOWN );
@@ -245,8 +236,6 @@ void CChaingun::WeaponIdle( void )
 		return;
 	
 	ResetEmptySound( );
-	
-	m_pPlayer->GetAutoaimVector( AUTOAIM_10DEGREES );
 
 	int iAnim;
 	

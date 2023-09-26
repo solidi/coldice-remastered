@@ -91,6 +91,7 @@ extern DLL_GLOBAL const char *g_szMutators[] = {
 	"dontshoot",
 	"999",
 	"berserker",
+	"autoaim",
 };
 
 extern void W_Precache(void);

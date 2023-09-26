@@ -148,6 +148,8 @@ void CHandGrenade::SecondaryAttack()
 
 void CHandGrenade::WeaponIdle( void )
 {
+	m_pPlayer->GetAutoaimVector( AUTOAIM_10DEGREES );
+
 	if ( m_flReleaseThrow == 0 && m_flStartThrow )
 		 m_flReleaseThrow = gpGlobals->time;
 
@@ -156,8 +158,9 @@ void CHandGrenade::WeaponIdle( void )
 
 	if ( m_flStartThrow )
 	{
-		Vector angThrow = m_pPlayer->pev->v_angle + m_pPlayer->pev->punchangle;
-
+		Vector angThrow = m_pPlayer->GetAutoaimVector( AUTOAIM_10DEGREES );
+		float flVel = RANDOM_LONG(500, 700);
+/*
 		if ( angThrow.x < 0 )
 			angThrow.x = -10 + angThrow.x * ( ( 90 - 10 ) / 90.0 );
 		else
@@ -168,10 +171,10 @@ void CHandGrenade::WeaponIdle( void )
 			flVel = 500;
 
 		UTIL_MakeVectors( angThrow );
+*/
 
-		Vector vecSrc = m_pPlayer->pev->origin + m_pPlayer->pev->view_ofs + gpGlobals->v_forward * 16;
-
-		Vector vecThrow = gpGlobals->v_forward * flVel + m_pPlayer->pev->velocity;
+		Vector vecSrc = m_pPlayer->pev->origin + m_pPlayer->pev->view_ofs + angThrow * 16;
+		Vector vecThrow = angThrow * flVel + m_pPlayer->pev->velocity;
 
 		// alway explode seconds after the pin was pulled
 		float time = m_flStartThrow - gpGlobals->time + 6.0;
