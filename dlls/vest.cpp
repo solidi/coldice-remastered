@@ -121,9 +121,7 @@ BOOL CVest::Deploy( )
 
 void CVest::Holster( int skiplocal )
 {
-	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 0.25;
-	
-	SendWeaponAnim( VEST_RADIO_HOLSTER );
+	CBasePlayerWeapon::DefaultHolster(VEST_RADIO_HOLSTER);
 }
 
 void CVest::PrimaryAttack()
@@ -131,10 +129,10 @@ void CVest::PrimaryAttack()
 #ifndef CLIENT_DLL
 	if (allowvoiceovers.value)
 		EMIT_SOUND(ENT(m_pPlayer->pev), CHAN_VOICE, "vest_attack.wav", 1, ATTN_NORM);
-#endif
 
 	SetThink( &CVest::BlowThink );
-	pev->nextthink = gpGlobals->time + 1.0;
+	pev->nextthink = gpGlobals->time + (1.0 * g_pGameRules->WeaponMultipler());
+#endif
 
 	m_flNextPrimaryAttack = UTIL_WeaponTimeBase() + 2.0;
 	m_flNextSecondaryAttack = UTIL_WeaponTimeBase();
@@ -150,7 +148,9 @@ void CVest::BlowThink() {
 	}
 
 	m_pPlayer->SetAnimation( PLAYER_JUMP );
-	pev->nextthink = gpGlobals->time + 0.5;
+#ifndef CLIENT_DLL
+	pev->nextthink = gpGlobals->time + (0.5 * g_pGameRules->WeaponMultipler());
+#endif
 }
 
 void CVest::GoneThink() {

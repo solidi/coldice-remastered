@@ -163,6 +163,8 @@ public:
 // Monsters
 	virtual BOOL FAllowMonsters( void ) = 0;//are monsters allowed
 
+	virtual float WeaponMultipler( void ) = 0;
+
 #if defined( GRAPPLING_HOOK )
 	virtual BOOL AllowGrapplingHook( CBasePlayer *pPlayer ) = FALSE;
 #endif
@@ -291,6 +293,8 @@ public:
 // Monsters
 	virtual BOOL FAllowMonsters( void );
 
+	virtual float WeaponMultipler( void );
+
 #if defined( GRAPPLING_HOOK )
 	virtual BOOL AllowGrapplingHook( CBasePlayer *pPlayer );
 #endif
@@ -405,6 +409,8 @@ public:
 
 // Monsters
 	virtual BOOL FAllowMonsters( void );
+
+	virtual float WeaponMultipler( void );
 
 #if defined( GRAPPLING_HOOK )
 	virtual BOOL AllowGrapplingHook( CBasePlayer *pPlayer );

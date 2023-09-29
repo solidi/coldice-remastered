@@ -117,8 +117,7 @@ BOOL CDualSawedOff::Deploy( )
 
 void CDualSawedOff::Holster( int skiplocal /* = 0 */ )
 {
-	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 0.25;
-	SendWeaponAnim( DUAL_SAWEDOFF_HOLSTER );
+	CBasePlayerWeapon::DefaultHolster(DUAL_SAWEDOFF_HOLSTER);
 }
 
 void CDualSawedOff::PrimaryAttack()

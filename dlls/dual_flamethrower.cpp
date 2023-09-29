@@ -142,8 +142,7 @@ BOOL CDualFlameThrower::DeployLowKey( )
 void CDualFlameThrower::Holster( int skiplocal )
 {
 	m_pPlayer->pev->playerclass = 0;
-	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 0.25;
-	SendWeaponAnim( DUAL_FLAMETHROWER_HOLSTER );
+	CBasePlayerWeapon::DefaultHolster(DUAL_FLAMETHROWER_HOLSTER);
 }
 
 void CDualFlameThrower::Fire( void )
@@ -338,7 +337,7 @@ void CDualFlameThrower::SecondaryAttack( void )
 		m_pPlayer->pev->origin + m_pPlayer->pev->view_ofs + vecAiming * 32 + gpGlobals->v_right * 16 + gpGlobals->v_up * -4,
 		vecAiming * 900 );
 
-	m_fSecondaryFireTime = gpGlobals->time + 0.15;
+	m_fSecondaryFireTime = gpGlobals->time + (0.15 * g_pGameRules->WeaponMultipler());
 #endif
 
 	m_flNextPrimaryAttack = m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 0.25;

@@ -302,6 +302,11 @@ void CBasePlayerWeapon::Holster( int skiplocal /* = 0 */ )
 	m_pPlayer->pev->viewmodel = 0; 
 }
 
+void CBasePlayerWeapon::DefaultHolster( int iAnim )
+{ 
+
+}
+
 /*
 =====================
 CBasePlayerWeapon::SendWeaponAnim

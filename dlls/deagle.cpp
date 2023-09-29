@@ -105,11 +105,7 @@ BOOL CDeagle::DeployLowKey( )
 
 void CDeagle::Holster( int skiplocal /* = 0 */ )
 {
-	m_fInReload = FALSE;// cancel any reload in progress.
-
-	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 0.25;
-	m_flTimeWeaponIdle = UTIL_SharedRandomFloat( m_pPlayer->random_seed, 10, 15 );
-	SendWeaponAnim( DEAGLE_HOLSTER );
+	CBasePlayerWeapon::DefaultHolster(DEAGLE_HOLSTER);
 }
 
 void CDeagle::PrimaryAttack()

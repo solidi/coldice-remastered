@@ -84,5 +84,7 @@ DLL_GLOBAL const char *g_MutatorDontShoot = "dontshoot";
 DLL_GLOBAL const char *g_Mutator999 = "999";
 DLL_GLOBAL const char *g_MutatorBerserker = "berserker";
 DLL_GLOBAL const char *g_MutatorAutoaim = "autoaim";
+DLL_GLOBAL const char *g_MutatorSlowWeapons = "slowweapons";
+DLL_GLOBAL const char *g_MutatorFastWeapons = "fastweapons";
 
 DLL_GLOBAL int g_GameMode;

@@ -424,6 +424,7 @@ public:
 	virtual BOOL CanDeploy( void );
 	virtual BOOL IsUseable( void );
 	BOOL DefaultDeploy( char *szViewModel, char *szWeaponModel, int iAnim, char *szAnimExt, int skiplocal = 0, int body = 0 );
+	void DefaultHolster( int iAnim );
 	int DefaultReload( int iClipSize, int iAnim, float fDelay, int body = 0 );
 
 	virtual void ItemPostFrame( void );	// called each frame by the player PostThink
@@ -1405,15 +1406,26 @@ public:
 
 	void StartFire( void );
 	void Fire( Vector vecSrc, Vector vecDirShooting, Vector effectSrc, float flDamage );
-	int m_iBalls;
-	int m_iGlow;
-	int m_iBeam;
+
+	virtual BOOL UseDecrement( void )
+	{
+#if defined( CLIENT_WEAPONS )
+		return TRUE;
+#else
+		return FALSE;
+#endif
+	}
 
 	// rail, rail, rail
 	void CreateTrail(Vector,Vector);
 
 	void ProvideDualItem(CBasePlayer *pPlayer, const char *itemName);
 	void SwapDualWeapon( void );
+
+private:
+	int m_iBalls;
+	int m_iGlow;
+	int m_iBeam;
 };
 
 class CDualRailgun : public CBasePlayerWeapon
@@ -1437,17 +1449,27 @@ public:
 
 	void StartFire( Vector vecAiming, Vector vecSrc, Vector effectSrc);
 	void Fire( Vector vecSrc, Vector vecDirShooting, Vector effectSrc, float flDamage );
-	int m_iBalls;
-	int m_iGlow;
-	int m_iBeam;
 
-	int m_iAltFire;
+	virtual BOOL UseDecrement( void )
+	{
+#if defined( CLIENT_WEAPONS )
+		return TRUE;
+#else
+		return FALSE;
+#endif
+	}
 
 	// rail, rail, rail
 	void CreateTrail(Vector,Vector);
 
 	void ProvideSingleItem(CBasePlayer *pPlayer, const char *itemName);
 	void SwapDualWeapon( void );
+
+private:
+	int m_iBalls;
+	int m_iGlow;
+	int m_iBeam;
+	int m_iAltFire;
 };
 
 class CCannon : public CBasePlayerWeapon
@@ -2247,7 +2269,7 @@ public:
 	void SecondaryAttack();
 	BOOL DeployLowKey( void );
 	BOOL Deploy();
-	void Holster();
+	void Holster(int skiplocal);
 
 	void ItemPostFrame();
 	void WeaponIdle();

@@ -138,8 +138,7 @@ BOOL CDualSMG::Deploy( )
 
 void CDualSMG::Holster( int skiplocal )
 {
-	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 0.25;
-	SendWeaponAnim( DUAL_SMG_HOLSTER );
+	CBasePlayerWeapon::DefaultHolster(DUAL_SMG_HOLSTER);
 }
 
 void CDualSMG::PrimaryAttack()

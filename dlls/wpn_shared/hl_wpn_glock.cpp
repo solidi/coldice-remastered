@@ -113,8 +113,7 @@ void CGlock::Holster( int skiplocal )
 {
 	pev->nextthink = -1;
 	pev->body = 0;
-	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 0.25;
-	SendWeaponAnim( GLOCK_HOLSTER );
+	CBasePlayerWeapon::DefaultHolster(GLOCK_HOLSTER);
 }
 
 void CGlock::SecondaryAttack( void )

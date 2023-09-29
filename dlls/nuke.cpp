@@ -458,11 +458,7 @@ BOOL CNuke::Deploy( )
 void CNuke::Holster( int skiplocal /* = 0 */ )
 {
 	m_pPlayer->pev->fov = m_pPlayer->m_iFOV = 0;
-	m_fInReload = FALSE;// cancel any reload in progress.
-
-	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 0.25;
-	
-	SendWeaponAnim( NUKE_HOLSTER1 );
+	CBasePlayerWeapon::DefaultHolster(NUKE_HOLSTER1);
 }
 
 void CNuke::FireNuke(BOOL withCamera)

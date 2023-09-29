@@ -135,8 +135,7 @@ BOOL CMP5::Deploy( )
 
 void CMP5::Holster( int skiplocal /* = 0 */ )
 {
-	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 0.25;
-	SendWeaponAnim( MP5_HOLSTER );
+	CBasePlayerWeapon::DefaultHolster(MP5_HOLSTER);
 }
 
 void CMP5::PrimaryAttack()

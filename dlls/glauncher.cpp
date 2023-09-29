@@ -113,8 +113,7 @@ BOOL CGrenadeLauncher::Deploy( )
 
 void CGrenadeLauncher::Holster( int skiplocal )
 {
-	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 0.25;
-	SendWeaponAnim( GLAUNCHER_HOLSTER );
+	CBasePlayerWeapon::DefaultHolster(GLAUNCHER_HOLSTER);
 }
 
 void CGrenadeLauncher::PrimaryAttack()

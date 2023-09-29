@@ -1043,6 +1043,7 @@ void CBasePlayerWeapon::ItemPostFrame( void )
 	}
 
 	BOOL canFire = FALSE;
+	float multipler = g_pGameRules->WeaponMultipler();
 
 	if ((m_pPlayer->pev->button & IN_ATTACK2) && CanAttack( m_flNextSecondaryAttack, gpGlobals->time, UseDecrement() ) )
 	{
@@ -1063,14 +1064,20 @@ void CBasePlayerWeapon::ItemPostFrame( void )
 				if (!m_fFireOnEmpty)
 					canFire = g_pGameRules->WeaponMutators(this);
 				if (canFire)
+				{
 					SecondaryAttack();
+					m_flNextPrimaryAttack = m_flNextSecondaryAttack = (m_flNextSecondaryAttack * multipler);
+				}
 			}
 			m_bFired = TRUE;
 		} else {
 			if (!m_fFireOnEmpty)
 				canFire = g_pGameRules->WeaponMutators(this);
 			if (canFire)
+			{
 				SecondaryAttack();
+				m_flNextPrimaryAttack = m_flNextSecondaryAttack = (m_flNextSecondaryAttack * multipler);
+			}
 		}
 		m_pPlayer->pev->button &= ~IN_ATTACK2;
 	}
@@ -1095,14 +1102,20 @@ void CBasePlayerWeapon::ItemPostFrame( void )
 				if (!m_fFireOnEmpty)
 					canFire = g_pGameRules->WeaponMutators(this);
 				if (canFire)
+				{
 					PrimaryAttack();
+					m_flNextPrimaryAttack = m_flNextSecondaryAttack = (m_flNextPrimaryAttack * multipler);
+				}
 			}
 			m_bFired = TRUE;
 		} else {
 			if (!m_fFireOnEmpty)
 				canFire = g_pGameRules->WeaponMutators(this);
 			if (canFire)
+			{
 				PrimaryAttack();
+				m_flNextPrimaryAttack = m_flNextSecondaryAttack = (m_flNextPrimaryAttack * multipler);
+			}
 		}
 	}
 	else if ( m_pPlayer->pev->button & IN_RELOAD && iMaxClip() != WEAPON_NOCLIP && !m_fInReload ) 
@@ -1113,6 +1126,7 @@ void CBasePlayerWeapon::ItemPostFrame( void )
 
 		// reload when reload is pressed, or if no buttons are down and weapon is empty.
 		Reload();
+		m_pPlayer->m_flNextAttack = m_flNextPrimaryAttack = m_flNextSecondaryAttack = (m_pPlayer->m_flNextAttack * multipler);
 	}
 	else if ( !(m_pPlayer->pev->button & (IN_ATTACK|IN_ATTACK2) ) )
 	{
@@ -1136,6 +1150,7 @@ void CBasePlayerWeapon::ItemPostFrame( void )
 			if ( m_iClip == 0 && !(iFlags() & ITEM_FLAG_NOAUTORELOAD) && m_flNextPrimaryAttack < ( UseDecrement() ? 0.0 : gpGlobals->time ) )
 			{
 				Reload();
+				m_pPlayer->m_flNextAttack = m_flNextPrimaryAttack = m_flNextSecondaryAttack = (m_pPlayer->m_flNextAttack * multipler);
 				return;
 			}
 		}
@@ -1453,11 +1468,21 @@ BOOL CBasePlayerWeapon :: DefaultDeploy( char *szViewModel, char *szWeaponModel,
 	strcpy( m_pPlayer->m_szAnimExtention, szAnimExt );
 	SendWeaponAnim( iAnim, skiplocal, body );
 
-	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 0.25;
-	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 1.0;
+	float multipler = g_pGameRules->WeaponMultipler();
+	m_pPlayer->m_flNextAttack = (UTIL_WeaponTimeBase() + 0.25) * multipler;
+	m_flTimeWeaponIdle = (UTIL_WeaponTimeBase() + 1.0) * multipler;
 	m_flLastFireTime = 0.0;
 
 	return TRUE;
+}
+
+void CBasePlayerWeapon :: DefaultHolster(int iAnim)
+{
+	m_fInReload = FALSE;// cancel any reload in progress.
+	float multipler = g_pGameRules->WeaponMultipler();
+	m_pPlayer->m_flNextAttack = (UTIL_WeaponTimeBase() + 0.25) * multipler;
+	m_flTimeWeaponIdle = UTIL_SharedRandomFloat( m_pPlayer->random_seed, 10, 15 );
+	SendWeaponAnim(iAnim);
 }
 
 
@@ -1513,7 +1538,7 @@ int CBasePlayerWeapon::SecondaryAmmoIndex( void )
 }
 
 void CBasePlayerWeapon::Holster( int skiplocal /* = 0 */ )
-{ 
+{
 	m_fInReload = FALSE; // cancel any reload in progress.
 	m_pPlayer->pev->viewmodel = 0; 
 	m_pPlayer->pev->weaponmodel = 0;

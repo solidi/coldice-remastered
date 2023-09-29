@@ -117,8 +117,7 @@ BOOL CDualRailgun::Deploy( )
 
 void CDualRailgun::Holster( int skiplocal )
 {
-	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 0.25;
-	SendWeaponAnim( DUAL_RAILGUN_HOLSTER );
+	CBasePlayerWeapon::DefaultHolster(DUAL_RAILGUN_HOLSTER);
 }
 
 void CDualRailgun::PrimaryAttack()
@@ -126,14 +125,14 @@ void CDualRailgun::PrimaryAttack()
 	if (m_pPlayer->pev->waterlevel == 3)
 	{
 		PlayEmptySound( );
-		m_flNextSecondaryAttack = m_flNextPrimaryAttack = gpGlobals->time + 0.15;
+		m_flNextSecondaryAttack = m_flNextPrimaryAttack = GetNextAttackDelay(0.15);
 		return;
 	}
 
 	if (m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] < 2)
 	{
 		PlayEmptySound( );
-		m_flNextSecondaryAttack = m_flNextPrimaryAttack = gpGlobals->time + 0.15;
+		m_flNextSecondaryAttack = m_flNextPrimaryAttack = GetNextAttackDelay(0.15);
 		return;
 	}
 
@@ -153,11 +152,13 @@ void CDualRailgun::PrimaryAttack()
 
 	Vector vecAiming = m_pPlayer->GetAutoaimVector( AUTOAIM_10DEGREES );
 	Vector vecSrc = m_pPlayer->GetGunPosition();
+#ifndef CLIENT_DLL
 	StartFire(vecAiming, vecSrc, (gpGlobals->v_up * -12 + gpGlobals->v_right * right + vecAiming * 32));
+#endif
 	m_pPlayer->pev->punchangle.x = RANDOM_LONG(-5, -8);
 
 	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + UTIL_SharedRandomFloat( m_pPlayer->random_seed, 10, 15 );
-	m_flNextSecondaryAttack = m_flNextPrimaryAttack = gpGlobals->time + 0.5; 
+	m_flNextSecondaryAttack = m_flNextPrimaryAttack = GetNextAttackDelay(0.5); 
 }
 
 void CDualRailgun::SecondaryAttack()
@@ -165,7 +166,7 @@ void CDualRailgun::SecondaryAttack()
 	if (m_pPlayer->pev->waterlevel == 3 || m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] < 2)
 	{
 		PlayEmptySound( );
-		m_flNextSecondaryAttack = m_flNextPrimaryAttack = gpGlobals->time + 0.15;
+		m_flNextSecondaryAttack = m_flNextPrimaryAttack = GetNextAttackDelay(0.15);
 		return;
 	}
 
@@ -176,13 +177,14 @@ void CDualRailgun::SecondaryAttack()
 	Vector vecAiming = m_pPlayer->GetAutoaimVector( AUTOAIM_10DEGREES );
 	Vector vecSrc = m_pPlayer->GetGunPosition();
 	SendWeaponAnim( DUAL_RAILGUN_FIRE_BOTH );
-	
+#ifndef CLIENT_DLL
 	StartFire(vecAiming, vecSrc, (gpGlobals->v_up * -12 + gpGlobals->v_right * 16 + vecAiming * 32));
 	SetThink( &CDualRailgun::FireThink );
-	pev->nextthink = gpGlobals->time + 0.2;
+	pev->nextthink = gpGlobals->time + (0.2 * g_pGameRules->WeaponMultipler());
+#endif
 
 	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + UTIL_SharedRandomFloat( m_pPlayer->random_seed, 10, 15 );
-	m_flNextSecondaryAttack = m_flNextPrimaryAttack = gpGlobals->time + 0.75; 
+	m_flNextSecondaryAttack = m_flNextPrimaryAttack = GetNextAttackDelay(0.75); 
 }
 
 void CDualRailgun::FireThink( void )

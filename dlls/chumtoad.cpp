@@ -856,7 +856,7 @@ BOOL CChumtoad::CanHolster( void )
 
 void CChumtoad::Holster( int skiplocal /* = 0 */ )
 {
-	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 0.25;
+	CBasePlayerWeapon::DefaultHolster(-1);
 	
 	if ( !m_pPlayer->m_rgAmmo[ m_iPrimaryAmmoType ] )
 	{

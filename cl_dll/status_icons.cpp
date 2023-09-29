@@ -217,6 +217,8 @@ void CHudStatusIcons::DrawMutators( void )
 	ToggleMutatorIcon(MUTATOR_999, "999");
 	ToggleMutatorIcon(MUTATOR_BERSERKER, "berserker");
 	ToggleMutatorIcon(MUTATOR_AUTOAIM, "autoaim");
+	ToggleMutatorIcon(MUTATOR_SLOWWEAPONS, "slowweapons");
+	ToggleMutatorIcon(MUTATOR_FASTWEAPONS, "fastweapons");
 }
 
 void CHudStatusIcons::ToggleMutatorIcon(int mutatorId, const char *mutator)

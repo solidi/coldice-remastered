@@ -125,8 +125,7 @@ BOOL CShotgun::Deploy( )
 
 void CShotgun::Holster( int skiplocal /* = 0 */ )
 {
-	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 0.25;
-	SendWeaponAnim( SHOTGUN_HOLSTER );
+	CBasePlayerWeapon::DefaultHolster(SHOTGUN_HOLSTER);
 }
 
 void CShotgun::PrimaryAttack()
@@ -295,9 +294,12 @@ void CShotgun::Reload( void )
 		SendWeaponAnim( SHOTGUN_START_RELOAD );
 		m_fInSpecialReload = 1;
 		m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 0.6;
-		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 0.6;
 		m_flNextPrimaryAttack = GetNextAttackDelay(1.0);
 		m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 1.0;
+
+#ifndef CLIENT_DLL
+		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + (0.6 * g_pGameRules->WeaponMultipler());
+#endif
 		return;
 	}
 	else if (m_fInSpecialReload == 1)
@@ -314,8 +316,10 @@ void CShotgun::Reload( void )
 
 		SendWeaponAnim( SHOTGUN_RELOAD );
 
-		m_flNextReload = UTIL_WeaponTimeBase() + 0.5;
-		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 0.5;
+#ifndef CLIENT_DLL
+		m_flNextReload = UTIL_WeaponTimeBase() + (0.5 * g_pGameRules->WeaponMultipler());
+		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + (0.5 * g_pGameRules->WeaponMultipler());
+#endif
 	}
 	else
 	{
@@ -363,7 +367,9 @@ void CShotgun::WeaponIdle( void )
 				// play cocking sound
 				EMIT_SOUND_DYN(ENT(m_pPlayer->pev), CHAN_ITEM, "weapons/scock1.wav", 1, ATTN_NORM, 0, 95 + RANDOM_LONG(0,0x1f));
 				m_fInSpecialReload = 0;
-				m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 1.5;
+#ifndef CLIENT_DLL
+				m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + (1.5 * g_pGameRules->WeaponMultipler());
+#endif
 			}
 		}
 		else

@@ -302,18 +302,12 @@ BOOL CCrossbow::Deploy( )
 
 void CCrossbow::Holster( int skiplocal /* = 0 */ )
 {
-	m_fInReload = FALSE;// cancel any reload in progress.
-
 	if ( m_fInZoom )
 	{
 		SecondaryAttack( );
 	}
 
-	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 0.25;
-	if (m_iClip)
-		SendWeaponAnim( CROSSBOW_HOLSTER1 );
-	else
-		SendWeaponAnim( CROSSBOW_HOLSTER2 );
+	CBasePlayerWeapon::DefaultHolster(m_iClip ? CROSSBOW_HOLSTER1 : CROSSBOW_HOLSTER2);
 }
 
 void CCrossbow::PrimaryAttack( void )

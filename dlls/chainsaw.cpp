@@ -127,7 +127,7 @@ BOOL CChainsaw::Deploy( )
 
 void CChainsaw::Holster( int skiplocal /* = 0 */ )
 {
-	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 0.25;
+	CBasePlayerWeapon::DefaultHolster(-1);
 
 	if (m_flReleaseThrow > 0) {
 		m_pPlayer->pev->weapons &= ~(1<<WEAPON_CHAINSAW);

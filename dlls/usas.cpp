@@ -117,8 +117,7 @@ BOOL CUsas::Deploy( )
 
 void CUsas::Holster( int skiplocal /* = 0 */ )
 {
-	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 0.25;
-	SendWeaponAnim( USAS_HOLSTER );
+	CBasePlayerWeapon::DefaultHolster(USAS_HOLSTER);
 }
 
 void CUsas::PrimaryAttack()

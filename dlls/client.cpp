@@ -866,6 +866,8 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_mutators \"999\"\" - start with 999 health and battery.\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_mutators \"berserker\"\" - go crazy with chainsaws and fists.\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_mutators \"autoaim\"\" - all weapons have extreme autoaim.\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_mutators \"slowweapons\"\" - all weapons are slower.\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_mutators \"fastweapons\"\" - all weapons are faster.\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_spawnweapons\" - Spawn weapons or not\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_spawnitems\" - Spawn items or not\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_disallowlist\" a list of entities that will not spawn\n");

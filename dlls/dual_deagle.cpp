@@ -105,11 +105,7 @@ BOOL CDualDeagle::Deploy( )
 
 void CDualDeagle::Holster( int skiplocal /* = 0 */ )
 {
-	m_fInReload = FALSE;// cancel any reload in progress.
-
-	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 0.25;
-	m_flTimeWeaponIdle = UTIL_SharedRandomFloat( m_pPlayer->random_seed, 10, 15 );
-	SendWeaponAnim( DUAL_DEAGLE_HOLSTER );
+	CBasePlayerWeapon::DefaultHolster(DUAL_DEAGLE_HOLSTER);
 }
 
 void CDualDeagle::PrimaryAttack()
