@@ -106,8 +106,7 @@ BOOL CFists::Deploy( )
 
 void CFists::Holster( int skiplocal /* = 0 */ )
 {
-	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 0.25;
-	SendWeaponAnim( FISTS_HOLSTER );
+	CBasePlayerWeapon::DefaultHolster(FISTS_HOLSTER);
 }
 
 void CFists::PrimaryAttack()

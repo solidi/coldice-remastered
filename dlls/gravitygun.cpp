@@ -98,12 +98,10 @@ BOOL CGravityGun::Deploy()
 	return DefaultDeploy("models/v_gravitygun.mdl", "models/p_gravitygun.mdl", GRAVITYGUN_DRAW, "gauss");
 }
 
-void CGravityGun::Holster()
+void CGravityGun::Holster(int skiplocal)
 {
-	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 0.25;
-	SendWeaponAnim(GRAVITYGUN_HOLSTER);
-
 	STOP_SOUND(ENT(m_pPlayer->pev), CHAN_WEAPON, "ambience/pulsemachine.wav");
+	CBasePlayerWeapon::DefaultHolster(GRAVITYGUN_HOLSTER);
 }
 
 void CGravityGun::PrimaryAttack()

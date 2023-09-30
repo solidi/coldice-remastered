@@ -135,8 +135,7 @@ BOOL CDualMag60::Deploy( )
 
 void CDualMag60::Holster( int skiplocal )
 {
-	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 0.25;
-	SendWeaponAnim( DUAL_MAG60_HOLSTER );
+	CBasePlayerWeapon::DefaultHolster(DUAL_MAG60_HOLSTER);
 }
 
 void CDualMag60::PrimaryAttack()

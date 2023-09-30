@@ -142,16 +142,12 @@ BOOL CPython::Deploy( )
 
 void CPython::Holster( int skiplocal /* = 0 */ )
 {
-	m_fInReload = FALSE;// cancel any reload in progress.
-
 	if ( m_fInZoom )
 	{
 		SecondaryAttack();
 	}
 
-	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 0.25;
-	m_flTimeWeaponIdle = UTIL_SharedRandomFloat( m_pPlayer->random_seed, 10, 15 );
-	SendWeaponAnim( PYTHON_HOLSTER );
+	CBasePlayerWeapon::DefaultHolster(PYTHON_HOLSTER);
 }
 
 void CPython::SecondaryAttack( void )

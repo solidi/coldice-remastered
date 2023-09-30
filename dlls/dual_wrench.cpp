@@ -119,7 +119,7 @@ BOOL CDualWrench::CanSlide()
 
 void CDualWrench::Holster( int skiplocal /* = 0 */ )
 {
-	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 0.25;
+	CBasePlayerWeapon::DefaultHolster(-1);
 
 	if (m_flReleaseThrow > 0) {
 		m_pPlayer->m_iWeapons2 &= ~(1<<(WEAPON_DUAL_WRENCH - 32));

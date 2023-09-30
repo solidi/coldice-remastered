@@ -32,6 +32,9 @@ extern int gmsgScoreInfo;
 extern int gmsgMOTD;
 extern int gmsgObjective;
 
+extern DLL_GLOBAL const char *g_MutatorFastWeapons;
+extern DLL_GLOBAL const char *g_MutatorSlowWeapons;
+
 //=========================================================
 //=========================================================
 CHalfLifeRules::CHalfLifeRules( void )
@@ -67,6 +70,18 @@ BOOL CHalfLifeRules::IsCoOp( void )
 	return FALSE;
 }
 
+float CHalfLifeRules::WeaponMultipler( void )
+{
+	if ((strstr(mutators.string, g_MutatorFastWeapons) ||
+		atoi(mutators.string) == MUTATOR_FASTWEAPONS))
+		return 0.33;
+
+	if ((strstr(mutators.string, g_MutatorSlowWeapons) ||
+		atoi(mutators.string) == MUTATOR_SLOWWEAPONS))
+		return 6;
+
+	return 1;
+}
 
 //=========================================================
 //=========================================================

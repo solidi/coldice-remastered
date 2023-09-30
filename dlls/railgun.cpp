@@ -120,8 +120,7 @@ BOOL CRailgun::Deploy( )
 
 void CRailgun::Holster( int skiplocal )
 {
-	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 0.25;
-	SendWeaponAnim( RAILGUN_HOLSTER );
+	CBasePlayerWeapon::DefaultHolster(RAILGUN_HOLSTER);
 }
 
 void CRailgun::PrimaryAttack()
@@ -129,7 +128,7 @@ void CRailgun::PrimaryAttack()
 	if (m_pPlayer->pev->waterlevel == 3 || m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] < 2)
 	{
 		PlayEmptySound( );
-		m_flNextSecondaryAttack = m_flNextPrimaryAttack = gpGlobals->time + 0.15;
+		m_flNextSecondaryAttack = m_flNextPrimaryAttack = GetNextAttackDelay(0.15);
 		return;
 	}
 
@@ -137,10 +136,12 @@ void CRailgun::PrimaryAttack()
 
 	m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] -= 2;
 
+#ifndef CLIENT_DLL
 	StartFire();
+#endif
 
 	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + UTIL_SharedRandomFloat( m_pPlayer->random_seed, 10, 15 );
-	m_flNextSecondaryAttack = m_flNextPrimaryAttack = gpGlobals->time + 1.0; 
+	m_flNextSecondaryAttack = m_flNextPrimaryAttack = GetNextAttackDelay(1.0); 
 }
 
 void CRailgun::SecondaryAttack()
@@ -148,7 +149,7 @@ void CRailgun::SecondaryAttack()
 	if (m_pPlayer->pev->waterlevel == 3 || m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] < 2)
 	{
 		PlayEmptySound( );
-		m_flNextSecondaryAttack = m_flNextPrimaryAttack = gpGlobals->time + 0.15;
+		m_flNextSecondaryAttack = m_flNextPrimaryAttack = GetNextAttackDelay(0.15);
 		return;
 	}
 
@@ -156,10 +157,12 @@ void CRailgun::SecondaryAttack()
 
 	m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] -= 2;
 
+#ifndef CLIENT_DLL
 	StartFire();
+#endif
 
 	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + UTIL_SharedRandomFloat( m_pPlayer->random_seed, 10, 15 );
-	m_flNextSecondaryAttack = m_flNextPrimaryAttack = gpGlobals->time + 0.5; 
+	m_flNextSecondaryAttack = m_flNextPrimaryAttack = GetNextAttackDelay(0.5);
 }
 
 void CRailgun::CreateTrail(Vector a, Vector b)

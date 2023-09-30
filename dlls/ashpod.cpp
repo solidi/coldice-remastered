@@ -114,8 +114,7 @@ BOOL CAshpod::Deploy( )
 void CAshpod::Holster( int skiplocal )
 {
 	pev->nextthink = -1;
-	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 0.25;
-	SendWeaponAnim( PORTALGUN_HOLSTER );
+	CBasePlayerWeapon::DefaultHolster(PORTALGUN_HOLSTER);
 }
 
 void CAshpod::PrimaryAttack()

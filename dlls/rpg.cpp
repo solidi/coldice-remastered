@@ -488,11 +488,7 @@ BOOL CRpg::CanHolster( void )
 
 void CRpg::Holster( int skiplocal /* = 0 */ )
 {
-	m_fInReload = FALSE;// cancel any reload in progress.
-
-	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 0.25;
-	
-	SendWeaponAnim( RPG_HOLSTER1 );
+	CBasePlayerWeapon::DefaultHolster(RPG_HOLSTER1);
 
 	m_fSpotActive = 0;
 

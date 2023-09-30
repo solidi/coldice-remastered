@@ -325,9 +325,7 @@ BOOL CCannon::Deploy( )
 
 void CCannon::Holster( int skiplocal /* = 0 */ )
 {
-	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 0.25;
-
-	SendWeaponAnim( CANNON_HOLSTER1 );
+	CBasePlayerWeapon::DefaultHolster(CANNON_HOLSTER1);
 }
 
 void CCannon::SecondaryAttack()

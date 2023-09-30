@@ -173,11 +173,7 @@ BOOL CDualRpg::CanHolster( void )
 
 void CDualRpg::Holster( int skiplocal /* = 0 */ )
 {
-	m_fInReload = FALSE;// cancel any reload in progress.
-
-	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 0.25;
-	
-	SendWeaponAnim( HOLSTER_BOTH );
+	CBasePlayerWeapon::DefaultHolster(HOLSTER_BOTH);
 
 	m_fSpotActive = 0;
 
@@ -211,7 +207,7 @@ void CDualRpg::PrimaryAttack()
 		pRocket->pev->velocity = pRocket->pev->velocity + gpGlobals->v_forward * DotProduct( m_pPlayer->pev->velocity, gpGlobals->v_forward );
 
 		SetThink( &CDualRpg::FireSecondRocket );
-		pev->nextthink = gpGlobals->time + RANDOM_FLOAT(0.15, 0.35);
+		pev->nextthink = gpGlobals->time + (0.15 * g_pGameRules->WeaponMultipler());
 #endif
 
 		// firing RPG no longer turns on the designator. ALT fire is a toggle switch for the LTD.

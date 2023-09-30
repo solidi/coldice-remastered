@@ -44,6 +44,8 @@ extern DLL_GLOBAL const char *g_MutatorLightsOut;
 extern DLL_GLOBAL const char *g_MutatorLoopback;
 extern DLL_GLOBAL const char *g_MutatorMaxPack;
 extern DLL_GLOBAL const char *g_MutatorPushy;
+extern DLL_GLOBAL const char *g_MutatorFastWeapons;
+extern DLL_GLOBAL const char *g_MutatorSlowWeapons;
 
 extern int gmsgDeathMsg;	// client dll messages
 extern int gmsgScoreInfo;
@@ -999,6 +1001,19 @@ BOOL CHalfLifeMultiplay::IsDeathmatch( void )
 BOOL CHalfLifeMultiplay::IsCoOp( void )
 {
 	return gpGlobals->coop;
+}
+
+float CHalfLifeMultiplay::WeaponMultipler( void )
+{
+	if ((strstr(mutators.string, g_MutatorFastWeapons) ||
+		atoi(mutators.string) == MUTATOR_FASTWEAPONS))
+		return 0.33;
+
+	if ((strstr(mutators.string, g_MutatorSlowWeapons) ||
+		atoi(mutators.string) == MUTATOR_SLOWWEAPONS))
+		return 6;
+
+	return 1;
 }
 
 //=========================================================
