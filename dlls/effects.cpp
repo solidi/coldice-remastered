@@ -2456,6 +2456,8 @@ CTracer *CTracer::CreateTracer( Vector vecOrigin, Vector vecAngles, CBaseEntity 
 	tracer->pev->angles = vecAngles;
 	tracer->Spawn();
 	tracer->SetTouch( &CTracer::TracerTouch );
+	tracer->SetThink( &CTracer::SUB_Remove );
+	tracer->pev->nextthink = gpGlobals->time + 10.0;
 	if (pOwner != NULL)
 		tracer->pev->owner = pOwner->edict();
 	// store fired weapon id for credit later
@@ -2481,7 +2483,7 @@ void CTracer::Spawn( )
 	UTIL_MakeVectors( pev->angles );
 	pev->angles.x = -(pev->angles.x);
 
-	pev->velocity = gpGlobals->v_forward * RANDOM_LONG(250, 500);
+	pev->velocity = gpGlobals->v_forward * RANDOM_LONG(500, 700);
 	pev->gravity = 0.0;
 	pev->dmg = gSkillData.plrDmg9MM;
 
@@ -2537,6 +2539,7 @@ void CTracer::TracerTouch( CBaseEntity *pOther )
 	}
 	else
 	{
+		EMIT_SOUND( edict(), CHAN_BODY, "weapons/ric1.wav", 1.0, 1.0 );
 		UTIL_Sparks(pev->origin);
 	}
 
