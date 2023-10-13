@@ -1366,9 +1366,6 @@ float CHalfLifeMultiplay :: FlPlayerFallDamage( CBasePlayer *pPlayer )
 //=========================================================
 BOOL CHalfLifeMultiplay::FPlayerCanTakeDamage( CBasePlayer *pPlayer, CBaseEntity *pAttacker )
 {
-	if (pPlayer->m_fLastSpawnTime && pPlayer->m_fLastSpawnTime > gpGlobals->time)
-		return FALSE;
-
 	return TRUE;
 }
 
