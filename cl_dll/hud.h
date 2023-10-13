@@ -45,6 +45,7 @@
 #define DHN_2DIGITS  2
 #define DHN_3DIGITS  4
 #define DHN_4DIGITS  8
+#define DHN_PADZERO  16
 #define MIN_ALPHA	 100	
 
 #define		HUDELEM_ACTIVE	1
@@ -687,6 +688,23 @@ private:
 	int m_iRoundPlays;
 };
 
+class CHudTimer : public CHudBase
+{
+public:
+	int Init( void );
+	int VidInit( void );
+	int Draw(float fTime);
+	int MsgFunc_RoundTime(const char *pszName, int iSize, void *pbuf);
+	int MsgFunc_ShowTimer(const char *pszName, int iSize, void *pbuf);
+
+private:
+	int m_HUD_timer;
+	int m_iTime;
+	float m_fStartTime;
+	bool m_bPanicColorChange;
+	float m_flPanicTime;
+};
+
 typedef struct
 {
 	HSPRITE spr;
@@ -789,6 +807,7 @@ public:
 	CHudNukeCrosshair	m_NukeCrosshair;
 	CHudRadar	m_Radar;
 	CHudObjective	m_Objective;
+	CHudTimer	m_Timer;
 
 	void Init( void );
 	void VidInit( void );

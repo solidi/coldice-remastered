@@ -42,6 +42,10 @@ int CHudWallClimb::Draw(float fTime)
 	if ( !m_hSprite )
 		m_hSprite = LoadSprite("sprites/wallclimb.spr");
 
+	// No observer
+	if (g_iUser1)
+		return;
+
 	if (cl_wallclimbindicator && cl_wallclimbindicator->value)
 	{
 		int r, g, b, x, y;

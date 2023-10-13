@@ -42,9 +42,18 @@ void ParticleSystemManager::Setup( int mode )
 		Burn2 = new ParticleSystem(0, "aurora/ice_Burn2.aur", 0, 0, Vector(1, 1, 1));
 		Burn3 = new ParticleSystem(0, "aurora/ice_Burn3.aur", 0, 0, Vector(1, 1, 1));
 	}
+
+	Burn4 = new ParticleSystem(0, "aurora/Burn4.aur", 0, 0, Vector(1, 1, 1));
+	Burn5 = new ParticleSystem(0, "aurora/Burn5.aur", 0, 0, Vector(1, 1, 1));
+	Burn6 = new ParticleSystem(0, "aurora/Burn6.aur", 0, 0, Vector(1, 1, 1));
+
 	g_pParticleSystems.AddSystem(Burn1, "Burn1");
 	g_pParticleSystems.AddSystem(Burn2, "Burn2");
 	g_pParticleSystems.AddSystem(Burn3, "Burn3");
+
+	g_pParticleSystems.AddSystem(Burn4, "Burn4");
+	g_pParticleSystems.AddSystem(Burn5, "Burn5");
+	g_pParticleSystems.AddSystem(Burn6, "Burn6");
 
 	BurnSmoke = new ParticleSystem(0, "aurora/BurnSmoke.aur", 0, 0, Vector(1, 1, 1));
 	g_pParticleSystems.AddSystem(BurnSmoke, "BurnSmoke");

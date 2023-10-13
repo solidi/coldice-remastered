@@ -233,4 +233,7 @@ extern ParticleSystem * BogpSparks;
 extern ParticleSystem * Burn1;
 extern ParticleSystem * Burn2;
 extern ParticleSystem * Burn3;
+extern ParticleSystem * Burn4;
+extern ParticleSystem * Burn5;
+extern ParticleSystem * Burn6;
 extern ParticleSystem * BurnSmoke;

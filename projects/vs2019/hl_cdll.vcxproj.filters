@@ -270,6 +270,9 @@
     <ClCompile Include="..\..\cl_dll\text_message.cpp">
       <Filter>Source Files\cl_dll</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\cl_dll\timer.cpp">
+      <Filter>Source Files\cl_dll</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\cl_dll\train.cpp">
       <Filter>Source Files\cl_dll</Filter>
     </ClCompile>

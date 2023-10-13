@@ -593,6 +593,7 @@ void CHud :: Init( void )
 	m_NukeCrosshair.Init();
 	m_Radar.Init();
 	m_Objective.Init();
+	m_Timer.Init();
 	InitRain();
 #ifdef _WIN32
 	g_ImGUIManager.Init();
@@ -763,6 +764,7 @@ void CHud :: VidInit( void )
 	m_NukeCrosshair.VidInit();
 	m_Radar.VidInit();
 	m_Objective.VidInit();
+	m_Timer.VidInit();
 #ifdef _WIN32
 	g_ImGUIManager.VidInit();
 #endif

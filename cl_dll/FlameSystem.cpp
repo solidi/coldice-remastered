@@ -34,6 +34,7 @@ void CFlameSystem::Extinguish(int EntIndex)
 
 float(*m_pbonetransform)[MAXSTUDIOBONES][3][4];
 extern vec3_t v_origin;
+#define IS_SKELETON 2
 
 void CFlameSystem::Process(cl_entity_s *Entity, const engine_studio_api_t &IEngineStudio)
 {
@@ -50,7 +51,7 @@ void CFlameSystem::Process(cl_entity_s *Entity, const engine_studio_api_t &IEngi
 
 	Vector Origin;
 
-	if (Data[i].Enable == 1)
+	if (Data[i].Enable > 0)
 	{
 		if (Data[i].NextTick < gEngfuncs.GetClientTime())
 		{
@@ -75,8 +76,9 @@ void CFlameSystem::Process(cl_entity_s *Entity, const engine_studio_api_t &IEngi
 				}
 			}
 
-			gEngfuncs.pEventAPI->EV_PlaySound(i, Entity->curstate.origin, CHAN_STATIC,
-				"fire_loop.wav", 1, 0.7, (1 << 6) | (1 << 7), 100);
+			if (Data[i].Enable != IS_SKELETON)
+				gEngfuncs.pEventAPI->EV_PlaySound(i, Entity->curstate.origin, CHAN_STATIC,
+					"fire_loop.wav", 1, 0.7, (1 << 6) | (1 << 7), 100);
 
 			if (!ItIsViewModel)
 				BoneOrigin = (float(*)[MAXSTUDIOBONES][3][4])IEngineStudio.StudioGetBoneTransform();
@@ -123,17 +125,35 @@ void CFlameSystem::Process(cl_entity_s *Entity, const engine_studio_api_t &IEngi
 				
 				particle *Particle = NULL;
 
-				switch (gEngfuncs.pfnRandomLong(0, 3))
+				if (Data[i].Enable != IS_SKELETON)
 				{
-				case 0:
-					Particle = Burn1->ManualSpray(1, Origin);
-					break;
-				case 1:
-					Particle = Burn2->ManualSpray(1, Origin);
-					break;
-				case 2:
-					Particle = Burn3->ManualSpray(1, Origin);
-					break;
+					switch (gEngfuncs.pfnRandomLong(0, 3))
+					{
+					case 0:
+						Particle = Burn1->ManualSpray(1, Origin);
+						break;
+					case 1:
+						Particle = Burn2->ManualSpray(1, Origin);
+						break;
+					case 2:
+						Particle = Burn3->ManualSpray(1, Origin);
+						break;
+					}
+				}
+				else
+				{
+					switch (gEngfuncs.pfnRandomLong(0, 3))
+					{
+					case 0:
+						Particle = Burn4->ManualSpray(1, Origin);
+						break;
+					case 1:
+						Particle = Burn5->ManualSpray(1, Origin);
+						break;
+					case 2:
+						Particle = Burn6->ManualSpray(1, Origin);
+						break;
+					}
 				}
 
 				if (Particle)
@@ -145,8 +165,9 @@ void CFlameSystem::Process(cl_entity_s *Entity, const engine_studio_api_t &IEngi
 					}
 				}
 
-				BurnSmoke->ManualSpray(1, Origin + Vector(gEngfuncs.pfnRandomFloat(-3, 3),
-					gEngfuncs.pfnRandomFloat(-3, 3), gEngfuncs.pfnRandomFloat(-3, 3)));
+				if (Data[i].Enable != IS_SKELETON)
+					BurnSmoke->ManualSpray(1, Origin + Vector(gEngfuncs.pfnRandomFloat(-3, 3),
+						gEngfuncs.pfnRandomFloat(-3, 3), gEngfuncs.pfnRandomFloat(-3, 3)));
 			}
 		}
 	}

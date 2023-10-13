@@ -7,7 +7,7 @@
 typedef struct FlameSys
 {
 	int MaxFlames;
-	bool Enable;
+	int Enable;
 	float NextTick;
 	float NextDlight;
 

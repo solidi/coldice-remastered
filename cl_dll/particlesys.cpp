@@ -32,6 +32,9 @@ ParticleSystem * BogpSparks;
 ParticleSystem * Burn1;
 ParticleSystem * Burn2;
 ParticleSystem * Burn3;
+ParticleSystem * Burn4;
+ParticleSystem * Burn5;
+ParticleSystem * Burn6;
 ParticleSystem * BurnSmoke;
 
 extern cvar_t *cl_icemodels;

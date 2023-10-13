@@ -135,6 +135,7 @@ HL1_OBJS = \
 	$(HL1_OBJ_DIR)/studio_util.o \
 	$(HL1_OBJ_DIR)/StudioModelRenderer.o \
 	$(HL1_OBJ_DIR)/text_message.o \
+	$(HL1_OBJ_DIR)/timer.o \
 	$(HL1_OBJ_DIR)/train.o \
 	$(HL1_OBJ_DIR)/tri.o \
 	$(HL1_OBJ_DIR)/triapihud.o \
