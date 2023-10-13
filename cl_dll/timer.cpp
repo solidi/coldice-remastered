@@ -35,7 +35,7 @@ int CHudTimer::Draw( float fTime )
 		return 1;
 
 	if (gHUD.m_WallClimb.m_iFlags & HUD_ACTIVE)
-		return;
+		return 1;
 
 	if (gHUD.m_Scoreboard.m_iShowscoresHeld)
 		return 1;
