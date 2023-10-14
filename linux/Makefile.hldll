@@ -104,6 +104,7 @@ HLDLL_OBJS = \
 	$(HLDLL_OBJ_DIR)/cbase.o \
 	$(HLDLL_OBJ_DIR)/chaingun.o \
 	$(HLDLL_OBJ_DIR)/chainsaw.o \
+	$(HLDLL_OBJ_DIR)/chilldemic_gamerules.o \
 	$(HLDLL_OBJ_DIR)/chumtoad.o \
 	$(HLDLL_OBJ_DIR)/client.o \
 	$(HLDLL_OBJ_DIR)/combat.o \

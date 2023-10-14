@@ -423,7 +423,7 @@ public:
 	void GiveExplosives();
 
 	float nextburntime;
-	byte FPA;
+	byte m_bPlayerOnFire;
 	void PlayerBurn(void);
 
 	float m_flEjectBrass;

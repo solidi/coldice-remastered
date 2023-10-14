@@ -29,6 +29,7 @@
 #include	"gungame_gamerules.h"
 #include	"ctc_gamerules.h"
 #include	"jvs_gamerules.h"
+#include	"chilldemic_gamerules.h"
 
 extern edict_t *EntSelectSpawnPoint( CBaseEntity *pPlayer );
 
@@ -454,6 +455,11 @@ CGameRules *InstallGameRules( void )
 		{
 			g_teamplay = 0;
 			return new CHalfLifeJesusVsSanta;
+		}
+		else if (g_GameMode == GAME_CHILLDEMIC)
+		{
+			g_teamplay = 0;
+			return new CHalfLifeChilldemic;
 		}
 
 		if ((int)gpGlobals->deathmatch == 1)
@@ -1068,4 +1074,9 @@ void CGameRules::UpdateGameModeMessage( CBasePlayer *pPlayer )
 BOOL CGameRules::IsCtC()
 {
 	return g_GameMode == GAME_CTC;
+}
+
+BOOL CGameRules::IsChilldemic()
+{
+	return g_GameMode == GAME_CHILLDEMIC;
 }

@@ -115,6 +115,7 @@
     <ClCompile Include="..\..\dlls\cbase.cpp" />
     <ClCompile Include="..\..\dlls\chaingun.cpp" />
     <ClCompile Include="..\..\dlls\chainsaw.cpp" />
+    <ClCompile Include="..\..\dlls\chilldemic_gamerules.cpp" />
     <ClCompile Include="..\..\dlls\chumtoad.cpp" />
     <ClCompile Include="..\..\dlls\client.cpp" />
     <ClCompile Include="..\..\dlls\combat.cpp" />
@@ -248,6 +249,7 @@
     <ClInclude Include="..\..\dlls\basemonster.h" />
     <ClInclude Include="..\..\dlls\cbase.h" />
     <ClInclude Include="..\..\dlls\cdll_dll.h" />
+    <ClInclude Include="..\..\dlls\chilldemic_gamerules.h" />
     <ClInclude Include="..\..\dlls\client.h" />
     <ClInclude Include="..\..\dlls\ctc_gamerules.h" />
     <ClInclude Include="..\..\dlls\decals.h" />

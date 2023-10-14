@@ -882,6 +882,7 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_gamemode \"snowball\"\" - game mode is snowballs and grenades!\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_gamemode \"gungame\"\" - get frags with specific weapons and level up!\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_gamemode \"ctc\"\" - capture the chumtoad, hold on to it to receive points!\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_gamemode \"chilldemic\"\" - be the survivor from the virus\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_randomgamemodes \"[0|1]\"\" - selects a random gamemode on map change\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_roundlimit\" - Sets the maximum amount of game rounds before a map change\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_roundtimelimit\" - Sets the maximum amount of time a round will run\n");

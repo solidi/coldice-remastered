@@ -139,7 +139,11 @@ int CHudScoreboard :: Draw( float fTime )
 	int r, g, b;
 	UnpackRGB(r, g, b, HudColor());
 
-	if ( gHUD.m_Teamplay != GAME_TEAMPLAY && gHUD.m_Teamplay != GAME_ICEMAN ) 
+	// gEngfuncs.Con_DPrintf("gHUD.m_Teamplay = %d\n", gHUD.m_Teamplay);
+
+	if ( gHUD.m_Teamplay != GAME_TEAMPLAY &&
+		 gHUD.m_Teamplay != GAME_ICEMAN &&
+		 gHUD.m_Teamplay != GAME_CHILLDEMIC ) 
 		gHUD.DrawHudString( xpos, ypos, NAME_RANGE_MAX + xpos_rel, "Player", r, g, b );
 	else
 		gHUD.DrawHudString( xpos, ypos, NAME_RANGE_MAX + xpos_rel, "Teams", r, g, b );
@@ -171,7 +175,9 @@ int CHudScoreboard :: Draw( float fTime )
 	
 	list_slot += 0.8;
 
-	if ( gHUD.m_Teamplay != GAME_TEAMPLAY && gHUD.m_Teamplay != GAME_ICEMAN )
+	if ( gHUD.m_Teamplay != GAME_TEAMPLAY && 
+		 gHUD.m_Teamplay != GAME_ICEMAN &&
+		 gHUD.m_Teamplay != GAME_CHILLDEMIC )
 	{
 		// it's not teamplay,  so just draw a simple player list
 		DrawPlayers( xpos_rel, list_slot );

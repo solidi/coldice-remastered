@@ -217,6 +217,8 @@ int gmsgMultiParticle = 0;
 int gmsgNukeCrosshair = 0;
 int gmsgPortal = 0;
 int gmsgObjective = 0;
+int gmsgShowTimer = 0;
+int gmsgRoundTime = 0;
 
 void LinkUserMessages( void )
 {
@@ -277,6 +279,8 @@ void LinkUserMessages( void )
 	gmsgNukeCrosshair = REG_USER_MSG("NukeCross", 1);
 	gmsgPortal = REG_USER_MSG("Portal", -1);
 	gmsgObjective = REG_USER_MSG("Objective", -1);
+	gmsgShowTimer = REG_USER_MSG("ShowTimer", -1);
+	gmsgRoundTime = REG_USER_MSG("RoundTime", -1);
 }
 
 LINK_ENTITY_TO_CLASS( player, CBasePlayer );
@@ -1635,6 +1639,12 @@ void CBasePlayer::StartObserver( Vector vecPosition, Vector vecViewAngle )
 	if (m_pActiveItem)
 		m_pActiveItem->Holster( );
 
+	// Remove all items left by the player
+	DeactivateSatchels(this);
+	if (g_pGameRules->FAllowMonsters())
+		DeactivateAssassins(this);
+	DeactivatePortals(this);
+
 	if ( m_pTank != NULL )
 	{
 		m_pTank->Use( this, this, USE_OFF, 0 );
@@ -2065,7 +2075,9 @@ void CBasePlayer::PlayerBurn(void)
 		return;
 	}
 
-	if (m_fBurnTime > 10)
+	BOOL skeleton = g_pGameRules->IsChilldemic() && !strcmp(m_szTeamName, "skeleton");
+
+	if (m_fBurnTime > 10 || skeleton)
 		m_fBurnTime = 10;
 
 	if (pev->waterlevel >= 2)
@@ -2074,15 +2086,18 @@ void CBasePlayer::PlayerBurn(void)
 		m_hFlameOwner = NULL;
 	}
 
-	if (m_fBurnTime > 0 && FPA == 0)
+	if (m_fBurnTime > 0 && m_bPlayerOnFire == 0)
 	{
 		MESSAGE_BEGIN( MSG_ALL, gmsgFlameMsg );
 			WRITE_SHORT( entindex() );
-			WRITE_BYTE( 1 );
+			WRITE_BYTE( skeleton ? 2 : 1 );
 		MESSAGE_END();
 		
-		FPA = 1;
+		m_bPlayerOnFire = 1;
 	}
+
+	if (skeleton)
+		return;
 
 	if (m_hFlameOwner != NULL)
 		TakeDamage( pev, m_hFlameOwner->pev, 2, DMG_BURN | DMG_NEVERGIB );
@@ -2574,15 +2589,16 @@ void CBasePlayer::PreThink(void)
 	if (m_fBurnTime <= 0 && m_hFlameOwner != NULL)
 		m_hFlameOwner = NULL;
 
-	if (m_fBurnTime > 0 && nextburntime <= gpGlobals->time)
+	if ((m_fBurnTime > 0 && nextburntime <= gpGlobals->time)
+		|| (g_pGameRules->IsChilldemic() && !strcmp(m_szTeamName, "skeleton")) )
 	{
 		PlayerBurn();
 		nextburntime = gpGlobals->time + 0.1;
 	}
 
-	if (m_fBurnTime <= 0 && FPA == 1)
+	if (m_fBurnTime <= 0 && m_bPlayerOnFire == 1)
 	{
-		FPA = 0;
+		m_bPlayerOnFire = 0;
 		
 		MESSAGE_BEGIN( MSG_ALL, gmsgFlameMsg );
 			WRITE_SHORT( entindex() );
@@ -3602,7 +3618,7 @@ void CBasePlayer::Spawn( void )
 		WRITE_SHORT( entindex() );
 		WRITE_BYTE( 0 );
 	MESSAGE_END();
-	FPA = 0;
+	m_bPlayerOnFire = 0;
 
 #if defined( GRAPPLING_HOOK )
 	if (pGrapplingHook) {

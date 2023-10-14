@@ -286,7 +286,9 @@ void ScorePanel::Update()
 	}
 
 	// If it's not teamplay, sort all the players. Otherwise, sort the teams.
-	if ( gHUD.m_Teamplay != GAME_TEAMPLAY && gHUD.m_Teamplay != GAME_ICEMAN )
+	if ( gHUD.m_Teamplay != GAME_TEAMPLAY &&
+		 gHUD.m_Teamplay != GAME_ICEMAN &&
+		 gHUD.m_Teamplay != GAME_CHILLDEMIC )
 		SortPlayers( 0, NULL );
 	else
 		SortTeams();

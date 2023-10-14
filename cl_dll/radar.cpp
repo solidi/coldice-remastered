@@ -5,6 +5,7 @@
 #include <string.h>
 #include <stdio.h>
 #include "com_model.h"
+#include "vgui_TeamFortressViewport.h"
 
 #define PI_180 (3.14159265358979 / 180.0)
 #define MAX_DISTANCE 1000
@@ -71,7 +72,7 @@ void CHudRadar::ProcessPlayerState(void)
 			else
 				b_specials[num_players] = false;
 		}
-		else if (gHUD.m_GameMode == GAME_ICEMAN)
+		else if (gHUD.m_GameMode == GAME_ICEMAN || gHUD.m_GameMode == GAME_CHILLDEMIC)
 		{
 			if (pClient->curstate.fuser4 > 0) // iceman
 				b_specials[num_players] = true;
@@ -174,6 +175,9 @@ int CHudRadar::Draw(float flTime)
 		return 1;
 	
 	if (gEngfuncs.GetMaxClients() == 1)
+		return 1;
+
+	if (gViewPort->IsScoreBoardVisible())
 		return 1;
 
 	ProcessPlayerState();

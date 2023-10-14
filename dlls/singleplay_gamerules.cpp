@@ -63,6 +63,11 @@ BOOL CHalfLifeRules::IsDeathmatch ( void )
 	return FALSE;
 }
 
+BOOL CHalfLifeRules::HasSpectators( void )
+{
+	return FALSE;
+}
+
 //=========================================================
 //=========================================================
 BOOL CHalfLifeRules::IsCoOp( void )

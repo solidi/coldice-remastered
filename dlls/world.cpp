@@ -885,6 +885,7 @@ const char *szGameModeList [] =
 	"snowball",
 	"gungame",
 	"ctc",
+	"chilldemic",
 };
 
 void CWorld :: SetGameMode( void )
@@ -922,6 +923,10 @@ void CWorld :: SetGameMode( void )
 			{
 			case GAME_ICEMAN:
 				CVAR_SET_STRING( "mp_teamlist", "jesus;santa" );
+				break;
+
+			case GAME_CHILLDEMIC:
+				CVAR_SET_STRING( "mp_teamlist", "skeleton;survivors" );
 				break;
 
 			case GAME_SNOWBALL:

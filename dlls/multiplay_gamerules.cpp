@@ -443,6 +443,8 @@ void CHalfLifeMultiplay::LastManStanding( void )
 
 		ALERT(at_console, "Players in LMS: ");
 
+		g_GameInProgress = TRUE;
+
 		//frags + time.
 		SetRoundLimits();
 		InsertClientsIntoArena();
@@ -450,7 +452,6 @@ void CHalfLifeMultiplay::LastManStanding( void )
 
 		m_iCountDown = 3;
 		
-		g_GameInProgress = TRUE;
 		UTIL_ClientPrintAll(HUD_PRINTCENTER, "Last man standing has begun!\n");
 	}
 	else
@@ -647,6 +648,8 @@ void CHalfLifeMultiplay::Arena ( void )
 		//frags + time
 		SetRoundLimits();
 
+		g_GameInProgress = TRUE;
+
 		//Should really be using InsertClientsIntoArena...
 		for ( int i = 1; i <= gpGlobals->maxClients; i++ )
 		{
@@ -666,8 +669,8 @@ void CHalfLifeMultiplay::Arena ( void )
 
 					ALERT(at_console, "| %s ", STRING(plr->pev->netname) );
 
-					plr->ExitObserver();
 					plr->IsInArena = TRUE;
+					plr->ExitObserver();
 					plr->m_iRoundPlays++;
 				}
 				else
@@ -694,7 +697,6 @@ void CHalfLifeMultiplay::Arena ( void )
 
 		m_iCountDown = 3;
 
-		g_GameInProgress = TRUE;
 		UTIL_ClientPrintAll(HUD_PRINTCENTER,
 			UTIL_VarArgs("Arena has begun!\n\n%s Vs. %s",
 			STRING(pPlayer1->pev->netname),
@@ -764,7 +766,8 @@ void CHalfLifeMultiplay::InsertClientsIntoArena ( void )
 
 		if ( plr && plr->IsPlayer() )
 		{ 
-			//UpdateGameMode( plr );
+			// Joining spectators do not get game mode message.
+			UpdateGameMode( plr );
 
 			MESSAGE_BEGIN(MSG_ONE, gmsgScoreInfo, NULL, plr->edict());
 				WRITE_BYTE( ENTINDEX(plr->edict()) );
@@ -776,7 +779,7 @@ void CHalfLifeMultiplay::InsertClientsIntoArena ( void )
 					WRITE_SHORT( 0 );
 				WRITE_SHORT( plr->m_iDeaths = 0 );
 				WRITE_SHORT( 0 );
-				WRITE_SHORT( 0 );
+				WRITE_SHORT( GetTeamIndex( plr->m_szTeamName ) + 1 );
 			MESSAGE_END();
 
 			MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL, plr->edict() );
@@ -785,8 +788,8 @@ void CHalfLifeMultiplay::InsertClientsIntoArena ( void )
 				WRITE_BYTE(0);
 			MESSAGE_END();
 
-			plr->ExitObserver();
 			plr->IsInArena = TRUE;
+			plr->ExitObserver();
 			plr->m_iRoundPlays++;
 			m_iPlayersInGame++;
 		}
@@ -887,8 +890,8 @@ void CHalfLifeMultiplay::SetRoundLimits( void )
 	//	CVAR_SET_FLOAT("mp_fraglimit", 10);
 	
 	//enforce a timelimit if given proper value
-	if ( CVAR_GET_FLOAT("mp_roundtimelimit") > 0 )
-		m_flRoundTimeLimit = gpGlobals->time + (CVAR_GET_FLOAT("mp_roundtimelimit") * 60.0);
+	if ( roundtimelimit.value > 0 )
+		m_flRoundTimeLimit = gpGlobals->time + (roundtimelimit.value * 60.0);
 
 	_30secwarning	= FALSE;
 	_15secwarning	= FALSE;
@@ -945,7 +948,7 @@ void CHalfLifeMultiplay::SuckAllToSpectator( void )
 				WRITE_SHORT( pPlayer->pev->frags = 0 );
 				WRITE_SHORT( pPlayer->m_iDeaths = 0 );
 				WRITE_SHORT( 0 );
-				WRITE_SHORT( 0 );
+				WRITE_SHORT( GetTeamIndex( pPlayer->m_szTeamName ) + 1 );
 			MESSAGE_END();
 
 			edict_t *pentSpawnSpot = g_pGameRules->GetPlayerSpawnSpot( pPlayer );
@@ -1001,6 +1004,17 @@ BOOL CHalfLifeMultiplay::IsDeathmatch( void )
 BOOL CHalfLifeMultiplay::IsCoOp( void )
 {
 	return gpGlobals->coop;
+}
+
+BOOL CHalfLifeMultiplay::HasSpectators( void )
+{
+	if (g_GameMode == GAME_FFA 
+		|| g_GameMode == GAME_TEAMPLAY
+		|| g_GameMode == GAME_SNOWBALL
+		|| g_GameMode == GAME_CTC)
+		return FALSE;
+
+	return TRUE;
 }
 
 float CHalfLifeMultiplay::WeaponMultipler( void )
@@ -1478,6 +1492,16 @@ void CHalfLifeMultiplay :: PlayerThink( CBasePlayer *pPlayer )
 //=========================================================
 void CHalfLifeMultiplay :: PlayerSpawn( CBasePlayer *pPlayer )
 {
+	// Place player in spectator mode if joining during a game
+	// Or if the game begins that requires spectators
+	if ((g_GameInProgress && !pPlayer->IsInArena) || (!g_GameInProgress && HasSpectators()))
+	{
+		edict_t *pentSpawnSpot = g_pGameRules->GetPlayerSpawnSpot(pPlayer);
+		pPlayer->StartObserver(pPlayer->pev->origin, VARS(pentSpawnSpot)->angles);
+		pPlayer->m_flForceToObserverTime = 0;
+		return;
+	}
+
 	BOOL		addDefault;
 	CBaseEntity	*pWeaponEntity = NULL;
 
