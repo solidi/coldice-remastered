@@ -116,11 +116,22 @@ void CHalfLifeChilldemic::Think( void )
 						}
 						else
 						{
-							MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL, plr->edict());
-								WRITE_STRING("Survive");
-								WRITE_STRING(UTIL_VarArgs("Survivors remain: %d", survivors_left));
-								WRITE_BYTE(float(survivors_left) / (m_iPlayersInGame) * 100);
-							MESSAGE_END();
+							if (survivors_left > 1)
+							{
+								MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL, plr->edict());
+									WRITE_STRING("Survive");
+									WRITE_STRING(UTIL_VarArgs("Survivors remain: %d", survivors_left));
+									WRITE_BYTE(float(survivors_left) / (m_iPlayersInGame) * 100);
+								MESSAGE_END();
+							}
+							else
+							{
+								MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL, plr->edict());
+									WRITE_STRING("You remain! SURVIVE!");
+									WRITE_STRING(UTIL_VarArgs("Skeletons remain: %d", skeletons_left));
+									WRITE_BYTE(float(skeletons_left) / (m_iPlayersInGame) * 100);
+								MESSAGE_END();
+							}
 						}
 					}
 				}
