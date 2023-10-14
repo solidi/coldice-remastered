@@ -139,7 +139,7 @@ int CHudScoreboard :: Draw( float fTime )
 	int r, g, b;
 	UnpackRGB(r, g, b, HudColor());
 
-	gEngfuncs.Con_DPrintf("gHUD.m_Teamplay = %d\n", gHUD.m_Teamplay);
+	// gEngfuncs.Con_DPrintf("gHUD.m_Teamplay = %d\n", gHUD.m_Teamplay);
 
 	if ( gHUD.m_Teamplay != GAME_TEAMPLAY &&
 		 gHUD.m_Teamplay != GAME_ICEMAN &&
