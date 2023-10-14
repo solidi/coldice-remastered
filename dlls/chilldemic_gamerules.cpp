@@ -371,13 +371,13 @@ void CHalfLifeChilldemic::InitHUD( CBasePlayer *pl )
 		MESSAGE_BEGIN(MSG_ONE, gmsgShowTimer, NULL, pl->edict());
 			WRITE_BYTE(0);
 		MESSAGE_END();
-	}
 
-	MESSAGE_BEGIN( MSG_ONE, gmsgTeamNames, NULL, pl->edict() );
-		WRITE_BYTE( 2 );
-		WRITE_STRING( "survivors" );
-		WRITE_STRING( "skeleton" );
-	MESSAGE_END();
+		MESSAGE_BEGIN( MSG_ONE, gmsgTeamNames, NULL, pl->edict() );
+			WRITE_BYTE( 2 );
+			WRITE_STRING( "survivors" );
+			WRITE_STRING( "skeleton" );
+		MESSAGE_END();
+	}
 }
 
 BOOL CHalfLifeChilldemic::CheckGameTimer( void )
@@ -559,19 +559,6 @@ void CHalfLifeChilldemic::PlayerSpawn( CBasePlayer *pPlayer )
 		g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer->edict()), key, "team", "survivors");
 		strncpy( pPlayer->m_szTeamName, "survivors", TEAM_NAME_LENGTH );
 	}
-
-	MESSAGE_BEGIN( MSG_ALL, gmsgTeamInfo );
-		WRITE_BYTE( ENTINDEX(pPlayer->edict()) );
-		WRITE_STRING( pPlayer->m_szTeamName );
-	MESSAGE_END();
-
-	MESSAGE_BEGIN( MSG_ALL, gmsgScoreInfo );
-		WRITE_BYTE( ENTINDEX(pPlayer->edict()) );
-		WRITE_SHORT( pPlayer->pev->frags );
-		WRITE_SHORT( pPlayer->m_iDeaths );
-		WRITE_SHORT( 0 );
-		WRITE_SHORT( g_pGameRules->GetTeamIndex( pPlayer->m_szTeamName ) + 1 );
-	MESSAGE_END();
 }
 
 BOOL CHalfLifeChilldemic::FPlayerCanRespawn( CBasePlayer *pPlayer )
@@ -629,25 +616,11 @@ void CHalfLifeChilldemic::PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller
 			g_engfuncs.pfnGetInfoKeyBuffer( pVictim->edict() ), "team", "skeleton" );
 		
 		strncpy( pVictim->m_szTeamName, "skeleton", TEAM_NAME_LENGTH );
-
-		// notify everyone's HUD of the team change
-		MESSAGE_BEGIN( MSG_ALL, gmsgTeamInfo );
-			WRITE_BYTE( ENTINDEX(pVictim->edict()) );
-			WRITE_STRING( pVictim->m_szTeamName );
-		MESSAGE_END();
-
-		MESSAGE_BEGIN( MSG_ALL, gmsgScoreInfo );
-		WRITE_BYTE( ENTINDEX(pVictim->edict()) );
-			WRITE_SHORT( pVictim->pev->frags );
-			WRITE_SHORT( pVictim->m_iDeaths );
-			WRITE_SHORT( 0 );
-			WRITE_SHORT( g_pGameRules->GetTeamIndex( pVictim->m_szTeamName ) + 1 );
-		MESSAGE_END();
 	}
-	// Special case, last skeleton killed, send to observer.
 	else
 	{
-		if (m_iSurvivorsRemain <= 1 && skeletons_left <= 1)
+		// Special case, last survivor, dispatched skeletons sent to observer.
+		if (m_iSurvivorsRemain <= 1)
 			pVictim->m_flForceToObserverTime = gpGlobals->time;
 	}
 }

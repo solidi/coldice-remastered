@@ -66,7 +66,7 @@ int CHudTimer::Draw( float fTime )
 		UnpackRGB(r, g, b, m_bPanicColorChange ? HudColor() : RGB_REDISH);
 	}
 
-	ScaleColors(r, g, b, 80);
+	ScaleColors(r, g, b, MIN_ALPHA);
 
 	int iWatchWidth = 0;// gHUD.GetSpriteRect(m_HUD_timer).right - gHUD.GetSpriteRect(m_HUD_timer).left;
 
