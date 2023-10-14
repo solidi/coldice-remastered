@@ -44,7 +44,7 @@ int CHudWallClimb::Draw(float fTime)
 
 	// No observer
 	if (g_iUser1)
-		return;
+		return 1;
 
 	if (cl_wallclimbindicator && cl_wallclimbindicator->value)
 	{

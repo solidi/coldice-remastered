@@ -249,7 +249,7 @@
     <ClInclude Include="..\..\dlls\basemonster.h" />
     <ClInclude Include="..\..\dlls\cbase.h" />
     <ClInclude Include="..\..\dlls\cdll_dll.h" />
-    <ClCompile Include="..\..\dlls\chilldemic_gamerules.h" />
+    <ClInclude Include="..\..\dlls\chilldemic_gamerules.h" />
     <ClInclude Include="..\..\dlls\client.h" />
     <ClInclude Include="..\..\dlls\ctc_gamerules.h" />
     <ClInclude Include="..\..\dlls\decals.h" />
