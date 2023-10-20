@@ -309,6 +309,34 @@ int __MsgFunc_MOTD(const char *pszName, int iSize, void *pbuf)
 	return 0;
 }
 
+int __MsgFunc_VoteFor(const char *pszName, int iSize, void *pbuf)
+{
+	if (gViewPort)
+		return gViewPort->MsgFunc_VoteFor( pszName, iSize, pbuf );
+	return 0;
+}
+
+int __MsgFunc_VoteGame(const char *pszName, int iSize, void *pbuf)
+{
+	if (gViewPort)
+		return gViewPort->MsgFunc_VoteGame( pszName, iSize, pbuf );
+	return 0;
+}
+
+int __MsgFunc_VoteMap(const char *pszName, int iSize, void *pbuf)
+{
+	if (gViewPort)
+		return gViewPort->MsgFunc_VoteMap( pszName, iSize, pbuf );
+	return 0;
+}
+
+int __MsgFunc_VoteMutator(const char *pszName, int iSize, void *pbuf)
+{
+	if (gViewPort)
+		return gViewPort->MsgFunc_VoteMutator( pszName, iSize, pbuf );
+	return 0;
+}
+
 int __MsgFunc_BuildSt(const char *pszName, int iSize, void *pbuf)
 {
 	if (gViewPort)
@@ -483,6 +511,10 @@ void CHud :: Init( void )
 	HOOK_MESSAGE( FlameKill );
 	HOOK_MESSAGE( MParticle );
 	HOOK_MESSAGE( Portal );
+	HOOK_MESSAGE( VoteFor );
+	HOOK_MESSAGE( VoteGame );
+	HOOK_MESSAGE( VoteMap );
+	HOOK_MESSAGE( VoteMutator );
 
 	CVAR_CREATE( "hud_classautokill", "1", FCVAR_ARCHIVE | FCVAR_USERINFO );		// controls whether or not to suicide immediately on TF class switch
 	CVAR_CREATE( "hud_takesshots", "0", FCVAR_ARCHIVE );		// controls whether or not to automatically take screenshots at the end of a round

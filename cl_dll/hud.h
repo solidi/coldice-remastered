@@ -316,6 +316,7 @@ struct extra_player_info_t
 	bool dead; // UNUSED currently, spectator UI would like this
 	short teamnumber;
 	char teamname[MAX_TEAM_NAME];
+	short vote;
 };
 
 struct team_info_t 

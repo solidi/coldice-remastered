@@ -127,6 +127,121 @@ char *sLocalisedClasses[] =
 	"#Civilian",
 };
 
+char *sLocalisedGameplayModes[] = 
+{
+	"#ffa",
+	"#teamplay",
+	"#jvs",
+	"#lms",
+	"#arena",
+	"#snowball",
+	"#gungame",
+	"#ctc",
+	"#chilldemic",
+	"#random",
+};
+
+char *sGameplayModes[] = 
+{
+	"ffa",
+	"teamplay",
+	"jvs",
+	"lms",
+	"arena",
+	"snowball",
+	"gungame",
+	"ctc",
+	"chilldemic",
+	"random",
+};
+
+char *sBuiltInMaps[] =
+{
+	"training",
+	"stalkyard2",
+	"focus",
+	"coldice",
+	"furrow",
+	"training2",
+	"snowyard",
+	"fences",
+	"bounce2",
+	"canyon",
+	"catacombs",
+	"depot",
+	"snowcross",
+	"frostfire",
+	"drift",
+	"snow_camp",
+	"ice_pit",
+	"frozen_bunker",
+	"snowtransit",
+	"doublefrost",
+	"themill",
+	"chillworks",
+	"frosty",
+	"overflow",
+	"frozenwarehouse",
+	"quadfrost",
+	"defroster",
+	"thechill",
+	"frostmill",
+	"glupshitto",
+	"cold_base",
+	"RANDOM",
+};
+
+char *sMutators[] = {
+	"chaos",
+	"rocketcrowbar",
+	"instagib",
+	"volatile",
+	"plumber",
+	"paintball",
+	"dkmode",
+	"superjump",
+	"megarun",
+	"lightsout",
+	"slowmo",
+	"ice",
+	"topsyturvy",
+	"turrets",
+	"barrels",
+	"chumxplode",
+	"santahat",
+	"coolflesh",
+	"sanic",
+	"coolflesh",
+	"loopback",
+	"maxpack",
+	"infiniteammo",
+	"randomweapon",
+	"speedup",
+	"rockets",
+	"invisible",
+	"grenades",
+	"astronaut",
+	"snowballs",
+	"pushy",
+	"portal",
+	"jope",
+	"inverse",
+	"oldtime",
+	"sildenafil",
+	"longjump",
+	"slowbullets",
+	"explosiveai",
+	"itemsexplode",
+	"notthebees",
+	"dontshoot",
+	"999",
+	"berserker",
+	"autoaim",
+	"slowweapons",
+	"fastweapons",
+	"RANDOM",
+};
+
 char *sTFClassSelection[] = 
 {
 	"civilian",
@@ -548,6 +663,9 @@ TeamFortressViewport::TeamFortressViewport(int x,int y,int wide,int tall) : Pane
 	m_pSpectatorPanel = NULL;
 	m_pCurrentMenu = NULL;
 	m_pCurrentCommandMenu = NULL;
+	m_pVoteGameplayMenu = NULL;
+	m_pVoteMapMenu = NULL;
+	m_pVoteMutatorMenu = NULL;
 
 	Initialize();
 	addInputSignal( new CViewPortInputHandler );
@@ -583,8 +701,8 @@ TeamFortressViewport::TeamFortressViewport(int x,int y,int wide,int tall) : Pane
 		//!! need to get this color from scheme file
 		// used for orange borders around buttons
 		m_SchemeManager.getBorderColor( hPrimaryScheme, r, g, b, a );
-		// pScheme->setColor(Scheme::sc_secondary1, r, g, b, a );
-		pScheme->setColor(Scheme::sc_secondary1, 255*0.7, 170*0.7, 0, 0);
+		pScheme->setColor(Scheme::sc_secondary1, r, g, b, a );
+		//pScheme->setColor(Scheme::sc_secondary1, 255*0.7, 170*0.7, 0, 0);
 	}
 
 	// Change the second primary font (used in the scoreboard)
@@ -606,6 +724,10 @@ TeamFortressViewport::TeamFortressViewport(int x,int y,int wide,int tall) : Pane
 	CreateClassMenu();
 	CreateSpectatorMenu();
 	CreateScoreBoard();
+	CreateVoteGameplayMenu();
+	CreateVoteMapMenu();
+	CreateVoteMutatorMenu();
+
 	// Init command menus
 	m_iNumMenus = 0;
 	m_iCurrentTeamNumber = m_iUser1 = m_iUser2 = m_iUser3 = 0;
@@ -646,6 +768,18 @@ void TeamFortressViewport::Initialize( void )
 	if (m_pClassMenu)
 	{
 		m_pClassMenu->Initialize();
+	}
+	if (m_pVoteGameplayMenu)
+	{
+		m_pVoteGameplayMenu->Initialize();
+	}
+	if (m_pVoteMapMenu)
+	{
+		m_pVoteMapMenu->Initialize();
+	}
+	if (m_pVoteMutatorMenu)
+	{
+		m_pVoteMutatorMenu->Initialize();
 	}
 	if (m_pScoreBoard)
 	{
@@ -1864,7 +1998,9 @@ void TeamFortressViewport::ShowVGUIMenu( int iMenu )
 	// Don't open any menus except the MOTD during intermission
 	// MOTD needs to be accepted because it's sent down to the client 
 	// after map change, before intermission's turned off
-	if ( gHUD.m_iIntermission && iMenu != MENU_INTRO )
+	if ( gHUD.m_iIntermission && 
+		(iMenu != MENU_INTRO 
+		&& iMenu != MENU_VOTEGAMEPLAY && iMenu != MENU_VOTEMAP && iMenu != MENU_VOTEMUTATOR) )
 		return;
 
 	// Don't create one if it's already in the list
@@ -1903,6 +2039,18 @@ void TeamFortressViewport::ShowVGUIMenu( int iMenu )
 		break;
 	case MENU_CLASS:
 		pNewMenu = ShowClassMenu();
+		break;
+
+	case MENU_VOTEGAMEPLAY:
+		pNewMenu = ShowVoteGameplayMenu();
+		break;
+
+	case MENU_VOTEMAP:
+		pNewMenu = ShowVoteMapMenu();
+		break;
+
+	case MENU_VOTEMUTATOR:
+		pNewMenu = ShowVoteMutatorMenu();
 		break;
 
 	default:
@@ -2027,6 +2175,66 @@ void TeamFortressViewport::CreateClassMenu()
 }
 
 //======================================================================================
+
+CMenuPanel* TeamFortressViewport::ShowVoteGameplayMenu()
+{
+	// Don't open menus in demo playback
+	if ( gEngfuncs.pDemoAPI->IsPlayingback() )
+		return NULL;
+
+	m_pVoteGameplayMenu->Reset();
+	return m_pVoteGameplayMenu;
+}
+
+void TeamFortressViewport::CreateVoteGameplayMenu()
+{
+	// Create the panel
+	m_pVoteGameplayMenu = new CVoteGameplayPanel(35, false, 0, 0, ScreenWidth, ScreenHeight);
+	m_pVoteGameplayMenu->setParent(this);
+	m_pVoteGameplayMenu->setVisible( false );
+}
+
+//======================================================================================
+
+CMenuPanel* TeamFortressViewport::ShowVoteMapMenu()
+{
+	// Don't open menus in demo playback
+	if ( gEngfuncs.pDemoAPI->IsPlayingback() )
+		return NULL;
+
+	m_pVoteMapMenu->Reset();
+	return m_pVoteMapMenu;
+}
+
+void TeamFortressViewport::CreateVoteMapMenu()
+{
+	// Create the panel
+	m_pVoteMapMenu = new CVoteMapPanel(35, false, 0, 0, ScreenWidth, ScreenHeight);
+	m_pVoteMapMenu->setParent(this);
+	m_pVoteMapMenu->setVisible( false );
+}
+
+//======================================================================================
+
+CMenuPanel* TeamFortressViewport::ShowVoteMutatorMenu()
+{
+	// Don't open menus in demo playback
+	if ( gEngfuncs.pDemoAPI->IsPlayingback() )
+		return NULL;
+
+	m_pVoteMutatorMenu->Reset();
+	return m_pVoteMutatorMenu;
+}
+
+void TeamFortressViewport::CreateVoteMutatorMenu()
+{
+	// Create the panel
+	m_pVoteMutatorMenu = new CVoteMutatorPanel(35, false, 0, 0, ScreenWidth, ScreenHeight);
+	m_pVoteMutatorMenu->setParent(this);
+	m_pVoteMutatorMenu->setVisible( false );
+}
+
+//======================================================================================
 //======================================================================================
 // SPECTATOR MENU
 //======================================================================================
@@ -2051,6 +2259,12 @@ void TeamFortressViewport::UpdateOnPlayerInfo()
 		m_pTeamMenu->Update();
 	if (m_pClassMenu)
 		m_pClassMenu->Update();
+	if (m_pVoteGameplayMenu)
+		m_pVoteGameplayMenu->Update();
+	if (m_pVoteMapMenu)
+		m_pVoteMapMenu->Update();
+	if (m_pVoteMutatorMenu)
+		m_pVoteMutatorMenu->Update();
 	if (m_pScoreBoard)
 		m_pScoreBoard->Update();
 }
@@ -2146,6 +2360,21 @@ void TeamFortressViewport::paintBackground()
 	{
 		m_pScoreBoard->Update();
 		m_flScoreBoardLastUpdated = gHUD.m_flTime + 0.5;
+	}
+
+	if ( m_pVoteGameplayMenu->isVisible() )
+	{
+		m_pVoteGameplayMenu->Update();
+	}
+
+	if ( m_pVoteMapMenu->isVisible() )
+	{
+		m_pVoteMapMenu->Update();
+	}
+
+	if ( m_pVoteMutatorMenu->isVisible() )
+	{
+		m_pVoteMutatorMenu->Update();
 	}
 
 	int extents[4];
@@ -2395,6 +2624,77 @@ int TeamFortressViewport::MsgFunc_MOTD( const char *pszName, int iSize, void *pb
 	if ( m_iGotAllMOTD && !gEngfuncs.IsSpectateOnly() )
 	{
 		ShowVGUIMenu( MENU_INTRO );
+	}
+
+	return 1;
+}
+
+int TeamFortressViewport::MsgFunc_VoteGame( const char *pszName, int iSize, void *pbuf )
+{
+	BEGIN_READ( pbuf, iSize );
+	int show = READ_BYTE();
+	
+	if (show > 0)
+		ShowVGUIMenu( MENU_VOTEGAMEPLAY );
+	else
+	{
+		// Clear old votes
+		for ( int j = 1; j <= MAX_PLAYERS; j++ )
+			g_PlayerExtraInfo[j].vote = 0;
+
+		HideVGUIMenu();
+	}
+
+	return 1;
+}
+
+int TeamFortressViewport::MsgFunc_VoteFor( const char *pszName, int iSize, void *pbuf )
+{
+	BEGIN_READ( pbuf, iSize );
+	short cl = READ_BYTE();
+	short vote = READ_SHORT();
+
+	if ( cl > 0 && cl <= MAX_PLAYERS )
+	{
+		g_PlayerExtraInfo[cl].vote = vote;
+
+		gViewPort->UpdateOnPlayerInfo();
+	}
+
+	return 1;
+}
+
+int TeamFortressViewport::MsgFunc_VoteMap( const char *pszName, int iSize, void *pbuf )
+{
+	BEGIN_READ( pbuf, iSize );
+	int show = READ_BYTE();
+	
+	if (show > 0)
+		ShowVGUIMenu( MENU_VOTEMAP );
+	else
+	{
+		// Clear old votes
+		for ( int j = 1; j <= MAX_PLAYERS; j++ )
+			g_PlayerExtraInfo[j].vote = 0;
+		HideVGUIMenu();
+	}
+
+	return 1;
+}
+
+int TeamFortressViewport::MsgFunc_VoteMutator( const char *pszName, int iSize, void *pbuf )
+{
+	BEGIN_READ( pbuf, iSize );
+	int show = READ_BYTE();
+	
+	if (show > 0)
+		ShowVGUIMenu( MENU_VOTEMUTATOR );
+	else
+	{
+		// Clear old votes
+		for ( int j = 1; j <= MAX_PLAYERS; j++ )
+			g_PlayerExtraInfo[j].vote = 0;
+		HideVGUIMenu();
 	}
 
 	return 1;

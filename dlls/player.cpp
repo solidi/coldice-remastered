@@ -219,6 +219,10 @@ int gmsgPortal = 0;
 int gmsgObjective = 0;
 int gmsgShowTimer = 0;
 int gmsgRoundTime = 0;
+int gmsgVoteFor = 0;
+int gmsgVoteGameplay = 0;
+int gmsgVoteMap = 0;
+int gmsgVoteMutator = 0;
 
 void LinkUserMessages( void )
 {
@@ -281,6 +285,10 @@ void LinkUserMessages( void )
 	gmsgObjective = REG_USER_MSG("Objective", -1);
 	gmsgShowTimer = REG_USER_MSG("ShowTimer", -1);
 	gmsgRoundTime = REG_USER_MSG("RoundTime", -1);
+	gmsgVoteFor = REG_USER_MSG("VoteFor", 3);
+	gmsgVoteGameplay = REG_USER_MSG("VoteGame", 1);
+	gmsgVoteMap = REG_USER_MSG("VoteMap", 1);
+	gmsgVoteMutator = REG_USER_MSG("VoteMutator", 1);
 }
 
 LINK_ENTITY_TO_CLASS( player, CBasePlayer );
@@ -4122,6 +4130,9 @@ void CBasePlayer::GiveExplosives()
 
 void CBasePlayer::GiveNamedItem( const char *pszName )
 {
+	if ( pev->iuser1 )	// player is in spectator mode
+		return;
+
 	edict_t	*pent;
 
 	int istr = MAKE_STRING(pszName);

@@ -277,6 +277,21 @@ int CHud :: MsgFunc_PlayCSound( const char *pszName, int iSize, void *pbuf )
 		case CLIENT_SOUND_FIRSTBLOOD:
 			PlaySound("firstblood.wav", 1);
 			break;
+		case CLIENT_SOUND_VOTEGAME:
+			PlaySound("votegame.wav", 1);
+			break;
+		case CLIENT_SOUND_VOTEMAP:
+			PlaySound("votemap.wav", 1);
+			break;
+		case CLIENT_SOUND_GREATJOB:
+			PlaySound("greatjob.wav", 1);
+			break;
+		case CLIENT_SOUND_VOTESTARTED:
+			PlaySound("votestarted.wav", 1);
+			break;
+		case CLIENT_SOUND_VOTEMUTATOR:
+			PlaySound("votemutator.wav", 1);
+			break;
 	}
 	return 1;
 }

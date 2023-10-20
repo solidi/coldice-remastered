@@ -342,6 +342,15 @@
     <ClCompile Include="..\..\cl_dll\vgui_teammenu.cpp">
       <Filter>Source Files\cl_dll</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\cl_dll\vgui_VoteGameplayWindow.cpp">
+      <Filter>Source Files\cl_dll</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\cl_dll\vgui_VoteMapWindow.cpp">
+      <Filter>Source Files\cl_dll</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\cl_dll\vgui_VoteMutatorWindow.cpp">
+      <Filter>Source Files\cl_dll</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\cl_dll\voice_status.cpp">
       <Filter>Source Files\cl_dll</Filter>
     </ClCompile>

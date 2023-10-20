@@ -166,6 +166,9 @@
     <ClCompile Include="..\..\cl_dll\vgui_SpectatorPanel.cpp" />
     <ClCompile Include="..\..\cl_dll\vgui_TeamFortressViewport.cpp" />
     <ClCompile Include="..\..\cl_dll\vgui_teammenu.cpp" />
+    <ClCompile Include="..\..\cl_dll\vgui_VoteGameplayWindow.cpp" />
+    <ClCompile Include="..\..\cl_dll\vgui_VoteMapWindow.cpp" />
+    <ClCompile Include="..\..\cl_dll\vgui_VoteMutatorWindow.cpp" />
     <ClCompile Include="..\..\cl_dll\view.cpp" />
     <ClCompile Include="..\..\cl_dll\voice_status.cpp" />
     <ClCompile Include="..\..\cl_dll\wallclimb.cpp" />

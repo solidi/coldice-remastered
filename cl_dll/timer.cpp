@@ -8,6 +8,8 @@
 DECLARE_MESSAGE( m_Timer, RoundTime )
 DECLARE_MESSAGE( m_Timer, ShowTimer )
 
+extern cvar_t *cl_objectives;
+
 int CHudTimer::Init()
 {
 	HOOK_MESSAGE( RoundTime );
@@ -28,6 +30,9 @@ int CHudTimer::VidInit()
 
 int CHudTimer::Draw( float fTime )
 {
+	if (!cl_objectives->value)
+		return 1;
+
 	if ((gHUD.m_iHideHUDDisplay & HIDEHUD_HEALTH))
 		return 1;
 

@@ -426,6 +426,8 @@ public:
 	byte m_bPlayerOnFire;
 	void PlayerBurn(void);
 
+	float m_fVoteCoolDown;
+
 	float m_flEjectBrass;
 
 	EHANDLE m_pPortal[2];
