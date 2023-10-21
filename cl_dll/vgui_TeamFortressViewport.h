@@ -1742,7 +1742,7 @@ public:
 class CVoteGameplayPanel : public CMenuPanel
 {
 private:
-	CTransparentPanel	*m_pClassInfoPanel[MAX_MODES + 1];
+	CTransparentPanel	*m_pGameInfoPanel[MAX_MODES + 1];
 	ClassButton			*m_pButtons[MAX_MODES + 1];
 	ScrollPanel			*m_pScrollPanel;
 

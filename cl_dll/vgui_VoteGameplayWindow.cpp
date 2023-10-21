@@ -83,13 +83,16 @@ CVoteGameplayPanel::CVoteGameplayPanel(int iTrans, int iRemoveMe, int x,int y,in
 	// Create the gameplay buttons
 	for (int i = 0; i <= MAX_MODES; i++)
 	{
-		char sz[256]; 
-		int iYPos = CLASSMENU_TOPLEFT_BUTTON_Y + ( (CLASSMENU_BUTTON_SIZE_Y + CLASSMENU_BUTTON_SPACER_Y) * i );
+		char sz[256];
+		int shift = i+1;
+		if (i == MAX_MODES)
+			shift = 0;
+		int iYPos = CLASSMENU_TOPLEFT_BUTTON_Y + ( (CLASSMENU_BUTTON_SIZE_Y + CLASSMENU_BUTTON_SPACER_Y) * shift );
 		char voteCommand[16];
 		sprintf(voteCommand, "vote %d", i+1);
 		ActionSignal *pASignal = new CMenuHandler_StringCommandClassSelect(voteCommand, false );
 
-		// Class button
+		// gameplay button
 		sprintf(sz, " %s", CHudTextMessage::BufferedLocaliseTextString( sLocalisedGameplayModes[i] ) );
 		m_pButtons[i] = new ClassButton( i, sz, CLASSMENU_TOPLEFT_BUTTON_X, iYPos, CLASSMENU_BUTTON_SIZE_X, CLASSMENU_BUTTON_SIZE_Y, true);
 		m_pButtons[i]->setBoundKey( (char)255 );
@@ -99,10 +102,8 @@ CVoteGameplayPanel::CVoteGameplayPanel(int iTrans, int iRemoveMe, int x,int y,in
 		m_pButtons[i]->setParent( this );
 
 		// Create the Class Info Window
-		//m_pClassInfoPanel[i] = new CTransparentPanel( 255, CLASSMENU_WINDOW_X, CLASSMENU_WINDOW_Y, CLASSMENU_WINDOW_SIZE_X, CLASSMENU_WINDOW_SIZE_Y );
-		m_pClassInfoPanel[i] = new CTransparentPanel( 255, 0, 0, clientWide, CLASSMENU_WINDOW_SIZE_Y );
-		m_pClassInfoPanel[i]->setParent( m_pScrollPanel->getClient() );
-		//m_pClassInfoPanel[i]->setVisible( false );
+		m_pGameInfoPanel[i] = new CTransparentPanel( 255, 0, 0, clientWide, CLASSMENU_WINDOW_SIZE_Y );
+		m_pGameInfoPanel[i]->setParent( m_pScrollPanel->getClient() );
 
 		// don't show class pic in lower resolutions
 		int textOffs = XRES(8);
@@ -117,7 +118,7 @@ CVoteGameplayPanel::CVoteGameplayPanel(int iTrans, int iRemoveMe, int x,int y,in
 		char* localName=CHudTextMessage::BufferedLocaliseTextString( sz );
 		Label *pNameLabel = new Label( "", textOffs, CLASSMENU_WINDOW_NAME_Y );
 		pNameLabel->setFont( pSchemes->getFont(hTitleScheme) ); 
-		pNameLabel->setParent( m_pClassInfoPanel[i] );
+		pNameLabel->setParent( m_pGameInfoPanel[i] );
 		pSchemes->getFgColor( hTitleScheme, r, g, b, a );
 		pNameLabel->setFgColor( r, g, b, a );
 		pSchemes->getBgColor( hTitleScheme, r, g, b, a );
@@ -143,7 +144,7 @@ CVoteGameplayPanel::CVoteGameplayPanel(int iTrans, int iRemoveMe, int x,int y,in
 				m_pClassImages[team][i] = new CImageLabel( sz, 0, 0, CLASSMENU_WINDOW_TEXT_X, CLASSMENU_WINDOW_TEXT_Y );
 
 				CImageLabel *pLabel = m_pClassImages[team][i];
-				pLabel->setParent( m_pClassInfoPanel[i] );
+				pLabel->setParent( m_pGameInfoPanel[i] );
 				//pLabel->setBorder(new LineBorder());
 
 				if ( team != 1 )
@@ -158,7 +159,7 @@ CVoteGameplayPanel::CVoteGameplayPanel(int iTrans, int iRemoveMe, int x,int y,in
 			}
 		}
 
-		// Open up the Class Briefing File
+		// Open up the game Briefing File
 		sprintf(sz, "modes/%s.txt", sGameplayModes[i]);
 		char *cText = "Gamemode description not available.";
 		char *pfile = (char *)gEngfuncs.COM_LoadFile( sz, 5, NULL );
@@ -169,7 +170,7 @@ CVoteGameplayPanel::CVoteGameplayPanel(int iTrans, int iRemoveMe, int x,int y,in
 		
 		// Create the Text info window
 		TextPanel *pTextWindow = new TextPanel(cText, textOffs, YRES(40), (CLASSMENU_WINDOW_SIZE_X - textOffs)-5, CLASSMENU_WINDOW_SIZE_Y - CLASSMENU_WINDOW_TEXT_Y);
-		pTextWindow->setParent( m_pClassInfoPanel[i] );
+		pTextWindow->setParent( m_pGameInfoPanel[i] );
 		pTextWindow->setFont( pSchemes->getFont(hPlayWindowText) );
 		pSchemes->getFgColor( hClassWindowText, r, g, b, a );
 		pTextWindow->setFgColor( r, g, b, a );
@@ -197,10 +198,8 @@ CVoteGameplayPanel::CVoteGameplayPanel(int iTrans, int iRemoveMe, int x,int y,in
 			}
 		}
 
-		m_pClassInfoPanel[i]->setSize( maxX , maxY );
+		m_pGameInfoPanel[i]->setSize( maxX , maxY );
 		if (pfile) gEngfuncs.COM_FreeFile( pfile );
-		//m_pClassInfoPanel[i]->setBorder(new LineBorder());
-
 	}
 
 	m_iCurrentInfo = 0;
@@ -260,11 +259,11 @@ bool CVoteGameplayPanel::SlotInput( int iSlot )
 		for (int i = 0; i <= MAX_MODES; i++)
 		{
 			m_pButtons[i]->setArmed( false );
-			m_pClassInfoPanel[i]->setVisible( false );
+			m_pGameInfoPanel[i]->setVisible( false );
 		}
 
 		m_pButtons[ iSlot ]->setArmed( true );
-		m_pClassInfoPanel[ iSlot ]->setVisible( true );
+		m_pGameInfoPanel[ iSlot ]->setVisible( true );
 		m_iCurrentInfo = iSlot;
 		m_pButtons[ iSlot ]->fireActionSignal();
 		return true;
@@ -299,14 +298,14 @@ void CVoteGameplayPanel::SetActiveInfo( int iInput )
 	for (int i = 0; i <= MAX_MODES; i++)
 	{
 		//m_pButtons[i]->setArmed( false );
-		m_pClassInfoPanel[i]->setVisible( false );
+		m_pGameInfoPanel[i]->setVisible( false );
 	}
 
 	if ( iInput > MAX_MODES || iInput < 0 )
 		iInput = 0;
 
 	//m_pButtons[iInput]->setArmed( true );
-	m_pClassInfoPanel[iInput]->setVisible( true );
+	m_pGameInfoPanel[iInput]->setVisible( true );
 	m_iCurrentInfo = iInput;
 
 	m_pScrollPanel->setScrollValue(0,0);

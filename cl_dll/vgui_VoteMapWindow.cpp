@@ -25,15 +25,6 @@
 #define CLASSMENU_BUTTON_SIZE_X			XRES(124)
 #define CLASSMENU_BUTTON_SIZE_Y			YRES(24)
 #define CLASSMENU_BUTTON_SPACER_Y		YRES(8)
-#define CLASSMENU_WINDOW_X				XRES(176)
-#define CLASSMENU_WINDOW_Y				YRES(80)
-#define CLASSMENU_WINDOW_SIZE_X			XRES(424)
-#define CLASSMENU_WINDOW_SIZE_Y			YRES(312)
-#define CLASSMENU_WINDOW_TEXT_X			XRES(150)
-#define CLASSMENU_WINDOW_TEXT_Y			YRES(80)
-#define CLASSMENU_WINDOW_NAME_X			XRES(150)
-#define CLASSMENU_WINDOW_NAME_Y			YRES(8)
-#define CLASSMENU_WINDOW_PLAYERS_Y		YRES(42)
 
 // Creation
 CVoteMapPanel::CVoteMapPanel(int iTrans, int iRemoveMe, int x,int y,int wide,int tall) : CMenuPanel(iTrans, iRemoveMe, x,y,wide,tall)
@@ -62,21 +53,25 @@ CVoteMapPanel::CVoteMapPanel(int iTrans, int iRemoveMe, int x,int y,int wide,int
 	// Create the map buttons
 	for (int i = 0; i < MAX_MAPS; i++)
 	{
-		int degree = i / 12;
-		char sz[256]; 
-		int iYPos = CLASSMENU_TOPLEFT_BUTTON_Y + ( (CLASSMENU_BUTTON_SIZE_Y + CLASSMENU_BUTTON_SPACER_Y) * i );
-		int spacer = 0;
-		//if (i > 11)
+		// Space for random button
+		int xI = i+1;
+		int degree = (i+1) / 12;
+		if (i == MAX_MAPS - 1)
 		{
-			spacer = (CLASSMENU_BUTTON_SIZE_X + 10) * degree;
-			iYPos = CLASSMENU_TOPLEFT_BUTTON_Y + ( (CLASSMENU_BUTTON_SIZE_Y + CLASSMENU_BUTTON_SPACER_Y) * (i - (12 * degree)));
+			xI = 0;
+			degree = 0;
 		}
+		char sz[256];
+		int iYPos = CLASSMENU_TOPLEFT_BUTTON_Y + ( (CLASSMENU_BUTTON_SIZE_Y + CLASSMENU_BUTTON_SPACER_Y) * xI );
+		int spacer = 0;
+		spacer = (CLASSMENU_BUTTON_SIZE_X + 10) * degree;
+		iYPos = CLASSMENU_TOPLEFT_BUTTON_Y + ( (CLASSMENU_BUTTON_SIZE_Y + CLASSMENU_BUTTON_SPACER_Y) * (xI - (12 * degree)));
 		
-		char voteCommand[64];
+		char voteCommand[16];
 		sprintf(voteCommand, "vote %d", i+1);
 		ActionSignal *pASignal = new CMenuHandler_StringCommandClassSelect(voteCommand, false );
 
-		// Class button
+		// Map button
 		sprintf(sz, " %s", sBuiltInMaps[i]);
 		m_pButtons[i] = new ClassButton( i, sz, CLASSMENU_TOPLEFT_BUTTON_X + spacer, iYPos, CLASSMENU_BUTTON_SIZE_X, CLASSMENU_BUTTON_SIZE_Y, true);
 		m_pButtons[i]->setBoundKey( (char)255 );
