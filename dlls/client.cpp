@@ -41,6 +41,7 @@
 #include "pm_shared.h"
 #include "items.h"
 #include "func_break.h"
+#include "const.h"
 
 #if defined( GRAPPLING_HOOK )
 #include "grapplinghook.h"
@@ -363,6 +364,84 @@ bool Q_UnicodeValidate( const char *pUTF8 )
 	return true;
 }
 
+extern int gmsgPlayClientSound;
+
+void MajorityVote(edict_t *pEntity, const char *text)
+{
+	static float m_fVoteTime = 0;
+	static int m_iNeedsVotes = 0;
+	static int m_iVotes[32];
+
+	if (strcmp(text, "vote"))
+	{
+		// Start vote, capture player count for majority count
+		if (m_fVoteTime < gpGlobals->time)
+		{
+			int players = 0;
+			for (int i = 1; i <= 32; i++)
+			{
+				CBasePlayer *pPlayer = (CBasePlayer *)UTIL_PlayerByIndex(i);
+				if (pPlayer)
+					players++;
+			}
+
+			m_fVoteTime = gpGlobals->time + 30;
+			m_iNeedsVotes = (players / 2) + 1;
+
+			// Person who calls, also votes.
+			memset(m_iVotes, 0, sizeof(m_iVotes));
+			m_iVotes[ENTINDEX(pEntity)] = 1;
+
+			MESSAGE_BEGIN(MSG_ALL, gmsgPlayClientSound);
+				WRITE_BYTE(CLIENT_SOUND_VOTESTARTED);
+			MESSAGE_END();
+
+			if (m_iNeedsVotes <= 1)
+			{
+				// Sole person can call an immediate end.
+				m_iNeedsVotes = m_fVoteTime = 0;
+				UTIL_ClientPrintAll(HUD_PRINTTALK, "[VOTE] Single person gets the vote.\n");
+				g_pGameRules->EndMultiplayerGame();
+			}
+			else
+			{
+				UTIL_ClientPrintAll(HUD_PRINTTALK,
+					UTIL_VarArgs("[VOTE] We need %.0f vote(s) in 30 seconds. Others, type \"vote\" to rock the vote.\n", fmax(1, m_iNeedsVotes - 1)));
+			}
+		}
+		else
+		{
+			// Hasn't voted.
+			if (m_iVotes[ENTINDEX(pEntity)] <= 0)
+			{
+				m_iVotes[ENTINDEX(pEntity)] = 1;
+
+				// Tally
+				int votes = 0;
+				for (int i = 1; i <= 32; i++)
+				{
+					CBaseEntity *p = UTIL_PlayerByIndex(i);
+					if (p && m_iVotes[p->entindex()] > 0)
+						votes++;
+				}
+
+				// Confirm
+				if (votes >= m_iNeedsVotes)
+				{
+					m_iNeedsVotes = m_fVoteTime = 0;
+					UTIL_ClientPrintAll(HUD_PRINTTALK, "[VOTE] Vote success!\n");
+					g_pGameRules->EndMultiplayerGame();
+				}
+				else
+				{
+					UTIL_ClientPrintAll(HUD_PRINTTALK,
+						UTIL_VarArgs("[VOTE] %s voted (%d / %d)\n", STRING(pEntity->v.netname), votes, m_iNeedsVotes));
+				}
+			}
+		}
+	}
+}
+
 //// HOST_SAY
 // String comes in as
 // say blah blah blah
@@ -493,6 +572,8 @@ void Host_Say( edict_t *pEntity, int teamonly )
 	// echo to server console
 	g_engfuncs.pfnServerPrint( text );
 
+	MajorityVote(pEntity, text);
+
 	char * temp;
 	if ( teamonly )
 		temp = "say_team";
@@ -530,6 +611,43 @@ called each time a player uses a "cmd" command
 ============
 */
 extern float g_flWeaponCheat;
+
+extern int gmsgVoteFor;
+extern int gmsgVoteGameplay;
+extern int gmsgVoteMap;
+extern int gmsgVoteMutator;
+
+void Vote( CBasePlayer *pPlayer, int vote )
+{
+	if (pPlayer->m_fVoteCoolDown < gpGlobals->time)
+	{
+		if (vote > -1)
+		{
+			MESSAGE_BEGIN(MSG_ALL, gmsgVoteFor);
+				WRITE_BYTE(pPlayer->entindex());
+				WRITE_SHORT(vote);
+			MESSAGE_END();
+
+			g_pGameRules->m_iVoteCount[pPlayer->entindex()-1] = vote;
+
+			MESSAGE_BEGIN(MSG_ONE, gmsgPlayClientSound, NULL, pPlayer->edict());
+				WRITE_BYTE(CLIENT_SOUND_GREATJOB);
+			MESSAGE_END();
+
+			ALERT(at_aiconsole, "id[%d] voted for #%d\n", pPlayer->entindex(), vote);
+		}
+		else
+		{
+			ALERT(at_aiconsole, "id[%d] please provide a vote tally e.g. \"vote 1\"\n");
+		}
+
+		pPlayer->m_fVoteCoolDown = gpGlobals->time + 1.0;
+	}
+	else
+	{
+		ALERT(at_aiconsole, "id[%d] vote cool down time left: %.2f\n", pPlayer->entindex(), pPlayer->m_fVoteCoolDown - gpGlobals->time);
+	}
+}
 
 // Use CMD_ARGV,  CMD_ARGV, and CMD_ARGC to get pointers the character string command.
 void ClientCommand( edict_t *pEntity )
@@ -707,7 +825,37 @@ void ClientCommand( edict_t *pEntity )
 			ClientPrint( pev, HUD_PRINTCONSOLE, "Spectator mode is disabled.\n" );
 			
 	}
+	else if ( FStrEq(pcmd, "vote" ) )
+	{
+		CBasePlayer *pPlayer = GetClassPtr((CBasePlayer *)pev);
+		int vote = -1;
+		if (CMD_ARGC() > 1)
+			vote = atoi(CMD_ARGV(1));
+		Vote(pPlayer, vote);
+	}
 #ifdef _DEBUG
+	else if ( FStrEq( pcmd, "votegameplay") )
+	{
+		MESSAGE_BEGIN(MSG_ALL, gmsgVoteGameplay);
+			WRITE_BYTE(1);
+		MESSAGE_END();
+	}
+	else if ( FStrEq( pcmd, "votemap") )
+	{
+		MESSAGE_BEGIN(MSG_ALL, gmsgVoteMap);
+			WRITE_BYTE(1);
+		MESSAGE_END();
+	}
+	else if ( FStrEq( pcmd, "votemutator") )
+	{
+		MESSAGE_BEGIN(MSG_ALL, gmsgVoteMutator);
+			WRITE_BYTE(1);
+		MESSAGE_END();
+	}
+	else if ( FStrEq( pcmd, "endgame") )
+	{
+		g_pGameRules->EndMultiplayerGame();
+	}
 	else if ( FStrEq(pcmd, "barrel") ) 
 	{
 		UTIL_MakeVectors( pev->v_angle );
@@ -791,6 +939,7 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_customtempents [0|1]\" - allow or disallow increased temporary entites\n" );
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_voiceoverpath [string]\" - folder path to custom voiceovers\n" );
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_objectives [0|1]\" - show objective read out on HUD\n" );
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"vote\" - type in the chat to start a vote\n" );
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "For more, see readme.txt\n" );
 	}
 	else if ( FStrEq( pcmd, "help_server" )  )
@@ -891,6 +1040,7 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_ggstartlevel\" - Sets default start level of gun game\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_ctcsecondsforpoint\" - amount of second holding chumtoad for a point\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_breakabletime\" - amount of seconds before a breakable entity respawns\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_voting\" - enable or disable end of the map voting\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "For more, see readme.txt\n" );
 	}
 #ifdef _DEBUG

@@ -141,7 +141,8 @@ int CHud :: Redraw( float flTime, int intermission )
 		{
 			m_iIntermission = intermission;
 			gViewPort->HideCommandMenu();
-			gViewPort->HideVGUIMenu();
+			// Allow GUI for voting at end of map
+			// gViewPort->HideVGUIMenu();
 			gViewPort->ShowScoreBoard();
 			gViewPort->UpdateSpectatorPanel();
 
@@ -432,7 +433,7 @@ void CHud::ShowTextTips( void ) {
 		return;
 	}
 
-	const int MESSAGE_SIZE = 35;
+	const int MESSAGE_SIZE = 36;
 
 	const char* messageList[MESSAGE_SIZE] = {
 		"Tired of blue skins? Type \"cl_icemodels 0\" in the console switches to real-life skins.\n",
@@ -470,6 +471,7 @@ void CHud::ShowTextTips( void ) {
 		"Bind \"impulse 211\" to a button to perform a left flip.\n",
 		"Bind \"impulse 212\" to a button to perform a back flip.\n",
 		"Bind \"impulse 213\" to a button to perform a front flip.\n",
+		"Type \"vote\" in the chat to start a vote request.\n",
 	};
 
 	// Unstick after a level change

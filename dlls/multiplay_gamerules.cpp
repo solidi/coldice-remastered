@@ -54,6 +54,10 @@ extern int gmsgServerName;
 extern int gmsgStatusIcon;
 extern int gmsgObjective;
 
+extern int gmsgVoteGameplay;
+extern int gmsgVoteMap;
+extern int gmsgVoteMutator;
+
 extern DLL_GLOBAL int g_GameMode;
 extern int gmsgPlayClientSound;
 
@@ -101,6 +105,9 @@ CHalfLifeMultiplay :: CHalfLifeMultiplay()
 	m_flIntermissionEndTime = 0;
 	m_iFirstBloodDecided = FALSE;
 	g_flIntermissionStartTime = 0;
+	memset(m_iVoteCount, -1, sizeof(m_iVoteCount));
+	m_iVoteUnderway = 0;
+	m_iDecidedMapIndex = -1;
 	
 	// 11/8/98
 	// Modified by YWB:  Server .cfg file is now a cvar, so that 
@@ -204,6 +211,69 @@ extern cvar_t timeleft, fragsleft, roundtimeleft;
 
 extern cvar_t mp_chattime;
 
+char *sBuiltInMaps[] =
+{
+	"training",
+	"stalkyard2",
+	"focus",
+	"coldice",
+	"furrow",
+	"training2",
+	"snowyard",
+	"fences",
+	"bounce2",
+	"canyon",
+	"catacombs",
+	"depot",
+	"snowcross",
+	"frostfire",
+	"drift",
+	"snow_camp",
+	"ice_pit",
+	"frozen_bunker",
+	"snowtransit",
+	"doublefrost",
+	"themill",
+	"chillworks",
+	"frosty",
+	"overflow",
+	"frozenwarehouse",
+	"quadfrost",
+	"defroster",
+	"thechill",
+	"frostmill",
+	"glupshitto",
+	"cold_base",
+};
+
+#define BUILT_IN_MAP_COUNT 31
+
+char *gamePlayModes[] = {
+	"Deathmatch",
+	"Teamplay",
+	"Jesus vs. Santa",
+	"Battle Royal",
+	"1 vs. 1",
+	"Snowballs",
+	"GunGame",
+	"Capture The Chumtoad",
+	"Chilldemic",
+};
+
+char *gamePlayModesShort[] = {
+	"ffa",
+	"teamplay",
+	"jvs",
+	"lms",
+	"arena",
+	"snowball",
+	"gungame",
+	"ctc",
+	"chilldemic",
+};
+
+extern void Vote( CBasePlayer *pPlayer, int vote );
+
 //=========================================================
 //=========================================================
 void CHalfLifeMultiplay :: Think ( void )
@@ -229,12 +299,279 @@ void CHalfLifeMultiplay :: Think ( void )
 		else if ( time > MAX_INTERMISSION_TIME )
 			CVAR_SET_STRING( "mp_chattime", UTIL_dtos1( MAX_INTERMISSION_TIME ) );
 
-		m_flIntermissionEndTime = g_flIntermissionStartTime + mp_chattime.value;
+		m_flIntermissionEndTime = g_flIntermissionStartTime + mp_chattime.value + 45;
+
+		if (voting.value)
+		{
+			// Game mode vote ended
+			if (m_iVoteUnderway == 1 && ((m_flIntermissionEndTime - mp_chattime.value - 30) < gpGlobals->time))
+			{
+				m_iVoteUnderway = 2;
+
+				MESSAGE_BEGIN(MSG_ALL, gmsgVoteGameplay);
+					WRITE_BYTE(0);
+				MESSAGE_END();
+
+				// tally votes
+				int vote[GAME_CHILLDEMIC+2]; //+1, +1 RANDOM
+				memset(vote, 0, sizeof(vote));
+
+				for (int j = 1; j <= 32; j++)
+				{
+					int gameIndex = g_pGameRules->m_iVoteCount[j-1];
+					if ((gameIndex-1) >= GAME_FFA && (gameIndex-1) <= GAME_CHILLDEMIC + 1 /*random*/)
+						vote[gameIndex-1]++;
+					// ALERT(at_console, "gameIndex=%d vote[%d]=%d\n", gameIndex-1, gameIndex-1, vote[gameIndex-1]);
+				}
+
+				int highest = -9999;
+				int gameIndex = GAME_FFA;
+				for (int i = 0; i <= GAME_CHILLDEMIC + 1 /*random*/; i++)
+				{
+					if (highest <= vote[i])
+					{
+						highest = vote[i];
+						gameIndex = i;
+						// ALERT(at_console, "highest=%d, vote[i]=%d, gameIndex=%d\n", highest, vote[i], gameIndex);
+					}
+				}
+
+				memset(m_iVoteCount, -1, sizeof(m_iVoteCount));
+
+				if (highest <= 0)
+				{
+					UTIL_ClientPrintAll(HUD_PRINTTALK, "[VOTE] Not enough votes received for gameplay.");
+				}
+				else
+				{
+					if (gameIndex == GAME_CHILLDEMIC + 1 /*random*/)
+					{
+						UTIL_ClientPrintAll(HUD_PRINTTALK, "[VOTE] Randomizing gameplay mode...\n");
+						gameIndex = RANDOM_LONG(GAME_FFA, GAME_CHILLDEMIC);
+					}
+
+					UTIL_ClientPrintAll(HUD_PRINTTALK, UTIL_VarArgs("[VOTE] %s is the next gameplay mode!\n", gamePlayModes[gameIndex]));
+
+					if (gameIndex == 1)
+					{
+						SERVER_COMMAND("mp_gamemode 0\n");
+						SERVER_COMMAND("mp_teamplay 1\n");
+					}
+					else
+					{
+						SERVER_COMMAND("mp_teamplay 0\n");	
+						SERVER_COMMAND(UTIL_VarArgs("mp_gamemode %s\n", gamePlayModesShort[gameIndex]));
+					}
+				}
+			}
+
+			// Mutator vote STARTED
+			if (m_iVoteUnderway == 2 && ((m_flIntermissionEndTime - mp_chattime.value - 27) < gpGlobals->time))
+			{
+				m_iVoteUnderway = 3;
+
+				MESSAGE_BEGIN(MSG_ALL, gmsgVoteMutator);
+					WRITE_BYTE(1);
+				MESSAGE_END();
+				MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
+					WRITE_BYTE(CLIENT_SOUND_VOTEMUTATOR);
+				MESSAGE_END();
+
+				// Bots get a vote
+				for (int i = 1; i <= 32; i++)
+				{
+					CBasePlayer *pPlayer = (CBasePlayer *)UTIL_PlayerByIndex( i );
+					if (pPlayer && FBitSet(pPlayer->pev->flags, FL_FAKECLIENT))
+					{
+						ALERT(at_aiconsole, "BOT mutator vote!\n");
+						::Vote(pPlayer, RANDOM_LONG(1, MUTATOR_FASTWEAPONS + 2 /*random*/));
+					}
+				}
+			}
+
+			// Mutator vote ended
+			if (m_iVoteUnderway == 3 && ((m_flIntermissionEndTime - mp_chattime.value - 12) < gpGlobals->time))
+			{
+				m_iVoteUnderway = 4;
+
+				MESSAGE_BEGIN(MSG_ALL, gmsgVoteMutator);
+					WRITE_BYTE(0);
+				MESSAGE_END();
+
+				// tally votes
+				int vote[MUTATOR_FASTWEAPONS+2]; //+1, +1 RANDOM
+				memset(vote, -1, sizeof(vote));
+
+				for (int j = 1; j <= 32; j++)
+				{
+					int mutatorIndex = g_pGameRules->m_iVoteCount[j-1];
+					if ((mutatorIndex-1) >= 0 && (mutatorIndex-1) <= MUTATOR_FASTWEAPONS + 1 /*random*/)
+					{
+						if (vote[mutatorIndex-1] == -1) vote[mutatorIndex-1] = 0;
+						vote[mutatorIndex-1]++;
+					}
+					// ALERT(at_console, "mutatorIndex=%d vote[%d]=%d\n", mutatorIndex-1, mutatorIndex-1, vote[mutatorIndex-1]);
+				}
+
+				int first, second, third;
+				third = first = second = -1;
+				int fIndex, sIndex, tIndex;
+				fIndex = sIndex = tIndex = -1;
+
+				for (int i = 0; i <= MUTATOR_FASTWEAPONS + 1 /*random*/; i++)
+				{
+					if (vote[i] > first)
+					{
+						tIndex = sIndex;
+						third = second;
+						sIndex = fIndex;
+						second = first;
+						fIndex = i;
+						first = vote[i];
+					}
+					else if (vote[i] > second && vote[i] != first)
+					{
+						tIndex = sIndex;
+						third = second;
+						sIndex = i;
+						second = vote[i];
+					}
+					else if (vote[i] > third && vote[i] != second && vote[i] != first)
+					{
+						tIndex = i;
+						third = vote[i];
+					}
+				}
+
+				memset(m_iVoteCount, -1, sizeof(m_iVoteCount));
+
+				ALERT(at_aiconsole, "first=%d, fIndex=%d, second=%d, sIndex=%d, third=%d, tIndex=%d\n", first, fIndex, second, sIndex, third, tIndex);
+
+				if (first < 0 && second < 0 && third < 0)
+				{
+					UTIL_ClientPrintAll(HUD_PRINTTALK, "[VOTE] Not enough votes received for mutators.");
+				}
+				else
+				{
+					if (fIndex == MUTATOR_FASTWEAPONS + 1 /*random*/)
+					{
+						UTIL_ClientPrintAll(HUD_PRINTTALK, "[VOTE] Randomizing mutator mode #1...\n");
+						fIndex = RANDOM_LONG(MUTATOR_CHAOS, MUTATOR_FASTWEAPONS);
+					}
+
+					if (sIndex == MUTATOR_FASTWEAPONS + 1 /*random*/)
+					{
+						UTIL_ClientPrintAll(HUD_PRINTTALK, "[VOTE] Randomizing mutator mode #2...\n");
+						sIndex = RANDOM_LONG(MUTATOR_CHAOS, MUTATOR_FASTWEAPONS);
+					}
+
+					if (tIndex == MUTATOR_FASTWEAPONS + 1 /*random*/)
+					{
+						UTIL_ClientPrintAll(HUD_PRINTTALK, "[VOTE] Randomizing mutator mode #3...\n");
+						tIndex = RANDOM_LONG(MUTATOR_CHAOS, MUTATOR_FASTWEAPONS);
+					}
+
+					ALERT(at_aiconsole, "fIndex=%d, sIndex=%d, tIndex=%d\n", fIndex, sIndex, tIndex);
+
+					if (fIndex >= 0 && sIndex >= 0 && tIndex >= 0)
+					{
+						UTIL_ClientPrintAll(HUD_PRINTTALK, "[VOTE] \"%s\", \"%s\" and \"%s\" are the next mutators!\n", g_szMutators[fIndex], g_szMutators[sIndex], g_szMutators[tIndex]);
+						SERVER_COMMAND(UTIL_VarArgs("sv_mutators \"%s;%s;%s\"\n", g_szMutators[fIndex], g_szMutators[sIndex], g_szMutators[tIndex]));
+					}
+					else if (fIndex >= 0 && sIndex >= 0)
+					{
+						UTIL_ClientPrintAll(HUD_PRINTTALK, UTIL_VarArgs("[VOTE] \"%s\" and \"%s\" are the next mutators!\n", g_szMutators[fIndex], g_szMutators[sIndex]));
+						SERVER_COMMAND(UTIL_VarArgs("sv_mutators \"%s;%s\"\n", g_szMutators[fIndex], g_szMutators[sIndex]));
+					}
+					else
+					{
+						UTIL_ClientPrintAll(HUD_PRINTTALK, UTIL_VarArgs("[VOTE] \"%s\" is the next mutator!\n", g_szMutators[fIndex]));
+						SERVER_COMMAND(UTIL_VarArgs("sv_mutators \"%s\"\n", g_szMutators[fIndex]));
+					}
+				}
+			}
+
+			// Map vote STARTED
+			if (m_iVoteUnderway == 4 && ((m_flIntermissionEndTime - mp_chattime.value - 9) < gpGlobals->time))
+			{
+				m_iVoteUnderway = 5;
+
+				MESSAGE_BEGIN(MSG_ALL, gmsgVoteMap);
+					WRITE_BYTE(1);
+				MESSAGE_END();
+				MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
+					WRITE_BYTE(CLIENT_SOUND_VOTEMAP);
+				MESSAGE_END();
+
+				// Bots get a vote
+				for (int i = 1; i <= 32; i++)
+				{
+					CBasePlayer *pPlayer = (CBasePlayer *)UTIL_PlayerByIndex( i );
+					if (pPlayer && FBitSet(pPlayer->pev->flags, FL_FAKECLIENT))
+					{
+						ALERT(at_aiconsole, "BOT vote!\n");
+						::Vote(pPlayer, RANDOM_LONG(1, BUILT_IN_MAP_COUNT + 1));
+					}
+				}
+			}
+
+			// Map vote ended
+			if (m_iVoteUnderway == 5 && (((m_flIntermissionEndTime - mp_chattime.value) + 6) < gpGlobals->time))
+			{
+				m_iVoteUnderway = 0;
+
+				MESSAGE_BEGIN(MSG_ALL, gmsgVoteMap);
+					WRITE_BYTE(0);
+				MESSAGE_END();
+
+				// tally votes
+				int vote[BUILT_IN_MAP_COUNT + 1 /*random*/];
+				memset(vote, 0, sizeof(vote));
+
+				for (int j = 1; j <= 32; j++)
+				{
+					int mapIndex = g_pGameRules->m_iVoteCount[j-1];
+					if ((mapIndex-1) >= 0 && (mapIndex-1) <= BUILT_IN_MAP_COUNT + 1 /*random*/)
+						vote[mapIndex-1]++;
+					// ALERT(at_console, "mapIndex=%d vote[%d]=%d\n", mapIndex-1, mapIndex-1, vote[mapIndex-1]);
+				}
+
+				int highest = -9999;
+				int mapIndex = 0;
+				for (int i = 0; i < BUILT_IN_MAP_COUNT + 1 /*random*/; i++)
+				{
+					if (highest <= vote[i])
+					{
+						highest = vote[i];
+						m_iDecidedMapIndex = mapIndex = i;
+						// ALERT(at_console, "highest=%d, vote[i]=%d, mapIndex=%d\n", highest, vote[i], mapIndex);
+					}
+				}
+
+				if (highest <= 0)
+				{
+					m_iDecidedMapIndex = -1;
+					UTIL_ClientPrintAll(HUD_PRINTTALK, "[VOTE] Not enough votes received for next map. Using mapcycle.txt.");
+				}
+				else
+				{
+					ALERT(at_console, "m_iDecidedMapIndex=%d\n", m_iDecidedMapIndex);
+					
+					if (m_iDecidedMapIndex == BUILT_IN_MAP_COUNT /*random*/)
+					{
+						UTIL_ClientPrintAll(HUD_PRINTTALK, "[VOTE] Randomizing map...\n");
+						m_iDecidedMapIndex = RANDOM_LONG(0, BUILT_IN_MAP_COUNT);
+					}
+
+					UTIL_ClientPrintAll(HUD_PRINTTALK, UTIL_VarArgs("[VOTE] %s is the next map!\n", sBuiltInMaps[m_iDecidedMapIndex]));
+				}
+			}
+		}
 
 		// check to see if we should change levels now
 		if ( m_flIntermissionEndTime < gpGlobals->time )
 		{
-			if ( m_iEndIntermissionButtonHit  // check that someone has pressed a key, or the max intermission time is over
+			if ( (m_iEndIntermissionButtonHit && !m_iVoteUnderway)  // check that someone has pressed a key, or the max intermission time is over
 				|| ( ( g_flIntermissionStartTime + MAX_INTERMISSION_TIME ) < gpGlobals->time) ) 
 				ChangeLevel(); // intermission is over
 		}
@@ -2506,8 +2843,30 @@ void CHalfLifeMultiplay :: GoToIntermission( void )
 	else if ( time > MAX_INTERMISSION_TIME )
 		CVAR_SET_STRING( "mp_chattime", UTIL_dtos1( MAX_INTERMISSION_TIME ) );
 
-	m_flIntermissionEndTime = gpGlobals->time + ( (int)mp_chattime.value );
+	m_flIntermissionEndTime = gpGlobals->time + ( (int)mp_chattime.value ) + 45;
 	g_flIntermissionStartTime = gpGlobals->time;
+
+	if (voting.value)
+	{
+		m_iVoteUnderway = 1;
+
+		MESSAGE_BEGIN(MSG_ALL, gmsgVoteGameplay);
+			WRITE_BYTE(1);
+		MESSAGE_END();
+		MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
+			WRITE_BYTE(CLIENT_SOUND_VOTEGAME);
+		MESSAGE_END();
+
+		// Bots get a vote
+		for (int i = 1; i <= 32; i++)
+		{
+			CBasePlayer *pPlayer = (CBasePlayer *)UTIL_PlayerByIndex( i );
+			if (pPlayer && FBitSet(pPlayer->pev->flags, FL_FAKECLIENT))
+			{
+				::Vote(pPlayer, RANDOM_LONG(1,GAME_CHILLDEMIC + 2 /*random*/));
+			}
+		}
+	}
 
 	// Clear previous message at intermission
 	if (g_GameMode != GAME_FFA)
@@ -2991,6 +3350,12 @@ void CHalfLifeMultiplay :: ChangeLevel( void )
 	}
 
 	g_fGameOver = TRUE;
+
+	// Intercept map vote
+	if (m_iDecidedMapIndex > -1)
+	{
+		strcpy(szNextMap, sBuiltInMaps[m_iDecidedMapIndex]);
+	}
 
 	ALERT( at_console, "CHANGE LEVEL: %s\n", szNextMap );
 	if ( minplayers || maxplayers )

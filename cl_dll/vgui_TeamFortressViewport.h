@@ -40,6 +40,9 @@
 #define MENU_CLASSHELP2 			7
 #define MENU_REPEATHELP 			8
 #define MENU_SPECHELP				9
+#define MENU_VOTEGAMEPLAY			10
+#define MENU_VOTEMAP				11
+#define MENU_VOTEMUTATOR			12
 #endif
 using namespace vgui;
 
@@ -56,6 +59,9 @@ class ServerBrowser;
 class DragNDropPanel;
 class CTransparentPanel;
 class CClassMenuPanel;
+class CVoteGameplayPanel;
+class CVoteMapPanel;
+class CVoteMutatorPanel;
 class CTeamMenuPanel;
 class TeamFortressViewport;
 
@@ -65,6 +71,10 @@ void ScaleColors( int &r, int &g, int &b, int a );
 extern char *sTFClassSelection[];
 extern int sTFValidClassInts[];
 extern char *sLocalisedClasses[];
+extern char *sLocalisedGameplayModes[];
+extern char *sGameplayModes[];
+extern char *sBuiltInMaps[];
+extern char *sMutators[];
 extern int iTeamColors[5][3];
 extern int iNumberOfTeamColors;
 extern TeamFortressViewport *gViewPort;
@@ -513,6 +523,13 @@ private:
 	void		 CreateClassMenu( void );
 	CMenuPanel*	 ShowClassMenu( void );
 	void		 CreateSpectatorMenu( void );
+
+	void		 CreateVoteGameplayMenu( void );
+	CMenuPanel*	 ShowVoteGameplayMenu( void );
+	void		 CreateVoteMapMenu( void );
+	CMenuPanel*	 ShowVoteMapMenu( void );
+	void		 CreateVoteMutatorMenu( void );
+	CMenuPanel*	 ShowVoteMutatorMenu( void );
 	
 	// Scheme handler
 	CSchemeManager m_SchemeManager;
@@ -620,6 +637,11 @@ public:
 	int MsgFunc_SpecFade( const char *pszName, int iSize, void *pbuf );	
 	int MsgFunc_ResetFade( const char *pszName, int iSize, void *pbuf );	
 
+	int MsgFunc_VoteFor( const char *pszName, int iSize, void *pbuf );
+	int MsgFunc_VoteGame( const char *pszName, int iSize, void *pbuf );
+	int MsgFunc_VoteMap( const char *pszName, int iSize, void *pbuf );
+	int MsgFunc_VoteMutator( const char *pszName, int iSize, void *pbuf );
+
 	// Input
 	bool SlotInput( int iSlot );
 
@@ -642,6 +664,10 @@ public:
 	ScorePanel		*m_pScoreBoard;
 	SpectatorPanel *		m_pSpectatorPanel;
 	char			m_szServerName[ MAX_SERVERNAME_LENGTH ];
+
+	CVoteGameplayPanel	*m_pVoteGameplayMenu;
+	CVoteMapPanel		*m_pVoteMapMenu;
+	CVoteMutatorPanel	*m_pVoteMutatorMenu;
 };
 
 //============================================================
@@ -665,7 +691,7 @@ public:
 	{
 		strncpy( m_pszCommand, pszCommand, MAX_COMMAND_SIZE);
 		m_pszCommand[MAX_COMMAND_SIZE-1] = '\0';
-		m_iCloseVGUIMenu = true;
+		m_iCloseVGUIMenu = iClose;
 	}
 
 	virtual void actionPerformed(Panel* panel)
@@ -1705,6 +1731,101 @@ public:
 	virtual void Reset( void )
 	{
 		CMenuPanel::Reset();
+		m_iCurrentInfo = 0;
+	}
+};
+
+#define MAX_MODES	9 // CHILLDEMIC + RANDOM
+#define MAX_MAPS	32 // cold_base (30) + RANDOM
+#define MAX_MUTATORS	48 // fastweapons (46) + RANDOM
+
+class CVoteGameplayPanel : public CMenuPanel
+{
+private:
+	CTransparentPanel	*m_pGameInfoPanel[MAX_MODES + 1];
+	ClassButton			*m_pButtons[MAX_MODES + 1];
+	ScrollPanel			*m_pScrollPanel;
+
+	CImageLabel			*m_pClassImages[MAX_TEAMS][MAX_MODES + 1];
+	Label 				*pTitleLabel;
+
+	int					m_iCurrentInfo;
+
+	float				m_fStartTime;
+	float				m_iTime;
+
+public:
+	CVoteGameplayPanel(int iTrans, int iRemoveMe, int x,int y,int wide,int tall);
+
+	virtual bool SlotInput( int iSlot );
+	virtual void Open( void );
+	virtual void Update( void );
+	virtual void SetActiveInfo( int iInput );
+	virtual void Initialize( void );
+
+	virtual void Reset( void )
+	{
+		CMenuPanel::Reset();
+		m_fStartTime = gHUD.m_flTime;
+		m_iTime = 15.0;
+		m_iCurrentInfo = 0;
+	}
+};
+
+class CVoteMapPanel : public CMenuPanel
+{
+private:
+	ClassButton			*m_pButtons[MAX_MAPS];
+	Label 				*pTitleLabel;
+
+	int					m_iCurrentInfo;
+
+	float				m_fStartTime;
+	float				m_iTime;
+
+public:
+	CVoteMapPanel(int iTrans, int iRemoveMe, int x,int y,int wide,int tall);
+
+	virtual bool SlotInput( int iSlot );
+	virtual void Open( void );
+	virtual void Update( void );
+	virtual void SetActiveInfo( int iInput );
+	virtual void Initialize( void );
+
+	virtual void Reset( void )
+	{
+		CMenuPanel::Reset();
+		m_fStartTime = gHUD.m_flTime;
+		m_iTime = 15.0;
+		m_iCurrentInfo = 0;
+	}
+};
+
+class CVoteMutatorPanel : public CMenuPanel
+{
+private:
+	ClassButton			*m_pButtons[MAX_MUTATORS];
+	Label 				*pTitleLabel;
+
+	int					m_iCurrentInfo;
+
+	float				m_fStartTime;
+	float				m_iTime;
+
+public:
+	CVoteMutatorPanel(int iTrans, int iRemoveMe, int x,int y,int wide,int tall);
+
+	virtual bool SlotInput( int iSlot );
+	virtual void Open( void );
+	virtual void Update( void );
+	virtual void SetActiveInfo( int iInput );
+	virtual void Initialize( void );
+
+	virtual void Reset( void )
+	{
+		CMenuPanel::Reset();
+		m_fStartTime = gHUD.m_flTime;
+		m_iTime = 15.0;
 		m_iCurrentInfo = 0;
 	}
 };

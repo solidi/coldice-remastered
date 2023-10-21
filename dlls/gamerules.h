@@ -191,6 +191,8 @@ public:
 	// Immediately end a multiplayer game
 	virtual void EndMultiplayerGame( void ) {}
 
+	int m_iVoteCount[32];
+
 protected:
 	BOOL m_iNotTheBees = 0;
 	BOOL m_iDontShoot = 0;
@@ -450,6 +452,8 @@ protected:
 	virtual void GoToIntermission( void );
 	float m_flIntermissionEndTime;
 	BOOL m_iEndIntermissionButtonHit;
+	int m_iVoteUnderway;
+	int m_iDecidedMapIndex;
 	void SendMOTDToClient( edict_t *client );
 
 	// Cold Ice Remastered Game Modes
@@ -470,3 +474,4 @@ protected:
 };
 
 extern DLL_GLOBAL CGameRules*	g_pGameRules;
+extern const char *g_szMutators[47];

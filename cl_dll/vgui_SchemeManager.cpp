@@ -506,6 +506,7 @@ void CSchemeManager::getBgColor( SchemeHandle_t schemeHandle, int &r, int &g, in
 	r = pScheme->bgColor[0];
 	g = pScheme->bgColor[1];
 	b = pScheme->bgColor[2];
+	UnpackRGB(r, g, b, HudColor());
 	a = pScheme->bgColor[3];
 }
 
@@ -515,6 +516,7 @@ void CSchemeManager::getFgArmedColor( SchemeHandle_t schemeHandle, int &r, int &
 	r = pScheme->armedFgColor[0];
 	g = pScheme->armedFgColor[1];
 	b = pScheme->armedFgColor[2];
+	UnpackRGB(r, g, b, HudColor());
 	a = pScheme->armedFgColor[3];
 }
 
@@ -524,6 +526,7 @@ void CSchemeManager::getBgArmedColor( SchemeHandle_t schemeHandle, int &r, int &
 	r = pScheme->armedBgColor[0];
 	g = pScheme->armedBgColor[1];
 	b = pScheme->armedBgColor[2];
+	UnpackRGB(r, g, b, HudColor());
 	a = pScheme->armedBgColor[3];
 }
 
@@ -533,6 +536,7 @@ void CSchemeManager::getFgMousedownColor( SchemeHandle_t schemeHandle, int &r, i
 	r = pScheme->mousedownFgColor[0];
 	g = pScheme->mousedownFgColor[1];
 	b = pScheme->mousedownFgColor[2];
+	UnpackRGB(r, g, b, HudColor());
 	a = pScheme->mousedownFgColor[3];
 }
 
@@ -542,6 +546,7 @@ void CSchemeManager::getBgMousedownColor( SchemeHandle_t schemeHandle, int &r, i
 	r = pScheme->mousedownBgColor[0];
 	g = pScheme->mousedownBgColor[1];
 	b = pScheme->mousedownBgColor[2];
+	UnpackRGB(r, g, b, HudColor());
 	a = pScheme->mousedownBgColor[3];
 }
 
@@ -551,6 +556,7 @@ void CSchemeManager::getBorderColor( SchemeHandle_t schemeHandle, int &r, int &g
 	r = pScheme->borderColor[0];
 	g = pScheme->borderColor[1];
 	b = pScheme->borderColor[2];
+	UnpackRGB(r, g, b, HudColor());
 	a = pScheme->borderColor[3];
 }
 

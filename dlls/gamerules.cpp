@@ -77,8 +77,59 @@ extern DLL_GLOBAL const char *g_MutatorNotTheBees;
 extern DLL_GLOBAL const char *g_MutatorDontShoot;
 extern DLL_GLOBAL const char *g_Mutator999;
 extern DLL_GLOBAL const char *g_MutatorBerserker;
+extern DLL_GLOBAL const char *g_MutatorJeepAThon;
 
 extern DLL_GLOBAL int g_GameMode;
+
+DLL_GLOBAL const char *g_szMutators[] = {
+	"chaos",
+	"rocketcrowbar",
+	"instagib",
+	"volatile",
+	"plumber",
+	"paintball",
+	"dkmode",
+	"superjump",
+	"megarun",
+	"lightsout",
+	"slowmo",
+	"ice",
+	"topsyturvy",
+	"turrets",
+	"barrels",
+	"chumxplode",
+	"santahat",
+	"coolflesh",
+	"sanic",
+	"coolflesh",
+	"loopback",
+	"maxpack",
+	"infiniteammo",
+	"randomweapon",
+	"speedup",
+	"rockets",
+	"invisible",
+	"grenades",
+	"astronaut",
+	"snowballs",
+	"pushy",
+	"portal",
+	"jope",
+	"inverse",
+	"oldtime",
+	"sildenafil",
+	"longjump",
+	"slowbullets",
+	"explosiveai",
+	"itemsexplode",
+	"notthebees",
+	"dontshoot",
+	"999",
+	"berserker",
+	"autoaim",
+	"slowweapons",
+	"fastweapons",
+};
 
 //=========================================================
 //=========================================================
