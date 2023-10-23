@@ -49,8 +49,11 @@ void CHalfLifeCaptureTheChumtoad::Think( void )
 		BOOL foundToad = FALSE;
 
 		MESSAGE_BEGIN(MSG_ALL, gmsgObjective, NULL);
-			WRITE_STRING("Capture and hold the chumtoad to score points");
-			WRITE_STRING(m_fChumtoadInPlay ? "The chumtoad is being held" : "The chumtoad is loose");
+			WRITE_STRING("Get the chumtoad");
+			if (m_pHolder)
+				WRITE_STRING(m_fChumtoadInPlay ? UTIL_VarArgs("%s has it!", STRING(m_pHolder->pev->netname)) : "The chumtoad is free");
+			else
+				WRITE_STRING(m_fChumtoadInPlay ? "The chumtoad is held" : "The chumtoad is free");
 			WRITE_BYTE(0);
 		MESSAGE_END();
 
@@ -193,6 +196,7 @@ void CHalfLifeCaptureTheChumtoad::CaptureCharm( CBasePlayer *pPlayer )
 	pPlayer->pev->rendercolor = Vector(0, 200, 0);
 
 	pPlayer->pev->fuser4 = 1;
+	m_pHolder = (CBaseEntity *)pPlayer;
 
 	UTIL_ClientPrintAll(HUD_PRINTTALK, "[CtC]: %s has captured the chumtoad!\n",
 	STRING(pPlayer->pev->netname));
@@ -215,6 +219,7 @@ CBaseEntity *CHalfLifeCaptureTheChumtoad::DropCharm( CBasePlayer *pPlayer, Vecto
 	pPlayer->pev->renderamt = 0;
 
 	pPlayer->pev->fuser4 = 0;
+	m_pHolder = NULL;
 
 	UTIL_ClientPrintAll(HUD_PRINTTALK, "[CtC]: %s has dropped the chumtoad!\n",
 		STRING(pPlayer->pev->netname));

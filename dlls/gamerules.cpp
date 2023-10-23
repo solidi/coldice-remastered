@@ -1069,13 +1069,14 @@ void CGameRules::CheckGameMode( void )
 	{
 		m_flDetectedGameModeChange = gpGlobals->time + 5.0;
 		strcpy(m_flCheckGameMode, gamemode.string);
-		UTIL_ClientPrintAll(HUD_PRINTTALK, "Game mode has changed to \"%s\". Ending current game in 5 seconds.\n", m_flCheckGameMode);
+		//UTIL_ClientPrintAll(HUD_PRINTTALK, "Game mode has changed to \"%s\". Ending current game in 5 seconds.\n", m_flCheckGameMode);
+		UTIL_ClientPrintAll(HUD_PRINTCONSOLE, "Game mode has changed to \"%s\". Please change the map to begin.\n", m_flCheckGameMode);
 	}
 
 	if (m_flDetectedGameModeChange && m_flDetectedGameModeChange < gpGlobals->time)
 	{
 		// changelevel.
-		g_fGameOver = TRUE;
+		// g_fGameOver = TRUE;
 
 		/*
 		for (int i = 1; i <= gpGlobals->maxClients; i++)

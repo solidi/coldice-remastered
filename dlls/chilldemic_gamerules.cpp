@@ -108,11 +108,30 @@ void CHalfLifeChilldemic::Think( void )
 					{
 						if (plr->pev->fuser4 > 0)
 						{
-							MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL, plr->edict());
-								WRITE_STRING("Free their bones");
-								WRITE_STRING(UTIL_VarArgs("Survivors alive: %d", survivors_left));
-								WRITE_BYTE(float(survivors_left) / (m_iPlayersInGame) * 100);
-							MESSAGE_END();
+							if (survivors_left > 1)
+							{
+								MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL, plr->edict());
+									WRITE_STRING("Free their bones");
+									WRITE_STRING(UTIL_VarArgs("Survivors alive: %d", survivors_left));
+									WRITE_BYTE(float(survivors_left) / (m_iPlayersInGame) * 100);
+								MESSAGE_END();
+							}
+							else if (survivors_left == 1)
+							{
+								MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL, plr->edict());
+									WRITE_STRING("Free their bones");
+									WRITE_STRING("Dispatch the last soul!");
+									WRITE_BYTE(0);
+								MESSAGE_END();
+							}
+							else
+							{
+								MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL, plr->edict());
+									WRITE_STRING("Virus completed!");
+									WRITE_STRING("Skeletons win!");
+									WRITE_BYTE(0);
+								MESSAGE_END();
+							}
 						}
 						else
 						{
@@ -126,11 +145,22 @@ void CHalfLifeChilldemic::Think( void )
 							}
 							else
 							{
-								MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL, plr->edict());
-									WRITE_STRING("You remain! SURVIVE!");
-									WRITE_STRING(UTIL_VarArgs("Skeletons remain: %d", skeletons_left));
-									WRITE_BYTE(float(skeletons_left) / (m_iPlayersInGame) * 100);
-								MESSAGE_END();
+								if (skeletons_left > 0)
+								{
+									MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL, plr->edict());
+										WRITE_STRING("You remain! SURVIVE!");
+										WRITE_STRING(UTIL_VarArgs("Skeletons remain: %d", skeletons_left));
+										WRITE_BYTE(float(skeletons_left) / (m_iPlayersInGame) * 100);
+									MESSAGE_END();
+								}
+								else
+								{
+									MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL, plr->edict());
+										WRITE_STRING("Virus eradicated!");
+										WRITE_STRING("Survivors win!");
+										WRITE_BYTE(0);
+									MESSAGE_END();
+								}
 							}
 						}
 					}
@@ -376,10 +406,6 @@ void CHalfLifeChilldemic::InitHUD( CBasePlayer *pl )
 		MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL, pl->edict());
 			WRITE_STRING("Survive");
 			WRITE_STRING("");
-			WRITE_BYTE(0);
-		MESSAGE_END();
-
-		MESSAGE_BEGIN(MSG_ONE, gmsgShowTimer, NULL, pl->edict());
 			WRITE_BYTE(0);
 		MESSAGE_END();
 

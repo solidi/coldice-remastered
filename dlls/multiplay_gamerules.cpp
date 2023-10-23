@@ -57,6 +57,8 @@ extern int gmsgObjective;
 extern int gmsgVoteGameplay;
 extern int gmsgVoteMap;
 extern int gmsgVoteMutator;
+extern int gmsgShowTimer;
+extern int gmsgRoundTime;
 
 extern DLL_GLOBAL int g_GameMode;
 extern int gmsgPlayClientSound;
@@ -340,7 +342,7 @@ void CHalfLifeMultiplay :: Think ( void )
 
 				if (highest <= 0)
 				{
-					UTIL_ClientPrintAll(HUD_PRINTTALK, "[VOTE] Not enough votes received for gameplay.");
+					UTIL_ClientPrintAll(HUD_PRINTTALK, "[VOTE] Not enough votes received for gameplay.\n");
 				}
 				else
 				{
@@ -359,7 +361,7 @@ void CHalfLifeMultiplay :: Think ( void )
 					}
 					else
 					{
-						SERVER_COMMAND("mp_teamplay 0\n");	
+						SERVER_COMMAND("mp_teamplay 0\n");
 						SERVER_COMMAND(UTIL_VarArgs("mp_gamemode %s\n", gamePlayModesShort[gameIndex]));
 					}
 				}
@@ -449,7 +451,7 @@ void CHalfLifeMultiplay :: Think ( void )
 
 				if (first < 0 && second < 0 && third < 0)
 				{
-					UTIL_ClientPrintAll(HUD_PRINTTALK, "[VOTE] Not enough votes received for mutators.");
+					UTIL_ClientPrintAll(HUD_PRINTTALK, "[VOTE] Not enough votes received for mutators.\n");
 				}
 				else
 				{
@@ -551,7 +553,7 @@ void CHalfLifeMultiplay :: Think ( void )
 				if (highest <= 0)
 				{
 					m_iDecidedMapIndex = -1;
-					UTIL_ClientPrintAll(HUD_PRINTTALK, "[VOTE] Not enough votes received for next map. Using mapcycle.txt.");
+					UTIL_ClientPrintAll(HUD_PRINTTALK, "[VOTE] Not enough votes received for next map. Using mapcycle.txt.\n");
 				}
 				else
 				{
@@ -723,6 +725,9 @@ void CHalfLifeMultiplay::LastManStanding( void )
 			//stop timer / end game.
 			m_flRoundTimeLimit = 0;
 			g_GameInProgress = FALSE;
+			MESSAGE_BEGIN(MSG_ALL, gmsgShowTimer);
+				WRITE_BYTE(0);
+			MESSAGE_END();
 
 			if ( clients_alive == 1 )
 			{
@@ -788,7 +793,18 @@ void CHalfLifeMultiplay::LastManStanding( void )
 		ALERT(at_console, "\n");
 
 		m_iCountDown = 3;
-		
+
+		if (roundtimelimit.value > 0)
+		{
+			MESSAGE_BEGIN(MSG_ALL, gmsgShowTimer);
+				WRITE_BYTE(1);
+			MESSAGE_END();
+
+			MESSAGE_BEGIN(MSG_ALL, gmsgRoundTime);
+				WRITE_SHORT(roundtimelimit.value * 60.0);
+			MESSAGE_END();
+		}
+
 		UTIL_ClientPrintAll(HUD_PRINTCENTER, "Last man standing has begun!\n");
 	}
 	else
@@ -826,6 +842,9 @@ void CHalfLifeMultiplay::Arena ( void )
 			//stop timer / end game.
 			m_flRoundTimeLimit = 0;
 			g_GameInProgress = FALSE;
+			MESSAGE_BEGIN(MSG_ALL, gmsgShowTimer);
+				WRITE_BYTE(0);
+			MESSAGE_END();
 
 			CheckRounds();
 
@@ -882,6 +901,7 @@ void CHalfLifeMultiplay::Arena ( void )
 
 					MESSAGE_BEGIN( MSG_ONE, gmsgStatusText, NULL, plr->edict() );
 						WRITE_BYTE( 0 );
+						WRITE_BYTE( ENTINDEX(plr->edict()) );
 						WRITE_STRING( message );
 					MESSAGE_END();
 				}
@@ -902,6 +922,9 @@ void CHalfLifeMultiplay::Arena ( void )
 					//stop timer / end game.
 					m_flRoundTimeLimit = 0;
 					g_GameInProgress = FALSE;
+					MESSAGE_BEGIN(MSG_ALL, gmsgShowTimer);
+						WRITE_BYTE(0);
+					MESSAGE_END();
 
 					UTIL_ClientPrintAll(HUD_PRINTCENTER, UTIL_VarArgs("%s is the victor!\n", STRING(plr->pev->netname)/*client_name*/ ));
 
@@ -1034,6 +1057,17 @@ void CHalfLifeMultiplay::Arena ( void )
 
 		m_iCountDown = 3;
 
+		if (roundtimelimit.value > 0)
+		{
+			MESSAGE_BEGIN(MSG_ALL, gmsgShowTimer);
+				WRITE_BYTE(1);
+			MESSAGE_END();
+
+			MESSAGE_BEGIN(MSG_ALL, gmsgRoundTime);
+				WRITE_SHORT(roundtimelimit.value * 60.0);
+			MESSAGE_END();
+		}
+
 		UTIL_ClientPrintAll(HUD_PRINTCENTER,
 			UTIL_VarArgs("Arena has begun!\n\n%s Vs. %s",
 			STRING(pPlayer1->pev->netname),
@@ -1106,7 +1140,8 @@ void CHalfLifeMultiplay::InsertClientsIntoArena ( void )
 			// Joining spectators do not get game mode message.
 			UpdateGameMode( plr );
 
-			MESSAGE_BEGIN(MSG_ONE, gmsgScoreInfo, NULL, plr->edict());
+			// Must be all, to reset frags.
+			MESSAGE_BEGIN(MSG_ALL, gmsgScoreInfo);
 				WRITE_BYTE( ENTINDEX(plr->edict()) );
 				if ( g_GameMode == GAME_LMS )
 					WRITE_SHORT( plr->pev->frags = startwithlives.value );
@@ -1211,6 +1246,9 @@ BOOL CHalfLifeMultiplay::CheckGameTimer( void )
 		}
 
 		g_GameInProgress = FALSE;
+		MESSAGE_BEGIN(MSG_ALL, gmsgShowTimer);
+			WRITE_BYTE(0);
+		MESSAGE_END();
 
 		flUpdateTime = gpGlobals->time + 5.0;
 		m_flRoundTimeLimit = 0;
@@ -1522,17 +1560,23 @@ void CHalfLifeMultiplay :: InitHUD( CBasePlayer *pl )
 			GETPLAYERUSERID( pl->edict() ) );
 	}
 
-	UpdateGameMode( pl );
-
-	char szMutators[64];
-	strncpy(szMutators, mutators.string, sizeof(szMutators));
-	MESSAGE_BEGIN( MSG_ALL, gmsgMutators );
-		WRITE_STRING(szMutators);
-	MESSAGE_END();
-
 	if (!FBitSet(pl->pev->flags, FL_FAKECLIENT))
 	{
-		if (!g_GameMode && !FBitSet(pl->pev->flags, FL_FAKECLIENT))
+		UpdateGameMode( pl );
+
+		// clear timer
+		MESSAGE_BEGIN(MSG_ONE, gmsgShowTimer, NULL, pl->edict());
+			WRITE_BYTE(0);
+		MESSAGE_END();
+
+		// Update mutators
+		char szMutators[64];
+		strncpy(szMutators, mutators.string, sizeof(szMutators));
+		MESSAGE_BEGIN( MSG_ONE, gmsgMutators, NULL, pl->edict() );
+			WRITE_STRING(szMutators);
+		MESSAGE_END();
+
+		if (!g_GameMode)
 		{
 			MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL, pl->edict());
 				WRITE_STRING("Frag 'em");
@@ -1985,33 +2029,6 @@ void CHalfLifeMultiplay :: PlayerKilled( CBasePlayer *pVictim, entvars_t *pKille
 	CBasePlayer *peKiller = NULL;
 	CBaseEntity *ktmp = CBaseEntity::Instance( pKiller );
 
-	if ( g_GameInProgress )
-	{
-		switch( g_GameMode )
-		{
-			case GAME_LMS:
-				pVictim->pev->frags -= 1;
-
-				if ( !pVictim->pev->frags ) {
-					UTIL_ClientPrintAll(HUD_PRINTTALK, UTIL_VarArgs("* %s has been eliminated from the round!\n", STRING(pVictim->pev->netname)));
-					MESSAGE_BEGIN( MSG_ONE_UNRELIABLE, gmsgPlayClientSound, NULL, pVictim->edict() );
-						WRITE_BYTE(CLIENT_SOUND_HULIMATING_DEAFEAT);
-					MESSAGE_END();
-				}
-				break;
-			case GAME_ARENA:
-				if (ktmp)
-				{
-					MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL, ktmp->edict());
-						WRITE_STRING(UTIL_VarArgs("Defeat: %s", STRING(pVictim->pev->netname)));
-						WRITE_STRING(UTIL_VarArgs("Frags to go: %d", int(roundfraglimit.value - ktmp->pev->frags)));
-						WRITE_BYTE((ktmp->pev->frags / roundfraglimit.value) * 100);
-					MESSAGE_END();
-				}
-				break;
-		}
-	}
-
 	pVictim->m_iDeaths += 1;
 
 
@@ -2073,6 +2090,37 @@ void CHalfLifeMultiplay :: PlayerKilled( CBasePlayer *pVictim, entvars_t *pKille
 	else
 	{  // killed by the world
 		pKiller->frags -= 1;
+	}
+
+	if ( g_GameInProgress )
+	{
+		switch( g_GameMode )
+		{
+			case GAME_LMS:
+				pVictim->pev->frags -= 1;
+
+				if ( !pVictim->pev->frags ) {
+					UTIL_ClientPrintAll(HUD_PRINTTALK, UTIL_VarArgs("* %s has been eliminated from the round!\n", STRING(pVictim->pev->netname)));
+					MESSAGE_BEGIN( MSG_ONE_UNRELIABLE, gmsgPlayClientSound, NULL, pVictim->edict() );
+						WRITE_BYTE(CLIENT_SOUND_HULIMATING_DEAFEAT);
+					MESSAGE_END();
+				}
+				break;
+			case GAME_ARENA:
+				if (ktmp)
+				{
+					int fragsToGo = int(roundfraglimit.value - ktmp->pev->frags);
+					MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL, ktmp->edict());
+						WRITE_STRING(UTIL_VarArgs("Defeat: %s", STRING(pVictim->pev->netname)));
+						if (fragsToGo >= 1)
+							WRITE_STRING(UTIL_VarArgs("Frags to go: %d", fragsToGo));
+						else
+							WRITE_STRING("You are the WINNER!");
+						WRITE_BYTE((ktmp->pev->frags / roundfraglimit.value) * 100);
+					MESSAGE_END();
+				}
+				break;
+		}
 	}
 
 	// update the scores

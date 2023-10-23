@@ -873,6 +873,10 @@ void CWorld :: SetGameMode( void )
 			// Set up starting information
 			switch (g_GameMode)
 			{
+			case GAME_TEAMPLAY:
+				CVAR_SET_STRING( "mp_teamplay", "1" );
+				break;
+
 			case GAME_ICEMAN:
 				CVAR_SET_STRING( "mp_teamlist", "jesus;santa" );
 				break;
@@ -886,19 +890,25 @@ void CWorld :: SetGameMode( void )
 				break;
 			}
 
-			sprintf(textfile, "modes/%s.txt", szGameModeList[i]);
-			CVAR_SET_STRING("motdfile", textfile);
+			if (g_GameMode != GAME_FFA)
+			{
+				sprintf(textfile, "modes/%s.txt", szGameModeList[i]);
+				CVAR_SET_STRING("motdfile", textfile);
+			}
+
+			if (g_GameMode != GAME_TEAMPLAY)
+				CVAR_SET_STRING( "mp_teamplay", "0" );
 		}
 	}
 
-	if ( g_GameMode == -1 )
+	if ( g_GameMode == -1 || g_GameMode == GAME_FFA ) // use set motdfile for deathmatch
 	{
-		g_GameMode = 0;
+		g_GameMode = GAME_FFA;
 		CVAR_SET_STRING( "motdfile", "motd.txt");
 		CVAR_SET_STRING( "mp_gamemode", "ffa" );
 	}
 
-	ALERT(at_console,"Gamemode set to %s\n", szGameModeList[g_GameMode]);
+	ALERT(at_console, "Gamemode set to %s\n", szGameModeList[g_GameMode]);
 }
 
 //

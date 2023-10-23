@@ -27,7 +27,11 @@
 extern int gmsgPlayClientSound;
 extern int gmsgStatusIcon;
 extern int gmsgTeamInfo;
+extern int gmsgTeamNames;
+extern int gmsgScoreInfo;
 extern int gmsgObjective;
+extern int gmsgShowTimer;
+extern int gmsgRoundTime;
 
 CHalfLifeJesusVsSanta::CHalfLifeJesusVsSanta()
 {
@@ -88,7 +92,7 @@ void CHalfLifeJesusVsSanta::Think( void )
 
 		MESSAGE_BEGIN(MSG_ALL, gmsgObjective, NULL);
 			WRITE_STRING(UTIL_VarArgs("Defeat %s as Jesus", STRING(pArmoredMan->pev->netname)));
-			WRITE_STRING(UTIL_VarArgs("Survivors remain: %d", clients_alive - 1));
+			WRITE_STRING(UTIL_VarArgs("Santas remain: %d", clients_alive - 1));
 			WRITE_BYTE(float(clients_alive - 1) / (m_iPlayersInGame - 1) * 100);
 		MESSAGE_END();
 
@@ -121,6 +125,10 @@ void CHalfLifeJesusVsSanta::Think( void )
 			//stop timer / end game.
 			m_flRoundTimeLimit = 0;
 			g_GameInProgress = FALSE;
+			MESSAGE_BEGIN(MSG_ALL, gmsgShowTimer);
+				WRITE_BYTE(0);
+			MESSAGE_END();
+
 			//hack to allow for logical code below.
 			if ( pArmoredMan->HasDisconnected )
 				pArmoredMan->pev->health = 0;
@@ -251,6 +259,24 @@ void CHalfLifeJesusVsSanta::Think( void )
 
 		m_iCountDown = 3;
 
+		if (roundtimelimit.value > 0)
+		{
+			MESSAGE_BEGIN(MSG_ALL, gmsgShowTimer);
+				WRITE_BYTE(1);
+			MESSAGE_END();
+
+			MESSAGE_BEGIN(MSG_ALL, gmsgRoundTime);
+				WRITE_SHORT(roundtimelimit.value * 60.0);
+			MESSAGE_END();
+		}
+
+		// Resend team info
+		MESSAGE_BEGIN( MSG_ALL, gmsgTeamNames );
+			WRITE_BYTE( 2 );
+			WRITE_STRING( "santa" );
+			WRITE_STRING( "jesus" );
+		MESSAGE_END();
+
 		UTIL_ClientPrintAll(HUD_PRINTCENTER, UTIL_VarArgs("Jesus vs Santa has begun!\n%s is Jesus!\n", STRING(pArmoredMan->pev->netname)));
 		UTIL_ClientPrintAll(HUD_PRINTTALK, UTIL_VarArgs("* %d players have entered the arena!\n", clients));
 	}
@@ -274,6 +300,12 @@ void CHalfLifeJesusVsSanta::InitHUD( CBasePlayer *pPlayer )
 			WRITE_STRING("Jesus vs Santa");
 			WRITE_STRING("");
 			WRITE_BYTE(0);
+		MESSAGE_END();
+
+		MESSAGE_BEGIN( MSG_ONE, gmsgTeamNames, NULL, pPlayer->edict() );
+			WRITE_BYTE( 2 );
+			WRITE_STRING( "santa" );
+			WRITE_STRING( "jesus" );
 		MESSAGE_END();
 	}
 }
@@ -354,6 +386,9 @@ BOOL CHalfLifeJesusVsSanta::CheckGameTimer( void )
 		}
 
 		g_GameInProgress = FALSE;
+		MESSAGE_BEGIN(MSG_ALL, gmsgShowTimer);
+			WRITE_BYTE(0);
+		MESSAGE_END();
 
 		flUpdateTime = gpGlobals->time + 5.0;
 		m_flRoundTimeLimit = 0;
@@ -365,39 +400,52 @@ BOOL CHalfLifeJesusVsSanta::CheckGameTimer( void )
 
 void CHalfLifeJesusVsSanta::ClientUserInfoChanged( CBasePlayer *pPlayer, char *infobuffer )
 {
-	// prevent skin/color/model changes
-	char *jesus = "jesus";
-	char *santa = "santa";
-	char *mdls = g_engfuncs.pfnInfoKeyValue( infobuffer, "model" );
-
-	if ( strcmp( mdls, jesus ) || strcmp( mdls, santa ) )
+	if ( pPlayer->IsArmoredMan )
 	{
-		if ( pPlayer->IsArmoredMan )
-		{
-			g_engfuncs.pfnSetClientKeyValue( ENTINDEX( pPlayer->edict() ),
-				g_engfuncs.pfnGetInfoKeyBuffer( pPlayer->edict() ), "model", jesus );
-			g_engfuncs.pfnSetClientKeyValue( ENTINDEX( pPlayer->edict() ),
-				g_engfuncs.pfnGetInfoKeyBuffer( pPlayer->edict() ), "team", jesus );
-			
-			strncpy( pPlayer->m_szTeamName, "jesus", TEAM_NAME_LENGTH );
-		}
-		else
-		{
-			g_engfuncs.pfnSetClientKeyValue( ENTINDEX( pPlayer->edict() ),
-				g_engfuncs.pfnGetInfoKeyBuffer( pPlayer->edict() ), "model", santa );
-			g_engfuncs.pfnSetClientKeyValue( ENTINDEX( pPlayer->edict() ),
-				g_engfuncs.pfnGetInfoKeyBuffer( pPlayer->edict() ), "team", santa );
-			strncpy( pPlayer->m_szTeamName, "santa", TEAM_NAME_LENGTH );
-		}
-
-		// notify everyone's HUD of the team change
-		MESSAGE_BEGIN( MSG_ALL, gmsgTeamInfo );
-			WRITE_BYTE( ENTINDEX(pPlayer->edict()) );
-			WRITE_STRING( pPlayer->m_szTeamName );
-		MESSAGE_END();
-
-		ClientPrint(pPlayer->pev, HUD_PRINTCONSOLE, "Models changed due to Jesus vs Santa!\n");
+		g_engfuncs.pfnSetClientKeyValue( ENTINDEX( pPlayer->edict() ),
+			g_engfuncs.pfnGetInfoKeyBuffer( pPlayer->edict() ), "model", "jesus" );
+		g_engfuncs.pfnSetClientKeyValue( ENTINDEX( pPlayer->edict() ),
+			g_engfuncs.pfnGetInfoKeyBuffer( pPlayer->edict() ), "team", "jesus" );
+		
+		strncpy( pPlayer->m_szTeamName, "jesus", TEAM_NAME_LENGTH );
 	}
+	else
+	{
+		g_engfuncs.pfnSetClientKeyValue( ENTINDEX( pPlayer->edict() ),
+			g_engfuncs.pfnGetInfoKeyBuffer( pPlayer->edict() ), "model", "santa" );
+		g_engfuncs.pfnSetClientKeyValue( ENTINDEX( pPlayer->edict() ),
+			g_engfuncs.pfnGetInfoKeyBuffer( pPlayer->edict() ), "team", "santa" );
+		strncpy( pPlayer->m_szTeamName, "santa", TEAM_NAME_LENGTH );
+	}
+
+	// notify everyone's HUD of the team change
+	MESSAGE_BEGIN( MSG_ALL, gmsgTeamInfo );
+		WRITE_BYTE( ENTINDEX(pPlayer->edict()) );
+		WRITE_STRING( pPlayer->IsSpectator() ? "" : pPlayer->m_szTeamName );
+	MESSAGE_END();
+
+	MESSAGE_BEGIN( MSG_ALL, gmsgScoreInfo );
+		WRITE_BYTE( ENTINDEX(pPlayer->edict()) );
+		WRITE_SHORT( pPlayer->pev->frags );
+		WRITE_SHORT( pPlayer->m_iDeaths );
+		WRITE_SHORT( 0 );
+		WRITE_SHORT( g_pGameRules->GetTeamIndex( pPlayer->m_szTeamName ) + 1 );
+	MESSAGE_END();
+}
+
+BOOL CHalfLifeJesusVsSanta::FPlayerCanTakeDamage( CBasePlayer *pPlayer, CBaseEntity *pAttacker )
+{
+	if ( pPlayer->pev->fuser4 == pAttacker->pev->fuser4 )
+	{
+		// my teammate hit me.
+		if ( (friendlyfire.value == 0) && (pAttacker != pPlayer) )
+		{
+			// friendly fire is off, and this hit came from someone other than myself,  then don't get hurt
+			return FALSE;
+		}
+	}
+
+	return CHalfLifeMultiplay::FPlayerCanTakeDamage( pPlayer, pAttacker );
 }
 
 void CHalfLifeJesusVsSanta::FPlayerTookDamage( float flDamage, CBasePlayer *pVictim, CBaseEntity *pKiller)
@@ -445,10 +493,6 @@ void CHalfLifeJesusVsSanta::PlayerSpawn( CBasePlayer *pPlayer )
 		g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer->edict()),
 			g_engfuncs.pfnGetInfoKeyBuffer(pPlayer->edict()), "team", "jesus");
 		strncpy( pPlayer->m_szTeamName, "jesus", TEAM_NAME_LENGTH );
-		MESSAGE_BEGIN( MSG_ALL, gmsgTeamInfo );
-			WRITE_BYTE( ENTINDEX(pPlayer->edict()) );
-			WRITE_STRING( pPlayer->m_szTeamName );
-		MESSAGE_END();
 	}
 	else
 	{
@@ -459,10 +503,6 @@ void CHalfLifeJesusVsSanta::PlayerSpawn( CBasePlayer *pPlayer )
 		g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer->edict()),
 			g_engfuncs.pfnGetInfoKeyBuffer(pPlayer->edict()), "team", "santa");
 		strncpy( pPlayer->m_szTeamName, "santa", TEAM_NAME_LENGTH );
-		MESSAGE_BEGIN( MSG_ALL, gmsgTeamInfo );
-			WRITE_BYTE( ENTINDEX(pPlayer->edict()) );
-			WRITE_STRING( pPlayer->m_szTeamName );
-		MESSAGE_END();
 	}
 }
 
@@ -513,4 +553,17 @@ BOOL CHalfLifeJesusVsSanta::CanHavePlayerItem( CBasePlayer *pPlayer, CBasePlayer
 		return FALSE;
 
 	return CHalfLifeMultiplay::CanHavePlayerItem( pPlayer, pItem );
+}
+
+int CHalfLifeJesusVsSanta::GetTeamIndex( const char *pTeamName )
+{
+	if ( pTeamName && *pTeamName != 0 )
+	{
+		if (!strcmp(pTeamName, "jesus"))
+			return 1;
+		else
+			return 0; // santa
+	}
+	
+	return -1;	// No match
 }
