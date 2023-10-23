@@ -86,7 +86,7 @@ int CHudTimer::Draw( float fTime )
     // Bar indicator
     int width = (gHUD.m_iFontHeight * 4) * percent;
     int difference = (gHUD.m_iFontHeight * 4) - width;
-	FillRGBA((x - gHUD.m_iFontHeight / 4) + (difference / 2), (y - gHUD.m_iFontHeight / 2) + gHUD.m_iFontHeight * 2, width, 1, r, g, b, 200);
+	FillRGBA((x - gHUD.m_iFontHeight / 4) + (difference / 2), (y - gHUD.m_iFontHeight / 2) + gHUD.m_iFontHeight * 2, width, 2, r, g, b, 200);
 
 	x = gHUD.DrawHudNumber(x + iWatchWidth / 4, y, DHN_2DIGITS | DHN_DRAWZERO | DHN_PADZERO, minutes, r, g, b);
 

@@ -57,8 +57,9 @@ void CHudStatusIcons::Reset( void )
 // Draw status icons along the left-hand side of the screen
 int CHudStatusIcons::Draw( float flTime )
 {
-	if (gEngfuncs.IsSpectateOnly())
+	if (gEngfuncs.IsSpectateOnly() || gHUD.m_iShowingWeaponMenu)
 		return 1;
+
 	// find starting position to draw from, along right-hand side of screen
 	int x = 12 + g_xP;
 	int y = (ScreenHeight / 1.5) + g_yP;
