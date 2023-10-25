@@ -83,9 +83,13 @@ void CHalfLifeChilldemic::Think( void )
 				{
 					//for clients who connected while game in progress.
 					if ( plr->IsSpectator() )
-						ClientPrint(plr->pev, HUD_PRINTCENTER,
-							UTIL_VarArgs("Chilldemic in progress\nSurvivors left: %d\n", m_iSurvivorsRemain));
-					else {
+					{
+						MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL, plr->edict());
+							WRITE_STRING("Chilldemic in progress");
+							WRITE_STRING(UTIL_VarArgs("Survivors left: %d", m_iSurvivorsRemain));
+							WRITE_BYTE(float(m_iSurvivorsRemain) / (m_iPlayersInGame) * 100);
+						MESSAGE_END();
+					} else {
 						// Send them to observer
 						plr->m_flForceToObserverTime = gpGlobals->time;
 					}
@@ -157,8 +161,9 @@ void CHalfLifeChilldemic::Think( void )
 								{
 									MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL, plr->edict());
 										WRITE_STRING("Virus eradicated!");
-										WRITE_STRING("Survivors win!");
+										WRITE_STRING("");
 										WRITE_BYTE(0);
+										WRITE_STRING("Survivors win!");
 									MESSAGE_END();
 								}
 							}
@@ -177,7 +182,7 @@ void CHalfLifeChilldemic::Think( void )
 
 				if ( plr && plr->IsPlayer() && !plr->HasDisconnected && plr->pev->fuser4 > 0 )
 				{
-					if (!FBitSet(plr->pev->flags, FL_FAKECLIENT))
+					if (!FBitSet(plr->pev->flags, FL_FAKECLIENT) && !plr->IsSpectator())
 					{
 						MESSAGE_BEGIN( MSG_ONE, gmsgStatusIcon, NULL, plr->pev );
 							WRITE_BYTE(1);
@@ -192,7 +197,7 @@ void CHalfLifeChilldemic::Think( void )
 		}
 
 		// Survivors dead or skeletons defeated
-		if ( survivors_left < 1 || (skeletons_left < 1 && survivors_left <= 1) )
+		if ( survivors_left < 1 || skeletons_left < 1 )
 		{
 			//stop timer / end game.
 			m_flRoundTimeLimit = 0;
@@ -268,7 +273,7 @@ void CHalfLifeChilldemic::Think( void )
 				else
 				{
 					UTIL_ClientPrintAll(HUD_PRINTCENTER, "Survivors have been defeated!\n");
-					UTIL_ClientPrintAll(HUD_PRINTTALK, "* No winners in this round!");
+					UTIL_ClientPrintAll(HUD_PRINTTALK, "* Round ends in a tie!");
 					MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
 						WRITE_BYTE(CLIENT_SOUND_HULIMATING_DEAFEAT);
 					MESSAGE_END();
@@ -316,7 +321,7 @@ void CHalfLifeChilldemic::Think( void )
 				else
 				{
 					UTIL_ClientPrintAll(HUD_PRINTCENTER, "Skeletons have been defeated!\n");
-					UTIL_ClientPrintAll(HUD_PRINTTALK, "* No winners in this round!");
+					UTIL_ClientPrintAll(HUD_PRINTTALK, "* Round ends in a tie!");
 					MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
 						WRITE_BYTE(CLIENT_SOUND_HULIMATING_DEAFEAT);
 					MESSAGE_END();
@@ -327,7 +332,7 @@ void CHalfLifeChilldemic::Think( void )
 			return;
 		}
 
-		flUpdateTime = gpGlobals->time + 1.0;
+		flUpdateTime = gpGlobals->time + 3.0;
 		return;
 	}
 
@@ -391,7 +396,12 @@ void CHalfLifeChilldemic::Think( void )
 	{
 		SuckAllToSpectator();
 		m_flRoundTimeLimit = 0;
-		UTIL_ClientPrintAll(HUD_PRINTCENTER, "Waiting for other players to begin\n\n'Chilldemic'\n");
+		MESSAGE_BEGIN(MSG_ALL, gmsgObjective);
+			WRITE_STRING("Chilldemic");
+			WRITE_STRING("Waiting for other players");
+			WRITE_BYTE(0);
+			WRITE_STRING(UTIL_VarArgs("%d Rounds", (int)roundlimit.value));
+		MESSAGE_END();
 	}
 
 	flUpdateTime = gpGlobals->time + 1.0;
@@ -486,7 +496,7 @@ BOOL CHalfLifeChilldemic::CheckGameTimer( void )
 		else
 		{
 			UTIL_ClientPrintAll(HUD_PRINTCENTER, "Time is up!\nNo one has won!\n");
-			UTIL_ClientPrintAll(HUD_PRINTTALK, "* No winners in this round!");
+			UTIL_ClientPrintAll(HUD_PRINTTALK, "* Round ends in a tie!");
 			MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
 				WRITE_BYTE(CLIENT_SOUND_HULIMATING_DEAFEAT);
 			MESSAGE_END();
@@ -574,6 +584,7 @@ void CHalfLifeChilldemic::PlayerSpawn( CBasePlayer *pPlayer )
 	if ( pPlayer->pev->fuser4 > 0 )
 	{
 		pPlayer->RemoveAllItems(FALSE);
+		pPlayer->GiveNamedItem("weapon_vest");
 		pPlayer->GiveNamedItem("weapon_chainsaw");
 		pPlayer->pev->max_health = pPlayer->pev->health = 50;
 		pPlayer->pev->maxspeed = CVAR_GET_FLOAT("sv_maxspeed");
@@ -601,7 +612,7 @@ void CHalfLifeChilldemic::PlayerSpawn( CBasePlayer *pPlayer )
 BOOL CHalfLifeChilldemic::FPlayerCanRespawn( CBasePlayer *pPlayer )
 {
 	// Skeletons can respawn if a survivor is left.
-	if ( pPlayer->pev->fuser4 > 0 && m_iSurvivorsRemain >= 1)
+	if ( pPlayer->pev->fuser4 > 0 && m_iSurvivorsRemain >= 1 && !pPlayer->m_flForceToObserverTime )
 		return TRUE;
 
 	if ( !pPlayer->m_flForceToObserverTime )
@@ -658,7 +669,13 @@ void CHalfLifeChilldemic::PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller
 	{
 		// Special case, last survivor, dispatched skeletons sent to observer.
 		if (m_iSurvivorsRemain <= 1)
-			pVictim->m_flForceToObserverTime = gpGlobals->time;
+		{
+			pVictim->m_flForceToObserverTime = gpGlobals->time + 2.0;
+			MESSAGE_BEGIN( MSG_ONE, gmsgStatusIcon, NULL, pVictim->pev );
+				WRITE_BYTE(0);
+				WRITE_STRING("skeleton");
+			MESSAGE_END();
+		}
 	}
 }
 

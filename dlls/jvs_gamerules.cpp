@@ -77,12 +77,16 @@ void CHalfLifeJesusVsSanta::Think( void )
 				{
 					//for clients who connected while game in progress.
 					if ( plr->IsSpectator() )
-						ClientPrint(plr->pev, HUD_PRINTCENTER,
-							UTIL_VarArgs("Jesus vs Santa in progress\nJesus: %s (%.0f/%.0f)\n",
+					{
+						MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL, plr->edict());
+							WRITE_STRING("Jesus vs Santa in progress");
+							WRITE_STRING(UTIL_VarArgs("Jesus: %s (%.0f/%.0f)\n",
 								STRING(pArmoredMan->pev->netname),
 								pArmoredMan->pev->health,
 								pArmoredMan->pev->armorvalue ));
-					else {
+							WRITE_BYTE((pArmoredMan->pev->health / pArmoredMan->pev->max_health) * 100);
+						MESSAGE_END();
+					} else {
 						// Send them to observer
 						plr->m_flForceToObserverTime = gpGlobals->time;
 					}
@@ -90,19 +94,34 @@ void CHalfLifeJesusVsSanta::Think( void )
 			}
 		}
 
-		MESSAGE_BEGIN(MSG_ALL, gmsgObjective, NULL);
-			WRITE_STRING(UTIL_VarArgs("Defeat %s as Jesus", STRING(pArmoredMan->pev->netname)));
-			WRITE_STRING(UTIL_VarArgs("Santas remain: %d", clients_alive - 1));
-			WRITE_BYTE(float(clients_alive - 1) / (m_iPlayersInGame - 1) * 100);
-		MESSAGE_END();
-
-		if (pArmoredMan && !FBitSet(pArmoredMan->pev->flags, FL_FAKECLIENT))
+		for ( int i = 1; i <= gpGlobals->maxClients; i++ )
 		{
-			MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL, pArmoredMan->edict());
-				WRITE_STRING("Defeat all Santas");
-				WRITE_STRING(UTIL_VarArgs("Santas alive: %d", clients_alive - 1));
-				WRITE_BYTE(float(clients_alive - 1) / (m_iPlayersInGame - 1) * 100);
-			MESSAGE_END();
+			CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
+			if ( plr && plr->IsPlayer() && !plr->HasDisconnected && !FBitSet(plr->pev->flags, FL_FAKECLIENT))
+			{
+				if (pArmoredMan && plr == pArmoredMan)
+				{
+					if ((clients_alive - 1) >= 1)
+					{
+						MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL, plr->edict());
+							WRITE_STRING("Defeat all Santas");
+							WRITE_STRING(UTIL_VarArgs("Santas alive: %d", clients_alive - 1));
+							WRITE_BYTE(float(clients_alive - 1) / (m_iPlayersInGame - 1) * 100);
+						MESSAGE_END();
+					}
+				}
+				else
+				{
+					if ((clients_alive - 1) >= 1)
+					{
+						MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL, plr->edict());
+							WRITE_STRING(UTIL_VarArgs("Defeat %s as Jesus", STRING(pArmoredMan->pev->netname)));
+							WRITE_STRING(UTIL_VarArgs("Santas remain: %d", clients_alive - 1));
+							WRITE_BYTE(float(clients_alive - 1) / (m_iPlayersInGame - 1) * 100);
+						MESSAGE_END();
+					}
+				}
+			}
 		}
 
 		if (m_fSendArmoredManMessage < gpGlobals->time)
@@ -146,6 +165,12 @@ void CHalfLifeJesusVsSanta::Think( void )
 			{
 				UTIL_ClientPrintAll(HUD_PRINTCENTER, UTIL_VarArgs("%s has defeated all Santas!\n", STRING(pArmoredMan->pev->netname) ));
 
+				MESSAGE_BEGIN(MSG_ALL, gmsgObjective);
+					WRITE_STRING("Jesus has saved!");
+					WRITE_STRING("All Santas Defeated!");
+					WRITE_BYTE(0);
+				MESSAGE_END();
+
 				CheckRounds();
 
 				DisplayWinnersGoods( pArmoredMan );
@@ -156,6 +181,12 @@ void CHalfLifeJesusVsSanta::Think( void )
 			//the man has been killed.
 			else if ( !pArmoredMan->IsAlive() )
 			{
+				MESSAGE_BEGIN(MSG_ALL, gmsgObjective);
+					WRITE_STRING("Santas win!");
+					WRITE_STRING("Time to buy presents.");
+					WRITE_BYTE(0);
+				MESSAGE_END();
+
 				//find highest damage amount.
 				float highest = 1;
 				BOOL IsEqual = FALSE;
@@ -195,7 +226,7 @@ void CHalfLifeJesusVsSanta::Think( void )
 				else
 				{
 					UTIL_ClientPrintAll(HUD_PRINTCENTER, "Jesus has been destroyed!\n");
-					UTIL_ClientPrintAll(HUD_PRINTTALK, "* No winners in this round!");
+					UTIL_ClientPrintAll(HUD_PRINTTALK, "* Round ends in a tie!");
 					MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
 						WRITE_BYTE(CLIENT_SOUND_HULIMATING_DEAFEAT);
 					MESSAGE_END();
@@ -216,7 +247,7 @@ void CHalfLifeJesusVsSanta::Think( void )
 			return;
 		}
 
-		flUpdateTime = gpGlobals->time + 1.5;
+		flUpdateTime = gpGlobals->time + 3.0;
 		return;
 	}
 
@@ -248,12 +279,11 @@ void CHalfLifeJesusVsSanta::Think( void )
 		ALERT(at_console, "clients set to %d, armor man set to index=%d\n", clients, armoredman);
 		pArmoredMan = (CBasePlayer *)UTIL_PlayerByIndex( armoredman );
 		pArmoredMan->IsArmoredMan = TRUE;
+		pArmoredMan->pev->fuser4 = 1;
 
 		g_GameInProgress = TRUE;
 
 		InsertClientsIntoArena();
-
-		pArmoredMan->pev->fuser4 = 1;
 
 		m_fSendArmoredManMessage = gpGlobals->time + 1.0;
 
@@ -284,10 +314,15 @@ void CHalfLifeJesusVsSanta::Think( void )
 	{
 		SuckAllToSpectator();
 		m_flRoundTimeLimit = 0;
-		UTIL_ClientPrintAll(HUD_PRINTCENTER, "Waiting for other players to begin\n\n'Jesus vs Santa'\n");
+		MESSAGE_BEGIN(MSG_ALL, gmsgObjective);
+			WRITE_STRING("Jesus vs Santa");
+			WRITE_STRING("Waiting for other players");
+			WRITE_BYTE(0);
+			WRITE_STRING(UTIL_VarArgs("%d Rounds", (int)roundlimit.value));
+		MESSAGE_END();
 	}
 
-	flUpdateTime = gpGlobals->time + 1.5;
+	flUpdateTime = gpGlobals->time + 1.0;
 }
 
 void CHalfLifeJesusVsSanta::InitHUD( CBasePlayer *pPlayer )
@@ -379,7 +414,7 @@ BOOL CHalfLifeJesusVsSanta::CheckGameTimer( void )
 		else
 		{
 			UTIL_ClientPrintAll(HUD_PRINTCENTER, "Time is up!\nNo one has won!\n");
-			UTIL_ClientPrintAll(HUD_PRINTTALK, "* No winners in this round!");
+			UTIL_ClientPrintAll(HUD_PRINTTALK, "* Round ends in a tie!");
 			MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
 				WRITE_BYTE(CLIENT_SOUND_HULIMATING_DEAFEAT);
 			MESSAGE_END();
@@ -402,19 +437,14 @@ void CHalfLifeJesusVsSanta::ClientUserInfoChanged( CBasePlayer *pPlayer, char *i
 {
 	if ( pPlayer->IsArmoredMan )
 	{
-		g_engfuncs.pfnSetClientKeyValue( ENTINDEX( pPlayer->edict() ),
-			g_engfuncs.pfnGetInfoKeyBuffer( pPlayer->edict() ), "model", "jesus" );
-		g_engfuncs.pfnSetClientKeyValue( ENTINDEX( pPlayer->edict() ),
-			g_engfuncs.pfnGetInfoKeyBuffer( pPlayer->edict() ), "team", "jesus" );
-		
+		g_engfuncs.pfnSetClientKeyValue( ENTINDEX( pPlayer->edict() ), infobuffer, "model", "jesus" );
+		g_engfuncs.pfnSetClientKeyValue( ENTINDEX( pPlayer->edict() ), infobuffer, "team", "jesus" );
 		strncpy( pPlayer->m_szTeamName, "jesus", TEAM_NAME_LENGTH );
 	}
 	else
 	{
-		g_engfuncs.pfnSetClientKeyValue( ENTINDEX( pPlayer->edict() ),
-			g_engfuncs.pfnGetInfoKeyBuffer( pPlayer->edict() ), "model", "santa" );
-		g_engfuncs.pfnSetClientKeyValue( ENTINDEX( pPlayer->edict() ),
-			g_engfuncs.pfnGetInfoKeyBuffer( pPlayer->edict() ), "team", "santa" );
+		g_engfuncs.pfnSetClientKeyValue( ENTINDEX( pPlayer->edict() ), infobuffer, "model", "santa" );
+		g_engfuncs.pfnSetClientKeyValue( ENTINDEX( pPlayer->edict() ), infobuffer, "team", "santa" );
 		strncpy( pPlayer->m_szTeamName, "santa", TEAM_NAME_LENGTH );
 	}
 

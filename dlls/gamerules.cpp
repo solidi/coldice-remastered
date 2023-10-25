@@ -854,7 +854,8 @@ void CGameRules::CheckMutators(void)
 					atoi(mutators.string) == MUTATOR_MEGASPEED))
 					g_engfuncs.pfnSetPhysicsKeyValue(pPlayer->edict(), "haste", "1");
 				else if (((CBasePlayer *)pPlayer)->m_fHasRune != RUNE_HASTE &&
-						 !((CBasePlayer *)pPlayer)->IsArmoredMan)
+						 !((CBasePlayer *)pPlayer)->IsArmoredMan &&
+						 ((CBasePlayer *)pPlayer)->pev->fuser4 != 1)
 					g_engfuncs.pfnSetPhysicsKeyValue(pPlayer->edict(), "haste", "0");
 
 				GiveMutators(pl);
