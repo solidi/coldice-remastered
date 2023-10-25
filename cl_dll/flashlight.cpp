@@ -101,6 +101,10 @@ int CHudFlashlight::Draw(float flTime)
 	if ( gHUD.m_iHideHUDDisplay & ( HIDEHUD_FLASHLIGHT | HIDEHUD_ALL ) )
 		return 1;
 
+	// No spectator
+	if (g_iUser1)
+		return 1;
+
 	int r, g, b, x, y, a;
 	wrect_t rc;
 

@@ -33,12 +33,6 @@ int CHudTimer::Draw( float fTime )
 	if (!cl_objectives->value)
 		return 1;
 
-	if ((gHUD.m_iHideHUDDisplay & HIDEHUD_HEALTH))
-		return 1;
-
-	if (!(gHUD.m_iWeaponBits & (1<<(WEAPON_SUIT))))
-		return 1;
-
 	if (gHUD.m_WallClimb.m_iFlags & HUD_ACTIVE)
 		return 1;
 
@@ -71,26 +65,27 @@ int CHudTimer::Draw( float fTime )
 		UnpackRGB(r, g, b, m_bPanicColorChange ? HudColor() : RGB_REDISH);
 	}
 
-	ScaleColors(r, g, b, MIN_ALPHA);
+	//ScaleColors(r, g, b, MIN_ALPHA);
 
-	int iWatchWidth = 0;// gHUD.GetSpriteRect(m_HUD_timer).right - gHUD.GetSpriteRect(m_HUD_timer).left;
+	int iWatchWidth = 0;
 
 	int x = ScreenWidth / 2 - ((gHUD.m_iFontHeight * 4) / 2);
-	int y = 28; //ScreenHeight - 1.5 * gHUD.m_iFontHeight;
+	int y = 28;
 
-	//SPR_Set(gHUD.GetSprite(m_HUD_timer), r, g, b);
-	//SPR_DrawAdditive(0, x, y, &gHUD.GetSpriteRect(m_HUD_timer));
+	// Shift for spectators
+	if (g_iUser1)
+		y += 54;
 
 	FillRGBA(x - gHUD.m_iFontHeight / 4, y - gHUD.m_iFontHeight / 2, gHUD.m_iFontHeight * 4, gHUD.m_iFontHeight * 2, r, g, b, 20);
 	
-    // Bar indicator
-    int width = (gHUD.m_iFontHeight * 4) * percent;
-    int difference = (gHUD.m_iFontHeight * 4) - width;
+	// Bar indicator
+	int width = (gHUD.m_iFontHeight * 4) * percent;
+	int difference = (gHUD.m_iFontHeight * 4) - width;
 	FillRGBA((x - gHUD.m_iFontHeight / 4) + (difference / 2), (y - gHUD.m_iFontHeight / 2) + gHUD.m_iFontHeight * 2, width, 2, r, g, b, 200);
 
 	x = gHUD.DrawHudNumber(x + iWatchWidth / 4, y, DHN_2DIGITS | DHN_DRAWZERO | DHN_PADZERO, minutes, r, g, b);
 
-    // Colon
+	// Colon
 	FillRGBA(x + iWatchWidth / 4, y + gHUD.m_iFontHeight / 4, 2, 2, r, g, b, 100);
 	FillRGBA(x + iWatchWidth / 4, y + gHUD.m_iFontHeight - gHUD.m_iFontHeight / 4, 2, 2, r, g, b, 100);
 
