@@ -171,24 +171,43 @@ void CHalfLifeGunGame::Think( void )
 
 			if ( plr && plr->IsPlayer() && !plr->HasDisconnected )
 			{
-				plr->DisplayHudMessage(UTIL_VarArgs("Round %d of %d\nYour Level: %d | Top Level: %d", 
-					m_iSuccessfulRounds+1, (int)roundlimit.value, (int)plr->pev->fuser4, m_iTopLevel),
-					TXT_CHANNEL_GAME_INFO, -1, 0.83, 255, 255, 255, 0, 0, 0, 60, 0);
-				
-				int result = ((plr->pev->fuser4 + 1) / MAXLEVEL) * 100;
-
-				if (!FBitSet(plr->pev->flags, FL_FAKECLIENT))
+				if (plr->IsSpectator())
 				{
-					MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL, plr->edict());
-						WRITE_STRING("Get through your weapon list");
-						WRITE_STRING(UTIL_VarArgs("Your progress: %d of %d", (int)plr->pev->fuser4 + 1, MAXLEVEL));
-						WRITE_BYTE(result);
-						//if (plr->m_iRoundWins > 0)
-						//	WRITE_STRING(UTIL_VarArgs("Won %d rounds: %d to go", plr->m_iRoundWins, (int)roundlimit.value - m_iSuccessfulRounds));
-						//else
-						// WRITE_STRING(UTIL_VarArgs("Round %d: %d to go", m_iSuccessfulRounds + 1, (int)roundlimit.value - 1));
-						// WRITE_STRING(UTIL_VarArgs("Next weapon: %s", g_WeaponId[(int)plr->pev->fuser4 + 1]));
-					MESSAGE_END();
+					if (!FBitSet(plr->pev->flags, FL_FAKECLIENT))
+					{
+						int result = ((m_iTopLevel + 1) / MAXLEVEL) * 100;
+						MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL, plr->edict());
+							WRITE_STRING("GunGame in progress");
+							WRITE_STRING(UTIL_VarArgs("Top level is %s [%d of %d]", g_WeaponId[m_iTopLevel], m_iTopLevel + 1, MAXLEVEL));
+							WRITE_BYTE(result);
+							WRITE_STRING(UTIL_VarArgs("Round %d of %d", m_iSuccessfulRounds+1, (int)roundlimit.value));
+						MESSAGE_END();
+					}
+				}
+				else
+				{
+					/*
+					plr->DisplayHudMessage(UTIL_VarArgs("Round %d of %d\nYour Level: %d | Top Level: %d", 
+						m_iSuccessfulRounds+1, (int)roundlimit.value, (int)plr->pev->fuser4, m_iTopLevel),
+						TXT_CHANNEL_GAME_INFO, -1, 0.83, 255, 255, 255, 0, 0, 0, 60, 0);
+					*/
+					
+					int result = ((plr->pev->fuser4 + 1) / MAXLEVEL) * 100;
+
+					if (!FBitSet(plr->pev->flags, FL_FAKECLIENT))
+					{
+						MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL, plr->edict());
+							WRITE_STRING("Get through your weapon list");
+							WRITE_STRING(UTIL_VarArgs("Your progress: %d of %d", (int)plr->pev->fuser4 + 1, MAXLEVEL));
+							WRITE_BYTE(result);
+							WRITE_STRING(UTIL_VarArgs("Next is %s", g_WeaponId[(int)plr->pev->fuser4+1]));
+							//if (plr->m_iRoundWins > 0)
+							//	WRITE_STRING(UTIL_VarArgs("Won %d rounds: %d to go", plr->m_iRoundWins, (int)roundlimit.value - m_iSuccessfulRounds));
+							//else
+							// WRITE_STRING(UTIL_VarArgs("Round %d: %d to go", m_iSuccessfulRounds + 1, (int)roundlimit.value - 1));
+							// WRITE_STRING(UTIL_VarArgs("Next weapon: %s", g_WeaponId[(int)plr->pev->fuser4 + 1]));
+						MESSAGE_END();
+					}
 				}
 			}
 		}
@@ -326,9 +345,17 @@ int CHalfLifeGunGame::IPointsForKill( CBasePlayer *pAttacker, CBasePlayer *pKill
 								if (plr->IsAlive())
 									plr->RemoveAllItems(FALSE);
 
+								/*
 								plr->DisplayHudMessage(UTIL_VarArgs("Winner of Round %d is %s!\n", 
 									m_iSuccessfulRounds, STRING(pAttacker->pev->netname)),
 									TXT_CHANNEL_GAME_INFO, -1, 0.83, 255, 255, 255, 0, 0, 0, 60, 0);
+								*/
+								MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL, plr->edict());
+									WRITE_STRING("Round complete");
+									WRITE_STRING("");
+									WRITE_BYTE(0);
+									WRITE_STRING(UTIL_VarArgs("Winner of round %d is %s!\n", m_iSuccessfulRounds, STRING(pAttacker->pev->netname)));
+								MESSAGE_END();
 							}
 						}
 

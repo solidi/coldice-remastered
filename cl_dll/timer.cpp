@@ -42,6 +42,9 @@ int CHudTimer::Draw( float fTime )
 	if (gViewPort->IsScoreBoardVisible())
 		return 1;
 
+	if (gHUD.m_Health.m_iHealth <= 0)
+		return 1;
+
 	int r, g, b;
 	// time must be positive
 	int minutes = fmax( 0, (int)( m_iTime + m_fStartTime - gHUD.m_flTime ) / 60);

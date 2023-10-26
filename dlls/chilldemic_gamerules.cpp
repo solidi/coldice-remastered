@@ -132,8 +132,9 @@ void CHalfLifeChilldemic::Think( void )
 							{
 								MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL, plr->edict());
 									WRITE_STRING("Virus completed!");
-									WRITE_STRING("Skeletons win!");
+									WRITE_STRING("");
 									WRITE_BYTE(0);
+									WRITE_STRING(UTIL_VarArgs("Skeletons win round %d of %d!", m_iSuccessfulRounds+1, (int)roundlimit.value));
 								MESSAGE_END();
 							}
 						}
@@ -163,7 +164,7 @@ void CHalfLifeChilldemic::Think( void )
 										WRITE_STRING("Virus eradicated!");
 										WRITE_STRING("");
 										WRITE_BYTE(0);
-										WRITE_STRING("Survivors win!");
+										WRITE_STRING(UTIL_VarArgs("Survivors win round %d of %d!", m_iSuccessfulRounds+1, (int)roundlimit.value));
 									MESSAGE_END();
 								}
 							}
@@ -227,6 +228,12 @@ void CHalfLifeChilldemic::Think( void )
 			{
 				UTIL_ClientPrintAll(HUD_PRINTCENTER, "Everyone has been killed!\n");
 				UTIL_ClientPrintAll(HUD_PRINTTALK, "* No winners in this round!");
+				MESSAGE_BEGIN(MSG_ALL, gmsgObjective);
+					WRITE_STRING("Everyone died!");
+					WRITE_STRING("");
+					WRITE_BYTE(0);
+					WRITE_STRING("No winners in this round!");
+				MESSAGE_END();
 				MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
 					WRITE_BYTE(CLIENT_SOUND_HULIMATING_DEAFEAT);
 				MESSAGE_END();
@@ -250,9 +257,10 @@ void CHalfLifeChilldemic::Think( void )
 							if ( highballer && highest == plr->pev->frags )
 							{
 								IsEqual = TRUE;
-								break;
+								continue;
 							}
 
+							IsEqual = FALSE;
 							highest = plr->pev->frags;
 							highballer = plr;
 						}
@@ -298,9 +306,10 @@ void CHalfLifeChilldemic::Think( void )
 							if ( highballer && highest == plr->pev->frags )
 							{
 								IsEqual = TRUE;
-								break;
+								continue;
 							}
 
+							IsEqual = FALSE;
 							highest = plr->pev->frags;
 							highballer = plr;
 						}
@@ -472,9 +481,10 @@ BOOL CHalfLifeChilldemic::CheckGameTimer( void )
 					if ( highballer && highest == plr->pev->frags )
 					{
 						IsEqual = TRUE;
-						break;
+						continue;
 					}
 
+					IsEqual = FALSE;
 					highest = plr->pev->frags;
 					highballer = plr;
 				}
@@ -487,6 +497,12 @@ BOOL CHalfLifeChilldemic::CheckGameTimer( void )
 			UTIL_ClientPrintAll(HUD_PRINTCENTER, 
 				UTIL_VarArgs("Time is up!\n\nSurvivor %s doled the most frags!\n",
 				STRING(highballer->pev->netname)));
+			MESSAGE_BEGIN(MSG_ALL, gmsgObjective);
+				WRITE_STRING("Time is up!");
+				WRITE_STRING("");
+				WRITE_BYTE(0);
+				WRITE_STRING(UTIL_VarArgs("%s doled the most frags!\n", STRING(highballer->pev->netname)));
+			MESSAGE_END();
 			DisplayWinnersGoods( highballer );
 
 			MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
@@ -497,6 +513,12 @@ BOOL CHalfLifeChilldemic::CheckGameTimer( void )
 		{
 			UTIL_ClientPrintAll(HUD_PRINTCENTER, "Time is up!\nNo one has won!\n");
 			UTIL_ClientPrintAll(HUD_PRINTTALK, "* Round ends in a tie!");
+			MESSAGE_BEGIN(MSG_ALL, gmsgObjective);
+				WRITE_STRING("Time is up!");
+				WRITE_STRING("");
+				WRITE_BYTE(0);
+				WRITE_STRING("No one has won!");
+			MESSAGE_END();
 			MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
 				WRITE_BYTE(CLIENT_SOUND_HULIMATING_DEAFEAT);
 			MESSAGE_END();
@@ -513,39 +535,6 @@ BOOL CHalfLifeChilldemic::CheckGameTimer( void )
 	}
 
 	return FALSE;
-}
-
-void CHalfLifeChilldemic::ClientUserInfoChanged( CBasePlayer *pPlayer, char *infobuffer )
-{
-	if ( pPlayer->pev->fuser4 > 0 )
-	{
-		g_engfuncs.pfnSetClientKeyValue( ENTINDEX( pPlayer->edict() ),
-			g_engfuncs.pfnGetInfoKeyBuffer( pPlayer->edict() ), "model", "skeleton" );
-		g_engfuncs.pfnSetClientKeyValue( ENTINDEX( pPlayer->edict() ),
-			g_engfuncs.pfnGetInfoKeyBuffer( pPlayer->edict() ), "team", "skeleton" );
-		
-		strncpy( pPlayer->m_szTeamName, "skeleton", TEAM_NAME_LENGTH );
-	}
-	else
-	{
-		g_engfuncs.pfnSetClientKeyValue( ENTINDEX( pPlayer->edict() ),
-			g_engfuncs.pfnGetInfoKeyBuffer( pPlayer->edict() ), "team", "survivors" );
-		strncpy( pPlayer->m_szTeamName, "survivors", TEAM_NAME_LENGTH );
-	}
-
-	// notify everyone's HUD of the team change
-	MESSAGE_BEGIN( MSG_ALL, gmsgTeamInfo );
-		WRITE_BYTE( ENTINDEX(pPlayer->edict()) );
-		WRITE_STRING( pPlayer->IsSpectator() ? "" : pPlayer->m_szTeamName );
-	MESSAGE_END();
-
-	MESSAGE_BEGIN( MSG_ALL, gmsgScoreInfo );
-		WRITE_BYTE( ENTINDEX(pPlayer->edict()) );
-		WRITE_SHORT( pPlayer->pev->frags );
-		WRITE_SHORT( pPlayer->m_iDeaths );
-		WRITE_SHORT( 0 );
-		WRITE_SHORT( g_pGameRules->GetTeamIndex( pPlayer->m_szTeamName ) + 1 );
-	MESSAGE_END();
 }
 
 BOOL CHalfLifeChilldemic::FPlayerCanTakeDamage( CBasePlayer *pPlayer, CBaseEntity *pAttacker )
@@ -589,9 +578,10 @@ void CHalfLifeChilldemic::PlayerSpawn( CBasePlayer *pPlayer )
 		pPlayer->pev->max_health = pPlayer->pev->health = 50;
 		pPlayer->pev->maxspeed = CVAR_GET_FLOAT("sv_maxspeed");
 		g_engfuncs.pfnSetPhysicsKeyValue(pPlayer->edict(), "haste", "1");
+
+		strncpy( pPlayer->m_szTeamName, "skeleton", TEAM_NAME_LENGTH );
 		g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer->edict()), key, "model", "skeleton");
 		g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer->edict()), key, "team", "skeleton");
-		strncpy( pPlayer->m_szTeamName, "skeleton", TEAM_NAME_LENGTH );
 	}
 	else
 	{
@@ -603,10 +593,25 @@ void CHalfLifeChilldemic::PlayerSpawn( CBasePlayer *pPlayer )
 			strcpy(modelName, defaultPlayerModels[RANDOM_LONG(0,3)]);
 		pPlayer->GiveRandomWeapon("weapon_nuke");
 		pPlayer->pev->maxspeed = CVAR_GET_FLOAT("sv_maxspeed") * .5;
+
+		strncpy( pPlayer->m_szTeamName, "survivors", TEAM_NAME_LENGTH );
 		g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer->edict()), key, "model", modelName);
 		g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer->edict()), key, "team", "survivors");
-		strncpy( pPlayer->m_szTeamName, "survivors", TEAM_NAME_LENGTH );
 	}
+
+	// notify everyone's HUD of the team change
+	MESSAGE_BEGIN( MSG_ALL, gmsgTeamInfo );
+		WRITE_BYTE( ENTINDEX(pPlayer->edict()) );
+		WRITE_STRING( pPlayer->m_szTeamName );
+	MESSAGE_END();
+
+	MESSAGE_BEGIN( MSG_ALL, gmsgScoreInfo );
+		WRITE_BYTE( ENTINDEX(pPlayer->edict()) );
+		WRITE_SHORT( pPlayer->pev->frags );
+		WRITE_SHORT( pPlayer->m_iDeaths );
+		WRITE_SHORT( 0 );
+		WRITE_SHORT( g_pGameRules->GetTeamIndex( pPlayer->m_szTeamName ) + 1 );
+	MESSAGE_END();
 }
 
 BOOL CHalfLifeChilldemic::FPlayerCanRespawn( CBasePlayer *pPlayer )

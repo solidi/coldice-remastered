@@ -166,9 +166,10 @@ void CHalfLifeJesusVsSanta::Think( void )
 				UTIL_ClientPrintAll(HUD_PRINTCENTER, UTIL_VarArgs("%s has defeated all Santas!\n", STRING(pArmoredMan->pev->netname) ));
 
 				MESSAGE_BEGIN(MSG_ALL, gmsgObjective);
-					WRITE_STRING("Jesus has saved!");
-					WRITE_STRING("All Santas Defeated!");
+					WRITE_STRING("Jesus remains!");
+					WRITE_STRING("");
 					WRITE_BYTE(0);
+					WRITE_STRING(UTIL_VarArgs("Jesus saves in round %d of %d!", m_iSuccessfulRounds+1, (int)roundlimit.value));
 				MESSAGE_END();
 
 				CheckRounds();
@@ -182,9 +183,10 @@ void CHalfLifeJesusVsSanta::Think( void )
 			else if ( !pArmoredMan->IsAlive() )
 			{
 				MESSAGE_BEGIN(MSG_ALL, gmsgObjective);
-					WRITE_STRING("Santas win!");
-					WRITE_STRING("Time to buy presents.");
+					WRITE_STRING("Time to buy presents!");
+					WRITE_STRING("");
 					WRITE_BYTE(0);
+					WRITE_STRING(UTIL_VarArgs("Santas win round %d of %d!", m_iSuccessfulRounds+1, (int)roundlimit.value));
 				MESSAGE_END();
 
 				//find highest damage amount.
@@ -200,12 +202,13 @@ void CHalfLifeJesusVsSanta::Think( void )
 					{
 						if ( highest <= plr->m_fArmoredManHits )
 						{
-							if ( highest == plr->m_fArmoredManHits )
+							if ( highballer && highest == plr->m_fArmoredManHits )
 							{
 								IsEqual = TRUE;
-								break;
+								continue;
 							}
 
+							IsEqual = FALSE;
 							highest = plr->m_fArmoredManHits;
 							highballer = plr;
 						}
@@ -387,12 +390,13 @@ BOOL CHalfLifeJesusVsSanta::CheckGameTimer( void )
 			{
 				if ( highest <= plr->m_fArmoredManHits )
 				{
-					if ( highest == plr->m_fArmoredManHits )
+					if ( highballer && highest == plr->m_fArmoredManHits )
 					{
 						IsEqual = TRUE;
-						break;
+						continue;
 					}
 
+					IsEqual = FALSE;
 					highest = plr->m_fArmoredManHits;
 					highballer = plr;
 				}
@@ -405,6 +409,12 @@ BOOL CHalfLifeJesusVsSanta::CheckGameTimer( void )
 			UTIL_ClientPrintAll(HUD_PRINTCENTER, 
 				UTIL_VarArgs("Time is up!\n\n%s doled the most damage!\n",
 				STRING(highballer->pev->netname)));
+			MESSAGE_BEGIN(MSG_ALL, gmsgObjective);
+				WRITE_STRING("Time is up!");
+				WRITE_STRING("");
+				WRITE_BYTE(0);
+				WRITE_STRING(UTIL_VarArgs("%s doled the most damage!", STRING(highballer->pev->netname)));
+			MESSAGE_END();
 			DisplayWinnersGoods( highballer );
 
 			MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
@@ -415,6 +425,12 @@ BOOL CHalfLifeJesusVsSanta::CheckGameTimer( void )
 		{
 			UTIL_ClientPrintAll(HUD_PRINTCENTER, "Time is up!\nNo one has won!\n");
 			UTIL_ClientPrintAll(HUD_PRINTTALK, "* Round ends in a tie!");
+			MESSAGE_BEGIN(MSG_ALL, gmsgObjective);
+				WRITE_STRING("Time is up!");
+				WRITE_STRING("");
+				WRITE_BYTE(0);
+				WRITE_STRING("Round ends in a tie!");
+			MESSAGE_END();
 			MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
 				WRITE_BYTE(CLIENT_SOUND_HULIMATING_DEAFEAT);
 			MESSAGE_END();
@@ -431,36 +447,6 @@ BOOL CHalfLifeJesusVsSanta::CheckGameTimer( void )
 	}
 
 	return FALSE;
-}
-
-void CHalfLifeJesusVsSanta::ClientUserInfoChanged( CBasePlayer *pPlayer, char *infobuffer )
-{
-	if ( pPlayer->IsArmoredMan )
-	{
-		g_engfuncs.pfnSetClientKeyValue( ENTINDEX( pPlayer->edict() ), infobuffer, "model", "jesus" );
-		g_engfuncs.pfnSetClientKeyValue( ENTINDEX( pPlayer->edict() ), infobuffer, "team", "jesus" );
-		strncpy( pPlayer->m_szTeamName, "jesus", TEAM_NAME_LENGTH );
-	}
-	else
-	{
-		g_engfuncs.pfnSetClientKeyValue( ENTINDEX( pPlayer->edict() ), infobuffer, "model", "santa" );
-		g_engfuncs.pfnSetClientKeyValue( ENTINDEX( pPlayer->edict() ), infobuffer, "team", "santa" );
-		strncpy( pPlayer->m_szTeamName, "santa", TEAM_NAME_LENGTH );
-	}
-
-	// notify everyone's HUD of the team change
-	MESSAGE_BEGIN( MSG_ALL, gmsgTeamInfo );
-		WRITE_BYTE( ENTINDEX(pPlayer->edict()) );
-		WRITE_STRING( pPlayer->IsSpectator() ? "" : pPlayer->m_szTeamName );
-	MESSAGE_END();
-
-	MESSAGE_BEGIN( MSG_ALL, gmsgScoreInfo );
-		WRITE_BYTE( ENTINDEX(pPlayer->edict()) );
-		WRITE_SHORT( pPlayer->pev->frags );
-		WRITE_SHORT( pPlayer->m_iDeaths );
-		WRITE_SHORT( 0 );
-		WRITE_SHORT( g_pGameRules->GetTeamIndex( pPlayer->m_szTeamName ) + 1 );
-	MESSAGE_END();
 }
 
 BOOL CHalfLifeJesusVsSanta::FPlayerCanTakeDamage( CBasePlayer *pPlayer, CBaseEntity *pAttacker )
@@ -518,22 +504,36 @@ void CHalfLifeJesusVsSanta::PlayerSpawn( CBasePlayer *pPlayer )
 		pPlayer->pev->maxspeed = CVAR_GET_FLOAT("sv_maxspeed");
 		g_engfuncs.pfnSetPhysicsKeyValue(pPlayer->edict(), "haste", "1");
 		pPlayer->GiveNamedItem("rune_cloak");
+		strncpy( pPlayer->m_szTeamName, "jesus", TEAM_NAME_LENGTH );
 		g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer->edict()),
 			g_engfuncs.pfnGetInfoKeyBuffer(pPlayer->edict()), "model", "jesus");
 		g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer->edict()),
 			g_engfuncs.pfnGetInfoKeyBuffer(pPlayer->edict()), "team", "jesus");
-		strncpy( pPlayer->m_szTeamName, "jesus", TEAM_NAME_LENGTH );
 	}
 	else
 	{
 		pPlayer->GiveRandomWeapon("weapon_nuke");
 		pPlayer->pev->maxspeed = CVAR_GET_FLOAT("sv_maxspeed") * .5;
+		strncpy( pPlayer->m_szTeamName, "santa", TEAM_NAME_LENGTH );
 		g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer->edict()),
 			g_engfuncs.pfnGetInfoKeyBuffer(pPlayer->edict()), "model", "santa");
 		g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer->edict()),
 			g_engfuncs.pfnGetInfoKeyBuffer(pPlayer->edict()), "team", "santa");
-		strncpy( pPlayer->m_szTeamName, "santa", TEAM_NAME_LENGTH );
 	}
+
+	// notify everyone's HUD of the team change
+	MESSAGE_BEGIN( MSG_ALL, gmsgTeamInfo );
+		WRITE_BYTE( ENTINDEX(pPlayer->edict()) );
+		WRITE_STRING( pPlayer->m_szTeamName );
+	MESSAGE_END();
+
+	MESSAGE_BEGIN( MSG_ALL, gmsgScoreInfo );
+		WRITE_BYTE( ENTINDEX(pPlayer->edict()) );
+		WRITE_SHORT( pPlayer->pev->frags );
+		WRITE_SHORT( pPlayer->m_iDeaths );
+		WRITE_SHORT( 0 );
+		WRITE_SHORT( g_pGameRules->GetTeamIndex( pPlayer->m_szTeamName ) + 1 );
+	MESSAGE_END();
 }
 
 BOOL CHalfLifeJesusVsSanta::FPlayerCanRespawn( CBasePlayer *pPlayer )
