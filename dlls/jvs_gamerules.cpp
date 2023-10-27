@@ -45,6 +45,12 @@ void CHalfLifeJesusVsSanta::Think( void )
 	if ( flUpdateTime > gpGlobals->time )
 		return;
 
+	CheckRounds();
+
+	// No loop during intermission
+	if ( m_flIntermissionEndTime )
+		return;
+
 	if ( m_flRoundTimeLimit )
 	{
 		if ( CheckGameTimer() )
@@ -172,8 +178,6 @@ void CHalfLifeJesusVsSanta::Think( void )
 					WRITE_STRING(UTIL_VarArgs("Jesus saves in round %d of %d!", m_iSuccessfulRounds+1, (int)roundlimit.value));
 				MESSAGE_END();
 
-				CheckRounds();
-
 				DisplayWinnersGoods( pArmoredMan );
 				MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
 					WRITE_BYTE(CLIENT_SOUND_KILLINGMACHINE);
@@ -217,7 +221,6 @@ void CHalfLifeJesusVsSanta::Think( void )
 
 				if ( !IsEqual && highballer )
 				{
-					CheckRounds();
 					UTIL_ClientPrintAll(HUD_PRINTCENTER,
 						UTIL_VarArgs("Jesus has been destroyed!\n\n%s doled the most damage!\n",
 						STRING(highballer->pev->netname)));
@@ -246,6 +249,7 @@ void CHalfLifeJesusVsSanta::Think( void )
 				MESSAGE_END();
 			}
 
+			m_iSuccessfulRounds++;
 			flUpdateTime = gpGlobals->time + 5.0;
 			return;
 		}
@@ -405,7 +409,6 @@ BOOL CHalfLifeJesusVsSanta::CheckGameTimer( void )
 
 		if ( !IsEqual && highballer )
 		{
-			CheckRounds();
 			UTIL_ClientPrintAll(HUD_PRINTCENTER, 
 				UTIL_VarArgs("Time is up!\n\n%s doled the most damage!\n",
 				STRING(highballer->pev->netname)));
@@ -441,6 +444,7 @@ BOOL CHalfLifeJesusVsSanta::CheckGameTimer( void )
 			WRITE_BYTE(0);
 		MESSAGE_END();
 
+		m_iSuccessfulRounds++;
 		flUpdateTime = gpGlobals->time + 5.0;
 		m_flRoundTimeLimit = 0;
 		return TRUE;

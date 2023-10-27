@@ -46,6 +46,12 @@ void CHalfLifeChilldemic::Think( void )
 	if ( flUpdateTime > gpGlobals->time )
 		return;
 
+	CheckRounds();
+
+	// No loop during intermission
+	if ( m_flIntermissionEndTime )
+		return;
+
 	if ( m_flRoundTimeLimit )
 	{
 		if ( CheckGameTimer() )
@@ -269,7 +275,6 @@ void CHalfLifeChilldemic::Think( void )
 
 				if ( !IsEqual && highballer )
 				{
-					CheckRounds();
 					UTIL_ClientPrintAll(HUD_PRINTCENTER,
 						UTIL_VarArgs("Survivors have been defeated!\n\n%s doled the most kills!\n",
 						STRING(highballer->pev->netname)));
@@ -318,7 +323,6 @@ void CHalfLifeChilldemic::Think( void )
 
 				if ( !IsEqual && highballer )
 				{
-					CheckRounds();
 					UTIL_ClientPrintAll(HUD_PRINTCENTER,
 						UTIL_VarArgs("Skeletons have been defeated!\n\n%s doled the most kills!\n",
 						STRING(highballer->pev->netname)));
@@ -337,6 +341,7 @@ void CHalfLifeChilldemic::Think( void )
 				}
 			}
 
+			m_iSuccessfulRounds++;
 			flUpdateTime = gpGlobals->time + 5.0;
 			return;
 		}
@@ -493,7 +498,6 @@ BOOL CHalfLifeChilldemic::CheckGameTimer( void )
 
 		if ( !IsEqual && highballer )
 		{
-			CheckRounds();
 			UTIL_ClientPrintAll(HUD_PRINTCENTER, 
 				UTIL_VarArgs("Time is up!\n\nSurvivor %s doled the most frags!\n",
 				STRING(highballer->pev->netname)));
@@ -529,6 +533,7 @@ BOOL CHalfLifeChilldemic::CheckGameTimer( void )
 			WRITE_BYTE(0);
 		MESSAGE_END();
 
+		m_iSuccessfulRounds++;
 		flUpdateTime = gpGlobals->time + 5.0;
 		m_flRoundTimeLimit = 0;
 		return TRUE;

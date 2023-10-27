@@ -109,8 +109,12 @@ void CHalfLifeGunGame::Think( void )
 
 	g_VoiceGameMgr.Update(gpGlobals->frametime);
 
-	g_pGameRules->CheckMutators();
-	g_pGameRules->CheckGameMode();
+	// No checks during intermission
+	if ( !m_flIntermissionEndTime )
+	{
+		g_pGameRules->CheckMutators();
+		g_pGameRules->CheckGameMode();
+	}
 
 	if ( g_fGameOver )
 	{

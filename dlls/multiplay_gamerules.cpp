@@ -282,8 +282,12 @@ void CHalfLifeMultiplay :: Think ( void )
 {
 	g_VoiceGameMgr.Update(gpGlobals->frametime);
 
-	g_pGameRules->CheckMutators();
-	g_pGameRules->CheckGameMode();
+	// No checks during intermission
+	if ( !m_flIntermissionEndTime )
+	{
+		g_pGameRules->CheckMutators();
+		g_pGameRules->CheckGameMode();
+	}
 
 	///// Check game rules /////
 	static int last_frags;
@@ -658,6 +662,12 @@ void CHalfLifeMultiplay::LastManStanding( void )
 	if ( flUpdateTime > gpGlobals->time )
 		return;
 
+	CheckRounds();
+
+	// No loop during intermission
+	if ( m_flIntermissionEndTime )
+		return;
+
 	if ( m_flRoundTimeLimit )
 	{
 		if ( CheckGameTimer() )
@@ -746,8 +756,6 @@ void CHalfLifeMultiplay::LastManStanding( void )
 			{
 				UTIL_ClientPrintAll(HUD_PRINTCENTER, UTIL_VarArgs("%s\nis the last man standing!\n", client_name ));
 
-				CheckRounds();
-
 				CBasePlayer *pl = (CBasePlayer *)UTIL_PlayerByIndex( client_index );
 				MESSAGE_BEGIN( MSG_ONE_UNRELIABLE, gmsgPlayClientSound, NULL, pl->edict() );
 					WRITE_BYTE(CLIENT_SOUND_LMS);
@@ -759,6 +767,7 @@ void CHalfLifeMultiplay::LastManStanding( void )
 				UTIL_ClientPrintAll(HUD_PRINTCENTER, "No man is left standing!\n");
 			}
 
+			m_iSuccessfulRounds++;
 			flUpdateTime = gpGlobals->time + 5.0;
 			return;
 		}
@@ -843,6 +852,12 @@ void CHalfLifeMultiplay::Arena ( void )
 	if ( flUpdateTime > gpGlobals->time )
 		return;
 
+	CheckRounds();
+
+	// No loop during intermission
+	if ( m_flIntermissionEndTime )
+		return;
+
 	if ( m_flRoundTimeLimit )
 	{
 		if ( CheckGameTimer() )
@@ -864,8 +879,6 @@ void CHalfLifeMultiplay::Arena ( void )
 			MESSAGE_BEGIN(MSG_ALL, gmsgShowTimer);
 				WRITE_BYTE(0);
 			MESSAGE_END();
-
-			CheckRounds();
 
 			if (pPlayer1->HasDisconnected && pPlayer1->HasDisconnected)
 			{
@@ -911,6 +924,7 @@ void CHalfLifeMultiplay::Arena ( void )
 				}
 			}
 
+			m_iSuccessfulRounds++;
 			flUpdateTime = gpGlobals->time + 5.0;
 			return;
 		}
@@ -964,12 +978,12 @@ void CHalfLifeMultiplay::Arena ( void )
 						WRITE_STRING(UTIL_VarArgs("%s is the victor!\n", STRING(plr->pev->netname)));
 					MESSAGE_END();
 
-					CheckRounds();
-
 					DisplayWinnersGoods( plr );
 					MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
 						WRITE_BYTE(CLIENT_SOUND_OUTSTANDING);
 					MESSAGE_END();
+
+					m_iSuccessfulRounds++;
 					flUpdateTime = gpGlobals->time + 5.0;
 					return;
 				}
@@ -1269,7 +1283,6 @@ BOOL CHalfLifeMultiplay::CheckGameTimer( void )
 
 		if ( !IsEqual && highballer )
 		{
-			CheckRounds();
 			DisplayWinnersGoods( highballer );
 			UTIL_ClientPrintAll(HUD_PRINTCENTER,
 				UTIL_VarArgs("Time is Up: %s is the Victor!\n", STRING(highballer->pev->netname)));
@@ -1307,6 +1320,7 @@ BOOL CHalfLifeMultiplay::CheckGameTimer( void )
 			WRITE_BYTE(0);
 		MESSAGE_END();
 
+		m_iSuccessfulRounds++;
 		flUpdateTime = gpGlobals->time + 5.0;
 		m_flRoundTimeLimit = 0;
 		return TRUE;
@@ -1332,8 +1346,6 @@ void CHalfLifeMultiplay::SetRoundLimits( void )
 
 void CHalfLifeMultiplay::CheckRounds( void )
 {
-	m_iSuccessfulRounds++;
-
 	if ( CVAR_GET_FLOAT("mp_roundlimit") > 0 )
 	{
 		ALERT( at_notice, UTIL_VarArgs("SuccessfulRounds = %i\n", m_iSuccessfulRounds ));
