@@ -2255,15 +2255,15 @@ void TeamFortressViewport::CreateSpectatorMenu()
 // Recalculate any menus that use it.
 void TeamFortressViewport::UpdateOnPlayerInfo()
 {
-	if (m_pTeamMenu)
-		m_pTeamMenu->Update();
-	if (m_pClassMenu)
-		m_pClassMenu->Update();
-	if (m_pVoteGameplayMenu)
+	//if (m_pTeamMenu)
+	//	m_pTeamMenu->Update();
+	//if (m_pClassMenu)
+	//	m_pClassMenu->Update();
+	if (m_pVoteGameplayMenu && m_pVoteGameplayMenu->isVisible())
 		m_pVoteGameplayMenu->Update();
-	if (m_pVoteMapMenu)
+	if (m_pVoteMapMenu && m_pVoteMapMenu->isVisible())
 		m_pVoteMapMenu->Update();
-	if (m_pVoteMutatorMenu)
+	if (m_pVoteMutatorMenu && m_pVoteMutatorMenu->isVisible())
 		m_pVoteMutatorMenu->Update();
 	if (m_pScoreBoard)
 		m_pScoreBoard->Update();

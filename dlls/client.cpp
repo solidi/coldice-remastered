@@ -372,7 +372,7 @@ void MajorityVote(edict_t *pEntity, const char *text)
 	static int m_iNeedsVotes = 0;
 	static int m_iVotes[32];
 
-	if (strcmp(text, "vote"))
+	if (strstr(text, "vote"))
 	{
 		// Start vote, capture player count for majority count
 		if (m_fVoteTime < gpGlobals->time)
