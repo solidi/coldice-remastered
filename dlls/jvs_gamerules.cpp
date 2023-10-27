@@ -78,7 +78,7 @@ void CHalfLifeJesusVsSanta::Think( void )
 					//for clients who connected while game in progress.
 					if ( plr->IsSpectator() )
 					{
-						MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL, plr->edict());
+						MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, plr->edict());
 							WRITE_STRING("Jesus vs Santa in progress");
 							WRITE_STRING(UTIL_VarArgs("Jesus: %s (%.0f/%.0f)\n",
 								STRING(pArmoredMan->pev->netname),
@@ -103,7 +103,7 @@ void CHalfLifeJesusVsSanta::Think( void )
 				{
 					if ((clients_alive - 1) >= 1)
 					{
-						MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL, plr->edict());
+						MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, plr->edict());
 							WRITE_STRING("Defeat all Santas");
 							WRITE_STRING(UTIL_VarArgs("Santas alive: %d", clients_alive - 1));
 							WRITE_BYTE(float(clients_alive - 1) / (m_iPlayersInGame - 1) * 100);
@@ -114,7 +114,7 @@ void CHalfLifeJesusVsSanta::Think( void )
 				{
 					if ((clients_alive - 1) >= 1)
 					{
-						MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL, plr->edict());
+						MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, plr->edict());
 							WRITE_STRING(UTIL_VarArgs("Defeat %s as Jesus", STRING(pArmoredMan->pev->netname)));
 							WRITE_STRING(UTIL_VarArgs("Santas remain: %d", clients_alive - 1));
 							WRITE_BYTE(float(clients_alive - 1) / (m_iPlayersInGame - 1) * 100);
@@ -165,7 +165,7 @@ void CHalfLifeJesusVsSanta::Think( void )
 			{
 				UTIL_ClientPrintAll(HUD_PRINTCENTER, UTIL_VarArgs("%s has defeated all Santas!\n", STRING(pArmoredMan->pev->netname) ));
 
-				MESSAGE_BEGIN(MSG_ALL, gmsgObjective);
+				MESSAGE_BEGIN(MSG_BROADCAST, gmsgObjective);
 					WRITE_STRING("Jesus remains!");
 					WRITE_STRING("");
 					WRITE_BYTE(0);
@@ -182,7 +182,7 @@ void CHalfLifeJesusVsSanta::Think( void )
 			//the man has been killed.
 			else if ( !pArmoredMan->IsAlive() )
 			{
-				MESSAGE_BEGIN(MSG_ALL, gmsgObjective);
+				MESSAGE_BEGIN(MSG_BROADCAST, gmsgObjective);
 					WRITE_STRING("Time to buy presents!");
 					WRITE_STRING("");
 					WRITE_BYTE(0);
@@ -317,7 +317,7 @@ void CHalfLifeJesusVsSanta::Think( void )
 	{
 		SuckAllToSpectator();
 		m_flRoundTimeLimit = 0;
-		MESSAGE_BEGIN(MSG_ALL, gmsgObjective);
+		MESSAGE_BEGIN(MSG_BROADCAST, gmsgObjective);
 			WRITE_STRING("Jesus vs Santa");
 			WRITE_STRING("Waiting for other players");
 			WRITE_BYTE(0);
@@ -334,13 +334,13 @@ void CHalfLifeJesusVsSanta::InitHUD( CBasePlayer *pPlayer )
 
 	if (!FBitSet(pPlayer->pev->flags, FL_FAKECLIENT))
 	{
-		MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL, pPlayer->edict());
+		MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, pPlayer->edict());
 			WRITE_STRING("Jesus vs Santa");
 			WRITE_STRING("");
 			WRITE_BYTE(0);
 		MESSAGE_END();
 
-		MESSAGE_BEGIN( MSG_ONE, gmsgTeamNames, NULL, pPlayer->edict() );
+		MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgTeamNames, NULL, pPlayer->edict());
 			WRITE_BYTE( 2 );
 			WRITE_STRING( "santa" );
 			WRITE_STRING( "jesus" );
@@ -409,7 +409,7 @@ BOOL CHalfLifeJesusVsSanta::CheckGameTimer( void )
 			UTIL_ClientPrintAll(HUD_PRINTCENTER, 
 				UTIL_VarArgs("Time is up!\n\n%s doled the most damage!\n",
 				STRING(highballer->pev->netname)));
-			MESSAGE_BEGIN(MSG_ALL, gmsgObjective);
+			MESSAGE_BEGIN(MSG_BROADCAST, gmsgObjective);
 				WRITE_STRING("Time is up!");
 				WRITE_STRING("");
 				WRITE_BYTE(0);
@@ -425,7 +425,7 @@ BOOL CHalfLifeJesusVsSanta::CheckGameTimer( void )
 		{
 			UTIL_ClientPrintAll(HUD_PRINTCENTER, "Time is up!\nNo one has won!\n");
 			UTIL_ClientPrintAll(HUD_PRINTTALK, "* Round ends in a tie!");
-			MESSAGE_BEGIN(MSG_ALL, gmsgObjective);
+			MESSAGE_BEGIN(MSG_BROADCAST, gmsgObjective);
 				WRITE_STRING("Time is up!");
 				WRITE_STRING("");
 				WRITE_BYTE(0);

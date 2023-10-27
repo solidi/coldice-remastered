@@ -48,7 +48,7 @@ void CHalfLifeCaptureTheChumtoad::Think( void )
 		edict_t *pChumtoad = NULL;
 		BOOL foundToad = FALSE;
 
-		MESSAGE_BEGIN(MSG_ALL, gmsgObjective, NULL);
+		MESSAGE_BEGIN(MSG_BROADCAST, gmsgObjective);
 			WRITE_STRING("Get the chumtoad");
 			if (m_pHolder)
 				WRITE_STRING(m_fChumtoadInPlay ? UTIL_VarArgs("%s has it!", STRING(m_pHolder->pev->netname)) : "The chumtoad is free");
@@ -153,7 +153,7 @@ void CHalfLifeCaptureTheChumtoad::InitHUD( CBasePlayer *pPlayer )
 
 	if (!FBitSet(pPlayer->pev->flags, FL_FAKECLIENT))
 	{
-		MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL, pPlayer->edict());
+		MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, pPlayer->edict());
 			WRITE_STRING("Capture the chumtoad");
 			WRITE_STRING("");
 			WRITE_BYTE(0);
@@ -291,7 +291,7 @@ void CHalfLifeCaptureTheChumtoad::PlayerThink( CBasePlayer *pPlayer )
 					UTIL_ClientPrintAll(HUD_PRINTTALK, "[CtC]: %s has scored a point!\n", 
 						STRING(pPlayer->pev->netname));
 
-					MESSAGE_BEGIN( MSG_ONE, gmsgPlayClientSound, NULL, pPlayer->edict() );
+					MESSAGE_BEGIN( MSG_ONE_UNRELIABLE, gmsgPlayClientSound, NULL, pPlayer->edict() );
 					switch (RANDOM_LONG(1,6))
 					{
 						case 1: WRITE_BYTE(CLIENT_SOUND_WHICKEDSICK); break;

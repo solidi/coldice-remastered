@@ -630,7 +630,7 @@ void Vote( CBasePlayer *pPlayer, int vote )
 
 			g_pGameRules->m_iVoteCount[pPlayer->entindex()-1] = vote;
 
-			MESSAGE_BEGIN(MSG_ONE, gmsgPlayClientSound, NULL, pPlayer->edict());
+			MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgPlayClientSound, NULL, pPlayer->edict());
 				WRITE_BYTE(CLIENT_SOUND_GREATJOB);
 			MESSAGE_END();
 

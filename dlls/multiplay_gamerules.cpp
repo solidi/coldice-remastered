@@ -716,7 +716,7 @@ void CHalfLifeMultiplay::LastManStanding( void )
 
 		if (clients_alive > 1)
 		{
-			MESSAGE_BEGIN(MSG_ALL, gmsgObjective, NULL);
+			MESSAGE_BEGIN(MSG_BROADCAST, gmsgObjective);
 				WRITE_STRING("Last man standing");
 				WRITE_STRING(UTIL_VarArgs("Players alive: %d", clients_alive));
 				WRITE_BYTE(float(clients_alive) / (m_iPlayersInGame) * 100);
@@ -724,7 +724,7 @@ void CHalfLifeMultiplay::LastManStanding( void )
 		} 
 		else
 		{
-			MESSAGE_BEGIN(MSG_ALL, gmsgObjective, NULL);
+			MESSAGE_BEGIN(MSG_BROADCAST, gmsgObjective);
 				WRITE_STRING("Last man standing");
 				WRITE_STRING("");
 				WRITE_BYTE(0);
@@ -823,7 +823,7 @@ void CHalfLifeMultiplay::LastManStanding( void )
 	else
 	{
 		SuckAllToSpectator();
-		MESSAGE_BEGIN(MSG_ALL, gmsgObjective);
+		MESSAGE_BEGIN(MSG_BROADCAST, gmsgObjective);
 			WRITE_STRING("Battle Royale");
 			WRITE_STRING("Waiting for other players");
 			WRITE_BYTE(0);
@@ -882,7 +882,7 @@ void CHalfLifeMultiplay::Arena ( void )
 					UTIL_ClientPrintAll(HUD_PRINTCENTER,
 						UTIL_VarArgs("%s is the victor!\n",
 						STRING(pPlayer2->pev->netname)));
-					MESSAGE_BEGIN(MSG_ALL, gmsgObjective, NULL);
+					MESSAGE_BEGIN(MSG_BROADCAST, gmsgObjective);
 						WRITE_STRING("Arena");
 						WRITE_STRING("");
 						WRITE_BYTE(0);
@@ -898,7 +898,7 @@ void CHalfLifeMultiplay::Arena ( void )
 					UTIL_ClientPrintAll(HUD_PRINTCENTER,
 						UTIL_VarArgs("%s is the victor!\n",
 						STRING(pPlayer1->pev->netname)));
-					MESSAGE_BEGIN(MSG_ALL, gmsgObjective, NULL);
+					MESSAGE_BEGIN(MSG_BROADCAST, gmsgObjective);
 						WRITE_STRING("Arena");
 						WRITE_STRING("");
 						WRITE_BYTE(0);
@@ -957,7 +957,7 @@ void CHalfLifeMultiplay::Arena ( void )
 						WRITE_BYTE(0);
 					MESSAGE_END();
 
-					MESSAGE_BEGIN(MSG_ALL, gmsgObjective );
+					MESSAGE_BEGIN(MSG_BROADCAST, gmsgObjective );
 						WRITE_STRING("Arena finished");
 						WRITE_STRING("");
 						WRITE_BYTE(0);
@@ -978,7 +978,7 @@ void CHalfLifeMultiplay::Arena ( void )
 					//for clients who connected while game in progress.
 					if ( plr->IsSpectator() )
 					{
-						MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL, plr->edict() );
+						MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, plr->edict() );
 							WRITE_STRING("Arena in progress");
 							WRITE_STRING(UTIL_VarArgs("%s (%.0f/%.0f) vs. %s (%.0f/%.0f)\n",
 							STRING(pPlayer1->pev->netname),
@@ -1115,7 +1115,7 @@ void CHalfLifeMultiplay::Arena ( void )
 
 		if (!FBitSet(pPlayer1->pev->flags, FL_FAKECLIENT))
 		{
-			MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL, pPlayer1->edict());
+			MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, pPlayer1->edict());
 				WRITE_STRING(UTIL_VarArgs("Defeat %s", STRING(pPlayer2->pev->netname)));
 				WRITE_STRING(UTIL_VarArgs("Frags to go: %d", int(roundfraglimit.value - pPlayer1->pev->frags)));
 				WRITE_BYTE(0);
@@ -1124,7 +1124,7 @@ void CHalfLifeMultiplay::Arena ( void )
 
 		if (!FBitSet(pPlayer2->pev->flags, FL_FAKECLIENT))
 		{
-			MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL, pPlayer2->edict());
+			MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, pPlayer2->edict());
 				WRITE_STRING(UTIL_VarArgs("Defeat %s", STRING(pPlayer1->pev->netname)));
 				WRITE_STRING(UTIL_VarArgs("Frags to go: %d", int(roundfraglimit.value - pPlayer2->pev->frags)));
 				WRITE_BYTE(0);
@@ -1134,7 +1134,7 @@ void CHalfLifeMultiplay::Arena ( void )
 	else
 	{
 		SuckAllToSpectator();
-		MESSAGE_BEGIN(MSG_ALL, gmsgObjective);
+		MESSAGE_BEGIN(MSG_BROADCAST, gmsgObjective);
 			WRITE_STRING("Arena");
 			WRITE_STRING("Waiting for other players");
 			WRITE_BYTE(0);
@@ -1199,7 +1199,7 @@ void CHalfLifeMultiplay::InsertClientsIntoArena ( void )
 				WRITE_SHORT( GetTeamIndex( plr->m_szTeamName ) + 1 );
 			MESSAGE_END();
 
-			MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL, plr->edict() );
+			MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, plr->edict() );
 				WRITE_STRING("");
 				WRITE_STRING("");
 				WRITE_BYTE(0);
@@ -1274,7 +1274,7 @@ BOOL CHalfLifeMultiplay::CheckGameTimer( void )
 			UTIL_ClientPrintAll(HUD_PRINTCENTER,
 				UTIL_VarArgs("Time is Up: %s is the Victor!\n", STRING(highballer->pev->netname)));
 
-			MESSAGE_BEGIN(MSG_ALL, gmsgObjective);
+			MESSAGE_BEGIN(MSG_BROADCAST, gmsgObjective);
 				WRITE_STRING("Time is up!");
 				WRITE_STRING("");
 				WRITE_BYTE(0);
@@ -1290,7 +1290,7 @@ BOOL CHalfLifeMultiplay::CheckGameTimer( void )
 			UTIL_ClientPrintAll(HUD_PRINTCENTER, "Time is Up: Match ends in a draw!" );
 			UTIL_ClientPrintAll(HUD_PRINTTALK, "* No winners in this round!");
 
-			MESSAGE_BEGIN(MSG_ALL, gmsgObjective);
+			MESSAGE_BEGIN(MSG_BROADCAST, gmsgObjective);
 				WRITE_STRING("Time is up!");
 				WRITE_STRING("");
 				WRITE_BYTE(0);
@@ -1635,7 +1635,7 @@ void CHalfLifeMultiplay :: InitHUD( CBasePlayer *pl )
 
 		if (!g_GameMode)
 		{
-			MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL, pl->edict());
+			MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, pl->edict());
 				WRITE_STRING("Frag 'em");
 				WRITE_STRING("");
 				WRITE_BYTE(0);
@@ -1643,7 +1643,7 @@ void CHalfLifeMultiplay :: InitHUD( CBasePlayer *pl )
 		}
 		else if (g_GameMode == GAME_LMS)
 		{
-			MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL, pl->edict());
+			MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, pl->edict());
 				WRITE_STRING("Last man standing");
 				WRITE_STRING("");
 				WRITE_BYTE(0);
@@ -1651,7 +1651,7 @@ void CHalfLifeMultiplay :: InitHUD( CBasePlayer *pl )
 		}
 		else if (g_GameMode == GAME_ARENA)
 		{
-			MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL,  pl->edict());
+			MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL,  pl->edict());
 				WRITE_STRING("Arena mode");
 				WRITE_STRING("");
 				WRITE_BYTE(0);
@@ -1659,7 +1659,7 @@ void CHalfLifeMultiplay :: InitHUD( CBasePlayer *pl )
 		}
 		else if (g_GameMode == GAME_SNOWBALL)
 		{
-			MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL,  pl->edict());
+			MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL,  pl->edict());
 				WRITE_STRING("Fight with snowballs");
 				WRITE_STRING("");
 				WRITE_BYTE(0);
@@ -2115,9 +2115,12 @@ void CHalfLifeMultiplay :: PlayerKilled( CBasePlayer *pVictim, entvars_t *pKille
 		}
 		else if (pVictim->m_LastHitGroup == HITGROUP_HEAD)
 		{
-			MESSAGE_BEGIN( MSG_ONE_UNRELIABLE, gmsgPlayClientSound, NULL, pKiller );
-				WRITE_BYTE(CLIENT_SOUND_HEADSHOT);
-			MESSAGE_END();
+			if (!FBitSet(pKiller->flags, FL_FAKECLIENT))
+			{
+				MESSAGE_BEGIN( MSG_ONE_UNRELIABLE, gmsgPlayClientSound, NULL, pKiller );
+					WRITE_BYTE(CLIENT_SOUND_HEADSHOT);
+				MESSAGE_END();
+			}
 			pKiller->health += 5;
 		}
 
@@ -2167,7 +2170,7 @@ void CHalfLifeMultiplay :: PlayerKilled( CBasePlayer *pVictim, entvars_t *pKille
 				if (ktmp)
 				{
 					int fragsToGo = int(roundfraglimit.value - ktmp->pev->frags);
-					MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL, ktmp->edict());
+					MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, ktmp->edict());
 						if (fragsToGo >= 1)
 							WRITE_STRING(UTIL_VarArgs("Defeat %s", STRING(pVictim->pev->netname)));
 						else

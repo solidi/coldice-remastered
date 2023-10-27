@@ -84,7 +84,7 @@ void CHalfLifeChilldemic::Think( void )
 					//for clients who connected while game in progress.
 					if ( plr->IsSpectator() )
 					{
-						MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL, plr->edict());
+						MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, plr->edict());
 							WRITE_STRING("Chilldemic in progress");
 							WRITE_STRING(UTIL_VarArgs("Survivors left: %d", m_iSurvivorsRemain));
 							WRITE_BYTE(float(m_iSurvivorsRemain) / (m_iPlayersInGame) * 100);
@@ -114,7 +114,7 @@ void CHalfLifeChilldemic::Think( void )
 						{
 							if (survivors_left > 1)
 							{
-								MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL, plr->edict());
+								MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, plr->edict());
 									WRITE_STRING("Free their bones");
 									WRITE_STRING(UTIL_VarArgs("Survivors alive: %d", survivors_left));
 									WRITE_BYTE(float(survivors_left) / (m_iPlayersInGame) * 100);
@@ -122,7 +122,7 @@ void CHalfLifeChilldemic::Think( void )
 							}
 							else if (survivors_left == 1)
 							{
-								MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL, plr->edict());
+								MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, plr->edict());
 									WRITE_STRING("Free their bones");
 									WRITE_STRING("Dispatch the last soul!");
 									WRITE_BYTE(0);
@@ -130,7 +130,7 @@ void CHalfLifeChilldemic::Think( void )
 							}
 							else
 							{
-								MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL, plr->edict());
+								MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, plr->edict());
 									WRITE_STRING("Virus completed!");
 									WRITE_STRING("");
 									WRITE_BYTE(0);
@@ -142,7 +142,7 @@ void CHalfLifeChilldemic::Think( void )
 						{
 							if (survivors_left > 1)
 							{
-								MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL, plr->edict());
+								MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, plr->edict());
 									WRITE_STRING("Survive");
 									WRITE_STRING(UTIL_VarArgs("Survivors remain: %d", survivors_left));
 									WRITE_BYTE(float(survivors_left) / (m_iPlayersInGame) * 100);
@@ -152,7 +152,7 @@ void CHalfLifeChilldemic::Think( void )
 							{
 								if (skeletons_left > 0)
 								{
-									MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL, plr->edict());
+									MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, plr->edict());
 										WRITE_STRING("You remain! SURVIVE!");
 										WRITE_STRING(UTIL_VarArgs("Skeletons remain: %d", skeletons_left));
 										WRITE_BYTE(float(skeletons_left) / (m_iPlayersInGame) * 100);
@@ -160,7 +160,7 @@ void CHalfLifeChilldemic::Think( void )
 								}
 								else
 								{
-									MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL, plr->edict());
+									MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, plr->edict());
 										WRITE_STRING("Virus eradicated!");
 										WRITE_STRING("");
 										WRITE_BYTE(0);
@@ -228,7 +228,7 @@ void CHalfLifeChilldemic::Think( void )
 			{
 				UTIL_ClientPrintAll(HUD_PRINTCENTER, "Everyone has been killed!\n");
 				UTIL_ClientPrintAll(HUD_PRINTTALK, "* No winners in this round!");
-				MESSAGE_BEGIN(MSG_ALL, gmsgObjective);
+				MESSAGE_BEGIN(MSG_BROADCAST, gmsgObjective);
 					WRITE_STRING("Everyone died!");
 					WRITE_STRING("");
 					WRITE_BYTE(0);
@@ -405,7 +405,7 @@ void CHalfLifeChilldemic::Think( void )
 	{
 		SuckAllToSpectator();
 		m_flRoundTimeLimit = 0;
-		MESSAGE_BEGIN(MSG_ALL, gmsgObjective);
+		MESSAGE_BEGIN(MSG_BROADCAST, gmsgObjective);
 			WRITE_STRING("Chilldemic");
 			WRITE_STRING("Waiting for other players");
 			WRITE_BYTE(0);
@@ -422,13 +422,13 @@ void CHalfLifeChilldemic::InitHUD( CBasePlayer *pl )
 
 	if (!FBitSet(pl->pev->flags, FL_FAKECLIENT))
 	{
-		MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL, pl->edict());
+		MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, pl->edict());
 			WRITE_STRING("Survive");
 			WRITE_STRING("");
 			WRITE_BYTE(0);
 		MESSAGE_END();
 
-		MESSAGE_BEGIN( MSG_ONE, gmsgTeamNames, NULL, pl->edict() );
+		MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgTeamNames, NULL, pl->edict());
 			WRITE_BYTE( 2 );
 			WRITE_STRING( "survivors" );
 			WRITE_STRING( "skeleton" );
@@ -497,7 +497,7 @@ BOOL CHalfLifeChilldemic::CheckGameTimer( void )
 			UTIL_ClientPrintAll(HUD_PRINTCENTER, 
 				UTIL_VarArgs("Time is up!\n\nSurvivor %s doled the most frags!\n",
 				STRING(highballer->pev->netname)));
-			MESSAGE_BEGIN(MSG_ALL, gmsgObjective);
+			MESSAGE_BEGIN(MSG_BROADCAST, gmsgObjective);
 				WRITE_STRING("Time is up!");
 				WRITE_STRING("");
 				WRITE_BYTE(0);
@@ -513,7 +513,7 @@ BOOL CHalfLifeChilldemic::CheckGameTimer( void )
 		{
 			UTIL_ClientPrintAll(HUD_PRINTCENTER, "Time is up!\nNo one has won!\n");
 			UTIL_ClientPrintAll(HUD_PRINTTALK, "* Round ends in a tie!");
-			MESSAGE_BEGIN(MSG_ALL, gmsgObjective);
+			MESSAGE_BEGIN(MSG_BROADCAST, gmsgObjective);
 				WRITE_STRING("Time is up!");
 				WRITE_STRING("");
 				WRITE_BYTE(0);
