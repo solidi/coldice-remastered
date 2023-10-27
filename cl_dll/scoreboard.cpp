@@ -132,8 +132,13 @@ int CHudScoreboard :: Draw( float fTime )
 	float list_slot = 0;
 	int xpos_rel = (ScreenWidth - SCOREBOARD_WIDTH) / 2;
 
+	// Shift for spectators
+	int margin = 0;
+	if (g_iUser1)
+		margin += 54;
+
 	// print the heading line
-	int ypos = ROW_RANGE_MIN + (list_slot * ROW_GAP);
+	int ypos = ROW_RANGE_MIN + margin + (list_slot * ROW_GAP);
 	int	xpos = NAME_RANGE_MIN + xpos_rel;
 
 	int r, g, b;
@@ -169,7 +174,7 @@ int CHudScoreboard :: Draw( float fTime )
 	FAR_RIGHT += 5;
 
 	list_slot += 1.2;
-	ypos = ROW_RANGE_MIN + (list_slot * ROW_GAP);
+	ypos = ROW_RANGE_MIN + margin + (list_slot * ROW_GAP);
 	xpos = NAME_RANGE_MIN + xpos_rel;
 	FillRGBA( xpos - 5, ypos, FAR_RIGHT, 1, r, g, b, 255);  // draw the seperator line
 	
@@ -268,7 +273,7 @@ int CHudScoreboard :: Draw( float fTime )
 		// draw out the best team
 		team_info_t *team_info = &g_TeamInfo[best_team];
 
-		ypos = ROW_RANGE_MIN + (list_slot * ROW_GAP);
+		ypos = ROW_RANGE_MIN + margin + (list_slot * ROW_GAP);
 
 		// check we haven't drawn too far down
 		if ( ypos > ROW_RANGE_MAX )  // don't draw to close to the lower border
@@ -334,6 +339,11 @@ int CHudScoreboard :: DrawPlayers( int xpos_rel, float list_slot, int nameoffset
 	int can_show_packetloss = 0;
 	int FAR_RIGHT;
 
+	// Shift for spectators
+	int margin = 0;
+	if (g_iUser1)
+		margin += 54;
+
 	//  Packetloss removed on Kelly 'shipping nazi' Bailey's orders
 	if ( cl_showpacketloss && cl_showpacketloss->value && ( ScreenWidth >= 400 ) )
 	{
@@ -378,7 +388,7 @@ int CHudScoreboard :: DrawPlayers( int xpos_rel, float list_slot, int nameoffset
 		// draw out the best player
 		hud_player_info_t *pl_info = &g_PlayerInfoList[best_player];
 
-		int ypos = ROW_RANGE_MIN + (list_slot * ROW_GAP);
+		int ypos = ROW_RANGE_MIN + margin + (list_slot * ROW_GAP);
 
 		// check we haven't drawn too far down
 		if ( ypos > ROW_RANGE_MAX )  // don't draw to close to the lower border

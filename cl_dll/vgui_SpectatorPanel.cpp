@@ -96,17 +96,46 @@ void SpectatorPanel::Initialize()
 	CSchemeManager * pSchemes = gViewPort->GetSchemeManager();
 
 	SchemeHandle_t hSmallScheme = pSchemes->getSchemeHandle( "Team Info Text" );
+	SchemeHandle_t hLargeScheme = pSchemes->getSchemeHandle( "Title Font" );
 	
 	m_TopBorder = new CTransparentPanel(64, 0, 0, ScreenWidth, PANEL_HEIGHT);
 	m_TopBorder->setParent(this);
+	Panel *pp = new Panel( 0, PANEL_HEIGHT, ScreenWidth, 1);
+	pp->setParent( this );
+	pp->setFgColor( 0, 113, 230, 0 );
+	pp->setBgColor( 0, 113, 230, 0 );
+
+	Label *dead = new Label( "", 10, 10, wide, PANEL_HEIGHT - 10 );
+	dead->setParent(m_TopBorder);
+	dead->setFont( pSchemes->getFont(hLargeScheme) );
+	dead->setPaintBackgroundEnabled(false);
+	dead->setFgColor( 255, 255, 255, 0 );
+	dead->setContentAlignment( vgui::Label::a_northwest );
+	dead->setText(CHudTextMessage::BufferedLocaliseTextString( "#You_Dead" ));
+
+	Label *explain = new Label( "", 10, 0, wide, PANEL_HEIGHT - 10 );
+	explain->setParent(m_TopBorder);
+	explain->setFont( pSchemes->getFont(hSmallScheme) );
+	explain->setPaintBackgroundEnabled(false);
+	explain->setFgColor( 255, 255, 255, 0 );
+	explain->setContentAlignment( vgui::Label::a_southwest );
+	explain->setText(CHudTextMessage::BufferedLocaliseTextString( "#Next_Round" ));
+
+	Label *commands = new Label( "", 0, 0, wide - 10, PANEL_HEIGHT );
+	commands->setParent(m_TopBorder);
+	commands->setFont( pSchemes->getFont(hSmallScheme) );
+	commands->setPaintBackgroundEnabled(false);
+	commands->setFgColor( 255, 255, 255, 0 );
+	commands->setContentAlignment( vgui::Label::a_east );
+	commands->setText("Switch targets [ +ATTACK ]\nSwitch mode [ +JUMP ]\nView inset [ +USE ]");
 
 	m_BottomBorder = new CTransparentPanel(64, 0, ScreenHeight - PANEL_HEIGHT, ScreenWidth, PANEL_HEIGHT);
-	m_BottomBorder->setParent(this);
+	//m_BottomBorder->setParent(this);
 
 	setPaintBackgroundEnabled(false);
 
 	m_ExtraInfo = new Label( "Extra Info", 0, 0, wide, PANEL_HEIGHT );
-	m_ExtraInfo->setParent(m_TopBorder);
+	//m_ExtraInfo->setParent(m_TopBorder);
 	m_ExtraInfo->setFont( pSchemes->getFont(hSmallScheme) );
 
 	m_ExtraInfo->setPaintBackgroundEnabled(false);
@@ -116,27 +145,27 @@ void SpectatorPanel::Initialize()
 	
 
 	m_TimerImage = new CImageLabel( "timer", 0, 0, 14, 14 );
-	m_TimerImage->setParent(m_TopBorder);
+	//m_TimerImage->setParent(m_TopBorder);
 
 	m_TopBanner = new CImageLabel( "banner", 0, 0, XRES(BANNER_WIDTH), YRES(BANNER_HEIGHT) );
 	m_TopBanner->setParent(this);
 
 	m_CurrentTime = new Label( "00:00", 0, 0, wide, PANEL_HEIGHT );
-	m_CurrentTime->setParent(m_TopBorder);
+	//m_CurrentTime->setParent(m_TopBorder);
 	m_CurrentTime->setFont( pSchemes->getFont(hSmallScheme) );
 	m_CurrentTime->setPaintBackgroundEnabled(false);
 	m_CurrentTime->setFgColor( 143, 143, 54, 0 );
 	m_CurrentTime->setContentAlignment( vgui::Label::a_west );
 
 	m_Separator = new Panel( 0, 0, XRES( 64 ), YRES( 96 ));
-	m_Separator->setParent( m_TopBorder );
+	//m_Separator->setParent( m_TopBorder );
 	m_Separator->setFgColor( 59, 58, 34, 48 );
 	m_Separator->setBgColor( 59, 58, 34, 48 );
 	
 	for ( int j= 0; j < TEAM_NUMBER; j++ )
 	{
 		m_TeamScores[j] = new Label( "   ", 0, 0, wide, PANEL_HEIGHT );
-		m_TeamScores[j]->setParent( m_TopBorder );
+		//m_TeamScores[j]->setParent( m_TopBorder );
 		m_TeamScores[j]->setFont( pSchemes->getFont(hSmallScheme) );
 		m_TeamScores[j]->setPaintBackgroundEnabled(false);
 		m_TeamScores[j]->setFgColor( 143, 143, 54, 0 );
@@ -148,7 +177,7 @@ void SpectatorPanel::Initialize()
 	// Initialize command buttons.
 //	m_OptionButton = new ColorButton( CHudTextMessage::BufferedLocaliseTextString( "#SPECT_OPTIONS" ), XRES(15), YRES(6), XRES(OPTIONS_BUTTON_X), YRES(20), false, false );
 	m_OptionButton = new DropDownButton( CHudTextMessage::BufferedLocaliseTextString( "#SPECT_OPTIONS" ), XRES(15), YRES(6), XRES(OPTIONS_BUTTON_X), YRES(20), false, false );
-	m_OptionButton->setParent( m_BottomBorder );
+	//m_OptionButton->setParent( m_BottomBorder );
 	m_OptionButton->setContentAlignment( vgui::Label::a_center );
 	m_OptionButton->setBoundKey( (char)255 );	// special no bound to avoid leading spaces in name 
 	m_OptionButton->addActionSignal( new CSpectatorHandler_Command(this,SPECTATOR_PANEL_CMD_OPTIONS) );
@@ -158,7 +187,7 @@ void SpectatorPanel::Initialize()
 	m_OptionButton->setArmedColor ( 194, 202, 54, 0 );
 
 	m_CamButton = new DropDownButton( CHudTextMessage::BufferedLocaliseTextString( "#CAM_OPTIONS" ),  ScreenWidth - ( XRES ( CAMOPTIONS_BUTTON_X ) + 15 ), YRES(6), XRES ( CAMOPTIONS_BUTTON_X ), YRES(20), false, false );
-	m_CamButton->setParent( m_BottomBorder );
+	//m_CamButton->setParent( m_BottomBorder );
 	m_CamButton->setContentAlignment( vgui::Label::a_center );
 	m_CamButton->setBoundKey( (char)255 );	// special no bound to avoid leading spaces in name 
 	m_CamButton->addActionSignal( new CSpectatorHandler_Command( this, SPECTATOR_PANEL_CMD_CAMERA ) );
@@ -169,7 +198,7 @@ void SpectatorPanel::Initialize()
 
 //	m_PrevPlayerButton= new ColorButton("<", XRES( 15 + OPTIONS_BUTTON_X + 15 ), YRES(6), XRES(24), YRES(20), false, false );
 	m_PrevPlayerButton= new CImageButton("arrowleft", XRES( 15 + OPTIONS_BUTTON_X + 15 ), YRES(6), XRES(24), YRES(20), false, false );
-	m_PrevPlayerButton->setParent( m_BottomBorder );
+	//m_PrevPlayerButton->setParent( m_BottomBorder );
 	m_PrevPlayerButton->setContentAlignment( vgui::Label::a_center );
 	m_PrevPlayerButton->setBoundKey( (char)255 );	// special no bound to avoid leading spaces in name 
 	m_PrevPlayerButton->addActionSignal( new CSpectatorHandler_Command(this,SPECTATOR_PANEL_CMD_PREVPLAYER) );
@@ -180,7 +209,7 @@ void SpectatorPanel::Initialize()
 
 //	m_NextPlayerButton= new ColorButton(">", (ScreenWidth - (XRES ( CAMOPTIONS_BUTTON_X ) + 15)) - XRES ( 24 + 15 ), YRES(6), XRES(24), YRES(20),false, false );
 	m_NextPlayerButton= new CImageButton("arrowright", (ScreenWidth - (XRES ( CAMOPTIONS_BUTTON_X ) + 15)) - XRES ( 24 + 15 ), YRES(6), XRES(24), YRES(20),false, false );
-	m_NextPlayerButton->setParent( m_BottomBorder );
+	//m_NextPlayerButton->setParent( m_BottomBorder );
 	m_NextPlayerButton->setContentAlignment( vgui::Label::a_center );
 	m_NextPlayerButton->setBoundKey( (char)255 );	// special no bound to avoid leading spaces in name 
 	m_NextPlayerButton->addActionSignal( new CSpectatorHandler_Command(this,SPECTATOR_PANEL_CMD_NEXTPLAYER) );
@@ -188,7 +217,7 @@ void SpectatorPanel::Initialize()
 	m_NextPlayerButton->setArmedBorderColor ( 194, 202, 54, 0 );
 	m_NextPlayerButton->setUnArmedColor ( 143, 143, 54, 0 );
 	m_NextPlayerButton->setArmedColor ( 194, 202, 54, 0 );
-	
+
 	// Initialize the bottom title.
 
 	float flLabelSize = ( (ScreenWidth - (XRES ( CAMOPTIONS_BUTTON_X ) + 15)) - XRES ( 24 + 15 ) ) - XRES( (15 + OPTIONS_BUTTON_X + 15) + 38 );
@@ -197,7 +226,7 @@ void SpectatorPanel::Initialize()
 		 XRES( ( 15 + OPTIONS_BUTTON_X + 15 ) + 31 ), YRES(6), flLabelSize, YRES(20), 
 		false, false );
 
-	m_BottomMainButton->setParent(m_BottomBorder);
+	//m_BottomMainButton->setParent(m_BottomBorder);
 	m_BottomMainButton->setPaintBackgroundEnabled(false);
 	m_BottomMainButton->setFgColor( Scheme::sc_primary1 );
 	m_BottomMainButton->setContentAlignment( vgui::Label::a_center );
@@ -208,14 +237,15 @@ void SpectatorPanel::Initialize()
 	m_BottomMainButton->setArmedBorderColor ( 194, 202, 54, 0 );
 	m_BottomMainButton->setUnArmedColor ( 143, 143, 54, 0 );
 	m_BottomMainButton->setArmedColor ( 194, 202, 54, 0 );
+	m_BottomMainButton->setFgColor( 0, 113, 230, 0 );
 
+	m_BottomMainLabel = new Label("", 0, 0, wide, PANEL_HEIGHT);
 
-	m_BottomMainLabel = new Label("Spectator Bottom", 
-		 XRES( ( 15 + OPTIONS_BUTTON_X + 15 ) + 31 ), YRES(6), flLabelSize, YRES(20));
-
-	m_BottomMainLabel->setParent(m_BottomBorder);
+	m_BottomMainLabel->setParent(m_TopBorder);
 	m_BottomMainLabel->setPaintBackgroundEnabled(false);
-	m_BottomMainLabel->setFgColor( Scheme::sc_primary1 );
+	//m_BottomMainLabel->setFgColor( Scheme::sc_primary1 );
+	m_BottomMainLabel->setFont( pSchemes->getFont(hLargeScheme) );
+	m_BottomMainLabel->setFgColor(0, 113, 230, 0);
 	m_BottomMainLabel->setContentAlignment( vgui::Label::a_center );
 	m_BottomMainLabel->setBorder( NULL );
 	m_BottomMainLabel->setVisible(false);
@@ -224,11 +254,12 @@ void SpectatorPanel::Initialize()
 	m_InsetViewButton->setParent( this );
 	m_InsetViewButton->setBoundKey( (char)255 );
 	m_InsetViewButton->addActionSignal( new CSpectatorHandler_Command(this,SPECTATOR_PANEL_CMD_TOGGLE_INSET) );
-	m_InsetViewButton->setUnArmedBorderColor ( 59, 58, 34, 48 );
-	m_InsetViewButton->setArmedBorderColor ( 194, 202, 54, 0 );
-	m_InsetViewButton->setUnArmedColor ( 143, 143, 54, 0 );
-	m_InsetViewButton->setArmedColor ( 194, 202, 54, 0 );
-
+	m_InsetViewButton->setUnArmedBorderColor ( 0, 113, 230, 0 );
+	m_InsetViewButton->setArmedBorderColor ( 255, 255, 255, 0 );
+	m_InsetViewButton->setUnArmedColor ( 0, 113, 230, 0 );
+	m_InsetViewButton->setArmedColor ( 255, 255, 255, 0 );
+	m_InsetViewButton->setBgColor( 0, 113, 230, 200 );
+	//m_InsetViewButton->setArmed(TRUE);
 
 	m_menuVisible = false;
 	m_insetVisible = false;
@@ -258,12 +289,12 @@ void SpectatorPanel::ShowMenu(bool isVisible)
 		m_BottomMainLabel->setVisible(true);
 		m_BottomMainButton->setVisible(false);
 
-		m_BottomMainLabel->getSize( iLabelSizeX, iLabelSizeY );
-		m_BottomMainLabel->setPos( ( ScreenWidth / 2 ) - (iLabelSizeX/2), YRES(6) );
+		//m_BottomMainLabel->getSize( iLabelSizeX, iLabelSizeY );
+		//m_BottomMainLabel->setPos( ( ScreenWidth / 2 ) - (iLabelSizeX/2), YRES(6) );
 	}
 	else
 	{
-		m_BottomMainButton->setPos( XRES( ( 15 + OPTIONS_BUTTON_X + 15 ) + 31 ), YRES(6) );
+		//m_BottomMainButton->setPos( XRES( ( 15 + OPTIONS_BUTTON_X + 15 ) + 31 ), YRES(6) );
 		m_BottomMainLabel->setVisible(false);
 		m_BottomMainButton->setVisible(true);
 	}
@@ -280,7 +311,7 @@ void SpectatorPanel::ShowMenu(bool isVisible)
 			_snprintf( string, sizeof( string ) - 1, "%c%s", HUD_PRINTCENTER, CHudTextMessage::BufferedLocaliseTextString( "#Spec_Duck" ) );
 			string[ sizeof( string ) - 1 ] = '\0';
 
-			gHUD.m_TextMessage.MsgFunc_TextMsg( NULL, strlen( string ) + 1, string );
+			// gHUD.m_TextMessage.MsgFunc_TextMsg( NULL, strlen( string ) + 1, string );
 		}
 	}
 
@@ -331,18 +362,18 @@ void SpectatorPanel::EnableInsetView(bool isEnabled)
 	if ( isEnabled )
 	{
 		// short black bar to see full inset
-		m_TopBorder->setBounds(	XRES(offset), 0, XRES(640 - offset ), PANEL_HEIGHT );
+		// m_TopBorder->setBounds(	XRES(offset), 0, XRES(640 - offset ), PANEL_HEIGHT );
 
-		if ( gEngfuncs.IsSpectateOnly() )
-		{
-			m_TopBanner->setVisible( true );
-			m_TopBanner->setPos( XRES(offset), 0 );
-		}
-		else
-			m_TopBanner->setVisible( false );
+		//if ( gEngfuncs.IsSpectateOnly() )
+		//{
+		//	m_TopBanner->setVisible( true );
+		//	m_TopBanner->setPos( XRES(offset), 0 );
+		//}
+		//else
+		//	m_TopBanner->setVisible( false );
 		
-		m_InsetViewButton->setBounds(	XRES( x -1 ), YRES( y ), 
-										XRES( wide +2), YRES( tall ) );
+		m_InsetViewButton->setBounds(	x -1, y, 
+										XRES( wide +2), YRES( tall - 1 ) );
 		m_InsetViewButton->setVisible(true);
 	}
 	else

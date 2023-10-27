@@ -1696,7 +1696,7 @@ void TeamFortressViewport::UpdateSpectatorPanel()
 			_snprintf( tempString, sizeof( tempString ) - 1, "%c%s", HUD_PRINTCENTER, CHudTextMessage::BufferedLocaliseTextString( "#Spec_Duck" ) );
 			tempString[ sizeof( tempString ) - 1 ] = '\0';
 
-			gHUD.m_TextMessage.MsgFunc_TextMsg( NULL, strlen( tempString ) + 1, tempString );
+			// gHUD.m_TextMessage.MsgFunc_TextMsg( NULL, strlen( tempString ) + 1, tempString );
 		}
 		
 		sprintf(bottomText,"#Spec_Mode%d", g_iUser1 );
@@ -1743,8 +1743,8 @@ void TeamFortressViewport::UpdateSpectatorPanel()
 		}
 		else
 		{	// restore GUI color
-			m_pSpectatorPanel->m_BottomMainLabel->setFgColor( 143, 143, 54, 0 );
-			m_pSpectatorPanel->m_BottomMainButton->setFgColor( 143, 143, 54, 0 );
+			m_pSpectatorPanel->m_BottomMainLabel->setFgColor( 0, 160, 255, 0 );
+			m_pSpectatorPanel->m_BottomMainButton->setFgColor( 0, 160, 255, 0 );
 		}
 
 		// add sting auto if we are in auto directed mode

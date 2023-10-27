@@ -1829,10 +1829,10 @@ void V_CalcSpectatorRefdef ( struct ref_params_s * pparams )
 		// second renderer cycle, inset window
 
 		// set inset parameters
-		pparams->viewport[0] = XRES(gHUD.m_Spectator.m_OverviewData.insetWindowX);	// change viewport to inset window
-		pparams->viewport[1] = YRES(gHUD.m_Spectator.m_OverviewData.insetWindowY);
-		pparams->viewport[2] = XRES(gHUD.m_Spectator.m_OverviewData.insetWindowWidth);
-		pparams->viewport[3] = YRES(gHUD.m_Spectator.m_OverviewData.insetWindowHeight);
+		pparams->viewport[0] = gHUD.m_Spectator.m_OverviewData.insetWindowX;	// change viewport to inset window
+		pparams->viewport[1] = gHUD.m_Spectator.m_OverviewData.insetWindowY;
+		pparams->viewport[2] = XRES(gHUD.m_Spectator.m_OverviewData.insetWindowWidth - 2);
+		pparams->viewport[3] = YRES(gHUD.m_Spectator.m_OverviewData.insetWindowHeight - 1);
 		pparams->nextView	 = 0;	// on further view
 
 		// override some settings in certain modes

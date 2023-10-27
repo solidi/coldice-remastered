@@ -655,10 +655,10 @@ int CHudSpectator::Draw(float flTime)
 		// check if name would be in inset window
 		if ( m_pip->value != INSET_OFF )
 		{
-			if (	m_vPlayerPos[i][0] > XRES( m_OverviewData.insetWindowX ) &&
-					m_vPlayerPos[i][1] > YRES( m_OverviewData.insetWindowY ) &&
-					m_vPlayerPos[i][0] < XRES( m_OverviewData.insetWindowX + m_OverviewData.insetWindowWidth ) &&
-					m_vPlayerPos[i][1] < YRES( m_OverviewData.insetWindowY + m_OverviewData.insetWindowHeight) 
+			if (	m_vPlayerPos[i][0] > m_OverviewData.insetWindowX &&
+					m_vPlayerPos[i][1] > m_OverviewData.insetWindowY &&
+					m_vPlayerPos[i][0] < m_OverviewData.insetWindowX + XRES( m_OverviewData.insetWindowWidth ) &&
+					m_vPlayerPos[i][1] < m_OverviewData.insetWindowY + YRES( m_OverviewData.insetWindowHeight ) 
 				) continue;
 		}
 
@@ -1258,8 +1258,8 @@ bool CHudSpectator::ParseOverviewFile( )
 	memset( &m_OverviewData, 0, sizeof(m_OverviewData));
 
 	// fill in standrd values
-	m_OverviewData.insetWindowX = 4;	// upper left corner
-	m_OverviewData.insetWindowY = 4;
+	m_OverviewData.insetWindowX = XRES(ScreenWidth - 240 - 10);
+	m_OverviewData.insetWindowY = YRES(ScreenHeight - 180 - 10);
 	m_OverviewData.insetWindowHeight = 180;
 	m_OverviewData.insetWindowWidth = 240;
 	m_OverviewData.origin[0] = 0.0f;
