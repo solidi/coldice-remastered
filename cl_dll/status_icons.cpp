@@ -65,21 +65,38 @@ int CHudStatusIcons::Draw( float flTime )
 	int y = (ScreenHeight / 1.5) + g_yP;
 	
 	// loop through icon list, and draw any valid icons drawing up from the middle of screen
+	int max = 4;
+	if (ScreenHeight == 480)
+		max = 2;
+	else if (ScreenHeight == 600)
+		max = 3;
 	for ( int i = 0; i < MAX_ICONSPRITES; i++ )
 	{
 		if ( m_IconList[i].spr )
 		{
-			y -= ( m_IconList[i].rc.bottom - m_IconList[i].rc.top ) + 18;
-			
-			SPR_Set( m_IconList[i].spr, m_IconList[i].r, m_IconList[i].g, m_IconList[i].b );
-			SPR_DrawAdditive( 0, x, y, &m_IconList[i].rc );
+			if (i < max)
+			{
+				y -= ( m_IconList[i].rc.bottom - m_IconList[i].rc.top ) + 18;
+				
+				SPR_Set( m_IconList[i].spr, m_IconList[i].r, m_IconList[i].g, m_IconList[i].b );
+				SPR_DrawAdditive( 0, x, y, &m_IconList[i].rc );
 
-			// Label the icon for clarity
-			const char *szSpriteName = m_IconList[i].szSpriteName;
-			if (strncmp(szSpriteName, "rune_", 5) == 0)
-				szSpriteName += 5;
-			int size = ConsoleStringLen(szSpriteName);
-			DrawConsoleString(x + (((m_IconList[i].rc.right - m_IconList[i].rc.left) / 2) - (size / 2)), y + (m_IconList[i].rc.bottom - m_IconList[i].rc.top), szSpriteName);
+				// Label the icon for clarity
+				const char *szSpriteName = m_IconList[i].szSpriteName;
+				if (strncmp(szSpriteName, "rune_", 5) == 0)
+					szSpriteName += 5;
+				int size = ConsoleStringLen(szSpriteName);
+				DrawConsoleString(x + (((m_IconList[i].rc.right - m_IconList[i].rc.left) / 2) - (size / 2)), y + (m_IconList[i].rc.bottom - m_IconList[i].rc.top), szSpriteName);
+			}
+			else
+			{
+				y -= 18;
+				const char *szSpriteName = m_IconList[i].szSpriteName;
+				if (strncmp(szSpriteName, "rune_", 5) == 0)
+					szSpriteName += 5;
+				int size = ConsoleStringLen(szSpriteName);
+				DrawConsoleString(x + (((m_IconList[i].rc.right - m_IconList[i].rc.left) / 2) - (size / 2)), y, szSpriteName);
+			}
 		}
 	}
 	
