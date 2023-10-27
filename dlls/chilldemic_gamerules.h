@@ -18,7 +18,6 @@ class CHalfLifeChilldemic : public CHalfLifeMultiplay
 public:
 	CHalfLifeChilldemic();
 	virtual const char *GetGameDescription( void ) { return "Cold Ice Remastered Chilldemic"; }
-	virtual void ClientUserInfoChanged( CBasePlayer *pPlayer, char *infobuffer );
 	virtual void Think ( void );
 	virtual void InitHUD( CBasePlayer *pl );
 	virtual BOOL CheckGameTimer( void );

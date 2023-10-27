@@ -43,4 +43,5 @@ private:
 	float m_fChumtoadPlayTimer;
 	float m_fCreateChumtoadTimer;
 	float m_fMoveChumtoadTimer;
+	EHANDLE m_pHolder;
 };

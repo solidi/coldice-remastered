@@ -19,13 +19,14 @@ public:
 	CHalfLifeJesusVsSanta();
 	virtual const char *GetGameDescription( void ) { return "Cold Ice Remastered Jesus vs. Santa"; }
 	virtual void InitHUD( CBasePlayer *pPlayer );
-	virtual void ClientUserInfoChanged( CBasePlayer *pPlayer, char *infobuffer );
-	virtual void Think ( void );
+	virtual void Think( void );
 	virtual BOOL CheckGameTimer( void );
+	virtual BOOL FPlayerCanTakeDamage( CBasePlayer *pPlayer, CBaseEntity *pAttacker );
 	virtual void FPlayerTookDamage( float flDamage, CBasePlayer *pVictim, CBaseEntity *pKiller);
 	virtual void PlayerSpawn( CBasePlayer *pPlayer );
 	virtual BOOL FPlayerCanRespawn( CBasePlayer *pPlayer );
 	virtual void PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller, entvars_t *pInflictor );
 	virtual BOOL CanHavePlayerItem( CBasePlayer *pPlayer, CBasePlayerItem *pWeapon );
 	virtual BOOL IsArmoredMan( CBasePlayer *pPlayer ) { return pArmoredMan == pPlayer; }
+	virtual int GetTeamIndex( const char *pTeamName );
 };

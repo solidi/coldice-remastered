@@ -134,23 +134,36 @@ int CHudDeathNotice :: Draw( float flTime )
 		// Only draw if the viewport will let me
 		if ( gViewPort && gViewPort->AllowedToPrintText() )
 		{
+			int start = 0;
+			int topMargin = DEATHNOTICE_TOP;
+
+			if (g_iUser1)
+			{
+				topMargin += 44;
+			}
+
 			// Draw the death notice
-			y = (DEATHNOTICE_TOP + 2 + (20 * i)) + g_yP;  //!!!
+			y = (topMargin + 2 + (30 * i)) + g_yP;  //!!!
 
 			int id = (rgDeathNoticeList[i].iId == -1) ? m_HUD_d_skull : rgDeathNoticeList[i].iId;
-			x = (ScreenWidth - ConsoleStringLen(rgDeathNoticeList[i].szVictim) - (gHUD.GetSpriteRect(id).right - gHUD.GetSpriteRect(id).left)) + g_xP;
+			start = x = (ScreenWidth - ConsoleStringLen(rgDeathNoticeList[i].szVictim) - (gHUD.GetSpriteRect(id).right - gHUD.GetSpriteRect(id).left) - 20) + g_xP;
+			UnpackRGB( r, g, b, HudColor() );
 
 			if ( !rgDeathNoticeList[i].iSuicide )
 			{
-				x -= (5 + ConsoleStringLen( rgDeathNoticeList[i].szKiller ) );
+				start = x -= (5 + ConsoleStringLen( rgDeathNoticeList[i].szKiller ) );
+				FillRGBA(start - 10, y - 5, (ScreenWidth - (start - g_xP)), (gHUD.GetSpriteRect(id).bottom - gHUD.GetSpriteRect(id).top) + 10, r, g, b, 20);
 
 				// Draw killers name
 				if ( rgDeathNoticeList[i].KillerColor )
 					gEngfuncs.pfnDrawSetTextColor( rgDeathNoticeList[i].KillerColor[0], rgDeathNoticeList[i].KillerColor[1], rgDeathNoticeList[i].KillerColor[2] );
 				x = 5 + DrawConsoleString( x, y, rgDeathNoticeList[i].szKiller );
 			}
+			else
+			{
+				FillRGBA(start - 10, y - 5, (ScreenWidth - (start - g_xP)), (gHUD.GetSpriteRect(id).bottom - gHUD.GetSpriteRect(id).top) + 10, r, g, b, 20);
+			}
 
-			UnpackRGB( r, g, b, HudColor() );
 			if ( rgDeathNoticeList[i].iTeamKill )
 			{
 				r = 10;	g = 240; b = 10;  // display it in sickly green

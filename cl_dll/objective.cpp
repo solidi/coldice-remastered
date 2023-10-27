@@ -39,9 +39,6 @@ int CHudObjective::MsgFunc_Objective(const char *pszName,  int iSize, void *pbuf
 
 int CHudObjective::Draw(float flTime)
 {
-	if (g_iUser1)
-		return 1;
-	
 	if (gHUD.m_Scoreboard.m_iShowscoresHeld)
 		return 1;
 
@@ -65,6 +62,14 @@ int CHudObjective::Draw(float flTime)
 	int y = 16;
 	int x = cl_radar->value ? 130 : 0;
 	int padding = 32;
+
+	// Shift for spectators
+	if (g_iUser1)
+	{
+		x = 10;
+		y += 56;
+	}
+
 	UnpackRGB(r, g, b, HudColor());
 
 	if (strlen(m_szGoalMessage))
@@ -86,7 +91,7 @@ int CHudObjective::Draw(float flTime)
 
 		float result = (size + padding) * (float(m_iPercent) / 100);
 		FillRGBA(x, y, size + padding, gHUD.m_iFontHeight, r, g, b, 20);
-		FillRGBA(x, y + gHUD.m_iFontHeight + 1, (int)result, 1, r, g, b, 200);
+		FillRGBA(x, y + gHUD.m_iFontHeight + 1, (int)result, 2, r, g, b, 200);
 	}
 
 	if (strlen(m_szWinsMessage))

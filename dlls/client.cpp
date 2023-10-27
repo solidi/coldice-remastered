@@ -372,7 +372,7 @@ void MajorityVote(edict_t *pEntity, const char *text)
 	static int m_iNeedsVotes = 0;
 	static int m_iVotes[32];
 
-	if (strcmp(text, "vote"))
+	if (strstr(text, "vote"))
 	{
 		// Start vote, capture player count for majority count
 		if (m_fVoteTime < gpGlobals->time)
@@ -630,7 +630,7 @@ void Vote( CBasePlayer *pPlayer, int vote )
 
 			g_pGameRules->m_iVoteCount[pPlayer->entindex()-1] = vote;
 
-			MESSAGE_BEGIN(MSG_ONE, gmsgPlayClientSound, NULL, pPlayer->edict());
+			MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgPlayClientSound, NULL, pPlayer->edict());
 				WRITE_BYTE(CLIENT_SOUND_GREATJOB);
 			MESSAGE_END();
 

@@ -124,7 +124,7 @@ void CHalfLifeRules :: InitHUD( CBasePlayer *pl )
 {
 	if (!FBitSet(pl->pev->flags, FL_FAKECLIENT))
 	{
-		MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL, pl->edict());
+		MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, pl->edict());
 			WRITE_STRING("");
 			WRITE_STRING("");
 			WRITE_BYTE(0);
