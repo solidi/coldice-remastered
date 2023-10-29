@@ -78,7 +78,12 @@ int CHudStatusIcons::Draw( float flTime )
 			{
 				y -= ( m_IconList[i].rc.bottom - m_IconList[i].rc.top ) + 18;
 				
-				SPR_Set( m_IconList[i].spr, m_IconList[i].r, m_IconList[i].g, m_IconList[i].b );
+				int r = m_IconList[i].r;
+				int g = m_IconList[i].g;
+				int b = m_IconList[i].b;
+				UnpackRGB(r,g,b, HudColor());
+				ScaleColors(r, g, b, MIN_ALPHA);
+				SPR_Set( m_IconList[i].spr, r, g, b );
 				SPR_DrawAdditive( 0, x, y, &m_IconList[i].rc );
 
 				// Label the icon for clarity
@@ -237,13 +242,14 @@ void CHudStatusIcons::DrawMutators( void )
 	ToggleMutatorIcon(MUTATOR_AUTOAIM, "autoaim");
 	ToggleMutatorIcon(MUTATOR_SLOWWEAPONS, "slowweapons");
 	ToggleMutatorIcon(MUTATOR_FASTWEAPONS, "fastweapons");
+	ToggleMutatorIcon(MUTATOR_JACK, "jack");
 }
 
 void CHudStatusIcons::ToggleMutatorIcon(int mutatorId, const char *mutator)
 {
 	int r, g, b;
 	UnpackRGB(r,g,b, HudColor());
-	ScaleColors(r, g, b, 128);
+	ScaleColors(r, g, b, MIN_ALPHA);
 
 	if (gHUD.szActiveMutators != NULL &&
 		(strstr(gHUD.szActiveMutators, mutator) ||
