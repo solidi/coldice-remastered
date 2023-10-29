@@ -2245,29 +2245,33 @@ int CStudioModelRenderer::StudioDrawPlayer( int flags, entity_state_t *pplayer )
 
 			StudioCalcAttachments( );
 
-			int hatindex = 0;
-			model_t *hatmodel;
+			*m_pCurrentEntity = saveent;
+		}
 
-			if (gHUD.szActiveMutators != NULL &&
-				(strstr(gHUD.szActiveMutators, "jack") ||
-				atoi(gHUD.szActiveMutators) == MUTATOR_JACK)) {
-				gEngfuncs.CL_LoadModel("models/hat_jack.mdl", &hatindex);
-			} else if (gHUD.szActiveMutators != NULL &&
-				(strstr(gHUD.szActiveMutators, "santahat") ||
-				atoi(gHUD.szActiveMutators) == MUTATOR_SANTAHAT)) {
-				gEngfuncs.CL_LoadModel("models/hat_santa.mdl", &hatindex);
-			}
+		int hatindex = 0;
+		model_t *hatmodel;
 
-			if (hatindex)
-			{
-				hatmodel = IEngineStudio.GetModelByIndex(hatindex);
-				m_pStudioHeader = (studiohdr_t *)IEngineStudio.Mod_Extradata(hatmodel);
-				IEngineStudio.StudioSetHeader(m_pStudioHeader);
-				StudioMergeBones(hatmodel);
-				IEngineStudio.StudioSetupLighting (&lighting);
-				StudioRenderModel( );
-				StudioCalcAttachments( );
-			}
+		if (gHUD.szActiveMutators != NULL &&
+			(strstr(gHUD.szActiveMutators, "jack") ||
+			atoi(gHUD.szActiveMutators) == MUTATOR_JACK)) {
+			gEngfuncs.CL_LoadModel("models/hat_jack.mdl", &hatindex);
+		} else if (gHUD.szActiveMutators != NULL &&
+			(strstr(gHUD.szActiveMutators, "santahat") ||
+			atoi(gHUD.szActiveMutators) == MUTATOR_SANTAHAT)) {
+			gEngfuncs.CL_LoadModel("models/hat_santa.mdl", &hatindex);
+		}
+
+		if (hatindex)
+		{
+			cl_entity_t saveent = *m_pCurrentEntity;
+
+			hatmodel = IEngineStudio.GetModelByIndex(hatindex);
+			m_pStudioHeader = (studiohdr_t *)IEngineStudio.Mod_Extradata(hatmodel);
+			IEngineStudio.StudioSetHeader(m_pStudioHeader);
+			StudioMergeBones(hatmodel);
+			IEngineStudio.StudioSetupLighting (&lighting);
+			StudioRenderModel( );
+			StudioCalcAttachments( );
 
 			*m_pCurrentEntity = saveent;
 		}
