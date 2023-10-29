@@ -2091,11 +2091,6 @@ int CStudioModelRenderer::StudioDrawPlayer( int flags, entity_state_t *pplayer )
 			m_pCurrentEntity->curstate.body = 1; // force helmet
 		}
 
-		if (gHUD.szActiveMutators != NULL &&
-			(strstr(gHUD.szActiveMutators, "santahat") ||
-			atoi(gHUD.szActiveMutators) == MUTATOR_SANTAHAT))
-			m_pCurrentEntity->curstate.body = 2;
-
 		lighting.plightvec = dir;
 		IEngineStudio.StudioDynamicLight(m_pCurrentEntity, &lighting );
 
@@ -2170,7 +2165,6 @@ int CStudioModelRenderer::StudioDrawPlayer( int flags, entity_state_t *pplayer )
 			cl_entity_t saveent = *m_pCurrentEntity;
 
 			model_t *pweaponmodel = IEngineStudio.GetModelByIndex( pplayer->weaponmodel );
-			m_pCurrentEntity->curstate.skin = cl_icemodels->value;
 
 #if defined _TFC
 			if ( pweaponmodel )
@@ -2246,9 +2240,34 @@ int CStudioModelRenderer::StudioDrawPlayer( int flags, entity_state_t *pplayer )
 
 			IEngineStudio.StudioSetupLighting (&lighting);
 
+			m_pCurrentEntity->curstate.skin = cl_icemodels->value;
 			StudioRenderModel( );
 
 			StudioCalcAttachments( );
+
+			int hatindex = 0;
+			model_t *hatmodel;
+
+			if (gHUD.szActiveMutators != NULL &&
+				(strstr(gHUD.szActiveMutators, "jack") ||
+				atoi(gHUD.szActiveMutators) == MUTATOR_JACK)) {
+				gEngfuncs.CL_LoadModel("models/hat_jack.mdl", &hatindex);
+			} else if (gHUD.szActiveMutators != NULL &&
+				(strstr(gHUD.szActiveMutators, "santahat") ||
+				atoi(gHUD.szActiveMutators) == MUTATOR_SANTAHAT)) {
+				gEngfuncs.CL_LoadModel("models/hat_santa.mdl", &hatindex);
+			}
+
+			if (hatindex)
+			{
+				hatmodel = IEngineStudio.GetModelByIndex(hatindex);
+				m_pStudioHeader = (studiohdr_t *)IEngineStudio.Mod_Extradata(hatmodel);
+				IEngineStudio.StudioSetHeader(m_pStudioHeader);
+				StudioMergeBones(hatmodel);
+				IEngineStudio.StudioSetupLighting (&lighting);
+				StudioRenderModel( );
+				StudioCalcAttachments( );
+			}
 
 			*m_pCurrentEntity = saveent;
 		}

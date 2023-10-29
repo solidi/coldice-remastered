@@ -839,6 +839,7 @@ typedef struct
 #define MUTATOR_AUTOAIM 44
 #define MUTATOR_SLOWWEAPONS 45
 #define MUTATOR_FASTWEAPONS 46
+#define MUTATOR_JACK 47
 
 #define GAME_FFA 0
 #define GAME_TEAMPLAY 1
