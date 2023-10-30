@@ -474,4 +474,4 @@ protected:
 };
 
 extern DLL_GLOBAL CGameRules*	g_pGameRules;
-extern const char *g_szMutators[47];
+extern const char *g_szMutators[48];

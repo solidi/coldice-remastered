@@ -135,8 +135,23 @@ HSPRITE LoadSprite(const char *pszName)
 
 unsigned long HudColor()
 {
+	static unsigned long colorchange = RGB_BLUEISH;
+
 	if (cl_icemodels && cl_icemodels->value)
+	{
+		if (colorchange != RGB_BLUEISH)
+		{
+			gEngfuncs.pfnClientCmd("con_color \"0 160 255\"\n");
+			colorchange = RGB_BLUEISH;
+		}
 		return RGB_BLUEISH;
+	}
+
+	if (colorchange != RGB_YELLOWISH)
+	{
+		gEngfuncs.pfnClientCmd("con_color \"255 180 30\"\n");
+		colorchange = RGB_YELLOWISH;
+	}
 
 	return RGB_YELLOWISH;
 }
