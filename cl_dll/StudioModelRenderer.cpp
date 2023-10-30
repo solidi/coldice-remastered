@@ -1445,7 +1445,7 @@ int CStudioModelRenderer::StudioDrawModel( int flags )
 				m_pCurrentEntity->curstate.rendercolor.r = pTarget->curstate.rendercolor.r;
 				m_pCurrentEntity->curstate.rendercolor.g = pTarget->curstate.rendercolor.g;
 				m_pCurrentEntity->curstate.rendercolor.b = pTarget->curstate.rendercolor.b;
-				m_pCurrentEntity->curstate.renderamt = pTarget->curstate.renderamt;
+				m_pCurrentEntity->curstate.renderamt = fmin(fmax(pTarget->curstate.renderamt, 0), 10);
 			}
 			else if ( pTarget && pTarget->curstate.rendermode == kRenderTransAlpha )
 			{
