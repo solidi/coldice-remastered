@@ -175,8 +175,19 @@ void CChainsaw::SecondaryAttack()
 	} else if (m_flStartThrow == CHAINSAW_ATTACK_END) {
 		if (Swing( 1, FALSE ))
 		{
+			TraceResult tr;
+			UTIL_MakeVectors(m_pPlayer->pev->v_angle);
+			Vector vecSrc = m_pPlayer->GetGunPosition();
+			Vector vecEnd = vecSrc + gpGlobals->v_forward * 96;
+			UTIL_TraceLine(vecSrc, vecEnd, ignore_monsters, ENT( m_pPlayer->pev ), &tr);
+
+			//ALERT(at_aiconsole, "flFraction=%.2f, fStartSolid=%d\n", tr.flFraction, tr.fStartSolid);
+
 			UTIL_MakeVectors(Vector(0, m_pPlayer->pev->angles.y, 0));
-			m_pPlayer->pev->velocity = m_pPlayer->pev->velocity + (gpGlobals->v_forward * 1000);
+			m_pPlayer->pev->velocity = m_pPlayer->pev->velocity + (gpGlobals->v_forward * 750);
+
+			if (tr.fStartSolid || tr.flFraction < 0.25)
+				m_pPlayer->pev->velocity = m_pPlayer->pev->velocity + (gpGlobals->v_up * 300);
 		}
 		EMIT_SOUND_DYN(ENT(m_pPlayer->pev), CHAN_WEAPON, "chainsaw_attack1_loop.wav", 1.0, ATTN_NORM, 0, 98 + RANDOM_LONG(0,3));
 		m_flNextSecondaryAttack = m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 0.15;
