@@ -2418,7 +2418,9 @@ void CPortalEntity::Think()
 								if (pFound->IsPlayer() && pFound->IsAlive()) {
 									ClearMultiDamage();
 									pFound->pev->health = 0;
-									pFound->Killed( pFound->pev, GIB_NEVER );
+									extern entvars_t *g_pevLastInflictor;
+									g_pevLastInflictor = pev;
+									pFound->Killed( VARS(pev->owner), GIB_NEVER );
 								}
 							}
 
