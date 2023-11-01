@@ -2388,10 +2388,10 @@ void CHalfLifeMultiplay::DeathNotice( CBasePlayer *pVictim, entvars_t *pKiller, 
 	}
 
 	// Tracer weapon id
-	if (pevInflictor && pevInflictor->iuser3 > 0)
+	if (pevInflictor && pevInflictor->noise3 > 0)
 	{
-		killer_weapon_name = STRING(pevInflictor->iuser3);
-		pevInflictor->iuser3 = 0;
+		killer_weapon_name = STRING(pevInflictor->noise3);
+		pevInflictor->noise3 = 0;
 	}
 
 	// strip the monster_* or weapon_* from the inflictor's classname
