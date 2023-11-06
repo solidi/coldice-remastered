@@ -85,5 +85,7 @@ DLL_GLOBAL const char *g_MutatorAutoaim = "autoaim";
 DLL_GLOBAL const char *g_MutatorSlowWeapons = "slowweapons";
 DLL_GLOBAL const char *g_MutatorFastWeapons = "fastweapons";
 DLL_GLOBAL const char *g_MutatorJack = "jack";
+DLL_GLOBAL const char *g_MutatorPirateHat = "piratehat";
+DLL_GLOBAL const char *g_MutatorMarshmello = "marshmello";
 
 DLL_GLOBAL int g_GameMode;

@@ -982,11 +982,6 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_mutators \"turrets\"\" - sentry guns randomly appear, firing bullets and rockets at everyone\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_mutators \"barrels\"\" - start with the gravitygun, flaming explosive barrels spawn to throw at others\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_mutators \"chumxplode\"\" - a killer chumtoad appears directly after an explosion\n");
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "For more, type help_server_more\n" );
-	}
-	else if ( FStrEq( pcmd, "help_server_more" )  )
-	{
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "[Server Help More]\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_mutators \"santahat\"\" - everyone wears a santa hat and says hohoho randomly\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_mutators \"sanic\"\" - evil santa and sanic with a santa hat team up against you\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_mutators \"coolflesh\"\" - gibs stay longer, pick up gibs to eat and gain a healthkit worth of repair\n");
@@ -994,6 +989,11 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_mutators \"maxpack\"\" - drop all weapons and ammo in play (mp only!)\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_mutators \"infiniteammo\"\" - all weapons have infinite ammo\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_mutators \"randomweapon\"\" - spawn with a randomly selected weapon\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "For more, type help_server_more\n" );
+	}
+	else if ( FStrEq( pcmd, "help_server_more" )  )
+	{
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "[Server Help More]\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_mutators \"speedup\"\" - everything is sped up by half! (sp only!)\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_mutators \"rockets\"\" - a random chance of rockets throw on attack!\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_mutators \"invisible\"\" - everyone is partially invisible!\n");
@@ -1018,6 +1018,8 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_mutators \"slowweapons\"\" - all weapons are slower.\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_mutators \"fastweapons\"\" - all weapons are faster.\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_mutators \"jack\"\" - we don't make it 'til you order it.\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_mutators \"piratehat\"\" - argh, maty.\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_mutators \"marshmello\"\" - come back home to you.\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_spawnweapons\" - Spawn weapons or not\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_spawnitems\" - Spawn items or not\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_disallowlist\" a list of entities that will not spawn\n");
@@ -1377,6 +1379,8 @@ void ClientPrecache( void )
 	PRECACHE_MODEL("models/player/iceman/iceman.mdl");
 	PRECACHE_MODEL("models/hat_jack.mdl");
 	PRECACHE_MODEL("models/hat_santa.mdl");
+	PRECACHE_MODEL("models/hat_pirate.mdl");
+	PRECACHE_MODEL("models/hat_marshmello.mdl");
 
 	// hud sounds
 

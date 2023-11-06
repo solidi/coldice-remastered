@@ -130,6 +130,8 @@ DLL_GLOBAL const char *g_szMutators[] = {
 	"slowweapons",
 	"fastweapons",
 	"jack",
+	"piratehat",
+	"marshmello",
 };
 
 //=========================================================
