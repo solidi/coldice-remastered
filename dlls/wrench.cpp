@@ -62,7 +62,7 @@ void CWrench::Precache( void )
 {
 	PRECACHE_MODEL("models/v_wrench.mdl");
 	PRECACHE_MODEL("models/w_weapons.mdl");
-	PRECACHE_MODEL("models/p_wrench.mdl");
+	PRECACHE_MODEL("models/p_weapons.mdl");
 	PRECACHE_SOUND("wrench_hit1.wav");
 	PRECACHE_SOUND("wrench_hit2.wav");
 	PRECACHE_SOUND("wrench_hitbod1.wav");
@@ -103,14 +103,14 @@ BOOL CWrench::DeployLowKey( )
 {
 	m_flStartThrow = 0;
 	m_flReleaseThrow = -1;
-	return DefaultDeploy( "models/v_wrench.mdl", "models/p_wrench.mdl", WRENCH_DRAW_LOWKEY, "crowbar" );
+	return DefaultDeploy( "models/v_wrench.mdl", "models/p_weapons.mdl", WRENCH_DRAW_LOWKEY, "crowbar" );
 }
 
 BOOL CWrench::Deploy( )
 {
 	m_flStartThrow = 0;
 	m_flReleaseThrow = -1;
-	return DefaultDeploy( "models/v_wrench.mdl", "models/p_wrench.mdl", WRENCH_DRAW, "crowbar" );
+	return DefaultDeploy( "models/v_wrench.mdl", "models/p_weapons.mdl", WRENCH_DRAW, "crowbar" );
 }
 
 BOOL CWrench::CanSlide()

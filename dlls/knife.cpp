@@ -82,7 +82,7 @@ void CKnife::Precache( void )
 {
 	PRECACHE_MODEL("models/v_knife.mdl");
 	PRECACHE_MODEL("models/w_weapons.mdl");
-	PRECACHE_MODEL("models/p_knife.mdl");
+	PRECACHE_MODEL("models/p_weapons.mdl");
 	PRECACHE_SOUND("knife_hit_wall1.wav");
 	PRECACHE_SOUND("knife_hit_wall2.wav");
 	PRECACHE_SOUND("knife_hit_flesh1.wav");
@@ -124,14 +124,14 @@ BOOL CKnife::DeployLowKey( )
 {
 	m_flStartThrow = 0;
 	m_flReleaseThrow = -1;
-	return DefaultDeploy( "models/v_knife.mdl", "models/p_knife.mdl", KNIFE_DRAW_LOWKEY, "crowbar" );
+	return DefaultDeploy( "models/v_knife.mdl", "models/p_weapons.mdl", KNIFE_DRAW_LOWKEY, "crowbar" );
 }
 
 BOOL CKnife::Deploy( )
 {
 	m_flStartThrow = 0;
 	m_flReleaseThrow = -1;
-	return DefaultDeploy( "models/v_knife.mdl", "models/p_knife.mdl", KNIFE_DRAW, "crowbar" );
+	return DefaultDeploy( "models/v_knife.mdl", "models/p_weapons.mdl", KNIFE_DRAW, "crowbar" );
 }
 
 BOOL CKnife::CanSlide()
