@@ -2241,6 +2241,7 @@ int CStudioModelRenderer::StudioDrawPlayer( int flags, entity_state_t *pplayer )
 			IEngineStudio.StudioSetupLighting (&lighting);
 
 			m_pCurrentEntity->curstate.skin = cl_icemodels->value;
+			m_pCurrentEntity->curstate.body = pplayer->team;
 			StudioRenderModel( );
 
 			StudioCalcAttachments( );

@@ -209,7 +209,7 @@ void CRocketCrowbar::Precache( void )
 {
 	PRECACHE_MODEL("models/v_rocketcrowbar.mdl");
 	PRECACHE_MODEL("models/w_weapons.mdl");
-	PRECACHE_MODEL("models/p_rocketcrowbar.mdl");
+	PRECACHE_MODEL("models/p_weapons.mdl");
 	PRECACHE_SOUND("cbar_hit1.wav");
 	PRECACHE_SOUND("weapons/cbar_hit2.wav");
 	PRECACHE_SOUND("cbar_hitbod1.wav");
@@ -248,12 +248,12 @@ int CRocketCrowbar::GetItemInfo(ItemInfo *p)
 
 BOOL CRocketCrowbar::DeployLowKey( )
 {
-	return DefaultDeploy( "models/v_rocketcrowbar.mdl", "models/p_rocketcrowbar.mdl", ROCKET_CROWBAR_DRAW_LOWKEY, "crowbar", UseDecrement(), 1 );
+	return DefaultDeploy( "models/v_rocketcrowbar.mdl", "models/p_weapons.mdl", ROCKET_CROWBAR_DRAW_LOWKEY, "crowbar", UseDecrement(), 1 );
 }
 
 BOOL CRocketCrowbar::Deploy( )
 {
-	return DefaultDeploy( "models/v_rocketcrowbar.mdl", "models/p_rocketcrowbar.mdl", ROCKET_CROWBAR_DRAW, "crowbar", UseDecrement(), 1 );
+	return DefaultDeploy( "models/v_rocketcrowbar.mdl", "models/p_weapons.mdl", ROCKET_CROWBAR_DRAW, "crowbar", UseDecrement(), 1 );
 }
 
 void CRocketCrowbar::Holster( int skiplocal /* = 0 */ )

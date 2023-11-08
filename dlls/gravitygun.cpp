@@ -55,7 +55,7 @@ void CGravityGun::Precache()
 {
 	PRECACHE_MODEL("models/v_gravitygun.mdl");
 	PRECACHE_MODEL("models/w_weapons.mdl");
-	PRECACHE_MODEL("models/p_gravitygun.mdl");
+	PRECACHE_MODEL("models/p_weapons.mdl");
 
 	PRECACHE_SOUND("weapons/rocketfire1.wav");
 
@@ -90,12 +90,12 @@ int CGravityGun::GetItemInfo(ItemInfo* p)
 
 BOOL CGravityGun::DeployLowKey()
 {
-	return DefaultDeploy( "models/v_gravitygun.mdl", "models/p_gravitygun.mdl", GRAVITYGUN_DRAW_LOWKEY, "gauss" );
+	return DefaultDeploy( "models/v_gravitygun.mdl", "models/p_weapons.mdl", GRAVITYGUN_DRAW_LOWKEY, "gauss" );
 }
 
 BOOL CGravityGun::Deploy()
 {
-	return DefaultDeploy("models/v_gravitygun.mdl", "models/p_gravitygun.mdl", GRAVITYGUN_DRAW, "gauss");
+	return DefaultDeploy("models/v_gravitygun.mdl", "models/p_weapons.mdl", GRAVITYGUN_DRAW, "gauss");
 }
 
 void CGravityGun::Holster(int skiplocal)

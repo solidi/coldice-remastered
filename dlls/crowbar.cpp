@@ -87,7 +87,7 @@ void CCrowbar::Precache( void )
 {
 	PRECACHE_MODEL("models/v_crowbar.mdl");
 	PRECACHE_MODEL("models/w_weapons.mdl");
-	PRECACHE_MODEL("models/p_crowbar.mdl");
+	PRECACHE_MODEL("models/p_weapons.mdl");
 	PRECACHE_SOUND("cbar_hit1.wav");
 	PRECACHE_SOUND("weapons/cbar_hit2.wav");
 	PRECACHE_SOUND("cbar_hitbod1.wav");
@@ -130,14 +130,14 @@ BOOL CCrowbar::DeployLowKey( )
 {
 	m_flStartThrow = 0;
 	m_flReleaseThrow = -1;
-	return DefaultDeploy( "models/v_crowbar.mdl", "models/p_crowbar.mdl", CROWBAR_DRAW_LOWKEY, "crowbar" );
+	return DefaultDeploy( "models/v_crowbar.mdl", "models/p_weapons.mdl", CROWBAR_DRAW_LOWKEY, "crowbar" );
 }
 
 BOOL CCrowbar::Deploy( )
 {
 	m_flStartThrow = 0;
 	m_flReleaseThrow = -1;
-	return DefaultDeploy( "models/v_crowbar.mdl", "models/p_crowbar.mdl", CROWBAR_DRAW, "crowbar" );
+	return DefaultDeploy( "models/v_crowbar.mdl", "models/p_weapons.mdl", CROWBAR_DRAW, "crowbar" );
 }
 
 BOOL CCrowbar::CanSlide()

@@ -1463,6 +1463,7 @@ BOOL CBasePlayerWeapon :: DefaultDeploy( char *szViewModel, char *szWeaponModel,
 		m_pPlayer->pev->weaponmodel = 0;
 	else
 		m_pPlayer->pev->weaponmodel = MAKE_STRING(szWeaponModel);
+	m_pPlayer->pev->team = m_iId - 1;
 	m_pPlayer->pev->viewmodel = MAKE_STRING(szViewModel);
 
 	strcpy( m_pPlayer->m_szAnimExtention, szAnimExt );
