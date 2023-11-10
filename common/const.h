@@ -842,6 +842,7 @@ typedef struct
 #define MUTATOR_JACK 47
 #define MUTATOR_PIRATEHAT 48
 #define MUTATOR_MARSHMELLO 49
+#define MUTATOR_CRATE 50
 
 #define GAME_FFA 0
 #define GAME_TEAMPLAY 1

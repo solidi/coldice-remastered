@@ -61,6 +61,7 @@ DLL_GLOBAL	short 	g_sModelIndexIceFireball;
 DLL_GLOBAL	short 	g_sModelIndexFire;
 DLL_GLOBAL	short 	g_sModelIndexIceFire;
 DLL_GLOBAL	short	g_sModelConcreteGibs;
+DLL_GLOBAL	short	g_sModelWoodGibs;
 DLL_GLOBAL	short	g_sModelLightning;
 DLL_GLOBAL	short	g_sModelIndexFlame;
 DLL_GLOBAL	short	g_Gibs;
@@ -524,6 +525,7 @@ void W_Precache(void)
 	PRECACHE_MODEL ("models/v_dual_leg.mdl");
 	PRECACHE_SOUND ("kick.wav");
 	g_sModelConcreteGibs = PRECACHE_MODEL("models/w_concretegibs.mdl");
+	g_sModelWoodGibs = PRECACHE_MODEL("models/woodgibs.mdl");
 
 	g_sModelLightning = PRECACHE_MODEL("sprites/lgtning.spr");
 
