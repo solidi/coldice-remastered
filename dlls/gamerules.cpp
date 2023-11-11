@@ -132,6 +132,7 @@ DLL_GLOBAL const char *g_szMutators[] = {
 	"jack",
 	"piratehat",
 	"marshmello",
+	"crate",
 };
 
 //=========================================================

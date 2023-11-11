@@ -522,6 +522,7 @@ extern DLL_GLOBAL	short 	g_sModelIndexIceFireball;
 extern DLL_GLOBAL	short 	g_sModelIndexFire;
 extern DLL_GLOBAL	short 	g_sModelIndexIceFire;
 extern DLL_GLOBAL	short	g_sModelConcreteGibs;
+extern DLL_GLOBAL	short	g_sModelWoodGibs;
 extern DLL_GLOBAL	short	g_sModelLightning;
 extern DLL_GLOBAL	short	g_sModelIndexFlame;
 

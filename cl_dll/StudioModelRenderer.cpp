@@ -1981,6 +1981,16 @@ int CStudioModelRenderer::StudioDrawPlayer( int flags, entity_state_t *pplayer )
 	if (m_nPlayerIndex < 0 || m_nPlayerIndex >= gEngfuncs.GetMaxClients())
 		return 0;
 
+	bool crate = (gHUD.szActiveMutators != NULL &&
+					(strstr(gHUD.szActiveMutators, "crate") ||
+					atoi(gHUD.szActiveMutators) == MUTATOR_CRATE));
+
+	if (crate)
+	{
+		int modelindex;
+		m_pRenderModel = gEngfuncs.CL_LoadModel("models/box.mdl", &modelindex );
+	}
+
 #if defined( _TFC )
 
 	int modelindex; 
@@ -2002,7 +2012,8 @@ int CStudioModelRenderer::StudioDrawPlayer( int flags, entity_state_t *pplayer )
 
 #else
 
-	m_pRenderModel = IEngineStudio.SetupPlayerModel( m_nPlayerIndex );
+	if (!crate)
+		m_pRenderModel = IEngineStudio.SetupPlayerModel( m_nPlayerIndex );
 
 #endif
 
@@ -2012,6 +2023,9 @@ int CStudioModelRenderer::StudioDrawPlayer( int flags, entity_state_t *pplayer )
 	m_pStudioHeader = (studiohdr_t *)IEngineStudio.Mod_Extradata (m_pRenderModel);
 	IEngineStudio.StudioSetHeader( m_pStudioHeader );
 	IEngineStudio.SetRenderModel( m_pRenderModel );
+
+	if (crate)
+		m_pCurrentEntity->curstate.skin = m_nPlayerIndex % 8;
 
 	if (pplayer->gaitsequence)
 	{
@@ -2160,7 +2174,7 @@ int CStudioModelRenderer::StudioDrawPlayer( int flags, entity_state_t *pplayer )
 
 		m_pPlayerInfo = NULL;
 
-		if (pplayer->weaponmodel)
+		if (!crate && pplayer->weaponmodel)
 		{
 			cl_entity_t saveent = *m_pCurrentEntity;
 
@@ -2252,22 +2266,25 @@ int CStudioModelRenderer::StudioDrawPlayer( int flags, entity_state_t *pplayer )
 		int hatindex = 0;
 		model_t *hatmodel;
 
-		if (gHUD.szActiveMutators != NULL &&
-			(strstr(gHUD.szActiveMutators, "jack") ||
-			atoi(gHUD.szActiveMutators) == MUTATOR_JACK)) {
-			gEngfuncs.CL_LoadModel("models/hat_jack.mdl", &hatindex);
-		} else if (gHUD.szActiveMutators != NULL &&
-			(strstr(gHUD.szActiveMutators, "santahat") ||
-			atoi(gHUD.szActiveMutators) == MUTATOR_SANTAHAT)) {
-			gEngfuncs.CL_LoadModel("models/hat_santa.mdl", &hatindex);
-		} else if (gHUD.szActiveMutators != NULL &&
-			(strstr(gHUD.szActiveMutators, "piratehat") ||
-			atoi(gHUD.szActiveMutators) == MUTATOR_PIRATEHAT)) {
-			gEngfuncs.CL_LoadModel("models/hat_pirate.mdl", &hatindex);
-		} else if (gHUD.szActiveMutators != NULL &&
-			(strstr(gHUD.szActiveMutators, "marshmello") ||
-			atoi(gHUD.szActiveMutators) == MUTATOR_MARSHMELLO)) {
-			gEngfuncs.CL_LoadModel("models/hat_marshmello.mdl", &hatindex);
+		if (!crate)
+		{
+			if (gHUD.szActiveMutators != NULL &&
+				(strstr(gHUD.szActiveMutators, "jack") ||
+				atoi(gHUD.szActiveMutators) == MUTATOR_JACK)) {
+				gEngfuncs.CL_LoadModel("models/hat_jack.mdl", &hatindex);
+			} else if (gHUD.szActiveMutators != NULL &&
+				(strstr(gHUD.szActiveMutators, "santahat") ||
+				atoi(gHUD.szActiveMutators) == MUTATOR_SANTAHAT)) {
+				gEngfuncs.CL_LoadModel("models/hat_santa.mdl", &hatindex);
+			} else if (gHUD.szActiveMutators != NULL &&
+				(strstr(gHUD.szActiveMutators, "piratehat") ||
+				atoi(gHUD.szActiveMutators) == MUTATOR_PIRATEHAT)) {
+				gEngfuncs.CL_LoadModel("models/hat_pirate.mdl", &hatindex);
+			} else if (gHUD.szActiveMutators != NULL &&
+				(strstr(gHUD.szActiveMutators, "marshmello") ||
+				atoi(gHUD.szActiveMutators) == MUTATOR_MARSHMELLO)) {
+				gEngfuncs.CL_LoadModel("models/hat_marshmello.mdl", &hatindex);
+			}
 		}
 
 		if (hatindex)

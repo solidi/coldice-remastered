@@ -57,6 +57,7 @@ extern DLL_GLOBAL const char *g_MutatorTopsyTurvy;
 extern DLL_GLOBAL const char *g_MutatorPlumber;
 extern DLL_GLOBAL const char *g_MutatorRocketCrowbar;
 extern DLL_GLOBAL const char *g_MutatorAutoaim;
+extern DLL_GLOBAL const char *g_MutatorCrate;
 
 BOOL gInitHUD = TRUE;
 
@@ -1047,6 +1048,58 @@ void CBasePlayer::Killed( entvars_t *pevAttacker, int iGib )
 
 	// UNDONE: Put this in, but add FFADE_PERMANENT and make fade time 8.8 instead of 4.12
 	// UTIL_ScreenFade( edict(), Vector(128,0,0), 6, 15, 255, FFADE_OUT | FFADE_MODULATE );
+
+	if (strstr(mutators.string, g_MutatorCrate) ||
+		atoi(mutators.string) == MUTATOR_CRATE)
+	{
+		pev->solid = SOLID_NOT;
+
+		switch (RANDOM_LONG(0,1))
+		{
+		case 0:	EMIT_SOUND(ENT(pev), CHAN_VOICE, "debris/bustcrate1.wav", 1, ATTN_NORM);
+			break;
+		case 1:	EMIT_SOUND(ENT(pev), CHAN_VOICE, "debris/bustcrate2.wav", 1, ATTN_NORM);
+			break;
+		}
+
+		MESSAGE_BEGIN( MSG_PVS, SVC_TEMPENTITY, pev->origin );
+			WRITE_BYTE(TE_BREAKMODEL);
+
+			// position
+			WRITE_COORD( pev->origin.x );
+			WRITE_COORD( pev->origin.y );
+			WRITE_COORD( pev->origin.z );
+
+			// size
+			WRITE_COORD( 64 );
+			WRITE_COORD( 64 );
+			WRITE_COORD( 32 );
+
+			// velocity
+			WRITE_COORD( pev->velocity.x );
+			WRITE_COORD( pev->velocity.y );
+			WRITE_COORD( pev->velocity.z );
+
+			// randomization
+			WRITE_BYTE( 10 );
+
+			// Model
+			WRITE_SHORT( g_sModelWoodGibs );	//model id#
+
+			// # of shards
+			WRITE_BYTE( RANDOM_LONG(5,10) );
+
+			// duration
+			WRITE_BYTE( RANDOM_LONG(5,20) );
+
+			// flags
+			WRITE_BYTE( BREAK_WOOD );
+		MESSAGE_END();
+
+		pev->effects |= EF_NODRAW;
+
+		return;
+	}
 
 	if ( ( pev->health < -40 && iGib != GIB_NEVER ) || iGib == GIB_ALWAYS )
 	{
