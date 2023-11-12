@@ -87,7 +87,7 @@ void CPython::Precache( void )
 {
 	PRECACHE_MODEL("models/v_357.mdl");
 	PRECACHE_MODEL("models/w_weapons.mdl");
-	PRECACHE_MODEL("models/p_357.mdl");
+	PRECACHE_MODEL("models/p_weapons.mdl");
 
 	PRECACHE_MODEL("models/w_357ammobox.mdl");
 	PRECACHE_SOUND("items/9mmclip1.wav");              
@@ -117,7 +117,7 @@ BOOL CPython::DeployLowKey( )
 		pev->body = 0;
 	}
 
-	return DefaultDeploy( "models/v_357.mdl", "models/p_357.mdl", PYTHON_DRAW_LOWKEY, "python", UseDecrement(), pev->body );
+	return DefaultDeploy( "models/v_357.mdl", "models/p_weapons.mdl", PYTHON_DRAW_LOWKEY, "python", UseDecrement(), pev->body );
 }
 
 BOOL CPython::Deploy( )
@@ -136,7 +136,7 @@ BOOL CPython::Deploy( )
 		pev->body = 0;
 	}
 
-	return DefaultDeploy( "models/v_357.mdl", "models/p_357.mdl", PYTHON_DRAW, "python", UseDecrement(), pev->body );
+	return DefaultDeploy( "models/v_357.mdl", "models/p_weapons.mdl", PYTHON_DRAW, "python", UseDecrement(), pev->body );
 }
 
 

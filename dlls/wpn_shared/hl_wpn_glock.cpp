@@ -60,8 +60,7 @@ void CGlock::Precache( void )
 	PRECACHE_MODEL("models/v_9mmhandgun.mdl");
 	PRECACHE_MODEL("models/v_9mmhandguns.mdl");
 	PRECACHE_MODEL("models/w_weapons.mdl");
-	PRECACHE_MODEL("models/p_9mmhandgun.mdl");
-	PRECACHE_MODEL("models/p_9mmhandguns.mdl");
+	PRECACHE_MODEL("models/p_weapons.mdl");
 
 	m_iShell = PRECACHE_MODEL ("models/w_shell.mdl");// brass shell
 
@@ -95,11 +94,7 @@ int CGlock::GetItemInfo(ItemInfo *p)
 
 BOOL CGlock::DeployLowKey( )
 {
-	if (m_iSilencer == 0) {
-		return DefaultDeploy( "models/v_9mmhandgun.mdl", "models/p_9mmhandgun.mdl", GLOCK_DRAW_LOWKEY, "onehanded", 0 );
-	} else {
-		return DefaultDeploy( "models/v_9mmhandguns.mdl", "models/p_9mmhandguns.mdl", GLOCK_DRAW_LOWKEY, "onehanded", 0 );
-	}
+	return DefaultDeploy( "models/v_9mmhandgun.mdl", "models/p_weapons.mdl", GLOCK_DRAW_LOWKEY, "onehanded", 0 );
 }
 
 BOOL CGlock::Deploy( )
@@ -139,11 +134,7 @@ void CGlock::AddSilencer( void )
 
 BOOL CGlock::ChangeModel( void )
 {
-	if (m_iSilencer == 0) {
-		return DefaultDeploy( "models/v_9mmhandgun.mdl", "models/p_9mmhandgun.mdl", GLOCK_DRAW, "onehanded", 0 );
-	} else {
-		return DefaultDeploy( "models/v_9mmhandguns.mdl", "models/p_9mmhandguns.mdl", GLOCK_DRAW, "onehanded", 0 );
-	}
+	return DefaultDeploy( "models/v_9mmhandgun.mdl", "models/p_weapons.mdl", GLOCK_DRAW, "onehanded", 0 );
 }
 
 void CGlock::PrimaryAttack( void )

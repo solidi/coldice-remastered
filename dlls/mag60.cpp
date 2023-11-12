@@ -91,7 +91,7 @@ void CMag60::Precache( void )
 {
 	PRECACHE_MODEL("models/v_mag60.mdl");
 	PRECACHE_MODEL("models/w_weapons.mdl");
-	PRECACHE_MODEL("models/p_mag60.mdl");
+	PRECACHE_MODEL("models/p_weapons.mdl");
 
 	m_iShell = PRECACHE_MODEL ("models/w_shell.mdl");// brass shell
 
@@ -126,12 +126,12 @@ int CMag60::GetItemInfo(ItemInfo *p)
 
 BOOL CMag60::DeployLowKey( )
 {
-	return DefaultDeploy("models/v_mag60.mdl", "models/p_mag60.mdl", MAG60_DRAW_LOWKEY, "onehanded", 0);
+	return DefaultDeploy("models/v_mag60.mdl", "models/p_weapons.mdl", MAG60_DRAW_LOWKEY, "onehanded", 0);
 }
 
 BOOL CMag60::Deploy( )
 {
-	BOOL result = DefaultDeploy("models/v_mag60.mdl", "models/p_mag60.mdl", MAG60_DRAW, "onehanded", 0);
+	BOOL result = DefaultDeploy("models/v_mag60.mdl", "models/p_weapons.mdl", MAG60_DRAW, "onehanded", 0);
 
 #ifndef CLIENT_DLL
 	if (result && allowvoiceovers.value) {
