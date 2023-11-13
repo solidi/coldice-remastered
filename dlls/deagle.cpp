@@ -84,7 +84,7 @@ void CDeagle::Precache( void )
 {
 	PRECACHE_MODEL("models/v_deagle.mdl");
 	PRECACHE_MODEL("models/w_weapons.mdl");
-	PRECACHE_MODEL("models/p_deagle.mdl");
+	PRECACHE_MODEL("models/p_weapons.mdl");
 
 	PRECACHE_SOUND("weapons/357_cock1.wav");
 
@@ -95,12 +95,12 @@ void CDeagle::Precache( void )
 
 BOOL CDeagle::Deploy( )
 {
-	return DefaultDeploy( "models/v_deagle.mdl", "models/p_deagle.mdl", DEAGLE_DRAW, "python", UseDecrement(), pev->body );
+	return DefaultDeploy( "models/v_deagle.mdl", "models/p_weapons.mdl", DEAGLE_DRAW, "python", UseDecrement(), pev->body );
 }
 
 BOOL CDeagle::DeployLowKey( )
 {
-	return DefaultDeploy( "models/v_deagle.mdl", "models/p_deagle.mdl", DEAGLE_DRAW_LOWKEY, "python", UseDecrement(), pev->body );
+	return DefaultDeploy( "models/v_deagle.mdl", "models/p_weapons.mdl", DEAGLE_DRAW_LOWKEY, "python", UseDecrement(), pev->body );
 }
 
 void CDeagle::Holster( int skiplocal /* = 0 */ )

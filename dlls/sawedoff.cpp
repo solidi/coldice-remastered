@@ -58,7 +58,7 @@ void CSawedOff::Precache( void )
 {
 	PRECACHE_MODEL("models/v_sawedoff.mdl");
 	PRECACHE_MODEL("models/w_weapons.mdl");
-	PRECACHE_MODEL("models/p_sawedoff.mdl");
+	PRECACHE_MODEL("models/p_weapons.mdl");
 
 	m_iShell = PRECACHE_MODEL ("models/shotgunshell.mdl");// shotgun shell
 
@@ -106,12 +106,12 @@ int CSawedOff::GetItemInfo(ItemInfo *p)
 
 BOOL CSawedOff::DeployLowKey( )
 {
-	return DefaultDeploy( "models/v_sawedoff.mdl", "models/p_sawedoff.mdl", SAWEDOFF_DRAW_LOWKEY, "shotgun" );
+	return DefaultDeploy( "models/v_sawedoff.mdl", "models/p_weapons.mdl", SAWEDOFF_DRAW_LOWKEY, "shotgun" );
 }
 
 BOOL CSawedOff::Deploy( )
 {
-	return DefaultDeploy( "models/v_sawedoff.mdl", "models/p_sawedoff.mdl", SAWEDOFF_DRAW, "shotgun" );
+	return DefaultDeploy( "models/v_sawedoff.mdl", "models/p_weapons.mdl", SAWEDOFF_DRAW, "shotgun" );
 }
 
 void CSawedOff::Holster( int skiplocal /* = 0 */ )
