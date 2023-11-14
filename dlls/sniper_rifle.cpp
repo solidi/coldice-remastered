@@ -56,7 +56,7 @@ void CSniperRifle::Precache( void )
 {
 	PRECACHE_MODEL("models/v_sniperrifle.mdl");
 	PRECACHE_MODEL("models/w_weapons.mdl");
-	PRECACHE_MODEL("models/p_sniperrifle.mdl");
+	PRECACHE_MODEL("models/p_weapons.mdl");
 
 	m_iShell = PRECACHE_MODEL("models/w_762shell.mdl");// brass shellTE_MODEL
 
@@ -95,12 +95,12 @@ int CSniperRifle::AddToPlayer( CBasePlayer *pPlayer )
 
 BOOL CSniperRifle::DeployLowKey( )
 {
-	return DefaultDeploy( "models/v_sniperrifle.mdl", "models/p_sniperrifle.mdl", RIFLE_DRAW_LOWKEY, "rpg" );
+	return DefaultDeploy( "models/v_sniperrifle.mdl", "models/p_weapons.mdl", RIFLE_DRAW_LOWKEY, "rpg" );
 }
 
 BOOL CSniperRifle::Deploy( )
 {
-	return DefaultDeploy( "models/v_sniperrifle.mdl", "models/p_sniperrifle.mdl", RIFLE_DRAW, "rpg" );
+	return DefaultDeploy( "models/v_sniperrifle.mdl", "models/p_weapons.mdl", RIFLE_DRAW, "rpg" );
 }
 
 void CSniperRifle::Holster( int skiplocal )

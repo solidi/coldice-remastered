@@ -72,7 +72,7 @@ void C12Gauge::Precache( void )
 {
 	PRECACHE_MODEL("models/v_12gauge.mdl");
 	PRECACHE_MODEL("models/w_weapons.mdl");
-	PRECACHE_MODEL("models/p_12gauge.mdl");
+	PRECACHE_MODEL("models/p_weapons.mdl");
 
 	m_iShell = PRECACHE_MODEL ("models/w_shotgunshell.mdl");// shotgun shell
 
@@ -120,12 +120,12 @@ int C12Gauge::GetItemInfo(ItemInfo *p)
 
 BOOL C12Gauge::DeployLowKey( )
 {
-	return DefaultDeploy( "models/v_12gauge.mdl", "models/p_12gauge.mdl", GAUGE_SHOTGUN_DRAW_LOWKEY, "shotgun" );
+	return DefaultDeploy( "models/v_12gauge.mdl", "models/p_weapons.mdl", GAUGE_SHOTGUN_DRAW_LOWKEY, "shotgun" );
 }
 
 BOOL C12Gauge::Deploy( )
 {
-	BOOL result = DefaultDeploy( "models/v_12gauge.mdl", "models/p_12gauge.mdl", GAUGE_SHOTGUN_DRAW, "shotgun" );
+	BOOL result = DefaultDeploy( "models/v_12gauge.mdl", "models/p_weapons.mdl", GAUGE_SHOTGUN_DRAW, "shotgun" );
 
 #ifndef CLIENT_DLL
 	if (result && allowvoiceovers.value) {

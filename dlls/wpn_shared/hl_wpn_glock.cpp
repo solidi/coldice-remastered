@@ -134,7 +134,10 @@ void CGlock::AddSilencer( void )
 
 BOOL CGlock::ChangeModel( void )
 {
-	return DefaultDeploy( "models/v_9mmhandgun.mdl", "models/p_weapons.mdl", GLOCK_DRAW, "onehanded", 0 );
+	if (m_iSilencer)
+		return DefaultDeploy( "models/v_9mmhandguns.mdl", "models/p_weapons.mdl", GLOCK_DRAW, "onehanded", 0 );
+	else
+		return DefaultDeploy( "models/v_9mmhandgun.mdl", "models/p_weapons.mdl", GLOCK_DRAW, "onehanded", 0 );
 }
 
 void CGlock::PrimaryAttack( void )

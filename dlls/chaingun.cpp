@@ -57,7 +57,7 @@ void CChaingun::Precache( void )
 {
 	PRECACHE_MODEL("models/v_chaingun.mdl");
 	PRECACHE_MODEL("models/w_weapons.mdl");
-	PRECACHE_MODEL("models/p_chaingun.mdl");
+	PRECACHE_MODEL("models/p_weapons.mdl");
 
 	PRECACHE_MODEL ("models/w_shell.mdl");
 
@@ -100,12 +100,12 @@ int CChaingun::AddToPlayer( CBasePlayer *pPlayer )
 
 BOOL CChaingun::DeployLowKey( )
 {
-	return DefaultDeploy( "models/v_chaingun.mdl", "models/p_chaingun.mdl", CHAINGUN_DRAW_LOWKEY, "mp5" );
+	return DefaultDeploy( "models/v_chaingun.mdl", "models/p_weapons.mdl", CHAINGUN_DRAW_LOWKEY, "mp5" );
 }
 
 BOOL CChaingun::Deploy( )
 {
-	return DefaultDeploy( "models/v_chaingun.mdl", "models/p_chaingun.mdl", CHAINGUN_DRAW, "mp5" );
+	return DefaultDeploy( "models/v_chaingun.mdl", "models/p_weapons.mdl", CHAINGUN_DRAW, "mp5" );
 }
 
 void CChaingun::Holster( int skiplocal )

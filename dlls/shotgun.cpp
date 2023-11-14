@@ -62,7 +62,7 @@ void CShotgun::Precache( void )
 {
 	PRECACHE_MODEL("models/v_shotgun.mdl");
 	PRECACHE_MODEL("models/w_weapons.mdl");
-	PRECACHE_MODEL("models/p_shotgun.mdl");
+	PRECACHE_MODEL("models/p_weapons.mdl");
 
 	m_iShell = PRECACHE_MODEL ("models/shotgunshell.mdl");// shotgun shell
 
@@ -115,12 +115,12 @@ int CShotgun::GetItemInfo(ItemInfo *p)
 
 BOOL CShotgun::DeployLowKey( )
 {
-	return DefaultDeploy( "models/v_shotgun.mdl", "models/p_shotgun.mdl", SHOTGUN_DRAW_LOWKEY, "shotgun" );
+	return DefaultDeploy( "models/v_shotgun.mdl", "models/p_weapons.mdl", SHOTGUN_DRAW_LOWKEY, "shotgun" );
 }
 
 BOOL CShotgun::Deploy( )
 {
-	return DefaultDeploy( "models/v_shotgun.mdl", "models/p_shotgun.mdl", SHOTGUN_DRAW, "shotgun" );
+	return DefaultDeploy( "models/v_shotgun.mdl", "models/p_weapons.mdl", SHOTGUN_DRAW, "shotgun" );
 }
 
 void CShotgun::Holster( int skiplocal /* = 0 */ )

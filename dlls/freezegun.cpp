@@ -55,7 +55,7 @@ void CFreezeGun::Precache(void)
 {
 	PRECACHE_MODEL("models/v_freezegun.mdl");
 	PRECACHE_MODEL("models/w_weapons.mdl");
-	PRECACHE_MODEL("models/p_freezegun.mdl");
+	PRECACHE_MODEL("models/p_weapons.mdl");
 
 	PRECACHE_SOUND("freezegun_fire.wav");
 	PRECACHE_SOUND("freezegun_spin.wav");
@@ -100,12 +100,12 @@ int CFreezeGun::GetItemInfo(ItemInfo *p)
 
 BOOL CFreezeGun::DeployLowKey()
 {
-	return DefaultDeploy( "models/v_freezegun.mdl", "models/p_freezegun.mdl", FREEZEGUN_DRAW_LOWKEY, "egon", 0.6 );
+	return DefaultDeploy( "models/v_freezegun.mdl", "models/p_weapons.mdl", FREEZEGUN_DRAW_LOWKEY, "egon", 0.6 );
 }
 
 BOOL CFreezeGun::Deploy()
 {
-	return DefaultDeploy( "models/v_freezegun.mdl", "models/p_freezegun.mdl", FREEZEGUN_DRAW, "egon", 0.6 );
+	return DefaultDeploy( "models/v_freezegun.mdl", "models/p_weapons.mdl", FREEZEGUN_DRAW, "egon", 0.6 );
 }
 
 void CFreezeGun::Holster( int skiplocal )
