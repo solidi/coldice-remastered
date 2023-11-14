@@ -95,12 +95,12 @@ void CDeagle::Precache( void )
 
 BOOL CDeagle::Deploy( )
 {
-	return DefaultDeploy( "models/v_deagle.mdl", "models/p_weapons.mdl", DEAGLE_DRAW, "python", UseDecrement(), pev->body );
+	return DefaultDeploy( "models/v_deagle.mdl", "models/p_weapons.mdl", DEAGLE_DRAW, "python", UseDecrement(), 0 );
 }
 
 BOOL CDeagle::DeployLowKey( )
 {
-	return DefaultDeploy( "models/v_deagle.mdl", "models/p_weapons.mdl", DEAGLE_DRAW_LOWKEY, "python", UseDecrement(), pev->body );
+	return DefaultDeploy( "models/v_deagle.mdl", "models/p_weapons.mdl", DEAGLE_DRAW_LOWKEY, "python", UseDecrement(), 0 );
 }
 
 void CDeagle::Holster( int skiplocal /* = 0 */ )

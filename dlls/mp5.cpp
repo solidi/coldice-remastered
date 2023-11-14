@@ -70,7 +70,7 @@ void CMP5::Precache( void )
 {
 	PRECACHE_MODEL("models/v_9mmAR.mdl");
 	PRECACHE_MODEL("models/w_weapons.mdl");
-	PRECACHE_MODEL("models/p_9mmAR.mdl");
+	PRECACHE_MODEL("models/p_weapons.mdl");
 
 	m_iShell = PRECACHE_MODEL ("models/w_shell.mdl");// brass shellTE_MODEL
 
@@ -125,12 +125,12 @@ int CMP5::AddToPlayer( CBasePlayer *pPlayer )
 
 BOOL CMP5::DeployLowKey( )
 {
-	return DefaultDeploy( "models/v_9mmAR.mdl", "models/p_9mmAR.mdl", MP5_DRAW_LOWKEY, "mp5" );
+	return DefaultDeploy( "models/v_9mmAR.mdl", "models/p_weapons.mdl", MP5_DRAW_LOWKEY, "mp5" );
 }
 
 BOOL CMP5::Deploy( )
 {
-	return DefaultDeploy( "models/v_9mmAR.mdl", "models/p_9mmAR.mdl", MP5_DEPLOY, "mp5" );
+	return DefaultDeploy( "models/v_9mmAR.mdl", "models/p_weapons.mdl", MP5_DEPLOY, "mp5" );
 }
 
 void CMP5::Holster( int skiplocal /* = 0 */ )

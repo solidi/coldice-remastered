@@ -60,7 +60,7 @@ void CUsas::Precache( void )
 {
 	PRECACHE_MODEL("models/v_usas.mdl");
 	PRECACHE_MODEL("models/w_weapons.mdl");
-	PRECACHE_MODEL("models/p_usas.mdl");
+	PRECACHE_MODEL("models/p_weapons.mdl");
 
 	m_iShell = PRECACHE_MODEL ("models/w_shotgunshell.mdl");// shotgun shell
 
@@ -107,12 +107,12 @@ int CUsas::GetItemInfo(ItemInfo *p)
 
 BOOL CUsas::DeployLowKey( )
 {
-	return DefaultDeploy( "models/v_usas.mdl", "models/p_usas.mdl", USAS_DRAW_LOWKEY, "mp5" );
+	return DefaultDeploy( "models/v_usas.mdl", "models/p_weapons.mdl", USAS_DRAW_LOWKEY, "mp5" );
 }
 
 BOOL CUsas::Deploy( )
 {
-	return DefaultDeploy( "models/v_usas.mdl", "models/p_usas.mdl", USAS_DEPLOY, "mp5" );
+	return DefaultDeploy( "models/v_usas.mdl", "models/p_weapons.mdl", USAS_DEPLOY, "mp5" );
 }
 
 void CUsas::Holster( int skiplocal /* = 0 */ )

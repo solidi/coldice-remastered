@@ -259,7 +259,7 @@ void CCrossbow::Precache( void )
 {
 	PRECACHE_MODEL("models/w_weapons.mdl");
 	PRECACHE_MODEL("models/v_crossbow.mdl");
-	PRECACHE_MODEL("models/p_crossbow.mdl");
+	PRECACHE_MODEL("models/p_weapons.mdl");
 
 	PRECACHE_SOUND("boltgun_fire.wav");
 	PRECACHE_SOUND("weapons/xbow_reload1.wav");
@@ -290,14 +290,17 @@ int CCrossbow::GetItemInfo(ItemInfo *p)
 
 BOOL CCrossbow::DeployLowKey( )
 {
-	return DefaultDeploy( "models/v_crossbow.mdl", "models/p_crossbow.mdl", CROSSBOW_DRAW_LOWKEY, "bow" );
+	return DefaultDeploy( "models/v_crossbow.mdl", "models/p_weapons.mdl", CROSSBOW_DRAW_LOWKEY, "bow" );
 }
 
 BOOL CCrossbow::Deploy( )
 {
+	int animation = CROSSBOW_DRAW2;
+
 	if (m_iClip)
-		return DefaultDeploy( "models/v_crossbow.mdl", "models/p_crossbow.mdl", CROSSBOW_DRAW1, "bow" );
-	return DefaultDeploy( "models/v_crossbow.mdl", "models/p_crossbow.mdl", CROSSBOW_DRAW2, "bow" );
+		animation = CROSSBOW_DRAW1;
+
+	return DefaultDeploy( "models/v_crossbow.mdl", "models/p_weapons.mdl", animation, "bow" );
 }
 
 void CCrossbow::Holster( int skiplocal /* = 0 */ )
