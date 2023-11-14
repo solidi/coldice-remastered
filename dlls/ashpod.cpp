@@ -130,8 +130,9 @@ void CAshpod::SecondaryAttack()
 void CAshpod::PortalFire( int state )
 {
 	TraceResult tr;
-	UTIL_MakeVectors(m_pPlayer->pev->v_angle);
-	Vector vecSrc = m_pPlayer->pev->origin + m_pPlayer->pev->view_ofs;
+
+	Vector vecAiming = m_pPlayer->GetAutoaimVector( AUTOAIM_10DEGREES );
+	Vector vecSrc = m_pPlayer->GetGunPosition( ) + vecAiming * 16 + gpGlobals->v_right * 8 + gpGlobals->v_up * -8;
 	Vector vecEnd = vecSrc + gpGlobals->v_forward * 8192;
 
 	UTIL_TraceLine(vecSrc, vecEnd, ignore_monsters, ENT(m_pPlayer->pev), &tr);
@@ -144,6 +145,7 @@ void CAshpod::PortalFire( int state )
 		auto pPortal = CBaseEntity::Create("ent_portal", tr.vecEndPos - gpGlobals->v_forward * 3, angle, m_pPlayer->edict());
 		if (pPortal)
 		{
+			m_pPlayer->SetAnimation(PLAYER_ATTACK1);
 			SendWeaponAnim(PORTALGUN_SHOOT1);
 
 			if (state)
