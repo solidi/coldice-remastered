@@ -245,7 +245,7 @@ void CCannon::Precache( void )
 {
 	PRECACHE_MODEL("models/w_weapons.mdl");
 	PRECACHE_MODEL("models/v_cannon.mdl");
-	PRECACHE_MODEL("models/p_cannon.mdl");
+	PRECACHE_MODEL("models/p_weapons.mdl");
 
 	PRECACHE_SOUND("items/9mmclip1.wav");
 
@@ -315,12 +315,12 @@ int CCannon::AddToPlayer( CBasePlayer *pPlayer )
 
 BOOL CCannon::DeployLowKey( )
 {
-	return DefaultDeploy( "models/v_cannon.mdl", "models/p_cannon.mdl", CANNON_DRAW_LOWKEY, "rpg" );
+	return DefaultDeploy( "models/v_cannon.mdl", "models/p_weapons.mdl", CANNON_DRAW_LOWKEY, "rpg" );
 }
 
 BOOL CCannon::Deploy( )
 {
-	return DefaultDeploy( "models/v_cannon.mdl", "models/p_cannon.mdl", CANNON_DRAW1, "rpg" );
+	return DefaultDeploy( "models/v_cannon.mdl", "models/p_weapons.mdl", CANNON_DRAW1, "rpg" );
 }
 
 void CCannon::Holster( int skiplocal /* = 0 */ )

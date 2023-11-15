@@ -81,7 +81,7 @@ void CGauss::Precache( void )
 {
 	PRECACHE_MODEL("models/w_weapons.mdl");
 	PRECACHE_MODEL("models/v_gauss.mdl");
-	PRECACHE_MODEL("models/p_gauss.mdl");
+	PRECACHE_MODEL("models/p_weapons.mdl");
 
 	PRECACHE_SOUND("items/9mmclip1.wav");
 
@@ -130,13 +130,13 @@ int CGauss::GetItemInfo(ItemInfo *p)
 BOOL CGauss::DeployLowKey( )
 {
 	m_pPlayer->m_flPlayAftershock = 0.0;
-	return DefaultDeploy( "models/v_gauss.mdl", "models/p_gauss.mdl", GAUSS_DRAW_LOWKEY, "gauss" );
+	return DefaultDeploy( "models/v_gauss.mdl", "models/p_weapons.mdl", GAUSS_DRAW_LOWKEY, "gauss" );
 }
 
 BOOL CGauss::Deploy( )
 {
 	m_pPlayer->m_flPlayAftershock = 0.0;
-	return DefaultDeploy( "models/v_gauss.mdl", "models/p_gauss.mdl", GAUSS_DRAW, "gauss" );
+	return DefaultDeploy( "models/v_gauss.mdl", "models/p_weapons.mdl", GAUSS_DRAW, "gauss" );
 }
 
 void CGauss::Holster( int skiplocal /* = 0 */ )

@@ -413,7 +413,7 @@ void CRpg::Precache( void )
 {
 	PRECACHE_MODEL("models/w_weapons.mdl");
 	PRECACHE_MODEL("models/v_rpg.mdl");
-	PRECACHE_MODEL("models/p_rpg.mdl");
+	PRECACHE_MODEL("models/p_weapons.mdl");
 
 	PRECACHE_SOUND("items/9mmclip1.wav");
 
@@ -459,7 +459,7 @@ int CRpg::AddToPlayer( CBasePlayer *pPlayer )
 BOOL CRpg::DeployLowKey( )
 {
 	m_fSpotActive = 1;
-	return DefaultDeploy( "models/v_rpg.mdl", "models/p_rpg.mdl", RPG_DRAW_LOWKEY, "rpg" );
+	return DefaultDeploy( "models/v_rpg.mdl", "models/p_weapons.mdl", RPG_DRAW_LOWKEY, "rpg" );
 }
 
 BOOL CRpg::Deploy( )
@@ -468,10 +468,10 @@ BOOL CRpg::Deploy( )
 
 	if ( m_iClip == 0 )
 	{
-		return DefaultDeploy( "models/v_rpg.mdl", "models/p_rpg.mdl", RPG_DRAW_UL, "rpg" );
+		return DefaultDeploy( "models/v_rpg.mdl", "models/p_weapons.mdl", RPG_DRAW_UL, "rpg" );
 	}
 
-	return DefaultDeploy( "models/v_rpg.mdl", "models/p_rpg.mdl", RPG_DRAW1, "rpg" );
+	return DefaultDeploy( "models/v_rpg.mdl", "models/p_weapons.mdl", RPG_DRAW1, "rpg" );
 }
 
 

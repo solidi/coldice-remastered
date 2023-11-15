@@ -70,7 +70,7 @@ void CRailgun::Precache( void )
 {
 	PRECACHE_MODEL("models/w_weapons.mdl");
 	PRECACHE_MODEL("models/v_railgun.mdl");
-	PRECACHE_MODEL("models/p_railgun.mdl");
+	PRECACHE_MODEL("models/p_weapons.mdl");
 
 	PRECACHE_SOUND("railgun_fire.wav");
 	
@@ -110,12 +110,12 @@ int CRailgun::GetItemInfo(ItemInfo *p)
 
 BOOL CRailgun::DeployLowKey( )
 {
-	return DefaultDeploy( "models/v_railgun.mdl", "models/p_railgun.mdl", RAILGUN_DRAW_LOWKEY, "gauss" );
+	return DefaultDeploy( "models/v_railgun.mdl", "models/p_weapons.mdl", RAILGUN_DRAW_LOWKEY, "gauss" );
 }
 
 BOOL CRailgun::Deploy( )
 {
-	return DefaultDeploy( "models/v_railgun.mdl", "models/p_railgun.mdl", RAILGUN_DRAW, "gauss" );
+	return DefaultDeploy( "models/v_railgun.mdl", "models/p_weapons.mdl", RAILGUN_DRAW, "gauss" );
 }
 
 void CRailgun::Holster( int skiplocal )
