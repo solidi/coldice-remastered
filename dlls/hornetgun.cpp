@@ -68,7 +68,7 @@ void CHgun::Precache( void )
 {
 	PRECACHE_MODEL("models/v_hgun.mdl");
 	PRECACHE_MODEL("models/w_weapons.mdl");
-	PRECACHE_MODEL("models/p_hgun.mdl");
+	PRECACHE_MODEL("models/p_weapons.mdl");
 
 	m_usHornetFire = PRECACHE_EVENT ( 1, "events/firehornet.sc" );
 
@@ -114,12 +114,12 @@ int CHgun::GetItemInfo(ItemInfo *p)
 
 BOOL CHgun::DeployLowKey( )
 {
-	return DefaultDeploy( "models/v_hgun.mdl", "models/p_hgun.mdl", HGUN_DRAW_LOWKEY, "hive" );
+	return DefaultDeploy( "models/v_hgun.mdl", "models/p_weapons.mdl", HGUN_DRAW_LOWKEY, "hive" );
 }
 
 BOOL CHgun::Deploy( )
 {
-	return DefaultDeploy( "models/v_hgun.mdl", "models/p_hgun.mdl", HGUN_UP, "hive" );
+	return DefaultDeploy( "models/v_hgun.mdl", "models/p_weapons.mdl", HGUN_UP, "hive" );
 }
 
 void CHgun::Holster( int skiplocal /* = 0 */ )

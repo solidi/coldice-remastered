@@ -58,7 +58,7 @@ void CGrenadeLauncher::Precache( void )
 {
 	PRECACHE_MODEL("models/v_glauncher.mdl");
 	PRECACHE_MODEL("models/w_weapons.mdl");
-	PRECACHE_MODEL("models/p_glauncher.mdl");
+	PRECACHE_MODEL("models/p_weapons.mdl");
 
 	PRECACHE_MODEL("models/w_contact_grenade.mdl");
 
@@ -103,12 +103,12 @@ int CGrenadeLauncher::AddToPlayer( CBasePlayer *pPlayer )
 
 BOOL CGrenadeLauncher::DeployLowKey( )
 {
-	return DefaultDeploy( "models/v_glauncher.mdl", "models/p_glauncher.mdl", GLAUNCHER_DRAW_LOWKEY, "mp5" );
+	return DefaultDeploy( "models/v_glauncher.mdl", "models/p_weapons.mdl", GLAUNCHER_DRAW_LOWKEY, "mp5" );
 }
 
 BOOL CGrenadeLauncher::Deploy( )
 {
-	return DefaultDeploy( "models/v_glauncher.mdl", "models/p_glauncher.mdl", GLAUNCHER_DRAW, "mp5" );
+	return DefaultDeploy( "models/v_glauncher.mdl", "models/p_weapons.mdl", GLAUNCHER_DRAW, "mp5" );
 }
 
 void CGrenadeLauncher::Holster( int skiplocal )

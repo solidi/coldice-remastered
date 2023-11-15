@@ -71,7 +71,7 @@ void CEgon::Precache( void )
 {
 	PRECACHE_MODEL("models/w_weapons.mdl");
 	PRECACHE_MODEL("models/v_egon.mdl");
-	PRECACHE_MODEL("models/p_egon.mdl");
+	PRECACHE_MODEL("models/p_weapons.mdl");
 
 	PRECACHE_MODEL("models/w_9mmclip.mdl");
 	PRECACHE_SOUND("items/9mmclip1.wav");
@@ -94,7 +94,7 @@ BOOL CEgon::DeployLowKey( void )
 	m_deployed = FALSE;
 	m_fireState = FIRE_OFF;
 	m_fireMode = FIRE_WIDE;
-	return DefaultDeploy( "models/v_egon.mdl", "models/p_egon.mdl", EGON_DRAW_LOWKEY, "egon" );
+	return DefaultDeploy( "models/v_egon.mdl", "models/p_weapons.mdl", EGON_DRAW_LOWKEY, "egon" );
 }
 
 BOOL CEgon::Deploy( void )
@@ -102,7 +102,7 @@ BOOL CEgon::Deploy( void )
 	m_deployed = FALSE;
 	m_fireState = FIRE_OFF;
 	m_fireMode = FIRE_WIDE;
-	return DefaultDeploy( "models/v_egon.mdl", "models/p_egon.mdl", EGON_DRAW, "egon" );
+	return DefaultDeploy( "models/v_egon.mdl", "models/p_weapons.mdl", EGON_DRAW, "egon" );
 }
 
 int CEgon::AddToPlayer( CBasePlayer *pPlayer )

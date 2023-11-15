@@ -399,7 +399,7 @@ void CNuke::Precache( void )
 {
 	PRECACHE_MODEL("models/w_weapons.mdl");
 	PRECACHE_MODEL("models/v_nuke.mdl");
-	PRECACHE_MODEL("models/p_nuke.mdl");
+	PRECACHE_MODEL("models/p_weapons.mdl");
 
 	PRECACHE_SOUND("items/9mmclip1.wav");
 
@@ -442,17 +442,17 @@ int CNuke::AddToPlayer( CBasePlayer *pPlayer )
 
 BOOL CNuke::DeployLowKey( )
 {
-	return DefaultDeploy( "models/v_nuke.mdl", "models/p_nuke.mdl", NUKE_DRAW_LOWKEY, "rpg" );
+	return DefaultDeploy( "models/v_nuke.mdl", "models/p_weapons.mdl", NUKE_DRAW_LOWKEY, "rpg" );
 }
 
 BOOL CNuke::Deploy( )
 {
 	if ( m_iClip == 0 )
 	{
-		return DefaultDeploy( "models/v_nuke.mdl", "models/p_nuke.mdl", NUKE_DRAW_UL, "rpg" );
+		return DefaultDeploy( "models/v_nuke.mdl", "models/p_weapons.mdl", NUKE_DRAW_UL, "rpg" );
 	}
 
-	return DefaultDeploy( "models/v_nuke.mdl", "models/p_nuke.mdl", NUKE_DRAW1, "rpg" );
+	return DefaultDeploy( "models/v_nuke.mdl", "models/p_weapons.mdl", NUKE_DRAW1, "rpg" );
 }
 
 void CNuke::Holster( int skiplocal /* = 0 */ )
