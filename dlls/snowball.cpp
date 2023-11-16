@@ -60,7 +60,7 @@ void CSnowball::Precache( void )
 {
 	PRECACHE_MODEL("models/w_weapons.mdl");
 	PRECACHE_MODEL("models/v_snowball.mdl");
-	PRECACHE_MODEL("models/p_snowball.mdl");
+	PRECACHE_MODEL("models/p_weapons.mdl");
 
 	UTIL_PrecacheOther( "flying_snowball" );
 }
@@ -86,13 +86,13 @@ int CSnowball::GetItemInfo(ItemInfo *p)
 BOOL CSnowball::DeployLowKey( )
 {
 	m_flReleaseThrow = -1;
-	return DefaultDeploy( "models/v_snowball.mdl", "models/p_snowball.mdl", SNOWBALL_DRAW_LOWKEY, "crowbar" );
+	return DefaultDeploy( "models/v_snowball.mdl", "models/p_weapons.mdl", SNOWBALL_DRAW_LOWKEY, "crowbar" );
 }
 
 BOOL CSnowball::Deploy( )
 {
 	m_flReleaseThrow = -1;
-	return DefaultDeploy( "models/v_snowball.mdl", "models/p_snowball.mdl", SNOWBALL_DRAW, "crowbar" );
+	return DefaultDeploy( "models/v_snowball.mdl", "models/p_weapons.mdl", SNOWBALL_DRAW, "crowbar" );
 }
 
 BOOL CSnowball::CanHolster( void )

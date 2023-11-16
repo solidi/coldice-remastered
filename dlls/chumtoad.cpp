@@ -792,7 +792,7 @@ void CChumtoad::Precache( void )
 {
 	PRECACHE_MODEL("models/w_weapons.mdl");
 	PRECACHE_MODEL("models/v_chumtoad.mdl");
-	PRECACHE_MODEL("models/p_chumtoad.mdl");
+	PRECACHE_MODEL("models/p_weapons.mdl");
 	PRECACHE_SOUND("chumtoad_hunt2.wav");
 	PRECACHE_SOUND("chumtoad_hunt3.wav");
 	UTIL_PrecacheOther("monster_chumtoad");
@@ -825,7 +825,7 @@ int CChumtoad::GetItemInfo(ItemInfo *p)
 BOOL CChumtoad::DeployLowKey( )
 {
 	m_pPlayer->m_iWeaponVolume = QUIET_GUN_VOLUME;
-	return DefaultDeploy( "models/v_chumtoad.mdl", "models/p_chumtoad.mdl", CHUMTOAD_DRAW_LOWKEY, "squeak" );
+	return DefaultDeploy( "models/v_chumtoad.mdl", "models/p_weapons.mdl", CHUMTOAD_DRAW_LOWKEY, "squeak" );
 }
 
 BOOL CChumtoad::Deploy( )
@@ -840,7 +840,7 @@ BOOL CChumtoad::Deploy( )
 
 	m_pPlayer->m_iWeaponVolume = QUIET_GUN_VOLUME;
 
-	return DefaultDeploy( "models/v_chumtoad.mdl", "models/p_chumtoad.mdl", CHUMTOAD_DRAW, "squeak" );
+	return DefaultDeploy( "models/v_chumtoad.mdl", "models/p_weapons.mdl", CHUMTOAD_DRAW, "squeak" );
 }
 
 BOOL CChumtoad::CanHolster( void )

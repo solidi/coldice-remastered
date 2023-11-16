@@ -435,7 +435,7 @@ void CSqueak::Precache( void )
 {
 	PRECACHE_MODEL("models/w_weapons.mdl");
 	PRECACHE_MODEL("models/v_squeak.mdl");
-	PRECACHE_MODEL("models/p_squeak.mdl");
+	PRECACHE_MODEL("models/p_weapons.mdl");
 	PRECACHE_SOUND("squeek/sqk_hunt2.wav");
 	PRECACHE_SOUND("squeek/sqk_hunt3.wav");
 	UTIL_PrecacheOther("monster_snark");
@@ -475,7 +475,7 @@ int CSqueak::GetItemInfo(ItemInfo *p)
 BOOL CSqueak::DeployLowKey( )
 {
 	m_pPlayer->m_iWeaponVolume = QUIET_GUN_VOLUME;
-	BOOL result = DefaultDeploy( "models/v_squeak.mdl", "models/p_squeak.mdl", SQUEAK_DRAW_LOWKEY, "squeak" );
+	BOOL result = DefaultDeploy( "models/v_squeak.mdl", "models/p_weapons.mdl", SQUEAK_DRAW_LOWKEY, "squeak" );
 	
 	if (result)
 	{
@@ -497,7 +497,7 @@ BOOL CSqueak::Deploy( )
 
 	m_pPlayer->m_iWeaponVolume = QUIET_GUN_VOLUME;
 
-	BOOL result = DefaultDeploy( "models/v_squeak.mdl", "models/p_squeak.mdl", SQUEAK_UP, "squeak" );
+	BOOL result = DefaultDeploy( "models/v_squeak.mdl", "models/p_weapons.mdl", SQUEAK_UP, "squeak" );
 	
 	if (result)
 	{

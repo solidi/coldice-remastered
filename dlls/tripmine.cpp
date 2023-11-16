@@ -386,7 +386,7 @@ void CTripmine::Spawn( )
 void CTripmine::Precache( void )
 {
 	PRECACHE_MODEL ("models/v_tripmine.mdl");
-	PRECACHE_MODEL ("models/p_tripmine.mdl");
+	PRECACHE_MODEL ("models/p_weapons.mdl");
 	UTIL_PrecacheOther( "monster_tripmine" );
 
 	m_usTripFire = PRECACHE_EVENT( 1, "events/tripfire.sc" );
@@ -413,13 +413,13 @@ int CTripmine::GetItemInfo(ItemInfo *p)
 BOOL CTripmine::DeployLowKey( )
 {
 	pev->body = 0;
-	return DefaultDeploy( "models/v_tripmine.mdl", "models/p_tripmine.mdl", TRIPMINE_DRAW_LOWKEY, "trip" );
+	return DefaultDeploy( "models/v_tripmine.mdl", "models/p_weapons.mdl", TRIPMINE_DRAW_LOWKEY, "trip" );
 }
 
 BOOL CTripmine::Deploy( )
 {
 	pev->body = 0;
-	return DefaultDeploy( "models/v_tripmine.mdl", "models/p_tripmine.mdl", TRIPMINE_DRAW, "trip" );
+	return DefaultDeploy( "models/v_tripmine.mdl", "models/p_weapons.mdl", TRIPMINE_DRAW, "trip" );
 }
 
 

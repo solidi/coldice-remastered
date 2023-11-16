@@ -58,7 +58,7 @@ void CVest::Precache( void )
 {
 	PRECACHE_MODEL("models/v_vest_radio.mdl");
 	PRECACHE_MODEL("models/w_weapons.mdl");
-	PRECACHE_MODEL("models/p_vest.mdl");
+	PRECACHE_MODEL("models/p_weapons.mdl");
 
 	PRECACHE_SOUND("vest_attack.wav");
 	PRECACHE_SOUND("vest_alive.wav");
@@ -107,7 +107,7 @@ BOOL CVest::DeployLowKey( )
 {
 	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 0.25;
 	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + UTIL_SharedRandomFloat( m_pPlayer->random_seed, 10, 15 );
-	return DefaultDeploy( "models/v_vest_radio.mdl", "models/p_vest.mdl", VEST_RADIO_DRAW_LOWKEY, "hive" );
+	return DefaultDeploy( "models/v_vest_radio.mdl", "models/p_weapons.mdl", VEST_RADIO_DRAW_LOWKEY, "hive" );
 }
 
 BOOL CVest::Deploy( )
@@ -116,7 +116,7 @@ BOOL CVest::Deploy( )
 	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 0.25;
 	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + UTIL_SharedRandomFloat( m_pPlayer->random_seed, 10, 15 );
 
-	return DefaultDeploy( "models/v_vest_radio.mdl", "models/p_vest.mdl", VEST_RADIO_DRAW, "hive" );
+	return DefaultDeploy( "models/v_vest_radio.mdl", "models/p_weapons.mdl", VEST_RADIO_DRAW, "hive" );
 }
 
 void CVest::Holster( int skiplocal )

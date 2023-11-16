@@ -59,7 +59,7 @@ void CHandGrenade::Precache( void )
 {
 	PRECACHE_MODEL("models/w_grenade.mdl");
 	PRECACHE_MODEL("models/v_grenade.mdl");
-	PRECACHE_MODEL("models/p_grenade.mdl");
+	PRECACHE_MODEL("models/p_weapons.mdl");
 	PRECACHE_SOUND("grenade_throw.wav");
 }
 
@@ -84,13 +84,13 @@ int CHandGrenade::GetItemInfo(ItemInfo *p)
 BOOL CHandGrenade::DeployLowKey( )
 {
 	m_flReleaseThrow = -1;
-	return DefaultDeploy( "models/v_grenade.mdl", "models/p_grenade.mdl", HANDGRENADE_DRAW_LOWKEY, "crowbar" );
+	return DefaultDeploy( "models/v_grenade.mdl", "models/p_weapons.mdl", HANDGRENADE_DRAW_LOWKEY, "crowbar" );
 }
 
 BOOL CHandGrenade::Deploy( )
 {
 	m_flReleaseThrow = -1;
-	return DefaultDeploy( "models/v_grenade.mdl", "models/p_grenade.mdl", HANDGRENADE_DRAW, "crowbar" );
+	return DefaultDeploy( "models/v_grenade.mdl", "models/p_weapons.mdl", HANDGRENADE_DRAW, "crowbar" );
 }
 
 BOOL CHandGrenade::CanHolster( void )
