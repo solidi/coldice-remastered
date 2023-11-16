@@ -76,7 +76,7 @@ void CFlameThrower::Precache( void )
 {
 	PRECACHE_MODEL("models/v_flamethrower.mdl");
 	PRECACHE_MODEL("models/w_weapons.mdl");
-	PRECACHE_MODEL("models/p_flamethrower.mdl");
+	PRECACHE_MODEL("models/p_weapons.mdl");
 
 	PRECACHE_MODEL("sprites/flamesteam.spr");
 	PRECACHE_MODEL("sprites/null.spr");
@@ -125,14 +125,14 @@ BOOL CFlameThrower::Deploy( )
 {
 	m_fireState = 0;
 	m_pPlayer->pev->playerclass = 0;
-	return DefaultDeploy( "models/v_flamethrower.mdl", "models/p_flamethrower.mdl", FLAMETHROWER_DEPLOY, "egon" );
+	return DefaultDeploy( "models/v_flamethrower.mdl", "models/p_weapons.mdl", FLAMETHROWER_DEPLOY, "egon" );
 }
 
 BOOL CFlameThrower::DeployLowKey( )
 {
 	m_fireState = 0;
 	m_pPlayer->pev->playerclass = 0;
-	return DefaultDeploy( "models/v_flamethrower.mdl", "models/p_flamethrower.mdl", FLAMETHROWER_DEPLOY_LOWKEY, "egon" );
+	return DefaultDeploy( "models/v_flamethrower.mdl", "models/p_weapons.mdl", FLAMETHROWER_DEPLOY_LOWKEY, "egon" );
 }
 
 void CFlameThrower::Holster( int skiplocal )

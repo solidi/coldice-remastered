@@ -290,7 +290,7 @@ void CSatchel::Precache( void )
 	PRECACHE_MODEL("models/v_satchel.mdl");
 	PRECACHE_MODEL("models/v_satchel_radio.mdl");
 	PRECACHE_MODEL("models/w_satchel.mdl");
-	PRECACHE_MODEL("models/p_satchel.mdl");
+	PRECACHE_MODEL("models/p_weapons.mdl");
 	PRECACHE_MODEL("models/p_satchel_radio.mdl");
 
 	UTIL_PrecacheOther( "monster_satchel" );
@@ -360,7 +360,7 @@ BOOL CSatchel::DeployLowKey( )
 	if ( m_chargeReady )
 		result = DefaultDeploy( "models/v_satchel_radio.mdl", "models/p_satchel_radio.mdl", SATCHEL_RADIO_DRAW, "hive" );
 	else
-		result = DefaultDeploy( "models/v_satchel.mdl", "models/p_satchel.mdl", SATCHEL_DRAW, "trip" );
+		result = DefaultDeploy( "models/v_satchel.mdl", "models/p_weapons.mdl", SATCHEL_DRAW, "trip" );
 
 	if (result)
 	{
@@ -379,7 +379,7 @@ BOOL CSatchel::Deploy( )
 	if ( m_chargeReady )
 		result = DefaultDeploy( "models/v_satchel_radio.mdl", "models/p_satchel_radio.mdl", SATCHEL_RADIO_DRAW, "hive" );
 	else
-		result = DefaultDeploy( "models/v_satchel.mdl", "models/p_satchel.mdl", SATCHEL_DRAW2, "trip" );
+		result = DefaultDeploy( "models/v_satchel.mdl", "models/p_weapons.mdl", SATCHEL_DRAW2, "trip" );
 
 	if (result)
 	{
@@ -555,7 +555,7 @@ void CSatchel::WeaponIdle( void )
 
 #ifndef CLIENT_DLL
 		m_pPlayer->pev->viewmodel = MAKE_STRING("models/v_satchel.mdl");
-		m_pPlayer->pev->weaponmodel = MAKE_STRING("models/p_satchel.mdl");
+		m_pPlayer->pev->weaponmodel = MAKE_STRING("models/p_weapons.mdl");
 #else
 		LoadVModel ( "models/v_satchel.mdl", m_pPlayer );
 #endif
