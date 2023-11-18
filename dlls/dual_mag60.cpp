@@ -70,7 +70,7 @@ void CDualMag60::Precache( void )
 {
 	PRECACHE_MODEL("models/v_dual_mag60.mdl");
 	PRECACHE_MODEL("models/w_weapons.mdl");
-	PRECACHE_MODEL("models/p_dual_mag60.mdl");
+	PRECACHE_MODEL("models/p_weapons.mdl");
 
 	m_iShell = PRECACHE_MODEL ("models/w_shell.mdl");// brass shellTE_MODEL
 
@@ -117,12 +117,12 @@ int CDualMag60::AddToPlayer( CBasePlayer *pPlayer )
 
 BOOL CDualMag60::DeployLowKey( )
 {
-	return DefaultDeploy( "models/v_dual_mag60.mdl", "models/p_dual_mag60.mdl", DUAL_MAG60_DEPLOY_LOWKEY, "akimbo" );
+	return DefaultDeploy( "models/v_dual_mag60.mdl", "models/p_weapons.mdl", DUAL_MAG60_DEPLOY_LOWKEY, "akimbo" );
 }
 
 BOOL CDualMag60::Deploy( )
 {
-	BOOL result = DefaultDeploy( "models/v_dual_mag60.mdl", "models/p_dual_mag60.mdl", DUAL_MAG60_DEPLOY, "akimbo" );
+	BOOL result = DefaultDeploy( "models/v_dual_mag60.mdl", "models/p_weapons.mdl", DUAL_MAG60_DEPLOY, "akimbo" );
 
 #ifndef CLIENT_DLL
 	if (result && allowvoiceovers.value) {

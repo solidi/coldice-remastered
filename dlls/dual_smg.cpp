@@ -68,7 +68,7 @@ void CDualSMG::Precache( void )
 {
 	PRECACHE_MODEL("models/v_dual_smg.mdl");
 	PRECACHE_MODEL("models/w_weapons.mdl");
-	PRECACHE_MODEL("models/p_dual_smg.mdl");
+	PRECACHE_MODEL("models/p_weapons.mdl");
 
 	m_iShell = PRECACHE_MODEL ("models/w_shell.mdl");// brass shellTE_MODEL
 
@@ -118,14 +118,14 @@ int CDualSMG::AddToPlayer( CBasePlayer *pPlayer )
 BOOL CDualSMG::DeployLowKey( )
 {
 	m_sFireCount = 0;
-	return DefaultDeploy( "models/v_dual_smg.mdl", "models/p_dual_smg.mdl", DUAL_SMG_DEPLOY_LOWKEY, "akimbo" );
+	return DefaultDeploy( "models/v_dual_smg.mdl", "models/p_weapons.mdl", DUAL_SMG_DEPLOY_LOWKEY, "akimbo" );
 }
 
 BOOL CDualSMG::Deploy( )
 {
 	m_sFireCount = 0;
 
-	BOOL result = DefaultDeploy( "models/v_dual_smg.mdl", "models/p_dual_smg.mdl", DUAL_SMG_DEPLOY, "akimbo" );
+	BOOL result = DefaultDeploy( "models/v_dual_smg.mdl", "models/p_weapons.mdl", DUAL_SMG_DEPLOY, "akimbo" );
 
 #ifndef CLIENT_DLL
 	if (result && allowvoiceovers.value) {

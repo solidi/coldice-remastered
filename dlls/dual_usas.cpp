@@ -58,7 +58,7 @@ void CDualUsas::Precache( void )
 {
 	PRECACHE_MODEL("models/v_dual_usas.mdl");
 	PRECACHE_MODEL("models/w_weapons.mdl");
-	PRECACHE_MODEL("models/p_dual_usas.mdl");
+	PRECACHE_MODEL("models/p_weapons.mdl");
 
 	m_iShell = PRECACHE_MODEL ("models/w_shotgunshell.mdl");// shotgun shell
 
@@ -106,12 +106,12 @@ int CDualUsas::GetItemInfo(ItemInfo *p)
 
 BOOL CDualUsas::DeployLowKey( )
 {
-	return DefaultDeploy( "models/v_dual_usas.mdl", "models/p_dual_usas.mdl", DUAL_USAS_DEPLOY_LOWKEY, "dual_shotgun" );
+	return DefaultDeploy( "models/v_dual_usas.mdl", "models/p_weapons.mdl", DUAL_USAS_DEPLOY_LOWKEY, "dual_shotgun" );
 }
 
 BOOL CDualUsas::Deploy( )
 {
-	return DefaultDeploy( "models/v_dual_usas.mdl", "models/p_dual_usas.mdl", DUAL_USAS_DEPLOY, "dual_shotgun" );
+	return DefaultDeploy( "models/v_dual_usas.mdl", "models/p_weapons.mdl", DUAL_USAS_DEPLOY, "dual_shotgun" );
 }
 
 void CDualUsas::Holster( int skiplocal /* = 0 */ )
