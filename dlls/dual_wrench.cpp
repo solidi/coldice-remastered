@@ -60,7 +60,7 @@ void CDualWrench::Precache( void )
 {
 	PRECACHE_MODEL("models/v_dual_wrench.mdl");
 	PRECACHE_MODEL("models/w_weapons.mdl");
-	PRECACHE_MODEL("models/p_dual_wrench.mdl");
+	PRECACHE_MODEL("models/p_weapons.mdl");
 
 	PRECACHE_SOUND("wrench_hit1.wav");
 	PRECACHE_SOUND("wrench_hit2.wav");
@@ -102,14 +102,14 @@ BOOL CDualWrench::DeployLowKey( )
 {
 	m_flStartThrow = 0;
 	m_flReleaseThrow = -1;
-	return DefaultDeploy( "models/v_dual_wrench.mdl", "models/p_dual_wrench.mdl", DUAL_WRENCH_DRAW_LOWKEY, "dual_club" );
+	return DefaultDeploy( "models/v_dual_wrench.mdl", "models/p_weapons.mdl", DUAL_WRENCH_DRAW_LOWKEY, "dual_club" );
 }
 
 BOOL CDualWrench::Deploy( )
 {
 	m_flStartThrow = 0;
 	m_flReleaseThrow = -1;
-	return DefaultDeploy( "models/v_dual_wrench.mdl", "models/p_dual_wrench.mdl", DUAL_WRENCH_DRAW, "dual_club" );
+	return DefaultDeploy( "models/v_dual_wrench.mdl", "models/p_weapons.mdl", DUAL_WRENCH_DRAW, "dual_club" );
 }
 
 BOOL CDualWrench::CanSlide()

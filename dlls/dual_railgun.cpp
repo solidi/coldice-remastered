@@ -67,7 +67,7 @@ void CDualRailgun::Precache( void )
 {
 	PRECACHE_MODEL("models/w_weapons.mdl");
 	PRECACHE_MODEL("models/v_dual_railgun.mdl");
-	PRECACHE_MODEL("models/p_dual_railgun.mdl");
+	PRECACHE_MODEL("models/p_weapons.mdl");
 
 	PRECACHE_SOUND("railgun_fire.wav");
 	
@@ -107,12 +107,12 @@ int CDualRailgun::GetItemInfo(ItemInfo *p)
 
 BOOL CDualRailgun::DeployLowKey( )
 {
-	return DefaultDeploy( "models/v_dual_railgun.mdl", "models/p_dual_railgun.mdl", DUAL_RAILGUN_DRAW_LOWKEY, "dual_shotgun" );
+	return DefaultDeploy( "models/v_dual_railgun.mdl", "models/p_weapons.mdl", DUAL_RAILGUN_DRAW_LOWKEY, "dual_shotgun" );
 }
 
 BOOL CDualRailgun::Deploy( )
 {
-	return DefaultDeploy( "models/v_dual_railgun.mdl", "models/p_dual_railgun.mdl", DUAL_RAILGUN_DRAW, "dual_shotgun" );
+	return DefaultDeploy( "models/v_dual_railgun.mdl", "models/p_weapons.mdl", DUAL_RAILGUN_DRAW, "dual_shotgun" );
 }
 
 void CDualRailgun::Holster( int skiplocal )

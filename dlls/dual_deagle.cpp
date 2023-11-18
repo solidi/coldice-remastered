@@ -83,7 +83,7 @@ void CDualDeagle::Precache( void )
 {
 	PRECACHE_MODEL("models/v_dual_deagle.mdl");
 	PRECACHE_MODEL("models/w_weapons.mdl");
-	PRECACHE_MODEL("models/p_dual_deagle.mdl");
+	PRECACHE_MODEL("models/p_weapons.mdl");
 
 	PRECACHE_SOUND("weapons/357_cock1.wav");
 
@@ -95,12 +95,12 @@ void CDualDeagle::Precache( void )
 
 BOOL CDualDeagle::DeployLowKey( )
 {
-	return DefaultDeploy( "models/v_dual_deagle.mdl", "models/p_dual_deagle.mdl", DUAL_DEAGLE_DEPLOY_LOWKEY, "akimbo", UseDecrement(), pev->body );
+	return DefaultDeploy( "models/v_dual_deagle.mdl", "models/p_weapons.mdl", DUAL_DEAGLE_DEPLOY_LOWKEY, "akimbo", UseDecrement(), pev->body );
 }
 
 BOOL CDualDeagle::Deploy( )
 {
-	return DefaultDeploy( "models/v_dual_deagle.mdl", "models/p_dual_deagle.mdl", DUAL_DEAGLE_DEPLOY, "akimbo", UseDecrement(), pev->body );
+	return DefaultDeploy( "models/v_dual_deagle.mdl", "models/p_weapons.mdl", DUAL_DEAGLE_DEPLOY, "akimbo", UseDecrement(), pev->body );
 }
 
 void CDualDeagle::Holster( int skiplocal /* = 0 */ )

@@ -106,7 +106,7 @@ void CDualRpg::Precache( void )
 {
 	PRECACHE_MODEL("models/w_weapons.mdl");
 	PRECACHE_MODEL("models/v_dual_rpg.mdl");
-	PRECACHE_MODEL("models/p_dual_rpg.mdl");
+	PRECACHE_MODEL("models/p_weapons.mdl");
 
 	PRECACHE_SOUND("items/9mmclip1.wav");
 
@@ -151,13 +151,13 @@ int CDualRpg::AddToPlayer( CBasePlayer *pPlayer )
 BOOL CDualRpg::DeployLowKey( )
 {
 	m_fSpotActive = 1;
-	return DefaultDeploy( "models/v_dual_rpg.mdl", "models/p_dual_rpg.mdl", DRAW_BOTH_LOWKEY, "dual_rpg" );
+	return DefaultDeploy( "models/v_dual_rpg.mdl", "models/p_weapons.mdl", DRAW_BOTH_LOWKEY, "dual_rpg" );
 }
 
 BOOL CDualRpg::Deploy( )
 {
 	m_fSpotActive = 1;
-	return DefaultDeploy( "models/v_dual_rpg.mdl", "models/p_dual_rpg.mdl", DRAW_BOTH, "dual_rpg" );
+	return DefaultDeploy( "models/v_dual_rpg.mdl", "models/p_weapons.mdl", DRAW_BOTH, "dual_rpg" );
 }
 
 BOOL CDualRpg::CanHolster( void )

@@ -63,7 +63,7 @@ void CDualFlameThrower::Precache( void )
 {
 	PRECACHE_MODEL("models/v_dual_flamethrower.mdl");
 	PRECACHE_MODEL("models/w_weapons.mdl");
-	PRECACHE_MODEL("models/p_dual_flamethrower.mdl");
+	PRECACHE_MODEL("models/p_weapons.mdl");
 
 	PRECACHE_MODEL("sprites/flamesteam.spr");
 	PRECACHE_MODEL("sprites/null.spr");
@@ -129,14 +129,14 @@ BOOL CDualFlameThrower::Deploy( )
 {
 	m_fireState = 0;
 	m_pPlayer->pev->playerclass = 0;
-	return DefaultDeploy( "models/v_dual_flamethrower.mdl", "models/p_dual_flamethrower.mdl", DUAL_FLAMETHROWER_DEPLOY, "dual_egon" );
+	return DefaultDeploy( "models/v_dual_flamethrower.mdl", "models/p_weapons.mdl", DUAL_FLAMETHROWER_DEPLOY, "dual_egon" );
 }
 
 BOOL CDualFlameThrower::DeployLowKey( )
 {
 	m_fireState = 0;
 	m_pPlayer->pev->playerclass = 0;
-	return DefaultDeploy( "models/v_dual_flamethrower.mdl", "models/p_dual_flamethrower.mdl", DUAL_FLAMETHROWER_DEPLOY_LOWKEY, "dual_egon" );
+	return DefaultDeploy( "models/v_dual_flamethrower.mdl", "models/p_weapons.mdl", DUAL_FLAMETHROWER_DEPLOY_LOWKEY, "dual_egon" );
 }
 
 void CDualFlameThrower::Holster( int skiplocal )

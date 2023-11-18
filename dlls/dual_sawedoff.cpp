@@ -57,7 +57,7 @@ void CDualSawedOff::Precache( void )
 {
 	PRECACHE_MODEL("models/v_dual_sawedoff.mdl");
 	PRECACHE_MODEL("models/w_weapons.mdl");
-	PRECACHE_MODEL("models/p_dual_sawedoff.mdl");
+	PRECACHE_MODEL("models/p_weapons.mdl");
 
 	m_iShell = PRECACHE_MODEL ("models/shotgunshell.mdl");// shotgun shell
 
@@ -106,13 +106,13 @@ int CDualSawedOff::GetItemInfo(ItemInfo *p)
 BOOL CDualSawedOff::DeployLowKey( )
 {
 	m_iAltFire = SAWEDOFF_MAX_CLIP * 2;
-	return DefaultDeploy( "models/v_dual_sawedoff.mdl", "models/p_dual_sawedoff.mdl", DUAL_SAWEDOFF_DRAW_LOWKEY, "dual_shotgun" );
+	return DefaultDeploy( "models/v_dual_sawedoff.mdl", "models/p_weapons.mdl", DUAL_SAWEDOFF_DRAW_LOWKEY, "dual_shotgun" );
 }
 
 BOOL CDualSawedOff::Deploy( )
 {
 	m_iAltFire = SAWEDOFF_MAX_CLIP * 2;
-	return DefaultDeploy( "models/v_dual_sawedoff.mdl", "models/p_dual_sawedoff.mdl", DUAL_SAWEDOFF_DRAW, "dual_shotgun" );
+	return DefaultDeploy( "models/v_dual_sawedoff.mdl", "models/p_weapons.mdl", DUAL_SAWEDOFF_DRAW, "dual_shotgun" );
 }
 
 void CDualSawedOff::Holster( int skiplocal /* = 0 */ )
