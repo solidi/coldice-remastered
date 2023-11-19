@@ -591,11 +591,14 @@ void CStudioModelRenderer::StudioSetUpTransform (int trivial_accept)
 	}
 
 	extern cvar_t *m_pCvarRighthand;
-	if (m_pCurrentEntity == gEngfuncs.GetViewModel() && !(m_pCvarRighthand->value))
+	if (m_pCurrentEntity == gEngfuncs.GetViewModel() || m_pCurrentEntity->curstate.iuser4 == 1)
 	{
-		(*m_protationmatrix)[0][1] *= -1;
-		(*m_protationmatrix)[1][1] *= -1;
-		(*m_protationmatrix)[2][1] *= -1;
+		if (!m_pCvarRighthand->value)
+		{
+			(*m_protationmatrix)[0][1] *= -1;
+			(*m_protationmatrix)[1][1] *= -1;
+			(*m_protationmatrix)[2][1] *= -1;
+		}
 	}
 
 	(*m_protationmatrix)[0][3] = modelpos[0];
@@ -2518,8 +2521,9 @@ void CStudioModelRenderer::StudioRenderFinal_Hardware( void )
 
 			extern cvar_t *m_pCvarRighthand;
 			extern qboolean g_fXashEngine;
-			if (m_pCurrentEntity == gEngfuncs.GetViewModel() && (!m_pCvarRighthand->value || g_fXashEngine)) {
-				gEngfuncs.pTriAPI->CullFace( TRI_NONE );
+			if (m_pCurrentEntity == gEngfuncs.GetViewModel() || m_pCurrentEntity->curstate.iuser4 == 1) {
+				if (!m_pCvarRighthand->value || g_fXashEngine)
+					gEngfuncs.pTriAPI->CullFace( TRI_NONE );
 			}
 
 			if ((m_pCurrentEntity->curstate.effects & EF_VIEWMODEL) != 0)
@@ -2551,8 +2555,9 @@ void CStudioModelRenderer::StudioRenderFinal_Hardware( void )
 			}
 #endif
 
-			if (m_pCurrentEntity == gEngfuncs.GetViewModel() && (!m_pCvarRighthand->value || g_fXashEngine)) {
-				gEngfuncs.pTriAPI->CullFace( TRI_FRONT );
+			if (m_pCurrentEntity == gEngfuncs.GetViewModel() || m_pCurrentEntity->curstate.iuser4 == 1) {
+				if (!m_pCvarRighthand->value || g_fXashEngine)
+					gEngfuncs.pTriAPI->CullFace( TRI_FRONT );
 			}
 		}
 	}
