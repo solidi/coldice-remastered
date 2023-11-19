@@ -1940,12 +1940,15 @@ StudioDrawPlayer
 */
 int CStudioModelRenderer::StudioDrawPlayer( int flags, entity_state_t *pplayer )
 {
+	m_pCurrentEntity = IEngineStudio.GetCurrentEntity();
+
 	if (gHUD.szActiveMutators != NULL &&
 		(strstr(gHUD.szActiveMutators, "sanic") ||
 		atoi(gHUD.szActiveMutators) == MUTATOR_SANIC))
 	{
 		static TEMPENTITY *t[32];
 		int c = pplayer->number - 1;
+		int half_frames = 3; // 6 / 2 in sprite - (int)t[c]->frameMax / 2
 
 		if (t[c] == NULL) {
 			int model = gEngfuncs.pEventAPI->EV_FindModelIndex("sprites/sanic.spr");
@@ -1954,13 +1957,17 @@ int CStudioModelRenderer::StudioDrawPlayer( int flags, entity_state_t *pplayer )
 				t[c]->entity.curstate.rendermode = kRenderNormal;
 				t[c]->entity.curstate.scale = 0.70;
 				t[c]->entity.curstate.framerate = 0;
-				t[c]->entity.curstate.frame = c % ((int)t[c]->frameMax - 1);
+				t[c]->entity.curstate.frame = c % half_frames;
 				t[c]->clientIndex = c;
 				t[c]->flags |= FTENT_PERSIST;
 				t[c]->die = gEngfuncs.GetClientTime() + 15;
 			}
 		} else {
 			t[c]->entity.origin = pplayer->origin;
+			if (m_pCurrentEntity->curstate.health <= 0)
+				t[c]->entity.curstate.frame = (c % half_frames) + half_frames;
+			else
+				t[c]->entity.curstate.frame = c % half_frames;
 			if (t[c]->die < gEngfuncs.GetClientTime())
 				t[c] = NULL;
 		}
@@ -1971,7 +1978,6 @@ int CStudioModelRenderer::StudioDrawPlayer( int flags, entity_state_t *pplayer )
 	alight_t lighting;
 	vec3_t dir;
 
-	m_pCurrentEntity = IEngineStudio.GetCurrentEntity();
 	IEngineStudio.GetTimes( &m_nFrameCount, &m_clTime, &m_clOldTime );
 	IEngineStudio.GetViewInfo( m_vRenderOrigin, m_vUp, m_vRight, m_vNormal );
 	IEngineStudio.GetAliasScale( &m_fSoftwareXScale, &m_fSoftwareYScale );
