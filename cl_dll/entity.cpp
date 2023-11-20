@@ -489,12 +489,13 @@ void LoadTempViewModel(const char *modelName, int sequence)
 	pExtraModel->index = 0;
 	pExtraModel->model = pModel;
 	pExtraModel->curstate.frame = 0;
+	pExtraModel->curstate.iuser4 = 1;
 	pExtraModel->curstate.animtime = gEngfuncs.GetClientTime();
 	pExtraModel->curstate.sequence = sequence;
 	pExtraModel->curstate.effects |= EF_VIEWMODEL &~ EF_NODRAW;
 	pExtraModel->curstate.skin = cl_icemodels->value;
 
-	//gEngfuncs.Con_Printf("gHUD.m_flExtraViewModelTime set increase to: %f\n", pseqdesc->numframes / pseqdesc->fps);
+	//gEngfuncs.Con_Printf("sequence: %d, pseqdesc->numframes: %d / pseqdesc->fps: %f\n", sequence, pseqdesc->numframes, pseqdesc->fps);
 	gHUD.m_flExtraViewModelTime = gEngfuncs.GetClientTime() + (pseqdesc->numframes / pseqdesc->fps);
 }
 
