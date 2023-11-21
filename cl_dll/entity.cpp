@@ -172,6 +172,16 @@ void CL_DLLEXPORT HUD_ProcessPlayerState( struct entity_state_s *dst, const stru
 		g_iUser2 = src->iuser2;
 		g_iUser3 = src->iuser3;
 		gHUD.m_iWeaponBits2 = src->iuser4;
+
+		if ((player->curstate.effects & EF_DIMLIGHT) != 0)
+		{
+			gHUD.m_bFlashlight = true;
+			player->curstate.effects &= ~EF_DIMLIGHT;
+		}
+		else
+		{
+			gHUD.m_bFlashlight = false;
+		}
 	}
 }
 

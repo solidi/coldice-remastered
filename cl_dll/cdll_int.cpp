@@ -236,6 +236,8 @@ redraw the HUD.
 ===========================
 */
 
+extern void DrawFlashlight();
+
 int CL_DLLEXPORT HUD_Redraw( float time, int intermission )
 {
 //	RecClHudRedraw(time, intermission);
@@ -253,6 +255,9 @@ int CL_DLLEXPORT HUD_Redraw( float time, int intermission )
 	if (cl_screeneffects->value)
 		gColorCor.DrawColorCor();
 #endif
+
+	if (gHUD.m_bFlashlight)
+		DrawFlashlight();
 
 	return 1;
 }

@@ -858,6 +858,8 @@ public:
 	cl_entity_t m_ExtraViewModel;
 	float m_flExtraViewModelTime = 0.0f;
 
+	// Check flashlight state
+	bool m_bFlashlight;
 	void FlashHud();
 
 	crosspr_s crossspr;
