@@ -127,8 +127,9 @@ void DrawFlashlight()
 	dlight_t* dl = gEngfuncs.pEfxAPI->CL_AllocDlight(idx); // Create the flashlight using the player's index as key
 	if (dl)
 	{
+		color24 white = {255, 255, 255};
 		dl->origin = tr.endpos;
-		dl->color = (color24){255, 255, 255};
+		dl->color = white;
 		dl->radius = 256; // Size of the flashlight
 		dl->decay = 512; // Flashlight fade speed
 		dl->die = gEngfuncs.GetClientTime() + 0.1f;
