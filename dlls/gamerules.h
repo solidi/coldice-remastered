@@ -206,7 +206,6 @@ private:
 	char m_flCheckGameMode[64] = "";
 	float m_flDetectedGameModeChange = 0;
 	BOOL m_JopeCheck = FALSE;
-	char m_szJopeName[32][64];
 };
 
 extern CGameRules *InstallGameRules( void );

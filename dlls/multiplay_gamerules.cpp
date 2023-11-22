@@ -1741,6 +1741,12 @@ void CHalfLifeMultiplay :: ClientDisconnected( edict_t *pClient )
 		{
 			FireTargets( "game_playerleave", pPlayer, pPlayer, USE_TOGGLE, 0 );
 
+			// Reset Jope name.
+			char *key = g_engfuncs.pfnGetInfoKeyBuffer(pPlayer->edict());
+			char *name = g_engfuncs.pfnInfoKeyValue(key, "oname");
+			if (name && strlen(name))
+				g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer->edict()), key, "name", name);
+
 			// team match?
 			if ( g_teamplay )
 			{
@@ -3303,6 +3309,16 @@ int CountPlayers( void )
 		if ( pEnt )
 		{
 			num = num + 1;
+
+			// Reset Jope name.
+			if (pEnt->IsPlayer())
+			{
+				char *key = g_engfuncs.pfnGetInfoKeyBuffer(pEnt->edict());
+				char *name = g_engfuncs.pfnInfoKeyValue(key, "oname");
+				if (name && strlen(name))
+					g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pEnt->edict()), key, "name", name);
+			}
+
 		}
 	}
 
