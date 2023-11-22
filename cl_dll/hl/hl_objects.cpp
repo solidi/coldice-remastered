@@ -88,3 +88,50 @@ void Game_AddObjects( void )
 	if ( pBeam && pBeam2 )
 		UpdateBeams();
 }
+
+
+void DrawFlashlight()
+{
+	Vector forward, vecSrc, vecEnd, origin, angles;
+	Vector view_ofs;
+	pmtrace_t tr;
+	cl_entity_t* pl = gEngfuncs.GetLocalPlayer();
+	int idx = pl->index;
+
+	// Get our exact viewangles from engine
+	gEngfuncs.GetViewAngles((float*)angles);
+
+	// Get view origin offset
+	gEngfuncs.pEventAPI->EV_LocalPlayerViewheight(view_ofs);
+
+	AngleVectors(angles, forward, NULL, NULL);
+
+	VectorCopy(pl->origin, vecSrc);
+	VectorAdd(vecSrc, view_ofs, vecSrc);
+
+	VectorMA(vecSrc, 8192, forward, vecEnd);
+
+	gEngfuncs.pEventAPI->EV_SetUpPlayerPrediction(0, 1);
+
+	// Store off the old count
+	gEngfuncs.pEventAPI->EV_PushPMStates();
+
+	// Now add in all of the players.
+	gEngfuncs.pEventAPI->EV_SetSolidPlayers(idx - 1);
+
+	gEngfuncs.pEventAPI->EV_SetTraceHull(2);
+	gEngfuncs.pEventAPI->EV_PlayerTrace(vecSrc, vecEnd, PM_STUDIO_BOX | PM_GLASS_IGNORE, -1, &tr);
+
+	gEngfuncs.pEventAPI->EV_PopPMStates();
+
+	dlight_t* dl = gEngfuncs.pEfxAPI->CL_AllocDlight(idx); // Create the flashlight using the player's index as key
+	if (dl)
+	{
+		color24 white = {255, 255, 255};
+		dl->origin = tr.endpos;
+		dl->color = white;
+		dl->radius = 256; // Size of the flashlight
+		dl->decay = 512; // Flashlight fade speed
+		dl->die = gEngfuncs.GetClientTime() + 0.1f;
+	}
+}
