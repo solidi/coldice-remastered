@@ -544,9 +544,14 @@ void CL_DLLEXPORT HUD_TempEntUpdate (
 
 	cl_entity_t *player = gEngfuncs.GetLocalPlayer();
 	extern int cam_thirdperson;
+	static byte lastEflag;
+	static byte currentEflag;
+
+	currentEflag = player->curstate.eflags;
+
 	if (player && !cam_thirdperson)
 	{
-		if (gHUD.m_flExtraViewModelTime == 0)
+		if (gHUD.m_flExtraViewModelTime == 0 /*|| currentEflag != lastEflag*/)
 		{
 			if ((player->curstate.eflags & EFLAG_DEADHANDS))
 			{
@@ -561,6 +566,10 @@ void CL_DLLEXPORT HUD_TempEntUpdate (
 				LoadTempViewModel("models/v_leg.mdl", 2);
 			}
 		}
+
+		// Always override
+		if (lastEflag != currentEflag && (currentEflag & EFLAG_DEADHANDS))
+			LoadTempViewModel("models/v_fists.mdl", 13);
 	}
 
 	// hold it
@@ -596,6 +605,8 @@ void CL_DLLEXPORT HUD_TempEntUpdate (
 	{
 		gHUD.m_flExtraViewModelTime = 0;
 	}
+
+	lastEflag = currentEflag;
 
 	// Nothing to simulate
 	if ( !*ppTempEntActive )		
