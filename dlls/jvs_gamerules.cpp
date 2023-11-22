@@ -478,8 +478,10 @@ void CHalfLifeJesusVsSanta::FPlayerTookDamage( float flDamage, CBasePlayer *pVic
 		if ( pPlayerAttacker != pVictim && pVictim->IsArmoredMan )
 		{
 			pPlayerAttacker->m_fArmoredManHits += flDamage;
+#ifdef _DEBUG
 			ALERT(at_notice, UTIL_VarArgs("Total damage against Jesus is: %.2f\n",
 				pPlayerAttacker->m_fArmoredManHits));
+#endif
 		}
 		else if ( pPlayerAttacker != pVictim && !pPlayerAttacker->IsArmoredMan && !pVictim->IsArmoredMan )
 		{

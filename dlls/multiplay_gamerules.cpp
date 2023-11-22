@@ -944,11 +944,14 @@ void CHalfLifeMultiplay::Arena ( void )
 					else
 						sprintf(message, "Fighting %s", STRING(pPlayer1->pev->netname));
 
-					MESSAGE_BEGIN( MSG_ONE, gmsgStatusText, NULL, plr->edict() );
-						WRITE_BYTE( 0 );
-						WRITE_BYTE( ENTINDEX(plr->edict()) );
-						WRITE_STRING( message );
-					MESSAGE_END();
+					if (!FBitSet(plr->pev->flags, FL_FAKECLIENT))
+					{
+						MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgStatusText, NULL, plr->edict() );
+							WRITE_BYTE( 0 );
+							WRITE_BYTE( ENTINDEX(plr->edict()) );
+							WRITE_STRING( message );
+						MESSAGE_END();
+					}
 				}
 
 				// Force spectate on those that died.
@@ -1022,7 +1025,9 @@ void CHalfLifeMultiplay::Arena ( void )
 
 	int clients = CheckClients();
 
+#ifdef _DEBUG
 	ALERT( at_notice, UTIL_VarArgs("CheckClients(): %i\n", clients ));
+#endif
 
 	if ( clients > 1 )
 	{
@@ -1052,9 +1057,11 @@ void CHalfLifeMultiplay::Arena ( void )
 			m_iPlayer2 = RANDOM_LONG( 1, m_iPlayersInArena[RANDOM_LONG( 0, clients-1 )] );
 		}
 
+#ifdef _DEBUG
 		ALERT( at_notice,
 			UTIL_VarArgs("player1: %i | player2: %i \n",
 			m_iPlayer1, m_iPlayer2 ));
+#endif
 
 		CBasePlayer *pPlayer1 = (CBasePlayer *)UTIL_PlayerByIndex( m_iPlayer1 );
 		CBasePlayer *pPlayer2 = (CBasePlayer *)UTIL_PlayerByIndex( m_iPlayer2 );
@@ -1348,7 +1355,9 @@ void CHalfLifeMultiplay::CheckRounds( void )
 {
 	if ( CVAR_GET_FLOAT("mp_roundlimit") > 0 )
 	{
+#ifdef _DEBUG
 		ALERT( at_notice, UTIL_VarArgs("SuccessfulRounds = %i\n", m_iSuccessfulRounds ));
+#endif
 		if ( m_iSuccessfulRounds >= CVAR_GET_FLOAT("mp_roundlimit") )
 			GoToIntermission();
 	}
@@ -2179,10 +2188,10 @@ void CHalfLifeMultiplay :: PlayerKilled( CBasePlayer *pVictim, entvars_t *pKille
 				}
 				break;
 			case GAME_ARENA:
-				if (ktmp)
+				if (peKiller)
 				{
-					int fragsToGo = int(roundfraglimit.value - ktmp->pev->frags);
-					MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, ktmp->edict());
+					int fragsToGo = int(roundfraglimit.value - peKiller->pev->frags);
+					MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, peKiller->edict());
 						if (fragsToGo >= 1)
 							WRITE_STRING(UTIL_VarArgs("Defeat %s", STRING(pVictim->pev->netname)));
 						else
@@ -2191,7 +2200,7 @@ void CHalfLifeMultiplay :: PlayerKilled( CBasePlayer *pVictim, entvars_t *pKille
 							WRITE_STRING(UTIL_VarArgs("Frags to go: %d", fragsToGo));
 						else
 							WRITE_STRING("");
-						WRITE_BYTE((ktmp->pev->frags / roundfraglimit.value) * 100);
+						WRITE_BYTE((peKiller->pev->frags / roundfraglimit.value) * 100);
 						if (fragsToGo < 1)
 							WRITE_STRING("You are the WINNER!");
 					MESSAGE_END();
