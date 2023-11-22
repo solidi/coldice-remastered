@@ -128,7 +128,7 @@ void DrawFlashlight()
 	if (dl)
 	{
 		dl->origin = tr.endpos;
-		dl->color = {255, 255, 255};
+		dl->color = (color24){255, 255, 255};
 		dl->radius = 256; // Size of the flashlight
 		dl->decay = 512; // Flashlight fade speed
 		dl->die = gEngfuncs.GetClientTime() + 0.1f;
