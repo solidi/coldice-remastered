@@ -2631,6 +2631,19 @@ void CBasePlayer::PreThink(void)
 
 	ClimbingPhysics();
 
+
+	if (m_fTauntFullTime && m_fTauntFullTime <= gpGlobals->time)
+	{
+		if (pev->weaponmodel == 0)
+		{
+			if (m_pActiveItem)
+				m_pActiveItem->DeployLowKey();
+			m_EFlags &= ~EFLAG_TAUNT;
+		}
+
+		m_fTauntFullTime = 0;
+	}
+
 	if (m_flNextSantaSound && m_flNextSantaSound < gpGlobals->time)
 	{
 		switch (RANDOM_LONG(0,3))
