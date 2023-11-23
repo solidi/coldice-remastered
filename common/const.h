@@ -894,6 +894,7 @@ typedef struct
 #define TXT_CHANNEL_GAME_TITLE		9
 #define TXT_CHANNEL_MUTATOR_TITLE	10
 #define TXT_CHANNEL_GAME_INFO		11
+#define TXT_CHANNEL_TAUNT			12
 
 #endif
 
