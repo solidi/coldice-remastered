@@ -538,13 +538,14 @@ BOOL CGameRules::WeaponMutators( CBasePlayerWeapon *pWeapon )
 	{
 		if (m_iDontShoot)
 		{
-			if (pWeapon->iItemSlot() != 1)
+			if (pWeapon->iItemSlot() != 1 && pWeapon->m_pPlayer->pev->solid != SOLID_NOT)
 			{
 				CGrenade::Vest( pWeapon->m_pPlayer->pev, pWeapon->m_pPlayer->pev->origin );
 				pWeapon->m_pPlayer->pev->solid = SOLID_NOT;
 				pWeapon->m_pPlayer->GibMonster();
 				pWeapon->m_pPlayer->pev->effects |= EF_NODRAW;
 				ClientPrint(pWeapon->m_pPlayer->pev, HUD_PRINTCENTER, "Don't Shoot!!!\n(fists / kicks / slides only!)");
+				pWeapon->m_flNextPrimaryAttack = pWeapon->m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 0.5;
 				return FALSE; // nothing else.
 			}
 		}
@@ -929,21 +930,21 @@ void CGameRules::CheckMutators(void)
 
 			if ((strstr(mutators.string, g_MutatorInfiniteAmmo) ||
 				atoi(mutators.string) == MUTATOR_INFINITEAMMO) && infiniteammo.value != 1)
-				CVAR_SET_FLOAT("sv_infiniteammo", 1);
+				CVAR_SET_FLOAT("sv_infiniteammo", 2);
 			else
 			{
 				if ((!strstr(mutators.string, g_MutatorInfiniteAmmo) &&
-					atoi(mutators.string) != MUTATOR_INFINITEAMMO) && infiniteammo.value)
+					atoi(mutators.string) != MUTATOR_INFINITEAMMO) && infiniteammo.value == 2)
 					CVAR_SET_FLOAT("sv_infiniteammo", 0);
 			}
 
 			if ((strstr(mutators.string, g_MutatorRandomWeapon) ||
 				atoi(mutators.string) == MUTATOR_RANDOMWEAPON) && randomweapon.value != 1)
-				CVAR_SET_FLOAT("mp_randomweapon", 1);
+				CVAR_SET_FLOAT("mp_randomweapon", 2);
 			else
 			{
 				if ((!strstr(mutators.string, g_MutatorRandomWeapon) &&
-					atoi(mutators.string) != MUTATOR_RANDOMWEAPON) && randomweapon.value)
+					atoi(mutators.string) != MUTATOR_RANDOMWEAPON) && randomweapon.value == 2)
 					CVAR_SET_FLOAT("mp_randomweapon", 0);
 			}
 
