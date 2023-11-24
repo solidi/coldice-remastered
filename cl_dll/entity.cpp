@@ -565,6 +565,18 @@ void CL_DLLEXPORT HUD_TempEntUpdate (
 			{
 				LoadTempViewModel("models/v_leg.mdl", 2);
 			}
+			else if ((player->curstate.eflags & EFLAG_TAUNT))
+			{
+				LoadTempViewModel("models/v_taunt.mdl", gEngfuncs.pfnRandomLong(1,2));
+			}
+		}
+
+		//gEngfuncs.Con_DPrintf("player->curstate.eflags = %d\n", player->curstate.eflags);
+
+		if ((player->curstate.eflags & EFLAG_CANCEL))
+		{
+			cl_entity_s* pExtraModel = &gHUD.m_ExtraViewModel;
+			pExtraModel->model = NULL;
 		}
 
 		// Always override

@@ -708,6 +708,7 @@ void ClientCommand( edict_t *pEntity )
 				player->pev->viewmodel = 0; 
 				player->pev->weaponmodel = 0;
 				p->deadflag = DEAD_FAKING;
+				player->m_EFlags &= ~(EFLAG_TAUNT | EFLAG_CANCEL);
 				player->m_EFlags |= EFLAG_DEADHANDS;
 			}
 			else if (p->deadflag == DEAD_FAKING)
@@ -727,6 +728,45 @@ void ClientCommand( edict_t *pEntity )
 			}
 			
 			player->m_fFeignTime = gpGlobals->time + 1.0;
+		}
+	}
+	else if ( FStrEq(pcmd, "taunt" ) )
+	{
+		CBasePlayer *player = GetClassPtr((CBasePlayer *)pev);
+		if (player->IsAlive() && player->pev->deadflag == DEAD_NO &&  player->m_fSelacoSliding != TRUE &&
+			player->m_fTauntCancelTime < gpGlobals->time)
+		{
+			if (player->pev->weaponmodel)
+			{
+				if (player->m_pActiveItem)
+				{
+					player->m_pActiveItem->Holster();
+					player->m_flNextAttack = UTIL_WeaponTimeBase() + 3.25;
+					player->m_fSelacoTime = gpGlobals->time + 2.0;
+				}
+
+				strcpy( player->m_szAnimExtention, "crowbar" );
+				EMIT_SOUND(ENT(pev), CHAN_VOICE, "taunt_blah.wav", 1, ATTN_NORM);
+				player->SetAnimation( PLAYER_ATTACK1 );
+				player->pev->viewmodel = 0; 
+				player->pev->weaponmodel = 0;
+				player->m_EFlags &= ~EFLAG_CANCEL;
+				player->m_EFlags |= EFLAG_TAUNT;
+				player->DisplayHudMessage(player->m_fTaunts[RANDOM_LONG(0,24)].text,
+					TXT_CHANNEL_TAUNT, -1, 0.75, 200, 200, 200, 2, 0.05, 1.0, 1.5, 0.5);
+				if (player->pev->health < 105)
+					player->pev->health++;
+			}
+			else if (player->pev->weaponmodel == 0)
+			{
+				if (player->m_pActiveItem)
+					player->m_pActiveItem->DeployLowKey();
+				player->m_EFlags &= ~EFLAG_TAUNT;
+				player->m_EFlags |= EFLAG_CANCEL;
+			}
+			
+			player->m_fTauntCancelTime = gpGlobals->time + 2.0;
+			player->m_fTauntFullTime = gpGlobals->time + 3.25;
 		}
 	}
 	else if ( FStrEq(pcmd, "fov" ) )
@@ -1402,6 +1442,8 @@ void ClientPrecache( void )
 	PRECACHE_SOUND("player/geiger3.wav");
 	PRECACHE_SOUND("player/geiger2.wav");
 	PRECACHE_SOUND("player/geiger1.wav");
+
+	PRECACHE_SOUND("taunt_blah.wav");
 
 	if (giPrecacheGrunt)
 		UTIL_PrecacheOther("monster_human_grunt");

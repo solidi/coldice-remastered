@@ -98,6 +98,12 @@ enum sbar_data
 class CHook;
 #endif
 
+typedef struct {
+	int animation_idx;
+	char *text;
+	char *sound;
+} taunt_map_t;
+
 class CBasePlayer : public CBaseMonster
 {
 public:
@@ -434,6 +440,38 @@ public:
 
 	int m_iJumpCount;
 	float m_fFeignTime;
+
+	float m_fTauntFullTime;
+	float m_fTauntCancelTime;
+	taunt_map_t m_fTaunts[25] = 
+	{
+		{0,	"I am proud to serve, and proud to die!", "taunt01.wav"},
+		{1,	"Nothing can stop me.", "taunt02.wav"},
+		{2,	"You will die a horrible death!", "taunt03.wav"},
+		{0,	"Another body for the pile.", "taunt04.wav"},
+		{1,	"Nice try, now die.", "taunt01.wav"},
+		{2,	"You burn nicer than my firewood.", "taunt01.wav"},
+		{0,	"How about a slice?", "taunt01.wav"},
+		{1,	"I see other players... Boom, boom! Now I don't.", "taunt01.wav"},
+		{2,	"And you think you can play this?", "taunt01.wav"},
+		{0,	"Hold my beer, I'll fire the nuke.", "taunt01.wav"},
+		{1,	"Inbound... oh wait too late, they are dead.", "taunt01.wav"},
+		{2,	"Hey, nice model, I like to... hmm, nevermind.", "taunt01.wav"},
+		{0,	"You're not woth the shots, so I'll use the wrench.", "taunt01.wav"},
+		{1,	"The ground worms are calling you.", "taunt01.wav"},
+		{2,	"Your ancestors are displeased!", "taunt01.wav"},
+		{0,	"Was that a fart? A grenade you say?", "taunt01.wav"},
+		{1,	"Show me your die face.", "taunt01.wav"},
+		{2,	"I'm going to cook, but I'm out of meat... oh wait!", "taunt01.wav"},
+		{0,	"Knock, knock on the heavens door... Boom!", "taunt01.wav"},
+		{1,	"You should of wore your brown pants.", "taunt01.wav"},
+		{2,	"You know, that was a nice flight, assisted one with the rpg blast...", "taunt01.wav"},
+		{0,	"I'm supposed to taunt you, I'll just shoot you instead.", "taunt01.wav"},
+		{1,	"Shoot first, ask questions later", "taunt01.wav"},
+		{2,	"My gun loves your face!", "taunt01.wav"},
+		{0,	"Can you pull my finger? Oops that was the grenade pin! Catch!", "taunt01.wav"},
+	};
+
 };
 
 #define AUTOAIM_2DEGREES  0.0348994967025
