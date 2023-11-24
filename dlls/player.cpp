@@ -2565,7 +2565,7 @@ void CBasePlayer::PreThink(void)
 		pev->velocity = g_vecZero;
 	}
 
-	if (pev->rendermode == kRenderTransAlpha) {
+	if (m_fEffectTime == 0 && pev->rendermode == kRenderTransAlpha) {
 		float amount = 0;
 		if (m_pActiveItem)
 		{
@@ -3602,6 +3602,10 @@ void CBasePlayer::Spawn( void )
 	m_fSelacoZ = VEC_VIEW.z;
 	m_fSelacoCount = 0;
 	m_flNextWallClimb = 0;
+	if (spawnprotectiontime.value > 0)
+		m_fLastSpawnTime = gpGlobals->time + spawnprotectiontime.value;
+	else
+		m_fLastSpawnTime = 0;
 
 	m_fFlipButtonTime = m_fFlipTime = 0;
 

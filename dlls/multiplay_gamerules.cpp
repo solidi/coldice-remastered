@@ -1831,6 +1831,9 @@ float CHalfLifeMultiplay :: FlPlayerFallDamage( CBasePlayer *pPlayer )
 //=========================================================
 BOOL CHalfLifeMultiplay::FPlayerCanTakeDamage( CBasePlayer *pPlayer, CBaseEntity *pAttacker )
 {
+	if (pPlayer->m_fLastSpawnTime && pPlayer->m_fLastSpawnTime > gpGlobals->time)
+		return FALSE;
+
 	return TRUE;
 }
 
@@ -1902,6 +1905,26 @@ void CHalfLifeMultiplay :: PlayerThink( CBasePlayer *pPlayer )
 		ClientPrint(pPlayer->pev, HUD_PRINTTALK, "Welcome to Cold Ice Remastered Beta 4. For commands, type \"help\" in the console.\n");
 #endif
 		pPlayer->m_iShownWelcomeMessage = -1;
+	}
+
+	if (pPlayer->m_fLastSpawnTime && pPlayer->m_fLastSpawnTime <= gpGlobals->time)
+	{
+		if (!pPlayer->IsObserver())
+		{
+			pPlayer->pev->rendermode = kRenderNormal;
+			pPlayer->pev->renderfx = kRenderFxNone;
+			pPlayer->pev->renderamt = 0;
+			pPlayer->pev->solid = SOLID_SLIDEBOX;
+			pPlayer->m_fLastSpawnTime = 0;
+		}
+	}
+
+	if (pPlayer->m_fEffectTime && pPlayer->m_fEffectTime <= gpGlobals->time)
+	{
+		pPlayer->pev->rendermode = kRenderTransAdd;
+		pPlayer->pev->renderfx = kRenderFxStrobeFaster;
+		pPlayer->pev->renderamt = 125;
+		pPlayer->m_fEffectTime = 0;
 	}
 
 	g_pGameRules->UpdateMutatorMessage(pPlayer);
@@ -2025,6 +2048,12 @@ void CHalfLifeMultiplay :: PlayerSpawn( CBasePlayer *pPlayer )
 	}
 
 	g_pGameRules->SpawnMutators(pPlayer);
+
+	if (spawnprotectiontime.value > 0)
+	{
+		pPlayer->pev->solid = SOLID_NOT;
+		pPlayer->m_fEffectTime = gpGlobals->time + 0.25;
+	}
 }
 
 //=========================================================

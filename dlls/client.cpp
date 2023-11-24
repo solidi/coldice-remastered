@@ -1029,16 +1029,16 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_mutators \"maxpack\"\" - drop all weapons and ammo in play (mp only!)\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_mutators \"infiniteammo\"\" - all weapons have infinite ammo\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_mutators \"randomweapon\"\" - spawn with a randomly selected weapon\n");
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "For more, type help_server_more\n" );
-	}
-	else if ( FStrEq( pcmd, "help_server_more" )  )
-	{
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "[Server Help More]\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_mutators \"speedup\"\" - everything is sped up by half! (sp only!)\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_mutators \"rockets\"\" - a random chance of rockets throw on attack!\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_mutators \"invisible\"\" - everyone is partially invisible!\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_mutators \"grenades\"\" - a random chance of a grenade throw on attack\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_mutators \"astronaut\"\" - gravity is turned down\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "For more, type help_server_more\n" );
+	}
+	else if ( FStrEq( pcmd, "help_server_more" )  )
+	{
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "[Server Help More]\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_mutators \"snowballs\"\" - a random chance of snowballs throw on attack\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_mutators \"pushy\"\" - all weapon attacks push you back like a gauss attack\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_mutators \"portal\"\" - now you're thinking with portals\n");
@@ -1085,6 +1085,7 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_ctcsecondsforpoint\" - amount of second holding chumtoad for a point\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_breakabletime\" - amount of seconds before a breakable entity respawns\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_voting\" - enable or disable end of the map voting\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_spawnprotectiontime\" - amount of time in seconds a player is protected from damage\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "For more, see readme.txt\n" );
 	}
 #ifdef _DEBUG

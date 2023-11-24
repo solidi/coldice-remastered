@@ -438,6 +438,9 @@ public:
 
 	EHANDLE m_pPortal[2];
 
+	float m_fLastSpawnTime;
+	float m_fEffectTime;
+
 	int m_iJumpCount;
 	float m_fFeignTime;
 
