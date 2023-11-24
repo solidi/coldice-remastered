@@ -1085,6 +1085,7 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_ctcsecondsforpoint\" - amount of second holding chumtoad for a point\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_breakabletime\" - amount of seconds before a breakable entity respawns\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_voting\" - enable or disable end of the map voting\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_spawnprotectiontime\" - amount of time in seconds a player is protected from damage\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "For more, see readme.txt\n" );
 	}
 #ifdef _DEBUG
