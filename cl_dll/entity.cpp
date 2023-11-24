@@ -571,6 +571,14 @@ void CL_DLLEXPORT HUD_TempEntUpdate (
 			}
 		}
 
+		//gEngfuncs.Con_DPrintf("player->curstate.eflags = %d\n", player->curstate.eflags);
+
+		if ((player->curstate.eflags & EFLAG_CANCEL))
+		{
+			cl_entity_s* pExtraModel = &gHUD.m_ExtraViewModel;
+			pExtraModel->model = NULL;
+		}
+
 		// Always override
 		if (lastEflag != currentEflag && (currentEflag & EFLAG_DEADHANDS))
 			LoadTempViewModel("models/v_fists.mdl", 13);

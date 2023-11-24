@@ -1548,7 +1548,10 @@ void CBasePlayer::PlayerDeathThink(void)
 			pev->velocity = flForward * pev->velocity.Normalize();
 
 		if (!FBitSet(pev->effects, EF_NODRAW))
+		{
+			m_EFlags &= ~EFLAG_CANCEL;
 			m_EFlags |= EFLAG_DEADHANDS;
+		}
 	}
 
 	if ( HasWeapons() )
@@ -4491,6 +4494,7 @@ void CBasePlayer::StartSelacoSlide( void )
 
 	if (!m_fSelacoSliding && m_fSelacoTime < gpGlobals->time) {
 		if (FBitSet(pev->flags, FL_ONGROUND) && pev->velocity.Length() > 50) {
+			m_EFlags &= ~EFLAG_CANCEL;
 			m_EFlags |= EFLAG_SLIDE;
 
 			UTIL_MakeVectors(pev->angles);

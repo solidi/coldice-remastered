@@ -2601,6 +2601,7 @@ void CBasePlayerWeapon::StartKick( BOOL holdingSomething )
 		return;
 	}
 
+	m_pPlayer->m_EFlags &= ~EFLAG_CANCEL;
 	m_pPlayer->m_EFlags |= EFLAG_PLAYERKICK;
 	m_pPlayer->m_fKickTime = gpGlobals->time + 0.55;
 	KickAttack(holdingSomething);

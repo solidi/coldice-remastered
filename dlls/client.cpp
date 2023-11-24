@@ -708,6 +708,7 @@ void ClientCommand( edict_t *pEntity )
 				player->pev->viewmodel = 0; 
 				player->pev->weaponmodel = 0;
 				p->deadflag = DEAD_FAKING;
+				player->m_EFlags &= ~(EFLAG_TAUNT | EFLAG_CANCEL);
 				player->m_EFlags |= EFLAG_DEADHANDS;
 			}
 			else if (p->deadflag == DEAD_FAKING)
@@ -732,7 +733,8 @@ void ClientCommand( edict_t *pEntity )
 	else if ( FStrEq(pcmd, "taunt" ) )
 	{
 		CBasePlayer *player = GetClassPtr((CBasePlayer *)pev);
-		if (player->IsAlive() && player->m_fTauntCancelTime < gpGlobals->time)
+		if (player->IsAlive() && player->pev->deadflag == DEAD_NO &&  player->m_fSelacoSliding != TRUE &&
+			player->m_fTauntCancelTime < gpGlobals->time)
 		{
 			if (player->pev->weaponmodel)
 			{
@@ -740,6 +742,7 @@ void ClientCommand( edict_t *pEntity )
 				{
 					player->m_pActiveItem->Holster();
 					player->m_flNextAttack = UTIL_WeaponTimeBase() + 3.25;
+					player->m_fSelacoTime = gpGlobals->time + 2.0;
 				}
 
 				strcpy( player->m_szAnimExtention, "crowbar" );
@@ -747,6 +750,7 @@ void ClientCommand( edict_t *pEntity )
 				player->SetAnimation( PLAYER_ATTACK1 );
 				player->pev->viewmodel = 0; 
 				player->pev->weaponmodel = 0;
+				player->m_EFlags &= ~EFLAG_CANCEL;
 				player->m_EFlags |= EFLAG_TAUNT;
 				player->DisplayHudMessage(player->m_fTaunts[RANDOM_LONG(0,24)].text,
 					TXT_CHANNEL_TAUNT, -1, 0.75, 200, 200, 200, 2, 0.05, 1.0, 1.5, 0.5);
@@ -758,6 +762,7 @@ void ClientCommand( edict_t *pEntity )
 				if (player->m_pActiveItem)
 					player->m_pActiveItem->DeployLowKey();
 				player->m_EFlags &= ~EFLAG_TAUNT;
+				player->m_EFlags |= EFLAG_CANCEL;
 			}
 			
 			player->m_fTauntCancelTime = gpGlobals->time + 2.0;
