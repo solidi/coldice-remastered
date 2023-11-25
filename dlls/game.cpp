@@ -82,6 +82,7 @@ cvar_t	slowbullets = {"sv_slowbullets","0", FCVAR_SERVER };
 cvar_t	breakabletime = {"sv_breakabletime","20", FCVAR_SERVER };
 cvar_t	voting = {"mp_voting","1", FCVAR_SERVER };
 cvar_t	spawnprotectiontime = {"mp_spawnprotectiontime","3", FCVAR_SERVER };
+cvar_t	chaosfilter = {"sv_chaosfilter","", FCVAR_SERVER };
 
 cvar_t  allow_spectators = { "allow_spectators", "0.0", FCVAR_SERVER };		// 0 prevents players from being spectators
 
@@ -714,6 +715,7 @@ void GameDLLInit( void )
 	CVAR_REGISTER(&breakabletime);
 	CVAR_REGISTER(&voting);
 	CVAR_REGISTER(&spawnprotectiontime);
+	CVAR_REGISTER(&chaosfilter);
 
 	CVAR_REGISTER (&mp_chattime);
 

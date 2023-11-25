@@ -738,12 +738,12 @@ void CWorld :: Precache( void )
 void CWorld :: RandomizeMutators( void )
 {
 	char result[128] = {""};
-	int count = 0;
+	int count = 0, attempts = 0;
 	if ((strstr(mutators.string, g_MutatorChaos) ||
 		atoi(mutators.string) == MUTATOR_CHAOS))
 		strcat(result, "chaos");
 
-	while (count < 3)
+	while (count < 3 && attempts < 250)
 	{
 		int index = RANDOM_LONG(1,(int)ARRAYSIZE(g_szMutators) - 1);
 		const char *tryIt = g_szMutators[index];
@@ -755,12 +755,25 @@ void CWorld :: RandomizeMutators( void )
 				strstr(tryIt, "speedup") ||
 				strstr(tryIt, "topsyturvy") ||
 				strstr(tryIt, "explosiveai"))
+			{
+				attempts++;
 				continue;
+			}
 		}
 		else
 		{
 			if (strstr(tryIt, "maxpack"))
+			{
+				attempts++;
 				continue;
+			}
+		}
+
+		if (strlen(chaosfilter.string) > 2 && strstr(tryIt, chaosfilter.string))
+		{
+			ALERT(at_console, "Ignoring \"%s\", found in sv_chaosfilter\n", tryIt);
+			attempts++;
+			continue;
 		}
 
 		if (!strstr(result, tryIt))
