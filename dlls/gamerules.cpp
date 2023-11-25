@@ -767,8 +767,7 @@ void CGameRules::CheckMutators(void)
 		strcpy(m_flCheckMutators, mutators.string);
 	}
 
-	if (strlen(m_flCheckMutators) > 0 &&
-		m_flDetectedMutatorChange && m_flDetectedMutatorChange < gpGlobals->time)
+	if (m_flDetectedMutatorChange && m_flDetectedMutatorChange < gpGlobals->time)
 	{
 		RefreshSkillData();
 
