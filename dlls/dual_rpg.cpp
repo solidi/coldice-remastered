@@ -305,6 +305,11 @@ void CDualRpg::SecondaryAttack()
 	UpdateSpot( );
 }
 
+int CDualRpg::SecondaryAmmoIndex( void )
+{
+	return m_iSecondaryAmmoType;
+}
+
 void CDualRpg::WeaponIdle( void )
 {
 	UpdateSpot( );

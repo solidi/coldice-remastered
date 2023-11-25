@@ -607,6 +607,10 @@ void CRpg::SecondaryAttack()
 	UpdateSpot( );
 }
 
+int CRpg::SecondaryAmmoIndex( void )
+{
+	return m_iSecondaryAmmoType;
+}
 
 void CRpg::WeaponIdle( void )
 {

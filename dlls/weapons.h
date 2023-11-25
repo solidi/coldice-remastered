@@ -994,6 +994,7 @@ public:
 
 	void PrimaryAttack( void );
 	void SecondaryAttack( void );
+	int SecondaryAmmoIndex( void );
 	void WeaponIdle( void );
 
 	void UpdateSpot( void );
@@ -2025,6 +2026,7 @@ public:
 	void PrimaryAttack( void );
 	void FireSecondRocket( void );
 	void SecondaryAttack( void );
+	int SecondaryAmmoIndex( void );
 	void WeaponIdle( void );
 
 	void UpdateSpot( void );
