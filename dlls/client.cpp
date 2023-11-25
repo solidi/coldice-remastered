@@ -1068,7 +1068,7 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_acrobatics [0|1]\" allow or disallow wall climbing, slides, and flips\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_weather [0|1]\" allow or disallow weather effects on server\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_randommutators \"[0|1]\"\" - selects three random mutators on map change\n");
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_chaostime\" - how many seconds until chaos mutators are rotated\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_chaostime\" - how many seconds until chaos mutators are rotated\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_gamemode \"ffa\"\" - game mode is deathmatch\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_gamemode \"jvs\"\" - game mode is Jesus vs Santa - defeat him!\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_gamemode \"lms\"\" - game mode is last man standing\n");
@@ -1086,6 +1086,7 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_breakabletime\" - amount of seconds before a breakable entity respawns\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_voting\" - enable or disable end of the map voting\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_spawnprotectiontime\" - amount of time in seconds a player is protected from damage\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_chaosfilter\" - a list of mutators inwhich are ignored during chaos mode\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "For more, see readme.txt\n" );
 	}
 #ifdef _DEBUG

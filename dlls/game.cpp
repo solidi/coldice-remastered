@@ -67,7 +67,7 @@ cvar_t	nukemode = {"mp_nukemode","2", FCVAR_SERVER };
 cvar_t	acrobatics = {"sv_acrobatics","1", FCVAR_SERVER };
 cvar_t	weather = {"sv_weather","1", FCVAR_SERVER };
 cvar_t	randommutators = {"mp_randommutators","0", FCVAR_SERVER };
-cvar_t	chaostime = {"mp_chaostime","45", FCVAR_SERVER };
+cvar_t	chaostime = {"sv_chaostime","45", FCVAR_SERVER };
 cvar_t	gamemode = {"mp_gamemode","ffa", FCVAR_SERVER };
 cvar_t	randomgamemodes = {"mp_randomgamemodes","0", FCVAR_SERVER };
 cvar_t	roundlimit = {"mp_roundlimit","10", FCVAR_SERVER };
@@ -82,6 +82,7 @@ cvar_t	slowbullets = {"sv_slowbullets","0", FCVAR_SERVER };
 cvar_t	breakabletime = {"sv_breakabletime","20", FCVAR_SERVER };
 cvar_t	voting = {"mp_voting","1", FCVAR_SERVER };
 cvar_t	spawnprotectiontime = {"mp_spawnprotectiontime","3", FCVAR_SERVER };
+cvar_t	chaosfilter = {"sv_chaosfilter","", FCVAR_SERVER };
 
 cvar_t  allow_spectators = { "allow_spectators", "0.0", FCVAR_SERVER };		// 0 prevents players from being spectators
 
@@ -714,6 +715,7 @@ void GameDLLInit( void )
 	CVAR_REGISTER(&breakabletime);
 	CVAR_REGISTER(&voting);
 	CVAR_REGISTER(&spawnprotectiontime);
+	CVAR_REGISTER(&chaosfilter);
 
 	CVAR_REGISTER (&mp_chattime);
 

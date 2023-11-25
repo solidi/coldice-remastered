@@ -80,6 +80,7 @@ extern cvar_t   slowbullets;
 extern cvar_t   breakabletime;
 extern cvar_t   voting;
 extern cvar_t   spawnprotectiontime;
+extern cvar_t   chaosfilter;
 
 // Engine Cvars
 extern cvar_t	*g_psv_gravity;

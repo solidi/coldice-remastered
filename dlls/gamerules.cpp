@@ -767,8 +767,7 @@ void CGameRules::CheckMutators(void)
 		strcpy(m_flCheckMutators, mutators.string);
 	}
 
-	if (strlen(m_flCheckMutators) > 0 &&
-		m_flDetectedMutatorChange && m_flDetectedMutatorChange < gpGlobals->time)
+	if (m_flDetectedMutatorChange && m_flDetectedMutatorChange < gpGlobals->time)
 	{
 		RefreshSkillData();
 
@@ -1128,8 +1127,8 @@ void CGameRules::UpdateMutatorMessage( CBasePlayer *pPlayer )
 void CGameRules::UpdateGameModeMessage( CBasePlayer *pPlayer )
 {
 	if (pPlayer->m_iShowGameModeMessage != -1 && pPlayer->m_iShowGameModeMessage < gpGlobals->time) {
-		if (strlen(gamemode.string) > 1 && strcmp(gamemode.string, "ffa"))
-			pPlayer->DisplayHudMessage(UTIL_VarArgs("Game Mode is %s", gamemode.string), TXT_CHANNEL_GAME_TITLE, .02, .14, 210, 210, 210, 2, .015, 2, 5, .25);
+		//if (strlen(gamemode.string) > 1 && strcmp(gamemode.string, "ffa"))
+		//	pPlayer->DisplayHudMessage(UTIL_VarArgs("Game Mode is %s", gamemode.string), TXT_CHANNEL_GAME_TITLE, .02, .14, 210, 210, 210, 2, .015, 2, 5, .25);
 		pPlayer->m_iShowGameModeMessage = -1;
 	}
 }
