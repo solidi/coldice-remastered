@@ -1980,16 +1980,6 @@ void CHalfLifeMultiplay :: PlayerThink( CBasePlayer *pPlayer )
 //=========================================================
 void CHalfLifeMultiplay :: PlayerSpawn( CBasePlayer *pPlayer )
 {
-	// Place player in spectator mode if joining during a game
-	// Or if the game begins that requires spectators
-	if ((g_GameInProgress && !pPlayer->IsInArena) || (!g_GameInProgress && HasSpectators()))
-	{
-		edict_t *pentSpawnSpot = g_pGameRules->GetPlayerSpawnSpot(pPlayer);
-		pPlayer->StartObserver(pPlayer->pev->origin, VARS(pentSpawnSpot)->angles);
-		pPlayer->m_flForceToObserverTime = 0;
-		return;
-	}
-
 	BOOL		addDefault;
 	CBaseEntity	*pWeaponEntity = NULL;
 
@@ -2053,6 +2043,17 @@ void CHalfLifeMultiplay :: PlayerSpawn( CBasePlayer *pPlayer )
 	{
 		pPlayer->pev->solid = SOLID_NOT;
 		pPlayer->m_fEffectTime = gpGlobals->time + 0.25;
+	}
+
+	// Place player in spectator mode if joining during a game
+	// Or if the game begins that requires spectators
+	if ((g_GameInProgress && !pPlayer->IsInArena) || (!g_GameInProgress && HasSpectators()))
+	{
+		pPlayer->m_flForceToObserverTime = gpGlobals->time;
+		pPlayer->pev->effects |= EF_NODRAW;
+		pPlayer->pev->solid = SOLID_NOT;
+		pPlayer->RemoveAllItems(FALSE);
+		//flUpdateTime = gpGlobals->time + 0.1;
 	}
 }
 
