@@ -204,7 +204,10 @@ void CShotgun::PrimaryAttack()
 		m_pPlayer->SetSuitUpdate("!HEV_AMO0", FALSE, 0);
 
 	if (m_iClip != 0)
+	{
+		m_pPlayer->m_flEjectShotShell = gpGlobals->time + 0.5;
 		m_flPumpTime = gpGlobals->time + 0.5;
+	}
 
 	m_flNextPrimaryAttack = GetNextAttackDelay(0.75);
 	m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 0.75;

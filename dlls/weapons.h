@@ -462,6 +462,7 @@ public:
 	void EXPORT EndPunch( void );
 
 	void EjectBrassLate( void );
+	void EjectShotShellLate( void );
 	
 	int	PrimaryAmmoIndex(); 
 	int	SecondaryAmmoIndex(); 

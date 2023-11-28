@@ -803,15 +803,6 @@ void EV_FireShotGunSingle( event_args_t *args )
 		V_PunchAxis(ROLL, gEngfuncs.pfnRandomFloat(5.0, 7.0)); //roll, - = left
 	}
 
-	float fR = (m_pCvarRighthand->value != 0 ? -1 : 1) * gEngfuncs.pfnRandomFloat( 50, 70 );
-	float fU = gEngfuncs.pfnRandomFloat( 100, 150 );
-	EV_GetDefaultShellInfo( args, gEngfuncs.GetViewModel()->attachment[0], velocity, ShellVelocity, ShellOrigin, forward, right, up, -10, -28, (m_pCvarRighthand->value != 0.0f ? -1 : 1) * 6, fU, fR );
-
-	if ( EV_IsLocal( idx ) )
-	{
-		EV_EjectBrass ( ShellOrigin, ShellVelocity, angles[ YAW ], shell, TE_BOUNCE_SHOTSHELL );
-	}
-
 	gEngfuncs.pEventAPI->EV_PlaySound( idx, origin, CHAN_WEAPON, "weapons/sbarrel1.wav", gEngfuncs.pfnRandomFloat(0.95, 1.0), ATTN_NORM, 0, 93 + gEngfuncs.pfnRandomLong( 0, 0x1f ) );
 
 	EV_GetGunPosition( args, vecSrc, origin );
@@ -2732,15 +2723,6 @@ void EV_Fire12GaugeSingle( event_args_t *args )
 		V_PunchAxis(PITCH, gEngfuncs.pfnRandomFloat(-3.0, -5.0) );
 		V_PunchAxis(YAW, gEngfuncs.pfnRandomFloat(-3.0, -5.0)); //yaw, - = right
 		V_PunchAxis(ROLL, gEngfuncs.pfnRandomFloat(3.0, 5.0)); //roll, - = left
-	}
-
-	float fR = (m_pCvarRighthand->value != 0 ? -1 : 1) * gEngfuncs.pfnRandomFloat( 50, 70 );
-	float fU = gEngfuncs.pfnRandomFloat( 100, 150 );
-	EV_GetDefaultShellInfo( args, gEngfuncs.GetViewModel()->attachment[0], velocity, ShellVelocity, ShellOrigin, forward, right, up, 0, -28, (m_pCvarRighthand->value != 0.0f ? -1 : 1) * 6, fU, fR );
-
-	if ( EV_IsLocal( idx ) )
-	{
-		EV_EjectBrass ( ShellOrigin, ShellVelocity, angles[ YAW ], shell, TE_BOUNCE_SHOTSHELL );
 	}
 
 	gEngfuncs.pEventAPI->EV_PlaySound( idx, origin, CHAN_WEAPON, "12gauge_fire.wav", gEngfuncs.pfnRandomFloat(0.95, 1.0), ATTN_NORM, 0, 93 + gEngfuncs.pfnRandomLong( 0, 0x1f ) );
