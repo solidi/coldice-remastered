@@ -626,6 +626,7 @@ void CHud :: Init( void )
 	m_Radar.Init();
 	m_Objective.Init();
 	m_Timer.Init();
+	m_ProTip.Init();
 	InitRain();
 #ifdef _WIN32
 	g_ImGUIManager.Init();
@@ -797,6 +798,7 @@ void CHud :: VidInit( void )
 	m_Radar.VidInit();
 	m_Objective.VidInit();
 	m_Timer.VidInit();
+	m_ProTip.VidInit();
 #ifdef _WIN32
 	g_ImGUIManager.VidInit();
 #endif
@@ -1003,4 +1005,9 @@ void CHud::FlashHud( void ) {
 	sf.fadeEnd += sf.fadeReset;
 
 	gEngfuncs.pfnSetScreenFade( &sf );
+}
+
+void ProTip(int id, const char *message)
+{
+	gHUD.m_ProTip.AddMessage(id, message);
 }

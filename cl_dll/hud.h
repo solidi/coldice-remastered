@@ -708,6 +708,41 @@ private:
 
 typedef struct
 {
+	const char *message;
+	float time;
+	int y_pos;
+} protip_s;
+
+enum e_protips {
+	THROW_TIP = 0,
+	FIST_TIP,
+	GRENADE_TIP,
+	SNARK_TIP,
+	VEST_TIP,
+	KNIFE_TIP,
+	DUAL_TIP,
+	IRONSIGHTS_TIP,
+	FLAMETHROWER_TIP,
+	WRENCH_TIP,
+	RUNE_TIP,
+	SILENCER_TIP,
+};
+
+class CHudProTip : public CHudBase
+{
+public:
+	int Init( void );
+	int VidInit( void );
+	void AddMessage(int id, const char *message);
+	int Draw(float flTime);
+private:
+	HSPRITE m_hMouseClick;
+	protip_s m_MessageQueue[3];
+	bool m_ShownTip[11];
+};
+
+typedef struct
+{
 	HSPRITE spr;
 	wrect_t rc;
 	int r;
@@ -809,6 +844,7 @@ public:
 	CHudRadar	m_Radar;
 	CHudObjective	m_Objective;
 	CHudTimer	m_Timer;
+	CHudProTip	m_ProTip;
 
 	void Init( void );
 	void VidInit( void );

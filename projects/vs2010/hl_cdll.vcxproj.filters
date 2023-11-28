@@ -222,6 +222,9 @@
     <ClCompile Include="..\..\pm_shared\pm_math.c">
       <Filter>Source Files\pm_shared</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\cl_dll\protip.cpp">
+      <Filter>Source Files\cl_dll</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\cl_dll\util.cpp">
       <Filter>Source Files\cl_dll</Filter>
     </ClCompile>
