@@ -1039,6 +1039,12 @@ void CBasePlayerWeapon::ItemPostFrame( void )
 		EjectBrassLate();
 	}
 
+	if (m_pPlayer->m_flEjectShotShell != 0 && m_pPlayer->m_flEjectShotShell <= gpGlobals->time)
+	{
+		m_pPlayer->m_flEjectShotShell = 0;
+		EjectShotShellLate();
+	}
+
 	if ( !(m_pPlayer->pev->button & IN_ATTACK ) )
 	{
 		m_flLastFireTime = 0.0f;
@@ -2821,6 +2827,22 @@ void CBasePlayerWeapon::EjectBrassLate()
 
 	EjectBrass(pev->origin + m_pPlayer->pev->view_ofs + gpGlobals->v_up * -9 + gpGlobals->v_forward * 20 + gpGlobals->v_right * 8,
 		vecShellVelocity, pev->angles.y, m_iShell, TE_BOUNCE_SHELL);
+}
+
+void CBasePlayerWeapon::EjectShotShellLate()
+{
+	Vector vecUp, vecRight, vecShellVelocity;
+	int m_iShell = PRECACHE_MODEL("models/w_shotgunshell.mdl");
+
+	UTIL_MakeVectors(m_pPlayer->pev->v_angle + m_pPlayer->pev->punchangle);
+
+	vecUp = RANDOM_FLOAT(50, 70) * gpGlobals->v_up;
+	vecRight = RANDOM_FLOAT(-100, -130) * gpGlobals->v_right;
+
+	vecShellVelocity = (m_pPlayer->pev->velocity + vecRight + vecUp) + gpGlobals->v_forward * 25;
+
+	EjectBrass(pev->origin + m_pPlayer->pev->view_ofs + gpGlobals->v_up * -9 + gpGlobals->v_forward * 14 + gpGlobals->v_right * 4,
+		vecShellVelocity, pev->angles.y, m_iShell, TE_BOUNCE_SHOTSHELL);
 }
 
 void CBasePlayerWeapon::WeaponPickup(CBasePlayer *pPlayer, int weaponId) {

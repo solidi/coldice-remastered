@@ -170,20 +170,24 @@ void CMP5::PrimaryAttack()
 	Vector vecAiming = m_pPlayer->GetAutoaimVector( AUTOAIM_5DEGREES );
 	Vector vecDir;
 
+	Vector spread;
 #ifdef CLIENT_DLL
 	if ( !bIsMultiplayer() )
 #else
 	if ( !g_pGameRules->IsMultiplayer() )
 #endif
 	{
-		// optimized multiplayer. Widened to make it easier to hit a moving player
-		vecDir = m_pPlayer->FireBulletsPlayer( 1, vecSrc, vecAiming, VECTOR_CONE_6DEGREES, 8192, BULLET_PLAYER_MP5, 2, 0, m_pPlayer->pev, m_pPlayer->random_seed );
+		spread = VECTOR_CONE_3DEGREES;
 	}
 	else
 	{
-		// single player spread
-		vecDir = m_pPlayer->FireBulletsPlayer( 1, vecSrc, vecAiming, VECTOR_CONE_3DEGREES, 8192, BULLET_PLAYER_MP5, 2, 0, m_pPlayer->pev, m_pPlayer->random_seed );
+		spread = VECTOR_CONE_6DEGREES;
 	}
+	
+	if ( m_pPlayer->pev->button & IN_IRONSIGHT )
+		spread = VECTOR_CONE_2DEGREES;
+
+	vecDir = m_pPlayer->FireBulletsPlayer( 1, vecSrc, vecAiming, spread, 8192, BULLET_PLAYER_MP5, 2, 0, m_pPlayer->pev, m_pPlayer->random_seed );
 
   int flags;
 #if defined( CLIENT_WEAPONS )

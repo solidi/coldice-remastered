@@ -143,7 +143,12 @@ void CDeagle::PrimaryAttack()
 
 	Vector vecSrc = m_pPlayer->GetGunPosition( );
 	Vector vecAiming = m_pPlayer->GetAutoaimVector( AUTOAIM_10DEGREES );
-	Vector vecDir = m_pPlayer->FireBulletsPlayer( 1, vecSrc, vecAiming, VECTOR_CONE_1DEGREES, 8192, BULLET_PLAYER_357, 0, 0, m_pPlayer->pev, m_pPlayer->random_seed );
+
+	Vector spread = VECTOR_CONE_3DEGREES;
+	if ( m_pPlayer->pev->button & IN_IRONSIGHT )
+		spread = VECTOR_CONE_1DEGREES;
+
+	Vector vecDir = m_pPlayer->FireBulletsPlayer( 1, vecSrc, vecAiming, spread, 8192, BULLET_PLAYER_357, 0, 0, m_pPlayer->pev, m_pPlayer->random_seed );
 
 	int flags;
 #if defined( CLIENT_WEAPONS )
@@ -180,6 +185,9 @@ void CDeagle::WeaponIdle( void )
 	m_pPlayer->GetAutoaimVector( AUTOAIM_10DEGREES );
 
 	if (m_flTimeWeaponIdle > UTIL_WeaponTimeBase() )
+		return;
+
+	if ( m_pPlayer->pev->button & IN_IRONSIGHT )
 		return;
 
 	int iAnim;

@@ -22,10 +22,6 @@
 #include "player.h"
 #include "gamerules.h"
 
-// special deathmatch shotgun spreads
-#define VECTOR_CONE_DM_SHOTGUN	Vector( 0.08716, 0.04362, 0.00  )// 10 degrees by 5 degrees
-#define VECTOR_CONE_DM_DOUBLESHOTGUN Vector( 0.17365, 0.04362, 0.00 ) // 20 degrees by 5 degrees
-
 enum shotgun_e {
 	SHOTGUN_AIM = 0,
 	SHOTGUN_IDLE,
@@ -167,6 +163,23 @@ void CShotgun::PrimaryAttack()
 	Vector vecSrc = m_pPlayer->GetGunPosition( );
 	Vector vecAiming = m_pPlayer->GetAutoaimVector( AUTOAIM_5DEGREES );
 
+	Vector spread;
+#ifdef CLIENT_DLL
+	if ( !bIsMultiplayer() )
+#else
+	if ( !g_pGameRules->IsMultiplayer() )
+#endif
+	{
+		spread = VECTOR_CONE_10DEGREES;
+	}
+	else
+	{
+		spread = VECTOR_CONE_DM_SHOTGUN;
+	}
+
+	if ( m_pPlayer->pev->button & IN_IRONSIGHT )
+		spread = VECTOR_CONE_3DEGREES;
+
 	Vector vecDir;
 
 #ifdef CLIENT_DLL
@@ -175,12 +188,12 @@ void CShotgun::PrimaryAttack()
 	if ( g_pGameRules->IsMultiplayer() )
 #endif
 	{
-		vecDir = m_pPlayer->FireBulletsPlayer( 4, vecSrc, vecAiming, VECTOR_CONE_DM_SHOTGUN, 2048, BULLET_PLAYER_EXPLOSIVE_BUCKSHOT, 1, 0, m_pPlayer->pev, m_pPlayer->random_seed );
+		vecDir = m_pPlayer->FireBulletsPlayer( 4, vecSrc, vecAiming, spread, 2048, BULLET_PLAYER_EXPLOSIVE_BUCKSHOT, 1, 0, m_pPlayer->pev, m_pPlayer->random_seed );
 	}
 	else
 	{
 		// regular old, untouched spread. 
-		vecDir = m_pPlayer->FireBulletsPlayer( 6, vecSrc, vecAiming, VECTOR_CONE_10DEGREES, 2048, BULLET_PLAYER_EXPLOSIVE_BUCKSHOT, 1, 0, m_pPlayer->pev, m_pPlayer->random_seed );
+		vecDir = m_pPlayer->FireBulletsPlayer( 6, vecSrc, vecAiming, spread, 2048, BULLET_PLAYER_EXPLOSIVE_BUCKSHOT, 1, 0, m_pPlayer->pev, m_pPlayer->random_seed );
 	}
 
 	PLAYBACK_EVENT_FULL( flags, m_pPlayer->edict(), m_usSingleFire, 0.0, (float *)&g_vecZero, (float *)&g_vecZero, vecDir.x, vecDir.y, 0, 0, 0, 0 );
@@ -191,7 +204,10 @@ void CShotgun::PrimaryAttack()
 		m_pPlayer->SetSuitUpdate("!HEV_AMO0", FALSE, 0);
 
 	if (m_iClip != 0)
+	{
+		m_pPlayer->m_flEjectShotShell = gpGlobals->time + 0.5;
 		m_flPumpTime = gpGlobals->time + 0.5;
+	}
 
 	m_flNextPrimaryAttack = GetNextAttackDelay(0.75);
 	m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 0.75;
@@ -241,6 +257,23 @@ void CShotgun::SecondaryAttack( void )
 	Vector vecSrc = m_pPlayer->GetGunPosition( );
 	Vector vecAiming = m_pPlayer->GetAutoaimVector( AUTOAIM_5DEGREES );
 
+	Vector spread;
+#ifdef CLIENT_DLL
+	if ( !bIsMultiplayer() )
+#else
+	if ( !g_pGameRules->IsMultiplayer() )
+#endif
+	{
+		spread = VECTOR_CONE_10DEGREES;
+	}
+	else
+	{
+		spread = VECTOR_CONE_DM_DOUBLESHOTGUN;
+	}
+
+	if ( m_pPlayer->pev->button & IN_IRONSIGHT )
+		spread = VECTOR_CONE_5DEGREES;
+
 	Vector vecDir;
 	
 #ifdef CLIENT_DLL
@@ -250,12 +283,12 @@ void CShotgun::SecondaryAttack( void )
 #endif
 	{
 		// tuned for deathmatch
-		vecDir = m_pPlayer->FireBulletsPlayer( 8, vecSrc, vecAiming, VECTOR_CONE_DM_DOUBLESHOTGUN, 2048, BULLET_PLAYER_EXPLOSIVE_BUCKSHOT, 1, 0, m_pPlayer->pev, m_pPlayer->random_seed );
+		vecDir = m_pPlayer->FireBulletsPlayer( 8, vecSrc, vecAiming, spread, 2048, BULLET_PLAYER_EXPLOSIVE_BUCKSHOT, 1, 0, m_pPlayer->pev, m_pPlayer->random_seed );
 	}
 	else
 	{
 		// untouched default single player
-		vecDir = m_pPlayer->FireBulletsPlayer( 12, vecSrc, vecAiming, VECTOR_CONE_10DEGREES, 2048, BULLET_PLAYER_EXPLOSIVE_BUCKSHOT, 1, 0, m_pPlayer->pev, m_pPlayer->random_seed );
+		vecDir = m_pPlayer->FireBulletsPlayer( 12, vecSrc, vecAiming, spread, 2048, BULLET_PLAYER_EXPLOSIVE_BUCKSHOT, 1, 0, m_pPlayer->pev, m_pPlayer->random_seed );
 	}
 		
 	PLAYBACK_EVENT_FULL( flags, m_pPlayer->edict(), m_usDoubleFire, 0.0, (float *)&g_vecZero, (float *)&g_vecZero, vecDir.x, vecDir.y, 0, 0, 0, 0 );

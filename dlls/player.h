@@ -435,6 +435,7 @@ public:
 	float m_fVoteCoolDown;
 
 	float m_flEjectBrass;
+	float m_flEjectShotShell;
 
 	EHANDLE m_pPortal[2];
 

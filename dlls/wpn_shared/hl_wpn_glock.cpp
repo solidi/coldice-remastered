@@ -142,7 +142,7 @@ BOOL CGlock::ChangeModel( void )
 
 void CGlock::PrimaryAttack( void )
 {
-	GlockFire( 0.01, 0.3, m_iSilencer );
+	GlockFire( 0.03, 0.3, m_iSilencer );
 }
 
 void CGlock::GlockFire( float flSpread , float flCycleTime, int silencer )
@@ -188,7 +188,12 @@ void CGlock::GlockFire( float flSpread , float flCycleTime, int silencer )
 
 	Vector vecSrc = m_pPlayer->GetGunPosition( );
 	Vector vecAiming = m_pPlayer->GetAutoaimVector( AUTOAIM_10DEGREES );
-	Vector vecDir = m_pPlayer->FireBulletsPlayer( 1, vecSrc, vecAiming, Vector( flSpread, flSpread, flSpread ), 8192, BULLET_PLAYER_9MM, 0, 0, m_pPlayer->pev, m_pPlayer->random_seed );
+
+	Vector spread = Vector( flSpread, flSpread, flSpread );
+	if ( m_pPlayer->pev->button & IN_IRONSIGHT )
+		spread = VECTOR_CONE_1DEGREES;
+
+	Vector vecDir = m_pPlayer->FireBulletsPlayer( 1, vecSrc, vecAiming, spread, 8192, BULLET_PLAYER_9MM, 0, 0, m_pPlayer->pev, m_pPlayer->random_seed );
 
 	PLAYBACK_EVENT_FULL( flags, m_pPlayer->edict(), m_usFireGlock1, 0.0, (float *)&g_vecZero, (float *)&g_vecZero, vecDir.x, vecDir.y, 0, 0, ( m_iClip == 0 ) ? 1 : 0, silencer );
 
