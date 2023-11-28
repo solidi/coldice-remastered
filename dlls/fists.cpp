@@ -245,6 +245,18 @@ int CFists::Swing( int fFirst )
 				if (fFirst == SHORYUKEN)
 					pEntity->pev->velocity.z += RANDOM_LONG(200,300);
 
+				if (pEntity->IsPlayer())
+				{
+					CBasePlayer *pl = (CBasePlayer *)pEntity;
+					if (pl->m_pActiveItem)
+					{
+						CBasePlayerItem *item = pl->m_pActiveItem;
+						const char *name = STRING(item->pev->classname);
+						if (strcmp(name, "weapon_fists"))
+							pl->DropPlayerItem((char *)name);
+					}
+				}
+
 				if ( !pEntity->IsAlive() )
 				{
 					  m_flNextPrimaryAttack = GetNextAttackDelay(0.25);

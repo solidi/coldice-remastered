@@ -4878,6 +4878,18 @@ void CBasePlayer::TraceHitOfFlip( void )
 
 			EMIT_SOUND(ENT(pev), CHAN_ITEM, "fists_hitbod.wav", 1, ATTN_NORM);
 
+			if (pObject->IsPlayer())
+			{
+				CBasePlayer *pl = (CBasePlayer *)pObject;
+				if (pl->m_pActiveItem)
+				{
+					CBasePlayerItem *item = pl->m_pActiveItem;
+					const char *name = STRING(item->pev->classname);
+					if (strcmp(name, "weapon_fists"))
+						pl->DropPlayerItem((char *)name);
+				}
+			}
+
 			m_iWeaponVolume = 128;
 			flVol = 0.1;
 			pObject->pev->velocity = (pObject->pev->velocity + (gpGlobals->v_forward * RANDOM_LONG(200,300)));
