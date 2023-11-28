@@ -46,7 +46,8 @@ void CHudProTip::AddMessage(int id, const char *message)
 
 	int y = (int)START_POSITION;
 
-	m_MessageQueue[insert] = {message, time, y};
+	protip_s tip = {message, time, y};
+	m_MessageQueue[insert] = tip;
 	//gEngfuncs.Con_DPrintf("added message=%s, index=%d, time=%.2f, y_pos=%d!\n",
 	//	m_MessageQueue[insert].message, insert, m_MessageQueue[insert].time, m_MessageQueue[insert].y_pos);
 
