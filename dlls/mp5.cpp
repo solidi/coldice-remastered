@@ -170,6 +170,23 @@ void CMP5::PrimaryAttack()
 	Vector vecAiming = m_pPlayer->GetAutoaimVector( AUTOAIM_5DEGREES );
 	Vector vecDir;
 
+	Vector spread;
+#ifdef CLIENT_DLL
+	if ( !bIsMultiplayer() )
+#else
+	if ( !g_pGameRules->IsMultiplayer() )
+#endif
+	{
+		spread = VECTOR_CONE_6DEGREES;
+	}
+	else
+	{
+		spread = VECTOR_CONE_6DEGREES;
+	}
+	
+	if ( m_pPlayer->pev->button & IN_IRONSIGHT )
+		spread = VECTOR_CONE_2DEGREES;
+
 #ifdef CLIENT_DLL
 	if ( !bIsMultiplayer() )
 #else

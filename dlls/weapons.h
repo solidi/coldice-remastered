@@ -572,6 +572,10 @@ extern MULTIDAMAGE gMultiDamage;
 #define VECTOR_CONE_15DEGREES	Vector( 0.13053, 0.13053, 0.13053 )
 #define VECTOR_CONE_20DEGREES	Vector( 0.17365, 0.17365, 0.17365 )
 
+// special deathmatch shotgun spreads
+#define VECTOR_CONE_DM_SHOTGUN	Vector( 0.08716, 0.04362, 0.00  )// 10 degrees by 5 degrees
+#define VECTOR_CONE_DM_DOUBLESHOTGUN Vector( 0.17365, 0.04362, 0.00 ) // 20 degrees by 5 degrees
+
 //=========================================================
 // CWeaponBox - a single entity that can store weapons
 // and ammo. 

@@ -760,11 +760,11 @@ void EV_FireShotGunDouble( event_args_t *args )
 
 	if ( gEngfuncs.GetMaxClients() > 1 )
 	{
-		EV_HLDM_FireBullets( idx, forward, right, up, 8, vecSrc, vecAiming, 2048, BULLET_PLAYER_BUCKSHOT, 1, &tracerCount[idx-1], 0.17365, 0.04362 );
+		EV_HLDM_FireBullets( idx, forward, right, up, 8, vecSrc, vecAiming, 2048, BULLET_PLAYER_BUCKSHOT, 1, &tracerCount[idx-1], args->fparam1, args->fparam2 );
 	}
 	else
 	{
-		EV_HLDM_FireBullets( idx, forward, right, up, 12, vecSrc, vecAiming, 2048, BULLET_PLAYER_BUCKSHOT, 1, &tracerCount[idx-1], 0.08716, 0.08716 );
+		EV_HLDM_FireBullets( idx, forward, right, up, 12, vecSrc, vecAiming, 2048, BULLET_PLAYER_BUCKSHOT, 1, &tracerCount[idx-1], args->fparam1, args->fparam2 );
 	}
 }
 
@@ -821,11 +821,11 @@ void EV_FireShotGunSingle( event_args_t *args )
 
 	if ( gEngfuncs.GetMaxClients() > 1 )
 	{
-		EV_HLDM_FireBullets( idx, forward, right, up, 4, vecSrc, vecAiming, 2048, BULLET_PLAYER_BUCKSHOT, 1, &tracerCount[idx-1], 0.08716, 0.04362 );
+		EV_HLDM_FireBullets( idx, forward, right, up, 4, vecSrc, vecAiming, 2048, BULLET_PLAYER_BUCKSHOT, 1, &tracerCount[idx-1], args->fparam1, args->fparam2 );
 	}
 	else
 	{
-		EV_HLDM_FireBullets( idx, forward, right, up, 6, vecSrc, vecAiming, 2048, BULLET_PLAYER_BUCKSHOT, 1, &tracerCount[idx-1], 0.08716, 0.08716 );
+		EV_HLDM_FireBullets( idx, forward, right, up, 6, vecSrc, vecAiming, 2048, BULLET_PLAYER_BUCKSHOT, 1, &tracerCount[idx-1], args->fparam1, args->fparam2 );
 	}
 }
 //======================
@@ -2506,11 +2506,11 @@ void EV_FireUsas( event_args_t *args )
 
 	if ( gEngfuncs.GetMaxClients() > 1 )
 	{
-		EV_HLDM_FireBullets( idx, forward, right, up, 4, vecSrc, vecAiming, 2048, BULLET_PLAYER_BUCKSHOT, 0, &tracerCount[idx-1], 0.08716, 0.04362 );
+		EV_HLDM_FireBullets( idx, forward, right, up, 4, vecSrc, vecAiming, 2048, BULLET_PLAYER_BUCKSHOT, 0, &tracerCount[idx-1], args->fparam1, args->fparam2 );
 	}
 	else
 	{
-		EV_HLDM_FireBullets( idx, forward, right, up, 6, vecSrc, vecAiming, 2048, BULLET_PLAYER_BUCKSHOT, 0, &tracerCount[idx-1], 0.08716, 0.08716 );
+		EV_HLDM_FireBullets( idx, forward, right, up, 6, vecSrc, vecAiming, 2048, BULLET_PLAYER_BUCKSHOT, 0, &tracerCount[idx-1], args->fparam1, args->fparam2 );
 	}
 }
 
@@ -2750,14 +2750,7 @@ void EV_Fire12GaugeSingle( event_args_t *args )
 
 	EV_GunSmoke(gEngfuncs.GetViewModel()->attachment[0], 0.5, idx, args->ducking, forward, right, up, 0, 0, 0);
 
-	if ( gEngfuncs.GetMaxClients() > 1 )
-	{
-		EV_HLDM_FireBullets( idx, forward, right, up, 4, vecSrc, vecAiming, 2048, BULLET_PLAYER_BUCKSHOT, 0, &tracerCount[idx-1], 0.08716, 0.04362 );
-	}
-	else
-	{
-		EV_HLDM_FireBullets( idx, forward, right, up, 6, vecSrc, vecAiming, 2048, BULLET_PLAYER_BUCKSHOT, 0, &tracerCount[idx-1], 0.08716, 0.08716 );
-	}
+	EV_HLDM_FireBullets( idx, forward, right, up, 4, vecSrc, vecAiming, 2048, BULLET_PLAYER_BUCKSHOT, 0, &tracerCount[idx-1], args->fparam1, args->fparam2);
 }
 
 enum nuke_e {
@@ -3296,7 +3289,7 @@ void EV_FireDualUsas( event_args_t *args )
 	else
 		EV_GunSmoke(gEngfuncs.GetViewModel()->attachment[1], 0.6, idx, args->ducking, forward, right, up, 0, 0, 0);
 
-	EV_HLDM_FireBullets( idx, forward, right, up, 4, vecSrc, vecAiming, 2048, BULLET_PLAYER_BUCKSHOT, 0, &tracerCount[idx-1], 0.08716, 0.04362 );
+	EV_HLDM_FireBullets( idx, forward, right, up, 4, vecSrc, vecAiming, 2048, BULLET_PLAYER_BUCKSHOT, 0, &tracerCount[idx-1], args->fparam1, args->fparam2 );
 }
 
 void EV_FireDualUsasBoth( event_args_t *args )
@@ -3353,7 +3346,7 @@ void EV_FireDualUsasBoth( event_args_t *args )
 	EV_GunSmoke(gEngfuncs.GetViewModel()->attachment[0], 0.6, idx, args->ducking, forward, right, up, 0, 0, 0);
 	EV_GunSmoke(gEngfuncs.GetViewModel()->attachment[1], 0.6, idx, args->ducking, forward, right, up, 0, 0, 0);
 
-	EV_HLDM_FireBullets( idx, forward, right, up, 8, vecSrc, vecAiming, 2048, BULLET_PLAYER_BUCKSHOT, 0, &tracerCount[idx-1], 0.08716, 0.04362 );
+	EV_HLDM_FireBullets( idx, forward, right, up, 8, vecSrc, vecAiming, 2048, BULLET_PLAYER_BUCKSHOT, 0, &tracerCount[idx-1], args->fparam1, args->fparam2 );
 }
 
 enum freezegun_e {
@@ -3727,7 +3720,7 @@ void EV_FireSawedOff( event_args_t *args )
 		EV_GunSmoke(gEngfuncs.GetViewModel()->attachment[1], 0.8, idx, args->ducking, forward, right, up, 0, 0, 0);
 
 
-	EV_HLDM_FireBullets( idx, forward, right, up, 8, vecSrc, vecAiming, 2048, BULLET_PLAYER_BUCKSHOT_SPECIAL, 1, &tracerCount[idx-1], 0.17365, 0.04362 );
+	EV_HLDM_FireBullets( idx, forward, right, up, 8, vecSrc, vecAiming, 2048, BULLET_PLAYER_BUCKSHOT_SPECIAL, 1, &tracerCount[idx-1], args->fparam1, args->fparam2 );
 }
 
 void EV_FireSawedOffDouble( event_args_t *args )
@@ -3769,7 +3762,7 @@ void EV_FireSawedOffDouble( event_args_t *args )
 	EV_GunSmoke(gEngfuncs.GetViewModel()->attachment[0], 0.8, idx, args->ducking, forward, right, up, 0, 0, 0);
 	EV_GunSmoke(gEngfuncs.GetViewModel()->attachment[1], 0.8, idx, args->ducking, forward, right, up, 0, 0, 0);
 
-	EV_HLDM_FireBullets( idx, forward, right, up, 16, vecSrc, vecAiming, 2048, BULLET_PLAYER_BUCKSHOT_SPECIAL, 1, &tracerCount[idx-1], 0.17365, 0.04362 );
+	EV_HLDM_FireBullets( idx, forward, right, up, 16, vecSrc, vecAiming, 2048, BULLET_PLAYER_BUCKSHOT_SPECIAL, 1, &tracerCount[idx-1], args->fparam1, args->fparam2 );
 }
 
 enum dual_sawedoff_e {
@@ -3829,7 +3822,7 @@ void EV_FireDualSawedOff( event_args_t *args )
 		EV_GunSmoke(gEngfuncs.GetViewModel()->attachment[1], 0.8, idx, args->ducking, forward, right, up, 0, 0, 0);
 
 
-	EV_HLDM_FireBullets( idx, forward, right, up, 8, vecSrc, vecAiming, 2048, BULLET_PLAYER_BUCKSHOT_SPECIAL, 1, &tracerCount[idx-1], 0.17365, 0.04362 );
+	EV_HLDM_FireBullets( idx, forward, right, up, 8, vecSrc, vecAiming, 2048, BULLET_PLAYER_BUCKSHOT_SPECIAL, 1, &tracerCount[idx-1], args->fparam1, args->fparam2 );
 }
 
 void EV_FireDualSawedOffDouble( event_args_t *args )
@@ -3871,8 +3864,8 @@ void EV_FireDualSawedOffDouble( event_args_t *args )
 	EV_GunSmoke(gEngfuncs.GetViewModel()->attachment[0], 0.8, idx, args->ducking, forward, right, up, 0, 0, 0);
 	EV_GunSmoke(gEngfuncs.GetViewModel()->attachment[1], 0.8, idx, args->ducking, forward, right, up, 0, 0, 0);
 
-	EV_HLDM_FireBullets( idx, forward, right, up, 16, vecSrc, vecAiming, 2048, BULLET_PLAYER_BUCKSHOT_SPECIAL, 1, &tracerCount[idx-1], 0.17365, 0.04362 );
-	EV_HLDM_FireBullets( idx, forward, right * -1, up, 16, vecSrc, vecAiming, 2048, BULLET_PLAYER_BUCKSHOT_SPECIAL, 1, &tracerCount[idx-1], 0.17365, 0.04362 );
+	EV_HLDM_FireBullets( idx, forward, right, up, 16, vecSrc, vecAiming, 2048, BULLET_PLAYER_BUCKSHOT_SPECIAL, 1, &tracerCount[idx-1], args->fparam1, args->fparam2 );
+	EV_HLDM_FireBullets( idx, forward, right * -1, up, 16, vecSrc, vecAiming, 2048, BULLET_PLAYER_BUCKSHOT_SPECIAL, 1, &tracerCount[idx-1], args->fparam1, args->fparam2 );
 }
 
 void EV_TrainPitchAdjust( event_args_t *args )
