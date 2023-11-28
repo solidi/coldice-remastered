@@ -2528,6 +2528,18 @@ void CBasePlayerWeapon::PunchAttack( BOOL holdingSomething )
 				flVol = 0.1;
 				pEntity->pev->velocity = (pEntity->pev->velocity + (gpGlobals->v_forward * RANDOM_LONG(100,200)));
 
+				if (pEntity->IsPlayer())
+				{
+					CBasePlayer *pl = (CBasePlayer *)pEntity;
+					if (pl->m_pActiveItem)
+					{
+						CBasePlayerItem *item = pl->m_pActiveItem;
+						const char *name = STRING(item->pev->classname);
+						if (strcmp(name, "weapon_fists"))
+							pl->DropPlayerItem((char *)name);
+					}
+				}
+
 				fHitWorld = FALSE;
 			}
 		}
@@ -2742,6 +2754,18 @@ void CBasePlayerWeapon::KickAttack( BOOL holdingSomething )
 				m_pPlayer->m_iWeaponVolume = 128;
 				flVol = 0.1;
 				pEntity->pev->velocity = (pEntity->pev->velocity + (gpGlobals->v_forward * RANDOM_LONG(200,300)));
+
+				if (pEntity->IsPlayer())
+				{
+					CBasePlayer *pl = (CBasePlayer *)pEntity;
+					if (pl->m_pActiveItem)
+					{
+						CBasePlayerItem *item = pl->m_pActiveItem;
+						const char *name = STRING(item->pev->classname);
+						if (strcmp(name, "weapon_fists"))
+							pl->DropPlayerItem((char *)name);
+					}
+				}
 
 				fHitWorld = FALSE;
 			}
