@@ -198,12 +198,15 @@ void CHalfLifeMultiplay::RefreshSkillData( void )
 		gSkillData.plrDmgPlasma *= multiplier;
 	}
 
+/*
+	// Reserve for rocket jumping, when we get there.
 	if (strstr(mutators.string, g_MutatorPushy) ||
 		atoi(mutators.string) == MUTATOR_PUSHY)
 	{
 		float multiplier = 0.10;
 		gSkillData.plrDmgRPG *= multiplier;
 	}
+*/
 }
 
 // longest the intermission can last, in seconds
