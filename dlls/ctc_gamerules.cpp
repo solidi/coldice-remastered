@@ -379,6 +379,9 @@ int CHalfLifeCaptureTheChumtoad::DeadPlayerWeapons( CBasePlayer *pPlayer )
 
 BOOL CHalfLifeCaptureTheChumtoad::FPlayerCanTakeDamage( CBasePlayer *pPlayer, CBaseEntity *pAttacker )
 {
+	if (strcmp(STRING(pAttacker->pev->classname), "trigger_hurt") == 0)
+		return TRUE;
+
 	return pPlayer->m_iHoldingChumtoad ? TRUE : FALSE;
 }
 
