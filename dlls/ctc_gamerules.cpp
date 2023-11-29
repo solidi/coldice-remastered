@@ -33,6 +33,7 @@ extern int gmsgObjective;
 
 CHalfLifeCaptureTheChumtoad::CHalfLifeCaptureTheChumtoad()
 {
+	m_pHolder = NULL; // must initialize, otherwise, GET() crash.
 	m_fChumtoadInPlay = FALSE;
 	m_fCreateChumtoadTimer = m_fMoveChumtoadTimer = 0;
 	m_fChumtoadPlayTimer = gpGlobals->time;
