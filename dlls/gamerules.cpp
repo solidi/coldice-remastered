@@ -78,6 +78,7 @@ extern DLL_GLOBAL const char *g_MutatorDontShoot;
 extern DLL_GLOBAL const char *g_Mutator999;
 extern DLL_GLOBAL const char *g_MutatorBerserker;
 extern DLL_GLOBAL const char *g_MutatorJeepAThon;
+extern DLL_GLOBAL const char *g_MutatorAutoaim;
 
 extern DLL_GLOBAL int g_GameMode;
 
@@ -863,6 +864,11 @@ void CGameRules::CheckMutators(void)
 						 !((CBasePlayer *)pPlayer)->IsArmoredMan &&
 						 ((CBasePlayer *)pPlayer)->pev->fuser4 != 1)
 					g_engfuncs.pfnSetPhysicsKeyValue(pPlayer->edict(), "haste", "0");
+
+				if (!strstr(mutators.string, g_MutatorAutoaim) &&
+					atoi(mutators.string) != MUTATOR_AUTOAIM) {
+					pl->ResetAutoaim();
+				}
 
 				GiveMutators(pl);
 
