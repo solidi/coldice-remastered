@@ -2055,6 +2055,7 @@ void CHalfLifeMultiplay :: PlayerSpawn( CBasePlayer *pPlayer )
 		pPlayer->m_flForceToObserverTime = gpGlobals->time;
 		pPlayer->pev->effects |= EF_NODRAW;
 		pPlayer->pev->solid = SOLID_NOT;
+		pPlayer->pev->movetype = MOVETYPE_NOCLIP;
 		pPlayer->RemoveAllItems(FALSE);
 		//flUpdateTime = gpGlobals->time + 0.1;
 	}
