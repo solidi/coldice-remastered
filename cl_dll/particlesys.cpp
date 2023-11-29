@@ -246,19 +246,21 @@ ParticleSystem::ParticleSystem(int entindex, char *szFilename, float _EmitTime, 
 		c_bCosTableInit = true;
 	}
 
-	char *szFile;
+	char *szFile = (char *)gEngfuncs.COM_LoadFile(szFilename, 5, NULL);
 
-	//if (CachedParticleFiles[szFilename] == "")
-	//{
+	/*
+	if (CachedParticleFiles[szFilename] == "")
+	{
 		szFile = (char *)gEngfuncs.COM_LoadFile(szFilename, 5, NULL);
 
-	//	if (szFile)
-	//		CachedParticleFiles[szFilename] = szFile;
+		if (szFile)
+			CachedParticleFiles[szFilename] = szFile;
 
 		gEngfuncs.COM_FreeFile(szFile);
-	//}
-	//else
-	//	szFile = (char *)(CachedParticleFiles[szFilename].c_str());
+	}
+	else
+		szFile = (char *)(CachedParticleFiles[szFilename].c_str());
+	*/
 	 
 	char szToken[1024];
 
@@ -292,9 +294,9 @@ ParticleSystem::ParticleSystem(int entindex, char *szFilename, float _EmitTime, 
 
 			szFile = gEngfuncs.COM_ParseFile(szFile, szToken);
 		}
+
+		gEngfuncs.COM_FreeFile( szFile );
 	}
-		
-	//gEngfuncs.COM_FreeFile( szFile );
 
 	AllocateParticles(iParticles);
 }
