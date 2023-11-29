@@ -79,7 +79,7 @@ void CSMG::Precache( void )
 {
 	PRECACHE_MODEL("models/v_smg.mdl");
 	PRECACHE_MODEL("models/w_weapons.mdl");
-	PRECACHE_MODEL("models/p_smg.mdl");
+	PRECACHE_MODEL("models/p_weapons.mdl");
 
 	m_iShell = PRECACHE_MODEL ("models/w_shell.mdl");// brass shellTE_MODEL
 
@@ -130,7 +130,7 @@ BOOL CSMG::DeployLowKey( )
 {
 	m_sFireCount = 0;
 	m_sMode = FULL;
-	return DefaultDeploy( "models/v_smg.mdl", "models/p_smg.mdl", SMG_DEPLOY_LOWKEY, "mp5" );
+	return DefaultDeploy( "models/v_smg.mdl", "models/p_weapons.mdl", SMG_DEPLOY_LOWKEY, "mp5" );
 }
 
 BOOL CSMG::Deploy( )
@@ -138,7 +138,7 @@ BOOL CSMG::Deploy( )
 	m_sFireCount = 0;
 	m_sMode = FULL;
 
-	BOOL result = DefaultDeploy( "models/v_smg.mdl", "models/p_smg.mdl", SMG_DEPLOY, "mp5" );
+	BOOL result = DefaultDeploy( "models/v_smg.mdl", "models/p_weapons.mdl", SMG_DEPLOY, "mp5" );
 
 #ifndef CLIENT_DLL
 	if (result && allowvoiceovers.value) {
