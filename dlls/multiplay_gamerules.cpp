@@ -305,12 +305,12 @@ void CHalfLifeMultiplay :: Think ( void )
 		else if ( time > MAX_INTERMISSION_TIME )
 			CVAR_SET_STRING( "mp_chattime", UTIL_dtos1( MAX_INTERMISSION_TIME ) );
 
-		m_flIntermissionEndTime = g_flIntermissionStartTime + mp_chattime.value + 45;
+		m_flIntermissionEndTime = g_flIntermissionStartTime + mp_chattime.value + 90;
 
 		if (voting.value)
 		{
 			// Game mode vote ended
-			if (m_iVoteUnderway == 1 && ((m_flIntermissionEndTime - mp_chattime.value - 30) < gpGlobals->time))
+			if (m_iVoteUnderway == 1 && ((m_flIntermissionEndTime - mp_chattime.value - 60) < gpGlobals->time))
 			{
 				m_iVoteUnderway = 2;
 
@@ -372,7 +372,7 @@ void CHalfLifeMultiplay :: Think ( void )
 			}
 
 			// Mutator vote STARTED
-			if (m_iVoteUnderway == 2 && ((m_flIntermissionEndTime - mp_chattime.value - 27) < gpGlobals->time))
+			if (m_iVoteUnderway == 2 && ((m_flIntermissionEndTime - mp_chattime.value - 57) < gpGlobals->time))
 			{
 				m_iVoteUnderway = 3;
 
@@ -396,7 +396,7 @@ void CHalfLifeMultiplay :: Think ( void )
 			}
 
 			// Mutator vote ended
-			if (m_iVoteUnderway == 3 && ((m_flIntermissionEndTime - mp_chattime.value - 12) < gpGlobals->time))
+			if (m_iVoteUnderway == 3 && ((m_flIntermissionEndTime - mp_chattime.value - 27) < gpGlobals->time))
 			{
 				m_iVoteUnderway = 4;
 
@@ -498,7 +498,7 @@ void CHalfLifeMultiplay :: Think ( void )
 			}
 
 			// Map vote STARTED
-			if (m_iVoteUnderway == 4 && ((m_flIntermissionEndTime - mp_chattime.value - 9) < gpGlobals->time))
+			if (m_iVoteUnderway == 4 && ((m_flIntermissionEndTime - mp_chattime.value - 24) < gpGlobals->time))
 			{
 				m_iVoteUnderway = 5;
 

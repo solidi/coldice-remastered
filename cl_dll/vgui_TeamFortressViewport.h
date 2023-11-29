@@ -1767,7 +1767,7 @@ public:
 	{
 		CMenuPanel::Reset();
 		m_fStartTime = gHUD.m_flTime;
-		m_iTime = 15.0;
+		m_iTime = 30.0;
 		m_iCurrentInfo = 0;
 	}
 };
@@ -1796,7 +1796,7 @@ public:
 	{
 		CMenuPanel::Reset();
 		m_fStartTime = gHUD.m_flTime;
-		m_iTime = 15.0;
+		m_iTime = 30.0;
 		m_iCurrentInfo = 0;
 	}
 };
@@ -1825,7 +1825,7 @@ public:
 	{
 		CMenuPanel::Reset();
 		m_fStartTime = gHUD.m_flTime;
-		m_iTime = 15.0;
+		m_iTime = 30.0;
 		m_iCurrentInfo = 0;
 	}
 };
