@@ -381,7 +381,7 @@ void MajorityVote(edict_t *pEntity, const char *text)
 			for (int i = 1; i <= 32; i++)
 			{
 				CBasePlayer *pPlayer = (CBasePlayer *)UTIL_PlayerByIndex(i);
-				if (pPlayer)
+				if (pPlayer && !FBitSet(pPlayer->pev->flags, FL_FAKECLIENT))
 					players++;
 			}
 

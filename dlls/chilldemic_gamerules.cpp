@@ -233,7 +233,7 @@ void CHalfLifeChilldemic::Think( void )
 			if ( survivors_left <= 0 && skeletons_left <= 0 )
 			{
 				UTIL_ClientPrintAll(HUD_PRINTCENTER, "Everyone has been killed!\n");
-				UTIL_ClientPrintAll(HUD_PRINTTALK, "* No winners in this round!");
+				UTIL_ClientPrintAll(HUD_PRINTTALK, "* No winners in this round!\n");
 				MESSAGE_BEGIN(MSG_BROADCAST, gmsgObjective);
 					WRITE_STRING("Everyone died!");
 					WRITE_STRING("");
