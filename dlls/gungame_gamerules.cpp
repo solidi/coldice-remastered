@@ -349,16 +349,11 @@ int CHalfLifeGunGame::IPointsForKill( CBasePlayer *pAttacker, CBasePlayer *pKill
 								if (plr->IsAlive())
 									plr->RemoveAllItems(FALSE);
 
-								/*
-								plr->DisplayHudMessage(UTIL_VarArgs("Winner of Round %d is %s!\n", 
-									m_iSuccessfulRounds, STRING(pAttacker->pev->netname)),
-									TXT_CHANNEL_GAME_INFO, -1, 0.83, 255, 255, 255, 0, 0, 0, 60, 0);
-								*/
 								MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, plr->edict());
 									WRITE_STRING("Round complete");
 									WRITE_STRING("");
 									WRITE_BYTE(0);
-									WRITE_STRING(UTIL_VarArgs("Winner of round %d is %s!\n", m_iSuccessfulRounds, STRING(pAttacker->pev->netname)));
+									WRITE_STRING(UTIL_VarArgs("Winner of round %d is %s!\n", m_iSuccessfulRounds+1, STRING(pAttacker->pev->netname)));
 								MESSAGE_END();
 							}
 						}

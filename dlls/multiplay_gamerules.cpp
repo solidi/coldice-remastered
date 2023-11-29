@@ -1307,8 +1307,8 @@ BOOL CHalfLifeMultiplay::CheckGameTimer( void )
 		}
 		else
 		{
-			UTIL_ClientPrintAll(HUD_PRINTCENTER, "Time is Up: Match ends in a draw!" );
-			UTIL_ClientPrintAll(HUD_PRINTTALK, "* No winners in this round!");
+			UTIL_ClientPrintAll(HUD_PRINTCENTER, "Time is Up: Match ends in a draw!\n" );
+			UTIL_ClientPrintAll(HUD_PRINTTALK, "* No winners in this round!\n");
 
 			MESSAGE_BEGIN(MSG_BROADCAST, gmsgObjective);
 				WRITE_STRING("Time is up!");
@@ -1416,7 +1416,7 @@ void CHalfLifeMultiplay::DisplayWinnersGoods( CBasePlayer *pPlayer )
 	pPlayer->m_iRoundWins++;
 
 	//and display to the world what he does best!
-	UTIL_ClientPrintAll(HUD_PRINTTALK, UTIL_VarArgs("* %s has won round #%d of %d!\n", STRING(pPlayer->pev->netname), m_iSuccessfulRounds, (int)roundlimit.value));
+	UTIL_ClientPrintAll(HUD_PRINTTALK, UTIL_VarArgs("* %s has won round #%d of %d!\n", STRING(pPlayer->pev->netname), m_iSuccessfulRounds+1, (int)roundlimit.value));
 	UTIL_ClientPrintAll(HUD_PRINTTALK, UTIL_VarArgs("* %s record is %i for %i [%.1f%%]\n", STRING(pPlayer->pev->netname),
 		pPlayer->m_iRoundWins,
 		pPlayer->m_iRoundPlays,

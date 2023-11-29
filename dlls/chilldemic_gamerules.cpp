@@ -286,7 +286,7 @@ void CHalfLifeChilldemic::Think( void )
 				else
 				{
 					UTIL_ClientPrintAll(HUD_PRINTCENTER, "Survivors have been defeated!\n");
-					UTIL_ClientPrintAll(HUD_PRINTTALK, "* Round ends in a tie!");
+					UTIL_ClientPrintAll(HUD_PRINTTALK, "* Round ends in a tie!\n");
 					MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
 						WRITE_BYTE(CLIENT_SOUND_HULIMATING_DEAFEAT);
 					MESSAGE_END();
@@ -334,7 +334,7 @@ void CHalfLifeChilldemic::Think( void )
 				else
 				{
 					UTIL_ClientPrintAll(HUD_PRINTCENTER, "Skeletons have been defeated!\n");
-					UTIL_ClientPrintAll(HUD_PRINTTALK, "* Round ends in a tie!");
+					UTIL_ClientPrintAll(HUD_PRINTTALK, "* Round ends in a tie!\n");
 					MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
 						WRITE_BYTE(CLIENT_SOUND_HULIMATING_DEAFEAT);
 					MESSAGE_END();
@@ -516,7 +516,7 @@ BOOL CHalfLifeChilldemic::CheckGameTimer( void )
 		else
 		{
 			UTIL_ClientPrintAll(HUD_PRINTCENTER, "Time is up!\nNo one has won!\n");
-			UTIL_ClientPrintAll(HUD_PRINTTALK, "* Round ends in a tie!");
+			UTIL_ClientPrintAll(HUD_PRINTTALK, "* Round ends in a tie!\n");
 			MESSAGE_BEGIN(MSG_BROADCAST, gmsgObjective);
 				WRITE_STRING("Time is up!");
 				WRITE_STRING("");
