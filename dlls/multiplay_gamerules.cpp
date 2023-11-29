@@ -2224,23 +2224,46 @@ void CHalfLifeMultiplay :: PlayerKilled( CBasePlayer *pVictim, entvars_t *pKille
 				}
 				break;
 			case GAME_ARENA:
-				if (peKiller)
+				CBasePlayer *pPlayer1 = (CBasePlayer *)UTIL_PlayerByIndex( m_iPlayer1 );
+				CBasePlayer *pPlayer2 = (CBasePlayer *)UTIL_PlayerByIndex( m_iPlayer2 );
+
+				if (pPlayer1 && pPlayer2)
 				{
-					int fragsToGo = int(roundfraglimit.value - peKiller->pev->frags);
-					MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, peKiller->edict());
+					int fragsToGo = int(roundfraglimit.value - pPlayer1->pev->frags);
+					MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, pPlayer1->edict());
 						if (fragsToGo >= 1)
-							WRITE_STRING(UTIL_VarArgs("Defeat %s", STRING(pVictim->pev->netname)));
+							WRITE_STRING(UTIL_VarArgs("Defeat %s", STRING(pPlayer2->pev->netname)));
 						else
-							WRITE_STRING(UTIL_VarArgs("You Defeated %s!", STRING(pVictim->pev->netname)));
+							WRITE_STRING(UTIL_VarArgs("You Defeated %s!", STRING(pPlayer2->pev->netname)));
 						if (fragsToGo >= 1)
-							WRITE_STRING(UTIL_VarArgs("Frags to go: %d", fragsToGo));
+							WRITE_STRING(UTIL_VarArgs("They need: %d", int(roundfraglimit.value - pPlayer2->pev->frags)));
 						else
 							WRITE_STRING("");
-						WRITE_BYTE((peKiller->pev->frags / roundfraglimit.value) * 100);
+						WRITE_BYTE(fmax(0, (pPlayer1->pev->frags / roundfraglimit.value) * 100));
 						if (fragsToGo < 1)
 							WRITE_STRING("You are the WINNER!");
+						else
+							WRITE_STRING(UTIL_VarArgs("You need: %d", fragsToGo));
+					MESSAGE_END();
+
+					fragsToGo = int(roundfraglimit.value - pPlayer2->pev->frags);
+					MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, pPlayer2->edict());
+						if (fragsToGo >= 1)
+							WRITE_STRING(UTIL_VarArgs("Defeat %s", STRING(pPlayer1->pev->netname)));
+						else
+							WRITE_STRING(UTIL_VarArgs("You Defeated %s!", STRING(pPlayer1->pev->netname)));
+						if (fragsToGo >= 1)
+							WRITE_STRING(UTIL_VarArgs("They need: %d", int(roundfraglimit.value - pPlayer1->pev->frags)));
+						else
+							WRITE_STRING("");
+						WRITE_BYTE(fmax(0, (pPlayer2->pev->frags / roundfraglimit.value) * 100));
+						if (fragsToGo < 1)
+							WRITE_STRING("You are the WINNER!");
+						else
+							WRITE_STRING(UTIL_VarArgs("You need: %d", fragsToGo));
 					MESSAGE_END();
 				}
+
 				break;
 		}
 	}
