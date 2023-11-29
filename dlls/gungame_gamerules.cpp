@@ -381,6 +381,7 @@ int CHalfLifeGunGame::IPointsForKill( CBasePlayer *pAttacker, CBasePlayer *pKill
 				{
 					pAttacker->RemoveAllItems(FALSE);
 					GiveMutators(pAttacker);
+					pAttacker->GiveNamedItem("weapon_fists");
 					pAttacker->GiveNamedItem(g_WeaponId[newLevel]);
 				}
 				m_hVoiceHandle = pAttacker;
