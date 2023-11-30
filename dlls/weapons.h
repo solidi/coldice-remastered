@@ -1584,6 +1584,7 @@ public:
 	int AddToPlayer( CBasePlayer *pPlayer );
 
 	void PrimaryAttack( void );
+	void SecondaryAttack( void );
 	void Fire( float flSpread, float flCycleTime );
 	BOOL DeployLowKey( void );
 	BOOL Deploy( void );
