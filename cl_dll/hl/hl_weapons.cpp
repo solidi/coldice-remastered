@@ -769,6 +769,7 @@ enum e_protips {
 	WRENCH_TIP,
 	RUNE_TIP,
 	SILENCER_TIP,
+	CHAINSAW_TIP,
 };
 
 extern void ProTip(int id, const char *message);
@@ -800,7 +801,7 @@ void HUD_WeaponsPostThink( local_state_s *from, local_state_s *to, usercmd_t *cm
 		
 		case WEAPON_KNIFE:
 			pWeapon = &g_Knife;
-			ProTip(KNIFE_TIP, "Feign your death, press \"7\" or bind \"feign\"");
+			ProTip(KNIFE_TIP, "Feign your death, press 7 or bind \"feign\"");
 			break;
 
 		case WEAPON_GLOCK:
@@ -810,7 +811,7 @@ void HUD_WeaponsPostThink( local_state_s *from, local_state_s *to, usercmd_t *cm
 		
 		case WEAPON_PYTHON:
 			pWeapon = &g_Python;
-			ProTip(IRONSIGHTS_TIP, "Use ironsights, press \"g\" or bind \"+ironsight\"");
+			ProTip(IRONSIGHTS_TIP, "Use ironsights, press G or bind \"+ironsight\"");
 			break;
 			
 		case WEAPON_MP5:
@@ -843,7 +844,7 @@ void HUD_WeaponsPostThink( local_state_s *from, local_state_s *to, usercmd_t *cm
 
 		case WEAPON_HANDGRENADE:
 			pWeapon = &g_HandGren;
-			ProTip(GRENADE_TIP, "Use offhand grenades, press \"q\" or bind \"impulse 209\"");
+			ProTip(GRENADE_TIP, "Use offhand grenades, press Q or bind \"impulse 209\"");
 			break;
 
 		case WEAPON_SATCHEL:
@@ -906,12 +907,12 @@ void HUD_WeaponsPostThink( local_state_s *from, local_state_s *to, usercmd_t *cm
 
 		case WEAPON_FISTS:
 			pWeapon = &g_Fists;
-			ProTip(FIST_TIP, "Punch offhand, press \"p\" or bind \"impulse 207\"");
+			ProTip(FIST_TIP, "Perform a hurricane kick with RELOAD");
 			break;
 
 		case WEAPON_WRENCH:
 			pWeapon = &g_Wrench;
-			ProTip(WRENCH_TIP, "Taunt your enemy, press \"8\" or bind \"taunt\"");
+			ProTip(WRENCH_TIP, "Taunt your enemy, press 8 or bind \"taunt\"");
 			break;
 
 		case WEAPON_SNOWBALL:
@@ -920,6 +921,7 @@ void HUD_WeaponsPostThink( local_state_s *from, local_state_s *to, usercmd_t *cm
 
 		case WEAPON_CHAINSAW:
 			pWeapon = &g_Chainsaw;
+			ProTip(CHAINSAW_TIP, "Hold secondary attack to climb up walls");
 			break;
 
 		case WEAPON_12GAUGE:
@@ -940,7 +942,7 @@ void HUD_WeaponsPostThink( local_state_s *from, local_state_s *to, usercmd_t *cm
 
 		case WEAPON_DUAL_RPG:
 			pWeapon = &g_DualRpg;
-			ProTip(DUAL_TIP, "Swap single and dual, press \"n\" or bind \"impulse 205\"");
+			ProTip(DUAL_TIP, "Swap single and dual, press N or bind \"impulse 205\"");
 			break;
 
 		case WEAPON_DUAL_MAG60:

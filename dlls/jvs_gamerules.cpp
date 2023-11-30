@@ -232,7 +232,7 @@ void CHalfLifeJesusVsSanta::Think( void )
 				else
 				{
 					UTIL_ClientPrintAll(HUD_PRINTCENTER, "Jesus has been destroyed!\n");
-					UTIL_ClientPrintAll(HUD_PRINTTALK, "* Round ends in a tie!");
+					UTIL_ClientPrintAll(HUD_PRINTTALK, "* Round ends in a tie!\n");
 					MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
 						WRITE_BYTE(CLIENT_SOUND_HULIMATING_DEAFEAT);
 					MESSAGE_END();
@@ -243,7 +243,7 @@ void CHalfLifeJesusVsSanta::Think( void )
 			else
 			{
 				UTIL_ClientPrintAll(HUD_PRINTCENTER, "Everyone has been killed!\n");
-				UTIL_ClientPrintAll(HUD_PRINTTALK, "* No winners in this round!");
+				UTIL_ClientPrintAll(HUD_PRINTTALK, "* No winners in this round!\n");
 				MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
 					WRITE_BYTE(CLIENT_SOUND_HULIMATING_DEAFEAT);
 				MESSAGE_END();
@@ -427,7 +427,7 @@ BOOL CHalfLifeJesusVsSanta::CheckGameTimer( void )
 		else
 		{
 			UTIL_ClientPrintAll(HUD_PRINTCENTER, "Time is up!\nNo one has won!\n");
-			UTIL_ClientPrintAll(HUD_PRINTTALK, "* Round ends in a tie!");
+			UTIL_ClientPrintAll(HUD_PRINTTALK, "* Round ends in a tie!\n");
 			MESSAGE_BEGIN(MSG_BROADCAST, gmsgObjective);
 				WRITE_STRING("Time is up!");
 				WRITE_STRING("");

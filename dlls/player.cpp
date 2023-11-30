@@ -6035,8 +6035,10 @@ Vector CBasePlayer :: AutoaimDeflection( Vector &vecSrc, float flDist, float flD
 
 void CBasePlayer :: ResetAutoaim( )
 {
-	if (m_vecAutoAim.x != 0 || m_vecAutoAim.y != 0)
+	if (m_vecAutoAim.x != 0 || m_vecAutoAim.y != 0 ||
+		m_lastx != 0 || m_lasty != 0)
 	{
+		m_lastx = m_lasty = 0;
 		m_vecAutoAim = Vector( 0, 0, 0 );
 		SET_CROSSHAIRANGLE( edict(), 0, 0 );
 	}

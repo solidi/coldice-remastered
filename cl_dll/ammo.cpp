@@ -565,7 +565,7 @@ int CHudAmmo::MsgFunc_ItemPickup( const char *pszName, int iSize, void *pbuf )
 	if (strncmp(szName, "rune_", 5) != 0)
 		gHR.AddToHistory( HISTSLOT_ITEM, szName );
 	else
-		gHUD.m_ProTip.AddMessage(RUNE_TIP, "Drop a rune, press \"j\" or bind \"drop_rune\"");
+		gHUD.m_ProTip.AddMessage(RUNE_TIP, "Drop a rune, press J or bind \"drop_rune\"");
 
 	gHUD.FlashHud();
 

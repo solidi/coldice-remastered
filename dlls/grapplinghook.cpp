@@ -85,7 +85,7 @@ void CHook::FireHook( ) {
 		if ( tr.pHit )
 			pWorld = tr.pHit;
 		if (stricmp(TRACE_TEXTURE( pWorld, start, end ), "sky") == 0) {
-			ClientPrint(pevOwner->pev, HUD_PRINTCENTER, "Cannot grapple sky!");
+			ClientPrint(pevOwner->pev, HUD_PRINTCENTER, "Cannot grapple sky!\n");
 			return;
 		}
 	}

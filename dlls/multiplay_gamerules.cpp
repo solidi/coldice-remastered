@@ -198,12 +198,15 @@ void CHalfLifeMultiplay::RefreshSkillData( void )
 		gSkillData.plrDmgPlasma *= multiplier;
 	}
 
+/*
+	// Reserve for rocket jumping, when we get there.
 	if (strstr(mutators.string, g_MutatorPushy) ||
 		atoi(mutators.string) == MUTATOR_PUSHY)
 	{
 		float multiplier = 0.10;
 		gSkillData.plrDmgRPG *= multiplier;
 	}
+*/
 }
 
 // longest the intermission can last, in seconds
@@ -305,12 +308,12 @@ void CHalfLifeMultiplay :: Think ( void )
 		else if ( time > MAX_INTERMISSION_TIME )
 			CVAR_SET_STRING( "mp_chattime", UTIL_dtos1( MAX_INTERMISSION_TIME ) );
 
-		m_flIntermissionEndTime = g_flIntermissionStartTime + mp_chattime.value + 45;
+		m_flIntermissionEndTime = g_flIntermissionStartTime + mp_chattime.value + 90;
 
 		if (voting.value)
 		{
 			// Game mode vote ended
-			if (m_iVoteUnderway == 1 && ((m_flIntermissionEndTime - mp_chattime.value - 30) < gpGlobals->time))
+			if (m_iVoteUnderway == 1 && ((m_flIntermissionEndTime - mp_chattime.value - 60) < gpGlobals->time))
 			{
 				m_iVoteUnderway = 2;
 
@@ -372,7 +375,7 @@ void CHalfLifeMultiplay :: Think ( void )
 			}
 
 			// Mutator vote STARTED
-			if (m_iVoteUnderway == 2 && ((m_flIntermissionEndTime - mp_chattime.value - 27) < gpGlobals->time))
+			if (m_iVoteUnderway == 2 && ((m_flIntermissionEndTime - mp_chattime.value - 57) < gpGlobals->time))
 			{
 				m_iVoteUnderway = 3;
 
@@ -396,7 +399,7 @@ void CHalfLifeMultiplay :: Think ( void )
 			}
 
 			// Mutator vote ended
-			if (m_iVoteUnderway == 3 && ((m_flIntermissionEndTime - mp_chattime.value - 12) < gpGlobals->time))
+			if (m_iVoteUnderway == 3 && ((m_flIntermissionEndTime - mp_chattime.value - 27) < gpGlobals->time))
 			{
 				m_iVoteUnderway = 4;
 
@@ -498,7 +501,7 @@ void CHalfLifeMultiplay :: Think ( void )
 			}
 
 			// Map vote STARTED
-			if (m_iVoteUnderway == 4 && ((m_flIntermissionEndTime - mp_chattime.value - 9) < gpGlobals->time))
+			if (m_iVoteUnderway == 4 && ((m_flIntermissionEndTime - mp_chattime.value - 24) < gpGlobals->time))
 			{
 				m_iVoteUnderway = 5;
 
@@ -1307,8 +1310,8 @@ BOOL CHalfLifeMultiplay::CheckGameTimer( void )
 		}
 		else
 		{
-			UTIL_ClientPrintAll(HUD_PRINTCENTER, "Time is Up: Match ends in a draw!" );
-			UTIL_ClientPrintAll(HUD_PRINTTALK, "* No winners in this round!");
+			UTIL_ClientPrintAll(HUD_PRINTCENTER, "Time is Up: Match ends in a draw!\n" );
+			UTIL_ClientPrintAll(HUD_PRINTTALK, "* No winners in this round!\n");
 
 			MESSAGE_BEGIN(MSG_BROADCAST, gmsgObjective);
 				WRITE_STRING("Time is up!");
@@ -1416,7 +1419,7 @@ void CHalfLifeMultiplay::DisplayWinnersGoods( CBasePlayer *pPlayer )
 	pPlayer->m_iRoundWins++;
 
 	//and display to the world what he does best!
-	UTIL_ClientPrintAll(HUD_PRINTTALK, UTIL_VarArgs("* %s has won round #%d of %d!\n", STRING(pPlayer->pev->netname), m_iSuccessfulRounds, (int)roundlimit.value));
+	UTIL_ClientPrintAll(HUD_PRINTTALK, UTIL_VarArgs("* %s has won round #%d of %d!\n", STRING(pPlayer->pev->netname), m_iSuccessfulRounds+1, (int)roundlimit.value));
 	UTIL_ClientPrintAll(HUD_PRINTTALK, UTIL_VarArgs("* %s record is %i for %i [%.1f%%]\n", STRING(pPlayer->pev->netname),
 		pPlayer->m_iRoundWins,
 		pPlayer->m_iRoundPlays,
@@ -2052,6 +2055,7 @@ void CHalfLifeMultiplay :: PlayerSpawn( CBasePlayer *pPlayer )
 		pPlayer->m_flForceToObserverTime = gpGlobals->time;
 		pPlayer->pev->effects |= EF_NODRAW;
 		pPlayer->pev->solid = SOLID_NOT;
+		pPlayer->pev->movetype = MOVETYPE_NOCLIP;
 		pPlayer->RemoveAllItems(FALSE);
 		//flUpdateTime = gpGlobals->time + 0.1;
 	}
@@ -2224,23 +2228,46 @@ void CHalfLifeMultiplay :: PlayerKilled( CBasePlayer *pVictim, entvars_t *pKille
 				}
 				break;
 			case GAME_ARENA:
-				if (peKiller)
+				CBasePlayer *pPlayer1 = (CBasePlayer *)UTIL_PlayerByIndex( m_iPlayer1 );
+				CBasePlayer *pPlayer2 = (CBasePlayer *)UTIL_PlayerByIndex( m_iPlayer2 );
+
+				if (pPlayer1 && pPlayer2)
 				{
-					int fragsToGo = int(roundfraglimit.value - peKiller->pev->frags);
-					MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, peKiller->edict());
+					int fragsToGo = int(roundfraglimit.value - pPlayer1->pev->frags);
+					MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, pPlayer1->edict());
 						if (fragsToGo >= 1)
-							WRITE_STRING(UTIL_VarArgs("Defeat %s", STRING(pVictim->pev->netname)));
+							WRITE_STRING(UTIL_VarArgs("Defeat %s", STRING(pPlayer2->pev->netname)));
 						else
-							WRITE_STRING(UTIL_VarArgs("You Defeated %s!", STRING(pVictim->pev->netname)));
+							WRITE_STRING(UTIL_VarArgs("You Defeated %s!", STRING(pPlayer2->pev->netname)));
 						if (fragsToGo >= 1)
-							WRITE_STRING(UTIL_VarArgs("Frags to go: %d", fragsToGo));
+							WRITE_STRING(UTIL_VarArgs("They need: %d", int(roundfraglimit.value - pPlayer2->pev->frags)));
 						else
 							WRITE_STRING("");
-						WRITE_BYTE((peKiller->pev->frags / roundfraglimit.value) * 100);
+						WRITE_BYTE(fmax(0, (pPlayer1->pev->frags / roundfraglimit.value) * 100));
 						if (fragsToGo < 1)
 							WRITE_STRING("You are the WINNER!");
+						else
+							WRITE_STRING(UTIL_VarArgs("You need: %d", fragsToGo));
+					MESSAGE_END();
+
+					fragsToGo = int(roundfraglimit.value - pPlayer2->pev->frags);
+					MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, pPlayer2->edict());
+						if (fragsToGo >= 1)
+							WRITE_STRING(UTIL_VarArgs("Defeat %s", STRING(pPlayer1->pev->netname)));
+						else
+							WRITE_STRING(UTIL_VarArgs("You Defeated %s!", STRING(pPlayer1->pev->netname)));
+						if (fragsToGo >= 1)
+							WRITE_STRING(UTIL_VarArgs("They need: %d", int(roundfraglimit.value - pPlayer1->pev->frags)));
+						else
+							WRITE_STRING("");
+						WRITE_BYTE(fmax(0, (pPlayer2->pev->frags / roundfraglimit.value) * 100));
+						if (fragsToGo < 1)
+							WRITE_STRING("You are the WINNER!");
+						else
+							WRITE_STRING(UTIL_VarArgs("You need: %d", fragsToGo));
 					MESSAGE_END();
 				}
+
 				break;
 		}
 	}

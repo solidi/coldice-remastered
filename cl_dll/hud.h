@@ -726,7 +726,10 @@ enum e_protips {
 	WRENCH_TIP,
 	RUNE_TIP,
 	SILENCER_TIP,
+	CHAINSAW_TIP,
 };
+
+#define PROTIPS_AMT	13
 
 class CHudProTip : public CHudBase
 {
@@ -738,7 +741,7 @@ public:
 private:
 	HSPRITE m_hMouseClick;
 	protip_s m_MessageQueue[3];
-	bool m_ShownTip[11];
+	bool m_ShownTip[PROTIPS_AMT];
 };
 
 typedef struct

@@ -42,7 +42,7 @@ void CDualMag60::Spawn( )
 {
 	Precache( );
 	SET_MODEL(ENT(pev), "models/w_weapons.mdl");
-	pev->body = WEAPON_DUAL_MAG60;
+	pev->body = WEAPON_DUAL_MAG60 - 1;
 	m_iId = WEAPON_DUAL_MAG60;
 
 	m_iDefaultAmmo = MAG60_DEFAULT_GIVE * 2;

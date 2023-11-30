@@ -42,7 +42,7 @@ void CDualSMG::Spawn( )
 {
 	Precache( );
 	SET_MODEL(ENT(pev), "models/w_weapons.mdl");
-	pev->body = WEAPON_DUAL_SMG;
+	pev->body = WEAPON_DUAL_SMG - 1;
 	m_iId = WEAPON_DUAL_SMG;
 
 	m_iDefaultAmmo = SMG_DEFAULT_GIVE * 2;

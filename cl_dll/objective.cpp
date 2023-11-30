@@ -91,7 +91,7 @@ int CHudObjective::Draw(float flTime)
 
 		float result = (size + padding) * (float(m_iPercent) / 100);
 		FillRGBA(x, y, size + padding, gHUD.m_iFontHeight, r, g, b, 20);
-		FillRGBA(x, y + gHUD.m_iFontHeight + 1, (int)result, 2, r, g, b, 200);
+		FillRGBA(x, y + gHUD.m_iFontHeight + 2, (int)result, 2, r, g, b, 200);
 	}
 
 	if (strlen(m_szWinsMessage))

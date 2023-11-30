@@ -160,6 +160,52 @@ void CChaingun::PrimaryAttack()
 	}
 }
 
+void CChaingun::SecondaryAttack()
+{
+	if ( m_pPlayer->pev->waterlevel == 3 )
+	{
+		PlayEmptySound();
+		m_flNextPrimaryAttack = m_flNextSecondaryAttack = GetNextAttackDelay(0.15);
+		return;
+	}
+
+	if (m_iClip <= 0)
+	{
+		SendWeaponAnim( CHAINGUN_SPINDOWN );
+		PlayEmptySound();
+		m_flNextPrimaryAttack = UTIL_WeaponTimeBase() + 0.3;
+		return;
+	}
+
+	if ( m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] == 0 && m_iClip == 0) 
+	{
+		PlayEmptySound();
+		RetireWeapon();
+		return;
+	}
+
+	if ( m_iWeaponMode == CHAINGUN_IDLE && m_iClip > 0 )
+	{
+		SendWeaponAnim( CHAINGUN_SPINUP );
+		EMIT_SOUND_DYN(ENT(m_pPlayer->pev), CHAN_WEAPON, "chaingun_spinup.wav", RANDOM_FLOAT(0.92, 1.0), ATTN_NORM, 0, 98 + RANDOM_LONG(0,3));	
+		m_flNextPrimaryAttack = UTIL_WeaponTimeBase() + 0.75;
+		m_iWeaponMode = CHAINGUN_FIRE;
+		return;
+	}
+
+	SlowDownPlayer();
+
+	if (m_fFireMagnitude == 0) 
+		m_fFireMagnitude = 4;
+
+	if (m_fFireMagnitude < 8) 
+		m_fFireMagnitude++;
+
+	//if (m_iWeaponMode == CHAINGUN_FIRE && m_iClip > 0) {
+	//	Fire(VECTOR_CONE_3DEGREES.x, 1/(float) m_fFireMagnitude);
+	//}
+}
+
 void CChaingun::Fire( float flSpread, float flCycleTime )
 {
 	m_iClip--;

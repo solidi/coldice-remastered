@@ -6,7 +6,7 @@
 
 #define QUEUE_SIZE 3
 #define START_POSITION (ScreenHeight / 2) - (ScreenHeight * .25)
-#define SECONDS_TO_LIVE 15
+#define SECONDS_TO_LIVE 10
 
 extern cvar_t *cl_showtips;
 
@@ -61,6 +61,15 @@ int CHudProTip::Draw(float flTime)
 		return 1;
 	}
 
+	if (g_iUser1)
+		return 1;
+
+	if (gHUD.m_Scoreboard.m_iShowscoresHeld)
+		return 1;
+
+	if (gHUD.m_iIntermission)
+		return 1;
+
 	for (int i = 0; i < QUEUE_SIZE; i++)
 	{
 		//gEngfuncs.Con_DPrintf("q index=%d, time=%.2f, ctime=%.2f\n", i, m_MessageQueue[i].time, gEngfuncs.GetClientTime());
@@ -89,11 +98,7 @@ int CHudProTip::Draw(float flTime)
 				a = fmin(200 * ((m_MessageQueue[i].time - gEngfuncs.GetClientTime()) / fade_time), 200);
 			ScaleColors(r, g, b, a);
 
-			// Calculate size
-			int size = gHUD.DrawHudString( 10000, m_MessageQueue[i].y_pos, ScreenWidth, (char *)m_MessageQueue[i].message, r, g, b );
-			size -= 10000;
-			//----
-
+			int size = ConsoleStringLen(m_MessageQueue[i].message);
 			int x = (ScreenWidth / 2) - (size / 2);
 			gHUD.DrawHudString(x, m_MessageQueue[i].y_pos, ScreenWidth, (char *)m_MessageQueue[i].message, r, g, b );
 
