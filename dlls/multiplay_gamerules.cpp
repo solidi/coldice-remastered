@@ -335,15 +335,21 @@ void CHalfLifeMultiplay :: Think ( void )
 
 				int highest = -9999;
 				int gameIndex = GAME_FFA;
+				int tie = -9999;
 				for (int i = 0; i <= GAME_CHILLDEMIC + 1 /*random*/; i++)
 				{
 					if (highest <= vote[i])
 					{
+						if (highest == vote[i])
+							tie = highest;
 						highest = vote[i];
 						gameIndex = i;
 						// ALERT(at_console, "highest=%d, vote[i]=%d, gameIndex=%d\n", highest, vote[i], gameIndex);
 					}
 				}
+
+				if (highest == tie)
+					gameIndex = GAME_CHILLDEMIC + 1; // randomize!
 
 				memset(m_iVoteCount, -1, sizeof(m_iVoteCount));
 
@@ -361,7 +367,7 @@ void CHalfLifeMultiplay :: Think ( void )
 
 					UTIL_ClientPrintAll(HUD_PRINTTALK, UTIL_VarArgs("[VOTE] %s is the next gameplay mode!\n", gamePlayModes[gameIndex]));
 
-					if (gameIndex == 1)
+					if (gameIndex == GAME_TEAMPLAY)
 					{
 						SERVER_COMMAND("mp_gamemode 0\n");
 						SERVER_COMMAND("mp_teamplay 1\n");
@@ -438,14 +444,14 @@ void CHalfLifeMultiplay :: Think ( void )
 						fIndex = i;
 						first = vote[i];
 					}
-					else if (vote[i] > second && vote[i] != first)
+					else if (vote[i] > second)
 					{
 						tIndex = sIndex;
 						third = second;
 						sIndex = i;
 						second = vote[i];
 					}
-					else if (vote[i] > third && vote[i] != second && vote[i] != first)
+					else if (vote[i] > third)
 					{
 						tIndex = i;
 						third = vote[i];
@@ -547,15 +553,21 @@ void CHalfLifeMultiplay :: Think ( void )
 
 				int highest = -9999;
 				int mapIndex = 0;
+				int tie = -9999;
 				for (int i = 0; i < BUILT_IN_MAP_COUNT + 1 /*random*/; i++)
 				{
 					if (highest <= vote[i])
 					{
+						if (highest == vote[i])
+							tie = highest;
 						highest = vote[i];
 						m_iDecidedMapIndex = mapIndex = i;
 						// ALERT(at_console, "highest=%d, vote[i]=%d, mapIndex=%d\n", highest, vote[i], mapIndex);
 					}
 				}
+
+				if (highest == tie)
+					m_iDecidedMapIndex = BUILT_IN_MAP_COUNT; // randomize if tied!
 
 				if (highest <= 0)
 				{
@@ -3066,8 +3078,8 @@ void CHalfLifeMultiplay :: GoToIntermission( void )
 	}
 
 	// Clear previous message at intermission
-	if (g_GameMode != GAME_FFA)
-		UTIL_ClientPrintAll(HUD_PRINTCENTER, "");
+	UTIL_ClientPrintAll(HUD_PRINTCENTER, "");
+
 	g_fGameOver = TRUE;
 	m_iEndIntermissionButtonHit = FALSE;
 }
