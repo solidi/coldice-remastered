@@ -770,6 +770,7 @@ enum e_protips {
 	RUNE_TIP,
 	SILENCER_TIP,
 	CHAINSAW_TIP,
+	RPG_TIP,
 };
 
 extern void ProTip(int id, const char *message);
@@ -828,6 +829,7 @@ void HUD_WeaponsPostThink( local_state_s *from, local_state_s *to, usercmd_t *cm
 
 		case WEAPON_RPG:
 			pWeapon = &g_Rpg;
+			ProTip(RPG_TIP, "Toggle the laser on/off with the RELOAD button");
 			break;
 
 		case WEAPON_GAUSS:

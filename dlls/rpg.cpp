@@ -349,6 +349,24 @@ void CRpg::Reload( void )
 	if ( m_pPlayer->ammo_rockets <= 0 )
 		return;
 
+	if (m_flNextReload > gpGlobals->time)
+		return;
+
+	if (m_iClip == RPG_MAX_CLIP)
+	{
+		m_fSpotActive = ! m_fSpotActive;
+
+#ifndef CLIENT_DLL
+		if (!m_fSpotActive && m_pSpot)
+		{
+			m_pSpot->Killed( NULL, GIB_NORMAL );
+			m_pSpot = NULL;
+		}
+#endif
+
+		m_flNextReload = gpGlobals->time + 0.25;
+	}
+
 	// because the RPG waits to autoreload when no missiles are active while  the LTD is on, the
 	// weapons code is constantly calling into this function, but is often denied because 
 	// a) missiles are in flight, but the LTD is on

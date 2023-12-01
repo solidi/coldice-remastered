@@ -727,9 +727,10 @@ enum e_protips {
 	RUNE_TIP,
 	SILENCER_TIP,
 	CHAINSAW_TIP,
+	RPG_TIP,
 };
 
-#define PROTIPS_AMT	13
+#define PROTIPS_AMT	14
 
 class CHudProTip : public CHudBase
 {
