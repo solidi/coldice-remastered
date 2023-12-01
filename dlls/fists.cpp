@@ -178,7 +178,7 @@ int CFists::Swing( int fFirst )
 		if (fFirst)
 		{
 			// miss
-			m_flNextPrimaryAttack = GetNextAttackDelay(0.5);
+			m_flNextPrimaryAttack = m_flNextSecondaryAttack = GetNextAttackDelay(0.5);
 			m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + UTIL_SharedRandomFloat( m_pPlayer->random_seed, 10, 15 );
 			
 			// player "shoot" animation
@@ -259,7 +259,7 @@ int CFists::Swing( int fFirst )
 
 				if ( !pEntity->IsAlive() )
 				{
-					  m_flNextPrimaryAttack = GetNextAttackDelay(0.25);
+					  m_flNextPrimaryAttack = m_flNextSecondaryAttack = GetNextAttackDelay(0.25);
 					  return TRUE;
 				} else
 					  flVol = 0.1;
