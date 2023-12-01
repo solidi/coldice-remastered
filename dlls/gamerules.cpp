@@ -102,7 +102,6 @@ DLL_GLOBAL const char *g_szMutators[] = {
 	"santahat",
 	"coolflesh",
 	"sanic",
-	"coolflesh",
 	"loopback",
 	"maxpack",
 	"infiniteammo",
