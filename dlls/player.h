@@ -271,8 +271,6 @@ public:
 	int m_iChumtoadCounter;
 	int m_iCaptureTime;
 
-	BOOL GetHeaviestWeapon( CBasePlayerItem *pCurrentWeapon );
-
 	EHANDLE pHeldItem;
 	BOOL m_iHoldingItem;
 
