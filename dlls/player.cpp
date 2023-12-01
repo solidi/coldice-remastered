@@ -986,6 +986,8 @@ void CBasePlayer::Killed( entvars_t *pevAttacker, int iGib )
 
 	g_pGameRules->PlayerKilled( this, pevAttacker, g_pevLastInflictor );
 
+	STOP_SOUND( edict(), CHAN_VOICE, "scientist/scream1.wav" );
+
 	if ( m_pTank != NULL )
 	{
 		m_pTank->Use( this, this, USE_OFF, 0 );
@@ -2683,6 +2685,12 @@ void CBasePlayer::PreThink(void)
 		MESSAGE_END();
 	
 		m_hFlameOwner = NULL;
+	}
+
+	if (m_fNextScreamSound < gpGlobals->time && pev->velocity.z < -600)
+	{
+		EMIT_SOUND(ENT(pev), CHAN_VOICE, "scientist/scream1.wav", 1, ATTN_NORM);
+		m_fNextScreamSound = gpGlobals->time + 10.0;
 	}
 }
 /* Time based Damage works as follows: 

@@ -276,6 +276,8 @@ public:
 
 	float m_flNextSantaSound;
 
+	float m_fNextScreamSound;
+
 	virtual void Spawn( void );
 	void Pain( void );
 
