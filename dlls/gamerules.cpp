@@ -819,7 +819,7 @@ void CGameRules::CheckMutators(void)
 			{
 				CBaseEntity *pPlayer = UTIL_PlayerByIndex( i );
 				CBasePlayer *pl = (CBasePlayer *)pPlayer;
-				if (pPlayer && pPlayer->IsPlayer() && !pl->IsObserver())
+				if (pPlayer && pPlayer->IsPlayer())
 				{
 					char *key = g_engfuncs.pfnGetInfoKeyBuffer(pl->edict());
 					char *name = g_engfuncs.pfnInfoKeyValue(key, "oname");
