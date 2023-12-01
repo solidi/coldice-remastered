@@ -271,10 +271,14 @@ public:
 	int m_iChumtoadCounter;
 	int m_iCaptureTime;
 
+	BOOL GetHeaviestWeapon( CBasePlayerItem *pCurrentWeapon );
+
 	EHANDLE pHeldItem;
 	BOOL m_iHoldingItem;
 
 	float m_flNextSantaSound;
+
+	float m_fNextScreamSound;
 
 	virtual void Spawn( void );
 	void Pain( void );

@@ -1418,6 +1418,8 @@ void ClientPrecache( void )
 	PRECACHE_SOUND("player/pl_pain6.wav");
 	PRECACHE_SOUND("player/pl_pain7.wav");
 
+	PRECACHE_SOUND("scientist/scream1.wav");
+
 	PRECACHE_MODEL("models/player.mdl");
 	PRECACHE_MODEL("models/player/iceman/iceman.mdl");
 	PRECACHE_MODEL("models/hat_jack.mdl");
