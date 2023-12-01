@@ -238,6 +238,7 @@ void CDualFlameThrower::PrimaryAttack( void )
 		else
 		{
 			PlayEmptySound();
+			m_flNextPrimaryAttack = m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 0.15;
 		}
 		return;
 	}
