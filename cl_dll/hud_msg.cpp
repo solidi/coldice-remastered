@@ -114,6 +114,9 @@ void CHud :: MsgFunc_InitHUD( const char *pszName, int iSize, void *pbuf )
 	g_RetractDistance = 0;
 	// Needed to reset death arms after map change
 	gHUD.m_flExtraViewModelTime = 0;
+	// Reset client values to render objectives
+	gHUD.m_iShowingWeaponMenu = 0;
+	gHUD.m_Scoreboard.m_iShowscoresHeld = FALSE;
 }
 
 
