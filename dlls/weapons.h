@@ -907,7 +907,6 @@ public:
 	void Holster( int skiplocal = 0 );
 	void Reload( void );
 	void WeaponIdle( void );
-	int m_fInReload;
 	float m_flNextReload;
 	int m_iShell;
 
@@ -1025,6 +1024,7 @@ private:
 	unsigned short m_usRpg;
 	unsigned short m_usRpgExtreme;
 
+	float m_flNextReload;
 };
 
 class CRpgRocket : public CGrenade
@@ -1694,8 +1694,6 @@ public:
 	void Holster( int skiplocal = 0 );
 	void Reload( void );
 	void WeaponIdle( void );
-	int m_fInReload;
-	float m_flNextReload;
 	int m_iShell;
 
 	virtual BOOL UseDecrement( void )
@@ -1869,7 +1867,6 @@ public:
 	void Holster( int skiplocal = 0 );
 	void Reload( void );
 	void WeaponIdle( void );
-	int m_fInReload;
 	float m_flNextReload;
 	int m_iShell;
 
@@ -2058,6 +2055,7 @@ private:
 	unsigned short m_usRpg;
 	unsigned short m_usRpgExtreme;
 
+	float m_flNextReload;
 };
 
 class CDualMag60 : public CBasePlayerWeapon
@@ -2207,8 +2205,6 @@ public:
 	void Holster( int skiplocal = 0 );
 	void Reload( void );
 	void WeaponIdle( void );
-	int m_fInReload;
-	float m_flNextReload;
 	int m_iShell;
 	int m_iAltFire;
 
@@ -2245,8 +2241,6 @@ public:
 	void Holster( int skiplocal = 0 );
 	void Reload( void );
 	void WeaponIdle( void );
-	int m_fInReload;
-	float m_flNextReload;
 	int m_iShell;
 
 	virtual BOOL UseDecrement( void )
