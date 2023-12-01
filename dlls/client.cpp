@@ -1042,7 +1042,7 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_mutators \"snowballs\"\" - a random chance of snowballs throw on attack\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_mutators \"pushy\"\" - all weapon attacks push you back like a gauss attack\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_mutators \"portal\"\" - now you're thinking with portals\n");
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_mutators \"jope\"\" - all hail king jope!\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_mutators \"jope\"\" - it's all a jope!\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_mutators \"inverse\"\" - colors are inverted\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_mutators \"sildenafil\"\" - screen goes blue\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_mutators \"oldtime\"\" - screen goes blac and white\n");
@@ -1059,7 +1059,7 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_mutators \"fastweapons\"\" - all weapons are faster.\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_mutators \"jack\"\" - we don't make it 'til you order it.\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_mutators \"piratehat\"\" - argh, maty.\n");
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_mutators \"marshmello\"\" - come back home to you.\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_mutators \"marshmellow\"\" - come back home to you.\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_mutators \"crate\"\" - boxwars in the 2020's.\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_spawnweapons\" - Spawn weapons or not\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_spawnitems\" - Spawn items or not\n");

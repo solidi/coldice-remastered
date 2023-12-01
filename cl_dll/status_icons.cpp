@@ -244,7 +244,7 @@ void CHudStatusIcons::DrawMutators( void )
 	ToggleMutatorIcon(MUTATOR_FASTWEAPONS, "fastweapons");
 	ToggleMutatorIcon(MUTATOR_JACK, "jack");
 	ToggleMutatorIcon(MUTATOR_PIRATEHAT, "piratehat");
-	ToggleMutatorIcon(MUTATOR_MARSHMELLO, "marshmello");
+	ToggleMutatorIcon(MUTATOR_MARSHMELLO, "marshmellow");
 	ToggleMutatorIcon(MUTATOR_CRATE, "crate");
 }
 

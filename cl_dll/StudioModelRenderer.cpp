@@ -2290,7 +2290,7 @@ int CStudioModelRenderer::StudioDrawPlayer( int flags, entity_state_t *pplayer )
 				atoi(gHUD.szActiveMutators) == MUTATOR_PIRATEHAT)) {
 				gEngfuncs.CL_LoadModel("models/hat_pirate.mdl", &hatindex);
 			} else if (gHUD.szActiveMutators != NULL &&
-				(strstr(gHUD.szActiveMutators, "marshmello") ||
+				(strstr(gHUD.szActiveMutators, "marshmellow") ||
 				atoi(gHUD.szActiveMutators) == MUTATOR_MARSHMELLO)) {
 				gEngfuncs.CL_LoadModel("models/hat_marshmello.mdl", &hatindex);
 			}
