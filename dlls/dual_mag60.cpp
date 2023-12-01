@@ -223,7 +223,6 @@ void CDualMag60::ProvideSingleItem(CBasePlayer *pPlayer, const char *item) {
 #ifndef CLIENT_DLL
 	if (!stricmp(item, "weapon_dual_mag60")) {
 		if (!pPlayer->HasNamedPlayerItem("weapon_mag60")) {
-			ALERT(at_aiconsole, "Give weapon_mag60!\n");
 			pPlayer->GiveNamedItem("weapon_mag60");
 			pPlayer->SelectItem("weapon_dual_mag60");
 		}

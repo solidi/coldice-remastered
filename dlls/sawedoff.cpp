@@ -288,9 +288,6 @@ void CSawedOff::ProvideDualItem(CBasePlayer *pPlayer, const char *item) {
 
 	if (!stricmp(item, "weapon_sawedoff")) {
 		if (!pPlayer->HasNamedPlayerItem("weapon_dual_sawedoff")) {
-#ifdef _DEBUG
-			ALERT(at_aiconsole, "Give weapon_dual_sawedoff!\n");
-#endif
 			pPlayer->GiveNamedItem("weapon_dual_sawedoff");
 			pPlayer->SelectItem("weapon_dual_sawedoff");
 		}

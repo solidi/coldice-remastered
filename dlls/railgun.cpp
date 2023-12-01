@@ -336,9 +336,6 @@ void CRailgun::ProvideDualItem(CBasePlayer *pPlayer, const char *item) {
 
 	if (!stricmp(item, "weapon_railgun")) {
 		if (!pPlayer->HasNamedPlayerItem("weapon_dual_railgun")) {
-#ifdef _DEBUG
-			ALERT(at_aiconsole, "Give weapon_dual_railgun!\n");
-#endif
 			pPlayer->GiveNamedItem("weapon_dual_railgun");
 			pPlayer->SelectItem("weapon_dual_railgun");
 		}

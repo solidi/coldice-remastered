@@ -708,9 +708,6 @@ void CRpg::ProvideDualItem(CBasePlayer *pPlayer, const char *item) {
 
 	if (!stricmp(item, "weapon_rpg")) {
 		if (!pPlayer->HasNamedPlayerItem("weapon_dual_rpg")) {
-#ifdef _DEBUG
-			ALERT(at_aiconsole, "Give weapon_dual_rpg!\n");
-#endif
 			pPlayer->GiveNamedItem("weapon_dual_rpg");
 			pPlayer->SelectItem("weapon_dual_rpg");
 		}
