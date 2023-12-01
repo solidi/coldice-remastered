@@ -733,10 +733,10 @@ void ClientCommand( edict_t *pEntity )
 	else if ( FStrEq(pcmd, "taunt" ) )
 	{
 		CBasePlayer *player = GetClassPtr((CBasePlayer *)pev);
-		if (player->IsAlive() && player->pev->deadflag == DEAD_NO &&  player->m_fSelacoSliding != TRUE &&
+		if (player->IsAlive() && player->pev->deadflag == DEAD_NO && player->m_fSelacoSliding != TRUE &&
 			player->m_fTauntCancelTime < gpGlobals->time)
 		{
-			if (player->pev->weaponmodel)
+			if (player->m_fTauntFullTime < gpGlobals->time)
 			{
 				if (player->m_pActiveItem)
 				{
@@ -756,17 +756,17 @@ void ClientCommand( edict_t *pEntity )
 					TXT_CHANNEL_TAUNT, -1, 0.75, 200, 200, 200, 2, 0.05, 1.0, 1.5, 0.5);
 				if (player->pev->health < 105)
 					player->pev->health++;
+				player->m_fTauntFullTime = gpGlobals->time + 3.25;
 			}
-			else if (player->pev->weaponmodel == 0)
+			else
 			{
 				if (player->m_pActiveItem)
 					player->m_pActiveItem->DeployLowKey();
 				player->m_EFlags &= ~EFLAG_TAUNT;
 				player->m_EFlags |= EFLAG_CANCEL;
 			}
-			
+
 			player->m_fTauntCancelTime = gpGlobals->time + 2.0;
-			player->m_fTauntFullTime = gpGlobals->time + 3.25;
 		}
 	}
 	else if ( FStrEq(pcmd, "fov" ) )
