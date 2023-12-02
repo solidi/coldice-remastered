@@ -1729,6 +1729,7 @@ public:
 	BOOL DeployLowKey( void );
 	BOOL Deploy( void );
 	void Holster( int skiplocal = 0 );
+	void Reload( void );
 	void WeaponIdle( void );
 	int m_iSwing;
 	TraceResult m_trHit;

@@ -1182,6 +1182,10 @@ void CBasePlayer::SetAnimation( PLAYER_ANIM playerAnim )
 		m_IdealActivity = ACT_FRONT_FLIP;
 		break;
 
+	case PLAYER_HURRICANE_KICK:
+		m_IdealActivity = ACT_HURRICANE_KICK;
+		break;
+
 	case PLAYER_JUMP:
 		m_IdealActivity = ACT_HOP;
 		break;
@@ -1260,6 +1264,10 @@ void CBasePlayer::SetAnimation( PLAYER_ANIM playerAnim )
 		{
 			m_IdealActivity = m_Activity;
 		}
+		else if ( m_fFlipTime > gpGlobals->time && m_Activity == ACT_HURRICANE_KICK )
+		{
+			m_IdealActivity = m_Activity;
+		}
 		else if ( pev->waterlevel > 1 )
 		{
 			if ( speed == 0 )
@@ -1289,6 +1297,7 @@ void CBasePlayer::SetAnimation( PLAYER_ANIM playerAnim )
 	case ACT_LEFT_FLIP:
 	case ACT_BACK_FLIP:
 	case ACT_FRONT_FLIP:
+	case ACT_HURRICANE_KICK:
 	case ACT_PULL_UP:
 	default:
 		if ( m_Activity == m_IdealActivity)
@@ -4843,6 +4852,36 @@ void CBasePlayer::StartFrontFlip( BOOL addVelocity )
 	}
 }
 
+void CBasePlayer::StartHurricaneKick( void )
+{
+	if (!acrobatics.value)
+		return;
+
+	if (m_fFlipTime < gpGlobals->time && pev->velocity.Length2D() > 100) {
+		UTIL_MakeVectors(pev->angles);
+		pev->velocity = (gpGlobals->v_forward * 600) + (gpGlobals->v_up * 300);
+
+		m_fFlipTime = gpGlobals->time + 1.375;
+		SetAnimation( PLAYER_HURRICANE_KICK );
+		MESSAGE_BEGIN( MSG_ONE, gmsgAcrobatics, NULL, pev );
+			WRITE_BYTE( ACROBATICS_HURRICANE_KICK );
+		MESSAGE_END();
+
+		EMIT_SOUND(ENT(pev), CHAN_VOICE, "fists_hurricane.wav", 1, ATTN_NORM);
+
+		m_EFlags &= ~EFLAG_CANCEL;
+		m_EFlags |= EFLAG_HURRICANE;
+
+		SetThink( &CBasePlayer::EndHurricaneKick );
+		pev->nextthink = gpGlobals->time + 1.4;
+	}
+}
+
+void CBasePlayer::EndHurricaneKick( void )
+{
+	m_EFlags &= ~EFLAG_HURRICANE;
+}
+
 void CBasePlayer::TraceHitOfFlip( void )
 {
 	if (m_fFlipTime > gpGlobals->time && m_fSelacoIncrement < gpGlobals->time) {
@@ -4917,10 +4956,10 @@ void CBasePlayer::TraceHitOfFlip( void )
 		}
 		else
 		{
-			EMIT_SOUND(ENT(pev), CHAN_VOICE, "wrench_miss1.wav", 1, ATTN_NORM);
+			EMIT_SOUND(ENT(pev), CHAN_ITEM, "wrench_miss1.wav", 1, ATTN_NORM);
 		}
 
-		m_fSelacoIncrement = gpGlobals->time + 0.5;
+		m_fSelacoIncrement = gpGlobals->time + 0.35;
 	}
 }
 

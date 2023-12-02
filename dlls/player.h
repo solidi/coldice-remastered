@@ -78,6 +78,7 @@ typedef enum
 	PLAYER_LEFT_FLIP,
 	PLAYER_BACK_FLIP,
 	PLAYER_FRONT_FLIP,
+	PLAYER_HURRICANE_KICK,
 	PLAYER_PULL_UP,
 } PLAYER_ANIM;
 
@@ -260,6 +261,8 @@ public:
 	void StartLeftFlip( void );
 	void StartBackFlip( void );
 	void StartFrontFlip( BOOL addVelocity );
+	void StartHurricaneKick( void );
+	void EndHurricaneKick( void );
 	void TraceHitOfFlip( void );
 	int m_iKeyboardAcrobatics;
 	float m_fFlipTime;

@@ -152,7 +152,7 @@ public:
 	CBaseEntity			*m_pGoalEnt;// path corner we are heading towards
 	CBaseEntity			*m_pLink;// used for temporary link-list operations. 
 
-	byte m_EFlags = 0;
+	int m_EFlags = 0;
 
 	// initialization functions
 	virtual void	Spawn( void ) { return; }

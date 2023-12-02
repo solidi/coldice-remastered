@@ -104,6 +104,7 @@ typedef enum {
 	ACT_BACK_FLIP,
 	ACT_FRONT_FLIP,
 	ACT_PULL_UP,
+	ACT_HURRICANE_KICK,
 } Activity;
 
 
