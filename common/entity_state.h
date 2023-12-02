@@ -50,7 +50,7 @@ struct entity_state_s
 	int			effects;
 	float		scale;
 
-	byte		eflags;
+	int		eflags;
 	
 	// Render information
 	int			rendermode;

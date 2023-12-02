@@ -178,6 +178,7 @@ int CHud :: MsgFunc_Acrobatics(const char *pszName, int iSize, void *pbuf )
 	BEGIN_READ( pbuf, iSize );
 	int mode = READ_BYTE();
 	int axis = 0, amount = 0;
+	float time = 1.0;
 	switch (mode)
 	{
 	case ACROBATICS_ROLL_RIGHT:
@@ -200,6 +201,11 @@ int CHud :: MsgFunc_Acrobatics(const char *pszName, int iSize, void *pbuf )
 		g_WallClimb = gEngfuncs.GetClientTime() + 1;
 		gHUD.m_WallClimb.m_iFlags |= HUD_ACTIVE;
 		break;
+	case ACROBATICS_HURRICANE_KICK:
+		axis = YAW;
+		amount = -720;
+		time = 1.35;
+		break;
 	default:
 		g_SlideTime = gEngfuncs.GetClientTime() + 1;
 	}
@@ -207,7 +213,7 @@ int CHud :: MsgFunc_Acrobatics(const char *pszName, int iSize, void *pbuf )
 	if (amount > 0 || amount < 0) {
 		if (!cl_antivomit->value)
 			V_PunchAxis(axis, amount);
-		g_AcrobatTime = gEngfuncs.GetClientTime() + 1;
+		g_AcrobatTime = gEngfuncs.GetClientTime() + time;
 	}
 
 	return 1;

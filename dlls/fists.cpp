@@ -64,6 +64,7 @@ void CFists::Precache( void )
 	PRECACHE_SOUND("fists_hitbod.wav");
 	PRECACHE_SOUND("fists_miss.wav");
 	PRECACHE_SOUND("fists_shoryuken.wav");
+	PRECACHE_SOUND("fists_hurricane.wav");
 
 	m_usFists = PRECACHE_EVENT ( 1, "events/fists.sc" );
 }
@@ -85,7 +86,7 @@ int CFists::GetItemInfo(ItemInfo *p)
 	p->iMaxAmmo1 = -1;
 	p->pszAmmo2 = NULL;
 	p->iMaxAmmo2 = -1;
-	p->iMaxClip = WEAPON_NOCLIP;
+	p->iMaxClip = 1; // Allow server-side reload
 	p->iSlot = 0;
 	p->iPosition = 1;
 	p->iId = WEAPON_FISTS;
@@ -299,6 +300,16 @@ int CFists::Swing( int fFirst )
 		pev->nextthink = gpGlobals->time + 0.2;
 	}
 	return fDidHit;
+}
+
+void CFists::Reload( void )
+{
+#ifndef CLIENT_DLL
+	if (m_pPlayer->m_fFlipTime > gpGlobals->time)
+		return;
+
+	m_pPlayer->StartHurricaneKick();
+#endif
 }
 
 void CFists::WeaponIdle( void )

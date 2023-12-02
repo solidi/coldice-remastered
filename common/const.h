@@ -125,6 +125,7 @@
 #define EFLAG_PLAYERKICK (1 << 5)
 #define EFLAG_TAUNT (1 << 6)
 #define EFLAG_CANCEL (1 << 7)
+#define EFLAG_HURRICANE (1 << 8)
 
 //
 // temp entity events
@@ -793,7 +794,8 @@ typedef struct
 #define ACROBATICS_ROLL_LEFT 2
 #define ACROBATICS_FLIP_BACK 3
 #define ACROBATICS_FLIP_FRONT 4
-#define ACROBATICS_WALLCLIMB 5
+#define ACROBATICS_HURRICANE_KICK 5
+#define ACROBATICS_WALLCLIMB 6
 
 #define MUTATOR_CHAOS 1
 #define MUTATOR_ROCKETCROWBAR 2
