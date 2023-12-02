@@ -2274,35 +2274,45 @@ int CStudioModelRenderer::StudioDrawPlayer( int flags, entity_state_t *pplayer )
 
 		int hatindex = 0;
 		model_t *hatmodel;
+		int body = 0;
 
 		if (!crate)
 		{
 			if (gHUD.szActiveMutators != NULL &&
 				(strstr(gHUD.szActiveMutators, "jack") ||
 				atoi(gHUD.szActiveMutators) == MUTATOR_JACK)) {
-				gEngfuncs.CL_LoadModel("models/hat_jack.mdl", &hatindex);
+				gEngfuncs.CL_LoadModel("models/hats.mdl", &hatindex);
+				body = 3;
 			} else if (gHUD.szActiveMutators != NULL &&
 				(strstr(gHUD.szActiveMutators, "santahat") ||
 				atoi(gHUD.szActiveMutators) == MUTATOR_SANTAHAT)) {
-				gEngfuncs.CL_LoadModel("models/hat_santa.mdl", &hatindex);
+				gEngfuncs.CL_LoadModel("models/hats.mdl", &hatindex);
+				body = 0;
 			} else if (gHUD.szActiveMutators != NULL &&
 				(strstr(gHUD.szActiveMutators, "piratehat") ||
 				atoi(gHUD.szActiveMutators) == MUTATOR_PIRATEHAT)) {
-				gEngfuncs.CL_LoadModel("models/hat_pirate.mdl", &hatindex);
+				gEngfuncs.CL_LoadModel("models/hats.mdl", &hatindex);
+				body = 1;
 			} else if (gHUD.szActiveMutators != NULL &&
 				(strstr(gHUD.szActiveMutators, "marshmellow") ||
 				atoi(gHUD.szActiveMutators) == MUTATOR_MARSHMELLO)) {
-				gEngfuncs.CL_LoadModel("models/hat_marshmello.mdl", &hatindex);
+				gEngfuncs.CL_LoadModel("models/hats.mdl", &hatindex);
+				body = 2;
+			} else if (gHUD.szActiveMutators != NULL &&
+				(strstr(gHUD.szActiveMutators, "pumpkin") ||
+				atoi(gHUD.szActiveMutators) == MUTATOR_PUMPKIN)) {
+				gEngfuncs.CL_LoadModel("models/hats.mdl", &hatindex);
+				body = 4;
 			}
 		}
 
 		if (hatindex)
 		{
 			cl_entity_t saveent = *m_pCurrentEntity;
-
 			hatmodel = IEngineStudio.GetModelByIndex(hatindex);
 			m_pStudioHeader = (studiohdr_t *)IEngineStudio.Mod_Extradata(hatmodel);
 			IEngineStudio.StudioSetHeader(m_pStudioHeader);
+			m_pCurrentEntity->curstate.body = body;
 			StudioMergeBones(hatmodel);
 			IEngineStudio.StudioSetupLighting (&lighting);
 			StudioRenderModel( );

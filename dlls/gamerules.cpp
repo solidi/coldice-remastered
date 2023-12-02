@@ -807,6 +807,7 @@ void CGameRules::CheckMutators(void)
 		else
 		{
 			LIGHT_STYLE(0, "m");
+			CVAR_SET_STRING("mp_flashlight", "0");
 			CVAR_SET_STRING("sv_skycolor_r", szSkyColor[0]);
 			CVAR_SET_STRING("sv_skycolor_g", szSkyColor[1]);
 			CVAR_SET_STRING("sv_skycolor_b", szSkyColor[2]);
