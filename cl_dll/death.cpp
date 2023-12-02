@@ -141,6 +141,10 @@ int CHudDeathNotice :: Draw( float flTime )
 			{
 				topMargin += 44;
 			}
+			else if (!(gHUD.m_iHideHUDDisplay & HIDEHUD_FLASHLIGHT))
+			{
+				topMargin += 24;
+			}
 
 			// Draw the death notice
 			y = (topMargin + 2 + (30 * i)) + g_yP;  //!!!

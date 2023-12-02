@@ -622,10 +622,7 @@ void CWorld :: Precache( void )
 	// 0 normal
 	if ((strstr(mutators.string, g_MutatorLightsOut) ||
 		atoi(mutators.string) == MUTATOR_LIGHTSOUT))
-	{
 		LIGHT_STYLE(0, "b");
-		CVAR_SET_STRING("mp_flashlight", "1");
-	}
 	else
 		LIGHT_STYLE(0, "m");
 	

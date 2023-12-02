@@ -133,6 +133,7 @@ DLL_GLOBAL const char *g_szMutators[] = {
 	"piratehat",
 	"marshmellow",
 	"crate",
+	"pumpkin",
 };
 
 //=========================================================
@@ -799,7 +800,8 @@ void CGameRules::CheckMutators(void)
 			atoi(mutators.string) == MUTATOR_LIGHTSOUT))
 		{
 			LIGHT_STYLE(0, "b");
-			CVAR_SET_STRING("mp_flashlight", "1");
+			if (flashlight.value != 1)
+				CVAR_SET_STRING("mp_flashlight", "2");
 			CVAR_SET_STRING("sv_skycolor_r", "0");
 			CVAR_SET_STRING("sv_skycolor_g", "0");
 			CVAR_SET_STRING("sv_skycolor_b", "0");
@@ -807,6 +809,8 @@ void CGameRules::CheckMutators(void)
 		else
 		{
 			LIGHT_STYLE(0, "m");
+			if (flashlight.value == 2)
+				CVAR_SET_STRING("mp_flashlight", "0");
 			CVAR_SET_STRING("sv_skycolor_r", szSkyColor[0]);
 			CVAR_SET_STRING("sv_skycolor_g", szSkyColor[1]);
 			CVAR_SET_STRING("sv_skycolor_b", szSkyColor[2]);

@@ -1061,6 +1061,7 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_mutators \"piratehat\"\" - argh, maty.\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_mutators \"marshmellow\"\" - come back 1999 to you.\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_mutators \"crate\"\" - boxwars in the 2020's.\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_mutators \"pumpkin\"\" - on Halloween, he appears.\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_spawnweapons\" - Spawn weapons or not\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_spawnitems\" - Spawn items or not\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_disallowlist\" a list of entities that will not spawn\n");
@@ -1422,10 +1423,7 @@ void ClientPrecache( void )
 
 	PRECACHE_MODEL("models/player.mdl");
 	PRECACHE_MODEL("models/player/iceman/iceman.mdl");
-	PRECACHE_MODEL("models/hat_jack.mdl");
-	PRECACHE_MODEL("models/hat_santa.mdl");
-	PRECACHE_MODEL("models/hat_pirate.mdl");
-	PRECACHE_MODEL("models/hat_marshmello.mdl");
+	PRECACHE_MODEL("models/hats.mdl");
 	PRECACHE_MODEL("models/box.mdl");
 
 	// hud sounds
