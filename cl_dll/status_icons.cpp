@@ -234,7 +234,7 @@ void CHudStatusIcons::DrawMutators( void )
 	ToggleMutatorIcon(MUTATOR_INSTAGIB, "instagib");
 	ToggleMutatorIcon(MUTATOR_MEGASPEED, "megarun");
 	ToggleMutatorIcon(MUTATOR_MAXPACK, "maxpack");
-	ToggleMutatorIcon(MUTATOR_DKMODE, "dkmode");
+	ToggleMutatorIcon(MUTATOR_BIGHEAD, "bighead");
 	ToggleMutatorIcon(MUTATOR_SLOWMO, "slowmo");
 	ToggleMutatorIcon(MUTATOR_DONTSHOOT, "dontshoot");
 	ToggleMutatorIcon(MUTATOR_999, "999");

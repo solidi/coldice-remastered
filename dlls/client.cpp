@@ -1012,7 +1012,7 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_mutators \"volatile\"\" - where players blow up when fragged\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_mutators \"plumber\"\" - spawn with dual pipe wrenches\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_mutators \"paintball\"\" - weapons and explosions leave paint decals, weapons reduced to 1/4 damage\n");
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_mutators \"dkmode\"\" - from Goldeneye 007, player head and arms are like Donkey Kong\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_mutators \"bighead\"\" - players heads are very large\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_mutators \"superjump\"\" - jump three times the height, disables fall damage.\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_mutators \"megarun\"\" - run faster than normal\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_mutators \"lightsout\"\" - all the lights are turned out, but your flashight has unlimited battery\n");

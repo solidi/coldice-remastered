@@ -1053,8 +1053,8 @@ void CStudioModelRenderer::StudioSetupBones ( void )
 		}
 
 		if (gHUD.szActiveMutators != NULL &&
-			(strstr(gHUD.szActiveMutators, "dkmode") ||
-			atoi(gHUD.szActiveMutators) == MUTATOR_DKMODE))
+			(strstr(gHUD.szActiveMutators, "bighead") ||
+			atoi(gHUD.szActiveMutators) == MUTATOR_BIGHEAD))
 		{
 			if (m_pCurrentEntity != gEngfuncs.GetViewModel())
 			{

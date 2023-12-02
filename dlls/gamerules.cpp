@@ -89,7 +89,7 @@ DLL_GLOBAL const char *g_szMutators[] = {
 	"volatile",
 	"plumber",
 	"paintball",
-	"dkmode",
+	"bighead",
 	"superjump",
 	"megarun",
 	"lightsout",

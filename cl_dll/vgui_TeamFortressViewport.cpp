@@ -198,7 +198,7 @@ char *sMutators[] = {
 	"volatile",
 	"plumber",
 	"paintball",
-	"dkmode",
+	"bighead",
 	"superjump",
 	"megarun",
 	"lightsout",
