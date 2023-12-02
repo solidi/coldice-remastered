@@ -280,7 +280,6 @@ void CDualSawedOff::ProvideSingleItem(CBasePlayer *pPlayer, const char *item) {
 #ifndef CLIENT_DLL
 	if (!stricmp(item, "weapon_dual_sawedoff")) {
 		if (!pPlayer->HasNamedPlayerItem("weapon_sawedoff")) {
-			ALERT(at_aiconsole, "Give weapon_sawedoff!\n");
 			pPlayer->GiveNamedItem("weapon_sawedoff");
 			pPlayer->SelectItem("weapon_dual_sawedoff");
 		}

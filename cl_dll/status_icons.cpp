@@ -61,7 +61,7 @@ int CHudStatusIcons::Draw( float flTime )
 		return 1;
 
 	// find starting position to draw from, along right-hand side of screen
-	int x = 12 + g_xP;
+	int x = 24 + g_xP;
 	int y = (ScreenHeight / 1.5) + g_yP;
 	
 	// loop through icon list, and draw any valid icons drawing up from the middle of screen
@@ -234,7 +234,7 @@ void CHudStatusIcons::DrawMutators( void )
 	ToggleMutatorIcon(MUTATOR_INSTAGIB, "instagib");
 	ToggleMutatorIcon(MUTATOR_MEGASPEED, "megarun");
 	ToggleMutatorIcon(MUTATOR_MAXPACK, "maxpack");
-	ToggleMutatorIcon(MUTATOR_DKMODE, "dkmode");
+	ToggleMutatorIcon(MUTATOR_BIGHEAD, "bighead");
 	ToggleMutatorIcon(MUTATOR_SLOWMO, "slowmo");
 	ToggleMutatorIcon(MUTATOR_DONTSHOOT, "dontshoot");
 	ToggleMutatorIcon(MUTATOR_999, "999");
@@ -244,7 +244,7 @@ void CHudStatusIcons::DrawMutators( void )
 	ToggleMutatorIcon(MUTATOR_FASTWEAPONS, "fastweapons");
 	ToggleMutatorIcon(MUTATOR_JACK, "jack");
 	ToggleMutatorIcon(MUTATOR_PIRATEHAT, "piratehat");
-	ToggleMutatorIcon(MUTATOR_MARSHMELLO, "marshmello");
+	ToggleMutatorIcon(MUTATOR_MARSHMELLO, "marshmellow");
 	ToggleMutatorIcon(MUTATOR_CRATE, "crate");
 }
 

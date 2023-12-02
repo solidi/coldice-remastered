@@ -44,7 +44,7 @@ DLL_GLOBAL const char *g_MutatorInstaGib = "instagib";
 DLL_GLOBAL const char *g_MutatorVolatile = "volatile";
 DLL_GLOBAL const char *g_MutatorPaintball = "paintball";
 DLL_GLOBAL const char *g_MutatorPlumber = "plumber";
-DLL_GLOBAL const char *g_MutatorDKMode = "dkmode";
+DLL_GLOBAL const char *g_MutatorBigHead = "bighead";
 DLL_GLOBAL const char *g_MutatorSuperJump = "superjump";
 DLL_GLOBAL const char *g_MutatorMegaSpeed = "megarun";
 DLL_GLOBAL const char *g_MutatorLightsOut = "lightsout";
@@ -86,7 +86,7 @@ DLL_GLOBAL const char *g_MutatorSlowWeapons = "slowweapons";
 DLL_GLOBAL const char *g_MutatorFastWeapons = "fastweapons";
 DLL_GLOBAL const char *g_MutatorJack = "jack";
 DLL_GLOBAL const char *g_MutatorPirateHat = "piratehat";
-DLL_GLOBAL const char *g_MutatorMarshmello = "marshmello";
+DLL_GLOBAL const char *g_MutatorMarshmello = "marshmellow";
 DLL_GLOBAL const char *g_MutatorCrate = "crate";
 
 DLL_GLOBAL int g_GameMode;

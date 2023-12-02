@@ -198,7 +198,7 @@ char *sMutators[] = {
 	"volatile",
 	"plumber",
 	"paintball",
-	"dkmode",
+	"bighead",
 	"superjump",
 	"megarun",
 	"lightsout",
@@ -211,7 +211,6 @@ char *sMutators[] = {
 	"santahat",
 	"coolflesh",
 	"sanic",
-	"coolflesh",
 	"loopback",
 	"maxpack",
 	"infiniteammo",
@@ -239,6 +238,7 @@ char *sMutators[] = {
 	"autoaim",
 	"slowweapons",
 	"fastweapons",
+	"jack",
 	"RANDOM",
 };
 

@@ -89,7 +89,7 @@ DLL_GLOBAL const char *g_szMutators[] = {
 	"volatile",
 	"plumber",
 	"paintball",
-	"dkmode",
+	"bighead",
 	"superjump",
 	"megarun",
 	"lightsout",
@@ -102,7 +102,6 @@ DLL_GLOBAL const char *g_szMutators[] = {
 	"santahat",
 	"coolflesh",
 	"sanic",
-	"coolflesh",
 	"loopback",
 	"maxpack",
 	"infiniteammo",
@@ -132,7 +131,7 @@ DLL_GLOBAL const char *g_szMutators[] = {
 	"fastweapons",
 	"jack",
 	"piratehat",
-	"marshmello",
+	"marshmellow",
 	"crate",
 };
 
@@ -814,13 +813,13 @@ void CGameRules::CheckMutators(void)
 		}
 
 		if (m_JopeCheck) {
-			UTIL_ClientPrintAll(HUD_PRINTCENTER, "KING JOPE HAS BEEN DETHRONED!\n");
+			UTIL_ClientPrintAll(HUD_PRINTCENTER, "The JOPE is over with!\n");
 			m_JopeCheck = FALSE;
 			for (int i = 1; i <= gpGlobals->maxClients; i++)
 			{
 				CBaseEntity *pPlayer = UTIL_PlayerByIndex( i );
 				CBasePlayer *pl = (CBasePlayer *)pPlayer;
-				if (pPlayer && pPlayer->IsPlayer() && !pl->IsObserver())
+				if (pPlayer && pPlayer->IsPlayer())
 				{
 					char *key = g_engfuncs.pfnGetInfoKeyBuffer(pl->edict());
 					char *name = g_engfuncs.pfnInfoKeyValue(key, "oname");
@@ -833,7 +832,7 @@ void CGameRules::CheckMutators(void)
 		if (strstr(mutators.string, g_MutatorJope) ||
 			atoi(mutators.string) == MUTATOR_JOPE) {
 			m_JopeCheck = TRUE;
-			UTIL_ClientPrintAll(HUD_PRINTCENTER, "ALL HAIL KING JOPE!\n");
+			UTIL_ClientPrintAll(HUD_PRINTCENTER, "You've been JOPED!\n");
 		}
 
 		for (int i = 1; i <= gpGlobals->maxClients; i++)

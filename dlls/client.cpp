@@ -733,10 +733,10 @@ void ClientCommand( edict_t *pEntity )
 	else if ( FStrEq(pcmd, "taunt" ) )
 	{
 		CBasePlayer *player = GetClassPtr((CBasePlayer *)pev);
-		if (player->IsAlive() && player->pev->deadflag == DEAD_NO &&  player->m_fSelacoSliding != TRUE &&
+		if (player->IsAlive() && player->pev->deadflag == DEAD_NO && player->m_fSelacoSliding != TRUE &&
 			player->m_fTauntCancelTime < gpGlobals->time)
 		{
-			if (player->pev->weaponmodel)
+			if (player->m_fTauntFullTime < gpGlobals->time)
 			{
 				if (player->m_pActiveItem)
 				{
@@ -756,17 +756,17 @@ void ClientCommand( edict_t *pEntity )
 					TXT_CHANNEL_TAUNT, -1, 0.75, 200, 200, 200, 2, 0.05, 1.0, 1.5, 0.5);
 				if (player->pev->health < 105)
 					player->pev->health++;
+				player->m_fTauntFullTime = gpGlobals->time + 3.25;
 			}
-			else if (player->pev->weaponmodel == 0)
+			else
 			{
 				if (player->m_pActiveItem)
 					player->m_pActiveItem->DeployLowKey();
 				player->m_EFlags &= ~EFLAG_TAUNT;
 				player->m_EFlags |= EFLAG_CANCEL;
 			}
-			
+
 			player->m_fTauntCancelTime = gpGlobals->time + 2.0;
-			player->m_fTauntFullTime = gpGlobals->time + 3.25;
 		}
 	}
 	else if ( FStrEq(pcmd, "fov" ) )
@@ -1012,7 +1012,7 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_mutators \"volatile\"\" - where players blow up when fragged\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_mutators \"plumber\"\" - spawn with dual pipe wrenches\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_mutators \"paintball\"\" - weapons and explosions leave paint decals, weapons reduced to 1/4 damage\n");
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_mutators \"dkmode\"\" - from Goldeneye 007, player head and arms are like Donkey Kong\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_mutators \"bighead\"\" - players heads are very large\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_mutators \"superjump\"\" - jump three times the height, disables fall damage.\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_mutators \"megarun\"\" - run faster than normal\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_mutators \"lightsout\"\" - all the lights are turned out, but your flashight has unlimited battery\n");
@@ -1042,7 +1042,7 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_mutators \"snowballs\"\" - a random chance of snowballs throw on attack\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_mutators \"pushy\"\" - all weapon attacks push you back like a gauss attack\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_mutators \"portal\"\" - now you're thinking with portals\n");
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_mutators \"jope\"\" - all hail king jope!\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_mutators \"jope\"\" - it's all a jope!\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_mutators \"inverse\"\" - colors are inverted\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_mutators \"sildenafil\"\" - screen goes blue\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_mutators \"oldtime\"\" - screen goes blac and white\n");
@@ -1059,7 +1059,7 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_mutators \"fastweapons\"\" - all weapons are faster.\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_mutators \"jack\"\" - we don't make it 'til you order it.\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_mutators \"piratehat\"\" - argh, maty.\n");
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_mutators \"marshmello\"\" - come back home to you.\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_mutators \"marshmellow\"\" - come back 1999 to you.\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_mutators \"crate\"\" - boxwars in the 2020's.\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_spawnweapons\" - Spawn weapons or not\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_spawnitems\" - Spawn items or not\n");

@@ -449,7 +449,6 @@ void CDualWrench::ProvideSingleItem(CBasePlayer *pPlayer, const char *item) {
 #ifndef CLIENT_DLL
 	if (!stricmp(item, "weapon_dual_wrench")) {
 		if (!pPlayer->HasNamedPlayerItem("weapon_wrench")) {
-			ALERT(at_aiconsole, "Give weapon_wrench!\n");
 			pPlayer->GiveNamedItem("weapon_wrench");
 			pPlayer->SelectItem("weapon_dual_wrench");
 		}

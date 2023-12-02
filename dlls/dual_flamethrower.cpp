@@ -238,6 +238,7 @@ void CDualFlameThrower::PrimaryAttack( void )
 		else
 		{
 			PlayEmptySound();
+			m_flNextPrimaryAttack = m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 0.15;
 		}
 		return;
 	}
@@ -396,7 +397,6 @@ void CDualFlameThrower::ProvideSingleItem(CBasePlayer *pPlayer, const char *item
 #ifndef CLIENT_DLL
 	if (!stricmp(item, "weapon_dual_flamethrower")) {
 		if (!pPlayer->HasNamedPlayerItem("weapon_flamethrower")) {
-			ALERT(at_aiconsole, "Give weapon_flamethrower!\n");
 			pPlayer->GiveNamedItem("weapon_flamethrower");
 			pPlayer->SelectItem("weapon_dual_flamethrower");
 		}

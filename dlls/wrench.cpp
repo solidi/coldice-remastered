@@ -427,9 +427,6 @@ void CWrench::ProvideDualItem(CBasePlayer *pPlayer, const char *item) {
 
 	if (!stricmp(item, "weapon_wrench")) {
 		if (!pPlayer->HasNamedPlayerItem("weapon_dual_wrench")) {
-#ifdef _DEBUG
-			ALERT(at_aiconsole, "Give weapon_dual_wrench!\n");
-#endif
 			pPlayer->GiveNamedItem("weapon_dual_wrench");
 			pPlayer->SelectItem("weapon_dual_wrench");
 		}

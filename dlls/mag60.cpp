@@ -319,9 +319,6 @@ void CMag60::ProvideDualItem(CBasePlayer *pPlayer, const char *item) {
 
 	if (!stricmp(item, "weapon_mag60")) {
 		if (!pPlayer->HasNamedPlayerItem("weapon_dual_mag60")) {
-#ifdef _DEBUG
-			ALERT(at_aiconsole, "Give weapon_dual_mag60!\n");
-#endif
 			pPlayer->GiveNamedItem("weapon_dual_mag60");
 			pPlayer->SelectItem("weapon_dual_mag60");
 		}

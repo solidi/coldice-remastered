@@ -399,7 +399,6 @@ void CDualRpg::ProvideSingleItem(CBasePlayer *pPlayer, const char *item) {
 #ifndef CLIENT_DLL
 	if (!stricmp(item, "weapon_dual_rpg")) {
 		if (!pPlayer->HasNamedPlayerItem("weapon_rpg")) {
-			ALERT(at_aiconsole, "Give weapon_rpg!\n");
 			pPlayer->GiveNamedItem("weapon_rpg");
 			pPlayer->SelectItem("weapon_dual_rpg");
 		}
