@@ -49,7 +49,7 @@ void TRI_SprAdjustSize(int* x, int* y, int* w, int* h, bool changepos, bool swap
 	float xscale, yscale;
 
 	// No adjust when scaling off
-	if (!cl_hudscale->value)
+	if (cl_hudscale && !cl_hudscale->value)
 		return;
 
 	if (!x && !y && !w && !h)
@@ -143,7 +143,7 @@ void TRI_SprDrawStretchPic(model_t* pModel, int frame, float x, float y, float w
 
 void TRI_SprDrawGeneric(int frame, int x, int y, const wrect_t* prc, bool changepos, bool swap)
 {
-	if (!cl_hudscale->value)
+	if (cl_hudscale && !cl_hudscale->value)
 	{
 		gEngfuncs.pfnSPR_Draw(frame, x, y, prc);
 		return;
@@ -198,7 +198,7 @@ void TRI_SprDrawGeneric(int frame, int x, int y, const wrect_t* prc, bool change
 
 void TRI_SprDrawAdditive(int frame, int x, int y, const wrect_t* prc, bool changepos, bool swap)
 {
-	if (!cl_hudscale->value)
+	if (cl_hudscale && !cl_hudscale->value)
 	{
 		gEngfuncs.pfnSPR_DrawAdditive(frame, x, y, prc);
 		return;
@@ -213,7 +213,7 @@ void TRI_SprDrawAdditive(int frame, int x, int y, const wrect_t* prc, bool chang
 
 void TRI_SprSet(HSPRITE spr, int r, int g, int b)
 {
-	if (!cl_hudscale->value)
+	if (cl_hudscale && !cl_hudscale->value)
 	{
 		gEngfuncs.pfnSPR_Set(spr, r, g, b);
 		return;
@@ -225,7 +225,7 @@ void TRI_SprSet(HSPRITE spr, int r, int g, int b)
 
 void TRI_FillRGBA(int x, int y, int width, int height, int r, int g, int b, int a, bool swap)
 {
-	if (cl_hudscale->value)
+	if (cl_hudscale && cl_hudscale->value)
 	{
 		TRI_SprAdjustSize(&x, &y, &width, &height, true, swap);
 	}
