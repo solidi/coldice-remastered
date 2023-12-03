@@ -218,37 +218,38 @@ extern cvar_t mp_chattime;
 
 char *sBuiltInMaps[] =
 {
-	"training",
-	"stalkyard2",
-	"focus",
-	"coldice",
-	"furrow",
-	"training2",
-	"snowyard",
-	"fences",
 	"bounce2",
 	"canyon",
 	"catacombs",
-	"depot",
-	"snowcross",
-	"frostfire",
-	"drift",
-	"snow_camp",
-	"ice_pit",
-	"frozen_bunker",
-	"snowtransit",
-	"doublefrost",
-	"themill",
 	"chillworks",
-	"frosty",
-	"overflow",
-	"frozenwarehouse",
-	"quadfrost",
-	"defroster",
-	"thechill",
-	"frostmill",
-	"glupshitto",
 	"cold_base",
+	"coldice",
+	"defroster",
+	"depot",
+	"doublefrost",
+	"drift",
+	"fences",
+	"focus",
+	"frostfire",
+	"frostmill",
+	"frosty",
+	"frozen_bunker",
+	"frozenwarehouse",
+	"furrow",
+	"glupshitto",
+	"ice_pit",
+	"overflow",
+	"quadfrost",
+	"snow_camp",
+	"snowcross",
+	"snowtransit",
+	"snowyard",
+	"stalkyard2",
+	"thechill",
+	"themill",
+	"training",
+	"training2",
+	"RANDOM",
 };
 
 #define BUILT_IN_MAP_COUNT 31
@@ -308,14 +309,36 @@ void CHalfLifeMultiplay :: Think ( void )
 		else if ( time > MAX_INTERMISSION_TIME )
 			CVAR_SET_STRING( "mp_chattime", UTIL_dtos1( MAX_INTERMISSION_TIME ) );
 
-		m_flIntermissionEndTime = g_flIntermissionStartTime + mp_chattime.value + 90;
+		int timeLeft = voting.value ? 102 : 0;
+		m_flIntermissionEndTime = g_flIntermissionStartTime + mp_chattime.value + timeLeft;
 
 		if (voting.value)
 		{
-			// Game mode vote ended
-			if (m_iVoteUnderway == 1 && ((m_flIntermissionEndTime - mp_chattime.value - 60) < gpGlobals->time))
+			if (m_iVoteUnderway == 1 && ((m_flIntermissionEndTime - mp_chattime.value - (timeLeft - 3)) < gpGlobals->time))
 			{
 				m_iVoteUnderway = 2;
+
+				MESSAGE_BEGIN(MSG_ALL, gmsgVoteGameplay);
+					WRITE_BYTE(1);
+				MESSAGE_END();
+				MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
+					WRITE_BYTE(CLIENT_SOUND_VOTEGAME);
+				MESSAGE_END();
+
+				// Bots get a vote
+				for (int i = 1; i <= 32; i++)
+				{
+					CBasePlayer *pPlayer = (CBasePlayer *)UTIL_PlayerByIndex( i );
+					if (pPlayer && FBitSet(pPlayer->pev->flags, FL_FAKECLIENT))
+					{
+						::Vote(pPlayer, RANDOM_LONG(1,GAME_CHILLDEMIC + 2 /*random*/));
+					}
+				}
+			}
+			// Game mode vote ended
+			else if (m_iVoteUnderway == 2 && ((m_flIntermissionEndTime - mp_chattime.value - (timeLeft - 33)) < gpGlobals->time))
+			{
+				m_iVoteUnderway = 3;
 
 				MESSAGE_BEGIN(MSG_ALL, gmsgVoteGameplay);
 					WRITE_BYTE(0);
@@ -381,9 +404,9 @@ void CHalfLifeMultiplay :: Think ( void )
 			}
 
 			// Mutator vote STARTED
-			if (m_iVoteUnderway == 2 && ((m_flIntermissionEndTime - mp_chattime.value - 57) < gpGlobals->time))
+			if (m_iVoteUnderway == 3 && ((m_flIntermissionEndTime - mp_chattime.value - (timeLeft - 36)) < gpGlobals->time))
 			{
-				m_iVoteUnderway = 3;
+				m_iVoteUnderway = 4;
 
 				MESSAGE_BEGIN(MSG_ALL, gmsgVoteMutator);
 					WRITE_BYTE(1);
@@ -405,9 +428,9 @@ void CHalfLifeMultiplay :: Think ( void )
 			}
 
 			// Mutator vote ended
-			if (m_iVoteUnderway == 3 && ((m_flIntermissionEndTime - mp_chattime.value - 27) < gpGlobals->time))
+			if (m_iVoteUnderway == 4 && ((m_flIntermissionEndTime - mp_chattime.value - (timeLeft - 66)) < gpGlobals->time))
 			{
-				m_iVoteUnderway = 4;
+				m_iVoteUnderway = 5;
 
 				MESSAGE_BEGIN(MSG_ALL, gmsgVoteMutator);
 					WRITE_BYTE(0);
@@ -507,9 +530,9 @@ void CHalfLifeMultiplay :: Think ( void )
 			}
 
 			// Map vote STARTED
-			if (m_iVoteUnderway == 4 && ((m_flIntermissionEndTime - mp_chattime.value - 24) < gpGlobals->time))
+			if (m_iVoteUnderway == 5 && ((m_flIntermissionEndTime - mp_chattime.value - (timeLeft - 69)) < gpGlobals->time))
 			{
-				m_iVoteUnderway = 5;
+				m_iVoteUnderway = 6;
 
 				MESSAGE_BEGIN(MSG_ALL, gmsgVoteMap);
 					WRITE_BYTE(1);
@@ -531,7 +554,7 @@ void CHalfLifeMultiplay :: Think ( void )
 			}
 
 			// Map vote ended
-			if (m_iVoteUnderway == 5 && (((m_flIntermissionEndTime - mp_chattime.value) + 6) < gpGlobals->time))
+			if (m_iVoteUnderway == 6 && (((m_flIntermissionEndTime - mp_chattime.value) - (timeLeft - 99)) < gpGlobals->time))
 			{
 				m_iVoteUnderway = 0;
 
@@ -3052,29 +3075,13 @@ void CHalfLifeMultiplay :: GoToIntermission( void )
 	else if ( time > MAX_INTERMISSION_TIME )
 		CVAR_SET_STRING( "mp_chattime", UTIL_dtos1( MAX_INTERMISSION_TIME ) );
 
-	m_flIntermissionEndTime = gpGlobals->time + ( (int)mp_chattime.value ) + 45;
+	m_flIntermissionEndTime = gpGlobals->time + ( (int)mp_chattime.value );
 	g_flIntermissionStartTime = gpGlobals->time;
 
 	if (voting.value)
 	{
+		m_flIntermissionEndTime += 102; 
 		m_iVoteUnderway = 1;
-
-		MESSAGE_BEGIN(MSG_ALL, gmsgVoteGameplay);
-			WRITE_BYTE(1);
-		MESSAGE_END();
-		MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
-			WRITE_BYTE(CLIENT_SOUND_VOTEGAME);
-		MESSAGE_END();
-
-		// Bots get a vote
-		for (int i = 1; i <= 32; i++)
-		{
-			CBasePlayer *pPlayer = (CBasePlayer *)UTIL_PlayerByIndex( i );
-			if (pPlayer && FBitSet(pPlayer->pev->flags, FL_FAKECLIENT))
-			{
-				::Vote(pPlayer, RANDOM_LONG(1,GAME_CHILLDEMIC + 2 /*random*/));
-			}
-		}
 	}
 
 	// Clear previous message at intermission
