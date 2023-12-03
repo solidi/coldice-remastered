@@ -49,6 +49,9 @@ void TRI_SprAdjustSize(int* x, int* y, int* w, int* h, bool changepos, bool swap
 	float xscale, yscale;
 
 	// No adjust when scaling off
+	if (!cl_hudscale)
+		return;
+
 	if (cl_hudscale && !cl_hudscale->value)
 		return;
 
