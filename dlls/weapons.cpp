@@ -2089,11 +2089,13 @@ BOOL CWeaponBox::PackWeapon( CBasePlayerItem *pWeapon )
 	if (pWeapon->m_iId == WEAPON_SATCHEL)
 	{
 		SET_MODEL( ENT(pev), "models/w_satchel.mdl");
+		pev->sequence = floating;
 	}
 	else if (pWeapon->m_iId == WEAPON_TRIPMINE)
 	{
 		SET_MODEL( ENT(pev), "models/v_tripmine.mdl");
 		pev->body = 3;
+		pev->sequence = floating;
 	}
 	else if (pWeapon->m_iId == WEAPON_ASHPOD)
 	{
