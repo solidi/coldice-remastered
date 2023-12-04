@@ -2087,7 +2087,7 @@ void CHalfLifeMultiplay :: PlayerSpawn( CBasePlayer *pPlayer )
 	// Or if the game begins that requires spectators
 	if ((g_GameInProgress && !pPlayer->IsInArena) || (!g_GameInProgress && HasSpectators()))
 	{
-		pPlayer->m_flForceToObserverTime = gpGlobals->time;
+		pPlayer->m_flForceToObserverTime = gpGlobals->time + 3.0;
 		pPlayer->pev->effects |= EF_NODRAW;
 		pPlayer->pev->solid = SOLID_NOT;
 		pPlayer->pev->movetype = MOVETYPE_NOCLIP;
