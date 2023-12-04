@@ -117,6 +117,7 @@ void CHud :: MsgFunc_InitHUD( const char *pszName, int iSize, void *pbuf )
 	// Reset client values to render objectives
 	gHUD.m_iShowingWeaponMenu = 0;
 	gHUD.m_Scoreboard.m_iShowscoresHeld = FALSE;
+	gHUD.m_StatusIcons.Reset();
 }
 
 
