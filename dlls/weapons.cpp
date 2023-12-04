@@ -1118,12 +1118,11 @@ void CBasePlayerWeapon::ItemPostFrame( void )
 			m_bFired = TRUE;
 		} else {
 			if (!m_fFireOnEmpty)
-				canFire = g_pGameRules->WeaponMutators(this);
-			if (canFire)
-			{
-				PrimaryAttack();
-				m_flNextPrimaryAttack = m_flNextSecondaryAttack = (m_flNextPrimaryAttack * multipler);
-			}
+				g_pGameRules->WeaponMutators(this);
+
+			// Allow passthru for satchels
+			PrimaryAttack();
+			m_flNextPrimaryAttack = m_flNextSecondaryAttack = (m_flNextPrimaryAttack * multipler);
 		}
 	}
 	else if ( m_pPlayer->pev->button & IN_RELOAD && iMaxClip() != WEAPON_NOCLIP && !m_fInReload ) 
