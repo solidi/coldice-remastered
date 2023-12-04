@@ -604,7 +604,7 @@ void CHalfLifeMultiplay :: Think ( void )
 					if (m_iDecidedMapIndex == BUILT_IN_MAP_COUNT /*random*/)
 					{
 						UTIL_ClientPrintAll(HUD_PRINTTALK, "[VOTE] Randomizing map...\n");
-						m_iDecidedMapIndex = RANDOM_LONG(0, BUILT_IN_MAP_COUNT);
+						m_iDecidedMapIndex = RANDOM_LONG(0, BUILT_IN_MAP_COUNT - 1);
 					}
 
 					UTIL_ClientPrintAll(HUD_PRINTTALK, UTIL_VarArgs("[VOTE] %s is the next map!\n", sBuiltInMaps[m_iDecidedMapIndex]));
