@@ -406,7 +406,7 @@ void CSatchel::Holster( int skiplocal /* = 0 */ )
 
 	if ( !m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] && !m_chargeReady )
 	{
-		m_pPlayer->pev->weapons &= ~(1<<WEAPON_SATCHEL);
+		m_pPlayer->m_iWeapons2 &= ~(1<<(WEAPON_SATCHEL - 32));
 		SetThink( &CSatchel::DestroyItem );
 		pev->nextthink = gpGlobals->time + 0.1;
 	}
