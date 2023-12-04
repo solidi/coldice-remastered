@@ -4253,6 +4253,14 @@ void CBasePlayer::GiveNamedItem( const char *pszName )
 		}
 	}
 
+	if (g_pGameRules->IsChilldemic() || g_pGameRules->IsJVS())
+	{
+		if (strcmp(pszName, "weapon_nuke") == 0) {
+			// No nukes in these game modes.
+			return;
+		}
+	}
+
 /*
 	if (strstr(mutators.string, g_MutatorInstaGib) ||
 		atoi(mutators.string) == MUTATOR_INSTAGIB) {
@@ -6180,6 +6188,11 @@ void CBasePlayer::DropPlayerItem ( char *pszItemName )
 		{
 			if ( FStrEq("weapon_fists", STRING(pWeapon->pev->classname)) ) {
 				ALERT ( at_console, "Fists cannot be dropped!\n" );
+				return;
+			}
+
+			if ( FStrEq("weapon_nuke", STRING(pWeapon->pev->classname)) ) {
+				ALERT ( at_console, "Nuke cannot be dropped!\n" );
 				return;
 			}
 

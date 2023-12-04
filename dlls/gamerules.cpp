@@ -1151,3 +1151,8 @@ BOOL CGameRules::IsChilldemic()
 {
 	return g_GameMode == GAME_CHILLDEMIC;
 }
+
+BOOL CGameRules::IsJVS()
+{
+	return g_GameMode == GAME_ICEMAN;
+}

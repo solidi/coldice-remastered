@@ -187,6 +187,7 @@ public:
 	virtual BOOL IsArmoredMan( CBasePlayer *pPlayer ) = 0;
 
 	virtual BOOL IsChilldemic();
+	virtual BOOL IsJVS();
 
 	// Immediately end a multiplayer game
 	virtual void EndMultiplayerGame( void ) {}
