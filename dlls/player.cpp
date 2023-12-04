@@ -4190,23 +4190,30 @@ void CBasePlayer::GiveRandomWeapon(const char *szIgnoreList)
 	{
 		random = RANDOM_LONG(0, ARRAYSIZE(pWeapons) - 1);
 	}
-	GiveNamedItem(STRING(ALLOC_STRING(pWeapons[random])));
+	const char *weapon = STRING(ALLOC_STRING(pWeapons[random]));
+	if (!HasNamedPlayerItem(weapon))
+		GiveNamedItem(weapon);
 }
 
 void CBasePlayer::GiveMelees()
 {
-	GiveNamedItem("weapon_knife");
+	if (!HasNamedPlayerItem("weapon_dual_wrench"))
+		GiveNamedItem("weapon_knife");
 	if (!strstr(mutators.string, g_MutatorPlumber) &&
-		atoi(mutators.string) != MUTATOR_PLUMBER)
+		atoi(mutators.string) != MUTATOR_PLUMBER &&
+		!HasNamedPlayerItem("weapon_dual_wrench"))
 		GiveNamedItem("weapon_dual_wrench");
-	GiveNamedItem("weapon_chainsaw");
-	if (!strstr(mutators.string, g_MutatorRocketCrowbar) &&
-		atoi(mutators.string) != MUTATOR_ROCKETCROWBAR)
-	GiveNamedItem("weapon_rocketcrowbar");
+	if (!HasNamedPlayerItem("weapon_chainsaw"))
+		GiveNamedItem("weapon_chainsaw");
+	if ((!strstr(mutators.string, g_MutatorRocketCrowbar) &&
+		atoi(mutators.string) != MUTATOR_ROCKETCROWBAR) &&
+		!HasNamedPlayerItem("weapon_rocketcrowbar"))
+		GiveNamedItem("weapon_rocketcrowbar");
 }
 
 void CBasePlayer::GiveExplosives()
 {
+	// No need to protect these, player will take extra
 	GiveNamedItem("weapon_handgrenade");
 	GiveNamedItem("weapon_handgrenade");
 	GiveNamedItem("weapon_tripmine");
@@ -4215,7 +4222,8 @@ void CBasePlayer::GiveExplosives()
 	GiveNamedItem("weapon_satchel");
 	GiveNamedItem("weapon_chumtoad");
 	GiveNamedItem("weapon_snark");
-	GiveNamedItem("weapon_freezegun");
+	if (!HasNamedPlayerItem("weapon_freezegun"))
+		GiveNamedItem("weapon_freezegun");
 }
 
 void CBasePlayer::GiveNamedItem( const char *pszName )
