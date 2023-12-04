@@ -771,6 +771,8 @@ enum e_protips {
 	SILENCER_TIP,
 	CHAINSAW_TIP,
 	RPG_TIP,
+	JUMP_TIP,
+	KICK_TIP,
 };
 
 extern void ProTip(int id, const char *message);
