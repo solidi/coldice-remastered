@@ -4487,6 +4487,7 @@ void CBasePlayer::ImpulseCommands( )
 	case 214:
 		StartHurricaneKick();
 		break;
+/*
 	case 215:
 		if ( g_pGameRules->AllowGrapplingHook(this) ) {
 			if (pGrapplingHook == NULL && m_flNextHook < gpGlobals->time) {
@@ -4504,7 +4505,7 @@ void CBasePlayer::ImpulseCommands( )
 			}
 		}
 		break;
-
+*/
 	default:
 		// check all of the cheat impulse commands now
 		CheatImpulseCommands( iImpulse, TRUE );
