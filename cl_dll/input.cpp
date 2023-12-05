@@ -486,6 +486,7 @@ void IN_UseUp (void) {KeyUp(&in_use);}
 void IN_JumpDown (void)
 {
 	KeyDown(&in_jump);
+	gHUD.m_ProTip.AddMessage(JUMP_TIP, "Press JUMP three times for a triple jump");
 	gHUD.m_Spectator.HandleButtonsDown( IN_JUMP );
 
 }

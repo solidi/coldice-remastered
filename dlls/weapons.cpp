@@ -1118,12 +1118,11 @@ void CBasePlayerWeapon::ItemPostFrame( void )
 			m_bFired = TRUE;
 		} else {
 			if (!m_fFireOnEmpty)
-				canFire = g_pGameRules->WeaponMutators(this);
-			if (canFire)
-			{
-				PrimaryAttack();
-				m_flNextPrimaryAttack = m_flNextSecondaryAttack = (m_flNextPrimaryAttack * multipler);
-			}
+				g_pGameRules->WeaponMutators(this);
+
+			// Allow passthru for satchels
+			PrimaryAttack();
+			m_flNextPrimaryAttack = m_flNextSecondaryAttack = (m_flNextPrimaryAttack * multipler);
 		}
 	}
 	else if ( m_pPlayer->pev->button & IN_RELOAD && iMaxClip() != WEAPON_NOCLIP && !m_fInReload ) 
@@ -2089,11 +2088,13 @@ BOOL CWeaponBox::PackWeapon( CBasePlayerItem *pWeapon )
 	if (pWeapon->m_iId == WEAPON_SATCHEL)
 	{
 		SET_MODEL( ENT(pev), "models/w_satchel.mdl");
+		pev->sequence = floating;
 	}
 	else if (pWeapon->m_iId == WEAPON_TRIPMINE)
 	{
 		SET_MODEL( ENT(pev), "models/v_tripmine.mdl");
 		pev->body = 3;
+		pev->sequence = floating;
 	}
 	else if (pWeapon->m_iId == WEAPON_ASHPOD)
 	{

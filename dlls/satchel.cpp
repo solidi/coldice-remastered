@@ -280,7 +280,12 @@ void CSatchel::Spawn( )
 	SET_MODEL(ENT(pev), "models/w_satchel.mdl");
 
 	m_iDefaultAmmo = SATCHEL_DEFAULT_GIVE;
-		
+
+#ifndef CLIENT_DLL
+	int floating = floatingweapons.value ? 1 : 0;
+	pev->sequence = floating;
+#endif
+
 	FallInit();// get ready to fall down.
 }
 
@@ -406,7 +411,7 @@ void CSatchel::Holster( int skiplocal /* = 0 */ )
 
 	if ( !m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] && !m_chargeReady )
 	{
-		m_pPlayer->pev->weapons &= ~(1<<WEAPON_SATCHEL);
+		m_pPlayer->m_iWeapons2 &= ~(1<<(WEAPON_SATCHEL - 32));
 		SetThink( &CSatchel::DestroyItem );
 		pev->nextthink = gpGlobals->time + 0.1;
 	}

@@ -564,6 +564,7 @@ void CL_DLLEXPORT HUD_TempEntUpdate (
 			else if ((player->curstate.eflags & EFLAG_PLAYERKICK))
 			{
 				LoadTempViewModel("models/v_leg.mdl", 2);
+				gHUD.m_ProTip.AddMessage(KICK_TIP, "Kicks knock weapons out of hands");
 			}
 			else if ((player->curstate.eflags & EFLAG_TAUNT))
 			{

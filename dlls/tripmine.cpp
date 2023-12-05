@@ -21,6 +21,7 @@
 #include "player.h"
 #include "effects.h"
 #include "gamerules.h"
+#include "game.h"
 
 #define	TRIPMINE_PRIMARY_VOLUME		450
 
@@ -365,7 +366,10 @@ void CTripmine::Spawn( )
 	SET_MODEL(ENT(pev), "models/v_tripmine.mdl");
 	pev->frame = 0;
 	pev->body = 3;
-	pev->sequence = TRIPMINE_GROUND;
+#ifndef CLIENT_DLL
+	int floating = floatingweapons.value ? 1 : TRIPMINE_GROUND;
+	pev->sequence = floating;
+#endif
 	// ResetSequenceInfo( );
 	pev->framerate = 0;
 
@@ -430,7 +434,7 @@ void CTripmine::Holster( int skiplocal /* = 0 */ )
 	if (!m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType])
 	{
 		// out of mines
-		m_pPlayer->pev->weapons &= ~(1<<WEAPON_TRIPMINE);
+		m_pPlayer->m_iWeapons2 &= ~(1<<(WEAPON_TRIPMINE - 32));
 		SetThink( &CTripmine::DestroyItem );
 		pev->nextthink = gpGlobals->time + 0.1;
 		return;

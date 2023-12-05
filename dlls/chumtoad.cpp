@@ -859,7 +859,7 @@ void CChumtoad::Holster( int skiplocal /* = 0 */ )
 	
 	if ( !m_pPlayer->m_rgAmmo[ m_iPrimaryAmmoType ] )
 	{
-		m_pPlayer->pev->weapons &= ~(1<<WEAPON_CHUMTOAD);
+		m_pPlayer->m_iWeapons2 &= ~(1<<(WEAPON_CHUMTOAD - 32));
 		SetThink( &CChumtoad::DestroyItem );
 		pev->nextthink = gpGlobals->time + 0.1;
 		return;

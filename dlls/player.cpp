@@ -4190,23 +4190,30 @@ void CBasePlayer::GiveRandomWeapon(const char *szIgnoreList)
 	{
 		random = RANDOM_LONG(0, ARRAYSIZE(pWeapons) - 1);
 	}
-	GiveNamedItem(STRING(ALLOC_STRING(pWeapons[random])));
+	const char *weapon = STRING(ALLOC_STRING(pWeapons[random]));
+	if (!HasNamedPlayerItem(weapon))
+		GiveNamedItem(weapon);
 }
 
 void CBasePlayer::GiveMelees()
 {
-	GiveNamedItem("weapon_knife");
+	if (!HasNamedPlayerItem("weapon_dual_wrench"))
+		GiveNamedItem("weapon_knife");
 	if (!strstr(mutators.string, g_MutatorPlumber) &&
-		atoi(mutators.string) != MUTATOR_PLUMBER)
+		atoi(mutators.string) != MUTATOR_PLUMBER &&
+		!HasNamedPlayerItem("weapon_dual_wrench"))
 		GiveNamedItem("weapon_dual_wrench");
-	GiveNamedItem("weapon_chainsaw");
-	if (!strstr(mutators.string, g_MutatorRocketCrowbar) &&
-		atoi(mutators.string) != MUTATOR_ROCKETCROWBAR)
-	GiveNamedItem("weapon_rocketcrowbar");
+	if (!HasNamedPlayerItem("weapon_chainsaw"))
+		GiveNamedItem("weapon_chainsaw");
+	if ((!strstr(mutators.string, g_MutatorRocketCrowbar) &&
+		atoi(mutators.string) != MUTATOR_ROCKETCROWBAR) &&
+		!HasNamedPlayerItem("weapon_rocketcrowbar"))
+		GiveNamedItem("weapon_rocketcrowbar");
 }
 
 void CBasePlayer::GiveExplosives()
 {
+	// No need to protect these, player will take extra
 	GiveNamedItem("weapon_handgrenade");
 	GiveNamedItem("weapon_handgrenade");
 	GiveNamedItem("weapon_tripmine");
@@ -4215,7 +4222,8 @@ void CBasePlayer::GiveExplosives()
 	GiveNamedItem("weapon_satchel");
 	GiveNamedItem("weapon_chumtoad");
 	GiveNamedItem("weapon_snark");
-	GiveNamedItem("weapon_freezegun");
+	if (!HasNamedPlayerItem("weapon_freezegun"))
+		GiveNamedItem("weapon_freezegun");
 }
 
 void CBasePlayer::GiveNamedItem( const char *pszName )
@@ -4249,6 +4257,14 @@ void CBasePlayer::GiveNamedItem( const char *pszName )
 	{
 		if (strcmp(pszName, "weapon_chumtoad") == 0) {
 			ALERT(at_console, "Not allowed a chumtoad without capturing it.\n");
+			return;
+		}
+	}
+
+	if (g_pGameRules->IsChilldemic() || g_pGameRules->IsJVS())
+	{
+		if (strcmp(pszName, "weapon_nuke") == 0) {
+			// No nukes in these game modes.
 			return;
 		}
 	}
@@ -4468,7 +4484,28 @@ void CBasePlayer::ImpulseCommands( )
 	case 213:
 		StartFrontFlip(TRUE);
 		break;
-
+	case 214:
+		StartHurricaneKick();
+		break;
+/*
+	case 215:
+		if ( g_pGameRules->AllowGrapplingHook(this) ) {
+			if (pGrapplingHook == NULL && m_flNextHook < gpGlobals->time) {
+				pGrapplingHook = CHook::HookCreate(this);
+				pGrapplingHook->FireHook();
+				m_flNextHook = gpGlobals->time + 1.0;
+			}
+		}
+		break;
+	case 216:
+		if ( g_pGameRules->AllowGrapplingHook(this) ) {
+			if (pGrapplingHook) {
+				pGrapplingHook->KillHook();
+				pGrapplingHook = NULL;
+			}
+		}
+		break;
+*/
 	default:
 		// check all of the cheat impulse commands now
 		CheatImpulseCommands( iImpulse, TRUE );
@@ -6180,6 +6217,11 @@ void CBasePlayer::DropPlayerItem ( char *pszItemName )
 		{
 			if ( FStrEq("weapon_fists", STRING(pWeapon->pev->classname)) ) {
 				ALERT ( at_console, "Fists cannot be dropped!\n" );
+				return;
+			}
+
+			if ( FStrEq("weapon_nuke", STRING(pWeapon->pev->classname)) ) {
+				ALERT ( at_console, "Nuke cannot be dropped!\n" );
 				return;
 			}
 

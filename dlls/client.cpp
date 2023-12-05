@@ -1479,6 +1479,8 @@ void Sys_Error( const char *error_string )
 {
 #ifdef DEBUG
 	ALERT(at_console, "Engine error: %s\n", error_string);
+	ALERT(at_console, "Map: %s\n", STRING(gpGlobals->mapname));
+	ALERT(at_console, "Mutators: %s\n", mutators.string);
 #endif
 	// Default case, do nothing.  MOD AUTHORS:  Add code ( e.g., _asm { int 3 }; here to cause a breakpoint for debugging your game .dlls
 }

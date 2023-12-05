@@ -766,7 +766,7 @@ void CWorld :: RandomizeMutators( void )
 			}
 		}
 
-		if (strlen(chaosfilter.string) > 2 && strstr(tryIt, chaosfilter.string))
+		if (strlen(chaosfilter.string) > 2 && strstr(chaosfilter.string, tryIt))
 		{
 			ALERT(at_console, "Ignoring \"%s\", found in sv_chaosfilter\n", tryIt);
 			attempts++;
