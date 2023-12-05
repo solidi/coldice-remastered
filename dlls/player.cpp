@@ -4484,6 +4484,26 @@ void CBasePlayer::ImpulseCommands( )
 	case 213:
 		StartFrontFlip(TRUE);
 		break;
+	case 214:
+		StartHurricaneKick();
+		break;
+	case 215:
+		if ( g_pGameRules->AllowGrapplingHook(this) ) {
+			if (pGrapplingHook == NULL && m_flNextHook < gpGlobals->time) {
+				pGrapplingHook = CHook::HookCreate(this);
+				pGrapplingHook->FireHook();
+				m_flNextHook = gpGlobals->time + 1.0;
+			}
+		}
+		break;
+	case 216:
+		if ( g_pGameRules->AllowGrapplingHook(this) ) {
+			if (pGrapplingHook) {
+				pGrapplingHook->KillHook();
+				pGrapplingHook = NULL;
+			}
+		}
+		break;
 
 	default:
 		// check all of the cheat impulse commands now
