@@ -171,6 +171,8 @@ void CHalfLifeMultiplay::RefreshSkillData( void )
 		atoi(mutators.string) == MUTATOR_INSTAGIB)
 		gSkillData.plrDmgRailgun = 800;
 
+/*
+	// Not clear to some why weapons did not work
 	if (strstr(mutators.string, g_MutatorPaintball) ||
 		atoi(mutators.string) == MUTATOR_PAINTBALL)
 	{
@@ -197,6 +199,7 @@ void CHalfLifeMultiplay::RefreshSkillData( void )
 		gSkillData.plrDmgFlakBomb *= multiplier;
 		gSkillData.plrDmgPlasma *= multiplier;
 	}
+*/
 
 /*
 	// Reserve for rocket jumping, when we get there.
@@ -1882,10 +1885,9 @@ void CHalfLifeMultiplay :: PlayerThink( CBasePlayer *pPlayer )
 	if (strstr(mutators.string, g_MutatorLightsOut) ||
 		atoi(mutators.string) == MUTATOR_LIGHTSOUT)
 	{
+		// Everready
 		if (pPlayer->IsAlive())
 			pPlayer->m_iFlashBattery = 100;
-		//else
-		//	pPlayer->FlashlightTurnOff();
 	}
 
 	if ( pPlayer->m_fHasRune == RUNE_REGEN )
