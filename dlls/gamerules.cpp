@@ -625,7 +625,6 @@ void CGameRules::SpawnMutators(CBasePlayer *pPlayer)
 	if (strstr(mutators.string, g_Mutator999) ||
 		atoi(mutators.string) == MUTATOR_999) {
 		pPlayer->pev->max_health = 999;
-		pPlayer->pev->armortype = 999;
 		pPlayer->pev->health = 999;
 		pPlayer->pev->armorvalue = 999;
 	}

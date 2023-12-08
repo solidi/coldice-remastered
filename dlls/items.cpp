@@ -305,14 +305,14 @@ class CItemBattery : public CItem
 			return FALSE;
 		}
 
-		if ((pPlayer->pev->armorvalue < MAX_NORMAL_BATTERY) &&
+		if ((pPlayer->pev->armorvalue < pPlayer->pev->max_health) &&
 			(pPlayer->pev->weapons & (1<<WEAPON_SUIT)))
 		{
 			int pct;
 			char szcharge[64];
 
 			pPlayer->pev->armorvalue += gSkillData.batteryCapacity;
-			pPlayer->pev->armorvalue = min(pPlayer->pev->armorvalue, MAX_NORMAL_BATTERY);
+			pPlayer->pev->armorvalue = min(pPlayer->pev->armorvalue, pPlayer->pev->max_health);
 
 			EMIT_SOUND( pPlayer->edict(), CHAN_ITEM, "items/gunpickup2.wav", 1, ATTN_NORM );
 
@@ -323,7 +323,7 @@ class CItemBattery : public CItem
 			
 			// Suit reports new power level
 			// For some reason this wasn't working in release build -- round it.
-			pct = (int)( (float)(pPlayer->pev->armorvalue * 100.0) * (1.0/MAX_NORMAL_BATTERY) + 0.5);
+			pct = (int)( (float)(pPlayer->pev->armorvalue * 100.0) * (1.0/pPlayer->pev->max_health) + 0.5);
 			pct = (pct / 5);
 			if (pct > 0)
 				pct--;
