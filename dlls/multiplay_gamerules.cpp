@@ -1969,6 +1969,7 @@ void CHalfLifeMultiplay :: PlayerThink( CBasePlayer *pPlayer )
 	{
 		if (!pPlayer->IsObserver())
 		{
+			pPlayer->pev->flags &= ~FL_GODMODE;
 			pPlayer->pev->rendermode = kRenderNormal;
 			pPlayer->pev->renderfx = kRenderFxNone;
 			pPlayer->pev->renderamt = 0;
@@ -2099,6 +2100,7 @@ void CHalfLifeMultiplay :: PlayerSpawn( CBasePlayer *pPlayer )
 
 	if (spawnprotectiontime.value > 0)
 	{
+		pPlayer->pev->flags |= FL_GODMODE;
 		pPlayer->pev->solid = SOLID_NOT;
 		pPlayer->m_fEffectTime = gpGlobals->time + 0.25;
 	}
