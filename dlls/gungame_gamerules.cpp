@@ -380,8 +380,8 @@ int CHalfLifeGunGame::IPointsForKill( CBasePlayer *pAttacker, CBasePlayer *pKill
 				if (pAttacker->IsAlive())
 				{
 					pAttacker->RemoveAllItems(FALSE);
-					GiveMutators(pAttacker);
 					pAttacker->GiveNamedItem("weapon_fists");
+					GiveMutators(pAttacker);
 					char weapon[32];
 					sprintf(weapon, "%s%s", "weapon_", g_WeaponId[newLevel]);
 					pAttacker->GiveNamedItem(weapon);
