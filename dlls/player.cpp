@@ -2696,7 +2696,7 @@ void CBasePlayer::PreThink(void)
 		m_hFlameOwner = NULL;
 	}
 
-	if (m_fNextScreamSound < gpGlobals->time && pev->velocity.z < -600)
+	if (m_fNextScreamSound < gpGlobals->time && pev->velocity.z < -800)
 	{
 		EMIT_SOUND(ENT(pev), CHAN_VOICE, "scientist/scream1.wav", 1, ATTN_NORM);
 		m_fNextScreamSound = gpGlobals->time + 10.0;
