@@ -101,10 +101,10 @@ void CCaptureChumtoad::Spawn( void )
 	Precache( );
 	// motor
 	pev->movetype = MOVETYPE_BOUNCE;
-	pev->solid = SOLID_BBOX;
+	pev->solid = SOLID_TRIGGER;
 
 	SET_MODEL(ENT(pev), "models/w_chumtoad.mdl");
-	UTIL_SetSize(pev, Vector( -4, -4, 0), Vector(4, 4, 8));
+	UTIL_SetSize(pev, Vector(-16, -16, 0), Vector(16, 16, 8));
 	UTIL_SetOrigin( pev, pev->origin );
 
 	SetTouch( &CCaptureChumtoad::SuperBounceTouch );
