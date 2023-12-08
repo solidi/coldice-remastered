@@ -625,13 +625,24 @@ void CGameRules::SpawnMutators(CBasePlayer *pPlayer)
 	if (strstr(mutators.string, g_Mutator999) ||
 		atoi(mutators.string) == MUTATOR_999) {
 		pPlayer->pev->max_health = 999;
+		pPlayer->pev->armortype = 999;
 		pPlayer->pev->health = 999;
 		pPlayer->pev->armorvalue = 999;
+	}
+
+	if (strstr(mutators.string, g_MutatorJeepAThon) ||
+		atoi(mutators.string) == MUTATOR_JEEPATHON) {
+		if (!pPlayer->IsObserver())
+			pPlayer->m_EFlags &= ~EFLAG_CANCEL;
+			pPlayer->m_EFlags |= EFLAG_JEEP;
 	}
 }
 
 void CGameRules::GiveMutators(CBasePlayer *pPlayer)
 {
+	if (!pPlayer->IsAlive())
+		return;
+
 	if (strstr(mutators.string, g_MutatorRocketCrowbar) ||
 		atoi(mutators.string) == MUTATOR_ROCKETCROWBAR) {
 		if (!pPlayer->HasNamedPlayerItem("weapon_rocketcrowbar"))
