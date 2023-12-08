@@ -4640,7 +4640,7 @@ void CBasePlayer::TraceHitOfSelacoSlide( void )
 					if (pEntity->pev->deadflag != DEAD_FAKING && FBitSet(pEntity->pev->flags, FL_FROZEN)) {
 						pEntity->pev->renderamt = 100;
 						flDamage = 200;
-						::IceExplode(pEntity, DMG_FREEZE);
+						::IceExplode(this, pEntity, DMG_FREEZE);
 					}
 					pEntity->TraceAttack(pev, (gSkillData.plrDmgKick * 4) + flDamage, gpGlobals->v_forward, &tr, DMG_KICK );
 
@@ -4744,7 +4744,7 @@ void CBasePlayer::TraceHitOfSelacoSlide( void )
 					if (pObject->pev->deadflag != DEAD_FAKING && FBitSet(pObject->pev->flags, FL_FROZEN)) {
 						pObject->pev->renderamt = 100;
 						flDamage = 200;
-						::IceExplode(pObject, DMG_FREEZE);
+						::IceExplode(this, pObject, DMG_FREEZE);
 					}
 
 					TraceResult tr;
@@ -4952,7 +4952,7 @@ void CBasePlayer::TraceHitOfFlip( void )
 			if (pObject->pev->deadflag != DEAD_FAKING && FBitSet(pObject->pev->flags, FL_FROZEN)) {
 				pObject->pev->renderamt = 100;
 				flDamage = 200;
-				::IceExplode(pObject, DMG_FREEZE);
+				::IceExplode(this, pObject, DMG_FREEZE);
 			}
 
 			TraceResult tr;
@@ -6612,7 +6612,7 @@ LINK_ENTITY_TO_CLASS( info_intermission, CInfoIntermission );
 extern short g_Gibs;
 extern short g_Steamball;
 
-float IceExplode(CBaseEntity *pEntity, int bitsDamageType)
+float IceExplode(CBaseEntity *pAttacker, CBaseEntity *pEntity, int bitsDamageType)
 {
 	float flAdjustedDamage = 0;
 
@@ -6631,7 +6631,7 @@ float IceExplode(CBaseEntity *pEntity, int bitsDamageType)
 	if (g_pGameRules->IsArmoredMan(((CBasePlayer *)pEntity)))
 		return 0;
 
-	if (!g_pGameRules->FPlayerCanTakeDamage(((CBasePlayer *)pEntity), pEntity))
+	if (!g_pGameRules->FPlayerCanTakeDamage(((CBasePlayer *)pEntity), pAttacker))
 		return 0;
 
 	if (((CBasePlayer *)pEntity)->m_iFreezeCounter < 5)

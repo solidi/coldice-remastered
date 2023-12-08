@@ -215,7 +215,7 @@ int CFists::Swing( int fFirst )
 		if (pEntity->pev->deadflag != DEAD_FAKING && fFirst == SHORYUKEN && FBitSet(pEntity->pev->flags, FL_FROZEN)) {
 			pEntity->pev->renderamt = 100;
 			flDamage = 200;
-			::IceExplode(pEntity, DMG_FREEZE);
+			::IceExplode(m_pPlayer, pEntity, DMG_FREEZE);
 		}
 
 		if ( (m_flNextPrimaryAttack + 1 < UTIL_WeaponTimeBase() ) || g_pGameRules->IsMultiplayer() )
