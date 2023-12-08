@@ -4190,6 +4190,11 @@ void CBasePlayer::GiveRandomWeapon(const char *szIgnoreList)
 	{
 		random = RANDOM_LONG(0, ARRAYSIZE(pWeapons) - 1);
 	}
+
+	// Nothing for now, sorry.
+	if (!g_pGameRules->CanRandomizeWeapon(pWeapons[random]))
+		return;
+
 	const char *weapon = STRING(ALLOC_STRING(pWeapons[random]));
 	if (!HasNamedPlayerItem(weapon))
 		GiveNamedItem(weapon);

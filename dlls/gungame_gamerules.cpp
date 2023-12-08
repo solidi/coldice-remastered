@@ -380,11 +380,12 @@ int CHalfLifeGunGame::IPointsForKill( CBasePlayer *pAttacker, CBasePlayer *pKill
 				if (pAttacker->IsAlive())
 				{
 					pAttacker->RemoveAllItems(FALSE);
-					pAttacker->GiveNamedItem("weapon_fists");
 					GiveMutators(pAttacker);
+					if (!pAttacker->HasNamedPlayerItem("weapon_fists"))
+						pAttacker->GiveNamedItem("weapon_fists");
 					char weapon[32];
 					sprintf(weapon, "%s%s", "weapon_", g_WeaponId[newLevel]);
-					pAttacker->GiveNamedItem(weapon);
+					pAttacker->GiveNamedItem(STRING(ALLOC_STRING(weapon)));
 				}
 				m_hVoiceHandle = pAttacker;
 				m_fRefreshStats = gpGlobals->time + 1.0;
@@ -415,7 +416,7 @@ void CHalfLifeGunGame::PlayerSpawn( CBasePlayer *pPlayer )
 	int currentLevel = (int)pPlayer->pev->fuser4;
 	char weapon[32];
 	sprintf(weapon, "%s%s", "weapon_", g_WeaponId[currentLevel]);
-	pPlayer->GiveNamedItem(weapon);
+	pPlayer->GiveNamedItem(STRING(ALLOC_STRING(weapon)));
 	pPlayer->GiveAmmo(AMMO_GLOCKCLIP_GIVE * 4, "9mm", _9MM_MAX_CARRY);
 	pPlayer->GiveAmmo(AMMO_357BOX_GIVE * 4, "357", _357_MAX_CARRY);
 	pPlayer->GiveAmmo(AMMO_BUCKSHOTBOX_GIVE * 4, "buckshot", BUCKSHOT_MAX_CARRY);
