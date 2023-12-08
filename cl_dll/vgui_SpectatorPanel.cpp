@@ -102,8 +102,10 @@ void SpectatorPanel::Initialize()
 	m_TopBorder->setParent(this);
 	Panel *pp = new Panel( 0, PANEL_HEIGHT, ScreenWidth, 1);
 	pp->setParent( this );
-	pp->setFgColor( 0, 113, 230, 0 );
-	pp->setBgColor( 0, 113, 230, 0 );
+	int r, g, b;
+	UnpackRGB(r, g, b, HudColor());
+	pp->setFgColor( r, g, b, 0 );
+	pp->setBgColor( r, g, b, 0 );
 
 	Label *dead = new Label( "", 10, 10, wide, PANEL_HEIGHT - 10 );
 	dead->setParent(m_TopBorder);
@@ -237,7 +239,7 @@ void SpectatorPanel::Initialize()
 	m_BottomMainButton->setArmedBorderColor ( 194, 202, 54, 0 );
 	m_BottomMainButton->setUnArmedColor ( 143, 143, 54, 0 );
 	m_BottomMainButton->setArmedColor ( 194, 202, 54, 0 );
-	m_BottomMainButton->setFgColor( 0, 113, 230, 0 );
+	m_BottomMainButton->setFgColor( r, g, b, 0 );
 
 	m_BottomMainLabel = new Label("", 0, 0, wide, PANEL_HEIGHT);
 
@@ -245,7 +247,7 @@ void SpectatorPanel::Initialize()
 	m_BottomMainLabel->setPaintBackgroundEnabled(false);
 	//m_BottomMainLabel->setFgColor( Scheme::sc_primary1 );
 	m_BottomMainLabel->setFont( pSchemes->getFont(hLargeScheme) );
-	m_BottomMainLabel->setFgColor(0, 113, 230, 0);
+	m_BottomMainLabel->setFgColor(r, g, b, 0);
 	m_BottomMainLabel->setContentAlignment( vgui::Label::a_center );
 	m_BottomMainLabel->setBorder( NULL );
 	m_BottomMainLabel->setVisible(false);
@@ -254,11 +256,11 @@ void SpectatorPanel::Initialize()
 	m_InsetViewButton->setParent( this );
 	m_InsetViewButton->setBoundKey( (char)255 );
 	m_InsetViewButton->addActionSignal( new CSpectatorHandler_Command(this,SPECTATOR_PANEL_CMD_TOGGLE_INSET) );
-	m_InsetViewButton->setUnArmedBorderColor ( 0, 113, 230, 0 );
+	m_InsetViewButton->setUnArmedBorderColor ( r, g, b, 0 );
 	m_InsetViewButton->setArmedBorderColor ( 255, 255, 255, 0 );
-	m_InsetViewButton->setUnArmedColor ( 0, 113, 230, 0 );
+	m_InsetViewButton->setUnArmedColor ( r, g, b, 0 );
 	m_InsetViewButton->setArmedColor ( 255, 255, 255, 0 );
-	m_InsetViewButton->setBgColor( 0, 113, 230, 200 );
+	m_InsetViewButton->setBgColor( r, g, b, 200 );
 	//m_InsetViewButton->setArmed(TRUE);
 
 	m_menuVisible = false;

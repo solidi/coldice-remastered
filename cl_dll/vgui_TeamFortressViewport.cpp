@@ -1743,8 +1743,10 @@ void TeamFortressViewport::UpdateSpectatorPanel()
 		}
 		else
 		{	// restore GUI color
-			m_pSpectatorPanel->m_BottomMainLabel->setFgColor( 0, 160, 255, 0 );
-			m_pSpectatorPanel->m_BottomMainButton->setFgColor( 0, 160, 255, 0 );
+			int r, g, b;
+			UnpackRGB(r, g, b, HudColor());
+			m_pSpectatorPanel->m_BottomMainLabel->setFgColor( r, g, b, 0 );
+			m_pSpectatorPanel->m_BottomMainButton->setFgColor( r, g, b, 0 );
 		}
 
 		// add sting auto if we are in auto directed mode
