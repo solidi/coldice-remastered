@@ -507,7 +507,6 @@ void CHalfLifeJesusVsSanta::PlayerSpawn( CBasePlayer *pPlayer )
 		pPlayer->GiveMelees();
 		pPlayer->GiveExplosives();
 		pPlayer->pev->max_health = pPlayer->pev->health = pPlayer->pev->armorvalue = 750;
-		pPlayer->pev->maxspeed = CVAR_GET_FLOAT("sv_maxspeed");
 		g_engfuncs.pfnSetPhysicsKeyValue(pPlayer->edict(), "haste", "1");
 		pPlayer->GiveNamedItem("rune_cloak");
 		strncpy( pPlayer->m_szTeamName, "jesus", TEAM_NAME_LENGTH );
@@ -519,7 +518,6 @@ void CHalfLifeJesusVsSanta::PlayerSpawn( CBasePlayer *pPlayer )
 	else
 	{
 		pPlayer->GiveRandomWeapon("weapon_nuke");
-		pPlayer->pev->maxspeed = CVAR_GET_FLOAT("sv_maxspeed") * .5;
 		strncpy( pPlayer->m_szTeamName, "santa", TEAM_NAME_LENGTH );
 		g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer->edict()),
 			g_engfuncs.pfnGetInfoKeyBuffer(pPlayer->edict()), "model", "santa");
