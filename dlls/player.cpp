@@ -4820,6 +4820,9 @@ void CBasePlayer::StartRightFlip( void )
 	if (!acrobatics.value)
 		return;
 
+	if (pev->waterlevel == 3)
+		return;
+
 	if (m_fFlipTime < gpGlobals->time) {
 		if (FBitSet(pev->flags, FL_ONGROUND)) {
 			UTIL_MakeVectors(pev->angles);
@@ -4837,6 +4840,9 @@ void CBasePlayer::StartRightFlip( void )
 void CBasePlayer::StartLeftFlip( void )
 {
 	if (!acrobatics.value)
+		return;
+
+	if (pev->waterlevel == 3)
 		return;
 
 	if (m_fFlipTime < gpGlobals->time) {
@@ -4857,6 +4863,9 @@ void CBasePlayer::StartBackFlip( void )
 	if (!acrobatics.value)
 		return;
 
+	if (pev->waterlevel == 3)
+		return;
+
 	if (m_fFlipTime < gpGlobals->time) {
 		if (FBitSet(pev->flags, FL_ONGROUND)) {
 			UTIL_MakeVectors(pev->angles);
@@ -4873,6 +4882,9 @@ void CBasePlayer::StartBackFlip( void )
 void CBasePlayer::StartFrontFlip( BOOL addVelocity )
 {
 	if (!acrobatics.value)
+		return;
+
+	if (pev->waterlevel == 3)
 		return;
 
 	if (m_fFlipTime < gpGlobals->time) {
@@ -4892,6 +4904,9 @@ void CBasePlayer::StartFrontFlip( BOOL addVelocity )
 void CBasePlayer::StartHurricaneKick( void )
 {
 	if (!acrobatics.value)
+		return;
+
+	if (pev->waterlevel == 3)
 		return;
 
 	if (m_fFlipTime < gpGlobals->time && pev->velocity.Length2D() > 100) {
