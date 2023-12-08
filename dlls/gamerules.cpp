@@ -539,7 +539,7 @@ BOOL CGameRules::WeaponMutators( CBasePlayerWeapon *pWeapon )
 	{
 		if (m_iDontShoot)
 		{
-			if (pWeapon->iItemSlot() != 1 && pWeapon->m_pPlayer->pev->solid != SOLID_NOT)
+			if (pWeapon->pszAmmo1() != NULL && pWeapon->m_pPlayer->pev->solid != SOLID_NOT)
 			{
 				if (!FBitSet(pWeapon->m_pPlayer->pev->flags, FL_GODMODE))
 				{
