@@ -549,7 +549,7 @@ void CL_DLLEXPORT HUD_TempEntUpdate (
 
 	currentEflag = player->curstate.eflags;
 
-	if (player && !cam_thirdperson)
+	if (player && !cam_thirdperson && !g_iUser1)
 	{
 		if (gHUD.m_flExtraViewModelTime == 0 /*|| currentEflag != lastEflag*/)
 		{
