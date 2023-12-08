@@ -31,6 +31,8 @@ public:
 	virtual BOOL IsAllowedToDropWeapon( void );
 	virtual BOOL IsAllowedToHolsterWeapon( void );
 	virtual int WeaponShouldRespawn( CBasePlayerItem *pWeapon );
+	virtual BOOL CanHavePlayerItem( CBasePlayer *pPlayer, CBasePlayerItem *pWeapon );
+	virtual BOOL CanRandomizeWeapon( const char *name );
 
 private:
 	float m_fGoToIntermission;

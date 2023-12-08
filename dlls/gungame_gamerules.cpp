@@ -466,3 +466,19 @@ BOOL CHalfLifeGunGame::IsAllowedToHolsterWeapon( void )
 {
 	return FALSE;
 }
+
+BOOL CHalfLifeGunGame::CanHavePlayerItem( CBasePlayer *pPlayer, CBasePlayerItem *pItem )
+{
+	if (!strcmp(STRING(pItem->pev->classname), "weapon_nuke"))
+		return FALSE;
+
+	return CHalfLifeMultiplay::CanHavePlayerItem( pPlayer, pItem );
+}
+
+BOOL CHalfLifeGunGame::CanRandomizeWeapon( const char *name )
+{
+	if (strcmp(name, "weapon_nuke") == 0)
+		return FALSE;
+
+	return TRUE;
+}

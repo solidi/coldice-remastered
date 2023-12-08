@@ -27,6 +27,7 @@ public:
 	virtual void PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller, entvars_t *pInflictor );
 	virtual BOOL CanHavePlayerItem( CBasePlayer *pPlayer, CBasePlayerItem *pWeapon );
 	virtual int GetTeamIndex( const char *pTeamName );
+	virtual BOOL CanRandomizeWeapon( const char *name );
 
 private:
 	int m_iSurvivorsRemain;

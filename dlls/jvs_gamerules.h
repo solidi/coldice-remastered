@@ -29,4 +29,5 @@ public:
 	virtual BOOL CanHavePlayerItem( CBasePlayer *pPlayer, CBasePlayerItem *pWeapon );
 	virtual BOOL IsArmoredMan( CBasePlayer *pPlayer ) { return pArmoredMan == pPlayer; }
 	virtual int GetTeamIndex( const char *pTeamName );
+	virtual BOOL CanRandomizeWeapon( const char *name );
 };

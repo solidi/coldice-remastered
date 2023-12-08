@@ -707,3 +707,11 @@ int CHalfLifeChilldemic::GetTeamIndex( const char *pTeamName )
 	
 	return -1;	// No match
 }
+
+BOOL CHalfLifeChilldemic::CanRandomizeWeapon( const char *name )
+{
+	if (strcmp(name, "weapon_nuke") == 0)
+		return FALSE;
+
+	return TRUE;
+}
