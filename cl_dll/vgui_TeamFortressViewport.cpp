@@ -239,6 +239,10 @@ char *sMutators[] = {
 	"slowweapons",
 	"fastweapons",
 	"jack",
+	"piratehat",
+	"marshmellow",
+	"crate",
+	"pumpkin",
 	"RANDOM",
 };
 

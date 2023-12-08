@@ -425,7 +425,7 @@ void CHalfLifeMultiplay :: Think ( void )
 					if (pPlayer && FBitSet(pPlayer->pev->flags, FL_FAKECLIENT))
 					{
 						ALERT(at_aiconsole, "BOT mutator vote!\n");
-						::Vote(pPlayer, RANDOM_LONG(1, MUTATOR_FASTWEAPONS + 2 /*random*/));
+						::Vote(pPlayer, RANDOM_LONG(MUTATOR_CHAOS, MAX_MUTATORS + 1 /*random*/));
 					}
 				}
 			}
@@ -440,13 +440,13 @@ void CHalfLifeMultiplay :: Think ( void )
 				MESSAGE_END();
 
 				// tally votes
-				int vote[MUTATOR_FASTWEAPONS+2]; //+1, +1 RANDOM
+				int vote[MAX_MUTATORS+2]; //+1, +1 RANDOM
 				memset(vote, -1, sizeof(vote));
 
 				for (int j = 1; j <= 32; j++)
 				{
 					int mutatorIndex = g_pGameRules->m_iVoteCount[j-1];
-					if ((mutatorIndex-1) >= 0 && (mutatorIndex-1) <= MUTATOR_FASTWEAPONS + 1 /*random*/)
+					if ((mutatorIndex-1) >= 0 && (mutatorIndex-1) <= MAX_MUTATORS + 1 /*random*/)
 					{
 						if (vote[mutatorIndex-1] == -1) vote[mutatorIndex-1] = 0;
 						vote[mutatorIndex-1]++;
@@ -459,7 +459,7 @@ void CHalfLifeMultiplay :: Think ( void )
 				int fIndex, sIndex, tIndex;
 				fIndex = sIndex = tIndex = -1;
 
-				for (int i = 0; i <= MUTATOR_FASTWEAPONS + 1 /*random*/; i++)
+				for (int i = 0; i <= MAX_MUTATORS + 1 /*random*/; i++)
 				{
 					if (vote[i] > first)
 					{
@@ -494,22 +494,40 @@ void CHalfLifeMultiplay :: Think ( void )
 				}
 				else
 				{
-					if (fIndex == MUTATOR_FASTWEAPONS + 1 /*random*/)
+					if (fIndex == MAX_MUTATORS /*random*/)
 					{
 						UTIL_ClientPrintAll(HUD_PRINTTALK, "[VOTE] Randomizing mutator mode #1...\n");
-						fIndex = RANDOM_LONG(MUTATOR_CHAOS, MUTATOR_FASTWEAPONS);
+						fIndex = RANDOM_LONG(MUTATOR_CHAOS-1, MAX_MUTATORS-1);
+						while ( fIndex == MUTATOR_SLOWMO ||
+								fIndex == MUTATOR_SPEEDUP ||
+								fIndex == MUTATOR_TOPSYTURVY || 
+								fIndex == MUTATOR_EXPLOSIVEAI )
+							fIndex = RANDOM_LONG(MUTATOR_CHAOS-1, MAX_MUTATORS-1);
 					}
 
-					if (sIndex == MUTATOR_FASTWEAPONS + 1 /*random*/)
+					if (sIndex == MAX_MUTATORS /*random*/)
 					{
 						UTIL_ClientPrintAll(HUD_PRINTTALK, "[VOTE] Randomizing mutator mode #2...\n");
-						sIndex = RANDOM_LONG(MUTATOR_CHAOS, MUTATOR_FASTWEAPONS);
+						sIndex = RANDOM_LONG(MUTATOR_CHAOS-1, MAX_MUTATORS-1);
+						while ( sIndex == MUTATOR_SLOWMO ||
+								sIndex == MUTATOR_SPEEDUP ||
+								sIndex == MUTATOR_TOPSYTURVY || 
+								sIndex == MUTATOR_EXPLOSIVEAI ||
+								sIndex == fIndex)
+							sIndex = RANDOM_LONG(MUTATOR_CHAOS-1, MAX_MUTATORS-1);
 					}
 
-					if (tIndex == MUTATOR_FASTWEAPONS + 1 /*random*/)
+					if (tIndex == MAX_MUTATORS /*random*/)
 					{
 						UTIL_ClientPrintAll(HUD_PRINTTALK, "[VOTE] Randomizing mutator mode #3...\n");
-						tIndex = RANDOM_LONG(MUTATOR_CHAOS, MUTATOR_FASTWEAPONS);
+						tIndex = RANDOM_LONG(MUTATOR_CHAOS-1, MAX_MUTATORS-1);
+						while ( tIndex == MUTATOR_SLOWMO ||
+								tIndex == MUTATOR_SPEEDUP ||
+								tIndex == MUTATOR_TOPSYTURVY || 
+								tIndex == MUTATOR_EXPLOSIVEAI ||
+								tIndex == fIndex ||
+								tIndex == sIndex )
+							tIndex = RANDOM_LONG(MUTATOR_CHAOS-1, MAX_MUTATORS-1);
 					}
 
 					ALERT(at_aiconsole, "fIndex=%d, sIndex=%d, tIndex=%d\n", fIndex, sIndex, tIndex);
