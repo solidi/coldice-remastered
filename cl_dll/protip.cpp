@@ -70,7 +70,7 @@ int CHudProTip::Draw(float flTime)
 	if (g_iUser1)
 		return 1;
 
-	if (gHUD.m_Scoreboard.m_iShowscoresHeld)
+	if (gHUD.m_Scoreboard.m_iShowscoresHeld || gHUD.m_iShowingWeaponMenu)
 		return 1;
 
 	if (gHUD.m_iIntermission)
