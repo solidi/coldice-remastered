@@ -628,13 +628,6 @@ void CGameRules::SpawnMutators(CBasePlayer *pPlayer)
 		pPlayer->pev->health = 999;
 		pPlayer->pev->armorvalue = 999;
 	}
-
-	if (strstr(mutators.string, g_MutatorJeepAThon) ||
-		atoi(mutators.string) == MUTATOR_JEEPATHON) {
-		if (!pPlayer->IsObserver())
-			pPlayer->m_EFlags &= ~EFLAG_CANCEL;
-			pPlayer->m_EFlags |= EFLAG_JEEP;
-	}
 }
 
 void CGameRules::GiveMutators(CBasePlayer *pPlayer)
