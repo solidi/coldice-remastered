@@ -92,11 +92,8 @@ CMessageWindowPanel::CMessageWindowPanel( const char *szMOTD, const char *szTitl
 	Label *pLabel = new Label( "", iXPos + MOTD_TITLE_X, iYPos + MOTD_TITLE_Y );
 	pLabel->setParent( this );
 	pLabel->setFont( pSchemes->getFont(hTitleScheme) );
-	pLabel->setFont( Scheme::sf_primary1 );
-
 	pSchemes->getFgColor( hTitleScheme, r, g, b, a );
 	pLabel->setFgColor( r, g, b, a );
-	pLabel->setFgColor( Scheme::sc_primary1 );
 	pSchemes->getBgColor( hTitleScheme, r, g, b, a );
 	pLabel->setBgColor( r, g, b, a );
 	pLabel->setContentAlignment( vgui::Label::a_west );

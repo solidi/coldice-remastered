@@ -549,7 +549,7 @@ void CL_DLLEXPORT HUD_TempEntUpdate (
 
 	currentEflag = player->curstate.eflags;
 
-	if (player && !cam_thirdperson)
+	if (player && !cam_thirdperson && !g_iUser1)
 	{
 		if (gHUD.m_flExtraViewModelTime == 0 /*|| currentEflag != lastEflag*/)
 		{
@@ -591,12 +591,12 @@ void CL_DLLEXPORT HUD_TempEntUpdate (
 
 	// hold it
 	if (player && (player->curstate.eflags & EFLAG_DEADHANDS))
-		gHUD.m_flExtraViewModelTime = gEngfuncs.GetClientTime() + 0.01;
+		gHUD.m_flExtraViewModelTime = gEngfuncs.GetClientTime() + 0.1;
 
 	//static bool extra = false;
 	if (player && (player->curstate.eflags & EFLAG_SLIDE))
 	{
-		gHUD.m_flExtraViewModelTime = gEngfuncs.GetClientTime() + 0.01;
+		gHUD.m_flExtraViewModelTime = gEngfuncs.GetClientTime() + 0.1;
 		//extra = true;
 	}
 

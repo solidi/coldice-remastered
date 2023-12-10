@@ -920,6 +920,14 @@ int CHudAmmo::Draw(float flTime)
 
 	ScaleColors(r, g, b, a );
 
+	if (gHUD.szActiveMutators != NULL &&
+		(strstr(gHUD.szActiveMutators, "dontshoot") ||
+		atoi(gHUD.szActiveMutators) == MUTATOR_DONTSHOOT))
+	{
+		SPR_Set(gHUD.GetSprite(gHUD.GetSpriteIndex("dontshoot")), r, g, b);
+		SPR_DrawAdditive(0, (ScreenWidth / 2) - 32, (ScreenHeight / 2) - 32, &gHUD.GetSpriteRect(gHUD.GetSpriteIndex("dontshoot")));
+	}
+
 	float up = cl_hudbend->value ? 1.5 : 1;
 	float left = cl_hudbend->value ? 15 : 0;
 

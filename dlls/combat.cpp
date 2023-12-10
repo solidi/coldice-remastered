@@ -1188,7 +1188,7 @@ void RadiusDamage( Vector vecSrc, entvars_t *pevInflictor, entvars_t *pevAttacke
 					flAdjustedDamage = 0;
 				}
 
-				flAdjustedDamage += ::IceExplode(pEntity, bitsDamageType);
+				flAdjustedDamage += ::IceExplode(GetClassPtr((CBaseEntity *)pevAttacker), pEntity, bitsDamageType);
 
 				// ALERT( at_console, "hit %s\n", STRING( pEntity->pev->classname ) );
 				if (tr.flFraction != 1.0)

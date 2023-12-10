@@ -51,11 +51,21 @@ CVoteMutatorPanel::CVoteMutatorPanel(int iTrans, int iRemoveMe, int x,int y,int 
 	pTitleLabel->setText(gHUD.m_TextMessage.BufferedLocaliseTextString("#Title_VoteMutator"));
 
 	// Create the buttons
+	int positionCount = 0;
 	for (int i = 0; i < MAX_MUTATORS; i++)
 	{
+		m_pButtons[i] = NULL;
+		if (strstr(sMutators[i], "slowmo") ||
+			strstr(sMutators[i], "speedup") ||
+			strstr(sMutators[i], "topsyturvy") ||
+			strstr(sMutators[i], "explosiveai"))
+		{
+			continue;
+		}
+
 		// Space for random button
-		int xI = i+1;
-		int degree = (i+1) / 12;
+		int xI = positionCount+1;
+		int degree = (positionCount+1) / 12;
 		if (i == MAX_MUTATORS - 1)
 		{
 			xI = 0;
@@ -79,6 +89,7 @@ CVoteMutatorPanel::CVoteMutatorPanel(int iTrans, int iRemoveMe, int x,int y,int 
 		m_pButtons[i]->addActionSignal( pASignal );
 		m_pButtons[i]->addInputSignal( new CHandler_MenuButtonOver(this, i) );
 		m_pButtons[i]->setParent(this);
+		positionCount++;
 	}
 
 	m_iCurrentInfo = 0;
@@ -95,7 +106,10 @@ void CVoteMutatorPanel::Update()
 
 	// Count votes
 	for (int j = 0; j < MAX_MUTATORS; j++)
-		m_pButtons[j]->setArmed(false);
+	{
+		if (m_pButtons[j])
+			m_pButtons[j]->setArmed(false);
+	}
 
 	// Count votes
 	for ( int i = 0; i < MAX_MUTATORS; i++ )
@@ -110,12 +124,18 @@ void CVoteMutatorPanel::Update()
 				votes[i] += 1;
 		}
 
-		char sz[64];
-		sprintf(sz, " %-2d %s", votes[i], sMutators[i]);
-		m_pButtons[i]->setText(sz);
+		if (m_pButtons[i])
+		{
+			char sz[64];
+			sprintf(sz, " %-2d %s", votes[i], sMutators[i]);
+			m_pButtons[i]->setText(sz);
+		}
 
 		if ((myVote - 1) == i)
-			m_pButtons[i]->setArmed(true);
+		{
+			if (m_pButtons[i])
+				m_pButtons[i]->setArmed(true);
+		}
 	}
 
 	pTitleLabel->setText("%s | Your Vote: %s | Time Left: %.1f\n",
@@ -137,7 +157,8 @@ bool CVoteMutatorPanel::SlotInput( int iSlot )
 	{
 		for (int i = 0; i < MAX_MUTATORS; i++)
 		{
-			m_pButtons[i]->setArmed( false );
+			if (m_pButtons[i])
+				m_pButtons[i]->setArmed( false );
 		}
 
 		m_pButtons[ iSlot ]->setArmed( true );

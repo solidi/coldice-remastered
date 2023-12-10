@@ -2103,6 +2103,11 @@ BOOL CWeaponBox::PackWeapon( CBasePlayerItem *pWeapon )
 		//SetBodygroup(GET_MODEL_PTR(ENT(pev)), pev, 0, WEAPON_ASHPOD - 1);
 		//SetBodygroup(GET_MODEL_PTR(ENT(pev)), pev, 1, WEAPON_ASHPOD - 1);
 	}
+	else if (pWeapon->m_iId == WEAPON_HANDGRENADE)
+	{
+		SET_MODEL( ENT(pev), "models/w_grenade.mdl");
+		pev->sequence = floating;
+	}
 
 	return TRUE;
 }

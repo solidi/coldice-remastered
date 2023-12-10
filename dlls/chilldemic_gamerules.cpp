@@ -581,7 +581,6 @@ void CHalfLifeChilldemic::PlayerSpawn( CBasePlayer *pPlayer )
 		pPlayer->GiveNamedItem("weapon_vest");
 		pPlayer->GiveNamedItem("weapon_chainsaw");
 		pPlayer->pev->max_health = pPlayer->pev->health = 50;
-		pPlayer->pev->maxspeed = CVAR_GET_FLOAT("sv_maxspeed");
 		g_engfuncs.pfnSetPhysicsKeyValue(pPlayer->edict(), "haste", "1");
 
 		strncpy( pPlayer->m_szTeamName, "skeleton", TEAM_NAME_LENGTH );
@@ -597,7 +596,6 @@ void CHalfLifeChilldemic::PlayerSpawn( CBasePlayer *pPlayer )
 		else
 			strcpy(modelName, defaultPlayerModels[RANDOM_LONG(0,3)]);
 		pPlayer->GiveRandomWeapon("weapon_nuke");
-		pPlayer->pev->maxspeed = CVAR_GET_FLOAT("sv_maxspeed") * .5;
 
 		strncpy( pPlayer->m_szTeamName, "survivors", TEAM_NAME_LENGTH );
 		g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer->edict()), key, "model", modelName);
@@ -708,4 +706,12 @@ int CHalfLifeChilldemic::GetTeamIndex( const char *pTeamName )
 	}
 	
 	return -1;	// No match
+}
+
+BOOL CHalfLifeChilldemic::CanRandomizeWeapon( const char *name )
+{
+	if (strcmp(name, "weapon_nuke") == 0)
+		return FALSE;
+
+	return TRUE;
 }

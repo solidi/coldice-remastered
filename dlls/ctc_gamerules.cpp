@@ -43,6 +43,19 @@ void CHalfLifeCaptureTheChumtoad::Think( void )
 {
 	CHalfLifeMultiplay::Think();
 
+	// No loop during intermission
+	if ( m_flIntermissionEndTime )
+	{
+		// Remove any left
+		edict_t *pEdict = FIND_ENTITY_BY_CLASSNAME(NULL, "monster_ctctoad");
+		while (!FNullEnt(pEdict))
+		{
+			UTIL_Remove(CBaseEntity::Instance(pEdict));
+			pEdict = FIND_ENTITY_BY_CLASSNAME(pEdict, "monster_ctctoad");
+		}
+		return;
+	}
+
 	if (m_fChumtoadPlayTimer < gpGlobals->time)
 	{
 		edict_t *pEdict = FIND_ENTITY_BY_CLASSNAME(NULL, "monster_ctctoad");

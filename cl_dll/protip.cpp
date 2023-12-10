@@ -30,6 +30,12 @@ void CHudProTip::AddMessage(int id, const char *message)
 	if (m_ShownTip[id])
 		return;
 
+	if (g_iUser1)
+		return;
+
+	if (gHUD.m_iIntermission)
+		return;
+
 	m_ShownTip[id] = true;
 
 	float time = gEngfuncs.GetClientTime() + SECONDS_TO_LIVE;
@@ -64,7 +70,7 @@ int CHudProTip::Draw(float flTime)
 	if (g_iUser1)
 		return 1;
 
-	if (gHUD.m_Scoreboard.m_iShowscoresHeld)
+	if (gHUD.m_Scoreboard.m_iShowscoresHeld || gHUD.m_iShowingWeaponMenu)
 		return 1;
 
 	if (gHUD.m_iIntermission)
@@ -74,7 +80,9 @@ int CHudProTip::Draw(float flTime)
 	{
 		//gEngfuncs.Con_DPrintf("q index=%d, time=%.2f, ctime=%.2f\n", i, m_MessageQueue[i].time, gEngfuncs.GetClientTime());
 
-		if (m_MessageQueue[i].time > 0 && m_MessageQueue[i].time > gEngfuncs.GetClientTime())
+		if (m_MessageQueue[i].time > 0 &&
+			m_MessageQueue[i].time > gEngfuncs.GetClientTime() &&
+			m_MessageQueue[i].time <= (gEngfuncs.GetClientTime() + SECONDS_TO_LIVE + 3)) // in case of large values
 		{
 			int y = m_MessageQueue[i].y_pos;
 			y += 10;

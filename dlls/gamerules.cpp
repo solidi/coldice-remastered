@@ -539,7 +539,7 @@ BOOL CGameRules::WeaponMutators( CBasePlayerWeapon *pWeapon )
 	{
 		if (m_iDontShoot)
 		{
-			if (pWeapon->iItemSlot() != 1 && pWeapon->m_pPlayer->pev->solid != SOLID_NOT)
+			if (pWeapon->pszAmmo1() != NULL && pWeapon->m_pPlayer->pev->solid != SOLID_NOT)
 			{
 				if (!FBitSet(pWeapon->m_pPlayer->pev->flags, FL_GODMODE))
 				{
@@ -632,6 +632,9 @@ void CGameRules::SpawnMutators(CBasePlayer *pPlayer)
 
 void CGameRules::GiveMutators(CBasePlayer *pPlayer)
 {
+	if (!pPlayer->IsAlive())
+		return;
+
 	if (strstr(mutators.string, g_MutatorRocketCrowbar) ||
 		atoi(mutators.string) == MUTATOR_ROCKETCROWBAR) {
 		if (!pPlayer->HasNamedPlayerItem("weapon_rocketcrowbar"))
@@ -796,12 +799,17 @@ void CGameRules::CheckMutators(void)
 			strcpy(szSkyColor[2], CVAR_GET_STRING("sv_skycolor_b"));
 		}
 
+		int toggleFlashlight = 0;
+
 		if ((strstr(mutators.string, g_MutatorLightsOut) ||
 			atoi(mutators.string) == MUTATOR_LIGHTSOUT))
 		{
 			LIGHT_STYLE(0, "b");
 			if (flashlight.value != 1)
+			{
 				CVAR_SET_STRING("mp_flashlight", "2");
+				toggleFlashlight = 2;
+			}
 			CVAR_SET_STRING("sv_skycolor_r", "0");
 			CVAR_SET_STRING("sv_skycolor_g", "0");
 			CVAR_SET_STRING("sv_skycolor_b", "0");
@@ -810,7 +818,10 @@ void CGameRules::CheckMutators(void)
 		{
 			LIGHT_STYLE(0, "m");
 			if (flashlight.value == 2)
+			{
 				CVAR_SET_STRING("mp_flashlight", "0");
+				toggleFlashlight = 1;
+			}
 			CVAR_SET_STRING("sv_skycolor_r", szSkyColor[0]);
 			CVAR_SET_STRING("sv_skycolor_g", szSkyColor[1]);
 			CVAR_SET_STRING("sv_skycolor_b", szSkyColor[2]);
@@ -889,6 +900,14 @@ void CGameRules::CheckMutators(void)
 						if (pl->pev->rendermode == kRenderTransAlpha)
 							pl->pev->rendermode = kRenderNormal;
 					}
+				}
+
+				if (toggleFlashlight)
+				{
+					if ( toggleFlashlight == 2 && !pl->FlashlightIsOn() )
+						pl->FlashlightTurnOn();
+					else if (toggleFlashlight == 1 && pl->FlashlightIsOn())
+						pl->FlashlightTurnOff();
 				}
 
 				if (m_JopeCheck) {

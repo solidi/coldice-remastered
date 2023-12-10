@@ -40,54 +40,54 @@ int g_iFrags[MAXLEVEL+1] = { 1, 3, 5, 6, 9, 12, 15, 18, 21, 26, 29, 30, 31, 32, 
 const char *g_WeaponId[MAXLEVEL+1] = 
 {
 	// hand
-	"weapon_9mmhandgun", //level 0
-	"weapon_deagle",
-	"weapon_dual_deagle",
-	"weapon_python",
-	"weapon_mag60",
-	"weapon_dual_mag60",
-	"weapon_smg",
-	"weapon_dual_smg",
-	"weapon_sawedoff",
-	"weapon_dual_sawedoff",
+	"9mmhandgun", //level 0
+	"deagle",
+	"dual_deagle",
+	"python",
+	"mag60",
+	"dual_mag60",
+	"smg",
+	"dual_smg",
+	"sawedoff",
+	"dual_sawedoff",
 	// long
-	"weapon_9mmAR",
-	"weapon_12gauge",
-	"weapon_shotgun",
-	"weapon_crossbow",
-	"weapon_sniperrifle",
-	"weapon_chaingun",
-	"weapon_usas",
-	"weapon_dual_usas",
-	"weapon_freezegun",
+	"9mmAR",
+	"12gauge",
+	"shotgun",
+	"crossbow",
+	"sniperrifle",
+	"chaingun",
+	"usas",
+	"dual_usas",
+	"freezegun",
 	// heavy
-	"weapon_rpg",
-	"weapon_dual_rpg",
-	"weapon_railgun",
-	"weapon_dual_railgun",
-	"weapon_cannon",
-	"weapon_gauss",
-	"weapon_egon",
-	"weapon_hornetgun",
-	"weapon_glauncher",
-	"weapon_flamethrower",
-	"weapon_dual_flamethrower",
-	"weapon_gravitygun",
+	"rpg",
+	"dual_rpg",
+	"railgun",
+	"dual_railgun",
+	"cannon",
+	"gauss",
+	"egon",
+	"hornetgun",
+	"glauncher",
+	"flamethrower",
+	"dual_flamethrower",
+	"gravitygun",
 	// loose
-	"weapon_snowball",
-	"weapon_handgrenade",
-	"weapon_satchel",
-	"weapon_tripmine",
-	"weapon_snark",
-	"weapon_chumtoad",
-	"weapon_vest",
+	"snowball",
+	"handgrenade",
+	"satchel",
+	"tripmine",
+	"snark",
+	"chumtoad",
+	"vest",
 	// hand
-	"weapon_chainsaw",
-	"weapon_dual_wrench",
-	"weapon_wrench",
-	"weapon_crowbar",
-	"weapon_fists",
-	"weapon_knife",
+	"chainsaw",
+	"dual_wrench",
+	"wrench",
+	"crowbar",
+	"fists",
+	"knife",
 	"Winner"
 };
 
@@ -381,8 +381,11 @@ int CHalfLifeGunGame::IPointsForKill( CBasePlayer *pAttacker, CBasePlayer *pKill
 				{
 					pAttacker->RemoveAllItems(FALSE);
 					GiveMutators(pAttacker);
-					pAttacker->GiveNamedItem("weapon_fists");
-					pAttacker->GiveNamedItem(g_WeaponId[newLevel]);
+					if (!pAttacker->HasNamedPlayerItem("weapon_fists"))
+						pAttacker->GiveNamedItem("weapon_fists");
+					char weapon[32];
+					sprintf(weapon, "%s%s", "weapon_", g_WeaponId[newLevel]);
+					pAttacker->GiveNamedItem(STRING(ALLOC_STRING(weapon)));
 				}
 				m_hVoiceHandle = pAttacker;
 				m_fRefreshStats = gpGlobals->time + 1.0;
@@ -402,35 +405,35 @@ int CHalfLifeGunGame::IPointsForKill( CBasePlayer *pAttacker, CBasePlayer *pKill
 void CHalfLifeGunGame::PlayerSpawn( CBasePlayer *pPlayer )
 {
 	pPlayer->pev->weapons |= (1<<WEAPON_SUIT);
+	pPlayer->GiveNamedItem("weapon_fists");
 
-	if (pPlayer)
-	{
-		// In full game, go deep with negative deaths but in short game, pin to lowest level
-		if (ggstartlevel.value > 0 && pPlayer->pev->fuser4 < ggstartlevel.value) {
-			pPlayer->pev->fuser4 = ggstartlevel.value;
-			pPlayer->pev->frags = g_iFrags[(int)ggstartlevel.value - 1];
-		}
-		
-		int currentLevel = (int)pPlayer->pev->fuser4;
-		pPlayer->GiveNamedItem(g_WeaponId[currentLevel]);
-		pPlayer->GiveAmmo(AMMO_GLOCKCLIP_GIVE * 4, "9mm", _9MM_MAX_CARRY);
-		pPlayer->GiveAmmo(AMMO_357BOX_GIVE * 4, "357", _357_MAX_CARRY);
-		pPlayer->GiveAmmo(AMMO_BUCKSHOTBOX_GIVE * 4, "buckshot", BUCKSHOT_MAX_CARRY);
-		pPlayer->GiveAmmo(AMMO_CROSSBOWCLIP_GIVE * 4, "bolts", BOLT_MAX_CARRY);
-		pPlayer->GiveAmmo(AMMO_M203BOX_GIVE * 2, "ARgrenades", M203_GRENADE_MAX_CARRY);
-		pPlayer->GiveAmmo(AMMO_RPGCLIP_GIVE * 2, "rockets", ROCKET_MAX_CARRY);
-		pPlayer->GiveAmmo(AMMO_URANIUMBOX_GIVE * 4, "uranium", URANIUM_MAX_CARRY);
-
-		ClientPrint(pPlayer->pev, HUD_PRINTTALK, UTIL_VarArgs("[GunGame]: You need %d frags to reach level %s.\n",
-			g_iFrags[currentLevel] - ((int)pPlayer->pev->frags), g_WeaponId[currentLevel+1]));
+	// In full game, go deep with negative deaths but in short game, pin to lowest level
+	if (ggstartlevel.value > 0 && pPlayer->pev->fuser4 < ggstartlevel.value) {
+		pPlayer->pev->fuser4 = ggstartlevel.value;
+		pPlayer->pev->frags = g_iFrags[(int)ggstartlevel.value - 1];
 	}
+	
+	int currentLevel = (int)pPlayer->pev->fuser4;
+	char weapon[32];
+	sprintf(weapon, "%s%s", "weapon_", g_WeaponId[currentLevel]);
+	pPlayer->GiveNamedItem(STRING(ALLOC_STRING(weapon)));
+	pPlayer->GiveAmmo(AMMO_GLOCKCLIP_GIVE * 4, "9mm", _9MM_MAX_CARRY);
+	pPlayer->GiveAmmo(AMMO_357BOX_GIVE * 4, "357", _357_MAX_CARRY);
+	pPlayer->GiveAmmo(AMMO_BUCKSHOTBOX_GIVE * 4, "buckshot", BUCKSHOT_MAX_CARRY);
+	pPlayer->GiveAmmo(AMMO_CROSSBOWCLIP_GIVE * 4, "bolts", BOLT_MAX_CARRY);
+	pPlayer->GiveAmmo(AMMO_M203BOX_GIVE * 2, "ARgrenades", M203_GRENADE_MAX_CARRY);
+	pPlayer->GiveAmmo(AMMO_RPGCLIP_GIVE * 2, "rockets", ROCKET_MAX_CARRY);
+	pPlayer->GiveAmmo(AMMO_URANIUMBOX_GIVE * 4, "uranium", URANIUM_MAX_CARRY);
+
+	ClientPrint(pPlayer->pev, HUD_PRINTTALK, UTIL_VarArgs("[GunGame]: You need %d frags to reach level %s.\n",
+		g_iFrags[currentLevel] - ((int)pPlayer->pev->frags), g_WeaponId[currentLevel+1]));
 
 	g_pGameRules->SpawnMutators(pPlayer);
 }
 
 BOOL CHalfLifeGunGame::IsAllowedToSpawn( CBaseEntity *pEntity )
 {
-	if (strncmp(STRING(pEntity->pev->classname), "weapon_", 7) == 0)
+	if (strncmp(STRING(pEntity->pev->classname), "", 7) == 0)
 		return FALSE;
 
 	return TRUE;
@@ -465,4 +468,20 @@ BOOL CHalfLifeGunGame::IsAllowedToDropWeapon( void )
 BOOL CHalfLifeGunGame::IsAllowedToHolsterWeapon( void )
 {
 	return FALSE;
+}
+
+BOOL CHalfLifeGunGame::CanHavePlayerItem( CBasePlayer *pPlayer, CBasePlayerItem *pItem )
+{
+	if (!strcmp(STRING(pItem->pev->classname), "weapon_nuke"))
+		return FALSE;
+
+	return CHalfLifeMultiplay::CanHavePlayerItem( pPlayer, pItem );
+}
+
+BOOL CHalfLifeGunGame::CanRandomizeWeapon( const char *name )
+{
+	if (strcmp(name, "weapon_nuke") == 0)
+		return FALSE;
+
+	return TRUE;
 }

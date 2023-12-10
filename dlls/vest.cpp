@@ -121,6 +121,11 @@ BOOL CVest::Deploy( )
 
 void CVest::Holster( int skiplocal )
 {
+#ifndef CLIENT_DLL
+	if (allowvoiceovers.value)
+		STOP_SOUND(ENT(m_pPlayer->pev), CHAN_VOICE, "vest_attack.wav");
+	pev->nextthink = -1;
+#endif
 	CBasePlayerWeapon::DefaultHolster(VEST_RADIO_HOLSTER);
 }
 

@@ -492,6 +492,6 @@ public:
 extern int	gmsgHudText;
 extern BOOL gInitHUD;
 
-float IceExplode(CBaseEntity *pEntity, int bitsDamageType) ;
+float IceExplode(CBaseEntity *pAttacker, CBaseEntity *pEntity, int bitsDamageType) ;
 
 #endif // PLAYER_H

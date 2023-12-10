@@ -110,7 +110,9 @@ ScorePanel::ScorePanel(int x,int y,int wide,int tall) : Panel(x,y,wide,tall)
 	m_TitleLabel.setFont(tfont);
 	m_TitleLabel.setText("");
 	m_TitleLabel.setBgColor( 0, 0, 0, 255 );
-	m_TitleLabel.setFgColor( Scheme::sc_primary1 );
+	int r, g, b;
+	UnpackRGB(r, g, b, HudColor());
+	m_TitleLabel.setFgColor( r, g, b, 0 );
 	m_TitleLabel.setContentAlignment( vgui::Label::a_west );
 
 	LineBorder *border = new LineBorder(Color(60, 60, 60, 128));
@@ -162,7 +164,7 @@ ScorePanel::ScorePanel(int x,int y,int wide,int tall) : Panel(x,y,wide,tall)
 		m_HeaderGrid.SetEntry(i, 0, &m_HeaderLabels[i]);
 
 		m_HeaderLabels[i].setBgColor(0,0,0,255);
-		m_HeaderLabels[i].setFgColor(Scheme::sc_primary1);
+		m_HeaderLabels[i].setFgColor(r, g, b, 255);
 		m_HeaderLabels[i].setFont(smallfont);
 		m_HeaderLabels[i].setContentAlignment(g_ColumnInfo[i].m_Alignment);
 
@@ -268,6 +270,9 @@ void ScorePanel::Update()
 	{
 		char sz[MAX_SERVERNAME_LENGTH + 16];
 		sprintf(sz, "%s", gViewPort->m_szServerName );
+		int r, g, b;
+		UnpackRGB(r, g, b, HudColor());
+		m_TitleLabel.setFgColor( r, g, b, 0 );
 		m_TitleLabel.setText(sz);
 	}
 
