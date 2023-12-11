@@ -915,6 +915,11 @@ void CBasePlayer::PackDeadPlayerItems( void )
 
 void CBasePlayer::RemoveAllItems( BOOL removeSuit )
 {
+	if (!m_fKnownItem)
+	{
+		return;
+	}
+
 	if (m_pActiveItem)
 	{
 		ResetAutoaim( );
@@ -6402,9 +6407,6 @@ void CBasePlayer::DisplayHudMessage(const char *message, int channel, float x, f
 
 void CBasePlayer::ExitObserver( void )
 {
-	if ( HasWeapons() )
-		RemoveAllItems( TRUE );
-
 	pev->iuser1 = pev->iuser2 = 0;
 	m_iHideHUD = 0;
 	Spawn();
