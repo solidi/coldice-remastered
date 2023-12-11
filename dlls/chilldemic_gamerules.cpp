@@ -354,6 +354,17 @@ void CHalfLifeChilldemic::Think( void )
 
 	if ( clients > 1 )
 	{
+		if ( m_fWaitForPlayersTime == -1 )
+			m_fWaitForPlayersTime = gpGlobals->time + 17.0;
+
+		if ( m_fWaitForPlayersTime > gpGlobals->time )
+		{
+			SuckAllToSpectator();
+			flUpdateTime = gpGlobals->time + 1.0;
+			UTIL_ClientPrintAll(HUD_PRINTCENTER, UTIL_VarArgs("Battle will begin in %.0f\n", (m_fWaitForPlayersTime + 3) - gpGlobals->time));
+			return;
+		}
+
 		if ( m_iCountDown > 0 )
 		{
 			if (m_iCountDown == 2) {
@@ -384,6 +395,7 @@ void CHalfLifeChilldemic::Think( void )
 		m_fSendArmoredManMessage = gpGlobals->time + 1.0;
 
 		m_iCountDown = 3;
+		m_fWaitForPlayersTime = -1;
 
 		if (roundtimelimit.value > 0)
 		{
@@ -416,6 +428,7 @@ void CHalfLifeChilldemic::Think( void )
 			WRITE_BYTE(0);
 			WRITE_STRING(UTIL_VarArgs("%d Rounds", (int)roundlimit.value));
 		MESSAGE_END();
+		m_fWaitForPlayersTime = gpGlobals->time + 17.0;
 	}
 
 	flUpdateTime = gpGlobals->time + 1.0;

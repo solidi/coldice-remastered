@@ -471,6 +471,7 @@ protected:
 	int m_iPlayer1, m_iPlayer2;
 	BOOL m_iFirstBloodDecided;
 	int m_iPlayersInGame;
+	float m_fWaitForPlayersTime;
 };
 
 extern DLL_GLOBAL CGameRules*	g_pGameRules;
