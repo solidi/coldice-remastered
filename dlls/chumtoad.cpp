@@ -331,18 +331,15 @@ void CCaptureChumtoad::SuperBounceTouch( CBaseEntity *pOther )
 	if (pOther->IsPlayer() && pOther->IsAlive())
 	{
 		CBasePlayer *pPlayer = (CBasePlayer *)pOther;
-		if (!pPlayer->m_iHoldingChumtoad)
+		if (!pPlayer->m_iHoldingChumtoad && !pPlayer->HasNamedPlayerItem("weapon_chumtoad"))
 		{
 			g_pGameRules->CaptureCharm(pPlayer);
-	
-			if (!pPlayer->HasNamedPlayerItem("weapon_chumtoad")) {
-				pPlayer->GiveNamedItem("weapon_chumtoad");
-				pPlayer->SelectItem("weapon_chumtoad");
-				m_flNextHit = gpGlobals->time + 1.0;
-				SetTouch(NULL);
-				UTIL_Remove(this);
-				return;
-			}
+			pPlayer->GiveNamedItem("weapon_chumtoad");
+			pPlayer->SelectItem("weapon_chumtoad");
+			m_flNextHit = gpGlobals->time + 1.0;
+			SetTouch(NULL);
+			UTIL_Remove(this);
+			return;
 		}
 	}
 
