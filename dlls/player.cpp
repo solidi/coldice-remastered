@@ -4389,8 +4389,6 @@ void CBasePlayer :: ForceClientDllUpdate( void )
 ImpulseCommands
 ============
 */
-extern float g_flWeaponCheat;
-
 void CBasePlayer::ImpulseCommands( )
 {
 	TraceResult	tr;// UNDONE: kill me! This is temporary for PreAlpha CDs
@@ -5044,7 +5042,7 @@ BOOL CBasePlayer::ReleaseHeldItem(float speed)
 void CBasePlayer::CheatImpulseCommands( int iImpulse, BOOL m_iFromClient )
 {
 #if !defined( HLDEMO_BUILD )
-	if ( m_iFromClient && g_flWeaponCheat == 0.0 )
+	if ( m_iFromClient && g_psv_cheats->value == 0.0 )
 	{
 		return;
 	}

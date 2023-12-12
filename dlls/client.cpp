@@ -610,8 +610,6 @@ ClientCommand
 called each time a player uses a "cmd" command
 ============
 */
-extern float g_flWeaponCheat;
-
 extern int gmsgVoteFor;
 extern int gmsgVoteGameplay;
 extern int gmsgVoteMap;
@@ -675,7 +673,7 @@ void ClientCommand( edict_t *pEntity )
 	}
 	else if ( FStrEq(pcmd, "give" ) )
 	{
-		if ( g_flWeaponCheat != 0.0)
+		if (g_psv_cheats->value != 0.0)
 		{
 			int iszItem = ALLOC_STRING( CMD_ARGV(1) );	// Make a copy of the classname
 			GetClassPtr((CBasePlayer *)pev)->GiveNamedItem( STRING(iszItem) );
@@ -771,7 +769,7 @@ void ClientCommand( edict_t *pEntity )
 	}
 	else if ( FStrEq(pcmd, "fov" ) )
 	{
-		if ( g_flWeaponCheat && CMD_ARGC() > 1)
+		if (g_psv_cheats->value && CMD_ARGC() > 1)
 		{
 			GetClassPtr((CBasePlayer *)pev)->m_iFOV = atoi( CMD_ARGV(1) );
 		}
@@ -823,7 +821,7 @@ void ClientCommand( edict_t *pEntity )
 	{
 		CBasePlayer *pPlayer = GetClassPtr((CBasePlayer *)pev);
 
-		if (g_flWeaponCheat) {
+		if (g_psv_cheats->value) {
 			if ( pPlayer->pev->flags & FL_GODMODE ) {
 				pPlayer->pev->flags &= ~FL_GODMODE;
 				pPlayer->pev->flags &= ~FL_NOTARGET; // chumtoads and things
