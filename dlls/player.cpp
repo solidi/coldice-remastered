@@ -4987,7 +4987,7 @@ void CBasePlayer::TraceHitOfFlip( void )
 
 			EMIT_SOUND(ENT(pev), CHAN_ITEM, "fists_hitbod.wav", 1, ATTN_NORM);
 
-			if (pObject->IsPlayer())
+			if (g_pGameRules->AllowMeleeDrop() && pObject->IsPlayer())
 			{
 				CBasePlayer *pl = (CBasePlayer *)pObject;
 				if (pl->m_pActiveItem)

@@ -236,6 +236,8 @@ public:
 
 	virtual BOOL HasSpectators( void );
 
+	virtual BOOL AllowMeleeDrop( void );
+
 // Client connection/disconnection
 	virtual BOOL ClientConnected( edict_t *pEntity, const char *pszName, const char *pszAddress, char szRejectReason[ 128 ] );
 	virtual void InitHUD( CBasePlayer *pl );		// the client dll is ready for updating
@@ -338,6 +340,8 @@ public:
 	virtual BOOL IsCoOp( void );
 
 	virtual BOOL HasSpectators( void );
+
+	virtual BOOL AllowMeleeDrop( void );
 
 // Client connection/disconnection
 	// If ClientConnected returns FALSE, the connection is rejected and the user is provided the reason specified in

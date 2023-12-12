@@ -2534,7 +2534,7 @@ void CBasePlayerWeapon::PunchAttack( BOOL holdingSomething )
 				flVol = 0.1;
 				pEntity->pev->velocity = (pEntity->pev->velocity + (gpGlobals->v_forward * RANDOM_LONG(100,200)));
 
-				if (pEntity->IsPlayer())
+				if (g_pGameRules->AllowMeleeDrop() && pEntity->IsPlayer())
 				{
 					CBasePlayer *pl = (CBasePlayer *)pEntity;
 					if (pl->m_pActiveItem)
@@ -2761,7 +2761,7 @@ void CBasePlayerWeapon::KickAttack( BOOL holdingSomething )
 				flVol = 0.1;
 				pEntity->pev->velocity = (pEntity->pev->velocity + (gpGlobals->v_forward * RANDOM_LONG(200,300)));
 
-				if (pEntity->IsPlayer())
+				if (g_pGameRules->AllowMeleeDrop() && pEntity->IsPlayer())
 				{
 					CBasePlayer *pl = (CBasePlayer *)pEntity;
 					if (pl->m_pActiveItem)

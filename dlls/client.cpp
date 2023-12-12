@@ -950,14 +950,14 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_bobtilt [0|1]\" - Old Bob Tilt\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_righthand [0|1]\" - Right/Left Handed Models\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_infomessage [0|1]\" - display weapon and rune pick up messages\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_bulletsmoke [0|1]\" - turn on or off bullet smoke and flare effects\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_gunsmoke [0|1]\" - turn on or off gun smoke effects when fired\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_glasshud [0|1]\" - switch elements of the hud bouncing/bobbing on or off\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "For more, type help_more\n" );
 	}
 	else if ( FStrEq( pcmd, "help_more" )  )
 	{
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "[Client Help More]\n");
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_bulletsmoke [0|1]\" - turn on or off bullet smoke and flare effects\n");
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_gunsmoke [0|1]\" - turn on or off gun smoke effects when fired\n");
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_glasshud [0|1]\" - switch elements of the hud bouncing/bobbing on or off\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_weaponsway [0|1]\" - Weapon Sway\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_weaponfidget [0|1]\" - Weapon Fidget\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_weaponretract [0|1]\" - Weapon Retract\n");
@@ -1085,9 +1085,10 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_ggstartlevel\" - Sets default start level of gun game\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_ctcsecondsforpoint\" - amount of second holding chumtoad for a point\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_breakabletime\" - amount of seconds before a breakable entity respawns\n");
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_voting\" - enable or disable end of the map voting\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_voting \"[0|1]\"\" - enable or disable end of the map voting\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_spawnprotectiontime\" - amount of time in seconds a player is protected from damage\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_chaosfilter\" - a list of mutators inwhich are ignored during chaos mode\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_meleedrop \"[0|1]\"\" - allow kick or punch attcks to drop weapons out of hands\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "For more, see readme.txt\n" );
 	}
 #ifdef _DEBUG

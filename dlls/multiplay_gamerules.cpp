@@ -1554,6 +1554,11 @@ BOOL CHalfLifeMultiplay::HasSpectators( void )
 	return TRUE;
 }
 
+BOOL CHalfLifeRules::AllowMeleeDrop( void )
+{
+	return meleedrop.value;
+}
+
 float CHalfLifeMultiplay::WeaponMultipler( void )
 {
 	if ((strstr(mutators.string, g_MutatorFastWeapons) ||
