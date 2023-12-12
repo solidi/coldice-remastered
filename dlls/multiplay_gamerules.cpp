@@ -1554,7 +1554,7 @@ BOOL CHalfLifeMultiplay::HasSpectators( void )
 	return TRUE;
 }
 
-BOOL CHalfLifeRules::AllowMeleeDrop( void )
+BOOL CHalfLifeMultiplay::AllowMeleeDrop( void )
 {
 	return meleedrop.value;
 }
