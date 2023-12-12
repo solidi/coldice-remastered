@@ -189,6 +189,8 @@ public:
 	virtual BOOL IsChilldemic();
 	virtual BOOL IsJVS();
 
+	virtual BOOL AllowMeleeDrop() = 0;
+
 	// Immediately end a multiplayer game
 	virtual void EndMultiplayerGame( void ) {}
 

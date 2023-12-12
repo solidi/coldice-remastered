@@ -2003,7 +2003,7 @@ void CHalfLifeMultiplay :: PlayerThink( CBasePlayer *pPlayer )
 			pPlayer->pev->rendermode = kRenderNormal;
 			pPlayer->pev->renderfx = kRenderFxNone;
 			pPlayer->pev->renderamt = 0;
-			pPlayer->pev->solid = SOLID_SLIDEBOX;
+			//pPlayer->pev->solid = SOLID_SLIDEBOX;
 			pPlayer->m_fLastSpawnTime = 0;
 		}
 	}
@@ -2131,7 +2131,7 @@ void CHalfLifeMultiplay :: PlayerSpawn( CBasePlayer *pPlayer )
 	if (spawnprotectiontime.value > 0)
 	{
 		pPlayer->pev->flags |= FL_GODMODE;
-		pPlayer->pev->solid = SOLID_NOT;
+		// pPlayer->pev->solid = SOLID_NOT;
 		pPlayer->m_fEffectTime = gpGlobals->time + 0.25;
 	}
 
