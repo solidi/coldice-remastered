@@ -246,7 +246,7 @@ int CFists::Swing( int fFirst )
 				if (fFirst == SHORYUKEN)
 					pEntity->pev->velocity.z += RANDOM_LONG(200,300);
 
-				if (pEntity->IsPlayer())
+				if (g_pGameRules->AllowMeleeDrop() && pEntity->IsPlayer())
 				{
 					CBasePlayer *pl = (CBasePlayer *)pEntity;
 					if (pl->m_pActiveItem)

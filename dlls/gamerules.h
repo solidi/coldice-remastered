@@ -189,6 +189,8 @@ public:
 	virtual BOOL IsChilldemic();
 	virtual BOOL IsJVS();
 
+	virtual BOOL AllowMeleeDrop() = 0;
+
 	// Immediately end a multiplayer game
 	virtual void EndMultiplayerGame( void ) {}
 
@@ -235,6 +237,8 @@ public:
 	virtual BOOL IsCoOp( void );
 
 	virtual BOOL HasSpectators( void );
+
+	virtual BOOL AllowMeleeDrop( void );
 
 // Client connection/disconnection
 	virtual BOOL ClientConnected( edict_t *pEntity, const char *pszName, const char *pszAddress, char szRejectReason[ 128 ] );
@@ -338,6 +342,8 @@ public:
 	virtual BOOL IsCoOp( void );
 
 	virtual BOOL HasSpectators( void );
+
+	virtual BOOL AllowMeleeDrop( void );
 
 // Client connection/disconnection
 	// If ClientConnected returns FALSE, the connection is rejected and the user is provided the reason specified in

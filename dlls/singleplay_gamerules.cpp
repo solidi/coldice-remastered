@@ -68,6 +68,11 @@ BOOL CHalfLifeRules::HasSpectators( void )
 	return FALSE;
 }
 
+BOOL CHalfLifeRules::AllowMeleeDrop( void )
+{
+	return FALSE;
+}
+
 //=========================================================
 //=========================================================
 BOOL CHalfLifeRules::IsCoOp( void )

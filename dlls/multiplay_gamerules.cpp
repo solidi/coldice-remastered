@@ -227,7 +227,7 @@ char *sBuiltInMaps[] =
 	"chillworks",
 	"cold_base",
 	"coldice",
-	"defroster",
+//	"defroster",
 	"depot",
 	"doublefrost",
 	"drift",
@@ -242,7 +242,7 @@ char *sBuiltInMaps[] =
 	"glupshitto",
 	"ice_pit",
 	"overflow",
-	"quadfrost",
+//	"quadfrost",
 	"snow_camp",
 	"snowcross",
 	"snowtransit",
@@ -255,7 +255,7 @@ char *sBuiltInMaps[] =
 	"RANDOM",
 };
 
-#define BUILT_IN_MAP_COUNT 31
+#define BUILT_IN_MAP_COUNT 29
 
 char *gamePlayModes[] = {
 	"Deathmatch",
@@ -1554,6 +1554,11 @@ BOOL CHalfLifeMultiplay::HasSpectators( void )
 	return TRUE;
 }
 
+BOOL CHalfLifeMultiplay::AllowMeleeDrop( void )
+{
+	return meleedrop.value;
+}
+
 float CHalfLifeMultiplay::WeaponMultipler( void )
 {
 	if ((strstr(mutators.string, g_MutatorFastWeapons) ||
@@ -1998,7 +2003,7 @@ void CHalfLifeMultiplay :: PlayerThink( CBasePlayer *pPlayer )
 			pPlayer->pev->rendermode = kRenderNormal;
 			pPlayer->pev->renderfx = kRenderFxNone;
 			pPlayer->pev->renderamt = 0;
-			pPlayer->pev->solid = SOLID_SLIDEBOX;
+			//pPlayer->pev->solid = SOLID_SLIDEBOX;
 			pPlayer->m_fLastSpawnTime = 0;
 		}
 	}
@@ -2126,7 +2131,7 @@ void CHalfLifeMultiplay :: PlayerSpawn( CBasePlayer *pPlayer )
 	if (spawnprotectiontime.value > 0)
 	{
 		pPlayer->pev->flags |= FL_GODMODE;
-		pPlayer->pev->solid = SOLID_NOT;
+		// pPlayer->pev->solid = SOLID_NOT;
 		pPlayer->m_fEffectTime = gpGlobals->time + 0.25;
 	}
 
