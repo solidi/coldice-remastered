@@ -4649,7 +4649,7 @@ void CBasePlayer::TraceHitOfSelacoSlide( void )
 					float flDamage = 0;
 					if (pEntity->pev->deadflag != DEAD_FAKING && FBitSet(pEntity->pev->flags, FL_FROZEN)) {
 						pEntity->pev->renderamt = 100;
-						flDamage = 200;
+						flDamage = pEntity->pev->max_health * 4;
 						::IceExplode(this, pEntity, DMG_FREEZE);
 					}
 					pEntity->TraceAttack(pev, (gSkillData.plrDmgKick * 4) + flDamage, gpGlobals->v_forward, &tr, DMG_KICK );
@@ -4753,7 +4753,7 @@ void CBasePlayer::TraceHitOfSelacoSlide( void )
 					float flDamage = 0;
 					if (pObject->pev->deadflag != DEAD_FAKING && FBitSet(pObject->pev->flags, FL_FROZEN)) {
 						pObject->pev->renderamt = 100;
-						flDamage = 200;
+						flDamage = pObject->pev->max_health * 4;
 						::IceExplode(this, pObject, DMG_FREEZE);
 					}
 
@@ -4976,7 +4976,7 @@ void CBasePlayer::TraceHitOfFlip( void )
 			float flDamage = 0;
 			if (pObject->pev->deadflag != DEAD_FAKING && FBitSet(pObject->pev->flags, FL_FROZEN)) {
 				pObject->pev->renderamt = 100;
-				flDamage = 200;
+				flDamage = pObject->pev->max_health * 4;
 				::IceExplode(this, pObject, DMG_FREEZE);
 			}
 
@@ -6708,7 +6708,7 @@ float IceExplode(CBaseEntity *pAttacker, CBaseEntity *pEntity, int bitsDamageTyp
 		MESSAGE_END();
 
 		// Make sure to kill
-		flAdjustedDamage = 200;
+		flAdjustedDamage = pEntity->pev->max_health * 4;
 		((CBasePlayer *)pEntity)->m_iFreezeCounter = pEntity->pev->renderamt = 0;
 	}
 
