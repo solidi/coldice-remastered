@@ -674,9 +674,8 @@ void CGameRules::GiveMutators(CBasePlayer *pPlayer)
 
 	if (strstr(mutators.string, g_MutatorBerserker) ||
 		atoi(mutators.string) == MUTATOR_BERSERKER) {
-		pPlayer->RemoveAllItems(FALSE);
-		pPlayer->GiveNamedItem("weapon_fists");
-		pPlayer->GiveNamedItem("weapon_chainsaw");
+		if (!pPlayer->HasNamedPlayerItem("weapon_chainsaw"))
+			pPlayer->GiveNamedItem("weapon_chainsaw");
 	}
 }
 
