@@ -523,7 +523,6 @@ LINK_ENTITY_TO_CLASS( worldspawn, CWorld );
 #define SF_WORLD_FORCETEAM	0x0004		// Force teams
 
 extern DLL_GLOBAL BOOL		g_fGameOver;
-float g_flWeaponCheat; 
 
 void CWorld :: Spawn( void )
 {
@@ -532,7 +531,6 @@ void CWorld :: Spawn( void )
 	Precache( );
 	if (randommutators.value)
 		RandomizeMutators();
-	g_flWeaponCheat = CVAR_GET_FLOAT( "sv_cheats" );  // Is the impulse 101 command allowed?
 	if (CVAR_GET_FLOAT( "mp_allowrunes" ))
 		CWorldRunes::Create( );
 }
