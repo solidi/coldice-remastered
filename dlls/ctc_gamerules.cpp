@@ -129,7 +129,7 @@ void CHalfLifeCaptureTheChumtoad::Think( void )
 			{
 				if (CreateChumtoad())
 				{
-					UTIL_ClientPrintAll(HUD_PRINTTALK, "[CtC]: The chumtoad has appeared!\n");
+					UTIL_ClientPrintAll(HUD_PRINTTALK, "[CtC]: The chumtoad has spawned!\n");
 					m_fCreateChumtoadTimer = -1;
 					m_fMoveChumtoadTimer = gpGlobals->time + SPAWN_TIME;
 				}
@@ -212,6 +212,26 @@ void CHalfLifeCaptureTheChumtoad::CaptureCharm( CBasePlayer *pPlayer )
 	pPlayer->pev->fuser4 = 1;
 	m_pHolder = (CBaseEntity *)pPlayer;
 
+	int m_iTrail = PRECACHE_MODEL("sprites/smoke.spr");
+
+	MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
+		WRITE_BYTE( TE_BEAMFOLLOW );
+		WRITE_SHORT( pPlayer->entindex() );	// entity
+		WRITE_SHORT( m_iTrail );	// model
+		WRITE_BYTE( 50 ); // life
+		WRITE_BYTE( 2 );  // width
+		if (icesprites.value) {
+			WRITE_BYTE( 0 );   // r, g, b
+			WRITE_BYTE( 160 );   // r, g, b
+			WRITE_BYTE( 255 );   // r, g, b
+		} else {
+			WRITE_BYTE( 224 );   // r, g, b
+			WRITE_BYTE( 224 );   // r, g, b
+			WRITE_BYTE( 255 );   // r, g, b
+		}
+		WRITE_BYTE( 140 );	// brightness
+	MESSAGE_END();
+
 	UTIL_ClientPrintAll(HUD_PRINTTALK, "[CtC]: %s has captured the chumtoad!\n",
 	STRING(pPlayer->pev->netname));
 
@@ -235,6 +255,11 @@ CBaseEntity *CHalfLifeCaptureTheChumtoad::DropCharm( CBasePlayer *pPlayer, Vecto
 	pPlayer->pev->fuser4 = 0;
 	m_pHolder = NULL;
 
+	MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
+		WRITE_BYTE( TE_KILLBEAM );
+		WRITE_SHORT( pPlayer->entindex() );	// entity
+	MESSAGE_END();
+
 	UTIL_ClientPrintAll(HUD_PRINTTALK, "[CtC]: %s has dropped the chumtoad!\n",
 		STRING(pPlayer->pev->netname));
 
@@ -244,7 +269,7 @@ CBaseEntity *CHalfLifeCaptureTheChumtoad::DropCharm( CBasePlayer *pPlayer, Vecto
 
 	m_fCreateChumtoadTimer = -1;
 	m_fMoveChumtoadTimer = gpGlobals->time + SPAWN_TIME;
-	CBaseEntity *pChumtoad = CBaseEntity::Create("monster_ctctoad", origin, pPlayer->pev->v_angle, pPlayer->edict());
+	CBaseEntity *pChumtoad = CBaseEntity::Create("monster_ctctoad", origin, pPlayer->pev->v_angle, NULL);
 	if (pChumtoad)
 		pChumtoad->pev->iuser1 = 1;
 	else
@@ -425,4 +450,9 @@ BOOL CHalfLifeCaptureTheChumtoad::CanRandomizeWeapon( const char *name )
 		return FALSE;
 
 	return TRUE;
+}
+
+BOOL CHalfLifeCaptureTheChumtoad::IsAllowedToDropWeapon( void )
+{
+	return FALSE;
 }
