@@ -219,7 +219,7 @@ void CHalfLifeCaptureTheChumtoad::CaptureCharm( CBasePlayer *pPlayer )
 		WRITE_SHORT( pPlayer->entindex() );	// entity
 		WRITE_SHORT( m_iTrail );	// model
 		WRITE_BYTE( 50 ); // life
-		WRITE_BYTE( 2 );  // width
+		WRITE_BYTE( 3 );  // width
 		if (icesprites.value) {
 			WRITE_BYTE( 0 );   // r, g, b
 			WRITE_BYTE( 160 );   // r, g, b
@@ -229,7 +229,7 @@ void CHalfLifeCaptureTheChumtoad::CaptureCharm( CBasePlayer *pPlayer )
 			WRITE_BYTE( 224 );   // r, g, b
 			WRITE_BYTE( 255 );   // r, g, b
 		}
-		WRITE_BYTE( 140 );	// brightness
+		WRITE_BYTE( 200 );	// brightness
 	MESSAGE_END();
 
 	UTIL_ClientPrintAll(HUD_PRINTTALK, "[CtC]: %s has captured the chumtoad!\n",

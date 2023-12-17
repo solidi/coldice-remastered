@@ -66,6 +66,7 @@ class CCaptureChumtoad : public CGrenade
 	Vector m_posPrev;
 	EHANDLE m_hOwner;
 	int  m_iMyClass;
+	int m_iTrail;
 };
 
 float CCaptureChumtoad::m_flNextBounceSoundTime = 0;
@@ -136,6 +137,24 @@ void CCaptureChumtoad::Spawn( void )
 
 	m_flNextBounceSoundTime = gpGlobals->time;// reset each time a snark is spawned.
 
+	MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
+		WRITE_BYTE( TE_BEAMFOLLOW );
+		WRITE_SHORT( entindex() );	// entity
+		WRITE_SHORT( m_iTrail );	// model
+		WRITE_BYTE( 50 ); // life
+		WRITE_BYTE( 3 );  // width
+		if (icesprites.value) {
+			WRITE_BYTE( 0 );   // r, g, b
+			WRITE_BYTE( 160 );   // r, g, b
+			WRITE_BYTE( 255 );   // r, g, b
+		} else {
+			WRITE_BYTE( 224 );   // r, g, b
+			WRITE_BYTE( 224 );   // r, g, b
+			WRITE_BYTE( 255 );   // r, g, b
+		}
+		WRITE_BYTE( 200 );	// brightness
+	MESSAGE_END();
+
 	pev->sequence = WCHUMTOAD_RUN;
 	ResetSequenceInfo( );
 }
@@ -149,6 +168,8 @@ void CCaptureChumtoad::Precache( void )
 	PRECACHE_SOUND("chumtoad_hunt1.wav");
 	PRECACHE_SOUND("chumtoad_hunt2.wav");
 	PRECACHE_SOUND("chumtoad_hunt3.wav");
+
+	m_iTrail = PRECACHE_MODEL("sprites/smoke.spr");
 }
 
 void CCaptureChumtoad::Killed( entvars_t *pevAttacker, int iGib )
