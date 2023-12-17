@@ -604,6 +604,10 @@ void CGameRules::SpawnMutators(CBasePlayer *pPlayer)
 		atoi(mutators.string) == MUTATOR_ICE))
 		pPlayer->pev->friction = 0.3;
 
+	if ((strstr(mutators.string, g_MutatorLightsOut) ||
+		atoi(mutators.string) == MUTATOR_LIGHTSOUT))
+		pPlayer->FlashlightTurnOn();
+
 	GiveMutators(pPlayer);
 
 	if (strstr(mutators.string, g_MutatorInvisible) ||
