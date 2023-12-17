@@ -798,11 +798,9 @@ void ClientCommand( edict_t *pEntity )
 	{
 		CBasePlayer *plr = GetClassPtr((CBasePlayer *)pev);
 
-		if ( g_pGameRules->AllowGrapplingHook(plr) ) {
-			if (plr->pGrapplingHook) {
-				plr->pGrapplingHook->KillHook();
-				plr->pGrapplingHook = NULL;
-			}
+		if (plr->pGrapplingHook) {
+			plr->pGrapplingHook->KillHook();
+			plr->pGrapplingHook = NULL;
 		}
 	}
 #endif
