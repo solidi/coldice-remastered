@@ -184,7 +184,7 @@ public:
 #define HORNET_MAX_CARRY		8
 #define M203_GRENADE_MAX_CARRY	20
 #define SNOWBALL_MAX_CARRY		20
-#define NUKE_MAX_CARRY			3
+#define NUKE_MAX_CARRY			1
 #define FUEL_MAX_CARRY			250
 
 // the maximum amount of ammo each weapon's clip can hold
