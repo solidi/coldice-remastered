@@ -433,7 +433,7 @@ void CHalfLifeGunGame::PlayerSpawn( CBasePlayer *pPlayer )
 
 BOOL CHalfLifeGunGame::IsAllowedToSpawn( CBaseEntity *pEntity )
 {
-	if (strncmp(STRING(pEntity->pev->classname), "", 7) == 0)
+	if (strncmp(STRING(pEntity->pev->classname), "weapon_", 7) == 0)
 		return FALSE;
 
 	return TRUE;
