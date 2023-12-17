@@ -79,6 +79,7 @@ extern DLL_GLOBAL const char *g_Mutator999;
 extern DLL_GLOBAL const char *g_MutatorBerserker;
 extern DLL_GLOBAL const char *g_MutatorJeepAThon;
 extern DLL_GLOBAL const char *g_MutatorAutoaim;
+extern DLL_GLOBAL const char *g_MutatorSantaHat;
 
 extern DLL_GLOBAL int g_GameMode;
 
@@ -608,6 +609,12 @@ void CGameRules::SpawnMutators(CBasePlayer *pPlayer)
 		atoi(mutators.string) == MUTATOR_LIGHTSOUT))
 		pPlayer->FlashlightTurnOn();
 
+	if (strstr(mutators.string, g_MutatorSantaHat) ||
+		atoi(mutators.string) == MUTATOR_SANTAHAT)
+		pPlayer->m_flNextSantaSound = gpGlobals->time + RANDOM_FLOAT(10,15);
+	else
+		pPlayer->m_flNextSantaSound = 0;
+
 	GiveMutators(pPlayer);
 
 	if (strstr(mutators.string, g_MutatorInvisible) ||
@@ -898,6 +905,12 @@ void CGameRules::CheckMutators(void)
 					atoi(mutators.string) != MUTATOR_AUTOAIM) {
 					pl->ResetAutoaim();
 				}
+
+				if (strstr(mutators.string, g_MutatorSantaHat) ||
+					atoi(mutators.string) == MUTATOR_SANTAHAT)
+					pl->m_flNextSantaSound = gpGlobals->time + RANDOM_FLOAT(10,15);
+				else
+					pl->m_flNextSantaSound = 0;
 
 				GiveMutators(pl);
 

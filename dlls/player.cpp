@@ -3704,15 +3704,6 @@ void CBasePlayer::Spawn( void )
 	
 	m_flNextChatTime = gpGlobals->time;
 
-	if (strstr(mutators.string, g_MutatorSantaHat) ||
-		atoi(mutators.string) == MUTATOR_SANTAHAT) {
-		m_flNextSantaSound = gpGlobals->time + RANDOM_FLOAT(10,15);
-	}
-	else
-	{
-		m_flNextSantaSound = 0;
-	}
-
 	// Flames
 	pev->playerclass = 0;
 	m_fBurnTime = 0.0;
