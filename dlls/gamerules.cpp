@@ -857,6 +857,18 @@ void CGameRules::CheckMutators(void)
 		{
 			CBaseEntity *pPlayer = UTIL_PlayerByIndex( i );
 			CBasePlayer *pl = (CBasePlayer *)pPlayer;
+
+			if (pPlayer && pPlayer->IsPlayer())
+			{
+				if (m_JopeCheck)
+				{
+					char name[64], *key = g_engfuncs.pfnGetInfoKeyBuffer(pPlayer->edict());
+					strcpy(name, STRING(pl->pev->netname));
+					g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer->edict()), key, "oname", name);
+					g_engfuncs.pfnSetClientKeyValue(pl->entindex(), key, "name", "Jope");
+				}
+			}
+
 			if (pPlayer && pPlayer->IsPlayer() && !pl->IsObserver())
 			{
 				pl->m_iShowMutatorMessage = gpGlobals->time + 2.0;
@@ -913,13 +925,6 @@ void CGameRules::CheckMutators(void)
 						pl->FlashlightTurnOff();
 				}
 
-				if (m_JopeCheck) {
-					char name[64], *key = g_engfuncs.pfnGetInfoKeyBuffer(pPlayer->edict());
-					strcpy(name, STRING(pl->pev->netname));
-					g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer->edict()), key, "oname", name);
-					g_engfuncs.pfnSetClientKeyValue(pl->entindex(), key, "name", "Jope");
-				}
-				
 				if (strstr(mutators.string, g_Mutator999) ||
 					atoi(mutators.string) == MUTATOR_999) {
 					pl->pev->max_health = 999;
