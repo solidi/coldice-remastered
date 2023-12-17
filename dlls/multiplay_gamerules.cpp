@@ -2964,6 +2964,8 @@ BOOL CHalfLifeMultiplay::IsAllowedToSpawn( CBaseEntity *pEntity )
 			CBaseEntity::Create((char *)dualWeaponList[RANDOM_LONG(0,ARRAYSIZE(dualWeaponList)-1)], pEntity->pev->origin, pEntity->pev->angles, pEntity->pev->owner);
 			return FALSE;
 		}
+
+		return TRUE;
 	}
 
 	if (snowballfight.value && 
