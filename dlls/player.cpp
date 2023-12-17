@@ -1748,6 +1748,9 @@ void CBasePlayer::StartObserver( Vector vecPosition, Vector vecViewAngle )
 		WRITE_BYTE(0);
 	MESSAGE_END();
 
+	// Cold Ice
+	ClearBits(m_EFlags, EFLAG_DEADHANDS);
+
 	// Setup flags
 	m_iHideHUD = (HIDEHUD_HEALTH | HIDEHUD_WEAPONS);
 	m_afPhysicsFlags |= PFLAG_OBSERVER;
