@@ -590,7 +590,7 @@ void CL_DLLEXPORT HUD_TempEntUpdate (
 	}
 
 	// hold it
-	if (player && ((player->curstate.eflags & EFLAG_DEADHANDS))
+	if (player && (player->curstate.eflags & EFLAG_DEADHANDS))
 		gHUD.m_flExtraViewModelTime = gEngfuncs.GetClientTime() + 0.05;
 
 	//static bool extra = false;
