@@ -149,6 +149,9 @@ void CBarrel::BarrelTouch( CBaseEntity *pOther )
 	if (pev->health <= 0)
 		return;
 
+	if (pev->iuser3 > 0)
+		return;
+
 	if (pev->velocity.Length() > 100)
 	{
 		switch ( RANDOM_LONG(0,1) )

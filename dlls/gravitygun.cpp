@@ -118,6 +118,7 @@ void CGravityGun::PrimaryAttack()
 			isBspModel = true;
 
 		m_pCurrentEntity->pev->velocity = m_pPlayer->pev->velocity + forward * 1024;
+		m_pCurrentEntity->pev->iuser3 = 0;
 		m_pCurrentEntity = NULL;
 		m_flTimeWeaponIdle = UTIL_WeaponTimeBase();
 	}
@@ -144,6 +145,7 @@ void CGravityGun::PrimaryAttack()
 			UTIL_MakeVectors( m_pPlayer->pev->v_angle );
 			Vector vecSrc = pev->origin + pev->view_ofs + gpGlobals->v_forward * 64 + gpGlobals->v_up * 18;
 			m_pCurrentEntity = CBaseEntity::Create( "monster_barrel", vecSrc, Vector(0, pev->v_angle.y, 0), m_pPlayer->edict());
+			m_pCurrentEntity->pev->iuser3 = 1;
 			EMIT_SOUND(ENT(m_pPlayer->pev), CHAN_WEAPON, "weapons/rocketfire1.wav", 1.0, ATTN_NORM);
 		}
 		#endif
@@ -164,6 +166,7 @@ void CGravityGun::SecondaryAttack()
 	{
 		STOP_SOUND(ENT(m_pPlayer->pev), CHAN_WEAPON, "ambience/pulsemachine.wav");
 		m_pCurrentEntity->pev->velocity = m_pPlayer->pev->velocity;
+		m_pCurrentEntity->pev->iuser3 = 0;
 		m_pCurrentEntity = NULL;
 	}
 	else
@@ -172,6 +175,7 @@ void CGravityGun::SecondaryAttack()
 		if (m_pCurrentEntity)
 		{
 			m_pCurrentEntity->pev->origin[2] += 0.2f;
+			m_pCurrentEntity->pev->iuser3 = 1;
 			SendWeaponAnim(GRAVITYGUN_HOLD_IDLE);
 			EMIT_SOUND_DYN(ENT(m_pPlayer->pev), CHAN_WEAPON, "ambience/pulsemachine.wav", 1.0, ATTN_NORM, 0, PITCH_HIGH);
 			m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 0.53f;
