@@ -83,22 +83,22 @@ We have a minimum width of 1-320 - we could have the field widths scale with it?
 // X positions
 // relative to the side of the scoreboard
 #define NAME_RANGE_MIN  20
-#define NAME_RANGE_MAX  145
-#define KILLS_RANGE_MIN 130
-#define KILLS_RANGE_MAX 170
-#define DIVIDER_POS		180
-#define DEATHS_RANGE_MIN  185
-#define DEATHS_RANGE_MAX  210
-#define PING_RANGE_MIN	245
-#define PING_RANGE_MAX	295
-#define PL_RANGE_MIN 315
-#define PL_RANGE_MAX 375
+#define NAME_RANGE_MAX  265
+#define KILLS_RANGE_MIN 250
+#define KILLS_RANGE_MAX 290
+#define DIVIDER_POS		300
+#define DEATHS_RANGE_MIN  310
+#define DEATHS_RANGE_MAX  350
+#define PING_RANGE_MIN	385
+#define PING_RANGE_MAX	415
+#define PL_RANGE_MIN 435
+#define PL_RANGE_MAX 495
 
-int SCOREBOARD_WIDTH = 320;
+int SCOREBOARD_WIDTH = 440;
 		
 
 // Y positions
-#define ROW_GAP  13
+#define ROW_GAP  21
 #define ROW_RANGE_MIN 15
 #define ROW_RANGE_MAX ( ScreenHeight - 50 )
 
@@ -120,11 +120,11 @@ int CHudScoreboard :: Draw( float fTime )
 	if ( cl_showpacketloss && cl_showpacketloss->value && ( ScreenWidth >= 400 ) )
 	{
 		can_show_packetloss = 1;
-		SCOREBOARD_WIDTH = 400;
+		SCOREBOARD_WIDTH = 520;
 	}
 	else
 	{
-		SCOREBOARD_WIDTH = 320;
+		SCOREBOARD_WIDTH = 440;
 	}
 
 	// just sort the list on the fly
@@ -154,13 +154,13 @@ int CHudScoreboard :: Draw( float fTime )
 		gHUD.DrawHudString( xpos, ypos, NAME_RANGE_MAX + xpos_rel, "Teams", r, g, b );
 
 	if (gHUD.m_Teamplay == GAME_LMS)
-		gHUD.DrawHudStringReverse( KILLS_RANGE_MAX + xpos_rel, ypos, 0, "Lives Left", r, g, b );
+		gHUD.DrawHudStringReverse( KILLS_RANGE_MAX + xpos_rel, ypos, 0, "Lives", r, g, b );
 	else if (gHUD.m_Teamplay == GAME_GUNGAME)
 		gHUD.DrawHudStringReverse( KILLS_RANGE_MAX + xpos_rel, ypos, 0, "Level", r, g, b );
 	else if (gHUD.m_Teamplay == GAME_CTC)
 		gHUD.DrawHudStringReverse( KILLS_RANGE_MAX + xpos_rel, ypos, 0, "Points", r, g, b );
 	else
-		gHUD.DrawHudStringReverse( KILLS_RANGE_MAX + xpos_rel, ypos, 0, "Kills", r, g, b );
+		gHUD.DrawHudStringReverse( KILLS_RANGE_MAX + xpos_rel, ypos, 0, "K ills", r, g, b );
 	gHUD.DrawHudString( DIVIDER_POS + xpos_rel, ypos, ScreenWidth, "/", r, g, b );
 	gHUD.DrawHudString( DEATHS_RANGE_MIN + xpos_rel + 5, ypos, ScreenWidth, "Deaths", r, g, b );
 	gHUD.DrawHudString( PING_RANGE_MAX + xpos_rel - 35, ypos, ScreenWidth, "Latency", r, g, b );

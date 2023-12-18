@@ -79,6 +79,7 @@ extern DLL_GLOBAL const char *g_Mutator999;
 extern DLL_GLOBAL const char *g_MutatorBerserker;
 extern DLL_GLOBAL const char *g_MutatorJeepAThon;
 extern DLL_GLOBAL const char *g_MutatorAutoaim;
+extern DLL_GLOBAL const char *g_MutatorSantaHat;
 
 extern DLL_GLOBAL int g_GameMode;
 
@@ -604,6 +605,16 @@ void CGameRules::SpawnMutators(CBasePlayer *pPlayer)
 		atoi(mutators.string) == MUTATOR_ICE))
 		pPlayer->pev->friction = 0.3;
 
+	if ((strstr(mutators.string, g_MutatorLightsOut) ||
+		atoi(mutators.string) == MUTATOR_LIGHTSOUT))
+		pPlayer->FlashlightTurnOn();
+
+	if (strstr(mutators.string, g_MutatorSantaHat) ||
+		atoi(mutators.string) == MUTATOR_SANTAHAT)
+		pPlayer->m_flNextSantaSound = gpGlobals->time + RANDOM_FLOAT(10,15);
+	else
+		pPlayer->m_flNextSantaSound = 0;
+
 	GiveMutators(pPlayer);
 
 	if (strstr(mutators.string, g_MutatorInvisible) ||
@@ -853,6 +864,18 @@ void CGameRules::CheckMutators(void)
 		{
 			CBaseEntity *pPlayer = UTIL_PlayerByIndex( i );
 			CBasePlayer *pl = (CBasePlayer *)pPlayer;
+
+			if (pPlayer && pPlayer->IsPlayer())
+			{
+				if (m_JopeCheck)
+				{
+					char name[64], *key = g_engfuncs.pfnGetInfoKeyBuffer(pPlayer->edict());
+					strcpy(name, STRING(pl->pev->netname));
+					g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer->edict()), key, "oname", name);
+					g_engfuncs.pfnSetClientKeyValue(pl->entindex(), key, "name", "Jope");
+				}
+			}
+
 			if (pPlayer && pPlayer->IsPlayer() && !pl->IsObserver())
 			{
 				pl->m_iShowMutatorMessage = gpGlobals->time + 2.0;
@@ -883,6 +906,12 @@ void CGameRules::CheckMutators(void)
 					pl->ResetAutoaim();
 				}
 
+				if (strstr(mutators.string, g_MutatorSantaHat) ||
+					atoi(mutators.string) == MUTATOR_SANTAHAT)
+					pl->m_flNextSantaSound = gpGlobals->time + RANDOM_FLOAT(10,15);
+				else
+					pl->m_flNextSantaSound = 0;
+
 				GiveMutators(pl);
 
 				if (strstr(mutators.string, g_MutatorInvisible) ||
@@ -909,13 +938,6 @@ void CGameRules::CheckMutators(void)
 						pl->FlashlightTurnOff();
 				}
 
-				if (m_JopeCheck) {
-					char name[64], *key = g_engfuncs.pfnGetInfoKeyBuffer(pPlayer->edict());
-					strcpy(name, STRING(pl->pev->netname));
-					g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer->edict()), key, "oname", name);
-					g_engfuncs.pfnSetClientKeyValue(pl->entindex(), key, "name", "Jope");
-				}
-				
 				if (strstr(mutators.string, g_Mutator999) ||
 					atoi(mutators.string) == MUTATOR_999) {
 					pl->pev->max_health = 999;

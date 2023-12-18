@@ -211,8 +211,11 @@ void CNukeRocket::Killed(entvars_t *pevAttacker, int iGib) {
 
 			if ( plr )
 			{
-				ClearMultiDamage(); // fix nuke as kick
-				plr->TakeDamage(pev, VARS(pev->owner), gSkillData.plrDmgNuke, DMG_RADIATION);
+				if (pev->owner != plr->edict())
+				{
+					ClearMultiDamage(); // fix nuke as kick
+					plr->TakeDamage(pev, VARS(pev->owner), gSkillData.plrDmgNuke <= 0 ? (plr->pev->max_health * 4) : gSkillData.plrDmgNuke , DMG_RADIATION);
+				}
 				UTIL_ScreenFade(plr, Vector(255, 255, 255), 2, 4, 200, FFADE_IN);
 			}
 		}

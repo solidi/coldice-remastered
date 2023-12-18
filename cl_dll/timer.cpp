@@ -46,11 +46,10 @@ int CHudTimer::Draw( float fTime )
 		return 1;
 
 	int r, g, b;
-	// time must be positive
-	int minutes = fmax( 0, (int)( m_iTime + m_fStartTime - gHUD.m_flTime ) / 60);
-	int seconds = fmax( 0, (int)( m_iTime + m_fStartTime - gHUD.m_flTime ) - (minutes * 60));
-    float percent = fmax(0, (m_iTime + m_fStartTime - gHUD.m_flTime) / (m_iTime + m_fStartTime));
-    //gEngfuncs.Con_DPrintf("percent = %.2f\n", percent);
+
+	int minutes = fmin(fmax(0, (int)( m_iTime + m_fStartTime - gHUD.m_flTime ) / 60), 99);
+	int seconds = fmin(fmax(0, (int)( m_iTime + m_fStartTime - gHUD.m_flTime ) - (minutes * 60)), 59);
+	float percent = fmin(fmax(0, (m_iTime + m_fStartTime - gHUD.m_flTime) / (m_iTime + m_fStartTime)), 100);
 
 	if ( minutes * 60 + seconds > 20 )
 	{
