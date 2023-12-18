@@ -337,10 +337,19 @@ int CHalfLifeGunGame::IPointsForKill( CBasePlayer *pAttacker, CBasePlayer *pKill
 
 							if ( plr && plr->IsPlayer() && !plr->HasDisconnected )
 							{
-								plr->pev->fuser4 = ggstartlevel.value;
+								if (ggstartlevel.value > 0 && ggstartlevel.value < MAXLEVEL)
+								{
+									plr->pev->fuser4 = ggstartlevel.value;
+									plr->pev->frags = g_iFrags[(int)ggstartlevel.value - 1];
+								}
+								else
+								{
+									plr->pev->frags = plr->pev->fuser4 = 0;
+								}
+
 								MESSAGE_BEGIN( MSG_ALL, gmsgScoreInfo );
 									WRITE_BYTE( ENTINDEX(plr->edict()) );
-									WRITE_SHORT( plr->pev->frags = 0 );
+									WRITE_SHORT( plr->pev->frags );
 									WRITE_SHORT( plr->m_iDeaths = 0 );
 									WRITE_SHORT( 0 );
 									WRITE_SHORT( 0 );
@@ -358,7 +367,7 @@ int CHalfLifeGunGame::IPointsForKill( CBasePlayer *pAttacker, CBasePlayer *pKill
 							}
 						}
 
-						m_fRefreshStats = gpGlobals->time + 4.0;
+						m_fRefreshStats = -1;
 
 						// No frags awarded when round is complete
 						return 0;
@@ -385,7 +394,8 @@ int CHalfLifeGunGame::IPointsForKill( CBasePlayer *pAttacker, CBasePlayer *pKill
 						pAttacker->GiveNamedItem("weapon_fists");
 					char weapon[32];
 					sprintf(weapon, "%s%s", "weapon_", g_WeaponId[newLevel]);
-					pAttacker->GiveNamedItem(STRING(ALLOC_STRING(weapon)));
+					if (!pAttacker->HasNamedPlayerItem(weapon))
+						pAttacker->GiveNamedItem(STRING(ALLOC_STRING(weapon)));
 				}
 				m_hVoiceHandle = pAttacker;
 				m_fRefreshStats = gpGlobals->time + 1.0;
@@ -405,18 +415,27 @@ int CHalfLifeGunGame::IPointsForKill( CBasePlayer *pAttacker, CBasePlayer *pKill
 void CHalfLifeGunGame::PlayerSpawn( CBasePlayer *pPlayer )
 {
 	pPlayer->pev->weapons |= (1<<WEAPON_SUIT);
-	pPlayer->GiveNamedItem("weapon_fists");
+	if (!pPlayer->HasNamedPlayerItem("weapon_fists"))
+		pPlayer->GiveNamedItem("weapon_fists");
 
 	// In full game, go deep with negative deaths but in short game, pin to lowest level
 	if (ggstartlevel.value > 0 && pPlayer->pev->fuser4 < ggstartlevel.value) {
 		pPlayer->pev->fuser4 = ggstartlevel.value;
 		pPlayer->pev->frags = g_iFrags[(int)ggstartlevel.value - 1];
+		MESSAGE_BEGIN( MSG_ALL, gmsgScoreInfo );
+			WRITE_BYTE( ENTINDEX(pPlayer->edict()) );
+			WRITE_SHORT( pPlayer->pev->frags );
+			WRITE_SHORT( pPlayer->m_iDeaths );
+			WRITE_SHORT( 0 );
+			WRITE_SHORT( 0 );
+		MESSAGE_END();
 	}
 	
 	int currentLevel = (int)pPlayer->pev->fuser4;
 	char weapon[32];
 	sprintf(weapon, "%s%s", "weapon_", g_WeaponId[currentLevel]);
-	pPlayer->GiveNamedItem(STRING(ALLOC_STRING(weapon)));
+	if (!pPlayer->HasNamedPlayerItem(weapon))
+		pPlayer->GiveNamedItem(STRING(ALLOC_STRING(weapon)));
 	pPlayer->GiveAmmo(AMMO_GLOCKCLIP_GIVE * 4, "9mm", _9MM_MAX_CARRY);
 	pPlayer->GiveAmmo(AMMO_357BOX_GIVE * 4, "357", _357_MAX_CARRY);
 	pPlayer->GiveAmmo(AMMO_BUCKSHOTBOX_GIVE * 4, "buckshot", BUCKSHOT_MAX_CARRY);
@@ -481,6 +500,15 @@ BOOL CHalfLifeGunGame::CanHavePlayerItem( CBasePlayer *pPlayer, CBasePlayerItem 
 BOOL CHalfLifeGunGame::CanRandomizeWeapon( const char *name )
 {
 	if (strcmp(name, "weapon_nuke") == 0)
+		return FALSE;
+
+	return TRUE;
+}
+
+BOOL CHalfLifeGunGame::FPlayerCanTakeDamage( CBasePlayer *pPlayer, CBaseEntity *pAttacker )
+{
+	// No damage after round ends as we walk around
+	if (m_fGoToIntermission > 0)
 		return FALSE;
 
 	return TRUE;

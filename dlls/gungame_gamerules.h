@@ -33,6 +33,7 @@ public:
 	virtual int WeaponShouldRespawn( CBasePlayerItem *pWeapon );
 	virtual BOOL CanHavePlayerItem( CBasePlayer *pPlayer, CBasePlayerItem *pWeapon );
 	virtual BOOL CanRandomizeWeapon( const char *name );
+	virtual BOOL FPlayerCanTakeDamage( CBasePlayer *pPlayer, CBaseEntity *pAttacker );
 
 private:
 	float m_fGoToIntermission;
