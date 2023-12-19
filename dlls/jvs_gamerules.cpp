@@ -622,3 +622,38 @@ BOOL CHalfLifeJesusVsSanta::CanRandomizeWeapon( const char *name )
 
 	return TRUE;
 }
+
+void CHalfLifeJesusVsSanta::PlayerThink( CBasePlayer *pPlayer )
+{
+	CHalfLifeMultiplay::PlayerThink(pPlayer);
+
+	// Jesus walks on water (kind of)
+	if (pPlayer->IsArmoredMan)
+	{
+		if (pPlayer->m_fHallelujahTime < gpGlobals->time)
+		{
+			if (pPlayer->pev->waterlevel > 0)
+			{
+				pPlayer->pev->velocity.z += 45;
+				UTIL_MakeVectors(pPlayer->pev->v_angle);
+
+				if ( pPlayer->m_afButtonPressed & IN_FORWARD )
+					pPlayer->pev->velocity = pPlayer->pev->velocity + gpGlobals->v_forward * 300;
+				else if ( pPlayer->m_afButtonPressed & IN_BACK )
+					pPlayer->pev->velocity = pPlayer->pev->velocity + gpGlobals->v_forward * -300;
+				else if ( pPlayer->m_afButtonPressed & IN_MOVERIGHT )
+					pPlayer->pev->velocity = pPlayer->pev->velocity + gpGlobals->v_right * 300;
+				else if ( pPlayer->m_afButtonPressed & IN_MOVELEFT )
+					pPlayer->pev->velocity = pPlayer->pev->velocity + gpGlobals->v_right * -300;
+				else if ( pPlayer->m_afButtonPressed & IN_JUMP)
+					pPlayer->pev->velocity = pPlayer->pev->velocity + gpGlobals->v_up * 300;
+
+				// Allow Jesus to check on the fish
+				if ( pPlayer->m_afButtonPressed & IN_DUCK)
+					pPlayer->m_fHallelujahTime = gpGlobals->time + 15.0;
+				else
+					pPlayer->m_fHallelujahTime = gpGlobals->time + 0.01;
+			}
+		}
+	}
+}

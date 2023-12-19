@@ -30,4 +30,5 @@ public:
 	virtual BOOL IsArmoredMan( CBasePlayer *pPlayer ) { return pArmoredMan == pPlayer; }
 	virtual int GetTeamIndex( const char *pTeamName );
 	virtual BOOL CanRandomizeWeapon( const char *name );
+	virtual void PlayerThink( CBasePlayer *pPlayer );
 };
