@@ -853,11 +853,13 @@ void CGameRules::CheckMutators(void)
 				}
 			}
 		}
-
-		if (strstr(mutators.string, g_MutatorJope) ||
-			atoi(mutators.string) == MUTATOR_JOPE) {
-			m_JopeCheck = TRUE;
-			UTIL_ClientPrintAll(HUD_PRINTCENTER, "You've been JOPED!\n");
+		else
+		{
+			if (strstr(mutators.string, g_MutatorJope) ||
+				atoi(mutators.string) == MUTATOR_JOPE) {
+				m_JopeCheck = TRUE;
+				UTIL_ClientPrintAll(HUD_PRINTCENTER, "You've been JOPED!\n");
+			}
 		}
 
 		for (int i = 1; i <= gpGlobals->maxClients; i++)
