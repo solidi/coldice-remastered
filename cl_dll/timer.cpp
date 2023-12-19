@@ -14,11 +14,14 @@ int CHudTimer::Init()
 {
 	HOOK_MESSAGE( RoundTime );
 	HOOK_MESSAGE( ShowTimer );
+
 	m_iFlags = 0;
 	m_bPanicColorChange = false;
+	m_iTime = 0;
+	m_fStartTime = 0;
+
 	gHUD.AddHudElem(this);
-	//m_iFlags |= HUD_ACTIVE;
-    //m_iTime = 75;
+
 	return 1;
 }
 
