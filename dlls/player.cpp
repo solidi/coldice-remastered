@@ -272,7 +272,7 @@ void LinkUserMessages( void )
 	gmsgStatusValue = REG_USER_MSG("StatusValue", 3);
 	gmsgStatusIcon = REG_USER_MSG("StatusIcon", -1);
 	gmsgAcrobatics = REG_USER_MSG("Acrobatics", 1);
-	gmsgLifeBar = REG_USER_MSG("LifeBar", 3);
+	gmsgLifeBar = REG_USER_MSG("LifeBar", 2);
 	gmsgReceiveW = REG_USER_MSG("ReceiveW", 1);
 	gmsgPlayClientSound = REG_USER_MSG("PlayCSound", 1);
 	gmsgMutators = REG_USER_MSG("Mutators", -1);
@@ -5707,12 +5707,7 @@ void CBasePlayer :: UpdateClientData( void )
 			WRITE_COORD( damageOrigin.z );
 		MESSAGE_END();
 
-		// For both bots reporting odd numbers, and iceman
-		int health = pev->health;
-		if (pev->health > 100)
-			health = 100;
 		MESSAGE_BEGIN( MSG_PVS, gmsgLifeBar, pev->origin );
-			WRITE_BYTE( health );
 			WRITE_BYTE( pev->armorvalue );
 			WRITE_BYTE( ENTINDEX(edict()) );
 		MESSAGE_END();

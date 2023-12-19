@@ -62,16 +62,13 @@ int CHudLifeBar::VidInit(void)
 int CHudLifeBar::MsgFunc_LifeBar(const char *pszName,  int iSize, void *pbuf )
 {
 	BEGIN_READ( pbuf, iSize );
-	int health = READ_BYTE(); // health
 	int armor = READ_BYTE(); // armor
 	int index = READ_BYTE();
 
-	if (health > 100) health = 0; // ignore high values from bots
-	health = fmin(fmax(health, 0), 100);
 	if (armor > 100) armor = 0;
 	armor = fmin(fmax(armor, 0), 100);
 
-	GetLifeBar()->m_LifeBarData[index].health = health;
+	GetLifeBar()->m_LifeBarData[index].health = 0;
 	GetLifeBar()->m_LifeBarData[index].armor = armor;
 	GetLifeBar()->m_LifeBarData[index].refreshTime = gEngfuncs.GetClientTime() + 2;
 
@@ -89,10 +86,17 @@ int CHudLifeBar::UpdateSprites()
 	cl_entity_t *localPlayer = gEngfuncs.GetLocalPlayer();
 
 	int iOutModel = 0;
+	int maxHealth = 100;
+
+	if (gHUD.szActiveMutators != NULL &&
+		(strstr(gHUD.szActiveMutators, "999") ||
+		atoi(gHUD.szActiveMutators) == MUTATOR_999))
+		maxHealth = 999;
+
 	for (int i = 0; i < 32; i++)
 	{
 		cl_entity_s *pClient = gEngfuncs.GetEntityByIndex(i+1);
-		int health = m_LifeBarData[i+1].health;
+		int health = pClient->curstate.health;
 		int armor = m_LifeBarData[i+1].armor;
 		
 		if (m_LifeBarData[i+1].refreshTime < gEngfuncs.GetClientTime())
@@ -106,7 +110,7 @@ int CHudLifeBar::UpdateSprites()
 		if (pClient->curstate.effects & EF_NODRAW)
 			continue;
 
-		// Don't show an icon for the local player unless we're in thirdperson mode.
+		// Show an icon for the local player unless we're in thirdperson mode.
 		if (pClient == localPlayer && !cam_thirdperson)
 			continue;
 		
@@ -123,10 +127,13 @@ int CHudLifeBar::UpdateSprites()
 		pEnt->curstate.renderfx = kRenderFxNoDissipation;
 		pEnt->curstate.framerate = 0;
 		pEnt->model = (struct model_s*)gEngfuncs.GetSpritePointer(m_LifeBarHeadModel);
-		if (health > 0)
-			pEnt->curstate.frame = (armor > 0) ? 11 : ((float(health) / 100.0) * 10.0);
+		int calcHealth = ((health / float(maxHealth)) * 10);
+		if (health > 900)
+			pEnt->curstate.frame = 12; // 999 icon
+		else if (health > 0)
+			pEnt->curstate.frame = fmin(fmax(calcHealth, 0), 10);
 		else
-			pEnt->curstate.frame = 12;
+			pEnt->curstate.frame = 13; // death icon
 		pEnt->angles[0] = pEnt->angles[1] = pEnt->angles[2] = 0;
 		pEnt->curstate.scale = 0.5f;
 

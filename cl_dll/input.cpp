@@ -794,7 +794,7 @@ void CL_DLLEXPORT CL_CreateMove ( float frametime, struct usercmd_s *cmd, int ac
 		cmd->buttons &= ~IN_ATTACK;
 
 	// Using joystick?
-	if ( in_joystick->value )
+	if ( in_joystick && in_joystick->value )
 	{
 		if ( cmd->forwardmove > 0 )
 		{

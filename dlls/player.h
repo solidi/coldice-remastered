@@ -248,13 +248,15 @@ public:
 
 	BOOL HasDisconnected;
 	BOOL IsInArena;
-	float m_fArmoredManHits;
 	int m_iRoundWins;
 	int m_iRoundPlays;
 	float m_flForceToObserverTime;
-	BOOL IsArmoredMan;
 	void ExitObserver( void );
 	BOOL IsSpectator( void ) { return ( m_afPhysicsFlags & PFLAG_OBSERVER ? TRUE : FALSE ); };
+
+	float m_fArmoredManHits;
+	BOOL IsArmoredMan;
+	float m_fHallelujahTime;
 
 	void CalculateToFlip( void );
 	void StartRightFlip( void );
