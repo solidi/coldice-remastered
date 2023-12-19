@@ -886,6 +886,11 @@ void IN_JoyMove ( float frametime, usercmd_t *cmd )
 		joy_advancedinit = 1;
 	}
 
+	if (!in_joystick)
+	{
+		return; 
+	}
+
 	// verify joystick is available and that the user wants to use it
 	if (!joy_avail || !in_joystick->value)
 	{
