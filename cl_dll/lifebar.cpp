@@ -86,6 +86,13 @@ int CHudLifeBar::UpdateSprites()
 	cl_entity_t *localPlayer = gEngfuncs.GetLocalPlayer();
 
 	int iOutModel = 0;
+	int maxHealth = 100;
+
+	if (gHUD.szActiveMutators != NULL &&
+		(strstr(gHUD.szActiveMutators, "999") ||
+		atoi(gHUD.szActiveMutators) == MUTATOR_999))
+		maxHealth = 999;
+
 	for (int i = 0; i < 32; i++)
 	{
 		cl_entity_s *pClient = gEngfuncs.GetEntityByIndex(i+1);
@@ -120,17 +127,13 @@ int CHudLifeBar::UpdateSprites()
 		pEnt->curstate.renderfx = kRenderFxNoDissipation;
 		pEnt->curstate.framerate = 0;
 		pEnt->model = (struct model_s*)gEngfuncs.GetSpritePointer(m_LifeBarHeadModel);
-		int calcHealth = ((float(health) / 100.0) * 10.0);
-		if (health > 0)
-		{
-			int frame = 0;
-			if (armor > 100)
-				frame = 12; //999
-			else if (armor > 0)
-				frame = 11; //green
-			pEnt->curstate.frame = (frame > 10) ? frame : fmin(fmax(calcHealth, 0), 12);
-		} else
-			pEnt->curstate.frame = 13;
+		int calcHealth = ((health / float(maxHealth)) * 10);
+		if (health > 900)
+			pEnt->curstate.frame = 12; // 999 icon
+		else if (health > 0)
+			pEnt->curstate.frame = fmin(fmax(calcHealth, 0), 10);
+		else
+			pEnt->curstate.frame = 13; // death icon
 		pEnt->angles[0] = pEnt->angles[1] = pEnt->angles[2] = 0;
 		pEnt->curstate.scale = 0.5f;
 
