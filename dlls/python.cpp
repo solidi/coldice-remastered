@@ -311,12 +311,13 @@ class CPythonAmmo : public CBasePlayerAmmo
 	void Spawn( void )
 	{ 
 		Precache( );
-		SET_MODEL(ENT(pev), "models/w_357ammobox.mdl");
+		SET_MODEL(ENT(pev), "models/w_ammo.mdl");
+		pev->body = AMMO_357;
 		CBasePlayerAmmo::Spawn( );
 	}
 	void Precache( void )
 	{
-		PRECACHE_MODEL ("models/w_357ammobox.mdl");
+		PRECACHE_MODEL ("models/w_ammo.mdl");
 		PRECACHE_SOUND("items/9mmclip1.wav");
 	}
 	BOOL AddAmmo( CBaseEntity *pOther ) 

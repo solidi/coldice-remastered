@@ -1612,7 +1612,7 @@ void CBasePlayerAmmo::Spawn( void )
 	UTIL_SetSize(pev, Vector(-16, -16, 0), Vector(16, 16, 16));
 	UTIL_SetOrigin( pev, pev->origin );
 
-	pev->sequence = floatingweapons.value;
+	pev->sequence = (pev->body * 2) + floatingweapons.value;
 	pev->framerate = 1.0;
 
 	if (g_ItemsExplode)
