@@ -310,12 +310,13 @@ class CMP5AmmoClip : public CBasePlayerAmmo
 	void Spawn( void )
 	{ 
 		Precache( );
-		SET_MODEL(ENT(pev), "models/w_9mmARclip.mdl");
+		SET_MODEL(ENT(pev), "models/w_ammo.mdl");
+		pev->body = AMMO_9MMAR;
 		CBasePlayerAmmo::Spawn( );
 	}
 	void Precache( void )
 	{
-		PRECACHE_MODEL ("models/w_9mmARclip.mdl");
+		PRECACHE_MODEL ("models/w_ammo.mdl");
 		PRECACHE_SOUND("items/9mmclip1.wav");
 	}
 	BOOL AddAmmo( CBaseEntity *pOther ) 
@@ -338,12 +339,13 @@ class CMP5Chainammo : public CBasePlayerAmmo
 	void Spawn( void )
 	{ 
 		Precache( );
-		SET_MODEL(ENT(pev), "models/w_chainammo.mdl");
+		SET_MODEL(ENT(pev), "models/w_ammo.mdl");
+		pev->body = AMMO_9MMBOX;
 		CBasePlayerAmmo::Spawn( );
 	}
 	void Precache( void )
 	{
-		PRECACHE_MODEL ("models/w_chainammo.mdl");
+		PRECACHE_MODEL ("models/w_ammo.mdl");
 		PRECACHE_SOUND("items/9mmclip1.wav");
 	}
 	BOOL AddAmmo( CBaseEntity *pOther ) 
@@ -364,12 +366,13 @@ class CMP5AmmoGrenade : public CBasePlayerAmmo
 	void Spawn( void )
 	{ 
 		Precache( );
-		SET_MODEL(ENT(pev), "models/w_ARgrenade.mdl");
+		SET_MODEL(ENT(pev), "models/w_ammo.mdl");
+		pev->body = AMMO_ARGRENADES;
 		CBasePlayerAmmo::Spawn( );
 	}
 	void Precache( void )
 	{
-		PRECACHE_MODEL ("models/w_ARgrenade.mdl");
+		PRECACHE_MODEL ("models/w_ammo.mdl");
 		PRECACHE_SOUND("items/9mmclip1.wav");
 	}
 	BOOL AddAmmo( CBaseEntity *pOther ) 

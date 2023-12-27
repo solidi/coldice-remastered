@@ -493,6 +493,14 @@ public:
 
 };
 
+#define AMMO_9MMCLIP 0
+#define AMMO_9MMAR 1
+#define AMMO_9MMBOX 2
+#define AMMO_ARGRENADES 3
+#define AMMO_357 4
+#define AMMO_SHOTBOX 5
+#define AMMO_CROSSBOW_CLIP 6
+#define AMMO_RPG 7
 
 class CBasePlayerAmmo : public CBaseEntity
 {
