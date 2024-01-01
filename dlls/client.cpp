@@ -232,7 +232,9 @@ void ClientPutInServer( edict_t *pEntity )
 	pPlayer = GetClassPtr((CBasePlayer *)pev);
 	pPlayer->SetCustomDecalFrames(-1); // Assume none;
 
+	// Cold Ice client defaults
 	pPlayer->m_iAutoWepSwitch = 1;
+	pPlayer->m_iAutoMelee = 1;
 	pPlayer->m_iDisplayInfoMessage = 1;
 	pPlayer->m_iKeyboardAcrobatics = 1;
 
@@ -975,6 +977,7 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_customtempents [0|1]\" - allow or disallow increased temporary entites\n" );
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_voiceoverpath [string]\" - folder path to custom voiceovers\n" );
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_objectives [0|1]\" - show objective read out on HUD\n" );
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_automelee [0|1]\" - auto kick or punch an enemy if they are close\n" );
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"vote\" - type in the chat to start a vote\n" );
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "For more, see readme.txt\n" );
 	}
@@ -1149,6 +1152,10 @@ void ClientUserInfoChanged( edict_t *pEntity, char *infobuffer )
 	char* pszKeyboardAcrobatics = g_engfuncs.pfnInfoKeyValue(infobuffer, "cl_keyboardacrobatics");
 	if (strlen(pszKeyboardAcrobatics))
 		GetClassPtr((CBasePlayer *)&pEntity->v)->m_iKeyboardAcrobatics = atoi(pszKeyboardAcrobatics);
+
+	char* pszAutoMelee = g_engfuncs.pfnInfoKeyValue( infobuffer, "cl_automelee");
+	if (strlen(pszAutoMelee))
+		GetClassPtr((CBasePlayer *)&pEntity->v)->m_iAutoMelee = atoi(pszAutoMelee);
 
 	// msg everyone if someone changes their name,  and it isn't the first time (changing no name to current name)
 	if ( pEntity->v.netname && STRING(pEntity->v.netname)[0] != 0 && !FStrEq( STRING(pEntity->v.netname), g_engfuncs.pfnInfoKeyValue( infobuffer, "name" )) )

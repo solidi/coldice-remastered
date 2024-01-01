@@ -1572,6 +1572,10 @@ void CBasePlayer::PlayerDeathThink(void)
 
 	if ( HasWeapons() )
 	{
+		// If we got killed during these events, cancel them
+		m_EFlags &= ~EFLAG_PLAYERKICK;
+		m_EFlags &= ~EFLAG_SLIDE;
+
 		// we drop the guns here because weapons that have an area effect and can kill their user
 		// will sometimes crash coming back from CBasePlayer::Killed() if they kill their owner because the
 		// player class sometimes is freed. It's safer to manipulate the weapons once we know
@@ -2650,6 +2654,9 @@ void CBasePlayer::PreThink(void)
 		CalculateToFlip();
 
 	TraceHitOfFlip();
+
+	if (m_iAutoMelee)
+		AutoMelee();
 
 	ClimbingPhysics();
 
@@ -5029,6 +5036,57 @@ BOOL CBasePlayer::ReleaseHeldItem(float speed)
 	}
 
 	return FALSE;
+}
+
+void CBasePlayer::AutoMelee()
+{
+	if (m_flNextAutoMelee > gpGlobals->time)
+		return;
+
+	TraceResult tr;
+	UTIL_MakeVectors(pev->v_angle);
+	Vector vecSrc = GetGunPosition();
+	Vector vecEnd = vecSrc + gpGlobals->v_forward * 48;
+
+	UTIL_TraceLine(vecSrc, vecEnd, dont_ignore_monsters, ENT(pev), &tr);
+
+#ifndef CLIENT_DLL
+	if (tr.flFraction >= 1.0)
+	{
+		UTIL_TraceHull(vecSrc, vecEnd, dont_ignore_monsters, head_hull, ENT( pev ), &tr);
+		if ( tr.flFraction < 1.0 )
+		{
+			CBaseEntity *pHit = CBaseEntity::Instance( tr.pHit );
+			if ( !pHit || pHit->IsBSPModel() )
+				UTIL_FindHullIntersection(vecSrc, tr, VEC_DUCK_HULL_MIN, VEC_DUCK_HULL_MAX, edict());
+			vecEnd = tr.vecEndPos;
+		}
+	}
+
+	if (tr.flFraction < 1.0)
+	{
+		CBaseEntity *pEntity = CBaseEntity::Instance(tr.pHit);
+		if (pEntity)
+		{
+			if (pEntity->Classify() != CLASS_NONE && pEntity->Classify() != CLASS_MACHINE)
+			{
+				if (m_pActiveItem)
+				{
+					if (RANDOM_LONG(0,1))
+						((CBasePlayerWeapon *)m_pActiveItem)->StartKick(m_iHoldingItem);
+					else
+						((CBasePlayerWeapon *)m_pActiveItem)->StartPunch(m_iHoldingItem);
+					ReleaseHeldItem(RANDOM_LONG(300,500));
+				}
+			}
+		}
+
+		m_flNextAutoMelee = gpGlobals->time + 0.75;
+		return;
+	}
+#endif
+
+	m_flNextAutoMelee = gpGlobals->time + 0.25;
 }
 
 //=========================================================
