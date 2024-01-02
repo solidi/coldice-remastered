@@ -500,8 +500,8 @@ void LoadTempViewModel(const char *modelName, int sequence)
 	pExtraModel->model = pModel;
 	pExtraModel->curstate.frame = 0;
 	pExtraModel->curstate.iuser4 = 1;
-	pExtraModel->curstate.animtime = gEngfuncs.GetClientTime();
 	pExtraModel->curstate.sequence = sequence;
+	pExtraModel->curstate.animtime = gEngfuncs.GetClientTime() + 0.01;
 	pExtraModel->curstate.effects |= EF_VIEWMODEL &~ EF_NODRAW;
 	pExtraModel->curstate.skin = cl_icemodels->value;
 

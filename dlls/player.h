@@ -272,6 +272,10 @@ public:
 	int m_fFlipType;
 	int m_fKickCount;
 
+	void AutoMelee( void );
+	float m_flNextAutoMelee;
+	BOOL m_iAutoMelee;
+
 	BOOL m_iHoldingChumtoad;
 	int m_iChumtoadCounter;
 	int m_iCaptureTime;
