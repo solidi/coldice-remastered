@@ -5040,6 +5040,9 @@ BOOL CBasePlayer::ReleaseHeldItem(float speed)
 
 void CBasePlayer::AutoMelee()
 {
+	if (pev->flags & FL_FAKECLIENT) // No bots
+		return;
+
 	if (m_flNextAutoMelee > gpGlobals->time)
 		return;
 
