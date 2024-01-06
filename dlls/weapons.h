@@ -2513,6 +2513,41 @@ private:
 	unsigned short m_usSingleFire;
 };
 
+class CDualChaingun : public CBasePlayerWeapon
+{
+public:
+	void Spawn( void );
+	void Precache( void );
+	int iItemSlot( void ) { return 6; }
+	int GetItemInfo(ItemInfo *p);
+	int AddToPlayer( CBasePlayer *pPlayer );
+
+	void PrimaryAttack( void );
+	void SecondaryAttack( void );
+	void Fire( float flSpread, float flCycleTime );
+	BOOL DeployLowKey( void );
+	BOOL Deploy( void );
+	void Holster( int skiplocal );
+	void Reload( void );
+	void WeaponIdle( void );
+
+	void SlowDownPlayer( void );
+
+	virtual BOOL UseDecrement( void )
+	{
+#if defined( CLIENT_WEAPONS )
+		return TRUE;
+#else
+		return FALSE;
+#endif
+	}
+
+private:
+	int m_iWeaponMode;
+	int m_fFireMagnitude;
+	int m_useFireChaingun;
+};
+
 class CFlyingSnowball : public CBaseEntity
 {
 public:
