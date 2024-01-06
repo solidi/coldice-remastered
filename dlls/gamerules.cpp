@@ -739,6 +739,7 @@ const char *entityList[] =
 	"weapon_dual_railgun",
 	"weapon_dual_rpg",
 	"weapon_dual_flamethrower",
+	"weapon_dual_chaingun",
 	"ammo_rpgclip",
 	"ammo_9mmAR",
 	"ammo_ARgrenades",

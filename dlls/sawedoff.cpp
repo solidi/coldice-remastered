@@ -91,7 +91,7 @@ int CSawedOff::GetItemInfo(ItemInfo *p)
 	p->iMaxAmmo2 = -1;
 	p->iMaxClip = SAWEDOFF_MAX_CLIP;
 	p->iSlot = 1;
-	p->iPosition = 5;
+	p->iPosition = 6;
 	p->iFlags = 0;
 	p->iId = m_iId = WEAPON_SAWEDOFF;
 	p->iWeight = SAWEDOFF_WEIGHT;

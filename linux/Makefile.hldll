@@ -66,7 +66,8 @@ CFLAGS=$(BASE_CFLAGS)  $(ARCH_CFLAGS) $(DEBUG_CFLAGS) -DCLIENT_WEAPONS \
 		 -DDUALFLAMETHROWER \
 		 -DASHPOD \
 		 -DSAWEDOFF \
-		 -DDUALSAWEDOFF
+		 -DDUALSAWEDOFF \
+		 -DDUALCHAINGUN
 
 #-O3 -ffast-math -fno-strength-reduce
 
@@ -115,6 +116,7 @@ HLDLL_OBJS = \
 	$(HLDLL_OBJ_DIR)/deagle.o \
 	$(HLDLL_OBJ_DIR)/defaultai.o \
 	$(HLDLL_OBJ_DIR)/doors.o \
+	$(HLDLL_OBJ_DIR)/dual_chaingun.o \
 	$(HLDLL_OBJ_DIR)/dual_deagle.o \
 	$(HLDLL_OBJ_DIR)/dual_flamethrower.o \
 	$(HLDLL_OBJ_DIR)/dual_railgun.o \

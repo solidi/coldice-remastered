@@ -95,8 +95,8 @@ int CDualSMG::GetItemInfo(ItemInfo *p)
 	p->pszAmmo2 = NULL;
 	p->iMaxAmmo2 = -1;
 	p->iMaxClip = SMG_MAX_CLIP * 2;
-	p->iSlot = 5;
-	p->iPosition = 3;
+	p->iSlot = 1;
+	p->iPosition = 5;
 	p->iFlags = 0;
 	p->iId = m_iId = WEAPON_DUAL_SMG;
 	p->iWeight = SMG_WEIGHT * 2;
