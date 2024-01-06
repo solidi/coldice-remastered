@@ -305,3 +305,24 @@ void CChaingun::WeaponIdle( void )
 
 	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + RANDOM_FLOAT ( 10, 15 );
 }
+
+void CChaingun::ProvideDualItem(CBasePlayer *pPlayer, const char *item) {
+	if (pPlayer == NULL || item == NULL) {
+		return;
+	}
+
+#ifndef CLIENT_DLL
+	CBasePlayerWeapon::ProvideDualItem(pPlayer, item);
+
+	if (!stricmp(item, "weapon_chaingun")) {
+		if (!pPlayer->HasNamedPlayerItem("weapon_dual_chaingun")) {
+			pPlayer->GiveNamedItem("weapon_dual_chaingun");
+			pPlayer->SelectItem("weapon_dual_chaingun");
+		}
+	}
+#endif
+}
+
+void CChaingun::SwapDualWeapon( void ) {
+	m_pPlayer->SelectItem("weapon_dual_chaingun");
+}

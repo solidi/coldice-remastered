@@ -1612,6 +1612,9 @@ public:
 #endif
 	}
 
+	void ProvideDualItem(CBasePlayer *pPlayer, const char *itemName);
+	void SwapDualWeapon( void );
+
 private:
 	int m_iWeaponMode;
 	int m_fFireMagnitude;
@@ -2541,6 +2544,9 @@ public:
 		return FALSE;
 #endif
 	}
+
+	void ProvideSingleItem(CBasePlayer *pPlayer, const char *itemName);
+	void SwapDualWeapon( void );
 
 private:
 	int m_iWeaponMode;
