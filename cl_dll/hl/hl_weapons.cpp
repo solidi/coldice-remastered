@@ -101,6 +101,7 @@ CDualFlameThrower g_DualFlameThrower;
 CAshpod g_Ashpod;
 CSawedOff g_SawedOff;
 CDualSawedOff g_DualSawedOff;
+CDualChaingun g_DualChaingun;
 
 /*
 ======================
@@ -711,6 +712,7 @@ void HUD_InitClientWeapons( void )
 	HUD_PrepEntity( &g_Ashpod	, &player );
 	HUD_PrepEntity( &g_SawedOff	, &player );
 	HUD_PrepEntity( &g_DualSawedOff	, &player );
+	HUD_PrepEntity( &g_DualChaingun	, &player );
 }
 
 /*
@@ -996,6 +998,10 @@ void HUD_WeaponsPostThink( local_state_s *from, local_state_s *to, usercmd_t *cm
 
 		case WEAPON_DUAL_SAWEDOFF:
 			pWeapon = &g_DualSawedOff;
+			break;
+
+		case WEAPON_DUAL_CHAINGUN:
+			pWeapon = &g_DualChaingun;
 			break;
 	}
 

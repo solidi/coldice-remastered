@@ -94,7 +94,7 @@ int CDualSawedOff::GetItemInfo(ItemInfo *p)
 	p->iMaxAmmo2 = -1;
 	p->iMaxClip = SAWEDOFF_MAX_CLIP * 2;
 	p->iSlot = 1;
-	p->iPosition = 6;
+	p->iPosition = 7;
 	p->iFlags = 0;
 	p->iId = m_iId = WEAPON_DUAL_SAWEDOFF;
 	p->iWeight = SAWEDOFF_WEIGHT * 2;

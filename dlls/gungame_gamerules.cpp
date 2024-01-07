@@ -33,10 +33,10 @@ extern int gmsgPlayClientSound;
 extern int gmsgScoreInfo;
 extern int gmsgObjective;
 
-#define MAXLEVEL 44
+#define MAXLEVEL 45
 int g_iFrags[MAXLEVEL+1] = { 1, 3, 5, 6, 9, 12, 15, 18, 21, 26, 29, 30, 31, 32, 33, 34, 35,
 							36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51,
-							52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63 };
+							52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64 };
 const char *g_WeaponId[MAXLEVEL+1] = 
 {
 	// hand
@@ -57,6 +57,7 @@ const char *g_WeaponId[MAXLEVEL+1] =
 	"crossbow",
 	"sniperrifle",
 	"chaingun",
+	"dual_chaingun",
 	"usas",
 	"dual_usas",
 	"freezegun",

@@ -4187,6 +4187,7 @@ const char *pWeapons[] =
 	"weapon_ashpod",
 	"weapon_sawedoff",
 	"weapon_dual_sawedoff",
+	"weapon_dual_chaingun",
 };
 
 void CBasePlayer::GiveRandomWeapon(const char *szIgnoreList)
@@ -5069,7 +5070,7 @@ void CBasePlayer::AutoMelee()
 	if (tr.flFraction < 1.0)
 	{
 		CBaseEntity *pEntity = CBaseEntity::Instance(tr.pHit);
-		if (pEntity)
+		if (pEntity && pEntity->IsAlive())
 		{
 			if (pEntity->Classify() != CLASS_NONE && pEntity->Classify() != CLASS_MACHINE)
 			{
@@ -5180,6 +5181,7 @@ void CBasePlayer::CheatImpulseCommands( int iImpulse, BOOL m_iFromClient )
 		GiveNamedItem( "weapon_gravitygun" );
 		GiveNamedItem( "weapon_flamethrower" );
 		GiveNamedItem( "weapon_dual_flamethrower" );
+		GiveNamedItem( "weapon_dual_chaingun" );
 		GiveNamedItem( "weapon_ashpod" );
 		GiveNamedItem( "weapon_sawedoff" );
 		GiveNamedItem( "weapon_dual_sawedoff" );
