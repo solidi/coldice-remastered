@@ -102,6 +102,7 @@ CAshpod g_Ashpod;
 CSawedOff g_SawedOff;
 CDualSawedOff g_DualSawedOff;
 CDualChaingun g_DualChaingun;
+CDualHgun g_DualHornetgun;
 
 /*
 ======================
@@ -713,6 +714,7 @@ void HUD_InitClientWeapons( void )
 	HUD_PrepEntity( &g_SawedOff	, &player );
 	HUD_PrepEntity( &g_DualSawedOff	, &player );
 	HUD_PrepEntity( &g_DualChaingun	, &player );
+	HUD_PrepEntity( &g_DualHornetgun	, &player );
 }
 
 /*
@@ -1003,6 +1005,10 @@ void HUD_WeaponsPostThink( local_state_s *from, local_state_s *to, usercmd_t *cm
 		case WEAPON_DUAL_CHAINGUN:
 			pWeapon = &g_DualChaingun;
 			break;
+
+		case WEAPON_DUAL_HORNETGUN:
+			pWeapon = &g_DualHornetgun;
+			break;
 	}
 
 	// Store pointer to our destination entity_state_t so we can get our origin, etc. from it
@@ -1233,7 +1239,13 @@ void HUD_WeaponsPostThink( local_state_s *from, local_state_s *to, usercmd_t *cm
 		//Show laser sight/scope combo
 		if ( pWeapon == &g_Python && bIsMultiplayer() )
 			 body = 1;
-		
+
+		if ( pWeapon == &g_HGun )
+			 body = 0;
+
+		if ( pWeapon == &g_DualHornetgun )
+			 body = 1;
+
 		// Force a fixed anim down to viewmodel
 		HUD_SendWeaponAnim( to->client.weaponanim, body, 1 );
 	}

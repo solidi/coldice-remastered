@@ -4179,6 +4179,8 @@ const char *pWeapons[] =
 	"weapon_dual_smg",
 	"weapon_dual_wrench",
 	"weapon_dual_usas",
+	"weapon_dual_chaingun",
+	"weapon_dual_hornetgun",
 	"weapon_dual_railgun",
 	"weapon_dual_rpg",
 	"weapon_freezegun",
@@ -4187,7 +4189,6 @@ const char *pWeapons[] =
 	"weapon_ashpod",
 	"weapon_sawedoff",
 	"weapon_dual_sawedoff",
-	"weapon_dual_chaingun",
 };
 
 void CBasePlayer::GiveRandomWeapon(const char *szIgnoreList)
@@ -5185,6 +5186,7 @@ void CBasePlayer::CheatImpulseCommands( int iImpulse, BOOL m_iFromClient )
 		GiveNamedItem( "weapon_ashpod" );
 		GiveNamedItem( "weapon_sawedoff" );
 		GiveNamedItem( "weapon_dual_sawedoff" );
+		GiveNamedItem( "weapon_dual_hornetgun" );
 #endif
 		gEvilImpulse101 = FALSE;
 		break;

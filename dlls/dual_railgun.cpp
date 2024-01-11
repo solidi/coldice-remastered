@@ -95,8 +95,8 @@ int CDualRailgun::GetItemInfo(ItemInfo *p)
 	p->pszAmmo2 = NULL;
 	p->iMaxAmmo2 = -1;
 	p->iMaxClip = WEAPON_NOCLIP;
-	p->iSlot = 5;
-	p->iPosition = 5;
+	p->iSlot = 6;
+	p->iPosition = 2;
 	p->iId = m_iId = WEAPON_DUAL_RAILGUN;
 	p->iFlags = 0;
 	p->iWeight = RAILGUN_WEIGHT * 2;

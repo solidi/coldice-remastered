@@ -25,14 +25,14 @@
 #include "gamerules.h"
 
 
-enum hgun_e {
-	HGUN_IDLE1 = 0,
-	HGUN_FIDGETSWAY,
-	HGUN_FIDGETSHAKE,
-	HGUN_DOWN,
-	HGUN_DRAW_LOWKEY,
-	HGUN_UP,
-	HGUN_SHOOT
+enum dual_hgun_e {
+	DUAL_HGUN_IDLE1 = 0,
+	DUAL_HGUN_FIDGETSWAY,
+	DUAL_HGUN_FIDGETSHAKE,
+	DUAL_HGUN_DOWN,
+	DUAL_HGUN_DRAW_LOWKEY,
+	DUAL_HGUN_UP,
+	DUAL_HGUN_SHOOT
 };
 
 enum firemode_e
@@ -41,41 +41,41 @@ enum firemode_e
 	FIREMODE_FAST
 };
 
-#ifdef HIVEHAND
-LINK_ENTITY_TO_CLASS( weapon_hornetgun, CHgun );
+#ifdef DUALHIVEHAND
+LINK_ENTITY_TO_CLASS( weapon_dual_hornetgun, CDualHgun );
 #endif
 
-BOOL CHgun::IsUseable( void )
+BOOL CDualHgun::IsUseable( void )
 {
 	return TRUE;
 }
 
-void CHgun::Spawn( )
+void CDualHgun::Spawn( )
 {
 	Precache( );
-	m_iId = WEAPON_HORNETGUN;
+	m_iId = WEAPON_DUAL_HORNETGUN;
 	SET_MODEL(ENT(pev), "models/w_weapons.mdl");
-	pev->body = WEAPON_HORNETGUN - 1;
+	pev->body = WEAPON_DUAL_HORNETGUN - 1;
 
-	m_iDefaultAmmo = HIVEHAND_DEFAULT_GIVE;
+	m_iDefaultAmmo = HIVEHAND_DEFAULT_GIVE * 2;
 	m_iFirePhase = 0;
 
 	FallInit();// get ready to fall down.
 }
 
 
-void CHgun::Precache( void )
+void CDualHgun::Precache( void )
 {
 	PRECACHE_MODEL("models/v_dual_hgun.mdl");
 	PRECACHE_MODEL("models/w_weapons.mdl");
 	PRECACHE_MODEL("models/p_weapons.mdl");
 
-	m_usHornetFire = PRECACHE_EVENT ( 1, "events/firehornet.sc" );
+	m_usHornetFire = PRECACHE_EVENT ( 1, "events/dual_hornetgun.sc" );
 
 	UTIL_PrecacheOther("hornet");
 }
 
-int CHgun::AddToPlayer( CBasePlayer *pPlayer )
+int CDualHgun::AddToPlayer( CBasePlayer *pPlayer )
 {
 	if ( CBasePlayerWeapon::AddToPlayer( pPlayer ) )
 	{
@@ -94,37 +94,37 @@ int CHgun::AddToPlayer( CBasePlayer *pPlayer )
 	return FALSE;
 }
 
-int CHgun::GetItemInfo(ItemInfo *p)
+int CDualHgun::GetItemInfo(ItemInfo *p)
 {
 	p->pszName = STRING(pev->classname);
 	p->pszAmmo1 = "Hornets";
-	p->iMaxAmmo1 = HORNET_MAX_CARRY;
+	p->iMaxAmmo1 = HORNET_MAX_CARRY * 2;
 	p->pszAmmo2 = NULL;
 	p->iMaxAmmo2 = -1;
 	p->iMaxClip = WEAPON_NOCLIP;
-	p->iSlot = 3;
-	p->iPosition = 3;
-	p->iId = m_iId = WEAPON_HORNETGUN;
+	p->iSlot = 6;
+	p->iPosition = 1;
+	p->iId = m_iId = WEAPON_DUAL_HORNETGUN;
 	p->iFlags = ITEM_FLAG_NOAUTOSWITCHEMPTY | ITEM_FLAG_NOAUTORELOAD;
 	p->iWeight = HORNETGUN_WEIGHT;
-	p->pszDisplayName = "Hivehand";
+	p->pszDisplayName = "Dual Hivehand";
 
 	return 1;
 }
 
-BOOL CHgun::DeployLowKey( )
+BOOL CDualHgun::DeployLowKey( )
 {
-	return DefaultDeploy( "models/v_dual_hgun.mdl", "models/p_weapons.mdl", HGUN_DRAW_LOWKEY, "hive" );
+	return DefaultDeploy( "models/v_dual_hgun.mdl", "models/p_weapons.mdl", DUAL_HGUN_DRAW_LOWKEY, "dual_egon", 0, 1 );
 }
 
-BOOL CHgun::Deploy( )
+BOOL CDualHgun::Deploy( )
 {
-	return DefaultDeploy( "models/v_dual_hgun.mdl", "models/p_weapons.mdl", HGUN_UP, "hive" );
+	return DefaultDeploy( "models/v_dual_hgun.mdl", "models/p_weapons.mdl", DUAL_HGUN_UP, "dual_egon", 0, 1 );
 }
 
-void CHgun::Holster( int skiplocal /* = 0 */ )
+void CDualHgun::Holster( int skiplocal /* = 0 */ )
 {
-	CBasePlayerWeapon::DefaultHolster(HGUN_DOWN);
+	CBasePlayerWeapon::DefaultHolster(DUAL_HGUN_DOWN);
 
 	//!!!HACKHACK - can't select hornetgun if it's empty! no way to get ammo for it, either.
 	if ( !m_pPlayer->m_rgAmmo[ PrimaryAmmoIndex() ] )
@@ -134,7 +134,7 @@ void CHgun::Holster( int skiplocal /* = 0 */ )
 }
 
 
-void CHgun::PrimaryAttack()
+void CDualHgun::PrimaryAttack()
 {
 	Reload( );
 
@@ -150,7 +150,11 @@ void CHgun::PrimaryAttack()
 	if (pHornet != NULL)
 		pHornet->pev->velocity = vecAiming * 300;
 
-	m_flRechargeTime = gpGlobals->time + 0.5;
+	pHornet = CBaseEntity::Create( "hornet", m_pPlayer->GetGunPosition( ) + vecAiming * 16 + gpGlobals->v_right * - 8 + gpGlobals->v_up * -12, UTIL_VecToAngles(vecAiming), m_pPlayer->edict() );
+	if (pHornet != NULL)
+		pHornet->pev->velocity = vecAiming * 300;
+
+	m_flRechargeTime = gpGlobals->time + 0.25;
 #endif
 	
 	m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType]--;
@@ -185,7 +189,7 @@ void CHgun::PrimaryAttack()
 
 
 
-void CHgun::SecondaryAttack( void )
+void CDualHgun::SecondaryAttack( void )
 {
 	Reload();
 
@@ -224,14 +228,14 @@ void CHgun::SecondaryAttack( void )
 		break;
 	case 6:
 		vecSrc = vecSrc + gpGlobals->v_up * -8;
-		vecSrc = vecSrc + gpGlobals->v_right * -8;
+		vecSrc = vecSrc + gpGlobals->v_right * -16;
 		break;
 	case 7:
-		vecSrc = vecSrc + gpGlobals->v_right * -8;
+		vecSrc = vecSrc + gpGlobals->v_right * -16;
 		break;
 	case 8:
 		vecSrc = vecSrc + gpGlobals->v_up * 8;
-		vecSrc = vecSrc + gpGlobals->v_right * -8;
+		vecSrc = vecSrc + gpGlobals->v_right * -16;
 		m_iFirePhase = 0;
 		break;
 	}
@@ -244,7 +248,7 @@ void CHgun::SecondaryAttack( void )
 		pHornet->SetThink( &CHornet::StartDart );
 	}
 
-	m_flRechargeTime = gpGlobals->time + 0.5;
+	m_flRechargeTime = gpGlobals->time + 0.25;
 #endif
 
 	int flags;
@@ -269,20 +273,20 @@ void CHgun::SecondaryAttack( void )
 }
 
 
-void CHgun::Reload( void )
+void CDualHgun::Reload( void )
 {
-	if (m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] >= HORNET_MAX_CARRY)
+	if (m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] >= HORNET_MAX_CARRY * 2)
 		return;
 
-	while (m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] < HORNET_MAX_CARRY && m_flRechargeTime < gpGlobals->time)
+	while (m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] < (HORNET_MAX_CARRY * 2) && m_flRechargeTime < gpGlobals->time)
 	{
 		m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType]++;
-		m_flRechargeTime += 0.5;
+		m_flRechargeTime += 0.25;
 	}
 }
 
 
-void CHgun::WeaponIdle( void )
+void CDualHgun::WeaponIdle( void )
 {
 	Reload( );
 
@@ -295,41 +299,39 @@ void CHgun::WeaponIdle( void )
 	float flRand = UTIL_SharedRandomFloat( m_pPlayer->random_seed, 0, 1 );
 	if (flRand <= 0.75)
 	{
-		iAnim = HGUN_IDLE1;
+		iAnim = DUAL_HGUN_IDLE1;
 		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 30.0 / 16 * (2);
 	}
 	else if (flRand <= 0.875)
 	{
-		iAnim = HGUN_FIDGETSWAY;
+		iAnim = DUAL_HGUN_FIDGETSWAY;
 		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 40.0 / 16.0;
 	}
 	else
 	{
-		iAnim = HGUN_FIDGETSHAKE;
+		iAnim = DUAL_HGUN_FIDGETSHAKE;
 		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 35.0 / 16.0;
 	}
-	SendWeaponAnim( iAnim );
+	SendWeaponAnim( iAnim, 1, 1 );
 }
 
-void CHgun::ProvideDualItem(CBasePlayer *pPlayer, const char *item) {
-	if (pPlayer == NULL || item == NULL) {
+void CDualHgun::ProvideSingleItem(CBasePlayer *pPlayer, const char *item) {
+	if (item == NULL) {
 		return;
 	}
 
 #ifndef CLIENT_DLL
-	CBasePlayerWeapon::ProvideDualItem(pPlayer, item);
-
-	if (!stricmp(item, "weapon_hornetgun")) {
-		if (!pPlayer->HasNamedPlayerItem("weapon_dual_hornetgun")) {
-			pPlayer->GiveNamedItem("weapon_dual_hornetgun");
+	if (!stricmp(item, "weapon_dual_hornetgun")) {
+		if (!pPlayer->HasNamedPlayerItem("weapon_hornetgun")) {
+			pPlayer->GiveNamedItem("weapon_hornetgun");
 			pPlayer->SelectItem("weapon_dual_hornetgun");
 		}
 	}
 #endif
 }
 
-void CHgun::SwapDualWeapon( void ) {
-	m_pPlayer->SelectItem("weapon_dual_hornetgun");
+void CDualHgun::SwapDualWeapon( void ) {
+	m_pPlayer->SelectItem("weapon_hornetgun");
 }
 
 
