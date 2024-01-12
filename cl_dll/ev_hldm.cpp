@@ -119,6 +119,7 @@ void EV_FireSawedOffDouble( struct event_args_s *args  );
 void EV_FireDualSawedOff( struct event_args_s *args  );
 void EV_FireDualSawedOffDouble( struct event_args_s *args  );
 void EV_FireDualChaingun( struct event_args_s *args  );
+void EV_FireDualHornetGun( struct event_args_s *args  );
 
 void EV_TrainPitchAdjust( struct event_args_s *args );
 }
@@ -1776,7 +1777,7 @@ void EV_HornetGunFire( event_args_t *args )
 		V_PunchAxis(PITCH, gEngfuncs.pfnRandomFloat(-2, 2));
 		V_PunchAxis(YAW, gEngfuncs.pfnRandomFloat(-2.0, -2.0)); //yaw, - = right
 		V_PunchAxis(ROLL, gEngfuncs.pfnRandomFloat(2.0, 4.0)); //roll, - = left
-		gEngfuncs.pEventAPI->EV_WeaponAnimation ( HGUN_SHOOT, 1 );
+		gEngfuncs.pEventAPI->EV_WeaponAnimation ( HGUN_SHOOT, 0 );
 	}
 
 	switch ( gEngfuncs.pfnRandomLong ( 0 , 2 ) )
@@ -3923,6 +3924,43 @@ void EV_FireDualChaingun( event_args_t *args )
 	EV_GunSmoke(gEngfuncs.GetViewModel()->attachment[1], 0.6, idx, args->ducking, forward, right, up, 0, 0, 0);
 
 	EV_HLDM_FireBullets( idx, forward, right, up, 2, vecSrc, vecAiming, 8192, BULLET_PLAYER_357, 2, &tracerCount[idx-1], args->fparam1, args->fparam2 );
+}
+
+enum dual_hgun_e {
+	DUAL_HGUN_IDLE1 = 0,
+	DUAL_HGUN_FIDGETSWAY,
+	DUAL_HGUN_FIDGETSHAKE,
+	DUAL_HGUN_DOWN,
+	DUAL_HGUN_DRAW_LOWKEY,
+	DUAL_HGUN_UP,
+	DUAL_HGUN_SHOOT
+};
+
+void EV_FireDualHornetGun( event_args_t *args )
+{
+	int idx, iFireMode;
+	vec3_t origin, angles, vecSrc, forward, right, up;
+
+	idx = args->entindex;
+	VectorCopy( args->origin, origin );
+	VectorCopy( args->angles, angles );
+	iFireMode = args->iparam1;
+
+	//Only play the weapon anims if I shot it.
+	if ( EV_IsLocal( idx ) )
+	{
+		V_PunchAxis(PITCH, gEngfuncs.pfnRandomFloat(-2, 2));
+		V_PunchAxis(YAW, gEngfuncs.pfnRandomFloat(-2.0, -2.0)); //yaw, - = right
+		V_PunchAxis(ROLL, gEngfuncs.pfnRandomFloat(2.0, 4.0)); //roll, - = left
+		gEngfuncs.pEventAPI->EV_WeaponAnimation ( DUAL_HGUN_SHOOT, 1 );
+	}
+
+	switch ( gEngfuncs.pfnRandomLong ( 0 , 2 ) )
+	{
+		case 0:	gEngfuncs.pEventAPI->EV_PlaySound( idx, origin, CHAN_WEAPON, "agrunt/ag_fire1.wav", 1, ATTN_NORM, 0, 100 );	break;
+		case 1:	gEngfuncs.pEventAPI->EV_PlaySound( idx, origin, CHAN_WEAPON, "agrunt/ag_fire2.wav", 1, ATTN_NORM, 0, 100 );	break;
+		case 2:	gEngfuncs.pEventAPI->EV_PlaySound( idx, origin, CHAN_WEAPON, "agrunt/ag_fire3.wav", 1, ATTN_NORM, 0, 100 );	break;
+	}
 }
 
 void EV_TrainPitchAdjust( event_args_t *args )

@@ -105,8 +105,8 @@ int CDualFlameThrower::GetItemInfo(ItemInfo *p)
 	p->pszAmmo2 = NULL;
 	p->iMaxAmmo2 = -1;
 	p->iMaxClip = WEAPON_NOCLIP;
-	p->iSlot = 5;
-	p->iPosition = 7;
+	p->iSlot = 6;
+	p->iPosition = 4;
 	p->iFlags = 0;
 	p->iId = m_iId = WEAPON_DUAL_FLAMETHROWER;
 	p->iWeight = FLAMETHROWER_WEIGHT * 2;

@@ -119,10 +119,11 @@ public:
 #define WEAPON_DUAL_SAWEDOFF		44
 #define WEAPON_DUAL_USAS			45
 #define WEAPON_DUAL_CHAINGUN		46
-#define WEAPON_DUAL_RAILGUN			47
-#define WEAPON_DUAL_RPG				48
-#define WEAPON_DUAL_FLAMETHROWER	49
-#define WEAPON_FISTS				50
+#define WEAPON_DUAL_HORNETGUN		47
+#define WEAPON_DUAL_RAILGUN			48
+#define WEAPON_DUAL_RPG				49
+#define WEAPON_DUAL_FLAMETHROWER	50
+#define WEAPON_FISTS				51
 
 #define WEAPON_ALLWEAPONS		(~(1<<WEAPON_SUIT))
 
@@ -1202,6 +1203,10 @@ public:
 		return FALSE;
 #endif
 	}
+
+	void ProvideDualItem(CBasePlayer *pPlayer, const char *itemName);
+	void SwapDualWeapon( void );
+
 private:
 	unsigned short m_usHornetFire;
 };
@@ -2552,6 +2557,45 @@ private:
 	int m_iWeaponMode;
 	int m_fFireMagnitude;
 	int m_useFireChaingun;
+};
+
+class CDualHgun : public CBasePlayerWeapon
+{
+public:
+	void Spawn( void );
+	void Precache( void );
+	int iItemSlot( void ) { return 6; }
+	int GetItemInfo(ItemInfo *p);
+	int AddToPlayer( CBasePlayer *pPlayer );
+
+	void PrimaryAttack( void );
+	void SecondaryAttack( void );
+	BOOL DeployLowKey( void );
+	BOOL Deploy( void );
+	BOOL IsUseable( void );
+	void Holster( int skiplocal = 0 );
+	void Reload( void );
+	void WeaponIdle( void );
+	float m_flNextAnimTime;
+
+	float m_flRechargeTime;
+	
+	int m_iFirePhase;// don't save me.
+
+	virtual BOOL UseDecrement( void )
+	{ 
+#if defined( CLIENT_WEAPONS )
+		return TRUE;
+#else
+		return FALSE;
+#endif
+	}
+
+	void ProvideSingleItem(CBasePlayer *pPlayer, const char *itemName);
+	void SwapDualWeapon( void );
+
+private:
+	unsigned short m_usHornetFire;
 };
 
 class CFlyingSnowball : public CBaseEntity

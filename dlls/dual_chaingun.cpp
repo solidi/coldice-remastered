@@ -78,8 +78,8 @@ int CDualChaingun::GetItemInfo(ItemInfo *p)
 	p->pszAmmo2 = NULL;
 	p->iMaxAmmo2 = -1;
 	p->iMaxClip = CHAINGUN_MAX_CLIP * 2;
-	p->iSlot = 5;
-	p->iPosition = 3;
+	p->iSlot = 6;
+	p->iPosition = 0;
 	p->iFlags = 0;
 	p->iId = m_iId = WEAPON_DUAL_CHAINGUN;
 	p->iWeight = CHAINGUN_WEIGHT * 2;
@@ -309,7 +309,7 @@ void CDualChaingun::ProvideSingleItem(CBasePlayer *pPlayer, const char *item) {
 
 #ifndef CLIENT_DLL
 	if (!stricmp(item, "weapon_dual_chaingun")) {
-		if (!pPlayer->HasNamedPlayerItem("weapon_schaingun")) {
+		if (!pPlayer->HasNamedPlayerItem("weapon_chaingun")) {
 			pPlayer->GiveNamedItem("weapon_chaingun");
 			pPlayer->SelectItem("weapon_dual_chaingun");
 		}

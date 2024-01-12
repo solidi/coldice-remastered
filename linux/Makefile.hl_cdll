@@ -179,6 +179,7 @@ DLL_OBJS = \
 	$(HL1_SERVER_OBJ_DIR)/dual_chaingun.o \
 	$(HL1_SERVER_OBJ_DIR)/dual_deagle.o \
 	$(HL1_SERVER_OBJ_DIR)/dual_flamethrower.o \
+	$(HL1_SERVER_OBJ_DIR)/dual_hornetgun.o \
 	$(HL1_SERVER_OBJ_DIR)/dual_railgun.o \
 	$(HL1_SERVER_OBJ_DIR)/dual_rpg.o \
 	$(HL1_SERVER_OBJ_DIR)/dual_mag60.o \

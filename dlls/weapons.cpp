@@ -480,6 +480,7 @@ void W_Precache(void)
 	UTIL_PrecacheOtherWeapon( "weapon_sawedoff" );
 	UTIL_PrecacheOtherWeapon( "weapon_dual_sawedoff" );
 	UTIL_PrecacheOtherWeapon( "weapon_dual_chaingun" );
+	UTIL_PrecacheOtherWeapon( "weapon_dual_hornetgun" );
 
 	UTIL_PrecacheOther( "monster_barrel" );
 	UTIL_PrecacheOther( "monster_sentry" );
@@ -825,6 +826,7 @@ CBaseEntity* CBasePlayerItem::Respawn( void )
 		"weapon_crossbow",
 		"weapon_sniperrifle",
 		"weapon_chaingun",
+		"weapon_dual_chaingun",
 		"weapon_usas",
 		"weapon_dual_usas",
 		"weapon_freezegun"
@@ -840,6 +842,7 @@ CBaseEntity* CBasePlayerItem::Respawn( void )
 		"weapon_gauss",
 		"weapon_egon",
 		"weapon_hornetgun",
+		"weapon_dual_hornetgun",
 		"weapon_glauncher",
 		"weapon_nuke"
 		},
@@ -864,16 +867,17 @@ CBaseEntity* CBasePlayerItem::Respawn( void )
 		"weapon_dual_smg",
 		"weapon_dual_sawedoff",
 		"weapon_dual_usas",
+		"weapon_dual_chaingun",
+		"weapon_dual_hornetgun",
 		"weapon_dual_railgun",
 		"weapon_dual_rpg",
-		"weapon_dual_flamethrower",
-		"weapon_dual_chaingun"
+		"weapon_dual_flamethrower"
 		}
 	};
 
 	if (dualsonly.value) {
 		if (strncmp(STRING(pev->classname), "weapon_dual_", 12) != 0) {
-			const char *name = weaponsList[5][RANDOM_LONG(0, 9)];
+			const char *name = weaponsList[5][RANDOM_LONG(0, 10)];
 			if (name)
 			{
 				pNewWeapon = CBaseEntity::Create((char *)STRING(ALLOC_STRING(name)), g_pGameRules->VecWeaponRespawnSpot(this), pev->angles, pev->owner);
@@ -1346,7 +1350,7 @@ void CBasePlayerWeapon::SendWeaponAnim( int iAnim, int skiplocal, int body )
 
 	MESSAGE_BEGIN( MSG_ONE, SVC_WEAPONANIM, NULL, m_pPlayer->pev );
 		WRITE_BYTE( iAnim );						// sequence number
-		WRITE_BYTE( pev->body );					// weaponmodel bodygroup.
+		WRITE_BYTE( body );					// weaponmodel bodygroup.
 	MESSAGE_END();
 }
 

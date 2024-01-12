@@ -80,6 +80,7 @@ void EV_FireSawedOffDouble( struct event_args_s *args  );
 void EV_FireDualSawedOff( struct event_args_s *args  );
 void EV_FireDualSawedOffDouble( struct event_args_s *args  );
 void EV_FireDualChaingun( struct event_args_s *args  );
+void EV_FireDualHornetGun( struct event_args_s *args  );
 
 void EV_TrainPitchAdjust( struct event_args_s *args );
 }
@@ -161,4 +162,5 @@ void Game_HookEvents( void )
 	gEngfuncs.pfnHookEvent( "events/dualsawedoff1.sc",			EV_FireDualSawedOff );
 	gEngfuncs.pfnHookEvent( "events/dualsawedoff2.sc",			EV_FireDualSawedOffDouble );
 	gEngfuncs.pfnHookEvent( "events/dual_chaingun.sc",			EV_FireDualChaingun );
+	gEngfuncs.pfnHookEvent( "events/dual_hornetgun.sc",			EV_FireDualHornetGun );
 }
