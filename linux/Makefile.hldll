@@ -172,6 +172,7 @@ HLDLL_OBJS = \
 	$(HLDLL_OBJ_DIR)/knife.o \
 	$(HLDLL_OBJ_DIR)/leech.o \
 	$(HLDLL_OBJ_DIR)/lights.o \
+	$(HLDLL_OBJ_DIR)/lms_gamerules.o \
 	$(HLDLL_OBJ_DIR)/mag60.o \
 	$(HLDLL_OBJ_DIR)/maprules.o \
 	$(HLDLL_OBJ_DIR)/monstermaker.o \

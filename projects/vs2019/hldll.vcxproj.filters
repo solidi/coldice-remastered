@@ -249,6 +249,9 @@
     <ClCompile Include="..\..\dlls\lights.cpp">
       <Filter>Source Files\dlls</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\dlls\lms_gamerules.cpp">
+      <Filter>Source Files\dlls</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\dlls\maprules.cpp">
       <Filter>Source Files\dlls</Filter>
     </ClCompile>
@@ -513,6 +516,9 @@
       <Filter>Header Files\dlls</Filter>
     </ClInclude>
     <ClInclude Include="..\..\dlls\jvs_gamerules.h">
+      <Filter>Header Files\dlls</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\dlls\lms_gamerules.h">
       <Filter>Header Files\dlls</Filter>
     </ClInclude>
     <ClInclude Include="..\..\dlls\monsterevent.h">

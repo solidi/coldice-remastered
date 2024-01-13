@@ -146,13 +146,6 @@ void CHalfLifeTeamplay :: Think ( void )
 
 	last_frags = frags_remaining;
 	last_time  = time_remaining;
-
-	switch ( g_GameMode )
-	{
-		case GAME_LMS:
-			LastManStanding();
-			break;
-	}
 }
 
 //=========================================================

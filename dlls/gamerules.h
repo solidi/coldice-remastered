@@ -166,6 +166,7 @@ public:
 	virtual BOOL FAllowMonsters( void ) = 0;//are monsters allowed
 
 	virtual float WeaponMultipler( void ) = 0;
+	virtual BOOL AllowRuneSpawn( const char *szRune ) = 0;
 
 #if defined( GRAPPLING_HOOK )
 	virtual BOOL AllowGrapplingHook( CBasePlayer *pPlayer ) = FALSE;
@@ -306,6 +307,7 @@ public:
 	virtual BOOL FAllowMonsters( void );
 
 	virtual float WeaponMultipler( void );
+	virtual BOOL AllowRuneSpawn( const char *szRune );
 
 #if defined( GRAPPLING_HOOK )
 	virtual BOOL AllowGrapplingHook( CBasePlayer *pPlayer );
@@ -427,6 +429,7 @@ public:
 	virtual BOOL FAllowMonsters( void );
 
 	virtual float WeaponMultipler( void );
+	virtual BOOL AllowRuneSpawn( const char *szRune );
 
 #if defined( GRAPPLING_HOOK )
 	virtual BOOL AllowGrapplingHook( CBasePlayer *pPlayer );
@@ -438,10 +441,9 @@ public:
 	virtual BOOL IsArmoredMan( CBasePlayer *pPlayer ) { return FALSE; }
 
 	// Cold Ice Remastered Game Modes
-	virtual void LastManStanding( void );
 	virtual void Arena( void );
 	virtual int CheckClients( void );
-	virtual void InsertClientsIntoArena ( void );
+	virtual void InsertClientsIntoArena (float fragcount);
 	virtual BOOL CheckGameTimer( void );
 	virtual void CheckRounds( void );
 	virtual void SetRoundLimits( void );

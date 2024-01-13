@@ -93,6 +93,11 @@ float CHalfLifeRules::WeaponMultipler( void )
 	return 1;
 }
 
+BOOL CHalfLifeRules::AllowRuneSpawn( const char *szRune )
+{
+	return FALSE;
+}
+
 //=========================================================
 //=========================================================
 BOOL CHalfLifeRules::FShouldSwitchWeapon( CBasePlayer *pPlayer, CBasePlayerItem *pWeapon )

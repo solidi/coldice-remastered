@@ -30,6 +30,7 @@
 #include	"ctc_gamerules.h"
 #include	"jvs_gamerules.h"
 #include	"chilldemic_gamerules.h"
+#include	"lms_gamerules.h"
 
 extern edict_t *EntSelectSpawnPoint( CBaseEntity *pPlayer );
 
@@ -498,37 +499,27 @@ CGameRules *InstallGameRules( void )
 			return new CHalfLifeTeamplay;
 		}
 
+		g_teamplay = 0;
+
 		if (g_GameMode == GAME_GUNGAME)
-		{
-			g_teamplay = 0;
 			return new CHalfLifeGunGame;
-		}
 		else if (g_GameMode == GAME_CTC)
-		{
-			g_teamplay = 0;
 			return new CHalfLifeCaptureTheChumtoad;
-		}
 		else if (g_GameMode == GAME_ICEMAN)
-		{
-			g_teamplay = 0;
 			return new CHalfLifeJesusVsSanta;
-		}
 		else if (g_GameMode == GAME_CHILLDEMIC)
-		{
-			g_teamplay = 0;
 			return new CHalfLifeChilldemic;
-		}
+		else if (g_GameMode == GAME_LMS)
+			return new CHalfLifeLastManStanding;
 
 		if ((int)gpGlobals->deathmatch == 1)
 		{
 			// vanilla deathmatch
-			g_teamplay = 0;
 			return new CHalfLifeMultiplay;
 		}
 		else
 		{
 			// vanilla deathmatch??
-			g_teamplay = 0;
 			return new CHalfLifeMultiplay;
 		}
 	}

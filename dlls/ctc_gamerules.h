@@ -38,6 +38,7 @@ public:
 	virtual int WeaponShouldRespawn( CBasePlayerItem *pWeapon );
 	virtual BOOL CanRandomizeWeapon(const char *name);
 	virtual BOOL IsAllowedToDropWeapon( void );
+	virtual BOOL AllowRuneSpawn( const char *szRune );
 
 private:
 	BOOL m_fChumtoadInPlay;
