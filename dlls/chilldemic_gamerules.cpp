@@ -390,7 +390,7 @@ void CHalfLifeChilldemic::Think( void )
 
 		g_GameInProgress = TRUE;
 
-		InsertClientsIntoArena();
+		InsertClientsIntoArena(0);
 
 		m_fSendArmoredManMessage = gpGlobals->time + 1.0;
 

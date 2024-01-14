@@ -456,3 +456,11 @@ BOOL CHalfLifeCaptureTheChumtoad::IsAllowedToDropWeapon( void )
 {
 	return FALSE;
 }
+
+BOOL CHalfLifeCaptureTheChumtoad::AllowRuneSpawn( const char *szRune )
+{
+	if (!strcmp("rune_frag", szRune));
+		return FALSE;
+
+	return TRUE;
+}

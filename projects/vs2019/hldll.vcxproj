@@ -182,6 +182,7 @@
     <ClCompile Include="..\..\dlls\knife.cpp" />
     <ClCompile Include="..\..\dlls\leech.cpp" />
     <ClCompile Include="..\..\dlls\lights.cpp" />
+    <ClCompile Include="..\..\dlls\lms_gamerules.cpp" />
     <ClCompile Include="..\..\dlls\mag60.cpp" />
     <ClCompile Include="..\..\dlls\maprules.cpp" />
     <ClCompile Include="..\..\dlls\monstermaker.cpp" />
@@ -271,6 +272,7 @@
     <ClInclude Include="..\..\dlls\hornet.h" />
     <ClInclude Include="..\..\dlls\items.h" />
     <ClInclude Include="..\..\dlls\jvs_gamerules.h" />
+    <ClInclude Include="..\..\dlls\lms_gamerules.h" />
     <ClInclude Include="..\..\dlls\monsterevent.h" />
     <ClInclude Include="..\..\dlls\monsters.h" />
     <ClInclude Include="..\..\dlls\nodes.h" />
