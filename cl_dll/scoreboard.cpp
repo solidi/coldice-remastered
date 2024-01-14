@@ -148,7 +148,8 @@ int CHudScoreboard :: Draw( float fTime )
 
 	if ( gHUD.m_Teamplay != GAME_TEAMPLAY &&
 		 gHUD.m_Teamplay != GAME_ICEMAN &&
-		 gHUD.m_Teamplay != GAME_CHILLDEMIC ) 
+		 gHUD.m_Teamplay != GAME_CHILLDEMIC &&
+		 gHUD.m_Teamplay != GAME_LMS )
 		gHUD.DrawHudString( xpos, ypos, NAME_RANGE_MAX + xpos_rel, "Player", r, g, b );
 	else
 		gHUD.DrawHudString( xpos, ypos, NAME_RANGE_MAX + xpos_rel, "Teams", r, g, b );
@@ -182,7 +183,8 @@ int CHudScoreboard :: Draw( float fTime )
 
 	if ( gHUD.m_Teamplay != GAME_TEAMPLAY && 
 		 gHUD.m_Teamplay != GAME_ICEMAN &&
-		 gHUD.m_Teamplay != GAME_CHILLDEMIC )
+		 gHUD.m_Teamplay != GAME_CHILLDEMIC &&
+		 gHUD.m_Teamplay != GAME_LMS )
 	{
 		// it's not teamplay,  so just draw a simple player list
 		DrawPlayers( xpos_rel, list_slot );
