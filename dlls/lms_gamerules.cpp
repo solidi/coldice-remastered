@@ -29,6 +29,8 @@ extern int gmsgShowTimer;
 extern int gmsgPlayClientSound;
 extern int gmsgRoundTime;
 extern int gmsgScoreInfo;
+extern int gmsgTeamNames;
+extern int gmsgTeamInfo;
 
 CHalfLifeLastManStanding::CHalfLifeLastManStanding()
 {
@@ -45,6 +47,11 @@ void CHalfLifeLastManStanding::InitHUD( CBasePlayer *pPlayer )
 			WRITE_STRING("Last man standing");
 			WRITE_STRING("");
 			WRITE_BYTE(0);
+		MESSAGE_END();
+
+		MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgTeamNames, NULL, pPlayer->edict());
+			WRITE_BYTE( 1 );
+			WRITE_STRING( "Active" );
 		MESSAGE_END();
 	}
 }
@@ -233,6 +240,12 @@ void CHalfLifeLastManStanding::Think( void )
 			MESSAGE_END();
 		}
 
+		// Resend team info
+		MESSAGE_BEGIN( MSG_ALL, gmsgTeamNames );
+			WRITE_BYTE( 1 );
+			WRITE_STRING( "Active" );
+		MESSAGE_END();
+
 		UTIL_ClientPrintAll(HUD_PRINTCENTER, "Last man standing has begun!\n");
 	}
 	else
@@ -310,4 +323,45 @@ BOOL CHalfLifeLastManStanding::AllowRuneSpawn( const char *szRune )
 		return FALSE;
 
 	return TRUE;
+}
+
+void CHalfLifeLastManStanding::PlayerSpawn( CBasePlayer *pPlayer )
+{
+	CHalfLifeMultiplay::PlayerSpawn(pPlayer);
+
+	// Place player in spectator mode if joining during a game
+	// Or if the game begins that requires spectators
+	if ((g_GameInProgress && !pPlayer->IsInArena) || (!g_GameInProgress && HasSpectators()))
+	{
+		return;
+	}
+
+	char *key = g_engfuncs.pfnGetInfoKeyBuffer(pPlayer->edict());
+	strncpy( pPlayer->m_szTeamName, "Active", TEAM_NAME_LENGTH );
+	g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer->edict()), key, "team", "Active");
+
+	// notify everyone's HUD of the team change
+	MESSAGE_BEGIN( MSG_ALL, gmsgTeamInfo );
+		WRITE_BYTE( ENTINDEX(pPlayer->edict()) );
+		WRITE_STRING( pPlayer->m_szTeamName );
+	MESSAGE_END();
+
+	MESSAGE_BEGIN( MSG_ALL, gmsgScoreInfo );
+		WRITE_BYTE( ENTINDEX(pPlayer->edict()) );
+		WRITE_SHORT( pPlayer->pev->frags );
+		WRITE_SHORT( pPlayer->m_iDeaths );
+		WRITE_SHORT( 0 );
+		WRITE_SHORT( g_pGameRules->GetTeamIndex( pPlayer->m_szTeamName ) + 1 );
+	MESSAGE_END();
+}
+
+int CHalfLifeLastManStanding::GetTeamIndex( const char *pTeamName )
+{
+	if ( pTeamName && *pTeamName != 0 )
+	{
+		if (!strcmp(pTeamName, "Active"))
+			return 0;
+	}
+	
+	return -1;	// No match
 }
