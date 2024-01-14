@@ -2023,7 +2023,10 @@ void CHalfLifeMultiplay :: PlayerKilled( CBasePlayer *pVictim, entvars_t *pKille
 
 	if ( pVictim->pev == pKiller )  
 	{  // killed self
-		pKiller->frags -= 1;
+		int fragsToRemove = 1;
+		if (pInflictor && FClassnameIs(pInflictor, "weapon_vest"))
+			fragsToRemove = 0;
+		pKiller->frags -= fragsToRemove;
 	}
 	else if ( ktmp && ktmp->IsPlayer() )
 	{
@@ -2167,7 +2170,7 @@ void CHalfLifeMultiplay :: PlayerKilled( CBasePlayer *pVictim, entvars_t *pKille
 
 	if (m_iVolatile) {
 		// No echo boom
-		if (pInflictor && FClassnameIs(pInflictor, "vest"))
+		if (pInflictor && FClassnameIs(pInflictor, "weapon_vest"))
 			return;
 		CGrenade::Vest( pVictim->pev, pVictim->pev->origin );
 		pVictim->pev->solid = SOLID_NOT;
