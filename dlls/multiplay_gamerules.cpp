@@ -1052,7 +1052,7 @@ void CHalfLifeMultiplay::Arena ( void )
 	flUpdateTime = gpGlobals->time + 1.0;
 }
 
-int CHalfLifeMultiplay::CheckClients ( void )
+int CHalfLifeMultiplay::CheckClients( void )
 {
 	int clients = 0;
 
