@@ -586,6 +586,16 @@ void CHalfLifeJesusVsSanta::PlayerKilled( CBasePlayer *pVictim, entvars_t *pKill
 			MESSAGE_END();
 		}
 	}
+	else
+	{
+		CBaseEntity *ktmp = CBaseEntity::Instance( pKiller );
+		CBasePlayer *peKiller = NULL;
+		if ( ktmp && (ktmp->Classify() == CLASS_PLAYER) )
+			peKiller = (CBasePlayer*)ktmp;
+		// Last player to frag jesus is the winner, regardless of dole count
+		if ( pVictim->pev != pKiller && ktmp && ktmp->IsPlayer() )
+			peKiller->m_fArmoredManHits = 9999;
+	}
 }
 
 BOOL CHalfLifeJesusVsSanta::CanHavePlayerItem( CBasePlayer *pPlayer, CBasePlayerItem *pItem )
