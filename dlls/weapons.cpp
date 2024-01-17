@@ -1490,13 +1490,13 @@ BOOL CBasePlayerWeapon :: DefaultDeploy( char *szViewModel, char *szWeaponModel,
 	return TRUE;
 }
 
-void CBasePlayerWeapon :: DefaultHolster(int iAnim)
+void CBasePlayerWeapon :: DefaultHolster(int iAnim, int body)
 {
 	m_fInReload = FALSE;// cancel any reload in progress.
 	float multipler = g_pGameRules->WeaponMultipler();
 	m_pPlayer->m_flNextAttack = (UTIL_WeaponTimeBase() + 0.25) * multipler;
 	m_flTimeWeaponIdle = UTIL_SharedRandomFloat( m_pPlayer->random_seed, 10, 15 );
-	SendWeaponAnim(iAnim);
+	SendWeaponAnim(iAnim, 1, body);
 }
 
 

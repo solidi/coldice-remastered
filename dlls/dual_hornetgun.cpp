@@ -124,7 +124,7 @@ BOOL CDualHgun::Deploy( )
 
 void CDualHgun::Holster( int skiplocal /* = 0 */ )
 {
-	CBasePlayerWeapon::DefaultHolster(DUAL_HGUN_DOWN);
+	CBasePlayerWeapon::DefaultHolster(DUAL_HGUN_DOWN, 1);
 
 	//!!!HACKHACK - can't select hornetgun if it's empty! no way to get ammo for it, either.
 	if ( !m_pPlayer->m_rgAmmo[ PrimaryAmmoIndex() ] )
