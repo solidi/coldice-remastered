@@ -314,7 +314,7 @@ int CHudDeathNotice :: MsgFunc_DeathMsg( const char *pszName, int iSize, void *p
 
 	CalculateUTKills(killer, victim);
 
-	if (!m_iKillCount)
+	if (m_iKillCount < DOUBLE_KILL)
 		PlayKillSound(killer, victim);
 
 	// Get the Killer's name
