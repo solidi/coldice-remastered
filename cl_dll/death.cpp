@@ -155,7 +155,11 @@ int CHudDeathNotice :: Draw( float flTime )
 
 			int id = (rgDeathNoticeList[i].iId == -1) ? m_HUD_d_skull : rgDeathNoticeList[i].iId;
 			start = x = (ScreenWidth - ConsoleStringLen(rgDeathNoticeList[i].szVictim) - (gHUD.GetSpriteRect(id).right - gHUD.GetSpriteRect(id).left) - 20) + g_xP;
-			UnpackRGB( r, g, b, HudColor() );
+			
+			if (rgDeathNoticeList[i].iKillerIsMe )
+				UnpackRGB( r, g, b, RGB_REDISH );
+			else
+				UnpackRGB( r, g, b, HudColor() );
 
 			if ( !rgDeathNoticeList[i].iSuicide )
 			{
