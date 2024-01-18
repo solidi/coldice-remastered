@@ -454,6 +454,10 @@ public:
 	float m_fEffectTime;
 
 	int m_iJumpCount;
+
+	EHANDLE pLastAssist;
+	int m_iAssists;
+
 	float m_fFeignTime;
 
 	float m_fTauntFullTime;
