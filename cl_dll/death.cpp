@@ -18,6 +18,7 @@
 #include "hud.h"
 #include "cl_util.h"
 #include "parsemsg.h"
+#include "event_api.h"
 
 #include <string.h>
 #include <stdio.h>
@@ -28,6 +29,7 @@ DECLARE_MESSAGE( m_DeathNotice, DeathMsg );
 
 struct DeathNoticeItem {
 	char szKiller[MAX_PLAYER_NAME_LENGTH*2];
+	char szAssist[MAX_PLAYER_NAME_LENGTH*2];
 	char szVictim[MAX_PLAYER_NAME_LENGTH*2];
 	int iId;	// the index number of the associated sprite
 	int iSuicide;
@@ -35,7 +37,9 @@ struct DeathNoticeItem {
 	int iNonPlayerKill;
 	float flDisplayTime;
 	float *KillerColor;
+	float *AssistColor;
 	float *VictimColor;
+	int iKillerIsMe;
 };
 
 #define MAX_DEATHNOTICES	4
@@ -151,17 +155,32 @@ int CHudDeathNotice :: Draw( float flTime )
 
 			int id = (rgDeathNoticeList[i].iId == -1) ? m_HUD_d_skull : rgDeathNoticeList[i].iId;
 			start = x = (ScreenWidth - ConsoleStringLen(rgDeathNoticeList[i].szVictim) - (gHUD.GetSpriteRect(id).right - gHUD.GetSpriteRect(id).left) - 20) + g_xP;
-			UnpackRGB( r, g, b, HudColor() );
+			
+			if (rgDeathNoticeList[i].iKillerIsMe )
+				UnpackRGB( r, g, b, RGB_REDISH );
+			else
+				UnpackRGB( r, g, b, HudColor() );
 
 			if ( !rgDeathNoticeList[i].iSuicide )
 			{
 				start = x -= (5 + ConsoleStringLen( rgDeathNoticeList[i].szKiller ) );
+				if (rgDeathNoticeList[i].szAssist[0] != 0)
+					start = x -= (15 + ConsoleStringLen( rgDeathNoticeList[i].szAssist ) );
 				FillRGBA(start - 10, y - 5, (ScreenWidth - (start - g_xP)), (gHUD.GetSpriteRect(id).bottom - gHUD.GetSpriteRect(id).top) + 10, r, g, b, 20);
 
 				// Draw killers name
 				if ( rgDeathNoticeList[i].KillerColor )
 					gEngfuncs.pfnDrawSetTextColor( rgDeathNoticeList[i].KillerColor[0], rgDeathNoticeList[i].KillerColor[1], rgDeathNoticeList[i].KillerColor[2] );
 				x = 5 + DrawConsoleString( x, y, rgDeathNoticeList[i].szKiller );
+				if ( rgDeathNoticeList[i].AssistColor )
+					gEngfuncs.pfnDrawSetTextColor( rgDeathNoticeList[i].AssistColor[0], rgDeathNoticeList[i].AssistColor[1], rgDeathNoticeList[i].AssistColor[2] );
+				
+				if (rgDeathNoticeList[i].szAssist[0] != 0)
+				{
+					char assist[64];
+					sprintf(assist, "+ %s", rgDeathNoticeList[i].szAssist);
+					x = 5 + DrawConsoleString( x, y, assist );
+				}
 			}
 			else
 			{
@@ -267,6 +286,7 @@ int CHudDeathNotice :: MsgFunc_DeathMsg( const char *pszName, int iSize, void *p
 	BEGIN_READ( pbuf, iSize );
 
 	int killer = READ_BYTE();
+	int assist = READ_BYTE();
 	int victim = READ_BYTE();
 
 	char killedwith[32];
@@ -294,7 +314,7 @@ int CHudDeathNotice :: MsgFunc_DeathMsg( const char *pszName, int iSize, void *p
 
 	CalculateUTKills(killer, victim);
 
-	if (!m_iKillCount)
+	if (m_iKillCount < DOUBLE_KILL)
 		PlayKillSound(killer, victim);
 
 	// Get the Killer's name
@@ -313,9 +333,24 @@ int CHudDeathNotice :: MsgFunc_DeathMsg( const char *pszName, int iSize, void *p
 
 	// Get the Victim's name
 	char *victim_name = NULL;
+	char *assist_name = NULL;
 	// If victim is -1, the killer killed a specific, non-player object (like a sentrygun)
 	if ( ((char)victim) != -1 )
 		victim_name = g_PlayerInfoList[ victim ].name;
+	if ( ((char)assist) != -1 )
+		assist_name = g_PlayerInfoList[ assist ].name;
+	if ( !assist_name )
+	{
+		assist_name = "";
+		rgDeathNoticeList[i].szAssist[0] = 0;
+	}
+	else
+	{
+		rgDeathNoticeList[i].AssistColor = GetClientColor( assist );
+		strncpy( rgDeathNoticeList[i].szAssist, assist_name, MAX_PLAYER_NAME_LENGTH );
+		rgDeathNoticeList[i].szAssist[MAX_PLAYER_NAME_LENGTH-1] = 0;
+	}
+
 	if ( !victim_name )
 	{
 		victim_name = "";
@@ -340,6 +375,9 @@ int CHudDeathNotice :: MsgFunc_DeathMsg( const char *pszName, int iSize, void *p
 	{
 		if ( killer == victim || killer == 0 )
 			rgDeathNoticeList[i].iSuicide = TRUE;
+		
+		if ( gEngfuncs.pEventAPI->EV_IsLocal( killer - 1 ) )
+			rgDeathNoticeList[i].iKillerIsMe = TRUE;
 
 		if ( !strcmp( killedwith, "d_teammate" ) )
 			rgDeathNoticeList[i].iTeamKill = TRUE;
@@ -385,6 +423,12 @@ int CHudDeathNotice :: MsgFunc_DeathMsg( const char *pszName, int iSize, void *p
 		else
 		{
 			ConsolePrint( rgDeathNoticeList[i].szKiller );
+			if (rgDeathNoticeList[i].szAssist[0] != 0)
+			{
+				ConsolePrint( " assisted by " );
+				ConsolePrint( rgDeathNoticeList[i].szAssist );
+			}
+
 			ConsolePrint( " killed " );
 			ConsolePrint( rgDeathNoticeList[i].szVictim );
 		}

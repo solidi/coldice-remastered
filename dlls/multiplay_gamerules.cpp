@@ -970,6 +970,7 @@ void CHalfLifeMultiplay::Arena ( void )
 						WRITE_SHORT( 0 );
 						WRITE_SHORT( 0 );
 					MESSAGE_END();
+					plr->m_iAssists = 0;
 
 					ALERT(at_console, "| %s ", STRING(plr->pev->netname) );
 
@@ -989,6 +990,7 @@ void CHalfLifeMultiplay::Arena ( void )
 							WRITE_SHORT( 0 );
 							WRITE_SHORT( 0 );
 						MESSAGE_END();
+						plr->m_iAssists = 0;
 
 						edict_t *pentSpawnSpot = g_pGameRules->GetPlayerSpawnSpot(plr);
 						plr->StartObserver(plr->pev->origin, VARS(pentSpawnSpot)->angles);
@@ -1098,6 +1100,7 @@ void CHalfLifeMultiplay::InsertClientsIntoArena(float fragcount)
 				WRITE_SHORT( 0 );
 				WRITE_SHORT( GetTeamIndex( plr->m_szTeamName ) + 1 );
 			MESSAGE_END();
+			plr->m_iAssists = 0;
 
 			MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, plr->edict() );
 				WRITE_STRING("");
@@ -1282,6 +1285,7 @@ void CHalfLifeMultiplay::SuckAllToSpectator( void )
 				WRITE_SHORT( 0 );
 				WRITE_SHORT( GetTeamIndex( pPlayer->m_szTeamName ) + 1 );
 			MESSAGE_END();
+			pPlayer->m_iAssists = 0;
 
 			edict_t *pentSpawnSpot = g_pGameRules->GetPlayerSpawnSpot( pPlayer );
 			pPlayer->StartObserver(pPlayer->pev->origin, VARS(pentSpawnSpot)->angles);
@@ -1655,6 +1659,7 @@ void CHalfLifeMultiplay :: ClientDisconnected( edict_t *pClient )
 			{
 				pPlayer->pev->frags = 0;
 				pPlayer->m_iDeaths = 0;
+				pPlayer->m_iAssists = 0;
 			}
 
 			if ( !pPlayer->IsSpectator() )
@@ -2032,6 +2037,8 @@ void CHalfLifeMultiplay :: PlayerKilled( CBasePlayer *pVictim, entvars_t *pKille
 	{
 		// if a player dies in a deathmatch game and the killer is a client, award the killer some points
 		pKiller->frags += IPointsForKill( peKiller, pVictim );
+		if (peKiller->m_iAssists % 3 == 0)
+			pKiller->frags += IPointsForKill( peKiller, pVictim );
 
 		if (!m_iFirstBloodDecided)
 		{
@@ -2269,6 +2276,7 @@ void CHalfLifeMultiplay::DeathNotice( CBasePlayer *pVictim, entvars_t *pKiller, 
 
 	const char *killer_weapon_name = "world";		// by default, the player is killed by the world
 	int killer_index = 0;
+	int assist_index = 0;
 	
 	// Hack to fix name change
 	char *tau = "tau_cannon";
@@ -2284,6 +2292,17 @@ void CHalfLifeMultiplay::DeathNotice( CBasePlayer *pVictim, entvars_t *pKiller, 
 	if ( pKiller->flags & FL_CLIENT )
 	{
 		killer_index = ENTINDEX(ENT(pKiller));
+		if (pVictim->pLastAssist)
+		{
+			assist_index = pVictim->pLastAssist->entindex();
+			if (assist_index != killer_index)
+			{
+				CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex(assist_index);
+				if (plr)
+					plr->m_iAssists += 1;
+			}
+			pVictim->pLastAssist = NULL;
+		}
 		
 		if ( pevInflictor )
 		{
@@ -2344,6 +2363,7 @@ void CHalfLifeMultiplay::DeathNotice( CBasePlayer *pVictim, entvars_t *pKiller, 
 
 	MESSAGE_BEGIN( MSG_ALL, gmsgDeathMsg );
 		WRITE_BYTE( killer_index );						// the killer
+		WRITE_BYTE( assist_index != killer_index ? assist_index : -1 );						// the assist
 		WRITE_BYTE( ENTINDEX(pVictim->edict()) );		// the victim
 		WRITE_STRING( killer_weapon_name );		// what they were killed by (should this be a string?)
 	MESSAGE_END();

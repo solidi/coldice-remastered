@@ -481,6 +481,11 @@ void CBasePlayer :: TraceAttack( entvars_t *pevAttacker, float flDamage, Vector 
 		CBasePlayer *pVictim = GetClassPtr((CBasePlayer *)pev);
 		CBasePlayer *pAttacker = GetClassPtr((CBasePlayer *)pevAttacker);
 
+		if (pAttacker && pAttacker->IsPlayer())
+		{
+			pLastAssist = pAttacker;
+		}
+
 		if ( pAttacker->IsPlayer() && pAttacker->m_fHasRune == RUNE_VAMPIRE && (pVictim != pAttacker) )
 		{
 			//under limit, increase damage / 2.
