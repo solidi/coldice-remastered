@@ -28,18 +28,13 @@ extern DLL_GLOBAL const char *g_MutatorRocketCrowbar;
 
 
 enum rpg_e {
-	RPG_IDLE = 0,
-	RPG_FIDGET,
-	RPG_RELOAD,		// to reload
-	RPG_FIRE2,		// to empty
-	RPG_FIRE3,		// to empty
-	RPG_HOLSTER1,	// loaded
-	RPG_DRAW_LOWKEY,
-	RPG_DRAW1,		// loaded
-	RPG_HOLSTER2,	// unloaded
-	RPG_DRAW_UL,	// unloaded
-	RPG_IDLE_UL,	// unloaded idle
-	RPG_FIDGET_UL,	// unloaded fidget
+	DUAL_RPG_DRAW_LEFT = 0,
+	DUAL_RPG_DRAW_BOTH_LOWKEY,
+	DUAL_RPG_DRAW_BOTH,
+	DUAL_RPG_IDLE_BOTH,
+	DUAL_RPG_FIRE_BOTH,
+	DUAL_RPG_HOLSTER_BOTH,
+	DUAL_RPG_RELOAD_BOTH,
 };
 
 #ifdef RPG
@@ -394,7 +389,7 @@ void CRpg::Reload( void )
 	}
 #endif
 
-	iResult = DefaultReload( RPG_MAX_CLIP, RPG_RELOAD, 2 );
+	iResult = DefaultReload( RPG_MAX_CLIP, DUAL_RPG_RELOAD_BOTH, 2 );
 	
 	if ( iResult )
 		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + UTIL_SharedRandomFloat( m_pPlayer->random_seed, 10, 15 );
@@ -430,7 +425,7 @@ void CRpg::Spawn( )
 void CRpg::Precache( void )
 {
 	PRECACHE_MODEL("models/w_weapons.mdl");
-	PRECACHE_MODEL("models/v_rpg.mdl");
+	PRECACHE_MODEL("models/v_dual_rpg.mdl");
 	PRECACHE_MODEL("models/p_weapons.mdl");
 
 	PRECACHE_SOUND("items/9mmclip1.wav");
@@ -477,7 +472,7 @@ int CRpg::AddToPlayer( CBasePlayer *pPlayer )
 BOOL CRpg::DeployLowKey( )
 {
 	m_fSpotActive = 1;
-	return DefaultDeploy( "models/v_rpg.mdl", "models/p_weapons.mdl", RPG_DRAW_LOWKEY, "rpg" );
+	return DefaultDeploy( "models/v_dual_rpg.mdl", "models/p_weapons.mdl", DUAL_RPG_DRAW_BOTH_LOWKEY, "rpg" );
 }
 
 BOOL CRpg::Deploy( )
@@ -486,10 +481,10 @@ BOOL CRpg::Deploy( )
 
 	if ( m_iClip == 0 )
 	{
-		return DefaultDeploy( "models/v_rpg.mdl", "models/p_weapons.mdl", RPG_DRAW_UL, "rpg" );
+		return DefaultDeploy( "models/v_dual_rpg.mdl", "models/p_weapons.mdl", DUAL_RPG_DRAW_BOTH, "rpg" );
 	}
 
-	return DefaultDeploy( "models/v_rpg.mdl", "models/p_weapons.mdl", RPG_DRAW1, "rpg" );
+	return DefaultDeploy( "models/v_dual_rpg.mdl", "models/p_weapons.mdl", DUAL_RPG_DRAW_BOTH, "rpg" );
 }
 
 
@@ -506,7 +501,7 @@ BOOL CRpg::CanHolster( void )
 
 void CRpg::Holster( int skiplocal /* = 0 */ )
 {
-	CBasePlayerWeapon::DefaultHolster(RPG_HOLSTER1);
+	CBasePlayerWeapon::DefaultHolster(DUAL_RPG_HOLSTER_BOTH);
 
 	m_fSpotActive = 0;
 
@@ -649,18 +644,18 @@ void CRpg::WeaponIdle( void )
 		if (flRand <= 0.75 || m_fSpotActive)
 		{
 			if ( m_iClip == 0 )
-				iAnim = RPG_IDLE_UL;
+				iAnim = DUAL_RPG_IDLE_BOTH;
 			else
-				iAnim = RPG_IDLE;
+				iAnim = DUAL_RPG_IDLE_BOTH;
 
 			m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 90.0 / 15.0;
 		}
 		else
 		{
 			if ( m_iClip == 0 )
-				iAnim = RPG_FIDGET_UL;
+				iAnim = DUAL_RPG_IDLE_BOTH;
 			else
-				iAnim = RPG_FIDGET;
+				iAnim = DUAL_RPG_IDLE_BOTH;
 
 			m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 6.1;
 		}

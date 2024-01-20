@@ -1520,19 +1520,14 @@ void EV_FireCrossbow( event_args_t *args )
 //======================
 //	    RPG START 
 //======================
-enum rpg_e {
-	RPG_IDLE = 0,
-	RPG_FIDGET,
-	RPG_RELOAD,		// to reload
-	RPG_FIRE2,		// to empty
-	RPG_FIRE3,		// to empty, with sound!
-	RPG_HOLSTER1,	// loaded
-	RPG_DRAW_LOWKEY,
-	RPG_DRAW1,		// loaded
-	RPG_HOLSTER2,	// unloaded
-	RPG_DRAW_UL,	// unloaded
-	RPG_IDLE_UL,	// unloaded idle
-	RPG_FIDGET_UL,	// unloaded fidget
+enum dual_rpg_e {
+	DUAL_RPG_DRAW_LEFT = 0,
+	DUAL_RPG_DRAW_BOTH_LOWKEY,
+	DUAL_RPG_DRAW_BOTH,
+	DUAL_RPG_IDLE_BOTH,
+	DUAL_RPG_FIRE_BOTH,
+	DUAL_RPG_HOLSTER_BOTH,
+	DUAL_RPG_RELOAD_BOTH,
 };
 
 void EV_FireRpg( event_args_t *args )
@@ -1549,7 +1544,7 @@ void EV_FireRpg( event_args_t *args )
 	//Only play the weapon anims if I shot it. 
 	if ( EV_IsLocal( idx ) )
 	{
-		gEngfuncs.pEventAPI->EV_WeaponAnimation( RPG_FIRE2, 1 );
+		gEngfuncs.pEventAPI->EV_WeaponAnimation( DUAL_RPG_FIRE_BOTH, 0 );
 	
 		V_PunchAxis(PITCH, gEngfuncs.pfnRandomFloat(-5.0, -7.0) );
 		V_PunchAxis(YAW, gEngfuncs.pfnRandomFloat(-2.0, -4.0));
@@ -1571,7 +1566,7 @@ void EV_FireRpgExtreme( event_args_t *args )
 	//Only play the weapon anims if I shot it.
 	if ( EV_IsLocal( idx ) )
 	{
-		gEngfuncs.pEventAPI->EV_WeaponAnimation( RPG_FIRE3, 1 );
+		gEngfuncs.pEventAPI->EV_WeaponAnimation( DUAL_RPG_FIRE_BOTH, 0 );
 
 		V_PunchAxis(PITCH, gEngfuncs.pfnRandomFloat(-7.0, -10.0) );
 		V_PunchAxis(YAW, gEngfuncs.pfnRandomFloat(-2.0, -4.0));
@@ -2984,16 +2979,6 @@ void EV_FireDualDeagleBoth( event_args_t *args )
 
 	EV_HLDM_FireBullets( idx, forward, right, up, 2, vecSrc, vecAiming, 8192, BULLET_PLAYER_357, 0, 0, args->fparam1, args->fparam2 );
 }
-
-enum dual_rpg_e {
-	DUAL_RPG_DRAW_LEFT = 0,
-	DUAL_RPG_DRAW_BOTH_LOWKEY,
-	DUAL_RPG_DRAW_BOTH,
-	DUAL_RPG_IDLE_BOTH,
-	DUAL_RPG_FIRE_BOTH,
-	DUAL_RPG_HOLSTER_BOTH,
-	DUAL_RPG_RELOAD_BOTH,
-};
 
 void EV_FireDualRpgBoth( event_args_t *args )
 {

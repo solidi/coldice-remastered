@@ -1240,10 +1240,12 @@ void HUD_WeaponsPostThink( local_state_s *from, local_state_s *to, usercmd_t *cm
 		if ( pWeapon == &g_Python && bIsMultiplayer() )
 			 body = 1;
 
-		if ( pWeapon == &g_HGun )
+		if ( pWeapon == &g_HGun ||
+			 pWeapon == &g_Rpg )
 			 body = 0;
 
-		if ( pWeapon == &g_DualHornetgun )
+		if ( pWeapon == &g_DualHornetgun ||
+			 pWeapon == &g_DualRpg )
 			 body = 1;
 
 		// Force a fixed anim down to viewmodel

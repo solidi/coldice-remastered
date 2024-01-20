@@ -22,14 +22,14 @@
 #include "player.h"
 #include "gamerules.h"
 
-enum rpg_e {
-	DRAW_LEFT = 0,
-	DRAW_BOTH_LOWKEY,
-	DRAW_BOTH,
-	IDLE_BOTH,
-	FIRE_BOTH,
-	HOLSTER_BOTH,
-	RELOAD_BOTH,
+enum dual_rpg_e {
+	DUAL_RPG_DRAW_LEFT = 0,
+	DUAL_RPG_DRAW_BOTH_LOWKEY,
+	DUAL_RPG_DRAW_BOTH,
+	DUAL_RPG_IDLE_BOTH,
+	DUAL_RPG_FIRE_BOTH,
+	DUAL_RPG_HOLSTER_BOTH,
+	DUAL_RPG_RELOAD_BOTH,
 };
 
 #ifdef DUALRPG
@@ -88,7 +88,7 @@ void CDualRpg::Reload( void )
 	}
 #endif
 
-	iResult = DefaultReload( RPG_MAX_CLIP * 2, RELOAD_BOTH, 2 );
+	iResult = DefaultReload( RPG_MAX_CLIP * 2, DUAL_RPG_RELOAD_BOTH, 2, 1 );
 	
 	if ( iResult )
 		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + UTIL_SharedRandomFloat( m_pPlayer->random_seed, 10, 15 );
@@ -169,13 +169,13 @@ int CDualRpg::AddToPlayer( CBasePlayer *pPlayer )
 BOOL CDualRpg::DeployLowKey( )
 {
 	m_fSpotActive = 1;
-	return DefaultDeploy( "models/v_dual_rpg.mdl", "models/p_weapons.mdl", DRAW_BOTH_LOWKEY, "dual_rpg" );
+	return DefaultDeploy( "models/v_dual_rpg.mdl", "models/p_weapons.mdl", DUAL_RPG_DRAW_BOTH_LOWKEY, "dual_rpg", 0, 1 );
 }
 
 BOOL CDualRpg::Deploy( )
 {
 	m_fSpotActive = 1;
-	return DefaultDeploy( "models/v_dual_rpg.mdl", "models/p_weapons.mdl", DRAW_BOTH, "dual_rpg" );
+	return DefaultDeploy( "models/v_dual_rpg.mdl", "models/p_weapons.mdl", DUAL_RPG_DRAW_BOTH, "dual_rpg", 0, 1 );
 }
 
 BOOL CDualRpg::CanHolster( void )
@@ -191,7 +191,7 @@ BOOL CDualRpg::CanHolster( void )
 
 void CDualRpg::Holster( int skiplocal /* = 0 */ )
 {
-	CBasePlayerWeapon::DefaultHolster(HOLSTER_BOTH);
+	CBasePlayerWeapon::DefaultHolster(DUAL_RPG_HOLSTER_BOTH, 1);
 
 	m_fSpotActive = 0;
 
@@ -344,23 +344,23 @@ void CDualRpg::WeaponIdle( void )
 		if (flRand <= 0.75 || m_fSpotActive)
 		{
 			if ( m_iClip == 0 )
-				iAnim = IDLE_BOTH;
+				iAnim = DUAL_RPG_IDLE_BOTH;
 			else
-				iAnim = IDLE_BOTH;
+				iAnim = DUAL_RPG_IDLE_BOTH;
 
 			m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 90.0 / 15.0;
 		}
 		else
 		{
 			if ( m_iClip == 0 )
-				iAnim = IDLE_BOTH;
+				iAnim = DUAL_RPG_IDLE_BOTH;
 			else
-				iAnim = IDLE_BOTH;
+				iAnim = DUAL_RPG_IDLE_BOTH;
 
 			m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 6.1;
 		}
 
-		SendWeaponAnim( iAnim );
+		SendWeaponAnim( iAnim, 1, 1 );
 	}
 	else
 	{
