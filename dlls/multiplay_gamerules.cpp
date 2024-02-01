@@ -1726,6 +1726,9 @@ BOOL CHalfLifeMultiplay::FPlayerCanTakeDamage( CBasePlayer *pPlayer, CBaseEntity
 
 //=========================================================
 //=========================================================
+#define TO_STRING_AUX( ... ) "" #__VA_ARGS__
+#define TO_STRING( x ) TO_STRING_AUX( x )
+
 void CHalfLifeMultiplay :: PlayerThink( CBasePlayer *pPlayer )
 {
 	if (strstr(mutators.string, g_MutatorLightsOut) ||
@@ -1786,7 +1789,7 @@ void CHalfLifeMultiplay :: PlayerThink( CBasePlayer *pPlayer )
 
 	if (pPlayer->m_iShownWelcomeMessage != -1 && pPlayer->m_iShownWelcomeMessage < gpGlobals->time) {
 #ifdef GIT
-		ClientPrint(pPlayer->pev, HUD_PRINTTALK, "Welcome to Cold Ice Remastered Beta 5 (%s). For commands, type \"help\" in the console.\n", GIT);
+		ClientPrint(pPlayer->pev, HUD_PRINTTALK, "Welcome to Cold Ice Remastered Beta 5 (%s). For commands, type \"help\" in the console.\n", TO_STRING(GIT));
 #else
 		ClientPrint(pPlayer->pev, HUD_PRINTTALK, "Welcome to Cold Ice Remastered Beta 5. For commands, type \"help\" in the console.\n");
 #endif

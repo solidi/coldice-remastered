@@ -25,8 +25,6 @@ jobs:
 
     - name: Add MSBuild to PATH
       uses: microsoft/setup-msbuild@v1.1
-      with:
-        vs-version: '[17.8,17.9)'
 
     - name: Build ice.dll
       working-directory: ${{env.GITHUB_WORKSPACE}}
