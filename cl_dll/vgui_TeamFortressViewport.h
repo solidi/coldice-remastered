@@ -1737,7 +1737,7 @@ public:
 
 #define MAX_MODES	9 // CHILLDEMIC + RANDOM
 #define MAX_MAPS	30 // training2 (28) + RANDOM
-#define MAX_MUTATORS	52 // pumpkin (50 + 1) + RANDOM
+#define MAX_MUTATORS	54 // (52 + 1) + RANDOM
 
 class CVoteGameplayPanel : public CMenuPanel
 {

@@ -88,5 +88,7 @@ DLL_GLOBAL const char *g_MutatorJack = "jack";
 DLL_GLOBAL const char *g_MutatorPirateHat = "piratehat";
 DLL_GLOBAL const char *g_MutatorMarshmello = "marshmellow";
 DLL_GLOBAL const char *g_MutatorCrate = "crate";
+DLL_GLOBAL const char *g_MutatorJeepAThon = "jeepathon";
+DLL_GLOBAL const char *g_MutatorToilet = "toilet";
 
 DLL_GLOBAL int g_GameMode;
