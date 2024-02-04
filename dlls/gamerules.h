@@ -483,5 +483,5 @@ protected:
 };
 
 extern DLL_GLOBAL CGameRules*	g_pGameRules;
-#define MAX_MUTATORS 51
+#define MAX_MUTATORS 53
 extern const char *g_szMutators[MAX_MUTATORS];

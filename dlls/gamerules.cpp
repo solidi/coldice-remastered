@@ -81,6 +81,7 @@ extern DLL_GLOBAL const char *g_MutatorBerserker;
 extern DLL_GLOBAL const char *g_MutatorJeepAThon;
 extern DLL_GLOBAL const char *g_MutatorAutoaim;
 extern DLL_GLOBAL const char *g_MutatorSantaHat;
+extern DLL_GLOBAL const char *g_MutatorToilet;
 
 extern DLL_GLOBAL int g_GameMode;
 
@@ -106,6 +107,7 @@ DLL_GLOBAL const char *g_szMutators[] = {
 	"invisible",
 	"itemsexplode",
 	"jack",
+	"jeepathon",
 	"jope",
 	"lightsout",
 	"longjump",
@@ -133,6 +135,7 @@ DLL_GLOBAL const char *g_szMutators[] = {
 	"snowballs",
 	"speedup",
 	"superjump",
+	"toilet",
 	"topsyturvy",
 	"turrets",
 	"volatile",
@@ -630,6 +633,36 @@ void CGameRules::SpawnMutators(CBasePlayer *pPlayer)
 		pPlayer->pev->health = 999;
 		pPlayer->pev->armorvalue = 999;
 	}
+
+	if (strstr(mutators.string, g_MutatorJeepAThon) ||
+		atoi(mutators.string) == MUTATOR_JEEPATHON) {
+		if (!pPlayer->IsObserver())
+		{
+			pPlayer->pev->body = 0;
+			pPlayer->SetBodygroup( 2, 1 );
+			//pPlayer->m_EFlags &= ~EFLAG_CANCEL;
+			//pPlayer->m_EFlags |= EFLAG_JEEP;
+		}
+	}
+
+	if (strstr(mutators.string, g_MutatorToilet) ||
+		atoi(mutators.string) == MUTATOR_TOILET) {
+		if (!pPlayer->IsObserver())
+		{
+			pPlayer->pev->body = 0;
+			if (RANDOM_LONG(0,1))
+			{ // toilet
+				pPlayer->SetBodygroup( 0, 2 );
+				pPlayer->SetBodygroup( 1, 1 );
+				pPlayer->SetBodygroup( 2, 2 );
+			}
+			else
+			{ // camera
+				pPlayer->SetBodygroup( 0, 1 );
+				pPlayer->SetBodygroup( 1, 2 );
+			}
+		}
+	}
 }
 
 void CGameRules::GiveMutators(CBasePlayer *pPlayer)
@@ -945,7 +978,41 @@ void CGameRules::CheckMutators(void)
 					if (pl->pev->health > 100)
 						pl->pev->health = 100;
 					if (pl->pev->armorvalue > 100)
-						pl->pev->armorvalue = 100;	
+						pl->pev->armorvalue = 100;
+				}
+
+				if (strstr(mutators.string, g_MutatorJeepAThon) ||
+					atoi(mutators.string) == MUTATOR_JEEPATHON) {
+					if (!pl->IsObserver())
+					{
+						pl->pev->body = 0;
+						pl->SetBodygroup( 2, 1 );
+					}
+				}
+
+				if (strstr(mutators.string, g_MutatorToilet) ||
+					atoi(mutators.string) == MUTATOR_TOILET) {
+					if (!pl->IsObserver())
+					{
+						pl->pev->body = 0;
+						if (RANDOM_LONG(0,1))
+						{ // toilet
+							pl->SetBodygroup( 0, 2 );
+							pl->SetBodygroup( 1, 1 );
+							pl->SetBodygroup( 2, 2 );
+						}
+						else
+						{ // camera
+							pl->SetBodygroup( 0, 1 );
+							pl->SetBodygroup( 1, 2 );
+						}
+					}
+				}
+
+				if (!strstr(mutators.string, g_MutatorJeepAThon) && !strstr(mutators.string, g_MutatorToilet) &&
+					atoi(mutators.string) != MUTATOR_TOILET && atoi(mutators.string) != MUTATOR_JEEPATHON)
+				{
+					pl->pev->body = 0;
 				}
 			}
 
