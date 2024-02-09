@@ -1474,7 +1474,7 @@ int CStudioModelRenderer::StudioDrawModel( int flags )
 		IEngineStudio.StudioSetRemapColors( m_nTopColor, m_nBottomColor );
 
 #ifndef __APPLE__
-		if (cl_portalmirror->value)
+		if (cl_portalmirror && cl_portalmirror->value)
 		{
 			if (!strcmp(m_pCurrentEntity->model->name, "models/w_portal.mdl"))
 			{
@@ -2385,7 +2385,7 @@ void CStudioModelRenderer::StudioCalcAttachments( void )
 	}
 
 #ifndef __APPLE__
-	if (cl_portalmirror->value)
+	if (cl_portalmirror && cl_portalmirror->value)
 	{
 		if (!strcmp(m_pCurrentEntity->model->name, "models/w_portal.mdl"))
 		{

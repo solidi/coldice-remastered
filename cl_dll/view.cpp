@@ -760,19 +760,35 @@ void V_CalcNormalRefdef ( struct ref_params_s *pparams )
 	}
 
 #ifdef _DEBUG
-	view->angles[YAW]   += cl_vmyaw->value;
-	view->angles[ROLL]  += cl_vmroll->value;
-	view->angles[PITCH] += cl_vmpitch->value;
+	int vmyaw = 0, vmroll = 0, vmpitch = 0;
+	int vmf = 0, vmr = 0, vmu = 0;
+	if (cl_vmyaw && cl_vmyaw->value)
+		vmyaw = cl_vmyaw->value;
+	if (cl_vmroll && cl_vmroll->value)
+		vmroll = cl_vmroll->value;
+	if (cl_vmpitch && cl_vmpitch->value)
+		vmpitch = cl_vmpitch->value;
 
-	view->origin[0] -=  (pparams->forward[ 0 ] * cl_vmf->value);
-	view->origin[1] -=  (pparams->forward[ 1 ] * cl_vmf->value);
-	view->origin[2] -=  (pparams->forward[ 2 ] * cl_vmf->value);
-	view->origin[0] +=  (pparams->up[ 0 ] * cl_vmu->value);
-	view->origin[1] +=  (pparams->up[ 1 ] * cl_vmu->value);
-	view->origin[2] +=  (pparams->up[ 2 ] * cl_vmu->value);
-	view->origin[0] -=  (pparams->right[ 0 ] * cl_vmr->value);
-	view->origin[1] -=  (pparams->right[ 1 ] * cl_vmr->value);
-	view->origin[2] -=  (pparams->right[ 2 ] * cl_vmr->value);
+	if (cl_vmf && cl_vmf->value)
+		vmf = cl_vmf->value;
+	if (cl_vmr && cl_vmu->value)
+		vmu = cl_vmu->value;
+	if (cl_vmr && cl_vmr->value)
+		vmr = cl_vmr->value;
+
+	view->angles[YAW]   += vmyaw;
+	view->angles[ROLL]  += vmroll;
+	view->angles[PITCH] += vmpitch;
+
+	view->origin[0] -=  (pparams->forward[ 0 ] * vmf);
+	view->origin[1] -=  (pparams->forward[ 1 ] * vmf);
+	view->origin[2] -=  (pparams->forward[ 2 ] * vmf);
+	view->origin[0] +=  (pparams->up[ 0 ] * vmu);
+	view->origin[1] +=  (pparams->up[ 1 ] * vmu);
+	view->origin[2] +=  (pparams->up[ 2 ] * vmu);
+	view->origin[0] -=  (pparams->right[ 0 ] * vmr);
+	view->origin[1] -=  (pparams->right[ 1 ] * vmr);
+	view->origin[2] -=  (pparams->right[ 2 ] * vmr);
 #endif
 
 	if (cl_bobtilt->value == 1) VectorCopy(view->angles, view->curstate.angles);
@@ -950,7 +966,7 @@ void V_CalcNormalRefdef ( struct ref_params_s *pparams )
 		return;
 
 	extern cvar_t *cl_portalmirror;
-	if (!cl_portalmirror->value)
+	if (cl_portalmirror && !cl_portalmirror->value)
 		return;
 
 	static int renderpass = 0;

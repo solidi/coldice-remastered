@@ -108,7 +108,7 @@ int CHud :: Redraw( float flTime, int intermission )
 {
 #ifdef _WIN32
 	extern cvar_t *cl_portalmirror;
-	if (cl_portalmirror->value)
+	if (cl_portalmirror && cl_portalmirror->value)
 	{
 		std::string port1 = "Portal 1 origin: " + std::to_string(gHUD.portal1finalorg.x) + " " + std::to_string(gHUD.portal1finalorg.y) + " " + std::to_string(gHUD.portal1finalorg.z);
 		std::string port2 = "Portal 2 origin: " + std::to_string(gHUD.portal2finalorg.x) + " " + std::to_string(gHUD.portal2finalorg.y) + " " + std::to_string(gHUD.portal2finalorg.z);
@@ -164,7 +164,7 @@ int CHud :: Redraw( float flTime, int intermission )
 	// return 0;
 
 #ifdef _WIN32
-	if (cl_portalmirror->value)
+	if (cl_portalmirror && cl_portalmirror->value)
 		glDepthRange(0.0f, 0.0f);
 #endif
 
@@ -232,7 +232,7 @@ int CHud :: Redraw( float flTime, int intermission )
 	}
 
 #ifdef _WIN32
-	if (cl_portalmirror->value)
+	if (cl_portalmirror && cl_portalmirror->value)
 		glDepthRange(0.0f, 1.0f);
 #endif
 
