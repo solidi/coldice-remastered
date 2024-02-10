@@ -432,7 +432,10 @@ int CHudScoreboard :: DrawPlayers( int xpos_rel, float list_slot, int nameoffset
 
 		// draw ping & packetloss
 		static char buf[64];
-		sprintf( buf, "%d", g_PlayerInfoList[best_player].ping );
+		if (!g_PlayerInfoList[best_player].ping && !g_PlayerInfoList[best_player].thisplayer)
+			sprintf( buf, "bot" );
+		else
+			sprintf( buf, "%d", g_PlayerInfoList[best_player].ping );
 		xpos = ((PING_RANGE_MAX - PING_RANGE_MIN) / 2) + PING_RANGE_MIN + xpos_rel + 25;
 		gHUD.DrawHudStringReverse( xpos, ypos, xpos - 50, buf, r, g, b );
 

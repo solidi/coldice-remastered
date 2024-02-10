@@ -854,7 +854,10 @@ void ScorePanel::FillGrid()
 					sprintf(sz, "%d",  g_PlayerExtraInfo[ m_iSortedRows[row] ].deaths );
 					break;
 				case COLUMN_LATENCY:
-					sprintf(sz, "%d", g_PlayerInfoList[ m_iSortedRows[row] ].ping );
+					if (!g_PlayerInfoList[ m_iSortedRows[row] ].ping && !g_PlayerInfoList[ m_iSortedRows[row] ].thisplayer)
+						sprintf(sz, "bot" );
+					else
+						sprintf(sz, "%d", g_PlayerInfoList[ m_iSortedRows[row] ].ping );
 					break;
 #endif
 				default:

@@ -220,7 +220,7 @@ int CHudDeathNotice :: Draw( float flTime )
 		// Draw circle
 		int hard_width = 128, hard_height = 128;
 
-		if (cl_achievements->value == 3) {
+		if (cl_achievements && cl_achievements->value == 3) {
 			wrect_t *t = &gHUD.GetSpriteRect(m_HUD_killspree);
 			t->bottom = (hard_height * (((m_fLastKillTime - gEngfuncs.GetClientTime()) / KILL_SPREE_SECS) / 2)) + 64;
 			t->top = hard_height - t->bottom;
@@ -266,7 +266,7 @@ int CHudDeathNotice :: Draw( float flTime )
 		}
 
 		// Draw the bar
-		if (cl_achievements->value == 2) {
+		if (cl_achievements && cl_achievements->value == 2) {
 			y = (ScreenHeight / 2) + (hard_width / 2) - (gHUD.m_iFontHeight / 2);
 			float delta = m_fLastKillTime - gEngfuncs.GetClientTime();
 			float width = (size * 2) * (delta / 3);

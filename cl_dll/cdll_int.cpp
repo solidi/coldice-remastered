@@ -244,7 +244,7 @@ int CL_DLLEXPORT HUD_Redraw( float time, int intermission )
 
 #ifndef __APPLE__
 	extern cvar_t *cl_portalmirror;
-	if (cl_portalmirror->value)
+	if (cl_portalmirror && cl_portalmirror->value)
 		gPortalRenderer.DrawPortal();
 #endif
 
