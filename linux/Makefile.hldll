@@ -165,6 +165,7 @@ HLDLL_OBJS = \
 	$(HLDLL_OBJ_DIR)/hornet.o \
 	$(HLDLL_OBJ_DIR)/hornetgun.o \
 	$(HLDLL_OBJ_DIR)/houndeye.o \
+	$(HLDLL_OBJ_DIR)/coldskull_gamerules.o \
 	$(HLDLL_OBJ_DIR)/ichthyosaur.o \
 	$(HLDLL_OBJ_DIR)/islave.o \
 	$(HLDLL_OBJ_DIR)/items.o \

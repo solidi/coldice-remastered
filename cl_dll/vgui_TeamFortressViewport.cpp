@@ -138,6 +138,7 @@ char *sLocalisedGameplayModes[] =
 	"#gungame",
 	"#ctc",
 	"#chilldemic",
+	"#coldskull",
 	"#random",
 };
 
@@ -152,6 +153,7 @@ char *sGameplayModes[] =
 	"gungame",
 	"ctc",
 	"chilldemic",
+	"coldskull",
 	"random",
 };
 

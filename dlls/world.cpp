@@ -802,6 +802,7 @@ const char *szGameModeList [] =
 	"gungame",
 	"ctc",
 	"chilldemic",
+	"coldskull",
 };
 
 void CWorld :: SetGameMode( void )

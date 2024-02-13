@@ -23,7 +23,7 @@
 #define CLASSMENU_TOPLEFT_BUTTON_X		XRES(40)
 #define CLASSMENU_TOPLEFT_BUTTON_Y		YRES(80)
 #define CLASSMENU_BUTTON_SIZE_X			XRES(128)
-#define CLASSMENU_BUTTON_SIZE_Y			YRES(24)
+#define CLASSMENU_BUTTON_SIZE_Y			YRES(21)
 #define CLASSMENU_BUTTON_SPACER_Y		YRES(8)
 #define CLASSMENU_WINDOW_X				XRES(176)
 #define CLASSMENU_WINDOW_Y				YRES(80)
@@ -101,7 +101,7 @@ CVoteGameplayPanel::CVoteGameplayPanel(int iTrans, int iRemoveMe, int x,int y,in
 		m_pButtons[i]->addInputSignal( new CHandler_MenuButtonOver(this, i) );
 		m_pButtons[i]->setParent( this );
 
-		// Create the Class Info Window
+		// Create the game Info Window
 		m_pGameInfoPanel[i] = new CTransparentPanel( 255, 0, 0, clientWide, CLASSMENU_WINDOW_SIZE_Y );
 		m_pGameInfoPanel[i]->setParent( m_pScrollPanel->getClient() );
 
@@ -115,7 +115,7 @@ CVoteGameplayPanel::CVoteGameplayPanel(int iTrans, int iRemoveMe, int x,int y,in
 
 		// Create the Gameplay Name Label
 		sprintf(sz, "%s", sLocalisedGameplayModes[i]);
-		char* localName=CHudTextMessage::BufferedLocaliseTextString( sz );
+		char* localName = CHudTextMessage::BufferedLocaliseTextString( sz );
 		Label *pNameLabel = new Label( "", textOffs, CLASSMENU_WINDOW_NAME_Y );
 		pNameLabel->setFont( pSchemes->getFont(hTitleScheme) ); 
 		pNameLabel->setParent( m_pGameInfoPanel[i] );
@@ -128,6 +128,7 @@ CVoteGameplayPanel::CVoteGameplayPanel(int iTrans, int iRemoveMe, int x,int y,in
 		pNameLabel->setText( "%s", localName);
 
 		// Create the Class Image
+		/*
 		if ( bShowClassGraphic )
 		{
 			for ( int team = 0; team < 2; team++ )
@@ -158,6 +159,7 @@ CVoteGameplayPanel::CVoteGameplayPanel(int iTrans, int iRemoveMe, int x,int y,in
 				pLabel->setPos( (CLASSMENU_WINDOW_TEXT_X - pLabel->getWide()) / 2, yOut /2 );
 			}
 		}
+		*/
 
 		// Open up the game Briefing File
 		sprintf(sz, "modes/%s.txt", sGameplayModes[i]);
@@ -189,6 +191,7 @@ CVoteGameplayPanel::CVoteGameplayPanel(int iTrans, int iRemoveMe, int x,int y,in
 
 		//check to see if the image goes lower than the text
 		//just use the red teams [0] images
+		/*
 		if (m_pClassImages[0][i]!=null)
 		{
 			m_pClassImages[0][i]->getPos(xx,yy);
@@ -197,6 +200,7 @@ CVoteGameplayPanel::CVoteGameplayPanel(int iTrans, int iRemoveMe, int x,int y,in
 				maxY=yy+m_pClassImages[0][i]->getTall();
 			}
 		}
+		*/
 
 		m_pGameInfoPanel[i]->setSize( maxX , maxY );
 		if (pfile) gEngfuncs.COM_FreeFile( pfile );
