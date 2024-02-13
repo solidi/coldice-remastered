@@ -252,7 +252,7 @@ int CL_DLLEXPORT HUD_Redraw( float time, int intermission )
 
 #ifndef __APPLE__
 	extern cvar_t *cl_screeneffects;
-	if (cl_screeneffects->value)
+	if (cl_screeneffects && cl_screeneffects->value)
 		gColorCor.DrawColorCor();
 #endif
 

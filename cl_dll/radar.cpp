@@ -79,12 +79,13 @@ void CHudRadar::ProcessPlayerState(void)
 			else
 				b_specials[num_players] = false;
 		}
-
-		// Skull
-		if (!strcmp(pClient->model->name, "models/w_runes.mdl") && pClient->curstate.fuser4 > 0)
-			b_specials[num_players] = true;
-		else
-			b_specials[num_players] = false;
+		else if (gHUD.m_GameMode == GAME_COLDSKULL)
+		{
+			if (!strcmp(pClient->model->name, "models/w_runes.mdl") && pClient->curstate.fuser4 > 0)
+				b_specials[num_players] = true;
+			else
+				b_specials[num_players] = false;
+		}
 
 		if (!b_specials[num_players])
 			if (!pClient->player)
