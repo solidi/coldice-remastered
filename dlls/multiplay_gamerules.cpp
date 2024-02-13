@@ -259,28 +259,28 @@ char *sBuiltInMaps[] =
 
 char *gamePlayModes[] = {
 	"Deathmatch",
-	"Teamplay",
-	"Jesus vs. Santa",
-	"Battle Royal",
 	"1 vs. 1",
-	"Snowballs",
-	"GunGame",
+	"Battle Royal",
 	"Capture The Chumtoad",
 	"Chilldemic",
 	"Cold Skulls",
+	"GunGame",
+	"Jesus vs. Santa",
+	"Snowballs",
+	"Teamplay",
 };
 
 char *gamePlayModesShort[] = {
 	"ffa",
-	"teamplay",
-	"jvs",
-	"lms",
 	"arena",
-	"snowball",
-	"gungame",
-	"ctc",
+	"lms",
 	"chilldemic",
 	"coldskull",
+	"ctc",
+	"gungame",
+	"jvs",
+	"snowball",
+	"teamplay",
 };
 
 extern void Vote( CBasePlayer *pPlayer, int vote );

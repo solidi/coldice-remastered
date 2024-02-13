@@ -852,15 +852,15 @@ typedef struct
 #define MUTATOR_VOLATILE 53
 
 #define GAME_FFA 0
-#define GAME_TEAMPLAY 1
-#define GAME_ICEMAN 2
-#define GAME_LMS 3
-#define GAME_ARENA 4
-#define GAME_SNOWBALL 5
-#define GAME_GUNGAME 6
-#define GAME_CTC 7
-#define GAME_CHILLDEMIC 8
-#define GAME_COLDSKULL 9
+#define GAME_ARENA 1
+#define GAME_LMS 2
+#define GAME_CHILLDEMIC 3
+#define GAME_COLDSKULL 4
+#define GAME_CTC 5
+#define GAME_ICEMAN 6
+#define GAME_GUNGAME 7
+#define GAME_SNOWBALL 8
+#define GAME_TEAMPLAY 9
 
 #define TOTAL_GAME_MODES 9
 
