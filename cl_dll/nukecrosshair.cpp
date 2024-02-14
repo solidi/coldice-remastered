@@ -33,7 +33,6 @@ int CHudNukeCrosshair::MsgFunc_NukeCross(const char *pszName,  int iSize, void *
 	BEGIN_READ( pbuf, iSize );
 	m_iHudMode = READ_BYTE();
 	if (m_iHudMode == 0) {
-		gEngfuncs.Con_DPrintf(">>> zero it out\n");
 		g_lastFOV = 0;
 		gHUD.m_iFOV = CVAR_GET_FLOAT( "default_fov" );
 	}

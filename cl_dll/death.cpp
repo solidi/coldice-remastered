@@ -177,7 +177,7 @@ int CHudDeathNotice :: Draw( float flTime )
 				
 				if (rgDeathNoticeList[i].szAssist[0] != 0)
 				{
-					char assist[64];
+					static char assist[64];
 					sprintf(assist, "+ %s", rgDeathNoticeList[i].szAssist);
 					x = 5 + DrawConsoleString( x, y, assist );
 				}

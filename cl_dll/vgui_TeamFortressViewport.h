@@ -1746,7 +1746,7 @@ private:
 	ClassButton			*m_pButtons[MAX_MODES + 1];
 	ScrollPanel			*m_pScrollPanel;
 
-	CImageLabel			*m_pClassImages[MAX_TEAMS][MAX_MODES + 1];
+	//CImageLabel			*m_pClassImages[MAX_TEAMS][MAX_MODES + 1];
 	Label 				*pTitleLabel;
 
 	int					m_iCurrentInfo;

@@ -39,7 +39,7 @@ CVoteGameplayPanel::CVoteGameplayPanel(int iTrans, int iRemoveMe, int x,int y,in
 	// don't show graphics atm
 	bool bShowClassGraphic = false;
 
-	memset( m_pClassImages, 0, sizeof(m_pClassImages) );
+	//memset( m_pClassImages, 0, sizeof(m_pClassImages) );
 
 	// Get the scheme used for the Titles
 	CSchemeManager *pSchemes = gViewPort->GetSchemeManager();

@@ -659,6 +659,7 @@ typedef struct {
 	bool special;
 } RADAR;
 
+#define MAX_RADAR_DOTS 64
 class CHudRadar: public CHudBase
 {
 public:
@@ -669,7 +670,7 @@ public:
 
 private:
 	int radar_height, radar_width;
-	RADAR m_RadarInfo[32];
+	RADAR m_RadarInfo[MAX_RADAR_DOTS];
 };
 
 class CHudObjective : public CHudBase
