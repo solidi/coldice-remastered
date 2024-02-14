@@ -1735,7 +1735,7 @@ public:
 	}
 };
 
-#define MAX_MODES	9 // CHILLDEMIC + RANDOM
+#define MAX_MODES	10 // COLDSKULL + RANDOM
 #define MAX_MAPS	30 // training2 (28) + RANDOM
 #define MAX_MUTATORS	54 // (52 + 1) + RANDOM
 
@@ -1746,7 +1746,7 @@ private:
 	ClassButton			*m_pButtons[MAX_MODES + 1];
 	ScrollPanel			*m_pScrollPanel;
 
-	CImageLabel			*m_pClassImages[MAX_TEAMS][MAX_MODES + 1];
+	//CImageLabel			*m_pClassImages[MAX_TEAMS][MAX_MODES + 1];
 	Label 				*pTitleLabel;
 
 	int					m_iCurrentInfo;

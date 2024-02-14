@@ -36,9 +36,9 @@ int CHudRadar::VidInit(void)
 
 void CHudRadar::ProcessPlayerState(void)
 {
-	Vector v_player[MAX_PLAYERS * 2], v_other, v_radar;
-	bool b_specials[MAX_PLAYERS * 2] = {false};
-	float distanceLocal, player_distance[MAX_PLAYERS * 2], player_height[MAX_PLAYERS * 2], view_angle;
+	Vector v_player[MAX_RADAR_DOTS], v_other, v_radar;
+	bool b_specials[MAX_RADAR_DOTS] = {false};
+	float distanceLocal, player_distance[MAX_RADAR_DOTS], player_height[MAX_RADAR_DOTS], view_angle;
 	int num_players = 0;
 	cl_entity_t *localPlayer = gEngfuncs.GetLocalPlayer();
 
@@ -52,6 +52,10 @@ void CHudRadar::ProcessPlayerState(void)
 	for (int i = 1; i <= MAX_EDICTS; i++)
 	{
 		cl_entity_s *pClient = gEngfuncs.GetEntityByIndex(i);
+
+		// Max radar dots
+		if (num_players >= MAX_RADAR_DOTS)
+			break;
 		
 		if (!pClient)
 			continue;
@@ -75,6 +79,13 @@ void CHudRadar::ProcessPlayerState(void)
 		else if (gHUD.m_GameMode == GAME_ICEMAN || gHUD.m_GameMode == GAME_CHILLDEMIC)
 		{
 			if (pClient->curstate.fuser4 > 0) // iceman
+				b_specials[num_players] = true;
+			else
+				b_specials[num_players] = false;
+		}
+		else if (gHUD.m_GameMode == GAME_COLDSKULL)
+		{
+			if (!strcmp(pClient->model->name, "models/w_runes.mdl") && pClient->curstate.fuser4 > 0)
 				b_specials[num_players] = true;
 			else
 				b_specials[num_players] = false;

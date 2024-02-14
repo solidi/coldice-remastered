@@ -259,26 +259,28 @@ char *sBuiltInMaps[] =
 
 char *gamePlayModes[] = {
 	"Deathmatch",
-	"Teamplay",
-	"Jesus vs. Santa",
-	"Battle Royal",
 	"1 vs. 1",
-	"Snowballs",
-	"GunGame",
+	"Battle Royal",
 	"Capture The Chumtoad",
 	"Chilldemic",
+	"Cold Skulls",
+	"GunGame",
+	"Jesus vs. Santa",
+	"Snowballs",
+	"Teamplay",
 };
 
 char *gamePlayModesShort[] = {
 	"ffa",
-	"teamplay",
-	"jvs",
-	"lms",
 	"arena",
-	"snowball",
-	"gungame",
-	"ctc",
+	"lms",
 	"chilldemic",
+	"coldskull",
+	"ctc",
+	"gungame",
+	"jvs",
+	"snowball",
+	"teamplay",
 };
 
 extern void Vote( CBasePlayer *pPlayer, int vote );
@@ -334,7 +336,7 @@ void CHalfLifeMultiplay :: Think ( void )
 					CBasePlayer *pPlayer = (CBasePlayer *)UTIL_PlayerByIndex( i );
 					if (pPlayer && FBitSet(pPlayer->pev->flags, FL_FAKECLIENT))
 					{
-						::Vote(pPlayer, RANDOM_LONG(1,GAME_CHILLDEMIC + 2 /*random*/));
+						::Vote(pPlayer, RANDOM_LONG(1, TOTAL_GAME_MODES + 2 /*random*/));
 					}
 				}
 			}
@@ -348,13 +350,13 @@ void CHalfLifeMultiplay :: Think ( void )
 				MESSAGE_END();
 
 				// tally votes
-				int vote[GAME_CHILLDEMIC+2]; //+1, +1 RANDOM
+				int vote[TOTAL_GAME_MODES + 2]; //+1, +1 RANDOM
 				memset(vote, 0, sizeof(vote));
 
 				for (int j = 1; j <= 32; j++)
 				{
 					int gameIndex = g_pGameRules->m_iVoteCount[j-1];
-					if ((gameIndex-1) >= GAME_FFA && (gameIndex-1) <= GAME_CHILLDEMIC + 1 /*random*/)
+					if ((gameIndex-1) >= GAME_FFA && (gameIndex-1) <= TOTAL_GAME_MODES + 1 /*random*/)
 						vote[gameIndex-1]++;
 					// ALERT(at_console, "gameIndex=%d vote[%d]=%d\n", gameIndex-1, gameIndex-1, vote[gameIndex-1]);
 				}
@@ -362,7 +364,7 @@ void CHalfLifeMultiplay :: Think ( void )
 				int highest = -9999;
 				int gameIndex = GAME_FFA;
 				int tie = -9999;
-				for (int i = 0; i <= GAME_CHILLDEMIC + 1 /*random*/; i++)
+				for (int i = 0; i <= TOTAL_GAME_MODES + 1 /*random*/; i++)
 				{
 					if (highest <= vote[i])
 					{
@@ -375,7 +377,7 @@ void CHalfLifeMultiplay :: Think ( void )
 				}
 
 				if (highest == tie)
-					gameIndex = GAME_CHILLDEMIC + 1; // randomize!
+					gameIndex = TOTAL_GAME_MODES + 1; // randomize!
 
 				memset(m_iVoteCount, -1, sizeof(m_iVoteCount));
 
@@ -385,10 +387,10 @@ void CHalfLifeMultiplay :: Think ( void )
 				}
 				else
 				{
-					if (gameIndex == GAME_CHILLDEMIC + 1 /*random*/)
+					if (gameIndex == TOTAL_GAME_MODES + 1 /*random*/)
 					{
 						UTIL_ClientPrintAll(HUD_PRINTTALK, "[VOTE] Randomizing gameplay mode...\n");
-						gameIndex = RANDOM_LONG(GAME_FFA, GAME_CHILLDEMIC);
+						gameIndex = RANDOM_LONG(GAME_FFA, TOTAL_GAME_MODES);
 					}
 
 					UTIL_ClientPrintAll(HUD_PRINTTALK, UTIL_VarArgs("[VOTE] %s is the next gameplay mode!\n", gamePlayModes[gameIndex]));
@@ -1345,13 +1347,13 @@ BOOL CHalfLifeMultiplay::IsCoOp( void )
 
 BOOL CHalfLifeMultiplay::HasSpectators( void )
 {
-	if (g_GameMode == GAME_FFA 
-		|| g_GameMode == GAME_TEAMPLAY
-		|| g_GameMode == GAME_SNOWBALL
-		|| g_GameMode == GAME_CTC)
-		return FALSE;
+	if (g_GameMode == GAME_ICEMAN 
+		|| g_GameMode == GAME_LMS
+		|| g_GameMode == GAME_ARENA
+		|| g_GameMode == GAME_CHILLDEMIC)
+		return TRUE;
 
-	return TRUE;
+	return FALSE;
 }
 
 BOOL CHalfLifeMultiplay::AllowMeleeDrop( void )

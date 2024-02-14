@@ -130,28 +130,30 @@ char *sLocalisedClasses[] =
 char *sLocalisedGameplayModes[] = 
 {
 	"#ffa",
-	"#teamplay",
-	"#jvs",
-	"#lms",
 	"#arena",
-	"#snowball",
-	"#gungame",
-	"#ctc",
+	"#lms",
 	"#chilldemic",
+	"#coldskull",
+	"#ctc",
+	"#gungame",
+	"#jvs",
+	"#snowball",
+	"#teamplay",
 	"#random",
 };
 
 char *sGameplayModes[] = 
 {
 	"ffa",
-	"teamplay",
-	"jvs",
-	"lms",
 	"arena",
-	"snowball",
-	"gungame",
-	"ctc",
+	"lms",
 	"chilldemic",
+	"coldskull",
+	"ctc",
+	"gungame",
+	"jvs",
+	"snowball",
+	"teamplay",
 	"random",
 };
 

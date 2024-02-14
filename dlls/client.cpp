@@ -1829,8 +1829,10 @@ int AddToFullPack( struct entity_state_s *state, int e, edict_t *ent, edict_t *h
 //		
 		state->usehull      = ( ent->v.flags & FL_DUCKING ) ? 1 : 0;
 		state->health		= ent->v.health; // radar
-		state->fuser4		= ent->v.fuser4; // target/special
 	}
+
+	// Entities and players
+	state->fuser4 = ent->v.fuser4; // target/special
 
 	return 1;
 }

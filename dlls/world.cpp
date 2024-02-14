@@ -794,14 +794,15 @@ extern DLL_GLOBAL int g_GameMode;
 const char *szGameModeList [] =
 {
 	"ffa",
-	"teamplay",
-	"jvs",
-	"lms",
 	"arena",
-	"snowball",
-	"gungame",
-	"ctc",
+	"lms",
 	"chilldemic",
+	"coldskull",
+	"ctc",
+	"gungame",
+	"jvs",
+	"snowball",
+	"teamplay",
 };
 
 void CWorld :: SetGameMode( void )
