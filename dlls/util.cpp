@@ -1743,6 +1743,18 @@ void UTIL_VectorAngles( const float *forward, float *angles )
 	angles[2] = 0;
 }
 
+int UTIL_GetPlayerCount( void )
+{
+	int playerCount = 0;
+	for ( int i = 1; i <= gpGlobals->maxClients; i++ )
+	{
+		CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
+		if (plr && plr->IsPlayer() && !plr->HasDisconnected)
+			playerCount++;
+	}
+	return playerCount;
+}
+
 
 // --------------------------------------------------------------
 //

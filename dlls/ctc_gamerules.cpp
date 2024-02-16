@@ -62,18 +62,28 @@ void CHalfLifeCaptureTheChumtoad::Think( void )
 		edict_t *pChumtoad = NULL;
 		BOOL foundToad = FALSE;
 
+		int playerCount = UTIL_GetPlayerCount();
+
 		MESSAGE_BEGIN(MSG_BROADCAST, gmsgObjective);
 			WRITE_STRING("Get the chumtoad");
 			if (m_pHolder)
 				WRITE_STRING(m_fChumtoadInPlay ? UTIL_VarArgs("%s has it!", STRING(m_pHolder->pev->netname)) : "The chumtoad is free");
-			else
+			else if ( playerCount > 1 )
 				WRITE_STRING(m_fChumtoadInPlay ? "The chumtoad is held" : "The chumtoad is free");
+			else
+				WRITE_STRING("Chumtoad waiting for players");
 			WRITE_BYTE(0);
 		MESSAGE_END();
 
 		// Find toad, remove extras
 		while (!FNullEnt(pEdict))
 		{
+			// Remove all when not enough players
+			if ( playerCount < 2 )
+			{
+				foundToad = TRUE;
+			}
+
 			if (!foundToad)
 			{
 				if (pEdict->v.iuser1 == 1)
@@ -91,10 +101,8 @@ void CHalfLifeCaptureTheChumtoad::Think( void )
 			pEdict = FIND_ENTITY_BY_CLASSNAME(pEdict, "monster_ctctoad");
 		}
 
-/*
-		if (m_fChumtoadInPlay)
+		if (playerCount < 2)
 		{
-			foundToad = FALSE;
 			// Player check, only one person should have the toad at any one time
 			for ( int i = 1; i <= gpGlobals->maxClients; i++ )
 			{
@@ -103,26 +111,21 @@ void CHalfLifeCaptureTheChumtoad::Think( void )
 				{
 					if (plr->m_iHoldingChumtoad)
 					{
-						if (foundToad)
+						plr->m_iHoldingChumtoad = FALSE;
+						if (plr->HasNamedPlayerItem("weapon_chumtoad"))
 						{
-							plr->m_iHoldingChumtoad = FALSE;
-							if (plr->HasNamedPlayerItem("weapon_chumtoad"))
-							{
-								if (plr->m_pActiveItem)
-									plr->RemovePlayerItem(plr->m_pActiveItem);
-							}
+							if (plr->m_pActiveItem)
+								plr->RemovePlayerItem(plr->m_pActiveItem);
 						}
-						else
-							foundToad = TRUE;
 					}
 				}
 			}
 		}
-*/
+
 		// No chumtoad, create it
 		if (FNullEnt(pChumtoad) && m_fChumtoadInPlay == FALSE)
 		{
-			if (m_fCreateChumtoadTimer == 0) 
+			if (m_fCreateChumtoadTimer == 0 || playerCount < 2) 
 				m_fCreateChumtoadTimer = gpGlobals->time + 3.0;
 			
 			if (m_fCreateChumtoadTimer > 0 && m_fCreateChumtoadTimer <= gpGlobals->time)
