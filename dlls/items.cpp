@@ -1260,17 +1260,8 @@ const char* runeClassList[RUNE_COUNT] = {
 
 void CWorldRunes::SpawnRunes( )
 {
-	int playerCount = 0;
+	int playerCount = UTIL_GetPlayerCount();
 	int playersPerRunes = 2;
-
-	for ( int i = 1; i <= gpGlobals->maxClients; i++ )
-	{
-		CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
-		if ( plr )
-		{
-			playerCount++;
-		}
-	}
 
 #ifdef _DEBUG
 	ALERT ( at_console, "[playerCount=%d, runeCount=%.2f] Creating runes...\n", playerCount, fmin((playerCount / playersPerRunes) + 1, RUNE_COUNT) );

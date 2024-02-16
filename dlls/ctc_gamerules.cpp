@@ -62,13 +62,7 @@ void CHalfLifeCaptureTheChumtoad::Think( void )
 		edict_t *pChumtoad = NULL;
 		BOOL foundToad = FALSE;
 
-		int playerCount = 0;
-		for ( int i = 1; i <= gpGlobals->maxClients; i++ )
-		{
-			CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
-			if (plr && plr->IsPlayer() && !plr->HasDisconnected)
-				playerCount++;
-		}
+		int playerCount = UTIL_GetPlayerCount();
 
 		MESSAGE_BEGIN(MSG_BROADCAST, gmsgObjective);
 			WRITE_STRING("Get the chumtoad");
