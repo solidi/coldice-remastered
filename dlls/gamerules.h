@@ -480,6 +480,8 @@ protected:
 	BOOL m_iFirstBloodDecided;
 	int m_iPlayersInGame;
 	float m_fWaitForPlayersTime;
+
+	float m_fShowTimer;
 };
 
 extern DLL_GLOBAL CGameRules*	g_pGameRules;
