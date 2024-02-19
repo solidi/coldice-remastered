@@ -857,8 +857,8 @@ typedef struct
 #define GAME_CHILLDEMIC 3
 #define GAME_COLDSKULL 4
 #define GAME_CTC 5
-#define GAME_ICEMAN 6
-#define GAME_GUNGAME 7
+#define GAME_GUNGAME 6
+#define GAME_ICEMAN 7
 #define GAME_SNOWBALL 8
 #define GAME_TEAMPLAY 9
 
