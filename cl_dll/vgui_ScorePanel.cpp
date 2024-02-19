@@ -171,7 +171,7 @@ ScorePanel::ScorePanel(int x,int y,int wide,int tall) : Panel(x,y,wide,tall)
 		m_HeaderGrid.SetEntry(i, 0, &m_HeaderLabels[i]);
 
 		m_HeaderLabels[i].setBgColor(0,0,0,255);
-		m_HeaderLabels[i].setFgColor(r, g, b, 255);
+		m_HeaderLabels[i].setFgColor(r, g, b, 0);
 		m_HeaderLabels[i].setFont(smallfont);
 		m_HeaderLabels[i].setContentAlignment(g_ColumnInfo[i].m_Alignment);
 
