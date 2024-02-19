@@ -69,6 +69,7 @@ int g_iUser3 = 0;
 // Scoreboard positions
 #define SBOARD_INDENT_X			XRES(104)
 #define SBOARD_INDENT_Y			YRES(40)
+#define SBOARD_INDENT_Y_SHIFT	YRES(72)
 
 // low-res scoreboard indents
 #define SBOARD_INDENT_X_512		30
@@ -1832,7 +1833,7 @@ void TeamFortressViewport::CreateScoreBoard( void )
 		ydent = SBOARD_INDENT_Y_400;
 	}
 
-	m_pScoreBoard = new ScorePanel(xdent, ydent, ScreenWidth - (xdent * 2), ScreenHeight - (ydent * 2));
+	m_pScoreBoard = new ScorePanel(xdent, ydent, ScreenWidth - ((xdent * 2) - 40), ScreenHeight - (ydent * 2));
 	m_pScoreBoard->setParent(this);
 	m_pScoreBoard->setVisible(false);
 }
