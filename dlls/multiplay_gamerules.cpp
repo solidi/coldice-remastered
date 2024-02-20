@@ -701,6 +701,27 @@ void CHalfLifeMultiplay :: Think ( void )
 		ALERT(at_aiconsole, "timeleft.value=%.2f map=%s\n", timeleft.value, STRING(gpGlobals->mapname));
 #endif
 		g_engfuncs.pfnCvar_DirectSet( &timeleft, UTIL_VarArgs( "%i", time_remaining ) );
+
+		if (!HasSpectators())
+		{
+			if (m_fShowTimer != timelimit.value)
+			{
+				if (time_remaining > 0)
+				{
+					MESSAGE_BEGIN(MSG_BROADCAST, gmsgRoundTime);
+						WRITE_SHORT(time_remaining);
+					MESSAGE_END();
+				}
+				else
+				{
+					MESSAGE_BEGIN(MSG_BROADCAST, gmsgShowTimer);
+						WRITE_BYTE(0);
+					MESSAGE_END();
+				}
+
+				m_fShowTimer = timelimit.value;
+			}
+		}
 	}
 
 	last_frags = frags_remaining;
@@ -1538,10 +1559,22 @@ void CHalfLifeMultiplay :: InitHUD( CBasePlayer *pl )
 	{
 		UpdateGameMode( pl );
 
-		// clear timer
-		MESSAGE_BEGIN(MSG_ONE, gmsgShowTimer, NULL, pl->edict());
-			WRITE_BYTE(0);
-		MESSAGE_END();
+		// set or clear timer
+		if (!HasSpectators() && timelimit.value > 0)
+		{
+			float flTimeLimit = timelimit.value * 60;
+			float time_remaining = (int)( flTimeLimit - gpGlobals->time );
+
+			MESSAGE_BEGIN(MSG_ONE, gmsgRoundTime, NULL, pl->edict());
+				WRITE_SHORT(time_remaining);
+			MESSAGE_END();
+		}
+		else
+		{
+			MESSAGE_BEGIN(MSG_ONE, gmsgShowTimer, NULL, pl->edict());
+				WRITE_BYTE(0);
+			MESSAGE_END();
+		}
 
 		// Update mutators
 		char szMutators[64];
@@ -2042,7 +2075,7 @@ void CHalfLifeMultiplay :: PlayerKilled( CBasePlayer *pVictim, entvars_t *pKille
 	{
 		// if a player dies in a deathmatch game and the killer is a client, award the killer some points
 		pKiller->frags += IPointsForKill( peKiller, pVictim );
-		if (peKiller->m_iAssists % 3 == 0)
+		if (peKiller->m_iAssists && (peKiller->m_iAssists % 3 == 0))
 			pKiller->frags += IPointsForKill( peKiller, pVictim );
 
 		if (!m_iFirstBloodDecided)

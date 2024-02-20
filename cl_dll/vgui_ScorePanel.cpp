@@ -61,8 +61,9 @@ SBColumnInfo g_ColumnInfo[NUM_COLUMNS] =
 	{NULL,			24,			Label::a_east},		// tracker column
 	{NULL,			140,		Label::a_east},		// name
 	{NULL,			56,			Label::a_east},		// class
-	{"#SCORE",		40,			Label::a_east},
+	{"#FRAGS",		40,			Label::a_east},
 	{"#DEATHS",		46,			Label::a_east},
+	{"#SCORE",		46,			Label::a_east},
 	{"#LATENCY",	46,			Label::a_east},
 	{"#VOICE",		40,			Label::a_east},
 	{NULL,			2,			Label::a_east},		// blank column to take up the slack
@@ -135,6 +136,12 @@ ScorePanel::ScorePanel(int x,int y,int wide,int tall) : Panel(x,y,wide,tall)
 	
 	for(int i=0; i < NUM_COLUMNS; i++)
 	{
+		if (g_ColumnInfo[i].m_pTitle && !strcmp(g_ColumnInfo[i].m_pTitle, "#SCORE"))
+		{
+			if (!ScoreBased())
+				g_ColumnInfo[i].m_pTitle = NULL;
+		}
+
 		if (g_ColumnInfo[i].m_pTitle && g_ColumnInfo[i].m_pTitle[0] == '#')
 			m_HeaderLabels[i].setText(CHudTextMessage::BufferedLocaliseTextString(g_ColumnInfo[i].m_pTitle));
 		else if(g_ColumnInfo[i].m_pTitle)
@@ -164,7 +171,7 @@ ScorePanel::ScorePanel(int x,int y,int wide,int tall) : Panel(x,y,wide,tall)
 		m_HeaderGrid.SetEntry(i, 0, &m_HeaderLabels[i]);
 
 		m_HeaderLabels[i].setBgColor(0,0,0,255);
-		m_HeaderLabels[i].setFgColor(r, g, b, 255);
+		m_HeaderLabels[i].setFgColor(r, g, b, 0);
 		m_HeaderLabels[i].setFont(smallfont);
 		m_HeaderLabels[i].setContentAlignment(g_ColumnInfo[i].m_Alignment);
 
@@ -324,7 +331,7 @@ void ScorePanel::SortTeams()
 	for ( i = 1; i <= m_iNumTeams; i++ )
 	{
 		if ( !g_TeamInfo[i].scores_overriden )
-			g_TeamInfo[i].frags = g_TeamInfo[i].deaths = 0;
+			g_TeamInfo[i].frags = g_TeamInfo[i].deaths = g_TeamInfo[i].score = 0;
 		g_TeamInfo[i].ping = g_TeamInfo[i].packetloss = 0;
 	}
 
@@ -351,6 +358,7 @@ void ScorePanel::SortTeams()
 		{
 			g_TeamInfo[j].frags += g_PlayerExtraInfo[i].frags;
 			g_TeamInfo[j].deaths += g_PlayerExtraInfo[i].deaths;
+			g_TeamInfo[j].score += g_PlayerExtraInfo[i].playerclass;
 		}
 
 		g_TeamInfo[j].ping += g_PlayerInfoList[i].ping;
@@ -380,7 +388,7 @@ void ScorePanel::SortTeams()
 	// Draw the teams
 	while ( 1 )
 	{
-		int highest_frags = -99999; int lowest_deaths = 99999;
+		int highest_frags = -99999; int lowest_deaths = 99999; int highest_score = -99999;
 		int best_team = 0;
 
 		for ( i = 1; i <= m_iNumTeams; i++ )
@@ -388,13 +396,14 @@ void ScorePanel::SortTeams()
 			if ( g_TeamInfo[i].players < 1 )
 				continue;
 
-			if ( !g_TeamInfo[i].already_drawn && g_TeamInfo[i].frags >= highest_frags )
+			if ( !g_TeamInfo[i].already_drawn && (g_TeamInfo[i].frags >= highest_frags || g_TeamInfo[i].score >= highest_score) )
 			{
-				if ( g_TeamInfo[i].frags > highest_frags || g_TeamInfo[i].deaths < lowest_deaths )
+				if ( g_TeamInfo[i].frags > highest_frags || g_TeamInfo[i].score > highest_score || g_TeamInfo[i].deaths < lowest_deaths )
 				{
 					best_team = i;
 					lowest_deaths = g_TeamInfo[i].deaths;
 					highest_frags = g_TeamInfo[i].frags;
+					highest_score = g_TeamInfo[i].score;
 				}
 			}
 		}
@@ -428,24 +437,25 @@ void ScorePanel::SortPlayers( int iTeam, char *team )
 	while ( 1 )
 	{
 		// Find the top ranking player
-		int highest_frags = -99999;	int lowest_deaths = 99999;
+		int highest_frags = -99999;	int lowest_deaths = 99999; int highest_score = -99999;
 		int best_player;
 		best_player = 0;
 
 		for ( int i = 1; i < MAX_PLAYERS; i++ )
 		{
-			if ( m_bHasBeenSorted[i] == false && g_PlayerInfoList[i].name && g_PlayerExtraInfo[i].frags >= highest_frags )
+			if ( m_bHasBeenSorted[i] == false && g_PlayerInfoList[i].name && (g_PlayerExtraInfo[i].frags >= highest_frags || g_PlayerExtraInfo[i].playerclass >= highest_score) )
 			{
 				cl_entity_t *ent = gEngfuncs.GetEntityByIndex( i );
 
 				if ( ent && !(team && stricmp(g_PlayerExtraInfo[i].teamname, team)) )  
 				{
 					extra_player_info_t *pl_info = &g_PlayerExtraInfo[i];
-					if ( pl_info->frags > highest_frags || pl_info->deaths < lowest_deaths )
+					if ( pl_info->frags > highest_frags || pl_info->playerclass > highest_score ||  pl_info->deaths < lowest_deaths )
 					{
 						best_player = i;
 						lowest_deaths = pl_info->deaths;
 						highest_frags = pl_info->frags;
+						highest_score = pl_info->playerclass;
 					}
 				}
 			}
@@ -748,6 +758,13 @@ void ScorePanel::FillGrid()
 					if ( m_iIsATeam[row] == TEAM_YES )
 						sprintf(sz, "%d",  team_info->deaths );
 					break;
+				case COLUMN_SCORE:
+					if ( m_iIsATeam[row] == TEAM_YES && ScoreBased())
+					{
+						//TODO: Calc teamscore
+						//sprintf(sz, "%d",  team_info->score );
+					}
+					break;
 				case COLUMN_LATENCY:
 					if ( m_iIsATeam[row] == TEAM_YES )
 						sprintf(sz, "%d", team_info->ping );
@@ -852,6 +869,10 @@ void ScorePanel::FillGrid()
 					break;
 				case COLUMN_DEATHS:
 					sprintf(sz, "%d",  g_PlayerExtraInfo[ m_iSortedRows[row] ].deaths );
+					break;
+				case COLUMN_SCORE:
+					if (ScoreBased())
+						sprintf(sz, "%d",  g_PlayerExtraInfo[ m_iSortedRows[row] ].playerclass );
 					break;
 				case COLUMN_LATENCY:
 					if (!g_PlayerInfoList[ m_iSortedRows[row] ].ping && !g_PlayerInfoList[ m_iSortedRows[row] ].thisplayer)
@@ -981,6 +1002,14 @@ void ScorePanel::cursorMoved(int x, int y, Panel *panel)
 			}
 		}
 	}
+}
+
+bool ScorePanel::ScoreBased( void )
+{
+	return (gHUD.m_Teamplay == GAME_ARENA ||
+			gHUD.m_Teamplay == GAME_LMS ||
+			gHUD.m_Teamplay == GAME_CHILLDEMIC ||
+			gHUD.m_Teamplay == GAME_ICEMAN);
 }
 
 //-----------------------------------------------------------------------------

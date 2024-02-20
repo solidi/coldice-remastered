@@ -27,10 +27,11 @@
 #define COLUMN_CLASS	2
 #define COLUMN_KILLS	3
 #define COLUMN_DEATHS	4
-#define COLUMN_LATENCY	5
-#define COLUMN_VOICE	6
-#define COLUMN_BLANK	7
-#define NUM_COLUMNS		8
+#define COLUMN_SCORE	5
+#define COLUMN_LATENCY	6
+#define COLUMN_VOICE	7
+#define COLUMN_BLANK	8
+#define NUM_COLUMNS		9
 #define NUM_ROWS		(MAX_PLAYERS + (MAX_SCOREBOARD_TEAMS * 2))
 
 using namespace vgui;
@@ -263,6 +264,8 @@ private:
 	ScorePanel::HitTestPanel	m_HitTestPanel;
 	CommandButton				*m_pCloseButton;
 	CLabelHeader*	GetPlayerEntry(int x, int y)	{return &m_PlayerEntries[x][y];}
+
+	bool ScoreBased( void );
 
 public:
 	

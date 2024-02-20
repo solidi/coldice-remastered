@@ -89,12 +89,14 @@ We have a minimum width of 1-320 - we could have the field widths scale with it?
 #define DIVIDER_POS		300
 #define DEATHS_RANGE_MIN  310
 #define DEATHS_RANGE_MAX  350
-#define PING_RANGE_MIN	385
-#define PING_RANGE_MAX	415
-#define PL_RANGE_MIN 435
-#define PL_RANGE_MAX 495
+#define SCORE_RANGE_MIN  370
+#define SCORE_RANGE_MAX  410
+#define PING_RANGE_MIN	445
+#define PING_RANGE_MAX	475
+#define PL_RANGE_MIN 495
+#define PL_RANGE_MAX 555
 
-int SCOREBOARD_WIDTH = 440;
+int SCOREBOARD_WIDTH = 500;
 		
 
 // Y positions
@@ -120,11 +122,11 @@ int CHudScoreboard :: Draw( float fTime )
 	if ( cl_showpacketloss && cl_showpacketloss->value && ( ScreenWidth >= 400 ) )
 	{
 		can_show_packetloss = 1;
-		SCOREBOARD_WIDTH = 520;
+		SCOREBOARD_WIDTH = 560;
 	}
 	else
 	{
-		SCOREBOARD_WIDTH = 440;
+		SCOREBOARD_WIDTH = 500;
 	}
 
 	// just sort the list on the fly
@@ -166,6 +168,11 @@ int CHudScoreboard :: Draw( float fTime )
 		gHUD.DrawHudStringReverse( KILLS_RANGE_MAX + xpos_rel, ypos, 0, "K ills", r, g, b );
 	gHUD.DrawHudString( DIVIDER_POS + xpos_rel, ypos, ScreenWidth, "/", r, g, b );
 	gHUD.DrawHudString( DEATHS_RANGE_MIN + xpos_rel + 5, ypos, ScreenWidth, "Deaths", r, g, b );
+	if (gHUD.m_Teamplay == GAME_ARENA ||
+		gHUD.m_Teamplay == GAME_LMS ||
+		gHUD.m_Teamplay == GAME_CHILLDEMIC ||
+		gHUD.m_Teamplay == GAME_ICEMAN)
+		gHUD.DrawHudString( SCORE_RANGE_MIN + xpos_rel + 5, ypos, ScreenWidth, "Score", r, g, b );
 	gHUD.DrawHudString( PING_RANGE_MAX + xpos_rel - 35, ypos, ScreenWidth, "Latency", r, g, b );
 
 	if ( can_show_packetloss )
@@ -198,7 +205,7 @@ int CHudScoreboard :: Draw( float fTime )
 	for ( i = 1; i <= m_iNumTeams; i++ )
 	{
 		if ( !g_TeamInfo[i].scores_overriden )
-			g_TeamInfo[i].frags = g_TeamInfo[i].deaths = 0;
+			g_TeamInfo[i].frags = g_TeamInfo[i].deaths = g_TeamInfo[i].score = 0;
 		g_TeamInfo[i].ping = g_TeamInfo[i].packetloss = 0;
 	}
 
@@ -225,6 +232,7 @@ int CHudScoreboard :: Draw( float fTime )
 		{
 			g_TeamInfo[j].frags += g_PlayerExtraInfo[i].frags;
 			g_TeamInfo[j].deaths += g_PlayerExtraInfo[i].deaths;
+			g_TeamInfo[j].score += g_PlayerExtraInfo[i].playerclass;
 		}
 
 		g_TeamInfo[j].ping += g_PlayerInfoList[i].ping;
@@ -251,7 +259,7 @@ int CHudScoreboard :: Draw( float fTime )
 	// Draw the teams
 	while ( 1 )
 	{
-		int highest_frags = -99999; int lowest_deaths = 99999;
+		int highest_frags = -99999; int lowest_deaths = 99999; int highest_score = -99999;
 		int best_team = 0;
 
 		for ( i = 1; i <= m_iNumTeams; i++ )
@@ -259,13 +267,14 @@ int CHudScoreboard :: Draw( float fTime )
 			if ( g_TeamInfo[i].players < 0 )
 				continue;
 
-			if ( !g_TeamInfo[i].already_drawn && g_TeamInfo[i].frags >= highest_frags )
+			if ( !g_TeamInfo[i].already_drawn && (g_TeamInfo[i].frags >= highest_frags || g_TeamInfo[i].score >= highest_score) )
 			{
-				if ( g_TeamInfo[i].frags > highest_frags || g_TeamInfo[i].deaths < lowest_deaths )
+				if ( g_TeamInfo[i].frags > highest_frags || g_TeamInfo[i].score > highest_score || g_TeamInfo[i].deaths < lowest_deaths )
 				{
 					best_team = i;
 					lowest_deaths = g_TeamInfo[i].deaths;
 					highest_frags = g_TeamInfo[i].frags;
+					highest_score = g_TeamInfo[i].score;
 				}
 			}
 		}
@@ -305,6 +314,11 @@ int CHudScoreboard :: Draw( float fTime )
 		// draw deaths
 		xpos = DEATHS_RANGE_MAX + xpos_rel;
 		gHUD.DrawHudNumberString( xpos, ypos, DEATHS_RANGE_MIN + xpos_rel, team_info->deaths, r, g, b );
+
+		// draw score
+		xpos = SCORE_RANGE_MAX + xpos_rel;
+		// TODO: Calc teamscore
+		// gHUD.DrawHudNumberString( xpos, ypos, SCORE_RANGE_MIN + xpos_rel, 0, r, g, b );
 
 		// draw ping
 		// draw ping & packetloss
@@ -352,11 +366,11 @@ int CHudScoreboard :: DrawPlayers( int xpos_rel, float list_slot, int nameoffset
 	if ( cl_showpacketloss && cl_showpacketloss->value && ( ScreenWidth >= 400 ) )
 	{
 		can_show_packetloss = 1;
-		SCOREBOARD_WIDTH = 400;
+		SCOREBOARD_WIDTH = 560;
 	}
 	else
 	{
-		SCOREBOARD_WIDTH = 320;
+		SCOREBOARD_WIDTH = 500;
 	}
 
 	FAR_RIGHT = can_show_packetloss ? PL_RANGE_MAX : PING_RANGE_MAX;
@@ -366,21 +380,22 @@ int CHudScoreboard :: DrawPlayers( int xpos_rel, float list_slot, int nameoffset
 	while ( 1 )
 	{
 		// Find the top ranking player
-		int highest_frags = -99999;	int lowest_deaths = 99999;
+		int highest_frags = -99999;	int lowest_deaths = 99999; int highest_score = -99999;
 		int best_player = 0;
 
 		for ( int i = 1; i < MAX_PLAYERS; i++ )
 		{
-			if ( g_PlayerInfoList[i].name && g_PlayerExtraInfo[i].frags >= highest_frags )
+			if ( g_PlayerInfoList[i].name && (g_PlayerExtraInfo[i].frags >= highest_frags || g_PlayerExtraInfo[i].playerclass >= highest_score) )
 			{
 				if ( !(team && stricmp(g_PlayerExtraInfo[i].teamname, team)) )  // make sure it is the specified team
 				{
 					extra_player_info_t *pl_info = &g_PlayerExtraInfo[i];
-					if ( pl_info->frags > highest_frags || pl_info->deaths < lowest_deaths )
+					if ( pl_info->frags > highest_frags || pl_info->playerclass > highest_score || pl_info->deaths < lowest_deaths )
 					{
 						best_player = i;
 						lowest_deaths = pl_info->deaths;
 						highest_frags = pl_info->frags;
+						highest_score = pl_info->playerclass;
 					}
 				}
 			}
@@ -431,6 +446,16 @@ int CHudScoreboard :: DrawPlayers( int xpos_rel, float list_slot, int nameoffset
 		// draw deaths
 		xpos = DEATHS_RANGE_MAX + xpos_rel;
 		gHUD.DrawHudNumberString( xpos, ypos, DEATHS_RANGE_MIN + xpos_rel, g_PlayerExtraInfo[best_player].deaths, r, g, b );
+
+		// draw score
+		if (gHUD.m_Teamplay == GAME_ARENA ||
+			gHUD.m_Teamplay == GAME_LMS ||
+			gHUD.m_Teamplay == GAME_CHILLDEMIC ||
+			gHUD.m_Teamplay == GAME_ICEMAN)
+		{
+			xpos = SCORE_RANGE_MAX + xpos_rel;
+			gHUD.DrawHudNumberString( xpos, ypos, SCORE_RANGE_MIN + xpos_rel, g_PlayerExtraInfo[best_player].playerclass, r, g, b );
+		}
 
 		// draw ping & packetloss
 		static char buf[64];

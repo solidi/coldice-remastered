@@ -1184,18 +1184,19 @@ void CGameRules::CheckMutators(void)
 void CGameRules::CheckGameMode( void )
 {
 	// Blank at map start
-	if (!strlen(m_flCheckGameMode))
+	if (!strlen(m_flCheckGameMode) || !strcmp(gamemode.string, "0"))
 		strcpy(m_flCheckGameMode, gamemode.string);
 
 	if (strcmp(m_flCheckGameMode, gamemode.string) != 0)
 	{
-		m_flDetectedGameModeChange = gpGlobals->time + 5.0;
+		//m_flDetectedGameModeChange = gpGlobals->time + 5.0;
 		strcpy(m_flCheckGameMode, gamemode.string);
 		//UTIL_ClientPrintAll(HUD_PRINTTALK, "Game mode has changed to \"%s\". Ending current game in 5 seconds.\n", m_flCheckGameMode);
-		UTIL_ClientPrintAll(HUD_PRINTCONSOLE, "Game mode has changed to \"%s\". Please change the map to begin.\n", m_flCheckGameMode);
+		SERVER_COMMAND( "restart\n" ); // Force a restart, so we can load the correct gamerules
 	}
 
-	if (m_flDetectedGameModeChange && m_flDetectedGameModeChange < gpGlobals->time)
+	// UNDONE: Hotswap gamemode?
+	//if (m_flDetectedGameModeChange && m_flDetectedGameModeChange < gpGlobals->time)
 	{
 		// changelevel.
 		// g_fGameOver = TRUE;
@@ -1220,7 +1221,7 @@ void CGameRules::CheckGameMode( void )
 		g_pGameRules = InstallGameRules();
 		*/
 
-		m_flDetectedGameModeChange = 0;
+		//m_flDetectedGameModeChange = 0;
 	}
 }
 

@@ -331,6 +331,7 @@ struct team_info_t
 	int already_drawn;
 	int scores_overriden;
 	int teamnumber;
+	int score;
 };
 
 #include "player_info.h"
