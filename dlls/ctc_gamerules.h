@@ -39,6 +39,8 @@ public:
 	virtual BOOL CanRandomizeWeapon(const char *name);
 	virtual BOOL IsAllowedToDropWeapon( void );
 	virtual BOOL AllowRuneSpawn( const char *szRune );
+	virtual int PlayerRelationship( CBaseEntity *pPlayer, CBaseEntity *pTarget );
+	virtual const char *GetTeamID( CBaseEntity *pEntity );
 
 private:
 	BOOL m_fChumtoadInPlay;

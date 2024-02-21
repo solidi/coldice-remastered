@@ -467,3 +467,35 @@ BOOL CHalfLifeCaptureTheChumtoad::AllowRuneSpawn( const char *szRune )
 
 	return TRUE;
 }
+
+int CHalfLifeCaptureTheChumtoad::PlayerRelationship( CBaseEntity *pPlayer, CBaseEntity *pTarget )
+{
+	if ( !pPlayer || !pTarget || !pTarget->IsPlayer() )
+		return GR_TEAMMATE;
+
+	CBasePlayer *pl = (CBasePlayer *)pPlayer;
+	CBasePlayer *pt = (CBasePlayer *)pTarget;
+
+	if ( pl->m_iHoldingChumtoad || pt->m_iHoldingChumtoad )
+	{
+		return GR_NOTTEAMMATE;
+	}
+
+	return GR_TEAMMATE;
+}
+
+const char *CHalfLifeCaptureTheChumtoad::GetTeamID( CBaseEntity *pEntity )
+{
+	if ( pEntity == NULL || pEntity->pev == NULL )
+		return "";
+
+	if (!pEntity->IsPlayer())
+		return "";
+
+	CBasePlayer *pl = (CBasePlayer *)pEntity;
+	if ( pl->m_iHoldingChumtoad )
+		return "holder";
+
+	// return their team name
+	return pEntity->TeamID();
+}

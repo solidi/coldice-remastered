@@ -28,6 +28,8 @@ public:
 	virtual BOOL CanHavePlayerItem( CBasePlayer *pPlayer, CBasePlayerItem *pWeapon );
 	virtual int GetTeamIndex( const char *pTeamName );
 	virtual BOOL CanRandomizeWeapon( const char *name );
+	virtual int PlayerRelationship( CBaseEntity *pPlayer, CBaseEntity *pTarget );
+	virtual const char *GetTeamID( CBaseEntity *pEntity );
 
 private:
 	int m_iSurvivorsRemain;
