@@ -548,7 +548,7 @@ void CHalfLifeJesusVsSanta::PlayerSpawn( CBasePlayer *pPlayer )
 		WRITE_BYTE( ENTINDEX(pPlayer->edict()) );
 		WRITE_SHORT( pPlayer->pev->frags );
 		WRITE_SHORT( pPlayer->m_iDeaths );
-		WRITE_SHORT( 0 );
+		WRITE_SHORT( pPlayer->m_iRoundWins );
 		WRITE_SHORT( g_pGameRules->GetTeamIndex( pPlayer->m_szTeamName ) + 1 );
 	MESSAGE_END();
 }

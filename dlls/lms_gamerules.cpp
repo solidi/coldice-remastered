@@ -302,7 +302,7 @@ void CHalfLifeLastManStanding::PlayerKilled( CBasePlayer *pVictim, entvars_t *pK
 				WRITE_BYTE( ENTINDEX(pVictim->edict()) );
 				WRITE_SHORT( pVictim->pev->frags );
 				WRITE_SHORT( pVictim->m_iDeaths );
-				WRITE_SHORT( 0 );
+				WRITE_SHORT( pVictim->m_iRoundWins );
 				WRITE_SHORT( GetTeamIndex( pVictim->m_szTeamName ) + 1 );
 			MESSAGE_END();
 		}
@@ -350,7 +350,7 @@ void CHalfLifeLastManStanding::PlayerSpawn( CBasePlayer *pPlayer )
 		WRITE_BYTE( ENTINDEX(pPlayer->edict()) );
 		WRITE_SHORT( pPlayer->pev->frags );
 		WRITE_SHORT( pPlayer->m_iDeaths );
-		WRITE_SHORT( 0 );
+		WRITE_SHORT( pPlayer->m_iRoundWins );
 		WRITE_SHORT( g_pGameRules->GetTeamIndex( pPlayer->m_szTeamName ) + 1 );
 	MESSAGE_END();
 }
