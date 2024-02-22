@@ -31,4 +31,6 @@ public:
 	virtual int GetTeamIndex( const char *pTeamName );
 	virtual BOOL CanRandomizeWeapon( const char *name );
 	virtual void PlayerThink( CBasePlayer *pPlayer );
+	virtual int PlayerRelationship( CBaseEntity *pPlayer, CBaseEntity *pTarget );
+	virtual const char *GetTeamID( CBaseEntity *pEntity );
 };

@@ -1120,7 +1120,7 @@ void CHalfLifeMultiplay::InsertClientsIntoArena(float fragcount)
 				WRITE_BYTE( ENTINDEX(plr->edict()) );
 				WRITE_SHORT( plr->pev->frags = fragcount );
 				WRITE_SHORT( plr->m_iDeaths = 0 );
-				WRITE_SHORT( 0 );
+				WRITE_SHORT( plr->m_iRoundWins );
 				WRITE_SHORT( GetTeamIndex( plr->m_szTeamName ) + 1 );
 			MESSAGE_END();
 			plr->m_iAssists = 0;
@@ -1305,7 +1305,7 @@ void CHalfLifeMultiplay::SuckAllToSpectator( void )
 				WRITE_BYTE( ENTINDEX(pPlayer->edict()) );
 				WRITE_SHORT( pPlayer->pev->frags = 0 );
 				WRITE_SHORT( pPlayer->m_iDeaths = 0 );
-				WRITE_SHORT( 0 );
+				WRITE_SHORT( pPlayer->m_iRoundWins );
 				WRITE_SHORT( GetTeamIndex( pPlayer->m_szTeamName ) + 1 );
 			MESSAGE_END();
 			pPlayer->m_iAssists = 0;
@@ -1633,7 +1633,7 @@ void CHalfLifeMultiplay :: InitHUD( CBasePlayer *pl )
 				WRITE_BYTE( i );	// client number
 				WRITE_SHORT( plr->pev->frags );
 				WRITE_SHORT( plr->m_iDeaths );
-				WRITE_SHORT( 0 );
+				WRITE_SHORT( plr->m_iRoundWins );
 				WRITE_SHORT( GetTeamIndex( plr->m_szTeamName ) + 1 );
 			MESSAGE_END();
 		}
@@ -2182,7 +2182,7 @@ void CHalfLifeMultiplay :: PlayerKilled( CBasePlayer *pVictim, entvars_t *pKille
 		WRITE_BYTE( ENTINDEX(pVictim->edict()) );
 		WRITE_SHORT( pVictim->pev->frags );
 		WRITE_SHORT( pVictim->m_iDeaths );
-		WRITE_SHORT( 0 );
+		WRITE_SHORT( pVictim->m_iRoundWins );
 		WRITE_SHORT( GetTeamIndex( pVictim->m_szTeamName ) + 1 );
 	MESSAGE_END();
 
@@ -2196,7 +2196,7 @@ void CHalfLifeMultiplay :: PlayerKilled( CBasePlayer *pVictim, entvars_t *pKille
 			WRITE_BYTE( ENTINDEX(PK->edict()) );
 			WRITE_SHORT( PK->pev->frags );
 			WRITE_SHORT( PK->m_iDeaths );
-			WRITE_SHORT( 0 );
+			WRITE_SHORT( PK->m_iRoundWins );
 			WRITE_SHORT( GetTeamIndex( PK->m_szTeamName) + 1 );
 		MESSAGE_END();
 

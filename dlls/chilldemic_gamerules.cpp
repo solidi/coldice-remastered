@@ -728,3 +728,25 @@ BOOL CHalfLifeChilldemic::CanRandomizeWeapon( const char *name )
 
 	return TRUE;
 }
+
+int CHalfLifeChilldemic::PlayerRelationship( CBaseEntity *pPlayer, CBaseEntity *pTarget )
+{
+	if ( !pPlayer || !pTarget || !pTarget->IsPlayer() )
+		return GR_NOTTEAMMATE;
+
+	if ( (*GetTeamID(pPlayer) != '\0') && (*GetTeamID(pTarget) != '\0') && !stricmp( GetTeamID(pPlayer), GetTeamID(pTarget) ) )
+	{
+		return GR_TEAMMATE;
+	}
+
+	return GR_NOTTEAMMATE;
+}
+
+const char *CHalfLifeChilldemic::GetTeamID( CBaseEntity *pEntity )
+{
+	if ( pEntity == NULL || pEntity->pev == NULL )
+		return "";
+
+	// return their team name
+	return pEntity->TeamID();
+}

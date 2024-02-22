@@ -5080,7 +5080,7 @@ void CBasePlayer::AutoMelee()
 		{
 			if (pEntity->Classify() != CLASS_NONE && pEntity->Classify() != CLASS_MACHINE)
 			{
-				if (m_pActiveItem)
+				if (m_pActiveItem && g_pGameRules->PlayerRelationship( this, pEntity ) != GR_TEAMMATE)
 				{
 					if (RANDOM_LONG(0,1))
 						((CBasePlayerWeapon *)m_pActiveItem)->StartKick(m_iHoldingItem);
