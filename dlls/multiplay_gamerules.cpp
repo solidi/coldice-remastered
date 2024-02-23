@@ -1390,7 +1390,7 @@ float CHalfLifeMultiplay::WeaponMultipler( void )
 
 	if ((strstr(mutators.string, g_MutatorSlowWeapons) ||
 		atoi(mutators.string) == MUTATOR_SLOWWEAPONS))
-		return 6;
+		return 3;
 
 	return 1;
 }

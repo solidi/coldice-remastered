@@ -2594,9 +2594,9 @@ void CBasePlayerWeapon::PunchAttack( BOOL holdingSomething )
 	m_trBootHit = tr;
 
 	SetThink( &CBasePlayerWeapon::EndPunch );
-	pev->nextthink = gpGlobals->time + 0.28;
+	pev->nextthink = gpGlobals->time + (0.28 * g_pGameRules->WeaponMultipler());
 
-	m_flNextPrimaryAttack = m_flNextSecondaryAttack = GetNextAttackDelay(0.3);
+	m_flNextPrimaryAttack = m_flNextSecondaryAttack = (GetNextAttackDelay(0.3) * g_pGameRules->WeaponMultipler());
 	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + UTIL_SharedRandomFloat( m_pPlayer->random_seed, 10, 15 );
 }
 
@@ -2633,7 +2633,7 @@ void CBasePlayerWeapon::StartKick( BOOL holdingSomething )
 
 	m_pPlayer->m_EFlags &= ~EFLAG_CANCEL;
 	m_pPlayer->m_EFlags |= EFLAG_PLAYERKICK;
-	m_pPlayer->m_fKickTime = gpGlobals->time + 0.55;
+	m_pPlayer->m_fKickTime = (gpGlobals->time + 0.55 * g_pGameRules->WeaponMultipler());
 	KickAttack(holdingSomething);
 }
 
@@ -2821,7 +2821,7 @@ void CBasePlayerWeapon::KickAttack( BOOL holdingSomething )
 	m_trBootHit = tr;
 
 	SetThink( &CBasePlayerWeapon::EndKick );
-	pev->nextthink = gpGlobals->time + 0.28;
+	pev->nextthink = gpGlobals->time + (0.28 * g_pGameRules->WeaponMultipler());
 
 	// m_flNextPrimaryAttack = m_flNextSecondaryAttack = GetNextAttackDelay(0.3);
 	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + UTIL_SharedRandomFloat( m_pPlayer->random_seed, 10, 15 );
