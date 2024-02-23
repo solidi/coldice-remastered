@@ -2269,7 +2269,7 @@ void CBasePlayerWeapon::ThrowGrenade(BOOL m_iCheckAmmo)
 		m_pPlayer->m_rgAmmo[index]--;
 	}
 
-	m_pPlayer->m_fGrenadeTime = gpGlobals->time + 0.75;
+	m_pPlayer->m_fGrenadeTime = gpGlobals->time + (0.75 * g_pGameRules->WeaponMultipler());
 
 	Vector angThrow = m_pPlayer->pev->v_angle + m_pPlayer->pev->punchangle;
 
