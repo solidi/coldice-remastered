@@ -216,3 +216,17 @@ HSPRITE LoadSprite(const char *pszName);
 unsigned long HudColor();
 
 float lerp(float a, float b, float f);
+
+inline float GetWeaponMultipler()
+{
+	float multipler = 1;
+	if (gHUD.szActiveMutators != NULL &&
+		(strstr(gHUD.szActiveMutators, "fastweapons") ||
+		atoi(gHUD.szActiveMutators) == MUTATOR_FASTWEAPONS))
+		multipler = 0.33;
+	else if (gHUD.szActiveMutators != NULL &&
+		(strstr(gHUD.szActiveMutators, "slowweapons") ||
+		atoi(gHUD.szActiveMutators) == MUTATOR_SLOWWEAPONS))
+		multipler = 3;
+	return multipler;
+}

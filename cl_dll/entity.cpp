@@ -505,8 +505,11 @@ void LoadTempViewModel(const char *modelName, int sequence)
 	pExtraModel->curstate.effects |= EF_VIEWMODEL &~ EF_NODRAW;
 	pExtraModel->curstate.skin = cl_icemodels->value;
 
+	float multipler = GetWeaponMultipler();
+	float fps = pseqdesc->fps / multipler;
+
 	//gEngfuncs.Con_Printf("sequence: %d, pseqdesc->numframes: %d / pseqdesc->fps: %f\n", sequence, pseqdesc->numframes, pseqdesc->fps);
-	gHUD.m_flExtraViewModelTime = gEngfuncs.GetClientTime() + (pseqdesc->numframes / pseqdesc->fps);
+	gHUD.m_flExtraViewModelTime = gEngfuncs.GetClientTime() + (pseqdesc->numframes / fps);
 }
 
 /*

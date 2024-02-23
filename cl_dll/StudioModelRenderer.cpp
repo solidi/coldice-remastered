@@ -775,19 +775,11 @@ float CStudioModelRenderer::StudioEstimateFrame( mstudioseqdesc_t *pseqdesc )
 		else
 		{
 			float multipler = 1;
-			if (m_pCurrentEntity == gEngfuncs.GetViewModel())
-			{
-				if (gHUD.szActiveMutators != NULL &&
-					(strstr(gHUD.szActiveMutators, "fastweapons") ||
-					atoi(gHUD.szActiveMutators) == MUTATOR_FASTWEAPONS))
-					multipler = 0.33;
-				else if (gHUD.szActiveMutators != NULL &&
-					(strstr(gHUD.szActiveMutators, "slowweapons") ||
-					atoi(gHUD.szActiveMutators) == MUTATOR_SLOWWEAPONS))
-					multipler = 6;
-			}
+			bool model = (m_pCurrentEntity == gEngfuncs.GetViewModel() || (m_pCurrentEntity->curstate.effects & EF_VIEWMODEL) != 0);
+			if (model)
+				multipler = GetWeaponMultipler();
 
-			float fps = m_pCurrentEntity == gEngfuncs.GetViewModel() ? (pseqdesc->fps / multipler) : pseqdesc->fps;
+			float fps = model ? (pseqdesc->fps / multipler) : pseqdesc->fps;
 			dfdt = (m_clTime - m_pCurrentEntity->curstate.animtime) * m_pCurrentEntity->curstate.framerate * (fps);
 
 		}
