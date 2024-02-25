@@ -2875,7 +2875,9 @@ void CBasePlayerWeapon::ProvideDualItem(CBasePlayer *pPlayer, const char *pszNam
 		stricmp(pszName, "weapon_deagle") == 0 ||
 		stricmp(pszName, "weapon_smg") == 0 ||
 		stricmp(pszName, "weapon_usas") == 0 ||
-		stricmp(pszName, "weapon_rpg") == 0
+		stricmp(pszName, "weapon_rpg") == 0 ||
+		stricmp(pszName, "weapon_chaingun") == 0 ||
+		stricmp(pszName, "weapon_hgun") == 0
 		)) {
 		ClientPrint( pPlayer->pev, HUD_PRINTTALK, "You picked up a dual weapon. Swap between dual and single using \"impulse 205\".\n" );
 		pPlayer->m_iShownDualMessage = 1;
