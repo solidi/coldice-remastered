@@ -125,6 +125,7 @@
     <ClCompile Include="..\..\dlls\ctc_gamerules.cpp" />
     <ClCompile Include="..\..\dlls\deagle.cpp" />
     <ClCompile Include="..\..\dlls\defaultai.cpp" />
+    <ClCompile Include="..\..\dlls\disc.cpp" />
     <ClCompile Include="..\..\dlls\doors.cpp" />
     <ClCompile Include="..\..\dlls\dual_chaingun.cpp" />
     <ClCompile Include="..\..\dlls\dual_deagle.cpp" />
@@ -258,6 +259,7 @@
     <ClInclude Include="..\..\dlls\ctc_gamerules.h" />
     <ClInclude Include="..\..\dlls\decals.h" />
     <ClInclude Include="..\..\dlls\defaultai.h" />
+    <ClInclude Include="..\..\dlls\disc.h" />
     <ClInclude Include="..\..\dlls\doors.h" />
     <ClInclude Include="..\..\dlls\effects.h" />
     <ClInclude Include="..\..\dlls\enginecallback.h" />

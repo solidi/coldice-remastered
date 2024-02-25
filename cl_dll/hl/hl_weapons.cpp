@@ -365,11 +365,21 @@ CBasePlayerWeapon::ItemPostFrame
 Handles weapon firing, reloading, etc.
 =====================
 */
+extern bool CheckMutator(int id, const char *mutator);
+
 void CBasePlayerWeapon::ItemPostFrame( void )
 {
 	// Unstick slide after levelchange
 	if ((gEngfuncs.GetClientTime() + 2) < g_SlideTime) {
 		g_SlideTime = 0;
+	}
+
+	if (CheckMutator(MUTATOR_RICOCHET, "ricochet")) {
+		if ((m_pPlayer->pev->button & IN_ATTACK) && (m_flNextPrimaryAttack <= 0.0) ||
+			(m_pPlayer->pev->button & IN_ATTACK2) && (m_flNextSecondaryAttack <= 0.0))
+		{
+			return;
+		}
 	}
 
 	if ((m_fInReload) && (m_pPlayer->m_flNextAttack <= 0.0))

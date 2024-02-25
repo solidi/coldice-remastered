@@ -125,6 +125,7 @@ DLL_GLOBAL const char *g_szMutators[] = {
 	"pumpkin",
 	"pushy",
 	"randomweapon",
+	"ricochet",
 	"rockets",
 	"rocketcrowbar",
 	"sanic",

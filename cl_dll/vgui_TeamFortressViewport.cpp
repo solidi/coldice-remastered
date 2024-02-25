@@ -233,6 +233,7 @@ char *sMutators[] = {
 	"pumpkin",
 	"pushy",
 	"randomweapon",
+	"ricochet",
 	"rockets",
 	"rocketcrowbar",
 	"sanic",
