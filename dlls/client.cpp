@@ -1035,12 +1035,12 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_mutators \"maxpack\"\" - drop all weapons and ammo in play (mp only!)\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_mutators \"megarun\"\" - run faster than normal\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_mutators \"notthebees\"\" - hornets spawn from a player or monster who was killed\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_mutators \"oldtime\"\" - gameplay becomes desaturated\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "For more, type help_server_more\n" );
 	}
 	else if ( FStrEq( pcmd, "help_server_more" )  )
 	{
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "[Server Help More]\n");
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_mutators \"oldtime\"\" - screen goes blac and white\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_mutators \"paintball\"\" - weapons and explosions leave paint decals, weapons reduced to 1/4 damage\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_mutators \"piratehat\"\" - argh, maty.\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_mutators \"plumber\"\" - spawn with dual pipe wrenches\n");
@@ -1048,6 +1048,7 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_mutators \"pumpkin\"\" - on Halloween, he appears.\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_mutators \"pushy\"\" - all weapon attacks push you back like a gauss attack\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_mutators \"randomweapon\"\" - spawn with a randomly selected weapon\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_mutators \"ricochet\"\" - the best mod ever made\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_mutators \"rockets\"\" - a random chance of rockets throw on attack!\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_mutators \"rocketcrowbar\"\" - spawn with a rocket crowbar, makes all rockets act drunk\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_mutators \"sanic\"\" - evil santa and sanic with a santa hat team up against you\n");
