@@ -176,6 +176,7 @@ DLL_OBJS = \
 	$(HL1_SERVER_OBJ_DIR)/crossbow.o \
 	$(HL1_SERVER_OBJ_DIR)/crowbar.o \
 	$(HL1_SERVER_OBJ_DIR)/deagle.o \
+	$(HL1_SERVER_OBJ_DIR)/disc.o \
 	$(HL1_SERVER_OBJ_DIR)/dual_chaingun.o \
 	$(HL1_SERVER_OBJ_DIR)/dual_deagle.o \
 	$(HL1_SERVER_OBJ_DIR)/dual_flamethrower.o \

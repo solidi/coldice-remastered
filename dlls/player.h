@@ -280,6 +280,14 @@ public:
 	int m_iChumtoadCounter;
 	int m_iCaptureTime;
 
+	// Ricochet
+	EHANDLE m_hLastPlayerToHitMe;
+	float m_flLastDiscHit;
+	int m_iLastDiscBounces;
+	float m_flLastDiscHitTeleport;
+	Vector m_vecHitVelocity;
+	int m_iFlyingDiscs;
+
 	EHANDLE pHeldItem;
 	BOOL m_iHoldingItem;
 

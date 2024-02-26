@@ -33,6 +33,7 @@
 #include "items.h"
 #include "game.h"
 #include "animation.h"
+#include "disc.h"
 
 extern CGraph	WorldGraph;
 extern int gEvilImpulse101;
@@ -42,6 +43,7 @@ extern DLL_GLOBAL const char *g_MutatorRockets;
 extern DLL_GLOBAL const char *g_MutatorGrenades;
 extern DLL_GLOBAL const char *g_MutatorSnowball;
 extern DLL_GLOBAL const char *g_MutatorPaintball;
+extern DLL_GLOBAL const char *g_MutatorRicochet;
 extern int g_ItemsExplode;
 
 #define NOT_USED 255
@@ -486,6 +488,7 @@ void W_Precache(void)
 	UTIL_PrecacheOther( "monster_sentry" );
 	UTIL_PrecacheOther( "monster_human_assassin" );
 	UTIL_PrecacheOther( "tracer" );
+	UTIL_PrecacheOther( "disc" );
 
 #if !defined( OEM_BUILD ) && !defined( HLDEMO_BUILD )
 	UTIL_PrecacheOther( "weaponbox" );// container for dropped deathmatch weapons
@@ -1006,6 +1009,36 @@ BOOL CanAttack( float attack_time, float curtime, BOOL isPredicted )
 
 void CBasePlayerWeapon::ItemPostFrame( void )
 {
+	if (strstr(mutators.string, g_MutatorRicochet) ||
+		atoi(mutators.string) == MUTATOR_RICOCHET) {
+		if ((m_pPlayer->pev->button & IN_ATTACK) && CanAttack( m_flNextPrimaryAttack, gpGlobals->time, UseDecrement() ) ||
+			(m_pPlayer->pev->button & IN_ATTACK2) && CanAttack( m_flNextSecondaryAttack, gpGlobals->time, UseDecrement() ))
+		{
+			if (m_pPlayer->m_iFlyingDiscs < 3)
+			{
+				m_pPlayer->SetAnimation( PLAYER_ATTACK1 );
+				Vector vecFireDir = m_pPlayer->pev->v_angle;
+				UTIL_MakeVectors( vecFireDir );
+				CDisc::CreateDisc( m_pPlayer->pev->origin + (m_pPlayer->pev->view_ofs * 0.25) + gpGlobals->v_forward * 16, vecFireDir, m_pPlayer, FALSE, 0 );
+				EMIT_SOUND_DYN( m_pPlayer->edict(), CHAN_WEAPON, "weapons/cbar_miss1.wav", 1.0, ATTN_NORM, 0, 98 + RANDOM_LONG(0,3)); 
+
+				m_flNextPrimaryAttack = m_flNextSecondaryAttack =  UTIL_WeaponTimeBase() + 0.5;
+				m_pPlayer->pev->button &= ~IN_ATTACK;
+				m_pPlayer->pev->button &= ~IN_ATTACK2;
+				m_pPlayer->m_iFlyingDiscs += 1;
+			}
+		}
+		else
+		{
+			m_bFired = FALSE;
+			// no fire buttons down
+			m_fFireOnEmpty = FALSE;
+			WeaponIdle();
+		}
+
+		return;
+	}
+
 	if (infiniteammo.value) {
 		if (infiniteammo.value == 1)
 			m_iClip = iMaxClip();
@@ -2842,7 +2875,9 @@ void CBasePlayerWeapon::ProvideDualItem(CBasePlayer *pPlayer, const char *pszNam
 		stricmp(pszName, "weapon_deagle") == 0 ||
 		stricmp(pszName, "weapon_smg") == 0 ||
 		stricmp(pszName, "weapon_usas") == 0 ||
-		stricmp(pszName, "weapon_rpg") == 0
+		stricmp(pszName, "weapon_rpg") == 0 ||
+		stricmp(pszName, "weapon_chaingun") == 0 ||
+		stricmp(pszName, "weapon_hgun") == 0
 		)) {
 		ClientPrint( pPlayer->pev, HUD_PRINTTALK, "You picked up a dual weapon. Swap between dual and single using \"impulse 205\".\n" );
 		pPlayer->m_iShownDualMessage = 1;

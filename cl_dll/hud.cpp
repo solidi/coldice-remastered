@@ -1012,3 +1012,8 @@ void ProTip(int id, const char *message)
 {
 	gHUD.m_ProTip.AddMessage(id, message);
 }
+
+bool CheckMutator(int id, const char *mutator)
+{
+	return strstr(gHUD.szActiveMutators, mutator) || atoi(gHUD.szActiveMutators) == id;
+}
