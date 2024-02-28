@@ -1209,23 +1209,24 @@ void HUD_WeaponsPostThink( local_state_s *from, local_state_s *to, usercmd_t *cm
 		{
 			if (cl_gunsmoke && cl_gunsmoke->value)
 			{
-				static TEMPENTITY *t[20];
+				static TEMPENTITY *t[16];
 				static int c = 0;
 				int model = gEngfuncs.pEventAPI->EV_FindModelIndex( "sprites/gunsmoke.spr" );
-				vec3_t dir = Vector(0, 0, 10);
+				vec3_t dir = player.pev->velocity;
+				dir.z += 10;
 
-				if (c == 20) c = 0;
+				if (c == 16) c = 0;
 
 				if (pWeapon->m_iClip == 0)
 				{
-					t[c] = gEngfuncs.pEfxAPI->R_TempSprite(gEngfuncs.GetViewModel()->attachment[c % 2 == 0 ? 1 : 0], (float *)&dir, 0.05, model, kRenderTransAdd, kRenderFxNoDissipation, 0, 2, FTENT_SPRANIMATE);
+					t[c] = gEngfuncs.pEfxAPI->R_TempSprite(gEngfuncs.GetViewModel()->attachment[c % 2 == 0 ? 1 : 0], (float *)&dir, gEngfuncs.pfnRandomFloat(0.05,0.2), model, kRenderTransAdd, kRenderFxNoDissipation, 0, 2, FTENT_SPRANIMATE);
 				}
 				else
 				{
 					if (pWeapon->m_iClip % 2 == 0)
-						t[c] = gEngfuncs.pEfxAPI->R_TempSprite(gEngfuncs.GetViewModel()->attachment[0], (float *)&dir, 0.05, model, kRenderTransAdd, kRenderFxNoDissipation, 0, 2, FTENT_SPRANIMATE);
+						t[c] = gEngfuncs.pEfxAPI->R_TempSprite(gEngfuncs.GetViewModel()->attachment[0], (float *)&dir, gEngfuncs.pfnRandomFloat(0.05,0.2), model, kRenderTransAdd, kRenderFxNoDissipation, 0, 2, FTENT_SPRANIMATE);
 					else
-						t[c] = gEngfuncs.pEfxAPI->R_TempSprite(gEngfuncs.GetViewModel()->attachment[1], (float *)&dir, 0.05, model, kRenderTransAdd, kRenderFxNoDissipation, 0, 2, FTENT_SPRANIMATE);
+						t[c] = gEngfuncs.pEfxAPI->R_TempSprite(gEngfuncs.GetViewModel()->attachment[1], (float *)&dir, gEngfuncs.pfnRandomFloat(0.05,0.2), model, kRenderTransAdd, kRenderFxNoDissipation, 0, 2, FTENT_SPRANIMATE);
 				}
 
 				if (t[c]) {
