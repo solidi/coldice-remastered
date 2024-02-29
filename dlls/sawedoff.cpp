@@ -153,6 +153,8 @@ void CSawedOff::PrimaryAttack()
 	Vector vecSrc = m_pPlayer->GetGunPosition( );
 	Vector vecAiming = m_pPlayer->GetAutoaimVector( AUTOAIM_5DEGREES );
 
+	m_pPlayer->pev->velocity = m_pPlayer->pev->velocity - gpGlobals->v_forward * 100 * 5;
+
 	Vector spread = VECTOR_CONE_DM_SHOTGUN;
 	if ( m_pPlayer->pev->button & IN_IRONSIGHT )
 		spread = VECTOR_CONE_5DEGREES;
@@ -211,6 +213,8 @@ void CSawedOff::SecondaryAttack( void )
 	Vector vecSrc = m_pPlayer->GetGunPosition( );
 	Vector vecAiming = m_pPlayer->GetAutoaimVector( AUTOAIM_5DEGREES );
 
+	m_pPlayer->pev->velocity = m_pPlayer->pev->velocity - gpGlobals->v_forward * 100 * 5;
+
 	Vector spread = VECTOR_CONE_DM_DOUBLESHOTGUN;
 	if ( m_pPlayer->pev->button & IN_IRONSIGHT )
 		spread = VECTOR_CONE_7DEGREES;
@@ -220,7 +224,6 @@ void CSawedOff::SecondaryAttack( void )
 	PLAYBACK_EVENT_FULL( flags, m_pPlayer->edict(), m_usDoubleFire, 0.0, (float *)&g_vecZero, (float *)&g_vecZero, vecDir.x, vecDir.y, 0, 0, 0, 0 );
 
 	UTIL_MakeVectors( m_pPlayer->pev->v_angle + m_pPlayer->pev->punchangle );
-	m_pPlayer->pev->velocity = m_pPlayer->pev->velocity - gpGlobals->v_forward * 200;
 
 	if (!m_iClip && m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] <= 0)
 		// HEV suit - indicate out of ammo condition
