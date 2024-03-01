@@ -334,7 +334,7 @@ void CHalfLifeMultiplay :: Think ( void )
 				for (int i = 1; i <= 32; i++)
 				{
 					CBasePlayer *pPlayer = (CBasePlayer *)UTIL_PlayerByIndex( i );
-					if (pPlayer && FBitSet(pPlayer->pev->flags, FL_FAKECLIENT))
+					if (pPlayer && FBitSet(pPlayer->pev->flags, FL_FAKECLIENT) && !pPlayer->HasDisconnected)
 					{
 						::Vote(pPlayer, RANDOM_LONG(1, TOTAL_GAME_MODES + 2 /*random*/));
 					}
@@ -424,7 +424,7 @@ void CHalfLifeMultiplay :: Think ( void )
 				for (int i = 1; i <= 32; i++)
 				{
 					CBasePlayer *pPlayer = (CBasePlayer *)UTIL_PlayerByIndex( i );
-					if (pPlayer && FBitSet(pPlayer->pev->flags, FL_FAKECLIENT))
+					if (pPlayer && FBitSet(pPlayer->pev->flags, FL_FAKECLIENT) && !pPlayer->HasDisconnected)
 					{
 						ALERT(at_aiconsole, "BOT mutator vote!\n");
 						::Vote(pPlayer, RANDOM_LONG(MUTATOR_CHAOS, MAX_MUTATORS + 1 /*random*/));
@@ -568,7 +568,7 @@ void CHalfLifeMultiplay :: Think ( void )
 				for (int i = 1; i <= 32; i++)
 				{
 					CBasePlayer *pPlayer = (CBasePlayer *)UTIL_PlayerByIndex( i );
-					if (pPlayer && FBitSet(pPlayer->pev->flags, FL_FAKECLIENT))
+					if (pPlayer && FBitSet(pPlayer->pev->flags, FL_FAKECLIENT) && !pPlayer->HasDisconnected)
 					{
 						ALERT(at_aiconsole, "BOT vote!\n");
 						::Vote(pPlayer, RANDOM_LONG(1, BUILT_IN_MAP_COUNT + 1));
