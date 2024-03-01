@@ -1011,8 +1011,8 @@ void CBasePlayerWeapon::ItemPostFrame( void )
 {
 	if (strstr(mutators.string, g_MutatorRicochet) ||
 		atoi(mutators.string) == MUTATOR_RICOCHET) {
-		if ((m_pPlayer->pev->button & IN_ATTACK) && CanAttack( m_flNextPrimaryAttack, gpGlobals->time, UseDecrement() ) ||
-			(m_pPlayer->pev->button & IN_ATTACK2) && CanAttack( m_flNextSecondaryAttack, gpGlobals->time, UseDecrement() ))
+		if ((m_pPlayer->pev->button & IN_ATTACK) &&
+			CanAttack( m_flNextPrimaryAttack, gpGlobals->time, UseDecrement() ))
 		{
 			if (m_pPlayer->m_iFlyingDiscs < 3)
 			{
@@ -1026,6 +1026,25 @@ void CBasePlayerWeapon::ItemPostFrame( void )
 				m_pPlayer->pev->button &= ~IN_ATTACK;
 				m_pPlayer->pev->button &= ~IN_ATTACK2;
 				m_pPlayer->m_iFlyingDiscs += 1;
+			}
+		}
+		else if ((m_pPlayer->pev->button & IN_ATTACK2) &&
+				CanAttack( m_flNextSecondaryAttack, gpGlobals->time, UseDecrement() ))
+		{
+			if (m_pPlayer->m_iFlyingDiscs == 0)
+			{
+				m_pPlayer->SetAnimation( PLAYER_ATTACK1 );
+				Vector vecFireDir = m_pPlayer->pev->v_angle;
+				UTIL_MakeVectors( vecFireDir );
+				CDisc::CreateDisc( m_pPlayer->pev->origin + (m_pPlayer->pev->view_ofs * 0.25) + gpGlobals->v_forward * 16, vecFireDir, m_pPlayer, FALSE, 0 );
+				CDisc::CreateDisc( m_pPlayer->pev->origin + (m_pPlayer->pev->view_ofs * 0.25) + gpGlobals->v_forward * 16 + gpGlobals->v_right * -24, vecFireDir, m_pPlayer, FALSE, 0 );
+				CDisc::CreateDisc( m_pPlayer->pev->origin + (m_pPlayer->pev->view_ofs * 0.25) + gpGlobals->v_forward * 16 + gpGlobals->v_right * 24, vecFireDir, m_pPlayer, FALSE, 0 );
+				EMIT_SOUND_DYN( m_pPlayer->edict(), CHAN_WEAPON, "weapons/cbar_miss1.wav", 1.0, ATTN_NORM, 0, 98 + RANDOM_LONG(0,3)); 
+
+				m_flNextPrimaryAttack = m_flNextSecondaryAttack =  UTIL_WeaponTimeBase() + 0.5;
+				m_pPlayer->pev->button &= ~IN_ATTACK;
+				m_pPlayer->pev->button &= ~IN_ATTACK2;
+				m_pPlayer->m_iFlyingDiscs = 3;
 			}
 		}
 		else
