@@ -2551,7 +2551,7 @@ void CBasePlayerWeapon::PunchAttack( BOOL holdingSomething )
 	{
 		if (holdingSomething)
 		{
-			EMIT_SOUND(ENT(m_pPlayer->pev), CHAN_ITEM, "fists_hitbod.wav", 1, ATTN_NORM);
+			EMIT_SOUND(ENT(m_pPlayer->pev), CHAN_BODY, "fists_hitbod.wav", 1, ATTN_NORM);
 			m_pPlayer->m_iWeaponVolume = 128;
 			flVol = 0.1;
 			fHitWorld = FALSE;
@@ -2567,7 +2567,7 @@ void CBasePlayerWeapon::PunchAttack( BOOL holdingSomething )
 			}
 		} else {
 			// miss
-			EMIT_SOUND(ENT(m_pPlayer->pev), CHAN_ITEM, "fists_miss.wav", 1, ATTN_NORM);
+			EMIT_SOUND(ENT(m_pPlayer->pev), CHAN_BODY, "fists_miss.wav", 1, ATTN_NORM);
 		}
 	}
 	else
@@ -2587,7 +2587,7 @@ void CBasePlayerWeapon::PunchAttack( BOOL holdingSomething )
 			if ( pEntity->Classify() != CLASS_NONE && pEntity->Classify() != CLASS_MACHINE )
 			{
 				// play thwack or smack sound
-				EMIT_SOUND(ENT(m_pPlayer->pev), CHAN_ITEM, "fists_hitbod.wav", 1, ATTN_NORM);
+				EMIT_SOUND(ENT(m_pPlayer->pev), CHAN_BODY, "fists_hitbod.wav", 1, ATTN_NORM);
 				m_pPlayer->m_iWeaponVolume = 128;
 				flVol = 0.1;
 				pEntity->pev->velocity = (pEntity->pev->velocity + (gpGlobals->v_forward * RANDOM_LONG(100,200)));
@@ -2635,7 +2635,7 @@ void CBasePlayerWeapon::PunchAttack( BOOL holdingSomething )
 				pSprite->SetScale( 0.4 );
 			}
 
-			EMIT_SOUND_DYN(ENT(m_pPlayer->pev), CHAN_ITEM, "fists_hit.wav", fvolbar, ATTN_NORM, 0, 98 + RANDOM_LONG(0,3));
+			EMIT_SOUND_DYN(ENT(m_pPlayer->pev), CHAN_BODY, "fists_hit.wav", fvolbar, ATTN_NORM, 0, 98 + RANDOM_LONG(0,3));
 		}
 
 		m_pPlayer->m_iWeaponVolume = flVol * 512;
@@ -2773,7 +2773,7 @@ void CBasePlayerWeapon::KickAttack( BOOL holdingSomething )
 	{
 		if (holdingSomething)
 		{
-			EMIT_SOUND(ENT(m_pPlayer->pev), CHAN_ITEM, "fists_hitbod.wav", 1, ATTN_NORM);
+			EMIT_SOUND(ENT(m_pPlayer->pev), CHAN_BODY, "fists_hitbod.wav", 1, ATTN_NORM);
 			m_pPlayer->m_iWeaponVolume = 128;
 			flVol = 0.1;
 			fHitWorld = FALSE;
@@ -2789,7 +2789,7 @@ void CBasePlayerWeapon::KickAttack( BOOL holdingSomething )
 			}
 		} else {
 			// miss
-			EMIT_SOUND(ENT(m_pPlayer->pev), CHAN_ITEM, "kick.wav", 1, ATTN_NORM);
+			EMIT_SOUND(ENT(m_pPlayer->pev), CHAN_BODY, "kick.wav", 1, ATTN_NORM);
 		}
 	}
 	else
@@ -2814,7 +2814,7 @@ void CBasePlayerWeapon::KickAttack( BOOL holdingSomething )
 			if ( pEntity->Classify() != CLASS_NONE && pEntity->Classify() != CLASS_MACHINE )
 			{
 				// play thwack or smack sound
-				EMIT_SOUND(ENT(m_pPlayer->pev), CHAN_ITEM, "fists_hitbod.wav", 1, ATTN_NORM);
+				EMIT_SOUND(ENT(m_pPlayer->pev), CHAN_BODY, "fists_hitbod.wav", 1, ATTN_NORM);
 				m_pPlayer->m_iWeaponVolume = 128;
 				flVol = 0.1;
 				pEntity->pev->velocity = (pEntity->pev->velocity + (gpGlobals->v_forward * RANDOM_LONG(200,300)));
@@ -2862,7 +2862,7 @@ void CBasePlayerWeapon::KickAttack( BOOL holdingSomething )
 				pSprite->SetScale( 0.4 );
 			}
 
-			EMIT_SOUND_DYN(ENT(m_pPlayer->pev), CHAN_ITEM, "fists_hit.wav", fvolbar, ATTN_NORM, 0, 98 + RANDOM_LONG(0,3));
+			EMIT_SOUND_DYN(ENT(m_pPlayer->pev), CHAN_BODY, "fists_hit.wav", fvolbar, ATTN_NORM, 0, 98 + RANDOM_LONG(0,3));
 		}
 
 		m_pPlayer->m_iWeaponVolume = flVol * 512;
