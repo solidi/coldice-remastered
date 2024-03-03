@@ -131,7 +131,7 @@ void CGib :: SpawnStickyGibs( entvars_t *pevVictim, Vector vecOrigin, int cGibs 
 extern int gmsgParticle;
 extern int gmsgMultiParticle;
 
-void CGib :: SpawnHeadGib( entvars_t *pevVictim )
+void CGib :: SpawnHeadGib( entvars_t *pevVictim, BOOL up )
 {
 	CGib *pGib = GetClassPtr( (CGib *)NULL );
 
@@ -163,7 +163,10 @@ void CGib :: SpawnHeadGib( entvars_t *pevVictim )
 		}
 		else
 		{
-			pGib->pev->velocity = Vector (RANDOM_FLOAT(-100,100), RANDOM_FLOAT(-100,100), RANDOM_FLOAT(200,300));
+			if (up)
+				pGib->pev->velocity = Vector(0, 0, 400);
+			else
+				pGib->pev->velocity = Vector (RANDOM_FLOAT(-100,100), RANDOM_FLOAT(-100,100), RANDOM_FLOAT(200,300));
 		}
 
 
@@ -371,7 +374,7 @@ void CBaseMonster :: GibMonster( void )
 	{
 		if ( CVAR_GET_FLOAT("violence_hgibs") != 0 )	// Only the player will ever get here
 		{
-			CGib::SpawnHeadGib( pev );
+			CGib::SpawnHeadGib( pev, FALSE );
 			CGib::SpawnRandomGibs( pev, 4, 1 );	// throw some human gibs.
 		}
 		gibbed = TRUE;
@@ -466,6 +469,19 @@ Activity CBaseMonster :: GetDeathActivity ( void )
 		break;
 	}
 
+	// Special decap
+	if (g_pGameRules->MutatorEnabled(MUTATOR_RICOCHET))
+	{
+		switch ( m_LastHitGroup )
+		{
+			case HITGROUP_HEAD:
+			case HITGROUP_CHEST:
+			case HITGROUP_GENERIC:
+				CGib::SpawnHeadGib( pev, TRUE );
+				SetBodygroup( 0, 1 );
+				deathActivity = ACT_DIE_HEADSHOT;
+		}
+	}
 
 	// can we perform the prescribed death?
 	if ( LookupActivity ( deathActivity ) == ACTIVITY_NOT_AVAILABLE )

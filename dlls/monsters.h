@@ -151,7 +151,7 @@ public:
 	void		LimitVelocity( void );
 
 	virtual int	ObjectCaps( void ) { return (CBaseEntity :: ObjectCaps() & ~FCAP_ACROSS_TRANSITION) | FCAP_DONT_SAVE; }
-	static	void SpawnHeadGib( entvars_t *pevVictim );
+	static	void SpawnHeadGib( entvars_t *pevVictim, BOOL up );
 	static	void SpawnRandomGibs( entvars_t *pevVictim, int cGibs, int human );
 	static  void SpawnStickyGibs( entvars_t *pevVictim, Vector vecOrigin, int cGibs );
 

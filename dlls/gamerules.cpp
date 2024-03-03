@@ -83,6 +83,7 @@ extern DLL_GLOBAL const char *g_MutatorJeepAThon;
 extern DLL_GLOBAL const char *g_MutatorAutoaim;
 extern DLL_GLOBAL const char *g_MutatorSantaHat;
 extern DLL_GLOBAL const char *g_MutatorToilet;
+extern DLL_GLOBAL const char *g_MutatorRicochet;
 
 extern DLL_GLOBAL int g_GameMode;
 
@@ -587,6 +588,22 @@ BOOL CGameRules::WeaponMutators( CBasePlayerWeapon *pWeapon )
 	return TRUE;
 }
 
+BOOL CGameRules::MutatorEnabled(int mutator)
+{
+	if (mutator == atoi(mutators.string))
+		return TRUE;
+
+	switch (mutator)
+	{
+		case MUTATOR_RICOCHET:
+			if (strstr(mutators.string, g_MutatorRicochet))
+				return TRUE;
+			break;
+	}
+
+	return FALSE;
+}
+
 void CGameRules::SpawnMutators(CBasePlayer *pPlayer)
 {
 	if (strstr(mutators.string, g_MutatorTopsyTurvy) ||
@@ -667,6 +684,10 @@ void CGameRules::SpawnMutators(CBasePlayer *pPlayer)
 			}
 		}
 	}
+
+	// For decap reset
+	if (MutatorEnabled(MUTATOR_RICOCHET))
+		pPlayer->pev->body = 0;
 }
 
 void CGameRules::GiveMutators(CBasePlayer *pPlayer)

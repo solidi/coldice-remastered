@@ -220,7 +220,7 @@ void CDisc::DiscTouch ( CBaseEntity *pOther )
 		{
 			if ( pev->team != pOther->pev->team )
 			{
-				((CBasePlayer*)pOther)->m_LastHitGroup = HITGROUP_GENERIC;
+				//((CBasePlayer*)pOther)->m_LastHitGroup = HITGROUP_GENERIC;
 
 				// Do freeze seperately so you can freeze and shatter a person with a single shot
                 /*
@@ -332,55 +332,6 @@ void CDisc::DiscTouch ( CBaseEntity *pOther )
 void CDisc::DiscThink()
 {
 	// Make Freeze discs home towards any player ahead of them
-	if ( /*(m_iPowerupFlags & POW_FREEZE) &&*/ (m_iBounces == 0) )
-	{
-		// Use an existing target if he's still in the view cone
-		if ( m_pLockTarget != NULL )
-		{
-			Vector vecDir = (m_pLockTarget->pev->origin - pev->origin).Normalize();
-			UTIL_MakeVectors( pev->angles );
-			float flDot = DotProduct( gpGlobals->v_forward, vecDir );
-			if ( flDot < 0.6 )
-				m_pLockTarget = NULL;
-		}
-
-		// Get a new target if we don't have one
-		if ( m_pLockTarget == NULL )
-		{
-			CBaseEntity *pOther = NULL;
-
-			// Examine all entities within a reasonable radius
-			while ((pOther = UTIL_FindEntityByClassname( pOther, "player" )) != NULL)
-			{
-				// Skip the guy who threw this
-				if ( ((CBaseEntity*)m_hOwner) == pOther )
-					continue;
-				// Skip observers
-				if ( ((CBasePlayer*)pOther)->IsObserver() )
-					continue;
-
-				// Make sure the enemy's in a cone ahead of us
-				Vector vecDir = (pOther->pev->origin - pev->origin).Normalize();
-				UTIL_MakeVectors( pev->angles );
-				float flDot = DotProduct( gpGlobals->v_forward, vecDir );
-				if ( flDot > 0.6 )
-				{
-					m_pLockTarget = pOther;
-					break;
-				}
-			}
-		}
-
-		// Track towards our target
-		if ( m_pLockTarget != NULL )
-		{
-			// Calculate new velocity
-			Vector vecDir = (m_pLockTarget->pev->origin - pev->origin).Normalize();
-			pev->velocity = ( pev->velocity.Normalize() + (vecDir.Normalize() * 0.25)).Normalize();
-			pev->velocity = pev->velocity * DISC_VELOCITY;
-			pev->angles = UTIL_VecToAngles( pev->velocity );
-		}
-	}
 
 	// Track the player if we've bounced 3 or more times ( Fast discs remove immediately )
 	if ( m_iBounces >= 3 /*|| (m_iPowerupFlags & POW_FAST && m_iBounces >= 1)*/ )

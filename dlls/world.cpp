@@ -303,6 +303,10 @@ void CopyToBodyQue(entvars_t *pev)
 	pevHead->renderfx	= kRenderFxDeadPlayer;
 	pevHead->renderamt	= ENTINDEX( ENT( pev ) );
 
+	// Let them eat cake
+	if (g_pGameRules->MutatorEnabled(MUTATOR_RICOCHET))
+		pevHead->body		= pev->body;
+
 	pevHead->effects    = pev->effects | EF_NOINTERP;
 	//pevHead->goalstarttime = pev->goalstarttime;
 	//pevHead->goalframe	= pev->goalframe;
