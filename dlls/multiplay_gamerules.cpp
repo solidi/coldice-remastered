@@ -1647,6 +1647,9 @@ void CHalfLifeMultiplay :: InitHUD( CBasePlayer *pl )
 	{
 		MESSAGE_BEGIN( MSG_ONE, SVC_INTERMISSION, NULL, pl->edict() );
 		MESSAGE_END();
+
+		if (pl->pev->flags & FL_FAKECLIENT)
+			pl->EnableControl(FALSE);
 	}
 }
 
@@ -2955,6 +2958,13 @@ void CHalfLifeMultiplay :: GoToIntermission( void )
 
 	MESSAGE_BEGIN(MSG_ALL, SVC_INTERMISSION);
 	MESSAGE_END();
+
+	for ( int i = 1; i <= gpGlobals->maxClients; i++ )
+	{
+		CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
+		if ( plr && plr->pev->flags & FL_FAKECLIENT )
+			plr->EnableControl(FALSE);
+	}
 
 	// bounds check
 	int time = (int)CVAR_GET_FLOAT( "mp_chattime" );
