@@ -49,7 +49,7 @@ void CHudRadar::ProcessPlayerState(void)
 		{1.0f, 0.6f, 0.0f }
 	};
 
-	for (int i = 1; i <= MAX_EDICTS; i++)
+	for (int i = 1; i < MAX_EDICTS; i++)
 	{
 		cl_entity_s *pClient = gEngfuncs.GetEntityByIndex(i);
 
