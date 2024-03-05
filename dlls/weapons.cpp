@@ -118,6 +118,7 @@ void ClearMultiDamage(void)
 	gMultiDamage.pEntity = NULL;
 	gMultiDamage.amount	= 0;
 	gMultiDamage.type = 0;
+	gMultiDamage.time = 0;
 }
 
 
@@ -135,6 +136,8 @@ void ApplyMultiDamage(entvars_t *pevInflictor, entvars_t *pevAttacker )
 	
 	if ( !gMultiDamage.pEntity )
 		return;
+
+	gMultiDamage.time = gpGlobals->time;
 
 	gMultiDamage.pEntity->TakeDamage(pevInflictor, pevAttacker, gMultiDamage.amount, gMultiDamage.type );
 }

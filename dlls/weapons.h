@@ -551,6 +551,7 @@ typedef struct
 	CBaseEntity		*pEntity;
 	float			amount;
 	int				type;
+	float			time;
 } MULTIDAMAGE;
 
 extern MULTIDAMAGE gMultiDamage;

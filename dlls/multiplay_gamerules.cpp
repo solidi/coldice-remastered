@@ -2370,14 +2370,16 @@ void CHalfLifeMultiplay::DeathNotice( CBasePlayer *pVictim, entvars_t *pKiller, 
 
 	if (gMultiDamage.pEntity == pVictim &&
 		(gMultiDamage.type & DMG_KICK) &&
-		pKiller->flags & FL_CLIENT)
+		(pKiller->flags & FL_CLIENT) && 
+		gMultiDamage.time > gpGlobals->time - 0.5)
 	{
 		killer_weapon_name = "kick";
 	}
 
 	if (gMultiDamage.pEntity == pVictim &&
 		(gMultiDamage.type & DMG_PUNCH) &&
-		pKiller->flags & FL_CLIENT)
+		(pKiller->flags & FL_CLIENT) && 
+		gMultiDamage.time > gpGlobals->time - 0.5)
 	{
 		killer_weapon_name = "fists";
 	}
