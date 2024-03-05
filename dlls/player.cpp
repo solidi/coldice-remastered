@@ -2721,6 +2721,13 @@ void CBasePlayer::PreThink(void)
 		EMIT_SOUND(ENT(pev), CHAN_VOICE, "scientist/scream1.wav", 1, ATTN_NORM);
 		m_fNextScreamSound = gpGlobals->time + 10.0;
 	}
+
+	if (m_fKickEndTime && m_fKickEndTime < gpGlobals->time)
+	{
+		if (m_pActiveItem)
+			((CBasePlayerWeapon *)m_pActiveItem)->EndKick();
+		m_fKickEndTime = 0;
+	}
 }
 /* Time based Damage works as follows: 
 	1) There are several types of timebased damage:

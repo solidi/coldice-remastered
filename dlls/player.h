@@ -229,6 +229,7 @@ public:
 	int m_iFreezeCounter;
 	float m_fJumpHeight;
 	float m_fGrenadeTime;
+	float m_fKickEndTime; // pev->nextthink cannot be used consistently
 
 	void CalculateToSelacoSlide( void );
 	void StartSelacoSlide( void );

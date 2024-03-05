@@ -2875,11 +2875,7 @@ void CBasePlayerWeapon::KickAttack( BOOL holdingSomething )
 	// delay the decal a bit
 	m_trBootHit = tr;
 
-	SetThink( &CBasePlayerWeapon::EndKick );
-	pev->nextthink = gpGlobals->time + (0.28 * g_pGameRules->WeaponMultipler());
-
-	// m_flNextPrimaryAttack = m_flNextSecondaryAttack = GetNextAttackDelay(0.3);
-	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + UTIL_SharedRandomFloat( m_pPlayer->random_seed, 10, 15 );
+	m_pPlayer->m_fKickEndTime = gpGlobals->time + (0.28 * g_pGameRules->WeaponMultipler());
 }
 
 void CBasePlayerWeapon::EndKick( void )
