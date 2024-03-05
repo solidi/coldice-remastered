@@ -27,6 +27,7 @@
 #include "util.h"
 #include "cbase.h"
 #include "saverestore.h"
+#include "com_model.h"
 #include "player.h"
 #include "spectator.h"
 #include "client.h"
