@@ -6484,6 +6484,46 @@ void CBasePlayer::ExitObserver( void )
 	Spawn();
 }
 
+void CBasePlayer::Taunt( void )
+{
+	if (IsAlive() && pev->deadflag == DEAD_NO && m_fSelacoSliding != TRUE &&
+		m_fTauntCancelTime < gpGlobals->time)
+	{
+		if (m_fTauntFullTime < gpGlobals->time)
+		{
+			if (m_pActiveItem)
+			{
+				m_pActiveItem->Holster();
+				m_flNextAttack = UTIL_WeaponTimeBase() + 3.25;
+				m_fSelacoTime = gpGlobals->time + 2.0;
+			}
+
+			int tauntIndex = RANDOM_LONG(0,4);
+			strcpy( m_szAnimExtention, "crowbar" );
+			EMIT_SOUND(ENT(pev), CHAN_VOICE, m_fTaunts[tauntIndex].sound, 1, ATTN_NORM);
+			SetAnimation( PLAYER_ATTACK1 );
+			pev->viewmodel = 0; 
+			pev->weaponmodel = 0;
+			m_EFlags &= ~EFLAG_CANCEL;
+			m_EFlags |= EFLAG_TAUNT;
+			DisplayHudMessage(m_fTaunts[tauntIndex].text,
+				TXT_CHANNEL_TAUNT, -1, 0.75, 200, 200, 200, 2, 0.05, 1.0, 1.5, 0.5);
+			if (pev->health < 105)
+				pev->health++;
+			m_fTauntFullTime = gpGlobals->time + 3.25;
+		}
+		else
+		{
+			if (m_pActiveItem)
+				m_pActiveItem->DeployLowKey();
+			m_EFlags &= ~EFLAG_TAUNT;
+			m_EFlags |= EFLAG_CANCEL;
+		}
+
+		m_fTauntCancelTime = gpGlobals->time + 2.0;
+	}
+}
+
 //=========================================================
 // Dead HEV suit prop
 //=========================================================
