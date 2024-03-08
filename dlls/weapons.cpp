@@ -1857,7 +1857,7 @@ void CBasePlayerWeapon::UpdateItemInfo( void )
 
     if (GetItemInfo(&iInfo) && iInfo.pszDisplayName)
 	{
-		m_pPlayer->DisplayHudMessage(iInfo.pszDisplayName, TXT_CHANNEL_WEAPON_TITLE, -1, 0.1, 210, 210, 210, 0, 0.2, 0.2, 0.75, 0.25);
+		m_pPlayer->DisplayHudMessage(iInfo.pszDisplayName, TXT_CHANNEL_WEAPON_TITLE, 0.03, 0.88, 210, 210, 210, 0, 0.2, 0.2, 0.75, 0.25);
     }
 }
 
