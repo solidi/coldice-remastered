@@ -236,6 +236,7 @@ void ClientPutInServer( edict_t *pEntity )
 	// Cold Ice client defaults
 	pPlayer->m_iAutoWepSwitch = 1;
 	pPlayer->m_iAutoMelee = 1;
+	pPlayer->m_iAutoTaunt = 1;
 	pPlayer->m_iDisplayInfoMessage = 1;
 	pPlayer->m_iKeyboardAcrobatics = 1;
 
@@ -734,41 +735,7 @@ void ClientCommand( edict_t *pEntity )
 	else if ( FStrEq(pcmd, "taunt" ) )
 	{
 		CBasePlayer *player = GetClassPtr((CBasePlayer *)pev);
-		if (player->IsAlive() && player->pev->deadflag == DEAD_NO && player->m_fSelacoSliding != TRUE &&
-			player->m_fTauntCancelTime < gpGlobals->time)
-		{
-			if (player->m_fTauntFullTime < gpGlobals->time)
-			{
-				if (player->m_pActiveItem)
-				{
-					player->m_pActiveItem->Holster();
-					player->m_flNextAttack = UTIL_WeaponTimeBase() + 3.25;
-					player->m_fSelacoTime = gpGlobals->time + 2.0;
-				}
-
-				strcpy( player->m_szAnimExtention, "crowbar" );
-				EMIT_SOUND(ENT(pev), CHAN_VOICE, "taunt_blah.wav", 1, ATTN_NORM);
-				player->SetAnimation( PLAYER_ATTACK1 );
-				player->pev->viewmodel = 0; 
-				player->pev->weaponmodel = 0;
-				player->m_EFlags &= ~EFLAG_CANCEL;
-				player->m_EFlags |= EFLAG_TAUNT;
-				player->DisplayHudMessage(player->m_fTaunts[RANDOM_LONG(0,24)].text,
-					TXT_CHANNEL_TAUNT, -1, 0.75, 200, 200, 200, 2, 0.05, 1.0, 1.5, 0.5);
-				if (player->pev->health < 105)
-					player->pev->health++;
-				player->m_fTauntFullTime = gpGlobals->time + 3.25;
-			}
-			else
-			{
-				if (player->m_pActiveItem)
-					player->m_pActiveItem->DeployLowKey();
-				player->m_EFlags &= ~EFLAG_TAUNT;
-				player->m_EFlags |= EFLAG_CANCEL;
-			}
-
-			player->m_fTauntCancelTime = gpGlobals->time + 2.0;
-		}
+		player->Taunt();
 	}
 	else if ( FStrEq(pcmd, "fov" ) )
 	{
@@ -979,6 +946,7 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_voiceoverpath [string]\" - folder path to custom voiceovers\n" );
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_objectives [0|1]\" - show objective read out on HUD\n" );
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_automelee [0|1]\" - auto kick or punch an enemy if they are close\n" );
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_autotaunt [0|1]\" - auto taunt on frag when its safe to do so\n" );
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"vote\" - type in the chat to start a vote\n" );
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "For more, see readme.txt\n" );
 	}
@@ -1160,6 +1128,10 @@ void ClientUserInfoChanged( edict_t *pEntity, char *infobuffer )
 	char* pszAutoMelee = g_engfuncs.pfnInfoKeyValue( infobuffer, "cl_automelee");
 	if (strlen(pszAutoMelee))
 		GetClassPtr((CBasePlayer *)&pEntity->v)->m_iAutoMelee = atoi(pszAutoMelee);
+
+	char* pszAutoTaunt = g_engfuncs.pfnInfoKeyValue( infobuffer, "cl_autotaunt");
+	if (strlen(pszAutoTaunt))
+		GetClassPtr((CBasePlayer *)&pEntity->v)->m_iAutoTaunt = atoi(pszAutoTaunt);
 
 	// msg everyone if someone changes their name,  and it isn't the first time (changing no name to current name)
 	if ( pEntity->v.netname && STRING(pEntity->v.netname)[0] != 0 && !FStrEq( STRING(pEntity->v.netname), g_engfuncs.pfnInfoKeyValue( infobuffer, "name" )) )
@@ -1443,6 +1415,11 @@ void ClientPrecache( void )
 	PRECACHE_SOUND("point.wav");
 	PRECACHE_SOUND("common/wpn_denyselect.wav");
 
+	PRECACHE_SOUND("taunt01.wav");
+	PRECACHE_SOUND("taunt02.wav");
+	PRECACHE_SOUND("taunt03.wav");
+	PRECACHE_SOUND("taunt04.wav");
+	PRECACHE_SOUND("taunt05.wav");
 
 	// geiger sounds
 

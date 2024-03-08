@@ -1526,6 +1526,9 @@ BOOL CBasePlayerWeapon :: DefaultDeploy( char *szViewModel, char *szWeaponModel,
 	if (!CanDeploy( ))
 		return FALSE;
 
+	// In case we are taunting and we pick up better weapon.
+	m_pPlayer->m_fTauntFullTime = gpGlobals->time;
+
 	m_pPlayer->TabulateAmmo();
 	if (szWeaponModel == iStringNull)
 		m_pPlayer->pev->weaponmodel = 0;
@@ -1854,7 +1857,7 @@ void CBasePlayerWeapon::UpdateItemInfo( void )
 
     if (GetItemInfo(&iInfo) && iInfo.pszDisplayName)
 	{
-		m_pPlayer->DisplayHudMessage(iInfo.pszDisplayName, TXT_CHANNEL_WEAPON_TITLE, -1, 0.1, 210, 210, 210, 0, 0.2, 0.2, 0.75, 0.25);
+		m_pPlayer->DisplayHudMessage(iInfo.pszDisplayName, TXT_CHANNEL_WEAPON_TITLE, 0.03, 0.88, 210, 210, 210, 0, 0.2, 0.2, 0.75, 0.25);
     }
 }
 

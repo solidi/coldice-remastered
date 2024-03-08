@@ -1755,6 +1755,27 @@ int UTIL_GetPlayerCount( void )
 	return playerCount;
 }
 
+int UTIL_GetAlivePlayersInSphere( CBasePlayer *pl, int radius )
+{
+	CBaseEntity *pent = NULL;
+	int count = 0;
+
+	while ((pent = UTIL_FindEntityInSphere( pent, pl->pev->origin, radius )) != NULL)
+	{
+		if ( pent == pl )
+			continue;
+
+		if (pent->IsPlayer())
+		{
+			CBasePlayer *plr = (CBasePlayer *)pl;
+			if (!plr->IsObserver() && pent->pev->health > 0)
+				count++;
+		}
+	}
+
+	return count;
+}
+
 
 // --------------------------------------------------------------
 //

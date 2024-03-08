@@ -555,6 +555,7 @@ void CHud :: Init( void )
 	cl_voiceoverpath = CVAR_CREATE("cl_voiceoverpath", "", FCVAR_ARCHIVE);
 	cl_objectives = CVAR_CREATE("cl_objectives", "1", FCVAR_ARCHIVE);
 	CVAR_CREATE( "cl_automelee", "1", FCVAR_ARCHIVE | FCVAR_USERINFO );
+	CVAR_CREATE( "cl_autotaunt", "1", FCVAR_ARCHIVE | FCVAR_USERINFO );
 
 	cl_vmx = CVAR_CREATE( "cl_vmx", "0", FCVAR_ARCHIVE );
 	cl_vmy = CVAR_CREATE( "cl_vmy", "0", FCVAR_ARCHIVE );

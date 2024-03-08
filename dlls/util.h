@@ -353,6 +353,7 @@ extern void UTIL_FindHullIntersection( const Vector &vecSrc, TraceResult &tr, fl
 
 extern void UTIL_VectorAngles( const float *forward, float *angles );
 extern int UTIL_GetPlayerCount( void );
+extern int UTIL_GetAlivePlayersInSphere( CBasePlayer *pl, int radius );
 
 //
 // How did I ever live without ASSERT?

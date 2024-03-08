@@ -2665,14 +2665,16 @@ void CBasePlayer::PreThink(void)
 
 	ClimbingPhysics();
 
+	//WallrunThink();
 
 	if (m_fTauntFullTime && m_fTauntFullTime <= gpGlobals->time)
 	{
+		m_EFlags &= ~EFLAG_TAUNT;
+
 		if (pev->weaponmodel == 0)
 		{
 			if (m_pActiveItem)
 				m_pActiveItem->DeployLowKey();
-			m_EFlags &= ~EFLAG_TAUNT;
 		}
 
 		m_fTauntFullTime = 0;
@@ -2727,6 +2729,12 @@ void CBasePlayer::PreThink(void)
 		if (m_pActiveItem)
 			((CBasePlayerWeapon *)m_pActiveItem)->EndKick();
 		m_fKickEndTime = 0;
+	}
+
+	if (m_fTauntTime && m_fTauntTime < gpGlobals->time)
+	{
+		Taunt();
+		m_fTauntTime = 0;
 	}
 }
 /* Time based Damage works as follows: 
@@ -6474,6 +6482,46 @@ void CBasePlayer::ExitObserver( void )
 	pev->iuser1 = pev->iuser2 = 0;
 	m_iHideHUD = 0;
 	Spawn();
+}
+
+void CBasePlayer::Taunt( void )
+{
+	if (IsAlive() && pev->deadflag == DEAD_NO && m_fSelacoSliding != TRUE &&
+		m_fTauntCancelTime < gpGlobals->time)
+	{
+		if (m_fTauntFullTime < gpGlobals->time)
+		{
+			if (m_pActiveItem)
+			{
+				m_pActiveItem->Holster();
+				m_flNextAttack = UTIL_WeaponTimeBase() + 3.25;
+				m_fSelacoTime = gpGlobals->time + 2.0;
+			}
+
+			int tauntIndex = RANDOM_LONG(0,4);
+			strcpy( m_szAnimExtention, "crowbar" );
+			EMIT_SOUND(ENT(pev), CHAN_VOICE, m_fTaunts[tauntIndex].sound, 1, ATTN_NORM);
+			SetAnimation( PLAYER_ATTACK1 );
+			pev->viewmodel = 0; 
+			pev->weaponmodel = 0;
+			m_EFlags &= ~EFLAG_CANCEL;
+			m_EFlags |= EFLAG_TAUNT;
+			DisplayHudMessage(m_fTaunts[tauntIndex].text,
+				TXT_CHANNEL_TAUNT, -1, 0.75, 200, 200, 200, 2, 0.05, 1.0, 1.5, 0.5);
+			if (pev->health < 105)
+				pev->health++;
+			m_fTauntFullTime = gpGlobals->time + 3.25;
+		}
+		else
+		{
+			if (m_pActiveItem)
+				m_pActiveItem->DeployLowKey();
+			m_EFlags &= ~EFLAG_TAUNT;
+			m_EFlags |= EFLAG_CANCEL;
+		}
+
+		m_fTauntCancelTime = gpGlobals->time + 2.0;
+	}
 }
 
 //=========================================================

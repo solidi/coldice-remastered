@@ -2081,6 +2081,10 @@ void CHalfLifeMultiplay :: PlayerKilled( CBasePlayer *pVictim, entvars_t *pKille
 		if (peKiller->m_iAssists && (peKiller->m_iAssists % 3 == 0))
 			pKiller->frags += IPointsForKill( peKiller, pVictim );
 
+		if (!UTIL_GetAlivePlayersInSphere(peKiller, 512) &&
+			peKiller->m_iAutoTaunt)
+			peKiller->m_fTauntTime = gpGlobals->time + 0.5;
+
 		if (!m_iFirstBloodDecided)
 		{
 			UTIL_ClientPrintAll(HUD_PRINTCENTER, UTIL_VarArgs("%s achieves first blood!\n", STRING(pKiller->netname) ));
