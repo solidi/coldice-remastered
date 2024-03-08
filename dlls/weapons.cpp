@@ -1526,6 +1526,9 @@ BOOL CBasePlayerWeapon :: DefaultDeploy( char *szViewModel, char *szWeaponModel,
 	if (!CanDeploy( ))
 		return FALSE;
 
+	// In case we are taunting and we pick up better weapon.
+	m_pPlayer->m_fTauntFullTime = gpGlobals->time;
+
 	m_pPlayer->TabulateAmmo();
 	if (szWeaponModel == iStringNull)
 		m_pPlayer->pev->weaponmodel = 0;

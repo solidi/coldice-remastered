@@ -469,15 +469,18 @@ public:
 
 	float m_fFeignTime;
 
-	float m_fTauntFullTime;
-	float m_fTauntCancelTime;
+	void Taunt( void );
+	BOOL m_iAutoTaunt;
+	float m_fTauntTime; // when to taunt
+	float m_fTauntFullTime; // when taunt finished
+	float m_fTauntCancelTime; // when taunt can be cancelled
 	taunt_map_t m_fTaunts[25] = 
 	{
 		{0,	"I am proud to serve, and proud to die!", "taunt01.wav"},
 		{1,	"Nothing can stop me.", "taunt02.wav"},
-		{2,	"You will die a horrible death!", "taunt03.wav"},
-		{0,	"Another body for the pile.", "taunt04.wav"},
-		{1,	"Nice try, now die.", "taunt01.wav"},
+		{2,	"You died a horrible death!", "taunt03.wav"},
+		{0,	"Add another body to the corpse pile.", "taunt04.wav"},
+		{1,	"Nice try, now die.", "taunt05.wav"},
 		{2,	"You burn nicer than my firewood.", "taunt01.wav"},
 		{0,	"How about a slice?", "taunt01.wav"},
 		{1,	"I see other players... Boom, boom! Now I don't.", "taunt01.wav"},

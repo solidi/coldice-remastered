@@ -2665,14 +2665,16 @@ void CBasePlayer::PreThink(void)
 
 	ClimbingPhysics();
 
+	//WallrunThink();
 
 	if (m_fTauntFullTime && m_fTauntFullTime <= gpGlobals->time)
 	{
+		m_EFlags &= ~EFLAG_TAUNT;
+
 		if (pev->weaponmodel == 0)
 		{
 			if (m_pActiveItem)
 				m_pActiveItem->DeployLowKey();
-			m_EFlags &= ~EFLAG_TAUNT;
 		}
 
 		m_fTauntFullTime = 0;
@@ -2727,6 +2729,12 @@ void CBasePlayer::PreThink(void)
 		if (m_pActiveItem)
 			((CBasePlayerWeapon *)m_pActiveItem)->EndKick();
 		m_fKickEndTime = 0;
+	}
+
+	if (m_fTauntTime && m_fTauntTime < gpGlobals->time)
+	{
+		Taunt();
+		m_fTauntTime = 0;
 	}
 }
 /* Time based Damage works as follows: 
