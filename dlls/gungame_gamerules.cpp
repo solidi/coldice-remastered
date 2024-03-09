@@ -101,6 +101,8 @@ CHalfLifeGunGame::CHalfLifeGunGame()
 	m_hLeader = NULL;
 	m_hVoiceHandle = NULL;
 	m_iSuccessfulRounds = 0;
+
+	m_iFirstBloodDecided = TRUE; // no first blood award
 }
 
 void CHalfLifeGunGame::Think( void )

@@ -34,7 +34,7 @@ extern int gmsgTeamInfo;
 
 CHalfLifeLastManStanding::CHalfLifeLastManStanding()
 {
-
+	m_iFirstBloodDecided = TRUE; // no first blood award
 }
 
 void CHalfLifeLastManStanding::InitHUD( CBasePlayer *pPlayer )

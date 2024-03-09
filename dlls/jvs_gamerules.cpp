@@ -33,11 +33,6 @@ extern int gmsgObjective;
 extern int gmsgShowTimer;
 extern int gmsgRoundTime;
 
-CHalfLifeJesusVsSanta::CHalfLifeJesusVsSanta()
-{
-	// Nothing
-}
-
 void CHalfLifeJesusVsSanta::Think( void )
 {
 	CHalfLifeMultiplay::Think();
