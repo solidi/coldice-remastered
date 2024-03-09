@@ -442,7 +442,6 @@ public:
 	virtual BOOL IsArmoredMan( CBasePlayer *pPlayer ) { return FALSE; }
 
 	// Cold Ice Remastered Game Modes
-	virtual void Arena( void );
 	virtual int CheckClients( void );
 	virtual void InsertClientsIntoArena (float fragcount);
 	virtual BOOL CheckGameTimer( void );
@@ -477,7 +476,6 @@ protected:
 	BOOL _3secwarning;
 	int m_iPlayersInArena[32];
 	int m_iCountDown;
-	int m_iPlayer1, m_iPlayer2;
 	BOOL m_iFirstBloodDecided;
 	int m_iPlayersInGame;
 	float m_fWaitForPlayersTime;
