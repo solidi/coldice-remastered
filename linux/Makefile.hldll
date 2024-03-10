@@ -93,6 +93,7 @@ HLDLL_OBJS = \
 	$(HLDLL_OBJ_DIR)/animating.o \
 	$(HLDLL_OBJ_DIR)/animation.o \
 	$(HLDLL_OBJ_DIR)/apache.o \
+	$(HLDLL_OBJ_DIR)/arena_gamerules.o \
 	$(HLDLL_OBJ_DIR)/ashpod.o \
 	$(HLDLL_OBJ_DIR)/barnacle.o \
 	$(HLDLL_OBJ_DIR)/barney.o \

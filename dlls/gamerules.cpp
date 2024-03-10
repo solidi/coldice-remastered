@@ -32,6 +32,7 @@
 #include	"chilldemic_gamerules.h"
 #include	"lms_gamerules.h"
 #include	"coldskull_gamerules.h"
+#include	"arena_gamerules.h"
 
 extern edict_t *EntSelectSpawnPoint( CBaseEntity *pPlayer );
 
@@ -519,6 +520,8 @@ CGameRules *InstallGameRules( void )
 			return new CHalfLifeLastManStanding;
 		else if (g_GameMode == GAME_COLDSKULL)
 			return new CHalfLifeColdSkull;
+		else if (g_GameMode == GAME_ARENA)
+			return new CHalfLifeArena;
 
 		if ((int)gpGlobals->deathmatch == 1)
 		{
