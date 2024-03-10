@@ -129,14 +129,21 @@ void CHook::HookTouch( CBaseEntity *pOther )
 		ApplyMultiDamage( pev, VARS(pev->owner));
 		pev->velocity = Vector( 0, 0, 0 );
 
-		switch( RANDOM_LONG(0,1) )
+		if (pOther->IsPlayer())
 		{
-			case 0:
-				EMIT_SOUND(ENT(pev), CHAN_WEAPON, "weapons/xbow_hitbod1.wav", 1, ATTN_NORM);
-				break;
-			case 1:
-				EMIT_SOUND(ENT(pev), CHAN_WEAPON, "grapple_hit.wav", 1, ATTN_NORM);
-				break;
+			switch( RANDOM_LONG(0,1) )
+			{
+				case 0:
+					EMIT_SOUND(ENT(pev), CHAN_WEAPON, "weapons/xbow_hitbod1.wav", 1, ATTN_NORM);
+					break;
+				case 1:
+					EMIT_SOUND(ENT(pev), CHAN_WEAPON, "grapple_hit.wav", 1, ATTN_NORM);
+					break;
+			}
+		}
+		else
+		{
+			EMIT_SOUND_DYN(ENT(pev), CHAN_WEAPON, "weapons/xbow_hit1.wav", RANDOM_FLOAT(0.95, 1.0), ATTN_NORM, 0, 98 + RANDOM_LONG(0,7));
 		}
 
 		if (pevOwner)
