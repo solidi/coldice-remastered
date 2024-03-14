@@ -120,6 +120,7 @@ void EV_FireDualSawedOff( struct event_args_s *args  );
 void EV_FireDualSawedOffDouble( struct event_args_s *args  );
 void EV_FireDualChaingun( struct event_args_s *args  );
 void EV_FireDualHornetGun( struct event_args_s *args  );
+void EV_FireFingergun( struct event_args_s *args  );
 
 void EV_TrainPitchAdjust( struct event_args_s *args );
 }
@@ -3946,6 +3947,101 @@ void EV_FireDualHornetGun( event_args_t *args )
 		case 1:	gEngfuncs.pEventAPI->EV_PlaySound( idx, origin, CHAN_WEAPON, "agrunt/ag_fire2.wav", 1, ATTN_NORM, 0, 100 );	break;
 		case 2:	gEngfuncs.pEventAPI->EV_PlaySound( idx, origin, CHAN_WEAPON, "agrunt/ag_fire3.wav", 1, ATTN_NORM, 0, 100 );	break;
 	}
+}
+
+enum fingergun_e {
+	FINGERGUN_IDLE = 0,
+	FINGERGUN_IDLE_BOTH,
+	FINGERGUN_SHOOT,
+	FINGERGUN_SHOOT_BOTH,
+	FINGERGUN_DRAW_LOWKEY,
+	FINGERGUN_DRAW,
+	FINGERGUN_DRAW_BOTH_LOWKEY,
+	FINGERGUN_DRAW_BOTH,
+	FINGERGUN_HOLSTER,
+	FINGERGUN_HOLSTER_BOTH
+};
+
+void EV_FireFingergun( event_args_t *args )
+{
+	int idx;
+	vec3_t origin;
+	vec3_t angles;
+	vec3_t velocity;
+	pmtrace_t tr;
+
+	vec3_t vecSrc, vecAiming, vecEnd;
+	vec3_t up, right, forward;
+	float flSpread = 0.01;
+
+	idx = args->entindex;
+	VectorCopy( args->origin, origin );
+	VectorCopy( args->angles, angles );
+	VectorCopy( args->velocity, velocity );
+
+	AngleVectors( angles, forward, right, up );
+
+	VectorMA( vecSrc, 8192, forward, vecEnd );
+
+	if ( EV_IsLocal( idx ) )
+	{
+		// Python uses different body in multiplayer versus single player
+		int multiplayer = gEngfuncs.GetMaxClients() == 1 ? 0 : 1;
+
+		// Add muzzle flash to current weapon model
+		EV_MuzzleFlash();
+		gEngfuncs.pEventAPI->EV_WeaponAnimation( FINGERGUN_SHOOT, 0 );
+
+		V_PunchAxis(PITCH, gEngfuncs.pfnRandomFloat(-10.0, -15.0) );
+		V_PunchAxis(YAW, gEngfuncs.pfnRandomFloat(-3.0, -5.0)); //yaw, - = right
+		V_PunchAxis(ROLL, gEngfuncs.pfnRandomFloat(3.0, 5.0)); //roll, - = left
+	}
+
+	gEngfuncs.pEventAPI->EV_PlaySound( idx, origin, CHAN_WEAPON, "revolver_fire.wav", gEngfuncs.pfnRandomFloat(0.8, 0.9), ATTN_NORM, 0, PITCH_NORM );
+
+	EV_GetGunPosition( args, vecSrc, origin );
+	
+	VectorCopy( forward, vecAiming );
+
+	EV_GunSmoke(gEngfuncs.GetViewModel()->attachment[0], 0.6, idx, args->ducking, forward, right, up, 0, 0, 0);
+
+	// Store off the old count
+	gEngfuncs.pEventAPI->EV_PushPMStates();
+
+	// Now add in all of the players.
+	gEngfuncs.pEventAPI->EV_SetSolidPlayers ( idx - 1 );	
+	gEngfuncs.pEventAPI->EV_SetTraceHull( 2 );
+	gEngfuncs.pEventAPI->EV_PlayerTrace( vecSrc, vecEnd, PM_STUDIO_BOX, -1, &tr );
+	
+	//We hit something
+	if ( tr.fraction < 1.0 )
+	{
+		physent_t *pe = gEngfuncs.pEventAPI->EV_GetPhysent( tr.ent ); 
+
+		//Not the world, let's assume we hit something organic ( dog, cat, uncle joe, etc ).
+		if ( pe->solid != SOLID_BSP )
+		{
+			switch( gEngfuncs.pfnRandomLong(0,1) )
+			{
+			case 0:
+				gEngfuncs.pEventAPI->EV_PlaySound( idx, tr.endpos, CHAN_BODY, "weapons/xbow_hitbod1.wav", 1, ATTN_NORM, 0, PITCH_NORM ); break;
+			case 1:
+				gEngfuncs.pEventAPI->EV_PlaySound( idx, tr.endpos, CHAN_BODY, "weapons/xbow_hitbod2.wav", 1, ATTN_NORM, 0, PITCH_NORM ); break;
+			}
+		}
+		//Stick to world but don't stick to glass, it might break and leave the bolt floating. It can still stick to other non-transparent breakables though.
+		else if ( pe->rendermode == kRenderNormal ) 
+		{
+			// gEngfuncs.pEventAPI->EV_PlaySound( 0, tr.endpos, CHAN_BODY, "weapons/xbow_hit1.wav", gEngfuncs.pfnRandomFloat(0.95, 1.0), ATTN_NORM, 0, PITCH_NORM );
+		
+			//Not underwater, do some sparks...
+			gEngfuncs.pEfxAPI->R_SparkShower( tr.endpos );
+		}
+	}
+
+	gEngfuncs.pEventAPI->EV_PopPMStates();
+
+	//EV_HLDM_FireBullets( idx, forward, right, up, 1, vecSrc, vecAiming, 8192, BULLET_PLAYER_357, 0, 0, args->fparam1, args->fparam2 );
 }
 
 void EV_TrainPitchAdjust( event_args_t *args )

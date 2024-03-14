@@ -199,6 +199,7 @@
     <ClCompile Include="..\..\dlls\dual_usas.cpp" />
     <ClCompile Include="..\..\dlls\dual_wrench.cpp" />
     <ClCompile Include="..\..\dlls\egon.cpp" />
+    <ClCompile Include="..\..\dlls\fingergun.cpp" />
     <ClCompile Include="..\..\dlls\fists.cpp" />
     <ClCompile Include="..\..\dlls\flame.cpp" />
     <ClCompile Include="..\..\dlls\flameball.cpp" />

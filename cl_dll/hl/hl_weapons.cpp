@@ -103,6 +103,7 @@ CSawedOff g_SawedOff;
 CDualSawedOff g_DualSawedOff;
 CDualChaingun g_DualChaingun;
 CDualHgun g_DualHornetgun;
+CFingerGun g_Fingergun;
 
 /*
 ======================
@@ -725,6 +726,7 @@ void HUD_InitClientWeapons( void )
 	HUD_PrepEntity( &g_DualSawedOff	, &player );
 	HUD_PrepEntity( &g_DualChaingun	, &player );
 	HUD_PrepEntity( &g_DualHornetgun	, &player );
+	HUD_PrepEntity( &g_Fingergun	, &player );
 }
 
 /*
@@ -1018,6 +1020,10 @@ void HUD_WeaponsPostThink( local_state_s *from, local_state_s *to, usercmd_t *cm
 
 		case WEAPON_DUAL_HORNETGUN:
 			pWeapon = &g_DualHornetgun;
+			break;
+
+		case WEAPON_FINGERGUN:
+			pWeapon = &g_Fingergun;
 			break;
 	}
 

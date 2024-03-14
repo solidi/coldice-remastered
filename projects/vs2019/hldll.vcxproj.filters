@@ -417,6 +417,9 @@
     <ClCompile Include="..\..\dlls\chumtoad.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\dlls\fingergun.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\dlls\fists.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

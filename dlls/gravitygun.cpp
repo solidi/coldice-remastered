@@ -81,7 +81,7 @@ int CGravityGun::GetItemInfo(ItemInfo* p)
 	p->iMaxAmmo2 = -1;
 	p->iMaxClip = WEAPON_NOCLIP;
 	p->iSlot = 0;
-	p->iPosition = 7;
+	p->iPosition = 8;
 	p->iId = WEAPON_GRAVITYGUN;
 	p->iWeight = GRAVITYGUN_WEIGHT;
 	p->pszDisplayName = "Gravity Gun";
