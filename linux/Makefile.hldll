@@ -68,7 +68,8 @@ CFLAGS=$(BASE_CFLAGS)  $(ARCH_CFLAGS) $(DEBUG_CFLAGS) -DCLIENT_WEAPONS \
 		 -DSAWEDOFF \
 		 -DDUALSAWEDOFF \
 		 -DDUALCHAINGUN \
-		 -DDUALHIVEHAND
+		 -DDUALHIVEHAND \
+		 -DFINGERGUN
 
 #-O3 -ffast-math -fno-strength-reduce
 
@@ -133,6 +134,7 @@ HLDLL_OBJS = \
 	$(HLDLL_OBJ_DIR)/effects.o \
 	$(HLDLL_OBJ_DIR)/egon.o \
 	$(HLDLL_OBJ_DIR)/explode.o \
+	$(HLDLL_OBJ_DIR)/fingergun.o \
 	$(HLDLL_OBJ_DIR)/fists.o \
 	$(HLDLL_OBJ_DIR)/flame.o \
 	$(HLDLL_OBJ_DIR)/flameball.o \

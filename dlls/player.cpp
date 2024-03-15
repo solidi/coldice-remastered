@@ -511,6 +511,9 @@ void CBasePlayer :: TraceAttack( entvars_t *pevAttacker, float flDamage, Vector 
 			UTIL_ScreenFade(this, Vector(0, 200, 0), .5, .5, 32, FFADE_IN);
 		}
 
+		if (FBitSet(bitsDamageType, DMG_CONFUSE))
+			Confuse(CBaseEntity::Instance(pevAttacker), this, DMG_CONFUSE);
+
 		SpawnBlood(ptr->vecEndPos, BloodColor(), flDamage);// a little surface blood.
 		TraceBleed( flDamage, vecDir, ptr, bitsDamageType );
 		AddMultiDamage( pevAttacker, this, flDamage, bitsDamageType );
@@ -5207,6 +5210,7 @@ void CBasePlayer::CheatImpulseCommands( int iImpulse, BOOL m_iFromClient )
 		GiveNamedItem( "weapon_sawedoff" );
 		GiveNamedItem( "weapon_dual_sawedoff" );
 		GiveNamedItem( "weapon_dual_hornetgun" );
+		GiveNamedItem( "weapon_fingergun" );
 #endif
 		gEvilImpulse101 = FALSE;
 		break;
@@ -6825,4 +6829,32 @@ float IceExplode(CBaseEntity *pAttacker, CBaseEntity *pEntity, int bitsDamageTyp
 	}
 
 	return flAdjustedDamage;
+}
+
+void Confuse(CBaseEntity *pAttacker, CBaseEntity *pEntity, int bitsDamageType)
+{
+	if (!FBitSet(bitsDamageType, DMG_CONFUSE))
+		return;
+
+	if (FBitSet(pEntity->pev->flags, FL_GODMODE))
+		return;
+
+	if (FBitSet(pEntity->pev->effects, EF_NODRAW))
+		return;
+
+	if (!pEntity->IsPlayer())
+		return;
+
+	if (g_pGameRules->IsArmoredMan(((CBasePlayer *)pEntity)))
+		return;
+
+	if (!g_pGameRules->FPlayerCanTakeDamage(((CBasePlayer *)pEntity), pAttacker))
+		return;
+
+	if (((CBasePlayer *)pEntity)->m_iFreezeCounter < 5)
+		// EMIT_SOUND(ENT(pEntity->pev), CHAN_BODY, "freezing.wav", 1, ATTN_NORM);
+
+	((CBasePlayer *)pEntity)->m_iFreezeCounter = pEntity->pev->renderamt = RANDOM_LONG(18, 25);
+
+	UTIL_ScreenFade(pEntity, Vector(255, 255, 0), 1, 2, 128, FFADE_IN);
 }

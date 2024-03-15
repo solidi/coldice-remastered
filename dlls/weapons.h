@@ -124,6 +124,7 @@ public:
 #define WEAPON_DUAL_RPG				49
 #define WEAPON_DUAL_FLAMETHROWER	50
 #define WEAPON_FISTS				51
+#define WEAPON_FINGERGUN			52
 
 #define WEAPON_ALLWEAPONS		(~(1<<WEAPON_SUIT))
 
@@ -135,6 +136,7 @@ public:
 
 // weapon weight factors (for auto-switching)   (-1 = noswitch)
 #define FISTS_WEIGHT			0
+#define FINGERGUN_WEIGHT		0
 #define CROWBAR_WEIGHT			1
 #define KNIFE_WEIGHT			2
 #define WRENCH_WEIGHT			3
@@ -2597,6 +2599,38 @@ public:
 
 private:
 	unsigned short m_usHornetFire;
+};
+
+class CFingerGun : public CBasePlayerWeapon
+{
+public:
+	void Spawn( void );
+	void Precache( void );
+	int iItemSlot( void ) { return 1; }
+	int GetItemInfo(ItemInfo *p);
+	int AddToPlayer( CBasePlayer *pPlayer );
+	void PrimaryAttack( void );
+	void SecondaryAttack( void );
+	BOOL DeployLowKey( void );
+	BOOL Deploy( void );
+	void Holster( int skiplocal = 0 );
+	void WeaponIdle( void );
+
+	BOOL m_fInZoom;// don't save this. 
+
+	virtual BOOL UseDecrement( void )
+	{ 
+#if defined( CLIENT_WEAPONS )
+		return TRUE;
+#else
+		return FALSE;
+#endif
+	}
+
+	virtual BOOL SemiAuto( void ) { return TRUE; }
+
+private:
+	unsigned short m_usFireFingergun;
 };
 
 class CFlyingSnowball : public CBaseEntity

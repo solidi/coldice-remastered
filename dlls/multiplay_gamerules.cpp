@@ -1712,7 +1712,7 @@ void CHalfLifeMultiplay :: PlayerKilled( CBasePlayer *pVictim, entvars_t *pKille
 
 		if (!UTIL_GetAlivePlayersInSphere(peKiller, 512) &&
 			peKiller->m_iAutoTaunt)
-			peKiller->m_fTauntTime = gpGlobals->time + 0.5;
+			peKiller->m_fTauntTime = gpGlobals->time + 0.75;
 
 		if (!m_iFirstBloodDecided)
 		{

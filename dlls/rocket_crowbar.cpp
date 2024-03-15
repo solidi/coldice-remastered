@@ -239,7 +239,7 @@ int CRocketCrowbar::GetItemInfo(ItemInfo *p)
 	p->iMaxAmmo2 = -1;
 	p->iMaxClip = WEAPON_NOCLIP;
 	p->iSlot = 0;
-	p->iPosition = 6;
+	p->iPosition = 7;
 	p->iId = WEAPON_ROCKETCROWBAR;
 	p->iWeight = ROCKETCROWBAR_WEIGHT;
 	p->pszDisplayName = "Rocket Crowbar";
