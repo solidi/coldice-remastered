@@ -2585,7 +2585,7 @@ void CBasePlayerWeapon::PunchAttack( BOOL holdingSomething )
 		CBaseEntity *pEntity = CBaseEntity::Instance(tr.pHit);
 		ClearMultiDamage( );
 
-		pEntity->TraceAttack(m_pPlayer->pev, gSkillData.plrDmgFists, gpGlobals->v_forward, &tr, DMG_PUNCH ); 
+		pEntity->TraceAttack(m_pPlayer->pev, gSkillData.plrDmgFists, gpGlobals->v_forward, &tr, DMG_PUNCH | DMG_NEVERGIB); 
 
 		ApplyMultiDamage( m_pPlayer->pev, m_pPlayer->pev );
 
@@ -2807,7 +2807,7 @@ void CBasePlayerWeapon::KickAttack( BOOL holdingSomething )
 		CBaseEntity *pEntity = CBaseEntity::Instance(tr.pHit);
 		ClearMultiDamage( );
 
-		pEntity->TraceAttack(m_pPlayer->pev, gSkillData.plrDmgKick, gpGlobals->v_forward, &tr, DMG_KICK ); 
+		pEntity->TraceAttack(m_pPlayer->pev, gSkillData.plrDmgKick, gpGlobals->v_forward, &tr, DMG_KICK | DMG_NEVERGIB ); 
 
 		ApplyMultiDamage( m_pPlayer->pev, m_pPlayer->pev );
 
