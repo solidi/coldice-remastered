@@ -235,6 +235,8 @@ void CKnife::FireSniperBolt()
 
 	// player "shoot" animation
 	m_pPlayer->SetAnimation( PLAYER_ATTACK1 );
+
+	EMIT_SOUND_DYN(ENT(m_pPlayer->pev), CHAN_WEAPON, "knife_miss2.wav", 1, ATTN_NORM, 0, 120);
 	
 	Vector anglesAim = m_pPlayer->pev->v_angle;
 	UTIL_MakeVectors( anglesAim );
@@ -246,6 +248,15 @@ void CKnife::FireSniperBolt()
 #ifndef CLIENT_DLL
 	if ( tr.pHit->v.takedamage )
 	{
+		// play thwack or smack sound
+		switch( RANDOM_LONG(0,1) )
+		{
+		case 0:
+			EMIT_SOUND(tr.pHit, CHAN_VOICE, "knife_hit_flesh1.wav", 1, ATTN_NORM); break;
+		case 1:
+			EMIT_SOUND(tr.pHit, CHAN_VOICE, "knife_hit_flesh2.wav", 1, ATTN_NORM); break;
+		}
+
 		ClearMultiDamage( );
 		CBaseEntity::Instance(tr.pHit)->TraceAttack(m_pPlayer->pev, gSkillData.plrDmgKnifeSnipe, vecDir, &tr, DMG_BULLET | DMG_NEVERGIB ); 
 		ApplyMultiDamage( pev, m_pPlayer->pev );
@@ -255,7 +266,7 @@ void CKnife::FireSniperBolt()
 		if (UTIL_PointContents(tr.vecEndPos) != CONTENTS_WATER)
 		{
 			UTIL_Sparks(tr.vecEndPos);
-			EMIT_SOUND_DYN(ENT(pev), CHAN_BODY, "weapons/xbow_hit1.wav", RANDOM_FLOAT(0.95, 1.0), ATTN_NORM, 0, 98 + RANDOM_LONG(0,7));
+			EMIT_SOUND_DYN(tr.pHit, CHAN_VOICE, "weapons/xbow_hit1.wav", RANDOM_FLOAT(0.95, 1.0), ATTN_NORM, 0, 98 + RANDOM_LONG(0,7));
 		}
 	}
 #endif
