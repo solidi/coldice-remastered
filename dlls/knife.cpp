@@ -88,6 +88,7 @@ void CKnife::Precache( void )
 	PRECACHE_SOUND("knife_hit_flesh1.wav");
 	PRECACHE_SOUND("knife_hit_flesh2.wav");
 	PRECACHE_SOUND("knife_miss2.wav");
+	PRECACHE_SOUND("weapons/xbow_hit1.wav");
 
 	UTIL_PrecacheOther( "flying_knife" );
 

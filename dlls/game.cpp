@@ -537,6 +537,11 @@ cvar_t	sk_plr_flamethrower1 = {"sk_plr_flamethrower1","0"};
 cvar_t	sk_plr_flamethrower2 = {"sk_plr_flamethrower2","0"};
 cvar_t	sk_plr_flamethrower3 = {"sk_plr_flamethrower3","0"};
 
+// Knife Snipe
+cvar_t	sk_plr_knifesnipe1 = {"sk_plr_knifesnipe1","0"};
+cvar_t	sk_plr_knifesnipe2 = {"sk_plr_knifesnipe2","0"};
+cvar_t	sk_plr_knifesnipe3 = {"sk_plr_knifesnipe3","0"};
+
 // WORLD WEAPONS
 cvar_t	sk_12mm_bullet1 = {"sk_12mm_bullet1","0"};
 cvar_t	sk_12mm_bullet2 = {"sk_12mm_bullet2","0"};
@@ -1156,6 +1161,11 @@ void GameDLLInit( void )
 	CVAR_REGISTER ( &sk_plr_flamethrower1 );
 	CVAR_REGISTER ( &sk_plr_flamethrower2 );
 	CVAR_REGISTER ( &sk_plr_flamethrower3 );
+
+	// Knife Snipe
+	CVAR_REGISTER ( &sk_plr_knifesnipe1 );
+	CVAR_REGISTER ( &sk_plr_knifesnipe2 );
+	CVAR_REGISTER ( &sk_plr_knifesnipe3 );
 
 	// Grapple Hook
 	CVAR_REGISTER ( &sk_plr_hook1 );
