@@ -438,6 +438,9 @@ void CGameRules::RefreshSkillData ( void )
 	// Flame Thrower
 	gSkillData.plrDmgFlameThrower = GetSkillCvar( "sk_plr_flamethrower" );
 
+	// Knife Snipe
+	gSkillData.plrDmgKnifeSnipe = GetSkillCvar( "sk_plr_knifesnipe" ); 
+
 	// Grapple Hook
 	gSkillData.plrDmgHook = GetSkillCvar( "sk_plr_hook" );
 	gSkillData.plrSpeedHook = GetSkillCvar( "sk_plr_hookspeed" );
