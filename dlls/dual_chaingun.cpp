@@ -30,6 +30,7 @@ enum dual_chaingun_e
 	DUAL_CHAINGUN_SPINUP,
 	DUAL_CHAINGUN_SPINDOWN,
 	DUAL_CHAINGUN_FIRE,
+	DUAL_CHAINGUN_FIRE_BOTH,
 	DUAL_CHAINGUN_DRAW_LOWKEY,
 	DUAL_CHAINGUN_DRAW,
 	DUAL_CHAINGUN_HOLSTER,
@@ -100,18 +101,18 @@ int CDualChaingun::AddToPlayer( CBasePlayer *pPlayer )
 
 BOOL CDualChaingun::DeployLowKey( )
 {
-	return DefaultDeploy( "models/v_dual_chaingun.mdl", "models/p_weapons.mdl", DUAL_CHAINGUN_DRAW_LOWKEY, "dual_egon" );
+	return DefaultDeploy( "models/v_dual_chaingun.mdl", "models/p_weapons.mdl", DUAL_CHAINGUN_DRAW_LOWKEY, "dual_egon", 0, 1 );
 }
 
 BOOL CDualChaingun::Deploy( )
 {
-	return DefaultDeploy( "models/v_dual_chaingun.mdl", "models/p_weapons.mdl", DUAL_CHAINGUN_DRAW, "dual_egon" );
+	return DefaultDeploy( "models/v_dual_chaingun.mdl", "models/p_weapons.mdl", DUAL_CHAINGUN_DRAW, "dual_egon", 0, 1 );
 }
 
 void CDualChaingun::Holster( int skiplocal )
 {
 	pev->nextthink = -1;
-	CBasePlayerWeapon::DefaultHolster(DUAL_CHAINGUN_HOLSTER);
+	CBasePlayerWeapon::DefaultHolster(DUAL_CHAINGUN_HOLSTER, 1);
 }
 
 void CDualChaingun::PrimaryAttack()
@@ -125,7 +126,7 @@ void CDualChaingun::PrimaryAttack()
 
 	if (m_iClip <= 0)
 	{
-		SendWeaponAnim( DUAL_CHAINGUN_SPINDOWN );
+		SendWeaponAnim( DUAL_CHAINGUN_SPINDOWN, 1, 1 );
 		PlayEmptySound();
 		m_flNextPrimaryAttack = UTIL_WeaponTimeBase() + 0.3;
 		return;
@@ -140,10 +141,10 @@ void CDualChaingun::PrimaryAttack()
 
 	if ( m_iWeaponMode == DUAL_CHAINGUN_IDLE && m_iClip > 0 )
 	{
-		SendWeaponAnim( DUAL_CHAINGUN_SPINUP );
+		SendWeaponAnim( DUAL_CHAINGUN_SPINUP, 1, 1 );
 		EMIT_SOUND_DYN(ENT(m_pPlayer->pev), CHAN_WEAPON, "chaingun_spinup.wav", RANDOM_FLOAT(0.92, 1.0), ATTN_NORM, 0, 98 + RANDOM_LONG(0,3));
 		m_flNextPrimaryAttack = UTIL_WeaponTimeBase() + 0.75;
-		m_iWeaponMode = DUAL_CHAINGUN_FIRE;
+		m_iWeaponMode = DUAL_CHAINGUN_FIRE_BOTH;
 		return;
 	}
 
@@ -155,7 +156,7 @@ void CDualChaingun::PrimaryAttack()
 	if (m_fFireMagnitude < 8) 
 		m_fFireMagnitude++;
 
-	if (m_iWeaponMode == DUAL_CHAINGUN_FIRE && m_iClip > 0) {
+	if (m_iWeaponMode == DUAL_CHAINGUN_FIRE_BOTH && m_iClip > 0) {
 		Fire(VECTOR_CONE_3DEGREES.x, 1/(float) m_fFireMagnitude);
 	}
 }
@@ -171,7 +172,7 @@ void CDualChaingun::SecondaryAttack()
 
 	if (m_iClip <= 0)
 	{
-		SendWeaponAnim( DUAL_CHAINGUN_SPINDOWN );
+		SendWeaponAnim( DUAL_CHAINGUN_SPINDOWN, 1, 1 );
 		PlayEmptySound();
 		m_flNextPrimaryAttack = UTIL_WeaponTimeBase() + 0.3;
 		return;
@@ -186,10 +187,10 @@ void CDualChaingun::SecondaryAttack()
 
 	if ( m_iWeaponMode == DUAL_CHAINGUN_IDLE && m_iClip > 0 )
 	{
-		SendWeaponAnim( DUAL_CHAINGUN_SPINUP );
+		SendWeaponAnim( DUAL_CHAINGUN_SPINUP, 1, 1 );
 		EMIT_SOUND_DYN(ENT(m_pPlayer->pev), CHAN_WEAPON, "chaingun_spinup.wav", RANDOM_FLOAT(0.92, 1.0), ATTN_NORM, 0, 98 + RANDOM_LONG(0,3));	
 		m_flNextPrimaryAttack = UTIL_WeaponTimeBase() + 0.75;
-		m_iWeaponMode = DUAL_CHAINGUN_FIRE;
+		m_iWeaponMode = DUAL_CHAINGUN_FIRE_BOTH;
 		return;
 	}
 
@@ -231,10 +232,10 @@ void CDualChaingun::Fire( float flSpread, float flCycleTime )
 
 	Vector vecDir = m_pPlayer->FireBulletsPlayer( 1, vecSrc, vecAiming, spread, 8192, BULLET_PLAYER_357, 2, 0, m_pPlayer->pev, m_pPlayer->random_seed );
 
-	PLAYBACK_EVENT_FULL( flags, m_pPlayer->edict(), m_useFireChaingun, 0.0, (float *)&g_vecZero, (float *)&g_vecZero, vecDir.x, vecDir.y, 0, 0, ( m_iClip == 0 ) ? 1 : 0, m_pPlayer->pev->weaponanim != DUAL_CHAINGUN_FIRE );
+	PLAYBACK_EVENT_FULL( flags, m_pPlayer->edict(), m_useFireChaingun, 0.0, (float *)&g_vecZero, (float *)&g_vecZero, vecDir.x, vecDir.y, 0, 0, ( m_iClip == 0 ) ? 1 : 0, m_pPlayer->pev->weaponanim != DUAL_CHAINGUN_FIRE_BOTH );
 
-	if (m_pPlayer->pev->weaponanim != DUAL_CHAINGUN_FIRE) {
-		m_pPlayer->pev->weaponanim = DUAL_CHAINGUN_FIRE;
+	if (m_pPlayer->pev->weaponanim != DUAL_CHAINGUN_FIRE_BOTH) {
+		m_pPlayer->pev->weaponanim = DUAL_CHAINGUN_FIRE_BOTH;
 	}
 
 	m_flNextPrimaryAttack = m_flNextSecondaryAttack = GetNextAttackDelay(flCycleTime);
@@ -259,7 +260,7 @@ void CDualChaingun::Reload( void )
 	if ( m_iClip < CHAINGUN_MAX_CLIP )
 	{
 		EMIT_SOUND_DYN(ENT(m_pPlayer->pev), CHAN_WEAPON, "chaingun_reload.wav", RANDOM_FLOAT(0.92, 1.0), ATTN_NORM, 0, 98 + RANDOM_LONG(0,3));	
-		DefaultReload( CHAINGUN_MAX_CLIP, DUAL_CHAINGUN_RELOAD, 2.5 );
+		DefaultReload( CHAINGUN_MAX_CLIP, DUAL_CHAINGUN_RELOAD, 2.5, 1 );
 	}
 }
 
@@ -267,9 +268,9 @@ void CDualChaingun::WeaponIdle( void )
 {
 	m_pPlayer->GetAutoaimVector( AUTOAIM_10DEGREES );
 
-	if (m_iWeaponMode == DUAL_CHAINGUN_FIRE)
+	if (m_iWeaponMode == DUAL_CHAINGUN_FIRE_BOTH)
 	{
-		SendWeaponAnim( DUAL_CHAINGUN_SPINDOWN );
+		SendWeaponAnim( DUAL_CHAINGUN_SPINDOWN, 1, 1 );
 		EMIT_SOUND_DYN(ENT(m_pPlayer->pev), CHAN_WEAPON, "chaingun_spindown.wav", RANDOM_FLOAT(0.92, 1.0), ATTN_NORM, 0, 98 + RANDOM_LONG(0,3));
 		m_iWeaponMode = DUAL_CHAINGUN_IDLE;
 		return;
@@ -297,7 +298,7 @@ void CDualChaingun::WeaponIdle( void )
 		break;
 	}
 
-	SendWeaponAnim( iAnim );
+	SendWeaponAnim( iAnim, 1, 1 );
 
 	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + RANDOM_FLOAT ( 10, 15 );
 }

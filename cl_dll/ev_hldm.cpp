@@ -2255,6 +2255,7 @@ enum chaingun_e
 	CHAINGUN_SPINUP,
 	CHAINGUN_SPINDOWN,
 	CHAINGUN_FIRE,
+	CHAINGUN_FIRE_BOTH,
 	CHAINGUN_DRAW_LOWKEY,
 	CHAINGUN_DRAW,
 	CHAINGUN_HOLSTER,
@@ -3846,6 +3847,7 @@ enum dual_chaingun_e
 	DUAL_CHAINGUN_SPINUP,
 	DUAL_CHAINGUN_SPINDOWN,
 	DUAL_CHAINGUN_FIRE,
+	DUAL_CHAINGUN_FIRE_BOTH,
 	DUAL_CHAINGUN_DRAW_LOWKEY,
 	DUAL_CHAINGUN_DRAW,
 	DUAL_CHAINGUN_HOLSTER,
@@ -3880,7 +3882,7 @@ void EV_FireDualChaingun( event_args_t *args )
 	{
 		EV_MuzzleFlash();
 		if ( args->bparam2 ) {
-			gEngfuncs.pEventAPI->EV_WeaponAnimation( DUAL_CHAINGUN_FIRE, 2 );
+			gEngfuncs.pEventAPI->EV_WeaponAnimation( DUAL_CHAINGUN_FIRE_BOTH, 1 );
 		}
 		V_PunchAxis(PITCH, -4.0 );
 	}

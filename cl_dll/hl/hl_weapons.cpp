@@ -1264,7 +1264,8 @@ void HUD_WeaponsPostThink( local_state_s *from, local_state_s *to, usercmd_t *cm
 			 body = 0;
 
 		if ( pWeapon == &g_DualHornetgun ||
-			 pWeapon == &g_DualRpg )
+			 pWeapon == &g_DualRpg ||
+			 pWeapon == &g_DualChaingun )
 			 body = 1;
 
 		// Force a fixed anim down to viewmodel
