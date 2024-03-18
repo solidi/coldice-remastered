@@ -769,6 +769,8 @@ public:
 
 	void PrimaryAttack( void );
 	void SecondaryAttack( void );
+	void Reload( void );
+	void FireSniperBolt( void );
 	void Throw( void );
 	int Swing( int fFirst );
 	BOOL DeployLowKey( void );
@@ -792,6 +794,8 @@ public:
 
 private:
 	unsigned short m_usKnife;
+	float m_flNextReload;
+	int m_fInZoom;
 };
 
 class CPython : public CBasePlayerWeapon

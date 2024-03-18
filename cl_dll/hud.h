@@ -732,9 +732,10 @@ enum e_protips {
 	RPG_TIP,
 	JUMP_TIP,
 	KICK_TIP,
+	FEIGN_TIP,
 };
 
-#define PROTIPS_AMT	16
+#define PROTIPS_AMT	17
 
 class CHudProTip : public CHudBase
 {

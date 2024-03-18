@@ -88,6 +88,7 @@ void CKnife::Precache( void )
 	PRECACHE_SOUND("knife_hit_flesh1.wav");
 	PRECACHE_SOUND("knife_hit_flesh2.wav");
 	PRECACHE_SOUND("knife_miss2.wav");
+	PRECACHE_SOUND("weapons/xbow_hit1.wav");
 
 	UTIL_PrecacheOther( "flying_knife" );
 
@@ -111,7 +112,7 @@ int CKnife::GetItemInfo(ItemInfo *p)
 	p->iMaxAmmo1 = -1;
 	p->pszAmmo2 = NULL;
 	p->iMaxAmmo2 = -1;
-	p->iMaxClip = WEAPON_NOCLIP;
+	p->iMaxClip = 1; // Allow server-side reload
 	p->iSlot = 0;
 	p->iPosition = 4;
 	p->iId = WEAPON_KNIFE;
@@ -143,6 +144,11 @@ void CKnife::Holster( int skiplocal /* = 0 */ )
 {
 	CBasePlayerWeapon::DefaultHolster(-1);
 
+	if ( m_fInZoom )
+	{
+		Reload();
+	}
+
 	if (m_flReleaseThrow > 0) {
 		m_pPlayer->pev->weapons &= ~(1<<WEAPON_KNIFE);
 		SetThink( &CKnife::DestroyItem );
@@ -154,6 +160,12 @@ void CKnife::Holster( int skiplocal /* = 0 */ )
 
 void CKnife::PrimaryAttack()
 {
+	if ( m_fInZoom )
+	{
+		FireSniperBolt();
+		return;
+	}
+
 	if (!m_flStartThrow && !Swing( 1 ))
 	{
 		SetThink( &CKnife::SwingAgain );
@@ -163,6 +175,11 @@ void CKnife::PrimaryAttack()
 
 void CKnife::SecondaryAttack()
 {
+	if ( m_fInZoom )
+	{
+		return;
+	}
+
 	if ( m_pPlayer->pev->waterlevel == 3 )
 	{
 		m_flNextPrimaryAttack = m_flNextSecondaryAttack = GetNextAttackDelay(0.15);
@@ -178,6 +195,81 @@ void CKnife::SecondaryAttack()
 	}
 
 	m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 0.5;
+}
+
+void CKnife::Reload( void )
+{
+#ifndef CLIENT_DLL
+	if (m_flNextReload > gpGlobals->time)
+		return;
+
+	if ( m_pPlayer->pev->fov != 0 )
+	{
+		m_pPlayer->pev->fov = m_pPlayer->m_iFOV = 0; // 0 means reset to default fov
+		m_fInZoom = 0;
+	}
+	else if ( m_pPlayer->pev->fov != 30 )
+	{
+		m_pPlayer->pev->fov = m_pPlayer->m_iFOV = 30;
+		m_fInZoom = 1;
+	}
+
+	m_flNextReload = gpGlobals->time + 1.0;
+#endif
+}
+
+void CKnife::FireSniperBolt()
+{
+	m_flNextPrimaryAttack = GetNextAttackDelay(0.75);
+
+	TraceResult tr;
+
+	m_pPlayer->m_iWeaponVolume = QUIET_GUN_VOLUME;
+
+	int flags;
+#if defined( CLIENT_WEAPONS )
+	flags = FEV_NOTHOST;
+#else
+	flags = 0;
+#endif
+
+	// player "shoot" animation
+	m_pPlayer->SetAnimation( PLAYER_ATTACK1 );
+
+	EMIT_SOUND_DYN(ENT(m_pPlayer->pev), CHAN_WEAPON, "knife_miss2.wav", 1, ATTN_NORM, 0, 120);
+	
+	Vector anglesAim = m_pPlayer->pev->v_angle;
+	UTIL_MakeVectors( anglesAim );
+	Vector vecSrc = m_pPlayer->GetGunPosition();
+	Vector vecDir = gpGlobals->v_forward;
+
+	UTIL_TraceLine(vecSrc, vecSrc + vecDir * 8192, dont_ignore_monsters, m_pPlayer->edict(), &tr);
+
+#ifndef CLIENT_DLL
+	if ( tr.pHit->v.takedamage )
+	{
+		// play thwack or smack sound
+		switch( RANDOM_LONG(0,1) )
+		{
+		case 0:
+			EMIT_SOUND(tr.pHit, CHAN_VOICE, "knife_hit_flesh1.wav", 1, ATTN_NORM); break;
+		case 1:
+			EMIT_SOUND(tr.pHit, CHAN_VOICE, "knife_hit_flesh2.wav", 1, ATTN_NORM); break;
+		}
+
+		ClearMultiDamage( );
+		CBaseEntity::Instance(tr.pHit)->TraceAttack(m_pPlayer->pev, gSkillData.plrDmgKnifeSnipe, vecDir, &tr, DMG_BULLET | DMG_NEVERGIB ); 
+		ApplyMultiDamage( pev, m_pPlayer->pev );
+	}
+	else
+	{
+		if (UTIL_PointContents(tr.vecEndPos) != CONTENTS_WATER)
+		{
+			UTIL_Sparks(tr.vecEndPos);
+			EMIT_SOUND_DYN(tr.pHit, CHAN_VOICE, "weapons/xbow_hit1.wav", RANDOM_FLOAT(0.95, 1.0), ATTN_NORM, 0, 98 + RANDOM_LONG(0,7));
+		}
+	}
+#endif
 }
 
 void CKnife::Throw()

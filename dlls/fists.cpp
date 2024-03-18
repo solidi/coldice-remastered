@@ -221,12 +221,12 @@ int CFists::Swing( int fFirst )
 		if ( (m_flNextPrimaryAttack + 1 < UTIL_WeaponTimeBase() ) || g_pGameRules->IsMultiplayer() )
 		{
 			// first swing does full damage
-			pEntity->TraceAttack(m_pPlayer->pev, fFirst == SHORYUKEN ? gSkillData.plrDmgShoryuken + flDamage : gSkillData.plrDmgFists, gpGlobals->v_forward, &tr, DMG_PUNCH );
+			pEntity->TraceAttack(m_pPlayer->pev, fFirst == SHORYUKEN ? gSkillData.plrDmgShoryuken + flDamage : gSkillData.plrDmgFists, gpGlobals->v_forward, &tr, DMG_PUNCH | DMG_NEVERGIB );
 		}
 		else
 		{
 			// subsequent swings do half
-			pEntity->TraceAttack(m_pPlayer->pev, fFirst == SHORYUKEN ? gSkillData.plrDmgShoryuken + flDamage : gSkillData.plrDmgFists / 2, gpGlobals->v_forward, &tr, DMG_PUNCH );
+			pEntity->TraceAttack(m_pPlayer->pev, fFirst == SHORYUKEN ? gSkillData.plrDmgShoryuken + flDamage : gSkillData.plrDmgFists / 2, gpGlobals->v_forward, &tr, DMG_PUNCH | DMG_NEVERGIB );
 		}
 
 		ApplyMultiDamage( m_pPlayer->pev, m_pPlayer->pev );

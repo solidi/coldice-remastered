@@ -789,6 +789,7 @@ enum e_protips {
 	RPG_TIP,
 	JUMP_TIP,
 	KICK_TIP,
+	FEIGN_TIP,
 };
 
 extern void ProTip(int id, const char *message);
@@ -820,7 +821,7 @@ void HUD_WeaponsPostThink( local_state_s *from, local_state_s *to, usercmd_t *cm
 		
 		case WEAPON_KNIFE:
 			pWeapon = &g_Knife;
-			ProTip(KNIFE_TIP, "Feign your death, press 7 or bind \"feign\"");
+			ProTip(KNIFE_TIP, "Use RELOAD button to knife snipe");
 			break;
 
 		case WEAPON_GLOCK:
@@ -1024,6 +1025,7 @@ void HUD_WeaponsPostThink( local_state_s *from, local_state_s *to, usercmd_t *cm
 
 		case WEAPON_FINGERGUN:
 			pWeapon = &g_Fingergun;
+			ProTip(FEIGN_TIP, "Feign your death, press 7 or bind \"feign\"");
 			break;
 	}
 

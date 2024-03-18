@@ -4676,7 +4676,7 @@ void CBasePlayer::TraceHitOfSelacoSlide( void )
 						flDamage = pEntity->pev->max_health * 4;
 						::IceExplode(this, pEntity, DMG_FREEZE);
 					}
-					pEntity->TraceAttack(pev, (gSkillData.plrDmgKick * 4) + flDamage, gpGlobals->v_forward, &tr, DMG_KICK );
+					pEntity->TraceAttack(pev, (gSkillData.plrDmgKick * 4) + flDamage, gpGlobals->v_forward, &tr, DMG_KICK | DMG_NEVERGIB );
 
 					ApplyMultiDamage( pev, pev );
 
@@ -4783,7 +4783,7 @@ void CBasePlayer::TraceHitOfSelacoSlide( void )
 
 					TraceResult tr;
 					UTIL_TraceLine(pObject->pev->origin, pObject->pev->origin, dont_ignore_monsters, ENT( pev ), &tr);
-					pObject->TraceAttack(pev, (gSkillData.plrDmgKick * 2) + flDamage, gpGlobals->v_forward, &tr, DMG_KICK);
+					pObject->TraceAttack(pev, (gSkillData.plrDmgKick * 2) + flDamage, gpGlobals->v_forward, &tr, DMG_KICK | DMG_NEVERGIB);
 					ApplyMultiDamage( pev, pev );
 
 					EMIT_SOUND(ENT(pev), CHAN_ITEM, "fists_hitbod.wav", 1, ATTN_NORM);
@@ -5006,7 +5006,7 @@ void CBasePlayer::TraceHitOfFlip( void )
 
 			TraceResult tr;
 			UTIL_TraceLine(pObject->pev->origin, pObject->pev->origin, dont_ignore_monsters, ENT( pev ), &tr);
-			pObject->TraceAttack(pev, (gSkillData.plrDmgKick * 2) + flDamage, gpGlobals->v_forward, &tr, DMG_KICK);
+			pObject->TraceAttack(pev, (gSkillData.plrDmgKick * 2) + flDamage, gpGlobals->v_forward, &tr, DMG_KICK | DMG_NEVERGIB);
 			ApplyMultiDamage( pev, pev );
 
 			EMIT_SOUND(ENT(pev), CHAN_ITEM, "fists_hitbod.wav", 1, ATTN_NORM);
