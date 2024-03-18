@@ -140,6 +140,7 @@ void CHgun::PrimaryAttack()
 
 	if (m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] <= 0)
 	{
+		m_flNextPrimaryAttack = UTIL_WeaponTimeBase() + 0.15;
 		return;
 	}
 
@@ -150,7 +151,7 @@ void CHgun::PrimaryAttack()
 	if (pHornet != NULL)
 		pHornet->pev->velocity = vecAiming * 300;
 
-	m_flRechargeTime = gpGlobals->time + 0.5;
+	m_flRechargeTime = gpGlobals->time + (0.5 * g_pGameRules->WeaponMultipler());
 #endif
 	
 	m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType]--;
@@ -191,6 +192,7 @@ void CHgun::SecondaryAttack( void )
 
 	if (m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] <= 0)
 	{
+		m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 0.15;
 		return;
 	}
 
@@ -244,7 +246,7 @@ void CHgun::SecondaryAttack( void )
 		pHornet->SetThink( &CHornet::StartDart );
 	}
 
-	m_flRechargeTime = gpGlobals->time + 0.5;
+	m_flRechargeTime = gpGlobals->time + (0.5 * g_pGameRules->WeaponMultipler());
 #endif
 
 	int flags;
@@ -277,7 +279,9 @@ void CHgun::Reload( void )
 	while (m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] < HORNET_MAX_CARRY && m_flRechargeTime < gpGlobals->time)
 	{
 		m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType]++;
-		m_flRechargeTime += 0.5;
+#ifndef CLIENT_DLL
+		m_flRechargeTime += 0.5 * g_pGameRules->WeaponMultipler();
+#endif
 	}
 }
 
