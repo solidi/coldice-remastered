@@ -30,6 +30,7 @@ enum chaingun_e
 	CHAINGUN_SPINUP,
 	CHAINGUN_SPINDOWN,
 	CHAINGUN_FIRE,
+	CHAINGUN_FIRE_BOTH,
 	CHAINGUN_DRAW_LOWKEY,
 	CHAINGUN_DRAW,
 	CHAINGUN_HOLSTER,
@@ -55,7 +56,7 @@ void CChaingun::Spawn( )
 
 void CChaingun::Precache( void )
 {
-	PRECACHE_MODEL("models/v_chaingun.mdl");
+	PRECACHE_MODEL("models/v_dual_chaingun.mdl");
 	PRECACHE_MODEL("models/w_weapons.mdl");
 	PRECACHE_MODEL("models/p_weapons.mdl");
 
@@ -100,12 +101,12 @@ int CChaingun::AddToPlayer( CBasePlayer *pPlayer )
 
 BOOL CChaingun::DeployLowKey( )
 {
-	return DefaultDeploy( "models/v_chaingun.mdl", "models/p_weapons.mdl", CHAINGUN_DRAW_LOWKEY, "mp5" );
+	return DefaultDeploy( "models/v_dual_chaingun.mdl", "models/p_weapons.mdl", CHAINGUN_DRAW_LOWKEY, "mp5" );
 }
 
 BOOL CChaingun::Deploy( )
 {
-	return DefaultDeploy( "models/v_chaingun.mdl", "models/p_weapons.mdl", CHAINGUN_DRAW, "mp5" );
+	return DefaultDeploy( "models/v_dual_chaingun.mdl", "models/p_weapons.mdl", CHAINGUN_DRAW, "mp5" );
 }
 
 void CChaingun::Holster( int skiplocal )
