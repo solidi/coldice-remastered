@@ -1737,7 +1737,7 @@ public:
 
 #define MAX_MODES	10 // COLDSKULL + RANDOM
 #define MAX_MAPS	30 // training2 (28) + RANDOM
-#define MAX_MUTATORS	55 // (53 + 1) + RANDOM
+#define MAX_MUTATORS	56 // (54 + 1) + RANDOM
 
 class CVoteGameplayPanel : public CMenuPanel
 {

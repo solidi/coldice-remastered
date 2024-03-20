@@ -45,6 +45,7 @@ float g_WallClimb = 0;
 float g_AcrobatTime = 0;
 float g_DeploySoundTime = 0;
 float g_RetractDistance = 0;
+float g_NotifyTime = 0;
 extern cvar_t *cl_antivomit;
 extern cvar_t *cl_icemodels;
 
@@ -112,6 +113,7 @@ void CHud :: MsgFunc_InitHUD( const char *pszName, int iSize, void *pbuf )
 	g_AcrobatTime = 0;
 	g_DeploySoundTime = 0;
 	g_RetractDistance = 0;
+	g_NotifyTime = 0;
 	// Needed to reset death arms after map change
 	gHUD.m_flExtraViewModelTime = 0;
 	// Reset client values to render objectives
