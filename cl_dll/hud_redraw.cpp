@@ -43,6 +43,8 @@ extern cvar_t *cl_showtips;
 
 extern cvar_t *cl_hudbend;
 
+extern float g_NotifyTime;
+
 // Think
 void CHud::Think(void)
 {
@@ -97,6 +99,15 @@ void CHud::Think(void)
 	Bench_CheckStart();
 
 	ShowTextTips();
+
+	if (CheckMutator(MUTATOR_NOTIFY, "notify")) {
+		if (g_NotifyTime < gEngfuncs.GetClientTime()) {
+			char soundPath[32];
+			sprintf(soundPath, "notify%d.wav", gEngfuncs.pfnRandomLong(1, 23));
+			PlaySound(soundPath, 2);
+			g_NotifyTime = gEngfuncs.GetClientTime() + gEngfuncs.pfnRandomFloat(3, 6);
+		}
+	}
 }
 
 void HUD_DrawOrthoTriangles();

@@ -737,6 +737,8 @@ enum e_protips {
 
 #define PROTIPS_AMT	17
 
+bool CheckMutator(int id, const char *mutator);
+
 class CHudProTip : public CHudBase
 {
 public:
