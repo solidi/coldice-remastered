@@ -161,13 +161,13 @@ void CDisc::Precache( void )
 	PRECACHE_SOUND("weapons/cbar_hitbod1.wav");
 	PRECACHE_SOUND("weapons/cbar_hitbod2.wav");
 	PRECACHE_SOUND("weapons/cbar_hitbod3.wav");
-	PRECACHE_SOUND("weapons/altfire.wav");
+	//PRECACHE_SOUND("weapons/altfire.wav");
 	PRECACHE_SOUND("items/gunpickup2.wav");
 	PRECACHE_SOUND("weapons/electro5.wav");
 	PRECACHE_SOUND("weapons/xbow_hit1.wav");
 	PRECACHE_SOUND("weapons/xbow_hit2.wav");
 	PRECACHE_SOUND("weapons/rocket1.wav");
-	PRECACHE_SOUND("dischit.wav");
+	//PRECACHE_SOUND("dischit.wav");
 	m_iTrail = PRECACHE_MODEL("sprites/smoke.spr");
 	m_iSpriteTexture = PRECACHE_MODEL( "sprites/lgtning.spr" );
 }
