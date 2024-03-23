@@ -237,6 +237,7 @@ void ClientPutInServer( edict_t *pEntity )
 	pPlayer->m_iAutoWepSwitch = 1;
 	pPlayer->m_iAutoMelee = 1;
 	pPlayer->m_iAutoTaunt = 1;
+	pPlayer->m_iPlayMusic = 1;
 	pPlayer->m_iDisplayInfoMessage = 1;
 	pPlayer->m_iKeyboardAcrobatics = 1;
 
@@ -897,8 +898,46 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "[Client Help Menu]\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"+hook\" - Deploy hook\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"+ironsight\" - Use ironsights\n");
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"drop_rune\" - Drop rune\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_achievements [0|1|2|3]\" - displays fast fragging achievements\n" );
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_announcehumor [0|1]\" - Play announcement/humor on weapons\n" );
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_automelee [0|1]\" - auto kick or punch an enemy if they are close\n" );
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_autotaunt [0|1]\" - auto taunt on frag when its safe to do so\n" );
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_autowepswitch [0|1]\" - auto switches weapon on pickup\n" );
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_bobtilt [0|1]\" - Old Bob Tilt\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_bulletsmoke [0|1]\" - turn on or off bullet smoke and flare effects\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_customtempents [0|1]\" - allow or disallow increased temporary entites\n" );
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_flashonpickup [0|1]\" - Flash HUD when picking up weapon or item\n" );
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_glasshud [0|1]\" - switch elements of the hud bouncing/bobbing on or off\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_glowmodels [0|1]\" - Show glow models is available\n" );
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_gunsmoke [0|1]\" - turn on or off gun smoke effects when fired\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_hudbend\" - experimental bending factor of HUD elements\n" );
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_hudscale\" - experimental scaling factor of HUD elements\n" );
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_icemodels [0-6]\" - changes models with specific ice skins\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_infomessage [0|1]\" - display weapon and rune pick up messages\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_objectives [0|1]\" - show objective read out on HUD\n" );
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_oldmotd [0|1]\" - Old MOTD (Message of the Day)\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_oldscoreboard [0|1]\" - Old Scoreboard\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_particlesystem [0|1]\" enables or disables special effects like the flamethrower\n" );
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_playpoint [0|1]\" - Play buzzer/bell for frag\n" );
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_playmusic [0|1]\" - Play soundtrack set by map\n" );
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "For more, type help_more\n" );
+	}
+	else if ( FStrEq( pcmd, "help_more" )  )
+	{
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "[Client Help More]\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_radar [0|1]\" enables or disables player radar\n" );
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_righthand [0|1]\" - Right/Left Handed Models\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_shadows [0|1]\" - Show rendered shadows underneath models\n" );
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_showtips [0|1]\" - Show random text tips during play\n" );
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_viewroll [0|1]\" - Old View Roll\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_voiceoverpath [string]\" - folder path to custom voiceovers\n" );
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_wallclimbindicator [0|1]\" - shows when wallclimb is available\n" );
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_weaponfidget [0|1]\" - Weapon Fidget\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_weaponretract [0|1]\" - Weapon Retract\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_weaponsway [0|1]\" - Weapon Sway\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_weather [0|1]\" - allow or disallow weather effects on client\n" );
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"feign\" - Fake your death\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"drop_rune\" - Drop rune\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"impulse 205\" - Swap between single and dual weapon, if available\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"impulse 206\" - Kick\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"impulse 207\" - Punch\n");
@@ -909,44 +948,6 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"impulse 212\" - Back Flip\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"impulse 213\" - Front Flip\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"snowman\" - God mode (when sv_cheats 1)\n");
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_icemodels [0-6]\" - changes models with specific ice skins\n");
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_oldscoreboard [0|1]\" - Old Scoreboard\n");
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_oldmotd [0|1]\" - Old MOTD (Message of the Day)\n");
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_viewroll [0|1]\" - Old View Roll\n");
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_bobtilt [0|1]\" - Old Bob Tilt\n");
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_righthand [0|1]\" - Right/Left Handed Models\n");
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_infomessage [0|1]\" - display weapon and rune pick up messages\n");
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_bulletsmoke [0|1]\" - turn on or off bullet smoke and flare effects\n");
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_gunsmoke [0|1]\" - turn on or off gun smoke effects when fired\n");
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_glasshud [0|1]\" - switch elements of the hud bouncing/bobbing on or off\n");
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "For more, type help_more\n" );
-	}
-	else if ( FStrEq( pcmd, "help_more" )  )
-	{
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "[Client Help More]\n");
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_weaponsway [0|1]\" - Weapon Sway\n");
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_weaponfidget [0|1]\" - Weapon Fidget\n");
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_weaponretract [0|1]\" - Weapon Retract\n");
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_playpoint [0|1]\" - Play buzzer/bell for frag\n" );
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_announcehumor [0|1]\" - Play announcement/humor on weapons\n" );
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_showtips [0|1]\" - Show random text tips during play\n" );
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_shadows [0|1]\" - Show rendered shadows underneath models\n" );
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_glowmodels [0|1]\" - Show glow models is available\n" );
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_flashonpickup [0|1]\" - Flash HUD when picking up weapon or item\n" );
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_autowepswitch [0|1]\" - auto switches weapon on pickup\n" );
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_achievements [0|1|2|3]\" - displays fast fragging achievements\n" );
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_infomessage [0|1]\" - displays weapon and rune messages on top center\n" );
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_weather [0|1]\" - allow or disallow weather effects on client\n" );
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_hudscale\" - experimental scaling factor of HUD elements\n" );
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_hudbend\" - experimental bending factor of HUD elements\n" );
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_wallclimbindicator [0|1]\" - shows when wallclimb is available\n" );
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_particlesystem [0|1]\" enables or disables special effects like the flamethrower\n" );
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_radar [0|1]\" enables or disables player radar\n" );
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_customtempents [0|1]\" - allow or disallow increased temporary entites\n" );
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_voiceoverpath [string]\" - folder path to custom voiceovers\n" );
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_objectives [0|1]\" - show objective read out on HUD\n" );
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_automelee [0|1]\" - auto kick or punch an enemy if they are close\n" );
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_autotaunt [0|1]\" - auto taunt on frag when its safe to do so\n" );
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"vote\" - type in the chat to start a vote\n" );
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "For more, see readme.txt\n" );
 	}
@@ -1116,25 +1117,44 @@ void ClientUserInfoChanged( edict_t *pEntity, char *infobuffer )
 	if ( !pEntity->pvPrivateData )
 		return;
 
+	CBasePlayer *pl = GetClassPtr((CBasePlayer *)&pEntity->v);
+
 	char* pszAutoWepSwitch = g_engfuncs.pfnInfoKeyValue( infobuffer, "cl_autowepswitch");
 	if (strlen(pszAutoWepSwitch))
-		GetClassPtr((CBasePlayer *)&pEntity->v)->m_iAutoWepSwitch = atoi(pszAutoWepSwitch);
+		pl->m_iAutoWepSwitch = atoi(pszAutoWepSwitch);
 
 	char* pszDisplayInfoMessage = g_engfuncs.pfnInfoKeyValue( infobuffer, "cl_infomessage");
 	if (strlen(pszDisplayInfoMessage))
-		GetClassPtr((CBasePlayer *)&pEntity->v)->m_iDisplayInfoMessage = atoi(pszDisplayInfoMessage);
+		pl->m_iDisplayInfoMessage = atoi(pszDisplayInfoMessage);
 
 	char* pszKeyboardAcrobatics = g_engfuncs.pfnInfoKeyValue(infobuffer, "cl_keyboardacrobatics");
 	if (strlen(pszKeyboardAcrobatics))
-		GetClassPtr((CBasePlayer *)&pEntity->v)->m_iKeyboardAcrobatics = atoi(pszKeyboardAcrobatics);
+		pl->m_iKeyboardAcrobatics = atoi(pszKeyboardAcrobatics);
 
 	char* pszAutoMelee = g_engfuncs.pfnInfoKeyValue( infobuffer, "cl_automelee");
 	if (strlen(pszAutoMelee))
-		GetClassPtr((CBasePlayer *)&pEntity->v)->m_iAutoMelee = atoi(pszAutoMelee);
+		pl->m_iAutoMelee = atoi(pszAutoMelee);
 
 	char* pszAutoTaunt = g_engfuncs.pfnInfoKeyValue( infobuffer, "cl_autotaunt");
 	if (strlen(pszAutoTaunt))
-		GetClassPtr((CBasePlayer *)&pEntity->v)->m_iAutoTaunt = atoi(pszAutoTaunt);
+		pl->m_iAutoTaunt = atoi(pszAutoTaunt);
+
+	char* pszPlayMusic = g_engfuncs.pfnInfoKeyValue( infobuffer, "cl_playmusic");
+	if (strlen(pszPlayMusic))
+	{
+		int newvalue = atoi(pszPlayMusic);
+
+		if (pl->m_iPlayMusic != newvalue)
+		{
+			CBaseEntity *pT = UTIL_FindEntityByClassname( NULL, "trigger_mp3audio");
+			if ( pT && pT->edict() )
+			{
+				pT->Use(pl, pl, USE_ON, 0);
+			}
+		}
+
+		pl->m_iPlayMusic = atoi(pszPlayMusic);
+	}
 
 	// msg everyone if someone changes their name,  and it isn't the first time (changing no name to current name)
 	if ( pEntity->v.netname && STRING(pEntity->v.netname)[0] != 0 && !FStrEq( STRING(pEntity->v.netname), g_engfuncs.pfnInfoKeyValue( infobuffer, "name" )) )

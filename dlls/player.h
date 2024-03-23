@@ -429,7 +429,7 @@ public:
 	char m_SbarString1[ SBAR_STRING_SIZE ];
 	
 	float m_flNextChatTime;
-	float m_iShownWelcomeMessage;
+	float m_iShownWelcomeMessage = -1;
 	float m_iShownDualMessage;
 	float m_iShowMutatorMessage;
 	float m_iShowGameModeMessage;
@@ -503,6 +503,7 @@ public:
 		{0,	"Can you pull my finger? Oops that was the grenade pin! Catch!", "taunt01.wav"},
 	};
 
+	BOOL m_iPlayMusic;
 };
 
 #define AUTOAIM_2DEGREES  0.0348994967025
