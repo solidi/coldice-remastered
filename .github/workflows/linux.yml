@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-20.04
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         submodules: recursive
 
@@ -49,7 +49,7 @@ jobs:
       run: make hl_cdll CFG=${{env.BUILD_CONFIGURATION}}
 
     - name: Upload client.so
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: client.so
         path: ./linux/Release/client.so
