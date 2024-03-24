@@ -21,10 +21,10 @@ jobs:
     runs-on: windows-latest
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
     - name: Add MSBuild to PATH
-      uses: microsoft/setup-msbuild@v1.1
+      uses: microsoft/setup-msbuild@v2
 
     - name: Build ice.dll
       working-directory: ${{env.GITHUB_WORKSPACE}}
@@ -39,7 +39,7 @@ jobs:
         Compress-Archive -LiteralPath $env:TEMP\${{env.BUILD_CONFIGURATION}}\dlls -DestinationPath ./dlls.zip -Force
 
     - name: Upload ice dll
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: ice_dll
         path: ./dlls.zip
@@ -48,12 +48,12 @@ jobs:
     runs-on: windows-latest
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         submodules: recursive
 
     - name: Add MSBuild to PATH
-      uses: microsoft/setup-msbuild@v1.1
+      uses: microsoft/setup-msbuild@v2
 
     - name: Build client.dll
       working-directory: ${{env.GITHUB_WORKSPACE}}
@@ -66,7 +66,7 @@ jobs:
         Compress-Archive -LiteralPath $env:TEMP\${{env.BUILD_CONFIGURATION}}\cl_dlls -DestinationPath ./cl_dlls.zip -Force
 
     - name: Upload client dll
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: client_dll
         path: ./cl_dlls.zip
@@ -75,10 +75,10 @@ jobs:
     runs-on: windows-latest
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
     - name: Add MSBuild to PATH
-      uses: microsoft/setup-msbuild@v1.1
+      uses: microsoft/setup-msbuild@v2
 
     - name: Build makefont.exe
       working-directory: ${{env.GITHUB_WORKSPACE}}
@@ -88,10 +88,10 @@ jobs:
     runs-on: windows-latest
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
     - name: Add MSBuild to PATH
-      uses: microsoft/setup-msbuild@v1.1
+      uses: microsoft/setup-msbuild@v2
 
     - name: Build makels.exe
       working-directory: ${{env.GITHUB_WORKSPACE}}
@@ -101,10 +101,10 @@ jobs:
     runs-on: windows-latest
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
     - name: Add MSBuild to PATH
-      uses: microsoft/setup-msbuild@v1.1
+      uses: microsoft/setup-msbuild@v2
 
     - name: Build qlumpy.exe
       working-directory: ${{env.GITHUB_WORKSPACE}}
@@ -114,10 +114,10 @@ jobs:
     runs-on: windows-latest
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
     - name: Add MSBuild to PATH
-      uses: microsoft/setup-msbuild@v1.1
+      uses: microsoft/setup-msbuild@v2
 
     - name: Build sprgen.exe
       working-directory: ${{env.GITHUB_WORKSPACE}}
@@ -127,10 +127,10 @@ jobs:
     runs-on: windows-latest
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
     - name: Add MSBuild to PATH
-      uses: microsoft/setup-msbuild@v1.1
+      uses: microsoft/setup-msbuild@v2
 
     - name: Build studiomdl.exe
       working-directory: ${{env.GITHUB_WORKSPACE}}
