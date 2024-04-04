@@ -37,7 +37,7 @@ int CHudRadar::VidInit(void)
 void CHudRadar::ProcessPlayerState(void)
 {
 	Vector v_player[MAX_RADAR_DOTS], v_other, v_radar;
-	bool b_specials[MAX_RADAR_DOTS] = {false};
+	int b_specials[MAX_RADAR_DOTS] = {false};
 	float distanceLocal, player_distance[MAX_RADAR_DOTS], player_height[MAX_RADAR_DOTS], view_angle;
 	int num_players = 0;
 	cl_entity_t *localPlayer = gEngfuncs.GetLocalPlayer();
@@ -80,6 +80,13 @@ void CHudRadar::ProcessPlayerState(void)
 		{
 			if (pClient->curstate.fuser4 > 0) // iceman
 				b_specials[num_players] = true;
+			else
+				b_specials[num_players] = false;
+		}
+		else if (gHUD.m_GameMode == GAME_CTF)
+		{
+			if (pClient->curstate.fuser4 > 1)
+				b_specials[num_players] = pClient->curstate.fuser4;
 			else
 				b_specials[num_players] = false;
 		}
@@ -236,10 +243,17 @@ int CHudRadar::Draw(float flTime)
 			fr = 200; fg = 200; fb = 200;
 		}
 
-		if (m_RadarInfo[index].special)
+		if (m_RadarInfo[index].special == 1 ||
+			m_RadarInfo[index].special == 3)
 		{
 			size *= 2;
 			fr = 240; fg = 0; fb = 0;
+		}
+
+		if (m_RadarInfo[index].special == 2)
+		{
+			size *= 2;
+			fr = 0; fg = 0; fb = 240;
 		}
 
 		FillRGBA(pos_x, pos_y, size, size, fr, fg, fb, alpha);

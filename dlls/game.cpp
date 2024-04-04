@@ -84,6 +84,8 @@ cvar_t	voting = {"mp_voting","1", FCVAR_SERVER };
 cvar_t	spawnprotectiontime = {"mp_spawnprotectiontime","3", FCVAR_SERVER };
 cvar_t	chaosfilter = {"sv_chaosfilter","oldtime;sildenafil;inverse", FCVAR_SERVER };
 cvar_t	meleedrop = {"mp_meleedrop","1", FCVAR_SERVER };
+cvar_t	ctfspawn1 = {"mp_ctfspawn1","weapon_9mmAR", FCVAR_SERVER };
+cvar_t	ctfspawn2 = {"mp_ctfspawn2","weapon_shotgun", FCVAR_SERVER };
 
 cvar_t  allow_spectators = { "allow_spectators", "0.0", FCVAR_SERVER };		// 0 prevents players from being spectators
 
@@ -724,6 +726,8 @@ void GameDLLInit( void )
 	CVAR_REGISTER(&voting);
 	CVAR_REGISTER(&spawnprotectiontime);
 	CVAR_REGISTER(&chaosfilter);
+	CVAR_REGISTER(&ctfspawn1);
+	CVAR_REGISTER(&ctfspawn2);
 
 	CVAR_REGISTER (&mp_chattime);
 

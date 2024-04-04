@@ -301,7 +301,8 @@ void ScorePanel::Update()
 	if ( gHUD.m_Teamplay != GAME_TEAMPLAY &&
 		 gHUD.m_Teamplay != GAME_ICEMAN &&
 		 gHUD.m_Teamplay != GAME_CHILLDEMIC &&
-		 gHUD.m_Teamplay != GAME_LMS )
+		 gHUD.m_Teamplay != GAME_LMS &&
+		 gHUD.m_Teamplay != GAME_CTF )
 		SortPlayers( 0, NULL );
 	else
 		SortTeams();
@@ -1009,7 +1010,8 @@ bool ScorePanel::ScoreBased( void )
 	return (gHUD.m_Teamplay == GAME_ARENA ||
 			gHUD.m_Teamplay == GAME_LMS ||
 			gHUD.m_Teamplay == GAME_CHILLDEMIC ||
-			gHUD.m_Teamplay == GAME_ICEMAN);
+			gHUD.m_Teamplay == GAME_ICEMAN ||
+			gHUD.m_Teamplay == GAME_CTF);
 }
 
 //-----------------------------------------------------------------------------

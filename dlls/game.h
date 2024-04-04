@@ -82,6 +82,8 @@ extern cvar_t   voting;
 extern cvar_t   spawnprotectiontime;
 extern cvar_t   chaosfilter;
 extern cvar_t   meleedrop;
+extern cvar_t   ctfspawn1;
+extern cvar_t   ctfspawn2;
 
 // Engine Cvars
 extern cvar_t	*g_psv_gravity;

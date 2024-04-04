@@ -277,6 +277,7 @@ char *gamePlayModesShort[] = {
 	"chilldemic",
 	"coldskull",
 	"ctc",
+	"ctf",
 	"gungame",
 	"jvs",
 	"snowball",
@@ -647,7 +648,7 @@ void CHalfLifeMultiplay :: Think ( void )
 	}
 
 	float flTimeLimit = timelimit.value * 60;
-	float flFragLimit = fraglimit.value;
+	float flFragLimit = g_GameMode == GAME_CTF ? 0 : fraglimit.value;
 
 	time_remaining = (int)(flTimeLimit ? ( flTimeLimit - gpGlobals->time ) : 0);
 	

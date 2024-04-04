@@ -630,6 +630,7 @@ void CHud :: Init( void )
 	m_Objective.Init();
 	m_Timer.Init();
 	m_ProTip.Init();
+	m_CtfInfo.Init();
 	InitRain();
 #ifdef _WIN32
 	g_ImGUIManager.Init();
@@ -802,6 +803,7 @@ void CHud :: VidInit( void )
 	m_Objective.VidInit();
 	m_Timer.VidInit();
 	m_ProTip.VidInit();
+	m_CtfInfo.VidInit();
 #ifdef _WIN32
 	g_ImGUIManager.VidInit();
 #endif

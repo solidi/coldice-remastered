@@ -224,6 +224,7 @@ int gmsgVoteFor = 0;
 int gmsgVoteGameplay = 0;
 int gmsgVoteMap = 0;
 int gmsgVoteMutator = 0;
+int gmsgCtfInfo = 0;
 
 void LinkUserMessages( void )
 {
@@ -290,6 +291,7 @@ void LinkUserMessages( void )
 	gmsgVoteGameplay = REG_USER_MSG("VoteGame", 1);
 	gmsgVoteMap = REG_USER_MSG("VoteMap", 1);
 	gmsgVoteMutator = REG_USER_MSG("VoteMutator", 1);
+	gmsgCtfInfo = REG_USER_MSG("CtfInfo", 4);
 }
 
 LINK_ENTITY_TO_CLASS( player, CBasePlayer );
@@ -868,6 +870,11 @@ void CBasePlayer::PackDeadPlayerItems( void )
 		CWorldRunes::DropRune(this);
 	}
 
+	if (pFlag)
+	{
+		g_pGameRules->DropCharm(this, pev->origin);
+	}
+
 	if (iPW == 0)
 	{
 		// TODO: bot may have not of had an active item?
@@ -1199,6 +1206,10 @@ void CBasePlayer::SetAnimation( PLAYER_ANIM playerAnim )
 		m_IdealActivity = ACT_HURRICANE_KICK;
 		break;
 
+	case PLAYER_CELEBRATE:
+		m_IdealActivity = ACT_CELEBRATE;
+		break;
+
 	case PLAYER_JUMP:
 		m_IdealActivity = ACT_HOP;
 		break;
@@ -1281,6 +1292,10 @@ void CBasePlayer::SetAnimation( PLAYER_ANIM playerAnim )
 		{
 			m_IdealActivity = m_Activity;
 		}
+		else if ( m_fCelebrateTime > gpGlobals->time && m_Activity == ACT_CELEBRATE )
+		{
+			m_IdealActivity = m_Activity;
+		}
 		else if ( pev->waterlevel > 1 )
 		{
 			if ( speed == 0 )
@@ -1312,6 +1327,7 @@ void CBasePlayer::SetAnimation( PLAYER_ANIM playerAnim )
 	case ACT_FRONT_FLIP:
 	case ACT_HURRICANE_KICK:
 	case ACT_PULL_UP:
+	case ACT_CELEBRATE:
 	default:
 		if ( m_Activity == m_IdealActivity)
 			return;
@@ -2448,7 +2464,6 @@ void CBasePlayer::UpdateStatusBar()
 
 
 
-inline int FNullEnt( CBaseEntity *ent ) { return (ent == NULL) || FNullEnt( ent->edict() ); }
 
 #define CLIMB_SHAKE_FREQUENCY	22	// how many frames in between screen shakes when climbing
 #define	MAX_CLIMB_SPEED			200	// fastest vertical climbing speed possible
@@ -5115,6 +5130,17 @@ void CBasePlayer::AutoMelee()
 #endif
 
 	m_flNextAutoMelee = gpGlobals->time + 0.25;
+}
+
+void CBasePlayer::Celebrate( void )
+{
+	if (pev->waterlevel == 3)
+		return;
+
+	if (m_fCelebrateTime < gpGlobals->time) {
+		m_fCelebrateTime = gpGlobals->time + 6.5;
+		SetAnimation( PLAYER_CELEBRATE );
+	}
 }
 
 //=========================================================

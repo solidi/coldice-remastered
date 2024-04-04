@@ -33,6 +33,7 @@
 #include	"lms_gamerules.h"
 #include	"coldskull_gamerules.h"
 #include	"arena_gamerules.h"
+#include	"ctf_gamerules.h"
 
 extern edict_t *EntSelectSpawnPoint( CBaseEntity *pPlayer );
 
@@ -526,6 +527,8 @@ CGameRules *InstallGameRules( void )
 			return new CHalfLifeColdSkull;
 		else if (g_GameMode == GAME_ARENA)
 			return new CHalfLifeArena;
+		else if (g_GameMode == GAME_CTF)
+			return new CHalfLifeCaptureTheFlag;
 
 		if ((int)gpGlobals->deathmatch == 1)
 		{

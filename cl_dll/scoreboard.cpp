@@ -151,7 +151,8 @@ int CHudScoreboard :: Draw( float fTime )
 	if ( gHUD.m_Teamplay != GAME_TEAMPLAY &&
 		 gHUD.m_Teamplay != GAME_ICEMAN &&
 		 gHUD.m_Teamplay != GAME_CHILLDEMIC &&
-		 gHUD.m_Teamplay != GAME_LMS )
+		 gHUD.m_Teamplay != GAME_LMS &&
+		 gHUD.m_Teamplay != GAME_CTF )
 		gHUD.DrawHudString( xpos, ypos, NAME_RANGE_MAX + xpos_rel, "Player", r, g, b );
 	else
 		gHUD.DrawHudString( xpos, ypos, NAME_RANGE_MAX + xpos_rel, "Teams", r, g, b );
@@ -171,7 +172,8 @@ int CHudScoreboard :: Draw( float fTime )
 	if (gHUD.m_Teamplay == GAME_ARENA ||
 		gHUD.m_Teamplay == GAME_LMS ||
 		gHUD.m_Teamplay == GAME_CHILLDEMIC ||
-		gHUD.m_Teamplay == GAME_ICEMAN)
+		gHUD.m_Teamplay == GAME_ICEMAN ||
+		gHUD.m_Teamplay == GAME_CTF)
 		gHUD.DrawHudString( SCORE_RANGE_MIN + xpos_rel + 5, ypos, ScreenWidth, "Score", r, g, b );
 	gHUD.DrawHudString( PING_RANGE_MAX + xpos_rel - 35, ypos, ScreenWidth, "Latency", r, g, b );
 
@@ -193,7 +195,8 @@ int CHudScoreboard :: Draw( float fTime )
 	if ( gHUD.m_Teamplay != GAME_TEAMPLAY && 
 		 gHUD.m_Teamplay != GAME_ICEMAN &&
 		 gHUD.m_Teamplay != GAME_CHILLDEMIC &&
-		 gHUD.m_Teamplay != GAME_LMS )
+		 gHUD.m_Teamplay != GAME_LMS &&
+		 gHUD.m_Teamplay != GAME_CTF )
 	{
 		// it's not teamplay,  so just draw a simple player list
 		DrawPlayers( xpos_rel, list_slot );
@@ -317,8 +320,15 @@ int CHudScoreboard :: Draw( float fTime )
 
 		// draw score
 		xpos = SCORE_RANGE_MAX + xpos_rel;
-		// TODO: Calc teamscore
-		// gHUD.DrawHudNumberString( xpos, ypos, SCORE_RANGE_MIN + xpos_rel, 0, r, g, b );
+
+		if (gHUD.m_Teamplay == GAME_ARENA ||
+			gHUD.m_Teamplay == GAME_LMS ||
+			gHUD.m_Teamplay == GAME_CHILLDEMIC ||
+			gHUD.m_Teamplay == GAME_ICEMAN ||
+			gHUD.m_Teamplay == GAME_CTF)
+		{
+			gHUD.DrawHudNumberString( xpos, ypos, SCORE_RANGE_MIN + xpos_rel, team_info->score, r, g, b );
+		}
 
 		// draw ping
 		// draw ping & packetloss
@@ -451,7 +461,8 @@ int CHudScoreboard :: DrawPlayers( int xpos_rel, float list_slot, int nameoffset
 		if (gHUD.m_Teamplay == GAME_ARENA ||
 			gHUD.m_Teamplay == GAME_LMS ||
 			gHUD.m_Teamplay == GAME_CHILLDEMIC ||
-			gHUD.m_Teamplay == GAME_ICEMAN)
+			gHUD.m_Teamplay == GAME_ICEMAN ||
+			gHUD.m_Teamplay == GAME_CTF)
 		{
 			xpos = SCORE_RANGE_MAX + xpos_rel;
 			gHUD.DrawHudNumberString( xpos, ypos, SCORE_RANGE_MIN + xpos_rel, g_PlayerExtraInfo[best_player].playerclass, r, g, b );

@@ -304,6 +304,12 @@ int CHud :: MsgFunc_PlayCSound( const char *pszName, int iSize, void *pbuf )
 		case CLIENT_SOUND_VOTEMUTATOR:
 			PlaySound("votemutator.wav", 1);
 			break;
+		case CLIENT_SOUND_CTF_TAKEN:
+			PlaySound("ctf_flag_taken.wav", 1);
+			break;
+		case CLIENT_SOUND_CTF_CAPTURE:
+			PlaySound("ctf_flag_capture.wav", 1);
+			break;
 	}
 	return 1;
 }
