@@ -46,7 +46,7 @@ enum CTF_FLAG
 class CFlagCharm : public CBaseEntity
 {
 public:
-	static CFlagCharm *CFlagCharm::CreateFlag( Vector vecOrigin, int body );
+	static CFlagCharm *CreateFlag( Vector vecOrigin, int body );
 	void Precache( void );
 	void Spawn( void );
 	void EXPORT FlagTouch( CBaseEntity *pOther );
@@ -243,7 +243,7 @@ LINK_ENTITY_TO_CLASS( flag, CFlagCharm );
 class CFlagBase : public CBaseEntity
 {
 public:
-	static CFlagBase *CFlagBase::CreateFlagBase( Vector vecOrigin, int body );
+	static CFlagBase *CreateFlagBase( Vector vecOrigin, int body );
 	void Precache( void );
 	void Spawn( void );
 	void EXPORT CTFTouch( CBaseEntity *pOther );
