@@ -2552,3 +2552,58 @@ void CTracer::Precache( void )
 {
 	PRECACHE_MODEL("models/w_tracer.mdl");
 }
+
+#define SF_LOOP 1
+#define SF_REMOVE_ON_FIRE 2
+class CTargetMP3Audio : public CPointEntity
+{
+public:
+	void Spawn( void );
+
+	void Use( CBaseEntity *pActivator, CBaseEntity *pCaller,
+		USE_TYPE useType, float value );
+
+	BOOL m_bPlaying;
+};
+
+LINK_ENTITY_TO_CLASS( trigger_mp3audio, CTargetMP3Audio );
+
+void CTargetMP3Audio :: Spawn( void )
+{
+	pev->solid = SOLID_NOT;
+	pev->movetype = MOVETYPE_NONE;
+	m_bPlaying = FALSE; // start out not playing
+}
+
+void CTargetMP3Audio::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value )
+{
+	char command[64];
+
+	if (!pActivator->IsPlayer()) // activator should be a player
+		return;
+
+	if (!m_bPlaying) // if we're not playing, start playing!
+		m_bPlaying = TRUE;
+	else
+	{	// if we're already playing, stop the mp3
+		m_bPlaying = FALSE;
+		CLIENT_COMMAND(pActivator->edict(), "mp3 stop\n");
+		return;
+	}
+
+	// issue the play/loop command
+	sprintf(command, "mp3 %s %s\n\n", FBitSet(pev->spawnflags, SF_LOOP) ? "loop" : "play", STRING(pev->message));
+
+	CLIENT_COMMAND(pActivator->edict(), command);
+
+/*
+	MESSAGE_BEGIN( MSG_ONE, SVC_CDTRACK, NULL, pActivator->edict() );
+		WRITE_BYTE( pev->health );
+		WRITE_BYTE( pev->spawnflags );
+	MESSAGE_END();
+*/
+
+	// remove if set
+	if (FBitSet(pev->spawnflags, SF_REMOVE_ON_FIRE))
+		UTIL_Remove(this);
+}
