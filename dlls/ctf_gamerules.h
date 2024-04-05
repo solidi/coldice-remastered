@@ -29,8 +29,8 @@ public:
 	virtual void ClientUserInfoChanged( CBasePlayer *pPlayer, char *infobuffer );
 	virtual CBaseEntity *DropCharm( CBasePlayer *pPlayer, Vector origin );
 	virtual void ClientDisconnected( edict_t *pClient );
-
 	virtual void UpdateHud( int bluemode, int redmode, CBasePlayer *pPlayer = NULL );
+	virtual void PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller, entvars_t *pInflictor );
 
 	EHANDLE pRedBase;
 	EHANDLE pBlueBase;
@@ -44,4 +44,5 @@ private:
 	int m_iRedScore;
 	int m_iBlueMode;
 	int m_iRedMode;
+	BOOL m_DisableDeathPenalty;
 };

@@ -381,6 +381,7 @@ LINK_ENTITY_TO_CLASS( base, CFlagBase );
 
 CHalfLifeCaptureTheFlag::CHalfLifeCaptureTheFlag()
 {
+	m_DisableDeathPenalty = FALSE;
 	pLastSpawnPoint = NULL;
 	m_fSpawnBlueHardware = gpGlobals->time + 2.0;
 	m_fSpawnRedHardware = gpGlobals->time + 2.0;
@@ -597,6 +598,12 @@ void CHalfLifeCaptureTheFlag::ClientUserInfoChanged( CBasePlayer *pPlayer, char 
 	char *mdls = g_engfuncs.pfnInfoKeyValue( infobuffer, "model" );
 	int clientIndex = pPlayer->entindex();
 
+	// prevent skin/color/model changes
+	if ( !stricmp( "red", pPlayer->m_szTeamName ) && !stricmp( "santa", mdls ) )
+		return;
+	if ( !stricmp( "blue", pPlayer->m_szTeamName ) && !stricmp( "iceman", mdls ) )
+		return;
+
 	if ( stricmp( mdls, "iceman" ) && stricmp( mdls, "santa" ) )
 	{
 		g_engfuncs.pfnSetClientKeyValue( clientIndex, g_engfuncs.pfnGetInfoKeyBuffer( pPlayer->edict() ), "model", (char *)(pPlayer->pev->fuser4 == TEAM_RED ? "santa" : "iceman") );
@@ -606,6 +613,15 @@ void CHalfLifeCaptureTheFlag::ClientUserInfoChanged( CBasePlayer *pPlayer, char 
 		UTIL_SayText( text, pPlayer );
 		return;
 	}
+
+	//m_DisableDeathMessages = TRUE;
+	m_DisableDeathPenalty = TRUE;
+
+	entvars_t *pevWorld = VARS( INDEXENT(0) );
+	pPlayer->TakeDamage( pevWorld, pevWorld, 900, DMG_ALWAYSGIB );
+
+	//m_DisableDeathMessages = FALSE;
+	m_DisableDeathPenalty = FALSE;
 
 	int id = TEAM_BLUE;
 	if ( !stricmp( mdls, "santa" ) )
@@ -625,6 +641,10 @@ void CHalfLifeCaptureTheFlag::ClientUserInfoChanged( CBasePlayer *pPlayer, char 
 		g_engfuncs.pfnSetClientKeyValue( clientIndex, g_engfuncs.pfnGetInfoKeyBuffer( pPlayer->edict() ), "team", pPlayer->m_szTeamName );
 	}
 
+	// notify everyone of the team change
+	sprintf( text, "[CtF]: %s has changed to team \'%s\'\n", STRING(pPlayer->pev->netname), pPlayer->m_szTeamName );
+	UTIL_SayTextAll( text, pPlayer );
+
 	// notify everyone's HUD of the team change
 	MESSAGE_BEGIN( MSG_ALL, gmsgTeamInfo );
 		WRITE_BYTE( ENTINDEX(pPlayer->edict()) );
@@ -637,6 +657,12 @@ void CHalfLifeCaptureTheFlag::ClientUserInfoChanged( CBasePlayer *pPlayer, char 
 		WRITE_SHORT( pPlayer->m_iDeaths );
 		WRITE_SHORT( pPlayer->m_iRoundWins );
 		WRITE_SHORT( g_pGameRules->GetTeamIndex( pPlayer->m_szTeamName ) + 1 );
+	MESSAGE_END();
+
+	MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, pPlayer->edict());
+		WRITE_STRING(UTIL_VarArgs("Capture the %s flag", (pPlayer->pev->fuser4 == TEAM_RED) ? "blue" : "red"));
+		WRITE_STRING("");
+		WRITE_BYTE(0);
 	MESSAGE_END();
 }
 
@@ -765,4 +791,12 @@ void CHalfLifeCaptureTheFlag::UpdateHud(int bluemode, int redmode, CBasePlayer *
 	{
 		GoToIntermission();
 	}
+}
+
+void CHalfLifeCaptureTheFlag::PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller, entvars_t *pInflictor )
+{
+	if ( m_DisableDeathPenalty )
+		return;
+
+	CHalfLifeMultiplay::PlayerKilled( pVictim, pKiller, pInflictor );
 }
