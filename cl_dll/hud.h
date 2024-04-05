@@ -765,6 +765,7 @@ private:
 	int m_iRedScore;
 	int m_iBlueMode;
 	int m_iRedMode;
+	float m_fFade;
 };
 
 typedef struct

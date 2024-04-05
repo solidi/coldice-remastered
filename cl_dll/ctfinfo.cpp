@@ -9,6 +9,7 @@ DECLARE_MESSAGE( m_CtfInfo, CtfInfo );
 
 int CHudCtfInfo::Init()
 {
+	m_fFade = 0;
 	m_iFlags |= HUD_ACTIVE;
 	HOOK_MESSAGE(CtfInfo);
 	gHUD.AddHudElem(this);
@@ -36,6 +37,9 @@ int CHudCtfInfo::MsgFunc_CtfInfo(const char *pszName,  int iSize, void *pbuf)
 	int redmode = READ_BYTE();
 	if (redmode != 255)
 		m_iRedMode = redmode;
+
+	m_fFade = 200;
+
 	return 1;
 }
 
@@ -47,14 +51,8 @@ int CHudCtfInfo::Draw(float flTime)
 	if (gHUD.m_Scoreboard.m_iShowscoresHeld)
 		return 1;
 
-	//if (gHUD.m_Health.m_iHealth <= 0)
-	//	return 1;
-
 	if (gHUD.m_iIntermission)
 		return 1;
-
-	//if (gHUD.m_iShowingWeaponMenu)
-	//	return 1;
 
 	if (gViewPort->IsScoreBoardVisible())
 		return 1;
@@ -62,11 +60,17 @@ int CHudCtfInfo::Draw(float flTime)
 	int r, g, b;
 	int y = (ScreenHeight - gHUD.m_iFontHeight - gHUD.m_iFontHeight / 2) - 64;
 	int x = 24;
+	int a = 0;
+
+	a = (int) fmax( MIN_ALPHA, m_fFade );
+
+	if (m_fFade > 0)
+		m_fFade -= (gHUD.m_flTimeDelta * 20);
 
 	// Red
 	{
 		UnpackRGB(r, g, b, RGB_REDISH);
-		ScaleColors(r, g, b, MIN_ALPHA );
+		ScaleColors(r, g, b, a);
 		switch (m_iRedMode)
 		{
 			case 0:
@@ -94,7 +98,7 @@ int CHudCtfInfo::Draw(float flTime)
 	// Blue
 	{
 		UnpackRGB(r, g, b, HudColor());
-		ScaleColors(r, g, b, MIN_ALPHA );
+		ScaleColors(r, g, b, a);
 		switch (m_iBlueMode)
 		{
 			case 0:
