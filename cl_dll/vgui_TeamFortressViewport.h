@@ -1735,7 +1735,7 @@ public:
 	}
 };
 
-#define MAX_MODES	10 // COLDSKULL + RANDOM
+#define MAX_MODES	11 // TEAMPLAY + RANDOM
 #define MAX_MAPS	30 // training2 (28) + RANDOM
 #define MAX_MUTATORS	56 // (54 + 1) + RANDOM
 

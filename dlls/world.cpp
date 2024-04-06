@@ -803,6 +803,7 @@ const char *szGameModeList [] =
 	"chilldemic",
 	"coldskull",
 	"ctc",
+	"ctf",
 	"gungame",
 	"jvs",
 	"snowball",

@@ -657,7 +657,7 @@ private:
 
 typedef struct {
 	float angle, distance, height;
-	bool special;
+	int special;
 } RADAR;
 
 #define MAX_RADAR_DOTS 64
@@ -750,6 +750,22 @@ private:
 	HSPRITE m_hMouseClick;
 	protip_s m_MessageQueue[3];
 	bool m_ShownTip[PROTIPS_AMT];
+};
+
+class CHudCtfInfo : public CHudBase
+{
+public:
+	int Init( void );
+	int VidInit( void );
+	int Draw(float flTime);
+	int MsgFunc_CtfInfo(const char *pszName,  int iSize, void *pbuf);
+
+private:
+	int m_iBlueScore;
+	int m_iRedScore;
+	int m_iBlueMode;
+	int m_iRedMode;
+	float m_fFade;
 };
 
 typedef struct
@@ -856,6 +872,7 @@ public:
 	CHudObjective	m_Objective;
 	CHudTimer	m_Timer;
 	CHudProTip	m_ProTip;
+	CHudCtfInfo m_CtfInfo;
 
 	void Init( void );
 	void VidInit( void );

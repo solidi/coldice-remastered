@@ -30,10 +30,6 @@ int CHudObjective::MsgFunc_Objective(const char *pszName,  int iSize, void *pbuf
 	strcpy(m_szInfoMessage, READ_STRING());
 	m_iPercent = READ_BYTE();
 	strcpy(m_szWinsMessage, READ_STRING());
-
-	//m_iRoundWins = READ_BYTE();
-	//m_iRoundPlays = READ_BYTE();
-
 	return 1;
 }
 

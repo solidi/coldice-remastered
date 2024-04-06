@@ -1,0 +1,802 @@
+/***
+*
+*	Copyright (c) 1996-2001, Valve LLC. All rights reserved.
+*	
+*	This product contains software technology licensed from Id 
+*	Software, Inc. ("Id Technology").  Id Technology (c) 1996 Id Software, Inc. 
+*	All Rights Reserved.
+*
+*   Use, distribution, and modification of this source code and/or resulting
+*   object code is restricted to non-commercial enhancements to products from
+*   Valve LLC.  All other use, distribution, or modification is prohibited
+*   without written permission from Valve LLC.
+*
+****/
+
+#include "extdll.h"
+#include "util.h"
+#include "cbase.h"
+#include "player.h"
+#include "weapons.h"
+#include "gamerules.h"
+#include "ctf_gamerules.h"
+#include "game.h"
+#include "items.h"
+
+extern int gmsgObjective;
+extern int gmsgScoreInfo;
+extern int gmsgItemPickup;
+extern int gmsgTeamNames;
+extern int gmsgTeamInfo;
+extern int gmsgPlayClientSound;
+extern int gmsgCtfInfo;
+
+#define TEAM_BLUE 0
+#define TEAM_RED 1
+
+enum CTF_FLAG
+{
+	ON_GROUND = 0,
+	NOT_CARRIED,
+	CARRIED,
+	WAVE_IDLE,
+	FLAG_POSITIONED
+};
+
+class CFlagCharm : public CBaseEntity
+{
+public:
+	static CFlagCharm *CreateFlag( Vector vecOrigin, int body );
+	void Precache( void );
+	void Spawn( void );
+	void EXPORT FlagTouch( CBaseEntity *pOther );
+	void EXPORT SolidThink( void );
+	void EXPORT ReturnThink( void );
+
+private:
+	float m_fReturnTime = 0;
+};
+
+void CFlagCharm::Precache( void )
+{
+	PRECACHE_MODEL("models/flag.mdl");
+	PRECACHE_SOUND("rune_pickup.wav");
+}
+
+CFlagCharm *CFlagCharm::CreateFlag( Vector vecOrigin, int body )
+{
+	CFlagCharm *pFlag = GetClassPtr( (CFlagCharm *)NULL );
+	UTIL_SetOrigin( pFlag->pev, vecOrigin );
+	pFlag->pev->angles = g_vecZero;
+	pFlag->Spawn();
+	pFlag->pev->body = body;
+	if (body == TEAM_RED)
+	{
+		pFlag->pev->rendercolor = Vector(255, 0, 0);
+		pFlag->pev->fuser4 = TEAM_RED + 2;
+	}
+	return pFlag;
+}
+
+void CFlagCharm::Spawn( void )
+{
+	Precache();
+	SET_MODEL(ENT(pev), "models/flag.mdl");
+
+	pev->classname = MAKE_STRING("flag");
+	pev->renderfx = kRenderFxGlowShell;
+	pev->renderamt = 5;
+	pev->rendercolor = Vector(0, 0, 255);
+	pev->fuser4 = TEAM_BLUE + 2;
+
+	pev->angles = g_vecZero;
+	pev->movetype = MOVETYPE_TOSS;
+	pev->solid = SOLID_NOT;
+	UTIL_SetOrigin( pev, pev->origin );
+
+	SetTouch( &CFlagCharm::FlagTouch );
+	SetThink( &CFlagCharm::SolidThink );
+	pev->nextthink = gpGlobals->time + 0.25;
+
+	pev->sequence = FLAG_POSITIONED;
+	pev->animtime = gpGlobals->time + RANDOM_FLOAT(0.0, 0.75);
+	pev->framerate = 1.0;
+}
+
+void CFlagCharm::SolidThink( void )
+{
+	pev->solid = SOLID_TRIGGER;
+	UTIL_SetSize(pev, Vector(-16, -16, 0), Vector(16, 16, 16));
+
+	SetThink( &CFlagCharm::ReturnThink );
+	pev->nextthink = gpGlobals->time + 0.1;
+}
+
+void CFlagCharm::ReturnThink( void )
+{
+	Vector vRedBase = ((CHalfLifeCaptureTheFlag *)g_pGameRules)->pRedBase->pev->origin;
+	Vector vBlueBase = ((CHalfLifeCaptureTheFlag *)g_pGameRules)->pBlueBase->pev->origin;
+	Vector returnOrigin = (pev->fuser4 - 2) == TEAM_RED ? vRedBase : vBlueBase;
+
+	if (!m_fReturnTime && !pev->aiment && pev->origin != returnOrigin)
+		m_fReturnTime = gpGlobals->time + 30.0;
+
+	if (m_fReturnTime && !pev->aiment && m_fReturnTime < gpGlobals->time)
+	{
+		EHANDLE pMyBase = ((CHalfLifeCaptureTheFlag *)g_pGameRules)->pBlueBase;
+		if (pev->fuser4 - 2 == TEAM_RED)
+			pMyBase = ((CHalfLifeCaptureTheFlag *)g_pGameRules)->pRedBase;
+		pMyBase->pev->iuser4 = TRUE;
+
+		if (pev->fuser4 - 2 == TEAM_RED)
+			((CHalfLifeCaptureTheFlag *)g_pGameRules)->UpdateHud(-1, 0);
+		else
+			((CHalfLifeCaptureTheFlag *)g_pGameRules)->UpdateHud(0, -1);
+
+		UTIL_SetOrigin(pev, returnOrigin);
+		pev->angles = g_vecZero;
+		m_fReturnTime = 0;
+	}
+
+	pev->nextthink = gpGlobals->time + 1.0;
+}
+
+void CFlagCharm::FlagTouch( CBaseEntity *pOther )
+{
+	// if it's not a player, ignore
+	if ( !pOther->IsPlayer() )
+		return;
+
+	if ( pOther->pev->deadflag != DEAD_NO )
+		return;
+
+	CBasePlayer *pPlayer = (CBasePlayer *)pOther;
+	if (!pPlayer->pFlag && pPlayer->m_fFlagTime < gpGlobals->time)
+	{
+		EHANDLE pMyBase = ((CHalfLifeCaptureTheFlag *)g_pGameRules)->pBlueBase;
+		if (pev->fuser4 - 2 == TEAM_RED)
+			pMyBase = ((CHalfLifeCaptureTheFlag *)g_pGameRules)->pRedBase;
+
+		// Flag pick up at base
+		if ((pPlayer->pev->fuser4 + 2) != pev->fuser4)
+		{
+			pMyBase->pev->iuser4 = FALSE;
+
+			pev->aiment = pOther->edict();
+			pPlayer->m_fFlagTime = gpGlobals->time + 1.0;
+			pPlayer->pFlag = this;
+			pev->movetype = MOVETYPE_FOLLOW;
+			pev->sequence = CARRIED;
+
+			if (!FBitSet(pPlayer->pev->flags, FL_FAKECLIENT))
+			{
+				MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, pPlayer->edict());
+					WRITE_STRING("You have the flag!");
+					WRITE_STRING(UTIL_VarArgs("Get it to %s base", (pPlayer->pev->fuser4 == TEAM_RED) ? "blue" : "red"));
+					WRITE_BYTE(0);
+				MESSAGE_END();
+
+				if (pPlayer->pev->fuser4 == TEAM_RED)
+					((CHalfLifeCaptureTheFlag *)g_pGameRules)->UpdateHud(1, -1, pPlayer);
+				else
+					((CHalfLifeCaptureTheFlag *)g_pGameRules)->UpdateHud(-1, 1, pPlayer);
+
+				for (int i = 1; i <= gpGlobals->maxClients; i++)
+				{
+					CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
+					if ( plr && plr->IsPlayer() && !plr->HasDisconnected )
+					{
+						if (!FBitSet(plr->pev->flags, FL_FAKECLIENT))
+						{
+							if (!plr->pFlag)
+							{
+								MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, plr->edict());
+									WRITE_STRING(UTIL_VarArgs("%s has the flag!", STRING(pPlayer->pev->netname)));
+									WRITE_STRING("");
+									WRITE_BYTE(0);
+								MESSAGE_END();
+							}
+						}
+					}
+				}
+			}
+
+			MESSAGE_BEGIN(MSG_BROADCAST, gmsgPlayClientSound);
+				WRITE_BYTE(CLIENT_SOUND_CTF_TAKEN);
+			MESSAGE_END();
+		}
+		// Returning
+		else if ((pPlayer->pev->fuser4 + 2) == pev->fuser4)
+		{
+			// Cannot touch same flag in its base
+			Vector vRedBase = ((CHalfLifeCaptureTheFlag *)g_pGameRules)->pRedBase->pev->origin;
+			Vector vBlueBase = ((CHalfLifeCaptureTheFlag *)g_pGameRules)->pBlueBase->pev->origin;
+			Vector og = (pev->fuser4 == TEAM_RED + 2) ? vRedBase : vBlueBase;
+			if (pev->origin != og)
+			{
+				ClientPrint(pPlayer->pev, HUD_PRINTCENTER, "You've returned the flag to base!");
+				EMIT_SOUND(pPlayer->edict(), CHAN_ITEM, "rune_pickup.wav", 1, ATTN_NORM);
+
+				pMyBase->pev->iuser4 = TRUE;
+
+				pPlayer->m_fFlagTime = gpGlobals->time + 1.0;
+				//pev->solid = SOLID_TRIGGER;
+				pev->movetype = MOVETYPE_TOSS;
+				pev->aiment = 0;
+				pev->sequence = FLAG_POSITIONED;
+				pev->angles = g_vecZero;
+				UTIL_SetOrigin(pev, og);
+
+				if (pev->fuser4 == TEAM_RED + 2)
+					((CHalfLifeCaptureTheFlag *)g_pGameRules)->UpdateHud(-1, 0);
+				else
+					((CHalfLifeCaptureTheFlag *)g_pGameRules)->UpdateHud(0, -1);
+			}
+		}
+	}
+}
+
+LINK_ENTITY_TO_CLASS( flag, CFlagCharm );
+
+// -------
+
+class CFlagBase : public CBaseEntity
+{
+public:
+	static CFlagBase *CreateFlagBase( Vector vecOrigin, int body );
+	void Precache( void );
+	void Spawn( void );
+	void EXPORT CTFTouch( CBaseEntity *pOther );
+	void SetFlag( BOOL flag );
+
+private:
+	float m_fNextTouch;
+};
+
+CFlagBase *CFlagBase::CreateFlagBase( Vector vecOrigin, int body )
+{
+	CFlagBase *pBase = GetClassPtr( (CFlagBase *)NULL );
+	UTIL_SetOrigin( pBase->pev, vecOrigin );
+	pBase->pev->angles = g_vecZero;
+	pBase->Spawn();
+	pBase->pev->body = body;
+	if (body == TEAM_RED)
+		pBase->pev->fuser4 = TEAM_RED + 2;
+	pBase->pev->iuser4 = TRUE; // mounted flag?
+	return pBase;
+}
+
+void CFlagBase::Precache( void )
+{
+	PRECACHE_MODEL("models/flagbase.mdl");
+	PRECACHE_SOUND("rune_pickup.wav");
+}
+
+void CFlagBase::Spawn( void )
+{
+	Precache();
+	SET_MODEL(ENT(pev), "models/flagbase.mdl");
+	pev->classname = MAKE_STRING("base");
+	pev->fuser4 = TEAM_BLUE + 2;
+
+	pev->angles.x = 0;
+	pev->angles.z = 0;
+	pev->movetype = MOVETYPE_TOSS;
+	pev->solid = SOLID_TRIGGER;
+	UTIL_SetSize(pev, Vector(-16, -16, 0), Vector(16, 16, 16));
+	UTIL_SetOrigin( pev, pev->origin );
+
+	SetTouch( &CFlagBase::CTFTouch );
+}
+
+void CFlagBase::CTFTouch( CBaseEntity *pOther )
+{
+	if (m_fNextTouch > gpGlobals->time)
+		return;
+
+	if ( !pOther->IsPlayer() )
+		return;
+
+	if ( pOther->pev->deadflag != DEAD_NO )
+		return;
+
+	CBasePlayer *pPlayer = (CBasePlayer *)pOther;
+
+	if (pPlayer && pPlayer->IsPlayer())
+	{
+		CBaseEntity *pFlag = pPlayer->pFlag;
+		if (pFlag && pPlayer->m_fFlagTime < gpGlobals->time)
+		{
+			// Capture
+			Vector vRedBase = ((CHalfLifeCaptureTheFlag *)g_pGameRules)->pRedBase->pev->origin;
+			Vector vBlueBase = ((CHalfLifeCaptureTheFlag *)g_pGameRules)->pBlueBase->pev->origin;
+			EHANDLE pOtherBase = ((CHalfLifeCaptureTheFlag *)g_pGameRules)->pRedBase;
+			if (pev->fuser4 - 2 == TEAM_RED)
+				pOtherBase = ((CHalfLifeCaptureTheFlag *)g_pGameRules)->pBlueBase;
+
+			// search for current flag, otherwise no score.
+			if (pFlag->pev->fuser4 != pev->fuser4 && pev->iuser4 == TRUE)
+			{
+				// Return flag state
+				int flagid = pFlag->pev->fuser4;
+				pOtherBase->pev->iuser4 = TRUE;
+
+				m_fNextTouch = gpGlobals->time + 1.0;
+				pPlayer->m_fFlagTime = gpGlobals->time + 1.0;
+
+				//pFlag->pev->solid = SOLID_TRIGGER;
+				pFlag->pev->movetype = MOVETYPE_TOSS;
+				pFlag->pev->aiment = 0;
+				pFlag->pev->sequence = FLAG_POSITIONED;
+				pFlag->pev->angles = g_vecZero;
+
+				UTIL_SetOrigin(pFlag->pev, (pFlag->pev->fuser4 == TEAM_RED + 2) ? vRedBase : vBlueBase);
+				pPlayer->pFlag = NULL;
+
+				for (int i = 1; i <= gpGlobals->maxClients; i++)
+				{
+					CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
+					if ( plr && plr->IsPlayer() && !plr->HasDisconnected )
+					{
+						if (!FBitSet(plr->pev->flags, FL_FAKECLIENT))
+						{
+							MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, plr->edict());
+								WRITE_STRING(UTIL_VarArgs("Capture the %s flag", (plr->pev->fuser4 == TEAM_RED) ? "blue" : "red"));
+								WRITE_STRING("");
+								WRITE_BYTE(0);
+							MESSAGE_END();
+						}
+					}
+				}
+
+				ClientPrint(pPlayer->pev, HUD_PRINTCENTER, "You've scored!");
+				UTIL_ClientPrintAll(HUD_PRINTTALK, "[CtF]: %s has scored a point for the %s team!\n", STRING(pPlayer->pev->netname), pPlayer->m_szTeamName);
+
+				MESSAGE_BEGIN(MSG_BROADCAST, gmsgPlayClientSound);
+					WRITE_BYTE(CLIENT_SOUND_CTF_CAPTURE);
+				MESSAGE_END();
+
+				pPlayer->Celebrate();
+
+				MESSAGE_BEGIN( MSG_ALL, gmsgScoreInfo );
+					WRITE_BYTE( ENTINDEX(pPlayer->edict()) );
+					WRITE_SHORT( pPlayer->pev->frags );
+					WRITE_SHORT( pPlayer->m_iDeaths );
+					WRITE_SHORT( ++pPlayer->m_iRoundWins );
+					WRITE_SHORT( g_pGameRules->GetTeamIndex( pPlayer->m_szTeamName ) + 1 );
+				MESSAGE_END();
+
+				if (flagid == TEAM_RED + 2)
+					((CHalfLifeCaptureTheFlag *)g_pGameRules)->UpdateHud(-1, 0);
+				else
+					((CHalfLifeCaptureTheFlag *)g_pGameRules)->UpdateHud(0, -1);
+			}
+		}
+	}
+}
+
+LINK_ENTITY_TO_CLASS( base, CFlagBase );
+
+// --------
+
+CHalfLifeCaptureTheFlag::CHalfLifeCaptureTheFlag()
+{
+	m_DisableDeathPenalty = FALSE;
+	pLastSpawnPoint = NULL;
+	m_fSpawnBlueHardware = gpGlobals->time + 2.0;
+	m_fSpawnRedHardware = gpGlobals->time + 2.0;
+	m_iBlueScore = m_iRedScore = m_iBlueMode = m_iRedMode = 0;
+	UTIL_PrecacheOther("flag");
+	UTIL_PrecacheOther("base");
+}
+
+BOOL CHalfLifeCaptureTheFlag::IsSpawnPointValid( CBaseEntity *pSpot )
+{
+	CBaseEntity *ent = NULL;
+
+	while ( (ent = UTIL_FindEntityInSphere( ent, pSpot->pev->origin, 1024 )) != NULL )
+	{
+		// Is another base in area
+		if (FClassnameIs(ent->pev, "base"))
+			return FALSE;
+	}
+
+	return TRUE;
+}
+
+edict_t *CHalfLifeCaptureTheFlag::EntSelectSpawnPoint( const char *szSpawnPoint )
+{
+	CBaseEntity *pSpot;
+
+	// choose a point
+	if ( g_pGameRules->IsDeathmatch() )
+	{
+		pSpot = pLastSpawnPoint;
+		// Randomize the start spot
+		for ( int i = RANDOM_LONG(1,5); i > 0; i-- )
+			pSpot = UTIL_FindEntityByClassname( pSpot, szSpawnPoint );
+		if ( FNullEnt( pSpot ) )  // skip over the null point
+			pSpot = UTIL_FindEntityByClassname( pSpot, szSpawnPoint );
+
+		CBaseEntity *pFirstSpot = pSpot;
+
+		do
+		{
+			if ( pSpot )
+			{
+				// check if pSpot is valid
+				if ( IsSpawnPointValid( pSpot ) )
+				{
+					// if so, go to pSpot
+					goto ReturnSpot;
+				}
+			}
+			// increment pSpot
+			pSpot = UTIL_FindEntityByClassname( pSpot, szSpawnPoint );
+		} while ( pSpot != pFirstSpot ); // loop if we're not back to the start
+
+		// we haven't found a place to spawn yet
+		if ( !FNullEnt( pSpot ) )
+		{
+			goto ReturnSpot;
+		}
+	}
+
+ReturnSpot:
+	if ( FNullEnt( pSpot ) )
+	{
+		ALERT(at_error, "no ctf spot on level");
+		return INDEXENT(0);
+	}
+
+	pLastSpawnPoint = pSpot;
+	return pSpot->edict();
+}
+
+void CHalfLifeCaptureTheFlag::InitHUD( CBasePlayer *pPlayer )
+{
+	CHalfLifeMultiplay::InitHUD( pPlayer );
+
+	// Random assign
+	pPlayer->pev->fuser4 = RANDOM_LONG(TEAM_BLUE, TEAM_RED);
+
+	if (pPlayer->pev->fuser4 == TEAM_BLUE)
+	{
+		strncpy( pPlayer->m_szTeamName, "blue", TEAM_NAME_LENGTH );
+		g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer->edict()),
+			g_engfuncs.pfnGetInfoKeyBuffer(pPlayer->edict()), "model", "iceman");
+		g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer->edict()),
+			g_engfuncs.pfnGetInfoKeyBuffer(pPlayer->edict()), "team", pPlayer->m_szTeamName);
+	}
+	else
+	{
+		strncpy( pPlayer->m_szTeamName, "red", TEAM_NAME_LENGTH );
+		g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer->edict()),
+			g_engfuncs.pfnGetInfoKeyBuffer(pPlayer->edict()), "model", "santa");
+		g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer->edict()),
+			g_engfuncs.pfnGetInfoKeyBuffer(pPlayer->edict()), "team", pPlayer->m_szTeamName);
+	}
+
+	char text[256];
+	sprintf( text, "* you are on team \'%s\'\n", pPlayer->m_szTeamName );
+	UTIL_SayText( text, pPlayer );
+
+	// notify everyone's HUD of the team change
+	MESSAGE_BEGIN( MSG_ALL, gmsgTeamInfo );
+		WRITE_BYTE( ENTINDEX(pPlayer->edict()) );
+		WRITE_STRING( pPlayer->m_szTeamName );
+	MESSAGE_END();
+
+	MESSAGE_BEGIN( MSG_ALL, gmsgScoreInfo );
+		WRITE_BYTE( ENTINDEX(pPlayer->edict()) );
+		WRITE_SHORT( pPlayer->pev->frags );
+		WRITE_SHORT( pPlayer->m_iDeaths );
+		WRITE_SHORT( pPlayer->m_iRoundWins );
+		WRITE_SHORT( g_pGameRules->GetTeamIndex( pPlayer->m_szTeamName ) + 1 );
+	MESSAGE_END();
+
+	if (!FBitSet(pPlayer->pev->flags, FL_FAKECLIENT))
+	{
+		MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, pPlayer->edict());
+			WRITE_STRING(UTIL_VarArgs("Capture the %s flag", (pPlayer->pev->fuser4 == TEAM_RED) ? "blue" : "red"));
+			WRITE_STRING("");
+			WRITE_BYTE(0);
+		MESSAGE_END();
+
+		MESSAGE_BEGIN(MSG_ONE, gmsgTeamNames, NULL, pPlayer->edict());
+			WRITE_BYTE( 2 );
+			WRITE_STRING( "blue" );
+			WRITE_STRING( "red" );
+		MESSAGE_END();
+
+		MESSAGE_BEGIN(MSG_ONE, gmsgCtfInfo, NULL, pPlayer->edict());
+			WRITE_BYTE(m_iBlueScore);
+			WRITE_BYTE(m_iRedScore);
+			WRITE_BYTE(m_iBlueMode);
+			WRITE_BYTE(m_iRedMode);
+		MESSAGE_END();
+	}
+
+/*
+	MESSAGE_BEGIN( MSG_ALL, gmsgTeamInfo );
+		WRITE_BYTE( ENTINDEX(pPlayer->edict()) );
+		WRITE_STRING( pPlayer->m_szTeamName );
+	MESSAGE_END();
+	*/
+}
+
+void CHalfLifeCaptureTheFlag::Think( void )
+{
+	CHalfLifeMultiplay::Think();
+
+	if (m_fSpawnBlueHardware != -1 && m_fSpawnBlueHardware < gpGlobals->time)
+	{
+		edict_t *pentSpawnSpot = EntSelectSpawnPoint(ctfspawn1.string);
+		CFlagCharm::CreateFlag(pentSpawnSpot->v.origin, TEAM_BLUE);
+		pBlueBase = CFlagBase::CreateFlagBase(pentSpawnSpot->v.origin, TEAM_BLUE);
+		m_fSpawnBlueHardware = -1;
+		UTIL_Remove(CBaseEntity::Instance(pentSpawnSpot));
+	}
+
+	if (m_fSpawnRedHardware != -1 && m_fSpawnRedHardware < gpGlobals->time)
+	{
+		edict_t *pentSpawnSpot2 = EntSelectSpawnPoint(ctfspawn2.string);
+		CFlagCharm::CreateFlag(pentSpawnSpot2->v.origin, TEAM_RED);
+		pRedBase = CFlagBase::CreateFlagBase(pentSpawnSpot2->v.origin, TEAM_RED);
+		m_fSpawnRedHardware = -1;
+		UTIL_Remove(CBaseEntity::Instance(pentSpawnSpot2));
+	}
+}
+
+void CHalfLifeCaptureTheFlag::PlayerSpawn( CBasePlayer *pPlayer )
+{
+	CHalfLifeMultiplay::PlayerSpawn(pPlayer);
+
+	pPlayer->GiveRandomWeapon("weapon_nuke");
+}
+
+int CHalfLifeCaptureTheFlag::GetTeamIndex( const char *pTeamName )
+{
+	if ( pTeamName && *pTeamName != 0 )
+	{
+		if (!strcmp(pTeamName, "red"))
+			return TEAM_RED;
+		else
+			return TEAM_BLUE;
+	}
+	
+	return -1;	// No match
+}
+
+int CHalfLifeCaptureTheFlag::PlayerRelationship( CBaseEntity *pPlayer, CBaseEntity *pTarget )
+{
+	if ( !pPlayer || (pTarget && !pTarget->IsPlayer()) )
+		return GR_NOTTEAMMATE;
+
+	if ( (*GetTeamID(pPlayer) != '\0') && (*GetTeamID(pTarget) != '\0') && 
+			!stricmp( GetTeamID(pPlayer), GetTeamID(pTarget) ) )
+	{
+		return GR_TEAMMATE;
+	}
+
+	return GR_NOTTEAMMATE;
+}
+
+const char *CHalfLifeCaptureTheFlag::GetTeamID( CBaseEntity *pEntity )
+{
+	if ( pEntity == NULL || pEntity->pev == NULL )
+		return "";
+
+	// return their team name
+	return pEntity->TeamID();
+}
+
+void CHalfLifeCaptureTheFlag::ClientUserInfoChanged( CBasePlayer *pPlayer, char *infobuffer )
+{
+	// prevent skin/color/model changes
+	char text[1024];
+	char *mdls = g_engfuncs.pfnInfoKeyValue( infobuffer, "model" );
+	int clientIndex = pPlayer->entindex();
+
+	// prevent skin/color/model changes
+	if ( !stricmp( "red", pPlayer->m_szTeamName ) && !stricmp( "santa", mdls ) )
+		return;
+	if ( !stricmp( "blue", pPlayer->m_szTeamName ) && !stricmp( "iceman", mdls ) )
+		return;
+
+	if ( stricmp( mdls, "iceman" ) && stricmp( mdls, "santa" ) )
+	{
+		g_engfuncs.pfnSetClientKeyValue( clientIndex, g_engfuncs.pfnGetInfoKeyBuffer( pPlayer->edict() ), "model", (char *)(pPlayer->pev->fuser4 == TEAM_RED ? "santa" : "iceman") );
+		sprintf( text, "* Can't change team to \'%s\'\n", mdls );
+		UTIL_SayText( text, pPlayer );
+		sprintf( text, "* Server limits teams to \'%s\'\n", "iceman (blue), santa (red)" );
+		UTIL_SayText( text, pPlayer );
+		return;
+	}
+
+	//m_DisableDeathMessages = TRUE;
+	m_DisableDeathPenalty = TRUE;
+
+	entvars_t *pevWorld = VARS( INDEXENT(0) );
+	pPlayer->TakeDamage( pevWorld, pevWorld, 900, DMG_ALWAYSGIB );
+
+	//m_DisableDeathMessages = FALSE;
+	m_DisableDeathPenalty = FALSE;
+
+	int id = TEAM_BLUE;
+	if ( !stricmp( mdls, "santa" ) )
+		id = TEAM_RED;
+	pPlayer->pev->fuser4 = id;
+
+	if (pPlayer->pev->fuser4 == TEAM_RED)
+	{
+		strncpy( pPlayer->m_szTeamName, "red", TEAM_NAME_LENGTH );
+		g_engfuncs.pfnSetClientKeyValue( clientIndex, g_engfuncs.pfnGetInfoKeyBuffer( pPlayer->edict() ), "model", "santa" );
+		g_engfuncs.pfnSetClientKeyValue( clientIndex, g_engfuncs.pfnGetInfoKeyBuffer( pPlayer->edict() ), "team", pPlayer->m_szTeamName );
+	}
+	else
+	{
+		strncpy( pPlayer->m_szTeamName, "blue", TEAM_NAME_LENGTH );
+		g_engfuncs.pfnSetClientKeyValue( clientIndex, g_engfuncs.pfnGetInfoKeyBuffer( pPlayer->edict() ), "model", "iceman" );
+		g_engfuncs.pfnSetClientKeyValue( clientIndex, g_engfuncs.pfnGetInfoKeyBuffer( pPlayer->edict() ), "team", pPlayer->m_szTeamName );
+	}
+
+	// notify everyone of the team change
+	sprintf( text, "[CtF]: %s has changed to team \'%s\'\n", STRING(pPlayer->pev->netname), pPlayer->m_szTeamName );
+	UTIL_SayTextAll( text, pPlayer );
+
+	// notify everyone's HUD of the team change
+	MESSAGE_BEGIN( MSG_ALL, gmsgTeamInfo );
+		WRITE_BYTE( ENTINDEX(pPlayer->edict()) );
+		WRITE_STRING( pPlayer->m_szTeamName );
+	MESSAGE_END();
+
+	MESSAGE_BEGIN( MSG_ALL, gmsgScoreInfo );
+		WRITE_BYTE( ENTINDEX(pPlayer->edict()) );
+		WRITE_SHORT( pPlayer->pev->frags );
+		WRITE_SHORT( pPlayer->m_iDeaths );
+		WRITE_SHORT( pPlayer->m_iRoundWins );
+		WRITE_SHORT( g_pGameRules->GetTeamIndex( pPlayer->m_szTeamName ) + 1 );
+	MESSAGE_END();
+
+	MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, pPlayer->edict());
+		WRITE_STRING(UTIL_VarArgs("Capture the %s flag", (pPlayer->pev->fuser4 == TEAM_RED) ? "blue" : "red"));
+		WRITE_STRING("");
+		WRITE_BYTE(0);
+	MESSAGE_END();
+}
+
+CBaseEntity *CHalfLifeCaptureTheFlag::DropCharm( CBasePlayer *pPlayer, Vector origin )
+{
+	CBaseEntity *pFlag = pPlayer->pFlag;
+
+	if (pFlag)
+	{
+		if (pFlag->pev->fuser4 == TEAM_RED + 2)
+			((CHalfLifeCaptureTheFlag *)g_pGameRules)->UpdateHud(-1, 2);
+		else
+			((CHalfLifeCaptureTheFlag *)g_pGameRules)->UpdateHud(2, -1);
+
+		//pFlag->pev->solid = SOLID_TRIGGER;
+		pFlag->pev->movetype = MOVETYPE_TOSS;
+		pFlag->pev->aiment = 0;
+		pFlag->pev->sequence = ON_GROUND;
+
+		origin.z -= 32;
+		UTIL_SetOrigin(pFlag->pev, origin);
+
+		pPlayer->m_fFlagTime = gpGlobals->time + 0.25;
+		pPlayer->pFlag = NULL;
+
+		CBasePlayer *pPlayerWithFlag = NULL;
+		for (int i = 1; i <= gpGlobals->maxClients; i++)
+		{
+			CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
+			if ( plr && plr->IsPlayer() && !plr->HasDisconnected && plr->pFlag )
+			{
+				pPlayerWithFlag = plr;
+				break;
+			}
+		}
+
+		for (int i = 1; i <= gpGlobals->maxClients; i++)
+		{
+			CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
+			if ( plr && plr->IsPlayer() && !plr->HasDisconnected && plr != pPlayerWithFlag )
+			{
+				if (!FBitSet(plr->pev->flags, FL_FAKECLIENT))
+				{
+					if (pPlayerWithFlag)
+					{
+						MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, plr->edict());
+							WRITE_STRING(UTIL_VarArgs("%s has the flag!", STRING(pPlayerWithFlag->pev->netname)));
+							WRITE_STRING("");
+							WRITE_BYTE(0);
+						MESSAGE_END();
+					}
+					else
+					{
+						MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, plr->edict());
+							WRITE_STRING(UTIL_VarArgs("Capture the %s flag", (plr->pev->fuser4 == TEAM_RED) ? "blue" : "red"));
+							WRITE_STRING("");
+							WRITE_BYTE(0);
+						MESSAGE_END();
+					}
+				}
+			}
+		}
+	}
+
+	return pFlag;
+}
+
+void CHalfLifeCaptureTheFlag::ClientDisconnected( edict_t *pClient )
+{
+	CHalfLifeMultiplay::ClientDisconnected( pClient );
+
+	if (pClient)
+	{
+		CBasePlayer *pPlayer = (CBasePlayer *)CBaseEntity::Instance(pClient);
+
+		if (pPlayer)
+			if (pPlayer->pFlag)
+				DropCharm(pPlayer, pPlayer->pev->origin);
+	}
+}
+
+void CHalfLifeCaptureTheFlag::UpdateHud(int bluemode, int redmode, CBasePlayer *pPlayer)
+{
+	int bluescore = 0;
+	int redscore = 0;
+
+	for (int i = 1; i <= gpGlobals->maxClients; i++)
+	{
+		CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
+		if ( plr && plr->IsPlayer() && !plr->HasDisconnected )
+		{
+			if (plr->pev->fuser4 == TEAM_RED)
+				redscore += plr->m_iRoundWins;
+			else
+				bluescore += plr->m_iRoundWins;
+		}
+	}
+
+	if (bluemode != -1)
+		m_iBlueMode = bluemode;
+	if (redmode != -1)
+		m_iRedMode = redmode;
+
+	m_iBlueScore = bluescore;
+	m_iRedScore = redscore;
+
+	for (int i = 1; i <= gpGlobals->maxClients; i++)
+	{
+		CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
+		if ( plr && plr->IsPlayer() && !plr->HasDisconnected )
+		{
+			if (!FBitSet(plr->pev->flags, FL_FAKECLIENT))
+			{
+				MESSAGE_BEGIN(MSG_ONE, gmsgCtfInfo, NULL, plr->edict());
+					WRITE_BYTE(m_iBlueScore);
+					WRITE_BYTE(m_iRedScore);
+					plr == pPlayer && plr->pev->fuser4 == TEAM_RED ? WRITE_BYTE(3) : WRITE_BYTE(bluemode);
+					plr == pPlayer && plr->pev->fuser4 == TEAM_BLUE ? WRITE_BYTE(3) : WRITE_BYTE(redmode);
+				MESSAGE_END();
+			}
+		}
+	}
+
+	// End session if hit round limit
+	if ( redscore >= roundlimit.value || bluescore >= roundlimit.value )
+	{
+		GoToIntermission();
+	}
+}
+
+void CHalfLifeCaptureTheFlag::PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller, entvars_t *pInflictor )
+{
+	if ( m_DisableDeathPenalty )
+		return;
+
+	CHalfLifeMultiplay::PlayerKilled( pVictim, pKiller, pInflictor );
+}

@@ -80,6 +80,7 @@ typedef enum
 	PLAYER_FRONT_FLIP,
 	PLAYER_HURRICANE_KICK,
 	PLAYER_PULL_UP,
+	PLAYER_CELEBRATE,
 } PLAYER_ANIM;
 
 #define MAX_ID_RANGE 2048
@@ -467,6 +468,11 @@ public:
 	EHANDLE pLastAssist;
 	int m_iAssists;
 
+	EHANDLE pFlag;
+	float m_fFlagTime;
+	float m_fCelebrateTime;
+	void Celebrate( void );
+
 	float m_fFeignTime;
 
 	void Taunt( void );
@@ -505,6 +511,8 @@ public:
 
 	BOOL m_iPlayMusic;
 };
+
+inline int FNullEnt( CBaseEntity *ent ) { return (ent == NULL) || FNullEnt( ent->edict() ); }
 
 #define AUTOAIM_2DEGREES  0.0348994967025
 #define AUTOAIM_5DEGREES  0.08715574274766
