@@ -251,6 +251,7 @@ void CHudStatusIcons::DrawMutators( void )
 	ToggleMutatorIcon(MUTATOR_TOILET, "toilet");
 	ToggleMutatorIcon(MUTATOR_RICOCHET, "ricochet");
 	ToggleMutatorIcon(MUTATOR_NOTIFY, "notify");
+	ToggleMutatorIcon(MUTATOR_CREDITS, "credits");
 }
 
 void CHudStatusIcons::ToggleMutatorIcon(int mutatorId, const char *mutator)

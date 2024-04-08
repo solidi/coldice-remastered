@@ -473,6 +473,9 @@ public:
 	float m_fCelebrateTime;
 	void Celebrate( void );
 
+	float m_fCreditsTime;
+	int m_iCreditMode;
+
 	float m_fFeignTime;
 
 	void Taunt( void );

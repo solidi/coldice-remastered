@@ -2754,6 +2754,42 @@ void CBasePlayer::PreThink(void)
 		Taunt();
 		m_fTauntTime = 0;
 	}
+
+	if (m_fCreditsTime && m_fCreditsTime < gpGlobals->time)
+	{
+		if (m_iCreditMode == 1)
+		{
+			MESSAGE_BEGIN( MSG_ONE, gmsgShowGameTitle, NULL, pev );
+				WRITE_BYTE( 0 );
+			MESSAGE_END();
+			m_fCreditsTime = gpGlobals->time + 6;
+			m_iCreditMode = 2;
+		}
+		else if (m_iCreditMode == 2)
+		{
+			UTIL_ShowMessage( "END1", this );
+			m_fCreditsTime = gpGlobals->time + 6;
+			m_iCreditMode = 3;
+		}
+		else if (m_iCreditMode == 3)
+		{
+			UTIL_ShowMessage( "END2", this );
+			m_fCreditsTime = gpGlobals->time + 6;
+			m_iCreditMode = 4;
+		}
+		else if (m_iCreditMode == 4)
+		{
+			UTIL_ShowMessage( "END3", this );
+			m_fCreditsTime = gpGlobals->time + 6;
+			m_iCreditMode = 5;
+		}
+		else if (m_iCreditMode == 5)
+		{
+			UTIL_ShowMessage( "END4", this );
+			m_fCreditsTime = gpGlobals->time + 6;
+			m_iCreditMode = 1;
+		}
+	}
 }
 /* Time based Damage works as follows: 
 	1) There are several types of timebased damage:
