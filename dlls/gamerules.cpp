@@ -42,6 +42,7 @@ extern DLL_GLOBAL BOOL	g_fGameOver;
 extern int gmsgDeathMsg;	// client dll messages
 extern int gmsgMOTD;
 extern int gmsgMutators;
+extern int gmsgShowGameTitle;
 
 int g_teamplay = 0;
 int g_ExplosiveAI = 0;
@@ -86,6 +87,7 @@ extern DLL_GLOBAL const char *g_MutatorAutoaim;
 extern DLL_GLOBAL const char *g_MutatorSantaHat;
 extern DLL_GLOBAL const char *g_MutatorToilet;
 extern DLL_GLOBAL const char *g_MutatorRicochet;
+extern DLL_GLOBAL const char *g_MutatorCredits;
 
 extern DLL_GLOBAL int g_GameMode;
 
@@ -100,6 +102,7 @@ DLL_GLOBAL const char *g_szMutators[] = {
 	"chumxplode",
 	"coolflesh",
 	"crate",
+	"credits",
 	"dontshoot",
 	"explosiveai",
 	"fastweapons",
@@ -814,6 +817,11 @@ const char *entityList[] =
 	"weaponbox",
 };
 
+BOOL CGameRules::CheckMutator(int id, const char *mutator)
+{
+	return strstr(mutators.string, mutator) || int(mutators.value) == id;
+}
+
 void CGameRules::CheckMutators(void)
 {
 	if ((strstr(mutators.string, g_MutatorChaos) ||
@@ -936,6 +944,16 @@ void CGameRules::CheckMutators(void)
 					strcpy(name, STRING(pl->pev->netname));
 					g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer->edict()), key, "oname", name);
 					g_engfuncs.pfnSetClientKeyValue(pl->entindex(), key, "name", "Jope");
+				}
+
+				if (CheckMutator(MUTATOR_CREDITS, g_MutatorCredits))
+				{
+					pl->m_iCreditMode = 1;
+					pl->m_fCreditsTime = gpGlobals->time;
+				}
+				else
+				{
+					pl->m_fCreditsTime = 0;
 				}
 			}
 

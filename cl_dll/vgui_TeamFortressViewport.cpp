@@ -207,6 +207,7 @@ char *sMutators[] = {
 	"chumxplode",
 	"coolflesh",
 	"crate",
+	"credits",
 	"dontshoot",
 	"explosiveai",
 	"fastweapons",

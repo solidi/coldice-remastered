@@ -1018,6 +1018,7 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_mutators \"chumxplode\"\" - a killer chumtoad appears directly after an explosion\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_mutators \"coolflesh\"\" - gibs stay longer, pick up gibs to eat and gain a healthkit worth of repair\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_mutators \"crate\"\" - boxwars in the 2020's.\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_mutators \"credits\"\" - show all contributors in an endless loop.\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_mutators \"dontshoot\"\" - firing any weapon will explode the player.\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_mutators \"explosiveai\"\" - AI blows up when it cannot find its next task\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_mutators \"fastweapons\"\" - all weapons are faster.\n");

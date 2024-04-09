@@ -176,6 +176,7 @@ public:
 	virtual void SpawnMutators( CBasePlayer *pPlayer );
 	virtual BOOL WeaponMutators( CBasePlayerWeapon *pWeapon );
 	virtual void GiveMutators( CBasePlayer *pPlayer );
+	virtual BOOL CheckMutator(int id, const char *mutator);
 	virtual void CheckMutators( void );
 	virtual void CheckGameMode( void );
 	virtual void UpdateMutatorMessage( CBasePlayer *pPlayer );
@@ -483,5 +484,5 @@ protected:
 };
 
 extern DLL_GLOBAL CGameRules*	g_pGameRules;
-#define MAX_MUTATORS 55
+#define MAX_MUTATORS 56
 extern const char *g_szMutators[MAX_MUTATORS];
