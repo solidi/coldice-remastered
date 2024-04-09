@@ -941,6 +941,10 @@ void UTIL_ShowMessage( const char *pString, CBaseEntity *pEntity )
 	if ( !pEntity || !pEntity->IsNetClient() )
 		return;
 
+	// No bots
+	if ( FBitSet(pEntity->pev->flags, FL_FAKECLIENT) )
+		return;
+
 	MESSAGE_BEGIN( MSG_ONE, gmsgHudText, NULL, pEntity->edict() );
 	WRITE_STRING( pString );
 	MESSAGE_END();
