@@ -36,17 +36,6 @@
 extern DLL_GLOBAL CGameRules	*g_pGameRules;
 extern DLL_GLOBAL BOOL	g_fGameOver;
 
-extern DLL_GLOBAL const char *g_MutatorInstaGib;
-extern DLL_GLOBAL const char *g_MutatorPlumber;
-extern DLL_GLOBAL const char *g_MutatorPaintball;
-extern DLL_GLOBAL const char *g_MutatorSuperJump;
-extern DLL_GLOBAL const char *g_MutatorLightsOut;
-extern DLL_GLOBAL const char *g_MutatorLoopback;
-extern DLL_GLOBAL const char *g_MutatorMaxPack;
-extern DLL_GLOBAL const char *g_MutatorPushy;
-extern DLL_GLOBAL const char *g_MutatorFastWeapons;
-extern DLL_GLOBAL const char *g_MutatorSlowWeapons;
-
 extern int gmsgDeathMsg;	// client dll messages
 extern int gmsgScoreInfo;
 extern int gmsgMOTD;
@@ -166,50 +155,56 @@ void CHalfLifeMultiplay::RefreshSkillData( void )
 	// Snowball
 	if (snowballfight.value)
 		gSkillData.plrDmgSnowball = 250;
-	
-	if (strstr(mutators.string, g_MutatorInstaGib) ||
+
+	// g_pGameRules not available
+	if (strstr(mutators.string, "instagib") ||
 		atoi(mutators.string) == MUTATOR_INSTAGIB)
-		gSkillData.plrDmgRailgun = 800;
+		gSkillData.plrDmgRailgun = 900;
 
-/*
-	// Not clear to some why weapons did not work
-	if (strstr(mutators.string, g_MutatorPaintball) ||
-		atoi(mutators.string) == MUTATOR_PAINTBALL)
+	// g_pGameRules not available
+	if (strstr(mutators.string, "goldenguns") ||
+		atoi(mutators.string) == MUTATOR_GOLDENGUNS)
 	{
-		float multiplier = 0.25;
-		gSkillData.plrDmg9MM *= multiplier;
-		gSkillData.plrDmg357 *= multiplier;
-		gSkillData.plrDmgSniperRifle *= multiplier;
-		gSkillData.plrDmgMP5 *= multiplier;
-		gSkillData.plrDmgM203Grenade *= multiplier;
-		gSkillData.plrDmgBuckshot *= multiplier;
-		gSkillData.plrDmgExpBuckshot *= multiplier;
-		gSkillData.plrDmgCrossbowClient *= multiplier;
-		gSkillData.plrDmgRPG *= multiplier;
-		gSkillData.plrDmgGauss *= multiplier;
-		gSkillData.plrDmgEgonNarrow *= multiplier;
-		gSkillData.plrDmgEgonWide *= multiplier;
-		gSkillData.plrDmgHandGrenade *= multiplier;
-		gSkillData.plrDmgSatchel *= multiplier;
-		gSkillData.plrDmgTripmine *= multiplier;
-		gSkillData.plrDmgVest *= multiplier;
-		gSkillData.plrDmgClusterGrenade *= multiplier;
-		gSkillData.plrDmgRailgun *= multiplier;
-		gSkillData.plrDmgFlak *= multiplier;
-		gSkillData.plrDmgFlakBomb *= multiplier;
-		gSkillData.plrDmgPlasma *= multiplier;
-	}
-*/
+		/* ??
+		float plrDmgKnife;
+		float plrDmgFlyingKnife;
+		float plrDmgFlyingCrowbar;
+		float chumtoadDmgBite;
+		float chumtoadDmgPop;
+		float plrDmgWrench;
+		float plrDmgFlyingWrench;
+		float plrDmgSnowball;
+		float plrDmgChainsaw;
+		float plrDmgGravityGun;
+		float plrDmgFlameThrower;
+		*/
 
-/*
-	// Reserve for rocket jumping, when we get there.
-	if (strstr(mutators.string, g_MutatorPushy) ||
-		atoi(mutators.string) == MUTATOR_PUSHY)
-	{
-		float multiplier = 0.10;
-		gSkillData.plrDmgRPG *= multiplier;
+		float damage = 900.0;
+		gSkillData.plrDmg9MM = damage;
+		gSkillData.plrDmg357 = damage;
+		gSkillData.plrDmgSniperRifle = damage;
+		gSkillData.plrDmgMP5 = damage;
+		gSkillData.plrDmgM203Grenade = damage;
+		gSkillData.plrDmgBuckshot = damage;
+		gSkillData.plrDmgExpBuckshot = damage;
+		gSkillData.plrDmgCrossbowClient = damage;
+		gSkillData.plrDmgRPG = damage;
+		gSkillData.plrDmgGauss = damage;
+		gSkillData.plrDmgEgonNarrow = damage;
+		gSkillData.plrDmgEgonWide = damage;
+		gSkillData.plrDmgHandGrenade = damage;
+		gSkillData.plrDmgSatchel = damage;
+		gSkillData.plrDmgTripmine = damage;
+		gSkillData.plrDmgVest = damage;
+		gSkillData.plrDmgClusterGrenade = damage;
+		gSkillData.plrDmgRailgun = damage;
+		gSkillData.plrDmgFlak = damage;
+		gSkillData.plrDmgFlakBomb = damage;
+		gSkillData.plrDmgPlasma = damage;
+		gSkillData.plrDmgKnifeSnipe = damage;
+		gSkillData.plrDmgNuke = damage;
+		gSkillData.plrDmgHornet = damage;
 	}
-*/
 }
 
 // longest the intermission can last, in seconds
@@ -1041,12 +1036,10 @@ BOOL CHalfLifeMultiplay::AllowMeleeDrop( void )
 
 float CHalfLifeMultiplay::WeaponMultipler( void )
 {
-	if ((strstr(mutators.string, g_MutatorFastWeapons) ||
-		atoi(mutators.string) == MUTATOR_FASTWEAPONS))
+	if (g_pGameRules->CheckMutator(MUTATOR_FASTWEAPONS))
 		return 0.33;
 
-	if ((strstr(mutators.string, g_MutatorSlowWeapons) ||
-		atoi(mutators.string) == MUTATOR_SLOWWEAPONS))
+	if (g_pGameRules->CheckMutator(MUTATOR_SLOWWEAPONS))
 		return 3;
 
 	return 1;
@@ -1382,8 +1375,7 @@ float CHalfLifeMultiplay :: FlPlayerFallDamage( CBasePlayer *pPlayer )
 	int iFallDamage = (int)falldamage.value;
 
 	// Mutators
-	if ((strstr(mutators.string, g_MutatorSuperJump) ||
-		atoi(mutators.string) == MUTATOR_SUPERJUMP))
+	if (g_pGameRules->CheckMutator(MUTATOR_SUPERJUMP))
 	{
 		return 0;
 	}
@@ -1418,8 +1410,7 @@ BOOL CHalfLifeMultiplay::FPlayerCanTakeDamage( CBasePlayer *pPlayer, CBaseEntity
 
 void CHalfLifeMultiplay :: PlayerThink( CBasePlayer *pPlayer )
 {
-	if (strstr(mutators.string, g_MutatorLightsOut) ||
-		atoi(mutators.string) == MUTATOR_LIGHTSOUT)
+	if (g_pGameRules->CheckMutator(MUTATOR_LIGHTSOUT))
 	{
 		// Everready
 		if (pPlayer->IsAlive())
@@ -1610,8 +1601,7 @@ void CHalfLifeMultiplay :: PlayerSpawn( CBasePlayer *pPlayer )
 					meleeWeapon = "weapon_chainsaw";
 				} else if (whichWeapon == 1) {
 					meleeWeapon = "weapon_knife";
-				} else if (whichWeapon == 2 && (!strstr(mutators.string, g_MutatorPlumber) &&
-					atoi(mutators.string) != MUTATOR_PLUMBER)) {
+				} else if (whichWeapon == 2 && !g_pGameRules->CheckMutator(MUTATOR_PLUMBER)) {
 					meleeWeapon = "weapon_wrench";
 				}
 			}
@@ -1744,8 +1734,7 @@ void CHalfLifeMultiplay :: PlayerKilled( CBasePlayer *pVictim, entvars_t *pKille
 			pKiller->health += 5;
 		}
 
-		if (strstr(mutators.string, g_MutatorLoopback) ||
-			atoi(mutators.string) == MUTATOR_LOOPBACK)
+		if (g_pGameRules->CheckMutator(MUTATOR_LOOPBACK))
 		{
 			MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
 				WRITE_BYTE( TE_TELEPORT	); 
@@ -2331,8 +2320,7 @@ BOOL CHalfLifeMultiplay::IsAllowedToSpawn( CBaseEntity *pEntity )
 	}
 
 /*
-	if ((strstr(mutators.string, g_MutatorInstaGib) ||
-		atoi(mutators.string) == MUTATOR_INSTAGIB) &&
+	if (g_pGameRules->CheckMutator(MUTATOR_INSTAGIB) &&
 		(strncmp(STRING(pEntity->pev->classname), "weapon_", 7) == 0 || strncmp(STRING(pEntity->pev->classname), "ammo_", 5) == 0))
 	{	
 		if (stricmp(STRING(pEntity->pev->classname), "weapon_railgun") == 0 ||
@@ -2350,8 +2338,7 @@ BOOL CHalfLifeMultiplay::IsAllowedToSpawn( CBaseEntity *pEntity )
 */
 
 /*
-	if ((strstr(mutators.string, g_MutatorPlumber) ||
-		atoi(mutators.string) == MUTATOR_PLUMBER) &&
+	if (g_pGameRules->CheckMutator(MUTATOR_PLUMBER) &&
 		(strncmp(STRING(pEntity->pev->classname), "weapon_", 7) == 0 || strncmp(STRING(pEntity->pev->classname), "ammo_", 5) == 0))
 	{	
 		if (stricmp(STRING(pEntity->pev->classname), "weapon_fists") == 0 ||
@@ -2457,8 +2444,7 @@ float CHalfLifeMultiplay::FlHEVChargerRechargeTime( void )
 //=========================================================
 int CHalfLifeMultiplay::DeadPlayerWeapons( CBasePlayer *pPlayer )
 {
-	if (strstr(mutators.string, g_MutatorMaxPack) ||
-		atoi(mutators.string) == MUTATOR_MAXPACK)
+	if (g_pGameRules->CheckMutator(MUTATOR_MAXPACK))
 		return GR_PLR_DROP_GUN_ALL;
 	else
 		return GR_PLR_DROP_GUN_ACTIVE;
@@ -2468,8 +2454,7 @@ int CHalfLifeMultiplay::DeadPlayerWeapons( CBasePlayer *pPlayer )
 //=========================================================
 int CHalfLifeMultiplay::DeadPlayerAmmo( CBasePlayer *pPlayer )
 {
-	if (strstr(mutators.string, g_MutatorMaxPack) ||
-		atoi(mutators.string) == MUTATOR_MAXPACK)
+	if (g_pGameRules->CheckMutator(MUTATOR_MAXPACK))
 		return GR_PLR_DROP_AMMO_ALL;
 	else
 		return GR_PLR_DROP_AMMO_ACTIVE;

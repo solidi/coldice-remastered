@@ -1737,7 +1737,7 @@ public:
 
 #define MAX_MODES	11 // TEAMPLAY + RANDOM
 #define MAX_MAPS	30 // training2 (28) + RANDOM
-#define MAX_MUTATORS	57 // (55 + 1) + RANDOM
+#define MAX_MUTATORS	MUTATOR_VOLATILE // (56 + 1) + RANDOM
 
 class CVoteGameplayPanel : public CMenuPanel
 {

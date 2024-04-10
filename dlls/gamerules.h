@@ -172,11 +172,10 @@ public:
 	virtual BOOL AllowGrapplingHook( CBasePlayer *pPlayer ) = FALSE;
 #endif
 
-	virtual BOOL MutatorEnabled( int mutator );
 	virtual void SpawnMutators( CBasePlayer *pPlayer );
 	virtual BOOL WeaponMutators( CBasePlayerWeapon *pWeapon );
 	virtual void GiveMutators( CBasePlayer *pPlayer );
-	virtual BOOL CheckMutator(int id, const char *mutator);
+	virtual BOOL CheckMutator(int mutatorId);
 	virtual void CheckMutators( void );
 	virtual void CheckGameMode( void );
 	virtual void UpdateMutatorMessage( CBasePlayer *pPlayer );
@@ -484,5 +483,5 @@ protected:
 };
 
 extern DLL_GLOBAL CGameRules*	g_pGameRules;
-#define MAX_MUTATORS 56
+#define MAX_MUTATORS MUTATOR_VOLATILE
 extern const char *g_szMutators[MAX_MUTATORS];

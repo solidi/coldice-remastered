@@ -36,11 +36,6 @@ extern int gmsgItemPickup;
 extern int gmsgStatusIcon;
 extern int g_ItemsExplode;
 
-extern DLL_GLOBAL const char *g_MutatorTurrets;
-extern DLL_GLOBAL const char *g_MutatorBarrels;
-extern DLL_GLOBAL const char *g_MutatorMegaSpeed;
-extern DLL_GLOBAL const char *g_MutatorPaintball;
-
 class CWorldItem : public CBaseEntity
 {
 public:
@@ -237,8 +232,7 @@ int CItem::TakeDamage( entvars_t* pevInflictor, entvars_t* pevAttacker, float fl
 		UTIL_TraceLine ( pev->origin, pev->origin + Vector ( 0, 0, -128 ), ignore_monsters, ENT(pev), &tr);
 		enum decal_e decal = DECAL_SCORCH1;
 		int index = RANDOM_LONG(0, 1);
-		if (strstr(mutators.string, g_MutatorPaintball) ||
-			atoi(mutators.string) == MUTATOR_PAINTBALL) {
+		if (g_pGameRules->CheckMutator(MUTATOR_PAINTBALL)) {
 			decal = DECAL_PAINTL1;
 			index = RANDOM_LONG(0, 7);
 		}
@@ -1212,8 +1206,7 @@ void CWorldRunes::CreateRune(char *sz_RuneClass)
 		ALERT (at_console, "%s did not spawn.\n", sz_RuneClass);
 	}
 
-	if (strstr(mutators.string, g_MutatorTurrets) ||
-		atoi(mutators.string) == MUTATOR_TURRETS) {
+	if (g_pGameRules->CheckMutator(MUTATOR_TURRETS)) {
 		m_pSpot = SelectSpawnPoint(pPlaces[RANDOM_LONG(0,ARRAYSIZE(pPlaces)-1)]);
 		if (m_pSpot)
 		{
@@ -1228,8 +1221,7 @@ void CWorldRunes::CreateRune(char *sz_RuneClass)
 		}
 	}
 
-	if (strstr(mutators.string, g_MutatorBarrels) ||
-		atoi(mutators.string) == MUTATOR_BARRELS) {
+	if (g_pGameRules->CheckMutator(MUTATOR_BARRELS)) {
 		m_pSpot = SelectSpawnPoint(pPlaces[RANDOM_LONG(0,ARRAYSIZE(pPlaces)-1)]);
 		if (m_pSpot)
 		{
@@ -1288,9 +1280,7 @@ void CWorldRunes::ResetPlayer(CBasePlayer *pPlayer)
 {
 	pPlayer->m_fHasRune = 0;
 	pPlayer->m_flRuneHealTime = 0;
-	if (!pPlayer->IsArmoredMan &&
-		!strstr(mutators.string, g_MutatorMegaSpeed) &&
-		atoi(mutators.string) != MUTATOR_MEGASPEED)
+	if (!pPlayer->IsArmoredMan && !g_pGameRules->CheckMutator(MUTATOR_MEGASPEED))
 		g_engfuncs.pfnSetPhysicsKeyValue( pPlayer->edict(), "haste", "0" );
 	pPlayer->pev->rendermode = kRenderNormal;
 	pPlayer->pev->renderfx = kRenderFxNone;

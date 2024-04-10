@@ -1434,6 +1434,9 @@ int CStudioModelRenderer::StudioDrawModel( int flags )
 		{
 			cl_entity_t *pTarget = gEngfuncs.GetLocalPlayer();
 
+			if (CheckMutator(MUTATOR_GOLDENGUNS))
+				m_pCurrentEntity->curstate.skin = SKIN_GOLD;
+
 			if ( pTarget && pTarget->curstate.renderfx == kRenderFxGlowShell )
 			{
 				m_pCurrentEntity->curstate.renderfx = kRenderFxGlowShell;

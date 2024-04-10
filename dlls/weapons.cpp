@@ -38,12 +38,6 @@
 extern CGraph	WorldGraph;
 extern int gEvilImpulse101;
 
-extern DLL_GLOBAL const char *g_MutatorInstaGib;
-extern DLL_GLOBAL const char *g_MutatorRockets;
-extern DLL_GLOBAL const char *g_MutatorGrenades;
-extern DLL_GLOBAL const char *g_MutatorSnowball;
-extern DLL_GLOBAL const char *g_MutatorPaintball;
-extern DLL_GLOBAL const char *g_MutatorRicochet;
 extern int g_ItemsExplode;
 
 #define NOT_USED 255
@@ -743,8 +737,7 @@ int CBasePlayerItem::TakeDamage( entvars_t* pevInflictor, entvars_t* pevAttacker
 		UTIL_TraceLine ( pev->origin, pev->origin + Vector ( 0, 0, -128 ), ignore_monsters, ENT(pev), &tr);
 		enum decal_e decal = DECAL_SCORCH1;
 		int index = RANDOM_LONG(0, 1);
-		if (strstr(mutators.string, g_MutatorPaintball) ||
-			atoi(mutators.string) == MUTATOR_PAINTBALL) {
+		if (g_pGameRules->CheckMutator(MUTATOR_PAINTBALL)) {
 			decal = DECAL_PAINTL1;
 			index = RANDOM_LONG(0, 7);
 		}
@@ -895,8 +888,7 @@ CBaseEntity* CBasePlayerItem::Respawn( void )
 			pNewWeapon = CBaseEntity::Create("weapon_snowball", g_pGameRules->VecWeaponRespawnSpot(this), pev->angles, pev->owner);
 		}
 	/*
-	} else if (strstr(mutators.string, g_MutatorInstaGib) ||
-		atoi(mutators.string) == MUTATOR_INSTAGIB) {
+	} else if (g_pGameRules->CheckMutator(MUTATOR_INSTAGIB)) {
 		if (strcmp(STRING(pev->classname), "ammo_gaussclip") != 0) {
 			pNewWeapon = CBaseEntity::Create("ammo_gaussclip", g_pGameRules->VecWeaponRespawnSpot(this), pev->angles, pev->owner);
 		}
@@ -1013,8 +1005,7 @@ BOOL CanAttack( float attack_time, float curtime, BOOL isPredicted )
 
 void CBasePlayerWeapon::ItemPostFrame( void )
 {
-	if (strstr(mutators.string, g_MutatorRicochet) ||
-		atoi(mutators.string) == MUTATOR_RICOCHET) {
+	if (g_pGameRules->CheckMutator(MUTATOR_RICOCHET)) {
 		if ((m_pPlayer->pev->button & IN_ATTACK) &&
 			CanAttack( m_flNextPrimaryAttack, gpGlobals->time, UseDecrement() ))
 		{
@@ -1656,8 +1647,7 @@ int CBasePlayerAmmo::TakeDamage( entvars_t* pevInflictor, entvars_t* pevAttacker
 		UTIL_TraceLine ( pev->origin, pev->origin + Vector ( 0, 0, -128 ), ignore_monsters, ENT(pev), &tr);
 		enum decal_e decal = DECAL_SCORCH1;
 		int index = RANDOM_LONG(0, 1);
-		if (strstr(mutators.string, g_MutatorPaintball) ||
-			atoi(mutators.string) == MUTATOR_PAINTBALL) {
+		if (g_pGameRules->CheckMutator(MUTATOR_PAINTBALL)) {
 			decal = DECAL_PAINTL1;
 			index = RANDOM_LONG(0, 7);
 		}
@@ -1967,8 +1957,7 @@ int CWeaponBox::TakeDamage( entvars_t* pevInflictor, entvars_t* pevAttacker, flo
 		UTIL_TraceLine ( pev->origin, pev->origin + Vector ( 0, 0, -128 ), ignore_monsters, ENT(pev), &tr);
 		enum decal_e decal = DECAL_SCORCH1;
 		int index = RANDOM_LONG(0, 1);
-		if (strstr(mutators.string, g_MutatorPaintball) ||
-			atoi(mutators.string) == MUTATOR_PAINTBALL) {
+		if (g_pGameRules->CheckMutator(MUTATOR_PAINTBALL)) {
 			decal = DECAL_PAINTL1;
 			index = RANDOM_LONG(0, 7);
 		}

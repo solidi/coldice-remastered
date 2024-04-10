@@ -22,8 +22,7 @@
 #include "game.h"
 #include "weapons.h"
 #include "monsters.h"
-
-extern DLL_GLOBAL const char *g_MutatorPaintball;
+#include "gamerules.h"
 
 #define SF_RANDOM		0x0001
 #define SF_BARREL		0x0002
@@ -314,8 +313,7 @@ void CBarrel::BarrelExplode( void ) {
 	UTIL_TraceLine ( pev->origin, pev->origin + Vector ( 0, 0, -128 ), ignore_monsters, ENT(pev), &tr);
 	enum decal_e decal = DECAL_SCORCH1;
 	int index = RANDOM_LONG(0, 1);
-	if (strstr(mutators.string, g_MutatorPaintball) ||
-		atoi(mutators.string) == MUTATOR_PAINTBALL) {
+	if (g_pGameRules->CheckMutator(MUTATOR_PAINTBALL)) {
 		decal = DECAL_PAINTL1;
 		index = RANDOM_LONG(0, 7);
 	}

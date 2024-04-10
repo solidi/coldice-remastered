@@ -31,8 +31,6 @@
 #define RAILGUN_PRIMARY_FIRE_VOLUME	450
 #define RAIL_BEAM_SPRITE "sprites/xbeam1.spr"
 
-extern DLL_GLOBAL const char *g_MutatorPaintball;
-
 enum railgun_e {
 	RAILGUN_IDLE = 0,
 	RAILGUN_IDLE2,
@@ -247,8 +245,7 @@ void CRailgun::Fire( Vector vecSrc, Vector vecDir, Vector effectSrc, float flDam
 			// Make some balls and a decal
 #ifndef CLIENT_DLL
 			int decal = DECAL_GUNSHOT1 + RANDOM_LONG(0,4);
-			if (strstr(mutators.string, g_MutatorPaintball) ||
-				atoi(mutators.string) == MUTATOR_PAINTBALL) {
+			if (g_pGameRules->CheckMutator(MUTATOR_PAINTBALL)) {
 				decal = DECAL_PAINT1 + RANDOM_LONG(0, 7);
 			}
 			UTIL_DecalTrace(&tr, decal);

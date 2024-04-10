@@ -57,8 +57,6 @@ extern DLL_GLOBAL BOOL		g_fGameOver;
 extern DLL_GLOBAL int		g_iSkillLevel;
 extern DLL_GLOBAL ULONG		g_ulFrameCount;
 
-extern DLL_GLOBAL const char *g_MutatorPaintball;
-
 extern void CopyToBodyQue(entvars_t* pev);
 extern int giPrecacheGrunt;
 extern int gmsgSayText;
@@ -1765,8 +1763,7 @@ int AddToFullPack( struct entity_state_s *state, int e, edict_t *ent, edict_t *h
 	CBaseEntity* entity = reinterpret_cast<CBaseEntity*>(GET_PRIVATE(ent));
 	if (entity != NULL)
 	{
-		if (strstr(mutators.string, g_MutatorPaintball) ||
-			atoi(mutators.string) == MUTATOR_PAINTBALL)
+		if (g_pGameRules->CheckMutator(MUTATOR_PAINTBALL))
 			entity->m_EFlags |= EFLAG_PAINTBALL;
 		else
 			entity->m_EFlags &= ~EFLAG_PAINTBALL;
