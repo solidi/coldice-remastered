@@ -27,11 +27,10 @@
 #include "soundent.h"
 #include "decals.h"
 #include "game.h"
+#include "gamerules.h"
 
 
 //===================grenade
-
-extern DLL_GLOBAL const char *g_MutatorPaintball, *g_MutatorChumXplode;
 
 LINK_ENTITY_TO_CLASS( grenade, CGrenade );
 
@@ -186,15 +185,13 @@ void CGrenade::Explode( TraceResult *pTrace, int bitsDamageType )
 
 	enum decal_e decal = DECAL_SCORCH1;
 	int index = RANDOM_LONG(0, 1);
-	if (strstr(mutators.string, g_MutatorPaintball) ||
-		atoi(mutators.string) == MUTATOR_PAINTBALL) {
+	if (g_pGameRules->CheckMutator(MUTATOR_PAINTBALL)) {
 		decal = DECAL_PAINTL1;
 		index = RANDOM_LONG(0, 7);
 	}
 	UTIL_DecalTrace( pTrace, decal + index);
 
-	if (strstr(mutators.string, g_MutatorChumXplode) ||
-		atoi(mutators.string) == MUTATOR_CHUMXPLODE)
+	if (g_pGameRules->CheckMutator(MUTATOR_CHUMXPLODE))
 	{
 		edict_t *owner = NULL;
 		if (pevOwner)

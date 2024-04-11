@@ -24,6 +24,7 @@
 #include <stdio.h>
 #include "parsemsg.h"
 #include "event_api.h"
+#include "vgui_TeamFortressViewport.h"
 
 DECLARE_MESSAGE( m_StatusIcons, StatusIcon );
 
@@ -198,60 +199,11 @@ void CHudStatusIcons::DisableIcon( char *pszIconName )
 
 void CHudStatusIcons::DrawMutators( void )
 {
-	ToggleMutatorIcon(MUTATOR_COOLFLESH, "coolflesh");
-	ToggleMutatorIcon(MUTATOR_SANTAHAT, "santahat");
-	ToggleMutatorIcon(MUTATOR_VOLATILE, "volatile");
-	ToggleMutatorIcon(MUTATOR_PORTAL, "portal");
-	ToggleMutatorIcon(MUTATOR_JOPE, "jope");
-	ToggleMutatorIcon(MUTATOR_PLUMBER, "plumber");
-	ToggleMutatorIcon(MUTATOR_INVERSE, "inverse");
-	ToggleMutatorIcon(MUTATOR_OLDTIME, "oldtime");
-	ToggleMutatorIcon(MUTATOR_SILDENAFIL, "sildenafil");
-	ToggleMutatorIcon(MUTATOR_GRAVITY, "astronaut");
-	ToggleMutatorIcon(MUTATOR_INVISIBLE, "invisible");
-	ToggleMutatorIcon(MUTATOR_GRENADES, "grenades");
-	ToggleMutatorIcon(MUTATOR_ROCKETS, "rockets");
-	ToggleMutatorIcon(MUTATOR_SPEEDUP, "speedup");
-	ToggleMutatorIcon(MUTATOR_CHUMXPLODE, "chumxplode");
-	ToggleMutatorIcon(MUTATOR_LONGJUMP, "longjump");
-	ToggleMutatorIcon(MUTATOR_SLOWBULLETS, "slowbullets");
-	ToggleMutatorIcon(MUTATOR_EXPLOSIVEAI, "explosiveai");
-	ToggleMutatorIcon(MUTATOR_PAINTBALL, "paintball");
-	ToggleMutatorIcon(MUTATOR_ITEMSEXPLODE, "itemsexplode");
-	ToggleMutatorIcon(MUTATOR_LIGHTSOUT, "lightsout");
-	ToggleMutatorIcon(MUTATOR_ICE, "ice");
-	ToggleMutatorIcon(MUTATOR_PUSHY, "pushy");
-	ToggleMutatorIcon(MUTATOR_SUPERJUMP, "superjump");
-	ToggleMutatorIcon(MUTATOR_BARRELS, "barrels");
-	ToggleMutatorIcon(MUTATOR_SANIC, "sanic");
-	ToggleMutatorIcon(MUTATOR_SANIC, "snowball");
-	ToggleMutatorIcon(MUTATOR_LOOPBACK, "loopback");
-	ToggleMutatorIcon(MUTATOR_TURRETS, "turrets");
-	ToggleMutatorIcon(MUTATOR_INFINITEAMMO, "infiniteammo");
-	ToggleMutatorIcon(MUTATOR_RANDOMWEAPON, "randomweapon");
-	ToggleMutatorIcon(MUTATOR_ROCKETCROWBAR, "rocketcrowbar");
-	ToggleMutatorIcon(MUTATOR_NOTTHEBEES, "notthebees");
-	ToggleMutatorIcon(MUTATOR_INSTAGIB, "instagib");
-	ToggleMutatorIcon(MUTATOR_MEGASPEED, "megarun");
-	ToggleMutatorIcon(MUTATOR_MAXPACK, "maxpack");
-	ToggleMutatorIcon(MUTATOR_BIGHEAD, "bighead");
-	ToggleMutatorIcon(MUTATOR_SLOWMO, "slowmo");
-	ToggleMutatorIcon(MUTATOR_DONTSHOOT, "dontshoot");
-	ToggleMutatorIcon(MUTATOR_999, "999");
-	ToggleMutatorIcon(MUTATOR_BERSERKER, "berserker");
-	ToggleMutatorIcon(MUTATOR_AUTOAIM, "autoaim");
-	ToggleMutatorIcon(MUTATOR_SLOWWEAPONS, "slowweapons");
-	ToggleMutatorIcon(MUTATOR_FASTWEAPONS, "fastweapons");
-	ToggleMutatorIcon(MUTATOR_JACK, "jack");
-	ToggleMutatorIcon(MUTATOR_PIRATEHAT, "piratehat");
-	ToggleMutatorIcon(MUTATOR_MARSHMELLO, "marshmellow");
-	ToggleMutatorIcon(MUTATOR_CRATE, "crate");
-	ToggleMutatorIcon(MUTATOR_PUMPKIN, "pumpkin");
-	ToggleMutatorIcon(MUTATOR_JEEPATHON, "jeepathon");
-	ToggleMutatorIcon(MUTATOR_TOILET, "toilet");
-	ToggleMutatorIcon(MUTATOR_RICOCHET, "ricochet");
-	ToggleMutatorIcon(MUTATOR_NOTIFY, "notify");
-	ToggleMutatorIcon(MUTATOR_CREDITS, "credits");
+	// No chaos or random.
+	for (int mutatorId = 1; mutatorId < (MAX_MUTATORS - 1); mutatorId++)
+	{
+		ToggleMutatorIcon(mutatorId, sMutators[mutatorId]);
+	}
 }
 
 void CHudStatusIcons::ToggleMutatorIcon(int mutatorId, const char *mutator)

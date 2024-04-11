@@ -44,9 +44,6 @@ DLL_GLOBAL edict_t				*g_pBodyQueueHead;
 CGlobalState					gGlobalState;
 extern DLL_GLOBAL	int			gDisplayTitle;
 
-DLL_GLOBAL extern const char *g_MutatorSuperJump;
-DLL_GLOBAL extern const char *g_MutatorLightsOut;
-DLL_GLOBAL extern const char *g_MutatorChaos;
 
 extern void W_Precache(void);
 
@@ -304,7 +301,7 @@ void CopyToBodyQue(entvars_t *pev)
 	pevHead->renderamt	= ENTINDEX( ENT( pev ) );
 
 	// Let them eat cake
-	if (g_pGameRules->MutatorEnabled(MUTATOR_RICOCHET))
+	if (g_pGameRules->CheckMutator(MUTATOR_RICOCHET))
 		pevHead->body		= pev->body;
 
 	pevHead->effects    = pev->effects | EF_NOINTERP;
@@ -622,8 +619,7 @@ void CWorld :: Precache( void )
 //
 
 	// 0 normal
-	if ((strstr(mutators.string, g_MutatorLightsOut) ||
-		atoi(mutators.string) == MUTATOR_LIGHTSOUT))
+	if (g_pGameRules->CheckMutator(MUTATOR_LIGHTSOUT))
 		LIGHT_STYLE(0, "b");
 	else
 		LIGHT_STYLE(0, "m");
@@ -738,8 +734,7 @@ void CWorld :: RandomizeMutators( void )
 {
 	char result[128] = {""};
 	int count = 0, attempts = 0;
-	if ((strstr(mutators.string, g_MutatorChaos) ||
-		atoi(mutators.string) == MUTATOR_CHAOS))
+	if (g_pGameRules->CheckMutator(MUTATOR_CHAOS))
 		strcat(result, "chaos");
 
 	while (count < 3 && attempts < 250)

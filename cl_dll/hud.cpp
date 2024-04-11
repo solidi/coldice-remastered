@@ -1017,7 +1017,12 @@ void ProTip(int id, const char *message)
 	gHUD.m_ProTip.AddMessage(id, message);
 }
 
-bool CheckMutator(int id, const char *mutator)
+bool CheckMutator(int mutatorId)
 {
-	return strstr(gHUD.szActiveMutators, mutator) || atoi(gHUD.szActiveMutators) == id;
+	const char *mutator = sMutators[mutatorId - 1];
+
+	// check queue or something?
+	return gHUD.szActiveMutators != NULL &&
+		strstr(gHUD.szActiveMutators, mutator) ||
+		int(gHUD.szActiveMutators) == mutatorId;
 }

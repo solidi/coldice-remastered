@@ -24,8 +24,7 @@
 #include "util.h"
 #include "cbase.h"
 #include "game.h"
-
-extern DLL_GLOBAL const char *g_MutatorLightsOut;
+#include "gamerules.h"
 
 class CLight : public CPointEntity
 {
@@ -171,8 +170,7 @@ void CEnvLight::KeyValue( KeyValueData* pkvd )
 
 		pkvd->fHandled = TRUE;
 
-		if ((strstr(mutators.string, g_MutatorLightsOut) ||
-			atoi(mutators.string) == MUTATOR_LIGHTSOUT))
+		if (g_pGameRules->CheckMutator(MUTATOR_LIGHTSOUT))
 		{
 			CVAR_SET_STRING("sv_skycolor_r", "0");
 			CVAR_SET_STRING("sv_skycolor_g", "0");

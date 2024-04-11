@@ -48,47 +48,6 @@ int g_teamplay = 0;
 int g_ExplosiveAI = 0;
 int g_ItemsExplode = 0;
 
-extern DLL_GLOBAL const char *g_MutatorChaos;
-extern DLL_GLOBAL const char *g_MutatorRocketCrowbar;
-extern DLL_GLOBAL const char *g_MutatorInstaGib;
-extern DLL_GLOBAL const char *g_MutatorVolatile;
-extern DLL_GLOBAL const char *g_MutatorPlumber;
-extern DLL_GLOBAL const char *g_MutatorPaintball;
-extern DLL_GLOBAL const char *g_MutatorSuperJump;
-extern DLL_GLOBAL const char *g_MutatorMegaSpeed;
-extern DLL_GLOBAL const char *g_MutatorLightsOut;
-extern DLL_GLOBAL const char *g_MutatorSlowmo;
-extern DLL_GLOBAL const char *g_MutatorIce;
-extern DLL_GLOBAL const char *g_MutatorTopsyTurvy;
-extern DLL_GLOBAL const char *g_MutatorBarrels;
-extern DLL_GLOBAL const char *g_MutatorLoopback;
-extern DLL_GLOBAL const char *g_MutatorMaxPack;
-extern DLL_GLOBAL const char *g_MutatorInfiniteAmmo;
-extern DLL_GLOBAL const char *g_MutatorRandomWeapon;
-extern DLL_GLOBAL const char *g_MutatorSpeedUp;
-extern DLL_GLOBAL const char *g_MutatorRockets;
-extern DLL_GLOBAL const char *g_MutatorGrenades;
-extern DLL_GLOBAL const char *g_MutatorSnowball;
-extern DLL_GLOBAL const char *g_MutatorPushy;
-extern DLL_GLOBAL const char *g_MutatorGravity;
-extern DLL_GLOBAL const char *g_MutatorInvisible;
-extern DLL_GLOBAL const char *g_MutatorPortal;
-extern DLL_GLOBAL const char *g_MutatorJope;
-extern DLL_GLOBAL const char *g_MutatorLongJump;
-extern DLL_GLOBAL const char *g_MutatorSlowBullets;
-extern DLL_GLOBAL const char *g_MutatorExplosiveAI;
-extern DLL_GLOBAL const char *g_MutatorItemsExplode;
-extern DLL_GLOBAL const char *g_MutatorNotTheBees;
-extern DLL_GLOBAL const char *g_MutatorDontShoot;
-extern DLL_GLOBAL const char *g_Mutator999;
-extern DLL_GLOBAL const char *g_MutatorBerserker;
-extern DLL_GLOBAL const char *g_MutatorJeepAThon;
-extern DLL_GLOBAL const char *g_MutatorAutoaim;
-extern DLL_GLOBAL const char *g_MutatorSantaHat;
-extern DLL_GLOBAL const char *g_MutatorToilet;
-extern DLL_GLOBAL const char *g_MutatorRicochet;
-extern DLL_GLOBAL const char *g_MutatorCredits;
-
 extern DLL_GLOBAL int g_GameMode;
 
 DLL_GLOBAL const char *g_szMutators[] = {
@@ -106,6 +65,7 @@ DLL_GLOBAL const char *g_szMutators[] = {
 	"dontshoot",
 	"explosiveai",
 	"fastweapons",
+	"goldenguns",
 	"grenades",
 	"ice",
 	"infiniteammo",
@@ -566,32 +526,28 @@ BOOL CGameRules::WeaponMutators( CBasePlayerWeapon *pWeapon )
 			}
 		}
 
-		if (strstr(mutators.string, g_MutatorRockets) ||
-			atoi(mutators.string) == MUTATOR_ROCKETS)
+		if (CheckMutator(MUTATOR_ROCKETS))
 		{
 			if (!pWeapon->m_bFired && RANDOM_LONG(0,10) == 2) {
 				pWeapon->ThrowRocket(FALSE);
 			}
 		}
 		
-		if (strstr(mutators.string, g_MutatorGrenades) ||
-			atoi(mutators.string) == MUTATOR_GRENADES)
+		if (CheckMutator(MUTATOR_GRENADES))
 		{
 			if (!pWeapon->m_bFired && RANDOM_LONG(0,10) == 2) {
 				pWeapon->ThrowGrenade(FALSE);
 			}
 		}
 		
-		if (strstr(mutators.string, g_MutatorSnowball) ||
-			atoi(mutators.string) == MUTATOR_SNOWBALL)
+		if (CheckMutator(MUTATOR_SNOWBALL))
 		{
 			if (!pWeapon->m_bFired && RANDOM_LONG(0,10) == 2) {
 				pWeapon->ThrowSnowball(FALSE);
 			}
 		}
 
-		if (strstr(mutators.string, g_MutatorPushy) ||
-			atoi(mutators.string) == MUTATOR_PUSHY)
+		if (CheckMutator(MUTATOR_PUSHY))
 		{
 			UTIL_MakeVectors( pWeapon->m_pPlayer->pev->v_angle );
 			pWeapon->m_pPlayer->pev->velocity = pWeapon->m_pPlayer->pev->velocity - gpGlobals->v_forward * RANDOM_FLOAT(50,100) * 5;
@@ -601,52 +557,30 @@ BOOL CGameRules::WeaponMutators( CBasePlayerWeapon *pWeapon )
 	return TRUE;
 }
 
-BOOL CGameRules::MutatorEnabled(int mutator)
-{
-	if (mutator == atoi(mutators.string))
-		return TRUE;
-
-	switch (mutator)
-	{
-		case MUTATOR_RICOCHET:
-			if (strstr(mutators.string, g_MutatorRicochet))
-				return TRUE;
-			break;
-	}
-
-	return FALSE;
-}
-
 void CGameRules::SpawnMutators(CBasePlayer *pPlayer)
 {
-	if (strstr(mutators.string, g_MutatorTopsyTurvy) ||
-		atoi(mutators.string) == MUTATOR_TOPSYTURVY)
+	if (CheckMutator(MUTATOR_TOPSYTURVY))
 		g_engfuncs.pfnSetPhysicsKeyValue(pPlayer->edict(), "topsy", "1");
 	else
 		g_engfuncs.pfnSetPhysicsKeyValue(pPlayer->edict(), "topsy", "0");
 
-	if ((strstr(mutators.string, g_MutatorMegaSpeed) ||
-		atoi(mutators.string) == MUTATOR_MEGASPEED))
+	if (CheckMutator(MUTATOR_MEGASPEED))
 		g_engfuncs.pfnSetPhysicsKeyValue(pPlayer->edict(), "haste", "1");
 
-	if ((strstr(mutators.string, g_MutatorIce) ||
-		atoi(mutators.string) == MUTATOR_ICE))
+	if (CheckMutator(MUTATOR_ICE))
 		pPlayer->pev->friction = 0.3;
 
-	if ((strstr(mutators.string, g_MutatorLightsOut) ||
-		atoi(mutators.string) == MUTATOR_LIGHTSOUT))
+	if (CheckMutator(MUTATOR_LIGHTSOUT))
 		pPlayer->FlashlightTurnOn();
 
-	if (strstr(mutators.string, g_MutatorSantaHat) ||
-		atoi(mutators.string) == MUTATOR_SANTAHAT)
+	if (CheckMutator(MUTATOR_SANTAHAT))
 		pPlayer->m_flNextSantaSound = gpGlobals->time + RANDOM_FLOAT(10,15);
 	else
 		pPlayer->m_flNextSantaSound = 0;
 
 	GiveMutators(pPlayer);
 
-	if (strstr(mutators.string, g_MutatorInvisible) ||
-		atoi(mutators.string) == MUTATOR_INVISIBLE) {
+	if (CheckMutator(MUTATOR_INVISIBLE)) {
 		if (pPlayer->pev->renderfx == kRenderFxGlowShell)
 			pPlayer->pev->renderfx = kRenderFxNone;
 		if (pPlayer->pev->rendermode != kRenderTransAlpha)
@@ -661,15 +595,13 @@ void CGameRules::SpawnMutators(CBasePlayer *pPlayer)
 	if (randomweapon.value)
 		pPlayer->GiveRandomWeapon(NULL);
 
-	if (strstr(mutators.string, g_Mutator999) ||
-		atoi(mutators.string) == MUTATOR_999) {
+	if (CheckMutator(MUTATOR_999)) {
 		pPlayer->pev->max_health = 999;
 		pPlayer->pev->health = 999;
 		pPlayer->pev->armorvalue = 999;
 	}
 
-	if (strstr(mutators.string, g_MutatorJeepAThon) ||
-		atoi(mutators.string) == MUTATOR_JEEPATHON) {
+	if (CheckMutator(MUTATOR_JEEPATHON)) {
 		if (!pPlayer->IsObserver())
 		{
 			pPlayer->pev->body = 0;
@@ -679,8 +611,7 @@ void CGameRules::SpawnMutators(CBasePlayer *pPlayer)
 		}
 	}
 
-	if (strstr(mutators.string, g_MutatorToilet) ||
-		atoi(mutators.string) == MUTATOR_TOILET) {
+	if (CheckMutator(MUTATOR_TOILET)) {
 		if (!pPlayer->IsObserver())
 		{
 			pPlayer->pev->body = 0;
@@ -699,7 +630,7 @@ void CGameRules::SpawnMutators(CBasePlayer *pPlayer)
 	}
 
 	// For decap reset
-	if (MutatorEnabled(MUTATOR_RICOCHET))
+	if (CheckMutator(MUTATOR_RICOCHET))
 		pPlayer->pev->body = 0;
 }
 
@@ -708,45 +639,38 @@ void CGameRules::GiveMutators(CBasePlayer *pPlayer)
 	if (!pPlayer->IsAlive())
 		return;
 
-	if (strstr(mutators.string, g_MutatorRocketCrowbar) ||
-		atoi(mutators.string) == MUTATOR_ROCKETCROWBAR) {
+	if (CheckMutator(MUTATOR_ROCKETCROWBAR)) {
 		if (!pPlayer->HasNamedPlayerItem("weapon_rocketcrowbar"))
 			pPlayer->GiveNamedItem("weapon_rocketcrowbar");
 	}
 
-	if (strstr(mutators.string, g_MutatorInstaGib) ||
-		atoi(mutators.string) == MUTATOR_INSTAGIB) {
+	if (CheckMutator(MUTATOR_INSTAGIB)) {
 		if (!pPlayer->HasNamedPlayerItem("weapon_dual_railgun"))
 			pPlayer->GiveNamedItem("weapon_dual_railgun");
 		pPlayer->GiveAmmo(URANIUM_MAX_CARRY, "uranium", URANIUM_MAX_CARRY);
 	}
 
-	if (strstr(mutators.string, g_MutatorPlumber) ||
-		atoi(mutators.string) == MUTATOR_PLUMBER) {
+	if (CheckMutator(MUTATOR_PLUMBER)) {
 		if (!pPlayer->HasNamedPlayerItem("weapon_dual_wrench"))
 			pPlayer->GiveNamedItem("weapon_dual_wrench");
 	}
 
-	if (strstr(mutators.string, g_MutatorBarrels) ||
-		atoi(mutators.string) == MUTATOR_BARRELS) {
+	if (CheckMutator(MUTATOR_BARRELS)) {
 		if (!pPlayer->HasNamedPlayerItem("weapon_gravitygun"))
 			pPlayer->GiveNamedItem("weapon_gravitygun");
 	}
 
-	if (strstr(mutators.string, g_MutatorPortal) ||
-		atoi(mutators.string) == MUTATOR_PORTAL) {
+	if (CheckMutator(MUTATOR_PORTAL)) {
 		if (!pPlayer->HasNamedPlayerItem("weapon_ashpod"))
 			pPlayer->GiveNamedItem("weapon_ashpod");
 	}
 
-	if (strstr(mutators.string, g_MutatorLongJump) ||
-		atoi(mutators.string) == MUTATOR_LONGJUMP) {
+	if (CheckMutator(MUTATOR_LONGJUMP)) {
 		if (!pPlayer->m_fLongJump && (pPlayer->pev->weapons & (1<<WEAPON_SUIT)))
 			pPlayer->GiveNamedItem("item_longjump");
 	}
 
-	if (strstr(mutators.string, g_MutatorBerserker) ||
-		atoi(mutators.string) == MUTATOR_BERSERKER) {
+	if (CheckMutator(MUTATOR_BERSERKER)) {
 		if (!pPlayer->HasNamedPlayerItem("weapon_chainsaw"))
 			pPlayer->GiveNamedItem("weapon_chainsaw");
 	}
@@ -817,15 +741,16 @@ const char *entityList[] =
 	"weaponbox",
 };
 
-BOOL CGameRules::CheckMutator(int id, const char *mutator)
+BOOL CGameRules::CheckMutator(int mutatorId)
 {
-	return strstr(mutators.string, mutator) || int(mutators.value) == id;
+	const char *mutator = g_szMutators[mutatorId - 1];
+	// check queue or something?
+	return strstr(mutators.string, mutator) || int(mutators.value) == mutatorId;
 }
 
 void CGameRules::CheckMutators(void)
 {
-	if ((strstr(mutators.string, g_MutatorChaos) ||
-		atoi(mutators.string) == MUTATOR_CHAOS))
+	if (CheckMutator(MUTATOR_CHAOS))
 	{
 		// Reset if going long
 		if (m_flChaosCheck > (gpGlobals->time + chaostime.value))
@@ -854,13 +779,11 @@ void CGameRules::CheckMutators(void)
 	{
 		RefreshSkillData();
 
-		if ((strstr(mutators.string, g_MutatorSlowmo) ||
-			atoi(mutators.string) == MUTATOR_SLOWMO) && CVAR_GET_FLOAT("sys_timescale") != 0.49f)
+		if (CheckMutator(MUTATOR_SLOWMO) && CVAR_GET_FLOAT("sys_timescale") != 0.49f)
 			CVAR_SET_FLOAT("sys_timescale", 0.49);
 		else
 		{
-			if ((!strstr(mutators.string, g_MutatorSlowmo) &&
-				atoi(mutators.string) != MUTATOR_SLOWMO) &&
+			if (!CheckMutator(MUTATOR_SLOWMO) &&
 				CVAR_GET_FLOAT("sys_timescale") > 0.48f && CVAR_GET_FLOAT("sys_timescale") < 0.50f)
 				CVAR_SET_FLOAT("sys_timescale", 1.0);
 		}
@@ -880,8 +803,7 @@ void CGameRules::CheckMutators(void)
 
 		int toggleFlashlight = 0;
 
-		if ((strstr(mutators.string, g_MutatorLightsOut) ||
-			atoi(mutators.string) == MUTATOR_LIGHTSOUT))
+		if (CheckMutator(MUTATOR_LIGHTSOUT))
 		{
 			LIGHT_STYLE(0, "b");
 			if (flashlight.value != 1)
@@ -924,8 +846,7 @@ void CGameRules::CheckMutators(void)
 		}
 		else
 		{
-			if (strstr(mutators.string, g_MutatorJope) ||
-				atoi(mutators.string) == MUTATOR_JOPE) {
+			if (CheckMutator(MUTATOR_JOPE)) {
 				m_JopeCheck = TRUE;
 				UTIL_ClientPrintAll(HUD_PRINTCENTER, "You've been JOPED!\n");
 			}
@@ -946,7 +867,7 @@ void CGameRules::CheckMutators(void)
 					g_engfuncs.pfnSetClientKeyValue(pl->entindex(), key, "name", "Jope");
 				}
 
-				if (CheckMutator(MUTATOR_CREDITS, g_MutatorCredits))
+				if (CheckMutator(MUTATOR_CREDITS))
 				{
 					pl->m_iCreditMode = 1;
 					pl->m_fCreditsTime = gpGlobals->time;
@@ -961,42 +882,36 @@ void CGameRules::CheckMutators(void)
 			{
 				pl->m_iShowMutatorMessage = gpGlobals->time + 2.0;
 
-				if (strstr(mutators.string, g_MutatorTopsyTurvy) ||
-					atoi(mutators.string) == MUTATOR_TOPSYTURVY) {
+				if (CheckMutator(MUTATOR_TOPSYTURVY)) {
 					g_engfuncs.pfnSetPhysicsKeyValue(pPlayer->edict(), "topsy", "1");
 				} else {
 					g_engfuncs.pfnSetPhysicsKeyValue(pPlayer->edict(), "topsy", "0");
 				}
 
-				if ((strstr(mutators.string, g_MutatorIce) ||
-					atoi(mutators.string) == MUTATOR_ICE))
+				if (CheckMutator(MUTATOR_ICE))
 					pPlayer->pev->friction = 0.3;
 				else if (pPlayer->pev->friction > 0.2 && pPlayer->pev->friction < 0.4)
 					pPlayer->pev->friction = 1.0;
 
-				if ((strstr(mutators.string, g_MutatorMegaSpeed) ||
-					atoi(mutators.string) == MUTATOR_MEGASPEED))
+				if (CheckMutator(MUTATOR_MEGASPEED))
 					g_engfuncs.pfnSetPhysicsKeyValue(pPlayer->edict(), "haste", "1");
 				else if (((CBasePlayer *)pPlayer)->m_fHasRune != RUNE_HASTE &&
 						 !((CBasePlayer *)pPlayer)->IsArmoredMan &&
 						 ((CBasePlayer *)pPlayer)->pev->fuser4 != 1)
 					g_engfuncs.pfnSetPhysicsKeyValue(pPlayer->edict(), "haste", "0");
 
-				if (!strstr(mutators.string, g_MutatorAutoaim) &&
-					atoi(mutators.string) != MUTATOR_AUTOAIM) {
+				if (!CheckMutator(MUTATOR_AUTOAIM)) {
 					pl->ResetAutoaim();
 				}
 
-				if (strstr(mutators.string, g_MutatorSantaHat) ||
-					atoi(mutators.string) == MUTATOR_SANTAHAT)
+				if (CheckMutator(MUTATOR_SANTAHAT))
 					pl->m_flNextSantaSound = gpGlobals->time + RANDOM_FLOAT(10,15);
 				else
 					pl->m_flNextSantaSound = 0;
 
 				GiveMutators(pl);
 
-				if (strstr(mutators.string, g_MutatorInvisible) ||
-					atoi(mutators.string) == MUTATOR_INVISIBLE) {
+				if (CheckMutator(MUTATOR_INVISIBLE)) {
 					if (pPlayer->pev->renderfx == kRenderFxGlowShell)
 						pPlayer->pev->renderfx = kRenderFxNone;
 					if (pl->pev->rendermode != kRenderTransAlpha)
@@ -1019,8 +934,7 @@ void CGameRules::CheckMutators(void)
 						pl->FlashlightTurnOff();
 				}
 
-				if (strstr(mutators.string, g_Mutator999) ||
-					atoi(mutators.string) == MUTATOR_999) {
+				if (CheckMutator(MUTATOR_999)) {
 					pl->pev->max_health = 999;
 					pl->pev->health = 999;
 					pl->pev->armorvalue = 999;
@@ -1034,8 +948,7 @@ void CGameRules::CheckMutators(void)
 						pl->pev->armorvalue = 100;
 				}
 
-				if (strstr(mutators.string, g_MutatorJeepAThon) ||
-					atoi(mutators.string) == MUTATOR_JEEPATHON) {
+				if (CheckMutator(MUTATOR_JEEPATHON)) {
 					if (!pl->IsObserver())
 					{
 						pl->pev->body = 0;
@@ -1043,8 +956,7 @@ void CGameRules::CheckMutators(void)
 					}
 				}
 
-				if (strstr(mutators.string, g_MutatorToilet) ||
-					atoi(mutators.string) == MUTATOR_TOILET) {
+				if (CheckMutator(MUTATOR_TOILET)) {
 					if (!pl->IsObserver())
 					{
 						pl->pev->body = 0;
@@ -1062,94 +974,78 @@ void CGameRules::CheckMutators(void)
 					}
 				}
 
-				if (!strstr(mutators.string, g_MutatorJeepAThon) && !strstr(mutators.string, g_MutatorToilet) &&
-					atoi(mutators.string) != MUTATOR_TOILET && atoi(mutators.string) != MUTATOR_JEEPATHON)
+				if (!CheckMutator(MUTATOR_JEEPATHON) && !CheckMutator(MUTATOR_TOILET))
 				{
 					pl->pev->body = 0;
 				}
 			}
 
-			if ((strstr(mutators.string, g_MutatorSuperJump) ||
-				atoi(mutators.string) == MUTATOR_SUPERJUMP) && CVAR_GET_FLOAT("sv_jumpheight") != 299)
+			if (CheckMutator(MUTATOR_SUPERJUMP) && CVAR_GET_FLOAT("sv_jumpheight") != 299)
 			{
 				CVAR_SET_FLOAT("sv_jumpheight", 299);
 			}
 			else
 			{
-				if ((!strstr(mutators.string, g_MutatorSuperJump) &&
-					atoi(mutators.string) != MUTATOR_SUPERJUMP) && CVAR_GET_FLOAT("sv_jumpheight") == 299)
+				if (!CheckMutator(MUTATOR_SUPERJUMP) && CVAR_GET_FLOAT("sv_jumpheight") == 299)
 					CVAR_SET_FLOAT("sv_jumpheight", 45);
 			}
 
-			if ((strstr(mutators.string, g_MutatorGravity) ||
-				atoi(mutators.string) == MUTATOR_GRAVITY) && CVAR_GET_FLOAT("sv_gravity") != 199)
+			if (CheckMutator(MUTATOR_GRAVITY) && CVAR_GET_FLOAT("sv_gravity") != 199)
 			{
 				CVAR_SET_FLOAT("sv_gravity", 199);
 			}
 			else
 			{
-				if ((!strstr(mutators.string, g_MutatorGravity) &&
-					atoi(mutators.string) != MUTATOR_GRAVITY) && CVAR_GET_FLOAT("sv_gravity") == 199)
+				if (!CheckMutator(MUTATOR_GRAVITY) && CVAR_GET_FLOAT("sv_gravity") == 199)
 					CVAR_SET_FLOAT("sv_gravity", 800);
 			}
 
-			if ((strstr(mutators.string, g_MutatorInfiniteAmmo) ||
-				atoi(mutators.string) == MUTATOR_INFINITEAMMO) && infiniteammo.value != 1)
+			if (CheckMutator(MUTATOR_INFINITEAMMO) && infiniteammo.value != 1)
 				CVAR_SET_FLOAT("sv_infiniteammo", 2);
 			else
 			{
-				if ((!strstr(mutators.string, g_MutatorInfiniteAmmo) &&
-					atoi(mutators.string) != MUTATOR_INFINITEAMMO) && infiniteammo.value == 2)
+				if (!CheckMutator(MUTATOR_INFINITEAMMO) && infiniteammo.value == 2)
 					CVAR_SET_FLOAT("sv_infiniteammo", 0);
 			}
 
-			if ((strstr(mutators.string, g_MutatorRandomWeapon) ||
-				atoi(mutators.string) == MUTATOR_RANDOMWEAPON) && randomweapon.value != 1)
+			if (CheckMutator(MUTATOR_RANDOMWEAPON) && randomweapon.value != 1)
 				CVAR_SET_FLOAT("mp_randomweapon", 2);
 			else
 			{
-				if ((!strstr(mutators.string, g_MutatorRandomWeapon) &&
-					atoi(mutators.string) != MUTATOR_RANDOMWEAPON) && randomweapon.value == 2)
+				if (!CheckMutator(MUTATOR_RANDOMWEAPON) && randomweapon.value == 2)
 					CVAR_SET_FLOAT("mp_randomweapon", 0);
 			}
 
-			if ((strstr(mutators.string, g_MutatorSpeedUp) ||
-				atoi(mutators.string) == MUTATOR_SPEEDUP) && CVAR_GET_FLOAT("sys_timescale") != 1.49f)
+			if (CheckMutator(MUTATOR_SPEEDUP) && CVAR_GET_FLOAT("sys_timescale") != 1.49f)
 				CVAR_SET_FLOAT("sys_timescale", 1.49);
 			else
 			{
-				if ((!strstr(mutators.string, g_MutatorSpeedUp) &&
-					atoi(mutators.string) != MUTATOR_SPEEDUP) &&
+				if (!CheckMutator(MUTATOR_SPEEDUP) &&
 					CVAR_GET_FLOAT("sys_timescale") > 1.48f && CVAR_GET_FLOAT("sys_timescale") < 1.50f)
 					CVAR_SET_FLOAT("sys_timescale", 1.0);
 			}
 
-			if ((strstr(mutators.string, g_MutatorSlowBullets) ||
-				atoi(mutators.string) == MUTATOR_SLOWBULLETS) && CVAR_GET_FLOAT("sv_slowbullets") != 2)
+			if (CheckMutator(MUTATOR_SLOWBULLETS) && CVAR_GET_FLOAT("sv_slowbullets") != 2)
 			{
 				CVAR_SET_FLOAT("sv_slowbullets", 2);
 			}
 			else
 			{
-				if ((!strstr(mutators.string, g_MutatorSlowBullets) &&
-					atoi(mutators.string) != MUTATOR_SLOWBULLETS) && CVAR_GET_FLOAT("sv_slowbullets") == 2)
+				if (!CheckMutator(MUTATOR_SLOWBULLETS) && CVAR_GET_FLOAT("sv_slowbullets") == 2)
 					CVAR_SET_FLOAT("sv_slowbullets", 0);
 			}
 
-			if ((strstr(mutators.string, g_MutatorExplosiveAI) ||
-				atoi(mutators.string) == MUTATOR_EXPLOSIVEAI) && g_ExplosiveAI != 1)
+			if (CheckMutator(MUTATOR_EXPLOSIVEAI) && g_ExplosiveAI != 1)
 			{
 				g_ExplosiveAI = 1;
 			}
 			else
 			{
-				if ((!strstr(mutators.string, g_MutatorExplosiveAI) &&
-					atoi(mutators.string) != MUTATOR_EXPLOSIVEAI) && g_ExplosiveAI == 1)
+				if (!CheckMutator(MUTATOR_EXPLOSIVEAI) && g_ExplosiveAI == 1)
 					g_ExplosiveAI = 0;
 			}
 
-			if ((strstr(mutators.string, g_MutatorItemsExplode) ||
-				atoi(mutators.string) == MUTATOR_ITEMSEXPLODE) && g_ItemsExplode != 1)
+			if (CheckMutator(MUTATOR_ITEMSEXPLODE) && g_ItemsExplode != 1)
 			{
 				g_ItemsExplode = 1;
 
@@ -1166,8 +1062,7 @@ void CGameRules::CheckMutators(void)
 			}
 			else
 			{
-				if ((!strstr(mutators.string, g_MutatorItemsExplode) &&
-					atoi(mutators.string) != MUTATOR_ITEMSEXPLODE) && g_ItemsExplode == 1)
+				if (!CheckMutator(MUTATOR_ITEMSEXPLODE) && g_ItemsExplode == 1)
 				{
 					g_ItemsExplode = 0;
 
@@ -1184,39 +1079,33 @@ void CGameRules::CheckMutators(void)
 				}
 			}
 
-			if ((strstr(mutators.string, g_MutatorNotTheBees) ||
-				atoi(mutators.string) == MUTATOR_NOTTHEBEES) && m_iNotTheBees != 1)
+			if (CheckMutator(MUTATOR_NOTTHEBEES) && m_iNotTheBees != 1)
 			{
 				m_iNotTheBees = 1;
 			}
 			else
 			{
-				if ((!strstr(mutators.string, g_MutatorNotTheBees) &&
-					atoi(mutators.string) != MUTATOR_NOTTHEBEES) && m_iNotTheBees == 1)
+				if (!CheckMutator(MUTATOR_NOTTHEBEES) && m_iNotTheBees == 1)
 					m_iNotTheBees = 0;
 			}
 
-			if ((strstr(mutators.string, g_MutatorDontShoot) ||
-				atoi(mutators.string) == MUTATOR_DONTSHOOT) && !m_iDontShoot)
+			if (CheckMutator(MUTATOR_DONTSHOOT) && !m_iDontShoot)
 			{
 				m_iDontShoot = TRUE;
 			}
 			else
 			{
-				if ((!strstr(mutators.string, g_MutatorDontShoot) &&
-					atoi(mutators.string) != MUTATOR_DONTSHOOT) && m_iDontShoot)
+				if (!CheckMutator(MUTATOR_DONTSHOOT) && m_iDontShoot)
 					m_iDontShoot = FALSE;
 			}
 
-			if ((strstr(mutators.string, g_MutatorVolatile) ||
-				atoi(mutators.string) == MUTATOR_VOLATILE) && !m_iVolatile)
+			if (CheckMutator(MUTATOR_VOLATILE) && !m_iVolatile)
 			{
 				m_iVolatile = TRUE;
 			}
 			else
 			{
-				if ((!strstr(mutators.string, g_MutatorVolatile) &&
-					atoi(mutators.string) != MUTATOR_VOLATILE) && m_iVolatile)
+				if (!CheckMutator(MUTATOR_VOLATILE) && m_iVolatile)
 					m_iVolatile = FALSE;
 			}
 		}

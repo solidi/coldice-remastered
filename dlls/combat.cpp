@@ -37,8 +37,6 @@
 extern DLL_GLOBAL Vector		g_vecAttackDir;
 extern DLL_GLOBAL int			g_iSkillLevel;
 
-extern DLL_GLOBAL const char *g_MutatorCoolFlesh;
-
 extern Vector VecBModelOrigin( entvars_t* pevBModel );
 extern entvars_t *g_pevLastInflictor;
 
@@ -470,7 +468,7 @@ Activity CBaseMonster :: GetDeathActivity ( void )
 	}
 
 	// Special decap
-	if (g_pGameRules->MutatorEnabled(MUTATOR_RICOCHET))
+	if (g_pGameRules->CheckMutator(MUTATOR_RICOCHET))
 	{
 		switch ( m_LastHitGroup )
 		{
@@ -903,8 +901,7 @@ void CGib :: Spawn( const char *szGibModel )
 	SET_MODEL(ENT(pev), szGibModel);
 	UTIL_SetSize(pev, Vector( 0, 0, 0), Vector(0, 0, 0));
 
-	if (strstr(mutators.string, g_MutatorCoolFlesh) ||
-		atoi(mutators.string) == MUTATOR_COOLFLESH)
+	if (g_pGameRules->CheckMutator(MUTATOR_COOLFLESH))
 		pev->nextthink = gpGlobals->time + 8;
 	else
 		pev->nextthink = gpGlobals->time + 4;
