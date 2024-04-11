@@ -313,7 +313,7 @@ void CRpgRocket :: FollowThink( void  )
 		pev->velocity = pev->velocity * 0.2 + vecTarget * flSpeed * 0.798;
 		if (pev->waterlevel == 0 && pev->velocity.Length() < 1500)
 		{
-			if (g_pGameRules->CheckMutator(MUTATOR_ROCKETCROWBAR))
+			if (!g_pGameRules->CheckMutator(MUTATOR_ROCKETCROWBAR))
 				Detonate( );
 		}
 	}
