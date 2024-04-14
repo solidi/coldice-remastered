@@ -101,9 +101,9 @@ int CHudProTip::Draw(float flTime)
 			//int a = (int)(fabs(sin((m_MessageQueue[i].time - gEngfuncs.GetClientTime()) * 1)) * 256.0);
 			int fade_time = 2;
 			int start = (m_MessageQueue[i].time - fade_time);
-			int a = 200, r = 200, g = 200, b = 200;
+			int a = MAX_ALPHA, r = 200, g = 200, b = 200;
 			if (gEngfuncs.GetClientTime() >= start)
-				a = fmin(200 * ((m_MessageQueue[i].time - gEngfuncs.GetClientTime()) / fade_time), 200);
+				a = fmin(MAX_ALPHA * ((m_MessageQueue[i].time - gEngfuncs.GetClientTime()) / fade_time), MAX_ALPHA);
 			ScaleColors(r, g, b, a);
 
 			int size = ConsoleStringLen(m_MessageQueue[i].message);

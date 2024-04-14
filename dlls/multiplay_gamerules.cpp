@@ -48,6 +48,7 @@ extern int gmsgVoteMap;
 extern int gmsgVoteMutator;
 extern int gmsgShowTimer;
 extern int gmsgRoundTime;
+extern int gmsgAddMutator;
 
 extern DLL_GLOBAL int g_GameMode;
 extern int gmsgPlayClientSound;
@@ -156,14 +157,10 @@ void CHalfLifeMultiplay::RefreshSkillData( void )
 	if (snowballfight.value)
 		gSkillData.plrDmgSnowball = 250;
 
-	// g_pGameRules not available
-	if (strstr(mutators.string, "instagib") ||
-		atoi(mutators.string) == MUTATOR_INSTAGIB)
+	if (CheckMutator(MUTATOR_INSTAGIB))
 		gSkillData.plrDmgRailgun = 900;
 
-	// g_pGameRules not available
-	if (strstr(mutators.string, "goldenguns") ||
-		atoi(mutators.string) == MUTATOR_GOLDENGUNS)
+	if (CheckMutator(MUTATOR_GOLDENGUNS))
 	{
 		/* ??
 		float plrDmgKnife;
@@ -290,7 +287,7 @@ void CHalfLifeMultiplay :: Think ( void )
 	// No checks during intermission
 	if ( !m_flIntermissionEndTime )
 	{
-		g_pGameRules->CheckMutators();
+		g_pGameRules->MutatorsThink();
 		g_pGameRules->CheckGameMode();
 	}
 
@@ -533,17 +530,17 @@ void CHalfLifeMultiplay :: Think ( void )
 					if (fIndex >= 0 && sIndex >= 0 && tIndex >= 0)
 					{
 						UTIL_ClientPrintAll(HUD_PRINTTALK, "[VOTE] \"%s\", \"%s\" and \"%s\" are the next mutators!\n", g_szMutators[fIndex], g_szMutators[sIndex], g_szMutators[tIndex]);
-						SERVER_COMMAND(UTIL_VarArgs("sv_mutators \"%s;%s;%s\"\n", g_szMutators[fIndex], g_szMutators[sIndex], g_szMutators[tIndex]));
+						SERVER_COMMAND(UTIL_VarArgs("sv_mutatorlist \"%s;%s;%s\"\n", g_szMutators[fIndex], g_szMutators[sIndex], g_szMutators[tIndex]));
 					}
 					else if (fIndex >= 0 && sIndex >= 0)
 					{
 						UTIL_ClientPrintAll(HUD_PRINTTALK, UTIL_VarArgs("[VOTE] \"%s\" and \"%s\" are the next mutators!\n", g_szMutators[fIndex], g_szMutators[sIndex]));
-						SERVER_COMMAND(UTIL_VarArgs("sv_mutators \"%s;%s\"\n", g_szMutators[fIndex], g_szMutators[sIndex]));
+						SERVER_COMMAND(UTIL_VarArgs("sv_mutatorlist \"%s;%s\"\n", g_szMutators[fIndex], g_szMutators[sIndex]));
 					}
 					else
 					{
 						UTIL_ClientPrintAll(HUD_PRINTTALK, UTIL_VarArgs("[VOTE] \"%s\" is the next mutator!\n", g_szMutators[fIndex]));
-						SERVER_COMMAND(UTIL_VarArgs("sv_mutators \"%s\"\n", g_szMutators[fIndex]));
+						SERVER_COMMAND(UTIL_VarArgs("sv_mutatorlist \"%s\"\n", g_szMutators[fIndex]));
 					}
 				}
 			}
@@ -1172,7 +1169,6 @@ BOOL CHalfLifeMultiplay :: ClientConnected( edict_t *pEntity, const char *pszNam
 
 extern int gmsgSayText;
 extern int gmsgGameMode;
-extern int gmsgMutators;
 
 void CHalfLifeMultiplay :: UpdateGameMode( CBasePlayer *pPlayer )
 {
@@ -1227,10 +1223,14 @@ void CHalfLifeMultiplay :: InitHUD( CBasePlayer *pl )
 		}
 
 		// Update mutators
-		char szMutators[64];
-		strncpy(szMutators, mutators.string, sizeof(szMutators));
-		MESSAGE_BEGIN( MSG_ONE, gmsgMutators, NULL, pl->edict() );
-			WRITE_STRING(szMutators);
+		MESSAGE_BEGIN(MSG_ONE, gmsgAddMutator, NULL, pl->edict());
+			mutators_t *t = GetMutators();
+			while (t != NULL)
+			{
+				WRITE_BYTE(t->mutatorId);
+				WRITE_BYTE(t->timeToLive);
+				t = t->next;
+			}
 		MESSAGE_END();
 
 		if (!g_GameMode)

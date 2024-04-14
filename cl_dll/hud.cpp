@@ -423,9 +423,9 @@ int __MsgFunc_PlayCSound(const char *pszName, int iSize, void *pbuf)
 	return gHUD.MsgFunc_PlayCSound(pszName, iSize, pbuf );
 }
 
-int __MsgFunc_Mutators(const char *pszName, int iSize, void *pbuf)
+int __MsgFunc_AddMut(const char *pszName, int iSize, void *pbuf)
 {
-	return gHUD.MsgFunc_Mutators(pszName, iSize, pbuf );
+	return gHUD.MsgFunc_AddMut(pszName, iSize, pbuf );
 }
 
 int __MsgFunc_Particle(const char *pszName,  int iSize, void *pbuf )
@@ -504,7 +504,6 @@ void CHud :: Init( void )
 	// Cold Ice Remastered
 	HOOK_MESSAGE( Acrobatics );
 	HOOK_MESSAGE( PlayCSound );
-	HOOK_MESSAGE( Mutators );
 	HOOK_MESSAGE( Particle );
 	HOOK_MESSAGE( DelPart );
 	HOOK_MESSAGE( FlameMsg );
@@ -515,6 +514,7 @@ void CHud :: Init( void )
 	HOOK_MESSAGE( VoteGame );
 	HOOK_MESSAGE( VoteMap );
 	HOOK_MESSAGE( VoteMutator );
+	HOOK_MESSAGE( AddMut );
 
 	CVAR_CREATE( "hud_classautokill", "1", FCVAR_ARCHIVE | FCVAR_USERINFO );		// controls whether or not to suicide immediately on TF class switch
 	CVAR_CREATE( "hud_takesshots", "0", FCVAR_ARCHIVE );		// controls whether or not to automatically take screenshots at the end of a round
@@ -1019,10 +1019,24 @@ void ProTip(int id, const char *message)
 
 bool CheckMutator(int mutatorId)
 {
-	const char *mutator = sMutators[mutatorId - 1];
+	mutators_t *m = gHUD.m_Mutators;
+	while (m != NULL) {
+		if (m->mutatorId == mutatorId && m->timeToLive > gHUD.m_flTime)
+			return true;
+		m = m->next;
+	}
 
-	// check queue or something?
-	return gHUD.szActiveMutators != NULL &&
-		strstr(gHUD.szActiveMutators, mutator) ||
-		int(gHUD.szActiveMutators) == mutatorId;
+	return false;
+}
+
+mutators_t GetMutator(int mutatorId)
+{
+	mutators_t *m = gHUD.m_Mutators;
+	while (m != NULL) {
+		if (m->mutatorId == mutatorId && m->timeToLive > gHUD.m_flTime)
+			return *m;
+		m = m->next;
+	}
+
+	return mutators_t();
 }

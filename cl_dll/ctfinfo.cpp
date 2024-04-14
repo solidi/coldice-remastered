@@ -38,7 +38,7 @@ int CHudCtfInfo::MsgFunc_CtfInfo(const char *pszName,  int iSize, void *pbuf)
 	if (redmode != 255)
 		m_iRedMode = redmode;
 
-	m_fFade = 200;
+	m_fFade = MAX_ALPHA;
 
 	return 1;
 }

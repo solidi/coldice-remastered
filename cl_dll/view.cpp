@@ -752,9 +752,7 @@ void V_CalcNormalRefdef ( struct ref_params_s *pparams )
 
 	if (gEngfuncs.GetMaxClients() == 1)
 	{
-		if (gHUD.szActiveMutators != NULL &&
-			(strstr(gHUD.szActiveMutators, "topsyturvy") ||
-			atoi(gHUD.szActiveMutators) == MUTATOR_TOPSYTURVY) &&
+		if (CheckMutator(MUTATOR_TOPSYTURVY) &&
 			(g_iUser1 < 1 && !gEngfuncs.IsSpectateOnly()))
 			view->angles[ROLL] = 180;
 	}
@@ -1908,7 +1906,7 @@ void CL_DLLEXPORT V_CalcRefdef( struct ref_params_s *pparams )
 		char str[256];
 		sprintf(str, "sim - x: %.3f sim - y: %.3f cmd fwd: %.3f\n",
 		pparams->simvel[0], pparams->simvel[1], pparams->cmd->forwardmove);
-		gEngfuncs.pfnConsolePrint(str);
+		//gEngfuncs.pfnConsolePrint(str);
 #endif
 		V_CalcNormalRefdef ( pparams );
 	}

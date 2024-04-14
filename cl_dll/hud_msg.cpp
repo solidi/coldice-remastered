@@ -119,6 +119,7 @@ void CHud :: MsgFunc_InitHUD( const char *pszName, int iSize, void *pbuf )
 	// Reset client values to render objectives
 	gHUD.m_iShowingWeaponMenu = 0;
 	gHUD.m_Scoreboard.m_iShowscoresHeld = FALSE;
+	gHUD.m_Mutators = NULL;
 	gHUD.m_StatusIcons.Reset();
 }
 
@@ -161,7 +162,7 @@ int CHud :: MsgFunc_Concuss( const char *pszName, int iSize, void *pbuf )
 	BEGIN_READ( pbuf, iSize );
 	m_iConcussionEffect = READ_BYTE();
 	if (m_iConcussionEffect)
-		this->m_StatusIcons.EnableIcon("dmg_concuss",255,160,0);
+		this->m_StatusIcons.EnableIcon("dmg_concuss",255,160,0,0,0);
 	else
 		this->m_StatusIcons.DisableIcon("dmg_concuss");
 	return 1;
@@ -314,11 +315,32 @@ int CHud :: MsgFunc_PlayCSound( const char *pszName, int iSize, void *pbuf )
 	return 1;
 }
 
-int CHud :: MsgFunc_Mutators( const char *pszName, int iSize, void *pbuf )
+int CHud :: MsgFunc_AddMut( const char *pszName, int iSize, void *pbuf )
 {
 	BEGIN_READ( pbuf, iSize );
-	strncpy( gHUD.szActiveMutators, READ_STRING(), 64 );
-	this->m_StatusIcons.DrawMutators();
+	int mutatorId = READ_BYTE();
+	int time = (int)gHUD.m_flTime + READ_BYTE();
+
+	// add
+	while (mutatorId != -1)
+	{
+		if (mutatorId != 255)
+		{
+			mutators_t *mutator = new mutators_t();
+			mutator->mutatorId = mutatorId;
+			mutator->startTime = gHUD.m_flTime;
+			mutator->timeToLive = time;
+			mutator->next = m_Mutators ? m_Mutators : NULL;
+			m_Mutators = mutator;
+			// gEngfuncs.Con_DPrintf(">>> got mutator[id=%d, start=%.2f, ttl=%.2f]\n", mutator->mutatorId, mutator->startTime, mutator->timeToLive );
+		}
+
+		mutatorId = READ_BYTE();
+		time = (int)gHUD.m_flTime + READ_BYTE();
+	}
+
+	m_StatusIcons.DrawMutators();
+
 	return 1;
 }
 

@@ -41,8 +41,8 @@ DLL_GLOBAL CGameRules*	g_pGameRules = NULL;
 extern DLL_GLOBAL BOOL	g_fGameOver;
 extern int gmsgDeathMsg;	// client dll messages
 extern int gmsgMOTD;
-extern int gmsgMutators;
 extern int gmsgShowGameTitle;
+extern int gmsgAddMutator;
 
 int g_teamplay = 0;
 int g_ExplosiveAI = 0;
@@ -743,38 +743,197 @@ const char *entityList[] =
 
 BOOL CGameRules::CheckMutator(int mutatorId)
 {
-	const char *mutator = g_szMutators[mutatorId - 1];
 	// check queue or something?
-	return strstr(mutators.string, mutator) || int(mutators.value) == mutatorId;
+	mutators_t *t = m_Mutators;
+	while (t != NULL) {
+		if (t->mutatorId == mutatorId && t->timeToLive > gpGlobals->time)
+		{
+			// ALERT(at_aiconsole, ">>> YES mutatorId=%d , time=%.2f > global=%.2f \n", mutatorId, t->timeToLive, gpGlobals->time);
+			return TRUE;
+		}
+		t = t->next;
+	}
+
+	return FALSE;
 }
 
-void CGameRules::CheckMutators(void)
+mutators_t *CGameRules::GetMutators()
 {
-	if (CheckMutator(MUTATOR_CHAOS))
+	return m_Mutators;
+}
+
+void CGameRules::MutatorsThink(void)
+{
+	if (m_flAddMutatorTime < gpGlobals->time)
 	{
-		// Reset if going long
-		if (m_flChaosCheck > (gpGlobals->time + chaostime.value))
+		// storage from votes
+		if (strlen(mutatorlist.string) > 1)
 		{
-			m_flChaosCheck = 0;
+			char *mutator;
+			char list[512];
+			char second[512] = {""};
+			strcpy(list, mutatorlist.string);
+			mutator = list;
+			mutator = strtok( mutator, ";" );
+			BOOL first = FALSE;
+			while ( mutator != NULL && *mutator )
+			{
+				if (!first)
+				{
+					CVAR_SET_STRING("sv_addmutator", mutator);
+					first = TRUE;
+				}
+				else
+				{
+					sprintf(second, "%s;%s;", second, mutator);
+				}
+				mutator = strtok( NULL, ";" );
+			}
+			CVAR_SET_STRING("sv_mutatorlist", second);
 		}
 
-		if (m_flChaosCheck < gpGlobals->time)
+		// Check new
+		if (strlen(addmutator.string) > 1)
 		{
-			CBaseEntity *pWorld = CBaseEntity::Instance(NULL);
-			if (pWorld)
-				((CWorld *)pWorld)->RandomizeMutators();
+			// ALERT(at_aiconsole, ">>> [%.2f] addmutator.string=%s\n", gpGlobals->time, addmutator.string);
 
-			m_flChaosCheck = gpGlobals->time + chaostime.value;
+			if (!strcmp(addmutator.string, "chaos"))
+				m_fChaosMode = TRUE;
+			else if (!strcmp(addmutator.string, "unchaos"))
+				m_fChaosMode = FALSE;
+			else
+			{
+				for (int i = 0; i < MAX_MUTATORS; i++)
+				{
+					// ALERT(at_aiconsole, ">>> [%.2f] checking i=%d\n", gpGlobals->time, i);
+					if (strstr(addmutator.string, g_szMutators[i]) || addmutator.value == (i + 1))
+					{
+						// make sure not already in list.
+						mutators_t *t = m_Mutators;
+						BOOL add = TRUE;
+						while (t != NULL)
+						{
+							if (t->mutatorId == i)
+							{
+								add = FALSE;
+							}
+							t = t->next;
+						}
+
+						if (add)
+						{
+							int time = fmin(fmax(mutatortime.value, 10), 120);
+							MESSAGE_BEGIN(MSG_ALL, gmsgAddMutator);
+								WRITE_BYTE(i + 1);
+								WRITE_BYTE(time);
+							MESSAGE_END();
+
+							mutators_t *mutator = new mutators_t();
+							mutator->mutatorId = i + 1;
+							mutator->timeToLive = gpGlobals->time + time;
+							mutator->next = m_Mutators ? m_Mutators : NULL;
+							m_Mutators = mutator;
+
+							// ALERT(at_aiconsole, ">>> [%.2f] add g_szMutators[i]=%s | mutator->timeToLive=%.2f\n", gpGlobals->time, g_szMutators[i], mutator->timeToLive);
+
+							m_flDetectedMutatorChange = gpGlobals->time + 1.0;
+						}
+						else
+						{
+							// ALERT(at_aiconsole, ">>> [%.2f] already in list g_szMutators[i]=%s\n", gpGlobals->time, g_szMutators[i]);
+						}
+
+						break;
+					}
+				}
+			}
+
+			CVAR_SET_STRING("sv_addmutator", "");
 		}
+
+		// remove old
+		int count = 0;
+		mutators_t *m = m_Mutators;
+		mutators_t *prev = NULL;
+		while (m != NULL)
+		{
+			// ALERT(at_aiconsole, ">>> [%.2f] found m->mutatorId=%d [%.2f]\n", gpGlobals->time, m->mutatorId, m->timeToLive);
+
+			if (m->timeToLive <= gpGlobals->time)
+			{
+				// ALERT(at_aiconsole, ">>> [%.2f] delete m->mutatorId=%d\n", gpGlobals->time, m->mutatorId);
+
+				m_flDetectedMutatorChange = gpGlobals->time + 1.0;
+
+				if (prev)
+				{
+					mutators_t *temp;
+					temp = prev->next;
+					prev->next = temp->next;
+					//delete temp;
+				}
+				else
+				{
+					m_Mutators = NULL;
+					break;
+				}
+			}
+			else
+			{
+				count++;
+			}
+
+			prev = m;
+			m = m->next;
+		}
+
+		// chaos mode
+		int adjcount = fmin(fmax(mutatorcount.value, 0), 7);
+		if (m_fChaosMode && count < adjcount)
+		{
+			int attempts = 0;
+			while (attempts < adjcount)
+			{
+				int index = RANDOM_LONG(1,(int)ARRAYSIZE(g_szMutators) - 1);
+				const char *tryIt = g_szMutators[index];
+
+				// Skip mutators that break multiplayer
+				if (g_pGameRules->IsMultiplayer())
+				{
+					if (strstr(tryIt, "slowmo") ||
+						strstr(tryIt, "speedup") ||
+						strstr(tryIt, "topsyturvy") ||
+						strstr(tryIt, "explosiveai"))
+					{
+						attempts++;
+						continue;
+					}
+				}
+				else
+				{
+					if (strstr(tryIt, "maxpack"))
+					{
+						attempts++;
+						continue;
+					}
+				}
+
+				if (strlen(chaosfilter.string) > 2 && strstr(chaosfilter.string, tryIt))
+				{
+					// ALERT(at_console, "Ignoring \"%s\", found in sv_chaosfilter\n", tryIt);
+					attempts++;
+					continue;
+				}
+
+				CVAR_SET_STRING("sv_addmutator", g_szMutators[index]);
+				break;
+			}
+		}
+
+		m_flAddMutatorTime = gpGlobals->time + 3.0;
 	}
 
-	// Let the game breathe between changes, also allows some changes like sys_timeframe to work
-	if (strcmp(m_flCheckMutators, mutators.string) != 0)
-	{
-		m_flDetectedMutatorChange = gpGlobals->time + 2.0;
-		strcpy(m_flCheckMutators, mutators.string);
-	}
-
+	// Apply mutators
 	if (m_flDetectedMutatorChange && m_flDetectedMutatorChange < gpGlobals->time)
 	{
 		RefreshSkillData();
@@ -1110,11 +1269,13 @@ void CGameRules::CheckMutators(void)
 			}
 		}
 
+/*
 		char szMutators[64];
 		strncpy(szMutators, mutators.string, sizeof(szMutators));
 		MESSAGE_BEGIN( MSG_ALL, gmsgMutators );
 			WRITE_STRING(szMutators);
 		MESSAGE_END();
+*/
 
 		m_flDetectedMutatorChange = 0;
 	}

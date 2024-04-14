@@ -530,8 +530,6 @@ void CWorld :: Spawn( void )
 	g_fGameOver = FALSE;
 	SetGameMode();
 	Precache( );
-	if (randommutators.value)
-		RandomizeMutators();
 	if (CVAR_GET_FLOAT( "mp_allowrunes" ))
 		CWorldRunes::Create( );
 }
@@ -729,65 +727,6 @@ void CWorld :: Precache( void )
 		CVAR_SET_FLOAT( "mp_defaultteam", 0 );
 	}
 }
-
-void CWorld :: RandomizeMutators( void )
-{
-	char result[128] = {""};
-	int count = 0, attempts = 0;
-	if (g_pGameRules->CheckMutator(MUTATOR_CHAOS))
-		strcat(result, "chaos");
-
-	while (count < 3 && attempts < 250)
-	{
-		int index = RANDOM_LONG(1,(int)ARRAYSIZE(g_szMutators) - 1);
-		const char *tryIt = g_szMutators[index];
-
-		// Skip mutators that break multiplayer
-		if (g_pGameRules->IsMultiplayer())
-		{
-			if (strstr(tryIt, "slowmo") ||
-				strstr(tryIt, "speedup") ||
-				strstr(tryIt, "topsyturvy") ||
-				strstr(tryIt, "explosiveai"))
-			{
-				attempts++;
-				continue;
-			}
-		}
-		else
-		{
-			if (strstr(tryIt, "maxpack"))
-			{
-				attempts++;
-				continue;
-			}
-		}
-
-		if (strlen(chaosfilter.string) > 2 && strstr(chaosfilter.string, tryIt))
-		{
-			ALERT(at_console, "Ignoring \"%s\", found in sv_chaosfilter\n", tryIt);
-			attempts++;
-			continue;
-		}
-
-		if (!strstr(result, tryIt))
-		{
-			if (strlen(result))
-				strcat(result, ";");
-			strcat(result, g_szMutators[index]);
-			count++;
-		}
-	}
-
-	ALERT(at_aiconsole, "Mutators set to \"%s\"\n", result);
-	CVAR_SET_STRING("sv_mutators", result);
-}
-
-/*
-const char *pSwappable[] =
-{
-};
-*/
 
 extern DLL_GLOBAL int g_GameMode;
 const char *szGameModeList [] =

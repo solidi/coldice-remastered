@@ -58,6 +58,13 @@ enum
 	GR_NEUTRAL,
 };
 
+struct mutators_t
+{
+	int mutatorId;
+	float timeToLive;
+	mutators_t *next;
+};
+
 class CGameRules
 {
 public:
@@ -176,7 +183,8 @@ public:
 	virtual BOOL WeaponMutators( CBasePlayerWeapon *pWeapon );
 	virtual void GiveMutators( CBasePlayer *pPlayer );
 	virtual BOOL CheckMutator(int mutatorId);
-	virtual void CheckMutators( void );
+	virtual mutators_t *GetMutators( void );
+	virtual void MutatorsThink( void );
 	virtual void CheckGameMode( void );
 	virtual void UpdateMutatorMessage( CBasePlayer *pPlayer );
 	virtual void UpdateGameModeMessage( CBasePlayer *pPlayer );
@@ -204,13 +212,15 @@ protected:
 	BOOL m_iVolatile = 0;
 
 private:
-	char m_flCheckMutators[128];
-	float m_flChaosCheck = 0;
-	float m_flDetectedMutatorChange;
 	char szSkyColor[3][6] = {{""}, {""}, {""}};
 	char m_flCheckGameMode[64] = "";
 	float m_flDetectedGameModeChange = 0;
 	BOOL m_JopeCheck = FALSE;
+
+	float m_flAddMutatorTime = 5; // 5 seconds min, start check
+	float m_flDetectedMutatorChange = 0;
+	mutators_t *m_Mutators = NULL;
+	BOOL m_fChaosMode = FALSE;
 };
 
 extern CGameRules *InstallGameRules( void );

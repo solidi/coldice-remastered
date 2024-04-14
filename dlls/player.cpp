@@ -199,7 +199,6 @@ int gmsgAcrobatics = 0;
 int gmsgLifeBar = 0;
 int gmsgReceiveW = 0;
 int gmsgPlayClientSound = 0;
-int gmsgMutators = 0;
 int gmsgParticle = 0;
 int gmsgDelPart = 0;
 int gmsgFlameMsg = 0;
@@ -215,6 +214,7 @@ int gmsgVoteGameplay = 0;
 int gmsgVoteMap = 0;
 int gmsgVoteMutator = 0;
 int gmsgCtfInfo = 0;
+int gmsgAddMutator = 0;
 
 void LinkUserMessages( void )
 {
@@ -266,7 +266,6 @@ void LinkUserMessages( void )
 	gmsgLifeBar = REG_USER_MSG("LifeBar", 2);
 	gmsgReceiveW = REG_USER_MSG("ReceiveW", 1);
 	gmsgPlayClientSound = REG_USER_MSG("PlayCSound", 1);
-	gmsgMutators = REG_USER_MSG("Mutators", -1);
 	gmsgParticle = REG_USER_MSG("Particle", -1);
 	gmsgDelPart = REG_USER_MSG("DelPart", -1);
 	gmsgFlameMsg = REG_USER_MSG("FlameMsg", -1);
@@ -282,6 +281,7 @@ void LinkUserMessages( void )
 	gmsgVoteMap = REG_USER_MSG("VoteMap", 1);
 	gmsgVoteMutator = REG_USER_MSG("VoteMutator", 1);
 	gmsgCtfInfo = REG_USER_MSG("CtfInfo", 4);
+	gmsgAddMutator = REG_USER_MSG("AddMut", -1);
 }
 
 LINK_ENTITY_TO_CLASS( player, CBasePlayer );

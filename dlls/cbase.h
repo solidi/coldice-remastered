@@ -816,6 +816,5 @@ public:
 	void Precache( void );
 	void KeyValue( KeyValueData *pkvd );
 
-	void RandomizeMutators( void );
 	void SetGameMode( void );
 };

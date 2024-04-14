@@ -94,7 +94,7 @@ void CHalfLifeTeamplay :: Think ( void )
 	// No checks during intermission
 	if ( !m_flIntermissionEndTime )
 	{
-		g_pGameRules->CheckMutators();
+		g_pGameRules->MutatorsThink();
 		g_pGameRules->CheckGameMode();
 	}
 
