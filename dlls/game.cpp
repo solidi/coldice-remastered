@@ -60,14 +60,11 @@ cvar_t	icesprites = {"mp_icesprites","1", FCVAR_SERVER };
 cvar_t	randomweapon = {"mp_randomweapon", "0", FCVAR_SERVER };
 cvar_t	interactiveitems = {"mp_interactiveitems","grenade;monster_satchel;monster_chumtoad;monster_snark;monster_barrel;gib", FCVAR_SERVER };
 cvar_t	snowballfight = {"mp_snowballfight","0", FCVAR_SERVER };
-cvar_t	mutators = {"sv_mutators","chaos", FCVAR_SERVER };
 cvar_t	spawnweapons = {"mp_spawnweapons","1", FCVAR_SERVER };
 cvar_t	disallowlist = {"sv_disallowlist","", FCVAR_SERVER };
 cvar_t	nukemode = {"mp_nukemode","2", FCVAR_SERVER };
 cvar_t	acrobatics = {"sv_acrobatics","1", FCVAR_SERVER };
 cvar_t	weather = {"sv_weather","1", FCVAR_SERVER };
-cvar_t	randommutators = {"mp_randommutators","0", FCVAR_SERVER };
-cvar_t	chaostime = {"sv_chaostime","45", FCVAR_SERVER };
 cvar_t	gamemode = {"mp_gamemode","ffa", FCVAR_SERVER };
 cvar_t	randomgamemodes = {"mp_randomgamemodes","0", FCVAR_SERVER };
 cvar_t	roundlimit = {"mp_roundlimit","10", FCVAR_SERVER };
@@ -86,6 +83,10 @@ cvar_t	chaosfilter = {"sv_chaosfilter","oldtime;sildenafil;inverse", FCVAR_SERVE
 cvar_t	meleedrop = {"mp_meleedrop","1", FCVAR_SERVER };
 cvar_t	ctfspawn1 = {"mp_ctfspawn1","weapon_9mmAR", FCVAR_SERVER };
 cvar_t	ctfspawn2 = {"mp_ctfspawn2","weapon_shotgun", FCVAR_SERVER };
+cvar_t	addmutator = {"sv_addmutator","", FCVAR_SERVER };
+cvar_t	mutatorlist = {"sv_mutatorlist","", FCVAR_SERVER | FCVAR_UNLOGGED };
+cvar_t	mutatorcount = {"sv_mutatorcount","3", FCVAR_SERVER };
+cvar_t	mutatortime = {"sv_mutatortime","30", FCVAR_SERVER };
 
 cvar_t  allow_spectators = { "allow_spectators", "0.0", FCVAR_SERVER };		// 0 prevents players from being spectators
 
@@ -703,15 +704,12 @@ void GameDLLInit( void )
 	CVAR_REGISTER(&randomweapon);
 	CVAR_REGISTER(&interactiveitems);
 	CVAR_REGISTER(&snowballfight);
-	CVAR_REGISTER(&mutators);
 	CVAR_REGISTER(&spawnweapons);
 	CVAR_REGISTER(&spawnitems);
 	CVAR_REGISTER(&disallowlist);
 	CVAR_REGISTER(&nukemode);
 	CVAR_REGISTER(&acrobatics);
 	CVAR_REGISTER(&weather);
-	CVAR_REGISTER(&randommutators);
-	CVAR_REGISTER(&chaostime);
 	CVAR_REGISTER(&gamemode);
 	CVAR_REGISTER(&roundlimit);
 	CVAR_REGISTER(&roundtimelimit);
@@ -728,6 +726,10 @@ void GameDLLInit( void )
 	CVAR_REGISTER(&chaosfilter);
 	CVAR_REGISTER(&ctfspawn1);
 	CVAR_REGISTER(&ctfspawn2);
+	CVAR_REGISTER(&addmutator);
+	CVAR_REGISTER(&mutatorcount);
+	CVAR_REGISTER(&mutatorlist);
+	CVAR_REGISTER(&mutatortime);
 
 	CVAR_REGISTER (&mp_chattime);
 

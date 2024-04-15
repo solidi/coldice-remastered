@@ -47,6 +47,7 @@
 #define DHN_4DIGITS  8
 #define DHN_PADZERO  16
 #define MIN_ALPHA	 100	
+#define MAX_ALPHA	 200	
 
 #define		HUDELEM_ACTIVE	1
 
@@ -524,6 +525,17 @@ private:
 //
 #define MAX_SPRITE_NAME_LENGTH	24
 
+struct mutators_t
+{
+	int mutatorId;
+	float startTime = 0;
+	float timeToLive = 0;
+	mutators_t *next;
+};
+
+bool CheckMutator(int mutatorId);
+mutators_t GetMutator(int mutatorId);
+
 class CHudStatusIcons: public CHudBase
 {
 public:
@@ -542,7 +554,7 @@ public:
 	
 	//had to make these public so CHud could access them (to enable concussion icon)
 	//could use a friend declaration instead...
-	void EnableIcon( char *pszIconName, unsigned char red, unsigned char green, unsigned char blue );
+	void EnableIcon( char *pszIconName, unsigned char red, unsigned char green, unsigned char blue, float timeToLive, float startTime );
 	void DisableIcon( char *pszIconName );
 
 private:
@@ -553,9 +565,13 @@ private:
 		HSPRITE spr;
 		wrect_t rc;
 		unsigned char r, g, b;
+		int startTime = 0;
+		int timeToLive = 0;
 	} icon_sprite_t;
 
 	icon_sprite_t m_IconList[MAX_ICONSPRITES];
+
+	float m_flCheckMutators;
 
 	void ToggleMutatorIcon(int mutatorId, const char *mutator);
 };
@@ -737,7 +753,7 @@ enum e_protips {
 
 #define PROTIPS_AMT	17
 
-bool CheckMutator(int mutatorId);
+
 
 class CHudProTip : public CHudBase
 {
@@ -823,6 +839,7 @@ public:
 
 	int m_iIceModels;
 	bool SetPLFlames;
+	mutators_t *m_Mutators;
 
 private:
 	// the memory for these arrays are allocated in the first call to CHud::VidInit(), when the hud.txt and associated sprites are loaded.
@@ -896,7 +913,7 @@ public:
 	// Cold Ice Remastered
 	int  _cdecl MsgFunc_Acrobatics( const char *pszName, int iSize, void *pbuf );
 	int  _cdecl MsgFunc_PlayCSound( const char *pszName, int iSize, void *pbuf );
-	int  _cdecl MsgFunc_Mutators( const char *pszName, int iSize, void *pbuf );
+	int  _cdecl MsgFunc_AddMut( const char *pszName, int iSize, void *pbuf );
 	int _cdecl MsgFunc_Particle( const char *pszName, int iSize, void *pbuf );
 	void _cdecl MsgFunc_DelPart( const char *pszName, int iSize, void *pbuf );
 	void _cdecl MsgFunc_FlameMsg( const char *pszName, int iSize, void *pbuf );
@@ -928,7 +945,6 @@ public:
 
 	crosspr_s crossspr;
 
-	char szActiveMutators[64];
 	int m_PlayersInRadar;
 };
 

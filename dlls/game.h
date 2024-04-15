@@ -58,15 +58,12 @@ extern cvar_t   icesprites;
 extern cvar_t   randomweapon;
 extern cvar_t   interactiveitems;
 extern cvar_t   snowballfight;
-extern cvar_t   mutators;
 extern cvar_t   spawnweapons;
 extern cvar_t   spawnitems;
 extern cvar_t   disallowlist;
 extern cvar_t   nukemode;
 extern cvar_t   acrobatics;
 extern cvar_t   weather;
-extern cvar_t   randommutators;
-extern cvar_t   chaostime;
 extern cvar_t   gamemode;
 extern cvar_t   randomgamemodes;
 extern cvar_t   roundlimit;
@@ -84,6 +81,10 @@ extern cvar_t   chaosfilter;
 extern cvar_t   meleedrop;
 extern cvar_t   ctfspawn1;
 extern cvar_t   ctfspawn2;
+extern cvar_t   addmutator;
+extern cvar_t   mutatorcount;
+extern cvar_t   mutatorlist;
+extern cvar_t   mutatortime;
 
 // Engine Cvars
 extern cvar_t	*g_psv_gravity;

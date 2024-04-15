@@ -65,9 +65,7 @@ void CColorCorTexture::BindTexture(int width, int height)
 	glBindTexture(GL_TEXTURE_RECTANGLE_NV, g_texture);
 
 	if( CVAR_GET_FLOAT( "colorcor_blackwhite" ) == 1 ||
-		(gHUD.szActiveMutators != NULL &&
-		(strstr(gHUD.szActiveMutators, "oldtime") ||
-		atoi(gHUD.szActiveMutators) == MUTATOR_OLDTIME)))
+		(CheckMutator(MUTATOR_OLDTIME)))
 	{
 		glCopyTexImage2D(GL_TEXTURE_RECTANGLE_NV, 0, GL_LUMINANCE, 0, 0, ScreenWidth, ScreenHeight, 0);
 	}
@@ -99,9 +97,7 @@ void CColorCorTexture::Draw(int width, int height)
 
 	// this will inverse the color 
 	if ( CVAR_GET_FLOAT( "colorcor_inverse" ) == 1 ||
-		(gHUD.szActiveMutators != NULL &&
-		(strstr(gHUD.szActiveMutators, "inverse") ||
-		atoi(gHUD.szActiveMutators) == MUTATOR_INVERSE)))
+		(CheckMutator(MUTATOR_INVERSE)))
 	{
 		glEnable(GL_COLOR_LOGIC_OP);
 		glLogicOp(GL_COPY_INVERTED);
@@ -113,9 +109,7 @@ void CColorCorTexture::Draw(int width, int height)
 
 	// this will inverse the color
 	if (CVAR_GET_FLOAT( "colorcor_inverse" ) == 1 ||
-		(gHUD.szActiveMutators != NULL &&
-		(strstr(gHUD.szActiveMutators, "inverse") ||
-		atoi(gHUD.szActiveMutators) == MUTATOR_INVERSE)))
+		(CheckMutator(MUTATOR_INVERSE)))
 	{
 		glDisable(GL_COLOR_LOGIC_OP);
 	}
@@ -154,9 +148,7 @@ void CColorCor::DrawColorCor()
 	int r = m_pTextures.r = CVAR_GET_FLOAT( "colorcor_r" );
 	int g = m_pTextures.g = CVAR_GET_FLOAT( "colorcor_g" );
 	int b = m_pTextures.b = CVAR_GET_FLOAT( "colorcor_b" );
-	if (gHUD.szActiveMutators != NULL &&
-		(strstr(gHUD.szActiveMutators, "sildenafil") ||
-		atoi(gHUD.szActiveMutators) == MUTATOR_SILDENAFIL))
+	if (CheckMutator(MUTATOR_SILDENAFIL))
 	{
 		r = 0;
 		g = 113;

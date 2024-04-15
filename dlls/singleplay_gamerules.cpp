@@ -43,7 +43,7 @@ CHalfLifeRules::CHalfLifeRules( void )
 //=========================================================
 void CHalfLifeRules::Think ( void )
 {
-	g_pGameRules->CheckMutators();
+	g_pGameRules->MutatorsThink();
 }
 
 //=========================================================
