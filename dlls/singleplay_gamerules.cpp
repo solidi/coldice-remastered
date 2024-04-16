@@ -79,10 +79,10 @@ BOOL CHalfLifeRules::IsCoOp( void )
 
 float CHalfLifeRules::WeaponMultipler( void )
 {
-	if (g_pGameRules->CheckMutator(MUTATOR_FASTWEAPONS))
+	if (g_pGameRules->MutatorEnabled(MUTATOR_FASTWEAPONS))
 		return 0.33;
 
-	if (g_pGameRules->CheckMutator(MUTATOR_SLOWWEAPONS))
+	if (g_pGameRules->MutatorEnabled(MUTATOR_SLOWWEAPONS))
 		return 6;
 
 	return 1;

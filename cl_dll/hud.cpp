@@ -1017,7 +1017,7 @@ void ProTip(int id, const char *message)
 	gHUD.m_ProTip.AddMessage(id, message);
 }
 
-bool CheckMutator(int mutatorId)
+bool MutatorEnabled(int mutatorId)
 {
 	mutators_t *m = gHUD.m_Mutators;
 	while (m != NULL) {

@@ -170,7 +170,7 @@ void CEnvLight::KeyValue( KeyValueData* pkvd )
 
 		pkvd->fHandled = TRUE;
 
-		if (g_pGameRules->CheckMutator(MUTATOR_LIGHTSOUT))
+		if (g_pGameRules->MutatorEnabled(MUTATOR_LIGHTSOUT))
 		{
 			CVAR_SET_STRING("sv_skycolor_r", "0");
 			CVAR_SET_STRING("sv_skycolor_g", "0");

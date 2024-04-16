@@ -157,10 +157,10 @@ void CHalfLifeMultiplay::RefreshSkillData( void )
 	if (snowballfight.value)
 		gSkillData.plrDmgSnowball = 250;
 
-	if (CheckMutator(MUTATOR_INSTAGIB))
+	if (MutatorEnabled(MUTATOR_INSTAGIB))
 		gSkillData.plrDmgRailgun = 900;
 
-	if (CheckMutator(MUTATOR_GOLDENGUNS))
+	if (MutatorEnabled(MUTATOR_GOLDENGUNS))
 	{
 		/* ??
 		float plrDmgKnife;
@@ -1033,10 +1033,10 @@ BOOL CHalfLifeMultiplay::AllowMeleeDrop( void )
 
 float CHalfLifeMultiplay::WeaponMultipler( void )
 {
-	if (g_pGameRules->CheckMutator(MUTATOR_FASTWEAPONS))
+	if (g_pGameRules->MutatorEnabled(MUTATOR_FASTWEAPONS))
 		return 0.33;
 
-	if (g_pGameRules->CheckMutator(MUTATOR_SLOWWEAPONS))
+	if (g_pGameRules->MutatorEnabled(MUTATOR_SLOWWEAPONS))
 		return 3;
 
 	return 1;
@@ -1375,7 +1375,7 @@ float CHalfLifeMultiplay :: FlPlayerFallDamage( CBasePlayer *pPlayer )
 	int iFallDamage = (int)falldamage.value;
 
 	// Mutators
-	if (g_pGameRules->CheckMutator(MUTATOR_SUPERJUMP))
+	if (g_pGameRules->MutatorEnabled(MUTATOR_SUPERJUMP))
 	{
 		return 0;
 	}
@@ -1410,7 +1410,7 @@ BOOL CHalfLifeMultiplay::FPlayerCanTakeDamage( CBasePlayer *pPlayer, CBaseEntity
 
 void CHalfLifeMultiplay :: PlayerThink( CBasePlayer *pPlayer )
 {
-	if (g_pGameRules->CheckMutator(MUTATOR_LIGHTSOUT))
+	if (g_pGameRules->MutatorEnabled(MUTATOR_LIGHTSOUT))
 	{
 		// Everready
 		if (pPlayer->IsAlive())
@@ -1601,7 +1601,7 @@ void CHalfLifeMultiplay :: PlayerSpawn( CBasePlayer *pPlayer )
 					meleeWeapon = "weapon_chainsaw";
 				} else if (whichWeapon == 1) {
 					meleeWeapon = "weapon_knife";
-				} else if (whichWeapon == 2 && !g_pGameRules->CheckMutator(MUTATOR_PLUMBER)) {
+				} else if (whichWeapon == 2 && !g_pGameRules->MutatorEnabled(MUTATOR_PLUMBER)) {
 					meleeWeapon = "weapon_wrench";
 				}
 			}
@@ -1734,7 +1734,7 @@ void CHalfLifeMultiplay :: PlayerKilled( CBasePlayer *pVictim, entvars_t *pKille
 			pKiller->health += 5;
 		}
 
-		if (g_pGameRules->CheckMutator(MUTATOR_LOOPBACK))
+		if (g_pGameRules->MutatorEnabled(MUTATOR_LOOPBACK))
 		{
 			MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
 				WRITE_BYTE( TE_TELEPORT	); 
@@ -2320,7 +2320,7 @@ BOOL CHalfLifeMultiplay::IsAllowedToSpawn( CBaseEntity *pEntity )
 	}
 
 /*
-	if (g_pGameRules->CheckMutator(MUTATOR_INSTAGIB) &&
+	if (g_pGameRules->MutatorEnabled(MUTATOR_INSTAGIB) &&
 		(strncmp(STRING(pEntity->pev->classname), "weapon_", 7) == 0 || strncmp(STRING(pEntity->pev->classname), "ammo_", 5) == 0))
 	{	
 		if (stricmp(STRING(pEntity->pev->classname), "weapon_railgun") == 0 ||
@@ -2338,7 +2338,7 @@ BOOL CHalfLifeMultiplay::IsAllowedToSpawn( CBaseEntity *pEntity )
 */
 
 /*
-	if (g_pGameRules->CheckMutator(MUTATOR_PLUMBER) &&
+	if (g_pGameRules->MutatorEnabled(MUTATOR_PLUMBER) &&
 		(strncmp(STRING(pEntity->pev->classname), "weapon_", 7) == 0 || strncmp(STRING(pEntity->pev->classname), "ammo_", 5) == 0))
 	{	
 		if (stricmp(STRING(pEntity->pev->classname), "weapon_fists") == 0 ||
@@ -2444,7 +2444,7 @@ float CHalfLifeMultiplay::FlHEVChargerRechargeTime( void )
 //=========================================================
 int CHalfLifeMultiplay::DeadPlayerWeapons( CBasePlayer *pPlayer )
 {
-	if (g_pGameRules->CheckMutator(MUTATOR_MAXPACK))
+	if (g_pGameRules->MutatorEnabled(MUTATOR_MAXPACK))
 		return GR_PLR_DROP_GUN_ALL;
 	else
 		return GR_PLR_DROP_GUN_ACTIVE;
@@ -2454,7 +2454,7 @@ int CHalfLifeMultiplay::DeadPlayerWeapons( CBasePlayer *pPlayer )
 //=========================================================
 int CHalfLifeMultiplay::DeadPlayerAmmo( CBasePlayer *pPlayer )
 {
-	if (g_pGameRules->CheckMutator(MUTATOR_MAXPACK))
+	if (g_pGameRules->MutatorEnabled(MUTATOR_MAXPACK))
 		return GR_PLR_DROP_AMMO_ALL;
 	else
 		return GR_PLR_DROP_AMMO_ACTIVE;

@@ -1044,7 +1044,7 @@ void CStudioModelRenderer::StudioSetupBones ( void )
 			ConcatTransforms ((*m_plighttransform)[pbones[i].parent], bonematrix, (*m_plighttransform)[i]);
 		}
 
-		if (CheckMutator(MUTATOR_BIGHEAD))
+		if (MutatorEnabled(MUTATOR_BIGHEAD))
 		{
 			if (m_pCurrentEntity != gEngfuncs.GetViewModel())
 			{
@@ -1274,7 +1274,7 @@ int CStudioModelRenderer::StudioDrawModel( int flags )
 		m_fDoInterp = 0;
 		
 		// draw as though it were a player
-		if (CheckMutator(MUTATOR_SANIC))
+		if (MutatorEnabled(MUTATOR_SANIC))
 			result = 1;
 		else
 			result = StudioDrawPlayer( flags, &deadplayer );
@@ -1430,7 +1430,7 @@ int CStudioModelRenderer::StudioDrawModel( int flags )
 		{
 			cl_entity_t *pTarget = gEngfuncs.GetLocalPlayer();
 
-			if (CheckMutator(MUTATOR_GOLDENGUNS))
+			if (MutatorEnabled(MUTATOR_GOLDENGUNS))
 				m_pCurrentEntity->curstate.skin = SKIN_GOLD;
 
 			if ( pTarget && pTarget->curstate.renderfx == kRenderFxGlowShell )
@@ -1936,7 +1936,7 @@ int CStudioModelRenderer::StudioDrawPlayer( int flags, entity_state_t *pplayer )
 {
 	m_pCurrentEntity = IEngineStudio.GetCurrentEntity();
 
-	if (CheckMutator(MUTATOR_SANIC))
+	if (MutatorEnabled(MUTATOR_SANIC))
 	{
 		static TEMPENTITY *t[32];
 		int c = pplayer->number - 1;
@@ -1979,7 +1979,7 @@ int CStudioModelRenderer::StudioDrawPlayer( int flags, entity_state_t *pplayer )
 	if (m_nPlayerIndex < 0 || m_nPlayerIndex >= gEngfuncs.GetMaxClients())
 		return 0;
 
-	bool crate = CheckMutator(MUTATOR_CRATE);
+	bool crate = MutatorEnabled(MUTATOR_CRATE);
 
 	if (crate)
 	{
@@ -2254,19 +2254,19 @@ int CStudioModelRenderer::StudioDrawPlayer( int flags, entity_state_t *pplayer )
 
 		if (!crate)
 		{
-			if (CheckMutator(MUTATOR_JACK)) {
+			if (MutatorEnabled(MUTATOR_JACK)) {
 				gEngfuncs.CL_LoadModel("models/hats.mdl", &hatindex);
 				body = 3;
-			} else if (CheckMutator(MUTATOR_SANTAHAT)) {
+			} else if (MutatorEnabled(MUTATOR_SANTAHAT)) {
 				gEngfuncs.CL_LoadModel("models/hats.mdl", &hatindex);
 				body = 0;
-			} else if (CheckMutator(MUTATOR_PIRATEHAT)) {
+			} else if (MutatorEnabled(MUTATOR_PIRATEHAT)) {
 				gEngfuncs.CL_LoadModel("models/hats.mdl", &hatindex);
 				body = 1;
-			} else if (CheckMutator(MUTATOR_MARSHMELLO)) {
+			} else if (MutatorEnabled(MUTATOR_MARSHMELLO)) {
 				gEngfuncs.CL_LoadModel("models/hats.mdl", &hatindex);
 				body = 2;
-			} else if (CheckMutator(MUTATOR_PUMPKIN)) {
+			} else if (MutatorEnabled(MUTATOR_PUMPKIN)) {
 				gEngfuncs.CL_LoadModel("models/hats.mdl", &hatindex);
 				body = 4;
 			}

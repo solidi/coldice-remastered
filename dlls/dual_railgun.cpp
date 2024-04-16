@@ -268,7 +268,7 @@ void CDualRailgun::Fire( Vector vecSrc, Vector vecDir, Vector effectSrc, float f
 			// Make some balls and a decal
 #ifndef CLIENT_DLL
 			int decal = DECAL_GUNSHOT1 + RANDOM_LONG(0,4);
-			if (g_pGameRules->CheckMutator(MUTATOR_PAINTBALL)) {
+			if (g_pGameRules->MutatorEnabled(MUTATOR_PAINTBALL)) {
 				decal = DECAL_PAINT1 + RANDOM_LONG(0, 7);
 			}
 			UTIL_DecalTrace(&tr, decal);

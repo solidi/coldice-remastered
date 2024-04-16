@@ -533,7 +533,7 @@ struct mutators_t
 	mutators_t *next;
 };
 
-bool CheckMutator(int mutatorId);
+bool MutatorEnabled(int mutatorId);
 mutators_t GetMutator(int mutatorId);
 
 class CHudStatusIcons: public CHudBase

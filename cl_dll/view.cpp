@@ -752,7 +752,7 @@ void V_CalcNormalRefdef ( struct ref_params_s *pparams )
 
 	if (gEngfuncs.GetMaxClients() == 1)
 	{
-		if (CheckMutator(MUTATOR_TOPSYTURVY) &&
+		if (MutatorEnabled(MUTATOR_TOPSYTURVY) &&
 			(g_iUser1 < 1 && !gEngfuncs.IsSpectateOnly()))
 			view->angles[ROLL] = 180;
 	}

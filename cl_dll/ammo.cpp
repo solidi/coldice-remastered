@@ -920,7 +920,7 @@ int CHudAmmo::Draw(float flTime)
 
 	ScaleColors(r, g, b, a );
 
-	if (CheckMutator(MUTATOR_DONTSHOOT))
+	if (MutatorEnabled(MUTATOR_DONTSHOOT))
 	{
 		SPR_Set(gHUD.GetSprite(gHUD.GetSpriteIndex("dontshoot")), r, g, b);
 		SPR_DrawAdditive(0, (ScreenWidth / 2) - 32, (ScreenHeight / 2) - 32, &gHUD.GetSpriteRect(gHUD.GetSpriteIndex("dontshoot")));

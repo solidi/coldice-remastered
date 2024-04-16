@@ -1060,6 +1060,7 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"slowweapons\" - all weapons are slower.\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"snowballs\" - a random chance of snowballs throw on attack\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"speedup\" - everything is sped up by half! (sp only!)\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"stahp\" - some sounds replaced with stahp!\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"superjump\" - jump three times the height, disables fall damage.\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"topsyturvy\" - everything is turned upside down (sp only!)\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"toilet\" - game is in the toilet, we ain't hurt nobody.\n");
@@ -1425,6 +1426,7 @@ void ClientPrecache( void )
 	PRECACHE_SOUND("player/pl_pain7.wav");
 
 	PRECACHE_SOUND("scientist/scream1.wav");
+	PRECACHE_SOUND("scientist/sci_pain3.wav"); // stahp!
 
 	PRECACHE_MODEL("models/player.mdl");
 	PRECACHE_MODEL("models/player/iceman/iceman.mdl");
@@ -1766,7 +1768,7 @@ int AddToFullPack( struct entity_state_s *state, int e, edict_t *ent, edict_t *h
 	CBaseEntity* entity = reinterpret_cast<CBaseEntity*>(GET_PRIVATE(ent));
 	if (entity != NULL)
 	{
-		if (g_pGameRules->CheckMutator(MUTATOR_PAINTBALL))
+		if (g_pGameRules->MutatorEnabled(MUTATOR_PAINTBALL))
 			entity->m_EFlags |= EFLAG_PAINTBALL;
 		else
 			entity->m_EFlags &= ~EFLAG_PAINTBALL;

@@ -185,13 +185,13 @@ void CGrenade::Explode( TraceResult *pTrace, int bitsDamageType )
 
 	enum decal_e decal = DECAL_SCORCH1;
 	int index = RANDOM_LONG(0, 1);
-	if (g_pGameRules->CheckMutator(MUTATOR_PAINTBALL)) {
+	if (g_pGameRules->MutatorEnabled(MUTATOR_PAINTBALL)) {
 		decal = DECAL_PAINTL1;
 		index = RANDOM_LONG(0, 7);
 	}
 	UTIL_DecalTrace( pTrace, decal + index);
 
-	if (g_pGameRules->CheckMutator(MUTATOR_CHUMXPLODE))
+	if (g_pGameRules->MutatorEnabled(MUTATOR_CHUMXPLODE))
 	{
 		edict_t *owner = NULL;
 		if (pevOwner)

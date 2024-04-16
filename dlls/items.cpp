@@ -232,7 +232,7 @@ int CItem::TakeDamage( entvars_t* pevInflictor, entvars_t* pevAttacker, float fl
 		UTIL_TraceLine ( pev->origin, pev->origin + Vector ( 0, 0, -128 ), ignore_monsters, ENT(pev), &tr);
 		enum decal_e decal = DECAL_SCORCH1;
 		int index = RANDOM_LONG(0, 1);
-		if (g_pGameRules->CheckMutator(MUTATOR_PAINTBALL)) {
+		if (g_pGameRules->MutatorEnabled(MUTATOR_PAINTBALL)) {
 			decal = DECAL_PAINTL1;
 			index = RANDOM_LONG(0, 7);
 		}
@@ -1206,7 +1206,7 @@ void CWorldRunes::CreateRune(char *sz_RuneClass)
 		ALERT (at_console, "%s did not spawn.\n", sz_RuneClass);
 	}
 
-	if (g_pGameRules->CheckMutator(MUTATOR_TURRETS)) {
+	if (g_pGameRules->MutatorEnabled(MUTATOR_TURRETS)) {
 		m_pSpot = SelectSpawnPoint(pPlaces[RANDOM_LONG(0,ARRAYSIZE(pPlaces)-1)]);
 		if (m_pSpot)
 		{
@@ -1221,7 +1221,7 @@ void CWorldRunes::CreateRune(char *sz_RuneClass)
 		}
 	}
 
-	if (g_pGameRules->CheckMutator(MUTATOR_BARRELS)) {
+	if (g_pGameRules->MutatorEnabled(MUTATOR_BARRELS)) {
 		m_pSpot = SelectSpawnPoint(pPlaces[RANDOM_LONG(0,ARRAYSIZE(pPlaces)-1)]);
 		if (m_pSpot)
 		{
@@ -1280,7 +1280,7 @@ void CWorldRunes::ResetPlayer(CBasePlayer *pPlayer)
 {
 	pPlayer->m_fHasRune = 0;
 	pPlayer->m_flRuneHealTime = 0;
-	if (!pPlayer->IsArmoredMan && !g_pGameRules->CheckMutator(MUTATOR_MEGASPEED))
+	if (!pPlayer->IsArmoredMan && !g_pGameRules->MutatorEnabled(MUTATOR_MEGASPEED))
 		g_engfuncs.pfnSetPhysicsKeyValue( pPlayer->edict(), "haste", "0" );
 	pPlayer->pev->rendermode = kRenderNormal;
 	pPlayer->pev->renderfx = kRenderFxNone;
