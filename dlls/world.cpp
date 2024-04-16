@@ -301,7 +301,7 @@ void CopyToBodyQue(entvars_t *pev)
 	pevHead->renderamt	= ENTINDEX( ENT( pev ) );
 
 	// Let them eat cake
-	if (g_pGameRules->CheckMutator(MUTATOR_RICOCHET))
+	if (g_pGameRules->MutatorEnabled(MUTATOR_RICOCHET))
 		pevHead->body		= pev->body;
 
 	pevHead->effects    = pev->effects | EF_NOINTERP;
@@ -617,7 +617,7 @@ void CWorld :: Precache( void )
 //
 
 	// 0 normal
-	if (g_pGameRules->CheckMutator(MUTATOR_LIGHTSOUT))
+	if (g_pGameRules->MutatorEnabled(MUTATOR_LIGHTSOUT))
 		LIGHT_STYLE(0, "b");
 	else
 		LIGHT_STYLE(0, "m");

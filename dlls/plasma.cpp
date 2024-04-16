@@ -248,7 +248,7 @@ void CPlasma::Explode( void )
 		UTIL_TraceLine( pev->origin, pev->origin + pev->velocity * 10, dont_ignore_monsters, ENT( pev ), &tr );
 #ifndef CLIENT_DLL
 		int decal = DECAL_SMALLSCORCH1 + RANDOM_LONG(0, 2);
-		if (g_pGameRules->CheckMutator(MUTATOR_PAINTBALL)) {
+		if (g_pGameRules->MutatorEnabled(MUTATOR_PAINTBALL)) {
 			decal = DECAL_PAINTL1 + RANDOM_LONG(0, 7);
 		}
 		UTIL_DecalTrace(&tr, decal);

@@ -88,7 +88,7 @@ int CHudLifeBar::UpdateSprites()
 	int iOutModel = 0;
 	int maxHealth = 100;
 
-	if (CheckMutator(MUTATOR_999))
+	if (MutatorEnabled(MUTATOR_999))
 		maxHealth = 999;
 
 	for (int i = 0; i < 32; i++)

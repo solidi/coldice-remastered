@@ -249,6 +249,7 @@ char *sMutators[] = {
 	"slowweapons",
 	"snowballs",
 	"speedup",
+	"stahp",
 	"superjump",
 	"toilet",
 	"topsyturvy",

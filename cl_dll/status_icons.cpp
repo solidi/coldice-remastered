@@ -253,7 +253,7 @@ void CHudStatusIcons::ToggleMutatorIcon(int mutatorId, const char *mutator)
 	UnpackRGB(r,g,b, HudColor());
 	ScaleColors(r, g, b, MIN_ALPHA);
 
-	if (CheckMutator(mutatorId))
+	if (MutatorEnabled(mutatorId))
 	{
 		mutators_t t = GetMutator(mutatorId);
 		m_iFlags |= HUD_ACTIVE;

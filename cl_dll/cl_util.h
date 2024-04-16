@@ -220,9 +220,9 @@ float lerp(float a, float b, float f);
 inline float GetWeaponMultipler()
 {
 	float multipler = 1;
-	if (CheckMutator(MUTATOR_FASTWEAPONS))
+	if (MutatorEnabled(MUTATOR_FASTWEAPONS))
 		multipler = 0.33;
-	else if (CheckMutator(MUTATOR_SLOWWEAPONS))
+	else if (MutatorEnabled(MUTATOR_SLOWWEAPONS))
 		multipler = 3;
 	return multipler;
 }

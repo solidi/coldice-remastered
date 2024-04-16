@@ -100,7 +100,7 @@ void CHud::Think(void)
 
 	ShowTextTips();
 
-	if (CheckMutator(MUTATOR_NOTIFY)) {
+	if (MutatorEnabled(MUTATOR_NOTIFY)) {
 		if (g_NotifyTime < gEngfuncs.GetClientTime()) {
 			char soundPath[32];
 			sprintf(soundPath, "notify%d.wav", gEngfuncs.pfnRandomLong(1, 23));

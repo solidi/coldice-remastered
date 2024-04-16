@@ -366,7 +366,7 @@ CBasePlayerWeapon::ItemPostFrame
 Handles weapon firing, reloading, etc.
 =====================
 */
-extern bool CheckMutator(int mutatorId);
+extern bool MutatorEnabled(int mutatorId);
 
 void CBasePlayerWeapon::ItemPostFrame( void )
 {
@@ -375,7 +375,7 @@ void CBasePlayerWeapon::ItemPostFrame( void )
 		g_SlideTime = 0;
 	}
 
-	if (CheckMutator(MUTATOR_RICOCHET)) {
+	if (MutatorEnabled(MUTATOR_RICOCHET)) {
 		if ((m_pPlayer->pev->button & IN_ATTACK) && (m_flNextPrimaryAttack <= 0.0) ||
 			(m_pPlayer->pev->button & IN_ATTACK2) && (m_flNextSecondaryAttack <= 0.0))
 		{

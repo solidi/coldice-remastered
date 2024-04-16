@@ -16,8 +16,12 @@
 // GameRules
 //=========================================================
 
+#ifndef	GAMERULES_H
+#define	GAMERULES_H
+
 //#include "weapons.h"
 //#include "items.h"
+class CBaseEntity;
 class CBasePlayerItem;
 class CBasePlayer;
 class CItem;
@@ -182,7 +186,7 @@ public:
 	virtual void SpawnMutators( CBasePlayer *pPlayer );
 	virtual BOOL WeaponMutators( CBasePlayerWeapon *pWeapon );
 	virtual void GiveMutators( CBasePlayer *pPlayer );
-	virtual BOOL CheckMutator(int mutatorId);
+	virtual BOOL MutatorEnabled(int mutatorId);
 	virtual mutators_t *GetMutators( void );
 	virtual void MutatorsThink( void );
 	virtual void CheckGameMode( void );
@@ -492,6 +496,8 @@ protected:
 	float m_fShowTimer;
 };
 
-extern DLL_GLOBAL CGameRules*	g_pGameRules;
+extern CGameRules*	g_pGameRules;
 #define MAX_MUTATORS MUTATOR_VOLATILE
 extern const char *g_szMutators[MAX_MUTATORS];
+
+#endif	//GAMERULES_H

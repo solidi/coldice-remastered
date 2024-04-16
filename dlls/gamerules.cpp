@@ -103,6 +103,7 @@ DLL_GLOBAL const char *g_szMutators[] = {
 	"slowweapons",
 	"snowballs",
 	"speedup",
+	"stahp",
 	"superjump",
 	"toilet",
 	"topsyturvy",
@@ -526,28 +527,28 @@ BOOL CGameRules::WeaponMutators( CBasePlayerWeapon *pWeapon )
 			}
 		}
 
-		if (CheckMutator(MUTATOR_ROCKETS))
+		if (MutatorEnabled(MUTATOR_ROCKETS))
 		{
 			if (!pWeapon->m_bFired && RANDOM_LONG(0,10) == 2) {
 				pWeapon->ThrowRocket(FALSE);
 			}
 		}
 		
-		if (CheckMutator(MUTATOR_GRENADES))
+		if (MutatorEnabled(MUTATOR_GRENADES))
 		{
 			if (!pWeapon->m_bFired && RANDOM_LONG(0,10) == 2) {
 				pWeapon->ThrowGrenade(FALSE);
 			}
 		}
 		
-		if (CheckMutator(MUTATOR_SNOWBALL))
+		if (MutatorEnabled(MUTATOR_SNOWBALL))
 		{
 			if (!pWeapon->m_bFired && RANDOM_LONG(0,10) == 2) {
 				pWeapon->ThrowSnowball(FALSE);
 			}
 		}
 
-		if (CheckMutator(MUTATOR_PUSHY))
+		if (MutatorEnabled(MUTATOR_PUSHY))
 		{
 			UTIL_MakeVectors( pWeapon->m_pPlayer->pev->v_angle );
 			pWeapon->m_pPlayer->pev->velocity = pWeapon->m_pPlayer->pev->velocity - gpGlobals->v_forward * RANDOM_FLOAT(50,100) * 5;
@@ -559,28 +560,28 @@ BOOL CGameRules::WeaponMutators( CBasePlayerWeapon *pWeapon )
 
 void CGameRules::SpawnMutators(CBasePlayer *pPlayer)
 {
-	if (CheckMutator(MUTATOR_TOPSYTURVY))
+	if (MutatorEnabled(MUTATOR_TOPSYTURVY))
 		g_engfuncs.pfnSetPhysicsKeyValue(pPlayer->edict(), "topsy", "1");
 	else
 		g_engfuncs.pfnSetPhysicsKeyValue(pPlayer->edict(), "topsy", "0");
 
-	if (CheckMutator(MUTATOR_MEGASPEED))
+	if (MutatorEnabled(MUTATOR_MEGASPEED))
 		g_engfuncs.pfnSetPhysicsKeyValue(pPlayer->edict(), "haste", "1");
 
-	if (CheckMutator(MUTATOR_ICE))
+	if (MutatorEnabled(MUTATOR_ICE))
 		pPlayer->pev->friction = 0.3;
 
-	if (CheckMutator(MUTATOR_LIGHTSOUT))
+	if (MutatorEnabled(MUTATOR_LIGHTSOUT))
 		pPlayer->FlashlightTurnOn();
 
-	if (CheckMutator(MUTATOR_SANTAHAT))
+	if (MutatorEnabled(MUTATOR_SANTAHAT))
 		pPlayer->m_flNextSantaSound = gpGlobals->time + RANDOM_FLOAT(10,15);
 	else
 		pPlayer->m_flNextSantaSound = 0;
 
 	GiveMutators(pPlayer);
 
-	if (CheckMutator(MUTATOR_INVISIBLE)) {
+	if (MutatorEnabled(MUTATOR_INVISIBLE)) {
 		if (pPlayer->pev->renderfx == kRenderFxGlowShell)
 			pPlayer->pev->renderfx = kRenderFxNone;
 		if (pPlayer->pev->rendermode != kRenderTransAlpha)
@@ -595,13 +596,13 @@ void CGameRules::SpawnMutators(CBasePlayer *pPlayer)
 	if (randomweapon.value)
 		pPlayer->GiveRandomWeapon(NULL);
 
-	if (CheckMutator(MUTATOR_999)) {
+	if (MutatorEnabled(MUTATOR_999)) {
 		pPlayer->pev->max_health = 999;
 		pPlayer->pev->health = 999;
 		pPlayer->pev->armorvalue = 999;
 	}
 
-	if (CheckMutator(MUTATOR_JEEPATHON)) {
+	if (MutatorEnabled(MUTATOR_JEEPATHON)) {
 		if (!pPlayer->IsObserver())
 		{
 			pPlayer->pev->body = 0;
@@ -611,7 +612,7 @@ void CGameRules::SpawnMutators(CBasePlayer *pPlayer)
 		}
 	}
 
-	if (CheckMutator(MUTATOR_TOILET)) {
+	if (MutatorEnabled(MUTATOR_TOILET)) {
 		if (!pPlayer->IsObserver())
 		{
 			pPlayer->pev->body = 0;
@@ -630,7 +631,7 @@ void CGameRules::SpawnMutators(CBasePlayer *pPlayer)
 	}
 
 	// For decap reset
-	if (CheckMutator(MUTATOR_RICOCHET))
+	if (MutatorEnabled(MUTATOR_RICOCHET))
 		pPlayer->pev->body = 0;
 }
 
@@ -639,38 +640,38 @@ void CGameRules::GiveMutators(CBasePlayer *pPlayer)
 	if (!pPlayer->IsAlive())
 		return;
 
-	if (CheckMutator(MUTATOR_ROCKETCROWBAR)) {
+	if (MutatorEnabled(MUTATOR_ROCKETCROWBAR)) {
 		if (!pPlayer->HasNamedPlayerItem("weapon_rocketcrowbar"))
 			pPlayer->GiveNamedItem("weapon_rocketcrowbar");
 	}
 
-	if (CheckMutator(MUTATOR_INSTAGIB)) {
+	if (MutatorEnabled(MUTATOR_INSTAGIB)) {
 		if (!pPlayer->HasNamedPlayerItem("weapon_dual_railgun"))
 			pPlayer->GiveNamedItem("weapon_dual_railgun");
 		pPlayer->GiveAmmo(URANIUM_MAX_CARRY, "uranium", URANIUM_MAX_CARRY);
 	}
 
-	if (CheckMutator(MUTATOR_PLUMBER)) {
+	if (MutatorEnabled(MUTATOR_PLUMBER)) {
 		if (!pPlayer->HasNamedPlayerItem("weapon_dual_wrench"))
 			pPlayer->GiveNamedItem("weapon_dual_wrench");
 	}
 
-	if (CheckMutator(MUTATOR_BARRELS)) {
+	if (MutatorEnabled(MUTATOR_BARRELS)) {
 		if (!pPlayer->HasNamedPlayerItem("weapon_gravitygun"))
 			pPlayer->GiveNamedItem("weapon_gravitygun");
 	}
 
-	if (CheckMutator(MUTATOR_PORTAL)) {
+	if (MutatorEnabled(MUTATOR_PORTAL)) {
 		if (!pPlayer->HasNamedPlayerItem("weapon_ashpod"))
 			pPlayer->GiveNamedItem("weapon_ashpod");
 	}
 
-	if (CheckMutator(MUTATOR_LONGJUMP)) {
+	if (MutatorEnabled(MUTATOR_LONGJUMP)) {
 		if (!pPlayer->m_fLongJump && (pPlayer->pev->weapons & (1<<WEAPON_SUIT)))
 			pPlayer->GiveNamedItem("item_longjump");
 	}
 
-	if (CheckMutator(MUTATOR_BERSERKER)) {
+	if (MutatorEnabled(MUTATOR_BERSERKER)) {
 		if (!pPlayer->HasNamedPlayerItem("weapon_chainsaw"))
 			pPlayer->GiveNamedItem("weapon_chainsaw");
 	}
@@ -741,7 +742,7 @@ const char *entityList[] =
 	"weaponbox",
 };
 
-BOOL CGameRules::CheckMutator(int mutatorId)
+BOOL CGameRules::MutatorEnabled(int mutatorId)
 {
 	// check queue or something?
 	mutators_t *t = m_Mutators;
@@ -938,11 +939,11 @@ void CGameRules::MutatorsThink(void)
 	{
 		RefreshSkillData();
 
-		if (CheckMutator(MUTATOR_SLOWMO) && CVAR_GET_FLOAT("sys_timescale") != 0.49f)
+		if (MutatorEnabled(MUTATOR_SLOWMO) && CVAR_GET_FLOAT("sys_timescale") != 0.49f)
 			CVAR_SET_FLOAT("sys_timescale", 0.49);
 		else
 		{
-			if (!CheckMutator(MUTATOR_SLOWMO) &&
+			if (!MutatorEnabled(MUTATOR_SLOWMO) &&
 				CVAR_GET_FLOAT("sys_timescale") > 0.48f && CVAR_GET_FLOAT("sys_timescale") < 0.50f)
 				CVAR_SET_FLOAT("sys_timescale", 1.0);
 		}
@@ -962,7 +963,7 @@ void CGameRules::MutatorsThink(void)
 
 		int toggleFlashlight = 0;
 
-		if (CheckMutator(MUTATOR_LIGHTSOUT))
+		if (MutatorEnabled(MUTATOR_LIGHTSOUT))
 		{
 			LIGHT_STYLE(0, "b");
 			if (flashlight.value != 1)
@@ -1005,7 +1006,7 @@ void CGameRules::MutatorsThink(void)
 		}
 		else
 		{
-			if (CheckMutator(MUTATOR_JOPE)) {
+			if (MutatorEnabled(MUTATOR_JOPE)) {
 				m_JopeCheck = TRUE;
 				UTIL_ClientPrintAll(HUD_PRINTCENTER, "You've been JOPED!\n");
 			}
@@ -1026,7 +1027,7 @@ void CGameRules::MutatorsThink(void)
 					g_engfuncs.pfnSetClientKeyValue(pl->entindex(), key, "name", "Jope");
 				}
 
-				if (CheckMutator(MUTATOR_CREDITS))
+				if (MutatorEnabled(MUTATOR_CREDITS))
 				{
 					pl->m_iCreditMode = 1;
 					pl->m_fCreditsTime = gpGlobals->time;
@@ -1041,36 +1042,36 @@ void CGameRules::MutatorsThink(void)
 			{
 				pl->m_iShowMutatorMessage = gpGlobals->time + 2.0;
 
-				if (CheckMutator(MUTATOR_TOPSYTURVY)) {
+				if (MutatorEnabled(MUTATOR_TOPSYTURVY)) {
 					g_engfuncs.pfnSetPhysicsKeyValue(pPlayer->edict(), "topsy", "1");
 				} else {
 					g_engfuncs.pfnSetPhysicsKeyValue(pPlayer->edict(), "topsy", "0");
 				}
 
-				if (CheckMutator(MUTATOR_ICE))
+				if (MutatorEnabled(MUTATOR_ICE))
 					pPlayer->pev->friction = 0.3;
 				else if (pPlayer->pev->friction > 0.2 && pPlayer->pev->friction < 0.4)
 					pPlayer->pev->friction = 1.0;
 
-				if (CheckMutator(MUTATOR_MEGASPEED))
+				if (MutatorEnabled(MUTATOR_MEGASPEED))
 					g_engfuncs.pfnSetPhysicsKeyValue(pPlayer->edict(), "haste", "1");
 				else if (((CBasePlayer *)pPlayer)->m_fHasRune != RUNE_HASTE &&
 						 !((CBasePlayer *)pPlayer)->IsArmoredMan &&
 						 ((CBasePlayer *)pPlayer)->pev->fuser4 != 1)
 					g_engfuncs.pfnSetPhysicsKeyValue(pPlayer->edict(), "haste", "0");
 
-				if (!CheckMutator(MUTATOR_AUTOAIM)) {
+				if (!MutatorEnabled(MUTATOR_AUTOAIM)) {
 					pl->ResetAutoaim();
 				}
 
-				if (CheckMutator(MUTATOR_SANTAHAT))
+				if (MutatorEnabled(MUTATOR_SANTAHAT))
 					pl->m_flNextSantaSound = gpGlobals->time + RANDOM_FLOAT(10,15);
 				else
 					pl->m_flNextSantaSound = 0;
 
 				GiveMutators(pl);
 
-				if (CheckMutator(MUTATOR_INVISIBLE)) {
+				if (MutatorEnabled(MUTATOR_INVISIBLE)) {
 					if (pPlayer->pev->renderfx == kRenderFxGlowShell)
 						pPlayer->pev->renderfx = kRenderFxNone;
 					if (pl->pev->rendermode != kRenderTransAlpha)
@@ -1093,7 +1094,7 @@ void CGameRules::MutatorsThink(void)
 						pl->FlashlightTurnOff();
 				}
 
-				if (CheckMutator(MUTATOR_999)) {
+				if (MutatorEnabled(MUTATOR_999)) {
 					pl->pev->max_health = 999;
 					pl->pev->health = 999;
 					pl->pev->armorvalue = 999;
@@ -1107,7 +1108,7 @@ void CGameRules::MutatorsThink(void)
 						pl->pev->armorvalue = 100;
 				}
 
-				if (CheckMutator(MUTATOR_JEEPATHON)) {
+				if (MutatorEnabled(MUTATOR_JEEPATHON)) {
 					if (!pl->IsObserver())
 					{
 						pl->pev->body = 0;
@@ -1115,7 +1116,7 @@ void CGameRules::MutatorsThink(void)
 					}
 				}
 
-				if (CheckMutator(MUTATOR_TOILET)) {
+				if (MutatorEnabled(MUTATOR_TOILET)) {
 					if (!pl->IsObserver())
 					{
 						pl->pev->body = 0;
@@ -1133,78 +1134,78 @@ void CGameRules::MutatorsThink(void)
 					}
 				}
 
-				if (!CheckMutator(MUTATOR_JEEPATHON) && !CheckMutator(MUTATOR_TOILET))
+				if (!MutatorEnabled(MUTATOR_JEEPATHON) && !MutatorEnabled(MUTATOR_TOILET))
 				{
 					pl->pev->body = 0;
 				}
 			}
 
-			if (CheckMutator(MUTATOR_SUPERJUMP) && CVAR_GET_FLOAT("sv_jumpheight") != 299)
+			if (MutatorEnabled(MUTATOR_SUPERJUMP) && CVAR_GET_FLOAT("sv_jumpheight") != 299)
 			{
 				CVAR_SET_FLOAT("sv_jumpheight", 299);
 			}
 			else
 			{
-				if (!CheckMutator(MUTATOR_SUPERJUMP) && CVAR_GET_FLOAT("sv_jumpheight") == 299)
+				if (!MutatorEnabled(MUTATOR_SUPERJUMP) && CVAR_GET_FLOAT("sv_jumpheight") == 299)
 					CVAR_SET_FLOAT("sv_jumpheight", 45);
 			}
 
-			if (CheckMutator(MUTATOR_GRAVITY) && CVAR_GET_FLOAT("sv_gravity") != 199)
+			if (MutatorEnabled(MUTATOR_GRAVITY) && CVAR_GET_FLOAT("sv_gravity") != 199)
 			{
 				CVAR_SET_FLOAT("sv_gravity", 199);
 			}
 			else
 			{
-				if (!CheckMutator(MUTATOR_GRAVITY) && CVAR_GET_FLOAT("sv_gravity") == 199)
+				if (!MutatorEnabled(MUTATOR_GRAVITY) && CVAR_GET_FLOAT("sv_gravity") == 199)
 					CVAR_SET_FLOAT("sv_gravity", 800);
 			}
 
-			if (CheckMutator(MUTATOR_INFINITEAMMO) && infiniteammo.value != 1)
+			if (MutatorEnabled(MUTATOR_INFINITEAMMO) && infiniteammo.value != 1)
 				CVAR_SET_FLOAT("sv_infiniteammo", 2);
 			else
 			{
-				if (!CheckMutator(MUTATOR_INFINITEAMMO) && infiniteammo.value == 2)
+				if (!MutatorEnabled(MUTATOR_INFINITEAMMO) && infiniteammo.value == 2)
 					CVAR_SET_FLOAT("sv_infiniteammo", 0);
 			}
 
-			if (CheckMutator(MUTATOR_RANDOMWEAPON) && randomweapon.value != 1)
+			if (MutatorEnabled(MUTATOR_RANDOMWEAPON) && randomweapon.value != 1)
 				CVAR_SET_FLOAT("mp_randomweapon", 2);
 			else
 			{
-				if (!CheckMutator(MUTATOR_RANDOMWEAPON) && randomweapon.value == 2)
+				if (!MutatorEnabled(MUTATOR_RANDOMWEAPON) && randomweapon.value == 2)
 					CVAR_SET_FLOAT("mp_randomweapon", 0);
 			}
 
-			if (CheckMutator(MUTATOR_SPEEDUP) && CVAR_GET_FLOAT("sys_timescale") != 1.49f)
+			if (MutatorEnabled(MUTATOR_SPEEDUP) && CVAR_GET_FLOAT("sys_timescale") != 1.49f)
 				CVAR_SET_FLOAT("sys_timescale", 1.49);
 			else
 			{
-				if (!CheckMutator(MUTATOR_SPEEDUP) &&
+				if (!MutatorEnabled(MUTATOR_SPEEDUP) &&
 					CVAR_GET_FLOAT("sys_timescale") > 1.48f && CVAR_GET_FLOAT("sys_timescale") < 1.50f)
 					CVAR_SET_FLOAT("sys_timescale", 1.0);
 			}
 
-			if (CheckMutator(MUTATOR_SLOWBULLETS) && CVAR_GET_FLOAT("sv_slowbullets") != 2)
+			if (MutatorEnabled(MUTATOR_SLOWBULLETS) && CVAR_GET_FLOAT("sv_slowbullets") != 2)
 			{
 				CVAR_SET_FLOAT("sv_slowbullets", 2);
 			}
 			else
 			{
-				if (!CheckMutator(MUTATOR_SLOWBULLETS) && CVAR_GET_FLOAT("sv_slowbullets") == 2)
+				if (!MutatorEnabled(MUTATOR_SLOWBULLETS) && CVAR_GET_FLOAT("sv_slowbullets") == 2)
 					CVAR_SET_FLOAT("sv_slowbullets", 0);
 			}
 
-			if (CheckMutator(MUTATOR_EXPLOSIVEAI) && g_ExplosiveAI != 1)
+			if (MutatorEnabled(MUTATOR_EXPLOSIVEAI) && g_ExplosiveAI != 1)
 			{
 				g_ExplosiveAI = 1;
 			}
 			else
 			{
-				if (!CheckMutator(MUTATOR_EXPLOSIVEAI) && g_ExplosiveAI == 1)
+				if (!MutatorEnabled(MUTATOR_EXPLOSIVEAI) && g_ExplosiveAI == 1)
 					g_ExplosiveAI = 0;
 			}
 
-			if (CheckMutator(MUTATOR_ITEMSEXPLODE) && g_ItemsExplode != 1)
+			if (MutatorEnabled(MUTATOR_ITEMSEXPLODE) && g_ItemsExplode != 1)
 			{
 				g_ItemsExplode = 1;
 
@@ -1221,7 +1222,7 @@ void CGameRules::MutatorsThink(void)
 			}
 			else
 			{
-				if (!CheckMutator(MUTATOR_ITEMSEXPLODE) && g_ItemsExplode == 1)
+				if (!MutatorEnabled(MUTATOR_ITEMSEXPLODE) && g_ItemsExplode == 1)
 				{
 					g_ItemsExplode = 0;
 
@@ -1238,33 +1239,33 @@ void CGameRules::MutatorsThink(void)
 				}
 			}
 
-			if (CheckMutator(MUTATOR_NOTTHEBEES) && m_iNotTheBees != 1)
+			if (MutatorEnabled(MUTATOR_NOTTHEBEES) && m_iNotTheBees != 1)
 			{
 				m_iNotTheBees = 1;
 			}
 			else
 			{
-				if (!CheckMutator(MUTATOR_NOTTHEBEES) && m_iNotTheBees == 1)
+				if (!MutatorEnabled(MUTATOR_NOTTHEBEES) && m_iNotTheBees == 1)
 					m_iNotTheBees = 0;
 			}
 
-			if (CheckMutator(MUTATOR_DONTSHOOT) && !m_iDontShoot)
+			if (MutatorEnabled(MUTATOR_DONTSHOOT) && !m_iDontShoot)
 			{
 				m_iDontShoot = TRUE;
 			}
 			else
 			{
-				if (!CheckMutator(MUTATOR_DONTSHOOT) && m_iDontShoot)
+				if (!MutatorEnabled(MUTATOR_DONTSHOOT) && m_iDontShoot)
 					m_iDontShoot = FALSE;
 			}
 
-			if (CheckMutator(MUTATOR_VOLATILE) && !m_iVolatile)
+			if (MutatorEnabled(MUTATOR_VOLATILE) && !m_iVolatile)
 			{
 				m_iVolatile = TRUE;
 			}
 			else
 			{
-				if (!CheckMutator(MUTATOR_VOLATILE) && m_iVolatile)
+				if (!MutatorEnabled(MUTATOR_VOLATILE) && m_iVolatile)
 					m_iVolatile = FALSE;
 			}
 		}

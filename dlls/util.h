@@ -28,6 +28,10 @@ inline void MESSAGE_BEGIN( int msg_dest, int msg_type, const float *pOrigin, ent
 
 extern globalvars_t				*gpGlobals;
 
+#ifndef GAMERULES_H
+#include "gamerules.h"
+#endif
+
 // Use this instead of ALLOC_STRING on constant strings
 #define STRING(offset)		((const char *)(gpGlobals->pStringBase + (unsigned int)(offset)))
 #define MAKE_STRING(str)	((uint64)(str) - (uint64)(STRING(0)))
@@ -505,7 +509,14 @@ void EMIT_SOUND_DYN(edict_t *entity, int channel, const char *sample, float volu
 
 inline void EMIT_SOUND(edict_t *entity, int channel, const char *sample, float volume, float attenuation)
 {
-	EMIT_SOUND_DYN(entity, channel, sample, volume, attenuation, 0, PITCH_NORM);
+	if (g_pGameRules && g_pGameRules->MutatorEnabled(MUTATOR_STAHP))
+	{
+		EMIT_SOUND_DYN(entity, channel, "scientist/sci_pain3.wav", volume, attenuation, 0, PITCH_NORM);
+	}
+	else
+	{
+		EMIT_SOUND_DYN(entity, channel, sample, volume, attenuation, 0, PITCH_NORM);
+	}
 }
 
 inline void STOP_SOUND(edict_t *entity, int channel, const char *sample)

@@ -418,7 +418,7 @@ void IN_ScaleMouse( float *x, float *y )
 
 	if (gEngfuncs.GetMaxClients() == 1)
 	{
-		if (CheckMutator(MUTATOR_TOPSYTURVY) &&
+		if (MutatorEnabled(MUTATOR_TOPSYTURVY) &&
 			(g_iUser1 < 1 && !gEngfuncs.IsSpectateOnly()))
 		{
 			mouse_senstivity *= -1;

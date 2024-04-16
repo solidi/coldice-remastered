@@ -1061,7 +1061,7 @@ void CBasePlayer::Killed( entvars_t *pevAttacker, int iGib )
 	// UNDONE: Put this in, but add FFADE_PERMANENT and make fade time 8.8 instead of 4.12
 	// UTIL_ScreenFade( edict(), Vector(128,0,0), 6, 15, 255, FFADE_OUT | FFADE_MODULATE );
 
-	if (g_pGameRules->CheckMutator(MUTATOR_CRATE))
+	if (g_pGameRules->MutatorEnabled(MUTATOR_CRATE))
 	{
 		pev->solid = SOLID_NOT;
 
@@ -1911,7 +1911,7 @@ void CBasePlayer::PlayerUse ( void )
 		if ( m_afButtonPressed & IN_USE )
 			EMIT_SOUND( ENT(pev), CHAN_ITEM, "wpn_select.wav", 0.4, ATTN_NORM);
 
-		if (g_pGameRules->CheckMutator(MUTATOR_COOLFLESH))
+		if (g_pGameRules->MutatorEnabled(MUTATOR_COOLFLESH))
 		{
 			if (strstr("gib", STRING(pObject->pev->classname)))
 			{
@@ -2003,7 +2003,7 @@ void CBasePlayer::ClimbingPhysics()
 	UTIL_MakeVectors(pev->angles);
 
 	int normal = 1;
-	if (g_pGameRules->CheckMutator(MUTATOR_TOPSYTURVY)) {
+	if (g_pGameRules->MutatorEnabled(MUTATOR_TOPSYTURVY)) {
 		normal = -1;
 	}
 
@@ -4273,12 +4273,12 @@ void CBasePlayer::GiveMelees()
 {
 	if (!HasNamedPlayerItem("weapon_dual_wrench"))
 		GiveNamedItem("weapon_knife");
-	if (!g_pGameRules->CheckMutator(MUTATOR_PLUMBER) &&
+	if (!g_pGameRules->MutatorEnabled(MUTATOR_PLUMBER) &&
 		!HasNamedPlayerItem("weapon_dual_wrench"))
 		GiveNamedItem("weapon_dual_wrench");
 	if (!HasNamedPlayerItem("weapon_chainsaw"))
 		GiveNamedItem("weapon_chainsaw");
-	if (!g_pGameRules->CheckMutator(MUTATOR_ROCKETCROWBAR) &&
+	if (!g_pGameRules->MutatorEnabled(MUTATOR_ROCKETCROWBAR) &&
 		!HasNamedPlayerItem("weapon_rocketcrowbar"))
 		GiveNamedItem("weapon_rocketcrowbar");
 }
@@ -4342,7 +4342,7 @@ void CBasePlayer::GiveNamedItem( const char *pszName )
 	}
 
 /*
-	if (g_pGameRules->CheckMutator(MUTATOR_INSTAGIB)) {
+	if (g_pGameRules->MutatorEnabled(MUTATOR_INSTAGIB)) {
 		if (stricmp(pszName, "weapon_fists") != 0 &&
 			stricmp(pszName, "weapon_railgun") != 0 &&
 			stricmp(pszName, "weapon_dual_railgun") != 0) {
@@ -4842,7 +4842,7 @@ void CBasePlayer::EndSelacoSlide( void )
 		m_fSelacoSliding = m_fSelacoHit = FALSE;
 		m_fSelacoTime = m_fSelacoIncrement = m_fSelacoButtonTime = 0;
 		m_fSelacoZ = VEC_VIEW.z;
-		if (g_pGameRules->CheckMutator(MUTATOR_ICE))
+		if (g_pGameRules->MutatorEnabled(MUTATOR_ICE))
 			pev->friction = 0.3;
 		else
 			pev->friction = 1.0;
@@ -6061,7 +6061,7 @@ Vector CBasePlayer :: GetAutoaimVector( float flDelta )
 		// flDelta *= 0.5;
 	}
 
-	BOOL m_autoaim = g_pGameRules->CheckMutator(MUTATOR_AUTOAIM);
+	BOOL m_autoaim = g_pGameRules->MutatorEnabled(MUTATOR_AUTOAIM);
 	if (m_autoaim)
 		flDelta = 0.45;
 
@@ -6143,7 +6143,7 @@ Vector CBasePlayer :: AutoaimDeflection( Vector &vecSrc, float flDist, float flD
 	edict_t		*bestent;
 	TraceResult tr;
 
-	BOOL m_autoaim = g_pGameRules->CheckMutator(MUTATOR_AUTOAIM);
+	BOOL m_autoaim = g_pGameRules->MutatorEnabled(MUTATOR_AUTOAIM);
 
 	if (!m_autoaim)
 	{
