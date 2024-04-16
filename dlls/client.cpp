@@ -958,6 +958,8 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_allowrunes [0|1]\" - Allow powerup runes on server\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_allowvoiceovers [0|1]\" - Allow public voiceovers\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_ctcsecondsforpoint\" - amount of second holding chumtoad for a point\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_ctfspawn1\" - name of entity where blue base will spawn in map\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_ctfspawn2\" - name of entity where red base will spawn in map\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_dualsonly [0|1]\" - Replace all weapons with duals only\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_floatingweapons [0|1]\" - Floating world weapons ala Quake\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_gamemode \"chilldemic\"\" - be the survivor from the virus\n");
