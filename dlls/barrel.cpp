@@ -105,7 +105,7 @@ void CBarrel::BarrelThink( void )
 
 /*
 	if (pSprite) {
-		pSprite->pev->origin = pev->origin;
+		UTIL_SetOrigin(pSprite->pev, pev->origin);
 		pSprite->pev->origin.z += 32;
 
 		if (pSprite->pev->dmgtime > 0 && pSprite->pev->dmgtime < gpGlobals->time)

@@ -118,7 +118,7 @@ void CFlameBall::Explode( TraceResult *pTrace, int bitsDamageType )
 	// Pull out of the wall a bit
 	if ( pTrace->flFraction != 1.0 )
 	{
-		pev->origin = pTrace->vecEndPos + (pTrace->vecPlaneNormal * 60);
+		UTIL_SetOrigin(pev, pTrace->vecEndPos + (pTrace->vecPlaneNormal * 60));
 	}
 
 	int iContents = UTIL_PointContents ( pev->origin );
