@@ -20,7 +20,7 @@ CFlame *CFlame::CreateFlameStream( entvars_t *pevOwner, Vector vecStart, Vector 
 #ifndef CLIENT_DLL
 	pFlame->Spawn();
 #endif
-	pFlame->pev->origin = vecStart;
+	UTIL_SetOrigin(pFlame->pev, vecStart);
 	pFlame->pev->owner = ENT(pevOwner);
 	pFlame->pev->velocity = velocity;
 	pFlame->pev->velocity.x *= RANDOM_FLOAT(0.9, 1);

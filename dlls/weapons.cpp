@@ -1552,6 +1552,9 @@ void CBasePlayerWeapon :: DefaultHolster(int iAnim, int body)
 
 BOOL CBasePlayerWeapon :: DefaultReload( int iClipSize, int iAnim, float fDelay, int body )
 {
+	if (g_pGameRules->MutatorEnabled(MUTATOR_NORELOAD))
+		return FALSE;
+
 	if (m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] <= 0)
 		return FALSE;
 

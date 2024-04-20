@@ -35,6 +35,7 @@ extern globalvars_t *gpGlobals;
 extern int g_iUser1;
 extern float g_SlideTime;
 extern cvar_t *cl_gunsmoke;
+extern bool MutatorEnabled(int mutatorId);
 
 // Pool of client side entities/entvars_t
 static entvars_t	ev[ MAX_WEAPONS + 1 ];
@@ -184,6 +185,8 @@ CBasePlayerWeapon :: DefaultReload
 */
 BOOL CBasePlayerWeapon :: DefaultReload( int iClipSize, int iAnim, float fDelay, int body )
 {
+	if (MutatorEnabled(MUTATOR_NORELOAD))
+		return FALSE;
 
 	if (m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] <= 0)
 		return FALSE;
@@ -366,8 +369,6 @@ CBasePlayerWeapon::ItemPostFrame
 Handles weapon firing, reloading, etc.
 =====================
 */
-extern bool MutatorEnabled(int mutatorId);
-
 void CBasePlayerWeapon::ItemPostFrame( void )
 {
 	// Unstick slide after levelchange

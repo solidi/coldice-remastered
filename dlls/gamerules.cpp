@@ -82,6 +82,7 @@ DLL_GLOBAL const char *g_szMutators[] = {
 	"marshmellow",
 	"maxpack",
 	"megarun",
+	"noreload",
 	"notify",
 	"notthebees",
 	"oldtime",
@@ -835,6 +836,8 @@ void CGameRules::MutatorsThink(void)
 							mutator->next = m_Mutators ? m_Mutators : NULL;
 							m_Mutators = mutator;
 
+							ALERT(at_console, "Mutator \"%s\" enabled at %.2f until %.2f\n", g_szMutators[i], gpGlobals->time, mutator->timeToLive);
+
 							// ALERT(at_aiconsole, ">>> [%.2f] add g_szMutators[i]=%s | mutator->timeToLive=%.2f\n", gpGlobals->time, g_szMutators[i], mutator->timeToLive);
 
 							m_flDetectedMutatorChange = gpGlobals->time + 1.0;
@@ -862,6 +865,7 @@ void CGameRules::MutatorsThink(void)
 
 			if (m->timeToLive <= gpGlobals->time)
 			{
+				ALERT(at_console, "Mutator \"%s\" disabled at %.2f\n", g_szMutators[m->mutatorId-1], gpGlobals->time);
 				// ALERT(at_aiconsole, ">>> [%.2f] delete m->mutatorId=%d\n", gpGlobals->time, m->mutatorId);
 
 				m_flDetectedMutatorChange = gpGlobals->time + 1.0;

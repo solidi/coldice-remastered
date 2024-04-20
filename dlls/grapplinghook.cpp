@@ -100,7 +100,7 @@ void CHook::FireHook( ) {
 	}
 	UTIL_TraceLine( trace_origin + gpGlobals->v_forward * 20, trace_origin + gpGlobals->v_forward * 64, dont_ignore_monsters, NULL, &tr );
 
-	pev->origin = tr.vecEndPos;
+	UTIL_SetOrigin(pev, tr.vecEndPos);
 	pev->angles = anglesAim;
 	pev->velocity = vecDir * gSkillData.plrSpeedHook;
 	m_vVecDirHookMove = vecDir;
@@ -252,7 +252,7 @@ void CHook::Think ( void )
 		}
 		if ( m_fPlayerAtEnd )
 		{
-			pevOwner->pev->origin = m_vPlayerHangOrigin;
+			UTIL_SetOrigin(pevOwner->pev, m_vPlayerHangOrigin);
 			pevOwner->pev->velocity = Vector(0, 0, 0);
 			pevOwner->pev->gravity = -.001;
 			pevOwner->pev->speed = -.001;
