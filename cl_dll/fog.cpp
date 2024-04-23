@@ -50,10 +50,13 @@ void CFog::SetGLFog( Vector color )
 	if (!m_fogParams.enddist && !m_fogParams.startdist)
 	{
 		gEngfuncs.pTriAPI->Fog( Vector(0, 0, 0), 0, 0, FALSE);
+#ifndef __APPLE__
 		glDisable(GL_FOG);
+#endif
 		return;
 	}
 
+#ifndef __APPLE__
 	glEnable(GL_FOG);
 	glFogi(GL_FOG_MODE, GL_LINEAR);
 	glFogf(GL_FOG_DENSITY, 0.5);
@@ -61,6 +64,7 @@ void CFog::SetGLFog( Vector color )
 	glFogfv(GL_FOG_COLOR, color);
 	glFogf(GL_FOG_START, m_fogParams.startdist);
 	glFogf(GL_FOG_END, m_fogParams.enddist);
+#endif
 
 	// Tell the engine too
 	gEngfuncs.pTriAPI->Fog(color, m_fogParams.startdist, m_fogParams.enddist, TRUE);
@@ -79,7 +83,7 @@ void CFog::V_CalcRefDef( const ref_params_t* pparams )
 	float edgeLength = boxTotal.Length();
 
 	// Set mins/maxs box
-	for(int i = 0; i < 3; i++)
+	for (int i = 0; i < 3; i++)
 	{
 		m_vFogBBoxMin[i] = pparams->vieworg[i] - edgeLength;
 		m_vFogBBoxMax[i] = pparams->vieworg[i] + edgeLength;
@@ -132,7 +136,7 @@ void CFog::BlendFog( void )
 	m_fogParams.startdist = (m_fogBlend1.startdist * (1.0 - interp)) + (m_fogBlend2.startdist * interp);
 }
 
-bool CFog::CullFogBBox ( Vector mins, Vector maxs )
+bool CFog::CullFogBBox( Vector mins, Vector maxs )
 {
 	if (!m_fogParams.enddist && !m_fogParams.startdist || m_clientWaterLevel == 3)
 		return false;
