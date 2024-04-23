@@ -16,6 +16,9 @@
 // A subset of the extdll.h in the project HL Entity DLL
 //
 
+#if !defined( UTIL_VECTORSH )
+#define UTIL_VECTORSH
+
 // Misc C-runtime library headers
 #include "stdio.h"
 #include "stdlib.h"
@@ -122,4 +125,6 @@ inline Vector CrossProduct(const Vector& a, const Vector& b) { return Vector( a.
 #ifndef DID_VEC3_T_DEFINE
 #define DID_VEC3_T_DEFINE
 #define vec3_t Vector
+#endif
+
 #endif

@@ -476,6 +476,9 @@ public:
 	float m_fCreditsTime;
 	int m_iCreditMode;
 
+	virtual void InitializeEntities( void );
+	BOOL m_bSendMessages;
+
 	float m_fFeignTime;
 
 	void Taunt( void );

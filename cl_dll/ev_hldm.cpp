@@ -3652,7 +3652,6 @@ void EV_FireSawedOff( event_args_t *args )
 	vec3_t angles;
 	vec3_t velocity;
 
-	int j;
 	vec3_t ShellVelocity;
 	vec3_t ShellOrigin;
 	vec3_t vecSrc, vecAiming;
@@ -3701,7 +3700,6 @@ void EV_FireSawedOffDouble( event_args_t *args )
 	vec3_t angles;
 	vec3_t velocity;
 
-	int j;
 	vec3_t ShellVelocity;
 	vec3_t ShellOrigin;
 	vec3_t vecSrc, vecAiming;
@@ -3754,7 +3752,6 @@ void EV_FireDualSawedOff( event_args_t *args )
 	vec3_t angles;
 	vec3_t velocity;
 
-	int j;
 	vec3_t ShellVelocity;
 	vec3_t ShellOrigin;
 	vec3_t vecSrc, vecAiming;
@@ -3803,7 +3800,6 @@ void EV_FireDualSawedOffDouble( event_args_t *args )
 	vec3_t angles;
 	vec3_t velocity;
 
-	int j;
 	vec3_t ShellVelocity;
 	vec3_t ShellOrigin;
 	vec3_t vecSrc, vecAiming;

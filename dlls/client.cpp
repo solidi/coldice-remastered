@@ -43,6 +43,7 @@
 #include "items.h"
 #include "func_break.h"
 #include "const.h"
+#include "effects.h"
 
 #if defined( GRAPPLING_HOOK )
 #include "grapplinghook.h"
@@ -1229,6 +1230,9 @@ void ServerDeactivate( void )
 
 	// Peform any shutdown operations here...
 	//
+
+	// Reset fog when reloading
+	CEnvFog::SetCurrentEndDist(0, 0);
 }
 
 void ServerActivate( edict_t *pEdictList, int edictCount, int clientMax )
@@ -1328,6 +1332,8 @@ void StartFrame( void )
 
 	gpGlobals->teamplay = teamplay.value;
 	g_ulFrameCount++;
+
+	CEnvFog::FogThink();
 }
 
 
@@ -1688,6 +1694,10 @@ int AddToFullPack( struct entity_state_s *state, int e, edict_t *ent, edict_t *h
 		}
 	}
 
+	if ( CEnvFog::CheckBBox( host, ent ) )
+	{
+		return 0;
+	}
 
 	// Don't send entity to local client if the client says it's predicting the entity itself.
 	if ( ent->v.flags & FL_SKIPLOCALHOST )

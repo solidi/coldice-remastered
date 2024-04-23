@@ -559,7 +559,7 @@ public:
 
 private:
 
-	typedef struct
+	typedef struct Icons_s
 	{
 		char szSpriteName[MAX_ICONSPRITENAME_LENGTH];
 		HSPRITE spr;

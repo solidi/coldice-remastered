@@ -21,6 +21,8 @@
 #include "hltv.h"
 #include "Exports.h"
 
+#include "fog.h"
+
 
 #ifndef M_PI
 #define M_PI		3.14159265358979323846	// matches value in gcc v2 math.h
@@ -1088,6 +1090,8 @@ void V_CalcNormalRefdef ( struct ref_params_s *pparams )
 		renderpass = 0;
 	}
 #endif
+
+	gFog.V_CalcRefDef(pparams);
 }
 
 void V_SmoothInterpolateAngles( float * startAngle, float * endAngle, float * finalAngle, float degreesPerSec )
