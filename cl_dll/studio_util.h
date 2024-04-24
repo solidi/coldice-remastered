@@ -37,4 +37,6 @@ void	QuaternionMatrix( vec4_t quaternion, float (*matrix)[4] );
 void	QuaternionSlerp( vec4_t p, vec4_t q, float t, vec4_t qt );
 void	AngleQuaternion( float *angles, vec4_t quaternion );
 
+void    VectorRotate (const float *in1, float in2[3][4], float *out);
+
 #endif // STUDIO_UTIL_H

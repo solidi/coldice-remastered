@@ -287,7 +287,7 @@ void SpectatorPanel::ShowMenu(bool isVisible)
 
 	if ( !isVisible )
 	{
-		int iLabelSizeX, iLabelSizeY;
+		//int iLabelSizeX, iLabelSizeY;
 		m_BottomMainLabel->setVisible(true);
 		m_BottomMainButton->setVisible(false);
 

@@ -215,6 +215,7 @@ int gmsgVoteMap = 0;
 int gmsgVoteMutator = 0;
 int gmsgCtfInfo = 0;
 int gmsgAddMutator = 0;
+int gmsgFog = 0;
 
 void LinkUserMessages( void )
 {
@@ -282,6 +283,7 @@ void LinkUserMessages( void )
 	gmsgVoteMutator = REG_USER_MSG("VoteMutator", 1);
 	gmsgCtfInfo = REG_USER_MSG("CtfInfo", 4);
 	gmsgAddMutator = REG_USER_MSG("AddMut", -1);
+	gmsgFog = REG_USER_MSG("Fog", 9);
 }
 
 LINK_ENTITY_TO_CLASS( player, CBasePlayer );
@@ -3836,7 +3838,10 @@ void CBasePlayer :: Precache( void )
 	m_iUpdateTime = 5;  // won't update for 1/2 a second
 
 	if ( gInitHUD )
+	{
 		m_fInitHUD = TRUE;
+		m_bSendMessages = TRUE;
+	}
 }
 
 
@@ -5966,6 +5971,12 @@ void CBasePlayer :: UpdateClientData( void )
 		UpdateStatusBar();
 		m_flNextSBarUpdateTime = gpGlobals->time + 0.2;
 	}
+
+	if ( m_bSendMessages )
+	{
+		InitializeEntities();
+		m_bSendMessages = FALSE;
+	}
 }
 
 
@@ -6572,6 +6583,38 @@ void CBasePlayer::Taunt( void )
 		m_fTauntCancelTime = gpGlobals->time + 2.0;
 	}
 }
+
+//=========================================================
+// InitializeEntities
+//=========================================================
+void CBasePlayer :: InitializeEntities ( void )
+{
+	/*
+	edict_t* pEdict = g_engfuncs.pfnPEntityOfEntIndex( 1 );
+	CBaseEntity* pEntity;
+
+	for (int i = 0; i < gpGlobals->maxEntities; i++, pEdict++)
+	{
+		if (pEdict->free)
+			continue;
+
+		pEntity = CBaseEntity::Instance( pEdict );
+		if (!pEntity)
+			break;
+
+		ALERT(at_aiconsole, ">>>> CBasePlayer::SendInitMessages (%s)\n", STRING(pEntity->pev->classname));
+		pEntity->SendInitMessages(this);
+	}
+	*/
+
+	CBaseEntity *pEntity = UTIL_FindEntityByClassname(NULL, "env_fog");
+	if (pEntity)
+	{
+		// ALERT(at_aiconsole, ">>>> CBasePlayer::SendInitMessages (%s)\n", STRING(pEntity->pev->classname));
+		pEntity->SendInitMessages(this);
+	}
+}
+
 
 //=========================================================
 // Dead HEV suit prop

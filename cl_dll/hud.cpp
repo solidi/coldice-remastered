@@ -26,6 +26,7 @@
 #include "hud_servers.h"
 #include "vgui_int.h"
 #include "vgui_TeamFortressViewport.h"
+#include "fog.h"
 
 #include "demo.h"
 #include "demo_api.h"
@@ -631,6 +632,7 @@ void CHud :: Init( void )
 	m_Timer.Init();
 	m_ProTip.Init();
 	m_CtfInfo.Init();
+	gFog.Init();
 	InitRain();
 #ifdef _WIN32
 	g_ImGUIManager.Init();
@@ -804,6 +806,7 @@ void CHud :: VidInit( void )
 	m_Timer.VidInit();
 	m_ProTip.VidInit();
 	m_CtfInfo.VidInit();
+	gFog.VidInit();
 #ifdef _WIN32
 	g_ImGUIManager.VidInit();
 #endif

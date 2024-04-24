@@ -43,6 +43,7 @@ extern int gmsgDeathMsg;	// client dll messages
 extern int gmsgMOTD;
 extern int gmsgShowGameTitle;
 extern int gmsgAddMutator;
+extern int gmsgFog;
 
 int g_teamplay = 0;
 int g_ExplosiveAI = 0;
@@ -65,6 +66,7 @@ DLL_GLOBAL const char *g_szMutators[] = {
 	"dontshoot",
 	"explosiveai",
 	"fastweapons",
+	"fog",
 	"goldenguns",
 	"grenades",
 	"ice",
@@ -508,6 +510,127 @@ CGameRules *InstallGameRules( void )
 	}
 }
 
+void CGameRules::EnvMutators( void )
+{
+	if (MutatorEnabled(MUTATOR_SLOWMO) && CVAR_GET_FLOAT("sys_timescale") != 0.49f)
+		CVAR_SET_FLOAT("sys_timescale", 0.49);
+	else
+	{
+		if (!MutatorEnabled(MUTATOR_SLOWMO) &&
+			CVAR_GET_FLOAT("sys_timescale") > 0.48f && CVAR_GET_FLOAT("sys_timescale") < 0.50f)
+			CVAR_SET_FLOAT("sys_timescale", 1.0);
+	}
+
+	if (strcmp(szSkyColor[0], "0") != 0 && strlen(szSkyColor[0]))
+	{
+		CVAR_SET_STRING("sv_skycolor_r", szSkyColor[0]);
+		CVAR_SET_STRING("sv_skycolor_g", szSkyColor[1]);
+		CVAR_SET_STRING("sv_skycolor_b", szSkyColor[2]);
+	}
+	else
+	{
+		strcpy(szSkyColor[0], CVAR_GET_STRING("sv_skycolor_r"));
+		strcpy(szSkyColor[1], CVAR_GET_STRING("sv_skycolor_g"));
+		strcpy(szSkyColor[2], CVAR_GET_STRING("sv_skycolor_b"));
+	}
+
+	// Lights out
+	int toggleFlashlight = 0;
+	if (MutatorEnabled(MUTATOR_LIGHTSOUT))
+	{
+		LIGHT_STYLE(0, "b");
+		if (flashlight.value != 1)
+		{
+			CVAR_SET_STRING("mp_flashlight", "2");
+			toggleFlashlight = 2;
+		}
+		CVAR_SET_STRING("sv_skycolor_r", "0");
+		CVAR_SET_STRING("sv_skycolor_g", "0");
+		CVAR_SET_STRING("sv_skycolor_b", "0");
+	}
+	else
+	{
+		LIGHT_STYLE(0, "m");
+		if (flashlight.value == 2)
+		{
+			CVAR_SET_STRING("mp_flashlight", "0");
+			toggleFlashlight = 1;
+		}
+		CVAR_SET_STRING("sv_skycolor_r", szSkyColor[0]);
+		CVAR_SET_STRING("sv_skycolor_g", szSkyColor[1]);
+		CVAR_SET_STRING("sv_skycolor_b", szSkyColor[2]);
+	}
+
+	// Jump height
+	if (MutatorEnabled(MUTATOR_SUPERJUMP) && CVAR_GET_FLOAT("sv_jumpheight") != 299)
+		CVAR_SET_FLOAT("sv_jumpheight", 299);
+	else
+	{
+		if (!MutatorEnabled(MUTATOR_SUPERJUMP) && CVAR_GET_FLOAT("sv_jumpheight") == 299)
+			CVAR_SET_FLOAT("sv_jumpheight", 45);
+	}
+
+	// Gravity
+	if (MutatorEnabled(MUTATOR_GRAVITY) && CVAR_GET_FLOAT("sv_gravity") != 199)
+		CVAR_SET_FLOAT("sv_gravity", 199);
+	else
+	{
+		if (!MutatorEnabled(MUTATOR_GRAVITY) && CVAR_GET_FLOAT("sv_gravity") == 199)
+			CVAR_SET_FLOAT("sv_gravity", 800);
+	}
+
+	// Player loop
+	for (int i = 1; i <= gpGlobals->maxClients; i++)
+	{
+		CBaseEntity *pPlayer = UTIL_PlayerByIndex( i );
+		CBasePlayer *pl = (CBasePlayer *)pPlayer;
+
+		if (pPlayer && pPlayer->IsPlayer())
+		{
+			if (MutatorEnabled(MUTATOR_FOG))
+			{
+				MESSAGE_BEGIN(MSG_ONE, gmsgFog, NULL, pPlayer->pev);
+					WRITE_COORD(50);
+					WRITE_COORD(200);
+					WRITE_BYTE(125);
+					WRITE_BYTE(125);
+					WRITE_BYTE(125);
+					WRITE_COORD(0);
+				MESSAGE_END();
+			}
+			else
+			{
+				CBaseEntity *pEntity = UTIL_FindEntityByClassname(NULL, "env_fog");
+				if (pEntity)
+					pEntity->Use( pPlayer, pPlayer, USE_SET, 0 );
+				else
+				{
+					MESSAGE_BEGIN(MSG_ONE, gmsgFog, NULL, pPlayer->pev);
+						WRITE_COORD(0);
+						WRITE_COORD(0);
+						WRITE_BYTE(0);
+						WRITE_BYTE(0);
+						WRITE_BYTE(0);
+						WRITE_COORD(0);
+					MESSAGE_END();
+				}
+			}
+
+			// Non observer
+			if (!pl->IsObserver())
+			{
+				if (toggleFlashlight)
+				{
+					if ( toggleFlashlight == 2 && !pl->FlashlightIsOn() )
+						pl->FlashlightTurnOn();
+					else if (toggleFlashlight == 1 && pl->FlashlightIsOn())
+						pl->FlashlightTurnOff();
+				}
+			}
+		}
+	}
+}
+
 BOOL CGameRules::WeaponMutators( CBasePlayerWeapon *pWeapon )
 {
 	if (pWeapon && pWeapon->m_pPlayer)
@@ -943,54 +1066,7 @@ void CGameRules::MutatorsThink(void)
 	{
 		RefreshSkillData();
 
-		if (MutatorEnabled(MUTATOR_SLOWMO) && CVAR_GET_FLOAT("sys_timescale") != 0.49f)
-			CVAR_SET_FLOAT("sys_timescale", 0.49);
-		else
-		{
-			if (!MutatorEnabled(MUTATOR_SLOWMO) &&
-				CVAR_GET_FLOAT("sys_timescale") > 0.48f && CVAR_GET_FLOAT("sys_timescale") < 0.50f)
-				CVAR_SET_FLOAT("sys_timescale", 1.0);
-		}
-
-		if (strcmp(szSkyColor[0], "0") != 0 && strlen(szSkyColor[0]))
-		{
-			CVAR_SET_STRING("sv_skycolor_r", szSkyColor[0]);
-			CVAR_SET_STRING("sv_skycolor_g", szSkyColor[1]);
-			CVAR_SET_STRING("sv_skycolor_b", szSkyColor[2]);
-		}
-		else
-		{
-			strcpy(szSkyColor[0], CVAR_GET_STRING("sv_skycolor_r"));
-			strcpy(szSkyColor[1], CVAR_GET_STRING("sv_skycolor_g"));
-			strcpy(szSkyColor[2], CVAR_GET_STRING("sv_skycolor_b"));
-		}
-
-		int toggleFlashlight = 0;
-
-		if (MutatorEnabled(MUTATOR_LIGHTSOUT))
-		{
-			LIGHT_STYLE(0, "b");
-			if (flashlight.value != 1)
-			{
-				CVAR_SET_STRING("mp_flashlight", "2");
-				toggleFlashlight = 2;
-			}
-			CVAR_SET_STRING("sv_skycolor_r", "0");
-			CVAR_SET_STRING("sv_skycolor_g", "0");
-			CVAR_SET_STRING("sv_skycolor_b", "0");
-		}
-		else
-		{
-			LIGHT_STYLE(0, "m");
-			if (flashlight.value == 2)
-			{
-				CVAR_SET_STRING("mp_flashlight", "0");
-				toggleFlashlight = 1;
-			}
-			CVAR_SET_STRING("sv_skycolor_r", szSkyColor[0]);
-			CVAR_SET_STRING("sv_skycolor_g", szSkyColor[1]);
-			CVAR_SET_STRING("sv_skycolor_b", szSkyColor[2]);
-		}
+		EnvMutators();
 
 		if (m_JopeCheck) {
 			UTIL_ClientPrintAll(HUD_PRINTCENTER, "The JOPE is over with!\n");
@@ -1090,14 +1166,6 @@ void CGameRules::MutatorsThink(void)
 					}
 				}
 
-				if (toggleFlashlight)
-				{
-					if ( toggleFlashlight == 2 && !pl->FlashlightIsOn() )
-						pl->FlashlightTurnOn();
-					else if (toggleFlashlight == 1 && pl->FlashlightIsOn())
-						pl->FlashlightTurnOff();
-				}
-
 				if (MutatorEnabled(MUTATOR_999)) {
 					pl->pev->max_health = 999;
 					pl->pev->health = 999;
@@ -1142,26 +1210,6 @@ void CGameRules::MutatorsThink(void)
 				{
 					pl->pev->body = 0;
 				}
-			}
-
-			if (MutatorEnabled(MUTATOR_SUPERJUMP) && CVAR_GET_FLOAT("sv_jumpheight") != 299)
-			{
-				CVAR_SET_FLOAT("sv_jumpheight", 299);
-			}
-			else
-			{
-				if (!MutatorEnabled(MUTATOR_SUPERJUMP) && CVAR_GET_FLOAT("sv_jumpheight") == 299)
-					CVAR_SET_FLOAT("sv_jumpheight", 45);
-			}
-
-			if (MutatorEnabled(MUTATOR_GRAVITY) && CVAR_GET_FLOAT("sv_gravity") != 199)
-			{
-				CVAR_SET_FLOAT("sv_gravity", 199);
-			}
-			else
-			{
-				if (!MutatorEnabled(MUTATOR_GRAVITY) && CVAR_GET_FLOAT("sv_gravity") == 199)
-					CVAR_SET_FLOAT("sv_gravity", 800);
 			}
 
 			if (MutatorEnabled(MUTATOR_INFINITEAMMO) && infiniteammo.value != 1)
@@ -1273,14 +1321,6 @@ void CGameRules::MutatorsThink(void)
 					m_iVolatile = FALSE;
 			}
 		}
-
-/*
-		char szMutators[64];
-		strncpy(szMutators, mutators.string, sizeof(szMutators));
-		MESSAGE_BEGIN( MSG_ALL, gmsgMutators );
-			WRITE_STRING(szMutators);
-		MESSAGE_END();
-*/
 
 		m_flDetectedMutatorChange = 0;
 	}

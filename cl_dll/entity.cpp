@@ -14,6 +14,7 @@
 #include "pm_shared.h"
 #include "bench.h"
 #include "Exports.h"
+#include "fog.h"
 
 #include "studio.h"
 #include "com_model.h"
@@ -345,6 +346,8 @@ void CL_DLLEXPORT HUD_CreateEntities( void )
 	GetClientVoiceMgr()->CreateEntities();
 
 	GetLifeBar()->UpdateSprites();
+
+	gFog.HUD_CreateEntities();
 }
 
 #if defined( _TFC )

@@ -18,6 +18,8 @@
 #include "triangleapi.h"
 #include "Exports.h"
 
+#include "fog.h"
+
 #include "particleman.h"
 #include "tri.h"
 #include "rain.h"
@@ -40,6 +42,8 @@ void CL_DLLEXPORT HUD_DrawNormalTriangles( void )
 //	RecClDrawNormalTriangles();
 
 	gHUD.m_Spectator.DrawOverview();
+
+	gFog.HUD_DrawNormalTriangles();
 }
 
 #if defined( _TFC )
@@ -86,6 +90,8 @@ void CL_DLLEXPORT HUD_DrawTransparentTriangles( void )
 		DrawRain();
 		DrawFXObjects();
 	}
+
+	gFog.HUD_DrawTransparentTriangles();
 }
 
 void DrawCrosshair()

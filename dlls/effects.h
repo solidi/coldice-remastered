@@ -218,4 +218,40 @@ public:
 	virtual int ObjectCaps( void ) { return (CBaseEntity::ObjectCaps() & ~FCAP_ACROSS_TRANSITION) | FCAP_PORTAL; }
 };
 
+//=========================================================
+// CEnvFog
+//=========================================================
+class CEnvFog : public CBaseEntity
+{
+public:
+    void    Spawn( void );
+    void    SendInitMessages( CBaseEntity* pPlayer = NULL );
+    void    KeyValue( KeyValueData *pkvd );
+    void    UpdateFog( BOOL isOn, BOOL doBlend, CBaseEntity* pPlayer );
+    void    Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );
+
+    virtual int        Save( CSave &save );
+    virtual int        Restore( CRestore &restore );
+
+public:
+    static void SetCurrentEndDist( int enddist, float blendtime );
+    static int GetCurrentEndDist( void ) { return g_iCurrentEndDist; }
+
+    static void FogThink( void );
+    static BOOL CheckBBox( edict_t* pplayer, edict_t* pedict );
+
+private:
+    static    TYPEDESCRIPTION m_SaveData[];
+
+    int        m_iStartDist;
+    int        m_iEndDist;
+    float    m_flBlendTime;
+    BOOL    m_bActive;
+
+private:
+    static int g_iCurrentEndDist;
+    static int g_iIdealEndDist;
+    static float g_flBlendDoneTime;
+};
+
 #endif		//EFFECTS_H

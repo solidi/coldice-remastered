@@ -183,6 +183,7 @@ public:
 	virtual BOOL AllowGrapplingHook( CBasePlayer *pPlayer ) = FALSE;
 #endif
 
+	virtual void EnvMutators( void );
 	virtual void SpawnMutators( CBasePlayer *pPlayer );
 	virtual BOOL WeaponMutators( CBasePlayerWeapon *pWeapon );
 	virtual void GiveMutators( CBasePlayer *pPlayer );

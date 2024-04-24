@@ -17,14 +17,14 @@
 #include "vgui_TeamFortressViewport.h"
 #include "vgui_ServerBrowser.h"
 
-// Class Menu Dimensions
-#define CLASSMENU_TITLE_X				XRES(40)
-#define CLASSMENU_TITLE_Y				YRES(32)
-#define CLASSMENU_TOPLEFT_BUTTON_X		XRES(40)
-#define CLASSMENU_TOPLEFT_BUTTON_Y		YRES(80)
-#define CLASSMENU_BUTTON_SIZE_X			XRES(124)
-#define CLASSMENU_BUTTON_SIZE_Y			YRES(24)
-#define CLASSMENU_BUTTON_SPACER_Y		YRES(8)
+// Menu Dimensions
+#define MUTATORMENU_TITLE_X				XRES(40)
+#define MUTATORMENU_TITLE_Y				YRES(32)
+#define MUTATORMENU_TOPLEFT_BUTTON_X		XRES(40)
+#define MUTATORMENU_TOPLEFT_BUTTON_Y		YRES(80)
+#define MUTATORMENU_BUTTON_SIZE_X			XRES(104)
+#define MUTATORMENU_BUTTON_SIZE_Y			YRES(24)
+#define MUTATORMENU_BUTTON_SPACER_Y		YRES(8)
 
 // Creation
 CVoteMutatorPanel::CVoteMutatorPanel(int iTrans, int iRemoveMe, int x,int y,int wide,int tall) : CMenuPanel(iTrans, iRemoveMe, x,y,wide,tall)
@@ -40,7 +40,7 @@ CVoteMutatorPanel::CVoteMutatorPanel(int iTrans, int iRemoveMe, int x,int y,int 
 	int r, g, b, a;
 
 	// Create the title
-	pTitleLabel = new Label( "", CLASSMENU_TITLE_X, CLASSMENU_TITLE_Y );
+	pTitleLabel = new Label( "", MUTATORMENU_TITLE_X, MUTATORMENU_TITLE_Y );
 	pTitleLabel->setParent( this );
 	pTitleLabel->setFont( pSchemes->getFont(hTitleScheme) );
 	pSchemes->getFgColor( hTitleScheme, r, g, b, a );
@@ -72,10 +72,10 @@ CVoteMutatorPanel::CVoteMutatorPanel(int iTrans, int iRemoveMe, int x,int y,int 
 			degree = 0;
 		}
 		char sz[256];
-		int iYPos = CLASSMENU_TOPLEFT_BUTTON_Y + ( (CLASSMENU_BUTTON_SIZE_Y + CLASSMENU_BUTTON_SPACER_Y) * xI );
+		int iYPos = MUTATORMENU_TOPLEFT_BUTTON_Y + ( (MUTATORMENU_BUTTON_SIZE_Y + MUTATORMENU_BUTTON_SPACER_Y) * xI );
 		int spacer = 0;
-		spacer = (CLASSMENU_BUTTON_SIZE_X + 10) * degree;
-		iYPos = CLASSMENU_TOPLEFT_BUTTON_Y + ( (CLASSMENU_BUTTON_SIZE_Y + CLASSMENU_BUTTON_SPACER_Y) * (xI - (12 * degree)));
+		spacer = (MUTATORMENU_BUTTON_SIZE_X + 10) * degree;
+		iYPos = MUTATORMENU_TOPLEFT_BUTTON_Y + ( (MUTATORMENU_BUTTON_SIZE_Y + MUTATORMENU_BUTTON_SPACER_Y) * (xI - (12 * degree)));
 		
 		char voteCommand[16];
 		sprintf(voteCommand, "vote %d", i+1);
@@ -83,7 +83,7 @@ CVoteMutatorPanel::CVoteMutatorPanel(int iTrans, int iRemoveMe, int x,int y,int 
 
 		// mutator buttons
 		sprintf(sz, " %s", sMutators[i]);
-		m_pButtons[i] = new ClassButton( i, sz, CLASSMENU_TOPLEFT_BUTTON_X + spacer, iYPos, CLASSMENU_BUTTON_SIZE_X, CLASSMENU_BUTTON_SIZE_Y, true);
+		m_pButtons[i] = new ClassButton( i, sz, MUTATORMENU_TOPLEFT_BUTTON_X + spacer, iYPos, MUTATORMENU_BUTTON_SIZE_X, MUTATORMENU_BUTTON_SIZE_Y, true);
 		m_pButtons[i]->setBoundKey( (char)255 );
 		m_pButtons[i]->setContentAlignment( vgui::Label::a_west );
 		m_pButtons[i]->addActionSignal( pASignal );

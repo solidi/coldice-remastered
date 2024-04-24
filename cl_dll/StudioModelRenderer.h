@@ -103,6 +103,9 @@ public:
 
 	virtual void AppendGlowModel( void );
 
+	// Sets bounding box
+	virtual void StudioGetMinsMaxs ( Vector& outMins, Vector& outMaxs );
+
 public:
 
 	// Client clock
