@@ -1798,7 +1798,8 @@ void CHalfLifeMultiplay :: PlayerKilled( CBasePlayer *pVictim, entvars_t *pKille
 	DeactivatePortals( pVictim );
 #endif
 
-	if (m_iVolatile) {
+	if (m_iVolatile ||
+		(pVictim->m_pActiveItem && pVictim->m_pActiveItem->m_iId == WEAPON_VEST)) {
 		// No echo boom
 		if (pInflictor && FClassnameIs(pInflictor, "weapon_vest"))
 			return;
