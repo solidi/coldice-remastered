@@ -219,8 +219,26 @@ void CRailgun::Fire( Vector vecSrc, Vector vecDir, Vector effectSrc, float flDam
 
 #ifndef CLIENT_DLL
 	int nMaxPunchThroughs = RANDOM_LONG(2,4);
+	BOOL firstBeam = FALSE;
 	while (nMaxPunchThroughs > 0)
 	{
+		// Reflection
+		if (firstBeam)
+		{
+			float n, flMaxFrac = 1.0;
+			n = -DotProduct( tr.vecPlaneNormal, vecDir);
+			if (n < 0.5) // 60 degrees
+			{
+				Vector r;
+				VectorMA( vecDir, 2.0 * n, tr.vecPlaneNormal, r );
+				flMaxFrac = flMaxFrac - tr.flFraction;
+				VectorCopy( r, vecDir );
+				VectorMA( tr.vecEndPos, 8.0, vecDir, vecSrc );
+				VectorMA( vecSrc, 8192.0, vecDir, vecDest );
+			}
+		}
+		firstBeam = TRUE;
+
 		UTIL_TraceLine(vecSrc, vecDest, dont_ignore_monsters, pentIgnore, &tr);
 		if (tr.flFraction > 0.02) // no trail when too close to an entity
 			CreateTrail(vecSrc + effectSrc, tr.vecEndPos);
@@ -286,7 +304,8 @@ void CRailgun::Fire( Vector vecSrc, Vector vecDir, Vector effectSrc, float flDam
 		pentIgnore = ENT(pEntity->pev);
 	}
 
-	m_pPlayer->pev->velocity = m_pPlayer->pev->velocity - gpGlobals->v_forward * 200;
+	if (!FBitSet(m_pPlayer->pev->flags, FL_ONGROUND))
+		m_pPlayer->pev->velocity = m_pPlayer->pev->velocity - gpGlobals->v_forward * 500;
 #endif
 }
 

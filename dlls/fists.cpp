@@ -240,7 +240,7 @@ int CFists::Swing( int fFirst )
 			if ( pEntity->Classify() != CLASS_NONE && pEntity->Classify() != CLASS_MACHINE )
 			{
 				// play thwack or smack sound
-				EMIT_SOUND(ENT(m_pPlayer->pev), CHAN_ITEM, "fists_hitbod.wav", 1, ATTN_NORM);
+				EMIT_SOUND(ENT(m_pPlayer->pev), CHAN_BODY, "fists_hitbod.wav", 1, ATTN_NORM);
 				m_pPlayer->m_iWeaponVolume = FISTS_BODYHIT_VOLUME;
 				pEntity->pev->velocity = (pEntity->pev->velocity + (gpGlobals->v_forward * RANDOM_LONG(100,200)));
 				if (fFirst == SHORYUKEN)
@@ -285,7 +285,7 @@ int CFists::Swing( int fFirst )
 			}
 
 			// also play fist strike
-			EMIT_SOUND_DYN(ENT(m_pPlayer->pev), CHAN_ITEM, "fists_hit.wav", fvolbar, ATTN_NORM, 0, 98 + RANDOM_LONG(0,3));
+			EMIT_SOUND_DYN(ENT(m_pPlayer->pev), CHAN_BODY, "fists_hit.wav", fvolbar, ATTN_NORM, 0, 98 + RANDOM_LONG(0,3));
 
 			// delay the decal a bit
 			m_trHit = tr;
