@@ -4724,7 +4724,7 @@ void CBasePlayer::TraceHitOfSelacoSlide( void )
 						if ( pEntity->Classify() != CLASS_NONE && pEntity->Classify() != CLASS_MACHINE )
 						{
 							// play thwack or smack sound
-							EMIT_SOUND(ENT(pev), CHAN_ITEM, "fists_hitbod.wav", 1, ATTN_NORM);
+							EMIT_SOUND(ENT(pev), CHAN_BODY, "fists_hitbod.wav", 1, ATTN_NORM);
 							m_iWeaponVolume = 128;
 							flVol = 0.1;
 							pEntity->pev->velocity = (pEntity->pev->velocity + (gpGlobals->v_forward * RANDOM_LONG(200,300)));
@@ -4760,7 +4760,7 @@ void CBasePlayer::TraceHitOfSelacoSlide( void )
 							pSprite->SetScale( 0.4 );
 						}
 
-						EMIT_SOUND_DYN(ENT(pev), CHAN_ITEM, "fists_hit.wav", fvolbar, ATTN_NORM, 0, 98 + RANDOM_LONG(0,3));
+						EMIT_SOUND_DYN(ENT(pev), CHAN_BODY, "fists_hit.wav", fvolbar, ATTN_NORM, 0, 98 + RANDOM_LONG(0,3));
 
 						m_fSelacoHit = TRUE;
 						pev->velocity = pev->velocity / 2;
@@ -4780,7 +4780,7 @@ void CBasePlayer::TraceHitOfSelacoSlide( void )
 			//ALERT(at_aiconsole, "fabs(m_fSelacoLastX - pev->velocity.x)[x=%.2f] fabs(m_fSelacoLastY - pev->velocity.y)[y=%.2f]\n", fabs(m_fSelacoLastX - pev->velocity.x), fabs(m_fSelacoLastY - pev->velocity.y));
 
 			if (fabs(m_fSelacoLastX - pev->velocity.x) > 300 || fabs(m_fSelacoLastY - pev->velocity.y) > 300) {
-				EMIT_SOUND_DYN(ENT(pev), CHAN_ITEM, "fists_hit.wav", 1.0, ATTN_NORM, 0, 98 + RANDOM_LONG(0,3));
+				EMIT_SOUND_DYN(ENT(pev), CHAN_BODY, "fists_hit.wav", 1.0, ATTN_NORM, 0, 98 + RANDOM_LONG(0,3));
 				m_fSelacoHit = TRUE;
 				pev->velocity = pev->velocity / 2;
 				pev->friction = 0.7;
@@ -4824,7 +4824,7 @@ void CBasePlayer::TraceHitOfSelacoSlide( void )
 					pObject->TraceAttack(pev, (gSkillData.plrDmgKick * 2) + flDamage, gpGlobals->v_forward, &tr, DMG_KICK | DMG_NEVERGIB);
 					ApplyMultiDamage( pev, pev );
 
-					EMIT_SOUND(ENT(pev), CHAN_ITEM, "fists_hitbod.wav", 1, ATTN_NORM);
+					EMIT_SOUND(ENT(pev), CHAN_BODY, "fists_hitbod.wav", 1, ATTN_NORM);
 				}
 
 				m_EFlags |= EFLAG_SLIDE_RETRACT & ~EFLAG_SLIDE;
@@ -5046,7 +5046,7 @@ void CBasePlayer::TraceHitOfFlip( void )
 			pObject->TraceAttack(pev, (gSkillData.plrDmgKick * 2) + flDamage, gpGlobals->v_forward, &tr, DMG_KICK | DMG_NEVERGIB);
 			ApplyMultiDamage( pev, pev );
 
-			EMIT_SOUND(ENT(pev), CHAN_ITEM, "fists_hitbod.wav", 1, ATTN_NORM);
+			EMIT_SOUND(ENT(pev), CHAN_BODY, "fists_hitbod.wav", 1, ATTN_NORM);
 
 			if (g_pGameRules->AllowMeleeDrop() && pObject->IsPlayer())
 			{
@@ -5079,7 +5079,7 @@ void CBasePlayer::TraceHitOfFlip( void )
 		}
 		else
 		{
-			EMIT_SOUND(ENT(pev), CHAN_ITEM, "wrench_miss1.wav", 1, ATTN_NORM);
+			EMIT_SOUND(ENT(pev), CHAN_BODY, "wrench_miss1.wav", 1, ATTN_NORM);
 		}
 
 		m_fSelacoIncrement = gpGlobals->time + 0.35;
