@@ -1906,7 +1906,7 @@ void CL_DLLEXPORT V_CalcRefdef( struct ref_params_s *pparams )
 	}
 	else if ( !pparams->paused )
 	{
-#ifdef DEBUG
+#ifdef _DEBUG
 		char str[256];
 		sprintf(str, "sim - x: %.3f sim - y: %.3f cmd fwd: %.3f\n",
 		pparams->simvel[0], pparams->simvel[1], pparams->cmd->forwardmove);
