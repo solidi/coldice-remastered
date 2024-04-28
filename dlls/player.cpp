@@ -264,7 +264,7 @@ void LinkUserMessages( void )
 	gmsgStatusValue = REG_USER_MSG("StatusValue", 3);
 	gmsgStatusIcon = REG_USER_MSG("StatusIcon", -1);
 	gmsgAcrobatics = REG_USER_MSG("Acrobatics", 1);
-	gmsgLifeBar = REG_USER_MSG("LifeBar", 2);
+	gmsgLifeBar = REG_USER_MSG("LifeBar", 3);
 	gmsgReceiveW = REG_USER_MSG("ReceiveW", 1);
 	gmsgPlayClientSound = REG_USER_MSG("PlayCSound", 1);
 	gmsgParticle = REG_USER_MSG("Particle", -1);
@@ -5844,10 +5844,14 @@ void CBasePlayer :: UpdateClientData( void )
 			WRITE_COORD( damageOrigin.z );
 		MESSAGE_END();
 
-		MESSAGE_BEGIN( MSG_PVS, gmsgLifeBar, pev->origin );
-			WRITE_BYTE( pev->armorvalue );
-			WRITE_BYTE( ENTINDEX(edict()) );
-		MESSAGE_END();
+		if (m_bitsHUDDamage > -1)
+		{
+			MESSAGE_BEGIN( MSG_PVS, gmsgLifeBar, pev->origin );
+				WRITE_BYTE( pev->armorvalue );
+				WRITE_BYTE( ENTINDEX(edict()) );
+				WRITE_BYTE( ENTINDEX(other) > 32 && pev->enemy ? ENTINDEX(pev->enemy) : ENTINDEX(other));
+			MESSAGE_END();
+		}
 	
 		pev->dmg_take = 0;
 		pev->dmg_save = 0;

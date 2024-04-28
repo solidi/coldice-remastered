@@ -1449,6 +1449,7 @@ void ClientPrecache( void )
 	//PRECACHE_SOUND("wpn_moveselect.wav");
 	//PRECACHE_SOUND("wpn_select.wav");
 	PRECACHE_SOUND("point.wav");
+	PRECACHE_SOUND("ding.wav");
 	PRECACHE_SOUND("common/wpn_denyselect.wav");
 
 	PRECACHE_SOUND("taunt01.wav");

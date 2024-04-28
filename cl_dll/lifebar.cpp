@@ -27,6 +27,7 @@ DECLARE_MESSAGE(m_LifeBar, LifeBar)
 
 extern int cam_thirdperson;
 extern cvar_t *cl_lifemeter;
+extern cvar_t *cl_playpoint;
 
 CHudLifeBar g_LifeBar;
 
@@ -63,7 +64,8 @@ int CHudLifeBar::MsgFunc_LifeBar(const char *pszName,  int iSize, void *pbuf )
 {
 	BEGIN_READ( pbuf, iSize );
 	int armor = READ_BYTE(); // armor
-	int index = READ_BYTE();
+	int index = READ_BYTE(); // who renders
+	int hitindex = READ_BYTE(); // who hit me
 
 	if (armor > 100) armor = 0;
 	armor = fmin(fmax(armor, 0), 100);
@@ -71,6 +73,20 @@ int CHudLifeBar::MsgFunc_LifeBar(const char *pszName,  int iSize, void *pbuf )
 	GetLifeBar()->m_LifeBarData[index].health = 0;
 	GetLifeBar()->m_LifeBarData[index].armor = armor;
 	GetLifeBar()->m_LifeBarData[index].refreshTime = gEngfuncs.GetClientTime() + 2;
+
+	int iLocalPlayerIndex = gEngfuncs.GetLocalPlayer()->index;
+	cl_entity_s *pClient = gEngfuncs.GetEntityByIndex(index);
+	// gEngfuncs.Con_DPrintf(">>>>> armor=%d, hit=%d, who=%d\n", armor, index, hitindex);
+	int health = pClient->curstate.health;
+
+	if (cl_playpoint && !cl_playpoint->value)
+	{
+		if (health > 0 && index != iLocalPlayerIndex && iLocalPlayerIndex == hitindex)
+		{
+			PlaySound("ding.wav", 2);
+			// gEngfuncs.Con_DPrintf(">>>>> ding Ding DING!\n");
+		}
+	}
 
 	return 1;
 }
