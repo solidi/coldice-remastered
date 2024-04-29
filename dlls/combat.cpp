@@ -988,6 +988,8 @@ int CBaseMonster :: TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker,
 	{
 		if ( pevInflictor )
 			pev->dmg_inflictor = ENT(pevInflictor);
+		if ( pevAttacker )
+			pev->enemy = ENT(pevAttacker);
 
 		pev->dmg_take += flTake;
 

@@ -917,7 +917,7 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_oldmotd [0|1]\" - Old MOTD (Message of the Day)\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_oldscoreboard [0|1]\" - Old Scoreboard\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_particlesystem [0|1]\" enables or disables special effects like the flamethrower\n" );
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_playpoint [0|1]\" - Play buzzer/bell for frag\n" );
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_playpoint [0|1]\" - Play ding when inflicting damage, dong for frag\n" );
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_playmusic [0|1]\" - Play soundtrack set by map\n" );
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "For more, type help_more\n" );
 	}
@@ -1449,6 +1449,7 @@ void ClientPrecache( void )
 	//PRECACHE_SOUND("wpn_moveselect.wav");
 	//PRECACHE_SOUND("wpn_select.wav");
 	PRECACHE_SOUND("point.wav");
+	PRECACHE_SOUND("ding.wav");
 	PRECACHE_SOUND("common/wpn_denyselect.wav");
 
 	PRECACHE_SOUND("taunt01.wav");
@@ -1498,7 +1499,7 @@ Engine is going to shut down, allows setting a breakpoint in game .dll to catch 
 */
 void Sys_Error( const char *error_string )
 {
-#ifdef DEBUG
+#ifdef _DEBUG
 	ALERT(at_console, "Engine error: %s\n", error_string);
 	ALERT(at_console, "Map: %s\n", STRING(gpGlobals->mapname));
 	// ALERT(at_console, "Mutators: %s\n", mutators.string);

@@ -175,7 +175,9 @@ int CSoundEnt :: IAllocSound( void )
 	if ( m_iFreeSound == SOUNDLIST_EMPTY )
 	{
 		// no free sound!
+#ifdef _DEBUG
 		ALERT ( at_console, "Free Sound List is full!\n" );
+#endif
 		return SOUNDLIST_EMPTY;
 	}
 
@@ -211,7 +213,9 @@ void CSoundEnt :: InsertSound ( int iType, const Vector &vecOrigin, int iVolume,
 
 	if ( iThisSound == SOUNDLIST_EMPTY )
 	{
+#ifdef _DEBUG
 		ALERT ( at_console, "Could not AllocSound() for InsertSound() (DLL)\n" );
+#endif
 		return;
 	}
 
