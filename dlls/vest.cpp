@@ -161,6 +161,7 @@ void CVest::BlowThink() {
 void CVest::GoneThink() {
 	if (!FBitSet(m_pPlayer->pev->flags, FL_GODMODE))
 	{
+		ClearMultiDamage();
 		m_pPlayer->pev->health = 0; // without this, player can walk as a ghost.
 		m_pPlayer->Killed(m_pPlayer->pev, pev, GIB_ALWAYS);
 	}

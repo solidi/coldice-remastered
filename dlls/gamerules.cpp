@@ -641,6 +641,7 @@ BOOL CGameRules::WeaponMutators( CBasePlayerWeapon *pWeapon )
 			{
 				if (!FBitSet(pWeapon->m_pPlayer->pev->flags, FL_GODMODE))
 				{
+					ClearMultiDamage();
 					pWeapon->m_pPlayer->pev->health = 0; // without this, player can walk as a ghost.
 					pWeapon->m_pPlayer->Killed(pWeapon->m_pPlayer->pev, pWeapon->m_pPlayer->pev, GIB_ALWAYS);
 				}
