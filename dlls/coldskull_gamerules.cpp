@@ -120,6 +120,12 @@ void CSkullCharm::SkullTouch( CBaseEntity *pOther )
 				WRITE_STRING(UTIL_VarArgs("Your progress: %d of %d", myfrags, frags));
 				WRITE_BYTE(result);
 			MESSAGE_END();
+
+			// End session if hit skull limit
+			if ( myfrags >= frags )
+			{
+				g_pGameRules->EndMultiplayerGame();
+			}
 		}
 
 		MESSAGE_BEGIN( MSG_ONE, gmsgItemPickup, NULL, pPlayer->pev );
