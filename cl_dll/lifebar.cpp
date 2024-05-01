@@ -79,7 +79,7 @@ int CHudLifeBar::MsgFunc_LifeBar(const char *pszName,  int iSize, void *pbuf )
 	// gEngfuncs.Con_DPrintf(">>>>> armor=%d, hit=%d, who=%d\n", armor, index, hitindex);
 	int health = pClient->curstate.health;
 
-	if (cl_playpoint && !cl_playpoint->value)
+	if (cl_playpoint && cl_playpoint->value)
 	{
 		if (health > 0 && index != iLocalPlayerIndex && iLocalPlayerIndex == hitindex)
 		{
