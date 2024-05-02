@@ -3701,6 +3701,7 @@ void CBasePlayer::Spawn( void )
 		m_fLastSpawnTime = 0;
 
 	m_fFlipButtonTime = m_fFlipTime = 0;
+	m_fTauntTime = 0;
 
 	g_engfuncs.pfnSetPhysicsKeyValue( edict(), "slj", "0" );
 	g_engfuncs.pfnSetPhysicsKeyValue( edict(), "hl", "1" );
