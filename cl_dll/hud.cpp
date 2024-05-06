@@ -70,6 +70,7 @@ cvar_t *cl_screeneffects;
 cvar_t *cl_customtempents;
 cvar_t *cl_voiceoverpath;
 cvar_t *cl_objectives;
+cvar_t *cl_crosshairammo;
 
 cvar_t *cl_vmx;
 cvar_t *cl_vmy;
@@ -558,6 +559,7 @@ void CHud :: Init( void )
 	CVAR_CREATE( "cl_automelee", "1", FCVAR_ARCHIVE | FCVAR_USERINFO );
 	CVAR_CREATE( "cl_autotaunt", "1", FCVAR_ARCHIVE | FCVAR_USERINFO );
 	CVAR_CREATE( "cl_playmusic", "1", FCVAR_ARCHIVE | FCVAR_USERINFO );
+	cl_crosshairammo = CVAR_CREATE("cl_crosshairammo", "1", FCVAR_ARCHIVE);
 
 	cl_vmx = CVAR_CREATE( "cl_vmx", "0", FCVAR_ARCHIVE );
 	cl_vmy = CVAR_CREATE( "cl_vmy", "0", FCVAR_ARCHIVE );

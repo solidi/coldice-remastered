@@ -43,6 +43,7 @@ long oldCrosshairValue;
 extern float g_yP, g_xP;
 extern cvar_t *cl_hudbend;
 extern cvar_t *cl_radar;
+extern cvar_t *cl_crosshairammo;
 
 void WeaponsResource :: LoadAllWeaponSprites( void )
 {
@@ -320,6 +321,10 @@ int CHudAmmo::VidInit(void)
 	// Load sprites for buckets (top row of weapon menu)
 	m_HUD_bucket0 = gHUD.GetSpriteIndex( "bucket1" );
 	m_HUD_selection = gHUD.GetSpriteIndex( "selection" );
+
+	m_hCrosshairBrackets = gHUD.GetSpriteIndex( "c_brackets" );
+	m_hCrosshairLeft = gHUD.GetSpriteIndex( "c_left" );
+	m_hCrosshairRight = gHUD.GetSpriteIndex( "c_right" );
 
 	ghsprBuckets = gHUD.GetSprite(m_HUD_bucket0);
 	giBucketWidth = gHUD.GetSpriteRect(m_HUD_bucket0).right - gHUD.GetSpriteRect(m_HUD_bucket0).left;
@@ -706,6 +711,7 @@ int CHudAmmo::MsgFunc_WeaponList(const char *pszName, int iSize, void *pbuf )
 	Weapon.iId = READ_CHAR();
 	Weapon.iFlags = READ_BYTE();
 	Weapon.iClip = 0;
+	Weapon.iMaxClip = READ_BYTE();
 
 	gWR.AddWeapon( &Weapon );
 
@@ -937,9 +943,36 @@ int CHudAmmo::Draw(float flTime)
 	if (m_pWeapon->iAmmoType > 0)
 	{
 		int iIconWidth = m_pWeapon->rcAmmo.right - m_pWeapon->rcAmmo.left;
-		
+
+		int barSize = 45, r2, g2, b2, a2 = MIN_ALPHA;
+		wrect_t clip, primary;
+		if (cl_crosshairammo && cl_crosshairammo->value)
+		{
+			UnpackRGB(r2, g2, b2, HudColor());
+			ScaleColors(r2, g2, b2, a2);
+
+			SPR_Set(gHUD.GetSprite(m_hCrosshairBrackets), r2, g2, b2 );
+			SPR_DrawAdditive(0, (ScreenWidth / 2) - 32, (ScreenHeight / 2) - 23, &gHUD.GetSpriteRect(m_hCrosshairBrackets));
+
+			int dif = fmin(fmax(1, (barSize * (gWR.CountAmmo(pw->iAmmoType) / float(pw->iMax1)))), barSize);
+			primary.top = barSize - dif;
+			primary.bottom = primary.right = 64;
+
+			SPR_Set(gHUD.GetSprite(m_hCrosshairRight), r2, g2, b2 );
+			SPR_DrawAdditive(0, (ScreenWidth / 2) - 32, ((ScreenHeight / 2) - 23) + primary.top, &primary);
+		}
+
 		if (pw->iClip >= 0)
 		{
+			if (cl_crosshairammo && cl_crosshairammo->value)
+			{
+				int dif = fmin(fmax(1, (barSize * (pw->iClip / float(pw->iMaxClip)))), barSize);
+				clip.top = barSize - dif;
+				clip.bottom = clip.right = 64;
+				SPR_Set(gHUD.GetSprite(m_hCrosshairLeft), r2, g2, b2 );
+				SPR_DrawAdditive(0, (ScreenWidth / 2) - 32, ((ScreenHeight / 2) - 23) + clip.top, &clip);
+			}
+
 			// room for the number and the '|' and the current ammo
 			
 			x = (ScreenWidth - (8 * AmmoWidth) - iIconWidth) - left + g_xP;
@@ -970,6 +1003,12 @@ int CHudAmmo::Draw(float flTime)
 		}
 		else
 		{
+			if (cl_crosshairammo && cl_crosshairammo->value)
+			{
+				SPR_Set(gHUD.GetSprite(m_hCrosshairLeft), r2, g2, b2);
+				SPR_DrawAdditive(0, (ScreenWidth / 2) - 32, ((ScreenHeight / 2) - 23) + primary.top, &primary);
+			}
+
 			// SPR_Draw a bullets only line
 			x = (ScreenWidth - 4 * AmmoWidth - iIconWidth) - left + g_xP;
 			x = gHUD.DrawHudNumber(x, y, iFlags | DHN_3DIGITS, gWR.CountAmmo(pw->iAmmoType), r, g, b);

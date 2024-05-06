@@ -904,6 +904,7 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_autowepswitch [0|1]\" - auto switches weapon on pickup\n" );
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_bobtilt [0|1]\" - Old Bob Tilt\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_bulletsmoke [0|1]\" - turn on or off bullet smoke and flare effects\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_crosshairammo [0|1]\" - show ammo status in crosshairs\n" );
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_customtempents [0|1]\" - allow or disallow increased temporary entites\n" );
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_flashonpickup [0|1]\" - Flash HUD when picking up weapon or item\n" );
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_glasshud [0|1]\" - switch elements of the hud bouncing/bobbing on or off\n");

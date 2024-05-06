@@ -148,6 +148,10 @@ private:
 	WEAPON *m_pWeapon;
 	int	m_HUD_bucket0;
 	int m_HUD_selection;
+
+	int m_hCrosshairBrackets;
+	int m_hCrosshairLeft;
+	int m_hCrosshairRight;
 };
 
 //
