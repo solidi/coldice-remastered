@@ -84,6 +84,7 @@ DLL_GLOBAL const char *g_szMutators[] = {
 	"marshmellow",
 	"maxpack",
 	"megarun",
+	"noclip",
 	"noreload",
 	"notify",
 	"notthebees",
@@ -111,6 +112,7 @@ DLL_GLOBAL const char *g_szMutators[] = {
 	"toilet",
 	"topsyturvy",
 	"turrets",
+	"vested",
 	"volatile",
 };
 
@@ -800,6 +802,11 @@ void CGameRules::GiveMutators(CBasePlayer *pPlayer)
 		if (!pPlayer->HasNamedPlayerItem("weapon_chainsaw"))
 			pPlayer->GiveNamedItem("weapon_chainsaw");
 	}
+
+	if (MutatorEnabled(MUTATOR_VESTED)) {
+		if (!pPlayer->HasNamedPlayerItem("weapon_vest"))
+			pPlayer->GiveNamedItem("weapon_vest");
+	}
 }
 
 const char *entityList[] =
@@ -1210,6 +1217,25 @@ void CGameRules::MutatorsThink(void)
 				if (!MutatorEnabled(MUTATOR_JEEPATHON) && !MutatorEnabled(MUTATOR_TOILET))
 				{
 					pl->pev->body = 0;
+				}
+
+				if (MutatorEnabled(MUTATOR_NOCLIP))
+				{
+					pl->pev->movetype = MOVETYPE_NOCLIP;
+				}
+				else
+				{
+					pl->pev->movetype = MOVETYPE_STEP;
+					TraceResult trace;
+					UTIL_TraceHull(pl->pev->origin, pl->pev->origin, dont_ignore_monsters, head_hull, pl->edict(), &trace);
+					if (trace.fStartSolid)
+					{
+						if (pl->IsPlayer() && pl->IsAlive()) {
+							ClearMultiDamage();
+							pl->pev->health = 0;
+							pl->Killed( pl->pev, GIB_NEVER );
+						}
+					}
 				}
 			}
 

@@ -1044,6 +1044,7 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"marshmellow\" - come back 1999 to you.\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"maxpack\" - drop all weapons and ammo in play (mp only!)\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"megarun\" - run faster than normal\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"noclip\" - fly through walls\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"notify\" - interrupt players with annoying chat notifications\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"notthebees\" - hornets spawn from a player or monster who was killed\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"oldtime\" - gameplay becomes desaturated\n");
@@ -1070,6 +1071,7 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"topsyturvy\" - everything is turned upside down (sp only!)\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"toilet\" - game is in the toilet, we ain't hurt nobody.\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"turrets\" - sentry guns randomly appear, firing bullets and rockets at everyone\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"vested\" - all players get a vest\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"volatile\" - where players blow up when fragged\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_weather [0|1]\" allow or disallow weather effects on server\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "For more, see readme.txt\n" );

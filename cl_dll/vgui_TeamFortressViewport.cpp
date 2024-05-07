@@ -229,6 +229,7 @@ char *sMutators[] = {
 	"marshmellow",
 	"maxpack",
 	"megarun",
+	"noclip",
 	"noreload",
 	"notify",
 	"notthebees",
@@ -256,6 +257,7 @@ char *sMutators[] = {
 	"toilet",
 	"topsyturvy",
 	"turrets",
+	"vested",
 	"volatile",
 	"RANDOM",
 };
