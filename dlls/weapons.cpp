@@ -1008,6 +1008,73 @@ BOOL CanAttack( float attack_time, float curtime, BOOL isPredicted )
 
 void CBasePlayerWeapon::ItemPostFrame( void )
 {
+	if (g_pGameRules->MutatorEnabled(MUTATOR_DEALTER) ||
+		(g_pGameRules->IsShidden() && m_pPlayer->pev->fuser4 > 0)) {
+		if ((m_pPlayer->pev->button & IN_ATTACK) &&
+			CanAttack( m_flNextPrimaryAttack, gpGlobals->time, UseDecrement() ))
+		{
+			EMIT_SOUND_DYN( m_pPlayer->edict(), CHAN_WEAPON, "fart.wav", 1.0, ATTN_NORM, 0, 98 + RANDOM_LONG(-20,20)); 
+			::RadiusDamage( m_pPlayer->pev->origin, m_pPlayer->pev, m_pPlayer->pev, 800, 256, CLASS_NONE, DMG_FART );
+			MESSAGE_BEGIN( MSG_PVS, SVC_TEMPENTITY, m_pPlayer->pev->origin );
+				WRITE_BYTE( TE_SMOKE );
+				WRITE_COORD( m_pPlayer->pev->origin.x );
+				WRITE_COORD( m_pPlayer->pev->origin.y );
+				WRITE_COORD( m_pPlayer->pev->origin.z );
+				WRITE_SHORT( g_sModelIndexSmoke );
+				WRITE_BYTE( 48 ); // scale * 10
+				WRITE_BYTE( 4 ); // framerate
+			MESSAGE_END();
+
+			if ( !(m_pPlayer->pev->flags & FL_ONGROUND) )
+			{
+				UTIL_MakeVectors(m_pPlayer->pev->v_angle);
+				int q = 1;
+				if (signbit(DotProduct(gpGlobals->v_forward, m_pPlayer->pev->velocity))) q = -1;
+				m_pPlayer->pev->velocity = m_pPlayer->pev->velocity + (gpGlobals->v_forward * 400 * q) + gpGlobals->v_up * 300;
+			}
+
+			m_flNextPrimaryAttack = m_flNextSecondaryAttack =  UTIL_WeaponTimeBase() + 0.75;
+			m_pPlayer->pev->button &= ~IN_ATTACK;
+			m_pPlayer->pev->button &= ~IN_ATTACK2;
+		}
+		else if ((m_pPlayer->pev->button & IN_ATTACK2) &&
+				CanAttack( m_flNextSecondaryAttack, gpGlobals->time, UseDecrement() ))
+		{
+			EMIT_SOUND_DYN( m_pPlayer->edict(), CHAN_WEAPON, "fart.wav", 1.0, ATTN_NORM, 0, 98 + RANDOM_LONG(-20,20)); 
+			::RadiusDamage( m_pPlayer->pev->origin, m_pPlayer->pev, m_pPlayer->pev, 800, 256, CLASS_NONE, DMG_FART );
+			MESSAGE_BEGIN( MSG_PVS, SVC_TEMPENTITY, m_pPlayer->pev->origin );
+				WRITE_BYTE( TE_SMOKE );
+				WRITE_COORD( m_pPlayer->pev->origin.x );
+				WRITE_COORD( m_pPlayer->pev->origin.y );
+				WRITE_COORD( m_pPlayer->pev->origin.z );
+				WRITE_SHORT( g_sModelIndexSmoke );
+				WRITE_BYTE( 96 ); // scale * 10
+				WRITE_BYTE( 4 ); // framerate
+			MESSAGE_END();
+
+			if ( !(m_pPlayer->pev->flags & FL_ONGROUND) )
+			{
+				UTIL_MakeVectors(m_pPlayer->pev->v_angle);
+				int q = 1;
+				if (signbit(DotProduct(gpGlobals->v_forward, m_pPlayer->pev->velocity))) q = -1;
+				m_pPlayer->pev->velocity = m_pPlayer->pev->velocity + (gpGlobals->v_forward * 400 * q) + gpGlobals->v_up * 300;
+			}
+
+			m_flNextPrimaryAttack = m_flNextSecondaryAttack =  UTIL_WeaponTimeBase() + 0.75;
+			m_pPlayer->pev->button &= ~IN_ATTACK;
+			m_pPlayer->pev->button &= ~IN_ATTACK2;
+		}
+		else
+		{
+			m_bFired = FALSE;
+			// no fire buttons down
+			m_fFireOnEmpty = FALSE;
+			WeaponIdle();
+		}
+
+		return;
+	}
+
 	if (g_pGameRules->MutatorEnabled(MUTATOR_RICOCHET)) {
 		if ((m_pPlayer->pev->button & IN_ATTACK) &&
 			CanAttack( m_flNextPrimaryAttack, gpGlobals->time, UseDecrement() ))

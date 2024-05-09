@@ -563,6 +563,11 @@ void CHalfLifeShidden::PlayerThink( CBasePlayer *pPlayer )
 		{
 			pPlayer->MakeInvisible();
 		}
+
+		if (pPlayer->pev->gravity >= 0.9)
+		{
+			pPlayer->pev->gravity = 0.5;
+		}
 	}
 }
 

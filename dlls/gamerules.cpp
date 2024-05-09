@@ -903,6 +903,15 @@ BOOL CGameRules::MutatorAllowed(const char *mutator)
 	// No invisible in shidden
 	if (strstr(mutator, g_szMutators[MUTATOR_INVISIBLE - 1]) || atoi(mutator) == MUTATOR_INVISIBLE)
 		return !(g_GameMode == GAME_SHIDDEN);
+
+	if (strstr(mutator, g_szMutators[MUTATOR_DEALTER - 1]) || atoi(mutator) == MUTATOR_DEALTER)
+		return !(g_GameMode == GAME_SHIDDEN);
+
+	if (strstr(mutator, g_szMutators[MUTATOR_MAXPACK - 1]) || atoi(mutator) == MUTATOR_MAXPACK)
+		return !(g_GameMode == GAME_SNOWBALL);
+
+	if (strstr(mutator, g_szMutators[MUTATOR_CHUMXPLODE - 1]) || atoi(mutator) == MUTATOR_CHUMXPLODE)
+		return !(g_GameMode == GAME_CTC);
 	
 	return TRUE;
 }
