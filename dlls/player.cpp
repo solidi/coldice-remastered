@@ -511,7 +511,6 @@ void CBasePlayer :: TraceAttack( entvars_t *pevAttacker, float flDamage, Vector 
 		// Any hint of farts is deadly
 		if (FBitSet(bitsDamageType, DMG_FART))
 		{
-			extern int g_sModelIndexFartSmoke;
 			MESSAGE_BEGIN( MSG_PVS, SVC_TEMPENTITY, pev->origin );
 				WRITE_BYTE( TE_SMOKE );
 				WRITE_COORD( pev->origin.x );

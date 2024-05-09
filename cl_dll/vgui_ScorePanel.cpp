@@ -136,12 +136,6 @@ ScorePanel::ScorePanel(int x,int y,int wide,int tall) : Panel(x,y,wide,tall)
 	
 	for(int i=0; i < NUM_COLUMNS; i++)
 	{
-		if (g_ColumnInfo[i].m_pTitle && !strcmp(g_ColumnInfo[i].m_pTitle, "#SCORE"))
-		{
-			if (!ScoreBased())
-				g_ColumnInfo[i].m_pTitle = NULL;
-		}
-
 		if (g_ColumnInfo[i].m_pTitle && g_ColumnInfo[i].m_pTitle[0] == '#')
 			m_HeaderLabels[i].setText(CHudTextMessage::BufferedLocaliseTextString(g_ColumnInfo[i].m_pTitle));
 		else if(g_ColumnInfo[i].m_pTitle)
@@ -283,6 +277,11 @@ void ScorePanel::Update()
 		m_TitleLabel.setText(sz);
 	}
 
+	if (ScoreBased())
+		m_HeaderLabels[COLUMN_SCORE].setText(CHudTextMessage::BufferedLocaliseTextString("#SCORE"));
+	else
+		m_HeaderLabels[COLUMN_SCORE].setText("");
+
 	m_iRows = 0;
 	gViewPort->GetAllPlayersInfo();
 
@@ -385,22 +384,25 @@ void ScorePanel::SortTeams()
 	// Draw the teams
 	while ( 1 )
 	{
-		int highest_frags = -99999; int lowest_deaths = 99999; int highest_score = -99999;
+		int highest = -99999; int lowest_deaths = 99999;
 		int best_team = 0;
+		int which = ScoreBased() ? g_TeamInfo[i].score : g_TeamInfo[i].frags;
 
 		for ( i = 1; i <= m_iNumTeams; i++ )
 		{
 			if ( g_TeamInfo[i].players < 1 )
 				continue;
 
-			if ( !g_TeamInfo[i].already_drawn && (g_TeamInfo[i].frags >= highest_frags || g_TeamInfo[i].score >= highest_score) )
+			if ( !g_TeamInfo[i].already_drawn && which >= highest )
 			{
-				if ( g_TeamInfo[i].frags > highest_frags || g_TeamInfo[i].score > highest_score || g_TeamInfo[i].deaths < lowest_deaths )
+				if ( which > highest || g_TeamInfo[i].deaths < lowest_deaths )
 				{
 					best_team = i;
 					lowest_deaths = g_TeamInfo[i].deaths;
-					highest_frags = g_TeamInfo[i].frags;
-					highest_score = g_TeamInfo[i].score;
+					if (ScoreBased())
+						highest = g_TeamInfo[i].score;
+					else
+						highest = g_TeamInfo[i].frags;
 				}
 			}
 		}
@@ -434,25 +436,29 @@ void ScorePanel::SortPlayers( int iTeam, char *team )
 	while ( 1 )
 	{
 		// Find the top ranking player
-		int highest_frags = -99999;	int lowest_deaths = 99999; int highest_score = -99999;
+		int highest = -99999;	int lowest_deaths = 99999;
 		int best_player;
 		best_player = 0;
 
 		for ( int i = 1; i < MAX_PLAYERS; i++ )
 		{
-			if ( m_bHasBeenSorted[i] == false && g_PlayerInfoList[i].name && (g_PlayerExtraInfo[i].frags >= highest_frags || g_PlayerExtraInfo[i].playerclass >= highest_score) )
+			int which = ScoreBased() ? g_PlayerExtraInfo[i].playerclass : g_PlayerExtraInfo[i].frags;
+
+			if ( m_bHasBeenSorted[i] == false && g_PlayerInfoList[i].name && (which >= highest) )
 			{
 				cl_entity_t *ent = gEngfuncs.GetEntityByIndex( i );
 
 				if ( ent && !(team && stricmp(g_PlayerExtraInfo[i].teamname, team)) )  
 				{
 					extra_player_info_t *pl_info = &g_PlayerExtraInfo[i];
-					if ( pl_info->frags > highest_frags || pl_info->playerclass > highest_score ||  pl_info->deaths < lowest_deaths )
+					if ( which > highest ||  pl_info->deaths < lowest_deaths )
 					{
 						best_player = i;
 						lowest_deaths = pl_info->deaths;
-						highest_frags = pl_info->frags;
-						highest_score = pl_info->playerclass;
+						if (ScoreBased())
+							highest = pl_info->playerclass;
+						else
+							highest = pl_info->frags;
 					}
 				}
 			}
@@ -757,10 +763,7 @@ void ScorePanel::FillGrid()
 					break;
 				case COLUMN_SCORE:
 					if ( m_iIsATeam[row] == TEAM_YES && ScoreBased())
-					{
-						//TODO: Calc teamscore
-						//sprintf(sz, "%d",  team_info->score );
-					}
+						sprintf(sz, "%d",  team_info->score );
 					break;
 				case COLUMN_LATENCY:
 					if ( m_iIsATeam[row] == TEAM_YES )
