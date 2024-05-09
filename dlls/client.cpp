@@ -1026,6 +1026,7 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"coolflesh\" - gibs stay longer, pick up gibs to eat and gain a healthkit worth of repair\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"crate\" - boxwars in the 2020's.\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"credits\" - show all contributors in an endless loop.\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"dealter\" - everyone farts.\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"dontshoot\" - firing any weapon will explode the player.\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"explosiveai\" - AI blows up when it cannot find its next task\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"fastweapons\" - all weapons are faster.\n");
