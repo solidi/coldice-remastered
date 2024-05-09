@@ -71,7 +71,7 @@ void CHalfLifeLastManStanding::Think( void )
 
 	if ( m_flRoundTimeLimit )
 	{
-		if ( CheckGameTimer() )
+		if ( HasGameTimerExpired() )
 			return;
 	}
 
@@ -262,6 +262,84 @@ void CHalfLifeLastManStanding::Think( void )
 	}
 
 	flUpdateTime = gpGlobals->time + 1.0;
+}
+
+BOOL CHalfLifeLastManStanding::HasGameTimerExpired( void )
+{
+	//time is up
+	if ( CHalfLifeMultiplay::HasGameTimerExpired() )
+	{
+		int highest = 1;
+		BOOL IsEqual = FALSE;
+		CBasePlayer *highballer = NULL;
+
+		for ( int i = 1; i <= gpGlobals->maxClients; i++ )
+		{
+			CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
+
+			if ( plr && plr->IsPlayer() && plr->IsInArena )
+			{
+				if ( highest <= plr->pev->frags )
+				{
+					if ( highballer && highest == plr->pev->frags )
+					{
+						IsEqual = TRUE;
+						continue;
+					}
+
+					IsEqual = FALSE;
+					highest = plr->pev->frags;
+					highballer = plr;
+				}
+			}
+		}
+
+		if ( !IsEqual && highballer )
+		{
+			DisplayWinnersGoods( highballer );
+			UTIL_ClientPrintAll(HUD_PRINTCENTER,
+				UTIL_VarArgs("Time is Up: %s is the Victor!\n", STRING(highballer->pev->netname)));
+
+			MESSAGE_BEGIN(MSG_BROADCAST, gmsgObjective);
+				WRITE_STRING("Time is up!");
+				WRITE_STRING("");
+				WRITE_BYTE(0);
+				WRITE_STRING(UTIL_VarArgs("%s is the victor!\n", STRING(highballer->pev->netname)));
+			MESSAGE_END();
+
+			MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
+				WRITE_BYTE(CLIENT_SOUND_OUTSTANDING);
+			MESSAGE_END();
+		}
+		else
+		{
+			UTIL_ClientPrintAll(HUD_PRINTCENTER, "Time is Up: Match ends in a draw!\n" );
+			UTIL_ClientPrintAll(HUD_PRINTTALK, "* No winners in this round!\n");
+
+			MESSAGE_BEGIN(MSG_BROADCAST, gmsgObjective);
+				WRITE_STRING("Time is up!");
+				WRITE_STRING("");
+				WRITE_BYTE(0);
+				WRITE_STRING("Match ends in a draw!");
+			MESSAGE_END();
+
+			MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
+				WRITE_BYTE(CLIENT_SOUND_HULIMATING_DEAFEAT);
+			MESSAGE_END();
+		}
+
+		g_GameInProgress = FALSE;
+		MESSAGE_BEGIN(MSG_ALL, gmsgShowTimer);
+			WRITE_BYTE(0);
+		MESSAGE_END();
+
+		m_iSuccessfulRounds++;
+		flUpdateTime = gpGlobals->time + 5.0;
+		m_flRoundTimeLimit = 0;
+		return TRUE;
+	}
+
+	return FALSE;
 }
 
 BOOL CHalfLifeLastManStanding::FPlayerCanRespawn( CBasePlayer *pPlayer )

@@ -298,11 +298,7 @@ void ScorePanel::Update()
 	}
 
 	// If it's not teamplay, sort all the players. Otherwise, sort the teams.
-	if ( gHUD.m_Teamplay != GAME_TEAMPLAY &&
-		 gHUD.m_Teamplay != GAME_ICEMAN &&
-		 gHUD.m_Teamplay != GAME_CHILLDEMIC &&
-		 gHUD.m_Teamplay != GAME_LMS &&
-		 gHUD.m_Teamplay != GAME_CTF )
+	if ( !ScoreBased() )
 		SortPlayers( 0, NULL );
 	else
 		SortTeams();
@@ -1011,7 +1007,8 @@ bool ScorePanel::ScoreBased( void )
 			gHUD.m_Teamplay == GAME_LMS ||
 			gHUD.m_Teamplay == GAME_CHILLDEMIC ||
 			gHUD.m_Teamplay == GAME_ICEMAN ||
-			gHUD.m_Teamplay == GAME_CTF);
+			gHUD.m_Teamplay == GAME_CTF ||
+			gHUD.m_Teamplay == GAME_SHIDDEN);
 }
 
 //-----------------------------------------------------------------------------

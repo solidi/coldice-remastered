@@ -19,28 +19,25 @@
 #include "player.h"
 #include "weapons.h"
 #include "gamerules.h"
-#include "chilldemic_gamerules.h"
+#include "shidden_gamerules.h"
 #include "game.h"
-#include "items.h"
-#include "voice_gamemgr.h"
 
-extern int gmsgPlayClientSound;
-extern int gmsgStatusIcon;
-extern int gmsgTeamInfo;
-extern int gmsgTeamNames;
 extern int gmsgObjective;
-extern int gmsgShowTime;
-extern int gmsgRoundTime;
-extern int gmsgShowTimer;
+extern int gmsgTeamNames;
+extern int gmsgTeamInfo;
 extern int gmsgScoreInfo;
+extern int gmsgPlayClientSound;
+extern int gmsgShowTimer;
+extern int gmsgStatusIcon;
+extern int gmsgRoundTime;
 
-CHalfLifeChilldemic::CHalfLifeChilldemic()
+CHalfLifeShidden::CHalfLifeShidden()
 {
-	m_iSurvivorsRemain = 0;
-	m_iSkeletonsRemain = 0;
+	m_iSmeltersRemain = 0;
+	m_iDealtersRemain = 0;
 }
 
-void CHalfLifeChilldemic::Think( void )
+void CHalfLifeShidden::Think( void )
 {
 	CHalfLifeMultiplay::Think();
 
@@ -61,8 +58,8 @@ void CHalfLifeChilldemic::Think( void )
 
 	if ( g_GameInProgress )
 	{
-		int survivors_left = 0;
-		int skeletons_left = 0;
+		int smelters_left = 0;
+		int dealters_left = 0;
 
 		// Player accountings
 		for ( int i = 1; i <= gpGlobals->maxClients; i++ )
@@ -82,25 +79,26 @@ void CHalfLifeChilldemic::Think( void )
 				if ( plr->IsInArena && !plr->IsSpectator() /*&& plr->IsAlive()*/ )
 				{
 					if (plr->pev->fuser4 > 0)
-						skeletons_left++;
+						dealters_left++;
 					else
-						survivors_left++;
+						smelters_left++;
 				}
+				/*
 				else
 				{
 					//for clients who connected while game in progress.
 					if ( plr->IsSpectator() )
 					{
 						MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, plr->edict());
-							if (m_iSurvivorsRemain >= 1 && m_iSkeletonsRemain <= 0)
-								WRITE_STRING("Suvivors have won!");
-							else if (m_iSkeletonsRemain >= 1 && m_iSurvivorsRemain <= 0)
-								WRITE_STRING("Skeletons have won!");
+							if (m_iSmeltersRemain >= 1 && m_iDealtersRemain <= 0)
+								WRITE_STRING("Smelters have won!");
+							else if (m_iDealtersRemain >= 1 && m_iSmeltersRemain <= 0)
+								WRITE_STRING("Dealters have won!");
 							else
 							{
-								WRITE_STRING(UTIL_VarArgs("Skeletons left: %d", m_iSkeletonsRemain));
-								WRITE_STRING(UTIL_VarArgs("Survivors left: %d", m_iSurvivorsRemain));
-								WRITE_BYTE(float(m_iSurvivorsRemain) / (m_iPlayersInGame) * 100);
+								WRITE_STRING(UTIL_VarArgs("Dealters left: %d", m_iDealtersRemain));
+								WRITE_STRING(UTIL_VarArgs("Smelters left: %d", m_iSmeltersRemain));
+								WRITE_BYTE(float(m_iSmeltersRemain) / (m_iPlayersInGame) * 100);
 							}
 						MESSAGE_END();
 					} else {
@@ -108,10 +106,12 @@ void CHalfLifeChilldemic::Think( void )
 						plr->m_flForceToObserverTime = gpGlobals->time;
 					}
 				}
+				*/
 			}
 		}
 
-		m_iSurvivorsRemain = survivors_left;
+		m_iSmeltersRemain = smelters_left;
+		m_iDealtersRemain = dealters_left;
 
 		// Skeleton messages
 		for ( int i = 1; i <= gpGlobals->maxClients; i++ )
@@ -126,63 +126,85 @@ void CHalfLifeChilldemic::Think( void )
 					{
 						if (plr->pev->fuser4 > 0)
 						{
-							if (survivors_left > 1)
+							if (smelters_left > 1)
 							{
 								MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, plr->edict());
-									WRITE_STRING("Free their bones");
-									WRITE_STRING(UTIL_VarArgs("Survivors alive: %d", survivors_left));
-									WRITE_BYTE(float(survivors_left) / (m_iPlayersInGame) * 100);
+									WRITE_STRING("Fart on 'em");
+									WRITE_STRING(UTIL_VarArgs("Smelters alive: %d", smelters_left));
+									WRITE_BYTE(float(smelters_left) / (m_iPlayersInGame) * 100);
 								MESSAGE_END();
 							}
-							else if (survivors_left == 1)
+							else if (smelters_left == 1)
 							{
 								MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, plr->edict());
-									WRITE_STRING("Free their bones");
-									WRITE_STRING("Dispatch the last soul!");
+									WRITE_STRING("Fart on 'em");
+									WRITE_STRING("Dispatch the last smelter!");
 									WRITE_BYTE(0);
 								MESSAGE_END();
 							}
 							else
 							{
 								MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, plr->edict());
-									WRITE_STRING("Virus completed!");
+									WRITE_STRING("Dealting completed!");
 									WRITE_STRING("");
 									WRITE_BYTE(0);
-									WRITE_STRING(UTIL_VarArgs("Skeletons win round %d of %d!", m_iSuccessfulRounds+1, (int)roundlimit.value));
+									WRITE_STRING(UTIL_VarArgs("Dealters win round %d of %d!", m_iSuccessfulRounds+1, (int)roundlimit.value));
 								MESSAGE_END();
 							}
 						}
 						else
 						{
-							if (survivors_left > 1)
+							if (dealters_left > 1)
 							{
 								MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, plr->edict());
-									WRITE_STRING("Survive");
-									WRITE_STRING(UTIL_VarArgs("Survivors remain: %d", survivors_left));
-									WRITE_BYTE(float(survivors_left) / (m_iPlayersInGame) * 100);
+									WRITE_STRING("Smell it");
+									WRITE_STRING(UTIL_VarArgs("Dealters remain: %d", dealters_left));
+									WRITE_BYTE(float(dealters_left) / (m_iPlayersInGame) * 100);
 								MESSAGE_END();
 							}
 							else
 							{
-								if (skeletons_left > 0)
+								if (dealters_left > 0)
 								{
 									MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, plr->edict());
-										WRITE_STRING("You remain! SURVIVE!");
-										WRITE_STRING(UTIL_VarArgs("Skeletons remain: %d", skeletons_left));
-										WRITE_BYTE(float(skeletons_left) / (m_iPlayersInGame) * 100);
+										WRITE_STRING("Find that dealter!");
+										WRITE_STRING(UTIL_VarArgs("Dealter remain: %d", dealters_left));
+										WRITE_BYTE(float(dealters_left) / (m_iPlayersInGame) * 100);
 									MESSAGE_END();
 								}
 								else
 								{
 									MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, plr->edict());
-										WRITE_STRING("Virus eradicated!");
+										WRITE_STRING("Dealters eradicated!");
 										WRITE_STRING("");
 										WRITE_BYTE(0);
-										WRITE_STRING(UTIL_VarArgs("Survivors win round %d of %d!", m_iSuccessfulRounds+1, (int)roundlimit.value));
+										WRITE_STRING(UTIL_VarArgs("Smelters win round %d of %d!", m_iSuccessfulRounds+1, (int)roundlimit.value));
 									MESSAGE_END();
 								}
 							}
 						}
+					}
+				}
+				else
+				{
+					//for clients who connected while game in progress.
+					if ( plr->IsSpectator() )
+					{
+						MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, plr->edict());
+							if (m_iSmeltersRemain >= 1 && m_iDealtersRemain <= 0)
+								WRITE_STRING("Smelters have won!");
+							else if (m_iDealtersRemain >= 1 && m_iSmeltersRemain <= 0)
+								WRITE_STRING("Dealters have won!");
+							else
+							{
+								WRITE_STRING(UTIL_VarArgs("Dealters left: %d", m_iDealtersRemain));
+								WRITE_STRING(UTIL_VarArgs("Smelters left: %d", m_iSmeltersRemain));
+								WRITE_BYTE(float(m_iSmeltersRemain) / (m_iPlayersInGame) * 100);
+							}
+						MESSAGE_END();
+					} else {
+						// Send them to observer
+						plr->m_flForceToObserverTime = gpGlobals->time;
 					}
 				}
 			}
@@ -201,7 +223,7 @@ void CHalfLifeChilldemic::Think( void )
 					{
 						MESSAGE_BEGIN( MSG_ONE, gmsgStatusIcon, NULL, plr->pev );
 							WRITE_BYTE(1);
-							WRITE_STRING("skeleton");
+							WRITE_STRING("dealter");
 							WRITE_BYTE(0);
 							WRITE_BYTE(160);
 							WRITE_BYTE(255);
@@ -211,8 +233,8 @@ void CHalfLifeChilldemic::Think( void )
 			}
 		}
 
-		// Survivors dead or skeletons defeated
-		if ( survivors_left < 1 || skeletons_left < 1 )
+		// semlters dead or dealters defeated
+		if ( smelters_left < 1 || dealters_left < 1 )
 		{
 			//stop timer / end game.
 			m_flRoundTimeLimit = 0;
@@ -231,14 +253,14 @@ void CHalfLifeChilldemic::Think( void )
 					{
 						MESSAGE_BEGIN( MSG_ONE, gmsgStatusIcon, NULL, plr->pev );
 							WRITE_BYTE(0);
-							WRITE_STRING("skeleton");
+							WRITE_STRING("dealter");
 						MESSAGE_END();
 					}
 				}
 			}
 
 			//everyone died.
-			if ( survivors_left <= 0 && skeletons_left <= 0 )
+			if ( smelters_left <= 0 && dealters_left <= 0 )
 			{
 				UTIL_ClientPrintAll(HUD_PRINTCENTER, "Everyone has been killed!\n");
 				UTIL_ClientPrintAll(HUD_PRINTTALK, "* No winners in this round!\n");
@@ -252,8 +274,8 @@ void CHalfLifeChilldemic::Think( void )
 					WRITE_BYTE(CLIENT_SOUND_HULIMATING_DEAFEAT);
 				MESSAGE_END();
 			}
-			//survivors all dead
-			else if ( survivors_left <= 0 )
+			//smelters all dead
+			else if ( smelters_left <= 0 )
 			{
 				//find highest frag amount.
 				float highest = 1;
@@ -284,7 +306,7 @@ void CHalfLifeChilldemic::Think( void )
 				if ( !IsEqual && highballer )
 				{
 					UTIL_ClientPrintAll(HUD_PRINTCENTER,
-						UTIL_VarArgs("Survivors have been defeated!\n\n%s doled the most kills!\n",
+						UTIL_VarArgs("Smelters have been defeated!\n\n%s doled the most gas!\n",
 						STRING(highballer->pev->netname)));
 					DisplayWinnersGoods( highballer );
 					MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
@@ -293,15 +315,15 @@ void CHalfLifeChilldemic::Think( void )
 				}
 				else
 				{
-					UTIL_ClientPrintAll(HUD_PRINTCENTER, "Survivors have been defeated!\n");
+					UTIL_ClientPrintAll(HUD_PRINTCENTER, "Smelters have been defeated!\n");
 					UTIL_ClientPrintAll(HUD_PRINTTALK, "* Round ends in a tie!\n");
 					MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
 						WRITE_BYTE(CLIENT_SOUND_HULIMATING_DEAFEAT);
 					MESSAGE_END();
 				}
 			}
-			//skeletons defeated.
-			else if ( skeletons_left <= 0 )
+			//dealters defeated.
+			else if ( dealters_left <= 0 )
 			{
 				//find highest frag amount.
 				float highest = 1;
@@ -332,7 +354,7 @@ void CHalfLifeChilldemic::Think( void )
 				if ( !IsEqual && highballer )
 				{
 					UTIL_ClientPrintAll(HUD_PRINTCENTER,
-						UTIL_VarArgs("Skeletons have been defeated!\n\n%s doled the most kills!\n",
+						UTIL_VarArgs("Dealters have been defeated!\n\n%s doled the most Lysol!\n",
 						STRING(highballer->pev->netname)));
 					DisplayWinnersGoods( highballer );
 					MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
@@ -341,7 +363,7 @@ void CHalfLifeChilldemic::Think( void )
 				}
 				else
 				{
-					UTIL_ClientPrintAll(HUD_PRINTCENTER, "Skeletons have been defeated!\n");
+					UTIL_ClientPrintAll(HUD_PRINTCENTER, "Dealters have been defeated!\n");
 					UTIL_ClientPrintAll(HUD_PRINTTALK, "* Round ends in a tie!\n");
 					MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
 						WRITE_BYTE(CLIENT_SOUND_HULIMATING_DEAFEAT);
@@ -382,7 +404,7 @@ void CHalfLifeChilldemic::Think( void )
 			}
 			SuckAllToSpectator(); // in case players join during a countdown.
 			UTIL_ClientPrintAll(HUD_PRINTCENTER,
-				UTIL_VarArgs("Prepare for Chilldemic\n\n%i...\n", m_iCountDown));
+				UTIL_VarArgs("Prepare for Shidden\n\n%i...\n", m_iCountDown));
 			m_iCountDown--;
 			flUpdateTime = gpGlobals->time + 1.0;
 			return;
@@ -391,10 +413,34 @@ void CHalfLifeChilldemic::Think( void )
 		//frags + time.
 		SetRoundLimits();
 
-		int skeleton = m_iPlayersInArena[RANDOM_LONG(0, clients-1)];
-		ALERT(at_console, "clients set to %d, virus set to index=%d\n", clients, skeleton);
-		CBasePlayer *pl = (CBasePlayer *)UTIL_PlayerByIndex( skeleton );
-		pl->pev->fuser4 = 1;
+		// Balance teams
+  		// Implementing Fisher–Yates shuffle
+		int i, j, tmp; // create local variables to hold values for shuffle
+		int count = 0;
+		int player[32];
+
+		for ( i = 1; i <= gpGlobals->maxClients; i++ )
+		{
+			CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
+
+			if ( plr && plr->IsPlayer() && !plr->HasDisconnected )
+				player[count++] = i;
+		}
+
+		for (i = count - 1; i > 0; i--) { // for loop to shuffle
+			j = rand() % (i + 1); //randomise j for shuffle with Fisher Yates
+			tmp = player[j];
+			player[j] = player[i];
+			player[i] = tmp;
+		}
+
+		for ( int i = 0; i < count; i++ )
+		{
+			CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( player[i] );
+
+			if ( plr && plr->IsPlayer() && !plr->HasDisconnected )
+				plr->pev->fuser4 = i % 2;
+		}
 
 		g_GameInProgress = TRUE;
 
@@ -419,11 +465,11 @@ void CHalfLifeChilldemic::Think( void )
 		// Resend team info
 		MESSAGE_BEGIN( MSG_ALL, gmsgTeamNames );
 			WRITE_BYTE( 2 );
-			WRITE_STRING( "survivors" );
-			WRITE_STRING( "skeleton" );
+			WRITE_STRING( "smelters" );
+			WRITE_STRING( "dealters" );
 		MESSAGE_END();
 
-		UTIL_ClientPrintAll(HUD_PRINTCENTER, UTIL_VarArgs("Chilldemic has begun!\n%s is the first skeleton!\n", STRING(pl->pev->netname)));
+		UTIL_ClientPrintAll(HUD_PRINTCENTER, UTIL_VarArgs("Shidden has begun!\n"));
 		UTIL_ClientPrintAll(HUD_PRINTTALK, UTIL_VarArgs("* %d players have entered the arena!\n", clients));
 	}
 	else
@@ -431,7 +477,7 @@ void CHalfLifeChilldemic::Think( void )
 		SuckAllToSpectator();
 		m_flRoundTimeLimit = 0;
 		MESSAGE_BEGIN(MSG_BROADCAST, gmsgObjective);
-			WRITE_STRING("Chilldemic");
+			WRITE_STRING("Shidden");
 			WRITE_STRING("Waiting for other players");
 			WRITE_BYTE(0);
 			WRITE_STRING(UTIL_VarArgs("%d Rounds", (int)roundlimit.value));
@@ -442,27 +488,85 @@ void CHalfLifeChilldemic::Think( void )
 	flUpdateTime = gpGlobals->time + 1.0;
 }
 
-void CHalfLifeChilldemic::InitHUD( CBasePlayer *pl )
+void CHalfLifeShidden::InitHUD( CBasePlayer *pPlayer )
 {
-	CHalfLifeMultiplay::InitHUD( pl );
+	CHalfLifeMultiplay::InitHUD( pPlayer );
 
-	if (!FBitSet(pl->pev->flags, FL_FAKECLIENT))
+	if (!FBitSet(pPlayer->pev->flags, FL_FAKECLIENT))
 	{
-		MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, pl->edict());
-			WRITE_STRING("Survive");
+		MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, pPlayer->edict());
+			WRITE_STRING("The Shidden");
 			WRITE_STRING("");
 			WRITE_BYTE(0);
 		MESSAGE_END();
 
-		MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgTeamNames, NULL, pl->edict());
+		MESSAGE_BEGIN(MSG_ONE, gmsgTeamNames, NULL, pPlayer->edict());
 			WRITE_BYTE( 2 );
-			WRITE_STRING( "survivors" );
-			WRITE_STRING( "skeleton" );
+			WRITE_STRING( "smelters" );
+			WRITE_STRING( "dealters" );
 		MESSAGE_END();
 	}
 }
 
-BOOL CHalfLifeChilldemic::HasGameTimerExpired( void )
+void CHalfLifeShidden::PlayerSpawn( CBasePlayer *pPlayer )
+{
+	CHalfLifeMultiplay::PlayerSpawn(pPlayer);
+
+	// Place player in spectator mode if joining during a game
+	// Or if the game begins that requires spectators
+	if ((g_GameInProgress && !pPlayer->IsInArena) || (!g_GameInProgress && HasSpectators()))
+	{
+		return;
+	}
+
+	char *key = g_engfuncs.pfnGetInfoKeyBuffer(pPlayer->edict());
+
+	if ( pPlayer->pev->fuser4 > 0 )
+	{
+		g_engfuncs.pfnSetPhysicsKeyValue(pPlayer->edict(), "haste", "1");
+		pPlayer->pev->fuser3 = 1; // bots need to identify their team.
+		pPlayer->pev->gravity = 0.25;
+		pPlayer->MakeInvisible();
+		strncpy( pPlayer->m_szTeamName, "dealters", TEAM_NAME_LENGTH );
+		g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer->edict()), key, "team", pPlayer->m_szTeamName);
+	}
+	else
+	{
+		strncpy( pPlayer->m_szTeamName, "smelters", TEAM_NAME_LENGTH );
+		pPlayer->pev->fuser3 = 0; // bots need to identify their team.
+		pPlayer->MakeVisible();
+		g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer->edict()), key, "team", pPlayer->m_szTeamName);
+	}
+
+	// notify everyone's HUD of the team change
+	MESSAGE_BEGIN( MSG_ALL, gmsgTeamInfo );
+		WRITE_BYTE( ENTINDEX(pPlayer->edict()) );
+		WRITE_STRING( pPlayer->m_szTeamName );
+	MESSAGE_END();
+
+	MESSAGE_BEGIN( MSG_ALL, gmsgScoreInfo );
+		WRITE_BYTE( ENTINDEX(pPlayer->edict()) );
+		WRITE_SHORT( pPlayer->pev->frags );
+		WRITE_SHORT( pPlayer->m_iDeaths );
+		WRITE_SHORT( pPlayer->m_iRoundWins );
+		WRITE_SHORT( g_pGameRules->GetTeamIndex( pPlayer->m_szTeamName ) + 1 );
+	MESSAGE_END();
+}
+
+void CHalfLifeShidden::PlayerThink( CBasePlayer *pPlayer )
+{
+	CHalfLifeMultiplay::PlayerThink(pPlayer);
+
+	if (pPlayer->pev->fuser4 > 0)
+	{
+		if (pPlayer->pev->rendermode == kRenderNormal)
+		{
+			pPlayer->MakeInvisible();
+		}
+	}
+}
+
+BOOL CHalfLifeShidden::HasGameTimerExpired( void )
 {
 	//time is up
 	if ( CHalfLifeMultiplay::HasGameTimerExpired() )
@@ -539,7 +643,7 @@ BOOL CHalfLifeChilldemic::HasGameTimerExpired( void )
 	return FALSE;
 }
 
-BOOL CHalfLifeChilldemic::FPlayerCanTakeDamage( CBasePlayer *pPlayer, CBaseEntity *pAttacker )
+BOOL CHalfLifeShidden::FPlayerCanTakeDamage( CBasePlayer *pPlayer, CBaseEntity *pAttacker )
 {
 	if ( pPlayer->pev->fuser4 == pAttacker->pev->fuser4 )
 	{
@@ -554,143 +658,72 @@ BOOL CHalfLifeChilldemic::FPlayerCanTakeDamage( CBasePlayer *pPlayer, CBaseEntit
 	return CHalfLifeMultiplay::FPlayerCanTakeDamage( pPlayer, pAttacker );
 }
 
-void CHalfLifeChilldemic::PlayerSpawn( CBasePlayer *pPlayer )
+void CHalfLifeShidden::FPlayerTookDamage( float flDamage, CBasePlayer *pVictim, CBaseEntity *pKiller)
 {
-	CHalfLifeMultiplay::PlayerSpawn(pPlayer);
+	CBasePlayer *pPlayerAttacker = NULL;
 
-	// Place player in spectator mode if joining during a game
-	// Or if the game begins that requires spectators
-	if ((g_GameInProgress && !pPlayer->IsInArena) || (!g_GameInProgress && HasSpectators()))
+	if (pKiller && pKiller->IsPlayer())
 	{
-		return;
+		pPlayerAttacker = (CBasePlayer *)pKiller;
+		if ( pPlayerAttacker != pVictim && !pPlayerAttacker->pev->fuser4 && !pVictim->pev->fuser4 )
+		{
+			ClientPrint(pPlayerAttacker->pev, HUD_PRINTCENTER, "Destroy the Shidden!\nNot your teammate!");
+		}
 	}
-
-	// Default model selection
-	char *key = g_engfuncs.pfnGetInfoKeyBuffer(pPlayer->edict());
-	char *mdls = g_engfuncs.pfnInfoKeyValue(key, "model");
-	if (strcmp(mdls, "skeleton"))
-		g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer->edict()), key, "pmodel", mdls);
-	char *pmodel = g_engfuncs.pfnInfoKeyValue(key, "pmodel");
-
-	if ( pPlayer->pev->fuser4 > 0 )
-	{
-		pPlayer->RemoveAllItems(FALSE);
-		pPlayer->GiveNamedItem("weapon_vest");
-		pPlayer->GiveNamedItem("weapon_chainsaw");
-		pPlayer->pev->max_health = pPlayer->pev->health = 50;
-		g_engfuncs.pfnSetPhysicsKeyValue(pPlayer->edict(), "haste", "1");
-
-		strncpy( pPlayer->m_szTeamName, "skeleton", TEAM_NAME_LENGTH );
-		g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer->edict()), key, "model", "skeleton");
-		g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer->edict()), key, "team", "skeleton");
-	}
-	else
-	{
-		char *defaultPlayerModels[4] = { "iceman", "commando", "jesus", "hhev", };
-		char modelName[32];
-		if (pmodel && (strlen(pmodel) && strlen(modelName) < 31))
-			strcpy(modelName, pmodel);
-		else
-			strcpy(modelName, defaultPlayerModels[RANDOM_LONG(0,3)]);
-		pPlayer->GiveRandomWeapon("weapon_nuke");
-
-		strncpy( pPlayer->m_szTeamName, "survivors", TEAM_NAME_LENGTH );
-		g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer->edict()), key, "model", modelName);
-		g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer->edict()), key, "team", "survivors");
-	}
-
-	// notify everyone's HUD of the team change
-	MESSAGE_BEGIN( MSG_ALL, gmsgTeamInfo );
-		WRITE_BYTE( ENTINDEX(pPlayer->edict()) );
-		WRITE_STRING( pPlayer->m_szTeamName );
-	MESSAGE_END();
-
-	MESSAGE_BEGIN( MSG_ALL, gmsgScoreInfo );
-		WRITE_BYTE( ENTINDEX(pPlayer->edict()) );
-		WRITE_SHORT( pPlayer->pev->frags );
-		WRITE_SHORT( pPlayer->m_iDeaths );
-		WRITE_SHORT( pPlayer->m_iRoundWins );
-		WRITE_SHORT( g_pGameRules->GetTeamIndex( pPlayer->m_szTeamName ) + 1 );
-	MESSAGE_END();
 }
 
-BOOL CHalfLifeChilldemic::FPlayerCanRespawn( CBasePlayer *pPlayer )
+BOOL CHalfLifeShidden::FPlayerCanRespawn( CBasePlayer *pPlayer )
 {
-	// Skeletons can respawn if a survivor is left.
-	if ( pPlayer->pev->fuser4 > 0 && m_iSurvivorsRemain >= 1 && !pPlayer->m_flForceToObserverTime )
-		return TRUE;
-
 	if ( !pPlayer->m_flForceToObserverTime )
 		pPlayer->m_flForceToObserverTime = gpGlobals->time + 3.0;
 
 	return FALSE;
 }
 
-void CHalfLifeChilldemic::PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller, entvars_t *pInflictor )
+void CHalfLifeShidden::PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller, entvars_t *pInflictor )
 {
 	CHalfLifeMultiplay::PlayerKilled(pVictim, pKiller, pInflictor);
 
-	int survivors_left = 0;
-	int skeletons_left = 0;
+	int smelters_left = 0;
+	int dealters_left = 0;
 	for (int i = 1; i <= gpGlobals->maxClients; i++) {
 		if (m_iPlayersInArena[i-1] > 0)
 		{
 			CBasePlayer *pPlayer = (CBasePlayer *)UTIL_PlayerByIndex(m_iPlayersInArena[i-1]);
-			if (pPlayer && !pPlayer->IsSpectator() && pVictim != pPlayer && !pPlayer->HasDisconnected)
+			if (pPlayer && !pPlayer->IsSpectator() && pPlayer != pVictim && !pPlayer->HasDisconnected)
 			{
 				if (pPlayer->pev->fuser4 == 0)
-					survivors_left++;
+					smelters_left++;
 				else
-					skeletons_left++;
+					dealters_left++;
 			}
 		}
 	}
 
-	m_iSurvivorsRemain = survivors_left;
-	m_iSkeletonsRemain = skeletons_left;
+	m_iSmeltersRemain = smelters_left;
+	m_iDealtersRemain = dealters_left;
 
 	// Person was survivor
 	if ( pVictim->pev->fuser4 == 0 )
 	{
-		if (survivors_left >= 1)
+		if (smelters_left >= 1)
 		{
 			UTIL_ClientPrintAll(HUD_PRINTTALK,
-			UTIL_VarArgs("* %s has been infected! %d Survivors remain!\n",
-			STRING(pVictim->pev->netname), survivors_left));
+			UTIL_VarArgs("* %s has been dealted! %d Smelters remain!\n",
+			STRING(pVictim->pev->netname), smelters_left));
 
 			MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
 				WRITE_BYTE(CLIENT_SOUND_MASSACRE);
 			MESSAGE_END();
 		}
-		else if (survivors_left == 0)
+		else if (smelters_left == 0)
 		{
-			UTIL_ClientPrintAll(HUD_PRINTTALK, UTIL_VarArgs("* Survivors defeated!\n"));
-		}
-
-		pVictim->pev->fuser4 = 1;
-
-		g_engfuncs.pfnSetClientKeyValue( ENTINDEX( pVictim->edict() ),
-			g_engfuncs.pfnGetInfoKeyBuffer( pVictim->edict() ), "model", "skeleton" );
-		g_engfuncs.pfnSetClientKeyValue( ENTINDEX( pVictim->edict() ),
-			g_engfuncs.pfnGetInfoKeyBuffer( pVictim->edict() ), "team", "skeleton" );
-		
-		strncpy( pVictim->m_szTeamName, "skeleton", TEAM_NAME_LENGTH );
-	}
-	else
-	{
-		// Special case, last survivor, dispatched skeletons sent to observer.
-		if (m_iSurvivorsRemain <= 1)
-		{
-			pVictim->m_flForceToObserverTime = gpGlobals->time + 2.0;
-			MESSAGE_BEGIN( MSG_ONE, gmsgStatusIcon, NULL, pVictim->pev );
-				WRITE_BYTE(0);
-				WRITE_STRING("skeleton");
-			MESSAGE_END();
+			UTIL_ClientPrintAll(HUD_PRINTTALK, UTIL_VarArgs("* Smelters defeated!\n"));
 		}
 	}
 }
 
-BOOL CHalfLifeChilldemic::CanHavePlayerItem( CBasePlayer *pPlayer, CBasePlayerItem *pItem )
+BOOL CHalfLifeShidden::CanHavePlayerItem( CBasePlayer *pPlayer, CBasePlayerItem *pItem )
 {
 	if (!strcmp(STRING(pItem->pev->classname), "weapon_nuke"))
 		return FALSE;
@@ -698,20 +731,20 @@ BOOL CHalfLifeChilldemic::CanHavePlayerItem( CBasePlayer *pPlayer, CBasePlayerIt
 	return CHalfLifeMultiplay::CanHavePlayerItem( pPlayer, pItem );
 }
 
-int CHalfLifeChilldemic::GetTeamIndex( const char *pTeamName )
+int CHalfLifeShidden::GetTeamIndex( const char *pTeamName )
 {
 	if ( pTeamName && *pTeamName != 0 )
 	{
-		if (!strcmp(pTeamName, "skeleton"))
+		if (!strcmp(pTeamName, "dealters"))
 			return 1;
 		else
-			return 0; // survivors
+			return 0; // smelters
 	}
 	
 	return -1;	// No match
 }
 
-BOOL CHalfLifeChilldemic::CanRandomizeWeapon( const char *name )
+BOOL CHalfLifeShidden::CanRandomizeWeapon( const char *name )
 {
 	if (strcmp(name, "weapon_nuke") == 0)
 		return FALSE;
@@ -719,7 +752,7 @@ BOOL CHalfLifeChilldemic::CanRandomizeWeapon( const char *name )
 	return TRUE;
 }
 
-int CHalfLifeChilldemic::PlayerRelationship( CBaseEntity *pPlayer, CBaseEntity *pTarget )
+int CHalfLifeShidden::PlayerRelationship( CBaseEntity *pPlayer, CBaseEntity *pTarget )
 {
 	if ( !pPlayer || !pTarget || !pTarget->IsPlayer() )
 		return GR_NOTTEAMMATE;
@@ -732,7 +765,7 @@ int CHalfLifeChilldemic::PlayerRelationship( CBaseEntity *pPlayer, CBaseEntity *
 	return GR_NOTTEAMMATE;
 }
 
-const char *CHalfLifeChilldemic::GetTeamID( CBaseEntity *pEntity )
+const char *CHalfLifeShidden::GetTeamID( CBaseEntity *pEntity )
 {
 	if ( pEntity == NULL || pEntity->pev == NULL )
 		return "";

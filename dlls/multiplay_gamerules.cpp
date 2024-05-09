@@ -273,6 +273,7 @@ char *gamePlayModesShort[] = {
 	"ctf",
 	"gungame",
 	"jvs",
+	"shidden",
 	"snowball",
 	"teamplay",
 };
@@ -738,7 +739,9 @@ int CHalfLifeMultiplay::CheckClients( void )
 		CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
 		if ( plr && plr->IsPlayer() && !plr->HasDisconnected )
 		{
+#ifdef _DEBUG
 			ALERT(at_aiconsole, "%s[%d] is accounted for\n", STRING(plr->pev->netname), i);
+#endif
 			clients++;
 			plr->IsInArena = FALSE;
 			plr->IsArmoredMan = FALSE;
@@ -789,7 +792,7 @@ void CHalfLifeMultiplay::InsertClientsIntoArena(float fragcount)
 	}
 }
 
-BOOL CHalfLifeMultiplay::CheckGameTimer( void )
+BOOL CHalfLifeMultiplay::HasGameTimerExpired( void )
 {
 	g_engfuncs.pfnCvar_DirectSet(&roundtimeleft, UTIL_VarArgs( "%i", int(m_flRoundTimeLimit) - int(gpGlobals->time)));
 
@@ -809,86 +812,7 @@ BOOL CHalfLifeMultiplay::CheckGameTimer( void )
 		_3secwarning = TRUE;
 	}
 
-//===================================================
-
-	//time is up for this game.
-
-//===================================================
-
-	//time is up
-	if ( m_flRoundTimeLimit < gpGlobals->time )
-	{
-		int highest = 1;
-		BOOL IsEqual = FALSE;
-		CBasePlayer *highballer = NULL;
-
-		for ( int i = 1; i <= gpGlobals->maxClients; i++ )
-		{
-			CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
-
-			if ( plr && plr->IsPlayer() && plr->IsInArena )
-			{
-				if ( highest <= plr->pev->frags )
-				{
-					if ( highballer && highest == plr->pev->frags )
-					{
-						IsEqual = TRUE;
-						continue;
-					}
-
-					IsEqual = FALSE;
-					highest = plr->pev->frags;
-					highballer = plr;
-				}
-			}
-		}
-
-		if ( !IsEqual && highballer )
-		{
-			DisplayWinnersGoods( highballer );
-			UTIL_ClientPrintAll(HUD_PRINTCENTER,
-				UTIL_VarArgs("Time is Up: %s is the Victor!\n", STRING(highballer->pev->netname)));
-
-			MESSAGE_BEGIN(MSG_BROADCAST, gmsgObjective);
-				WRITE_STRING("Time is up!");
-				WRITE_STRING("");
-				WRITE_BYTE(0);
-				WRITE_STRING(UTIL_VarArgs("%s is the victor!\n", STRING(highballer->pev->netname)));
-			MESSAGE_END();
-
-			MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
-				WRITE_BYTE(CLIENT_SOUND_OUTSTANDING);
-			MESSAGE_END();
-		}
-		else
-		{
-			UTIL_ClientPrintAll(HUD_PRINTCENTER, "Time is Up: Match ends in a draw!\n" );
-			UTIL_ClientPrintAll(HUD_PRINTTALK, "* No winners in this round!\n");
-
-			MESSAGE_BEGIN(MSG_BROADCAST, gmsgObjective);
-				WRITE_STRING("Time is up!");
-				WRITE_STRING("");
-				WRITE_BYTE(0);
-				WRITE_STRING("Match ends in a draw!");
-			MESSAGE_END();
-
-			MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
-				WRITE_BYTE(CLIENT_SOUND_HULIMATING_DEAFEAT);
-			MESSAGE_END();
-		}
-
-		g_GameInProgress = FALSE;
-		MESSAGE_BEGIN(MSG_ALL, gmsgShowTimer);
-			WRITE_BYTE(0);
-		MESSAGE_END();
-
-		m_iSuccessfulRounds++;
-		flUpdateTime = gpGlobals->time + 5.0;
-		m_flRoundTimeLimit = 0;
-		return TRUE;
-	}
-
-	return FALSE;
+	return m_flRoundTimeLimit < gpGlobals->time;
 }
 
 void CHalfLifeMultiplay::SetRoundLimits( void )
@@ -1021,7 +945,8 @@ BOOL CHalfLifeMultiplay::HasSpectators( void )
 	if (g_GameMode == GAME_ICEMAN 
 		|| g_GameMode == GAME_LMS
 		|| g_GameMode == GAME_ARENA
-		|| g_GameMode == GAME_CHILLDEMIC)
+		|| g_GameMode == GAME_CHILLDEMIC
+		|| g_GameMode == GAME_SHIDDEN)
 		return TRUE;
 
 	return FALSE;

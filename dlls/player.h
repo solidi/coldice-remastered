@@ -415,6 +415,9 @@ public:
 
 	void TabulateAmmo( void );
 
+	void MakeInvisible( void );
+	void MakeVisible( void );
+
 	float m_flStartCharge;
 	float m_flAmmoStartCharge;
 	float m_flPlayAftershock;

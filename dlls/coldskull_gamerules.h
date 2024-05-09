@@ -17,6 +17,7 @@ class CHalfLifeColdSkull : public CHalfLifeMultiplay
 {
 public:
 	CHalfLifeColdSkull();
+	virtual const char *GetGameDescription( void ) { return "Cold Ice Cold Skulls"; }
 	virtual void InitHUD( CBasePlayer *pPlayer );
 	virtual void PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller, entvars_t *pInflictor );
 	virtual int IPointsForKill( CBasePlayer *pAttacker, CBasePlayer *pKilled );

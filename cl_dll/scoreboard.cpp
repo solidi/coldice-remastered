@@ -148,11 +148,7 @@ int CHudScoreboard :: Draw( float fTime )
 
 	// gEngfuncs.Con_DPrintf("gHUD.m_Teamplay = %d\n", gHUD.m_Teamplay);
 
-	if ( gHUD.m_Teamplay != GAME_TEAMPLAY &&
-		 gHUD.m_Teamplay != GAME_ICEMAN &&
-		 gHUD.m_Teamplay != GAME_CHILLDEMIC &&
-		 gHUD.m_Teamplay != GAME_LMS &&
-		 gHUD.m_Teamplay != GAME_CTF )
+	if ( !ScoreBased() )
 		gHUD.DrawHudString( xpos, ypos, NAME_RANGE_MAX + xpos_rel, "Player", r, g, b );
 	else
 		gHUD.DrawHudString( xpos, ypos, NAME_RANGE_MAX + xpos_rel, "Teams", r, g, b );
@@ -169,11 +165,7 @@ int CHudScoreboard :: Draw( float fTime )
 		gHUD.DrawHudStringReverse( KILLS_RANGE_MAX + xpos_rel, ypos, 0, "K ills", r, g, b );
 	gHUD.DrawHudString( DIVIDER_POS + xpos_rel, ypos, ScreenWidth, "/", r, g, b );
 	gHUD.DrawHudString( DEATHS_RANGE_MIN + xpos_rel + 5, ypos, ScreenWidth, "Deaths", r, g, b );
-	if (gHUD.m_Teamplay == GAME_ARENA ||
-		gHUD.m_Teamplay == GAME_LMS ||
-		gHUD.m_Teamplay == GAME_CHILLDEMIC ||
-		gHUD.m_Teamplay == GAME_ICEMAN ||
-		gHUD.m_Teamplay == GAME_CTF)
+	if (ScoreBased())
 		gHUD.DrawHudString( SCORE_RANGE_MIN + xpos_rel + 5, ypos, ScreenWidth, "Score", r, g, b );
 	gHUD.DrawHudString( PING_RANGE_MAX + xpos_rel - 35, ypos, ScreenWidth, "Latency", r, g, b );
 
@@ -192,11 +184,7 @@ int CHudScoreboard :: Draw( float fTime )
 	
 	list_slot += 0.8;
 
-	if ( gHUD.m_Teamplay != GAME_TEAMPLAY && 
-		 gHUD.m_Teamplay != GAME_ICEMAN &&
-		 gHUD.m_Teamplay != GAME_CHILLDEMIC &&
-		 gHUD.m_Teamplay != GAME_LMS &&
-		 gHUD.m_Teamplay != GAME_CTF )
+	if ( !ScoreBased() )
 	{
 		// it's not teamplay,  so just draw a simple player list
 		DrawPlayers( xpos_rel, list_slot );
@@ -321,11 +309,7 @@ int CHudScoreboard :: Draw( float fTime )
 		// draw score
 		xpos = SCORE_RANGE_MAX + xpos_rel;
 
-		if (gHUD.m_Teamplay == GAME_ARENA ||
-			gHUD.m_Teamplay == GAME_LMS ||
-			gHUD.m_Teamplay == GAME_CHILLDEMIC ||
-			gHUD.m_Teamplay == GAME_ICEMAN ||
-			gHUD.m_Teamplay == GAME_CTF)
+		if (ScoreBased())
 		{
 			gHUD.DrawHudNumberString( xpos, ypos, SCORE_RANGE_MIN + xpos_rel, team_info->score, r, g, b );
 		}
@@ -458,11 +442,7 @@ int CHudScoreboard :: DrawPlayers( int xpos_rel, float list_slot, int nameoffset
 		gHUD.DrawHudNumberString( xpos, ypos, DEATHS_RANGE_MIN + xpos_rel, g_PlayerExtraInfo[best_player].deaths, r, g, b );
 
 		// draw score
-		if (gHUD.m_Teamplay == GAME_ARENA ||
-			gHUD.m_Teamplay == GAME_LMS ||
-			gHUD.m_Teamplay == GAME_CHILLDEMIC ||
-			gHUD.m_Teamplay == GAME_ICEMAN ||
-			gHUD.m_Teamplay == GAME_CTF)
+		if (ScoreBased())
 		{
 			xpos = SCORE_RANGE_MAX + xpos_rel;
 			gHUD.DrawHudNumberString( xpos, ypos, SCORE_RANGE_MIN + xpos_rel, g_PlayerExtraInfo[best_player].playerclass, r, g, b );
@@ -502,6 +482,15 @@ int CHudScoreboard :: DrawPlayers( int xpos_rel, float list_slot, int nameoffset
 	return list_slot;
 }
 
+bool CHudScoreboard :: ScoreBased( void )
+{
+	return (gHUD.m_Teamplay == GAME_ARENA ||
+			gHUD.m_Teamplay == GAME_LMS ||
+			gHUD.m_Teamplay == GAME_CHILLDEMIC ||
+			gHUD.m_Teamplay == GAME_ICEMAN ||
+			gHUD.m_Teamplay == GAME_CTF ||
+			gHUD.m_Teamplay == GAME_SHIDDEN);
+}
 
 void CHudScoreboard :: GetAllPlayersInfo( void )
 {

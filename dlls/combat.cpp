@@ -1181,6 +1181,10 @@ void RadiusDamage( Vector vecSrc, entvars_t *pevInflictor, entvars_t *pevAttacke
 			if (!bInWater && pEntity->pev->waterlevel == 3)
 				continue;
 
+			// Self farts smell good
+			if (FBitSet(bitsDamageType, DMG_FART) && pEntity->pev == pevAttacker)
+				continue;
+
 			vecSpot = pEntity->BodyTarget( vecSrc );
 			
 			UTIL_TraceLine ( vecSrc, vecSpot, dont_ignore_monsters, ENT(pevInflictor), &tr );

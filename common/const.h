@@ -869,8 +869,9 @@ typedef struct
 #define GAME_CTF 6
 #define GAME_GUNGAME 7
 #define GAME_ICEMAN 8
-#define GAME_SNOWBALL 9
-#define GAME_TEAMPLAY 10
+#define GAME_SHIDDEN 9
+#define GAME_SNOWBALL 10
+#define GAME_TEAMPLAY 11
 
 #define TOTAL_GAME_MODES GAME_TEAMPLAY
 

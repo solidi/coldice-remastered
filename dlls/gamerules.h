@@ -190,6 +190,7 @@ public:
 	virtual BOOL MutatorEnabled(int mutatorId);
 	virtual mutators_t *GetMutators( void );
 	virtual void MutatorsThink( void );
+	virtual BOOL MutatorAllowed(const char *mutator);
 	virtual void CheckGameMode( void );
 	virtual void UpdateMutatorMessage( CBasePlayer *pPlayer );
 	virtual void UpdateGameModeMessage( CBasePlayer *pPlayer );
@@ -203,6 +204,7 @@ public:
 
 	virtual BOOL IsChilldemic();
 	virtual BOOL IsJVS();
+	virtual BOOL IsShidden();
 
 	virtual BOOL AllowMeleeDrop() = 0;
 
@@ -459,7 +461,7 @@ public:
 	// Cold Ice Remastered Game Modes
 	virtual int CheckClients( void );
 	virtual void InsertClientsIntoArena (float fragcount);
-	virtual BOOL CheckGameTimer( void );
+	virtual BOOL HasGameTimerExpired( void );
 	virtual void CheckRounds( void );
 	virtual void SetRoundLimits( void );
 	virtual void SuckAllToSpectator( void );
