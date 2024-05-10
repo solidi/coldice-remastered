@@ -605,7 +605,7 @@ BOOL CHalfLifeShidden::HasGameTimerExpired( void )
 		if ( !IsEqual && highballer )
 		{
 			UTIL_ClientPrintAll(HUD_PRINTCENTER, 
-				UTIL_VarArgs("Time is up!\n\nSurvivor %s doled the most frags!\n",
+				UTIL_VarArgs("Time is up!\n\n%s doled the most frags!\n",
 				STRING(highballer->pev->netname)));
 			MESSAGE_BEGIN(MSG_BROADCAST, gmsgObjective);
 				WRITE_STRING("Time is up!");
@@ -708,7 +708,7 @@ void CHalfLifeShidden::PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller, e
 	m_iSmeltersRemain = smelters_left;
 	m_iDealtersRemain = dealters_left;
 
-	// Person was survivor
+	// Person was smelter
 	if ( pVictim->pev->fuser4 == 0 )
 	{
 		if (smelters_left >= 1)

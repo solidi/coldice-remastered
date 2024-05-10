@@ -521,12 +521,14 @@ void CBasePlayer :: TraceAttack( entvars_t *pevAttacker, float flDamage, Vector 
 				WRITE_BYTE( 4 ); // framerate
 			MESSAGE_END();
 
-			ClearMultiDamage();
-			//extern entvars_t *g_pevLastInflictor;
-			//g_pevLastInflictor = pevAttacker;
-			pev->effects = EF_NODRAW;
-			pev->health = 0;
-			Killed( pevAttacker, GIB_NORMAL );
+			if (!FBitSet(pev->effects, EF_NODRAW) &&
+				!FBitSet(pev->effects, FL_GODMODE))
+			{
+				pev->health = 0;
+				ClearMultiDamage();
+				Killed( pevAttacker, GIB_NORMAL );
+				pev->effects = EF_NODRAW;
+			}
 
 			return;
 		}
