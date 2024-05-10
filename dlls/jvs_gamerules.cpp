@@ -48,7 +48,7 @@ void CHalfLifeJesusVsSanta::Think( void )
 
 	if ( m_flRoundTimeLimit )
 	{
-		if ( CheckGameTimer() )
+		if ( HasGameTimerExpired() )
 			return;
 	}
 
@@ -360,34 +360,10 @@ void CHalfLifeJesusVsSanta::InitHUD( CBasePlayer *pPlayer )
 	}
 }
 
-BOOL CHalfLifeJesusVsSanta::CheckGameTimer( void )
+BOOL CHalfLifeJesusVsSanta::HasGameTimerExpired( void )
 {
-	g_engfuncs.pfnCvar_DirectSet(&roundtimeleft, UTIL_VarArgs( "%i", int(m_flRoundTimeLimit) - int(gpGlobals->time)));
-
-	if ( !_30secwarning && (m_flRoundTimeLimit - 30) < gpGlobals->time )
-	{
-		UTIL_ClientPrintAll(HUD_PRINTTALK, "* 30 second warning...\n");
-		_30secwarning = TRUE;
-	}
-	else if ( !_15secwarning && (m_flRoundTimeLimit - 15) < gpGlobals->time )
-	{
-		UTIL_ClientPrintAll(HUD_PRINTTALK, "* 15 second warning...\n");
-		_15secwarning = TRUE;
-	}
-	else if ( !_3secwarning && (m_flRoundTimeLimit - 3) < gpGlobals->time )
-	{
-		UTIL_ClientPrintAll(HUD_PRINTTALK, "* 3 second warning...\n");
-		_3secwarning = TRUE;
-	}
-
-//===================================================
-
-	//time is up for this game.
-
-//===================================================
-
 	//time is up
-	if ( m_flRoundTimeLimit < gpGlobals->time )
+	if ( CHalfLifeMultiplay::HasGameTimerExpired() )
 	{
 		int highest = 1;
 		BOOL IsEqual = FALSE;

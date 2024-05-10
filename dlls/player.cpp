@@ -508,6 +508,31 @@ void CBasePlayer :: TraceAttack( entvars_t *pevAttacker, float flDamage, Vector 
 		if (FBitSet(bitsDamageType, DMG_CONFUSE))
 			Confuse(CBaseEntity::Instance(pevAttacker), this, DMG_CONFUSE);
 
+		// Any hint of farts is deadly
+		if (FBitSet(bitsDamageType, DMG_FART))
+		{
+			MESSAGE_BEGIN( MSG_PVS, SVC_TEMPENTITY, pev->origin );
+				WRITE_BYTE( TE_SMOKE );
+				WRITE_COORD( pev->origin.x );
+				WRITE_COORD( pev->origin.y );
+				WRITE_COORD( pev->origin.z );
+				WRITE_SHORT( g_sModelIndexFartSmoke );
+				WRITE_BYTE( 48 ); // scale * 10
+				WRITE_BYTE( 4 ); // framerate
+			MESSAGE_END();
+
+			if (!FBitSet(pev->effects, EF_NODRAW) &&
+				!FBitSet(pev->effects, FL_GODMODE))
+			{
+				pev->health = 0;
+				ClearMultiDamage();
+				Killed( pevAttacker, GIB_NORMAL );
+				pev->effects = EF_NODRAW;
+			}
+
+			return;
+		}
+
 		SpawnBlood(ptr->vecEndPos, BloodColor(), flDamage);// a little surface blood.
 		TraceBleed( flDamage, vecDir, ptr, bitsDamageType );
 		AddMultiDamage( pevAttacker, this, flDamage, bitsDamageType );
@@ -6586,6 +6611,23 @@ void CBasePlayer::Taunt( void )
 
 		m_fTauntCancelTime = gpGlobals->time + 2.0;
 	}
+}
+
+void CBasePlayer::MakeInvisible( void )
+{
+	if (pev->renderfx == kRenderFxGlowShell)
+		pev->renderfx = kRenderFxNone;
+	if (pev->rendermode != kRenderTransAlpha)
+		pev->rendermode = kRenderTransAlpha;
+}
+
+void CBasePlayer::MakeVisible( void )
+{
+	if (m_fHasRune == RUNE_CLOAK)
+		return;
+
+	if (pev->rendermode == kRenderTransAlpha)
+		pev->rendermode = kRenderNormal;
 }
 
 //=========================================================

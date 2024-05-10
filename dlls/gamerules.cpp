@@ -34,6 +34,7 @@
 #include	"coldskull_gamerules.h"
 #include	"arena_gamerules.h"
 #include	"ctf_gamerules.h"
+#include	"shidden_gamerules.h"
 
 extern edict_t *EntSelectSpawnPoint( CBaseEntity *pPlayer );
 
@@ -63,6 +64,7 @@ DLL_GLOBAL const char *g_szMutators[] = {
 	"coolflesh",
 	"crate",
 	"credits",
+	"dealter",
 	"dontshoot",
 	"explosiveai",
 	"fastweapons",
@@ -482,22 +484,27 @@ CGameRules *InstallGameRules( void )
 
 		g_teamplay = 0;
 
-		if (g_GameMode == GAME_GUNGAME)
-			return new CHalfLifeGunGame;
-		else if (g_GameMode == GAME_CTC)
-			return new CHalfLifeCaptureTheChumtoad;
-		else if (g_GameMode == GAME_ICEMAN)
-			return new CHalfLifeJesusVsSanta;
-		else if (g_GameMode == GAME_CHILLDEMIC)
-			return new CHalfLifeChilldemic;
-		else if (g_GameMode == GAME_LMS)
-			return new CHalfLifeLastManStanding;
-		else if (g_GameMode == GAME_COLDSKULL)
-			return new CHalfLifeColdSkull;
-		else if (g_GameMode == GAME_ARENA)
-			return new CHalfLifeArena;
-		else if (g_GameMode == GAME_CTF)
-			return new CHalfLifeCaptureTheFlag;
+		switch (g_GameMode)
+		{
+			case GAME_ARENA:
+				return new CHalfLifeArena;
+			case GAME_LMS:
+				return new CHalfLifeLastManStanding;
+			case GAME_CHILLDEMIC:
+				return new CHalfLifeChilldemic;
+			case GAME_COLDSKULL:
+				return new CHalfLifeColdSkull;
+			case GAME_CTC:
+				return new CHalfLifeCaptureTheChumtoad;
+			case GAME_CTF:
+				return new CHalfLifeCaptureTheFlag;
+			case GAME_GUNGAME:
+				return new CHalfLifeGunGame;
+			case GAME_ICEMAN:
+				return new CHalfLifeJesusVsSanta;
+			case GAME_SHIDDEN:
+				return new CHalfLifeShidden;
+		}
 
 		if ((int)gpGlobals->deathmatch == 1)
 		{
@@ -709,15 +716,11 @@ void CGameRules::SpawnMutators(CBasePlayer *pPlayer)
 	GiveMutators(pPlayer);
 
 	if (MutatorEnabled(MUTATOR_INVISIBLE)) {
-		if (pPlayer->pev->renderfx == kRenderFxGlowShell)
-			pPlayer->pev->renderfx = kRenderFxNone;
-		if (pPlayer->pev->rendermode != kRenderTransAlpha)
-			pPlayer->pev->rendermode = kRenderTransAlpha;
+		pPlayer->MakeInvisible();
 	}
 	else
 	{
-		if (pPlayer->pev->rendermode == kRenderTransAlpha)
-			pPlayer->pev->rendermode = kRenderNormal;
+		pPlayer->MakeVisible();
 	}
 
 	if (randomweapon.value)
@@ -895,6 +898,24 @@ mutators_t *CGameRules::GetMutators()
 	return m_Mutators;
 }
 
+BOOL CGameRules::MutatorAllowed(const char *mutator)
+{
+	// No invisible in shidden
+	if (strstr(mutator, g_szMutators[MUTATOR_INVISIBLE - 1]) || atoi(mutator) == MUTATOR_INVISIBLE)
+		return !(g_GameMode == GAME_SHIDDEN);
+
+	if (strstr(mutator, g_szMutators[MUTATOR_DEALTER - 1]) || atoi(mutator) == MUTATOR_DEALTER)
+		return !(g_GameMode == GAME_SHIDDEN);
+
+	if (strstr(mutator, g_szMutators[MUTATOR_MAXPACK - 1]) || atoi(mutator) == MUTATOR_MAXPACK)
+		return !(g_GameMode == GAME_SNOWBALL);
+
+	if (strstr(mutator, g_szMutators[MUTATOR_CHUMXPLODE - 1]) || atoi(mutator) == MUTATOR_CHUMXPLODE)
+		return !(g_GameMode == GAME_CTC);
+	
+	return TRUE;
+}
+
 void CGameRules::MutatorsThink(void)
 {
 	if (m_flAddMutatorTime < gpGlobals->time)
@@ -928,59 +949,57 @@ void CGameRules::MutatorsThink(void)
 		// Check new
 		if (strlen(addmutator.string) > 1)
 		{
-			// ALERT(at_aiconsole, ">>> [%.2f] addmutator.string=%s\n", gpGlobals->time, addmutator.string);
-
-			if (!strcmp(addmutator.string, "chaos"))
-				m_fChaosMode = TRUE;
-			else if (!strcmp(addmutator.string, "unchaos"))
-				m_fChaosMode = FALSE;
-			else
+			if (MutatorAllowed(addmutator.string))
 			{
-				for (int i = 0; i < MAX_MUTATORS; i++)
+				if (!strcmp(addmutator.string, "chaos"))
+					m_fChaosMode = TRUE;
+				else if (!strcmp(addmutator.string, "unchaos"))
+					m_fChaosMode = FALSE;
+				else
 				{
-					// ALERT(at_aiconsole, ">>> [%.2f] checking i=%d\n", gpGlobals->time, i);
-					if (strstr(addmutator.string, g_szMutators[i]) || addmutator.value == (i + 1))
+					for (int i = 0; i < MAX_MUTATORS; i++)
 					{
-						// make sure not already in list.
-						mutators_t *t = m_Mutators;
-						BOOL add = TRUE;
-						while (t != NULL)
+						if (strstr(addmutator.string, g_szMutators[i]) || addmutator.value == (i + 1))
 						{
-							if (t->mutatorId == i)
+							// make sure not already in list.
+							mutators_t *t = m_Mutators;
+							BOOL add = TRUE;
+							while (t != NULL)
 							{
-								add = FALSE;
+								if (t->mutatorId == i)
+								{
+									add = FALSE;
+								}
+								t = t->next;
 							}
-							t = t->next;
+
+							if (add)
+							{
+								int time = fmin(fmax(mutatortime.value, 10), 120);
+								MESSAGE_BEGIN(MSG_ALL, gmsgAddMutator);
+									WRITE_BYTE(i + 1);
+									WRITE_BYTE(time);
+								MESSAGE_END();
+
+								mutators_t *mutator = new mutators_t();
+								mutator->mutatorId = i + 1;
+								mutator->timeToLive = gpGlobals->time + time;
+								mutator->next = m_Mutators ? m_Mutators : NULL;
+								m_Mutators = mutator;
+
+								ALERT(at_console, "Mutator \"%s\" enabled at %.2f until %.2f\n", g_szMutators[i], gpGlobals->time, mutator->timeToLive);
+
+								m_flDetectedMutatorChange = gpGlobals->time + 1.0;
+							}
+
+							break;
 						}
-
-						if (add)
-						{
-							int time = fmin(fmax(mutatortime.value, 10), 120);
-							MESSAGE_BEGIN(MSG_ALL, gmsgAddMutator);
-								WRITE_BYTE(i + 1);
-								WRITE_BYTE(time);
-							MESSAGE_END();
-
-							mutators_t *mutator = new mutators_t();
-							mutator->mutatorId = i + 1;
-							mutator->timeToLive = gpGlobals->time + time;
-							mutator->next = m_Mutators ? m_Mutators : NULL;
-							m_Mutators = mutator;
-
-							ALERT(at_console, "Mutator \"%s\" enabled at %.2f until %.2f\n", g_szMutators[i], gpGlobals->time, mutator->timeToLive);
-
-							// ALERT(at_aiconsole, ">>> [%.2f] add g_szMutators[i]=%s | mutator->timeToLive=%.2f\n", gpGlobals->time, g_szMutators[i], mutator->timeToLive);
-
-							m_flDetectedMutatorChange = gpGlobals->time + 1.0;
-						}
-						else
-						{
-							// ALERT(at_aiconsole, ">>> [%.2f] already in list g_szMutators[i]=%s\n", gpGlobals->time, g_szMutators[i]);
-						}
-
-						break;
 					}
 				}
+			}
+			else
+			{
+				ALERT(at_console, "Mutator \"%s\" has been filtered in this mode.\n", addmutator.string);
 			}
 
 			CVAR_SET_STRING("sv_addmutator", "");
@@ -1159,19 +1178,13 @@ void CGameRules::MutatorsThink(void)
 
 				GiveMutators(pl);
 
-				if (MutatorEnabled(MUTATOR_INVISIBLE)) {
-					if (pPlayer->pev->renderfx == kRenderFxGlowShell)
-						pPlayer->pev->renderfx = kRenderFxNone;
-					if (pl->pev->rendermode != kRenderTransAlpha)
-						pl->pev->rendermode = kRenderTransAlpha;
+				if (MutatorEnabled(MUTATOR_INVISIBLE))
+				{
+					pl->MakeInvisible();
 				}
 				else
 				{
-					if (pl->m_fHasRune != RUNE_CLOAK)
-					{
-						if (pl->pev->rendermode == kRenderTransAlpha)
-							pl->pev->rendermode = kRenderNormal;
-					}
+					pl->MakeVisible();
 				}
 
 				if (MutatorEnabled(MUTATOR_999)) {
@@ -1433,4 +1446,9 @@ BOOL CGameRules::IsChilldemic()
 BOOL CGameRules::IsJVS()
 {
 	return g_GameMode == GAME_ICEMAN;
+}
+
+BOOL CGameRules::IsShidden()
+{
+	return g_GameMode == GAME_SHIDDEN;
 }

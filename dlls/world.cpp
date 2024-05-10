@@ -740,6 +740,7 @@ const char *szGameModeList [] =
 	"ctf",
 	"gungame",
 	"jvs",
+	"shidden",
 	"snowball",
 	"teamplay",
 };

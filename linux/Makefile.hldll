@@ -208,6 +208,7 @@ HLDLL_OBJS = \
 	$(HLDLL_OBJ_DIR)/schedule.o \
 	$(HLDLL_OBJ_DIR)/scientist.o \
 	$(HLDLL_OBJ_DIR)/scripted.o \
+	$(HLDLL_OBJ_DIR)/shidden_gamerules.o \
 	$(HLDLL_OBJ_DIR)/shotgun.o \
 	$(HLDLL_OBJ_DIR)/skill.o \
 	$(HLDLL_OBJ_DIR)/smg.o \

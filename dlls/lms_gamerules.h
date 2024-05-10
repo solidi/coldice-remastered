@@ -17,12 +17,12 @@ class CHalfLifeLastManStanding : public CHalfLifeMultiplay
 {
 public:
 	CHalfLifeLastManStanding();
-
+	virtual const char *GetGameDescription( void ) { return "Cold Ice Remastered Last Man Standing"; }
 	virtual void Think( void );
+	virtual BOOL HasGameTimerExpired( void );
 	virtual void InitHUD( CBasePlayer *pPlayer );
 	virtual BOOL FPlayerCanRespawn( CBasePlayer *pPlayer );
 	virtual int IPointsForKill( CBasePlayer *pAttacker, CBasePlayer *pKilled );
-	virtual const char *GetGameDescription( void ) { return "Cold Ice Remastered Last Man Standing"; }
 	virtual void PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller, entvars_t *pInflictor );
 	virtual BOOL AllowRuneSpawn( const char *szRune );
 	virtual int GetTeamIndex( const char *pTeamName );

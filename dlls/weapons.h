@@ -532,6 +532,7 @@ extern DLL_GLOBAL	short	g_sModelIndexBloodDrop;// holds the sprite index for blo
 extern DLL_GLOBAL	short	g_sModelIndexBloodSpray;// holds the sprite index for blood spray (bigger)
 extern DLL_GLOBAL	short	g_sModelIndexSnowballHit;
 extern DLL_GLOBAL	short 	g_sModelIndexIceFireball;
+extern DLL_GLOBAL	short	g_sModelIndexFartSmoke;
 extern DLL_GLOBAL	short 	g_sModelIndexFire;
 extern DLL_GLOBAL	short 	g_sModelIndexIceFire;
 extern DLL_GLOBAL	short	g_sModelConcreteGibs;

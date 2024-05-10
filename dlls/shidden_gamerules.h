@@ -13,16 +13,18 @@
 *
 ****/
 
-class CHalfLifeChilldemic : public CHalfLifeMultiplay
+class CHalfLifeShidden : public CHalfLifeMultiplay
 {
 public:
-	CHalfLifeChilldemic();
-	virtual const char *GetGameDescription( void ) { return "Cold Ice Remastered Chilldemic"; }
-	virtual void Think ( void );
-	virtual void InitHUD( CBasePlayer *pl );
+	CHalfLifeShidden();
+	virtual const char *GetGameDescription( void ) { return "Cold Ice Remastered Shidden"; }
+	virtual void Think( void );
+	virtual void InitHUD( CBasePlayer *pPlayer );
+	virtual void PlayerSpawn( CBasePlayer *pPlayer );
+	virtual void PlayerThink( CBasePlayer *pPlayer );
 	virtual BOOL HasGameTimerExpired( void );
 	virtual BOOL FPlayerCanTakeDamage( CBasePlayer *pPlayer, CBaseEntity *pAttacker );
-	virtual void PlayerSpawn( CBasePlayer *pPlayer );
+	virtual void FPlayerTookDamage( float flDamage, CBasePlayer *pVictim, CBaseEntity *pKiller);
 	virtual BOOL FPlayerCanRespawn( CBasePlayer *pPlayer );
 	virtual void PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller, entvars_t *pInflictor );
 	virtual BOOL CanHavePlayerItem( CBasePlayer *pPlayer, CBasePlayerItem *pWeapon );
@@ -32,6 +34,6 @@ public:
 	virtual const char *GetTeamID( CBaseEntity *pEntity );
 
 private:
-	int m_iSurvivorsRemain;
-	int m_iSkeletonsRemain;
+	int m_iSmeltersRemain;
+	int m_iDealtersRemain;
 };

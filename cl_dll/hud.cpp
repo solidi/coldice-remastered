@@ -1045,3 +1045,8 @@ mutators_t GetMutator(int mutatorId)
 
 	return mutators_t();
 }
+
+bool IsShidden( void )
+{
+	return gHUD.m_GameMode == GAME_SHIDDEN;
+}

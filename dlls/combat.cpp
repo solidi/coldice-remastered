@@ -1181,6 +1181,16 @@ void RadiusDamage( Vector vecSrc, entvars_t *pevInflictor, entvars_t *pevAttacke
 			if (!bInWater && pEntity->pev->waterlevel == 3)
 				continue;
 
+			// Self or team farts smell good
+			if (FBitSet(bitsDamageType, DMG_FART))
+			{
+				if (pEntity->pev == pevAttacker)
+					continue;
+
+				if (g_pGameRules->PlayerRelationship(CBaseEntity::Instance(pevAttacker), pEntity) == GR_TEAMMATE)
+					continue;
+			}
+
 			vecSpot = pEntity->BodyTarget( vecSrc );
 			
 			UTIL_TraceLine ( vecSrc, vecSpot, dont_ignore_monsters, ENT(pevInflictor), &tr );

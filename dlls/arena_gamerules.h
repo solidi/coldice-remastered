@@ -18,10 +18,11 @@ class CHalfLifeArena : public CHalfLifeMultiplay
 public:
 	CHalfLifeArena();
 	virtual const char *GetGameDescription( void ) { return "Cold Ice Remastered Arena"; }
-    virtual void Think ( void );
-    virtual void InitHUD( CBasePlayer *pl );
-    virtual BOOL FPlayerCanRespawn( CBasePlayer *pPlayer );
-    virtual void PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller, entvars_t *pInflictor );
+	virtual void Think ( void );
+	virtual BOOL HasGameTimerExpired( void );
+	virtual void InitHUD( CBasePlayer *pl );
+	virtual BOOL FPlayerCanRespawn( CBasePlayer *pPlayer );
+	virtual void PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller, entvars_t *pInflictor );
 
 private:
 	int m_iPlayer1, m_iPlayer2;
