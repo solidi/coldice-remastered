@@ -1021,6 +1021,7 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "[Server Help More]\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"barrels\" - start with the gravitygun, flaming explosive barrels spawn to throw at others\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"berserker\" - go crazy with chainsaws and fists.\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"bigfoot\" - step size is crazy big\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"bighead\" - players heads are very large\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"chumxplode\" - a killer chumtoad appears directly after an explosion\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"coolflesh\" - gibs stay longer, pick up gibs to eat and gain a healthkit worth of repair\n");
