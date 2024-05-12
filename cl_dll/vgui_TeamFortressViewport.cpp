@@ -205,6 +205,7 @@ char *sMutators[] = {
 	"autoaim",
 	"barrels",
 	"berserker",
+	"bigfoot",
 	"bighead",
 	"chumxplode",
 	"coolflesh",

@@ -59,6 +59,7 @@ DLL_GLOBAL const char *g_szMutators[] = {
 	"autoaim",
 	"barrels",
 	"berserker",
+	"bigfoot",
 	"bighead",
 	"chumxplode",
 	"coolflesh",
@@ -580,12 +581,20 @@ void CGameRules::EnvMutators( void )
 	}
 
 	// Gravity
-	if (MutatorEnabled(MUTATOR_GRAVITY) && CVAR_GET_FLOAT("sv_gravity") != 199)
+	if (MutatorEnabled(MUTATOR_ASTRONAUT) && CVAR_GET_FLOAT("sv_gravity") != 199)
 		CVAR_SET_FLOAT("sv_gravity", 199);
 	else
 	{
-		if (!MutatorEnabled(MUTATOR_GRAVITY) && CVAR_GET_FLOAT("sv_gravity") == 199)
+		if (!MutatorEnabled(MUTATOR_ASTRONAUT) && CVAR_GET_FLOAT("sv_gravity") == 199)
 			CVAR_SET_FLOAT("sv_gravity", 800);
+	}
+
+	if (MutatorEnabled(MUTATOR_BIGFOOT) && CVAR_GET_FLOAT("sv_stepsize") != 192)
+		CVAR_SET_FLOAT("sv_stepsize", 192);
+	else
+	{
+		if (!MutatorEnabled(MUTATOR_BIGFOOT) && CVAR_GET_FLOAT("sv_stepsize") == 192)
+			CVAR_SET_FLOAT("sv_stepsize", 18);
 	}
 
 	// Player loop
