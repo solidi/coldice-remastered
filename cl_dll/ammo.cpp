@@ -958,7 +958,7 @@ int CHudAmmo::Draw(float flTime)
 			primary.top = barSize - dif;
 			primary.bottom = primary.right = 64;
 
-			SPR_Set(gHUD.GetSprite(m_hCrosshairRight), r2, g2, b2 );
+			SPR_Set(gHUD.GetSprite(m_hCrosshairLeft), r2, g2, b2 );
 			SPR_DrawAdditive(0, (ScreenWidth / 2) - 32, ((ScreenHeight / 2) - 23) + primary.top, &primary);
 		}
 
@@ -969,7 +969,7 @@ int CHudAmmo::Draw(float flTime)
 				int dif = fmin(fmax(1, (barSize * (pw->iClip / float(pw->iMaxClip)))), barSize);
 				clip.top = barSize - dif;
 				clip.bottom = clip.right = 64;
-				SPR_Set(gHUD.GetSprite(m_hCrosshairLeft), r2, g2, b2 );
+				SPR_Set(gHUD.GetSprite(m_hCrosshairRight), r2, g2, b2 );
 				SPR_DrawAdditive(0, (ScreenWidth / 2) - 32, ((ScreenHeight / 2) - 23) + clip.top, &clip);
 			}
 
@@ -1005,7 +1005,7 @@ int CHudAmmo::Draw(float flTime)
 		{
 			if (cl_crosshairammo && cl_crosshairammo->value)
 			{
-				SPR_Set(gHUD.GetSprite(m_hCrosshairLeft), r2, g2, b2);
+				SPR_Set(gHUD.GetSprite(m_hCrosshairRight), r2, g2, b2);
 				SPR_DrawAdditive(0, (ScreenWidth / 2) - 32, ((ScreenHeight / 2) - 23) + primary.top, &primary);
 			}
 
