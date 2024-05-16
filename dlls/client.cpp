@@ -382,7 +382,7 @@ void MajorityVote(edict_t *pEntity, const char *text)
 		if (m_fVoteTime < gpGlobals->time)
 		{
 			int players = 0;
-			for (int i = 1; i <= 32; i++)
+			for (int i = 1; i <= gpGlobals->maxClients; i++)
 			{
 				CBasePlayer *pPlayer = (CBasePlayer *)UTIL_PlayerByIndex(i);
 				if (pPlayer && !FBitSet(pPlayer->pev->flags, FL_FAKECLIENT))
@@ -422,7 +422,7 @@ void MajorityVote(edict_t *pEntity, const char *text)
 
 				// Tally
 				int votes = 0;
-				for (int i = 1; i <= 32; i++)
+				for (int i = 1; i <= gpGlobals->maxClients; i++)
 				{
 					CBaseEntity *p = UTIL_PlayerByIndex(i);
 					if (p && m_iVotes[p->entindex()] > 0)

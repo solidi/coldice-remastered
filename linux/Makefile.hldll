@@ -168,6 +168,7 @@ HLDLL_OBJS = \
 	$(HLDLL_OBJ_DIR)/headcrab.o \
 	$(HLDLL_OBJ_DIR)/healthkit.o \
 	$(HLDLL_OBJ_DIR)/hgrunt.o \
+	$(HLDLL_OBJ_DIR)/horde_gamerules.o \
 	$(HLDLL_OBJ_DIR)/hornet.o \
 	$(HLDLL_OBJ_DIR)/hornetgun.o \
 	$(HLDLL_OBJ_DIR)/houndeye.o \

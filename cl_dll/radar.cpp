@@ -105,6 +105,13 @@ void CHudRadar::ProcessPlayerState(void)
 			else
 				b_specials[num_players] = false;
 		}
+		else if (gHUD.m_GameMode == GAME_HORDE || gHUD.m_GameMode == GAME_HORDE)
+		{
+			if (pClient->curstate.fuser4 > 1) // monster
+				b_specials[num_players] = true;
+			else
+				b_specials[num_players] = false;
+		}
 
 		if (!b_specials[num_players])
 			if (!pClient->player)

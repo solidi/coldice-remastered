@@ -754,6 +754,8 @@ void CGargantua :: Spawn()
 	SET_MODEL(ENT(pev), "models/garg.mdl");
 	UTIL_SetSize( pev, Vector( -32, -32, 0 ), Vector( 32, 32, 64 ) );
 
+	pev->classname = MAKE_STRING("monster_gargantua");
+
 	pev->solid			= SOLID_SLIDEBOX;
 	pev->movetype		= MOVETYPE_STEP;
 	m_bloodColor		= BLOOD_COLOR_GREEN;
@@ -828,7 +830,7 @@ void CGargantua :: Precache()
 
 void CGargantua::TraceAttack( entvars_t *pevAttacker, float flDamage, Vector vecDir, TraceResult *ptr, int bitsDamageType )
 {
-	ALERT( at_aiconsole, "CGargantua::TraceAttack\n");
+	//ALERT( at_aiconsole, "CGargantua::TraceAttack\n");
 
 	if ( !IsAlive() )
 	{
@@ -868,12 +870,15 @@ void CGargantua::TraceAttack( entvars_t *pevAttacker, float flDamage, Vector vec
 
 int CGargantua::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int bitsDamageType )
 {
-	ALERT( at_aiconsole, "CGargantua::TakeDamage\n");
+	//ALERT( at_aiconsole, "CGargantua::TakeDamage\n");
 
 	if ( IsAlive() )
 	{
-		if ( !(bitsDamageType & GARG_DAMAGE) )
-			flDamage *= 0.01;
+		if ( !g_pGameRules->IsMultiplayer() )
+		{
+			if ( !(bitsDamageType & GARG_DAMAGE) )
+				flDamage *= 0.01;
+		}
 		if ( bitsDamageType & DMG_BLAST )
 			SetConditions( bits_COND_LIGHT_DAMAGE );
 	}

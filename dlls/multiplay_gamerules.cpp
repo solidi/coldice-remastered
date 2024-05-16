@@ -258,6 +258,7 @@ char *gamePlayModes[] = {
 	"Capture The Chumtoad",
 	"Capture The Flag",
 	"GunGame",
+	"Horde",
 	"Jesus vs. Santa",
 	"Snowballs",
 	"Teamplay",
@@ -272,6 +273,7 @@ char *gamePlayModesShort[] = {
 	"ctc",
 	"ctf",
 	"gungame",
+	"horde",
 	"jvs",
 	"shidden",
 	"snowball",
@@ -326,7 +328,7 @@ void CHalfLifeMultiplay :: Think ( void )
 				MESSAGE_END();
 
 				// Bots get a vote
-				for (int i = 1; i <= 32; i++)
+				for (int i = 1; i <= gpGlobals->maxClients; i++)
 				{
 					CBasePlayer *pPlayer = (CBasePlayer *)UTIL_PlayerByIndex( i );
 					if (pPlayer && FBitSet(pPlayer->pev->flags, FL_FAKECLIENT) && !pPlayer->HasDisconnected)
@@ -348,7 +350,7 @@ void CHalfLifeMultiplay :: Think ( void )
 				int vote[TOTAL_GAME_MODES + 2]; //+1, +1 RANDOM
 				memset(vote, 0, sizeof(vote));
 
-				for (int j = 1; j <= 32; j++)
+				for (int j = 1; j <= gpGlobals->maxClients; j++)
 				{
 					int gameIndex = g_pGameRules->m_iVoteCount[j-1];
 					if ((gameIndex-1) >= GAME_FFA && (gameIndex-1) <= TOTAL_GAME_MODES + 1 /*random*/)
@@ -416,7 +418,7 @@ void CHalfLifeMultiplay :: Think ( void )
 				MESSAGE_END();
 
 				// Bots get a vote
-				for (int i = 1; i <= 32; i++)
+				for (int i = 1; i <= gpGlobals->maxClients; i++)
 				{
 					CBasePlayer *pPlayer = (CBasePlayer *)UTIL_PlayerByIndex( i );
 					if (pPlayer && FBitSet(pPlayer->pev->flags, FL_FAKECLIENT) && !pPlayer->HasDisconnected)
@@ -440,7 +442,7 @@ void CHalfLifeMultiplay :: Think ( void )
 				int vote[MAX_MUTATORS+2]; //+1, +1 RANDOM
 				memset(vote, -1, sizeof(vote));
 
-				for (int j = 1; j <= 32; j++)
+				for (int j = 1; j <= gpGlobals->maxClients; j++)
 				{
 					int mutatorIndex = g_pGameRules->m_iVoteCount[j-1];
 					if ((mutatorIndex-1) >= 0 && (mutatorIndex-1) <= MAX_MUTATORS + 1 /*random*/)
@@ -560,7 +562,7 @@ void CHalfLifeMultiplay :: Think ( void )
 				MESSAGE_END();
 
 				// Bots get a vote
-				for (int i = 1; i <= 32; i++)
+				for (int i = 1; i <= gpGlobals->maxClients; i++)
 				{
 					CBasePlayer *pPlayer = (CBasePlayer *)UTIL_PlayerByIndex( i );
 					if (pPlayer && FBitSet(pPlayer->pev->flags, FL_FAKECLIENT) && !pPlayer->HasDisconnected)
@@ -584,7 +586,7 @@ void CHalfLifeMultiplay :: Think ( void )
 				int vote[BUILT_IN_MAP_COUNT + 1 /*random*/];
 				memset(vote, 0, sizeof(vote));
 
-				for (int j = 1; j <= 32; j++)
+				for (int j = 1; j <= gpGlobals->maxClients; j++)
 				{
 					int mapIndex = g_pGameRules->m_iVoteCount[j-1];
 					if ((mapIndex-1) >= 0 && (mapIndex-1) <= BUILT_IN_MAP_COUNT + 1 /*random*/)
@@ -817,13 +819,19 @@ BOOL CHalfLifeMultiplay::HasGameTimerExpired( void )
 
 void CHalfLifeMultiplay::SetRoundLimits( void )
 {
-	//enforce a fraglimit always.
-	//if ( CVAR_GET_FLOAT("mp_fraglimit") <= 0 )
-	//	CVAR_SET_FLOAT("mp_fraglimit", 10);
-	
 	//enforce a timelimit if given proper value
 	if ( roundtimelimit.value > 0 )
+	{
 		m_flRoundTimeLimit = gpGlobals->time + (roundtimelimit.value * 60.0);
+
+		MESSAGE_BEGIN(MSG_ALL, gmsgShowTimer);
+			WRITE_BYTE(1);
+		MESSAGE_END();
+
+		MESSAGE_BEGIN(MSG_ALL, gmsgRoundTime);
+			WRITE_SHORT(roundtimelimit.value * 60.0);
+		MESSAGE_END();
+	}
 
 	_30secwarning	= FALSE;
 	_15secwarning	= FALSE;

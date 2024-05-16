@@ -273,6 +273,8 @@ void CZombie :: Spawn()
 {
 	Precache( );
 
+	pev->classname = MAKE_STRING("monster_zombie");
+
 	SET_MODEL(ENT(pev), "models/zombie.mdl");
 	UTIL_SetSize( pev, VEC_HUMAN_HULL_MIN, VEC_HUMAN_HULL_MAX );
 

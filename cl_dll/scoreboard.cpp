@@ -496,7 +496,8 @@ bool CHudScoreboard :: ScoreBased( void )
 			gHUD.m_Teamplay == GAME_CHILLDEMIC ||
 			gHUD.m_Teamplay == GAME_ICEMAN ||
 			gHUD.m_Teamplay == GAME_CTF ||
-			gHUD.m_Teamplay == GAME_SHIDDEN);
+			gHUD.m_Teamplay == GAME_SHIDDEN ||
+			gHUD.m_Teamplay == GAME_HORDE);
 }
 
 void CHudScoreboard :: GetAllPlayersInfo( void )
