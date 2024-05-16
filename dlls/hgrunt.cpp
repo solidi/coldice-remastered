@@ -980,6 +980,8 @@ void CHGrunt :: Spawn()
 {
 	Precache( );
 
+	pev->classname = MAKE_STRING("monster_human_grunt");
+
 	SET_MODEL(ENT(pev), "models/hgrunt.mdl");
 	UTIL_SetSize(pev, VEC_HUMAN_HULL_MIN, VEC_HUMAN_HULL_MAX);
 

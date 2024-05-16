@@ -36,6 +36,7 @@ extern int gmsgDeathMsg;
 const char *szMonsters[] = {
 	"monster_zombie",
 	"monster_houndeye",
+	"monster_human_grunt",
 	"monster_gargantua"
 };
 
@@ -49,6 +50,7 @@ CHalfLifeHorde::CHalfLifeHorde()
 
 	UTIL_PrecacheOther( "monster_zombie" );
 	UTIL_PrecacheOther( "monster_houndeye" );
+	UTIL_PrecacheOther( "monster_human_grunt" );
 	UTIL_PrecacheOther( "monster_gargantua" );
 }
 
