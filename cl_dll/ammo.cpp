@@ -618,7 +618,7 @@ int CHudAmmo::MsgFunc_CurWeapon(const char *pszName, int iSize, void *pbuf )
 
 	int iState = READ_BYTE();
 	int iId = READ_CHAR();
-	int iClip = READ_CHAR();
+	int iClip = READ_BYTE();
 
 	// detect if we're also on target
 	if ( iState > 1 )
@@ -966,7 +966,7 @@ int CHudAmmo::Draw(float flTime)
 		{
 			if (cl_crosshairammo && cl_crosshairammo->value)
 			{
-				int dif = fmin(fmax(1, (barSize * (pw->iClip / float(pw->iMaxClip)))), barSize);
+				int dif = fmin(fmax(1, (barSize * (pw->iClip / float(pw->iMaxClip)))), barSize - 1);
 				clip.top = barSize - dif;
 				clip.bottom = clip.right = 64;
 				SPR_Set(gHUD.GetSprite(m_hCrosshairRight), r2, g2, b2 );
