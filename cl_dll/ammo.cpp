@@ -620,6 +620,9 @@ int CHudAmmo::MsgFunc_CurWeapon(const char *pszName, int iSize, void *pbuf )
 	int iId = READ_CHAR();
 	int iClip = READ_BYTE();
 
+	if (iClip == 255)
+		iClip = -1;
+
 	// detect if we're also on target
 	if ( iState > 1 )
 	{
@@ -712,6 +715,8 @@ int CHudAmmo::MsgFunc_WeaponList(const char *pszName, int iSize, void *pbuf )
 	Weapon.iFlags = READ_BYTE();
 	Weapon.iClip = 0;
 	Weapon.iMaxClip = READ_BYTE();
+	if (Weapon.iMaxClip == 255)
+		Weapon.iMaxClip = -1;
 
 	gWR.AddWeapon( &Weapon );
 
