@@ -971,6 +971,7 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"ctf\"\" - capture the flag\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"ffa\"\" - game mode is deathmatch\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"gungame\"\" - get frags with specific weapons and level up!\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"horde\"\" - frag monsters in each wave\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"jvs\"\" - game mode is Jesus vs Santa - defeat him!\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"lms\"\" - game mode is last man standing\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"shidden\"\" - invisible dealters and those smelters\n");
