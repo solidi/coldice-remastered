@@ -149,6 +149,13 @@ int CZombie :: TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, floa
 	// HACK HACK -- until we fix this.
 	if ( IsAlive() )
 		PainSound();
+
+	// For horde
+	if (g_pGameRules->IsMultiplayer())
+	{
+		flDamage *= 0.25;
+	}
+
 	return CBaseMonster::TakeDamage( pevInflictor, pevAttacker, flDamage, bitsDamageType );
 }
 

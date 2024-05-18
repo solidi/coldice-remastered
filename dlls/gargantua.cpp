@@ -883,6 +883,12 @@ int CGargantua::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, flo
 			SetConditions( bits_COND_LIGHT_DAMAGE );
 	}
 
+	// For horde
+	if (g_pGameRules->IsMultiplayer())
+	{
+		flDamage *= 0.25;
+	}
+
 	return CBaseMonster::TakeDamage( pevInflictor, pevAttacker, flDamage, bitsDamageType );
 }
 

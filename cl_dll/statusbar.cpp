@@ -22,6 +22,7 @@
 #include "hud.h"
 #include "cl_util.h"
 #include "parsemsg.h"
+#include "vgui_TeamFortressViewport.h"
 
 #include <string.h>
 #include <stdio.h>
@@ -191,8 +192,15 @@ int CHudStatusBar :: Draw( float fTime )
 
 	int Y_START = ScreenHeight - 52;
 
-	if (!g_iUser1 && gHUD.m_Teamplay == GAME_HORDE)
+	if (gHUD.m_Teamplay == GAME_HORDE)
 	{
+		if (g_iUser1)
+			return 1;
+		if (gHUD.m_Scoreboard.m_iShowscoresHeld)
+			return 1;
+		if (gViewPort->IsScoreBoardVisible())
+			return 1;
+
 		if (m_iStatusValues[2] > 0)
 		{
 			int r, g, b, a = 200;

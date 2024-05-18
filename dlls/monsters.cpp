@@ -3544,6 +3544,8 @@ CBaseEntity* CBaseMonster :: DropItem ( char *pszItemName, const Vector &vecPos,
 		// do we want this behavior to be default?! (sjb)
 		pItem->pev->velocity = pev->velocity;
 		pItem->pev->avelocity = Vector ( 0, RANDOM_FLOAT( 0, 100 ), 0 );
+		if (g_pGameRules->IsMultiplayer())
+			pItem->pev->spawnflags |= SF_NORESPAWN;
 		return pItem;
 	}
 	else

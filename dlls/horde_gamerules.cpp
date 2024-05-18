@@ -157,7 +157,6 @@ void CHalfLifeHorde::Think( void )
 
 				if ( plr->IsInArena && !plr->IsSpectator() )
 				{
-					if (plr->pev->fuser4 > 0)
 						survivors_left++;
 				}
 			}
@@ -210,7 +209,6 @@ void CHalfLifeHorde::Think( void )
 					// Get back in
 					if (plr->IsObserver())
 					{
-						plr->pev->fuser4 = 1;
 						plr->IsInArena = TRUE;
 						plr->ExitObserver();
 					}
@@ -324,7 +322,7 @@ void CHalfLifeHorde::Think( void )
 			{
 				CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
 
-				if ( plr && plr->IsPlayer() && plr->IsInArena && plr->pev->fuser4 > 0 )
+				if ( plr && plr->IsPlayer() && plr->IsInArena )
 				{
 					if ( highest <= plr->pev->frags )
 					{
@@ -379,7 +377,7 @@ void CHalfLifeHorde::Think( void )
 			{
 				CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
 
-				if ( plr && plr->IsPlayer() && !plr->HasDisconnected && plr->pev->fuser4 > 0 )
+				if ( plr && plr->IsPlayer() && !plr->HasDisconnected )
 				{
 					MESSAGE_BEGIN(MSG_ALL, gmsgScoreInfo);
 						WRITE_BYTE( ENTINDEX(plr->edict()) );
@@ -426,7 +424,7 @@ void CHalfLifeHorde::Think( void )
 			{
 				CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
 
-				if ( plr && plr->IsPlayer() && plr->IsInArena && plr->pev->fuser4 > 0 )
+				if ( plr && plr->IsPlayer() && plr->IsInArena )
 				{
 					if ( highest <= plr->pev->frags )
 					{
@@ -505,14 +503,6 @@ void CHalfLifeHorde::Think( void )
 		//frags + time.
 		SetRoundLimits();
 
-		for ( int i = 1; i <= gpGlobals->maxClients; i++ )
-		{
-			CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
-
-			if ( plr && plr->IsPlayer() && !plr->HasDisconnected )
-				plr->pev->fuser4 = 1;
-		}
-
 		g_GameInProgress = TRUE;
 
 		InsertClientsIntoArena(0);
@@ -586,12 +576,9 @@ void CHalfLifeHorde::PlayerSpawn( CBasePlayer *pPlayer )
 
 	char *key = g_engfuncs.pfnGetInfoKeyBuffer(pPlayer->edict());
 
-	if ( pPlayer->pev->fuser4 > 0 )
-	{
-		pPlayer->pev->fuser3 = 1; // bots need to identify their team.
-		strncpy( pPlayer->m_szTeamName, "survivors", TEAM_NAME_LENGTH );
-		g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer->edict()), key, "team", pPlayer->m_szTeamName);
-	}
+	pPlayer->pev->fuser3 = 1; // bots need to identify their team.
+	strncpy( pPlayer->m_szTeamName, "survivors", TEAM_NAME_LENGTH );
+	g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer->edict()), key, "team", pPlayer->m_szTeamName);
 
 	// notify everyone's HUD of the team change
 	MESSAGE_BEGIN( MSG_ALL, gmsgTeamInfo );
@@ -622,7 +609,7 @@ BOOL CHalfLifeHorde::HasGameTimerExpired( void )
 		{
 			CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
 
-			if ( plr && plr->IsPlayer() && plr->IsInArena && plr->pev->fuser4 > 0 )
+			if ( plr && plr->IsPlayer() && plr->IsInArena )
 			{
 				if ( highest <= plr->pev->frags )
 				{
@@ -687,7 +674,7 @@ BOOL CHalfLifeHorde::HasGameTimerExpired( void )
 
 BOOL CHalfLifeHorde::FPlayerCanTakeDamage( CBasePlayer *pPlayer, CBaseEntity *pAttacker )
 {
-	if ( pPlayer->pev->fuser4 == pAttacker->pev->fuser4 )
+	if ( pPlayer->pev->fuser3 == pAttacker->pev->fuser3 )
 	{
 		// my teammate hit me.
 		if ( (friendlyfire.value == 0) && (pAttacker != pPlayer) )
@@ -707,7 +694,7 @@ void CHalfLifeHorde::FPlayerTookDamage( float flDamage, CBasePlayer *pVictim, CB
 	if (pKiller && pKiller->IsPlayer())
 	{
 		pPlayerAttacker = (CBasePlayer *)pKiller;
-		if ( pPlayerAttacker != pVictim && pPlayerAttacker->pev->fuser4 && pVictim->pev->fuser4 )
+		if ( pPlayerAttacker != pVictim && pPlayerAttacker->pev->fuser3 && pVictim->pev->fuser3 )
 		{
 			ClientPrint(pPlayerAttacker->pev, HUD_PRINTCENTER, "Destroy the horde!\nNot your teammate!");
 		}
@@ -734,8 +721,7 @@ void CHalfLifeHorde::PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller, ent
 			CBasePlayer *pPlayer = (CBasePlayer *)UTIL_PlayerByIndex(i);
 			if (pPlayer && !pPlayer->IsSpectator() && pPlayer != pVictim && !pPlayer->HasDisconnected)
 			{
-				if (pPlayer->pev->fuser4 > 0)
-					survivors_left++;
+				survivors_left++;
 			}
 		}
 	}
@@ -743,22 +729,19 @@ void CHalfLifeHorde::PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller, ent
 	m_iSurvivorsRemain = survivors_left;
 
 	// Person was survivor
-	if ( pVictim->pev->fuser4 > 0 )
+	if (survivors_left >= 1)
 	{
-		if (survivors_left >= 1)
-		{
-			UTIL_ClientPrintAll(HUD_PRINTTALK,
-			UTIL_VarArgs("* %s has been defeated! %d survivors remain!\n",
-			STRING(pVictim->pev->netname), survivors_left));
+		UTIL_ClientPrintAll(HUD_PRINTTALK,
+		UTIL_VarArgs("* %s has been defeated! %d survivors remain!\n",
+		STRING(pVictim->pev->netname), survivors_left));
 
-			MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
-				WRITE_BYTE(CLIENT_SOUND_MASSACRE);
-			MESSAGE_END();
-		}
-		else if (survivors_left == 0)
-		{
-			UTIL_ClientPrintAll(HUD_PRINTTALK, UTIL_VarArgs("* Survivors defeated by horde!\n"));
-		}
+		MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
+			WRITE_BYTE(CLIENT_SOUND_MASSACRE);
+		MESSAGE_END();
+	}
+	else if (survivors_left == 0)
+	{
+		UTIL_ClientPrintAll(HUD_PRINTTALK, UTIL_VarArgs("* Survivors defeated by horde!\n"));
 	}
 }
 

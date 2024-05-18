@@ -86,6 +86,7 @@ public:
 	void DeathSound( void );
 	void WarnSound( void );
 	void PainSound( void );
+	int TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int bitsDamageType );
 	void IdleSound( void );
 	void StartTask( Task_t *pTask );
 	void RunTask ( Task_t *pTask );
@@ -503,6 +504,17 @@ void CHoundeye :: PainSound ( void )
 		EMIT_SOUND( ENT(pev), CHAN_VOICE, "houndeye/he_pain5.wav", 1, ATTN_NORM );	
 		break;
 	}
+}
+
+int CHoundeye :: TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int bitsDamageType )
+{
+	// For horde
+	if (g_pGameRules->IsMultiplayer())
+	{
+		flDamage *= 0.25;
+	}
+
+	return CBaseMonster::TakeDamage( pevInflictor, pevAttacker, flDamage, bitsDamageType );
 }
 
 //=========================================================
