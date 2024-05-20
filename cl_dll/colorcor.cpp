@@ -36,10 +36,6 @@
 
 #include "colorcor.h"
 
-#ifndef GL_TEXTURE_RECTANGLE_NV
-#define GL_TEXTURE_RECTANGLE_NV 0x84F5
-#endif
-
 CColorCorTexture::CColorCorTexture() {};
 
 void CColorCorTexture::Init(int width, int height)
