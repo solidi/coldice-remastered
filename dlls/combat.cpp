@@ -675,7 +675,8 @@ void CBaseMonster :: Killed( entvars_t *pevAttacker, int iGib )
 
 	Remember( bits_MEMORY_KILLED );
 
-	g_pGameRules->MonsterKilled(this, pevAttacker );
+	if (m_IdealMonsterState != MONSTERSTATE_DEAD)
+		g_pGameRules->MonsterKilled(this, pevAttacker );
 
 	// clear the deceased's sound channels.(may have been firing or reloading when killed)
 	EMIT_SOUND(ENT(pev), CHAN_WEAPON, "common/null.wav", 1, ATTN_NORM);

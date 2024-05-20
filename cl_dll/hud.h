@@ -902,6 +902,8 @@ public:
 	int Redraw( float flTime, int intermission );
 	int UpdateClientData( client_data_t *cdata, float time );
 
+	void Mirror( void );
+
 	CHud() : m_iSpriteCount(0), m_pHudList(NULL) {}  
 	~CHud();			// destructor, frees allocated memory
 
