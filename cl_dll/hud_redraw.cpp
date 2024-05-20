@@ -23,7 +23,9 @@
 
 #include "vgui_TeamFortressViewport.h"
 
+#ifndef __APPLE__
 #include "GL/gl.h"
+#endif
 
 #define MAX_LOGO_FRAMES 56
 
@@ -116,6 +118,7 @@ void HUD_DrawOrthoTriangles();
 
 void CHud :: Mirror()
 {
+#ifndef __APPLE__
 	int width = ScreenWidth;
 	int height = ScreenHeight;
 
@@ -168,6 +171,7 @@ void CHud :: Mirror()
 
 
 	glDisable(GL_BLEND);
+#endif
 }
 
 // Redraw
