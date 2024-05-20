@@ -149,6 +149,13 @@ int CZombie :: TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, floa
 	// HACK HACK -- until we fix this.
 	if ( IsAlive() )
 		PainSound();
+
+	// For horde
+	if (g_pGameRules->IsMultiplayer())
+	{
+		flDamage *= 0.25;
+	}
+
 	return CBaseMonster::TakeDamage( pevInflictor, pevAttacker, flDamage, bitsDamageType );
 }
 
@@ -272,6 +279,8 @@ void CZombie :: HandleAnimEvent( MonsterEvent_t *pEvent )
 void CZombie :: Spawn()
 {
 	Precache( );
+
+	pev->classname = MAKE_STRING("monster_zombie");
 
 	SET_MODEL(ENT(pev), "models/zombie.mdl");
 	UTIL_SetSize( pev, VEC_HUMAN_HULL_MIN, VEC_HUMAN_HULL_MAX );

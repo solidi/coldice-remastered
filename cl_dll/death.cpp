@@ -205,6 +205,10 @@ int CHudDeathNotice :: Draw( float flTime )
 					gEngfuncs.pfnDrawSetTextColor( rgDeathNoticeList[i].VictimColor[0], rgDeathNoticeList[i].VictimColor[1], rgDeathNoticeList[i].VictimColor[2] );
 				x = (DrawConsoleString( x, y, rgDeathNoticeList[i].szVictim )) + g_xP;
 			}
+			else
+			{
+				x = (DrawConsoleString( x, y, "Monster" )) + g_xP;
+			}
 		}
 	}
 

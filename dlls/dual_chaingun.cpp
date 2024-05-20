@@ -257,7 +257,7 @@ void CDualChaingun::SlowDownPlayer()
 
 void CDualChaingun::Reload( void )
 {
-	if ( m_iClip < CHAINGUN_MAX_CLIP )
+	if ( m_iClip < (CHAINGUN_MAX_CLIP * 2) )
 	{
 		EMIT_SOUND_DYN(ENT(m_pPlayer->pev), CHAN_WEAPON, "chaingun_reload.wav", RANDOM_FLOAT(0.92, 1.0), ATTN_NORM, 0, 98 + RANDOM_LONG(0,3));	
 		DefaultReload( CHAINGUN_MAX_CLIP, DUAL_CHAINGUN_RELOAD, 2.5, 1 );

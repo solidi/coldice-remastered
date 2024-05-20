@@ -2417,6 +2417,20 @@ void CBasePlayer::UpdateStatusBar()
 
 				m_flStatusBarDisappearDelay = gpGlobals->time + 1.0;
 			}
+			else
+			{
+				newSBarState[ SBAR_ID_TARGETNAME ] = ENTINDEX( pEntity->edict() );
+				char temp[128];
+				sprintf(temp, "1 %s\n2 Health: %%i2%%%%\n3\n4 %%i4\n5 / %%i5", STRING(pEntity->pev->classname));
+				strcpy( sbuf1, temp );
+				if (pEntity->pev->deadflag == DEAD_NO && pEntity->pev->max_health != 5)
+					newSBarState[ SBAR_ID_TARGETHEALTH ] = fmin(fmax(0, 100 * (pEntity->pev->health / pEntity->pev->max_health)), 100);
+				else
+					newSBarState[ SBAR_ID_TARGETHEALTH ] = 0;
+				newSBarState[ SBAR_ID_TARGETH ] = pEntity->pev->health;
+				newSBarState[ SBAR_ID_TARGETMAX ] = pEntity->pev->max_health;
+				m_flStatusBarDisappearDelay = gpGlobals->time + 0.5;
+			}
 		}
 		else if ( m_flStatusBarDisappearDelay > gpGlobals->time )
 		{
@@ -2424,6 +2438,8 @@ void CBasePlayer::UpdateStatusBar()
 			newSBarState[ SBAR_ID_TARGETNAME ] = m_izSBarState[ SBAR_ID_TARGETNAME ];
 			newSBarState[ SBAR_ID_TARGETHEALTH ] = m_izSBarState[ SBAR_ID_TARGETHEALTH ];
 			newSBarState[ SBAR_ID_TARGETARMOR ] = m_izSBarState[ SBAR_ID_TARGETARMOR ];
+			newSBarState[ SBAR_ID_TARGETH ] = m_izSBarState[ SBAR_ID_TARGETH ];
+			newSBarState[ SBAR_ID_TARGETMAX ] = m_izSBarState[ SBAR_ID_TARGETMAX ];
 		}
 	}
 

@@ -86,6 +86,7 @@ public:
 	void DeathSound( void );
 	void WarnSound( void );
 	void PainSound( void );
+	int TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int bitsDamageType );
 	void IdleSound( void );
 	void StartTask( Task_t *pTask );
 	void RunTask ( Task_t *pTask );
@@ -333,6 +334,8 @@ void CHoundeye :: Spawn()
 	SET_MODEL(ENT(pev), "models/houndeye.mdl");
 	UTIL_SetSize(pev, Vector ( -16, -16, 0 ), Vector ( 16, 16, 36 ) );
 
+	pev->classname = MAKE_STRING("monster_houndeye");
+
 	pev->solid			= SOLID_SLIDEBOX;
 	pev->movetype		= MOVETYPE_STEP;
 	m_bloodColor		= BLOOD_COLOR_YELLOW;
@@ -501,6 +504,17 @@ void CHoundeye :: PainSound ( void )
 		EMIT_SOUND( ENT(pev), CHAN_VOICE, "houndeye/he_pain5.wav", 1, ATTN_NORM );	
 		break;
 	}
+}
+
+int CHoundeye :: TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int bitsDamageType )
+{
+	// For horde
+	if (g_pGameRules->IsMultiplayer())
+	{
+		flDamage *= 0.25;
+	}
+
+	return CBaseMonster::TakeDamage( pevInflictor, pevAttacker, flDamage, bitsDamageType );
 }
 
 //=========================================================

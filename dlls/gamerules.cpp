@@ -35,6 +35,7 @@
 #include	"arena_gamerules.h"
 #include	"ctf_gamerules.h"
 #include	"shidden_gamerules.h"
+#include	"horde_gamerules.h"
 
 extern edict_t *EntSelectSpawnPoint( CBaseEntity *pPlayer );
 
@@ -505,6 +506,8 @@ CGameRules *InstallGameRules( void )
 				return new CHalfLifeJesusVsSanta;
 			case GAME_SHIDDEN:
 				return new CHalfLifeShidden;
+			case GAME_HORDE:
+				return new CHalfLifeHorde;
 		}
 
 		if ((int)gpGlobals->deathmatch == 1)

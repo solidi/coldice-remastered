@@ -739,6 +739,7 @@ const char *szGameModeList [] =
 	"ctc",
 	"ctf",
 	"gungame",
+	"horde",
 	"jvs",
 	"shidden",
 	"snowball",

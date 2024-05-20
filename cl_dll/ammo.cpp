@@ -618,7 +618,10 @@ int CHudAmmo::MsgFunc_CurWeapon(const char *pszName, int iSize, void *pbuf )
 
 	int iState = READ_BYTE();
 	int iId = READ_CHAR();
-	int iClip = READ_CHAR();
+	int iClip = READ_BYTE();
+
+	if (iClip == 255)
+		iClip = -1;
 
 	// detect if we're also on target
 	if ( iState > 1 )
@@ -712,6 +715,8 @@ int CHudAmmo::MsgFunc_WeaponList(const char *pszName, int iSize, void *pbuf )
 	Weapon.iFlags = READ_BYTE();
 	Weapon.iClip = 0;
 	Weapon.iMaxClip = READ_BYTE();
+	if (Weapon.iMaxClip == 255)
+		Weapon.iMaxClip = -1;
 
 	gWR.AddWeapon( &Weapon );
 
@@ -958,7 +963,7 @@ int CHudAmmo::Draw(float flTime)
 			primary.top = barSize - dif;
 			primary.bottom = primary.right = 64;
 
-			SPR_Set(gHUD.GetSprite(m_hCrosshairRight), r2, g2, b2 );
+			SPR_Set(gHUD.GetSprite(m_hCrosshairLeft), r2, g2, b2 );
 			SPR_DrawAdditive(0, (ScreenWidth / 2) - 32, ((ScreenHeight / 2) - 23) + primary.top, &primary);
 		}
 
@@ -966,10 +971,10 @@ int CHudAmmo::Draw(float flTime)
 		{
 			if (cl_crosshairammo && cl_crosshairammo->value)
 			{
-				int dif = fmin(fmax(1, (barSize * (pw->iClip / float(pw->iMaxClip)))), barSize);
+				int dif = fmin(fmax(1, (barSize * (pw->iClip / float(pw->iMaxClip)))), barSize - 1);
 				clip.top = barSize - dif;
 				clip.bottom = clip.right = 64;
-				SPR_Set(gHUD.GetSprite(m_hCrosshairLeft), r2, g2, b2 );
+				SPR_Set(gHUD.GetSprite(m_hCrosshairRight), r2, g2, b2 );
 				SPR_DrawAdditive(0, (ScreenWidth / 2) - 32, ((ScreenHeight / 2) - 23) + clip.top, &clip);
 			}
 
@@ -1005,7 +1010,7 @@ int CHudAmmo::Draw(float flTime)
 		{
 			if (cl_crosshairammo && cl_crosshairammo->value)
 			{
-				SPR_Set(gHUD.GetSprite(m_hCrosshairLeft), r2, g2, b2);
+				SPR_Set(gHUD.GetSprite(m_hCrosshairRight), r2, g2, b2);
 				SPR_DrawAdditive(0, (ScreenWidth / 2) - 32, ((ScreenHeight / 2) - 23) + primary.top, &primary);
 			}
 

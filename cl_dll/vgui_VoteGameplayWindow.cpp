@@ -17,22 +17,23 @@
 #include "vgui_TeamFortressViewport.h"
 #include "vgui_ServerBrowser.h"
 
-// Class Menu Dimensions
-#define CLASSMENU_TITLE_X				XRES(40)
-#define CLASSMENU_TITLE_Y				YRES(32)
-#define CLASSMENU_TOPLEFT_BUTTON_X		XRES(40)
-#define CLASSMENU_TOPLEFT_BUTTON_Y		YRES(80)
-#define CLASSMENU_BUTTON_SIZE_X			XRES(128)
-#define CLASSMENU_BUTTON_SIZE_Y			YRES(21)
-#define CLASSMENU_BUTTON_SPACER_Y		YRES(8)
-#define CLASSMENU_WINDOW_X				XRES(176)
-#define CLASSMENU_WINDOW_Y				YRES(80)
-#define CLASSMENU_WINDOW_SIZE_X			XRES(420)
-#define CLASSMENU_WINDOW_SIZE_Y			YRES(340)
-#define CLASSMENU_WINDOW_TEXT_X			XRES(150)
-#define CLASSMENU_WINDOW_TEXT_Y			YRES(80)
-#define CLASSMENU_WINDOW_NAME_X			XRES(150)
-#define CLASSMENU_WINDOW_NAME_Y			YRES(8)
+// Game Menu Dimensions
+#define GAMEMENU_TITLE_X				XRES(40)
+#define GAMEMENU_TITLE_Y				YRES(32)
+#define GAMEMENU_TOPLEFT_BUTTON_X		XRES(40)
+#define GAMEMENU_TOPLEFT_BUTTON_Y		YRES(80)
+#define GAMEMENU_BUTTON_SIZE_X			XRES(128)
+#define GAMEMENU_BUTTON_SIZE_Y			YRES(42)
+#define GAMEMENU_BUTTON_SPACER_Y		YRES(8)
+#define GAMEMENU_WINDOW_X				XRES(176)
+#define GAMEMENU_WINDOW_Y				YRES(80)
+#define GAME2MENU_TOPLEFT_BUTTON_X		XRES(480)
+#define GAMEMENU_WINDOW_SIZE_X			XRES(292)
+#define GAMEMENU_WINDOW_SIZE_Y			YRES(342)
+#define GAMEMENU_WINDOW_TEXT_X			XRES(150)
+#define GAMEMENU_WINDOW_TEXT_Y			YRES(80)
+#define GAMEMENU_WINDOW_NAME_X			XRES(150)
+#define GAMEMENU_WINDOW_NAME_Y			YRES(8)
 
 CVoteGameplayPanel::CVoteGameplayPanel(int iTrans, int iRemoveMe, int x,int y,int wide,int tall) : CMenuPanel(iTrans, iRemoveMe, x,y,wide,tall)
 {
@@ -53,7 +54,7 @@ CVoteGameplayPanel::CVoteGameplayPanel(int iTrans, int iRemoveMe, int x,int y,in
 	int r, g, b, a;
 
 	// Create the title
-	pTitleLabel = new Label( "", CLASSMENU_TITLE_X, CLASSMENU_TITLE_Y );
+	pTitleLabel = new Label( "", GAMEMENU_TITLE_X, GAMEMENU_TITLE_Y );
 	pTitleLabel->setParent( this );
 	pTitleLabel->setFont( pSchemes->getFont(hTitleScheme) );
 	pSchemes->getFgColor( hTitleScheme, r, g, b, a );
@@ -64,7 +65,7 @@ CVoteGameplayPanel::CVoteGameplayPanel(int iTrans, int iRemoveMe, int x,int y,in
 	pTitleLabel->setText(gHUD.m_TextMessage.BufferedLocaliseTextString("#Title_VoteGameplay"));
 
 	// Create the Scroll panel
-	m_pScrollPanel = new CTFScrollPanel( CLASSMENU_WINDOW_X, CLASSMENU_WINDOW_Y, CLASSMENU_WINDOW_SIZE_X, CLASSMENU_WINDOW_SIZE_Y );
+	m_pScrollPanel = new CTFScrollPanel( GAMEMENU_WINDOW_X, GAMEMENU_WINDOW_Y, GAMEMENU_WINDOW_SIZE_X, GAMEMENU_WINDOW_SIZE_Y );
 	m_pScrollPanel->setParent(this);
 	//force the scrollbars on, so after the validate clientClip will be smaller
 	m_pScrollPanel->setScrollBarAutoVisible(false, false);
@@ -85,16 +86,30 @@ CVoteGameplayPanel::CVoteGameplayPanel(int iTrans, int iRemoveMe, int x,int y,in
 	{
 		char sz[256];
 		int shift = i+1;
+		int iXPos = GAMEMENU_TOPLEFT_BUTTON_X;
+
+		// Half way
+		if (i >= ((MAX_MODES) / 2))
+		{
+			shift -= ((MAX_MODES) / 2) + 1;
+			iXPos = GAME2MENU_TOPLEFT_BUTTON_X;
+		}
+
+		// Random button
 		if (i == MAX_MODES)
+		{
 			shift = 0;
-		int iYPos = CLASSMENU_TOPLEFT_BUTTON_Y + ( (CLASSMENU_BUTTON_SIZE_Y + CLASSMENU_BUTTON_SPACER_Y) * shift );
+			iXPos = GAMEMENU_TOPLEFT_BUTTON_X;
+		}
+
+		int iYPos = GAMEMENU_TOPLEFT_BUTTON_Y + ( (GAMEMENU_BUTTON_SIZE_Y + GAMEMENU_BUTTON_SPACER_Y) * shift );
 		char voteCommand[16];
 		sprintf(voteCommand, "vote %d", i+1);
 		ActionSignal *pASignal = new CMenuHandler_StringCommandClassSelect(voteCommand, false );
 
 		// gameplay button
 		sprintf(sz, " %s", CHudTextMessage::BufferedLocaliseTextString( sLocalisedGameplayModes[i] ) );
-		m_pButtons[i] = new ClassButton( i, sz, CLASSMENU_TOPLEFT_BUTTON_X, iYPos, CLASSMENU_BUTTON_SIZE_X, CLASSMENU_BUTTON_SIZE_Y, true);
+		m_pButtons[i] = new ClassButton( i, sz, iXPos, iYPos, GAMEMENU_BUTTON_SIZE_X, GAMEMENU_BUTTON_SIZE_Y, true);
 		m_pButtons[i]->setBoundKey( (char)255 );
 		m_pButtons[i]->setContentAlignment( vgui::Label::a_west );
 		m_pButtons[i]->addActionSignal( pASignal );
@@ -102,7 +117,7 @@ CVoteGameplayPanel::CVoteGameplayPanel(int iTrans, int iRemoveMe, int x,int y,in
 		m_pButtons[i]->setParent( this );
 
 		// Create the game Info Window
-		m_pGameInfoPanel[i] = new CTransparentPanel( 255, 0, 0, clientWide, CLASSMENU_WINDOW_SIZE_Y );
+		m_pGameInfoPanel[i] = new CTransparentPanel( 255, 0, 0, clientWide, GAMEMENU_WINDOW_SIZE_Y );
 		m_pGameInfoPanel[i]->setParent( m_pScrollPanel->getClient() );
 
 		// don't show class pic in lower resolutions
@@ -110,13 +125,13 @@ CVoteGameplayPanel::CVoteGameplayPanel(int iTrans, int iRemoveMe, int x,int y,in
 
 		if ( bShowClassGraphic )
 		{
-			textOffs = CLASSMENU_WINDOW_NAME_X;
+			textOffs = GAMEMENU_WINDOW_NAME_X;
 		}
 
 		// Create the Gameplay Name Label
 		sprintf(sz, "%s", sLocalisedGameplayModes[i]);
 		char* localName = CHudTextMessage::BufferedLocaliseTextString( sz );
-		Label *pNameLabel = new Label( "", textOffs, CLASSMENU_WINDOW_NAME_Y );
+		Label *pNameLabel = new Label( "", textOffs, GAMEMENU_WINDOW_NAME_Y );
 		pNameLabel->setFont( pSchemes->getFont(hTitleScheme) ); 
 		pNameLabel->setParent( m_pGameInfoPanel[i] );
 		pSchemes->getFgColor( hTitleScheme, r, g, b, a );
@@ -142,7 +157,7 @@ CVoteGameplayPanel::CVoteGameplayPanel(int iTrans, int iRemoveMe, int x,int y,in
 					sprintf( sz, "%sblue", sTFClassSelection[i] );
 				}
 
-				m_pClassImages[team][i] = new CImageLabel( sz, 0, 0, CLASSMENU_WINDOW_TEXT_X, CLASSMENU_WINDOW_TEXT_Y );
+				m_pClassImages[team][i] = new CImageLabel( sz, 0, 0, GAMEMENU_WINDOW_TEXT_X, GAMEMENU_WINDOW_TEXT_Y );
 
 				CImageLabel *pLabel = m_pClassImages[team][i];
 				pLabel->setParent( m_pGameInfoPanel[i] );
@@ -156,7 +171,7 @@ CVoteGameplayPanel::CVoteGameplayPanel(int iTrans, int iRemoveMe, int x,int y,in
 				// Reposition it based upon it's size
 				int xOut, yOut;
 				pNameLabel->getTextSize( xOut, yOut );
-				pLabel->setPos( (CLASSMENU_WINDOW_TEXT_X - pLabel->getWide()) / 2, yOut /2 );
+				pLabel->setPos( (GAMEMENU_WINDOW_TEXT_X - pLabel->getWide()) / 2, yOut /2 );
 			}
 		}
 		*/
@@ -171,7 +186,7 @@ CVoteGameplayPanel::CVoteGameplayPanel(int iTrans, int iRemoveMe, int x,int y,in
 		}
 		
 		// Create the Text info window
-		TextPanel *pTextWindow = new TextPanel(cText, textOffs, YRES(40), (CLASSMENU_WINDOW_SIZE_X - textOffs)-5, CLASSMENU_WINDOW_SIZE_Y - CLASSMENU_WINDOW_TEXT_Y);
+		TextPanel *pTextWindow = new TextPanel(cText, textOffs, YRES(40), (GAMEMENU_WINDOW_SIZE_X - textOffs)-5, GAMEMENU_WINDOW_SIZE_Y - GAMEMENU_WINDOW_TEXT_Y);
 		pTextWindow->setParent( m_pGameInfoPanel[i] );
 		pTextWindow->setFont( pSchemes->getFont(hPlayWindowText) );
 		pSchemes->getFgColor( hClassWindowText, r, g, b, a );

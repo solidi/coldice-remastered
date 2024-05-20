@@ -22,6 +22,7 @@
 #include "hud.h"
 #include "cl_util.h"
 #include "parsemsg.h"
+#include "vgui_TeamFortressViewport.h"
 
 #include <string.h>
 #include <stdio.h>
@@ -190,7 +191,35 @@ int CHudStatusBar :: Draw( float fTime )
 	}
 
 	int Y_START = ScreenHeight - 52;
-	
+
+	if (gHUD.m_Teamplay == GAME_HORDE)
+	{
+		if (g_iUser1)
+			return 1;
+		if (gHUD.m_Scoreboard.m_iShowscoresHeld)
+			return 1;
+		if (gViewPort->IsScoreBoardVisible())
+			return 1;
+
+		if (m_iStatusValues[2] > 0)
+		{
+			int r, g, b, a = 200;
+			int y = ScreenHeight * .15;
+			int y2 = ScreenHeight * .18;
+			int amount = fmin(fmax(0, m_iStatusValues[2] * 2), 200);
+			UnpackRGB( r, g, b, HudColor() );
+
+			FillRGBA((ScreenWidth / 2) - (200 / 2), y, amount, gHUD.m_iFontHeight / 2, r, g, b, a);
+			FillRGBA(((ScreenWidth / 2) - (200 / 2)) + (m_iStatusValues[2] * 2), y, fabs((m_iStatusValues[2] * 2) - 200), gHUD.m_iFontHeight / 2, r, g, b, a / 2);
+
+			DrawConsoleString( (ScreenWidth / 2) - (200 / 2), y2, m_szStatusBar[0] );
+			DrawConsoleString( (ScreenWidth / 2) - (200 / 2), y2, m_szStatusBar[1] );
+			DrawConsoleString( (ScreenWidth / 2) - (200 / 2), y2, m_szStatusBar[2] );
+		}
+
+		return 1;
+	}
+
 	// Draw the status bar lines
 	for ( int i = 0; i < MAX_STATUSBAR_LINES; i++ )
 	{

@@ -633,6 +633,12 @@ int CHGrunt :: TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, floa
 {
 	Forget( bits_MEMORY_INCOVER );
 
+	// For horde
+	if (g_pGameRules->IsMultiplayer())
+	{
+		flDamage *= 0.25;
+	}
+
 	return CSquadMonster :: TakeDamage ( pevInflictor, pevAttacker, flDamage, bitsDamageType );
 }
 
@@ -979,6 +985,8 @@ void CHGrunt :: HandleAnimEvent( MonsterEvent_t *pEvent )
 void CHGrunt :: Spawn()
 {
 	Precache( );
+
+	pev->classname = MAKE_STRING("monster_human_grunt");
 
 	SET_MODEL(ENT(pev), "models/hgrunt.mdl");
 	UTIL_SetSize(pev, VEC_HUMAN_HULL_MIN, VEC_HUMAN_HULL_MAX);

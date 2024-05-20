@@ -201,7 +201,7 @@ int CFog::MsgFunc_Fog( const char *pszName, int iSize, void *pBuf )
 		m_fogChangeTime = 0;
 		m_fogBlendTime = 0;
 
-		gEngfuncs.Con_DPrintf( ">>>>>>> Fog enabled - startdist=%d enddist=%d fogcolor[%.2f,%.2f,%.2f]\n", startdist, enddist, fogcolor.x, fogcolor.y, fogcolor.z);
+		// gEngfuncs.Con_DPrintf( ">>>>>>> Fog enabled - startdist=%d enddist=%d fogcolor[%.2f,%.2f,%.2f]\n", startdist, enddist, fogcolor.x, fogcolor.y, fogcolor.z);
 	}
 
 	return 1;

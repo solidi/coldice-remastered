@@ -29,7 +29,6 @@ extern int gmsgScoreInfo;
 extern int gmsgPlayClientSound;
 extern int gmsgShowTimer;
 extern int gmsgStatusIcon;
-extern int gmsgRoundTime;
 
 CHalfLifeShidden::CHalfLifeShidden()
 {
@@ -450,17 +449,6 @@ void CHalfLifeShidden::Think( void )
 
 		m_iCountDown = 3;
 		m_fWaitForPlayersTime = -1;
-
-		if (roundtimelimit.value > 0)
-		{
-			MESSAGE_BEGIN(MSG_ALL, gmsgShowTimer);
-				WRITE_BYTE(1);
-			MESSAGE_END();
-
-			MESSAGE_BEGIN(MSG_ALL, gmsgRoundTime);
-				WRITE_SHORT(roundtimelimit.value * 60.0);
-			MESSAGE_END();
-		}
 
 		// Resend team info
 		MESSAGE_BEGIN( MSG_ALL, gmsgTeamNames );
