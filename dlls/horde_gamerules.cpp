@@ -34,6 +34,7 @@ extern int gmsgDeathMsg;
 
 // In order of hardness
 const char *szMonsters[] = {
+	"monster_headcrab",
 	"monster_zombie",
 	"monster_houndeye",
 	"monster_human_grunt",
@@ -48,6 +49,7 @@ CHalfLifeHorde::CHalfLifeHorde()
 	m_iWaveNumber = 0;
 	pLastSpawnPoint = NULL;
 
+	UTIL_PrecacheOther( "monster_headcrab" );
 	UTIL_PrecacheOther( "monster_zombie" );
 	UTIL_PrecacheOther( "monster_houndeye" );
 	UTIL_PrecacheOther( "monster_human_grunt" );

@@ -279,6 +279,8 @@ void CHeadCrab :: Spawn()
 {
 	Precache( );
 
+	pev->classname = MAKE_STRING("monster_headcrab");
+
 	SET_MODEL(ENT(pev), "models/headcrab.mdl");
 	UTIL_SetSize(pev, Vector(-12, -12, 0), Vector(12, 12, 24));
 
@@ -429,6 +431,12 @@ int CHeadCrab :: TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, fl
 	// Don't take any acid damage -- BigMomma's mortar is acid
 	if ( bitsDamageType & DMG_ACID )
 		flDamage = 0;
+
+	// For horde
+	if (g_pGameRules->IsMultiplayer())
+	{
+		flDamage *= 0.25;
+	}
 
 	return CBaseMonster::TakeDamage( pevInflictor, pevAttacker, flDamage, bitsDamageType );
 }
