@@ -934,7 +934,7 @@ void CGameRules::MutatorsThink(void)
 	if (m_flAddMutatorTime < gpGlobals->time)
 	{
 		// storage from votes
-		if (strlen(mutatorlist.string) > 1)
+		if (strlen(mutatorlist.string))
 		{
 			char *mutator;
 			char list[512];
@@ -960,7 +960,7 @@ void CGameRules::MutatorsThink(void)
 		}
 
 		// Check new
-		if (strlen(addmutator.string) > 1)
+		if (strlen(addmutator.string))
 		{
 			if (MutatorAllowed(addmutator.string))
 			{
