@@ -204,17 +204,21 @@ int CHudStatusBar :: Draw( float fTime )
 		if (m_iStatusValues[2] > 0)
 		{
 			int r, g, b, a = 200;
-			int y = ScreenHeight * .15;
-			int y2 = ScreenHeight * .18;
-			int amount = fmin(fmax(0, m_iStatusValues[2] * 2), 200);
+			int y = YRES(70);
+			int y2 = YRES(82);
+			int size = XRES(200);
+			int percent = XRES(m_iStatusValues[2] * 2);
+			int amount = fmin(fmax(0, percent), percent);
 			UnpackRGB( r, g, b, HudColor() );
 
-			FillRGBA((ScreenWidth / 2) - (200 / 2), y, amount, gHUD.m_iFontHeight / 2, r, g, b, a);
-			FillRGBA(((ScreenWidth / 2) - (200 / 2)) + (m_iStatusValues[2] * 2), y, fabs((m_iStatusValues[2] * 2) - 200), gHUD.m_iFontHeight / 2, r, g, b, a / 2);
+			FillRGBA(((ScreenWidth / 2) - (size / 2)) - XRES(2), y - YRES(2), size + XRES(2), (y2 - y) + YRES(gHUD.m_iFontHeight / 2), r, g, b, 30);
 
-			DrawConsoleString( (ScreenWidth / 2) - (200 / 2), y2, m_szStatusBar[0] );
-			DrawConsoleString( (ScreenWidth / 2) - (200 / 2), y2, m_szStatusBar[1] );
-			DrawConsoleString( (ScreenWidth / 2) - (200 / 2), y2, m_szStatusBar[2] );
+			FillRGBA((ScreenWidth / 2) - (size / 2), y, amount, gHUD.m_iFontHeight / 2, r, g, b, a);
+			FillRGBA(((ScreenWidth / 2) - (size / 2)) + percent, y, fabs(percent - size), gHUD.m_iFontHeight / 2, r, g, b, a / 2);
+
+			DrawConsoleString( (ScreenWidth / 2) - (size / 2), y2, m_szStatusBar[0] );
+			DrawConsoleString( (ScreenWidth / 2) - (size / 2), y2, m_szStatusBar[1] );
+			DrawConsoleString( (ScreenWidth / 2) - (size / 2), y2, m_szStatusBar[2] );
 		}
 
 		return 1;
