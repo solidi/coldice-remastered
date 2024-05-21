@@ -119,6 +119,10 @@ void HUD_DrawOrthoTriangles();
 void CHud :: Mirror()
 {
 #ifndef __APPLE__
+	extern cvar_t *cl_screeneffects;
+	if (cl_screeneffects && !cl_screeneffects->value)
+		return;
+
 	int width = ScreenWidth;
 	int height = ScreenHeight;
 
