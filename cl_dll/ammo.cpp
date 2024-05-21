@@ -950,7 +950,8 @@ int CHudAmmo::Draw(float flTime)
 		int iIconWidth = m_pWeapon->rcAmmo.right - m_pWeapon->rcAmmo.left;
 
 		int barSize = 45, r2, g2, b2, a2 = MIN_ALPHA;
-		wrect_t clip, primary;
+		wrect_t *clip = &gHUD.GetSpriteRect(m_hCrosshairRight);
+		wrect_t *primary = &gHUD.GetSpriteRect(m_hCrosshairLeft);
 		if (cl_crosshairammo && cl_crosshairammo->value)
 		{
 			UnpackRGB(r2, g2, b2, HudColor());
@@ -960,13 +961,13 @@ int CHudAmmo::Draw(float flTime)
 			SPR_DrawAdditive(0, (ScreenWidth / 2) - 32, (ScreenHeight / 2) - 23, &gHUD.GetSpriteRect(m_hCrosshairBrackets));
 
 			int dif = fmin(fmax(1, (barSize * (gWR.CountAmmo(pw->iAmmoType) / float(pw->iMax1)))), barSize - 1);
-			primary.top = barSize - dif;
-			primary.bottom = primary.right = 64;
+			primary->top = barSize - dif;
+			primary->bottom = primary->right = 64;
 
 			if (dif > 0)
 			{
 				SPR_Set(gHUD.GetSprite(m_hCrosshairLeft), r2, g2, b2 );
-				SPR_DrawAdditive(0, (ScreenWidth / 2) - 32, ((ScreenHeight / 2) - 23) + primary.top, &primary);
+				SPR_DrawAdditive(0, (ScreenWidth / 2) - 32, ((ScreenHeight / 2) - 23) + primary->top, primary);
 			}
 		}
 
@@ -975,10 +976,10 @@ int CHudAmmo::Draw(float flTime)
 			if (cl_crosshairammo && cl_crosshairammo->value)
 			{
 				int dif = fmin(fmax(1, (barSize * (pw->iClip / float(pw->iMaxClip)))), barSize - 1);
-				clip.top = barSize - dif;
-				clip.bottom = clip.right = 64;
+				clip->top = barSize - dif;
+				clip->bottom = clip->right = 64;
 				SPR_Set(gHUD.GetSprite(m_hCrosshairRight), r2, g2, b2 );
-				SPR_DrawAdditive(0, (ScreenWidth / 2) - 32, ((ScreenHeight / 2) - 23) + clip.top, &clip);
+				SPR_DrawAdditive(0, (ScreenWidth / 2) - 32, ((ScreenHeight / 2) - 23) + clip->top, clip);
 			}
 
 			// room for the number and the '|' and the current ammo
@@ -1011,10 +1012,10 @@ int CHudAmmo::Draw(float flTime)
 		}
 		else
 		{
-			if (cl_crosshairammo && cl_crosshairammo->value && primary.top > 0)
+			if (cl_crosshairammo && cl_crosshairammo->value && primary->top > 0)
 			{
 				SPR_Set(gHUD.GetSprite(m_hCrosshairRight), r2, g2, b2);
-				SPR_DrawAdditive(0, (ScreenWidth / 2) - 32, ((ScreenHeight / 2) - 23) + primary.top, &primary);
+				SPR_DrawAdditive(0, (ScreenWidth / 2) - 32, ((ScreenHeight / 2) - 23) + primary->top, primary);
 			}
 
 			// SPR_Draw a bullets only line
