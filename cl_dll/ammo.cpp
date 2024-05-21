@@ -959,12 +959,15 @@ int CHudAmmo::Draw(float flTime)
 			SPR_Set(gHUD.GetSprite(m_hCrosshairBrackets), r2, g2, b2 );
 			SPR_DrawAdditive(0, (ScreenWidth / 2) - 32, (ScreenHeight / 2) - 23, &gHUD.GetSpriteRect(m_hCrosshairBrackets));
 
-			int dif = fmin(fmax(1, (barSize * (gWR.CountAmmo(pw->iAmmoType) / float(pw->iMax1)))), barSize);
+			int dif = fmin(fmax(1, (barSize * (gWR.CountAmmo(pw->iAmmoType) / float(pw->iMax1)))), barSize - 1);
 			primary.top = barSize - dif;
 			primary.bottom = primary.right = 64;
 
-			SPR_Set(gHUD.GetSprite(m_hCrosshairLeft), r2, g2, b2 );
-			SPR_DrawAdditive(0, (ScreenWidth / 2) - 32, ((ScreenHeight / 2) - 23) + primary.top, &primary);
+			if (dif > 0)
+			{
+				SPR_Set(gHUD.GetSprite(m_hCrosshairLeft), r2, g2, b2 );
+				SPR_DrawAdditive(0, (ScreenWidth / 2) - 32, ((ScreenHeight / 2) - 23) + primary.top, &primary);
+			}
 		}
 
 		if (pw->iClip >= 0)
@@ -1008,7 +1011,7 @@ int CHudAmmo::Draw(float flTime)
 		}
 		else
 		{
-			if (cl_crosshairammo && cl_crosshairammo->value)
+			if (cl_crosshairammo && cl_crosshairammo->value && primary.top > 0)
 			{
 				SPR_Set(gHUD.GetSprite(m_hCrosshairRight), r2, g2, b2);
 				SPR_DrawAdditive(0, (ScreenWidth / 2) - 32, ((ScreenHeight / 2) - 23) + primary.top, &primary);

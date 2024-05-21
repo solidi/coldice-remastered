@@ -645,19 +645,19 @@ void CL_AdjustAngles ( float frametime, float *viewangles )
 			if (MutatorEnabled(MUTATOR_TOPSYTURVY) &&
 				(g_iUser1 < 1 && !gEngfuncs.IsSpectateOnly()))
 			{
-				viewangles[YAW] += speed*yawspeed*CL_KeyState (&in_right);
-				viewangles[YAW] -= speed*yawspeed*CL_KeyState (&in_left);
+				viewangles[YAW] += speed*yawspeed*CL_KeyState ((MutatorEnabled(MUTATOR_MIRROR) ? &in_left : &in_right));
+				viewangles[YAW] -= speed*yawspeed*CL_KeyState ((MutatorEnabled(MUTATOR_MIRROR) ? &in_right : &in_left));
 			}
 			else
 			{
-				viewangles[YAW] -= speed*yawspeed*CL_KeyState (&in_right);
-				viewangles[YAW] += speed*yawspeed*CL_KeyState (&in_left);
+				viewangles[YAW] -= speed*yawspeed*CL_KeyState ((MutatorEnabled(MUTATOR_MIRROR) ? &in_left : &in_right));
+				viewangles[YAW] += speed*yawspeed*CL_KeyState ((MutatorEnabled(MUTATOR_MIRROR) ? &in_right : &in_left));
 			}
 		}
 		else
 		{
-			viewangles[YAW] -= speed*yawspeed*CL_KeyState (&in_right);
-			viewangles[YAW] += speed*yawspeed*CL_KeyState (&in_left);
+			viewangles[YAW] -= speed*yawspeed*CL_KeyState ((MutatorEnabled(MUTATOR_MIRROR) ? &in_left : &in_right));
+			viewangles[YAW] += speed*yawspeed*CL_KeyState ((MutatorEnabled(MUTATOR_MIRROR) ? &in_right : &in_left));
 		}
 
 		viewangles[YAW] = anglemod(viewangles[YAW]);
@@ -735,12 +735,12 @@ void CL_DLLEXPORT CL_CreateMove ( float frametime, struct usercmd_s *cmd, int ac
 
 		if ( in_strafe.state & 1 )
 		{
-			cmd->sidemove += cl_sidespeed->value * CL_KeyState (&in_right);
-			cmd->sidemove -= cl_sidespeed->value * CL_KeyState (&in_left);
+			cmd->sidemove += cl_sidespeed->value * CL_KeyState (MutatorEnabled(MUTATOR_MIRROR) ? &in_left : &in_right);
+			cmd->sidemove -= cl_sidespeed->value * CL_KeyState (MutatorEnabled(MUTATOR_MIRROR) ? &in_right : &in_left);
 		}
 
-		cmd->sidemove += cl_sidespeed->value * CL_KeyState (&in_moveright);
-		cmd->sidemove -= cl_sidespeed->value * CL_KeyState (&in_moveleft);
+		cmd->sidemove += cl_sidespeed->value * CL_KeyState (MutatorEnabled(MUTATOR_MIRROR) ? &in_moveleft : &in_moveright);
+		cmd->sidemove -= cl_sidespeed->value * CL_KeyState (MutatorEnabled(MUTATOR_MIRROR) ? &in_moveright : &in_moveleft);
 
 		cmd->upmove += cl_upspeed->value * CL_KeyState (&in_up);
 		cmd->upmove -= cl_upspeed->value * CL_KeyState (&in_down);

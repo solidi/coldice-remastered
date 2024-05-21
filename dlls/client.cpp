@@ -1050,6 +1050,7 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"marshmellow\" - come back 1999 to you.\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"maxpack\" - drop all weapons and ammo in play (mp only!)\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"megarun\" - run faster than normal\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mirror\" - mirror, mirror on the screen\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"noclip\" - fly through walls\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"notify\" - interrupt players with annoying chat notifications\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"notthebees\" - hornets spawn from a player or monster who was killed\n");

@@ -126,9 +126,6 @@ void HUD_DrawOrthoTriangles()
 }
 
 #ifndef __APPLE__
-#ifndef GL_TEXTURE_RECTANGLE_NV
-#define GL_TEXTURE_RECTANGLE_NV 0x84F5
-#endif // !GL_TEXTURE_RECTANGLE_NV
 
 void R_SetupScreenStuff()
 {

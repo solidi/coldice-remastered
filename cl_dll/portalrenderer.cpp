@@ -37,10 +37,6 @@
 #include "SDL2/SDL.h"
 #include "GL/gl.h"
 
-#ifndef GL_TEXTURE_RECTANGLE_NV
-#define GL_TEXTURE_RECTANGLE_NV 0x84F5
-#endif // !GL_TEXTURE_RECTANGLE_NV
-
 extern void R_SetupScreenStuff();
 extern void R_ResetScreenStuff();
 

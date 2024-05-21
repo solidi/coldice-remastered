@@ -88,6 +88,7 @@ DLL_GLOBAL const char *g_szMutators[] = {
 	"marshmellow",
 	"maxpack",
 	"megarun",
+	"mirror",
 	"noclip",
 	"noreload",
 	"notify",
