@@ -219,6 +219,14 @@ void CNukeRocket::Killed(entvars_t *pevAttacker, int iGib) {
 				UTIL_ScreenFade(plr, Vector(255, 255, 255), 2, 4, 200, FFADE_IN);
 			}
 		}
+
+		edict_t *pEdict = FIND_ENTITY_BY_STRING(NULL, "message", "horde");
+		while (!FNullEnt(pEdict))
+		{
+			CBaseEntity *pEnt = CBaseEntity::Instance(pEdict);
+			pEnt->TakeDamage(pev, VARS(pev->owner), gSkillData.plrDmgNuke <= 0 ? (pEnt->pev->max_health * 4) : gSkillData.plrDmgNuke , DMG_RADIATION);
+			pEdict = FIND_ENTITY_BY_STRING(pEdict, "message", "horde");
+		}
 	}
 	else
 	{
