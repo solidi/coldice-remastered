@@ -54,6 +54,7 @@ void V_WeaponPull( float clientTime, float frameTime, cl_entity_t *viewModel, fl
 void V_IronSight( Vector position, Vector punch, float clientTime, float frameTime, cl_entity_t *viewModel, Vector forward, Vector up, Vector right );
 void V_RetractWeapon( struct ref_params_s* pparams, cl_entity_s* view );
 void VectorAngles( const float *forward, float *angles );
+void V_SmoothInterpolateAngles(float* startAngle, float* endAngle, float* finalAngle, float degreesPerSec);
 
 #include "r_studioint.h"
 #include "com_model.h"
@@ -540,6 +541,8 @@ V_CalcRefdef
 */
 void V_CalcNormalRefdef ( struct ref_params_s *pparams )
 {
+	static Vector vecLerpedYaw;
+
 	cl_entity_t		*ent, *view;
 	int				i;
 	vec3_t			angles;
@@ -688,7 +691,12 @@ void V_CalcNormalRefdef ( struct ref_params_s *pparams )
 		for ( i = 0; i < 3; i++ )
 		{
 			pparams->vieworg[ i ] += -ofs[2] * camForward[ i ];
+			pparams->vieworg[i] -= -13.0f * camRight[i];
 		}
+	}
+	else
+	{
+		vecLerpedYaw = Vector(0,0,0);
 	}
 
 	if (g_AcrobatTime > gEngfuncs.GetClientTime())
@@ -935,6 +943,44 @@ void V_CalcNormalRefdef ( struct ref_params_s *pparams )
 		ent->curstate.angles[ 0 ] = pitch;
 		ent->prevstate.angles[ 0 ] = pitch;
 		ent->latched.prevangles[ 0 ] = pitch;
+
+		gEngfuncs.pEventAPI->EV_SetUpPlayerPrediction(false, true);
+
+		// Store off the old count
+		gEngfuncs.pEventAPI->EV_PushPMStates();
+
+		// Now add in all of the players.
+		gEngfuncs.pEventAPI->EV_SetSolidPlayers(ent->index - 1);
+
+		gEngfuncs.pEventAPI->EV_SetTraceHull(2);
+
+		pmtrace_t tr;
+		Vector fixed_angle;
+		Vector vieworg = pparams->simorg;
+		vieworg = vieworg + pparams->viewheight;
+		Vector vForward;
+
+		AngleVectors(pparams->cl_viewangles, vForward, nullptr, nullptr);
+
+		gEngfuncs.pEventAPI->EV_PlayerTrace(vieworg, vieworg + (vForward * 8192), PM_STUDIO_BOX, -1, &tr);
+		VectorAngles((tr.endpos - Vector(pparams->vieworg)).Normalize(), fixed_angle);
+
+		gEngfuncs.pEventAPI->EV_PopPMStates();
+
+		V_SmoothInterpolateAngles(fixed_angle, vecLerpedYaw, vecLerpedYaw, 0.2f);
+
+		float flPitchProd = (90 - pparams->viewangles[0]);
+
+		// TODO : FIX PITCH
+		pparams->viewangles[1] = vecLerpedYaw[1];
+
+		// Add in the punchangle, if any
+		VectorAdd(pparams->viewangles, pparams->punchangle, pparams->viewangles);
+
+		// Include client side punch, too
+		VectorAdd(pparams->viewangles, (float*)&ev_punchangle, pparams->viewangles);
+
+		//gEngfuncs.pEfxAPI->R_BeamPoints(vieworg, tr.endpos, gEngfuncs.pEventAPI->EV_FindModelIndex("sprites/smoke.spr"), 0.1, 1, 0, 1, 0, 0, 0, 1, 1, 1);
 	}
 
 	// override all previous settings if the viewent isn't the client

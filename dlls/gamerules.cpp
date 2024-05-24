@@ -114,6 +114,7 @@ DLL_GLOBAL const char *g_szMutators[] = {
 	"speedup",
 	"stahp",
 	"superjump",
+	"thirdperson",
 	"toilet",
 	"topsyturvy",
 	"turrets",

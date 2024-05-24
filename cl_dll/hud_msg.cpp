@@ -26,6 +26,11 @@
 #include "particlemgr.h"
 #include "FlameSystem.h"
 
+extern "C"
+{
+int CL_IsThirdPerson( void );
+}
+
 #include "particleman.h"
 extern IParticleMan *g_pParticleMan;
 
@@ -121,6 +126,7 @@ void CHud :: MsgFunc_InitHUD( const char *pszName, int iSize, void *pbuf )
 	gHUD.m_Scoreboard.m_iShowscoresHeld = FALSE;
 	gHUD.m_Mutators = NULL;
 	gHUD.m_StatusIcons.Reset();
+	gHUD.local_player_index = 0;
 }
 
 
@@ -178,6 +184,9 @@ int CHud :: MsgFunc_Acrobatics(const char *pszName, int iSize, void *pbuf )
 	if ((gEngfuncs.GetClientTime() + 2) < g_AcrobatTime) {
 		g_AcrobatTime = 0;
 	}
+
+	if (CL_IsThirdPerson())
+		return 1;
 
 	BEGIN_READ( pbuf, iSize );
 	int mode = READ_BYTE();
@@ -338,6 +347,11 @@ int CHud :: MsgFunc_AddMut( const char *pszName, int iSize, void *pbuf )
 			mutator->timeToLive = time;
 			mutator->next = m_Mutators ? m_Mutators : NULL;
 			m_Mutators = mutator;
+
+			// Specific for client
+			if (mutatorId == MUTATOR_THIRDPERSON)
+				gEngfuncs.pfnClientCmd("thirdperson\n");
+
 			// gEngfuncs.Con_DPrintf(">>> got mutator[id=%d, start=%.2f, ttl=%.2f]\n", mutator->mutatorId, mutator->startTime, mutator->timeToLive );
 		}
 

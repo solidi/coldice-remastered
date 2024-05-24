@@ -125,6 +125,9 @@ int CHudStatusIcons::Draw( float flTime )
 		while (m != NULL) {
 			// gEngfuncs.Con_DPrintf(">>> delete? mutator[id=%d, ttl=%.2f < ? (combined)=%.2f]\n", m->mutatorId, m->timeToLive, gHUD.m_flTime );
 			if (m->timeToLive < gHUD.m_flTime) {
+				if (m->mutatorId == MUTATOR_THIRDPERSON)
+					gEngfuncs.pfnClientCmd("firstperson\n");
+
 				if (prev) {
 					mutators_t *temp;
 					temp = prev->next;

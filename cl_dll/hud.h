@@ -953,6 +953,8 @@ public:
 	crosspr_s crossspr;
 
 	int m_PlayersInRadar;
+
+	int local_player_index;
 };
 
 #ifdef _WIN32
