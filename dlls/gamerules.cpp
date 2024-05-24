@@ -965,10 +965,16 @@ void CGameRules::MutatorsThink(void)
 		{
 			if (MutatorAllowed(addmutator.string))
 			{
-				if (!strcmp(addmutator.string, "chaos"))
+				if (!strcmp(addmutator.string, "chaos") || !strcmp(addmutator.string, "1"))
+				{
 					m_fChaosMode = TRUE;
+					ALERT(at_console, "Mutator chaos enabled.\n");
+				}
 				else if (!strcmp(addmutator.string, "unchaos"))
+				{
 					m_fChaosMode = FALSE;
+					ALERT(at_console, "Mutator chaos disabled.\n");
+				}
 				else
 				{
 					for (int i = 0; i < MAX_MUTATORS; i++)
