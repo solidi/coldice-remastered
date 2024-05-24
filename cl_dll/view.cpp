@@ -960,7 +960,7 @@ void V_CalcNormalRefdef ( struct ref_params_s *pparams )
 		vieworg = vieworg + pparams->viewheight;
 		Vector vForward;
 
-		AngleVectors(pparams->cl_viewangles, vForward, nullptr, nullptr);
+		AngleVectors(pparams->cl_viewangles, vForward, NULL, NULL);
 
 		gEngfuncs.pEventAPI->EV_PlayerTrace(vieworg, vieworg + (vForward * 8192), PM_STUDIO_BOX, -1, &tr);
 		VectorAngles((tr.endpos - Vector(pparams->vieworg)).Normalize(), fixed_angle);
