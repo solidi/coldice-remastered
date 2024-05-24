@@ -16,6 +16,9 @@
 // cl_util.h
 //
 
+#ifndef _CLUTIL_H_
+#define _CLUTIL_H_
+
 #include "cvardef.h"
 
 #ifndef TRUE
@@ -230,3 +233,5 @@ inline float GetWeaponMultipler()
 #ifndef GL_TEXTURE_RECTANGLE_NV
 #define GL_TEXTURE_RECTANGLE_NV 0x84F5
 #endif
+
+#endif		// _CLUTIL_H_

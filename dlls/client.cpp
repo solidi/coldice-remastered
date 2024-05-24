@@ -1075,6 +1075,7 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"speedup\" - everything is sped up by half! (sp only!)\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"stahp\" - some sounds replaced with stahp!\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"superjump\" - jump three times the height, disables fall damage.\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"thirdperson\" - an outside body experience.\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"topsyturvy\" - everything is turned upside down (sp only!)\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"toilet\" - game is in the toilet, we ain't hurt nobody.\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"turrets\" - sentry guns randomly appear, firing bullets and rockets at everyone\n");

@@ -347,6 +347,8 @@ int CHud :: Redraw( float flTime, int intermission )
 	if (!g_WallClimb && gHUD.m_WallClimb.m_iFlags & HUD_ACTIVE)
 		gHUD.m_WallClimb.m_iFlags &= ~HUD_ACTIVE;
 
+	local_player_index = gEngfuncs.GetLocalPlayer()->index;
+
 	return 1;
 }
 

@@ -15,6 +15,15 @@
 #include "camera.h"
 #include "in_defs.h"
 #include "Exports.h"
+#include "pmtrace.h"
+
+#include "event_api.h"
+#include "pm_defs.h"
+#include "cl_util.h"
+
+#define VectorSubtract(a,b,c) {(c)[0]=(a)[0]-(b)[0];(c)[1]=(a)[1]-(b)[1];(c)[2]=(a)[2]-(b)[2];}
+
+
 
 #include "SDL2/SDL_mouse.h"
 #include "port.h"
@@ -61,6 +70,8 @@ cvar_t	*c_mindistance;
 
 // pitch, yaw, dist
 vec3_t cam_ofs;
+
+extern cl_enginefunc_t gEngfuncs;
 
 
 // In third person
@@ -150,20 +161,21 @@ typedef struct
 
 extern trace_t SV_ClipMoveToEntity (edict_t *ent, vec3_t start, vec3_t mins, vec3_t maxs, vec3_t end);
 
+extern ref_params_t g_ViewParams;
+
 void CL_DLLEXPORT CAM_Think( void )
 {
 //	RecClCamThink();
-
-	vec3_t origin;
-	vec3_t ext, pnt, camForward, camRight, camUp;
-	moveclip_t	clip;
+	Vector vecDir;
+	vec3_t camForward, camRight, camUp;
+	pmtrace_t tr;
 	float dist;
 	vec3_t camAngles;
 	float flSensitivity;
-#ifdef LATER
-	int i;
-#endif
 	vec3_t viewangles;
+
+	Vector vieworg = g_ViewParams.simorg;
+	VectorAdd(vieworg, g_ViewParams.viewheight, vieworg);
 
 	switch( (int) cam_command->value )
 	{
@@ -182,14 +194,6 @@ void CL_DLLEXPORT CAM_Think( void )
 
 	if( !cam_thirdperson )
 		return;
-	
-#ifdef LATER
-	if ( cam_contain->value )
-	{
-		gEngfuncs.GetClientOrigin( origin );
-		ext[0] = ext[1] = ext[2] = 0.0;
-	}
-#endif
 
 	camAngles[ PITCH ] = cam_idealpitch->value;
 	camAngles[ YAW ] = cam_idealyaw->value;
@@ -335,37 +339,15 @@ void CL_DLLEXPORT CAM_Think( void )
 		cam_old_mouse_y=cam_mouse.y*gHUD.GetSensitivity();
 		SDL_SetCursorPos (gEngfuncs.GetWindowCenterX(), gEngfuncs.GetWindowCenterY());
 	}
-#ifdef LATER
-	if( cam_contain->value )
-	{
-		// check new ideal
-		VectorCopy( origin, pnt );
-		AngleVectors( camAngles, camForward, camRight, camUp );
-		for (i=0 ; i<3 ; i++)
-			pnt[i] += -dist*camForward[i];
 
-		// check line from r_refdef.vieworg to pnt
-		memset ( &clip, 0, sizeof ( moveclip_t ) );
-		clip.trace = SV_ClipMoveToEntity( sv.edicts, r_refdef.vieworg, ext, ext, pnt );
-		if( clip.trace.fraction == 1.0 )
-		{
-			// update ideal
-			cam_idealpitch->value = camAngles[ PITCH ];
-			cam_idealyaw->value = camAngles[ YAW ];
-			cam_idealdist->value = dist;
-		}
-	}
-	else
-#endif
-	{
-		// update ideal
-		cam_idealpitch->value = camAngles[ PITCH ];
-		cam_idealyaw->value = camAngles[ YAW ];
-		cam_idealdist->value = dist;
-	}
+	// update ideal
+	cam_idealpitch->value = camAngles[ PITCH ];
+	cam_idealyaw->value = camAngles[ YAW ];
+	cam_idealdist->value = dist;
 
 	// Move towards ideal
 	VectorCopy( cam_ofs, camAngles );
+	AngleVectors(camAngles, camForward, camRight, camUp);
 
 	gEngfuncs.GetViewAngles( (float *)viewangles );
 
@@ -383,33 +365,46 @@ void CL_DLLEXPORT CAM_Think( void )
 		if( camAngles[ PITCH ] - viewangles[ PITCH ] != cam_idealpitch->value )
 			camAngles[ PITCH ] = MoveToward( camAngles[ PITCH ], cam_idealpitch->value + viewangles[ PITCH ], CAM_ANGLE_SPEED );
 
-		if( fabs( camAngles[ 2 ] - cam_idealdist->value ) < 2.0 )
+		if( abs( camAngles[ 2 ] - cam_idealdist->value ) < 2.0 )
 			camAngles[ 2 ] = cam_idealdist->value;
 		else
 			camAngles[ 2 ] += ( cam_idealdist->value - camAngles[ 2 ] ) / 4.0;
 	}
-#ifdef LATER
-	if( cam_contain->value )
-	{
-		// Test new position
-		dist = camAngles[ ROLL ];
-		camAngles[ ROLL ] = 0;
 
-		VectorCopy( origin, pnt );
-		AngleVectors( camAngles, camForward, camRight, camUp );
-		for (i=0 ; i<3 ; i++)
-			pnt[i] += -dist*camForward[i];
-
-		// check line from r_refdef.vieworg to pnt
-		memset ( &clip, 0, sizeof ( moveclip_t ) );
-		ext[0] = ext[1] = ext[2] = 0.0;
-		clip.trace = SV_ClipMoveToEntity( sv.edicts, r_refdef.vieworg, ext, ext, pnt );
-		if( clip.trace.fraction != 1.0 )
-			return;
-	}
-#endif
 	cam_ofs[ 0 ] = camAngles[ 0 ];
 	cam_ofs[ 1 ] = camAngles[ 1 ];
+
+	if (gHUD.local_player_index && !g_iUser1)
+	{
+		gEngfuncs.pEventAPI->EV_SetUpPlayerPrediction(false, true);
+
+		// Store off the old count
+		gEngfuncs.pEventAPI->EV_PushPMStates();
+
+		// Now add in all of the players.
+		gEngfuncs.pEventAPI->EV_SetSolidPlayers(gHUD.local_player_index - 1);
+
+		gEngfuncs.pEventAPI->EV_SetTraceHull(2);
+
+		tr.fraction = 0.0f;
+
+		float prevDist = dist;
+
+		vieworg = vieworg - camRight * -13.0f;
+
+		while (tr.fraction != 1.0f)
+		{
+			vecDir = -(dist * 2.5f) * camForward;
+			gEngfuncs.pEventAPI->EV_PlayerTrace(vieworg, vieworg + vecDir, PM_WORLD_ONLY, -1, &tr);
+			if (tr.fraction != 1.0f)
+			{
+				dist *= 0.98f;
+			}
+		}
+
+		gEngfuncs.pEventAPI->EV_PopPMStates();
+	}
+
 	cam_ofs[ 2 ] = dist;
 }
 
@@ -433,13 +428,11 @@ void CAM_ToThirdPerson(void)
 { 
 	vec3_t viewangles;
 
-#if !defined( _DEBUG )
-	if ( gEngfuncs.GetMaxClients() > 1 )
+	if (!MutatorEnabled(MUTATOR_THIRDPERSON))
 	{
-		// no thirdperson in multiplayer.
+		gEngfuncs.Con_Printf("Mutator \"thirdperson\" must be enabled by the server.\n");
 		return;
 	}
-#endif
 
 	gEngfuncs.GetViewAngles( (float *)viewangles );
 
@@ -491,9 +484,9 @@ void CAM_Init( void )
 
 	cam_command				= gEngfuncs.pfnRegisterVariable ( "cam_command", "0", 0 );	 // tells camera to go to thirdperson
 	cam_snapto				= gEngfuncs.pfnRegisterVariable ( "cam_snapto", "0", 0 );	 // snap to thirdperson view
-	cam_idealyaw			= gEngfuncs.pfnRegisterVariable ( "cam_idealyaw", "90", 0 );	 // thirdperson yaw
+	cam_idealyaw			= gEngfuncs.pfnRegisterVariable ( "cam_idealyaw", "0", 0 );	 // thirdperson yaw
 	cam_idealpitch			= gEngfuncs.pfnRegisterVariable ( "cam_idealpitch", "0", 0 );	 // thirperson pitch
-	cam_idealdist			= gEngfuncs.pfnRegisterVariable ( "cam_idealdist", "64", 0 );	 // thirdperson distance
+	cam_idealdist			= gEngfuncs.pfnRegisterVariable ( "cam_idealdist", "60", 0 );	 // thirdperson distance
 	cam_contain				= gEngfuncs.pfnRegisterVariable ( "cam_contain", "0", 0 );	// contain camera to world
 
 	c_maxpitch				= gEngfuncs.pfnRegisterVariable ( "c_maxpitch", "90.0", 0 );
