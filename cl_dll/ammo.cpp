@@ -954,13 +954,16 @@ int CHudAmmo::Draw(float flTime)
 		wrect_t *primary = &gHUD.GetSpriteRect(m_hCrosshairLeft);
 		if (cl_crosshairammo && cl_crosshairammo->value)
 		{
+			float amount = gWR.CountAmmo(pw->iAmmoType) / float(pw->iMax1);
 			UnpackRGB(r2, g2, b2, HudColor());
+			if (amount <= 0.10)
+				UnpackRGB(r2, g2, b2, RGB_REDISH);
 			ScaleColors(r2, g2, b2, a2);
 
 			SPR_Set(gHUD.GetSprite(m_hCrosshairBrackets), r2, g2, b2 );
 			SPR_DrawAdditive(0, (ScreenWidth / 2) - 32, (ScreenHeight / 2) - 23, &gHUD.GetSpriteRect(m_hCrosshairBrackets));
 
-			int dif = fmin(fmax(1, (barSize * (gWR.CountAmmo(pw->iAmmoType) / float(pw->iMax1)))), barSize - 1);
+			int dif = fmin(fmax(1, barSize * amount), barSize - 1);
 			primary->top = barSize - dif;
 			primary->bottom = primary->right = 64;
 
