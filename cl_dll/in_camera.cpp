@@ -15,6 +15,15 @@
 #include "camera.h"
 #include "in_defs.h"
 #include "Exports.h"
+#include "pmtrace.h"
+
+#include "event_api.h"
+#include "pm_defs.h"
+#include "cl_util.h"
+
+#define VectorSubtract(a,b,c) {(c)[0]=(a)[0]-(b)[0];(c)[1]=(a)[1]-(b)[1];(c)[2]=(a)[2]-(b)[2];}
+
+
 
 #include "SDL2/SDL_mouse.h"
 #include "port.h"
