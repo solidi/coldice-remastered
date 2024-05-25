@@ -390,11 +390,9 @@ void CL_DLLEXPORT CAM_Think( void )
 
 		float prevDist = dist;
 
-		vieworg = vieworg - camRight * -13.0f;
-
 		while (tr.fraction != 1.0f)
 		{
-			vecDir = -(dist * 2.5f) * camForward;
+			vecDir = -(dist * 1.5f) * camForward;
 			gEngfuncs.pEventAPI->EV_PlayerTrace(vieworg, vieworg + vecDir, PM_WORLD_ONLY, -1, &tr);
 			if (tr.fraction != 1.0f)
 			{

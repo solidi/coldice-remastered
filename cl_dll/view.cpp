@@ -691,8 +691,31 @@ void V_CalcNormalRefdef ( struct ref_params_s *pparams )
 		for ( i = 0; i < 3; i++ )
 		{
 			pparams->vieworg[ i ] += -ofs[2] * camForward[ i ];
-			pparams->vieworg[i] -= -13.0f * camRight[i];
+			// pparams->vieworg[i] -= -13.0f * camRight[i];
 		}
+
+		Vector vieworg;
+
+		gEngfuncs.pEventAPI->EV_SetUpPlayerPrediction(false, true);
+
+		// Store off the old count
+		gEngfuncs.pEventAPI->EV_PushPMStates();
+
+		// Now add in all of the players.
+		gEngfuncs.pEventAPI->EV_SetSolidPlayers(gEngfuncs.GetLocalPlayer()->index - 1);
+
+		gEngfuncs.pEventAPI->EV_SetTraceHull(2);
+
+		pmtrace_t tr;
+		vieworg = pparams->vieworg;
+
+		gEngfuncs.pEventAPI->EV_PlayerTrace(vieworg, vieworg - (camRight * 50.0f), PM_STUDIO_IGNORE | PM_STUDIO_BOX, -1, &tr);
+
+		vieworg = vieworg - (camRight * (-14.0f * tr.fraction));
+
+		VectorCopy(vieworg, pparams->vieworg);
+
+		gEngfuncs.pEventAPI->EV_PopPMStates();
 	}
 	else
 	{
@@ -944,43 +967,11 @@ void V_CalcNormalRefdef ( struct ref_params_s *pparams )
 		ent->prevstate.angles[ 0 ] = pitch;
 		ent->latched.prevangles[ 0 ] = pitch;
 
-		gEngfuncs.pEventAPI->EV_SetUpPlayerPrediction(false, true);
-
-		// Store off the old count
-		gEngfuncs.pEventAPI->EV_PushPMStates();
-
-		// Now add in all of the players.
-		gEngfuncs.pEventAPI->EV_SetSolidPlayers(ent->index - 1);
-
-		gEngfuncs.pEventAPI->EV_SetTraceHull(2);
-
-		pmtrace_t tr;
-		Vector fixed_angle;
-		Vector vieworg = pparams->simorg;
-		vieworg = vieworg + pparams->viewheight;
-		Vector vForward;
-
-		AngleVectors(pparams->cl_viewangles, vForward, NULL, NULL);
-
-		gEngfuncs.pEventAPI->EV_PlayerTrace(vieworg, vieworg + (vForward * 8192), PM_STUDIO_BOX, -1, &tr);
-		VectorAngles((tr.endpos - Vector(pparams->vieworg)).Normalize(), fixed_angle);
-
-		gEngfuncs.pEventAPI->EV_PopPMStates();
-
-		V_SmoothInterpolateAngles(fixed_angle, vecLerpedYaw, vecLerpedYaw, 0.2f);
-
-		float flPitchProd = (90 - pparams->viewangles[0]);
-
-		// TODO : FIX PITCH
-		pparams->viewangles[1] = vecLerpedYaw[1];
-
 		// Add in the punchangle, if any
 		VectorAdd(pparams->viewangles, pparams->punchangle, pparams->viewangles);
 
 		// Include client side punch, too
 		VectorAdd(pparams->viewangles, (float*)&ev_punchangle, pparams->viewangles);
-
-		//gEngfuncs.pEfxAPI->R_BeamPoints(vieworg, tr.endpos, gEngfuncs.pEventAPI->EV_FindModelIndex("sprites/smoke.spr"), 0.1, 1, 0, 1, 0, 0, 0, 1, 1, 1);
 	}
 
 	// override all previous settings if the viewent isn't the client

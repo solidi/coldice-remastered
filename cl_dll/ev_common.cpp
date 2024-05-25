@@ -25,6 +25,9 @@
 #include "event_api.h"
 #include "pm_shared.h"
 
+#include "pmtrace.h"
+#include "pm_defs.h"
+
 #define IS_FIRSTPERSON_SPEC ( g_iUser1 == OBS_IN_EYE || (g_iUser1 && (gHUD.m_Spectator.m_pip->value == INSET_IN_EYE)) )
 /*
 =================
@@ -125,6 +128,33 @@ void EV_GetGunPosition( event_args_t *args, float *pos, float *origin )
 	}
 
 	VectorAdd( origin, view_ofs, pos );
+
+	extern int cam_thirdperson;
+	if (EV_IsLocal(idx) && cam_thirdperson)
+	{
+		extern ref_params_t g_ViewParams;
+		Vector right;
+		AngleVectors(g_ViewParams.viewangles, NULL, right, NULL);
+
+		gEngfuncs.pEventAPI->EV_SetUpPlayerPrediction(false, true);
+
+		// Store off the old count
+		gEngfuncs.pEventAPI->EV_PushPMStates();
+
+		// Now add in all of the players.
+		gEngfuncs.pEventAPI->EV_SetSolidPlayers(gEngfuncs.GetLocalPlayer()->index - 1);
+
+		gEngfuncs.pEventAPI->EV_SetTraceHull(2);
+
+		pmtrace_t tr;
+		Vector vieworg = origin;
+
+		gEngfuncs.pEventAPI->EV_PlayerTrace(vieworg, vieworg - (right * 50.0f), PM_STUDIO_IGNORE | PM_STUDIO_BOX, -1, &tr);
+
+		gEngfuncs.pEventAPI->EV_PopPMStates();
+
+		VectorSubtract(pos, (right * (-14.0f * tr.fraction)), pos);
+	}
 }
 
 /*

@@ -435,6 +435,15 @@ Vector CBasePlayer :: GetGunPosition( )
 	
 	origin = pev->origin + pev->view_ofs;
 
+	if (g_pGameRules->MutatorEnabled(MUTATOR_THIRDPERSON))
+	{
+		UTIL_MakeVectors(pev->v_angle);
+		TraceResult tr;
+
+		UTIL_TraceLine(origin, origin - (gpGlobals->v_right * 50.0f), ignore_monsters, ENT(pev), &tr);
+		origin = origin - gpGlobals->v_right * -14.0f;
+	}
+
 	return origin;
 }
 
