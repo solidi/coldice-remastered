@@ -680,7 +680,11 @@ void CFuncTrain :: Blocked( CBaseEntity *pOther )
 
 	m_flActivateFinished = gpGlobals->time + 0.5;
 	
-	pOther->TakeDamage(pev, pev, pev->dmg, DMG_CRUSH);
+	entvars_t *attacker = pev;
+	if (pev->dmg_inflictor)
+		attacker = VARS(pev->dmg_inflictor);
+
+	pOther->TakeDamage(pev, attacker, pev->dmg, DMG_CRUSH);
 }
 
 
@@ -1023,8 +1027,13 @@ void CFuncTrackTrain :: Blocked( CBaseEntity *pOther )
 	ALERT( at_aiconsole, "TRAIN(%s): Blocked by %s (dmg:%.2f)\n", STRING(pev->targetname), STRING(pOther->pev->classname), pev->dmg );
 	if ( pev->dmg <= 0 )
 		return;
+
+	entvars_t *attacker = pev;
+	if (pev->dmg_inflictor)
+		attacker = VARS(pev->dmg_inflictor);
+
 	// we can't hurt this thing, so we're not concerned with it
-	pOther->TakeDamage(pev, pev, pev->dmg, DMG_CRUSH);
+	pOther->TakeDamage(pev, attacker, pev->dmg, DMG_CRUSH);
 }
 
 
