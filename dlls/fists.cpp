@@ -90,6 +90,7 @@ int CFists::GetItemInfo(ItemInfo *p)
 	p->iSlot = 0;
 	p->iPosition = 1;
 	p->iId = WEAPON_FISTS;
+	p->iFlags = ITEM_FLAG_NODROP;
 	p->iWeight = FISTS_WEIGHT;
 	p->pszDisplayName = "Manos de Piedras";
 	return 1;

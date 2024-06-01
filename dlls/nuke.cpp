@@ -434,7 +434,7 @@ int CNuke::GetItemInfo(ItemInfo *p)
 	p->iSlot = 3;
 	p->iPosition = 7;
 	p->iId = m_iId = WEAPON_NUKE;
-	p->iFlags = 0;
+	p->iFlags = ITEM_FLAG_NODROP;
 	p->iWeight = NUKE_WEIGHT;
 	p->pszDisplayName = "Tactical Nuke Launcher";
 

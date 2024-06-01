@@ -6428,13 +6428,8 @@ void CBasePlayer::DropPlayerItem ( char *pszItemName )
 		// item we want to drop and hit a BREAK;  pWeapon is the item.
 		if ( pWeapon )
 		{
-			if ( FStrEq("weapon_fists", STRING(pWeapon->pev->classname)) ) {
-				ALERT ( at_console, "Fists cannot be dropped!\n" );
-				return;
-			}
-
-			if ( FStrEq("weapon_nuke", STRING(pWeapon->pev->classname)) ) {
-				ALERT ( at_console, "Nuke cannot be dropped!\n" );
+			if (FBitSet(pWeapon->iFlags(), ITEM_FLAG_NODROP)) {
+				ALERT ( at_console, "Weapon cannot be dropped!\n" );
 				return;
 			}
 
