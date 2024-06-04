@@ -299,21 +299,25 @@ CBaseMonster *COsprey :: MakeGrunt( Vector vecSrc )
 				m_hGrunt[i]->SUB_StartFadeOut( );
 			}
 			pEntity = Create( "monster_human_grunt", vecSrc, pev->angles );
-			pGrunt = pEntity->MyMonsterPointer( );
-			pGrunt->pev->movetype = MOVETYPE_FLY;
-			pGrunt->pev->velocity = Vector( 0, 0, RANDOM_FLOAT( -196, -128 ) );
-			pGrunt->SetActivity( ACT_GLIDE );
+			if (pEntity)
+			{
+				pGrunt = pEntity->MyMonsterPointer( );
+				pGrunt->pev->movetype = MOVETYPE_FLY;
+				pGrunt->pev->velocity = Vector( 0, 0, RANDOM_FLOAT( -196, -128 ) );
+				pGrunt->SetActivity( ACT_GLIDE );
 
-			CBeam *pBeam = CBeam::BeamCreate( "sprites/rope.spr", 10 );
-			pBeam->PointEntInit( vecSrc + Vector(0,0,112), pGrunt->entindex() );
-			pBeam->SetFlags( BEAM_FSOLID );
-			pBeam->SetColor( 255, 255, 255 );
-			pBeam->SetThink( &CBeam::SUB_Remove );
-			pBeam->pev->nextthink = gpGlobals->time + -4096.0 * tr.flFraction / pGrunt->pev->velocity.z + 0.5;
+				CBeam *pBeam = CBeam::BeamCreate( "sprites/rope.spr", 10 );
+				pBeam->PointEntInit( vecSrc + Vector(0,0,112), pGrunt->entindex() );
+				pBeam->SetFlags( BEAM_FSOLID );
+				pBeam->SetColor( 255, 255, 255 );
+				pBeam->SetThink( &CBeam::SUB_Remove );
+				pBeam->pev->nextthink = gpGlobals->time + -4096.0 * tr.flFraction / pGrunt->pev->velocity.z + 0.5;
 
-			// ALERT( at_console, "%d at %.0f %.0f %.0f\n", i, m_vecOrigin[i].x, m_vecOrigin[i].y, m_vecOrigin[i].z );  
-			pGrunt->m_vecLastPosition = m_vecOrigin[i];
-			m_hGrunt[i] = pGrunt;
+				// ALERT( at_console, "%d at %.0f %.0f %.0f\n", i, m_vecOrigin[i].x, m_vecOrigin[i].y, m_vecOrigin[i].z );  
+				pGrunt->m_vecLastPosition = m_vecOrigin[i];
+				m_hGrunt[i] = pGrunt;
+			}
+
 			return pGrunt;
 		}
 	}

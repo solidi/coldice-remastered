@@ -2420,19 +2420,22 @@ void CHGruntRepel::RepelUse ( CBaseEntity *pActivator, CBaseEntity *pCaller, USE
 	*/
 
 	CBaseEntity *pEntity = Create( "monster_human_grunt", pev->origin, pev->angles );
-	CBaseMonster *pGrunt = pEntity->MyMonsterPointer( );
-	pGrunt->pev->movetype = MOVETYPE_FLY;
-	pGrunt->pev->velocity = Vector( 0, 0, RANDOM_FLOAT( -196, -128 ) );
-	pGrunt->SetActivity( ACT_GLIDE );
-	// UNDONE: position?
-	pGrunt->m_vecLastPosition = tr.vecEndPos;
+	if (pEntity)
+	{
+		CBaseMonster *pGrunt = pEntity->MyMonsterPointer( );
+		pGrunt->pev->movetype = MOVETYPE_FLY;
+		pGrunt->pev->velocity = Vector( 0, 0, RANDOM_FLOAT( -196, -128 ) );
+		pGrunt->SetActivity( ACT_GLIDE );
+		// UNDONE: position?
+		pGrunt->m_vecLastPosition = tr.vecEndPos;
 
-	CBeam *pBeam = CBeam::BeamCreate( "sprites/rope.spr", 10 );
-	pBeam->PointEntInit( pev->origin + Vector(0,0,112), pGrunt->entindex() );
-	pBeam->SetFlags( BEAM_FSOLID );
-	pBeam->SetColor( 255, 255, 255 );
-	pBeam->SetThink( &CBeam::SUB_Remove );
-	pBeam->pev->nextthink = gpGlobals->time + -4096.0 * tr.flFraction / pGrunt->pev->velocity.z + 0.5;
+		CBeam *pBeam = CBeam::BeamCreate( "sprites/rope.spr", 10 );
+		pBeam->PointEntInit( pev->origin + Vector(0,0,112), pGrunt->entindex() );
+		pBeam->SetFlags( BEAM_FSOLID );
+		pBeam->SetColor( 255, 255, 255 );
+		pBeam->SetThink( &CBeam::SUB_Remove );
+		pBeam->pev->nextthink = gpGlobals->time + -4096.0 * tr.flFraction / pGrunt->pev->velocity.z + 0.5;
+	}
 
 	UTIL_Remove( this );
 }

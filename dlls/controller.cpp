@@ -317,8 +317,11 @@ void CController :: HandleAnimEvent( MonsterEvent_t *pEvent )
 
 			CBaseMonster *pBall = (CBaseMonster*)Create( "controller_head_ball", vecStart, pev->angles, edict() );
 
-			pBall->pev->velocity = Vector( 0, 0, 32 );
-			pBall->m_hEnemy = m_hEnemy;
+			if (pBall)
+			{
+				pBall->pev->velocity = Vector( 0, 0, 32 );
+				pBall->m_hEnemy = m_hEnemy;
+			}
 
 			m_iBall[0] = 0;
 			m_iBall[1] = 0;
@@ -655,7 +658,8 @@ void CController :: RunTask ( Task_t *pTask )
 
 				vecSrc = vecSrc + vecDir * (gpGlobals->time - m_flShootTime);
 				CBaseMonster *pBall = (CBaseMonster*)Create( "controller_energy_ball", vecSrc, pev->angles, edict() );
-				pBall->pev->velocity = vecDir;
+				if (pBall)
+					pBall->pev->velocity = vecDir;
 			}
 			m_flShootTime += 0.2;
 		}

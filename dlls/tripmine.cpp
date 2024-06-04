@@ -207,7 +207,8 @@ void CTripmineGrenade :: PowerupThink( void  )
 		STOP_SOUND( ENT(pev), CHAN_VOICE, "weapons/mine_deploy.wav" );
 		STOP_SOUND( ENT(pev), CHAN_BODY, "weapons/mine_charge.wav" );
 		CBaseEntity *pMine = Create( "weapon_tripmine", pev->origin + m_vecDir * 24, pev->angles );
-		pMine->pev->spawnflags |= SF_NORESPAWN;
+		if (pMine)
+			pMine->pev->spawnflags |= SF_NORESPAWN;
 
 		SetThink( &CTripmineGrenade::SUB_Remove );
 		KillBeam();

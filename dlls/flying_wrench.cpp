@@ -115,44 +115,47 @@ void CFlyingWrench::SpinTouch( CBaseEntity *pOther )
 		CBasePlayerWeapon *pItem = (CBasePlayerWeapon *)Create( "weapon_wrench",
 											pev->origin , pev->angles, edict() );
 
-		// Spawn a weapon box
-		CWeaponBox *pWeaponBox = (CWeaponBox *)CBaseEntity::Create(
-							"weaponbox", pev->origin, pev->angles, edict() );
-
-		if (pWeaponBox != NULL)
+		if (pItem != NULL)
 		{
-			// don't let weapon box tilt.
-			pWeaponBox->pev->angles.x = 0;
-			pWeaponBox->pev->angles.z = 0;
+			// Spawn a weapon box
+			CWeaponBox *pWeaponBox = (CWeaponBox *)CBaseEntity::Create(
+								"weaponbox", pev->origin, pev->angles, edict() );
 
-			// remove the weapon box after 2 mins.
-			pWeaponBox->pev->nextthink = gpGlobals->time + 120;
-			pWeaponBox->SetThink( &CWeaponBox::Kill );
+			if (pWeaponBox != NULL)
+			{
+				// don't let weapon box tilt.
+				pWeaponBox->pev->angles.x = 0;
+				pWeaponBox->pev->angles.z = 0;
 
-			// Pack the wrench in the weapon box
-			pWeaponBox->PackWeapon( pItem );
+				// remove the weapon box after 2 mins.
+				pWeaponBox->pev->nextthink = gpGlobals->time + 120;
+				pWeaponBox->SetThink( &CWeaponBox::Kill );
 
-			// Get the unit vector in the direction of motion.
-			Vector vecDir = pev->velocity.Normalize( );
+				// Pack the wrench in the weapon box
+				pWeaponBox->PackWeapon( pItem );
 
-			// Trace a line along the velocity vector to get the normal at impact.
-			TraceResult tr;
-			UTIL_TraceLine(pev->origin, pev->origin + vecDir * 100,
-								dont_ignore_monsters, ENT(pev), &tr);
+				// Get the unit vector in the direction of motion.
+				Vector vecDir = pev->velocity.Normalize( );
 
-			DecalGunshot( &tr, BULLET_PLAYER_WRENCH );
+				// Trace a line along the velocity vector to get the normal at impact.
+				TraceResult tr;
+				UTIL_TraceLine(pev->origin, pev->origin + vecDir * 100,
+									dont_ignore_monsters, ENT(pev), &tr);
 
-			// Throw the weapon box along the normal so it looks kinda
-			// like a ricochet. This would be better if I actually
-			// calcualted the reflection angle, but I'm lazy. :)
-			pWeaponBox->pev->velocity = tr.vecPlaneNormal * 300;
+				DecalGunshot( &tr, BULLET_PLAYER_WRENCH );
+
+				// Throw the weapon box along the normal so it looks kinda
+				// like a ricochet. This would be better if I actually
+				// calcualted the reflection angle, but I'm lazy. :)
+				pWeaponBox->pev->velocity = tr.vecPlaneNormal * 300;
+			}
 		}
 	}
 #endif
 
 	// Remove this flying_wrench from the world.
 	SetThink ( &CBaseEntity::SUB_Remove );
-	pev->nextthink = gpGlobals->time + .1;
+	pev->nextthink = gpGlobals->time + 0.1;
 }
 
 void CFlyingWrench::BubbleThink( void )

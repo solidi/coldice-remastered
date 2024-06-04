@@ -357,12 +357,15 @@ void CApache :: DyingThink( void )
 		if (/*!(pev->spawnflags & SF_NOWRECKAGE) && */(pev->flags & FL_ONGROUND))
 		{
 			CBaseEntity *pWreckage = Create( "cycler_wreckage", pev->origin, pev->angles );
-			// SET_MODEL( ENT(pWreckage->pev), STRING(pev->model) );
-			UTIL_SetSize( pWreckage->pev, Vector( -200, -200, -128 ), Vector( 200, 200, -32 ) );
-			pWreckage->pev->frame = pev->frame;
-			pWreckage->pev->sequence = pev->sequence;
-			pWreckage->pev->framerate = 0;
-			pWreckage->pev->dmgtime = gpGlobals->time + 5;
+			if (pWreckage != NULL)
+			{
+				// SET_MODEL( ENT(pWreckage->pev), STRING(pev->model) );
+				UTIL_SetSize( pWreckage->pev, Vector( -200, -200, -128 ), Vector( 200, 200, -32 ) );
+				pWreckage->pev->frame = pev->frame;
+				pWreckage->pev->sequence = pev->sequence;
+				pWreckage->pev->framerate = 0;
+				pWreckage->pev->dmgtime = gpGlobals->time + 5;
+			}
 		}
 
 		// gibs
