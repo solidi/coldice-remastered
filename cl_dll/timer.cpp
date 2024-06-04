@@ -50,6 +50,10 @@ int CHudTimer::Draw( float fTime )
 
 	int r, g, b;
 
+	// In case gHUD.m_flTime is reset
+	if (m_fStartTime > gHUD.m_flTime)
+		m_fStartTime = gHUD.m_flTime;
+
 	int minutes = fmin(fmax(0, (int)( m_iTime + m_fStartTime - gHUD.m_flTime ) / 60), 99);
 	int seconds = fmin(fmax(0, (int)( m_iTime + m_fStartTime - gHUD.m_flTime ) - (minutes * 60)), 59);
 	float percent = fmin(fmax(0, (m_iTime + m_fStartTime - gHUD.m_flTime) / (m_iTime)), 100);
