@@ -1258,7 +1258,7 @@ void CGameRules::MutatorsThink(void)
 				}
 				else
 				{
-					pl->pev->movetype = MOVETYPE_STEP;
+					pl->pev->movetype = MOVETYPE_WALK;
 					TraceResult trace;
 					UTIL_TraceHull(pl->pev->origin, pl->pev->origin, dont_ignore_monsters, head_hull, pl->edict(), &trace);
 					if (trace.fStartSolid)
