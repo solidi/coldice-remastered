@@ -728,3 +728,16 @@ const char *CHalfLifeChilldemic::GetTeamID( CBaseEntity *pEntity )
 	// return their team name
 	return pEntity->TeamID();
 }
+
+BOOL CHalfLifeChilldemic::ShouldAutoAim( CBasePlayer *pPlayer, edict_t *target )
+{
+	// always autoaim, unless target is a teammate
+	CBaseEntity *pTgt = CBaseEntity::Instance( target );
+	if ( pTgt && pTgt->IsPlayer() )
+	{
+		if ( PlayerRelationship( pPlayer, pTgt ) == GR_TEAMMATE )
+			return FALSE; // don't autoaim at teammates
+	}
+
+	return CHalfLifeMultiplay::ShouldAutoAim( pPlayer, target );
+}

@@ -812,3 +812,15 @@ void CHalfLifeHorde::MonsterKilled( CBaseMonster *pVictim, entvars_t *pKiller )
 		MESSAGE_END();
 	}
 }
+
+BOOL CHalfLifeHorde::ShouldAutoAim( CBasePlayer *pPlayer, edict_t *target )
+{
+	CBaseEntity *pTgt = CBaseEntity::Instance( target );
+	if ( pTgt )
+	{
+		if ( strstr(STRING(pTgt->pev->classname), "monster_") )
+			return TRUE;
+	}
+
+	return FALSE;
+}

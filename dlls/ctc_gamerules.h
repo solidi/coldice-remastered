@@ -41,6 +41,7 @@ public:
 	virtual BOOL AllowRuneSpawn( const char *szRune );
 	virtual int PlayerRelationship( CBaseEntity *pPlayer, CBaseEntity *pTarget );
 	virtual const char *GetTeamID( CBaseEntity *pEntity );
+	virtual BOOL ShouldAutoAim( CBasePlayer *pPlayer, edict_t *target );
 
 private:
 	BOOL m_fChumtoadInPlay;
