@@ -143,7 +143,7 @@ void CChaingun::PrimaryAttack()
 	{
 		SendWeaponAnim( CHAINGUN_SPINUP );
 		EMIT_SOUND_DYN(ENT(m_pPlayer->pev), CHAN_WEAPON, "chaingun_spinup.wav", RANDOM_FLOAT(0.92, 1.0), ATTN_NORM, 0, 98 + RANDOM_LONG(0,3));	
-		m_flNextPrimaryAttack = UTIL_WeaponTimeBase() + 0.75;
+		m_flNextPrimaryAttack = UTIL_WeaponTimeBase() + 0.4;
 		m_iWeaponMode = CHAINGUN_FIRE;
 		return;
 	}
@@ -189,7 +189,7 @@ void CChaingun::SecondaryAttack()
 	{
 		SendWeaponAnim( CHAINGUN_SPINUP );
 		EMIT_SOUND_DYN(ENT(m_pPlayer->pev), CHAN_WEAPON, "chaingun_spinup.wav", RANDOM_FLOAT(0.92, 1.0), ATTN_NORM, 0, 98 + RANDOM_LONG(0,3));	
-		m_flNextPrimaryAttack = UTIL_WeaponTimeBase() + 0.75;
+		m_flNextPrimaryAttack = UTIL_WeaponTimeBase() + 0.4;
 		m_iWeaponMode = CHAINGUN_FIRE;
 		return;
 	}
