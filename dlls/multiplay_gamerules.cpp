@@ -1858,6 +1858,8 @@ void CHalfLifeMultiplay::DeathNotice( CBasePlayer *pVictim, entvars_t *pKiller, 
 				CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex(assist_index);
 				if (plr)
 					plr->m_iAssists += 1;
+				else
+					assist_index = -1;
 			}
 			pVictim->pLastAssist = NULL;
 		}
