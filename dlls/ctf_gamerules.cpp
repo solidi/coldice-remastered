@@ -548,13 +548,6 @@ void CHalfLifeCaptureTheFlag::Think( void )
 	}
 }
 
-void CHalfLifeCaptureTheFlag::PlayerSpawn( CBasePlayer *pPlayer )
-{
-	CHalfLifeMultiplay::PlayerSpawn(pPlayer);
-
-	pPlayer->GiveRandomWeapon("weapon_nuke");
-}
-
 int CHalfLifeCaptureTheFlag::GetTeamIndex( const char *pTeamName )
 {
 	if ( pTeamName && *pTeamName != 0 )
