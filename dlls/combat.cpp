@@ -903,9 +903,9 @@ void CGib :: Spawn( const char *szGibModel )
 	UTIL_SetSize(pev, Vector( 0, 0, 0), Vector(0, 0, 0));
 
 	if (g_pGameRules->MutatorEnabled(MUTATOR_COOLFLESH))
-		pev->nextthink = gpGlobals->time + 8;
+		pev->nextthink = gpGlobals->time + 15.0;
 	else
-		pev->nextthink = gpGlobals->time + 4;
+		pev->nextthink = gpGlobals->time + 4.0;
 	m_lifeTime = 2.5;
 	SetThink ( &CGib::WaitTillLand );
 	SetTouch ( &CGib::BounceGibTouch );
