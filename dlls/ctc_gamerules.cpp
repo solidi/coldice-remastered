@@ -499,3 +499,15 @@ const char *CHalfLifeCaptureTheChumtoad::GetTeamID( CBaseEntity *pEntity )
 	// return their team name
 	return pEntity->TeamID();
 }
+
+BOOL CHalfLifeCaptureTheChumtoad::ShouldAutoAim( CBasePlayer *pPlayer, edict_t *target )
+{
+	CBaseEntity *pTgt = CBaseEntity::Instance( target );
+	if ( pTgt && pTgt->IsPlayer() )
+	{
+		if ( ((CBasePlayer *)pTgt)->m_iHoldingChumtoad )
+			return TRUE;
+	}
+
+	return FALSE;
+}

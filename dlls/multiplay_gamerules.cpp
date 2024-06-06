@@ -1245,7 +1245,7 @@ void CHalfLifeMultiplay :: ClientDisconnected( edict_t *pClient )
 			char *key = g_engfuncs.pfnGetInfoKeyBuffer(pPlayer->edict());
 			char *name = g_engfuncs.pfnInfoKeyValue(key, "oname");
 			if (name && strlen(name))
-				g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer->edict()), key, "name", name);
+				g_engfuncs.pfnSetClientKeyValue(pPlayer->entindex(), key, "name", name);
 
 			// team match?
 			if ( g_teamplay )
@@ -2805,7 +2805,7 @@ int CountPlayers( void )
 				char *key = g_engfuncs.pfnGetInfoKeyBuffer(pEnt->edict());
 				char *name = g_engfuncs.pfnInfoKeyValue(key, "oname");
 				if (name && strlen(name))
-					g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pEnt->edict()), key, "name", name);
+					g_engfuncs.pfnSetClientKeyValue(pEnt->entindex(), key, "name", name);
 			}
 
 		}

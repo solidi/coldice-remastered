@@ -1127,7 +1127,7 @@ void CGameRules::MutatorsThink(void)
 					char *key = g_engfuncs.pfnGetInfoKeyBuffer(pl->edict());
 					char *name = g_engfuncs.pfnInfoKeyValue(key, "oname");
 					if (name && strlen(name))
-						g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer->edict()), key, "name", name);
+						g_engfuncs.pfnSetClientKeyValue(pl->entindex(), key, "name", name);
 				}
 			}
 		}
@@ -1150,7 +1150,7 @@ void CGameRules::MutatorsThink(void)
 				{
 					char name[64], *key = g_engfuncs.pfnGetInfoKeyBuffer(pPlayer->edict());
 					strcpy(name, STRING(pl->pev->netname));
-					g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer->edict()), key, "oname", name);
+					g_engfuncs.pfnSetClientKeyValue(pl->entindex(), key, "oname", name);
 					g_engfuncs.pfnSetClientKeyValue(pl->entindex(), key, "name", "Jope");
 				}
 
@@ -1258,7 +1258,7 @@ void CGameRules::MutatorsThink(void)
 				}
 				else
 				{
-					pl->pev->movetype = MOVETYPE_STEP;
+					pl->pev->movetype = MOVETYPE_WALK;
 					TraceResult trace;
 					UTIL_TraceHull(pl->pev->origin, pl->pev->origin, dont_ignore_monsters, head_hull, pl->edict(), &trace);
 					if (trace.fStartSolid)
