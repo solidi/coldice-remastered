@@ -147,6 +147,10 @@ void CFlagCharm::FlagTouch( CBaseEntity *pOther )
 	if ( !pOther->IsPlayer() )
 		return;
 
+	// If someone already has it, cannot take it directly.
+	if ( pev->aiment && pOther->edict() != pev->aiment )
+		return;
+
 	if ( pOther->pev->deadflag != DEAD_NO )
 		return;
 
@@ -172,7 +176,7 @@ void CFlagCharm::FlagTouch( CBaseEntity *pOther )
 			{
 				MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, pPlayer->edict());
 					WRITE_STRING("You have the flag!");
-					WRITE_STRING(UTIL_VarArgs("Get it to %s base", (pPlayer->pev->fuser4 == TEAM_RED) ? "blue" : "red"));
+					WRITE_STRING(UTIL_VarArgs("Get it to %s base", (pPlayer->pev->fuser4 == TEAM_RED) ? "red" : "blue"));
 					WRITE_BYTE(0);
 				MESSAGE_END();
 
