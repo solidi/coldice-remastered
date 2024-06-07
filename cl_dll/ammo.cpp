@@ -944,6 +944,8 @@ int CHudAmmo::Draw(float flTime)
 	y = (ScreenHeight - gHUD.m_iFontHeight * up - gHUD.m_iFontHeight/2) + g_yP;
 	float numScale = (48 * cl_hudbend->value) * 2;
 
+	bool crosshair_enabled = cl_crosshairammo && cl_crosshairammo->value && gEngfuncs.pfnGetCvarPointer("crosshair")->value;
+
 	// Does weapon have any ammo at all?
 	if (m_pWeapon->iAmmoType > 0)
 	{
@@ -952,7 +954,7 @@ int CHudAmmo::Draw(float flTime)
 		int barSize = 45, r2, g2, b2, a2 = MIN_ALPHA;
 		wrect_t *clip = &gHUD.GetSpriteRect(m_hCrosshairRight);
 		wrect_t *primary = &gHUD.GetSpriteRect(m_hCrosshairLeft);
-		if (cl_crosshairammo && cl_crosshairammo->value)
+		if (crosshair_enabled)
 		{
 			float amount = gWR.CountAmmo(pw->iAmmoType) / float(pw->iMax1);
 			UnpackRGB(r2, g2, b2, HudColor());
@@ -976,7 +978,7 @@ int CHudAmmo::Draw(float flTime)
 
 		if (pw->iClip >= 0)
 		{
-			if (cl_crosshairammo && cl_crosshairammo->value)
+			if (crosshair_enabled)
 			{
 				int dif = fmin(fmax(1, (barSize * (pw->iClip / float(pw->iMaxClip)))), barSize - 1);
 				clip->top = barSize - dif;
@@ -1015,7 +1017,7 @@ int CHudAmmo::Draw(float flTime)
 		}
 		else
 		{
-			if (cl_crosshairammo && cl_crosshairammo->value && primary->top > 0)
+			if (crosshair_enabled && primary->top > 0)
 			{
 				SPR_Set(gHUD.GetSprite(m_hCrosshairRight), r2, g2, b2);
 				SPR_DrawAdditive(0, (ScreenWidth / 2) - 32, ((ScreenHeight / 2) - 23) + primary->top, primary);
