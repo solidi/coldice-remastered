@@ -390,6 +390,10 @@ void CL_DLLEXPORT CAM_Think( void )
 
 		float prevDist = dist;
 
+		// increase if needed
+		const int LoopGuardMax = 100;
+		int LoopGuard = 0;
+
 		while (tr.fraction != 1.0f)
 		{
 			vecDir = -(dist * 1.5f) * camForward;
@@ -398,6 +402,10 @@ void CL_DLLEXPORT CAM_Think( void )
 			{
 				dist *= 0.98f;
 			}
+
+			++LoopGuard;
+			if (LoopGuard >= LoopGuardMax)
+				break;
 		}
 
 		gEngfuncs.pEventAPI->EV_PopPMStates();
