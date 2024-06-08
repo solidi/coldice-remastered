@@ -125,6 +125,7 @@ void CHud :: MsgFunc_InitHUD( const char *pszName, int iSize, void *pbuf )
 	gHUD.m_iShowingWeaponMenu = 0;
 	gHUD.m_Scoreboard.m_iShowscoresHeld = FALSE;
 	gHUD.m_Mutators = NULL;
+	gEngfuncs.pfnClientCmd("firstperson\n");
 	gHUD.m_StatusIcons.Reset();
 	gHUD.local_player_index = 0;
 	gHUD.m_ChaosTime = 0;
