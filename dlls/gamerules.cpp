@@ -46,6 +46,7 @@ extern int gmsgMOTD;
 extern int gmsgShowGameTitle;
 extern int gmsgAddMutator;
 extern int gmsgFog;
+extern int gmsgChaos;
 
 int g_teamplay = 0;
 int g_ExplosiveAI = 0;
@@ -961,18 +962,23 @@ void CGameRules::MutatorsThink(void)
 		}
 
 		// Check new
+		float choasIncrement = RANDOM_LONG(10,30);
+
 		if (strlen(addmutator.string))
 		{
 			if (MutatorAllowed(addmutator.string))
 			{
 				if (!strcmp(addmutator.string, "chaos") || !strcmp(addmutator.string, "1"))
 				{
-					m_fChaosMode = TRUE;
+					m_flChaosMutatorTime = gpGlobals->time + choasIncrement;
+					MESSAGE_BEGIN(MSG_ALL, gmsgChaos);
+						WRITE_BYTE(choasIncrement);
+					MESSAGE_END();
 					ALERT(at_console, "Mutator chaos enabled.\n");
 				}
 				else if (!strcmp(addmutator.string, "unchaos"))
 				{
-					m_fChaosMode = FALSE;
+					m_flChaosMutatorTime = 0;
 					ALERT(at_console, "Mutator chaos disabled.\n");
 				}
 				else
@@ -1064,8 +1070,10 @@ void CGameRules::MutatorsThink(void)
 
 		// chaos mode
 		int adjcount = fmin(fmax(mutatorcount.value, 0), 7);
-		if (m_fChaosMode && count < adjcount)
+		if (m_flChaosMutatorTime && m_flChaosMutatorTime < gpGlobals->time && count < adjcount)
 		{
+			m_flChaosMutatorTime = gpGlobals->time + choasIncrement;
+
 			int attempts = 0;
 			while (attempts < adjcount)
 			{
@@ -1101,11 +1109,16 @@ void CGameRules::MutatorsThink(void)
 				}
 
 				CVAR_SET_STRING("sv_addmutator", g_szMutators[index]);
+
+				MESSAGE_BEGIN(MSG_ALL, gmsgChaos);
+					WRITE_BYTE(choasIncrement);
+				MESSAGE_END();
+
 				break;
 			}
 		}
 
-		m_flAddMutatorTime = gpGlobals->time + 3.0;
+		m_flAddMutatorTime = gpGlobals->time + 1.0;
 	}
 
 	// Apply mutators

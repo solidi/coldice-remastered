@@ -225,9 +225,9 @@ private:
 	BOOL m_JopeCheck = FALSE;
 
 	float m_flAddMutatorTime = 5; // 5 seconds min, start check
+	float m_flChaosMutatorTime = 0;
 	float m_flDetectedMutatorChange = 0;
 	mutators_t *m_Mutators = NULL;
-	BOOL m_fChaosMode = FALSE;
 };
 
 extern CGameRules *InstallGameRules( void );

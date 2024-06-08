@@ -43,14 +43,13 @@ int CHudStatusIcons::Init( void )
 
 int CHudStatusIcons::VidInit( void )
 {
-
 	return 1;
 }
 
 void CHudStatusIcons::Reset( void )
 {
 	memset( m_IconList, 0, sizeof m_IconList );
-	m_iFlags &= ~HUD_ACTIVE;
+	m_iFlags |= HUD_ACTIVE;
 	m_flCheckMutators = 0;
 	DrawMutators();
 }
@@ -60,6 +59,16 @@ int CHudStatusIcons::Draw( float flTime )
 {
 	if (gEngfuncs.IsSpectateOnly() || gHUD.m_iShowingWeaponMenu)
 		return 1;
+
+	// Chaos bar
+	int time = gHUD.m_ChaosTime;
+	if (time > gHUD.m_flTime)
+	{
+		int r, g, b;
+		UnpackRGB(r,g,b, HudColor());
+		ScaleColors(r, g, b, MIN_ALPHA);
+		FillRGBA(0, ScreenHeight - (ScreenHeight * ((gHUD.m_flTime - gHUD.m_ChaosStartTime) / gHUD.m_ChaosIncrement)), XRES(10), ScreenHeight * ((gHUD.m_flTime - gHUD.m_ChaosStartTime) / gHUD.m_ChaosIncrement), r, g, b, MAX_ALPHA);
+	}
 
 	// find starting position to draw from, along right-hand side of screen
 	int x = 32 + g_xP;
@@ -259,7 +268,6 @@ void CHudStatusIcons::ToggleMutatorIcon(int mutatorId, const char *mutator)
 	if (MutatorEnabled(mutatorId))
 	{
 		mutators_t t = GetMutator(mutatorId);
-		m_iFlags |= HUD_ACTIVE;
 		EnableIcon((char *)mutator,r,g,b,t.timeToLive,t.startTime);
 	}
 	else
