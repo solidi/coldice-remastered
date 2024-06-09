@@ -213,21 +213,22 @@ public:
 
 	int m_iVoteCount[32];
 
+	char szSkyColorRed[64] = "", szSkyColorGreen[64] = "", szSkyColorBlue[64] = "";
+
 protected:
 	BOOL m_iNotTheBees = 0;
 	BOOL m_iDontShoot = 0;
 	BOOL m_iVolatile = 0;
 
 private:
-	char szSkyColor[3][6] = {{""}, {""}, {""}};
 	char m_flCheckGameMode[64] = "";
 	float m_flDetectedGameModeChange = 0;
 	BOOL m_JopeCheck = FALSE;
 
 	float m_flAddMutatorTime = 5; // 5 seconds min, start check
+	float m_flChaosMutatorTime = 0;
 	float m_flDetectedMutatorChange = 0;
 	mutators_t *m_Mutators = NULL;
-	BOOL m_fChaosMode = FALSE;
 };
 
 extern CGameRules *InstallGameRules( void );

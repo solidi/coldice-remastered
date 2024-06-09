@@ -430,6 +430,11 @@ int __MsgFunc_AddMut(const char *pszName, int iSize, void *pbuf)
 	return gHUD.MsgFunc_AddMut(pszName, iSize, pbuf );
 }
 
+int __MsgFunc_Chaos(const char *pszName, int iSize, void *pbuf)
+{
+	return gHUD.MsgFunc_Chaos(pszName, iSize, pbuf );
+}
+
 int __MsgFunc_Particle(const char *pszName,  int iSize, void *pbuf )
 {
 	gHUD.MsgFunc_Particle( pszName, iSize, pbuf );
@@ -517,6 +522,7 @@ void CHud :: Init( void )
 	HOOK_MESSAGE( VoteMap );
 	HOOK_MESSAGE( VoteMutator );
 	HOOK_MESSAGE( AddMut );
+	HOOK_MESSAGE( Chaos );
 
 	CVAR_CREATE( "hud_classautokill", "1", FCVAR_ARCHIVE | FCVAR_USERINFO );		// controls whether or not to suicide immediately on TF class switch
 	CVAR_CREATE( "hud_takesshots", "0", FCVAR_ARCHIVE );		// controls whether or not to automatically take screenshots at the end of a round

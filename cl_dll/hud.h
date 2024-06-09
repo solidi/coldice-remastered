@@ -845,6 +845,9 @@ public:
 	int m_iIceModels;
 	bool SetPLFlames;
 	mutators_t *m_Mutators;
+	int m_ChaosTime;
+	int m_ChaosStartTime;
+	int m_ChaosIncrement;
 
 private:
 	// the memory for these arrays are allocated in the first call to CHud::VidInit(), when the hud.txt and associated sprites are loaded.
@@ -921,6 +924,7 @@ public:
 	int  _cdecl MsgFunc_Acrobatics( const char *pszName, int iSize, void *pbuf );
 	int  _cdecl MsgFunc_PlayCSound( const char *pszName, int iSize, void *pbuf );
 	int  _cdecl MsgFunc_AddMut( const char *pszName, int iSize, void *pbuf );
+	int  _cdecl MsgFunc_Chaos( const char *pszName, int iSize, void *pbuf );
 	int _cdecl MsgFunc_Particle( const char *pszName, int iSize, void *pbuf );
 	void _cdecl MsgFunc_DelPart( const char *pszName, int iSize, void *pbuf );
 	void _cdecl MsgFunc_FlameMsg( const char *pszName, int iSize, void *pbuf );

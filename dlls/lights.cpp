@@ -170,21 +170,15 @@ void CEnvLight::KeyValue( KeyValueData* pkvd )
 
 		pkvd->fHandled = TRUE;
 
-		if (g_pGameRules->MutatorEnabled(MUTATOR_LIGHTSOUT))
-		{
-			CVAR_SET_STRING("sv_skycolor_r", "0");
-			CVAR_SET_STRING("sv_skycolor_g", "0");
-			CVAR_SET_STRING("sv_skycolor_b", "0");
-		}
-		else
-		{
-			sprintf( szColor, "%d", r );
-			CVAR_SET_STRING( "sv_skycolor_r", szColor );
-			sprintf( szColor, "%d", g );
-			CVAR_SET_STRING( "sv_skycolor_g", szColor );
-			sprintf( szColor, "%d", b );
-			CVAR_SET_STRING( "sv_skycolor_b", szColor );
-		}
+		sprintf( szColor, "%d", r );
+		strcpy(g_pGameRules->szSkyColorRed, szColor);
+		CVAR_SET_STRING( "sv_skycolor_r", szColor );
+		sprintf( szColor, "%d", g );
+		strcpy(g_pGameRules->szSkyColorGreen, szColor);
+		CVAR_SET_STRING( "sv_skycolor_g", szColor );
+		sprintf( szColor, "%d", b );
+		strcpy(g_pGameRules->szSkyColorBlue, szColor);
+		CVAR_SET_STRING( "sv_skycolor_b", szColor );
 	}
 	else
 	{

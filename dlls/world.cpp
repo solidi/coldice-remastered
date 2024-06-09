@@ -617,10 +617,7 @@ void CWorld :: Precache( void )
 //
 
 	// 0 normal
-	if (g_pGameRules->MutatorEnabled(MUTATOR_LIGHTSOUT))
-		LIGHT_STYLE(0, "b");
-	else
-		LIGHT_STYLE(0, "m");
+	LIGHT_STYLE(0, "m");
 	
 	// 1 FLICKER (first variety)
 	LIGHT_STYLE(1, "mmnmmommommnonmmonqnmmo");

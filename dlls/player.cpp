@@ -216,6 +216,7 @@ int gmsgVoteMutator = 0;
 int gmsgCtfInfo = 0;
 int gmsgAddMutator = 0;
 int gmsgFog = 0;
+int gmsgChaos = 0;
 
 void LinkUserMessages( void )
 {
@@ -284,6 +285,7 @@ void LinkUserMessages( void )
 	gmsgCtfInfo = REG_USER_MSG("CtfInfo", 4);
 	gmsgAddMutator = REG_USER_MSG("AddMut", -1);
 	gmsgFog = REG_USER_MSG("Fog", 9);
+	gmsgChaos = REG_USER_MSG("Chaos", 1);
 }
 
 LINK_ENTITY_TO_CLASS( player, CBasePlayer );

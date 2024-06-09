@@ -125,8 +125,12 @@ void CHud :: MsgFunc_InitHUD( const char *pszName, int iSize, void *pbuf )
 	gHUD.m_iShowingWeaponMenu = 0;
 	gHUD.m_Scoreboard.m_iShowscoresHeld = FALSE;
 	gHUD.m_Mutators = NULL;
+	gEngfuncs.pfnClientCmd("firstperson\n");
 	gHUD.m_StatusIcons.Reset();
 	gHUD.local_player_index = 0;
+	gHUD.m_ChaosTime = 0;
+	gHUD.m_ChaosStartTime = 0;
+	gHUD.m_ChaosIncrement = 0;
 }
 
 
@@ -361,6 +365,15 @@ int CHud :: MsgFunc_AddMut( const char *pszName, int iSize, void *pbuf )
 
 	m_StatusIcons.DrawMutators();
 
+	return 1;
+}
+
+int CHud :: MsgFunc_Chaos( const char *pszName, int iSize, void *pbuf )
+{
+	BEGIN_READ( pbuf, iSize );
+	m_ChaosStartTime = gHUD.m_flTime;
+	m_ChaosIncrement = READ_BYTE();
+	m_ChaosTime = (int)gHUD.m_flTime + m_ChaosIncrement;
 	return 1;
 }
 
