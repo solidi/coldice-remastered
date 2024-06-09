@@ -949,7 +949,8 @@ void CGameRules::MutatorsThink(void)
 		}
 
 		// Check new
-		float choasIncrement = RANDOM_LONG(10,30);
+		int mutatorTime = fmin(fmax(mutatortime.value, 10), 120);
+		float choasIncrement = mutatorTime;
 
 		if (strlen(addmutator.string))
 		{
@@ -988,15 +989,14 @@ void CGameRules::MutatorsThink(void)
 
 							if (add)
 							{
-								int time = fmin(fmax(mutatortime.value, 10), 120);
 								MESSAGE_BEGIN(MSG_ALL, gmsgAddMutator);
 									WRITE_BYTE(i + 1);
-									WRITE_BYTE(time);
+									WRITE_BYTE(mutatorTime);
 								MESSAGE_END();
 
 								mutators_t *mutator = new mutators_t();
 								mutator->mutatorId = i + 1;
-								mutator->timeToLive = gpGlobals->time + time;
+								mutator->timeToLive = gpGlobals->time + mutatorTime;
 								mutator->next = m_Mutators ? m_Mutators : NULL;
 								m_Mutators = mutator;
 
