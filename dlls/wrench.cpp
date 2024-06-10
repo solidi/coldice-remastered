@@ -99,6 +99,11 @@ int CWrench::GetItemInfo(ItemInfo *p)
 	return 1;
 }
 
+BOOL CWrench::CanDeploy( void )
+{
+	return m_flReleaseThrow < 1;
+}
+
 BOOL CWrench::DeployLowKey( )
 {
 	m_flStartThrow = 0;

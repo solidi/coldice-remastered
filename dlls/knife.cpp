@@ -121,6 +121,11 @@ int CKnife::GetItemInfo(ItemInfo *p)
 	return 1;
 }
 
+BOOL CKnife::CanDeploy( void )
+{
+	return m_flReleaseThrow < 1;
+}
+
 BOOL CKnife::DeployLowKey( )
 {
 	m_flStartThrow = 0;

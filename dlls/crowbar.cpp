@@ -126,6 +126,11 @@ int CCrowbar::GetItemInfo(ItemInfo *p)
 	return 1;
 }
 
+BOOL CCrowbar::CanDeploy( void )
+{
+	return m_flReleaseThrow < 1;
+}
+
 BOOL CCrowbar::DeployLowKey( )
 {
 	m_flStartThrow = 0;

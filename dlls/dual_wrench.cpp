@@ -98,6 +98,11 @@ int CDualWrench::GetItemInfo(ItemInfo *p)
 	return 1;
 }
 
+BOOL CDualWrench::CanDeploy( void )
+{
+	return m_flReleaseThrow < 1;
+}
+
 BOOL CDualWrench::DeployLowKey( )
 {
 	m_flStartThrow = 0;

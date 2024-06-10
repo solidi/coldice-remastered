@@ -701,6 +701,7 @@ public:
 #endif
 	}
 
+	BOOL CanDeploy();
 	BOOL CanSlide();
 	virtual BOOL SemiAuto( void ) { return TRUE; }
 
@@ -791,6 +792,7 @@ public:
 #endif
 	}
 
+	BOOL CanDeploy();
 	BOOL CanSlide();
 	virtual BOOL SemiAuto( void ) { return TRUE; }
 
@@ -1809,6 +1811,7 @@ public:
 	void ProvideDualItem(CBasePlayer *pPlayer, const char *itemName);
 	void SwapDualWeapon( void );
 
+	BOOL CanDeploy();
 	BOOL CanSlide();
 	virtual BOOL SemiAuto( void ) { return TRUE; }
 
@@ -2207,6 +2210,7 @@ public:
 #endif
 	}
 
+	BOOL CanDeploy();
 	BOOL CanSlide();
 	virtual BOOL SemiAuto( void ) { return TRUE; }
 	void ProvideSingleItem(CBasePlayer *pPlayer, const char *itemName);
