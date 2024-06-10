@@ -178,12 +178,15 @@ void CHalfLifeHorde::Think( void )
 				{
 					if (plr->IsSpectator() )
 					{
-						MESSAGE_BEGIN(MSG_BROADCAST, gmsgObjective);
-							WRITE_STRING(UTIL_VarArgs("Wave #%d", m_iWaveNumber));
-							WRITE_STRING(UTIL_VarArgs("Survivors remain: %d", m_iSurvivorsRemain));
-                            WRITE_BYTE((m_iTotalEnemies - m_iEnemiesRemain) / m_iTotalEnemies);
-							WRITE_STRING(UTIL_VarArgs("Enemies remain: %d", m_iEnemiesRemain));
-						MESSAGE_END();
+						if (m_iTotalEnemies)
+						{
+							MESSAGE_BEGIN(MSG_BROADCAST, gmsgObjective);
+								WRITE_STRING(UTIL_VarArgs("Wave #%d", m_iWaveNumber));
+								WRITE_STRING(UTIL_VarArgs("Survivors remain: %d", m_iSurvivorsRemain));
+								WRITE_BYTE((m_iTotalEnemies - m_iEnemiesRemain) / m_iTotalEnemies);
+								WRITE_STRING(UTIL_VarArgs("Enemies remain: %d", m_iEnemiesRemain));
+							MESSAGE_END();
+						}
 					} else {
 						// Send them to observer
 						plr->m_flForceToObserverTime = gpGlobals->time;
@@ -280,12 +283,15 @@ void CHalfLifeHorde::Think( void )
 			m_iEnemiesRemain = m_iTotalEnemies;
 			m_iWaveNumber++;
 
-			UTIL_ClientPrintAll(HUD_PRINTCENTER, UTIL_VarArgs("Wave %d begins!\n", m_iWaveNumber));
-			MESSAGE_BEGIN(MSG_BROADCAST, gmsgObjective);
-				WRITE_STRING(UTIL_VarArgs("Wave #%d", m_iWaveNumber));
-				WRITE_STRING(UTIL_VarArgs("Enemies remain: %d", m_iEnemiesRemain));
-				WRITE_BYTE((m_iTotalEnemies - m_iEnemiesRemain) / m_iTotalEnemies);
-			MESSAGE_END();
+			if (m_iTotalEnemies)
+			{
+				UTIL_ClientPrintAll(HUD_PRINTCENTER, UTIL_VarArgs("Wave %d begins!\n", m_iWaveNumber));
+				MESSAGE_BEGIN(MSG_BROADCAST, gmsgObjective);
+					WRITE_STRING(UTIL_VarArgs("Wave #%d", m_iWaveNumber));
+					WRITE_STRING(UTIL_VarArgs("Enemies remain: %d", m_iEnemiesRemain));
+					WRITE_BYTE((m_iTotalEnemies - m_iEnemiesRemain) / m_iTotalEnemies);
+				MESSAGE_END();
+			}
 
 			m_fBeginWaveTime = 0;
 		}
@@ -315,6 +321,8 @@ void CHalfLifeHorde::Think( void )
 		// Enemies all dead, new round.
 		if (m_iEnemiesRemain <= 0 && m_fBeginWaveTime < gpGlobals->time)
 		{
+			m_flRoundTimeLimit = 0;
+
 			int highest = 1;
 			BOOL IsEqual = FALSE;
 			CBasePlayer *highballer = NULL;
