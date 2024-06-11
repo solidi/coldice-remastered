@@ -28,6 +28,7 @@
 #include "trains.h"			// trigger_camera has train functionality
 #include "gamerules.h"
 #include "items.h"
+#include "weapons.h"
 
 #define	SF_TRIGGER_PUSH_START_OFF	2//spawnflag that makes trigger_push spawn turned OFF
 #define SF_TRIGGER_HURT_TARGETONCE	1// Only fire hurt target once
@@ -1933,6 +1934,19 @@ void CBaseTrigger :: TeleportTouch( CBaseEntity *pOther )
 
 	pevToucher->fixangle = TRUE;
 	pevToucher->velocity = pevToucher->basevelocity = g_vecZero;
+
+	// Kill?
+	CBaseEntity *ent = NULL;
+	while ( (ent = UTIL_FindEntityInSphere( ent, pevToucher->origin, 128 )) != NULL )
+	{
+		// if ent is a client, kill em (unless they are ourselves)
+		if ( ent->IsPlayer() && !(VARS(ent->edict()) == pevToucher) && ent->IsAlive() )
+		{
+			ClearMultiDamage();
+			ent->pev->health = 0; // without this, player can walk as a ghost.
+			((CBasePlayer *)ent)->Killed(pevToucher, VARS(INDEXENT(0)), GIB_ALWAYS);
+		}
+	}
 }
 
 

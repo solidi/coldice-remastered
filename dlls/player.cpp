@@ -3680,10 +3680,11 @@ edict_t *EntSelectSpawnPoint( CBaseEntity *pPlayer )
 			while ( (ent = UTIL_FindEntityInSphere( ent, pSpot->pev->origin, 128 )) != NULL )
 			{
 				// if ent is a client, kill em (unless they are ourselves)
-				if ( ent->IsPlayer() && !(ent->edict() == player) )
+				if ( ent->IsPlayer() && !(ent->edict() == player) && ent->IsAlive() )
 				{
 					ClearMultiDamage();
-					ent->TakeDamage( VARS(INDEXENT(0)), pPlayer->pev, 300, DMG_GENERIC );
+					ent->pev->health = 0; // without this, player can walk as a ghost.
+					((CBasePlayer *)ent)->Killed(pPlayer->pev, VARS(INDEXENT(0)), GIB_ALWAYS);
 				}
 			}
 			goto ReturnSpot;
