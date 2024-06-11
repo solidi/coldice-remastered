@@ -1539,7 +1539,8 @@ void CHalfLifeMultiplay :: PlayerSpawn( CBasePlayer *pPlayer )
 					meleeWeapon = "weapon_wrench";
 				}
 			}
-			pPlayer->GiveNamedItem(STRING(ALLOC_STRING(meleeWeapon)));
+			if (!pPlayer->HasNamedPlayerItem(meleeWeapon))
+				pPlayer->GiveNamedItem(STRING(ALLOC_STRING(meleeWeapon)));
 		}
 
 		char *pWeaponName;

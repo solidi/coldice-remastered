@@ -518,3 +518,11 @@ BOOL CHalfLifeGunGame::FPlayerCanTakeDamage( CBasePlayer *pPlayer, CBaseEntity *
 
 	return TRUE;
 }
+
+BOOL CHalfLifeGunGame::MutatorAllowed(const char *mutator)
+{
+	if (strstr(mutator, g_szMutators[MUTATOR_RANDOMWEAPON - 1]) || atoi(mutator) == MUTATOR_RANDOMWEAPON)
+		return FALSE;
+	
+	return TRUE;
+}

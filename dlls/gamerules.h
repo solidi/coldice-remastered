@@ -472,6 +472,7 @@ public:
 	virtual void CaptureCharm( CBasePlayer *pPlayer ) { };
 	virtual CBaseEntity *DropCharm( CBasePlayer *pPlayer, Vector origin ) { return NULL; };
 	virtual BOOL CanRandomizeWeapon(const char *name) { return TRUE; }
+	virtual BOOL MutatorAllowed(const char *mutator) { return TRUE; }
 
 protected:
 	virtual void ChangeLevel( void );

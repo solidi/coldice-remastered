@@ -5611,8 +5611,11 @@ void CBasePlayer::ItemPreFrame()
 	}
 
 	if (g_pGameRules->IsAllowedToHolsterWeapon() && !m_pActiveItem && HasWeapons()) {
-		m_pActiveItem = m_pLastItem;//We set the chosen weapon to lastitem in selectitem func. //Now we`ll set it to the active weapon and draws it with ChangeGun.
-		ChangeGun();
+		if (m_pLastItem && m_pLastItem->CanDeploy())
+		{
+			m_pActiveItem = m_pLastItem;//We set the chosen weapon to lastitem in selectitem func. //Now we`ll set it to the active weapon and draws it with ChangeGun.
+			ChangeGun();
+		}
 	}
 
 	if (!m_pActiveItem)
