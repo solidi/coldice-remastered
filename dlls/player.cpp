@@ -3680,10 +3680,11 @@ edict_t *EntSelectSpawnPoint( CBaseEntity *pPlayer )
 			while ( (ent = UTIL_FindEntityInSphere( ent, pSpot->pev->origin, 128 )) != NULL )
 			{
 				// if ent is a client, kill em (unless they are ourselves)
-				if ( ent->IsPlayer() && !(ent->edict() == player) )
+				if ( ent->IsPlayer() && !(ent->edict() == player) && ent->IsAlive() )
 				{
 					ClearMultiDamage();
-					ent->TakeDamage( VARS(INDEXENT(0)), pPlayer->pev, 300, DMG_GENERIC );
+					ent->pev->health = 0; // without this, player can walk as a ghost.
+					((CBasePlayer *)ent)->Killed(pPlayer->pev, VARS(INDEXENT(0)), GIB_ALWAYS);
 				}
 			}
 			goto ReturnSpot;
@@ -5610,8 +5611,11 @@ void CBasePlayer::ItemPreFrame()
 	}
 
 	if (g_pGameRules->IsAllowedToHolsterWeapon() && !m_pActiveItem && HasWeapons()) {
-		m_pActiveItem = m_pLastItem;//We set the chosen weapon to lastitem in selectitem func. //Now we`ll set it to the active weapon and draws it with ChangeGun.
-		ChangeGun();
+		if (m_pLastItem && m_pLastItem->CanDeploy())
+		{
+			m_pActiveItem = m_pLastItem;//We set the chosen weapon to lastitem in selectitem func. //Now we`ll set it to the active weapon and draws it with ChangeGun.
+			ChangeGun();
+		}
 	}
 
 	if (!m_pActiveItem)

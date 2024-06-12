@@ -725,7 +725,7 @@ void CGameRules::SpawnMutators(CBasePlayer *pPlayer)
 		pPlayer->MakeVisible();
 	}
 
-	if (randomweapon.value)
+	if (randomweapon.value && MutatorAllowed("randomweapon"))
 		pPlayer->GiveRandomWeapon(NULL);
 
 	if (MutatorEnabled(MUTATOR_999)) {
