@@ -100,7 +100,7 @@ void CHalfLifeArena::Think( void )
 						UTIL_VarArgs("%s is the victor!\n",
 						STRING(pPlayer2->pev->netname)));
 					MESSAGE_BEGIN(MSG_BROADCAST, gmsgObjective);
-						WRITE_STRING("Arena");
+						WRITE_STRING("1 vs. 1");
 						WRITE_STRING("");
 						WRITE_BYTE(0);
 						WRITE_STRING(UTIL_VarArgs("%s is the victor!\n", STRING(pPlayer2->pev->netname)));
@@ -116,7 +116,7 @@ void CHalfLifeArena::Think( void )
 						UTIL_VarArgs("%s is the victor!\n",
 						STRING(pPlayer1->pev->netname)));
 					MESSAGE_BEGIN(MSG_BROADCAST, gmsgObjective);
-						WRITE_STRING("Arena");
+						WRITE_STRING("1 vs. 1");
 						WRITE_STRING("");
 						WRITE_BYTE(0);
 						WRITE_STRING(UTIL_VarArgs("%s is the victor!\n", STRING(pPlayer1->pev->netname)));
@@ -129,7 +129,7 @@ void CHalfLifeArena::Think( void )
 			}
 
 			m_iSuccessfulRounds++;
-			flUpdateTime = gpGlobals->time + 5.0;
+			flUpdateTime = gpGlobals->time + 3.0;
 			return;
 		}
 
@@ -191,7 +191,7 @@ void CHalfLifeArena::Think( void )
 					MESSAGE_END();
 
 					m_iSuccessfulRounds++;
-					flUpdateTime = gpGlobals->time + 5.0;
+					flUpdateTime = gpGlobals->time + 3.0;
 					return;
 				}
 				else
@@ -200,7 +200,7 @@ void CHalfLifeArena::Think( void )
 					if ( plr->IsSpectator() )
 					{
 						MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, plr->edict() );
-							WRITE_STRING("Arena in progress");
+							WRITE_STRING(UTIL_VarArgs("1 vs. 1: Round %d of %.0f", m_iSuccessfulRounds + 1, roundlimit.value ));
 							WRITE_STRING(UTIL_VarArgs("%s (%.0f/%.0f) vs. %s (%.0f/%.0f)\n",
 							STRING(pPlayer1->pev->netname),
 							pPlayer1->pev->health,
@@ -219,7 +219,7 @@ void CHalfLifeArena::Think( void )
 			}
 		}
 
-		flUpdateTime = gpGlobals->time + 3.0;
+		flUpdateTime = gpGlobals->time + 1.5;
 		return;
 	}
 
@@ -363,7 +363,7 @@ void CHalfLifeArena::Think( void )
 	{
 		SuckAllToSpectator();
 		MESSAGE_BEGIN(MSG_BROADCAST, gmsgObjective);
-			WRITE_STRING("Arena");
+			WRITE_STRING("1 vs. 1");
 			WRITE_STRING("Waiting for other players");
 			WRITE_BYTE(0);
 			WRITE_STRING(UTIL_VarArgs("%d Rounds", (int)roundlimit.value));
@@ -446,7 +446,7 @@ BOOL CHalfLifeArena::HasGameTimerExpired( void )
 		MESSAGE_END();
 
 		m_iSuccessfulRounds++;
-		flUpdateTime = gpGlobals->time + 5.0;
+		flUpdateTime = gpGlobals->time + 3.0;
 		m_flRoundTimeLimit = 0;
 		return TRUE;
 	}

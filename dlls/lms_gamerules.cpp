@@ -168,11 +168,11 @@ void CHalfLifeLastManStanding::Think( void )
 			}
 
 			m_iSuccessfulRounds++;
-			flUpdateTime = gpGlobals->time + 5.0;
+			flUpdateTime = gpGlobals->time + 3.0;
 			return;
 		}
 
-		flUpdateTime = gpGlobals->time + 3.0;
+		flUpdateTime = gpGlobals->time + 1.5;
 		return;
 	}
 
@@ -322,7 +322,7 @@ BOOL CHalfLifeLastManStanding::HasGameTimerExpired( void )
 		MESSAGE_END();
 
 		m_iSuccessfulRounds++;
-		flUpdateTime = gpGlobals->time + 5.0;
+		flUpdateTime = gpGlobals->time + 3.0;
 		m_flRoundTimeLimit = 0;
 		return TRUE;
 	}

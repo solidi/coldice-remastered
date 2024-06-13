@@ -404,7 +404,7 @@ void CHalfLifeHorde::Think( void )
 
 			m_iSuccessfulRounds++;
 
-			m_fBeginWaveTime = gpGlobals->time + 5.0;
+			m_fBeginWaveTime = gpGlobals->time + 3.0;
 		}
 
 		// survivors dead
@@ -471,11 +471,11 @@ void CHalfLifeHorde::Think( void )
 			}
 
 			m_iSuccessfulRounds++;
-			flUpdateTime = gpGlobals->time + 5.0;
+			flUpdateTime = gpGlobals->time + 3.0;
 			return;
 		}
 
-		flUpdateTime = gpGlobals->time + 3.0;
+		flUpdateTime = gpGlobals->time + 1.5;
 		return;
 	}
 
@@ -517,7 +517,7 @@ void CHalfLifeHorde::Think( void )
 
 		InsertClientsIntoArena(0);
 
-		m_fBeginWaveTime = gpGlobals->time + 3.0;
+		m_fBeginWaveTime = gpGlobals->time + 1.0;
 
 		m_iCountDown = 3;
 		m_fWaitForPlayersTime = -1;
@@ -674,7 +674,7 @@ BOOL CHalfLifeHorde::HasGameTimerExpired( void )
 		MESSAGE_END();
 
 		m_iSuccessfulRounds++;
-		flUpdateTime = gpGlobals->time + 5.0;
+		flUpdateTime = gpGlobals->time + 3.0;
 		m_flRoundTimeLimit = 0;
 		return TRUE;
 	}

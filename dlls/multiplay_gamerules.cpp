@@ -1178,7 +1178,7 @@ void CHalfLifeMultiplay :: InitHUD( CBasePlayer *pl )
 		else if (g_GameMode == GAME_SNOWBALL)
 		{
 			MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL,  pl->edict());
-				WRITE_STRING("Fight with snowballs");
+				WRITE_STRING("Snowball 'em");
 				WRITE_STRING("");
 				WRITE_BYTE(0);
 			MESSAGE_END();
