@@ -30,6 +30,8 @@ DECLARE_MESSAGE( m_StatusIcons, StatusIcon );
 
 extern float g_xP, g_yP;
 
+extern qboolean g_IronSight;
+
 int CHudStatusIcons::Init( void )
 {
 	HOOK_MESSAGE( StatusIcon );
@@ -136,6 +138,8 @@ int CHudStatusIcons::Draw( float flTime )
 			if (m->timeToLive < gHUD.m_flTime) {
 				if (m->mutatorId == MUTATOR_THIRDPERSON)
 					gEngfuncs.pfnClientCmd("firstperson\n");
+				else if (m->mutatorId == MUTATOR_CLOSEUP)
+					g_IronSight = FALSE;
 
 				if (prev) {
 					mutators_t *temp;

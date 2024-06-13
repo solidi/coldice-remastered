@@ -53,6 +53,7 @@ float g_RetractDistance = 0;
 float g_NotifyTime = 0;
 extern cvar_t *cl_antivomit;
 extern cvar_t *cl_icemodels;
+extern qboolean g_IronSight;
 
 /// USER-DEFINED SERVER MESSAGE HANDLERS
 
@@ -124,9 +125,13 @@ void CHud :: MsgFunc_InitHUD( const char *pszName, int iSize, void *pbuf )
 	// Reset client values to render objectives
 	gHUD.m_iShowingWeaponMenu = 0;
 	gHUD.m_Scoreboard.m_iShowscoresHeld = FALSE;
+
 	gHUD.m_Mutators = NULL;
 	gEngfuncs.pfnClientCmd("firstperson\n");
 	gHUD.m_StatusIcons.Reset();
+
+	g_IronSight = FALSE;
+
 	gHUD.local_player_index = 0;
 	gHUD.m_ChaosTime = 0;
 	gHUD.m_ChaosStartTime = 0;
@@ -355,6 +360,8 @@ int CHud :: MsgFunc_AddMut( const char *pszName, int iSize, void *pbuf )
 			// Specific for client
 			if (mutatorId == MUTATOR_THIRDPERSON)
 				gEngfuncs.pfnClientCmd("thirdperson\n");
+			else if (mutatorId == MUTATOR_CLOSEUP)
+				g_IronSight = TRUE;
 
 			// gEngfuncs.Con_DPrintf(">>> got mutator[id=%d, start=%.2f, ttl=%.2f]\n", mutator->mutatorId, mutator->startTime, mutator->timeToLive );
 		}

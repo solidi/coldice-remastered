@@ -64,6 +64,7 @@ DLL_GLOBAL const char *g_szMutators[] = {
 	"bigfoot",
 	"bighead",
 	"chumxplode",
+	"closeup",
 	"coolflesh",
 	"crate",
 	"credits",
