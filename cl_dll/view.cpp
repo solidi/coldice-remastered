@@ -539,6 +539,9 @@ V_CalcRefdef
 
 ==================
 */
+static float lastFovSights = -1;
+static float defaultFovSights = 0;
+
 void V_CalcNormalRefdef ( struct ref_params_s *pparams )
 {
 	static Vector vecLerpedYaw;
@@ -776,6 +779,15 @@ void V_CalcNormalRefdef ( struct ref_params_s *pparams )
 
 		if (Length(position) > 1) {
 			V_IronSight(position, angles, pparams->time, pparams->frametime, view, pparams->forward, pparams->up, pparams->right);
+		}
+		else
+		{
+			float defaultFov = CVAR_GET_FLOAT( "default_fov" );
+			if (defaultFovSights && defaultFovSights != defaultFov) {
+				gEngfuncs.Cvar_SetValue("default_fov", defaultFovSights);
+				defaultFovSights = 0;
+				lastFovSights = -1;
+			}
 		}
 
 		if (cl_weaponretract->value) {
@@ -2005,7 +2017,7 @@ void V_PunchAxis( int axis, float punch )
 		return;
 	}
 
-	if (g_IronSight) {
+	if (g_IronSight && (punch < 360 && punch > -360)) {
 		punch *= 0.2;
 	}
 
@@ -2264,8 +2276,6 @@ void V_WeaponPull( float clientTime, float frameTime, cl_entity_t *viewModel, fl
 
 void V_IronSight( Vector position, Vector punch, float clientTime, float frameTime, cl_entity_t *viewModel, Vector forward, Vector up, Vector right )
 {
-	static float defaultFov = 0;
-	static float lastFov = -1;
 	extern cvar_t *m_pCvarRighthand;
 	float mxForward = position.x;
 	float mxUp = position.y;
@@ -2278,6 +2288,9 @@ void V_IronSight( Vector position, Vector punch, float clientTime, float frameTi
 
 	// No dual wield support
 	if (!strncmp(viewModel->model->name, "models/v_dual_", strlen("models/v_dual_")))
+		return;
+
+	if (CL_IsThirdPerson())
 		return;
 
 	// unstick
@@ -2303,20 +2316,20 @@ void V_IronSight( Vector position, Vector punch, float clientTime, float frameTi
 			if (mxYaw > 0) kYaw += 2.0; else kYaw -= 2.0;
 			if (mxRoll > 0) kRoll += 5.0; else kRoll -= 5.0;
 
-			if (lastFov == -1) {
-				lastFov = 0;
-				defaultFov = CVAR_GET_FLOAT( "default_fov" );
+			if (lastFovSights == -1) {
+				lastFovSights = 0;
+				defaultFovSights = CVAR_GET_FLOAT( "default_fov" );
 				gEngfuncs.pfnPlaySoundByName( "ironsight_on.wav", 1 );
 				gEngfuncs.pEventAPI->EV_WeaponAnimation ( 0, 0 );
 			}
 
-			lastFov -= 5.5;
+			lastFovSights -= 5.5;
 
-			if (lastFov < -15) lastFov = -15;
+			if (lastFovSights < -15) lastFovSights = -15;
 
-			gEngfuncs.Cvar_SetValue("default_fov", defaultFov + lastFov);
+			gEngfuncs.Cvar_SetValue("default_fov", defaultFovSights + lastFovSights);
 		} else {
-			if (lastFov != -1) {
+			if (lastFovSights != -1) {
 				if (mxForward > 0) kF -= 1.5; else kF += 1.5;
 				if (mxUp > 0) kU -= 1.5; else kU += 1.5;
 				if (mxRight > 0) kR -= 3.0; else kR += 3.0;
@@ -2324,15 +2337,15 @@ void V_IronSight( Vector position, Vector punch, float clientTime, float frameTi
 				if (mxYaw > 0) kYaw -= 2.0; else kYaw += 2.0;
 				if (mxRoll > 0) kRoll -= 5.0; else kRoll += 5.0;
 
-				lastFov += 5.5;
+				lastFovSights += 5.5;
 
-				if (lastFov > 0) lastFov = 0;
+				if (lastFovSights > 0) lastFovSights = 0;
 
-				gEngfuncs.Cvar_SetValue("default_fov", defaultFov + lastFov);
+				gEngfuncs.Cvar_SetValue("default_fov", defaultFovSights + lastFovSights);
 
-				if (lastFov == 0) {
+				if (lastFovSights == 0) {
 					gEngfuncs.pfnPlaySoundByName( "ironsight_off.wav", 1 );
-					lastFov = -1;
+					lastFovSights = -1;
 				}
 			}
 		}

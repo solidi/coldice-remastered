@@ -1025,6 +1025,7 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"bigfoot\" - step size is crazy big\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"bighead\" - players heads are very large\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"chumxplode\" - a killer chumtoad appears directly after an explosion\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"closeup\" - ironsights are locked in\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"coolflesh\" - gibs stay longer, pick up gibs to eat and gain a healthkit worth of repair\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"crate\" - boxwars in the 2020's.\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"credits\" - show all contributors in an endless loop.\n");

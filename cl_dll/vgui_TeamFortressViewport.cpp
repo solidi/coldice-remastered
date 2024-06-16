@@ -210,6 +210,7 @@ char *sMutators[] = {
 	"bigfoot",
 	"bighead",
 	"chumxplode",
+	"closeup",
 	"coolflesh",
 	"crate",
 	"credits",

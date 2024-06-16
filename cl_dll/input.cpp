@@ -398,12 +398,12 @@ void IN_RightDown(void) {KeyDown(&in_right);}
 void IN_RightUp(void) {KeyUp(&in_right);}
 
 void IN_IronSightDown( void ) {
-	g_IronSight = true;
+	g_IronSight = MutatorEnabled(MUTATOR_CLOSEUP) ? FALSE : TRUE;
 	KeyDown( &in_ironsight );
 }
 
 void IN_IronSightUp( void ) {
-	g_IronSight = false;
+	g_IronSight = MutatorEnabled(MUTATOR_CLOSEUP) ? TRUE : FALSE;
 	KeyUp( &in_ironsight );
 }
 
