@@ -54,7 +54,6 @@ void CGlock::Spawn( )
 	FallInit();// get ready to fall down.
 }
 
-
 void CGlock::Precache( void )
 {
 	PRECACHE_MODEL("models/v_9mmhandgun.mdl");
@@ -72,6 +71,16 @@ void CGlock::Precache( void )
 
 	m_usFireGlock1 = PRECACHE_EVENT( 1, "events/glock1.sc" );
 	m_usFireGlock2 = PRECACHE_EVENT( 1, "events/glock2.sc" );
+}
+
+int CGlock::AddToPlayer( CBasePlayer *pPlayer )
+{
+	if ( CBasePlayerWeapon::AddToPlayer( pPlayer ) )
+	{
+		WeaponPickup(pPlayer, m_iId);
+		return TRUE;
+	}
+	return FALSE;
 }
 
 int CGlock::GetItemInfo(ItemInfo *p)
