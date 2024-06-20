@@ -237,6 +237,7 @@ HLDLL_OBJS = \
 	$(HLDLL_OBJ_DIR)/world.o \
 	$(HLDLL_OBJ_DIR)/wrench.o \
 	$(HLDLL_OBJ_DIR)/xen.o \
+	$(HLDLL_OBJ_DIR)/zapgun.o \
 	$(HLDLL_OBJ_DIR)/zombie.o
 
 HLWPN_OBJS = \

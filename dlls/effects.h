@@ -213,7 +213,7 @@ public:
 	void Precache( void );
 	void EXPORT TracerTouch( CBaseEntity *pOther );
 	BOOL EXPORT ShouldCollide( CBaseEntity *pOther );
-	static CTracer *CreateTracer( Vector vecOrigin, Vector vecAngles, CBaseEntity *pOwner, string_t weaponname );
+	static CTracer *CreateTracer( Vector vecOrigin, Vector vecAngles, CBaseEntity *pOwner, long speed, long dmg, string_t weaponname );
 
 	virtual int ObjectCaps( void ) { return (CBaseEntity::ObjectCaps() & ~FCAP_ACROSS_TRANSITION) | FCAP_PORTAL; }
 };

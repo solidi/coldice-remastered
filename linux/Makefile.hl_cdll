@@ -226,6 +226,7 @@ DLL_OBJS = \
 	$(HL1_SERVER_OBJ_DIR)/usas.o \
 	$(HL1_SERVER_OBJ_DIR)/vest.o \
 	$(HL1_SERVER_OBJ_DIR)/wrench.o \
+	$(HL1_SERVER_OBJ_DIR)/zapgun.o \
 
 
 PUBLIC_OBJS = \

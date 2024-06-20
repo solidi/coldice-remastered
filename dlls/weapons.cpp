@@ -482,6 +482,7 @@ void W_Precache(void)
 	UTIL_PrecacheOtherWeapon( "weapon_dual_chaingun" );
 	UTIL_PrecacheOtherWeapon( "weapon_dual_hornetgun" );
 	UTIL_PrecacheOtherWeapon( "weapon_fingergun" );
+	UTIL_PrecacheOtherWeapon( "weapon_zapgun" );
 
 	UTIL_PrecacheOther( "monster_barrel" );
 	UTIL_PrecacheOther( "monster_sentry" );

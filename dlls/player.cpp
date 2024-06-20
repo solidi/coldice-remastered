@@ -1150,10 +1150,11 @@ void CBasePlayer::Killed( entvars_t *pevAttacker, int iGib )
 		return;
 	}
 
-	if ( ( pev->health < -40 && iGib != GIB_NEVER ) || iGib == GIB_ALWAYS )
+	if ( ( pev->health < -40 && iGib != GIB_NEVER ) || iGib == GIB_ALWAYS || iGib == GIB_CLEAR )
 	{
 		pev->solid			= SOLID_NOT;
-		GibMonster();	// This clears pev->model
+		if (iGib != GIB_CLEAR)
+			GibMonster();	// This clears pev->model
 		pev->effects |= EF_NODRAW;
 		return;
 	}
@@ -5315,6 +5316,7 @@ void CBasePlayer::CheatImpulseCommands( int iImpulse, BOOL m_iFromClient )
 		GiveNamedItem( "weapon_dual_sawedoff" );
 		GiveNamedItem( "weapon_dual_hornetgun" );
 		GiveNamedItem( "weapon_fingergun" );
+		GiveNamedItem( "weapon_zapgun" );
 #endif
 		gEvilImpulse101 = FALSE;
 		break;

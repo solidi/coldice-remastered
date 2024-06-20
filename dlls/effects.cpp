@@ -2450,13 +2450,16 @@ extern int gmsgParticle;
 
 LINK_ENTITY_TO_CLASS( tracer, CTracer );
 
-CTracer *CTracer::CreateTracer( Vector vecOrigin, Vector vecAngles, CBaseEntity *pOwner, string_t weaponname )
+CTracer *CTracer::CreateTracer( Vector vecOrigin, Vector vecAngles, CBaseEntity *pOwner, long speed, long dmg, string_t weaponname )
 {
 	CTracer *tracer = GetClassPtr( (CTracer *)NULL );
 
 	UTIL_SetOrigin( tracer->pev, vecOrigin );
-	tracer->pev->angles = vecAngles;
+	tracer->pev->angles = UTIL_VecToAngles(vecAngles);
 	tracer->Spawn();
+	if (speed)
+		tracer->pev->velocity = gpGlobals->v_forward * speed;
+	tracer->pev->dmg = dmg ? dmg : gSkillData.plrDmg9MM;
 	tracer->SetTouch( &CTracer::TracerTouch );
 	tracer->SetThink( &CTracer::SUB_Remove );
 	tracer->pev->nextthink = gpGlobals->time + 10.0;
@@ -2482,12 +2485,8 @@ void CTracer::Spawn( )
 
 	pev->classname = MAKE_STRING("tracer");
 
-	UTIL_MakeVectors( pev->angles );
-	pev->angles.x = -(pev->angles.x);
-
 	pev->velocity = gpGlobals->v_forward * RANDOM_LONG(500, 700);
 	pev->gravity = 0.0;
-	pev->dmg = gSkillData.plrDmg9MM;
 
 	m_burnParticleEnabled = 1;
 	pev->colormap = entindex();
@@ -2500,6 +2499,7 @@ void CTracer::Spawn( )
 
 BOOL CTracer::ShouldCollide( CBaseEntity *pOther )
 {
+	// ALERT(at_aiconsole, "pev->modelindex=%d == pOther->pev->modelindex=%d\n", pev->modelindex, pOther->pev->modelindex);
 	if (pev->modelindex == pOther->pev->modelindex)
 		return FALSE;
 
@@ -2533,10 +2533,23 @@ void CTracer::TracerTouch( CBaseEntity *pOther )
 		entvars_t *pevOwner = VARS( pev->owner );
 		if (pevOwner)
 		{
-			ClearMultiDamage();
-			pOther->TraceAttack(pevOwner, pev->dmg, gpGlobals->v_forward, &tr, DMG_NEVERGIB );
-			ApplyMultiDamage( pev, pevOwner );
-			//::RadiusDamage( tr.vecEndPos, pev, pevOwner, gSkillData.plrDmgExpBuckshot, 32, CLASS_NONE, DMG_BLAST );
+			if (pev->dmg > 200)
+			{
+				if ( pOther->IsAlive() )
+				{
+					ClearMultiDamage();
+					pOther->pev->health = 0; // without this, player can walk as a ghost.
+					extern entvars_t *g_pevLastInflictor;
+					g_pevLastInflictor = pevOwner;
+					pOther->Killed(pevOwner, GIB_CLEAR);
+				}
+			}
+			else
+			{
+				ClearMultiDamage();
+				pOther->TraceAttack(pevOwner, pev->dmg, gpGlobals->v_forward, &tr, DMG_NEVERGIB );
+				ApplyMultiDamage( pev, pevOwner );
+			}
 		}
 	}
 	else
