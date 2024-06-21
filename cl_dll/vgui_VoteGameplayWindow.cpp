@@ -108,7 +108,9 @@ CVoteGameplayPanel::CVoteGameplayPanel(int iTrans, int iRemoveMe, int x,int y,in
 		ActionSignal *pASignal = new CMenuHandler_StringCommandClassSelect(voteCommand, false );
 
 		// gameplay button
-		sprintf(sz, " %s", CHudTextMessage::BufferedLocaliseTextString( sLocalisedGameplayModes[i] ) );
+		sprintf(sz, "%s", sGameplayModes[i]);
+		char* localName = CHudTextMessage::BufferedLocaliseTextString( sz );
+		sprintf(sz, "%s", localName );
 		m_pButtons[i] = new ClassButton( i, sz, iXPos, iYPos, GAMEMENU_BUTTON_SIZE_X, GAMEMENU_BUTTON_SIZE_Y, true);
 		m_pButtons[i]->setBoundKey( (char)255 );
 		m_pButtons[i]->setContentAlignment( vgui::Label::a_west );
@@ -129,8 +131,8 @@ CVoteGameplayPanel::CVoteGameplayPanel(int iTrans, int iRemoveMe, int x,int y,in
 		}
 
 		// Create the Gameplay Name Label
-		sprintf(sz, "%s", sLocalisedGameplayModes[i]);
-		char* localName = CHudTextMessage::BufferedLocaliseTextString( sz );
+		sprintf(sz, "#%s", sGameplayModes[i]);
+		localName = CHudTextMessage::BufferedLocaliseTextString( sz );
 		Label *pNameLabel = new Label( "", textOffs, GAMEMENU_WINDOW_NAME_Y );
 		pNameLabel->setFont( pSchemes->getFont(hTitleScheme) ); 
 		pNameLabel->setParent( m_pGameInfoPanel[i] );
@@ -253,7 +255,9 @@ void CVoteGameplayPanel::Update()
 		}
 
 		char sz[256];
-		sprintf(sz, " %-2d %s", votes[i], CHudTextMessage::BufferedLocaliseTextString( sLocalisedGameplayModes[i] ));
+		sprintf(sz, "#%s", sGameplayModes[i]);
+		char* localName = CHudTextMessage::BufferedLocaliseTextString( sz );
+		sprintf(sz, " %-2d %s", votes[i], localName);
 		m_pButtons[i]->setText(sz);
 
 		if ((myVote - 1) == i)

@@ -128,24 +128,6 @@ char *sLocalisedClasses[] =
 	"#Civilian",
 };
 
-char *sLocalisedGameplayModes[] = 
-{
-	"#ffa",
-	"#arena",
-	"#lms",
-	"#chilldemic",
-	"#coldskull",
-	"#ctc",
-	"#ctf",
-	"#gungame",
-	"#horde",
-	"#jvs",
-	"#shidden",
-	"#snowball",
-	"#teamplay",
-	"#random",
-};
-
 char *sGameplayModes[] = 
 {
 	"ffa",
@@ -157,6 +139,7 @@ char *sGameplayModes[] =
 	"ctf",
 	"gungame",
 	"horde",
+	"instagib",
 	"jvs",
 	"shidden",
 	"snowball",
@@ -248,6 +231,7 @@ char *sMutators[] = {
 	"portal",
 	"pumpkin",
 	"pushy",
+	"railguns",
 	"randomweapon",
 	"ricochet",
 	"rockets",

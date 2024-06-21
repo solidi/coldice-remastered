@@ -111,7 +111,6 @@ void CSnowball::Holster( int skiplocal /* = 0 */ )
 	}
 	else
 	{
-		// no more grenades!
 		m_pPlayer->pev->weapons &= ~(1<<WEAPON_SNOWBALL);
 		SetThink( &CSnowball::DestroyItem );
 		pev->nextthink = gpGlobals->time + 0.1;

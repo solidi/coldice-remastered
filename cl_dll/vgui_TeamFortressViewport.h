@@ -71,7 +71,6 @@ void ScaleColors( int &r, int &g, int &b, int a );
 extern char *sTFClassSelection[];
 extern int sTFValidClassInts[];
 extern char *sLocalisedClasses[];
-extern char *sLocalisedGameplayModes[];
 extern char *sGameplayModes[];
 extern char *sBuiltInMaps[];
 extern char *sMutators[];

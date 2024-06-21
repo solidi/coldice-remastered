@@ -489,6 +489,7 @@ void W_Precache(void)
 	UTIL_PrecacheOther( "monster_human_assassin" );
 	UTIL_PrecacheOther( "tracer" );
 	UTIL_PrecacheOther( "disc" );
+	UTIL_PrecacheOther( "monster_tombstone" );
 
 #if !defined( OEM_BUILD ) && !defined( HLDEMO_BUILD )
 	UTIL_PrecacheOther( "weaponbox" );// container for dropped deathmatch weapons

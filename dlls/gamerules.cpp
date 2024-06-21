@@ -36,6 +36,7 @@
 #include	"ctf_gamerules.h"
 #include	"shidden_gamerules.h"
 #include	"horde_gamerules.h"
+#include	"instagib_gamerules.h"
 
 extern edict_t *EntSelectSpawnPoint( CBaseEntity *pPlayer );
 
@@ -102,6 +103,7 @@ DLL_GLOBAL const char *g_szMutators[] = {
 	"portal",
 	"pumpkin",
 	"pushy",
+	"railguns",
 	"randomweapon",
 	"ricochet",
 	"rockets",
@@ -512,6 +514,8 @@ CGameRules *InstallGameRules( void )
 				return new CHalfLifeShidden;
 			case GAME_HORDE:
 				return new CHalfLifeHorde;
+			case GAME_INSTAGIB:
+				return new CHalfLifeInstagib;
 		}
 
 		if ((int)gpGlobals->deathmatch == 1)
@@ -779,6 +783,11 @@ void CGameRules::GiveMutators(CBasePlayer *pPlayer)
 	}
 
 	if (MutatorEnabled(MUTATOR_INSTAGIB)) {
+		if (!pPlayer->HasNamedPlayerItem("weapon_zapgun"))
+			pPlayer->GiveNamedItem("weapon_zapgun");
+	}
+
+	if (MutatorEnabled(MUTATOR_RAILGUNS)) {
 		if (!pPlayer->HasNamedPlayerItem("weapon_dual_railgun"))
 			pPlayer->GiveNamedItem("weapon_dual_railgun");
 		pPlayer->GiveAmmo(URANIUM_MAX_CARRY, "uranium", URANIUM_MAX_CARRY);
@@ -1478,4 +1487,9 @@ BOOL CGameRules::IsJVS()
 BOOL CGameRules::IsShidden()
 {
 	return g_GameMode == GAME_SHIDDEN;
+}
+
+BOOL CGameRules::IsInstagib()
+{
+	return g_GameMode == GAME_INSTAGIB;
 }

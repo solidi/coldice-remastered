@@ -4363,10 +4363,6 @@ void CBasePlayer::GiveNamedItem( const char *pszName )
 	if ( pev->iuser1 )	// player is in spectator mode
 		return;
 
-	edict_t	*pent;
-
-	int istr = MAKE_STRING(pszName);
-
 	if (disallowlist.string && strstr(disallowlist.string, pszName)) {
 		ALERT(at_aiconsole, "%s has been disallowed on the server.\n", pszName);
 		return;
@@ -4401,15 +4397,16 @@ void CBasePlayer::GiveNamedItem( const char *pszName )
 		}
 	}
 
-/*
-	if (g_pGameRules->MutatorEnabled(MUTATOR_INSTAGIB)) {
+	if (g_pGameRules->IsInstagib()) {
 		if (stricmp(pszName, "weapon_fists") != 0 &&
-			stricmp(pszName, "weapon_railgun") != 0 &&
-			stricmp(pszName, "weapon_dual_railgun") != 0) {
+			stricmp(pszName, "weapon_zapgun") != 0) {
 			return;
 		}
 	}
-*/
+
+	edict_t	*pent;
+
+	int istr = MAKE_STRING(pszName);
 
 	pent = CREATE_NAMED_ENTITY(istr);
 	if ( FNullEnt( pent ) )
@@ -6627,8 +6624,8 @@ void CBasePlayer::Taunt( void )
 			m_EFlags |= EFLAG_TAUNT;
 			DisplayHudMessage(m_fTaunts[tauntIndex].text,
 				TXT_CHANNEL_TAUNT, -1, 0.75, 200, 200, 200, 2, 0.05, 1.0, 1.5, 0.5);
-			if (pev->health < 105)
-				pev->health++;
+			if (pev->health < 150)
+				pev->health += 5;
 			m_fTauntFullTime = gpGlobals->time + 3.25;
 		}
 		else
