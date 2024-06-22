@@ -660,11 +660,12 @@ BOOL CGameRules::WeaponMutators( CBasePlayerWeapon *pWeapon )
 					ClearMultiDamage();
 					pWeapon->m_pPlayer->pev->health = 0; // without this, player can walk as a ghost.
 					pWeapon->m_pPlayer->Killed(pWeapon->m_pPlayer->pev, pWeapon->m_pPlayer->pev, GIB_ALWAYS);
+
+					CGrenade::Vest( pWeapon->m_pPlayer->pev, pWeapon->m_pPlayer->pev->origin );
+					ClientPrint(pWeapon->m_pPlayer->pev, HUD_PRINTCENTER, "Don't Shoot!!!\n(fists / kicks / slides only!)");
+					pWeapon->m_flNextPrimaryAttack = pWeapon->m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 0.5;
+					return FALSE; // nothing else.
 				}
-				CGrenade::Vest( pWeapon->m_pPlayer->pev, pWeapon->m_pPlayer->pev->origin );
-				ClientPrint(pWeapon->m_pPlayer->pev, HUD_PRINTCENTER, "Don't Shoot!!!\n(fists / kicks / slides only!)");
-				pWeapon->m_flNextPrimaryAttack = pWeapon->m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 0.5;
-				return FALSE; // nothing else.
 			}
 		}
 
