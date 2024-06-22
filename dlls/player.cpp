@@ -1153,7 +1153,7 @@ void CBasePlayer::Killed( entvars_t *pevAttacker, int iGib )
 	if ( ( pev->health < -40 && iGib != GIB_NEVER ) || iGib == GIB_ALWAYS || iGib == GIB_CLEAR )
 	{
 		pev->solid			= SOLID_NOT;
-		if (iGib != GIB_CLEAR)
+		//if (iGib != GIB_CLEAR)
 			GibMonster();	// This clears pev->model
 		pev->effects |= EF_NODRAW;
 		return;

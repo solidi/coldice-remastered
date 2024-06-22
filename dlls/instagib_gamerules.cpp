@@ -30,7 +30,11 @@ class CTombstone : public CBaseEntity
 public:
 	void Precache ( void );
 	void Spawn( void );
+	void EXPORT TombstoneThink( void );
 	virtual int ObjectCaps( void ) { return (CBaseEntity::ObjectCaps() & ~FCAP_ACROSS_TRANSITION) | FCAP_PORTAL; }
+
+private:
+	float m_flTimeToLive;
 };
 
 LINK_ENTITY_TO_CLASS( monster_tombstone, CTombstone );
@@ -46,6 +50,7 @@ void CTombstone::Spawn( void )
 	pev->movetype = MOVETYPE_TOSS;
 	pev->gravity = 0.5;
 	pev->solid = SOLID_NOT;
+	pev->effects |= EF_NODRAW;
 	pev->health = 40;
 	pev->takedamage = DAMAGE_NO;
 	pev->classname = MAKE_STRING("monster_tombstone");
@@ -54,8 +59,35 @@ void CTombstone::Spawn( void )
 
 	UTIL_SetSize(pev, VEC_HULL_MIN, VEC_HULL_MAX);
 
-	SetThink(&CBaseEntity::SUB_Remove);
-	pev->nextthink = gpGlobals->time + 10.0;
+	m_flTimeToLive = gpGlobals->time + 20.0;
+
+	SetThink(&CTombstone::TombstoneThink);
+	pev->nextthink = gpGlobals->time + 0.1;
+}
+
+void CTombstone::TombstoneThink( void )
+{
+	if (pev->flags & FL_ONGROUND)
+	{
+		pev->effects &= ~EF_NODRAW;
+		pev->sequence = 1;
+		pev->framerate = 1.0;
+		pev->animtime = gpGlobals->time;
+
+		SetThink(&CBaseEntity::SUB_StartFadeOut);
+		pev->nextthink = gpGlobals->time + 3.0;
+		return;
+	}
+
+	// In case we never hit ground
+	if (m_flTimeToLive < gpGlobals->time)
+	{
+		SetThink(&CBaseEntity::SUB_Remove);
+		pev->nextthink = gpGlobals->time + 0.1;
+		return;
+	}
+
+	pev->nextthink = gpGlobals->time + 0.25;
 }
 
 CHalfLifeInstagib::CHalfLifeInstagib()
@@ -222,7 +254,7 @@ void CHalfLifeInstagib::PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller, 
 {
 	CHalfLifeMultiplay::PlayerKilled( pVictim, pKiller, pInflictor );
 
-	CBaseEntity::Create( "monster_tombstone", Vector(pVictim->pev->origin.x, pVictim->pev->origin.y, pVictim->pev->origin.z + 48), Vector(pKiller->angles.x, pKiller->angles.y, 0), NULL );
+	CBaseEntity::Create( "monster_tombstone", Vector(pVictim->pev->origin.x, pVictim->pev->origin.y, pVictim->pev->origin.z), Vector(pKiller->angles.x, pKiller->angles.y, 0), NULL );
 }
 
 int CHalfLifeInstagib::DeadPlayerWeapons( CBasePlayer *pPlayer )
