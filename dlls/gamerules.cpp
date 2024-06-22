@@ -1039,6 +1039,7 @@ void CGameRules::MutatorsThink(void)
 		int count = 0;
 		mutators_t *m = m_Mutators;
 		mutators_t *prev = NULL;
+		char szMutators[128] = "";
 		while (m != NULL)
 		{
 			// ALERT(at_aiconsole, ">>> [%.2f] found m->mutatorId=%d [%.2f]\n", gpGlobals->time, m->mutatorId, m->timeToLive);
@@ -1065,12 +1066,19 @@ void CGameRules::MutatorsThink(void)
 			}
 			else
 			{
+				char buffer[16];
+				sprintf(buffer, "%d;", m->mutatorId);
+				strcat(szMutators, buffer);
 				count++;
 			}
 
 			prev = m;
 			m = m->next;
 		}
+
+		// ALERT(at_aiconsole, "szMutators is \"%s\"\n", szMutators );
+		gpGlobals->startspot = ALLOC_STRING(szMutators);
+		// ALERT(at_aiconsole, "STRING(gpGlobals->startspot) is \"%s\"\n", STRING(gpGlobals->startspot) );
 
 		// chaos mode
 		int adjcount = fmin(fmax(mutatorcount.value, 0), 7);
