@@ -105,6 +105,7 @@ CDualSawedOff g_DualSawedOff;
 CDualChaingun g_DualChaingun;
 CDualHgun g_DualHornetgun;
 CFingerGun g_Fingergun;
+CZapgun g_Zapgun;
 
 /*
 ======================
@@ -732,6 +733,7 @@ void HUD_InitClientWeapons( void )
 	HUD_PrepEntity( &g_DualChaingun	, &player );
 	HUD_PrepEntity( &g_DualHornetgun	, &player );
 	HUD_PrepEntity( &g_Fingergun	, &player );
+	HUD_PrepEntity( &g_Zapgun	, &player );
 }
 
 /*
@@ -1031,6 +1033,10 @@ void HUD_WeaponsPostThink( local_state_s *from, local_state_s *to, usercmd_t *cm
 		case WEAPON_FINGERGUN:
 			pWeapon = &g_Fingergun;
 			ProTip(FEIGN_TIP, "Feign your death, press 7 or bind \"feign\"");
+			break;
+
+		case WEAPON_ZAPGUN:
+			pWeapon = &g_Zapgun;
 			break;
 	}
 

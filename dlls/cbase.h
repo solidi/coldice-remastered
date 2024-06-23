@@ -682,6 +682,7 @@ public:
 #define GIB_NORMAL			0// gib if entity was overkilled
 #define GIB_NEVER			1// never gib, no matter how much death damage is done ( freezing, etc )
 #define GIB_ALWAYS			2// always gib ( Houndeye Shock, Barnacle Bite )
+#define GIB_CLEAR			3// no gib parts
 
 class CBaseMonster;
 class CCineMonster;

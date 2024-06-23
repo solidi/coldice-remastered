@@ -205,6 +205,7 @@ public:
 	virtual BOOL IsChilldemic();
 	virtual BOOL IsJVS();
 	virtual BOOL IsShidden();
+	virtual BOOL IsInstagib();
 
 	virtual BOOL AllowMeleeDrop() = 0;
 

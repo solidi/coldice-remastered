@@ -182,6 +182,7 @@
     <ClCompile Include="..\..\dlls\h_export.cpp" />
     <ClCompile Include="..\..\dlls\coldskull_gamerules.cpp" />
     <ClCompile Include="..\..\dlls\ichthyosaur.cpp" />
+    <ClCompile Include="..\..\dlls\instagib_gamerules.cpp" />
     <ClCompile Include="..\..\dlls\islave.cpp" />
     <ClCompile Include="..\..\dlls\items.cpp" />
     <ClCompile Include="..\..\dlls\jvs_gamerules.cpp" />
@@ -246,6 +247,7 @@
     <ClCompile Include="..\..\dlls\wrench.cpp" />
     <ClCompile Include="..\..\dlls\wpn_shared\hl_wpn_glock.cpp" />
     <ClCompile Include="..\..\dlls\xen.cpp" />
+    <ClCompile Include="..\..\dlls\zapgun.cpp" />
     <ClCompile Include="..\..\dlls\zombie.cpp" />
     <ClCompile Include="..\..\game_shared\voice_gamemgr.cpp" />
     <ClCompile Include="..\..\pm_shared\pm_debug.c" />
@@ -282,6 +284,7 @@
     <ClInclude Include="..\..\dlls\horde_gamerules.h" />
     <ClInclude Include="..\..\dlls\hornet.h" />
     <ClInclude Include="..\..\dlls\coldskull_gamerules.h" />
+    <ClInclude Include="..\..\dlls\instagib_gamerules.h" />
     <ClInclude Include="..\..\dlls\items.h" />
     <ClInclude Include="..\..\dlls\jvs_gamerules.h" />
     <ClInclude Include="..\..\dlls\lms_gamerules.h" />

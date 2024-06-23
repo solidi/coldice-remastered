@@ -95,7 +95,7 @@ int CDualUsas::GetItemInfo(ItemInfo *p)
 	p->iMaxAmmo2 = -1;
 	p->iMaxClip = USAS_MAX_CLIP * 2;
 	p->iSlot = 5;
-	p->iPosition = 3;
+	p->iPosition = 4;
 	p->iFlags = 0;
 	p->iId = m_iId = WEAPON_DUAL_USAS;
 	p->iWeight = USAS_WEIGHT * 2;

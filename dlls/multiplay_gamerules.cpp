@@ -157,9 +157,6 @@ void CHalfLifeMultiplay::RefreshSkillData( void )
 	if (snowballfight.value)
 		gSkillData.plrDmgSnowball = 250;
 
-	if (MutatorEnabled(MUTATOR_INSTAGIB))
-		gSkillData.plrDmgRailgun = 900;
-
 	if (MutatorEnabled(MUTATOR_GOLDENGUNS))
 	{
 		/* ??
@@ -259,28 +256,14 @@ char *gamePlayModes[] = {
 	"Capture The Flag",
 	"GunGame",
 	"Horde",
+	"Instagib",
 	"Jesus vs. Santa",
 	"Snowballs",
 	"Teamplay",
 };
 
-char *gamePlayModesShort[] = {
-	"ffa",
-	"arena",
-	"lms",
-	"chilldemic",
-	"coldskull",
-	"ctc",
-	"ctf",
-	"gungame",
-	"horde",
-	"jvs",
-	"shidden",
-	"snowball",
-	"teamplay",
-};
-
 extern void Vote( CBasePlayer *pPlayer, int vote );
+extern const char *szGameModeList[TOTAL_GAME_MODES];
 
 //=========================================================
 //=========================================================
@@ -400,7 +383,7 @@ void CHalfLifeMultiplay :: Think ( void )
 					else
 					{
 						SERVER_COMMAND("mp_teamplay 0\n");
-						SERVER_COMMAND(UTIL_VarArgs("mp_gamemode %s\n", gamePlayModesShort[gameIndex]));
+						SERVER_COMMAND(UTIL_VarArgs("mp_gamemode %s\n", szGameModeList[gameIndex]));
 					}
 				}
 			}
@@ -1644,7 +1627,7 @@ void CHalfLifeMultiplay :: PlayerKilled( CBasePlayer *pVictim, entvars_t *pKille
 		if (peKiller->m_iAssists && (peKiller->m_iAssists % 3 == 0))
 			pKiller->frags += IPointsForKill( peKiller, pVictim );
 
-		if (!UTIL_GetAlivePlayersInSphere(peKiller, 512) &&
+		if (!UTIL_GetAlivePlayersInSphere(peKiller, 1024) &&
 			peKiller->m_iAutoTaunt)
 			peKiller->m_fTauntTime = gpGlobals->time + 0.75;
 

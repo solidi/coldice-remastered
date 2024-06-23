@@ -36,6 +36,7 @@
 #include	"ctf_gamerules.h"
 #include	"shidden_gamerules.h"
 #include	"horde_gamerules.h"
+#include	"instagib_gamerules.h"
 
 extern edict_t *EntSelectSpawnPoint( CBaseEntity *pPlayer );
 
@@ -102,6 +103,7 @@ DLL_GLOBAL const char *g_szMutators[] = {
 	"portal",
 	"pumpkin",
 	"pushy",
+	"railguns",
 	"randomweapon",
 	"ricochet",
 	"rockets",
@@ -512,6 +514,8 @@ CGameRules *InstallGameRules( void )
 				return new CHalfLifeShidden;
 			case GAME_HORDE:
 				return new CHalfLifeHorde;
+			case GAME_INSTAGIB:
+				return new CHalfLifeInstagib;
 		}
 
 		if ((int)gpGlobals->deathmatch == 1)
@@ -656,11 +660,12 @@ BOOL CGameRules::WeaponMutators( CBasePlayerWeapon *pWeapon )
 					ClearMultiDamage();
 					pWeapon->m_pPlayer->pev->health = 0; // without this, player can walk as a ghost.
 					pWeapon->m_pPlayer->Killed(pWeapon->m_pPlayer->pev, pWeapon->m_pPlayer->pev, GIB_ALWAYS);
+
+					CGrenade::Vest( pWeapon->m_pPlayer->pev, pWeapon->m_pPlayer->pev->origin );
+					ClientPrint(pWeapon->m_pPlayer->pev, HUD_PRINTCENTER, "Don't Shoot!!!\n(fists / kicks / slides only!)");
+					pWeapon->m_flNextPrimaryAttack = pWeapon->m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 0.5;
+					return FALSE; // nothing else.
 				}
-				CGrenade::Vest( pWeapon->m_pPlayer->pev, pWeapon->m_pPlayer->pev->origin );
-				ClientPrint(pWeapon->m_pPlayer->pev, HUD_PRINTCENTER, "Don't Shoot!!!\n(fists / kicks / slides only!)");
-				pWeapon->m_flNextPrimaryAttack = pWeapon->m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 0.5;
-				return FALSE; // nothing else.
 			}
 		}
 
@@ -779,6 +784,11 @@ void CGameRules::GiveMutators(CBasePlayer *pPlayer)
 	}
 
 	if (MutatorEnabled(MUTATOR_INSTAGIB)) {
+		if (!pPlayer->HasNamedPlayerItem("weapon_zapgun"))
+			pPlayer->GiveNamedItem("weapon_zapgun");
+	}
+
+	if (MutatorEnabled(MUTATOR_RAILGUNS)) {
 		if (!pPlayer->HasNamedPlayerItem("weapon_dual_railgun"))
 			pPlayer->GiveNamedItem("weapon_dual_railgun");
 		pPlayer->GiveAmmo(URANIUM_MAX_CARRY, "uranium", URANIUM_MAX_CARRY);
@@ -1029,6 +1039,7 @@ void CGameRules::MutatorsThink(void)
 		int count = 0;
 		mutators_t *m = m_Mutators;
 		mutators_t *prev = NULL;
+		char szMutators[128] = "";
 		while (m != NULL)
 		{
 			// ALERT(at_aiconsole, ">>> [%.2f] found m->mutatorId=%d [%.2f]\n", gpGlobals->time, m->mutatorId, m->timeToLive);
@@ -1055,12 +1066,19 @@ void CGameRules::MutatorsThink(void)
 			}
 			else
 			{
+				char buffer[16];
+				sprintf(buffer, "%d;", m->mutatorId);
+				strcat(szMutators, buffer);
 				count++;
 			}
 
 			prev = m;
 			m = m->next;
 		}
+
+		// ALERT(at_aiconsole, "szMutators is \"%s\"\n", szMutators );
+		gpGlobals->startspot = ALLOC_STRING(szMutators);
+		// ALERT(at_aiconsole, "STRING(gpGlobals->startspot) is \"%s\"\n", STRING(gpGlobals->startspot) );
 
 		// chaos mode
 		int adjcount = fmin(fmax(mutatorcount.value, 0), 7);
@@ -1478,4 +1496,9 @@ BOOL CGameRules::IsJVS()
 BOOL CGameRules::IsShidden()
 {
 	return g_GameMode == GAME_SHIDDEN;
+}
+
+BOOL CGameRules::IsInstagib()
+{
+	return g_GameMode == GAME_INSTAGIB;
 }

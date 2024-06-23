@@ -24,7 +24,7 @@ typedef struct
 	float		frametime;
 	float		force_retouch;
 	string_t	mapname;
-	string_t	startspot;
+	string_t	startspot; // CIR: Repurpose as an ID string of enabled mutator integers on server
 	float		deathmatch;
 	float		coop;
 	float		teamplay;

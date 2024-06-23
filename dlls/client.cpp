@@ -1062,6 +1062,7 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"portal\" - now you're thinking with portals\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"pumpkin\" - on Halloween, he appears.\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"pushy\" - all weapon attacks push you back like a gauss attack\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"railguns\" - quake 2 is back\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"randomweapon\" - spawn with a randomly selected weapon\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"ricochet\" - the best mod ever made\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"rockets\" - a random chance of rockets throw on attack!\n");

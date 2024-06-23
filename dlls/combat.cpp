@@ -1516,7 +1516,7 @@ void CBaseEntity::FireBullets(ULONG cShots, Vector vecSrc, Vector vecDirShooting
 
 	if (slowbullets.value && NUMBER_OF_ENTITIES() < 1024) {
 		for ( ULONG iShot = 1; iShot <= cShots; iShot++ )
-			CTracer::CreateTracer( vecSrc, UTIL_VecToAngles(Vector(vecDirShooting.x, vecDirShooting.y, vecDirShooting.z * -1)), CBaseEntity::Instance(pev), 0 );
+			CTracer::CreateTracer( vecSrc, vecDirShooting, CBaseEntity::Instance(pev), 0, 0, 0 );
 	} else {
 		ClearMultiDamage();
 		gMultiDamage.type = DMG_BULLET | DMG_NEVERGIB;
@@ -1663,7 +1663,7 @@ Vector CBaseEntity::FireBulletsPlayer ( ULONG cShots, Vector vecSrc, Vector vecD
 		for ( ULONG iShot = 1; iShot <= cShots; iShot++ )
 		{
 			Vector vecSrc1 = pev->origin + pev->view_ofs + gpGlobals->v_forward * 28 + gpGlobals->v_right * RANDOM_LONG(-8, 8) + gpGlobals->v_up * RANDOM_LONG(-8, 8);
-			CTracer::CreateTracer( vecSrc1, pev->v_angle, CBaseEntity::Instance(pevAttacker), weapon );
+			CTracer::CreateTracer( vecSrc1, vecDirShooting, CBaseEntity::Instance(pevAttacker), 0, 0, weapon );
 		}
 	} else {
 		ClearMultiDamage();

@@ -235,6 +235,7 @@
     <ClCompile Include="..\..\dlls\usas.cpp" />
     <ClCompile Include="..\..\dlls\vest.cpp" />
     <ClCompile Include="..\..\dlls\wrench.cpp" />
+    <ClCompile Include="..\..\dlls\zapgun.cpp" />
     <ClCompile Include="..\..\dlls\wpn_shared\hl_wpn_glock.cpp" />
     <ClCompile Include="..\..\external\imgui\backends\imgui_impl_opengl2.cpp" />
     <ClCompile Include="..\..\external\imgui\backends\imgui_impl_opengl3.cpp" />
