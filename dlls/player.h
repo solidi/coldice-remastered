@@ -299,6 +299,12 @@ public:
 
 	float m_fNextScreamSound;
 
+	void StartForceGrab( void );
+	void TryGrabAgain( void );
+	void EndForceGrab( void );
+	float m_fForceGrabTime;
+	EHANDLE m_Banana;
+
 	virtual void Spawn( void );
 	void Pain( void );
 
@@ -369,7 +375,7 @@ public:
 	void AddPointsToTeam( int score, BOOL bAllowNegativeScore );
 	BOOL AddPlayerItem( CBasePlayerItem *pItem );
 	BOOL RemovePlayerItem( CBasePlayerItem *pItem );
-	void DropPlayerItem ( char *pszItemName );
+	void DropPlayerItem ( char *pszItemName, BOOL weaponbox = TRUE );
 	BOOL HasPlayerItem( CBasePlayerItem *pCheckItem );
 	BOOL HasNamedPlayerItem( const char *pszItemName );
 	BOOL HasWeapons( void );// do I have ANY weapons?

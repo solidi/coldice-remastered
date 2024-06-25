@@ -126,6 +126,7 @@
 #define EFLAG_TAUNT (1 << 6)
 #define EFLAG_CANCEL (1 << 7)
 #define EFLAG_HURRICANE (1 << 8)
+#define EFLAG_FORCEGRAB (1 << 9)
 
 //
 // temp entity events

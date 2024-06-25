@@ -947,6 +947,8 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"impulse 211\" - Roll Left\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"impulse 212\" - Back Flip\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"impulse 213\" - Front Flip\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"impulse 214\" - Hurricane Kick\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"impulse 215\" - Force Grab\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"snowman\" - God mode (when sv_cheats 1)\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"vote\" - type in the chat to start a vote\n" );
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "For more, see readme.txt\n" );
@@ -972,6 +974,7 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"ffa\"\" - game mode is deathmatch\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"gungame\"\" - get frags with specific weapons and level up!\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"horde\"\" - frag monsters in each wave\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"instagib\"\" - gib with zappers to make tombstones!\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"jvs\"\" - game mode is Jesus vs Santa - defeat him!\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"lms\"\" - game mode is last man standing\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"shidden\"\" - invisible dealters and those smelters\n");
@@ -1481,6 +1484,9 @@ void ClientPrecache( void )
 	PRECACHE_SOUND("player/geiger1.wav");
 
 	PRECACHE_SOUND("taunt_blah.wav");
+
+	PRECACHE_SOUND("heaven.wav");
+	PRECACHE_SOUND("odetojoy.wav");
 
 	if (giPrecacheGrunt)
 		UTIL_PrecacheOther("monster_human_grunt");
