@@ -5378,7 +5378,7 @@ void CBasePlayer::StartForceGrab( void )
 
 	m_EFlags &= ~EFLAG_CANCEL;
 	m_EFlags |= EFLAG_FORCEGRAB;
-	SetAnimation( PLAYER_FORCEGRAB );
+	// SetAnimation( PLAYER_FORCEGRAB );
 
 	EMIT_SOUND(ENT(pev), CHAN_VOICE, "heaven.wav", 1, ATTN_NORM);
 
