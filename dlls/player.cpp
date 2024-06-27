@@ -5267,15 +5267,20 @@ void CGrabWeapon::Spawn( void )
 	SetTouch(&CGrabWeapon::GrabWeaponTouch);
 
 	MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
-		WRITE_BYTE( TE_BEAMFOLLOW );
+		WRITE_BYTE( TE_BEAMENTS );
 		WRITE_SHORT(entindex());	// entity
+		WRITE_SHORT(m_hOwner->entindex());
 		WRITE_SHORT(PRECACHE_MODEL("sprites/smoke.spr"));	// model
-		WRITE_BYTE( 5 ); // life
-		WRITE_BYTE( 1 );  // width
+		WRITE_BYTE( 0 );
+		WRITE_BYTE( 1 );
+		WRITE_BYTE( 100 ); // life
+		WRITE_BYTE( 10 );  // width
+		WRITE_BYTE( 0 );  // amp
 		WRITE_BYTE( 200 );   // r, g, b
 		WRITE_BYTE( 160 );   // r, g, b
 		WRITE_BYTE( 255 );   // r, g, b
 		WRITE_BYTE( 100 );	// brightness
+		WRITE_BYTE( 1 ); // scroll
 	MESSAGE_END();  // move PHS/PVS data sending into here (SEND_ALL, SEND_PVS, SEND_PHS)
 
 	pev->nextthink = gpGlobals->time + 0.1;
@@ -5787,6 +5792,9 @@ int CBasePlayer::AddPlayerItem( CBasePlayerItem *pItem )
 
 int CBasePlayer::RemovePlayerItem( CBasePlayerItem *pItem )
 {
+	if (!pItem)
+		return FALSE;
+		
 	if (m_pActiveItem == pItem)
 	{
 		ResetAutoaim( );
@@ -5797,7 +5805,8 @@ int CBasePlayer::RemovePlayerItem( CBasePlayerItem *pItem )
 		pev->viewmodel = 0;
 		pev->weaponmodel = 0;
 	}
-	else if ( m_pLastItem == pItem )
+
+	if ( m_pLastItem == pItem )
 		m_pLastItem = NULL;
 
 	CBasePlayerItem *pPrev = m_rgpPlayerItems[pItem->iItemSlot()];
