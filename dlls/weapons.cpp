@@ -1563,6 +1563,9 @@ BOOL CBasePlayerWeapon :: CanDeploy( void )
 	if (m_pPlayer->m_fTauntCancelTime > gpGlobals->time)
 		return FALSE;
 
+	if (m_pPlayer->m_fForceGrabTime > gpGlobals->time)
+		return FALSE;
+
 	if ( !pszAmmo1() )
 	{
 		// this weapon doesn't use ammo, can always deploy.
