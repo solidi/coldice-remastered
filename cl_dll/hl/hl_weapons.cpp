@@ -797,6 +797,7 @@ enum e_protips {
 	JUMP_TIP,
 	KICK_TIP,
 	FEIGN_TIP,
+	FORCEGRAB_TIP,
 };
 
 extern void ProTip(int id, const char *message);
@@ -838,7 +839,7 @@ void HUD_WeaponsPostThink( local_state_s *from, local_state_s *to, usercmd_t *cm
 		
 		case WEAPON_PYTHON:
 			pWeapon = &g_Python;
-			ProTip(IRONSIGHTS_TIP, "Use ironsights, press G or bind \"+ironsight\"");
+			ProTip(IRONSIGHTS_TIP, "Use ironsights, press I or bind \"+ironsight\"");
 			break;
 			
 		case WEAPON_MP5:
@@ -999,6 +1000,7 @@ void HUD_WeaponsPostThink( local_state_s *from, local_state_s *to, usercmd_t *cm
 
 		case WEAPON_GRAVITYGUN:
 			pWeapon = &g_GravityGun;
+			ProTip(FORCEGRAB_TIP, "Use forcegrab, press G or bind \"impulse 215\"");
 			break;
 
 		case WEAPON_FLAMETHROWER:

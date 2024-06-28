@@ -1625,8 +1625,8 @@ void CBasePlayer::PlayerDeathThink(void)
 	if ( HasWeapons() )
 	{
 		// If we got killed during these events, cancel them
-		m_EFlags &= ~EFLAG_PLAYERKICK;
-		m_EFlags &= ~EFLAG_SLIDE;
+		m_EFlags &= ~EFLAG_PLAYERKICK & ~EFLAG_SLIDE & ~EFLAG_HURRICANE;
+		m_EFlags &= ~EFLAG_TAUNT & ~EFLAG_FORCEGRAB;
 
 		// we drop the guns here because weapons that have an area effect and can kill their user
 		// will sometimes crash coming back from CBasePlayer::Killed() if they kill their owner because the
@@ -2787,8 +2787,10 @@ void CBasePlayer::PreThink(void)
 	if (m_fKickEndTime && m_fKickEndTime < gpGlobals->time)
 	{
 		if (m_pActiveItem)
+		{
 			((CBasePlayerWeapon *)m_pActiveItem)->EndKick();
-		m_fKickEndTime = 0;
+			m_fKickEndTime = 0;
+		}
 	}
 
 	if (m_fTauntTime && m_fTauntTime < gpGlobals->time)
@@ -4613,6 +4615,9 @@ void CBasePlayer::ImpulseCommands( )
 	case 214:
 		StartHurricaneKick();
 		break;
+	case 215:
+		StartForceGrab();
+		break;
 /*
 	case 215:
 		if ( g_pGameRules->AllowGrapplingHook(this) ) {
@@ -4671,6 +4676,9 @@ enum SELACO_SLIDE {
 void CBasePlayer::StartSelacoSlide( void )
 {
 	if (!acrobatics.value)
+		return;
+
+	if (m_fForceGrabTime >= gpGlobals->time)
 		return;
 
 	if (m_pActiveItem && !((CBasePlayerWeapon *)m_pActiveItem)->CanSlide())
@@ -5219,6 +5227,283 @@ void CBasePlayer::Celebrate( void )
 	}
 }
 
+class CGrabWeapon : public CBaseEntity
+{
+public:
+	void Precache ( void );
+	void Spawn( void );
+	void EXPORT GrabWeaponThink( void );
+	void EXPORT GrabWeaponTouch( CBaseEntity *pOther );
+	virtual int ObjectCaps( void ) { return (CBaseEntity::ObjectCaps() & ~FCAP_ACROSS_TRANSITION) | FCAP_PORTAL; }
+
+private:
+	EHANDLE m_hOwner;
+};
+
+LINK_ENTITY_TO_CLASS( monster_grabweapon, CGrabWeapon );
+
+void CGrabWeapon::Precache( void )
+{
+	PRECACHE_MODEL("models/w_weapons.mdl");
+}
+
+void CGrabWeapon::Spawn( void )
+{
+	Precache();
+	pev->movetype = MOVETYPE_BOUNCEMISSILE;
+	pev->gravity = 0.0;
+	pev->solid = SOLID_TRIGGER;
+	pev->health = 1;
+	pev->takedamage = DAMAGE_NO;
+	pev->classname = MAKE_STRING("monster_grabweapon");
+
+	SET_MODEL( edict(), "models/w_weapons.mdl");
+
+	UTIL_SetSize(pev, Vector( -4,-4,-4 ), Vector(4, 4, 4));
+
+	if ( pev->owner )
+		m_hOwner = Instance(pev->owner);
+	pev->owner = NULL;
+
+	SetThink(&CGrabWeapon::GrabWeaponThink);
+	SetTouch(&CGrabWeapon::GrabWeaponTouch);
+
+	MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
+		WRITE_BYTE( TE_BEAMENTS );
+		WRITE_SHORT(entindex());	// entity
+		WRITE_SHORT(m_hOwner->entindex());
+		WRITE_SHORT(PRECACHE_MODEL("sprites/smoke.spr"));	// model
+		WRITE_BYTE( 0 );
+		WRITE_BYTE( 1 );
+		WRITE_BYTE( 100 ); // life
+		WRITE_BYTE( 10 );  // width
+		WRITE_BYTE( 0 );  // amp
+		WRITE_BYTE( 200 );   // r, g, b
+		WRITE_BYTE( 160 );   // r, g, b
+		WRITE_BYTE( 255 );   // r, g, b
+		WRITE_BYTE( 100 );	// brightness
+		WRITE_BYTE( 1 ); // scroll
+	MESSAGE_END();  // move PHS/PVS data sending into here (SEND_ALL, SEND_PVS, SEND_PHS)
+
+	pev->nextthink = gpGlobals->time + 0.1;
+}
+
+void CGrabWeapon::GrabWeaponThink( void )
+{
+	Vector vecDir;
+	
+	if (pev->iuser1 == 0)
+		vecDir = ( m_hOwner->pev->origin - pev->origin );
+	else
+		vecDir = ( pev->enemy->v.origin - pev->origin );
+
+	vecDir = vecDir.Normalize();
+
+	if (pev->iuser1 == 0)
+		pev->velocity = vecDir * 400;
+	else
+		pev->velocity = vecDir * 1900;
+
+	if (m_hOwner && !m_hOwner->IsAlive())
+	{
+		STOP_SOUND(m_hOwner->edict(), CHAN_VOICE, "odetojoy.wav");
+		SetThink(NULL);
+		pev->nextthink = -1;
+		UTIL_Remove(this);
+	}
+
+	pev->nextthink = gpGlobals->time + 0.1;
+}
+
+void CGrabWeapon::GrabWeaponTouch( CBaseEntity *pOther )
+{
+	if (pOther->IsPlayer())
+	{
+		if (((CBaseEntity*)m_hOwner) == pOther)
+		{
+			CBasePlayer *plr = (CBasePlayer *)pOther;
+			plr->m_EFlags &= ~EFLAG_FORCEGRAB;
+			if (plr->m_pActiveItem)
+			{
+				((CBasePlayerWeapon *)plr->m_pActiveItem)->m_flNextPrimaryAttack = 
+				((CBasePlayerWeapon *)plr->m_pActiveItem)->m_flNextSecondaryAttack = 
+				((CBasePlayerWeapon *)plr->m_pActiveItem)->GetNextAttackDelay(0);
+
+				if (!plr->HasNamedPlayerItem(STRING(pev->message)))
+					plr->GiveNamedItem(STRING(pev->message));
+				plr->SelectItem(STRING(pev->message));
+			}
+
+			STOP_SOUND(pOther->edict(), CHAN_VOICE, "odetojoy.wav");
+			// Play catch sound
+			EMIT_SOUND_DYN(pOther->edict(), CHAN_WEAPON, "items/gunpickup2.wav", 1.0, ATTN_NORM, 0, 98 + RANDOM_LONG(0,3)); 
+			UTIL_Remove(this);
+		}
+		else if (pev->iuser1 > 0 && pev->enemy)
+		{
+			ClearMultiDamage();
+			CBaseEntity *e = CBaseEntity::Instance(pev->enemy);
+			e->TakeDamage(pev, m_hOwner->pev, 100, DMG_CLUB);
+			UTIL_Remove(this);
+		}
+	}
+}
+
+void CBasePlayer::StartForceGrab( void )
+{
+	if (pev->waterlevel == 3)
+		return;
+
+	if (m_fPunchTime >= gpGlobals->time)
+		return;
+
+	if (m_fSelacoTime >= gpGlobals->time)
+		return;
+
+	if (m_fKickTime >= gpGlobals->time)
+		return;
+
+	// Already got a hook, fly it back.
+	if (m_Banana)
+	{
+		m_Banana->pev->iuser1 = 1;
+		STOP_SOUND(edict(), CHAN_VOICE, "odetojoy.wav");
+		EMIT_SOUND(edict(), CHAN_VOICE, "weapons/glauncher.wav", 1, ATTN_NORM);
+		EndForceGrab();
+		return;
+	}
+
+	if (m_fForceGrabTime >= gpGlobals->time)
+		return;
+
+	TraceResult tr;
+	UTIL_MakeVectors( pev->v_angle );
+	Vector vecSrc = GetGunPosition( );
+	Vector vecDir = gpGlobals->v_forward;
+
+	UTIL_TraceLine(vecSrc, vecSrc + vecDir * 8192, dont_ignore_monsters, edict(), &tr);
+
+	m_EFlags &= ~EFLAG_CANCEL;
+	m_EFlags |= EFLAG_FORCEGRAB;
+	// SetAnimation( PLAYER_FORCEGRAB );
+
+	EMIT_SOUND(ENT(pev), CHAN_VOICE, "heaven.wav", 1, ATTN_NORM);
+
+	// Put gun away
+	if (m_pActiveItem)
+	{
+		((CBasePlayerWeapon *)m_pActiveItem)->m_flNextPrimaryAttack = 
+		((CBasePlayerWeapon *)m_pActiveItem)->m_flNextSecondaryAttack = 
+		((CBasePlayerWeapon *)m_pActiveItem)->GetNextAttackDelay(100);
+
+		m_pActiveItem->Holster();
+	}
+
+	m_Banana = NULL;
+
+	// Hit!
+	CBaseEntity *pHit = CBaseEntity::Instance( tr.pHit );
+
+	if (pHit && pHit->IsPlayer())
+	{
+		CBasePlayer *plr = (CBasePlayer *)pHit;
+		if (plr->m_pActiveItem)
+		{
+			m_Banana = CBaseEntity::Create("monster_grabweapon", tr.vecEndPos, Vector(-90, pev->angles.y + 90, -90), edict());
+			if (m_Banana)
+			{
+				m_Banana->pev->body = plr->m_pActiveItem->m_iId - 1;
+				m_Banana->pev->message = plr->m_pActiveItem->pev->classname;
+				m_Banana->pev->enemy = pHit->edict();
+
+				STOP_SOUND(edict(), CHAN_VOICE, "heaven.wav");
+				EMIT_SOUND(edict(), CHAN_VOICE, "odetojoy.wav", 1, ATTN_NORM);
+
+				ClientPrint(plr->pev, HUD_PRINTCENTER, "Your weapon has been taken!\n");
+				plr->DropPlayerItem("", FALSE);
+			}
+		}
+	}
+
+	m_fForceGrabTime = gpGlobals->time + 2.5;
+
+	if (!m_Banana)
+	{
+		SetThink( &CBasePlayer::TryGrabAgain );
+		pev->nextthink = gpGlobals->time + 0.25;
+	}
+}
+
+void CBasePlayer::TryGrabAgain( void )
+{
+	if (pev->waterlevel == 3)
+		return;
+
+	// ALERT(at_aiconsole, "x=%.2f, y=%.2f, z=%.2f\n", pev->angles.x, pev->angles.y, pev->angles.z);
+
+	if (m_fForceGrabTime > gpGlobals->time) {
+		TraceResult tr;
+		UTIL_MakeVectors( pev->v_angle );
+		Vector vecSrc = GetGunPosition( );
+		Vector vecDir = gpGlobals->v_forward;
+
+		UTIL_TraceLine(vecSrc, vecSrc + vecDir * 8192, dont_ignore_monsters, edict(), &tr);
+
+		m_Banana = NULL;
+
+		// Hit!
+		CBaseEntity *pHit = CBaseEntity::Instance( tr.pHit );
+
+		if (pHit && pHit->IsPlayer())
+		{
+			CBasePlayer *plr = (CBasePlayer *)pHit;
+			if (plr->m_pActiveItem)
+			{
+				m_Banana = CBaseEntity::Create("monster_grabweapon", tr.vecEndPos, Vector(-90, pev->angles.y + 90, -90), edict());
+				if (m_Banana)
+				{
+					m_Banana->pev->body = plr->m_pActiveItem->m_iId - 1;
+					m_Banana->pev->message = plr->m_pActiveItem->pev->classname;
+					m_Banana->pev->enemy = pHit->edict();
+
+					STOP_SOUND(edict(), CHAN_VOICE, "heaven.wav");
+					EMIT_SOUND(edict(), CHAN_VOICE, "odetojoy.wav", 1, ATTN_NORM);
+
+					ClientPrint(plr->pev, HUD_PRINTCENTER, "Your weapon has been taken!\n");
+					plr->DropPlayerItem("", FALSE);
+
+					pev->nextthink = -1;
+				}
+			}
+		}
+
+		if (!m_Banana)
+		{
+			pev->nextthink = gpGlobals->time + 0.25;
+		}
+	}
+	else
+	{
+		pev->nextthink = -1;
+		EndForceGrab();
+	}
+}
+
+void CBasePlayer::EndForceGrab( void )
+{
+	if (m_pActiveItem)
+	{
+		((CBasePlayerWeapon *)m_pActiveItem)->m_flNextPrimaryAttack = 
+		((CBasePlayerWeapon *)m_pActiveItem)->m_flNextSecondaryAttack = 
+		((CBasePlayerWeapon *)m_pActiveItem)->GetNextAttackDelay(0);
+		m_pActiveItem->DeployLowKey();
+	}
+
+	STOP_SOUND(edict(), CHAN_VOICE, "heaven.wav");
+	STOP_SOUND(edict(), CHAN_VOICE, "odetojoy.wav");
+	m_EFlags &= ~EFLAG_FORCEGRAB;
+}
+
 //=========================================================
 //=========================================================
 void CBasePlayer::CheatImpulseCommands( int iImpulse, BOOL m_iFromClient )
@@ -5509,6 +5794,9 @@ int CBasePlayer::AddPlayerItem( CBasePlayerItem *pItem )
 
 int CBasePlayer::RemovePlayerItem( CBasePlayerItem *pItem )
 {
+	if (!pItem)
+		return FALSE;
+		
 	if (m_pActiveItem == pItem)
 	{
 		ResetAutoaim( );
@@ -5519,7 +5807,8 @@ int CBasePlayer::RemovePlayerItem( CBasePlayerItem *pItem )
 		pev->viewmodel = 0;
 		pev->weaponmodel = 0;
 	}
-	else if ( m_pLastItem == pItem )
+
+	if ( m_pLastItem == pItem )
 		m_pLastItem = NULL;
 
 	CBasePlayerItem *pPrev = m_rgpPlayerItems[pItem->iItemSlot()];
@@ -6381,7 +6670,7 @@ int CBasePlayer :: GetCustomDecalFrames( void )
 // DropPlayerItem - drop the named item, or if no name,
 // the active item. 
 //=========================================================
-void CBasePlayer::DropPlayerItem ( char *pszItemName )
+void CBasePlayer::DropPlayerItem ( char *pszItemName, BOOL weaponbox )
 {
 	if ( !g_pGameRules->IsAllowedToDropWeapon())
 		return;
@@ -6448,7 +6737,10 @@ void CBasePlayer::DropPlayerItem ( char *pszItemName )
 			else
 				m_iWeapons2 &= ~(1<<(pWeapon->m_iId - 32));// take item off hud
 
-			CWeaponBox *pWeaponBox = (CWeaponBox *)CBaseEntity::Create( "weaponbox", pev->origin + gpGlobals->v_forward * 10, pev->angles, edict() );
+			CWeaponBox *pWeaponBox = NULL;
+			if (weaponbox)
+				pWeaponBox = (CWeaponBox *)CBaseEntity::Create( "weaponbox", pev->origin + gpGlobals->v_forward * 10, pev->angles, edict() );
+
 			if (pWeaponBox != NULL)
 			{
 				pWeaponBox->pev->angles.x = 0;

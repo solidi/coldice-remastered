@@ -490,6 +490,7 @@ void W_Precache(void)
 	UTIL_PrecacheOther( "tracer" );
 	UTIL_PrecacheOther( "disc" );
 	UTIL_PrecacheOther( "monster_tombstone" );
+	UTIL_PrecacheOther( "monster_grabweapon" );
 
 #if !defined( OEM_BUILD ) && !defined( HLDEMO_BUILD )
 	UTIL_PrecacheOther( "weaponbox" );// container for dropped deathmatch weapons
@@ -1562,6 +1563,9 @@ BOOL CBasePlayerWeapon :: CanDeploy( void )
 	if (m_pPlayer->m_fTauntCancelTime > gpGlobals->time)
 		return FALSE;
 
+	if (m_pPlayer->m_fForceGrabTime > gpGlobals->time)
+		return FALSE;
+
 	if ( !pszAmmo1() )
 	{
 		// this weapon doesn't use ammo, can always deploy.
@@ -2513,13 +2517,14 @@ void CBasePlayerWeapon::StartPunch( BOOL holdingSomething )
 		return;
 	}
 
-	if (m_pPlayer->m_fKickTime >= gpGlobals->time) {
+	if (m_pPlayer->m_fKickTime >= gpGlobals->time)
 		return;
-	}
 
-	if (m_pPlayer->m_fSelacoTime >= gpGlobals->time) {
+	if (m_pPlayer->m_fSelacoTime >= gpGlobals->time)
 		return;
-	}
+
+	if (m_pPlayer->m_fForceGrabTime >= gpGlobals->time)
+		return;
 
 	if (!CanAttack( m_flNextPrimaryAttack, gpGlobals->time, UseDecrement() )) {
 		return;
@@ -2741,17 +2746,17 @@ void CBasePlayerWeapon::StartKick( BOOL holdingSomething )
 		return;
 	}
 
-	if (m_pPlayer->m_fPunchTime >= gpGlobals->time) {
+	if (m_pPlayer->m_fPunchTime >= gpGlobals->time)
 		return;
-	}
 
-	if (m_pPlayer->m_fSelacoTime >= gpGlobals->time) {
+	if (m_pPlayer->m_fSelacoTime >= gpGlobals->time)
 		return;
-	}
 
-	if (m_pPlayer->m_fKickTime >= gpGlobals->time) {
+	if (m_pPlayer->m_fKickTime >= gpGlobals->time)
 		return;
-	}
+
+	if (m_pPlayer->m_fForceGrabTime >= gpGlobals->time)
+		return;
 
 	if ( FBitSet( m_pPlayer->pev->flags, FL_DUCKING ) ) {
 		return;
