@@ -21,6 +21,7 @@
 #include	"player.h"
 #include	"weapons.h"
 #include	"gamerules.h"
+#include	"trains.h"
  
 #include	"skill.h"
 #include	"game.h"
@@ -1612,6 +1613,16 @@ void CHalfLifeMultiplay :: PlayerKilled( CBasePlayer *pVictim, entvars_t *pKille
 
 	if ( ktmp && (ktmp->Classify() == CLASS_PLAYER) )
 		peKiller = (CBasePlayer*)ktmp;
+	else if ( ktmp && ktmp->Classify() == CLASS_VEHICLE )
+	{
+		CBasePlayer *pDriver = (CBasePlayer *)( (CFuncVehicle *)ktmp )->m_pDriver;
+
+		if ( pDriver != NULL )
+		{
+			pKiller = pDriver->pev;
+			peKiller = (CBasePlayer *)pDriver;
+		}
+	}
 
 	if ( pVictim->pev == pKiller )  
 	{  // killed self

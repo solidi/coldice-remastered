@@ -1873,6 +1873,13 @@ void CBasePlayer::PlayerUse ( void )
 			{
 				m_afPhysicsFlags &= ~PFLAG_ONTRAIN;
 				m_iTrain = TRAIN_NEW|TRAIN_OFF;
+
+				CBaseEntity *pTrain = Instance( pev->groundentity );
+				if ( pTrain && pTrain->Classify() == CLASS_VEHICLE )
+				{
+					( (CFuncVehicle *)pTrain )->m_pDriver = NULL;
+				}
+
 				return;
 			}
 			else
@@ -1885,7 +1892,14 @@ void CBasePlayer::PlayerUse ( void )
 					m_iTrain = TrainSpeed(pTrain->pev->speed, pTrain->pev->impulse);
 					m_iTrain |= TRAIN_NEW;
 					pTrain->pev->dmg_inflictor = edict();
-					EMIT_SOUND( ENT(pev), CHAN_ITEM, "plats/train_use1.wav", 0.8, ATTN_NORM);
+
+					if ( pTrain->Classify() == CLASS_VEHICLE )
+					{
+						EMIT_SOUND( ENT( pev ), CHAN_ITEM, "plats/vehicle_start1.wav", 0.8, ATTN_NORM );
+						( (CFuncVehicle *)pTrain )->m_pDriver = this;
+					}
+					else
+						EMIT_SOUND( ENT(pev), CHAN_ITEM, "plats/train_use1.wav", 0.8, ATTN_NORM);
 					return;
 				}
 			}
@@ -2596,7 +2610,7 @@ void CBasePlayer::PreThink(void)
 				return;
 			}
 		}
-		else if ( !FBitSet( pev->flags, FL_ONGROUND ) || FBitSet( pTrain->pev->spawnflags, SF_TRACKTRAIN_NOCONTROL ) || (pev->button & (IN_MOVELEFT|IN_MOVERIGHT) ) )
+		else if ( !FBitSet( pev->flags, FL_ONGROUND ) || FBitSet( pTrain->pev->spawnflags, SF_TRACKTRAIN_NOCONTROL ) || (pev->button & (IN_MOVELEFT|IN_MOVERIGHT) && pTrain->Classify() != CLASS_VEHICLE ))
 		{
 			// Turn off the train if you jump, strafe, or the train controls go dead
 			m_afPhysicsFlags &= ~PFLAG_ONTRAIN;
@@ -2606,21 +2620,51 @@ void CBasePlayer::PreThink(void)
 
 		pev->velocity = g_vecZero;
 		vel = 0;
-		if ( m_afButtonPressed & IN_FORWARD )
-		{
-			vel = 1;
-			pTrain->Use( this, this, USE_SET, (float)vel );
-		}
-		else if ( m_afButtonPressed & IN_BACK )
-		{
-			vel = -1;
-			pTrain->Use( this, this, USE_SET, (float)vel );
-		}
 
-		if (vel)
+		if ( pTrain->Classify() == CLASS_VEHICLE )
 		{
-			m_iTrain = TrainSpeed(pTrain->pev->speed, pTrain->pev->impulse);
-			m_iTrain |= TRAIN_ACTIVE|TRAIN_NEW;
+			if ( pev->button & IN_FORWARD )
+			{
+				vel = 1;
+				pTrain->Use( this, this, USE_SET, vel );
+			}
+
+			if ( pev->button & IN_BACK )
+			{
+				vel = -1;
+				pTrain->Use( this, this, USE_SET, vel );
+			}
+
+			if ( pev->button & IN_MOVELEFT )
+			{
+				vel = 20;
+				pTrain->Use( this, this, USE_SET, vel );
+			}
+
+			if ( pev->button & IN_MOVERIGHT )
+			{
+				vel = 30;
+				pTrain->Use( this, this, USE_SET, vel );
+			}
+		}
+		else
+		{
+			if ( m_afButtonPressed & IN_FORWARD )
+			{
+				vel = 1;
+				pTrain->Use( this, this, USE_SET, (float)vel );
+			}
+			else if ( m_afButtonPressed & IN_BACK )
+			{
+				vel = -1;
+				pTrain->Use( this, this, USE_SET, (float)vel );
+			}
+
+			if (vel)
+			{
+				m_iTrain = TrainSpeed(pTrain->pev->speed, pTrain->pev->impulse);
+				m_iTrain |= TRAIN_ACTIVE|TRAIN_NEW;
+			}
 		}
 
 	} else if (m_iTrain & TRAIN_ACTIVE)
