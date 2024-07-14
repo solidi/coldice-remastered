@@ -165,7 +165,7 @@ void CFuncVehicle::Blocked( CBaseEntity *pOther )
 		|| pOther->pev->origin.z < pev->origin.z
 		|| pOther->pev->origin.z > maxz )
 	{
-		pOther->TakeDamage( pev, pev, 150, DMG_CRUSH );
+		pOther->TakeDamage( pev, m_pDriver->pev, 150, DMG_CRUSH );
 	}
 }
 
@@ -288,7 +288,7 @@ void CFuncVehicle::StopSound()
 		unsigned short us_sound = ( (unsigned short)m_sounds & 0x0007 ) << 12;
 		unsigned short us_encode = us_sound;
 
-		// PLAYBACK_EVENT_FULL( FEV_RELIABLE | FEV_UPDATE, edict(), m_usAdjustPitch, 0, (float *)&g_vecZero, (float *)&g_vecZero, 0, 0, us_encode, 0, 1, 0 );
+		PLAYBACK_EVENT_FULL( FEV_RELIABLE | FEV_UPDATE, edict(), m_usAdjustPitch, 0, (float *)&g_vecZero, (float *)&g_vecZero, 0, 0, us_encode, 0, 1, 0 );
 	}
 
 	m_soundPlaying = 0;
@@ -321,7 +321,7 @@ void CFuncVehicle::UpdateSound()
 		unsigned short us_volume = ( (unsigned short)( m_flVolume * 40 ) & 0x003F );
 		unsigned short us_encode = us_sound | us_pitch | us_volume;
 
-		// PLAYBACK_EVENT_FULL( FEV_UPDATE, edict(), m_usAdjustPitch, 0.0, (float *)&g_vecZero, (float *)&g_vecZero, 0.0, 0.0, us_encode, 0, 0, 0 );
+		PLAYBACK_EVENT_FULL( FEV_UPDATE, edict(), m_usAdjustPitch, 0.0, (float *)&g_vecZero, (float *)&g_vecZero, 0.0, 0.0, us_encode, 0, 0, 0 );
 	}
 }
 
@@ -955,7 +955,7 @@ void CFuncVehicle::Precache()
 	PRECACHE_SOUND( "plats/vehicle_brake1.wav" );
 	PRECACHE_SOUND( "plats/vehicle_start1.wav" );
 
-	m_usAdjustPitch = 0; // PRECACHE_EVENT( 1, "events/vehicle.sc" );
+	m_usAdjustPitch = PRECACHE_EVENT( 1, "events/vehicle.sc" );
 }
 
 LINK_ENTITY_TO_CLASS( func_vehiclecontrols, CFuncVehicleControls );

@@ -217,6 +217,7 @@ char *sBuiltInMaps[] =
 	"chillworks",
 	"cold_base",
 	"coldice",
+	"comet",
 //	"defroster",
 	"depot",
 	"doublefrost",
@@ -1620,7 +1621,7 @@ void CHalfLifeMultiplay :: PlayerKilled( CBasePlayer *pVictim, entvars_t *pKille
 		if ( pDriver != NULL )
 		{
 			pKiller = pDriver->pev;
-			peKiller = (CBasePlayer *)pDriver;
+			ktmp = peKiller = (CBasePlayer *)pDriver;
 		}
 	}
 

@@ -2307,9 +2307,17 @@ void CBasePlayer::Jump()
 
 	// If you're standing on a conveyor, add it's velocity to yours (for momentum)
 	entvars_t *pevGround = VARS(pev->groundentity);
-	if ( pevGround && (pevGround->flags & FL_CONVEYOR) )
+	if ( pevGround )
 	{
-		pev->velocity = pev->velocity + pev->basevelocity;
+		if ( pevGround->flags & FL_CONVEYOR )
+		{
+			pev->velocity = pev->velocity + pev->basevelocity;
+		}
+
+		if ( FClassnameIs( pevGround, "func_vehicle" ))
+		{
+			pev->velocity = pevGround->velocity + pev->velocity;
+		}
 	}
 }
 
