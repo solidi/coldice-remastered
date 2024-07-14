@@ -224,7 +224,6 @@ DLL_OBJS = \
 	$(HL1_SERVER_OBJ_DIR)/tripmine.o \
 	$(HL1_SERVER_OBJ_DIR)/wpn_shared/hl_wpn_glock.o \
 	$(HL1_SERVER_OBJ_DIR)/usas.o \
-	$(HL1_SERVER_OBJ_DIR)/vehicle.o \
 	$(HL1_SERVER_OBJ_DIR)/vest.o \
 	$(HL1_SERVER_OBJ_DIR)/wrench.o \
 	$(HL1_SERVER_OBJ_DIR)/zapgun.o \
