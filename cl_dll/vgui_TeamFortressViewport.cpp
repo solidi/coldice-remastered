@@ -155,6 +155,7 @@ char *sBuiltInMaps[] =
 	"chillworks",
 	"cold_base",
 	"coldice",
+	"comet",
 //	"defroster",
 	"depot",
 	"doublefrost",

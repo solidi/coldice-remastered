@@ -399,6 +399,9 @@
     <ClCompile Include="..\..\dlls\turret.cpp">
       <Filter>Source Files\dlls</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\dlls\vehicle.cpp">
+      <Filter>Source Files\dlls</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\dlls\vest.cpp">
       <Filter>Source Files\dlls</Filter>
     </ClCompile>
