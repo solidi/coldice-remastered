@@ -376,7 +376,7 @@ void MajorityVote(edict_t *pEntity, const char *text)
 	static int m_iNeedsVotes = 0;
 	static int m_iVotes[32];
 
-	if (voting.value && strstr(text, "vote"))
+	if (voting.value && UTIL_stristr(text, "vote"))
 	{
 		// Start vote, capture player count for majority count
 		if (m_fVoteTime < gpGlobals->time)
@@ -575,6 +575,9 @@ void Host_Say( edict_t *pEntity, int teamonly )
 
 	// echo to server console
 	g_engfuncs.pfnServerPrint( text );
+
+	if (UTIL_stristr(text, "jope"))
+		UTIL_ClientPrintAll(HUD_PRINTTALK, "ALL HAIL KING JOPE!\n");
 
 	MajorityVote(pEntity, text);
 
