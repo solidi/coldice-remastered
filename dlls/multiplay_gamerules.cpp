@@ -867,7 +867,8 @@ void CHalfLifeMultiplay::SuckAllToSpectator( void )
 		CBasePlayer *pPlayer = (CBasePlayer *)UTIL_PlayerByIndex( i );
 
 		if ( pPlayer && pPlayer->IsPlayer() && !pPlayer->IsSpectator() )
-		{ 
+		{
+			strcpy( pPlayer->m_szTeamName, "");
 			MESSAGE_BEGIN( MSG_ALL, gmsgScoreInfo );
 				WRITE_BYTE( ENTINDEX(pPlayer->edict()) );
 				WRITE_SHORT( pPlayer->pev->frags = 0 );

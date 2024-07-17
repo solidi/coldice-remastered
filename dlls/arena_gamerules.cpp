@@ -29,6 +29,8 @@ extern int gmsgStatusText;
 extern int gmsgObjective;
 extern int gmsgPlayClientSound;
 extern int gmsgScoreInfo;
+extern int gmsgTeamNames;
+extern int gmsgTeamInfo;
 
 CHalfLifeArena::CHalfLifeArena()
 {
@@ -45,6 +47,12 @@ void CHalfLifeArena::InitHUD( CBasePlayer *pPlayer )
 			WRITE_STRING("Arena mode");
 			WRITE_STRING("");
 			WRITE_BYTE(0);
+		MESSAGE_END();
+
+		MESSAGE_BEGIN(MSG_ONE, gmsgTeamNames, NULL, pPlayer->edict());
+			WRITE_BYTE( 2 );
+			WRITE_STRING( "blue" );
+			WRITE_STRING( "red" );
 		MESSAGE_END();
 	}
 }
@@ -281,6 +289,24 @@ void CHalfLifeArena::Think( void )
 		CBasePlayer *pPlayer1 = (CBasePlayer *)UTIL_PlayerByIndex( m_iPlayer1 );
 		CBasePlayer *pPlayer2 = (CBasePlayer *)UTIL_PlayerByIndex( m_iPlayer2 );
 
+		char *key = g_engfuncs.pfnGetInfoKeyBuffer(pPlayer1->edict());
+		strncpy( pPlayer1->m_szTeamName, "blue", TEAM_NAME_LENGTH );
+		g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer1->edict()), key, "team", pPlayer1->m_szTeamName);
+
+		key = g_engfuncs.pfnGetInfoKeyBuffer(pPlayer2->edict());
+		strncpy( pPlayer2->m_szTeamName, "red", TEAM_NAME_LENGTH );
+		g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer2->edict()), key, "team", pPlayer2->m_szTeamName);
+
+		// notify everyone's HUD of the team change
+		MESSAGE_BEGIN( MSG_ALL, gmsgTeamInfo );
+			WRITE_BYTE( ENTINDEX(pPlayer1->edict()) );
+			WRITE_STRING( pPlayer1->m_szTeamName );
+		MESSAGE_END();
+		MESSAGE_BEGIN( MSG_ALL, gmsgTeamInfo );
+			WRITE_BYTE( ENTINDEX(pPlayer2->edict()) );
+			WRITE_STRING( pPlayer2->m_szTeamName );
+		MESSAGE_END();
+
 		//frags + time
 		SetRoundLimits();
 
@@ -299,8 +325,8 @@ void CHalfLifeArena::Think( void )
 						WRITE_BYTE( ENTINDEX(plr->edict()) );
 						WRITE_SHORT( plr->pev->frags = 0 );
 						WRITE_SHORT( plr->m_iDeaths = 0 );
-						WRITE_SHORT( 0 );
-						WRITE_SHORT( 0 );
+						WRITE_SHORT( plr->m_iRoundWins );
+						WRITE_SHORT( g_pGameRules->GetTeamIndex( plr->m_szTeamName ) + 1 );
 					MESSAGE_END();
 					plr->m_iAssists = 0;
 
@@ -319,8 +345,8 @@ void CHalfLifeArena::Think( void )
 							WRITE_BYTE( ENTINDEX(plr->edict()) );
 							WRITE_SHORT( plr->pev->frags = 0 );
 							WRITE_SHORT( plr->m_iDeaths = 0 );
-							WRITE_SHORT( 0 );
-							WRITE_SHORT( 0 );
+							WRITE_SHORT( plr->m_iRoundWins );
+							WRITE_SHORT( g_pGameRules->GetTeamIndex( plr->m_szTeamName ) + 1 );
 						MESSAGE_END();
 						plr->m_iAssists = 0;
 
@@ -519,4 +545,26 @@ void CHalfLifeArena::PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller, ent
 			MESSAGE_END();
 		}
 	}
+}
+
+int CHalfLifeArena::GetTeamIndex( const char *pTeamName )
+{
+	if ( pTeamName && *pTeamName != 0 )
+	{
+		if (!strcmp(pTeamName, "red"))
+			return 1;
+		else
+			return 0;
+	}
+	
+	return -1;	// No match
+}
+
+const char *CHalfLifeArena::GetTeamID( CBaseEntity *pEntity )
+{
+	if ( pEntity == NULL || pEntity->pev == NULL )
+		return "";
+
+	// return their team name
+	return pEntity->TeamID();
 }
