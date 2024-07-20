@@ -4380,7 +4380,10 @@ void CBasePlayer::GiveRandomWeapon(const char *szIgnoreList)
 
 	const char *weapon = STRING(ALLOC_STRING(pWeapons[random]));
 	if (!HasNamedPlayerItem(weapon))
+	{
 		GiveNamedItem(weapon);
+		SelectItem(weapon);
+	}
 }
 
 void CBasePlayer::GiveMelees()

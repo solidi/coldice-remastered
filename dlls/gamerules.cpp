@@ -721,6 +721,9 @@ void CGameRules::SpawnMutators(CBasePlayer *pPlayer)
 	else
 		pPlayer->m_flNextSantaSound = 0;
 
+	if (randomweapon.value && MutatorAllowed("randomweapon"))
+		pPlayer->GiveRandomWeapon(NULL);
+
 	GiveMutators(pPlayer);
 
 	if (MutatorEnabled(MUTATOR_INVISIBLE)) {
@@ -730,9 +733,6 @@ void CGameRules::SpawnMutators(CBasePlayer *pPlayer)
 	{
 		pPlayer->MakeVisible();
 	}
-
-	if (randomweapon.value && MutatorAllowed("randomweapon"))
-		pPlayer->GiveRandomWeapon(NULL);
 
 	if (MutatorEnabled(MUTATOR_999)) {
 		pPlayer->pev->max_health = 999;
@@ -780,48 +780,72 @@ void CGameRules::GiveMutators(CBasePlayer *pPlayer)
 
 	if (MutatorEnabled(MUTATOR_ROCKETCROWBAR)) {
 		if (!pPlayer->HasNamedPlayerItem("weapon_rocketcrowbar"))
+		{
 			pPlayer->GiveNamedItem("weapon_rocketcrowbar");
+			pPlayer->SelectItem("weapon_rocketcrowbar");
+		}
 	}
 
 	if (MutatorEnabled(MUTATOR_INSTAGIB)) {
 		if (!pPlayer->HasNamedPlayerItem("weapon_zapgun"))
+		{
 			pPlayer->GiveNamedItem("weapon_zapgun");
+			pPlayer->SelectItem("weapon_zapgun");
+		}
 	}
 
 	if (MutatorEnabled(MUTATOR_RAILGUNS)) {
 		if (!pPlayer->HasNamedPlayerItem("weapon_dual_railgun"))
+		{
 			pPlayer->GiveNamedItem("weapon_dual_railgun");
+			pPlayer->SelectItem("weapon_dual_railgun");
+		}
 		pPlayer->GiveAmmo(URANIUM_MAX_CARRY, "uranium", URANIUM_MAX_CARRY);
 	}
 
 	if (MutatorEnabled(MUTATOR_PLUMBER)) {
 		if (!pPlayer->HasNamedPlayerItem("weapon_dual_wrench"))
+		{
 			pPlayer->GiveNamedItem("weapon_dual_wrench");
+			pPlayer->SelectItem("weapon_dual_wrench");
+		}
 	}
 
 	if (MutatorEnabled(MUTATOR_BARRELS)) {
 		if (!pPlayer->HasNamedPlayerItem("weapon_gravitygun"))
+		{
 			pPlayer->GiveNamedItem("weapon_gravitygun");
+			pPlayer->SelectItem("weapon_gravitygun");
+		}
 	}
 
 	if (MutatorEnabled(MUTATOR_PORTAL)) {
 		if (!pPlayer->HasNamedPlayerItem("weapon_ashpod"))
+		{
 			pPlayer->GiveNamedItem("weapon_ashpod");
+			pPlayer->SelectItem("weapon_ashpod");
+		}
+	}
+
+	if (MutatorEnabled(MUTATOR_BERSERKER)) {
+		if (!pPlayer->HasNamedPlayerItem("weapon_chainsaw"))
+		{
+			pPlayer->GiveNamedItem("weapon_chainsaw");
+			pPlayer->SelectItem("weapon_chainsaw");
+		}
+	}
+
+	if (MutatorEnabled(MUTATOR_VESTED)) {
+		if (!pPlayer->HasNamedPlayerItem("weapon_vest"))
+		{
+			pPlayer->GiveNamedItem("weapon_vest");
+			pPlayer->SelectItem("weapon_vest");
+		}
 	}
 
 	if (MutatorEnabled(MUTATOR_LONGJUMP)) {
 		if (!pPlayer->m_fLongJump && (pPlayer->pev->weapons & (1<<WEAPON_SUIT)))
 			pPlayer->GiveNamedItem("item_longjump");
-	}
-
-	if (MutatorEnabled(MUTATOR_BERSERKER)) {
-		if (!pPlayer->HasNamedPlayerItem("weapon_chainsaw"))
-			pPlayer->GiveNamedItem("weapon_chainsaw");
-	}
-
-	if (MutatorEnabled(MUTATOR_VESTED)) {
-		if (!pPlayer->HasNamedPlayerItem("weapon_vest"))
-			pPlayer->GiveNamedItem("weapon_vest");
 	}
 }
 

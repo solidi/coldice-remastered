@@ -43,7 +43,7 @@ void CHalfLifeLastManStanding::InitHUD( CBasePlayer *pPlayer )
 	if (!FBitSet(pPlayer->pev->flags, FL_FAKECLIENT))
 	{
 		MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, pPlayer->edict());
-			WRITE_STRING("Last man standing");
+			WRITE_STRING("Battle Royale");
 			WRITE_STRING("");
 			WRITE_BYTE(0);
 		MESSAGE_END();
@@ -124,22 +124,31 @@ void CHalfLifeLastManStanding::Think( void )
 			}
 		}
 
-		if (clients_alive > 1)
+		for ( int i = 1; i <= gpGlobals->maxClients; i++ )
 		{
-			MESSAGE_BEGIN(MSG_BROADCAST, gmsgObjective);
-				WRITE_STRING("Last man standing");
-				WRITE_STRING(UTIL_VarArgs("Players alive: %d", clients_alive));
-				WRITE_BYTE(float(clients_alive) / (m_iPlayersInGame) * 100);
-			MESSAGE_END();
-		} 
-		else
-		{
-			MESSAGE_BEGIN(MSG_BROADCAST, gmsgObjective);
-				WRITE_STRING("Last man standing");
-				WRITE_STRING("");
-				WRITE_BYTE(0);
-				WRITE_STRING(UTIL_VarArgs("%s is the winner!", client_name));
-			MESSAGE_END();
+			CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
+
+			if ( plr && plr->IsPlayer() && !plr->HasDisconnected && !FBitSet(plr->pev->flags, FL_FAKECLIENT) )
+			{
+				if (clients_alive > 1)
+				{
+					MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, plr->edict());
+						WRITE_STRING("Battle Royale");
+						WRITE_STRING(UTIL_VarArgs("Players alive: %d", clients_alive));
+						WRITE_BYTE(float(clients_alive) / (m_iPlayersInGame) * 100);
+						WRITE_STRING(UTIL_VarArgs("Lives left: %d", (int)plr->pev->frags));
+					MESSAGE_END();
+				} 
+				else
+				{
+					MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, plr->edict());
+						WRITE_STRING("Battle Royale");
+						WRITE_STRING("");
+						WRITE_BYTE(0);
+						WRITE_STRING(UTIL_VarArgs("%s is the winner!", client_name));
+					MESSAGE_END();
+				}
+			}
 		}
 
 		//found victor / or draw.
@@ -154,7 +163,7 @@ void CHalfLifeLastManStanding::Think( void )
 
 			if ( clients_alive == 1 )
 			{
-				UTIL_ClientPrintAll(HUD_PRINTCENTER, UTIL_VarArgs("%s\nis the last man standing!\n", client_name ));
+				UTIL_ClientPrintAll(HUD_PRINTCENTER, UTIL_VarArgs("%s\nis left standing!\n", client_name ));
 
 				CBasePlayer *pl = (CBasePlayer *)UTIL_PlayerByIndex( client_index );
 				MESSAGE_BEGIN( MSG_ONE_UNRELIABLE, gmsgPlayClientSound, NULL, pl->edict() );
@@ -234,7 +243,7 @@ void CHalfLifeLastManStanding::Think( void )
 			WRITE_STRING( "Active" );
 		MESSAGE_END();
 
-		UTIL_ClientPrintAll(HUD_PRINTCENTER, "Last man standing has begun!\n");
+		UTIL_ClientPrintAll(HUD_PRINTCENTER, "Battle Royale has begun!\n");
 	}
 	else
 	{

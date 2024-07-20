@@ -499,6 +499,7 @@ protected:
 	float m_fWaitForPlayersTime;
 
 	float m_fShowTimer;
+	float m_fShowFrags;
 };
 
 extern CGameRules*	g_pGameRules;

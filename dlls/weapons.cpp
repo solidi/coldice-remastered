@@ -1987,7 +1987,7 @@ void CWeaponBox::Spawn( void )
 
 	UTIL_SetSize( pev, g_vecZero, g_vecZero );
 
-	SET_MODEL( ENT(pev), "models/w_weaponbox.mdl");
+	SET_MODEL( ENT(pev), "models/w_weapons.mdl");
 
 	if (g_ItemsExplode)
 	{
@@ -2217,7 +2217,6 @@ BOOL CWeaponBox::PackWeapon( CBasePlayerItem *pWeapon )
 	pev->animtime = gpGlobals->time;
 	pev->framerate = 1.0;
 
-	SET_MODEL( ENT(pev), "models/w_weapons.mdl");
 	pev->body = pWeapon->m_iId - 1;
 	pev->sequence = ((pWeapon->m_iId - 1) * 2) + floating;
 

@@ -23,6 +23,8 @@ public:
 	virtual void InitHUD( CBasePlayer *pl );
 	virtual BOOL FPlayerCanRespawn( CBasePlayer *pPlayer );
 	virtual void PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller, entvars_t *pInflictor );
+	virtual int GetTeamIndex( const char *pTeamName );
+	virtual const char *GetTeamID( CBaseEntity *pEntity );
 
 private:
 	int m_iPlayer1, m_iPlayer2;

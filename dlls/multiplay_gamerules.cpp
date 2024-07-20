@@ -160,20 +160,6 @@ void CHalfLifeMultiplay::RefreshSkillData( void )
 
 	if (MutatorEnabled(MUTATOR_GOLDENGUNS))
 	{
-		/* ??
-		float plrDmgKnife;
-		float plrDmgFlyingKnife;
-		float plrDmgFlyingCrowbar;
-		float chumtoadDmgBite;
-		float chumtoadDmgPop;
-		float plrDmgWrench;
-		float plrDmgFlyingWrench;
-		float plrDmgSnowball;
-		float plrDmgChainsaw;
-		float plrDmgGravityGun;
-		float plrDmgFlameThrower;
-		*/
-
 		float damage = 900.0;
 		gSkillData.plrDmg9MM = damage;
 		gSkillData.plrDmg357 = damage;
@@ -199,6 +185,17 @@ void CHalfLifeMultiplay::RefreshSkillData( void )
 		gSkillData.plrDmgKnifeSnipe = damage;
 		gSkillData.plrDmgNuke = damage;
 		gSkillData.plrDmgHornet = damage;
+		gSkillData.plrDmgKnife = damage;
+		gSkillData.plrDmgFlyingKnife = damage;
+		gSkillData.plrDmgFlyingCrowbar = damage;
+		gSkillData.chumtoadDmgBite = damage;
+		gSkillData.chumtoadDmgPop = damage;
+		gSkillData.plrDmgWrench = damage;
+		gSkillData.plrDmgFlyingWrench = damage;
+		gSkillData.plrDmgSnowball = damage;
+		gSkillData.plrDmgChainsaw = damage;
+		gSkillData.plrDmgGravityGun = damage;
+		gSkillData.plrDmgFlameThrower = damage;
 	}
 }
 
@@ -703,6 +700,34 @@ void CHalfLifeMultiplay :: Think ( void )
 
 				m_fShowTimer = timelimit.value;
 			}
+
+			if ((g_GameMode == GAME_FFA || g_GameMode == GAME_SNOWBALL) && m_fShowFrags != fraglimit.value)
+			{
+				if (fraglimit.value > 0)
+				{
+					MESSAGE_BEGIN(MSG_ALL, gmsgObjective);
+						if (g_GameMode == GAME_FFA)
+							WRITE_STRING("Frag 'em");
+						else if (g_GameMode == GAME_SNOWBALL)
+							WRITE_STRING("Snowball 'em");
+						WRITE_STRING(UTIL_VarArgs("Fraglimit %.0f", fraglimit.value));
+						WRITE_BYTE(0);
+					MESSAGE_END();
+				}
+				else
+				{
+					MESSAGE_BEGIN(MSG_ALL, gmsgObjective);
+						if (g_GameMode == GAME_SNOWBALL)
+							WRITE_STRING("Frag 'em");
+						else if (g_GameMode == GAME_SNOWBALL)
+							WRITE_STRING("Snowball 'em");
+						WRITE_STRING("");
+						WRITE_BYTE(0);
+					MESSAGE_END();
+				}
+
+				m_fShowFrags = timelimit.value;
+			}
 		}
 	}
 
@@ -867,7 +892,8 @@ void CHalfLifeMultiplay::SuckAllToSpectator( void )
 		CBasePlayer *pPlayer = (CBasePlayer *)UTIL_PlayerByIndex( i );
 
 		if ( pPlayer && pPlayer->IsPlayer() && !pPlayer->IsSpectator() )
-		{ 
+		{
+			strcpy( pPlayer->m_szTeamName, "");
 			MESSAGE_BEGIN( MSG_ALL, gmsgScoreInfo );
 				WRITE_BYTE( ENTINDEX(pPlayer->edict()) );
 				WRITE_SHORT( pPlayer->pev->frags = 0 );

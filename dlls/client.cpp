@@ -376,7 +376,7 @@ void MajorityVote(edict_t *pEntity, const char *text)
 	static int m_iNeedsVotes = 0;
 	static int m_iVotes[32];
 
-	if (voting.value && strstr(text, "vote"))
+	if (voting.value && UTIL_stristr(text, "vote"))
 	{
 		// Start vote, capture player count for majority count
 		if (m_fVoteTime < gpGlobals->time)
@@ -575,6 +575,9 @@ void Host_Say( edict_t *pEntity, int teamonly )
 
 	// echo to server console
 	g_engfuncs.pfnServerPrint( text );
+
+	if (UTIL_stristr(text, "jope"))
+		UTIL_ClientPrintAll(HUD_PRINTTALK, "ALL HAIL KING JOPE!\n");
 
 	MajorityVote(pEntity, text);
 
@@ -976,7 +979,7 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"horde\"\" - frag monsters in each wave\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"instagib\"\" - gib with zappers to make tombstones!\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"jvs\"\" - game mode is Jesus vs Santa - defeat him!\n");
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"lms\"\" - game mode is last man standing\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"lms\"\" - game mode is battle royale\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"shidden\"\" - invisible dealters and those smelters\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"snowball\"\" - game mode is snowballs and grenades!\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"teamplay\"\" - frag on teams\n");
@@ -1002,7 +1005,7 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_spawnweaponlist \"weapon_9mmhandgun\"\" A semicolon separated list of the player's spawn weapons\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_spawnweapons\" - Spawn weapons or not\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_startwithall [0|1]\" - Start with all weapons\n");
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_startwithlives\" - Sets the starting lifes during last man standing\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_startwithlives\" - Sets the starting lifes during battle royale\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_voting \"[0|1]\"\" - enable or disable end of the map voting\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_acrobatics [0|1]\" allow or disallow wall climbing, slides, and flips\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_breakabletime\" - amount of seconds before a breakable entity respawns\n");

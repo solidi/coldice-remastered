@@ -2518,13 +2518,11 @@ void CTracer::TracerTouch( CBaseEntity *pOther )
 
 	if (tr.pHit == NULL)
 	{
-		ALERT(at_aiconsole, "null!\n");
 		return;
 	}
 
 	if (pOther->edict() == pev->owner)
 	{
-		ALERT(at_aiconsole, "owner!\n");
 		return;
 	}
 
