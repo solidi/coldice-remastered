@@ -703,6 +703,34 @@ void CHalfLifeMultiplay :: Think ( void )
 
 				m_fShowTimer = timelimit.value;
 			}
+
+			if ((g_GameMode == GAME_FFA || g_GameMode == GAME_SNOWBALL) && m_fShowFrags != fraglimit.value)
+			{
+				if (fraglimit.value > 0)
+				{
+					MESSAGE_BEGIN(MSG_ALL, gmsgObjective);
+						if (g_GameMode == GAME_FFA)
+							WRITE_STRING("Frag 'em");
+						else if (g_GameMode == GAME_SNOWBALL)
+							WRITE_STRING("Snowball 'em");
+						WRITE_STRING(UTIL_VarArgs("Fraglimit %.0f", fraglimit.value));
+						WRITE_BYTE(0);
+					MESSAGE_END();
+				}
+				else
+				{
+					MESSAGE_BEGIN(MSG_ALL, gmsgObjective);
+						if (g_GameMode == GAME_SNOWBALL)
+							WRITE_STRING("Frag 'em");
+						else if (g_GameMode == GAME_SNOWBALL)
+							WRITE_STRING("Snowball 'em");
+						WRITE_STRING("");
+						WRITE_BYTE(0);
+					MESSAGE_END();
+				}
+
+				m_fShowFrags = timelimit.value;
+			}
 		}
 	}
 
