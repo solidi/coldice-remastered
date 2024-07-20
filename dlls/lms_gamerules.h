@@ -17,7 +17,7 @@ class CHalfLifeLastManStanding : public CHalfLifeMultiplay
 {
 public:
 	CHalfLifeLastManStanding();
-	virtual const char *GetGameDescription( void ) { return "Cold Ice Remastered Last Man Standing"; }
+	virtual const char *GetGameDescription( void ) { return "Cold Ice Remastered Battle Royale"; }
 	virtual void Think( void );
 	virtual BOOL HasGameTimerExpired( void );
 	virtual void InitHUD( CBasePlayer *pPlayer );
