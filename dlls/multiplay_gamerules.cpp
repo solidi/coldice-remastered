@@ -160,20 +160,6 @@ void CHalfLifeMultiplay::RefreshSkillData( void )
 
 	if (MutatorEnabled(MUTATOR_GOLDENGUNS))
 	{
-		/* ??
-		float plrDmgKnife;
-		float plrDmgFlyingKnife;
-		float plrDmgFlyingCrowbar;
-		float chumtoadDmgBite;
-		float chumtoadDmgPop;
-		float plrDmgWrench;
-		float plrDmgFlyingWrench;
-		float plrDmgSnowball;
-		float plrDmgChainsaw;
-		float plrDmgGravityGun;
-		float plrDmgFlameThrower;
-		*/
-
 		float damage = 900.0;
 		gSkillData.plrDmg9MM = damage;
 		gSkillData.plrDmg357 = damage;
@@ -199,6 +185,17 @@ void CHalfLifeMultiplay::RefreshSkillData( void )
 		gSkillData.plrDmgKnifeSnipe = damage;
 		gSkillData.plrDmgNuke = damage;
 		gSkillData.plrDmgHornet = damage;
+		gSkillData.plrDmgKnife = damage;
+		gSkillData.plrDmgFlyingKnife = damage;
+		gSkillData.plrDmgFlyingCrowbar = damage;
+		gSkillData.chumtoadDmgBite = damage;
+		gSkillData.chumtoadDmgPop = damage;
+		gSkillData.plrDmgWrench = damage;
+		gSkillData.plrDmgFlyingWrench = damage;
+		gSkillData.plrDmgSnowball = damage;
+		gSkillData.plrDmgChainsaw = damage;
+		gSkillData.plrDmgGravityGun = damage;
+		gSkillData.plrDmgFlameThrower = damage;
 	}
 }
 
