@@ -120,7 +120,8 @@ public:
 // Weapon retrieval
 	virtual BOOL CanHavePlayerItem( CBasePlayer *pPlayer, CBasePlayerItem *pWeapon );// The player is touching an CBasePlayerItem, do I give it to him?
 	virtual void PlayerGotWeapon( CBasePlayer *pPlayer, CBasePlayerItem *pWeapon ) = 0;// Called each time a player picks up a weapon from the ground
-
+	virtual BOOL CanHavePlayerAmmo( CBasePlayer *pPlayer, CBasePlayerAmmo *pAmmo );
+	
 // Weapon spawn/respawn control
 	virtual int WeaponShouldRespawn( CBasePlayerItem *pWeapon ) = 0;// should this weapon respawn?
 	virtual float FlWeaponRespawnTime( CBasePlayerItem *pWeapon ) = 0;// when may this weapon respawn?
@@ -157,7 +158,7 @@ public:
 	virtual int DeadPlayerAmmo( CBasePlayer *pPlayer ) = 0;// Do I drop ammo when the player dies? How much?
 
 	virtual BOOL IsAllowedSingleWeapon( CBaseEntity *pEntity ) = 0;
-	virtual BOOL IsAllowedToDropWeapon( void ) = 0;
+	virtual BOOL IsAllowedToDropWeapon( CBasePlayer *pPlayer ) = 0;
 	virtual BOOL IsAllowedToHolsterWeapon( void ) = 0;
 
 // Teamplay stuff
@@ -206,6 +207,7 @@ public:
 	virtual BOOL IsJVS();
 	virtual BOOL IsShidden();
 	virtual BOOL IsInstagib();
+	virtual BOOL IsPropHunt();
 
 	virtual BOOL AllowMeleeDrop() = 0;
 
@@ -320,7 +322,7 @@ public:
 	virtual int DeadPlayerAmmo( CBasePlayer *pPlayer );
 
 	virtual BOOL IsAllowedSingleWeapon( CBaseEntity *pEntity );
-	virtual BOOL IsAllowedToDropWeapon( void );
+	virtual BOOL IsAllowedToDropWeapon( CBasePlayer *pPlayer );
 	virtual BOOL IsAllowedToHolsterWeapon( void );
 
 // Monsters
@@ -400,6 +402,7 @@ public:
 // Weapon retrieval
 	virtual void PlayerGotWeapon( CBasePlayer *pPlayer, CBasePlayerItem *pWeapon );
 	virtual BOOL CanHavePlayerItem( CBasePlayer *pPlayer, CBasePlayerItem *pWeapon );// The player is touching an CBasePlayerItem, do I give it to him?
+	virtual BOOL CanHavePlayerAmmo( CBasePlayer *pPlayer, CBasePlayerAmmo *pAmmo );
 
 // Weapon spawn/respawn control
 	virtual int WeaponShouldRespawn( CBasePlayerItem *pWeapon );
@@ -435,7 +438,7 @@ public:
 	virtual int DeadPlayerAmmo( CBasePlayer *pPlayer );
 
 	virtual BOOL IsAllowedSingleWeapon( CBaseEntity *pEntity );
-	virtual BOOL IsAllowedToDropWeapon( void );
+	virtual BOOL IsAllowedToDropWeapon( CBasePlayer *pPlayer );
 	virtual BOOL IsAllowedToHolsterWeapon( void );
 
 // Teamplay stuff	

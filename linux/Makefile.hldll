@@ -199,6 +199,7 @@ HLDLL_OBJS = \
 	$(HLDLL_OBJ_DIR)/plasma.o \
 	$(HLDLL_OBJ_DIR)/plats.o \
 	$(HLDLL_OBJ_DIR)/player.o \
+	$(HLDLL_OBJ_DIR)/prophunt_gamerules.o \
 	$(HLDLL_OBJ_DIR)/python.o \
 	$(HLDLL_OBJ_DIR)/railgun.o \
 	$(HLDLL_OBJ_DIR)/rat.o \

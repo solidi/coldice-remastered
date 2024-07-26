@@ -1989,11 +1989,23 @@ int CStudioModelRenderer::StudioDrawPlayer( int flags, entity_state_t *pplayer )
 		return 0;
 
 	bool crate = MutatorEnabled(MUTATOR_CRATE);
+	bool prophunt = m_pCurrentEntity->curstate.fuser4 > 0 && gHUD.m_GameMode == GAME_PROPHUNT;
 
 	if (crate)
 	{
 		int modelindex;
 		m_pRenderModel = gEngfuncs.CL_LoadModel("models/box.mdl", &modelindex );
+	}
+
+	if (prophunt)
+	{
+		crate = FALSE;
+		int modelindex;
+		m_pRenderModel = gEngfuncs.CL_LoadModel("models/w_weapons.mdl", &modelindex );
+		if (m_pCurrentEntity->curstate.fuser4 > 49)
+		{
+			m_pRenderModel = gEngfuncs.CL_LoadModel("models/w_ammo.mdl", &modelindex );
+		}
 	}
 
 #if defined( _TFC )
@@ -2017,7 +2029,7 @@ int CStudioModelRenderer::StudioDrawPlayer( int flags, entity_state_t *pplayer )
 
 #else
 
-	if (!crate)
+	if (!crate && !prophunt)
 		m_pRenderModel = IEngineStudio.SetupPlayerModel( m_nPlayerIndex );
 
 #endif
@@ -2031,12 +2043,23 @@ int CStudioModelRenderer::StudioDrawPlayer( int flags, entity_state_t *pplayer )
 
 	if (crate)
 		m_pCurrentEntity->curstate.skin = m_nPlayerIndex % 8;
+	
+	if (prophunt)
+	{
+		m_pCurrentEntity->curstate.body = m_pCurrentEntity->curstate.fuser4 >= 50 ? m_pCurrentEntity->curstate.fuser4 - 49 : m_pCurrentEntity->curstate.fuser4;
+		m_pCurrentEntity->curstate.skin = cl_icemodels->value;
+		m_pCurrentEntity->origin[2] = m_pCurrentEntity->origin[2] - 36;
+		m_pCurrentEntity->angles = Vector(0,0,0);
+	}
 
 	if (pplayer->gaitsequence)
 	{
 		vec3_t orig_angles;
 		m_pPlayerInfo = IEngineStudio.PlayerInfo( m_nPlayerIndex );
 
+		//m_pCurrentEntity->curstate.angles = Vector(0,0,0);
+		//m_pCurrentEntity->baseline.angles = Vector(0,0,0);
+		//m_pCurrentEntity->angles = Vector(0,0,0);
 		VectorCopy( m_pCurrentEntity->angles, orig_angles );
 	
 		StudioProcessGait( pplayer );
@@ -2176,7 +2199,7 @@ int CStudioModelRenderer::StudioDrawPlayer( int flags, entity_state_t *pplayer )
 
 		m_pPlayerInfo = NULL;
 
-		if (!crate && pplayer->weaponmodel)
+		if (!crate && !prophunt && pplayer->weaponmodel)
 		{
 			cl_entity_t saveent = *m_pCurrentEntity;
 
@@ -2269,7 +2292,7 @@ int CStudioModelRenderer::StudioDrawPlayer( int flags, entity_state_t *pplayer )
 		model_t *hatmodel;
 		int body = 0;
 
-		if (!crate)
+		if (!crate && !prophunt)
 		{
 			if (MutatorEnabled(MUTATOR_JACK)) {
 				gEngfuncs.CL_LoadModel("models/hats.mdl", &hatindex);

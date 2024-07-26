@@ -37,6 +37,7 @@
 #include	"shidden_gamerules.h"
 #include	"horde_gamerules.h"
 #include	"instagib_gamerules.h"
+#include	"prophunt_gamerules.h"
 
 extern edict_t *EntSelectSpawnPoint( CBaseEntity *pPlayer );
 
@@ -195,6 +196,11 @@ BOOL CGameRules::CanHavePlayerItem( CBasePlayer *pPlayer, CBasePlayerItem *pWeap
 	}
 
 	// note: will fall through to here if GetItemInfo doesn't fill the struct!
+	return TRUE;
+}
+
+BOOL CGameRules::CanHavePlayerAmmo( CBasePlayer *pPlayer, CBasePlayerAmmo *pAmmo )
+{
 	return TRUE;
 }
 
@@ -516,6 +522,8 @@ CGameRules *InstallGameRules( void )
 				return new CHalfLifeHorde;
 			case GAME_INSTAGIB:
 				return new CHalfLifeInstagib;
+			case GAME_PROPHUNT:
+				return new CHalfLifePropHunt;
 		}
 
 		if ((int)gpGlobals->deathmatch == 1)
@@ -1525,4 +1533,9 @@ BOOL CGameRules::IsShidden()
 BOOL CGameRules::IsInstagib()
 {
 	return g_GameMode == GAME_INSTAGIB;
+}
+
+BOOL CGameRules::IsPropHunt()
+{
+	return g_GameMode == GAME_PROPHUNT;
 }

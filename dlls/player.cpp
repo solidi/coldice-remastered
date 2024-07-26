@@ -1338,6 +1338,19 @@ void CBasePlayer::SetAnimation( PLAYER_ANIM playerAnim )
 		break;
 	}
 
+	if (g_pGameRules->IsPropHunt() && pev->fuser4 > 0)
+	{
+		int ideal = pev->fuser4 >= 50 ? ((pev->fuser4 - 49) * 2) + floatingweapons.value : (pev->fuser4 * 2) + floatingweapons.value;
+		if (pev->sequence == ideal)
+			return;
+
+		pev->sequence = ideal;
+		pev->framerate = 1.0;
+		pev->gaitsequence = 0;
+
+		return;
+	}
+
 	switch (m_IdealActivity)
 	{
 	case ACT_HOVER:
@@ -1780,6 +1793,7 @@ void CBasePlayer::StartObserver( Vector vecPosition, Vector vecViewAngle )
 	if (g_pGameRules->FAllowMonsters())
 		DeactivateAssassins(this);
 	DeactivatePortals(this);
+	DeactivateDecoys(this);
 
 	if ( m_pTank != NULL )
 	{
@@ -6727,7 +6741,7 @@ int CBasePlayer :: GetCustomDecalFrames( void )
 //=========================================================
 void CBasePlayer::DropPlayerItem ( char *pszItemName, BOOL weaponbox )
 {
-	if ( !g_pGameRules->IsAllowedToDropWeapon())
+	if ( !g_pGameRules->IsAllowedToDropWeapon(this) )
 		return;
 
 	if ( weaponstay.value > 0 )

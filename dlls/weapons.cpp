@@ -491,6 +491,7 @@ void W_Precache(void)
 	UTIL_PrecacheOther( "disc" );
 	UTIL_PrecacheOther( "monster_tombstone" );
 	UTIL_PrecacheOther( "monster_grabweapon" );
+	UTIL_PrecacheOther( "monster_propdecoy" );
 
 #if !defined( OEM_BUILD ) && !defined( HLDEMO_BUILD )
 	UTIL_PrecacheOther( "weaponbox" );// container for dropped deathmatch weapons
@@ -1011,6 +1012,67 @@ BOOL CanAttack( float attack_time, float curtime, BOOL isPredicted )
 
 void CBasePlayerWeapon::ItemPostFrame( void )
 {
+	if (g_pGameRules->IsPropHunt() && m_pPlayer->pev->fuser4 > 0) {
+		if ((m_pPlayer->pev->button & IN_ATTACK) &&
+			CanAttack( m_flNextPrimaryAttack, gpGlobals->time, UseDecrement() ))
+		{
+			if (m_pPlayer->pev->fuser4 > 56)
+				m_pPlayer->pev->fuser4 = 1;
+			m_pPlayer->pev->fuser4 += 1;
+
+			ALERT(at_aiconsole, "fuser4 = %.0f\n", m_pPlayer->pev->fuser4);
+
+			m_flNextPrimaryAttack = m_flNextSecondaryAttack =  UTIL_WeaponTimeBase() + 0.25;
+			m_pPlayer->pev->button &= ~IN_ATTACK;
+			m_pPlayer->pev->button &= ~IN_ATTACK2;
+		}
+		else if ((m_pPlayer->pev->button & IN_ATTACK2) &&
+				CanAttack( m_flNextSecondaryAttack, gpGlobals->time, UseDecrement() ))
+		{
+			m_pPlayer->pev->fuser4 -= 1;
+			if (m_pPlayer->pev->fuser4 < 1)
+				m_pPlayer->pev->fuser4 = 56;
+
+			ALERT(at_aiconsole, "fuser4 = %.0f\n", m_pPlayer->pev->fuser4);
+
+			m_flNextPrimaryAttack = m_flNextSecondaryAttack =  UTIL_WeaponTimeBase() + 0.25;
+			m_pPlayer->pev->button &= ~IN_ATTACK;
+			m_pPlayer->pev->button &= ~IN_ATTACK2;
+		}
+		else if ((m_pPlayer->pev->button & IN_RELOAD) &&
+				CanAttack( m_flNextPrimaryAttack, gpGlobals->time, UseDecrement() ))
+		{
+			UTIL_MakeVectors( m_pPlayer->pev->v_angle );
+			Vector vecSrc = m_pPlayer->pev->origin + m_pPlayer->pev->view_ofs + gpGlobals->v_forward * 64 + gpGlobals->v_up * 18;
+			if (m_pPlayer->m_iPropsDeployed < 10)
+			{
+				CBaseEntity *p = CBaseEntity::Create( "monster_propdecoy", vecSrc, Vector(0, m_pPlayer->pev->v_angle.y, 0), m_pPlayer->edict() );
+				if (p)
+				{
+					if (m_pPlayer->pev->fuser4 >= 50)
+					{
+						SET_MODEL( p->edict(), "models/w_ammo.mdl");
+					}
+					p->pev->body = m_pPlayer->pev->fuser4 >= 50 ? m_pPlayer->pev->fuser4 - 49 : m_pPlayer->pev->fuser4;
+					p->pev->sequence = p->pev->body >= 50 ? ((p->pev->body - 49) * 2) + floatingweapons.value : (p->pev->body * 2) + floatingweapons.value;
+				}
+			}
+			else
+				ClientPrint(m_pPlayer->pev, HUD_PRINTCENTER, "All decoys are deployed.\n");
+			m_pPlayer->m_flNextAttack = m_flNextPrimaryAttack = m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 0.25;
+			m_pPlayer->pev->button &= ~IN_RELOAD;
+		}
+		else
+		{
+			m_bFired = FALSE;
+			// no fire buttons down
+			m_fFireOnEmpty = FALSE;
+			WeaponIdle();
+		}
+
+		return;
+	}
+
 	if (g_pGameRules->MutatorEnabled(MUTATOR_DEALTER) ||
 		(g_pGameRules->IsShidden() && m_pPlayer->pev->fuser4 > 0)) {
 		if ((m_pPlayer->pev->button & IN_ATTACK) &&
@@ -1805,6 +1867,11 @@ void CBasePlayerAmmo :: DefaultTouch( CBaseEntity *pOther )
 	pev->avelocity = pev->avelocity * 0.5;
 
 	if ( !pOther->IsPlayer() )
+	{
+		return;
+	}
+
+	if ( !g_pGameRules->CanHavePlayerAmmo( (CBasePlayer *)pOther, this ) )
 	{
 		return;
 	}

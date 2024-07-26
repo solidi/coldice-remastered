@@ -739,6 +739,7 @@ const char *szGameModeList [] =
 	"horde",
 	"instagib",
 	"jvs",
+	"prophunt",
 	"shidden",
 	"snowball",
 	"teamplay",

@@ -364,6 +364,7 @@ Vector CBaseEntity::FireBulletsPlayer ( ULONG cShots, Vector vecSrc, Vector vecD
 }
 
 extern bool IsShidden( void );
+extern bool IsPropHunt( void );
 
 /*
 =====================
@@ -380,8 +381,10 @@ void CBasePlayerWeapon::ItemPostFrame( void )
 	}
 
 	cl_entity_t *t = gEngfuncs.GetLocalPlayer();
-	if (MutatorEnabled(MUTATOR_RICOCHET) || MutatorEnabled(MUTATOR_DEALTER) ||
-		(IsShidden() && t->curstate.fuser4 > 0)) {
+	if (MutatorEnabled(MUTATOR_RICOCHET) || 
+		MutatorEnabled(MUTATOR_DEALTER) ||
+		(IsShidden() && t->curstate.fuser4 > 0) ||
+		(IsPropHunt() && t->curstate.fuser4 > 0)) {
 		if ((m_pPlayer->pev->button & IN_ATTACK) && (m_flNextPrimaryAttack <= 0.0) ||
 			(m_pPlayer->pev->button & IN_ATTACK2) && (m_flNextSecondaryAttack <= 0.0))
 		{

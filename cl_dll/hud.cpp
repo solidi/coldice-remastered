@@ -1056,3 +1056,8 @@ bool IsShidden( void )
 {
 	return gHUD.m_GameMode == GAME_SHIDDEN;
 }
+
+bool IsPropHunt( void )
+{
+	return gHUD.m_GameMode == GAME_PROPHUNT;
+}
