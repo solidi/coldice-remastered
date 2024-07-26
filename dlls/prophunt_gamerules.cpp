@@ -610,12 +610,20 @@ void CHalfLifePropHunt::Think( void )
 			player[i] = tmp;
 		}
 
+		m_fUnFreezeHunters = gpGlobals->time + 20.0;
+
 		for ( int i = 0; i < count; i++ )
 		{
 			CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( player[i] );
 
-			if ( plr && plr->IsPlayer() && !plr->HasDisconnected )
+			if ( plr && plr->IsPlayer() && !plr->HasDisconnected ) {
 				plr->pev->fuser4 = i % 2;
+				if (plr->pev->fuser4 > 0)
+				{
+					plr->pev->fuser3 = m_fUnFreezeHunters;
+					plr->pev->fuser4 = RANDOM_LONG(1, 30);
+				}
+			}
 		}
 
 		g_GameInProgress = TRUE;
@@ -623,7 +631,6 @@ void CHalfLifePropHunt::Think( void )
 		InsertClientsIntoArena(0);
 
 		// m_fSendArmoredManMessage = gpGlobals->time + 1.0;
-		m_fUnFreezeHunters = gpGlobals->time + 20.0;
 
 		m_iCountDown = 3;
 		m_fWaitForPlayersTime = -1;
@@ -658,7 +665,7 @@ BOOL CHalfLifePropHunt::HasGameTimerExpired( void )
 {
 	if ( CHalfLifeMultiplay::HasGameTimerExpired() )
 	{
-		int highest = 1;
+		int highest = -9999; // any frag amount wins.
 		BOOL IsEqual = FALSE;
 		CBasePlayer *highballer = NULL;
 
@@ -765,13 +772,17 @@ void CHalfLifePropHunt::PlayerSpawn( CBasePlayer *pPlayer )
 
 	if ( pPlayer->pev->fuser4 > 0 )
 	{
-		pPlayer->pev->fuser3 = 1; // bots need to identify their team.
 		strncpy( pPlayer->m_szTeamName, "props", TEAM_NAME_LENGTH );
+		//SET_MODEL(ENT(pPlayer->pev), "models/w_weapons.mdl");
+		// UTIL_SetSize(pPlayer->pev, VEC_DUCK_HULL_MIN, VEC_DUCK_HULL_MAX);
+		pPlayer->pev->health = 1;
+		pPlayer->pev->armorvalue = 0;
+		CLIENT_COMMAND(pPlayer->edict(), "thirdperson\n");
 	}
 	else
 	{
 		strncpy( pPlayer->m_szTeamName, "hunters", TEAM_NAME_LENGTH );
-		pPlayer->pev->fuser3 = 0; // bots need to identify their team.
+		pPlayer->pev->fuser3 = 1; // bot timer to unfreeze
 	}
 
 	g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer->edict()), key, "team", pPlayer->m_szTeamName);
@@ -809,8 +820,9 @@ BOOL CHalfLifePropHunt::FPlayerCanTakeDamage( CBasePlayer *pPlayer, CBaseEntity 
 
 		CLIENT_COMMAND(pPlayer->edict(), "firstperson\n");
 		pPlayer->pev->fuser4 = 0;
-		pPlayer->pev->fuser3 = 0; // bots need to identify their team.
+		pPlayer->pev->fuser3 = 1; // bot timer to unfreeze
 		pPlayer->pev->health = 100;
+		pPlayer->GiveRandomWeapon("weapon_nuke");
 
 		strncpy( pPlayer->m_szTeamName, "hunters", TEAM_NAME_LENGTH );
 		char *key = g_engfuncs.pfnGetInfoKeyBuffer(pPlayer->edict());
@@ -912,7 +924,7 @@ BOOL CHalfLifePropHunt::ShouldAutoAim( CBasePlayer *pPlayer, edict_t *target )
 
 BOOL CHalfLifePropHunt::CanHavePlayerItem( CBasePlayer *pPlayer, CBasePlayerItem *pItem )
 {
-	if (pPlayer->pev->fuser4 > 0)
+	if (pPlayer->pev->fuser4 > 0 && strcmp(STRING(pItem->pev->classname), "weapon_fists"))
 		return FALSE;
 
 	return CHalfLifeMultiplay::CanHavePlayerItem( pPlayer, pItem );

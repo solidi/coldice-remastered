@@ -4475,6 +4475,11 @@ void CBasePlayer::GiveNamedItem( const char *pszName )
 		}
 	}
 
+	if (g_pGameRules->IsPropHunt() && pev->fuser4 > 0 && stricmp(pszName, "weapon_fists") != 0)
+	{
+		return; // only fists for props
+	}
+
 	edict_t	*pent;
 
 	int istr = MAKE_STRING(pszName);
