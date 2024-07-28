@@ -3811,7 +3811,7 @@ void CBasePlayer::Spawn( void )
 
 	m_EFlags = 0;
 	m_iWeapons2 = FALSE;
-	m_iFreezeCounter 	= 0;
+	m_iFreezeCounter 	= -1;
 	pHeldItem = NULL;
 	m_iHoldingItem = FALSE;
 	m_fSelacoSliding = m_fSelacoHit = FALSE;

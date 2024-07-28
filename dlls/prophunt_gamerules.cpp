@@ -96,6 +96,13 @@ void CPropDecoy::Killed( entvars_t *pevAttacker, int iGib )
 		CBasePlayer *plr = GetClassPtr((CBasePlayer *)pevAttacker);
 		((CBasePlayer *)(CBaseEntity *)m_hOwner)->m_iPropsDeployed--;
 
+		MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
+			WRITE_BYTE( TE_TAREXPLOSION );
+			WRITE_COORD( pev->origin.x );
+			WRITE_COORD( pev->origin.y );
+			WRITE_COORD( pev->origin.z );
+		MESSAGE_END();
+
 		if (plr && plr->IsPlayer())
 		{
 			if (plr->pev != m_hOwner->pev)
@@ -622,6 +629,10 @@ void CHalfLifePropHunt::Think( void )
 				{
 					plr->pev->fuser3 = m_fUnFreezeHunters;
 					plr->pev->fuser4 = RANDOM_LONG(1, 30);
+				}
+				else
+				{
+					plr->EnableControl(FALSE);
 				}
 			}
 		}
