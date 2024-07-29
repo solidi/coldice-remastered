@@ -776,7 +776,7 @@ void CHalfLifeMultiplay::InsertClientsIntoArena(float fragcount)
 	{
 		CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
 
-		if ( plr && plr->IsPlayer() )
+		if ( plr && plr->IsPlayer() && !plr->HasDisconnected )
 		{ 
 			// Joining spectators do not get game mode message.
 			UpdateGameMode( plr );
@@ -892,7 +892,7 @@ void CHalfLifeMultiplay::SuckAllToSpectator( void )
 	{
 		CBasePlayer *pPlayer = (CBasePlayer *)UTIL_PlayerByIndex( i );
 
-		if ( pPlayer && pPlayer->IsPlayer() && !pPlayer->IsSpectator() )
+		if ( pPlayer && pPlayer->IsPlayer() && !pPlayer->IsSpectator() && !pPlayer->HasDisconnected )
 		{
 			CLIENT_COMMAND(pPlayer->edict(), "firstperson\n");
 			strcpy( pPlayer->m_szTeamName, "");
