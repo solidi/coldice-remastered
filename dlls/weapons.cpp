@@ -735,6 +735,7 @@ int CBasePlayerItem::TakeDamage( entvars_t* pevInflictor, entvars_t* pevAttacker
 				WRITE_COORD( pev->origin.y );
 				WRITE_COORD( pev->origin.z );
 			MESSAGE_END();
+			g_pGameRules->MonsterKilled( NULL, pevAttacker );
 		}
 
 		if (g_ItemsExplode)
@@ -1802,6 +1803,7 @@ int CBasePlayerAmmo::TakeDamage( entvars_t* pevInflictor, entvars_t* pevAttacker
 				WRITE_COORD( pev->origin.y );
 				WRITE_COORD( pev->origin.z );
 			MESSAGE_END();
+			g_pGameRules->MonsterKilled( NULL, pevAttacker );
 		}
 
 		if (g_ItemsExplode)
@@ -2139,6 +2141,7 @@ int CWeaponBox::TakeDamage( entvars_t* pevInflictor, entvars_t* pevAttacker, flo
 				WRITE_COORD( pev->origin.y );
 				WRITE_COORD( pev->origin.z );
 			MESSAGE_END();
+			g_pGameRules->MonsterKilled( NULL, pevAttacker );
 		}
 
 		if (g_ItemsExplode)

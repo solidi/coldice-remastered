@@ -617,7 +617,7 @@ void CHalfLifePropHunt::Think( void )
 			player[i] = tmp;
 		}
 
-		m_fUnFreezeHunters = gpGlobals->time + 20.0;
+		m_fUnFreezeHunters = gpGlobals->time + 30.0;
 
 		for ( int i = 0; i < count; i++ )
 		{
@@ -655,6 +655,9 @@ void CHalfLifePropHunt::Think( void )
 
 		UTIL_ClientPrintAll(HUD_PRINTCENTER, UTIL_VarArgs("Prop Hunt has begun!\n"));
 		UTIL_ClientPrintAll(HUD_PRINTTALK, UTIL_VarArgs("* %d players have entered the arena!\n", clients));
+
+		flUpdateTime = gpGlobals->time; // force now, so hunter freeze immediately.
+		return;
 	}
 	else
 	{
@@ -855,7 +858,7 @@ BOOL CHalfLifePropHunt::FPlayerCanTakeDamage( CBasePlayer *pPlayer, CBaseEntity 
 		if (pAttacker->IsPlayer() && (pAttacker != pPlayer))
 		{
 			CBasePlayer *kp = (CBasePlayer *)pAttacker;
-			kp->pev->frags += 5;
+			kp->pev->frags += 2;
 			MESSAGE_BEGIN( MSG_ALL, gmsgScoreInfo );
 			WRITE_BYTE( ENTINDEX(kp->edict()) );
 			WRITE_SHORT( kp->pev->frags );
@@ -979,4 +982,21 @@ BOOL CHalfLifePropHunt::CanHavePlayerAmmo( CBasePlayer *pPlayer, CBasePlayerAmmo
 		return FALSE;
 
 	return CHalfLifeMultiplay::CanHavePlayerAmmo( pPlayer, pAmmo );
+}
+
+void CHalfLifePropHunt::MonsterKilled( CBaseMonster *pVictim, entvars_t *pKiller )
+{
+	CBasePlayer *plr = (CBasePlayer *)CBaseEntity::Instance( pKiller );
+
+	// Reduce frags if killed harmless item
+	if (plr && plr->IsPlayer())
+	{
+		MESSAGE_BEGIN( MSG_ALL, gmsgScoreInfo );
+			WRITE_BYTE( ENTINDEX(plr->edict()) );
+			WRITE_SHORT( --plr->pev->frags );
+			WRITE_SHORT( plr->m_iDeaths );
+			WRITE_SHORT( plr->m_iRoundWins );
+			WRITE_SHORT( g_pGameRules->GetTeamIndex( plr->m_szTeamName ) + 1 );
+		MESSAGE_END();
+	}
 }
