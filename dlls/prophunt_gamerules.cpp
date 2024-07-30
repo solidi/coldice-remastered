@@ -629,6 +629,7 @@ void CHalfLifePropHunt::Think( void )
 				{
 					plr->pev->fuser3 = m_fUnFreezeHunters;
 					plr->pev->fuser4 = RANDOM_LONG(1, 30);
+					plr->m_flNextPropSound = gpGlobals->time + RANDOM_FLOAT(25,35);
 				}
 				else
 				{
@@ -791,6 +792,7 @@ void CHalfLifePropHunt::PlayerSpawn( CBasePlayer *pPlayer )
 		// UTIL_SetSize(pPlayer->pev, VEC_DUCK_HULL_MIN, VEC_DUCK_HULL_MAX);
 		pPlayer->pev->health = 1;
 		pPlayer->pev->armorvalue = 0;
+		pPlayer->GiveNamedItem("weapon_handgrenade");
 		CLIENT_COMMAND(pPlayer->edict(), "thirdperson\n");
 	}
 	else
@@ -938,7 +940,9 @@ BOOL CHalfLifePropHunt::ShouldAutoAim( CBasePlayer *pPlayer, edict_t *target )
 
 BOOL CHalfLifePropHunt::CanHavePlayerItem( CBasePlayer *pPlayer, CBasePlayerItem *pItem )
 {
-	if (pPlayer->pev->fuser4 > 0 && strcmp(STRING(pItem->pev->classname), "weapon_fists"))
+	if (pPlayer->pev->fuser4 > 0 &&
+		strcmp(STRING(pItem->pev->classname), "weapon_fists") &&
+		strcmp(STRING(pItem->pev->classname), "weapon_handgrenade"))
 		return FALSE;
 
 	return CHalfLifeMultiplay::CanHavePlayerItem( pPlayer, pItem );
@@ -998,5 +1002,23 @@ void CHalfLifePropHunt::MonsterKilled( CBaseMonster *pVictim, entvars_t *pKiller
 			WRITE_SHORT( plr->m_iRoundWins );
 			WRITE_SHORT( g_pGameRules->GetTeamIndex( plr->m_szTeamName ) + 1 );
 		MESSAGE_END();
+	}
+}
+
+void CHalfLifePropHunt::PlayerThink( CBasePlayer *pPlayer )
+{
+	CHalfLifeMultiplay::PlayerThink(pPlayer);
+
+	if (pPlayer->pev->fuser4 > 0)
+	{
+		if (pPlayer->m_flNextPropSound && pPlayer->m_flNextPropSound < gpGlobals->time)
+		{
+			EMIT_SOUND(ENT(pPlayer->pev), CHAN_VOICE, "sprayer.wav", 1, ATTN_NORM);
+			pPlayer->m_flNextPropSound = gpGlobals->time + RANDOM_FLOAT(25,35);
+		}
+	}
+	else
+	{
+		pPlayer->m_flNextPropSound = 0;
 	}
 }

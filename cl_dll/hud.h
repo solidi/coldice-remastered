@@ -755,6 +755,7 @@ enum e_protips {
 	KICK_TIP,
 	FEIGN_TIP,
 	FORCEGRAB_TIP,
+	PROP_TIP,
 };
 
 #define PROTIPS_AMT	18

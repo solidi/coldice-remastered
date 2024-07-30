@@ -36,6 +36,7 @@ public:
 	virtual int DeadPlayerAmmo( CBasePlayer *pPlayer );
 	virtual BOOL CanHavePlayerAmmo( CBasePlayer *pPlayer, CBasePlayerAmmo *pAmmo );
 	virtual void MonsterKilled( CBaseMonster *pVictim, entvars_t *pKiller );
+	virtual void PlayerThink( CBasePlayer *pPlayer );
 
 private:
 	int m_iHuntersRemain;

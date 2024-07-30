@@ -801,6 +801,7 @@ enum e_protips {
 	KICK_TIP,
 	FEIGN_TIP,
 	FORCEGRAB_TIP,
+	PROP_TIP,
 };
 
 extern void ProTip(int id, const char *message);
@@ -877,6 +878,7 @@ void HUD_WeaponsPostThink( local_state_s *from, local_state_s *to, usercmd_t *cm
 		case WEAPON_HANDGRENADE:
 			pWeapon = &g_HandGren;
 			ProTip(GRENADE_TIP, "Use offhand grenades, press Q or bind \"impulse 209\"");
+			ProTip(PROP_TIP, "You're a prop. ATTACK - models / RELOAD - decoy / Q - grenade");
 			break;
 
 		case WEAPON_SATCHEL:

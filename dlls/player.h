@@ -299,6 +299,7 @@ public:
 	BOOL m_iHoldingItem;
 
 	float m_flNextSantaSound;
+	float m_flNextPropSound;
 
 	float m_fNextScreamSound;
 

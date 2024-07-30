@@ -36,6 +36,31 @@ void CHudProTip::AddMessage(int id, const char *message)
 	if (gHUD.m_iIntermission)
 		return;
 
+	// Filter out unwanted messaages.
+	if (gHUD.m_GameMode == GAME_PROPHUNT)
+	{
+		cl_entity_t *player = gEngfuncs.GetLocalPlayer();
+		if (player)
+		{
+			if (player->curstate.fuser4 > 0)
+			{
+				if (id != PROP_TIP)
+					return;
+			}
+			else
+			{
+				if (id == PROP_TIP)
+					return;
+			}
+		}
+	} else {
+		if (id == PROP_TIP)
+		{
+			m_ShownTip[id] = true;
+			return;
+		}
+	}
+
 	m_ShownTip[id] = true;
 
 	float time = gEngfuncs.GetClientTime() + SECONDS_TO_LIVE;

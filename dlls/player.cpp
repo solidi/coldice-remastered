@@ -4260,7 +4260,7 @@ void CSprayCan::Spawn ( entvars_t *pevOwner )
 	pev->frame = 0;
 
 	pev->nextthink = gpGlobals->time + 0.1;
-	EMIT_SOUND(ENT(pev), CHAN_VOICE, "player/sprayer.wav", 1, ATTN_NORM);
+	EMIT_SOUND(ENT(pev), CHAN_VOICE, "sprayer.wav", 1, ATTN_NORM);
 }
 
 void CSprayCan::Think( void )
@@ -4475,9 +4475,10 @@ void CBasePlayer::GiveNamedItem( const char *pszName )
 		}
 	}
 
-	if (g_pGameRules->IsPropHunt() && pev->fuser4 > 0 && stricmp(pszName, "weapon_fists") != 0)
+	if (g_pGameRules->IsPropHunt() && pev->fuser4 > 0 && stricmp(pszName, "weapon_fists") != 0 &&
+		stricmp(pszName, "weapon_handgrenade") != 0)
 	{
-		return; // only fists for props
+		return;
 	}
 
 	edict_t	*pent;

@@ -895,6 +895,8 @@ void CHalfLifeMultiplay::SuckAllToSpectator( void )
 		if ( pPlayer && pPlayer->IsPlayer() && !pPlayer->IsSpectator() && !pPlayer->HasDisconnected )
 		{
 			CLIENT_COMMAND(pPlayer->edict(), "firstperson\n");
+			pPlayer->EnableControl(TRUE);
+
 			strcpy( pPlayer->m_szTeamName, "");
 			MESSAGE_BEGIN( MSG_ALL, gmsgScoreInfo );
 				WRITE_BYTE( ENTINDEX(pPlayer->edict()) );
