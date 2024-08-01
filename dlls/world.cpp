@@ -739,6 +739,7 @@ const char *szGameModeList [] =
 	"horde",
 	"instagib",
 	"jvs",
+	"prophunt",
 	"shidden",
 	"snowball",
 	"teamplay",
@@ -797,6 +798,9 @@ void CWorld :: SetGameMode( void )
 			if (g_GameMode != GAME_FFA)
 			{
 				sprintf(textfile, "modes/%s.txt", szGameModeList[i]);
+				char config[64];
+				sprintf(config, "exec %s.cfg\n", szGameModeList[i]);
+				SERVER_COMMAND(config);
 				CVAR_SET_STRING("motdfile", textfile);
 			}
 

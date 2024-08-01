@@ -208,6 +208,7 @@
     <ClCompile Include="..\..\dlls\plasma.cpp" />
     <ClCompile Include="..\..\dlls\plats.cpp" />
     <ClCompile Include="..\..\dlls\player.cpp" />
+    <ClCompile Include="..\..\dlls\prophunt_gamerules.cpp" />
     <ClCompile Include="..\..\dlls\python.cpp" />
     <ClCompile Include="..\..\dlls\railgun.cpp" />
     <ClCompile Include="..\..\dlls\rat.cpp" />
@@ -295,6 +296,7 @@
     <ClInclude Include="..\..\dlls\plane.h" />
     <ClInclude Include="..\..\dlls\plasma.h" />
     <ClInclude Include="..\..\dlls\player.h" />
+    <ClInclude Include="..\..\dlls\prophunt_gamerules.h" />
     <ClInclude Include="..\..\dlls\saverestore.h" />
     <ClInclude Include="..\..\dlls\schedule.h" />
     <ClInclude Include="..\..\dlls\scripted.h" />

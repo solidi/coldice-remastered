@@ -27,7 +27,7 @@ public:
 	virtual int DeadPlayerWeapons( CBasePlayer *pPlayer );
 	virtual int DeadPlayerAmmo( CBasePlayer *pPlayer );
 	virtual BOOL IsAllowedSingleWeapon( CBaseEntity *pEntity );
-	virtual BOOL IsAllowedToDropWeapon( void );
+	virtual BOOL IsAllowedToDropWeapon( CBasePlayer *pPlayer );
 	virtual BOOL IsAllowedToHolsterWeapon( void );
 	virtual int WeaponShouldRespawn( CBasePlayerItem *pWeapon );
 	virtual BOOL CanHavePlayerItem( CBasePlayer *pPlayer, CBasePlayerItem *pWeapon );

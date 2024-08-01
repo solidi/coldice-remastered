@@ -26,6 +26,6 @@ public:
 	virtual void PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller, entvars_t *pInflictor );
 	virtual int DeadPlayerWeapons( CBasePlayer *pPlayer );
 	virtual int DeadPlayerAmmo( CBasePlayer *pPlayer );
-	virtual BOOL IsAllowedToDropWeapon( void );
+	virtual BOOL IsAllowedToDropWeapon( CBasePlayer *pPlayer );
 
 };

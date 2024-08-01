@@ -204,6 +204,9 @@ void ClientKill( edict_t *pEntity )
 	if ( pl->m_fNextSuicideTime > gpGlobals->time )
 		return;  // prevent suiciding too ofter
 
+	if ( g_pGameRules->IsPropHunt() && pl->pev->fuser4 > 0 )
+		return; // props cannot suicide
+
 	pl->m_fNextSuicideTime = gpGlobals->time + 1;  // don't let them suicide for 5 seconds after suiciding
 
 	// have the player kill themself
@@ -979,6 +982,7 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"horde\"\" - frag monsters in each wave\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"instagib\"\" - gib with zappers to make tombstones!\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"jvs\"\" - game mode is Jesus vs Santa - defeat him!\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"prophunt\"\" - hide and don't be found!\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"lms\"\" - game mode is battle royale\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"shidden\"\" - invisible dealters and those smelters\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"snowball\"\" - game mode is snowballs and grenades!\n");
@@ -1044,7 +1048,7 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"grenades\" - a random chance of a grenade throw on attack\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"ice\" - all the ground is covered in ice\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"infiniteammo\" - all weapons have infinite ammo\n");
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"instagib\" - spawn with dual railguns that dole one hit kills\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"instagib\" - spawn with a zapgun that dole one hit kills\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"inverse\" - colors are inverted\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"invisible\" - everyone is partially invisible!\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"itemsexplode\" - weapons and items react to explosions\n");

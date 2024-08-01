@@ -364,6 +364,7 @@ Vector CBaseEntity::FireBulletsPlayer ( ULONG cShots, Vector vecSrc, Vector vecD
 }
 
 extern bool IsShidden( void );
+extern bool IsPropHunt( void );
 
 /*
 =====================
@@ -380,8 +381,10 @@ void CBasePlayerWeapon::ItemPostFrame( void )
 	}
 
 	cl_entity_t *t = gEngfuncs.GetLocalPlayer();
-	if (MutatorEnabled(MUTATOR_RICOCHET) || MutatorEnabled(MUTATOR_DEALTER) ||
-		(IsShidden() && t->curstate.fuser4 > 0)) {
+	if (MutatorEnabled(MUTATOR_RICOCHET) || 
+		MutatorEnabled(MUTATOR_DEALTER) ||
+		(IsShidden() && t->curstate.fuser4 > 0) ||
+		(IsPropHunt() && t->curstate.fuser4 > 0)) {
 		if ((m_pPlayer->pev->button & IN_ATTACK) && (m_flNextPrimaryAttack <= 0.0) ||
 			(m_pPlayer->pev->button & IN_ATTACK2) && (m_flNextSecondaryAttack <= 0.0))
 		{
@@ -798,6 +801,7 @@ enum e_protips {
 	KICK_TIP,
 	FEIGN_TIP,
 	FORCEGRAB_TIP,
+	PROP_TIP,
 };
 
 extern void ProTip(int id, const char *message);
@@ -874,6 +878,7 @@ void HUD_WeaponsPostThink( local_state_s *from, local_state_s *to, usercmd_t *cm
 		case WEAPON_HANDGRENADE:
 			pWeapon = &g_HandGren;
 			ProTip(GRENADE_TIP, "Use offhand grenades, press Q or bind \"impulse 209\"");
+			ProTip(PROP_TIP, "You're a prop. ATTACK - models / RELOAD - decoy / Q - grenade");
 			break;
 
 		case WEAPON_SATCHEL:

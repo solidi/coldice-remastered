@@ -267,7 +267,7 @@ int CHalfLifeInstagib::DeadPlayerAmmo( CBasePlayer *pPlayer )
 	return GR_PLR_DROP_AMMO_NO;
 }
 
-BOOL CHalfLifeInstagib::IsAllowedToDropWeapon( void )
+BOOL CHalfLifeInstagib::IsAllowedToDropWeapon( CBasePlayer *pPlayer )
 {
 	return FALSE;
 }

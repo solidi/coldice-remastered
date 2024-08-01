@@ -157,7 +157,7 @@ int CHudScoreboard :: Draw( float fTime )
 		gHUD.DrawHudStringReverse( KILLS_RANGE_MAX + xpos_rel, ypos, 0, "Lives", r, g, b );
 	else if (gHUD.m_Teamplay == GAME_GUNGAME)
 		gHUD.DrawHudStringReverse( KILLS_RANGE_MAX + xpos_rel, ypos, 0, "Level", r, g, b );
-	else if (gHUD.m_Teamplay == GAME_CTC)
+	else if (gHUD.m_Teamplay == GAME_CTC || gHUD.m_Teamplay == GAME_PROPHUNT)
 		gHUD.DrawHudStringReverse( KILLS_RANGE_MAX + xpos_rel, ypos, 0, "Points", r, g, b );
 	else if (gHUD.m_Teamplay == GAME_COLDSKULL)
 		gHUD.DrawHudStringReverse( KILLS_RANGE_MAX + xpos_rel, ypos, 0, "Skulls", r, g, b );
@@ -497,7 +497,8 @@ bool CHudScoreboard :: ScoreBased( void )
 			gHUD.m_Teamplay == GAME_ICEMAN ||
 			gHUD.m_Teamplay == GAME_CTF ||
 			gHUD.m_Teamplay == GAME_SHIDDEN ||
-			gHUD.m_Teamplay == GAME_HORDE);
+			gHUD.m_Teamplay == GAME_HORDE ||
+			gHUD.m_Teamplay == GAME_PROPHUNT);
 }
 
 void CHudScoreboard :: GetAllPlayersInfo( void )

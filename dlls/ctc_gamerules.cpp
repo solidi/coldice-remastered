@@ -455,7 +455,7 @@ BOOL CHalfLifeCaptureTheChumtoad::CanRandomizeWeapon( const char *name )
 	return TRUE;
 }
 
-BOOL CHalfLifeCaptureTheChumtoad::IsAllowedToDropWeapon( void )
+BOOL CHalfLifeCaptureTheChumtoad::IsAllowedToDropWeapon( CBasePlayer *pPlayer )
 {
 	return FALSE;
 }

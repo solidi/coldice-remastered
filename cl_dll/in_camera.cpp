@@ -434,7 +434,7 @@ void CAM_ToThirdPerson(void)
 { 
 	vec3_t viewangles;
 
-	if (!MutatorEnabled(MUTATOR_THIRDPERSON))
+	if (!MutatorEnabled(MUTATOR_THIRDPERSON) && gHUD.m_GameMode != GAME_PROPHUNT)
 	{
 		gEngfuncs.Con_Printf("Mutator \"thirdperson\" must be enabled by the server.\n");
 		return;

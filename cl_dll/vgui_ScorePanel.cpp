@@ -1012,7 +1012,8 @@ bool ScorePanel::ScoreBased( void )
 			gHUD.m_Teamplay == GAME_ICEMAN ||
 			gHUD.m_Teamplay == GAME_CTF ||
 			gHUD.m_Teamplay == GAME_SHIDDEN ||
-			gHUD.m_Teamplay == GAME_HORDE);
+			gHUD.m_Teamplay == GAME_HORDE ||
+			gHUD.m_Teamplay == GAME_PROPHUNT);
 }
 
 //-----------------------------------------------------------------------------

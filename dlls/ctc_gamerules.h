@@ -37,7 +37,7 @@ public:
 	virtual BOOL IsAllowedToSpawn( CBaseEntity *pEntity );
 	virtual int WeaponShouldRespawn( CBasePlayerItem *pWeapon );
 	virtual BOOL CanRandomizeWeapon(const char *name);
-	virtual BOOL IsAllowedToDropWeapon( void );
+	virtual BOOL IsAllowedToDropWeapon( CBasePlayer *pPlayer );
 	virtual BOOL AllowRuneSpawn( const char *szRune );
 	virtual int PlayerRelationship( CBaseEntity *pPlayer, CBaseEntity *pTarget );
 	virtual const char *GetTeamID( CBaseEntity *pEntity );

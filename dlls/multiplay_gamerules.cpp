@@ -257,6 +257,7 @@ char *gamePlayModes[] = {
 	"Horde",
 	"Instagib",
 	"Jesus vs. Santa",
+	"Prop Hunt",
 	"Snowballs",
 	"Teamplay",
 };
@@ -775,7 +776,7 @@ void CHalfLifeMultiplay::InsertClientsIntoArena(float fragcount)
 	{
 		CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
 
-		if ( plr && plr->IsPlayer() )
+		if ( plr && plr->IsPlayer() && !plr->HasDisconnected )
 		{ 
 			// Joining spectators do not get game mode message.
 			UpdateGameMode( plr );
@@ -891,8 +892,11 @@ void CHalfLifeMultiplay::SuckAllToSpectator( void )
 	{
 		CBasePlayer *pPlayer = (CBasePlayer *)UTIL_PlayerByIndex( i );
 
-		if ( pPlayer && pPlayer->IsPlayer() && !pPlayer->IsSpectator() )
+		if ( pPlayer && pPlayer->IsPlayer() && !pPlayer->IsSpectator() && !pPlayer->HasDisconnected )
 		{
+			CLIENT_COMMAND(pPlayer->edict(), "firstperson\n");
+			pPlayer->EnableControl(TRUE);
+
 			strcpy( pPlayer->m_szTeamName, "");
 			MESSAGE_BEGIN( MSG_ALL, gmsgScoreInfo );
 				WRITE_BYTE( ENTINDEX(pPlayer->edict()) );
@@ -2201,6 +2205,11 @@ BOOL CHalfLifeMultiplay::CanHavePlayerItem( CBasePlayer *pPlayer, CBasePlayerIte
 	return CGameRules::CanHavePlayerItem( pPlayer, pItem );
 }
 
+BOOL CHalfLifeMultiplay::CanHavePlayerAmmo( CBasePlayer *pPlayer, CBasePlayerAmmo *pAmmo )
+{
+	return CGameRules::CanHavePlayerAmmo( pPlayer, pAmmo );
+}
+
 //=========================================================
 //=========================================================
 BOOL CHalfLifeMultiplay::CanHaveItem( CBasePlayer *pPlayer, CItem *pItem )
@@ -2424,7 +2433,7 @@ BOOL CHalfLifeMultiplay::IsAllowedSingleWeapon( CBaseEntity *pEntity )
 	return TRUE;
 }
 
-BOOL CHalfLifeMultiplay::IsAllowedToDropWeapon( void )
+BOOL CHalfLifeMultiplay::IsAllowedToDropWeapon( CBasePlayer *pPlayer )
 {
 	return TRUE;
 }

@@ -67,15 +67,21 @@ void CHudRadar::ProcessPlayerState(void)
 		if (pClient->curstate.effects & EF_NODRAW)
 			continue;
 
-		if (gHUD.m_GameMode == GAME_SHIDDEN)
+		if (gHUD.m_GameMode == GAME_PROPHUNT)
+		{
+			if (pClient->curstate.fuser4 > 0)
+				continue;
+			else
+				b_specials[num_players] = false;
+		}
+		else if (gHUD.m_GameMode == GAME_SHIDDEN)
 		{
 			if (pClient->curstate.fuser4 > 0)
 				b_specials[num_players] = true;
 			else
 				b_specials[num_players] = false;
 		}
-
-		if (gHUD.m_GameMode == GAME_CTC)
+		else if (gHUD.m_GameMode == GAME_CTC)
 		{
 			if (!strcmp(pClient->model->name, "models/w_chumtoad.mdl")) // loose toad
 				b_specials[num_players] = true;

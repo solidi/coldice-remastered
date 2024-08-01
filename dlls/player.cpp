@@ -1338,6 +1338,19 @@ void CBasePlayer::SetAnimation( PLAYER_ANIM playerAnim )
 		break;
 	}
 
+	if (g_pGameRules->IsPropHunt() && pev->fuser4 > 0)
+	{
+		int ideal = pev->fuser4 >= 50 ? ((pev->fuser4 - 49) * 2) + floatingweapons.value : (pev->fuser4 * 2) + floatingweapons.value;
+		if (pev->sequence == ideal)
+			return;
+
+		pev->sequence = ideal;
+		pev->framerate = 1.0;
+		pev->gaitsequence = 0;
+
+		return;
+	}
+
 	switch (m_IdealActivity)
 	{
 	case ACT_HOVER:
@@ -1780,6 +1793,7 @@ void CBasePlayer::StartObserver( Vector vecPosition, Vector vecViewAngle )
 	if (g_pGameRules->FAllowMonsters())
 		DeactivateAssassins(this);
 	DeactivatePortals(this);
+	DeactivateDecoys(this);
 
 	if ( m_pTank != NULL )
 	{
@@ -3797,7 +3811,7 @@ void CBasePlayer::Spawn( void )
 
 	m_EFlags = 0;
 	m_iWeapons2 = FALSE;
-	m_iFreezeCounter 	= 0;
+	m_iFreezeCounter 	= -1;
 	pHeldItem = NULL;
 	m_iHoldingItem = FALSE;
 	m_fSelacoSliding = m_fSelacoHit = FALSE;
@@ -4246,7 +4260,7 @@ void CSprayCan::Spawn ( entvars_t *pevOwner )
 	pev->frame = 0;
 
 	pev->nextthink = gpGlobals->time + 0.1;
-	EMIT_SOUND(ENT(pev), CHAN_VOICE, "player/sprayer.wav", 1, ATTN_NORM);
+	EMIT_SOUND(ENT(pev), CHAN_VOICE, "sprayer.wav", 1, ATTN_NORM);
 }
 
 void CSprayCan::Think( void )
@@ -4459,6 +4473,12 @@ void CBasePlayer::GiveNamedItem( const char *pszName )
 			stricmp(pszName, "weapon_zapgun") != 0) {
 			return;
 		}
+	}
+
+	if (g_pGameRules->IsPropHunt() && pev->fuser4 > 0 && stricmp(pszName, "weapon_fists") != 0 &&
+		stricmp(pszName, "weapon_handgrenade") != 0)
+	{
+		return;
 	}
 
 	edict_t	*pent;
@@ -6727,7 +6747,7 @@ int CBasePlayer :: GetCustomDecalFrames( void )
 //=========================================================
 void CBasePlayer::DropPlayerItem ( char *pszItemName, BOOL weaponbox )
 {
-	if ( !g_pGameRules->IsAllowedToDropWeapon())
+	if ( !g_pGameRules->IsAllowedToDropWeapon(this) )
 		return;
 
 	if ( weaponstay.value > 0 )

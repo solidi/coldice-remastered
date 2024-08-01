@@ -473,7 +473,7 @@ BOOL CHalfLifeRules::IsAllowedSingleWeapon( CBaseEntity *pEntity )
 	return TRUE;
 }
 
-BOOL CHalfLifeRules::IsAllowedToDropWeapon( void )
+BOOL CHalfLifeRules::IsAllowedToDropWeapon( CBasePlayer *pPlayer )
 {
 	return FALSE;
 }

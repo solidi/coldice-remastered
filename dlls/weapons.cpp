@@ -491,6 +491,7 @@ void W_Precache(void)
 	UTIL_PrecacheOther( "disc" );
 	UTIL_PrecacheOther( "monster_tombstone" );
 	UTIL_PrecacheOther( "monster_grabweapon" );
+	UTIL_PrecacheOther( "monster_propdecoy" );
 
 #if !defined( OEM_BUILD ) && !defined( HLDEMO_BUILD )
 	UTIL_PrecacheOther( "weaponbox" );// container for dropped deathmatch weapons
@@ -693,7 +694,16 @@ void CBasePlayerItem::Materialize( void )
 		}
 	}
 
-	pev->solid = SOLID_TRIGGER;
+	if (g_pGameRules->IsPropHunt())
+	{
+		pev->health = 1;
+		pev->takedamage = DAMAGE_YES;
+		UTIL_SetSize(pev, VEC_HUMAN_HULL_MIN, VEC_HUMAN_HULL_MAX);
+	}
+	else
+	{
+		pev->solid = SOLID_TRIGGER;
+	}
 
 	UTIL_SetOrigin( pev, pev->origin );// link into world.
 	SetTouch (&CBasePlayerItem::DefaultTouch);
@@ -709,47 +719,62 @@ int CBasePlayerItem::TakeDamage( entvars_t* pevInflictor, entvars_t* pevAttacker
 	if ( pev->effects & EF_NODRAW )
 		return 0;
 
-	if (pevInflictor == pevAttacker)
+	if (!g_pGameRules->IsPropHunt() && pevInflictor == pevAttacker)
 		return 0;
 
 #ifndef CLIENT_DLL
 	if (pev->health > 0 && flDamage > 0)
 	{
 		pev->takedamage = DAMAGE_NO;
-		pev->dmg = RANDOM_LONG(50, 100);
-		int iContents = UTIL_PointContents ( pev->origin );
-		MESSAGE_BEGIN( MSG_PAS, SVC_TEMPENTITY, pev->origin );
-			WRITE_BYTE( TE_EXPLOSION );		// This makes a dynamic light and the explosion sprites/sound
-			WRITE_COORD( pev->origin.x );	// Send to PAS because of the sound
-			WRITE_COORD( pev->origin.y );
-			WRITE_COORD( pev->origin.z );
-			if (iContents != CONTENTS_WATER)
-			{
-				if (icesprites.value) {
-					WRITE_SHORT( g_sModelIndexIceFireball );
-				} else {
-					WRITE_SHORT( g_sModelIndexFireball );
-				}
-			}
-			else
-			{
-				WRITE_SHORT( g_sModelIndexWExplosion );
-			}
-			WRITE_BYTE( (pev->dmg) * .60  ); // scale * 10
-			WRITE_BYTE( 15 ); // framerate
-			WRITE_BYTE( TE_EXPLFLAG_NONE );
-		MESSAGE_END();
-		TraceResult tr;
-		UTIL_TraceLine ( pev->origin, pev->origin + Vector ( 0, 0, -128 ), ignore_monsters, ENT(pev), &tr);
-		enum decal_e decal = DECAL_SCORCH1;
-		int index = RANDOM_LONG(0, 1);
-		if (g_pGameRules->MutatorEnabled(MUTATOR_PAINTBALL)) {
-			decal = DECAL_PAINTL1;
-			index = RANDOM_LONG(0, 7);
+
+		if (g_pGameRules->IsPropHunt())
+		{
+			MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
+				WRITE_BYTE( TE_TAREXPLOSION );
+				WRITE_COORD( pev->origin.x );
+				WRITE_COORD( pev->origin.y );
+				WRITE_COORD( pev->origin.z );
+			MESSAGE_END();
+			g_pGameRules->MonsterKilled( NULL, pevAttacker );
 		}
-		UTIL_DecalTrace(&tr, decal + index);
-		::RadiusDamage( pev->origin, pev, pevAttacker, pev->dmg, pev->dmg  * 2.5, CLASS_NONE, DMG_BURN );
-		
+
+		if (g_ItemsExplode)
+		{
+			pev->dmg = RANDOM_LONG(50, 100);
+			int iContents = UTIL_PointContents ( pev->origin );
+			MESSAGE_BEGIN( MSG_PAS, SVC_TEMPENTITY, pev->origin );
+				WRITE_BYTE( TE_EXPLOSION );		// This makes a dynamic light and the explosion sprites/sound
+				WRITE_COORD( pev->origin.x );	// Send to PAS because of the sound
+				WRITE_COORD( pev->origin.y );
+				WRITE_COORD( pev->origin.z );
+				if (iContents != CONTENTS_WATER)
+				{
+					if (icesprites.value) {
+						WRITE_SHORT( g_sModelIndexIceFireball );
+					} else {
+						WRITE_SHORT( g_sModelIndexFireball );
+					}
+				}
+				else
+				{
+					WRITE_SHORT( g_sModelIndexWExplosion );
+				}
+				WRITE_BYTE( (pev->dmg) * .60  ); // scale * 10
+				WRITE_BYTE( 15 ); // framerate
+				WRITE_BYTE( TE_EXPLFLAG_NONE );
+			MESSAGE_END();
+			TraceResult tr;
+			UTIL_TraceLine ( pev->origin, pev->origin + Vector ( 0, 0, -128 ), ignore_monsters, ENT(pev), &tr);
+			enum decal_e decal = DECAL_SCORCH1;
+			int index = RANDOM_LONG(0, 1);
+			if (g_pGameRules->MutatorEnabled(MUTATOR_PAINTBALL)) {
+				decal = DECAL_PAINTL1;
+				index = RANDOM_LONG(0, 7);
+			}
+			UTIL_DecalTrace(&tr, decal + index);
+			::RadiusDamage( pev->origin, pev, pevAttacker, pev->dmg, pev->dmg  * 2.5, CLASS_NONE, DMG_BURN );
+		}
+
 		Respawn();
 		Kill();
 	}
@@ -1011,6 +1036,73 @@ BOOL CanAttack( float attack_time, float curtime, BOOL isPredicted )
 
 void CBasePlayerWeapon::ItemPostFrame( void )
 {
+	if (g_pGameRules->IsPropHunt() && m_pPlayer->pev->fuser4 > 0) {
+		if ((m_pPlayer->pev->button & IN_ATTACK) &&
+			CanAttack( m_flNextPrimaryAttack, gpGlobals->time, UseDecrement() ))
+		{
+			if (m_pPlayer->pev->fuser4 > 56)
+				m_pPlayer->pev->fuser4 = 1;
+			m_pPlayer->pev->fuser4 += 1;
+			// Skip blank spaces in model
+			if (m_pPlayer->pev->fuser4 == 32)
+				m_pPlayer->pev->fuser4 = 35;
+
+			// ALERT(at_aiconsole, "fuser4 = %.0f\n", m_pPlayer->pev->fuser4);
+
+			m_flNextPrimaryAttack = m_flNextSecondaryAttack =  UTIL_WeaponTimeBase() + 0.25;
+			m_pPlayer->pev->button &= ~IN_ATTACK;
+			m_pPlayer->pev->button &= ~IN_ATTACK2;
+		}
+		else if ((m_pPlayer->pev->button & IN_ATTACK2) &&
+				CanAttack( m_flNextSecondaryAttack, gpGlobals->time, UseDecrement() ))
+		{
+			m_pPlayer->pev->fuser4 -= 1;
+			if (m_pPlayer->pev->fuser4 < 1)
+				m_pPlayer->pev->fuser4 = 56;
+			// Skip blank spaces in model
+			if (m_pPlayer->pev->fuser4 == 34)
+				m_pPlayer->pev->fuser4 = 31;
+
+			// ALERT(at_aiconsole, "fuser4 = %.0f\n", m_pPlayer->pev->fuser4);
+
+			m_flNextPrimaryAttack = m_flNextSecondaryAttack =  UTIL_WeaponTimeBase() + 0.25;
+			m_pPlayer->pev->button &= ~IN_ATTACK;
+			m_pPlayer->pev->button &= ~IN_ATTACK2;
+		}
+		else if ((m_pPlayer->pev->button & IN_RELOAD) &&
+				CanAttack( m_flNextPrimaryAttack, gpGlobals->time, UseDecrement() ))
+		{
+			UTIL_MakeVectors( m_pPlayer->pev->v_angle );
+			Vector vecSrc = m_pPlayer->pev->origin + m_pPlayer->pev->view_ofs + gpGlobals->v_forward * 64 + gpGlobals->v_up * 18;
+			if (m_pPlayer->m_iPropsDeployed < 10)
+			{
+				CBaseEntity *p = CBaseEntity::Create( "monster_propdecoy", vecSrc, Vector(0, m_pPlayer->pev->v_angle.y, 0), m_pPlayer->edict() );
+				if (p)
+				{
+					if (m_pPlayer->pev->fuser4 >= 50)
+					{
+						SET_MODEL( p->edict(), "models/w_ammo.mdl");
+					}
+					p->pev->body = m_pPlayer->pev->fuser4 >= 50 ? m_pPlayer->pev->fuser4 - 49 : m_pPlayer->pev->fuser4;
+					p->pev->sequence = p->pev->body >= 50 ? ((p->pev->body - 49) * 2) + floatingweapons.value : (p->pev->body * 2) + floatingweapons.value;
+				}
+			}
+			else
+				ClientPrint(m_pPlayer->pev, HUD_PRINTCENTER, "All decoys are deployed.\n");
+			m_pPlayer->m_flNextAttack = m_flNextPrimaryAttack = m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 0.25;
+			m_pPlayer->pev->button &= ~IN_RELOAD;
+		}
+		else
+		{
+			m_bFired = FALSE;
+			// no fire buttons down
+			m_fFireOnEmpty = FALSE;
+			WeaponIdle();
+		}
+
+		return;
+	}
+
 	if (g_pGameRules->MutatorEnabled(MUTATOR_DEALTER) ||
 		(g_pGameRules->IsShidden() && m_pPlayer->pev->fuser4 > 0)) {
 		if ((m_pPlayer->pev->button & IN_ATTACK) &&
@@ -1702,40 +1794,55 @@ int CBasePlayerAmmo::TakeDamage( entvars_t* pevInflictor, entvars_t* pevAttacker
 	if (pev->health > 0 && flDamage > 0)
 	{
 		pev->takedamage = DAMAGE_NO;
-		pev->dmg = RANDOM_LONG(50, 100);
-		int iContents = UTIL_PointContents ( pev->origin );
-		MESSAGE_BEGIN( MSG_PAS, SVC_TEMPENTITY, pev->origin );
-			WRITE_BYTE( TE_EXPLOSION );		// This makes a dynamic light and the explosion sprites/sound
-			WRITE_COORD( pev->origin.x );	// Send to PAS because of the sound
-			WRITE_COORD( pev->origin.y );
-			WRITE_COORD( pev->origin.z );
-			if (iContents != CONTENTS_WATER)
-			{
-				if (icesprites.value) {
-					WRITE_SHORT( g_sModelIndexIceFireball );
-				} else {
-					WRITE_SHORT( g_sModelIndexFireball );
-				}
-			}
-			else
-			{
-				WRITE_SHORT( g_sModelIndexWExplosion );
-			}
-			WRITE_BYTE( (pev->dmg) * .60  ); // scale * 10
-			WRITE_BYTE( 15 ); // framerate
-			WRITE_BYTE( TE_EXPLFLAG_NONE );
-		MESSAGE_END();
-		TraceResult tr;
-		UTIL_TraceLine ( pev->origin, pev->origin + Vector ( 0, 0, -128 ), ignore_monsters, ENT(pev), &tr);
-		enum decal_e decal = DECAL_SCORCH1;
-		int index = RANDOM_LONG(0, 1);
-		if (g_pGameRules->MutatorEnabled(MUTATOR_PAINTBALL)) {
-			decal = DECAL_PAINTL1;
-			index = RANDOM_LONG(0, 7);
+
+		if (g_pGameRules->IsPropHunt())
+		{
+			MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
+				WRITE_BYTE( TE_TAREXPLOSION );
+				WRITE_COORD( pev->origin.x );
+				WRITE_COORD( pev->origin.y );
+				WRITE_COORD( pev->origin.z );
+			MESSAGE_END();
+			g_pGameRules->MonsterKilled( NULL, pevAttacker );
 		}
-		UTIL_DecalTrace(&tr, decal + index);
-		::RadiusDamage( pev->origin, pev, pevAttacker, pev->dmg, pev->dmg  * 2.5, CLASS_NONE, DMG_BURN );
-		
+
+		if (g_ItemsExplode)
+		{
+			pev->dmg = RANDOM_LONG(50, 100);
+			int iContents = UTIL_PointContents ( pev->origin );
+			MESSAGE_BEGIN( MSG_PAS, SVC_TEMPENTITY, pev->origin );
+				WRITE_BYTE( TE_EXPLOSION );		// This makes a dynamic light and the explosion sprites/sound
+				WRITE_COORD( pev->origin.x );	// Send to PAS because of the sound
+				WRITE_COORD( pev->origin.y );
+				WRITE_COORD( pev->origin.z );
+				if (iContents != CONTENTS_WATER)
+				{
+					if (icesprites.value) {
+						WRITE_SHORT( g_sModelIndexIceFireball );
+					} else {
+						WRITE_SHORT( g_sModelIndexFireball );
+					}
+				}
+				else
+				{
+					WRITE_SHORT( g_sModelIndexWExplosion );
+				}
+				WRITE_BYTE( (pev->dmg) * .60  ); // scale * 10
+				WRITE_BYTE( 15 ); // framerate
+				WRITE_BYTE( TE_EXPLFLAG_NONE );
+			MESSAGE_END();
+			TraceResult tr;
+			UTIL_TraceLine ( pev->origin, pev->origin + Vector ( 0, 0, -128 ), ignore_monsters, ENT(pev), &tr);
+			enum decal_e decal = DECAL_SCORCH1;
+			int index = RANDOM_LONG(0, 1);
+			if (g_pGameRules->MutatorEnabled(MUTATOR_PAINTBALL)) {
+				decal = DECAL_PAINTL1;
+				index = RANDOM_LONG(0, 7);
+			}
+			UTIL_DecalTrace(&tr, decal + index);
+			::RadiusDamage( pev->origin, pev, pevAttacker, pev->dmg, pev->dmg  * 2.5, CLASS_NONE, DMG_BURN );
+		}
+
 		Respawn();
 	}
 #endif
@@ -1761,6 +1868,14 @@ void CBasePlayerAmmo::Spawn( void )
 		//pev->owner = NULL;
 		pev->takedamage = DAMAGE_YES;
 		pev->health = 1;
+	}
+
+	if (g_pGameRules->IsPropHunt())
+	{
+		pev->solid = SOLID_BBOX;
+		pev->health = 1;
+		pev->takedamage = DAMAGE_YES;
+		UTIL_SetSize(pev, VEC_HUMAN_HULL_MIN, VEC_HUMAN_HULL_MAX);
 	}
 	
 	SetTouch( &CBasePlayerAmmo::DefaultTouch );
@@ -1805,6 +1920,11 @@ void CBasePlayerAmmo :: DefaultTouch( CBaseEntity *pOther )
 	pev->avelocity = pev->avelocity * 0.5;
 
 	if ( !pOther->IsPlayer() )
+	{
+		return;
+	}
+
+	if ( !g_pGameRules->CanHavePlayerAmmo( (CBasePlayer *)pOther, this ) )
 	{
 		return;
 	}
@@ -2012,41 +2132,55 @@ int CWeaponBox::TakeDamage( entvars_t* pevInflictor, entvars_t* pevAttacker, flo
 	if (pev->health > 0 && pev->health > 0 && flDamage > 0)
 	{
 		pev->takedamage = DAMAGE_NO;
-		pev->dmg = RANDOM_LONG(50, 100);
-		int iContents = UTIL_PointContents ( pev->origin );
-		MESSAGE_BEGIN( MSG_PAS, SVC_TEMPENTITY, pev->origin );
-			WRITE_BYTE( TE_EXPLOSION );		// This makes a dynamic light and the explosion sprites/sound
-			WRITE_COORD( pev->origin.x );	// Send to PAS because of the sound
-			WRITE_COORD( pev->origin.y );
-			WRITE_COORD( pev->origin.z );
-			if (iContents != CONTENTS_WATER)
-			{
-				if (icesprites.value) {
-					WRITE_SHORT( g_sModelIndexIceFireball );
-				} else {
-					WRITE_SHORT( g_sModelIndexFireball );
-				}
-			}
-			else
-			{
-				WRITE_SHORT( g_sModelIndexWExplosion );
-			}
-			WRITE_BYTE( (pev->dmg) * .60  ); // scale * 10
-			WRITE_BYTE( 15 ); // framerate
-			WRITE_BYTE( TE_EXPLFLAG_NONE );
-		MESSAGE_END();
-		TraceResult tr;
-		UTIL_TraceLine ( pev->origin, pev->origin + Vector ( 0, 0, -128 ), ignore_monsters, ENT(pev), &tr);
-		enum decal_e decal = DECAL_SCORCH1;
-		int index = RANDOM_LONG(0, 1);
-		if (g_pGameRules->MutatorEnabled(MUTATOR_PAINTBALL)) {
-			decal = DECAL_PAINTL1;
-			index = RANDOM_LONG(0, 7);
+
+		if (g_pGameRules->IsPropHunt())
+		{
+			MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
+				WRITE_BYTE( TE_TAREXPLOSION );
+				WRITE_COORD( pev->origin.x );
+				WRITE_COORD( pev->origin.y );
+				WRITE_COORD( pev->origin.z );
+			MESSAGE_END();
+			g_pGameRules->MonsterKilled( NULL, pevAttacker );
 		}
-		UTIL_DecalTrace(&tr, decal + index);
-		::RadiusDamage( pev->origin, pev, pevAttacker, pev->dmg, pev->dmg  * 2.5, CLASS_NONE, DMG_BURN );
-		
-		pev->takedamage = DAMAGE_NO;
+
+		if (g_ItemsExplode)
+		{
+			pev->dmg = RANDOM_LONG(50, 100);
+			int iContents = UTIL_PointContents ( pev->origin );
+			MESSAGE_BEGIN( MSG_PAS, SVC_TEMPENTITY, pev->origin );
+				WRITE_BYTE( TE_EXPLOSION );		// This makes a dynamic light and the explosion sprites/sound
+				WRITE_COORD( pev->origin.x );	// Send to PAS because of the sound
+				WRITE_COORD( pev->origin.y );
+				WRITE_COORD( pev->origin.z );
+				if (iContents != CONTENTS_WATER)
+				{
+					if (icesprites.value) {
+						WRITE_SHORT( g_sModelIndexIceFireball );
+					} else {
+						WRITE_SHORT( g_sModelIndexFireball );
+					}
+				}
+				else
+				{
+					WRITE_SHORT( g_sModelIndexWExplosion );
+				}
+				WRITE_BYTE( (pev->dmg) * .60  ); // scale * 10
+				WRITE_BYTE( 15 ); // framerate
+				WRITE_BYTE( TE_EXPLFLAG_NONE );
+			MESSAGE_END();
+			TraceResult tr;
+			UTIL_TraceLine ( pev->origin, pev->origin + Vector ( 0, 0, -128 ), ignore_monsters, ENT(pev), &tr);
+			enum decal_e decal = DECAL_SCORCH1;
+			int index = RANDOM_LONG(0, 1);
+			if (g_pGameRules->MutatorEnabled(MUTATOR_PAINTBALL)) {
+				decal = DECAL_PAINTL1;
+				index = RANDOM_LONG(0, 7);
+			}
+			UTIL_DecalTrace(&tr, decal + index);
+			::RadiusDamage( pev->origin, pev, pevAttacker, pev->dmg, pev->dmg  * 2.5, CLASS_NONE, DMG_BURN );
+		}
+
 		SetThink(&CWeaponBox::Kill);
 		pev->nextthink = gpGlobals->time + 0.1;
 	}

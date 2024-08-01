@@ -484,7 +484,7 @@ BOOL CHalfLifeGunGame::IsAllowedSingleWeapon( CBaseEntity *pEntity )
 	return FALSE;
 }
 
-BOOL CHalfLifeGunGame::IsAllowedToDropWeapon( void )
+BOOL CHalfLifeGunGame::IsAllowedToDropWeapon( CBasePlayer *pPlayer )
 {
 	return FALSE;
 }
