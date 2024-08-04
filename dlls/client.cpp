@@ -1364,7 +1364,7 @@ void StartFrame( void )
 void ClientPrecache( void )
 {
 	// setup precaches always needed
-	PRECACHE_SOUND("player/sprayer.wav");			// spray paint sound for PreAlpha
+	PRECACHE_SOUND("sprayer.wav");			// spray paint sound for PreAlpha
 	
 	// PRECACHE_SOUND("player/pl_jumpland2.wav");		// UNDONE: play 2x step sound
 	

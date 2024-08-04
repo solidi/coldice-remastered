@@ -138,6 +138,7 @@ BOOL CDualSMG::Deploy( )
 
 void CDualSMG::Holster( int skiplocal )
 {
+	EMIT_SOUND(ENT(m_pPlayer->pev), CHAN_VOICE, "common/null.wav", 1.0, ATTN_NORM );
 	CBasePlayerWeapon::DefaultHolster(DUAL_SMG_HOLSTER);
 }
 

@@ -134,6 +134,7 @@ BOOL C12Gauge::Deploy( )
 
 void C12Gauge::Holster( int skiplocal /* = 0 */ )
 {
+	EMIT_SOUND(ENT(m_pPlayer->pev), CHAN_VOICE, "common/null.wav", 1.0, ATTN_NORM );
 	CBasePlayerWeapon::DefaultHolster(GAUGE_SHOTGUN_HOLSTER);
 }
 

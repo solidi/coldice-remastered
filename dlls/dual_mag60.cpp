@@ -135,6 +135,7 @@ BOOL CDualMag60::Deploy( )
 
 void CDualMag60::Holster( int skiplocal )
 {
+	EMIT_SOUND(ENT(m_pPlayer->pev), CHAN_VOICE, "common/null.wav", 1.0, ATTN_NORM );
 	CBasePlayerWeapon::DefaultHolster(DUAL_MAG60_HOLSTER);
 }
 

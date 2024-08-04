@@ -40,6 +40,7 @@ struct DeathNoticeItem {
 	float *AssistColor;
 	float *VictimColor;
 	int iKillerIsMe;
+	int iId2;	// second index for another icon
 };
 
 #define MAX_DEATHNOTICES	4
@@ -154,7 +155,11 @@ int CHudDeathNotice :: Draw( float flTime )
 			y = (topMargin + 2 + (30 * i)) + g_yP;  //!!!
 
 			int id = (rgDeathNoticeList[i].iId == -1) ? m_HUD_d_skull : rgDeathNoticeList[i].iId;
-			start = x = (ScreenWidth - ConsoleStringLen(rgDeathNoticeList[i].szVictim) - (gHUD.GetSpriteRect(id).right - gHUD.GetSpriteRect(id).left) - 20) + g_xP;
+			
+			int id2 = rgDeathNoticeList[i].iId2;
+			int second = (id2 == -1) ? 0 : (gHUD.GetSpriteRect(id2).right - gHUD.GetSpriteRect(id2).left);
+
+			start = x = (ScreenWidth - ConsoleStringLen(rgDeathNoticeList[i].szVictim) - (gHUD.GetSpriteRect(id).right - gHUD.GetSpriteRect(id).left) - second - 20) + g_xP;
 			
 			if (rgDeathNoticeList[i].iKillerIsMe )
 				UnpackRGB( r, g, b, RGB_REDISH );
@@ -197,6 +202,14 @@ int CHudDeathNotice :: Draw( float flTime )
 			SPR_DrawAdditive( 0, x, y, &gHUD.GetSpriteRect(id) );
 
 			x += (gHUD.GetSpriteRect(id).right - gHUD.GetSpriteRect(id).left);
+
+			// Draw secondary
+			if (id2 > 0)
+			{
+				SPR_Set( gHUD.GetSprite(id2), r, g, b );
+				SPR_DrawAdditive( 0, x, y, &gHUD.GetSpriteRect(id2) );
+				x += (gHUD.GetSpriteRect(id2).right - gHUD.GetSpriteRect(id2).left);
+			}
 
 			// Draw victims name (if it was a player that was killed)
 			if (rgDeathNoticeList[i].iNonPlayerKill == FALSE)
@@ -297,6 +310,10 @@ int CHudDeathNotice :: MsgFunc_DeathMsg( const char *pszName, int iSize, void *p
 	strcpy( killedwith, "d_" );
 	strncat( killedwith, READ_STRING(), 32 );
 
+	int headshot = READ_BYTE();
+	if (headshot == 255)
+		headshot = -1;
+
 	if (gViewPort)
 		gViewPort->DeathMsg( killer, victim );
 
@@ -391,6 +408,16 @@ int CHudDeathNotice :: MsgFunc_DeathMsg( const char *pszName, int iSize, void *p
 	int spr = gHUD.GetSpriteIndex( killedwith );
 
 	rgDeathNoticeList[i].iId = spr;
+
+	if (headshot > 0)
+	{
+		int spr2 = gHUD.GetSpriteIndex( "d_headshot" );
+		rgDeathNoticeList[i].iId2 = spr2;
+	}
+	else
+	{
+		rgDeathNoticeList[i].iId2 = -1;
+	}
 
 	DEATHNOTICE_DISPLAY_TIME = CVAR_GET_FLOAT( "hud_deathnotice_time" );
 	rgDeathNoticeList[i].flDisplayTime = gHUD.m_flTime + DEATHNOTICE_DISPLAY_TIME;
