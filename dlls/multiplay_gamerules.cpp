@@ -1954,6 +1954,7 @@ void CHalfLifeMultiplay::DeathNotice( CBasePlayer *pVictim, entvars_t *pKiller, 
 		WRITE_BYTE( assist_index != killer_index ? assist_index : -1 );						// the assist
 		WRITE_BYTE( ENTINDEX(pVictim->edict()) );		// the victim
 		WRITE_STRING( killer_weapon_name );		// what they were killed by (should this be a string?)
+		WRITE_BYTE( (killer_index && pVictim->m_LastHitGroup == HITGROUP_HEAD) ? 1 : -1);
 	MESSAGE_END();
 
 	// replace the code names with the 'real' names
