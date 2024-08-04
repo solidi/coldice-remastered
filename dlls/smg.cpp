@@ -151,6 +151,7 @@ BOOL CSMG::Deploy( )
 
 void CSMG::Holster( int skiplocal )
 {
+	EMIT_SOUND(ENT(m_pPlayer->pev), CHAN_VOICE, "common/null.wav", 1.0, ATTN_NORM );
 	CBasePlayerWeapon::DefaultHolster(SMG_HOLSTER);
 }
 

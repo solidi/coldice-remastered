@@ -144,6 +144,7 @@ BOOL CMag60::Deploy( )
 
 void CMag60::Holster( int skiplocal )
 {
+	EMIT_SOUND(ENT(m_pPlayer->pev), CHAN_VOICE, "common/null.wav", 1.0, ATTN_NORM );
 	m_iRotated = 0;
 	pev->nextthink = -1;
 	CBasePlayerWeapon::DefaultHolster(MAG60_HOLSTER);
