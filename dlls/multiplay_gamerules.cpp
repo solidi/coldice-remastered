@@ -3093,5 +3093,24 @@ void CHalfLifeMultiplay :: SendMOTDToClient( edict_t *client )
 
 	FREE_FILE( aFileList );
 }
-	
 
+BOOL CHalfLifeMultiplay::MutatorAllowed(const char *mutator)
+{
+	if ((strstr(mutator, g_szMutators[MUTATOR_SLOWMO - 1]) || atoi(mutator) == MUTATOR_SLOWMO) ||
+		(strstr(mutator, g_szMutators[MUTATOR_SPEEDUP - 1]) || atoi(mutator) == MUTATOR_SPEEDUP) ||
+		(strstr(mutator, g_szMutators[MUTATOR_TOPSYTURVY - 1]) || atoi(mutator) == MUTATOR_TOPSYTURVY) ||
+		(strstr(mutator, g_szMutators[MUTATOR_EXPLOSIVEAI - 1]) || atoi(mutator) == MUTATOR_EXPLOSIVEAI))
+		return FALSE;
+
+	// Snowball
+	if (strstr(mutator, g_szMutators[MUTATOR_MAXPACK - 1]) || atoi(mutator) == MUTATOR_MAXPACK ||
+		strstr(mutator, g_szMutators[MUTATOR_BERSERKER - 1]) || atoi(mutator) == MUTATOR_BERSERKER ||
+		strstr(mutator, g_szMutators[MUTATOR_PLUMBER - 1]) || atoi(mutator) == MUTATOR_PLUMBER ||
+		strstr(mutator, g_szMutators[MUTATOR_PORTAL - 1]) || atoi(mutator) == MUTATOR_PORTAL ||
+		strstr(mutator, g_szMutators[MUTATOR_RANDOMWEAPON - 1]) || atoi(mutator) == MUTATOR_RANDOMWEAPON ||
+		strstr(mutator, g_szMutators[MUTATOR_ROCKETCROWBAR - 1]) || atoi(mutator) == MUTATOR_ROCKETCROWBAR ||
+		strstr(mutator, g_szMutators[MUTATOR_VESTED - 1]) || atoi(mutator) == MUTATOR_VESTED)
+		return !(g_GameMode == GAME_SNOWBALL);
+	
+	return TRUE;
+}

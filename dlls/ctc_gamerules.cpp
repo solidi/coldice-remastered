@@ -511,3 +511,11 @@ BOOL CHalfLifeCaptureTheChumtoad::ShouldAutoAim( CBasePlayer *pPlayer, edict_t *
 
 	return FALSE;
 }
+
+BOOL CHalfLifeCaptureTheChumtoad::MutatorAllowed(const char *mutator)
+{
+	if (strstr(mutator, g_szMutators[MUTATOR_CHUMXPLODE - 1]) || atoi(mutator) == MUTATOR_CHUMXPLODE)
+		return FALSE;
+
+	return CHalfLifeMultiplay::MutatorAllowed(mutator);
+}

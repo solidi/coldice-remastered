@@ -521,8 +521,38 @@ BOOL CHalfLifeGunGame::FPlayerCanTakeDamage( CBasePlayer *pPlayer, CBaseEntity *
 
 BOOL CHalfLifeGunGame::MutatorAllowed(const char *mutator)
 {
+	if (strstr(mutator, g_szMutators[MUTATOR_BERSERKER - 1]) || atoi(mutator) == MUTATOR_BERSERKER)
+		return FALSE;
+
+	if (strstr(mutator, g_szMutators[MUTATOR_DEALTER - 1]) || atoi(mutator) == MUTATOR_DEALTER)
+		return FALSE;
+
+	if (strstr(mutator, g_szMutators[MUTATOR_DONTSHOOT - 1]) || atoi(mutator) == MUTATOR_DONTSHOOT)
+		return FALSE;
+
+	if (strstr(mutator, g_szMutators[MUTATOR_INSTAGIB - 1]) || atoi(mutator) == MUTATOR_INSTAGIB)
+		return FALSE;
+
+	if (strstr(mutator, g_szMutators[MUTATOR_PLUMBER - 1]) || atoi(mutator) == MUTATOR_PLUMBER)
+		return FALSE;
+
+	if (strstr(mutator, g_szMutators[MUTATOR_PORTAL - 1]) || atoi(mutator) == MUTATOR_PORTAL)
+		return FALSE;
+
+	if (strstr(mutator, g_szMutators[MUTATOR_RAILGUNS - 1]) || atoi(mutator) == MUTATOR_RAILGUNS)
+		return FALSE;
+
+	if (strstr(mutator, g_szMutators[MUTATOR_RICOCHET - 1]) || atoi(mutator) == MUTATOR_RICOCHET)
+		return FALSE;
+
+	if (strstr(mutator, g_szMutators[MUTATOR_ROCKETCROWBAR - 1]) || atoi(mutator) == MUTATOR_ROCKETCROWBAR)
+		return FALSE;
+
+	if (strstr(mutator, g_szMutators[MUTATOR_VESTED - 1]) || atoi(mutator) == MUTATOR_VESTED)
+		return FALSE;
+
 	if (strstr(mutator, g_szMutators[MUTATOR_RANDOMWEAPON - 1]) || atoi(mutator) == MUTATOR_RANDOMWEAPON)
 		return FALSE;
 	
-	return TRUE;
+	return CHalfLifeMultiplay::MutatorAllowed(mutator);
 }

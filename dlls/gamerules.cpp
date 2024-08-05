@@ -120,6 +120,7 @@ DLL_GLOBAL const char *g_szMutators[] = {
 	"stahp",
 	"superjump",
 	"thirdperson",
+	"three",
 	"toilet",
 	"topsyturvy",
 	"turrets",
@@ -729,7 +730,7 @@ void CGameRules::SpawnMutators(CBasePlayer *pPlayer)
 	else
 		pPlayer->m_flNextSantaSound = 0;
 
-	if (randomweapon.value && MutatorAllowed("randomweapon"))
+	if (randomweapon.value && g_pGameRules->MutatorAllowed("randomweapon"))
 		pPlayer->GiveRandomWeapon(NULL);
 
 	GiveMutators(pPlayer);
@@ -943,28 +944,58 @@ mutators_t *CGameRules::GetMutators()
 	return m_Mutators;
 }
 
-BOOL CGameRules::MutatorAllowed(const char *mutator)
+void CGameRules::AddRandomMutator(BOOL withBar, const char *cvarName)
 {
-	// No invisible in shidden
-	if (strstr(mutator, g_szMutators[MUTATOR_INVISIBLE - 1]) || atoi(mutator) == MUTATOR_INVISIBLE)
-		return !(g_GameMode == GAME_SHIDDEN);
+	int attempts = 0;
+	int adjcount = fmin(fmax(mutatorcount.value, 0), 7);
+	int mutatorTime = fmin(fmax(mutatortime.value, 10), 120);
+	float choasIncrement = mutatorTime;
 
-	if (strstr(mutator, g_szMutators[MUTATOR_DEALTER - 1]) || atoi(mutator) == MUTATOR_DEALTER)
-		return !(g_GameMode == GAME_SHIDDEN);
+	while (attempts < adjcount)
+	{
+		int index = RANDOM_LONG(1,(int)ARRAYSIZE(g_szMutators) - 1);
+		const char *tryIt = g_szMutators[index];
 
-	if (strstr(mutator, g_szMutators[MUTATOR_MAXPACK - 1]) || atoi(mutator) == MUTATOR_MAXPACK ||
-		strstr(mutator, g_szMutators[MUTATOR_BERSERKER - 1]) || atoi(mutator) == MUTATOR_BERSERKER ||
-		strstr(mutator, g_szMutators[MUTATOR_PLUMBER - 1]) || atoi(mutator) == MUTATOR_PLUMBER ||
-		strstr(mutator, g_szMutators[MUTATOR_PORTAL - 1]) || atoi(mutator) == MUTATOR_PORTAL ||
-		strstr(mutator, g_szMutators[MUTATOR_RANDOMWEAPON - 1]) || atoi(mutator) == MUTATOR_RANDOMWEAPON ||
-		strstr(mutator, g_szMutators[MUTATOR_ROCKETCROWBAR - 1]) || atoi(mutator) == MUTATOR_ROCKETCROWBAR ||
-		strstr(mutator, g_szMutators[MUTATOR_VESTED - 1]) || atoi(mutator) == MUTATOR_VESTED)
-		return !(g_GameMode == GAME_SNOWBALL);
+		// If gamerules disallows it
+		if (!g_pGameRules->MutatorAllowed(tryIt))
+		{
+			attempts++;
+			continue;
+		}
 
-	if (strstr(mutator, g_szMutators[MUTATOR_CHUMXPLODE - 1]) || atoi(mutator) == MUTATOR_CHUMXPLODE)
-		return !(g_GameMode == GAME_CTC);
-	
-	return TRUE;
+		// If already loaded
+		if (strlen(addmutator.string) > 2 && strstr(addmutator.string, tryIt))
+		{
+			attempts++;
+			continue;
+		}
+
+		// If chaosfilter disallows it
+		if (strlen(chaosfilter.string) > 2 && strstr(chaosfilter.string, tryIt))
+		{
+			// ALERT(at_console, "Ignoring \"%s\", found in sv_chaosfilter\n", tryIt);
+			attempts++;
+			continue;
+		}
+
+		cvar_t *cvarp = CVAR_GET_POINTER(cvarName);
+		char mutatorToAdd[512];
+		sprintf(mutatorToAdd, "%s;", g_szMutators[index]);
+		if (strlen(cvarp->string))
+		{
+			strcat(mutatorToAdd, cvarp->string);
+		}
+		CVAR_SET_STRING(cvarp->name, mutatorToAdd);
+
+		if (withBar)
+		{
+			MESSAGE_BEGIN(MSG_ALL, gmsgChaos);
+				WRITE_BYTE(choasIncrement);
+			MESSAGE_END();
+		}
+
+		break;
+	}
 }
 
 void CGameRules::MutatorsThink(void)
@@ -1003,7 +1034,7 @@ void CGameRules::MutatorsThink(void)
 
 		if (strlen(addmutator.string))
 		{
-			if (MutatorAllowed(addmutator.string))
+			if (g_pGameRules->MutatorAllowed(addmutator.string))
 			{
 				if (!strcmp(addmutator.string, "chaos") || !strcmp(addmutator.string, "1"))
 				{
@@ -1024,6 +1055,15 @@ void CGameRules::MutatorsThink(void)
 					{
 						if (strstr(addmutator.string, g_szMutators[i]) || addmutator.value == (i + 1))
 						{
+							// Special pass
+							if (strstr(addmutator.string, "three"))
+							{
+								AddRandomMutator(FALSE, "sv_mutatorlist");
+								AddRandomMutator(FALSE, "sv_mutatorlist");
+								AddRandomMutator(FALSE, "sv_mutatorlist");
+								continue;
+							}
+
 							// make sure not already in list.
 							mutators_t *t = m_Mutators;
 							BOOL add = TRUE;
@@ -1117,49 +1157,7 @@ void CGameRules::MutatorsThink(void)
 		if (m_flChaosMutatorTime && m_flChaosMutatorTime < gpGlobals->time && count < adjcount)
 		{
 			m_flChaosMutatorTime = gpGlobals->time + choasIncrement;
-
-			int attempts = 0;
-			while (attempts < adjcount)
-			{
-				int index = RANDOM_LONG(1,(int)ARRAYSIZE(g_szMutators) - 1);
-				const char *tryIt = g_szMutators[index];
-
-				// Skip mutators that break multiplayer
-				if (g_pGameRules->IsMultiplayer())
-				{
-					if (strstr(tryIt, "slowmo") ||
-						strstr(tryIt, "speedup") ||
-						strstr(tryIt, "topsyturvy") ||
-						strstr(tryIt, "explosiveai"))
-					{
-						attempts++;
-						continue;
-					}
-				}
-				else
-				{
-					if (strstr(tryIt, "maxpack"))
-					{
-						attempts++;
-						continue;
-					}
-				}
-
-				if (strlen(chaosfilter.string) > 2 && strstr(chaosfilter.string, tryIt))
-				{
-					// ALERT(at_console, "Ignoring \"%s\", found in sv_chaosfilter\n", tryIt);
-					attempts++;
-					continue;
-				}
-
-				CVAR_SET_STRING("sv_addmutator", g_szMutators[index]);
-
-				MESSAGE_BEGIN(MSG_ALL, gmsgChaos);
-					WRITE_BYTE(choasIncrement);
-				MESSAGE_END();
-
-				break;
-			}
+			AddRandomMutator(TRUE, "sv_addmutator");
 		}
 
 		m_flAddMutatorTime = gpGlobals->time + 1.0;

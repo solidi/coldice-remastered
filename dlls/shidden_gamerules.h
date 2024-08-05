@@ -33,6 +33,7 @@ public:
 	virtual int PlayerRelationship( CBaseEntity *pPlayer, CBaseEntity *pTarget );
 	virtual const char *GetTeamID( CBaseEntity *pEntity );
 	virtual BOOL ShouldAutoAim( CBasePlayer *pPlayer, edict_t *target );
+	virtual BOOL MutatorAllowed(const char *mutator);
 
 private:
 	int m_iSmeltersRemain;

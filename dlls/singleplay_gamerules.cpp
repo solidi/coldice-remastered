@@ -506,3 +506,11 @@ BOOL CHalfLifeRules :: AllowGrapplingHook( CBasePlayer *pPlayer )
 	return FALSE;
 }
 #endif
+
+BOOL CHalfLifeRules::MutatorAllowed(const char *mutator)
+{
+	if (strstr(mutator, g_szMutators[MUTATOR_MAXPACK - 1]) || atoi(mutator) == MUTATOR_MAXPACK)
+		return FALSE;
+	
+	return TRUE;
+}
