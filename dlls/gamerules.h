@@ -192,7 +192,7 @@ public:
 	virtual mutators_t *GetMutators( void );
 	virtual void AddRandomMutator(BOOL withBar, const char *cvarName);
 	virtual void MutatorsThink( void );
-	virtual BOOL MutatorAllowed(const char *mutator) {};
+	virtual BOOL MutatorAllowed(const char *mutator) = FALSE;
 	virtual void CheckGameMode( void );
 	virtual void UpdateMutatorMessage( CBasePlayer *pPlayer );
 	virtual void UpdateGameModeMessage( CBasePlayer *pPlayer );
