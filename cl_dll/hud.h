@@ -756,9 +756,10 @@ enum e_protips {
 	FEIGN_TIP,
 	FORCEGRAB_TIP,
 	PROP_TIP,
+	DROP_TIP,
 };
 
-#define PROTIPS_AMT	18
+#define PROTIPS_AMT	19
 
 
 

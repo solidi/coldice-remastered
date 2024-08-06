@@ -566,6 +566,7 @@ void CL_DLLEXPORT HUD_TempEntUpdate (
 			else if ((player->curstate.eflags & EFLAG_SLIDE))
 			{
 				LoadTempViewModel("models/v_dual_leg.mdl", 1);
+				gHUD.m_ProTip.AddMessage(DROP_TIP, "Drop a explosive weapon, press O or bind \"impulse 216\"");
 			}
 			else if ((player->curstate.eflags & EFLAG_PLAYERKICK))
 			{
@@ -583,6 +584,10 @@ void CL_DLLEXPORT HUD_TempEntUpdate (
 			else if ((player->curstate.eflags & EFLAG_FORCEGRAB))
 			{
 				LoadTempViewModel("models/v_forcegrab.mdl", 1);
+			}
+			else if ((player->curstate.eflags & EFLAG_THROW))
+			{
+				LoadTempViewModel("models/v_grenade.mdl", 4);
 			}
 		}
 

@@ -1284,19 +1284,11 @@ void CBasePlayer::SetAnimation( PLAYER_ANIM playerAnim )
 		{
 			m_IdealActivity = m_Activity;
 		}
-		else if ( m_fKickTime > gpGlobals->time && m_Activity == ACT_KICK )
-		{
-			m_IdealActivity = m_Activity;
-		}
-		else if ( m_fPunchTime > gpGlobals->time && m_Activity == ACT_PUNCH )
+		else if ( m_fOffhandTime > gpGlobals->time && (m_Activity == ACT_KICK || m_Activity == ACT_PUNCH || m_Activity == ACT_SLIDE) )
 		{
 			m_IdealActivity = m_Activity;
 		}
 		else if (pev->flags & FL_FROZEN && m_Activity == ACT_FROZEN)
-		{
-			m_IdealActivity = m_Activity;
-		}
-		else if ( m_fSelacoTime > gpGlobals->time && m_Activity == ACT_SLIDE )
 		{
 			m_IdealActivity = m_Activity;
 		}
@@ -1639,7 +1631,7 @@ void CBasePlayer::PlayerDeathThink(void)
 	{
 		// If we got killed during these events, cancel them
 		m_EFlags &= ~EFLAG_PLAYERKICK & ~EFLAG_SLIDE & ~EFLAG_HURRICANE;
-		m_EFlags &= ~EFLAG_TAUNT & ~EFLAG_FORCEGRAB;
+		m_EFlags &= ~EFLAG_TAUNT & ~EFLAG_FORCEGRAB & ~EFLAG_THROW;
 
 		// we drop the guns here because weapons that have an area effect and can kill their user
 		// will sometimes crash coming back from CBasePlayer::Killed() if they kill their owner because the
@@ -2859,6 +2851,12 @@ void CBasePlayer::PreThink(void)
 		}
 	}
 
+	if (m_fOffhandTime && m_fOffhandTime < gpGlobals->time && FBitSet(m_EFlags, EFLAG_THROW))
+	{
+		m_EFlags &= ~EFLAG_THROW;
+		m_fOffhandTime = 0;
+	}
+
 	if (m_fTauntTime && m_fTauntTime < gpGlobals->time)
 	{
 		Taunt();
@@ -3815,7 +3813,7 @@ void CBasePlayer::Spawn( void )
 	pHeldItem = NULL;
 	m_iHoldingItem = FALSE;
 	m_fSelacoSliding = m_fSelacoHit = FALSE;
-	m_fSelacoTime = m_fSelacoIncrement = m_fSelacoButtonTime = 0;
+	m_fOffhandTime = m_fSelacoIncrement = m_fSelacoButtonTime = 0;
 	m_fSelacoZ = VEC_VIEW.z;
 	m_fSelacoCount = 0;
 	m_flNextWallClimb = 0;
@@ -4693,8 +4691,13 @@ void CBasePlayer::ImpulseCommands( )
 	case 215:
 		StartForceGrab();
 		break;
+	case 216:
+		if (m_pActiveItem) {
+			((CBasePlayerWeapon *)m_pActiveItem)->ThrowWeapon(TRUE);
+		}
+		break;
 /*
-	case 215:
+	case 217:
 		if ( g_pGameRules->AllowGrapplingHook(this) ) {
 			if (pGrapplingHook == NULL && m_flNextHook < gpGlobals->time) {
 				pGrapplingHook = CHook::HookCreate(this);
@@ -4703,7 +4706,7 @@ void CBasePlayer::ImpulseCommands( )
 			}
 		}
 		break;
-	case 216:
+	case 218:
 		if ( g_pGameRules->AllowGrapplingHook(this) ) {
 			if (pGrapplingHook) {
 				pGrapplingHook->KillHook();
@@ -4759,7 +4762,7 @@ void CBasePlayer::StartSelacoSlide( void )
 	if (m_pActiveItem && !((CBasePlayerWeapon *)m_pActiveItem)->CanSlide())
 		return;
 
-	if (!m_fSelacoSliding && m_fSelacoTime < gpGlobals->time) {
+	if (!m_fSelacoSliding && m_fOffhandTime < gpGlobals->time) {
 		if (FBitSet(pev->flags, FL_ONGROUND) && pev->velocity.Length() > 50) {
 			m_EFlags &= ~EFLAG_CANCEL;
 			m_EFlags |= EFLAG_SLIDE;
@@ -4769,7 +4772,7 @@ void CBasePlayer::StartSelacoSlide( void )
 			pev->velocity = (gpGlobals->v_forward * 900);
 			m_fSelacoLastX = pev->velocity.x;
 			m_fSelacoLastY = pev->velocity.y;
-			m_fSelacoTime = gpGlobals->time + 1.25;
+			m_fOffhandTime = gpGlobals->time + 1.25;
 			m_fSelacoSliding = TRUE;
 			pev->fov = m_iFOV = 105;
 
@@ -4795,7 +4798,7 @@ void CBasePlayer::TraceHitOfSelacoSlide( void )
 		if (!m_fSelacoHit)
 			pev->friction = 0.05; // Singleplayer override
 
-		if (m_fSelacoTime > gpGlobals->time && m_fSelacoIncrement < gpGlobals->time) {
+		if (m_fOffhandTime > gpGlobals->time && m_fSelacoIncrement < gpGlobals->time) {
 			if (RANDOM_LONG(0,2) == 1 && pev->velocity.Length() > 100) {
 				UTIL_MakeVectors( pev->v_angle );
 				Vector smoke = pev->origin + (gpGlobals->v_forward * 100) + (gpGlobals->v_up * -30);
@@ -4977,10 +4980,10 @@ void CBasePlayer::TraceHitOfSelacoSlide( void )
 
 void CBasePlayer::EndSelacoSlide( void )
 {
-	if (m_fSelacoSliding && m_fSelacoTime < gpGlobals->time) {
+	if (m_fSelacoSliding && m_fOffhandTime < gpGlobals->time) {
 		pev->fov = m_iFOV = 0;
 		m_fSelacoSliding = m_fSelacoHit = FALSE;
-		m_fSelacoTime = m_fSelacoIncrement = m_fSelacoButtonTime = 0;
+		m_fOffhandTime = m_fSelacoIncrement = m_fSelacoButtonTime = 0;
 		m_fSelacoZ = VEC_VIEW.z;
 		if (g_pGameRules->MutatorEnabled(MUTATOR_ICE))
 			pev->friction = 0.3;
@@ -5429,13 +5432,7 @@ void CBasePlayer::StartForceGrab( void )
 	if (pev->waterlevel == 3)
 		return;
 
-	if (m_fPunchTime >= gpGlobals->time)
-		return;
-
-	if (m_fSelacoTime >= gpGlobals->time)
-		return;
-
-	if (m_fKickTime >= gpGlobals->time)
+	if (m_fOffhandTime >= gpGlobals->time)
 		return;
 
 	// Already got a hook, fly it back.
@@ -6815,6 +6812,8 @@ void CBasePlayer::DropPlayerItem ( char *pszItemName, BOOL weaponbox )
 			CWeaponBox *pWeaponBox = NULL;
 			if (weaponbox)
 				pWeaponBox = (CWeaponBox *)CBaseEntity::Create( "weaponbox", pev->origin + gpGlobals->v_forward * 10, pev->angles, edict() );
+			else
+				RemovePlayerItem(pWeapon);
 
 			if (pWeaponBox != NULL)
 			{
@@ -6978,7 +6977,7 @@ void CBasePlayer::Taunt( void )
 			{
 				m_pActiveItem->Holster();
 				m_flNextAttack = UTIL_WeaponTimeBase() + 3.25;
-				m_fSelacoTime = gpGlobals->time + 2.0;
+				m_fOffhandTime = gpGlobals->time + 2.0;
 			}
 
 			int tauntIndex = RANDOM_LONG(0,4);

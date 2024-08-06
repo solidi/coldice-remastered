@@ -226,8 +226,7 @@ public:
 
 	int m_fHasRune;
 	float m_flRuneHealTime;
-	float m_fKickTime;
-	float m_fPunchTime;
+	float m_fOffhandTime;
 	float m_fThawTime;
 	int m_iFreezeCounter;
 	float m_fJumpHeight;
@@ -239,7 +238,6 @@ public:
 	void TraceHitOfSelacoSlide( void );
 	void EndSelacoSlide( void );
 	float m_fSelacoButtonTime;
-	float m_fSelacoTime;
 	float m_fSelacoIncrement;
 	int m_fSelacoZ;
 	int m_fSelacoCount;

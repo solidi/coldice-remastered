@@ -469,6 +469,8 @@ public:
 	void PunchAttack( BOOL holdingSomething );
 	void EXPORT EndPunch( void );
 
+	void ThrowWeapon( BOOL holdingSomething );
+
 	void EjectBrassLate( void );
 	void EjectShotShellLate( void );
 	

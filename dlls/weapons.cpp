@@ -2532,6 +2532,7 @@ void CBasePlayerWeapon::ThrowGrenade(BOOL m_iCheckAmmo)
 		m_pPlayer->m_rgAmmo[index]--;
 	}
 
+	m_pPlayer->SetAnimation( PLAYER_PUNCH );
 	m_pPlayer->m_fGrenadeTime = gpGlobals->time + (0.75 * g_pGameRules->WeaponMultipler());
 
 	Vector angThrow = m_pPlayer->pev->v_angle + m_pPlayer->pev->punchangle;
@@ -2650,10 +2651,7 @@ void CBasePlayerWeapon::StartPunch( BOOL holdingSomething )
 		return;
 	}
 
-	if (m_pPlayer->m_fKickTime >= gpGlobals->time)
-		return;
-
-	if (m_pPlayer->m_fSelacoTime >= gpGlobals->time)
+	if (m_pPlayer->m_fOffhandTime >= gpGlobals->time)
 		return;
 
 	if (m_pPlayer->m_fForceGrabTime >= gpGlobals->time)
@@ -2664,7 +2662,7 @@ void CBasePlayerWeapon::StartPunch( BOOL holdingSomething )
 	}
 
 	Holster();
-	m_pPlayer->m_fPunchTime = gpGlobals->time + 0.55;
+	m_pPlayer->m_fOffhandTime = gpGlobals->time + 0.55;
 	PunchAttack(holdingSomething);
 }
 
@@ -2879,13 +2877,7 @@ void CBasePlayerWeapon::StartKick( BOOL holdingSomething )
 		return;
 	}
 
-	if (m_pPlayer->m_fPunchTime >= gpGlobals->time)
-		return;
-
-	if (m_pPlayer->m_fSelacoTime >= gpGlobals->time)
-		return;
-
-	if (m_pPlayer->m_fKickTime >= gpGlobals->time)
+	if (m_pPlayer->m_fOffhandTime >= gpGlobals->time)
 		return;
 
 	if (m_pPlayer->m_fForceGrabTime >= gpGlobals->time)
@@ -2897,7 +2889,7 @@ void CBasePlayerWeapon::StartKick( BOOL holdingSomething )
 
 	m_pPlayer->m_EFlags &= ~EFLAG_CANCEL;
 	m_pPlayer->m_EFlags |= EFLAG_PLAYERKICK;
-	m_pPlayer->m_fKickTime = (gpGlobals->time + 0.55 * g_pGameRules->WeaponMultipler());
+	m_pPlayer->m_fOffhandTime = (gpGlobals->time + 0.55 * g_pGameRules->WeaponMultipler());
 	KickAttack(holdingSomething);
 }
 
@@ -3094,6 +3086,97 @@ void CBasePlayerWeapon::EndKick( void )
 	}
 
 	m_pPlayer->m_EFlags &= ~EFLAG_PLAYERKICK;
+}
+
+class CThrowWeapon : public CBaseEntity
+{
+public:
+	void Precache ( void );
+	void Spawn( void );
+	void EXPORT ThrowWeaponThink( void );
+	void EXPORT ThrowWeaponTouch( CBaseEntity *pOther );
+	virtual int ObjectCaps( void ) { return (CBaseEntity::ObjectCaps() & ~FCAP_ACROSS_TRANSITION) | FCAP_PORTAL; }
+
+private:
+	EHANDLE m_hOwner;
+};
+
+LINK_ENTITY_TO_CLASS( monster_throwweapon, CThrowWeapon );
+
+void CThrowWeapon::Precache( void )
+{
+	PRECACHE_MODEL("models/w_weapons.mdl");
+}
+
+void CThrowWeapon::Spawn( void )
+{
+	Precache();
+	pev->movetype = MOVETYPE_BOUNCE;
+	pev->gravity = 0.5;
+	pev->solid = SOLID_TRIGGER;
+	pev->health = 1;
+	pev->takedamage = DAMAGE_NO;
+	pev->classname = MAKE_STRING("monster_throwweapon");
+
+	SET_MODEL( edict(), "models/w_weapons.mdl");
+
+	UTIL_SetSize(pev, Vector( -4,-4,-4 ), Vector(4, 4, 4));
+
+	if ( pev->owner )
+		m_hOwner = Instance(pev->owner);
+	pev->owner = NULL;
+
+	SetThink(&CThrowWeapon::ThrowWeaponThink);
+	SetTouch(&CThrowWeapon::ThrowWeaponTouch);
+
+	pev->nextthink = gpGlobals->time + 2.0;
+}
+
+void CThrowWeapon::ThrowWeaponTouch( CBaseEntity *pOther )
+{
+	// Support if picked up and dropped
+	pev->velocity = pev->velocity * 0.8;
+	pev->avelocity = pev->avelocity * 0.8;
+}
+
+void CThrowWeapon::ThrowWeaponThink( void )
+{
+	if (m_hOwner)
+	{
+		CGrenade::Vest( m_hOwner->pev, pev->origin );
+	}
+
+	pev->nextthink = -1;
+	SetThink(NULL);
+	UTIL_Remove(this);
+}
+
+void CBasePlayerWeapon::ThrowWeapon( BOOL holdingSomething )
+{
+	if (!CanKick() || m_pPlayer == NULL) {
+		return;
+	}
+
+	if (m_pPlayer->m_fOffhandTime >= gpGlobals->time)
+		return;
+
+	if (m_pPlayer->m_fForceGrabTime >= gpGlobals->time)
+		return;
+
+	m_pPlayer->SetAnimation( PLAYER_PUNCH );
+	m_pPlayer->m_EFlags &= ~EFLAG_CANCEL;
+	m_pPlayer->m_EFlags |= EFLAG_THROW;
+	m_pPlayer->m_fOffhandTime = (gpGlobals->time + 0.55 * g_pGameRules->WeaponMultipler());
+
+	UTIL_MakeVectors( m_pPlayer->pev->v_angle );
+	Vector vecSrc = m_pPlayer->GetGunPosition();
+	CBaseEntity *m_Banana = CBaseEntity::Create("monster_throwweapon", vecSrc + gpGlobals->v_forward * 32, Vector(-90, pev->angles.y + 90, -90), m_pPlayer->edict());
+	if (m_Banana && m_pPlayer->m_pActiveItem)
+	{
+		m_Banana->pev->velocity = gpGlobals->v_forward * RANDOM_LONG(400,600);
+		m_Banana->pev->body = m_pPlayer->m_pActiveItem->m_iId - 1;
+		m_pPlayer->DropPlayerItem("", FALSE);
+	}
 }
 
 void CBasePlayerWeapon::ProvideDualItem(CBasePlayer *pPlayer, const char *pszName) {
