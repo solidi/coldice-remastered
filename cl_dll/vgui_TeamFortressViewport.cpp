@@ -249,6 +249,7 @@ char *sMutators[] = {
 	"stahp",
 	"superjump",
 	"thirdperson",
+	"three",
 	"toilet",
 	"topsyturvy",
 	"turrets",

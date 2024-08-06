@@ -190,8 +190,9 @@ public:
 	virtual void GiveMutators( CBasePlayer *pPlayer );
 	virtual BOOL MutatorEnabled(int mutatorId);
 	virtual mutators_t *GetMutators( void );
+	virtual void AddRandomMutator(BOOL withBar, const char *cvarName);
 	virtual void MutatorsThink( void );
-	virtual BOOL MutatorAllowed(const char *mutator);
+	virtual BOOL MutatorAllowed(const char *mutator) = FALSE;
 	virtual void CheckGameMode( void );
 	virtual void UpdateMutatorMessage( CBasePlayer *pPlayer );
 	virtual void UpdateGameModeMessage( CBasePlayer *pPlayer );
@@ -328,8 +329,10 @@ public:
 // Monsters
 	virtual BOOL FAllowMonsters( void );
 
+// Cold Ice
 	virtual float WeaponMultipler( void );
 	virtual BOOL AllowRuneSpawn( const char *szRune );
+	virtual BOOL MutatorAllowed(const char *mutator);
 
 #if defined( GRAPPLING_HOOK )
 	virtual BOOL AllowGrapplingHook( CBasePlayer *pPlayer );
@@ -476,6 +479,7 @@ public:
 	virtual void CaptureCharm( CBasePlayer *pPlayer ) { };
 	virtual CBaseEntity *DropCharm( CBasePlayer *pPlayer, Vector origin ) { return NULL; };
 	virtual BOOL CanRandomizeWeapon(const char *name) { return TRUE; }
+	virtual BOOL MutatorAllowed(const char *mutator);
 
 protected:
 	virtual void ChangeLevel( void );

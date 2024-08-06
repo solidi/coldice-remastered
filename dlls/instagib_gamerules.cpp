@@ -220,7 +220,7 @@ BOOL CHalfLifeInstagib::MutatorAllowed(const char *mutator)
 	if (strstr(mutator, g_szMutators[MUTATOR_VESTED - 1]) || atoi(mutator) == MUTATOR_VESTED)
 		return FALSE;
 
-	return TRUE;
+	return CHalfLifeMultiplay::MutatorAllowed(mutator);
 }
 
 BOOL CHalfLifeInstagib::IsAllowedToSpawn( CBaseEntity *pEntity )

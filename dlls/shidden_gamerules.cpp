@@ -779,3 +779,15 @@ BOOL CHalfLifeShidden::ShouldAutoAim( CBasePlayer *pPlayer, edict_t *target )
 
 	return CHalfLifeMultiplay::ShouldAutoAim( pPlayer, target );
 }
+
+BOOL CHalfLifeShidden::MutatorAllowed(const char *mutator)
+{
+	// No invisible in shidden
+	if (strstr(mutator, g_szMutators[MUTATOR_INVISIBLE - 1]) || atoi(mutator) == MUTATOR_INVISIBLE)
+		return FALSE;
+
+	if (strstr(mutator, g_szMutators[MUTATOR_DEALTER - 1]) || atoi(mutator) == MUTATOR_DEALTER)
+		return FALSE;
+
+	return CHalfLifeMultiplay::MutatorAllowed(mutator);
+}
