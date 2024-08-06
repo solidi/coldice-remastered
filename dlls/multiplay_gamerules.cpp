@@ -1763,7 +1763,7 @@ void CHalfLifeMultiplay :: PlayerKilled( CBasePlayer *pVictim, entvars_t *pKille
 		// No echo boom
 		if (pInflictor && FClassnameIs(pInflictor, "weapon_vest"))
 			return;
-		CGrenade::Vest( pVictim->pev, pVictim->pev->origin );
+		CGrenade::Vest( pVictim->pev, pVictim->pev->origin, gSkillData.plrDmgVest );
 		pVictim->pev->solid = SOLID_NOT;
 		pVictim->GibMonster();
 		pVictim->pev->effects |= EF_NODRAW;

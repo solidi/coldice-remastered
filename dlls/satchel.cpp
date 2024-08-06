@@ -458,7 +458,7 @@ void CSatchel::PrimaryAttack()
 				{
 					if (pAssassin->pev->owner == pPlayer)
 					{
-						CGrenade::Vest( VARS(pAssassin->pev->owner), pAssassin->pev->origin );
+						CGrenade::Vest( VARS(pAssassin->pev->owner), pAssassin->pev->origin, gSkillData.plrDmgVest );
 						pAssassin->pev->solid = SOLID_NOT;
 						((CBaseMonster *)pAssassin)->GibMonster();
 						pAssassin->pev->effects |= EF_NODRAW;

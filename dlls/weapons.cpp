@@ -3143,7 +3143,7 @@ void CThrowWeapon::ThrowWeaponThink( void )
 {
 	if (m_hOwner)
 	{
-		CGrenade::Vest( m_hOwner->pev, pev->origin );
+		CGrenade::Vest( m_hOwner->pev, pev->origin, gSkillData.plrDmgVest / 2 );
 	}
 
 	pev->nextthink = -1;

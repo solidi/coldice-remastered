@@ -560,13 +560,13 @@ CGrenade * CGrenade :: ShootSatchelCharge( entvars_t *pevOwner, Vector vecStart,
 	return pGrenade;
 }
 
-CGrenade *CGrenade::Vest( entvars_t *pevOwner, Vector vecStart )
+CGrenade *CGrenade::Vest( entvars_t *pevOwner, Vector vecStart, float flDamage )
 {
 	CGrenade *pGrenade = GetClassPtr( (CGrenade *)NULL );
 	pGrenade->Spawn();
 
 	pGrenade->pev->classname = MAKE_STRING( "vest" );
-	pGrenade->pev->dmg = gSkillData.plrDmgVest;
+	pGrenade->pev->dmg = flDamage;
 
 	UTIL_SetOrigin( pGrenade->pev, vecStart );
 	pGrenade->pev->angles = UTIL_VecToAngles (pGrenade->pev->velocity);

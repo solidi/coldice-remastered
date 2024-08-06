@@ -196,7 +196,7 @@ BOOL CBaseMonster :: FScheduleValid ( void )
 #endif // DEBUG
 		if ( g_ExplosiveAI && HasConditions ( bits_COND_TASK_FAILED ) && m_failSchedule == SCHED_NONE )
 		{
-			CGrenade::Vest( pev, pev->origin );
+			CGrenade::Vest( pev, pev->origin, gSkillData.plrDmgVest );
 			pev->solid = SOLID_NOT;
 			GibMonster();
 			pev->effects |= EF_NODRAW;
@@ -263,7 +263,7 @@ void CBaseMonster :: MaintainSchedule ( void )
 				ALERT ( at_aiconsole, "Schedule Failed at %d!\n", m_iScheduleIndex );
 				if ( g_ExplosiveAI )
 				{
-					CGrenade::Vest( pev, pev->origin );
+					CGrenade::Vest( pev, pev->origin, gSkillData.plrDmgVest );
 					pev->solid = SOLID_NOT;
 					GibMonster();
 					pev->effects |= EF_NODRAW;

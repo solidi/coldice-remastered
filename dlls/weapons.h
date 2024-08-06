@@ -36,7 +36,7 @@ public:
 	static CGrenade *ShootTimed( entvars_t *pevOwner, Vector vecStart, Vector vecVelocity, float time );
 	static CGrenade *ShootContact( entvars_t *pevOwner, Vector vecStart, Vector vecVelocity );
 	static CGrenade *ShootSatchelCharge( entvars_t *pevOwner, Vector vecStart, Vector vecVelocity );
-	static CGrenade *Vest( entvars_t *pevOwner, Vector vecStart );
+	static CGrenade *Vest( entvars_t *pevOwner, Vector vecStart, float flDamage );
 	static CGrenade *ShootTimedCluster( entvars_t *pevOwner, Vector vecStart, Vector vecVelocity, float time );
 
 	void EXPORT ClusterTumbleThink( void );
