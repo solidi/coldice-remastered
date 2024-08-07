@@ -1048,6 +1048,11 @@ BOOL CHalfLifeMultiplay :: GetNextBestWeapon( CBasePlayer *pPlayer, CBasePlayerI
 		return FALSE;
 	}
 
+	if (pPlayer->ShouldWeaponThrow() && ((CBasePlayerWeapon *)pCurrentWeapon)->iMaxClip() != WEAPON_NOCLIP)
+	{
+		((CBasePlayerWeapon *)pCurrentWeapon)->ThrowWeapon(TRUE);
+	}
+
 	for ( i = 0 ; i < MAX_ITEM_TYPES ; i++ )
 	{
 		pCheck = pPlayer->m_rgpPlayerItems[ i ];

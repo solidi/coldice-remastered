@@ -3157,6 +3157,9 @@ void CBasePlayerWeapon::ThrowWeapon( BOOL holdingSomething )
 		return;
 	}
 
+	if (m_iId == WEAPON_FISTS || m_iId == WEAPON_FINGERGUN)
+		return;
+
 	if (m_pPlayer->m_fOffhandTime >= gpGlobals->time)
 		return;
 

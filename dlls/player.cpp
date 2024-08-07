@@ -6929,6 +6929,11 @@ BOOL CBasePlayer::ShouldWeaponSwitch()
 	return 0 != m_iAutoWepSwitch;
 }
 
+BOOL CBasePlayer::ShouldWeaponThrow()
+{
+	return 0 != m_iAutoWepThrow;
+}
+
 void CBasePlayer::DisplayHudMessage(const char *message, int channel, float x, float y, int r, int g, int b, int effect, float fadein, float fadeout, float holdtime, float fxtime)
 {
 	if (m_iDisplayInfoMessage <= 0)

@@ -237,6 +237,7 @@ void ClientPutInServer( edict_t *pEntity )
 
 	// Cold Ice client defaults
 	pPlayer->m_iAutoWepSwitch = 1;
+	pPlayer->m_iAutoWepThrow = 1;
 	pPlayer->m_iAutoMelee = 1;
 	pPlayer->m_iAutoTaunt = 1;
 	pPlayer->m_iPlayMusic = 1;
@@ -908,6 +909,7 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_automelee [0|1]\" - auto kick or punch an enemy if they are close\n" );
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_autotaunt [0|1]\" - auto taunt on frag when its safe to do so\n" );
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_autowepswitch [0|1]\" - auto switches weapon on pickup\n" );
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_autowepthrow [0|1]\" - auto throws weapon on empty\n" );
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_bobtilt [0|1]\" - Old Bob Tilt\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_bulletsmoke [0|1]\" - turn on or off bullet smoke and flare effects\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_crosshairammo [0|1]\" - show ammo status in crosshairs\n" );
@@ -1154,6 +1156,10 @@ void ClientUserInfoChanged( edict_t *pEntity, char *infobuffer )
 	char* pszAutoWepSwitch = g_engfuncs.pfnInfoKeyValue( infobuffer, "cl_autowepswitch");
 	if (strlen(pszAutoWepSwitch))
 		pl->m_iAutoWepSwitch = atoi(pszAutoWepSwitch);
+
+	char* pszAutoWepThrow = g_engfuncs.pfnInfoKeyValue( infobuffer, "cl_autowepthrow");
+	if (strlen(pszAutoWepThrow))
+		pl->m_iAutoWepThrow = atoi(pszAutoWepThrow);
 
 	char* pszDisplayInfoMessage = g_engfuncs.pfnInfoKeyValue( infobuffer, "cl_infomessage");
 	if (strlen(pszDisplayInfoMessage))

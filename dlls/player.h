@@ -246,6 +246,7 @@ public:
 	float m_fSelacoLastX, m_fSelacoLastY;
 
 	int m_iAutoWepSwitch;
+	int m_iAutoWepThrow;
 	int m_iDisplayInfoMessage;
 
 	BOOL HasDisconnected;
@@ -344,6 +345,7 @@ public:
 	void RemoveAllItems( BOOL removeSuit );
 	BOOL SwitchWeapon( CBasePlayerItem *pWeapon );
 	BOOL ShouldWeaponSwitch();
+	BOOL ShouldWeaponThrow();
 
 	// JOHN:  sends custom messages if player HUD data has changed  (eg health, ammo)
 	virtual void UpdateClientData( void );

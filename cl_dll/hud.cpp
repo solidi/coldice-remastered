@@ -547,6 +547,7 @@ void CHud :: Init( void )
 	CVAR_CREATE("cl_shadows", "0", FCVAR_ARCHIVE);
 	CVAR_CREATE( "cl_autowepswitch", "1", FCVAR_ARCHIVE | FCVAR_USERINFO );
 	CVAR_CREATE( "cl_infomessage", "1", FCVAR_ARCHIVE | FCVAR_USERINFO );
+	CVAR_CREATE( "cl_autowepthrow", "1", FCVAR_ARCHIVE | FCVAR_USERINFO );
 	cl_lifemeter = CVAR_CREATE( "cl_lifemeters", "1", FCVAR_ARCHIVE );
 	cl_achievements = CVAR_CREATE( "cl_achievements", "3", FCVAR_ARCHIVE );
 	cl_antivomit = CVAR_CREATE( "cl_antivomit", "0", FCVAR_ARCHIVE );
