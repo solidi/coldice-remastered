@@ -802,6 +802,7 @@ enum e_protips {
 	FEIGN_TIP,
 	FORCEGRAB_TIP,
 	PROP_TIP,
+	DROP_TIP,
 };
 
 extern void ProTip(int id, const char *message);

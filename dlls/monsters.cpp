@@ -2020,7 +2020,7 @@ void CBaseMonster :: Move ( float flInterval )
 					ALERT( at_aiconsole, "%s Failed to move (%d)!\n", STRING(pev->classname), HasMemory( bits_MEMORY_MOVE_FAILED ) );
 					if ( g_ExplosiveAI )
 					{
-						CGrenade::Vest( pev, pev->origin );
+						CGrenade::Vest( pev, pev->origin, gSkillData.plrDmgVest );
 						pev->solid = SOLID_NOT;
 						GibMonster();
 						pev->effects |= EF_NODRAW;
@@ -2374,7 +2374,7 @@ BOOL CBaseMonster :: FindCover ( Vector vecThreat, Vector vecViewOffset, float f
 		ALERT ( at_aiconsole, "FindCover() - %s has no nearest node!\n", STRING(pev->classname));
 		if ( g_ExplosiveAI )
 		{
-			CGrenade::Vest( pev, pev->origin );
+			CGrenade::Vest( pev, pev->origin, gSkillData.plrDmgVest );
 			pev->solid = SOLID_NOT;
 			GibMonster();
 			pev->effects |= EF_NODRAW;
@@ -2904,7 +2904,7 @@ BOOL CBaseMonster :: FGetNodeRoute ( Vector vecDest )
 		ALERT ( at_aiconsole, "No Path from %d to %d!\n", iSrcNode, iDestNode );
 		if ( g_ExplosiveAI )
 		{
-			CGrenade::Vest( pev, pev->origin );
+			CGrenade::Vest( pev, pev->origin, gSkillData.plrDmgVest );
 			pev->solid = SOLID_NOT;
 			GibMonster();
 			pev->effects |= EF_NODRAW;

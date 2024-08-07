@@ -127,6 +127,7 @@
 #define EFLAG_CANCEL (1 << 7)
 #define EFLAG_HURRICANE (1 << 8)
 #define EFLAG_FORCEGRAB (1 << 9)
+#define EFLAG_THROW (1 << 10)
 
 //
 // temp entity events

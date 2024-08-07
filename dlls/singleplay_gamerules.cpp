@@ -316,7 +316,7 @@ void CHalfLifeRules :: MonsterKilled( CBaseMonster *pVictim, entvars_t *pKiller 
 	}
 
 	if (m_iVolatile) {
-		CGrenade::Vest( pVictim->pev, pVictim->pev->origin );
+		CGrenade::Vest( pVictim->pev, pVictim->pev->origin, gSkillData.plrDmgVest );
 		pVictim->pev->solid = SOLID_NOT;
 		pVictim->GibMonster();
 		pVictim->pev->effects |= EF_NODRAW;

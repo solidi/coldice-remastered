@@ -237,6 +237,7 @@ void ClientPutInServer( edict_t *pEntity )
 
 	// Cold Ice client defaults
 	pPlayer->m_iAutoWepSwitch = 1;
+	pPlayer->m_iAutoWepThrow = 1;
 	pPlayer->m_iAutoMelee = 1;
 	pPlayer->m_iAutoTaunt = 1;
 	pPlayer->m_iPlayMusic = 1;
@@ -908,6 +909,7 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_automelee [0|1]\" - auto kick or punch an enemy if they are close\n" );
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_autotaunt [0|1]\" - auto taunt on frag when its safe to do so\n" );
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_autowepswitch [0|1]\" - auto switches weapon on pickup\n" );
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_autowepthrow [0|1]\" - auto throws weapon on empty\n" );
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_bobtilt [0|1]\" - Old Bob Tilt\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_bulletsmoke [0|1]\" - turn on or off bullet smoke and flare effects\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_crosshairammo [0|1]\" - show ammo status in crosshairs\n" );
@@ -955,6 +957,7 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"impulse 213\" - Front Flip\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"impulse 214\" - Hurricane Kick\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"impulse 215\" - Force Grab\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"impulse 216\" - Drop Explosive Weapon\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"snowman\" - God mode (when sv_cheats 1)\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"vote\" - type in the chat to start a vote\n" );
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "For more, see readme.txt\n" );
@@ -1088,6 +1091,7 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"stahp\" - some sounds replaced with stahp!\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"superjump\" - jump three times the height, disables fall damage.\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"thirdperson\" - an outside body experience.\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"three\" - three random mutators at once.\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"topsyturvy\" - everything is turned upside down (sp only!)\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"toilet\" - game is in the toilet, we ain't hurt nobody.\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"turrets\" - sentry guns randomly appear, firing bullets and rockets at everyone\n");
@@ -1152,6 +1156,10 @@ void ClientUserInfoChanged( edict_t *pEntity, char *infobuffer )
 	char* pszAutoWepSwitch = g_engfuncs.pfnInfoKeyValue( infobuffer, "cl_autowepswitch");
 	if (strlen(pszAutoWepSwitch))
 		pl->m_iAutoWepSwitch = atoi(pszAutoWepSwitch);
+
+	char* pszAutoWepThrow = g_engfuncs.pfnInfoKeyValue( infobuffer, "cl_autowepthrow");
+	if (strlen(pszAutoWepThrow))
+		pl->m_iAutoWepThrow = atoi(pszAutoWepThrow);
 
 	char* pszDisplayInfoMessage = g_engfuncs.pfnInfoKeyValue( infobuffer, "cl_infomessage");
 	if (strlen(pszDisplayInfoMessage))

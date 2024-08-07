@@ -1048,6 +1048,11 @@ BOOL CHalfLifeMultiplay :: GetNextBestWeapon( CBasePlayer *pPlayer, CBasePlayerI
 		return FALSE;
 	}
 
+	if (pPlayer->ShouldWeaponThrow() && ((CBasePlayerWeapon *)pCurrentWeapon)->iMaxClip() != WEAPON_NOCLIP)
+	{
+		((CBasePlayerWeapon *)pCurrentWeapon)->ThrowWeapon(TRUE);
+	}
+
 	for ( i = 0 ; i < MAX_ITEM_TYPES ; i++ )
 	{
 		pCheck = pPlayer->m_rgpPlayerItems[ i ];
@@ -1763,7 +1768,7 @@ void CHalfLifeMultiplay :: PlayerKilled( CBasePlayer *pVictim, entvars_t *pKille
 		// No echo boom
 		if (pInflictor && FClassnameIs(pInflictor, "weapon_vest"))
 			return;
-		CGrenade::Vest( pVictim->pev, pVictim->pev->origin );
+		CGrenade::Vest( pVictim->pev, pVictim->pev->origin, gSkillData.plrDmgVest );
 		pVictim->pev->solid = SOLID_NOT;
 		pVictim->GibMonster();
 		pVictim->pev->effects |= EF_NODRAW;

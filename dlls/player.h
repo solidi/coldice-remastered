@@ -226,8 +226,7 @@ public:
 
 	int m_fHasRune;
 	float m_flRuneHealTime;
-	float m_fKickTime;
-	float m_fPunchTime;
+	float m_fOffhandTime;
 	float m_fThawTime;
 	int m_iFreezeCounter;
 	float m_fJumpHeight;
@@ -239,7 +238,6 @@ public:
 	void TraceHitOfSelacoSlide( void );
 	void EndSelacoSlide( void );
 	float m_fSelacoButtonTime;
-	float m_fSelacoTime;
 	float m_fSelacoIncrement;
 	int m_fSelacoZ;
 	int m_fSelacoCount;
@@ -248,6 +246,7 @@ public:
 	float m_fSelacoLastX, m_fSelacoLastY;
 
 	int m_iAutoWepSwitch;
+	int m_iAutoWepThrow;
 	int m_iDisplayInfoMessage;
 
 	BOOL HasDisconnected;
@@ -346,6 +345,7 @@ public:
 	void RemoveAllItems( BOOL removeSuit );
 	BOOL SwitchWeapon( CBasePlayerItem *pWeapon );
 	BOOL ShouldWeaponSwitch();
+	BOOL ShouldWeaponThrow();
 
 	// JOHN:  sends custom messages if player HUD data has changed  (eg health, ammo)
 	virtual void UpdateClientData( void );
