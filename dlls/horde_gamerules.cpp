@@ -257,6 +257,18 @@ void CHalfLifeHorde::Think( void )
 				strcpy(monster, szMonsters[index]);
 				CBaseEntity *pEntity = CBaseEntity::Create(monster, m_pSpot->v.origin, m_pSpot->v.angles);
 
+				CBaseEntity *ent = NULL;
+				while ( (ent = UTIL_FindEntityInSphere( ent, m_pSpot->v.origin, 128 )) != NULL )
+				{
+					// if ent is a client, kill em (unless they are ourselves)
+					if ( ent->IsPlayer() && ent->IsAlive() )
+					{
+						ClearMultiDamage();
+						ent->pev->health = 0; // without this, player can walk as a ghost.
+						((CBasePlayer *)ent)->Killed(pEntity->pev, VARS(INDEXENT(0)), GIB_ALWAYS);
+					}
+				}
+
 				// Health increases all monsters.
 				int hardness = (m_iWaveNumber / (ARRAYSIZE(szMonsters) * ENEMY_TOTAL));
 
@@ -456,6 +468,12 @@ void CHalfLifeHorde::Think( void )
 				UTIL_ClientPrintAll(HUD_PRINTCENTER,
 					UTIL_VarArgs("Survivors have been defeated!\n\n%s doled the most enemy frags!\n",
 					STRING(highballer->pev->netname)));
+				MESSAGE_BEGIN(MSG_BROADCAST, gmsgObjective);
+					WRITE_STRING(UTIL_VarArgs("Wave #%d Completed!", m_iWaveNumber));
+					WRITE_STRING("");
+					WRITE_BYTE(0);
+					WRITE_STRING(UTIL_VarArgs("%s scored highest!", STRING(highballer->pev->netname)));
+				MESSAGE_END();
 				DisplayWinnersGoods( highballer );
 				MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
 					WRITE_BYTE(CLIENT_SOUND_OUTSTANDING);
@@ -465,6 +483,12 @@ void CHalfLifeHorde::Think( void )
 			{
 				UTIL_ClientPrintAll(HUD_PRINTCENTER, "Survivors have been defeated!\n");
 				UTIL_ClientPrintAll(HUD_PRINTTALK, "* Round ends with no winners!\n");
+				MESSAGE_BEGIN(MSG_BROADCAST, gmsgObjective);
+					WRITE_STRING(UTIL_VarArgs("Wave #%d Completed!", m_iWaveNumber));
+					WRITE_STRING("");
+					WRITE_BYTE(0);
+					WRITE_STRING("No one has won!");
+				MESSAGE_END();
 				MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
 					WRITE_BYTE(CLIENT_SOUND_HULIMATING_DEAFEAT);
 				MESSAGE_END();
@@ -517,7 +541,7 @@ void CHalfLifeHorde::Think( void )
 
 		InsertClientsIntoArena(0);
 
-		m_fBeginWaveTime = gpGlobals->time + 1.0;
+		m_fBeginWaveTime = gpGlobals->time + 3.0;
 
 		m_iCountDown = 3;
 		m_fWaitForPlayersTime = -1;
