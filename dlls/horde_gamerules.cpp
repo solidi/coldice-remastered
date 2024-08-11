@@ -795,6 +795,10 @@ void CHalfLifeHorde::MonsterKilled( CBaseMonster *pVictim, entvars_t *pKiller )
 	CBasePlayer *peKiller = NULL;
 	CBaseEntity *ktmp = CBaseEntity::Instance( pKiller );
 
+	// Monster must be of the horde
+	if (strcmp(STRING(pVictim->pev->message), "horde"))
+		return;
+
 	if ( pKiller && (ktmp->Classify() == CLASS_PLAYER) )
 		peKiller = (CBasePlayer*)ktmp;
 
@@ -810,13 +814,11 @@ void CHalfLifeHorde::MonsterKilled( CBaseMonster *pVictim, entvars_t *pKiller )
 			WRITE_SHORT( GetTeamIndex( peKiller->m_szTeamName) + 1 );
 		MESSAGE_END();
 
-		const char *killer_weapon_name = "monster";
-
 		MESSAGE_BEGIN( MSG_ALL, gmsgDeathMsg );
 			WRITE_BYTE( ENTINDEX(ENT(pKiller)) );		// the killer
 			WRITE_BYTE( -1 );							// the assist
 			WRITE_BYTE( -1 );							// the victim
-			WRITE_STRING( killer_weapon_name );			// what they were killed by (should this be a string?)
+			WRITE_STRING( STRING(pVictim->pev->classname + 8) );			// what they were killed by (should this be a string?)
 		MESSAGE_END();
 	}
 }

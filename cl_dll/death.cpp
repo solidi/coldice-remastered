@@ -220,7 +220,7 @@ int CHudDeathNotice :: Draw( float flTime )
 			}
 			else
 			{
-				x = (DrawConsoleString( x, y, "Monster" )) + g_xP;
+				x = (DrawConsoleString( x, y, rgDeathNoticeList[i].szVictim )) + g_xP;
 			}
 		}
 	}
