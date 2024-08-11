@@ -185,9 +185,7 @@ void CFlameBall::Explode( TraceResult *pTrace, int bitsDamageType )
 		if (pEntity->pev->takedamage)
 		{
 			pEntity->m_fBurnTime += RANDOM_LONG(1,3);
-
-			if (pEntity->IsPlayer())
-				pEntity->m_hFlameOwner = Instance(pevOwner);
+			pEntity->m_hFlameOwner = Instance(pevOwner);
 		}
 	}
 	// ---- 

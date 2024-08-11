@@ -87,15 +87,8 @@ void CFlame::DieThink( void )
 				if (pEntity->pev->takedamage)
 				{
 					pEntity->m_fBurnTime = pEntity->m_fBurnTime + pev->scale / 16;
-	
-					if (pEntity->IsPlayer() && pEntity->m_hFlameOwner == NULL)
-					{
-						pEntity->m_hFlameOwner = Instance(pev->owner);
-						pEntity->TakeDamage ( VARS( pev->owner ), pEntity->m_hFlameOwner->pev, FLDMG , DMG_BURN | DMG_NEVERGIB );
-					}
-					else
-						pEntity->TakeDamage ( VARS( pev->owner ), VARS( pev->owner ), FLDMG , DMG_BURN | DMG_NEVERGIB );
-	
+					pEntity->m_hFlameOwner = Instance(pev->owner);
+					pEntity->TakeDamage ( VARS( pev->owner ), pEntity->m_hFlameOwner->pev, FLDMG , DMG_BURN | DMG_NEVERGIB );
 				}
 			}
 		}
@@ -144,11 +137,7 @@ void CFlame::FlameThink( void )
 					if (pEntity->edict() != pev->owner)
 					{
 						pEntity->m_fBurnTime = pEntity->m_fBurnTime + 0.2;
-
-						if (pEntity->IsPlayer())
-						{
-							pEntity->m_hFlameOwner = Instance(pev->owner);
-						}
+						pEntity->m_hFlameOwner = Instance(pev->owner);
 					}
 				}
 			}
@@ -191,9 +180,7 @@ void CFlame::FlameTouch( CBaseEntity *pOther )
 	if (pOther && pOther->pev->takedamage)
 	{
 		pOther->m_fBurnTime += 1;
-
-		if (pOther->IsPlayer())
-			pOther->m_hFlameOwner = Instance(pev->owner);
+		pOther->m_hFlameOwner = Instance(pev->owner);
 	}
 
 	pev->velocity = Vector(0, 0, 0);

@@ -563,15 +563,11 @@ void CBaseMonster :: Burn( void )
 				{
 					if (flAdjustedDamage > 0 )
 					{
-						pEntity->TakeDamage ( pev, pev, flAdjustedDamage, DMG_BURN | DMG_NEVERGIB );
+						if (m_hFlameOwner != NULL)
+							pEntity->TakeDamage( pev, m_hFlameOwner->pev, flAdjustedDamage, DMG_BURN | DMG_NEVERGIB );
+						else
+							pEntity->TakeDamage( pev, pev, flAdjustedDamage, DMG_BURN | DMG_NEVERGIB );
 					}
-
-					/*
-					if (RANDOM_LONG(1,0) && pEntity->pev->takedamage && pEntity != this)
-					{
-						pEntity->burntime = pEntity->burntime + 1;
-					}
-					*/
 				}
 			}
 		}
