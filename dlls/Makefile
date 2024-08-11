@@ -129,6 +129,7 @@ OBJ = \
 	$(DLL_OBJDIR)/nodes.o \
 	$(DLL_OBJDIR)/osprey.o \
 	$(DLL_OBJDIR)/pathcorner.o \
+	$(DLL_OBJDIR)/panthereye.o \
 	$(DLL_OBJDIR)/plane.o \
 	$(DLL_OBJDIR)/plats.o \
 	$(DLL_OBJDIR)/player.o \

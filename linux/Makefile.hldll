@@ -195,6 +195,7 @@ HLDLL_OBJS = \
 	$(HLDLL_OBJ_DIR)/observer.o \
 	$(HLDLL_OBJ_DIR)/osprey.o \
 	$(HLDLL_OBJ_DIR)/pathcorner.o \
+	$(HLDLL_OBJ_DIR)/panthereye.o \
 	$(HLDLL_OBJ_DIR)/plane.o \
 	$(HLDLL_OBJ_DIR)/plasma.o \
 	$(HLDLL_OBJ_DIR)/plats.o \
