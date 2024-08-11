@@ -60,7 +60,7 @@ BOOL CHalfLifeRules::IsDeathmatch ( void )
 	return FALSE;
 }
 
-BOOL CHalfLifeRules::HasSpectators( void )
+BOOL CHalfLifeRules::IsRoundBased( void )
 {
 	return FALSE;
 }

@@ -97,7 +97,7 @@ void CHalfLifeLastManStanding::Think( void )
 				if ( plr->m_flForceToObserverTime && plr->m_flForceToObserverTime < gpGlobals->time )
 				{
 					edict_t *pentSpawnSpot = g_pGameRules->GetPlayerSpawnSpot( plr );
-					plr->StartObserver(plr->pev->origin, VARS(pentSpawnSpot)->angles);
+					plr->StartObserver(pentSpawnSpot->v.origin, VARS(pentSpawnSpot)->angles);
 					plr->m_flForceToObserverTime = 0;
 				}
 
@@ -406,7 +406,7 @@ void CHalfLifeLastManStanding::PlayerSpawn( CBasePlayer *pPlayer )
 
 	// Place player in spectator mode if joining during a game
 	// Or if the game begins that requires spectators
-	if ((g_GameInProgress && !pPlayer->IsInArena) || (!g_GameInProgress && HasSpectators()))
+	if ((g_GameInProgress && !pPlayer->IsInArena) || (!g_GameInProgress && IsRoundBased()))
 	{
 		return;
 	}
@@ -439,4 +439,9 @@ int CHalfLifeLastManStanding::GetTeamIndex( const char *pTeamName )
 	}
 	
 	return -1;	// No match
+}
+
+BOOL CHalfLifeLastManStanding::IsRoundBased( void )
+{
+	return TRUE;
 }

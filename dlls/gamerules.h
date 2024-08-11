@@ -85,7 +85,7 @@ public:
 	virtual BOOL IsDeathmatch( void ) = 0;//is this a deathmatch game?
 	virtual BOOL IsTeamplay( void ) { return FALSE; };// is this deathmatch game being played with team rules?
 	virtual BOOL IsCoOp( void ) = 0;// is this a coop game?
-	virtual BOOL HasSpectators() = 0;
+	virtual BOOL IsRoundBased() = 0;
 
 	virtual const char *GetGameDescription( void ) { return "Cold Ice Remastered"; }  // this is the game name that gets seen in the server browser
 	
@@ -260,7 +260,7 @@ public:
 	virtual BOOL IsDeathmatch( void );
 	virtual BOOL IsCoOp( void );
 
-	virtual BOOL HasSpectators( void );
+	virtual BOOL IsRoundBased( void );
 
 	virtual BOOL AllowMeleeDrop( void );
 
@@ -368,7 +368,7 @@ public:
 	virtual BOOL IsDeathmatch( void );
 	virtual BOOL IsCoOp( void );
 
-	virtual BOOL HasSpectators( void );
+	virtual BOOL IsRoundBased( void );
 
 	virtual BOOL AllowMeleeDrop( void );
 

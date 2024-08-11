@@ -26,5 +26,7 @@ public:
 	virtual void PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller, entvars_t *pInflictor );
 	virtual BOOL AllowRuneSpawn( const char *szRune );
 	virtual int GetTeamIndex( const char *pTeamName );
-	void PlayerSpawn( CBasePlayer *pPlayer );
+	virtual void PlayerSpawn( CBasePlayer *pPlayer );
+	virtual BOOL IsRoundBased( void );
+
 };

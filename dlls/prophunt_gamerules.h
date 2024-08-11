@@ -37,6 +37,7 @@ public:
 	virtual BOOL CanHavePlayerAmmo( CBasePlayer *pPlayer, CBasePlayerAmmo *pAmmo );
 	virtual void MonsterKilled( CBaseMonster *pVictim, entvars_t *pKiller );
 	virtual void PlayerThink( CBasePlayer *pPlayer );
+	virtual BOOL IsRoundBased( void );
 
 private:
 	int m_iHuntersRemain;

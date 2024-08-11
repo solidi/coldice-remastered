@@ -34,6 +34,7 @@ public:
 	virtual const char *GetTeamID( CBaseEntity *pEntity );
 	virtual BOOL ShouldAutoAim( CBasePlayer *pPlayer, edict_t *target );
 	virtual BOOL MutatorAllowed(const char *mutator);
+	virtual BOOL IsRoundBased( void );
 
 private:
 	int m_iSmeltersRemain;
