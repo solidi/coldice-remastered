@@ -135,6 +135,7 @@ struct skilldata_t
 	float plrDmgKnifeSnipe;
 	float plrDmgHook;
 	float plrSpeedHook;
+	float pantherHealth;
 	
 // weapons shared by monsters
 	float monDmg9MM;

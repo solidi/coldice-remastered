@@ -256,6 +256,7 @@ void ClientPutInServer( edict_t *pEntity )
 		pPlayer->pev->effects |= EF_NODRAW;
 		pPlayer->pev->solid = SOLID_NOT;
 		pPlayer->pev->movetype = MOVETYPE_NOCLIP;
+		pPlayer->pev->takedamage = DAMAGE_NO;
 	}
 
 	// Reset interpolation during first frame

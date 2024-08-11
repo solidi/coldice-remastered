@@ -304,7 +304,7 @@ void CDiablo::Spawn()
 
 	pev->solid = SOLID_SLIDEBOX;
 	pev->movetype = MOVETYPE_STEP;
-	pev->health = 100;
+	pev->health = gSkillData.pantherHealth;
 	pev->view_ofs = Vector(0, 0, 24);	// position of the eyes relative to monster's origin.
 
 	m_flFieldOfView = 0.5;	// indicates the width of this monster's forward view cone ( as a dotproduct result )
