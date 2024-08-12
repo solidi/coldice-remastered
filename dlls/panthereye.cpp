@@ -507,8 +507,14 @@ void CDiablo::HandleAnimEvent(MonsterEvent_t* pEvent)
 //=========================================================
 int CDiablo::TakeDamage(entvars_t* pevInflictor, entvars_t* pevAttacker, float flDamage, int bitsDamageType)
 {
-	if(!m_fPissed)
+	if (!m_fPissed)
 		m_fPissed = TRUE;
+
+	// For horde
+	if (g_pGameRules->IsMultiplayer())
+	{
+		flDamage *= 0.25;
+	}
 
 	return CBaseMonster::TakeDamage(pevInflictor, pevAttacker, flDamage, bitsDamageType);
 }
@@ -796,7 +802,7 @@ void CDiablo::LeapTouch(CBaseEntity* pOther)
 		UTIL_BloodStream(bloodvec, UTIL_RandomBloodVector(), pOther->BloodColor(), RANDOM_LONG(100, 175));
 		//UTIL_Blood(pev->origin, UTIL_RandomBloodVector(), pOther->BloodColor(), RANDOM_LONG(25, 35)); //turn on when real beta.
 
-		pOther->TakeDamage(pev, pev, 25, DMG_SLASH);
+		pOther->TakeDamage(pev, pev, gSkillData.pantherSlash, DMG_SLASH);
 
 		ClearBits(pOther->pev->flags, FL_ONGROUND);
 

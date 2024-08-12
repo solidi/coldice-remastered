@@ -1027,7 +1027,8 @@ void CBaseMonster :: StartTask ( Task_t *pTask )
 			else
 			{
 				// no way to get there =(
-				ALERT ( at_aiconsole, "GetPathToEnemy failed!!\n" );
+				if (!g_pGameRules->IsMultiplayer())
+					ALERT ( at_aiconsole, "GetPathToEnemy failed!!\n" );
 				TaskFail();
 			}
 			break;

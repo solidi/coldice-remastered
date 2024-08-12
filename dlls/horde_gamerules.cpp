@@ -42,7 +42,7 @@ const char *szMonsters[] = {
 	"monster_gargantua"
 };
 
-#define ENEMY_TOTAL 5
+#define ENEMY_TOTAL 8
 
 CHalfLifeHorde::CHalfLifeHorde()
 {
@@ -203,8 +203,7 @@ void CHalfLifeHorde::Think( void )
 			// Spawn enemies
 			m_iTotalEnemies = 0;
 			m_iEnemiesRemain = ENEMY_TOTAL;
-
-			SetRoundLimits();
+			BOOL pickedUpPerson = FALSE;
 
 			//spawn those dead, restock.
 			for ( int i = 1; i <= gpGlobals->maxClients; i++ )
@@ -218,6 +217,7 @@ void CHalfLifeHorde::Think( void )
 					{
 						plr->IsInArena = TRUE;
 						plr->ExitObserver();
+						pickedUpPerson = TRUE;
 					}
 
 					MESSAGE_BEGIN(MSG_ALL, gmsgScoreInfo);
@@ -232,6 +232,17 @@ void CHalfLifeHorde::Think( void )
 					plr->pev->health = 100;
 				}
 			}
+
+			// So monsters and incoming players dont clash
+			if (pickedUpPerson)
+			{
+				m_fBeginWaveTime = gpGlobals->time + 3.0;
+				flUpdateTime = gpGlobals->time + 1.5;
+				UTIL_ClientPrintAll(HUD_PRINTCENTER, UTIL_VarArgs("Players joining. Wave #%d begins soon.", m_iWaveNumber + 1));
+				return;
+			}
+
+			SetRoundLimits();
 
 			MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
 				WRITE_BYTE(CLIENT_SOUND_WAVE_BEGINS);
@@ -260,19 +271,22 @@ void CHalfLifeHorde::Think( void )
 				CBaseEntity *pEntity = CBaseEntity::Create(monster, m_pSpot->v.origin, m_pSpot->v.angles);
 
 				CBaseEntity *ent = NULL;
-				while ( (ent = UTIL_FindEntityInSphere( ent, m_pSpot->v.origin, 128 )) != NULL )
+				while ( (ent = UTIL_FindEntityInSphere( ent, m_pSpot->v.origin, 64 )) != NULL )
 				{
 					// if ent is a client, kill em (unless they are ourselves)
-					if ( ent->IsPlayer() && ent->IsAlive() )
+					if ( ent->IsAlive() && pEntity != ent )
 					{
 						ClearMultiDamage();
 						ent->pev->health = 0; // without this, player can walk as a ghost.
-						((CBasePlayer *)ent)->Killed(pEntity->pev, VARS(INDEXENT(0)), GIB_ALWAYS);
+						if (ent->IsPlayer() )
+							((CBasePlayer *)ent)->Killed(pEntity->pev, VARS(INDEXENT(0)), GIB_ALWAYS);
+						else
+							ent->Killed(VARS(INDEXENT(0)), GIB_ALWAYS);
 					}
 				}
 
 				// Health increases all monsters.
-				int hardness = (m_iWaveNumber / (ARRAYSIZE(szMonsters) * ENEMY_TOTAL));
+				int hardness = (m_iWaveNumber / float(ARRAYSIZE(szMonsters) * ENEMY_TOTAL)) * 10;
 
 				ALERT(at_aiconsole, ">>> [Horde] m_iWaveNumber=%d, index=%d, monsterRound=%d, i=%d, hardness=%d\n", m_iWaveNumber, index, monsterRound, i, hardness);
 

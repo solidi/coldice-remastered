@@ -2013,7 +2013,8 @@ void CBaseMonster :: Move ( float flInterval )
 				else
 				{
 					TaskFail();
-					ALERT( at_aiconsole, "%s Failed to move (%d)!\n", STRING(pev->classname), HasMemory( bits_MEMORY_MOVE_FAILED ) );
+					if (!g_pGameRules->IsMultiplayer())
+						ALERT( at_aiconsole, "%s Failed to move (%d)!\n", STRING(pev->classname), HasMemory( bits_MEMORY_MOVE_FAILED ) );
 					if ( g_ExplosiveAI )
 					{
 						CGrenade::Vest( pev, pev->origin, gSkillData.plrDmgVest );
@@ -2897,7 +2898,8 @@ BOOL CBaseMonster :: FGetNodeRoute ( Vector vecDest )
 	if ( !iResult )
 	{
 #if 1
-		ALERT ( at_aiconsole, "No Path from %d to %d!\n", iSrcNode, iDestNode );
+		if (!g_pGameRules->IsMultiplayer())
+			ALERT ( at_aiconsole, "No Path from %d to %d!\n", iSrcNode, iDestNode );
 		if ( g_ExplosiveAI )
 		{
 			CGrenade::Vest( pev, pev->origin, gSkillData.plrDmgVest );

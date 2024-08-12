@@ -431,6 +431,7 @@ void CGameRules::RefreshSkillData ( void )
 
 	// Panther
 	gSkillData.pantherHealth = GetSkillCvar( "sk_panther_health");
+	gSkillData.pantherSlash = GetSkillCvar( "sk_panther_slash");
 
 	// Grapple Hook
 	gSkillData.plrDmgHook = GetSkillCvar( "sk_plr_hook" );
