@@ -38,10 +38,11 @@ const char *szMonsters[] = {
 	"monster_zombie",
 	"monster_houndeye",
 	"monster_human_grunt",
+	"monster_panther",
 	"monster_gargantua"
 };
 
-#define ENEMY_TOTAL 5
+#define ENEMY_TOTAL 8
 
 CHalfLifeHorde::CHalfLifeHorde()
 {
@@ -49,6 +50,7 @@ CHalfLifeHorde::CHalfLifeHorde()
 	m_iWaveNumber = 0;
 	pLastSpawnPoint = NULL;
 
+	UTIL_PrecacheOther( "monster_panther" );
 	UTIL_PrecacheOther( "monster_headcrab" );
 	UTIL_PrecacheOther( "monster_zombie" );
 	UTIL_PrecacheOther( "monster_houndeye" );
@@ -153,13 +155,13 @@ void CHalfLifeHorde::Think( void )
 				if ( plr->m_flForceToObserverTime && plr->m_flForceToObserverTime < gpGlobals->time )
 				{
 					edict_t *pentSpawnSpot = g_pGameRules->GetPlayerSpawnSpot( plr );
-					plr->StartObserver(plr->pev->origin, VARS(pentSpawnSpot)->angles);
+					plr->StartObserver(pentSpawnSpot->v.origin, VARS(pentSpawnSpot)->angles);
 					plr->m_flForceToObserverTime = 0;
 				}
 
 				if ( plr->IsInArena && !plr->IsSpectator() )
 				{
-						survivors_left++;
+					survivors_left++;
 				}
 			}
 		}
@@ -201,8 +203,7 @@ void CHalfLifeHorde::Think( void )
 			// Spawn enemies
 			m_iTotalEnemies = 0;
 			m_iEnemiesRemain = ENEMY_TOTAL;
-
-			SetRoundLimits();
+			BOOL pickedUpPerson = FALSE;
 
 			//spawn those dead, restock.
 			for ( int i = 1; i <= gpGlobals->maxClients; i++ )
@@ -216,6 +217,7 @@ void CHalfLifeHorde::Think( void )
 					{
 						plr->IsInArena = TRUE;
 						plr->ExitObserver();
+						pickedUpPerson = TRUE;
 					}
 
 					MESSAGE_BEGIN(MSG_ALL, gmsgScoreInfo);
@@ -230,6 +232,17 @@ void CHalfLifeHorde::Think( void )
 					plr->pev->health = 100;
 				}
 			}
+
+			// So monsters and incoming players dont clash
+			if (pickedUpPerson)
+			{
+				m_fBeginWaveTime = gpGlobals->time + 3.0;
+				flUpdateTime = gpGlobals->time + 1.5;
+				UTIL_ClientPrintAll(HUD_PRINTCENTER, UTIL_VarArgs("Players joining. Wave #%d begins soon.", m_iWaveNumber + 1));
+				return;
+			}
+
+			SetRoundLimits();
 
 			MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
 				WRITE_BYTE(CLIENT_SOUND_WAVE_BEGINS);
@@ -257,8 +270,23 @@ void CHalfLifeHorde::Think( void )
 				strcpy(monster, szMonsters[index]);
 				CBaseEntity *pEntity = CBaseEntity::Create(monster, m_pSpot->v.origin, m_pSpot->v.angles);
 
+				CBaseEntity *ent = NULL;
+				while ( (ent = UTIL_FindEntityInSphere( ent, m_pSpot->v.origin, 64 )) != NULL )
+				{
+					// if ent is a client, kill em (unless they are ourselves)
+					if ( ent->IsAlive() && pEntity != ent )
+					{
+						ClearMultiDamage();
+						ent->pev->health = 0; // without this, player can walk as a ghost.
+						if (ent->IsPlayer() )
+							((CBasePlayer *)ent)->Killed(pEntity->pev, VARS(INDEXENT(0)), GIB_ALWAYS);
+						else
+							ent->Killed(VARS(INDEXENT(0)), GIB_ALWAYS);
+					}
+				}
+
 				// Health increases all monsters.
-				int hardness = (m_iWaveNumber / (ARRAYSIZE(szMonsters) * ENEMY_TOTAL));
+				int hardness = (m_iWaveNumber / float(ARRAYSIZE(szMonsters) * ENEMY_TOTAL)) * 10;
 
 				ALERT(at_aiconsole, ">>> [Horde] m_iWaveNumber=%d, index=%d, monsterRound=%d, i=%d, hardness=%d\n", m_iWaveNumber, index, monsterRound, i, hardness);
 
@@ -456,6 +484,12 @@ void CHalfLifeHorde::Think( void )
 				UTIL_ClientPrintAll(HUD_PRINTCENTER,
 					UTIL_VarArgs("Survivors have been defeated!\n\n%s doled the most enemy frags!\n",
 					STRING(highballer->pev->netname)));
+				MESSAGE_BEGIN(MSG_BROADCAST, gmsgObjective);
+					WRITE_STRING(UTIL_VarArgs("Wave #%d Completed!", m_iWaveNumber));
+					WRITE_STRING("");
+					WRITE_BYTE(0);
+					WRITE_STRING(UTIL_VarArgs("%s scored highest!", STRING(highballer->pev->netname)));
+				MESSAGE_END();
 				DisplayWinnersGoods( highballer );
 				MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
 					WRITE_BYTE(CLIENT_SOUND_OUTSTANDING);
@@ -465,6 +499,12 @@ void CHalfLifeHorde::Think( void )
 			{
 				UTIL_ClientPrintAll(HUD_PRINTCENTER, "Survivors have been defeated!\n");
 				UTIL_ClientPrintAll(HUD_PRINTTALK, "* Round ends with no winners!\n");
+				MESSAGE_BEGIN(MSG_BROADCAST, gmsgObjective);
+					WRITE_STRING(UTIL_VarArgs("Wave #%d Completed!", m_iWaveNumber));
+					WRITE_STRING("");
+					WRITE_BYTE(0);
+					WRITE_STRING("No one has won!");
+				MESSAGE_END();
 				MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
 					WRITE_BYTE(CLIENT_SOUND_HULIMATING_DEAFEAT);
 				MESSAGE_END();
@@ -517,7 +557,7 @@ void CHalfLifeHorde::Think( void )
 
 		InsertClientsIntoArena(0);
 
-		m_fBeginWaveTime = gpGlobals->time + 1.0;
+		m_fBeginWaveTime = gpGlobals->time + 3.0;
 
 		m_iCountDown = 3;
 		m_fWaitForPlayersTime = -1;
@@ -579,7 +619,7 @@ void CHalfLifeHorde::PlayerSpawn( CBasePlayer *pPlayer )
 
 	// Place player in spectator mode if joining during a game
 	// Or if the game begins that requires spectators
-	if ((g_GameInProgress && !pPlayer->IsInArena) || (!g_GameInProgress && HasSpectators()))
+	if ((g_GameInProgress && !pPlayer->IsInArena) || (!g_GameInProgress && IsRoundBased()))
 	{
 		return;
 	}
@@ -795,6 +835,10 @@ void CHalfLifeHorde::MonsterKilled( CBaseMonster *pVictim, entvars_t *pKiller )
 	CBasePlayer *peKiller = NULL;
 	CBaseEntity *ktmp = CBaseEntity::Instance( pKiller );
 
+	// Monster must be of the horde
+	if (strcmp(STRING(pVictim->pev->message), "horde"))
+		return;
+
 	if ( pKiller && (ktmp->Classify() == CLASS_PLAYER) )
 		peKiller = (CBasePlayer*)ktmp;
 
@@ -810,13 +854,11 @@ void CHalfLifeHorde::MonsterKilled( CBaseMonster *pVictim, entvars_t *pKiller )
 			WRITE_SHORT( GetTeamIndex( peKiller->m_szTeamName) + 1 );
 		MESSAGE_END();
 
-		const char *killer_weapon_name = "monster";
-
 		MESSAGE_BEGIN( MSG_ALL, gmsgDeathMsg );
 			WRITE_BYTE( ENTINDEX(ENT(pKiller)) );		// the killer
 			WRITE_BYTE( -1 );							// the assist
 			WRITE_BYTE( -1 );							// the victim
-			WRITE_STRING( killer_weapon_name );			// what they were killed by (should this be a string?)
+			WRITE_STRING( STRING(pVictim->pev->classname + 8) );			// what they were killed by (should this be a string?)
 		MESSAGE_END();
 	}
 }
@@ -831,4 +873,9 @@ BOOL CHalfLifeHorde::ShouldAutoAim( CBasePlayer *pPlayer, edict_t *target )
 	}
 
 	return FALSE;
+}
+
+BOOL CHalfLifeHorde::IsRoundBased( void )
+{
+	return TRUE;
 }

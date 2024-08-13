@@ -442,7 +442,7 @@ void ScorePanel::SortPlayers( int iTeam, char *team )
 
 		for ( int i = 1; i < MAX_PLAYERS; i++ )
 		{
-			int which = ScoreBased() ? g_PlayerExtraInfo[i].playerclass : g_PlayerExtraInfo[i].frags;
+			int which = ScoreBased() && team != NULL && !strcmp(team, "") ? g_PlayerExtraInfo[i].playerclass : g_PlayerExtraInfo[i].frags;
 
 			if ( m_bHasBeenSorted[i] == false && g_PlayerInfoList[i].name && (which >= highest) )
 			{
@@ -455,7 +455,7 @@ void ScorePanel::SortPlayers( int iTeam, char *team )
 					{
 						best_player = i;
 						lowest_deaths = pl_info->deaths;
-						if (ScoreBased())
+						if (ScoreBased() && team != NULL && !strcmp(team, ""))
 							highest = pl_info->playerclass;
 						else
 							highest = pl_info->frags;

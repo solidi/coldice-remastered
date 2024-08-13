@@ -682,7 +682,7 @@ void CHalfLifeMultiplay :: Think ( void )
 #endif
 		g_engfuncs.pfnCvar_DirectSet( &timeleft, UTIL_VarArgs( "%i", time_remaining ) );
 
-		if (!HasSpectators())
+		if (!IsRoundBased())
 		{
 			if (m_fShowTimer != timelimit.value)
 			{
@@ -908,7 +908,7 @@ void CHalfLifeMultiplay::SuckAllToSpectator( void )
 			pPlayer->m_iAssists = 0;
 
 			edict_t *pentSpawnSpot = g_pGameRules->GetPlayerSpawnSpot( pPlayer );
-			pPlayer->StartObserver(pPlayer->pev->origin, VARS(pentSpawnSpot)->angles);
+			pPlayer->StartObserver(pentSpawnSpot->v.origin, VARS(pentSpawnSpot)->angles);
 		}
 	}
 }
@@ -963,15 +963,8 @@ BOOL CHalfLifeMultiplay::IsCoOp( void )
 	return gpGlobals->coop;
 }
 
-BOOL CHalfLifeMultiplay::HasSpectators( void )
+BOOL CHalfLifeMultiplay::IsRoundBased( void )
 {
-	if (g_GameMode == GAME_ICEMAN 
-		|| g_GameMode == GAME_LMS
-		|| g_GameMode == GAME_ARENA
-		|| g_GameMode == GAME_CHILLDEMIC
-		|| g_GameMode == GAME_SHIDDEN)
-		return TRUE;
-
 	return FALSE;
 }
 
@@ -1160,7 +1153,7 @@ void CHalfLifeMultiplay :: InitHUD( CBasePlayer *pl )
 		UpdateGameMode( pl );
 
 		// set or clear timer
-		if (!HasSpectators() && timelimit.value > 0)
+		if (!IsRoundBased() && timelimit.value > 0)
 		{
 			float flTimeLimit = timelimit.value * 60;
 			float time_remaining = (int)( flTimeLimit - gpGlobals->time );
@@ -1512,12 +1505,8 @@ void CHalfLifeMultiplay :: PlayerSpawn( CBasePlayer *pPlayer )
 {
 	// Place player in spectator mode if joining during a game
 	// Or if the game begins that requires spectators
-	if ((g_GameInProgress && !pPlayer->IsInArena) || (!g_GameInProgress && HasSpectators()))
+	if ((g_GameInProgress && !pPlayer->IsInArena) || (!g_GameInProgress && IsRoundBased()))
 	{
-		pPlayer->m_flForceToObserverTime = gpGlobals->time + 3.0;
-		pPlayer->pev->effects |= EF_NODRAW;
-		pPlayer->pev->solid = SOLID_NOT;
-		pPlayer->pev->movetype = MOVETYPE_NOCLIP;
 		return;
 	}
 

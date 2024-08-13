@@ -545,6 +545,14 @@ cvar_t	sk_plr_knifesnipe1 = {"sk_plr_knifesnipe1","0"};
 cvar_t	sk_plr_knifesnipe2 = {"sk_plr_knifesnipe2","0"};
 cvar_t	sk_plr_knifesnipe3 = {"sk_plr_knifesnipe3","0"};
 
+// Panther
+cvar_t	sk_panther_health1 = {"sk_panther_health1","0"};
+cvar_t	sk_panther_health2 = {"sk_panther_health2","0"};
+cvar_t	sk_panther_health3 = {"sk_panther_health3","0"};
+cvar_t	sk_panther_slash1 = {"sk_panther_slash1","0"};
+cvar_t	sk_panther_slash2 = {"sk_panther_slash2","0"};
+cvar_t	sk_panther_slash3 = {"sk_panther_slash3","0"};
+
 // WORLD WEAPONS
 cvar_t	sk_12mm_bullet1 = {"sk_12mm_bullet1","0"};
 cvar_t	sk_12mm_bullet2 = {"sk_12mm_bullet2","0"};
@@ -1180,6 +1188,14 @@ void GameDLLInit( void )
 	CVAR_REGISTER ( &sk_plr_hookspeed1 );
 	CVAR_REGISTER ( &sk_plr_hookspeed2 );
 	CVAR_REGISTER ( &sk_plr_hookspeed3 );
+
+	// Panther
+	CVAR_REGISTER ( &sk_panther_health1 );
+	CVAR_REGISTER ( &sk_panther_health2 );
+	CVAR_REGISTER ( &sk_panther_health3 );
+	CVAR_REGISTER ( &sk_panther_slash1 );
+	CVAR_REGISTER ( &sk_panther_slash2 );
+	CVAR_REGISTER ( &sk_panther_slash3 );
 
 	// WORLD WEAPONS
 	CVAR_REGISTER ( &sk_12mm_bullet1 );// {"sk_12mm_bullet1","0"};

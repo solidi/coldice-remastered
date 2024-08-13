@@ -250,6 +250,15 @@ void ClientPutInServer( edict_t *pEntity )
 	// Allocate a CBasePlayer for pev, and call spawn
 	pPlayer->Spawn();
 
+	if (g_pGameRules->IsRoundBased())
+	{
+		pPlayer->m_flForceToObserverTime = 0;
+		pPlayer->pev->effects |= EF_NODRAW;
+		pPlayer->pev->solid = SOLID_NOT;
+		pPlayer->pev->movetype = MOVETYPE_NOCLIP;
+		pPlayer->pev->takedamage = DAMAGE_NO;
+	}
+
 	// Reset interpolation during first frame
 	pPlayer->pev->effects |= EF_NOINTERP;
 }
@@ -828,7 +837,7 @@ void ClientCommand( edict_t *pEntity )
 			CBasePlayer * pPlayer = GetClassPtr((CBasePlayer *)pev);
 
 			edict_t *pentSpawnSpot = g_pGameRules->GetPlayerSpawnSpot( pPlayer );
-			pPlayer->StartObserver( pev->origin, VARS(pentSpawnSpot)->angles);
+			pPlayer->StartObserver(pentSpawnSpot->v.origin, VARS(pentSpawnSpot)->angles);
 
 			// notify other clients of player switching to spectator mode
 			UTIL_ClientPrintAll( HUD_PRINTNOTIFY, UTIL_VarArgs( "%s switched to spectator mode\n", 

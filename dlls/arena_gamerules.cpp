@@ -171,7 +171,7 @@ void CHalfLifeArena::Think( void )
 					plr->m_flForceToObserverTime && plr->m_flForceToObserverTime < gpGlobals->time )
 				{
 					edict_t *pentSpawnSpot = g_pGameRules->GetPlayerSpawnSpot( plr );
-					plr->StartObserver(plr->pev->origin, VARS(pentSpawnSpot)->angles);
+					plr->StartObserver(pentSpawnSpot->v.origin, VARS(pentSpawnSpot)->angles);
 					plr->m_flForceToObserverTime = 0;
 				}
 
@@ -351,7 +351,7 @@ void CHalfLifeArena::Think( void )
 						plr->m_iAssists = 0;
 
 						edict_t *pentSpawnSpot = g_pGameRules->GetPlayerSpawnSpot(plr);
-						plr->StartObserver(plr->pev->origin, VARS(pentSpawnSpot)->angles);
+						plr->StartObserver(pentSpawnSpot->v.origin, VARS(pentSpawnSpot)->angles);
 					}
 				}
 			}
@@ -567,4 +567,9 @@ const char *CHalfLifeArena::GetTeamID( CBaseEntity *pEntity )
 
 	// return their team name
 	return pEntity->TeamID();
+}
+
+BOOL CHalfLifeArena::IsRoundBased( void )
+{
+	return TRUE;
 }

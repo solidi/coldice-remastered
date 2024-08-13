@@ -33,6 +33,7 @@ public:
 	virtual const char *GetTeamID( CBaseEntity *pEntity );
 	virtual void MonsterKilled( CBaseMonster *pVictim, entvars_t *pKiller );
 	virtual BOOL ShouldAutoAim( CBasePlayer *pPlayer, edict_t *target );
+	virtual BOOL IsRoundBased( void );
 
 private:
 	int m_iSurvivorsRemain;
