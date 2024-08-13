@@ -260,7 +260,8 @@ void CBaseMonster :: MaintainSchedule ( void )
 				else
 					pNewSchedule = GetScheduleOfType( SCHED_FAIL );
 				// schedule was invalid because the current task failed to start or complete
-				ALERT ( at_aiconsole, "Schedule Failed at %d!\n", m_iScheduleIndex );
+				if (!g_pGameRules->IsMultiplayer())
+					ALERT ( at_aiconsole, "Schedule Failed at %d!\n", m_iScheduleIndex );
 				if ( g_ExplosiveAI )
 				{
 					CGrenade::Vest( pev, pev->origin, gSkillData.plrDmgVest );
