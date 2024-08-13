@@ -76,17 +76,8 @@ void CHalfLifeJesusVsSanta::Think( void )
 				else
 				{
 					//for clients who connected while game in progress.
-					if ( plr->IsSpectator() )
+					if ( !plr->IsSpectator() )
 					{
-						MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, plr->edict());
-							WRITE_STRING("Jesus vs Santa in progress");
-							WRITE_STRING(UTIL_VarArgs("Jesus: %s (%.0f/%.0f)\n",
-								STRING(pArmoredMan->pev->netname),
-								pArmoredMan->pev->health,
-								pArmoredMan->pev->armorvalue ));
-							WRITE_BYTE((pArmoredMan->pev->health / pArmoredMan->pev->max_health) * 100);
-						MESSAGE_END();
-					} else {
 						// Send them to observer
 						plr->m_flForceToObserverTime = gpGlobals->time;
 					}
@@ -107,6 +98,21 @@ void CHalfLifeJesusVsSanta::Think( void )
 							WRITE_STRING("Defeat all Santas");
 							WRITE_STRING(UTIL_VarArgs("Santas alive: %d", clients_alive - 1));
 							WRITE_BYTE(float(clients_alive - 1) / (m_iPlayersInGame - 1) * 100);
+						MESSAGE_END();
+					}
+				}
+				else if ( plr->IsSpectator() )
+				{
+					if (pArmoredMan && (clients_alive - 1) >= 1)
+					{
+						MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, plr->edict());
+							WRITE_STRING("Jesus vs Santa in progress");
+							WRITE_STRING(UTIL_VarArgs("Jesus: %s (%.0f/%.0f)\n",
+								STRING(pArmoredMan->pev->netname),
+								pArmoredMan->pev->health,
+								pArmoredMan->pev->armorvalue ));
+							WRITE_BYTE((pArmoredMan->pev->health / pArmoredMan->pev->max_health) * 100);
+							WRITE_STRING(UTIL_VarArgs("Santas remain: %d", clients_alive - 1));
 						MESSAGE_END();
 					}
 				}
