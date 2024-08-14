@@ -205,27 +205,33 @@ void CNukeRocket::Killed(entvars_t *pevAttacker, int iGib) {
 
 	if (nukemode.value >= 2)
 	{
-		for ( int i = 1; i <= gpGlobals->maxClients; i++ )
-		{
-			CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
+		edict_t	*pEdict = g_engfuncs.pfnPEntityOfEntIndex( 1 );
+		CBaseEntity *pEntity;
 
-			if ( plr )
+		for ( int i = 1; i < gpGlobals->maxEntities; i++, pEdict++ )
+		{
+			if (pEdict->free)	// Not in use
+				continue;
+			
+			if (!(pEdict->v.flags & (FL_CLIENT | FL_MONSTER)))	// Not a client/monster ?
+				continue;
+
+			pEntity = CBaseEntity::Instance(pEdict);
+			if (!pEntity)
+				continue;
+
+			UTIL_ScreenFade(pEntity, Vector(255, 255, 255), 2, 4, 200, FFADE_IN);
+
+			if (!FBitSet(pEntity->pev->flags, FL_GODMODE) && pev->owner != pEntity->edict())
 			{
-				if (pev->owner != plr->edict())
-				{
-					ClearMultiDamage(); // fix nuke as kick
-					plr->TakeDamage(pev, VARS(pev->owner), gSkillData.plrDmgNuke <= 0 ? (plr->pev->max_health * 4) : gSkillData.plrDmgNuke , DMG_RADIATION);
-				}
-				UTIL_ScreenFade(plr, Vector(255, 255, 255), 2, 4, 200, FFADE_IN);
-			}
-		}
+				ClearMultiDamage(); // fix nuke as kick
 
-		edict_t *pEdict = FIND_ENTITY_BY_STRING(NULL, "message", "horde");
-		while (!FNullEnt(pEdict))
-		{
-			CBaseEntity *pEnt = CBaseEntity::Instance(pEdict);
-			pEnt->TakeDamage(pev, VARS(pev->owner), gSkillData.plrDmgNuke <= 0 ? (pEnt->pev->max_health * 4) : gSkillData.plrDmgNuke , DMG_RADIATION);
-			pEdict = FIND_ENTITY_BY_STRING(pEdict, "message", "horde");
+				extern entvars_t *g_pevLastInflictor;
+				g_pevLastInflictor = pev;
+				pEntity->TakeDamage(pev, VARS(pev->owner), 1, DMG_RADIATION);
+				pEntity->pev->health = 0; // without this, player can walk as a ghost.
+				pEntity->Killed(VARS(pev->owner), GIB_CLEAR);
+			}
 		}
 	}
 	else
