@@ -244,13 +244,13 @@ void CHalfLifeArena::Think( void )
 	if ( clients > 1 )
 	{
 		if ( m_fWaitForPlayersTime == -1 )
-			m_fWaitForPlayersTime = gpGlobals->time + 17.0;
+			m_fWaitForPlayersTime = gpGlobals->time + 15.0;
 
 		if ( m_fWaitForPlayersTime > gpGlobals->time )
 		{
 			SuckAllToSpectator();
 			flUpdateTime = gpGlobals->time + 1.0;
-			UTIL_ClientPrintAll(HUD_PRINTCENTER, UTIL_VarArgs("Battle will begin in %.0f\n", (m_fWaitForPlayersTime + 3) - gpGlobals->time));
+			UTIL_ClientPrintAll(HUD_PRINTCENTER, UTIL_VarArgs("Battle will begin in %.0f\n", (m_fWaitForPlayersTime + 5) - gpGlobals->time));
 			return;
 		}
 
@@ -261,6 +261,18 @@ void CHalfLifeArena::Think( void )
 					WRITE_BYTE(CLIENT_SOUND_PREPARETOFIGHT);
 				MESSAGE_END();
 				RemoveItemsThatDamage();
+			} else if (m_iCountDown == 3) {
+				MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
+					WRITE_BYTE(CLIENT_SOUND_THREE);
+				MESSAGE_END();
+			} else if (m_iCountDown == 4) {
+				MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
+					WRITE_BYTE(CLIENT_SOUND_FOUR);
+				MESSAGE_END();
+			} else if (m_iCountDown == 5) {
+				MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
+					WRITE_BYTE(CLIENT_SOUND_FIVE);
+				MESSAGE_END();
 			}
 			SuckAllToSpectator(); // in case players join during a countdown.
 			UTIL_ClientPrintAll(HUD_PRINTCENTER,
@@ -359,7 +371,7 @@ void CHalfLifeArena::Think( void )
 
 		ALERT(at_console, "\n");
 
-		m_iCountDown = 3;
+		m_iCountDown = 5;
 		m_fWaitForPlayersTime = -1;
 
 		UTIL_ClientPrintAll(HUD_PRINTCENTER,
@@ -395,7 +407,7 @@ void CHalfLifeArena::Think( void )
 			WRITE_STRING(UTIL_VarArgs("%d Rounds", (int)roundlimit.value));
 		MESSAGE_END();
 		m_flRoundTimeLimit = 0;
-		m_fWaitForPlayersTime = gpGlobals->time + 17.0;
+		m_fWaitForPlayersTime = gpGlobals->time + 15.0;
 	}
 
 	flUpdateTime = gpGlobals->time + 1.0;

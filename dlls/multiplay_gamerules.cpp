@@ -930,7 +930,7 @@ void CHalfLifeMultiplay::ResetGameMode( void )
 {
 	g_GameInProgress = FALSE;
 
-	m_iCountDown = 3;
+	m_iCountDown = 5;
 	m_fWaitForPlayersTime = -1;
 
 	_30secwarning = FALSE;

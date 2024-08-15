@@ -207,6 +207,9 @@ void ClientKill( edict_t *pEntity )
 	if ( g_pGameRules->IsPropHunt() && pl->pev->fuser4 > 0 )
 		return; // props cannot suicide
 
+	if ( pl->IsSpectator() )
+		return; // neither can spectators
+
 	pl->m_fNextSuicideTime = gpGlobals->time + 1;  // don't let them suicide for 5 seconds after suiciding
 
 	// have the player kill themself
@@ -1078,7 +1081,7 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"notify\" - interrupt players with annoying chat notifications\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"notthebees\" - hornets spawn from a player or monster who was killed\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"oldtime\" - gameplay becomes desaturated\n");
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"paintball\" - weapons and explosions leave paint decals, weapons reduced to 1/4 damage\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"paintball\" - weapons and explosions leave paint decals\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"piratehat\" - argh, maty.\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"plumber\" - spawn with dual pipe wrenches\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"portal\" - now you're thinking with portals\n");
