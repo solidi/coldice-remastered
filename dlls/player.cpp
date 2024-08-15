@@ -493,15 +493,7 @@ void CBasePlayer :: TraceAttack( entvars_t *pevAttacker, float flDamage, Vector 
 
 		if ( pAttacker->IsPlayer() && pAttacker->m_fHasRune == RUNE_VAMPIRE && (pVictim != pAttacker) )
 		{
-			//under limit, increase damage / 2.
-			if ( pAttacker->pev->health < pAttacker->pev->max_health )
-				pAttacker->pev->health += (flDamage / 2);
-
-			//over the limit, go back to max.
-			if ( pAttacker->pev->health > pAttacker->pev->max_health )
-				pAttacker->pev->health = pAttacker->pev->max_health;
-
-			UTIL_ScreenFade(pAttacker, Vector(200, 0, 0), .5, .5, 32, FFADE_IN);
+			pAttacker->m_fVampireHealth = (flDamage / 2);
 		}
 
 		if ( pAttacker->IsPlayer() && pAttacker->m_fHasRune == RUNE_STRENGTH && (pVictim != pAttacker) )
@@ -3851,8 +3843,6 @@ void CBasePlayer::Spawn( void )
 
 // dont let uninitialized value here hurt the player
 	m_flFallVelocity = 0;
-
-	CWorldRunes::ResetPlayer(this);
 
 	g_pGameRules->SetDefaultPlayerTeam( this );
 	g_pGameRules->GetPlayerSpawnSpot( this );

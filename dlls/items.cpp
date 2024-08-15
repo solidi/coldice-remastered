@@ -1126,6 +1126,9 @@ CBaseEntity *CWorldRunes::SelectSpawnPoint(const char *spot)
 }
 
 void CWorldRunes::DropRune(CBasePlayer *pPlayer) {
+	if (!pPlayer->m_fHasRune)
+		return;
+
 	char *sz_Rune;
 	switch (pPlayer->m_fHasRune)
 	{
@@ -1157,6 +1160,14 @@ void CWorldRunes::DropRune(CBasePlayer *pPlayer) {
 		default:
 			sz_Rune = "rune_strength";
 	}
+
+	pPlayer->m_fHasRune = 0;
+	pPlayer->m_flRuneHealTime = 0;
+	if (!pPlayer->IsArmoredMan && !g_pGameRules->MutatorEnabled(MUTATOR_MEGASPEED))
+		g_engfuncs.pfnSetPhysicsKeyValue( pPlayer->edict(), "haste", "0" );
+	pPlayer->pev->rendermode = kRenderNormal;
+	pPlayer->pev->renderfx = kRenderFxNone;
+	pPlayer->pev->renderamt = 0;
 
 	UTIL_MakeVectors(pPlayer->pev->v_angle);
 	CRune *pRune = (CRune *)CBaseEntity::Create(sz_Rune, pPlayer->GetGunPosition( ) + gpGlobals->v_forward * 32, pPlayer->pev->angles, pPlayer->edict());
@@ -1285,15 +1296,4 @@ void CWorldRunes::Create( )
 {
 	CWorldRunes* WorldRunes = GetClassPtr( (CWorldRunes*)NULL );
 	WorldRunes->Spawn();
-}
-
-void CWorldRunes::ResetPlayer(CBasePlayer *pPlayer)
-{
-	pPlayer->m_fHasRune = 0;
-	pPlayer->m_flRuneHealTime = 0;
-	if (!pPlayer->IsArmoredMan && !g_pGameRules->MutatorEnabled(MUTATOR_MEGASPEED))
-		g_engfuncs.pfnSetPhysicsKeyValue( pPlayer->edict(), "haste", "0" );
-	pPlayer->pev->rendermode = kRenderNormal;
-	pPlayer->pev->renderfx = kRenderFxNone;
-	pPlayer->pev->renderamt = 0;
 }

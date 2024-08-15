@@ -800,7 +800,6 @@ void ClientCommand( edict_t *pEntity )
 		if ( pPlayer->m_fHasRune )
 		{
 			CWorldRunes::DropRune(pPlayer);
-			CWorldRunes::ResetPlayer(pPlayer);
 			ClientPrint(pPlayer->pev, HUD_PRINTCENTER, "Discarded Rune\n");
 		}
 	}
