@@ -2297,15 +2297,19 @@ engine sets cd to 0 before calling.
 */
 void UpdateClientData ( const edict_t *ent, int sendweapons, struct clientdata_s *cd )
 {
-	CBasePlayer* ppl = (CBasePlayer*)CBasePlayer::Instance((entvars_t *)&ent->v);
-	if (ppl)
-		cd->iuser4 = ppl->m_iWeapons2;
-
 	if ( !ent || !ent->pvPrivateData )
 		return;
+
+	// No bots
+	if (FBitSet(ent->v.flags, FL_FAKECLIENT))
+		return;
+
 	entvars_t *		pev	= (entvars_t *)&ent->v;
 	CBasePlayer *	pl	= dynamic_cast< CBasePlayer *>(CBasePlayer::Instance( pev ));
 	entvars_t *		pevOrg = NULL;
+
+	if (pl)
+		cd->iuser4 = pl->m_iWeapons2;
 
 	// if user is spectating different player in First person, override some vars
 	if ( pl && pl->pev->iuser1 == OBS_IN_EYE )
