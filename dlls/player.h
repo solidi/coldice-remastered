@@ -494,6 +494,8 @@ public:
 	virtual void InitializeEntities( void );
 	BOOL m_bSendMessages;
 
+	float m_fVampireHealth;
+
 	float m_fFeignTime;
 
 	void Taunt( void );
