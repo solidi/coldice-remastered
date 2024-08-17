@@ -220,6 +220,9 @@ void CNukeRocket::Killed(entvars_t *pevAttacker, int iGib) {
 			if (!pEntity)
 				continue;
 
+			if (pev->takedamage == DAMAGE_NO)
+				continue;
+
 			UTIL_ScreenFade(pEntity, Vector(255, 255, 255), 2, 4, 200, FFADE_IN);
 
 			if (!FBitSet(pEntity->pev->flags, FL_GODMODE) && pev->owner != pEntity->edict())

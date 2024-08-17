@@ -1205,13 +1205,13 @@ void CWorldRunes::CreateRune(char *sz_RuneClass)
 
 	if (m_pSpot == NULL)
 	{
-		ALERT(at_console, "Error creating rune. Spawn point not found.\n");
+		ALERT(at_aiconsole, "Error creating rune. Spawn point not found.\n");
 		return;
 	}
 
 	if (!g_pGameRules->AllowRuneSpawn(sz_RuneClass))
 	{
-		ALERT(at_console, "%s cannot spawn in this gameplay.\n", sz_RuneClass);
+		ALERT(at_aiconsole, "%s cannot spawn in this gameplay.\n", sz_RuneClass);
 		return;
 	}
 
