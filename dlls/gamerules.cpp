@@ -74,6 +74,7 @@ DLL_GLOBAL const char *g_szMutators[] = {
 	"dontshoot",
 	"explosiveai",
 	"fastweapons",
+	"firestarter",
 	"fog",
 	"goldenguns",
 	"grenades",
@@ -853,6 +854,14 @@ void CGameRules::GiveMutators(CBasePlayer *pPlayer)
 		{
 			pPlayer->GiveNamedItem("weapon_vest");
 			pPlayer->SelectItem("weapon_vest");
+		}
+	}
+
+	if (MutatorEnabled(MUTATOR_FIRESTARTER)) {
+		if (!pPlayer->HasNamedPlayerItem("weapon_flamethrower"))
+		{
+			pPlayer->GiveNamedItem("weapon_flamethrower");
+			pPlayer->SelectItem("weapon_flamethrower");
 		}
 	}
 

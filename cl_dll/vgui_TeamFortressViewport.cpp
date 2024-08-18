@@ -203,6 +203,7 @@ char *sMutators[] = {
 	"dontshoot",
 	"explosiveai",
 	"fastweapons",
+	"firestarter",
 	"fog",
 	"goldenguns",
 	"grenades",
