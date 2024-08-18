@@ -4753,6 +4753,10 @@ void CBasePlayer::StartSelacoSlide( void )
 	if (m_pActiveItem && !((CBasePlayerWeapon *)m_pActiveItem)->CanSlide())
 		return;
 
+	// Prop limitation
+	if ( g_pGameRules->IsPropHunt() && pev->fuser4 > 0 )
+		return;
+
 	if (!m_fSelacoSliding && m_fOffhandTime < gpGlobals->time) {
 		if (FBitSet(pev->flags, FL_ONGROUND) && pev->velocity.Length() > 50) {
 			m_EFlags &= ~EFLAG_CANCEL;
@@ -5459,6 +5463,10 @@ void CBasePlayer::StartForceGrab( void )
 		return;
 
 	if (m_fOffhandTime >= gpGlobals->time)
+		return;
+
+	// Prop limitation
+	if ( g_pGameRules->IsPropHunt() && pev->fuser4 > 0 )
 		return;
 
 	// Already got a hook, fly it back.
