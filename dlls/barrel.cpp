@@ -319,6 +319,20 @@ void CBarrel::BarrelExplode( void ) {
 	}
 	UTIL_DecalTrace(&tr, decal + index);
 
+	if (g_pGameRules->MutatorEnabled(MUTATOR_CHUMXPLODE))
+	{
+		edict_t *owner = NULL;
+		if (pLastAttacker)
+			owner = pLastAttacker->edict();
+		CBaseEntity *pChumtoad = CBaseEntity::Create("monster_chumtoad", pev->origin, pev->angles, owner);
+		if (pChumtoad)
+		{
+			pChumtoad->pev->velocity.x = RANDOM_FLOAT( -400, 400 );
+			pChumtoad->pev->velocity.y = RANDOM_FLOAT( -400, 400 );
+			pChumtoad->pev->velocity.z = RANDOM_FLOAT( 0, 400 );
+		}
+	}
+
 	entvars_t *attacker = NULL;
 	if (pLastAttacker != NULL)
 		attacker = VARS(pLastAttacker->edict());
