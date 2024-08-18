@@ -2513,6 +2513,7 @@ void CTracer::TracerTouch( CBaseEntity *pOther )
 	// it's not another tracer
 	if (tr.pHit && tr.pHit->v.modelindex == pev->modelindex)
 	{
+		UTIL_Remove(this);
 		return;
 	}
 
@@ -2523,7 +2524,17 @@ void CTracer::TracerTouch( CBaseEntity *pOther )
 
 	if (pOther->edict() == pev->owner)
 	{
+		UTIL_Remove(this);
 		return;
+	}
+
+	if (pOther->IsPlayer())
+	{
+		if (!g_pGameRules->FPlayerCanTakeDamage(((CBasePlayer *)pOther), Instance(pev->owner)))
+		{
+			UTIL_Remove(this);
+			return;
+		}
 	}
 
 	if ( pOther->pev->takedamage )
