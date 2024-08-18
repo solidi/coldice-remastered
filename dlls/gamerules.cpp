@@ -108,8 +108,9 @@ DLL_GLOBAL const char *g_szMutators[] = {
 	"railguns",
 	"randomweapon",
 	"ricochet",
-	"rockets",
+	"rocketbees",
 	"rocketcrowbar",
+	"rockets",
 	"sanic",
 	"santahat",
 	"sildenafil",
@@ -862,6 +863,14 @@ void CGameRules::GiveMutators(CBasePlayer *pPlayer)
 		{
 			pPlayer->GiveNamedItem("weapon_flamethrower");
 			pPlayer->SelectItem("weapon_flamethrower");
+		}
+	}
+
+	if (MutatorEnabled(MUTATOR_ROCKETBEES)) {
+		if (!pPlayer->HasNamedPlayerItem("weapon_hornetgun"))
+		{
+			pPlayer->GiveNamedItem("weapon_hornetgun");
+			pPlayer->SelectItem("weapon_hornetgun");
 		}
 	}
 

@@ -24,6 +24,7 @@
 #include	"soundent.h"
 #include	"hornet.h"
 #include	"gamerules.h"
+#include	"game.h"
 
 
 int iHornetTrail;
@@ -406,8 +407,33 @@ void CHornet::DieTouch ( CBaseEntity *pOther )
 			case 1:	EMIT_SOUND( ENT(pev), CHAN_VOICE, "hornet/ag_hornethit2.wav", 1, ATTN_NORM);	break;
 			case 2:	EMIT_SOUND( ENT(pev), CHAN_VOICE, "hornet/ag_hornethit3.wav", 1, ATTN_NORM);	break;
 		}
-			
-		pOther->TakeDamage( pev, VARS( pev->owner ), pev->dmg, DMG_BULLET );
+
+		if ( g_pGameRules->MutatorEnabled(MUTATOR_ROCKETBEES))
+		{
+			if ( RANDOM_LONG(0, 2) > 1 )
+			{
+				MESSAGE_BEGIN( MSG_PAS, SVC_TEMPENTITY, pev->origin );
+					WRITE_BYTE( TE_EXPLOSION );
+					WRITE_COORD( pev->origin.x );
+					WRITE_COORD( pev->origin.y );
+					WRITE_COORD( pev->origin.z );
+					if (icesprites.value) {
+						WRITE_SHORT( g_sModelIndexIceFireball );
+					} else {
+						WRITE_SHORT( g_sModelIndexFireball );
+					}
+					WRITE_BYTE( 4 ); // scale * 10
+					WRITE_BYTE( 15 ); // framerate
+					WRITE_BYTE( TE_EXPLFLAG_NONE );
+				MESSAGE_END();
+
+				::RadiusDamage( pev->origin, pev, VARS( pev->owner ), pev->dmg * 3, 32, CLASS_NONE, DMG_BLAST | DMG_BURN );
+			}
+		}
+		else
+		{
+			pOther->TakeDamage( pev, VARS( pev->owner ), pev->dmg, DMG_BULLET );
+		}
 	}
 
 	pev->modelindex = 0;// so will disappear for the 0.1 secs we wait until NEXTTHINK gets rid
