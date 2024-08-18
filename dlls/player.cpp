@@ -2280,6 +2280,10 @@ void CBasePlayer::Jump()
 	{
 		m_iJumpCount++;
 
+		// ->PM_Playsound does not play sound on client when in air
+		if (m_iJumpCount == 2)
+			EMIT_SOUND(ENT(pev), CHAN_VOICE, "player/pl_step1.wav", 1, ATTN_NORM);
+
 		if (pev->velocity.Length2D() > 100 && m_iJumpCount == 3)
 			StartFrontFlip(TRUE);
 
