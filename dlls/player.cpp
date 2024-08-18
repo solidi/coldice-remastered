@@ -3800,7 +3800,8 @@ void CBasePlayer::Spawn( void )
 	m_fLongJump			= FALSE;// no longjump module. 
 
 	m_EFlags = 0;
-	m_iWeapons2 = FALSE;
+	pev->weapons = 0;
+	m_iWeapons2 = 0;
 	m_iFreezeCounter 	= -1;
 	pHeldItem = NULL;
 	m_iHoldingItem = FALSE;
