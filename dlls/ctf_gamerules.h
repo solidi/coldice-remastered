@@ -31,6 +31,7 @@ public:
 	virtual void UpdateHud( int bluemode, int redmode, CBasePlayer *pPlayer = NULL );
 	virtual void PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller, entvars_t *pInflictor );
 	virtual BOOL ShouldAutoAim( CBasePlayer *pPlayer, edict_t *target );
+	virtual BOOL FPlayerCanTakeDamage( CBasePlayer *pPlayer, CBaseEntity *pAttacker );
 
 	EHANDLE pRedBase;
 	EHANDLE pBlueBase;
