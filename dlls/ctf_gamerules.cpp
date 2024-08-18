@@ -810,3 +810,18 @@ BOOL CHalfLifeCaptureTheFlag::ShouldAutoAim( CBasePlayer *pPlayer, edict_t *targ
 
 	return CHalfLifeMultiplay::ShouldAutoAim( pPlayer, target );
 }
+
+BOOL CHalfLifeCaptureTheFlag::FPlayerCanTakeDamage( CBasePlayer *pPlayer, CBaseEntity *pAttacker )
+{
+	if ( pAttacker && PlayerRelationship( pPlayer, pAttacker ) == GR_TEAMMATE )
+	{
+		// my teammate hit me.
+		if ( (friendlyfire.value == 0) && (pAttacker != pPlayer) )
+		{
+			// friendly fire is off, and this hit came from someone other than myself,  then don't get hurt
+			return FALSE;
+		}
+	}
+
+	return CHalfLifeMultiplay::FPlayerCanTakeDamage( pPlayer, pAttacker );
+}

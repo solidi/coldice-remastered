@@ -207,6 +207,9 @@ void ClientKill( edict_t *pEntity )
 	if ( g_pGameRules->IsPropHunt() && pl->pev->fuser4 > 0 )
 		return; // props cannot suicide
 
+	if ( pl->IsSpectator() )
+		return; // neither can spectators
+
 	pl->m_fNextSuicideTime = gpGlobals->time + 1;  // don't let them suicide for 5 seconds after suiciding
 
 	// have the player kill themself
@@ -797,7 +800,6 @@ void ClientCommand( edict_t *pEntity )
 		if ( pPlayer->m_fHasRune )
 		{
 			CWorldRunes::DropRune(pPlayer);
-			CWorldRunes::ResetPlayer(pPlayer);
 			ClientPrint(pPlayer->pev, HUD_PRINTCENTER, "Discarded Rune\n");
 		}
 	}
@@ -1078,7 +1080,7 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"notify\" - interrupt players with annoying chat notifications\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"notthebees\" - hornets spawn from a player or monster who was killed\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"oldtime\" - gameplay becomes desaturated\n");
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"paintball\" - weapons and explosions leave paint decals, weapons reduced to 1/4 damage\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"paintball\" - weapons and explosions leave paint decals\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"piratehat\" - argh, maty.\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"plumber\" - spawn with dual pipe wrenches\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"portal\" - now you're thinking with portals\n");
@@ -2295,15 +2297,19 @@ engine sets cd to 0 before calling.
 */
 void UpdateClientData ( const edict_t *ent, int sendweapons, struct clientdata_s *cd )
 {
-	CBasePlayer* ppl = (CBasePlayer*)CBasePlayer::Instance((entvars_t *)&ent->v);
-	if (ppl)
-		cd->iuser4 = ppl->m_iWeapons2;
-
 	if ( !ent || !ent->pvPrivateData )
 		return;
+
+	// No bots
+	if (FBitSet(ent->v.flags, FL_FAKECLIENT))
+		return;
+
 	entvars_t *		pev	= (entvars_t *)&ent->v;
 	CBasePlayer *	pl	= dynamic_cast< CBasePlayer *>(CBasePlayer::Instance( pev ));
 	entvars_t *		pevOrg = NULL;
+
+	if (pl)
+		cd->iuser4 = pl->m_iWeapons2;
 
 	// if user is spectating different player in First person, override some vars
 	if ( pl && pl->pev->iuser1 == OBS_IN_EYE )

@@ -207,8 +207,8 @@ void CFreezeGun::PrimaryAttack()
 		// HEV suit - indicate out of ammo condition
 		m_pPlayer->SetSuitUpdate("!HEV_AMO0", FALSE, 0);
 
-	m_flNextPrimaryAttack = GetNextAttackDelay(0.25);
-	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 0.25;
+	m_flNextPrimaryAttack = GetNextAttackDelay(0.5);
+	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 0.5;
 }
 
 void CFreezeGun::WeaponIdle( void )

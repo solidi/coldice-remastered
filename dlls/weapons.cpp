@@ -2661,6 +2661,10 @@ void CBasePlayerWeapon::StartPunch( BOOL holdingSomething )
 		return;
 	}
 
+	// Prop limitation
+	if ( g_pGameRules->IsPropHunt() && m_pPlayer->pev->fuser4 > 0 )
+		return;
+
 	Holster();
 	m_pPlayer->m_fOffhandTime = gpGlobals->time + 0.55;
 	PunchAttack(holdingSomething);
@@ -2886,6 +2890,10 @@ void CBasePlayerWeapon::StartKick( BOOL holdingSomething )
 	if ( FBitSet( m_pPlayer->pev->flags, FL_DUCKING ) ) {
 		return;
 	}
+
+	// Prop limitation
+	if ( g_pGameRules->IsPropHunt() && m_pPlayer->pev->fuser4 > 0 )
+		return;
 
 	m_pPlayer->m_EFlags &= ~EFLAG_CANCEL;
 	m_pPlayer->m_EFlags |= EFLAG_PLAYERKICK;

@@ -930,7 +930,7 @@ void CHalfLifeMultiplay::ResetGameMode( void )
 {
 	g_GameInProgress = FALSE;
 
-	m_iCountDown = 3;
+	m_iCountDown = 5;
 	m_fWaitForPlayersTime = -1;
 
 	_30secwarning = FALSE;
@@ -1041,7 +1041,7 @@ BOOL CHalfLifeMultiplay :: GetNextBestWeapon( CBasePlayer *pPlayer, CBasePlayerI
 		return FALSE;
 	}
 
-	if (pPlayer->ShouldWeaponThrow() && ((CBasePlayerWeapon *)pCurrentWeapon)->iMaxClip() != WEAPON_NOCLIP)
+	if (pPlayer->ShouldWeaponThrow() && ((CBasePlayerWeapon *)pCurrentWeapon)->pszAmmo1() != NULL)
 	{
 		((CBasePlayerWeapon *)pCurrentWeapon)->ThrowWeapon(TRUE);
 	}
@@ -1364,6 +1364,21 @@ void CHalfLifeMultiplay :: PlayerThink( CBasePlayer *pPlayer )
 			pPlayer->m_iFlashBattery = 100;
 	}
 
+	if (pPlayer->m_fHasRune == RUNE_VAMPIRE && pPlayer->m_fVampireHealth > 0)
+	{
+		//under limit, increase damage / 2.
+		if ( pPlayer->pev->health < pPlayer->pev->max_health )
+			pPlayer->pev->health += pPlayer->m_fVampireHealth;
+
+		//over the limit, go back to max.
+		if ( pPlayer->pev->health > pPlayer->pev->max_health )
+			pPlayer->pev->health = pPlayer->pev->max_health;
+
+		UTIL_ScreenFade(pPlayer, Vector(200, 0, 0), .5, .5, 32, FFADE_IN);
+
+		pPlayer->m_fVampireHealth = 0;
+	}
+
 	if ( pPlayer->m_fHasRune == RUNE_REGEN )
 	{
 		if ( pPlayer->m_flRuneHealTime < gpGlobals->time )
@@ -1673,7 +1688,6 @@ void CHalfLifeMultiplay :: PlayerKilled( CBasePlayer *pVictim, entvars_t *pKille
 			MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
 				WRITE_BYTE(CLIENT_SOUND_FIRSTBLOOD);
 			MESSAGE_END();
-			pKiller->health = 100;
 			pKiller->frags += IPointsForKill( peKiller, pVictim );
 			m_iFirstBloodDecided = TRUE;
 		}

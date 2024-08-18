@@ -219,6 +219,11 @@ void CHalfLifeHorde::Think( void )
 						plr->ExitObserver();
 						pickedUpPerson = TRUE;
 					}
+					else if (plr->pev->health > 0)
+					{
+						// restock for those alive
+						plr->pev->health = 100;
+					}
 
 					MESSAGE_BEGIN(MSG_ALL, gmsgScoreInfo);
 						WRITE_BYTE( ENTINDEX(plr->edict()) );
@@ -227,9 +232,6 @@ void CHalfLifeHorde::Think( void )
 						WRITE_SHORT( plr->m_iRoundWins );
 						WRITE_SHORT( GetTeamIndex( plr->m_szTeamName ) + 1 );
 					MESSAGE_END();
-
-					// restock
-					plr->pev->health = 100;
 				}
 			}
 
@@ -525,13 +527,13 @@ void CHalfLifeHorde::Think( void )
 	if ( clients > 0 )
 	{
 		if ( m_fWaitForPlayersTime == -1 )
-			m_fWaitForPlayersTime = gpGlobals->time + 17.0;
+			m_fWaitForPlayersTime = gpGlobals->time + 15.0;
 
 		if ( m_fWaitForPlayersTime > gpGlobals->time )
 		{
 			SuckAllToSpectator();
 			flUpdateTime = gpGlobals->time + 1.0;
-			UTIL_ClientPrintAll(HUD_PRINTCENTER, UTIL_VarArgs("Battle will begin in %.0f\n", (m_fWaitForPlayersTime + 3) - gpGlobals->time));
+			UTIL_ClientPrintAll(HUD_PRINTCENTER, UTIL_VarArgs("Battle will begin in %.0f\n", (m_fWaitForPlayersTime + 5) - gpGlobals->time));
 			return;
 		}
 
@@ -540,6 +542,18 @@ void CHalfLifeHorde::Think( void )
 			if (m_iCountDown == 2) {
 				MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
 					WRITE_BYTE(CLIENT_SOUND_PREPAREFORBATTLE);
+				MESSAGE_END();
+			} else if (m_iCountDown == 3) {
+				MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
+					WRITE_BYTE(CLIENT_SOUND_THREE);
+				MESSAGE_END();
+			} else if (m_iCountDown == 4) {
+				MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
+					WRITE_BYTE(CLIENT_SOUND_FOUR);
+				MESSAGE_END();
+			} else if (m_iCountDown == 5) {
+				MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
+					WRITE_BYTE(CLIENT_SOUND_FIVE);
 				MESSAGE_END();
 			}
 			SuckAllToSpectator(); // in case players join during a countdown.
@@ -559,7 +573,7 @@ void CHalfLifeHorde::Think( void )
 
 		m_fBeginWaveTime = gpGlobals->time + 3.0;
 
-		m_iCountDown = 3;
+		m_iCountDown = 5;
 		m_fWaitForPlayersTime = -1;
 
 		// Disable timer for now
@@ -587,7 +601,7 @@ void CHalfLifeHorde::Think( void )
 			WRITE_BYTE(0);
 			WRITE_STRING(UTIL_VarArgs("%d Rounds", (int)roundlimit.value));
 		MESSAGE_END();
-		m_fWaitForPlayersTime = gpGlobals->time + 17.0;
+		m_fWaitForPlayersTime = gpGlobals->time + 15.0;
 	}
 
 	flUpdateTime = gpGlobals->time + 1.0;

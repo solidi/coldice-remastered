@@ -115,8 +115,17 @@ void CFists::PrimaryAttack()
 {
 	if (! Swing( 1 ))
 	{
-		SetThink( &CFists::SwingAgain );
-		pev->nextthink = gpGlobals->time + 0.25;
+		if (RANDOM_LONG(0,2) == 2)
+		{
+#ifndef CLIENT_DLL
+			StartKick(FALSE);
+#endif
+		}
+		else
+		{
+			SetThink( &CFists::SwingAgain );
+			pev->nextthink = gpGlobals->time + 0.25;
+		}
 	}
 }
 

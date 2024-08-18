@@ -71,7 +71,9 @@ CFLAGS=$(BASE_CFLAGS) $(ARCH_CFLAGS) $(DEBUG_CFLAGS) -DCLIENT_DLL -DCLIENT_WEAPO
 		 -DSAWEDOFF \
 		 -DDUALSAWEDOFF \
 		 -DDUALCHAINGUN \
-		 -DDUALHIVEHAND
+		 -DDUALHIVEHAND \
+		 -DFINGERGUN \
+		 -DZAPGUN
 
 INCLUDEDIRS=-I$(HL_SRC_DIR) -I../dlls -I../tfc -I$(COMMON_SRC_DIR) -I$(PUBLIC_SRC_DIR) -I../pm_shared -I../engine -I../utils/vgui/include -I ../game_shared -I../external
 

@@ -493,15 +493,7 @@ void CBasePlayer :: TraceAttack( entvars_t *pevAttacker, float flDamage, Vector 
 
 		if ( pAttacker->IsPlayer() && pAttacker->m_fHasRune == RUNE_VAMPIRE && (pVictim != pAttacker) )
 		{
-			//under limit, increase damage / 2.
-			if ( pAttacker->pev->health < pAttacker->pev->max_health )
-				pAttacker->pev->health += (flDamage / 2);
-
-			//over the limit, go back to max.
-			if ( pAttacker->pev->health > pAttacker->pev->max_health )
-				pAttacker->pev->health = pAttacker->pev->max_health;
-
-			UTIL_ScreenFade(pAttacker, Vector(200, 0, 0), .5, .5, 32, FFADE_IN);
+			pAttacker->m_fVampireHealth = (flDamage / 2);
 		}
 
 		if ( pAttacker->IsPlayer() && pAttacker->m_fHasRune == RUNE_STRENGTH && (pVictim != pAttacker) )
@@ -2288,6 +2280,10 @@ void CBasePlayer::Jump()
 	{
 		m_iJumpCount++;
 
+		// ->PM_Playsound does not play sound on client when in air
+		if (m_iJumpCount == 2)
+			EMIT_SOUND(ENT(pev), CHAN_VOICE, "player/pl_step1.wav", 1, ATTN_NORM);
+
 		if (pev->velocity.Length2D() > 100 && m_iJumpCount == 3)
 			StartFrontFlip(TRUE);
 
@@ -3808,7 +3804,8 @@ void CBasePlayer::Spawn( void )
 	m_fLongJump			= FALSE;// no longjump module. 
 
 	m_EFlags = 0;
-	m_iWeapons2 = FALSE;
+	pev->weapons = 0;
+	m_iWeapons2 = 0;
 	m_iFreezeCounter 	= -1;
 	pHeldItem = NULL;
 	m_iHoldingItem = FALSE;
@@ -3851,8 +3848,6 @@ void CBasePlayer::Spawn( void )
 
 // dont let uninitialized value here hurt the player
 	m_flFallVelocity = 0;
-
-	CWorldRunes::ResetPlayer(this);
 
 	g_pGameRules->SetDefaultPlayerTeam( this );
 	g_pGameRules->GetPlayerSpawnSpot( this );
@@ -4762,6 +4757,10 @@ void CBasePlayer::StartSelacoSlide( void )
 	if (m_pActiveItem && !((CBasePlayerWeapon *)m_pActiveItem)->CanSlide())
 		return;
 
+	// Prop limitation
+	if ( g_pGameRules->IsPropHunt() && pev->fuser4 > 0 )
+		return;
+
 	if (!m_fSelacoSliding && m_fOffhandTime < gpGlobals->time) {
 		if (FBitSet(pev->flags, FL_ONGROUND) && pev->velocity.Length() > 50) {
 			m_EFlags &= ~EFLAG_CANCEL;
@@ -4780,7 +4779,7 @@ void CBasePlayer::StartSelacoSlide( void )
 
 			UTIL_ScreenShake( pev->origin, 15.0, 55.0, 1.25, 15.0 );
 
-			EMIT_SOUND(ENT(pev), CHAN_VOICE, "slide_on_gravel.wav", 1, ATTN_NORM);
+			EMIT_SOUND(ENT(pev), CHAN_BODY, "slide_on_gravel.wav", 1, ATTN_NORM);
 			MESSAGE_BEGIN( MSG_ONE, gmsgAcrobatics, NULL, pev );
 				WRITE_BYTE( ACROBATICS_SELACO_SLIDE );
 			MESSAGE_END();
@@ -5289,6 +5288,41 @@ void CBasePlayer::AutoMelee()
 		m_flNextAutoMelee = gpGlobals->time + 0.75;
 		return;
 	}
+	else
+	{
+		CBaseEntity *pObject = NULL;
+		CBaseEntity *pClosest = NULL;
+		Vector vecLOS;
+		float flMaxDot = VIEW_FIELD_NARROW;
+		float flDot;
+
+		if (!FBitSet(pev->flags, FL_FAKECLIENT))
+		{
+			while ((pObject = UTIL_FindEntityInSphere( pObject, pev->origin, 96 )) != NULL)
+			{
+				if (strstr(interactiveitems.string, STRING(pObject->pev->classname)) != NULL)
+				{
+					vecLOS = (VecBModelOrigin( pObject->pev ) - (pev->origin + pev->view_ofs));
+					vecLOS = UTIL_ClampVectorToBox( vecLOS, pObject->pev->size * 0.5 );
+					flDot = DotProduct (vecLOS , gpGlobals->v_forward);
+					if (flDot > flMaxDot)
+					{
+						pClosest = pObject;
+						flMaxDot = flDot;
+					}
+				}
+			}
+
+			if ( pClosest ) {
+				if (m_pActiveItem)
+				{
+					((CBasePlayerWeapon *)m_pActiveItem)->StartKick(m_iHoldingItem);
+					m_flNextAutoMelee = gpGlobals->time + 0.75;
+					return;
+				}
+			}
+		}
+	}
 #endif
 
 	m_flNextAutoMelee = gpGlobals->time + 0.25;
@@ -5433,6 +5467,10 @@ void CBasePlayer::StartForceGrab( void )
 		return;
 
 	if (m_fOffhandTime >= gpGlobals->time)
+		return;
+
+	// Prop limitation
+	if ( g_pGameRules->IsPropHunt() && pev->fuser4 > 0 )
 		return;
 
 	// Already got a hook, fly it back.
@@ -7304,11 +7342,15 @@ float IceExplode(CBaseEntity *pAttacker, CBaseEntity *pEntity, int bitsDamageTyp
 	if (!g_pGameRules->FPlayerCanTakeDamage(((CBasePlayer *)pEntity), pAttacker))
 		return 0;
 
+	// Don't freeze myself
+	if (pAttacker == pEntity)
+		return 0;
+
 	if (((CBasePlayer *)pEntity)->m_iFreezeCounter < 5)
 		EMIT_SOUND(ENT(pEntity->pev), CHAN_BODY, "freezing.wav", 1, ATTN_NORM);
 	
 	pEntity->pev->renderfx = kRenderFxGlowShell;
-	((CBasePlayer *)pEntity)->m_iFreezeCounter = pEntity->pev->renderamt += 20;
+	((CBasePlayer *)pEntity)->m_iFreezeCounter = pEntity->pev->renderamt += 15;
 	pEntity->pev->rendercolor.x = 0;
 	pEntity->pev->rendercolor.y = 115;
 	pEntity->pev->rendercolor.z = 230;

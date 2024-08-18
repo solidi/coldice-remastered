@@ -42,7 +42,6 @@ class CWorldRunes : public CBaseEntity
 public:
 	static void Create( void );
 	static void DropRune(CBasePlayer *pPlayer);
-	static void ResetPlayer(CBasePlayer *pPlayer);
 	void Spawn( void );
 	void EXPORT SpawnRunes( void );
 	void Precache( void );

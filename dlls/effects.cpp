@@ -2479,7 +2479,7 @@ void CTracer::Spawn( )
 	pev->solid = SOLID_BBOX;
 
 	SET_MODEL(ENT(pev), "models/w_tracer.mdl");
-	UTIL_SetSize(pev, Vector(-4, -4, -4), Vector(4, 4, 4));
+	UTIL_SetSize(pev, g_vecZero, g_vecZero);
 	UTIL_SetOrigin( pev, pev->origin );
 	pev->avelocity.z = RANDOM_FLOAT ( -100, -500 );
 
@@ -2513,6 +2513,7 @@ void CTracer::TracerTouch( CBaseEntity *pOther )
 	// it's not another tracer
 	if (tr.pHit && tr.pHit->v.modelindex == pev->modelindex)
 	{
+		UTIL_Remove(this);
 		return;
 	}
 
@@ -2523,7 +2524,17 @@ void CTracer::TracerTouch( CBaseEntity *pOther )
 
 	if (pOther->edict() == pev->owner)
 	{
+		UTIL_Remove(this);
 		return;
+	}
+
+	if (pOther->IsPlayer())
+	{
+		if (!g_pGameRules->FPlayerCanTakeDamage(((CBasePlayer *)pOther), Instance(pev->owner)))
+		{
+			UTIL_Remove(this);
+			return;
+		}
 	}
 
 	if ( pOther->pev->takedamage )

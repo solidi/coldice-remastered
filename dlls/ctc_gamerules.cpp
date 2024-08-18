@@ -133,7 +133,7 @@ void CHalfLifeCaptureTheChumtoad::Think( void )
 				if (CreateChumtoad())
 				{
 					UTIL_ClientPrintAll(HUD_PRINTTALK, "[CtC]: The chumtoad has spawned!\n");
-					m_fCreateChumtoadTimer = -1;
+					m_fCreateChumtoadTimer = 0;
 					m_fMoveChumtoadTimer = gpGlobals->time + SPAWN_TIME;
 				}
 				else

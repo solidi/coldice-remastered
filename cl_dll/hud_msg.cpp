@@ -338,6 +338,15 @@ int CHud :: MsgFunc_PlayCSound( const char *pszName, int iSize, void *pbuf )
 		case CLIENT_SOUND_GOGOGO:
 			PlaySound("usas_gogogo.wav", 1);
 			break;
+		case CLIENT_SOUND_FIVE:
+			PlaySound("fvox/five.wav", 1);
+			break;
+		case CLIENT_SOUND_FOUR:
+			PlaySound("fvox/four.wav", 1);
+			break;
+		case CLIENT_SOUND_THREE:
+			PlaySound("fvox/three.wav", 1);
+			break;
 	}
 	return 1;
 }
