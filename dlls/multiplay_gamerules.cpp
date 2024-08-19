@@ -1041,7 +1041,9 @@ BOOL CHalfLifeMultiplay :: GetNextBestWeapon( CBasePlayer *pPlayer, CBasePlayerI
 		return FALSE;
 	}
 
-	if (pPlayer->ShouldWeaponThrow() && ((CBasePlayerWeapon *)pCurrentWeapon)->pszAmmo1() != NULL)
+	if (pPlayer->ShouldWeaponThrow() && 
+		((CBasePlayerWeapon *)pCurrentWeapon)->pszAmmo1() != NULL &&
+		!(((CBasePlayerWeapon *)pCurrentWeapon)->iFlags() & ITEM_FLAG_LIMITINWORLD))
 	{
 		((CBasePlayerWeapon *)pCurrentWeapon)->ThrowWeapon(TRUE);
 	}
