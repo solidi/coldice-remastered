@@ -94,6 +94,7 @@ DLL_GLOBAL const char *g_szMutators[] = {
 	"maxpack",
 	"megarun",
 	"mirror",
+	"napkinstory",
 	"noclip",
 	"noreload",
 	"notify",

@@ -223,6 +223,7 @@ char *sMutators[] = {
 	"maxpack",
 	"megarun",
 	"mirror",
+	"napkinstory",
 	"noclip",
 	"noreload",
 	"notify",

@@ -1077,6 +1077,7 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"maxpack\" - drop all weapons and ammo in play (mp only!)\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"megarun\" - run faster than normal.\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mirror\" - mirror, mirror on the screen.\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"napkinstory\" - the legendary story reduced to two words.\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"noclip\" - fly through walls.\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"notify\" - interrupt players with annoying chat notifications.\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"notthebees\" - hornets spawn from a player or monster who was killed.\n");
@@ -1480,6 +1481,7 @@ void ClientPrecache( void )
 
 	PRECACHE_SOUND("scientist/scream1.wav");
 	PRECACHE_SOUND("scientist/sci_pain3.wav"); // stahp!
+	PRECACHE_SOUND("napkin_story.wav");
 
 	PRECACHE_MODEL("models/player.mdl");
 	PRECACHE_MODEL("models/player/iceman/iceman.mdl");
