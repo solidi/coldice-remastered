@@ -462,6 +462,20 @@ void CFlyingSnowball::SpinTouch( CBaseEntity *pOther )
 
 	DecalGunshot( &tr, BULLET_PLAYER_SNOWBALL );
 
+	if (g_pGameRules->MutatorEnabled(MUTATOR_CHUMXPLODE))
+	{
+		edict_t *owner = NULL;
+		if (m_hOwner)
+			owner = m_hOwner->edict();
+		CBaseEntity *pChumtoad = CBaseEntity::Create("monster_chumtoad", pev->origin, pev->angles, owner);
+		if (pChumtoad)
+		{
+			pChumtoad->pev->velocity.x = RANDOM_FLOAT( -400, 400 );
+			pChumtoad->pev->velocity.y = RANDOM_FLOAT( -400, 400 );
+			pChumtoad->pev->velocity.z = RANDOM_FLOAT( 0, 400 );
+		}
+	}
+
 	// Remove this snowball from the world.
 	SetThink ( &CBaseEntity::SUB_Remove );
 	pev->nextthink = gpGlobals->time + .1;

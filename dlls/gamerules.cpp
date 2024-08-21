@@ -74,6 +74,7 @@ DLL_GLOBAL const char *g_szMutators[] = {
 	"dontshoot",
 	"explosiveai",
 	"fastweapons",
+	"firestarter",
 	"fog",
 	"goldenguns",
 	"grenades",
@@ -93,6 +94,7 @@ DLL_GLOBAL const char *g_szMutators[] = {
 	"maxpack",
 	"megarun",
 	"mirror",
+	"napkinstory",
 	"noclip",
 	"noreload",
 	"notify",
@@ -107,8 +109,9 @@ DLL_GLOBAL const char *g_szMutators[] = {
 	"railguns",
 	"randomweapon",
 	"ricochet",
-	"rockets",
+	"rocketbees",
 	"rocketcrowbar",
+	"rockets",
 	"sanic",
 	"santahat",
 	"sildenafil",
@@ -784,6 +787,9 @@ void CGameRules::SpawnMutators(CBasePlayer *pPlayer)
 	// For decap reset
 	if (MutatorEnabled(MUTATOR_RICOCHET))
 		pPlayer->pev->body = 0;
+
+	if (MutatorEnabled(MUTATOR_NOCLIP))
+		pPlayer->pev->movetype = MOVETYPE_NOCLIP;
 }
 
 void CGameRules::GiveMutators(CBasePlayer *pPlayer)
@@ -853,6 +859,22 @@ void CGameRules::GiveMutators(CBasePlayer *pPlayer)
 		{
 			pPlayer->GiveNamedItem("weapon_vest");
 			pPlayer->SelectItem("weapon_vest");
+		}
+	}
+
+	if (MutatorEnabled(MUTATOR_FIRESTARTER)) {
+		if (!pPlayer->HasNamedPlayerItem("weapon_flamethrower"))
+		{
+			pPlayer->GiveNamedItem("weapon_flamethrower");
+			pPlayer->SelectItem("weapon_flamethrower");
+		}
+	}
+
+	if (MutatorEnabled(MUTATOR_ROCKETBEES)) {
+		if (!pPlayer->HasNamedPlayerItem("weapon_hornetgun"))
+		{
+			pPlayer->GiveNamedItem("weapon_hornetgun");
+			pPlayer->SelectItem("weapon_hornetgun");
 		}
 	}
 

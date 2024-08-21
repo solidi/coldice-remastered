@@ -510,13 +510,27 @@ void EMIT_SOUND_DYN(edict_t *entity, int channel, const char *sample, float volu
 
 inline void EMIT_SOUND(edict_t *entity, int channel, const char *sample, float volume, float attenuation)
 {
-	if (g_pGameRules && g_pGameRules->MutatorEnabled(MUTATOR_STAHP))
+	BOOL s = g_pGameRules && g_pGameRules->MutatorEnabled(MUTATOR_STAHP);
+	BOOL n = g_pGameRules && g_pGameRules->MutatorEnabled(MUTATOR_NAPKIN);
+
+	if (!s && !n)
+	{
+		EMIT_SOUND_DYN(entity, channel, sample, volume, attenuation, 0, PITCH_NORM);
+	}
+	else if (s && n)
+	{
+		if (RANDOM_LONG(0,1))
+			EMIT_SOUND_DYN(entity, channel, "napkin_story.wav", volume, attenuation, 0, PITCH_NORM);
+		else
+			EMIT_SOUND_DYN(entity, channel, "scientist/sci_pain3.wav", volume, attenuation, 0, PITCH_NORM);
+	}
+	else if (s)
 	{
 		EMIT_SOUND_DYN(entity, channel, "scientist/sci_pain3.wav", volume, attenuation, 0, PITCH_NORM);
 	}
-	else
+	else if (n)
 	{
-		EMIT_SOUND_DYN(entity, channel, sample, volume, attenuation, 0, PITCH_NORM);
+		EMIT_SOUND_DYN(entity, channel, "napkin_story.wav", volume, attenuation, 0, PITCH_NORM);
 	}
 }
 
