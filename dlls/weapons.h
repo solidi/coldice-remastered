@@ -124,9 +124,10 @@ public:
 #define WEAPON_DUAL_RAILGUN			48
 #define WEAPON_DUAL_RPG				49
 #define WEAPON_DUAL_FLAMETHROWER	50
-#define WEAPON_ZAPGUN				51 // end models
-#define WEAPON_FINGERGUN			52
-#define WEAPON_FISTS				53 // must be last for bot recognition
+#define WEAPON_ZAPGUN				51
+#define WEAPON_DUAL_GLOCK			52 // end models
+#define WEAPON_FINGERGUN			53
+#define WEAPON_FISTS				54 // must be last for bot recognition
 
 #define WEAPON_ALLWEAPONS		(~(1<<WEAPON_SUIT))
 
@@ -652,9 +653,6 @@ public:
 	void Reload( void );
 	void WeaponIdle( void );
 	void EXPORT AddSilencer( void );
-	BOOL ChangeModel( void );
-
-	int m_iSilencer;
 
 	virtual BOOL UseDecrement( void )
 	{ 
@@ -666,12 +664,13 @@ public:
 	}
 
 	virtual BOOL SemiAuto( void ) { return TRUE; }
+	void ProvideDualItem(CBasePlayer *pPlayer, const char *itemName);
+	void SwapDualWeapon( void );
 
 private:
 	int m_iShell;
 
 	unsigned short m_usFireGlock1;
-	unsigned short m_usFireGlock2;
 };
 
 
@@ -2678,6 +2677,43 @@ private:
 	unsigned short m_usFireZapgun;
 };
 
+
+class CDualGlock : public CBasePlayerWeapon
+{
+public:
+	void Spawn( void );
+	void Precache( void );
+	int iItemSlot( void ) { return 6; }
+	int GetItemInfo(ItemInfo *p);
+	int AddToPlayer( CBasePlayer *pPlayer );
+	void PrimaryAttack( void );
+	void SecondaryAttack( void );
+	BOOL DeployLowKey( void );
+	BOOL Deploy( void );
+	void Holster( int skiplocal = 0 );
+	void Reload( void );
+	void WeaponIdle( void );
+	void AddSilencers( void );
+
+	int m_iAltFire;
+
+	virtual BOOL UseDecrement( void )
+	{ 
+#if defined( CLIENT_WEAPONS )
+		return TRUE;
+#else
+		return FALSE;
+#endif
+	}
+
+	virtual BOOL SemiAuto( void ) { return TRUE; }
+	void ProvideSingleItem(CBasePlayer *pPlayer, const char *itemName);
+	void SwapDualWeapon( void );
+
+private:
+	unsigned short m_usFireGlock;
+	unsigned short m_usFireGlockBoth;
+};
 
 class CFlyingSnowball : public CBaseEntity
 {

@@ -132,6 +132,7 @@
     <ClCompile Include="..\..\dlls\dual_chaingun.cpp" />
     <ClCompile Include="..\..\dlls\dual_deagle.cpp" />
     <ClCompile Include="..\..\dlls\dual_flamethrower.cpp" />
+    <ClCompile Include="..\..\dlls\dual_glock.cpp" />
     <ClCompile Include="..\..\dlls\dual_hornetgun.cpp" />
     <ClCompile Include="..\..\dlls\dual_railgun.cpp" />
     <ClCompile Include="..\..\dlls\dual_rpg.cpp" />

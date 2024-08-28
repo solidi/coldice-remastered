@@ -20,7 +20,6 @@ extern "C"
 {
 // HLDM
 void EV_FireGlock1( struct event_args_s *args  );
-void EV_FireGlock2( struct event_args_s *args  );
 void EV_FireShotGunSingle( struct event_args_s *args  );
 void EV_FireShotGunDouble( struct event_args_s *args  );
 void EV_FireMP5( struct event_args_s *args  );
@@ -83,6 +82,7 @@ void EV_FireDualChaingun( struct event_args_s *args  );
 void EV_FireDualHornetGun( struct event_args_s *args  );
 void EV_FireFingergun( struct event_args_s *args  );
 void EV_FireZapgun( struct event_args_s *args  );
+void EV_FireDualGlock( struct event_args_s *args );
 
 void EV_TrainPitchAdjust( struct event_args_s *args );
 void EV_VehiclePitchAdjust( struct event_args_s *args );
@@ -104,7 +104,6 @@ That was what we were going to do, but we ran out of time...oh well.
 void Game_HookEvents( void )
 {
 	gEngfuncs.pfnHookEvent( "events/glock1.sc",					EV_FireGlock1 );
-	gEngfuncs.pfnHookEvent( "events/glock2.sc",					EV_FireGlock2 );
 	gEngfuncs.pfnHookEvent( "events/shotgun1.sc",				EV_FireShotGunSingle );
 	gEngfuncs.pfnHookEvent( "events/shotgun2.sc",				EV_FireShotGunDouble );
 	gEngfuncs.pfnHookEvent( "events/mp5.sc",					EV_FireMP5 );
@@ -169,4 +168,5 @@ void Game_HookEvents( void )
 	gEngfuncs.pfnHookEvent( "events/fingergun.sc",				EV_FireFingergun );
 	gEngfuncs.pfnHookEvent( "events/zapgun.sc",					EV_FireZapgun );
 	gEngfuncs.pfnHookEvent( "events/vehicle.sc",				EV_VehiclePitchAdjust );
+	gEngfuncs.pfnHookEvent( "events/dual_glock.sc",				EV_FireDualGlock );
 }

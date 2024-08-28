@@ -4371,6 +4371,8 @@ const char *pWeapons[] =
 	"weapon_ashpod",
 	"weapon_sawedoff",
 	"weapon_dual_sawedoff",
+	"weapon_zapgun",
+	"weapon_dual_glock",
 };
 
 void CBasePlayer::GiveRandomWeapon(const char *szIgnoreList)
@@ -5709,6 +5711,7 @@ void CBasePlayer::CheatImpulseCommands( int iImpulse, BOOL m_iFromClient )
 		GiveNamedItem( "weapon_dual_hornetgun" );
 		GiveNamedItem( "weapon_fingergun" );
 		GiveNamedItem( "weapon_zapgun" );
+		GiveNamedItem( "weapon_dual_glock" );
 #endif
 		gEvilImpulse101 = FALSE;
 		break;
@@ -6837,7 +6840,7 @@ void CBasePlayer::DropPlayerItem ( char *pszItemName, BOOL weaponbox )
 				return;
 			}
 
-			if ( !g_pGameRules->GetNextBestWeapon( this, pWeapon ) )
+			if ( !g_pGameRules->GetNextBestWeapon( this, pWeapon, weaponbox ) )
 				return; // can't drop the item they asked for, may be our last item or something we can't holster
 
 			UTIL_MakeVectors ( pev->angles ); 

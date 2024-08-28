@@ -73,7 +73,8 @@ CFLAGS=$(BASE_CFLAGS) $(ARCH_CFLAGS) $(DEBUG_CFLAGS) -DCLIENT_DLL -DCLIENT_WEAPO
 		 -DDUALCHAINGUN \
 		 -DDUALHIVEHAND \
 		 -DFINGERGUN \
-		 -DZAPGUN
+		 -DZAPGUN \
+		 -DDUALGLOCK
 
 INCLUDEDIRS=-I$(HL_SRC_DIR) -I../dlls -I../tfc -I$(COMMON_SRC_DIR) -I$(PUBLIC_SRC_DIR) -I../pm_shared -I../engine -I../utils/vgui/include -I ../game_shared -I../external
 
@@ -185,6 +186,7 @@ DLL_OBJS = \
 	$(HL1_SERVER_OBJ_DIR)/dual_chaingun.o \
 	$(HL1_SERVER_OBJ_DIR)/dual_deagle.o \
 	$(HL1_SERVER_OBJ_DIR)/dual_flamethrower.o \
+	$(HL1_SERVER_OBJ_DIR)/dual_glock.o \
 	$(HL1_SERVER_OBJ_DIR)/dual_hornetgun.o \
 	$(HL1_SERVER_OBJ_DIR)/dual_railgun.o \
 	$(HL1_SERVER_OBJ_DIR)/dual_rpg.o \

@@ -926,6 +926,7 @@ const char *entityList[] =
 	"weapon_vest",
 	"weapon_flamethrower",
 	"weapon_dual_wrench",
+	"weapon_dual_glock",
 	"weapon_dual_deagle",
 	"weapon_dual_mag60",
 	"weapon_dual_smg",

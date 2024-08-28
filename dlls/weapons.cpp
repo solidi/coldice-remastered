@@ -483,6 +483,7 @@ void W_Precache(void)
 	UTIL_PrecacheOtherWeapon( "weapon_dual_hornetgun" );
 	UTIL_PrecacheOtherWeapon( "weapon_fingergun" );
 	UTIL_PrecacheOtherWeapon( "weapon_zapgun" );
+	UTIL_PrecacheOtherWeapon( "weapon_dual_glock" );
 
 	UTIL_PrecacheOther( "monster_barrel" );
 	UTIL_PrecacheOther( "monster_sentry" );
@@ -823,7 +824,7 @@ void CBasePlayerItem :: CheckRespawn ( void )
 CBaseEntity* CBasePlayerItem::Respawn( void )
 {
 	CBaseEntity *pNewWeapon = NULL;
-	const char* weaponsList[][11] = {
+	const char* weaponsList[][12] = {
 		{
 		// swing
 		"weapon_crowbar",
@@ -838,6 +839,7 @@ CBaseEntity* CBasePlayerItem::Respawn( void )
 		{
 		// hand
 		"weapon_9mmhandgun",
+		"weapon_dual_glock",
 		"weapon_deagle",
 		"weapon_dual_deagle",
 		"weapon_python",
@@ -846,7 +848,8 @@ CBaseEntity* CBasePlayerItem::Respawn( void )
 		"weapon_smg",
 		"weapon_dual_smg",
 		"weapon_sawedoff",
-		"weapon_dual_sawedoff"
+		"weapon_dual_sawedoff",
+		"weapon_zapgun",
 		},
 
 		{
@@ -893,6 +896,7 @@ CBaseEntity* CBasePlayerItem::Respawn( void )
 		{
 		// dual
 		"weapon_dual_wrench",
+		"weapon_dual_glock",
 		"weapon_dual_deagle",
 		"weapon_dual_mag60",
 		"weapon_dual_smg",
@@ -908,7 +912,7 @@ CBaseEntity* CBasePlayerItem::Respawn( void )
 
 	if (dualsonly.value) {
 		if (strncmp(STRING(pev->classname), "weapon_dual_", 12) != 0) {
-			const char *name = weaponsList[5][RANDOM_LONG(0, 10)];
+			const char *name = weaponsList[5][RANDOM_LONG(0, 11)];
 			if (name)
 			{
 				pNewWeapon = CBaseEntity::Create((char *)STRING(ALLOC_STRING(name)), g_pGameRules->VecWeaponRespawnSpot(this), pev->angles, pev->owner);
@@ -1363,7 +1367,7 @@ void CBasePlayerWeapon::ItemPostFrame( void )
 		if ( !IsUseable() && m_flNextPrimaryAttack < ( UseDecrement() ? 0.0 : gpGlobals->time ) ) 
 		{
 			// weapon isn't useable, switch.
-			if ( !(iFlags() & ITEM_FLAG_NOAUTOSWITCHEMPTY) && g_pGameRules->GetNextBestWeapon( m_pPlayer, this ) )
+			if ( !(iFlags() & ITEM_FLAG_NOAUTOSWITCHEMPTY) && g_pGameRules->GetNextBestWeapon( m_pPlayer, this, FALSE ) )
 			{
 				m_flNextPrimaryAttack = ( UseDecrement() ? 0.0 : gpGlobals->time ) + 0.3;
 				return;
@@ -2008,7 +2012,7 @@ void CBasePlayerWeapon::RetireWeapon( void )
 	m_pPlayer->pev->weaponmodel = iStringNull;
 	//m_pPlayer->pev->viewmodelindex = NULL;
 
-	g_pGameRules->GetNextBestWeapon( m_pPlayer, this );
+	g_pGameRules->GetNextBestWeapon( m_pPlayer, this, FALSE );
 }
 
 //=========================================================================
