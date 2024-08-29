@@ -70,7 +70,8 @@ CFLAGS=$(BASE_CFLAGS)  $(ARCH_CFLAGS) $(DEBUG_CFLAGS) -DCLIENT_WEAPONS \
 		 -DDUALCHAINGUN \
 		 -DDUALHIVEHAND \
 		 -DFINGERGUN \
-		 -DZAPGUN
+		 -DZAPGUN \
+		 -DDUALGLOCK
 
 #-O3 -ffast-math -fno-strength-reduce
 
@@ -125,6 +126,7 @@ HLDLL_OBJS = \
 	$(HLDLL_OBJ_DIR)/dual_chaingun.o \
 	$(HLDLL_OBJ_DIR)/dual_deagle.o \
 	$(HLDLL_OBJ_DIR)/dual_flamethrower.o \
+	$(HLDLL_OBJ_DIR)/dual_glock.o \
 	$(HLDLL_OBJ_DIR)/dual_hornetgun.o \
 	$(HLDLL_OBJ_DIR)/dual_railgun.o \
 	$(HLDLL_OBJ_DIR)/dual_rpg.o \

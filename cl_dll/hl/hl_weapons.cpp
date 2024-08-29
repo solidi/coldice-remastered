@@ -106,6 +106,7 @@ CDualChaingun g_DualChaingun;
 CDualHgun g_DualHornetgun;
 CFingerGun g_Fingergun;
 CZapgun g_Zapgun;
+CDualGlock g_DualGlock;
 
 /*
 ======================
@@ -737,6 +738,7 @@ void HUD_InitClientWeapons( void )
 	HUD_PrepEntity( &g_DualHornetgun	, &player );
 	HUD_PrepEntity( &g_Fingergun	, &player );
 	HUD_PrepEntity( &g_Zapgun	, &player );
+	HUD_PrepEntity( &g_DualGlock	, &player );
 }
 
 /*
@@ -1046,6 +1048,10 @@ void HUD_WeaponsPostThink( local_state_s *from, local_state_s *to, usercmd_t *cm
 		case WEAPON_ZAPGUN:
 			pWeapon = &g_Zapgun;
 			break;
+
+		case WEAPON_DUAL_GLOCK:
+			pWeapon = &g_DualGlock;
+			break;
 	}
 
 	// Store pointer to our destination entity_state_t so we can get our origin, etc. from it
@@ -1268,24 +1274,22 @@ void HUD_WeaponsPostThink( local_state_s *from, local_state_s *to, usercmd_t *cm
 	//  over the wire ( fixes some animation glitches )
 	if ( g_runfuncs && ( HUD_GetWeaponAnim() != to->client.weaponanim ) )
 	{
-		int body = 2;
-
-		//Pop the model to body 0.
-		if ( pWeapon == &g_Tripmine )
-			 body = 0;
+		int body = 0;
 
 		//Show laser sight/scope combo
 		if ( pWeapon == &g_Python && bIsMultiplayer() )
 			 body = 1;
 
-		if ( pWeapon == &g_HGun ||
-			 pWeapon == &g_Rpg )
-			 body = 0;
-
 		if ( pWeapon == &g_DualHornetgun ||
 			 pWeapon == &g_DualRpg ||
 			 pWeapon == &g_DualChaingun )
 			 body = 1;
+
+		// Force silencer on deploy
+		if ( pWeapon == &g_Glock && pWeapon->m_chargeReady )
+			body = 9;
+		if ( pWeapon == &g_DualGlock )
+			body = pWeapon->m_chargeReady;
 
 		// Force a fixed anim down to viewmodel
 		HUD_SendWeaponAnim( to->client.weaponanim, body, 1 );

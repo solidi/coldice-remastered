@@ -1024,7 +1024,7 @@ BOOL CHalfLifeMultiplay::FShouldSwitchWeapon( CBasePlayer *pPlayer, CBasePlayerI
 	return FALSE;
 }
 
-BOOL CHalfLifeMultiplay :: GetNextBestWeapon( CBasePlayer *pPlayer, CBasePlayerItem *pCurrentWeapon )
+BOOL CHalfLifeMultiplay :: GetNextBestWeapon( CBasePlayer *pPlayer, CBasePlayerItem *pCurrentWeapon, BOOL dropBox )
 {
 
 	CBasePlayerItem *pCheck;
@@ -1041,7 +1041,7 @@ BOOL CHalfLifeMultiplay :: GetNextBestWeapon( CBasePlayer *pPlayer, CBasePlayerI
 		return FALSE;
 	}
 
-	if (pPlayer->ShouldWeaponThrow() && 
+	if (!dropBox && pPlayer->ShouldWeaponThrow() && 
 		((CBasePlayerWeapon *)pCurrentWeapon)->pszAmmo1() != NULL &&
 		!(((CBasePlayerWeapon *)pCurrentWeapon)->iFlags() & ITEM_FLAG_LIMITINWORLD))
 	{
@@ -2334,8 +2334,9 @@ BOOL CHalfLifeMultiplay::IsAllowedToSpawn( CBaseEntity *pEntity )
 	}
 */
 
-	const char* dualWeaponList[7] = {
+	const char* dualWeaponList[] = {
 		"weapon_dual_wrench",
+		"weapon_dual_glock",
 		"weapon_dual_deagle",
 		"weapon_dual_mag60",
 		"weapon_dual_smg",

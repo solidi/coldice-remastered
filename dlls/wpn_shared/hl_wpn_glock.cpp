@@ -21,6 +21,20 @@
 #include "nodes.h"
 #include "player.h"
 
+enum dual_glock_e {
+	DUAL_GLOCK_IDLE,
+	DUAL_GLOCK_FIRE_LEFT,
+	DUAL_GLOCK_FIRE_RIGHT,
+	DUAL_GLOCK_FIRE_LAST_LEFT,
+	DUAL_GLOCK_FIRE_LAST_RIGHT,
+	DUAL_GLOCK_RELOAD,
+	DUAL_GLOCK_DEPLOY_LOWKEY,
+	DUAL_GLOCK_DEPLOY,
+	DUAL_GLOCK_HOLSTER,
+	DUAL_GLOCK_FIRE_BOTH,
+};
+
+/*
 enum glock_e {
 	GLOCK_AIM = 0,
 	GLOCK_IDLE1,
@@ -35,6 +49,7 @@ enum glock_e {
 	GLOCK_HOLSTER,
 	GLOCK_ADD_SILENCER
 };
+*/
 
 #ifdef SILENCER
 LINK_ENTITY_TO_CLASS( weapon_glock, CGlock );
@@ -56,8 +71,7 @@ void CGlock::Spawn( )
 
 void CGlock::Precache( void )
 {
-	PRECACHE_MODEL("models/v_9mmhandgun.mdl");
-	PRECACHE_MODEL("models/v_9mmhandguns.mdl");
+	PRECACHE_MODEL("models/v_dual_handgun.mdl");
 	PRECACHE_MODEL("models/w_weapons.mdl");
 	PRECACHE_MODEL("models/p_weapons.mdl");
 
@@ -70,7 +84,6 @@ void CGlock::Precache( void )
 	PRECACHE_SOUND ("handgun_silenced.wav");
 
 	m_usFireGlock1 = PRECACHE_EVENT( 1, "events/glock1.sc" );
-	m_usFireGlock2 = PRECACHE_EVENT( 1, "events/glock2.sc" );
 }
 
 int CGlock::AddToPlayer( CBasePlayer *pPlayer )
@@ -103,21 +116,18 @@ int CGlock::GetItemInfo(ItemInfo *p)
 
 BOOL CGlock::DeployLowKey( )
 {
-	return DefaultDeploy( "models/v_9mmhandgun.mdl", "models/p_weapons.mdl", GLOCK_DRAW_LOWKEY, "onehanded", 0 );
+	return DefaultDeploy( "models/v_dual_handgun.mdl", "models/p_weapons.mdl", DUAL_GLOCK_DEPLOY_LOWKEY, "onehanded", 0, m_chargeReady );
 }
 
 BOOL CGlock::Deploy( )
 {
-	m_iSilencer = 0;
-	pev->body = 0;
-	return ChangeModel();
+	return DefaultDeploy( "models/v_dual_handgun.mdl", "models/p_weapons.mdl", DUAL_GLOCK_DEPLOY, "onehanded", 0, m_chargeReady );
 }
 
 void CGlock::Holster( int skiplocal )
 {
 	pev->nextthink = -1;
-	pev->body = 0;
-	CBasePlayerWeapon::DefaultHolster(GLOCK_HOLSTER);
+	CBasePlayerWeapon::DefaultHolster(DUAL_GLOCK_HOLSTER, m_chargeReady);
 }
 
 void CGlock::SecondaryAttack( void )
@@ -127,31 +137,27 @@ void CGlock::SecondaryAttack( void )
 	SetThink( &CGlock::AddSilencer );
 	pev->nextthink = gpGlobals->time + 2.5f;
 
-	if (m_iSilencer) {
-		SendWeaponAnim( GLOCK_HOLSTER );
-		m_iSilencer = 0;
+	SendWeaponAnim( DUAL_GLOCK_HOLSTER, 0, m_chargeReady );
+
+	if (m_chargeReady) {
+		m_chargeReady = 0;
 	} else {
-		SendWeaponAnim( GLOCK_ADD_SILENCER );
-		m_iSilencer = 1;
+		m_chargeReady = 9;
 	}
 }
 
 void CGlock::AddSilencer( void )
 {
-	ChangeModel();
-}
-
-BOOL CGlock::ChangeModel( void )
-{
-	if (m_iSilencer)
-		return DefaultDeploy( "models/v_9mmhandguns.mdl", "models/p_weapons.mdl", GLOCK_DRAW, "onehanded", 0 );
-	else
-		return DefaultDeploy( "models/v_9mmhandgun.mdl", "models/p_weapons.mdl", GLOCK_DRAW, "onehanded", 0 );
+	SendWeaponAnim( DUAL_GLOCK_DEPLOY, 0, m_chargeReady );
 }
 
 void CGlock::PrimaryAttack( void )
 {
-	GlockFire( 0.03, 0.3, m_iSilencer );
+	//ALERT(at_console, "m_chargeReady=%d\n", m_chargeReady);
+	GlockFire( 0.03, 0.3, m_chargeReady );
+	//m_chargeReady++;
+	//if (m_chargeReady > 100)
+	//	m_chargeReady = 0;
 }
 
 void CGlock::GlockFire( float flSpread , float flCycleTime, int silencer )
@@ -183,7 +189,7 @@ void CGlock::GlockFire( float flSpread , float flCycleTime, int silencer )
 	m_pPlayer->SetAnimation( PLAYER_ATTACK1 );
 
 	// silenced
-	if (m_iSilencer == 1)
+	if (m_chargeReady)
 	{
 		m_pPlayer->m_iWeaponVolume = QUIET_GUN_VOLUME;
 		m_pPlayer->m_iWeaponFlash = DIM_GUN_FLASH;
@@ -224,9 +230,9 @@ void CGlock::Reload( void )
 	int iResult;
 
 	if (m_iClip == 0)
-		iResult = DefaultReload( GLOCK_MAX_CLIP, GLOCK_RELOAD, 1.5 );
+		iResult = DefaultReload( GLOCK_MAX_CLIP, DUAL_GLOCK_RELOAD, 1.5, m_chargeReady );
 	else
-		iResult = DefaultReload( GLOCK_MAX_CLIP, GLOCK_RELOAD_NOT_EMPTY, 1.5 );
+		iResult = DefaultReload( GLOCK_MAX_CLIP, DUAL_GLOCK_RELOAD, 1.5, m_chargeReady );
 
 	if (iResult)
 	{
@@ -256,23 +262,43 @@ void CGlock::WeaponIdle( void )
 
 		if (flRand <= 0.3 + 0 * 0.75)
 		{
-			iAnim = GLOCK_IDLE3;
+			iAnim = DUAL_GLOCK_IDLE;
 			m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 49.0 / 16;
 		}
 		else if (flRand <= 0.6 + 0 * 0.875)
 		{
-			iAnim = GLOCK_IDLE1;
+			iAnim = DUAL_GLOCK_IDLE;
 			m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 60.0 / 16.0;
 		}
 		else
 		{
-			iAnim = GLOCK_IDLE2;
+			iAnim = DUAL_GLOCK_IDLE;
 			m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 40.0 / 16.0;
 		}
-		SendWeaponAnim( iAnim, 1 );
+		SendWeaponAnim( iAnim, 1, m_chargeReady );
 	}
 }
 
+void CGlock::ProvideDualItem(CBasePlayer *pPlayer, const char *item) {
+	if (pPlayer == NULL || item == NULL) {
+		return;
+	}
+
+#ifndef CLIENT_DLL
+	CBasePlayerWeapon::ProvideDualItem(pPlayer, item);
+
+	if (!stricmp(item, "weapon_9mmhandgun")) {
+		if (!pPlayer->HasNamedPlayerItem("weapon_dual_glock")) {
+			pPlayer->GiveNamedItem("weapon_dual_glock");
+			pPlayer->SelectItem("weapon_dual_glock");
+		}
+	}
+#endif
+}
+
+void CGlock::SwapDualWeapon( void ) {
+	m_pPlayer->SelectItem("weapon_dual_glock");
+}
 
 
 

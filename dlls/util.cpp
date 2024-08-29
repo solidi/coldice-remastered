@@ -347,11 +347,6 @@ DBG_AssertFunction(
 	}
 #endif	// DEBUG
 
-BOOL UTIL_GetNextBestWeapon( CBasePlayer *pPlayer, CBasePlayerItem *pCurrentWeapon )
-{
-	return g_pGameRules->GetNextBestWeapon( pPlayer, pCurrentWeapon );
-}
-
 // ripped this out of the engine
 float	UTIL_AngleMod(float a)
 {

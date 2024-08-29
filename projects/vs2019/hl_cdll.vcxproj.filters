@@ -426,6 +426,9 @@
     <ClCompile Include="..\..\dlls\dual_deagle.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+      <ClCompile Include="..\..\dlls\dual_glock.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\dlls\dual_railgun.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
