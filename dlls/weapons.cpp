@@ -2625,14 +2625,14 @@ void CBasePlayerWeapon::ThrowRocket(BOOL m_iCheckAmmo)
 
 	m_pPlayer->m_fGrenadeTime = gpGlobals->time + 0.75;
 
-	UTIL_MakeVectors( m_pPlayer->pev->v_angle );
-	Vector vecSrc = m_pPlayer->GetGunPosition( ) + gpGlobals->v_forward * 16 + gpGlobals->v_right * 8 + gpGlobals->v_up * -18;
-	
-	CRpgRocket *pRocket = CRpgRocket::CreateRpgRocket( vecSrc, m_pPlayer->pev->v_angle, m_pPlayer, 0.0, FALSE );
+	UTIL_MakeVectors( m_pPlayer->pev->v_angle + m_pPlayer->pev->punchangle );
+	Vector vecAiming = gpGlobals->v_forward;
+	Vector vecSrc = m_pPlayer->GetGunPosition( ) + (vecAiming * 16) + gpGlobals->v_right * 12 + gpGlobals->v_up * -8;
 
-	UTIL_MakeVectors( m_pPlayer->pev->v_angle );// RpgRocket::Create stomps on globals, so remake.
+	CBaseEntity *pRocket = CRpgRocket::CreateRpgRocket( vecSrc, vecAiming, m_pPlayer, 0.0, FALSE );
+
 	if (pRocket)
-		pRocket->pev->velocity = pRocket->pev->velocity + gpGlobals->v_forward * DotProduct( m_pPlayer->pev->velocity, gpGlobals->v_forward );
+		pRocket->pev->velocity = pRocket->pev->velocity + vecAiming * DotProduct( m_pPlayer->pev->velocity, vecAiming );
 
 	// player "shoot" animation
 	m_pPlayer->SetAnimation( PLAYER_ATTACK1 );

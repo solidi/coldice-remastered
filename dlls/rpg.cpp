@@ -101,12 +101,19 @@ LINK_ENTITY_TO_CLASS( rpg_rocket, CRpgRocket );
 
 //=========================================================
 //=========================================================
-CRpgRocket *CRpgRocket::CreateRpgRocket( Vector vecOrigin, Vector vecAngles, CBaseEntity *pOwner, float startEngineTime, BOOL redRocket )
+CBaseEntity *CRpgRocket::CreateRpgRocket( Vector vecOrigin, Vector vecAngles, CBaseEntity *pOwner, float startEngineTime, BOOL redRocket )
 {
-	CRpgRocket *pRocket = GetClassPtr( (CRpgRocket *)NULL );
+	if (g_pGameRules->MutatorEnabled(MUTATOR_ROCKETCROWBAR))
+	{
+		CBaseEntity *pRocket = CDrunkRocket::CreateDrunkRocket( vecOrigin, vecAngles, pOwner );
+		if (pRocket)
+			pRocket->pev->classname = MAKE_STRING("rpg_rocket");
+		return pRocket;
+	}
 
+	CRpgRocket *pRocket = GetClassPtr( (CRpgRocket *)NULL );
 	UTIL_SetOrigin( pRocket->pev, vecOrigin );
-	pRocket->pev->angles = vecAngles;
+	pRocket->pev->angles = UTIL_VecToAngles(vecAngles);
 	pRocket->Spawn(startEngineTime);
 	pRocket->SetTouch( &CRpgRocket::RocketTouch );
 	//pRocket->m_pLauncher = pLauncher;// remember what RPG fired me. 
@@ -136,7 +143,6 @@ void CRpgRocket :: Spawn( void )
 	SetThink( &CRpgRocket::IgniteThink );
 	SetTouch( &CRpgRocket::ExplodeTouch );
 
-	pev->velocity = gpGlobals->v_forward * 250;
 	pev->gravity = 0.5;
 
 	pev->nextthink = gpGlobals->time;
@@ -161,11 +167,6 @@ void CRpgRocket :: Spawn( float startEngineTime )
 	SetThink( &CRpgRocket::IgniteThink );
 	SetTouch( &CRpgRocket::ExplodeTouch );
 
-	pev->angles.x -= 30;
-	UTIL_MakeVectors( pev->angles );
-	pev->angles.x = -(pev->angles.x + 30);
-
-	pev->velocity = gpGlobals->v_forward * 250;
 	pev->gravity = 0.5;
 
 	pev->nextthink = gpGlobals->time + startEngineTime;
@@ -294,8 +295,6 @@ void CRpgRocket :: FollowThink( void  )
 		else 
 		{
 			float speed = 2000;
-			if (g_pGameRules->MutatorEnabled(MUTATOR_ROCKETCROWBAR))
-				speed = 200;
 
 			if (pev->velocity.Length() > speed)
 			{
@@ -313,18 +312,10 @@ void CRpgRocket :: FollowThink( void  )
 		pev->velocity = pev->velocity * 0.2 + vecTarget * flSpeed * 0.798;
 		if (pev->waterlevel == 0 && pev->velocity.Length() < 1500)
 		{
-			if (!g_pGameRules->MutatorEnabled(MUTATOR_ROCKETCROWBAR))
-				Detonate( );
+			Detonate( );
 		}
 	}
 	// ALERT( at_console, "%.0f\n", flSpeed );
-
-	if (g_pGameRules->MutatorEnabled(MUTATOR_ROCKETCROWBAR))
-	{
-		pev->velocity.x = pev->velocity.x + (RANDOM_FLOAT(-100,100));
-		pev->velocity.y = pev->velocity.y + (RANDOM_FLOAT(-100,100));
-		pev->velocity.z = pev->velocity.z + (RANDOM_FLOAT(-100,100));
-	}
 
 	pev->nextthink = gpGlobals->time + 0.1;
 }
@@ -519,17 +510,16 @@ void CRpg::PrimaryAttack()
 		m_pPlayer->m_iWeaponVolume = LOUD_GUN_VOLUME;
 		m_pPlayer->m_iWeaponFlash = BRIGHT_GUN_FLASH;
 
-#ifndef CLIENT_DLL
 		// player "shoot" animation
 		m_pPlayer->SetAnimation( PLAYER_ATTACK1 );
 
-		UTIL_MakeVectors( m_pPlayer->pev->v_angle );
-		Vector vecSrc = m_pPlayer->GetGunPosition( ) + gpGlobals->v_forward * 16 + gpGlobals->v_right * 8 + gpGlobals->v_up * -18;
-		
-		CRpgRocket *pRocket = CRpgRocket::CreateRpgRocket( vecSrc, m_pPlayer->pev->v_angle, m_pPlayer, 0.0, FALSE );
+#ifndef CLIENT_DLL
+		Vector vecAiming = m_pPlayer->GetAutoaimVector( AUTOAIM_10DEGREES );
+		Vector vecSrc = m_pPlayer->GetGunPosition( ) + (vecAiming * 32) + gpGlobals->v_right * 8 + gpGlobals->v_up * -8;
 
-		UTIL_MakeVectors( m_pPlayer->pev->v_angle );// RpgRocket::Create stomps on globals, so remake.
-		pRocket->pev->velocity = pRocket->pev->velocity + gpGlobals->v_forward * DotProduct( m_pPlayer->pev->velocity, gpGlobals->v_forward );
+		CBaseEntity *pRocket = CRpgRocket::CreateRpgRocket( vecSrc, vecAiming, m_pPlayer, 0.0, FALSE );
+		if (pRocket)
+			pRocket->pev->velocity = pRocket->pev->velocity + vecAiming * DotProduct( m_pPlayer->pev->velocity, vecAiming );
 #endif
 
 		// firing RPG no longer turns on the designator. ALT fire is a toggle switch for the LTD.
@@ -569,28 +559,31 @@ void CRpg::SecondaryAttack()
 		// player "shoot" animation
 		m_pPlayer->SetAnimation( PLAYER_ATTACK1 );
 
-		UTIL_MakeVectors( m_pPlayer->pev->v_angle );
-		Vector vecSrc1 = m_pPlayer->GetGunPosition( ) + gpGlobals->v_forward * 32 + gpGlobals->v_right * 16 + gpGlobals->v_up * -18;
-		Vector vecSrc2 = m_pPlayer->GetGunPosition( ) + gpGlobals->v_forward * 32 + gpGlobals->v_right * -16 + gpGlobals->v_up * -18;
+		Vector vecAiming = m_pPlayer->GetAutoaimVector( AUTOAIM_10DEGREES );
+		Vector vecSrc1 = m_pPlayer->GetGunPosition( ) + vecAiming * 32 + gpGlobals->v_right * 16 + gpGlobals->v_up * -8;
+		Vector vecSrc2 = m_pPlayer->GetGunPosition( ) + vecAiming * 32 + gpGlobals->v_right * -16 + gpGlobals->v_up * -8;
 
-		CRpgRocket *pRocket1 = CRpgRocket::CreateRpgRocket( vecSrc1, m_pPlayer->pev->v_angle, m_pPlayer, 0.0, FALSE );
-		CRpgRocket *pRocket2 = CRpgRocket::CreateRpgRocket( vecSrc2, m_pPlayer->pev->v_angle, m_pPlayer, 0.0, FALSE );
+		CBaseEntity *pRocket1 = CRpgRocket::CreateRpgRocket( vecSrc1, vecAiming, m_pPlayer, 0.0, FALSE );
+		CBaseEntity *pRocket2 = CRpgRocket::CreateRpgRocket( vecSrc2, vecAiming, m_pPlayer, 0.0, FALSE );
 
-		Vector vecSrc3 = m_pPlayer->GetGunPosition( ) + gpGlobals->v_forward * 16 + gpGlobals->v_right * 24 + gpGlobals->v_up * -8;
-		Vector vecSrc4 = m_pPlayer->GetGunPosition( ) + gpGlobals->v_forward * 16 + gpGlobals->v_right + gpGlobals->v_up * -8;
-		Vector vecSrc5 = m_pPlayer->GetGunPosition( ) + gpGlobals->v_forward * 16 + gpGlobals->v_right * -24 + gpGlobals->v_up * -8;
+		Vector vecSrc3 = m_pPlayer->GetGunPosition( ) + vecAiming * 16 + gpGlobals->v_right * 24 + gpGlobals->v_up * -8;
+		Vector vecSrc4 = m_pPlayer->GetGunPosition( ) + vecAiming * 16 + gpGlobals->v_right + gpGlobals->v_up * -8;
+		Vector vecSrc5 = m_pPlayer->GetGunPosition( ) + vecAiming * 16 + gpGlobals->v_right * -24 + gpGlobals->v_up * -8;
 
-		CRpgRocket *pRocket3 = CRpgRocket::CreateRpgRocket( vecSrc3, m_pPlayer->pev->v_angle, m_pPlayer, 0.5, TRUE );
-		CRpgRocket *pRocket4 = CRpgRocket::CreateRpgRocket( vecSrc4, m_pPlayer->pev->v_angle, m_pPlayer, 0.5, TRUE );
-		CRpgRocket *pRocket5 = CRpgRocket::CreateRpgRocket( vecSrc5, m_pPlayer->pev->v_angle, m_pPlayer, 0.5, TRUE );
+		CBaseEntity *pRocket3 = CRpgRocket::CreateRpgRocket( vecSrc3, vecAiming, m_pPlayer, 0.0, TRUE );
+		CBaseEntity *pRocket4 = CRpgRocket::CreateRpgRocket( vecSrc4, vecAiming, m_pPlayer, 0.0, TRUE );
+		CBaseEntity *pRocket5 = CRpgRocket::CreateRpgRocket( vecSrc5, vecAiming, m_pPlayer, 0.0, TRUE );
 
-		UTIL_MakeVectors( m_pPlayer->pev->v_angle );// RpgRocket::Create stomps on globals, so remake.
-
-		pRocket1->pev->velocity = pRocket1->pev->velocity + gpGlobals->v_forward * DotProduct( m_pPlayer->pev->velocity, gpGlobals->v_forward );
-		pRocket2->pev->velocity = pRocket2->pev->velocity + gpGlobals->v_forward * DotProduct( m_pPlayer->pev->velocity, gpGlobals->v_forward );
-		pRocket3->pev->velocity = pRocket3->pev->velocity + gpGlobals->v_forward * DotProduct( m_pPlayer->pev->velocity, gpGlobals->v_forward );
-		pRocket4->pev->velocity = pRocket4->pev->velocity + gpGlobals->v_forward * DotProduct( m_pPlayer->pev->velocity, gpGlobals->v_forward );
-		pRocket5->pev->velocity = pRocket5->pev->velocity + gpGlobals->v_forward * DotProduct( m_pPlayer->pev->velocity, gpGlobals->v_forward );
+		if (pRocket1)
+			pRocket1->pev->velocity = pRocket1->pev->velocity + vecAiming * DotProduct( m_pPlayer->pev->velocity, vecAiming );
+		if (pRocket2)
+			pRocket2->pev->velocity = pRocket2->pev->velocity + vecAiming * DotProduct( m_pPlayer->pev->velocity, vecAiming );
+		if (pRocket3)
+			pRocket3->pev->velocity = pRocket3->pev->velocity + vecAiming * DotProduct( m_pPlayer->pev->velocity, vecAiming );
+		if (pRocket4)
+			pRocket4->pev->velocity = pRocket4->pev->velocity + vecAiming * DotProduct( m_pPlayer->pev->velocity, vecAiming );
+		if (pRocket5)
+			pRocket5->pev->velocity = pRocket5->pev->velocity + vecAiming * DotProduct( m_pPlayer->pev->velocity, vecAiming );
 #endif
 
 		int flags;

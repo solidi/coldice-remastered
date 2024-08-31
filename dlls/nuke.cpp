@@ -505,7 +505,7 @@ void CNuke::FireNuke(BOOL withCamera)
 		m_pPlayer->SetAnimation( PLAYER_ATTACK1 );
 
 		Vector vecAiming = m_pPlayer->GetAutoaimVector( AUTOAIM_10DEGREES );
-		Vector vecSrc = m_pPlayer->GetGunPosition( ) + vecAiming * 16 + gpGlobals->v_right * 8 + gpGlobals->v_up * -18;
+		Vector vecSrc = m_pPlayer->GetGunPosition( ) + vecAiming * 16 + gpGlobals->v_right * 8 + gpGlobals->v_up * -8;
 		CNukeRocket::CreateNukeRocket( vecSrc, vecAiming, m_pPlayer, 0.0, withCamera );
 #endif
 

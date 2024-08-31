@@ -216,13 +216,12 @@ void CDualRpg::PrimaryAttack()
 		// player "shoot" animation
 		m_pPlayer->SetAnimation( PLAYER_ATTACK1 );
 
-		UTIL_MakeVectors( m_pPlayer->pev->v_angle );
-		Vector vecSrc = m_pPlayer->GetGunPosition( ) + gpGlobals->v_forward * 16 + gpGlobals->v_right * 12 + gpGlobals->v_up * -18;
-		
-		CRpgRocket *pRocket = CRpgRocket::CreateRpgRocket( vecSrc, m_pPlayer->pev->v_angle, m_pPlayer, 0.0, FALSE );
+		Vector vecAiming = m_pPlayer->GetAutoaimVector( AUTOAIM_10DEGREES );
+		Vector vecSrc = m_pPlayer->GetGunPosition( ) + (vecAiming * 16) + gpGlobals->v_right * 12 + gpGlobals->v_up * -8;
 
-		UTIL_MakeVectors( m_pPlayer->pev->v_angle );// RpgRocket::Create stomps on globals, so remake.
-		pRocket->pev->velocity = pRocket->pev->velocity + gpGlobals->v_forward * DotProduct( m_pPlayer->pev->velocity, gpGlobals->v_forward );
+		CBaseEntity *pRocket = CRpgRocket::CreateRpgRocket( vecSrc, vecAiming, m_pPlayer, 0.0, FALSE );
+		if (pRocket)
+			pRocket->pev->velocity = pRocket->pev->velocity + vecAiming * DotProduct( m_pPlayer->pev->velocity, vecAiming );
 
 		SetThink( &CDualRpg::FireSecondRocket );
 		pev->nextthink = gpGlobals->time + (0.15 * g_pGameRules->WeaponMultipler());
@@ -253,17 +252,17 @@ void CDualRpg::PrimaryAttack()
 	UpdateSpot( );
 }
 
-void CDualRpg::FireSecondRocket() {
+void CDualRpg::FireSecondRocket()
+{
 #ifndef CLIENT_DLL
 	EMIT_SOUND(ENT(m_pPlayer->pev), CHAN_ITEM, "weapons/glauncher.wav", 0.9, ATTN_NORM);
 
-	UTIL_MakeVectors( m_pPlayer->pev->v_angle );
-	Vector vecSrc = m_pPlayer->GetGunPosition( ) + gpGlobals->v_forward * 16 + gpGlobals->v_right * -12 + gpGlobals->v_up * -18;
-		
-	CRpgRocket *pRocket = CRpgRocket::CreateRpgRocket( vecSrc, m_pPlayer->pev->v_angle, m_pPlayer, 0.0, FALSE );
+	Vector vecAiming = m_pPlayer->GetAutoaimVector( AUTOAIM_10DEGREES );
+	Vector vecSrc = m_pPlayer->GetGunPosition( ) + (vecAiming * 16) + gpGlobals->v_right * -12 + gpGlobals->v_up * -8;
 
-	UTIL_MakeVectors( m_pPlayer->pev->v_angle );// RpgRocket::Create stomps on globals, so remake.
-	pRocket->pev->velocity = pRocket->pev->velocity + gpGlobals->v_forward * DotProduct( m_pPlayer->pev->velocity, gpGlobals->v_forward );
+	CBaseEntity *pRocket = CRpgRocket::CreateRpgRocket( vecSrc, vecAiming, m_pPlayer, 0.0, FALSE );
+	if (pRocket) 
+		pRocket->pev->velocity = pRocket->pev->velocity + vecAiming * DotProduct( m_pPlayer->pev->velocity, vecAiming );
 #endif
 }
 
@@ -278,28 +277,31 @@ void CDualRpg::SecondaryAttack()
 		// player "shoot" animation
 		m_pPlayer->SetAnimation( PLAYER_ATTACK1 );
 
-		UTIL_MakeVectors( m_pPlayer->pev->v_angle );
-		Vector vecSrc1 = m_pPlayer->GetGunPosition( ) + gpGlobals->v_forward * 32 + gpGlobals->v_right * 16 + gpGlobals->v_up * -18;
-		Vector vecSrc2 = m_pPlayer->GetGunPosition( ) + gpGlobals->v_forward * 32 + gpGlobals->v_right * -16 + gpGlobals->v_up * -18;
+		Vector vecAiming = m_pPlayer->GetAutoaimVector( AUTOAIM_10DEGREES );
+		Vector vecSrc1 = m_pPlayer->GetGunPosition( ) + vecAiming * 32 + gpGlobals->v_right * 16 + gpGlobals->v_up * -8;
+		Vector vecSrc2 = m_pPlayer->GetGunPosition( ) + vecAiming * 32 + gpGlobals->v_right * -16 + gpGlobals->v_up * -8;
 
-		CRpgRocket *pRocket1 = CRpgRocket::CreateRpgRocket( vecSrc1, m_pPlayer->pev->v_angle, m_pPlayer, 0.0, FALSE );
-		CRpgRocket *pRocket2 = CRpgRocket::CreateRpgRocket( vecSrc2, m_pPlayer->pev->v_angle, m_pPlayer, 0.0, FALSE );
+		CBaseEntity *pRocket1 = CRpgRocket::CreateRpgRocket( vecSrc1, vecAiming, m_pPlayer, 0.0, FALSE );
+		CBaseEntity *pRocket2 = CRpgRocket::CreateRpgRocket( vecSrc2, vecAiming, m_pPlayer, 0.0, FALSE );
 
-		Vector vecSrc3 = m_pPlayer->GetGunPosition( ) + gpGlobals->v_forward * 16 + gpGlobals->v_right * 24 + gpGlobals->v_up * -8;
-		Vector vecSrc4 = m_pPlayer->GetGunPosition( ) + gpGlobals->v_forward * 16 + gpGlobals->v_right + gpGlobals->v_up * -8;
-		Vector vecSrc5 = m_pPlayer->GetGunPosition( ) + gpGlobals->v_forward * 16 + gpGlobals->v_right * -24 + gpGlobals->v_up * -8;
+		Vector vecSrc3 = m_pPlayer->GetGunPosition( ) + vecAiming * 16 + gpGlobals->v_right * 24 + gpGlobals->v_up * -8;
+		Vector vecSrc4 = m_pPlayer->GetGunPosition( ) + vecAiming * 16 + gpGlobals->v_right + gpGlobals->v_up * -8;
+		Vector vecSrc5 = m_pPlayer->GetGunPosition( ) + vecAiming * 16 + gpGlobals->v_right * -24 + gpGlobals->v_up * -8;
 
-		CRpgRocket *pRocket3 = CRpgRocket::CreateRpgRocket( vecSrc3, m_pPlayer->pev->v_angle, m_pPlayer, 0.5, TRUE );
-		CRpgRocket *pRocket4 = CRpgRocket::CreateRpgRocket( vecSrc4, m_pPlayer->pev->v_angle, m_pPlayer, 0.5, TRUE );
-		CRpgRocket *pRocket5 = CRpgRocket::CreateRpgRocket( vecSrc5, m_pPlayer->pev->v_angle, m_pPlayer, 0.5, TRUE );
+		CBaseEntity *pRocket3 = CRpgRocket::CreateRpgRocket( vecSrc3, vecAiming, m_pPlayer, 0.0, TRUE );
+		CBaseEntity *pRocket4 = CRpgRocket::CreateRpgRocket( vecSrc4, vecAiming, m_pPlayer, 0.0, TRUE );
+		CBaseEntity *pRocket5 = CRpgRocket::CreateRpgRocket( vecSrc5, vecAiming, m_pPlayer, 0.0, TRUE );
 
-		UTIL_MakeVectors( m_pPlayer->pev->v_angle );// RpgRocket::Create stomps on globals, so remake.
-
-		pRocket1->pev->velocity = pRocket1->pev->velocity + gpGlobals->v_forward * DotProduct( m_pPlayer->pev->velocity, gpGlobals->v_forward );
-		pRocket2->pev->velocity = pRocket2->pev->velocity + gpGlobals->v_forward * DotProduct( m_pPlayer->pev->velocity, gpGlobals->v_forward );
-		pRocket3->pev->velocity = pRocket3->pev->velocity + gpGlobals->v_forward * DotProduct( m_pPlayer->pev->velocity, gpGlobals->v_forward );
-		pRocket4->pev->velocity = pRocket4->pev->velocity + gpGlobals->v_forward * DotProduct( m_pPlayer->pev->velocity, gpGlobals->v_forward );
-		pRocket5->pev->velocity = pRocket5->pev->velocity + gpGlobals->v_forward * DotProduct( m_pPlayer->pev->velocity, gpGlobals->v_forward );
+		if (pRocket1)
+			pRocket1->pev->velocity = pRocket1->pev->velocity + vecAiming * DotProduct( m_pPlayer->pev->velocity, vecAiming );
+		if (pRocket2)
+			pRocket2->pev->velocity = pRocket2->pev->velocity + vecAiming * DotProduct( m_pPlayer->pev->velocity, vecAiming );
+		if (pRocket3)
+			pRocket3->pev->velocity = pRocket3->pev->velocity + vecAiming * DotProduct( m_pPlayer->pev->velocity, vecAiming );
+		if (pRocket4)
+			pRocket4->pev->velocity = pRocket4->pev->velocity + vecAiming * DotProduct( m_pPlayer->pev->velocity, vecAiming );
+		if (pRocket5)
+			pRocket5->pev->velocity = pRocket5->pev->velocity + vecAiming * DotProduct( m_pPlayer->pev->velocity, vecAiming );
 #endif
 
 		int flags;

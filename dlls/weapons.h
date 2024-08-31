@@ -752,13 +752,14 @@ private:
 class CDrunkRocket : public CGrenade
 {
 public:
-	void Spawn( float startEngineTime );
+	void Spawn( void );
 	void Precache( void );
 	void EXPORT FollowThink( void );
 	void EXPORT IgniteThink( void );
 	void EXPORT RocketTouch( CBaseEntity *pOther );
-	static CDrunkRocket *CreateDrunkRocket( Vector vecOrigin, Vector vecAngles, CBaseEntity *pOwner, float startEngineTime );
+	static CBaseEntity *CreateDrunkRocket( Vector vecOrigin, Vector vecAngles, CBaseEntity *pOwner );
 
+private:
 	int m_iTrail;
 	float m_flIgniteTime;
 };
@@ -1063,7 +1064,7 @@ public:
 	void EXPORT FollowThink( void );
 	void EXPORT IgniteThink( void );
 	void EXPORT RocketTouch( CBaseEntity *pOther );
-	static CRpgRocket *CreateRpgRocket( Vector vecOrigin, Vector vecAngles, CBaseEntity *pOwner, float startEngineTime, BOOL redRocket );
+	static CBaseEntity *CreateRpgRocket( Vector vecOrigin, Vector vecAngles, CBaseEntity *pOwner, float startEngineTime, BOOL redRocket );
 
 	void Spawn( void );
 	int m_iTrail;
@@ -2712,7 +2713,6 @@ public:
 
 private:
 	unsigned short m_usFireGlock;
-	unsigned short m_usFireGlockBoth;
 };
 
 class CFlyingSnowball : public CBaseEntity
