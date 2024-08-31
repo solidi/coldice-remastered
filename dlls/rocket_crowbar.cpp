@@ -36,14 +36,14 @@ LINK_ENTITY_TO_CLASS( drunk_rocket, CDrunkRocket );
 
 //=========================================================
 //=========================================================
-CDrunkRocket *CDrunkRocket::CreateDrunkRocket( Vector vecOrigin, Vector vecAngles, CBaseEntity *pOwner, float startEngineTime )
+CBaseEntity *CDrunkRocket::CreateDrunkRocket( Vector vecOrigin, Vector vecAngles, CBaseEntity *pOwner )
 {
+	int speed = pOwner->pev->velocity.Length2D();
 	CDrunkRocket *pRocket = GetClassPtr( (CDrunkRocket *)NULL );
-
 	UTIL_SetOrigin( pRocket->pev, vecOrigin );
 	pRocket->pev->angles = UTIL_VecToAngles(vecAngles);
-	pRocket->pev->velocity = vecAngles * RANDOM_LONG(200,250);
-	pRocket->Spawn(startEngineTime);
+	pRocket->pev->velocity = vecAngles * RANDOM_LONG(speed + 200, speed + 250);
+	pRocket->Spawn();
 	pRocket->SetTouch( &CRpgRocket::RocketTouch );
 	pRocket->pev->owner = pOwner->edict();
 
@@ -52,7 +52,7 @@ CDrunkRocket *CDrunkRocket::CreateDrunkRocket( Vector vecOrigin, Vector vecAngle
 
 //=========================================================
 //=========================================================
-void CDrunkRocket::Spawn( float startEngineTime )
+void CDrunkRocket::Spawn( void )
 {
 	Precache( );
 	// motor
@@ -71,12 +71,15 @@ void CDrunkRocket::Spawn( float startEngineTime )
 
 	pev->gravity = 0.5;
 
-	pev->nextthink = gpGlobals->time + startEngineTime;
+	pev->nextthink = gpGlobals->time + 0.1;
 	pev->dmg = gSkillData.plrDmgRPG;
 }
 
 void CDrunkRocket::RocketTouch ( CBaseEntity *pOther )
 {
+	if (pOther->edict() == pev->owner)
+		return;
+
 	STOP_SOUND( edict(), CHAN_VOICE, "rocket1.wav" );
 	ExplodeTouch( pOther );
 }
@@ -276,8 +279,8 @@ void CRocketCrowbar::SecondaryAttack()
 	{
 #ifndef CLIENT_DLL
 		Vector vecAiming = m_pPlayer->GetAutoaimVector( AUTOAIM_10DEGREES );
-		Vector vecSrc = m_pPlayer->GetGunPosition( ) + vecAiming * 16 + gpGlobals->v_right * 8;
-		CDrunkRocket::CreateDrunkRocket( vecSrc, vecAiming, m_pPlayer, 0.0 );
+		Vector vecSrc = m_pPlayer->GetGunPosition( ) + (vecAiming * 48) + gpGlobals->v_right * 8;
+		CDrunkRocket::CreateDrunkRocket( vecSrc, vecAiming, m_pPlayer );
 #endif
 
 		SetThink( &CRocketCrowbar::SwingAgain );

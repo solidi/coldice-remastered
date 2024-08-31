@@ -90,7 +90,6 @@ void CDualGlock::Precache( void )
 	PRECACHE_SOUND ("deagle_fire.wav");
 
 	m_usFireGlock = PRECACHE_EVENT( 1, "events/dual_glock.sc" );
-	m_usFireGlockBoth = PRECACHE_EVENT( 1, "events/dual_glock_both.sc" );
 }
 
 BOOL CDualGlock::DeployLowKey( )
