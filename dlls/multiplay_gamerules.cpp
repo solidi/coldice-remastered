@@ -1880,7 +1880,8 @@ void CHalfLifeMultiplay::DeathNotice( CBasePlayer *pVictim, entvars_t *pKiller, 
 	if (pevInflictor != NULL 
 		&& strncmp(STRING( pevInflictor->classname ), "monster_human_assassin", 22) == 0)
 	{
-		pKiller = VARS(Killer->pev->owner);
+		if (VARS(Killer->pev->owner))
+			pKiller = VARS(Killer->pev->owner);
 	}
 
 	if ( pKiller->flags & FL_CLIENT )
