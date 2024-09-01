@@ -83,6 +83,7 @@ cvar_t *cl_vmroll;
 cvar_t *cl_vmyaw;
 cvar_t *cl_ifov;
 
+
 class CHLVoiceStatusHelper : public IVoiceStatusHelper
 {
 public:
@@ -263,6 +264,14 @@ void __CmdFunc_ImguiChapter( void )
 		return;
 	}
 	EngineClientCmd("map c0a0.bsp");
+}
+
+void __CmdFunc_ToggleKeyboard( void )
+{
+	if (!gHUD.m_ShowKeyboard)
+		gHUD.m_ShowKeyboard = 1;
+	else
+		gHUD.m_ShowKeyboard = 0;
 }
 
 // TFFree Command Menu Message Handlers
@@ -486,6 +495,8 @@ void CHud :: Init( void )
 #ifndef _WIN32
 	HOOK_COMMAND( "imgui_chapter", ImguiChapter );
 #endif
+
+	HOOK_COMMAND( "keyboard", ToggleKeyboard );
 
 	HOOK_MESSAGE( ValClass );
 	HOOK_MESSAGE( TeamNames );

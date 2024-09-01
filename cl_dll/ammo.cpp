@@ -682,6 +682,10 @@ int CHudAmmo::MsgFunc_CurWeapon(const char *pszName, int iSize, void *pbuf )
 
 	}
 
+	// Shut off keyboard if shown
+	if (gHUD.m_ShowKeyboard)
+		gHUD.m_ShowKeyboard = 0;
+
 	m_fFade = 200.0f; //!!!
 	m_iFlags |= HUD_ACTIVE;
 	

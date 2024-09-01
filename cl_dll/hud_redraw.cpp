@@ -338,6 +338,15 @@ int CHud :: Redraw( float flTime, int intermission )
 	}
 	*/
 
+	if (m_ShowKeyboard)
+	{
+		HSPRITE m_hStatic = SPR_Load("sprites/keyboard.spr");
+		SPR_Set(m_hStatic, r, g, b);
+		int w = SPR_Width(m_hStatic, 0);
+		int h = SPR_Height(m_hStatic, 0);
+		SPR_DrawAdditive(0, (ScreenWidth / 2) - 256, ((ScreenHeight / 2) - 128), NULL);
+	}
+
 	if (g_WallClimb && g_WallClimb < gEngfuncs.GetClientTime())
 	{
 		gHUD.m_WallClimb.m_iFlags &= ~HUD_ACTIVE;

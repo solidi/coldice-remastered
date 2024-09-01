@@ -941,6 +941,7 @@ public:
 	int	m_iWeaponBits2;
 	int	m_fPlayerDead;
 	int m_iIntermission;
+	int m_ShowKeyboard;
 
 	// sprite indexes
 	int m_HUD_number_0;
