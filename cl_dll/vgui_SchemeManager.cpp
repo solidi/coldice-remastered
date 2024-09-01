@@ -506,7 +506,6 @@ void CSchemeManager::getBgColor( SchemeHandle_t schemeHandle, int &r, int &g, in
 	r = pScheme->bgColor[0];
 	g = pScheme->bgColor[1];
 	b = pScheme->bgColor[2];
-	UnpackRGB(r, g, b, HudColor());
 	a = pScheme->bgColor[3];
 }
 
@@ -536,7 +535,6 @@ void CSchemeManager::getFgMousedownColor( SchemeHandle_t schemeHandle, int &r, i
 	r = pScheme->mousedownFgColor[0];
 	g = pScheme->mousedownFgColor[1];
 	b = pScheme->mousedownFgColor[2];
-	UnpackRGB(r, g, b, HudColor());
 	a = pScheme->mousedownFgColor[3];
 }
 
