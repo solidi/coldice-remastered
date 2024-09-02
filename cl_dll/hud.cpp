@@ -270,6 +270,7 @@ void __CmdFunc_ToggleKeyboard( void )
 {
 	if (!gHUD.m_ShowKeyboard)
 	{
+		gEngfuncs.pfnClientCmd("crosshair 0\n");
 		gHUD.m_ShowKeyboard = 1;
 		screenfade_t sf;
 		gEngfuncs.pfnGetScreenFade( &sf );
@@ -286,6 +287,7 @@ void __CmdFunc_ToggleKeyboard( void )
 	else
 	{
 		gHUD.m_ShowKeyboard = 0;
+		gEngfuncs.pfnClientCmd("crosshair 1\n");
 		screenfade_t sf;
 		gEngfuncs.pfnGetScreenFade( &sf );
 		sf.fader = sf.fadeg = sf.fadeb = sf.fadealpha = sf.fadeReset = 0;

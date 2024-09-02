@@ -689,6 +689,7 @@ int CHudAmmo::MsgFunc_CurWeapon(const char *pszName, int iSize, void *pbuf )
 	if (gHUD.m_ShowKeyboard)
 	{
 		gHUD.m_ShowKeyboard = 0;
+		gEngfuncs.pfnClientCmd("crosshair 1\n");
 		screenfade_t sf;
 		gEngfuncs.pfnGetScreenFade( &sf );
 		sf.fader = sf.fadeg = sf.fadeb = sf.fadealpha = sf.fadeReset = 0;
