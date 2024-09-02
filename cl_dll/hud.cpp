@@ -269,9 +269,32 @@ void __CmdFunc_ImguiChapter( void )
 void __CmdFunc_ToggleKeyboard( void )
 {
 	if (!gHUD.m_ShowKeyboard)
+	{
 		gHUD.m_ShowKeyboard = 1;
+		screenfade_t sf;
+		gEngfuncs.pfnGetScreenFade( &sf );
+		sf.fader = sf.fadeg = sf.fadeb = 0;
+		sf.fadealpha = 200;
+		sf.fadeFlags = FFADE_IN;
+		sf.fadeEnd = gEngfuncs.GetClientTime();
+		sf.fadeReset = sf.fadeSpeed = 0.0;
+		sf.fadeSpeed = sf.fadealpha;
+		sf.fadeReset += 10.0;
+		sf.fadeEnd += 120.0;
+		gEngfuncs.pfnSetScreenFade( &sf );
+	}
 	else
+	{
 		gHUD.m_ShowKeyboard = 0;
+		screenfade_t sf;
+		gEngfuncs.pfnGetScreenFade( &sf );
+		sf.fader = sf.fadeg = sf.fadeb = sf.fadealpha = sf.fadeReset = 0;
+		sf.fadeEnd = 0.1;
+		sf.fadeReset = sf.fadeSpeed = 0.0;
+		sf.fadeFlags = FFADE_IN;
+		sf.fadeEnd += sf.fadeReset;
+		gEngfuncs.pfnSetScreenFade( &sf );
+	}
 }
 
 // TFFree Command Menu Message Handlers
