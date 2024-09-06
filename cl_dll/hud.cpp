@@ -83,6 +83,7 @@ cvar_t *cl_vmroll;
 cvar_t *cl_vmyaw;
 cvar_t *cl_ifov;
 
+
 class CHLVoiceStatusHelper : public IVoiceStatusHelper
 {
 public:
@@ -263,6 +264,39 @@ void __CmdFunc_ImguiChapter( void )
 		return;
 	}
 	EngineClientCmd("map c0a0.bsp");
+}
+
+void __CmdFunc_ToggleKeyboard( void )
+{
+	if (!gHUD.m_ShowKeyboard)
+	{
+		gEngfuncs.pfnClientCmd("crosshair 0\n");
+		gHUD.m_ShowKeyboard = 1;
+		screenfade_t sf;
+		gEngfuncs.pfnGetScreenFade( &sf );
+		sf.fader = sf.fadeg = sf.fadeb = 0;
+		sf.fadealpha = 200;
+		sf.fadeFlags = FFADE_IN;
+		sf.fadeEnd = gEngfuncs.GetClientTime();
+		sf.fadeReset = sf.fadeSpeed = 0.0;
+		sf.fadeSpeed = sf.fadealpha;
+		sf.fadeReset += 10.0;
+		sf.fadeEnd += 120.0;
+		gEngfuncs.pfnSetScreenFade( &sf );
+	}
+	else
+	{
+		gHUD.m_ShowKeyboard = 0;
+		gEngfuncs.pfnClientCmd("crosshair 1\n");
+		screenfade_t sf;
+		gEngfuncs.pfnGetScreenFade( &sf );
+		sf.fader = sf.fadeg = sf.fadeb = sf.fadealpha = sf.fadeReset = 0;
+		sf.fadeEnd = 0.1;
+		sf.fadeReset = sf.fadeSpeed = 0.0;
+		sf.fadeFlags = FFADE_IN;
+		sf.fadeEnd += sf.fadeReset;
+		gEngfuncs.pfnSetScreenFade( &sf );
+	}
 }
 
 // TFFree Command Menu Message Handlers
@@ -486,6 +520,8 @@ void CHud :: Init( void )
 #ifndef _WIN32
 	HOOK_COMMAND( "imgui_chapter", ImguiChapter );
 #endif
+
+	HOOK_COMMAND( "keyboard", ToggleKeyboard );
 
 	HOOK_MESSAGE( ValClass );
 	HOOK_MESSAGE( TeamNames );

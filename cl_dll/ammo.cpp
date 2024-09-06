@@ -29,6 +29,9 @@
 #include "ammohistory.h"
 #include "vgui_TeamFortressViewport.h"
 
+#include "shake.h"
+#include "screenfade.h"
+
 WEAPON *gpActiveSel;	// NULL means off, 1 means just the menu bar, otherwise
 						// this points to the active weapon menu item
 WEAPON *gpLastSel;		// Last weapon menu selection 
@@ -680,6 +683,21 @@ int CHudAmmo::MsgFunc_CurWeapon(const char *pszName, int iSize, void *pbuf )
 		else
 			SetCrosshair(m_pWeapon->hZoomedCrosshair, m_pWeapon->rcZoomedCrosshair, r, g, b);
 
+	}
+
+	// Shut off keyboard if shown
+	if (gHUD.m_ShowKeyboard)
+	{
+		gHUD.m_ShowKeyboard = 0;
+		gEngfuncs.pfnClientCmd("crosshair 1\n");
+		screenfade_t sf;
+		gEngfuncs.pfnGetScreenFade( &sf );
+		sf.fader = sf.fadeg = sf.fadeb = sf.fadealpha = sf.fadeReset = 0;
+		sf.fadeEnd = 0.1;
+		sf.fadeReset = sf.fadeSpeed = 0.0;
+		sf.fadeFlags = FFADE_IN;
+		sf.fadeEnd += sf.fadeReset;
+		gEngfuncs.pfnSetScreenFade( &sf );
 	}
 
 	m_fFade = 200.0f; //!!!
