@@ -322,7 +322,7 @@ void Cmd_Frame ()
 	if ((xl & 0x07) || (yl & 0x07) || (w & 0x07) || (h & 0x07))
 		Error ("Sprite dimensions not multiples of 8\n");
 
-	if ((w > 256) || (h > 256))
+	if ((w > 512) || (h > 512))
 		Error ("Sprite has a dimension longer than 256");
 
 	xh = xl+w;
