@@ -969,6 +969,7 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"impulse 214\" - Hurricane Kick\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"impulse 215\" - Force Grab\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"impulse 216\" - Drop Explosive Weapon\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"keyboard\" - Show default key binds on HUD\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"snowman\" - God mode (when sv_cheats 1)\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"vote\" - type in the chat to start a vote\n" );
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "For more, see readme.txt\n" );
