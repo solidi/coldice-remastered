@@ -4476,6 +4476,14 @@ void CBasePlayer::GiveNamedItem( const char *pszName )
 		return;
 	}
 
+	if (g_pGameRules->IsBusters() && pev->fuser4 == 0)
+	{
+		if (strcmp(pszName, "weapon_egon") == 0) {
+			ALERT(at_console, "Not allowed an egon unless you are the buster.\n");
+			return;
+		}
+	}
+
 	edict_t	*pent;
 
 	int istr = MAKE_STRING(pszName);
