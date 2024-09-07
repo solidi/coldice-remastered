@@ -209,6 +209,7 @@ public:
 	virtual BOOL IsShidden();
 	virtual BOOL IsInstagib();
 	virtual BOOL IsPropHunt();
+	virtual BOOL IsBusters();
 
 	virtual BOOL AllowMeleeDrop() = 0;
 

@@ -105,6 +105,7 @@ HLDLL_OBJS = \
 	$(HLDLL_OBJ_DIR)/bloater.o \
 	$(HLDLL_OBJ_DIR)/bmodels.o \
 	$(HLDLL_OBJ_DIR)/bullsquid.o \
+	$(HLDLL_OBJ_DIR)/busters_gamerules.o \
 	$(HLDLL_OBJ_DIR)/buttons.o \
 	$(HLDLL_OBJ_DIR)/cannon.o \
 	$(HLDLL_OBJ_DIR)/cbase.o \

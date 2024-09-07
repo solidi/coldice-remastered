@@ -1145,6 +1145,8 @@ public:
 	void CreateEffect ( void );
 	void DestroyEffect ( void );
 
+	BOOL CanHolster( void );
+
 	void EndAttack( void );
 	void Attack( void );
 	void PrimaryAttack( void );

@@ -38,6 +38,7 @@
 #include	"horde_gamerules.h"
 #include	"instagib_gamerules.h"
 #include	"prophunt_gamerules.h"
+#include	"busters_gamerules.h"
 
 extern edict_t *EntSelectSpawnPoint( CBaseEntity *pPlayer );
 
@@ -510,6 +511,8 @@ CGameRules *InstallGameRules( void )
 		{
 			case GAME_ARENA:
 				return new CHalfLifeArena;
+			case GAME_BUSTERS:
+				return new CMultiplayBusters;
 			case GAME_LMS:
 				return new CHalfLifeLastManStanding;
 			case GAME_CHILLDEMIC:
@@ -522,16 +525,16 @@ CGameRules *InstallGameRules( void )
 				return new CHalfLifeCaptureTheFlag;
 			case GAME_GUNGAME:
 				return new CHalfLifeGunGame;
-			case GAME_ICEMAN:
-				return new CHalfLifeJesusVsSanta;
-			case GAME_SHIDDEN:
-				return new CHalfLifeShidden;
 			case GAME_HORDE:
 				return new CHalfLifeHorde;
 			case GAME_INSTAGIB:
 				return new CHalfLifeInstagib;
+			case GAME_ICEMAN:
+				return new CHalfLifeJesusVsSanta;
 			case GAME_PROPHUNT:
 				return new CHalfLifePropHunt;
+			case GAME_SHIDDEN:
+				return new CHalfLifeShidden;
 		}
 
 		if ((int)gpGlobals->deathmatch == 1)
@@ -1563,4 +1566,9 @@ BOOL CGameRules::IsInstagib()
 BOOL CGameRules::IsPropHunt()
 {
 	return g_GameMode == GAME_PROPHUNT;
+}
+
+BOOL CGameRules::IsBusters()
+{
+	return g_GameMode == GAME_BUSTERS;
 }

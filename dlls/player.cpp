@@ -7100,6 +7100,33 @@ void CBasePlayer :: InitializeEntities ( void )
 	}
 }
 
+//=========================================================
+// HasPlayerItemFromID
+// Just compare IDs, rather than classnames
+//=========================================================
+BOOL CBasePlayer::HasPlayerItemFromID( int nID )
+{
+	CBasePlayerItem* pItem;
+	int i;
+
+	for ( i = 0; i < MAX_ITEM_TYPES; i++ )
+	{
+		pItem = m_rgpPlayerItems[i];
+
+		while ( pItem )
+		{
+			if ( pItem->m_iId == nID )
+			{
+				return TRUE;
+			}
+
+			pItem = pItem->m_pNext;
+		}
+	}
+
+	return FALSE;
+}
+
 
 //=========================================================
 // Dead HEV suit prop

@@ -464,6 +464,8 @@ public:
 	void GiveMelees();
 	void GiveExplosives();
 
+	BOOL HasPlayerItemFromID( int nID );
+
 	float nextburntime;
 	byte m_bPlayerOnFire;
 	void PlayerBurn(void);

@@ -674,6 +674,14 @@ void CBasePlayerItem::FallThink ( void )
 
 		Materialize(); 
 	}
+
+	if ( g_pGameRules->IsBusters() && FNullEnt( pev->owner ) )
+	{
+		if ( !strcmp( "weapon_egon", STRING( pev->classname ) ) )
+		{
+			UTIL_Remove( this );
+		}
+	}
 }
 
 //=========================================================

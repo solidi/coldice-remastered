@@ -111,6 +111,7 @@
     <ClCompile Include="..\..\dlls\bloater.cpp" />
     <ClCompile Include="..\..\dlls\bmodels.cpp" />
     <ClCompile Include="..\..\dlls\bullsquid.cpp" />
+    <ClCompile Include="..\..\dlls\busters_gamerules.cpp" />
     <ClCompile Include="..\..\dlls\buttons.cpp" />
     <ClCompile Include="..\..\dlls\cannon.cpp" />
     <ClCompile Include="..\..\dlls\cbase.cpp" />
@@ -264,6 +265,7 @@
     <ClInclude Include="..\..\dlls\animation.h" />
     <ClInclude Include="..\..\dlls\arena_gamerules.h" />
     <ClInclude Include="..\..\dlls\basemonster.h" />
+    <ClInclude Include="..\..\dlls\busters_gamerules.h" />
     <ClInclude Include="..\..\dlls\cbase.h" />
     <ClInclude Include="..\..\dlls\cdll_dll.h" />
     <ClInclude Include="..\..\dlls\chilldemic_gamerules.h" />

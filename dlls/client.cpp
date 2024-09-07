@@ -988,6 +988,7 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_dualsonly [0|1]\" - Replace all weapons with duals only\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_floatingweapons [0|1]\" - Floating world weapons ala Quake\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_gamemode [gamemode]\" -> available gamemodes\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"busters\"\" - one player busts ghosts with the egon\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"chilldemic\"\" - be the survivor from the virus\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"coldskull\"\" - collect all the cold skulls to win\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"ctc\"\" - capture the chumtoad, hold on to it to receive points!\n");
