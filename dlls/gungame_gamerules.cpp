@@ -549,6 +549,9 @@ BOOL CHalfLifeGunGame::MutatorAllowed(const char *mutator)
 	if (strstr(mutator, g_szMutators[MUTATOR_RICOCHET - 1]) || atoi(mutator) == MUTATOR_RICOCHET)
 		return FALSE;
 
+	if (strstr(mutator, g_szMutators[MUTATOR_ROCKETBEES - 1]) || atoi(mutator) == MUTATOR_ROCKETBEES)
+		return FALSE;
+
 	if (strstr(mutator, g_szMutators[MUTATOR_ROCKETCROWBAR - 1]) || atoi(mutator) == MUTATOR_ROCKETCROWBAR)
 		return FALSE;
 

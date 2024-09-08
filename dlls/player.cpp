@@ -4476,6 +4476,14 @@ void CBasePlayer::GiveNamedItem( const char *pszName )
 		return;
 	}
 
+	if (g_pGameRules->IsBusters() && pev->fuser4 == 0)
+	{
+		if (strcmp(pszName, "weapon_egon") == 0) {
+			ALERT(at_console, "Not allowed an egon unless you are the buster.\n");
+			return;
+		}
+	}
+
 	edict_t	*pent;
 
 	int istr = MAKE_STRING(pszName);
@@ -7098,6 +7106,33 @@ void CBasePlayer :: InitializeEntities ( void )
 		// ALERT(at_aiconsole, ">>>> CBasePlayer::SendInitMessages (%s)\n", STRING(pEntity->pev->classname));
 		pEntity->SendInitMessages(this);
 	}
+}
+
+//=========================================================
+// HasPlayerItemFromID
+// Just compare IDs, rather than classnames
+//=========================================================
+BOOL CBasePlayer::HasPlayerItemFromID( int nID )
+{
+	CBasePlayerItem* pItem;
+	int i;
+
+	for ( i = 0; i < MAX_ITEM_TYPES; i++ )
+	{
+		pItem = m_rgpPlayerItems[i];
+
+		while ( pItem )
+		{
+			if ( pItem->m_iId == nID )
+			{
+				return TRUE;
+			}
+
+			pItem = pItem->m_pNext;
+		}
+	}
+
+	return FALSE;
 }
 
 

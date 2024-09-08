@@ -164,6 +164,11 @@ BOOL CEgon::HasAmmo( void )
 
 void CEgon::UseAmmo( int count )
 {
+#ifndef CLIENT_DLL
+	if ( g_pGameRules->IsBusters() )
+		return;
+#endif
+
 	if ( m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] >= count )
 		m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] -= count;
 	else
@@ -549,7 +554,17 @@ void CEgon::WeaponIdle( void )
 	m_deployed = TRUE;
 }
 
+BOOL CEgon::CanHolster( void )
+{
+#ifndef CLIENT_DLL
+	if ( g_pGameRules->IsBusters() )
+	{
+		return FALSE;
+	}
+#endif
 
+	return TRUE;
+}
 
 void CEgon::EndAttack( void )
 {

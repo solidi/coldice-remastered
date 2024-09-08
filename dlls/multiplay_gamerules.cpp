@@ -216,6 +216,7 @@ char *sBuiltInMaps[] =
 	"coldice",
 	"comet",
 //	"defroster",
+	"datafloe",
 	"depot",
 	"doublefrost",
 	"drift",
@@ -243,12 +244,13 @@ char *sBuiltInMaps[] =
 	"RANDOM",
 };
 
-#define BUILT_IN_MAP_COUNT 29
+#define BUILT_IN_MAP_COUNT 30
 
 char *gamePlayModes[] = {
 	"Deathmatch",
 	"1 vs. 1",
 	"Battle Royal",
+	"Busters",
 	"Chilldemic",
 	"Cold Skulls",
 	"Capture The Chumtoad",

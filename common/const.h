@@ -875,18 +875,19 @@ typedef struct
 #define GAME_FFA 0
 #define GAME_ARENA 1
 #define GAME_LMS 2
-#define GAME_CHILLDEMIC 3
-#define GAME_COLDSKULL 4
-#define GAME_CTC 5
-#define GAME_CTF 6
-#define GAME_GUNGAME 7
-#define GAME_HORDE 8
-#define GAME_INSTAGIB 9
-#define GAME_ICEMAN 10
-#define GAME_PROPHUNT 11
-#define GAME_SHIDDEN 12
-#define GAME_SNOWBALL 13
-#define GAME_TEAMPLAY 14
+#define GAME_BUSTERS 3
+#define GAME_CHILLDEMIC 4
+#define GAME_COLDSKULL 5
+#define GAME_CTC 6
+#define GAME_CTF 7
+#define GAME_GUNGAME 8
+#define GAME_HORDE 9
+#define GAME_INSTAGIB 10
+#define GAME_ICEMAN 11
+#define GAME_PROPHUNT 12
+#define GAME_SHIDDEN 13
+#define GAME_SNOWBALL 14
+#define GAME_TEAMPLAY 15
 
 #define TOTAL_GAME_MODES GAME_TEAMPLAY
 

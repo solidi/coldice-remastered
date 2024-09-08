@@ -67,14 +67,11 @@ void CHudRadar::ProcessPlayerState(void)
 		if (pClient->curstate.effects & EF_NODRAW)
 			continue;
 
-		if (gHUD.m_GameMode == GAME_PROPHUNT)
-		{
-			if (pClient->curstate.fuser4 > 0)
-				continue;
-			else
-				b_specials[num_players] = false;
-		}
-		else if (gHUD.m_GameMode == GAME_SHIDDEN)
+		if (gHUD.m_GameMode == GAME_BUSTERS ||
+			gHUD.m_GameMode == GAME_CHILLDEMIC ||
+			gHUD.m_GameMode == GAME_ICEMAN ||
+			gHUD.m_GameMode == GAME_PROPHUNT ||
+			gHUD.m_GameMode == GAME_SHIDDEN)
 		{
 			if (pClient->curstate.fuser4 > 0)
 				b_specials[num_players] = true;
@@ -86,13 +83,6 @@ void CHudRadar::ProcessPlayerState(void)
 			if (!strcmp(pClient->model->name, "models/w_chumtoad.mdl")) // loose toad
 				b_specials[num_players] = true;
 			else if (pClient->curstate.fuser4 > 0) // running with toad
-				b_specials[num_players] = true;
-			else
-				b_specials[num_players] = false;
-		}
-		else if (gHUD.m_GameMode == GAME_ICEMAN || gHUD.m_GameMode == GAME_CHILLDEMIC)
-		{
-			if (pClient->curstate.fuser4 > 0) // iceman
 				b_specials[num_players] = true;
 			else
 				b_specials[num_players] = false;
@@ -111,7 +101,7 @@ void CHudRadar::ProcessPlayerState(void)
 			else
 				b_specials[num_players] = false;
 		}
-		else if (gHUD.m_GameMode == GAME_HORDE || gHUD.m_GameMode == GAME_HORDE)
+		else if (gHUD.m_GameMode == GAME_HORDE)
 		{
 			if (pClient->curstate.fuser4 > 1) // monster
 				b_specials[num_players] = true;

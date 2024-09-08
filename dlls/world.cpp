@@ -731,6 +731,7 @@ const char *szGameModeList [] =
 	"ffa",
 	"arena",
 	"lms",
+	"busters",
 	"chilldemic",
 	"coldskull",
 	"ctc",
@@ -782,16 +783,36 @@ void CWorld :: SetGameMode( void )
 				CVAR_SET_STRING( "mp_teamplay", "1" );
 				break;
 
-			case GAME_ICEMAN:
-				CVAR_SET_STRING( "mp_teamlist", "jesus;santa" );
+			case GAME_BUSTERS:
+				CVAR_SET_STRING( "mp_teamlist", "buster;ghosts" );
 				break;
 
 			case GAME_CHILLDEMIC:
 				CVAR_SET_STRING( "mp_teamlist", "skeleton;survivors" );
 				break;
 
+			case GAME_ICEMAN:
+				CVAR_SET_STRING( "mp_teamlist", "jesus;santa" );
+				break;
+
 			case GAME_SNOWBALL:
 				CVAR_SET_STRING("mp_snowballfight", "1");
+				/*
+				CBaseEntity *pEntity = NULL;
+				ALERT(at_aiconsole, ">>>> TRYING\n");
+				for (int itemIndex = 0; itemIndex < ARRAYSIZE(pSwappable); itemIndex++)
+				{
+					while ((pEntity = UTIL_FindEntityByClassname(pEntity, pSwappable[itemIndex])) != NULL)
+					{
+						ALERT(at_aiconsole, "Swap %s at [x=%.2f,y=%.2f,z=%.2f]\n", pSwappable[itemIndex], pEntity->pev->origin.x, pEntity->pev->origin.y, pEntity->pev->origin.z);
+						Vector g = pEntity->pev->origin;
+						Vector x = pEntity->pev->angles;
+						edict_t *o = pEntity->pev->owner;
+						UTIL_Remove(pEntity);
+						CBaseEntity::Create("weapon_snowball", g, x, o);
+					}
+				}
+				*/
 				break;
 			}
 
