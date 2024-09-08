@@ -30,6 +30,8 @@
 #include	"hltv.h"
 #include	"shake.h"
 
+#include	"pm_shared.h"
+
 #if !defined ( _WIN32 )
 #include <ctype.h>
 #endif
@@ -911,6 +913,16 @@ void CHalfLifeMultiplay::SuckAllToSpectator( void )
 
 			edict_t *pentSpawnSpot = g_pGameRules->GetPlayerSpawnSpot( pPlayer );
 			pPlayer->StartObserver(pentSpawnSpot->v.origin, VARS(pentSpawnSpot)->angles);
+		}
+
+		// Spectator fix if client is in eye of another during round end.
+		if (!g_GameInProgress && pPlayer && pPlayer->IsSpectator())
+		{
+			if (pPlayer->m_iObserverLastMode == OBS_IN_EYE)
+			{
+				pPlayer->m_iObserverLastMode = OBS_ROAMING;
+				pPlayer->Observer_SetMode(OBS_ROAMING);
+			}
 		}
 	}
 }
