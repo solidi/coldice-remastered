@@ -5351,30 +5351,28 @@ void CBasePlayer::AutoMelee()
 		float flMaxDot = VIEW_FIELD_NARROW;
 		float flDot;
 
-		if (!FBitSet(pev->flags, FL_FAKECLIENT))
+		while ((pObject = UTIL_FindEntityInSphere( pObject, pev->origin, 96 )) != NULL)
 		{
-			while ((pObject = UTIL_FindEntityInSphere( pObject, pev->origin, 96 )) != NULL)
+			if (strstr(interactiveitems.string, STRING(pObject->pev->classname)) != NULL &&
+				pObject->pev->owner != edict())
 			{
-				if (strstr(interactiveitems.string, STRING(pObject->pev->classname)) != NULL)
+				vecLOS = (VecBModelOrigin( pObject->pev ) - (pev->origin + pev->view_ofs));
+				vecLOS = UTIL_ClampVectorToBox( vecLOS, pObject->pev->size * 0.5 );
+				flDot = DotProduct (vecLOS , gpGlobals->v_forward);
+				if (flDot > flMaxDot)
 				{
-					vecLOS = (VecBModelOrigin( pObject->pev ) - (pev->origin + pev->view_ofs));
-					vecLOS = UTIL_ClampVectorToBox( vecLOS, pObject->pev->size * 0.5 );
-					flDot = DotProduct (vecLOS , gpGlobals->v_forward);
-					if (flDot > flMaxDot)
-					{
-						pClosest = pObject;
-						flMaxDot = flDot;
-					}
+					pClosest = pObject;
+					flMaxDot = flDot;
 				}
 			}
+		}
 
-			if ( pClosest ) {
-				if (m_pActiveItem)
-				{
-					((CBasePlayerWeapon *)m_pActiveItem)->StartKick(m_iHoldingItem);
-					m_flNextAutoMelee = gpGlobals->time + 0.75;
-					return;
-				}
+		if ( pClosest ) {
+			if (m_pActiveItem)
+			{
+				((CBasePlayerWeapon *)m_pActiveItem)->StartKick(m_iHoldingItem);
+				m_flNextAutoMelee = gpGlobals->time + 0.75;
+				return;
 			}
 		}
 	}
