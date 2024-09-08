@@ -128,6 +128,8 @@ void CMultiplayBusters::PlayerKilled( CBasePlayer* pVictim, entvars_t* pKiller, 
 		if ( ktmp && ( ktmp->Classify() == CLASS_PLAYER ) )
 		{
 			peKiller = (CBasePlayer*)ktmp;
+			if (!IsPlayerBusting(peKiller))
+				peKiller->m_iRoundWins++;
 		}
 		/*else if ( ktmp && ( ktmp->Classify() == CLASS_VEHICLE ) )
 		{
@@ -216,6 +218,7 @@ void CMultiplayBusters::CheckForEgons()
 		if ( pBestPlayer )
 		{
 			pBestPlayer->RemoveAllItems( false );
+			pBestPlayer->pev->fuser4 = 1; // so we can give the named item
 			pBestPlayer->GiveNamedItem( "weapon_egon" );
 
 			CBaseEntity* pEntity = NULL;
