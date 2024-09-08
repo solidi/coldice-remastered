@@ -940,24 +940,53 @@ void CBasePlayer::PackDeadPlayerItems( void )
 			iPA = 0;
 			iPW = 0;
 
-		// pack the ammo
-			while ( iPackAmmo[ iPA ] != -1 )
+			if ( g_pGameRules->IsBusters() )
 			{
-				pWeaponBox->PackAmmo( MAKE_STRING( CBasePlayerItem::AmmoInfoArray[ iPackAmmo[ iPA ] ].pszName ), m_rgAmmo[ iPackAmmo[ iPA ] ] );
-				iPA++;
-			}
+				if ( HasNamedPlayerItem( "weapon_egon" ) )
+				{
+					for ( i = 0; i < MAX_ITEM_TYPES; i++ )
+					{
+						CBasePlayerItem *pItem = m_rgpPlayerItems[i];
 
-		// now pack all of the items in the lists
-			while ( rgpPackWeapons[ iPW ] )
+						if ( pItem )
+						{
+							if ( !strcmp( "weapon_egon", STRING( pItem->pev->classname ) ) )
+							{
+								pWeaponBox->PackWeapon( pItem );
+
+								pWeaponBox->pev->body = WEAPON_EGON - 1;
+								pWeaponBox->pev->velocity = vec3_t( 0, 0, 0 );
+								pWeaponBox->pev->renderfx = kRenderFxGlowShell;
+								pWeaponBox->pev->renderamt = 25;
+								pWeaponBox->pev->rendercolor = Vector( 0, 75, 250 );
+
+								break;
+							}
+						}
+					}
+				}
+			}
+			else
 			{
-				// ALERT(at_console, "[rgpPackWeapons[ iPW ]=%s]\n", STRING(rgpPackWeapons[ iPW ]->pev->classname));
-				// weapon unhooked from the player. Pack it into der box.
-				pWeaponBox->PackWeapon( rgpPackWeapons[ iPW ] );
+			// pack the ammo
+				while ( iPackAmmo[ iPA ] != -1 )
+				{
+					pWeaponBox->PackAmmo( MAKE_STRING( CBasePlayerItem::AmmoInfoArray[ iPackAmmo[ iPA ] ].pszName ), m_rgAmmo[ iPackAmmo[ iPA ] ] );
+					iPA++;
+				}
 
-				iPW++;
+			// now pack all of the items in the lists
+				while ( rgpPackWeapons[ iPW ] )
+				{
+					// ALERT(at_console, "[rgpPackWeapons[ iPW ]=%s]\n", STRING(rgpPackWeapons[ iPW ]->pev->classname));
+					// weapon unhooked from the player. Pack it into der box.
+					pWeaponBox->PackWeapon( rgpPackWeapons[ iPW ] );
+
+					iPW++;
+				}
+
+				pWeaponBox->pev->velocity = pev->velocity * 1.2;// weaponbox has player's velocity, then some.
 			}
-
-			pWeaponBox->pev->velocity = pev->velocity * 1.2;// weaponbox has player's velocity, then some.
 		}
 	}
 
