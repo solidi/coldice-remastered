@@ -887,7 +887,23 @@ void CBasePlayer::PackDeadPlayerItems( void )
 
 	if ( m_fHasRune )
 	{
-		CWorldRunes::DropRune(this);
+		// Avoid clustering of runes in battle
+		CBaseEntity *pEntity = NULL;
+		BOOL found = FALSE;
+
+		while ((pEntity = UTIL_FindEntityInSphere(pEntity, pev->origin, 256)) != NULL)
+		{
+			if (strncmp(STRING(pEntity->pev->classname), "rune_", 5) == 0)
+			{
+				found = TRUE;
+				break;
+			}
+		}
+
+		if (!found)
+		{
+			CWorldRunes::DropRune(this);
+		}
 	}
 
 	if (pFlag)
