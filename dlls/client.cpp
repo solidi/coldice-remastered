@@ -255,11 +255,14 @@ void ClientPutInServer( edict_t *pEntity )
 
 	if (g_pGameRules->IsRoundBased())
 	{
+		pPlayer->pev->iuser1 = 1;
+		pPlayer->m_iObserverLastMode = 1;
 		pPlayer->m_flForceToObserverTime = 0;
 		pPlayer->pev->effects |= EF_NODRAW;
 		pPlayer->pev->solid = SOLID_NOT;
 		pPlayer->pev->movetype = MOVETYPE_NOCLIP;
 		pPlayer->pev->takedamage = DAMAGE_NO;
+		pPlayer->m_afPhysicsFlags |= PFLAG_OBSERVER;
 	}
 
 	// Reset interpolation during first frame
