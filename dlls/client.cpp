@@ -401,7 +401,7 @@ void MajorityVote(edict_t *pEntity, const char *text)
 			for (int i = 1; i <= gpGlobals->maxClients; i++)
 			{
 				CBasePlayer *pPlayer = (CBasePlayer *)UTIL_PlayerByIndex(i);
-				if (pPlayer && !FBitSet(pPlayer->pev->flags, FL_FAKECLIENT))
+				if (pPlayer && !FBitSet(pPlayer->pev->flags, FL_FAKECLIENT) && !pPlayer->HasDisconnected)
 					players++;
 			}
 
