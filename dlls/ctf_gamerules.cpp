@@ -398,7 +398,7 @@ BOOL CHalfLifeCaptureTheFlag::IsSpawnPointValid( CBaseEntity *pSpot )
 {
 	CBaseEntity *ent = NULL;
 
-	while ( (ent = UTIL_FindEntityInSphere( ent, pSpot->pev->origin, 1024 )) != NULL )
+	while ( (ent = UTIL_FindEntityInSphere( ent, pSpot->pev->origin, 2048 )) != NULL )
 	{
 		// Is another base in area
 		if (FClassnameIs(ent->pev, "base"))
