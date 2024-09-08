@@ -357,29 +357,40 @@ int CHud :: MsgFunc_AddMut( const char *pszName, int iSize, void *pbuf )
 	int mutatorId = READ_BYTE();
 	int time = (int)gHUD.m_flTime + READ_BYTE();
 
-	// add
-	while (mutatorId != -1)
+	if (mutatorId == 254)
 	{
-		if (mutatorId != 255)
+		m_ChaosTime = m_ChaosStartTime;
+		mutators_t *t = m_Mutators;
+		while (t != NULL)
 		{
-			mutators_t *mutator = new mutators_t();
-			mutator->mutatorId = mutatorId;
-			mutator->startTime = gHUD.m_flTime;
-			mutator->timeToLive = time;
-			mutator->next = m_Mutators ? m_Mutators : NULL;
-			m_Mutators = mutator;
-
-			// Specific for client
-			if (mutatorId == MUTATOR_THIRDPERSON)
-				gEngfuncs.pfnClientCmd("thirdperson\n");
-			else if (mutatorId == MUTATOR_CLOSEUP)
-				g_IronSight = TRUE;
-
-			// gEngfuncs.Con_DPrintf(">>> got mutator[id=%d, start=%.2f, ttl=%.2f]\n", mutator->mutatorId, mutator->startTime, mutator->timeToLive );
+			t->timeToLive = t->startTime;
+			t = t->next;
 		}
+	} else {
+		// add
+		while (mutatorId != -1)
+		{
+			if (mutatorId != 255)
+			{
+				mutators_t *mutator = new mutators_t();
+				mutator->mutatorId = mutatorId;
+				mutator->startTime = gHUD.m_flTime;
+				mutator->timeToLive = time;
+				mutator->next = m_Mutators ? m_Mutators : NULL;
+				m_Mutators = mutator;
 
-		mutatorId = READ_BYTE();
-		time = (int)gHUD.m_flTime + READ_BYTE();
+				// Specific for client
+				if (mutatorId == MUTATOR_THIRDPERSON)
+					gEngfuncs.pfnClientCmd("thirdperson\n");
+				else if (mutatorId == MUTATOR_CLOSEUP)
+					g_IronSight = TRUE;
+
+				// gEngfuncs.Con_DPrintf(">>> got mutator[id=%d, start=%.2f, ttl=%.2f]\n", mutator->mutatorId, mutator->startTime, mutator->timeToLive );
+			}
+
+			mutatorId = READ_BYTE();
+			time = (int)gHUD.m_flTime + READ_BYTE();
+		}
 	}
 
 	m_StatusIcons.DrawMutators();

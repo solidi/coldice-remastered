@@ -1079,6 +1079,22 @@ void CGameRules::MutatorsThink(void)
 					m_flChaosMutatorTime = 0;
 					ALERT(at_console, "Mutator chaos disabled.\n");
 				}
+				else if (!strcmp(addmutator.string, "clear"))
+				{
+					MESSAGE_BEGIN(MSG_ALL, gmsgAddMutator);
+						WRITE_BYTE(254);
+						WRITE_BYTE(mutatorTime);
+					MESSAGE_END();
+
+					m_flChaosMutatorTime = 0;
+
+					mutators_t *t = m_Mutators;
+					while (t != NULL)
+					{
+						t->timeToLive = gpGlobals->time;
+						t = t->next;
+					}
+				}
 				else
 				{
 					for (int i = 0; i < MAX_MUTATORS; i++)
