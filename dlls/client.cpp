@@ -894,6 +894,166 @@ void ClientCommand( edict_t *pEntity )
 		CBasePlayer * pPlayer = GetClassPtr((CBasePlayer *)pev);
 		pPlayer->ExitObserver();
 	}
+	else if ( FStrEq(pcmd, "mapname" ) )
+	{
+		//gEngfuncs.pfnGetLevelName()
+		extern int gmsgPlayClientSound;
+		MESSAGE_BEGIN( MSG_ONE_UNRELIABLE, gmsgPlayClientSound, NULL, pEntity );
+			WRITE_BYTE(CLIENT_SOUND_TAKENLEAD);
+		MESSAGE_END();
+		ALERT(at_console, "Map name is %s.bsp\n", STRING(gpGlobals->mapname));
+	}
+	else if ( FStrEq(pcmd, "eyes" ) )
+	{
+		static EHANDLE currentView;
+		CBaseEntity* pFound = currentView;
+		while ((pFound = UTIL_FindEntityInSphere(pFound, pev->origin, 500)) != NULL)
+		{
+			if (pFound->IsAlive())
+			{
+				if (strncmp(STRING(pFound->pev->classname), "monster_", 8) == 0)
+				{
+					ALERT(at_aiconsole, ">>> eyes set to %s\n", STRING(pFound->pev->classname));
+					//pFound->pev->view_ofs.z = 64;
+					//pev->view_ofs.z = 64;
+					//pev->view_ofs = Vector(0,0,64);
+					SET_VIEW(ENT(pev), ENT(pFound->pev));
+
+					ALERT(at_aiconsole, "ours->view_ofs.z = %.2f, theirs->view_ofs.z = %.2f\n", pev->view_ofs.z, pFound->pev->view_ofs.z);
+					//pev->fixangle = TRUE;
+					pev->angles.x = -pev->angles.x;
+					break;
+				}
+			}
+		}
+
+		currentView = pFound;
+	}
+	else if ( FStrEq(pcmd, "xeyes" ) )
+	{
+		SET_VIEW(ENT(pev), ENT(pev));
+		currentView = NULL;
+	}
+	else if (FStrEq(pcmd, "fx"))
+	{
+		CBasePlayer *pPlayer = GetClassPtr((CBasePlayer *)pev);
+
+		pPlayer->pev->frags += 1;
+
+		if (pPlayer->m_iBurstCount > kRenderFxLightMultiplier ||  pPlayer->m_iBurstCount < kRenderFxNone)
+			pPlayer->m_iBurstCount = kRenderFxNone;
+
+		ClientPrint( pev, HUD_PRINTCONSOLE, UTIL_VarArgs( "fx set to: %d\n", pPlayer->m_iBurstCount ));
+		
+		/*MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
+			WRITE_BYTE( TE_PARTICLEBURST );
+			WRITE_COORD(pev->origin.x);
+			WRITE_COORD(pev->origin.y);
+			WRITE_COORD(pev->origin.z);
+			WRITE_SHORT( 50 );
+			WRITE_BYTE((unsigned short)pPlayer->m_iBurstCount++);
+			WRITE_BYTE( 5 );
+		MESSAGE_END();*/
+
+		pPlayer->pev->renderfx = pPlayer->m_iBurstCount++;
+	}
+	else if (FStrEq(pcmd, "render"))
+	{
+		CBasePlayer *pPlayer = GetClassPtr((CBasePlayer *)pev);
+		if (pPlayer->m_iModeCount > kRenderTransAdd ||  pPlayer->m_iModeCount < kRenderNormal)
+			pPlayer->m_iModeCount = kRenderNormal;
+
+		ClientPrint( pev, HUD_PRINTCONSOLE, UTIL_VarArgs( "render set to: %d\n", pPlayer->m_iModeCount ));
+
+		pPlayer->pev->rendermode = pPlayer->m_iModeCount++;
+	}
+	else if (FStrEq(pcmd, "amt"))
+	{
+		CBasePlayer *pPlayer = GetClassPtr((CBasePlayer *)pev);
+		if (pPlayer->m_iAmt > 255 ||  pPlayer->m_iAmt < 0)
+			pPlayer->m_iAmt = 0;
+
+		ClientPrint( pev, HUD_PRINTCONSOLE, UTIL_VarArgs( "amt set to: %d\n", pPlayer->m_iAmt ));
+
+		pPlayer->pev->renderamt = pPlayer->m_iAmt++;
+	}
+	else if ( FStrEq( pcmd, "fog_off") )
+	{
+		CBasePlayer *pPlayer = GetClassPtr((CBasePlayer *)pev);
+		CBaseEntity *pEntity = UTIL_FindEntityByClassname(NULL, "env_fog");
+		if (pEntity)
+		{
+			pEntity->Use( CBaseEntity::Instance(pev), CBaseEntity::Instance(pev), USE_OFF, 0 );
+		}
+	}
+	else if ( FStrEq( pcmd, "fog_on") )
+	{
+		CBasePlayer *pPlayer = GetClassPtr((CBasePlayer *)pev);
+		CBaseEntity *pEntity = UTIL_FindEntityByClassname(NULL, "env_fog");
+		if (pEntity)
+		{
+			pEntity->Use( CBaseEntity::Instance(pev), CBaseEntity::Instance(pev), USE_ON, 0 );
+		}
+	}
+	else if ( FStrEq( pcmd, "send") )
+	{
+		CBasePlayer *pPlayer = GetClassPtr((CBasePlayer *)pev);
+		extern int gmsgObjective;
+		char text[256];
+		sprintf(text, "%d, %d, %d", RANDOM_LONG(1,100), RANDOM_LONG(1,100), RANDOM_LONG(1,100));
+		MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, pPlayer->edict());
+			WRITE_STRING(text);
+			WRITE_STRING("xyz");
+			WRITE_BYTE(RANDOM_LONG(1,100));
+		MESSAGE_END();
+	}
+	else if ( FStrEq(pcmd, "prop" ) )
+	{
+		CBasePlayer *pPlayer = GetClassPtr((CBasePlayer *)pev);
+
+		SET_MODEL(ENT(pev), "models/w_weapons.mdl");
+		UTIL_SetSize(pPlayer->pev, VEC_DUCK_HULL_MIN, VEC_DUCK_HULL_MAX);
+
+		pPlayer->pev->health = 1;
+		pPlayer->pev->armorvalue = 0;
+		pPlayer->pev->fuser4 = 1;
+		//DROP_TO_FLOOR ( ENT(pPlayer->pev) );
+		ALERT(at_aiconsole, "now set to fuser4 > 0\n");
+		CLIENT_COMMAND(pPlayer->edict(), "thirdperson\n");
+	}
+	else if ( FStrEq(pcmd, "exprop" ) )
+	{
+		CBasePlayer *pPlayer = GetClassPtr((CBasePlayer *)pev);
+		pPlayer->pev->fuser4 = 0;
+		ALERT(at_aiconsole, "now set to fuser4=> 0\n");
+		CLIENT_COMMAND(pPlayer->edict(), "firstperson\n");
+	}
+	else if ( FStrEq(pcmd, "decoy" ) )
+	{
+		CBasePlayer *pPlayer = GetClassPtr((CBasePlayer *)pev);
+		UTIL_MakeVectors( pPlayer->pev->v_angle );
+		Vector vecSrc = pPlayer->pev->origin + pPlayer->pev->view_ofs + gpGlobals->v_forward * 64 + gpGlobals->v_up * 18;
+
+		if (pPlayer->m_iPropsDeployed < 10)
+		{
+			CBaseEntity *p = CBaseEntity::Create( "monster_propdecoy", vecSrc, Vector(0, pPlayer->pev->v_angle.y, 0), NULL );
+			if (p)
+			{
+				p->pev->body = pPlayer->pev->fuser4;
+			}
+		}
+		else
+			ClientPrint(pPlayer->pev, HUD_PRINTCENTER, "All decoys are deployed.\n");
+	}
+	else if ( FStrEq( pcmd, "km" )  )
+	{
+		edict_t *pEdict = FIND_ENTITY_BY_STRING(NULL, "message", "horde");
+		while (!FNullEnt(pEdict))
+		{
+			UTIL_Remove(CBaseEntity::Instance(pEdict));
+			pEdict = FIND_ENTITY_BY_STRING(pEdict, "message", "horde");
+		}
+	}
 #endif
 	else if ( FStrEq( pcmd, "specmode" )  )	// new spectator mode
 	{
