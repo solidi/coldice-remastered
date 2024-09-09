@@ -514,19 +514,19 @@ void CBasePlayer :: TraceAttack( entvars_t *pevAttacker, float flDamage, Vector 
 		// Any hint of farts is deadly
 		if (FBitSet(bitsDamageType, DMG_FART))
 		{
-			MESSAGE_BEGIN( MSG_PVS, SVC_TEMPENTITY, pev->origin );
-				WRITE_BYTE( TE_SMOKE );
-				WRITE_COORD( pev->origin.x );
-				WRITE_COORD( pev->origin.y );
-				WRITE_COORD( pev->origin.z );
-				WRITE_SHORT( g_sModelIndexFartSmoke );
-				WRITE_BYTE( 48 ); // scale * 10
-				WRITE_BYTE( 4 ); // framerate
-			MESSAGE_END();
-
 			if (!FBitSet(pev->effects, EF_NODRAW) &&
 				!FBitSet(pev->effects, FL_GODMODE))
 			{
+				MESSAGE_BEGIN( MSG_PVS, SVC_TEMPENTITY, pev->origin );
+					WRITE_BYTE( TE_SMOKE );
+					WRITE_COORD( pev->origin.x );
+					WRITE_COORD( pev->origin.y );
+					WRITE_COORD( pev->origin.z );
+					WRITE_SHORT( g_sModelIndexFartSmoke );
+					WRITE_BYTE( 48 ); // scale * 10
+					WRITE_BYTE( 4 ); // framerate
+				MESSAGE_END();
+
 				pev->health = 0;
 				ClearMultiDamage();
 				Killed( pevAttacker, GIB_NORMAL );
