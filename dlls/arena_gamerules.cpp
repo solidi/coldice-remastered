@@ -303,11 +303,11 @@ void CHalfLifeArena::Think( void )
 
 		char *key = g_engfuncs.pfnGetInfoKeyBuffer(pPlayer1->edict());
 		strncpy( pPlayer1->m_szTeamName, "blue", TEAM_NAME_LENGTH );
-		g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer1->edict()), key, "team", pPlayer1->m_szTeamName);
+		//g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer1->edict()), key, "team", pPlayer1->m_szTeamName);
 
 		key = g_engfuncs.pfnGetInfoKeyBuffer(pPlayer2->edict());
 		strncpy( pPlayer2->m_szTeamName, "red", TEAM_NAME_LENGTH );
-		g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer2->edict()), key, "team", pPlayer2->m_szTeamName);
+		//g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer2->edict()), key, "team", pPlayer2->m_szTeamName);
 
 		// notify everyone's HUD of the team change
 		MESSAGE_BEGIN( MSG_ALL, gmsgTeamInfo );

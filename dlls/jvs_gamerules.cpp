@@ -501,8 +501,8 @@ void CHalfLifeJesusVsSanta::PlayerSpawn( CBasePlayer *pPlayer )
 		strncpy( pPlayer->m_szTeamName, "jesus", TEAM_NAME_LENGTH );
 		g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer->edict()),
 			g_engfuncs.pfnGetInfoKeyBuffer(pPlayer->edict()), "model", "jesus");
-		g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer->edict()),
-			g_engfuncs.pfnGetInfoKeyBuffer(pPlayer->edict()), "team", "jesus");
+		//g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer->edict()),
+		//	g_engfuncs.pfnGetInfoKeyBuffer(pPlayer->edict()), "team", "jesus");
 	}
 	else
 	{
@@ -510,8 +510,8 @@ void CHalfLifeJesusVsSanta::PlayerSpawn( CBasePlayer *pPlayer )
 		strncpy( pPlayer->m_szTeamName, "santa", TEAM_NAME_LENGTH );
 		g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer->edict()),
 			g_engfuncs.pfnGetInfoKeyBuffer(pPlayer->edict()), "model", "santa");
-		g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer->edict()),
-			g_engfuncs.pfnGetInfoKeyBuffer(pPlayer->edict()), "team", "santa");
+		//g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer->edict()),
+		//	g_engfuncs.pfnGetInfoKeyBuffer(pPlayer->edict()), "team", "santa");
 	}
 
 	// notify everyone's HUD of the team change

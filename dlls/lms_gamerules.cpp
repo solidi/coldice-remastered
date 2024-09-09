@@ -413,7 +413,7 @@ void CHalfLifeLastManStanding::PlayerSpawn( CBasePlayer *pPlayer )
 
 	char *key = g_engfuncs.pfnGetInfoKeyBuffer(pPlayer->edict());
 	strncpy( pPlayer->m_szTeamName, "Active", TEAM_NAME_LENGTH );
-	g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer->edict()), key, "team", "Active");
+	//g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer->edict()), key, "team", "Active");
 
 	// notify everyone's HUD of the team change
 	MESSAGE_BEGIN( MSG_ALL, gmsgTeamInfo );

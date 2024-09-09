@@ -560,7 +560,7 @@ void CHud :: Init( void )
 	HOOK_MESSAGE( AddMut );
 	HOOK_MESSAGE( Chaos );
 
-	CVAR_CREATE( "hud_classautokill", "1", FCVAR_ARCHIVE | FCVAR_USERINFO );		// controls whether or not to suicide immediately on TF class switch
+	// CVAR_CREATE( "hud_classautokill", "1", FCVAR_ARCHIVE | FCVAR_USERINFO );		// controls whether or not to suicide immediately on TF class switch
 	CVAR_CREATE( "hud_takesshots", "0", FCVAR_ARCHIVE );		// controls whether or not to automatically take screenshots at the end of a round
 	cl_rollangle = CVAR_CREATE( "cl_rollangle", "0.65", FCVAR_CLIENTDLL | FCVAR_ARCHIVE );
 	cl_rollspeed = CVAR_CREATE( "cl_rollspeed", "300", FCVAR_CLIENTDLL | FCVAR_ARCHIVE );
@@ -581,13 +581,13 @@ void CHud :: Init( void )
 	cl_showtips = CVAR_CREATE( "cl_showtips", "1", FCVAR_ARCHIVE );
 	cl_flashonpickup = CVAR_CREATE( "cl_flashonpickup", "1", FCVAR_ARCHIVE );
 	CVAR_CREATE("cl_shadows", "0", FCVAR_ARCHIVE);
-	CVAR_CREATE( "cl_autowepswitch", "1", FCVAR_ARCHIVE | FCVAR_USERINFO );
-	CVAR_CREATE( "cl_infomessage", "1", FCVAR_ARCHIVE | FCVAR_USERINFO );
-	CVAR_CREATE( "cl_autowepthrow", "1", FCVAR_ARCHIVE | FCVAR_USERINFO );
+	CVAR_CREATE( "cl_aws", "1", FCVAR_ARCHIVE | FCVAR_USERINFO );
+	CVAR_CREATE( "cl_minfo", "1", FCVAR_ARCHIVE | FCVAR_USERINFO );
+	CVAR_CREATE( "cl_awt", "1", FCVAR_ARCHIVE | FCVAR_USERINFO );
 	cl_lifemeter = CVAR_CREATE( "cl_lifemeters", "1", FCVAR_ARCHIVE );
 	cl_achievements = CVAR_CREATE( "cl_achievements", "3", FCVAR_ARCHIVE );
 	cl_antivomit = CVAR_CREATE( "cl_antivomit", "0", FCVAR_ARCHIVE );
-	cl_keyboardacrobatics = CVAR_CREATE( "cl_keyboardacrobatics", "1", FCVAR_ARCHIVE | FCVAR_USERINFO );
+	cl_keyboardacrobatics = CVAR_CREATE( "cl_kacro", "1", FCVAR_ARCHIVE | FCVAR_USERINFO );
 	cl_weather = CVAR_CREATE( "cl_weather", "3", FCVAR_ARCHIVE | FCVAR_USERINFO );
 	cl_hudscale = CVAR_CREATE( "cl_hudscale", "0", FCVAR_ARCHIVE );
 	cl_hudbend = CVAR_CREATE( "cl_hudbend", "0.0", FCVAR_ARCHIVE );
@@ -599,9 +599,9 @@ void CHud :: Init( void )
 	cl_customtempents = CVAR_CREATE("cl_customtempents", "1", FCVAR_ARCHIVE);
 	cl_voiceoverpath = CVAR_CREATE("cl_voiceoverpath", "", FCVAR_ARCHIVE);
 	cl_objectives = CVAR_CREATE("cl_objectives", "1", FCVAR_ARCHIVE);
-	CVAR_CREATE( "cl_automelee", "1", FCVAR_ARCHIVE | FCVAR_USERINFO );
-	CVAR_CREATE( "cl_autotaunt", "1", FCVAR_ARCHIVE | FCVAR_USERINFO );
-	CVAR_CREATE( "cl_playmusic", "1", FCVAR_ARCHIVE | FCVAR_USERINFO );
+	CVAR_CREATE( "cl_am", "1", FCVAR_ARCHIVE | FCVAR_USERINFO );
+	CVAR_CREATE( "cl_at", "1", FCVAR_ARCHIVE | FCVAR_USERINFO );
+	CVAR_CREATE( "cl_music", "1", FCVAR_ARCHIVE | FCVAR_USERINFO );
 	cl_crosshairammo = CVAR_CREATE("cl_crosshairammo", "1", FCVAR_ARCHIVE);
 
 	cl_vmx = CVAR_CREATE( "cl_vmx", "0", FCVAR_ARCHIVE );

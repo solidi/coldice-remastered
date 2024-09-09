@@ -331,14 +331,14 @@ void CMultiplayBusters::SetPlayerModel( CBasePlayer* pPlayer )
 		pPlayer->pev->fuser4 = 1;
 		strncpy( pPlayer->m_szTeamName, "busters", TEAM_NAME_LENGTH );
 		g_engfuncs.pfnSetClientKeyValue( pPlayer->entindex(), g_engfuncs.pfnGetInfoKeyBuffer( pPlayer->edict() ), "model", "frost" );
-		g_engfuncs.pfnSetClientKeyValue( pPlayer->entindex(), g_engfuncs.pfnGetInfoKeyBuffer( pPlayer->edict() ), "team", pPlayer->m_szTeamName );
+		//g_engfuncs.pfnSetClientKeyValue( pPlayer->entindex(), g_engfuncs.pfnGetInfoKeyBuffer( pPlayer->edict() ), "team", pPlayer->m_szTeamName );
 	}
 	else
 	{
 		pPlayer->pev->fuser4 = 0;
 		strncpy( pPlayer->m_szTeamName, "ghosts", TEAM_NAME_LENGTH );
 		g_engfuncs.pfnSetClientKeyValue( pPlayer->entindex(), g_engfuncs.pfnGetInfoKeyBuffer( pPlayer->edict() ), "model", "skeleton" );
-		g_engfuncs.pfnSetClientKeyValue( pPlayer->entindex(), g_engfuncs.pfnGetInfoKeyBuffer( pPlayer->edict() ), "team", pPlayer->m_szTeamName );
+		//g_engfuncs.pfnSetClientKeyValue( pPlayer->entindex(), g_engfuncs.pfnGetInfoKeyBuffer( pPlayer->edict() ), "team", pPlayer->m_szTeamName );
 	}
 
 	MESSAGE_BEGIN( MSG_ALL, gmsgTeamInfo );

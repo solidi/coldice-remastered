@@ -1273,7 +1273,7 @@ void CHalfLifeMultiplay :: ClientDisconnected( edict_t *pClient )
 
 			// Reset Jope name.
 			char *key = g_engfuncs.pfnGetInfoKeyBuffer(pPlayer->edict());
-			char *name = g_engfuncs.pfnInfoKeyValue(key, "oname");
+			char *name = g_engfuncs.pfnInfoKeyValue(key, "j");
 			if (name && strlen(name))
 				g_engfuncs.pfnSetClientKeyValue(pPlayer->entindex(), key, "name", name);
 
@@ -2868,7 +2868,7 @@ int CountPlayers( void )
 			if (pEnt->IsPlayer())
 			{
 				char *key = g_engfuncs.pfnGetInfoKeyBuffer(pEnt->edict());
-				char *name = g_engfuncs.pfnInfoKeyValue(key, "oname");
+				char *name = g_engfuncs.pfnInfoKeyValue(key, "j");
 				if (name && strlen(name))
 					g_engfuncs.pfnSetClientKeyValue(pEnt->entindex(), key, "name", name);
 			}

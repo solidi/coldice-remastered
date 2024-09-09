@@ -1735,7 +1735,7 @@ public:
 };
 
 #define MAX_MODES	GAME_TEAMPLAY + 1 // TEAMPLAY + RANDOM
-#define MAX_MAPS	31 // training2 (29) + RANDOM
+#define MAX_MAPS	32 // training2 (29) + RANDOM
 #define MAX_MUTATORS	MUTATOR_VOLATILE + 1 // MUTATOR_VOLATILE + RANDOM
 
 class CVoteGameplayPanel : public CMenuPanel

@@ -1080,10 +1080,10 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"+ironsight\" - Use ironsights\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_achievements [0|1|2|3]\" - displays fast fragging achievements\n" );
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_announcehumor [0|1]\" - Play announcement/humor on weapons\n" );
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_automelee [0|1]\" - auto kick or punch an enemy if they are close\n" );
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_autotaunt [0|1]\" - auto taunt on frag when its safe to do so\n" );
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_autowepswitch [0|1]\" - auto switches weapon on pickup\n" );
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_autowepthrow [0|1]\" - auto throws weapon on empty\n" );
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_am [0|1]\" - auto kick or punch an enemy if they are close\n" );
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_at [0|1]\" - auto taunt on frag when its safe to do so\n" );
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_aws [0|1]\" - auto switches weapon on pickup\n" );
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_awt [0|1]\" - auto throws weapon on empty\n" );
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_bobtilt [0|1]\" - Old Bob Tilt\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_bulletsmoke [0|1]\" - turn on or off bullet smoke and flare effects\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_crosshairammo [0|1]\" - show ammo status in crosshairs\n" );
@@ -1095,13 +1095,13 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_hudbend\" - experimental bending factor of HUD elements\n" );
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_hudscale\" - experimental scaling factor of HUD elements\n" );
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_icemodels [0-6]\" - changes models with specific ice skins\n");
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_infomessage [0|1]\" - display weapon and rune pick up messages\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_minfo [0|1]\" - display weapon and rune pick up messages\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_objectives [0|1]\" - show objective read out on HUD\n" );
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_oldmotd [0|1]\" - Old MOTD (Message of the Day)\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_oldscoreboard [0|1]\" - Old Scoreboard\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_particlesystem [0|1]\" enables or disables special effects like the flamethrower\n" );
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_playpoint [0|1]\" - Play ding when inflicting damage, dong for frag\n" );
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_playmusic [0|1]\" - Play soundtrack set by map\n" );
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_music [0|1]\" - Play soundtrack set by map\n" );
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "For more, type help_more\n" );
 	}
 	else if ( FStrEq( pcmd, "help_more" )  )
@@ -1332,31 +1332,31 @@ void ClientUserInfoChanged( edict_t *pEntity, char *infobuffer )
 
 	CBasePlayer *pl = GetClassPtr((CBasePlayer *)&pEntity->v);
 
-	char* pszAutoWepSwitch = g_engfuncs.pfnInfoKeyValue( infobuffer, "cl_autowepswitch");
+	char* pszAutoWepSwitch = g_engfuncs.pfnInfoKeyValue( infobuffer, "cl_aws");
 	if (strlen(pszAutoWepSwitch))
 		pl->m_iAutoWepSwitch = atoi(pszAutoWepSwitch);
 
-	char* pszAutoWepThrow = g_engfuncs.pfnInfoKeyValue( infobuffer, "cl_autowepthrow");
+	char* pszAutoWepThrow = g_engfuncs.pfnInfoKeyValue( infobuffer, "cl_awt");
 	if (strlen(pszAutoWepThrow))
 		pl->m_iAutoWepThrow = atoi(pszAutoWepThrow);
 
-	char* pszDisplayInfoMessage = g_engfuncs.pfnInfoKeyValue( infobuffer, "cl_infomessage");
+	char* pszDisplayInfoMessage = g_engfuncs.pfnInfoKeyValue( infobuffer, "cl_minfo");
 	if (strlen(pszDisplayInfoMessage))
 		pl->m_iDisplayInfoMessage = atoi(pszDisplayInfoMessage);
 
-	char* pszKeyboardAcrobatics = g_engfuncs.pfnInfoKeyValue(infobuffer, "cl_keyboardacrobatics");
+	char* pszKeyboardAcrobatics = g_engfuncs.pfnInfoKeyValue(infobuffer, "cl_kacro");
 	if (strlen(pszKeyboardAcrobatics))
 		pl->m_iKeyboardAcrobatics = atoi(pszKeyboardAcrobatics);
 
-	char* pszAutoMelee = g_engfuncs.pfnInfoKeyValue( infobuffer, "cl_automelee");
+	char* pszAutoMelee = g_engfuncs.pfnInfoKeyValue( infobuffer, "cl_am");
 	if (strlen(pszAutoMelee))
 		pl->m_iAutoMelee = atoi(pszAutoMelee);
 
-	char* pszAutoTaunt = g_engfuncs.pfnInfoKeyValue( infobuffer, "cl_autotaunt");
+	char* pszAutoTaunt = g_engfuncs.pfnInfoKeyValue( infobuffer, "cl_at");
 	if (strlen(pszAutoTaunt))
 		pl->m_iAutoTaunt = atoi(pszAutoTaunt);
 
-	char* pszPlayMusic = g_engfuncs.pfnInfoKeyValue( infobuffer, "cl_playmusic");
+	char* pszPlayMusic = g_engfuncs.pfnInfoKeyValue( infobuffer, "cl_music");
 	if (strlen(pszPlayMusic))
 	{
 		int newvalue = atoi(pszPlayMusic);

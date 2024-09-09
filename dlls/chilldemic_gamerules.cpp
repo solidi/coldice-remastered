@@ -582,7 +582,7 @@ void CHalfLifeChilldemic::PlayerSpawn( CBasePlayer *pPlayer )
 
 		strncpy( pPlayer->m_szTeamName, "skeleton", TEAM_NAME_LENGTH );
 		g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer->edict()), key, "model", "skeleton");
-		g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer->edict()), key, "team", "skeleton");
+		//g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer->edict()), key, "team", "skeleton");
 	}
 	else
 	{
@@ -596,7 +596,7 @@ void CHalfLifeChilldemic::PlayerSpawn( CBasePlayer *pPlayer )
 
 		strncpy( pPlayer->m_szTeamName, "survivors", TEAM_NAME_LENGTH );
 		g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer->edict()), key, "model", modelName);
-		g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer->edict()), key, "team", "survivors");
+		//g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer->edict()), key, "team", "survivors");
 	}
 
 	// notify everyone's HUD of the team change
@@ -671,8 +671,8 @@ void CHalfLifeChilldemic::PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller
 
 		g_engfuncs.pfnSetClientKeyValue( ENTINDEX( pVictim->edict() ),
 			g_engfuncs.pfnGetInfoKeyBuffer( pVictim->edict() ), "model", "skeleton" );
-		g_engfuncs.pfnSetClientKeyValue( ENTINDEX( pVictim->edict() ),
-			g_engfuncs.pfnGetInfoKeyBuffer( pVictim->edict() ), "team", "skeleton" );
+		//g_engfuncs.pfnSetClientKeyValue( ENTINDEX( pVictim->edict() ),
+		//	g_engfuncs.pfnGetInfoKeyBuffer( pVictim->edict() ), "team", "skeleton" );
 		
 		strncpy( pVictim->m_szTeamName, "skeleton", TEAM_NAME_LENGTH );
 	}
