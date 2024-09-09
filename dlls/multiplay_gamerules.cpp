@@ -298,17 +298,17 @@ void CHalfLifeMultiplay :: Think ( void )
 		else if ( time > MAX_INTERMISSION_TIME )
 			CVAR_SET_STRING( "mp_chattime", UTIL_dtos1( MAX_INTERMISSION_TIME ) );
 
-		int timeLeft = voting.value ? 102 : 0;
+		int timeLeft = (voting.value * 3) + 12;
 		m_flIntermissionEndTime = g_flIntermissionStartTime + mp_chattime.value + timeLeft;
 
-		if (voting.value)
+		if (voting.value >= 10)
 		{
 			if (m_iVoteUnderway == 1 && ((m_flIntermissionEndTime - mp_chattime.value - (timeLeft - 3)) < gpGlobals->time))
 			{
 				m_iVoteUnderway = 2;
 
 				MESSAGE_BEGIN(MSG_ALL, gmsgVoteGameplay);
-					WRITE_BYTE(1);
+					WRITE_BYTE(voting.value);
 				MESSAGE_END();
 				MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
 					WRITE_BYTE(CLIENT_SOUND_VOTEGAME);
@@ -325,7 +325,7 @@ void CHalfLifeMultiplay :: Think ( void )
 				}
 			}
 			// Game mode vote ended
-			else if (m_iVoteUnderway == 2 && ((m_flIntermissionEndTime - mp_chattime.value - (timeLeft - 33)) < gpGlobals->time))
+			else if (m_iVoteUnderway == 2 && ((m_flIntermissionEndTime - mp_chattime.value - (timeLeft - voting.value - 3)) < gpGlobals->time))
 			{
 				m_iVoteUnderway = 3;
 
@@ -393,12 +393,12 @@ void CHalfLifeMultiplay :: Think ( void )
 			}
 
 			// Mutator vote STARTED
-			if (m_iVoteUnderway == 3 && ((m_flIntermissionEndTime - mp_chattime.value - (timeLeft - 36)) < gpGlobals->time))
+			if (m_iVoteUnderway == 3 && ((m_flIntermissionEndTime - mp_chattime.value - (timeLeft - voting.value - 6)) < gpGlobals->time))
 			{
 				m_iVoteUnderway = 4;
 
 				MESSAGE_BEGIN(MSG_ALL, gmsgVoteMutator);
-					WRITE_BYTE(1);
+					WRITE_BYTE(voting.value);
 				MESSAGE_END();
 				MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
 					WRITE_BYTE(CLIENT_SOUND_VOTEMUTATOR);
@@ -410,14 +410,13 @@ void CHalfLifeMultiplay :: Think ( void )
 					CBasePlayer *pPlayer = (CBasePlayer *)UTIL_PlayerByIndex( i );
 					if (pPlayer && FBitSet(pPlayer->pev->flags, FL_FAKECLIENT) && !pPlayer->HasDisconnected)
 					{
-						ALERT(at_aiconsole, "BOT mutator vote!\n");
 						::Vote(pPlayer, RANDOM_LONG(MUTATOR_CHAOS, MAX_MUTATORS + 1 /*random*/));
 					}
 				}
 			}
 
 			// Mutator vote ended
-			if (m_iVoteUnderway == 4 && ((m_flIntermissionEndTime - mp_chattime.value - (timeLeft - 66)) < gpGlobals->time))
+			if (m_iVoteUnderway == 4 && ((m_flIntermissionEndTime - mp_chattime.value - (timeLeft - (voting.value * 2) - 6)) < gpGlobals->time))
 			{
 				m_iVoteUnderway = 5;
 
@@ -537,12 +536,12 @@ void CHalfLifeMultiplay :: Think ( void )
 			}
 
 			// Map vote STARTED
-			if (m_iVoteUnderway == 5 && ((m_flIntermissionEndTime - mp_chattime.value - (timeLeft - 69)) < gpGlobals->time))
+			if (m_iVoteUnderway == 5 && ((m_flIntermissionEndTime - mp_chattime.value - (timeLeft - (voting.value * 2) - 9)) < gpGlobals->time))
 			{
 				m_iVoteUnderway = 6;
 
 				MESSAGE_BEGIN(MSG_ALL, gmsgVoteMap);
-					WRITE_BYTE(1);
+					WRITE_BYTE(voting.value);
 				MESSAGE_END();
 				MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
 					WRITE_BYTE(CLIENT_SOUND_VOTEMAP);
@@ -554,14 +553,13 @@ void CHalfLifeMultiplay :: Think ( void )
 					CBasePlayer *pPlayer = (CBasePlayer *)UTIL_PlayerByIndex( i );
 					if (pPlayer && FBitSet(pPlayer->pev->flags, FL_FAKECLIENT) && !pPlayer->HasDisconnected)
 					{
-						ALERT(at_aiconsole, "BOT vote!\n");
 						::Vote(pPlayer, RANDOM_LONG(1, BUILT_IN_MAP_COUNT + 1));
 					}
 				}
 			}
 
 			// Map vote ended
-			if (m_iVoteUnderway == 6 && (((m_flIntermissionEndTime - mp_chattime.value) - (timeLeft - 99)) < gpGlobals->time))
+			if (m_iVoteUnderway == 6 && (((m_flIntermissionEndTime - mp_chattime.value) - (timeLeft - (voting.value * 3) - 9)) < gpGlobals->time))
 			{
 				m_iVoteUnderway = 0;
 
@@ -1543,6 +1541,10 @@ void CHalfLifeMultiplay :: PlayerSpawn( CBasePlayer *pPlayer )
 	{
 		return;
 	}
+
+	// Pause player during voting
+	if (m_iVoteUnderway)
+		pPlayer->EnableControl(FALSE);
 
 	BOOL		addDefault;
 	CBaseEntity	*pWeaponEntity = NULL;
@@ -2554,9 +2556,9 @@ void CHalfLifeMultiplay :: GoToIntermission( void )
 	m_flIntermissionEndTime = gpGlobals->time + ( (int)mp_chattime.value );
 	g_flIntermissionStartTime = gpGlobals->time;
 
-	if (voting.value)
+	if (voting.value >= 10)
 	{
-		m_flIntermissionEndTime += 102; 
+		m_flIntermissionEndTime += (voting.value * 3) + 12; 
 		m_iVoteUnderway = 1;
 	}
 

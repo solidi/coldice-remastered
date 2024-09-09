@@ -864,19 +864,19 @@ void ClientCommand( edict_t *pEntity )
 	else if ( FStrEq( pcmd, "votegameplay") )
 	{
 		MESSAGE_BEGIN(MSG_ALL, gmsgVoteGameplay);
-			WRITE_BYTE(1);
+			WRITE_BYTE(10);
 		MESSAGE_END();
 	}
 	else if ( FStrEq( pcmd, "votemap") )
 	{
 		MESSAGE_BEGIN(MSG_ALL, gmsgVoteMap);
-			WRITE_BYTE(1);
+			WRITE_BYTE(10);
 		MESSAGE_END();
 	}
 	else if ( FStrEq( pcmd, "votemutator") )
 	{
 		MESSAGE_BEGIN(MSG_ALL, gmsgVoteMutator);
-			WRITE_BYTE(1);
+			WRITE_BYTE(10);
 		MESSAGE_END();
 	}
 	else if ( FStrEq( pcmd, "endgame") )
@@ -1029,7 +1029,7 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_spawnweapons\" - Spawn weapons or not\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_startwithall [0|1]\" - Start with all weapons\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_startwithlives\" - Sets the starting lifes during battle royale\n");
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_voting \"[0|1]\"\" - enable or disable end of the map voting\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_voting [time]\" - enable or disable end of the map voting with timer\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_acrobatics [0|1]\" allow or disallow wall climbing, slides, and flips\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_breakabletime\" - amount of seconds before a breakable entity respawns\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_chaosfilter\" - a list of mutators inwhich are ignored during chaos mode\n");

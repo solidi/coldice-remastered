@@ -2015,7 +2015,7 @@ CMenuPanel* TeamFortressViewport::CreateTextWindow( int iTextToShow )
 
 //================================================================
 // VGUI Menus
-void TeamFortressViewport::ShowVGUIMenu( int iMenu )
+void TeamFortressViewport::ShowVGUIMenu( int iMenu, int timer )
 {
 	CMenuPanel *pNewMenu = NULL;
 
@@ -2070,15 +2070,15 @@ void TeamFortressViewport::ShowVGUIMenu( int iMenu )
 		break;
 
 	case MENU_VOTEGAMEPLAY:
-		pNewMenu = ShowVoteGameplayMenu();
+		pNewMenu = ShowVoteGameplayMenu(timer);
 		break;
 
 	case MENU_VOTEMAP:
-		pNewMenu = ShowVoteMapMenu();
+		pNewMenu = ShowVoteMapMenu(timer);
 		break;
 
 	case MENU_VOTEMUTATOR:
-		pNewMenu = ShowVoteMutatorMenu();
+		pNewMenu = ShowVoteMutatorMenu(timer);
 		break;
 
 	default:
@@ -2204,13 +2204,14 @@ void TeamFortressViewport::CreateClassMenu()
 
 //======================================================================================
 
-CMenuPanel* TeamFortressViewport::ShowVoteGameplayMenu()
+CMenuPanel* TeamFortressViewport::ShowVoteGameplayMenu(int timer)
 {
 	// Don't open menus in demo playback
 	if ( gEngfuncs.pDemoAPI->IsPlayingback() )
 		return NULL;
 
 	m_pVoteGameplayMenu->Reset();
+	m_pVoteGameplayMenu->m_iTime = timer;
 	return m_pVoteGameplayMenu;
 }
 
@@ -2224,13 +2225,14 @@ void TeamFortressViewport::CreateVoteGameplayMenu()
 
 //======================================================================================
 
-CMenuPanel* TeamFortressViewport::ShowVoteMapMenu()
+CMenuPanel* TeamFortressViewport::ShowVoteMapMenu(int timer)
 {
 	// Don't open menus in demo playback
 	if ( gEngfuncs.pDemoAPI->IsPlayingback() )
 		return NULL;
 
 	m_pVoteMapMenu->Reset();
+	m_pVoteMapMenu->m_iTime = timer;
 	return m_pVoteMapMenu;
 }
 
@@ -2244,13 +2246,14 @@ void TeamFortressViewport::CreateVoteMapMenu()
 
 //======================================================================================
 
-CMenuPanel* TeamFortressViewport::ShowVoteMutatorMenu()
+CMenuPanel* TeamFortressViewport::ShowVoteMutatorMenu(int timer)
 {
 	// Don't open menus in demo playback
 	if ( gEngfuncs.pDemoAPI->IsPlayingback() )
 		return NULL;
 
 	m_pVoteMutatorMenu->Reset();
+	m_pVoteMutatorMenu->m_iTime = timer;
 	return m_pVoteMutatorMenu;
 }
 
@@ -2660,10 +2663,10 @@ int TeamFortressViewport::MsgFunc_MOTD( const char *pszName, int iSize, void *pb
 int TeamFortressViewport::MsgFunc_VoteGame( const char *pszName, int iSize, void *pbuf )
 {
 	BEGIN_READ( pbuf, iSize );
-	int show = READ_BYTE();
+	int timer = READ_BYTE();
 	
-	if (show > 0)
-		ShowVGUIMenu( MENU_VOTEGAMEPLAY );
+	if (timer > 0)
+		ShowVGUIMenu( MENU_VOTEGAMEPLAY, timer );
 	else
 	{
 		// Clear old votes
@@ -2695,10 +2698,10 @@ int TeamFortressViewport::MsgFunc_VoteFor( const char *pszName, int iSize, void 
 int TeamFortressViewport::MsgFunc_VoteMap( const char *pszName, int iSize, void *pbuf )
 {
 	BEGIN_READ( pbuf, iSize );
-	int show = READ_BYTE();
+	int timer = READ_BYTE();
 	
-	if (show > 0)
-		ShowVGUIMenu( MENU_VOTEMAP );
+	if (timer > 0)
+		ShowVGUIMenu( MENU_VOTEMAP, timer );
 	else
 	{
 		// Clear old votes
@@ -2713,10 +2716,10 @@ int TeamFortressViewport::MsgFunc_VoteMap( const char *pszName, int iSize, void 
 int TeamFortressViewport::MsgFunc_VoteMutator( const char *pszName, int iSize, void *pbuf )
 {
 	BEGIN_READ( pbuf, iSize );
-	int show = READ_BYTE();
+	int timer = READ_BYTE();
 	
-	if (show > 0)
-		ShowVGUIMenu( MENU_VOTEMUTATOR );
+	if (timer > 0)
+		ShowVGUIMenu( MENU_VOTEMUTATOR, timer );
 	else
 	{
 		// Clear old votes

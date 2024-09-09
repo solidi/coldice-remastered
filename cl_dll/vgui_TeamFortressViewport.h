@@ -524,11 +524,11 @@ private:
 	void		 CreateSpectatorMenu( void );
 
 	void		 CreateVoteGameplayMenu( void );
-	CMenuPanel*	 ShowVoteGameplayMenu( void );
+	CMenuPanel*	 ShowVoteGameplayMenu( int timer );
 	void		 CreateVoteMapMenu( void );
-	CMenuPanel*	 ShowVoteMapMenu( void );
+	CMenuPanel*	 ShowVoteMapMenu( int timer );
 	void		 CreateVoteMutatorMenu( void );
-	CMenuPanel*	 ShowVoteMutatorMenu( void );
+	CMenuPanel*	 ShowVoteMutatorMenu( int timer );
 	
 	// Scheme handler
 	CSchemeManager m_SchemeManager;
@@ -598,7 +598,7 @@ public:
 
 	bool AllowedToPrintText( void );
 
-	void ShowVGUIMenu( int iMenu );
+	void ShowVGUIMenu( int iMenu, int timer = 0 );
 	void HideVGUIMenu( void );
 	void HideTopMenu( void );
 
@@ -1751,7 +1751,6 @@ private:
 	int					m_iCurrentInfo;
 
 	float				m_fStartTime;
-	float				m_iTime;
 
 public:
 	CVoteGameplayPanel(int iTrans, int iRemoveMe, int x,int y,int wide,int tall);
@@ -1769,6 +1768,8 @@ public:
 		m_iTime = 30.0;
 		m_iCurrentInfo = 0;
 	}
+
+	float m_iTime;
 };
 
 class CVoteMapPanel : public CMenuPanel
@@ -1780,7 +1781,6 @@ private:
 	int					m_iCurrentInfo;
 
 	float				m_fStartTime;
-	float				m_iTime;
 
 public:
 	CVoteMapPanel(int iTrans, int iRemoveMe, int x,int y,int wide,int tall);
@@ -1798,6 +1798,8 @@ public:
 		m_iTime = 30.0;
 		m_iCurrentInfo = 0;
 	}
+
+	float m_iTime;
 };
 
 class CVoteMutatorPanel : public CMenuPanel
@@ -1809,7 +1811,6 @@ private:
 	int					m_iCurrentInfo;
 
 	float				m_fStartTime;
-	float				m_iTime;
 
 public:
 	CVoteMutatorPanel(int iTrans, int iRemoveMe, int x,int y,int wide,int tall);
@@ -1827,6 +1828,8 @@ public:
 		m_iTime = 30.0;
 		m_iCurrentInfo = 0;
 	}
+
+	float m_iTime;
 };
 
 class CTeamMenuPanel : public CMenuPanel
