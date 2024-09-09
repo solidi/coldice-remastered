@@ -1041,7 +1041,7 @@ BOOL CHalfLifeMultiplay::FShouldSwitchWeapon( CBasePlayer *pPlayer, CBasePlayerI
 	return FALSE;
 }
 
-BOOL CHalfLifeMultiplay :: GetNextBestWeapon( CBasePlayer *pPlayer, CBasePlayerItem *pCurrentWeapon, BOOL dropBox )
+BOOL CHalfLifeMultiplay :: GetNextBestWeapon( CBasePlayer *pPlayer, CBasePlayerItem *pCurrentWeapon, BOOL dropBox, BOOL explode )
 {
 
 	CBasePlayerItem *pCheck;
@@ -1058,7 +1058,7 @@ BOOL CHalfLifeMultiplay :: GetNextBestWeapon( CBasePlayer *pPlayer, CBasePlayerI
 		return FALSE;
 	}
 
-	if (!dropBox && pPlayer->ShouldWeaponThrow() && 
+	if (!dropBox && explode && pPlayer->ShouldWeaponThrow() && 
 		((CBasePlayerWeapon *)pCurrentWeapon)->pszAmmo1() != NULL &&
 		!(((CBasePlayerWeapon *)pCurrentWeapon)->iFlags() & ITEM_FLAG_LIMITINWORLD))
 	{

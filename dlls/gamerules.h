@@ -78,7 +78,7 @@ public:
 
 	virtual BOOL FAllowFlashlight( void ) = 0;// Are players allowed to switch on their flashlight?
 	virtual BOOL FShouldSwitchWeapon( CBasePlayer *pPlayer, CBasePlayerItem *pWeapon ) = 0;// should the player switch to this weapon?
-	virtual BOOL GetNextBestWeapon( CBasePlayer *pPlayer, CBasePlayerItem *pCurrentWeapon, BOOL dropBox ) = 0;// I can't use this weapon anymore, get me the next best one.
+	virtual BOOL GetNextBestWeapon( CBasePlayer *pPlayer, CBasePlayerItem *pCurrentWeapon, BOOL dropBox, BOOL explode ) = 0;// I can't use this weapon anymore, get me the next best one.
 
 // Functions to verify the single/multiplayer status of a game
 	virtual BOOL IsMultiplayer( void ) = 0;// is this a multiplayer game? (either coop or deathmatch)
@@ -254,7 +254,7 @@ public:
 	virtual BOOL FAllowFlashlight( void ) { return TRUE; };
 
 	virtual BOOL FShouldSwitchWeapon( CBasePlayer *pPlayer, CBasePlayerItem *pWeapon );
-	virtual BOOL GetNextBestWeapon( CBasePlayer *pPlayer, CBasePlayerItem *pCurrentWeapon, BOOL dropBox );
+	virtual BOOL GetNextBestWeapon( CBasePlayer *pPlayer, CBasePlayerItem *pCurrentWeapon, BOOL dropBox, BOOL explode );
 	
 // Functions to verify the single/multiplayer status of a game
 	virtual BOOL IsMultiplayer( void );
@@ -362,7 +362,7 @@ public:
 	virtual BOOL FAllowFlashlight( void );
 
 	virtual BOOL FShouldSwitchWeapon( CBasePlayer *pPlayer, CBasePlayerItem *pWeapon );
-	virtual BOOL GetNextBestWeapon( CBasePlayer *pPlayer, CBasePlayerItem *pCurrentWeapon, BOOL dropBox );
+	virtual BOOL GetNextBestWeapon( CBasePlayer *pPlayer, CBasePlayerItem *pCurrentWeapon, BOOL dropBox, BOOL explode );
 
 // Functions to verify the single/multiplayer status of a game
 	virtual BOOL IsMultiplayer( void );

@@ -5403,6 +5403,10 @@ public:
 
 private:
 	EHANDLE m_hOwner;
+	enum {
+		ATTRACT = 0,
+		REPEL
+	};
 };
 
 LINK_ENTITY_TO_CLASS( monster_grabweapon, CGrabWeapon );
@@ -5457,14 +5461,14 @@ void CGrabWeapon::GrabWeaponThink( void )
 {
 	Vector vecDir;
 	
-	if (pev->iuser1 == 0)
+	if (pev->iuser1 == ATTRACT)
 		vecDir = ( m_hOwner->pev->origin - pev->origin );
 	else
 		vecDir = ( pev->enemy->v.origin - pev->origin );
 
 	vecDir = vecDir.Normalize();
 
-	if (pev->iuser1 == 0)
+	if (pev->iuser1 == ATTRACT)
 		pev->velocity = vecDir * 400;
 	else
 		pev->velocity = vecDir * 1900;
@@ -5488,6 +5492,7 @@ void CGrabWeapon::GrabWeaponTouch( CBaseEntity *pOther )
 		{
 			CBasePlayer *plr = (CBasePlayer *)pOther;
 			plr->m_EFlags &= ~EFLAG_FORCEGRAB;
+			plr->m_fForceGrabTime = 0;
 			if (plr->m_pActiveItem)
 			{
 				((CBasePlayerWeapon *)plr->m_pActiveItem)->m_flNextPrimaryAttack = 
@@ -5504,7 +5509,7 @@ void CGrabWeapon::GrabWeaponTouch( CBaseEntity *pOther )
 			EMIT_SOUND_DYN(pOther->edict(), CHAN_WEAPON, "items/gunpickup2.wav", 1.0, ATTN_NORM, 0, 98 + RANDOM_LONG(0,3)); 
 			UTIL_Remove(this);
 		}
-		else if (pev->iuser1 > 0 && pev->enemy)
+		else if (pev->iuser1 == REPEL && pev->enemy)
 		{
 			ClearMultiDamage();
 			CBaseEntity *e = CBaseEntity::Instance(pev->enemy);
@@ -5570,7 +5575,7 @@ void CBasePlayer::StartForceGrab( void )
 	if (pHit && pHit->IsPlayer())
 	{
 		CBasePlayer *plr = (CBasePlayer *)pHit;
-		if (plr->m_pActiveItem)
+		if (plr->m_pActiveItem && stricmp(STRING(plr->m_pActiveItem->pev->classname), "weapon_fists") != 0)
 		{
 			m_Banana = CBaseEntity::Create("monster_grabweapon", tr.vecEndPos, Vector(-90, pev->angles.y + 90, -90), edict());
 			if (m_Banana)
@@ -5583,7 +5588,7 @@ void CBasePlayer::StartForceGrab( void )
 				EMIT_SOUND(edict(), CHAN_VOICE, "odetojoy.wav", 1, ATTN_NORM);
 
 				ClientPrint(plr->pev, HUD_PRINTCENTER, "Your weapon has been taken!\n");
-				plr->DropPlayerItem("", FALSE);
+				plr->DropPlayerItem("", FALSE, FALSE);
 			}
 		}
 	}
@@ -5620,7 +5625,7 @@ void CBasePlayer::TryGrabAgain( void )
 		if (pHit && pHit->IsPlayer())
 		{
 			CBasePlayer *plr = (CBasePlayer *)pHit;
-			if (plr->m_pActiveItem)
+			if (plr->m_pActiveItem && stricmp(STRING(plr->m_pActiveItem->pev->classname), "weapon_fists") != 0)
 			{
 				m_Banana = CBaseEntity::Create("monster_grabweapon", tr.vecEndPos, Vector(-90, pev->angles.y + 90, -90), edict());
 				if (m_Banana)
@@ -6834,7 +6839,7 @@ int CBasePlayer :: GetCustomDecalFrames( void )
 // DropPlayerItem - drop the named item, or if no name,
 // the active item. 
 //=========================================================
-void CBasePlayer::DropPlayerItem ( char *pszItemName, BOOL weaponbox )
+void CBasePlayer::DropPlayerItem ( char *pszItemName, BOOL weaponbox, BOOL explode )
 {
 	if ( !g_pGameRules->IsAllowedToDropWeapon(this) )
 		return;
@@ -6891,7 +6896,7 @@ void CBasePlayer::DropPlayerItem ( char *pszItemName, BOOL weaponbox )
 				return;
 			}
 
-			if ( !g_pGameRules->GetNextBestWeapon( this, pWeapon, weaponbox ) )
+			if ( !g_pGameRules->GetNextBestWeapon( this, pWeapon, weaponbox, explode ) )
 				return; // can't drop the item they asked for, may be our last item or something we can't holster
 
 			UTIL_MakeVectors ( pev->angles ); 
