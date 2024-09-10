@@ -23,6 +23,7 @@
 #include "game.h"
 #include "items.h"
 #include "voice_gamemgr.h"
+#include "trains.h"
 
 #define EGON_BUSTING_TIME 10
 
@@ -136,9 +137,9 @@ void CMultiplayBusters::PlayerKilled( CBasePlayer* pVictim, entvars_t* pKiller, 
 			if (!IsPlayerBusting(peKiller))
 				peKiller->m_iRoundWins++;
 		}
-		/*else if ( ktmp && ( ktmp->Classify() == CLASS_VEHICLE ) )
+		else if ( ktmp && ( ktmp->Classify() == CLASS_VEHICLE ) )
 		{
-			CBasePlayer *pDriver = ( (CFuncVehicle*)ktmp )->m_pDriver;
+			CBasePlayer *pDriver = (CBasePlayer *)((CFuncVehicle*)ktmp )->m_pDriver;
 
 			if ( pDriver != NULL )
 			{
@@ -146,7 +147,7 @@ void CMultiplayBusters::PlayerKilled( CBasePlayer* pVictim, entvars_t* pKiller, 
 				ktmp = pDriver;
 				pKiller = pDriver->pev;
 			}
-		}*/
+		}
 
 		if ( peKiller )
 		{
