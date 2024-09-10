@@ -1225,10 +1225,12 @@ void CGameRules::MutatorsThink(void)
 				CBasePlayer *pl = (CBasePlayer *)pPlayer;
 				if (pPlayer && pPlayer->IsPlayer())
 				{
-					char *key = g_engfuncs.pfnGetInfoKeyBuffer(pl->edict());
-					char *name = g_engfuncs.pfnInfoKeyValue(key, "j");
+					char *name = g_engfuncs.pfnInfoKeyValue(g_engfuncs.pfnGetInfoKeyBuffer( pl->edict() ), "j");
 					if (name && strlen(name))
-						g_engfuncs.pfnSetClientKeyValue(pl->entindex(), key, "name", name);
+					{
+						g_engfuncs.pfnSetClientKeyValue(pl->entindex(), g_engfuncs.pfnGetInfoKeyBuffer( pl->edict() ), "name", name);
+						g_engfuncs.pfnSetClientKeyValue(pl->entindex(), g_engfuncs.pfnGetInfoKeyBuffer( pl->edict() ), "j", "");
+					}
 				}
 			}
 		}
@@ -1249,10 +1251,10 @@ void CGameRules::MutatorsThink(void)
 			{
 				if (m_JopeCheck)
 				{
-					char name[64], *key = g_engfuncs.pfnGetInfoKeyBuffer(pPlayer->edict());
+					char name[64];
 					strcpy(name, STRING(pl->pev->netname));
-					g_engfuncs.pfnSetClientKeyValue(pl->entindex(), key, "j", name);
-					g_engfuncs.pfnSetClientKeyValue(pl->entindex(), key, "name", "Jope");
+					g_engfuncs.pfnSetClientKeyValue(pl->entindex(), g_engfuncs.pfnGetInfoKeyBuffer( pl->edict() ), "j", name);
+					g_engfuncs.pfnSetClientKeyValue(pl->entindex(), g_engfuncs.pfnGetInfoKeyBuffer( pl->edict() ), "name", "Jope");
 				}
 
 				if (MutatorEnabled(MUTATOR_CREDITS))

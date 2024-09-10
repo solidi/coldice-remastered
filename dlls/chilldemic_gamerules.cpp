@@ -558,6 +558,8 @@ void CHalfLifeChilldemic::PlayerSpawn( CBasePlayer *pPlayer )
 {
 	CHalfLifeMultiplay::PlayerSpawn(pPlayer);
 
+	CHalfLifeMultiplay::SavePlayerModel(pPlayer);
+
 	// Place player in spectator mode if joining during a game
 	// Or if the game begins that requires spectators
 	if ((g_GameInProgress && !pPlayer->IsInArena) || (!g_GameInProgress && IsRoundBased()))
@@ -569,8 +571,8 @@ void CHalfLifeChilldemic::PlayerSpawn( CBasePlayer *pPlayer )
 	char *key = g_engfuncs.pfnGetInfoKeyBuffer(pPlayer->edict());
 	char *mdls = g_engfuncs.pfnInfoKeyValue(key, "model");
 	if (strcmp(mdls, "skeleton"))
-		g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer->edict()), key, "pmodel", mdls);
-	char *pmodel = g_engfuncs.pfnInfoKeyValue(key, "pmodel");
+		g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer->edict()), key, "pm", mdls);
+	char *pmodel = g_engfuncs.pfnInfoKeyValue(key, "pm");
 
 	if ( pPlayer->pev->fuser4 > 0 )
 	{

@@ -1271,11 +1271,7 @@ void CHalfLifeMultiplay :: ClientDisconnected( edict_t *pClient )
 		{
 			FireTargets( "game_playerleave", pPlayer, pPlayer, USE_TOGGLE, 0 );
 
-			// Reset Jope name.
-			char *key = g_engfuncs.pfnGetInfoKeyBuffer(pPlayer->edict());
-			char *name = g_engfuncs.pfnInfoKeyValue(key, "j");
-			if (name && strlen(name))
-				g_engfuncs.pfnSetClientKeyValue(pPlayer->entindex(), key, "name", name);
+			ResetPlayerSettings(pPlayer);
 
 			// team match?
 			if ( g_teamplay )
@@ -2542,8 +2538,13 @@ void CHalfLifeMultiplay :: GoToIntermission( void )
 	for ( int i = 1; i <= gpGlobals->maxClients; i++ )
 	{
 		CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
-		if ( plr && plr->pev->flags & FL_FAKECLIENT )
-			plr->EnableControl(FALSE);
+		if ( plr )
+		{
+			if ( plr->pev->flags & FL_FAKECLIENT )
+				plr->EnableControl(FALSE);
+			
+			ResetPlayerSettings(plr);
+		}
 	}
 
 	// bounds check
@@ -2863,16 +2864,6 @@ int CountPlayers( void )
 		if ( pEnt )
 		{
 			num = num + 1;
-
-			// Reset Jope name.
-			if (pEnt->IsPlayer())
-			{
-				char *key = g_engfuncs.pfnGetInfoKeyBuffer(pEnt->edict());
-				char *name = g_engfuncs.pfnInfoKeyValue(key, "j");
-				if (name && strlen(name))
-					g_engfuncs.pfnSetClientKeyValue(pEnt->entindex(), key, "name", name);
-			}
-
 		}
 	}
 
@@ -3145,4 +3136,37 @@ BOOL CHalfLifeMultiplay::MutatorAllowed(const char *mutator)
 		return !(g_GameMode == GAME_SNOWBALL);
 	
 	return TRUE;
+}
+
+// For gameplay that changes player models, save their current model
+void CHalfLifeMultiplay::SavePlayerModel(CBasePlayer *pPlayer)
+{
+	char *key = g_engfuncs.pfnGetInfoKeyBuffer(pPlayer->edict());
+	char *om = g_engfuncs.pfnInfoKeyValue(key, "om");
+	if (!om || !strlen(om))
+	{
+		char model[64];
+		strcpy(model, g_engfuncs.pfnInfoKeyValue(key, "model"));
+		if (model && strlen(model))
+			g_engfuncs.pfnSetClientKeyValue(pPlayer->entindex(), key, "om", model);
+	}
+}
+
+void CHalfLifeMultiplay::ResetPlayerSettings(CBasePlayer *pPlayer)
+{
+	// Reset Jope name.
+	char *name = g_engfuncs.pfnInfoKeyValue(g_engfuncs.pfnGetInfoKeyBuffer( pPlayer->edict() ), "j");
+	if (name && strlen(name))
+	{
+		g_engfuncs.pfnSetClientKeyValue(pPlayer->entindex(), g_engfuncs.pfnGetInfoKeyBuffer( pPlayer->edict() ), "name", name);
+		g_engfuncs.pfnSetClientKeyValue(pPlayer->entindex(), g_engfuncs.pfnGetInfoKeyBuffer( pPlayer->edict() ), "j", "");
+	}
+
+	// Reset model if available.
+	char *model = g_engfuncs.pfnInfoKeyValue(g_engfuncs.pfnGetInfoKeyBuffer( pPlayer->edict() ), "om");
+	if (model && strlen(model))
+	{
+		g_engfuncs.pfnSetClientKeyValue(pPlayer->entindex(), g_engfuncs.pfnGetInfoKeyBuffer( pPlayer->edict() ), "model", model);
+		g_engfuncs.pfnSetClientKeyValue(pPlayer->entindex(), g_engfuncs.pfnGetInfoKeyBuffer( pPlayer->edict() ), "om", "");
+	}
 }

@@ -22,6 +22,7 @@ public:
 	virtual BOOL IsSpawnPointValid( CBaseEntity *pSpot );
 	virtual void InitHUD( CBasePlayer *pPlayer );
 	virtual void Think( void );
+	virtual void PlayerSpawn( CBasePlayer *pPlayer );
 	virtual int GetTeamIndex( const char *pTeamName );
 	virtual int PlayerRelationship( CBaseEntity *pPlayer, CBaseEntity *pTarget );
 	virtual const char *GetTeamID( CBaseEntity *pEntity );

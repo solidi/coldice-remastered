@@ -32,6 +32,8 @@ extern int gmsgTeamInfo;
 extern int gmsgScoreInfo;
 extern int gmsgPlayClientSound;
 
+extern DLL_GLOBAL BOOL g_fGameOver;
+
 bool IsPlayerBusting( CBaseEntity* pPlayer )
 {
 	if ( !pPlayer || !pPlayer->IsPlayer() || !g_pGameRules->IsBusters() )
@@ -84,7 +86,10 @@ void CMultiplayBusters::InitHUD( CBasePlayer *pPlayer )
 
 void CMultiplayBusters::Think()
 {
-	CheckForEgons();
+	if (!g_fGameOver)
+	{
+		CheckForEgons();
+	}
 
 	CHalfLifeMultiplay::Think();
 }
@@ -313,14 +318,14 @@ void CMultiplayBusters::PlayerGotWeapon( CBasePlayer* pPlayer, CBasePlayerItem* 
 void CMultiplayBusters::ClientUserInfoChanged( CBasePlayer* pPlayer, char* infobuffer )
 {
 	SetPlayerModel( pPlayer );
-
-	// Set preferences
-	// pPlayer->SetPrefsFromUserinfo( infobuffer );
 }
 
 void CMultiplayBusters::PlayerSpawn( CBasePlayer* pPlayer )
 {
 	CHalfLifeMultiplay::PlayerSpawn( pPlayer );
+
+	CHalfLifeMultiplay::SavePlayerModel(pPlayer);
+
 	SetPlayerModel( pPlayer );
 }
 

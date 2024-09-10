@@ -588,6 +588,13 @@ const char *CHalfLifeCaptureTheFlag::GetTeamID( CBaseEntity *pEntity )
 	return pEntity->TeamID();
 }
 
+void CHalfLifeCaptureTheFlag::PlayerSpawn( CBasePlayer *pPlayer )
+{
+	CHalfLifeMultiplay::PlayerSpawn( pPlayer );
+
+	CHalfLifeMultiplay::SavePlayerModel(pPlayer);
+}
+
 void CHalfLifeCaptureTheFlag::ClientUserInfoChanged( CBasePlayer *pPlayer, char *infobuffer )
 {
 	// prevent skin/color/model changes

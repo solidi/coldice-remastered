@@ -482,6 +482,9 @@ public:
 	virtual BOOL CanRandomizeWeapon(const char *name) { return TRUE; }
 	virtual BOOL MutatorAllowed(const char *mutator);
 
+	void SavePlayerModel(CBasePlayer *pPlayer);
+	void ResetPlayerSettings(CBasePlayer *pPlayer);
+
 protected:
 	virtual void ChangeLevel( void );
 	virtual void GoToIntermission( void );

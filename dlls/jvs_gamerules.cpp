@@ -484,6 +484,8 @@ void CHalfLifeJesusVsSanta::PlayerSpawn( CBasePlayer *pPlayer )
 {
 	CHalfLifeMultiplay::PlayerSpawn(pPlayer);
 
+	CHalfLifeMultiplay::SavePlayerModel(pPlayer);
+
 	// Place player in spectator mode if joining during a game
 	// Or if the game begins that requires spectators
 	if ((g_GameInProgress && !pPlayer->IsInArena) || (!g_GameInProgress && IsRoundBased()))
