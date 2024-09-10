@@ -688,31 +688,34 @@ BOOL CGameRules::WeaponMutators( CBasePlayerWeapon *pWeapon )
 			}
 		}
 
-		if (MutatorEnabled(MUTATOR_ROCKETS))
+		if (pWeapon->m_flStartThrow == 0 && pWeapon->m_fireState == 0)
 		{
-			if (!pWeapon->m_bFired && RANDOM_LONG(0,10) == 2) {
-				pWeapon->ThrowRocket(FALSE);
+			if (MutatorEnabled(MUTATOR_ROCKETS))
+			{
+				if (!pWeapon->m_bFired && RANDOM_LONG(0,10) == 2) {
+					pWeapon->ThrowRocket(FALSE);
+				}
 			}
-		}
-		
-		if (MutatorEnabled(MUTATOR_GRENADES))
-		{
-			if (!pWeapon->m_bFired && RANDOM_LONG(0,10) == 2) {
-				pWeapon->ThrowGrenade(FALSE);
+			
+			if (MutatorEnabled(MUTATOR_GRENADES))
+			{
+				if (!pWeapon->m_bFired && RANDOM_LONG(0,10) == 2) {
+					pWeapon->ThrowGrenade(FALSE);
+				}
 			}
-		}
-		
-		if (MutatorEnabled(MUTATOR_SNOWBALL))
-		{
-			if (!pWeapon->m_bFired && RANDOM_LONG(0,10) == 2) {
-				pWeapon->ThrowSnowball(FALSE);
+			
+			if (MutatorEnabled(MUTATOR_SNOWBALL))
+			{
+				if (!pWeapon->m_bFired && RANDOM_LONG(0,10) == 2) {
+					pWeapon->ThrowSnowball(FALSE);
+				}
 			}
-		}
 
-		if (MutatorEnabled(MUTATOR_PUSHY))
-		{
-			UTIL_MakeVectors( pWeapon->m_pPlayer->pev->v_angle );
-			pWeapon->m_pPlayer->pev->velocity = pWeapon->m_pPlayer->pev->velocity - gpGlobals->v_forward * RANDOM_FLOAT(50,100) * 5;
+			if (MutatorEnabled(MUTATOR_PUSHY))
+			{
+				UTIL_MakeVectors( pWeapon->m_pPlayer->pev->v_angle );
+				pWeapon->m_pPlayer->pev->velocity = pWeapon->m_pPlayer->pev->velocity - gpGlobals->v_forward * RANDOM_FLOAT(50,100) * 5;
+			}
 		}
 	}
 
