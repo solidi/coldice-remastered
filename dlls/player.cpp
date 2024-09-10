@@ -514,19 +514,19 @@ void CBasePlayer :: TraceAttack( entvars_t *pevAttacker, float flDamage, Vector 
 		// Any hint of farts is deadly
 		if (FBitSet(bitsDamageType, DMG_FART))
 		{
-			MESSAGE_BEGIN( MSG_PVS, SVC_TEMPENTITY, pev->origin );
-				WRITE_BYTE( TE_SMOKE );
-				WRITE_COORD( pev->origin.x );
-				WRITE_COORD( pev->origin.y );
-				WRITE_COORD( pev->origin.z );
-				WRITE_SHORT( g_sModelIndexFartSmoke );
-				WRITE_BYTE( 48 ); // scale * 10
-				WRITE_BYTE( 4 ); // framerate
-			MESSAGE_END();
-
 			if (!FBitSet(pev->effects, EF_NODRAW) &&
 				!FBitSet(pev->effects, FL_GODMODE))
 			{
+				MESSAGE_BEGIN( MSG_PVS, SVC_TEMPENTITY, pev->origin );
+					WRITE_BYTE( TE_SMOKE );
+					WRITE_COORD( pev->origin.x );
+					WRITE_COORD( pev->origin.y );
+					WRITE_COORD( pev->origin.z );
+					WRITE_SHORT( g_sModelIndexFartSmoke );
+					WRITE_BYTE( 48 ); // scale * 10
+					WRITE_BYTE( 4 ); // framerate
+				MESSAGE_END();
+
 				pev->health = 0;
 				ClearMultiDamage();
 				Killed( pevAttacker, GIB_NORMAL );
@@ -887,7 +887,23 @@ void CBasePlayer::PackDeadPlayerItems( void )
 
 	if ( m_fHasRune )
 	{
-		CWorldRunes::DropRune(this);
+		// Avoid clustering of runes in battle
+		CBaseEntity *pEntity = NULL;
+		BOOL found = FALSE;
+
+		while ((pEntity = UTIL_FindEntityInSphere(pEntity, pev->origin, 256)) != NULL)
+		{
+			if (strncmp(STRING(pEntity->pev->classname), "rune_", 5) == 0)
+			{
+				found = TRUE;
+				break;
+			}
+		}
+
+		if (!found)
+		{
+			CWorldRunes::DropRune(this);
+		}
 	}
 
 	if (pFlag)
@@ -924,24 +940,53 @@ void CBasePlayer::PackDeadPlayerItems( void )
 			iPA = 0;
 			iPW = 0;
 
-		// pack the ammo
-			while ( iPackAmmo[ iPA ] != -1 )
+			if ( g_pGameRules->IsBusters() )
 			{
-				pWeaponBox->PackAmmo( MAKE_STRING( CBasePlayerItem::AmmoInfoArray[ iPackAmmo[ iPA ] ].pszName ), m_rgAmmo[ iPackAmmo[ iPA ] ] );
-				iPA++;
-			}
+				if ( HasNamedPlayerItem( "weapon_egon" ) )
+				{
+					for ( i = 0; i < MAX_ITEM_TYPES; i++ )
+					{
+						CBasePlayerItem *pItem = m_rgpPlayerItems[i];
 
-		// now pack all of the items in the lists
-			while ( rgpPackWeapons[ iPW ] )
+						if ( pItem )
+						{
+							if ( !strcmp( "weapon_egon", STRING( pItem->pev->classname ) ) )
+							{
+								pWeaponBox->PackWeapon( pItem );
+
+								pWeaponBox->pev->body = WEAPON_EGON - 1;
+								pWeaponBox->pev->velocity = vec3_t( 0, 0, 0 );
+								pWeaponBox->pev->renderfx = kRenderFxGlowShell;
+								pWeaponBox->pev->renderamt = 25;
+								pWeaponBox->pev->rendercolor = Vector( 0, 75, 250 );
+
+								break;
+							}
+						}
+					}
+				}
+			}
+			else
 			{
-				// ALERT(at_console, "[rgpPackWeapons[ iPW ]=%s]\n", STRING(rgpPackWeapons[ iPW ]->pev->classname));
-				// weapon unhooked from the player. Pack it into der box.
-				pWeaponBox->PackWeapon( rgpPackWeapons[ iPW ] );
+			// pack the ammo
+				while ( iPackAmmo[ iPA ] != -1 )
+				{
+					pWeaponBox->PackAmmo( MAKE_STRING( CBasePlayerItem::AmmoInfoArray[ iPackAmmo[ iPA ] ].pszName ), m_rgAmmo[ iPackAmmo[ iPA ] ] );
+					iPA++;
+				}
 
-				iPW++;
+			// now pack all of the items in the lists
+				while ( rgpPackWeapons[ iPW ] )
+				{
+					// ALERT(at_console, "[rgpPackWeapons[ iPW ]=%s]\n", STRING(rgpPackWeapons[ iPW ]->pev->classname));
+					// weapon unhooked from the player. Pack it into der box.
+					pWeaponBox->PackWeapon( rgpPackWeapons[ iPW ] );
+
+					iPW++;
+				}
+
+				pWeaponBox->pev->velocity = pev->velocity * 1.2;// weaponbox has player's velocity, then some.
 			}
-
-			pWeaponBox->pev->velocity = pev->velocity * 1.2;// weaponbox has player's velocity, then some.
 		}
 	}
 
@@ -5129,9 +5174,9 @@ void CBasePlayer::StartHurricaneKick( void )
 	if (pev->waterlevel == 3)
 		return;
 
-	if (m_fFlipTime < gpGlobals->time && pev->velocity.Length2D() > 100) {
+	if (m_fFlipTime < gpGlobals->time) {
 		UTIL_MakeVectors(pev->angles);
-		pev->velocity = (gpGlobals->v_forward * 600) + (gpGlobals->v_up * 300);
+		pev->velocity = (pev->velocity + (gpGlobals->v_forward * pev->velocity.Length2D())) + (gpGlobals->v_up * 300);
 
 		m_fFlipTime = gpGlobals->time + 1.375;
 		SetAnimation( PLAYER_HURRICANE_KICK );
@@ -5306,30 +5351,28 @@ void CBasePlayer::AutoMelee()
 		float flMaxDot = VIEW_FIELD_NARROW;
 		float flDot;
 
-		if (!FBitSet(pev->flags, FL_FAKECLIENT))
+		while ((pObject = UTIL_FindEntityInSphere( pObject, pev->origin, 96 )) != NULL)
 		{
-			while ((pObject = UTIL_FindEntityInSphere( pObject, pev->origin, 96 )) != NULL)
+			if (strstr(interactiveitems.string, STRING(pObject->pev->classname)) != NULL &&
+				pObject->pev->owner != edict())
 			{
-				if (strstr(interactiveitems.string, STRING(pObject->pev->classname)) != NULL)
+				vecLOS = (VecBModelOrigin( pObject->pev ) - (pev->origin + pev->view_ofs));
+				vecLOS = UTIL_ClampVectorToBox( vecLOS, pObject->pev->size * 0.5 );
+				flDot = DotProduct (vecLOS , gpGlobals->v_forward);
+				if (flDot > flMaxDot)
 				{
-					vecLOS = (VecBModelOrigin( pObject->pev ) - (pev->origin + pev->view_ofs));
-					vecLOS = UTIL_ClampVectorToBox( vecLOS, pObject->pev->size * 0.5 );
-					flDot = DotProduct (vecLOS , gpGlobals->v_forward);
-					if (flDot > flMaxDot)
-					{
-						pClosest = pObject;
-						flMaxDot = flDot;
-					}
+					pClosest = pObject;
+					flMaxDot = flDot;
 				}
 			}
+		}
 
-			if ( pClosest ) {
-				if (m_pActiveItem)
-				{
-					((CBasePlayerWeapon *)m_pActiveItem)->StartKick(m_iHoldingItem);
-					m_flNextAutoMelee = gpGlobals->time + 0.75;
-					return;
-				}
+		if ( pClosest ) {
+			if (m_pActiveItem)
+			{
+				((CBasePlayerWeapon *)m_pActiveItem)->StartKick(m_iHoldingItem);
+				m_flNextAutoMelee = gpGlobals->time + 0.75;
+				return;
 			}
 		}
 	}
@@ -5360,6 +5403,10 @@ public:
 
 private:
 	EHANDLE m_hOwner;
+	enum {
+		ATTRACT = 0,
+		REPEL
+	};
 };
 
 LINK_ENTITY_TO_CLASS( monster_grabweapon, CGrabWeapon );
@@ -5414,14 +5461,14 @@ void CGrabWeapon::GrabWeaponThink( void )
 {
 	Vector vecDir;
 	
-	if (pev->iuser1 == 0)
+	if (pev->iuser1 == ATTRACT)
 		vecDir = ( m_hOwner->pev->origin - pev->origin );
 	else
 		vecDir = ( pev->enemy->v.origin - pev->origin );
 
 	vecDir = vecDir.Normalize();
 
-	if (pev->iuser1 == 0)
+	if (pev->iuser1 == ATTRACT)
 		pev->velocity = vecDir * 400;
 	else
 		pev->velocity = vecDir * 1900;
@@ -5445,6 +5492,7 @@ void CGrabWeapon::GrabWeaponTouch( CBaseEntity *pOther )
 		{
 			CBasePlayer *plr = (CBasePlayer *)pOther;
 			plr->m_EFlags &= ~EFLAG_FORCEGRAB;
+			plr->m_fForceGrabTime = 0;
 			if (plr->m_pActiveItem)
 			{
 				((CBasePlayerWeapon *)plr->m_pActiveItem)->m_flNextPrimaryAttack = 
@@ -5461,7 +5509,7 @@ void CGrabWeapon::GrabWeaponTouch( CBaseEntity *pOther )
 			EMIT_SOUND_DYN(pOther->edict(), CHAN_WEAPON, "items/gunpickup2.wav", 1.0, ATTN_NORM, 0, 98 + RANDOM_LONG(0,3)); 
 			UTIL_Remove(this);
 		}
-		else if (pev->iuser1 > 0 && pev->enemy)
+		else if (pev->iuser1 == REPEL && pev->enemy)
 		{
 			ClearMultiDamage();
 			CBaseEntity *e = CBaseEntity::Instance(pev->enemy);
@@ -5527,7 +5575,7 @@ void CBasePlayer::StartForceGrab( void )
 	if (pHit && pHit->IsPlayer())
 	{
 		CBasePlayer *plr = (CBasePlayer *)pHit;
-		if (plr->m_pActiveItem)
+		if (plr->m_pActiveItem && stricmp(STRING(plr->m_pActiveItem->pev->classname), "weapon_fists") != 0)
 		{
 			m_Banana = CBaseEntity::Create("monster_grabweapon", tr.vecEndPos, Vector(-90, pev->angles.y + 90, -90), edict());
 			if (m_Banana)
@@ -5540,7 +5588,7 @@ void CBasePlayer::StartForceGrab( void )
 				EMIT_SOUND(edict(), CHAN_VOICE, "odetojoy.wav", 1, ATTN_NORM);
 
 				ClientPrint(plr->pev, HUD_PRINTCENTER, "Your weapon has been taken!\n");
-				plr->DropPlayerItem("", FALSE);
+				plr->DropPlayerItem("", FALSE, FALSE);
 			}
 		}
 	}
@@ -5577,7 +5625,7 @@ void CBasePlayer::TryGrabAgain( void )
 		if (pHit && pHit->IsPlayer())
 		{
 			CBasePlayer *plr = (CBasePlayer *)pHit;
-			if (plr->m_pActiveItem)
+			if (plr->m_pActiveItem && stricmp(STRING(plr->m_pActiveItem->pev->classname), "weapon_fists") != 0)
 			{
 				m_Banana = CBaseEntity::Create("monster_grabweapon", tr.vecEndPos, Vector(-90, pev->angles.y + 90, -90), edict());
 				if (m_Banana)
@@ -6791,7 +6839,7 @@ int CBasePlayer :: GetCustomDecalFrames( void )
 // DropPlayerItem - drop the named item, or if no name,
 // the active item. 
 //=========================================================
-void CBasePlayer::DropPlayerItem ( char *pszItemName, BOOL weaponbox )
+void CBasePlayer::DropPlayerItem ( char *pszItemName, BOOL weaponbox, BOOL explode )
 {
 	if ( !g_pGameRules->IsAllowedToDropWeapon(this) )
 		return;
@@ -6848,7 +6896,7 @@ void CBasePlayer::DropPlayerItem ( char *pszItemName, BOOL weaponbox )
 				return;
 			}
 
-			if ( !g_pGameRules->GetNextBestWeapon( this, pWeapon, weaponbox ) )
+			if ( !g_pGameRules->GetNextBestWeapon( this, pWeapon, weaponbox, explode ) )
 				return; // can't drop the item they asked for, may be our last item or something we can't holster
 
 			UTIL_MakeVectors ( pev->angles ); 

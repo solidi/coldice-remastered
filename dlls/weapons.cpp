@@ -1375,7 +1375,7 @@ void CBasePlayerWeapon::ItemPostFrame( void )
 		if ( !IsUseable() && m_flNextPrimaryAttack < ( UseDecrement() ? 0.0 : gpGlobals->time ) ) 
 		{
 			// weapon isn't useable, switch.
-			if ( !(iFlags() & ITEM_FLAG_NOAUTOSWITCHEMPTY) && g_pGameRules->GetNextBestWeapon( m_pPlayer, this, FALSE ) )
+			if ( !(iFlags() & ITEM_FLAG_NOAUTOSWITCHEMPTY) && g_pGameRules->GetNextBestWeapon( m_pPlayer, this, FALSE, FALSE ) )
 			{
 				m_flNextPrimaryAttack = ( UseDecrement() ? 0.0 : gpGlobals->time ) + 0.3;
 				return;
@@ -2020,7 +2020,7 @@ void CBasePlayerWeapon::RetireWeapon( void )
 	m_pPlayer->pev->weaponmodel = iStringNull;
 	//m_pPlayer->pev->viewmodelindex = NULL;
 
-	g_pGameRules->GetNextBestWeapon( m_pPlayer, this, FALSE );
+	g_pGameRules->GetNextBestWeapon( m_pPlayer, this, FALSE, FALSE );
 }
 
 //=========================================================================
@@ -3198,7 +3198,7 @@ void CBasePlayerWeapon::ThrowWeapon( BOOL holdingSomething )
 	{
 		m_Banana->pev->velocity = gpGlobals->v_forward * RANDOM_LONG(400,600);
 		m_Banana->pev->body = m_pPlayer->m_pActiveItem->m_iId - 1;
-		m_pPlayer->DropPlayerItem("", FALSE);
+		m_pPlayer->DropPlayerItem("", FALSE, TRUE);
 	}
 }
 

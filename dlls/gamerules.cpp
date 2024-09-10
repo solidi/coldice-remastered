@@ -688,31 +688,34 @@ BOOL CGameRules::WeaponMutators( CBasePlayerWeapon *pWeapon )
 			}
 		}
 
-		if (MutatorEnabled(MUTATOR_ROCKETS))
+		if (pWeapon->m_flStartThrow == 0 && pWeapon->m_fireState == 0)
 		{
-			if (!pWeapon->m_bFired && RANDOM_LONG(0,10) == 2) {
-				pWeapon->ThrowRocket(FALSE);
+			if (MutatorEnabled(MUTATOR_ROCKETS))
+			{
+				if (!pWeapon->m_bFired && RANDOM_LONG(0,10) == 2) {
+					pWeapon->ThrowRocket(FALSE);
+				}
 			}
-		}
-		
-		if (MutatorEnabled(MUTATOR_GRENADES))
-		{
-			if (!pWeapon->m_bFired && RANDOM_LONG(0,10) == 2) {
-				pWeapon->ThrowGrenade(FALSE);
+			
+			if (MutatorEnabled(MUTATOR_GRENADES))
+			{
+				if (!pWeapon->m_bFired && RANDOM_LONG(0,10) == 2) {
+					pWeapon->ThrowGrenade(FALSE);
+				}
 			}
-		}
-		
-		if (MutatorEnabled(MUTATOR_SNOWBALL))
-		{
-			if (!pWeapon->m_bFired && RANDOM_LONG(0,10) == 2) {
-				pWeapon->ThrowSnowball(FALSE);
+			
+			if (MutatorEnabled(MUTATOR_SNOWBALL))
+			{
+				if (!pWeapon->m_bFired && RANDOM_LONG(0,10) == 2) {
+					pWeapon->ThrowSnowball(FALSE);
+				}
 			}
-		}
 
-		if (MutatorEnabled(MUTATOR_PUSHY))
-		{
-			UTIL_MakeVectors( pWeapon->m_pPlayer->pev->v_angle );
-			pWeapon->m_pPlayer->pev->velocity = pWeapon->m_pPlayer->pev->velocity - gpGlobals->v_forward * RANDOM_FLOAT(50,100) * 5;
+			if (MutatorEnabled(MUTATOR_PUSHY))
+			{
+				UTIL_MakeVectors( pWeapon->m_pPlayer->pev->v_angle );
+				pWeapon->m_pPlayer->pev->velocity = pWeapon->m_pPlayer->pev->velocity - gpGlobals->v_forward * RANDOM_FLOAT(50,100) * 5;
+			}
 		}
 	}
 
@@ -1079,6 +1082,22 @@ void CGameRules::MutatorsThink(void)
 					m_flChaosMutatorTime = 0;
 					ALERT(at_console, "Mutator chaos disabled.\n");
 				}
+				else if (!strcmp(addmutator.string, "clear"))
+				{
+					MESSAGE_BEGIN(MSG_ALL, gmsgAddMutator);
+						WRITE_BYTE(254);
+						WRITE_BYTE(mutatorTime);
+					MESSAGE_END();
+
+					m_flChaosMutatorTime = 0;
+
+					mutators_t *t = m_Mutators;
+					while (t != NULL)
+					{
+						t->timeToLive = gpGlobals->time;
+						t = t->next;
+					}
+				}
 				else
 				{
 					for (int i = 0; i < MAX_MUTATORS; i++)
@@ -1209,10 +1228,12 @@ void CGameRules::MutatorsThink(void)
 				CBasePlayer *pl = (CBasePlayer *)pPlayer;
 				if (pPlayer && pPlayer->IsPlayer())
 				{
-					char *key = g_engfuncs.pfnGetInfoKeyBuffer(pl->edict());
-					char *name = g_engfuncs.pfnInfoKeyValue(key, "oname");
+					char *name = g_engfuncs.pfnInfoKeyValue(g_engfuncs.pfnGetInfoKeyBuffer( pl->edict() ), "j");
 					if (name && strlen(name))
-						g_engfuncs.pfnSetClientKeyValue(pl->entindex(), key, "name", name);
+					{
+						g_engfuncs.pfnSetClientKeyValue(pl->entindex(), g_engfuncs.pfnGetInfoKeyBuffer( pl->edict() ), "name", name);
+						g_engfuncs.pfnSetClientKeyValue(pl->entindex(), g_engfuncs.pfnGetInfoKeyBuffer( pl->edict() ), "j", "");
+					}
 				}
 			}
 		}
@@ -1233,10 +1254,10 @@ void CGameRules::MutatorsThink(void)
 			{
 				if (m_JopeCheck)
 				{
-					char name[64], *key = g_engfuncs.pfnGetInfoKeyBuffer(pPlayer->edict());
+					char name[64];
 					strcpy(name, STRING(pl->pev->netname));
-					g_engfuncs.pfnSetClientKeyValue(pl->entindex(), key, "oname", name);
-					g_engfuncs.pfnSetClientKeyValue(pl->entindex(), key, "name", "Jope");
+					g_engfuncs.pfnSetClientKeyValue(pl->entindex(), g_engfuncs.pfnGetInfoKeyBuffer( pl->edict() ), "j", name);
+					g_engfuncs.pfnSetClientKeyValue(pl->entindex(), g_engfuncs.pfnGetInfoKeyBuffer( pl->edict() ), "name", "Jope");
 				}
 
 				if (MutatorEnabled(MUTATOR_CREDITS))

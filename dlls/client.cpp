@@ -255,11 +255,14 @@ void ClientPutInServer( edict_t *pEntity )
 
 	if (g_pGameRules->IsRoundBased())
 	{
+		pPlayer->pev->iuser1 = 1;
+		pPlayer->m_iObserverLastMode = 1;
 		pPlayer->m_flForceToObserverTime = 0;
 		pPlayer->pev->effects |= EF_NODRAW;
 		pPlayer->pev->solid = SOLID_NOT;
 		pPlayer->pev->movetype = MOVETYPE_NOCLIP;
 		pPlayer->pev->takedamage = DAMAGE_NO;
+		pPlayer->m_afPhysicsFlags |= PFLAG_OBSERVER;
 	}
 
 	// Reset interpolation during first frame
@@ -401,7 +404,7 @@ void MajorityVote(edict_t *pEntity, const char *text)
 			for (int i = 1; i <= gpGlobals->maxClients; i++)
 			{
 				CBasePlayer *pPlayer = (CBasePlayer *)UTIL_PlayerByIndex(i);
-				if (pPlayer && !FBitSet(pPlayer->pev->flags, FL_FAKECLIENT))
+				if (pPlayer && !FBitSet(pPlayer->pev->flags, FL_FAKECLIENT) && !pPlayer->HasDisconnected)
 					players++;
 			}
 
@@ -861,19 +864,19 @@ void ClientCommand( edict_t *pEntity )
 	else if ( FStrEq( pcmd, "votegameplay") )
 	{
 		MESSAGE_BEGIN(MSG_ALL, gmsgVoteGameplay);
-			WRITE_BYTE(1);
+			WRITE_BYTE(10);
 		MESSAGE_END();
 	}
 	else if ( FStrEq( pcmd, "votemap") )
 	{
 		MESSAGE_BEGIN(MSG_ALL, gmsgVoteMap);
-			WRITE_BYTE(1);
+			WRITE_BYTE(10);
 		MESSAGE_END();
 	}
 	else if ( FStrEq( pcmd, "votemutator") )
 	{
 		MESSAGE_BEGIN(MSG_ALL, gmsgVoteMutator);
-			WRITE_BYTE(1);
+			WRITE_BYTE(10);
 		MESSAGE_END();
 	}
 	else if ( FStrEq( pcmd, "endgame") )
@@ -890,6 +893,166 @@ void ClientCommand( edict_t *pEntity )
 	{
 		CBasePlayer * pPlayer = GetClassPtr((CBasePlayer *)pev);
 		pPlayer->ExitObserver();
+	}
+	else if ( FStrEq(pcmd, "mapname" ) )
+	{
+		//gEngfuncs.pfnGetLevelName()
+		extern int gmsgPlayClientSound;
+		MESSAGE_BEGIN( MSG_ONE_UNRELIABLE, gmsgPlayClientSound, NULL, pEntity );
+			WRITE_BYTE(CLIENT_SOUND_TAKENLEAD);
+		MESSAGE_END();
+		ALERT(at_console, "Map name is %s.bsp\n", STRING(gpGlobals->mapname));
+	}
+	else if ( FStrEq(pcmd, "eyes" ) )
+	{
+		static EHANDLE currentView;
+		CBaseEntity* pFound = currentView;
+		while ((pFound = UTIL_FindEntityInSphere(pFound, pev->origin, 500)) != NULL)
+		{
+			if (pFound->IsAlive())
+			{
+				if (strncmp(STRING(pFound->pev->classname), "monster_", 8) == 0)
+				{
+					ALERT(at_aiconsole, ">>> eyes set to %s\n", STRING(pFound->pev->classname));
+					//pFound->pev->view_ofs.z = 64;
+					//pev->view_ofs.z = 64;
+					//pev->view_ofs = Vector(0,0,64);
+					SET_VIEW(ENT(pev), ENT(pFound->pev));
+
+					ALERT(at_aiconsole, "ours->view_ofs.z = %.2f, theirs->view_ofs.z = %.2f\n", pev->view_ofs.z, pFound->pev->view_ofs.z);
+					//pev->fixangle = TRUE;
+					pev->angles.x = -pev->angles.x;
+					break;
+				}
+			}
+		}
+
+		currentView = pFound;
+	}
+	else if ( FStrEq(pcmd, "xeyes" ) )
+	{
+		SET_VIEW(ENT(pev), ENT(pev));
+		currentView = NULL;
+	}
+	else if (FStrEq(pcmd, "fx"))
+	{
+		CBasePlayer *pPlayer = GetClassPtr((CBasePlayer *)pev);
+
+		pPlayer->pev->frags += 1;
+
+		if (pPlayer->m_iBurstCount > kRenderFxLightMultiplier ||  pPlayer->m_iBurstCount < kRenderFxNone)
+			pPlayer->m_iBurstCount = kRenderFxNone;
+
+		ClientPrint( pev, HUD_PRINTCONSOLE, UTIL_VarArgs( "fx set to: %d\n", pPlayer->m_iBurstCount ));
+		
+		/*MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
+			WRITE_BYTE( TE_PARTICLEBURST );
+			WRITE_COORD(pev->origin.x);
+			WRITE_COORD(pev->origin.y);
+			WRITE_COORD(pev->origin.z);
+			WRITE_SHORT( 50 );
+			WRITE_BYTE((unsigned short)pPlayer->m_iBurstCount++);
+			WRITE_BYTE( 5 );
+		MESSAGE_END();*/
+
+		pPlayer->pev->renderfx = pPlayer->m_iBurstCount++;
+	}
+	else if (FStrEq(pcmd, "render"))
+	{
+		CBasePlayer *pPlayer = GetClassPtr((CBasePlayer *)pev);
+		if (pPlayer->m_iModeCount > kRenderTransAdd ||  pPlayer->m_iModeCount < kRenderNormal)
+			pPlayer->m_iModeCount = kRenderNormal;
+
+		ClientPrint( pev, HUD_PRINTCONSOLE, UTIL_VarArgs( "render set to: %d\n", pPlayer->m_iModeCount ));
+
+		pPlayer->pev->rendermode = pPlayer->m_iModeCount++;
+	}
+	else if (FStrEq(pcmd, "amt"))
+	{
+		CBasePlayer *pPlayer = GetClassPtr((CBasePlayer *)pev);
+		if (pPlayer->m_iAmt > 255 ||  pPlayer->m_iAmt < 0)
+			pPlayer->m_iAmt = 0;
+
+		ClientPrint( pev, HUD_PRINTCONSOLE, UTIL_VarArgs( "amt set to: %d\n", pPlayer->m_iAmt ));
+
+		pPlayer->pev->renderamt = pPlayer->m_iAmt++;
+	}
+	else if ( FStrEq( pcmd, "fog_off") )
+	{
+		CBasePlayer *pPlayer = GetClassPtr((CBasePlayer *)pev);
+		CBaseEntity *pEntity = UTIL_FindEntityByClassname(NULL, "env_fog");
+		if (pEntity)
+		{
+			pEntity->Use( CBaseEntity::Instance(pev), CBaseEntity::Instance(pev), USE_OFF, 0 );
+		}
+	}
+	else if ( FStrEq( pcmd, "fog_on") )
+	{
+		CBasePlayer *pPlayer = GetClassPtr((CBasePlayer *)pev);
+		CBaseEntity *pEntity = UTIL_FindEntityByClassname(NULL, "env_fog");
+		if (pEntity)
+		{
+			pEntity->Use( CBaseEntity::Instance(pev), CBaseEntity::Instance(pev), USE_ON, 0 );
+		}
+	}
+	else if ( FStrEq( pcmd, "send") )
+	{
+		CBasePlayer *pPlayer = GetClassPtr((CBasePlayer *)pev);
+		extern int gmsgObjective;
+		char text[256];
+		sprintf(text, "%d, %d, %d", RANDOM_LONG(1,100), RANDOM_LONG(1,100), RANDOM_LONG(1,100));
+		MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, pPlayer->edict());
+			WRITE_STRING(text);
+			WRITE_STRING("xyz");
+			WRITE_BYTE(RANDOM_LONG(1,100));
+		MESSAGE_END();
+	}
+	else if ( FStrEq(pcmd, "prop" ) )
+	{
+		CBasePlayer *pPlayer = GetClassPtr((CBasePlayer *)pev);
+
+		SET_MODEL(ENT(pev), "models/w_weapons.mdl");
+		UTIL_SetSize(pPlayer->pev, VEC_DUCK_HULL_MIN, VEC_DUCK_HULL_MAX);
+
+		pPlayer->pev->health = 1;
+		pPlayer->pev->armorvalue = 0;
+		pPlayer->pev->fuser4 = 1;
+		//DROP_TO_FLOOR ( ENT(pPlayer->pev) );
+		ALERT(at_aiconsole, "now set to fuser4 > 0\n");
+		CLIENT_COMMAND(pPlayer->edict(), "thirdperson\n");
+	}
+	else if ( FStrEq(pcmd, "exprop" ) )
+	{
+		CBasePlayer *pPlayer = GetClassPtr((CBasePlayer *)pev);
+		pPlayer->pev->fuser4 = 0;
+		ALERT(at_aiconsole, "now set to fuser4=> 0\n");
+		CLIENT_COMMAND(pPlayer->edict(), "firstperson\n");
+	}
+	else if ( FStrEq(pcmd, "decoy" ) )
+	{
+		CBasePlayer *pPlayer = GetClassPtr((CBasePlayer *)pev);
+		UTIL_MakeVectors( pPlayer->pev->v_angle );
+		Vector vecSrc = pPlayer->pev->origin + pPlayer->pev->view_ofs + gpGlobals->v_forward * 64 + gpGlobals->v_up * 18;
+
+		if (pPlayer->m_iPropsDeployed < 10)
+		{
+			CBaseEntity *p = CBaseEntity::Create( "monster_propdecoy", vecSrc, Vector(0, pPlayer->pev->v_angle.y, 0), NULL );
+			if (p)
+			{
+				p->pev->body = pPlayer->pev->fuser4;
+			}
+		}
+		else
+			ClientPrint(pPlayer->pev, HUD_PRINTCENTER, "All decoys are deployed.\n");
+	}
+	else if ( FStrEq( pcmd, "km" )  )
+	{
+		edict_t *pEdict = FIND_ENTITY_BY_STRING(NULL, "message", "horde");
+		while (!FNullEnt(pEdict))
+		{
+			UTIL_Remove(CBaseEntity::Instance(pEdict));
+			pEdict = FIND_ENTITY_BY_STRING(pEdict, "message", "horde");
+		}
 	}
 #endif
 	else if ( FStrEq( pcmd, "specmode" )  )	// new spectator mode
@@ -917,10 +1080,10 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"+ironsight\" - Use ironsights\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_achievements [0|1|2|3]\" - displays fast fragging achievements\n" );
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_announcehumor [0|1]\" - Play announcement/humor on weapons\n" );
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_automelee [0|1]\" - auto kick or punch an enemy if they are close\n" );
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_autotaunt [0|1]\" - auto taunt on frag when its safe to do so\n" );
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_autowepswitch [0|1]\" - auto switches weapon on pickup\n" );
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_autowepthrow [0|1]\" - auto throws weapon on empty\n" );
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_am [0|1]\" - auto kick or punch an enemy if they are close\n" );
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_at [0|1]\" - auto taunt on frag when its safe to do so\n" );
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_aws [0|1]\" - auto switches weapon on pickup\n" );
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_awt [0|1]\" - auto throws weapon on empty\n" );
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_bobtilt [0|1]\" - Old Bob Tilt\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_bulletsmoke [0|1]\" - turn on or off bullet smoke and flare effects\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_crosshairammo [0|1]\" - show ammo status in crosshairs\n" );
@@ -932,13 +1095,13 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_hudbend\" - experimental bending factor of HUD elements\n" );
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_hudscale\" - experimental scaling factor of HUD elements\n" );
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_icemodels [0-6]\" - changes models with specific ice skins\n");
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_infomessage [0|1]\" - display weapon and rune pick up messages\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_minfo [0|1]\" - display weapon and rune pick up messages\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_objectives [0|1]\" - show objective read out on HUD\n" );
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_oldmotd [0|1]\" - Old MOTD (Message of the Day)\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_oldscoreboard [0|1]\" - Old Scoreboard\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_particlesystem [0|1]\" enables or disables special effects like the flamethrower\n" );
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_playpoint [0|1]\" - Play ding when inflicting damage, dong for frag\n" );
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_playmusic [0|1]\" - Play soundtrack set by map\n" );
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_music [0|1]\" - Play soundtrack set by map\n" );
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "For more, type help_more\n" );
 	}
 	else if ( FStrEq( pcmd, "help_more" )  )
@@ -1026,7 +1189,7 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_spawnweapons\" - Spawn weapons or not\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_startwithall [0|1]\" - Start with all weapons\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_startwithlives\" - Sets the starting lifes during battle royale\n");
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_voting \"[0|1]\"\" - enable or disable end of the map voting\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_voting [time]\" - enable or disable end of the map voting with timer\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_acrobatics [0|1]\" allow or disallow wall climbing, slides, and flips\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_breakabletime\" - amount of seconds before a breakable entity respawns\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_chaosfilter\" - a list of mutators inwhich are ignored during chaos mode\n");
@@ -1169,31 +1332,31 @@ void ClientUserInfoChanged( edict_t *pEntity, char *infobuffer )
 
 	CBasePlayer *pl = GetClassPtr((CBasePlayer *)&pEntity->v);
 
-	char* pszAutoWepSwitch = g_engfuncs.pfnInfoKeyValue( infobuffer, "cl_autowepswitch");
+	char* pszAutoWepSwitch = g_engfuncs.pfnInfoKeyValue( infobuffer, "cl_aws");
 	if (strlen(pszAutoWepSwitch))
 		pl->m_iAutoWepSwitch = atoi(pszAutoWepSwitch);
 
-	char* pszAutoWepThrow = g_engfuncs.pfnInfoKeyValue( infobuffer, "cl_autowepthrow");
+	char* pszAutoWepThrow = g_engfuncs.pfnInfoKeyValue( infobuffer, "cl_awt");
 	if (strlen(pszAutoWepThrow))
 		pl->m_iAutoWepThrow = atoi(pszAutoWepThrow);
 
-	char* pszDisplayInfoMessage = g_engfuncs.pfnInfoKeyValue( infobuffer, "cl_infomessage");
+	char* pszDisplayInfoMessage = g_engfuncs.pfnInfoKeyValue( infobuffer, "cl_minfo");
 	if (strlen(pszDisplayInfoMessage))
 		pl->m_iDisplayInfoMessage = atoi(pszDisplayInfoMessage);
 
-	char* pszKeyboardAcrobatics = g_engfuncs.pfnInfoKeyValue(infobuffer, "cl_keyboardacrobatics");
+	char* pszKeyboardAcrobatics = g_engfuncs.pfnInfoKeyValue(infobuffer, "cl_kacro");
 	if (strlen(pszKeyboardAcrobatics))
 		pl->m_iKeyboardAcrobatics = atoi(pszKeyboardAcrobatics);
 
-	char* pszAutoMelee = g_engfuncs.pfnInfoKeyValue( infobuffer, "cl_automelee");
+	char* pszAutoMelee = g_engfuncs.pfnInfoKeyValue( infobuffer, "cl_am");
 	if (strlen(pszAutoMelee))
 		pl->m_iAutoMelee = atoi(pszAutoMelee);
 
-	char* pszAutoTaunt = g_engfuncs.pfnInfoKeyValue( infobuffer, "cl_autotaunt");
+	char* pszAutoTaunt = g_engfuncs.pfnInfoKeyValue( infobuffer, "cl_at");
 	if (strlen(pszAutoTaunt))
 		pl->m_iAutoTaunt = atoi(pszAutoTaunt);
 
-	char* pszPlayMusic = g_engfuncs.pfnInfoKeyValue( infobuffer, "cl_playmusic");
+	char* pszPlayMusic = g_engfuncs.pfnInfoKeyValue( infobuffer, "cl_music");
 	if (strlen(pszPlayMusic))
 	{
 		int newvalue = atoi(pszPlayMusic);

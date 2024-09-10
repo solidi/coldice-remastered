@@ -398,7 +398,7 @@ BOOL CHalfLifeCaptureTheFlag::IsSpawnPointValid( CBaseEntity *pSpot )
 {
 	CBaseEntity *ent = NULL;
 
-	while ( (ent = UTIL_FindEntityInSphere( ent, pSpot->pev->origin, 1024 )) != NULL )
+	while ( (ent = UTIL_FindEntityInSphere( ent, pSpot->pev->origin, 2048 )) != NULL )
 	{
 		// Is another base in area
 		if (FClassnameIs(ent->pev, "base"))
@@ -469,16 +469,16 @@ void CHalfLifeCaptureTheFlag::InitHUD( CBasePlayer *pPlayer )
 		strncpy( pPlayer->m_szTeamName, "blue", TEAM_NAME_LENGTH );
 		g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer->edict()),
 			g_engfuncs.pfnGetInfoKeyBuffer(pPlayer->edict()), "model", "iceman");
-		g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer->edict()),
-			g_engfuncs.pfnGetInfoKeyBuffer(pPlayer->edict()), "team", pPlayer->m_szTeamName);
+		//g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer->edict()),
+		//	g_engfuncs.pfnGetInfoKeyBuffer(pPlayer->edict()), "team", pPlayer->m_szTeamName);
 	}
 	else
 	{
 		strncpy( pPlayer->m_szTeamName, "red", TEAM_NAME_LENGTH );
 		g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer->edict()),
 			g_engfuncs.pfnGetInfoKeyBuffer(pPlayer->edict()), "model", "santa");
-		g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer->edict()),
-			g_engfuncs.pfnGetInfoKeyBuffer(pPlayer->edict()), "team", pPlayer->m_szTeamName);
+		//g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer->edict()),
+		//	g_engfuncs.pfnGetInfoKeyBuffer(pPlayer->edict()), "team", pPlayer->m_szTeamName);
 	}
 
 	char text[256];
@@ -588,6 +588,13 @@ const char *CHalfLifeCaptureTheFlag::GetTeamID( CBaseEntity *pEntity )
 	return pEntity->TeamID();
 }
 
+void CHalfLifeCaptureTheFlag::PlayerSpawn( CBasePlayer *pPlayer )
+{
+	CHalfLifeMultiplay::PlayerSpawn( pPlayer );
+
+	CHalfLifeMultiplay::SavePlayerModel(pPlayer);
+}
+
 void CHalfLifeCaptureTheFlag::ClientUserInfoChanged( CBasePlayer *pPlayer, char *infobuffer )
 {
 	// prevent skin/color/model changes
@@ -629,13 +636,13 @@ void CHalfLifeCaptureTheFlag::ClientUserInfoChanged( CBasePlayer *pPlayer, char 
 	{
 		strncpy( pPlayer->m_szTeamName, "red", TEAM_NAME_LENGTH );
 		g_engfuncs.pfnSetClientKeyValue( clientIndex, g_engfuncs.pfnGetInfoKeyBuffer( pPlayer->edict() ), "model", "santa" );
-		g_engfuncs.pfnSetClientKeyValue( clientIndex, g_engfuncs.pfnGetInfoKeyBuffer( pPlayer->edict() ), "team", pPlayer->m_szTeamName );
+		//g_engfuncs.pfnSetClientKeyValue( clientIndex, g_engfuncs.pfnGetInfoKeyBuffer( pPlayer->edict() ), "team", pPlayer->m_szTeamName );
 	}
 	else
 	{
 		strncpy( pPlayer->m_szTeamName, "blue", TEAM_NAME_LENGTH );
 		g_engfuncs.pfnSetClientKeyValue( clientIndex, g_engfuncs.pfnGetInfoKeyBuffer( pPlayer->edict() ), "model", "iceman" );
-		g_engfuncs.pfnSetClientKeyValue( clientIndex, g_engfuncs.pfnGetInfoKeyBuffer( pPlayer->edict() ), "team", pPlayer->m_szTeamName );
+		//g_engfuncs.pfnSetClientKeyValue( clientIndex, g_engfuncs.pfnGetInfoKeyBuffer( pPlayer->edict() ), "team", pPlayer->m_szTeamName );
 	}
 
 	// notify everyone of the team change

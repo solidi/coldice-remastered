@@ -458,7 +458,7 @@ void V_CalcViewRoll ( struct ref_params_s *pparams )
 	{
 		// only roll the view if the player is dead and the viewheight[2] is nonzero 
 		// this is so deadcam in multiplayer will work.
-		// pparams->viewangles[ROLL] = 80;	// dead view angle
+		pparams->viewangles[ROLL] = 80;	// dead view angle
 		return;
 	}
 }

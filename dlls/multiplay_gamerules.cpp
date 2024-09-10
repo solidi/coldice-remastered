@@ -30,6 +30,8 @@
 #include	"hltv.h"
 #include	"shake.h"
 
+#include	"pm_shared.h"
+
 #if !defined ( _WIN32 )
 #include <ctype.h>
 #endif
@@ -296,17 +298,17 @@ void CHalfLifeMultiplay :: Think ( void )
 		else if ( time > MAX_INTERMISSION_TIME )
 			CVAR_SET_STRING( "mp_chattime", UTIL_dtos1( MAX_INTERMISSION_TIME ) );
 
-		int timeLeft = voting.value ? 102 : 0;
+		int timeLeft = (voting.value * 3) + 12;
 		m_flIntermissionEndTime = g_flIntermissionStartTime + mp_chattime.value + timeLeft;
 
-		if (voting.value)
+		if (voting.value >= 10)
 		{
 			if (m_iVoteUnderway == 1 && ((m_flIntermissionEndTime - mp_chattime.value - (timeLeft - 3)) < gpGlobals->time))
 			{
 				m_iVoteUnderway = 2;
 
 				MESSAGE_BEGIN(MSG_ALL, gmsgVoteGameplay);
-					WRITE_BYTE(1);
+					WRITE_BYTE(voting.value);
 				MESSAGE_END();
 				MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
 					WRITE_BYTE(CLIENT_SOUND_VOTEGAME);
@@ -323,7 +325,7 @@ void CHalfLifeMultiplay :: Think ( void )
 				}
 			}
 			// Game mode vote ended
-			else if (m_iVoteUnderway == 2 && ((m_flIntermissionEndTime - mp_chattime.value - (timeLeft - 33)) < gpGlobals->time))
+			else if (m_iVoteUnderway == 2 && ((m_flIntermissionEndTime - mp_chattime.value - (timeLeft - voting.value - 3)) < gpGlobals->time))
 			{
 				m_iVoteUnderway = 3;
 
@@ -391,12 +393,12 @@ void CHalfLifeMultiplay :: Think ( void )
 			}
 
 			// Mutator vote STARTED
-			if (m_iVoteUnderway == 3 && ((m_flIntermissionEndTime - mp_chattime.value - (timeLeft - 36)) < gpGlobals->time))
+			if (m_iVoteUnderway == 3 && ((m_flIntermissionEndTime - mp_chattime.value - (timeLeft - voting.value - 6)) < gpGlobals->time))
 			{
 				m_iVoteUnderway = 4;
 
 				MESSAGE_BEGIN(MSG_ALL, gmsgVoteMutator);
-					WRITE_BYTE(1);
+					WRITE_BYTE(voting.value);
 				MESSAGE_END();
 				MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
 					WRITE_BYTE(CLIENT_SOUND_VOTEMUTATOR);
@@ -408,14 +410,13 @@ void CHalfLifeMultiplay :: Think ( void )
 					CBasePlayer *pPlayer = (CBasePlayer *)UTIL_PlayerByIndex( i );
 					if (pPlayer && FBitSet(pPlayer->pev->flags, FL_FAKECLIENT) && !pPlayer->HasDisconnected)
 					{
-						ALERT(at_aiconsole, "BOT mutator vote!\n");
 						::Vote(pPlayer, RANDOM_LONG(MUTATOR_CHAOS, MAX_MUTATORS + 1 /*random*/));
 					}
 				}
 			}
 
 			// Mutator vote ended
-			if (m_iVoteUnderway == 4 && ((m_flIntermissionEndTime - mp_chattime.value - (timeLeft - 66)) < gpGlobals->time))
+			if (m_iVoteUnderway == 4 && ((m_flIntermissionEndTime - mp_chattime.value - (timeLeft - (voting.value * 2) - 6)) < gpGlobals->time))
 			{
 				m_iVoteUnderway = 5;
 
@@ -535,12 +536,12 @@ void CHalfLifeMultiplay :: Think ( void )
 			}
 
 			// Map vote STARTED
-			if (m_iVoteUnderway == 5 && ((m_flIntermissionEndTime - mp_chattime.value - (timeLeft - 69)) < gpGlobals->time))
+			if (m_iVoteUnderway == 5 && ((m_flIntermissionEndTime - mp_chattime.value - (timeLeft - (voting.value * 2) - 9)) < gpGlobals->time))
 			{
 				m_iVoteUnderway = 6;
 
 				MESSAGE_BEGIN(MSG_ALL, gmsgVoteMap);
-					WRITE_BYTE(1);
+					WRITE_BYTE(voting.value);
 				MESSAGE_END();
 				MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
 					WRITE_BYTE(CLIENT_SOUND_VOTEMAP);
@@ -552,14 +553,13 @@ void CHalfLifeMultiplay :: Think ( void )
 					CBasePlayer *pPlayer = (CBasePlayer *)UTIL_PlayerByIndex( i );
 					if (pPlayer && FBitSet(pPlayer->pev->flags, FL_FAKECLIENT) && !pPlayer->HasDisconnected)
 					{
-						ALERT(at_aiconsole, "BOT vote!\n");
 						::Vote(pPlayer, RANDOM_LONG(1, BUILT_IN_MAP_COUNT + 1));
 					}
 				}
 			}
 
 			// Map vote ended
-			if (m_iVoteUnderway == 6 && (((m_flIntermissionEndTime - mp_chattime.value) - (timeLeft - 99)) < gpGlobals->time))
+			if (m_iVoteUnderway == 6 && (((m_flIntermissionEndTime - mp_chattime.value) - (timeLeft - (voting.value * 3) - 9)) < gpGlobals->time))
 			{
 				m_iVoteUnderway = 0;
 
@@ -912,6 +912,16 @@ void CHalfLifeMultiplay::SuckAllToSpectator( void )
 			edict_t *pentSpawnSpot = g_pGameRules->GetPlayerSpawnSpot( pPlayer );
 			pPlayer->StartObserver(pentSpawnSpot->v.origin, VARS(pentSpawnSpot)->angles);
 		}
+
+		// Spectator fix if client is in eye of another during round end.
+		if (!g_GameInProgress && pPlayer && pPlayer->IsSpectator())
+		{
+			if (pPlayer->m_iObserverLastMode == OBS_IN_EYE)
+			{
+				pPlayer->m_iObserverLastMode = OBS_ROAMING;
+				pPlayer->Observer_SetMode(OBS_ROAMING);
+			}
+		}
 	}
 }
 
@@ -919,6 +929,9 @@ void CHalfLifeMultiplay::DisplayWinnersGoods( CBasePlayer *pPlayer )
 {
 	//increase his win count
 	pPlayer->m_iRoundWins++;
+
+	//animate!
+	pPlayer->Celebrate();
 
 	//and display to the world what he does best!
 	UTIL_ClientPrintAll(HUD_PRINTTALK, UTIL_VarArgs("* %s has won round #%d of %d!\n", STRING(pPlayer->pev->netname), m_iSuccessfulRounds+1, (int)roundlimit.value));
@@ -1026,7 +1039,7 @@ BOOL CHalfLifeMultiplay::FShouldSwitchWeapon( CBasePlayer *pPlayer, CBasePlayerI
 	return FALSE;
 }
 
-BOOL CHalfLifeMultiplay :: GetNextBestWeapon( CBasePlayer *pPlayer, CBasePlayerItem *pCurrentWeapon, BOOL dropBox )
+BOOL CHalfLifeMultiplay :: GetNextBestWeapon( CBasePlayer *pPlayer, CBasePlayerItem *pCurrentWeapon, BOOL dropBox, BOOL explode )
 {
 
 	CBasePlayerItem *pCheck;
@@ -1043,7 +1056,7 @@ BOOL CHalfLifeMultiplay :: GetNextBestWeapon( CBasePlayer *pPlayer, CBasePlayerI
 		return FALSE;
 	}
 
-	if (!dropBox && pPlayer->ShouldWeaponThrow() && 
+	if (!dropBox && explode && pPlayer->ShouldWeaponThrow() && 
 		((CBasePlayerWeapon *)pCurrentWeapon)->pszAmmo1() != NULL &&
 		!(((CBasePlayerWeapon *)pCurrentWeapon)->iFlags() & ITEM_FLAG_LIMITINWORLD))
 	{
@@ -1258,11 +1271,7 @@ void CHalfLifeMultiplay :: ClientDisconnected( edict_t *pClient )
 		{
 			FireTargets( "game_playerleave", pPlayer, pPlayer, USE_TOGGLE, 0 );
 
-			// Reset Jope name.
-			char *key = g_engfuncs.pfnGetInfoKeyBuffer(pPlayer->edict());
-			char *name = g_engfuncs.pfnInfoKeyValue(key, "oname");
-			if (name && strlen(name))
-				g_engfuncs.pfnSetClientKeyValue(pPlayer->entindex(), key, "name", name);
+			ResetPlayerSettings(pPlayer);
 
 			// team match?
 			if ( g_teamplay )
@@ -1529,6 +1538,10 @@ void CHalfLifeMultiplay :: PlayerSpawn( CBasePlayer *pPlayer )
 		return;
 	}
 
+	// Pause player during voting
+	if (m_iVoteUnderway)
+		pPlayer->EnableControl(FALSE);
+
 	BOOL		addDefault;
 	CBaseEntity	*pWeaponEntity = NULL;
 
@@ -1671,7 +1684,7 @@ void CHalfLifeMultiplay :: PlayerKilled( CBasePlayer *pVictim, entvars_t *pKille
 	if ( pVictim->pev == pKiller )  
 	{  // killed self
 		int fragsToRemove = 1;
-		if (pInflictor && FClassnameIs(pInflictor, "weapon_vest"))
+		if ((pInflictor && FClassnameIs(pInflictor, "weapon_vest")) || g_GameMode == GAME_GUNGAME)
 			fragsToRemove = 0;
 		pKiller->frags -= fragsToRemove;
 	}
@@ -1730,7 +1743,8 @@ void CHalfLifeMultiplay :: PlayerKilled( CBasePlayer *pVictim, entvars_t *pKille
 	}
 	else
 	{  // killed by the world
-		pKiller->frags -= 1;
+		if (g_GameMode != GAME_GUNGAME)
+			pKiller->frags -= 1;
 	}
 
 	// update the scores
@@ -2525,8 +2539,13 @@ void CHalfLifeMultiplay :: GoToIntermission( void )
 	for ( int i = 1; i <= gpGlobals->maxClients; i++ )
 	{
 		CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
-		if ( plr && plr->pev->flags & FL_FAKECLIENT )
-			plr->EnableControl(FALSE);
+		if ( plr )
+		{
+			if ( plr->pev->flags & FL_FAKECLIENT )
+				plr->EnableControl(FALSE);
+			
+			ResetPlayerSettings(plr);
+		}
 	}
 
 	// bounds check
@@ -2539,9 +2558,9 @@ void CHalfLifeMultiplay :: GoToIntermission( void )
 	m_flIntermissionEndTime = gpGlobals->time + ( (int)mp_chattime.value );
 	g_flIntermissionStartTime = gpGlobals->time;
 
-	if (voting.value)
+	if (voting.value >= 10)
 	{
-		m_flIntermissionEndTime += 102; 
+		m_flIntermissionEndTime += (voting.value * 3) + 12; 
 		m_iVoteUnderway = 1;
 	}
 
@@ -2846,16 +2865,6 @@ int CountPlayers( void )
 		if ( pEnt )
 		{
 			num = num + 1;
-
-			// Reset Jope name.
-			if (pEnt->IsPlayer())
-			{
-				char *key = g_engfuncs.pfnGetInfoKeyBuffer(pEnt->edict());
-				char *name = g_engfuncs.pfnInfoKeyValue(key, "oname");
-				if (name && strlen(name))
-					g_engfuncs.pfnSetClientKeyValue(pEnt->entindex(), key, "name", name);
-			}
-
 		}
 	}
 
@@ -3128,4 +3137,37 @@ BOOL CHalfLifeMultiplay::MutatorAllowed(const char *mutator)
 		return !(g_GameMode == GAME_SNOWBALL);
 	
 	return TRUE;
+}
+
+// For gameplay that changes player models, save their current model
+void CHalfLifeMultiplay::SavePlayerModel(CBasePlayer *pPlayer)
+{
+	char *key = g_engfuncs.pfnGetInfoKeyBuffer(pPlayer->edict());
+	char *om = g_engfuncs.pfnInfoKeyValue(key, "om");
+	if (!om || !strlen(om))
+	{
+		char model[64];
+		strcpy(model, g_engfuncs.pfnInfoKeyValue(key, "model"));
+		if (model && strlen(model))
+			g_engfuncs.pfnSetClientKeyValue(pPlayer->entindex(), key, "om", model);
+	}
+}
+
+void CHalfLifeMultiplay::ResetPlayerSettings(CBasePlayer *pPlayer)
+{
+	// Reset Jope name.
+	char *name = g_engfuncs.pfnInfoKeyValue(g_engfuncs.pfnGetInfoKeyBuffer( pPlayer->edict() ), "j");
+	if (name && strlen(name))
+	{
+		g_engfuncs.pfnSetClientKeyValue(pPlayer->entindex(), g_engfuncs.pfnGetInfoKeyBuffer( pPlayer->edict() ), "name", name);
+		g_engfuncs.pfnSetClientKeyValue(pPlayer->entindex(), g_engfuncs.pfnGetInfoKeyBuffer( pPlayer->edict() ), "j", "");
+	}
+
+	// Reset model if available.
+	char *model = g_engfuncs.pfnInfoKeyValue(g_engfuncs.pfnGetInfoKeyBuffer( pPlayer->edict() ), "om");
+	if (model && strlen(model))
+	{
+		g_engfuncs.pfnSetClientKeyValue(pPlayer->entindex(), g_engfuncs.pfnGetInfoKeyBuffer( pPlayer->edict() ), "model", model);
+		g_engfuncs.pfnSetClientKeyValue(pPlayer->entindex(), g_engfuncs.pfnGetInfoKeyBuffer( pPlayer->edict() ), "om", "");
+	}
 }

@@ -642,7 +642,7 @@ void CHalfLifeHorde::PlayerSpawn( CBasePlayer *pPlayer )
 
 	pPlayer->pev->fuser3 = 1; // bots need to identify their team.
 	strncpy( pPlayer->m_szTeamName, "survivors", TEAM_NAME_LENGTH );
-	g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer->edict()), key, "team", pPlayer->m_szTeamName);
+	//g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer->edict()), key, "team", pPlayer->m_szTeamName);
 
 	// notify everyone's HUD of the team change
 	MESSAGE_BEGIN( MSG_ALL, gmsgTeamInfo );

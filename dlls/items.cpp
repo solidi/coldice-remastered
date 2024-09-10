@@ -1228,32 +1228,35 @@ void CWorldRunes::CreateRune(char *sz_RuneClass)
 		ALERT (at_console, "%s did not spawn.\n", sz_RuneClass);
 	}
 
-	if (g_pGameRules->MutatorEnabled(MUTATOR_TURRETS)) {
-		m_pSpot = SelectSpawnPoint(pPlaces[RANDOM_LONG(0,ARRAYSIZE(pPlaces)-1)]);
-		if (m_pSpot)
-		{
-			CBaseEntity *pTurret = CBaseEntity::Create("monster_sentry",
-				m_pSpot->pev->origin, Vector(0, 0, 0), NULL );
-			if (pTurret)
+	for (int i = 0; i < 2; i++)
+	{
+		if (g_pGameRules->MutatorEnabled(MUTATOR_TURRETS)) {
+			m_pSpot = SelectSpawnPoint(pPlaces[RANDOM_LONG(0,ARRAYSIZE(pPlaces)-1)]);
+			if (m_pSpot)
 			{
-				pTurret->pev->velocity.x = RANDOM_FLOAT( -400, 400 );
-				pTurret->pev->velocity.y = RANDOM_FLOAT( -400, 400 );
-				pTurret->pev->velocity.z = RANDOM_FLOAT( 0, 400 );
+				CBaseEntity *pTurret = CBaseEntity::Create("monster_sentry",
+					m_pSpot->pev->origin, Vector(0, 0, 0), NULL );
+				if (pTurret)
+				{
+					pTurret->pev->velocity.x = RANDOM_FLOAT( -400, 400 );
+					pTurret->pev->velocity.y = RANDOM_FLOAT( -400, 400 );
+					pTurret->pev->velocity.z = RANDOM_FLOAT( 0, 400 );
+				}
 			}
 		}
-	}
 
-	if (g_pGameRules->MutatorEnabled(MUTATOR_BARRELS)) {
-		m_pSpot = SelectSpawnPoint(pPlaces[RANDOM_LONG(0,ARRAYSIZE(pPlaces)-1)]);
-		if (m_pSpot)
-		{
-			CBaseEntity *pBarrel = CBaseEntity::Create("monster_barrel", 
-				m_pSpot->pev->origin, Vector(0, 0, 0), NULL );
-			if (pBarrel)
+		if (g_pGameRules->MutatorEnabled(MUTATOR_BARRELS)) {
+			m_pSpot = SelectSpawnPoint(pPlaces[RANDOM_LONG(0,ARRAYSIZE(pPlaces)-1)]);
+			if (m_pSpot)
 			{
-				pBarrel->pev->velocity.x = RANDOM_FLOAT( -400, 400 );
-				pBarrel->pev->velocity.y = RANDOM_FLOAT( -400, 400 );
-				pBarrel->pev->velocity.z = RANDOM_FLOAT( 0, 400 );
+				CBaseEntity *pBarrel = CBaseEntity::Create("monster_barrel", 
+					m_pSpot->pev->origin, Vector(0, 0, 0), NULL );
+				if (pBarrel)
+				{
+					pBarrel->pev->velocity.x = RANDOM_FLOAT( -400, 400 );
+					pBarrel->pev->velocity.y = RANDOM_FLOAT( -400, 400 );
+					pBarrel->pev->velocity.z = RANDOM_FLOAT( 0, 400 );
+				}
 			}
 		}
 	}

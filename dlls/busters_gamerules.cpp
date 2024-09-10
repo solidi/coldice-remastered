@@ -23,6 +23,7 @@
 #include "game.h"
 #include "items.h"
 #include "voice_gamemgr.h"
+#include "trains.h"
 
 #define EGON_BUSTING_TIME 10
 
@@ -31,6 +32,8 @@ extern int gmsgTeamNames;
 extern int gmsgTeamInfo;
 extern int gmsgScoreInfo;
 extern int gmsgPlayClientSound;
+
+extern DLL_GLOBAL BOOL g_fGameOver;
 
 bool IsPlayerBusting( CBaseEntity* pPlayer )
 {
@@ -84,7 +87,10 @@ void CMultiplayBusters::InitHUD( CBasePlayer *pPlayer )
 
 void CMultiplayBusters::Think()
 {
-	CheckForEgons();
+	if (!g_fGameOver)
+	{
+		CheckForEgons();
+	}
 
 	CHalfLifeMultiplay::Think();
 }
@@ -131,9 +137,9 @@ void CMultiplayBusters::PlayerKilled( CBasePlayer* pVictim, entvars_t* pKiller, 
 			if (!IsPlayerBusting(peKiller))
 				peKiller->m_iRoundWins++;
 		}
-		/*else if ( ktmp && ( ktmp->Classify() == CLASS_VEHICLE ) )
+		else if ( ktmp && ( ktmp->Classify() == CLASS_VEHICLE ) )
 		{
-			CBasePlayer *pDriver = ( (CFuncVehicle*)ktmp )->m_pDriver;
+			CBasePlayer *pDriver = (CBasePlayer *)((CFuncVehicle*)ktmp )->m_pDriver;
 
 			if ( pDriver != NULL )
 			{
@@ -141,7 +147,7 @@ void CMultiplayBusters::PlayerKilled( CBasePlayer* pVictim, entvars_t* pKiller, 
 				ktmp = pDriver;
 				pKiller = pDriver->pev;
 			}
-		}*/
+		}
 
 		if ( peKiller )
 		{
@@ -313,14 +319,14 @@ void CMultiplayBusters::PlayerGotWeapon( CBasePlayer* pPlayer, CBasePlayerItem* 
 void CMultiplayBusters::ClientUserInfoChanged( CBasePlayer* pPlayer, char* infobuffer )
 {
 	SetPlayerModel( pPlayer );
-
-	// Set preferences
-	// pPlayer->SetPrefsFromUserinfo( infobuffer );
 }
 
 void CMultiplayBusters::PlayerSpawn( CBasePlayer* pPlayer )
 {
 	CHalfLifeMultiplay::PlayerSpawn( pPlayer );
+
+	CHalfLifeMultiplay::SavePlayerModel(pPlayer);
+
 	SetPlayerModel( pPlayer );
 }
 
@@ -331,14 +337,14 @@ void CMultiplayBusters::SetPlayerModel( CBasePlayer* pPlayer )
 		pPlayer->pev->fuser4 = 1;
 		strncpy( pPlayer->m_szTeamName, "busters", TEAM_NAME_LENGTH );
 		g_engfuncs.pfnSetClientKeyValue( pPlayer->entindex(), g_engfuncs.pfnGetInfoKeyBuffer( pPlayer->edict() ), "model", "frost" );
-		g_engfuncs.pfnSetClientKeyValue( pPlayer->entindex(), g_engfuncs.pfnGetInfoKeyBuffer( pPlayer->edict() ), "team", pPlayer->m_szTeamName );
+		//g_engfuncs.pfnSetClientKeyValue( pPlayer->entindex(), g_engfuncs.pfnGetInfoKeyBuffer( pPlayer->edict() ), "team", pPlayer->m_szTeamName );
 	}
 	else
 	{
 		pPlayer->pev->fuser4 = 0;
 		strncpy( pPlayer->m_szTeamName, "ghosts", TEAM_NAME_LENGTH );
 		g_engfuncs.pfnSetClientKeyValue( pPlayer->entindex(), g_engfuncs.pfnGetInfoKeyBuffer( pPlayer->edict() ), "model", "skeleton" );
-		g_engfuncs.pfnSetClientKeyValue( pPlayer->entindex(), g_engfuncs.pfnGetInfoKeyBuffer( pPlayer->edict() ), "team", pPlayer->m_szTeamName );
+		//g_engfuncs.pfnSetClientKeyValue( pPlayer->entindex(), g_engfuncs.pfnGetInfoKeyBuffer( pPlayer->edict() ), "team", pPlayer->m_szTeamName );
 	}
 
 	MESSAGE_BEGIN( MSG_ALL, gmsgTeamInfo );

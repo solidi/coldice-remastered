@@ -955,6 +955,19 @@ int CHudAmmo::Draw(float flTime)
 		SPR_DrawAdditive(0, (ScreenWidth / 2) - 32, (ScreenHeight / 2) - 32, &gHUD.GetSpriteRect(gHUD.GetSpriteIndex("dontshoot")));
 	}
 
+	if (MutatorEnabled(MUTATOR_FASTWEAPONS))
+	{
+		int w = 0, h = 0;
+		GetConsoleStringSize("Fast weapons", &w, &h);
+		DrawConsoleString(ScreenWidth / 2 - (w / 2), (ScreenHeight / 2) + (h * 2), "Fast weapons");
+	}
+	else if (MutatorEnabled(MUTATOR_SLOWWEAPONS))
+	{
+		int w = 0, h = 0;
+		GetConsoleStringSize("Slow weapons", &w, &h);
+		DrawConsoleString(ScreenWidth / 2 - (w / 2), (ScreenHeight / 2) + (h * 2), "Slow weapons");
+	}
+
 	float up = cl_hudbend->value ? 1.5 : 1;
 	float left = cl_hudbend->value ? 15 : 0;
 
