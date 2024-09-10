@@ -5174,9 +5174,9 @@ void CBasePlayer::StartHurricaneKick( void )
 	if (pev->waterlevel == 3)
 		return;
 
-	if (m_fFlipTime < gpGlobals->time && pev->velocity.Length2D() > 100) {
+	if (m_fFlipTime < gpGlobals->time) {
 		UTIL_MakeVectors(pev->angles);
-		pev->velocity = (gpGlobals->v_forward * 600) + (gpGlobals->v_up * 300);
+		pev->velocity = (pev->velocity + (gpGlobals->v_forward * pev->velocity.Length2D())) + (gpGlobals->v_up * 300);
 
 		m_fFlipTime = gpGlobals->time + 1.375;
 		SetAnimation( PLAYER_HURRICANE_KICK );
