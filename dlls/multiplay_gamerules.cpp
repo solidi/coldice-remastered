@@ -1684,7 +1684,7 @@ void CHalfLifeMultiplay :: PlayerKilled( CBasePlayer *pVictim, entvars_t *pKille
 	if ( pVictim->pev == pKiller )  
 	{  // killed self
 		int fragsToRemove = 1;
-		if (pInflictor && FClassnameIs(pInflictor, "weapon_vest"))
+		if ((pInflictor && FClassnameIs(pInflictor, "weapon_vest")) || g_GameMode == GAME_GUNGAME)
 			fragsToRemove = 0;
 		pKiller->frags -= fragsToRemove;
 	}
@@ -1743,7 +1743,8 @@ void CHalfLifeMultiplay :: PlayerKilled( CBasePlayer *pVictim, entvars_t *pKille
 	}
 	else
 	{  // killed by the world
-		pKiller->frags -= 1;
+		if (g_GameMode != GAME_GUNGAME)
+			pKiller->frags -= 1;
 	}
 
 	// update the scores
