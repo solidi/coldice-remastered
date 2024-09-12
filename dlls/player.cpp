@@ -965,6 +965,10 @@ void CBasePlayer::PackDeadPlayerItems( void )
 						}
 					}
 				}
+				else
+				{
+					UTIL_Remove(pWeaponBox);
+				}
 			}
 			else
 			{

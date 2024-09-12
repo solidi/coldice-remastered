@@ -1014,7 +1014,10 @@ void CBasePlayerItem::DefaultTouch( CBaseEntity *pOther )
 		}
 
 		if ( pPlayer->pev->deadflag == DEAD_NO )
+		{
 			ProvideDualItem(pPlayer, STRING(this->pev->classname));
+			Kill();
+		}
 
 		return;
 	}
