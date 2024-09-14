@@ -5303,6 +5303,9 @@ void CBasePlayer::AutoMelee()
 	if (pev->flags & FL_FAKECLIENT) // No bots
 		return;
 
+	if (pev->flags & FL_FROZEN)
+		return;
+
 	if (m_flNextAutoMelee > gpGlobals->time)
 		return;
 

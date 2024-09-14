@@ -137,6 +137,7 @@ void CPropDecoy::PropDecoyThink( void )
 		if (FClassnameIs(ent->pev, "player") /*&& ent->pev != m_hOwner->pev*/)
 		{
 			PropDecoyTouch(ent);
+			break;
 		}
 	}
 
@@ -159,6 +160,7 @@ void CPropDecoy::PropDecoyTouch( CBaseEntity *pOther )
 		((CBasePlayer *)(CBaseEntity *)m_hOwner)->m_iPropsDeployed--;
 
 		SetTouch(NULL);
+		SetThink(NULL);
 
 		if (((CBaseEntity*)m_hOwner) != pOther)
 		{

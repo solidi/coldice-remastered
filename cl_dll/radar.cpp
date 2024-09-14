@@ -70,11 +70,17 @@ void CHudRadar::ProcessPlayerState(void)
 		if (gHUD.m_GameMode == GAME_BUSTERS ||
 			gHUD.m_GameMode == GAME_CHILLDEMIC ||
 			gHUD.m_GameMode == GAME_ICEMAN ||
-			gHUD.m_GameMode == GAME_PROPHUNT ||
 			gHUD.m_GameMode == GAME_SHIDDEN)
 		{
 			if (pClient->curstate.fuser4 > 0)
 				b_specials[num_players] = true;
+			else
+				b_specials[num_players] = false;
+		}
+		else if (gHUD.m_GameMode == GAME_PROPHUNT)
+		{
+			if (pClient->curstate.fuser4 > 0)
+				continue;
 			else
 				b_specials[num_players] = false;
 		}
