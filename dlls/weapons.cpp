@@ -34,6 +34,7 @@
 #include "game.h"
 #include "animation.h"
 #include "disc.h"
+#include "shake.h"
 
 extern CGraph	WorldGraph;
 extern int gEvilImpulse101;
@@ -1123,6 +1124,7 @@ void CBasePlayerWeapon::ItemPostFrame( void )
 		if ((m_pPlayer->pev->button & IN_ATTACK) &&
 			CanAttack( m_flNextPrimaryAttack, gpGlobals->time, UseDecrement() ))
 		{
+			UTIL_ScreenFade( m_pPlayer, Vector(0, 255, 0), 0.25, 0.50, 96, FFADE_IN);
 			EMIT_SOUND_DYN( m_pPlayer->edict(), CHAN_WEAPON, "fart.wav", 1.0, ATTN_NORM, 0, 98 + RANDOM_LONG(-20,20)); 
 			::RadiusDamage( m_pPlayer->pev->origin, m_pPlayer->pev, m_pPlayer->pev, 800, 256, CLASS_NONE, DMG_FART );
 			MESSAGE_BEGIN( MSG_PVS, SVC_TEMPENTITY, m_pPlayer->pev->origin );
