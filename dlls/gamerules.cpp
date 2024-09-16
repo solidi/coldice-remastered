@@ -961,7 +961,7 @@ BOOL CGameRules::MutatorEnabled(int mutatorId)
 	// check queue or something?
 	mutators_t *t = m_Mutators;
 	while (t != NULL) {
-		if (t->mutatorId == mutatorId && t->timeToLive > gpGlobals->time)
+		if (t->mutatorId == mutatorId && (t->timeToLive > gpGlobals->time || t->timeToLive == -1))
 		{
 			// ALERT(at_aiconsole, ">>> YES mutatorId=%d , time=%.2f > global=%.2f \n", mutatorId, t->timeToLive, gpGlobals->time);
 			return TRUE;
@@ -1127,6 +1127,10 @@ void CGameRules::MutatorsThink(void)
 
 							if (add)
 							{
+								// Forever
+								if (strstr(addmutator.string, "253"))
+									mutatorTime = 253;
+
 								MESSAGE_BEGIN(MSG_ALL, gmsgAddMutator);
 									WRITE_BYTE(i + 1);
 									WRITE_BYTE(mutatorTime);
@@ -1134,7 +1138,7 @@ void CGameRules::MutatorsThink(void)
 
 								mutators_t *mutator = new mutators_t();
 								mutator->mutatorId = i + 1;
-								mutator->timeToLive = gpGlobals->time + mutatorTime;
+								mutator->timeToLive = mutatorTime == 253 ? -1 : gpGlobals->time + mutatorTime;
 								mutator->next = m_Mutators ? m_Mutators : NULL;
 								m_Mutators = mutator;
 
@@ -1165,7 +1169,7 @@ void CGameRules::MutatorsThink(void)
 		{
 			// ALERT(at_aiconsole, ">>> [%.2f] found m->mutatorId=%d [%.2f]\n", gpGlobals->time, m->mutatorId, m->timeToLive);
 
-			if (m->timeToLive <= gpGlobals->time)
+			if (m->timeToLive <= gpGlobals->time && m->timeToLive != -1)
 			{
 				ALERT(at_console, "Mutator \"%s\" disabled at %.2f\n", g_szMutators[m->mutatorId-1], gpGlobals->time);
 				// ALERT(at_aiconsole, ">>> [%.2f] delete m->mutatorId=%d\n", gpGlobals->time, m->mutatorId);

@@ -1069,7 +1069,7 @@ bool MutatorEnabled(int mutatorId)
 {
 	mutators_t *m = gHUD.m_Mutators;
 	while (m != NULL) {
-		if (m->mutatorId == mutatorId && m->timeToLive > gHUD.m_flTime)
+		if (m->mutatorId == mutatorId && (m->timeToLive > gHUD.m_flTime || m->timeToLive == -1))
 			return true;
 		m = m->next;
 	}
@@ -1081,7 +1081,7 @@ mutators_t GetMutator(int mutatorId)
 {
 	mutators_t *m = gHUD.m_Mutators;
 	while (m != NULL) {
-		if (m->mutatorId == mutatorId && m->timeToLive > gHUD.m_flTime)
+		if (m->mutatorId == mutatorId && (m->timeToLive > gHUD.m_flTime || m->timeToLive == -1))
 			return *m;
 		m = m->next;
 	}
