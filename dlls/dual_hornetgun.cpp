@@ -149,11 +149,11 @@ void CDualHgun::PrimaryAttack()
 
 	CBaseEntity *pHornet = CBaseEntity::Create( "hornet", m_pPlayer->GetGunPosition( ) + vecAiming * 16 + gpGlobals->v_right * 8 + gpGlobals->v_up * -12, UTIL_VecToAngles(vecAiming), m_pPlayer->edict() );
 	if (pHornet != NULL)
-		pHornet->pev->velocity = vecAiming * 300;
+		pHornet->pev->velocity = m_pPlayer->pev->velocity +vecAiming * 300;
 
 	pHornet = CBaseEntity::Create( "hornet", m_pPlayer->GetGunPosition( ) + vecAiming * 16 + gpGlobals->v_right * - 8 + gpGlobals->v_up * -12, UTIL_VecToAngles(vecAiming), m_pPlayer->edict() );
 	if (pHornet != NULL)
-		pHornet->pev->velocity = vecAiming * 300;
+		pHornet->pev->velocity = m_pPlayer->pev->velocity +vecAiming * 300;
 
 	m_flRechargeTime = gpGlobals->time + (0.25 * g_pGameRules->WeaponMultipler());
 #endif
@@ -245,7 +245,7 @@ void CDualHgun::SecondaryAttack( void )
 	pHornet = CBaseEntity::Create( "hornet", vecSrc, vecAiming, m_pPlayer->edict() );
 	if (pHornet != NULL)
 	{
-		pHornet->pev->velocity = vecAiming * 1200;
+		pHornet->pev->velocity = m_pPlayer->pev->velocity + vecAiming * 1200;
 		pHornet->pev->angles = UTIL_VecToAngles( pHornet->pev->velocity );
 		pHornet->SetThink( &CHornet::StartDart );
 	}
