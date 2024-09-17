@@ -262,6 +262,7 @@ char *gamePlayModes[] = {
 	"Instagib",
 	"Jesus vs. Santa",
 	"Prop Hunt",
+	"Shidden",
 	"Snowballs",
 	"Teamplay",
 };
@@ -1465,8 +1466,10 @@ void CHalfLifeMultiplay :: PlayerThink( CBasePlayer *pPlayer )
 			pPlayer->pev->rendermode = kRenderNormal;
 			pPlayer->pev->renderfx = kRenderFxNone;
 			pPlayer->pev->renderamt = 0;
-			//pPlayer->pev->solid = SOLID_SLIDEBOX;
 			pPlayer->m_fLastSpawnTime = 0;
+
+			if (MutatorEnabled(MUTATOR_INVISIBLE))
+				pPlayer->MakeInvisible();
 		}
 	}
 
