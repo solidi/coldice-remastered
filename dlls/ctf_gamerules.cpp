@@ -155,86 +155,100 @@ void CFlagCharm::FlagTouch( CBaseEntity *pOther )
 		return;
 
 	CBasePlayer *pPlayer = (CBasePlayer *)pOther;
-	if (!pPlayer->pFlag && pPlayer->m_fFlagTime < gpGlobals->time)
+	if (pPlayer->m_fFlagTime < gpGlobals->time)
 	{
-		EHANDLE pMyBase = ((CHalfLifeCaptureTheFlag *)g_pGameRules)->pBlueBase;
-		if (pev->fuser4 - 2 == TEAM_RED)
-			pMyBase = ((CHalfLifeCaptureTheFlag *)g_pGameRules)->pRedBase;
-
-		// Flag pick up at base
-		if ((pPlayer->pev->fuser4 + 2) != pev->fuser4)
+		if (!pPlayer->pFlag)
 		{
-			pMyBase->pev->iuser4 = FALSE;
+			EHANDLE pMyBase = ((CHalfLifeCaptureTheFlag *)g_pGameRules)->pBlueBase;
+			if (pev->fuser4 - 2 == TEAM_RED)
+				pMyBase = ((CHalfLifeCaptureTheFlag *)g_pGameRules)->pRedBase;
 
-			pev->aiment = pOther->edict();
-			pPlayer->m_fFlagTime = gpGlobals->time + 1.0;
-			pPlayer->pFlag = this;
-			pev->movetype = MOVETYPE_FOLLOW;
-			pev->sequence = CARRIED;
-
-			if (!FBitSet(pPlayer->pev->flags, FL_FAKECLIENT))
+			// Flag pick up at base
+			if ((pPlayer->pev->fuser4 + 2) != pev->fuser4)
 			{
-				MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, pPlayer->edict());
-					WRITE_STRING("You have the flag!");
-					WRITE_STRING(UTIL_VarArgs("Get it to %s base", (pPlayer->pev->fuser4 == TEAM_RED) ? "red" : "blue"));
-					WRITE_BYTE(0);
-				MESSAGE_END();
+				pMyBase->pev->iuser4 = FALSE;
 
-				if (pPlayer->pev->fuser4 == TEAM_RED)
-					((CHalfLifeCaptureTheFlag *)g_pGameRules)->UpdateHud(1, -1, pPlayer);
-				else
-					((CHalfLifeCaptureTheFlag *)g_pGameRules)->UpdateHud(-1, 1, pPlayer);
+				pev->aiment = pOther->edict();
+				pPlayer->m_fFlagTime = gpGlobals->time + 1.0;
+				pPlayer->pFlag = this;
+				pev->movetype = MOVETYPE_FOLLOW;
+				pev->sequence = CARRIED;
 
-				for (int i = 1; i <= gpGlobals->maxClients; i++)
+				if (!FBitSet(pPlayer->pev->flags, FL_FAKECLIENT))
 				{
-					CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
-					if ( plr && plr->IsPlayer() && !plr->HasDisconnected )
+					MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, pPlayer->edict());
+						WRITE_STRING("You have the flag!");
+						WRITE_STRING(UTIL_VarArgs("Get it to %s base", (pPlayer->pev->fuser4 == TEAM_RED) ? "red" : "blue"));
+						WRITE_BYTE(0);
+					MESSAGE_END();
+
+					ClientPrint(pPlayer->pev, HUD_PRINTCENTER, "You have the flag!");
+
+					if (pPlayer->pev->fuser4 == TEAM_RED)
+						((CHalfLifeCaptureTheFlag *)g_pGameRules)->UpdateHud(1, -1, pPlayer);
+					else
+						((CHalfLifeCaptureTheFlag *)g_pGameRules)->UpdateHud(-1, 1, pPlayer);
+
+					for (int i = 1; i <= gpGlobals->maxClients; i++)
 					{
-						if (!FBitSet(plr->pev->flags, FL_FAKECLIENT))
+						CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
+						if ( plr && plr->IsPlayer() && !plr->HasDisconnected )
 						{
-							if (!plr->pFlag)
+							if (!FBitSet(plr->pev->flags, FL_FAKECLIENT))
 							{
-								MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, plr->edict());
-									WRITE_STRING(UTIL_VarArgs("%s has the flag!", STRING(pPlayer->pev->netname)));
-									WRITE_STRING("");
-									WRITE_BYTE(0);
-								MESSAGE_END();
+								if (!plr->pFlag)
+								{
+									MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, plr->edict());
+										WRITE_STRING(UTIL_VarArgs("%s has the flag!", STRING(pPlayer->pev->netname)));
+										WRITE_STRING(UTIL_VarArgs("You're on %s team", (pPlayer->pev->fuser4 == TEAM_RED) ? "red" : "blue"));
+										WRITE_BYTE(0);
+									MESSAGE_END();
+								}
 							}
 						}
 					}
 				}
+
+				MESSAGE_BEGIN(MSG_BROADCAST, gmsgPlayClientSound);
+					WRITE_BYTE(CLIENT_SOUND_CTF_TAKEN);
+				MESSAGE_END();
 			}
-
-			MESSAGE_BEGIN(MSG_BROADCAST, gmsgPlayClientSound);
-				WRITE_BYTE(CLIENT_SOUND_CTF_TAKEN);
-			MESSAGE_END();
-		}
-		// Returning
-		else if ((pPlayer->pev->fuser4 + 2) == pev->fuser4)
-		{
-			// Cannot touch same flag in its base
-			Vector vRedBase = ((CHalfLifeCaptureTheFlag *)g_pGameRules)->pRedBase->pev->origin;
-			Vector vBlueBase = ((CHalfLifeCaptureTheFlag *)g_pGameRules)->pBlueBase->pev->origin;
-			Vector og = (pev->fuser4 == TEAM_RED + 2) ? vRedBase : vBlueBase;
-			if (pev->origin != og)
+			// Returning
+			else if ((pPlayer->pev->fuser4 + 2) == pev->fuser4)
 			{
-				ClientPrint(pPlayer->pev, HUD_PRINTCENTER, "You've returned the flag to base!");
-				EMIT_SOUND(pPlayer->edict(), CHAN_ITEM, "rune_pickup.wav", 1, ATTN_NORM);
+				// Cannot touch same flag in its base
+				Vector vRedBase = ((CHalfLifeCaptureTheFlag *)g_pGameRules)->pRedBase->pev->origin;
+				Vector vBlueBase = ((CHalfLifeCaptureTheFlag *)g_pGameRules)->pBlueBase->pev->origin;
+				Vector og = (pev->fuser4 == TEAM_RED + 2) ? vRedBase : vBlueBase;
+				if (pev->origin != og)
+				{
+					ClientPrint(pPlayer->pev, HUD_PRINTCENTER, "You've returned the flag to base!");
+					EMIT_SOUND(pPlayer->edict(), CHAN_ITEM, "rune_pickup.wav", 1, ATTN_NORM);
 
-				pMyBase->pev->iuser4 = TRUE;
+					pMyBase->pev->iuser4 = TRUE;
 
+					pPlayer->m_fFlagTime = gpGlobals->time + 1.0;
+					//pev->solid = SOLID_TRIGGER;
+					pev->movetype = MOVETYPE_TOSS;
+					pev->aiment = 0;
+					pev->sequence = FLAG_POSITIONED;
+					pev->angles = g_vecZero;
+					UTIL_SetOrigin(pev, og);
+
+					if (pev->fuser4 == TEAM_RED + 2)
+						((CHalfLifeCaptureTheFlag *)g_pGameRules)->UpdateHud(-1, 0);
+					else
+						((CHalfLifeCaptureTheFlag *)g_pGameRules)->UpdateHud(0, -1);
+				}
+			}
+		}
+		else
+		{
+			// Touch my flag while holding the enemies one
+			if ((pPlayer->pev->fuser4 + 2) == pev->fuser4)
+			{
+				ClientPrint(pPlayer->pev, HUD_PRINTCENTER, "Cannot return while holding a flag!");
 				pPlayer->m_fFlagTime = gpGlobals->time + 1.0;
-				//pev->solid = SOLID_TRIGGER;
-				pev->movetype = MOVETYPE_TOSS;
-				pev->aiment = 0;
-				pev->sequence = FLAG_POSITIONED;
-				pev->angles = g_vecZero;
-				UTIL_SetOrigin(pev, og);
-
-				if (pev->fuser4 == TEAM_RED + 2)
-					((CHalfLifeCaptureTheFlag *)g_pGameRules)->UpdateHud(-1, 0);
-				else
-					((CHalfLifeCaptureTheFlag *)g_pGameRules)->UpdateHud(0, -1);
 			}
 		}
 	}
@@ -346,7 +360,7 @@ void CFlagBase::CTFTouch( CBaseEntity *pOther )
 						{
 							MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, plr->edict());
 								WRITE_STRING(UTIL_VarArgs("Capture the %s flag", (plr->pev->fuser4 == TEAM_RED) ? "blue" : "red"));
-								WRITE_STRING("");
+								WRITE_STRING(UTIL_VarArgs("You're on %s team", (pPlayer->pev->fuser4 == TEAM_RED) ? "red" : "blue"));
 								WRITE_BYTE(0);
 							MESSAGE_END();
 						}
@@ -459,10 +473,21 @@ ReturnSpot:
 
 void CHalfLifeCaptureTheFlag::InitHUD( CBasePlayer *pPlayer )
 {
-	CHalfLifeMultiplay::InitHUD( pPlayer );
+	int blueteam = 0, redteam = 0;
+	for (int i = 1; i <= gpGlobals->maxClients; i++)
+	{
+		CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
+		if ( plr && plr->IsPlayer() && !plr->HasDisconnected )
+		{
+			if (plr->pev->fuser4 == TEAM_BLUE)
+				blueteam++;
+			else
+				redteam++;
+		}
+	}
 
-	// Random assign
-	pPlayer->pev->fuser4 = RANDOM_LONG(TEAM_BLUE, TEAM_RED);
+	ALERT(at_aiconsole, "redteam = %d  |  blueteam = %d\n", redteam, blueteam);
+	pPlayer->pev->fuser4 = redteam >= blueteam ? TEAM_BLUE : TEAM_RED;
 
 	if (pPlayer->pev->fuser4 == TEAM_BLUE)
 	{
@@ -480,6 +505,14 @@ void CHalfLifeCaptureTheFlag::InitHUD( CBasePlayer *pPlayer )
 		//g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer->edict()),
 		//	g_engfuncs.pfnGetInfoKeyBuffer(pPlayer->edict()), "team", pPlayer->m_szTeamName);
 	}
+
+	CHalfLifeMultiplay::InitHUD( pPlayer );
+
+	MESSAGE_BEGIN(MSG_ONE, gmsgTeamNames, NULL, pPlayer->edict());
+		WRITE_BYTE( 2 );
+		WRITE_STRING( "blue" );
+		WRITE_STRING( "red" );
+	MESSAGE_END();
 
 	char text[256];
 	sprintf( text, "* you are on team \'%s\'\n", pPlayer->m_szTeamName );
@@ -499,18 +532,24 @@ void CHalfLifeCaptureTheFlag::InitHUD( CBasePlayer *pPlayer )
 		WRITE_SHORT( g_pGameRules->GetTeamIndex( pPlayer->m_szTeamName ) + 1 );
 	MESSAGE_END();
 
+	for ( int i = 1; i <= gpGlobals->maxClients; i++ )
+	{
+		CBaseEntity *plr = UTIL_PlayerByIndex( i );
+		if ( plr )
+		{
+			MESSAGE_BEGIN( MSG_ONE, gmsgTeamInfo, NULL, pPlayer->edict() );
+				WRITE_BYTE( plr->entindex() );
+				WRITE_STRING( plr->TeamID() );
+			MESSAGE_END();
+		}
+	}
+
 	if (!FBitSet(pPlayer->pev->flags, FL_FAKECLIENT))
 	{
-		MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, pPlayer->edict());
+		MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL, pPlayer->edict());
 			WRITE_STRING(UTIL_VarArgs("Capture the %s flag", (pPlayer->pev->fuser4 == TEAM_RED) ? "blue" : "red"));
-			WRITE_STRING("");
+			WRITE_STRING(UTIL_VarArgs("You're on %s team", (pPlayer->pev->fuser4 == TEAM_RED) ? "red" : "blue"));
 			WRITE_BYTE(0);
-		MESSAGE_END();
-
-		MESSAGE_BEGIN(MSG_ONE, gmsgTeamNames, NULL, pPlayer->edict());
-			WRITE_BYTE( 2 );
-			WRITE_STRING( "blue" );
-			WRITE_STRING( "red" );
 		MESSAGE_END();
 
 		MESSAGE_BEGIN(MSG_ONE, gmsgCtfInfo, NULL, pPlayer->edict());
@@ -665,7 +704,7 @@ void CHalfLifeCaptureTheFlag::ClientUserInfoChanged( CBasePlayer *pPlayer, char 
 
 	MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, pPlayer->edict());
 		WRITE_STRING(UTIL_VarArgs("Capture the %s flag", (pPlayer->pev->fuser4 == TEAM_RED) ? "blue" : "red"));
-		WRITE_STRING("");
+		WRITE_STRING(UTIL_VarArgs("You're on %s team", (pPlayer->pev->fuser4 == TEAM_RED) ? "red" : "blue"));
 		WRITE_BYTE(0);
 	MESSAGE_END();
 }
@@ -714,7 +753,7 @@ CBaseEntity *CHalfLifeCaptureTheFlag::DropCharm( CBasePlayer *pPlayer, Vector or
 					{
 						MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, plr->edict());
 							WRITE_STRING(UTIL_VarArgs("%s has the flag!", STRING(pPlayerWithFlag->pev->netname)));
-							WRITE_STRING("");
+							WRITE_STRING(UTIL_VarArgs("You're on %s team", (pPlayer->pev->fuser4 == TEAM_RED) ? "red" : "blue"));
 							WRITE_BYTE(0);
 						MESSAGE_END();
 					}
@@ -722,7 +761,7 @@ CBaseEntity *CHalfLifeCaptureTheFlag::DropCharm( CBasePlayer *pPlayer, Vector or
 					{
 						MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, plr->edict());
 							WRITE_STRING(UTIL_VarArgs("Capture the %s flag", (plr->pev->fuser4 == TEAM_RED) ? "blue" : "red"));
-							WRITE_STRING("");
+							WRITE_STRING(UTIL_VarArgs("You're on %s team", (pPlayer->pev->fuser4 == TEAM_RED) ? "red" : "blue"));
 							WRITE_BYTE(0);
 						MESSAGE_END();
 					}
