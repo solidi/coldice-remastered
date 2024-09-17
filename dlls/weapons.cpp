@@ -1295,6 +1295,10 @@ void CBasePlayerWeapon::ItemPostFrame( void )
 			m_fFireOnEmpty = TRUE;
 		}
 
+		if (g_pGameRules->IsPropHunt() && m_pPlayer->pev->fuser4 == 0) {
+			m_pPlayer->pev->health--;
+		}
+
 		if (m_pPlayer->m_iHoldingItem) {
 			m_pPlayer->ReleaseHeldItem(100);
 		}
@@ -1336,6 +1340,10 @@ void CBasePlayerWeapon::ItemPostFrame( void )
 
 		if (m_pPlayer->m_iHoldingItem) {
 			m_pPlayer->ReleaseHeldItem(100);
+		}
+
+		if (g_pGameRules->IsPropHunt() && m_pPlayer->pev->fuser4 == 0) {
+			m_pPlayer->pev->health--;
 		}
 
 		m_pPlayer->TabulateAmmo();

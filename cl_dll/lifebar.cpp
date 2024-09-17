@@ -91,6 +91,8 @@ int CHudLifeBar::MsgFunc_LifeBar(const char *pszName,  int iSize, void *pbuf )
 	return 1;
 }
 
+extern bool IsPropHunt( void );
+
 int CHudLifeBar::UpdateSprites()
 {
 	if (cl_lifemeter && !cl_lifemeter->value)
@@ -112,6 +114,9 @@ int CHudLifeBar::UpdateSprites()
 		cl_entity_s *pClient = gEngfuncs.GetEntityByIndex(i+1);
 		int health = pClient->curstate.health;
 		int armor = m_LifeBarData[i+1].armor;
+
+		if (IsPropHunt() && pClient->curstate.fuser4 > 0)
+			return;
 		
 		if (m_LifeBarData[i+1].refreshTime < gEngfuncs.GetClientTime())
 			continue;
