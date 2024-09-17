@@ -129,12 +129,23 @@ void CVoteMutatorPanel::Update()
 			char sz[64];
 			sprintf(sz, " %-2d %s", votes[i], sMutators[i]);
 			m_pButtons[i]->setText(sz);
-		}
 
-		if ((myVote - 1) == i)
-		{
-			if (m_pButtons[i])
+			if ((myVote - 1) == i)
+			{
 				m_pButtons[i]->setArmed(true);
+			}
+
+			int r, g, b, a = 0;
+			if (votes[i] > 0)
+			{
+				m_pButtons[i]->setBorder(new LineBorder(Color(255, 255, 255, a)));
+				m_pButtons[i]->setArmed(true);
+			}
+			else
+			{
+				UnpackRGB(r, g, b, HudColor());
+				m_pButtons[i]->setBorder(new LineBorder( Color(r, g, b, a)));
+			}
 		}
 	}
 
