@@ -32,6 +32,8 @@ extern int gmsgGameMode;
 extern int gmsgPlayClientSound;
 extern int gmsgScoreInfo;
 extern int gmsgObjective;
+extern int gmsgRoundTime;
+extern int gmsgShowTimer;
 
 #define MAXLEVEL 47
 int g_iFrags[MAXLEVEL+1] = { 1, 3, 5, 6, 9, 12, 15, 18, 21, 26, 29, 30, 31, 32, 33, 34, 35,
@@ -131,6 +133,24 @@ void CHalfLifeGunGame::Think( void )
 	
 	time_remaining = (int)(flTimeLimit ? ( flTimeLimit - gpGlobals->time ) : 0);
 
+	if (m_fShowTimer != timelimit.value)
+	{
+		if (time_remaining > 0)
+		{
+			MESSAGE_BEGIN(MSG_BROADCAST, gmsgRoundTime);
+				WRITE_SHORT(time_remaining);
+			MESSAGE_END();
+		}
+		else
+		{
+			MESSAGE_BEGIN(MSG_BROADCAST, gmsgShowTimer);
+				WRITE_BYTE(0);
+			MESSAGE_END();
+		}
+
+		m_fShowTimer = timelimit.value;
+	}
+
 	if ( flTimeLimit != 0 && gpGlobals->time >= flTimeLimit )
 	{
 		GoToIntermission();
@@ -144,7 +164,7 @@ void CHalfLifeGunGame::Think( void )
 
 	if ( m_fGoToIntermission != 0 && gpGlobals->time >= m_fGoToIntermission )
 	{
-		if (m_iSuccessfulRounds < roundlimit.value)
+		if (m_iSuccessfulRounds < 1)
 		{
 			for ( int i = 1; i <= gpGlobals->maxClients; i++ )
 			{
@@ -189,7 +209,7 @@ void CHalfLifeGunGame::Think( void )
 							WRITE_STRING("GunGame in progress");
 							WRITE_STRING(UTIL_VarArgs("Top level is %s [%d of %d]", g_WeaponId[m_iTopLevel], m_iTopLevel + 1, MAXLEVEL));
 							WRITE_BYTE(result);
-							WRITE_STRING(UTIL_VarArgs("Round %d of %d", m_iSuccessfulRounds+1, (int)roundlimit.value));
+							//WRITE_STRING(UTIL_VarArgs("Round %d of %d", m_iSuccessfulRounds+1, (int)roundlimit.value));
 						MESSAGE_END();
 					}
 				}
@@ -245,7 +265,7 @@ void CHalfLifeGunGame::InitHUD( CBasePlayer *pPlayer )
 			WRITE_STRING("Get through your weapon list");
 			WRITE_STRING(UTIL_VarArgs("Your progress: %d of %d", (int)pPlayer->pev->fuser4 + 1, MAXLEVEL));
 			WRITE_BYTE(0);
-			WRITE_STRING(UTIL_VarArgs("Best of %d", (int)roundlimit.value));
+			//WRITE_STRING(UTIL_VarArgs("Best of %d", (int)roundlimit.value));
 		MESSAGE_END();
 	}
 }
@@ -522,6 +542,9 @@ BOOL CHalfLifeGunGame::FPlayerCanTakeDamage( CBasePlayer *pPlayer, CBaseEntity *
 
 BOOL CHalfLifeGunGame::MutatorAllowed(const char *mutator)
 {
+	if (strstr(mutator, g_szMutators[MUTATOR_BARRELS - 1]) || atoi(mutator) == MUTATOR_BARRELS)
+		return FALSE;
+
 	if (strstr(mutator, g_szMutators[MUTATOR_BERSERKER - 1]) || atoi(mutator) == MUTATOR_BERSERKER)
 		return FALSE;
 

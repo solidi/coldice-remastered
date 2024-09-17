@@ -3190,6 +3190,9 @@ void CBasePlayerWeapon::ThrowWeapon( BOOL holdingSomething )
 		return;
 	}
 
+	if (g_pGameRules->IsGunGame())
+		return;
+
 	if (m_iId == WEAPON_FISTS || m_iId == WEAPON_FINGERGUN)
 		return;
 

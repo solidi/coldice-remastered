@@ -1597,3 +1597,8 @@ BOOL CGameRules::IsBusters()
 {
 	return g_GameMode == GAME_BUSTERS;
 }
+
+BOOL CGameRules::IsGunGame()
+{
+	return g_GameMode == GAME_GUNGAME;
+}

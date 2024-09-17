@@ -210,6 +210,7 @@ public:
 	virtual BOOL IsInstagib();
 	virtual BOOL IsPropHunt();
 	virtual BOOL IsBusters();
+	virtual BOOL IsGunGame();
 
 	virtual BOOL AllowMeleeDrop() = 0;
 
