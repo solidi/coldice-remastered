@@ -35,6 +35,7 @@ public:
 	void Spawn( void );
 	void EXPORT SkullTouch( CBaseEntity *pOther );
 	void EXPORT ThinkSolid();
+	BOOL ShouldCollide( CBaseEntity *pOther );
 };
 
 void CSkullCharm::Precache( void )
@@ -58,11 +59,12 @@ void CSkullCharm::Spawn( void )
 	pev->angles.z = 0;
 	pev->movetype = MOVETYPE_TOSS;
 	pev->solid = SOLID_NOT;
+	UTIL_SetSize(pev, Vector(0, 0, 0), Vector(0, 0, 0));
 	UTIL_SetOrigin( pev, pev->origin );
 
 	SetTouch( &CSkullCharm::SkullTouch );
 	SetThink( &CSkullCharm::ThinkSolid );
-	pev->nextthink = gpGlobals->time + 0.25;
+	pev->nextthink = gpGlobals->time + 0.5;
 
 	//animate
 	pev->sequence = 0;
@@ -76,6 +78,14 @@ void CSkullCharm::ThinkSolid( void )
 	UTIL_SetSize(pev, Vector(-16, -16, 0), Vector(16, 16, 16));
 	SetThink( &CBaseEntity::SUB_StartFadeOut );
 	pev->nextthink = gpGlobals->time + 25.0;
+}
+
+BOOL CSkullCharm::ShouldCollide( CBaseEntity *pOther )
+{
+	if (pev->modelindex == pOther->pev->modelindex)
+		return FALSE;
+
+	return TRUE;
 }
 
 void CSkullCharm::SkullTouch( CBaseEntity *pOther )
@@ -163,11 +173,12 @@ void CHalfLifeColdSkull::InitHUD( CBasePlayer *pPlayer )
 
 void CreateSkull( CBasePlayer *pVictim, int amount )
 {
-	CSkullCharm *pSkull = (CSkullCharm *)CBaseEntity::Create("skull", 
-		pVictim->GetGunPosition( ) + gpGlobals->v_forward * 32, pVictim->pev->angles, NULL);
+	CSkullCharm *pSkull = (CSkullCharm *)CBaseEntity::Create("skull", pVictim->GetGunPosition( ), pVictim->pev->angles, NULL);
 	if (pSkull != NULL)
 	{
-		pSkull->pev->velocity = gpGlobals->v_forward * RANDOM_LONG(-300,300) + gpGlobals->v_forward * RANDOM_LONG(-100,100);
+		pSkull->pev->velocity.x = RANDOM_FLOAT( -300, 300 );
+		pSkull->pev->velocity.y = RANDOM_FLOAT( -300, 300 );
+		pSkull->pev->velocity.z = RANDOM_FLOAT( 0, 300 );
 		pSkull->pev->fuser1 = amount;
 
 		/*
