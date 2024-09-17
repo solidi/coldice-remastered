@@ -116,7 +116,7 @@ int CHudLifeBar::UpdateSprites()
 		int armor = m_LifeBarData[i+1].armor;
 
 		if (IsPropHunt() && pClient->curstate.fuser4 > 0)
-			return;
+			return 0;
 		
 		if (m_LifeBarData[i+1].refreshTime < gEngfuncs.GetClientTime())
 			continue;
