@@ -1368,16 +1368,39 @@ void CGameRules::MutatorsThink(void)
 				}
 				else
 				{
-					pl->pev->movetype = MOVETYPE_WALK;
-					TraceResult trace;
-					UTIL_TraceHull(pl->pev->origin, pl->pev->origin, dont_ignore_monsters, head_hull, pl->edict(), &trace);
-					if (trace.fStartSolid)
+					if (pl->pev->movetype == MOVETYPE_NOCLIP)
 					{
-						if (pl->IsPlayer() && pl->IsAlive()) {
-							ClearMultiDamage();
-							pl->pev->health = 0;
-							pl->Killed( pl->pev, GIB_NEVER );
+						edict_t* pentSpawnSpot = EntSelectSpawnPoint( pl );
+						if (pentSpawnSpot)
+						{
+							UTIL_SetOrigin(pl->pev, VARS(pentSpawnSpot)->origin + Vector(0,0,1));
+							pl->pev->angles = VARS(pentSpawnSpot)->angles;
+							CBaseEntity *ent = NULL;
+							while ( (ent = UTIL_FindEntityInSphere( ent, pl->pev->origin, 128 )) != NULL )
+							{
+								// if ent is a client, kill em (unless they are ourselves)
+								if ( ent->IsPlayer() && !(ent->edict() == pentSpawnSpot) && ent->IsAlive() )
+								{
+									ClearMultiDamage();
+									ent->pev->health = 0; // without this, player can walk as a ghost.
+									((CBasePlayer *)ent)->Killed(pl->pev, VARS(INDEXENT(0)), GIB_ALWAYS);
+								}
+							}
 						}
+						else
+						{
+							TraceResult trace;
+							UTIL_TraceHull(pl->pev->origin, pl->pev->origin, dont_ignore_monsters, head_hull, pl->edict(), &trace);
+							if (trace.fStartSolid)
+							{
+								if (pl->IsPlayer() && pl->IsAlive()) {
+									ClearMultiDamage();
+									pl->pev->health = 0;
+									pl->Killed( pl->pev, GIB_NEVER );
+								}
+							}
+						}
+						pl->pev->movetype = MOVETYPE_WALK;
 					}
 				}
 			}
