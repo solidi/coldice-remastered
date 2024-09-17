@@ -417,3 +417,18 @@ BOOL CMultiplayBusters::MutatorAllowed(const char *mutator)
 
 	return CHalfLifeMultiplay::MutatorAllowed(mutator);
 }
+
+BOOL CMultiplayBusters::FPlayerCanTakeDamage( CBasePlayer *pPlayer, CBaseEntity *pAttacker )
+{
+	if ( pPlayer->pev->fuser4 == pAttacker->pev->fuser4 )
+	{
+		// my teammate hit me.
+		if ( (friendlyfire.value == 0) && (pAttacker != pPlayer) )
+		{
+			// friendly fire is off, and this hit came from someone other than myself,  then don't get hurt
+			return FALSE;
+		}
+	}
+
+	return CHalfLifeMultiplay::FPlayerCanTakeDamage( pPlayer, pAttacker );
+}

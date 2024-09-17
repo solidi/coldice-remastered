@@ -34,6 +34,7 @@ public:
 	virtual const char *GetTeamID( CBaseEntity *pEntity );
 	virtual BOOL ShouldAutoAim( CBasePlayer *pPlayer, edict_t *target );
 	virtual BOOL MutatorAllowed(const char *mutator);
+	virtual BOOL FPlayerCanTakeDamage( CBasePlayer *pPlayer, CBaseEntity *pAttacker );
 
 	void SetPlayerModel( CBasePlayer* pPlayer );
 
