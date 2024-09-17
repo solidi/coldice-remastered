@@ -665,8 +665,8 @@ void CL_AdjustAngles ( float frametime, float *viewangles )
 	if (in_klook.state & 1)
 	{
 		V_StopPitchDrift ();
-		viewangles[PITCH] -= speed*cl_pitchspeed->value * CL_KeyState (&in_forward);
-		viewangles[PITCH] += speed*cl_pitchspeed->value * CL_KeyState (&in_back);
+		viewangles[PITCH] -= speed*cl_pitchspeed->value * CL_KeyState ((MutatorEnabled(MUTATOR_MIRROR) ? &in_back : &in_forward));
+		viewangles[PITCH] += speed*cl_pitchspeed->value * CL_KeyState ((MutatorEnabled(MUTATOR_MIRROR) ? &in_forward : &in_back));
 	}
 	
 	up = CL_KeyState (&in_lookup);
@@ -747,8 +747,8 @@ void CL_DLLEXPORT CL_CreateMove ( float frametime, struct usercmd_s *cmd, int ac
 
 		if ( !(in_klook.state & 1 ) )
 		{	
-			cmd->forwardmove += cl_forwardspeed->value * CL_KeyState (&in_forward);
-			cmd->forwardmove -= cl_backspeed->value * CL_KeyState (&in_back);
+			cmd->forwardmove += cl_forwardspeed->value * CL_KeyState ((MutatorEnabled(MUTATOR_MIRROR) ? &in_back : &in_forward));
+			cmd->forwardmove -= cl_backspeed->value * CL_KeyState ((MutatorEnabled(MUTATOR_MIRROR) ? &in_forward : &in_back));
 		}	
 
 		// adjust for speed key
