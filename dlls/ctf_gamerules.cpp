@@ -486,7 +486,6 @@ void CHalfLifeCaptureTheFlag::InitHUD( CBasePlayer *pPlayer )
 		}
 	}
 
-	ALERT(at_aiconsole, "redteam = %d  |  blueteam = %d\n", redteam, blueteam);
 	pPlayer->pev->fuser4 = redteam >= blueteam ? TEAM_BLUE : TEAM_RED;
 
 	if (pPlayer->pev->fuser4 == TEAM_BLUE)
@@ -532,6 +531,7 @@ void CHalfLifeCaptureTheFlag::InitHUD( CBasePlayer *pPlayer )
 		WRITE_SHORT( g_pGameRules->GetTeamIndex( pPlayer->m_szTeamName ) + 1 );
 	MESSAGE_END();
 
+/*
 	for ( int i = 1; i <= gpGlobals->maxClients; i++ )
 	{
 		CBaseEntity *plr = UTIL_PlayerByIndex( i );
@@ -543,6 +543,7 @@ void CHalfLifeCaptureTheFlag::InitHUD( CBasePlayer *pPlayer )
 			MESSAGE_END();
 		}
 	}
+*/
 
 	if (!FBitSet(pPlayer->pev->flags, FL_FAKECLIENT))
 	{
@@ -559,13 +560,6 @@ void CHalfLifeCaptureTheFlag::InitHUD( CBasePlayer *pPlayer )
 			WRITE_BYTE(m_iRedMode);
 		MESSAGE_END();
 	}
-
-/*
-	MESSAGE_BEGIN( MSG_ALL, gmsgTeamInfo );
-		WRITE_BYTE( ENTINDEX(pPlayer->edict()) );
-		WRITE_STRING( pPlayer->m_szTeamName );
-	MESSAGE_END();
-	*/
 }
 
 void CHalfLifeCaptureTheFlag::Think( void )

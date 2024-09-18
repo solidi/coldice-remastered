@@ -66,11 +66,13 @@ CMultiplayBusters::CMultiplayBusters()
 
 void CMultiplayBusters::InitHUD( CBasePlayer *pPlayer )
 {
+	strncpy( pPlayer->m_szTeamName, "ghosts", TEAM_NAME_LENGTH );
+
 	CHalfLifeMultiplay::InitHUD( pPlayer );
 
 	if (!FBitSet(pPlayer->pev->flags, FL_FAKECLIENT))
 	{
-		MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, pPlayer->edict());
+		MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL, pPlayer->edict());
 			WRITE_STRING("Bust 'em");
 			WRITE_STRING("");
 			WRITE_BYTE(0);
@@ -83,6 +85,11 @@ void CMultiplayBusters::InitHUD( CBasePlayer *pPlayer )
 			WRITE_STRING( "busters" );
 		MESSAGE_END();
 	}
+
+	MESSAGE_BEGIN( MSG_ALL, gmsgTeamInfo );
+		WRITE_BYTE( ENTINDEX(pPlayer->edict()) );
+		WRITE_STRING( pPlayer->m_szTeamName );
+	MESSAGE_END();
 }
 
 void CMultiplayBusters::Think()

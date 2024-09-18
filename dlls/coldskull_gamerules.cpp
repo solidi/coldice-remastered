@@ -163,7 +163,7 @@ void CHalfLifeColdSkull::InitHUD( CBasePlayer *pPlayer )
 		int frags = fraglimit.value;
 		if (frags == 0)
 			frags = 100;
-		MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, pPlayer->edict());
+		MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL, pPlayer->edict());
 			WRITE_STRING("Collect the skulls");
 			WRITE_STRING(UTIL_VarArgs("Your progress: 0 of %d", frags));
 			WRITE_BYTE(0);
