@@ -254,14 +254,29 @@ void CVoteGameplayPanel::Update()
 				votes[i] += 1;
 		}
 
-		char sz[256];
-		sprintf(sz, "#%s", sGameplayModes[i]);
-		char* localName = CHudTextMessage::BufferedLocaliseTextString( sz );
-		sprintf(sz, " %-2d %s", votes[i], localName);
-		m_pButtons[i]->setText(sz);
+		if (m_pButtons[i])
+		{
+			char sz[256];
+			sprintf(sz, "#%s", sGameplayModes[i]);
+			char* localName = CHudTextMessage::BufferedLocaliseTextString( sz );
+			sprintf(sz, " %-2d %s", votes[i], localName);
+			m_pButtons[i]->setText(sz);
 
-		if ((myVote - 1) == i)
-			m_pButtons[i]->setArmed(true);
+			if ((myVote - 1) == i)
+				m_pButtons[i]->setArmed(true);
+
+			int r, g, b, a = 0;
+			if (votes[i] > 0)
+			{
+				m_pButtons[i]->setBorder(new LineBorder(Color(255, 255, 255, a)));
+				m_pButtons[i]->setArmed(true);
+			}
+			else
+			{
+				UnpackRGB(r, g, b, HudColor());
+				m_pButtons[i]->setBorder(new LineBorder( Color(r, g, b, a)));
+			}
+		}
 	}
 
 	pTitleLabel->setText("%s | Your Vote: %s | Time Left: %.1f\n", gHUD.m_TextMessage.BufferedLocaliseTextString("#Title_VoteGameplay"), myVote > 0 ? sGameplayModes[myVote-1] : "None", seconds);

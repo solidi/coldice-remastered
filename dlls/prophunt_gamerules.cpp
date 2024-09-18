@@ -23,6 +23,7 @@
 #include "game.h"
 #include "items.h"
 #include "voice_gamemgr.h"
+#include "shake.h"
 
 extern int gmsgObjective;
 extern int gmsgTeamNames;
@@ -539,6 +540,7 @@ void CHalfLifePropHunt::Think( void )
 				if ( plr && plr->IsPlayer() && !plr->HasDisconnected && plr->pev->fuser4 == 0 )
 				{
 					plr->EnableControl(FALSE);
+					UTIL_ScreenFade( plr, Vector(0,0,0), 0.2, m_fUnFreezeHunters - gpGlobals->time, 255, FFADE_OUT | FFADE_MODULATE );
 					ClientPrint(plr->pev, HUD_PRINTCENTER, UTIL_VarArgs("You are frozen... hunt in %.0f seconds\n", (m_fUnFreezeHunters - gpGlobals->time)));
 				}
 			}
@@ -772,7 +774,7 @@ void CHalfLifePropHunt::InitHUD( CBasePlayer *pPlayer )
 
 	if (!FBitSet(pPlayer->pev->flags, FL_FAKECLIENT))
 	{
-		MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, pPlayer->edict());
+		MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL, pPlayer->edict());
 			WRITE_STRING("Prop Hunt");
 			WRITE_STRING("");
 			WRITE_BYTE(0);
@@ -834,6 +836,9 @@ void CHalfLifePropHunt::PlayerSpawn( CBasePlayer *pPlayer )
 
 BOOL CHalfLifePropHunt::FPlayerCanTakeDamage( CBasePlayer *pPlayer, CBaseEntity *pAttacker )
 {
+	if (pPlayer->pev->fuser4 > 0 && m_fUnFreezeHunters > 0)
+		return FALSE; // props cannot change to hunter yet.
+
 	if ( pPlayer->pev->fuser4 == pAttacker->pev->fuser4 )
 	{
 		// my teammate hit me.

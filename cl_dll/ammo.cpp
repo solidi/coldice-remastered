@@ -967,6 +967,12 @@ int CHudAmmo::Draw(float flTime)
 		GetConsoleStringSize("Slow weapons", &w, &h);
 		DrawConsoleString(ScreenWidth / 2 - (w / 2), (ScreenHeight / 2) + (h * 2), "Slow weapons");
 	}
+	else if (MutatorEnabled(MUTATOR_DEALTER))
+	{
+		int w = 0, h = 0;
+		GetConsoleStringSize("Farts!", &w, &h);
+		DrawConsoleString(ScreenWidth / 2 - (w / 2), (ScreenHeight / 2) + (h * 2), "Farts!");
+	}
 
 	float up = cl_hudbend->value ? 1.5 : 1;
 	float left = cl_hudbend->value ? 15 : 0;

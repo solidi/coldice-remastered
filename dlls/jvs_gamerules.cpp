@@ -352,13 +352,13 @@ void CHalfLifeJesusVsSanta::InitHUD( CBasePlayer *pPlayer )
 
 	if (!FBitSet(pPlayer->pev->flags, FL_FAKECLIENT))
 	{
-		MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, pPlayer->edict());
+		MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL, pPlayer->edict());
 			WRITE_STRING("Jesus vs Santa");
 			WRITE_STRING("");
 			WRITE_BYTE(0);
 		MESSAGE_END();
 
-		MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgTeamNames, NULL, pPlayer->edict());
+		MESSAGE_BEGIN(MSG_ONE, gmsgTeamNames, NULL, pPlayer->edict());
 			WRITE_BYTE( 2 );
 			WRITE_STRING( "santa" );
 			WRITE_STRING( "jesus" );

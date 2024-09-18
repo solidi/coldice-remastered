@@ -448,13 +448,13 @@ void CHalfLifeChilldemic::InitHUD( CBasePlayer *pl )
 
 	if (!FBitSet(pl->pev->flags, FL_FAKECLIENT))
 	{
-		MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, pl->edict());
+		MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL, pl->edict());
 			WRITE_STRING("Survive");
 			WRITE_STRING("");
 			WRITE_BYTE(0);
 		MESSAGE_END();
 
-		MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgTeamNames, NULL, pl->edict());
+		MESSAGE_BEGIN(MSG_ONE, gmsgTeamNames, NULL, pl->edict());
 			WRITE_BYTE( 2 );
 			WRITE_STRING( "survivors" );
 			WRITE_STRING( "skeleton" );

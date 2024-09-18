@@ -66,11 +66,13 @@ CMultiplayBusters::CMultiplayBusters()
 
 void CMultiplayBusters::InitHUD( CBasePlayer *pPlayer )
 {
+	strncpy( pPlayer->m_szTeamName, "ghosts", TEAM_NAME_LENGTH );
+
 	CHalfLifeMultiplay::InitHUD( pPlayer );
 
 	if (!FBitSet(pPlayer->pev->flags, FL_FAKECLIENT))
 	{
-		MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, pPlayer->edict());
+		MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL, pPlayer->edict());
 			WRITE_STRING("Bust 'em");
 			WRITE_STRING("");
 			WRITE_BYTE(0);
@@ -83,6 +85,11 @@ void CMultiplayBusters::InitHUD( CBasePlayer *pPlayer )
 			WRITE_STRING( "busters" );
 		MESSAGE_END();
 	}
+
+	MESSAGE_BEGIN( MSG_ALL, gmsgTeamInfo );
+		WRITE_BYTE( ENTINDEX(pPlayer->edict()) );
+		WRITE_STRING( pPlayer->m_szTeamName );
+	MESSAGE_END();
 }
 
 void CMultiplayBusters::Think()
@@ -416,4 +423,19 @@ BOOL CMultiplayBusters::MutatorAllowed(const char *mutator)
 		return FALSE;
 
 	return CHalfLifeMultiplay::MutatorAllowed(mutator);
+}
+
+BOOL CMultiplayBusters::FPlayerCanTakeDamage( CBasePlayer *pPlayer, CBaseEntity *pAttacker )
+{
+	if ( pPlayer->pev->fuser4 == pAttacker->pev->fuser4 )
+	{
+		// my teammate hit me.
+		if ( (friendlyfire.value == 0) && (pAttacker != pPlayer) )
+		{
+			// friendly fire is off, and this hit came from someone other than myself,  then don't get hurt
+			return FALSE;
+		}
+	}
+
+	return CHalfLifeMultiplay::FPlayerCanTakeDamage( pPlayer, pAttacker );
 }

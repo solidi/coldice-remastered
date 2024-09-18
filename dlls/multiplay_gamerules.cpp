@@ -262,6 +262,7 @@ char *gamePlayModes[] = {
 	"Instagib",
 	"Jesus vs. Santa",
 	"Prop Hunt",
+	"Shidden",
 	"Snowballs",
 	"Teamplay",
 };
@@ -520,17 +521,17 @@ void CHalfLifeMultiplay :: Think ( void )
 					if (fIndex >= 0 && sIndex >= 0 && tIndex >= 0)
 					{
 						UTIL_ClientPrintAll(HUD_PRINTTALK, "[VOTE] \"%s\", \"%s\" and \"%s\" are the next mutators!\n", g_szMutators[fIndex], g_szMutators[sIndex], g_szMutators[tIndex]);
-						SERVER_COMMAND(UTIL_VarArgs("sv_mutatorlist \"%s;%s;%s\"\n", g_szMutators[fIndex], g_szMutators[sIndex], g_szMutators[tIndex]));
+						SERVER_COMMAND(UTIL_VarArgs("sv_mutatorlist \"%s253;%s253;%s253\"\n", g_szMutators[fIndex], g_szMutators[sIndex], g_szMutators[tIndex]));
 					}
 					else if (fIndex >= 0 && sIndex >= 0)
 					{
 						UTIL_ClientPrintAll(HUD_PRINTTALK, UTIL_VarArgs("[VOTE] \"%s\" and \"%s\" are the next mutators!\n", g_szMutators[fIndex], g_szMutators[sIndex]));
-						SERVER_COMMAND(UTIL_VarArgs("sv_mutatorlist \"%s;%s\"\n", g_szMutators[fIndex], g_szMutators[sIndex]));
+						SERVER_COMMAND(UTIL_VarArgs("sv_mutatorlist \"%s253;%s253\"\n", g_szMutators[fIndex], g_szMutators[sIndex]));
 					}
 					else
 					{
 						UTIL_ClientPrintAll(HUD_PRINTTALK, UTIL_VarArgs("[VOTE] \"%s\" is the next mutator!\n", g_szMutators[fIndex]));
-						SERVER_COMMAND(UTIL_VarArgs("sv_mutatorlist \"%s\"\n", g_szMutators[fIndex]));
+						SERVER_COMMAND(UTIL_VarArgs("sv_mutatorlist \"%ss253\"\n", g_szMutators[fIndex]));
 					}
 				}
 			}
@@ -1465,8 +1466,10 @@ void CHalfLifeMultiplay :: PlayerThink( CBasePlayer *pPlayer )
 			pPlayer->pev->rendermode = kRenderNormal;
 			pPlayer->pev->renderfx = kRenderFxNone;
 			pPlayer->pev->renderamt = 0;
-			//pPlayer->pev->solid = SOLID_SLIDEBOX;
 			pPlayer->m_fLastSpawnTime = 0;
+
+			if (MutatorEnabled(MUTATOR_INVISIBLE))
+				pPlayer->MakeInvisible();
 		}
 	}
 

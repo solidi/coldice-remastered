@@ -5092,6 +5092,10 @@ void CBasePlayer::StartRightFlip( void )
 	if (pev->waterlevel == 3)
 		return;
 
+	// Prop limitation
+	if ( g_pGameRules->IsPropHunt() && pev->fuser4 > 0 )
+		return;
+
 	if (m_fFlipTime < gpGlobals->time) {
 		if (FBitSet(pev->flags, FL_ONGROUND)) {
 			UTIL_MakeVectors(pev->angles);
@@ -5112,6 +5116,10 @@ void CBasePlayer::StartLeftFlip( void )
 		return;
 
 	if (pev->waterlevel == 3)
+		return;
+
+	// Prop limitation
+	if ( g_pGameRules->IsPropHunt() && pev->fuser4 > 0 )
 		return;
 
 	if (m_fFlipTime < gpGlobals->time) {
@@ -5135,6 +5143,10 @@ void CBasePlayer::StartBackFlip( void )
 	if (pev->waterlevel == 3)
 		return;
 
+	// Prop limitation
+	if ( g_pGameRules->IsPropHunt() && pev->fuser4 > 0 )
+		return;
+
 	if (m_fFlipTime < gpGlobals->time) {
 		if (FBitSet(pev->flags, FL_ONGROUND)) {
 			UTIL_MakeVectors(pev->angles);
@@ -5154,6 +5166,10 @@ void CBasePlayer::StartFrontFlip( BOOL addVelocity )
 		return;
 
 	if (pev->waterlevel == 3)
+		return;
+
+	// Prop limitation
+	if ( g_pGameRules->IsPropHunt() && pev->fuser4 > 0 )
 		return;
 
 	if (m_fFlipTime < gpGlobals->time) {
