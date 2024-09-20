@@ -2543,6 +2543,10 @@ void CBasePlayerWeapon::PrintState( void )
 
 void CBasePlayerWeapon::ThrowGrenade(BOOL m_iCheckAmmo)
 {
+	// Bot crash
+	if (!m_pPlayer)
+		return;
+
 	if (m_pPlayer->m_fGrenadeTime >= gpGlobals->time) {
 		return;
 	}
