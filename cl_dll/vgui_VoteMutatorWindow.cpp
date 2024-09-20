@@ -58,7 +58,10 @@ CVoteMutatorPanel::CVoteMutatorPanel(int iTrans, int iRemoveMe, int x,int y,int 
 		if (strstr(sMutators[i], "slowmo") ||
 			strstr(sMutators[i], "speedup") ||
 			strstr(sMutators[i], "topsyturvy") ||
-			strstr(sMutators[i], "explosiveai"))
+			strstr(sMutators[i], "oldtime") ||
+			strstr(sMutators[i], "sildenafil") ||
+			strstr(sMutators[i], "inverse") ||
+			strstr(sMutators[i], "itemsexplode"))
 		{
 			continue;
 		}

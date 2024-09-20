@@ -225,7 +225,9 @@ void CNukeRocket::Killed(entvars_t *pevAttacker, int iGib) {
 
 			UTIL_ScreenFade(pEntity, Vector(255, 255, 255), 2, 4, 200, FFADE_IN);
 
-			if (!FBitSet(pEntity->pev->flags, FL_GODMODE) && pev->owner != pEntity->edict())
+			if (!FBitSet(pEntity->pev->flags, FL_GODMODE) && 
+				pev->owner != pEntity->edict() &&
+				g_pGameRules->PlayerRelationship(CBaseEntity::Instance(pev->owner), pEntity) == GR_NOTTEAMMATE)
 			{
 				ClearMultiDamage(); // fix nuke as kick
 

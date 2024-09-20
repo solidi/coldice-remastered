@@ -137,7 +137,15 @@ void CHalfLifeHorde::Think( void )
 	if ( m_flRoundTimeLimit )
 	{
 		if ( HasGameTimerExpired() )
+		{
+			edict_t *pEdict = FIND_ENTITY_BY_STRING(NULL, "message", "horde");
+			while (!FNullEnt(pEdict))
+			{
+				UTIL_Remove(CBaseEntity::Instance(pEdict));
+				pEdict = FIND_ENTITY_BY_STRING(pEdict, "message", "horde");
+			}
 			return;
+		}
 	}
 
 	if ( g_GameInProgress )
@@ -185,7 +193,7 @@ void CHalfLifeHorde::Think( void )
 							MESSAGE_BEGIN(MSG_BROADCAST, gmsgObjective);
 								WRITE_STRING(UTIL_VarArgs("Wave #%d", m_iWaveNumber));
 								WRITE_STRING(UTIL_VarArgs("Survivors remain: %d", m_iSurvivorsRemain));
-								WRITE_BYTE((m_iTotalEnemies - m_iEnemiesRemain) / m_iTotalEnemies);
+								WRITE_BYTE(float(m_iEnemiesRemain) / (m_iTotalEnemies) * 100);
 								WRITE_STRING(UTIL_VarArgs("Enemies remain: %d", m_iEnemiesRemain));
 							MESSAGE_END();
 						}
@@ -279,11 +287,20 @@ void CHalfLifeHorde::Think( void )
 					if ( ent->IsAlive() && pEntity != ent )
 					{
 						ClearMultiDamage();
-						ent->pev->health = 0; // without this, player can walk as a ghost.
-						if (ent->IsPlayer() )
-							((CBasePlayer *)ent)->Killed(pEntity->pev, VARS(INDEXENT(0)), GIB_ALWAYS);
-						else
+						if (ent->IsPlayer())
+						{
+							CBasePlayer *pl = (CBasePlayer *)ent;
+							if (!pl->IsObserver())
+							{
+								ent->pev->health = 0; // without this, player can walk as a ghost.
+								pl->Killed(pEntity->pev, VARS(INDEXENT(0)), GIB_ALWAYS);
+							}
+						}
+						else if (strcmp(STRING(ent->pev->message), "horde"))
+						{
+							ent->pev->health = 0; // without this, player can walk as a ghost.
 							ent->Killed(VARS(INDEXENT(0)), GIB_ALWAYS);
+						}
 					}
 				}
 
@@ -319,7 +336,7 @@ void CHalfLifeHorde::Think( void )
 				MESSAGE_BEGIN(MSG_BROADCAST, gmsgObjective);
 					WRITE_STRING(UTIL_VarArgs("Wave #%d", m_iWaveNumber));
 					WRITE_STRING(UTIL_VarArgs("Enemies remain: %d", m_iEnemiesRemain));
-					WRITE_BYTE((m_iTotalEnemies - m_iEnemiesRemain) / m_iTotalEnemies);
+					WRITE_BYTE(float(m_iEnemiesRemain) / (m_iTotalEnemies) * 100);
 				MESSAGE_END();
 			}
 
@@ -344,7 +361,7 @@ void CHalfLifeHorde::Think( void )
 			MESSAGE_BEGIN(MSG_BROADCAST, gmsgObjective);
 				WRITE_STRING(UTIL_VarArgs("Wave #%d", m_iWaveNumber));
 				WRITE_STRING(UTIL_VarArgs("Enemies remain: %d", m_iEnemiesRemain));
-				WRITE_BYTE((m_iTotalEnemies - m_iEnemiesRemain) / m_iTotalEnemies);
+				WRITE_BYTE(float(m_iEnemiesRemain) / (m_iTotalEnemies) * 100);
 			MESSAGE_END();
 		}
 

@@ -384,8 +384,8 @@ int CHalfLifeGunGame::IPointsForKill( CBasePlayer *pAttacker, CBasePlayer *pKill
 								if (plr->IsAlive())
 									plr->RemoveAllItems(FALSE);
 
-								MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, plr->edict());
-									WRITE_STRING("Round complete");
+								MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL, plr->edict());
+									WRITE_STRING("GunGame complete");
 									WRITE_STRING("");
 									WRITE_BYTE(0);
 									WRITE_STRING(UTIL_VarArgs("Winner of round %d is %s!\n", m_iSuccessfulRounds+1, STRING(pAttacker->pev->netname)));
