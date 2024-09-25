@@ -51,12 +51,12 @@ CVoteMapPanel::CVoteMapPanel(int iTrans, int iRemoveMe, int x,int y,int wide,int
 	pTitleLabel->setText(gHUD.m_TextMessage.BufferedLocaliseTextString("#Title_VoteMap"));
 
 	// Create the map buttons
-	for (int i = 0; i < MAX_MAPS; i++)
+	for (int i = 0; i < BUILT_IN_MAP_COUNT; i++)
 	{
 		// Space for random button
 		int xI = i+1;
 		int degree = (i+1) / 12;
-		if (i == MAX_MAPS - 1)
+		if (i == BUILT_IN_MAP_COUNT - 1)
 		{
 			xI = 0;
 			degree = 0;
@@ -90,15 +90,15 @@ void CVoteMapPanel::Update()
 	float minutes = fmax( 0, (int)( m_iTime + m_fStartTime - gHUD.m_flTime ) / 60);
 	float seconds = fmax( 0, ( m_iTime + m_fStartTime - gHUD.m_flTime ) - (minutes * 60));
 
-	int votes[MAX_MAPS];
+	int votes[BUILT_IN_MAP_COUNT];
 	int myVote = -1;
 
 	// Count votes
-	for (int j = 0; j < MAX_MAPS; j++)
+	for (int j = 0; j < BUILT_IN_MAP_COUNT; j++)
 		m_pButtons[j]->setArmed(false);
 
 	// Count votes
-	for ( int i = 0; i < MAX_MAPS; i++ )
+	for ( int i = 0; i < BUILT_IN_MAP_COUNT; i++ )
 	{
 		votes[i] = 0;
 		for ( int j = 1; j <= MAX_PLAYERS; j++ )
@@ -148,7 +148,7 @@ bool CVoteMapPanel::SlotInput( int iSlot )
 
 	//if ( !(m_pButtons[ iSlot ]->IsNotValid()) )
 	{
-		for (int i = 0; i < MAX_MAPS; i++)
+		for (int i = 0; i < BUILT_IN_MAP_COUNT; i++)
 		{
 			m_pButtons[i]->setArmed( false );
 		}
@@ -183,16 +183,8 @@ void CVoteMapPanel::Initialize( void )
 // Mouse is over a class button, bring up the class info
 void CVoteMapPanel::SetActiveInfo( int iInput )
 {
-	/*
-	for (int i = 0; i < MAX_MAPS; i++)
-	{
-		m_pButtons[i]->setArmed( false );
-	}
-	*/
-
-	if ( iInput > (MAX_MAPS - 1) || iInput < 0 )
+	if ( iInput > (BUILT_IN_MAP_COUNT - 1) || iInput < 0 )
 		iInput = 0;
 
-	//m_pButtons[iInput]->setArmed( true );
 	m_iCurrentInfo = iInput;
 }

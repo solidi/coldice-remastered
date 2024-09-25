@@ -246,7 +246,7 @@ char *sBuiltInMaps[] =
 	"RANDOM",
 };
 
-#define BUILT_IN_MAP_COUNT 30
+#define BUILT_IN_MAP_COUNT 31
 
 char *gamePlayModes[] = {
 	"Deathmatch",
@@ -411,7 +411,23 @@ void CHalfLifeMultiplay :: Think ( void )
 					CBasePlayer *pPlayer = (CBasePlayer *)UTIL_PlayerByIndex( i );
 					if (pPlayer && FBitSet(pPlayer->pev->flags, FL_FAKECLIENT) && !pPlayer->HasDisconnected)
 					{
-						::Vote(pPlayer, RANDOM_LONG(MUTATOR_CHAOS, MAX_MUTATORS + 1 /*random*/));
+						int attempts = 3, mutatorVote = 0;
+						while (attempts > 0)
+						{
+							int mutatorVote = RANDOM_LONG(MUTATOR_CHAOS, MAX_MUTATORS + 1 /*random*/);
+							const char *tryIt = g_szMutators[mutatorVote];
+							if (strlen(chaosfilter.string) > 2 && strstr(chaosfilter.string, tryIt))
+							{
+								mutatorVote = 0; // if it fails, default is chaos
+								attempts--;
+							}
+							else
+							{
+								break;
+							}
+						}
+						
+						::Vote(pPlayer, mutatorVote);
 					}
 				}
 			}
@@ -771,9 +787,13 @@ int CHalfLifeMultiplay::CheckClients( void )
 	return clients;
 }
 
+extern void ClearBodyQue();
+
 void CHalfLifeMultiplay::InsertClientsIntoArena(float fragcount)
 {
 	m_iPlayersInGame = 0;
+
+	ClearBodyQue();
 
 	for ( int i = 1; i <= gpGlobals->maxClients; i++ )
 	{
@@ -1294,6 +1314,11 @@ void CHalfLifeMultiplay :: ClientDisconnected( edict_t *pClient )
 
 			// Cold Ice Remastered Game mode stuff
 			pPlayer->HasDisconnected = TRUE;
+			if ( g_GameInProgress )
+			{
+				if ( pPlayer->IsInArena && !pPlayer->IsSpectator() )
+					UTIL_ClientPrintAll(HUD_PRINTTALK, UTIL_VarArgs("%s has left the round!\n", STRING(pPlayer->pev->netname)));
+			}
 			pPlayer->IsInArena = FALSE;
 
 			if (pPlayer->pev->flags & FL_FAKECLIENT)
@@ -1311,20 +1336,9 @@ void CHalfLifeMultiplay :: ClientDisconnected( edict_t *pClient )
 				WRITE_COORD(pPlayer->pev->origin.y);
 				WRITE_COORD(pPlayer->pev->origin.z);
 				MESSAGE_END();
+
+				pPlayer->RemoveAllItems( TRUE );// destroy all of the players weapons and items
 			}
-
-			if ( g_GameInProgress )
-			{
-				if ( pPlayer->IsInArena && !pPlayer->IsSpectator() )
-				{
-					pPlayer->IsInArena = FALSE;
-
-					flUpdateTime = gpGlobals->time + 3.0;
-					UTIL_ClientPrintAll(HUD_PRINTCENTER, UTIL_VarArgs("%s has left the arena!\n", STRING(pPlayer->pev->netname)));
-				}
-			}
-
-			pPlayer->RemoveAllItems( TRUE );// destroy all of the players weapons and items
 		}
 	}
 }
@@ -1503,19 +1517,26 @@ void CHalfLifeMultiplay :: PlayerThink( CBasePlayer *pPlayer )
 		{
 			if ( plr && plr->pev->flags & FL_FAKECLIENT )
 			{
-				char cmd[80];
-				strcpy(cmd, "");
-				if (RANDOM_LONG(0,1))
+				if (RANDOM_LONG(0,9) == 0)
 				{
-					sprintf(cmd, "kick \"%s\"\n", STRING(plr->pev->netname));
-					SERVER_COMMAND(cmd);
-					ALERT(at_aiconsole, "rotate client: %s", cmd);
+					SERVER_COMMAND("kickall\n");
 				}
 				else
 				{
-					ClearMultiDamage();
-					plr->pev->health = 0;
-					plr->Killed( plr->pev, GIB_NEVER );
+					char cmd[80];
+					strcpy(cmd, "");
+					if (RANDOM_LONG(0,1))
+					{
+						sprintf(cmd, "kick \"%s\"\n", STRING(plr->pev->netname));
+						SERVER_COMMAND(cmd);
+						ALERT(at_aiconsole, "rotate client: %s", cmd);
+					}
+					else
+					{
+						ClearMultiDamage();
+						plr->pev->health = 0;
+						plr->Killed( plr->pev, GIB_NEVER );
+					}
 				}
 			}
 		}

@@ -531,20 +531,6 @@ void CHalfLifeCaptureTheFlag::InitHUD( CBasePlayer *pPlayer )
 		WRITE_SHORT( g_pGameRules->GetTeamIndex( pPlayer->m_szTeamName ) + 1 );
 	MESSAGE_END();
 
-/*
-	for ( int i = 1; i <= gpGlobals->maxClients; i++ )
-	{
-		CBaseEntity *plr = UTIL_PlayerByIndex( i );
-		if ( plr )
-		{
-			MESSAGE_BEGIN( MSG_ONE, gmsgTeamInfo, NULL, pPlayer->edict() );
-				WRITE_BYTE( plr->entindex() );
-				WRITE_STRING( plr->TeamID() );
-			MESSAGE_END();
-		}
-	}
-*/
-
 	if (!FBitSet(pPlayer->pev->flags, FL_FAKECLIENT))
 	{
 		MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL, pPlayer->edict());
@@ -559,6 +545,18 @@ void CHalfLifeCaptureTheFlag::InitHUD( CBasePlayer *pPlayer )
 			WRITE_BYTE(m_iBlueMode);
 			WRITE_BYTE(m_iRedMode);
 		MESSAGE_END();
+	}
+
+	for ( int i = 1; i <= gpGlobals->maxClients; i++ )
+	{
+		CBaseEntity *plr = UTIL_PlayerByIndex( i );
+		if ( plr && !FBitSet(pPlayer->pev->flags, FL_FAKECLIENT) )
+		{
+			MESSAGE_BEGIN( MSG_ONE, gmsgTeamInfo, NULL, pPlayer->edict() );
+				WRITE_BYTE( plr->entindex() );
+				WRITE_STRING( plr->TeamID() );
+			MESSAGE_END();
+		}
 	}
 }
 

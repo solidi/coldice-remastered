@@ -642,6 +642,18 @@ void CHalfLifeHorde::InitHUD( CBasePlayer *pPlayer )
 			WRITE_STRING( "survivors" );
 		MESSAGE_END();
 	}
+
+	for ( int i = 1; i <= gpGlobals->maxClients; i++ )
+	{
+		CBaseEntity *plr = UTIL_PlayerByIndex( i );
+		if ( plr && !FBitSet(pPlayer->pev->flags, FL_FAKECLIENT) )
+		{
+			MESSAGE_BEGIN( MSG_ONE, gmsgTeamInfo, NULL, pPlayer->edict() );
+				WRITE_BYTE( plr->entindex() );
+				WRITE_STRING( plr->TeamID() );
+			MESSAGE_END();
+		}
+	}
 }
 
 void CHalfLifeHorde::PlayerSpawn( CBasePlayer *pPlayer )

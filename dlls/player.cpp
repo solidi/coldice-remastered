@@ -3792,7 +3792,7 @@ edict_t *EntSelectSpawnPoint( CBaseEntity *pPlayer )
 			while ( (ent = UTIL_FindEntityInSphere( ent, pSpot->pev->origin, 128 )) != NULL )
 			{
 				// if ent is a client, kill em (unless they are ourselves)
-				if ( ent->IsPlayer() && !(ent->edict() == player) && ent->IsAlive() )
+				if ( ent->IsPlayer() && !(ent->edict() == player) && ent->IsAlive() && !ent->pev->iuser1 )
 				{
 					ClearMultiDamage();
 					ent->pev->health = 0; // without this, player can walk as a ghost.

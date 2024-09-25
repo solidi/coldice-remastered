@@ -2544,7 +2544,7 @@ void CTracer::TracerTouch( CBaseEntity *pOther )
 		{
 			if (pev->dmg > 200)
 			{
-				if ( pOther->IsAlive() )
+				if ( pOther->IsAlive() && !pOther->pev->iuser1 )
 				{
 					ClearMultiDamage();
 					pOther->pev->health = 0; // without this, player can walk as a ghost.

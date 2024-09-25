@@ -1735,7 +1735,7 @@ public:
 };
 
 #define MAX_MODES	GAME_TEAMPLAY + 1 // TEAMPLAY + RANDOM
-#define MAX_MAPS	32 // training2 (29) + RANDOM
+#define BUILT_IN_MAP_COUNT	32 // training2 (29) + RANDOM
 #define MAX_MUTATORS	MUTATOR_VOLATILE + 1 // MUTATOR_VOLATILE + RANDOM
 
 class CVoteGameplayPanel : public CMenuPanel
@@ -1775,7 +1775,7 @@ public:
 class CVoteMapPanel : public CMenuPanel
 {
 private:
-	ClassButton			*m_pButtons[MAX_MAPS];
+	ClassButton			*m_pButtons[BUILT_IN_MAP_COUNT];
 	Label 				*pTitleLabel;
 
 	int					m_iCurrentInfo;
