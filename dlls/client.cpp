@@ -931,6 +931,7 @@ void ClientCommand( edict_t *pEntity )
 	}
 	else if ( FStrEq(pcmd, "xeyes" ) )
 	{
+		static EHANDLE currentView;
 		SET_VIEW(ENT(pev), ENT(pev));
 		currentView = NULL;
 	}
