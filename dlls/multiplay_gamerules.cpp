@@ -787,9 +787,13 @@ int CHalfLifeMultiplay::CheckClients( void )
 	return clients;
 }
 
+extern void ClearBodyQue();
+
 void CHalfLifeMultiplay::InsertClientsIntoArena(float fragcount)
 {
 	m_iPlayersInGame = 0;
+
+	ClearBodyQue();
 
 	for ( int i = 1; i <= gpGlobals->maxClients; i++ )
 	{
@@ -1519,19 +1523,26 @@ void CHalfLifeMultiplay :: PlayerThink( CBasePlayer *pPlayer )
 		{
 			if ( plr && plr->pev->flags & FL_FAKECLIENT )
 			{
-				char cmd[80];
-				strcpy(cmd, "");
-				if (RANDOM_LONG(0,1))
+				if (RANDOM_LONG(0,9) == 0)
 				{
-					sprintf(cmd, "kick \"%s\"\n", STRING(plr->pev->netname));
-					SERVER_COMMAND(cmd);
-					ALERT(at_aiconsole, "rotate client: %s", cmd);
+					SERVER_COMMAND("kickall\n");
 				}
 				else
 				{
-					ClearMultiDamage();
-					plr->pev->health = 0;
-					plr->Killed( plr->pev, GIB_NEVER );
+					char cmd[80];
+					strcpy(cmd, "");
+					if (RANDOM_LONG(0,1))
+					{
+						sprintf(cmd, "kick \"%s\"\n", STRING(plr->pev->netname));
+						SERVER_COMMAND(cmd);
+						ALERT(at_aiconsole, "rotate client: %s", cmd);
+					}
+					else
+					{
+						ClearMultiDamage();
+						plr->pev->health = 0;
+						plr->Killed( plr->pev, GIB_NEVER );
+					}
 				}
 			}
 		}
