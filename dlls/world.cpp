@@ -317,6 +317,21 @@ void CopyToBodyQue(entvars_t *pev)
 	g_pBodyQueueHead = pevHead->owner;
 }
 
+void ClearBodyQue() 
+{
+	entvars_t *pevHead = VARS(g_pBodyQueueHead);
+
+	for ( int i = 0; i < 4; i++ )
+	{
+		ALERT(at_aiconsole, "pevHead->renderamt=%.0f\n", pevHead->renderamt);
+		pevHead->renderamt = 0;
+		pevHead->model = 0;
+		pevHead->modelindex = 0;
+		pevHead->renderfx = kRenderFxNone;
+		pevHead = VARS(pevHead->owner);
+	}
+}
+
 
 CGlobalState::CGlobalState( void )
 {
