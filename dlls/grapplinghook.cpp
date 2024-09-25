@@ -63,14 +63,17 @@ void CHook::FireHook( ) {
 		return;
 	}
 
-	if ( pevOwner && !pevOwner->IsAlive() )
+	if ( !pevOwner )
 		return;
 
-	if (pevOwner)
-	{
-		EMIT_SOUND_DYN(ENT(pevOwner->pev), CHAN_WEAPON, "grapple_deploy.wav", RANDOM_FLOAT(0.95, 1.0), ATTN_NORM, 0, 93 + RANDOM_LONG(0,0xF));
-		pev->owner = ENT(pevOwner->pev);
-	}
+	if ( !pevOwner->IsAlive() )
+		return;
+
+	if ( pevOwner->pev->iuser1 )
+		return;
+
+	EMIT_SOUND_DYN(ENT(pevOwner->pev), CHAN_WEAPON, "grapple_deploy.wav", RANDOM_FLOAT(0.95, 1.0), ATTN_NORM, 0, 93 + RANDOM_LONG(0,0xF));
+	pev->owner = ENT(pevOwner->pev);
 
 	TraceResult tr;
 	Vector anglesAim = pevOwner->pev->v_angle + pevOwner->pev->punchangle;

@@ -1379,7 +1379,7 @@ void CGameRules::MutatorsThink(void)
 							while ( (ent = UTIL_FindEntityInSphere( ent, pl->pev->origin, 128 )) != NULL )
 							{
 								// if ent is a client, kill em (unless they are ourselves)
-								if ( ent->IsPlayer() && !(ent->edict() == pentSpawnSpot) && ent->IsAlive() )
+								if ( ent->IsPlayer() && !(ent->edict() == pentSpawnSpot) && ent->IsAlive() && !ent->pev->iuser1 )
 								{
 									ClearMultiDamage();
 									ent->pev->health = 0; // without this, player can walk as a ghost.
