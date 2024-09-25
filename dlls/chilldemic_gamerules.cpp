@@ -347,6 +347,36 @@ void CHalfLifeChilldemic::Think( void )
 					MESSAGE_END();
 				}
 			}
+			else if (survivors_left == 1)
+			{
+				CBasePlayer *highballer = NULL;
+
+				for ( int i = 1; i <= gpGlobals->maxClients; i++ )
+				{
+					CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
+
+					if ( plr && plr->IsPlayer() && plr->IsInArena && plr->pev->fuser4 == 0 )
+					{
+						highballer = plr;
+						break;
+					}
+				}
+
+				if (highballer)
+				{
+					UTIL_ClientPrintAll(HUD_PRINTCENTER,
+							UTIL_VarArgs("Skeletons have been defeated!\n\n%s survived!\n",
+							STRING(highballer->pev->netname)));
+					DisplayWinnersGoods( highballer );
+				}
+				else
+				{
+					UTIL_ClientPrintAll(HUD_PRINTCENTER, "Skeletons have been defeated!\n");
+				}
+				MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
+					WRITE_BYTE(CLIENT_SOUND_OUTSTANDING);
+				MESSAGE_END();
+			}
 
 			m_iSuccessfulRounds++;
 			flUpdateTime = gpGlobals->time + 3.0;
