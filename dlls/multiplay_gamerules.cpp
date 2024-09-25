@@ -411,7 +411,23 @@ void CHalfLifeMultiplay :: Think ( void )
 					CBasePlayer *pPlayer = (CBasePlayer *)UTIL_PlayerByIndex( i );
 					if (pPlayer && FBitSet(pPlayer->pev->flags, FL_FAKECLIENT) && !pPlayer->HasDisconnected)
 					{
-						::Vote(pPlayer, RANDOM_LONG(MUTATOR_CHAOS, MAX_MUTATORS + 1 /*random*/));
+						int attempts = 3, mutatorVote = 0;
+						while (attempts > 0)
+						{
+							int mutatorVote = RANDOM_LONG(MUTATOR_CHAOS, MAX_MUTATORS + 1 /*random*/);
+							const char *tryIt = g_szMutators[mutatorVote];
+							if (strlen(chaosfilter.string) > 2 && strstr(chaosfilter.string, tryIt))
+							{
+								mutatorVote = 0; // if it fails, default is chaos
+								attempts--;
+							}
+							else
+							{
+								break;
+							}
+						}
+						
+						::Vote(pPlayer, mutatorVote);
 					}
 				}
 			}
