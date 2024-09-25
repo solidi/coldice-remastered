@@ -88,9 +88,9 @@ void CHalfLifeChilldemic::Think( void )
 				else
 				{
 					//for clients who connected while game in progress.
-					if ( plr->IsSpectator() )
+					if ( plr->IsSpectator() && !plr->HasDisconnected )
 					{
-						MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, plr->edict());
+						MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL, plr->edict());
 							if (m_iSurvivorsRemain >= 1 && m_iSkeletonsRemain <= 0)
 								WRITE_STRING("Suvivors have won!");
 							else if (m_iSkeletonsRemain >= 1 && m_iSurvivorsRemain <= 0)
@@ -442,23 +442,35 @@ void CHalfLifeChilldemic::Think( void )
 	flUpdateTime = gpGlobals->time + 1.0;
 }
 
-void CHalfLifeChilldemic::InitHUD( CBasePlayer *pl )
+void CHalfLifeChilldemic::InitHUD( CBasePlayer *pPlayer )
 {
-	CHalfLifeMultiplay::InitHUD( pl );
+	CHalfLifeMultiplay::InitHUD( pPlayer );
 
-	if (!FBitSet(pl->pev->flags, FL_FAKECLIENT))
+	if (!FBitSet(pPlayer->pev->flags, FL_FAKECLIENT))
 	{
-		MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL, pl->edict());
+		MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL, pPlayer->edict());
 			WRITE_STRING("Survive");
 			WRITE_STRING("");
 			WRITE_BYTE(0);
 		MESSAGE_END();
 
-		MESSAGE_BEGIN(MSG_ONE, gmsgTeamNames, NULL, pl->edict());
+		MESSAGE_BEGIN(MSG_ONE, gmsgTeamNames, NULL, pPlayer->edict());
 			WRITE_BYTE( 2 );
 			WRITE_STRING( "survivors" );
 			WRITE_STRING( "skeleton" );
 		MESSAGE_END();
+	}
+
+	for ( int i = 1; i <= gpGlobals->maxClients; i++ )
+	{
+		CBaseEntity *plr = UTIL_PlayerByIndex( i );
+		if ( plr && !FBitSet(pPlayer->pev->flags, FL_FAKECLIENT) )
+		{
+			MESSAGE_BEGIN( MSG_ONE, gmsgTeamInfo, NULL, pPlayer->edict() );
+				WRITE_BYTE( plr->entindex() );
+				WRITE_STRING( plr->TeamID() );
+			MESSAGE_END();
+		}
 	}
 }
 
@@ -681,7 +693,7 @@ void CHalfLifeChilldemic::PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller
 	else
 	{
 		// Special case, last survivor, dispatched skeletons sent to observer.
-		if (m_iSurvivorsRemain <= 1)
+		if (m_iSurvivorsRemain <= 1 && !pVictim->HasDisconnected)
 		{
 			pVictim->m_flForceToObserverTime = gpGlobals->time + 2.0;
 			MESSAGE_BEGIN( MSG_ONE, gmsgStatusIcon, NULL, pVictim->pev );
