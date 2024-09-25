@@ -121,6 +121,7 @@ BOOL CGlock::DeployLowKey( )
 
 BOOL CGlock::Deploy( )
 {
+	m_chargeReady = 0; // body
 	return DefaultDeploy( "models/v_dual_handgun.mdl", "models/p_weapons.mdl", DUAL_GLOCK_DEPLOY, "onehanded", 0, m_chargeReady );
 }
 
