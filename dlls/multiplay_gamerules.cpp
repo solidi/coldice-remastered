@@ -1314,6 +1314,11 @@ void CHalfLifeMultiplay :: ClientDisconnected( edict_t *pClient )
 
 			// Cold Ice Remastered Game mode stuff
 			pPlayer->HasDisconnected = TRUE;
+			if ( g_GameInProgress )
+			{
+				if ( pPlayer->IsInArena && !pPlayer->IsSpectator() )
+					UTIL_ClientPrintAll(HUD_PRINTTALK, UTIL_VarArgs("%s has left the round!\n", STRING(pPlayer->pev->netname)));
+			}
 			pPlayer->IsInArena = FALSE;
 
 			if (pPlayer->pev->flags & FL_FAKECLIENT)
@@ -1331,20 +1336,9 @@ void CHalfLifeMultiplay :: ClientDisconnected( edict_t *pClient )
 				WRITE_COORD(pPlayer->pev->origin.y);
 				WRITE_COORD(pPlayer->pev->origin.z);
 				MESSAGE_END();
+
+				pPlayer->RemoveAllItems( TRUE );// destroy all of the players weapons and items
 			}
-
-			if ( g_GameInProgress )
-			{
-				if ( pPlayer->IsInArena && !pPlayer->IsSpectator() )
-				{
-					pPlayer->IsInArena = FALSE;
-
-					flUpdateTime = gpGlobals->time + 3.0;
-					UTIL_ClientPrintAll(HUD_PRINTCENTER, UTIL_VarArgs("%s has left the arena!\n", STRING(pPlayer->pev->netname)));
-				}
-			}
-
-			pPlayer->RemoveAllItems( TRUE );// destroy all of the players weapons and items
 		}
 	}
 }
