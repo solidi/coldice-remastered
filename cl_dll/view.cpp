@@ -577,6 +577,9 @@ void V_CalcNormalRefdef ( struct ref_params_s *pparams )
 	// model origin for the view
 	bob = V_CalcBob ( pparams );
 
+	if (MutatorEnabled(MUTATOR_MINIME))
+		pparams->viewheight[2] -= 24;
+
 	// refresh position
 	VectorCopy ( pparams->simorg, pparams->vieworg );
 	pparams->vieworg[2] += ( bob );

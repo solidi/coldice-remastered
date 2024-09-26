@@ -224,6 +224,7 @@ char *sMutators[] = {
 	"marshmellow",
 	"maxpack",
 	"megarun",
+	"minime",
 	"mirror",
 	"napkinstory",
 	"noclip",
