@@ -411,14 +411,14 @@ void CHalfLifeMultiplay :: Think ( void )
 					CBasePlayer *pPlayer = (CBasePlayer *)UTIL_PlayerByIndex( i );
 					if (pPlayer && FBitSet(pPlayer->pev->flags, FL_FAKECLIENT) && !pPlayer->HasDisconnected)
 					{
-						int attempts = 3, mutatorVote = 0;
+						int attempts = 3, mutatorVote = 1;
 						while (attempts > 0)
 						{
-							int mutatorVote = RANDOM_LONG(MUTATOR_CHAOS, MAX_MUTATORS + 1 /*random*/);
+							mutatorVote = RANDOM_LONG(MUTATOR_CHAOS, MAX_MUTATORS + 1 /*random*/);
 							const char *tryIt = g_szMutators[mutatorVote];
 							if (strlen(chaosfilter.string) > 2 && strstr(chaosfilter.string, tryIt))
 							{
-								mutatorVote = 0; // if it fails, default is chaos
+								mutatorVote = 1; // if it fails, default is chaos
 								attempts--;
 							}
 							else
@@ -877,7 +877,7 @@ void CHalfLifeMultiplay::CheckRounds( void )
 	if ( CVAR_GET_FLOAT("mp_roundlimit") > 0 )
 	{
 #ifdef _DEBUG
-		ALERT( at_notice, UTIL_VarArgs("SuccessfulRounds = %i\n", m_iSuccessfulRounds ));
+		//ALERT( at_notice, UTIL_VarArgs("SuccessfulRounds = %i\n", m_iSuccessfulRounds ));
 #endif
 		if ( m_iSuccessfulRounds >= CVAR_GET_FLOAT("mp_roundlimit") )
 			GoToIntermission();

@@ -1242,6 +1242,7 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"marshmellow\" - come back 1999 to you.\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"maxpack\" - drop all weapons and ammo in play (mp only!)\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"megarun\" - run faster than normal.\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"minime\" - players are half the size.\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mirror\" - mirror, mirror on the screen.\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"napkinstory\" - the legendary story reduced to two words.\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"noclip\" - fly through walls.\n");
@@ -1249,6 +1250,7 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"notthebees\" - hornets spawn from a player or monster who was killed.\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"oldtime\" - gameplay becomes desaturated.\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"paintball\" - weapons and explosions leave paint decals.\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"paper\" - models are thin like paper.\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"piratehat\" - argh, maty.\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"plumber\" - spawn with dual pipe wrenches.\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"portal\" - now you're thinking with portals.\n");
