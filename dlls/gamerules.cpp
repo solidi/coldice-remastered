@@ -103,6 +103,7 @@ DLL_GLOBAL const char *g_szMutators[] = {
 	"notthebees",
 	"oldtime",
 	"paintball",
+	"paper",
 	"piratehat",
 	"plumber",
 	"portal",

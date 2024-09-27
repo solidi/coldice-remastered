@@ -233,6 +233,7 @@ char *sMutators[] = {
 	"notthebees",
 	"oldtime",
 	"paintball",
+	"paper",
 	"piratehat",
 	"plumber",
 	"portal",

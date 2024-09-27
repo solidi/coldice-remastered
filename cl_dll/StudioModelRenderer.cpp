@@ -1039,6 +1039,17 @@ void CStudioModelRenderer::StudioSetupBones ( void )
 			// Apply client-side effects to the transformation matrix
 			StudioFxTransform( m_pCurrentEntity, (*m_pbonetransform)[i] );
 
+			if (MutatorEnabled(MUTATOR_PAPER))
+			{
+				if (m_pCurrentEntity != gEngfuncs.GetViewModel())
+				{
+					for (int j = 0; j < 3; ++j)
+					{
+						(*m_pbonetransform)[i][j][1] *= 0.1f;
+					}
+				}
+			}
+
 			if (MutatorEnabled(MUTATOR_MINIME))
 			{
 				if (m_pCurrentEntity != gEngfuncs.GetViewModel())
