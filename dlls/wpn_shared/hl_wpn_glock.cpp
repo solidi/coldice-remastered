@@ -31,6 +31,7 @@ enum dual_glock_e {
 	DUAL_GLOCK_DEPLOY_LOWKEY,
 	DUAL_GLOCK_DEPLOY,
 	DUAL_GLOCK_HOLSTER,
+	DUAL_GLOCK_HOLSTER_BOND,
 	DUAL_GLOCK_FIRE_BOTH,
 };
 
@@ -138,7 +139,7 @@ void CGlock::SecondaryAttack( void )
 	SetThink( &CGlock::AddSilencer );
 	pev->nextthink = gpGlobals->time + 2.5f;
 
-	SendWeaponAnim( DUAL_GLOCK_HOLSTER, 0, m_chargeReady );
+	SendWeaponAnim( DUAL_GLOCK_HOLSTER_BOND, 0, m_chargeReady );
 
 	if (m_chargeReady) {
 		m_chargeReady = 0;
