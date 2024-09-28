@@ -69,6 +69,7 @@ DLL_GLOBAL const char *g_szMutators[] = {
 	"chumxplode",
 	"closeup",
 	"coolflesh",
+	"cowboy",
 	"crate",
 	"credits",
 	"dealter",
@@ -835,6 +836,14 @@ void CGameRules::GiveMutators(CBasePlayer *pPlayer)
 		{
 			pPlayer->GiveNamedItem("weapon_dual_wrench");
 			pPlayer->SelectItem("weapon_dual_wrench");
+		}
+	}
+
+	if (MutatorEnabled(MUTATOR_COWBOY)) {
+		if (!pPlayer->HasNamedPlayerItem("weapon_dual_sawedoff"))
+		{
+			pPlayer->GiveNamedItem("weapon_dual_sawedoff");
+			pPlayer->SelectItem("weapon_dual_sawedoff");
 		}
 	}
 
