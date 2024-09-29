@@ -1055,6 +1055,18 @@ void ClientCommand( edict_t *pEntity )
 			pEdict = FIND_ENTITY_BY_STRING(pEdict, "message", "horde");
 		}
 	}
+	else if ( FStrEq( pcmd, "que" )  )
+	{
+		extern void ClearBodyQue();
+		ClearBodyQue();
+	}
+	else if ( FStrEq( pcmd, "infobuff" )  )
+	{
+		CBasePlayer * pPlayer = GetClassPtr((CBasePlayer *)pev);
+		char *key = g_engfuncs.pfnGetInfoKeyBuffer(pPlayer->edict());
+		ALERT(at_aiconsole, "key=%s\n", key);
+		pPlayer->pev->frags += 1;
+	}
 #endif
 	else if ( FStrEq( pcmd, "specmode" )  )	// new spectator mode
 	{
@@ -1217,6 +1229,7 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"chumxplode\" - a killer chumtoad appears directly after an explosion\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"closeup\" - ironsights are locked in\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"coolflesh\" - gibs stay longer, pick up gibs to eat and gain a healthkit worth of repair\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cowboy\" - cowboy hats with dual cannons!\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"crate\" - boxwars in the 2020's.\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"credits\" - show all contributors in an endless loop.\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"dealter\" - everyone farts.\n");
