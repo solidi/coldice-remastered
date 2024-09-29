@@ -2332,6 +2332,9 @@ int CStudioModelRenderer::StudioDrawPlayer( int flags, entity_state_t *pplayer )
 			} else if (MutatorEnabled(MUTATOR_PUMPKIN)) {
 				gEngfuncs.CL_LoadModel("models/hats.mdl", &hatindex);
 				body = 4;
+			} else if (MutatorEnabled(MUTATOR_COWBOY)) {
+				gEngfuncs.CL_LoadModel("models/hats.mdl", &hatindex);
+				body = 5;
 			}
 		}
 

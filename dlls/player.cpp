@@ -6374,22 +6374,25 @@ void CBasePlayer :: UpdateClientData( void )
 		// only send down damage type that have hud art
 		int visibleDamageBits = m_bitsDamageType & DMG_SHOWNHUD;
 
-		MESSAGE_BEGIN( MSG_ONE, gmsgDamage, NULL, pev );
-			WRITE_BYTE( pev->dmg_save );
-			WRITE_BYTE( pev->dmg_take );
-			WRITE_LONG( visibleDamageBits );
-			WRITE_COORD( damageOrigin.x );
-			WRITE_COORD( damageOrigin.y );
-			WRITE_COORD( damageOrigin.z );
-		MESSAGE_END();
-
-		if (m_bitsHUDDamage > -1)
+		if (!FBitSet(pev->flags, FL_GODMODE))
 		{
-			MESSAGE_BEGIN( MSG_PVS, gmsgLifeBar, pev->origin );
-				WRITE_BYTE( pev->armorvalue );
-				WRITE_BYTE( ENTINDEX(edict()) );
-				WRITE_BYTE( ENTINDEX(other) > 32 && pev->enemy ? ENTINDEX(pev->enemy) : ENTINDEX(other));
+			MESSAGE_BEGIN( MSG_ONE, gmsgDamage, NULL, pev );
+				WRITE_BYTE( pev->dmg_save );
+				WRITE_BYTE( pev->dmg_take );
+				WRITE_LONG( visibleDamageBits );
+				WRITE_COORD( damageOrigin.x );
+				WRITE_COORD( damageOrigin.y );
+				WRITE_COORD( damageOrigin.z );
 			MESSAGE_END();
+
+			if (m_bitsHUDDamage > -1)
+			{
+				MESSAGE_BEGIN( MSG_PVS, gmsgLifeBar, pev->origin );
+					WRITE_BYTE( pev->armorvalue );
+					WRITE_BYTE( ENTINDEX(edict()) );
+					WRITE_BYTE( ENTINDEX(other) > 32 && pev->enemy ? ENTINDEX(pev->enemy) : ENTINDEX(other));
+				MESSAGE_END();
+			}
 		}
 	
 		pev->dmg_take = 0;
