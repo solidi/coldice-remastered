@@ -103,6 +103,7 @@ CHalfLifeMultiplay :: CHalfLifeMultiplay()
 	memset(m_iVoteCount, -1, sizeof(m_iVoteCount));
 	m_iVoteUnderway = 0;
 	m_iDecidedMapIndex = -1;
+	m_fMutatorVoteTime = 0;
 	
 	// 11/8/98
 	// Modified by YWB:  Server .cfg file is now a cvar, so that 
