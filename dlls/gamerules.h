@@ -216,6 +216,7 @@ public:
 
 	// Immediately end a multiplayer game
 	virtual void EndMultiplayerGame( void ) {}
+	virtual void VoteForMutator( void ) {}
 
 	int m_iVoteCount[32];
 
@@ -465,6 +466,8 @@ public:
 
 	// Immediately end a multiplayer game
 	virtual void EndMultiplayerGame( void ) { GoToIntermission(); }
+	virtual void VoteForMutator( void );
+	int RandomizeMutator( void );
 
 	virtual BOOL IsArmoredMan( CBasePlayer *pPlayer ) { return FALSE; }
 
@@ -512,6 +515,8 @@ protected:
 
 	float m_fShowTimer;
 	float m_fShowFrags;
+
+	float m_fMutatorVoteTime;
 };
 
 extern CGameRules*	g_pGameRules;
