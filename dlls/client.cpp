@@ -735,8 +735,8 @@ void Vote( CBasePlayer *pPlayer, int vote )
 				WRITE_BYTE(CLIENT_SOUND_GREATJOB);
 			MESSAGE_END();
 
-			//ALERT(at_aiconsole, "id[%d] voted for #%d\n", pPlayer->entindex(), vote);
-			ClientPrint(pPlayer->pev, HUD_PRINTTALK, UTIL_VarArgs("[VOTE] You voted for \"%s\". Waiting for others to tally vote.\n", vote == MUTATOR_VOLATILE ? "random" : g_szMutators[vote-1]));
+			ALERT(at_aiconsole, "id[%d] voted for #%d\n", pPlayer->entindex(), vote);
+			ClientPrint(pPlayer->pev, HUD_PRINTTALK, UTIL_VarArgs("[VOTE] You voted for \"%s\". Waiting for others to tally vote.\n", vote == (MUTATOR_VOLATILE + 1) ? "random" : g_szMutators[vote-1]));
 		}
 		else
 		{
