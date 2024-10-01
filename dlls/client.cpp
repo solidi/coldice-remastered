@@ -389,7 +389,7 @@ bool Q_UnicodeValidate( const char *pUTF8 )
 
 extern int gmsgPlayClientSound;
 
-void MajorityVote(edict_t *pEntity, const char *text)
+void GameplayVote(edict_t *pEntity, const char *text)
 {
 	static float m_fVoteTime = 0;
 	static int m_iNeedsVotes = 0;
@@ -454,6 +454,82 @@ void MajorityVote(edict_t *pEntity, const char *text)
 					m_iNeedsVotes = m_fVoteTime = 0;
 					UTIL_ClientPrintAll(HUD_PRINTTALK, "[VOTE] Vote success!\n");
 					g_pGameRules->EndMultiplayerGame();
+				}
+				else
+				{
+					UTIL_ClientPrintAll(HUD_PRINTTALK,
+						UTIL_VarArgs("[VOTE] %s voted (%d / %d)\n", STRING(pEntity->v.netname), votes, m_iNeedsVotes));
+				}
+			}
+		}
+	}
+}
+
+void MutatorVote(edict_t *pEntity, const char *text)
+{
+	static float m_fVoteTime = 0;
+	static int m_iNeedsVotes = 0;
+	static int m_iVotes[32];
+
+	if (voting.value && UTIL_stristr(text, "mutator"))
+	{
+		// Start vote, capture player count for majority count
+		if (m_fVoteTime < gpGlobals->time)
+		{
+			int players = 0;
+			for (int i = 1; i <= gpGlobals->maxClients; i++)
+			{
+				CBasePlayer *pPlayer = (CBasePlayer *)UTIL_PlayerByIndex(i);
+				if (pPlayer && !FBitSet(pPlayer->pev->flags, FL_FAKECLIENT) && !pPlayer->HasDisconnected)
+					players++;
+			}
+
+			m_fVoteTime = gpGlobals->time + 30;
+			m_iNeedsVotes = (players / 2) + 1;
+
+			// Person who calls, also votes.
+			memset(m_iVotes, 0, sizeof(m_iVotes));
+			m_iVotes[ENTINDEX(pEntity)] = 1;
+
+			MESSAGE_BEGIN(MSG_ALL, gmsgPlayClientSound);
+				WRITE_BYTE(CLIENT_SOUND_VOTESTARTED);
+			MESSAGE_END();
+
+			if (m_iNeedsVotes <= 1)
+			{
+				// Sole person can call an immediate end.
+				m_iNeedsVotes = m_fVoteTime = 0;
+				UTIL_ClientPrintAll(HUD_PRINTTALK, "[VOTE] Single person gets the vote.\n");
+				g_pGameRules->VoteForMutator();
+			}
+			else
+			{
+				UTIL_ClientPrintAll(HUD_PRINTTALK,
+					UTIL_VarArgs("[VOTE] We need %.0f vote(s) in 30 seconds. Others, type \"mutator\" to vote.\n", fmax(1, m_iNeedsVotes - 1)));
+			}
+		}
+		else
+		{
+			// Hasn't voted.
+			if (m_iVotes[ENTINDEX(pEntity)] <= 0)
+			{
+				m_iVotes[ENTINDEX(pEntity)] = 1;
+
+				// Tally
+				int votes = 0;
+				for (int i = 1; i <= gpGlobals->maxClients; i++)
+				{
+					CBaseEntity *p = UTIL_PlayerByIndex(i);
+					if (p && m_iVotes[p->entindex()] > 0)
+						votes++;
+				}
+
+				// Confirm
+				if (votes >= m_iNeedsVotes)
+				{
+					m_iNeedsVotes = m_fVoteTime = 0;
+					UTIL_ClientPrintAll(HUD_PRINTTALK, "[VOTE] Mutator vote success!\n");
+					g_pGameRules->VoteForMutator();
 				}
 				else
 				{
@@ -598,7 +674,8 @@ void Host_Say( edict_t *pEntity, int teamonly )
 	if (UTIL_stristr(text, "jope"))
 		UTIL_ClientPrintAll(HUD_PRINTTALK, "ALL HAIL KING JOPE!\n");
 
-	MajorityVote(pEntity, text);
+	GameplayVote(pEntity, text);
+	MutatorVote(pEntity, text);
 
 	char * temp;
 	if ( teamonly )
@@ -659,6 +736,7 @@ void Vote( CBasePlayer *pPlayer, int vote )
 			MESSAGE_END();
 
 			ALERT(at_aiconsole, "id[%d] voted for #%d\n", pPlayer->entindex(), vote);
+			ClientPrint(pPlayer->pev, HUD_PRINTTALK, UTIL_VarArgs("[VOTE] You voted for \"%s\". Waiting for others to tally vote.\n", vote == (MUTATOR_VOLATILE + 1) ? "random" : g_szMutators[vote-1]));
 		}
 		else
 		{
@@ -1146,6 +1224,7 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"impulse 215\" - Force Grab\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"impulse 216\" - Drop Explosive Weapon\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"keyboard\" - Show default key binds on HUD\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mutator\" - type in the chat to start a mutator vote\n" );
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"snowman\" - God mode (when sv_cheats 1)\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"vote\" - type in the chat to start a vote\n" );
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "For more, see readme.txt\n" );
