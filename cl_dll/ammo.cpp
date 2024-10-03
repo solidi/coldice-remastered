@@ -949,29 +949,34 @@ int CHudAmmo::Draw(float flTime)
 
 	ScaleColors(r, g, b, a );
 
-	if (MutatorEnabled(MUTATOR_DONTSHOOT))
-	{
-		SPR_Set(gHUD.GetSprite(gHUD.GetSpriteIndex("dontshoot")), r, g, b);
-		SPR_DrawAdditive(0, (ScreenWidth / 2) - 32, (ScreenHeight / 2) - 32, &gHUD.GetSpriteRect(gHUD.GetSpriteIndex("dontshoot")));
-	}
+	bool crosshair_enabled = cl_crosshairammo && cl_crosshairammo->value && gEngfuncs.pfnGetCvarPointer("crosshair")->value;
 
-	if (MutatorEnabled(MUTATOR_FASTWEAPONS))
+	if (crosshair_enabled)
 	{
-		int w = 0, h = 0;
-		GetConsoleStringSize("Fast weapons", &w, &h);
-		DrawConsoleString(ScreenWidth / 2 - (w / 2), (ScreenHeight / 2) + (h * 2), "Fast weapons");
-	}
-	else if (MutatorEnabled(MUTATOR_SLOWWEAPONS))
-	{
-		int w = 0, h = 0;
-		GetConsoleStringSize("Slow weapons", &w, &h);
-		DrawConsoleString(ScreenWidth / 2 - (w / 2), (ScreenHeight / 2) + (h * 2), "Slow weapons");
-	}
-	else if (MutatorEnabled(MUTATOR_DEALTER))
-	{
-		int w = 0, h = 0;
-		GetConsoleStringSize("Farts!", &w, &h);
-		DrawConsoleString(ScreenWidth / 2 - (w / 2), (ScreenHeight / 2) + (h * 2), "Farts!");
+		if (MutatorEnabled(MUTATOR_DONTSHOOT))
+		{
+			SPR_Set(gHUD.GetSprite(gHUD.GetSpriteIndex("dontshoot")), r, g, b);
+			SPR_DrawAdditive(0, (ScreenWidth / 2) - 32, (ScreenHeight / 2) - 32, &gHUD.GetSpriteRect(gHUD.GetSpriteIndex("dontshoot")));
+		}
+
+		if (MutatorEnabled(MUTATOR_FASTWEAPONS))
+		{
+			int w = 0, h = 0;
+			GetConsoleStringSize("Fast weapons", &w, &h);
+			DrawConsoleString(ScreenWidth / 2 - (w / 2), (ScreenHeight / 2) + (h * 2), "Fast weapons");
+		}
+		else if (MutatorEnabled(MUTATOR_SLOWWEAPONS))
+		{
+			int w = 0, h = 0;
+			GetConsoleStringSize("Slow weapons", &w, &h);
+			DrawConsoleString(ScreenWidth / 2 - (w / 2), (ScreenHeight / 2) + (h * 2), "Slow weapons");
+		}
+		else if (MutatorEnabled(MUTATOR_DEALTER))
+		{
+			int w = 0, h = 0;
+			GetConsoleStringSize("Farts!", &w, &h);
+			DrawConsoleString(ScreenWidth / 2 - (w / 2), (ScreenHeight / 2) + (h * 2), "Farts!");
+		}
 	}
 
 	float up = cl_hudbend->value ? 1.5 : 1;
@@ -980,8 +985,6 @@ int CHudAmmo::Draw(float flTime)
 	// Does this weapon have a clip?
 	y = (ScreenHeight - gHUD.m_iFontHeight * up - gHUD.m_iFontHeight/2) + g_yP;
 	float numScale = (48 * cl_hudbend->value) * 2;
-
-	bool crosshair_enabled = cl_crosshairammo && cl_crosshairammo->value && gEngfuncs.pfnGetCvarPointer("crosshair")->value;
 
 	// Does weapon have any ammo at all?
 	if (m_pWeapon->iAmmoType > 0)
