@@ -54,8 +54,6 @@ void CGravityGun::Spawn()
 void CGravityGun::Precache()
 {
 	PRECACHE_MODEL("models/v_gravitygun.mdl");
-	PRECACHE_MODEL("models/w_weapons.mdl");
-	PRECACHE_MODEL("models/p_weapons.mdl");
 
 	PRECACHE_SOUND("weapons/rocketfire1.wav");
 

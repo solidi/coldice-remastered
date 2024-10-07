@@ -63,9 +63,7 @@ void CDualRailgun::Spawn( )
 
 void CDualRailgun::Precache( void )
 {
-	PRECACHE_MODEL("models/w_weapons.mdl");
 	PRECACHE_MODEL("models/v_dual_railgun.mdl");
-	PRECACHE_MODEL("models/p_weapons.mdl");
 
 	PRECACHE_SOUND("railgun_fire.wav");
 	

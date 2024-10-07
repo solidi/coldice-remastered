@@ -59,7 +59,9 @@ void CDrunkRocket::Spawn( void )
 	pev->movetype = MOVETYPE_BOUNCE;
 	pev->solid = SOLID_BBOX;
 
-	SET_MODEL(ENT(pev), "models/rpgrocket.mdl");
+	SET_MODEL(ENT(pev), "models/w_items.mdl");
+	pev->body = 8;
+	pev->sequence = 9;
 	UTIL_SetSize(pev, Vector( 0, 0, 0), Vector(0, 0, 0));
 	UTIL_SetOrigin( pev, pev->origin );
 
@@ -86,7 +88,6 @@ void CDrunkRocket::RocketTouch ( CBaseEntity *pOther )
 
 void CDrunkRocket::Precache( void )
 {
-	PRECACHE_MODEL("models/rpgrocket.mdl");
 	m_iTrail = PRECACHE_MODEL("sprites/smoke.spr");
 	PRECACHE_SOUND ("rocket1.wav");
 }
@@ -211,8 +212,6 @@ void CRocketCrowbar::Spawn( )
 void CRocketCrowbar::Precache( void )
 {
 	PRECACHE_MODEL("models/v_rocketcrowbar.mdl");
-	PRECACHE_MODEL("models/w_weapons.mdl");
-	PRECACHE_MODEL("models/p_weapons.mdl");
 	PRECACHE_SOUND("cbar_hit1.wav");
 	PRECACHE_SOUND("weapons/cbar_hit2.wav");
 	PRECACHE_SOUND("cbar_hitbod1.wav");

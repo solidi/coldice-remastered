@@ -41,7 +41,7 @@ LINK_ENTITY_TO_CLASS( monster_tombstone, CTombstone );
 
 void CTombstone::Precache( void )
 {
-	PRECACHE_MODEL("models/w_tombstone.mdl");
+
 }
 
 void CTombstone::Spawn( void )
@@ -55,7 +55,9 @@ void CTombstone::Spawn( void )
 	pev->takedamage = DAMAGE_NO;
 	pev->classname = MAKE_STRING("monster_tombstone");
 
-	SET_MODEL( edict(), "models/w_tombstone.mdl");
+	SET_MODEL( edict(), "models/w_items.mdl");
+	pev->body = 9;
+	pev->sequence = 10;
 
 	UTIL_SetSize(pev, VEC_HULL_MIN, VEC_HULL_MAX);
 
@@ -70,7 +72,7 @@ void CTombstone::TombstoneThink( void )
 	if (pev->flags & FL_ONGROUND)
 	{
 		pev->effects &= ~EF_NODRAW;
-		pev->sequence = 1;
+		pev->sequence = 11;
 		pev->framerate = 1.0;
 		pev->animtime = gpGlobals->time;
 

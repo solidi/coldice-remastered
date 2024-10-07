@@ -51,8 +51,6 @@ LINK_ENTITY_TO_CLASS( monster_barrel, CBarrel );
 
 void CBarrel::Precache( void )
 {
-	PRECACHE_MODEL("models/w_barrel.mdl");
-	PRECACHE_MODEL("models/w_cabinet.mdl");
 	PRECACHE_SOUND("debris/bustmetal1.wav");
 	PRECACHE_SOUND("debris/bustmetal2.wav");
 }
@@ -72,16 +70,30 @@ void CBarrel::Spawn( void )
 	if ( pev->owner )
 		pLastAttacker = Instance( pev->owner );
 
+	SET_MODEL( edict(), "models/w_items.mdl");
+
 	if ( pev->spawnflags & SF_BARREL )
-		SET_MODEL( edict(), "models/w_barrel.mdl");
+	{
+		pev->body = 5;
+		pev->sequence = 6;
+	}
 	else if ( pev->spawnflags & SF_CABINET )
-		SET_MODEL( edict(), "models/w_cabinet.mdl");
+	{
+		pev->body = 6;
+		pev->sequence = 7;
+	}
 	else 
 	{
 		if (RANDOM_LONG(0,1))
-			SET_MODEL( edict(), "models/w_cabinet.mdl");
+		{
+			pev->body = 5;
+			pev->sequence = 6;
+		}
 		else
-			SET_MODEL( edict(), "models/w_barrel.mdl");
+		{
+			pev->body = 6;
+			pev->sequence = 7;
+		}
 	}
 	UTIL_SetSize(pev, VEC_HUMAN_HULL_MIN, VEC_HUMAN_HULL_MAX);
 	//pev->angles = g_vecZero;

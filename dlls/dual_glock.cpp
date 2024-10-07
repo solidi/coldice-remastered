@@ -83,8 +83,6 @@ void CDualGlock::Spawn( )
 void CDualGlock::Precache( void )
 {
 	PRECACHE_MODEL("models/v_dual_handgun.mdl");
-	PRECACHE_MODEL("models/w_weapons.mdl");
-	PRECACHE_MODEL("models/p_weapons.mdl");
 
 	PRECACHE_SOUND("weapons/357_cock1.wav");
 

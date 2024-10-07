@@ -82,8 +82,6 @@ void CDualDeagle::Spawn( )
 void CDualDeagle::Precache( void )
 {
 	PRECACHE_MODEL("models/v_dual_deagle.mdl");
-	PRECACHE_MODEL("models/w_weapons.mdl");
-	PRECACHE_MODEL("models/p_weapons.mdl");
 
 	PRECACHE_SOUND("weapons/357_cock1.wav");
 

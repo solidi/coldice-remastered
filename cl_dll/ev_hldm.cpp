@@ -618,7 +618,7 @@ void EV_FireGlock1( event_args_t *args )
 	empty = args->bparam1;
 	AngleVectors( angles, forward, right, up );
 
-	shell = gEngfuncs.pEventAPI->EV_FindModelIndex ("models/w_shell.mdl");// brass shell
+	shell = gEngfuncs.pEventAPI->EV_FindModelIndex ("models/w_items.mdl");// brass shell
 
 	if ( EV_IsLocal( idx ) )
 	{
@@ -806,7 +806,7 @@ void EV_FireMP5( event_args_t *args )
 
 	AngleVectors( angles, forward, right, up );
 
-	shell = gEngfuncs.pEventAPI->EV_FindModelIndex ("models/w_shell.mdl");// brass shell
+	shell = gEngfuncs.pEventAPI->EV_FindModelIndex ("models/w_items.mdl");// brass shell
 	
 	if ( EV_IsLocal( idx ) )
 	{
@@ -1428,7 +1428,7 @@ void EV_FireCrossbow2( event_args_t *args )
 				 gEngfuncs.pEfxAPI->R_SparkShower( tr.endpos );
 
 			vec3_t vBoltAngles;
-			int iModelIndex = gEngfuncs.pEventAPI->EV_FindModelIndex( "models/w_bolt.mdl" );
+			int iModelIndex = gEngfuncs.pEventAPI->EV_FindModelIndex( "models/w_items.mdl" );
 
 			VectorAngles( forward, vBoltAngles );
 
@@ -1436,6 +1436,7 @@ void EV_FireCrossbow2( event_args_t *args )
 			
 			if ( bolt )
 			{
+				bolt->entity.curstate.body = 7;
 				bolt->flags |= ( FTENT_CLIENTCUSTOM ); //So it calls the callback function.
 				bolt->entity.baseline.vuser1 = tr.endpos - forward * 10; // Pull out a little bit
 				bolt->entity.baseline.vuser2 = vBoltAngles; //Look forward!
@@ -2169,7 +2170,7 @@ void EV_FireMag60( event_args_t *args )
 	empty = args->bparam1;
 	AngleVectors( angles, forward, right, up );
 
-	shell = gEngfuncs.pEventAPI->EV_FindModelIndex ("models/w_shell.mdl");// brass shell
+	shell = gEngfuncs.pEventAPI->EV_FindModelIndex ("models/w_items.mdl");// brass shell
 
 	if ( EV_IsLocal( idx ) )
 	{
@@ -2240,7 +2241,7 @@ void EV_FireChaingun( event_args_t *args )
 	empty = args->bparam1;
 	AngleVectors( angles, forward, right, up );
 
-	shell = gEngfuncs.pEventAPI->EV_FindModelIndex ("models/w_shell.mdl");// brass shell
+	shell = gEngfuncs.pEventAPI->EV_FindModelIndex ("models/w_items.mdl");// brass shell
 
 	if ( EV_IsLocal( idx ) )
 	{
@@ -2348,7 +2349,7 @@ void EV_FireSmg( event_args_t *args )
 
 	AngleVectors( angles, forward, right, up );
 
-	shell = gEngfuncs.pEventAPI->EV_FindModelIndex ("models/w_shell.mdl");// brass shell
+	shell = gEngfuncs.pEventAPI->EV_FindModelIndex ("models/w_items.mdl");// brass shell
 
 	if ( EV_IsLocal( idx ) )
 	{
@@ -2745,7 +2746,7 @@ void EV_FireDeagle( event_args_t *args )
 {
 	vec3_t ShellVelocity;
 	vec3_t ShellOrigin;
-	int shell = gEngfuncs.pEventAPI->EV_FindModelIndex ("models/w_shell.mdl");// brass shell
+	int shell = gEngfuncs.pEventAPI->EV_FindModelIndex ("models/w_items.mdl");// brass shell
 
 	int idx;
 	vec3_t origin;
@@ -2814,7 +2815,7 @@ void EV_FireDualDeagle( event_args_t *args )
 {
 	vec3_t ShellVelocity;
 	vec3_t ShellOrigin;
-	int shell = gEngfuncs.pEventAPI->EV_FindModelIndex ("models/w_shell.mdl");// brass shell
+	int shell = gEngfuncs.pEventAPI->EV_FindModelIndex ("models/w_items.mdl");// brass shell
 
 	int idx;
 	vec3_t origin;
@@ -2879,7 +2880,7 @@ void EV_FireDualDeagleBoth( event_args_t *args )
 {
 	vec3_t ShellVelocity;
 	vec3_t ShellOrigin;
-	int shell = gEngfuncs.pEventAPI->EV_FindModelIndex ("models/w_shell.mdl");// brass shell
+	int shell = gEngfuncs.pEventAPI->EV_FindModelIndex ("models/w_items.mdl");// brass shell
 
 	int idx;
 	vec3_t origin;
@@ -2991,7 +2992,7 @@ void EV_FireDualMag60( event_args_t *args )
 
 	AngleVectors( angles, forward, right, up );
 
-	shell = gEngfuncs.pEventAPI->EV_FindModelIndex ("models/w_shell.mdl");// brass shell
+	shell = gEngfuncs.pEventAPI->EV_FindModelIndex ("models/w_items.mdl");// brass shell
 
 	if ( EV_IsLocal( idx ) )
 	{
@@ -3059,7 +3060,7 @@ void EV_FireDualSmg( event_args_t *args )
 
 	AngleVectors( angles, forward, right, up );
 
-	shell = gEngfuncs.pEventAPI->EV_FindModelIndex ("models/w_shell.mdl");// brass shell
+	shell = gEngfuncs.pEventAPI->EV_FindModelIndex ("models/w_items.mdl");// brass shell
 
 	if ( EV_IsLocal( idx ) )
 	{
@@ -3828,7 +3829,7 @@ void EV_FireDualChaingun( event_args_t *args )
 	empty = args->bparam1;
 	AngleVectors( angles, forward, right, up );
 
-	shell = gEngfuncs.pEventAPI->EV_FindModelIndex ("models/w_shell.mdl");// brass shell
+	shell = gEngfuncs.pEventAPI->EV_FindModelIndex ("models/w_items.mdl");// brass shell
 
 	if ( EV_IsLocal( idx ) )
 	{
@@ -4100,7 +4101,7 @@ void EV_FireDualGlock( event_args_t *args )
 {
 	vec3_t ShellVelocity;
 	vec3_t ShellOrigin;
-	int shell = gEngfuncs.pEventAPI->EV_FindModelIndex ("models/w_shell.mdl");// brass shell
+	int shell = gEngfuncs.pEventAPI->EV_FindModelIndex ("models/w_items.mdl");// brass shell
 
 	int idx;
 	vec3_t origin;

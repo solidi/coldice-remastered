@@ -81,8 +81,7 @@ void CKnife::Spawn( )
 void CKnife::Precache( void )
 {
 	PRECACHE_MODEL("models/v_knife.mdl");
-	PRECACHE_MODEL("models/w_weapons.mdl");
-	PRECACHE_MODEL("models/p_weapons.mdl");
+
 	PRECACHE_SOUND("knife_hit_wall1.wav");
 	PRECACHE_SOUND("knife_hit_wall2.wav");
 	PRECACHE_SOUND("knife_hit_flesh1.wav");

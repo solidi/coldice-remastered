@@ -55,7 +55,8 @@ void CPlasma :: Spawn( void )
 
 	pev->solid = SOLID_BSP;
 
-	SET_MODEL(ENT(pev), "models/plasma.mdl");
+	SET_MODEL(ENT(pev), "models/w_items.mdl");
+	pev->body = 12;
 	UTIL_SetSize(pev, Vector( 0, 0, 0), Vector(0, 0, 0));
 	UTIL_SetOrigin( pev, pev->origin );
 	pev->velocity = pev->angles * RANDOM_LONG(1800, 2200);
@@ -112,7 +113,6 @@ void CPlasma :: IgniteThink( void  )
 
 void CPlasma :: Precache( void )
 {
-	PRECACHE_MODEL("models/plasma.mdl");
 	PRECACHE_MODEL("sprites/ice_particles.spr");
 	PRECACHE_MODEL("sprites/particles.spr");
 	m_iIceExplode = PRECACHE_MODEL ("sprites/ice_plasma5.spr");

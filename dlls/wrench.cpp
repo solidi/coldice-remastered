@@ -61,8 +61,6 @@ void CWrench::Spawn( )
 void CWrench::Precache( void )
 {
 	PRECACHE_MODEL("models/v_wrench.mdl");
-	PRECACHE_MODEL("models/w_weapons.mdl");
-	PRECACHE_MODEL("models/p_weapons.mdl");
 	PRECACHE_SOUND("wrench_hit1.wav");
 	PRECACHE_SOUND("wrench_hit2.wav");
 	PRECACHE_SOUND("wrench_hitbod1.wav");

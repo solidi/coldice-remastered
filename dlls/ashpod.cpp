@@ -59,8 +59,6 @@ void CAshpod::Precache( void )
 	PRECACHE_MODEL("models/w_portalgun.mdl");
 	PRECACHE_MODEL("models/p_portalgun.mdl");
 
-	m_iShell = PRECACHE_MODEL ("models/w_shell.mdl");// brass shell
-
 	PRECACHE_SOUND("portalgun_shoot_blue.wav");
 	PRECACHE_SOUND("portalgun_shoot_red.wav");
 

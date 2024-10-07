@@ -72,7 +72,9 @@ void CNukeRocket :: Spawn( float startEngineTime )
 	pev->movetype = MOVETYPE_BOUNCE;
 	pev->solid = SOLID_BBOX;
 
-	SET_MODEL(ENT(pev), "models/rpgrocket.mdl");
+	SET_MODEL(ENT(pev), "models/w_items.mdl");
+	pev->body = 8;
+	pev->sequence = 9;
 	UTIL_SetSize(pev, Vector( 0, 0, 0), Vector(0, 0, 0));
 	UTIL_SetOrigin( pev, pev->origin );
 
@@ -251,7 +253,6 @@ void CNukeRocket::Killed(entvars_t *pevAttacker, int iGib) {
 
 void CNukeRocket :: Precache( void )
 {
-	PRECACHE_MODEL("models/rpgrocket.mdl");
 	m_iTrail = PRECACHE_MODEL("sprites/smoke.spr");
 	m_iExp = PRECACHE_MODEL("sprites/nuke2.spr");
 	m_iIceExp = PRECACHE_MODEL("sprites/ice_nuke2.spr");
@@ -420,10 +421,6 @@ void CNuke::Spawn( )
 
 void CNuke::Precache( void )
 {
-	PRECACHE_MODEL("models/w_weapons.mdl");
-	PRECACHE_MODEL("models/v_nuke.mdl");
-	PRECACHE_MODEL("models/p_weapons.mdl");
-
 	PRECACHE_SOUND("items/9mmclip1.wav");
 
 	UTIL_PrecacheOther( "nuke_rocket" );

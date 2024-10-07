@@ -69,9 +69,7 @@ void CEgon::Spawn( )
 
 void CEgon::Precache( void )
 {
-	PRECACHE_MODEL("models/w_weapons.mdl");
 	PRECACHE_MODEL("models/v_egon.mdl");
-	PRECACHE_MODEL("models/p_weapons.mdl");
 
 	PRECACHE_MODEL("models/w_9mmclip.mdl");
 	PRECACHE_SOUND("items/9mmclip1.wav");

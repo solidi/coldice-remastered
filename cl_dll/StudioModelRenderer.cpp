@@ -1363,7 +1363,7 @@ int CStudioModelRenderer::StudioDrawModel( int flags )
 		lighting.plightvec = dir;
 		IEngineStudio.StudioDynamicLight(m_pCurrentEntity, &lighting );
 
-		if (!strcmp(m_pCurrentEntity->model->name, "models/w_tracer.mdl"))
+		if (!strcmp(m_pCurrentEntity->model->name, "models/w_items.mdl") && m_pCurrentEntity->curstate.body == 10)
 		{
 			lighting.color = Vector( 1.0f, 1.0f, 1.0f );
 			lighting.ambientlight = 255;

@@ -59,8 +59,6 @@ void CDualWrench::Spawn( )
 void CDualWrench::Precache( void )
 {
 	PRECACHE_MODEL("models/v_dual_wrench.mdl");
-	PRECACHE_MODEL("models/w_weapons.mdl");
-	PRECACHE_MODEL("models/p_weapons.mdl");
 
 	PRECACHE_SOUND("wrench_hit1.wav");
 	PRECACHE_SOUND("wrench_hit2.wav");

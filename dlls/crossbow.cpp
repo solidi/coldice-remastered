@@ -68,8 +68,9 @@ void CCrossbowBolt::Spawn( )
 
 	pev->gravity = 0.5;
 
-	SET_MODEL(ENT(pev), "models/w_bolt.mdl");
-
+	SET_MODEL(ENT(pev), "models/w_items.mdl");
+	pev->body = 7;
+	pev->sequence = 8;
 	UTIL_SetOrigin( pev, pev->origin );
 	UTIL_SetSize(pev, Vector(0, 0, 0), Vector(0, 0, 0));
 
@@ -81,7 +82,6 @@ void CCrossbowBolt::Spawn( )
 
 void CCrossbowBolt::Precache( )
 {
-	PRECACHE_MODEL ("models/w_bolt.mdl");
 	PRECACHE_SOUND("weapons/xbow_hitbod1.wav");
 	PRECACHE_SOUND("weapons/xbow_hitbod2.wav");
 	PRECACHE_SOUND("weapons/xbow_fly1.wav");
@@ -257,9 +257,7 @@ int CCrossbow::AddToPlayer( CBasePlayer *pPlayer )
 
 void CCrossbow::Precache( void )
 {
-	PRECACHE_MODEL("models/w_weapons.mdl");
 	PRECACHE_MODEL("models/v_crossbow.mdl");
-	PRECACHE_MODEL("models/p_weapons.mdl");
 
 	PRECACHE_SOUND("boltgun_fire.wav");
 	PRECACHE_SOUND("weapons/xbow_reload1.wav");

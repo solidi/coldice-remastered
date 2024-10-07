@@ -55,10 +55,6 @@ void CSniperRifle::Spawn( )
 void CSniperRifle::Precache( void )
 {
 	PRECACHE_MODEL("models/v_sniperrifle.mdl");
-	PRECACHE_MODEL("models/w_weapons.mdl");
-	PRECACHE_MODEL("models/p_weapons.mdl");
-
-	m_iShell = PRECACHE_MODEL("models/w_762shell.mdl");// brass shellTE_MODEL
 
 	PRECACHE_SOUND ("rifle1.wav");
 

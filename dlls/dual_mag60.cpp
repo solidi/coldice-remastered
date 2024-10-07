@@ -69,10 +69,6 @@ const char *CDualMag60::pBladeSounds[] =
 void CDualMag60::Precache( void )
 {
 	PRECACHE_MODEL("models/v_dual_mag60.mdl");
-	PRECACHE_MODEL("models/w_weapons.mdl");
-	PRECACHE_MODEL("models/p_weapons.mdl");
-
-	m_iShell = PRECACHE_MODEL ("models/w_shell.mdl");// brass shellTE_MODEL
 
 	PRECACHE_MODEL("models/w_9mmARclip.mdl");
 	PRECACHE_SOUND("items/9mmclip1.wav");

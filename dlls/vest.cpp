@@ -57,8 +57,6 @@ void CVest::Spawn( )
 void CVest::Precache( void )
 {
 	PRECACHE_MODEL("models/v_vest_radio.mdl");
-	PRECACHE_MODEL("models/w_weapons.mdl");
-	PRECACHE_MODEL("models/p_weapons.mdl");
 
 	PRECACHE_SOUND("vest_attack.wav");
 	PRECACHE_SOUND("vest_alive.wav");

@@ -396,12 +396,14 @@ class CItemLongJump : public CItem
 	void Spawn( void )
 	{ 
 		Precache( );
-		SET_MODEL(ENT(pev), "models/w_longjump.mdl");
+		SET_MODEL(ENT(pev), "models/w_items.mdl");
+		pev->body = 4;
 		CItem::Spawn( );
+		pev->sequence = floatingweapons.value + 4;
 	}
 	void Precache( void )
 	{
-		PRECACHE_MODEL ("models/w_longjump.mdl");
+		// PRECACHE_MODEL ("models/w_longjump.mdl");
 	}
 	BOOL MyTouch( CBasePlayer *pPlayer )
 	{

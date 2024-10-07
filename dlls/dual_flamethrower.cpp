@@ -62,8 +62,6 @@ void CDualFlameThrower::Spawn( )
 void CDualFlameThrower::Precache( void )
 {
 	PRECACHE_MODEL("models/v_dual_flamethrower.mdl");
-	PRECACHE_MODEL("models/w_weapons.mdl");
-	PRECACHE_MODEL("models/p_weapons.mdl");
 
 	PRECACHE_MODEL("sprites/flamesteam.spr");
 	PRECACHE_MODEL("sprites/null.spr");
