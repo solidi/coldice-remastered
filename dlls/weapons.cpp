@@ -370,7 +370,8 @@ void W_Precache(void)
 	// Global models in cold ice
 	PRECACHE_MODEL("models/w_weapons.mdl");
 	PRECACHE_MODEL("models/p_weapons.mdl");
-	PRECACHE_MODEL ("models/w_items.mdl");
+	PRECACHE_MODEL("models/w_items.mdl");
+	PRECACHE_MODEL("models/w_shotgunshell.mdl");
 
 	// custom items...
 
