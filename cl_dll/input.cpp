@@ -638,6 +638,8 @@ void CL_AdjustAngles ( float frametime, float *viewangles )
 	if (cl_yawspeed)
 		yawspeed = cl_yawspeed->value;
 
+	bool mirrorenabled = MutatorEnabled(MUTATOR_MIRROR) && !g_iUser1;
+
 	if (!(in_strafe.state & 1))
 	{
 		if (gEngfuncs.GetMaxClients() == 1)
@@ -645,19 +647,19 @@ void CL_AdjustAngles ( float frametime, float *viewangles )
 			if (MutatorEnabled(MUTATOR_TOPSYTURVY) &&
 				(g_iUser1 < 1 && !gEngfuncs.IsSpectateOnly()))
 			{
-				viewangles[YAW] += speed*yawspeed*CL_KeyState ((MutatorEnabled(MUTATOR_MIRROR) ? &in_left : &in_right));
-				viewangles[YAW] -= speed*yawspeed*CL_KeyState ((MutatorEnabled(MUTATOR_MIRROR) ? &in_right : &in_left));
+				viewangles[YAW] += speed*yawspeed*CL_KeyState ((mirrorenabled ? &in_left : &in_right));
+				viewangles[YAW] -= speed*yawspeed*CL_KeyState ((mirrorenabled ? &in_right : &in_left));
 			}
 			else
 			{
-				viewangles[YAW] -= speed*yawspeed*CL_KeyState ((MutatorEnabled(MUTATOR_MIRROR) ? &in_left : &in_right));
-				viewangles[YAW] += speed*yawspeed*CL_KeyState ((MutatorEnabled(MUTATOR_MIRROR) ? &in_right : &in_left));
+				viewangles[YAW] -= speed*yawspeed*CL_KeyState ((mirrorenabled ? &in_left : &in_right));
+				viewangles[YAW] += speed*yawspeed*CL_KeyState ((mirrorenabled ? &in_right : &in_left));
 			}
 		}
 		else
 		{
-			viewangles[YAW] -= speed*yawspeed*CL_KeyState ((MutatorEnabled(MUTATOR_MIRROR) ? &in_left : &in_right));
-			viewangles[YAW] += speed*yawspeed*CL_KeyState ((MutatorEnabled(MUTATOR_MIRROR) ? &in_right : &in_left));
+			viewangles[YAW] -= speed*yawspeed*CL_KeyState ((mirrorenabled ? &in_left : &in_right));
+			viewangles[YAW] += speed*yawspeed*CL_KeyState ((mirrorenabled ? &in_right : &in_left));
 		}
 
 		viewangles[YAW] = anglemod(viewangles[YAW]);
@@ -665,8 +667,8 @@ void CL_AdjustAngles ( float frametime, float *viewangles )
 	if (in_klook.state & 1)
 	{
 		V_StopPitchDrift ();
-		viewangles[PITCH] -= speed*cl_pitchspeed->value * CL_KeyState ((MutatorEnabled(MUTATOR_MIRROR) ? &in_back : &in_forward));
-		viewangles[PITCH] += speed*cl_pitchspeed->value * CL_KeyState ((MutatorEnabled(MUTATOR_MIRROR) ? &in_forward : &in_back));
+		viewangles[PITCH] -= speed*cl_pitchspeed->value * CL_KeyState ((mirrorenabled ? &in_back : &in_forward));
+		viewangles[PITCH] += speed*cl_pitchspeed->value * CL_KeyState ((mirrorenabled ? &in_forward : &in_back));
 	}
 	
 	up = CL_KeyState (&in_lookup);
@@ -720,6 +722,7 @@ void CL_DLLEXPORT CL_CreateMove ( float frametime, struct usercmd_s *cmd, int ac
 	float spd;
 	vec3_t viewangles;
 	static vec3_t oldangles;
+	bool mirrorenabled = MutatorEnabled(MUTATOR_MIRROR) && !g_iUser1;
 
 	if ( active && !Bench_Active() )
 	{
@@ -735,20 +738,20 @@ void CL_DLLEXPORT CL_CreateMove ( float frametime, struct usercmd_s *cmd, int ac
 
 		if ( in_strafe.state & 1 )
 		{
-			cmd->sidemove += cl_sidespeed->value * CL_KeyState (MutatorEnabled(MUTATOR_MIRROR) ? &in_left : &in_right);
-			cmd->sidemove -= cl_sidespeed->value * CL_KeyState (MutatorEnabled(MUTATOR_MIRROR) ? &in_right : &in_left);
+			cmd->sidemove += cl_sidespeed->value * CL_KeyState (mirrorenabled ? &in_left : &in_right);
+			cmd->sidemove -= cl_sidespeed->value * CL_KeyState (mirrorenabled ? &in_right : &in_left);
 		}
 
-		cmd->sidemove += cl_sidespeed->value * CL_KeyState (MutatorEnabled(MUTATOR_MIRROR) ? &in_moveleft : &in_moveright);
-		cmd->sidemove -= cl_sidespeed->value * CL_KeyState (MutatorEnabled(MUTATOR_MIRROR) ? &in_moveright : &in_moveleft);
+		cmd->sidemove += cl_sidespeed->value * CL_KeyState (mirrorenabled ? &in_moveleft : &in_moveright);
+		cmd->sidemove -= cl_sidespeed->value * CL_KeyState (mirrorenabled ? &in_moveright : &in_moveleft);
 
 		cmd->upmove += cl_upspeed->value * CL_KeyState (&in_up);
 		cmd->upmove -= cl_upspeed->value * CL_KeyState (&in_down);
 
 		if ( !(in_klook.state & 1 ) )
 		{	
-			cmd->forwardmove += cl_forwardspeed->value * CL_KeyState ((MutatorEnabled(MUTATOR_MIRROR) ? &in_back : &in_forward));
-			cmd->forwardmove -= cl_backspeed->value * CL_KeyState ((MutatorEnabled(MUTATOR_MIRROR) ? &in_forward : &in_back));
+			cmd->forwardmove += cl_forwardspeed->value * CL_KeyState ((mirrorenabled ? &in_back : &in_forward));
+			cmd->forwardmove -= cl_backspeed->value * CL_KeyState ((mirrorenabled ? &in_forward : &in_back));
 		}	
 
 		// adjust for speed key

@@ -285,7 +285,7 @@ int CHud :: Redraw( float flTime, int intermission )
 		}
 	}
 
-	if (MutatorEnabled(MUTATOR_MIRROR))
+	if (MutatorEnabled(MUTATOR_MIRROR) && !g_iUser1)
 		Mirror();
 
 	HUD_DrawOrthoTriangles();
