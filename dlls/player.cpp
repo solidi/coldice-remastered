@@ -2468,6 +2468,9 @@ void CBasePlayer::InitStatusBar()
 
 void CBasePlayer::UpdateStatusBar()
 {
+	if (pev->flags & FL_FAKECLIENT) // No bots
+		return;
+
 	int newSBarState[ SBAR_END ];
 	char sbuf0[ SBAR_STRING_SIZE ];
 	char sbuf1[ SBAR_STRING_SIZE ];

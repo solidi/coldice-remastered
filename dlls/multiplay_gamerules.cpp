@@ -1049,6 +1049,7 @@ void CHalfLifeMultiplay::SuckAllToSpectator( void )
 		{
 			CLIENT_COMMAND(pPlayer->edict(), "firstperson\n");
 			pPlayer->EnableControl(TRUE);
+			pPlayer->m_fHasRune = 0;
 
 			strcpy( pPlayer->m_szTeamName, "");
 			MESSAGE_BEGIN( MSG_ALL, gmsgScoreInfo );

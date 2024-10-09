@@ -655,6 +655,9 @@ void Host_Say( edict_t *pEntity, int teamonly )
 			if ( !client->IsObserver() )
 				continue;
 
+		if ( client->HasDisconnected )
+				continue;
+
 		MESSAGE_BEGIN( MSG_ONE, gmsgSayText, NULL, client->pev );
 			WRITE_BYTE( ENTINDEX(pEntity) );
 			WRITE_STRING( text );

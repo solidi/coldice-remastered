@@ -105,7 +105,7 @@ void CSkullCharm::SkullTouch( CBaseEntity *pOther )
 		return;
 
 	CBasePlayer *pPlayer = (CBasePlayer *)pOther;
-	//if (MyTouch( pPlayer ))
+	if (!pPlayer->HasDisconnected)
 	{
 		EMIT_SOUND( pPlayer->edict(), CHAN_ITEM, "rune_pickup.wav", 1, ATTN_NORM );
 
@@ -131,16 +131,16 @@ void CSkullCharm::SkullTouch( CBaseEntity *pOther )
 				WRITE_BYTE(result);
 			MESSAGE_END();
 
+			MESSAGE_BEGIN( MSG_ONE, gmsgItemPickup, NULL, pPlayer->pev );
+				WRITE_STRING( STRING(pev->classname) );
+			MESSAGE_END();
+
 			// End session if hit skull limit
 			if ( myfrags >= frags )
 			{
 				g_pGameRules->EndMultiplayerGame();
 			}
 		}
-
-		MESSAGE_BEGIN( MSG_ONE, gmsgItemPickup, NULL, pPlayer->pev );
-			WRITE_STRING( STRING(pev->classname) );
-		MESSAGE_END();
 
 		SetTouch( NULL );
 		UTIL_Remove( this );

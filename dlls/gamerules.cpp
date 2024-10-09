@@ -623,7 +623,7 @@ void CGameRules::EnvMutators( void )
 		CBaseEntity *pPlayer = UTIL_PlayerByIndex( i );
 		CBasePlayer *pl = (CBasePlayer *)pPlayer;
 
-		if (pPlayer && pPlayer->IsPlayer())
+		if (pPlayer && pPlayer->IsPlayer() && !pl->HasDisconnected)
 		{
 			if (MutatorEnabled(MUTATOR_FOG))
 			{

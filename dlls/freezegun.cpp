@@ -151,7 +151,7 @@ void CFreezeGun::PrimaryAttack()
 	Vector vecSrcMuzzle = m_pPlayer->GetGunPosition( ) + vecAiming * 50 + gpGlobals->v_right * 8 + gpGlobals->v_up * -8;
 
 	TraceResult tr;
-	if (m_pPlayer && !FBitSet(m_pPlayer->pev->flags, FL_FAKECLIENT))
+	if (m_pPlayer && !FBitSet(m_pPlayer->pev->flags, FL_FAKECLIENT) && !m_pPlayer->HasDisconnected)
 	{
 		MESSAGE_BEGIN( MSG_ONE, SVC_TEMPENTITY, vecSrcMuzzle, m_pPlayer->edict() );
 			WRITE_BYTE( TE_SPRITE );		// This makes a dynamic light and the explosion sprites/sound
