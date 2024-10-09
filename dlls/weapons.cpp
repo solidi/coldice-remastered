@@ -367,6 +367,12 @@ void W_Precache(void)
 	memset( CBasePlayerItem::AmmoInfoArray, 0, sizeof(CBasePlayerItem::AmmoInfoArray) );
 	giAmmoIndex = 0;
 
+	// Global models in cold ice
+	PRECACHE_MODEL("models/w_weapons.mdl");
+	PRECACHE_MODEL("models/p_weapons.mdl");
+	PRECACHE_MODEL("models/w_items.mdl");
+	PRECACHE_MODEL("models/w_shotgunshell.mdl");
+
 	// custom items...
 
 	// common world objects
@@ -2100,7 +2106,7 @@ IMPLEMENT_SAVERESTORE( CWeaponBox, CBaseEntity );
 //=========================================================
 void CWeaponBox::Precache( void )
 {
-	PRECACHE_MODEL("models/w_weaponbox.mdl");
+	// PRECACHE_MODEL("models/w_weaponbox.mdl");
 }
 
 //=========================================================
@@ -3240,7 +3246,7 @@ void CBasePlayerWeapon::ProvideDualItem(CBasePlayer *pPlayer, const char *pszNam
 void CBasePlayerWeapon::EjectBrassLate()
 {
 	Vector vecUp, vecRight, vecShellVelocity;
-	int m_iShell = PRECACHE_MODEL("models/w_762shell.mdl");
+	int m_iShell = PRECACHE_MODEL("models/w_items.mdl"); //0 is a shell
 
 	UTIL_MakeVectors(m_pPlayer->pev->v_angle + m_pPlayer->pev->punchangle);
 

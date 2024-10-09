@@ -67,10 +67,6 @@ const char *CDualSMG::pHansSounds[] =
 void CDualSMG::Precache( void )
 {
 	PRECACHE_MODEL("models/v_dual_smg.mdl");
-	PRECACHE_MODEL("models/w_weapons.mdl");
-	PRECACHE_MODEL("models/p_weapons.mdl");
-
-	m_iShell = PRECACHE_MODEL ("models/w_shell.mdl");// brass shellTE_MODEL
 
 	PRECACHE_MODEL("models/w_9mmARclip.mdl");
 	PRECACHE_SOUND("items/9mmclip1.wav");

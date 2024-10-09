@@ -79,9 +79,7 @@ void CGauss::Spawn( )
 
 void CGauss::Precache( void )
 {
-	PRECACHE_MODEL("models/w_weapons.mdl");
 	PRECACHE_MODEL("models/v_gauss.mdl");
-	PRECACHE_MODEL("models/p_weapons.mdl");
 
 	PRECACHE_SOUND("items/9mmclip1.wav");
 

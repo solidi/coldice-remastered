@@ -55,10 +55,6 @@ void CUsas::Spawn( )
 void CUsas::Precache( void )
 {
 	PRECACHE_MODEL("models/v_usas.mdl");
-	PRECACHE_MODEL("models/w_weapons.mdl");
-	PRECACHE_MODEL("models/p_weapons.mdl");
-
-	m_iShell = PRECACHE_MODEL ("models/w_shotgunshell.mdl");// shotgun shell
 
 	PRECACHE_SOUND("items/9mmclip1.wav");
 

@@ -134,7 +134,9 @@ void CRpgRocket :: Spawn( void )
 	pev->movetype = MOVETYPE_BOUNCE;
 	pev->solid = SOLID_BBOX;
 
-	SET_MODEL(ENT(pev), "models/rpgrocket.mdl");
+	SET_MODEL(ENT(pev), "models/w_items.mdl");
+	pev->body = 8;
+	pev->sequence = 9;
 	UTIL_SetSize(pev, Vector( 0, 0, 0), Vector(0, 0, 0));
 	UTIL_SetOrigin( pev, pev->origin );
 
@@ -158,7 +160,8 @@ void CRpgRocket :: Spawn( float startEngineTime )
 	pev->movetype = MOVETYPE_BOUNCE;
 	pev->solid = SOLID_BBOX;
 
-	SET_MODEL(ENT(pev), "models/rpgrocket.mdl");
+	SET_MODEL(ENT(pev), "models/w_items.mdl");
+	pev->body = 8;
 	UTIL_SetSize(pev, Vector( 0, 0, 0), Vector(0, 0, 0));
 	UTIL_SetOrigin( pev, pev->origin );
 
@@ -193,7 +196,6 @@ void CRpgRocket :: RocketTouch ( CBaseEntity *pOther )
 //=========================================================
 void CRpgRocket :: Precache( void )
 {
-	PRECACHE_MODEL("models/rpgrocket.mdl");
 	m_iTrail = PRECACHE_MODEL("sprites/smoke.spr");
 	PRECACHE_SOUND ("rocket1.wav");
 }
@@ -410,9 +412,7 @@ void CRpg::Spawn( )
 
 void CRpg::Precache( void )
 {
-	PRECACHE_MODEL("models/w_weapons.mdl");
 	PRECACHE_MODEL("models/v_dual_rpg.mdl");
-	PRECACHE_MODEL("models/p_weapons.mdl");
 
 	PRECACHE_SOUND("items/9mmclip1.wav");
 

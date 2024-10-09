@@ -668,8 +668,6 @@ public:
 	void SwapDualWeapon( void );
 
 private:
-	int m_iShell;
-
 	unsigned short m_usFireGlock1;
 };
 
@@ -858,7 +856,6 @@ public:
 	void Reload( void );
 	void WeaponIdle( void );
 	float m_flNextAnimTime;
-	int m_iShell;
 
 	virtual BOOL UseDecrement( void )
 	{ 
@@ -934,7 +931,6 @@ public:
 	void Reload( void );
 	void WeaponIdle( void );
 	float m_flNextReload;
-	int m_iShell;
 
 	virtual BOOL UseDecrement( void )
 	{ 
@@ -969,7 +965,6 @@ public:
 	void Reload( void );
 	void WeaponIdle( void );
 	float m_flNextAnimTime;
-	int m_iShell;
 
 	virtual BOOL UseDecrement( void )
 	{
@@ -1601,8 +1596,6 @@ public:
 	void SwapDualWeapon( void );
 
 private:
-	int m_iShell;
-
 	unsigned short m_useFireMag60;
 };
 
@@ -1691,7 +1684,6 @@ public:
 	void Reload( void );
 	void WeaponIdle( void );
 	float m_flNextAnimTime;
-	int m_iShell;
 
 	virtual BOOL UseDecrement( void )
 	{
@@ -1729,7 +1721,6 @@ public:
 	void Holster( int skiplocal = 0 );
 	void Reload( void );
 	void WeaponIdle( void );
-	int m_iShell;
 
 	virtual BOOL UseDecrement( void )
 	{
@@ -1905,7 +1896,6 @@ public:
 	void Reload( void );
 	void WeaponIdle( void );
 	float m_flNextReload;
-	int m_iShell;
 
 	virtual BOOL UseDecrement( void )
 	{
@@ -2111,7 +2101,6 @@ public:
 	void Reload( void );
 	void WeaponIdle( void );
 	float m_flNextAnimTime;
-	int m_iShell;
 
 	virtual BOOL UseDecrement( void )
 	{
@@ -2147,7 +2136,6 @@ public:
 	void Reload( void );
 	void WeaponIdle( void );
 	float m_flNextAnimTime;
-	int m_iShell;
 
 	virtual BOOL UseDecrement( void )
 	{
@@ -2243,7 +2231,6 @@ public:
 	void Holster( int skiplocal = 0 );
 	void Reload( void );
 	void WeaponIdle( void );
-	int m_iShell;
 	int m_iAltFire;
 
 	virtual BOOL UseDecrement( void )
@@ -2279,7 +2266,6 @@ public:
 	void Holster( int skiplocal = 0 );
 	void Reload( void );
 	void WeaponIdle( void );
-	int m_iShell;
 
 	virtual BOOL UseDecrement( void )
 	{
@@ -2461,7 +2447,6 @@ public:
 private:
 	int m_iTrail;
 	int m_iIceTrail;
-	int m_iShell;
 };
 
 class CSawedOff : public CBasePlayerWeapon
@@ -2480,7 +2465,6 @@ public:
 	void Holster( int skiplocal = 0 );
 	void Reload( void );
 	void WeaponIdle( void );
-	int m_iShell;
 	int m_iAltFire;
 
 	virtual BOOL UseDecrement( void )
@@ -2519,7 +2503,6 @@ public:
 	void Holster( int skiplocal = 0 );
 	void Reload( void );
 	void WeaponIdle( void );
-	int m_iShell;
 	int m_iAltFire;
 
 	virtual BOOL UseDecrement( void )

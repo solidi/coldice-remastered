@@ -86,11 +86,9 @@ void CPython::Spawn( )
 void CPython::Precache( void )
 {
 	PRECACHE_MODEL("models/v_357.mdl");
-	PRECACHE_MODEL("models/w_weapons.mdl");
-	PRECACHE_MODEL("models/p_weapons.mdl");
 
 	PRECACHE_MODEL("models/w_357ammobox.mdl");
-	PRECACHE_SOUND("items/9mmclip1.wav");              
+	PRECACHE_SOUND("items/9mmclip1.wav");
 
 	PRECACHE_SOUND ("weapons/357_reload1.wav");
 	PRECACHE_SOUND ("weapons/357_cock1.wav");

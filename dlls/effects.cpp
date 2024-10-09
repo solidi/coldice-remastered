@@ -2478,7 +2478,10 @@ void CTracer::Spawn( )
 	pev->movetype = MOVETYPE_FLY;
 	pev->solid = SOLID_BBOX;
 
-	SET_MODEL(ENT(pev), "models/w_tracer.mdl");
+	SET_MODEL(ENT( pev ), "models/w_items.mdl");
+	pev->body = 10;
+	pev->sequence = 12;
+
 	UTIL_SetSize(pev, g_vecZero, g_vecZero);
 	UTIL_SetOrigin( pev, pev->origin );
 	pev->avelocity.z = RANDOM_FLOAT ( -100, -500 );
@@ -2572,7 +2575,7 @@ void CTracer::TracerTouch( CBaseEntity *pOther )
 
 void CTracer::Precache( void )
 {
-	PRECACHE_MODEL("models/w_tracer.mdl");
+
 }
 
 #define SF_LOOP 1

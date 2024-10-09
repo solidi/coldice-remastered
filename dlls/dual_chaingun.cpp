@@ -57,10 +57,6 @@ void CDualChaingun::Spawn( )
 void CDualChaingun::Precache( void )
 {
 	PRECACHE_MODEL("models/v_dual_chaingun.mdl");
-	PRECACHE_MODEL("models/w_weapons.mdl");
-	PRECACHE_MODEL("models/p_weapons.mdl");
-
-	PRECACHE_MODEL ("models/w_shell.mdl");
 
 	PRECACHE_SOUND("chaingun_fire.wav");
 	PRECACHE_SOUND("chaingun_spinup.wav");

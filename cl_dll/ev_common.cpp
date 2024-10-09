@@ -169,7 +169,11 @@ void EV_EjectBrass( float *origin, float *velocity, float rotation, int model, i
 	vec3_t endpos;
 	VectorClear( endpos );
 	endpos[1] = rotation;
-	gEngfuncs.pEfxAPI->R_TempModel( origin, velocity, endpos, 2.5, model, soundtype );
+	TEMPENTITY *t = gEngfuncs.pEfxAPI->R_TempModel( origin, velocity, endpos, 2.5, model, soundtype );
+	if (t)
+	{
+		t->entity.curstate.body = 0; // always 0, otherwise the random is randomized.
+	}
 }
 
 /*

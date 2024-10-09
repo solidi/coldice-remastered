@@ -62,7 +62,9 @@ void CFlakBomb :: Spawn( )
 	pev->movetype = MOVETYPE_BOUNCE;
 	pev->solid = SOLID_BBOX;
 
-	SET_MODEL(ENT(pev), "models/rpgrocket.mdl");
+	SET_MODEL(ENT(pev), "models/w_items.mdl");
+	pev->body = 8;
+	pev->sequence = 9;
 	UTIL_SetSize(pev, Vector( 0, 0, 0), Vector(0, 0, 0));
 	UTIL_SetOrigin( pev, pev->origin );
 	pev->avelocity.x = RANDOM_FLOAT ( -100, -500 );
@@ -112,7 +114,6 @@ void CFlakBomb :: BlowUp() {
 
 void CFlakBomb :: Precache( void )
 {
-	PRECACHE_MODEL("models/rpgrocket.mdl");
 	m_iTrail = PRECACHE_MODEL("sprites/smoke.spr");
 	PRECACHE_MODEL("sprites/xspark4.spr");
 	PRECACHE_MODEL("sprites/ice_xspark4.spr");
@@ -243,9 +244,7 @@ LINK_ENTITY_TO_CLASS( flak, CFlak );
 
 void CCannon::Precache( void )
 {
-	PRECACHE_MODEL("models/w_weapons.mdl");
 	PRECACHE_MODEL("models/v_cannon.mdl");
-	PRECACHE_MODEL("models/p_weapons.mdl");
 
 	PRECACHE_SOUND("items/9mmclip1.wav");
 

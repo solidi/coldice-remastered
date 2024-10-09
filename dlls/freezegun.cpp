@@ -54,8 +54,6 @@ void CFreezeGun::Spawn()
 void CFreezeGun::Precache(void)
 {
 	PRECACHE_MODEL("models/v_freezegun.mdl");
-	PRECACHE_MODEL("models/w_weapons.mdl");
-	PRECACHE_MODEL("models/p_weapons.mdl");
 
 	PRECACHE_SOUND("freezegun_fire.wav");
 	PRECACHE_SOUND("freezegun_spin.wav");

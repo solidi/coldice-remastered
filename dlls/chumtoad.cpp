@@ -808,9 +808,7 @@ void CChumtoad::Spawn( )
 
 void CChumtoad::Precache( void )
 {
-	PRECACHE_MODEL("models/w_weapons.mdl");
 	PRECACHE_MODEL("models/v_chumtoad.mdl");
-	PRECACHE_MODEL("models/p_weapons.mdl");
 	PRECACHE_SOUND("chumtoad_hunt2.wav");
 	PRECACHE_SOUND("chumtoad_hunt3.wav");
 	UTIL_PrecacheOther("monster_chumtoad");

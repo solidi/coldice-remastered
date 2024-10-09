@@ -90,10 +90,6 @@ const char *CMag60::pRotateDownBladeSounds[] =
 void CMag60::Precache( void )
 {
 	PRECACHE_MODEL("models/v_mag60.mdl");
-	PRECACHE_MODEL("models/w_weapons.mdl");
-	PRECACHE_MODEL("models/p_weapons.mdl");
-
-	m_iShell = PRECACHE_MODEL ("models/w_shell.mdl");// brass shell
 
 	PRECACHE_SOUND("items/9mmclip1.wav");
 	PRECACHE_SOUND("items/9mmclip2.wav");
