@@ -767,7 +767,7 @@ BOOL CHalfLifeHorde::HasGameTimerExpired( void )
 
 BOOL CHalfLifeHorde::FPlayerCanTakeDamage( CBasePlayer *pPlayer, CBaseEntity *pAttacker )
 {
-	if ( pPlayer->pev->fuser3 == pAttacker->pev->fuser3 )
+	if ( pAttacker && pPlayer->pev->fuser3 == pAttacker->pev->fuser3 )
 	{
 		// my teammate hit me.
 		if ( (friendlyfire.value == 0) && (pAttacker != pPlayer) )
