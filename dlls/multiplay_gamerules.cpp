@@ -1047,11 +1047,7 @@ void CHalfLifeMultiplay::SuckAllToSpectator( void )
 
 		if ( pPlayer && pPlayer->IsPlayer() && !pPlayer->IsSpectator() && !pPlayer->HasDisconnected )
 		{
-			CLIENT_COMMAND(pPlayer->edict(), "firstperson\n");
-			pPlayer->EnableControl(TRUE);
-			pPlayer->m_fHasRune = 0;
-
-			strcpy( pPlayer->m_szTeamName, "");
+			strcpy(pPlayer->m_szTeamName, "");
 			MESSAGE_BEGIN( MSG_ALL, gmsgScoreInfo );
 				WRITE_BYTE( ENTINDEX(pPlayer->edict()) );
 				WRITE_SHORT( pPlayer->pev->frags = 0 );
@@ -1059,7 +1055,6 @@ void CHalfLifeMultiplay::SuckAllToSpectator( void )
 				WRITE_SHORT( pPlayer->m_iRoundWins );
 				WRITE_SHORT( GetTeamIndex( pPlayer->m_szTeamName ) + 1 );
 			MESSAGE_END();
-			pPlayer->m_iAssists = 0;
 
 			edict_t *pentSpawnSpot = g_pGameRules->GetPlayerSpawnSpot( pPlayer );
 			pPlayer->StartObserver(pentSpawnSpot->v.origin, VARS(pentSpawnSpot)->angles);
@@ -2699,6 +2694,7 @@ void CHalfLifeMultiplay :: GoToIntermission( void )
 			if ( plr->pev->flags & FL_FAKECLIENT )
 				plr->EnableControl(FALSE);
 			
+			plr->m_fHasRune = 0;
 			ResetPlayerSettings(plr);
 		}
 	}
