@@ -421,6 +421,7 @@ void CNuke::Spawn( )
 
 void CNuke::Precache( void )
 {
+	PRECACHE_MODEL("models/v_nuke.mdl");
 	PRECACHE_SOUND("items/9mmclip1.wav");
 
 	UTIL_PrecacheOther( "nuke_rocket" );
