@@ -242,12 +242,13 @@ char *sBuiltInMaps[] =
 	"stalkyard2",
 	"thechill",
 	"themill",
+	"thetemple",
 	"training",
 	"training2",
 	"RANDOM",
 };
 
-#define BUILT_IN_MAP_COUNT 31
+#define BUILT_IN_MAP_COUNT 32
 
 char *gamePlayModes[] = {
 	"Deathmatch",

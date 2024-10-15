@@ -182,6 +182,7 @@ char *sBuiltInMaps[] =
 	"stalkyard2",
 	"thechill",
 	"themill",
+	"thetemple",
 	"training",
 	"training2",
 	"RANDOM",
