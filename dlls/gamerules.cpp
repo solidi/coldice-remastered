@@ -78,6 +78,7 @@ DLL_GLOBAL const char *g_szMutators[] = {
 	"fastweapons",
 	"firestarter",
 	"fog",
+	"godmode",
 	"goldenguns",
 	"grenades",
 	"ice",
@@ -799,6 +800,9 @@ void CGameRules::SpawnMutators(CBasePlayer *pPlayer)
 
 	if (MutatorEnabled(MUTATOR_NOCLIP))
 		pPlayer->pev->movetype = MOVETYPE_NOCLIP;
+
+	if (MutatorEnabled(MUTATOR_GODMODE))
+		pPlayer->pev->flags |= FL_GODMODE;
 }
 
 void CGameRules::GiveMutators(CBasePlayer *pPlayer)
@@ -1413,6 +1417,16 @@ void CGameRules::MutatorsThink(void)
 						}
 						pl->pev->movetype = MOVETYPE_WALK;
 					}
+				}
+
+				if (MutatorEnabled(MUTATOR_GODMODE))
+				{
+					pl->pev->flags |= FL_GODMODE;
+				}
+				else
+				{
+					if ( pl->pev->flags & FL_GODMODE )
+						pl->pev->flags &= ~FL_GODMODE;
 				}
 			}
 

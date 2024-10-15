@@ -1602,7 +1602,8 @@ void CHalfLifeMultiplay :: PlayerThink( CBasePlayer *pPlayer )
 	{
 		if (!pPlayer->IsObserver())
 		{
-			pPlayer->pev->flags &= ~FL_GODMODE;
+			if (!MutatorEnabled(MUTATOR_GODMODE))
+				pPlayer->pev->flags &= ~FL_GODMODE;
 			pPlayer->pev->rendermode = kRenderNormal;
 			pPlayer->pev->renderfx = kRenderFxNone;
 			pPlayer->pev->renderamt = 0;

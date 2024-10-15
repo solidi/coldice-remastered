@@ -1320,6 +1320,7 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"fastweapons\" - all weapons are faster.\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"firestarter\" - start with a flamethrower.\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"fog\" - heavy fog moves into the gameplay.\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"godmode\" - everyone is invincible.\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"goldenguns\" - guns provide one shot frags.\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"grenades\" - a random chance of a grenade throw on attack.\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"ice\" - all the ground is covered in ice.\n");
