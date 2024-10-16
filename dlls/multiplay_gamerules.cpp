@@ -242,12 +242,13 @@ char *sBuiltInMaps[] =
 	"stalkyard2",
 	"thechill",
 	"themill",
+	"thetemple",
 	"training",
 	"training2",
 	"RANDOM",
 };
 
-#define BUILT_IN_MAP_COUNT 31
+#define BUILT_IN_MAP_COUNT 32
 
 char *gamePlayModes[] = {
 	"Deathmatch",
@@ -1602,7 +1603,8 @@ void CHalfLifeMultiplay :: PlayerThink( CBasePlayer *pPlayer )
 	{
 		if (!pPlayer->IsObserver())
 		{
-			pPlayer->pev->flags &= ~FL_GODMODE;
+			if (!MutatorEnabled(MUTATOR_GODMODE))
+				pPlayer->pev->flags &= ~FL_GODMODE;
 			pPlayer->pev->rendermode = kRenderNormal;
 			pPlayer->pev->renderfx = kRenderFxNone;
 			pPlayer->pev->renderamt = 0;
