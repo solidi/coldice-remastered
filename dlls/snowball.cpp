@@ -81,6 +81,16 @@ int CSnowball::GetItemInfo(ItemInfo *p)
 	return 1;
 }
 
+int CSnowball::AddToPlayer( CBasePlayer *pPlayer )
+{
+	if ( CBasePlayerWeapon::AddToPlayer( pPlayer ) )
+	{
+		WeaponPickup(pPlayer, m_iId);
+		return TRUE;
+	}
+	return FALSE;
+}
+
 BOOL CSnowball::DeployLowKey( )
 {
 	m_flReleaseThrow = -1;

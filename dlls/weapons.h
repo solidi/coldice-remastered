@@ -1233,6 +1233,7 @@ public:
 	void Precache( void );
 	int iItemSlot( void ) { return 5; }
 	int GetItemInfo(ItemInfo *p);
+	int AddToPlayer( CBasePlayer *pPlayer );
 
 	void PrimaryAttack( void );
 	void SecondaryAttack( void );
@@ -1824,6 +1825,7 @@ public:
 	void Precache( void );
 	int iItemSlot( void ) { return 5; }
 	int GetItemInfo(ItemInfo *p);
+	int AddToPlayer( CBasePlayer *pPlayer );
 
 	void PrimaryAttack( void );
 	void SecondaryAttack( void );

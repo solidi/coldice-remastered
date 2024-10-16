@@ -81,6 +81,16 @@ int CHandGrenade::GetItemInfo(ItemInfo *p)
 	return 1;
 }
 
+int CHandGrenade::AddToPlayer( CBasePlayer *pPlayer )
+{
+	if ( CBasePlayerWeapon::AddToPlayer( pPlayer ) )
+	{
+		WeaponPickup(pPlayer, m_iId);
+		return TRUE;
+	}
+	return FALSE;
+}
+
 BOOL CHandGrenade::DeployLowKey( )
 {
 	m_flReleaseThrow = -1;
