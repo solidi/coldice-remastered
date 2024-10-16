@@ -1286,6 +1286,7 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_startwithlives\" - Sets the starting lifes during battle royale\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_voting [time]\" - enable or disable end of the map voting with timer\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_acrobatics [0|1]\" allow or disallow wall climbing, slides, and flips\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_botsmelee [0|1]\" - enable or disable bot close combat\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_breakabletime\" - amount of seconds before a breakable entity respawns\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_chaosfilter\" - a list of mutators inwhich are ignored during chaos mode\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_disallowlist\" a list of entities that will not spawn\n");
