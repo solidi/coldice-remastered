@@ -190,7 +190,7 @@ public:
 	virtual void GiveMutators( CBasePlayer *pPlayer );
 	virtual BOOL MutatorEnabled(int mutatorId);
 	virtual mutators_t *GetMutators( void );
-	virtual void AddRandomMutator(BOOL withBar, const char *cvarName);
+	virtual void AddRandomMutator( const char *cvarName, BOOL withBar=FALSE, BOOL perm=FALSE );
 	virtual void MutatorsThink( void );
 	virtual BOOL MutatorAllowed(const char *mutator) = FALSE;
 	virtual void CheckGameMode( void );

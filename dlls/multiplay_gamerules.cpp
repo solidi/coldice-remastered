@@ -278,8 +278,17 @@ int CHalfLifeMultiplay::RandomizeMutator( void )
 	while (attempts > 0)
 	{
 		mutatorVote = RANDOM_LONG(MUTATOR_CHAOS, MAX_MUTATORS + 1 /*random*/);
-		const char *tryIt = g_szMutators[mutatorVote];
-		if (strlen(chaosfilter.string) > 2 && strstr(chaosfilter.string, tryIt))
+		if (mutatorVote - 1 >= MAX_MUTATORS)
+			break;
+		const char *tryIt = g_szMutators[mutatorVote - 1];
+
+		// If gamerules disallows it
+		if (!g_pGameRules->MutatorAllowed(tryIt))
+		{
+			mutatorVote = 1; // if it fails, default is chaos
+			attempts--;
+		}
+		else if (strlen(chaosfilter.string) > 2 && strstr(chaosfilter.string, tryIt))
 		{
 			mutatorVote = 1; // if it fails, default is chaos
 			attempts--;

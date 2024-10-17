@@ -992,7 +992,7 @@ mutators_t *CGameRules::GetMutators()
 	return m_Mutators;
 }
 
-void CGameRules::AddRandomMutator(BOOL withBar, const char *cvarName)
+void CGameRules::AddRandomMutator(const char *cvarName, BOOL withBar, BOOL three)
 {
 	int attempts = 0;
 	int adjcount = fmin(fmax(mutatorcount.value, 0), 7);
@@ -1028,7 +1028,10 @@ void CGameRules::AddRandomMutator(BOOL withBar, const char *cvarName)
 
 		cvar_t *cvarp = CVAR_GET_POINTER(cvarName);
 		char mutatorToAdd[512];
-		sprintf(mutatorToAdd, "%s;", g_szMutators[index]);
+		if (withBar || three)
+			sprintf(mutatorToAdd, "%s;", g_szMutators[index]);
+		else
+			sprintf(mutatorToAdd, "%s253;", g_szMutators[index]);
 		if (strlen(cvarp->string))
 		{
 			strcat(mutatorToAdd, cvarp->string);
@@ -1084,7 +1087,7 @@ void CGameRules::MutatorsThink(void)
 		{
 			if (g_pGameRules->MutatorAllowed(addmutator.string))
 			{
-				if (!strcmp(addmutator.string, "chaos") || !strcmp(addmutator.string, "1"))
+				if (strstr(addmutator.string, "chaos") || !strcmp(addmutator.string, "1"))
 				{
 					m_flChaosMutatorTime = gpGlobals->time + choasIncrement;
 					MESSAGE_BEGIN(MSG_ALL, gmsgChaos);
@@ -1122,9 +1125,10 @@ void CGameRules::MutatorsThink(void)
 							// Special pass
 							if (strstr(addmutator.string, "three"))
 							{
-								AddRandomMutator(FALSE, "sv_mutatorlist");
-								AddRandomMutator(FALSE, "sv_mutatorlist");
-								AddRandomMutator(FALSE, "sv_mutatorlist");
+								BOOL bar=FALSE, three=TRUE;
+								AddRandomMutator("sv_mutatorlist", bar, three);
+								AddRandomMutator("sv_mutatorlist", bar, three);
+								AddRandomMutator("sv_mutatorlist", bar, three);
 								continue;
 							}
 
@@ -1225,7 +1229,7 @@ void CGameRules::MutatorsThink(void)
 		if (m_flChaosMutatorTime && m_flChaosMutatorTime < gpGlobals->time && count < adjcount)
 		{
 			m_flChaosMutatorTime = gpGlobals->time + choasIncrement;
-			AddRandomMutator(TRUE, "sv_addmutator");
+			AddRandomMutator("sv_addmutator", TRUE);
 		}
 
 		m_flAddMutatorTime = gpGlobals->time + 1.0;
