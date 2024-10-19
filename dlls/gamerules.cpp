@@ -50,6 +50,7 @@ extern int gmsgShowGameTitle;
 extern int gmsgAddMutator;
 extern int gmsgFog;
 extern int gmsgChaos;
+extern int gmsgHideWeapon;
 
 int g_teamplay = 0;
 int g_ExplosiveAI = 0;
@@ -66,6 +67,7 @@ DLL_GLOBAL const char *g_szMutators[] = {
 	"berserker",
 	"bigfoot",
 	"bighead",
+	"busters",
 	"chumxplode",
 	"closeup",
 	"coolflesh",
@@ -81,6 +83,7 @@ DLL_GLOBAL const char *g_szMutators[] = {
 	"godmode",
 	"goldenguns",
 	"grenades",
+	"halflife",
 	"ice",
 	"infiniteammo",
 	"instagib",
@@ -851,6 +854,14 @@ void CGameRules::GiveMutators(CBasePlayer *pPlayer)
 		}
 	}
 
+	if (MutatorEnabled(MUTATOR_BUSTERS)) {
+		if (!pPlayer->HasNamedPlayerItem("weapon_egon"))
+		{
+			pPlayer->GiveNamedItem("weapon_egon");
+			pPlayer->SelectItem("weapon_egon");
+		}
+	}
+
 	if (MutatorEnabled(MUTATOR_BARRELS)) {
 		if (!pPlayer->HasNamedPlayerItem("weapon_gravitygun"))
 		{
@@ -1431,6 +1442,30 @@ void CGameRules::MutatorsThink(void)
 				{
 					if ( pl->pev->flags & FL_GODMODE )
 						pl->pev->flags &= ~FL_GODMODE;
+				}
+
+				if (!FBitSet(pl->pev->flags, FL_FAKECLIENT))
+				{
+					if (MutatorEnabled(MUTATOR_HALFLIFE))
+					{
+						if (!FBitSet(pl->m_iHideHUD, HIDEHUD_ICE))
+						{
+							pl->m_iHideHUD |= HIDEHUD_ICE;
+							MESSAGE_BEGIN( MSG_ONE, gmsgHideWeapon, NULL, pl->pev );
+								WRITE_BYTE( pl->m_iHideHUD );
+							MESSAGE_END();
+						}
+					}
+					else
+					{
+						if (FBitSet(pl->m_iHideHUD, HIDEHUD_ICE))
+						{
+							pl->m_iHideHUD &= ~HIDEHUD_ICE;
+							MESSAGE_BEGIN( MSG_ONE, gmsgHideWeapon, NULL, pl->pev );
+								WRITE_BYTE( pl->m_iHideHUD );
+							MESSAGE_END();
+						}
+					}
 				}
 			}
 

@@ -268,6 +268,8 @@ DECLARE_COMMAND(m_Ammo, PrevWeapon);
 
 #define HISTORY_DRAW_TIME	"5"
 
+extern cvar_t *cl_icemodels;
+
 int CHudAmmo::Init(void)
 {
 	gHUD.AddHudElem(this);
@@ -348,6 +350,9 @@ int CHudAmmo::VidInit(void)
 		giABWidth = 10;
 		giABHeight = 2;
 	}
+
+	if (cl_icemodels)
+		iceModelValue = cl_icemodels->value;
 
 	return 1;
 }
@@ -602,6 +607,19 @@ int CHudAmmo::MsgFunc_HideWeapon( const char *pszName, int iSize, void *pbuf )
 		UnpackRGB(r,g,b, HudColor());
 		if ( m_pWeapon )
 			SetCrosshair( m_pWeapon->hCrosshair, m_pWeapon->rcCrosshair, r, g, b );
+	}
+
+	if ( gHUD.m_iHideHUDDisplay & HIDEHUD_ICE )
+	{
+		if (cl_icemodels && cl_icemodels->value)
+			iceModelValue = cl_icemodels->value;
+		gEngfuncs.pfnClientCmd("cl_icemodels 0\n");
+	}
+	else
+	{
+		char cmd[64];
+		sprintf(cmd, "cl_icemodels %d\n", iceModelValue);
+		gEngfuncs.pfnClientCmd(cmd);
 	}
 
 	return 1;

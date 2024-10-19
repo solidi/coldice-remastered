@@ -1309,6 +1309,7 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"berserker\" - go crazy with chainsaws and fists.\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"bigfoot\" - step size is crazy big\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"bighead\" - players heads are very large\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"busters\" - I ain't afraid of ghosts\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"chumxplode\" - a killer chumtoad appears directly after an explosion\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"closeup\" - ironsights are locked in\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"coolflesh\" - gibs stay longer, pick up gibs to eat and gain a healthkit worth of repair\n");
@@ -1324,6 +1325,7 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"godmode\" - everyone is invincible.\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"goldenguns\" - guns provide one shot frags.\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"grenades\" - a random chance of a grenade throw on attack.\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"halflife\" - model skins turn original.\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"ice\" - all the ground is covered in ice.\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"infiniteammo\" - all weapons have infinite ammo.\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"instagib\" - spawn with a zapgun that dole one hit kills.\n");
