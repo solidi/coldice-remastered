@@ -152,6 +152,8 @@ private:
 	int m_hCrosshairBrackets;
 	int m_hCrosshairLeft;
 	int m_hCrosshairRight;
+
+	int iceModelValue;
 };
 
 //

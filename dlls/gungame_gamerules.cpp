@@ -563,6 +563,9 @@ BOOL CHalfLifeGunGame::MutatorAllowed(const char *mutator)
 	if (strstr(mutator, g_szMutators[MUTATOR_COWBOY - 1]) || atoi(mutator) == MUTATOR_COWBOY)
 		return FALSE;
 
+	if (strstr(mutator, g_szMutators[MUTATOR_BUSTERS - 1]) || atoi(mutator) == MUTATOR_BUSTERS)
+		return FALSE;
+
 	if (strstr(mutator, g_szMutators[MUTATOR_FIRESTARTER - 1]) || atoi(mutator) == MUTATOR_FIRESTARTER)
 		return FALSE;
 

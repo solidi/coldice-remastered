@@ -1146,7 +1146,8 @@ void CBaseTrigger :: MultiTouch( CBaseEntity *pOther )
 #endif
 
 		if (pev->target && strstr(STRING(pev->target), "strike_mm")) {
-			g_AirstrikeActivator = pOther;
+			if (!g_pGameRules->IsGunGame())
+				g_AirstrikeActivator = pOther;
 		}
 
 		ActivateMultiTrigger( pOther );

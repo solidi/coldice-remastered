@@ -204,6 +204,9 @@ BOOL CHalfLifeInstagib::MutatorAllowed(const char *mutator)
 	if (strstr(mutator, g_szMutators[MUTATOR_PLUMBER - 1]) || atoi(mutator) == MUTATOR_PLUMBER)
 		return FALSE;
 
+	if (strstr(mutator, g_szMutators[MUTATOR_BUSTERS - 1]) || atoi(mutator) == MUTATOR_BUSTERS)
+		return FALSE;
+
 	if (strstr(mutator, g_szMutators[MUTATOR_COWBOY - 1]) || atoi(mutator) == MUTATOR_COWBOY)
 		return FALSE;
 
