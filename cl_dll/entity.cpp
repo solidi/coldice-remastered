@@ -25,7 +25,6 @@ extern engine_studio_api_s IEngineStudio;
 #include "particleman.h"
 extern IParticleMan *g_pParticleMan;
 extern cvar_t *cl_announcehumor;
-extern cvar_t *cl_icemodels;
 extern cvar_t *cl_voiceoverpath;
 
 void Game_AddObjects( void );
@@ -422,7 +421,7 @@ void CL_DLLEXPORT HUD_StudioEvent( const struct mstudioevent_s *event, const str
 	{
 	case 5001:
 		if ( iMuzzleFlash ) {
-			if (cl_icemodels && (cl_icemodels->value >= SKIN_INVERSE && cl_icemodels->value <= SKIN_EDITION))
+			if ((gHUD.m_IceModelsIndex >= SKIN_INVERSE && gHUD.m_IceModelsIndex <= SKIN_EDITION))
 				R_RealMuzzleFlash(entity->attachment[0], atoi(event->options));
 			else	
 				gEngfuncs.pEfxAPI->R_MuzzleFlash( (float *)&entity->attachment[0], atoi( event->options) );
@@ -430,7 +429,7 @@ void CL_DLLEXPORT HUD_StudioEvent( const struct mstudioevent_s *event, const str
 		break;
 	case 5011:
 		if ( iMuzzleFlash ) {
-			if (cl_icemodels && (cl_icemodels->value >= SKIN_INVERSE && cl_icemodels->value <= SKIN_EDITION))
+			if ((gHUD.m_IceModelsIndex >= SKIN_INVERSE && gHUD.m_IceModelsIndex <= SKIN_EDITION))
 				R_RealMuzzleFlash(entity->attachment[1], atoi(event->options));
 			else	
 				gEngfuncs.pEfxAPI->R_MuzzleFlash( (float *)&entity->attachment[1], atoi( event->options) );
@@ -438,7 +437,7 @@ void CL_DLLEXPORT HUD_StudioEvent( const struct mstudioevent_s *event, const str
 		break;
 	case 5021:
 		if ( iMuzzleFlash ) {
-			if (cl_icemodels && (cl_icemodels->value >= SKIN_INVERSE && cl_icemodels->value <= SKIN_EDITION))
+			if ((gHUD.m_IceModelsIndex >= SKIN_INVERSE && gHUD.m_IceModelsIndex <= SKIN_EDITION))
 				R_RealMuzzleFlash(entity->attachment[2], atoi(event->options));
 			else	
 				gEngfuncs.pEfxAPI->R_MuzzleFlash( (float *)&entity->attachment[2], atoi( event->options) );
@@ -446,7 +445,7 @@ void CL_DLLEXPORT HUD_StudioEvent( const struct mstudioevent_s *event, const str
 		break;
 	case 5031:
 		if ( iMuzzleFlash ) {
-			if (cl_icemodels && (cl_icemodels->value >= SKIN_INVERSE && cl_icemodels->value <= SKIN_EDITION))
+			if ((gHUD.m_IceModelsIndex >= SKIN_INVERSE && gHUD.m_IceModelsIndex <= SKIN_EDITION))
 				R_RealMuzzleFlash(entity->attachment[3], atoi(event->options));
 			else	
 				gEngfuncs.pEfxAPI->R_MuzzleFlash( (float *)&entity->attachment[3], atoi( event->options) );
@@ -506,7 +505,7 @@ void LoadTempViewModel(const char *modelName, int sequence)
 	pExtraModel->curstate.sequence = sequence;
 	pExtraModel->curstate.animtime = gEngfuncs.GetClientTime() + 0.01;
 	pExtraModel->curstate.effects |= EF_VIEWMODEL &~ EF_NODRAW;
-	pExtraModel->curstate.skin = cl_icemodels->value;
+	pExtraModel->curstate.skin = gHUD.m_IceModelsIndex;
 
 	float multipler = GetWeaponMultipler();
 	float fps = pseqdesc->fps / multipler;

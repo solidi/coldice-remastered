@@ -31,13 +31,11 @@ extern float v_idlescale;
 float in_fov;
 extern void HUD_SetCmdBits( int bits );
 
-extern cvar_t *cl_icemodels;
-
 int CHud::UpdateClientData(client_data_t *cdata, float time)
 {
 	if (!SetPLFlames)
 	{
-		g_pParticleSystems.RefreshFlameSystem(cl_icemodels ? cl_icemodels->value : 0);
+		g_pParticleSystems.RefreshFlameSystem(gHUD.m_IceModelsIndex ? gHUD.m_IceModelsIndex : 0);
 		SetPLFlames = 1;
 	}
 

@@ -52,7 +52,6 @@ float g_DeploySoundTime = 0;
 float g_RetractDistance = 0;
 float g_NotifyTime = 0;
 extern cvar_t *cl_antivomit;
-extern cvar_t *cl_icemodels;
 extern qboolean g_IronSight;
 
 /// USER-DEFINED SERVER MESSAGE HANDLERS
@@ -416,7 +415,7 @@ int CHud :: MsgFunc_Particle( const char *pszName, int iSize, void *pbuf )
 	char fileName[64];
 	strcpy(fileName, "aurora/");
 
-	if (cl_icemodels && (cl_icemodels->value >= SKIN_INVERSE && cl_icemodels->value <= SKIN_EDITION))
+	if ((gHUD.m_IceModelsIndex >= SKIN_INVERSE && gHUD.m_IceModelsIndex <= SKIN_EDITION))
 	{
 		strcat(fileName, "ice_");
 	}
@@ -477,7 +476,7 @@ void CHud :: MsgFunc_MParticle( const char *pszName, int iSize, void *pbuf )
 
 	char fileName[64];
 	strcpy(fileName, "aurora/");
-	if (cl_icemodels && (cl_icemodels->value >= SKIN_INVERSE && cl_icemodels->value <= SKIN_EDITION))
+	if ((gHUD.m_IceModelsIndex >= SKIN_INVERSE && gHUD.m_IceModelsIndex <= SKIN_EDITION))
 	{
 		strcat(fileName, "ice_");
 	}

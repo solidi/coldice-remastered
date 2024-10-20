@@ -1272,6 +1272,11 @@ int CStudioModelRenderer::StudioDrawModel( int flags )
 	IEngineStudio.GetViewInfo( m_vRenderOrigin, m_vUp, m_vRight, m_vNormal );
 	IEngineStudio.GetAliasScale( &m_fSoftwareXScale, &m_fSoftwareYScale );
 
+	if (cl_icemodels && gHUD.m_IceModelsIndex != SKIN_MUTATOR && gHUD.m_IceModelsIndex != cl_icemodels->value)
+	{
+		gHUD.m_IceModelsIndex = cl_icemodels->value;
+	}
+
 	if (m_pCurrentEntity->curstate.renderfx == kRenderFxDeadPlayer)
 	{
 		entity_state_t deadplayer;
@@ -1456,7 +1461,7 @@ int CStudioModelRenderer::StudioDrawModel( int flags )
 
 		/*if ((m_pCurrentEntity->model && (strstr(m_pCurrentEntity->model->name, "w_"))) ||
 			m_pCurrentEntity == gEngfuncs.GetViewModel())*/
-		m_pCurrentEntity->curstate.skin = cl_icemodels->value;
+		m_pCurrentEntity->curstate.skin = gHUD.m_IceModelsIndex;
 
 		if ( m_pCurrentEntity == gEngfuncs.GetViewModel() )
 		{
@@ -2070,7 +2075,7 @@ int CStudioModelRenderer::StudioDrawPlayer( int flags, entity_state_t *pplayer )
 	if (prophunt)
 	{
 		m_pCurrentEntity->curstate.body = m_pCurrentEntity->curstate.fuser4 >= 50 ? m_pCurrentEntity->curstate.fuser4 - 49 : m_pCurrentEntity->curstate.fuser4;
-		m_pCurrentEntity->curstate.skin = cl_icemodels->value;
+		m_pCurrentEntity->curstate.skin = gHUD.m_IceModelsIndex;
 		m_pCurrentEntity->origin[2] = m_pCurrentEntity->origin[2] - 36;
 		m_pCurrentEntity->angles = Vector(0,0,0);
 	}
@@ -2302,7 +2307,7 @@ int CStudioModelRenderer::StudioDrawPlayer( int flags, entity_state_t *pplayer )
 
 			IEngineStudio.StudioSetupLighting (&lighting);
 
-			m_pCurrentEntity->curstate.skin = cl_icemodels->value;
+			m_pCurrentEntity->curstate.skin = gHUD.m_IceModelsIndex;
 			m_pCurrentEntity->curstate.body = pplayer->team;
 			StudioRenderModel( );
 

@@ -5,8 +5,6 @@
 #include "particlesys.h"
 #include "FlameSystem.h"
 
-extern cvar_t *cl_icemodels;
-
 int CHudParticle::Init( void )
 {
 	gHUD.AddHudElem(this);
@@ -17,7 +15,7 @@ int CHudParticle::VidInit( void )
 {
 	m_iFlags |= HUD_ACTIVE;
 	// gEngfuncs.Con_DPrintf("::: VidInit -> SetParticles\n");
-	gHUD.m_iIceModels = -1; // always clear on vidinit
+	iceModels = -1; // always clear on vidinit
 	SetParticles();
 	return 1;
 }
@@ -36,13 +34,10 @@ int CHudParticle::Draw(float flTime)
 
 void CHudParticle::SetParticles()
 {
-	if (cl_icemodels)
+	if (iceModels != gHUD.m_IceModelsIndex)
 	{
-		if (gHUD.m_iIceModels != cl_icemodels->value)
-		{
-			// gEngfuncs.Con_DPrintf("::: SetParticles -> Do Refresh\n");
-			g_pParticleSystems.reset = true;
-			gHUD.m_iIceModels = cl_icemodels->value;
-		}
+		// gEngfuncs.Con_DPrintf("::: SetParticles -> Do Refresh\n");
+		g_pParticleSystems.reset = true;
+		iceModels = gHUD.m_IceModelsIndex;
 	}
 }

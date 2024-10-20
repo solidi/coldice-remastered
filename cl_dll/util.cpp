@@ -32,8 +32,6 @@
 
 vec3_t vec3_origin( 0, 0, 0 );
 
-extern cvar_t *cl_icemodels;
-
 double sqrt(double x);
 
 float Length(const float *v)
@@ -137,7 +135,7 @@ unsigned long HudColor()
 {
 	static unsigned long colorchange = RGB_BLUEISH;
 
-	if (cl_icemodels && cl_icemodels->value)
+	if ((gHUD.m_IceModelsIndex >= SKIN_INVERSE && gHUD.m_IceModelsIndex <= SKIN_GOLD))
 	{
 		if (colorchange != RGB_BLUEISH)
 		{

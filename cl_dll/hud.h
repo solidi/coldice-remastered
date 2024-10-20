@@ -152,8 +152,6 @@ private:
 	int m_hCrosshairBrackets;
 	int m_hCrosshairLeft;
 	int m_hCrosshairRight;
-
-	int iceModelValue;
 };
 
 //
@@ -663,6 +661,7 @@ public:
 	void Reset( void );
 private:
 	void SetParticles( void );
+	int iceModels;
 };
 
 class CHudNukeCrosshair : public CHudBase
@@ -847,7 +846,7 @@ public:
 	int DrawHudNumberString( int xpos, int ypos, int iMinX, int iNumber, int r, int g, int b );
 	int GetNumWidth(int iNumber, int iFlags);
 
-	int m_iIceModels;
+	int	m_IceModelsIndex;
 	bool SetPLFlames;
 	mutators_t *m_Mutators;
 	int m_ChaosTime;

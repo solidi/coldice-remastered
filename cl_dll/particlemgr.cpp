@@ -260,7 +260,7 @@ void ParticleSystemManager::UpdateSystems( float frametime, int sky ) //LRC - no
 
 	if (reset)
 	{
-		Setup(gHUD.m_iIceModels);
+		Setup(gHUD.m_IceModelsIndex);
 		FlameSystem.Init();
 		reset = false;
 	}

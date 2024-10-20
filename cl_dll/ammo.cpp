@@ -351,9 +351,6 @@ int CHudAmmo::VidInit(void)
 		giABHeight = 2;
 	}
 
-	if (cl_icemodels)
-		iceModelValue = cl_icemodels->value;
-
 	return 1;
 }
 
@@ -610,17 +607,10 @@ int CHudAmmo::MsgFunc_HideWeapon( const char *pszName, int iSize, void *pbuf )
 	}
 
 	if ( gHUD.m_iHideHUDDisplay & HIDEHUD_ICE )
-	{
-		if (cl_icemodels && cl_icemodels->value)
-			iceModelValue = cl_icemodels->value;
-		gEngfuncs.pfnClientCmd("cl_icemodels 0\n");
-	}
+		gHUD.m_IceModelsIndex = SKIN_MUTATOR;
 	else
-	{
-		char cmd[64];
-		sprintf(cmd, "cl_icemodels %d\n", iceModelValue);
-		gEngfuncs.pfnClientCmd(cmd);
-	}
+		if (cl_icemodels && cl_icemodels->value)
+			gHUD.m_IceModelsIndex = cl_icemodels->value;
 
 	return 1;
 }

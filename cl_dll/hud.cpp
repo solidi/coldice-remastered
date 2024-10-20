@@ -744,6 +744,9 @@ void CHud :: VidInit( void )
 		CL_TempEntInit();
 	}
 
+	if (cl_icemodels)
+		m_IceModelsIndex = cl_icemodels->value;
+
 	// ----------
 	// Load Sprites
 	// ---------

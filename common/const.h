@@ -937,6 +937,7 @@ typedef struct
 #define SKIN_BLUEHEV 4
 #define SKIN_SILVER 5
 #define SKIN_GOLD 6
+#define SKIN_MUTATOR 99
 
 #define TXT_CHANNEL_RUNE_TITLE		6
 #define TXT_CHANNEL_RUNE_DESC		7
