@@ -71,14 +71,13 @@ void CHook::FireHook( ) {
 	if ( pevOwner->pev->iuser1 )
 		return;
 
-	EMIT_SOUND_DYN(ENT(pevOwner->pev), CHAN_WEAPON, "grapple_deploy.wav", RANDOM_FLOAT(0.95, 1.0), ATTN_NORM, 0, 93 + RANDOM_LONG(0,0xF));
 	pev->owner = ENT(pevOwner->pev);
 
 	TraceResult tr;
 	Vector anglesAim = pevOwner->pev->v_angle + pevOwner->pev->punchangle;
 	UTIL_MakeVectors( anglesAim );
 
-	if (!grapplesky.value)
+	if (!grabsky.value)
 	{
 		edict_t	*pWorld = g_engfuncs.pfnPEntityOfEntIndex(0);
 		Vector start = pevOwner->pev->origin + pevOwner->pev->view_ofs;
@@ -91,6 +90,8 @@ void CHook::FireHook( ) {
 			return;
 		}
 	}
+
+	EMIT_SOUND_DYN(ENT(pevOwner->pev), CHAN_WEAPON, "grapple_deploy.wav", RANDOM_FLOAT(0.95, 1.0), ATTN_NORM, 0, 93 + RANDOM_LONG(0,0xF));
 
 	Spawn();
 
