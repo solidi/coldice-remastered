@@ -136,10 +136,21 @@ void CAshpod::PortalFire( int state )
 	UTIL_TraceLine(vecSrc, vecEnd, ignore_monsters, ENT(m_pPlayer->pev), &tr);
 	if (tr.flFraction < 1.0f)
 	{
+#ifndef CLIENT_DLL
+		if (!grabsky.value)
+		{
+			edict_t	*pWorld = g_engfuncs.pfnPEntityOfEntIndex(0);
+			if ( tr.pHit )
+				pWorld = tr.pHit;
+			if (stricmp(TRACE_TEXTURE( pWorld, vecSrc, vecEnd ), "sky") == 0) {
+				ClientPrint(m_pPlayer->pev, HUD_PRINTCENTER, "Cannot portal sky!\n");
+				return;
+			}
+		}
+
 		Vector angle;
 		UTIL_VectorAngles(tr.vecPlaneNormal, angle);
 
-#ifndef CLIENT_DLL
 		auto pPortal = CBaseEntity::Create("ent_portal", tr.vecEndPos - gpGlobals->v_forward * 3, angle, m_pPlayer->edict());
 		if (pPortal)
 		{

@@ -85,6 +85,7 @@ extern cvar_t   addmutator;
 extern cvar_t   mutatorcount;
 extern cvar_t   mutatorlist;
 extern cvar_t   mutatortime;
+extern cvar_t   grabsky;
 
 // Engine Cvars
 extern cvar_t	*g_psv_gravity;

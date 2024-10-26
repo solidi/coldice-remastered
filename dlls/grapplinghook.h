@@ -2,8 +2,6 @@
 
 #include "game.h"
 
-extern cvar_t grapplesky;
-
 class CHook : public CBaseEntity
 {
 public:

@@ -1262,7 +1262,7 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"snowball\"\" - game mode is snowballs and grenades!\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"teamplay\"\" - frag on teams\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_ggstartlevel\" - Sets default start level of gun game\n");
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_grapplesky [0|1]\" - Allow player to grapple the sky\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_grabsky [0|1]\" - Allow player to grapple and portal to the skybox\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_grapplinghook [0|1]\" - Allow grappling hook on server\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_grapplinghookdeploytime 1.0\" - Time (seconds) when next grappling hook can deploy\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_holsterweapons [0|1]\" - Holstering weapons for more realistic gameplay\n");
