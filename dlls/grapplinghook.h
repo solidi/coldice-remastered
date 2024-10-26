@@ -2,8 +2,6 @@
 
 #include "game.h"
 
-extern cvar_t grabsky;
-
 class CHook : public CBaseEntity
 {
 public:

@@ -137,7 +137,6 @@ void CAshpod::PortalFire( int state )
 	if (tr.flFraction < 1.0f)
 	{
 #ifndef CLIENT_DLL
-		extern cvar_t grabsky;
 		if (!grabsky.value)
 		{
 			edict_t	*pWorld = g_engfuncs.pfnPEntityOfEntIndex(0);
