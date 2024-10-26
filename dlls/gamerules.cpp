@@ -78,6 +78,7 @@ DLL_GLOBAL const char *g_szMutators[] = {
 	"dontshoot",
 	"explosiveai",
 	"fastweapons",
+	"firebullets",
 	"firestarter",
 	"fog",
 	"godmode",

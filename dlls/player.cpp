@@ -511,6 +511,12 @@ void CBasePlayer :: TraceAttack( entvars_t *pevAttacker, float flDamage, Vector 
 		if (FBitSet(bitsDamageType, DMG_CONFUSE))
 			Confuse(CBaseEntity::Instance(pevAttacker), this, DMG_CONFUSE);
 
+		if (FBitSet(bitsDamageType, DMG_BURN))
+		{
+			m_fBurnTime = m_fBurnTime + RANDOM_FLOAT(1.0, 3.0);
+			m_hFlameOwner = CBaseEntity::Instance(pevAttacker);
+		}
+
 		// Any hint of farts is deadly
 		if (FBitSet(bitsDamageType, DMG_FART))
 		{
