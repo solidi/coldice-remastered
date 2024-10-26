@@ -42,8 +42,9 @@ cvar_t	allowmonsters={"mp_allowmonsters","1", FCVAR_SERVER };
 #if defined( GRAPPLING_HOOK )
 cvar_t	grapplinghook = {"mp_grapplinghook","1", FCVAR_SERVER };
 cvar_t	grapplinghookdeploytime = {"mp_grapplinghookdeploytime","1.0", FCVAR_SERVER };
-cvar_t	grabsky = {"mp_grabsky","1", FCVAR_SERVER };
 #endif
+
+cvar_t	grabsky = {"mp_grabsky","1", FCVAR_SERVER };
 
 cvar_t	spawnweaponlist = {"mp_spawnweaponlist","weapon_9mmhandgun", FCVAR_SERVER };
 cvar_t	allowrunes = {"mp_allowrunes","1", FCVAR_SERVER };
