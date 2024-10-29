@@ -1414,6 +1414,12 @@ void CBaseEntity::TraceAttack(entvars_t *pevAttacker, float flDamage, Vector vec
 	{
 		AddMultiDamage( pevAttacker, this, flDamage, bitsDamageType );
 
+		if (FBitSet(bitsDamageType, DMG_BURN))
+		{
+			m_fBurnTime = m_fBurnTime + RANDOM_FLOAT(1.0, 3.0);
+			m_hFlameOwner = CBaseEntity::Instance(pevAttacker);
+		}
+
 		int blood = BloodColor();
 		
 		if ( blood != DONT_BLEED )
@@ -1574,6 +1580,10 @@ void CBaseEntity::FireBullets(ULONG cShots, Vector vecSrc, Vector vecDirShooting
 			{
 				CBaseEntity *pEntity = CBaseEntity::Instance(tr.pHit);
 
+				int bulletype = DMG_BULLET;
+				if ( g_pGameRules->MutatorEnabled(MUTATOR_FIREBULLETS))
+					bulletype = DMG_BULLET | DMG_BURN;
+
 				if ( iDamage )
 				{
 					pEntity->TraceAttack(pevAttacker, iDamage, vecDir, &tr, DMG_BULLET | ((iDamage > 16) ? DMG_ALWAYSGIB : DMG_NEVERGIB) );
@@ -1585,7 +1595,7 @@ void CBaseEntity::FireBullets(ULONG cShots, Vector vecSrc, Vector vecDirShooting
 				{
 				default:
 				case BULLET_MONSTER_9MM:
-					pEntity->TraceAttack(pevAttacker, gSkillData.monDmg9MM, vecDir, &tr, DMG_BULLET);
+					pEntity->TraceAttack(pevAttacker, gSkillData.monDmg9MM, vecDir, &tr, bulletype);
 					
 					TEXTURETYPE_PlaySound(&tr, vecSrc, vecEnd, iBulletType);
 					DecalGunshot( &tr, iBulletType );
@@ -1593,7 +1603,7 @@ void CBaseEntity::FireBullets(ULONG cShots, Vector vecSrc, Vector vecDirShooting
 					break;
 
 				case BULLET_MONSTER_MP5:
-					pEntity->TraceAttack(pevAttacker, gSkillData.monDmgMP5, vecDir, &tr, DMG_BULLET);
+					pEntity->TraceAttack(pevAttacker, gSkillData.monDmgMP5, vecDir, &tr, bulletype);
 					
 					TEXTURETYPE_PlaySound(&tr, vecSrc, vecEnd, iBulletType);
 					DecalGunshot( &tr, iBulletType );
@@ -1601,7 +1611,7 @@ void CBaseEntity::FireBullets(ULONG cShots, Vector vecSrc, Vector vecDirShooting
 					break;
 
 				case BULLET_MONSTER_12MM:		
-					pEntity->TraceAttack(pevAttacker, gSkillData.monDmg12MM, vecDir, &tr, DMG_BULLET); 
+					pEntity->TraceAttack(pevAttacker, gSkillData.monDmg12MM, vecDir, &tr, bulletype); 
 					if ( !tracer )
 					{
 						TEXTURETYPE_PlaySound(&tr, vecSrc, vecEnd, iBulletType);
@@ -1687,6 +1697,10 @@ Vector CBaseEntity::FireBulletsPlayer ( ULONG cShots, Vector vecSrc, Vector vecD
 				CBaseEntity *pEntity = CBaseEntity::Instance(tr.pHit);
 				Vector end = tr.vecEndPos + (tr.vecPlaneNormal * 10);
 
+				int bulletype = DMG_BULLET;
+				if ( g_pGameRules->MutatorEnabled(MUTATOR_FIREBULLETS))
+					bulletype = DMG_BULLET | DMG_BURN;
+
 				if ( iDamage )
 				{
 					pEntity->TraceAttack(pevAttacker, iDamage, vecDir, &tr, DMG_BULLET | ((iDamage > 16) ? DMG_ALWAYSGIB : DMG_NEVERGIB) );
@@ -1697,22 +1711,22 @@ Vector CBaseEntity::FireBulletsPlayer ( ULONG cShots, Vector vecSrc, Vector vecD
 				else switch(iBulletType)
 				{
 				default:
-				case BULLET_PLAYER_9MM:		
-					pEntity->TraceAttack(pevAttacker, gSkillData.plrDmg9MM, vecDir, &tr, DMG_BULLET); 
+				case BULLET_PLAYER_9MM:
+					pEntity->TraceAttack(pevAttacker, gSkillData.plrDmg9MM, vecDir, &tr, bulletype);
 					break;
 
-				case BULLET_PLAYER_MP5:		
-					pEntity->TraceAttack(pevAttacker, gSkillData.plrDmgMP5, vecDir, &tr, DMG_BULLET); 
+				case BULLET_PLAYER_MP5:
+					pEntity->TraceAttack(pevAttacker, gSkillData.plrDmgMP5, vecDir, &tr, bulletype);
 					break;
 
-				case BULLET_PLAYER_BUCKSHOT:	
+				case BULLET_PLAYER_BUCKSHOT:
 					// make distance based!
-					pEntity->TraceAttack(pevAttacker, gSkillData.plrDmgBuckshot, vecDir, &tr, DMG_BULLET);
+					pEntity->TraceAttack(pevAttacker, gSkillData.plrDmgBuckshot, vecDir, &tr, bulletype);
 					break;
 
-				case BULLET_PLAYER_EXPLOSIVE_BUCKSHOT:	
+				case BULLET_PLAYER_EXPLOSIVE_BUCKSHOT:
 					// make distance based!
-					pEntity->TraceAttack(pevAttacker, gSkillData.plrDmgExpBuckshot, vecDir, &tr, DMG_BULLET);
+					pEntity->TraceAttack(pevAttacker, gSkillData.plrDmgExpBuckshot, vecDir, &tr, bulletype);
 
 					if ( RANDOM_LONG(0, 3) > 2 ) {
 						MESSAGE_BEGIN( MSG_PAS, SVC_TEMPENTITY, pev->origin );
@@ -1735,12 +1749,12 @@ Vector CBaseEntity::FireBulletsPlayer ( ULONG cShots, Vector vecSrc, Vector vecD
 
 					break;
 				
-				case BULLET_PLAYER_357:		
-					pEntity->TraceAttack(pevAttacker, gSkillData.plrDmg357, vecDir, &tr, DMG_BULLET); 
+				case BULLET_PLAYER_357:
+					pEntity->TraceAttack(pevAttacker, gSkillData.plrDmg357, vecDir, &tr, bulletype); 
 					break;
 
 				case BULLET_PLAYER_RIFLE:
-					pEntity->TraceAttack(pevAttacker, gSkillData.plrDmgSniperRifle, vecDir, &tr, DMG_BULLET); 
+					pEntity->TraceAttack(pevAttacker, gSkillData.plrDmgSniperRifle, vecDir, &tr, bulletype); 
 					break;
 
 				case BULLET_NONE: // FIX 

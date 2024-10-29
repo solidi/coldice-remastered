@@ -1320,6 +1320,7 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"dontshoot\" - firing any weapon will explode the player.\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"explosiveai\" - AI blows up when it cannot find its next task.\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"fastweapons\" - all weapons are faster.\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"firebullets\" - all bullets bring the fire.\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"firestarter\" - start with a flamethrower.\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"fog\" - heavy fog moves into the gameplay.\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"godmode\" - everyone is invincible.\n");
