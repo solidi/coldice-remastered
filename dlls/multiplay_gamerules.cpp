@@ -2100,7 +2100,8 @@ void CHalfLifeMultiplay::DeathNotice( CBasePlayer *pVictim, entvars_t *pKiller, 
 	}
 	else
 	{
-		killer_weapon_name = STRING( pevInflictor->classname );
+		if (pevInflictor)
+			killer_weapon_name = STRING( pevInflictor->classname );
 	}
 
 	if (gMultiDamage.pEntity == pVictim &&
