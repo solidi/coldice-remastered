@@ -827,6 +827,11 @@ void CGamePlayerEquip::EquipPlayer( CBaseEntity *pEntity )
 {
 	CBasePlayer *pPlayer = NULL;
 
+	if (g_pGameRules->IsBusters() || g_pGameRules->IsGunGame())
+	{
+		return;
+	}
+
 	if ( pEntity->IsPlayer() )
 	{
 		pPlayer = (CBasePlayer *)pEntity;
