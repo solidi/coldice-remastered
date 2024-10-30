@@ -158,3 +158,17 @@ float lerp(float a, float b, float f)
 {
     return (a * (1.0 - f)) + (b * f);
 }
+
+bool ScoreBased( void )
+{
+	return (gHUD.m_Teamplay == GAME_ARENA ||
+			gHUD.m_Teamplay == GAME_LMS ||
+			gHUD.m_Teamplay == GAME_BUSTERS ||
+			gHUD.m_Teamplay == GAME_CHILLDEMIC ||
+			gHUD.m_Teamplay == GAME_COLDSPOT ||
+			gHUD.m_Teamplay == GAME_CTF ||
+			gHUD.m_Teamplay == GAME_HORDE ||
+			gHUD.m_Teamplay == GAME_ICEMAN ||
+			gHUD.m_Teamplay == GAME_PROPHUNT ||
+			gHUD.m_Teamplay == GAME_SHIDDEN);
+}

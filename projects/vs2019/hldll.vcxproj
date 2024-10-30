@@ -183,6 +183,7 @@
     <ClCompile Include="..\..\dlls\h_cycler.cpp" />
     <ClCompile Include="..\..\dlls\h_export.cpp" />
     <ClCompile Include="..\..\dlls\coldskull_gamerules.cpp" />
+    <ClCompile Include="..\..\dlls\coldspot_gamerules.cpp" />
     <ClCompile Include="..\..\dlls\ichthyosaur.cpp" />
     <ClCompile Include="..\..\dlls\instagib_gamerules.cpp" />
     <ClCompile Include="..\..\dlls\islave.cpp" />
@@ -290,6 +291,7 @@
     <ClInclude Include="..\..\dlls\horde_gamerules.h" />
     <ClInclude Include="..\..\dlls\hornet.h" />
     <ClInclude Include="..\..\dlls\coldskull_gamerules.h" />
+    <ClInclude Include="..\..\dlls\coldspot_gamerules.h" />
     <ClInclude Include="..\..\dlls\instagib_gamerules.h" />
     <ClInclude Include="..\..\dlls\items.h" />
     <ClInclude Include="..\..\dlls\jvs_gamerules.h" />

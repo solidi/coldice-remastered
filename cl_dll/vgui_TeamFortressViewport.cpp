@@ -136,6 +136,7 @@ char *sGameplayModes[] =
 	"busters",
 	"chilldemic",
 	"coldskull",
+	"coldspot",
 	"ctc",
 	"ctf",
 	"gungame",
