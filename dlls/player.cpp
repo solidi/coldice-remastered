@@ -2843,6 +2843,12 @@ void CBasePlayer::PreThink(void)
 
 	//WallrunThink();
 
+	if ( m_vecHitVelocity != g_vecZero )
+	{
+		pev->velocity = m_vecHitVelocity;
+		m_vecHitVelocity = g_vecZero;
+	}
+
 	if (m_fTauntFullTime && m_fTauntFullTime <= gpGlobals->time)
 	{
 		m_EFlags &= ~EFLAG_TAUNT;
