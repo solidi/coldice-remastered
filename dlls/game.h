@@ -87,7 +87,7 @@ extern cvar_t   mutatorlist;
 extern cvar_t   mutatortime;
 extern cvar_t   grabsky;
 extern cvar_t   coldspotspawn;
-extern cvar_t   pointlimit;
+extern cvar_t   scorelimit;
 
 // Engine Cvars
 extern cvar_t	*g_psv_gravity;

@@ -822,7 +822,7 @@ void CHalfLifeCaptureTheFlag::UpdateHud(int bluemode, int redmode, CBasePlayer *
 	}
 
 	// End session if hit round limit
-	if ( redscore >= pointlimit.value || bluescore >= pointlimit.value )
+	if ( redscore >= scorelimit.value || bluescore >= scorelimit.value )
 	{
 		GoToIntermission();
 	}

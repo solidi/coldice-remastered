@@ -109,6 +109,20 @@ void CMultiplayBusters::Think()
 	if (!g_fGameOver)
 	{
 		CheckForEgons();
+
+		for (int i = 1; i <= gpGlobals->maxClients; i++)
+		{
+			CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
+			if ( plr && plr->IsPlayer() && !plr->HasDisconnected )
+			{
+				// End session if hit round limit
+				if ( plr->m_iRoundWins >= scorelimit.value )
+				{
+					GoToIntermission();
+					break;
+				}
+			}
+		}
 	}
 
 	CHalfLifeMultiplay::Think();

@@ -758,8 +758,11 @@ void CHalfLifeMultiplay :: Think ( void )
 
 	float flTimeLimit = timelimit.value * 60;
 	float flFragLimit = fraglimit.value;
-	if (g_GameMode == GAME_CTF || g_GameMode == GAME_COLDSPOT)
-		flFragLimit = pointlimit.value;
+	if (g_GameMode == GAME_BUSTERS ||
+		g_GameMode == GAME_CTF ||
+		g_GameMode == GAME_COLDSPOT ||
+		g_GameMode == GAME_GUNGAME)
+		flFragLimit = 0;
 
 	time_remaining = (int)(flTimeLimit ? ( flTimeLimit - gpGlobals->time ) : 0);
 	
