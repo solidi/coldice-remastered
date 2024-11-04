@@ -259,7 +259,6 @@ public:
 	int MsgFunc_TeamInfo2( const char *pszName, int iSize, void *pbuf );
 	int MsgFunc_TeamScore2( const char *pszName, int iSize, void *pbuf );
 	void DeathMsg( int killer, int victim );
-	bool ScoreBased( void );
 
 	enum {
 		MAX_PLAYERS = 32,

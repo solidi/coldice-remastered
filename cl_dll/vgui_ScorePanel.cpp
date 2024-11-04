@@ -442,7 +442,7 @@ void ScorePanel::SortPlayers( int iTeam, char *team )
 
 		for ( int i = 1; i < MAX_PLAYERS; i++ )
 		{
-			int which = ScoreBased() && team != NULL && !strcmp(team, "") ? g_PlayerExtraInfo[i].playerclass : g_PlayerExtraInfo[i].frags;
+			int which = ScoreBased() && team != NULL && strlen(team) ? g_PlayerExtraInfo[i].playerclass : g_PlayerExtraInfo[i].frags;
 
 			if ( m_bHasBeenSorted[i] == false && g_PlayerInfoList[i].name && (which >= highest) )
 			{
@@ -455,7 +455,7 @@ void ScorePanel::SortPlayers( int iTeam, char *team )
 					{
 						best_player = i;
 						lowest_deaths = pl_info->deaths;
-						if (ScoreBased() && team != NULL && !strcmp(team, ""))
+						if (ScoreBased() && team != NULL && strlen(team))
 							highest = pl_info->playerclass;
 						else
 							highest = pl_info->frags;
@@ -1002,19 +1002,6 @@ void ScorePanel::cursorMoved(int x, int y, Panel *panel)
 			}
 		}
 	}
-}
-
-bool ScorePanel::ScoreBased( void )
-{
-	return (gHUD.m_Teamplay == GAME_ARENA ||
-			gHUD.m_Teamplay == GAME_LMS ||
-			gHUD.m_Teamplay == GAME_BUSTERS ||
-			gHUD.m_Teamplay == GAME_CHILLDEMIC ||
-			gHUD.m_Teamplay == GAME_CTF ||
-			gHUD.m_Teamplay == GAME_HORDE ||
-			gHUD.m_Teamplay == GAME_ICEMAN ||
-			gHUD.m_Teamplay == GAME_PROPHUNT ||
-			gHUD.m_Teamplay == GAME_SHIDDEN);
 }
 
 //-----------------------------------------------------------------------------

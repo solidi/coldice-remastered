@@ -1240,9 +1240,10 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"botpause [0|1]\" - Bots stay in place\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_allowrunes [0|1]\" - Allow powerup runes on server\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_allowvoiceovers [0|1]\" - Allow public voiceovers\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_coldspotspawn\" - name of entity where the cold spot will spawn\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_ctcsecondsforpoint\" - amount of second holding chumtoad for a point\n");
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_ctfspawn1\" - name of entity where blue base will spawn in map\n");
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_ctfspawn2\" - name of entity where red base will spawn in map\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_ctfspawn1\" - name of entity where blue base will spawn\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_ctfspawn2\" - name of entity where red base will spawn\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_dualsonly [0|1]\" - Replace all weapons with duals only\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_floatingweapons [0|1]\" - Floating world weapons ala Quake\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_gamemode [gamemode]\" -> available gamemodes\n");
@@ -1272,6 +1273,7 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_meleedrop \"[0|1]\"\" - allow kick or punch attcks to drop weapons out of hands\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_moreblood [0-5]\" - Increase blood up to 0-5 times\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_nukemode \"[0|1|2]\"\" - 2 - nuke kills all, 1 - radius damage, 0 - sharts nothing but bubbles\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_scorelimit\" - Sets the maximum score limit before map change\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_randomgamemodes \"[0|1]\"\" - selects a random gamemode on map change\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_randomweapon [0|1]\" - To spawn with a random weapon\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_roundfraglimit\" - Sets the max frags in a round during an 1 on 1 arena\n");

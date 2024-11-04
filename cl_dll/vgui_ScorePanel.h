@@ -265,8 +265,6 @@ private:
 	CommandButton				*m_pCloseButton;
 	CLabelHeader*	GetPlayerEntry(int x, int y)	{return &m_PlayerEntries[x][y];}
 
-	bool ScoreBased( void );
-
 public:
 	
 	int				m_iNumTeams;

@@ -88,6 +88,8 @@ cvar_t	addmutator = {"sv_addmutator","", FCVAR_SERVER | FCVAR_UNLOGGED };
 cvar_t	mutatorlist = {"sv_mutatorlist","", FCVAR_SERVER | FCVAR_UNLOGGED };
 cvar_t	mutatorcount = {"sv_mutatorcount","3", FCVAR_SERVER };
 cvar_t	mutatortime = {"sv_mutatortime","30", FCVAR_SERVER };
+cvar_t	coldspotspawn = {"mp_coldspotspawn","info_player_deathmatch", FCVAR_SERVER };
+cvar_t	scorelimit = {"mp_scorelimit","100", FCVAR_SERVER };
 
 cvar_t  allow_spectators = { "allow_spectators", "0.0", FCVAR_SERVER };		// 0 prevents players from being spectators
 
@@ -740,6 +742,8 @@ void GameDLLInit( void )
 	CVAR_REGISTER(&mutatorcount);
 	CVAR_REGISTER(&mutatorlist);
 	CVAR_REGISTER(&mutatortime);
+	CVAR_REGISTER(&coldspotspawn);
+	CVAR_REGISTER(&scorelimit);
 
 	CVAR_REGISTER (&mp_chattime);
 

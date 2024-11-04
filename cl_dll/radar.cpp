@@ -100,6 +100,13 @@ void CHudRadar::ProcessPlayerState(void)
 			else
 				b_specials[num_players] = false;
 		}
+		else if (gHUD.m_GameMode == GAME_COLDSPOT)
+		{
+			if (pClient->curstate.fuser4 > 1)
+				b_specials[num_players] = pClient->curstate.fuser4;
+			else
+				b_specials[num_players] = false;
+		}
 		else if (gHUD.m_GameMode == GAME_COLDSKULL)
 		{
 			if (!strcmp(pClient->model->name, "models/w_runes.mdl") && pClient->curstate.fuser4 > 0)
@@ -271,6 +278,12 @@ int CHudRadar::Draw(float flTime)
 		{
 			size *= 2;
 			fr = 0; fg = 0; fb = 240;
+		}
+
+		if (m_RadarInfo[index].special == 4)
+		{
+			size *= 2;
+			fr = 0; fg = 240; fb = 0;
 		}
 
 		FillRGBA(pos_x, pos_y, size, size, fr, fg, fb, alpha);

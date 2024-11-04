@@ -885,16 +885,17 @@ typedef struct
 #define GAME_BUSTERS 3
 #define GAME_CHILLDEMIC 4
 #define GAME_COLDSKULL 5
-#define GAME_CTC 6
-#define GAME_CTF 7
-#define GAME_GUNGAME 8
-#define GAME_HORDE 9
-#define GAME_INSTAGIB 10
-#define GAME_ICEMAN 11
-#define GAME_PROPHUNT 12
-#define GAME_SHIDDEN 13
-#define GAME_SNOWBALL 14
-#define GAME_TEAMPLAY 15
+#define GAME_COLDSPOT 6
+#define GAME_CTC 7
+#define GAME_CTF 8
+#define GAME_GUNGAME 9
+#define GAME_HORDE 10
+#define GAME_INSTAGIB 11
+#define GAME_ICEMAN 12
+#define GAME_PROPHUNT 13
+#define GAME_SHIDDEN 14
+#define GAME_SNOWBALL 15
+#define GAME_TEAMPLAY 16
 
 #define TOTAL_GAME_MODES GAME_TEAMPLAY
 

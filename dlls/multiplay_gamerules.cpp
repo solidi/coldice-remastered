@@ -757,7 +757,12 @@ void CHalfLifeMultiplay :: Think ( void )
 	}
 
 	float flTimeLimit = timelimit.value * 60;
-	float flFragLimit = g_GameMode == GAME_CTF ? 0 : fraglimit.value;
+	float flFragLimit = fraglimit.value;
+	if (g_GameMode == GAME_BUSTERS ||
+		g_GameMode == GAME_CTF ||
+		g_GameMode == GAME_COLDSPOT ||
+		g_GameMode == GAME_GUNGAME)
+		flFragLimit = 0;
 
 	time_remaining = (int)(flTimeLimit ? ( flTimeLimit - gpGlobals->time ) : 0);
 	
@@ -2098,7 +2103,8 @@ void CHalfLifeMultiplay::DeathNotice( CBasePlayer *pVictim, entvars_t *pKiller, 
 	}
 	else
 	{
-		killer_weapon_name = STRING( pevInflictor->classname );
+		if (pevInflictor)
+			killer_weapon_name = STRING( pevInflictor->classname );
 	}
 
 	if (gMultiDamage.pEntity == pVictim &&

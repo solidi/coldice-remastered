@@ -219,6 +219,7 @@ HSPRITE LoadSprite(const char *pszName);
 unsigned long HudColor();
 
 float lerp(float a, float b, float f);
+bool ScoreBased( void );
 
 inline float GetWeaponMultipler()
 {

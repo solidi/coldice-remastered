@@ -1375,6 +1375,13 @@ int CStudioModelRenderer::StudioDrawModel( int flags )
 			lighting.shadelight = 0;
 		}
 
+		if (!strcmp(m_pCurrentEntity->model->name, "models/coldspot.mdl"))
+		{
+			lighting.color = Vector( 1.0f, 1.0f, 1.0f );
+			lighting.ambientlight = 192;
+			lighting.shadelight = 0;
+		}
+
 		IEngineStudio.StudioEntityLight( &lighting );
 
 		// model and frame independant

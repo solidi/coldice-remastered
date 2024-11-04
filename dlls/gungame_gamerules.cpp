@@ -356,6 +356,8 @@ int CHalfLifeGunGame::IPointsForKill( CBasePlayer *pAttacker, CBasePlayer *pKill
 						m_fGoToIntermission = gpGlobals->time + 8.0;
 						m_iTopLevel = 0;
 
+						UTIL_ClientPrintAll(HUD_PRINTCENTER, UTIL_VarArgs("%s has won GunGame!\n", STRING(pAttacker->pev->netname)));
+
 						for ( int i = 1; i <= gpGlobals->maxClients; i++ )
 						{
 							CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );

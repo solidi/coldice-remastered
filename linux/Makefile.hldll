@@ -120,6 +120,7 @@ HLDLL_OBJS = \
 	$(HLDLL_OBJ_DIR)/crowbar.o \
 	$(HLDLL_OBJ_DIR)/ctc_gamerules.o \
 	$(HLDLL_OBJ_DIR)/ctf_gamerules.o \
+	$(HLDLL_OBJ_DIR)/coldspot_gamerules.o \
 	$(HLDLL_OBJ_DIR)/deagle.o \
 	$(HLDLL_OBJ_DIR)/defaultai.o \
 	$(HLDLL_OBJ_DIR)/disc.o \

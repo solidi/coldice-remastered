@@ -39,6 +39,7 @@
 #include	"instagib_gamerules.h"
 #include	"prophunt_gamerules.h"
 #include	"busters_gamerules.h"
+#include	"coldspot_gamerules.h"
 
 extern edict_t *EntSelectSpawnPoint( CBaseEntity *pPlayer );
 
@@ -527,6 +528,8 @@ CGameRules *InstallGameRules( void )
 				return new CHalfLifeChilldemic;
 			case GAME_COLDSKULL:
 				return new CHalfLifeColdSkull;
+			case GAME_COLDSPOT:
+				return new CHalfLifeColdSpot;
 			case GAME_CTC:
 				return new CHalfLifeCaptureTheChumtoad;
 			case GAME_CTF:

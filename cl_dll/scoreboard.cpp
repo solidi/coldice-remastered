@@ -382,7 +382,7 @@ int CHudScoreboard :: DrawPlayers( int xpos_rel, float list_slot, int nameoffset
 
 		for ( int i = 1; i < MAX_PLAYERS; i++ )
 		{
-			int which = ScoreBased() && team != NULL && !strcmp(team, "") ? g_PlayerExtraInfo[i].playerclass : g_PlayerExtraInfo[i].frags;
+			int which = ScoreBased() && team != NULL && strlen(team) ? g_PlayerExtraInfo[i].playerclass : g_PlayerExtraInfo[i].frags;
 
 			if ( g_PlayerInfoList[i].name && (which >= highest) )
 			{
@@ -393,7 +393,7 @@ int CHudScoreboard :: DrawPlayers( int xpos_rel, float list_slot, int nameoffset
 					{
 						best_player = i;
 						lowest_deaths = pl_info->deaths;
-						if (ScoreBased() && team != NULL && !strcmp(team, ""))
+						if (ScoreBased() && team != NULL && strlen(team))
 							highest = pl_info->playerclass;
 						else
 							highest = pl_info->frags;
@@ -487,19 +487,6 @@ int CHudScoreboard :: DrawPlayers( int xpos_rel, float list_slot, int nameoffset
 	}
 
 	return list_slot;
-}
-
-bool CHudScoreboard :: ScoreBased( void )
-{
-	return (gHUD.m_Teamplay == GAME_ARENA ||
-			gHUD.m_Teamplay == GAME_LMS ||
-			gHUD.m_Teamplay == GAME_BUSTERS ||
-			gHUD.m_Teamplay == GAME_CHILLDEMIC ||
-			gHUD.m_Teamplay == GAME_CTF ||
-			gHUD.m_Teamplay == GAME_HORDE ||
-			gHUD.m_Teamplay == GAME_ICEMAN ||
-			gHUD.m_Teamplay == GAME_PROPHUNT ||
-			gHUD.m_Teamplay == GAME_SHIDDEN);
 }
 
 void CHudScoreboard :: GetAllPlayersInfo( void )
