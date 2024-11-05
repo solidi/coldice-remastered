@@ -21,7 +21,7 @@ jobs:
       run: |
         mkdir /tmp/sdk
         cd /tmp/sdk
-        curl -sSL https://github.com/phracker/MacOSX-SDKs/releases/download/11.3/MacOSX10.8.sdk.tar.xz > sdk.tar
+        curl -sSL https://github.com/phracker/MacOSX-SDKs/releases/download/11.3/MacOSX10.13.sdk.tar.xz > sdk.tar
         tar -xvf sdk.tar
         sudo ln -s /tmp/sdk/MacOSX10.8.sdk $(/usr/bin/xcode-select -print-path)/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.8.sdk
         rm sdk.tar
