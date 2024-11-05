@@ -44,8 +44,8 @@ float HUD_GetFOV( void );
 
 extern cvar_t *sensitivity;
 extern cvar_t *cl_showtips;
-
 extern cvar_t *cl_hudbend;
+extern cvar_t *cl_respawnbar;
 
 extern float g_NotifyTime;
 
@@ -345,6 +345,21 @@ int CHud :: Redraw( float flTime, int intermission )
 		int w = SPR_Width(m_hStatic, 0);
 		int h = SPR_Height(m_hStatic, 0);
 		SPR_DrawAdditive(0, (ScreenWidth / 2) - 256, ((ScreenHeight / 2) - 128), NULL);
+	}
+
+	if (cl_respawnbar && cl_respawnbar->value)
+	{
+		if (m_fPlayerDeadTime && m_fPlayerDeadTime > gEngfuncs.GetClientTime())
+		{
+			int max = ScreenWidth / 2, height = 18, w = 0, h = 0;
+			float timeLeft = fmin((m_fPlayerDeadTime - gEngfuncs.GetClientTime()) * 100, max);
+			char message[64];
+			sprintf(message, "Can respawn in %d ...\n",  (int)m_fPlayerDeadTime - (int)gEngfuncs.GetClientTime());
+			GetConsoleStringSize(message, &w, &h);
+			DrawConsoleString(ScreenWidth / 2 - (w / 2), ScreenHeight - (ScreenHeight * .2) + (height), message);
+			FillRGBA(ScreenWidth / 2 - (max / 2), ScreenHeight - (ScreenHeight * .2), max, height, r, g, b, 20);
+			FillRGBA(ScreenWidth / 2 - (timeLeft / 2), ScreenHeight - (ScreenHeight * .2), timeLeft, height, r, g, b, 164);
+		}
 	}
 
 	if (g_WallClimb && g_WallClimb < gEngfuncs.GetClientTime())

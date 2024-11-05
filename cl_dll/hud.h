@@ -940,6 +940,7 @@ public:
 	int	m_iWeaponBits;
 	int	m_iWeaponBits2;
 	int	m_fPlayerDead;
+	int m_fPlayerDeadTime;
 	int m_iIntermission;
 	int m_ShowKeyboard;
 

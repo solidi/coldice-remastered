@@ -113,6 +113,11 @@ int CHudHealth:: MsgFunc_Health(const char *pszName,  int iSize, void *pbuf )
 	{
 		m_fFade = FADE_TIME;
 		m_iHealth = x;
+
+		if (m_iHealth <= 0)
+			gHUD.m_fPlayerDeadTime = gEngfuncs.GetClientTime() + 3.5;
+		else
+			gHUD.m_fPlayerDeadTime = 0;
 	}
 
 	return 1;
