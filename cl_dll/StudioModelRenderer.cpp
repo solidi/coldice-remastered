@@ -1997,12 +1997,19 @@ int CStudioModelRenderer::StudioDrawPlayer( int flags, entity_state_t *pplayer )
 				t[c]->clientIndex = c;
 				t[c]->flags |= FTENT_PERSIST;
 				t[c]->die = gEngfuncs.GetClientTime() + 15;
+				t[c]->entity.curstate.renderamt = 255;
 			}
 		} else {
 			t[c]->entity.origin = pplayer->origin;
 			if (m_pCurrentEntity->curstate.health <= 0)
+			{
 				t[c]->entity.curstate.frame = (c % half_frames) + half_frames;
-			else
+				t[c]->entity.curstate.rendermode = kRenderTransAlpha;
+				if (t[c]->entity.curstate.renderamt > 0)
+					t[c]->entity.curstate.renderamt -= 2;
+				else
+					t[c]->die = gEngfuncs.GetClientTime();
+			} else
 				t[c]->entity.curstate.frame = c % half_frames;
 			if (t[c]->die < gEngfuncs.GetClientTime())
 				t[c] = NULL;

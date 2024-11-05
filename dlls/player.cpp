@@ -1197,13 +1197,16 @@ void CBasePlayer::Killed( entvars_t *pevAttacker, int iGib )
 		return;
 	}
 
-	if ( ( pev->health < -40 && iGib != GIB_NEVER ) || iGib == GIB_ALWAYS || iGib == GIB_CLEAR )
+	// No gib during sanic
+	if (!g_pGameRules->MutatorEnabled(MUTATOR_SANIC))
 	{
-		pev->solid			= SOLID_NOT;
-		//if (iGib != GIB_CLEAR)
+		if ( ( pev->health < -40 && iGib != GIB_NEVER ) || iGib == GIB_ALWAYS || iGib == GIB_CLEAR )
+		{
+			pev->solid			= SOLID_NOT;
 			GibMonster();	// This clears pev->model
-		pev->effects |= EF_NODRAW;
-		return;
+			pev->effects |= EF_NODRAW;
+			return;
+		}
 	}
 
 	DeathSound();
