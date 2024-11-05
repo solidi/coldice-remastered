@@ -14,21 +14,6 @@ jobs:
       with:
         submodules: recursive
 
-    - name: What again?
-      run: sudo xcode-select -p
-
-    - name: Install MacOSX10.8.sdk
-      run: |
-        mkdir /tmp/sdk
-        cd /tmp/sdk
-        curl -sSL https://github.com/phracker/MacOSX-SDKs/releases/download/11.3/MacOSX10.13.sdk.tar.xz > sdk.tar
-        tar -xvf sdk.tar
-        sudo ln -s /tmp/sdk/MacOSX10.13.sdk $(/usr/bin/xcode-select -print-path)/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.13.sdk
-        rm sdk.tar
-
-    - name: Export SDKROOT
-      run:  export SDKROOT=$(xcrun --sdk macosx --show-sdk-path)
-
     - name: Build ice.dylib
       working-directory: ./linux
       run: make hl CFG=${{env.BUILD_CONFIGURATION}}
