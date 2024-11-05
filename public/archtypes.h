@@ -9,7 +9,7 @@
 
 #ifndef _WIN32
 #define MAX_PATH PATH_MAX
-#include <sys/stat.h>
+//#include <sys/stat.h>
 #include <sys/types.h>
 #include <limits.h>
 #include <stddef.h>
