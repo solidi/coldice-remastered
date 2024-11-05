@@ -53,7 +53,7 @@ typedef int BOOL;
 #define MAX_PATH PATH_MAX
 #include <limits.h>
 #include <stdarg.h>
-//#include <string.h> // memset 
+#include <string.h> // memset 
 #ifndef min
 #define min(a,b)  (((a) < (b)) ? (a) : (b))
 #endif
