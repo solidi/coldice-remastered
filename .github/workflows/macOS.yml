@@ -26,8 +26,8 @@ jobs:
         sudo ln -s /tmp/sdk/MacOSX10.13.sdk $(/usr/bin/xcode-select -print-path)/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.13.sdk
         rm sdk.tar
 
-    - name: Export root
-      run:  export SDKROOT=$(xcrun --show-sdk-path)
+    - name: Export SDKROOT
+      run:  export SDKROOT=$(xcrun --sdk macosx --show-sdk-path)
 
     - name: Build ice.dylib
       working-directory: ./linux
