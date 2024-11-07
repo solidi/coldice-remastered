@@ -1444,7 +1444,8 @@ void CGameRules::MutatorsThink(void)
 				}
 				else
 				{
-					if ( pl->pev->flags & FL_GODMODE )
+					// If a player is snowman, they have FL_NOTARGET set, so keep them in godmode.
+					if ( FBitSet(pl->pev->flags, FL_GODMODE) && !FBitSet(pl->pev->flags, FL_NOTARGET) )
 						pl->pev->flags &= ~FL_GODMODE;
 				}
 
