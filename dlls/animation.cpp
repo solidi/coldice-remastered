@@ -500,9 +500,19 @@ void SetBodygroup( void *pmodel, entvars_t *pev, int iGroup, int iValue )
 	if (iValue >= pbodypart->nummodels)
 		return;
 
+#ifdef _DEBUG
+	ALERT(at_aiconsole, ">>>>> SetBodygroup( int iGroup=%d, int iValue=%d )\n", iGroup, iValue);
+	ALERT(at_aiconsole, ">>>>> (pev->body=%d / pbodypart->base=%d) modulo pbodypart->nummodels=%d\n", pev->body, pbodypart->base, pbodypart->nummodels);
+#endif
 	int iCurrent = (pev->body / pbodypart->base) % pbodypart->nummodels;
-
+#ifdef _DEBUG
+	ALERT(at_aiconsole, ">>>>> iCurrent=%d\n", iCurrent);
+	ALERT(at_aiconsole, ">>>>> (pev->body=%d - (iCurrent=%d * pbodypart->base=%d) + (iValue=%d * pbodypart->base=%d)\n", pev->body, iCurrent, pbodypart->base, iValue, pbodypart->base);
+#endif
 	pev->body = (pev->body - (iCurrent * pbodypart->base) + (iValue * pbodypart->base));
+#ifdef _DEBUG
+	ALERT(at_aiconsole, ">>>>> pev->body=%d\n", pev->body);
+#endif
 }
 
 
