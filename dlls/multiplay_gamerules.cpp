@@ -1865,7 +1865,7 @@ void CHalfLifeMultiplay :: PlayerKilled( CBasePlayer *pVictim, entvars_t *pKille
 			peKiller->m_iAutoTaunt)
 			peKiller->m_fTauntTime = gpGlobals->time + 0.75;
 
-		if (!m_iFirstBloodDecided)
+		if (!m_iFirstBloodDecided && PlayerRelationship( pVictim, peKiller ) != GR_TEAMMATE)
 		{
 			UTIL_ClientPrintAll(HUD_PRINTCENTER, UTIL_VarArgs("%s achieves first blood!\n", STRING(pKiller->netname) ));
 			MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );

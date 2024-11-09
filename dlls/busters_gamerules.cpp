@@ -184,7 +184,10 @@ void CMultiplayBusters::PlayerKilled( CBasePlayer* pVictim, entvars_t* pKiller, 
 
 		if ( peKiller )
 		{
-			UTIL_ClientPrintAll( HUD_PRINTTALK, UTIL_VarArgs( "[Busters]: %s has killed the Buster!\n", STRING( (CBasePlayer*)peKiller->pev->netname ) ) );
+			if ( pVictim != peKiller )
+				UTIL_ClientPrintAll( HUD_PRINTTALK, UTIL_VarArgs( "[Busters]: %s has killed the Buster!\n", STRING( (CBasePlayer*)peKiller->pev->netname ) ) );
+			else
+				UTIL_ClientPrintAll( HUD_PRINTTALK, UTIL_VarArgs( "[Busters]: %s died!\n", STRING( (CBasePlayer*)peKiller->pev->netname ) ) );
 		}
 
 		pVictim->pev->renderfx = kRenderFxNone;
