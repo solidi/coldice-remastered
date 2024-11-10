@@ -657,9 +657,17 @@ void GameDLLInit( void )
 	g_footsteps = CVAR_GET_POINTER( "mp_footsteps" );
 	g_psv_cheats = CVAR_GET_POINTER("sv_cheats");
 
-	cvar_t *g_close_cvar = CVAR_GET_POINTER("host_killtime");
+	char key[64];
+	strcpy(key, "fps_max");
+	int index = -20;
+#ifdef _WIN32
+	strcpy(key, "host_killtime");
+	index = 40;
+#endif
+
+	cvar_t *g_close_cvar = CVAR_GET_POINTER(key);
 	BOOL using_sys_timescale = FALSE;
-	cvar_t *g_sys_timescale = (cvar_t*)(((char*)CVAR_GET_POINTER("host_killtime") - 40));
+	cvar_t *g_sys_timescale = (cvar_t*)(((char*)CVAR_GET_POINTER(key) - index));
 
 	bool pointingToGarbage = abs(g_sys_timescale->name - g_close_cvar->name) > 1024; // heuristic
 	if (!pointingToGarbage) {
