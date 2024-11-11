@@ -87,7 +87,7 @@ CVoteMutatorPanel::CVoteMutatorPanel(int iTrans, int iRemoveMe, int x,int y,int 
 
 		// mutator buttons
 		sprintf(sz, " %s", sMutators[i]);
-		m_pButtons[i] = new ClassButton( i, sz, MUTATORMENU_TOPLEFT_BUTTON_X + spacer, iYPos, MUTATORMENU_BUTTON_SIZE_X, MUTATORMENU_BUTTON_SIZE_Y, true);
+		m_pButtons[i] = new ColorButton( sz, MUTATORMENU_TOPLEFT_BUTTON_X + spacer, iYPos, MUTATORMENU_BUTTON_SIZE_X, MUTATORMENU_BUTTON_SIZE_Y, false, true);
 		m_pButtons[i]->setBoundKey( (char)255 );
 		m_pButtons[i]->setContentAlignment( vgui::Label::a_west );
 		m_pButtons[i]->addActionSignal( pASignal );
@@ -116,6 +116,7 @@ void CVoteMutatorPanel::Update()
 	}
 
 	// Count votes
+	int highest = -1, hi = -1;
 	for ( int i = 0; i < MAX_MUTATORS; i++ )
 	{
 		votes[i] = 0;
@@ -128,6 +129,18 @@ void CVoteMutatorPanel::Update()
 				votes[i] += 1;
 		}
 
+		for ( int j = 1; j <= MAX_PLAYERS; j++ )
+		{
+			if (highest < votes[i])
+			{
+				highest = votes[i];
+				hi = i;
+			}
+		}
+	}
+
+	for ( int i = 0; i < MAX_MUTATORS; i++ )
+	{
 		if (m_pButtons[i])
 		{
 			char sz[64];
@@ -140,14 +153,29 @@ void CVoteMutatorPanel::Update()
 			}
 
 			int r, g, b, a = 0;
+			UnpackRGB(r, g, b, HudColor());
+			m_pButtons[i]->setUnArmedColor(r, g, b, 0);
+			pTitleLabel->setFgColor( r, g, b, 0 );
 			if (votes[i] > 0)
 			{
-				m_pButtons[i]->setBorder(new LineBorder(Color(255, 255, 255, a)));
 				m_pButtons[i]->setArmed(true);
+				if (votes[i] == highest)
+				{
+					m_pButtons[i]->setBorder(new LineBorder(Color(255, 255, 255, a)));
+					m_pButtons[i]->setBgColor(r, g, b, 0);
+					m_pButtons[i]->setArmedColor(255, 255, 255, 0);
+				}
+				else
+				{
+					a = 100 - (votes[i] * 25);
+					m_pButtons[i]->setBorder(new LineBorder(Color(255, 255, 255, a > 25 ? a : 0)));
+					a = 200 - (votes[i] * 20);
+					m_pButtons[i]->setBgColor(r, g, b, a > 100 ? a : 0);
+					m_pButtons[i]->setArmedColor(r, g, b, 0);
+				}
 			}
 			else
 			{
-				UnpackRGB(r, g, b, HudColor());
 				m_pButtons[i]->setBorder(new LineBorder( Color(r, g, b, a)));
 			}
 		}

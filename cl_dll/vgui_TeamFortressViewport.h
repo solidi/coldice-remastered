@@ -262,10 +262,10 @@ public:
 		if ( isArmed() )
 		{
 			// Highlight background
-		/*	getBgColor(bgcolor);
+			getBgColor(bgcolor);
 			bgcolor.getColor(r, g, b, a);
 			drawSetColor( r,g,b,a );
-			drawFilledRect(0,0,_size[0],_size[1]);*/
+			drawFilledRect(0,0,_size[0],_size[1]);
 
 			if ( ArmedBorderColor )
 			{
@@ -1805,7 +1805,7 @@ public:
 class CVoteMutatorPanel : public CMenuPanel
 {
 private:
-	ClassButton			*m_pButtons[MAX_MUTATORS];
+	ColorButton			*m_pButtons[MAX_MUTATORS];
 	Label 				*pTitleLabel;
 
 	int					m_iCurrentInfo;
