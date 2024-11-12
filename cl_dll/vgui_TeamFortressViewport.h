@@ -262,10 +262,10 @@ public:
 		if ( isArmed() )
 		{
 			// Highlight background
-		/*	getBgColor(bgcolor);
+			getBgColor(bgcolor);
 			bgcolor.getColor(r, g, b, a);
 			drawSetColor( r,g,b,a );
-			drawFilledRect(0,0,_size[0],_size[1]);*/
+			drawFilledRect(0,0,_size[0],_size[1]);
 
 			if ( ArmedBorderColor )
 			{
@@ -1742,7 +1742,7 @@ class CVoteGameplayPanel : public CMenuPanel
 {
 private:
 	CTransparentPanel	*m_pGameInfoPanel[MAX_MODES + 1];
-	ClassButton			*m_pButtons[MAX_MODES + 1];
+	ColorButton			*m_pButtons[MAX_MODES + 1];
 	ScrollPanel			*m_pScrollPanel;
 
 	//CImageLabel			*m_pClassImages[MAX_TEAMS][MAX_MODES + 1];
@@ -1775,7 +1775,7 @@ public:
 class CVoteMapPanel : public CMenuPanel
 {
 private:
-	ClassButton			*m_pButtons[BUILT_IN_MAP_COUNT];
+	ColorButton			*m_pButtons[BUILT_IN_MAP_COUNT];
 	Label 				*pTitleLabel;
 
 	int					m_iCurrentInfo;
@@ -1805,7 +1805,7 @@ public:
 class CVoteMutatorPanel : public CMenuPanel
 {
 private:
-	ClassButton			*m_pButtons[MAX_MUTATORS];
+	ColorButton			*m_pButtons[MAX_MUTATORS];
 	Label 				*pTitleLabel;
 
 	int					m_iCurrentInfo;

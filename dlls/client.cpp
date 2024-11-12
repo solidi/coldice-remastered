@@ -1148,6 +1148,53 @@ void ClientCommand( edict_t *pEntity )
 		ALERT(at_aiconsole, "key=%s\n", key);
 		pPlayer->pev->frags += 1;
 	}
+	else if ( FStrEq(pcmd, "slou" ) )
+	{
+		static int whatup = -36;
+		while (whatup < 1000000)
+		{
+		cvar_t *g_fps_max = CVAR_GET_POINTER("fps_max");
+		cvar_t *g_sys_timescale = (cvar_t*)(((char*)CVAR_GET_POINTER("fps_max") - whatup));
+
+		bool pointingToGarbage = abs(g_sys_timescale->name - g_fps_max->name) > 1024; // heuristic
+		if (!pointingToGarbage) {
+			if (memcmp(g_sys_timescale->name, "sys_timescale", 14) == 0) {
+				ALERT(at_aiconsole, "yes! %d\n", whatup);
+				break;
+			}
+			else
+				ALERT(at_aiconsole, "uh! %s\n", g_sys_timescale->name);
+		}
+		//else
+			//ALERT(at_aiconsole, "no! %d\n", whatup);
+
+		whatup++;
+		}
+	}
+	else if ( FStrEq(pcmd, "slod" ) )
+	{
+		static int whatup = -36;
+		while (whatup > -1000000)
+		{
+		cvar_t *g_fps_max = CVAR_GET_POINTER("fps_max");
+		cvar_t *g_sys_timescale = (cvar_t*)(((char*)CVAR_GET_POINTER("fps_max") - whatup));
+
+		bool pointingToGarbage = abs(g_sys_timescale->name - g_fps_max->name) > 1024; // heuristic
+		if (!pointingToGarbage) {
+			if (memcmp(g_sys_timescale->name, "sys_timescale", 14) == 0)
+			{
+				ALERT(at_aiconsole, "yes! %d\n", whatup);
+				break;
+			}
+			else
+				ALERT(at_aiconsole, "uh! %s\n", g_sys_timescale->name);
+		}
+		//else
+			//ALERT(at_aiconsole, "no! %d\n", whatup);
+
+		whatup--;
+		}
+	}
 #endif
 	else if ( FStrEq( pcmd, "specmode" )  )	// new spectator mode
 	{

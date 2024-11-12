@@ -296,6 +296,7 @@ void CHalfLifeJesusVsSanta::Think( void )
 			UTIL_ClientPrintAll(HUD_PRINTCENTER,
 				UTIL_VarArgs("Prepare for Jesus vs Santa\n\n%i...\n", m_iCountDown));
 			m_iCountDown--;
+			m_iFirstBloodDecided = FALSE;
 			flUpdateTime = gpGlobals->time + 1.0;
 			return;
 		}

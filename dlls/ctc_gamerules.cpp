@@ -285,6 +285,9 @@ void CHalfLifeCaptureTheChumtoad::PlayerThink( CBasePlayer *pPlayer )
 {
 	CHalfLifeMultiplay::PlayerThink(pPlayer);
 
+	if (m_flIntermissionEndTime)
+		return;
+
 	// Updates once per second
 	int time_remaining = (int)gpGlobals->time;
 	BOOL foundChumtoad = FALSE, scoringPoints = FALSE;
