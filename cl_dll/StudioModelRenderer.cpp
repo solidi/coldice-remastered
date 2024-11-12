@@ -2404,9 +2404,7 @@ void CStudioModelRenderer::StudioCalcAttachments( void )
 
 		if (m_pCurrentEntity == gEngfuncs.GetViewModel())
 		{
-			int advance = m_pCurrentEntity->curstate.body > 0 ? 1 : 0;
-
-			if (i == 1 + advance && m_pCurrentEntity->model->aim_punch != pattachment[i].org) {
+			if (i == 1 && m_pCurrentEntity->model->aim_punch != pattachment[i].org) {
 				m_pCurrentEntity->model->aim_punch = pattachment[i].org;
 #ifdef _DEBUG
 				char str[256];
@@ -2416,7 +2414,7 @@ void CStudioModelRenderer::StudioCalcAttachments( void )
 #endif
 			}
 
-			if (i == 2 + advance && m_pCurrentEntity->model->aim_angles != pattachment[i].org) {
+			if (i == 2 && m_pCurrentEntity->model->aim_angles != pattachment[i].org) {
 				m_pCurrentEntity->model->aim_angles = pattachment[i].org;
 #ifdef _DEBUG
 				char str[256];

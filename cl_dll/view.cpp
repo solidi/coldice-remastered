@@ -2293,10 +2293,6 @@ void V_IronSight( Vector position, Vector punch, float clientTime, float frameTi
 	if (!strncmp(viewModel->model->name, "models/v_dual_", strlen("models/v_dual_")))
 		return;
 
-	// Combined models, body 1 is dual model
-	if (gEngfuncs.GetViewModel()->curstate.body > 0)
-		return;
-
 	if (CL_IsThirdPerson())
 		return;
 
