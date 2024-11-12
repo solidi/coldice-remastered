@@ -147,10 +147,8 @@ void CVoteMapPanel::Update()
 				}
 				else
 				{
-					a = 100 - (votes[i] * 25);
-					m_pButtons[i]->setBorder(new LineBorder(Color(255, 255, 255, a > 25 ? a : 0)));
-					a = 200 - (votes[i] * 20);
-					m_pButtons[i]->setBgColor(r, g, b, a > 100 ? a : 0);
+					m_pButtons[i]->setBorder(new LineBorder(Color(r, g, b, a)));
+					m_pButtons[i]->setBgColor(r, g, b, 255);
 					m_pButtons[i]->setArmedColor(r, g, b, 0);
 				}
 			}
