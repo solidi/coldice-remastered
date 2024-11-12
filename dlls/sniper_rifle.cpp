@@ -165,22 +165,26 @@ void CSniperRifle::PrimaryAttack()
 
 void CSniperRifle::SecondaryAttack( void )
 {
-	if (m_pPlayer->pev->fov == 0) {
-		m_pPlayer->pev->fov = m_pPlayer->m_iFOV = 90;
+#ifdef CLIENT_DLL
+	if ( !bIsMultiplayer() )
+#else
+	if ( !g_pGameRules->IsMultiplayer() )
+#endif
+	{
+		return;
+	}
+	if ( m_pPlayer->pev->fov != 0 )
+	{
+		m_pPlayer->pev->fov = m_pPlayer->m_iFOV = 0;  // 0 means reset to default fov
+		SendWeaponAnim( RIFLE_ZOOM_OUT );
+	}
+	else if ( m_pPlayer->pev->fov != 40 )
+	{
+		m_pPlayer->pev->fov = m_pPlayer->m_iFOV = 40;
 		SendWeaponAnim( RIFLE_ZOOM_IN );
 	}
 
-	m_pPlayer->pev->fov = m_pPlayer->m_iFOV -= 4;
-
-	if ( m_pPlayer->pev->fov > 10 ) {
-		m_flNextSecondaryAttack = GetNextAttackDelay(0.0);
-	} else if ( m_pPlayer->pev->fov == 10 ) {
-		m_pPlayer->pev->fov = m_pPlayer->m_iFOV = 10;
-		m_flNextSecondaryAttack = GetNextAttackDelay(0.5);
-	} else {
-		m_pPlayer->pev->fov = m_pPlayer->m_iFOV = 0;
-		m_flNextSecondaryAttack = GetNextAttackDelay(0.5);
-	}
+	m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 0.5;
 }
 
 void CSniperRifle::Reload( void )
