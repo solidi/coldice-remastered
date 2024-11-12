@@ -757,8 +757,6 @@ void CHalfLifeMultiplay :: Think ( void )
 	}
 
 	float flTimeLimit = timelimit.value * 60;
-	if (g_GameMode == GAME_GUNGAME)
-		flTimeLimit = 0;
 	float flFragLimit = fraglimit.value;
 	if (g_GameMode == GAME_BUSTERS ||
 		g_GameMode == GAME_CTF ||
