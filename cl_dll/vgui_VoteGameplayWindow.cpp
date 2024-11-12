@@ -111,7 +111,7 @@ CVoteGameplayPanel::CVoteGameplayPanel(int iTrans, int iRemoveMe, int x,int y,in
 		sprintf(sz, "%s", sGameplayModes[i]);
 		char* localName = CHudTextMessage::BufferedLocaliseTextString( sz );
 		sprintf(sz, "%s", localName );
-		m_pButtons[i] = new ClassButton( i, sz, iXPos, iYPos, GAMEMENU_BUTTON_SIZE_X, GAMEMENU_BUTTON_SIZE_Y, true);
+		m_pButtons[i] = new ColorButton( sz, iXPos, iYPos, GAMEMENU_BUTTON_SIZE_X, GAMEMENU_BUTTON_SIZE_Y, false, true);
 		m_pButtons[i]->setBoundKey( (char)255 );
 		m_pButtons[i]->setContentAlignment( vgui::Label::a_west );
 		m_pButtons[i]->addActionSignal( pASignal );
@@ -237,6 +237,7 @@ void CVoteGameplayPanel::Update()
 	int myVote = -1;
 
 	// Count votes
+	int highest = -1, hi = -1;
 	for (int j = 0; j <= MAX_MODES; j++)
 		m_pButtons[j]->setArmed(false);
 
@@ -254,6 +255,18 @@ void CVoteGameplayPanel::Update()
 				votes[i] += 1;
 		}
 
+		for ( int j = 1; j <= MAX_PLAYERS; j++ )
+		{
+			if (highest < votes[i])
+			{
+				highest = votes[i];
+				hi = i;
+			}
+		}
+	}
+
+	for ( int i = 0; i <= MAX_MODES; i++ )
+	{
 		if (m_pButtons[i])
 		{
 			char sz[256];
@@ -266,14 +279,29 @@ void CVoteGameplayPanel::Update()
 				m_pButtons[i]->setArmed(true);
 
 			int r, g, b, a = 0;
+			UnpackRGB(r, g, b, HudColor());
+			m_pButtons[i]->setUnArmedColor(r, g, b, 0);
+			pTitleLabel->setFgColor( r, g, b, 0 );
 			if (votes[i] > 0)
 			{
-				m_pButtons[i]->setBorder(new LineBorder(Color(255, 255, 255, a)));
 				m_pButtons[i]->setArmed(true);
+				if (votes[i] == highest)
+				{
+					m_pButtons[i]->setBorder(new LineBorder(Color(255, 255, 255, a)));
+					m_pButtons[i]->setBgColor(r, g, b, 0);
+					m_pButtons[i]->setArmedColor(255, 255, 255, 0);
+				}
+				else
+				{
+					a = 100 - (votes[i] * 25);
+					m_pButtons[i]->setBorder(new LineBorder(Color(255, 255, 255, a > 25 ? a : 0)));
+					a = 200 - (votes[i] * 20);
+					m_pButtons[i]->setBgColor(r, g, b, a > 100 ? a : 0);
+					m_pButtons[i]->setArmedColor(r, g, b, 0);
+				}
 			}
 			else
 			{
-				UnpackRGB(r, g, b, HudColor());
 				m_pButtons[i]->setBorder(new LineBorder( Color(r, g, b, a)));
 			}
 		}
