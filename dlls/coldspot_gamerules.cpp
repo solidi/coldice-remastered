@@ -106,8 +106,10 @@ CHalfLifeColdSpot::CHalfLifeColdSpot()
 {
 	UTIL_PrecacheOther("coldspot");
 	m_DisableDeathPenalty = FALSE;
+	pColdSpot = NULL;
 	pLastSpawnPoint = NULL;
 	m_fSpawnColdSpot = gpGlobals->time + 2.0;
+	m_fColdSpotTime = coldspottime.value;
 	m_iBlueScore = m_iRedScore = 0;
 }
 
@@ -253,14 +255,23 @@ void CHalfLifeColdSpot::Think( void )
 {
 	CHalfLifeMultiplay::Think();
 
-	if (m_fSpawnColdSpot < gpGlobals->time)
+	if (coldspottime.value != m_fColdSpotTime)
+		m_fColdSpotTime = m_fSpawnColdSpot = coldspottime.value;
+
+	if (m_fSpawnColdSpot && m_fSpawnColdSpot < gpGlobals->time)
 	{
-		if (pColdSpot)
-			UTIL_Remove(pColdSpot);
 		edict_t *pentSpawnSpot = EntSelectSpawnPoint(coldspotspawn.string);
-		pColdSpot = CColdSpot::CreateColdSpot(pentSpawnSpot->v.origin, 0);
+		if (!pColdSpot)
+			pColdSpot = CColdSpot::CreateColdSpot(pentSpawnSpot->v.origin, 0);
+		else
+			UTIL_SetOrigin(pColdSpot->pev, pentSpawnSpot->v.origin);
+
 		UTIL_ClientPrintAll(HUD_PRINTTALK, "[ColdSpot]: The cold spot has moved!\n");
-		m_fSpawnColdSpot = gpGlobals->time + 30;
+
+		if (!m_fColdSpotTime)
+			m_fSpawnColdSpot = 0;
+		else
+			m_fSpawnColdSpot = gpGlobals->time + m_fColdSpotTime;
 	}
 }
 

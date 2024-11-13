@@ -35,6 +35,7 @@ public:
 private:
 	BOOL m_DisableDeathPenalty;
 	float m_fSpawnColdSpot;
+	float m_fColdSpotTime;
 	EHANDLE pLastSpawnPoint;
 	EHANDLE pColdSpot;
 	int m_iBlueScore;

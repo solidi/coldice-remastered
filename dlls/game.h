@@ -87,6 +87,7 @@ extern cvar_t   mutatorlist;
 extern cvar_t   mutatortime;
 extern cvar_t   grabsky;
 extern cvar_t   coldspotspawn;
+extern cvar_t   coldspottime;
 extern cvar_t   scorelimit;
 
 // Engine Cvars
