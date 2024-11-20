@@ -74,7 +74,8 @@ CFLAGS=$(BASE_CFLAGS) $(ARCH_CFLAGS) $(DEBUG_CFLAGS) -DCLIENT_DLL -DCLIENT_WEAPO
 		 -DDUALHIVEHAND \
 		 -DFINGERGUN \
 		 -DZAPGUN \
-		 -DDUALGLOCK
+		 -DDUALGLOCK \
+		 -DVICE
 
 INCLUDEDIRS=-I$(HL_SRC_DIR) -I../dlls -I../tfc -I$(COMMON_SRC_DIR) -I$(PUBLIC_SRC_DIR) -I../pm_shared -I../engine -I../utils/vgui/include -I ../game_shared -I../external
 
@@ -229,6 +230,7 @@ DLL_OBJS = \
 	$(HL1_SERVER_OBJ_DIR)/wpn_shared/hl_wpn_glock.o \
 	$(HL1_SERVER_OBJ_DIR)/usas.o \
 	$(HL1_SERVER_OBJ_DIR)/vest.o \
+	$(HL1_SERVER_OBJ_DIR)/vice.o \
 	$(HL1_SERVER_OBJ_DIR)/wrench.o \
 	$(HL1_SERVER_OBJ_DIR)/zapgun.o \
 

@@ -107,6 +107,7 @@ CDualHgun g_DualHornetgun;
 CFingerGun g_Fingergun;
 CZapgun g_Zapgun;
 CDualGlock g_DualGlock;
+CVice g_Vice;
 
 /*
 ======================
@@ -739,6 +740,7 @@ void HUD_InitClientWeapons( void )
 	HUD_PrepEntity( &g_Fingergun	, &player );
 	HUD_PrepEntity( &g_Zapgun	, &player );
 	HUD_PrepEntity( &g_DualGlock	, &player );
+	HUD_PrepEntity( &g_Vice	, &player );
 }
 
 /*
@@ -1052,6 +1054,10 @@ void HUD_WeaponsPostThink( local_state_s *from, local_state_s *to, usercmd_t *cm
 		case WEAPON_DUAL_GLOCK:
 			pWeapon = &g_DualGlock;
 			break;
+
+		case WEAPON_VICE:
+			pWeapon = &g_Vice;
+			break;
 	}
 
 	// Store pointer to our destination entity_state_t so we can get our origin, etc. from it
@@ -1265,6 +1271,31 @@ void HUD_WeaponsPostThink( local_state_s *from, local_state_s *to, usercmd_t *cm
 				if (t[c]) {
 					t[c]->entity.curstate.renderamt = gEngfuncs.pfnRandomLong(10, 30);
 				}
+				c++;
+			}
+		}
+	}
+
+	// Smoke
+	if (pWeapon && (pWeapon->m_iId == WEAPON_VICE || pWeapon->m_iId == WEAPON_VICE))
+	{
+		if (!CL_IsThirdPerson())
+		{
+			if (cl_gunsmoke && cl_gunsmoke->value)
+			{
+				static TEMPENTITY *t[16];
+				static int c = 0;
+				int model = gEngfuncs.pEventAPI->EV_FindModelIndex( "sprites/gunsmoke.spr" );
+				vec3_t dir = player.pev->velocity;
+				dir.z += gEngfuncs.pfnRandomLong(10,20);
+				vec3_t one = gEngfuncs.GetViewModel()->attachment[0];
+				one.x = one.x + gEngfuncs.pfnRandomFloat(-0.0,0.5);
+				one.y = one.y + gEngfuncs.pfnRandomFloat(-0.0,0.5);
+				one.z = one.z + gEngfuncs.pfnRandomFloat(-0.0,0.5);
+
+				if (c == 16) c = 0;
+				t[c] = gEngfuncs.pEfxAPI->R_TempSprite(gEngfuncs.GetViewModel()->attachment[c % 2 == 0 ? 1 : 0], (float *)&dir, gEngfuncs.pfnRandomFloat(0.005,0.05), model, kRenderTransAdd, kRenderFxNoDissipation, 0, 2, FTENT_SPRANIMATE);
+				if (t[c]) t[c]->entity.curstate.renderamt = gEngfuncs.pfnRandomLong(10, 30);
 				c++;
 			}
 		}

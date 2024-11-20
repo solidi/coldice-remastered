@@ -4448,6 +4448,7 @@ const char *pWeapons[] =
 	"weapon_dual_sawedoff",
 	"weapon_zapgun",
 	"weapon_dual_glock",
+	"weapon_vice",
 };
 
 void CBasePlayer::GiveRandomWeapon(const char *szIgnoreList)
@@ -5817,6 +5818,7 @@ void CBasePlayer::CheatImpulseCommands( int iImpulse, BOOL m_iFromClient )
 		GiveNamedItem( "weapon_fingergun" );
 		GiveNamedItem( "weapon_zapgun" );
 		GiveNamedItem( "weapon_dual_glock" );
+		GiveNamedItem( "weapon_vice" );
 #endif
 		gEvilImpulse101 = FALSE;
 		break;

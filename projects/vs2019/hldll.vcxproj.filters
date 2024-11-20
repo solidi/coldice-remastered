@@ -417,6 +417,9 @@
     <ClCompile Include="..\..\dlls\vest.cpp">
       <Filter>Source Files\dlls</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\dlls\vice.cpp">
+      <Filter>Source Files\dlls</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\dlls\util.cpp">
       <Filter>Source Files\dlls</Filter>
     </ClCompile>

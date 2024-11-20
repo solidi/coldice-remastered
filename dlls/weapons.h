@@ -127,7 +127,8 @@ public:
 #define WEAPON_ZAPGUN				51
 #define WEAPON_DUAL_GLOCK			52 // end models
 #define WEAPON_FINGERGUN			53
-#define WEAPON_FISTS				54 // must be last for bot recognition
+#define WEAPON_VICE					54
+#define WEAPON_FISTS				55 // must be last for bot recognition
 
 #define WEAPON_ALLWEAPONS		(~(1<<WEAPON_SUIT))
 
@@ -177,6 +178,7 @@ public:
 #define SNARK_WEIGHT			10
 #define VEST_WEIGHT				40
 #define FLAMETHROWER_WEIGHT		37
+#define VICE_WEIGHT				-10
 
 // weapon clip/carry ammo capacities
 #define URANIUM_MAX_CARRY		250
@@ -2700,6 +2702,40 @@ public:
 
 private:
 	unsigned short m_usFireGlock;
+};
+
+
+class CVice : public CBasePlayerWeapon
+{
+public:
+   void Spawn( void );
+   void Precache( void );
+   int iItemSlot( void ) { return 6; }
+   int GetItemInfo(ItemInfo *p);
+   int AddToPlayer( CBasePlayer *pPlayer );
+
+   void ReduceHealth( void );
+   void PrimaryAttack( void );
+   void SecondaryAttack( void );
+   BOOL DeployLowKey( void );
+   BOOL Deploy( void );
+   void Holster( int skiplocal = 0 );
+   void WeaponIdle( void );
+
+   BOOL ShouldWeaponIdle( void ) { return TRUE; };
+
+	virtual BOOL UseDecrement( void )
+	{ 
+#if defined( CLIENT_WEAPONS )
+		return TRUE;
+#else
+		return FALSE;
+#endif
+	}
+
+private:
+	unsigned short m_usVice;
+	int m_ViceMode;
 };
 
 class CFlyingSnowball : public CBaseEntity
