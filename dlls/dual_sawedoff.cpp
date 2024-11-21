@@ -55,6 +55,7 @@ void CDualSawedOff::Spawn( )
 
 void CDualSawedOff::Precache( void )
 {
+	PRECACHE_MODEL("models/v_dual_sawedoff.mdl");
 
 	PRECACHE_SOUND("items/9mmclip1.wav");
 

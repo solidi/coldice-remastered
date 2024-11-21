@@ -71,7 +71,8 @@ CFLAGS=$(BASE_CFLAGS)  $(ARCH_CFLAGS) $(DEBUG_CFLAGS) -DCLIENT_WEAPONS \
 		 -DDUALHIVEHAND \
 		 -DFINGERGUN \
 		 -DZAPGUN \
-		 -DDUALGLOCK
+		 -DDUALGLOCK \
+		 -DVICE
 
 #-O3 -ffast-math -fno-strength-reduce
 
@@ -242,6 +243,7 @@ HLDLL_OBJS = \
 	$(HLDLL_OBJ_DIR)/usas.o \
 	$(HLDLL_OBJ_DIR)/vehicle.o \
 	$(HLDLL_OBJ_DIR)/vest.o \
+	$(HLDLL_OBJ_DIR)/vice.o \
 	$(HLDLL_OBJ_DIR)/weapons.o \
 	$(HLDLL_OBJ_DIR)/world.o \
 	$(HLDLL_OBJ_DIR)/wrench.o \

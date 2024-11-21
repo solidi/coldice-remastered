@@ -235,6 +235,7 @@
     <ClCompile Include="..\..\dlls\tripmine.cpp" />
     <ClCompile Include="..\..\dlls\usas.cpp" />
     <ClCompile Include="..\..\dlls\vest.cpp" />
+    <ClCompile Include="..\..\dlls\vice.cpp" />
     <ClCompile Include="..\..\dlls\wrench.cpp" />
     <ClCompile Include="..\..\dlls\zapgun.cpp" />
     <ClCompile Include="..\..\dlls\wpn_shared\hl_wpn_glock.cpp" />

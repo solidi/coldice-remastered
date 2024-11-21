@@ -121,6 +121,7 @@ void EV_FireDualHornetGun( struct event_args_s *args  );
 void EV_FireFingergun( struct event_args_s *args  );
 void EV_FireZapgun( struct event_args_s *args  );
 void EV_FireDualGlock( struct event_args_s *args );
+void EV_FireVice( struct event_args_s *args );
 
 void EV_TrainPitchAdjust( struct event_args_s *args );
 void EV_VehiclePitchAdjust( struct event_args_s *args );
@@ -4166,6 +4167,11 @@ void EV_FireDualGlock( event_args_t *args )
 		EV_GunSmoke(gEngfuncs.GetViewModel()->attachment[1], 0.4, idx, args->ducking, forward, right, up, 0, 0, 0);
 
 	EV_HLDM_FireBullets( idx, forward, right, up, 1, vecSrc, vecAiming, 8192, BULLET_PLAYER_9MM, 0, 0, args->fparam1, args->fparam2 );
+}
+
+void EV_FireVice( event_args_t *args )
+{
+
 }
 
 void EV_TrainPitchAdjust( event_args_t *args )

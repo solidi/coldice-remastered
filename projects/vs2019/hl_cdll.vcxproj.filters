@@ -498,6 +498,9 @@
     <ClCompile Include="..\..\dlls\vest.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\dlls\vice.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\dlls\wrench.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
