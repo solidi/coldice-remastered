@@ -701,7 +701,15 @@ public:
 	int Init( void );
 	int VidInit( void );
 	int Draw(float flTime);
+	int CalcPosition( );
+	int CalcPlayer( char *team = NULL ); // returns the ypos where it finishes drawing
 	int MsgFunc_Objective(const char *pszName,  int iSize, void *pbuf);
+
+	enum {
+		MAX_PLAYERS = 32,
+		MAX_TEAMS = 32,
+		MAX_TEAM_NAME = 16,
+	};
 
 private:
 	int m_iPercent;
