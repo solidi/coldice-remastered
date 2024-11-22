@@ -233,10 +233,10 @@ int CHudObjective::Draw(float flTime)
 			{
 				int old = g_PositionCount;
 				CalcPosition();
-				if (old != 1 && g_PositionCount == 1)
-					PlaySound("takenlead.wav", 1);
-				if (old == 1 && g_PositionCount != 1)
-					PlaySound("lostlead.wav", 1);
+				//if (old != 1 && g_PositionCount == 1)
+				//	PlaySound("takenlead.wav", 1);
+				//if (old == 1 && g_PositionCount != 1)
+				//	PlaySound("lostlead.wav", 1);
 				g_ScoreTime = gEngfuncs.GetClientTime() + gEngfuncs.pfnRandomFloat(3, 5);
 			}
 
