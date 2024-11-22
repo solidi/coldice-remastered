@@ -161,8 +161,7 @@ float lerp(float a, float b, float f)
 
 bool ScoreBased( void )
 {
-	return (gHUD.m_Teamplay == GAME_TEAMPLAY ||
-			gHUD.m_Teamplay == GAME_ARENA ||
+	return (gHUD.m_Teamplay == GAME_ARENA ||
 			gHUD.m_Teamplay == GAME_LMS ||
 			gHUD.m_Teamplay == GAME_BUSTERS ||
 			gHUD.m_Teamplay == GAME_CHILLDEMIC ||

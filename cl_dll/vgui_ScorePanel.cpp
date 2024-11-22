@@ -277,7 +277,7 @@ void ScorePanel::Update()
 		m_TitleLabel.setText(sz);
 	}
 
-	if (ScoreBased())
+	if (ScoreBased() && gHUD.m_Teamplay != GAME_TEAMPLAY)
 		m_HeaderLabels[COLUMN_SCORE].setText(CHudTextMessage::BufferedLocaliseTextString("#SCORE"));
 	else
 		m_HeaderLabels[COLUMN_SCORE].setText("");
@@ -297,7 +297,7 @@ void ScorePanel::Update()
 	}
 
 	// If it's not teamplay, sort all the players. Otherwise, sort the teams.
-	if ( !ScoreBased() )
+	if ( !ScoreBased() && gHUD.m_Teamplay != GAME_TEAMPLAY )
 		SortPlayers( 0, NULL );
 	else
 		SortTeams();
@@ -386,7 +386,7 @@ void ScorePanel::SortTeams()
 	{
 		int highest = -99999; int lowest_deaths = 99999;
 		int best_team = 0;
-		int which = ScoreBased() ? g_TeamInfo[i].score : g_TeamInfo[i].frags;
+		int which = (ScoreBased() && gHUD.m_Teamplay != GAME_TEAMPLAY) ? g_TeamInfo[i].score : g_TeamInfo[i].frags;
 
 		for ( i = 1; i <= m_iNumTeams; i++ )
 		{
@@ -399,7 +399,7 @@ void ScorePanel::SortTeams()
 				{
 					best_team = i;
 					lowest_deaths = g_TeamInfo[i].deaths;
-					if (ScoreBased())
+					if (ScoreBased() && gHUD.m_Teamplay != GAME_TEAMPLAY)
 						highest = g_TeamInfo[i].score;
 					else
 						highest = g_TeamInfo[i].frags;
@@ -442,7 +442,7 @@ void ScorePanel::SortPlayers( int iTeam, char *team )
 
 		for ( int i = 1; i < MAX_PLAYERS; i++ )
 		{
-			int which = ScoreBased() && team != NULL && strlen(team) ? g_PlayerExtraInfo[i].playerclass : g_PlayerExtraInfo[i].frags;
+			int which = (ScoreBased() && gHUD.m_Teamplay != GAME_TEAMPLAY) && team != NULL && strlen(team) ? g_PlayerExtraInfo[i].playerclass : g_PlayerExtraInfo[i].frags;
 
 			if ( m_bHasBeenSorted[i] == false && g_PlayerInfoList[i].name && (which >= highest) )
 			{
@@ -455,7 +455,7 @@ void ScorePanel::SortPlayers( int iTeam, char *team )
 					{
 						best_player = i;
 						lowest_deaths = pl_info->deaths;
-						if (ScoreBased() && team != NULL && strlen(team))
+						if ((ScoreBased() && gHUD.m_Teamplay != GAME_TEAMPLAY) && team != NULL && strlen(team))
 							highest = pl_info->playerclass;
 						else
 							highest = pl_info->frags;
@@ -762,7 +762,7 @@ void ScorePanel::FillGrid()
 						sprintf(sz, "%d",  team_info->deaths );
 					break;
 				case COLUMN_SCORE:
-					if ( m_iIsATeam[row] == TEAM_YES && ScoreBased())
+					if ( m_iIsATeam[row] == TEAM_YES && (ScoreBased() && gHUD.m_Teamplay != GAME_TEAMPLAY))
 						sprintf(sz, "%d",  team_info->score );
 					break;
 				case COLUMN_LATENCY:
@@ -871,7 +871,7 @@ void ScorePanel::FillGrid()
 					sprintf(sz, "%d",  g_PlayerExtraInfo[ m_iSortedRows[row] ].deaths );
 					break;
 				case COLUMN_SCORE:
-					if (ScoreBased())
+					if ((ScoreBased() && gHUD.m_Teamplay != GAME_TEAMPLAY))
 						sprintf(sz, "%d",  g_PlayerExtraInfo[ m_iSortedRows[row] ].playerclass );
 					break;
 				case COLUMN_LATENCY:

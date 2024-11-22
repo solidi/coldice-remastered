@@ -48,6 +48,9 @@ int CHudCtfInfo::Draw(float flTime)
 	if (gHUD.m_GameMode != GAME_CTF)
 		return 1;
 
+	if (!gHUD.m_Health.m_bitsDamage)
+		return 1;
+
 	if (gHUD.m_Scoreboard.m_iShowscoresHeld)
 		return 1;
 
