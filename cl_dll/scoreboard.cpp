@@ -146,9 +146,7 @@ int CHudScoreboard :: Draw( float fTime )
 	int r, g, b;
 	UnpackRGB(r, g, b, HudColor());
 
-	// gEngfuncs.Con_DPrintf("gHUD.m_Teamplay = %d\n", gHUD.m_Teamplay);
-
-	if ( !ScoreBased() )
+	if ( !ScoreBased() && gHUD.m_Teamplay != GAME_TEAMPLAY )
 		gHUD.DrawHudString( xpos, ypos, NAME_RANGE_MAX + xpos_rel, "Player", r, g, b );
 	else
 		gHUD.DrawHudString( xpos, ypos, NAME_RANGE_MAX + xpos_rel, "Teams", r, g, b );
@@ -184,7 +182,7 @@ int CHudScoreboard :: Draw( float fTime )
 	
 	list_slot += 0.8;
 
-	if ( !ScoreBased() )
+	if ( !ScoreBased() && gHUD.m_Teamplay != GAME_TEAMPLAY )
 	{
 		// it's not teamplay,  so just draw a simple player list
 		DrawPlayers( xpos_rel, list_slot );
@@ -252,7 +250,7 @@ int CHudScoreboard :: Draw( float fTime )
 	{
 		int highest = -99999; int lowest_deaths = 99999;
 		int best_team = 0;
-		int which = ScoreBased() ? g_TeamInfo[i].score : g_TeamInfo[i].frags;
+		int which = (ScoreBased() && gHUD.m_Teamplay != GAME_TEAMPLAY) ? g_TeamInfo[i].score : g_TeamInfo[i].frags;
 
 		for ( i = 1; i <= m_iNumTeams; i++ )
 		{
@@ -265,7 +263,7 @@ int CHudScoreboard :: Draw( float fTime )
 				{
 					best_team = i;
 					lowest_deaths = g_TeamInfo[i].deaths;
-					if (ScoreBased())
+					if (ScoreBased() && gHUD.m_Teamplay != GAME_TEAMPLAY)
 						highest = g_TeamInfo[i].score;
 					else
 						highest = g_TeamInfo[i].frags;
@@ -382,7 +380,7 @@ int CHudScoreboard :: DrawPlayers( int xpos_rel, float list_slot, int nameoffset
 
 		for ( int i = 1; i < MAX_PLAYERS; i++ )
 		{
-			int which = ScoreBased() && team != NULL && strlen(team) ? g_PlayerExtraInfo[i].playerclass : g_PlayerExtraInfo[i].frags;
+			int which = (ScoreBased() && gHUD.m_Teamplay != GAME_TEAMPLAY) && team != NULL && strlen(team) ? g_PlayerExtraInfo[i].playerclass : g_PlayerExtraInfo[i].frags;
 
 			if ( g_PlayerInfoList[i].name && (which >= highest) )
 			{
@@ -393,7 +391,7 @@ int CHudScoreboard :: DrawPlayers( int xpos_rel, float list_slot, int nameoffset
 					{
 						best_player = i;
 						lowest_deaths = pl_info->deaths;
-						if (ScoreBased() && team != NULL && strlen(team))
+						if ((ScoreBased() && gHUD.m_Teamplay != GAME_TEAMPLAY) && team != NULL && strlen(team))
 							highest = pl_info->playerclass;
 						else
 							highest = pl_info->frags;
