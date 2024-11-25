@@ -62,7 +62,7 @@ DLL_GLOBAL	short	g_sModelConcreteGibs;
 DLL_GLOBAL	short	g_sModelWoodGibs;
 DLL_GLOBAL	short	g_sModelLightning;
 DLL_GLOBAL	short	g_sModelIndexFlame;
-DLL_GLOBAL	short	g_Gibs;
+DLL_GLOBAL	short	g_Glass;
 DLL_GLOBAL	short	g_Steamball;
 
 ItemInfo CBasePlayerItem::ItemInfoArray[MAX_WEAPONS];
@@ -556,7 +556,7 @@ void W_Precache(void)
 	PRECACHE_SOUND("sleighbell.wav");
 	PRECACHE_SOUND("fart.wav");
 
-	g_Gibs = PRECACHE_MODEL ("models/w_hgibs.mdl");
+	g_Glass = PRECACHE_MODEL("models/glassgibs.mdl");
 	g_Steamball = PRECACHE_MODEL ("sprites/stmbal1.spr");
 
 	// used by explosions

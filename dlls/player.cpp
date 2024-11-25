@@ -7457,8 +7457,7 @@ void CInfoIntermission::Think ( void )
 LINK_ENTITY_TO_CLASS( info_intermission, CInfoIntermission );
 
 
-extern short g_Gibs;
-extern short g_Steamball;
+extern short g_Glass;
 
 float IceExplode(CBaseEntity *pAttacker, CBaseEntity *pEntity, int bitsDamageType)
 {
@@ -7500,17 +7499,6 @@ float IceExplode(CBaseEntity *pAttacker, CBaseEntity *pEntity, int bitsDamageTyp
 	if (((CBasePlayer *)pEntity)->m_iFreezeCounter > 45) {
 		pEntity->pev->effects = EF_NODRAW;
 
-		MESSAGE_BEGIN( MSG_PAS, SVC_TEMPENTITY, pEntity->pev->origin );
-			WRITE_BYTE( TE_EXPLOSION );		// This makes a dynamic light and the explosion sprites/sound
-			WRITE_COORD( pEntity->pev->origin.x );	// Send to PAS because of the sound
-			WRITE_COORD( pEntity->pev->origin.y );
-			WRITE_COORD( pEntity->pev->origin.z );
-			WRITE_SHORT( g_Steamball );
-			WRITE_BYTE( 40 ); // scale * 10
-			WRITE_BYTE( 20 ); // framerate
-			WRITE_BYTE( TE_EXPLFLAG_NONE );
-		MESSAGE_END();
-
 		MESSAGE_BEGIN( MSG_PVS, SVC_TEMPENTITY, pEntity->pev->origin );
 			WRITE_BYTE( TE_BREAKMODEL);
 			// position
@@ -7528,13 +7516,13 @@ float IceExplode(CBaseEntity *pAttacker, CBaseEntity *pEntity, int bitsDamageTyp
 			// randomization
 			WRITE_BYTE( 20 );
 			// Model
-			WRITE_SHORT( g_Gibs );	//model id#
+			WRITE_SHORT( g_Glass );	//model id#
 			// # of shards
 			WRITE_BYTE( 12 );
 			// duration
 			WRITE_BYTE( 20 );
 			// flags
-			WRITE_BYTE( BREAK_FLESH );
+			WRITE_BYTE( BREAK_GLASS );
 		MESSAGE_END();
 
 		// Make sure to kill
