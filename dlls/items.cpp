@@ -264,7 +264,7 @@ class CItemSuit : public CItem
 	{ 
 		Precache( );
 		SET_MODEL(ENT(pev), "models/w_weapons.mdl");
-		pev->body = WEAPON_SUIT - 1;
+		pev->body = WEAPON_SUIT;
 		CItem::Spawn( );
 	}
 	void Precache( void )

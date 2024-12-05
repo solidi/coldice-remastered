@@ -227,7 +227,7 @@ int CHudObjective::Draw(float flTime)
 	extern cvar_t *cl_showposition;
 	if (cl_showposition && cl_showposition->value)
 	{
-		if (!g_iUser1 && gHUD.m_GameMode != GAME_CTF)
+		if (!g_iUser1 && gHUD.m_GameMode != GAME_CTF && strlen(m_szGoalMessage))
 		{
 			if (g_ScoreTime < gEngfuncs.GetClientTime())
 			{

@@ -498,6 +498,10 @@ public:
 
 	float m_fVampireHealth;
 
+	int m_iBurstCount;
+	int m_iModeCount;
+	int m_iAmt;
+
 	float m_fFeignTime;
 
 	void Taunt( void );

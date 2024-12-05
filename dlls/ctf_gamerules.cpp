@@ -633,6 +633,9 @@ void CHalfLifeCaptureTheFlag::ClientUserInfoChanged( CBasePlayer *pPlayer, char 
 	char *mdls = g_engfuncs.pfnInfoKeyValue( infobuffer, "model" );
 	int clientIndex = pPlayer->entindex();
 
+	if ( !stricmp( mdls, pPlayer->m_szTeamName ) )
+		return;
+
 	// prevent skin/color/model changes
 	if ( !stricmp( "red", pPlayer->m_szTeamName ) && !stricmp( "santa", mdls ) )
 		return;
@@ -652,8 +655,9 @@ void CHalfLifeCaptureTheFlag::ClientUserInfoChanged( CBasePlayer *pPlayer, char 
 	//m_DisableDeathMessages = TRUE;
 	m_DisableDeathPenalty = TRUE;
 
-	entvars_t *pevWorld = VARS( INDEXENT(0) );
-	pPlayer->TakeDamage( pevWorld, pevWorld, 900, DMG_ALWAYSGIB );
+	ClearMultiDamage();
+	pPlayer->pev->health = 0; // without this, player can walk as a ghost.
+	pPlayer->Killed(pPlayer->pev, VARS(INDEXENT(0)), GIB_ALWAYS);
 
 	//m_DisableDeathMessages = FALSE;
 	m_DisableDeathPenalty = FALSE;
