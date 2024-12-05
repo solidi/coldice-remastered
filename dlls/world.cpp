@@ -769,15 +769,6 @@ void CWorld :: SetGameMode( void )
 
 	CVAR_SET_STRING("mp_snowballfight", "0");
 
-/*
-	if (!g_pGameRules->IsMultiplayer())
-	{
-		CVAR_SET_STRING("mp_gamemode", "ffa");
-		g_GameMode = 0;
-		return;
-	}
-*/
-
 	// Randomize if set
 	if (CVAR_GET_FLOAT("mp_randomgamemodes") > 0)
 	{

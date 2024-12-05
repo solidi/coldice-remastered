@@ -1600,6 +1600,15 @@ void CGameRules::CheckGameMode( void )
 		strcpy(m_flCheckGameMode, gamemode.string);
 		//UTIL_ClientPrintAll(HUD_PRINTTALK, "Game mode has changed to \"%s\". Ending current game in 5 seconds.\n", m_flCheckGameMode);
 		SERVER_COMMAND( "restart\n" ); // Force a restart, so we can load the correct gamerules
+		return;
+	}
+
+	// Hack for direct server start from GUI
+	if (gamemode.value > 0 && g_GameMode != gamemode.value)
+	{
+		g_GameMode = gamemode.value;
+		SERVER_COMMAND( "restart\n" );
+		return;
 	}
 
 	// UNDONE: Hotswap gamemode?
