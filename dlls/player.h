@@ -294,6 +294,8 @@ public:
 	// Prophunt
 	int m_iPropsDeployed;
 
+	BOOL GetHeaviestWeapon( CBasePlayerItem *pCurrentWeapon );
+
 	EHANDLE pHeldItem;
 	BOOL m_iHoldingItem;
 
