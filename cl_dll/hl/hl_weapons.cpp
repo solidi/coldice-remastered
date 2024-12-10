@@ -1240,14 +1240,19 @@ void HUD_WeaponsPostThink( local_state_s *from, local_state_s *to, usercmd_t *cm
 		 from->client.vuser2[ 2 ] = ( ( CRpg * )player.m_pActiveItem)->m_cActiveRockets;
 	}
 
+	static float stime = 0;
+	if (stime - 2 > time)
+		stime = 0;
+
 	// Barrel smoke
 	if (pWeapon && (pWeapon->m_iId == WEAPON_SAWEDOFF || pWeapon->m_iId == WEAPON_DUAL_SAWEDOFF) && 
 		(pWeapon->m_flNextPrimaryAttack > 0 || pWeapon->m_flNextSecondaryAttack > 0))
 	{
 		if (!CL_IsThirdPerson())
 		{
-			if (cl_gunsmoke && cl_gunsmoke->value)
+			if (cl_gunsmoke && cl_gunsmoke->value && stime < time)
 			{
+				stime = time + 0.1;
 				static TEMPENTITY *t[16];
 				static int c = 0;
 				int model = gEngfuncs.pEventAPI->EV_FindModelIndex( "sprites/gunsmoke.spr" );
@@ -1281,8 +1286,9 @@ void HUD_WeaponsPostThink( local_state_s *from, local_state_s *to, usercmd_t *cm
 	{
 		if (!CL_IsThirdPerson())
 		{
-			if (cl_gunsmoke && cl_gunsmoke->value)
+			if (cl_gunsmoke && cl_gunsmoke->value && stime < time)
 			{
+				stime = time + 0.1;
 				static TEMPENTITY *t[16];
 				static int c = 0;
 				int model = gEngfuncs.pEventAPI->EV_FindModelIndex( "sprites/gunsmoke.spr" );
