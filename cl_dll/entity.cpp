@@ -65,6 +65,14 @@ int CL_DLLEXPORT HUD_AddEntity( int type, struct cl_entity_s *ent, const char *m
 	// each frame every entity passes this function, so the overview hooks 
 	// it to filter the overview entities
 
+	/*
+	// TODO: Replace models here for mutator.
+	cl_entity_s* player = gEngfuncs.GetLocalPlayer();
+	ent->model = player->model;
+	ent->curstate.modelindex = player->curstate.modelindex;
+	ent->curstate.gaitsequence = ent->curstate.sequence;
+	*/
+
 	if ( g_iUser1 )
 	{
 		gHUD.m_Spectator.AddOverviewEntity( type, ent, modelname );
