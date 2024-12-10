@@ -2293,6 +2293,10 @@ void V_IronSight( Vector position, Vector punch, float clientTime, float frameTi
 	if (!strncmp(viewModel->model->name, "models/v_dual_", strlen("models/v_dual_")))
 		return;
 
+	// Needs second attachment for flames, disale for now.
+	if (!strncmp(viewModel->model->name, "models/v_flamethrower", strlen("models/v_flamethrower")))
+		return;
+
 	if (CL_IsThirdPerson())
 		return;
 
