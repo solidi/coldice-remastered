@@ -1408,7 +1408,7 @@ void CGameRules::MutatorsThink(void)
 							UTIL_SetOrigin(pl->pev, VARS(pentSpawnSpot)->origin + Vector(0,0,1));
 							pl->pev->angles = VARS(pentSpawnSpot)->angles;
 							CBaseEntity *ent = NULL;
-							while ( (ent = UTIL_FindEntityInSphere( ent, pl->pev->origin, 128 )) != NULL )
+							while ( (ent = UTIL_FindEntityInSphere( ent, pl->pev->origin, 64 )) != NULL )
 							{
 								// if ent is a client, kill em (unless they are ourselves)
 								if ( ent->IsPlayer() && !(ent->edict() == pentSpawnSpot) && ent->IsAlive() && !ent->pev->iuser1 )

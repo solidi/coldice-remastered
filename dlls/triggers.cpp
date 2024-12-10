@@ -1938,7 +1938,7 @@ void CBaseTrigger :: TeleportTouch( CBaseEntity *pOther )
 
 	// Kill?
 	CBaseEntity *ent = NULL;
-	while ( (ent = UTIL_FindEntityInSphere( ent, pevToucher->origin, 128 )) != NULL )
+	while ( (ent = UTIL_FindEntityInSphere( ent, pevToucher->origin, 64 )) != NULL )
 	{
 		// if ent is a client, kill em (unless they are ourselves)
 		if ( ent->IsPlayer() && !(VARS(ent->edict()) == pevToucher) && ent->IsAlive() && !ent->pev->iuser1 )
