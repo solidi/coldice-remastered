@@ -778,8 +778,6 @@ void CGameRules::SpawnMutators(CBasePlayer *pPlayer)
 		{
 			pPlayer->pev->body = 0;
 			pPlayer->SetBodygroup( 2, 1 );
-			//pPlayer->m_EFlags &= ~EFLAG_CANCEL;
-			//pPlayer->m_EFlags |= EFLAG_JEEP;
 		}
 	}
 

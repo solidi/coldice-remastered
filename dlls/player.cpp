@@ -4213,6 +4213,13 @@ void CBasePlayer::SelectItem(const char *pstr)
 
 	ResetAutoaim( );
 
+	if (FBitSet(m_EFlags, EFLAG_TAUNT))
+	{
+		m_EFlags &= ~EFLAG_TAUNT;
+		m_EFlags |= EFLAG_CANCEL;
+		m_fTauntFullTime = m_fTauntCancelTime = 0;
+	}
+
 	// FIX, this needs to queue them up and delay
 	if (m_pActiveItem && m_pActiveItem->m_pPlayer)
 		m_pActiveItem->Holster( );
@@ -7058,6 +7065,13 @@ BOOL CBasePlayer :: SwitchWeapon( CBasePlayerItem *pWeapon )
 	}
 	
 	ResetAutoaim( );
+
+	if (FBitSet(m_EFlags, EFLAG_TAUNT))
+	{
+		m_EFlags &= ~EFLAG_TAUNT;
+		m_EFlags |= EFLAG_CANCEL;
+		m_fTauntFullTime = m_fTauntCancelTime = 0;
+	}
 	
 	if (m_pActiveItem && m_pActiveItem->m_pPlayer)
 	{
