@@ -90,10 +90,7 @@ void CDisc::Spawn( void )
 	pev->solid = SOLID_TRIGGER;
 
 	// Setup model
-	//if ( m_iPowerupFlags & POW_HARD )
-	//	SET_MODEL(ENT(pev), "models/disc_hard.mdl");
-	//else
-		SET_MODEL(ENT(pev), "models/w_grenade.mdl");
+	SET_MODEL(ENT(pev), "models/w_grenade.mdl");
     pev->body = 1;
 	UTIL_SetSize(pev, Vector( -4,-4,-4 ), Vector(4, 4, 4));
 
@@ -157,17 +154,14 @@ void CDisc::Spawn( void )
 void CDisc::Precache( void )
 {
 	PRECACHE_MODEL("models/w_grenade.mdl");
-	//PRECACHE_MODEL("models/disc_hard.mdl");
 	PRECACHE_SOUND("weapons/cbar_hitbod1.wav");
 	PRECACHE_SOUND("weapons/cbar_hitbod2.wav");
 	PRECACHE_SOUND("weapons/cbar_hitbod3.wav");
-	//PRECACHE_SOUND("weapons/altfire.wav");
 	PRECACHE_SOUND("items/gunpickup2.wav");
 	PRECACHE_SOUND("weapons/electro5.wav");
 	PRECACHE_SOUND("weapons/xbow_hit1.wav");
 	PRECACHE_SOUND("weapons/xbow_hit2.wav");
 	PRECACHE_SOUND("weapons/rocket1.wav");
-	//PRECACHE_SOUND("dischit.wav");
 	m_iTrail = PRECACHE_MODEL("sprites/smoke.spr");
 	m_iSpriteTexture = PRECACHE_MODEL( "sprites/lgtning.spr" );
 }

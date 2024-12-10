@@ -2408,6 +2408,7 @@ BOOL CWeaponBox::PackWeapon( CBasePlayerItem *pWeapon )
 	else if (pWeapon->m_iId == WEAPON_HANDGRENADE)
 	{
 		SET_MODEL( ENT(pev), "models/w_grenade.mdl");
+		pev->body = 0;
 		pev->sequence = floating;
 	}
 
