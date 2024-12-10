@@ -59,7 +59,7 @@ void CSkullCharm::Spawn( void )
 	pev->angles.z = 0;
 	pev->movetype = MOVETYPE_TOSS;
 	pev->solid = SOLID_NOT;
-	UTIL_SetSize(pev, Vector(0, 0, 0), Vector(0, 0, 0));
+	UTIL_SetSize( pev, g_vecZero, g_vecZero );
 	UTIL_SetOrigin( pev, pev->origin );
 
 	SetTouch( &CSkullCharm::SkullTouch );
@@ -75,7 +75,14 @@ void CSkullCharm::Spawn( void )
 void CSkullCharm::ThinkSolid( void )
 {
 	pev->solid = SOLID_TRIGGER;
-	UTIL_SetSize(pev, Vector(-16, -16, 0), Vector(16, 16, 16));
+	UTIL_SetSize( pev, g_vecZero, g_vecZero );
+
+	// place in player spot if it falls out.
+	TraceResult trace;
+	UTIL_TraceHull(pev->origin, pev->origin, dont_ignore_monsters, head_hull, edict(), &trace );
+	if (trace.fStartSolid)
+		UTIL_SetOrigin(pev, pev->vuser1);
+
 	SetThink( &CBaseEntity::SUB_StartFadeOut );
 	pev->nextthink = gpGlobals->time + 25.0;
 }
@@ -180,6 +187,8 @@ void CreateSkull( CBasePlayer *pVictim, int amount )
 		pSkull->pev->velocity.y = RANDOM_FLOAT( -300, 300 );
 		pSkull->pev->velocity.z = RANDOM_FLOAT( 0, 300 );
 		pSkull->pev->fuser1 = amount;
+		pSkull->pev->vuser1 = pVictim->pev->origin;
+		pSkull->pev->vuser1.z -= 32;
 
 		/*
 		1 - Bronze Skull
