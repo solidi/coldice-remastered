@@ -1382,7 +1382,8 @@ void CBasePlayer::SetAnimation( PLAYER_ANIM playerAnim )
 
 	if (g_pGameRules->IsPropHunt() && pev->fuser4 > 0)
 	{
-		int ideal = pev->fuser4 >= 50 ? ((pev->fuser4 - 49) * 2) + floatingweapons.value : (pev->fuser4 * 2) + floatingweapons.value;
+		int maxWeaponModels = 52; //dual handg
+		int ideal = pev->fuser4 >= maxWeaponModels ? ((pev->fuser4 - maxWeaponModels) * 2) + floatingweapons.value : (pev->fuser4 * 2) + floatingweapons.value;
 		if (pev->sequence == ideal)
 			return;
 

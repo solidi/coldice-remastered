@@ -1064,14 +1064,12 @@ void CBasePlayerWeapon::ItemPostFrame( void )
 		if ((m_pPlayer->pev->button & IN_ATTACK) &&
 			CanAttack( m_flNextPrimaryAttack, gpGlobals->time, UseDecrement() ))
 		{
-			if (m_pPlayer->pev->fuser4 > 56)
-				m_pPlayer->pev->fuser4 = 1;
+			if (m_pPlayer->pev->fuser4 >= 59) // 52 weapon + 7 ammo
+				m_pPlayer->pev->fuser4 = 0;
 			m_pPlayer->pev->fuser4 += 1;
 			// Skip blank spaces in model
 			if (m_pPlayer->pev->fuser4 == 32)
 				m_pPlayer->pev->fuser4 = 35;
-
-			// ALERT(at_aiconsole, "fuser4 = %.0f\n", m_pPlayer->pev->fuser4);
 
 			m_flNextPrimaryAttack = m_flNextSecondaryAttack =  UTIL_WeaponTimeBase() + 0.25;
 			m_pPlayer->pev->button &= ~IN_ATTACK;
@@ -1081,13 +1079,11 @@ void CBasePlayerWeapon::ItemPostFrame( void )
 				CanAttack( m_flNextSecondaryAttack, gpGlobals->time, UseDecrement() ))
 		{
 			m_pPlayer->pev->fuser4 -= 1;
-			if (m_pPlayer->pev->fuser4 < 1)
-				m_pPlayer->pev->fuser4 = 56;
+			if (m_pPlayer->pev->fuser4 <= 0)
+				m_pPlayer->pev->fuser4 = 59; // 52 weapon + 7 ammo
 			// Skip blank spaces in model
 			if (m_pPlayer->pev->fuser4 == 34)
 				m_pPlayer->pev->fuser4 = 31;
-
-			// ALERT(at_aiconsole, "fuser4 = %.0f\n", m_pPlayer->pev->fuser4);
 
 			m_flNextPrimaryAttack = m_flNextSecondaryAttack =  UTIL_WeaponTimeBase() + 0.25;
 			m_pPlayer->pev->button &= ~IN_ATTACK;
