@@ -921,11 +921,10 @@ void CBasePlayer::PackDeadPlayerItems( void )
 	{
 		// TODO: bot may have not of had an active item?
 	}
-	else if (iPW == 1 && FStrEq("weapon_fists", STRING(rgpPackWeapons[0]->pev->classname)))
-	{
-		// TODO: do something special if only packed fists
-	}
-	else if (iPW == 1 && FStrEq("weapon_nuke", STRING(rgpPackWeapons[0]->pev->classname)))
+	else if (iPW == 1 && 
+			(FStrEq("weapon_fists", STRING(rgpPackWeapons[0]->pev->classname)) ||
+			FStrEq("weapon_vice", STRING(rgpPackWeapons[0]->pev->classname)) ||
+			FStrEq("weapon_nuke", STRING(rgpPackWeapons[0]->pev->classname))) )
 	{
 		// TODO: do something special if only packed nuke
 	}

@@ -916,6 +916,14 @@ void CGameRules::GiveMutators(CBasePlayer *pPlayer)
 		if (!pPlayer->m_fLongJump && (pPlayer->pev->weapons & (1<<WEAPON_SUIT)))
 			pPlayer->GiveNamedItem("item_longjump");
 	}
+
+	if (MutatorEnabled(MUTATOR_GODMODE)) {
+		if (!pPlayer->HasNamedPlayerItem("weapon_vice"))
+		{
+			pPlayer->GiveNamedItem("weapon_vice");
+			pPlayer->SelectItem("weapon_vice");
+		}
+	}
 }
 
 const char *entityList[] =
