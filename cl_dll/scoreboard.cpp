@@ -155,12 +155,12 @@ int CHudScoreboard :: Draw( float fTime )
 		gHUD.DrawHudStringReverse( KILLS_RANGE_MAX + xpos_rel, ypos, 0, "Lives", r, g, b );
 	else if (gHUD.m_Teamplay == GAME_GUNGAME)
 		gHUD.DrawHudStringReverse( KILLS_RANGE_MAX + xpos_rel, ypos, 0, "Level", r, g, b );
-	else if (gHUD.m_Teamplay == GAME_CTC || gHUD.m_Teamplay == GAME_PROPHUNT)
+	else if (gHUD.m_Teamplay == GAME_PROPHUNT)
 		gHUD.DrawHudStringReverse( KILLS_RANGE_MAX + xpos_rel, ypos, 0, "Points", r, g, b );
 	else if (gHUD.m_Teamplay == GAME_COLDSKULL)
 		gHUD.DrawHudStringReverse( KILLS_RANGE_MAX + xpos_rel, ypos, 0, "Skulls", r, g, b );
 	else
-		gHUD.DrawHudStringReverse( KILLS_RANGE_MAX + xpos_rel, ypos, 0, "K ills", r, g, b );
+		gHUD.DrawHudStringReverse( KILLS_RANGE_MAX + xpos_rel, ypos, 0, "Frags", r, g, b );
 	gHUD.DrawHudString( DIVIDER_POS + xpos_rel, ypos, ScreenWidth, "/", r, g, b );
 	gHUD.DrawHudString( DEATHS_RANGE_MIN + xpos_rel + 5, ypos, ScreenWidth, "Deaths", r, g, b );
 	if (ScoreBased())

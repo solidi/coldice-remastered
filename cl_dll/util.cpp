@@ -166,6 +166,7 @@ bool ScoreBased( void )
 			gHUD.m_Teamplay == GAME_BUSTERS ||
 			gHUD.m_Teamplay == GAME_CHILLDEMIC ||
 			gHUD.m_Teamplay == GAME_COLDSPOT ||
+			gHUD.m_Teamplay == GAME_CTC ||
 			gHUD.m_Teamplay == GAME_CTF ||
 			gHUD.m_Teamplay == GAME_HORDE ||
 			gHUD.m_Teamplay == GAME_ICEMAN ||

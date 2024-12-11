@@ -1060,6 +1060,22 @@ BOOL CanAttack( float attack_time, float curtime, BOOL isPredicted )
 
 void CBasePlayerWeapon::ItemPostFrame( void )
 {
+	/*
+	if ((m_fInReload) && ( m_pPlayer->m_flNextAttack <= UTIL_WeaponTimeBase() ) )
+	{
+		if (RANDOM_LONG(0,2) == 1)
+		{
+			PlayEmptySound();
+			ThrowWeapon(TRUE);
+			return;
+		}
+	}
+	*/
+
+	BOOL oktofire = TRUE;
+	if (g_pGameRules->IsCtC() && m_pPlayer->pev->fuser4 > 0)
+		oktofire = FALSE;
+
 	if (g_pGameRules->IsPropHunt() && m_pPlayer->pev->fuser4 > 0) {
 		if ((m_pPlayer->pev->button & IN_ATTACK) &&
 			CanAttack( m_flNextPrimaryAttack, gpGlobals->time, UseDecrement() ))
@@ -1123,7 +1139,7 @@ void CBasePlayerWeapon::ItemPostFrame( void )
 		return;
 	}
 
-	if (g_pGameRules->MutatorEnabled(MUTATOR_DEALTER) ||
+	if ((g_pGameRules->MutatorEnabled(MUTATOR_DEALTER) && oktofire) ||
 		(g_pGameRules->IsShidden() && m_pPlayer->pev->fuser4 > 0)) {
 		if ((m_pPlayer->pev->button & IN_ATTACK) &&
 			CanAttack( m_flNextPrimaryAttack, gpGlobals->time, UseDecrement() ))
@@ -1191,7 +1207,7 @@ void CBasePlayerWeapon::ItemPostFrame( void )
 		return;
 	}
 
-	if (g_pGameRules->MutatorEnabled(MUTATOR_RICOCHET)) {
+	if (g_pGameRules->MutatorEnabled(MUTATOR_RICOCHET) && oktofire) {
 		if ((m_pPlayer->pev->button & IN_ATTACK) &&
 			CanAttack( m_flNextPrimaryAttack, gpGlobals->time, UseDecrement() ))
 		{
