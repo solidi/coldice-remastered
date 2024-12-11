@@ -535,5 +535,8 @@ BOOL CHalfLifeCaptureTheChumtoad::MutatorAllowed(const char *mutator)
 	if (strstr(mutator, g_szMutators[MUTATOR_NOCLIP - 1]) || atoi(mutator) == MUTATOR_NOCLIP)
 		return FALSE;
 
+	if (strstr(mutator, g_szMutators[MUTATOR_DONTSHOOT - 1]) || atoi(mutator) == MUTATOR_DONTSHOOT)
+		return FALSE;
+
 	return CHalfLifeMultiplay::MutatorAllowed(mutator);
 }
