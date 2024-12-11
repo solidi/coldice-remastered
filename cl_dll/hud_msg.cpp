@@ -454,6 +454,12 @@ void CHud :: MsgFunc_FlameMsg( const char *pszName, int iSize, void *pbuf )
 
 	n = READ_SHORT();
 	s = READ_BYTE();
+
+	cl_entity_t *local = gEngfuncs.GetLocalPlayer();
+	if (gHUD.m_GameMode == GAME_CHILLDEMIC &&
+		local->curstate.fuser4 > 0 &&
+		(local->index) == n)
+		return;
 	
 	FlameSystem.SetState(n, s);
 }
