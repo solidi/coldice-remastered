@@ -34,6 +34,8 @@ public:
 	virtual void MonsterKilled( CBaseMonster *pVictim, entvars_t *pKiller );
 	virtual BOOL ShouldAutoAim( CBasePlayer *pPlayer, edict_t *target );
 	virtual BOOL IsRoundBased( void );
+	virtual BOOL CanHavePlayerItem( CBasePlayer *pPlayer, CBasePlayerItem *pItem );
+	virtual BOOL CanRandomizeWeapon( const char *name );
 
 private:
 	int m_iSurvivorsRemain;
