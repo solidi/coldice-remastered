@@ -139,6 +139,33 @@ void CVoteMutatorPanel::Update()
 		}
 	}
 
+	int second = -1, s = -1;
+
+	for ( int i = 0; i < MAX_MUTATORS; i++ )
+	{
+		for ( int j = 1; j <= MAX_PLAYERS; j++ )
+		{
+			if (second < votes[i] && second <= highest && i != hi)
+			{
+				second = votes[i];
+				s = i;
+			}
+		}
+	}
+
+	int third = -1, t = -1;
+	for ( int i = 0; i < MAX_MUTATORS; i++ )
+	{
+		for ( int j = 1; j <= MAX_PLAYERS; j++ )
+		{
+			if (third < votes[i] && third <= second && i != hi && i != s)
+			{
+				third = votes[i];
+				t = i;
+			}
+		}
+	}
+
 	for ( int i = 0; i < MAX_MUTATORS; i++ )
 	{
 		if (m_pButtons[i])
@@ -159,7 +186,7 @@ void CVoteMutatorPanel::Update()
 			if (votes[i] > 0)
 			{
 				m_pButtons[i]->setArmed(true);
-				if (votes[i] == highest)
+				if (i == hi || i == s || i == t)
 				{
 					m_pButtons[i]->setBorder(new LineBorder(Color(255, 255, 255, a)));
 					m_pButtons[i]->setBgColor(r, g, b, 0);
