@@ -113,6 +113,8 @@ void CDisc::Spawn( void )
 	//else
 		pev->velocity = gpGlobals->v_forward * DISC_VELOCITY;
 
+	pev->angles = UTIL_VecToAngles(pev->velocity);
+
 	// Pull our owner out so we will still touch it
 	if ( pev->owner )
 		m_hOwner = Instance(pev->owner);
@@ -129,7 +131,7 @@ void CDisc::Spawn( void )
 	else
 		WRITE_BYTE( 3 ); // life
 
-		WRITE_BYTE( 5 );  // width
+		WRITE_BYTE( 3 );  // width
 
 		WRITE_BYTE( g_iaDiscColors[pev->team][0] ); // r, g, b
 		WRITE_BYTE( g_iaDiscColors[pev->team][1] ); // r, g, b
@@ -146,7 +148,7 @@ void CDisc::Spawn( void )
 	pev->renderfx = kRenderFxGlowShell;
 	for (int i = 0; i <= 2;i ++)
 		pev->rendercolor[i] = g_iaDiscColors[pev->team][i];
-	pev->renderamt = 100;
+	pev->renderamt = 10;
 
 	pev->nextthink = gpGlobals->time + 0.1;
 }
@@ -320,6 +322,7 @@ void CDisc::DiscTouch ( CBaseEntity *pOther )
 		}
 
 		UTIL_Sparks( pev->origin );
+		pev->angles = UTIL_VecToAngles(pev->velocity);
 	}
 }
 
