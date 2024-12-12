@@ -724,8 +724,9 @@ BOOL CGameRules::WeaponMutators( CBasePlayerWeapon *pWeapon )
 
 			if (MutatorEnabled(MUTATOR_PUSHY))
 			{
+				pWeapon->m_pPlayer->pev->flags &= ~FL_ONGROUND;
 				UTIL_MakeVectors( pWeapon->m_pPlayer->pev->v_angle );
-				pWeapon->m_pPlayer->pev->velocity = pWeapon->m_pPlayer->pev->velocity - gpGlobals->v_forward * RANDOM_FLOAT(50,100) * 5;
+				pWeapon->m_pPlayer->pev->velocity = pWeapon->m_pPlayer->pev->velocity - gpGlobals->v_forward * RANDOM_FLOAT(50,100) * 3;
 			}
 		}
 	}
