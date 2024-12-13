@@ -1677,11 +1677,17 @@ void CBasePlayer::PlayerDeathThink(void)
 		}
 	}
 
+	if (FBitSet(m_EFlags, EFLAG_TAUNT))
+	{
+		m_EFlags &= ~EFLAG_TAUNT;
+		m_EFlags |= EFLAG_CANCEL;
+	}
+
 	if ( HasWeapons() )
 	{
 		// If we got killed during these events, cancel them
 		m_EFlags &= ~EFLAG_PLAYERKICK & ~EFLAG_SLIDE & ~EFLAG_HURRICANE;
-		m_EFlags &= ~EFLAG_TAUNT & ~EFLAG_FORCEGRAB & ~EFLAG_THROW;
+		m_EFlags &= ~EFLAG_FORCEGRAB & ~EFLAG_THROW;
 
 		// we drop the guns here because weapons that have an area effect and can kill their user
 		// will sometimes crash coming back from CBasePlayer::Killed() if they kill their owner because the
