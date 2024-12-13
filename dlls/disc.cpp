@@ -282,7 +282,20 @@ void CDisc::DiscTouch ( CBaseEntity *pOther )
 					if ( m_bTeleported )
 						((CBasePlayer*)pOther)->m_flLastDiscHitTeleport = gpGlobals->time;
 
-					pOther->TakeDamage(pev, m_hOwner->pev, gSkillData.plrDmgCrowbar, DMG_SLASH);
+					UTIL_MakeVectors(pev->angles);
+					TraceResult tr;
+					Vector vecEnd = pev->origin + gpGlobals->v_forward * 32;
+					UTIL_TraceLine(pev->origin, vecEnd, dont_ignore_monsters, ENT(m_hOwner->pev), &tr);
+					
+					ClearMultiDamage();
+					pOther->TraceAttack(m_hOwner->pev, gSkillData.plrDmgCrowbar, gpGlobals->v_forward, &tr, DMG_SLASH);
+					ApplyMultiDamage(pev, m_hOwner->pev);
+
+					if (tr.iHitgroup == HITGROUP_HEAD)
+					{
+						((CBasePlayer*)pOther)->pev->health = 0; // without this, player can walk as a ghost.
+						((CBasePlayer*)pOther)->Killed(m_hOwner->pev, GIB_NEVER);
+					}
 
 					m_fDontTouchEnemies = gpGlobals->time + 2.0;
 				}
