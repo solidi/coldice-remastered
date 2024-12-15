@@ -1060,18 +1060,32 @@ BOOL CanAttack( float attack_time, float curtime, BOOL isPredicted )
 
 void CBasePlayerWeapon::ItemPostFrame( void )
 {
+	/*
+	if ((m_fInReload) && ( m_pPlayer->m_flNextAttack <= UTIL_WeaponTimeBase() ) )
+	{
+		if (RANDOM_LONG(0,2) == 1)
+		{
+			PlayEmptySound();
+			ThrowWeapon(TRUE);
+			return;
+		}
+	}
+	*/
+
+	BOOL oktofire = TRUE;
+	if (g_pGameRules->IsCtC() && m_pPlayer->pev->fuser4 > 0)
+		oktofire = FALSE;
+
 	if (g_pGameRules->IsPropHunt() && m_pPlayer->pev->fuser4 > 0) {
 		if ((m_pPlayer->pev->button & IN_ATTACK) &&
 			CanAttack( m_flNextPrimaryAttack, gpGlobals->time, UseDecrement() ))
 		{
-			if (m_pPlayer->pev->fuser4 > 56)
-				m_pPlayer->pev->fuser4 = 1;
+			if (m_pPlayer->pev->fuser4 >= 59) // 52 weapon + 7 ammo
+				m_pPlayer->pev->fuser4 = 0;
 			m_pPlayer->pev->fuser4 += 1;
 			// Skip blank spaces in model
 			if (m_pPlayer->pev->fuser4 == 32)
 				m_pPlayer->pev->fuser4 = 35;
-
-			// ALERT(at_aiconsole, "fuser4 = %.0f\n", m_pPlayer->pev->fuser4);
 
 			m_flNextPrimaryAttack = m_flNextSecondaryAttack =  UTIL_WeaponTimeBase() + 0.25;
 			m_pPlayer->pev->button &= ~IN_ATTACK;
@@ -1081,13 +1095,11 @@ void CBasePlayerWeapon::ItemPostFrame( void )
 				CanAttack( m_flNextSecondaryAttack, gpGlobals->time, UseDecrement() ))
 		{
 			m_pPlayer->pev->fuser4 -= 1;
-			if (m_pPlayer->pev->fuser4 < 1)
-				m_pPlayer->pev->fuser4 = 56;
+			if (m_pPlayer->pev->fuser4 <= 0)
+				m_pPlayer->pev->fuser4 = 59; // 52 weapon + 7 ammo
 			// Skip blank spaces in model
 			if (m_pPlayer->pev->fuser4 == 34)
 				m_pPlayer->pev->fuser4 = 31;
-
-			// ALERT(at_aiconsole, "fuser4 = %.0f\n", m_pPlayer->pev->fuser4);
 
 			m_flNextPrimaryAttack = m_flNextSecondaryAttack =  UTIL_WeaponTimeBase() + 0.25;
 			m_pPlayer->pev->button &= ~IN_ATTACK;
@@ -1127,7 +1139,7 @@ void CBasePlayerWeapon::ItemPostFrame( void )
 		return;
 	}
 
-	if (g_pGameRules->MutatorEnabled(MUTATOR_DEALTER) ||
+	if ((g_pGameRules->MutatorEnabled(MUTATOR_DEALTER) && oktofire) ||
 		(g_pGameRules->IsShidden() && m_pPlayer->pev->fuser4 > 0)) {
 		if ((m_pPlayer->pev->button & IN_ATTACK) &&
 			CanAttack( m_flNextPrimaryAttack, gpGlobals->time, UseDecrement() ))
@@ -1195,7 +1207,7 @@ void CBasePlayerWeapon::ItemPostFrame( void )
 		return;
 	}
 
-	if (g_pGameRules->MutatorEnabled(MUTATOR_RICOCHET)) {
+	if (g_pGameRules->MutatorEnabled(MUTATOR_RICOCHET) && oktofire) {
 		if ((m_pPlayer->pev->button & IN_ATTACK) &&
 			CanAttack( m_flNextPrimaryAttack, gpGlobals->time, UseDecrement() ))
 		{
@@ -1221,9 +1233,9 @@ void CBasePlayerWeapon::ItemPostFrame( void )
 				m_pPlayer->SetAnimation( PLAYER_ATTACK1 );
 				Vector vecFireDir = m_pPlayer->pev->v_angle;
 				UTIL_MakeVectors( vecFireDir );
-				CDisc::CreateDisc( m_pPlayer->pev->origin + (m_pPlayer->pev->view_ofs * 0.25) + gpGlobals->v_forward * 16, vecFireDir, m_pPlayer, FALSE, 0 );
-				CDisc::CreateDisc( m_pPlayer->pev->origin + (m_pPlayer->pev->view_ofs * 0.25) + gpGlobals->v_forward * 16 + gpGlobals->v_right * -24, vecFireDir, m_pPlayer, FALSE, 0 );
-				CDisc::CreateDisc( m_pPlayer->pev->origin + (m_pPlayer->pev->view_ofs * 0.25) + gpGlobals->v_forward * 16 + gpGlobals->v_right * 24, vecFireDir, m_pPlayer, FALSE, 0 );
+				CDisc::CreateDisc( m_pPlayer->pev->origin + m_pPlayer->pev->view_ofs + gpGlobals->v_forward * 16, vecFireDir, m_pPlayer, FALSE, 0 );
+				CDisc::CreateDisc( m_pPlayer->pev->origin + m_pPlayer->pev->view_ofs + gpGlobals->v_forward * 16 + gpGlobals->v_right * -24, vecFireDir, m_pPlayer, FALSE, 0 );
+				CDisc::CreateDisc( m_pPlayer->pev->origin + m_pPlayer->pev->view_ofs + gpGlobals->v_forward * 16 + gpGlobals->v_right * 24, vecFireDir, m_pPlayer, FALSE, 0 );
 				EMIT_SOUND_DYN( m_pPlayer->edict(), CHAN_WEAPON, "weapons/cbar_miss1.wav", 1.0, ATTN_NORM, 0, 98 + RANDOM_LONG(0,3)); 
 
 				m_flNextPrimaryAttack = m_flNextSecondaryAttack =  UTIL_WeaponTimeBase() + 0.5;
@@ -2408,6 +2420,7 @@ BOOL CWeaponBox::PackWeapon( CBasePlayerItem *pWeapon )
 	else if (pWeapon->m_iId == WEAPON_HANDGRENADE)
 	{
 		SET_MODEL( ENT(pev), "models/w_grenade.mdl");
+		pev->body = 0;
 		pev->sequence = floating;
 	}
 

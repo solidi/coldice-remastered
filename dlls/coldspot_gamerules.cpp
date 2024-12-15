@@ -251,9 +251,14 @@ void CHalfLifeColdSpot::InitHUD( CBasePlayer *pPlayer )
 	}
 }
 
+extern DLL_GLOBAL BOOL g_fGameOver;
+
 void CHalfLifeColdSpot::Think( void )
 {
 	CHalfLifeMultiplay::Think();
+
+	if ( g_fGameOver )
+		return;
 
 	if (coldspottime.value != m_fColdSpotTime)
 		m_fColdSpotTime = m_fSpawnColdSpot = coldspottime.value;

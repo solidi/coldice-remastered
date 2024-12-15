@@ -281,12 +281,24 @@ CBaseEntity *CHalfLifeCaptureTheChumtoad::DropCharm( CBasePlayer *pPlayer, Vecto
 	return pChumtoad;
 }
 
+extern DLL_GLOBAL BOOL g_fGameOver;
+
 void CHalfLifeCaptureTheChumtoad::PlayerThink( CBasePlayer *pPlayer )
 {
 	CHalfLifeMultiplay::PlayerThink(pPlayer);
 
 	if (m_flIntermissionEndTime)
 		return;
+
+	if (!g_fGameOver)
+	{
+		// End session if hit round limit
+		if ( pPlayer->m_iRoundWins >= scorelimit.value )
+		{
+			GoToIntermission();
+			return;
+		}
+	}
 
 	// Updates once per second
 	int time_remaining = (int)gpGlobals->time;
@@ -302,7 +314,7 @@ void CHalfLifeCaptureTheChumtoad::PlayerThink( CBasePlayer *pPlayer )
 			{
 				pPlayer->m_iChumtoadCounter++;
 				message = UTIL_VarArgs("Running with the Chumtoad!\nPoints: %d | Timer: %d", 
-						(int)pPlayer->pev->frags, pPlayer->m_iChumtoadCounter);
+						(int)pPlayer->m_iRoundWins, pPlayer->m_iChumtoadCounter);
 				scoringPoints = TRUE;
 			}
 			else
@@ -324,12 +336,12 @@ void CHalfLifeCaptureTheChumtoad::PlayerThink( CBasePlayer *pPlayer )
 				int secondsUntilPoint = ctcsecondsforpoint.value > 0 ? ctcsecondsforpoint.value : 10;
 				if (pPlayer->m_iChumtoadCounter % secondsUntilPoint == 0)
 				{
-					pPlayer->pev->frags++;
+					pPlayer->m_iRoundWins++;
 					MESSAGE_BEGIN( MSG_ALL, gmsgScoreInfo );
 						WRITE_BYTE( ENTINDEX(pPlayer->edict()) );
 						WRITE_SHORT( pPlayer->pev->frags );
 						WRITE_SHORT( pPlayer->m_iDeaths );
-						WRITE_SHORT( 0 );
+						WRITE_SHORT( pPlayer->m_iRoundWins );
 						WRITE_SHORT( 0 );
 					MESSAGE_END();
 
@@ -518,6 +530,12 @@ BOOL CHalfLifeCaptureTheChumtoad::ShouldAutoAim( CBasePlayer *pPlayer, edict_t *
 BOOL CHalfLifeCaptureTheChumtoad::MutatorAllowed(const char *mutator)
 {
 	if (strstr(mutator, g_szMutators[MUTATOR_CHUMXPLODE - 1]) || atoi(mutator) == MUTATOR_CHUMXPLODE)
+		return FALSE;
+
+	if (strstr(mutator, g_szMutators[MUTATOR_NOCLIP - 1]) || atoi(mutator) == MUTATOR_NOCLIP)
+		return FALSE;
+
+	if (strstr(mutator, g_szMutators[MUTATOR_DONTSHOOT - 1]) || atoi(mutator) == MUTATOR_DONTSHOOT)
 		return FALSE;
 
 	return CHalfLifeMultiplay::MutatorAllowed(mutator);

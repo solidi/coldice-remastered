@@ -90,10 +90,7 @@ void CDisc::Spawn( void )
 	pev->solid = SOLID_TRIGGER;
 
 	// Setup model
-	//if ( m_iPowerupFlags & POW_HARD )
-	//	SET_MODEL(ENT(pev), "models/disc_hard.mdl");
-	//else
-		SET_MODEL(ENT(pev), "models/w_grenade.mdl");
+	SET_MODEL(ENT(pev), "models/w_grenade.mdl");
     pev->body = 1;
 	UTIL_SetSize(pev, Vector( -4,-4,-4 ), Vector(4, 4, 4));
 
@@ -116,6 +113,8 @@ void CDisc::Spawn( void )
 	//else
 		pev->velocity = gpGlobals->v_forward * DISC_VELOCITY;
 
+	pev->angles = UTIL_VecToAngles(pev->velocity);
+
 	// Pull our owner out so we will still touch it
 	if ( pev->owner )
 		m_hOwner = Instance(pev->owner);
@@ -132,7 +131,7 @@ void CDisc::Spawn( void )
 	else
 		WRITE_BYTE( 3 ); // life
 
-		WRITE_BYTE( 5 );  // width
+		WRITE_BYTE( 3 );  // width
 
 		WRITE_BYTE( g_iaDiscColors[pev->team][0] ); // r, g, b
 		WRITE_BYTE( g_iaDiscColors[pev->team][1] ); // r, g, b
@@ -149,7 +148,7 @@ void CDisc::Spawn( void )
 	pev->renderfx = kRenderFxGlowShell;
 	for (int i = 0; i <= 2;i ++)
 		pev->rendercolor[i] = g_iaDiscColors[pev->team][i];
-	pev->renderamt = 100;
+	pev->renderamt = 10;
 
 	pev->nextthink = gpGlobals->time + 0.1;
 }
@@ -157,17 +156,14 @@ void CDisc::Spawn( void )
 void CDisc::Precache( void )
 {
 	PRECACHE_MODEL("models/w_grenade.mdl");
-	//PRECACHE_MODEL("models/disc_hard.mdl");
 	PRECACHE_SOUND("weapons/cbar_hitbod1.wav");
 	PRECACHE_SOUND("weapons/cbar_hitbod2.wav");
 	PRECACHE_SOUND("weapons/cbar_hitbod3.wav");
-	//PRECACHE_SOUND("weapons/altfire.wav");
 	PRECACHE_SOUND("items/gunpickup2.wav");
 	PRECACHE_SOUND("weapons/electro5.wav");
 	PRECACHE_SOUND("weapons/xbow_hit1.wav");
 	PRECACHE_SOUND("weapons/xbow_hit2.wav");
 	PRECACHE_SOUND("weapons/rocket1.wav");
-	//PRECACHE_SOUND("dischit.wav");
 	m_iTrail = PRECACHE_MODEL("sprites/smoke.spr");
 	m_iSpriteTexture = PRECACHE_MODEL( "sprites/lgtning.spr" );
 }
@@ -286,7 +282,20 @@ void CDisc::DiscTouch ( CBaseEntity *pOther )
 					if ( m_bTeleported )
 						((CBasePlayer*)pOther)->m_flLastDiscHitTeleport = gpGlobals->time;
 
-					pOther->TakeDamage(pev, m_hOwner->pev, gSkillData.plrDmgCrowbar, DMG_SLASH);
+					UTIL_MakeVectors(pev->angles);
+					TraceResult tr;
+					Vector vecEnd = pev->origin + gpGlobals->v_forward * 32;
+					UTIL_TraceLine(pev->origin, vecEnd, dont_ignore_monsters, ENT(m_hOwner->pev), &tr);
+					
+					ClearMultiDamage();
+					pOther->TraceAttack(m_hOwner->pev, gSkillData.plrDmgCrowbar, gpGlobals->v_forward, &tr, DMG_SLASH);
+					ApplyMultiDamage(pev, m_hOwner->pev);
+
+					if (tr.iHitgroup == HITGROUP_HEAD)
+					{
+						((CBasePlayer*)pOther)->pev->health = 0; // without this, player can walk as a ghost.
+						((CBasePlayer*)pOther)->Killed(m_hOwner->pev, GIB_NEVER);
+					}
 
 					m_fDontTouchEnemies = gpGlobals->time + 2.0;
 				}
@@ -326,6 +335,7 @@ void CDisc::DiscTouch ( CBaseEntity *pOther )
 		}
 
 		UTIL_Sparks( pev->origin );
+		pev->angles = UTIL_VecToAngles(pev->velocity);
 	}
 }
 

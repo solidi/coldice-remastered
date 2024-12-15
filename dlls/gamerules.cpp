@@ -724,8 +724,9 @@ BOOL CGameRules::WeaponMutators( CBasePlayerWeapon *pWeapon )
 
 			if (MutatorEnabled(MUTATOR_PUSHY))
 			{
+				pWeapon->m_pPlayer->pev->flags &= ~FL_ONGROUND;
 				UTIL_MakeVectors( pWeapon->m_pPlayer->pev->v_angle );
-				pWeapon->m_pPlayer->pev->velocity = pWeapon->m_pPlayer->pev->velocity - gpGlobals->v_forward * RANDOM_FLOAT(50,100) * 5;
+				pWeapon->m_pPlayer->pev->velocity = pWeapon->m_pPlayer->pev->velocity - gpGlobals->v_forward * RANDOM_FLOAT(50,100) * 3;
 			}
 		}
 	}
@@ -778,8 +779,6 @@ void CGameRules::SpawnMutators(CBasePlayer *pPlayer)
 		{
 			pPlayer->pev->body = 0;
 			pPlayer->SetBodygroup( 2, 1 );
-			//pPlayer->m_EFlags &= ~EFLAG_CANCEL;
-			//pPlayer->m_EFlags |= EFLAG_JEEP;
 		}
 	}
 
@@ -917,6 +916,14 @@ void CGameRules::GiveMutators(CBasePlayer *pPlayer)
 	if (MutatorEnabled(MUTATOR_LONGJUMP)) {
 		if (!pPlayer->m_fLongJump && (pPlayer->pev->weapons & (1<<WEAPON_SUIT)))
 			pPlayer->GiveNamedItem("item_longjump");
+	}
+
+	if (MutatorEnabled(MUTATOR_GODMODE)) {
+		if (!pPlayer->HasNamedPlayerItem("weapon_vice"))
+		{
+			pPlayer->GiveNamedItem("weapon_vice");
+			pPlayer->SelectItem("weapon_vice");
+		}
 	}
 }
 
@@ -1410,10 +1417,10 @@ void CGameRules::MutatorsThink(void)
 							UTIL_SetOrigin(pl->pev, VARS(pentSpawnSpot)->origin + Vector(0,0,1));
 							pl->pev->angles = VARS(pentSpawnSpot)->angles;
 							CBaseEntity *ent = NULL;
-							while ( (ent = UTIL_FindEntityInSphere( ent, pl->pev->origin, 128 )) != NULL )
+							while ( (ent = UTIL_FindEntityInSphere( ent, pl->pev->origin, 64 )) != NULL )
 							{
 								// if ent is a client, kill em (unless they are ourselves)
-								if ( ent->IsPlayer() && !(ent->edict() == pentSpawnSpot) && ent->IsAlive() && !ent->pev->iuser1 )
+								if ( ent->IsPlayer() && ent->IsAlive() && ent->edict() != pl->edict() && !ent->pev->iuser1 )
 								{
 									ClearMultiDamage();
 									ent->pev->health = 0; // without this, player can walk as a ghost.

@@ -2044,7 +2044,7 @@ int CStudioModelRenderer::StudioDrawPlayer( int flags, entity_state_t *pplayer )
 		crate = FALSE;
 		int modelindex;
 		m_pRenderModel = gEngfuncs.CL_LoadModel("models/w_weapons.mdl", &modelindex );
-		if (m_pCurrentEntity->curstate.fuser4 > 49)
+		if (m_pCurrentEntity->curstate.fuser4 >= 52)
 		{
 			m_pRenderModel = gEngfuncs.CL_LoadModel("models/w_ammo.mdl", &modelindex );
 		}
@@ -2088,7 +2088,7 @@ int CStudioModelRenderer::StudioDrawPlayer( int flags, entity_state_t *pplayer )
 	
 	if (prophunt)
 	{
-		m_pCurrentEntity->curstate.body = m_pCurrentEntity->curstate.fuser4 >= 50 ? m_pCurrentEntity->curstate.fuser4 - 49 : m_pCurrentEntity->curstate.fuser4;
+		m_pCurrentEntity->curstate.body = m_pCurrentEntity->curstate.fuser4 >= 52 ? m_pCurrentEntity->curstate.fuser4 - 52 : m_pCurrentEntity->curstate.fuser4;
 		m_pCurrentEntity->curstate.skin = gHUD.m_IceModelsIndex;
 		m_pCurrentEntity->origin[2] = m_pCurrentEntity->origin[2] - 36;
 		m_pCurrentEntity->angles = Vector(0,0,0);

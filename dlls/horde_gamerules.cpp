@@ -923,3 +923,19 @@ BOOL CHalfLifeHorde::IsRoundBased( void )
 {
 	return TRUE;
 }
+
+BOOL CHalfLifeHorde::CanHavePlayerItem( CBasePlayer *pPlayer, CBasePlayerItem *pItem )
+{
+	if (!strcmp(STRING(pItem->pev->classname), "weapon_nuke"))
+		return FALSE;
+
+	return CHalfLifeMultiplay::CanHavePlayerItem( pPlayer, pItem );
+}
+
+BOOL CHalfLifeHorde::CanRandomizeWeapon( const char *name )
+{
+	if (strcmp(name, "weapon_nuke") == 0)
+		return FALSE;
+
+	return TRUE;
+}

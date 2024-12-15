@@ -626,6 +626,8 @@ void CHalfLifeCaptureTheFlag::PlayerSpawn( CBasePlayer *pPlayer )
 	CHalfLifeMultiplay::SavePlayerModel(pPlayer);
 }
 
+extern DLL_GLOBAL BOOL g_fGameOver;
+
 void CHalfLifeCaptureTheFlag::ClientUserInfoChanged( CBasePlayer *pPlayer, char *infobuffer )
 {
 	// prevent skin/color/model changes
@@ -633,7 +635,14 @@ void CHalfLifeCaptureTheFlag::ClientUserInfoChanged( CBasePlayer *pPlayer, char 
 	char *mdls = g_engfuncs.pfnInfoKeyValue( infobuffer, "model" );
 	int clientIndex = pPlayer->entindex();
 
+	if ( !pPlayer->m_szTeamName || !strlen(pPlayer->m_szTeamName) )
+		return;
+
 	if ( !stricmp( mdls, pPlayer->m_szTeamName ) )
+		return;
+
+	// Ignore ctf on model changing back.
+	if ( g_fGameOver )
 		return;
 
 	// prevent skin/color/model changes

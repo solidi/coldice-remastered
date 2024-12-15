@@ -798,6 +798,25 @@ void V_CalcNormalRefdef ( struct ref_params_s *pparams )
 		}
 	}
 
+/*
+	// running hold down viewmodel
+	float holdTarget = 0;
+	float holdTargetYaw = 0;
+	if (fabs(pparams->simvel[0]) > 150 || fabs(pparams->simvel[1]) > 150)
+	{
+		holdTarget = -20;
+		holdTargetYaw = 25 * (90 - fabs(pparams->viewangles[PITCH])) / 90;
+	}
+
+	static float lerpedHold = 0;
+	static float lerpedHoldYaw = 0;
+	lerpedHold = lerp(lerpedHold, holdTarget, gHUD.m_flTimeDelta * 3.0f);
+	lerpedHoldYaw = lerp(lerpedHoldYaw, holdTargetYaw, gHUD.m_flTimeDelta * 3.0f);
+
+	view->angles[PITCH] += lerpedHold;
+	view->angles[YAW] += lerpedHoldYaw;
+*/
+
 	if (gEngfuncs.GetMaxClients() == 1)
 	{
 		if (MutatorEnabled(MUTATOR_TOPSYTURVY) &&
@@ -2291,6 +2310,10 @@ void V_IronSight( Vector position, Vector punch, float clientTime, float frameTi
 
 	// No dual wield support
 	if (!strncmp(viewModel->model->name, "models/v_dual_", strlen("models/v_dual_")))
+		return;
+
+	// Needs second attachment for flames, disale for now.
+	if (!strncmp(viewModel->model->name, "models/v_flamethrower", strlen("models/v_flamethrower")))
 		return;
 
 	if (CL_IsThirdPerson())

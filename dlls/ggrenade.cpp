@@ -517,6 +517,7 @@ CGrenade * CGrenade:: ShootTimed( entvars_t *pevOwner, Vector vecStart, Vector v
 	}
 
 	SET_MODEL(ENT(pGrenade->pev), "models/w_grenade.mdl");
+	pGrenade->pev->body = 0;
 	pGrenade->pev->sequence = RANDOM_LONG( 4, 7 );
 	pGrenade->pev->framerate = 1.0;
 	pGrenade->ResetSequenceInfo();
@@ -618,6 +619,7 @@ CGrenade *CGrenade::ShootTimedCluster( entvars_t *pevOwner, Vector vecStart, Vec
     pGrenade->pev->friction = 0.8;
 
     SET_MODEL(ENT(pGrenade->pev), "models/w_grenade.mdl");
+	pGrenade->pev->body = 0;
     pGrenade->pev->dmg = gSkillData.plrDmgClusterGrenade;
 
     return pGrenade;

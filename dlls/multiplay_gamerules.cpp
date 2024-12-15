@@ -257,6 +257,7 @@ char *gamePlayModes[] = {
 	"Busters",
 	"Chilldemic",
 	"Cold Skulls",
+	"Cold Spot",
 	"Capture The Chumtoad",
 	"Capture The Flag",
 	"GunGame",
@@ -493,21 +494,24 @@ void CHalfLifeMultiplay :: Think ( void )
 
 				int highest = -9999;
 				int gameIndex = GAME_FFA;
-				int tie = -9999;
 				for (int i = 0; i <= TOTAL_GAME_MODES + 1 /*random*/; i++)
 				{
 					if (highest <= vote[i])
 					{
-						if (highest == vote[i])
-							tie = highest;
-						highest = vote[i];
-						gameIndex = i;
+						// Tie, determine random if this index should be selected instead.
+						if (highest == vote[i]) {
+							if (RANDOM_LONG(0, 1)) {
+								gameIndex = i;
+							}
+						}
+						else
+						{
+							highest = vote[i];
+							gameIndex = i;
+						}
 						// ALERT(at_console, "highest=%d, vote[i]=%d, gameIndex=%d\n", highest, vote[i], gameIndex);
 					}
 				}
-
-				if (highest == tie)
-					gameIndex = TOTAL_GAME_MODES + 1; // randomize!
 
 				memset(m_iVoteCount, -1, sizeof(m_iVoteCount));
 
@@ -709,21 +713,24 @@ void CHalfLifeMultiplay :: Think ( void )
 
 				int highest = -9999;
 				int mapIndex = 0;
-				int tie = -9999;
 				for (int i = 0; i < BUILT_IN_MAP_COUNT + 1 /*random*/; i++)
 				{
 					if (highest <= vote[i])
 					{
-						if (highest == vote[i])
-							tie = highest;
-						highest = vote[i];
-						m_iDecidedMapIndex = mapIndex = i;
+						// Tie, determine random if this index should be selected instead.
+						if (highest == vote[i]) {
+							if (RANDOM_LONG(0, 1)) {
+								m_iDecidedMapIndex = mapIndex = i;
+							}
+						}
+						else
+						{
+							highest = vote[i];
+							m_iDecidedMapIndex = mapIndex = i;
+						}
 						// ALERT(at_console, "highest=%d, vote[i]=%d, mapIndex=%d\n", highest, vote[i], mapIndex);
 					}
 				}
-
-				if (highest == tie)
-					m_iDecidedMapIndex = BUILT_IN_MAP_COUNT; // randomize if tied!
 
 				if (highest <= 0)
 				{
@@ -759,6 +766,7 @@ void CHalfLifeMultiplay :: Think ( void )
 	float flTimeLimit = timelimit.value * 60;
 	float flFragLimit = fraglimit.value;
 	if (g_GameMode == GAME_BUSTERS ||
+		g_GameMode == GAME_CTC ||
 		g_GameMode == GAME_CTF ||
 		g_GameMode == GAME_COLDSPOT ||
 		g_GameMode == GAME_GUNGAME)

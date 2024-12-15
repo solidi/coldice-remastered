@@ -740,6 +740,15 @@ BOOL CHalfLifeChilldemic::CanHavePlayerItem( CBasePlayer *pPlayer, CBasePlayerIt
 	if (!strcmp(STRING(pItem->pev->classname), "weapon_nuke"))
 		return FALSE;
 
+	if (pPlayer->pev->fuser4 > 0 &&
+		strcmp(STRING(pItem->pev->classname), "weapon_fists") &&
+		strcmp(STRING(pItem->pev->classname), "weapon_chainsaw") &&
+		strcmp(STRING(pItem->pev->classname), "weapon_knife") &&
+		strcmp(STRING(pItem->pev->classname), "weapon_crowbar") &&
+		strcmp(STRING(pItem->pev->classname), "weapon_wrench") &&
+		strcmp(STRING(pItem->pev->classname), "weapon_dual_wrench"))
+		return FALSE;
+
 	return CHalfLifeMultiplay::CanHavePlayerItem( pPlayer, pItem );
 }
 

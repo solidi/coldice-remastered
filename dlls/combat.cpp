@@ -473,8 +473,6 @@ Activity CBaseMonster :: GetDeathActivity ( void )
 		switch ( m_LastHitGroup )
 		{
 			case HITGROUP_HEAD:
-			case HITGROUP_CHEST:
-			case HITGROUP_GENERIC:
 				CGib::SpawnHeadGib( pev, TRUE );
 				SetBodygroup( 0, 1 );
 				deathActivity = ACT_DIE_HEADSHOT;
@@ -776,6 +774,59 @@ void CBaseEntity :: SUB_FadeOutFast ( void  )
 		pev->renderamt = 0;
 		pev->nextthink = gpGlobals->time + 0.2;
 		SetThink ( &CBaseEntity::SUB_Remove );
+	}
+}
+
+void CBaseEntity :: SUB_FadeOutFast_NoRemove ( void )
+{
+	if (pev->renderfx == kRenderFxGlowShell)
+		pev->renderfx = kRenderFxNone;
+
+	if (pev->rendermode == kRenderNormal)
+	{
+		pev->renderamt = 255;
+		pev->rendermode = kRenderTransTexture;
+	}
+
+	if ( pev->renderamt > 0 )
+	{
+		pev->renderamt -= 3;
+		//pev->nextthink = gpGlobals->time + 0.1;
+	}
+	else
+	{
+		pev->renderamt = 0;
+		//pev->nextthink = -1;
+	}
+}
+
+void CBaseEntity :: SUB_StartFadeIn ( void )
+{
+	//if (pev->rendermode == kRenderNormal)
+	{
+		pev->renderamt = 0;
+		pev->rendermode = kRenderTransAdd;
+	}
+
+	//pev->solid = SOLID_NOT;
+	//pev->avelocity = g_vecZero;
+
+	pev->nextthink = gpGlobals->time + 0.1;
+	SetThink ( &CBaseEntity::SUB_FadeIn );
+}
+
+void CBaseEntity :: SUB_FadeIn ( void )
+{
+	if ( pev->renderamt < 255 )
+	{
+		pev->renderamt += 7;
+		pev->nextthink = gpGlobals->time + 0.1;
+	}
+	else 
+	{
+		pev->renderamt = 255;
+		pev->nextthink = gpGlobals->time + 0.2;
+		SetThink ( &CBaseEntity::SUB_DoNothing );
 	}
 }
 

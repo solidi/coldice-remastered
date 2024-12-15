@@ -351,7 +351,7 @@ int CHud :: Redraw( float flTime, int intermission )
 	{
 		if (m_fPlayerDeadTime && m_fPlayerDeadTime > gEngfuncs.GetClientTime())
 		{
-			int max = ScreenWidth / 2, height = 18, w = 0, h = 0;
+			int max = fmin(ScreenWidth / 2, 350), height = 18, w = 0, h = 0;
 			float timeLeft = fmin((m_fPlayerDeadTime - gEngfuncs.GetClientTime()) * 100, max);
 			char message[64];
 			sprintf(message, "Can respawn in %d ...\n",  (int)m_fPlayerDeadTime - (int)gEngfuncs.GetClientTime());

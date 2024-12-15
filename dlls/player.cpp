@@ -921,11 +921,10 @@ void CBasePlayer::PackDeadPlayerItems( void )
 	{
 		// TODO: bot may have not of had an active item?
 	}
-	else if (iPW == 1 && FStrEq("weapon_fists", STRING(rgpPackWeapons[0]->pev->classname)))
-	{
-		// TODO: do something special if only packed fists
-	}
-	else if (iPW == 1 && FStrEq("weapon_nuke", STRING(rgpPackWeapons[0]->pev->classname)))
+	else if (iPW == 1 && 
+			(FStrEq("weapon_fists", STRING(rgpPackWeapons[0]->pev->classname)) ||
+			FStrEq("weapon_vice", STRING(rgpPackWeapons[0]->pev->classname)) ||
+			FStrEq("weapon_nuke", STRING(rgpPackWeapons[0]->pev->classname))) )
 	{
 		// TODO: do something special if only packed nuke
 	}
@@ -1382,7 +1381,8 @@ void CBasePlayer::SetAnimation( PLAYER_ANIM playerAnim )
 
 	if (g_pGameRules->IsPropHunt() && pev->fuser4 > 0)
 	{
-		int ideal = pev->fuser4 >= 50 ? ((pev->fuser4 - 49) * 2) + floatingweapons.value : (pev->fuser4 * 2) + floatingweapons.value;
+		int maxWeaponModels = 52; //dual handg
+		int ideal = pev->fuser4 >= maxWeaponModels ? ((pev->fuser4 - maxWeaponModels) * 2) + floatingweapons.value : (pev->fuser4 * 2) + floatingweapons.value;
 		if (pev->sequence == ideal)
 			return;
 
@@ -1677,11 +1677,17 @@ void CBasePlayer::PlayerDeathThink(void)
 		}
 	}
 
+	if (FBitSet(m_EFlags, EFLAG_TAUNT))
+	{
+		m_EFlags &= ~EFLAG_TAUNT;
+		m_EFlags |= EFLAG_CANCEL;
+	}
+
 	if ( HasWeapons() )
 	{
 		// If we got killed during these events, cancel them
 		m_EFlags &= ~EFLAG_PLAYERKICK & ~EFLAG_SLIDE & ~EFLAG_HURRICANE;
-		m_EFlags &= ~EFLAG_TAUNT & ~EFLAG_FORCEGRAB & ~EFLAG_THROW;
+		m_EFlags &= ~EFLAG_FORCEGRAB & ~EFLAG_THROW;
 
 		// we drop the guns here because weapons that have an area effect and can kill their user
 		// will sometimes crash coming back from CBasePlayer::Killed() if they kill their owner because the
@@ -3815,7 +3821,7 @@ edict_t *EntSelectSpawnPoint( CBaseEntity *pPlayer )
 		if ( !FNullEnt( pSpot ) )
 		{
 			CBaseEntity *ent = NULL;
-			while ( (ent = UTIL_FindEntityInSphere( ent, pSpot->pev->origin, 128 )) != NULL )
+			while ( (ent = UTIL_FindEntityInSphere( ent, pSpot->pev->origin, 64 )) != NULL )
 			{
 				// if ent is a client, kill em (unless they are ourselves)
 				if ( ent->IsPlayer() && !(ent->edict() == player) && ent->IsAlive() && !ent->pev->iuser1 )
@@ -4212,6 +4218,13 @@ void CBasePlayer::SelectItem(const char *pstr)
 		return;
 
 	ResetAutoaim( );
+
+	if (FBitSet(m_EFlags, EFLAG_TAUNT))
+	{
+		m_EFlags &= ~EFLAG_TAUNT;
+		m_EFlags |= EFLAG_CANCEL;
+		m_fTauntFullTime = m_fTauntCancelTime = 0;
+	}
 
 	// FIX, this needs to queue them up and delay
 	if (m_pActiveItem && m_pActiveItem->m_pPlayer)
@@ -7047,6 +7060,53 @@ BOOL CBasePlayer::HasNamedPlayerItem( const char *pszItemName )
 	return FALSE;
 }
 
+BOOL CBasePlayer::GetHeaviestWeapon( CBasePlayerItem *pCurrentWeapon )
+{
+	CBasePlayerItem *pCheck;
+	CBasePlayerItem *pBest = NULL;// this will be used in the event that we don't find a weapon in the same category.
+	int iBestWeight = -1;// no weapon lower than -1 can be autoswitched to
+
+	for ( int i = 0 ; i < MAX_ITEM_TYPES ; i++ )
+	{
+		pCheck = m_rgpPlayerItems[ i ];
+		ALERT(at_aiconsole, "i=%d\n", i);
+
+		while ( pCheck && pCheck->m_pPlayer )
+		{
+			ALERT(at_aiconsole, "pCheck->iWeight()=%d\n", pCheck->iWeight());
+			if ( pCheck->iWeight() > iBestWeight && pCheck != pCurrentWeapon )
+			{
+				ALERT ( at_console, "Considering %s\n", STRING( pCheck->pev->classname ) );
+				// we keep updating the 'best' weapon just in case we can't find a weapon of the same weight
+				// that the player was using. This will end up leaving the player with his heaviest-weighted
+				// weapon.
+				if ( pCheck->CanDeploy() )
+				{
+					ALERT(at_aiconsole, "iBestWeight=%d\n", iBestWeight);
+					// if this weapon is useable, flag it as the best
+					iBestWeight = pCheck->iWeight();
+					pBest = pCheck;
+					ALERT(at_aiconsole, "pBest=%s\n", STRING(pBest->pev->classname));
+				}
+			}
+
+			ALERT(at_aiconsole, "pCheck->m_pNext!\n");
+			pCheck = pCheck->m_pNext;
+		}
+	}
+
+	if ( !pBest )
+	{
+		ALERT(at_aiconsole, "!pBest\n");
+		return FALSE;
+	}
+
+	ALERT(at_aiconsole, "SwitchWeapon(%s)\n", STRING(pBest->pev->classname));
+	SwitchWeapon( pBest );
+
+	return TRUE;
+}
+
 //=========================================================
 // 
 //=========================================================
@@ -7058,6 +7118,13 @@ BOOL CBasePlayer :: SwitchWeapon( CBasePlayerItem *pWeapon )
 	}
 	
 	ResetAutoaim( );
+
+	if (FBitSet(m_EFlags, EFLAG_TAUNT))
+	{
+		m_EFlags &= ~EFLAG_TAUNT;
+		m_EFlags |= EFLAG_CANCEL;
+		m_fTauntFullTime = m_fTauntCancelTime = 0;
+	}
 	
 	if (m_pActiveItem && m_pActiveItem->m_pPlayer)
 	{
