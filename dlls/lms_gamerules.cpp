@@ -230,7 +230,7 @@ void CHalfLifeLastManStanding::Think( void )
 				MESSAGE_END();
 			}
 			UTIL_ClientPrintAll(HUD_PRINTCENTER,
-				UTIL_VarArgs("Prepare for LMS battle\n\n%i...\n", m_iCountDown));
+				UTIL_VarArgs("Prepare for Battle Royale\n\n%i...\n", m_iCountDown));
 			SuckAllToSpectator(); // in case players join during a countdown.
 			m_iCountDown--;
 			flUpdateTime = gpGlobals->time + 1.0;

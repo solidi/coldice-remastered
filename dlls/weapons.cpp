@@ -1172,6 +1172,7 @@ void CBasePlayerWeapon::ItemPostFrame( void )
 		else if ((m_pPlayer->pev->button & IN_ATTACK2) &&
 				CanAttack( m_flNextSecondaryAttack, gpGlobals->time, UseDecrement() ))
 		{
+			UTIL_ScreenFade( m_pPlayer, Vector(0, 255, 0), 0.25, 0.50, 96, FFADE_IN);
 			EMIT_SOUND_DYN( m_pPlayer->edict(), CHAN_WEAPON, "fart.wav", 1.0, ATTN_NORM, 0, 98 + RANDOM_LONG(-20,20)); 
 			::RadiusDamage( m_pPlayer->pev->origin, m_pPlayer->pev, m_pPlayer->pev, 800, 256, CLASS_NONE, DMG_FART );
 			MESSAGE_BEGIN( MSG_PVS, SVC_TEMPENTITY, m_pPlayer->pev->origin );
@@ -1183,14 +1184,6 @@ void CBasePlayerWeapon::ItemPostFrame( void )
 				WRITE_BYTE( 96 ); // scale * 10
 				WRITE_BYTE( 4 ); // framerate
 			MESSAGE_END();
-
-			if ( !(m_pPlayer->pev->flags & FL_ONGROUND) )
-			{
-				UTIL_MakeVectors(m_pPlayer->pev->v_angle);
-				int q = 1;
-				if (signbit(DotProduct(gpGlobals->v_forward, m_pPlayer->pev->velocity))) q = -1;
-				m_pPlayer->pev->velocity = m_pPlayer->pev->velocity + (gpGlobals->v_forward * 400 * q) + gpGlobals->v_up * 300;
-			}
 
 			m_flNextPrimaryAttack = m_flNextSecondaryAttack =  UTIL_WeaponTimeBase() + 0.75;
 			m_pPlayer->pev->button &= ~IN_ATTACK;
