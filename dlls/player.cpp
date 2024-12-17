@@ -4544,7 +4544,7 @@ void CBasePlayer::GiveNamedItem( const char *pszName )
 		}
 	}
 
-	if (g_pGameRules->IsChilldemic() || g_pGameRules->IsJVS())
+	if (g_pGameRules->IsChilldemic() || g_pGameRules->IsJVS() || g_pGameRules->IsHorde())
 	{
 		if (strcmp(pszName, "weapon_nuke") == 0) {
 			// No nukes in these game modes.

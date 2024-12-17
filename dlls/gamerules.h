@@ -211,6 +211,7 @@ public:
 	virtual BOOL IsPropHunt();
 	virtual BOOL IsBusters();
 	virtual BOOL IsGunGame();
+	virtual BOOL IsHorde();
 
 	virtual BOOL AllowMeleeDrop() = 0;
 

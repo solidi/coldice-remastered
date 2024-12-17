@@ -22,9 +22,7 @@
 #include "player.h"
 #include "gamerules.h"
 
-#ifdef VICE
 LINK_ENTITY_TO_CLASS( weapon_vice, CVice );
-#endif
 
 enum vice_e {
 	VICE_IDLE = 0,

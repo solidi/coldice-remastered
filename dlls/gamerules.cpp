@@ -1710,3 +1710,8 @@ BOOL CGameRules::IsGunGame()
 {
 	return g_GameMode == GAME_GUNGAME;
 }
+
+BOOL CGameRules::IsHorde()
+{
+	return g_GameMode == GAME_HORDE;
+}
