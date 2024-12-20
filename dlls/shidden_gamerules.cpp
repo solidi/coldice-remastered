@@ -470,7 +470,6 @@ void CHalfLifeShidden::Think( void )
 			WRITE_STRING( "dealters" );
 		MESSAGE_END();
 
-		UTIL_ClientPrintAll(HUD_PRINTCENTER, UTIL_VarArgs("Shidden has begun!\n"));
 		UTIL_ClientPrintAll(HUD_PRINTTALK, UTIL_VarArgs("* %d players have entered the arena!\n", clients));
 	}
 	else
@@ -541,6 +540,7 @@ void CHalfLifeShidden::PlayerSpawn( CBasePlayer *pPlayer )
 		pPlayer->pev->gravity = 0.25;
 		pPlayer->MakeInvisible();
 		strncpy( pPlayer->m_szTeamName, "dealters", TEAM_NAME_LENGTH );
+		ClientPrint(pPlayer->pev, HUD_PRINTCENTER, "You are a dealter, fart the smelter(s)!");
 		//g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer->edict()), key, "team", pPlayer->m_szTeamName);
 	}
 	else
@@ -548,6 +548,7 @@ void CHalfLifeShidden::PlayerSpawn( CBasePlayer *pPlayer )
 		strncpy( pPlayer->m_szTeamName, "smelters", TEAM_NAME_LENGTH );
 		pPlayer->pev->fuser3 = 0; // bots need to identify their team.
 		pPlayer->MakeVisible();
+		ClientPrint(pPlayer->pev, HUD_PRINTCENTER, "You are a smelter, frag the dealter(s)!");
 		//g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer->edict()), key, "team", pPlayer->m_szTeamName);
 	}
 

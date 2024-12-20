@@ -454,7 +454,6 @@ void CHalfLifeChilldemic::Think( void )
 			WRITE_STRING( "skeleton" );
 		MESSAGE_END();
 
-		UTIL_ClientPrintAll(HUD_PRINTCENTER, UTIL_VarArgs("Chilldemic has begun!\n%s is the first skeleton!\n", STRING(pl->pev->netname)));
 		UTIL_ClientPrintAll(HUD_PRINTTALK, UTIL_VarArgs("* %d players have entered the arena!\n", clients));
 	}
 	else
@@ -628,6 +627,7 @@ void CHalfLifeChilldemic::PlayerSpawn( CBasePlayer *pPlayer )
 		strncpy( pPlayer->m_szTeamName, "skeleton", TEAM_NAME_LENGTH );
 		g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer->edict()), key, "model", "skeleton");
 		//g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer->edict()), key, "team", "skeleton");
+		ClientPrint(pPlayer->pev, HUD_PRINTCENTER, "You are a skeleton, infect others!");
 	}
 	else
 	{
@@ -642,6 +642,7 @@ void CHalfLifeChilldemic::PlayerSpawn( CBasePlayer *pPlayer )
 		strncpy( pPlayer->m_szTeamName, "survivors", TEAM_NAME_LENGTH );
 		g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer->edict()), key, "model", modelName);
 		//g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer->edict()), key, "team", "survivors");
+		ClientPrint(pPlayer->pev, HUD_PRINTCENTER, "You are a survivor, fight skeletons!");
 	}
 
 	// notify everyone's HUD of the team change

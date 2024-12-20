@@ -328,7 +328,6 @@ void CHalfLifeJesusVsSanta::Think( void )
 			WRITE_STRING( "jesus" );
 		MESSAGE_END();
 
-		UTIL_ClientPrintAll(HUD_PRINTCENTER, UTIL_VarArgs("Jesus vs Santa has begun!\n%s is Jesus!\n", STRING(pArmoredMan->pev->netname)));
 		UTIL_ClientPrintAll(HUD_PRINTTALK, UTIL_VarArgs("* %d players have entered the arena!\n", clients));
 	}
 	else
@@ -518,6 +517,7 @@ void CHalfLifeJesusVsSanta::PlayerSpawn( CBasePlayer *pPlayer )
 			g_engfuncs.pfnGetInfoKeyBuffer(pPlayer->edict()), "model", "jesus");
 		//g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer->edict()),
 		//	g_engfuncs.pfnGetInfoKeyBuffer(pPlayer->edict()), "team", "jesus");
+		ClientPrint(pPlayer->pev, HUD_PRINTCENTER, "You are Jesus, dispatch Santas!");
 	}
 	else
 	{
@@ -527,6 +527,7 @@ void CHalfLifeJesusVsSanta::PlayerSpawn( CBasePlayer *pPlayer )
 			g_engfuncs.pfnGetInfoKeyBuffer(pPlayer->edict()), "model", "santa");
 		//g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer->edict()),
 		//	g_engfuncs.pfnGetInfoKeyBuffer(pPlayer->edict()), "team", "santa");
+		ClientPrint(pPlayer->pev, HUD_PRINTCENTER, "You are a Santa, dispatch Jesus!");
 	}
 
 	// notify everyone's HUD of the team change
