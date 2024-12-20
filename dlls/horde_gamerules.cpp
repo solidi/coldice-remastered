@@ -37,8 +37,9 @@ const char *szMonsters[] = {
 	//"monster_headcrab",
 	//"monster_zombie",
 	//"monster_houndeye",
-	"monster_human_grunt",
 	"monster_panther",
+	"monster_human_assassin",
+	"monster_human_grunt",
 	"monster_gargantua"
 };
 

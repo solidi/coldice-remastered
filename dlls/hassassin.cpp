@@ -84,6 +84,8 @@ public:
 	void IdleSound ( void );
 	CUSTOM_SCHEDULES;
 
+	int TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int bitsDamageType );
+
 	int	Save( CSave &save ); 
 	int Restore( CRestore &restore );
 	static TYPEDESCRIPTION m_SaveData[];
@@ -281,6 +283,8 @@ void CHAssassin :: Spawn()
 {
 	Precache( );
 
+	pev->classname = MAKE_STRING("monster_human_assassin");
+
 	SET_MODEL(ENT(pev), "models/w_hassassin.mdl");
 	UTIL_SetSize(pev, VEC_HUMAN_HULL_MIN, VEC_HUMAN_HULL_MAX);
 
@@ -288,7 +292,7 @@ void CHAssassin :: Spawn()
 	pev->movetype		= MOVETYPE_STEP;
 	m_bloodColor		= iceblood.value ? BLOOD_COLOR_BLUE : BLOOD_COLOR_RED;
 	pev->effects		= 0;
-	pev->health			= gSkillData.hassassinHealth;
+	pev->health			= (g_pGameRules->IsMultiplayer()) ? gSkillData.hassassinHealth * 4 : gSkillData.hassassinHealth;
 	m_flFieldOfView		= VIEW_FIELD_WIDE; // indicates the width of this monster's forward view cone ( as a dotproduct result )
 	m_MonsterState		= MONSTERSTATE_NONE;
 	m_afCapability		= bits_CAP_MELEE_ATTACK1 | bits_CAP_DOORS_GROUP;
@@ -957,6 +961,17 @@ Schedule_t *CHAssassin :: GetSchedule ( void )
 	}
 
 	return CBaseMonster :: GetSchedule();
+}
+
+int CHAssassin :: TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int bitsDamageType )
+{
+	// For horde
+	if (g_pGameRules->IsMultiplayer())
+	{
+		flDamage *= 0.25;
+	}
+
+	return CBaseMonster :: TakeDamage ( pevInflictor, pevAttacker, flDamage, bitsDamageType );
 }
 
 //=========================================================
