@@ -671,7 +671,6 @@ void CHalfLifePropHunt::Think( void )
 			WRITE_STRING( "props" );
 		MESSAGE_END();
 
-		UTIL_ClientPrintAll(HUD_PRINTCENTER, UTIL_VarArgs("Prop Hunt has begun!\n"));
 		UTIL_ClientPrintAll(HUD_PRINTTALK, UTIL_VarArgs("* %d players have entered the arena!\n", clients));
 
 		flUpdateTime = gpGlobals->time; // force now, so hunter freeze immediately.
@@ -823,6 +822,7 @@ void CHalfLifePropHunt::PlayerSpawn( CBasePlayer *pPlayer )
 		pPlayer->pev->armorvalue = 0;
 		pPlayer->GiveNamedItem("weapon_handgrenade");
 		CLIENT_COMMAND(pPlayer->edict(), "thirdperson\n");
+		ClientPrint(pPlayer->pev, HUD_PRINTCENTER, "You are a prop, hide!");
 	}
 	else
 	{
