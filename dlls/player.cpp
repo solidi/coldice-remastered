@@ -5590,6 +5590,13 @@ void CBasePlayer::StartForceGrab( void )
 	if (m_fOffhandTime >= gpGlobals->time)
 		return;
 
+	if ( g_pGameRules->IsInstagib() )
+	{
+		ClientPrint(pev, HUD_PRINTCENTER, "Forcegrab disabled in this gamemode.");
+		m_fOffhandTime = gpGlobals->time + 0.5;
+		return;
+	}
+
 	// Prop limitation
 	if ( g_pGameRules->IsPropHunt() && pev->fuser4 > 0 )
 		return;
