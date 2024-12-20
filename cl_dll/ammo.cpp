@@ -985,6 +985,12 @@ int CHudAmmo::Draw(float flTime)
 			GetConsoleStringSize("Farts!", &w, &h);
 			DrawConsoleString(ScreenWidth / 2 - (w / 2), (ScreenHeight / 2) + (h * 2), "Farts!");
 		}
+		else if (MutatorEnabled(MUTATOR_NORELOAD))
+		{
+			int w = 0, h = 0;
+			GetConsoleStringSize("No reload", &w, &h);
+			DrawConsoleString(ScreenWidth / 2 - (w / 2), (ScreenHeight / 2) + (h * 2), "Slow weapons");
+		}
 	}
 
 	float up = cl_hudbend->value ? 1.5 : 1;
