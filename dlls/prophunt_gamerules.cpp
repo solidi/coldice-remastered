@@ -1059,3 +1059,37 @@ BOOL CHalfLifePropHunt::IsRoundBased( void )
 {
 	return TRUE;
 }
+
+BOOL CHalfLifePropHunt::FPlayerCanRespawn( CBasePlayer *pPlayer )
+{
+	if ( !pPlayer->m_flForceToObserverTime )
+		pPlayer->m_flForceToObserverTime = gpGlobals->time + 3.0;
+
+	return FALSE;
+}
+
+BOOL CHalfLifePropHunt::MutatorAllowed(const char *mutator)
+{
+	if (strstr(mutator, g_szMutators[MUTATOR_SANTAHAT - 1]) || atoi(mutator) == MUTATOR_SANTAHAT)
+		return FALSE;
+
+	if (strstr(mutator, g_szMutators[MUTATOR_PIRATEHAT - 1]) || atoi(mutator) == MUTATOR_PIRATEHAT)
+		return FALSE;
+
+	if (strstr(mutator, g_szMutators[MUTATOR_COWBOY - 1]) || atoi(mutator) == MUTATOR_COWBOY)
+		return FALSE;
+
+	if (strstr(mutator, g_szMutators[MUTATOR_MARSHMELLO - 1]) || atoi(mutator) == MUTATOR_MARSHMELLO)
+		return FALSE;
+
+	if (strstr(mutator, g_szMutators[MUTATOR_JACK - 1]) || atoi(mutator) == MUTATOR_JACK)
+		return FALSE;
+
+	if (strstr(mutator, g_szMutators[MUTATOR_PUMPKIN - 1]) || atoi(mutator) == MUTATOR_PUMPKIN)
+		return FALSE;
+
+	if (strstr(mutator, g_szMutators[MUTATOR_TOILET - 1]) || atoi(mutator) == MUTATOR_TOILET)
+		return FALSE;
+
+	return CHalfLifeMultiplay::MutatorAllowed(mutator);
+}
