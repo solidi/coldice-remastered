@@ -925,6 +925,14 @@ void CGameRules::GiveMutators(CBasePlayer *pPlayer)
 			pPlayer->SelectItem("weapon_vice");
 		}
 	}
+
+	if (MutatorEnabled(MUTATOR_DONTSHOOT)) {
+		if (!pPlayer->HasNamedPlayerItem("weapon_fingergun"))
+		{
+			pPlayer->GiveNamedItem("weapon_fingergun");
+			pPlayer->SelectItem("weapon_fingergun");
+		}
+	}
 }
 
 const char *entityList[] =
