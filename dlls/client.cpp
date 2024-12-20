@@ -1328,6 +1328,7 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_roundfraglimit\" - Sets the max frags in a round during an 1 on 1 arena\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_roundlimit\" - Sets the maximum amount of game rounds before a map change\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_roundtimelimit\" - Sets the maximum amount of time a round will run\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_roundwaittime\" - seconds until round begins\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_snowballfight [0|1]\" - Replace all weapons with deadly snowballs!\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_spawnitems\" - Spawn items or not\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_spawnprotectiontime\" - amount of time in seconds a player is protected from damage\n");

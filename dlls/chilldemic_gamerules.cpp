@@ -392,7 +392,7 @@ void CHalfLifeChilldemic::Think( void )
 	if ( clients > 1 )
 	{
 		if ( m_fWaitForPlayersTime == -1 )
-			m_fWaitForPlayersTime = gpGlobals->time + 15.0;
+			m_fWaitForPlayersTime = gpGlobals->time + roundwaittime.value;
 
 		if ( m_fWaitForPlayersTime > gpGlobals->time )
 		{
@@ -467,7 +467,7 @@ void CHalfLifeChilldemic::Think( void )
 			WRITE_BYTE(0);
 			WRITE_STRING(UTIL_VarArgs("%d Rounds", (int)roundlimit.value));
 		MESSAGE_END();
-		m_fWaitForPlayersTime = gpGlobals->time + 15.0;
+		m_fWaitForPlayersTime = gpGlobals->time + roundwaittime.value;
 	}
 
 	flUpdateTime = gpGlobals->time + 1.0;
