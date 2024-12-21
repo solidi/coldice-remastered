@@ -265,6 +265,10 @@ void CVoteGameplayPanel::Update()
 		}
 	}
 
+	int r, g, b, a = 0;
+	UnpackRGB(r, g, b, HudColor());
+	m_pScrollPanel->setBorder( new LineBorder( Color(r, g, b, 0) ) );
+
 	for ( int i = 0; i <= MAX_MODES; i++ )
 	{
 		if (m_pButtons[i])
@@ -278,8 +282,6 @@ void CVoteGameplayPanel::Update()
 			if ((myVote - 1) == i)
 				m_pButtons[i]->setArmed(true);
 
-			int r, g, b, a = 0;
-			UnpackRGB(r, g, b, HudColor());
 			m_pButtons[i]->setUnArmedColor(r, g, b, 0);
 			pTitleLabel->setFgColor( r, g, b, 0 );
 			if (votes[i] > 0)
