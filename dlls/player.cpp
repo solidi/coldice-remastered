@@ -2115,6 +2115,12 @@ void CBasePlayer::ClimbingPhysics()
 	if (!acrobatics.value)
 		return;
 
+	if (pev->iuser1)
+		return;
+	
+	if (g_pGameRules->MutatorEnabled(MUTATOR_NOCLIP))
+		return;
+
 	// Prevent running double jump flip with grapple attempt
 	if (m_fFlipTime >= gpGlobals->time)
 		return;
