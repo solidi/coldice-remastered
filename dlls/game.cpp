@@ -91,6 +91,7 @@ cvar_t	mutatortime = {"sv_mutatortime","30", FCVAR_SERVER };
 cvar_t	coldspotspawn = {"mp_coldspotspawn","info_player_deathmatch", FCVAR_SERVER };
 cvar_t	coldspottime = {"mp_coldspottime","30", FCVAR_SERVER };
 cvar_t	scorelimit = {"mp_scorelimit","100", FCVAR_SERVER };
+cvar_t	roundwaittime = {"mp_roundwaittime","10", FCVAR_SERVER };
 
 cvar_t  allow_spectators = { "allow_spectators", "0.0", FCVAR_SERVER };		// 0 prevents players from being spectators
 
@@ -754,6 +755,7 @@ void GameDLLInit( void )
 	CVAR_REGISTER(&coldspotspawn);
 	CVAR_REGISTER(&coldspottime);
 	CVAR_REGISTER(&scorelimit);
+	CVAR_REGISTER(&roundwaittime);
 
 	CVAR_REGISTER (&mp_chattime);
 

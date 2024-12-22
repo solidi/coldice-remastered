@@ -3208,14 +3208,18 @@ void CBasePlayerWeapon::ThrowWeapon( BOOL holdingSomething )
 		return;
 	}
 
-	if (g_pGameRules->IsGunGame())
-		return;
-
 	if (m_iId == WEAPON_FISTS || m_iId == WEAPON_FINGERGUN)
 		return;
 
 	if (m_pPlayer->m_fOffhandTime >= gpGlobals->time)
 		return;
+
+	if (g_pGameRules->IsGunGame() || g_pGameRules->IsInstagib())
+	{
+		ClientPrint(m_pPlayer->pev, HUD_PRINTCENTER, "Forcegrab disabled in this gamemode.");
+		m_pPlayer->m_fOffhandTime = gpGlobals->time + 0.5;
+		return;
+	}
 
 	if (m_pPlayer->m_fForceGrabTime >= gpGlobals->time)
 		return;

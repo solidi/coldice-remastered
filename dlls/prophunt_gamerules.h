@@ -38,6 +38,8 @@ public:
 	virtual void MonsterKilled( CBaseMonster *pVictim, entvars_t *pKiller );
 	virtual void PlayerThink( CBasePlayer *pPlayer );
 	virtual BOOL IsRoundBased( void );
+	virtual BOOL FPlayerCanRespawn( CBasePlayer *pPlayer );
+	virtual BOOL MutatorAllowed(const char *mutator);
 
 private:
 	int m_iHuntersRemain;

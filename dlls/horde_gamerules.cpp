@@ -37,8 +37,9 @@ const char *szMonsters[] = {
 	//"monster_headcrab",
 	//"monster_zombie",
 	//"monster_houndeye",
-	"monster_human_grunt",
 	"monster_panther",
+	"monster_human_assassin",
+	"monster_human_grunt",
 	"monster_gargantua"
 };
 
@@ -62,11 +63,11 @@ BOOL CHalfLifeHorde::IsSpawnPointValid( CBaseEntity *pSpot )
 {
 	CBaseEntity *ent = NULL;
 
-	while ( (ent = UTIL_FindEntityInSphere( ent, pSpot->pev->origin, 1024 )) != NULL )
+	while ( (ent = UTIL_FindEntityInSphere( ent, pSpot->pev->origin, 64 )) != NULL )
 	{
-		// Is another base in area
-		if (FClassnameIs(ent->pev, "base"))
-			return FALSE;
+		for (int i = 0; i < ARRAYSIZE(szMonsters); i++)
+			if (FClassnameIs(ent->pev, szMonsters[i]))
+				return FALSE;
 	}
 
 	return TRUE;
@@ -279,6 +280,8 @@ void CHalfLifeHorde::Think( void )
 				index = fmin(fmax(0, index), ARRAYSIZE(szMonsters) - 1);
 				strcpy(monster, szMonsters[index]);
 				CBaseEntity *pEntity = CBaseEntity::Create(monster, m_pSpot->v.origin, m_pSpot->v.angles);
+				if (pEntity)
+					pEntity->pev->message = MAKE_STRING("horde");
 
 				CBaseEntity *ent = NULL;
 				while ( (ent = UTIL_FindEntityInSphere( ent, m_pSpot->v.origin, 64 )) != NULL )
@@ -316,7 +319,6 @@ void CHalfLifeHorde::Think( void )
 
 					// Radar mark
 					pEntity->pev->fuser4 = 2;
-					pEntity->pev->message = MAKE_STRING("horde");
 
 					if (hardness > 1)
 					{
@@ -544,7 +546,7 @@ void CHalfLifeHorde::Think( void )
 	if ( clients > 0 )
 	{
 		if ( m_fWaitForPlayersTime == -1 )
-			m_fWaitForPlayersTime = gpGlobals->time + 15.0;
+			m_fWaitForPlayersTime = gpGlobals->time + roundwaittime.value;
 
 		if ( m_fWaitForPlayersTime > gpGlobals->time )
 		{
@@ -619,7 +621,7 @@ void CHalfLifeHorde::Think( void )
 			WRITE_BYTE(0);
 			WRITE_STRING(UTIL_VarArgs("%d Rounds", (int)roundlimit.value));
 		MESSAGE_END();
-		m_fWaitForPlayersTime = gpGlobals->time + 15.0;
+		m_fWaitForPlayersTime = gpGlobals->time + roundwaittime.value;
 	}
 
 	flUpdateTime = gpGlobals->time + 1.0;

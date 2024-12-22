@@ -2552,6 +2552,7 @@ void CTracer::TracerTouch( CBaseEntity *pOther )
 				{
 					ClearMultiDamage();
 					pOther->pev->health = 0; // without this, player can walk as a ghost.
+					pev->movetype = MOVETYPE_NONE;
 					extern entvars_t *g_pevLastInflictor;
 					g_pevLastInflictor = pevOwner;
 					pOther->Killed(pevOwner, GIB_CLEAR);

@@ -931,6 +931,7 @@ typedef struct
 #define CLIENT_SOUND_FIVE 30
 #define CLIENT_SOUND_FOUR 31
 #define CLIENT_SOUND_THREE 32
+#define CLIENT_SOUND_ROUND_OVER 33
 
 #define SKIN_NORMAL 0
 #define SKIN_INVERSE 1

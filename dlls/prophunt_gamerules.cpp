@@ -572,7 +572,7 @@ void CHalfLifePropHunt::Think( void )
 	if ( clients > 1 )
 	{
 		if ( m_fWaitForPlayersTime == -1 )
-			m_fWaitForPlayersTime = gpGlobals->time + 15.0;
+			m_fWaitForPlayersTime = gpGlobals->time + roundwaittime.value;
 
 		if ( m_fWaitForPlayersTime > gpGlobals->time )
 		{
@@ -671,7 +671,6 @@ void CHalfLifePropHunt::Think( void )
 			WRITE_STRING( "props" );
 		MESSAGE_END();
 
-		UTIL_ClientPrintAll(HUD_PRINTCENTER, UTIL_VarArgs("Prop Hunt has begun!\n"));
 		UTIL_ClientPrintAll(HUD_PRINTTALK, UTIL_VarArgs("* %d players have entered the arena!\n", clients));
 
 		flUpdateTime = gpGlobals->time; // force now, so hunter freeze immediately.
@@ -687,7 +686,7 @@ void CHalfLifePropHunt::Think( void )
 			WRITE_BYTE(0);
 			WRITE_STRING(UTIL_VarArgs("%d Rounds", (int)roundlimit.value));
 		MESSAGE_END();
-		m_fWaitForPlayersTime = gpGlobals->time + 15.0;
+		m_fWaitForPlayersTime = gpGlobals->time + roundwaittime.value;
 	}
 
 	flUpdateTime = gpGlobals->time + 1.0;
@@ -823,6 +822,7 @@ void CHalfLifePropHunt::PlayerSpawn( CBasePlayer *pPlayer )
 		pPlayer->pev->armorvalue = 0;
 		pPlayer->GiveNamedItem("weapon_handgrenade");
 		CLIENT_COMMAND(pPlayer->edict(), "thirdperson\n");
+		ClientPrint(pPlayer->pev, HUD_PRINTCENTER, "You are a prop, hide!");
 	}
 	else
 	{
@@ -1058,4 +1058,38 @@ void CHalfLifePropHunt::PlayerThink( CBasePlayer *pPlayer )
 BOOL CHalfLifePropHunt::IsRoundBased( void )
 {
 	return TRUE;
+}
+
+BOOL CHalfLifePropHunt::FPlayerCanRespawn( CBasePlayer *pPlayer )
+{
+	if ( !pPlayer->m_flForceToObserverTime )
+		pPlayer->m_flForceToObserverTime = gpGlobals->time + 3.0;
+
+	return FALSE;
+}
+
+BOOL CHalfLifePropHunt::MutatorAllowed(const char *mutator)
+{
+	if (strstr(mutator, g_szMutators[MUTATOR_SANTAHAT - 1]) || atoi(mutator) == MUTATOR_SANTAHAT)
+		return FALSE;
+
+	if (strstr(mutator, g_szMutators[MUTATOR_PIRATEHAT - 1]) || atoi(mutator) == MUTATOR_PIRATEHAT)
+		return FALSE;
+
+	if (strstr(mutator, g_szMutators[MUTATOR_COWBOY - 1]) || atoi(mutator) == MUTATOR_COWBOY)
+		return FALSE;
+
+	if (strstr(mutator, g_szMutators[MUTATOR_MARSHMELLO - 1]) || atoi(mutator) == MUTATOR_MARSHMELLO)
+		return FALSE;
+
+	if (strstr(mutator, g_szMutators[MUTATOR_JACK - 1]) || atoi(mutator) == MUTATOR_JACK)
+		return FALSE;
+
+	if (strstr(mutator, g_szMutators[MUTATOR_PUMPKIN - 1]) || atoi(mutator) == MUTATOR_PUMPKIN)
+		return FALSE;
+
+	if (strstr(mutator, g_szMutators[MUTATOR_TOILET - 1]) || atoi(mutator) == MUTATOR_TOILET)
+		return FALSE;
+
+	return CHalfLifeMultiplay::MutatorAllowed(mutator);
 }

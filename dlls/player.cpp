@@ -2115,6 +2115,12 @@ void CBasePlayer::ClimbingPhysics()
 	if (!acrobatics.value)
 		return;
 
+	if (pev->iuser1)
+		return;
+	
+	if (g_pGameRules->MutatorEnabled(MUTATOR_NOCLIP))
+		return;
+
 	// Prevent running double jump flip with grapple attempt
 	if (m_fFlipTime >= gpGlobals->time)
 		return;
@@ -5589,6 +5595,13 @@ void CBasePlayer::StartForceGrab( void )
 
 	if (m_fOffhandTime >= gpGlobals->time)
 		return;
+
+	if ( g_pGameRules->IsInstagib() )
+	{
+		ClientPrint(pev, HUD_PRINTCENTER, "Forcegrab disabled in this gamemode.");
+		m_fOffhandTime = gpGlobals->time + 0.5;
+		return;
+	}
 
 	// Prop limitation
 	if ( g_pGameRules->IsPropHunt() && pev->fuser4 > 0 )
