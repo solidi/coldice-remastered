@@ -231,8 +231,10 @@ char *sBuiltInMaps[] =
 	"frozen_bunker",
 	"frozenwarehouse",
 	"furrow",
+	"glacialcore",
 	"glupshitto",
 	"ice_pit",
+	"latenightxmas",
 	"overflow",
 //	"quadfrost",
 	"snow_camp",
@@ -248,7 +250,7 @@ char *sBuiltInMaps[] =
 	"RANDOM",
 };
 
-#define BUILT_IN_MAP_COUNT 32
+#define BUILT_IN_MAP_COUNT 34
 
 char *gamePlayModes[] = {
 	"Deathmatch",
