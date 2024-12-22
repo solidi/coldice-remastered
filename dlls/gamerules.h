@@ -505,6 +505,7 @@ protected:
 	float flUpdateTime;
 	float m_flRoundTimeLimit;
 	int m_iSuccessfulRounds;
+	int m_iPlayRoundOver;
 	BOOL _30secwarning;
 	BOOL _15secwarning;
 	BOOL _3secwarning;

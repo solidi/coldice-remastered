@@ -1093,6 +1093,14 @@ void CHalfLifeMultiplay::SuckAllToSpectator( void )
 			}
 		}
 	}
+
+	if (m_iPlayRoundOver != m_iSuccessfulRounds && m_fWaitForPlayersTime < ((gpGlobals->time + roundwaittime.value) - 1))
+	{
+		MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
+			WRITE_BYTE(CLIENT_SOUND_ROUND_OVER);
+		MESSAGE_END();
+		m_iPlayRoundOver = m_iSuccessfulRounds;
+	}
 }
 
 void CHalfLifeMultiplay::DisplayWinnersGoods( CBasePlayer *pPlayer )
@@ -1123,6 +1131,7 @@ void CHalfLifeMultiplay::ResetGameMode( void )
 	_3secwarning = FALSE;
 
 	m_iSuccessfulRounds = 0;
+	m_iPlayRoundOver = 0;
 	flUpdateTime = 0;
 	m_flRoundTimeLimit = 0;
 }
