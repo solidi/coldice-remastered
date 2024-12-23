@@ -183,6 +183,7 @@ char *sBuiltInMaps[] =
 	"snowtransit",
 	"snowyard",
 	"stalkyard2",
+	"storm",
 	"thechill",
 	"themill",
 	"thetemple",

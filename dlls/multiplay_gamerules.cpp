@@ -242,6 +242,7 @@ char *sBuiltInMaps[] =
 	"snowtransit",
 	"snowyard",
 	"stalkyard2",
+	"storm",
 	"thechill",
 	"themill",
 	"thetemple",
@@ -250,7 +251,7 @@ char *sBuiltInMaps[] =
 	"RANDOM",
 };
 
-#define BUILT_IN_MAP_COUNT 34
+#define BUILT_IN_MAP_COUNT 35
 
 char *gamePlayModes[] = {
 	"Deathmatch",
