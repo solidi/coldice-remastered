@@ -217,6 +217,7 @@ int gmsgCtfInfo = 0;
 int gmsgAddMutator = 0;
 int gmsgFog = 0;
 int gmsgChaos = 0;
+int gmsgSafeSpot = 0;
 
 void LinkUserMessages( void )
 {
@@ -286,6 +287,7 @@ void LinkUserMessages( void )
 	gmsgAddMutator = REG_USER_MSG("AddMut", -1);
 	gmsgFog = REG_USER_MSG("Fog", 9);
 	gmsgChaos = REG_USER_MSG("Chaos", 1);
+	gmsgSafeSpot = REG_USER_MSG("Spot", 1);
 }
 
 LINK_ENTITY_TO_CLASS( player, CBasePlayer );

@@ -30,28 +30,131 @@ extern int gmsgPlayClientSound;
 extern int gmsgScoreInfo;
 extern int gmsgTeamNames;
 extern int gmsgTeamInfo;
+extern int gmsgSafeSpot;
+
+#define TEAM_BLUE 0
+#define TEAM_RED 1
+
+class CSafeSpot : public CBaseEntity
+{
+public:
+	static CSafeSpot *CreateSafeSpot( Vector vecOrigin, int body );
+	void Precache( void );
+	void Spawn( void );
+	EXPORT void SafeSpotThink( void );
+};
+
+CSafeSpot *CSafeSpot::CreateSafeSpot( Vector vecOrigin, int body )
+{
+	CSafeSpot *pSpot = GetClassPtr( (CSafeSpot *)NULL );
+	UTIL_SetOrigin( pSpot->pev, vecOrigin );
+	pSpot->pev->angles = g_vecZero;
+	pSpot->Spawn();
+	pSpot->pev->body = body; // to set specific size requirement by using fuser4 as id.
+	return pSpot;
+}
+
+void CSafeSpot::Precache( void )
+{
+	PRECACHE_MODEL("models/coldspot.mdl");
+}
+
+void CSafeSpot::Spawn( void )
+{
+	Precache();
+	SET_MODEL(ENT(pev), "models/coldspot.mdl");
+	pev->classname = MAKE_STRING("coldspot");
+	pev->fuser4 = 99; // to determine specific model index to size.
+	pev->angles.x = 0;
+	pev->angles.z = 0;
+	pev->movetype = MOVETYPE_NONE;
+	pev->solid = SOLID_NOT;
+	UTIL_SetSize(pev, g_vecZero, g_vecZero);
+	UTIL_SetOrigin( pev, pev->origin );
+
+	SetThink( &CSafeSpot::SafeSpotThink );
+	pev->nextthink = gpGlobals->time + 2.0;
+}
+
+void CSafeSpot::SafeSpotThink( void )
+{
+	for ( int i = 1; i <= gpGlobals->maxClients; i++ )
+	{
+		CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
+
+		if ( plr && plr->IsPlayer() && plr->IsInArena && plr->IsAlive() && !plr->HasDisconnected )
+		{
+			CBaseEntity *ent = NULL;
+			BOOL found = FALSE;
+			while ( (ent = UTIL_FindEntityInSphere( ent, pev->origin, 256 * pev->body )) != NULL )
+			{
+				if ( ent == plr )
+				{
+					found = TRUE;
+					continue;
+				}
+			}
+
+			if (!found)
+			{
+				entvars_t *pevWorld = VARS( INDEXENT(0) );
+				plr->TakeDamage( pevWorld, pevWorld, 10, DMG_SHOCK );
+			}
+		}
+	}
+
+	pev->nextthink = gpGlobals->time + 2.0;
+}
+
+LINK_ENTITY_TO_CLASS( safespot, CSafeSpot );
 
 CHalfLifeLastManStanding::CHalfLifeLastManStanding()
 {
+	UTIL_PrecacheOther("safespot");
 	m_iFirstBloodDecided = TRUE; // no first blood award
+	m_TeamBased = royaleteam.value;
+	pSafeSpot = NULL;
+	pLastSpawnPoint = NULL;
+	m_DisableDeathPenalty = FALSE;
+	m_fSpawnSafeSpot = gpGlobals->time + 2.0;
 }
 
 void CHalfLifeLastManStanding::InitHUD( CBasePlayer *pPlayer )
 {
 	CHalfLifeMultiplay::InitHUD( pPlayer );
 
-	if (!FBitSet(pPlayer->pev->flags, FL_FAKECLIENT))
+	if (m_TeamBased)
 	{
-		MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL, pPlayer->edict());
-			WRITE_STRING("Battle Royale");
-			WRITE_STRING("");
-			WRITE_BYTE(0);
+		MESSAGE_BEGIN(MSG_ONE, gmsgTeamNames, NULL, pPlayer->edict());
+			WRITE_BYTE( 2 );
+			WRITE_STRING( "blue" );
+			WRITE_STRING( "red" );
 		MESSAGE_END();
 
-		MESSAGE_BEGIN(MSG_ONE, gmsgTeamNames, NULL, pPlayer->edict());
-			WRITE_BYTE( 1 );
-			WRITE_STRING( "Active" );
-		MESSAGE_END();
+		if (!FBitSet(pPlayer->pev->flags, FL_FAKECLIENT))
+		{
+			MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL, pPlayer->edict());
+				WRITE_STRING("Battle Royale");
+				WRITE_STRING(UTIL_VarArgs("You're on %s team", (pPlayer->pev->fuser4 == TEAM_RED) ? "red" : "blue"));
+				WRITE_BYTE(0);
+			MESSAGE_END();
+		}
+	}
+	else
+	{
+		if (!FBitSet(pPlayer->pev->flags, FL_FAKECLIENT))
+		{
+			MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL, pPlayer->edict());
+				WRITE_STRING("Battle Royale");
+				WRITE_STRING("");
+				WRITE_BYTE(0);
+			MESSAGE_END();
+
+			MESSAGE_BEGIN(MSG_ONE, gmsgTeamNames, NULL, pPlayer->edict());
+				WRITE_BYTE( 1 );
+				WRITE_STRING( "Active" );
+			MESSAGE_END();
+		}
 	}
 
 	for ( int i = 1; i <= gpGlobals->maxClients; i++ )
@@ -65,6 +168,52 @@ void CHalfLifeLastManStanding::InitHUD( CBasePlayer *pPlayer )
 			MESSAGE_END();
 		}
 	}
+}
+
+edict_t *CHalfLifeLastManStanding::EntSelectSpawnPoint( const char *szSpawnPoint )
+{
+	CBaseEntity *pSpot;
+
+	// choose a point
+	pSpot = pLastSpawnPoint;
+	// Randomize the start spot
+	for ( int i = RANDOM_LONG(1,5); i > 0; i-- )
+		pSpot = UTIL_FindEntityByClassname( pSpot, szSpawnPoint );
+	if ( FNullEnt( pSpot ) )  // skip over the null point
+		pSpot = UTIL_FindEntityByClassname( pSpot, szSpawnPoint );
+
+	CBaseEntity *pFirstSpot = pSpot;
+
+	do
+	{
+		if ( pSpot )
+		{
+			// check if pSpot is valid
+			if ( 1 /*IsSpawnPointValid( pSpot )*/ )
+			{
+				// if so, go to pSpot
+				goto ReturnSpot;
+			}
+		}
+		// increment pSpot
+		pSpot = UTIL_FindEntityByClassname( pSpot, szSpawnPoint );
+	} while ( pSpot != pFirstSpot ); // loop if we're not back to the start
+
+	// we haven't found a place to spawn yet
+	if ( !FNullEnt( pSpot ) )
+	{
+		goto ReturnSpot;
+	}
+
+ReturnSpot:
+	if ( FNullEnt( pSpot ) )
+	{
+		ALERT(at_error, "no safe spot on level");
+		return INDEXENT(0);
+	}
+
+	pLastSpawnPoint = pSpot;
+	return pSpot->edict();
 }
 
 void CHalfLifeLastManStanding::Think( void )
@@ -86,6 +235,18 @@ void CHalfLifeLastManStanding::Think( void )
 			return;
 	}
 
+	if (m_fSpawnSafeSpot && m_fSpawnSafeSpot < gpGlobals->time)
+	{
+		edict_t *pentSpawnSpot = EntSelectSpawnPoint("info_player_start");
+		if (!pSafeSpot)
+			pSafeSpot = CSafeSpot::CreateSafeSpot(pentSpawnSpot->v.origin, 8);
+		else
+			UTIL_SetOrigin(pSafeSpot->pev, pentSpawnSpot->v.origin);
+
+		UTIL_ClientPrintAll(HUD_PRINTTALK, "[Royale]: The safe spot has appeared!\n");
+		m_fSpawnSafeSpot = 0;
+	}
+
 //===================================================
 
 	//access this when game is in progress.
@@ -98,6 +259,22 @@ void CHalfLifeLastManStanding::Think( void )
 		int clients_alive = 0;
 		int client_index = 0;
 		const char *client_name;
+		int redTeam = 0;
+		int blueTeam = 0;
+
+		if (m_fNextShrinkTime <= gpGlobals->time)
+		{
+			if (pSafeSpot && pSafeSpot->pev->body > 1)
+			{
+				pSafeSpot->pev->body -= 1;
+				MESSAGE_BEGIN(MSG_ALL, gmsgSafeSpot);
+					WRITE_BYTE(pSafeSpot->pev->body);
+				MESSAGE_END();
+				UTIL_ClientPrintAll(HUD_PRINTTALK, "[Royale]: The safe spot has shrunk!\n");
+			}
+				
+			m_fNextShrinkTime = gpGlobals->time + ((roundtimelimit.value * 60) / 15);
+		}
 
 		for ( int i = 1; i <= gpGlobals->maxClients; i++ )
 		{
@@ -120,6 +297,9 @@ void CHalfLifeLastManStanding::Think( void )
 					clients_alive++;
 					client_index = i;
 					client_name = STRING(plr->pev->netname);
+
+					if (m_TeamBased)
+						plr->pev->fuser4 == TEAM_RED ? redTeam++ : blueTeam++;
 				}
 				else
 				{
@@ -146,7 +326,10 @@ void CHalfLifeLastManStanding::Think( void )
 				{
 					MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, plr->edict());
 						WRITE_STRING("Battle Royale");
-						WRITE_STRING(UTIL_VarArgs("Players alive: %d", clients_alive));
+						if (m_TeamBased)
+							WRITE_STRING(UTIL_VarArgs("Players left: %d", plr->pev->fuser4 == TEAM_RED ? blueTeam : redTeam));
+						else
+							WRITE_STRING(UTIL_VarArgs("Players alive: %d", clients_alive));
 						WRITE_BYTE(float(clients_alive) / (m_iPlayersInGame) * 100);
 						WRITE_STRING(UTIL_VarArgs("Lives left: %d", (int)plr->pev->frags));
 					MESSAGE_END();
@@ -163,8 +346,12 @@ void CHalfLifeLastManStanding::Think( void )
 			}
 		}
 
+		BOOL victorFound = clients_alive <= 1;
+		if (m_TeamBased)
+			victorFound = (redTeam == 0 || blueTeam == 0);
+
 		//found victor / or draw.
-		if ( clients_alive <= 1 )
+		if ( victorFound )
 		{
 			//stop timer / end game.
 			m_flRoundTimeLimit = 0;
@@ -173,19 +360,49 @@ void CHalfLifeLastManStanding::Think( void )
 				WRITE_BYTE(0);
 			MESSAGE_END();
 
-			if ( clients_alive == 1 )
+			if (m_TeamBased)
 			{
-				UTIL_ClientPrintAll(HUD_PRINTCENTER, UTIL_VarArgs("%s\nis left standing!\n", client_name ));
+				int highest = 1;
+				BOOL IsEqual = FALSE;
+				CBasePlayer *highballer = NULL;
 
-				CBasePlayer *pl = (CBasePlayer *)UTIL_PlayerByIndex( client_index );
-				MESSAGE_BEGIN( MSG_ONE_UNRELIABLE, gmsgPlayClientSound, NULL, pl->edict() );
-					WRITE_BYTE(CLIENT_SOUND_LMS);
-				MESSAGE_END();
-				DisplayWinnersGoods( pl );
-			}	
+				for ( int i = 1; i <= gpGlobals->maxClients; i++ )
+				{
+					CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
+
+					if ( plr && plr->IsPlayer() && plr->IsInArena )
+					{
+						if ( highest <= plr->pev->frags )
+						{
+							if ( highballer && highest == plr->pev->frags )
+							{
+								IsEqual = TRUE;
+								continue;
+							}
+
+							IsEqual = FALSE;
+							highest = plr->pev->frags;
+							highballer = plr;
+						}
+					}
+				}
+			}
 			else
 			{
-				UTIL_ClientPrintAll(HUD_PRINTCENTER, "No man is left standing!\n");
+				if ( clients_alive == 1 )
+				{
+					UTIL_ClientPrintAll(HUD_PRINTCENTER, UTIL_VarArgs("%s\nis standing!\n", client_name ));
+
+					CBasePlayer *pl = (CBasePlayer *)UTIL_PlayerByIndex( client_index );
+					MESSAGE_BEGIN( MSG_ONE_UNRELIABLE, gmsgPlayClientSound, NULL, pl->edict() );
+						WRITE_BYTE(CLIENT_SOUND_LMS);
+					MESSAGE_END();
+					DisplayWinnersGoods( pl );
+				}	
+				else
+				{
+					UTIL_ClientPrintAll(HUD_PRINTCENTER, "No player is standing!\n");
+				}
 			}
 
 			m_iSuccessfulRounds++;
@@ -249,6 +466,13 @@ void CHalfLifeLastManStanding::Think( void )
 		m_iCountDown = 5;
 		m_fWaitForPlayersTime = -1;
 
+		// spot stuff
+		if (pSafeSpot)
+		{
+			pSafeSpot->pev->body = 8;
+			m_fNextShrinkTime = gpGlobals->time + ((roundtimelimit.value * 60) / 15);
+		}
+
 		// Resend team info
 		MESSAGE_BEGIN( MSG_ALL, gmsgTeamNames );
 			WRITE_BYTE( 1 );
@@ -292,8 +516,16 @@ BOOL CHalfLifeLastManStanding::HasGameTimerExpired( void )
 				{
 					if ( highballer && highest == plr->pev->frags )
 					{
-						IsEqual = TRUE;
-						continue;
+						if (m_TeamBased && highballer->pev->fuser4 != plr->pev->fuser4)
+						{
+							IsEqual = TRUE;
+							continue;
+						}
+						else
+						{
+							IsEqual = TRUE;
+							continue;
+						}
 					}
 
 					IsEqual = FALSE;
@@ -371,6 +603,9 @@ int CHalfLifeLastManStanding::IPointsForKill( CBasePlayer *pAttacker, CBasePlaye
 
 void CHalfLifeLastManStanding::PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller, entvars_t *pInflictor )
 {
+	if ( m_DisableDeathPenalty )
+		return;
+
 	CHalfLifeMultiplay::PlayerKilled(pVictim, pKiller, pInflictor);
 
 	CBasePlayer *peKiller = NULL;
@@ -423,9 +658,181 @@ void CHalfLifeLastManStanding::PlayerSpawn( CBasePlayer *pPlayer )
 		return;
 	}
 
-	char *key = g_engfuncs.pfnGetInfoKeyBuffer(pPlayer->edict());
-	strncpy( pPlayer->m_szTeamName, "Active", TEAM_NAME_LENGTH );
-	//g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer->edict()), key, "team", "Active");
+	if (pPlayer->pev->frags == startwithlives.value)
+	{
+		if (m_TeamBased)
+		{
+			if (m_TeamBased)
+				CHalfLifeMultiplay::SavePlayerModel(pPlayer);
+
+			int blueteam = 0, redteam = 0;
+			for (int i = 1; i <= gpGlobals->maxClients; i++)
+			{
+				CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
+				if ( plr && plr->IsPlayer() && !plr->HasDisconnected )
+				{
+					if (plr->pev->fuser4 == TEAM_BLUE)
+						blueteam++;
+					else
+						redteam++;
+				}
+			}
+
+			ALERT(at_aiconsole, "blueteam=%d, redteam=%d\n", blueteam, redteam);
+			pPlayer->pev->fuser4 = redteam >= blueteam ? TEAM_BLUE : TEAM_RED;
+
+			if (pPlayer->pev->fuser4 == TEAM_BLUE)
+			{
+				strncpy( pPlayer->m_szTeamName, "blue", TEAM_NAME_LENGTH );
+				g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer->edict()),
+					g_engfuncs.pfnGetInfoKeyBuffer(pPlayer->edict()), "model", "iceman");
+			}
+			else
+			{
+				strncpy( pPlayer->m_szTeamName, "red", TEAM_NAME_LENGTH );
+				g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer->edict()),
+					g_engfuncs.pfnGetInfoKeyBuffer(pPlayer->edict()), "model", "santa");
+			}
+
+			char text[256];
+			sprintf( text, "* you are on team \'%s\'\n", pPlayer->m_szTeamName );
+			UTIL_SayText( text, pPlayer );
+		}
+		else
+		{
+			strncpy( pPlayer->m_szTeamName, "Active", TEAM_NAME_LENGTH );
+		}
+
+		// notify everyone's HUD of the team change
+		MESSAGE_BEGIN( MSG_ALL, gmsgTeamInfo );
+			WRITE_BYTE( ENTINDEX(pPlayer->edict()) );
+			WRITE_STRING( pPlayer->m_szTeamName );
+		MESSAGE_END();
+
+		MESSAGE_BEGIN( MSG_ALL, gmsgScoreInfo );
+			WRITE_BYTE( ENTINDEX(pPlayer->edict()) );
+			WRITE_SHORT( pPlayer->pev->frags );
+			WRITE_SHORT( pPlayer->m_iDeaths );
+			WRITE_SHORT( pPlayer->m_iRoundWins );
+			WRITE_SHORT( g_pGameRules->GetTeamIndex( pPlayer->m_szTeamName ) + 1 );
+		MESSAGE_END();
+	}
+}
+
+int CHalfLifeLastManStanding::GetTeamIndex( const char *pTeamName )
+{
+	if ( pTeamName && *pTeamName != 0 )
+	{
+		if (m_TeamBased)
+		{
+			if (!strcmp(pTeamName, "red"))
+				return TEAM_RED;
+			else
+				return TEAM_BLUE;
+		}
+		else
+		{
+			if (!strcmp(pTeamName, "Active"))
+				return 0;
+		}
+	}
+	
+	return -1;	// No match
+}
+
+BOOL CHalfLifeLastManStanding::IsRoundBased( void )
+{
+	return TRUE;
+}
+
+int CHalfLifeLastManStanding::PlayerRelationship( CBaseEntity *pPlayer, CBaseEntity *pTarget )
+{
+	if ( !pPlayer || (pTarget && !pTarget->IsPlayer()) )
+		return GR_NOTTEAMMATE;
+
+	if ( (*GetTeamID(pPlayer) != '\0') && (*GetTeamID(pTarget) != '\0') && 
+			!stricmp( GetTeamID(pPlayer), GetTeamID(pTarget) ) )
+	{
+		return GR_TEAMMATE;
+	}
+
+	return GR_NOTTEAMMATE;
+}
+
+const char *CHalfLifeLastManStanding::GetTeamID( CBaseEntity *pEntity )
+{
+	if ( pEntity == NULL || pEntity->pev == NULL )
+		return "";
+
+	// return their team name
+	return pEntity->TeamID();
+}
+
+extern DLL_GLOBAL BOOL g_fGameOver;
+
+void CHalfLifeLastManStanding::ClientUserInfoChanged( CBasePlayer *pPlayer, char *infobuffer )
+{
+	if ( !m_TeamBased )
+		return;
+
+	// prevent skin/color/model changes
+	char text[1024];
+	char *mdls = g_engfuncs.pfnInfoKeyValue( infobuffer, "model" );
+	int clientIndex = pPlayer->entindex();
+
+	if ( !pPlayer->m_szTeamName || !strlen(pPlayer->m_szTeamName) )
+		return;
+
+	if ( !stricmp( mdls, pPlayer->m_szTeamName ) )
+		return;
+
+	// Ignore ctf on model changing back.
+	if ( g_fGameOver )
+		return;
+
+	// prevent skin/color/model changes
+	if ( !stricmp( "red", pPlayer->m_szTeamName ) && !stricmp( "santa", mdls ) )
+		return;
+	if ( !stricmp( "blue", pPlayer->m_szTeamName ) && !stricmp( "iceman", mdls ) )
+		return;
+
+	if ( stricmp( mdls, "iceman" ) && stricmp( mdls, "santa" ) )
+	{
+		g_engfuncs.pfnSetClientKeyValue( clientIndex, g_engfuncs.pfnGetInfoKeyBuffer( pPlayer->edict() ), "model", (char *)(pPlayer->pev->fuser4 == TEAM_RED ? "santa" : "iceman") );
+		sprintf( text, "* Can't change team to \'%s\'\n", mdls );
+		UTIL_SayText( text, pPlayer );
+		sprintf( text, "* Server limits teams to \'%s\'\n", "iceman (blue), santa (red)" );
+		UTIL_SayText( text, pPlayer );
+		return;
+	}
+
+	m_DisableDeathPenalty = TRUE;
+
+	ClearMultiDamage();
+	pPlayer->pev->health = 0; // without this, player can walk as a ghost.
+	pPlayer->Killed(pPlayer->pev, VARS(INDEXENT(0)), GIB_ALWAYS);
+
+	m_DisableDeathPenalty = FALSE;
+
+	int id = TEAM_BLUE;
+	if ( !stricmp( mdls, "santa" ) )
+		id = TEAM_RED;
+	pPlayer->pev->fuser4 = id;
+
+	if (pPlayer->pev->fuser4 == TEAM_RED)
+	{
+		strncpy( pPlayer->m_szTeamName, "red", TEAM_NAME_LENGTH );
+		g_engfuncs.pfnSetClientKeyValue( clientIndex, g_engfuncs.pfnGetInfoKeyBuffer( pPlayer->edict() ), "model", "santa" );
+	}
+	else
+	{
+		strncpy( pPlayer->m_szTeamName, "blue", TEAM_NAME_LENGTH );
+		g_engfuncs.pfnSetClientKeyValue( clientIndex, g_engfuncs.pfnGetInfoKeyBuffer( pPlayer->edict() ), "model", "iceman" );
+	}
+
+	// notify everyone of the team change
+	sprintf( text, "[Royale]: %s has changed to team \'%s\'\n", STRING(pPlayer->pev->netname), pPlayer->m_szTeamName );
+	UTIL_SayTextAll( text, pPlayer );
 
 	// notify everyone's HUD of the team change
 	MESSAGE_BEGIN( MSG_ALL, gmsgTeamInfo );
@@ -440,20 +847,38 @@ void CHalfLifeLastManStanding::PlayerSpawn( CBasePlayer *pPlayer )
 		WRITE_SHORT( pPlayer->m_iRoundWins );
 		WRITE_SHORT( g_pGameRules->GetTeamIndex( pPlayer->m_szTeamName ) + 1 );
 	MESSAGE_END();
+
+	MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL, pPlayer->edict());
+		WRITE_STRING("Battle Royale");
+		WRITE_STRING(UTIL_VarArgs("You're on %s team", (pPlayer->pev->fuser4 == TEAM_RED) ? "red" : "blue"));
+		WRITE_BYTE(0);
+	MESSAGE_END();
 }
 
-int CHalfLifeLastManStanding::GetTeamIndex( const char *pTeamName )
+BOOL CHalfLifeLastManStanding::ShouldAutoAim( CBasePlayer *pPlayer, edict_t *target )
 {
-	if ( pTeamName && *pTeamName != 0 )
+	// always autoaim, unless target is a teammate
+	CBaseEntity *pTgt = CBaseEntity::Instance( target );
+	if ( pTgt && pTgt->IsPlayer() )
 	{
-		if (!strcmp(pTeamName, "Active"))
-			return 0;
+		if ( PlayerRelationship( pPlayer, pTgt ) == GR_TEAMMATE )
+			return FALSE; // don't autoaim at teammates
 	}
-	
-	return -1;	// No match
+
+	return CHalfLifeMultiplay::ShouldAutoAim( pPlayer, target );
 }
 
-BOOL CHalfLifeLastManStanding::IsRoundBased( void )
+BOOL CHalfLifeLastManStanding::FPlayerCanTakeDamage( CBasePlayer *pPlayer, CBaseEntity *pAttacker )
 {
-	return TRUE;
+	if ( pAttacker && PlayerRelationship( pPlayer, pAttacker ) == GR_TEAMMATE )
+	{
+		// my teammate hit me.
+		if ( (friendlyfire.value == 0) && (pAttacker != pPlayer) )
+		{
+			// friendly fire is off, and this hit came from someone other than myself,  then don't get hurt
+			return FALSE;
+		}
+	}
+
+	return CHalfLifeMultiplay::FPlayerCanTakeDamage( pPlayer, pAttacker );
 }

@@ -503,3 +503,11 @@ void CHud :: MsgFunc_MParticle( const char *pszName, int iSize, void *pbuf )
 		g_pParticleSystems.AddSystem(pSystem, fileName); 
 	}
 }
+
+// Size of safespot in battle royale
+int CHud :: MsgFunc_Spot( const char *pszName, int iSize, void *pbuf )
+{
+	BEGIN_READ( pbuf, iSize );
+	gHUD.m_SafeSpotSize = READ_BYTE();
+	return 1;
+}
