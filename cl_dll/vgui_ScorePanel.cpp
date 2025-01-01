@@ -386,12 +386,13 @@ void ScorePanel::SortTeams()
 	{
 		int highest = -99999; int lowest_deaths = 99999;
 		int best_team = 0;
-		int which = (ScoreBased() && gHUD.m_Teamplay != GAME_TEAMPLAY) ? g_TeamInfo[i].score : g_TeamInfo[i].frags;
-
+		int which = 0;
 		for ( i = 1; i <= m_iNumTeams; i++ )
 		{
 			if ( g_TeamInfo[i].players < 1 )
 				continue;
+
+			which = SortByWins() ? g_TeamInfo[i].score : g_TeamInfo[i].frags;
 
 			if ( !g_TeamInfo[i].already_drawn && which >= highest )
 			{
@@ -399,7 +400,7 @@ void ScorePanel::SortTeams()
 				{
 					best_team = i;
 					lowest_deaths = g_TeamInfo[i].deaths;
-					if (ScoreBased() && gHUD.m_Teamplay != GAME_TEAMPLAY)
+					if (SortByWins())
 						highest = g_TeamInfo[i].score;
 					else
 						highest = g_TeamInfo[i].frags;
@@ -432,6 +433,11 @@ void ScorePanel::SortPlayers( int iTeam, char *team )
 {
 	bool bCreatedTeam = false;
 
+	// Always sort wins on spctators if scorebased
+	bool sortByWins = SortByWins();
+	if (iTeam == TEAM_SPECTATORS && ScoreBased())
+		sortByWins = true;
+
 	// draw the players, in order,  and restricted to team if set
 	while ( 1 )
 	{
@@ -442,7 +448,7 @@ void ScorePanel::SortPlayers( int iTeam, char *team )
 
 		for ( int i = 1; i < MAX_PLAYERS; i++ )
 		{
-			int which = (ScoreBased() && gHUD.m_Teamplay != GAME_TEAMPLAY) && team != NULL && strlen(team) ? g_PlayerExtraInfo[i].playerclass : g_PlayerExtraInfo[i].frags;
+			int which = sortByWins ? g_PlayerExtraInfo[i].playerclass : g_PlayerExtraInfo[i].frags;
 
 			if ( m_bHasBeenSorted[i] == false && g_PlayerInfoList[i].name && (which >= highest) )
 			{
@@ -455,7 +461,7 @@ void ScorePanel::SortPlayers( int iTeam, char *team )
 					{
 						best_player = i;
 						lowest_deaths = pl_info->deaths;
-						if ((ScoreBased() && gHUD.m_Teamplay != GAME_TEAMPLAY) && team != NULL && strlen(team))
+						if (sortByWins && team != NULL && strlen(team))
 							highest = pl_info->playerclass;
 						else
 							highest = pl_info->frags;

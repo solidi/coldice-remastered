@@ -220,6 +220,7 @@ unsigned long HudColor();
 
 float lerp(float a, float b, float f);
 bool ScoreBased( void );
+bool SortByWins( void );
 
 inline float GetWeaponMultipler()
 {
