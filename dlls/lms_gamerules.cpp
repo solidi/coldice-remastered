@@ -121,10 +121,12 @@ CHalfLifeLastManStanding::CHalfLifeLastManStanding()
 
 void CHalfLifeLastManStanding::InitHUD( CBasePlayer *pPlayer )
 {
-	CHalfLifeMultiplay::InitHUD( pPlayer );
+	CHalfLifeMultiplay::InitHUD( pPlayer );	
 
 	if (m_TeamBased)
 	{
+		CHalfLifeMultiplay::SavePlayerModel(pPlayer);
+
 		MESSAGE_BEGIN(MSG_ONE, gmsgTeamNames, NULL, pPlayer->edict());
 			WRITE_BYTE( 2 );
 			WRITE_STRING( "blue" );
@@ -326,12 +328,32 @@ void CHalfLifeLastManStanding::Think( void )
 				{
 					MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, plr->edict());
 						WRITE_STRING("Battle Royale");
-						if (m_TeamBased)
-							WRITE_STRING(UTIL_VarArgs("Players left: %d", plr->pev->fuser4 == TEAM_RED ? blueTeam : redTeam));
+						if (plr->pev->iuser1)
+						{
+							if (m_TeamBased)
+							{
+								WRITE_STRING(UTIL_VarArgs("Red left: %d", redTeam));
+								WRITE_BYTE(0);
+								WRITE_STRING(UTIL_VarArgs("Blue left: %d", blueTeam));
+							}
+							else
+							{
+								WRITE_STRING(UTIL_VarArgs("Players alive: %d", clients_alive));
+								WRITE_BYTE(0);
+							}
+						}
 						else
-							WRITE_STRING(UTIL_VarArgs("Players alive: %d", clients_alive));
-						WRITE_BYTE(float(clients_alive) / (m_iPlayersInGame) * 100);
-						WRITE_STRING(UTIL_VarArgs("Lives left: %d", (int)plr->pev->frags));
+						{
+							if (m_TeamBased)
+								WRITE_STRING(UTIL_VarArgs("%s left: %d", plr->pev->fuser4 == TEAM_RED ? "Blue" : " Red", plr->pev->fuser4 == TEAM_RED ? blueTeam : redTeam));
+							else
+								WRITE_STRING(UTIL_VarArgs("Players alive: %d", clients_alive));
+							if (m_TeamBased)
+								WRITE_BYTE(0);
+							else
+								WRITE_BYTE(float(clients_alive) / (m_iPlayersInGame) * 100);
+							WRITE_STRING(UTIL_VarArgs("Lives left: %d", (int)plr->pev->frags));
+						}
 					MESSAGE_END();
 				} 
 				else
@@ -470,14 +492,20 @@ void CHalfLifeLastManStanding::Think( void )
 		if (pSafeSpot)
 		{
 			pSafeSpot->pev->body = 8;
+			MESSAGE_BEGIN(MSG_ALL, gmsgSafeSpot);
+				WRITE_BYTE(pSafeSpot->pev->body);
+			MESSAGE_END();
 			m_fNextShrinkTime = gpGlobals->time + ((roundtimelimit.value * 60) / 15);
 		}
 
 		// Resend team info
-		MESSAGE_BEGIN( MSG_ALL, gmsgTeamNames );
-			WRITE_BYTE( 1 );
-			WRITE_STRING( "Active" );
-		MESSAGE_END();
+		if (!m_TeamBased)
+		{
+			MESSAGE_BEGIN( MSG_ALL, gmsgTeamNames );
+				WRITE_BYTE( 1 );
+				WRITE_STRING( "Active" );
+			MESSAGE_END();
+		}
 
 		UTIL_ClientPrintAll(HUD_PRINTCENTER, "Battle Royale has begun!\n");
 	}
@@ -658,13 +686,10 @@ void CHalfLifeLastManStanding::PlayerSpawn( CBasePlayer *pPlayer )
 		return;
 	}
 
-	if (pPlayer->pev->frags == startwithlives.value)
+	if (pPlayer->m_iExitObserver)
 	{
 		if (m_TeamBased)
 		{
-			if (m_TeamBased)
-				CHalfLifeMultiplay::SavePlayerModel(pPlayer);
-
 			int blueteam = 0, redteam = 0;
 			for (int i = 1; i <= gpGlobals->maxClients; i++)
 			{

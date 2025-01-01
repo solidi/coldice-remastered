@@ -4000,6 +4000,7 @@ void CBasePlayer::Spawn( void )
 #endif
 
 	g_pGameRules->PlayerSpawn( this );
+	m_iExitObserver = FALSE;
 }
 
 
@@ -7201,6 +7202,7 @@ void CBasePlayer::ExitObserver( void )
 {
 	pev->iuser1 = pev->iuser2 = 0;
 	m_iHideHUD = 0;
+	m_iExitObserver = TRUE;
 	Spawn();
 }
 
