@@ -461,7 +461,7 @@ void ScorePanel::SortPlayers( int iTeam, char *team )
 					{
 						best_player = i;
 						lowest_deaths = pl_info->deaths;
-						if (sortByWins && team != NULL && strlen(team))
+						if (sortByWins)
 							highest = pl_info->playerclass;
 						else
 							highest = pl_info->frags;

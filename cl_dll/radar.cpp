@@ -121,6 +121,15 @@ void CHudRadar::ProcessPlayerState(void)
 			else
 				b_specials[num_players] = false;
 		}
+		else if (gHUD.m_GameMode == GAME_LMS)
+		{
+			if (pClient->curstate.fuser4 == 1)
+				b_specials[num_players] = 1;
+			else if (pClient->curstate.fuser4 == 99) //safe spot
+				b_specials[num_players] = 4;
+			else
+				b_specials[num_players] = false;
+		}
 
 		if (!b_specials[num_players])
 			if (!pClient->player)

@@ -172,7 +172,7 @@ int CHudObjective::CalcPlayer( char *team )
 					{
 						best_player = i;
 						lowest_deaths = pl_info->deaths;
-						if (SortByWins() && team != NULL && strlen(team))
+						if (SortByWins())
 							highest = pl_info->playerclass;
 						else
 							highest = pl_info->frags;

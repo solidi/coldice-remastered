@@ -775,6 +775,9 @@ int CHalfLifeLastManStanding::PlayerRelationship( CBaseEntity *pPlayer, CBaseEnt
 	if ( !pPlayer || (pTarget && !pTarget->IsPlayer()) )
 		return GR_NOTTEAMMATE;
 
+	if (!m_TeamBased)
+		return GR_NOTTEAMMATE;
+
 	if ( (*GetTeamID(pPlayer) != '\0') && (*GetTeamID(pTarget) != '\0') && 
 			!stricmp( GetTeamID(pPlayer), GetTeamID(pTarget) ) )
 	{
