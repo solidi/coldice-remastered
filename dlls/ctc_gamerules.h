@@ -22,7 +22,6 @@ public:
 	virtual void InitHUD( CBasePlayer *pPlayer );
 	virtual void Think( void );
 	virtual void PlayerThink( CBasePlayer *pPlayer );
-	virtual int IPointsForKill( CBasePlayer *pAttacker, CBasePlayer *pKilled );
 	virtual void PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller, entvars_t *pInflictor );
 #if defined( GRAPPLING_HOOK )
 	virtual BOOL AllowGrapplingHook( CBasePlayer *pPlayer );

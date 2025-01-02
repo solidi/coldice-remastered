@@ -375,11 +375,6 @@ void CHalfLifeCaptureTheChumtoad::PlayerThink( CBasePlayer *pPlayer )
 	pPlayer->m_iCaptureTime = time_remaining;
 }
 
-int CHalfLifeCaptureTheChumtoad::IPointsForKill( CBasePlayer *pAttacker, CBasePlayer *pKilled )
-{
-	return 0;
-}
-
 void CHalfLifeCaptureTheChumtoad::PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller, entvars_t *pInflictor )
 {
 	CHalfLifeMultiplay::PlayerKilled( pVictim, pKiller, pInflictor );
