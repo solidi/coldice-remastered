@@ -4524,6 +4524,10 @@ void CBasePlayer::GiveExplosives()
 
 void CBasePlayer::GiveNamedItem( const char *pszName )
 {
+	// Reported by Napoleon, Jan 2025.
+	if (pszName == NULL || !strlen(pszName))
+		return;
+
 	if ( pev->iuser1 )	// player is in spectator mode
 		return;
 
