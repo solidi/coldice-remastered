@@ -500,9 +500,12 @@ public:
 
 	float m_fVampireHealth;
 
+	float m_fLastHurtTime;
 	int m_iBurstCount;
 	int m_iModeCount;
 	int m_iAmt;
+
+	BOOL m_iExitObserver;
 
 	float m_fFeignTime;
 

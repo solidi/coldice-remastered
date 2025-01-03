@@ -1487,6 +1487,22 @@ void CHalfLifeMultiplay :: ClientDisconnected( edict_t *pClient )
 				pPlayer->pev->frags = 0;
 				pPlayer->m_iDeaths = 0;
 				pPlayer->m_iAssists = 0;
+				pPlayer->m_iRoundWins = 0;
+				pPlayer->pev->fuser4 = 0;
+				strcpy(pPlayer->m_szTeamName, "");
+				extern int gmsgTeamInfo;
+				MESSAGE_BEGIN( MSG_ALL, gmsgTeamInfo );
+					WRITE_BYTE( ENTINDEX(pPlayer->edict()) );
+					WRITE_STRING( pPlayer->m_szTeamName );
+				MESSAGE_END();
+
+				MESSAGE_BEGIN( MSG_ALL, gmsgScoreInfo );
+					WRITE_BYTE( ENTINDEX(pPlayer->edict()) );
+					WRITE_SHORT( pPlayer->pev->frags );
+					WRITE_SHORT( pPlayer->m_iDeaths );
+					WRITE_SHORT( pPlayer->m_iRoundWins );
+					WRITE_SHORT( GetTeamIndex( pPlayer->m_szTeamName ) + 1 );
+				MESSAGE_END();
 			}
 
 			if ( !pPlayer->IsSpectator() )

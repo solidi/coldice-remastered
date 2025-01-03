@@ -111,12 +111,14 @@ int CHudObjective::CalcPosition( )
 	{
 		int highest = -99999; int lowest_deaths = 99999;
 		int best_team = 0;
-		int which = (ScoreBased() && gHUD.m_Teamplay != GAME_TEAMPLAY) ? g_TeamInfo[i].score : g_TeamInfo[i].frags;
+		int which = 0;
 
 		for ( i = 1; i <= gHUD.m_Scoreboard.m_iNumTeams; i++ )
 		{
 			if ( g_TeamInfo[i].players < 0 )
 				continue;
+
+			which = SortByWins() ? g_TeamInfo[i].score : g_TeamInfo[i].frags;
 
 			if ( !g_TeamInfo[i].already_drawn && which >= highest )
 			{
@@ -124,7 +126,7 @@ int CHudObjective::CalcPosition( )
 				{
 					best_team = i;
 					lowest_deaths = g_TeamInfo[i].deaths;
-					if (ScoreBased() && gHUD.m_Teamplay != GAME_TEAMPLAY)
+					if (SortByWins())
 						highest = g_TeamInfo[i].score;
 					else
 						highest = g_TeamInfo[i].frags;
@@ -160,7 +162,7 @@ int CHudObjective::CalcPlayer( char *team )
 
 		for ( int i = 1; i < MAX_PLAYERS; i++ )
 		{
-			int which = (ScoreBased() && gHUD.m_Teamplay != GAME_TEAMPLAY) && team != NULL && strlen(team) ? g_PlayerExtraInfo[i].playerclass : g_PlayerExtraInfo[i].frags;
+			int which = SortByWins() && team != NULL && strlen(team) ? g_PlayerExtraInfo[i].playerclass : g_PlayerExtraInfo[i].frags;
 			if ( g_PlayerInfoList[i].name && (which >= highest) )
 			{
 				if ( !(team && stricmp(g_PlayerExtraInfo[i].teamname, team)) )  // make sure it is the specified team
@@ -170,7 +172,7 @@ int CHudObjective::CalcPlayer( char *team )
 					{
 						best_player = i;
 						lowest_deaths = pl_info->deaths;
-						if ((ScoreBased() && gHUD.m_Teamplay != GAME_TEAMPLAY) && team != NULL && strlen(team))
+						if (SortByWins())
 							highest = pl_info->playerclass;
 						else
 							highest = pl_info->frags;

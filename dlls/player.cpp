@@ -217,6 +217,7 @@ int gmsgCtfInfo = 0;
 int gmsgAddMutator = 0;
 int gmsgFog = 0;
 int gmsgChaos = 0;
+int gmsgSafeSpot = 0;
 
 void LinkUserMessages( void )
 {
@@ -286,6 +287,7 @@ void LinkUserMessages( void )
 	gmsgAddMutator = REG_USER_MSG("AddMut", -1);
 	gmsgFog = REG_USER_MSG("Fog", 9);
 	gmsgChaos = REG_USER_MSG("Chaos", 1);
+	gmsgSafeSpot = REG_USER_MSG("Spot", 1);
 }
 
 LINK_ENTITY_TO_CLASS( player, CBasePlayer );
@@ -3998,6 +4000,7 @@ void CBasePlayer::Spawn( void )
 #endif
 
 	g_pGameRules->PlayerSpawn( this );
+	m_iExitObserver = FALSE;
 }
 
 
@@ -4521,6 +4524,10 @@ void CBasePlayer::GiveExplosives()
 
 void CBasePlayer::GiveNamedItem( const char *pszName )
 {
+	// Reported by Napoleon, Jan 2025.
+	if (pszName == NULL || !strlen(pszName))
+		return;
+
 	if ( pev->iuser1 )	// player is in spectator mode
 		return;
 
@@ -7199,6 +7206,7 @@ void CBasePlayer::ExitObserver( void )
 {
 	pev->iuser1 = pev->iuser2 = 0;
 	m_iHideHUD = 0;
+	m_iExitObserver = TRUE;
 	Spawn();
 }
 

@@ -173,3 +173,11 @@ bool ScoreBased( void )
 			gHUD.m_Teamplay == GAME_PROPHUNT ||
 			gHUD.m_Teamplay == GAME_SHIDDEN);
 }
+
+bool SortByWins( void )
+{
+	return (gHUD.m_Teamplay == GAME_BUSTERS ||
+			gHUD.m_Teamplay == GAME_COLDSPOT ||
+			gHUD.m_Teamplay == GAME_CTC ||
+			gHUD.m_Teamplay == GAME_CTF);
+}

@@ -28,5 +28,18 @@ public:
 	virtual int GetTeamIndex( const char *pTeamName );
 	virtual void PlayerSpawn( CBasePlayer *pPlayer );
 	virtual BOOL IsRoundBased( void );
+	virtual int PlayerRelationship( CBaseEntity *pPlayer, CBaseEntity *pTarget );
+	virtual const char *GetTeamID( CBaseEntity *pEntity );
+	virtual void ClientUserInfoChanged( CBasePlayer *pPlayer, char *infobuffer );
+	virtual BOOL ShouldAutoAim( CBasePlayer *pPlayer, edict_t *target );
+	virtual BOOL FPlayerCanTakeDamage( CBasePlayer *pPlayer, CBaseEntity *pAttacker );
+	virtual edict_t *EntSelectSpawnPoint( const char *szSpawnPoint );
 
+private:
+	BOOL m_TeamBased;
+	BOOL m_DisableDeathPenalty;
+	EHANDLE pLastSpawnPoint;
+	EHANDLE pSafeSpot;
+	float m_fSpawnSafeSpot;
+	float m_fNextShrinkTime;
 };

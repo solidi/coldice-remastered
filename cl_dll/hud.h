@@ -859,6 +859,7 @@ public:
 	int m_ChaosTime;
 	int m_ChaosStartTime;
 	int m_ChaosIncrement;
+	int m_SafeSpotSize;
 
 private:
 	// the memory for these arrays are allocated in the first call to CHud::VidInit(), when the hud.txt and associated sprites are loaded.
@@ -941,6 +942,7 @@ public:
 	void _cdecl MsgFunc_FlameMsg( const char *pszName, int iSize, void *pbuf );
 	void _cdecl MsgFunc_FlameKill( const char *pszName, int iSize, void *pbuf );
 	void _cdecl MsgFunc_MParticle( const char *pszName, int iSize, void *pbuf );
+	int  _cdecl MsgFunc_Spot( const char *pszName, int iSize, void *pbuf );
 
 	// Screen information
 	SCREENINFO	m_scrinfo;

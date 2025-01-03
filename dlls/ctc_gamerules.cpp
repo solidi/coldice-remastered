@@ -336,12 +336,11 @@ void CHalfLifeCaptureTheChumtoad::PlayerThink( CBasePlayer *pPlayer )
 				int secondsUntilPoint = ctcsecondsforpoint.value > 0 ? ctcsecondsforpoint.value : 10;
 				if (pPlayer->m_iChumtoadCounter % secondsUntilPoint == 0)
 				{
-					pPlayer->m_iRoundWins++;
 					MESSAGE_BEGIN( MSG_ALL, gmsgScoreInfo );
 						WRITE_BYTE( ENTINDEX(pPlayer->edict()) );
 						WRITE_SHORT( pPlayer->pev->frags );
 						WRITE_SHORT( pPlayer->m_iDeaths );
-						WRITE_SHORT( pPlayer->m_iRoundWins );
+						WRITE_SHORT( ++pPlayer->m_iRoundWins );
 						WRITE_SHORT( 0 );
 					MESSAGE_END();
 
@@ -374,11 +373,6 @@ void CHalfLifeCaptureTheChumtoad::PlayerThink( CBasePlayer *pPlayer )
 	}
 
 	pPlayer->m_iCaptureTime = time_remaining;
-}
-
-int CHalfLifeCaptureTheChumtoad::IPointsForKill( CBasePlayer *pAttacker, CBasePlayer *pKilled )
-{
-	return 0;
 }
 
 void CHalfLifeCaptureTheChumtoad::PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller, entvars_t *pInflictor )

@@ -250,10 +250,12 @@ int CHudScoreboard :: Draw( float fTime )
 	{
 		int highest = -99999; int lowest_deaths = 99999;
 		int best_team = 0;
-		int which = (ScoreBased() && gHUD.m_Teamplay != GAME_TEAMPLAY) ? g_TeamInfo[i].score : g_TeamInfo[i].frags;
+		int which = 0;
 
 		for ( i = 1; i <= m_iNumTeams; i++ )
 		{
+			which = SortByWins() ? g_TeamInfo[i].score : g_TeamInfo[i].frags;
+
 			if ( g_TeamInfo[i].players < 0 )
 				continue;
 
@@ -263,7 +265,7 @@ int CHudScoreboard :: Draw( float fTime )
 				{
 					best_team = i;
 					lowest_deaths = g_TeamInfo[i].deaths;
-					if (ScoreBased() && gHUD.m_Teamplay != GAME_TEAMPLAY)
+					if (SortByWins())
 						highest = g_TeamInfo[i].score;
 					else
 						highest = g_TeamInfo[i].frags;
@@ -371,6 +373,11 @@ int CHudScoreboard :: DrawPlayers( int xpos_rel, float list_slot, int nameoffset
 	FAR_RIGHT = can_show_packetloss ? PL_RANGE_MAX : PING_RANGE_MAX;
 	FAR_RIGHT += 5;
 
+	// Always sort wins on spctators if scorebased
+	bool sortByWins = SortByWins();
+	if (team != NULL && !strlen(team) && ScoreBased())
+		sortByWins = true;
+
 	// draw the players, in order,  and restricted to team if set
 	while ( 1 )
 	{
@@ -380,7 +387,7 @@ int CHudScoreboard :: DrawPlayers( int xpos_rel, float list_slot, int nameoffset
 
 		for ( int i = 1; i < MAX_PLAYERS; i++ )
 		{
-			int which = (ScoreBased() && gHUD.m_Teamplay != GAME_TEAMPLAY) && team != NULL && strlen(team) ? g_PlayerExtraInfo[i].playerclass : g_PlayerExtraInfo[i].frags;
+			int which = sortByWins ? g_PlayerExtraInfo[i].playerclass : g_PlayerExtraInfo[i].frags;
 
 			if ( g_PlayerInfoList[i].name && (which >= highest) )
 			{
@@ -391,7 +398,7 @@ int CHudScoreboard :: DrawPlayers( int xpos_rel, float list_slot, int nameoffset
 					{
 						best_player = i;
 						lowest_deaths = pl_info->deaths;
-						if ((ScoreBased() && gHUD.m_Teamplay != GAME_TEAMPLAY) && team != NULL && strlen(team))
+						if (sortByWins)
 							highest = pl_info->playerclass;
 						else
 							highest = pl_info->frags;
