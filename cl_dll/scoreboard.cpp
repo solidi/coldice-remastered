@@ -375,7 +375,7 @@ int CHudScoreboard :: DrawPlayers( int xpos_rel, float list_slot, int nameoffset
 
 	// Always sort wins on spctators if scorebased
 	bool sortByWins = SortByWins();
-	if (!strlen(team) && ScoreBased())
+	if (team != NULL && !strlen(team) && ScoreBased())
 		sortByWins = true;
 
 	// draw the players, in order,  and restricted to team if set

@@ -387,6 +387,19 @@ void CHalfLifeLastManStanding::Think( void )
 				int highest = 1;
 				BOOL IsEqual = FALSE;
 				CBasePlayer *highballer = NULL;
+				int type = TEAM_BLUE;
+
+				if (blueTeam == 0)
+				{
+					type = TEAM_RED;
+					UTIL_ClientPrintAll(HUD_PRINTCENTER, "Red team wins!\n");
+				}
+				else
+					UTIL_ClientPrintAll(HUD_PRINTCENTER, "Blue team wins!\n");
+
+				MESSAGE_BEGIN( MSG_ALL, gmsgPlayClientSound );
+					WRITE_BYTE(CLIENT_SOUND_LMS);
+				MESSAGE_END();
 
 				for ( int i = 1; i <= gpGlobals->maxClients; i++ )
 				{
@@ -394,17 +407,10 @@ void CHalfLifeLastManStanding::Think( void )
 
 					if ( plr && plr->IsPlayer() && plr->IsInArena )
 					{
-						if ( highest <= plr->pev->frags )
+						if ( plr->pev->fuser4 == type )
 						{
-							if ( highballer && highest == plr->pev->frags )
-							{
-								IsEqual = TRUE;
-								continue;
-							}
-
-							IsEqual = FALSE;
-							highest = plr->pev->frags;
-							highballer = plr;
+							plr->m_iRoundWins++;
+							plr->Celebrate();
 						}
 					}
 				}
