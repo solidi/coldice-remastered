@@ -31,6 +31,7 @@ extern int gmsgPlayClientSound;
 extern int gmsgScoreInfo;
 extern int gmsgTeamNames;
 extern int gmsgTeamInfo;
+extern int gmsgDEraser;
 
 CHalfLifeArena::CHalfLifeArena()
 {

@@ -511,3 +511,16 @@ int CHud :: MsgFunc_Spot( const char *pszName, int iSize, void *pbuf )
 	gHUD.m_SafeSpotSize = READ_BYTE();
 	return 1;
 }
+
+void IN_ClearDecals()
+{
+	for ( int x = 0; x < (int)CVAR_GET_FLOAT( "r_decals" ); x++ )
+		gEngfuncs.pEfxAPI->R_DecalRemoveAll(x);
+}
+
+int CHud :: MsgFunc_DEraser( const char *pszName, int iSize, void *pbuf )
+{
+	BEGIN_READ( pbuf, iSize );
+	IN_ClearDecals();
+	return 1;
+}
