@@ -397,10 +397,6 @@ void CHalfLifeLastManStanding::Think( void )
 				else
 					UTIL_ClientPrintAll(HUD_PRINTCENTER, "Blue team wins!\n");
 
-				MESSAGE_BEGIN( MSG_ALL, gmsgPlayClientSound );
-					WRITE_BYTE(CLIENT_SOUND_LMS);
-				MESSAGE_END();
-
 				for ( int i = 1; i <= gpGlobals->maxClients; i++ )
 				{
 					CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
@@ -411,6 +407,9 @@ void CHalfLifeLastManStanding::Think( void )
 						{
 							plr->m_iRoundWins++;
 							plr->Celebrate();
+							MESSAGE_BEGIN( MSG_ONE, gmsgPlayClientSound, NULL, plr->edict() );
+								WRITE_BYTE(CLIENT_SOUND_LMS);
+							MESSAGE_END();
 						}
 					}
 				}
