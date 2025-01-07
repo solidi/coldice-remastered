@@ -32,6 +32,7 @@ extern int gmsgScoreInfo;
 extern int gmsgStatusIcon;
 extern int gmsgShowTimer;
 extern int gmsgPlayClientSound;
+extern int gmsgDEraser;
 
 class CPropDecoy : public CBaseEntity
 {
@@ -572,7 +573,14 @@ void CHalfLifePropHunt::Think( void )
 	if ( clients > 1 )
 	{
 		if ( m_fWaitForPlayersTime == -1 )
+		{
 			m_fWaitForPlayersTime = gpGlobals->time + roundwaittime.value;
+			RemoveAndFillItems();
+			extern void ClearBodyQue();
+			ClearBodyQue();
+			MESSAGE_BEGIN( MSG_ALL, gmsgDEraser );
+			MESSAGE_END();
+		}
 
 		if ( m_fWaitForPlayersTime > gpGlobals->time )
 		{

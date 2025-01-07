@@ -31,6 +31,7 @@ extern int gmsgTeamInfo;
 extern int gmsgScoreInfo;
 extern int gmsgTeamNames;
 extern int gmsgDeathMsg;
+extern int gmsgDEraser;
 
 // In order of hardness
 const char *szMonsters[] = {
@@ -546,7 +547,14 @@ void CHalfLifeHorde::Think( void )
 	if ( clients > 0 )
 	{
 		if ( m_fWaitForPlayersTime == -1 )
+		{
 			m_fWaitForPlayersTime = gpGlobals->time + roundwaittime.value;
+			RemoveAndFillItems();
+			extern void ClearBodyQue();
+			ClearBodyQue();
+			MESSAGE_BEGIN( MSG_ALL, gmsgDEraser );
+			MESSAGE_END();
+		}
 
 		if ( m_fWaitForPlayersTime > gpGlobals->time )
 		{

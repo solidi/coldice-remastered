@@ -31,6 +31,7 @@ extern int gmsgScoreInfo;
 extern int gmsgTeamNames;
 extern int gmsgTeamInfo;
 extern int gmsgSafeSpot;
+extern int gmsgDEraser;
 
 #define TEAM_BLUE 0
 #define TEAM_RED 1
@@ -456,7 +457,14 @@ void CHalfLifeLastManStanding::Think( void )
 	if ( clients > 1 )
 	{
 		if ( m_fWaitForPlayersTime == -1 )
+		{
 			m_fWaitForPlayersTime = gpGlobals->time + roundwaittime.value;
+			RemoveAndFillItems();
+			extern void ClearBodyQue();
+			ClearBodyQue();
+			MESSAGE_BEGIN( MSG_ALL, gmsgDEraser );
+			MESSAGE_END();
+		}
 
 		if ( m_fWaitForPlayersTime > gpGlobals->time )
 		{

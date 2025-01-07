@@ -39,6 +39,7 @@ public:
 	virtual int	ObjectCaps( void ) { return (CBaseToggle :: ObjectCaps() | FCAP_CONTINUOUS_USE) & ~FCAP_ACROSS_TRANSITION; }
 	virtual int		Save( CSave &save );
 	virtual int		Restore( CRestore &restore );
+	virtual void 	OverrideReset(void);
 
 	static	TYPEDESCRIPTION m_SaveData[];
 
@@ -197,4 +198,10 @@ void CRecharge::Off(void)
 	}
 	else
 		SetThink( &CRecharge::SUB_DoNothing );
+}
+
+void CRecharge::OverrideReset(void)
+{
+	// ALERT(at_aiconsole, "Fired HEV recharge");
+	Recharge();
 }
