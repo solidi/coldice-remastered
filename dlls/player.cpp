@@ -1880,6 +1880,7 @@ void CBasePlayer::StartObserver( Vector vecPosition, Vector vecViewAngle )
 	EnableControl(TRUE);
 	m_fHasRune = 0;
 	m_iAssists = 0;
+	IsInArena = FALSE;
 
 	// Setup flags
 	m_iHideHUD = (HIDEHUD_HEALTH | HIDEHUD_WEAPONS);
