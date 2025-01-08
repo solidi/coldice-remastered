@@ -29,6 +29,7 @@ extern int gmsgScoreInfo;
 extern int gmsgPlayClientSound;
 extern int gmsgShowTimer;
 extern int gmsgStatusIcon;
+extern int gmsgDEraser;
 
 CHalfLifeShidden::CHalfLifeShidden()
 {
@@ -384,7 +385,14 @@ void CHalfLifeShidden::Think( void )
 	if ( clients > 1 )
 	{
 		if ( m_fWaitForPlayersTime == -1 )
+		{
 			m_fWaitForPlayersTime = gpGlobals->time + roundwaittime.value;
+			RemoveAndFillItems();
+			extern void ClearBodyQue();
+			ClearBodyQue();
+			MESSAGE_BEGIN( MSG_ALL, gmsgDEraser );
+			MESSAGE_END();
+		}
 
 		if ( m_fWaitForPlayersTime > gpGlobals->time )
 		{

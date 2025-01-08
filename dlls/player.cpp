@@ -218,6 +218,7 @@ int gmsgAddMutator = 0;
 int gmsgFog = 0;
 int gmsgChaos = 0;
 int gmsgSafeSpot = 0;
+int gmsgDEraser = 0;
 
 void LinkUserMessages( void )
 {
@@ -288,6 +289,7 @@ void LinkUserMessages( void )
 	gmsgFog = REG_USER_MSG("Fog", 9);
 	gmsgChaos = REG_USER_MSG("Chaos", 1);
 	gmsgSafeSpot = REG_USER_MSG("Spot", 1);
+	gmsgDEraser = REG_USER_MSG("DEraser", 0);
 }
 
 LINK_ENTITY_TO_CLASS( player, CBasePlayer );
@@ -1878,6 +1880,7 @@ void CBasePlayer::StartObserver( Vector vecPosition, Vector vecViewAngle )
 	EnableControl(TRUE);
 	m_fHasRune = 0;
 	m_iAssists = 0;
+	IsInArena = FALSE;
 
 	// Setup flags
 	m_iHideHUD = (HIDEHUD_HEALTH | HIDEHUD_WEAPONS);

@@ -61,6 +61,7 @@ CBaseEntity * CBaseEntity::Create( char *szName, const Vector &vecOrigin, const 
 void CBaseEntity::SUB_Remove( void ) { }
 void CBaseEntity::SUB_FadeOut( void ) { }
 void CBaseEntity::SUB_FadeOutFast( void ) { }
+void CBaseEntity::UpdateOnRemove( void ) { }
 
 // CBaseDelay Stubs
 void CBaseDelay :: KeyValue( struct KeyValueData_s * ) { }

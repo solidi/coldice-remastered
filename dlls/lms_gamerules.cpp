@@ -31,6 +31,7 @@ extern int gmsgScoreInfo;
 extern int gmsgTeamNames;
 extern int gmsgTeamInfo;
 extern int gmsgSafeSpot;
+extern int gmsgDEraser;
 
 #define TEAM_BLUE 0
 #define TEAM_RED 1
@@ -397,10 +398,6 @@ void CHalfLifeLastManStanding::Think( void )
 				else
 					UTIL_ClientPrintAll(HUD_PRINTCENTER, "Blue team wins!\n");
 
-				MESSAGE_BEGIN( MSG_ALL, gmsgPlayClientSound );
-					WRITE_BYTE(CLIENT_SOUND_LMS);
-				MESSAGE_END();
-
 				for ( int i = 1; i <= gpGlobals->maxClients; i++ )
 				{
 					CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
@@ -411,6 +408,9 @@ void CHalfLifeLastManStanding::Think( void )
 						{
 							plr->m_iRoundWins++;
 							plr->Celebrate();
+							MESSAGE_BEGIN( MSG_ONE, gmsgPlayClientSound, NULL, plr->edict() );
+								WRITE_BYTE(CLIENT_SOUND_LMS);
+							MESSAGE_END();
 						}
 					}
 				}
@@ -457,7 +457,14 @@ void CHalfLifeLastManStanding::Think( void )
 	if ( clients > 1 )
 	{
 		if ( m_fWaitForPlayersTime == -1 )
+		{
 			m_fWaitForPlayersTime = gpGlobals->time + roundwaittime.value;
+			RemoveAndFillItems();
+			extern void ClearBodyQue();
+			ClearBodyQue();
+			MESSAGE_BEGIN( MSG_ALL, gmsgDEraser );
+			MESSAGE_END();
+		}
 
 		if ( m_fWaitForPlayersTime > gpGlobals->time )
 		{

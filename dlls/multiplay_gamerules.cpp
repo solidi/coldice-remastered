@@ -943,13 +943,9 @@ int CHalfLifeMultiplay::CheckClients( void )
 	return clients;
 }
 
-extern void ClearBodyQue();
-
 void CHalfLifeMultiplay::InsertClientsIntoArena(float fragcount)
 {
 	m_iPlayersInGame = 0;
-
-	ClearBodyQue();
 
 	for ( int i = 1; i <= gpGlobals->maxClients; i++ )
 	{
@@ -1040,7 +1036,7 @@ void CHalfLifeMultiplay::CheckRounds( void )
 	}
 }
 
-void CHalfLifeMultiplay::RemoveItemsThatDamage( void )
+void CHalfLifeMultiplay::RemoveAndFillItems( void )
 {
 	const char *pRemoveThese[] =
 	{
@@ -1048,6 +1044,11 @@ void CHalfLifeMultiplay::RemoveItemsThatDamage( void )
 		"monster_tripmine",
 		"monster_chumtoad",
 		"monster_snark",
+		"nuke_rocket",
+		"rpg_rocket",
+		"grenade",
+		"gib",
+		"weaponbox",
 	};
 
 	CBaseEntity *pEntity = NULL;
@@ -1055,12 +1056,32 @@ void CHalfLifeMultiplay::RemoveItemsThatDamage( void )
 	{
 		while ((pEntity = UTIL_FindEntityByClassname(pEntity, pRemoveThese[itemIndex])) != NULL)
 		{
-			ALERT(at_aiconsole, "Remove %s at [x=%.2f,y=%.2f,z=%.2f]\n", 
+			/*ALERT(at_aiconsole, "Remove %s at [x=%.2f,y=%.2f,z=%.2f]\n", 
 				pRemoveThese[itemIndex],
 				pEntity->pev->origin.x,
 				pEntity->pev->origin.y,
-				pEntity->pev->origin.z);
+				pEntity->pev->origin.z);*/
 			UTIL_Remove(pEntity);
+		}
+	}
+
+	const char *pRechargeThese[] =
+	{
+		"func_recharge",
+		"func_healthrecharger",
+	};
+
+	pEntity = NULL;
+	for (int itemIndex = 0; itemIndex < ARRAYSIZE(pRechargeThese); itemIndex++)
+	{
+		while ((pEntity = UTIL_FindEntityByClassname(pEntity, pRechargeThese[itemIndex])) != NULL)
+		{
+			/*ALERT(at_aiconsole, "Recharge %s at [x=%.2f,y=%.2f,z=%.2f]\n", 
+				pRechargeThese[itemIndex],
+				pEntity->pev->origin.x,
+				pEntity->pev->origin.y,
+				pEntity->pev->origin.z);*/
+			pEntity->OverrideReset();
 		}
 	}
 }

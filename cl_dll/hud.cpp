@@ -506,6 +506,11 @@ int __MsgFunc_Spot(const char *pszName, int iSize, void *pbuf)
 	return gHUD.MsgFunc_Spot(pszName, iSize, pbuf );
 }
 
+int __MsgFunc_DEraser(const char *pszName, int iSize, void *pbuf)
+{
+	return gHUD.MsgFunc_DEraser(pszName, iSize, pbuf );
+}
+
 // This is called every time the DLL is loaded
 void CHud :: Init( void )
 {
@@ -567,6 +572,7 @@ void CHud :: Init( void )
 	HOOK_MESSAGE( AddMut );
 	HOOK_MESSAGE( Chaos );
 	HOOK_MESSAGE( Spot );
+	HOOK_MESSAGE( DEraser );
 
 	// CVAR_CREATE( "hud_classautokill", "1", FCVAR_ARCHIVE | FCVAR_USERINFO );		// controls whether or not to suicide immediately on TF class switch
 	CVAR_CREATE( "hud_takesshots", "0", FCVAR_ARCHIVE );		// controls whether or not to automatically take screenshots at the end of a round

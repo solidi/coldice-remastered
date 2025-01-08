@@ -113,6 +113,7 @@ public:
 	virtual int	ObjectCaps( void ) { return (CBaseToggle :: ObjectCaps() | FCAP_CONTINUOUS_USE) & ~FCAP_ACROSS_TRANSITION; }
 	virtual int		Save( CSave &save );
 	virtual int		Restore( CRestore &restore );
+	virtual void 	OverrideReset( void );
 
 	static	TYPEDESCRIPTION m_SaveData[];
 
@@ -261,4 +262,10 @@ void CWallHealth::Off(void)
 	}
 	else
 		SetThink( &CWallHealth::SUB_DoNothing );
+}
+
+void CWallHealth::OverrideReset(void)
+{
+	// ALERT(at_aiconsole, "Fired health recharge");
+	Recharge();
 }

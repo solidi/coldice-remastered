@@ -31,6 +31,7 @@ extern int gmsgPlayClientSound;
 extern int gmsgScoreInfo;
 extern int gmsgTeamNames;
 extern int gmsgTeamInfo;
+extern int gmsgDEraser;
 
 CHalfLifeArena::CHalfLifeArena()
 {
@@ -256,7 +257,14 @@ void CHalfLifeArena::Think( void )
 	if ( clients > 1 )
 	{
 		if ( m_fWaitForPlayersTime == -1 )
+		{
 			m_fWaitForPlayersTime = gpGlobals->time + roundwaittime.value;
+			RemoveAndFillItems();
+			extern void ClearBodyQue();
+			ClearBodyQue();
+			MESSAGE_BEGIN( MSG_ALL, gmsgDEraser );
+			MESSAGE_END();
+		}
 
 		if ( m_fWaitForPlayersTime > gpGlobals->time )
 		{
@@ -272,7 +280,6 @@ void CHalfLifeArena::Think( void )
 				MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
 					WRITE_BYTE(CLIENT_SOUND_PREPARETOFIGHT);
 				MESSAGE_END();
-				RemoveItemsThatDamage();
 			} else if (m_iCountDown == 3) {
 				MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
 					WRITE_BYTE(CLIENT_SOUND_THREE);

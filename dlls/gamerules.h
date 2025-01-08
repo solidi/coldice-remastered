@@ -479,7 +479,7 @@ public:
 	virtual void CheckRounds( void );
 	virtual void SetRoundLimits( void );
 	virtual void SuckAllToSpectator( void );
-	virtual void RemoveItemsThatDamage( void );
+	virtual void RemoveAndFillItems( void );
 	virtual void DisplayWinnersGoods( CBasePlayer *pPlayer );
 	virtual void ResetGameMode( void );
 	virtual void CaptureCharm( CBasePlayer *pPlayer ) { };

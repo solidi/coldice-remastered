@@ -1965,6 +1965,7 @@ public:
 	void EXPORT RocketTouch( CBaseEntity *pOther );
 	static CNukeRocket *CreateNukeRocket( Vector vecOrigin, Vector vecAngles, CBaseEntity *pOwner, float startEngineTime, BOOL hasCamera );
 	virtual void Killed( entvars_t *pevAttacker, int iGib );
+	virtual void UpdateOnRemove( void );
 
 	int m_iTrail;
 	int m_iExp, m_iIceExp;

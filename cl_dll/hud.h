@@ -943,6 +943,7 @@ public:
 	void _cdecl MsgFunc_FlameKill( const char *pszName, int iSize, void *pbuf );
 	void _cdecl MsgFunc_MParticle( const char *pszName, int iSize, void *pbuf );
 	int  _cdecl MsgFunc_Spot( const char *pszName, int iSize, void *pbuf );
+	int  _cdecl MsgFunc_DEraser( const char *pszName, int iSize, void *pbuf );
 
 	// Screen information
 	SCREENINFO	m_scrinfo;
