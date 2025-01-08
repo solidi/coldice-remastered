@@ -371,6 +371,26 @@ void CNukeRocket :: FollowThink( void )
 	pev->nextthink = gpGlobals->time + 0.1;
 }
 
+// In case player is viewing rocket while being removed
+void CNukeRocket::UpdateOnRemove( void )
+{
+	CBaseEntity::UpdateOnRemove();
+
+	if (m_iCamera) {
+		if (pev->owner && !FBitSet(pev->owner->v.flags, FL_FAKECLIENT))
+		{
+			SET_VIEW(pev->owner, pev->owner);
+			CBasePlayer *pPlayer = (CBasePlayer *)GET_PRIVATE(pev->owner);
+			if (pPlayer) {
+				pPlayer->pev->fov = pPlayer->m_iFOV = 0;
+				MESSAGE_BEGIN(MSG_ONE, gmsgNukeCrosshair, NULL, pev->owner);
+					WRITE_BYTE(0);
+				MESSAGE_END();
+			}
+		}
+	}
+}
+
 #endif
 
 void CNuke::Reload( void )
