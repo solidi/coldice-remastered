@@ -348,7 +348,7 @@ void CHalfLifeArena::Think( void )
 		{
 			CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
 
-			if ( plr && plr->IsPlayer() )
+			if ( plr && plr->IsPlayer() && !plr->HasDisconnected )
 			{ 
 				if ( m_iPlayer1 == i || m_iPlayer2 == i )
 				{
