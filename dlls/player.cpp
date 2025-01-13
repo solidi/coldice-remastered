@@ -4899,8 +4899,12 @@ void CBasePlayer::StartSelacoSlide( void )
 				WRITE_BYTE( ACROBATICS_SELACO_SLIDE );
 			MESSAGE_END();
 
-			m_fSelacoZ = VEC_DUCK_HULL_MIN.z + 6;
-			pev->view_ofs[2] = m_fSelacoZ;
+			if (!g_pGameRules->MutatorEnabled(MUTATOR_MINIME))
+			{
+				m_fSelacoZ = VEC_DUCK_HULL_MIN.z + 6;
+				pev->view_ofs[2] = m_fSelacoZ;
+			}
+
 			pev->punchangle.z = 15;
 		}
 	}
@@ -5098,13 +5102,18 @@ void CBasePlayer::EndSelacoSlide( void )
 		pev->fov = m_iFOV = 0;
 		m_fSelacoSliding = m_fSelacoHit = FALSE;
 		m_fOffhandTime = m_fSelacoIncrement = m_fSelacoButtonTime = 0;
-		m_fSelacoZ = VEC_VIEW.z;
 		if (g_pGameRules->MutatorEnabled(MUTATOR_ICE))
 			pev->friction = 0.3;
 		else
 			pev->friction = 1.0;
 		m_fSelacoCount = 0;
-		pev->view_ofs[2] = m_fSelacoZ;
+
+		if (!g_pGameRules->MutatorEnabled(MUTATOR_MINIME))
+		{
+			m_fSelacoZ = VEC_VIEW.z;
+			pev->view_ofs[2] = m_fSelacoZ;
+		}
+
 		m_fSelacoIncrement = gpGlobals->time + 0.2;
 
 		m_EFlags &= ~EFLAG_SLIDE_RETRACT & ~EFLAG_SLIDE;
