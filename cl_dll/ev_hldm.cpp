@@ -4037,16 +4037,13 @@ void EV_FireZapgun( event_args_t *args )
 
 	if ( EV_IsLocal( idx ) )
 	{
-		// Python uses different body in multiplayer versus single player
-		int multiplayer = gEngfuncs.GetMaxClients() == 1 ? 0 : 1;
-
 		// Add muzzle flash to current weapon model
 		EV_MuzzleFlash();
 		gEngfuncs.pEventAPI->EV_WeaponAnimation( ZAPGUN_SHOOT, 0 );
 
-		V_PunchAxis(PITCH, gEngfuncs.pfnRandomFloat(-10.0, -15.0) );
-		V_PunchAxis(YAW, gEngfuncs.pfnRandomFloat(-3.0, -5.0)); //yaw, - = right
-		V_PunchAxis(ROLL, gEngfuncs.pfnRandomFloat(3.0, 5.0)); //roll, - = left
+		//V_PunchAxis(PITCH, gEngfuncs.pfnRandomFloat(-10.0, -15.0) );
+		//V_PunchAxis(YAW, gEngfuncs.pfnRandomFloat(-3.0, -5.0)); //yaw, - = right
+		//V_PunchAxis(ROLL, gEngfuncs.pfnRandomFloat(3.0, 5.0)); //roll, - = left
 	}
 
 	gEngfuncs.pEventAPI->EV_PlaySound( idx, origin, CHAN_WEAPON, "zapgun.wav", gEngfuncs.pfnRandomFloat(0.8, 0.9), ATTN_NORM, 0, PITCH_NORM );
