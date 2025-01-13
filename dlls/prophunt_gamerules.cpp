@@ -1050,7 +1050,9 @@ void CHalfLifePropHunt::PlayerThink( CBasePlayer *pPlayer )
 	CHalfLifeMultiplay::PlayerThink(pPlayer);
 
 	if (pPlayer->pev->fuser4 > 0)
-	{
+	{	
+		pPlayer->pev->air_finished = gpGlobals->time + 5; // never drown
+
 		if (pPlayer->m_flNextPropSound && pPlayer->m_flNextPropSound < gpGlobals->time)
 		{
 			EMIT_SOUND(ENT(pPlayer->pev), CHAN_VOICE, "sprayer.wav", 1, ATTN_NORM);
