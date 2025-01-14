@@ -37,6 +37,87 @@ CHalfLifeShidden::CHalfLifeShidden()
 	m_iDealtersRemain = 0;
 }
 
+void CHalfLifeShidden::DetermineWinner( void )
+{
+	int highest = 1;
+	BOOL IsEqual = FALSE;
+	CBasePlayer *highballer = NULL;
+
+	for ( int i = 1; i <= gpGlobals->maxClients; i++ )
+	{
+		CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
+
+		if ( plr && plr->IsPlayer() && plr->IsInArena )
+		{
+			if ( highest <= plr->pev->frags )
+			{
+				if ( highballer && highest == plr->pev->frags )
+				{
+					IsEqual = TRUE;
+					continue;
+				}
+
+				IsEqual = FALSE;
+				highest = plr->pev->frags;
+				highballer = plr;
+			}
+		}
+	}
+
+	if ( highballer )
+	{
+		if (!IsEqual)
+		{
+			UTIL_ClientPrintAll(HUD_PRINTCENTER,
+				UTIL_VarArgs("%s doled the most frags!\n", STRING(highballer->pev->netname)));
+			MESSAGE_BEGIN(MSG_BROADCAST, gmsgObjective);
+				WRITE_STRING("Shidden Completed!");
+				WRITE_STRING(UTIL_VarArgs("%s win!", m_iDealtersRemain ? "Dealters" : "Smelters"));
+				WRITE_BYTE(0);
+				WRITE_STRING(UTIL_VarArgs("%s doled the most frags!\n", STRING(highballer->pev->netname)));
+			MESSAGE_END();
+
+			DisplayWinnersGoods( highballer );
+		}
+		else
+		{
+			for ( int i = 1; i <= gpGlobals->maxClients; i++ )
+			{
+				CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
+
+				if ( plr && plr->IsPlayer() && plr->IsInArena )
+				{
+					if ( plr->pev->frags == highest)
+					{
+						plr->m_iRoundWins++;
+						plr->Celebrate();
+					}
+				}
+			}
+
+			UTIL_ClientPrintAll(HUD_PRINTCENTER, "Numerous victors!");
+			UTIL_ClientPrintAll(HUD_PRINTTALK, "* Round ends with winners!\n");
+			MESSAGE_BEGIN(MSG_BROADCAST, gmsgObjective);
+				WRITE_STRING("Shidden Completed!");
+				WRITE_STRING(UTIL_VarArgs("%s win!", m_iDealtersRemain ? "Dealters" : "Smelters"));
+				WRITE_BYTE(0);
+				WRITE_STRING("Numerous victors!");
+			MESSAGE_END();
+		}
+	}
+	else
+	{
+		UTIL_ClientPrintAll(HUD_PRINTCENTER, "Round is over!\nNo one has won!\n");
+		UTIL_ClientPrintAll(HUD_PRINTTALK, "* Round ends with no winners!\n");
+		MESSAGE_BEGIN(MSG_BROADCAST, gmsgObjective);
+			WRITE_STRING("Shidden Completed!");
+			WRITE_STRING("");
+			WRITE_BYTE(0);
+			WRITE_STRING("No one has won!");
+		MESSAGE_END();
+	}
+}
+
 void CHalfLifeShidden::Think( void )
 {
 	CHalfLifeMultiplay::Think();
@@ -262,14 +343,7 @@ void CHalfLifeShidden::Think( void )
 			//everyone died.
 			if ( smelters_left <= 0 && dealters_left <= 0 )
 			{
-				UTIL_ClientPrintAll(HUD_PRINTCENTER, "Everyone has been killed!\n");
-				UTIL_ClientPrintAll(HUD_PRINTTALK, "* No winners in this round!\n");
-				MESSAGE_BEGIN(MSG_BROADCAST, gmsgObjective);
-					WRITE_STRING("Everyone died!");
-					WRITE_STRING("");
-					WRITE_BYTE(0);
-					WRITE_STRING("No winners in this round!");
-				MESSAGE_END();
+				DetermineWinner();
 				MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
 					WRITE_BYTE(CLIENT_SOUND_HULIMATING_DEAFEAT);
 				MESSAGE_END();
@@ -277,98 +351,18 @@ void CHalfLifeShidden::Think( void )
 			//smelters all dead
 			else if ( smelters_left <= 0 )
 			{
-				//find highest frag amount.
-				float highest = 1;
-				BOOL IsEqual = FALSE;
-				CBasePlayer *highballer = NULL;
-
-				for ( int i = 1; i <= gpGlobals->maxClients; i++ )
-				{
-					CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
-
-					if ( plr && plr->IsPlayer() && plr->IsInArena && plr->pev->fuser4 > 0 )
-					{
-						if ( highest <= plr->pev->frags )
-						{
-							if ( highballer && highest == plr->pev->frags )
-							{
-								IsEqual = TRUE;
-								continue;
-							}
-
-							IsEqual = FALSE;
-							highest = plr->pev->frags;
-							highballer = plr;
-						}
-					}
-				}
-
-				if ( !IsEqual && highballer )
-				{
-					UTIL_ClientPrintAll(HUD_PRINTCENTER,
-						UTIL_VarArgs("Smelters have been defeated!\n\n%s doled the most gas!\n",
-						STRING(highballer->pev->netname)));
-					DisplayWinnersGoods( highballer );
-					MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
-						WRITE_BYTE(CLIENT_SOUND_OUTSTANDING);
-					MESSAGE_END();
-				}
-				else
-				{
-					UTIL_ClientPrintAll(HUD_PRINTCENTER, "Smelters have been defeated!\n");
-					UTIL_ClientPrintAll(HUD_PRINTTALK, "* Round ends in a tie!\n");
-					MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
-						WRITE_BYTE(CLIENT_SOUND_HULIMATING_DEAFEAT);
-					MESSAGE_END();
-				}
+				DetermineWinner();
+				MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
+					WRITE_BYTE(CLIENT_SOUND_OUTSTANDING);
+				MESSAGE_END();
 			}
 			//dealters defeated.
 			else if ( dealters_left <= 0 )
 			{
-				//find highest frag amount.
-				float highest = 1;
-				BOOL IsEqual = FALSE;
-				CBasePlayer *highballer = NULL;
-
-				for ( int i = 1; i <= gpGlobals->maxClients; i++ )
-				{
-					CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
-
-					if ( plr && plr->IsPlayer() && plr->IsInArena && plr->pev->fuser4 == 0 )
-					{
-						if ( highest <= plr->pev->frags )
-						{
-							if ( highballer && highest == plr->pev->frags )
-							{
-								IsEqual = TRUE;
-								continue;
-							}
-
-							IsEqual = FALSE;
-							highest = plr->pev->frags;
-							highballer = plr;
-						}
-					}
-				}
-
-				if ( !IsEqual && highballer )
-				{
-					UTIL_ClientPrintAll(HUD_PRINTCENTER,
-						UTIL_VarArgs("Dealters have been defeated!\n\n%s doled the most Lysol!\n",
-						STRING(highballer->pev->netname)));
-					DisplayWinnersGoods( highballer );
-					MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
-						WRITE_BYTE(CLIENT_SOUND_OUTSTANDING);
-					MESSAGE_END();
-				}
-				else
-				{
-					UTIL_ClientPrintAll(HUD_PRINTCENTER, "Dealters have been defeated!\n");
-					UTIL_ClientPrintAll(HUD_PRINTTALK, "* Round ends in a tie!\n");
-					MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
-						WRITE_BYTE(CLIENT_SOUND_HULIMATING_DEAFEAT);
-					MESSAGE_END();
-				}
+				DetermineWinner();
+				MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
+					WRITE_BYTE(CLIENT_SOUND_OUTSTANDING);
+				MESSAGE_END();
 			}
 
 			m_iSuccessfulRounds++;
@@ -598,63 +592,10 @@ BOOL CHalfLifeShidden::HasGameTimerExpired( void )
 	//time is up
 	if ( CHalfLifeMultiplay::HasGameTimerExpired() )
 	{
-		int highest = 1;
-		BOOL IsEqual = FALSE;
-		CBasePlayer *highballer = NULL;
-
-		//find highest damage amount.
-		for ( int i = 1; i <= gpGlobals->maxClients; i++ )
-		{
-			CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
-
-			if ( plr && plr->IsPlayer() && plr->IsInArena && plr->pev->fuser4 == 0)
-			{
-				if ( highest <= plr->pev->frags )
-				{
-					if ( highballer && highest == plr->pev->frags )
-					{
-						IsEqual = TRUE;
-						continue;
-					}
-
-					IsEqual = FALSE;
-					highest = plr->pev->frags;
-					highballer = plr;
-				}
-			}
-		}
-
-		if ( !IsEqual && highballer )
-		{
-			UTIL_ClientPrintAll(HUD_PRINTCENTER, 
-				UTIL_VarArgs("Time is up!\n\n%s doled the most frags!\n",
-				STRING(highballer->pev->netname)));
-			MESSAGE_BEGIN(MSG_BROADCAST, gmsgObjective);
-				WRITE_STRING("Time is up!");
-				WRITE_STRING("");
-				WRITE_BYTE(0);
-				WRITE_STRING(UTIL_VarArgs("%s doled the most frags!\n", STRING(highballer->pev->netname)));
-			MESSAGE_END();
-			DisplayWinnersGoods( highballer );
-
-			MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
-				WRITE_BYTE(CLIENT_SOUND_OUTSTANDING);
-			MESSAGE_END();
-		}
-		else
-		{
-			UTIL_ClientPrintAll(HUD_PRINTCENTER, "Time is up!\nNo one has won!\n");
-			UTIL_ClientPrintAll(HUD_PRINTTALK, "* Round ends in a tie!\n");
-			MESSAGE_BEGIN(MSG_BROADCAST, gmsgObjective);
-				WRITE_STRING("Time is up!");
-				WRITE_STRING("");
-				WRITE_BYTE(0);
-				WRITE_STRING("No one has won!");
-			MESSAGE_END();
-			MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
-				WRITE_BYTE(CLIENT_SOUND_HULIMATING_DEAFEAT);
-			MESSAGE_END();
-		}
+		DetermineWinner();
+		MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
+			WRITE_BYTE(CLIENT_SOUND_OUTSTANDING);
+		MESSAGE_END();
 
 		g_GameInProgress = FALSE;
 		MESSAGE_BEGIN(MSG_ALL, gmsgShowTimer);
@@ -709,6 +650,8 @@ BOOL CHalfLifeShidden::FPlayerCanRespawn( CBasePlayer *pPlayer )
 
 void CHalfLifeShidden::PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller, entvars_t *pInflictor )
 {
+	pVictim->pev->frags = 0; // clear immediately for winner determination
+
 	CHalfLifeMultiplay::PlayerKilled(pVictim, pKiller, pInflictor);
 
 	int smelters_left = 0;

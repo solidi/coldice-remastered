@@ -35,6 +35,7 @@ public:
 	virtual BOOL ShouldAutoAim( CBasePlayer *pPlayer, edict_t *target );
 	virtual BOOL MutatorAllowed(const char *mutator);
 	virtual BOOL IsRoundBased( void );
+	virtual void DetermineWinner( void );
 
 private:
 	int m_iSmeltersRemain;
