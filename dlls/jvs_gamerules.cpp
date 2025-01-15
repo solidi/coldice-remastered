@@ -455,15 +455,7 @@ void CHalfLifeJesusVsSanta::FPlayerTookDamage( float flDamage, CBasePlayer *pVic
 	if (pKiller && pKiller->IsPlayer())
 	{
 		pPlayerAttacker = (CBasePlayer *)pKiller;
-		if ( pPlayerAttacker != pVictim && pVictim->IsArmoredMan )
-		{
-			pPlayerAttacker->m_fArmoredManHits += flDamage;
-#ifdef _DEBUG
-			ALERT(at_notice, UTIL_VarArgs("Total damage against Jesus is: %.2f\n",
-				pPlayerAttacker->m_fArmoredManHits));
-#endif
-		}
-		else if ( pPlayerAttacker != pVictim && !pPlayerAttacker->IsArmoredMan && !pVictim->IsArmoredMan )
+		if ( pPlayerAttacker != pVictim && !pPlayerAttacker->IsArmoredMan && !pVictim->IsArmoredMan )
 		{
 			ClientPrint(pPlayerAttacker->pev, HUD_PRINTCENTER, "Destroy Jesus!\nNot your teammate!");
 		}
@@ -557,16 +549,6 @@ void CHalfLifeJesusVsSanta::PlayerKilled( CBasePlayer *pVictim, entvars_t *pKill
 				WRITE_BYTE(CLIENT_SOUND_MASSACRE);
 			MESSAGE_END();
 		}
-	}
-	else
-	{
-		CBaseEntity *ktmp = CBaseEntity::Instance( pKiller );
-		CBasePlayer *peKiller = NULL;
-		if ( ktmp && (ktmp->Classify() == CLASS_PLAYER) )
-			peKiller = (CBasePlayer*)ktmp;
-		// Last player to frag jesus is the winner, regardless of dole count
-		if ( pVictim->pev != pKiller && ktmp && ktmp->IsPlayer() )
-			peKiller->m_fArmoredManHits = 9999;
 	}
 }
 
