@@ -33,6 +33,87 @@ extern int gmsgObjective;
 extern int gmsgShowTimer;
 extern int gmsgDEraser;
 
+void CHalfLifeJesusVsSanta::DetermineWinner( void )
+{
+	int highest = 1;
+	BOOL IsEqual = FALSE;
+	CBasePlayer *highballer = NULL;
+
+	for ( int i = 1; i <= gpGlobals->maxClients; i++ )
+	{
+		CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
+
+		if ( plr && plr->IsPlayer() && plr->IsInArena )
+		{
+			if ( highest <= plr->pev->frags )
+			{
+				if ( highballer && highest == plr->pev->frags )
+				{
+					IsEqual = TRUE;
+					continue;
+				}
+
+				IsEqual = FALSE;
+				highest = plr->pev->frags;
+				highballer = plr;
+			}
+		}
+	}
+
+	if ( highballer )
+	{
+		if (!IsEqual)
+		{
+			UTIL_ClientPrintAll(HUD_PRINTCENTER,
+				UTIL_VarArgs("%s doled the most frags!\n", STRING(highballer->pev->netname)));
+			MESSAGE_BEGIN(MSG_BROADCAST, gmsgObjective);
+				WRITE_STRING("JVS Completed!");
+				WRITE_STRING(UTIL_VarArgs("%s win!", pArmoredMan && pArmoredMan->IsAlive() ? "Jesus" : "Santas"));
+				WRITE_BYTE(0);
+				WRITE_STRING(UTIL_VarArgs("%s doled the most frags!\n", STRING(highballer->pev->netname)));
+			MESSAGE_END();
+
+			DisplayWinnersGoods( highballer );
+		}
+		else
+		{
+			for ( int i = 1; i <= gpGlobals->maxClients; i++ )
+			{
+				CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
+
+				if ( plr && plr->IsPlayer() && plr->IsInArena )
+				{
+					if ( plr->pev->frags == highest)
+					{
+						plr->m_iRoundWins++;
+						plr->Celebrate();
+					}
+				}
+			}
+
+			UTIL_ClientPrintAll(HUD_PRINTCENTER, "Numerous victors!");
+			UTIL_ClientPrintAll(HUD_PRINTTALK, "* Round ends with winners!\n");
+			MESSAGE_BEGIN(MSG_BROADCAST, gmsgObjective);
+				WRITE_STRING("JVS Completed!");
+				WRITE_STRING(UTIL_VarArgs("%s win!", pArmoredMan && pArmoredMan->IsAlive() ? "Jesus" : "Santas"));
+				WRITE_BYTE(0);
+				WRITE_STRING("Numerous victors!");
+			MESSAGE_END();
+		}
+	}
+	else
+	{
+		UTIL_ClientPrintAll(HUD_PRINTCENTER, "Round is over!\nNo one has won!\n");
+		UTIL_ClientPrintAll(HUD_PRINTTALK, "* Round ends with no winners!\n");
+		MESSAGE_BEGIN(MSG_BROADCAST, gmsgObjective);
+			WRITE_STRING("JVS Completed!");
+			WRITE_STRING("");
+			WRITE_BYTE(0);
+			WRITE_STRING("No one has won!");
+		MESSAGE_END();
+	}
+}
+
 void CHalfLifeJesusVsSanta::Think( void )
 {
 	CHalfLifeMultiplay::Think();
@@ -170,16 +251,7 @@ void CHalfLifeJesusVsSanta::Think( void )
 			//armored man is alive.
 			if ( pArmoredMan->IsAlive() && clients_alive == 1 )
 			{
-				UTIL_ClientPrintAll(HUD_PRINTCENTER, UTIL_VarArgs("%s has defeated all Santas!\n", STRING(pArmoredMan->pev->netname) ));
-
-				MESSAGE_BEGIN(MSG_BROADCAST, gmsgObjective);
-					WRITE_STRING("Jesus remains!");
-					WRITE_STRING("");
-					WRITE_BYTE(0);
-					WRITE_STRING(UTIL_VarArgs("Jesus saves in round %d of %d!", m_iSuccessfulRounds+1, (int)roundlimit.value));
-				MESSAGE_END();
-
-				DisplayWinnersGoods( pArmoredMan );
+				DetermineWinner();
 				MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
 					WRITE_BYTE(CLIENT_SOUND_KILLINGMACHINE);
 				MESSAGE_END();
@@ -187,64 +259,15 @@ void CHalfLifeJesusVsSanta::Think( void )
 			//the man has been killed.
 			else if ( !pArmoredMan->IsAlive() )
 			{
-				MESSAGE_BEGIN(MSG_BROADCAST, gmsgObjective);
-					WRITE_STRING("Time to buy presents!");
-					WRITE_STRING("");
-					WRITE_BYTE(0);
-					WRITE_STRING(UTIL_VarArgs("Santas win round %d of %d!", m_iSuccessfulRounds+1, (int)roundlimit.value));
+				DetermineWinner();
+				MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
+					WRITE_BYTE(CLIENT_SOUND_OUTSTANDING);
 				MESSAGE_END();
-
-				//find highest damage amount.
-				float highest = 1;
-				BOOL IsEqual = FALSE;
-				CBasePlayer *highballer = NULL;
-
-				for ( int i = 1; i <= gpGlobals->maxClients; i++ )
-				{
-					CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
-
-					if ( plr && plr->IsPlayer() && plr->IsInArena )
-					{
-						if ( highest <= plr->m_fArmoredManHits )
-						{
-							if ( highballer && highest == plr->m_fArmoredManHits )
-							{
-								IsEqual = TRUE;
-								continue;
-							}
-
-							IsEqual = FALSE;
-							highest = plr->m_fArmoredManHits;
-							highballer = plr;
-						}
-					}
-				}
-
-				if ( !IsEqual && highballer )
-				{
-					UTIL_ClientPrintAll(HUD_PRINTCENTER,
-						UTIL_VarArgs("Jesus has been destroyed!\n\n%s doled the most damage!\n",
-						STRING(highballer->pev->netname)));
-					DisplayWinnersGoods( highballer );
-					MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
-						WRITE_BYTE(CLIENT_SOUND_OUTSTANDING);
-					MESSAGE_END();
-				}
-				else
-				{
-					UTIL_ClientPrintAll(HUD_PRINTCENTER, "Jesus has been destroyed!\n");
-					UTIL_ClientPrintAll(HUD_PRINTTALK, "* Round ends in a tie!\n");
-					MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
-						WRITE_BYTE(CLIENT_SOUND_HULIMATING_DEAFEAT);
-					MESSAGE_END();
-				}
-
 			}
 			//everyone died.
 			else
 			{
-				UTIL_ClientPrintAll(HUD_PRINTCENTER, "Everyone has been killed!\n");
-				UTIL_ClientPrintAll(HUD_PRINTTALK, "* No winners in this round!\n");
+				DetermineWinner();
 				MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
 					WRITE_BYTE(CLIENT_SOUND_HULIMATING_DEAFEAT);
 				MESSAGE_END();
@@ -391,63 +414,10 @@ BOOL CHalfLifeJesusVsSanta::HasGameTimerExpired( void )
 	//time is up
 	if ( CHalfLifeMultiplay::HasGameTimerExpired() )
 	{
-		int highest = 1;
-		BOOL IsEqual = FALSE;
-		CBasePlayer *highballer = NULL;
-
-		//find highest damage amount.
-		for ( int i = 1; i <= gpGlobals->maxClients; i++ )
-		{
-			CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
-
-			if ( plr && plr->IsPlayer() && plr->IsInArena )
-			{
-				if ( highest <= plr->m_fArmoredManHits )
-				{
-					if ( highballer && highest == plr->m_fArmoredManHits )
-					{
-						IsEqual = TRUE;
-						continue;
-					}
-
-					IsEqual = FALSE;
-					highest = plr->m_fArmoredManHits;
-					highballer = plr;
-				}
-			}
-		}
-
-		if ( !IsEqual && highballer )
-		{
-			UTIL_ClientPrintAll(HUD_PRINTCENTER, 
-				UTIL_VarArgs("Time is up!\n\n%s doled the most damage!\n",
-				STRING(highballer->pev->netname)));
-			MESSAGE_BEGIN(MSG_BROADCAST, gmsgObjective);
-				WRITE_STRING("Time is up!");
-				WRITE_STRING("");
-				WRITE_BYTE(0);
-				WRITE_STRING(UTIL_VarArgs("%s doled the most damage!", STRING(highballer->pev->netname)));
-			MESSAGE_END();
-			DisplayWinnersGoods( highballer );
-
-			MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
-				WRITE_BYTE(CLIENT_SOUND_OUTSTANDING);
-			MESSAGE_END();
-		}
-		else
-		{
-			UTIL_ClientPrintAll(HUD_PRINTCENTER, "Time is up!\nNo one has won!\n");
-			UTIL_ClientPrintAll(HUD_PRINTTALK, "* Round ends in a tie!\n");
-			MESSAGE_BEGIN(MSG_BROADCAST, gmsgObjective);
-				WRITE_STRING("Time is up!");
-				WRITE_STRING("");
-				WRITE_BYTE(0);
-				WRITE_STRING("Round ends in a tie!");
-			MESSAGE_END();
-			MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
-				WRITE_BYTE(CLIENT_SOUND_HULIMATING_DEAFEAT);
-			MESSAGE_END();
-		}
+		DetermineWinner();
+		MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
+			WRITE_BYTE(CLIENT_SOUND_OUTSTANDING);
+		MESSAGE_END();
 
 		g_GameInProgress = FALSE;
 		MESSAGE_BEGIN(MSG_ALL, gmsgShowTimer);
@@ -485,15 +455,7 @@ void CHalfLifeJesusVsSanta::FPlayerTookDamage( float flDamage, CBasePlayer *pVic
 	if (pKiller && pKiller->IsPlayer())
 	{
 		pPlayerAttacker = (CBasePlayer *)pKiller;
-		if ( pPlayerAttacker != pVictim && pVictim->IsArmoredMan )
-		{
-			pPlayerAttacker->m_fArmoredManHits += flDamage;
-#ifdef _DEBUG
-			ALERT(at_notice, UTIL_VarArgs("Total damage against Jesus is: %.2f\n",
-				pPlayerAttacker->m_fArmoredManHits));
-#endif
-		}
-		else if ( pPlayerAttacker != pVictim && !pPlayerAttacker->IsArmoredMan && !pVictim->IsArmoredMan )
+		if ( pPlayerAttacker != pVictim && !pPlayerAttacker->IsArmoredMan && !pVictim->IsArmoredMan )
 		{
 			ClientPrint(pPlayerAttacker->pev, HUD_PRINTCENTER, "Destroy Jesus!\nNot your teammate!");
 		}
@@ -563,6 +525,8 @@ BOOL CHalfLifeJesusVsSanta::FPlayerCanRespawn( CBasePlayer *pPlayer )
 
 void CHalfLifeJesusVsSanta::PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller, entvars_t *pInflictor )
 {
+	pVictim->pev->frags = 0; // clear immediately for winner determination
+
 	CHalfLifeMultiplay::PlayerKilled(pVictim, pKiller, pInflictor);
 
 	if ( !pVictim->IsArmoredMan )
@@ -585,16 +549,6 @@ void CHalfLifeJesusVsSanta::PlayerKilled( CBasePlayer *pVictim, entvars_t *pKill
 				WRITE_BYTE(CLIENT_SOUND_MASSACRE);
 			MESSAGE_END();
 		}
-	}
-	else
-	{
-		CBaseEntity *ktmp = CBaseEntity::Instance( pKiller );
-		CBasePlayer *peKiller = NULL;
-		if ( ktmp && (ktmp->Classify() == CLASS_PLAYER) )
-			peKiller = (CBasePlayer*)ktmp;
-		// Last player to frag jesus is the winner, regardless of dole count
-		if ( pVictim->pev != pKiller && ktmp && ktmp->IsPlayer() )
-			peKiller->m_fArmoredManHits = 9999;
 	}
 }
 

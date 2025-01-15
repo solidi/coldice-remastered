@@ -40,6 +40,87 @@ CHalfLifeChilldemic::CHalfLifeChilldemic()
 	m_iSkeletonsRemain = 0;
 }
 
+void CHalfLifeChilldemic::DetermineWinner( void )
+{
+	int highest = 1;
+	BOOL IsEqual = FALSE;
+	CBasePlayer *highballer = NULL;
+
+	for ( int i = 1; i <= gpGlobals->maxClients; i++ )
+	{
+		CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
+
+		if ( plr && plr->IsPlayer() && plr->IsInArena )
+		{
+			if ( highest <= plr->pev->frags )
+			{
+				if ( highballer && highest == plr->pev->frags )
+				{
+					IsEqual = TRUE;
+					continue;
+				}
+
+				IsEqual = FALSE;
+				highest = plr->pev->frags;
+				highballer = plr;
+			}
+		}
+	}
+
+	if ( highballer )
+	{
+		if (!IsEqual)
+		{
+			UTIL_ClientPrintAll(HUD_PRINTCENTER,
+				UTIL_VarArgs("%s doled the most frags!\n", STRING(highballer->pev->netname)));
+			MESSAGE_BEGIN(MSG_BROADCAST, gmsgObjective);
+				WRITE_STRING("Chilldemic Completed!");
+				WRITE_STRING(UTIL_VarArgs("%s win!", m_iSurvivorsRemain ? "Survivors" : "Skeletons"));
+				WRITE_BYTE(0);
+				WRITE_STRING(UTIL_VarArgs("%s doled the most frags!\n", STRING(highballer->pev->netname)));
+			MESSAGE_END();
+
+			DisplayWinnersGoods( highballer );
+		}
+		else
+		{
+			for ( int i = 1; i <= gpGlobals->maxClients; i++ )
+			{
+				CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
+
+				if ( plr && plr->IsPlayer() && plr->IsInArena )
+				{
+					if ( plr->pev->frags == highest)
+					{
+						plr->m_iRoundWins++;
+						plr->Celebrate();
+					}
+				}
+			}
+
+			UTIL_ClientPrintAll(HUD_PRINTCENTER, "Numerous victors!");
+			UTIL_ClientPrintAll(HUD_PRINTTALK, "* Round ends with winners!\n");
+			MESSAGE_BEGIN(MSG_BROADCAST, gmsgObjective);
+				WRITE_STRING("Chilldemic Completed!");
+				WRITE_STRING(UTIL_VarArgs("%s win!", m_iSurvivorsRemain ? "Survivors" : "Skeletons"));
+				WRITE_BYTE(0);
+				WRITE_STRING("Numerous victors!");
+			MESSAGE_END();
+		}
+	}
+	else
+	{
+		UTIL_ClientPrintAll(HUD_PRINTCENTER, "Round is over!\nNo one has won!\n");
+		UTIL_ClientPrintAll(HUD_PRINTTALK, "* Round ends with no winners!\n");
+		MESSAGE_BEGIN(MSG_BROADCAST, gmsgObjective);
+			WRITE_STRING("Chilldemic Completed!");
+			WRITE_STRING("");
+			WRITE_BYTE(0);
+			WRITE_STRING("No one has won!");
+		MESSAGE_END();
+	}
+}
+
 void CHalfLifeChilldemic::Think( void )
 {
 	CHalfLifeMultiplay::Think();
@@ -255,125 +336,22 @@ void CHalfLifeChilldemic::Think( void )
 			//survivors all dead
 			else if ( survivors_left <= 0 )
 			{
-				//find highest frag amount.
-				float highest = 1;
-				BOOL IsEqual = FALSE;
-				CBasePlayer *highballer = NULL;
-
-				for ( int i = 1; i <= gpGlobals->maxClients; i++ )
-				{
-					CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
-
-					if ( plr && plr->IsPlayer() && plr->IsInArena && plr->pev->fuser4 > 0 )
-					{
-						if ( highest <= plr->pev->frags )
-						{
-							if ( highballer && highest == plr->pev->frags )
-							{
-								IsEqual = TRUE;
-								continue;
-							}
-
-							IsEqual = FALSE;
-							highest = plr->pev->frags;
-							highballer = plr;
-						}
-					}
-				}
-
-				if ( !IsEqual && highballer )
-				{
-					UTIL_ClientPrintAll(HUD_PRINTCENTER,
-						UTIL_VarArgs("Survivors have been defeated!\n\n%s doled the most kills!\n",
-						STRING(highballer->pev->netname)));
-					DisplayWinnersGoods( highballer );
-					MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
-						WRITE_BYTE(CLIENT_SOUND_OUTSTANDING);
-					MESSAGE_END();
-				}
-				else
-				{
-					UTIL_ClientPrintAll(HUD_PRINTCENTER, "Survivors have been defeated!\n");
-					UTIL_ClientPrintAll(HUD_PRINTTALK, "* Round ends in a tie!\n");
-					MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
-						WRITE_BYTE(CLIENT_SOUND_HULIMATING_DEAFEAT);
-					MESSAGE_END();
-				}
+				DetermineWinner();
+				MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
+					WRITE_BYTE(CLIENT_SOUND_HULIMATING_DEAFEAT);
+				MESSAGE_END();
 			}
 			//skeletons defeated.
 			else if ( skeletons_left <= 0 )
 			{
-				//find highest frag amount.
-				float highest = 1;
-				BOOL IsEqual = FALSE;
-				CBasePlayer *highballer = NULL;
-
-				for ( int i = 1; i <= gpGlobals->maxClients; i++ )
-				{
-					CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
-
-					if ( plr && plr->IsPlayer() && plr->IsInArena && plr->pev->fuser4 == 0 )
-					{
-						if ( highest <= plr->pev->frags )
-						{
-							if ( highballer && highest == plr->pev->frags )
-							{
-								IsEqual = TRUE;
-								continue;
-							}
-
-							IsEqual = FALSE;
-							highest = plr->pev->frags;
-							highballer = plr;
-						}
-					}
-				}
-
-				if ( !IsEqual && highballer )
-				{
-					UTIL_ClientPrintAll(HUD_PRINTCENTER,
-						UTIL_VarArgs("Skeletons have been defeated!\n\n%s doled the most kills!\n",
-						STRING(highballer->pev->netname)));
-					DisplayWinnersGoods( highballer );
-					MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
-						WRITE_BYTE(CLIENT_SOUND_OUTSTANDING);
-					MESSAGE_END();
-				}
-				else
-				{
-					UTIL_ClientPrintAll(HUD_PRINTCENTER, "Skeletons have been defeated!\n");
-					UTIL_ClientPrintAll(HUD_PRINTTALK, "* Round ends in a tie!\n");
-					MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
-						WRITE_BYTE(CLIENT_SOUND_HULIMATING_DEAFEAT);
-					MESSAGE_END();
-				}
+				DetermineWinner();
+				MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
+					WRITE_BYTE(CLIENT_SOUND_OUTSTANDING);
+				MESSAGE_END();
 			}
 			else if (survivors_left == 1)
 			{
-				CBasePlayer *highballer = NULL;
-
-				for ( int i = 1; i <= gpGlobals->maxClients; i++ )
-				{
-					CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
-
-					if ( plr && plr->IsPlayer() && plr->IsInArena && plr->pev->fuser4 == 0 )
-					{
-						highballer = plr;
-						break;
-					}
-				}
-
-				if (highballer)
-				{
-					UTIL_ClientPrintAll(HUD_PRINTCENTER,
-							UTIL_VarArgs("Skeletons have been defeated!\n\n%s survived!\n",
-							STRING(highballer->pev->netname)));
-					DisplayWinnersGoods( highballer );
-				}
-				else
-				{
-					UTIL_ClientPrintAll(HUD_PRINTCENTER, "Skeletons have been defeated!\n");
-				}
+				DetermineWinner();
 				MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
 					WRITE_BYTE(CLIENT_SOUND_OUTSTANDING);
 				MESSAGE_END();
@@ -517,63 +495,10 @@ BOOL CHalfLifeChilldemic::HasGameTimerExpired( void )
 	//time is up
 	if ( CHalfLifeMultiplay::HasGameTimerExpired() )
 	{
-		int highest = 1;
-		BOOL IsEqual = FALSE;
-		CBasePlayer *highballer = NULL;
-
-		//find highest damage amount.
-		for ( int i = 1; i <= gpGlobals->maxClients; i++ )
-		{
-			CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
-
-			if ( plr && plr->IsPlayer() && plr->IsInArena && plr->pev->fuser4 == 0)
-			{
-				if ( highest <= plr->pev->frags )
-				{
-					if ( highballer && highest == plr->pev->frags )
-					{
-						IsEqual = TRUE;
-						continue;
-					}
-
-					IsEqual = FALSE;
-					highest = plr->pev->frags;
-					highballer = plr;
-				}
-			}
-		}
-
-		if ( !IsEqual && highballer )
-		{
-			UTIL_ClientPrintAll(HUD_PRINTCENTER, 
-				UTIL_VarArgs("Time is up!\n\nSurvivor %s doled the most frags!\n",
-				STRING(highballer->pev->netname)));
-			MESSAGE_BEGIN(MSG_BROADCAST, gmsgObjective);
-				WRITE_STRING("Time is up!");
-				WRITE_STRING("");
-				WRITE_BYTE(0);
-				WRITE_STRING(UTIL_VarArgs("%s doled the most frags!\n", STRING(highballer->pev->netname)));
-			MESSAGE_END();
-			DisplayWinnersGoods( highballer );
-
-			MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
-				WRITE_BYTE(CLIENT_SOUND_OUTSTANDING);
-			MESSAGE_END();
-		}
-		else
-		{
-			UTIL_ClientPrintAll(HUD_PRINTCENTER, "Time is up!\nNo one has won!\n");
-			UTIL_ClientPrintAll(HUD_PRINTTALK, "* Round ends in a tie!\n");
-			MESSAGE_BEGIN(MSG_BROADCAST, gmsgObjective);
-				WRITE_STRING("Time is up!");
-				WRITE_STRING("");
-				WRITE_BYTE(0);
-				WRITE_STRING("No one has won!");
-			MESSAGE_END();
-			MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
-				WRITE_BYTE(CLIENT_SOUND_HULIMATING_DEAFEAT);
-			MESSAGE_END();
-		}
+		DetermineWinner();
+		MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
+			WRITE_BYTE(CLIENT_SOUND_OUTSTANDING);
+		MESSAGE_END();
 
 		g_GameInProgress = FALSE;
 		MESSAGE_BEGIN(MSG_ALL, gmsgShowTimer);
@@ -684,8 +609,7 @@ void CHalfLifeChilldemic::PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller
 {
 	CHalfLifeMultiplay::PlayerKilled(pVictim, pKiller, pInflictor);
 
-	int survivors_left = 0;
-	int skeletons_left = 0;
+	int survivors_left = 0, skeletons_left = 0;
 	for (int i = 1; i <= gpGlobals->maxClients; i++) {
 		if (m_iPlayersInArena[i-1] > 0)
 		{
@@ -706,6 +630,7 @@ void CHalfLifeChilldemic::PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller
 	// Person was survivor
 	if ( pVictim->pev->fuser4 == 0 )
 	{
+		pVictim->pev->frags = 0; // clear immediately for winner determination
 		if (survivors_left >= 1)
 		{
 			UTIL_ClientPrintAll(HUD_PRINTTALK,
@@ -725,9 +650,6 @@ void CHalfLifeChilldemic::PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller
 
 		g_engfuncs.pfnSetClientKeyValue( ENTINDEX( pVictim->edict() ),
 			g_engfuncs.pfnGetInfoKeyBuffer( pVictim->edict() ), "model", "skeleton" );
-		//g_engfuncs.pfnSetClientKeyValue( ENTINDEX( pVictim->edict() ),
-		//	g_engfuncs.pfnGetInfoKeyBuffer( pVictim->edict() ), "team", "skeleton" );
-		
 		strncpy( pVictim->m_szTeamName, "skeleton", TEAM_NAME_LENGTH );
 	}
 	else
@@ -735,6 +657,7 @@ void CHalfLifeChilldemic::PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller
 		// Special case, last survivor, dispatched skeletons sent to observer.
 		if (m_iSurvivorsRemain <= 1 && !pVictim->HasDisconnected)
 		{
+			pVictim->pev->frags = 0; // clear immediately for winner determination
 			pVictim->m_flForceToObserverTime = gpGlobals->time + 2.0;
 			MESSAGE_BEGIN( MSG_ONE, gmsgStatusIcon, NULL, pVictim->pev );
 				WRITE_BYTE(0);

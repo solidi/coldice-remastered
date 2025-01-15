@@ -123,6 +123,87 @@ ReturnSpot:
 	return pSpot->edict();
 }
 
+void CHalfLifeHorde::DetermineWinner( void )
+{
+	int highest = 1;
+	BOOL IsEqual = FALSE;
+	CBasePlayer *highballer = NULL;
+
+	for ( int i = 1; i <= gpGlobals->maxClients; i++ )
+	{
+		CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
+
+		if ( plr && plr->IsPlayer() && plr->IsInArena )
+		{
+			if ( highest <= plr->pev->frags )
+			{
+				if ( highballer && highest == plr->pev->frags )
+				{
+					IsEqual = TRUE;
+					continue;
+				}
+
+				IsEqual = FALSE;
+				highest = plr->pev->frags;
+				highballer = plr;
+			}
+		}
+	}
+
+	if ( highballer )
+	{
+		if (!IsEqual)
+		{
+			UTIL_ClientPrintAll(HUD_PRINTCENTER,
+				UTIL_VarArgs("%s doled the most enemy frags!\n", STRING(highballer->pev->netname)));
+			MESSAGE_BEGIN(MSG_BROADCAST, gmsgObjective);
+				WRITE_STRING(UTIL_VarArgs("Wave #%d Completed!", m_iWaveNumber));
+				WRITE_STRING(UTIL_VarArgs("%s win!", m_iSurvivorsRemain ? "Survivors" : "Monsters"));
+				WRITE_BYTE(0);
+				WRITE_STRING(UTIL_VarArgs("%s doled the most frags!\n", STRING(highballer->pev->netname)));
+			MESSAGE_END();
+
+			DisplayWinnersGoods( highballer );
+		}
+		else
+		{
+			for ( int i = 1; i <= gpGlobals->maxClients; i++ )
+			{
+				CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
+
+				if ( plr && plr->IsPlayer() && plr->IsInArena )
+				{
+					if ( plr->pev->frags == highest)
+					{
+						plr->m_iRoundWins++;
+						plr->Celebrate();
+					}
+				}
+			}
+
+			UTIL_ClientPrintAll(HUD_PRINTCENTER, "Numerous victors!");
+			UTIL_ClientPrintAll(HUD_PRINTTALK, "* Round ends with winners!\n");
+			MESSAGE_BEGIN(MSG_BROADCAST, gmsgObjective);
+				WRITE_STRING(UTIL_VarArgs("Wave #%d Completed!", m_iWaveNumber));
+				WRITE_STRING(UTIL_VarArgs("%s win!", m_iSurvivorsRemain ? "Survivors" : "Monsters"));
+				WRITE_BYTE(0);
+				WRITE_STRING("Numerous victors!");
+			MESSAGE_END();
+		}
+	}
+	else
+	{
+		UTIL_ClientPrintAll(HUD_PRINTCENTER, "Round is over!\nNo one has won!\n");
+		UTIL_ClientPrintAll(HUD_PRINTTALK, "* Round ends with no winners!\n");
+		MESSAGE_BEGIN(MSG_BROADCAST, gmsgObjective);
+			WRITE_STRING(UTIL_VarArgs("Wave #%d Completed!", m_iWaveNumber));
+			WRITE_STRING("");
+			WRITE_BYTE(0);
+			WRITE_STRING("No one has won!");
+		MESSAGE_END();
+	}
+}
+
 void CHalfLifeHorde::Think( void )
 {
 	CHalfLifeMultiplay::Think();
@@ -373,57 +454,7 @@ void CHalfLifeHorde::Think( void )
 		{
 			m_flRoundTimeLimit = 0;
 
-			int highest = 1;
-			BOOL IsEqual = FALSE;
-			CBasePlayer *highballer = NULL;
-
-			//find highest damage amount.
-			for ( int i = 1; i <= gpGlobals->maxClients; i++ )
-			{
-				CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
-
-				if ( plr && plr->IsPlayer() && plr->IsInArena )
-				{
-					if ( highest <= plr->pev->frags )
-					{
-						if ( highballer && highest == plr->pev->frags )
-						{
-							IsEqual = TRUE;
-							continue;
-						}
-
-						IsEqual = FALSE;
-						highest = plr->pev->frags;
-						highballer = plr;
-					}
-				}
-			}
-
-			if ( !IsEqual && highballer )
-			{
-				UTIL_ClientPrintAll(HUD_PRINTCENTER,
-					UTIL_VarArgs("%s doled the most enemy frags!\n", STRING(highballer->pev->netname)));
-				MESSAGE_BEGIN(MSG_BROADCAST, gmsgObjective);
-					WRITE_STRING(UTIL_VarArgs("Wave #%d Completed!", m_iWaveNumber));
-					WRITE_STRING("");
-					WRITE_BYTE(0);
-					WRITE_STRING(UTIL_VarArgs("%s doled the most frags!\n", STRING(highballer->pev->netname)));
-				MESSAGE_END();
-
-				DisplayWinnersGoods( highballer );
-			}
-			else
-			{
-				UTIL_ClientPrintAll(HUD_PRINTCENTER, "Horde is dead!\nNo one has won!\n");
-				UTIL_ClientPrintAll(HUD_PRINTTALK, "* Round ends with no winners!\n");
-				MESSAGE_BEGIN(MSG_BROADCAST, gmsgObjective);
-					WRITE_STRING(UTIL_VarArgs("Wave #%d Completed!", m_iWaveNumber));
-					WRITE_STRING("");
-					WRITE_BYTE(0);
-					WRITE_STRING("No one has won!");
-				MESSAGE_END();
-			}
-
+			DetermineWinner();
 			MESSAGE_BEGIN(MSG_BROADCAST, gmsgPlayClientSound);
 				WRITE_BYTE(CLIENT_SOUND_WAVE_ENDED);
 			MESSAGE_END();
@@ -475,62 +506,10 @@ void CHalfLifeHorde::Think( void )
 				pEdict = FIND_ENTITY_BY_STRING(pEdict, "message", "horde");
 			}
 
-			//find highest frag amount.
-			float highest = 1;
-			BOOL IsEqual = FALSE;
-			CBasePlayer *highballer = NULL;
-
-			for ( int i = 1; i <= gpGlobals->maxClients; i++ )
-			{
-				CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
-
-				if ( plr && plr->IsPlayer() && plr->IsInArena )
-				{
-					if ( highest <= plr->pev->frags )
-					{
-						if ( highballer && highest == plr->pev->frags )
-						{
-							IsEqual = TRUE;
-							continue;
-						}
-
-						IsEqual = FALSE;
-						highest = plr->pev->frags;
-						highballer = plr;
-					}
-				}
-			}
-
-			if ( !IsEqual && highballer )
-			{
-				UTIL_ClientPrintAll(HUD_PRINTCENTER,
-					UTIL_VarArgs("Survivors have been defeated!\n\n%s doled the most enemy frags!\n",
-					STRING(highballer->pev->netname)));
-				MESSAGE_BEGIN(MSG_BROADCAST, gmsgObjective);
-					WRITE_STRING(UTIL_VarArgs("Wave #%d Completed!", m_iWaveNumber));
-					WRITE_STRING("");
-					WRITE_BYTE(0);
-					WRITE_STRING(UTIL_VarArgs("%s scored highest!", STRING(highballer->pev->netname)));
-				MESSAGE_END();
-				DisplayWinnersGoods( highballer );
-				MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
-					WRITE_BYTE(CLIENT_SOUND_OUTSTANDING);
-				MESSAGE_END();
-			}
-			else
-			{
-				UTIL_ClientPrintAll(HUD_PRINTCENTER, "Survivors have been defeated!\n");
-				UTIL_ClientPrintAll(HUD_PRINTTALK, "* Round ends with no winners!\n");
-				MESSAGE_BEGIN(MSG_BROADCAST, gmsgObjective);
-					WRITE_STRING(UTIL_VarArgs("Wave #%d Completed!", m_iWaveNumber));
-					WRITE_STRING("");
-					WRITE_BYTE(0);
-					WRITE_STRING("No one has won!");
-				MESSAGE_END();
-				MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
-					WRITE_BYTE(CLIENT_SOUND_HULIMATING_DEAFEAT);
-				MESSAGE_END();
-			}
+			DetermineWinner();
+			MESSAGE_BEGIN(MSG_BROADCAST, gmsgPlayClientSound);
+				WRITE_BYTE(CLIENT_SOUND_WAVE_ENDED);
+			MESSAGE_END();
 
 			m_iSuccessfulRounds++;
 			flUpdateTime = gpGlobals->time + 3.0;
@@ -704,63 +683,10 @@ BOOL CHalfLifeHorde::HasGameTimerExpired( void )
 	//time is up
 	if ( CHalfLifeMultiplay::HasGameTimerExpired() )
 	{
-		int highest = 1;
-		BOOL IsEqual = FALSE;
-		CBasePlayer *highballer = NULL;
-
-		//find highest damage amount.
-		for ( int i = 1; i <= gpGlobals->maxClients; i++ )
-		{
-			CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
-
-			if ( plr && plr->IsPlayer() && plr->IsInArena )
-			{
-				if ( highest <= plr->pev->frags )
-				{
-					if ( highballer && highest == plr->pev->frags )
-					{
-						IsEqual = TRUE;
-						continue;
-					}
-
-					IsEqual = FALSE;
-					highest = plr->pev->frags;
-					highballer = plr;
-				}
-			}
-		}
-
-		if ( !IsEqual && highballer )
-		{
-			UTIL_ClientPrintAll(HUD_PRINTCENTER, 
-				UTIL_VarArgs("Time is up!\n\n%s doled the most frags!\n",
-				STRING(highballer->pev->netname)));
-			MESSAGE_BEGIN(MSG_BROADCAST, gmsgObjective);
-				WRITE_STRING("Time is up!");
-				WRITE_STRING("");
-				WRITE_BYTE(0);
-				WRITE_STRING(UTIL_VarArgs("%s doled the most frags!\n", STRING(highballer->pev->netname)));
-			MESSAGE_END();
-			DisplayWinnersGoods( highballer );
-
-			MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
-				WRITE_BYTE(CLIENT_SOUND_OUTSTANDING);
-			MESSAGE_END();
-		}
-		else
-		{
-			UTIL_ClientPrintAll(HUD_PRINTCENTER, "Time is up!\nNo one has won!\n");
-			UTIL_ClientPrintAll(HUD_PRINTTALK, "* Round ends with no winners!\n");
-			MESSAGE_BEGIN(MSG_BROADCAST, gmsgObjective);
-				WRITE_STRING("Time is up!");
-				WRITE_STRING("");
-				WRITE_BYTE(0);
-				WRITE_STRING("No one has won!");
-			MESSAGE_END();
-			MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
-				WRITE_BYTE(CLIENT_SOUND_HULIMATING_DEAFEAT);
-			MESSAGE_END();
-		}
+		DetermineWinner();
+		MESSAGE_BEGIN(MSG_BROADCAST, gmsgPlayClientSound);
+			WRITE_BYTE(CLIENT_SOUND_WAVE_ENDED);
+		MESSAGE_END();
 
 		g_GameInProgress = FALSE;
 		MESSAGE_BEGIN(MSG_ALL, gmsgShowTimer);
@@ -815,6 +741,8 @@ BOOL CHalfLifeHorde::FPlayerCanRespawn( CBasePlayer *pPlayer )
 
 void CHalfLifeHorde::PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller, entvars_t *pInflictor )
 {
+	pVictim->pev->frags = 0; // clear immediately for winner determination
+
 	CHalfLifeMultiplay::PlayerKilled(pVictim, pKiller, pInflictor);
 
 	int survivors_left = 0;

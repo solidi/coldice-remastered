@@ -257,7 +257,6 @@ public:
 	void ExitObserver( void );
 	BOOL IsSpectator( void ) { return ( m_afPhysicsFlags & PFLAG_OBSERVER ? TRUE : FALSE ); };
 
-	float m_fArmoredManHits;
 	BOOL IsArmoredMan;
 	float m_fHallelujahTime;
 

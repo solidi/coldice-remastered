@@ -34,6 +34,7 @@ public:
 	virtual const char *GetTeamID( CBaseEntity *pEntity );
 	virtual BOOL ShouldAutoAim( CBasePlayer *pPlayer, edict_t *target );
 	virtual BOOL IsRoundBased( void );
+	virtual void DetermineWinner( void );
 
 private:
 	CBasePlayer *pArmoredMan;

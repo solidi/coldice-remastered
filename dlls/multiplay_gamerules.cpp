@@ -934,7 +934,6 @@ int CHalfLifeMultiplay::CheckClients( void )
 			plr->IsInArena = FALSE;
 			plr->IsArmoredMan = FALSE;
 			plr->pev->fuser4 = 0;
-			plr->m_fArmoredManHits = 0;
 			plr->m_flForceToObserverTime = 0;
 			m_iPlayersInArena[clients-1] = i;
 		}

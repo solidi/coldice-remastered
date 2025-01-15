@@ -36,6 +36,7 @@ public:
 	virtual BOOL IsRoundBased( void );
 	virtual BOOL CanHavePlayerItem( CBasePlayer *pPlayer, CBasePlayerItem *pItem );
 	virtual BOOL CanRandomizeWeapon( const char *name );
+	virtual void DetermineWinner( void );
 
 private:
 	int m_iSurvivorsRemain;
