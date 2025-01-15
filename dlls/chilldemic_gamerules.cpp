@@ -607,12 +607,9 @@ BOOL CHalfLifeChilldemic::FPlayerCanRespawn( CBasePlayer *pPlayer )
 
 void CHalfLifeChilldemic::PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller, entvars_t *pInflictor )
 {
-	pVictim->pev->frags = 0; // clear immediately for winner determination
-
 	CHalfLifeMultiplay::PlayerKilled(pVictim, pKiller, pInflictor);
 
-	int survivors_left = 0;
-	int skeletons_left = 0;
+	int survivors_left = 0, skeletons_left = 0;
 	for (int i = 1; i <= gpGlobals->maxClients; i++) {
 		if (m_iPlayersInArena[i-1] > 0)
 		{
@@ -633,6 +630,7 @@ void CHalfLifeChilldemic::PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller
 	// Person was survivor
 	if ( pVictim->pev->fuser4 == 0 )
 	{
+		pVictim->pev->frags = 0; // clear immediately for winner determination
 		if (survivors_left >= 1)
 		{
 			UTIL_ClientPrintAll(HUD_PRINTTALK,
@@ -652,9 +650,6 @@ void CHalfLifeChilldemic::PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller
 
 		g_engfuncs.pfnSetClientKeyValue( ENTINDEX( pVictim->edict() ),
 			g_engfuncs.pfnGetInfoKeyBuffer( pVictim->edict() ), "model", "skeleton" );
-		//g_engfuncs.pfnSetClientKeyValue( ENTINDEX( pVictim->edict() ),
-		//	g_engfuncs.pfnGetInfoKeyBuffer( pVictim->edict() ), "team", "skeleton" );
-		
 		strncpy( pVictim->m_szTeamName, "skeleton", TEAM_NAME_LENGTH );
 	}
 	else
@@ -662,6 +657,7 @@ void CHalfLifeChilldemic::PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller
 		// Special case, last survivor, dispatched skeletons sent to observer.
 		if (m_iSurvivorsRemain <= 1 && !pVictim->HasDisconnected)
 		{
+			pVictim->pev->frags = 0; // clear immediately for winner determination
 			pVictim->m_flForceToObserverTime = gpGlobals->time + 2.0;
 			MESSAGE_BEGIN( MSG_ONE, gmsgStatusIcon, NULL, pVictim->pev );
 				WRITE_BYTE(0);
