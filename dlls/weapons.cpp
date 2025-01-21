@@ -793,8 +793,15 @@ int CBasePlayerItem::TakeDamage( entvars_t* pevInflictor, entvars_t* pevAttacker
 			::RadiusDamage( pev->origin, pev, pevAttacker, pev->dmg, pev->dmg  * 2.5, CLASS_NONE, DMG_BURN );
 		}
 
-		Respawn();
-		Kill();
+		if ( g_pGameRules->WeaponShouldRespawn( this ) == GR_WEAPON_RESPAWN_YES )
+		{
+			Respawn();
+			Kill();
+		}
+		else
+		{
+			Kill();
+		}
 	}
 #endif
 	return 1;
@@ -1881,7 +1888,14 @@ int CBasePlayerAmmo::TakeDamage( entvars_t* pevInflictor, entvars_t* pevAttacker
 			::RadiusDamage( pev->origin, pev, pevAttacker, pev->dmg, pev->dmg  * 2.5, CLASS_NONE, DMG_BURN );
 		}
 
-		Respawn();
+		if ( g_pGameRules->AmmoShouldRespawn( this ) == GR_AMMO_RESPAWN_YES )
+		{
+			Respawn();
+		}
+		else
+		{
+			UTIL_Remove( this );
+		}
 	}
 #endif
 	return 1;
@@ -1890,8 +1904,20 @@ int CBasePlayerAmmo::TakeDamage( entvars_t* pevInflictor, entvars_t* pevAttacker
 void CBasePlayerAmmo::Spawn( void )
 {
 	pev->movetype = MOVETYPE_TOSS;
-	pev->solid = SOLID_TRIGGER;
-	UTIL_SetSize(pev, Vector(-16, -16, 0), Vector(16, 16, 16));
+
+	if (g_pGameRules->IsPropHunt())
+	{
+		pev->solid = SOLID_BBOX;
+		pev->health = 1;
+		pev->takedamage = DAMAGE_YES;
+		UTIL_SetSize(pev, VEC_HUMAN_HULL_MIN, VEC_HUMAN_HULL_MAX);
+	}
+	else
+	{
+		pev->solid = SOLID_TRIGGER;
+		UTIL_SetSize(pev, Vector(-16, -16, 0), Vector(16, 16, 16));
+	}
+
 	UTIL_SetOrigin( pev, pev->origin );
 
 	pev->sequence = (pev->body * 2) + floatingweapons.value;
@@ -1908,14 +1934,6 @@ void CBasePlayerAmmo::Spawn( void )
 		pev->health = 1;
 	}
 
-	if (g_pGameRules->IsPropHunt())
-	{
-		pev->solid = SOLID_BBOX;
-		pev->health = 1;
-		pev->takedamage = DAMAGE_YES;
-		UTIL_SetSize(pev, VEC_HUMAN_HULL_MIN, VEC_HUMAN_HULL_MAX);
-	}
-	
 	SetTouch( &CBasePlayerAmmo::DefaultTouch );
 }
 

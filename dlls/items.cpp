@@ -95,9 +95,22 @@ void CWorldItem::Spawn( void )
 void CItem::Spawn( void )
 {
 	pev->movetype = MOVETYPE_TOSS;
-	pev->solid = SOLID_TRIGGER;
+
+	if (g_pGameRules->IsPropHunt())
+	{
+		pev->solid = SOLID_BBOX;
+		pev->health = 1;
+		pev->takedamage = DAMAGE_YES;
+		UTIL_SetSize(pev, VEC_HUMAN_HULL_MIN, VEC_HUMAN_HULL_MAX);
+	}
+	else
+	{
+		pev->solid = SOLID_TRIGGER;
+		UTIL_SetSize(pev, Vector(-16, -16, 0), Vector(16, 16, 16));
+	}
+
 	UTIL_SetOrigin( pev, pev->origin );
-	UTIL_SetSize(pev, Vector(-16, -16, 0), Vector(16, 16, 16));
+
 	SetTouch(&CItem::ItemTouch);
 
 	pev->sequence = floatingweapons.value;
@@ -107,13 +120,6 @@ void CItem::Spawn( void )
 	{
 		pev->takedamage = DAMAGE_YES;
 		pev->health = 1;
-	}
-
-	if (g_pGameRules->IsPropHunt())
-	{
-		pev->health = 1;
-		pev->takedamage = DAMAGE_YES;
-		UTIL_SetSize(pev, VEC_HUMAN_HULL_MIN, VEC_HUMAN_HULL_MAX);
 	}
 
 	if (DROP_TO_FLOOR(ENT(pev)) == 0)
@@ -213,6 +219,17 @@ int CItem::TakeDamage( entvars_t* pevInflictor, entvars_t* pevAttacker, float fl
 	{
 		pev->takedamage = DAMAGE_NO;
 
+		if (g_pGameRules->IsPropHunt())
+		{
+			MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
+				WRITE_BYTE( TE_TAREXPLOSION );
+				WRITE_COORD( pev->origin.x );
+				WRITE_COORD( pev->origin.y );
+				WRITE_COORD( pev->origin.z );
+			MESSAGE_END();
+			g_pGameRules->MonsterKilled( NULL, pevAttacker );
+		}
+
 		if (g_ItemsExplode)
 		{
 			pev->dmg = RANDOM_LONG(50, 100);
@@ -250,7 +267,14 @@ int CItem::TakeDamage( entvars_t* pevInflictor, entvars_t* pevAttacker, float fl
 			::RadiusDamage( pev->origin, pev, pevAttacker, pev->dmg, pev->dmg  * 2.5, CLASS_NONE, DMG_BURN );
 		}
 
-		Respawn();
+		if ( g_pGameRules->ItemShouldRespawn( this ) == GR_ITEM_RESPAWN_YES )
+		{
+			Respawn();
+		}
+		else
+		{
+			UTIL_Remove( this );
+		}
 	}
 #endif
 	return 1;

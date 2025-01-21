@@ -42,6 +42,10 @@ public:
 	virtual BOOL MutatorAllowed(const char *mutator);
 	virtual void DetermineWinner( void );
 	virtual void PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller, entvars_t *pInflictor );
+	virtual BOOL AllowRuneSpawn( const char *szRune );
+	virtual int WeaponShouldRespawn( CBasePlayerItem *pWeapon );
+	virtual int ItemShouldRespawn( CItem *pItem );
+	virtual int AmmoShouldRespawn( CBasePlayerAmmo *pAmmo );
 
 private:
 	int m_iHuntersRemain;

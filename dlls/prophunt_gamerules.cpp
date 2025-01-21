@@ -1051,3 +1051,23 @@ void CHalfLifePropHunt::PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller, 
 
 	CHalfLifeMultiplay::PlayerKilled(pVictim, pKiller, pInflictor);
 }
+
+BOOL CHalfLifePropHunt::AllowRuneSpawn( const char *szRune )
+{
+	return FALSE;
+}
+
+int CHalfLifePropHunt::WeaponShouldRespawn( CBasePlayerItem *pWeapon )
+{
+	return GR_WEAPON_RESPAWN_NO;
+}
+
+int CHalfLifePropHunt::ItemShouldRespawn( CItem *pItem )
+{
+	return GR_ITEM_RESPAWN_NO;
+}
+
+int CHalfLifePropHunt::AmmoShouldRespawn( CBasePlayerAmmo *pAmmo )
+{
+	return GR_AMMO_RESPAWN_NO;
+}
