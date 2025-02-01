@@ -264,7 +264,7 @@ public:
 	void StartRightFlip( void );
 	void StartLeftFlip( void );
 	void StartBackFlip( void );
-	void StartFrontFlip( BOOL addVelocity );
+	void StartFrontFlip( void );
 	void StartHurricaneKick( void );
 	void EndHurricaneKick( void );
 	void TraceHitOfFlip( void );
