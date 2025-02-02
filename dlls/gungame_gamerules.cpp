@@ -364,25 +364,6 @@ int CHalfLifeGunGame::IPointsForKill( CBasePlayer *pAttacker, CBasePlayer *pKill
 
 							if ( plr && plr->IsPlayer() && !plr->HasDisconnected )
 							{
-								if (ggstartlevel.value > 0 && ggstartlevel.value < MAXLEVEL)
-								{
-									plr->pev->fuser4 = ggstartlevel.value;
-									plr->pev->frags = g_iFrags[(int)ggstartlevel.value - 1];
-								}
-								else
-								{
-									plr->pev->frags = plr->pev->fuser4 = 0;
-								}
-
-								MESSAGE_BEGIN( MSG_ALL, gmsgScoreInfo );
-									WRITE_BYTE( ENTINDEX(plr->edict()) );
-									WRITE_SHORT( plr->pev->frags );
-									WRITE_SHORT( plr->m_iDeaths = 0 );
-									WRITE_SHORT( 0 );
-									WRITE_SHORT( 0 );
-								MESSAGE_END();
-								plr->m_iAssists = 0;
-
 								if (plr->IsAlive())
 									plr->RemoveAllItems(FALSE);
 
@@ -397,8 +378,7 @@ int CHalfLifeGunGame::IPointsForKill( CBasePlayer *pAttacker, CBasePlayer *pKill
 
 						m_fRefreshStats = -1;
 
-						// No frags awarded when round is complete
-						return 0;
+						return 1;
 					}
 					else
 					{
@@ -458,7 +438,11 @@ void CHalfLifeGunGame::PlayerSpawn( CBasePlayer *pPlayer )
 			WRITE_SHORT( 0 );
 		MESSAGE_END();
 	}
-	
+
+	// Game is over, do not give further items
+	if (m_iTopLevel >= MAXLEVEL)
+		return;
+
 	int currentLevel = (int)pPlayer->pev->fuser4;
 	char weapon[32];
 	sprintf(weapon, "%s%s", "weapon_", g_WeaponId[currentLevel]);
