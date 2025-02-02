@@ -209,32 +209,20 @@ void CHalfLifeGunGame::Think( void )
 							WRITE_STRING("GunGame in progress");
 							WRITE_STRING(UTIL_VarArgs("Top level is %s [%d of %d]", g_WeaponId[m_iTopLevel], m_iTopLevel + 1, MAXLEVEL));
 							WRITE_BYTE(result);
-							//WRITE_STRING(UTIL_VarArgs("Round %d of %d", m_iSuccessfulRounds+1, (int)roundlimit.value));
 						MESSAGE_END();
 					}
 				}
 				else
 				{
-					/*
-					plr->DisplayHudMessage(UTIL_VarArgs("Round %d of %d\nYour Level: %d | Top Level: %d", 
-						m_iSuccessfulRounds+1, (int)roundlimit.value, (int)plr->pev->fuser4, m_iTopLevel),
-						TXT_CHANNEL_GAME_INFO, -1, 0.83, 255, 255, 255, 0, 0, 0, 60, 0);
-					*/
-					
-					int result = ((plr->pev->fuser4 + 1) / MAXLEVEL) * 100;
+					int result = ((plr->m_iRoundWins + 1) / MAXLEVEL) * 100;
 
 					if (!FBitSet(plr->pev->flags, FL_FAKECLIENT))
 					{
 						MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, plr->edict());
 							WRITE_STRING("Get through your weapon list");
-							WRITE_STRING(UTIL_VarArgs("Your progress: %d of %d", (int)plr->pev->fuser4 + 1, MAXLEVEL));
+							WRITE_STRING(UTIL_VarArgs("Your progress: %d of %d", plr->m_iRoundWins + 1, MAXLEVEL));
 							WRITE_BYTE(result);
-							WRITE_STRING(UTIL_VarArgs("Next is %s", g_WeaponId[(int)plr->pev->fuser4+1]));
-							//if (plr->m_iRoundWins > 0)
-							//	WRITE_STRING(UTIL_VarArgs("Won %d rounds: %d to go", plr->m_iRoundWins, (int)roundlimit.value - m_iSuccessfulRounds));
-							//else
-							// WRITE_STRING(UTIL_VarArgs("Round %d: %d to go", m_iSuccessfulRounds + 1, (int)roundlimit.value - 1));
-							// WRITE_STRING(UTIL_VarArgs("Next weapon: %s", g_WeaponId[(int)plr->pev->fuser4 + 1]));
+							WRITE_STRING(UTIL_VarArgs("Next is %s", g_WeaponId[plr->m_iRoundWins+1]));
 						MESSAGE_END();
 					}
 				}
@@ -263,9 +251,8 @@ void CHalfLifeGunGame::InitHUD( CBasePlayer *pPlayer )
 	{
 		MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL, pPlayer->edict());
 			WRITE_STRING("Get through your weapon list");
-			WRITE_STRING(UTIL_VarArgs("Your progress: %d of %d", (int)pPlayer->pev->fuser4 + 1, MAXLEVEL));
+			WRITE_STRING(UTIL_VarArgs("Your progress: %d of %d", pPlayer->m_iRoundWins + 1, MAXLEVEL));
 			WRITE_BYTE(0);
-			//WRITE_STRING(UTIL_VarArgs("Best of %d", (int)roundlimit.value));
 		MESSAGE_END();
 	}
 }
@@ -278,12 +265,12 @@ void CHalfLifeGunGame::PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller, e
 	CBaseEntity *ktmp = CBaseEntity::Instance( pKiller );
 	if (ktmp)
 	{
-		int vlevel = (int)pVictim->pev->fuser4;
+		int vlevel = (int)pVictim->m_iRoundWins;
 		if (vlevel > 0 && (pVictim == ktmp || !ktmp->IsPlayer()))
 		{
 			if ((int)pVictim->pev->frags < g_iFrags[vlevel-1])
 			{
-				pVictim->pev->fuser4 -= 1;
+				pVictim->m_iRoundWins -= 1;
 				m_fRefreshStats = gpGlobals->time;
 			}
 		}
@@ -297,8 +284,8 @@ void CHalfLifeGunGame::PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller, e
 
 		if ( plr && plr->IsPlayer() && !plr->HasDisconnected )
 		{
-			if (m_iTopLevel < (int)plr->pev->fuser4)
-				m_iTopLevel = (int)plr->pev->fuser4;
+			if (m_iTopLevel < plr->m_iRoundWins)
+				m_iTopLevel = plr->m_iRoundWins;
 		}
 	}
 }
@@ -308,14 +295,14 @@ int CHalfLifeGunGame::IPointsForKill( CBasePlayer *pAttacker, CBasePlayer *pKill
 	if (m_fGoToIntermission == 0 && pAttacker && pKilled)
 	{
 		// Attacker
-		int currentLevel = (int)pAttacker->pev->fuser4;
+		int currentLevel = (int)pAttacker->m_iRoundWins;
 		if (currentLevel < MAXLEVEL)
 		{
 			// Note, frags are increased after this method, so assume +1
 			if ((int)pAttacker->pev->frags+1 >= g_iFrags[currentLevel])
 			{
-				pAttacker->pev->fuser4 += 1;
-				int newLevel = (int)pAttacker->pev->fuser4;
+				pAttacker->m_iRoundWins += 1;
+				int newLevel = (int)pAttacker->m_iRoundWins;
 				int voiceId = 0;
 
 				ClientPrint(pAttacker->pev, HUD_PRINTTALK,
@@ -334,12 +321,11 @@ int CHalfLifeGunGame::IPointsForKill( CBasePlayer *pAttacker, CBasePlayer *pKill
 							CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
 							if ( plr && plr->IsPlayer() && !plr->HasDisconnected )
 							{
-								if (plr != pAttacker && (int)plr->pev->fuser4 == (m_iTopLevel-1)) {
+								if (plr != pAttacker && plr->m_iRoundWins == (m_iTopLevel-1)) {
 									// Play immediately since GiveNamedItem is not used in this context
 									MESSAGE_BEGIN( MSG_ONE_UNRELIABLE, gmsgPlayClientSound, NULL, plr->edict() );
 										WRITE_BYTE(CLIENT_SOUND_LOSTLEAD);
 									MESSAGE_END();
-									ALERT(at_aiconsole, "play CLIENT_SOUND_LOSTLEAD\n");
 								}
 							}
 						}
@@ -348,13 +334,16 @@ int CHalfLifeGunGame::IPointsForKill( CBasePlayer *pAttacker, CBasePlayer *pKill
 					if (m_iTopLevel == MAXLEVEL)
 					{
 						MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
-							WRITE_BYTE(CLIENT_SOUND_OUTSTANDING);
+							WRITE_BYTE(CLIENT_SOUND_ROUND_OVER);
 						MESSAGE_END();
 
 						m_hLeader = pAttacker;
 						m_iSuccessfulRounds++;
 						m_fGoToIntermission = gpGlobals->time + 8.0;
 						m_iTopLevel = 0;
+
+						// Update scoreboard for winner
+						pAttacker->m_iRoundWins++;
 
 						UTIL_ClientPrintAll(HUD_PRINTCENTER, UTIL_VarArgs("%s has won GunGame!\n", STRING(pAttacker->pev->netname)));
 
@@ -427,23 +416,24 @@ void CHalfLifeGunGame::PlayerSpawn( CBasePlayer *pPlayer )
 		pPlayer->GiveNamedItem("weapon_fists");
 
 	// In full game, go deep with negative deaths but in short game, pin to lowest level
-	if (ggstartlevel.value > 0 && pPlayer->pev->fuser4 < ggstartlevel.value) {
-		pPlayer->pev->fuser4 = ggstartlevel.value;
+	if (ggstartlevel.value > 1 && pPlayer->m_iRoundWins < ggstartlevel.value) {
+		pPlayer->m_iRoundWins = (int)ggstartlevel.value;
 		pPlayer->pev->frags = g_iFrags[(int)ggstartlevel.value - 1];
-		MESSAGE_BEGIN( MSG_ALL, gmsgScoreInfo );
-			WRITE_BYTE( ENTINDEX(pPlayer->edict()) );
-			WRITE_SHORT( pPlayer->pev->frags );
-			WRITE_SHORT( pPlayer->m_iDeaths );
-			WRITE_SHORT( 0 );
-			WRITE_SHORT( 0 );
-		MESSAGE_END();
 	}
+
+	MESSAGE_BEGIN( MSG_ALL, gmsgScoreInfo );
+		WRITE_BYTE( ENTINDEX(pPlayer->edict()) );
+		WRITE_SHORT( pPlayer->pev->frags );
+		WRITE_SHORT( pPlayer->m_iDeaths );
+		WRITE_SHORT( pPlayer->m_iRoundWins + 1 );
+		WRITE_SHORT( 0 );
+	MESSAGE_END();
 
 	// Game is over, do not give further items
 	if (m_iTopLevel >= MAXLEVEL)
 		return;
 
-	int currentLevel = (int)pPlayer->pev->fuser4;
+	int currentLevel = pPlayer->m_iRoundWins;
 	char weapon[32];
 	sprintf(weapon, "%s%s", "weapon_", g_WeaponId[currentLevel]);
 	if (!pPlayer->HasNamedPlayerItem(weapon))

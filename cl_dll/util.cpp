@@ -171,7 +171,8 @@ bool ScoreBased( void )
 			gHUD.m_Teamplay == GAME_HORDE ||
 			gHUD.m_Teamplay == GAME_ICEMAN ||
 			gHUD.m_Teamplay == GAME_PROPHUNT ||
-			gHUD.m_Teamplay == GAME_SHIDDEN);
+			gHUD.m_Teamplay == GAME_SHIDDEN ||
+			gHUD.m_Teamplay == GAME_GUNGAME);
 }
 
 bool SortByWins( void )
@@ -179,5 +180,6 @@ bool SortByWins( void )
 	return (gHUD.m_Teamplay == GAME_BUSTERS ||
 			gHUD.m_Teamplay == GAME_COLDSPOT ||
 			gHUD.m_Teamplay == GAME_CTC ||
-			gHUD.m_Teamplay == GAME_CTF);
+			gHUD.m_Teamplay == GAME_CTF ||
+			gHUD.m_Teamplay == GAME_GUNGAME);
 }

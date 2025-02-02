@@ -153,8 +153,6 @@ int CHudScoreboard :: Draw( float fTime )
 
 	if (gHUD.m_Teamplay == GAME_LMS)
 		gHUD.DrawHudStringReverse( KILLS_RANGE_MAX + xpos_rel, ypos, 0, "Lives", r, g, b );
-	else if (gHUD.m_Teamplay == GAME_GUNGAME)
-		gHUD.DrawHudStringReverse( KILLS_RANGE_MAX + xpos_rel, ypos, 0, "Level", r, g, b );
 	else if (gHUD.m_Teamplay == GAME_PROPHUNT)
 		gHUD.DrawHudStringReverse( KILLS_RANGE_MAX + xpos_rel, ypos, 0, "Points", r, g, b );
 	else if (gHUD.m_Teamplay == GAME_COLDSKULL)
@@ -164,7 +162,12 @@ int CHudScoreboard :: Draw( float fTime )
 	gHUD.DrawHudString( DIVIDER_POS + xpos_rel, ypos, ScreenWidth, "/", r, g, b );
 	gHUD.DrawHudString( DEATHS_RANGE_MIN + xpos_rel + 5, ypos, ScreenWidth, "Deaths", r, g, b );
 	if (ScoreBased())
-		gHUD.DrawHudString( SCORE_RANGE_MIN + xpos_rel + 5, ypos, ScreenWidth, "Score", r, g, b );
+	{
+		if (gHUD.m_Teamplay != GAME_GUNGAME)
+			gHUD.DrawHudString( SCORE_RANGE_MIN + xpos_rel + 5, ypos, ScreenWidth, "Score", r, g, b );
+		else
+			gHUD.DrawHudString( SCORE_RANGE_MIN + xpos_rel + 5, ypos, ScreenWidth, "Level", r, g, b );
+	}
 	gHUD.DrawHudString( PING_RANGE_MAX + xpos_rel - 35, ypos, ScreenWidth, "Latency", r, g, b );
 
 	if ( can_show_packetloss )

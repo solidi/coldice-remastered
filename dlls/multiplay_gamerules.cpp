@@ -1441,7 +1441,7 @@ void CHalfLifeMultiplay :: InitHUD( CBasePlayer *pl )
 				WRITE_BYTE( i );	// client number
 				WRITE_SHORT( plr->pev->frags );
 				WRITE_SHORT( plr->m_iDeaths );
-				WRITE_SHORT( plr->m_iRoundWins );
+				WRITE_SHORT( g_GameMode != GAME_GUNGAME ? plr->m_iRoundWins : plr->m_iRoundWins + 1 );
 				WRITE_SHORT( GetTeamIndex( plr->m_szTeamName ) + 1 );
 			MESSAGE_END();
 		}
