@@ -967,29 +967,41 @@ int CHudAmmo::Draw(float flTime)
 			SPR_DrawAdditive(0, (ScreenWidth / 2) - 32, (ScreenHeight / 2) - 32, &gHUD.GetSpriteRect(gHUD.GetSpriteIndex("dontshoot")));
 		}
 
+		int w = 0, h = 0, total = (ScreenHeight / 2);
+
 		if (MutatorEnabled(MUTATOR_FASTWEAPONS))
 		{
-			int w = 0, h = 0;
 			GetConsoleStringSize("Fast weapons", &w, &h);
-			DrawConsoleString(ScreenWidth / 2 - (w / 2), (ScreenHeight / 2) + (h * 2), "Fast weapons");
+			total += h;
+			DrawConsoleString(ScreenWidth / 2 - (w / 2), total, "Fast weapons");
 		}
-		else if (MutatorEnabled(MUTATOR_SLOWWEAPONS))
+		
+		if (MutatorEnabled(MUTATOR_SLOWWEAPONS))
 		{
-			int w = 0, h = 0;
 			GetConsoleStringSize("Slow weapons", &w, &h);
-			DrawConsoleString(ScreenWidth / 2 - (w / 2), (ScreenHeight / 2) + (h * 2), "Slow weapons");
+			total += h;
+			DrawConsoleString(ScreenWidth / 2 - (w / 2), total, "Slow weapons");
 		}
-		else if (MutatorEnabled(MUTATOR_DEALTER))
+		
+		if (MutatorEnabled(MUTATOR_DEALTER))
 		{
-			int w = 0, h = 0;
 			GetConsoleStringSize("Farts!", &w, &h);
-			DrawConsoleString(ScreenWidth / 2 - (w / 2), (ScreenHeight / 2) + (h * 2), "Farts!");
+			total += h;
+			DrawConsoleString(ScreenWidth / 2 - (w / 2), total, "Farts!");
 		}
-		else if (MutatorEnabled(MUTATOR_NORELOAD))
+		
+		if (MutatorEnabled(MUTATOR_NORELOAD))
 		{
-			int w = 0, h = 0;
 			GetConsoleStringSize("No reload", &w, &h);
-			DrawConsoleString(ScreenWidth / 2 - (w / 2), (ScreenHeight / 2) + (h * 2), "Slow weapons");
+			total += h;
+			DrawConsoleString(ScreenWidth / 2 - (w / 2), total, "No reload");
+		}
+		
+		if (MutatorEnabled(MUTATOR_RICOCHET))
+		{
+			GetConsoleStringSize("Ricochet", &w, &h);
+			total += h;
+			DrawConsoleString(ScreenWidth / 2 - (w / 2), total, "Ricochet");
 		}
 	}
 

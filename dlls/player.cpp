@@ -2368,7 +2368,7 @@ void CBasePlayer::Jump()
 			EMIT_SOUND(ENT(pev), CHAN_VOICE, "player/pl_step1.wav", 1, ATTN_NORM);
 
 		if (pev->velocity.Length2D() > 100 && m_iJumpCount == 3)
-			StartFrontFlip(TRUE);
+			StartFrontFlip();
 
 		return;
 	}
@@ -4793,7 +4793,7 @@ void CBasePlayer::ImpulseCommands( )
 		StartBackFlip();
 		break;
 	case 213:
-		StartFrontFlip(TRUE);
+		StartFrontFlip();
 		break;
 	case 214:
 		StartHurricaneKick();
@@ -5225,7 +5225,7 @@ void CBasePlayer::StartBackFlip( void )
 	}
 }
 
-void CBasePlayer::StartFrontFlip( BOOL addVelocity )
+void CBasePlayer::StartFrontFlip( void )
 {
 	if (!acrobatics.value)
 		return;
@@ -5238,16 +5238,17 @@ void CBasePlayer::StartFrontFlip( BOOL addVelocity )
 		return;
 
 	if (m_fFlipTime < gpGlobals->time) {
-		if (addVelocity)
+		// direct tap or if completing a triple jump
+		if (FBitSet(pev->flags, FL_ONGROUND) || m_iJumpCount == 3)
 		{
 			UTIL_MakeVectors(pev->angles);
 			pev->velocity = (gpGlobals->v_forward * 300) + (gpGlobals->v_up * 400);
+			SetAnimation( PLAYER_FRONT_FLIP );
+			MESSAGE_BEGIN( MSG_ONE, gmsgAcrobatics, NULL, pev );
+				WRITE_BYTE( ACROBATICS_FLIP_FRONT );
+			MESSAGE_END();
 		}
 		m_fFlipTime = gpGlobals->time + 0.75;
-		SetAnimation( PLAYER_FRONT_FLIP );
-		MESSAGE_BEGIN( MSG_ONE, gmsgAcrobatics, NULL, pev );
-			WRITE_BYTE( ACROBATICS_FLIP_FRONT );
-		MESSAGE_END();
 	}
 }
 

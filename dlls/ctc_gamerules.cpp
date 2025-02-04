@@ -28,6 +28,8 @@ extern int gmsgGameMode;
 extern int gmsgScoreInfo;
 extern int gmsgPlayClientSound;
 extern int gmsgObjective;
+extern int gmsgTeamNames;
+extern int gmsgTeamInfo;
 
 #define SPAWN_TIME 30.0
 
@@ -168,6 +170,40 @@ void CHalfLifeCaptureTheChumtoad::InitHUD( CBasePlayer *pPlayer )
 {
 	CHalfLifeMultiplay::InitHUD( pPlayer );
 
+	MESSAGE_BEGIN(MSG_ONE, gmsgTeamNames, NULL, pPlayer->edict());
+		WRITE_BYTE( 2 );
+		WRITE_STRING( "chaser" );
+		WRITE_STRING( "holder" );
+	MESSAGE_END();
+
+	strncpy( pPlayer->m_szTeamName, "chaser", TEAM_NAME_LENGTH );
+
+	// notify everyone's HUD of the team change
+	MESSAGE_BEGIN( MSG_ALL, gmsgTeamInfo );
+		WRITE_BYTE( ENTINDEX(pPlayer->edict()) );
+		WRITE_STRING( pPlayer->m_szTeamName );
+	MESSAGE_END();
+
+	MESSAGE_BEGIN( MSG_ALL, gmsgScoreInfo );
+		WRITE_BYTE( ENTINDEX(pPlayer->edict()) );
+		WRITE_SHORT( pPlayer->pev->frags );
+		WRITE_SHORT( pPlayer->m_iDeaths );
+		WRITE_SHORT( pPlayer->m_iRoundWins );
+		WRITE_SHORT( g_pGameRules->GetTeamIndex( pPlayer->m_szTeamName ) + 1 );
+	MESSAGE_END();
+
+	for ( int i = 1; i <= gpGlobals->maxClients; i++ )
+	{
+		CBaseEntity *plr = UTIL_PlayerByIndex( i );
+		if ( plr && !FBitSet(pPlayer->pev->flags, FL_FAKECLIENT) )
+		{
+			MESSAGE_BEGIN( MSG_ONE, gmsgTeamInfo, NULL, pPlayer->edict() );
+				WRITE_BYTE( plr->entindex() );
+				WRITE_STRING( plr->TeamID() );
+			MESSAGE_END();
+		}
+	}
+
 	if (!FBitSet(pPlayer->pev->flags, FL_FAKECLIENT))
 	{
 		MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL, pPlayer->edict());
@@ -242,6 +278,20 @@ void CHalfLifeCaptureTheChumtoad::CaptureCharm( CBasePlayer *pPlayer )
 		WRITE_BYTE(CLIENT_SOUND_BULLSEYE);
 	MESSAGE_END();
 
+	// notify everyone's HUD of the team change
+	strncpy( pPlayer->m_szTeamName, "holder", TEAM_NAME_LENGTH );
+	MESSAGE_BEGIN( MSG_ALL, gmsgTeamInfo );
+		WRITE_BYTE( ENTINDEX(pPlayer->edict()) );
+		WRITE_STRING( pPlayer->m_szTeamName );
+	MESSAGE_END();
+	MESSAGE_BEGIN( MSG_ALL, gmsgScoreInfo );
+		WRITE_BYTE( ENTINDEX(pPlayer->edict()) );
+		WRITE_SHORT( pPlayer->pev->frags );
+		WRITE_SHORT( pPlayer->m_iDeaths );
+		WRITE_SHORT( pPlayer->m_iRoundWins );
+		WRITE_SHORT( g_pGameRules->GetTeamIndex( pPlayer->m_szTeamName ) + 1 );
+	MESSAGE_END();
+
 	pPlayer->m_iChumtoadCounter = pPlayer->m_iCaptureTime = 0;
 	m_fCreateChumtoadTimer = -1;
 	m_fMoveChumtoadTimer = 0;
@@ -268,6 +318,19 @@ CBaseEntity *CHalfLifeCaptureTheChumtoad::DropCharm( CBasePlayer *pPlayer, Vecto
 
 	MESSAGE_BEGIN(MSG_BROADCAST, gmsgPlayClientSound);
 		WRITE_BYTE(CLIENT_SOUND_MANIAC);
+	MESSAGE_END();
+
+	strncpy( pPlayer->m_szTeamName, "chaser", TEAM_NAME_LENGTH );
+	MESSAGE_BEGIN( MSG_ALL, gmsgTeamInfo );
+		WRITE_BYTE( ENTINDEX(pPlayer->edict()) );
+		WRITE_STRING( pPlayer->m_szTeamName );
+	MESSAGE_END();
+	MESSAGE_BEGIN( MSG_ALL, gmsgScoreInfo );
+		WRITE_BYTE( ENTINDEX(pPlayer->edict()) );
+		WRITE_SHORT( pPlayer->pev->frags );
+		WRITE_SHORT( pPlayer->m_iDeaths );
+		WRITE_SHORT( pPlayer->m_iRoundWins );
+		WRITE_SHORT( g_pGameRules->GetTeamIndex( pPlayer->m_szTeamName ) + 1 );
 	MESSAGE_END();
 
 	m_fCreateChumtoadTimer = -1;
@@ -341,7 +404,7 @@ void CHalfLifeCaptureTheChumtoad::PlayerThink( CBasePlayer *pPlayer )
 						WRITE_SHORT( pPlayer->pev->frags );
 						WRITE_SHORT( pPlayer->m_iDeaths );
 						WRITE_SHORT( ++pPlayer->m_iRoundWins );
-						WRITE_SHORT( 0 );
+						WRITE_SHORT( g_pGameRules->GetTeamIndex( pPlayer->m_szTeamName ) + 1 );
 					MESSAGE_END();
 
 					UTIL_ClientPrintAll(HUD_PRINTTALK, "[CtC]: %s has scored a point!\n", 
@@ -533,4 +596,17 @@ BOOL CHalfLifeCaptureTheChumtoad::MutatorAllowed(const char *mutator)
 		return FALSE;
 
 	return CHalfLifeMultiplay::MutatorAllowed(mutator);
+}
+
+int CHalfLifeCaptureTheChumtoad::GetTeamIndex( const char *pTeamName )
+{
+	if ( pTeamName && *pTeamName != 0 )
+	{
+		if (!strcmp(pTeamName, "holder"))
+			return 1;
+		else
+			return 0;
+	}
+	
+	return -1;	// No match
 }
