@@ -1197,7 +1197,7 @@ float CBaseMonster :: DamageForce( float damage )
 // 
 // only damage ents that can clearly be seen by the explosion!
 
-void RadiusDamage( Vector vecSrc, entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, float flRadius, int iClassIgnore, int bitsDamageType )
+void RadiusDamage( Vector vecSrc, entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, float flRadius, int iClassIgnore, int bitsDamageType, BOOL ignoreAttacker)
 {
 	CBaseEntity *pEntity = NULL;
 	TraceResult	tr;
@@ -1219,6 +1219,9 @@ void RadiusDamage( Vector vecSrc, entvars_t *pevInflictor, entvars_t *pevAttacke
 	// iterate on all entities in the vicinity.
 	while ((pEntity = UTIL_FindEntityInSphere( pEntity, vecSrc, flRadius )) != NULL)
 	{
+		if (ignoreAttacker && pEntity->pev == pevAttacker)
+			continue;
+
 		if ( pEntity->pev->takedamage != DAMAGE_NO )
 		{
 			// UNDONE: this should check a damage mask, not an ignore

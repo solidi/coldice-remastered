@@ -3077,6 +3077,32 @@ void CBasePlayerWeapon::KickAttack( BOOL holdingSomething )
 
 		ApplyMultiDamage( m_pPlayer->pev, m_pPlayer->pev );
 
+		if (g_pGameRules->MutatorEnabled(MUTATOR_VOLATILE)) {
+			::RadiusDamage( tr.vecEndPos, m_pPlayer->pev, m_pPlayer->pev, gSkillData.plrDmgKick, 75, CLASS_NONE, DMG_KICK, TRUE );
+			int iContents = UTIL_PointContents ( tr.vecEndPos );
+			MESSAGE_BEGIN( MSG_PAS, SVC_TEMPENTITY, tr.vecEndPos );
+				WRITE_BYTE( TE_EXPLOSION );		// This makes a dynamic light and the explosion sprites/sound
+				WRITE_COORD( tr.vecEndPos.x );	// Send to PAS because of the sound
+				WRITE_COORD( tr.vecEndPos.y );
+				WRITE_COORD( tr.vecEndPos.z );
+				if (iContents != CONTENTS_WATER)
+				{
+					if (icesprites.value) {
+						WRITE_SHORT( g_sModelIndexIceFireball );
+					} else {
+						WRITE_SHORT( g_sModelIndexFireball );
+					}
+				}
+				else
+				{
+					WRITE_SHORT( g_sModelIndexWExplosion );
+				}
+				WRITE_BYTE( gSkillData.plrDmgKick * .60 ); // scale * 10
+				WRITE_BYTE( 15 ); // framerate
+				WRITE_BYTE( TE_EXPLFLAG_NONE );
+			MESSAGE_END();
+		}
+
 		int speed = -300;
 		if ( !FNullEnt(tr.pHit) && VARS(tr.pHit)->rendermode != 0)
 			speed = 300;
@@ -3090,7 +3116,8 @@ void CBasePlayerWeapon::KickAttack( BOOL holdingSomething )
 				EMIT_SOUND(ENT(m_pPlayer->pev), CHAN_BODY, "fists_hitbod.wav", 1, ATTN_NORM);
 				m_pPlayer->m_iWeaponVolume = 128;
 				flVol = 0.1;
-				pEntity->pev->velocity = (pEntity->pev->velocity + (gpGlobals->v_forward * RANDOM_LONG(200,300)));
+				pEntity->pev->flags &= ~FL_ONGROUND;
+				pEntity->pev->velocity = (pEntity->pev->velocity + (gpGlobals->v_forward * RANDOM_LONG(200,300)) + gpGlobals->v_up);
 
 				if (g_pGameRules->AllowMeleeDrop() && pEntity->IsPlayer())
 				{
