@@ -116,7 +116,7 @@ void CSkullCharm::SkullTouch( CBaseEntity *pOther )
 	{
 		EMIT_SOUND( pPlayer->edict(), CHAN_ITEM, "rune_pickup.wav", 1, ATTN_NORM );
 
-		pPlayer->pev->frags += pev->fuser1;
+		pPlayer->m_iRoundWins += pev->fuser1;
 		MESSAGE_BEGIN( MSG_ALL, gmsgScoreInfo );
 			WRITE_BYTE( ENTINDEX(pPlayer->edict()) );
 			WRITE_SHORT( pPlayer->pev->frags );
@@ -128,7 +128,7 @@ void CSkullCharm::SkullTouch( CBaseEntity *pOther )
 		if (!FBitSet(pPlayer->pev->flags, FL_FAKECLIENT))
 		{
 			int frags = fraglimit.value;
-			int myfrags = (int)pPlayer->pev->frags;
+			int myfrags = pPlayer->m_iRoundWins;
 			if (frags == 0)
 				frags = 100;
 			int result = (myfrags / frags) * 100;
@@ -221,18 +221,18 @@ void CHalfLifeColdSkull::PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller,
 
 	int remain = 0;
 	if (pVictim != peKiller)
-		remain = pVictim->pev->frags /= 2;
+		remain = pVictim->m_iRoundWins /= 2;
 
 	MESSAGE_BEGIN( MSG_ALL, gmsgScoreInfo );
 		WRITE_BYTE( ENTINDEX(pVictim->edict()) );
 		WRITE_SHORT( pVictim->pev->frags );
 		WRITE_SHORT( pVictim->m_iDeaths );
-		WRITE_SHORT( 0 );
+		WRITE_SHORT( pVictim->m_iRoundWins );
 		WRITE_SHORT( GetTeamIndex( pVictim->m_szTeamName ) + 1 );
 	MESSAGE_END();
 
 	int frags = fraglimit.value;
-	int myfrags = (int)pVictim->pev->frags;
+	int myfrags = pVictim->m_iRoundWins;
 	if (frags == 0)
 		frags = 100;
 	int result = (myfrags / frags) * 100;
@@ -266,9 +266,4 @@ void CHalfLifeColdSkull::PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller,
 			CreateSkull( pVictim, giveout );
 		}
 	}
-}
-
-int CHalfLifeColdSkull::IPointsForKill( CBasePlayer *pAttacker, CBasePlayer *pKilled )
-{
-	return 0;
 }

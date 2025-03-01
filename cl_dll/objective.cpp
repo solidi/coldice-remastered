@@ -42,7 +42,7 @@ int CHudObjective::CalcPosition( )
 {
 	gHUD.m_Scoreboard.GetAllPlayersInfo();
 	count = 1;
-	if ( !ScoreBased() && gHUD.m_Teamplay != GAME_TEAMPLAY )
+	if ( (!ScoreBased() || IndividualPlayer()) && gHUD.m_Teamplay != GAME_TEAMPLAY )
 	{
 		// it's not teamplay,  so just draw a simple player list
 		CalcPlayer( );

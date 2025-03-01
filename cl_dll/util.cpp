@@ -165,6 +165,7 @@ bool ScoreBased( void )
 			gHUD.m_Teamplay == GAME_LMS ||
 			gHUD.m_Teamplay == GAME_BUSTERS ||
 			gHUD.m_Teamplay == GAME_CHILLDEMIC ||
+			gHUD.m_Teamplay == GAME_COLDSKULL ||
 			gHUD.m_Teamplay == GAME_COLDSPOT ||
 			gHUD.m_Teamplay == GAME_CTC ||
 			gHUD.m_Teamplay == GAME_CTF ||
@@ -178,8 +179,15 @@ bool ScoreBased( void )
 bool SortByWins( void )
 {
 	return (gHUD.m_Teamplay == GAME_BUSTERS ||
+			gHUD.m_Teamplay == GAME_COLDSKULL ||
 			gHUD.m_Teamplay == GAME_COLDSPOT ||
 			gHUD.m_Teamplay == GAME_CTC ||
 			gHUD.m_Teamplay == GAME_CTF ||
+			gHUD.m_Teamplay == GAME_GUNGAME);
+}
+
+bool IndividualPlayer( void )
+{
+	return (gHUD.m_Teamplay == GAME_COLDSKULL ||
 			gHUD.m_Teamplay == GAME_GUNGAME);
 }
