@@ -278,7 +278,14 @@ void ScorePanel::Update()
 	}
 
 	if (ScoreBased() && gHUD.m_Teamplay != GAME_TEAMPLAY)
-		m_HeaderLabels[COLUMN_SCORE].setText(CHudTextMessage::BufferedLocaliseTextString("#SCORE"));
+	{
+		if (gHUD.m_Teamplay == GAME_GUNGAME)
+			m_HeaderLabels[COLUMN_SCORE].setText(CHudTextMessage::BufferedLocaliseTextString("#LEVEL"));
+		else if (gHUD.m_Teamplay == GAME_COLDSKULL)
+			m_HeaderLabels[COLUMN_SCORE].setText(CHudTextMessage::BufferedLocaliseTextString("#SKULLS"));
+		else
+			m_HeaderLabels[COLUMN_SCORE].setText(CHudTextMessage::BufferedLocaliseTextString("#SCORE"));
+	}
 	else
 		m_HeaderLabels[COLUMN_SCORE].setText("");
 
@@ -297,7 +304,7 @@ void ScorePanel::Update()
 	}
 
 	// If it's not teamplay, sort all the players. Otherwise, sort the teams.
-	if ( !ScoreBased() && gHUD.m_Teamplay != GAME_TEAMPLAY )
+	if ( (!ScoreBased() || IndividualPlayer()) && gHUD.m_Teamplay != GAME_TEAMPLAY )
 		SortPlayers( 0, NULL );
 	else
 		SortTeams();

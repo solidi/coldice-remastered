@@ -116,7 +116,7 @@ void CSkullCharm::SkullTouch( CBaseEntity *pOther )
 	{
 		EMIT_SOUND( pPlayer->edict(), CHAN_ITEM, "rune_pickup.wav", 1, ATTN_NORM );
 
-		pPlayer->pev->frags += pev->fuser1;
+		pPlayer->m_iRoundWins += pev->fuser1;
 		MESSAGE_BEGIN( MSG_ALL, gmsgScoreInfo );
 			WRITE_BYTE( ENTINDEX(pPlayer->edict()) );
 			WRITE_SHORT( pPlayer->pev->frags );
@@ -128,7 +128,7 @@ void CSkullCharm::SkullTouch( CBaseEntity *pOther )
 		if (!FBitSet(pPlayer->pev->flags, FL_FAKECLIENT))
 		{
 			int frags = fraglimit.value;
-			int myfrags = (int)pPlayer->pev->frags;
+			int myfrags = pPlayer->m_iRoundWins;
 			if (frags == 0)
 				frags = 100;
 			int result = (myfrags / frags) * 100;
@@ -214,64 +214,56 @@ void CHalfLifeColdSkull::PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller,
 {
 	CHalfLifeMultiplay::PlayerKilled( pVictim, pKiller, pInflictor );
 
+	CBasePlayer *peKiller = NULL;
+	CBaseEntity *ktmp = CBaseEntity::Instance( pKiller );
+	if ( ktmp && (ktmp->Classify() == CLASS_PLAYER))
+		peKiller = (CBasePlayer*)ktmp;
+
+	int remain = 0;
+	if (pVictim != peKiller)
+		remain = pVictim->m_iRoundWins /= 2;
+
+	MESSAGE_BEGIN( MSG_ALL, gmsgScoreInfo );
+		WRITE_BYTE( ENTINDEX(pVictim->edict()) );
+		WRITE_SHORT( pVictim->pev->frags );
+		WRITE_SHORT( pVictim->m_iDeaths );
+		WRITE_SHORT( pVictim->m_iRoundWins );
+		WRITE_SHORT( GetTeamIndex( pVictim->m_szTeamName ) + 1 );
+	MESSAGE_END();
+
+	int frags = fraglimit.value;
+	int myfrags = pVictim->m_iRoundWins;
+	if (frags == 0)
+		frags = 100;
+	int result = (myfrags / frags) * 100;
+	MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, pVictim->edict());
+		WRITE_STRING("Collect the skulls");
+		WRITE_STRING(UTIL_VarArgs("Your progress: %d of %d", myfrags, frags));
+		WRITE_BYTE(result);
+	MESSAGE_END();
+
+	if (remain <= 1)
 	{
-		UTIL_MakeVectors(pVictim->pev->v_angle);
-		//DropCharm(pVictim, pVictim->pev->origin + gpGlobals->v_forward * 64);
-		int remain = (int)pVictim->pev->frags;
-		if (remain > 0)
-			pVictim->pev->frags /= 2;
-		else
-			pVictim->pev->frags = 0;
-
-		MESSAGE_BEGIN( MSG_ALL, gmsgScoreInfo );
-			WRITE_BYTE( ENTINDEX(pVictim->edict()) );
-			WRITE_SHORT( pVictim->pev->frags );
-			WRITE_SHORT( pVictim->m_iDeaths );
-			WRITE_SHORT( 0 );
-			WRITE_SHORT( GetTeamIndex( pVictim->m_szTeamName ) + 1 );
-		MESSAGE_END();
-
-		int frags = fraglimit.value;
-		int myfrags = (int)pVictim->pev->frags;
-		if (frags == 0)
-			frags = 100;
-		int result = (myfrags / frags) * 100;
-		MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, pVictim->edict());
-			WRITE_STRING("Collect the skulls");
-			WRITE_STRING(UTIL_VarArgs("Your progress: %d of %d", myfrags, frags));
-			WRITE_BYTE(result);
-		MESSAGE_END();
-
-		if (remain <= 0)
+		CreateSkull( pVictim, 1 );
+	}
+	else
+	{
+		while (remain > 0)
 		{
-			//ALERT(at_aiconsole, ">>> create 1 skull\n");
-			CreateSkull( pVictim, 1 );
-		}
-		else
-		{
-			while (remain > 0)
-			{
-				int giveout = 0;
-				if (remain >= 40)
-					giveout = 40;
-				else if (remain >= 20 && remain < 40)
-					giveout = 20;
-				else if (remain >= 10 && remain < 20)
-					giveout = 10;
-				else if (remain >= 5 && remain < 10)
-					giveout = 5;
-				else if (remain >= 1 && remain < 5)
-					giveout = 1;
+			int giveout = 0;
+			if (remain >= 40)
+				giveout = 40;
+			else if (remain >= 20 && remain < 40)
+				giveout = 20;
+			else if (remain >= 10 && remain < 20)
+				giveout = 10;
+			else if (remain >= 5 && remain < 10)
+				giveout = 5;
+			else if (remain >= 1 && remain < 5)
+				giveout = 1;
 
-				//ALERT(at_aiconsole, ">>> create %d skull\n", giveout);
-				remain -= giveout;
-				CreateSkull( pVictim, giveout );
-			}
+			remain -= giveout;
+			CreateSkull( pVictim, giveout );
 		}
 	}
-}
-
-int CHalfLifeColdSkull::IPointsForKill( CBasePlayer *pAttacker, CBasePlayer *pKilled )
-{
-	return 0;
 }

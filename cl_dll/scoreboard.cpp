@@ -146,7 +146,7 @@ int CHudScoreboard :: Draw( float fTime )
 	int r, g, b;
 	UnpackRGB(r, g, b, HudColor());
 
-	if ( !ScoreBased() && gHUD.m_Teamplay != GAME_TEAMPLAY )
+	if ( (!ScoreBased() || IndividualPlayer()) && gHUD.m_Teamplay != GAME_TEAMPLAY )
 		gHUD.DrawHudString( xpos, ypos, NAME_RANGE_MAX + xpos_rel, "Player", r, g, b );
 	else
 		gHUD.DrawHudString( xpos, ypos, NAME_RANGE_MAX + xpos_rel, "Teams", r, g, b );
@@ -155,18 +155,18 @@ int CHudScoreboard :: Draw( float fTime )
 		gHUD.DrawHudStringReverse( KILLS_RANGE_MAX + xpos_rel, ypos, 0, "Lives", r, g, b );
 	else if (gHUD.m_Teamplay == GAME_PROPHUNT)
 		gHUD.DrawHudStringReverse( KILLS_RANGE_MAX + xpos_rel, ypos, 0, "Points", r, g, b );
-	else if (gHUD.m_Teamplay == GAME_COLDSKULL)
-		gHUD.DrawHudStringReverse( KILLS_RANGE_MAX + xpos_rel, ypos, 0, "Skulls", r, g, b );
 	else
 		gHUD.DrawHudStringReverse( KILLS_RANGE_MAX + xpos_rel, ypos, 0, "Frags", r, g, b );
 	gHUD.DrawHudString( DIVIDER_POS + xpos_rel, ypos, ScreenWidth, "/", r, g, b );
 	gHUD.DrawHudString( DEATHS_RANGE_MIN + xpos_rel + 5, ypos, ScreenWidth, "Deaths", r, g, b );
 	if (ScoreBased())
 	{
-		if (gHUD.m_Teamplay != GAME_GUNGAME)
-			gHUD.DrawHudString( SCORE_RANGE_MIN + xpos_rel + 5, ypos, ScreenWidth, "Score", r, g, b );
-		else
+		if (gHUD.m_Teamplay == GAME_GUNGAME)
 			gHUD.DrawHudString( SCORE_RANGE_MIN + xpos_rel + 5, ypos, ScreenWidth, "Level", r, g, b );
+		else if (gHUD.m_Teamplay == GAME_COLDSKULL)
+			gHUD.DrawHudString( SCORE_RANGE_MIN + xpos_rel + 5, ypos, ScreenWidth, "Skulls", r, g, b );
+		else
+			gHUD.DrawHudString( SCORE_RANGE_MIN + xpos_rel + 5, ypos, ScreenWidth, "Score", r, g, b );
 	}
 	gHUD.DrawHudString( PING_RANGE_MAX + xpos_rel - 35, ypos, ScreenWidth, "Latency", r, g, b );
 
@@ -185,7 +185,7 @@ int CHudScoreboard :: Draw( float fTime )
 	
 	list_slot += 0.8;
 
-	if ( !ScoreBased() && gHUD.m_Teamplay != GAME_TEAMPLAY )
+	if ( (!ScoreBased() || IndividualPlayer()) && gHUD.m_Teamplay != GAME_TEAMPLAY )
 	{
 		// it's not teamplay,  so just draw a simple player list
 		DrawPlayers( xpos_rel, list_slot );

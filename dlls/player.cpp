@@ -7145,7 +7145,7 @@ BOOL CBasePlayer::GetHeaviestWeapon( CBasePlayerItem *pCurrentWeapon )
 //=========================================================
 BOOL CBasePlayer :: SwitchWeapon( CBasePlayerItem *pWeapon ) 
 {
-	if ( !pWeapon->CanDeploy() )
+	if ( !pWeapon || !pWeapon->CanDeploy() )
 	{
 		return FALSE;
 	}
