@@ -586,6 +586,50 @@ void CBaseMonster :: Burn( void )
 	}
 }
 
+void CBaseMonster::Freeze()
+{
+	if (m_flNextThawTime > gpGlobals->time)
+	{
+		pev->flags |= FL_FROZEN;
+		pev->renderfx = kRenderFxGlowShell;
+		pev->renderamt = 15;
+		pev->rendercolor.x = 0;
+		pev->rendercolor.y = 115;
+		pev->rendercolor.z = 230;
+	}
+	else
+	{
+		if (m_flNextThawTime != 0.0f)
+		{
+			pev->flags &= ~FL_FROZEN;
+			pev->renderfx = kRenderFxNone;
+			pev->renderamt = 0;
+			pev->rendercolor.x = 0;
+			pev->rendercolor.y = 0;
+			pev->rendercolor.z = 0;
+		}
+		m_flNextThawTime = 0.0f;
+	}
+
+	// Freeze the after 5 seconds
+	if (m_flFreezeTime > 5.0f)
+	{
+		// 3 seconds cooldown until next freeze
+		m_flNextFreezeCooldown = gpGlobals->time + 3.0f;
+		m_flNextThawTime = gpGlobals->time + 1.0f;
+	}
+	else
+	{
+		//m_FrostAttacker = nullptr;
+	}
+
+	m_flFreezeTime -= gpGlobals->frametime;
+	if (m_flFreezeTime < 0.0f)
+		m_flFreezeTime = 0.0f;
+
+	ALERT(at_console, "%.2f \n", m_flFreezeTime);
+}
+
 //=========================================================
 // Monster Think - calls out to core AI functions and handles this
 // monster's specific animation events
@@ -604,6 +648,15 @@ void CBaseMonster :: MonsterThink ( void )
 	{
 		m_flDistTooFar = 1024.0;
 		m_flDistLook = 2048.0;
+	}
+
+	extern DLL_GLOBAL BOOL flag_FreezeMonster;
+	if (flag_FreezeMonster)
+	{
+		Freeze();
+
+		if (pev->flags & FL_FROZEN)
+			return;
 	}
 
 	RunAI();

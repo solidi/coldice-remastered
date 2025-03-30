@@ -335,6 +335,7 @@ public:
 
 	int PFA;
 	void Burn( void );
+	void Freeze( void );
 	virtual int ObjectCaps( void ) { return (CBaseEntity::ObjectCaps() | FCAP_PORTAL); }
 };
 

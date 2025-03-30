@@ -996,6 +996,9 @@ When a monster is poisoned via an arrow etc it takes all the poison damage at on
 GLOBALS ASSUMED SET:  g_iSkillLevel
 ============
 */
+
+extern DLL_GLOBAL BOOL flag_FreezeMonster;
+
 int CBaseMonster :: TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int bitsDamageType )
 {
 	float	flTake;
@@ -1061,7 +1064,13 @@ int CBaseMonster :: TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker,
 	// do the damage
 	pev->health -= flTake;
 
-	
+	if (flag_FreezeMonster)
+		if ((bitsDamageType & DMG_FREEZE) != 0 && m_flNextFreezeCooldown < gpGlobals->time)
+		{
+			m_flFreezeTime += 2.5f;
+			//pEntity->m_FrostAttacker = CBaseEntity::Instance(pevAttacker);
+		}
+
 	// HACKHACK Don't kill monsters in a script.  Let them break their scripts first
 	if ( m_MonsterState == MONSTERSTATE_SCRIPT )
 	{
@@ -1286,12 +1295,18 @@ void RadiusDamage( Vector vecSrc, entvars_t *pevInflictor, entvars_t *pevAttacke
 					pEntity->TakeDamage ( pevInflictor, pevAttacker, flAdjustedDamage, bitsDamageType );
 				}
 
-				//if (pEntity->edict() != pev->owner)
 				if (FBitSet(bitsDamageType, DMG_BURN))
 				{
 					pEntity->m_fBurnTime = pEntity->m_fBurnTime + RANDOM_FLOAT(1.0, 3.0);
 					pEntity->m_hFlameOwner = CBaseEntity::Instance(pevAttacker);
 				}
+				
+				if (flag_FreezeMonster)
+					if ((bitsDamageType & DMG_FREEZE) != 0 && pEntity->m_flNextFreezeCooldown < gpGlobals->time)
+					{
+						pEntity->m_flFreezeTime += 2.5f;
+						//pEntity->m_FrostAttacker = CBaseEntity::Instance(pevAttacker);
+					}
 			}
 		}
 	}

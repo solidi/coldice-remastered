@@ -39,3 +39,6 @@ DLL_GLOBAL const Vector	g_vecZero = Vector(0,0,0);
 DLL_GLOBAL int			g_Language;
 
 DLL_GLOBAL int g_GameMode;
+
+// Feature flags
+DLL_GLOBAL BOOL flag_FreezeMonster = TRUE;

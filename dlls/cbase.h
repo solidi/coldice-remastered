@@ -379,6 +379,10 @@ public:
 	int m_burnParticleEnabled;
 	float m_fBurnTime;
 	EHANDLE m_hFlameOwner;
+
+	float m_flFreezeTime = 0.0f;
+	float m_flNextFreezeCooldown = 0.0f;
+	float m_flNextThawTime = 0.0f;
 };
 
 
