@@ -72,6 +72,7 @@ void CHook::FireHook( ) {
 		return;
 
 	pev->owner = ENT(pevOwner->pev);
+	pev->effects &= ~EF_NODRAW;
 
 	TraceResult tr;
 	Vector anglesAim = pevOwner->pev->v_angle + pevOwner->pev->punchangle;
@@ -159,13 +160,13 @@ void CHook::HookTouch( CBaseEntity *pOther )
 		m_fHookInWall = FALSE;
 		m_fPlayerAtEnd = FALSE;
 
-		SetThink(&CBaseEntity::SUB_Remove);
-		pev->nextthink = gpGlobals->time + 0.1;
-
 		if ( !g_pGameRules->IsMultiplayer() )
 		{
 			Killed( pev, GIB_NEVER );
 		}
+
+		pev->effects |= EF_NODRAW;
+		pev->nextthink = -1;
 	}
 	else
 	{
