@@ -28,20 +28,17 @@ jobs:
     - name: Update packages
       run: sudo apt update -y
 
-    #- name: Install make
-    #  run: sudo apt-get install make
+    - name: Install make
+      run: sudo apt-get install make
 
-    #- name: Install g++-4.8
-    #  run: sudo apt install g++-4.8 gcc-4.8 -y
+    - name: Install g++-4.8
+      run: sudo apt install g++-4.8 gcc-4.8 -y
 
     #- name: Install headers
     #  run: sudo apt-get install gcc-4.8-multilib g++-4.8-multilib -y
 
-    #- name: Install GL headers
-    #  run: sudo apt install libgl-dev -y
-
-    - name: Install buuld tools
-      run: sudo apt install -y make g++ gcc gcc-multilib g++-multilib libgl-dev
+    - name: Install GL headers
+      run: sudo apt install libgl-dev -y
 
     - name: Build ice.so
       working-directory: ./linux
