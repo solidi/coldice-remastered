@@ -55,10 +55,10 @@ typedef int BOOL;
 #include <stdarg.h>
 #include <string.h> // memset 
 #ifndef min
-#define min(a,b)  (((a) < (b)) ? (a) : (b))
+#define fmin(a,b)  (((a) < (b)) ? (a) : (b))
 #endif
 #ifndef max
-#define max(a,b)  (((a) > (b)) ? (a) : (b))
+#define fmax(a,b)  (((a) > (b)) ? (a) : (b))
 #define _vsnprintf(a,b,c,d) vsnprintf(a,b,c,d)
 #endif
 #endif //_WIN32

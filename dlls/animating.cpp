@@ -276,8 +276,8 @@ void CBaseAnimating :: SetSequenceBox( void )
 		bounds[0] = mins;
 		bounds[1] = maxs;
 		
-		Vector rmin( 9999, 9999, 9999 );
-		Vector rmax( -9999, -9999, -9999 );
+		Vector rfmin( 9999, 9999, 9999 );
+		Vector rfmax( -9999, -9999, -9999 );
 		Vector base, transformed;
 
 		for (int i = 0; i <= 1; i++ )
