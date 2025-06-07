@@ -506,7 +506,7 @@ void CHudDeathNotice::CalculateUTKills(int killer, int victim)
 		m_iKillCount = 0;
 	
 	m_iKillCount++;
-	m_iKillCount = fmin(m_iKillCount, WTF_KILL);
+	m_iKillCount = fmin(m_iKillCount, (int)WTF_KILL);
 	// Give some time for kills to add if there is more than one, then play.
 	m_fNextKillSpeakTime = gEngfuncs.GetClientTime() + 0.25;
 	m_fLastKillTime = gEngfuncs.GetClientTime() + KILL_SPREE_SECS;
