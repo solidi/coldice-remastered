@@ -815,7 +815,7 @@ BOOL CApache :: FireGun( )
 		angles.x = angles.x + 360;
 
 	if (angles.x > m_angGun.x)
-		m_angGun.x = min( angles.x, m_angGun.x + 12 );
+		m_angGun.x = fmin( angles.x, m_angGun.x + 12 );
 	if (angles.x < m_angGun.x)
 		m_angGun.x = max( angles.x, m_angGun.x - 12 );
 	if (angles.y > m_angGun.y)
