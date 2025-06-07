@@ -31,8 +31,8 @@ jobs:
     - name: Install make
       run: sudo apt-get install make
 
-    - name: Install g++-4.8
-      run: sudo apt install g++-4.8 gcc-4.8 -y
+    #- name: Install g++-4.8
+    #  run: sudo apt install g++ gcc-4.8 -y
 
     - name: Install headers
       run: sudo apt-get install gcc-multilib g++-multilib -y
