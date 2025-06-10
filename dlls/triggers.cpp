@@ -1009,6 +1009,8 @@ void CBaseTrigger :: HurtTouch ( CBaseEntity *pOther )
 	if (g_AirstrikeActivator && pev->targetname && strstr(STRING(pev->targetname), "strike_pain"))
 	{
 		attacker = g_AirstrikeActivator->pev;
+		if (g_pGameRules->MutatorEnabled(MUTATOR_999))
+			fldmg *= 10;
 	}
 
 	if ( fldmg < 0 )
