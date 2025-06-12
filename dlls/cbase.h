@@ -116,6 +116,7 @@ class CBasePlayerItem;
 class CSquadMonster;
 
 
+#define	SF_GIVEITEM	( 1 << 29 )// mark entity that shouldn't be replaced in gameplay
 #define	SF_NORESPAWN	( 1 << 30 )// !!!set this bit on guns and stuff that should never respawn.
 
 //

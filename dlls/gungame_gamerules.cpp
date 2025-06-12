@@ -452,10 +452,31 @@ void CHalfLifeGunGame::PlayerSpawn( CBasePlayer *pPlayer )
 	g_pGameRules->SpawnMutators(pPlayer);
 }
 
+const char *ammoList[] =
+{
+	"ammo_rpgclip",
+	"ammo_9mmAR",
+	"ammo_ARgrenades",
+	"ammo_357",
+	"ammo_buckshot",
+	"ammo_9mmclip",
+	"ammo_gaussclip",
+	"ammo_crossbow",
+	"item_healthkit",
+	"item_battery",
+	"item_longjump",
+};
+
 BOOL CHalfLifeGunGame::IsAllowedToSpawn( CBaseEntity *pEntity )
 {
 	if (strncmp(STRING(pEntity->pev->classname), "weapon_", 7) == 0)
+	{
+		CBaseEntity *p = CBaseEntity::Create((char *)ammoList[RANDOM_LONG(0, ARRAYSIZE(ammoList)-1)], pEntity->pev->origin, pEntity->pev->angles, pEntity->pev->owner);
+		if (FBitSet(pEntity->pev->spawnflags, SF_GIVEITEM))
+			if (p)
+				p->pev->spawnflags |= SF_NORESPAWN;
 		return FALSE;
+	}
 
 	return TRUE;
 }

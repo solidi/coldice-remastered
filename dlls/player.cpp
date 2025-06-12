@@ -4601,6 +4601,7 @@ void CBasePlayer::GiveNamedItem( const char *pszName )
 	}
 	VARS( pent )->origin = pev->origin;
 	pent->v.spawnflags |= SF_NORESPAWN;
+	pent->v.spawnflags |= SF_GIVEITEM;
 
 	DispatchSpawn( pent );
 	DispatchTouch( pent, ENT( pev ) );
