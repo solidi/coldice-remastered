@@ -477,12 +477,9 @@ const char *ammoList[] =
 
 BOOL CHalfLifeGunGame::IsAllowedToSpawn( CBaseEntity *pEntity )
 {
-	if (strncmp(STRING(pEntity->pev->classname), "weapon_", 7) == 0)
+	if (!FBitSet(pEntity->pev->spawnflags, SF_GIVEITEM) && strncmp(STRING(pEntity->pev->classname), "weapon_", 7) == 0)
 	{
-		CBaseEntity *p = CBaseEntity::Create((char *)ammoList[RANDOM_LONG(0, ARRAYSIZE(ammoList)-1)], pEntity->pev->origin, pEntity->pev->angles, pEntity->pev->owner);
-		if (FBitSet(pEntity->pev->spawnflags, SF_GIVEITEM))
-			if (p)
-				p->pev->spawnflags |= SF_NORESPAWN;
+		CBaseEntity::Create((char *)ammoList[RANDOM_LONG(0, ARRAYSIZE(ammoList)-1)], pEntity->pev->origin, pEntity->pev->angles, pEntity->pev->owner);
 		return FALSE;
 	}
 
