@@ -294,6 +294,15 @@ int CHalfLifeGunGame::IPointsForKill( CBasePlayer *pAttacker, CBasePlayer *pKill
 {
 	if (m_fGoToIntermission == 0 && pAttacker && pKilled)
 	{
+		BOOL isOffhand = (gMultiDamage.pEntity == pKilled && (gMultiDamage.type & DMG_PUNCH || gMultiDamage.type & DMG_KICK) && 
+						(pAttacker->pev->flags & FL_CLIENT) && gMultiDamage.time > gpGlobals->time - 0.5);
+		if (isOffhand)
+			return 0;
+
+		BOOL isWeapon = pAttacker->m_pActiveItem && !strcmp(pAttacker->m_pActiveItem->pszName(), "weapon_fists") && gMultiDamage.type & DMG_PUNCH;
+		if (isWeapon)
+			return 0;
+
 		// Attacker
 		int currentLevel = (int)pAttacker->m_iRoundWins;
 		if (currentLevel < MAXLEVEL)
