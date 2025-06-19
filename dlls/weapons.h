@@ -635,6 +635,7 @@ public:
 
 #ifdef CLIENT_DLL
 bool bIsMultiplayer ( void );
+bool IsGunGame ( void );
 void LoadVModel ( char *szViewModel, CBasePlayer *m_pPlayer );
 #endif
 

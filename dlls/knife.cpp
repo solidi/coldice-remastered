@@ -179,6 +179,16 @@ void CKnife::PrimaryAttack()
 
 void CKnife::SecondaryAttack()
 {
+#ifdef CLIENT_DLL
+	if (IsGunGame())
+#else
+	if (g_pGameRules->IsGunGame())
+#endif
+	{
+		m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 0.5;
+		return PrimaryAttack();
+	}
+
 	if ( m_fInZoom )
 	{
 		return;
