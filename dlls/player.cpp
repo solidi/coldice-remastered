@@ -5685,7 +5685,12 @@ void CBasePlayer::StartForceGrab( void )
 				EMIT_SOUND(edict(), CHAN_VOICE, "odetojoy.wav", 1, ATTN_NORM);
 
 				ClientPrint(plr->pev, HUD_PRINTCENTER, "Your weapon has been taken!\n");
-				plr->DropPlayerItem("", FALSE, FALSE);
+				if (plr->m_pActiveItem->m_iId < 32)
+					plr->pev->weapons &= ~(1<<plr->m_pActiveItem->m_iId);
+				else
+					plr->m_iWeapons2 &= ~(1<<(plr->m_pActiveItem->m_iId - 32));
+				plr->m_pActiveItem->SetThink( &CBasePlayerItem::DestroyItem );
+				plr->m_pActiveItem->pev->nextthink = gpGlobals->time + 0.1;
 			}
 		}
 	}
