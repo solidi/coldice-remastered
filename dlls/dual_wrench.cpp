@@ -144,6 +144,16 @@ void CDualWrench::PrimaryAttack()
 
 void CDualWrench::SecondaryAttack()
 {
+#ifdef CLIENT_DLL
+	if (IsGunGame())
+#else
+	if (g_pGameRules->IsGunGame())
+#endif
+	{
+		m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 0.5;
+		return PrimaryAttack();
+	}
+
 	if ( m_pPlayer->pev->waterlevel == 3 )
 	{
 		m_flNextPrimaryAttack = m_flNextSecondaryAttack = GetNextAttackDelay(0.15);
