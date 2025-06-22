@@ -72,6 +72,7 @@ extern cvar_t   roundtimeleft;
 extern cvar_t   startwithlives;
 extern cvar_t   roundfraglimit;
 extern cvar_t   ggstartlevel;
+extern cvar_t   ggsteallevel;
 extern cvar_t   ctcsecondsforpoint;
 extern cvar_t   slowbullets;
 extern cvar_t   breakabletime;

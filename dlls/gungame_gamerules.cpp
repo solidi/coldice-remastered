@@ -273,6 +273,74 @@ void CHalfLifeGunGame::PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller, e
 				m_fRefreshStats = gpGlobals->time;
 			}
 		}
+
+		// Steals
+		BOOL isSteal = FALSE;
+
+		if (ggsteallevel.value > 0)
+		{
+			BOOL isPunch = (gMultiDamage.pEntity == pVictim && (gMultiDamage.type & DMG_PUNCH) && 
+							(pKiller->flags & FL_CLIENT) && gMultiDamage.time > gpGlobals->time - 0.5);
+
+			if (ktmp->IsPlayer() && pInflictor == pKiller && ((CBasePlayer*)ktmp)->m_pActiveItem &&
+				((!strcmp(((CBasePlayer*)ktmp)->m_pActiveItem->pszName(), "weapon_fists") && isPunch) ||
+				!strcmp(((CBasePlayer*)ktmp)->m_pActiveItem->pszName(), "weapon_knife") ||
+				isPunch))
+			{
+				int roundWins = pVictim->m_iRoundWins;
+				if (roundWins > 1)
+				{
+					pVictim->m_iRoundWins = roundWins - 1;
+					pVictim->pev->frags = g_iFrags[(roundWins - 1) - 1];
+					MESSAGE_BEGIN( MSG_ALL, gmsgScoreInfo );
+						WRITE_BYTE( ENTINDEX(pVictim->edict()) );
+						WRITE_SHORT( pVictim->pev->frags );
+						WRITE_SHORT( pVictim->m_iDeaths );
+						WRITE_SHORT( pVictim->m_iRoundWins + 1 );
+						WRITE_SHORT( 0 );
+					MESSAGE_END();
+					ClientPrint(pVictim->pev, HUD_PRINTTALK,
+						UTIL_VarArgs("[GunGame]: You level was stolen by %s!\n",
+						STRING(((CBasePlayer*)ktmp)->pev->netname)));
+				}
+
+				roundWins = ((CBasePlayer*)ktmp)->m_iRoundWins;
+				((CBasePlayer*)ktmp)->m_iRoundWins = roundWins + 1;
+				((CBasePlayer*)ktmp)->pev->frags = g_iFrags[(roundWins + 1) - 1];
+				ClientPrint(((CBasePlayer*)ktmp)->pev, HUD_PRINTTALK, UTIL_VarArgs("[GunGame]: You level was increased by a steal!\n"));
+
+				MESSAGE_BEGIN( MSG_ALL, gmsgScoreInfo );
+					WRITE_BYTE( ENTINDEX(((CBasePlayer*)ktmp)->edict()) );
+					WRITE_SHORT( ((CBasePlayer*)ktmp)->pev->frags );
+					WRITE_SHORT( ((CBasePlayer*)ktmp)->m_iDeaths );
+					WRITE_SHORT( ((CBasePlayer*)ktmp)->m_iRoundWins + 1 );
+					WRITE_SHORT( 0 );
+				MESSAGE_END();
+
+				isSteal = TRUE;
+				m_fRefreshStats = gpGlobals->time;
+			}
+		}
+
+		BOOL isOffhand = (gMultiDamage.pEntity == pVictim && (gMultiDamage.type & DMG_PUNCH || gMultiDamage.type & DMG_KICK) && 
+						(pKiller->flags & FL_CLIENT) && gMultiDamage.time > gpGlobals->time - 0.5);
+		BOOL isWeapon = ((CBasePlayer*)ktmp)->m_pActiveItem && !strcmp(((CBasePlayer*)ktmp)->m_pActiveItem->pszName(), "weapon_fists") && gMultiDamage.type & DMG_PUNCH;
+
+		if (isSteal)
+			isOffhand = isWeapon = FALSE;
+
+		char weapon[32];
+		sprintf(weapon, "%s%s", "weapon_", g_WeaponId[((CBasePlayer*)ktmp)->m_iRoundWins]);
+
+		if (((CBasePlayer*)ktmp)->IsAlive() && !isOffhand && !isWeapon && !((CBasePlayer*)ktmp)->HasNamedPlayerItem(weapon))
+		{
+			((CBasePlayer*)ktmp)->RemoveAllItems(FALSE);
+			GiveMutators(((CBasePlayer*)ktmp));
+			if (!((CBasePlayer*)ktmp)->HasNamedPlayerItem("weapon_fists"))
+				((CBasePlayer*)ktmp)->GiveNamedItem("weapon_fists");
+			if (!((CBasePlayer*)ktmp)->HasNamedPlayerItem(weapon))
+				((CBasePlayer*)ktmp)->GiveNamedItem(STRING(ALLOC_STRING(weapon)));
+		}
 	}
 
 	// Reconfirm top level
@@ -391,17 +459,6 @@ int CHalfLifeGunGame::IPointsForKill( CBasePlayer *pAttacker, CBasePlayer *pKill
 					m_iVoiceId = CLIENT_SOUND_TIEDLEAD;
 				}
 
-				if (pAttacker->IsAlive())
-				{
-					pAttacker->RemoveAllItems(FALSE);
-					GiveMutators(pAttacker);
-					if (!pAttacker->HasNamedPlayerItem("weapon_fists"))
-						pAttacker->GiveNamedItem("weapon_fists");
-					char weapon[32];
-					sprintf(weapon, "%s%s", "weapon_", g_WeaponId[newLevel]);
-					if (!pAttacker->HasNamedPlayerItem(weapon))
-						pAttacker->GiveNamedItem(STRING(ALLOC_STRING(weapon)));
-				}
 				m_hVoiceHandle = pAttacker;
 				m_fRefreshStats = gpGlobals->time + 1.0;
 			}
