@@ -156,7 +156,7 @@ void CHalfLifeGunGame::Think( void )
 		return;
 	}
 
-	if ( ggstartlevel.value < 0 || ggstartlevel.value > MAXLEVEL-1)
+	if ( ggstartlevel.value < 0 || ggstartlevel.value > MAXLEVEL)
 	{
 		g_engfuncs.pfnCvar_DirectSet( &ggstartlevel, UTIL_VarArgs( "%i", 0 ) );
 	}
@@ -482,8 +482,8 @@ void CHalfLifeGunGame::PlayerSpawn( CBasePlayer *pPlayer )
 
 	// In full game, go deep with negative deaths but in short game, pin to lowest level
 	if (ggstartlevel.value > 1 && pPlayer->m_iRoundWins < ggstartlevel.value) {
-		pPlayer->m_iRoundWins = (int)ggstartlevel.value;
-		pPlayer->pev->frags = g_iFrags[(int)ggstartlevel.value - 1];
+		pPlayer->m_iRoundWins = (int)ggstartlevel.value - 1;
+		pPlayer->pev->frags = g_iFrags[(int)ggstartlevel.value - 2];
 	}
 
 	MESSAGE_BEGIN( MSG_ALL, gmsgScoreInfo );
