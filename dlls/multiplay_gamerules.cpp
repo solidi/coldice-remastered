@@ -2001,7 +2001,7 @@ void CHalfLifeMultiplay :: PlayerKilled( CBasePlayer *pVictim, entvars_t *pKille
 	{
 		DeactivateSatchels( pVictim );
 		if (g_pGameRules->FAllowMonsters())
-			DeactivateAssassins( pVictim );
+			DeactivateItems(pVictim, "monster_human_assassin");
 	}
 	DeactivatePortals( pVictim );
 #endif

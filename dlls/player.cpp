@@ -1847,7 +1847,7 @@ void CBasePlayer::StartObserver( Vector vecPosition, Vector vecViewAngle )
 	// Remove all items left by the player
 	DeactivateSatchels(this);
 	if (g_pGameRules->FAllowMonsters())
-		DeactivateAssassins(this);
+		DeactivateItems(this, "monster_human_assassin");
 	DeactivatePortals(this);
 	DeactivateDecoys(this);
 

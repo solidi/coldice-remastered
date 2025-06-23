@@ -140,7 +140,10 @@ void CSqueakGrenade :: Spawn( void )
 	m_flFieldOfView = 0; // 180 degrees
 
 	if ( pev->owner )
+	{
 		m_hOwner = Instance( pev->owner );
+		pev->euser1 = pev->owner;
+	}
 
 	m_flNextBounceSoundTime = gpGlobals->time;// reset each time a snark is spawned.
 

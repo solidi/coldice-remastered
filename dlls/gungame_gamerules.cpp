@@ -372,11 +372,44 @@ int CHalfLifeGunGame::IPointsForKill( CBasePlayer *pAttacker, CBasePlayer *pKill
 
 		// Attacker
 		int currentLevel = (int)pAttacker->m_iRoundWins;
-		if (currentLevel < MAXLEVEL)
+		if (currentLevel <= MAXLEVEL)
 		{
 			// Note, frags are increased after this method, so assume +1
 			if ((int)pAttacker->pev->frags+1 >= g_iFrags[currentLevel])
 			{
+				if (!strcmp(g_WeaponId[pAttacker->m_iRoundWins], "snark"))
+					DeactivateItems(pAttacker, "monster_snark");
+				else if (!strcmp(g_WeaponId[pAttacker->m_iRoundWins], "chumtoad"))
+					DeactivateItems(pAttacker, "monster_chumtoad");
+				else if (!strcmp(g_WeaponId[pAttacker->m_iRoundWins], "crossbow"))
+					DeactivateItems(pAttacker, "bolt");
+				else if (!strcmp(g_WeaponId[pAttacker->m_iRoundWins], "gravitygun"))
+					DeactivateItems(pAttacker, "monster_barrel");
+				else if (!strcmp(g_WeaponId[pAttacker->m_iRoundWins], "freezegun"))
+					DeactivateItems(pAttacker, "plasma");
+				else if (!strcmp(g_WeaponId[pAttacker->m_iRoundWins], "handgrenade") ||
+						!strcmp(g_WeaponId[pAttacker->m_iRoundWins], "9mmAR") ||
+						!strcmp(g_WeaponId[pAttacker->m_iRoundWins], "glauncher"))
+					DeactivateItems(pAttacker, "grenade");
+				else if (!strcmp(g_WeaponId[pAttacker->m_iRoundWins], "rpg") ||
+						!strcmp(g_WeaponId[pAttacker->m_iRoundWins], "dual_rpg"))
+					DeactivateItems(pAttacker, "rpg_rocket");
+				else if (!strcmp(g_WeaponId[pAttacker->m_iRoundWins], "hornetgun") ||
+						!strcmp(g_WeaponId[pAttacker->m_iRoundWins], "dual_hornetgun"))
+					DeactivateItems(pAttacker, "hornet");
+				else if (!strcmp(g_WeaponId[pAttacker->m_iRoundWins], "flamethrower") ||
+						!strcmp(g_WeaponId[pAttacker->m_iRoundWins], "dual_flamethrower"))
+					DeactivateItems(pAttacker, "flameball");
+				else if (!strcmp(g_WeaponId[pAttacker->m_iRoundWins], "cannon"))
+				{
+					DeactivateItems(pAttacker, "flak");
+					DeactivateItems(pAttacker, "flak_bomb");
+				}
+				else if (!strcmp(g_WeaponId[pAttacker->m_iRoundWins], "tripmine"))
+					DeactivateItems(pAttacker, "monster_tripmine");
+				else if (!strcmp(g_WeaponId[pAttacker->m_iRoundWins], "satchel"))
+					DeactivateSatchels(pAttacker);
+
 				pAttacker->m_iRoundWins += 1;
 				int newLevel = (int)pAttacker->m_iRoundWins;
 				int voiceId = 0;
