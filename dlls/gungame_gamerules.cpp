@@ -36,9 +36,7 @@ extern int gmsgRoundTime;
 extern int gmsgShowTimer;
 
 #define MAXLEVEL 46
-int g_iFrags[MAXLEVEL+1] = { 1, 3, 5, 6, 9, 12, 15, 18, 21, 26, 29, 30, 31, 32, 33, 34, 35,
-							36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51,
-							52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 65 };
+
 const char *g_WeaponId[MAXLEVEL+1] = 
 {
 	// hand
@@ -264,16 +262,6 @@ void CHalfLifeGunGame::PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller, e
 	CBaseEntity *ktmp = CBaseEntity::Instance( pKiller );
 	if (ktmp)
 	{
-		int vlevel = (int)pVictim->m_iRoundWins;
-		if (vlevel > 0 && (pVictim == ktmp || !ktmp->IsPlayer()))
-		{
-			if ((int)pVictim->pev->frags < g_iFrags[vlevel-1])
-			{
-				pVictim->m_iRoundWins -= 1;
-				m_fRefreshStats = gpGlobals->time;
-			}
-		}
-
 		// Steals
 		BOOL isSteal = FALSE;
 
@@ -291,7 +279,7 @@ void CHalfLifeGunGame::PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller, e
 				if (roundWins > 1)
 				{
 					pVictim->m_iRoundWins = roundWins - 1;
-					pVictim->pev->frags = g_iFrags[(roundWins - 1) - 1];
+					pVictim->pev->frags = (roundWins * (int)ggfrags.value);
 					MESSAGE_BEGIN( MSG_ALL, gmsgScoreInfo );
 						WRITE_BYTE( ENTINDEX(pVictim->edict()) );
 						WRITE_SHORT( pVictim->pev->frags );
@@ -305,17 +293,21 @@ void CHalfLifeGunGame::PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller, e
 				}
 
 				roundWins = ((CBasePlayer*)ktmp)->m_iRoundWins;
-				((CBasePlayer*)ktmp)->m_iRoundWins = roundWins + 1;
-				((CBasePlayer*)ktmp)->pev->frags = g_iFrags[(roundWins + 1) - 1];
-				ClientPrint(((CBasePlayer*)ktmp)->pev, HUD_PRINTTALK, UTIL_VarArgs("[GunGame]: You level was increased by a steal!\n"));
 
-				MESSAGE_BEGIN( MSG_ALL, gmsgScoreInfo );
-					WRITE_BYTE( ENTINDEX(((CBasePlayer*)ktmp)->edict()) );
-					WRITE_SHORT( ((CBasePlayer*)ktmp)->pev->frags );
-					WRITE_SHORT( ((CBasePlayer*)ktmp)->m_iDeaths );
-					WRITE_SHORT( ((CBasePlayer*)ktmp)->m_iRoundWins + 1 );
-					WRITE_SHORT( 0 );
-				MESSAGE_END();
+				if ( roundWins < MAXLEVEL - 1)
+				{
+					((CBasePlayer*)ktmp)->m_iRoundWins = roundWins + 1;
+					((CBasePlayer*)ktmp)->pev->frags = ((roundWins + 2) * (int)ggfrags.value);
+					ClientPrint(((CBasePlayer*)ktmp)->pev, HUD_PRINTTALK, UTIL_VarArgs("[GunGame]: You level was increased by a steal!\n"));
+
+					MESSAGE_BEGIN( MSG_ALL, gmsgScoreInfo );
+						WRITE_BYTE( ENTINDEX(((CBasePlayer*)ktmp)->edict()) );
+						WRITE_SHORT( ((CBasePlayer*)ktmp)->pev->frags );
+						WRITE_SHORT( ((CBasePlayer*)ktmp)->m_iDeaths );
+						WRITE_SHORT( ((CBasePlayer*)ktmp)->m_iRoundWins + 1 );
+						WRITE_SHORT( 0 );
+					MESSAGE_END();
+				}
 
 				isSteal = TRUE;
 				m_fRefreshStats = gpGlobals->time;
@@ -374,8 +366,10 @@ int CHalfLifeGunGame::IPointsForKill( CBasePlayer *pAttacker, CBasePlayer *pKill
 		int currentLevel = (int)pAttacker->m_iRoundWins;
 		if (currentLevel <= MAXLEVEL)
 		{
+			int inc = 2;
+			currentLevel == 0 ? inc = 1 : 0; 
 			// Note, frags are increased after this method, so assume +1
-			if ((int)pAttacker->pev->frags+1 >= g_iFrags[currentLevel])
+			if ((int)pAttacker->pev->frags+1 >= ((currentLevel+inc) * (int)ggfrags.value))
 			{
 				if (!strcmp(g_WeaponId[pAttacker->m_iRoundWins], "snark"))
 					DeactivateItems(pAttacker, "monster_snark");
@@ -416,7 +410,7 @@ int CHalfLifeGunGame::IPointsForKill( CBasePlayer *pAttacker, CBasePlayer *pKill
 
 				ClientPrint(pAttacker->pev, HUD_PRINTTALK,
 					UTIL_VarArgs("[GunGame]: You increased your level to %d (obtained %s)!\n",
-					newLevel, g_WeaponId[newLevel]));
+					newLevel+1, g_WeaponId[newLevel]));
 
 				// Set highest game level
 				if (m_iTopLevel < newLevel) {
@@ -440,7 +434,7 @@ int CHalfLifeGunGame::IPointsForKill( CBasePlayer *pAttacker, CBasePlayer *pKill
 						}
 					}
 
-					if (m_iTopLevel == MAXLEVEL)
+					if (m_iTopLevel >= MAXLEVEL)
 					{
 						MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
 							WRITE_BYTE(CLIENT_SOUND_ROUND_OVER);
@@ -497,9 +491,11 @@ int CHalfLifeGunGame::IPointsForKill( CBasePlayer *pAttacker, CBasePlayer *pKill
 			}
 			else 
 			{
+				int inc = 2;
+				currentLevel == 0 ? inc = 1 : 0; 
 				ClientPrint(pAttacker->pev, HUD_PRINTTALK,
 					UTIL_VarArgs("[GunGame]: You need %d frags to reach level %s!\n",
-					g_iFrags[currentLevel] - ((int)pAttacker->pev->frags+1), g_WeaponId[currentLevel+1]));
+					((currentLevel+inc) * (int)ggfrags.value) - ((int)pAttacker->pev->frags+1), g_WeaponId[currentLevel+1]));
 			}
 		}
 	}
@@ -516,7 +512,7 @@ void CHalfLifeGunGame::PlayerSpawn( CBasePlayer *pPlayer )
 	// In full game, go deep with negative deaths but in short game, pin to lowest level
 	if (ggstartlevel.value > 1 && pPlayer->m_iRoundWins < ggstartlevel.value) {
 		pPlayer->m_iRoundWins = (int)ggstartlevel.value - 1;
-		pPlayer->pev->frags = g_iFrags[(int)ggstartlevel.value - 2];
+		pPlayer->pev->frags = (int)ggfrags.value * (int)ggstartlevel.value;
 	}
 
 	MESSAGE_BEGIN( MSG_ALL, gmsgScoreInfo );
@@ -537,8 +533,11 @@ void CHalfLifeGunGame::PlayerSpawn( CBasePlayer *pPlayer )
 	if (!pPlayer->HasNamedPlayerItem(weapon))
 		pPlayer->GiveNamedItem(STRING(ALLOC_STRING(weapon)));
 
+	int inc = 2;
+	currentLevel == 0 ? inc = 1 : 0; 
+
 	ClientPrint(pPlayer->pev, HUD_PRINTTALK, UTIL_VarArgs("[GunGame]: You need %d frags to reach level %s.\n",
-		g_iFrags[currentLevel] - ((int)pPlayer->pev->frags), g_WeaponId[currentLevel+1]));
+		((currentLevel+inc) * (int)ggfrags.value) - ((int)pPlayer->pev->frags), g_WeaponId[currentLevel+1]));
 
 	g_pGameRules->SpawnMutators(pPlayer);
 }
