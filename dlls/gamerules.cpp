@@ -703,21 +703,21 @@ BOOL CGameRules::WeaponMutators( CBasePlayerWeapon *pWeapon )
 		{
 			if (MutatorEnabled(MUTATOR_ROCKETS))
 			{
-				if (!pWeapon->m_bFired && RANDOM_LONG(0,10) == 2) {
+				if (pWeapon->m_pPlayer->pev->fov == 0 && !pWeapon->m_bFired && RANDOM_LONG(0,10) == 2) {
 					pWeapon->ThrowRocket(FALSE);
 				}
 			}
 			
 			if (MutatorEnabled(MUTATOR_GRENADES))
 			{
-				if (!pWeapon->m_bFired && RANDOM_LONG(0,10) == 2) {
+				if (pWeapon->m_pPlayer->pev->fov == 0 && !pWeapon->m_bFired && RANDOM_LONG(0,10) == 2) {
 					pWeapon->ThrowGrenade(FALSE);
 				}
 			}
 			
 			if (MutatorEnabled(MUTATOR_SNOWBALL))
 			{
-				if (!pWeapon->m_bFired && RANDOM_LONG(0,10) == 2) {
+				if (pWeapon->m_pPlayer->pev->fov == 0 && !pWeapon->m_bFired && RANDOM_LONG(0,10) == 2) {
 					pWeapon->ThrowSnowball(FALSE);
 				}
 			}
