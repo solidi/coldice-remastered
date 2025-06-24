@@ -536,13 +536,6 @@ void CHalfLifeGunGame::PlayerSpawn( CBasePlayer *pPlayer )
 	sprintf(weapon, "%s%s", "weapon_", g_WeaponId[currentLevel]);
 	if (!pPlayer->HasNamedPlayerItem(weapon))
 		pPlayer->GiveNamedItem(STRING(ALLOC_STRING(weapon)));
-	pPlayer->GiveAmmo(AMMO_GLOCKCLIP_GIVE * 4, "9mm", _9MM_MAX_CARRY);
-	pPlayer->GiveAmmo(AMMO_357BOX_GIVE * 4, "357", _357_MAX_CARRY);
-	pPlayer->GiveAmmo(AMMO_BUCKSHOTBOX_GIVE * 4, "buckshot", BUCKSHOT_MAX_CARRY);
-	pPlayer->GiveAmmo(AMMO_CROSSBOWCLIP_GIVE * 4, "bolts", BOLT_MAX_CARRY);
-	pPlayer->GiveAmmo(AMMO_M203BOX_GIVE * 2, "ARgrenades", M203_GRENADE_MAX_CARRY);
-	pPlayer->GiveAmmo(AMMO_RPGCLIP_GIVE * 2, "rockets", ROCKET_MAX_CARRY);
-	pPlayer->GiveAmmo(AMMO_URANIUMBOX_GIVE * 4, "uranium", URANIUM_MAX_CARRY);
 
 	ClientPrint(pPlayer->pev, HUD_PRINTTALK, UTIL_VarArgs("[GunGame]: You need %d frags to reach level %s.\n",
 		g_iFrags[currentLevel] - ((int)pPlayer->pev->frags), g_WeaponId[currentLevel+1]));
