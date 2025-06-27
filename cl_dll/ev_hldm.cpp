@@ -623,7 +623,6 @@ void EV_FireGlock1( event_args_t *args )
 	if ( EV_IsLocal( idx ) )
 	{
 		EV_MuzzleFlash();
-		gEngfuncs.Con_DPrintf("args->bparam2=%d\n", args->bparam2);
 		gEngfuncs.pEventAPI->EV_WeaponAnimation( empty ? DUAL_GLOCK_FIRE_LAST_RIGHT : DUAL_GLOCK_FIRE_RIGHT, args->bparam2 );
 
 		V_PunchAxis(PITCH, gEngfuncs.pfnRandomFloat(-2.0, -4.0));
@@ -4118,8 +4117,6 @@ void EV_FireDualGlock( event_args_t *args )
 	VectorCopy( args->velocity, velocity );
 
 	AngleVectors( angles, forward, right, up );
-
-	gEngfuncs.Con_DPrintf("args->bparam2=%d\n", args->bparam2);
 
 	if ( EV_IsLocal( idx ) )
 	{
