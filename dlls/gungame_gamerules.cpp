@@ -290,6 +290,7 @@ void CHalfLifeGunGame::PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller, e
 		{
 			if (pInflictor && ktmp->IsPlayer() && FClassnameIs(pInflictor, "weapon_knife"))
 			{
+				CBasePlayer *plr = ((CBasePlayer *)ktmp);
 				int roundWins = pVictim->m_iRoundWins;
 				if (roundWins > 0)
 				{
@@ -304,22 +305,22 @@ void CHalfLifeGunGame::PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller, e
 					MESSAGE_END();
 					ClientPrint(pVictim->pev, HUD_PRINTTALK,
 						UTIL_VarArgs("[GunGame]: You level was stolen by %s!\n",
-						STRING(((CBasePlayer*)ktmp)->pev->netname)));
+						STRING(plr->pev->netname)));
 				}
 
-				roundWins = ((CBasePlayer*)ktmp)->m_iRoundWins;
+				roundWins = plr->m_iRoundWins;
 
 				if ( roundWins < MAXLEVEL - 1)
 				{
-					((CBasePlayer*)ktmp)->m_iRoundWins = roundWins + 1;
-					((CBasePlayer*)ktmp)->pev->frags = ((roundWins + 2) * (int)ggfrags.value);
-					ClientPrint(((CBasePlayer*)ktmp)->pev, HUD_PRINTTALK, UTIL_VarArgs("[GunGame]: You level was increased by a steal!\n"));
+					plr->m_iRoundWins = roundWins + 1;
+					plr->pev->frags = ((roundWins + 2) * (int)ggfrags.value);
+					ClientPrint(plr->pev, HUD_PRINTTALK, UTIL_VarArgs("[GunGame]: You level was increased by a steal!\n"));
 
 					MESSAGE_BEGIN( MSG_ALL, gmsgScoreInfo );
-						WRITE_BYTE( ENTINDEX(((CBasePlayer*)ktmp)->edict()) );
-						WRITE_SHORT( ((CBasePlayer*)ktmp)->pev->frags );
-						WRITE_SHORT( ((CBasePlayer*)ktmp)->m_iDeaths );
-						WRITE_SHORT( ((CBasePlayer*)ktmp)->m_iRoundWins + 1 );
+						WRITE_BYTE( ENTINDEX(plr->edict()) );
+						WRITE_SHORT( plr->pev->frags );
+						WRITE_SHORT( plr->m_iDeaths );
+						WRITE_SHORT( plr->m_iRoundWins + 1 );
 						WRITE_SHORT( 0 );
 					MESSAGE_END();
 				}
@@ -328,17 +329,21 @@ void CHalfLifeGunGame::PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller, e
 			}
 		}
 
-		char weapon[32];
-		sprintf(weapon, "%s%s", "weapon_", g_WeaponId[((CBasePlayer*)ktmp)->m_iRoundWins]);
-
-		if (((CBasePlayer*)ktmp)->IsAlive() && !((CBasePlayer*)ktmp)->HasNamedPlayerItem(weapon))
+		if (ktmp->IsPlayer())
 		{
-			((CBasePlayer*)ktmp)->RemoveAllItems(FALSE);
-			GiveMutators(((CBasePlayer*)ktmp));
-			((CBasePlayer*)ktmp)->GiveNamedItem("weapon_fists");
-			if (ggsteallevel.value > 0)
-				((CBasePlayer*)ktmp)->GiveNamedItem("weapon_knife");
-			((CBasePlayer*)ktmp)->GiveNamedItem(STRING(ALLOC_STRING(weapon)));
+			CBasePlayer *plr = ((CBasePlayer *)ktmp);
+			char weapon[32];
+			sprintf(weapon, "%s%s", "weapon_", g_WeaponId[plr->m_iRoundWins]);
+
+			if (plr->IsAlive() && !plr->HasNamedPlayerItem(weapon))
+			{
+				plr->RemoveAllItems(FALSE);
+				GiveMutators(plr);
+				plr->GiveNamedItem("weapon_fists");
+				if (ggsteallevel.value > 0)
+					plr->GiveNamedItem("weapon_knife");
+				plr->GiveNamedItem(STRING(ALLOC_STRING(weapon)));
+			}
 		}
 	}
 
