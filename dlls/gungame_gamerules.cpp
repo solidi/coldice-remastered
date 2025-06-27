@@ -265,24 +265,36 @@ void CHalfLifeGunGame::PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller, e
 	CBaseEntity *ktmp = CBaseEntity::Instance( pKiller );
 	if (ktmp)
 	{
-		// Steals
-		BOOL isSteal = FALSE;
-
-		if (ggsteallevel.value > 0)
+		// Suicide
+		if (ggsuicide.value > 0 && pVictim->pev == pKiller)
 		{
-			BOOL isPunch = (gMultiDamage.pEntity == pVictim && (gMultiDamage.type & DMG_PUNCH) && 
-							(pKiller->flags & FL_CLIENT) && gMultiDamage.time > gpGlobals->time - 0.5);
+			int roundWins = pVictim->m_iRoundWins;
+			if (roundWins > 0)
+			{
+				pVictim->m_iRoundWins = roundWins - 1;
+				pVictim->pev->frags = (pVictim->m_iRoundWins * (int)ggfrags.value);
+				MESSAGE_BEGIN( MSG_ALL, gmsgScoreInfo );
+					WRITE_BYTE( ENTINDEX(pVictim->edict()) );
+					WRITE_SHORT( pVictim->pev->frags );
+					WRITE_SHORT( pVictim->m_iDeaths );
+					WRITE_SHORT( pVictim->m_iRoundWins + 1 );
+					WRITE_SHORT( 0 );
+				MESSAGE_END();
+				ClientPrint(pVictim->pev, HUD_PRINTTALK, "[GunGame]: You level was lost by suicide!\n");
 
-			if (ktmp->IsPlayer() && pInflictor == pKiller && ((CBasePlayer*)ktmp)->m_pActiveItem &&
-				((!strcmp(((CBasePlayer*)ktmp)->m_pActiveItem->pszName(), "weapon_fists") && isPunch) ||
-				!strcmp(((CBasePlayer*)ktmp)->m_pActiveItem->pszName(), "weapon_knife") ||
-				isPunch))
+				m_fRefreshStats = gpGlobals->time;
+			}
+		}
+		// Steals
+		else if (ggsteallevel.value > 0)
+		{
+			if (pInflictor && ktmp->IsPlayer() && FClassnameIs(pInflictor, "weapon_knife"))
 			{
 				int roundWins = pVictim->m_iRoundWins;
-				if (roundWins > 1)
+				if (roundWins > 0)
 				{
 					pVictim->m_iRoundWins = roundWins - 1;
-					pVictim->pev->frags = (roundWins * (int)ggfrags.value);
+					pVictim->pev->frags = (pVictim->m_iRoundWins * (int)ggfrags.value);
 					MESSAGE_BEGIN( MSG_ALL, gmsgScoreInfo );
 						WRITE_BYTE( ENTINDEX(pVictim->edict()) );
 						WRITE_SHORT( pVictim->pev->frags );
@@ -312,29 +324,21 @@ void CHalfLifeGunGame::PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller, e
 					MESSAGE_END();
 				}
 
-				isSteal = TRUE;
 				m_fRefreshStats = gpGlobals->time;
 			}
 		}
 
-		BOOL isOffhand = (gMultiDamage.pEntity == pVictim && (gMultiDamage.type & DMG_PUNCH || gMultiDamage.type & DMG_KICK) && 
-						(pKiller->flags & FL_CLIENT) && gMultiDamage.time > gpGlobals->time - 0.5);
-		BOOL isWeapon = ((CBasePlayer*)ktmp)->m_pActiveItem && !strcmp(((CBasePlayer*)ktmp)->m_pActiveItem->pszName(), "weapon_fists") && gMultiDamage.type & DMG_PUNCH;
-
-		if (isSteal)
-			isOffhand = isWeapon = FALSE;
-
 		char weapon[32];
 		sprintf(weapon, "%s%s", "weapon_", g_WeaponId[((CBasePlayer*)ktmp)->m_iRoundWins]);
 
-		if (((CBasePlayer*)ktmp)->IsAlive() && !isOffhand && !isWeapon && !((CBasePlayer*)ktmp)->HasNamedPlayerItem(weapon))
+		if (((CBasePlayer*)ktmp)->IsAlive() && !((CBasePlayer*)ktmp)->HasNamedPlayerItem(weapon))
 		{
 			((CBasePlayer*)ktmp)->RemoveAllItems(FALSE);
 			GiveMutators(((CBasePlayer*)ktmp));
-			if (!((CBasePlayer*)ktmp)->HasNamedPlayerItem("weapon_fists"))
-				((CBasePlayer*)ktmp)->GiveNamedItem("weapon_fists");
-			if (!((CBasePlayer*)ktmp)->HasNamedPlayerItem(weapon))
-				((CBasePlayer*)ktmp)->GiveNamedItem(STRING(ALLOC_STRING(weapon)));
+			((CBasePlayer*)ktmp)->GiveNamedItem("weapon_fists");
+			if (ggsteallevel.value > 0)
+				((CBasePlayer*)ktmp)->GiveNamedItem("weapon_knife");
+			((CBasePlayer*)ktmp)->GiveNamedItem(STRING(ALLOC_STRING(weapon)));
 		}
 	}
 
@@ -511,6 +515,8 @@ void CHalfLifeGunGame::PlayerSpawn( CBasePlayer *pPlayer )
 	pPlayer->pev->weapons |= (1<<WEAPON_SUIT);
 	if (!pPlayer->HasNamedPlayerItem("weapon_fists"))
 		pPlayer->GiveNamedItem("weapon_fists");
+	if (ggsteallevel.value > 0)
+		pPlayer->GiveNamedItem("weapon_knife");
 
 	// In full game, go deep with negative deaths but in short game, pin to lowest level
 	if (ggstartlevel.value > 1 && pPlayer->m_iRoundWins < ggstartlevel.value) {
