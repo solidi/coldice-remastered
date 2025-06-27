@@ -200,6 +200,9 @@ void CHalfLifeMultiplay::RefreshSkillData( void )
 		gSkillData.plrDmgGravityGun = damage;
 		gSkillData.plrDmgFlameThrower = damage;
 	}
+
+	if (g_GameMode == GAME_GUNGAME)
+		gSkillData.plrDmgKnife = 900;
 }
 
 // longest the intermission can last, in seconds
