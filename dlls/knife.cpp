@@ -115,7 +115,18 @@ int CKnife::GetItemInfo(ItemInfo *p)
 	p->iSlot = 0;
 	p->iPosition = 4;
 	p->iId = WEAPON_KNIFE;
-	p->iWeight = KNIFE_WEIGHT;
+#ifdef CLIENT_DLL
+	if (IsGunGame())
+#else
+	if (g_pGameRules->IsGunGame())
+#endif
+	{
+		p->iWeight = -15;
+	}
+	else
+	{
+		p->iWeight = KNIFE_WEIGHT;
+	}
 	p->pszDisplayName = "12-Inch Combat Knife";
 	return 1;
 }

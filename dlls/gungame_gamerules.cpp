@@ -35,7 +35,7 @@ extern int gmsgObjective;
 extern int gmsgRoundTime;
 extern int gmsgShowTimer;
 
-#define MAXLEVEL 46
+#define MAXLEVEL 49
 
 const char *g_WeaponId[MAXLEVEL+1] = 
 {
@@ -51,6 +51,8 @@ const char *g_WeaponId[MAXLEVEL+1] =
 	"dual_smg",
 	"sawedoff",
 	"dual_sawedoff",
+	"fingergun",
+	"zapgun",
 	// long
 	"9mmAR",
 	"12gauge",
@@ -89,6 +91,7 @@ const char *g_WeaponId[MAXLEVEL+1] =
 	"dual_wrench",
 	"wrench",
 	"crowbar",
+	"rocketcrowbar",
 	"knife",
 	"Winner"
 };
