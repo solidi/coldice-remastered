@@ -821,6 +821,37 @@ void CBasePlayer::PackDeadPlayerItems( void )
 	iWeaponRules = g_pGameRules->DeadPlayerWeapons( this );
  	iAmmoRules = g_pGameRules->DeadPlayerAmmo( this );
 
+	if ( m_fHasRune )
+	{
+		// Avoid clustering of runes in battle
+		CBaseEntity *pEntity = NULL;
+		BOOL found = FALSE;
+
+		while ((pEntity = UTIL_FindEntityInSphere(pEntity, pev->origin, 256)) != NULL)
+		{
+			if (strncmp(STRING(pEntity->pev->classname), "rune_", 5) == 0)
+			{
+				found = TRUE;
+				break;
+			}
+		}
+
+		if (!found)
+		{
+			CWorldRunes::DropRune(this);
+		}
+		else
+		{
+			m_fHasRune = 0;
+			m_flRuneHealTime = 0;
+			if (!IsArmoredMan && !g_pGameRules->MutatorEnabled(MUTATOR_MEGASPEED))
+				g_engfuncs.pfnSetPhysicsKeyValue( edict(), "haste", "0" );
+			pev->rendermode = kRenderNormal;
+			pev->renderfx = kRenderFxNone;
+			pev->renderamt = 0;
+		}
+	}
+
 	if ( iWeaponRules == GR_PLR_DROP_GUN_NO && iAmmoRules == GR_PLR_DROP_AMMO_NO )
 	{
 		// nothing to pack. Remove the weapons and return. Don't call create on the box!
@@ -892,27 +923,6 @@ void CBasePlayer::PackDeadPlayerItems( void )
 					break;
 				}
 			}
-		}
-	}
-
-	if ( m_fHasRune )
-	{
-		// Avoid clustering of runes in battle
-		CBaseEntity *pEntity = NULL;
-		BOOL found = FALSE;
-
-		while ((pEntity = UTIL_FindEntityInSphere(pEntity, pev->origin, 256)) != NULL)
-		{
-			if (strncmp(STRING(pEntity->pev->classname), "rune_", 5) == 0)
-			{
-				found = TRUE;
-				break;
-			}
-		}
-
-		if (!found)
-		{
-			CWorldRunes::DropRune(this);
 		}
 	}
 
