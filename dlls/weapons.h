@@ -21,7 +21,7 @@ class CBasePlayer;
 extern int gmsgWeapPickup;
 
 void DeactivateSatchels( CBasePlayer *pOwner );
-void DeactivateAssassins( CBasePlayer *pOwner );
+void DeactivateItems( CBasePlayer *pOwner, const char *item );
 void DeactivatePortals( CBasePlayer *pOwner );
 void DeactivateDecoys( CBasePlayer *pOwner );
 
@@ -635,6 +635,7 @@ public:
 
 #ifdef CLIENT_DLL
 bool bIsMultiplayer ( void );
+bool IsGunGame ( void );
 void LoadVModel ( char *szViewModel, CBasePlayer *m_pPlayer );
 #endif
 

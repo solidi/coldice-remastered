@@ -2021,6 +2021,8 @@ int CBasePlayerWeapon::ExtractAmmo( CBasePlayerWeapon *pWeapon )
 
 	if ( pszAmmo1() != NULL )
 	{
+		if (g_pGameRules->IsGunGame())
+			m_iDefaultAmmo = m_iDefaultAmmo * 4;
 		// blindly call with m_iDefaultAmmo. It's either going to be a value or zero. If it is zero,
 		// we only get the ammo in the weapon's clip, which is what we want. 
 		iReturn = pWeapon->AddPrimaryAmmo( m_iDefaultAmmo, (char *)pszAmmo1(), iMaxClip(), iMaxAmmo1() );
@@ -2029,7 +2031,10 @@ int CBasePlayerWeapon::ExtractAmmo( CBasePlayerWeapon *pWeapon )
 
 	if ( pszAmmo2() != NULL )
 	{
-		iReturn = pWeapon->AddSecondaryAmmo( 0, (char *)pszAmmo2(), iMaxAmmo2() );
+		int count = 0;
+		if (g_pGameRules->IsGunGame())
+			count = 2;
+		iReturn = pWeapon->AddSecondaryAmmo( count, (char *)pszAmmo2(), iMaxAmmo2() );
 	}
 
 	return iReturn;
@@ -3261,7 +3266,7 @@ void CBasePlayerWeapon::ThrowWeapon( BOOL holdingSomething )
 
 	if (g_pGameRules->IsGunGame() || g_pGameRules->IsInstagib())
 	{
-		ClientPrint(m_pPlayer->pev, HUD_PRINTCENTER, "Forcegrab disabled in this gamemode.");
+		ClientPrint(m_pPlayer->pev, HUD_PRINTCENTER, "Throw weapon is disabled in this gamemode.");
 		m_pPlayer->m_fOffhandTime = gpGlobals->time + 0.5;
 		return;
 	}

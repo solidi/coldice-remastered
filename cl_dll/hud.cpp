@@ -1117,3 +1117,8 @@ bool IsPropHunt( void )
 {
 	return gHUD.m_GameMode == GAME_PROPHUNT;
 }
+
+bool IsGunGame( void )
+{
+	return gHUD.m_GameMode == GAME_GUNGAME;
+}

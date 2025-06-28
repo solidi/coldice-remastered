@@ -136,9 +136,11 @@ void CFingerGun::PrimaryAttack()
 	if ( m_pPlayer->pev->button & IN_IRONSIGHT )
 		spread = VECTOR_CONE_1DEGREES;
 
-/*
-	Vector vecDir = m_pPlayer->FireBulletsPlayer( 1, vecSrc, vecAiming, spread, 8192, BULLET_PLAYER_357, 0, 0, m_pPlayer->pev, m_pPlayer->random_seed );
-*/
+	int dmg = 0;
+#ifndef CLIENT_DLL
+	if (g_pGameRules->IsGunGame())
+		dmg = gSkillData.plrDmg9MM;
+#endif
 
 	int flags;
 #if defined( CLIENT_WEAPONS )
@@ -154,7 +156,7 @@ void CFingerGun::PrimaryAttack()
 	if ( tr.pHit->v.takedamage )
 	{
 		ClearMultiDamage( );
-		CBaseEntity::Instance(tr.pHit)->TraceAttack(m_pPlayer->pev, 0, vecAiming, &tr, DMG_NEVERGIB | DMG_CONFUSE ); 
+		CBaseEntity::Instance(tr.pHit)->TraceAttack(m_pPlayer->pev, dmg, vecAiming, &tr, DMG_NEVERGIB | DMG_CONFUSE ); 
 		ApplyMultiDamage( pev, m_pPlayer->pev );
 	}
 #endif

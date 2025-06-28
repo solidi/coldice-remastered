@@ -1484,6 +1484,9 @@ int CStudioModelRenderer::StudioDrawModel( int flags )
 			if (MutatorEnabled(MUTATOR_GOLDENGUNS))
 				m_pCurrentEntity->curstate.skin = SKIN_GOLD;
 
+			if (gHUD.m_Teamplay == GAME_GUNGAME && !strcmp(m_pCurrentEntity->model->name, "models/v_knife.mdl"))
+				m_pCurrentEntity->curstate.skin = SKIN_GOLD;
+
 			if ( pTarget && pTarget->curstate.renderfx == kRenderFxGlowShell )
 			{
 				m_pCurrentEntity->curstate.renderfx = kRenderFxGlowShell;

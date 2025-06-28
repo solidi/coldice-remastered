@@ -821,6 +821,37 @@ void CBasePlayer::PackDeadPlayerItems( void )
 	iWeaponRules = g_pGameRules->DeadPlayerWeapons( this );
  	iAmmoRules = g_pGameRules->DeadPlayerAmmo( this );
 
+	if ( m_fHasRune )
+	{
+		// Avoid clustering of runes in battle
+		CBaseEntity *pEntity = NULL;
+		BOOL found = FALSE;
+
+		while ((pEntity = UTIL_FindEntityInSphere(pEntity, pev->origin, 256)) != NULL)
+		{
+			if (strncmp(STRING(pEntity->pev->classname), "rune_", 5) == 0)
+			{
+				found = TRUE;
+				break;
+			}
+		}
+
+		if (!found)
+		{
+			CWorldRunes::DropRune(this);
+		}
+		else
+		{
+			m_fHasRune = 0;
+			m_flRuneHealTime = 0;
+			if (!IsArmoredMan && !g_pGameRules->MutatorEnabled(MUTATOR_MEGASPEED))
+				g_engfuncs.pfnSetPhysicsKeyValue( edict(), "haste", "0" );
+			pev->rendermode = kRenderNormal;
+			pev->renderfx = kRenderFxNone;
+			pev->renderamt = 0;
+		}
+	}
+
 	if ( iWeaponRules == GR_PLR_DROP_GUN_NO && iAmmoRules == GR_PLR_DROP_AMMO_NO )
 	{
 		// nothing to pack. Remove the weapons and return. Don't call create on the box!
@@ -892,27 +923,6 @@ void CBasePlayer::PackDeadPlayerItems( void )
 					break;
 				}
 			}
-		}
-	}
-
-	if ( m_fHasRune )
-	{
-		// Avoid clustering of runes in battle
-		CBaseEntity *pEntity = NULL;
-		BOOL found = FALSE;
-
-		while ((pEntity = UTIL_FindEntityInSphere(pEntity, pev->origin, 256)) != NULL)
-		{
-			if (strncmp(STRING(pEntity->pev->classname), "rune_", 5) == 0)
-			{
-				found = TRUE;
-				break;
-			}
-		}
-
-		if (!found)
-		{
-			CWorldRunes::DropRune(this);
 		}
 	}
 
@@ -1847,7 +1857,7 @@ void CBasePlayer::StartObserver( Vector vecPosition, Vector vecViewAngle )
 	// Remove all items left by the player
 	DeactivateSatchels(this);
 	if (g_pGameRules->FAllowMonsters())
-		DeactivateAssassins(this);
+		DeactivateItems(this, "monster_human_assassin");
 	DeactivatePortals(this);
 	DeactivateDecoys(this);
 
@@ -5389,6 +5399,9 @@ void CBasePlayer::AutoMelee()
 	if (pev->flags & FL_FROZEN)
 		return;
 
+	if (g_pGameRules->IsGunGame() && m_pActiveItem && m_pActiveItem->m_iId == WEAPON_KNIFE)
+		return;
+
 	if (m_flNextAutoMelee > gpGlobals->time)
 		return;
 
@@ -5685,7 +5698,12 @@ void CBasePlayer::StartForceGrab( void )
 				EMIT_SOUND(edict(), CHAN_VOICE, "odetojoy.wav", 1, ATTN_NORM);
 
 				ClientPrint(plr->pev, HUD_PRINTCENTER, "Your weapon has been taken!\n");
-				plr->DropPlayerItem("", FALSE, FALSE);
+				if (plr->m_pActiveItem->m_iId < 32)
+					plr->pev->weapons &= ~(1<<plr->m_pActiveItem->m_iId);
+				else
+					plr->m_iWeapons2 &= ~(1<<(plr->m_pActiveItem->m_iId - 32));
+				plr->m_pActiveItem->SetThink( &CBasePlayerItem::DestroyItem );
+				plr->m_pActiveItem->pev->nextthink = gpGlobals->time + 0.1;
 			}
 		}
 	}

@@ -367,6 +367,7 @@ Vector CBaseEntity::FireBulletsPlayer ( ULONG cShots, Vector vecSrc, Vector vecD
 
 extern bool IsShidden( void );
 extern bool IsPropHunt( void );
+extern bool IsGunGame( void );
 
 /*
 =====================

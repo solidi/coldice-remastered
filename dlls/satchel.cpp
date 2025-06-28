@@ -607,11 +607,11 @@ void DeactivateSatchels( CBasePlayer *pOwner )
 	}
 }
 
-void DeactivateAssassins( CBasePlayer *pOwner )
+void DeactivateItems( CBasePlayer *pOwner, const char *item )
 {
 	edict_t *pFind; 
 
-	pFind = FIND_ENTITY_BY_CLASSNAME( NULL, "monster_human_assassin" );
+	pFind = FIND_ENTITY_BY_CLASSNAME( NULL, item );
 
 	while ( !FNullEnt( pFind ) )
 	{
@@ -619,14 +619,15 @@ void DeactivateAssassins( CBasePlayer *pOwner )
 
 		if ( pEnt )
 		{
-			if ( pEnt->pev->owner == pOwner->edict() )
+			if ( pEnt->pev->owner == pOwner->edict() ||
+				 pEnt->pev->euser1 == pOwner->edict() )
 			{
 				pEnt->pev->solid = SOLID_NOT;
 				UTIL_Remove( pEnt );
 			}
 		}
 
-		pFind = FIND_ENTITY_BY_CLASSNAME( pFind, "monster_human_assassin" );
+		pFind = FIND_ENTITY_BY_CLASSNAME( pFind, item );
 	}
 }
 

@@ -115,7 +115,18 @@ int CKnife::GetItemInfo(ItemInfo *p)
 	p->iSlot = 0;
 	p->iPosition = 4;
 	p->iId = WEAPON_KNIFE;
-	p->iWeight = KNIFE_WEIGHT;
+#ifdef CLIENT_DLL
+	if (IsGunGame())
+#else
+	if (g_pGameRules->IsGunGame())
+#endif
+	{
+		p->iWeight = -15;
+	}
+	else
+	{
+		p->iWeight = KNIFE_WEIGHT;
+	}
 	p->pszDisplayName = "12-Inch Combat Knife";
 	return 1;
 }
@@ -179,6 +190,16 @@ void CKnife::PrimaryAttack()
 
 void CKnife::SecondaryAttack()
 {
+#ifdef CLIENT_DLL
+	if (IsGunGame())
+#else
+	if (g_pGameRules->IsGunGame())
+#endif
+	{
+		m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 0.5;
+		return PrimaryAttack();
+	}
+
 	if ( m_fInZoom )
 	{
 		return;

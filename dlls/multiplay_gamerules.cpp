@@ -200,6 +200,9 @@ void CHalfLifeMultiplay::RefreshSkillData( void )
 		gSkillData.plrDmgGravityGun = damage;
 		gSkillData.plrDmgFlameThrower = damage;
 	}
+
+	if (g_GameMode == GAME_GUNGAME)
+		gSkillData.plrDmgKnife = 900;
 }
 
 // longest the intermission can last, in seconds
@@ -960,7 +963,7 @@ void CHalfLifeMultiplay::InsertClientsIntoArena(float fragcount)
 				WRITE_BYTE( ENTINDEX(plr->edict()) );
 				WRITE_SHORT( plr->pev->frags = fragcount );
 				WRITE_SHORT( plr->m_iDeaths = 0 );
-				WRITE_SHORT( plr->m_iRoundWins );
+				WRITE_SHORT( g_GameMode != GAME_GUNGAME ? plr->m_iRoundWins : plr->m_iRoundWins + 1 );
 				WRITE_SHORT( GetTeamIndex( plr->m_szTeamName ) + 1 );
 			MESSAGE_END();
 			plr->m_iAssists = 0;
@@ -1098,7 +1101,7 @@ void CHalfLifeMultiplay::SuckAllToSpectator( void )
 				WRITE_BYTE( ENTINDEX(pPlayer->edict()) );
 				WRITE_SHORT( pPlayer->pev->frags = 0 );
 				WRITE_SHORT( pPlayer->m_iDeaths = 0 );
-				WRITE_SHORT( pPlayer->m_iRoundWins );
+				WRITE_SHORT( g_GameMode != GAME_GUNGAME ? pPlayer->m_iRoundWins : pPlayer->m_iRoundWins + 1 );
 				WRITE_SHORT( GetTeamIndex( pPlayer->m_szTeamName ) + 1 );
 			MESSAGE_END();
 
@@ -1520,7 +1523,7 @@ void CHalfLifeMultiplay :: ClientDisconnected( edict_t *pClient )
 					WRITE_BYTE( ENTINDEX(pPlayer->edict()) );
 					WRITE_SHORT( pPlayer->pev->frags );
 					WRITE_SHORT( pPlayer->m_iDeaths );
-					WRITE_SHORT( pPlayer->m_iRoundWins );
+					WRITE_SHORT( g_GameMode != GAME_GUNGAME ? pPlayer->m_iRoundWins : pPlayer->m_iRoundWins + 1 );
 					WRITE_SHORT( GetTeamIndex( pPlayer->m_szTeamName ) + 1 );
 				MESSAGE_END();
 			}
@@ -1975,7 +1978,7 @@ void CHalfLifeMultiplay :: PlayerKilled( CBasePlayer *pVictim, entvars_t *pKille
 		WRITE_BYTE( ENTINDEX(pVictim->edict()) );
 		WRITE_SHORT( pVictim->pev->frags );
 		WRITE_SHORT( pVictim->m_iDeaths );
-		WRITE_SHORT( pVictim->m_iRoundWins );
+		WRITE_SHORT( g_GameMode != GAME_GUNGAME ? pVictim->m_iRoundWins : pVictim->m_iRoundWins + 1 );
 		WRITE_SHORT( GetTeamIndex( pVictim->m_szTeamName ) + 1 );
 	MESSAGE_END();
 
@@ -1989,7 +1992,7 @@ void CHalfLifeMultiplay :: PlayerKilled( CBasePlayer *pVictim, entvars_t *pKille
 			WRITE_BYTE( ENTINDEX(PK->edict()) );
 			WRITE_SHORT( PK->pev->frags );
 			WRITE_SHORT( PK->m_iDeaths );
-			WRITE_SHORT( PK->m_iRoundWins );
+			WRITE_SHORT( g_GameMode != GAME_GUNGAME ? PK->m_iRoundWins : PK->m_iRoundWins + 1 );
 			WRITE_SHORT( GetTeamIndex( PK->m_szTeamName) + 1 );
 		MESSAGE_END();
 
@@ -2001,7 +2004,7 @@ void CHalfLifeMultiplay :: PlayerKilled( CBasePlayer *pVictim, entvars_t *pKille
 	{
 		DeactivateSatchels( pVictim );
 		if (g_pGameRules->FAllowMonsters())
-			DeactivateAssassins( pVictim );
+			DeactivateItems(pVictim, "monster_human_assassin");
 	}
 	DeactivatePortals( pVictim );
 #endif

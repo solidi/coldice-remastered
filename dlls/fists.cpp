@@ -91,7 +91,18 @@ int CFists::GetItemInfo(ItemInfo *p)
 	p->iPosition = 1;
 	p->iId = WEAPON_FISTS;
 	p->iFlags = ITEM_FLAG_NODROP;
-	p->iWeight = FISTS_WEIGHT;
+#ifdef CLIENT_DLL
+	if (IsGunGame())
+#else
+	if (g_pGameRules->IsGunGame())
+#endif
+	{
+		p->iWeight = -20;
+	}
+	else
+	{
+		p->iWeight = FISTS_WEIGHT;
+	}
 	p->pszDisplayName = "Manos de Piedras";
 	return 1;
 }
