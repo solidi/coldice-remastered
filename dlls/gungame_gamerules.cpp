@@ -88,8 +88,8 @@ const char *g_WeaponId[MAXLEVEL+1] =
 	"vest",
 	// hand
 	"chainsaw",
-	"dual_wrench",
 	"wrench",
+	"dual_wrench",
 	"crowbar",
 	"rocketcrowbar",
 	"knife",
@@ -335,7 +335,7 @@ void CHalfLifeGunGame::PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller, e
 			char weapon[32];
 			sprintf(weapon, "%s%s", "weapon_", g_WeaponId[plr->m_iRoundWins]);
 
-			if (plr->IsAlive() && !plr->HasNamedPlayerItem(weapon))
+			if (plr->IsAlive() && plr->m_iRoundWins < MAXLEVEL)
 			{
 				plr->RemoveAllItems(FALSE);
 				GiveMutators(plr);
