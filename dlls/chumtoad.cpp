@@ -127,6 +127,7 @@ void CCaptureChumtoad::Spawn( void )
 	pev->rendercolor.x = 0;
 	pev->rendercolor.y = 200;
 	pev->rendercolor.z = 0;
+	pev->fuser4 = 1;
 
 	m_flDie = gpGlobals->time + SQUEEK_DETONATE_DELAY;
 

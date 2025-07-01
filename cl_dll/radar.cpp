@@ -86,9 +86,7 @@ void CHudRadar::ProcessPlayerState(void)
 		}
 		else if (gHUD.m_GameMode == GAME_CTC)
 		{
-			if (!strcmp(pClient->model->name, "models/w_chumtoad.mdl")) // loose toad
-				b_specials[num_players] = true;
-			else if (pClient->curstate.fuser4 > 0) // running with toad
+			if (pClient->curstate.fuser4 > 0) // running with toad
 				b_specials[num_players] = true;
 			else
 				b_specials[num_players] = false;
