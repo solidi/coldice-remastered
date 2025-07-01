@@ -891,22 +891,32 @@ void CChumtoad::Holster( int skiplocal /* = 0 */ )
 
 void CChumtoad::PrimaryAttack()
 {
-	if ( m_pPlayer->m_rgAmmo[ m_iPrimaryAmmoType ] )
+	if ( m_pPlayer->m_rgAmmo[ m_iPrimaryAmmoType ] && !m_fJustThrown )
 	{
-		Vector vecAiming = m_pPlayer->GetAutoaimVector( AUTOAIM_10DEGREES );
 		TraceResult tr;
 		Vector trace_origin;
 
+		vec3_t forward, right, up;
+		vec3_t vEntityForward = m_pPlayer->pev->v_angle;
+		vEntityForward[0] = 0;
+#ifndef CLIENT_DLL
+		g_engfuncs.pfnAngleVectors(vEntityForward, forward, right, up);
+		vEntityForward = forward;
+		g_engfuncs.pfnAngleVectors(m_pPlayer->pev->v_angle, forward, right, up);
+#endif
+
 		// HACK HACK:  Ugly hacks to handle change in origin based on new physics code for players
 		// Move origin up if crouched and start trace a bit outside of body ( 20 units instead of 16 )
+		float flAimDownFraction = m_pPlayer->pev->v_angle[0] > 0 ? m_pPlayer->pev->v_angle[0] / 90.f : 0;
 		trace_origin = m_pPlayer->pev->origin;
 		if ( m_pPlayer->pev->flags & FL_DUCKING )
 		{
-			trace_origin = trace_origin - ( VEC_HULL_MIN - VEC_DUCK_HULL_MIN );
+			trace_origin = trace_origin - (flAimDownFraction + 1) * ( VEC_HULL_MIN - VEC_DUCK_HULL_MIN );
 		}
 
+		Vector vTraceForward = (flAimDownFraction * vEntityForward) + (1 - flAimDownFraction) * forward;
 		// find place to toss monster
-		UTIL_TraceLine( trace_origin + vecAiming * 20, trace_origin + vecAiming * 64, dont_ignore_monsters, NULL, &tr );
+		UTIL_TraceLine(trace_origin + vTraceForward * 24, trace_origin + forward * 60, dont_ignore_monsters, NULL, &tr);
 
 	int flags;
 #ifdef CLIENT_WEAPONS
@@ -930,10 +940,10 @@ void CChumtoad::PrimaryAttack()
 				pChumtoad = g_pGameRules->DropCharm(m_pPlayer, tr.vecEndPos);
 			}
 			else
-				pChumtoad = CBaseEntity::Create( "monster_chumtoad", tr.vecEndPos, vecAiming, m_pPlayer->edict() );
+				pChumtoad = CBaseEntity::Create( "monster_chumtoad", tr.vecEndPos, m_pPlayer->pev->v_angle, m_pPlayer->edict() );
 
 			if (pChumtoad)
-				pChumtoad->pev->velocity = vecAiming * 200 + m_pPlayer->pev->velocity;
+				pChumtoad->pev->velocity = vEntityForward * 300 + m_pPlayer->pev->velocity;
 #endif
 
 			// play hunt sound
@@ -946,34 +956,42 @@ void CChumtoad::PrimaryAttack()
 
 			m_pPlayer->m_iWeaponVolume = QUIET_GUN_VOLUME;
 
-			m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType]--;
-
 			m_fJustThrown = 1;
 
 			m_flNextPrimaryAttack = m_flNextSecondaryAttack = GetNextAttackDelay(0.3);
-			m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 1.0;
+			m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 0.5;
 		}
 	}
 }
 
 void CChumtoad::SecondaryAttack()
 {
-	if ( m_pPlayer->m_rgAmmo[ m_iPrimaryAmmoType ] )
+	if ( m_pPlayer->m_rgAmmo[ m_iPrimaryAmmoType ] && !m_fJustThrown )
 	{
-		Vector vecAiming = m_pPlayer->GetAutoaimVector( AUTOAIM_10DEGREES );
 		TraceResult tr;
 		Vector trace_origin;
 
+		vec3_t forward, right, up;
+		vec3_t vEntityForward = m_pPlayer->pev->v_angle;
+		vEntityForward[0] = 0;
+#ifndef CLIENT_DLL
+		g_engfuncs.pfnAngleVectors(vEntityForward, forward, right, up);
+		vEntityForward = forward;
+		g_engfuncs.pfnAngleVectors(m_pPlayer->pev->v_angle, forward, right, up);
+#endif
+
 		// HACK HACK:  Ugly hacks to handle change in origin based on new physics code for players
 		// Move origin up if crouched and start trace a bit outside of body ( 20 units instead of 16 )
+		float flAimDownFraction = m_pPlayer->pev->v_angle[0] > 0 ? m_pPlayer->pev->v_angle[0] / 90.f : 0;
 		trace_origin = m_pPlayer->pev->origin;
 		if ( m_pPlayer->pev->flags & FL_DUCKING )
 		{
-			trace_origin = trace_origin - ( VEC_HULL_MIN - VEC_DUCK_HULL_MIN );
+			trace_origin = trace_origin - (flAimDownFraction + 1) * ( VEC_HULL_MIN - VEC_DUCK_HULL_MIN );
 		}
 
+		Vector vTraceForward = (flAimDownFraction * vEntityForward) + (1 - flAimDownFraction) * forward;
 		// find place to toss monster
-		UTIL_TraceLine( trace_origin + vecAiming * 20, trace_origin + vecAiming * 64, dont_ignore_monsters, NULL, &tr );
+		UTIL_TraceLine(trace_origin + vTraceForward * 24, trace_origin + forward * 60, dont_ignore_monsters, NULL, &tr);
 
 	int flags;
 #ifdef CLIENT_WEAPONS
@@ -999,10 +1017,10 @@ void CChumtoad::SecondaryAttack()
 					pChumtoad = g_pGameRules->DropCharm(m_pPlayer, tr.vecEndPos + (gpGlobals->v_right * ((20 * i) + dif)));
 				}
 				else
-					pChumtoad = CBaseEntity::Create( "monster_chumtoad", tr.vecEndPos + (gpGlobals->v_right * ((20 * i) + dif)), vecAiming, m_pPlayer->edict() );
+					pChumtoad = CBaseEntity::Create( "monster_chumtoad", tr.vecEndPos + (gpGlobals->v_right * ((20 * i) + dif)), m_pPlayer->pev->v_angle, m_pPlayer->edict() );
 
 				if (pChumtoad)
-					pChumtoad->pev->velocity = vecAiming * 200 + m_pPlayer->pev->velocity;
+					pChumtoad->pev->velocity = vEntityForward * 300 + m_pPlayer->pev->velocity;
 			}
 #endif
 
@@ -1016,12 +1034,10 @@ void CChumtoad::SecondaryAttack()
 
 			m_pPlayer->m_iWeaponVolume = QUIET_GUN_VOLUME;
 
-			m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] = 0;
-
-			m_fJustThrown = 1;
+			m_fJustThrown = 2;
 
 			m_flNextPrimaryAttack = m_flNextSecondaryAttack = GetNextAttackDelay(0.3);
-			m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 1.0;
+			m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 0.5;
 		}
 	}
 }
@@ -1035,6 +1051,10 @@ void CChumtoad::WeaponIdle( void )
 
 	if (m_fJustThrown)
 	{
+		m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType]--;
+		if (m_fJustThrown > 1)
+			m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] = 0;
+
 		m_fJustThrown = 0;
 
 		if ( !m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()] )
