@@ -30,6 +30,7 @@ extern int gmsgPlayClientSound;
 extern int gmsgObjective;
 extern int gmsgTeamNames;
 extern int gmsgTeamInfo;
+extern int gmsgStatusIcon;
 
 #define SPAWN_TIME 30.0
 
@@ -278,6 +279,14 @@ void CHalfLifeCaptureTheChumtoad::CaptureCharm( CBasePlayer *pPlayer )
 		WRITE_BYTE(CLIENT_SOUND_BULLSEYE);
 	MESSAGE_END();
 
+	MESSAGE_BEGIN( MSG_ONE, gmsgStatusIcon, NULL, pPlayer->pev );
+		WRITE_BYTE(1);
+		WRITE_STRING("chumtoad");
+		WRITE_BYTE(0);
+		WRITE_BYTE(160);
+		WRITE_BYTE(255);
+	MESSAGE_END();
+
 	// notify everyone's HUD of the team change
 	strncpy( pPlayer->m_szTeamName, "holder", TEAM_NAME_LENGTH );
 	MESSAGE_BEGIN( MSG_ALL, gmsgTeamInfo );
@@ -318,6 +327,11 @@ CBaseEntity *CHalfLifeCaptureTheChumtoad::DropCharm( CBasePlayer *pPlayer, Vecto
 
 	MESSAGE_BEGIN(MSG_BROADCAST, gmsgPlayClientSound);
 		WRITE_BYTE(CLIENT_SOUND_MANIAC);
+	MESSAGE_END();
+
+	MESSAGE_BEGIN( MSG_ONE, gmsgStatusIcon, NULL, pPlayer->pev );
+		WRITE_BYTE(0);
+		WRITE_STRING("chumtoad");
 	MESSAGE_END();
 
 	strncpy( pPlayer->m_szTeamName, "chaser", TEAM_NAME_LENGTH );
