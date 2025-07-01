@@ -393,19 +393,22 @@ void CHalfLifeCaptureTheChumtoad::PlayerThink( CBasePlayer *pPlayer )
 				message = UTIL_VarArgs("Running with the Chumtoad!\nPoints: %d | Timer: %d", 
 						(int)pPlayer->m_iRoundWins, pPlayer->m_iChumtoadCounter);
 				scoringPoints = TRUE;
+				pPlayer->m_iChumtoadDropCounter = 10;
 			}
 			else
 			{
 				message = UTIL_VarArgs("Keep running to score points\nor the chumtoad will slip away!");
 
-				// 15% chance on every score point, drop chumtoad!
-				if (RANDOM_LONG(0,7) == 0 && pPlayer->m_pActiveItem)
+				if (RANDOM_LONG(0, pPlayer->m_iChumtoadDropCounter) == 0 && pPlayer->m_pActiveItem)
 				{
 					ClientPrint(pPlayer->pev, HUD_PRINTCENTER, "The chumtoad slipped away!\n");
 					CBasePlayerWeapon *weapon = (CBasePlayerWeapon *)pPlayer->m_pActiveItem;
 					weapon->SendWeaponAnim( 5 );
 					weapon->PrimaryAttack();
 				}
+
+				if (pPlayer->m_iChumtoadDropCounter > 0)
+					pPlayer->m_iChumtoadDropCounter--;
 			}
 
 			if (scoringPoints)
