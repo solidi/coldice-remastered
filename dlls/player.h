@@ -281,6 +281,7 @@ public:
 	BOOL m_iHoldingChumtoad;
 	int m_iChumtoadCounter;
 	int m_iCaptureTime;
+	int m_iChumtoadDropCounter;
 
 	// Ricochet
 	EHANDLE m_hLastPlayerToHitMe;

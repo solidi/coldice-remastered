@@ -413,6 +413,15 @@ void ScorePanel::SortTeams()
 						highest = g_TeamInfo[i].frags;
 				}
 			}
+
+			for ( int j = 1; j <= m_iNumTeams; j++ )
+			{
+				if (gHUD.m_Teamplay == GAME_CTC && !strcmp(g_TeamInfo[j].name, "holder") && !g_TeamInfo[j].already_drawn)
+				{
+					best_team = j;
+					break;
+				}
+			}
 		}
 
 		// draw the best team on the scoreboard

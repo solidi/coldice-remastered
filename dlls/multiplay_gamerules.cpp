@@ -221,7 +221,7 @@ char *sBuiltInMaps[] =
 	"cold_base",
 	"coldice",
 	"comet",
-//	"defroster",
+	"defroster",
 	"datafloe",
 	"depot",
 	"doublefrost",
@@ -239,7 +239,7 @@ char *sBuiltInMaps[] =
 	"ice_pit",
 	"latenightxmas",
 	"overflow",
-//	"quadfrost",
+	"quadfrost",
 	"snow_camp",
 	"snowcross",
 	"snowtransit",
@@ -254,7 +254,7 @@ char *sBuiltInMaps[] =
 	"RANDOM",
 };
 
-#define BUILT_IN_MAP_COUNT 35
+#define BUILT_IN_MAP_COUNT 37
 
 char *gamePlayModes[] = {
 	"Deathmatch",

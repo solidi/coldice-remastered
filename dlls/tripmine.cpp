@@ -488,14 +488,6 @@ void CTripmine::PrimaryAttack( void )
 				return;
 			}
 		}
-		else
-		{
-			// ALERT( at_console, "no deploy\n" );
-		}
-	}
-	else
-	{
-
 	}
 	
 	m_flNextPrimaryAttack = GetNextAttackDelay(0.3);

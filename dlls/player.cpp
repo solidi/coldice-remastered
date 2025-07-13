@@ -595,6 +595,7 @@ int CBasePlayer :: TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, 
 	if ( !g_pGameRules->FPlayerCanTakeDamage( this, pAttacker ) )
 	{
 		// Refuse the damage
+		m_fBurnTime = 0;
 		return 0;
 	}
 
