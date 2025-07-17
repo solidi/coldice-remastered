@@ -40,6 +40,7 @@
 #include	"prophunt_gamerules.h"
 #include	"busters_gamerules.h"
 #include	"coldspot_gamerules.h"
+#include	"shake.h"
 
 extern edict_t *EntSelectSpawnPoint( CBaseEntity *pPlayer );
 
@@ -687,11 +688,13 @@ BOOL CGameRules::WeaponMutators( CBasePlayerWeapon *pWeapon )
 			{
 				if (!FBitSet(pWeapon->m_pPlayer->pev->flags, FL_GODMODE))
 				{
-					ClearMultiDamage();
-					pWeapon->m_pPlayer->pev->health = 0; // without this, player can walk as a ghost.
-					pWeapon->m_pPlayer->Killed(pWeapon->m_pPlayer->pev, pWeapon->m_pPlayer->pev, GIB_ALWAYS);
+					float damageGiven = pWeapon->pev->dmg;
 
-					CGrenade::Vest( pWeapon->m_pPlayer->pev, pWeapon->m_pPlayer->pev->origin, gSkillData.plrDmgVest );
+					if (!damageGiven)
+						damageGiven = RANDOM_FLOAT(20, 60);
+					UTIL_ScreenFade(pWeapon->m_pPlayer, Vector(200, 0, 0), 0.5, 0.5, 32, FFADE_IN);
+					pWeapon->m_pPlayer->TakeDamage( pWeapon->m_pPlayer->pev, pWeapon->m_pPlayer->pev, damageGiven, DMG_BLAST);
+
 					ClientPrint(pWeapon->m_pPlayer->pev, HUD_PRINTCENTER, "Don't Shoot!!!\n(fists / kicks / slides only!)");
 					pWeapon->m_flNextPrimaryAttack = pWeapon->m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 0.5;
 					return FALSE; // nothing else.
