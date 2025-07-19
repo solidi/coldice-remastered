@@ -280,6 +280,7 @@ void CCannon::Spawn( )
 	{
 		m_iDefaultAmmo = CANNON_DEFAULT_GIVE;
 	}
+	pev->dmg = gSkillData.plrDmgFlak;
 
 	FallInit();// get ready to fall down.
 }

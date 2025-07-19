@@ -46,6 +46,7 @@ void CDualMag60::Spawn( )
 	m_iId = WEAPON_DUAL_MAG60;
 
 	m_iDefaultAmmo = MAG60_DEFAULT_GIVE * 2;
+	pev->dmg = gSkillData.plrDmg9MM;
 
 	FallInit();// get ready to fall down.
 }

@@ -48,6 +48,7 @@ void CUsas::Spawn( )
 	pev->body = WEAPON_USAS - 1;
 
 	m_iDefaultAmmo = USAS_DEFAULT_GIVE;
+	pev->dmg = gSkillData.plrDmgBuckshot;
 
 	FallInit();// get ready to fall
 }

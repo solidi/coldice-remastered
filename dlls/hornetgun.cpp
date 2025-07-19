@@ -58,6 +58,7 @@ void CHgun::Spawn( )
 	pev->body = WEAPON_HORNETGUN - 1;
 
 	m_iDefaultAmmo = HIVEHAND_DEFAULT_GIVE;
+	pev->dmg = gSkillData.plrDmgHornet;
 	m_iFirePhase = 0;
 
 	FallInit();// get ready to fall down.

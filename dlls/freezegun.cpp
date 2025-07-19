@@ -47,6 +47,7 @@ void CFreezeGun::Spawn()
 	pev->body = WEAPON_FREEZEGUN - 1;
 
 	m_iDefaultAmmo = FREEZEGUN_DEFAULT_GIVE;
+	pev->dmg = gSkillData.plrDmgPlasma;
 
 	FallInit();// get ready to fall
 }

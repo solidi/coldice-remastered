@@ -57,6 +57,7 @@ void CSMG::Spawn( )
 	m_iId = WEAPON_SMG;
 
 	m_iDefaultAmmo = SMG_DEFAULT_GIVE;
+	pev->dmg = gSkillData.plrDmg9MM;
 
 	FallInit();// get ready to fall down.
 }

@@ -50,6 +50,7 @@ void CVest::Spawn( )
 	pev->body = WEAPON_VEST - 1;
 
 	m_iDefaultAmmo = SATCHEL_DEFAULT_GIVE;
+	pev->dmg = gSkillData.plrDmgVest;
 
 	FallInit();
 }

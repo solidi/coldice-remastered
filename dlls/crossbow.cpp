@@ -241,6 +241,7 @@ void CCrossbow::Spawn( )
 	pev->body = WEAPON_CROSSBOW - 1;
 
 	m_iDefaultAmmo = CROSSBOW_DEFAULT_GIVE;
+	pev->dmg = gSkillData.plrDmgCrossbowClient;
 
 	FallInit();// get ready to fall down.
 }

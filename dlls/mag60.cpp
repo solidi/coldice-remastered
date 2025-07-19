@@ -53,6 +53,7 @@ void CMag60::Spawn( )
 	pev->body = WEAPON_MAG60 - 1;
 
 	m_iDefaultAmmo = MAG60_DEFAULT_GIVE;
+	pev->dmg = gSkillData.plrDmg9MM;
 
 	FallInit();// get ready to fall down.
 }

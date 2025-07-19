@@ -61,6 +61,7 @@ void CMP5::Spawn( )
 	m_iId = WEAPON_MP5;
 
 	m_iDefaultAmmo = MP5_DEFAULT_GIVE;
+	pev->dmg = gSkillData.plrDmg9MM;
 
 	FallInit();// get ready to fall down.
 }

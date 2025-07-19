@@ -76,6 +76,7 @@ void CDeagle::Spawn( )
 	pev->body = WEAPON_DEAGLE - 1;
 
 	m_iDefaultAmmo = DEAGLE_DEFAULT_GIVE;
+	pev->dmg = gSkillData.plrDmg357;
 
 	FallInit();// get ready to fall down.
 }

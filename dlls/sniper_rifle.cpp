@@ -48,6 +48,7 @@ void CSniperRifle::Spawn( )
 	m_iId = WEAPON_SNIPER_RIFLE;
 
 	m_iDefaultAmmo = MP5_DEFAULT_GIVE;
+	pev->dmg = gSkillData.plrDmgSniperRifle;
 
 	FallInit();// get ready to fall down.
 }

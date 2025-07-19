@@ -62,6 +62,7 @@ void CEgon::Spawn( )
 	pev->body = WEAPON_EGON - 1;
 
 	m_iDefaultAmmo = EGON_DEFAULT_GIVE;
+	pev->dmg = gSkillData.plrDmgEgonWide;
 
 	FallInit();// get ready to fall down.
 }

@@ -697,7 +697,7 @@ BOOL CGameRules::WeaponMutators( CBasePlayerWeapon *pWeapon )
 
 					ClientPrint(pWeapon->m_pPlayer->pev, HUD_PRINTCENTER, "Don't Shoot!!!\n(fists / kicks / slides only!)");
 					pWeapon->m_flNextPrimaryAttack = pWeapon->m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 0.5;
-					return FALSE; // nothing else.
+					// return FALSE; // nothing else.
 				}
 			}
 		}

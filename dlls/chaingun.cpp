@@ -50,6 +50,7 @@ void CChaingun::Spawn( )
 	m_iId = WEAPON_CHAINGUN;
 
 	m_iDefaultAmmo = CHAINGUN_DEFAULT_GIVE;
+	pev->dmg = gSkillData.plrDmg357;
 
 	FallInit();
 }

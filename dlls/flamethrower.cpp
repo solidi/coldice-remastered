@@ -68,6 +68,7 @@ void CFlameThrower::Spawn( )
 	m_iId = WEAPON_FLAMETHROWER;
 
 	m_iDefaultAmmo = FLAMETHROWER_DEFAULT_GIVE;
+	pev->dmg = gSkillData.plrDmgFlameThrower;
 
 	FallInit();
 }

@@ -76,6 +76,7 @@ void CDualGlock::Spawn( )
 	pev->body = WEAPON_DUAL_GLOCK - 1;
 
 	m_iDefaultAmmo = GLOCK_DEFAULT_GIVE * 2;
+	pev->dmg = gSkillData.plrDmg9MM;
 
 	FallInit();// get ready to fall down.
 }

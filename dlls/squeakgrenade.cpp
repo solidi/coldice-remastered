@@ -428,6 +428,7 @@ void CSqueak::Spawn( )
 	FallInit();//get ready to fall down.
 
 	m_iDefaultAmmo = SNARK_DEFAULT_GIVE;
+	pev->dmg = gSkillData.snarkDmgBite;
 
 	pev->animtime = gpGlobals->time;
 	pev->framerate = 1.0;

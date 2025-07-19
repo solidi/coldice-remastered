@@ -280,6 +280,7 @@ void CSatchel::Spawn( )
 	SET_MODEL(ENT(pev), "models/w_satchel.mdl");
 
 	m_iDefaultAmmo = SATCHEL_DEFAULT_GIVE;
+	pev->dmg = gSkillData.plrDmgSatchel;
 
 #ifndef CLIENT_DLL
 	int floating = floatingweapons.value ? 1 : 0;

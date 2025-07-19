@@ -57,6 +57,7 @@ void CDualRailgun::Spawn( )
 	pev->body = WEAPON_DUAL_RAILGUN - 1;
 
 	m_iDefaultAmmo = RAILGUN_DEFAULT_GIVE * 2;
+	pev->dmg = gSkillData.plrDmgRailgun;
 
 	FallInit();
 }

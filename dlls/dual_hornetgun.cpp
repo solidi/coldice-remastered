@@ -58,6 +58,7 @@ void CDualHgun::Spawn( )
 	pev->body = WEAPON_DUAL_HORNETGUN - 1;
 
 	m_iDefaultAmmo = HIVEHAND_DEFAULT_GIVE * 2;
+	pev->dmg = gSkillData.plrDmgHornet;
 	m_iFirePhase = 0;
 
 	FallInit();// get ready to fall down.

@@ -46,6 +46,7 @@ void CDualSMG::Spawn( )
 	m_iId = WEAPON_DUAL_SMG;
 
 	m_iDefaultAmmo = SMG_DEFAULT_GIVE * 2;
+	pev->dmg = gSkillData.plrDmg9MM;
 
 	FallInit();// get ready to fall down.
 }

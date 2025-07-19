@@ -49,6 +49,7 @@ void CDualSawedOff::Spawn( )
 	pev->body = WEAPON_DUAL_SAWEDOFF - 1;
 
 	m_iDefaultAmmo = SHOTGUN_DEFAULT_GIVE;
+	pev->dmg = gSkillData.plrDmgBuckshot;
 
 	FallInit();// get ready to fall
 }

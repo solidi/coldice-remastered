@@ -377,6 +377,7 @@ void CTripmine::Spawn( )
 	FallInit();// get ready to fall down
 
 	m_iDefaultAmmo = TRIPMINE_DEFAULT_GIVE;
+	pev->dmg = gSkillData.plrDmgTripmine;
 
 #ifdef CLIENT_DLL
 	if ( !bIsMultiplayer() )

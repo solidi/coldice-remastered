@@ -435,6 +435,7 @@ void CNuke::Spawn( )
 	pev->body = WEAPON_NUKE - 1;
 
 	m_iDefaultAmmo = NUKE_DEFAULT_GIVE;
+	pev->dmg = gSkillData.plrDmgNuke;
 
 	FallInit();// get ready to fall down.
 }
