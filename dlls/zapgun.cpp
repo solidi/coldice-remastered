@@ -48,7 +48,7 @@ void CZapgun::Spawn( )
 	SET_MODEL(ENT(pev), "models/w_weapons.mdl");
 	pev->body = WEAPON_ZAPGUN - 1;
 
-	//m_iDefaultAmmo = ZAPGUN_DEFAULT_GIVE;
+	pev->dmg = 9999;
 
 	FallInit();// get ready to fall down.
 }

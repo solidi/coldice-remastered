@@ -680,11 +680,11 @@ void CGameRules::EnvMutators( void )
 
 BOOL CGameRules::WeaponMutators( CBasePlayerWeapon *pWeapon )
 {
-	if (pWeapon && pWeapon->m_pPlayer)
+	if (pWeapon && pWeapon->m_pPlayer && pWeapon->m_pPlayer->pev->solid != SOLID_NOT)
 	{
 		if (m_iDontShoot)
 		{
-			if (pWeapon->pszAmmo1() != NULL && pWeapon->m_pPlayer->pev->solid != SOLID_NOT)
+			if (pWeapon->pszAmmo1() != NULL || pWeapon->m_iId == WEAPON_ZAPGUN || pWeapon->m_iId == WEAPON_ROCKETCROWBAR)
 			{
 				if (!FBitSet(pWeapon->m_pPlayer->pev->flags, FL_GODMODE))
 				{

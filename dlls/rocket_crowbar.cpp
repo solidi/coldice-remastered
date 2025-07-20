@@ -203,6 +203,7 @@ void CRocketCrowbar::Spawn( )
 	SET_MODEL(ENT(pev), "models/w_weapons.mdl");
 	pev->body = WEAPON_ROCKETCROWBAR - 1;
 	m_iClip = -1;
+	pev->dmg = gSkillData.plrDmgRPG;
 
 	UTIL_PrecacheOther( "drunk_rocket" );
 
