@@ -49,6 +49,7 @@ void C12Gauge::Spawn( )
 	pev->body = WEAPON_12GAUGE - 1;
 
 	m_iDefaultAmmo = _12_GAUGE_DEFAULT_GIVE;
+	pev->dmg = gSkillData.plrDmgBuckshot;
 
 	FallInit();// get ready to fall
 }

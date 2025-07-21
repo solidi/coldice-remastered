@@ -55,6 +55,7 @@ void CDualFlameThrower::Spawn( )
 	m_iId = WEAPON_DUAL_FLAMETHROWER;
 
 	m_iDefaultAmmo = FLAMETHROWER_DEFAULT_GIVE * 2;
+	pev->dmg = gSkillData.plrDmgFlameThrower;
 
 	FallInit();
 }

@@ -3959,43 +3959,7 @@ void EV_FireFingergun( event_args_t *args )
 
 	EV_GunSmoke(gEngfuncs.GetViewModel()->attachment[0], 0.6, idx, args->ducking, forward, right, up, 0, 0, 0);
 
-	// Store off the old count
-	gEngfuncs.pEventAPI->EV_PushPMStates();
-
-	// Now add in all of the players.
-	gEngfuncs.pEventAPI->EV_SetSolidPlayers ( idx - 1 );	
-	gEngfuncs.pEventAPI->EV_SetTraceHull( 2 );
-	gEngfuncs.pEventAPI->EV_PlayerTrace( vecSrc, vecEnd, PM_STUDIO_BOX, -1, &tr );
-	
-	//We hit something
-	if ( tr.fraction < 1.0 )
-	{
-		physent_t *pe = gEngfuncs.pEventAPI->EV_GetPhysent( tr.ent ); 
-
-		//Not the world, let's assume we hit something organic ( dog, cat, uncle joe, etc ).
-		if ( pe->solid != SOLID_BSP )
-		{
-			switch( gEngfuncs.pfnRandomLong(0,1) )
-			{
-			case 0:
-				gEngfuncs.pEventAPI->EV_PlaySound( idx, tr.endpos, CHAN_BODY, "weapons/xbow_hitbod1.wav", 1, ATTN_NORM, 0, PITCH_NORM ); break;
-			case 1:
-				gEngfuncs.pEventAPI->EV_PlaySound( idx, tr.endpos, CHAN_BODY, "weapons/xbow_hitbod2.wav", 1, ATTN_NORM, 0, PITCH_NORM ); break;
-			}
-		}
-		//Stick to world but don't stick to glass, it might break and leave the bolt floating. It can still stick to other non-transparent breakables though.
-		else if ( pe->rendermode == kRenderNormal ) 
-		{
-			// gEngfuncs.pEventAPI->EV_PlaySound( 0, tr.endpos, CHAN_BODY, "weapons/xbow_hit1.wav", gEngfuncs.pfnRandomFloat(0.95, 1.0), ATTN_NORM, 0, PITCH_NORM );
-		
-			//Not underwater, do some sparks...
-			gEngfuncs.pEfxAPI->R_SparkShower( tr.endpos );
-		}
-	}
-
-	gEngfuncs.pEventAPI->EV_PopPMStates();
-
-	//EV_HLDM_FireBullets( idx, forward, right, up, 1, vecSrc, vecAiming, 8192, BULLET_PLAYER_357, 0, 0, args->fparam1, args->fparam2 );
+	EV_HLDM_FireBullets( idx, forward, right, up, 1, vecSrc, vecAiming, 8192, BULLET_PLAYER_357, 0, 0, args->fparam1, args->fparam2 );
 }
 
 enum zapgun_e {

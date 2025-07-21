@@ -72,6 +72,7 @@ void CGauss::Spawn( )
 	pev->body = WEAPON_GAUSS - 1;
 
 	m_iDefaultAmmo = GAUSS_DEFAULT_GIVE;
+	pev->dmg = gSkillData.plrDmgGauss;
 
 	FallInit();// get ready to fall down.
 }

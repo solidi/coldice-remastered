@@ -52,6 +52,7 @@ void CSnowball::Spawn( )
 #endif
 
 	m_iDefaultAmmo = SNOWBALL_DEFAULT_GIVE;
+	pev->dmg = gSkillData.plrDmgSnowball;
 
 	FallInit();// get ready to fall down.
 }

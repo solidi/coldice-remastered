@@ -50,6 +50,7 @@ void CGrenadeLauncher::Spawn( )
 
 	m_iId = WEAPON_GLAUNCHER;
 	m_iDefaultAmmo = GLAUNCHER_DEFAULT_GIVE;
+	pev->dmg = gSkillData.plrDmgM203Grenade;
 
 	FallInit();// get ready to fall down.
 }

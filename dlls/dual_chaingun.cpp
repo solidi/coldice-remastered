@@ -50,6 +50,7 @@ void CDualChaingun::Spawn( )
 	m_iId = WEAPON_DUAL_CHAINGUN;
 
 	m_iDefaultAmmo = CHAINGUN_DEFAULT_GIVE * 2;
+	pev->dmg = gSkillData.plrDmg357;
 
 	FallInit();
 }

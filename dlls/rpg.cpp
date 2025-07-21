@@ -405,6 +405,7 @@ void CRpg::Spawn( )
 	{
 		m_iDefaultAmmo = RPG_DEFAULT_GIVE;
 	}
+	pev->dmg = gSkillData.plrDmgRPG;
 
 	FallInit();// get ready to fall down.
 }

@@ -50,6 +50,7 @@ void CHandGrenade::Spawn( )
 #endif
 
 	m_iDefaultAmmo = HANDGRENADE_DEFAULT_GIVE;
+	pev->dmg = gSkillData.plrDmgHandGrenade;
 
 	FallInit();// get ready to fall down.
 }

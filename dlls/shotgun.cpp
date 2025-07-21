@@ -49,6 +49,7 @@ void CShotgun::Spawn( )
 	pev->body = WEAPON_SHOTGUN - 1;
 
 	m_iDefaultAmmo = SHOTGUN_DEFAULT_GIVE;
+	pev->dmg = gSkillData.plrDmgExpBuckshot;
 
 	FallInit();// get ready to fall
 }

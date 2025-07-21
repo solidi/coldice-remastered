@@ -805,6 +805,7 @@ void CChumtoad::Spawn( )
 #ifndef CLIENT_DLL
 	m_iDefaultAmmo = g_pGameRules->IsCtC() ? 1 : SNARK_DEFAULT_GIVE;
 #endif
+	pev->dmg = gSkillData.chumtoadDmgBite;
 
 	pev->animtime = gpGlobals->time;
 	pev->framerate = 1.0;
