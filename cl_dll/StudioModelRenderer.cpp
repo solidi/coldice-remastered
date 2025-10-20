@@ -461,6 +461,12 @@ void CStudioModelRenderer::StudioPlayerBlend( mstudioseqdesc_t *pseqdesc, int *p
 	}
 }
 
+bool CStudioModelRenderer::FlipViewModel(void)
+{
+	extern cvar_t *m_pCvarRighthand;
+	return !m_pCvarRighthand->value || (m_pCvarRighthand->value == -1 && m_pCurrentEntity->model && !strcmp(m_pCurrentEntity->model->name, "models/v_knife.mdl"));
+}
+
 /*
 ====================
 StudioSetUpTransform
@@ -591,10 +597,9 @@ void CStudioModelRenderer::StudioSetUpTransform (int trivial_accept)
 		}
 	}
 
-	extern cvar_t *m_pCvarRighthand;
 	if (m_pCurrentEntity == gEngfuncs.GetViewModel() || m_pCurrentEntity->curstate.iuser4 == 1)
 	{
-		if (!m_pCvarRighthand->value)
+		if (FlipViewModel())
 		{
 			(*m_protationmatrix)[0][1] *= -1;
 			(*m_protationmatrix)[1][1] *= -1;
@@ -2590,10 +2595,9 @@ void CStudioModelRenderer::StudioRenderFinal_Hardware( void )
 
 			IEngineStudio.GL_SetRenderMode( rendermode );
 
-			extern cvar_t *m_pCvarRighthand;
 			extern qboolean g_fXashEngine;
 			if (m_pCurrentEntity == gEngfuncs.GetViewModel() || m_pCurrentEntity->curstate.iuser4 == 1) {
-				if (!m_pCvarRighthand->value || g_fXashEngine)
+				if (FlipViewModel() || g_fXashEngine)
 					gEngfuncs.pTriAPI->CullFace( TRI_NONE );
 			}
 
@@ -2627,7 +2631,7 @@ void CStudioModelRenderer::StudioRenderFinal_Hardware( void )
 #endif
 
 			if (m_pCurrentEntity == gEngfuncs.GetViewModel() || m_pCurrentEntity->curstate.iuser4 == 1) {
-				if (!m_pCvarRighthand->value || g_fXashEngine)
+				if (FlipViewModel() || g_fXashEngine)
 					gEngfuncs.pTriAPI->CullFace( TRI_FRONT );
 			}
 		}

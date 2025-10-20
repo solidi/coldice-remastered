@@ -106,6 +106,9 @@ public:
 	// Sets bounding box
 	virtual void StudioGetMinsMaxs ( Vector& outMins, Vector& outMaxs );
 
+	// Conditions that determine a view model to be rendered in reverse
+	virtual bool FlipViewModel(void);
+
 public:
 
 	// Client clock
