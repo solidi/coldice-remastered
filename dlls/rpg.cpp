@@ -603,7 +603,7 @@ void CRpg::SecondaryAttack()
 	}
 	else
 	{
-		PlayEmptySound( );
+		// PlayEmptySound( ); // Stop rapid clicking.
 		m_flNextPrimaryAttack = m_flNextSecondaryAttack = GetNextAttackDelay(0.15);
 	}
 	UpdateSpot( );
