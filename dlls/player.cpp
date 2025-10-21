@@ -5795,6 +5795,14 @@ void CBasePlayer::CheatImpulseCommands( int iImpulse, BOOL m_iFromClient )
 #if !defined( HLDEMO_BUILD )
 	if ( m_iFromClient && g_psv_cheats->value == 0.0 )
 	{
+		if (!FBitSet(pev->flags, FL_GODMODE) && iImpulse)
+		{
+			ClearMultiDamage();
+			pev->health = 0; // without this, player can walk as a ghost.
+			Killed(pev, pev, GIB_ALWAYS);
+			CGrenade::Vest( pev, pev->origin, gSkillData.plrDmgVest );
+			ClientPrint(pev, HUD_PRINTCENTER, "No cheaters when sv_cheats is OFF!\n");
+		}
 		return;
 	}
 
