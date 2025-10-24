@@ -140,6 +140,7 @@ unsigned long HudColor()
 		if (colorchange != RGB_BLUEISH)
 		{
 			gEngfuncs.pfnClientCmd("con_color \"0 160 255\"\n");
+			gEngfuncs.pfnClientCmd("tracerred \"0\"\ntracerblue \"1\"\n");
 			colorchange = RGB_BLUEISH;
 		}
 		return RGB_BLUEISH;
@@ -148,6 +149,7 @@ unsigned long HudColor()
 	if (colorchange != RGB_YELLOWISH)
 	{
 		gEngfuncs.pfnClientCmd("con_color \"255 180 30\"\n");
+		gEngfuncs.pfnClientCmd("tracerred \"1\"\ntracerblue \"0\"\n");
 		colorchange = RGB_YELLOWISH;
 	}
 
