@@ -165,7 +165,7 @@ void CFuncVehicle::Blocked( CBaseEntity *pOther )
 		|| pOther->pev->origin.z < pev->origin.z
 		|| pOther->pev->origin.z > maxz )
 	{
-		pOther->TakeDamage( pev, m_pDriver->pev, 150, DMG_CRUSH );
+		pOther->TakeDamage( pev, m_pDriver ? m_pDriver->pev : pev, 150, DMG_CRUSH );
 	}
 }
 
