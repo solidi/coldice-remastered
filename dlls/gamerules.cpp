@@ -1086,7 +1086,7 @@ extern int gmsgPlayClientSound;
 
 void CGameRules::AddInstantMutator(void)
 {
-	int max_instant_mutators = 8;
+	int max_instant_mutators = 9;
 	int random = RANDOM_LONG(0, max_instant_mutators);
 	switch (random)
 	{
@@ -1194,6 +1194,16 @@ void CGameRules::AddInstantMutator(void)
 				}
 			}
 			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] Hot potato!\n");
+			break;
+		case 9:
+			for (int i = 1; i <= gpGlobals->maxClients; ++i)
+			{
+				CBaseEntity *pPlayer = UTIL_PlayerByIndex( i );
+				CBasePlayer *pl = (CBasePlayer *)pPlayer;
+				if (pPlayer && pPlayer->IsPlayer() && !pl->IsSpectator() && pl->IsAlive() && !pl->HasDisconnected)
+					pPlayer->TakeDamage(VARS(INDEXENT(0)), VARS(INDEXENT(0)), RANDOM_LONG(10, 20), DMG_SLASH);
+			}
+			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] Random damage!\n");
 			break;
 	}
 
