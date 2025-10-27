@@ -1082,6 +1082,144 @@ void CGameRules::AddRandomMutator(const char *cvarName, BOOL withBar, BOOL three
 	}
 }
 
+extern int gmsgPlayClientSound;
+
+void CGameRules::AddInstantMutator(void)
+{
+	int max_instant_mutators = 9;
+	int random = RANDOM_LONG(0, max_instant_mutators);
+	switch (random)
+	{
+		case 0:
+			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] Nothing selected!\n");
+			break;
+		case 1:
+			for (int i = 1; i <= gpGlobals->maxClients; i++)
+			{
+				CBaseEntity *pPlayer = UTIL_PlayerByIndex( i );
+				CBasePlayer *pl = (CBasePlayer *)pPlayer;
+				if (pPlayer && pPlayer->IsPlayer() && !pl->IsSpectator() && pl->IsAlive() && !pl->HasDisconnected)
+					pPlayer->pev->health += 1;
+				UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] +1 health!\n");
+			}
+			break;
+		case 2:
+			for (int i = 1; i <= gpGlobals->maxClients; i++)
+			{
+				CBaseEntity *pPlayer = UTIL_PlayerByIndex( i );
+				CBasePlayer *pl = (CBasePlayer *)pPlayer;
+				if (pPlayer && pPlayer->IsPlayer() && !pl->IsSpectator() && pl->IsAlive() && !pl->HasDisconnected)
+				{
+					int temp = pPlayer->pev->health;
+					pPlayer->pev->health = pPlayer->pev->armorvalue;
+					pPlayer->pev->armorvalue = temp;
+				}
+			}
+			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] Swap health and armor!\n");
+			break;
+		case 3:
+			for (int i = 1; i <= gpGlobals->maxClients; i++)
+			{
+				CBaseEntity *pPlayer = UTIL_PlayerByIndex( i );
+				CBasePlayer *pl = (CBasePlayer *)pPlayer;
+				if (pPlayer && pPlayer->IsPlayer() && !pl->IsSpectator() && pl->IsAlive() && !pl->HasDisconnected)
+					pPlayer->pev->health = pPlayer->pev->health + 100;
+			}
+			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] +100 health!\n");
+			break;
+		case 4:
+			for (int i = 1; i <= gpGlobals->maxClients; i++)
+			{
+				CBaseEntity *pPlayer = UTIL_PlayerByIndex( i );
+				CBasePlayer *pl = (CBasePlayer *)pPlayer;
+				if (pPlayer && pPlayer->IsPlayer() && !pl->IsSpectator() && pl->IsAlive() && !pl->HasDisconnected)
+					pPlayer->pev->health = pPlayer->pev->armorvalue + 100;
+			}
+			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] +100 armor!\n");
+			break;
+		case 5:
+			for (int i = 1; i <= gpGlobals->maxClients; i++)
+			{
+				CBaseEntity *pPlayer = UTIL_PlayerByIndex( i );
+				CBasePlayer *pl = (CBasePlayer *)pPlayer;
+				if (pPlayer && pPlayer->IsPlayer() && !pl->IsSpectator() && pl->IsAlive() && !pl->HasDisconnected)
+					pPlayer->pev->health = pPlayer->pev->health = 1;
+			}
+			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] 1 health!\n");
+			break;
+		case 6:
+			for (int i = 1; i <= gpGlobals->maxClients; i++)
+			{
+				CBaseEntity *pPlayer = UTIL_PlayerByIndex( i );
+				CBasePlayer *pl = (CBasePlayer *)pPlayer;
+				if (pPlayer && pPlayer->IsPlayer() && !pl->IsSpectator() && pl->IsAlive() && !pl->HasDisconnected)
+				{
+					pPlayer->pev->health = 69;
+					pPlayer->pev->armorvalue = 69;
+				}
+			}
+			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] Nice!\n");
+			break;
+		case 7:
+			for (int i = 1; i <= gpGlobals->maxClients; i++)
+			{
+				CBaseEntity *pPlayer = UTIL_PlayerByIndex( i );
+				CBasePlayer *pl = (CBasePlayer *)pPlayer;
+				if (pPlayer && pPlayer->IsPlayer() && !pl->IsSpectator() && pl->IsAlive() && !pl->HasDisconnected)
+				{
+					pPlayer->pev->health = 67;
+					pPlayer->pev->armorvalue = 67;
+				}
+			}
+			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] Six, seeeeven!\n");
+			break;
+		case 8:
+			for (int i = 1; i <= gpGlobals->maxClients; ++i)
+			{
+				CBaseEntity *pPlayer = UTIL_PlayerByIndex( i );
+				CBasePlayer *pl = (CBasePlayer *)pPlayer;
+				if (pPlayer && pPlayer->IsPlayer() && !pl->IsSpectator() && pl->IsAlive() && !pl->HasDisconnected)
+				{
+					// Spawn slightly above feet to avoid clipping
+					UTIL_MakeAimVectors(pPlayer->pev->angles);
+					Vector org = pPlayer->pev->origin + Vector(0, 0, 16) + gpGlobals->v_forward * 64;
+
+					// Tiny toss so it doesn’t roll far; a little jitter avoids stacking
+					Vector vel(
+						RANDOM_FLOAT(-20.0f, 20.0f),
+						RANDOM_FLOAT(-20.0f, 20.0f),
+						RANDOM_FLOAT(5.0f, 25.0f)
+					);
+					CGrenade::ShootTimed(pPlayer->pev, org, vel, RANDOM_FLOAT(2.0f, 4.0f));
+				}
+			}
+			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] Hot potato!\n");
+			break;
+		case 9:
+			for (int i = 1; i <= gpGlobals->maxClients; ++i)
+			{
+				CBaseEntity *pPlayer = UTIL_PlayerByIndex( i );
+				CBasePlayer *pl = (CBasePlayer *)pPlayer;
+				if (pPlayer && pPlayer->IsPlayer() && !pl->IsSpectator() && pl->IsAlive() && !pl->HasDisconnected)
+					pPlayer->TakeDamage(VARS(INDEXENT(0)), VARS(INDEXENT(0)), RANDOM_LONG(10, 20), DMG_SLASH);
+			}
+			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] Random damage!\n");
+			break;
+	}
+
+	// Instant mutators do not have client side integration.
+	MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
+		WRITE_BYTE(CLIENT_SOUND_CHICKEN);
+	MESSAGE_END();
+
+	// Continue chaos timer bar
+	int mutatorTime = fmin(fmax(mutatortime.value, 10), 120);
+	float choasIncrement = mutatorTime;
+	MESSAGE_BEGIN(MSG_ALL, gmsgChaos);
+		WRITE_BYTE(choasIncrement);
+	MESSAGE_END();
+}
+
 void CGameRules::MutatorsThink(void)
 {
 	if (m_flAddMutatorTime < gpGlobals->time)
@@ -1262,7 +1400,11 @@ void CGameRules::MutatorsThink(void)
 		if (m_flChaosMutatorTime && m_flChaosMutatorTime < gpGlobals->time && count < adjcount)
 		{
 			m_flChaosMutatorTime = gpGlobals->time + choasIncrement;
-			AddRandomMutator("sv_addmutator", TRUE);
+
+			if (RANDOM_LONG(0,1))
+				AddRandomMutator("sv_addmutator", TRUE);
+			else
+				AddInstantMutator();
 		}
 
 		m_flAddMutatorTime = gpGlobals->time + 1.0;

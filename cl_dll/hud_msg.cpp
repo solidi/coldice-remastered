@@ -351,6 +351,9 @@ int CHud :: MsgFunc_PlayCSound( const char *pszName, int iSize, void *pbuf )
 		case CLIENT_SOUND_ROUND_OVER:
 			PlaySound("round_over.wav", 1);
 			break;
+		case CLIENT_SOUND_CHICKEN:
+			PlaySound("chicken.wav", 1);
+			break;
 	}
 	return 1;
 }
@@ -390,6 +393,7 @@ int CHud :: MsgFunc_AddMut( const char *pszName, int iSize, void *pbuf )
 				else if (mutatorId == MUTATOR_CLOSEUP)
 					g_IronSight = TRUE;
 
+				PlaySound("horse_neigh.wav", 1);
 				// gEngfuncs.Con_DPrintf(">>> got mutator[id=%d, start=%.2f, ttl=%.2f]\n", mutator->mutatorId, mutator->startTime, mutator->timeToLive );
 			}
 
