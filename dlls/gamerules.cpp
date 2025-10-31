@@ -1100,8 +1100,8 @@ void CGameRules::AddInstantMutator(void)
 				CBasePlayer *pl = (CBasePlayer *)pPlayer;
 				if (pPlayer && pPlayer->IsPlayer() && !pl->IsSpectator() && pl->IsAlive() && !pl->HasDisconnected)
 					pPlayer->pev->health += 1;
-				UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] +1 health!\n");
 			}
+			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] +1 health!\n");
 			break;
 		case 2:
 			for (int i = 1; i <= gpGlobals->maxClients; i++)
@@ -1123,7 +1123,7 @@ void CGameRules::AddInstantMutator(void)
 				CBaseEntity *pPlayer = UTIL_PlayerByIndex( i );
 				CBasePlayer *pl = (CBasePlayer *)pPlayer;
 				if (pPlayer && pPlayer->IsPlayer() && !pl->IsSpectator() && pl->IsAlive() && !pl->HasDisconnected)
-					pPlayer->pev->health = pPlayer->pev->health + 100;
+					pPlayer->pev->health += 100;
 			}
 			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] +100 health!\n");
 			break;
@@ -1133,7 +1133,7 @@ void CGameRules::AddInstantMutator(void)
 				CBaseEntity *pPlayer = UTIL_PlayerByIndex( i );
 				CBasePlayer *pl = (CBasePlayer *)pPlayer;
 				if (pPlayer && pPlayer->IsPlayer() && !pl->IsSpectator() && pl->IsAlive() && !pl->HasDisconnected)
-					pPlayer->pev->health = pPlayer->pev->armorvalue + 100;
+					pPlayer->pev->armorvalue += 100;
 			}
 			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] +100 armor!\n");
 			break;
@@ -1201,7 +1201,7 @@ void CGameRules::AddInstantMutator(void)
 				CBaseEntity *pPlayer = UTIL_PlayerByIndex( i );
 				CBasePlayer *pl = (CBasePlayer *)pPlayer;
 				if (pPlayer && pPlayer->IsPlayer() && !pl->IsSpectator() && pl->IsAlive() && !pl->HasDisconnected)
-					pPlayer->TakeDamage(VARS(INDEXENT(0)), VARS(INDEXENT(0)), RANDOM_LONG(10, 20), DMG_SLASH);
+					pPlayer->TakeDamage(VARS(eoNullEntity), VARS(eoNullEntity), RANDOM_FLOAT(10.0f, 20.0f), DMG_SLASH);
 			}
 			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] Random damage!\n");
 			break;
