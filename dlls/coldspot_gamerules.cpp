@@ -90,7 +90,7 @@ void CColdSpot::ColdSpotThink( void )
 				WRITE_SHORT( g_pGameRules->GetTeamIndex( pPlayer->m_szTeamName ) + 1 );
 			MESSAGE_END();
 			
-			UTIL_ScreenFade( ent, Vector(0, 255, 0), 0.25, 0.50, 32, FFADE_IN);
+			UTIL_ScreenFade( ent, Vector(0, 255, 0), 0.25, 2, 32, FFADE_IN);
 			((CHalfLifeColdSpot *)g_pGameRules)->UpdateHud();
 		}
 	}
