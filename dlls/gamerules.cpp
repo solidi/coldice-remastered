@@ -1110,9 +1110,17 @@ void CGameRules::AddInstantMutator(void)
 				CBasePlayer *pl = (CBasePlayer *)pPlayer;
 				if (pPlayer && pPlayer->IsPlayer() && !pl->IsSpectator() && pl->IsAlive() && !pl->HasDisconnected)
 				{
-					int temp = pPlayer->pev->health;
-					pPlayer->pev->health = pPlayer->pev->armorvalue;
-					pPlayer->pev->armorvalue = temp;
+					if (pPlayer->pev->armorvalue <= 0)
+					{
+						pPlayer->pev->health = 0;
+						pl->Killed(VARS(eoNullEntity), VARS(eoNullEntity), GIB_ALWAYS);
+					}
+					else
+					{
+						int temp = pPlayer->pev->health;
+						pPlayer->pev->health = pPlayer->pev->armorvalue;
+						pPlayer->pev->armorvalue = temp;
+					}
 				}
 			}
 			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] Swap health and armor!\n");
