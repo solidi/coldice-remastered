@@ -1657,9 +1657,9 @@ void CHalfLifeMultiplay :: PlayerThink( CBasePlayer *pPlayer )
 
 	if (pPlayer->m_iShownWelcomeMessage != -1 && pPlayer->m_iShownWelcomeMessage < gpGlobals->time) {
 #ifdef GIT
-		ClientPrint(pPlayer->pev, HUD_PRINTTALK, "Welcome to Cold Ice Remastered Beta 5 (%s). For commands, type \"help\" in the console.\n", TO_STRING(GIT));
+		ClientPrint(pPlayer->pev, HUD_PRINTTALK, "Welcome to Cold Ice Remastered v1 (%s). For commands, type \"help\" in the console.\n", TO_STRING(GIT));
 #else
-		ClientPrint(pPlayer->pev, HUD_PRINTTALK, "Welcome to Cold Ice Remastered Beta 5. For commands, type \"help\" in the console.\n");
+		ClientPrint(pPlayer->pev, HUD_PRINTTALK, "Welcome to Cold Ice Remastered v1. For commands, type \"help\" in the console.\n");
 #endif
 
 		// Play music
