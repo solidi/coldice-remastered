@@ -203,12 +203,12 @@ int CHudStatusBar :: Draw( float fTime )
 
 		if (m_iStatusValues[2] > 0)
 		{
-			int r, g, b, a = 200;
+			int r, g, b, a = 180;
 			int y = YRES(70);
 			int y2 = YRES(82);
 			int size = XRES(200);
 			int percent = XRES(m_iStatusValues[2] * 2);
-			int amount = fmin(fmax(0, percent), percent);
+			int amount = fmin(fmax(0, XRES(200)), XRES(200));
 			UnpackRGB( r, g, b, HudColor() );
 
 			FillRGBA(((ScreenWidth / 2) - (size / 2)) - XRES(2), y - YRES(2), size + XRES(4), (y2 - y) + YRES(gHUD.m_iFontHeight / 2), r, g, b, 30);
