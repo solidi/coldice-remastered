@@ -48,6 +48,8 @@ const char *szMonsters[] = {
 
 CHalfLifeHorde::CHalfLifeHorde()
 {
+	m_iEnemiesRemain = 0;
+	m_iTotalEnemies = 0;
 	m_iSurvivorsRemain = 0;
 	m_iWaveNumber = 0;
 	pLastSpawnPoint = NULL;
