@@ -66,6 +66,7 @@ public:
 	void Spawn(void);
 	void Precache(void);
 	int Classify(void);
+	int IRelationship ( CBaseEntity *pTarget );
 	void SetYawSpeed(void);
 
 	float GetEnemyHeight(void);
@@ -300,14 +301,24 @@ void CDiablo::Spawn()
 
 	SET_MODEL(ENT(pev), "models/panthereye.mdl");
 
-	UTIL_SetSize(pev, Vector(-16, -16, 0), Vector(16, 16, 32));
+	UTIL_SetSize(pev, VEC_HUMAN_HULL_MIN, VEC_HUMAN_HULL_MAX);
 
 	pev->solid = SOLID_SLIDEBOX;
 	pev->movetype = MOVETYPE_STEP;
 	pev->health = gSkillData.pantherHealth;
 	pev->view_ofs = Vector(0, 0, 24);	// position of the eyes relative to monster's origin.
 
-	m_flFieldOfView = 0.5;	// indicates the width of this monster's forward view cone ( as a dotproduct result )
+	// For horde
+	if (g_pGameRules->IsMultiplayer())
+	{
+		pev->framerate = 2.0;
+		m_flFieldOfView = -0.707; // 270 degrees;
+	}
+	else
+	{
+		m_flFieldOfView = 0.5;	// indicates the width of this monster's forward view cone ( as a dotproduct result )
+	}
+
 	m_bloodColor = BLOOD_COLOR_YELLOW;
 	m_MonsterState = MONSTERSTATE_NONE;
 	m_afCapability = bits_CAP_RANGE_ATTACK1 | bits_CAP_MELEE_ATTACK1;
@@ -365,12 +376,26 @@ int	CDiablo::Classify(void)
 	return	CLASS_ALIEN_PREDATOR;
 }
 
+int CDiablo::IRelationship ( CBaseEntity *pTarget )
+{
+	if ( g_pGameRules->IsMultiplayer() && FClassnameIs( pTarget->pev, "monster_panther" ) )
+	{
+		return R_AL;
+	}
+
+	return CBaseMonster::IRelationship( pTarget );
+}
+
 //=========================================================
 // SetYawSpeed - allows each sequence to have a different
 // turn rate associated with it.
 //=========================================================
 void CDiablo::SetYawSpeed(void)
 {
+	// For horde
+	if (g_pGameRules->IsMultiplayer())
+		pev->framerate = 2.0;
+
 	int ys = 90;
 	switch (m_Activity)
 	{
@@ -418,13 +443,17 @@ float CDiablo::GetEnemyHeight(void)
 //=========================================================
 void CDiablo::HandleAnimEvent(MonsterEvent_t* pEvent)
 {
+	// For horde
+	if (g_pGameRules->IsMultiplayer())
+		pev->framerate = 2.0;
+
 	switch (pEvent->event)
 	{
 	case DIABLO_AE_MELEEATTACK:
 	{
 		AttackSound();
 
-		CBaseEntity* pHurt = CheckTraceHullAttack(75, gSkillData.zombieDmgBothSlash, DMG_SLASH);
+		CBaseEntity* pHurt = CheckTraceHullAttack(128, gSkillData.zombieDmgBothSlash, DMG_SLASH);
 		if (pHurt)
 		{
 			if (pHurt->pev->flags & (FL_MONSTER | FL_CLIENT))
