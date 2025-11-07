@@ -287,28 +287,27 @@ int CWrench::Swing( int fFirst )
 
 		// hit
 		fDidHit = TRUE;
+		float flVol = 1.0;
+		int fHitWorld = TRUE;
 		CBaseEntity *pEntity = CBaseEntity::Instance(tr.pHit);
 
 		ClearMultiDamage( );
 
-		if ( (m_flNextPrimaryAttack + 1 < UTIL_WeaponTimeBase() ) || g_pGameRules->IsMultiplayer() )
-		{
-			// first swing does full damage
-			pEntity->TraceAttack(m_pPlayer->pev, gSkillData.plrDmgWrench, gpGlobals->v_forward, &tr, DMG_CLUB ); 
-		}
-		else
-		{
-			// subsequent swings do half
-			pEntity->TraceAttack(m_pPlayer->pev, gSkillData.plrDmgWrench / 2, gpGlobals->v_forward, &tr, DMG_CLUB ); 
-		}	
-		ApplyMultiDamage( m_pPlayer->pev, m_pPlayer->pev );
-
-		// play thwack, smack, or dong sound
-		float flVol = 1.0;
-		int fHitWorld = TRUE;
-
 		if (pEntity)
 		{
+			if ( (m_flNextPrimaryAttack + 1 < UTIL_WeaponTimeBase() ) || g_pGameRules->IsMultiplayer() )
+			{
+				// first swing does full damage
+				pEntity->TraceAttack(m_pPlayer->pev, gSkillData.plrDmgWrench, gpGlobals->v_forward, &tr, DMG_CLUB ); 
+			}
+			else
+			{
+				// subsequent swings do half
+				pEntity->TraceAttack(m_pPlayer->pev, gSkillData.plrDmgWrench / 2, gpGlobals->v_forward, &tr, DMG_CLUB ); 
+			}	
+			ApplyMultiDamage( m_pPlayer->pev, m_pPlayer->pev );
+
+			// play thwack, smack, or dong sound
 			if ( pEntity->Classify() != CLASS_NONE && pEntity->Classify() != CLASS_MACHINE )
 			{
 				pEntity->pev->velocity = (pEntity->pev->velocity + (gpGlobals->v_forward * RANDOM_LONG(200,300)));

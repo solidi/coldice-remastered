@@ -592,7 +592,7 @@ int CBasePlayer :: TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, 
 	
 	CBaseEntity *pAttacker = CBaseEntity::Instance(pevAttacker);
 
-	if ( !g_pGameRules->FPlayerCanTakeDamage( this, pAttacker ) )
+	if ( !pAttacker || !g_pGameRules->FPlayerCanTakeDamage( this, pAttacker ) )
 	{
 		// Refuse the damage
 		m_fBurnTime = 0;
@@ -2537,7 +2537,7 @@ void CBasePlayer::UpdateStatusBar()
 		{
 			CBaseEntity *pEntity = CBaseEntity::Instance( tr.pHit );
 
-			if (pEntity->Classify() == CLASS_PLAYER)
+			if (pEntity && pEntity->Classify() == CLASS_PLAYER)
 			{
 				newSBarState[ SBAR_ID_TARGETNAME ] = ENTINDEX( pEntity->edict() );
 				strcpy( sbuf1, "1 %p1\n2 Health: %i2%%\n3 Armor: %i3%%" );
@@ -2551,7 +2551,7 @@ void CBasePlayer::UpdateStatusBar()
 
 				m_flStatusBarDisappearDelay = gpGlobals->time + 1.0;
 			}
-			if (pEntity->Classify() > CLASS_PLAYER)
+			if (pEntity && pEntity->Classify() > CLASS_PLAYER)
 			{
 				newSBarState[ SBAR_ID_TARGETNAME ] = ENTINDEX( pEntity->edict() );
 				char temp[128];
@@ -4979,18 +4979,18 @@ void CBasePlayer::TraceHitOfSelacoSlide( void )
 					ClearMultiDamage( );
 
 					float flDamage = 0;
-					if (pEntity->pev->deadflag != DEAD_FAKING && FBitSet(pEntity->pev->flags, FL_FROZEN)) {
-						pEntity->pev->renderamt = 100;
-						flDamage = pEntity->pev->max_health * 4;
-						::IceExplode(this, pEntity, DMG_FREEZE);
-					}
-					pEntity->TraceAttack(pev, (gSkillData.plrDmgKick * 4) + flDamage, gpGlobals->v_forward, &tr, DMG_KICK | DMG_NEVERGIB );
-
-					ApplyMultiDamage( pev, pev );
 
 					// play thwack, smack, or dong sound
 					if (pEntity)
 					{
+						if (pEntity->pev->deadflag != DEAD_FAKING && FBitSet(pEntity->pev->flags, FL_FROZEN)) {
+							pEntity->pev->renderamt = 100;
+							flDamage = pEntity->pev->max_health * 4;
+							::IceExplode(this, pEntity, DMG_FREEZE);
+						}
+						pEntity->TraceAttack(pev, (gSkillData.plrDmgKick * 4) + flDamage, gpGlobals->v_forward, &tr, DMG_KICK | DMG_NEVERGIB );
+	
+						ApplyMultiDamage( pev, pev );
 						if ( pEntity->Classify() != CLASS_NONE && pEntity->Classify() != CLASS_MACHINE )
 						{
 							// play thwack or smack sound
@@ -5617,7 +5617,8 @@ void CGrabWeapon::GrabWeaponTouch( CBaseEntity *pOther )
 		{
 			ClearMultiDamage();
 			CBaseEntity *e = CBaseEntity::Instance(pev->enemy);
-			e->TakeDamage(pev, m_hOwner->pev, 100, DMG_CLUB);
+			if (e)
+				e->TakeDamage(pev, m_hOwner->pev, 100, DMG_CLUB);
 			UTIL_Remove(this);
 		}
 	}

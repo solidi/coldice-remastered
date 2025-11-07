@@ -248,7 +248,7 @@ int	CGraph :: HandleLinkEnt ( int iNode, entvars_t *pevLinkEnt, int afCapMask, N
 			else 
 			{
 				// monster should try for it if the door is open and looks as if it will stay that way
-				if ( pDoor->GetToggleState()== TS_AT_TOP && ( pevLinkEnt->spawnflags & SF_DOOR_NO_AUTO_RETURN ) )
+				if ( pDoor && pDoor->GetToggleState()== TS_AT_TOP && ( pevLinkEnt->spawnflags & SF_DOOR_NO_AUTO_RETURN ) )
 				{
 					return TRUE;
 				}
@@ -260,7 +260,7 @@ int	CGraph :: HandleLinkEnt ( int iNode, entvars_t *pevLinkEnt, int afCapMask, N
 		{// door must be opened with a button or trigger field.
 			
 			// monster should try for it if the door is open and looks as if it will stay that way
-			if ( pDoor->GetToggleState() == TS_AT_TOP && ( pevLinkEnt->spawnflags & SF_DOOR_NO_AUTO_RETURN ) )
+			if ( pDoor && pDoor->GetToggleState() == TS_AT_TOP && ( pevLinkEnt->spawnflags & SF_DOOR_NO_AUTO_RETURN ) )
 			{
 				return TRUE;
 			}

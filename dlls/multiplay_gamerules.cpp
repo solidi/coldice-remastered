@@ -2118,7 +2118,7 @@ void CHalfLifeMultiplay::DeathNotice( CBasePlayer *pVictim, entvars_t *pKiller, 
 	char *gluon = "gluon gun";
 
 	// For assassin kills
-	if (pevInflictor != NULL 
+	if (Killer && pevInflictor != NULL 
 		&& strncmp(STRING( pevInflictor->classname ), "monster_human_assassin", 22) == 0)
 	{
 		if (VARS(Killer->pev->owner))
@@ -2149,7 +2149,7 @@ void CHalfLifeMultiplay::DeathNotice( CBasePlayer *pVictim, entvars_t *pKiller, 
 				// If the inflictor is the killer,  then it must be their current weapon doing the damage
 				CBasePlayer *pPlayer = (CBasePlayer*)CBaseEntity::Instance( pKiller );
 				
-				if ( pPlayer->m_pActiveItem )
+				if ( pPlayer && pPlayer->m_pActiveItem )
 				{
 					killer_weapon_name = pPlayer->m_pActiveItem->pszName();
 				}

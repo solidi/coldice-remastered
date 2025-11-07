@@ -1483,7 +1483,7 @@ void CNihilanthHVR :: ZapThink( void  )
 		UTIL_TraceLine( pev->origin, m_hEnemy->Center(), dont_ignore_monsters, edict(), &tr );
 
 		CBaseEntity *pEntity = CBaseEntity::Instance(tr.pHit);
-		if (pEntity != NULL && pEntity->pev->takedamage)
+		if (pEntity && pEntity->pev->takedamage)
 		{
 			ClearMultiDamage( );
 			pEntity->TraceAttack( pev, gSkillData.nihilanthZap, pev->velocity, &tr, DMG_SHOCK );

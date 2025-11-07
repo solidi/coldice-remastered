@@ -330,7 +330,8 @@ void CBeam::TriggerTouch( CBaseEntity *pOther )
 		if ( pev->owner )
 		{
 			CBaseEntity *pOwner = CBaseEntity::Instance(pev->owner);
-			pOwner->Use( pOther, this, USE_TOGGLE, 0 );
+			if (pOwner)
+				pOwner->Use( pOther, this, USE_TOGGLE, 0 );
 		}
 		ALERT( at_console, "Firing targets!!!\n" );
 	}

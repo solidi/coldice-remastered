@@ -311,30 +311,31 @@ int CDualWrench::Swing( int fFirst )
 		ClearMultiDamage( );
 
 		float flDamage = 0;
-		if (pEntity->pev->deadflag != DEAD_FAKING && FBitSet(pEntity->pev->flags, FL_FROZEN)) {
-			pEntity->pev->renderamt = 100;
-			flDamage = pEntity->pev->max_health * 4;
-			::IceExplode(m_pPlayer, pEntity, DMG_FREEZE);
-		}
-
-		if ( (m_flNextPrimaryAttack + 1 < UTIL_WeaponTimeBase() ) || g_pGameRules->IsMultiplayer() )
-		{
-			// first swing does full damage
-			pEntity->TraceAttack(m_pPlayer->pev, (gSkillData.plrDmgWrench * 2) + flDamage, gpGlobals->v_forward, &tr, DMG_CLUB );
-		}
-		else
-		{
-			// subsequent swings do half
-			pEntity->TraceAttack(m_pPlayer->pev, ((gSkillData.plrDmgWrench * 2) / 2) + flDamage, gpGlobals->v_forward, &tr, DMG_CLUB );
-		}	
-		ApplyMultiDamage( m_pPlayer->pev, m_pPlayer->pev );
-
 		// play thwack, smack, or dong sound
 		float flVol = 1.0;
 		int fHitWorld = TRUE;
 
 		if (pEntity)
 		{
+			if (pEntity->pev->deadflag != DEAD_FAKING && FBitSet(pEntity->pev->flags, FL_FROZEN)) {
+				pEntity->pev->renderamt = 100;
+				flDamage = pEntity->pev->max_health * 4;
+				::IceExplode(m_pPlayer, pEntity, DMG_FREEZE);
+			}
+
+			// play thwack, smack, or dong sound
+			if ( (m_flNextPrimaryAttack + 1 < UTIL_WeaponTimeBase() ) || g_pGameRules->IsMultiplayer() )
+			{
+				// first swing does full damage
+				pEntity->TraceAttack(m_pPlayer->pev, (gSkillData.plrDmgWrench * 2) + flDamage, gpGlobals->v_forward, &tr, DMG_CLUB );
+			}
+			else
+			{
+				// subsequent swings do half
+				pEntity->TraceAttack(m_pPlayer->pev, ((gSkillData.plrDmgWrench * 2) / 2) + flDamage, gpGlobals->v_forward, &tr, DMG_CLUB );
+			}	
+			ApplyMultiDamage( m_pPlayer->pev, m_pPlayer->pev );
+
 			if ( pEntity->Classify() != CLASS_NONE && pEntity->Classify() != CLASS_MACHINE )
 			{
 				// play thwack or smack sound
