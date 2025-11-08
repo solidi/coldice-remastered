@@ -270,28 +270,29 @@ int CChainsaw::Swing( int fFirst, BOOL animation )
 
 		// hit
 		fDidHit = TRUE;
+		float flVol = 1.0;
+		int fHitWorld = TRUE;
+
 		CBaseEntity *pEntity = CBaseEntity::Instance(tr.pHit);
 
 		ClearMultiDamage( );
 
-		if ( (m_flNextPrimaryAttack + 1 < UTIL_WeaponTimeBase() ) || g_pGameRules->IsMultiplayer() )
-		{
-			// first swing does full damage
-			pEntity->TraceAttack(m_pPlayer->pev, gSkillData.plrDmgChainsaw, gpGlobals->v_forward, &tr, DMG_ALWAYSGIB ); 
-		}
-		else
-		{
-			// subsequent swings do half
-			pEntity->TraceAttack(m_pPlayer->pev, gSkillData.plrDmgChainsaw / 2, gpGlobals->v_forward, &tr, DMG_ALWAYSGIB ); 
-		}	
-		ApplyMultiDamage( m_pPlayer->pev, m_pPlayer->pev );
-
-		// play thwack, smack, or dong sound
-		float flVol = 1.0;
-		int fHitWorld = TRUE;
-
 		if (pEntity)
 		{
+			if ( (m_flNextPrimaryAttack + 1 < UTIL_WeaponTimeBase() ) || g_pGameRules->IsMultiplayer() )
+			{
+				// first swing does full damage
+				pEntity->TraceAttack(m_pPlayer->pev, gSkillData.plrDmgChainsaw, gpGlobals->v_forward, &tr, DMG_ALWAYSGIB ); 
+			}
+			else
+			{
+				// subsequent swings do half
+				pEntity->TraceAttack(m_pPlayer->pev, gSkillData.plrDmgChainsaw / 2, gpGlobals->v_forward, &tr, DMG_ALWAYSGIB ); 
+			}
+
+			ApplyMultiDamage( m_pPlayer->pev, m_pPlayer->pev );
+
+			// play thwack, smack, or dong sound
 			if ( pEntity->Classify() != CLASS_NONE && pEntity->Classify() != CLASS_MACHINE )
 			{
 				EMIT_SOUND(ENT(m_pPlayer->pev), CHAN_ITEM, "chainsaw_hit.wav", 1, ATTN_NORM);

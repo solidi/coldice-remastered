@@ -283,8 +283,12 @@ void CKnife::FireSniperBolt()
 		}
 
 		ClearMultiDamage( );
-		CBaseEntity::Instance(tr.pHit)->TraceAttack(m_pPlayer->pev, gSkillData.plrDmgKnifeSnipe, vecDir, &tr, DMG_BULLET | DMG_NEVERGIB ); 
-		ApplyMultiDamage( pev, m_pPlayer->pev );
+		CBaseEntity *ent = CBaseEntity::Instance(tr.pHit);
+		if (ent)
+		{
+			ent->TraceAttack(m_pPlayer->pev, gSkillData.plrDmgKnifeSnipe, vecDir, &tr, DMG_BULLET | DMG_NEVERGIB ); 
+			ApplyMultiDamage( pev, m_pPlayer->pev );
+		}
 	}
 	else
 	{
@@ -412,28 +416,28 @@ int CKnife::Swing( int fFirst )
 
 		// hit
 		fDidHit = TRUE;
+		float flVol = 1.0;
+		int fHitWorld = TRUE;
+
 		CBaseEntity *pEntity = CBaseEntity::Instance(tr.pHit);
 
 		ClearMultiDamage( );
 
-		if ( (m_flNextPrimaryAttack + 1 < UTIL_WeaponTimeBase() ) || g_pGameRules->IsMultiplayer() )
-		{
-			// first swing does full damage
-			pEntity->TraceAttack(m_pPlayer->pev, gSkillData.plrDmgKnife, gpGlobals->v_forward, &tr, DMG_SLASH ); 
-		}
-		else
-		{
-			// subsequent swings do half
-			pEntity->TraceAttack(m_pPlayer->pev, gSkillData.plrDmgKnife / 2, gpGlobals->v_forward, &tr, DMG_SLASH ); 
-		}	
-		ApplyMultiDamage( m_pPlayer->pev, m_pPlayer->pev );
-
-		// play thwack, smack, or dong sound
-		float flVol = 1.0;
-		int fHitWorld = TRUE;
-
 		if (pEntity)
 		{
+			if ( (m_flNextPrimaryAttack + 1 < UTIL_WeaponTimeBase() ) || g_pGameRules->IsMultiplayer() )
+			{
+				// first swing does full damage
+				pEntity->TraceAttack(m_pPlayer->pev, gSkillData.plrDmgKnife, gpGlobals->v_forward, &tr, DMG_SLASH ); 
+			}
+			else
+			{
+				// subsequent swings do half
+				pEntity->TraceAttack(m_pPlayer->pev, gSkillData.plrDmgKnife / 2, gpGlobals->v_forward, &tr, DMG_SLASH ); 
+			}	
+			ApplyMultiDamage( m_pPlayer->pev, m_pPlayer->pev );
+
+		// play thwack, smack, or dong sound
 			if ( pEntity->Classify() != CLASS_NONE && pEntity->Classify() != CLASS_MACHINE )
 			{
 				// play thwack or smack sound

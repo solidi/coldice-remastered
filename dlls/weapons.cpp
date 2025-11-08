@@ -2858,12 +2858,12 @@ void CBasePlayerWeapon::PunchAttack( BOOL holdingSomething )
 		CBaseEntity *pEntity = CBaseEntity::Instance(tr.pHit);
 		ClearMultiDamage( );
 
-		pEntity->TraceAttack(m_pPlayer->pev, gSkillData.plrDmgFists, gpGlobals->v_forward, &tr, DMG_PUNCH | DMG_NEVERGIB); 
-
-		ApplyMultiDamage( m_pPlayer->pev, m_pPlayer->pev );
-
 		if (pEntity)
 		{
+			pEntity->TraceAttack(m_pPlayer->pev, gSkillData.plrDmgFists, gpGlobals->v_forward, &tr, DMG_PUNCH | DMG_NEVERGIB); 
+
+			ApplyMultiDamage( m_pPlayer->pev, m_pPlayer->pev );
+
 			if ( pEntity->Classify() != CLASS_NONE && pEntity->Classify() != CLASS_MACHINE )
 			{
 				// play thwack or smack sound
@@ -3078,9 +3078,12 @@ void CBasePlayerWeapon::KickAttack( BOOL holdingSomething )
 		CBaseEntity *pEntity = CBaseEntity::Instance(tr.pHit);
 		ClearMultiDamage( );
 
-		pEntity->TraceAttack(m_pPlayer->pev, gSkillData.plrDmgKick, gpGlobals->v_forward, &tr, DMG_KICK | DMG_NEVERGIB ); 
+		if (pEntity)
+		{
+			pEntity->TraceAttack(m_pPlayer->pev, gSkillData.plrDmgKick, gpGlobals->v_forward, &tr, DMG_KICK | DMG_NEVERGIB ); 
 
-		ApplyMultiDamage( m_pPlayer->pev, m_pPlayer->pev );
+			ApplyMultiDamage( m_pPlayer->pev, m_pPlayer->pev );
+		}
 
 		if (g_pGameRules->MutatorEnabled(MUTATOR_VOLATILE)) {
 			::RadiusDamage( tr.vecEndPos, m_pPlayer->pev, m_pPlayer->pev, gSkillData.plrDmgKick, 75, CLASS_NONE, DMG_KICK, TRUE );

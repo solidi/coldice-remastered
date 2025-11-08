@@ -228,36 +228,36 @@ int CFists::Swing( int fFirst )
 
 		// hit
 		fDidHit = TRUE;
+		float flVol = 1.0;
+		int fHitWorld = TRUE;
+		float flDamage = 0;
+
 		CBaseEntity *pEntity = CBaseEntity::Instance(tr.pHit);
 
 		ClearMultiDamage( );
 
-		float flDamage = 0;
-		if (pEntity->pev->deadflag != DEAD_FAKING && fFirst == SHORYUKEN && FBitSet(pEntity->pev->flags, FL_FROZEN)) {
-			pEntity->pev->renderamt = 100;
-			flDamage = pEntity->pev->max_health * 4;
-			::IceExplode(m_pPlayer, pEntity, DMG_FREEZE);
-		}
-
-		if ( (m_flNextPrimaryAttack + 1 < UTIL_WeaponTimeBase() ) || g_pGameRules->IsMultiplayer() )
-		{
-			// first swing does full damage
-			pEntity->TraceAttack(m_pPlayer->pev, fFirst == SHORYUKEN ? gSkillData.plrDmgShoryuken + flDamage : gSkillData.plrDmgFists, gpGlobals->v_forward, &tr, DMG_PUNCH | DMG_NEVERGIB );
-		}
-		else
-		{
-			// subsequent swings do half
-			pEntity->TraceAttack(m_pPlayer->pev, fFirst == SHORYUKEN ? gSkillData.plrDmgShoryuken + flDamage : gSkillData.plrDmgFists / 2, gpGlobals->v_forward, &tr, DMG_PUNCH | DMG_NEVERGIB );
-		}
-
-		ApplyMultiDamage( m_pPlayer->pev, m_pPlayer->pev );
-
-		// play thwack, smack, or dong sound
-		float flVol = 1.0;
-		int fHitWorld = TRUE;
-
 		if (pEntity)
 		{
+			if (pEntity->pev->deadflag != DEAD_FAKING && fFirst == SHORYUKEN && FBitSet(pEntity->pev->flags, FL_FROZEN)) {
+				pEntity->pev->renderamt = 100;
+				flDamage = pEntity->pev->max_health * 4;
+				::IceExplode(m_pPlayer, pEntity, DMG_FREEZE);
+			}
+
+			if ( (m_flNextPrimaryAttack + 1 < UTIL_WeaponTimeBase() ) || g_pGameRules->IsMultiplayer() )
+			{
+				// first swing does full damage
+				pEntity->TraceAttack(m_pPlayer->pev, fFirst == SHORYUKEN ? gSkillData.plrDmgShoryuken + flDamage : gSkillData.plrDmgFists, gpGlobals->v_forward, &tr, DMG_PUNCH | DMG_NEVERGIB );
+			}
+			else
+			{
+				// subsequent swings do half
+				pEntity->TraceAttack(m_pPlayer->pev, fFirst == SHORYUKEN ? gSkillData.plrDmgShoryuken + flDamage : gSkillData.plrDmgFists / 2, gpGlobals->v_forward, &tr, DMG_PUNCH | DMG_NEVERGIB );
+			}
+
+			ApplyMultiDamage( m_pPlayer->pev, m_pPlayer->pev );
+
+			// play thwack, smack, or dong sound
 			if ( pEntity->Classify() != CLASS_NONE && pEntity->Classify() != CLASS_MACHINE )
 			{
 				// play thwack or smack sound

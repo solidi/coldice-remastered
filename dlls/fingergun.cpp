@@ -156,8 +156,12 @@ void CFingerGun::PrimaryAttack()
 	if ( tr.pHit->v.takedamage )
 	{
 		ClearMultiDamage( );
-		CBaseEntity::Instance(tr.pHit)->TraceAttack(m_pPlayer->pev, dmg, vecAiming, &tr, DMG_NEVERGIB | DMG_CONFUSE ); 
-		ApplyMultiDamage( pev, m_pPlayer->pev );
+		CBaseEntity *ent = CBaseEntity::Instance(tr.pHit);
+		if (ent)
+		{
+			ent->TraceAttack(m_pPlayer->pev, dmg, vecAiming, &tr, DMG_NEVERGIB | DMG_CONFUSE ); 
+			ApplyMultiDamage( pev, m_pPlayer->pev );
+		}
 	}
 #endif
 

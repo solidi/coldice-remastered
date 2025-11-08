@@ -281,16 +281,16 @@ void CGib :: SpawnRandomGibs( entvars_t *pevVictim, int cGibs, int human )
 			UTIL_SetSize ( pGib->pev, Vector( 0 , 0 , 0 ), Vector ( 0, 0, 0 ) );
 		}
 		pGib->LimitVelocity();
-	}
 
-	if (CBaseEntity::Instance(ENT(pevVictim))->m_fBurnTime > 0)
-	{
-		MESSAGE_BEGIN( MSG_ALL, gmsgMultiParticle );
-			WRITE_STRING( "gib_flame_trail.aur" );
-			WRITE_BYTE( cGibs );
-			for (cSplat = 0; cSplat < cGibs; cSplat++)
-				WRITE_SHORT( gibsIndex[cSplat] );
-		MESSAGE_END();
+		if (CBaseEntity::Instance(ENT(pevVictim))->m_fBurnTime > 0)
+		{
+			MESSAGE_BEGIN( MSG_ALL, gmsgMultiParticle );
+				WRITE_STRING( "gib_flame_trail.aur" );
+				WRITE_BYTE( cGibs );
+				for (cSplat = 0; cSplat < cGibs; cSplat++)
+					WRITE_SHORT( gibsIndex[cSplat] );
+			MESSAGE_END();
+		}
 	}
 }
 
