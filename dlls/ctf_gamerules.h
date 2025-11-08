@@ -38,8 +38,6 @@ public:
 	EHANDLE pBlueBase;
 
 private:
-	EHANDLE pLastSpawnPoint;
-
 	float m_fSpawnBlueHardware = -1;
 	float m_fSpawnRedHardware = -1;
 	int m_iBlueScore;

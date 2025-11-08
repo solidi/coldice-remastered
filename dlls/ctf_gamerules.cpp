@@ -106,7 +106,7 @@ void CFlagCharm::Spawn( void )
 void CFlagCharm::SolidThink( void )
 {
 	pev->solid = SOLID_TRIGGER;
-	UTIL_SetSize(pev, Vector(-16, -16, 0), Vector(16, 16, 16));
+	UTIL_SetSize(pev, Vector(-16, -16, 0), Vector(16, 16, 72));
 
 	SetThink( &CFlagCharm::ReturnThink );
 	pev->nextthink = gpGlobals->time + 0.1;
@@ -114,6 +114,10 @@ void CFlagCharm::SolidThink( void )
 
 void CFlagCharm::ReturnThink( void )
 {
+	if (!((CHalfLifeCaptureTheFlag *)g_pGameRules)->pRedBase || 
+		!((CHalfLifeCaptureTheFlag *)g_pGameRules)->pBlueBase)
+		return;
+
 	Vector vRedBase = ((CHalfLifeCaptureTheFlag *)g_pGameRules)->pRedBase->pev->origin;
 	Vector vBlueBase = ((CHalfLifeCaptureTheFlag *)g_pGameRules)->pBlueBase->pev->origin;
 	Vector returnOrigin = (pev->fuser4 - 2) == TEAM_RED ? vRedBase : vBlueBase;
@@ -143,6 +147,10 @@ void CFlagCharm::ReturnThink( void )
 
 void CFlagCharm::FlagTouch( CBaseEntity *pOther )
 {
+	if (!((CHalfLifeCaptureTheFlag *)g_pGameRules)->pRedBase || 
+		!((CHalfLifeCaptureTheFlag *)g_pGameRules)->pBlueBase)
+		return;
+
 	// if it's not a player, ignore
 	if ( !pOther->IsPlayer() )
 		return;
@@ -281,6 +289,7 @@ CFlagBase *CFlagBase::CreateFlagBase( Vector vecOrigin, int body )
 	if (body == TEAM_RED)
 		pBase->pev->fuser4 = TEAM_RED + 2;
 	pBase->pev->iuser4 = TRUE; // mounted flag?
+	pBase->m_fNextTouch = gpGlobals->time;
 	return pBase;
 }
 
@@ -301,7 +310,7 @@ void CFlagBase::Spawn( void )
 	pev->angles.z = 0;
 	pev->movetype = MOVETYPE_TOSS;
 	pev->solid = SOLID_TRIGGER;
-	UTIL_SetSize(pev, Vector(-16, -16, 0), Vector(16, 16, 16));
+	UTIL_SetSize(pev, Vector(-32, -32, 0), Vector(32, 32, 96));
 	UTIL_SetOrigin( pev, pev->origin );
 
 	SetTouch( &CFlagBase::CTFTouch );
@@ -400,7 +409,7 @@ LINK_ENTITY_TO_CLASS( base, CFlagBase );
 CHalfLifeCaptureTheFlag::CHalfLifeCaptureTheFlag()
 {
 	m_DisableDeathPenalty = FALSE;
-	pLastSpawnPoint = NULL;
+	pRedBase = pBlueBase = NULL;
 	m_fSpawnBlueHardware = gpGlobals->time + 2.0;
 	m_fSpawnRedHardware = gpGlobals->time + 2.0;
 	m_iBlueScore = m_iRedScore = m_iBlueMode = m_iRedMode = 0;
@@ -412,11 +421,20 @@ BOOL CHalfLifeCaptureTheFlag::IsSpawnPointValid( CBaseEntity *pSpot )
 {
 	CBaseEntity *ent = NULL;
 
-	while ( (ent = UTIL_FindEntityInSphere( ent, pSpot->pev->origin, 2048 )) != NULL )
+	ALERT(at_console, "checking spawn point %s\n", STRING(pSpot->pev->classname));
+
+	// Dont capture entity that's given (to players).
+	if (FBitSet(pSpot->pev->spawnflags, SF_GIVEITEM))
+		return FALSE;
+
+	while ( (ent = UTIL_FindEntityInSphere( ent, pSpot->pev->origin, 1024 )) != NULL )
 	{
 		// Is another base in area
 		if (FClassnameIs(ent->pev, "base"))
+		{
+			ALERT(at_error, "%s: too close to base\n", STRING(pSpot->pev->classname));
 			return FALSE;
+		}
 	}
 
 	return TRUE;
@@ -424,12 +442,11 @@ BOOL CHalfLifeCaptureTheFlag::IsSpawnPointValid( CBaseEntity *pSpot )
 
 edict_t *CHalfLifeCaptureTheFlag::EntSelectSpawnPoint( const char *szSpawnPoint )
 {
-	CBaseEntity *pSpot;
+	CBaseEntity *pSpot = NULL;
 
 	// choose a point
 	if ( g_pGameRules->IsDeathmatch() )
 	{
-		pSpot = pLastSpawnPoint;
 		// Randomize the start spot
 		for ( int i = RANDOM_LONG(1,5); i > 0; i-- )
 			pSpot = UTIL_FindEntityByClassname( pSpot, szSpawnPoint );
@@ -453,21 +470,16 @@ edict_t *CHalfLifeCaptureTheFlag::EntSelectSpawnPoint( const char *szSpawnPoint 
 			pSpot = UTIL_FindEntityByClassname( pSpot, szSpawnPoint );
 		} while ( pSpot != pFirstSpot ); // loop if we're not back to the start
 
-		// we haven't found a place to spawn yet
-		if ( !FNullEnt( pSpot ) )
-		{
-			goto ReturnSpot;
-		}
+		pSpot = NULL;
 	}
 
 ReturnSpot:
 	if ( FNullEnt( pSpot ) )
 	{
-		ALERT(at_error, "no ctf spot on level");
-		return INDEXENT(0);
+		ALERT(at_error, "could not find %s for ctf spot\n", szSpawnPoint);
+		return NULL;
 	}
 
-	pLastSpawnPoint = pSpot;
 	return pSpot->edict();
 }
 
@@ -567,19 +579,27 @@ void CHalfLifeCaptureTheFlag::Think( void )
 	if (m_fSpawnBlueHardware != -1 && m_fSpawnBlueHardware < gpGlobals->time)
 	{
 		edict_t *pentSpawnSpot = EntSelectSpawnPoint(ctfspawn1.string);
-		CFlagCharm::CreateFlag(pentSpawnSpot->v.origin, TEAM_BLUE);
-		pBlueBase = CFlagBase::CreateFlagBase(pentSpawnSpot->v.origin, TEAM_BLUE);
-		m_fSpawnBlueHardware = -1;
-		UTIL_Remove(CBaseEntity::Instance(pentSpawnSpot));
+		if (pentSpawnSpot)
+		{
+			ALERT(at_error, "pentSpawnSpot set!\n");
+			CFlagCharm::CreateFlag(pentSpawnSpot->v.origin, TEAM_BLUE);
+			pBlueBase = CFlagBase::CreateFlagBase(pentSpawnSpot->v.origin, TEAM_BLUE);
+			m_fSpawnBlueHardware = -1;
+			UTIL_Remove(CBaseEntity::Instance(pentSpawnSpot));
+		}
 	}
 
 	if (m_fSpawnRedHardware != -1 && m_fSpawnRedHardware < gpGlobals->time)
 	{
 		edict_t *pentSpawnSpot2 = EntSelectSpawnPoint(ctfspawn2.string);
-		CFlagCharm::CreateFlag(pentSpawnSpot2->v.origin, TEAM_RED);
-		pRedBase = CFlagBase::CreateFlagBase(pentSpawnSpot2->v.origin, TEAM_RED);
-		m_fSpawnRedHardware = -1;
-		UTIL_Remove(CBaseEntity::Instance(pentSpawnSpot2));
+		if (pentSpawnSpot2)
+		{
+			ALERT(at_error, "pentSpawnSpot2 set!\n");
+			CFlagCharm::CreateFlag(pentSpawnSpot2->v.origin, TEAM_RED);
+			pRedBase = CFlagBase::CreateFlagBase(pentSpawnSpot2->v.origin, TEAM_RED);
+			m_fSpawnRedHardware = -1;
+			UTIL_Remove(CBaseEntity::Instance(pentSpawnSpot2));
+		}
 	}
 }
 
