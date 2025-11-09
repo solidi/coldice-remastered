@@ -505,7 +505,7 @@ CBaseEntity *UTIL_FindEntityInSphere( CBaseEntity *pStartEntity, const Vector &v
 {
 	edict_t	*pentEntity;
 
-	if (pStartEntity)
+	if (pStartEntity && pStartEntity->pev) // could be removed by the time this is called
 		pentEntity = pStartEntity->edict();
 	else
 		pentEntity = NULL;
@@ -522,7 +522,7 @@ CBaseEntity *UTIL_FindEntityByString( CBaseEntity *pStartEntity, const char *szK
 {
 	edict_t	*pentEntity;
 
-	if (pStartEntity)
+	if (pStartEntity && pStartEntity->pev) // could be removed by the time this is called
 		pentEntity = pStartEntity->edict();
 	else
 		pentEntity = NULL;
