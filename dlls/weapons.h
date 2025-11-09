@@ -1403,6 +1403,7 @@ public:
 
 	void PrimaryAttack( void );
 	void SecondaryAttack( void );
+	int AddToPlayer( CBasePlayer *pPlayer );
 	BOOL DeployLowKey( void );
 	BOOL Deploy( void );
 	BOOL CanHolster( void );
