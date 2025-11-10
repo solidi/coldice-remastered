@@ -843,6 +843,16 @@ int CChumtoad::GetItemInfo(ItemInfo *p)
 	return 1;
 }
 
+int CChumtoad::AddToPlayer( CBasePlayer *pPlayer )
+{
+	if ( CBasePlayerWeapon::AddToPlayer( pPlayer ) )
+	{
+		WeaponPickup(pPlayer, m_iId);
+		return TRUE;
+	}
+	return FALSE;
+}
+
 BOOL CChumtoad::DeployLowKey( )
 {
 	m_pPlayer->m_iWeaponVolume = QUIET_GUN_VOLUME;
