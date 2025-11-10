@@ -1747,6 +1747,8 @@ private:
 
 	//CImageLabel			*m_pClassImages[MAX_TEAMS][MAX_MODES + 1];
 	Label 				*pTitleLabel;
+	Label				*pNameLabel[MAX_MODES + 1];
+	TextPanel			*pTextWindow[MAX_MODES + 1];
 
 	int					m_iCurrentInfo;
 

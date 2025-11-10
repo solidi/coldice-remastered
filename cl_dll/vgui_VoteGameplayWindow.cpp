@@ -133,16 +133,16 @@ CVoteGameplayPanel::CVoteGameplayPanel(int iTrans, int iRemoveMe, int x,int y,in
 		// Create the Gameplay Name Label
 		sprintf(sz, "#%s", sGameplayModes[i]);
 		localName = CHudTextMessage::BufferedLocaliseTextString( sz );
-		Label *pNameLabel = new Label( "", textOffs, GAMEMENU_WINDOW_NAME_Y );
-		pNameLabel->setFont( pSchemes->getFont(hTitleScheme) ); 
-		pNameLabel->setParent( m_pGameInfoPanel[i] );
+		pNameLabel[i] = new Label( "", textOffs, GAMEMENU_WINDOW_NAME_Y );
+		pNameLabel[i]->setFont( pSchemes->getFont(hTitleScheme) ); 
+		pNameLabel[i]->setParent( m_pGameInfoPanel[i] );
 		pSchemes->getFgColor( hTitleScheme, r, g, b, a );
-		pNameLabel->setFgColor( r, g, b, a );
+		pNameLabel[i]->setFgColor( r, g, b, a );
 		pSchemes->getBgColor( hTitleScheme, r, g, b, a );
-		pNameLabel->setBgColor( r, g, b, a );
-		pNameLabel->setContentAlignment( vgui::Label::a_west );
-		pNameLabel->setBorder(new LineBorder());
-		pNameLabel->setText( "%s", localName);
+		pNameLabel[i]->setBgColor( r, g, b, a );
+		pNameLabel[i]->setContentAlignment( vgui::Label::a_west );
+		pNameLabel[i]->setBorder(new LineBorder());
+		pNameLabel[i]->setText( "%s", localName);
 
 		// Create the Class Image
 		/*
@@ -188,21 +188,21 @@ CVoteGameplayPanel::CVoteGameplayPanel(int iTrans, int iRemoveMe, int x,int y,in
 		}
 		
 		// Create the Text info window
-		TextPanel *pTextWindow = new TextPanel(cText, textOffs, YRES(40), (GAMEMENU_WINDOW_SIZE_X - textOffs)-5, GAMEMENU_WINDOW_SIZE_Y - GAMEMENU_WINDOW_TEXT_Y);
-		pTextWindow->setParent( m_pGameInfoPanel[i] );
-		pTextWindow->setFont( pSchemes->getFont(hPlayWindowText) );
+		pTextWindow[i] = new TextPanel(cText, textOffs, YRES(40), (GAMEMENU_WINDOW_SIZE_X - textOffs)-5, GAMEMENU_WINDOW_SIZE_Y - GAMEMENU_WINDOW_TEXT_Y);
+		pTextWindow[i]->setParent( m_pGameInfoPanel[i] );
+		pTextWindow[i]->setFont( pSchemes->getFont(hPlayWindowText) );
 		pSchemes->getFgColor( hClassWindowText, r, g, b, a );
-		pTextWindow->setFgColor( r, g, b, a );
+		pTextWindow[i]->setFgColor( r, g, b, a );
 		pSchemes->getBgColor( hClassWindowText, r, g, b, a );
-		pTextWindow->setBgColor( r, g, b, a );
+		pTextWindow[i]->setBgColor( r, g, b, a );
 
 		// Resize the Info panel to fit it all
 		int wide,tall;
-		pTextWindow->getTextImage()->getTextSizeWrapped( wide,tall);
-		pTextWindow->setSize(wide,tall);
+		pTextWindow[i]->getTextImage()->getTextSizeWrapped( wide,tall);
+		pTextWindow[i]->setSize(wide,tall);
 
 		int xx,yy;
-		pTextWindow->getPos(xx,yy);
+		pTextWindow[i]->getPos(xx,yy);
 		int maxX=xx+wide;
 		int maxY=yy+tall;
 
@@ -284,6 +284,11 @@ void CVoteGameplayPanel::Update()
 
 			m_pButtons[i]->setUnArmedColor(r, g, b, 0);
 			pTitleLabel->setFgColor( r, g, b, 0 );
+
+			// Continue setting colors
+			pNameLabel[i]->setFgColor( r, g, b, a );
+			pTextWindow[i]->setFgColor( r, g, b, a );
+
 			if (votes[i] > 0)
 			{
 				m_pButtons[i]->setArmed(true);
