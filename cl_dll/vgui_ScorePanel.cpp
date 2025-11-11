@@ -277,6 +277,13 @@ void ScorePanel::Update()
 		m_TitleLabel.setText(sz);
 	}
 
+	for (int i = 0; i < NUM_COLUMNS; i++)
+	{
+		int r, g, b;
+		UnpackRGB(r, g, b, HudColor());
+		m_HeaderLabels[i].setFgColor( r, g, b, 0 );
+	}
+
 	if (ScoreBased() && gHUD.m_Teamplay != GAME_TEAMPLAY)
 	{
 		if (gHUD.m_Teamplay == GAME_GUNGAME)

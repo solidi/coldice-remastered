@@ -867,16 +867,16 @@ void CHalfLifeMultiplay :: Think ( void )
 				else
 				{
 					MESSAGE_BEGIN(MSG_ALL, gmsgObjective);
-						if (g_GameMode == GAME_SNOWBALL)
+						if (g_GameMode == GAME_FFA)
 							WRITE_STRING("Frag 'em");
 						else if (g_GameMode == GAME_SNOWBALL)
 							WRITE_STRING("Snowball 'em");
-						WRITE_STRING("");
+						WRITE_STRING("No limit");
 						WRITE_BYTE(0);
 					MESSAGE_END();
 				}
 
-				m_fShowFrags = timelimit.value;
+				m_fShowFrags = fraglimit.value;
 			}
 		}
 	}
@@ -1406,7 +1406,10 @@ void CHalfLifeMultiplay :: InitHUD( CBasePlayer *pl )
 		{
 			MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, pl->edict());
 				WRITE_STRING("Frag 'em");
-				WRITE_STRING("");
+				if (fraglimit.value > 0)
+					WRITE_STRING(UTIL_VarArgs("Fraglimit %.0f", fraglimit.value));
+				else
+					WRITE_STRING("No limit");
 				WRITE_BYTE(0);
 			MESSAGE_END();
 		}
@@ -1414,7 +1417,10 @@ void CHalfLifeMultiplay :: InitHUD( CBasePlayer *pl )
 		{
 			MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL,  pl->edict());
 				WRITE_STRING("Snowball 'em");
-				WRITE_STRING("");
+				if (fraglimit.value > 0)
+					WRITE_STRING(UTIL_VarArgs("Fraglimit %.0f", fraglimit.value));
+				else
+					WRITE_STRING("No limit");
 				WRITE_BYTE(0);
 			MESSAGE_END();
 		}
