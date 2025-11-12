@@ -34,34 +34,6 @@ ifeq ($(OS),Linux)
 	CPP_LIB:=-L$(shell g++ -m32 -w -Wfatal-errors -print-file-name=libstdc++.so | xargs dirname) -lstdc++ -ldl -lpthread
 endif
 
-ifeq ($(OS),Darwin)
-    OSXVER := $(shell sw_vers -productVersion)
-	DEVELOPER_DIR := $(shell /usr/bin/xcode-select -print-path)
-	ifneq (,$(findstring CommandLineTools,$(DEVELOPER_DIR))) #sudo xcode-select -s /Library/Developer/CommandLineTools
-		COMPILER_BIN_DIR := $(DEVELOPER_DIR)/usr/bin
-		SDK_DIR := $(DEVELOPER_DIR)/SDKs
-	else #sudo xcode-select -s /Applications/Xcode.app
-		COMPILER_BIN_DIR := $(DEVELOPER_DIR)/Toolchains/XcodeDefault.xctoolchain/usr/bin
-		SDK_DIR := $(DEVELOPER_DIR)/Platforms/MacOSX.platform/Developer/SDKs
-	endif
-
-	SDKROOT ?= $(SDK_DIR)/MacOSX10.8.sdk
-
-	ARCH_FLAGS ?= -arch i386 -m32 -march=prescott -gdwarf-2 -g2  -Wno-typedef-redefinition -momit-leaf-frame-pointer -mtune=core2
-	CPP_LIB=-lstdc++ -lpthread
-
-	ifeq ($(origin AR), default)
-		AR = libtool -static -o
-	endif
-	ifeq ($(origin CC), default)
-		CC ="$(COMPILER_BIN_DIR)/clang -w -Qunused-arguments -isysroot $(SDKROOT) -mmacosx-version-min=10.7 -fasm-blocks -I$(SDKROOT)/usr/include/malloc $(ARCH_FLAGS)"
-	endif
-	ifeq ($(origin CXX), default)
-		CPLUS ="$(COMPILER_BIN_DIR)/clang++ -Qunused-arguments -isysroot $(SDKROOT) -mmacosx-version-min=10.5 -fasm-blocks -I$(SDKROOT)/usr/include/malloc $(ARCH_FLAGS)"
-	endif
-	LINK ?= $(CXX)
-endif
-
 CLINK=$(CC)
 
 ifeq "$(CFG)" "release"
