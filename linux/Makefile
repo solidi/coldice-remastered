@@ -47,7 +47,8 @@ ifeq ($(OS),Darwin)
 
 	SDKROOT ?= $(SDK_DIR)/MacOSX10.8.sdk
 
-	ARCH_FLAGS ?= -arch i386 -m32 -march=prescott -gdwarf-2 -g2  -Wno-typedef-redefinition -momit-leaf-frame-pointer -mtune=core2
+	ARCH_FLAGS ?= -arch i386 -m32 -march=prescott -gdwarf-2 -g2  -Wno-typedef-redefinition -momit-leaf-frame-pointer -mtune=core2 -I/Applications/Xcode_15.0.1.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include/c++/v1
+
 	CPP_LIB=-lstdc++ -lpthread
 
 	ifeq ($(origin AR), default)
