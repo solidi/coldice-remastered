@@ -103,7 +103,11 @@ void CHornet :: Spawn( void )
 	if ( !pSoundEnt )
 		pSoundEnt = edict();
 
-	if ( !FNullEnt(pev->owner) && (pev->owner->v.flags & FL_CLIENT) )
+	if ( g_pGameRules->IsInstagib() )
+	{
+		pev->dmg = 9999;
+	}
+	else if ( !FNullEnt(pev->owner) && (pev->owner->v.flags & FL_CLIENT) )
 	{
 		pev->dmg = gSkillData.plrDmgHornet;
 	}

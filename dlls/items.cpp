@@ -1061,7 +1061,10 @@ class CAmmoRune : public CRune
 		SET_MODEL(ENT(pev), "models/w_runes.mdl");
 		CRune::Spawn( );
 
-		pev->body = RUNE_AMMO - 1;
+		if (g_pGameRules->IsInstagib())
+			pev->body = RUNE_HORNET - 1;
+		else
+			pev->body = RUNE_AMMO - 1;
 		pev->renderfx = kRenderFxGlowShell;
 		pev->renderamt = 5;
 		pev->rendercolor.x = 200;
@@ -1091,8 +1094,6 @@ class CAmmoRune : public CRune
 		{
 			pPlayer->m_fHasRune = RUNE_AMMO;
 
-			ShellPlayer(pPlayer, 200, 200, 0);
-
 			MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
 				WRITE_BYTE( TE_PARTICLEBURST );
 				WRITE_COORD(pPlayer->pev->origin.x);
@@ -1103,9 +1104,21 @@ class CAmmoRune : public CRune
 				WRITE_BYTE( 5 );
 			MESSAGE_END();
 
-			ShowStatus(pPlayer, "rune_ammo", 200, 200, 0);
-			pPlayer->DisplayHudMessage("Ammo Rune", TXT_CHANNEL_RUNE_TITLE, -1, 0.07, 200, 200, 0, 0, 0.2, 1.0, 1.5, 0.5);
-			pPlayer->DisplayHudMessage("This rune will regenerate ammo!", TXT_CHANNEL_RUNE_DESC, -1, 0.1, 210, 210, 210, 0, 0.2, 1.0, 1.5, 0.5);
+			ShellPlayer(pPlayer, 200, 200, 0);
+
+			if (g_pGameRules->IsInstagib())
+			{
+				pPlayer->GiveNamedItem("weapon_hornetgun");
+				ShowStatus(pPlayer, "rune_hornet", 200, 200, 0);
+				pPlayer->DisplayHudMessage("Hornet Rune", TXT_CHANNEL_RUNE_TITLE, -1, 0.07, 200, 200, 0, 0, 0.2, 1.0, 1.5, 0.5);
+				pPlayer->DisplayHudMessage("This rune gives you killer hornets!", TXT_CHANNEL_RUNE_DESC, -1, 0.1, 210, 210, 210, 0, 0.2, 1.0, 1.5, 0.5);
+			}
+			else
+			{
+				ShowStatus(pPlayer, "rune_ammo", 200, 200, 0);
+				pPlayer->DisplayHudMessage("Ammo Rune", TXT_CHANNEL_RUNE_TITLE, -1, 0.07, 200, 200, 0, 0, 0.2, 1.0, 1.5, 0.5);
+				pPlayer->DisplayHudMessage("This rune will regenerate ammo!", TXT_CHANNEL_RUNE_DESC, -1, 0.1, 210, 210, 210, 0, 0.2, 1.0, 1.5, 0.5);
+			}
 
 			return TRUE;
 		}
@@ -1182,6 +1195,42 @@ void CWorldRunes::DropRune(CBasePlayer *pPlayer) {
 			break;
 		case RUNE_AMMO:
 			sz_Rune = "rune_ammo";
+			if (g_pGameRules->IsInstagib())
+			{
+				if (pPlayer->HasNamedPlayerItem("weapon_hornetgun"))
+				{
+					CBasePlayerItem *pWeapon;
+					char *pszItemName = "weapon_hornetgun";
+
+					for (int i = 0; i < MAX_ITEM_TYPES; i++)
+					{
+						pWeapon = pPlayer->m_rgpPlayerItems[ i ];
+						while ( pWeapon )
+						{
+							// try to match by name. 
+							if ( !strcmp( pszItemName, STRING( pWeapon->pev->classname ) ) )
+								break;
+
+							pWeapon = pWeapon->m_pNext; 
+						}
+
+						if ( pWeapon )
+						{
+							if (pPlayer->RemovePlayerItem( pWeapon ))
+							{
+								if ( !g_pGameRules->GetNextBestWeapon( pPlayer, pWeapon, FALSE, FALSE ) )
+									return; // can't drop the item they asked for, may be our last item or something we can't holster
+
+								if (pWeapon->m_iId < 32)
+									pPlayer->pev->weapons &= ~(1<<pWeapon->m_iId);// take item off hud
+								else
+									pPlayer->m_iWeapons2 &= ~(1<<(pWeapon->m_iId - 32));// take item off hud
+							}
+							break;
+						}
+					}
+				}
+			}
 			break;
 		default:
 			sz_Rune = "rune_strength";
