@@ -36,6 +36,9 @@ public:
 #define RUNE_STRENGTH	7
 #define RUNE_CLOAK		8
 #define RUNE_AMMO		9
+#define RUNE_FLAKE		10
+#define RUNE_SKULL		11
+#define RUNE_HORNET		12
 
 class CWorldRunes : public CBaseEntity
 {

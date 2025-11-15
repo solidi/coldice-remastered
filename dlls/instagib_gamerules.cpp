@@ -238,14 +238,13 @@ BOOL CHalfLifeInstagib::IsAllowedToSpawn( CBaseEntity *pEntity )
 {
 	if (CHalfLifeMultiplay::IsAllowedToSpawn(pEntity))
 	{
+		if (strcmp(STRING(pEntity->pev->classname), "weapon_hornetgun") == 0)
+			return TRUE;
+
 		if (strncmp(STRING(pEntity->pev->classname), "weapon_", 7) == 0 ||
 			strncmp(STRING(pEntity->pev->classname), "ammo_", 5) == 0)
 		{
-			// if (strcmp(STRING(pEntity->pev->classname), "ammo_gaussclip") != 0)
-			// {
-			//	CBaseEntity::Create("ammo_gaussclip", pEntity->pev->origin, pEntity->pev->angles, pEntity->pev->owner);
-				return FALSE;
-			//}
+			return FALSE;
 		}
 
 		return TRUE;

@@ -4581,6 +4581,7 @@ void CBasePlayer::GiveNamedItem( const char *pszName )
 
 	if (g_pGameRules->IsInstagib()) {
 		if (stricmp(pszName, "weapon_fists") != 0 &&
+			stricmp(pszName, "weapon_hornetgun") != 0 &&
 			stricmp(pszName, "weapon_zapgun") != 0) {
 			return;
 		}
