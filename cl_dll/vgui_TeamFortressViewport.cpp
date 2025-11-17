@@ -177,7 +177,6 @@ char *sBuiltInMaps[] =
 	"ice_pit",
 	"latenightxmas",
 	"overflow",
-	"quadfrost",
 	"snow_camp",
 	"snowcross",
 	"snowtransit",
