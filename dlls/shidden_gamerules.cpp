@@ -157,37 +157,13 @@ void CHalfLifeShidden::Think( void )
 					plr->m_flForceToObserverTime = 0;
 				}
 
-				if ( plr->IsInArena && !plr->IsSpectator() /*&& plr->IsAlive()*/ )
+				if ( plr->IsInArena && !plr->IsSpectator() )
 				{
 					if (plr->pev->fuser4 > 0)
 						dealters_left++;
 					else
 						smelters_left++;
 				}
-				/*
-				else
-				{
-					//for clients who connected while game in progress.
-					if ( plr->IsSpectator() )
-					{
-						MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, plr->edict());
-							if (m_iSmeltersRemain >= 1 && m_iDealtersRemain <= 0)
-								WRITE_STRING("Smelters have won!");
-							else if (m_iDealtersRemain >= 1 && m_iSmeltersRemain <= 0)
-								WRITE_STRING("Dealters have won!");
-							else
-							{
-								WRITE_STRING(UTIL_VarArgs("Dealters left: %d", m_iDealtersRemain));
-								WRITE_STRING(UTIL_VarArgs("Smelters left: %d", m_iSmeltersRemain));
-								WRITE_BYTE(float(m_iSmeltersRemain) / (m_iPlayersInGame) * 100);
-							}
-						MESSAGE_END();
-					} else {
-						// Send them to observer
-						plr->m_flForceToObserverTime = gpGlobals->time;
-					}
-				}
-				*/
 			}
 		}
 
@@ -213,6 +189,8 @@ void CHalfLifeShidden::Think( void )
 									WRITE_STRING("Fart on 'em");
 									WRITE_STRING(UTIL_VarArgs("Smelters alive: %d", smelters_left));
 									WRITE_BYTE(float(smelters_left) / (m_iPlayersInGame) * 100);
+									if (roundlimit.value > 0)
+										WRITE_STRING(UTIL_VarArgs("Round %d of %d", m_iSuccessfulRounds+1, (int)roundlimit.value));
 								MESSAGE_END();
 							}
 							else if (smelters_left == 1)
@@ -221,6 +199,8 @@ void CHalfLifeShidden::Think( void )
 									WRITE_STRING("Fart on 'em");
 									WRITE_STRING("Dispatch the last smelter!");
 									WRITE_BYTE(0);
+									if (roundlimit.value > 0)
+										WRITE_STRING(UTIL_VarArgs("Round %d of %d", m_iSuccessfulRounds+1, (int)roundlimit.value));
 								MESSAGE_END();
 							}
 							else
@@ -229,7 +209,10 @@ void CHalfLifeShidden::Think( void )
 									WRITE_STRING("Dealting completed!");
 									WRITE_STRING("");
 									WRITE_BYTE(0);
-									WRITE_STRING(UTIL_VarArgs("Dealters win round %d of %d!", m_iSuccessfulRounds+1, (int)roundlimit.value));
+									if (roundlimit.value > 0)
+										WRITE_STRING(UTIL_VarArgs("Dealters win round %d of %d!", m_iSuccessfulRounds+1, (int)roundlimit.value));
+									else
+										WRITE_STRING("Dealters win round!");
 								MESSAGE_END();
 							}
 						}
@@ -241,6 +224,8 @@ void CHalfLifeShidden::Think( void )
 									WRITE_STRING("Smell it");
 									WRITE_STRING(UTIL_VarArgs("Dealters remain: %d", dealters_left));
 									WRITE_BYTE(float(dealters_left) / (m_iPlayersInGame) * 100);
+									if (roundlimit.value > 0)
+										WRITE_STRING(UTIL_VarArgs("Round %d of %d", m_iSuccessfulRounds+1, (int)roundlimit.value));
 								MESSAGE_END();
 							}
 							else
@@ -251,6 +236,8 @@ void CHalfLifeShidden::Think( void )
 										WRITE_STRING("Find that dealter!");
 										WRITE_STRING(UTIL_VarArgs("Dealter remain: %d", dealters_left));
 										WRITE_BYTE(float(dealters_left) / (m_iPlayersInGame) * 100);
+										if (roundlimit.value > 0)
+											WRITE_STRING(UTIL_VarArgs("Round %d of %d", m_iSuccessfulRounds+1, (int)roundlimit.value));
 									MESSAGE_END();
 								}
 								else
@@ -259,7 +246,10 @@ void CHalfLifeShidden::Think( void )
 										WRITE_STRING("Dealters eradicated!");
 										WRITE_STRING("");
 										WRITE_BYTE(0);
-										WRITE_STRING(UTIL_VarArgs("Smelters win round %d of %d!", m_iSuccessfulRounds+1, (int)roundlimit.value));
+										if (roundlimit.value > 0)
+											WRITE_STRING(UTIL_VarArgs("Smelters win round %d of %d!", m_iSuccessfulRounds+1, (int)roundlimit.value));
+										else
+											WRITE_STRING("Smelters win round!");
 									MESSAGE_END();
 								}
 							}
@@ -273,14 +263,24 @@ void CHalfLifeShidden::Think( void )
 					{
 						MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, plr->edict());
 							if (m_iSmeltersRemain >= 1 && m_iDealtersRemain <= 0)
+							{
 								WRITE_STRING("Smelters have won!");
+								if (roundlimit.value > 0)
+									WRITE_STRING(UTIL_VarArgs("Round %d of %d", m_iSuccessfulRounds+1, (int)roundlimit.value));
+							}
 							else if (m_iDealtersRemain >= 1 && m_iSmeltersRemain <= 0)
+							{
 								WRITE_STRING("Dealters have won!");
+								if (roundlimit.value > 0)
+									WRITE_STRING(UTIL_VarArgs("Round %d of %d", m_iSuccessfulRounds+1, (int)roundlimit.value));
+							}
 							else
 							{
 								WRITE_STRING(UTIL_VarArgs("Dealters left: %d", m_iDealtersRemain));
 								WRITE_STRING(UTIL_VarArgs("Smelters left: %d", m_iSmeltersRemain));
 								WRITE_BYTE(float(m_iSmeltersRemain) / (m_iPlayersInGame) * 100);
+								if (roundlimit.value > 0)
+									WRITE_STRING(UTIL_VarArgs("Round %d of %d", m_iSuccessfulRounds+1, (int)roundlimit.value));
 							}
 						MESSAGE_END();
 					} else {
@@ -482,7 +482,8 @@ void CHalfLifeShidden::Think( void )
 			WRITE_STRING("Shidden");
 			WRITE_STRING("Waiting for other players");
 			WRITE_BYTE(0);
-			WRITE_STRING(UTIL_VarArgs("%d Rounds", (int)roundlimit.value));
+			if (roundlimit.value > 0)
+				WRITE_STRING(UTIL_VarArgs("%d Rounds", (int)roundlimit.value));
 		MESSAGE_END();
 		m_fWaitForPlayersTime = gpGlobals->time + roundwaittime.value;
 	}

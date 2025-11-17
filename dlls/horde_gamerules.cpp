@@ -423,6 +423,8 @@ void CHalfLifeHorde::Think( void )
 					WRITE_STRING(UTIL_VarArgs("Wave #%d", m_iWaveNumber));
 					WRITE_STRING(UTIL_VarArgs("Enemies remain: %d", m_iEnemiesRemain));
 					WRITE_BYTE(float(m_iEnemiesRemain) / (m_iTotalEnemies) * 100);
+					if (roundlimit.value > 0)
+						WRITE_STRING(UTIL_VarArgs("Round %d of %d", m_iSuccessfulRounds+1, (int)roundlimit.value));
 				MESSAGE_END();
 			}
 
@@ -448,6 +450,8 @@ void CHalfLifeHorde::Think( void )
 				WRITE_STRING(UTIL_VarArgs("Wave #%d", m_iWaveNumber));
 				WRITE_STRING(UTIL_VarArgs("Enemies remain: %d", m_iEnemiesRemain));
 				WRITE_BYTE(float(m_iEnemiesRemain) / (m_iTotalEnemies) * 100);
+				if (roundlimit.value > 0)
+					WRITE_STRING(UTIL_VarArgs("Round %d of %d", m_iSuccessfulRounds+1, (int)roundlimit.value));
 			MESSAGE_END();
 		}
 
@@ -608,7 +612,8 @@ void CHalfLifeHorde::Think( void )
 			WRITE_STRING("Horde Mode");
 			WRITE_STRING("Waiting for other players");
 			WRITE_BYTE(0);
-			WRITE_STRING(UTIL_VarArgs("%d Rounds", (int)roundlimit.value));
+			if (roundlimit.value > 0)
+				WRITE_STRING(UTIL_VarArgs("%d Rounds", (int)roundlimit.value));
 		MESSAGE_END();
 		m_fWaitForPlayersTime = gpGlobals->time + roundwaittime.value;
 	}
@@ -624,7 +629,10 @@ void CHalfLifeHorde::InitHUD( CBasePlayer *pPlayer )
 	{
 		MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL, pPlayer->edict());
 			WRITE_STRING("Horde Mode");
-			WRITE_STRING("");
+			if (roundlimit.value > 0)
+				WRITE_STRING(UTIL_VarArgs("Round %d of %d", m_iSuccessfulRounds+1, (int)roundlimit.value));
+			else
+				WRITE_STRING("");
 			WRITE_BYTE(0);
 		MESSAGE_END();
 
