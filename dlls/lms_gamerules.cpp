@@ -140,6 +140,8 @@ void CHalfLifeLastManStanding::InitHUD( CBasePlayer *pPlayer )
 				WRITE_STRING("Battle Royale");
 				WRITE_STRING(UTIL_VarArgs("You're on %s team", (pPlayer->pev->fuser4 == TEAM_RED) ? "red" : "blue"));
 				WRITE_BYTE(0);
+				if (roundlimit.value > 0)
+					WRITE_STRING(UTIL_VarArgs("Round %d of %d", m_iSuccessfulRounds+1, (int)roundlimit.value));
 			MESSAGE_END();
 		}
 	}
@@ -149,7 +151,10 @@ void CHalfLifeLastManStanding::InitHUD( CBasePlayer *pPlayer )
 		{
 			MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL, pPlayer->edict());
 				WRITE_STRING("Battle Royale");
-				WRITE_STRING("");
+				if (roundlimit.value > 0)
+					WRITE_STRING(UTIL_VarArgs("Round %d of %d", m_iSuccessfulRounds+1, (int)roundlimit.value));
+				else
+					WRITE_STRING("");
 				WRITE_BYTE(0);
 			MESSAGE_END();
 
@@ -341,6 +346,8 @@ void CHalfLifeLastManStanding::Think( void )
 							{
 								WRITE_STRING(UTIL_VarArgs("Players alive: %d", clients_alive));
 								WRITE_BYTE(0);
+								if (roundlimit.value > 0)
+									WRITE_STRING(UTIL_VarArgs("Round %d of %d", m_iSuccessfulRounds+1, (int)roundlimit.value));
 							}
 						}
 						else
@@ -529,7 +536,8 @@ void CHalfLifeLastManStanding::Think( void )
 			WRITE_STRING("Battle Royale");
 			WRITE_STRING("Waiting for other players");
 			WRITE_BYTE(0);
-			WRITE_STRING(UTIL_VarArgs("%d Rounds", (int)roundlimit.value));
+			if (roundlimit.value > 0)
+				WRITE_STRING(UTIL_VarArgs("%d Rounds", (int)roundlimit.value));
 		MESSAGE_END();
 		m_flRoundTimeLimit = 0;
 		m_fWaitForPlayersTime = gpGlobals->time + roundwaittime.value;
@@ -893,6 +901,8 @@ void CHalfLifeLastManStanding::ClientUserInfoChanged( CBasePlayer *pPlayer, char
 		WRITE_STRING("Battle Royale");
 		WRITE_STRING(UTIL_VarArgs("You're on %s team", (pPlayer->pev->fuser4 == TEAM_RED) ? "red" : "blue"));
 		WRITE_BYTE(0);
+		if (roundlimit.value > 0)
+			WRITE_STRING(UTIL_VarArgs("Round %d of %d", m_iSuccessfulRounds+1, (int)roundlimit.value));
 	MESSAGE_END();
 }
 

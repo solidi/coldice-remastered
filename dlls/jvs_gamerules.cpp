@@ -180,6 +180,8 @@ void CHalfLifeJesusVsSanta::Think( void )
 							WRITE_STRING("Defeat all Santas");
 							WRITE_STRING(UTIL_VarArgs("Santas alive: %d", clients_alive - 1));
 							WRITE_BYTE(float(clients_alive - 1) / (m_iPlayersInGame - 1) * 100);
+							if (roundlimit.value > 0)
+								WRITE_STRING(UTIL_VarArgs("Round %d of %d", m_iSuccessfulRounds+1, (int)roundlimit.value));
 						MESSAGE_END();
 					}
 				}
@@ -206,6 +208,8 @@ void CHalfLifeJesusVsSanta::Think( void )
 							WRITE_STRING(UTIL_VarArgs("Defeat %s as Jesus", STRING(pArmoredMan->pev->netname)));
 							WRITE_STRING(UTIL_VarArgs("Santas remain: %d", clients_alive - 1));
 							WRITE_BYTE(float(clients_alive - 1) / (m_iPlayersInGame - 1) * 100);
+							if (roundlimit.value > 0)
+								WRITE_STRING(UTIL_VarArgs("Round %d of %d", m_iSuccessfulRounds+1, (int)roundlimit.value));
 						MESSAGE_END();
 					}
 				}
@@ -369,7 +373,8 @@ void CHalfLifeJesusVsSanta::Think( void )
 			WRITE_STRING("Jesus vs Santa");
 			WRITE_STRING("Waiting for other players");
 			WRITE_BYTE(0);
-			WRITE_STRING(UTIL_VarArgs("%d Rounds", (int)roundlimit.value));
+			if (roundlimit.value > 0)
+				WRITE_STRING(UTIL_VarArgs("%d Rounds", (int)roundlimit.value));
 		MESSAGE_END();
 		m_fWaitForPlayersTime = gpGlobals->time + roundwaittime.value;
 	}
@@ -385,7 +390,10 @@ void CHalfLifeJesusVsSanta::InitHUD( CBasePlayer *pPlayer )
 	{
 		MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL, pPlayer->edict());
 			WRITE_STRING("Jesus vs Santa");
-			WRITE_STRING("");
+			if (roundlimit.value > 0)
+				WRITE_STRING(UTIL_VarArgs("Round %d of %d", m_iSuccessfulRounds+1, (int)roundlimit.value));
+			else
+				WRITE_STRING("");
 			WRITE_BYTE(0);
 		MESSAGE_END();
 

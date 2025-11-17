@@ -1138,11 +1138,16 @@ void CHalfLifeMultiplay::DisplayWinnersGoods( CBasePlayer *pPlayer )
 	pPlayer->Celebrate();
 
 	//and display to the world what he does best!
-	UTIL_ClientPrintAll(HUD_PRINTTALK, UTIL_VarArgs("* %s has won round #%d of %d!\n", STRING(pPlayer->pev->netname), m_iSuccessfulRounds+1, (int)roundlimit.value));
-	UTIL_ClientPrintAll(HUD_PRINTTALK, UTIL_VarArgs("* %s record is %i for %i [%.1f%%]\n", STRING(pPlayer->pev->netname),
-		pPlayer->m_iRoundWins,
-		pPlayer->m_iRoundPlays,
-		((float)pPlayer->m_iRoundWins / (float)pPlayer->m_iRoundPlays) * 100 ));
+	if (roundlimit.value > 0)
+	{
+		UTIL_ClientPrintAll(HUD_PRINTTALK, UTIL_VarArgs("* %s has won round #%d of %d!\n", STRING(pPlayer->pev->netname), m_iSuccessfulRounds+1, (int)roundlimit.value));
+		UTIL_ClientPrintAll(HUD_PRINTTALK, UTIL_VarArgs("* %s record is %i for %i [%.1f%%]\n", STRING(pPlayer->pev->netname),
+			pPlayer->m_iRoundWins,
+			pPlayer->m_iRoundPlays,
+			((float)pPlayer->m_iRoundWins / (float)pPlayer->m_iRoundPlays) * 100 ));
+	}
+	else
+		UTIL_ClientPrintAll(HUD_PRINTTALK, UTIL_VarArgs("* %s has won round!\n", STRING(pPlayer->pev->netname)));
 }
 
 void CHalfLifeMultiplay::ResetGameMode( void )

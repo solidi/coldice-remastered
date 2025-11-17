@@ -368,6 +368,8 @@ void CHalfLifePropHunt::Think( void )
 									WRITE_STRING("Hide!");
 									WRITE_STRING(UTIL_VarArgs("Hunters alive: %d", hunters_left));
 									WRITE_BYTE(float(hunters_left) / (m_iPlayersInGame) * 100);
+									if (roundlimit.value > 0)
+										WRITE_STRING(UTIL_VarArgs("Round %d of %d", m_iSuccessfulRounds+1, (int)roundlimit.value));
 								MESSAGE_END();
 							}
 							else if (hunters_left == 1)
@@ -376,6 +378,8 @@ void CHalfLifePropHunt::Think( void )
 									WRITE_STRING("Hide!");
 									WRITE_STRING("Wait out til time runs out!");
 									WRITE_BYTE(0);
+									if (roundlimit.value > 0)
+										WRITE_STRING(UTIL_VarArgs("Round %d of %d", m_iSuccessfulRounds+1, (int)roundlimit.value));
 								MESSAGE_END();
 							}
 							else
@@ -384,7 +388,10 @@ void CHalfLifePropHunt::Think( void )
 									WRITE_STRING("Props hid well!");
 									WRITE_STRING("");
 									WRITE_BYTE(0);
-									WRITE_STRING(UTIL_VarArgs("Props win round %d of %d!", m_iSuccessfulRounds+1, (int)roundlimit.value));
+									if (roundlimit.value > 0)
+										WRITE_STRING(UTIL_VarArgs("Props win round %d of %d!", m_iSuccessfulRounds+1, (int)roundlimit.value));
+									else
+										WRITE_STRING("Props win round!");
 								MESSAGE_END();
 							}
 						}
@@ -396,6 +403,8 @@ void CHalfLifePropHunt::Think( void )
 									WRITE_STRING("Hunt the props!");
 									WRITE_STRING(UTIL_VarArgs("Props remain: %d", props_left));
 									WRITE_BYTE(float(props_left) / (m_iPlayersInGame) * 100);
+									if (roundlimit.value > 0)
+										WRITE_STRING(UTIL_VarArgs("Round %d of %d", m_iSuccessfulRounds+1, (int)roundlimit.value));
 								MESSAGE_END();
 							}
 							else
@@ -406,6 +415,8 @@ void CHalfLifePropHunt::Think( void )
 										WRITE_STRING("Find props!");
 										WRITE_STRING(UTIL_VarArgs("Props remain: %d", props_left));
 										WRITE_BYTE(float(props_left) / (m_iPlayersInGame) * 100);
+										if (roundlimit.value > 0)
+											WRITE_STRING(UTIL_VarArgs("Round %d of %d", m_iSuccessfulRounds+1, (int)roundlimit.value));
 									MESSAGE_END();
 								}
 								else
@@ -414,7 +425,10 @@ void CHalfLifePropHunt::Think( void )
 										WRITE_STRING("Props removed!");
 										WRITE_STRING("");
 										WRITE_BYTE(0);
-										WRITE_STRING(UTIL_VarArgs("Hunters win round %d of %d!", m_iSuccessfulRounds+1, (int)roundlimit.value));
+										if (roundlimit.value > 0)
+											WRITE_STRING(UTIL_VarArgs("Hunters win round %d of %d!", m_iSuccessfulRounds+1, (int)roundlimit.value));
+										else
+											WRITE_STRING("Hunters win round!");
 									MESSAGE_END();
 								}
 							}
@@ -428,14 +442,24 @@ void CHalfLifePropHunt::Think( void )
 					{
 						MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, plr->edict());
 							if (m_iHuntersRemain >= 1 && m_iPropsRemain <= 0)
+							{
 								WRITE_STRING("Hunters have won!");
+								if (roundlimit.value > 0)
+									WRITE_STRING(UTIL_VarArgs("Round %d of %d", m_iSuccessfulRounds+1, (int)roundlimit.value));
+							}
 							else if (m_iPropsRemain >= 1 && m_iHuntersRemain <= 0)
+							{
 								WRITE_STRING("Props have won!");
+								if (roundlimit.value > 0)
+									WRITE_STRING(UTIL_VarArgs("Round %d of %d", m_iSuccessfulRounds+1, (int)roundlimit.value));
+							}
 							else
 							{
 								WRITE_STRING(UTIL_VarArgs("Hunters left: %d", m_iHuntersRemain));
 								WRITE_STRING(UTIL_VarArgs("Props left: %d", m_iPropsRemain));
 								WRITE_BYTE(float(m_iPropsRemain) / (m_iPlayersInGame) * 100);
+								if (roundlimit.value > 0)
+									WRITE_STRING(UTIL_VarArgs("Round %d of %d", m_iSuccessfulRounds+1, (int)roundlimit.value));
 							}
 						MESSAGE_END();
 					} else {
@@ -686,7 +710,8 @@ void CHalfLifePropHunt::Think( void )
 			WRITE_STRING("Prop Hunt");
 			WRITE_STRING("Waiting for other players");
 			WRITE_BYTE(0);
-			WRITE_STRING(UTIL_VarArgs("%d Rounds", (int)roundlimit.value));
+			if (roundlimit.value > 0)
+				WRITE_STRING(UTIL_VarArgs("%d Rounds", (int)roundlimit.value));
 		MESSAGE_END();
 		m_fWaitForPlayersTime = gpGlobals->time + roundwaittime.value;
 	}
@@ -727,6 +752,8 @@ void CHalfLifePropHunt::InitHUD( CBasePlayer *pPlayer )
 			WRITE_STRING("Prop Hunt");
 			WRITE_STRING("");
 			WRITE_BYTE(0);
+			if (roundlimit.value > 0)
+				WRITE_STRING(UTIL_VarArgs("Round %d of %d", m_iSuccessfulRounds+1, (int)roundlimit.value));
 		MESSAGE_END();
 
 		MESSAGE_BEGIN(MSG_ONE, gmsgTeamNames, NULL, pPlayer->edict());
