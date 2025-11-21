@@ -240,7 +240,7 @@ void ProcessRain( void )
 		if (protection > spawnDrips + 1)
 		{
 			// just in case..
-			gEngfuncs.Con_Printf(">> Rain error: infinite loop protection on rain!\n" );
+			// gEngfuncs.Con_Printf(">> Rain error: infinite loop protection on rain!\n" );
 			break;
 		}
 		protection++;
