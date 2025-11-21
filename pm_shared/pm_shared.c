@@ -822,6 +822,7 @@ int PM_FlyMove (void)
 	
 	blocked   = 0;           // Assume not blocked
 	numplanes = 0;           //  and not sliding along any planes
+
 	VectorCopy (pmove->velocity, original_velocity);  // Store original velocity
 	VectorCopy (pmove->velocity, primal_velocity);
 	
@@ -832,6 +833,18 @@ int PM_FlyMove (void)
 	{
 		if (!pmove->velocity[0] && !pmove->velocity[1] && !pmove->velocity[2])
 			break;
+
+		// Clip nan/min/max velocity.
+		if (pmove->velocity[0] > pmove->movevars->maxvelocity || pmove->velocity[1] > pmove->movevars->maxvelocity || pmove->velocity[2] > pmove->movevars->maxvelocity ||
+			pmove->velocity[0] < -pmove->movevars->maxvelocity || pmove->velocity[1] < -pmove->movevars->maxvelocity || pmove->velocity[2] < -pmove->movevars->maxvelocity ||
+			pmove->velocity[0] != pmove->velocity[0] || pmove->velocity[1] != pmove->velocity[1] || pmove->velocity[2] != pmove->velocity[2])
+		{
+			pmove->Con_DPrintf(">>> Stuck velocity %f %f %f\n", pmove->velocity[0], pmove->velocity[1], pmove->velocity[2]);
+			VectorCopy (vec3_origin, pmove->velocity);
+			VectorCopy (vec3_origin, original_velocity);
+			VectorCopy (vec3_origin, primal_velocity);
+			break;
+		}
 
 		// Assume we can move all the way from the current origin to the
 		//  end point.

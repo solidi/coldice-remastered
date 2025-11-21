@@ -228,6 +228,7 @@ void ProcessRain( void )
 
 	int maxDelta = speed * Rain.timedelta; // maximum height randomize distance
 	float falltime = (Rain.globalHeight + 4096) / speed;
+	int protection = 0;
 
 	for( ; Rain.nextspawntime < Rain.curtime; Rain.nextspawntime += timeBetweenDrips )
 	{
@@ -235,7 +236,15 @@ void ProcessRain( void )
 		if( debug_rain->value )
 			debug_attempted++;
 #endif
-				
+
+		if (protection > spawnDrips + 1)
+		{
+			// just in case..
+			// gEngfuncs.Con_Printf(">> Rain error: infinite loop protection on rain!\n" );
+			break;
+		}
+		protection++;
+
 		if( Rain.dripcounter < spawnDrips ) // check for overflow
 		{
 			float deathHeight;
