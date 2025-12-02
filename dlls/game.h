@@ -85,6 +85,7 @@ extern cvar_t   meleedrop;
 extern cvar_t   ctfspawn1;
 extern cvar_t   ctfspawn2;
 extern cvar_t   addmutator;
+extern cvar_t   instantmutators;
 extern cvar_t   mutatorcount;
 extern cvar_t   mutatorlist;
 extern cvar_t   mutatortime;

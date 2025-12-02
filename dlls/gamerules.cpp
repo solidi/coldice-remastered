@@ -1409,7 +1409,7 @@ void CGameRules::MutatorsThink(void)
 		{
 			m_flChaosMutatorTime = gpGlobals->time + choasIncrement;
 
-			if (RANDOM_LONG(0,1))
+			if (!RANDOM_LONG(0, instantmutators.value))
 				AddRandomMutator("sv_addmutator", TRUE);
 			else
 				AddInstantMutator();

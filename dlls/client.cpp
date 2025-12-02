@@ -1435,6 +1435,7 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"turrets\" - sentry guns randomly appear, firing bullets and rockets at everyone.\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"vested\" - all players get a vest.\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"volatile\" - where players blow up when fragged.\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_instantmutators [0|1]\" - enable or disable instant mutators.\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_weather [0|1]\" allow or disallow weather effects on server.\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "For more, see readme.txt\n" );
 	}

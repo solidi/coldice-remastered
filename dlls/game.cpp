@@ -88,6 +88,7 @@ cvar_t	meleedrop = {"mp_meleedrop","0", FCVAR_SERVER };
 cvar_t	ctfspawn1 = {"mp_ctfspawn1","weapon_9mmAR", FCVAR_SERVER };
 cvar_t	ctfspawn2 = {"mp_ctfspawn2","weapon_shotgun", FCVAR_SERVER };
 cvar_t	addmutator = {"sv_addmutator","", FCVAR_SERVER | FCVAR_UNLOGGED };
+cvar_t	instantmutators = {"sv_instantmutators","1", FCVAR_SERVER | FCVAR_UNLOGGED };
 cvar_t	mutatorlist = {"sv_mutatorlist","", FCVAR_SERVER | FCVAR_UNLOGGED };
 cvar_t	mutatorcount = {"sv_mutatorcount","3", FCVAR_SERVER };
 cvar_t	mutatortime = {"sv_mutatortime","30", FCVAR_SERVER };
@@ -756,6 +757,7 @@ void GameDLLInit( void )
 	CVAR_REGISTER(&ctfspawn1);
 	CVAR_REGISTER(&ctfspawn2);
 	CVAR_REGISTER(&addmutator);
+	CVAR_REGISTER(&instantmutators);
 	CVAR_REGISTER(&mutatorcount);
 	CVAR_REGISTER(&mutatorlist);
 	CVAR_REGISTER(&mutatortime);
