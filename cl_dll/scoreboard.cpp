@@ -138,13 +138,22 @@ int CHudScoreboard :: Draw( float fTime )
 	int margin = 0;
 	if (g_iUser1)
 		margin += 54;
+	int mapnameMargin = 20;
 
 	// print the heading line
-	int ypos = ROW_RANGE_MIN + margin + (list_slot * ROW_GAP);
+	int ypos = ROW_RANGE_MIN + margin + mapnameMargin + (list_slot * ROW_GAP);
 	int	xpos = NAME_RANGE_MIN + xpos_rel;
 
 	int r, g, b;
 	UnpackRGB(r, g, b, HudColor());
+
+	FAR_RIGHT = can_show_packetloss ? PL_RANGE_MAX : PING_RANGE_MAX;
+	FAR_RIGHT += 5;
+
+	char szTitle[256];
+	sprintf( szTitle, "%s | %s | %s", GetServerName(), GetGameName(), GetMapName() );
+	FillRGBA( xpos - 5, ypos - 20, FAR_RIGHT, 22, r, g, b, 70);
+	gHUD.DrawHudString( xpos, ypos - 20, NAME_RANGE_MAX + xpos_rel, szTitle, r, g, b );
 
 	if ( (!ScoreBased() || IndividualPlayer()) && gHUD.m_Teamplay != GAME_TEAMPLAY )
 		gHUD.DrawHudString( xpos, ypos, NAME_RANGE_MAX + xpos_rel, "Player", r, g, b );
@@ -175,11 +184,8 @@ int CHudScoreboard :: Draw( float fTime )
 		gHUD.DrawHudString( PL_RANGE_MAX + xpos_rel - 35, ypos, ScreenWidth, "pkt loss", r, g, b );
 	}
 
-	FAR_RIGHT = can_show_packetloss ? PL_RANGE_MAX : PING_RANGE_MAX;
-	FAR_RIGHT += 5;
-
 	list_slot += 1.2;
-	ypos = ROW_RANGE_MIN + margin + (list_slot * ROW_GAP);
+	ypos = ROW_RANGE_MIN + margin + mapnameMargin + (list_slot * ROW_GAP);
 	xpos = NAME_RANGE_MIN + xpos_rel;
 	FillRGBA( xpos - 5, ypos, FAR_RIGHT, 1, r, g, b, 255);  // draw the seperator line
 	

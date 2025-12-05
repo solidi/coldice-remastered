@@ -26,6 +26,8 @@
 #include "cl_util.h"
 #include <string.h>
 
+#include "vgui_TeamFortressViewport.h"
+
 #ifndef M_PI
 #define M_PI		3.14159265358979323846	// matches value in gcc v2 math.h
 #endif
@@ -192,4 +194,82 @@ bool IndividualPlayer( void )
 {
 	return (gHUD.m_Teamplay == GAME_COLDSKULL ||
 			gHUD.m_Teamplay == GAME_GUNGAME);
+}
+
+const char *GetServerName( void )
+{
+	if (gViewPort && gViewPort->m_szServerName && gViewPort->m_szServerName[0])
+	{
+		return gViewPort->m_szServerName;
+	}
+	else
+	{
+		return "Unknown server name";
+	}
+}
+
+const char *GetMapName( void )
+{
+	char sz[MAX_SERVERNAME_LENGTH + 32];
+	char szTitle[256]; 
+	char *ch;
+
+	// Update the level name
+	if (gEngfuncs.pfnGetLevelName() && gEngfuncs.pfnGetLevelName()[0])
+	{
+		const char *level = gEngfuncs.pfnGetLevelName();
+		strcpy( sz, level );
+		ch = strchr( sz, '/' );
+		if (!ch)
+			ch = strchr( sz, '\\' );
+		strcpy( szTitle, ch+1 );
+		ch = strchr( szTitle, '.' );
+		*ch = '\0';
+	}
+	else
+	{
+		strcpy( szTitle, "unknown" );
+	}
+	return szTitle;
+}
+
+const char *GetGameName( void )
+{
+	switch (gHUD.m_Teamplay)
+	{
+		case GAME_ARENA:
+			return "1 vs. 1";
+		case GAME_BUSTERS:
+			return "Busters";
+		case GAME_CHILLDEMIC:	
+			return "Chilldemic";
+		case GAME_COLDSKULL:
+			return "Coldskull";
+		case GAME_COLDSPOT:
+			return "Coldspot";
+		case GAME_CTC:
+			return "Capture the Chumtoad";
+		case GAME_CTF:
+			return "Capture the Flag";
+		case GAME_HORDE:
+			return "Horde";
+		case GAME_ICEMAN:
+			return "Santas vs. Jesus";
+		case GAME_INSTAGIB:
+			return "Instagib";
+		case GAME_LMS:
+			return "Battle Royale";
+		case GAME_PROPHUNT:
+			return "Prop Hunt";
+		case GAME_SHIDDEN:
+			return "Stealth Hidden";
+		case GAME_SNOWBALL:
+			return "Snowball Fight";
+		case GAME_TEAMPLAY:
+			return "Team Deathmatch";
+		case GAME_GUNGAME:
+			return "Gun Game";
+		default:
+			return "Free for All";
+	}
 }
