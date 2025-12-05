@@ -267,15 +267,12 @@ void ScorePanel::Update()
 	int i;
 
 	// Set the title
-	if (gViewPort->m_szServerName)
-	{
-		char sz[MAX_SERVERNAME_LENGTH + 16];
-		sprintf(sz, "%s", gViewPort->m_szServerName );
-		int r, g, b;
-		UnpackRGB(r, g, b, HudColor());
-		m_TitleLabel.setFgColor( r, g, b, 0 );
-		m_TitleLabel.setText(sz);
-	}
+	char sz[MAX_SERVERNAME_LENGTH + 32 + 32];
+	sprintf(sz, "%s | %s | %s", GetServerName(), GetGameName(), GetMapName() );
+	int r, g, b;
+	UnpackRGB(r, g, b, HudColor());
+	m_TitleLabel.setFgColor( r, g, b, 0 );
+	m_TitleLabel.setText(sz);
 
 	for (int i = 0; i < NUM_COLUMNS; i++)
 	{

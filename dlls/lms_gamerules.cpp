@@ -79,6 +79,12 @@ void CSafeSpot::Spawn( void )
 
 void CSafeSpot::SafeSpotThink( void )
 {
+	if (!royaledamage.value)
+	{
+		pev->nextthink = gpGlobals->time + 2.0;
+		return;
+	}
+
 	for ( int i = 1; i <= gpGlobals->maxClients; i++ )
 	{
 		CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );

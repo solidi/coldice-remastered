@@ -222,6 +222,9 @@ float lerp(float a, float b, float f);
 bool ScoreBased( void );
 bool SortByWins( void );
 bool IndividualPlayer( void );
+const char *GetServerName( void );
+const char *GetMapName( void );
+const char *GetGameName( void );
 
 inline float GetWeaponMultipler()
 {

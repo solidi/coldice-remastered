@@ -88,6 +88,7 @@ cvar_t	meleedrop = {"mp_meleedrop","0", FCVAR_SERVER };
 cvar_t	ctfspawn1 = {"mp_ctfspawn1","weapon_9mmAR", FCVAR_SERVER };
 cvar_t	ctfspawn2 = {"mp_ctfspawn2","weapon_shotgun", FCVAR_SERVER };
 cvar_t	addmutator = {"sv_addmutator","", FCVAR_SERVER | FCVAR_UNLOGGED };
+cvar_t	instantmutators = {"sv_instantmutators","1", FCVAR_SERVER | FCVAR_UNLOGGED };
 cvar_t	mutatorlist = {"sv_mutatorlist","", FCVAR_SERVER | FCVAR_UNLOGGED };
 cvar_t	mutatorcount = {"sv_mutatorcount","3", FCVAR_SERVER };
 cvar_t	mutatortime = {"sv_mutatortime","30", FCVAR_SERVER };
@@ -96,6 +97,7 @@ cvar_t	coldspottime = {"mp_coldspottime","30", FCVAR_SERVER };
 cvar_t	scorelimit = {"mp_scorelimit","100", FCVAR_SERVER };
 cvar_t	roundwaittime = {"mp_roundwaittime","10", FCVAR_SERVER };
 cvar_t	royaleteam = {"mp_royaleteam","1", FCVAR_SERVER };
+cvar_t	royaledamage = {"mp_royaledamage","1", FCVAR_SERVER };
 
 cvar_t  allow_spectators = { "allow_spectators", "0.0", FCVAR_SERVER };		// 0 prevents players from being spectators
 
@@ -756,6 +758,7 @@ void GameDLLInit( void )
 	CVAR_REGISTER(&ctfspawn1);
 	CVAR_REGISTER(&ctfspawn2);
 	CVAR_REGISTER(&addmutator);
+	CVAR_REGISTER(&instantmutators);
 	CVAR_REGISTER(&mutatorcount);
 	CVAR_REGISTER(&mutatorlist);
 	CVAR_REGISTER(&mutatortime);
@@ -764,6 +767,7 @@ void GameDLLInit( void )
 	CVAR_REGISTER(&scorelimit);
 	CVAR_REGISTER(&roundwaittime);
 	CVAR_REGISTER(&royaleteam);
+	CVAR_REGISTER(&royaledamage);
 
 	CVAR_REGISTER (&mp_chattime);
 
