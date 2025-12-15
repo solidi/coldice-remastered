@@ -210,27 +210,36 @@ const char *GetServerName( void )
 
 const char *GetMapName( void )
 {
-	char sz[MAX_SERVERNAME_LENGTH + 32];
-	char szTitle[256]; 
-	char *ch;
+    char sz[MAX_SERVERNAME_LENGTH + 32] = {0};
+    static char szTitle[256] = {0}; // Use static to ensure it persists after the function returns
+    char *ch;
 
-	// Update the level name
-	if (gEngfuncs.pfnGetLevelName() && gEngfuncs.pfnGetLevelName()[0])
-	{
-		const char *level = gEngfuncs.pfnGetLevelName();
-		strcpy( sz, level );
-		ch = strchr( sz, '/' );
-		if (!ch)
-			ch = strchr( sz, '\\' );
-		strcpy( szTitle, ch+1 );
-		ch = strchr( szTitle, '.' );
-		*ch = '\0';
-	}
-	else
-	{
-		strcpy( szTitle, "unknown" );
-	}
-	return szTitle;
+    // Update the level name
+    if (gEngfuncs.pfnGetLevelName && gEngfuncs.pfnGetLevelName()[0])
+    {
+        const char *level = gEngfuncs.pfnGetLevelName();
+        strncpy(sz, level, sizeof(sz) - 1); // Use strncpy for safety
+        ch = strchr(sz, '/');
+        if (!ch)
+            ch = strchr(sz, '\\');
+        if (ch)
+        {
+            strncpy(szTitle, ch + 1, sizeof(szTitle) - 1);
+            ch = strchr(szTitle, '.');
+            if (ch)
+                *ch = '\0';
+        }
+        else
+        {
+            strncpy(szTitle, "unknown", sizeof(szTitle) - 1);
+        }
+    }
+    else
+    {
+        strncpy(szTitle, "unknown", sizeof(szTitle) - 1);
+    }
+
+    return szTitle;
 }
 
 const char *GetGameName( void )
