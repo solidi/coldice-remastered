@@ -6606,7 +6606,7 @@ void CBasePlayer :: UpdateClientData( void )
 	// Update all the items
 	for ( int i = 0; i < MAX_ITEM_TYPES; i++ )
 	{
-		if ( m_rgpPlayerItems[i] )  // each item updates it's successors
+		if ( m_rgpPlayerItems[i] && m_rgpPlayerItems[i]->m_pPlayer )  // each item updates it's successors
 			m_rgpPlayerItems[i]->UpdateClientData( this );
 	}
 
