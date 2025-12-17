@@ -308,10 +308,9 @@ void CFlagBase::Spawn( void )
 
 	pev->angles.x = 0;
 	pev->angles.z = 0;
-	pev->movetype = MOVETYPE_TOSS;
+	pev->movetype = MOVETYPE_NONE;
 	pev->solid = SOLID_TRIGGER;
 	UTIL_SetSize(pev, Vector(-32, -32, 0), Vector(32, 32, 96));
-	UTIL_SetOrigin( pev, pev->origin );
 
 	SetTouch( &CFlagBase::CTFTouch );
 }
@@ -427,7 +426,7 @@ BOOL CHalfLifeCaptureTheFlag::IsSpawnPointValid( CBaseEntity *pSpot )
 	if (FBitSet(pSpot->pev->spawnflags, SF_GIVEITEM))
 		return FALSE;
 
-	while ( (ent = UTIL_FindEntityInSphere( ent, pSpot->pev->origin, 1024 )) != NULL )
+	while ( (ent = UTIL_FindEntityInSphere( ent, pSpot->pev->origin, ctfdistance.value )) != NULL )
 	{
 		// Is another base in area
 		if (FClassnameIs(ent->pev, "base"))
@@ -581,12 +580,15 @@ void CHalfLifeCaptureTheFlag::Think( void )
 		edict_t *pentSpawnSpot = EntSelectSpawnPoint(ctfspawn1.string);
 		if (pentSpawnSpot)
 		{
-			ALERT(at_error, "pentSpawnSpot set!\n");
+			ALERT(at_console, "[CtF] Blue base set!\n");
 			CFlagCharm::CreateFlag(pentSpawnSpot->v.origin, TEAM_BLUE);
 			pBlueBase = CFlagBase::CreateFlagBase(pentSpawnSpot->v.origin, TEAM_BLUE);
 			m_fSpawnBlueHardware = -1;
-			UTIL_Remove(CBaseEntity::Instance(pentSpawnSpot));
+			pentSpawnSpot->v.solid = SOLID_NOT;
+			pentSpawnSpot->v.effects |= EF_NODRAW;
 		}
+		else
+			m_fSpawnBlueHardware = gpGlobals->time + 2.0;
 	}
 
 	if (m_fSpawnRedHardware != -1 && m_fSpawnRedHardware < gpGlobals->time)
@@ -594,12 +596,15 @@ void CHalfLifeCaptureTheFlag::Think( void )
 		edict_t *pentSpawnSpot2 = EntSelectSpawnPoint(ctfspawn2.string);
 		if (pentSpawnSpot2)
 		{
-			ALERT(at_error, "pentSpawnSpot2 set!\n");
+			ALERT(at_console, "[CtF] Red base set!\n");
 			CFlagCharm::CreateFlag(pentSpawnSpot2->v.origin, TEAM_RED);
 			pRedBase = CFlagBase::CreateFlagBase(pentSpawnSpot2->v.origin, TEAM_RED);
 			m_fSpawnRedHardware = -1;
-			UTIL_Remove(CBaseEntity::Instance(pentSpawnSpot2));
+			pentSpawnSpot2->v.solid = SOLID_NOT;
+			pentSpawnSpot2->v.effects |= EF_NODRAW;
 		}
+		else
+			m_fSpawnRedHardware = gpGlobals->time + 2.0;
 	}
 }
 
