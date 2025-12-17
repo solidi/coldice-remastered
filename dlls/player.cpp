@@ -5430,7 +5430,7 @@ void CBasePlayer::AutoMelee()
 	if (tr.flFraction < 1.0)
 	{
 		CBaseEntity *pEntity = CBaseEntity::Instance(tr.pHit);
-		if (pEntity && pEntity->IsAlive())
+		if (pEntity && pEntity->IsAlive() && !FBitSet(pEntity->pev->flags, FL_GODMODE))
 		{
 			if (pEntity->Classify() != CLASS_NONE && pEntity->Classify() != CLASS_MACHINE)
 			{
