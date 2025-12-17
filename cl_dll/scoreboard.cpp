@@ -313,7 +313,13 @@ int CHudScoreboard :: Draw( float fTime )
 		}
 
 		// draw their name (left to right)
+		if (!strcmp(team_info->name, "red") || !strcmp(team_info->name, "santa") || !strcmp(team_info->name, "skeleton"))
+			UnpackRGB(r, g, b, RGB_REDISH);
+		if (!strcmp(team_info->name, "blue") || !strcmp(team_info->name, "jesus") || !strcmp(team_info->name, "survivors"))
+			UnpackRGB(r, g, b, RGB_BLUEISH);
+
 		gHUD.DrawHudString( xpos, ypos, NAME_RANGE_MAX + xpos_rel, team_info->name, r, g, b );
+		UnpackRGB(r, g, b, HudColor());
 
 		// draw kills (right to left)
 		xpos = KILLS_RANGE_MAX + xpos_rel;

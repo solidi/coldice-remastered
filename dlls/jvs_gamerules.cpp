@@ -345,7 +345,13 @@ void CHalfLifeJesusVsSanta::Think( void )
 		ALERT(at_console, "clients set to %d, armor man set to index=%d\n", clients, armoredman);
 		pArmoredMan = (CBasePlayer *)UTIL_PlayerByIndex( armoredman );
 		pArmoredMan->IsArmoredMan = TRUE;
-		pArmoredMan->pev->fuser4 = 1;
+		pArmoredMan->pev->fuser4 = 0;
+		for ( int i = 1; i <= gpGlobals->maxClients; i++ )
+		{
+			CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
+			if ( plr && plr->IsPlayer() && !plr->HasDisconnected )
+				plr->pev->fuser4 = 0;
+		}
 
 		g_GameInProgress = TRUE;
 
@@ -579,9 +585,9 @@ int CHalfLifeJesusVsSanta::GetTeamIndex( const char *pTeamName )
 	if ( pTeamName && *pTeamName != 0 )
 	{
 		if (!strcmp(pTeamName, "jesus"))
-			return 1;
+			return 0;
 		else
-			return 0; // santa
+			return 1; // santa
 	}
 	
 	return -1;	// No match

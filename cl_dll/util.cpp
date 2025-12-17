@@ -137,6 +137,37 @@ unsigned long HudColor()
 {
 	static unsigned long colorchange = RGB_BLUEISH;
 
+	// Mutator always overrides
+	if (gHUD.m_IceModelsIndex == SKIN_MUTATOR)
+	{
+		if (colorchange != RGB_YELLOWISH)
+		{
+			gEngfuncs.pfnClientCmd("con_color \"255 180 30\"\n");
+			gEngfuncs.pfnClientCmd("tracerred \"1\"\ntracerblue \"0\"\n");
+			colorchange = RGB_YELLOWISH;
+		}
+
+		return RGB_YELLOWISH;
+	}
+
+	// Special case for red team in game modes
+	if (gHUD.m_GameMode == GAME_CTF || gHUD.m_GameMode == GAME_ICEMAN || 
+		gHUD.m_GameMode == GAME_COLDSPOT || gHUD.m_GameMode == GAME_LMS ||
+		gHUD.m_GameMode == GAME_CHILLDEMIC)
+	{
+		cl_entity_t *local = gEngfuncs.GetLocalPlayer();
+		if (local->curstate.fuser4 > 0)
+		{
+			if (colorchange != RGB_REDISH)
+			{
+				gEngfuncs.pfnClientCmd("con_color \"255 80 0\"\n");
+				gEngfuncs.pfnClientCmd("tracerred \"1\"\ntracerblue \"0\"\n");
+				colorchange = RGB_REDISH;
+			}
+			return RGB_REDISH;
+		}
+	}
+
 	if ((gHUD.m_IceModelsIndex >= SKIN_INVERSE && gHUD.m_IceModelsIndex <= SKIN_GOLD))
 	{
 		if (colorchange != RGB_BLUEISH)

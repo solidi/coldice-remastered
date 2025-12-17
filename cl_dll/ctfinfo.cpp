@@ -100,7 +100,7 @@ int CHudCtfInfo::Draw(float flTime)
 
 	// Blue
 	{
-		UnpackRGB(r, g, b, HudColor());
+		UnpackRGB(r, g, b, RGB_BLUEISH);
 		ScaleColors(r, g, b, a);
 		switch (m_iBlueMode)
 		{
