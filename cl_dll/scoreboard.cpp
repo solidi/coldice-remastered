@@ -152,7 +152,7 @@ int CHudScoreboard :: Draw( float fTime )
 
 	char szTitle[256];
 	sprintf( szTitle, "%s | %s | %s", GetServerName(), GetGameName(), GetMapName() );
-	FillRGBA( xpos - 5, ypos - 20, FAR_RIGHT, 22, r, g, b, 70);
+	FillRGBA( xpos - 5, ypos - 20, FAR_RIGHT, 22, r, g, b, 50);
 	gHUD.DrawHudString( xpos, ypos - 20, NAME_RANGE_MAX + xpos_rel, szTitle, r, g, b );
 
 	if ( (!ScoreBased() || IndividualPlayer()) && gHUD.m_Teamplay != GAME_TEAMPLAY )
