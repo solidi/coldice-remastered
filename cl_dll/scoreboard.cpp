@@ -152,7 +152,7 @@ int CHudScoreboard :: Draw( float fTime )
 
 	char szTitle[256];
 	sprintf( szTitle, "%s | %s | %s", GetServerName(), GetGameName(), GetMapName() );
-	FillRGBA( xpos - 5, ypos - 20, FAR_RIGHT, 22, r, g, b, 70);
+	FillRGBA( xpos - 5, ypos - 20, FAR_RIGHT, 22, r, g, b, 50);
 	gHUD.DrawHudString( xpos, ypos - 20, NAME_RANGE_MAX + xpos_rel, szTitle, r, g, b );
 
 	if ( (!ScoreBased() || IndividualPlayer()) && gHUD.m_Teamplay != GAME_TEAMPLAY )
@@ -313,7 +313,15 @@ int CHudScoreboard :: Draw( float fTime )
 		}
 
 		// draw their name (left to right)
+		if (!strcmp(team_info->name, "red") || !strcmp(team_info->name, "santa") ||
+			!strcmp(team_info->name, "skeleton") || !strcmp(team_info->name, "busters"))
+			UnpackRGB(r, g, b, RGB_REDISH);
+		if (!strcmp(team_info->name, "blue") || !strcmp(team_info->name, "jesus") || 
+			!strcmp(team_info->name, "survivors")|| !strcmp(team_info->name, "ghosts"))
+			UnpackRGB(r, g, b, RGB_BLUEISH);
+
 		gHUD.DrawHudString( xpos, ypos, NAME_RANGE_MAX + xpos_rel, team_info->name, r, g, b );
+		UnpackRGB(r, g, b, HudColor());
 
 		// draw kills (right to left)
 		xpos = KILLS_RANGE_MAX + xpos_rel;

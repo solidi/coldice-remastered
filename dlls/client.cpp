@@ -786,7 +786,6 @@ void ClientCommand( edict_t *pEntity )
 			GetClassPtr((CBasePlayer *)pev)->GiveNamedItem( STRING(iszItem) );
 		}
 	}
-
 	else if ( FStrEq(pcmd, "drop" ) )
 	{
 		// player is dropping an item. 
@@ -1293,6 +1292,7 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_ctcsecondsforpoint\" - amount of second holding chumtoad for a point\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_ctfspawn1\" - name of entity where blue base will spawn\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_ctfspawn2\" - name of entity where red base will spawn\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_ctfdistance\" - units inbetween flags\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_dualsonly [0|1]\" - Replace all weapons with duals only\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_floatingweapons [0|1]\" - Floating world weapons ala Quake\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_gamemode [gamemode]\" -> available gamemodes\n");

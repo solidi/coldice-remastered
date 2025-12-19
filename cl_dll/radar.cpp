@@ -102,6 +102,8 @@ void CHudRadar::ProcessPlayerState(void)
 		{
 			if (pClient->curstate.fuser4 > 1)
 				b_specials[num_players] = pClient->curstate.fuser4;
+			else if (pClient->curstate.fuser4 == 1)
+				b_specials[num_players] = true;
 			else
 				b_specials[num_players] = false;
 		}
@@ -268,6 +270,8 @@ int CHudRadar::Draw(float flTime)
 			alpha = fmax(alpha + (height * 10), 200);
 		}
 
+		// Default dots set
+		UnpackRGB(r, g, b, RGB_BLUEISH);
 		int fr = r, fg = g, fb = b;
 		if ((gEngfuncs.GetLocalPlayer()->index - 1) == index)
 		{

@@ -212,7 +212,7 @@ void CHalfLifeColdSpot::InitHUD( CBasePlayer *pPlayer )
 	MESSAGE_END();
 
 	char text[64];
-	sprintf( text, "* you are on team \'%s\'\n", pPlayer->m_szTeamName );
+	sprintf( text, "[ColdSpot]: You're on team \'%s\'\n", pPlayer->m_szTeamName );
 	UTIL_SayText( text, pPlayer );
 
 	// notify everyone's HUD of the team change
@@ -332,9 +332,15 @@ void CHalfLifeColdSpot::ClientUserInfoChanged( CBasePlayer *pPlayer, char *infob
 
 	// prevent skin/color/model changes
 	if ( !stricmp( "red", pPlayer->m_szTeamName ) && !stricmp( "santa", mdls ) )
+	{
+		ClientPrint( pPlayer->pev, HUD_PRINTCONSOLE, "[ColdSpot]: You're on team '%s' To change, type 'model iceman'\n", pPlayer->m_szTeamName );
 		return;
+	}
 	if ( !stricmp( "blue", pPlayer->m_szTeamName ) && !stricmp( "iceman", mdls ) )
+	{
+		ClientPrint( pPlayer->pev, HUD_PRINTCONSOLE, "[ColdSpot]: You're on team '%s' To change, type 'model santa'\n", pPlayer->m_szTeamName );
 		return;
+	}
 
 	if ( stricmp( mdls, "iceman" ) && stricmp( mdls, "santa" ) )
 	{

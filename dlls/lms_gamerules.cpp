@@ -747,7 +747,7 @@ void CHalfLifeLastManStanding::PlayerSpawn( CBasePlayer *pPlayer )
 			}
 
 			char text[256];
-			sprintf( text, "* you are on team \'%s\'\n", pPlayer->m_szTeamName );
+			sprintf( text, "[Royale]: You're on team \'%s\'\n", pPlayer->m_szTeamName );
 			UTIL_SayText( text, pPlayer );
 		}
 		else
@@ -835,10 +835,8 @@ void CHalfLifeLastManStanding::ClientUserInfoChanged( CBasePlayer *pPlayer, char
 	char *mdls = g_engfuncs.pfnInfoKeyValue( infobuffer, "model" );
 	int clientIndex = pPlayer->entindex();
 
+	// Spectator
 	if ( !pPlayer->m_szTeamName || !strlen(pPlayer->m_szTeamName) )
-		return;
-
-	if ( !stricmp( mdls, pPlayer->m_szTeamName ) )
 		return;
 
 	// Ignore ctf on model changing back.
@@ -847,9 +845,15 @@ void CHalfLifeLastManStanding::ClientUserInfoChanged( CBasePlayer *pPlayer, char
 
 	// prevent skin/color/model changes
 	if ( !stricmp( "red", pPlayer->m_szTeamName ) && !stricmp( "santa", mdls ) )
+	{
+		ClientPrint( pPlayer->pev, HUD_PRINTCONSOLE, "[Royale]: You're on team '%s' To change, type 'model iceman'\n", pPlayer->m_szTeamName );
 		return;
+	}
 	if ( !stricmp( "blue", pPlayer->m_szTeamName ) && !stricmp( "iceman", mdls ) )
+	{
+		ClientPrint( pPlayer->pev, HUD_PRINTCONSOLE, "[Royale]: You're on team '%s' To change, type 'model santa'\n", pPlayer->m_szTeamName );
 		return;
+	}
 
 	if ( stricmp( mdls, "iceman" ) && stricmp( mdls, "santa" ) )
 	{

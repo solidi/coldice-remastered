@@ -619,6 +619,27 @@ BOOL CHalfLifeChilldemic::FPlayerCanRespawn( CBasePlayer *pPlayer )
 	return FALSE;
 }
 
+void CHalfLifeChilldemic::ClientUserInfoChanged( CBasePlayer *pPlayer, char *infobuffer )
+{
+	// prevent skin/color/model changes
+	char *mdls = g_engfuncs.pfnInfoKeyValue( infobuffer, "model" );
+	int clientIndex = pPlayer->entindex();
+	if ( pPlayer->pev->fuser4 != 1 && !stricmp( "skeleton", mdls ) )
+	{
+		ClientPrint( pPlayer->pev, HUD_PRINTCONSOLE, "[Chilldemic]: Changing to 'skeleton' is not allowed\n");
+		g_engfuncs.pfnSetClientKeyValue( clientIndex, g_engfuncs.pfnGetInfoKeyBuffer( pPlayer->edict() ), "model", "iceman" );
+		return;
+	}
+
+	// Enforce skeleton on infected players
+	if ( pPlayer->pev->fuser4 == 1 && stricmp( "skeleton", mdls ) )
+	{
+		ClientPrint( pPlayer->pev, HUD_PRINTCONSOLE, "[Chilldemic]: Changing back 'skeleton' due to infection\n");
+		g_engfuncs.pfnSetClientKeyValue( clientIndex, g_engfuncs.pfnGetInfoKeyBuffer( pPlayer->edict() ), "model", "skeleton" );
+		return;
+	}
+}
+
 void CHalfLifeChilldemic::PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller, entvars_t *pInflictor )
 {
 	CHalfLifeMultiplay::PlayerKilled(pVictim, pKiller, pInflictor);
