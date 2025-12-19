@@ -278,10 +278,14 @@ int CHudRadar::Draw(float flTime)
 			fr = 200; fg = 200; fb = 200;
 		}
 
+		if (gHUD.m_GameMode == GAME_ICEMAN && m_RadarInfo[index].special == 0)
+			size *= 2;
+
 		if (m_RadarInfo[index].special == 1 ||
 			m_RadarInfo[index].special == 3)
 		{
-			size *= 2;
+			if (gHUD.m_GameMode != GAME_ICEMAN)
+				size *= 2;
 			fr = 240; fg = 0; fb = 0;
 		}
 

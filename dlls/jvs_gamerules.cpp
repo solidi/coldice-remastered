@@ -343,15 +343,15 @@ void CHalfLifeJesusVsSanta::Think( void )
 
 		int armoredman = m_iPlayersInArena[RANDOM_LONG(0, clients-1)];
 		ALERT(at_console, "clients set to %d, armor man set to index=%d\n", clients, armoredman);
-		pArmoredMan = (CBasePlayer *)UTIL_PlayerByIndex( armoredman );
-		pArmoredMan->IsArmoredMan = TRUE;
-		pArmoredMan->pev->fuser4 = 0;
 		for ( int i = 1; i <= gpGlobals->maxClients; i++ )
 		{
 			CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
 			if ( plr && plr->IsPlayer() && !plr->HasDisconnected )
-				plr->pev->fuser4 = 0;
+				plr->pev->fuser4 = 1;
 		}
+		pArmoredMan = (CBasePlayer *)UTIL_PlayerByIndex( armoredman );
+		pArmoredMan->IsArmoredMan = TRUE;
+		pArmoredMan->pev->fuser4 = 0;
 
 		g_GameInProgress = TRUE;
 
