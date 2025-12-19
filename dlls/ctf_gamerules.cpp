@@ -504,16 +504,12 @@ void CHalfLifeCaptureTheFlag::InitHUD( CBasePlayer *pPlayer )
 		strncpy( pPlayer->m_szTeamName, "blue", TEAM_NAME_LENGTH );
 		g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer->edict()),
 			g_engfuncs.pfnGetInfoKeyBuffer(pPlayer->edict()), "model", "iceman");
-		//g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer->edict()),
-		//	g_engfuncs.pfnGetInfoKeyBuffer(pPlayer->edict()), "team", pPlayer->m_szTeamName);
 	}
 	else
 	{
 		strncpy( pPlayer->m_szTeamName, "red", TEAM_NAME_LENGTH );
 		g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer->edict()),
 			g_engfuncs.pfnGetInfoKeyBuffer(pPlayer->edict()), "model", "santa");
-		//g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer->edict()),
-		//	g_engfuncs.pfnGetInfoKeyBuffer(pPlayer->edict()), "team", pPlayer->m_szTeamName);
 	}
 
 	CHalfLifeMultiplay::InitHUD( pPlayer );
@@ -525,7 +521,7 @@ void CHalfLifeCaptureTheFlag::InitHUD( CBasePlayer *pPlayer )
 	MESSAGE_END();
 
 	char text[256];
-	sprintf( text, "* you are on team \'%s\'\n", pPlayer->m_szTeamName );
+	sprintf( text, "[CtF]: You're on team \'%s\'\n", pPlayer->m_szTeamName );
 	UTIL_SayText( text, pPlayer );
 
 	// notify everyone's HUD of the team change
@@ -660,10 +656,8 @@ void CHalfLifeCaptureTheFlag::ClientUserInfoChanged( CBasePlayer *pPlayer, char 
 	char *mdls = g_engfuncs.pfnInfoKeyValue( infobuffer, "model" );
 	int clientIndex = pPlayer->entindex();
 
+	// Spectator
 	if ( !pPlayer->m_szTeamName || !strlen(pPlayer->m_szTeamName) )
-		return;
-
-	if ( !stricmp( mdls, pPlayer->m_szTeamName ) )
 		return;
 
 	// Ignore ctf on model changing back.
@@ -672,9 +666,16 @@ void CHalfLifeCaptureTheFlag::ClientUserInfoChanged( CBasePlayer *pPlayer, char 
 
 	// prevent skin/color/model changes
 	if ( !stricmp( "red", pPlayer->m_szTeamName ) && !stricmp( "santa", mdls ) )
+	{
+		ClientPrint( pPlayer->pev, HUD_PRINTCONSOLE, "[CtF]: You're on team '%s' To change, type 'model iceman'\n", pPlayer->m_szTeamName );
+		CLIENT_COMMAND(pPlayer->edict(), "model santa\n");
 		return;
+	}
 	if ( !stricmp( "blue", pPlayer->m_szTeamName ) && !stricmp( "iceman", mdls ) )
+	{
+		ClientPrint( pPlayer->pev, HUD_PRINTCONSOLE, "[CtF]: You're on team '%s' To change, type 'model santa'\n", pPlayer->m_szTeamName );
 		return;
+	}
 
 	if ( stricmp( mdls, "iceman" ) && stricmp( mdls, "santa" ) )
 	{

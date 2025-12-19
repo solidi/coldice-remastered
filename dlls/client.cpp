@@ -786,7 +786,6 @@ void ClientCommand( edict_t *pEntity )
 			GetClassPtr((CBasePlayer *)pev)->GiveNamedItem( STRING(iszItem) );
 		}
 	}
-
 	else if ( FStrEq(pcmd, "drop" ) )
 	{
 		// player is dropping an item. 
