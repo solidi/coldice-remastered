@@ -501,13 +501,13 @@ void CHalfLifeCaptureTheFlag::InitHUD( CBasePlayer *pPlayer )
 
 	if (pPlayer->pev->fuser4 == TEAM_BLUE)
 	{
-		strncpy( pPlayer->m_szTeamName, "blue", TEAM_NAME_LENGTH );
+		strncpy(pPlayer->m_szTeamName, "blue", TEAM_NAME_LENGTH);
 		g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer->edict()),
 			g_engfuncs.pfnGetInfoKeyBuffer(pPlayer->edict()), "model", "iceman");
 	}
 	else
 	{
-		strncpy( pPlayer->m_szTeamName, "red", TEAM_NAME_LENGTH );
+		strncpy(pPlayer->m_szTeamName, "red", TEAM_NAME_LENGTH);
 		g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer->edict()),
 			g_engfuncs.pfnGetInfoKeyBuffer(pPlayer->edict()), "model", "santa");
 	}
