@@ -1939,7 +1939,7 @@ void CHalfLifeMultiplay :: PlayerKilled( CBasePlayer *pVictim, entvars_t *pKille
 		}
 	}
 
-	if ( pVictim->pev == pKiller )  
+	if ( pVictim->pev == pKiller )
 	{  // killed self
 		int fragsToRemove = 1;
 		if ((pInflictor && FClassnameIs(pInflictor, "weapon_vest")) || g_GameMode == GAME_GUNGAME)
@@ -2053,7 +2053,7 @@ void CHalfLifeMultiplay :: PlayerKilled( CBasePlayer *pVictim, entvars_t *pKille
 		pVictim->pev->effects |= EF_NODRAW;
 	}
 
-	if (m_iNotTheBees)
+	if (!FBitSet(pVictim->pev->effects, EF_NODRAW) && m_iNotTheBees)
 	{
 		Vector angles;
 		BOOL isOtherPlayer = peKiller && pKiller != pVictim->pev;
