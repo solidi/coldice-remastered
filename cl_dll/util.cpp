@@ -153,7 +153,7 @@ unsigned long HudColor()
 	// Special case for red team in game modes
 	if (gHUD.m_GameMode == GAME_CTF || gHUD.m_GameMode == GAME_ICEMAN || 
 		gHUD.m_GameMode == GAME_COLDSPOT || gHUD.m_GameMode == GAME_LMS ||
-		gHUD.m_GameMode == GAME_CHILLDEMIC)
+		gHUD.m_GameMode == GAME_CHILLDEMIC || gHUD.m_GameMode == GAME_CTC)
 	{
 		cl_entity_t *local = gEngfuncs.GetLocalPlayer();
 		if (local->curstate.fuser4 > 0)
