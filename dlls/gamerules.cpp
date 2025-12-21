@@ -1379,9 +1379,8 @@ void CGameRules::MutatorsThink(void)
 					mutators_t *temp;
 					temp = prev->next;
 					prev->next = temp->next;
-					//delete temp;
 				}
-				else
+				if (!prev && !m->next)
 				{
 					m_Mutators = NULL;
 					break;
