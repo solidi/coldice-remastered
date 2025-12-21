@@ -388,6 +388,15 @@ void CHalfLifeJesusVsSanta::Think( void )
 	flUpdateTime = gpGlobals->time + 1.0;
 }
 
+int CHalfLifeJesusVsSanta::IPointsForKill( CBasePlayer* pAttacker, CBasePlayer* pKilled )
+{
+	// No credit for team kills
+	if ( !pAttacker->IsArmoredMan && !pKilled->IsArmoredMan )
+		return 0;
+
+	return CHalfLifeMultiplay::IPointsForKill( pAttacker, pKilled );
+}
+
 void CHalfLifeJesusVsSanta::InitHUD( CBasePlayer *pPlayer )
 {
 	CHalfLifeMultiplay::InitHUD( pPlayer );
