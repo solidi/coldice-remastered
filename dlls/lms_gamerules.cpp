@@ -105,7 +105,7 @@ void CSafeSpot::SafeSpotThink( void )
 			if (!found)
 			{
 				entvars_t *pevWorld = VARS( INDEXENT(0) );
-				plr->TakeDamage( pevWorld, pevWorld, 10, DMG_SHOCK );
+				plr->TakeDamage( pevWorld, plr->pev, 10, DMG_SHOCK );
 			}
 		}
 	}
