@@ -272,7 +272,7 @@ void CHalfLifeLastManStanding::Think( void )
 	{
 		int clients_alive = 0;
 		int client_index = 0;
-		const char *client_name;
+		const char *client_name = "No one";
 		int redTeam = 0;
 		int blueTeam = 0;
 
