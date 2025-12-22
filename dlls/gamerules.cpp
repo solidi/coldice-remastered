@@ -1340,7 +1340,7 @@ void CGameRules::MutatorsThink(void)
 								mutator->next = m_Mutators ? m_Mutators : NULL;
 								m_Mutators = mutator;
 
-								ALERT(at_console, "Mutator \"%s\" enabled at %.2f until %.2f\n", g_szMutators[i], gpGlobals->time, mutator->timeToLive);
+								UTIL_LogPrintf("Mutator \"%s\" enabled at %.2f until %.2f\n", g_szMutators[i], gpGlobals->time, mutator->timeToLive);
 
 								m_flDetectedMutatorChange = gpGlobals->time + 1.0;
 							}
@@ -1369,8 +1369,7 @@ void CGameRules::MutatorsThink(void)
 
 			if (m->timeToLive <= gpGlobals->time && m->timeToLive != -1)
 			{
-				ALERT(at_console, "Mutator \"%s\" disabled at %.2f\n", g_szMutators[m->mutatorId-1], gpGlobals->time);
-				// ALERT(at_aiconsole, ">>> [%.2f] delete m->mutatorId=%d\n", gpGlobals->time, m->mutatorId);
+				UTIL_LogPrintf( "Mutator \"%s\" disabled at %.2f\n", g_szMutators[m->mutatorId-1], gpGlobals->time);
 
 				m_flDetectedMutatorChange = gpGlobals->time + 1.0;
 
