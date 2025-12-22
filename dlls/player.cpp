@@ -2341,10 +2341,14 @@ void CBasePlayer::PlayerBurn(void)
 	if (skeleton)
 		return;
 
-	if (m_hFlameOwner != NULL)
-		TakeDamage( pev, m_hFlameOwner->pev, 2, DMG_BURN | DMG_NEVERGIB );
-	else
-		TakeDamage( pev, pev, 2, DMG_BURN | DMG_NEVERGIB );
+	// Burns never cause direct death
+	if (pev->health > 5)
+	{
+		if (m_hFlameOwner != NULL)
+			TakeDamage( pev, m_hFlameOwner->pev, 2, DMG_BURN | DMG_NEVERGIB );
+		else
+			TakeDamage( pev, pev, 2, DMG_BURN | DMG_NEVERGIB );
+	}
 
 	m_fBurnTime = m_fBurnTime - 0.1;
 }
