@@ -515,7 +515,7 @@ void CBasePlayer :: TraceAttack( entvars_t *pevAttacker, float flDamage, Vector 
 		if (FBitSet(bitsDamageType, DMG_CONFUSE))
 			Confuse(CBaseEntity::Instance(pevAttacker), this, DMG_CONFUSE);
 
-		if (FBitSet(bitsDamageType, DMG_BURN))
+		if (FBitSet(bitsDamageType, DMG_BURN) || g_pGameRules->MutatorEnabled(MUTATOR_FIRESTARTER))
 		{
 			m_fBurnTime = m_fBurnTime + RANDOM_FLOAT(1.0, 3.0);
 			m_hFlameOwner = CBaseEntity::Instance(pevAttacker);
