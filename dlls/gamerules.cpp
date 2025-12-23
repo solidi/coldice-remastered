@@ -1108,7 +1108,8 @@ void CGameRules::AddInstantMutator(void)
 			{
 				CBaseEntity *pPlayer = UTIL_PlayerByIndex( i );
 				CBasePlayer *pl = (CBasePlayer *)pPlayer;
-				if (pPlayer && pPlayer->IsPlayer() && !pl->IsSpectator() && pl->IsAlive() && !pl->HasDisconnected)
+				if (pPlayer && pPlayer->IsPlayer() && !pl->IsSpectator() && pl->IsAlive()
+					&& !pl->HasDisconnected && !FBitSet(pPlayer->pev->flags, FL_GODMODE))
 				{
 					if (pPlayer->pev->armorvalue <= 0)
 					{
@@ -1150,7 +1151,8 @@ void CGameRules::AddInstantMutator(void)
 			{
 				CBaseEntity *pPlayer = UTIL_PlayerByIndex( i );
 				CBasePlayer *pl = (CBasePlayer *)pPlayer;
-				if (pPlayer && pPlayer->IsPlayer() && !pl->IsSpectator() && pl->IsAlive() && !pl->HasDisconnected)
+				if (pPlayer && pPlayer->IsPlayer() && !pl->IsSpectator() && pl->IsAlive()
+					&& !pl->HasDisconnected && !FBitSet(pPlayer->pev->flags, FL_GODMODE))
 					pPlayer->pev->health = pPlayer->pev->health = 1;
 			}
 			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators]: 1 health!\n");
@@ -1173,7 +1175,8 @@ void CGameRules::AddInstantMutator(void)
 			{
 				CBaseEntity *pPlayer = UTIL_PlayerByIndex( i );
 				CBasePlayer *pl = (CBasePlayer *)pPlayer;
-				if (pPlayer && pPlayer->IsPlayer() && !pl->IsSpectator() && pl->IsAlive() && !pl->HasDisconnected)
+				if (pPlayer && pPlayer->IsPlayer() && !pl->IsSpectator() && pl->IsAlive()
+					&& !pl->HasDisconnected && !FBitSet(pPlayer->pev->flags, FL_GODMODE))
 				{
 					pPlayer->pev->health = 67;
 					pPlayer->pev->armorvalue = 67;
@@ -1208,7 +1211,8 @@ void CGameRules::AddInstantMutator(void)
 			{
 				CBaseEntity *pPlayer = UTIL_PlayerByIndex( i );
 				CBasePlayer *pl = (CBasePlayer *)pPlayer;
-				if (pPlayer && pPlayer->IsPlayer() && !pl->IsSpectator() && pl->IsAlive() && !pl->HasDisconnected)
+				if (pPlayer && pPlayer->IsPlayer() && !pl->IsSpectator() && pl->IsAlive()
+					&& !pl->HasDisconnected && !FBitSet(pPlayer->pev->flags, FL_GODMODE))
 					pPlayer->TakeDamage(VARS(eoNullEntity), VARS(eoNullEntity), RANDOM_FLOAT(10.0f, 20.0f), DMG_SLASH);
 			}
 			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators]: Random damage!\n");
