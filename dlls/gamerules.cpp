@@ -1536,12 +1536,23 @@ void CGameRules::MutatorsThink(void)
 		if (m_flChaosMutatorTime && m_flChaosMutatorTime < gpGlobals->time && count < adjcount)
 		{
 			m_flChaosMutatorTime = gpGlobals->time + choasIncrement;
-
-			if (!RANDOM_LONG(0, instantmutators.value))
-				AddRandomMutator("sv_addmutator", TRUE);
-			else
-				AddInstantMutator();
+			AddRandomMutator("sv_addmutator", TRUE);
 		}
+
+		// Instants
+		if (instantmutators.value > 0)
+		{
+			if (m_flInstantMutatorTime == -1)
+				m_flInstantMutatorTime = gpGlobals->time + choasIncrement;
+
+			if (m_flInstantMutatorTime < gpGlobals->time)
+			{
+				AddInstantMutator();
+				m_flInstantMutatorTime = gpGlobals->time + choasIncrement;
+			}
+		}
+		else
+			m_flInstantMutatorTime = -1;
 
 		m_flAddMutatorTime = gpGlobals->time + 1.0;
 	}

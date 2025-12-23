@@ -236,6 +236,7 @@ private:
 
 	float m_flAddMutatorTime = 5; // 5 seconds min, start check
 	float m_flChaosMutatorTime = 0;
+	float m_flInstantMutatorTime = 0;
 	float m_flDetectedMutatorChange = 0;
 	mutators_t *m_Mutators = NULL;
 };
