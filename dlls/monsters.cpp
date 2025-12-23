@@ -2547,7 +2547,7 @@ CBaseEntity *CBaseMonster :: BestVisibleEnemy ( void )
 
 	while ( pNextEnt != NULL )
 	{
-		if ( pNextEnt->IsAlive() )
+		if ( pNextEnt->IsAlive() && !FBitSet(pNextEnt->pev->flags, FL_GODMODE) )
 		{
 			if ( IRelationship( pNextEnt) > iBestRelationship )
 			{

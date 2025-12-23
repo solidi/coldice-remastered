@@ -1086,8 +1086,10 @@ extern int gmsgPlayClientSound;
 
 void CGameRules::AddInstantMutator(void)
 {
-	int max_instant_mutators = 9;
+	int max_instant_mutators = 13;
 	int random = RANDOM_LONG(0, max_instant_mutators);
+	UTIL_LogPrintf("Instant mutator \"%d\" enabled at %.2f\n", random, gpGlobals->time);
+
 	switch (random)
 	{
 		case 0:
@@ -1216,6 +1218,130 @@ void CGameRules::AddInstantMutator(void)
 					pPlayer->TakeDamage(VARS(eoNullEntity), VARS(eoNullEntity), RANDOM_FLOAT(10.0f, 20.0f), DMG_SLASH);
 			}
 			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators]: Random damage!\n");
+			break;
+		case 10:
+			for (int i = 1; i <= gpGlobals->maxClients; ++i)
+			{
+				CBaseEntity *pPlayer = UTIL_PlayerByIndex( i );
+				CBasePlayer *pl = (CBasePlayer *)pPlayer;
+				if (pPlayer && pPlayer->IsPlayer() && !pl->IsSpectator() && pl->IsAlive() && !pl->HasDisconnected)
+				{
+					TraceResult tr;
+					UTIL_MakeVectors( pPlayer->pev->v_angle + pPlayer->pev->punchangle );
+					Vector org = pPlayer->pev->origin;
+					Vector dist = org + gpGlobals->v_forward * 64;
+					UTIL_TraceLine( dist, dist + Vector(0, 0, -128), dont_ignore_monsters, ENT( pPlayer->pev ), &tr );
+
+					if (tr.fAllSolid == 0 && tr.fStartSolid == 0 && tr.flFraction < 1.0)
+					{
+						CBaseEntity *pEntity = CBaseEntity::Instance( tr.pHit );
+						if (pEntity && !(pEntity->pev->flags & FL_CONVEYOR))
+						{
+							Vector angles = UTIL_VecToAngles( tr.vecPlaneNormal );
+							CBaseEntity::Create( "monster_tripmine", tr.vecEndPos + tr.vecPlaneNormal * 8, angles, pPlayer->edict() );
+						}
+					}
+				}
+			}
+			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators]: Tripmine!\n");
+			break;
+		case 11:
+			for (int i = 1; i <= gpGlobals->maxClients; ++i)
+			{
+				CBaseEntity *pPlayer = UTIL_PlayerByIndex( i );
+				CBasePlayer *pl = (CBasePlayer *)pPlayer;
+				if (pPlayer && pPlayer->IsPlayer() && !pl->IsSpectator() && pl->IsAlive() && !pl->HasDisconnected)
+				{
+					TraceResult tr;
+					Vector trace_origin;
+					vec3_t forward, right, up, vEntityForward = pPlayer->pev->v_angle;
+					vEntityForward[0] = 0;
+					g_engfuncs.pfnAngleVectors(vEntityForward, forward, right, up);
+					vEntityForward = forward;
+					g_engfuncs.pfnAngleVectors(pPlayer->pev->v_angle, forward, right, up);
+					float flAimDownFraction = pPlayer->pev->v_angle[0] > 0 ? pPlayer->pev->v_angle[0] / 90.f : 0;
+					trace_origin = pPlayer->pev->origin;
+					if ( pPlayer->pev->flags & FL_DUCKING )
+						trace_origin = trace_origin - (flAimDownFraction + 1) * ( VEC_HULL_MIN - VEC_DUCK_HULL_MIN );
+			
+					Vector vTraceForward = (flAimDownFraction * vEntityForward) + (1 - flAimDownFraction) * forward;
+					// find place to toss monster
+					UTIL_TraceLine(trace_origin + vTraceForward * 24, trace_origin + forward * 60, dont_ignore_monsters, NULL, &tr);
+
+					if (tr.fAllSolid == 0 && tr.fStartSolid == 0 && tr.flFraction > 0.25)
+					{
+						CBaseEntity *pSqueak = CBaseEntity::Create( "monster_snark", tr.vecEndPos, pPlayer->pev->v_angle, pPlayer->edict() );
+						if (pSqueak)
+							pSqueak->pev->velocity = vTraceForward * 300 + pPlayer->pev->velocity;
+					}
+				}
+			}
+			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators]: Pet Snark!\n");
+			break;
+		case 12:
+			for (int i = 1; i <= gpGlobals->maxClients; ++i)
+			{
+				CBaseEntity *pPlayer = UTIL_PlayerByIndex( i );
+				CBasePlayer *pl = (CBasePlayer *)pPlayer;
+				if (pPlayer && pPlayer->IsPlayer() && !pl->IsSpectator() && pl->IsAlive() && !pl->HasDisconnected)
+				{
+					TraceResult tr;
+					Vector trace_origin;
+					vec3_t forward, right, up, vEntityForward = pPlayer->pev->v_angle;
+					vEntityForward[0] = 0;
+					g_engfuncs.pfnAngleVectors(vEntityForward, forward, right, up);
+					vEntityForward = forward;
+					g_engfuncs.pfnAngleVectors(pPlayer->pev->v_angle, forward, right, up);
+					float flAimDownFraction = pPlayer->pev->v_angle[0] > 0 ? pPlayer->pev->v_angle[0] / 90.f : 0;
+					trace_origin = pPlayer->pev->origin;
+					if ( pPlayer->pev->flags & FL_DUCKING )
+						trace_origin = trace_origin - (flAimDownFraction + 1) * ( VEC_HULL_MIN - VEC_DUCK_HULL_MIN );
+			
+					Vector vTraceForward = (flAimDownFraction * vEntityForward) + (1 - flAimDownFraction) * forward;
+					// find place to toss monster
+					UTIL_TraceLine(trace_origin + vTraceForward * 24, trace_origin + forward * 60, dont_ignore_monsters, NULL, &tr);
+
+					if (tr.fAllSolid == 0 && tr.fStartSolid == 0 && tr.flFraction > 0.25)
+					{
+						CBaseEntity *pSqueak = CBaseEntity::Create( "monster_chumtoad", tr.vecEndPos, pPlayer->pev->v_angle, pPlayer->edict() );
+						if (pSqueak)
+							pSqueak->pev->velocity = vTraceForward * 300 + pPlayer->pev->velocity;
+					}
+				}
+			}
+			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators]: Pet Chumtoad!\n");
+			break;
+		case 13:
+			for (int i = 1; i <= gpGlobals->maxClients; ++i)
+			{
+				CBaseEntity *pPlayer = UTIL_PlayerByIndex( i );
+				CBasePlayer *pl = (CBasePlayer *)pPlayer;
+				if (pPlayer && pPlayer->IsPlayer() && !pl->IsSpectator() && pl->IsAlive() && !pl->HasDisconnected)
+				{
+					TraceResult tr;
+					Vector trace_origin;
+					vec3_t forward, right, up, vEntityForward = pPlayer->pev->v_angle;
+					vEntityForward[0] = 0;
+					vEntityForward[2] = 0;
+					g_engfuncs.pfnAngleVectors(vEntityForward, forward, right, up);
+					vEntityForward = forward;
+					g_engfuncs.pfnAngleVectors(pPlayer->pev->v_angle, forward, right, up);
+					float flAimDownFraction = pPlayer->pev->v_angle[0] > 0 ? pPlayer->pev->v_angle[0] / 90.f : 0;
+					trace_origin = pPlayer->pev->origin;
+					if ( pPlayer->pev->flags & FL_DUCKING )
+						trace_origin = trace_origin - (flAimDownFraction + 1) * ( VEC_HULL_MIN - VEC_DUCK_HULL_MIN );
+			
+					Vector vTraceForward = (flAimDownFraction * vEntityForward) + (1 - flAimDownFraction) * forward;
+					// find place to toss monster
+					UTIL_TraceLine(trace_origin + vTraceForward * 24, trace_origin + forward * 96, dont_ignore_monsters, NULL, &tr);
+					// UTIL_LogPrintf("tr.flFraction is %.2f, tr.fAllSolid is %d, tr.fStartSolid is %d\n", tr.flFraction, tr.fAllSolid, tr.fStartSolid);
+					if (tr.fAllSolid == 0 && tr.fStartSolid == 0 && tr.flFraction > 0.45)
+					{
+						CBaseEntity *pAssassin = CBaseEntity::Create( "monster_human_assassin", tr.vecEndPos, g_vecZero, pPlayer->edict() );
+					}
+				}
+			}
+			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators]: Human assassin!\n");
 			break;
 	}
 
