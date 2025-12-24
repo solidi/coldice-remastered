@@ -221,7 +221,8 @@ int	CGraph :: HandleLinkEnt ( int iNode, entvars_t *pevLinkEnt, int afCapMask, N
 
 	if ( !m_fGraphPresent || !m_fGraphPointersSet )
 	{// protect us in the case that the node graph isn't available
-		ALERT ( at_aiconsole, "Graph not ready!\n" );
+		if (!gpGlobals->deathmatch)
+			ALERT ( at_aiconsole, "Graph not ready!\n" );
 		return FALSE;
 	}
 
@@ -589,7 +590,8 @@ int CGraph :: FindShortestPath ( int *piPath, int iStart, int iDest, int iHull, 
 
 	if ( !m_fGraphPresent || !m_fGraphPointersSet )
 	{// protect us in the case that the node graph isn't available or built
-		ALERT ( at_aiconsole, "Graph not ready!\n" );
+		if (!gpGlobals->deathmatch)
+			ALERT ( at_aiconsole, "Graph not ready!\n" );
 		return FALSE;
 	}
 	
@@ -873,7 +875,8 @@ int	CGraph :: FindNearestNode ( const Vector &vecOrigin,  int afNodeTypes )
 
 	if ( !m_fGraphPresent || !m_fGraphPointersSet )
 	{// protect us in the case that the node graph isn't available
-		ALERT ( at_aiconsole, "Graph not ready!\n" );
+		if (!gpGlobals->deathmatch)
+			ALERT ( at_aiconsole, "Graph not ready!\n" );
 		return -1;
 	}
 
@@ -1089,7 +1092,8 @@ void CGraph :: ShowNodeConnections ( int iNode )
 
 	if ( !m_fGraphPresent || !m_fGraphPointersSet )
 	{// protect us in the case that the node graph isn't available or built
-		ALERT ( at_aiconsole, "Graph not ready!\n" );
+		if (!gpGlobals->deathmatch)
+			ALERT ( at_aiconsole, "Graph not ready!\n" );
 		return;
 	}
 
@@ -2073,7 +2077,8 @@ void CTestHull :: PathFind ( void )
 
 	if ( !WorldGraph.m_fGraphPresent || !WorldGraph.m_fGraphPointersSet )
 	{// protect us in the case that the node graph isn't available
-		ALERT ( at_aiconsole, "Graph not ready!\n" );
+		if (!gpGlobals->deathmatch)
+			ALERT ( at_aiconsole, "Graph not ready!\n" );
 		return;
 	}
 
@@ -2497,7 +2502,8 @@ int CGraph :: FSaveGraph ( char *szMapName )
 
 	if ( !m_fGraphPresent || !m_fGraphPointersSet )
 	{// protect us in the case that the node graph isn't available or built
-		ALERT ( at_aiconsole, "Graph not ready!\n" );
+		if (!gpGlobals->deathmatch)
+			ALERT ( at_aiconsole, "Graph not ready!\n" );
 		return FALSE;
 	}
 
@@ -3509,7 +3515,8 @@ void CNodeViewer::Spawn( )
 {
 	if ( !WorldGraph.m_fGraphPresent || !WorldGraph.m_fGraphPointersSet )
 	{// protect us in the case that the node graph isn't available or built
-		ALERT ( at_console, "Graph not ready!\n" );
+		if (!gpGlobals->deathmatch)
+			ALERT ( at_console, "Graph not ready!\n" );
 		UTIL_Remove( this );
 		return;
 	}
