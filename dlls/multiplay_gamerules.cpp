@@ -2040,11 +2040,9 @@ void CHalfLifeMultiplay :: PlayerKilled( CBasePlayer *pVictim, entvars_t *pKille
 	}
 #ifndef HLDEMO_BUILD
 	if ( pVictim->HasNamedPlayerItem("weapon_satchel") )
-	{
 		DeactivateSatchels( pVictim );
-		if (g_pGameRules->FAllowMonsters())
-			DeactivateItems(pVictim, "monster_human_assassin");
-	}
+	if (g_pGameRules->FAllowMonsters())
+		DeactivateItems(pVictim, "monster_human_assassin");
 	DeactivatePortals( pVictim );
 #endif
 
