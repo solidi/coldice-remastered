@@ -63,6 +63,7 @@ public:
 	virtual void TraceAttack( entvars_t *pevAttacker, float flDamage, Vector vecDir, TraceResult *ptr, int bitsDamageType);
 	virtual int	 TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int bitsDamageType );
 	virtual int	 Classify(void);
+	virtual int	 IRelationship ( CBaseEntity *pTarget );
 
 	int BloodColor( void ) { return DONT_BLEED; }
 	void GibMonster( void ) {}	// UNDONE: Throw turret gibs?
@@ -1146,7 +1147,16 @@ int	CBaseTurret::Classify ( void )
 	return CLASS_NONE;
 }
 
+int CBaseTurret::IRelationship ( CBaseEntity *pTarget )
+{
+	if ( g_pGameRules->IsMultiplayer() && 
+		(FClassnameIs( pTarget->pev, "monster_turret" ) || FClassnameIs( pTarget->pev, "monster_sentry" )))
+	{
+		return R_AL;
+	}
 
+	return CBaseMonster::IRelationship( pTarget );
+}
 
 
 //=========================================================
