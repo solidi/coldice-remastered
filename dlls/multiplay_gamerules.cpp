@@ -1827,6 +1827,7 @@ void CHalfLifeMultiplay :: PlayerSpawn( CBasePlayer *pPlayer )
 	{
 		if (snowballfight.value)
 		{
+			pPlayer->GiveNamedItem("weapon_vice");
 			pPlayer->GiveNamedItem("weapon_snowball");
 		}
 		else
@@ -2648,7 +2649,8 @@ BOOL CHalfLifeMultiplay::IsAllowedToSpawn( CBaseEntity *pEntity )
 		(strncmp(STRING(pEntity->pev->classname), "weapon_", 7) == 0 ||
 		strncmp(STRING(pEntity->pev->classname), "ammo_", 5) == 0))
 	{
-		if (!stricmp(STRING(pEntity->pev->classname), "weapon_fists")) {
+		if (!stricmp(STRING(pEntity->pev->classname), "weapon_fists") ||
+			!stricmp(STRING(pEntity->pev->classname), "weapon_vice")) {
 			return TRUE;
 		}
 
