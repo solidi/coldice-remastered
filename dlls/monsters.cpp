@@ -2358,7 +2358,8 @@ BOOL CBaseMonster :: FindCover ( Vector vecThreat, Vector vecViewOffset, float f
 
 	if ( !WorldGraph.m_fGraphPresent || !WorldGraph.m_fGraphPointersSet )
 	{
-		ALERT ( at_aiconsole, "Graph not ready for findcover!\n" );
+		if (!gpGlobals->deathmatch)
+			ALERT ( at_aiconsole, "Graph not ready for findcover!\n" );
 		return FALSE;
 	}
 
@@ -2470,7 +2471,8 @@ BOOL CBaseMonster :: BuildNearestRoute ( Vector vecThreat, Vector vecViewOffset,
 
 	if ( !WorldGraph.m_fGraphPresent || !WorldGraph.m_fGraphPointersSet )
 	{
-		ALERT ( at_aiconsole, "Graph not ready for BuildNearestRoute!\n" );
+		if (!gpGlobals->deathmatch)
+			ALERT ( at_aiconsole, "Graph not ready for BuildNearestRoute!\n" );
 		return FALSE;
 	}
 
@@ -2547,7 +2549,7 @@ CBaseEntity *CBaseMonster :: BestVisibleEnemy ( void )
 
 	while ( pNextEnt != NULL )
 	{
-		if ( pNextEnt->IsAlive() )
+		if ( pNextEnt->IsAlive() && !FBitSet(pNextEnt->pev->flags, FL_GODMODE) )
 		{
 			if ( IRelationship( pNextEnt) > iBestRelationship )
 			{

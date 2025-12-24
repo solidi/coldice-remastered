@@ -743,7 +743,7 @@ void Vote( CBasePlayer *pPlayer, int vote )
 		}
 		else
 		{
-			ALERT(at_aiconsole, "id[%d] please provide a vote tally e.g. \"vote 1\"\n");
+			ALERT(at_aiconsole, "id[%d] please provide a vote tally e.g. \"vote 1\"\n", pPlayer->entindex());
 		}
 
 		pPlayer->m_fVoteCoolDown = gpGlobals->time + 1.0;

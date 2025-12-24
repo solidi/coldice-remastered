@@ -545,7 +545,7 @@ void CHud::ShowTextTips( void ) {
 		return;
 	}
 
-	const int MESSAGE_SIZE = 38;
+	const int MESSAGE_SIZE = 39;
 
 	const char* messageList[MESSAGE_SIZE] = {
 		"Tired of blue skins? Type \"cl_icemodels 0\" in the console switches to real-life skins.\n",
@@ -586,6 +586,7 @@ void CHud::ShowTextTips( void ) {
 		"Bind \"feign\" to pass out, at least for a minute.\n",
 		"Type \"vote\" in the chat to start a vote request.\n",
 		"Bind \"taunt\" to let the competition know how you feel.\n",
+		"Type \"mutator\" in the chat to start a rtv request.\n",
 	};
 
 	// Unstick after a level change

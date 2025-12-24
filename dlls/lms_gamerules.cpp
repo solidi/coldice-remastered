@@ -105,7 +105,7 @@ void CSafeSpot::SafeSpotThink( void )
 			if (!found)
 			{
 				entvars_t *pevWorld = VARS( INDEXENT(0) );
-				plr->TakeDamage( pevWorld, pevWorld, 10, DMG_SHOCK );
+				plr->TakeDamage( pevWorld, plr->pev, 10, DMG_SHOCK );
 			}
 		}
 	}
@@ -272,7 +272,7 @@ void CHalfLifeLastManStanding::Think( void )
 	{
 		int clients_alive = 0;
 		int client_index = 0;
-		const char *client_name;
+		const char *client_name = "No one";
 		int redTeam = 0;
 		int blueTeam = 0;
 

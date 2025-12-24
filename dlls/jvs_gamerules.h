@@ -19,6 +19,7 @@ public:
 	virtual const char *GetGameDescription( void ) { return "Cold Ice Remastered Jesus vs. Santa"; }
 	virtual void InitHUD( CBasePlayer *pPlayer );
 	virtual void Think( void );
+	virtual int IPointsForKill( CBasePlayer* pAttacker, CBasePlayer* pKilled );
 	virtual BOOL HasGameTimerExpired( void );
 	virtual BOOL FPlayerCanTakeDamage( CBasePlayer *pPlayer, CBaseEntity *pAttacker );
 	virtual void FPlayerTookDamage( float flDamage, CBasePlayer *pVictim, CBaseEntity *pKiller);

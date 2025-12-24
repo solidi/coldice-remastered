@@ -515,7 +515,7 @@ void CBasePlayer :: TraceAttack( entvars_t *pevAttacker, float flDamage, Vector 
 		if (FBitSet(bitsDamageType, DMG_CONFUSE))
 			Confuse(CBaseEntity::Instance(pevAttacker), this, DMG_CONFUSE);
 
-		if (FBitSet(bitsDamageType, DMG_BURN))
+		if (FBitSet(bitsDamageType, DMG_BURN) || g_pGameRules->MutatorEnabled(MUTATOR_FIRESTARTER))
 		{
 			m_fBurnTime = m_fBurnTime + RANDOM_FLOAT(1.0, 3.0);
 			m_hFlameOwner = CBaseEntity::Instance(pevAttacker);
@@ -2341,10 +2341,14 @@ void CBasePlayer::PlayerBurn(void)
 	if (skeleton)
 		return;
 
-	if (m_hFlameOwner != NULL)
-		TakeDamage( pev, m_hFlameOwner->pev, 2, DMG_BURN | DMG_NEVERGIB );
-	else
-		TakeDamage( pev, pev, 2, DMG_BURN | DMG_NEVERGIB );
+	// Burns never cause direct death
+	if (pev->health > 5)
+	{
+		if (m_hFlameOwner != NULL)
+			TakeDamage( pev, m_hFlameOwner->pev, 2, DMG_BURN | DMG_NEVERGIB );
+		else
+			TakeDamage( pev, pev, 2, DMG_BURN | DMG_NEVERGIB );
+	}
 
 	m_fBurnTime = m_fBurnTime - 0.1;
 }
@@ -4558,7 +4562,8 @@ void CBasePlayer::GiveNamedItem( const char *pszName )
 	}
 
 	if (snowballfight.value) {
-		if (strncmp(pszName, "weapon_fists", 12) != 0 && strncmp(pszName, "weapon_snowball", 15) != 0) {
+		if (strncmp(pszName, "weapon_fists", 12) != 0 && strncmp(pszName, "weapon_snowball", 15) != 0 &&
+			strncmp(pszName, "weapon_vice", 11) != 0) {
 			return;
 		}
 	}

@@ -1086,12 +1086,14 @@ extern int gmsgPlayClientSound;
 
 void CGameRules::AddInstantMutator(void)
 {
-	int max_instant_mutators = 9;
+	int max_instant_mutators = 13;
 	int random = RANDOM_LONG(0, max_instant_mutators);
+	UTIL_LogPrintf("Instant mutator \"%d\" enabled at %.2f\n", random, gpGlobals->time);
+
 	switch (random)
 	{
 		case 0:
-			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] Nothing selected!\n");
+			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators]: Nothing selected!\n");
 			break;
 		case 1:
 			for (int i = 1; i <= gpGlobals->maxClients; i++)
@@ -1101,14 +1103,15 @@ void CGameRules::AddInstantMutator(void)
 				if (pPlayer && pPlayer->IsPlayer() && !pl->IsSpectator() && pl->IsAlive() && !pl->HasDisconnected)
 					pPlayer->pev->health += 1;
 			}
-			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] +1 health!\n");
+			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators]: +1 health!\n");
 			break;
 		case 2:
 			for (int i = 1; i <= gpGlobals->maxClients; i++)
 			{
 				CBaseEntity *pPlayer = UTIL_PlayerByIndex( i );
 				CBasePlayer *pl = (CBasePlayer *)pPlayer;
-				if (pPlayer && pPlayer->IsPlayer() && !pl->IsSpectator() && pl->IsAlive() && !pl->HasDisconnected)
+				if (pPlayer && pPlayer->IsPlayer() && !pl->IsSpectator() && pl->IsAlive()
+					&& !pl->HasDisconnected && !FBitSet(pPlayer->pev->flags, FL_GODMODE))
 				{
 					if (pPlayer->pev->armorvalue <= 0)
 					{
@@ -1123,7 +1126,7 @@ void CGameRules::AddInstantMutator(void)
 					}
 				}
 			}
-			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] Swap health and armor!\n");
+			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators]: Swap health and armor!\n");
 			break;
 		case 3:
 			for (int i = 1; i <= gpGlobals->maxClients; i++)
@@ -1133,7 +1136,7 @@ void CGameRules::AddInstantMutator(void)
 				if (pPlayer && pPlayer->IsPlayer() && !pl->IsSpectator() && pl->IsAlive() && !pl->HasDisconnected)
 					pPlayer->pev->health += 100;
 			}
-			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] +100 health!\n");
+			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators]: +100 health!\n");
 			break;
 		case 4:
 			for (int i = 1; i <= gpGlobals->maxClients; i++)
@@ -1143,17 +1146,18 @@ void CGameRules::AddInstantMutator(void)
 				if (pPlayer && pPlayer->IsPlayer() && !pl->IsSpectator() && pl->IsAlive() && !pl->HasDisconnected)
 					pPlayer->pev->armorvalue += 100;
 			}
-			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] +100 armor!\n");
+			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators]: +100 armor!\n");
 			break;
 		case 5:
 			for (int i = 1; i <= gpGlobals->maxClients; i++)
 			{
 				CBaseEntity *pPlayer = UTIL_PlayerByIndex( i );
 				CBasePlayer *pl = (CBasePlayer *)pPlayer;
-				if (pPlayer && pPlayer->IsPlayer() && !pl->IsSpectator() && pl->IsAlive() && !pl->HasDisconnected)
+				if (pPlayer && pPlayer->IsPlayer() && !pl->IsSpectator() && pl->IsAlive()
+					&& !pl->HasDisconnected && !FBitSet(pPlayer->pev->flags, FL_GODMODE))
 					pPlayer->pev->health = pPlayer->pev->health = 1;
 			}
-			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] 1 health!\n");
+			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators]: 1 health!\n");
 			break;
 		case 6:
 			for (int i = 1; i <= gpGlobals->maxClients; i++)
@@ -1166,20 +1170,21 @@ void CGameRules::AddInstantMutator(void)
 					pPlayer->pev->armorvalue = 69;
 				}
 			}
-			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] Nice!\n");
+			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators]: Nice!\n");
 			break;
 		case 7:
 			for (int i = 1; i <= gpGlobals->maxClients; i++)
 			{
 				CBaseEntity *pPlayer = UTIL_PlayerByIndex( i );
 				CBasePlayer *pl = (CBasePlayer *)pPlayer;
-				if (pPlayer && pPlayer->IsPlayer() && !pl->IsSpectator() && pl->IsAlive() && !pl->HasDisconnected)
+				if (pPlayer && pPlayer->IsPlayer() && !pl->IsSpectator() && pl->IsAlive()
+					&& !pl->HasDisconnected && !FBitSet(pPlayer->pev->flags, FL_GODMODE))
 				{
 					pPlayer->pev->health = 67;
 					pPlayer->pev->armorvalue = 67;
 				}
 			}
-			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] Six, seeeeven!\n");
+			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators]: Six, seeeeven!\n");
 			break;
 		case 8:
 			for (int i = 1; i <= gpGlobals->maxClients; ++i)
@@ -1201,17 +1206,142 @@ void CGameRules::AddInstantMutator(void)
 					CGrenade::ShootTimed(pPlayer->pev, org, vel, RANDOM_FLOAT(2.0f, 4.0f));
 				}
 			}
-			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] Hot potato!\n");
+			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators]: Hot potato!\n");
 			break;
 		case 9:
 			for (int i = 1; i <= gpGlobals->maxClients; ++i)
 			{
 				CBaseEntity *pPlayer = UTIL_PlayerByIndex( i );
 				CBasePlayer *pl = (CBasePlayer *)pPlayer;
-				if (pPlayer && pPlayer->IsPlayer() && !pl->IsSpectator() && pl->IsAlive() && !pl->HasDisconnected)
+				if (pPlayer && pPlayer->IsPlayer() && !pl->IsSpectator() && pl->IsAlive()
+					&& !pl->HasDisconnected && !FBitSet(pPlayer->pev->flags, FL_GODMODE))
 					pPlayer->TakeDamage(VARS(eoNullEntity), VARS(eoNullEntity), RANDOM_FLOAT(10.0f, 20.0f), DMG_SLASH);
 			}
-			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] Random damage!\n");
+			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators]: Random damage!\n");
+			break;
+		case 10:
+			for (int i = 1; i <= gpGlobals->maxClients; ++i)
+			{
+				CBaseEntity *pPlayer = UTIL_PlayerByIndex( i );
+				CBasePlayer *pl = (CBasePlayer *)pPlayer;
+				if (pPlayer && pPlayer->IsPlayer() && !pl->IsSpectator() && pl->IsAlive() && !pl->HasDisconnected)
+				{
+					TraceResult tr;
+					UTIL_MakeVectors( pPlayer->pev->v_angle + pPlayer->pev->punchangle );
+					Vector org = pPlayer->pev->origin;
+					Vector dist = org + gpGlobals->v_forward * 64;
+					UTIL_TraceLine( dist, dist + Vector(0, 0, -128), dont_ignore_monsters, ENT( pPlayer->pev ), &tr );
+
+					if (tr.fAllSolid == 0 && tr.fStartSolid == 0 && tr.flFraction < 1.0)
+					{
+						CBaseEntity *pEntity = CBaseEntity::Instance( tr.pHit );
+						if (pEntity && !(pEntity->pev->flags & FL_CONVEYOR))
+						{
+							Vector angles = UTIL_VecToAngles( tr.vecPlaneNormal );
+							CBaseEntity::Create( "monster_tripmine", tr.vecEndPos + tr.vecPlaneNormal * 8, angles, pPlayer->edict() );
+						}
+					}
+				}
+			}
+			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators]: Tripmine!\n");
+			break;
+		case 11:
+			for (int i = 1; i <= gpGlobals->maxClients; ++i)
+			{
+				CBaseEntity *pPlayer = UTIL_PlayerByIndex( i );
+				CBasePlayer *pl = (CBasePlayer *)pPlayer;
+				if (pPlayer && pPlayer->IsPlayer() && !pl->IsSpectator() && pl->IsAlive() && !pl->HasDisconnected)
+				{
+					TraceResult tr;
+					Vector trace_origin;
+					vec3_t forward, right, up, vEntityForward = pPlayer->pev->v_angle;
+					vEntityForward[0] = 0;
+					g_engfuncs.pfnAngleVectors(vEntityForward, forward, right, up);
+					vEntityForward = forward;
+					g_engfuncs.pfnAngleVectors(pPlayer->pev->v_angle, forward, right, up);
+					float flAimDownFraction = pPlayer->pev->v_angle[0] > 0 ? pPlayer->pev->v_angle[0] / 90.f : 0;
+					trace_origin = pPlayer->pev->origin;
+					if ( pPlayer->pev->flags & FL_DUCKING )
+						trace_origin = trace_origin - (flAimDownFraction + 1) * ( VEC_HULL_MIN - VEC_DUCK_HULL_MIN );
+			
+					Vector vTraceForward = (flAimDownFraction * vEntityForward) + (1 - flAimDownFraction) * forward;
+					// find place to toss monster
+					UTIL_TraceLine(trace_origin + vTraceForward * 24, trace_origin + forward * 60, dont_ignore_monsters, NULL, &tr);
+
+					if (tr.fAllSolid == 0 && tr.fStartSolid == 0 && tr.flFraction > 0.25)
+					{
+						CBaseEntity *pSqueak = CBaseEntity::Create( "monster_snark", tr.vecEndPos, pPlayer->pev->v_angle, pPlayer->edict() );
+						if (pSqueak)
+							pSqueak->pev->velocity = vTraceForward * 300 + pPlayer->pev->velocity;
+					}
+				}
+			}
+			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators]: Pet Snark!\n");
+			break;
+		case 12:
+			for (int i = 1; i <= gpGlobals->maxClients; ++i)
+			{
+				CBaseEntity *pPlayer = UTIL_PlayerByIndex( i );
+				CBasePlayer *pl = (CBasePlayer *)pPlayer;
+				if (pPlayer && pPlayer->IsPlayer() && !pl->IsSpectator() && pl->IsAlive() && !pl->HasDisconnected)
+				{
+					TraceResult tr;
+					Vector trace_origin;
+					vec3_t forward, right, up, vEntityForward = pPlayer->pev->v_angle;
+					vEntityForward[0] = 0;
+					g_engfuncs.pfnAngleVectors(vEntityForward, forward, right, up);
+					vEntityForward = forward;
+					g_engfuncs.pfnAngleVectors(pPlayer->pev->v_angle, forward, right, up);
+					float flAimDownFraction = pPlayer->pev->v_angle[0] > 0 ? pPlayer->pev->v_angle[0] / 90.f : 0;
+					trace_origin = pPlayer->pev->origin;
+					if ( pPlayer->pev->flags & FL_DUCKING )
+						trace_origin = trace_origin - (flAimDownFraction + 1) * ( VEC_HULL_MIN - VEC_DUCK_HULL_MIN );
+			
+					Vector vTraceForward = (flAimDownFraction * vEntityForward) + (1 - flAimDownFraction) * forward;
+					// find place to toss monster
+					UTIL_TraceLine(trace_origin + vTraceForward * 24, trace_origin + forward * 60, dont_ignore_monsters, NULL, &tr);
+
+					if (tr.fAllSolid == 0 && tr.fStartSolid == 0 && tr.flFraction > 0.25)
+					{
+						CBaseEntity *pSqueak = CBaseEntity::Create( "monster_chumtoad", tr.vecEndPos, pPlayer->pev->v_angle, pPlayer->edict() );
+						if (pSqueak)
+							pSqueak->pev->velocity = vTraceForward * 300 + pPlayer->pev->velocity;
+					}
+				}
+			}
+			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators]: Pet Chumtoad!\n");
+			break;
+		case 13:
+			for (int i = 1; i <= gpGlobals->maxClients; ++i)
+			{
+				CBaseEntity *pPlayer = UTIL_PlayerByIndex( i );
+				CBasePlayer *pl = (CBasePlayer *)pPlayer;
+				if (pPlayer && pPlayer->IsPlayer() && !pl->IsSpectator() && pl->IsAlive() && !pl->HasDisconnected)
+				{
+					TraceResult tr;
+					Vector trace_origin;
+					vec3_t forward, right, up, vEntityForward = pPlayer->pev->v_angle;
+					vEntityForward[0] = 0;
+					vEntityForward[2] = 0;
+					g_engfuncs.pfnAngleVectors(vEntityForward, forward, right, up);
+					vEntityForward = forward;
+					g_engfuncs.pfnAngleVectors(pPlayer->pev->v_angle, forward, right, up);
+					float flAimDownFraction = pPlayer->pev->v_angle[0] > 0 ? pPlayer->pev->v_angle[0] / 90.f : 0;
+					trace_origin = pPlayer->pev->origin;
+					if ( pPlayer->pev->flags & FL_DUCKING )
+						trace_origin = trace_origin - (flAimDownFraction + 1) * ( VEC_HULL_MIN - VEC_DUCK_HULL_MIN );
+			
+					Vector vTraceForward = (flAimDownFraction * vEntityForward) + (1 - flAimDownFraction) * forward;
+					// find place to toss monster
+					UTIL_TraceLine(trace_origin + vTraceForward * 24, trace_origin + forward * 96, dont_ignore_monsters, NULL, &tr);
+					// UTIL_LogPrintf("tr.flFraction is %.2f, tr.fAllSolid is %d, tr.fStartSolid is %d\n", tr.flFraction, tr.fAllSolid, tr.fStartSolid);
+					if (tr.fAllSolid == 0 && tr.fStartSolid == 0 && tr.flFraction > 0.45)
+					{
+						CBaseEntity *pAssassin = CBaseEntity::Create( "monster_human_assassin", tr.vecEndPos, g_vecZero, pPlayer->edict() );
+					}
+				}
+			}
+			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators]: Human assassin!\n");
 			break;
 	}
 
@@ -1340,7 +1470,7 @@ void CGameRules::MutatorsThink(void)
 								mutator->next = m_Mutators ? m_Mutators : NULL;
 								m_Mutators = mutator;
 
-								ALERT(at_console, "Mutator \"%s\" enabled at %.2f until %.2f\n", g_szMutators[i], gpGlobals->time, mutator->timeToLive);
+								UTIL_LogPrintf("Mutator \"%s\" enabled at %.2f until %.2f\n", g_szMutators[i], gpGlobals->time, mutator->timeToLive);
 
 								m_flDetectedMutatorChange = gpGlobals->time + 1.0;
 							}
@@ -1369,8 +1499,7 @@ void CGameRules::MutatorsThink(void)
 
 			if (m->timeToLive <= gpGlobals->time && m->timeToLive != -1)
 			{
-				ALERT(at_console, "Mutator \"%s\" disabled at %.2f\n", g_szMutators[m->mutatorId-1], gpGlobals->time);
-				// ALERT(at_aiconsole, ">>> [%.2f] delete m->mutatorId=%d\n", gpGlobals->time, m->mutatorId);
+				UTIL_LogPrintf( "Mutator \"%s\" disabled at %.2f\n", g_szMutators[m->mutatorId-1], gpGlobals->time);
 
 				m_flDetectedMutatorChange = gpGlobals->time + 1.0;
 
@@ -1379,12 +1508,12 @@ void CGameRules::MutatorsThink(void)
 					mutators_t *temp;
 					temp = prev->next;
 					prev->next = temp->next;
-					//delete temp;
 				}
 				else
 				{
-					m_Mutators = NULL;
-					break;
+					mutators_t *temp;
+					temp = m_Mutators;
+					m_Mutators = temp->next;
 				}
 			}
 			else
@@ -1408,12 +1537,23 @@ void CGameRules::MutatorsThink(void)
 		if (m_flChaosMutatorTime && m_flChaosMutatorTime < gpGlobals->time && count < adjcount)
 		{
 			m_flChaosMutatorTime = gpGlobals->time + choasIncrement;
-
-			if (!RANDOM_LONG(0, instantmutators.value))
-				AddRandomMutator("sv_addmutator", TRUE);
-			else
-				AddInstantMutator();
+			AddRandomMutator("sv_addmutator", TRUE);
 		}
+
+		// Instants
+		if (instantmutators.value > 0)
+		{
+			if (m_flInstantMutatorTime == -1)
+				m_flInstantMutatorTime = gpGlobals->time + choasIncrement;
+
+			if (m_flInstantMutatorTime < gpGlobals->time)
+			{
+				AddInstantMutator();
+				m_flInstantMutatorTime = gpGlobals->time + choasIncrement;
+			}
+		}
+		else
+			m_flInstantMutatorTime = -1;
 
 		m_flAddMutatorTime = gpGlobals->time + 1.0;
 	}

@@ -130,7 +130,7 @@ void LandingEffect( cl_drip_t *drip )
 	cl_rainfx_t *newFX = new(std::nothrow) cl_rainfx_t;
 	if( !newFX )
 	{
-		gEngfuncs.Con_Printf( "Rain error: failed to allocate FX object!\n");
+		gEngfuncs.Con_DPrintf( "Rain error: failed to allocate FX object!\n");
 		return;
 	}
 
