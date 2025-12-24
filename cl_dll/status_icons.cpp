@@ -145,10 +145,10 @@ int CHudStatusIcons::Draw( float flTime )
 					mutators_t *temp;
 					temp = prev->next;
 					prev->next = temp->next;
-				}
-				if (!prev && !m->next) {
-					gHUD.m_Mutators = NULL;
-					break;
+				} else {
+					mutators_t *temp;
+					temp = gHUD.m_Mutators;
+					gHUD.m_Mutators = temp->next;
 				}
 			}
 			prev = m;

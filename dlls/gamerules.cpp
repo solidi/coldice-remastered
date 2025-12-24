@@ -1509,10 +1509,11 @@ void CGameRules::MutatorsThink(void)
 					temp = prev->next;
 					prev->next = temp->next;
 				}
-				if (!prev && !m->next)
+				else
 				{
-					m_Mutators = NULL;
-					break;
+					mutators_t *temp;
+					temp = m_Mutators;
+					m_Mutators = temp->next;
 				}
 			}
 			else
