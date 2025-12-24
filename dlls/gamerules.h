@@ -491,6 +491,7 @@ public:
 
 	void SavePlayerModel(CBasePlayer *pPlayer);
 	void ResetPlayerSettings(CBasePlayer *pPlayer);
+	void CheckMutatorRTV( void );
 
 protected:
 	virtual void ChangeLevel( void );

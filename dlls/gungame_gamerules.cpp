@@ -123,6 +123,8 @@ void CHalfLifeGunGame::Think( void )
 		g_pGameRules->CheckGameMode();
 	}
 
+	CheckMutatorRTV();
+
 	if ( g_fGameOver )
 	{
 		CHalfLifeMultiplay::Think();
