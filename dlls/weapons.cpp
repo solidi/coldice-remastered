@@ -1500,6 +1500,14 @@ int CBasePlayerWeapon::AddToPlayer( CBasePlayer *pPlayer )
 {
 	int bResult = CBasePlayerItem::AddToPlayer( pPlayer );
 
+	if (FBitSet(pPlayer->pev->flags, FL_FAKECLIENT))
+	{
+		if (m_iId == WEAPON_TRIPMINE)
+		{
+			return FALSE; // bots don't use tripmines
+		}
+	}
+
 	if (m_iId < 32)
 		pPlayer->pev->weapons |= (1<<m_iId);
 	else

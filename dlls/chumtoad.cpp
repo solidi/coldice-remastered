@@ -967,6 +967,7 @@ void CChumtoad::PrimaryAttack()
 
 			m_pPlayer->m_iWeaponVolume = QUIET_GUN_VOLUME;
 
+			m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType]--;
 			m_fJustThrown = 1;
 
 			m_flNextPrimaryAttack = m_flNextSecondaryAttack = GetNextAttackDelay(0.3);
@@ -1045,6 +1046,7 @@ void CChumtoad::SecondaryAttack()
 
 			m_pPlayer->m_iWeaponVolume = QUIET_GUN_VOLUME;
 
+			m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] = 0;
 			m_fJustThrown = 2;
 
 			m_flNextPrimaryAttack = m_flNextSecondaryAttack = GetNextAttackDelay(0.3);
@@ -1062,10 +1064,6 @@ void CChumtoad::WeaponIdle( void )
 
 	if (m_fJustThrown)
 	{
-		m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType]--;
-		if (m_fJustThrown > 1)
-			m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] = 0;
-
 		m_fJustThrown = 0;
 
 		if ( !m_pPlayer->m_rgAmmo[PrimaryAmmoIndex()] )

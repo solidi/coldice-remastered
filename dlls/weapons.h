@@ -1301,6 +1301,7 @@ public:
 	void Precache( void );
 	int iItemSlot( void ) { return 5; }
 	int GetItemInfo(ItemInfo *p);
+	BOOL AddToPlayer( CBasePlayer *pPlayer );
 	void SetObjectCollisionBox( void )
 	{
 		//!!!BUGBUG - fix the model!

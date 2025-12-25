@@ -416,6 +416,16 @@ int CTripmine::GetItemInfo(ItemInfo *p)
 	return 1;
 }
 
+int CTripmine::AddToPlayer( CBasePlayer *pPlayer )
+{
+	if ( CBasePlayerWeapon::AddToPlayer( pPlayer ) )
+	{
+		WeaponPickup(pPlayer, m_iId);
+		return TRUE;
+	}
+	return FALSE;
+}
+
 BOOL CTripmine::DeployLowKey( )
 {
 	pev->body = 0;
