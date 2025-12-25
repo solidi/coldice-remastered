@@ -1195,7 +1195,8 @@ void CWorldRunes::DropRune(CBasePlayer *pPlayer) {
 			break;
 		case RUNE_AMMO:
 			sz_Rune = "rune_ammo";
-			if (g_pGameRules->IsInstagib())
+			if (g_pGameRules->IsInstagib() && 
+				!FBitSet(pPlayer->pev->deadflag, DEAD_DYING) && !FBitSet(pPlayer->pev->deadflag, DEAD_DEAD))
 			{
 				if (pPlayer->HasNamedPlayerItem("weapon_hornetgun"))
 				{
