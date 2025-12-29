@@ -193,7 +193,7 @@ entvars_t* CGraph :: LinkEntForLink ( CLink *pLink, CNode *pNode )
 				UTIL_TraceLine ( pNode->m_vecOrigin, VecBModelOrigin( pevTrigger ), ignore_monsters, g_pBodyQueueHead, &tr );
 
 
-				if ( VARS(tr.pHit) == pevTrigger )
+				if ( tr.pHit && VARS(tr.pHit) == pevTrigger )
 				{// good to go!
 					return VARS( tr.pHit );
 				}

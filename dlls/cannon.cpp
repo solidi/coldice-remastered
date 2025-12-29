@@ -201,7 +201,7 @@ void CFlak :: FlakTouch ( CBaseEntity *pOther )
 	TraceResult tr = UTIL_GetGlobalTrace( );
 
 	// it's not another flak
-	if (tr.pHit->v.modelindex == pev->modelindex)
+	if (tr.pHit && tr.pHit->v.modelindex == pev->modelindex)
 	{
 		return;
 	}

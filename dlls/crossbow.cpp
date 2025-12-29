@@ -364,7 +364,7 @@ void CCrossbow::FireSniperBolt()
 	UTIL_TraceLine(vecSrc, vecSrc + vecDir * 8192, dont_ignore_monsters, m_pPlayer->edict(), &tr);
 
 #ifndef CLIENT_DLL
-	if ( tr.pHit->v.takedamage )
+	if ( tr.pHit && tr.pHit->v.takedamage )
 	{
 		ClearMultiDamage( );
 		CBaseEntity::Instance(tr.pHit)->TraceAttack(m_pPlayer->pev, 120, vecDir, &tr, DMG_BULLET | DMG_NEVERGIB ); 
