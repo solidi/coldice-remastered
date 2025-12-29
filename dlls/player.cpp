@@ -490,7 +490,8 @@ void CBasePlayer :: TraceAttack( entvars_t *pevAttacker, float flDamage, Vector 
 		CBasePlayer *pVictim = GetClassPtr((CBasePlayer *)pev);
 		CBasePlayer *pAttacker = GetClassPtr((CBasePlayer *)pevAttacker);
 
-		if (pAttacker && pAttacker->IsPlayer())
+		if (pAttacker && pAttacker->IsPlayer() && pVictim != pAttacker &&
+			g_pGameRules->PlayerRelationship( pVictim, pAttacker ) != GR_TEAMMATE)
 		{
 			pLastAssist = pAttacker;
 		}
