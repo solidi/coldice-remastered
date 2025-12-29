@@ -1913,6 +1913,7 @@ void CBasePlayer::StartObserver( Vector vecPosition, Vector vecViewAngle )
 	m_fInitHUD = TRUE;
 
 	pev->team =  0;
+	strcpy(m_szTeamName, "");
 	MESSAGE_BEGIN( MSG_ALL, gmsgTeamInfo );
 		WRITE_BYTE( ENTINDEX(edict()) );
 		WRITE_STRING( "" );
