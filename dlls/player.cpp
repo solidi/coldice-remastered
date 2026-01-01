@@ -6834,7 +6834,7 @@ Vector CBasePlayer :: AutoaimDeflection( Vector &vecSrc, float flDist, float flD
 	if ( tr.pHit && tr.pHit->v.takedamage != DAMAGE_NO)
 	{
 		// don't look through water
-		if (tr.pHit && !((pev->waterlevel != 3 && tr.pHit->v.waterlevel == 3) 
+		if (!((pev->waterlevel != 3 && tr.pHit->v.waterlevel == 3) 
 			|| (pev->waterlevel == 3 && tr.pHit->v.waterlevel == 0)))
 		{
 			if (tr.pHit->v.takedamage == DAMAGE_AIM)
