@@ -7,7 +7,7 @@ env:
 
 jobs:
   ice_so_and_client_so:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04 # For GLIBCXX_3.4.30+ support
 
     steps:
     - uses: actions/checkout@v4

@@ -271,31 +271,34 @@ void CKnife::FireSniperBolt()
 	UTIL_TraceLine(vecSrc, vecSrc + vecDir * 8192, dont_ignore_monsters, m_pPlayer->edict(), &tr);
 
 #ifndef CLIENT_DLL
-	if ( tr.pHit->v.takedamage )
+	if (!FNullEnt(tr.pHit))
 	{
-		// play thwack or smack sound
-		switch( RANDOM_LONG(0,1) )
-		{
-		case 0:
-			EMIT_SOUND(tr.pHit, CHAN_VOICE, "knife_hit_flesh1.wav", 1, ATTN_NORM); break;
-		case 1:
-			EMIT_SOUND(tr.pHit, CHAN_VOICE, "knife_hit_flesh2.wav", 1, ATTN_NORM); break;
-		}
-
-		ClearMultiDamage( );
 		CBaseEntity *ent = CBaseEntity::Instance(tr.pHit);
-		if (ent)
+		if (tr.pHit->v.takedamage)
 		{
-			ent->TraceAttack(m_pPlayer->pev, gSkillData.plrDmgKnifeSnipe, vecDir, &tr, DMG_BULLET | DMG_NEVERGIB ); 
-			ApplyMultiDamage( pev, m_pPlayer->pev );
+			ClearMultiDamage( );
+			if (ent)
+			{
+				// play thwack or smack sound
+				switch( RANDOM_LONG(0,1) )
+				{
+				case 0:
+					EMIT_SOUND(ENT(ent->pev), CHAN_VOICE, "knife_hit_flesh1.wav", 1, ATTN_NORM); break;
+				case 1:
+					EMIT_SOUND(ENT(ent->pev), CHAN_VOICE, "knife_hit_flesh2.wav", 1, ATTN_NORM); break;
+				}
+				ent->TraceAttack(m_pPlayer->pev, gSkillData.plrDmgKnifeSnipe, vecDir, &tr, DMG_BULLET | DMG_NEVERGIB ); 
+				ApplyMultiDamage( pev, m_pPlayer->pev );
+			}
 		}
-	}
-	else
-	{
-		if (UTIL_PointContents(tr.vecEndPos) != CONTENTS_WATER)
+		else
 		{
-			UTIL_Sparks(tr.vecEndPos);
-			EMIT_SOUND_DYN(tr.pHit, CHAN_VOICE, "weapons/xbow_hit1.wav", RANDOM_FLOAT(0.95, 1.0), ATTN_NORM, 0, 98 + RANDOM_LONG(0,7));
+			if (UTIL_PointContents(tr.vecEndPos) != CONTENTS_WATER)
+			{
+				UTIL_Sparks(tr.vecEndPos);
+				if (ent)
+					EMIT_SOUND_DYN(ENT(ent->pev), CHAN_VOICE, "weapons/xbow_hit1.wav", RANDOM_FLOAT(0.95, 1.0), ATTN_NORM, 0, 98 + RANDOM_LONG(0,7));
+			}
 		}
 	}
 #endif
