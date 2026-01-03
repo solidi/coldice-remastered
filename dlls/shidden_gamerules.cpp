@@ -152,8 +152,7 @@ void CHalfLifeShidden::Think( void )
 				// Force spectate on those that died.
 				if ( plr->m_flForceToObserverTime && plr->m_flForceToObserverTime < gpGlobals->time )
 				{
-					edict_t *pentSpawnSpot = g_pGameRules->GetPlayerSpawnSpot( plr );
-					plr->StartObserver(pentSpawnSpot->v.origin, VARS(pentSpawnSpot)->angles);
+					SuckToSpectator( plr );
 					plr->m_flForceToObserverTime = 0;
 				}
 

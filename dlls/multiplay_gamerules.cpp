@@ -1115,6 +1115,24 @@ void CHalfLifeMultiplay::RemoveAndFillItems( void )
 	}
 }
 
+void CHalfLifeMultiplay::SuckToSpectator( CBasePlayer *pPlayer )
+{
+	if ( pPlayer && pPlayer->IsPlayer() && !pPlayer->IsSpectator() && !pPlayer->HasDisconnected )
+	{
+		strcpy(pPlayer->m_szTeamName, "");
+		MESSAGE_BEGIN( MSG_ALL, gmsgScoreInfo );
+			WRITE_BYTE( ENTINDEX(pPlayer->edict()) );
+			WRITE_SHORT( pPlayer->pev->frags = 0 );
+			WRITE_SHORT( pPlayer->m_iDeaths = 0 );
+			WRITE_SHORT( g_GameMode != GAME_GUNGAME ? pPlayer->m_iRoundWins : pPlayer->m_iRoundWins + 1 );
+			WRITE_SHORT( 0 );
+		MESSAGE_END();
+
+		edict_t *pentSpawnSpot = g_pGameRules->GetPlayerSpawnSpot( pPlayer );
+		pPlayer->StartObserver(pentSpawnSpot->v.origin, VARS(pentSpawnSpot)->angles);
+	}
+}
+
 void CHalfLifeMultiplay::SuckAllToSpectator( void )
 {
 	for ( int i = 1; i <= gpGlobals->maxClients; i++ )
@@ -1129,7 +1147,7 @@ void CHalfLifeMultiplay::SuckAllToSpectator( void )
 				WRITE_SHORT( pPlayer->pev->frags = 0 );
 				WRITE_SHORT( pPlayer->m_iDeaths = 0 );
 				WRITE_SHORT( g_GameMode != GAME_GUNGAME ? pPlayer->m_iRoundWins : pPlayer->m_iRoundWins + 1 );
-				WRITE_SHORT( GetTeamIndex( pPlayer->m_szTeamName ) + 1 );
+				WRITE_SHORT( 0 );
 			MESSAGE_END();
 
 			edict_t *pentSpawnSpot = g_pGameRules->GetPlayerSpawnSpot( pPlayer );

@@ -186,8 +186,7 @@ void CHalfLifeArena::Think( void )
 				if ( plr != pPlayer1 && plr != pPlayer2 &&
 					plr->m_flForceToObserverTime && plr->m_flForceToObserverTime < gpGlobals->time )
 				{
-					edict_t *pentSpawnSpot = g_pGameRules->GetPlayerSpawnSpot( plr );
-					plr->StartObserver(pentSpawnSpot->v.origin, VARS(pentSpawnSpot)->angles);
+					SuckToSpectator( plr );
 					plr->m_flForceToObserverTime = 0;
 				}
 
@@ -375,17 +374,8 @@ void CHalfLifeArena::Think( void )
 					if ( !plr->IsSpectator() )
 					{
 						//just incase player played previous round
-						MESSAGE_BEGIN( MSG_ALL, gmsgScoreInfo );
-							WRITE_BYTE( ENTINDEX(plr->edict()) );
-							WRITE_SHORT( plr->pev->frags = 0 );
-							WRITE_SHORT( plr->m_iDeaths = 0 );
-							WRITE_SHORT( plr->m_iRoundWins );
-							WRITE_SHORT( g_pGameRules->GetTeamIndex( plr->m_szTeamName ) + 1 );
-						MESSAGE_END();
 						plr->m_iAssists = 0;
-
-						edict_t *pentSpawnSpot = g_pGameRules->GetPlayerSpawnSpot(plr);
-						plr->StartObserver(pentSpawnSpot->v.origin, VARS(pentSpawnSpot)->angles);
+						SuckToSpectator( plr );
 					}
 				}
 			}
