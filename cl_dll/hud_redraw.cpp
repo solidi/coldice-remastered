@@ -247,9 +247,6 @@ int CHud :: Redraw( float flTime, int intermission )
 
 	int r, g, b;
 	UnpackRGB(r, g, b, HudColor());
-	iTeamColors[0][0] = r;
-	iTeamColors[0][1] = g;
-	iTeamColors[0][2] = b;
 	
 	// draw all registered HUD elements
 	if ( m_pCvarDraw->value )

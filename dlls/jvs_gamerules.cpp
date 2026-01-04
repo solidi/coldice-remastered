@@ -364,8 +364,8 @@ void CHalfLifeJesusVsSanta::Think( void )
 		// Resend team info
 		MESSAGE_BEGIN( MSG_ALL, gmsgTeamNames );
 			WRITE_BYTE( 2 );
-			WRITE_STRING( "santa" );
 			WRITE_STRING( "jesus" );
+			WRITE_STRING( "santa" );
 		MESSAGE_END();
 
 		UTIL_ClientPrintAll(HUD_PRINTTALK, UTIL_VarArgs("* %d players have entered the arena!\n", clients));
@@ -413,8 +413,8 @@ void CHalfLifeJesusVsSanta::InitHUD( CBasePlayer *pPlayer )
 
 		MESSAGE_BEGIN(MSG_ONE, gmsgTeamNames, NULL, pPlayer->edict());
 			WRITE_BYTE( 2 );
-			WRITE_STRING( "santa" );
 			WRITE_STRING( "jesus" );
+			WRITE_STRING( "santa" );
 		MESSAGE_END();
 	}
 

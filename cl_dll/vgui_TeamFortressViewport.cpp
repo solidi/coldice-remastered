@@ -88,8 +88,8 @@ using namespace vgui;
 int iNumberOfTeamColors = 5;
 int iTeamColors[5][3] =
 {
-	{ 0, 160, 255 },	// Cold Ice (default)
-	{ 125, 165, 210 },	// Blue
+	{ 200, 200, 200 },	// Grey
+	{ 0, 160, 255 },	// Cold Ice
 	{ 200, 90, 70 },	// Red
 	{ 225, 205, 45 },	// Yellow
 	{ 145, 215, 140 },	// Green

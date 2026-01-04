@@ -313,14 +313,9 @@ int CHudScoreboard :: Draw( float fTime )
 		}
 
 		// draw their name (left to right)
-		if (!strcmp(team_info->name, "red") || !strcmp(team_info->name, "santa") ||
-			!strcmp(team_info->name, "skeleton") || !strcmp(team_info->name, "busters") ||
-			!strcmp(team_info->name, "holder") || !strcmp(team_info->name, "props"))
-			UnpackRGB(r, g, b, RGB_REDISH);
-		if (!strcmp(team_info->name, "blue") || !strcmp(team_info->name, "jesus") || 
-			!strcmp(team_info->name, "survivors")|| !strcmp(team_info->name, "ghosts") ||
-			!strcmp(team_info->name, "chaser") || !strcmp(team_info->name, "hunters"))
-			UnpackRGB(r, g, b, RGB_BLUEISH);
+		r = iTeamColors[team_info->teamnumber % iNumberOfTeamColors][0];
+		g = iTeamColors[team_info->teamnumber % iNumberOfTeamColors][1];
+		b = iTeamColors[team_info->teamnumber % iNumberOfTeamColors][2];
 
 		gHUD.DrawHudString( xpos, ypos, NAME_RANGE_MAX + xpos_rel, team_info->name, r, g, b );
 		UnpackRGB(r, g, b, HudColor());

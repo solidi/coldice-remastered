@@ -41,6 +41,7 @@ extern DLL_GLOBAL BOOL	g_fGameOver;
 
 extern int gmsgDeathMsg;	// client dll messages
 extern int gmsgScoreInfo;
+extern int gmsgTeamInfo;
 extern int gmsgMOTD;
 extern int gmsgServerName;
 extern int gmsgStatusIcon;
@@ -1120,6 +1121,10 @@ void CHalfLifeMultiplay::SuckToSpectator( CBasePlayer *pPlayer )
 	if ( pPlayer && pPlayer->IsPlayer() && !pPlayer->IsSpectator() && !pPlayer->HasDisconnected )
 	{
 		strcpy(pPlayer->m_szTeamName, "");
+		MESSAGE_BEGIN( MSG_ALL, gmsgTeamInfo );
+			WRITE_BYTE( ENTINDEX(pPlayer->edict()) );
+			WRITE_STRING( pPlayer->m_szTeamName );
+		MESSAGE_END();
 		MESSAGE_BEGIN( MSG_ALL, gmsgScoreInfo );
 			WRITE_BYTE( ENTINDEX(pPlayer->edict()) );
 			WRITE_SHORT( pPlayer->pev->frags = 0 );
@@ -1142,6 +1147,10 @@ void CHalfLifeMultiplay::SuckAllToSpectator( void )
 		if ( pPlayer && pPlayer->IsPlayer() && !pPlayer->IsSpectator() && !pPlayer->HasDisconnected )
 		{
 			strcpy(pPlayer->m_szTeamName, "");
+			MESSAGE_BEGIN( MSG_ALL, gmsgTeamInfo );
+				WRITE_BYTE( ENTINDEX(pPlayer->edict()) );
+				WRITE_STRING( pPlayer->m_szTeamName );
+			MESSAGE_END();
 			MESSAGE_BEGIN( MSG_ALL, gmsgScoreInfo );
 				WRITE_BYTE( ENTINDEX(pPlayer->edict()) );
 				WRITE_SHORT( pPlayer->pev->frags = 0 );
