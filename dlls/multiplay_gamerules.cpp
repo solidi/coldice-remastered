@@ -1144,24 +1144,7 @@ void CHalfLifeMultiplay::SuckAllToSpectator( void )
 	{
 		CBasePlayer *pPlayer = (CBasePlayer *)UTIL_PlayerByIndex( i );
 
-		if ( pPlayer && pPlayer->IsPlayer() && !pPlayer->IsSpectator() && !pPlayer->HasDisconnected )
-		{
-			strcpy(pPlayer->m_szTeamName, "");
-			MESSAGE_BEGIN( MSG_ALL, gmsgTeamInfo );
-				WRITE_BYTE( ENTINDEX(pPlayer->edict()) );
-				WRITE_STRING( pPlayer->m_szTeamName );
-			MESSAGE_END();
-			MESSAGE_BEGIN( MSG_ALL, gmsgScoreInfo );
-				WRITE_BYTE( ENTINDEX(pPlayer->edict()) );
-				WRITE_SHORT( pPlayer->pev->frags = 0 );
-				WRITE_SHORT( pPlayer->m_iDeaths = 0 );
-				WRITE_SHORT( g_GameMode != GAME_GUNGAME ? pPlayer->m_iRoundWins : pPlayer->m_iRoundWins + 1 );
-				WRITE_SHORT( 0 );
-			MESSAGE_END();
-
-			edict_t *pentSpawnSpot = g_pGameRules->GetPlayerSpawnSpot( pPlayer );
-			pPlayer->StartObserver(pentSpawnSpot->v.origin, VARS(pentSpawnSpot)->angles);
-		}
+		SuckToSpectator( pPlayer );
 
 		// Spectator fix if client is in eye of another during round end.
 		if (!g_GameInProgress && pPlayer && pPlayer->IsSpectator())
