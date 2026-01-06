@@ -480,6 +480,7 @@ public:
 	virtual BOOL HasGameTimerExpired( void );
 	virtual void CheckRounds( void );
 	virtual void SetRoundLimits( void );
+	virtual void SuckToSpectator( CBasePlayer *pPlayer );
 	virtual void SuckAllToSpectator( void );
 	virtual void RemoveAndFillItems( void );
 	virtual void DisplayWinnersGoods( CBasePlayer *pPlayer );

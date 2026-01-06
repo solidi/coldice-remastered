@@ -83,8 +83,7 @@ float *GetClientColor( int clientIndex )
 	case 2: return g_ColorRed;
 	case 3: return g_ColorYellow;
 	case 4: return g_ColorGreen;
-	case 0: return g_ColorBlue;
-
+	case 0: return g_ColorGrey;
 		default	: return g_ColorGrey;
 	}
 
