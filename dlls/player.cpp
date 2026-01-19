@@ -5971,6 +5971,7 @@ void CBasePlayer::CheatImpulseCommands( int iImpulse, BOOL m_iFromClient )
 
 			edict_t		*pWorld = g_engfuncs.pfnPEntityOfEntIndex( 0 );
 
+			UTIL_MakeVectors(pev->v_angle);
 			Vector start = pev->origin + pev->view_ofs;
 			Vector end = start + gpGlobals->v_forward * 1024;
 			UTIL_TraceLine( start, end, ignore_monsters, edict(), &tr );

@@ -28,6 +28,10 @@ extern int gmsgObjective;
 extern int gmsgScoreInfo;
 extern int gmsgItemPickup;
 
+// Cold Skulls enhancement constants
+#define SKULL_MAGNET_THRESHOLD 2
+#define SKULL_MAGNET_RADIUS 512.0f
+
 class CSkullCharm : public CBaseEntity
 {
 public:
@@ -35,6 +39,7 @@ public:
 	void Spawn( void );
 	void EXPORT SkullTouch( CBaseEntity *pOther );
 	void EXPORT ThinkSolid();
+	void EXPORT SkullMagnetThink();
 	BOOL ShouldCollide( CBaseEntity *pOther );
 };
 
@@ -83,8 +88,59 @@ void CSkullCharm::ThinkSolid( void )
 	if (trace.fStartSolid)
 		UTIL_SetOrigin(pev, pev->vuser1);
 
-	SetThink( &CBaseEntity::SUB_StartFadeOut );
-	pev->nextthink = gpGlobals->time + 25.0;
+	SetThink( &CSkullCharm::SkullMagnetThink );
+	pev->nextthink = gpGlobals->time + RANDOM_FLOAT(0.15, 0.25);
+}
+
+void CSkullCharm::SkullMagnetThink( void )
+{
+	// Priority 1: Magnetism to killer if assigned
+	if (pev->euser1 != NULL)
+	{
+		CBasePlayer *pKiller = (CBasePlayer *)CBaseEntity::Instance(pev->euser1);
+		if (pKiller && pKiller->IsPlayer() && pKiller->IsAlive())
+		{
+			// Pull skull toward killer
+			Vector vecDir = (pKiller->pev->origin - pev->origin).Normalize();
+			pev->velocity = vecDir * 300.0f;
+		}
+		else
+		{
+			// Killer disconnected or died, clear reference
+			pev->euser1 = NULL;
+		}
+	}
+	else
+	{
+		// Priority 2: Magnetism to nearby players with skulls
+		CBaseEntity *pEntity = NULL;
+		while ((pEntity = UTIL_FindEntityInSphere(pEntity, pev->origin, SKULL_MAGNET_RADIUS)) != NULL)
+		{
+			if (pEntity->IsPlayer() && pEntity->IsAlive())
+			{
+				CBasePlayer *pPlayer = (CBasePlayer *)pEntity;
+				if (pPlayer->m_iRoundWins >= SKULL_MAGNET_THRESHOLD)
+				{
+					// Pull skull toward player
+					Vector vecDir = (pPlayer->pev->origin - pev->origin).Normalize();
+					pev->velocity = vecDir * 300.0f;
+					break;
+				}
+			}
+		}
+	}
+
+	// Check if it's time to fade
+	if (pev->nextthink > gpGlobals->time + 25.0)
+	{
+		SetThink( &CBaseEntity::SUB_StartFadeOut );
+		pev->nextthink = gpGlobals->time + 25.0;
+	}
+	else
+	{
+		// Randomize next think to spread message load across frames
+		pev->nextthink = gpGlobals->time + RANDOM_FLOAT(0.15, 0.25);
+	}
 }
 
 BOOL CSkullCharm::ShouldCollide( CBaseEntity *pOther )
@@ -97,16 +153,14 @@ BOOL CSkullCharm::ShouldCollide( CBaseEntity *pOther )
 
 void CSkullCharm::SkullTouch( CBaseEntity *pOther )
 {
-	// Support if picked up and dropped
-	pev->velocity = pev->velocity * 0.5;
-	pev->avelocity = pev->avelocity * 0.5;
-
-	if ( !(pev->flags & FL_ONGROUND ) )
-		return;
-
 	// if it's not a player, ignore
 	if ( !pOther->IsPlayer() )
+	{
+		// Support if picked up and dropped
+		pev->velocity = pev->velocity * 0.5;
+		pev->avelocity = pev->avelocity * 0.5;
 		return;
+	}
 
 	if ( pOther->pev->deadflag != DEAD_NO )
 		return;
@@ -114,7 +168,8 @@ void CSkullCharm::SkullTouch( CBaseEntity *pOther )
 	CBasePlayer *pPlayer = (CBasePlayer *)pOther;
 	if (!pPlayer->HasDisconnected)
 	{
-		EMIT_SOUND( pPlayer->edict(), CHAN_ITEM, "rune_pickup.wav", 1, ATTN_NORM );
+		// Use quieter sound to reduce message overhead with many players
+		EMIT_SOUND_DYN( pPlayer->edict(), CHAN_ITEM, "rune_pickup.wav", 0.5, ATTN_NORM, 0, PITCH_NORM );
 
 		pPlayer->m_iRoundWins += pev->fuser1;
 		MESSAGE_BEGIN( MSG_ALL, gmsgScoreInfo );
@@ -125,13 +180,14 @@ void CSkullCharm::SkullTouch( CBaseEntity *pOther )
 			WRITE_SHORT( g_pGameRules->GetTeamIndex( pPlayer->m_szTeamName ) + 1 );
 		MESSAGE_END();
 
+		int frags = fraglimit.value;
+		int myfrags = pPlayer->m_iRoundWins;
+		if (frags == 0)
+			frags = 100;
+		int result = (myfrags / frags) * 100;
+		
 		if (!FBitSet(pPlayer->pev->flags, FL_FAKECLIENT))
 		{
-			int frags = fraglimit.value;
-			int myfrags = pPlayer->m_iRoundWins;
-			if (frags == 0)
-				frags = 100;
-			int result = (myfrags / frags) * 100;
 			MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, pPlayer->edict());
 				WRITE_STRING("Collect the skulls");
 				WRITE_STRING(UTIL_VarArgs("Your progress: %d of %d", myfrags, frags));
@@ -141,16 +197,16 @@ void CSkullCharm::SkullTouch( CBaseEntity *pOther )
 			MESSAGE_BEGIN( MSG_ONE, gmsgItemPickup, NULL, pPlayer->pev );
 				WRITE_STRING( STRING(pev->classname) );
 			MESSAGE_END();
-
-			// End session if hit skull limit
-			if ( myfrags >= frags )
-			{
-				g_pGameRules->EndMultiplayerGame();
-			}
 		}
 
 		SetTouch( NULL );
 		UTIL_Remove( this );
+
+		// End session if hit skull limit
+		if ( myfrags >= frags )
+		{
+			g_pGameRules->EndMultiplayerGame();
+		}
 	}
 }
 
@@ -178,17 +234,35 @@ void CHalfLifeColdSkull::InitHUD( CBasePlayer *pPlayer )
 	}
 }
 
-void CreateSkull( CBasePlayer *pVictim, int amount )
+void CreateSkull( CBasePlayer *pVictim, int amount, CBasePlayer *pKiller = NULL )
 {
-	CSkullCharm *pSkull = (CSkullCharm *)CBaseEntity::Create("skull", pVictim->GetGunPosition( ), pVictim->pev->angles, NULL);
+	int skullCount = 0;
+	CBaseEntity *pSkull = NULL;
+	while ((pSkull = UTIL_FindEntityByClassname(pSkull, "skull")) != NULL)
+		skullCount++;
+	if (skullCount > 100) // Limit for Mmore players
+		return;
+
+	pSkull = (CSkullCharm *)CBaseEntity::Create("skull", pVictim->GetGunPosition( ), pVictim->pev->angles, NULL);
 	if (pSkull != NULL)
 	{
-		pSkull->pev->velocity.x = RANDOM_FLOAT( -300, 300 );
-		pSkull->pev->velocity.y = RANDOM_FLOAT( -300, 300 );
-		pSkull->pev->velocity.z = RANDOM_FLOAT( 0, 300 );
+		// Tighter clustering - reduced random spread for easier collection
+		pSkull->pev->velocity.x = RANDOM_FLOAT( -150, 150 );
+		pSkull->pev->velocity.y = RANDOM_FLOAT( -150, 150 );
+		pSkull->pev->velocity.z = RANDOM_FLOAT( 0, 200 );
 		pSkull->pev->fuser1 = amount;
 		pSkull->pev->vuser1 = pVictim->pev->origin;
 		pSkull->pev->vuser1.z -= 32;
+		
+		// Store killer reference for magnetism (a chance if killer exists)
+		if (pKiller && RANDOM_LONG(0, 100) < 50)
+		{
+			pSkull->pev->euser1 = pKiller->edict();
+		}
+		else
+		{
+			pSkull->pev->euser1 = NULL;
+		}
 
 		/*
 		1 - Bronze Skull
@@ -197,7 +271,7 @@ void CreateSkull( CBasePlayer *pVictim, int amount )
 		20 - Purple Crystal Skull
 		40 - Flaming Red Crystal Skull
 		*/
-		if (amount == 40)
+		if (amount >= 40)
 			pSkull->pev->rendercolor = Vector(255, 0, 0);
 		else if (amount == 20)
 			pSkull->pev->rendercolor = Vector(255, 0, 128);
@@ -221,7 +295,7 @@ void CHalfLifeColdSkull::PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller,
 
 	int remain = 0;
 	if (pVictim != peKiller)
-		remain = pVictim->m_iRoundWins /= 2;
+		remain = pVictim->m_iRoundWins = (pVictim->m_iRoundWins * 2) / 3;  // Lose 33%, keep 67%
 
 	MESSAGE_BEGIN( MSG_ALL, gmsgScoreInfo );
 		WRITE_BYTE( ENTINDEX(pVictim->edict()) );
@@ -244,7 +318,7 @@ void CHalfLifeColdSkull::PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller,
 
 	if (remain <= 1)
 	{
-		CreateSkull( pVictim, 1 );
+		CreateSkull( pVictim, 1, peKiller );
 	}
 	else
 	{
@@ -252,7 +326,7 @@ void CHalfLifeColdSkull::PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller,
 		{
 			int giveout = 0;
 			if (remain >= 40)
-				giveout = 40;
+				giveout = remain;
 			else if (remain >= 20 && remain < 40)
 				giveout = 20;
 			else if (remain >= 10 && remain < 20)
@@ -263,7 +337,7 @@ void CHalfLifeColdSkull::PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller,
 				giveout = 1;
 
 			remain -= giveout;
-			CreateSkull( pVictim, giveout );
+			CreateSkull( pVictim, giveout, peKiller );
 		}
 	}
 }

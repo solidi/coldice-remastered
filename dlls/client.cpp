@@ -1346,6 +1346,7 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_botsmelee [0|1]\" - enable or disable bot close combat\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_breakabletime\" - amount of seconds before a breakable entity respawns\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_chaosfilter\" - a list of mutators inwhich are ignored during chaos mode\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_defaultbots [0-31|-1]\" amount of bots added to server, -1 for manual mode\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_disallowlist\" a list of entities that will not spawn\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_infiniteammo [0|1|2]\" - Infinite ammo ala CS 1.6\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_jumpheight 45\" - Adjust the player's jump height\n");
