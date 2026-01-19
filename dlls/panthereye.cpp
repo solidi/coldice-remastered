@@ -7,7 +7,20 @@
 *
 ****/
 //=========================================================
-// Panthereye - stalking ambush style preditor
+// Panthereye - stalking ambush style predator
+//
+// HORDE MODE BEHAVIOR:
+// In multiplayer (horde) mode, panthereyes are significantly more
+// aggressive, especially when engaging enemies below them:
+// 
+// - Radius-based detection: Bypasses line-of-sight for downward targets
+// - Ignores facing angle: Can leap at enemies below regardless of direction
+// - Forces attack conditions: Overrides base class visibility requirements
+// - Extended drop distance: Can drop up to 1024 units to pursue prey
+// - Immediate aggression: Becomes "pissed" on first detection
+//
+// This allows panthereyes on elevated platforms to leap down at
+// players below, creating dramatic ambush encounters.
 //=========================================================
 
 #include	"extdll.h"
@@ -73,6 +86,11 @@ public:
 
 	void HandleAnimEvent(MonsterEvent_t* pEvent);
 	int TakeDamage(entvars_t* pevInflictor, entvars_t* pevAttacker, float flDamage, int bitsDamageType);
+	BOOL FInViewCone ( CBaseEntity *pEntity );
+	BOOL FInViewCone ( Vector *pOrigin );
+	int CheckLocalMove ( const Vector &vecStart, const Vector &vecEnd, CBaseEntity *pTarget, float *pflDist );
+	void Look ( int iDistance );
+	void CheckAttacks ( CBaseEntity *pTarget, float flDist );
 	BOOL CheckRangeAttack1(float flDot, float flDist);
 	BOOL CheckMeleeAttack1(float flDot, float flDist);
 
@@ -103,6 +121,12 @@ public:
 private:
 	BOOL	m_fStanding;
 	BOOL	m_fPissed;
+
+	// Helper methods for horde mode behavior
+	BOOL IsEnemyBelowUs( CBaseEntity *pEntity, float threshold = 32.0f ) const;
+	float Calculate2DDistance( const Vector &from, const Vector &to ) const;
+	BOOL IsInGodMode( CBaseEntity *pEntity ) const;
+	void ForceDownwardAttackConditions( CBaseEntity *pTarget );
 };
 
 
@@ -532,6 +556,74 @@ void CDiablo::HandleAnimEvent(MonsterEvent_t* pEvent)
 }
 
 //=========================================================
+// Helper: Check if entity is below us by threshold units
+//=========================================================
+BOOL CDiablo::IsEnemyBelowUs( CBaseEntity *pEntity, float threshold ) const
+{
+	if ( !pEntity )
+		return FALSE;
+	
+	float heightDiff = pev->origin.z - pEntity->pev->origin.z;
+	return ( heightDiff > threshold );
+}
+
+//=========================================================
+// Helper: Calculate 2D horizontal distance (ignoring Z)
+//=========================================================
+float CDiablo::Calculate2DDistance( const Vector &from, const Vector &to ) const
+{
+	Vector vecDist2D = to - from;
+	vecDist2D.z = 0;
+	return vecDist2D.Length();
+}
+
+//=========================================================
+// Helper: Check if entity has godmode enabled
+//=========================================================
+BOOL CDiablo::IsInGodMode( CBaseEntity *pEntity ) const
+{
+	if ( !pEntity )
+		return FALSE;
+	
+	return FBitSet( pEntity->pev->flags, FL_GODMODE );
+}
+
+//=========================================================
+// Helper: Force attack conditions for enemies below us
+// Used in multiple places to reduce duplication
+//=========================================================
+void CDiablo::ForceDownwardAttackConditions( CBaseEntity *pTarget )
+{
+	if ( !pTarget || !g_pGameRules->IsMultiplayer() )
+		return;
+	
+	// Force visibility conditions so base class AI doesn't clear them
+	SetConditions( bits_COND_SEE_ENEMY | bits_COND_SEE_CLIENT );
+	
+	// Clear occlusion to prevent leap attack schedule interruption
+	ClearConditions( bits_COND_ENEMY_OCCLUDED );
+	
+	// Update last known position for pathfinding
+	m_vecEnemyLKP = pTarget->pev->origin;
+	
+	// Check if we can force a leap attack
+	if ( FBitSet(pev->flags, FL_ONGROUND) && m_flNextAttack < gpGlobals->time )
+	{
+		float flDist2D = Calculate2DDistance( pev->origin, pTarget->pev->origin );
+		
+		// Force leap if within horizontal range (32-512 units)
+		if ( flDist2D <= 512 && flDist2D > 32 )
+		{
+			SetConditions( bits_COND_CAN_RANGE_ATTACK1 );
+		}
+		else if ( flDist2D < 75 )
+		{
+			SetConditions( bits_COND_CAN_MELEE_ATTACK1 );
+		}
+	}
+}
+
+//=========================================================
 // Needs to be provoked to start running
 //=========================================================
 int CDiablo::TakeDamage(entvars_t* pevInflictor, entvars_t* pevAttacker, float flDamage, int bitsDamageType)
@@ -539,23 +631,170 @@ int CDiablo::TakeDamage(entvars_t* pevInflictor, entvars_t* pevAttacker, float f
 	if (!m_fPissed)
 		m_fPissed = TRUE;
 
-	// For horde
+	// Remember attacker - helps with detecting enemies below/above
+	if ( pevAttacker )
+	{
+		CBaseEntity *pAttacker = CBaseEntity::Instance( pevAttacker );
+		
+		// Don't target godmode players or dead entities
+		if ( pAttacker && pAttacker->IsAlive() && !IsInGodMode( pAttacker ) )
+		{
+			// Switch to the attacker as our primary target
+			m_hEnemy = pAttacker;
+			PushEnemy( m_hEnemy, pev->origin );
+			m_vecEnemyLKP = pAttacker->pev->origin;
+			
+			// In horde mode, force immediate aggressive engagement
+			if ( g_pGameRules->IsMultiplayer() )
+			{
+				SetConditions( bits_COND_NEW_ENEMY | bits_COND_SEE_ENEMY | bits_COND_SEE_CLIENT );
+				m_IdealMonsterState = MONSTERSTATE_COMBAT;
+				
+				// Check if we can leap immediately when damaged
+				if ( FBitSet(pev->flags, FL_ONGROUND) && m_flNextAttack < gpGlobals->time )
+				{
+					float flDist = (pAttacker->pev->origin - pev->origin).Length();
+					float flDist2D = Calculate2DDistance( pev->origin, pAttacker->pev->origin );
+					
+					BOOL bShouldLeap = FALSE;
+					
+					// Enemy below us: aggressive leap (up to 1024 horizontal units)
+					if ( IsEnemyBelowUs( pAttacker ) && flDist2D <= 1024 && flDist2D > 32 )
+					{
+						bShouldLeap = TRUE;
+					}
+					// Same height: moderate leap (up to 384 units)
+					else if ( fabs(pev->origin.z - pAttacker->pev->origin.z) <= 64 && flDist <= 384 && flDist > 64 )
+					{
+						bShouldLeap = TRUE;
+					}
+					
+					if ( bShouldLeap )
+					{
+						SetConditions( bits_COND_CAN_RANGE_ATTACK1 );
+						ClearConditions( bits_COND_CAN_MELEE_ATTACK1 );
+					}
+				}
+			}
+			else
+			{
+				// Single player: force combat but less aggressive
+				SetConditions( bits_COND_NEW_ENEMY );
+				m_IdealMonsterState = MONSTERSTATE_COMBAT;
+			}
+		}
+	}
+
+	// For horde: reduce damage taken (but not as much as before for better balance)
 	if (g_pGameRules->IsMultiplayer())
 	{
-		flDamage *= 0.25;
+		flDamage *= 0.5;
 	}
 
 	return CBaseMonster::TakeDamage(pevInflictor, pevAttacker, flDamage, bitsDamageType);
 }
 
 //=========================================================
-// CheckRangeAttack1
+// Look - Enhanced for horde mode to detect players below
+// using radius-based detection that bypasses visibility checks
+//=========================================================
+void CDiablo::Look ( int iDistance )
+{
+	// In horde mode, use aggressive radius-based detection for players below
+	if ( g_pGameRules->IsMultiplayer() )
+	{
+		// Check for players below using simple radius check (bypasses visibility)
+		CBaseEntity *pList[100];
+		Vector delta = Vector( iDistance, iDistance, iDistance );
+		
+		int count = UTIL_EntitiesInBox( pList, 100, pev->origin - delta, pev->origin + delta, FL_CLIENT );
+		BOOL bFoundEnemyBelow = FALSE;
+		
+		for ( int i = 0; i < count; i++ )
+		{
+			CBaseEntity *pPlayer = pList[i];
+			
+			// Skip invalid targets: self, dead, neutral/friendly, godmode
+			if ( pPlayer && pPlayer != this && pPlayer->IsAlive() && 
+				 IRelationship( pPlayer ) > R_NO && 
+				 !IsInGodMode( pPlayer ) )
+			{
+				// Calculate distance and check if below us
+				Vector vecDist = pPlayer->pev->origin - pev->origin;
+				float flDist = vecDist.Length();
+				
+				// Radius check for targets below (no visibility or angle checks)
+				// This bypasses platform edge occlusion issues
+				if ( IsEnemyBelowUs( pPlayer ) && flDist <= iDistance )
+				{
+					// Only switch if we have no enemy or this one is closer
+					if ( m_hEnemy == NULL || flDist < (m_hEnemy->pev->origin - pev->origin).Length() )
+					{
+						m_hEnemy = pPlayer;
+						PushEnemy( m_hEnemy, pev->origin );
+						SetConditions( bits_COND_SEE_ENEMY | bits_COND_NEW_ENEMY );
+						m_IdealMonsterState = MONSTERSTATE_COMBAT;
+						m_fPissed = TRUE; // Immediately aggressive in horde mode
+						bFoundEnemyBelow = TRUE;
+					}
+				}
+			}
+		}
+		
+		// Always call base class Look to detect horizontal/above targets
+		// This ensures we don't miss enemies at same level
+		CBaseMonster::Look( iDistance );
+	}
+	else
+	{
+		// Single player: use normal behavior
+		CBaseMonster::Look( iDistance );
+	}
+}
+
+//=========================================================
+// CheckAttacks - Override to force attack conditions for enemies below
+// in horde mode, bypassing base class visibility requirements
+//=========================================================
+void CDiablo::CheckAttacks ( CBaseEntity *pTarget, float flDist )
+{
+	// In horde mode with targets below, ensure base class doesn't clear our conditions
+	if ( g_pGameRules->IsMultiplayer() && m_fPissed && pTarget && IsEnemyBelowUs( pTarget ) )
+	{
+		// Pre-force conditions before base class check
+		ForceDownwardAttackConditions( pTarget );
+	}
+	
+	// Call base class to do the actual attack condition checking
+	CBaseMonster::CheckAttacks( pTarget, flDist );
+	
+	// Re-force conditions after base class (in case it cleared them)
+	if ( g_pGameRules->IsMultiplayer() && m_fPissed && pTarget && IsEnemyBelowUs( pTarget ) )
+	{
+		ForceDownwardAttackConditions( pTarget );
+	}
+}
+
+//=========================================================
+// CheckRangeAttack1 - Leap attack validation
 //=========================================================
 BOOL CDiablo::CheckRangeAttack1(float flDot, float flDist)
 {
-	if (m_flNextAttack < gpGlobals->time)
+	if (m_flNextAttack < gpGlobals->time && FBitSet(pev->flags, FL_ONGROUND))
 	{
-		if (FBitSet(pev->flags, FL_ONGROUND) && flDist <= 256 && flDist > 75 && flDot >= 0.65)
+		// In horde mode with targets below, use special rules
+		if ( g_pGameRules->IsMultiplayer() && m_hEnemy != NULL && IsEnemyBelowUs( m_hEnemy ) )
+		{
+			// For downward targets: ignore facing angle (flDot), only check distance
+			// Distance restrictions still apply: 32-512 units horizontally
+			float flDist2D = Calculate2DDistance( pev->origin, m_hEnemy->pev->origin );
+			
+			if ( flDist2D <= 512 && flDist2D > 32 )
+				return TRUE;
+		}
+		
+		// Normal leap attack conditions: must be facing target (flDot >= 0.65)
+		if (flDist <= 256 && flDist > 75 && flDot >= 0.65)
 			return TRUE;
 	}
 	return FALSE;
@@ -573,6 +812,244 @@ BOOL CDiablo::CheckMeleeAttack1(float flDot, float flDist)
 	return FALSE;
 }
 
+//=========================================================
+// CheckLocalMove - allows panthereye to be aggressive
+// about dropping off ledges to pursue prey
+//=========================================================
+int CDiablo::CheckLocalMove ( const Vector &vecStart, const Vector &vecEnd, CBaseEntity *pTarget, float *pflDist )
+{
+	// Call base class to do the actual movement checking
+	int iReturn = CBaseMonster::CheckLocalMove( vecStart, vecEnd, pTarget, pflDist );
+	
+	// In horde mode, be even more aggressive about elevation changes
+	if ( g_pGameRules->IsMultiplayer() )
+	{
+		// Override the height restriction - panthereye can drop up to 1024 units in horde mode
+		if ( iReturn == LOCALMOVE_INVALID_DONT_TRIANGULATE )
+		{
+			// Check if this was blocked due to height difference
+			if ( !(pev->flags & (FL_FLY|FL_SWIM) ) && (!pTarget || (pTarget->pev->flags & FL_ONGROUND)) )
+			{
+				float heightDiff = fabs(vecEnd.z - vecStart.z);
+				
+				// If moving downward and height difference is less than 1024 units, allow the move
+				// Panthereye is extremely brave in horde mode
+				if ( heightDiff <= 1024 && vecEnd.z < vecStart.z )
+				{
+					iReturn = LOCALMOVE_VALID;
+				}
+			}
+		}
+	}
+	else
+	{
+		// Single player: allow 256 unit drops
+		if ( iReturn == LOCALMOVE_INVALID_DONT_TRIANGULATE )
+		{
+			if ( !(pev->flags & (FL_FLY|FL_SWIM) ) && (!pTarget || (pTarget->pev->flags & FL_ONGROUND)) )
+			{
+				float heightDiff = fabs(vecEnd.z - vecStart.z);
+				
+				if ( heightDiff <= 256 && vecEnd.z < vecStart.z )
+				{
+					iReturn = LOCALMOVE_VALID;
+				}
+			}
+		}
+	}
+	
+	return iReturn;
+}
+
+//=========================================================
+// FInViewCone - 3D vision cone that can see above/below
+// Overrides base class 2D-only implementation
+//=========================================================
+BOOL CDiablo::FInViewCone ( CBaseEntity *pEntity )
+{
+	Vector vecLOS;
+	float flDot;
+
+	UTIL_MakeVectors ( pev->angles );
+	
+	// Calculate 3D direction to entity
+	vecLOS = ( pEntity->pev->origin - pev->origin ).Normalize();
+	
+	// Check vertical distance for special handling
+	float heightDiff = pEntity->pev->origin.z - pev->origin.z;
+	
+	// For horde mode, use wider field of view
+	if (g_pGameRules->IsMultiplayer())
+	{
+		// If target is significantly below (more than 32 units), be very lenient
+		if ( heightDiff < -32 )
+		{
+			// Can see almost anything below us in horde mode
+			// Only check 2D horizontal direction with very wide FOV
+			Vector vec2DForward = gpGlobals->v_forward;
+			vec2DForward.z = 0;
+			float len2DForward = vec2DForward.Length();
+			
+			// Safety check: if forward vector has no horizontal component, allow sight
+			if ( len2DForward < 0.01f )
+				return TRUE;
+			
+			vec2DForward = vec2DForward.Normalize();
+			
+			Vector vec2DLOS = vecLOS;
+			vec2DLOS.z = 0;
+			float len2DLOS = vec2DLOS.Length();
+			
+			if ( len2DLOS < 0.01f )
+				return TRUE;
+			
+			vec2DLOS = vec2DLOS.Normalize();
+			
+			float flDot2D = DotProduct( vec2DLOS, vec2DForward );
+			
+			// Almost 360 degree horizontal arc for targets below (very aggressive)
+			if ( flDot2D > -0.95 )
+				return TRUE;
+		}
+		
+		// Use 3D dot product for normal detection
+		flDot = DotProduct ( vecLOS , gpGlobals->v_forward );
+		
+		// 270 degree horizontal + vertical awareness
+		if ( flDot > -0.707 )
+			return TRUE;
+	}
+	else
+	{
+		// Single player: also check for targets below but less aggressive
+		if ( heightDiff < -32 )
+		{
+			Vector vec2DForward = gpGlobals->v_forward;
+			vec2DForward.z = 0;
+			float len2DForward = vec2DForward.Length();
+			
+			if ( len2DForward < 0.01f )
+				return TRUE;
+			
+			vec2DForward = vec2DForward.Normalize();
+			
+			Vector vec2DLOS = vecLOS;
+			vec2DLOS.z = 0;
+			float len2DLOS = vec2DLOS.Length();
+			
+			if ( len2DLOS < 0.01f )
+				return TRUE;
+			
+			vec2DLOS = vec2DLOS.Normalize();
+			
+			float flDot2D = DotProduct( vec2DLOS, vec2DForward );
+			
+			// 270 degree arc for targets below in single player
+			if ( flDot2D > -0.5 )
+				return TRUE;
+		}
+		
+		// Use 3D dot product
+		flDot = DotProduct ( vecLOS , gpGlobals->v_forward );
+		
+		// Normal 90 degree cone with vertical awareness
+		if ( flDot > 0.5 )
+			return TRUE;
+	}
+	
+	return FALSE;
+}
+
+//=========================================================
+// FInViewCone - 3D vision cone for vector positions
+//=========================================================
+BOOL CDiablo::FInViewCone ( Vector *pOrigin )
+{
+	Vector vecLOS;
+	float flDot;
+
+	UTIL_MakeVectors ( pev->angles );
+	
+	// Calculate 3D direction to position
+	vecLOS = ( *pOrigin - pev->origin ).Normalize();
+	
+	// Check vertical distance for special handling
+	float heightDiff = pOrigin->z - pev->origin.z;
+	
+	// For horde mode, use wider field of view
+	if (g_pGameRules->IsMultiplayer())
+	{
+		// If target is significantly below, be very lenient
+		if ( heightDiff < -32 )
+		{
+			Vector vec2DForward = gpGlobals->v_forward;
+			vec2DForward.z = 0;
+			float len2DForward = vec2DForward.Length();
+			
+			if ( len2DForward < 0.01f )
+				return TRUE;
+			
+			vec2DForward = vec2DForward.Normalize();
+			
+			Vector vec2DLOS = vecLOS;
+			vec2DLOS.z = 0;
+			float len2DLOS = vec2DLOS.Length();
+			
+			if ( len2DLOS < 0.01f )
+				return TRUE;
+			
+			vec2DLOS = vec2DLOS.Normalize();
+			
+			float flDot2D = DotProduct( vec2DLOS, vec2DForward );
+			
+			if ( flDot2D > -0.95 )
+				return TRUE;
+		}
+		
+		// Use 3D dot product
+		flDot = DotProduct ( vecLOS , gpGlobals->v_forward );
+		
+		if ( flDot > -0.707 )
+			return TRUE;
+	}
+	else
+	{
+		// Single player: check for targets below
+		if ( heightDiff < -32 )
+		{
+			Vector vec2DForward = gpGlobals->v_forward;
+			vec2DForward.z = 0;
+			float len2DForward = vec2DForward.Length();
+			
+			if ( len2DForward < 0.01f )
+				return TRUE;
+			
+			vec2DForward = vec2DForward.Normalize();
+			
+			Vector vec2DLOS = vecLOS;
+			vec2DLOS.z = 0;
+			float len2DLOS = vec2DLOS.Length();
+			
+			if ( len2DLOS < 0.01f )
+				return TRUE;
+			
+			vec2DLOS = vec2DLOS.Normalize();
+			
+			float flDot2D = DotProduct( vec2DLOS, vec2DForward );
+			
+			if ( flDot2D > -0.5 )
+				return TRUE;
+		}
+		
+		// Use 3D dot product
+		flDot = DotProduct ( vecLOS , gpGlobals->v_forward );
+		
+		if ( flDot > 0.5 )
+			return TRUE;
+	}
+	
+	return FALSE;
+}
 
 //=========================================================
 // Any custom shedules?
@@ -626,6 +1103,19 @@ Schedule_t* CDiablo::GetSchedule(void)
 		if ((!HasConditions(bits_COND_NEW_ENEMY)) && (HasConditions(bits_COND_ENEMY_DEAD)))
 			return CBaseMonster::GetSchedule();
 
+		// In horde mode, always be aggressive immediately
+		if (g_pGameRules->IsMultiplayer())
+		{
+			if (HasConditions(bits_COND_CAN_MELEE_ATTACK1))
+				return GetScheduleOfType(SCHED_MELEE_ATTACK1);
+
+			if (HasConditions(bits_COND_CAN_RANGE_ATTACK1))
+				return GetScheduleOfType(SCHED_RANGE_ATTACK1);
+
+			return GetScheduleOfType(SCHED_CHASE_ENEMY);
+		}
+
+		// Single player stealth behavior
 		if ((!HasConditions(bits_COND_ENEMY_FACING_ME)) && (!m_fPissed))
 		{
 			if (HasConditions(bits_COND_CAN_MELEE_ATTACK1))
@@ -684,6 +1174,25 @@ void CDiablo::StartTask(Task_t* pTask)
 
 	switch (pTask->iTask)
 	{
+	case TASK_FACE_ENEMY:
+	{
+		// In horde mode, if enemy is below us, skip facing requirement
+		// The leap attack will handle trajectory automatically
+		if ( g_pGameRules->IsMultiplayer() && m_hEnemy != NULL )
+		{
+			float heightDiff = pev->origin.z - m_hEnemy->pev->origin.z;
+			if ( heightDiff > 32 )
+			{
+				// Enemy is below - don't need to face them precisely
+				// Just complete the task immediately
+				TaskComplete();
+				break;
+			}
+		}
+		// Normal facing for same-level or above targets
+		CBaseMonster::StartTask(pTask);
+		break;
+	}
 	case TASK_DIABLO_RESETATTACK:
 	{
 		m_flNextAttack = -1;
@@ -916,5 +1425,49 @@ BOOL CDiablo::FallBack(const Vector& vecThreat, const Vector& vecViewOffset)
 
 void CDiablo::RunAI(void)
 {
+	// Check if current enemy is invalid (godmode or dead)
+	if ( m_hEnemy != NULL )
+	{
+		if ( IsInGodMode( m_hEnemy ) || !m_hEnemy->IsAlive() )
+		{
+			// Enemy is invalid, clear them
+			m_hEnemy = NULL;
+			ClearConditions( bits_COND_SEE_ENEMY | bits_COND_SEE_CLIENT );
+			SetConditions( bits_COND_ENEMY_DEAD );
+		}
+	}
+	
+	// In horde mode, if we have a valid pissed enemy, be aggressive
+	if ( g_pGameRules->IsMultiplayer() && m_fPissed && m_hEnemy != NULL )
+	{
+		BOOL bEnemyBelow = IsEnemyBelowUs( m_hEnemy );
+		
+		// For enemies below, trust last known position without visibility check
+		// For same-level enemies, require visibility
+		if ( bEnemyBelow || FVisible( m_hEnemy ) )
+		{
+			m_vecEnemyLKP = m_hEnemy->pev->origin;
+			
+			// Force conditions for enemies below to prevent base class from clearing
+			if ( bEnemyBelow )
+			{
+				ForceDownwardAttackConditions( m_hEnemy );
+			}
+			
+			// Ensure we stay in combat state
+			if ( m_MonsterState == MONSTERSTATE_IDLE || m_MonsterState == MONSTERSTATE_ALERT )
+			{
+				m_IdealMonsterState = MONSTERSTATE_COMBAT;
+			}
+		}
+	}
+	
 	CBaseMonster::RunAI();
+	
+	// AFTER base class runs, re-force conditions for enemies below
+	// This ensures base class CheckAttacks doesn't clear our forced conditions
+	if ( g_pGameRules->IsMultiplayer() && m_fPissed && m_hEnemy != NULL && IsEnemyBelowUs( m_hEnemy ) )
+	{
+		ForceDownwardAttackConditions( m_hEnemy );
+	}
 }
