@@ -103,7 +103,7 @@ void CSkullCharm::SkullMagnetThink( void )
 		{
 			// Pull skull toward killer
 			Vector vecDir = (pKiller->pev->origin - pev->origin).Normalize();
-			pev->velocity = pev->velocity + vecDir * 300.0f;
+			pev->velocity = vecDir * 300.0f;
 		}
 		else
 		{
@@ -124,7 +124,7 @@ void CSkullCharm::SkullMagnetThink( void )
 				{
 					// Pull skull toward player
 					Vector vecDir = (pPlayer->pev->origin - pev->origin).Normalize();
-					pev->velocity = pev->velocity + vecDir * 300.0f;
+					pev->velocity = vecDir * 300.0f;
 					break;
 				}
 			}
