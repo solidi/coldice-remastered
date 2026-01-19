@@ -29,7 +29,6 @@ extern int gmsgScoreInfo;
 extern int gmsgItemPickup;
 
 // Cold Skulls enhancement constants
-#define SKULL_GRACE_PERIOD 3.0f
 #define SKULL_MAGNET_THRESHOLD 2
 #define SKULL_MAGNET_RADIUS 512.0f
 
