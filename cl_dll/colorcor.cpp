@@ -59,15 +59,32 @@ void CColorCorTexture::Init(int width, int height)
 void CColorCorTexture::BindTexture(int width, int height)
 { 
 	glBindTexture(GL_TEXTURE_RECTANGLE_NV, g_texture);
-
-	if( CVAR_GET_FLOAT( "colorcor_blackwhite" ) == 1 ||
-		(MutatorEnabled(MUTATOR_OLDTIME)))
+	
+	// Check if we need grayscale conversion (oldtime mutator or blackwhite cvar)
+	if (CVAR_GET_FLOAT("colorcor_blackwhite") == 1 || MutatorEnabled(MUTATOR_OLDTIME))
 	{
-		glCopyTexImage2D(GL_TEXTURE_RECTANGLE_NV, 0, GL_LUMINANCE, 0, 0, ScreenWidth, ScreenHeight, 0);
+		// Copy screen to temporary buffer
+		unsigned char* pPixels = new unsigned char[width * height * 4];
+		glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, pPixels);
+		
+		// Convert to grayscale using luminance formula
+		for (int i = 0; i < width * height * 4; i += 4)
+		{
+			unsigned char gray = (unsigned char)(0.299f * pPixels[i] + 0.587f * pPixels[i+1] + 0.114f * pPixels[i+2]);
+			pPixels[i] = gray;     // R
+			pPixels[i+1] = gray;   // G
+			pPixels[i+2] = gray;   // B
+			// Keep alpha as-is (pPixels[i+3])
+		}
+		
+		// Upload the grayscale texture
+		glTexImage2D(GL_TEXTURE_RECTANGLE_NV, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pPixels);
+		delete[] pPixels;
 	}
 	else
 	{
-		glCopyTexImage2D(GL_TEXTURE_RECTANGLE_NV, 0, GL_RGBA8, 0, 0, ScreenWidth, ScreenHeight, 0);
+		// Normal color - just copy directly from framebuffer
+		glCopyTexImage2D(GL_TEXTURE_RECTANGLE_NV, 0, GL_RGBA8, 0, 0, width, height, 0);
 	}
 }
 
@@ -89,7 +106,8 @@ void CColorCorTexture::Draw(int width, int height)
 
 	glBindTexture(GL_TEXTURE_RECTANGLE_NV, g_texture);
 
-	glColor4f(r,g,b,alpha);
+	// Set color modulation (grayscale already applied in BindTexture if needed)
+	glColor4f(r, g, b, alpha);
 
 	// this will inverse the color 
 	if ( CVAR_GET_FLOAT( "colorcor_inverse" ) == 1 ||
