@@ -141,27 +141,48 @@ void CColorCor::InitScreen()
 
 void CColorCor::DrawColorCor()
 {
-	int r = m_pTextures.r = CVAR_GET_FLOAT( "colorcor_r" );
-	int g = m_pTextures.g = CVAR_GET_FLOAT( "colorcor_g" );
-	int b = m_pTextures.b = CVAR_GET_FLOAT( "colorcor_b" );
+	int r = CVAR_GET_FLOAT( "colorcor_r" );
+	int g = CVAR_GET_FLOAT( "colorcor_g" );
+	int b = CVAR_GET_FLOAT( "colorcor_b" );
+	
+	// Default to white if no color is set
+	if (r == 0 && g == 0 && b == 0)
+	{
+		r = 255;
+		g = 255;
+		b = 255;
+	}
+	
+	// Special color for sildenafil mutator
 	if (MutatorEnabled(MUTATOR_SILDENAFIL))
 	{
 		r = 0;
 		g = 113;
 		b = 230;
 	}
+	
+	// For oldtime (black and white), set neutral color
+	if (MutatorEnabled(MUTATOR_OLDTIME))
+	{
+		r = 255;
+		g = 255;
+		b = 255;
+	}
+	
 	m_pTextures.r = r;
 	m_pTextures.g = g;
 	m_pTextures.b = b;
+
+	float alphaValue = CVAR_GET_FLOAT("colorcor_alpha");
+	if (alphaValue < 0.01f) alphaValue = 1.0f; // Default to 1.0 if not set
+	m_pTextures.alpha = alphaValue;
+	m_pTextures.of = 0;
 
 	glBlendFunc(GL_SRC_ALPHA, GL_ZERO);
 	glEnable(GL_BLEND);
 
 	m_pTextures.BindTexture(ScreenWidth, ScreenHeight);
 	m_pTextures.Draw(ScreenWidth, ScreenHeight);
-
-	m_pTextures.alpha = CVAR_GET_FLOAT("colorcor_alpha");
-	m_pTextures.of = 0;
 
 	glDisable(GL_BLEND);
 }
