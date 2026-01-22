@@ -38,6 +38,27 @@
 
 CColorCorTexture::CColorCorTexture() : m_bGpuGrayscaleSupported(false) {};
 
+void CColorCorTexture::ApplyCpuGrayscale(int width, int height)
+{
+	// CPU path: read pixels, convert to grayscale, and upload
+	unsigned char* pPixels = new unsigned char[width * height * 4];
+	glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, pPixels);
+	
+	// Convert to grayscale using luminance formula
+	for (int i = 0; i < width * height * 4; i += 4)
+	{
+		unsigned char gray = (unsigned char)(0.299f * pPixels[i] + 0.587f * pPixels[i+1] + 0.114f * pPixels[i+2]);
+		pPixels[i] = gray;     // R
+		pPixels[i+1] = gray;   // G
+		pPixels[i+2] = gray;   // B
+		// Keep alpha as-is (pPixels[i+3])
+	}
+	
+	// Upload the grayscale texture
+	glTexImage2D(GL_TEXTURE_RECTANGLE_NV, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pPixels);
+	delete[] pPixels;
+}
+
 bool CColorCorTexture::TestGpuGrayscaleSupport(int width, int height)
 {
 	// Test if GL_LUMINANCE format works with glCopyTexImage2D on this device
@@ -48,12 +69,21 @@ bool CColorCorTexture::TestGpuGrayscaleSupport(int width, int height)
 	glGenTextures(1, &testTexture);
 	glBindTexture(GL_TEXTURE_RECTANGLE_NV, testTexture);
 	
-	// Clear any previous errors
-	int errorClearLimit = 100; // Safety limit to prevent infinite loops
-	while (glGetError() != GL_NO_ERROR && --errorClearLimit > 0);
+	// Clear any previous errors with safety limit to prevent infinite loops
+	// 100 iterations should be more than enough for any reasonable error queue
+	const int ERROR_CLEAR_LIMIT = 100;
+	int errorClearCount = ERROR_CLEAR_LIMIT;
+	while (glGetError() != GL_NO_ERROR && --errorClearCount > 0);
 	
-	// Try to create a texture with GL_LUMINANCE format
-	glCopyTexImage2D(GL_TEXTURE_RECTANGLE_NV, 0, GL_LUMINANCE, 0, 0, width, height, 0);
+	// Create a small test texture with known data to avoid dependency on framebuffer
+	unsigned char testData[4] = {128, 128, 128, 255}; // Gray pixel
+	glTexImage2D(GL_TEXTURE_RECTANGLE_NV, 0, GL_RGBA8, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, testData);
+	
+	// Clear any errors from the setup
+	while (glGetError() != GL_NO_ERROR);
+	
+	// Try to create a texture with GL_LUMINANCE format from the test data
+	glTexImage2D(GL_TEXTURE_RECTANGLE_NV, 0, GL_LUMINANCE, 1, 1, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, testData);
 	
 	// Check if an error occurred
 	GLenum error = glGetError();
@@ -108,43 +138,13 @@ void CColorCorTexture::BindTexture(int width, int height)
 				m_bGpuGrayscaleSupported = false;
 				
 				// Fall back to CPU path for this frame
-				unsigned char* pPixels = new unsigned char[width * height * 4];
-				glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, pPixels);
-				
-				// Convert to grayscale using luminance formula
-				for (int i = 0; i < width * height * 4; i += 4)
-				{
-					unsigned char gray = (unsigned char)(0.299f * pPixels[i] + 0.587f * pPixels[i+1] + 0.114f * pPixels[i+2]);
-					pPixels[i] = gray;     // R
-					pPixels[i+1] = gray;   // G
-					pPixels[i+2] = gray;   // B
-					// Keep alpha as-is (pPixels[i+3])
-				}
-				
-				// Upload the grayscale texture
-				glTexImage2D(GL_TEXTURE_RECTANGLE_NV, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pPixels);
-				delete[] pPixels;
+				ApplyCpuGrayscale(width, height);
 			}
 		}
 		else
 		{
 			// CPU path: read pixels, convert to grayscale, and upload
-			unsigned char* pPixels = new unsigned char[width * height * 4];
-			glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, pPixels);
-			
-			// Convert to grayscale using luminance formula
-			for (int i = 0; i < width * height * 4; i += 4)
-			{
-				unsigned char gray = (unsigned char)(0.299f * pPixels[i] + 0.587f * pPixels[i+1] + 0.114f * pPixels[i+2]);
-				pPixels[i] = gray;     // R
-				pPixels[i+1] = gray;   // G
-				pPixels[i+2] = gray;   // B
-				// Keep alpha as-is (pPixels[i+3])
-			}
-			
-			// Upload the grayscale texture
-			glTexImage2D(GL_TEXTURE_RECTANGLE_NV, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pPixels);
-			delete[] pPixels;
+			ApplyCpuGrayscale(width, height);
 		}
 	}
 	else
