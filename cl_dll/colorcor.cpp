@@ -31,6 +31,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <new>
 
 #include "GL/gl.h" // Header File For The OpenGL32 (32 bits) Library
 
@@ -42,14 +43,23 @@ void CColorCorTexture::ApplyCpuGrayscale(int width, int height)
 {
 	// CPU path: read pixels, convert to grayscale, and upload
 	// Validate dimensions to prevent integer overflow
+	// Check before multiplication to avoid overflow in the calculation itself
 	if (width <= 0 || height <= 0 || width > 16384 || height > 16384)
 		return; // Invalid or excessively large dimensions
 	
-	unsigned char* pPixels = new unsigned char[width * height * 4];
+	// Calculate buffer size with overflow check
+	size_t bufferSize = (size_t)width * (size_t)height * 4;
+	if (bufferSize > 16384 * 16384 * 4) // Double-check to prevent overflow
+		return;
+	
+	unsigned char* pPixels = new (std::nothrow) unsigned char[bufferSize];
+	if (!pPixels)
+		return; // Allocation failed
+	
 	glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, pPixels);
 	
 	// Convert to grayscale using luminance formula
-	for (int i = 0; i < width * height * 4; i += 4)
+	for (size_t i = 0; i < bufferSize; i += 4)
 	{
 		unsigned char gray = (unsigned char)(0.299f * pPixels[i] + 0.587f * pPixels[i+1] + 0.114f * pPixels[i+2]);
 		pPixels[i] = gray;     // R
