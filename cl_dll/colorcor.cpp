@@ -87,7 +87,7 @@ void CColorCorTexture::BindTexture(int width, int height)
 		}
 		else
 		{
-			// Allocation failed - fallback to normal color copy path
+			// Allocation failed - fallback to direct framebuffer copy (no grayscale conversion)
 			glCopyTexImage2D(GL_TEXTURE_RECTANGLE_NV, 0, GL_RGBA8, 0, 0, width, height, 0);
 		}
 	}
