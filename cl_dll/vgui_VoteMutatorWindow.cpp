@@ -22,9 +22,10 @@
 #define MUTATORMENU_TITLE_Y				YRES(32)
 #define MUTATORMENU_TOPLEFT_BUTTON_X		XRES(40)
 #define MUTATORMENU_TOPLEFT_BUTTON_Y		YRES(80)
-#define MUTATORMENU_BUTTON_SIZE_X			XRES(94)
-#define MUTATORMENU_BUTTON_SIZE_Y			YRES(24)
+#define MUTATORMENU_BUTTON_SIZE_X			XRES(92)
+#define MUTATORMENU_BUTTON_SIZE_Y			YRES(22)
 #define MUTATORMENU_BUTTON_SPACER_Y		YRES(8)
+#define MUTATORMENU_ITEMS_PER_COL		13
 
 // Creation
 CVoteMutatorPanel::CVoteMutatorPanel(int iTrans, int iRemoveMe, int x,int y,int wide,int tall) : CMenuPanel(iTrans, iRemoveMe, x,y,wide,tall)
@@ -58,9 +59,6 @@ CVoteMutatorPanel::CVoteMutatorPanel(int iTrans, int iRemoveMe, int x,int y,int 
 		if (strstr(sMutators[i], "slowmo") ||
 			strstr(sMutators[i], "speedup") ||
 			strstr(sMutators[i], "topsyturvy") ||
-			strstr(sMutators[i], "oldtime") ||
-			strstr(sMutators[i], "sildenafil") ||
-			strstr(sMutators[i], "inverse") ||
 			strstr(sMutators[i], "itemsexplode") ||
 			strstr(sMutators[i], "explosiveai"))
 		{
@@ -69,7 +67,7 @@ CVoteMutatorPanel::CVoteMutatorPanel(int iTrans, int iRemoveMe, int x,int y,int 
 
 		// Space for random button
 		int xI = positionCount+1;
-		int degree = (positionCount+1) / 12;
+		int degree = (positionCount+1) / MUTATORMENU_ITEMS_PER_COL;
 		if (i == MAX_MUTATORS - 1)
 		{
 			xI = 0;
@@ -79,7 +77,7 @@ CVoteMutatorPanel::CVoteMutatorPanel(int iTrans, int iRemoveMe, int x,int y,int 
 		int iYPos = MUTATORMENU_TOPLEFT_BUTTON_Y + ( (MUTATORMENU_BUTTON_SIZE_Y + MUTATORMENU_BUTTON_SPACER_Y) * xI );
 		int spacer = 0;
 		spacer = (MUTATORMENU_BUTTON_SIZE_X + 10) * degree;
-		iYPos = MUTATORMENU_TOPLEFT_BUTTON_Y + ( (MUTATORMENU_BUTTON_SIZE_Y + MUTATORMENU_BUTTON_SPACER_Y) * (xI - (12 * degree)));
+		iYPos = MUTATORMENU_TOPLEFT_BUTTON_Y + ( (MUTATORMENU_BUTTON_SIZE_Y + MUTATORMENU_BUTTON_SPACER_Y) * (xI - (MUTATORMENU_ITEMS_PER_COL * degree)));
 		
 		char voteCommand[16];
 		sprintf(voteCommand, "vote %d", i+1);

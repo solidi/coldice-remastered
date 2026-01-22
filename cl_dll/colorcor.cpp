@@ -59,15 +59,32 @@ void CColorCorTexture::Init(int width, int height)
 void CColorCorTexture::BindTexture(int width, int height)
 { 
 	glBindTexture(GL_TEXTURE_RECTANGLE_NV, g_texture);
-
-	if( CVAR_GET_FLOAT( "colorcor_blackwhite" ) == 1 ||
-		(MutatorEnabled(MUTATOR_OLDTIME)))
+	
+	// Check if we need grayscale conversion (oldtime mutator or blackwhite cvar)
+	if (CVAR_GET_FLOAT("colorcor_blackwhite") == 1 || MutatorEnabled(MUTATOR_OLDTIME))
 	{
-		glCopyTexImage2D(GL_TEXTURE_RECTANGLE_NV, 0, GL_LUMINANCE, 0, 0, ScreenWidth, ScreenHeight, 0);
+		// Copy screen to temporary buffer
+		unsigned char* pPixels = new unsigned char[width * height * 4];
+		glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, pPixels);
+		
+		// Convert to grayscale using luminance formula
+		for (int i = 0; i < width * height * 4; i += 4)
+		{
+			unsigned char gray = (unsigned char)(0.299f * pPixels[i] + 0.587f * pPixels[i+1] + 0.114f * pPixels[i+2]);
+			pPixels[i] = gray;     // R
+			pPixels[i+1] = gray;   // G
+			pPixels[i+2] = gray;   // B
+			// Keep alpha as-is (pPixels[i+3])
+		}
+		
+		// Upload the grayscale texture
+		glTexImage2D(GL_TEXTURE_RECTANGLE_NV, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pPixels);
+		delete[] pPixels;
 	}
 	else
 	{
-		glCopyTexImage2D(GL_TEXTURE_RECTANGLE_NV, 0, GL_RGBA8, 0, 0, ScreenWidth, ScreenHeight, 0);
+		// Normal color - just copy directly from framebuffer
+		glCopyTexImage2D(GL_TEXTURE_RECTANGLE_NV, 0, GL_RGBA8, 0, 0, width, height, 0);
 	}
 }
 
@@ -89,7 +106,8 @@ void CColorCorTexture::Draw(int width, int height)
 
 	glBindTexture(GL_TEXTURE_RECTANGLE_NV, g_texture);
 
-	glColor4f(r,g,b,alpha);
+	// Set color modulation (grayscale already applied in BindTexture if needed)
+	glColor4f(r, g, b, alpha);
 
 	// this will inverse the color 
 	if ( CVAR_GET_FLOAT( "colorcor_inverse" ) == 1 ||
@@ -141,27 +159,48 @@ void CColorCor::InitScreen()
 
 void CColorCor::DrawColorCor()
 {
-	int r = m_pTextures.r = CVAR_GET_FLOAT( "colorcor_r" );
-	int g = m_pTextures.g = CVAR_GET_FLOAT( "colorcor_g" );
-	int b = m_pTextures.b = CVAR_GET_FLOAT( "colorcor_b" );
+	int r = CVAR_GET_FLOAT( "colorcor_r" );
+	int g = CVAR_GET_FLOAT( "colorcor_g" );
+	int b = CVAR_GET_FLOAT( "colorcor_b" );
+	
+	// Default to white if no color is set
+	if (r == 0 && g == 0 && b == 0)
+	{
+		r = 255;
+		g = 255;
+		b = 255;
+	}
+	
+	// Special color for sildenafil mutator
 	if (MutatorEnabled(MUTATOR_SILDENAFIL))
 	{
 		r = 0;
 		g = 113;
 		b = 230;
 	}
+	
+	// For oldtime (black and white), set neutral color
+	if (MutatorEnabled(MUTATOR_OLDTIME))
+	{
+		r = 255;
+		g = 255;
+		b = 255;
+	}
+	
 	m_pTextures.r = r;
 	m_pTextures.g = g;
 	m_pTextures.b = b;
+
+	float alphaValue = CVAR_GET_FLOAT("colorcor_alpha");
+	if (alphaValue < 0.01f) alphaValue = 1.0f; // Default to 1.0 if not set
+	m_pTextures.alpha = alphaValue;
+	m_pTextures.of = 0;
 
 	glBlendFunc(GL_SRC_ALPHA, GL_ZERO);
 	glEnable(GL_BLEND);
 
 	m_pTextures.BindTexture(ScreenWidth, ScreenHeight);
 	m_pTextures.Draw(ScreenWidth, ScreenHeight);
-
-	m_pTextures.alpha = CVAR_GET_FLOAT("colorcor_alpha");
-	m_pTextures.of = 0;
 
 	glDisable(GL_BLEND);
 }
