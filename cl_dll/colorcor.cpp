@@ -65,21 +65,31 @@ void CColorCorTexture::BindTexture(int width, int height)
 	{
 		// Copy screen to temporary buffer
 		unsigned char* pPixels = new unsigned char[width * height * 4];
-		glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, pPixels);
 		
-		// Convert to grayscale using luminance formula
-		for (int i = 0; i < width * height * 4; i += 4)
+		// Check if allocation succeeded
+		if (pPixels != nullptr)
 		{
-			unsigned char gray = (unsigned char)(0.299f * pPixels[i] + 0.587f * pPixels[i+1] + 0.114f * pPixels[i+2]);
-			pPixels[i] = gray;     // R
-			pPixels[i+1] = gray;   // G
-			pPixels[i+2] = gray;   // B
-			// Keep alpha as-is (pPixels[i+3])
+			glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, pPixels);
+			
+			// Convert to grayscale using luminance formula
+			for (int i = 0; i < width * height * 4; i += 4)
+			{
+				unsigned char gray = (unsigned char)(0.299f * pPixels[i] + 0.587f * pPixels[i+1] + 0.114f * pPixels[i+2]);
+				pPixels[i] = gray;     // R
+				pPixels[i+1] = gray;   // G
+				pPixels[i+2] = gray;   // B
+				// Keep alpha as-is (pPixels[i+3])
+			}
+			
+			// Upload the grayscale texture
+			glTexImage2D(GL_TEXTURE_RECTANGLE_NV, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pPixels);
+			delete[] pPixels;
 		}
-		
-		// Upload the grayscale texture
-		glTexImage2D(GL_TEXTURE_RECTANGLE_NV, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pPixels);
-		delete[] pPixels;
+		else
+		{
+			// Allocation failed - fallback to normal color copy path
+			glCopyTexImage2D(GL_TEXTURE_RECTANGLE_NV, 0, GL_RGBA8, 0, 0, width, height, 0);
+		}
 	}
 	else
 	{
