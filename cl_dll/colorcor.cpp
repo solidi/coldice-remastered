@@ -64,7 +64,7 @@ void CColorCorTexture::BindTexture(int width, int height)
 	if (CVAR_GET_FLOAT("colorcor_blackwhite") == 1 || MutatorEnabled(MUTATOR_OLDTIME))
 	{
 		// Copy screen to temporary buffer
-		unsigned char* pPixels = new unsigned char[width * height * 4];
+		unsigned char* pPixels = new(std::nothrow) unsigned char[width * height * 4];
 		
 		// Check if allocation succeeded
 		if (pPixels != nullptr)
