@@ -283,3 +283,21 @@ BOOL CHalfLifeInstagib::IsAllowedToDropWeapon( CBasePlayer *pPlayer )
 {
 	return FALSE;
 }
+
+BOOL CHalfLifeInstagib::AllowRuneSpawn( const char *szRune )
+{
+	// Filter out runes that don't make sense with instant-kill gameplay
+	if (!strcmp("rune_strength", szRune))
+		return FALSE;	// Damage boost is redundant with one-shot kills
+	
+	if (!strcmp("rune_protect", szRune))
+		return FALSE;	// Damage reduction conflicts with one-shot kills
+	
+	if (!strcmp("rune_vampire", szRune))
+		return FALSE;	// Can't drain health from instant kills
+	
+	if (!strcmp("rune_regen", szRune))
+		return FALSE;	// Health regen is pointless when you die in one hit
+
+	return TRUE;
+}
