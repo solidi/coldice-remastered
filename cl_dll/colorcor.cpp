@@ -41,6 +41,10 @@ CColorCorTexture::CColorCorTexture() : m_bGpuGrayscaleSupported(false) {};
 void CColorCorTexture::ApplyCpuGrayscale(int width, int height)
 {
 	// CPU path: read pixels, convert to grayscale, and upload
+	// Validate dimensions to prevent integer overflow
+	if (width <= 0 || height <= 0 || width > 16384 || height > 16384)
+		return; // Invalid or excessively large dimensions
+	
 	unsigned char* pPixels = new unsigned char[width * height * 4];
 	glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, pPixels);
 	
@@ -75,15 +79,17 @@ bool CColorCorTexture::TestGpuGrayscaleSupport(int width, int height)
 	int errorClearCount = ERROR_CLEAR_LIMIT;
 	while (glGetError() != GL_NO_ERROR && --errorClearCount > 0);
 	
-	// Create a small test texture with known data to avoid dependency on framebuffer
-	unsigned char testData[4] = {128, 128, 128, 255}; // Gray pixel
-	glTexImage2D(GL_TEXTURE_RECTANGLE_NV, 0, GL_RGBA8, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, testData);
+	// Create a small test texture with RGBA data first
+	unsigned char rgbaTestData[4] = {128, 128, 128, 255}; // Gray pixel
+	glTexImage2D(GL_TEXTURE_RECTANGLE_NV, 0, GL_RGBA8, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, rgbaTestData);
 	
-	// Clear any errors from the setup
-	while (glGetError() != GL_NO_ERROR);
+	// Clear any errors from the setup with safety limit
+	errorClearCount = ERROR_CLEAR_LIMIT;
+	while (glGetError() != GL_NO_ERROR && --errorClearCount > 0);
 	
-	// Try to create a texture with GL_LUMINANCE format from the test data
-	glTexImage2D(GL_TEXTURE_RECTANGLE_NV, 0, GL_LUMINANCE, 1, 1, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, testData);
+	// Try to create a texture with GL_LUMINANCE format using single-channel test data
+	unsigned char luminanceTestData[1] = {128}; // Gray value
+	glTexImage2D(GL_TEXTURE_RECTANGLE_NV, 0, GL_LUMINANCE, 1, 1, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, luminanceTestData);
 	
 	// Check if an error occurred
 	GLenum error = glGetError();
@@ -135,6 +141,8 @@ void CColorCorTexture::BindTexture(int width, int height)
 			if (glGetError() != GL_NO_ERROR)
 			{
 				// Mark as unsupported for future frames
+				// Note: This state change is safe because Half-Life's rendering
+				// happens on a single thread in the client DLL
 				m_bGpuGrayscaleSupported = false;
 				
 				// Fall back to CPU path for this frame
