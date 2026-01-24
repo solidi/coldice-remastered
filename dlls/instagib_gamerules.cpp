@@ -124,7 +124,9 @@ void CHalfLifeInstagib::PlayerThink( CBasePlayer *pPlayer )
 	} frag_map_t;
 
 	// Build a compact list of connected players only
-	frag_map_t frags[33];
+	// Array size is maxClients + 1 to handle 1-indexed player slots
+	const int MAX_PLAYERS = gpGlobals->maxClients + 1;
+	frag_map_t frags[MAX_PLAYERS];
 	int totalPlayers = 0;
 
 	for ( int i = 1; i <= gpGlobals->maxClients; i++ )
