@@ -136,14 +136,19 @@ void CSnowball::PrimaryAttack()
 		return;
 	}
 
-	if ( !m_flStartThrow && m_pPlayer->m_rgAmmo[ m_iPrimaryAmmoType ] > 0 )
-	{
-		m_flStartThrow = gpGlobals->time;
+	if (m_pPlayer->m_rgAmmo[ m_iPrimaryAmmoType ] > 0 ) {
+		// Reset primary attack if player tapped primary, then secondary
 		m_flReleaseThrow = 0;
-		m_fireState = 1;
+		m_flStartThrow = 0;
 
 		SendWeaponAnim( SNOWBALL_PINPULL );
-		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 0.5;
+		SetThink( &CSnowball::Throw );
+
+		m_flNextPrimaryAttack = m_flNextSecondaryAttack = GetNextAttackDelay(0.75);
+		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 0.75;
+		pev->nextthink = gpGlobals->time + 0.5;
+	} else {
+		RetireWeapon();
 	}
 }
 
@@ -159,9 +164,7 @@ void CSnowball::Throw()
 		Vector vecAiming = m_pPlayer->GetAutoaimVector( AUTOAIM_5DEGREES );
 
 		// Get the origin, direction, and fix the angle of the throw.
-		Vector vecSrc = m_pPlayer->GetGunPosition( )
-					+ gpGlobals->v_right * 8
-					+ vecAiming * 16;
+		Vector vecSrc = m_pPlayer->GetGunPosition( ) + vecAiming;
 
 		Vector vecDir = vecAiming;
 		Vector vecAng = UTIL_VecToAngles(vecDir);
@@ -172,13 +175,22 @@ void CSnowball::Throw()
 					vecSrc, vecAiming, m_pPlayer->edict() );
 
 		// Give the wrench its velocity, angle, and spin.
-		// Lower the gravity a bit, so it flys.
 		if (pSnowball)
 		{
-			pSnowball->pev->velocity = vecAiming * RANDOM_LONG(500,1000); // + m_pPlayer->pev->velocity;
+			pSnowball->pev->velocity = vecAiming * 1200;
 			pSnowball->pev->angles = vecAng;
-			pSnowball->pev->avelocity.x = -1000;
-			pSnowball->pev->gravity = .25;
+			pSnowball->pev->gravity = 0.1;
+			MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
+				WRITE_BYTE( TE_BEAMFOLLOW );
+				WRITE_SHORT(pSnowball->entindex());	// entity
+				WRITE_SHORT(PRECACHE_MODEL("sprites/smoke.spr"));	// model
+				WRITE_BYTE( 1 ); // life
+				WRITE_BYTE( 2 );  // width
+				WRITE_BYTE( 224 );   // r, g, b
+				WRITE_BYTE( 224 );   // r, g, b
+				WRITE_BYTE( 255 );   // r, g, b
+				WRITE_BYTE( 50 );	// brightness
+			MESSAGE_END();
 		}
 
 		// Do player weapon anim and sound effect.
@@ -201,19 +213,13 @@ void CSnowball::SecondaryAttack()
 		return;
 	}
 
-	if (m_pPlayer->m_rgAmmo[ m_iPrimaryAmmoType ] > 0 ) {
-		// Reset primary attack if player tapped primary, then secondary
+	if ( !m_flStartThrow && m_pPlayer->m_rgAmmo[ m_iPrimaryAmmoType ] > 0 )
+	{
+		m_flStartThrow = gpGlobals->time;
 		m_flReleaseThrow = 0;
-		m_flStartThrow = 0;
 
 		SendWeaponAnim( SNOWBALL_PINPULL );
-		SetThink( &CSnowball::Throw );
-
-		m_flNextPrimaryAttack = m_flNextSecondaryAttack = GetNextAttackDelay(1.0);
-		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 1.0;
-		pev->nextthink = gpGlobals->time + 0.5;
-	} else {
-		RetireWeapon();
+		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 0.5;
 	}
 }
 
@@ -230,24 +236,11 @@ void CSnowball::WeaponIdle( void )
 	if ( m_flStartThrow )
 	{
 		Vector angThrow = m_pPlayer->GetAutoaimVector( AUTOAIM_10DEGREES );
-		float flVel = RANDOM_LONG(500, 700);
-/*
-		if ( angThrow.x < 0 )
-			angThrow.x = -10 + angThrow.x * ( ( 90 - 10 ) / 90.0 );
-		else
-			angThrow.x = -10 + angThrow.x * ( ( 90 + 10 ) / 90.0 );
+		float flVel = 2000;
 
-		float flVel = ( 90 - angThrow.x ) * 4;
-		if ( flVel > 500 )
-			flVel = 500;
-
-		UTIL_MakeVectors( angThrow );
-*/
-
-		Vector vecSrc = m_pPlayer->pev->origin + m_pPlayer->pev->view_ofs + angThrow * 16;
+		Vector vecSrc = m_pPlayer->pev->origin + m_pPlayer->pev->view_ofs + angThrow;
 		Vector vecThrow = angThrow * flVel + m_pPlayer->pev->velocity;
 
-		// alway explode 3 seconds after the pin was pulled
 		float time = m_flStartThrow - gpGlobals->time + 3.0;
 		if (time < 0)
 			time = 0;
@@ -346,10 +339,21 @@ CFlyingSnowball * CFlyingSnowball::Shoot( entvars_t *pevOwner, Vector vecStart, 
 	pSnowball->pev->velocity = vecVelocity;
 
 	// Tumble through the air
-	pSnowball->pev->avelocity.x = -400;
+	//pSnowball->pev->avelocity.x = -1000;
+	pSnowball->pev->gravity = -0.01;
+	pSnowball->pev->friction = 0;
 
-	pSnowball->pev->gravity = 0.5;
-	pSnowball->pev->friction = 0.8;
+	MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
+		WRITE_BYTE( TE_BEAMFOLLOW );
+		WRITE_SHORT(pSnowball->entindex());	// entity
+		WRITE_SHORT(PRECACHE_MODEL("sprites/smoke.spr"));	// model
+		WRITE_BYTE( 2 ); // life
+		WRITE_BYTE( 2 );  // width
+		WRITE_BYTE( 224 );   // r, g, b
+		WRITE_BYTE( 224 );   // r, g, b
+		WRITE_BYTE( 255 );   // r, g, b
+		WRITE_BYTE( 100 );	// brightness
+	MESSAGE_END();
 
 	SET_MODEL(ENT(pSnowball->pev), "models/w_weapons.mdl");
 	pSnowball->pev->body = WEAPON_SNOWBALL - 1;
@@ -364,14 +368,11 @@ void CFlyingSnowball::Spawn( )
 {
 	Precache( );
 
-	// The flying wrench is MOVETYPE_TOSS, and SOLID_BBOX.
 	// We want it to be affected by gravity, and hit objects
 	// within the game.
 	pev->movetype = MOVETYPE_TOSS;
 	pev->solid = SOLID_BBOX;
 	pev->classname = MAKE_STRING("flying_snowball");
-
-	pev->gravity = 0.25;
 
 	// Use the world wrench model.
 	SET_MODEL(ENT(pev), "models/w_weapons.mdl");
@@ -383,10 +384,7 @@ void CFlyingSnowball::Spawn( )
 	UTIL_SetSize(pev, Vector( 0, 0, 0), Vector(0, 0, 0));
 
 	pev->angles.x -= 30;
-	//UTIL_MakeVectors( pev->angles );
 	pev->angles.x = -(pev->angles.x + 30);
-
-	pev->gravity = 0.5;
 
 	// Store the owner for later use. We want the owner to be able
 	// to hit themselves with the snowball. The pev->owner gets cleared
@@ -492,17 +490,8 @@ void CFlyingSnowball::SpinTouch( CBaseEntity *pOther )
 
 void CFlyingSnowball::BubbleThink( void )
 {
-	// We have no owner. We do this .25 seconds AFTER the snowball
-	// is thrown so that we don't hit the owner immediately when throwing
-	// it. If is comes back later, we want to be able to hit the owner.
-	// pev->owner = NULL;
-
 	// Only think every .25 seconds.
 	pev->nextthink = gpGlobals->time + 0.25;
-
-	// Make a whooshy sound.
-	//EMIT_SOUND_DYN(ENT(pev), CHAN_VOICE, "wrench_miss1.wav",
-	//					1, ATTN_NORM, 0, 120);
 
 	// If the snowball enters water, make some bubbles.
 	if (pev->waterlevel)
