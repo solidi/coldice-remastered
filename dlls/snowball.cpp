@@ -164,7 +164,7 @@ void CSnowball::Throw()
 		Vector vecAiming = m_pPlayer->GetAutoaimVector( AUTOAIM_5DEGREES );
 
 		// Get the origin, direction, and fix the angle of the throw.
-		Vector vecSrc = m_pPlayer->GetGunPosition( ) + vecAiming;
+		Vector vecSrc = m_pPlayer->GetGunPosition( ) + vecAiming + gpGlobals->v_up * 4;
 
 		Vector vecDir = vecAiming;
 		Vector vecAng = UTIL_VecToAngles(vecDir);
@@ -236,12 +236,21 @@ void CSnowball::WeaponIdle( void )
 	if ( m_flStartThrow )
 	{
 		Vector angThrow = m_pPlayer->GetAutoaimVector( AUTOAIM_10DEGREES );
-		float flVel = 2000;
+		
+		// Calculate hold time and scale velocity accordingly
+		float flHoldTime = gpGlobals->time - m_flStartThrow;
+		float flVel = 500 + (flHoldTime * 750); // Start at 500, scale up to 2000 over 2 seconds
+		
+		// Clamp velocity between min and max
+		if (flVel < 500)
+			flVel = 500;
+		if (flVel > 2000)
+			flVel = 2000;
 
-		Vector vecSrc = m_pPlayer->pev->origin + m_pPlayer->pev->view_ofs + angThrow;
+		Vector vecSrc = m_pPlayer->pev->origin + m_pPlayer->pev->view_ofs + angThrow + gpGlobals->v_up * 4;
 		Vector vecThrow = angThrow * flVel + m_pPlayer->pev->velocity;
 
-		float time = m_flStartThrow - gpGlobals->time + 3.0;
+		float time = flHoldTime;
 		if (time < 0)
 			time = 0;
 
@@ -340,7 +349,7 @@ CFlyingSnowball * CFlyingSnowball::Shoot( entvars_t *pevOwner, Vector vecStart, 
 
 	// Tumble through the air
 	//pSnowball->pev->avelocity.x = -1000;
-	pSnowball->pev->gravity = -0.01;
+	pSnowball->pev->gravity = 0.1;
 	pSnowball->pev->friction = 0;
 
 	MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
