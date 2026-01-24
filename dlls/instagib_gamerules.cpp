@@ -119,31 +119,30 @@ void CHalfLifeInstagib::PlayerThink( CBasePlayer *pPlayer )
 		return;
 
 	typedef struct {
-		int	clientID = -1;
-		int frags = -1;
+		int	clientID;
+		int frags;
 	} frag_map_t;
 
-	frag_map_t frags[32 + 1];
+	// Build a compact list of connected players only
+	frag_map_t frags[33];
 	int totalPlayers = 0;
 
 	for ( int i = 1; i <= gpGlobals->maxClients; i++ )
 	{
 		CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
-		frag_map_t x;
-		x.clientID = i;
 
 		if ( plr && plr->IsPlayer() && !plr->HasDisconnected )
 		{
-			x.frags = plr->pev->frags;
+			frags[totalPlayers].clientID = i;
+			frags[totalPlayers].frags = plr->pev->frags;
 			totalPlayers++;
 		}
-
-		frags[i] = x;
 	}
 
-	for (int i = 1; i <= gpGlobals->maxClients; i++)
+	// Sort the compact list of connected players by frags (descending)
+	for (int i = 0; i < totalPlayers; i++)
 	{
-		for (int j = 1; j <= gpGlobals->maxClients - 1; j++)
+		for (int j = 0; j < totalPlayers - 1; j++)
 		{
 			if (frags[j].frags < frags[j + 1].frags)
 			{
@@ -154,7 +153,8 @@ void CHalfLifeInstagib::PlayerThink( CBasePlayer *pPlayer )
 		}
 	}
 
-	for (int i = 1; i <= gpGlobals->maxClients; i++)
+	// Find the player's rank and calculate spread
+	for (int i = 0; i < totalPlayers; i++)
 	{
 		if (frags[i].clientID == pPlayer->entindex())
 		{
@@ -162,11 +162,11 @@ void CHalfLifeInstagib::PlayerThink( CBasePlayer *pPlayer )
 			{
 				MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, pPlayer->edict());
 					WRITE_STRING("Instagib 'em");
-					WRITE_STRING(UTIL_VarArgs("Rank: %d / %d", i, totalPlayers));
+					WRITE_STRING(UTIL_VarArgs("Rank: %d / %d", i + 1, totalPlayers));
 					WRITE_BYTE(0);
 					int myfrags = frags[i].frags;
 					// Calculate spread: difference between your frags and the position above you
-					if ( i > 1 ) {
+					if ( i > 0 ) {
 						// There's someone above you, show how far behind/ahead you are
 						WRITE_STRING(UTIL_VarArgs("Spread: %+d", (myfrags - frags[i - 1].frags)));
 					}
