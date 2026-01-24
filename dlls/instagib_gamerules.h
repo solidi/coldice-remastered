@@ -27,5 +27,6 @@ public:
 	virtual int DeadPlayerWeapons( CBasePlayer *pPlayer );
 	virtual int DeadPlayerAmmo( CBasePlayer *pPlayer );
 	virtual BOOL IsAllowedToDropWeapon( CBasePlayer *pPlayer );
+	virtual BOOL AllowRuneSpawn( const char *szRune );
 
 };

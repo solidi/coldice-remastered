@@ -165,17 +165,19 @@ void CHalfLifeInstagib::PlayerThink( CBasePlayer *pPlayer )
 					WRITE_STRING(UTIL_VarArgs("Rank: %d / %d", i, totalPlayers));
 					WRITE_BYTE(0);
 					int myfrags = frags[i].frags;
-					int x = i + 1;
+					// Calculate spread: difference between your frags and the position above you
 					if ( i > 1 ) {
-						x = i - 1;
-						while (x > 1) {
-							if (frags[x].frags > myfrags)
-								break;
-							x--;
-						}
-						//WRITE_STRING(UTIL_VarArgs("%d to advance to positon %d", (frags[x].frags - myfrags), x));
+						// There's someone above you, show how far behind/ahead you are
+						WRITE_STRING(UTIL_VarArgs("Spread: %+d", (myfrags - frags[i - 1].frags)));
 					}
-					WRITE_STRING(UTIL_VarArgs("Spread: %+d", (myfrags - frags[x].frags)));
+					else {
+						// You're in first place, show how far ahead you are from second place
+						if (totalPlayers > 1) {
+							WRITE_STRING(UTIL_VarArgs("Spread: %+d", (myfrags - frags[i + 1].frags)));
+						} else {
+							WRITE_STRING("Spread: --");
+						}
+					}
 				MESSAGE_END();
 			}
 		}
@@ -280,4 +282,22 @@ int CHalfLifeInstagib::DeadPlayerAmmo( CBasePlayer *pPlayer )
 BOOL CHalfLifeInstagib::IsAllowedToDropWeapon( CBasePlayer *pPlayer )
 {
 	return FALSE;
+}
+
+BOOL CHalfLifeInstagib::AllowRuneSpawn( const char *szRune )
+{
+	// Filter out runes that don't make sense with instant-kill gameplay
+	if (!strcmp("rune_strength", szRune))
+		return FALSE;	// Damage boost is redundant with one-shot kills
+	
+	if (!strcmp("rune_protect", szRune))
+		return FALSE;	// Damage reduction conflicts with one-shot kills
+	
+	if (!strcmp("rune_vampire", szRune))
+		return FALSE;	// Can't drain health from instant kills
+	
+	if (!strcmp("rune_regen", szRune))
+		return FALSE;	// Health regen is pointless when you die in one hit
+
+	return TRUE;
 }
