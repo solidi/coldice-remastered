@@ -1098,7 +1098,7 @@ void CHalfLifeMultiplay::RemoveAndFillItems( void )
 			// Clean up tripmine beam before removal
 			if (strcmp(pRemoveThese[itemIndex], "monster_tripmine") == 0)
 			{
-				CTripmineGrenade *pTripmine = static_cast<CTripmineGrenade *>(pEntity);
+				CTripmineGrenade *pTripmine = (CTripmineGrenade *)pEntity;
 				pTripmine->KillBeam();
 			}
 			
