@@ -110,7 +110,7 @@ void CHalfLifeArena::Think( void )
 				WRITE_BYTE(0);
 			MESSAGE_END();
 
-			if (pPlayer1->HasDisconnected && pPlayer1->HasDisconnected)
+			if (pPlayer1->HasDisconnected && pPlayer2->HasDisconnected)
 			{
 				UTIL_ClientPrintAll(HUD_PRINTCENTER,
 					UTIL_VarArgs("No victors, starting another round.\n"));

@@ -1091,7 +1091,16 @@ void CHalfLifeMultiplay::RemoveAndFillItems( void )
 				pEntity->pev->origin.x,
 				pEntity->pev->origin.y,
 				pEntity->pev->origin.z);*/
-			UTIL_Remove(pEntity);
+			
+			// Clean up tripmine beam before removal
+			if (strcmp(pRemoveThese[itemIndex], "monster_tripmine") == 0)
+			{
+				pEntity->Killed(NULL, GIB_NEVER);
+			}
+			else
+			{
+				UTIL_Remove(pEntity);
+			}
 		}
 	}
 
