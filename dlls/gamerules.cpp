@@ -1363,19 +1363,6 @@ void CGameRules::MutatorsThink(void)
 	// Don't process mutators during round intermission
 	if (m_bMutatorsPaused)
 		return;
-	
-	// Cleanup rats when mutator ends
-	if (!MutatorEnabled(MUTATOR_RATS))
-	{
-		CBaseEntity *pRat = NULL;
-		while ((pRat = UTIL_FindEntityByClassname(pRat, "monster_rat")) != NULL)
-		{
-			if (pRat->pev->iuser1 == MUTATOR_RATS)
-			{
-				UTIL_Remove(pRat);
-			}
-		}
-	}
 
 	if (m_flAddMutatorTime < gpGlobals->time)
 	{
