@@ -99,8 +99,10 @@ void CHalfLifeArena::Think( void )
 		CBasePlayer *pPlayer2 = (CBasePlayer *)UTIL_PlayerByIndex( m_iPlayer2 );
 
 		// when a player disconnects...
-		if ( pPlayer1 == NULL || pPlayer2 == NULL ||
-			pPlayer1->HasDisconnected || pPlayer2->HasDisconnected )
+		bool p1Disconnected = !pPlayer1 || pPlayer1->HasDisconnected;
+		bool p2Disconnected = !pPlayer2 || pPlayer2->HasDisconnected;
+
+		if ( p1Disconnected || p2Disconnected )
 		{
 			//stop timer / end game.
 			m_flRoundTimeLimit = 0;
@@ -110,7 +112,7 @@ void CHalfLifeArena::Think( void )
 				WRITE_BYTE(0);
 			MESSAGE_END();
 
-			if (pPlayer1->HasDisconnected && pPlayer2->HasDisconnected)
+			if (p1Disconnected && p2Disconnected)
 			{
 				UTIL_ClientPrintAll(HUD_PRINTCENTER,
 					UTIL_VarArgs("No victors, starting another round.\n"));
@@ -120,7 +122,7 @@ void CHalfLifeArena::Think( void )
 			}
 			else
 			{
-				if ( pPlayer1->HasDisconnected )
+				if ( p1Disconnected )
 				{
 					UTIL_ClientPrintAll(HUD_PRINTCENTER,
 						UTIL_VarArgs("%s is the victor!\n",
