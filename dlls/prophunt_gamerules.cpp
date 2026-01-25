@@ -214,6 +214,7 @@ CHalfLifePropHunt::CHalfLifePropHunt()
 {
 	m_iHuntersRemain = 0;
 	m_iPropsRemain = 0;
+	PauseMutators();
 }
 
 void CHalfLifePropHunt::DetermineWinner( void )
@@ -499,6 +500,7 @@ void CHalfLifePropHunt::Think( void )
 			//stop timer / end game.
 			m_flRoundTimeLimit = 0;
 			g_GameInProgress = FALSE;
+			PauseMutators();
 			MESSAGE_BEGIN(MSG_ALL, gmsgShowTimer);
 				WRITE_BYTE(0);
 			MESSAGE_END();
@@ -681,6 +683,9 @@ void CHalfLifePropHunt::Think( void )
 		}
 
 		g_GameInProgress = TRUE;
+		
+		// Restore mutators when round begins
+		RestoreMutators();
 
 		InsertClientsIntoArena(0);
 
@@ -728,6 +733,7 @@ BOOL CHalfLifePropHunt::HasGameTimerExpired( void )
 		MESSAGE_END();
 
 		g_GameInProgress = FALSE;
+		PauseMutators();
 		MESSAGE_BEGIN(MSG_ALL, gmsgShowTimer);
 			WRITE_BYTE(0);
 		MESSAGE_END();

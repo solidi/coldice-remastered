@@ -36,6 +36,7 @@ extern int gmsgDEraser;
 CHalfLifeArena::CHalfLifeArena()
 {
 	m_iFirstBloodDecided = TRUE; // no first blood award
+	PauseMutators();
 }
 
 void CHalfLifeArena::InitHUD( CBasePlayer *pPlayer )
@@ -104,6 +105,7 @@ void CHalfLifeArena::Think( void )
 			//stop timer / end game.
 			m_flRoundTimeLimit = 0;
 			g_GameInProgress = FALSE;
+			PauseMutators();
 			MESSAGE_BEGIN(MSG_ALL, gmsgShowTimer);
 				WRITE_BYTE(0);
 			MESSAGE_END();
@@ -197,6 +199,7 @@ void CHalfLifeArena::Think( void )
 					//stop timer / end game.
 					m_flRoundTimeLimit = 0;
 					g_GameInProgress = FALSE;
+					PauseMutators();
 					MESSAGE_BEGIN(MSG_ALL, gmsgShowTimer);
 						WRITE_BYTE(0);
 					MESSAGE_END();
@@ -344,6 +347,9 @@ void CHalfLifeArena::Think( void )
 		SetRoundLimits();
 
 		g_GameInProgress = TRUE;
+		
+		// Restore mutators when round begins
+		RestoreMutators();
 
 		//Should really be using InsertClientsIntoArena...
 		for ( int i = 1; i <= gpGlobals->maxClients; i++ )
