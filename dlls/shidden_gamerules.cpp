@@ -35,6 +35,7 @@ CHalfLifeShidden::CHalfLifeShidden()
 {
 	m_iSmeltersRemain = 0;
 	m_iDealtersRemain = 0;
+	PauseMutators();
 }
 
 void CHalfLifeShidden::DetermineWinner( void )
@@ -319,6 +320,7 @@ void CHalfLifeShidden::Think( void )
 			//stop timer / end game.
 			m_flRoundTimeLimit = 0;
 			g_GameInProgress = FALSE;
+			PauseMutators();
 			MESSAGE_BEGIN(MSG_ALL, gmsgShowTimer);
 				WRITE_BYTE(0);
 			MESSAGE_END();
@@ -456,6 +458,9 @@ void CHalfLifeShidden::Think( void )
 		}
 
 		g_GameInProgress = TRUE;
+		
+		// Restore mutators when round begins
+		RestoreMutators();
 
 		InsertClientsIntoArena(0);
 

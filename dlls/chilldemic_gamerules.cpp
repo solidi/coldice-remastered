@@ -38,6 +38,7 @@ CHalfLifeChilldemic::CHalfLifeChilldemic()
 {
 	m_iSurvivorsRemain = 0;
 	m_iSkeletonsRemain = 0;
+	PauseMutators();
 }
 
 void CHalfLifeChilldemic::DetermineWinner( void )
@@ -307,6 +308,7 @@ void CHalfLifeChilldemic::Think( void )
 			//stop timer / end game.
 			m_flRoundTimeLimit = 0;
 			g_GameInProgress = FALSE;
+			PauseMutators();
 			MESSAGE_BEGIN(MSG_ALL, gmsgShowTimer);
 				WRITE_BYTE(0);
 			MESSAGE_END();
@@ -434,6 +436,9 @@ void CHalfLifeChilldemic::Think( void )
 		pl->pev->fuser4 = 1;
 
 		g_GameInProgress = TRUE;
+		
+		// Restore mutators when round begins
+		RestoreMutators();
 
 		InsertClientsIntoArena(0);
 

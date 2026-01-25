@@ -36,6 +36,7 @@ extern int gmsgDEraser;
 CHalfLifeArena::CHalfLifeArena()
 {
 	m_iFirstBloodDecided = TRUE; // no first blood award
+	PauseMutators();
 }
 
 void CHalfLifeArena::InitHUD( CBasePlayer *pPlayer )
@@ -98,17 +99,20 @@ void CHalfLifeArena::Think( void )
 		CBasePlayer *pPlayer2 = (CBasePlayer *)UTIL_PlayerByIndex( m_iPlayer2 );
 
 		// when a player disconnects...
-		if ( pPlayer1 == NULL || pPlayer2 == NULL ||
-			pPlayer1->HasDisconnected || pPlayer2->HasDisconnected )
+		bool p1Disconnected = !pPlayer1 || pPlayer1->HasDisconnected;
+		bool p2Disconnected = !pPlayer2 || pPlayer2->HasDisconnected;
+
+		if ( p1Disconnected || p2Disconnected )
 		{
 			//stop timer / end game.
 			m_flRoundTimeLimit = 0;
 			g_GameInProgress = FALSE;
+			PauseMutators();
 			MESSAGE_BEGIN(MSG_ALL, gmsgShowTimer);
 				WRITE_BYTE(0);
 			MESSAGE_END();
 
-			if (pPlayer1->HasDisconnected && pPlayer1->HasDisconnected)
+			if (p1Disconnected && p2Disconnected)
 			{
 				UTIL_ClientPrintAll(HUD_PRINTCENTER,
 					UTIL_VarArgs("No victors, starting another round.\n"));
@@ -118,7 +122,7 @@ void CHalfLifeArena::Think( void )
 			}
 			else
 			{
-				if ( pPlayer1->HasDisconnected )
+				if ( p1Disconnected && !p2Disconnected && pPlayer2 )
 				{
 					UTIL_ClientPrintAll(HUD_PRINTCENTER,
 						UTIL_VarArgs("%s is the victor!\n",
@@ -134,7 +138,7 @@ void CHalfLifeArena::Think( void )
 						WRITE_BYTE(CLIENT_SOUND_OUTSTANDING);
 					MESSAGE_END();
 				}
-				else
+				else if ( p2Disconnected && !p1Disconnected && pPlayer1 )
 				{
 					UTIL_ClientPrintAll(HUD_PRINTCENTER,
 						UTIL_VarArgs("%s is the victor!\n",
@@ -197,6 +201,7 @@ void CHalfLifeArena::Think( void )
 					//stop timer / end game.
 					m_flRoundTimeLimit = 0;
 					g_GameInProgress = FALSE;
+					PauseMutators();
 					MESSAGE_BEGIN(MSG_ALL, gmsgShowTimer);
 						WRITE_BYTE(0);
 					MESSAGE_END();
@@ -344,6 +349,9 @@ void CHalfLifeArena::Think( void )
 		SetRoundLimits();
 
 		g_GameInProgress = TRUE;
+		
+		// Restore mutators when round begins
+		RestoreMutators();
 
 		//Should really be using InsertClientsIntoArena...
 		for ( int i = 1; i <= gpGlobals->maxClients; i++ )

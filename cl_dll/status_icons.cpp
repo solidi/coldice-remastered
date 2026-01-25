@@ -69,7 +69,7 @@ int CHudStatusIcons::Draw( float flTime )
 		int r, g, b;
 		UnpackRGB(r,g,b, HudColor());
 		ScaleColors(r, g, b, MIN_ALPHA);
-		FillRGBA(0, ScreenHeight - (ScreenHeight * ((gHUD.m_flTime - gHUD.m_ChaosStartTime) / gHUD.m_ChaosIncrement)), XRES(6), ScreenHeight * ((gHUD.m_flTime - gHUD.m_ChaosStartTime) / gHUD.m_ChaosIncrement), r, g, b, MAX_ALPHA);
+		FillRGBA(0, ScreenHeight - (ScreenHeight * ((gHUD.m_flTime - gHUD.m_ChaosStartTime) / gHUD.m_ChaosIncrement)), XRES(5), ScreenHeight * ((gHUD.m_flTime - gHUD.m_ChaosStartTime) / gHUD.m_ChaosIncrement), r, g, b, MAX_ALPHA);
 	}
 
 	// find starting position to draw from, along right-hand side of screen

@@ -1360,6 +1360,10 @@ void CGameRules::AddInstantMutator(void)
 
 void CGameRules::MutatorsThink(void)
 {
+	// Don't process mutators during round intermission
+	if (m_bMutatorsPaused)
+		return;
+
 	if (m_flAddMutatorTime < gpGlobals->time)
 	{
 		// storage from votes
@@ -1532,16 +1536,16 @@ void CGameRules::MutatorsThink(void)
 		gpGlobals->startspot = ALLOC_STRING(szMutators);
 		// ALERT(at_aiconsole, "STRING(gpGlobals->startspot) is \"%s\"\n", STRING(gpGlobals->startspot) );
 
-		// chaos mode
+		// chaos mode (skip during round intermission)
 		int adjcount = fmin(fmax(mutatorcount.value, 0), 7);
-		if (m_flChaosMutatorTime && m_flChaosMutatorTime < gpGlobals->time && count < adjcount)
+		if (!m_bMutatorsPaused && m_flChaosMutatorTime && m_flChaosMutatorTime < gpGlobals->time && count < adjcount)
 		{
 			m_flChaosMutatorTime = gpGlobals->time + choasIncrement;
 			AddRandomMutator("sv_addmutator", TRUE);
 		}
 
-		// Instants
-		if (instantmutators.value > 0)
+		// Instants (skip during round intermission)
+		if (!m_bMutatorsPaused && instantmutators.value > 0)
 		{
 			if (m_flInstantMutatorTime == -1)
 				m_flInstantMutatorTime = gpGlobals->time + choasIncrement;
@@ -2015,4 +2019,163 @@ BOOL CGameRules::IsGunGame()
 BOOL CGameRules::IsHorde()
 {
 	return g_GameMode == GAME_HORDE;
+}
+
+void CGameRules::PauseMutators( void )
+{
+	if (m_bMutatorsPaused)
+		return; // Already paused
+
+	ALERT(at_console, "[Mutators] Pausing mutators for round intermission\n");
+	m_bMutatorsPaused = TRUE;
+	
+	// Save the current chaos timer state
+	m_flSavedChaosMutatorTime = m_flChaosMutatorTime > 0 ? (m_flChaosMutatorTime - gpGlobals->time) : 0;
+	m_flPausedTimeDelta = gpGlobals->time;
+	
+	// Deep copy the mutator list
+	m_SavedMutators = NULL;
+	mutators_t *current = m_Mutators;
+	mutators_t *lastSaved = NULL;
+	
+	while (current != NULL)
+	{
+		mutators_t *saved = new mutators_t();
+		saved->mutatorId = current->mutatorId;
+		saved->timeToLive = current->timeToLive;
+		saved->next = NULL;
+		
+		if (m_SavedMutators == NULL)
+			m_SavedMutators = saved;
+		else
+			lastSaved->next = saved;
+		
+		lastSaved = saved;
+		current = current->next;
+	}
+	
+	// Clear all active mutators by setting their TTL to expire immediately
+	mutators_t *t = m_Mutators;
+	while (t != NULL)
+	{
+		t->timeToLive = gpGlobals->time - 1.0f; // Force expiration
+		t = t->next;
+	}
+	
+	// Stop chaos mode
+	if (m_flChaosMutatorTime > 0)
+	{
+		m_flChaosMutatorTime = 0;
+		if (gmsgChaos)
+		{
+			MESSAGE_BEGIN(MSG_ALL, gmsgChaos);
+				WRITE_BYTE(0);
+			MESSAGE_END();
+		}
+	}
+	
+	// Notify clients to clear mutators
+	if (gmsgAddMutator)
+	{
+		MESSAGE_BEGIN(MSG_ALL, gmsgAddMutator);
+			WRITE_BYTE(254); // Clear all mutators signal
+			WRITE_BYTE(0);
+		MESSAGE_END();
+	}
+}
+
+void CGameRules::RestoreMutators( void )
+{
+	if (!m_bMutatorsPaused)
+		return; // Not paused
+
+	ALERT(at_console, "[Mutators] Restoring mutators after round intermission\n");
+	m_bMutatorsPaused = FALSE;
+	
+	// Calculate time elapsed during pause
+	float pauseDuration = gpGlobals->time - m_flPausedTimeDelta;
+	
+	// Clean up expired mutators first
+	mutators_t *t = m_Mutators;
+	while (t != NULL)
+	{
+		mutators_t *next = t->next;
+		if (t->timeToLive > 0 && t->timeToLive < gpGlobals->time)
+		{
+			delete t;
+		}
+		t = next;
+	}
+	
+	// Restore saved mutators with adjusted timestamps
+	int mutatorTime = fmin(fmax(mutatortime.value, 10), 120);
+	m_Mutators = NULL;
+	mutators_t *current = m_SavedMutators;
+	mutators_t *lastRestored = NULL;
+	
+	while (current != NULL)
+	{
+		mutators_t *restored = new mutators_t();
+		restored->mutatorId = current->mutatorId;
+		
+		// Adjust TTL: if it was permanent, keep it; otherwise extend by pause duration
+		if (current->timeToLive == -1)
+			restored->timeToLive = -1; // Permanent
+		else if (current->timeToLive > 0)
+			restored->timeToLive = current->timeToLive + pauseDuration; // Extend by pause time
+		else
+			restored->timeToLive = gpGlobals->time + mutatorTime; // Reset if expired
+		
+		restored->next = NULL;
+		
+		if (m_Mutators == NULL)
+			m_Mutators = restored;
+		else
+			lastRestored->next = restored;
+		
+		lastRestored = restored;
+		
+		// Notify clients of restored mutator
+		if (gmsgAddMutator)
+		{
+			MESSAGE_BEGIN(MSG_ALL, gmsgAddMutator);
+				WRITE_BYTE(current->mutatorId);
+				int timeRemaining = (restored->timeToLive == -1) ? 253 : (int)(restored->timeToLive - gpGlobals->time);
+				WRITE_BYTE(timeRemaining);
+			MESSAGE_END();
+			
+			ALERT(at_console, "[Mutators] Restored mutator '%s' with %d seconds remaining\n",
+				g_szMutators[current->mutatorId - 1], timeRemaining);
+		}
+		
+		current = current->next;
+	}
+	
+	// Restore chaos mode timer if it was active
+	if (m_flSavedChaosMutatorTime > 0)
+	{
+		m_flChaosMutatorTime = gpGlobals->time + m_flSavedChaosMutatorTime;
+		if (gmsgChaos)
+		{
+			MESSAGE_BEGIN(MSG_ALL, gmsgChaos);
+				WRITE_BYTE((int)m_flSavedChaosMutatorTime);
+			MESSAGE_END();
+		}
+		ALERT(at_console, "[Mutators] Restored chaos timer with %.2f seconds remaining\n", m_flSavedChaosMutatorTime);
+	}
+	
+	// Clean up saved mutators list
+	current = m_SavedMutators;
+	while (current != NULL)
+	{
+		mutators_t *next = current->next;
+		delete current;
+		current = next;
+	}
+	m_SavedMutators = NULL;
+	m_flSavedChaosMutatorTime = 0;
+	m_flPausedTimeDelta = 0;
+	
+	// Trigger mutator detection to apply effects
+	m_flDetectedMutatorChange = gpGlobals->time + 0.5;
 }

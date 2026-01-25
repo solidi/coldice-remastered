@@ -54,6 +54,8 @@ CHalfLifeHorde::CHalfLifeHorde()
 	m_iWaveNumber = 0;
 	pLastSpawnPoint = NULL;
 
+	PauseMutators();
+
 	UTIL_PrecacheOther( "monster_panther" );
 	UTIL_PrecacheOther( "monster_headcrab" );
 	UTIL_PrecacheOther( "monster_zombie" );
@@ -499,6 +501,7 @@ void CHalfLifeHorde::Think( void )
 			//stop timer / end game.
 			m_flRoundTimeLimit = 0;
 			g_GameInProgress = FALSE;
+			PauseMutators();
 			MESSAGE_BEGIN(MSG_ALL, gmsgShowTimer);
 				WRITE_BYTE(0);
 			MESSAGE_END();
@@ -580,6 +583,9 @@ void CHalfLifeHorde::Think( void )
 		SetRoundLimits();
 
 		g_GameInProgress = TRUE;
+		
+		// Restore mutators when round begins
+		RestoreMutators();
 
 		InsertClientsIntoArena(0);
 

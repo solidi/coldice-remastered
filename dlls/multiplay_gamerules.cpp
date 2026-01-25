@@ -1091,7 +1091,16 @@ void CHalfLifeMultiplay::RemoveAndFillItems( void )
 				pEntity->pev->origin.x,
 				pEntity->pev->origin.y,
 				pEntity->pev->origin.z);*/
-			UTIL_Remove(pEntity);
+			
+			// Clean up tripmine beam before removal
+			if (strcmp(pRemoveThese[itemIndex], "monster_tripmine") == 0)
+			{
+				pEntity->Killed(NULL, GIB_NEVER);
+			}
+			else
+			{
+				UTIL_Remove(pEntity);
+			}
 		}
 	}
 
@@ -2806,6 +2815,8 @@ void CHalfLifeMultiplay :: GoToIntermission( void )
 {
 	if ( g_fGameOver )
 		return;  // intermission has already been triggered, so ignore.
+
+	PauseMutators();
 
 	MESSAGE_BEGIN(MSG_ALL, SVC_INTERMISSION);
 	MESSAGE_END();

@@ -124,6 +124,7 @@ CHalfLifeLastManStanding::CHalfLifeLastManStanding()
 	pLastSpawnPoint = NULL;
 	m_DisableDeathPenalty = FALSE;
 	m_fSpawnSafeSpot = gpGlobals->time + 2.0;
+	PauseMutators();
 }
 
 void CHalfLifeLastManStanding::InitHUD( CBasePlayer *pPlayer )
@@ -391,6 +392,7 @@ void CHalfLifeLastManStanding::Think( void )
 			//stop timer / end game.
 			m_flRoundTimeLimit = 0;
 			g_GameInProgress = FALSE;
+			PauseMutators();
 			MESSAGE_BEGIN(MSG_ALL, gmsgShowTimer);
 				WRITE_BYTE(0);
 			MESSAGE_END();
@@ -504,6 +506,9 @@ void CHalfLifeLastManStanding::Think( void )
 		ALERT(at_console, "Players in LMS: ");
 
 		g_GameInProgress = TRUE;
+		
+		// Restore mutators when round begins
+		RestoreMutators();
 
 		//frags + time.
 		SetRoundLimits();

@@ -33,6 +33,12 @@ extern int gmsgObjective;
 extern int gmsgShowTimer;
 extern int gmsgDEraser;
 
+CHalfLifeJesusVsSanta::CHalfLifeJesusVsSanta()
+{
+	pArmoredMan = NULL;
+	PauseMutators();
+}
+
 void CHalfLifeJesusVsSanta::DetermineWinner( void )
 {
 	int highest = 1;
@@ -235,6 +241,7 @@ void CHalfLifeJesusVsSanta::Think( void )
 			//stop timer / end game.
 			m_flRoundTimeLimit = 0;
 			g_GameInProgress = FALSE;
+			PauseMutators();
 			MESSAGE_BEGIN(MSG_ALL, gmsgShowTimer);
 				WRITE_BYTE(0);
 			MESSAGE_END();
@@ -353,6 +360,9 @@ void CHalfLifeJesusVsSanta::Think( void )
 		pArmoredMan->pev->fuser4 = 0;
 
 		g_GameInProgress = TRUE;
+		
+		// Restore mutators when round begins
+		RestoreMutators();
 
 		InsertClientsIntoArena(0);
 

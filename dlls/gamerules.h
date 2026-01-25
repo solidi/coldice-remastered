@@ -195,6 +195,8 @@ public:
 	virtual void MutatorsThink( void );
 	virtual BOOL MutatorAllowed(const char *mutator) = FALSE;
 	virtual void CheckGameMode( void );
+	virtual void PauseMutators( void );
+	virtual void RestoreMutators( void );
 	virtual void UpdateMutatorMessage( CBasePlayer *pPlayer );
 	virtual void UpdateGameModeMessage( CBasePlayer *pPlayer );
 	virtual void ResetGameMode( void ) {};
@@ -239,6 +241,12 @@ private:
 	float m_flInstantMutatorTime = 0;
 	float m_flDetectedMutatorChange = 0;
 	mutators_t *m_Mutators = NULL;
+
+	// Round-based mutator pause/restore system
+	BOOL m_bMutatorsPaused = FALSE;
+	mutators_t *m_SavedMutators = NULL;
+	float m_flSavedChaosMutatorTime = 0;
+	float m_flPausedTimeDelta = 0;
 };
 
 extern CGameRules *InstallGameRules( void );
