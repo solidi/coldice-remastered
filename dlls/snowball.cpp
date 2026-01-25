@@ -250,10 +250,6 @@ void CSnowball::WeaponIdle( void )
 		Vector vecSrc = m_pPlayer->pev->origin + m_pPlayer->pev->view_ofs + angThrow + gpGlobals->v_up * 4;
 		Vector vecThrow = angThrow * flVel + m_pPlayer->pev->velocity;
 
-		float time = flHoldTime;
-		if (time < 0)
-			time = 0;
-
 #ifndef CLIENT_DLL
 		CFlyingSnowball::Shoot( m_pPlayer->pev, vecSrc, vecThrow, m_pPlayer );
 #endif
