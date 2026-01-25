@@ -71,6 +71,9 @@ CVoiceGameMgr	g_VoiceGameMgr;
 DLL_GLOBAL float g_iKickSomeone;
 #endif
 
+// Forward declaration for tripmine cleanup
+class CTripmineGrenade;
+
 class CMultiplayGameMgrHelper : public IVoiceGameMgrHelper
 {
 public:
@@ -1095,12 +1098,11 @@ void CHalfLifeMultiplay::RemoveAndFillItems( void )
 			// Clean up tripmine beam before removal
 			if (strcmp(pRemoveThese[itemIndex], "monster_tripmine") == 0)
 			{
-				pEntity->Killed(NULL, GIB_NEVER);
+				CTripmineGrenade *pTripmine = (CTripmineGrenade *)pEntity;
+				pTripmine->KillBeam();
 			}
-			else
-			{
-				UTIL_Remove(pEntity);
-			}
+			
+			UTIL_Remove(pEntity);
 		}
 	}
 
