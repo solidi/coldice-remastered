@@ -46,6 +46,7 @@ enum tripmine_e {
 
 class CTripmineGrenade : public CGrenade
 {
+public:
 	void Spawn( void );
 	void Precache( void );
 
@@ -65,6 +66,7 @@ class CTripmineGrenade : public CGrenade
 	void MakeBeam( void );
 	void KillBeam( void );
 
+private:
 	float		m_flPowerUp;
 	Vector		m_vecDir;
 	Vector		m_vecEnd;
