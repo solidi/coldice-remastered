@@ -122,7 +122,7 @@ void CHalfLifeArena::Think( void )
 			}
 			else
 			{
-				if ( p1Disconnected )
+				if ( p1Disconnected && pPlayer2 )
 				{
 					UTIL_ClientPrintAll(HUD_PRINTCENTER,
 						UTIL_VarArgs("%s is the victor!\n",
@@ -138,7 +138,7 @@ void CHalfLifeArena::Think( void )
 						WRITE_BYTE(CLIENT_SOUND_OUTSTANDING);
 					MESSAGE_END();
 				}
-				else
+				else if ( pPlayer1 )
 				{
 					UTIL_ClientPrintAll(HUD_PRINTCENTER,
 						UTIL_VarArgs("%s is the victor!\n",
