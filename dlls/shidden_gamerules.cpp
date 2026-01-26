@@ -30,6 +30,7 @@ extern int gmsgPlayClientSound;
 extern int gmsgShowTimer;
 extern int gmsgStatusIcon;
 extern int gmsgDEraser;
+extern int gmsgBanner;
 
 CHalfLifeShidden::CHalfLifeShidden()
 {
@@ -547,16 +548,23 @@ void CHalfLifeShidden::PlayerSpawn( CBasePlayer *pPlayer )
 		pPlayer->pev->gravity = 0.25;
 		pPlayer->MakeInvisible();
 		strncpy( pPlayer->m_szTeamName, "dealters", TEAM_NAME_LENGTH );
-		ClientPrint(pPlayer->pev, HUD_PRINTCENTER, "You are a dealter, fart the smelter(s)!");
-		//g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer->edict()), key, "team", pPlayer->m_szTeamName);
+		MESSAGE_BEGIN(MSG_ONE, gmsgBanner, NULL, pPlayer->edict());
+			WRITE_STRING("You are on team Dealters");
+			WRITE_STRING("What's farting got to do with it?");
+			WRITE_BYTE(80);
+		MESSAGE_END();
 	}
 	else
 	{
 		strncpy( pPlayer->m_szTeamName, "smelters", TEAM_NAME_LENGTH );
 		pPlayer->pev->fuser3 = 0; // bots need to identify their team.
 		pPlayer->MakeVisible();
-		ClientPrint(pPlayer->pev, HUD_PRINTCENTER, "You are a smelter, frag the dealter(s)!");
-		//g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer->edict()), key, "team", pPlayer->m_szTeamName);
+
+		MESSAGE_BEGIN(MSG_ONE, gmsgBanner, NULL, pPlayer->edict());
+			WRITE_STRING("You are on team Smelters");
+			WRITE_STRING("Do you smell what I smell from these skeletons?");
+			WRITE_BYTE(80);
+		MESSAGE_END();
 	}
 
 	// notify everyone's HUD of the team change

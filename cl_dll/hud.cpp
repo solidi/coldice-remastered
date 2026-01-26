@@ -693,6 +693,7 @@ void CHud :: Init( void )
 	m_Timer.Init();
 	m_ProTip.Init();
 	m_CtfInfo.Init();
+	m_Banner.Init();
 	gFog.Init();
 	InitRain();
 #ifdef _WIN32

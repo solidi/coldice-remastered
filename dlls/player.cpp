@@ -219,6 +219,7 @@ int gmsgFog = 0;
 int gmsgChaos = 0;
 int gmsgSafeSpot = 0;
 int gmsgDEraser = 0;
+int gmsgBanner = 0;
 
 void LinkUserMessages( void )
 {
@@ -290,6 +291,7 @@ void LinkUserMessages( void )
 	gmsgChaos = REG_USER_MSG("Chaos", 1);
 	gmsgSafeSpot = REG_USER_MSG("Spot", 1);
 	gmsgDEraser = REG_USER_MSG("DEraser", 0);
+	gmsgBanner = REG_USER_MSG("Banner", -1);
 }
 
 LINK_ENTITY_TO_CLASS( player, CBasePlayer );
