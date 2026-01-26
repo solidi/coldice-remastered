@@ -903,6 +903,15 @@ void CHalfLifePropHunt::FPlayerTookDamage( float flDamage, CBasePlayer *pVictim,
 	}
 }
 
+float CHalfLifePropHunt::FlPlayerFallDamage( CBasePlayer *pPlayer )
+{
+	// Props take no fall damage
+	if (pPlayer->pev->fuser4 > 0)
+		return 0.0f;
+
+	return CHalfLifeMultiplay::FlPlayerFallDamage( pPlayer );
+}
+
 int CHalfLifePropHunt::PlayerRelationship( CBaseEntity *pPlayer, CBaseEntity *pTarget )
 {
 	if ( !pPlayer || !pTarget || !pTarget->IsPlayer() )
