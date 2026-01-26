@@ -250,7 +250,7 @@ void CMultiplayBusters::CheckForEgons()
 		{
 			CBasePlayer* pPlayer = (CBasePlayer*)UTIL_PlayerByIndex( i );
 
-			if ( pPlayer && pPlayer->pev->frags <= bBestFrags )
+			if ( pPlayer && !pPlayer->HasDisconnected && pPlayer->pev->frags <= bBestFrags )
 			{
 				bBestFrags = pPlayer->pev->frags;
 				pBestPlayer = pPlayer;
