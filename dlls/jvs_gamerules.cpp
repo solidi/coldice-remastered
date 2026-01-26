@@ -467,7 +467,7 @@ BOOL CHalfLifeJesusVsSanta::HasGameTimerExpired( void )
 
 BOOL CHalfLifeJesusVsSanta::FPlayerCanTakeDamage( CBasePlayer *pPlayer, CBaseEntity *pAttacker )
 {
-	if ( pAttacker && pPlayer->pev->fuser4 == pAttacker->pev->fuser4 )
+	if ( pAttacker && pAttacker->IsPlayer() && pPlayer->pev->fuser4 == pAttacker->pev->fuser4 )
 	{
 		// my teammate hit me.
 		if ( (friendlyfire.value == 0) && (pAttacker != pPlayer) )

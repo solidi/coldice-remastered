@@ -833,7 +833,7 @@ BOOL CHalfLifePropHunt::FPlayerCanTakeDamage( CBasePlayer *pPlayer, CBaseEntity 
 	if (pPlayer->pev->fuser4 > 0 && m_fUnFreezeHunters > 0)
 		return FALSE; // props cannot change to hunter yet.
 
-	if ( pAttacker && pPlayer->pev->fuser4 == pAttacker->pev->fuser4 )
+	if ( pAttacker && pAttacker->IsPlayer() && pPlayer->pev->fuser4 == pAttacker->pev->fuser4 )
 	{
 		// my teammate hit me.
 		if ( (friendlyfire.value == 0) && (pAttacker != pPlayer) )
