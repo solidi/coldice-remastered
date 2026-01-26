@@ -33,6 +33,8 @@ extern int gmsgTeamInfo;
 extern int gmsgSafeSpot;
 extern int gmsgDEraser;
 
+extern DLL_GLOBAL BOOL g_fGameOver;
+
 #define TEAM_BLUE 0
 #define TEAM_RED 1
 
@@ -79,6 +81,9 @@ void CSafeSpot::Spawn( void )
 
 void CSafeSpot::SafeSpotThink( void )
 {
+	if (g_fGameOver)
+		return;
+
 	if (!royaledamage.value)
 	{
 		pev->nextthink = gpGlobals->time + 2.0;
