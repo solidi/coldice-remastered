@@ -396,6 +396,7 @@ void ScorePanel::SortTeams()
 	while ( 1 )
 	{
 		int highest = -99999; int lowest_deaths = 99999;
+		int lowest_players = 99999;
 		int best_team = 0;
 		int which = 0;
 		for ( i = 1; i <= m_iNumTeams; i++ )
@@ -405,7 +406,22 @@ void ScorePanel::SortTeams()
 
 			which = SortByWins() ? g_TeamInfo[i].score : g_TeamInfo[i].frags;
 
-			if ( !g_TeamInfo[i].already_drawn && which >= highest )
+			// Special sorting by least players (ascending)
+			if ( gHUD.m_Teamplay == GAME_BUSTERS || gHUD.m_Teamplay == GAME_CTC ||
+				 gHUD.m_Teamplay == GAME_CHILLDEMIC || gHUD.m_Teamplay == GAME_ICEMAN ||
+				 gHUD.m_Teamplay == GAME_PROPHUNT || gHUD.m_Teamplay == GAME_SHIDDEN )
+			{
+				if ( !g_TeamInfo[i].already_drawn && g_TeamInfo[i].players <= lowest_players )
+				{
+					if ( g_TeamInfo[i].players < lowest_players || which > highest )
+					{
+						best_team = i;
+						lowest_players = g_TeamInfo[i].players;
+						highest = which;
+					}
+				}
+			}
+			else if ( !g_TeamInfo[i].already_drawn && which >= highest )
 			{
 				if ( which > highest || g_TeamInfo[i].deaths < lowest_deaths )
 				{
@@ -415,15 +431,6 @@ void ScorePanel::SortTeams()
 						highest = g_TeamInfo[i].score;
 					else
 						highest = g_TeamInfo[i].frags;
-				}
-			}
-
-			for ( int j = 1; j <= m_iNumTeams; j++ )
-			{
-				if (gHUD.m_Teamplay == GAME_CTC && !strcmp(g_TeamInfo[j].name, "holder") && !g_TeamInfo[j].already_drawn)
-				{
-					best_team = j;
-					break;
 				}
 			}
 		}
@@ -780,20 +787,20 @@ void ScorePanel::FillGrid()
 				case COLUMN_CLASS:
 					break;
 				case COLUMN_KILLS:
-					if ( m_iIsATeam[row] == TEAM_YES )
-						sprintf(sz, "%d",  team_info->frags );
+					//if ( m_iIsATeam[row] == TEAM_YES )
+						//sprintf(sz, "%d",  team_info->frags );
 					break;
 				case COLUMN_DEATHS:
-					if ( m_iIsATeam[row] == TEAM_YES )
-						sprintf(sz, "%d",  team_info->deaths );
+					//if ( m_iIsATeam[row] == TEAM_YES )
+						//sprintf(sz, "%d",  team_info->deaths );
 					break;
 				case COLUMN_SCORE:
-					if ( m_iIsATeam[row] == TEAM_YES && (ScoreBased() && gHUD.m_Teamplay != GAME_TEAMPLAY))
-						sprintf(sz, "%d",  team_info->score );
+					//if ( m_iIsATeam[row] == TEAM_YES && (ScoreBased() && gHUD.m_Teamplay != GAME_TEAMPLAY))
+						//sprintf(sz, "%d",  team_info->score );
 					break;
 				case COLUMN_LATENCY:
-					if ( m_iIsATeam[row] == TEAM_YES )
-						sprintf(sz, "%d", team_info->ping );
+					//if ( m_iIsATeam[row] == TEAM_YES )
+						//sprintf(sz, "%d", team_info->ping );
 					break;
 				default:
 					break;
