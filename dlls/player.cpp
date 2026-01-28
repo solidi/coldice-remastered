@@ -2319,7 +2319,7 @@ void CBasePlayer::PlayerBurn(void)
 		return;
 	}
 
-	BOOL skeleton = g_pGameRules->IsChilldemic() && !strcmp(m_szTeamName, "skeleton");
+	BOOL skeleton = g_pGameRules->IsChilldemic() && !strcmp(m_szTeamName, "skeletons");
 
 	if (m_fBurnTime > 10 || skeleton)
 		m_fBurnTime = 10;
@@ -2923,7 +2923,7 @@ void CBasePlayer::PreThink(void)
 		m_hFlameOwner = NULL;
 
 	if ((m_fBurnTime > 0 && nextburntime <= gpGlobals->time)
-		|| (g_pGameRules->IsChilldemic() && !strcmp(m_szTeamName, "skeleton")) )
+		|| (g_pGameRules->IsChilldemic() && !strcmp(m_szTeamName, "skeletons")) )
 	{
 		PlayerBurn();
 		nextburntime = gpGlobals->time + 0.1;

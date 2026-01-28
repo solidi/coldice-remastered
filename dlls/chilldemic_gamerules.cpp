@@ -451,7 +451,7 @@ void CHalfLifeChilldemic::Think( void )
 		MESSAGE_BEGIN( MSG_ALL, gmsgTeamNames );
 			WRITE_BYTE( 2 );
 			WRITE_STRING( "survivors" );
-			WRITE_STRING( "skeleton" );
+			WRITE_STRING( "skeletons" );
 		MESSAGE_END();
 
 		UTIL_ClientPrintAll(HUD_PRINTTALK, UTIL_VarArgs("* %d players have entered the arena!\n", clients));
@@ -491,7 +491,7 @@ void CHalfLifeChilldemic::InitHUD( CBasePlayer *pPlayer )
 		MESSAGE_BEGIN(MSG_ONE, gmsgTeamNames, NULL, pPlayer->edict());
 			WRITE_BYTE( 2 );
 			WRITE_STRING( "survivors" );
-			WRITE_STRING( "skeleton" );
+			WRITE_STRING( "skeletons" );
 		MESSAGE_END();
 	}
 
@@ -575,7 +575,7 @@ void CHalfLifeChilldemic::PlayerSpawn( CBasePlayer *pPlayer )
 		pPlayer->pev->max_health = pPlayer->pev->health = 50;
 		g_engfuncs.pfnSetPhysicsKeyValue(pPlayer->edict(), "haste", "1");
 
-		strncpy( pPlayer->m_szTeamName, "skeleton", TEAM_NAME_LENGTH );
+		strncpy( pPlayer->m_szTeamName, "skeletons", TEAM_NAME_LENGTH );
 		g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer->edict()), key, "model", "skeleton");
 		//g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer->edict()), key, "team", "skeleton");
 		ClientPrint(pPlayer->pev, HUD_PRINTCENTER, "You are a skeleton, infect others!");
@@ -689,7 +689,7 @@ void CHalfLifeChilldemic::PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller
 
 		g_engfuncs.pfnSetClientKeyValue( ENTINDEX( pVictim->edict() ),
 			g_engfuncs.pfnGetInfoKeyBuffer( pVictim->edict() ), "model", "skeleton" );
-		strncpy( pVictim->m_szTeamName, "skeleton", TEAM_NAME_LENGTH );
+		strncpy( pVictim->m_szTeamName, "skeletons", TEAM_NAME_LENGTH );
 	}
 	else
 	{
@@ -727,7 +727,7 @@ int CHalfLifeChilldemic::GetTeamIndex( const char *pTeamName )
 {
 	if ( pTeamName && *pTeamName != 0 )
 	{
-		if (!strcmp(pTeamName, "skeleton"))
+		if (!strcmp(pTeamName, "skeletons"))
 			return 1;
 		else
 			return 0; // survivors
