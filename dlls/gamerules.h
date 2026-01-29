@@ -512,7 +512,7 @@ protected:
 	void SendMOTDToClient( edict_t *client );
 
 	// Cold Ice Remastered Game Modes
-	float m_fSendArmoredManMessage;
+	float m_fSendArmoredManMessage = 0;
 	BOOL g_GameInProgress;
 	float flUpdateTime;
 	float m_flRoundTimeLimit;

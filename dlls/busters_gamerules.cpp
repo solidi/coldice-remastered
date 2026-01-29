@@ -32,6 +32,7 @@ extern int gmsgTeamNames;
 extern int gmsgTeamInfo;
 extern int gmsgScoreInfo;
 extern int gmsgPlayClientSound;
+extern int gmsgBanner;
 
 extern DLL_GLOBAL BOOL g_fGameOver;
 
@@ -120,6 +121,16 @@ void CMultiplayBusters::Think()
 				{
 					GoToIntermission();
 					break;
+				}
+
+				if (plr->m_iShowGameModeMessage > -1 && plr->m_iShowGameModeMessage < gpGlobals->time && !FBitSet(plr->pev->flags, FL_FAKECLIENT))
+				{
+					MESSAGE_BEGIN(MSG_ONE, gmsgBanner, NULL, plr->edict());
+						WRITE_STRING("You are a Ghost");
+						WRITE_STRING("Defeat the buster (a blue hev suit w/Egon)");
+						WRITE_BYTE(80);
+					MESSAGE_END();
+					plr->m_iShowGameModeMessage = -1;
 				}
 			}
 		}
@@ -325,6 +336,16 @@ void CMultiplayBusters::PlayerGotWeapon( CBasePlayer* pPlayer, CBasePlayerItem* 
 		UTIL_ClientPrintAll( HUD_PRINTCENTER, "Long live the new Buster!" );
 		UTIL_ClientPrintAll( HUD_PRINTTALK, UTIL_VarArgs( "[Busters]: %s is busting!\n", STRING( (CBasePlayer*)pPlayer->pev->netname ) ) );
 
+		if (pPlayer->m_iShowGameModeMessage == -1 && !FBitSet(pPlayer->pev->flags, FL_FAKECLIENT))
+		{
+			MESSAGE_BEGIN(MSG_ONE, gmsgBanner, NULL, pPlayer->edict());
+				WRITE_STRING("You Are Busting!");
+				WRITE_STRING("Blast those ghosts (really, skeletons)");
+				WRITE_BYTE(80);
+			MESSAGE_END();
+			pPlayer->m_iShowGameModeMessage = -2;
+		}
+	
 		MESSAGE_BEGIN(MSG_BROADCAST, gmsgObjective);
 			WRITE_STRING("Bust 'em");
 			WRITE_STRING(UTIL_VarArgs("%s is busting!\n", STRING( (CBasePlayer*)pPlayer->pev->netname)));
@@ -362,6 +383,9 @@ void CMultiplayBusters::PlayerSpawn( CBasePlayer* pPlayer )
 	CHalfLifeMultiplay::PlayerSpawn( pPlayer );
 
 	CHalfLifeMultiplay::SavePlayerModel(pPlayer);
+
+	if (pPlayer->m_iShowGameModeMessage > -1)
+		pPlayer->m_iShowGameModeMessage = gpGlobals->time + 0.5;
 
 	SetPlayerModel( pPlayer );
 }

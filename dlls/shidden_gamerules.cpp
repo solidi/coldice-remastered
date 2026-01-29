@@ -293,7 +293,7 @@ void CHalfLifeShidden::Think( void )
 		}
 
 		// Skeleton icon
-		if (m_fSendArmoredManMessage < gpGlobals->time)
+		if (m_fSendArmoredManMessage = -1 && m_fSendArmoredManMessage < gpGlobals->time)
 		{
 			for ( int i = 1; i <= gpGlobals->maxClients; i++ )
 			{
@@ -313,6 +313,7 @@ void CHalfLifeShidden::Think( void )
 					}
 				}
 			}
+			m_fSendArmoredManMessage = -1;
 		}
 
 		// semlters dead or dealters defeated

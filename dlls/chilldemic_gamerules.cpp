@@ -33,6 +33,7 @@ extern int gmsgShowTime;
 extern int gmsgShowTimer;
 extern int gmsgScoreInfo;
 extern int gmsgDEraser;
+extern int gmsgBanner;
 
 CHalfLifeChilldemic::CHalfLifeChilldemic()
 {
@@ -280,15 +281,15 @@ void CHalfLifeChilldemic::Think( void )
 		}
 
 		// Skeleton icon
-		if (m_fSendArmoredManMessage < gpGlobals->time)
+		if (m_fSendArmoredManMessage != -1 && m_fSendArmoredManMessage < gpGlobals->time)
 		{
 			for ( int i = 1; i <= gpGlobals->maxClients; i++ )
 			{
 				CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
 
-				if ( plr && plr->IsPlayer() && !plr->HasDisconnected && plr->pev->fuser4 > 0 )
+				if ( plr && plr->IsPlayer() && !plr->HasDisconnected && !FBitSet(plr->pev->flags, FL_FAKECLIENT) && !plr->IsSpectator() )
 				{
-					if (!FBitSet(plr->pev->flags, FL_FAKECLIENT) && !plr->IsSpectator())
+					if (plr->pev->fuser4 > 0)
 					{
 						MESSAGE_BEGIN( MSG_ONE, gmsgStatusIcon, NULL, plr->pev );
 							WRITE_BYTE(1);
@@ -297,9 +298,24 @@ void CHalfLifeChilldemic::Think( void )
 							WRITE_BYTE(160);
 							WRITE_BYTE(255);
 						MESSAGE_END();
+
+						MESSAGE_BEGIN(MSG_ONE, gmsgBanner, NULL, plr->edict());
+							WRITE_STRING("You Are the Virus");
+							WRITE_STRING("Infect others who are not skeletons, quickly!");
+							WRITE_BYTE(80);
+						MESSAGE_END();
+					}
+					else
+					{
+						MESSAGE_BEGIN(MSG_ONE, gmsgBanner, NULL, plr->edict());
+							WRITE_STRING("You Are a Survivor");
+							WRITE_STRING("Keep yourself alive and eliminate the infected (skeletons)!");
+							WRITE_BYTE(80);
+						MESSAGE_END();
 					}
 				}
 			}
+			m_fSendArmoredManMessage = -1;
 		}
 
 		// Survivors dead or skeletons defeated
@@ -577,8 +593,6 @@ void CHalfLifeChilldemic::PlayerSpawn( CBasePlayer *pPlayer )
 
 		strncpy( pPlayer->m_szTeamName, "skeletons", TEAM_NAME_LENGTH );
 		g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer->edict()), key, "model", "skeleton");
-		//g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer->edict()), key, "team", "skeleton");
-		ClientPrint(pPlayer->pev, HUD_PRINTCENTER, "You are a skeleton, infect others!");
 	}
 	else
 	{
@@ -592,8 +606,6 @@ void CHalfLifeChilldemic::PlayerSpawn( CBasePlayer *pPlayer )
 
 		strncpy( pPlayer->m_szTeamName, "survivors", TEAM_NAME_LENGTH );
 		g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer->edict()), key, "model", modelName);
-		//g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer->edict()), key, "team", "survivors");
-		ClientPrint(pPlayer->pev, HUD_PRINTCENTER, "You are a survivor, fight skeletons!");
 	}
 
 	// notify everyone's HUD of the team change
