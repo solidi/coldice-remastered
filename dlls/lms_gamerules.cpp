@@ -309,9 +309,9 @@ void CHalfLifeLastManStanding::Think( void )
 						if (m_TeamBased)
 						{
 							if (plr->pev->fuser4 == TEAM_RED)
-								WRITE_STRING("Your On Team Red!");
+								WRITE_STRING("You're on Team Red!");
 							else
-								WRITE_STRING("Your On Team Blue!");
+								WRITE_STRING("You're on Team Blue!");
 						} else
 							WRITE_STRING("Battle Royale");
 						WRITE_STRING("Fight your enemies, keep in the safe spot (the green box)!");
