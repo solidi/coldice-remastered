@@ -219,6 +219,7 @@ int gmsgFog = 0;
 int gmsgChaos = 0;
 int gmsgSafeSpot = 0;
 int gmsgDEraser = 0;
+int gmsgBanner = 0;
 
 void LinkUserMessages( void )
 {
@@ -290,6 +291,7 @@ void LinkUserMessages( void )
 	gmsgChaos = REG_USER_MSG("Chaos", 1);
 	gmsgSafeSpot = REG_USER_MSG("Spot", 1);
 	gmsgDEraser = REG_USER_MSG("DEraser", 0);
+	gmsgBanner = REG_USER_MSG("Banner", -1);
 }
 
 LINK_ENTITY_TO_CLASS( player, CBasePlayer );
@@ -2317,7 +2319,7 @@ void CBasePlayer::PlayerBurn(void)
 		return;
 	}
 
-	BOOL skeleton = g_pGameRules->IsChilldemic() && !strcmp(m_szTeamName, "skeleton");
+	BOOL skeleton = g_pGameRules->IsChilldemic() && !strcmp(m_szTeamName, "skeletons");
 
 	if (m_fBurnTime > 10 || skeleton)
 		m_fBurnTime = 10;
@@ -2921,7 +2923,7 @@ void CBasePlayer::PreThink(void)
 		m_hFlameOwner = NULL;
 
 	if ((m_fBurnTime > 0 && nextburntime <= gpGlobals->time)
-		|| (g_pGameRules->IsChilldemic() && !strcmp(m_szTeamName, "skeleton")) )
+		|| (g_pGameRules->IsChilldemic() && !strcmp(m_szTeamName, "skeletons")) )
 	{
 		PlayerBurn();
 		nextburntime = gpGlobals->time + 0.1;

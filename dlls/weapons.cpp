@@ -3271,7 +3271,14 @@ void CBasePlayerWeapon::ThrowWeapon( BOOL holdingSomething )
 
 	if (g_pGameRules->IsGunGame() || g_pGameRules->IsInstagib())
 	{
-		ClientPrint(m_pPlayer->pev, HUD_PRINTCENTER, "Throw weapon is disabled in this gamemode.");
+		ClientPrint(m_pPlayer->pev, HUD_PRINTCENTER, "Throw is disabled in gamemode.");
+		m_pPlayer->m_fOffhandTime = gpGlobals->time + 0.5;
+		return;
+	}
+
+	if (m_iId == WEAPON_EGON && g_pGameRules->IsBusters())
+	{
+		ClientPrint(m_pPlayer->pev, HUD_PRINTCENTER, "Throw is disabled in gamemode.");
 		m_pPlayer->m_fOffhandTime = gpGlobals->time + 0.5;
 		return;
 	}

@@ -33,6 +33,7 @@ extern int gmsgStatusIcon;
 extern int gmsgShowTimer;
 extern int gmsgPlayClientSound;
 extern int gmsgDEraser;
+extern int gmsgBanner;
 
 class CPropDecoy : public CBaseEntity
 {
@@ -349,6 +350,32 @@ void CHalfLifePropHunt::Think( void )
 		m_iHuntersRemain = hunters_left;
 		m_iPropsRemain = props_left;
 
+		if (m_fSendArmoredManMessage != -1 && m_fSendArmoredManMessage < gpGlobals->time)
+		{
+			for ( int i = 1; i <= gpGlobals->maxClients; i++ )
+			{
+				CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
+
+				if ( plr && plr->IsPlayer() && !plr->HasDisconnected && !FBitSet(plr->pev->flags, FL_FAKECLIENT) && !plr->IsSpectator() )
+				{
+					MESSAGE_BEGIN(MSG_ONE, gmsgBanner, NULL, plr->edict());
+						if (plr->pev->fuser4 > 0)
+						{
+							WRITE_STRING("You Are a Prop!");
+							WRITE_STRING("Hide as an item (ATTACK) and throw decoys (RELOAD)!");
+						}
+						else
+						{
+							WRITE_STRING("You Are a Hunter!");
+							WRITE_STRING("Find the Props by shooting items. Real items lose a point!");
+						}
+						WRITE_BYTE(80);
+					MESSAGE_END();
+				}
+			}
+			m_fSendArmoredManMessage = -1;
+		}
+
 		// Prop messages
 		for ( int i = 1; i <= gpGlobals->maxClients; i++ )
 		{
@@ -470,31 +497,6 @@ void CHalfLifePropHunt::Think( void )
 			}
 		}
 
-		// Prop icon
-		/*
-		if (m_fSendArmoredManMessage < gpGlobals->time)
-		{
-			for ( int i = 1; i <= gpGlobals->maxClients; i++ )
-			{
-				CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
-
-				if ( plr && plr->IsPlayer() && !plr->HasDisconnected && plr->pev->fuser4 > 0 )
-				{
-					if (!FBitSet(plr->pev->flags, FL_FAKECLIENT) && !plr->IsSpectator())
-					{
-						MESSAGE_BEGIN( MSG_ONE, gmsgStatusIcon, NULL, plr->pev );
-							WRITE_BYTE(1);
-							WRITE_STRING("dealter");
-							WRITE_BYTE(0);
-							WRITE_BYTE(160);
-							WRITE_BYTE(255);
-						MESSAGE_END();
-					}
-				}
-			}
-		}
-		*/
-
 		if ( hunters_left < 1 || props_left < 1 )
 		{
 			//stop timer / end game.
@@ -504,24 +506,6 @@ void CHalfLifePropHunt::Think( void )
 			MESSAGE_BEGIN(MSG_ALL, gmsgShowTimer);
 				WRITE_BYTE(0);
 			MESSAGE_END();
-
-			/*
-			for ( int i = 1; i <= gpGlobals->maxClients; i++ )
-			{
-				CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
-
-				if ( plr && plr->IsPlayer() && !plr->HasDisconnected && plr->pev->fuser4 > 0 )
-				{
-					if (!FBitSet(plr->pev->flags, FL_FAKECLIENT))
-					{
-						MESSAGE_BEGIN( MSG_ONE, gmsgStatusIcon, NULL, plr->pev );
-							WRITE_BYTE(0);
-							WRITE_STRING("dealter");
-						MESSAGE_END();
-					}
-				}
-			}
-			*/
 
 			//everyone died.
 			if ( hunters_left <= 0 && props_left <= 0 )
@@ -689,10 +673,9 @@ void CHalfLifePropHunt::Think( void )
 
 		InsertClientsIntoArena(0);
 
-		// m_fSendArmoredManMessage = gpGlobals->time + 1.0;
-
 		m_iCountDown = 5;
 		m_fWaitForPlayersTime = -1;
+		m_fSendArmoredManMessage = gpGlobals->time + 1.0;
 
 		// Resend team info
 		MESSAGE_BEGIN( MSG_ALL, gmsgTeamNames );
@@ -797,21 +780,16 @@ void CHalfLifePropHunt::PlayerSpawn( CBasePlayer *pPlayer )
 	if ( pPlayer->pev->fuser4 > 0 )
 	{
 		strncpy( pPlayer->m_szTeamName, "props", TEAM_NAME_LENGTH );
-		//SET_MODEL(ENT(pPlayer->pev), "models/w_weapons.mdl");
-		// UTIL_SetSize(pPlayer->pev, VEC_DUCK_HULL_MIN, VEC_DUCK_HULL_MAX);
 		pPlayer->pev->health = 1;
 		pPlayer->pev->armorvalue = 0;
 		pPlayer->GiveNamedItem("weapon_handgrenade");
 		CLIENT_COMMAND(pPlayer->edict(), "thirdperson\n");
-		ClientPrint(pPlayer->pev, HUD_PRINTCENTER, "You are a prop, hide!");
 	}
 	else
 	{
 		strncpy( pPlayer->m_szTeamName, "hunters", TEAM_NAME_LENGTH );
 		pPlayer->pev->fuser3 = 1; // bot timer to unfreeze
 	}
-
-	//g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer->edict()), key, "team", pPlayer->m_szTeamName);
 
 	// notify everyone's HUD of the team change
 	MESSAGE_BEGIN( MSG_ALL, gmsgTeamInfo );
@@ -833,7 +811,7 @@ BOOL CHalfLifePropHunt::FPlayerCanTakeDamage( CBasePlayer *pPlayer, CBaseEntity 
 	if (pPlayer->pev->fuser4 > 0 && m_fUnFreezeHunters > 0)
 		return FALSE; // props cannot change to hunter yet.
 
-	if ( pAttacker && pPlayer->pev->fuser4 == pAttacker->pev->fuser4 )
+	if ( pAttacker && pAttacker->IsPlayer() && pPlayer->pev->fuser4 == pAttacker->pev->fuser4 )
 	{
 		// my teammate hit me.
 		if ( (friendlyfire.value == 0) && (pAttacker != pPlayer) )
@@ -855,7 +833,6 @@ BOOL CHalfLifePropHunt::FPlayerCanTakeDamage( CBasePlayer *pPlayer, CBaseEntity 
 
 		strncpy( pPlayer->m_szTeamName, "hunters", TEAM_NAME_LENGTH );
 		char *key = g_engfuncs.pfnGetInfoKeyBuffer(pPlayer->edict());
-		//g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer->edict()), key, "team", pPlayer->m_szTeamName);
 
 		MESSAGE_BEGIN( MSG_ALL, gmsgTeamInfo );
 			WRITE_BYTE( ENTINDEX(pPlayer->edict()) );
@@ -901,6 +878,15 @@ void CHalfLifePropHunt::FPlayerTookDamage( float flDamage, CBasePlayer *pVictim,
 			ClientPrint(pPlayerAttacker->pev, HUD_PRINTCENTER, "Destroy the props!\nNot your teammate!");
 		}
 	}
+}
+
+float CHalfLifePropHunt::FlPlayerFallDamage( CBasePlayer *pPlayer )
+{
+	// Props take no fall damage
+	if (pPlayer->pev->fuser4 > 0)
+		return 0.0f;
+
+	return CHalfLifeMultiplay::FlPlayerFallDamage( pPlayer );
 }
 
 int CHalfLifePropHunt::PlayerRelationship( CBaseEntity *pPlayer, CBaseEntity *pTarget )

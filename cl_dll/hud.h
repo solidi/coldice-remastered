@@ -737,6 +737,22 @@ private:
 	float m_flPanicTime;
 };
 
+class CHudBanner : public CHudBase
+{
+public:
+	int Init( void );
+	int VidInit( void );
+	int Draw(float fTime);
+	int MsgFunc_Banner(const char *pszName, int iSize, void *pbuf);
+	void ShowBanner(const char *title, const char *subtitle, float duration);
+
+private:
+	char m_szTitle[128];
+	char m_szSubtitle[256];
+	float m_flShowUntil;
+	bool m_bActive;
+};
+
 typedef struct
 {
 	const char *message;
@@ -910,6 +926,7 @@ public:
 	CHudTimer	m_Timer;
 	CHudProTip	m_ProTip;
 	CHudCtfInfo m_CtfInfo;
+	CHudBanner  m_Banner;
 
 	void Init( void );
 	void VidInit( void );

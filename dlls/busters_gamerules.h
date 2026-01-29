@@ -39,7 +39,6 @@ public:
 	void SetPlayerModel( CBasePlayer* pPlayer );
 
 protected:
-	
 	float m_flEgonBustingCheckTime = -1.0f;
 	void CheckForEgons( void );
 };

@@ -32,6 +32,7 @@ extern int gmsgScoreInfo;
 extern int gmsgObjective;
 extern int gmsgShowTimer;
 extern int gmsgDEraser;
+extern int gmsgBanner;
 
 CHalfLifeJesusVsSanta::CHalfLifeJesusVsSanta()
 {
@@ -221,10 +222,11 @@ void CHalfLifeJesusVsSanta::Think( void )
 			}
 		}
 
-		if (m_fSendArmoredManMessage < gpGlobals->time)
-		{
-			if (!FBitSet(pArmoredMan->pev->flags, FL_FAKECLIENT))
+
+			if (m_fSendArmoredManMessage != -1 && m_fSendArmoredManMessage < gpGlobals->time)
 			{
+				if (!FBitSet(pArmoredMan->pev->flags, FL_FAKECLIENT))
+				{
 				MESSAGE_BEGIN( MSG_ONE, gmsgStatusIcon, NULL, pArmoredMan->pev );
 					WRITE_BYTE(1);
 					WRITE_STRING("jesus");
@@ -232,7 +234,31 @@ void CHalfLifeJesusVsSanta::Think( void )
 					WRITE_BYTE(160);
 					WRITE_BYTE(255);
 				MESSAGE_END();
+
+				MESSAGE_BEGIN(MSG_ONE, gmsgBanner, NULL, pArmoredMan->edict());
+					WRITE_STRING("You Are Jesus");
+					WRITE_STRING("Convert every single Santa you find!");
+					WRITE_BYTE(80);
+				MESSAGE_END();
 			}
+
+			for ( int i = 1; i <= gpGlobals->maxClients; i++ )
+			{
+				CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
+
+				if ( plr && plr->IsPlayer() && !plr->HasDisconnected && !FBitSet(plr->pev->flags, FL_FAKECLIENT) && !plr->IsSpectator() )
+				{
+					if (plr->pev->fuser4 > 0)
+					{
+						MESSAGE_BEGIN(MSG_ONE, gmsgBanner, NULL, plr->edict());
+							WRITE_STRING("You Are On Team Santa");
+							WRITE_STRING("Find Jesus and convert him into commercialism!");
+							WRITE_BYTE(80);
+						MESSAGE_END();
+					}
+				}
+			}
+			m_fSendArmoredManMessage = -1;
 		}
 
 		//santas all dead or armored man defeated.
@@ -467,7 +493,7 @@ BOOL CHalfLifeJesusVsSanta::HasGameTimerExpired( void )
 
 BOOL CHalfLifeJesusVsSanta::FPlayerCanTakeDamage( CBasePlayer *pPlayer, CBaseEntity *pAttacker )
 {
-	if ( pAttacker && pPlayer->pev->fuser4 == pAttacker->pev->fuser4 )
+	if ( pAttacker && pAttacker->IsPlayer() && pPlayer->pev->fuser4 == pAttacker->pev->fuser4 )
 	{
 		// my teammate hit me.
 		if ( (friendlyfire.value == 0) && (pAttacker != pPlayer) )
@@ -517,9 +543,6 @@ void CHalfLifeJesusVsSanta::PlayerSpawn( CBasePlayer *pPlayer )
 		strncpy( pPlayer->m_szTeamName, "jesus", TEAM_NAME_LENGTH );
 		g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer->edict()),
 			g_engfuncs.pfnGetInfoKeyBuffer(pPlayer->edict()), "model", "jesus");
-		//g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer->edict()),
-		//	g_engfuncs.pfnGetInfoKeyBuffer(pPlayer->edict()), "team", "jesus");
-		ClientPrint(pPlayer->pev, HUD_PRINTCENTER, "You are Jesus, dispatch Santas!");
 	}
 	else
 	{
@@ -527,9 +550,6 @@ void CHalfLifeJesusVsSanta::PlayerSpawn( CBasePlayer *pPlayer )
 		strncpy( pPlayer->m_szTeamName, "santa", TEAM_NAME_LENGTH );
 		g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer->edict()),
 			g_engfuncs.pfnGetInfoKeyBuffer(pPlayer->edict()), "model", "santa");
-		//g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer->edict()),
-		//	g_engfuncs.pfnGetInfoKeyBuffer(pPlayer->edict()), "team", "santa");
-		ClientPrint(pPlayer->pev, HUD_PRINTCENTER, "You are a Santa, dispatch Jesus!");
 	}
 
 	// notify everyone's HUD of the team change

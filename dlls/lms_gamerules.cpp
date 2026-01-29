@@ -32,6 +32,9 @@ extern int gmsgTeamNames;
 extern int gmsgTeamInfo;
 extern int gmsgSafeSpot;
 extern int gmsgDEraser;
+extern int gmsgBanner;
+
+extern DLL_GLOBAL BOOL g_fGameOver;
 
 #define TEAM_BLUE 0
 #define TEAM_RED 1
@@ -79,6 +82,9 @@ void CSafeSpot::Spawn( void )
 
 void CSafeSpot::SafeSpotThink( void )
 {
+	if (g_fGameOver)
+		return;
+
 	if (!royaledamage.value)
 	{
 		pev->nextthink = gpGlobals->time + 2.0;
@@ -289,6 +295,31 @@ void CHalfLifeLastManStanding::Think( void )
 			}
 				
 			m_fNextShrinkTime = gpGlobals->time + ((roundtimelimit.value * 60) / 15);
+		}
+
+		if (m_fSendArmoredManMessage != -1 && m_fSendArmoredManMessage < gpGlobals->time)
+		{
+			for ( int i = 1; i <= gpGlobals->maxClients; i++ )
+			{
+				CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
+
+				if ( plr && plr->IsPlayer() && !plr->HasDisconnected && !FBitSet(plr->pev->flags, FL_FAKECLIENT) && !plr->IsSpectator() )
+				{
+					MESSAGE_BEGIN(MSG_ONE, gmsgBanner, NULL, plr->edict());
+						if (m_TeamBased)
+						{
+							if (plr->pev->fuser4 == TEAM_RED)
+								WRITE_STRING("You're on Team Red!");
+							else
+								WRITE_STRING("You're on Team Blue!");
+						} else
+							WRITE_STRING("Battle Royale");
+						WRITE_STRING("Fight your enemies, keep in the safe spot (the green box)!");
+						WRITE_BYTE(80);
+					MESSAGE_END();
+				}
+			}
+			m_fSendArmoredManMessage = -1;
 		}
 
 		for ( int i = 1; i <= gpGlobals->maxClients; i++ )
@@ -517,6 +548,7 @@ void CHalfLifeLastManStanding::Think( void )
 
 		m_iCountDown = 5;
 		m_fWaitForPlayersTime = -1;
+		m_fSendArmoredManMessage = gpGlobals->time + 1.0;
 
 		// spot stuff
 		if (pSafeSpot)

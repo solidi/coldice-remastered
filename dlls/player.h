@@ -450,7 +450,7 @@ public:
 	float m_iShownWelcomeMessage = -1;
 	float m_iShownDualMessage;
 	float m_iShowMutatorMessage;
-	float m_iShowGameModeMessage;
+	float m_iShowGameModeMessage = 0;
 
 	void DisplayHudMessage(char const *message, int channel, float x, float y, int r, int g, int b, int effect, float fadein, float fadeout, float holdtime, float fxtime);
 
