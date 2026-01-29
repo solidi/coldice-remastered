@@ -367,7 +367,7 @@ void CHalfLifePropHunt::Think( void )
 						else
 						{
 							WRITE_STRING("You Are a Hunter!");
-							WRITE_STRING("Find the Props by shooting items. Real items loose a point!");
+							WRITE_STRING("Find the Props by shooting items. Real items lose a point!");
 						}
 						WRITE_BYTE(80);
 					MESSAGE_END();
