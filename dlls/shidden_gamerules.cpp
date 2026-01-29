@@ -550,7 +550,7 @@ void CHalfLifeShidden::PlayerSpawn( CBasePlayer *pPlayer )
 		pPlayer->MakeInvisible();
 		strncpy( pPlayer->m_szTeamName, "dealters", TEAM_NAME_LENGTH );
 		MESSAGE_BEGIN(MSG_ONE, gmsgBanner, NULL, pPlayer->edict());
-			WRITE_STRING("You are on team Dealters");
+			WRITE_STRING("You Are on Team Dealters");
 			WRITE_STRING("What's farting got to do with it?");
 			WRITE_BYTE(80);
 		MESSAGE_END();
@@ -562,7 +562,7 @@ void CHalfLifeShidden::PlayerSpawn( CBasePlayer *pPlayer )
 		pPlayer->MakeVisible();
 
 		MESSAGE_BEGIN(MSG_ONE, gmsgBanner, NULL, pPlayer->edict());
-			WRITE_STRING("You are on team Smelters");
+			WRITE_STRING("You Are on Team Smelters");
 			WRITE_STRING("Do you smell what I smell from these skeletons?");
 			WRITE_BYTE(80);
 		MESSAGE_END();
