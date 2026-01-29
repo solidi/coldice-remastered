@@ -258,6 +258,7 @@ int CHudScoreboard :: Draw( float fTime )
 	while ( 1 )
 	{
 		int highest = -99999; int lowest_deaths = 99999;
+		int lowest_players = 99999;
 		int best_team = 0;
 		int which = 0;
 
@@ -268,7 +269,22 @@ int CHudScoreboard :: Draw( float fTime )
 			if ( g_TeamInfo[i].players < 0 )
 				continue;
 
-			if ( !g_TeamInfo[i].already_drawn && which >= highest )
+			// Special sorting by least players (ascending)
+			if ( gHUD.m_Teamplay == GAME_BUSTERS || gHUD.m_Teamplay == GAME_CTC ||
+				 gHUD.m_Teamplay == GAME_CHILLDEMIC || gHUD.m_Teamplay == GAME_ICEMAN ||
+				 gHUD.m_Teamplay == GAME_PROPHUNT || gHUD.m_Teamplay == GAME_SHIDDEN )
+			{
+				if ( !g_TeamInfo[i].already_drawn && g_TeamInfo[i].players <= lowest_players )
+				{
+					if ( g_TeamInfo[i].players < lowest_players || which > highest )
+					{
+						best_team = i;
+						lowest_players = g_TeamInfo[i].players;
+						highest = which;
+					}
+				}
+			}
+			else if ( !g_TeamInfo[i].already_drawn && which >= highest )
 			{
 				if ( which > highest || g_TeamInfo[i].deaths < lowest_deaths )
 				{
@@ -278,15 +294,6 @@ int CHudScoreboard :: Draw( float fTime )
 						highest = g_TeamInfo[i].score;
 					else
 						highest = g_TeamInfo[i].frags;
-				}
-			}
-
-			for ( int j = 1; j <= m_iNumTeams; j++ )
-			{
-				if (gHUD.m_Teamplay == GAME_CTC && !strcmp(g_TeamInfo[j].name, "holder") && !g_TeamInfo[j].already_drawn)
-				{
-					best_team = j;
-					break;
 				}
 			}
 		}
@@ -322,22 +329,22 @@ int CHudScoreboard :: Draw( float fTime )
 
 		// draw kills (right to left)
 		xpos = KILLS_RANGE_MAX + xpos_rel;
-		gHUD.DrawHudNumberString( xpos, ypos, KILLS_RANGE_MIN + xpos_rel, team_info->frags, r, g, b );
+		//gHUD.DrawHudNumberString( xpos, ypos, KILLS_RANGE_MIN + xpos_rel, team_info->frags, r, g, b );
 
 		// draw divider
 		xpos = DIVIDER_POS + xpos_rel;
-		gHUD.DrawHudString( xpos, ypos, xpos + 20, "/", r, g, b );
+		//gHUD.DrawHudString( xpos, ypos, xpos + 20, "/", r, g, b );
 
 		// draw deaths
 		xpos = DEATHS_RANGE_MAX + xpos_rel;
-		gHUD.DrawHudNumberString( xpos, ypos, DEATHS_RANGE_MIN + xpos_rel, team_info->deaths, r, g, b );
+		//gHUD.DrawHudNumberString( xpos, ypos, DEATHS_RANGE_MIN + xpos_rel, team_info->deaths, r, g, b );
 
 		// draw score
 		xpos = SCORE_RANGE_MAX + xpos_rel;
 
 		if (ScoreBased())
 		{
-			gHUD.DrawHudNumberString( xpos, ypos, SCORE_RANGE_MIN + xpos_rel, team_info->score, r, g, b );
+			//gHUD.DrawHudNumberString( xpos, ypos, SCORE_RANGE_MIN + xpos_rel, team_info->score, r, g, b );
 		}
 
 		// draw ping
@@ -346,7 +353,7 @@ int CHudScoreboard :: Draw( float fTime )
 		sprintf( buf, "%d", team_info->ping );
 		xpos = ((PING_RANGE_MAX - PING_RANGE_MIN) / 2) + PING_RANGE_MIN + xpos_rel + 25;
 		UnpackRGB( r, g, b, HudColor() );
-		gHUD.DrawHudStringReverse( xpos, ypos, xpos - 50, buf, r, g, b );
+		//gHUD.DrawHudStringReverse( xpos, ypos, xpos - 50, buf, r, g, b );
 
 	//  Packetloss removed on Kelly 'shipping nazi' Bailey's orders
 		if ( can_show_packetloss )
@@ -354,7 +361,7 @@ int CHudScoreboard :: Draw( float fTime )
 			xpos = ((PL_RANGE_MAX - PL_RANGE_MIN) / 2) + PL_RANGE_MIN + xpos_rel + 25;
 		
 			sprintf( buf, "  %d", team_info->packetloss );
-			gHUD.DrawHudString( xpos, ypos, xpos+50, buf, r, g, b );
+			//gHUD.DrawHudString( xpos, ypos, xpos+50, buf, r, g, b );
 		}
 
 		team_info->already_drawn = TRUE;  // set the already_drawn to be TRUE, so this team won't get drawn again

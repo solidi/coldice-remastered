@@ -1509,7 +1509,6 @@ void CHalfLifeMultiplay :: InitHUD( CBasePlayer *pl )
 
 	pl->m_iShownWelcomeMessage = gpGlobals->time + 4.0;
 	pl->m_iShowMutatorMessage = gpGlobals->time + 2.0;
-	pl->m_iShowGameModeMessage = gpGlobals->time + 2.0;
 
 	if ( g_fGameOver )
 	{

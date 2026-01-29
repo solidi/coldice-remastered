@@ -29,6 +29,8 @@ extern int gmsgTeamNames;
 extern int gmsgTeamInfo;
 extern int gmsgObjective;
 
+extern DLL_GLOBAL BOOL g_fGameOver;
+
 #define TEAM_BLUE 0
 #define TEAM_RED 1
 
@@ -76,6 +78,9 @@ void CColdSpot::Spawn( void )
 
 void CColdSpot::ColdSpotThink( void )
 {
+	if (g_fGameOver)
+		return;
+
 	CBaseEntity *ent = NULL;
 	while ( (ent = UTIL_FindEntityInSphere( ent, pev->origin, 256 )) != NULL )
 	{
@@ -250,8 +255,6 @@ void CHalfLifeColdSpot::InitHUD( CBasePlayer *pPlayer )
 		}
 	}
 }
-
-extern DLL_GLOBAL BOOL g_fGameOver;
 
 void CHalfLifeColdSpot::Think( void )
 {

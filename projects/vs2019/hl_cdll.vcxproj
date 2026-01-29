@@ -104,6 +104,7 @@
     <ClCompile Include="..\..\cl_dll\ammo.cpp" />
     <ClCompile Include="..\..\cl_dll\ammohistory.cpp" />
     <ClCompile Include="..\..\cl_dll\ammo_secondary.cpp" />
+    <ClCompile Include="..\..\cl_dll\banner.cpp" />
     <ClCompile Include="..\..\cl_dll\battery.cpp" />
     <ClCompile Include="..\..\cl_dll\cdll_int.cpp" />
     <ClCompile Include="..\..\cl_dll\colorcor.cpp" />

@@ -323,7 +323,7 @@ void ClearBodyQue()
 
 	for ( int i = 0; i < 4; i++ )
 	{
-		ALERT(at_aiconsole, "pevHead->renderamt=%.0f\n", pevHead->renderamt);
+		// ALERT(at_aiconsole, "pevHead->renderamt=%.0f\n", pevHead->renderamt);
 		pevHead->renderamt = 0;
 		pevHead->model = 0;
 		pevHead->modelindex = 0;

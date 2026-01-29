@@ -24,6 +24,7 @@ public:
 	virtual void PlayerSpawn( CBasePlayer *pPlayer );
 	virtual BOOL FPlayerCanTakeDamage( CBasePlayer *pPlayer, CBaseEntity *pAttacker );
 	virtual void FPlayerTookDamage( float flDamage, CBasePlayer *pVictim, CBaseEntity *pKiller);
+	virtual float FlPlayerFallDamage( CBasePlayer *pPlayer );
 
 	virtual int PlayerRelationship( CBaseEntity *pPlayer, CBaseEntity *pTarget );
 	virtual int GetTeamIndex( const char *pTeamName );

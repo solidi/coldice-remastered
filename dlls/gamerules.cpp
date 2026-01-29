@@ -1969,11 +1969,11 @@ void CGameRules::UpdateMutatorMessage( CBasePlayer *pPlayer )
 
 void CGameRules::UpdateGameModeMessage( CBasePlayer *pPlayer )
 {
-	if (pPlayer->m_iShowGameModeMessage != -1 && pPlayer->m_iShowGameModeMessage < gpGlobals->time) {
+	//if (pPlayer->m_iShowGameModeMessage != -1 && pPlayer->m_iShowGameModeMessage < gpGlobals->time) {
 		//if (strlen(gamemode.string) > 1 && strcmp(gamemode.string, "ffa"))
 		//	pPlayer->DisplayHudMessage(UTIL_VarArgs("Game Mode is %s", gamemode.string), TXT_CHANNEL_GAME_TITLE, .02, .14, 210, 210, 210, 2, .015, 2, 5, .25);
-		pPlayer->m_iShowGameModeMessage = -1;
-	}
+	//	pPlayer->m_iShowGameModeMessage = -1;
+	//}
 }
 
 BOOL CGameRules::IsCtC()
