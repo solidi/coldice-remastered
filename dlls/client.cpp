@@ -246,6 +246,7 @@ void ClientPutInServer( edict_t *pEntity )
 	pPlayer->m_iPlayMusic = 1;
 	pPlayer->m_iDisplayInfoMessage = 1;
 	pPlayer->m_iKeyboardAcrobatics = 1;
+	pPlayer->HasDisconnected = FALSE;
 
 	pPlayer->pev->iuser1 = 0;	// disable any spec modes
 	pPlayer->pev->iuser2 = 0; 

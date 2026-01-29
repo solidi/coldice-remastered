@@ -1379,7 +1379,7 @@ BOOL CHalfLifeMultiplay :: ClientConnected( edict_t *pEntity, const char *pszNam
 		if ( pPlayer )
 		{
 			pPlayer->IsInArena = FALSE;
-			pPlayer->HasDisconnected = FALSE;
+			pPlayer->HasDisconnected = TRUE; // The client is connecting, so set this to true until they have fully connected.
 		}
 	}
 
