@@ -222,10 +222,11 @@ void CHalfLifeJesusVsSanta::Think( void )
 			}
 		}
 
-		if (m_fSendArmoredManMessage = -1 && m_fSendArmoredManMessage < gpGlobals->time)
-		{
-			if (!FBitSet(pArmoredMan->pev->flags, FL_FAKECLIENT))
+
+			if (m_fSendArmoredManMessage != -1 && m_fSendArmoredManMessage < gpGlobals->time)
 			{
+				if (!FBitSet(pArmoredMan->pev->flags, FL_FAKECLIENT))
+				{
 				MESSAGE_BEGIN( MSG_ONE, gmsgStatusIcon, NULL, pArmoredMan->pev );
 					WRITE_BYTE(1);
 					WRITE_STRING("jesus");
