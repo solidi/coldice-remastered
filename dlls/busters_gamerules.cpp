@@ -145,7 +145,7 @@ int CMultiplayBusters::IPointsForKill( CBasePlayer* pAttacker, CBasePlayer* pKil
 	if ( IsPlayerBusting( pAttacker ) )
 		return 1;
 
-	//If the victim is busting, then the attacker gets a point
+	//If the victim is busting, then the attacker gets two points
 	if ( IsPlayerBusting( pKilled ) )
 		return 2;
 
@@ -254,6 +254,26 @@ void CMultiplayBusters::CheckForEgons()
 				return;
 		}
 
+		// **FIX: Check for egons in weaponboxes before creating a new one**
+		CBaseEntity* pEntity = NULL;
+		while ( ( pEntity = UTIL_FindEntityByClassname( pEntity, "weaponbox" ) ) != NULL )
+		{
+			CWeaponBox* pWeaponBox = (CWeaponBox*)pEntity;
+			if ( pWeaponBox )
+			{
+				for ( int i = 0; i < MAX_ITEM_TYPES; i++ )
+				{
+					CBasePlayerItem* pWeapon = pWeaponBox->m_rgpPlayerItems[i];
+					while ( pWeapon )
+					{
+						if ( pWeapon->m_iId == WEAPON_EGON )
+							return; // Egon already exists, don't create another
+						pWeapon = pWeapon->m_pNext;
+					}
+				}
+			}
+		}
+
 		int bBestFrags = 9999;
 		CBasePlayer* pBestPlayer = NULL;
 
@@ -261,7 +281,9 @@ void CMultiplayBusters::CheckForEgons()
 		{
 			CBasePlayer* pPlayer = (CBasePlayer*)UTIL_PlayerByIndex( i );
 
-			if ( pPlayer && !pPlayer->HasDisconnected && pPlayer->pev->frags <= bBestFrags )
+			// **FIX: Check if player is valid for busting**
+			if ( pPlayer && !pPlayer->HasDisconnected && !pPlayer->IsSpectator() 
+				 && pPlayer->IsAlive() && pPlayer->pev->frags <= bBestFrags )
 			{
 				bBestFrags = pPlayer->pev->frags;
 				pBestPlayer = pPlayer;
@@ -333,6 +355,13 @@ void CMultiplayBusters::PlayerGotWeapon( CBasePlayer* pPlayer, CBasePlayerItem* 
 {
 	if ( pWeapon->m_iId == WEAPON_EGON )
 	{
+		// **FIX: Reset timer when egon is picked up**
+		m_flEgonBustingCheckTime = -1.0f;
+
+		// **FIX: Prevent duplicate buster messages**
+		if ( IsPlayerBusting( pPlayer ) )
+			return;
+
 		UTIL_ClientPrintAll( HUD_PRINTCENTER, "Long live the new Buster!" );
 		UTIL_ClientPrintAll( HUD_PRINTTALK, UTIL_VarArgs( "[Busters]: %s is busting!\n", STRING( (CBasePlayer*)pPlayer->pev->netname ) ) );
 
@@ -349,6 +378,8 @@ void CMultiplayBusters::PlayerGotWeapon( CBasePlayer* pPlayer, CBasePlayerItem* 
 		MESSAGE_BEGIN(MSG_BROADCAST, gmsgObjective);
 			WRITE_STRING("Bust 'em");
 			WRITE_STRING(UTIL_VarArgs("%s is busting!\n", STRING( (CBasePlayer*)pPlayer->pev->netname)));
+			WRITE_BYTE(0);
+			WRITE_STRING("");
 		MESSAGE_END();
 
 		MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
