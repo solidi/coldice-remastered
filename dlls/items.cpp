@@ -513,7 +513,7 @@ void CRune::RuneTouch( CBaseEntity *pOther )
 	{
 		EMIT_SOUND( pPlayer->edict(), CHAN_ITEM, "rune_pickup.wav", 1, ATTN_NORM );
 
-		MESSAGE_BEGIN( MSG_ONE, gmsgItemPickup, NULL, pPlayer->pev );
+		MESSAGE_BEGIN( MSG_ONE, gmsgItemPickup, NULL, pPlayer->edict() );
 			WRITE_STRING( STRING(pev->classname) );
 		MESSAGE_END();
 
@@ -528,7 +528,7 @@ void CRune::ShowStatus(CBasePlayer *pPlayer, const char* icon, int r, int g, int
 	if (pPlayer->pev->flags & FL_FAKECLIENT)
 		return;
 
-	MESSAGE_BEGIN( MSG_ONE, gmsgStatusIcon, NULL, pPlayer->pev );
+	MESSAGE_BEGIN( MSG_ONE, gmsgStatusIcon, NULL, pPlayer->edict() );
 		WRITE_BYTE(1);
 		WRITE_STRING(icon);
 		WRITE_BYTE(r);

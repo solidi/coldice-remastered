@@ -303,7 +303,7 @@ void CHalfLifeShidden::Think( void )
 				{
 					if (!FBitSet(plr->pev->flags, FL_FAKECLIENT) && !plr->IsSpectator())
 					{
-						MESSAGE_BEGIN( MSG_ONE, gmsgStatusIcon, NULL, plr->pev );
+						MESSAGE_BEGIN( MSG_ONE, gmsgStatusIcon, NULL, plr->edict() );
 							WRITE_BYTE(1);
 							WRITE_STRING("dealter");
 							WRITE_BYTE(0);
@@ -335,7 +335,7 @@ void CHalfLifeShidden::Think( void )
 				{
 					if (!FBitSet(plr->pev->flags, FL_FAKECLIENT))
 					{
-						MESSAGE_BEGIN( MSG_ONE, gmsgStatusIcon, NULL, plr->pev );
+						MESSAGE_BEGIN( MSG_ONE, gmsgStatusIcon, NULL, plr->edict() );
 							WRITE_BYTE(0);
 							WRITE_STRING("dealter");
 						MESSAGE_END();

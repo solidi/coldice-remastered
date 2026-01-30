@@ -636,7 +636,7 @@ void CGameRules::EnvMutators( void )
 		{
 			if (MutatorEnabled(MUTATOR_FOG))
 			{
-				MESSAGE_BEGIN(MSG_ONE, gmsgFog, NULL, pPlayer->pev);
+				MESSAGE_BEGIN(MSG_ONE, gmsgFog, NULL, pPlayer->edict());
 					WRITE_COORD(50);
 					WRITE_COORD(200);
 					WRITE_BYTE(125);
@@ -652,7 +652,7 @@ void CGameRules::EnvMutators( void )
 					pEntity->Use( pPlayer, pPlayer, USE_SET, 0 );
 				else
 				{
-					MESSAGE_BEGIN(MSG_ONE, gmsgFog, NULL, pPlayer->pev);
+					MESSAGE_BEGIN(MSG_ONE, gmsgFog, NULL, pPlayer->edict());
 						WRITE_COORD(0);
 						WRITE_COORD(0);
 						WRITE_BYTE(0);
@@ -1768,7 +1768,7 @@ void CGameRules::MutatorsThink(void)
 						if (!FBitSet(pl->m_iHideHUD, HIDEHUD_ICE))
 						{
 							pl->m_iHideHUD |= HIDEHUD_ICE;
-							MESSAGE_BEGIN( MSG_ONE, gmsgHideWeapon, NULL, pl->pev );
+							MESSAGE_BEGIN( MSG_ONE, gmsgHideWeapon, NULL, pl->edict() );
 								WRITE_BYTE( pl->m_iHideHUD );
 							MESSAGE_END();
 						}
@@ -1778,7 +1778,7 @@ void CGameRules::MutatorsThink(void)
 						if (FBitSet(pl->m_iHideHUD, HIDEHUD_ICE))
 						{
 							pl->m_iHideHUD &= ~HIDEHUD_ICE;
-							MESSAGE_BEGIN( MSG_ONE, gmsgHideWeapon, NULL, pl->pev );
+							MESSAGE_BEGIN( MSG_ONE, gmsgHideWeapon, NULL, pl->edict() );
 								WRITE_BYTE( pl->m_iHideHUD );
 							MESSAGE_END();
 						}
