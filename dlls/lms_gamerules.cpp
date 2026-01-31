@@ -979,3 +979,9 @@ BOOL CHalfLifeLastManStanding::FPlayerCanTakeDamage( CBasePlayer *pPlayer, CBase
 
 	return CHalfLifeMultiplay::FPlayerCanTakeDamage( pPlayer, pAttacker );
 }
+
+BOOL CHalfLifeLastManStanding::IsTeamplay( void )
+{
+	return m_TeamBased;
+}
+

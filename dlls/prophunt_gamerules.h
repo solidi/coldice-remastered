@@ -47,6 +47,7 @@ public:
 	virtual int WeaponShouldRespawn( CBasePlayerItem *pWeapon );
 	virtual int ItemShouldRespawn( CItem *pItem );
 	virtual int AmmoShouldRespawn( CBasePlayerAmmo *pAmmo );
+	virtual BOOL IsTeamplay( void );
 
 private:
 	int m_iHuntersRemain;

@@ -1089,3 +1089,8 @@ int CHalfLifePropHunt::AmmoShouldRespawn( CBasePlayerAmmo *pAmmo )
 {
 	return GR_AMMO_RESPAWN_NO;
 }
+
+BOOL CHalfLifePropHunt::IsTeamplay( void )
+{
+	return TRUE;
+}

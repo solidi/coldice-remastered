@@ -902,3 +902,8 @@ BOOL CHalfLifeCaptureTheFlag::FPlayerCanTakeDamage( CBasePlayer *pPlayer, CBaseE
 
 	return CHalfLifeMultiplay::FPlayerCanTakeDamage( pPlayer, pAttacker );
 }
+
+BOOL CHalfLifeCaptureTheFlag::IsTeamplay( void )
+{
+	return TRUE;
+}

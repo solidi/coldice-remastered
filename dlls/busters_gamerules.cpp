@@ -527,3 +527,8 @@ BOOL CMultiplayBusters::FPlayerCanTakeDamage( CBasePlayer *pPlayer, CBaseEntity 
 
 	return CHalfLifeMultiplay::FPlayerCanTakeDamage( pPlayer, pAttacker );
 }
+
+BOOL CMultiplayBusters::IsTeamplay( void )
+{
+	return TRUE;
+}

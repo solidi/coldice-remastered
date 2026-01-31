@@ -26,6 +26,7 @@ public:
 	virtual int GetTeamIndex( const char *pTeamName );
 	virtual const char *GetTeamID( CBaseEntity *pEntity );
 	virtual BOOL IsRoundBased( void );
+	virtual BOOL IsTeamplay( void );
 
 private:
 	int m_iPlayer1, m_iPlayer2;

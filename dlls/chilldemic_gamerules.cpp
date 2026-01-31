@@ -795,3 +795,8 @@ BOOL CHalfLifeChilldemic::IsRoundBased( void )
 {
 	return TRUE;
 }
+
+BOOL CHalfLifeChilldemic::IsTeamplay( void )
+{
+	return TRUE;
+}

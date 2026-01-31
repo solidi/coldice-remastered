@@ -715,3 +715,8 @@ BOOL CHalfLifeJesusVsSanta::IsRoundBased( void )
 {
 	return TRUE;
 }
+
+BOOL CHalfLifeJesusVsSanta::IsTeamplay( void )
+{
+	return TRUE;
+}

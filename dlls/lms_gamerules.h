@@ -34,6 +34,7 @@ public:
 	virtual BOOL ShouldAutoAim( CBasePlayer *pPlayer, edict_t *target );
 	virtual BOOL FPlayerCanTakeDamage( CBasePlayer *pPlayer, CBaseEntity *pAttacker );
 	virtual edict_t *EntSelectSpawnPoint( const char *szSpawnPoint );
+	virtual BOOL IsTeamplay( void );
 
 private:
 	BOOL m_TeamBased;

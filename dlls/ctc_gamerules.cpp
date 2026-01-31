@@ -630,3 +630,8 @@ int CHalfLifeCaptureTheChumtoad::GetTeamIndex( const char *pTeamName )
 	
 	return -1;	// No match
 }
+
+BOOL CHalfLifeCaptureTheChumtoad::IsTeamplay( void )
+{
+	return TRUE;
+}

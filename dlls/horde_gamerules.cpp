@@ -892,3 +892,8 @@ BOOL CHalfLifeHorde::CanRandomizeWeapon( const char *name )
 
 	return TRUE;
 }
+
+BOOL CHalfLifeHorde::IsTeamplay( void )
+{
+	return TRUE;
+}
