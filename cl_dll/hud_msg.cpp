@@ -354,6 +354,9 @@ int CHud :: MsgFunc_PlayCSound( const char *pszName, int iSize, void *pbuf )
 		case CLIENT_SOUND_CHICKEN:
 			PlaySound("chicken.wav", 1);
 			break;
+		case CLIENT_SOUND_LEVEL_UP:
+			PlaySound("level_up.wav", 1);
+			break;
 	}
 	return 1;
 }

@@ -31,6 +31,7 @@ extern int gmsgObjective;
 extern int gmsgTeamNames;
 extern int gmsgTeamInfo;
 extern int gmsgStatusIcon;
+extern int gmsgSpecialEntity;
 
 #define SPAWN_TIME 30.0
 
@@ -136,6 +137,9 @@ void CHalfLifeCaptureTheChumtoad::Think( void )
 					UTIL_ClientPrintAll(HUD_PRINTTALK, "[CtC]: The chumtoad has spawned!\n");
 					m_fCreateChumtoadTimer = 0;
 					m_fMoveChumtoadTimer = gpGlobals->time + SPAWN_TIME;
+					MESSAGE_BEGIN(MSG_BROADCAST, gmsgPlayClientSound);
+						WRITE_BYTE(CLIENT_SOUND_CTF_CAPTURE);
+					MESSAGE_END();
 				}
 				else
 				{
@@ -427,16 +431,11 @@ void CHalfLifeCaptureTheChumtoad::PlayerThink( CBasePlayer *pPlayer )
 
 					UTIL_ClientPrintAll(HUD_PRINTTALK, "[CtC]: %s has scored a point!\n", 
 						STRING(pPlayer->pev->netname));
+					
+					ClientPrint(pPlayer->pev, HUD_PRINTCENTER, UTIL_VarArgs("You Have Scored a Point!\n"));
 
 					MESSAGE_BEGIN( MSG_ONE_UNRELIABLE, gmsgPlayClientSound, NULL, pPlayer->edict() );
-					switch (RANDOM_LONG(1,6))
-					{
-						case 1: WRITE_BYTE(CLIENT_SOUND_WHICKEDSICK); break;
-						case 2: WRITE_BYTE(CLIENT_SOUND_EXCELLENT); break;
-						case 3: WRITE_BYTE(CLIENT_SOUND_IMPRESSIVE); break;
-						case 4: WRITE_BYTE(CLIENT_SOUND_UNSTOPPABLE); break;
-						default: WRITE_BYTE(0); break;
-					}
+						WRITE_BYTE(CLIENT_SOUND_LEVEL_UP);
 					MESSAGE_END();
 
 					pPlayer->m_iChumtoadCounter = 0;
