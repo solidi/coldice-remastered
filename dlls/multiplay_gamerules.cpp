@@ -1074,11 +1074,21 @@ void CHalfLifeMultiplay::RemoveAndFillItems( void )
 		"monster_tripmine",
 		"monster_chumtoad",
 		"monster_snark",
+		"monster_barrel",
+		"monster_sentry",
 		"nuke_rocket",
 		"rpg_rocket",
 		"grenade",
 		"gib",
 		"weaponbox",
+		"rune_frag",
+		"rune_haste",
+		"rune_vampire",
+		"rune_protect",
+		"rune_regen",
+		"rune_gravity",
+		"rune_cloak",
+		"rune_strength",
 	};
 
 	CBaseEntity *pEntity = NULL;
