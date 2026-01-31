@@ -2022,6 +2022,9 @@ void CHalfLifeMultiplay :: PlayerKilled( CBasePlayer *pVictim, entvars_t *pKille
 			UTIL_ScreenFade(peKiller, Vector(200,200,200), .15, .15, 200, FFADE_IN);
 
 			pKiller->origin = pVictim->pev->origin;
+			pKiller->angles = pVictim->pev->angles;
+			pKiller->v_angle = pVictim->pev->v_angle;
+			pKiller->fixangle = TRUE;
 
 			MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
 				WRITE_BYTE( TE_TELEPORT	); 
