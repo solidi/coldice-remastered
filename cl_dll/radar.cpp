@@ -34,6 +34,118 @@ int CHudRadar::VidInit(void)
 	return 1;
 }
 
+void CHudRadar::DrawEdgeIndicator(int centerX, int centerY, float angle, float distance, int special)
+{
+	float radians = angle * PI_180;
+	
+	// Calculate direction vector
+	float dirX = sin(radians);
+	float dirY = -cos(radians); // Negative because screen Y is inverted
+	
+	// Calculate edge intersection
+	float edgeX, edgeY;
+	float absX = fabs(dirX);
+	float absY = fabs(dirY);
+	
+	// Margin from screen edge
+	int margin = 40;
+	
+	if (absX > absY)
+	{
+		// Hit left or right edge
+		if (dirX > 0)
+			edgeX = ScreenWidth - margin;
+		else
+			edgeX = margin;
+		edgeY = centerY + (edgeX - centerX) * (dirY / dirX);
+		
+		// Clamp Y to screen bounds
+		edgeY = fmax((float)margin, fmin((float)(ScreenHeight - margin), edgeY));
+	}
+	else
+	{
+		// Hit top or bottom edge
+		if (dirY > 0)
+			edgeY = ScreenHeight - margin;
+		else
+			edgeY = margin;
+		edgeX = centerX + (edgeY - centerY) * (dirX / dirY);
+		
+		// Clamp X to screen bounds
+		edgeX = fmax((float)margin, fmin((float)(ScreenWidth - margin), edgeX));
+	}
+	
+	// Calculate alpha based on distance (closer = more opaque)
+	int alpha = (int)(255 - (distance / (MAX_DISTANCE * 2)) * 155);
+	alpha = fmax(100, fmin(255, alpha));
+	
+	// Pulse effect for visibility
+	float pulse = sin(gEngfuncs.GetClientTime() * 3.5f) * 0.3f + 0.7f;
+	alpha = (int)(alpha * pulse);
+	
+	// Color based on special type
+	int r, g, b;
+	if (special == 1 || special == 3)
+	{
+		// Red for special targets (chumtoad, etc.)
+		r = 240; g = 0; b = 0;
+	}
+	else if (special == 2)
+	{
+		// Blue
+		r = 0; g = 0; b = 240;
+	}
+	else if (special == 4)
+	{
+		// Green
+		r = 0; g = 240; b = 0;
+	}
+	else
+	{
+		UnpackRGB(r, g, b, RGB_YELLOWISH);
+	}
+	
+	// Draw arrow pointing toward target
+	int arrowSize = 24;
+	int arrowThickness = 6;
+	int x = (int)edgeX;
+	int y = (int)edgeY;
+	
+	// Simple directional indicator
+	// Vertical line (stem)
+	FillRGBA(x - 1, y - arrowSize, arrowThickness, arrowSize * 2, r, g, b, alpha);
+	
+	// Horizontal line (perpendicular)
+	FillRGBA(x - arrowSize, y - 1, arrowSize * 2, arrowThickness, r, g, b, alpha);
+	
+	// Draw arrowhead pointing inward (toward target)
+	// Calculate which edge we're on to orient arrow correctly
+	if (x < ScreenWidth / 4)
+	{
+		// Left edge - arrow points right
+		for (int i = 0; i < 8; i++)
+			FillRGBA(x + 6 + i, y - i, 2, i * 2 + 1, r, g, b, alpha);
+	}
+	else if (x > ScreenWidth * 3 / 4)
+	{
+		// Right edge - arrow points left
+		for (int i = 0; i < 8; i++)
+			FillRGBA(x - 6 - i, y - i, 2, i * 2 + 1, r, g, b, alpha);
+	}
+	else if (y < ScreenHeight / 4)
+	{
+		// Top edge - arrow points down
+		for (int i = 0; i < 8; i++)
+			FillRGBA(x - i, y + 6 + i, i * 2 + 1, 2, r, g, b, alpha);
+	}
+	else
+	{
+		// Bottom edge - arrow points up
+		for (int i = 0; i < 8; i++)
+			FillRGBA(x - i, y - 6 - i, i * 2 + 1, 2, r, g, b, alpha);
+	}
+}
+
 void CHudRadar::ProcessPlayerState(void)
 {
 	Vector v_player[MAX_RADAR_DOTS], v_other, v_radar;
@@ -302,6 +414,26 @@ int CHudRadar::Draw(float flTime)
 		}
 
 		FillRGBA(pos_x, pos_y, size, size, fr, fg, fb, alpha);
+	}
+
+	// Draw edge indicators for special tracked entities
+	int screenCenterX = ScreenWidth / 2;
+	int screenCenterY = ScreenHeight / 2;
+	
+	for (index = 0; index < num_players; index++)
+	{
+		// Show edge indicators for all special entities, always
+		if (!m_RadarInfo[index].special)
+			continue;
+		
+		// Don't show edge indicator for yourself
+		if ((gEngfuncs.GetLocalPlayer()->index - 1) == index)
+			continue;
+		
+		DrawEdgeIndicator(screenCenterX, screenCenterY, 
+			m_RadarInfo[index].angle, 
+			m_RadarInfo[index].distance,
+			m_RadarInfo[index].special);
 	}
 
 	return 1;

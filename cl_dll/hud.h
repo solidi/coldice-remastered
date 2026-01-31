@@ -689,6 +689,7 @@ public:
 	int VidInit( void );
 	int Draw(float flTime);
 	void ProcessPlayerState( void );
+	void DrawEdgeIndicator(int centerX, int centerY, float angle, float distance, int special);
 
 private:
 	int radar_height, radar_width;
