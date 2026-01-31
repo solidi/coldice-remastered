@@ -105,44 +105,47 @@ void CHudRadar::DrawEdgeIndicator(int centerX, int centerY, float angle, float d
 		UnpackRGB(r, g, b, RGB_YELLOWISH);
 	}
 	
-	// Draw arrow pointing toward target
-	int arrowSize = 24;
-	int arrowThickness = 6;
+	// Draw large triangle pointing toward target
+	int triSize = XRES(20);
 	int x = (int)edgeX;
 	int y = (int)edgeY;
 	
-	// Simple directional indicator
-	// Vertical line (stem)
-	FillRGBA(x - 1, y - arrowSize, arrowThickness, arrowSize * 2, r, g, b, alpha);
-	
-	// Horizontal line (perpendicular)
-	FillRGBA(x - arrowSize, y - 1, arrowSize * 2, arrowThickness, r, g, b, alpha);
-	
-	// Draw arrowhead pointing inward (toward target)
-	// Calculate which edge we're on to orient arrow correctly
+	// Calculate which edge we're on to orient triangle correctly
 	if (x < ScreenWidth / 4)
 	{
-		// Left edge - arrow points right
-		for (int i = 0; i < 8; i++)
-			FillRGBA(x + 6 + i, y - i, 2, i * 2 + 1, r, g, b, alpha);
+		// Left edge - triangle points right
+		for (int i = 0; i < triSize; i++)
+		{
+			int height = (i * YRES(20)) / triSize;
+			FillRGBA(x + i, y - height / 2, 2, height, r, g, b, alpha);
+		}
 	}
 	else if (x > ScreenWidth * 3 / 4)
 	{
-		// Right edge - arrow points left
-		for (int i = 0; i < 8; i++)
-			FillRGBA(x - 6 - i, y - i, 2, i * 2 + 1, r, g, b, alpha);
+		// Right edge - triangle points left
+		for (int i = 0; i < triSize; i++)
+		{
+			int height = (i * YRES(20)) / triSize;
+			FillRGBA(x - i, y - height / 2, 2, height, r, g, b, alpha);
+		}
 	}
 	else if (y < ScreenHeight / 4)
 	{
-		// Top edge - arrow points down
-		for (int i = 0; i < 8; i++)
-			FillRGBA(x - i, y + 6 + i, i * 2 + 1, 2, r, g, b, alpha);
+		// Top edge - triangle points down
+		for (int i = 0; i < triSize; i++)
+		{
+			int width = (i * YRES(20)) / triSize;
+			FillRGBA(x - width / 2, y + i, width, 2, r, g, b, alpha);
+		}
 	}
 	else
 	{
-		// Bottom edge - arrow points up
-		for (int i = 0; i < 8; i++)
-			FillRGBA(x - i, y - 6 - i, i * 2 + 1, 2, r, g, b, alpha);
+		// Bottom edge - triangle points up
+		for (int i = 0; i < triSize; i++)
+		{
+			int width = (i * YRES(20)) / triSize;
+			FillRGBA(x - width / 2, y - i, width, 2, r, g, b, alpha);
+		}
 	}
 }
 
