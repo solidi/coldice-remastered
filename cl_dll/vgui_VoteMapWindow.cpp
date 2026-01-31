@@ -17,14 +17,15 @@
 #include "vgui_TeamFortressViewport.h"
 #include "vgui_ServerBrowser.h"
 
-// Class Menu Dimensions
-#define CLASSMENU_TITLE_X				XRES(40)
-#define CLASSMENU_TITLE_Y				YRES(32)
-#define CLASSMENU_TOPLEFT_BUTTON_X		XRES(40)
-#define CLASSMENU_TOPLEFT_BUTTON_Y		YRES(80)
-#define CLASSMENU_BUTTON_SIZE_X			XRES(124)
-#define CLASSMENU_BUTTON_SIZE_Y			YRES(24)
-#define CLASSMENU_BUTTON_SPACER_Y		YRES(8)
+// Map Menu Dimensions
+#define MAPMENU_TITLE_X				XRES(40)
+#define MAPMENU_TITLE_Y				YRES(32)
+#define MAPMENU_TOPLEFT_BUTTON_X		XRES(40)
+#define MAPMENU_TOPLEFT_BUTTON_Y		YRES(80)
+#define MAPMENU_BUTTON_SIZE_X			XRES(124)
+#define MAPMENU_BUTTON_SIZE_Y			YRES(22)
+#define MAPMENU_BUTTON_SPACER_Y		YRES(8)
+#define MAPMENU_ITEMS_PER_COL		13
 
 // Creation
 CVoteMapPanel::CVoteMapPanel(int iTrans, int iRemoveMe, int x,int y,int wide,int tall) : CMenuPanel(iTrans, iRemoveMe, x,y,wide,tall)
@@ -40,7 +41,7 @@ CVoteMapPanel::CVoteMapPanel(int iTrans, int iRemoveMe, int x,int y,int wide,int
 	int r, g, b, a;
 
 	// Create the title
-	pTitleLabel = new Label( "", CLASSMENU_TITLE_X, CLASSMENU_TITLE_Y );
+	pTitleLabel = new Label( "", MAPMENU_TITLE_X, MAPMENU_TITLE_Y );
 	pTitleLabel->setParent( this );
 	pTitleLabel->setFont( pSchemes->getFont(hTitleScheme) );
 	pSchemes->getFgColor( hTitleScheme, r, g, b, a );
@@ -55,17 +56,17 @@ CVoteMapPanel::CVoteMapPanel(int iTrans, int iRemoveMe, int x,int y,int wide,int
 	{
 		// Space for random button
 		int xI = i+1;
-		int degree = (i+1) / 12;
+		int degree = (i+1) / MAPMENU_ITEMS_PER_COL;
 		if (i == BUILT_IN_MAP_COUNT - 1)
 		{
 			xI = 0;
 			degree = 0;
 		}
 		char sz[256];
-		int iYPos = CLASSMENU_TOPLEFT_BUTTON_Y + ( (CLASSMENU_BUTTON_SIZE_Y + CLASSMENU_BUTTON_SPACER_Y) * xI );
+		int iYPos = MAPMENU_TOPLEFT_BUTTON_Y + ( (MAPMENU_BUTTON_SIZE_Y + MAPMENU_BUTTON_SPACER_Y) * xI );
 		int spacer = 0;
-		spacer = (CLASSMENU_BUTTON_SIZE_X + 10) * degree;
-		iYPos = CLASSMENU_TOPLEFT_BUTTON_Y + ( (CLASSMENU_BUTTON_SIZE_Y + CLASSMENU_BUTTON_SPACER_Y) * (xI - (12 * degree)));
+		spacer = (MAPMENU_BUTTON_SIZE_X + 10) * degree;
+		iYPos = MAPMENU_TOPLEFT_BUTTON_Y + ( (MAPMENU_BUTTON_SIZE_Y + MAPMENU_BUTTON_SPACER_Y) * (xI - (MAPMENU_ITEMS_PER_COL * degree)));
 		
 		char voteCommand[16];
 		sprintf(voteCommand, "vote %d", i+1);
@@ -73,7 +74,7 @@ CVoteMapPanel::CVoteMapPanel(int iTrans, int iRemoveMe, int x,int y,int wide,int
 
 		// Map button
 		sprintf(sz, " %s", sBuiltInMaps[i]);
-		m_pButtons[i] = new ColorButton( sz, CLASSMENU_TOPLEFT_BUTTON_X + spacer, iYPos, CLASSMENU_BUTTON_SIZE_X, CLASSMENU_BUTTON_SIZE_Y, false, true);
+		m_pButtons[i] = new ColorButton( sz, MAPMENU_TOPLEFT_BUTTON_X + spacer, iYPos, MAPMENU_BUTTON_SIZE_X, MAPMENU_BUTTON_SIZE_Y, false, true);
 		m_pButtons[i]->setBoundKey( (char)255 );
 		m_pButtons[i]->setContentAlignment( vgui::Label::a_west );
 		m_pButtons[i]->addActionSignal( pASignal );

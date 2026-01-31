@@ -246,6 +246,7 @@ void ClientPutInServer( edict_t *pEntity )
 	pPlayer->m_iPlayMusic = 1;
 	pPlayer->m_iDisplayInfoMessage = 1;
 	pPlayer->m_iKeyboardAcrobatics = 1;
+	pPlayer->HasDisconnected = FALSE;
 
 	pPlayer->pev->iuser1 = 0;	// disable any spec modes
 	pPlayer->pev->iuser2 = 0; 
@@ -408,7 +409,7 @@ void GameplayVote(edict_t *pEntity, const char *text)
 					players++;
 			}
 
-			m_fVoteTime = gpGlobals->time + 30;
+			m_fVoteTime = gpGlobals->time + rtvtime.value;
 			m_iNeedsVotes = (players / 2) + 1;
 
 			// Person who calls, also votes.
@@ -429,7 +430,7 @@ void GameplayVote(edict_t *pEntity, const char *text)
 			else
 			{
 				UTIL_ClientPrintAll(HUD_PRINTTALK,
-					UTIL_VarArgs("[VOTE] We need %.0f vote(s) in 30 seconds. Others, type \"vote\" to rock the vote.\n", fmax(1, m_iNeedsVotes - 1)));
+					UTIL_VarArgs("[VOTE] We need %.0f vote(s) in %.0f seconds. Others, type \"vote\" to rock the vote.\n", fmax(1, m_iNeedsVotes - 1), rtvtime.value));
 			}
 		}
 		else
@@ -484,7 +485,7 @@ void MutatorVote(edict_t *pEntity, const char *text)
 					players++;
 			}
 
-			m_fVoteTime = gpGlobals->time + 30;
+			m_fVoteTime = gpGlobals->time + rtvtime.value;
 			m_iNeedsVotes = (players / 2) + 1;
 
 			// Person who calls, also votes.
@@ -505,7 +506,7 @@ void MutatorVote(edict_t *pEntity, const char *text)
 			else
 			{
 				UTIL_ClientPrintAll(HUD_PRINTTALK,
-					UTIL_VarArgs("[VOTE] We need %.0f vote(s) in 30 seconds. Others, type \"mutator\" to vote.\n", fmax(1, m_iNeedsVotes - 1)));
+					UTIL_VarArgs("[VOTE] We need %.0f vote(s) in %.0f seconds. Others, type \"mutator\" to vote.\n", fmax(1, m_iNeedsVotes - 1), rtvtime.value));
 			}
 		}
 		else
@@ -1334,6 +1335,7 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_roundwaittime\" - seconds until round begins\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_royaleteam [0|1]\" - set battle royale as two-team based\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_royaldamage [0|1]\" - apply damage to persons outside the safe area\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_rtvtime\" - seconds until the rtv ends\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_snowballfight [0|1]\" - Replace all weapons with deadly snowballs!\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_spawnitems\" - Spawn items or not\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_spawnprotectiontime\" - amount of time in seconds a player is protected from damage\n");

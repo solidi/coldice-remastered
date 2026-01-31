@@ -222,12 +222,11 @@ void CHalfLifeJesusVsSanta::Think( void )
 			}
 		}
 
-
-			if (m_fSendArmoredManMessage != -1 && m_fSendArmoredManMessage < gpGlobals->time)
+		if (m_fSendArmoredManMessage != -1 && m_fSendArmoredManMessage < gpGlobals->time)
+		{
+			if (pArmoredMan && !FBitSet(pArmoredMan->pev->flags, FL_FAKECLIENT))
 			{
-				if (!FBitSet(pArmoredMan->pev->flags, FL_FAKECLIENT))
-				{
-				MESSAGE_BEGIN( MSG_ONE, gmsgStatusIcon, NULL, pArmoredMan->pev );
+				MESSAGE_BEGIN( MSG_ONE, gmsgStatusIcon, NULL, pArmoredMan->edict() );
 					WRITE_BYTE(1);
 					WRITE_STRING("jesus");
 					WRITE_BYTE(0);
@@ -262,7 +261,7 @@ void CHalfLifeJesusVsSanta::Think( void )
 		}
 
 		//santas all dead or armored man defeated.
-		if ( clients_alive <= 1 || !pArmoredMan->IsAlive() || pArmoredMan->HasDisconnected )
+		if ( clients_alive <= 1 || !pArmoredMan || !pArmoredMan->IsAlive() || pArmoredMan->HasDisconnected )
 		{
 			//stop timer / end game.
 			m_flRoundTimeLimit = 0;
@@ -273,19 +272,19 @@ void CHalfLifeJesusVsSanta::Think( void )
 			MESSAGE_END();
 
 			//hack to allow for logical code below.
-			if ( pArmoredMan->HasDisconnected )
+			if ( pArmoredMan && pArmoredMan->HasDisconnected )
 				pArmoredMan->pev->health = 0;
 
-			if (!FBitSet(pArmoredMan->pev->flags, FL_FAKECLIENT))
+			if (pArmoredMan && !FBitSet(pArmoredMan->pev->flags, FL_FAKECLIENT))
 			{
-				MESSAGE_BEGIN( MSG_ONE, gmsgStatusIcon, NULL, pArmoredMan->pev );
+				MESSAGE_BEGIN( MSG_ONE, gmsgStatusIcon, NULL, pArmoredMan->edict() );
 					WRITE_BYTE(0);
 					WRITE_STRING("jesus");
 				MESSAGE_END();
 			}
 
 			//armored man is alive.
-			if ( pArmoredMan->IsAlive() && clients_alive == 1 )
+			if ( pArmoredMan && pArmoredMan->IsAlive() && clients_alive == 1 )
 			{
 				DetermineWinner();
 				MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
@@ -293,7 +292,7 @@ void CHalfLifeJesusVsSanta::Think( void )
 				MESSAGE_END();
 			}
 			//the man has been killed.
-			else if ( !pArmoredMan->IsAlive() )
+			else if ( pArmoredMan && !pArmoredMan->IsAlive() )
 			{
 				DetermineWinner();
 				MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
@@ -382,8 +381,11 @@ void CHalfLifeJesusVsSanta::Think( void )
 				plr->pev->fuser4 = 1;
 		}
 		pArmoredMan = (CBasePlayer *)UTIL_PlayerByIndex( armoredman );
-		pArmoredMan->IsArmoredMan = TRUE;
-		pArmoredMan->pev->fuser4 = 0;
+		if (pArmoredMan)
+		{
+			pArmoredMan->IsArmoredMan = TRUE;
+			pArmoredMan->pev->fuser4 = 0;
+		}
 
 		g_GameInProgress = TRUE;
 		

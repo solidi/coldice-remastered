@@ -194,7 +194,7 @@ void CSkullCharm::SkullTouch( CBaseEntity *pOther )
 				WRITE_BYTE(result);
 			MESSAGE_END();
 
-			MESSAGE_BEGIN( MSG_ONE, gmsgItemPickup, NULL, pPlayer->pev );
+			MESSAGE_BEGIN( MSG_ONE, gmsgItemPickup, NULL, pPlayer->edict() );
 				WRITE_STRING( STRING(pev->classname) );
 			MESSAGE_END();
 		}

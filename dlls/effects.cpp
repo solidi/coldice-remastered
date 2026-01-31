@@ -2731,7 +2731,7 @@ void CEnvFog::UpdateFog( BOOL isOn, BOOL doBlend, CBaseEntity* pPlayer )
 	if (isOn)
 	{
 		if (pPlayer)
-			MESSAGE_BEGIN(MSG_ONE, gmsgFog, NULL, pPlayer->pev);
+			MESSAGE_BEGIN(MSG_ONE, gmsgFog, NULL, pPlayer->edict());
 		else
 			MESSAGE_BEGIN(MSG_ALL, gmsgFog, NULL);
 
@@ -2749,7 +2749,7 @@ void CEnvFog::UpdateFog( BOOL isOn, BOOL doBlend, CBaseEntity* pPlayer )
 	else if (!m_flBlendTime)
 	{
 		if (pPlayer)
-			MESSAGE_BEGIN(MSG_ONE, gmsgFog, NULL, pPlayer->pev);
+			MESSAGE_BEGIN(MSG_ONE, gmsgFog, NULL, pPlayer->edict());
 		else
 			MESSAGE_BEGIN(MSG_ALL, gmsgFog, NULL);
 

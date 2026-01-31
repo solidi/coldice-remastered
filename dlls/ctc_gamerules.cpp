@@ -279,7 +279,7 @@ void CHalfLifeCaptureTheChumtoad::CaptureCharm( CBasePlayer *pPlayer )
 		WRITE_BYTE(CLIENT_SOUND_BULLSEYE);
 	MESSAGE_END();
 
-	MESSAGE_BEGIN( MSG_ONE, gmsgStatusIcon, NULL, pPlayer->pev );
+	MESSAGE_BEGIN( MSG_ONE, gmsgStatusIcon, NULL, pPlayer->edict() );
 		WRITE_BYTE(1);
 		WRITE_STRING("chumtoad");
 		WRITE_BYTE(0);
@@ -329,7 +329,7 @@ CBaseEntity *CHalfLifeCaptureTheChumtoad::DropCharm( CBasePlayer *pPlayer, Vecto
 		WRITE_BYTE(CLIENT_SOUND_MANIAC);
 	MESSAGE_END();
 
-	MESSAGE_BEGIN( MSG_ONE, gmsgStatusIcon, NULL, pPlayer->pev );
+	MESSAGE_BEGIN( MSG_ONE, gmsgStatusIcon, NULL, pPlayer->edict() );
 		WRITE_BYTE(0);
 		WRITE_STRING("chumtoad");
 	MESSAGE_END();

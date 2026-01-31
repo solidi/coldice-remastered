@@ -291,7 +291,7 @@ void CHalfLifeChilldemic::Think( void )
 				{
 					if (plr->pev->fuser4 > 0)
 					{
-						MESSAGE_BEGIN( MSG_ONE, gmsgStatusIcon, NULL, plr->pev );
+						MESSAGE_BEGIN( MSG_ONE, gmsgStatusIcon, NULL, plr->edict() );
 							WRITE_BYTE(1);
 							WRITE_STRING("skeleton");
 							WRITE_BYTE(0);
@@ -337,7 +337,7 @@ void CHalfLifeChilldemic::Think( void )
 				{
 					if (!FBitSet(plr->pev->flags, FL_FAKECLIENT))
 					{
-						MESSAGE_BEGIN( MSG_ONE, gmsgStatusIcon, NULL, plr->pev );
+						MESSAGE_BEGIN( MSG_ONE, gmsgStatusIcon, NULL, plr->edict() );
 							WRITE_BYTE(0);
 							WRITE_STRING("skeleton");
 						MESSAGE_END();
@@ -710,7 +710,7 @@ void CHalfLifeChilldemic::PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller
 		{
 			pVictim->pev->frags = 0; // clear immediately for winner determination
 			pVictim->m_flForceToObserverTime = gpGlobals->time + 2.0;
-			MESSAGE_BEGIN( MSG_ONE, gmsgStatusIcon, NULL, pVictim->pev );
+			MESSAGE_BEGIN( MSG_ONE, gmsgStatusIcon, NULL, pVictim->edict() );
 				WRITE_BYTE(0);
 				WRITE_STRING("skeleton");
 			MESSAGE_END();
