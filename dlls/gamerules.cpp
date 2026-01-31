@@ -1279,6 +1279,9 @@ void CGameRules::AddInstantMutator(void)
 			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators]: Pet Snark!\n");
 			break;
 		case 12:
+			if (!g_pGameRules->MutatorAllowed("chumxplode"))
+				break;
+
 			for (int i = 1; i <= gpGlobals->maxClients; ++i)
 			{
 				CBaseEntity *pPlayer = UTIL_PlayerByIndex( i );

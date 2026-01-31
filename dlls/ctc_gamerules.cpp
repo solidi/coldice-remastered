@@ -115,11 +115,9 @@ void CHalfLifeCaptureTheChumtoad::Think( void )
 					if (plr->m_iHoldingChumtoad)
 					{
 						plr->m_iHoldingChumtoad = FALSE;
-						if (plr->HasNamedPlayerItem("weapon_chumtoad"))
-						{
-							if (plr->m_pActiveItem)
-								plr->RemovePlayerItem(plr->m_pActiveItem);
-						}
+						UTIL_MakeVectors(plr->pev->v_angle);
+						DropCharm(plr, plr->pev->origin + gpGlobals->v_forward * 64);
+						plr->RemoveNamedItem("weapon_chumtoad");
 					}
 				}
 			}
@@ -242,6 +240,9 @@ BOOL CHalfLifeCaptureTheChumtoad::CreateChumtoad()
 
 void CHalfLifeCaptureTheChumtoad::CaptureCharm( CBasePlayer *pPlayer )
 {
+	if (UTIL_GetPlayerCount() < 2)
+		return;
+
 	pPlayer->m_iHoldingChumtoad = TRUE;
 	m_fChumtoadInPlay = TRUE;
 

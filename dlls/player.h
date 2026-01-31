@@ -392,6 +392,7 @@ public:
 	void ItemPreFrame( void );
 	void ItemPostFrame( void );
 	void GiveNamedItem( const char *szName );
+	void RemoveNamedItem( const char *szName );
 	void EnableControl(BOOL fControl);
 
 	void ChangeGun();

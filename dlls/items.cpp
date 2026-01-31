@@ -1198,39 +1198,8 @@ void CWorldRunes::DropRune(CBasePlayer *pPlayer) {
 			if (g_pGameRules->IsInstagib() && 
 				!FBitSet(pPlayer->pev->deadflag, DEAD_DYING) && !FBitSet(pPlayer->pev->deadflag, DEAD_DEAD))
 			{
-				if (pPlayer->HasNamedPlayerItem("weapon_hornetgun"))
-				{
-					CBasePlayerItem *pWeapon;
-					char *pszItemName = "weapon_hornetgun";
-
-					for (int i = 0; i < MAX_ITEM_TYPES; i++)
-					{
-						pWeapon = pPlayer->m_rgpPlayerItems[ i ];
-						while ( pWeapon )
-						{
-							// try to match by name. 
-							if ( !strcmp( pszItemName, STRING( pWeapon->pev->classname ) ) )
-								break;
-
-							pWeapon = pWeapon->m_pNext; 
-						}
-
-						if ( pWeapon )
-						{
-							if (pPlayer->RemovePlayerItem( pWeapon ))
-							{
-								if ( !g_pGameRules->GetNextBestWeapon( pPlayer, pWeapon, FALSE, FALSE ) )
-									return; // can't drop the item they asked for, may be our last item or something we can't holster
-
-								if (pWeapon->m_iId < 32)
-									pPlayer->pev->weapons &= ~(1<<pWeapon->m_iId);// take item off hud
-								else
-									pPlayer->m_iWeapons2 &= ~(1<<(pWeapon->m_iId - 32));// take item off hud
-							}
-							break;
-						}
-					}
-				}
+				// Remove hornet gun if player is alive
+				pPlayer->RemoveNamedItem("weapon_hornetgun");
 			}
 			break;
 		default:
