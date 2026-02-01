@@ -30,6 +30,7 @@ extern int gmsgTeamNames;
 extern int gmsgTeamInfo;
 extern int gmsgPlayClientSound;
 extern int gmsgCtfInfo;
+extern int gmsgBanner;
 
 #define TEAM_BLUE 0
 #define TEAM_RED 1
@@ -601,6 +602,23 @@ void CHalfLifeCaptureTheFlag::Think( void )
 		else
 			m_fSpawnRedHardware = gpGlobals->time + 2.0;
 	}
+
+	for (int i = 1; i <= gpGlobals->maxClients; i++)
+	{
+		CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
+		if ( plr && plr->IsPlayer() && !plr->HasDisconnected )
+		{
+			if (plr->m_iShowGameModeMessage > -1 && plr->m_iShowGameModeMessage < gpGlobals->time && !FBitSet(plr->pev->flags, FL_FAKECLIENT))
+			{
+				MESSAGE_BEGIN(MSG_ONE, gmsgBanner, NULL, plr->edict());
+					WRITE_STRING(UTIL_VarArgs("You Are On Team %s", plr->pev->fuser4 == TEAM_RED ? "Red" : "Blue"));
+					WRITE_STRING(UTIL_VarArgs("Capture the %s flag and run it back to your base!", plr->pev->fuser4 == TEAM_RED ? "Blue" : "Red"));
+					WRITE_BYTE(80);
+				MESSAGE_END();
+				plr->m_iShowGameModeMessage = -1;
+			}
+		}
+	}
 }
 
 int CHalfLifeCaptureTheFlag::GetTeamIndex( const char *pTeamName )
@@ -644,6 +662,9 @@ void CHalfLifeCaptureTheFlag::PlayerSpawn( CBasePlayer *pPlayer )
 	CHalfLifeMultiplay::PlayerSpawn( pPlayer );
 
 	CHalfLifeMultiplay::SavePlayerModel(pPlayer);
+
+	if (pPlayer->m_iShowGameModeMessage > -1)
+		pPlayer->m_iShowGameModeMessage = gpGlobals->time + 0.5;
 }
 
 extern DLL_GLOBAL BOOL g_fGameOver;
