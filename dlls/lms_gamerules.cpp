@@ -111,7 +111,8 @@ void CSafeSpot::SafeSpotThink( void )
 			if (!found)
 			{
 				entvars_t *pevWorld = VARS( INDEXENT(0) );
-				plr->TakeDamage( pevWorld, plr->pev, 10, DMG_SHOCK );
+				plr->TakeDamage( pevWorld, plr->pev, 2, DMG_SHOCK );
+				ClientPrint(plr->pev, HUD_PRINTCENTER, "Taking damage - find the green zone!");
 			}
 		}
 	}

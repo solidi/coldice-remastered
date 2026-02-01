@@ -304,7 +304,13 @@ void PM_PlayStepSound( int step, float fvol )
 	{
 		return;
 	}
-	
+
+	qboolean canSound = atoi( pmove->PM_Info_ValueForKey( pmove->physinfo, "prop" ) ) == 1 ? false : true;
+	if ( !canSound )
+	{
+		return;
+	}
+
 	irand = pmove->RandomLong(0,1) + ( pmove->iStepLeft * 2 );
 
 	// FIXME mp_footsteps needs to be a movevar
