@@ -68,7 +68,7 @@ void CSafeSpot::Spawn( void )
 	Precache();
 	SET_MODEL(ENT(pev), "models/coldspot.mdl");
 	pev->classname = MAKE_STRING("coldspot");
-	pev->fuser4 = 99; // to determine specific model index to size.
+	pev->fuser4 = RADAR_COLD_SPOT; // to determine specific model index to size.
 	pev->angles.x = 0;
 	pev->angles.z = 0;
 	pev->movetype = MOVETYPE_NONE;

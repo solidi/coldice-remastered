@@ -55,7 +55,7 @@ void CSkullCharm::Spawn( void )
 	SET_MODEL(ENT(pev), "models/w_runes.mdl");
 
 	pev->body = 10;
-	pev->fuser4 = 1;
+	pev->fuser4 = RADAR_TEAM_RED;
 	
 	pev->renderfx = kRenderFxGlowShell;
 	pev->renderamt = 5;

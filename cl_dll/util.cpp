@@ -143,7 +143,7 @@ unsigned long HudColor()
 		if (colorchange != RGB_YELLOWISH)
 		{
 			gEngfuncs.pfnClientCmd("con_color \"255 180 30\"\n");
-			gEngfuncs.pfnClientCmd("tracerred \"1\"\ntracerblue \"0\"\n");
+			gEngfuncs.pfnClientCmd("tracerred \"1\"\ntracerblue \"0\"\ntracergreen \"0.8\"\n");
 			colorchange = RGB_YELLOWISH;
 		}
 
@@ -154,15 +154,26 @@ unsigned long HudColor()
 	if (gHUD.m_GameMode)
 	{
 		cl_entity_t *local = gEngfuncs.GetLocalPlayer();
-		if (local->curstate.fuser4 > 0)
+		if (local->curstate.fuser4 == RADAR_TEAM_RED ||
+			(local->curstate.fuser4 > 0 && gHUD.m_GameMode == GAME_PROPHUNT))
 		{
 			if (colorchange != RGB_REDISH)
 			{
 				gEngfuncs.pfnClientCmd("con_color \"255 80 0\"\n");
-				gEngfuncs.pfnClientCmd("tracerred \"1\"\ntracerblue \"0\"\n");
+				gEngfuncs.pfnClientCmd("tracerred \"1\"\ntracerblue \"0\"\ntracergreen \"0\"\n");
 				colorchange = RGB_REDISH;
 			}
 			return RGB_REDISH;
+		}
+		else if (local->curstate.fuser4 == RADAR_CHUMTOAD)
+		{
+			if (colorchange != RGB_GREENISH)
+			{
+				gEngfuncs.pfnClientCmd("con_color \"0 200 0\"\n");
+				gEngfuncs.pfnClientCmd("tracerred \"0\"\ntracerblue \"0\"\ntracergreen \"1\"\n");
+				colorchange = RGB_GREENISH;
+			}
+			return RGB_GREENISH;
 		}
 	}
 
@@ -171,7 +182,7 @@ unsigned long HudColor()
 		if (colorchange != RGB_BLUEISH)
 		{
 			gEngfuncs.pfnClientCmd("con_color \"0 160 255\"\n");
-			gEngfuncs.pfnClientCmd("tracerred \"0\"\ntracerblue \"1\"\n");
+			gEngfuncs.pfnClientCmd("tracerred \"0\"\ntracerblue \"1\"\ntracergreen \"0\"\n");
 			colorchange = RGB_BLUEISH;
 		}
 		return RGB_BLUEISH;
@@ -180,7 +191,7 @@ unsigned long HudColor()
 	if (colorchange != RGB_YELLOWISH)
 	{
 		gEngfuncs.pfnClientCmd("con_color \"255 180 30\"\n");
-		gEngfuncs.pfnClientCmd("tracerred \"1\"\ntracerblue \"0\"\n");
+		gEngfuncs.pfnClientCmd("tracerred \"1\"\ntracerblue \"0\"\ntracergreen \"0.8\"\n");
 		colorchange = RGB_YELLOWISH;
 	}
 

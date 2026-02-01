@@ -952,5 +952,18 @@ typedef struct
 #define TXT_CHANNEL_GAME_INFO		11
 #define TXT_CHANNEL_TAUNT			12
 
+#define RADAR_TEAM_BLUE		0
+#define RADAR_TEAM_RED		1
+#define RADAR_VIRUS			3
+#define RADAR_COLD_SPOT		4
+#define RADAR_CHUMTOAD		5
+#define RADAR_BUSTER		6
+#define RADAR_HORDE			8
+#define RADAR_JESUS			9
+#define RADAR_FLAG_BLUE		10
+#define RADAR_FLAG_RED		11
+#define RADAR_BASE_BLUE		12
+#define RADAR_BASE_RED		13
+
 #endif
 

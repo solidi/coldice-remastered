@@ -293,7 +293,7 @@ void CMultiplayBusters::CheckForEgons()
 		if ( pBestPlayer )
 		{
 			pBestPlayer->RemoveAllItems( false );
-			pBestPlayer->pev->fuser4 = 1; // so we can give the named item
+			pBestPlayer->pev->fuser4 = RADAR_BUSTER; // so we can give the named item
 			pBestPlayer->GiveNamedItem( "weapon_egon" );
 
 			CBaseEntity* pEntity = NULL;
@@ -425,7 +425,7 @@ void CMultiplayBusters::SetPlayerModel( CBasePlayer* pPlayer )
 {
 	if ( IsPlayerBusting( pPlayer ) )
 	{
-		pPlayer->pev->fuser4 = 1;
+		pPlayer->pev->fuser4 = RADAR_BUSTER;
 		strncpy( pPlayer->m_szTeamName, "busters", TEAM_NAME_LENGTH );
 		g_engfuncs.pfnSetClientKeyValue( pPlayer->entindex(), g_engfuncs.pfnGetInfoKeyBuffer( pPlayer->edict() ), "model", "frost" );
 	}

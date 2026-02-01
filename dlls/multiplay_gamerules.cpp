@@ -2609,42 +2609,6 @@ BOOL CHalfLifeMultiplay::IsAllowedToSpawn( CBaseEntity *pEntity )
 		return FALSE;
 	}
 
-/*
-	if (g_pGameRules->MutatorEnabled(MUTATOR_INSTAGIB) &&
-		(strncmp(STRING(pEntity->pev->classname), "weapon_", 7) == 0 || strncmp(STRING(pEntity->pev->classname), "ammo_", 5) == 0))
-	{	
-		if (stricmp(STRING(pEntity->pev->classname), "weapon_railgun") == 0 ||
-			stricmp(STRING(pEntity->pev->classname), "weapon_dual_railgun") == 0 ||
-			stricmp(STRING(pEntity->pev->classname), "weapon_fists") == 0) {
-			return TRUE;
-		}
-
-		if (stricmp(STRING(pEntity->pev->classname), "ammo_gaussclip") != 0)
-		{
-			CBaseEntity::Create("ammo_gaussclip", pEntity->pev->origin, pEntity->pev->angles, pEntity->pev->owner);
-			return FALSE;
-		}
-	}
-*/
-
-/*
-	if (g_pGameRules->MutatorEnabled(MUTATOR_PLUMBER) &&
-		(strncmp(STRING(pEntity->pev->classname), "weapon_", 7) == 0 || strncmp(STRING(pEntity->pev->classname), "ammo_", 5) == 0))
-	{	
-		if (stricmp(STRING(pEntity->pev->classname), "weapon_fists") == 0 ||
-			stricmp(STRING(pEntity->pev->classname), "weapon_wrench") == 0 ||
-			stricmp(STRING(pEntity->pev->classname), "weapon_dual_wrench") == 0) {
-			return TRUE;
-		}
-
-		if (stricmp(STRING(pEntity->pev->classname), "weapon_wrench") != 0)
-		{
-			CBaseEntity::Create("weapon_wrench", pEntity->pev->origin, pEntity->pev->angles, pEntity->pev->owner);
-			return FALSE;
-		}
-	}
-*/
-
 	const char* dualWeaponList[] = {
 		"weapon_dual_wrench",
 		"weapon_dual_glock",

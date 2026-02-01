@@ -403,7 +403,7 @@ void CHalfLifeHorde::Think( void )
 					ALERT(at_aiconsole, ">>> [Horde] created %s\n", monster);
 
 					// Radar mark
-					pEntity->pev->fuser4 = 2;
+					pEntity->pev->fuser4 = RADAR_HORDE;
 
 					if (hardness > 1)
 					{

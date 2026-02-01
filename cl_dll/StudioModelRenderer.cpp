@@ -1100,7 +1100,7 @@ void CStudioModelRenderer::StudioSetupBones ( void )
 			}
 		}
 
-		if (gHUD.m_GameMode == GAME_LMS && m_pCurrentEntity->curstate.fuser4 == 99)
+		if (gHUD.m_GameMode == GAME_LMS && m_pCurrentEntity->curstate.fuser4 == RADAR_COLD_SPOT)
 		{
 			for (int x = 0; x <= 2; x++)
 				for (int y = 0; y <= 2; y++)

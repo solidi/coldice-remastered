@@ -85,17 +85,23 @@ void CHudRadar::DrawEdgeIndicator(int centerX, int centerY, float angle, float d
 	
 	// Color based on special type
 	int r, g, b;
-	if (special == 1 || special == 3)
+	if (special == RADAR_TEAM_RED ||
+		special == RADAR_BUSTER || 
+		special == RADAR_VIRUS ||
+		special == RADAR_HORDE ||
+		special == RADAR_FLAG_RED ||
+		special == RADAR_BASE_RED)
 	{
 		// Red for special targets (chumtoad, etc.)
 		r = 240; g = 0; b = 0;
 	}
-	else if (special == 2)
+	else if (special == RADAR_TEAM_BLUE || special == RADAR_JESUS || 
+			 special == RADAR_FLAG_BLUE || special == RADAR_BASE_BLUE)
 	{
 		// Blue
 		r = 0; g = 0; b = 240;
 	}
-	else if (special == 4)
+	else if (special == RADAR_COLD_SPOT || special == RADAR_CHUMTOAD)
 	{
 		// Green
 		r = 0; g = 240; b = 0;
@@ -182,74 +188,28 @@ void CHudRadar::ProcessPlayerState(void)
 		if (pClient->curstate.effects & EF_NODRAW)
 			continue;
 
-		if (gHUD.m_GameMode == GAME_BUSTERS ||
-			gHUD.m_GameMode == GAME_CHILLDEMIC ||
-			gHUD.m_GameMode == GAME_ICEMAN ||
-			gHUD.m_GameMode == GAME_SHIDDEN)
+		if (gHUD.m_GameMode == GAME_PROPHUNT)
 		{
-			if (pClient->curstate.fuser4 > 0)
-				b_specials[num_players] = true;
-			else
-				b_specials[num_players] = false;
-		}
-		else if (gHUD.m_GameMode == GAME_PROPHUNT)
-		{
+			// No props
 			if (pClient->curstate.fuser4 > 0)
 				continue;
-			else
-				b_specials[num_players] = false;
-		}
-		else if (gHUD.m_GameMode == GAME_CTC)
-		{
-			if (pClient->curstate.fuser4 > 0) // running with toad
-				b_specials[num_players] = true;
-			else
-				b_specials[num_players] = false;
 		}
 		else if (gHUD.m_GameMode == GAME_CTF)
 		{
-			if (pClient->curstate.fuser4 > 1)
-				b_specials[num_players] = pClient->curstate.fuser4;
-			else
-				b_specials[num_players] = false;
-		}
-		else if (gHUD.m_GameMode == GAME_COLDSPOT)
-		{
-			if (pClient->curstate.fuser4 > 1)
-				b_specials[num_players] = pClient->curstate.fuser4;
-			else if (pClient->curstate.fuser4 == 1)
-				b_specials[num_players] = true;
-			else
-				b_specials[num_players] = false;
-		}
-		else if (gHUD.m_GameMode == GAME_COLDSKULL)
-		{
-			if (!strcmp(pClient->model->name, "models/w_runes.mdl") && pClient->curstate.fuser4 > 0)
-				b_specials[num_players] = true;
-			else
-				b_specials[num_players] = false;
-		}
-		else if (gHUD.m_GameMode == GAME_HORDE)
-		{
-			if (pClient->curstate.fuser4 > 1) // monster
-				b_specials[num_players] = true;
-			else
-				b_specials[num_players] = false;
-		}
-		else if (gHUD.m_GameMode == GAME_LMS)
-		{
-			if (pClient->curstate.fuser4 == 1)
-				b_specials[num_players] = 1;
-			else if (pClient->curstate.fuser4 == 99) //safe spot
-				b_specials[num_players] = 4;
-			else
-				b_specials[num_players] = false;
+			// No flags
+			if (pClient->curstate.fuser4 == RADAR_FLAG_BLUE ||
+				pClient->curstate.fuser4 == RADAR_FLAG_RED)
+				continue;
 		}
 
+		b_specials[num_players] = pClient->curstate.fuser4;
+
+		// No world entities without fvalue
 		if (!b_specials[num_players])
 			if (!pClient->player)
 				continue;
 
+		// No dead players
 		if (pClient->player)
 			if (pClient->curstate.health <= 0)
 				continue;
@@ -388,32 +348,44 @@ int CHudRadar::Draw(float flTime)
 		// Default dots set
 		UnpackRGB(r, g, b, RGB_BLUEISH);
 		int fr = r, fg = g, fb = b;
-		if ((gEngfuncs.GetLocalPlayer()->index - 1) == index)
-		{
-			fr = 200; fg = 200; fb = 200;
-		}
 
 		if (gHUD.m_GameMode == GAME_ICEMAN && m_RadarInfo[index].special == 0)
 			size *= 2;
 
-		if (m_RadarInfo[index].special == 1 ||
-			m_RadarInfo[index].special == 3)
+		if (m_RadarInfo[index].special == RADAR_TEAM_RED ||
+			m_RadarInfo[index].special == RADAR_VIRUS ||
+			m_RadarInfo[index].special == RADAR_BUSTER ||
+			m_RadarInfo[index].special == RADAR_HORDE ||
+			m_RadarInfo[index].special == RADAR_FLAG_RED ||
+			m_RadarInfo[index].special == RADAR_BASE_RED)
 		{
-			if (gHUD.m_GameMode != GAME_ICEMAN)
+			if (gHUD.m_GameMode != GAME_ICEMAN &&
+				m_RadarInfo[index].special != RADAR_TEAM_RED)
 				size *= 2;
 			fr = 240; fg = 0; fb = 0;
 		}
 
-		if (m_RadarInfo[index].special == 2)
+		if (m_RadarInfo[index].special == RADAR_TEAM_BLUE ||
+			m_RadarInfo[index].special == RADAR_JESUS ||
+			m_RadarInfo[index].special == RADAR_FLAG_BLUE ||
+			m_RadarInfo[index].special == RADAR_BASE_BLUE)
 		{
-			size *= 2;
+			if (m_RadarInfo[index].special != RADAR_TEAM_BLUE)
+				size *= 2;
 			fr = 0; fg = 0; fb = 240;
 		}
 
-		if (m_RadarInfo[index].special == 4)
+		if (m_RadarInfo[index].special == RADAR_COLD_SPOT ||
+			m_RadarInfo[index].special == RADAR_CHUMTOAD)
 		{
 			size *= 2;
 			fr = 0; fg = 240; fb = 0;
+		}
+
+		// Highlight yourself in grey/white
+		if ((gEngfuncs.GetLocalPlayer()->index - 1) == index)
+		{
+			fr = 200; fg = 200; fb = 200;
 		}
 
 		FillRGBA(pos_x, pos_y, size, size, fr, fg, fb, alpha);
@@ -422,7 +394,9 @@ int CHudRadar::Draw(float flTime)
 	// Draw edge indicators for special tracked entities
 	int screenCenterX = ScreenWidth / 2;
 	int screenCenterY = ScreenHeight / 2;
+	cl_entity_t *localPlayer = gEngfuncs.GetLocalPlayer();
 	
+	// First, draw edge indicators from PVS-based radar (for players)
 	for (index = 0; index < num_players; index++)
 	{
 		// Show edge indicators for all special entities, always
@@ -430,7 +404,11 @@ int CHudRadar::Draw(float flTime)
 			continue;
 		
 		// Don't show edge indicator for yourself
-		if ((gEngfuncs.GetLocalPlayer()->index - 1) == index)
+		if ((localPlayer->index - 1) == index)
+			continue;
+		
+		// Don't draw team players
+		if (m_RadarInfo[index].special < RADAR_COLD_SPOT)
 			continue;
 		
 		DrawEdgeIndicator(screenCenterX, screenCenterY, 

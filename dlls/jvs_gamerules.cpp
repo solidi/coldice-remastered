@@ -378,13 +378,13 @@ void CHalfLifeJesusVsSanta::Think( void )
 		{
 			CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
 			if ( plr && plr->IsPlayer() && !plr->HasDisconnected )
-				plr->pev->fuser4 = 1;
+				plr->pev->fuser4 = RADAR_TEAM_RED;
 		}
 		pArmoredMan = (CBasePlayer *)UTIL_PlayerByIndex( armoredman );
 		if (pArmoredMan)
 		{
 			pArmoredMan->IsArmoredMan = TRUE;
-			pArmoredMan->pev->fuser4 = 0;
+			pArmoredMan->pev->fuser4 = RADAR_JESUS;
 		}
 
 		g_GameInProgress = TRUE;

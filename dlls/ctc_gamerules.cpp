@@ -254,7 +254,7 @@ void CHalfLifeCaptureTheChumtoad::CaptureCharm( CBasePlayer *pPlayer )
 	pPlayer->pev->renderamt = 10;
 	pPlayer->pev->rendercolor = Vector(0, 200, 0);
 
-	pPlayer->pev->fuser4 = 1;
+	pPlayer->pev->fuser4 = RADAR_CHUMTOAD;
 	m_pHolder = (CBaseEntity *)pPlayer;
 
 	int m_iTrail = PRECACHE_MODEL("sprites/smoke.spr");
@@ -265,15 +265,9 @@ void CHalfLifeCaptureTheChumtoad::CaptureCharm( CBasePlayer *pPlayer )
 		WRITE_SHORT( m_iTrail );	// model
 		WRITE_BYTE( 50 ); // life
 		WRITE_BYTE( 3 );  // width
-		if (icesprites.value) {
-			WRITE_BYTE( 0 );   // r, g, b
-			WRITE_BYTE( 160 );   // r, g, b
-			WRITE_BYTE( 255 );   // r, g, b
-		} else {
-			WRITE_BYTE( 224 );   // r, g, b
-			WRITE_BYTE( 224 );   // r, g, b
-			WRITE_BYTE( 255 );   // r, g, b
-		}
+		WRITE_BYTE( 0 );   // r, g, b
+		WRITE_BYTE( 200 );   // r, g, b
+		WRITE_BYTE( 0 );   // r, g, b
 		WRITE_BYTE( 200 );	// brightness
 	MESSAGE_END();
 
@@ -623,7 +617,7 @@ int CHalfLifeCaptureTheChumtoad::GetTeamIndex( const char *pTeamName )
 	if ( pTeamName && *pTeamName != 0 )
 	{
 		if (!strcmp(pTeamName, "holder"))
-			return 1;
+			return 3; // green, not red.
 		else
 			return 0;
 	}

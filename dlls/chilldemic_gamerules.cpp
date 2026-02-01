@@ -449,7 +449,7 @@ void CHalfLifeChilldemic::Think( void )
 		int skeleton = m_iPlayersInArena[RANDOM_LONG(0, clients-1)];
 		ALERT(at_console, "clients set to %d, virus set to index=%d\n", clients, skeleton);
 		CBasePlayer *pl = (CBasePlayer *)UTIL_PlayerByIndex( skeleton );
-		pl->pev->fuser4 = 1;
+		pl->pev->fuser4 = RADAR_VIRUS;
 
 		g_GameInProgress = TRUE;
 		
@@ -640,7 +640,7 @@ void CHalfLifeChilldemic::ClientUserInfoChanged( CBasePlayer *pPlayer, char *inf
 	// prevent skin/color/model changes
 	char *mdls = g_engfuncs.pfnInfoKeyValue( infobuffer, "model" );
 	int clientIndex = pPlayer->entindex();
-	if ( pPlayer->pev->fuser4 != 1 && !stricmp( "skeleton", mdls ) )
+	if ( pPlayer->pev->fuser4 != RADAR_VIRUS && !stricmp( "skeleton", mdls ) )
 	{
 		ClientPrint( pPlayer->pev, HUD_PRINTCONSOLE, "[Chilldemic]: Changing to 'skeleton' is not allowed\n");
 		g_engfuncs.pfnSetClientKeyValue( clientIndex, g_engfuncs.pfnGetInfoKeyBuffer( pPlayer->edict() ), "model", "iceman" );
@@ -648,7 +648,7 @@ void CHalfLifeChilldemic::ClientUserInfoChanged( CBasePlayer *pPlayer, char *inf
 	}
 
 	// Enforce skeleton on infected players
-	if ( pPlayer->pev->fuser4 == 1 && stricmp( "skeleton", mdls ) )
+	if ( pPlayer->pev->fuser4 == RADAR_VIRUS && stricmp( "skeleton", mdls ) )
 	{
 		ClientPrint( pPlayer->pev, HUD_PRINTCONSOLE, "[Chilldemic]: Changing back 'skeleton' due to infection\n");
 		g_engfuncs.pfnSetClientKeyValue( clientIndex, g_engfuncs.pfnGetInfoKeyBuffer( pPlayer->edict() ), "model", "skeleton" );
@@ -697,7 +697,7 @@ void CHalfLifeChilldemic::PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller
 			UTIL_ClientPrintAll(HUD_PRINTTALK, UTIL_VarArgs("* Survivors defeated!\n"));
 		}
 
-		pVictim->pev->fuser4 = 1;
+		pVictim->pev->fuser4 = RADAR_VIRUS;
 
 		g_engfuncs.pfnSetClientKeyValue( ENTINDEX( pVictim->edict() ),
 			g_engfuncs.pfnGetInfoKeyBuffer( pVictim->edict() ), "model", "skeleton" );

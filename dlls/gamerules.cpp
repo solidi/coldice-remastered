@@ -1643,7 +1643,7 @@ void CGameRules::MutatorsThink(void)
 					g_engfuncs.pfnSetPhysicsKeyValue(pPlayer->edict(), "haste", "1");
 				else if (((CBasePlayer *)pPlayer)->m_fHasRune != RUNE_HASTE &&
 						 !((CBasePlayer *)pPlayer)->IsArmoredMan &&
-						 ((CBasePlayer *)pPlayer)->pev->fuser4 != 1)
+						 ((CBasePlayer *)pPlayer)->pev->fuser4 != RADAR_VIRUS)
 					g_engfuncs.pfnSetPhysicsKeyValue(pPlayer->edict(), "haste", "0");
 
 				if (!MutatorEnabled(MUTATOR_AUTOAIM)) {

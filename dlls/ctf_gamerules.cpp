@@ -73,7 +73,7 @@ CFlagCharm *CFlagCharm::CreateFlag( Vector vecOrigin, int body )
 	if (body == TEAM_RED)
 	{
 		pFlag->pev->rendercolor = Vector(255, 0, 0);
-		pFlag->pev->fuser4 = TEAM_RED + 2;
+		pFlag->pev->fuser4 = RADAR_FLAG_RED;
 	}
 	return pFlag;
 }
@@ -87,7 +87,7 @@ void CFlagCharm::Spawn( void )
 	pev->renderfx = kRenderFxGlowShell;
 	pev->renderamt = 5;
 	pev->rendercolor = Vector(0, 0, 255);
-	pev->fuser4 = TEAM_BLUE + 2;
+	pev->fuser4 = RADAR_FLAG_BLUE;
 
 	pev->angles = g_vecZero;
 	pev->movetype = MOVETYPE_TOSS;
@@ -120,7 +120,7 @@ void CFlagCharm::ReturnThink( void )
 
 	Vector vRedBase = ((CHalfLifeCaptureTheFlag *)g_pGameRules)->pRedBase->pev->origin;
 	Vector vBlueBase = ((CHalfLifeCaptureTheFlag *)g_pGameRules)->pBlueBase->pev->origin;
-	Vector returnOrigin = (pev->fuser4 - 2) == TEAM_RED ? vRedBase : vBlueBase;
+	Vector returnOrigin = (pev->fuser4 == RADAR_FLAG_RED) ? vRedBase : vBlueBase;
 
 	if (!m_fReturnTime && !pev->aiment && pev->origin != returnOrigin)
 		m_fReturnTime = gpGlobals->time + 30.0;
@@ -128,11 +128,11 @@ void CFlagCharm::ReturnThink( void )
 	if (m_fReturnTime && !pev->aiment && m_fReturnTime < gpGlobals->time)
 	{
 		EHANDLE pMyBase = ((CHalfLifeCaptureTheFlag *)g_pGameRules)->pBlueBase;
-		if (pev->fuser4 - 2 == TEAM_RED)
+		if (pev->fuser4 == RADAR_FLAG_RED)
 			pMyBase = ((CHalfLifeCaptureTheFlag *)g_pGameRules)->pRedBase;
 		pMyBase->pev->iuser4 = TRUE;
 
-		if (pev->fuser4 - 2 == TEAM_RED)
+		if (pev->fuser4 == RADAR_FLAG_RED)
 			((CHalfLifeCaptureTheFlag *)g_pGameRules)->UpdateHud(-1, 0);
 		else
 			((CHalfLifeCaptureTheFlag *)g_pGameRules)->UpdateHud(0, -1);
@@ -168,11 +168,11 @@ void CFlagCharm::FlagTouch( CBaseEntity *pOther )
 		if (!pPlayer->pFlag)
 		{
 			EHANDLE pMyBase = ((CHalfLifeCaptureTheFlag *)g_pGameRules)->pBlueBase;
-			if (pev->fuser4 - 2 == TEAM_RED)
+			if (pev->fuser4 == RADAR_FLAG_RED)
 				pMyBase = ((CHalfLifeCaptureTheFlag *)g_pGameRules)->pRedBase;
 
 			// Flag pick up at base
-			if ((pPlayer->pev->fuser4 + 2) != pev->fuser4)
+			if ((pPlayer->pev->fuser4 + RADAR_FLAG_BLUE) != pev->fuser4)
 			{
 				pMyBase->pev->iuser4 = FALSE;
 
@@ -222,12 +222,12 @@ void CFlagCharm::FlagTouch( CBaseEntity *pOther )
 				MESSAGE_END();
 			}
 			// Returning
-			else if ((pPlayer->pev->fuser4 + 2) == pev->fuser4)
+			else if ((pPlayer->pev->fuser4 + RADAR_FLAG_BLUE) == pev->fuser4)
 			{
 				// Cannot touch same flag in its base
 				Vector vRedBase = ((CHalfLifeCaptureTheFlag *)g_pGameRules)->pRedBase->pev->origin;
 				Vector vBlueBase = ((CHalfLifeCaptureTheFlag *)g_pGameRules)->pBlueBase->pev->origin;
-				Vector og = (pev->fuser4 == TEAM_RED + 2) ? vRedBase : vBlueBase;
+				Vector og = (pev->fuser4 == RADAR_FLAG_RED) ? vRedBase : vBlueBase;
 				if (pev->origin != og)
 				{
 					ClientPrint(pPlayer->pev, HUD_PRINTCENTER, "You've returned the flag to base!");
@@ -243,7 +243,7 @@ void CFlagCharm::FlagTouch( CBaseEntity *pOther )
 					pev->angles = g_vecZero;
 					UTIL_SetOrigin(pev, og);
 
-					if (pev->fuser4 == TEAM_RED + 2)
+					if (pev->fuser4 == RADAR_FLAG_RED)
 						((CHalfLifeCaptureTheFlag *)g_pGameRules)->UpdateHud(-1, 0);
 					else
 						((CHalfLifeCaptureTheFlag *)g_pGameRules)->UpdateHud(0, -1);
@@ -253,7 +253,7 @@ void CFlagCharm::FlagTouch( CBaseEntity *pOther )
 		else
 		{
 			// Touch my flag while holding the enemies one
-			if ((pPlayer->pev->fuser4 + 2) == pev->fuser4)
+			if ((pPlayer->pev->fuser4 + RADAR_FLAG_BLUE) == pev->fuser4)
 			{
 				ClientPrint(pPlayer->pev, HUD_PRINTCENTER, "Cannot return while holding a flag!");
 				pPlayer->m_fFlagTime = gpGlobals->time + 1.0;
@@ -287,7 +287,7 @@ CFlagBase *CFlagBase::CreateFlagBase( Vector vecOrigin, int body )
 	pBase->Spawn();
 	pBase->pev->body = body;
 	if (body == TEAM_RED)
-		pBase->pev->fuser4 = TEAM_RED + 2;
+		pBase->pev->fuser4 = RADAR_BASE_RED;
 	pBase->pev->iuser4 = TRUE; // mounted flag?
 	pBase->m_fNextTouch = gpGlobals->time;
 	return pBase;
@@ -304,7 +304,7 @@ void CFlagBase::Spawn( void )
 	Precache();
 	SET_MODEL(ENT(pev), "models/flagbase.mdl");
 	pev->classname = MAKE_STRING("base");
-	pev->fuser4 = TEAM_BLUE + 2;
+	pev->fuser4 = RADAR_BASE_BLUE;
 
 	pev->angles.x = 0;
 	pev->angles.z = 0;
@@ -337,11 +337,11 @@ void CFlagBase::CTFTouch( CBaseEntity *pOther )
 			Vector vRedBase = ((CHalfLifeCaptureTheFlag *)g_pGameRules)->pRedBase->pev->origin;
 			Vector vBlueBase = ((CHalfLifeCaptureTheFlag *)g_pGameRules)->pBlueBase->pev->origin;
 			EHANDLE pOtherBase = ((CHalfLifeCaptureTheFlag *)g_pGameRules)->pRedBase;
-			if (pev->fuser4 - 2 == TEAM_RED)
+			if (pev->fuser4 == RADAR_BASE_RED)
 				pOtherBase = ((CHalfLifeCaptureTheFlag *)g_pGameRules)->pBlueBase;
 
 			// search for current flag, otherwise no score.
-			if (pFlag->pev->fuser4 != pev->fuser4 && pev->iuser4 == TRUE)
+			if (pFlag->pev->fuser4 != (pev->fuser4 - 2) && pev->iuser4 == TRUE)
 			{
 				// Return flag state
 				int flagid = pFlag->pev->fuser4;
@@ -350,13 +350,12 @@ void CFlagBase::CTFTouch( CBaseEntity *pOther )
 				m_fNextTouch = gpGlobals->time + 1.0;
 				pPlayer->m_fFlagTime = gpGlobals->time + 1.0;
 
-				//pFlag->pev->solid = SOLID_TRIGGER;
 				pFlag->pev->movetype = MOVETYPE_TOSS;
 				pFlag->pev->aiment = 0;
 				pFlag->pev->sequence = FLAG_POSITIONED;
 				pFlag->pev->angles = g_vecZero;
 
-				UTIL_SetOrigin(pFlag->pev, (pFlag->pev->fuser4 == TEAM_RED + 2) ? vRedBase : vBlueBase);
+				UTIL_SetOrigin(pFlag->pev, (pFlag->pev->fuser4 == RADAR_FLAG_RED) ? vRedBase : vBlueBase);
 				pPlayer->pFlag = NULL;
 
 				for (int i = 1; i <= gpGlobals->maxClients; i++)
@@ -746,7 +745,7 @@ CBaseEntity *CHalfLifeCaptureTheFlag::DropCharm( CBasePlayer *pPlayer, Vector or
 
 	if (pFlag)
 	{
-		if (pFlag->pev->fuser4 == TEAM_RED + 2)
+		if (pFlag->pev->fuser4 == RADAR_FLAG_RED)
 			((CHalfLifeCaptureTheFlag *)g_pGameRules)->UpdateHud(-1, 2);
 		else
 			((CHalfLifeCaptureTheFlag *)g_pGameRules)->UpdateHud(2, -1);

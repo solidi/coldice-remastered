@@ -64,7 +64,7 @@ void CColdSpot::Spawn( void )
 	Precache();
 	SET_MODEL(ENT(pev), "models/coldspot.mdl");
 	pev->classname = MAKE_STRING("coldspot");
-	pev->fuser4 = 4;
+	pev->fuser4 = RADAR_COLD_SPOT;
 
 	pev->angles.x = 0;
 	pev->angles.z = 0;
