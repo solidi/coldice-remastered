@@ -1406,7 +1406,7 @@ void CBasePlayer::SetAnimation( PLAYER_ANIM playerAnim )
 		pev->sequence = ideal;
 		pev->framerate = 1.0;
 		pev->gaitsequence = 0;
-
+		ResetSequenceInfo( );
 		return;
 	}
 
