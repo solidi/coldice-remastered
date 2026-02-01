@@ -858,6 +858,10 @@ BOOL CHalfLifePropHunt::FPlayerCanTakeDamage( CBasePlayer *pPlayer, CBaseEntity 
 			WRITE_SHORT( kp->m_iRoundWins );
 			WRITE_SHORT( g_pGameRules->GetTeamIndex( kp->m_szTeamName ) + 1 );
 			MESSAGE_END();
+
+			MESSAGE_BEGIN( MSG_ONE_UNRELIABLE, gmsgPlayClientSound, NULL, pAttacker->edict() );
+				WRITE_BYTE(CLIENT_SOUND_LEVEL_UP);
+			MESSAGE_END();
 		}
 
 		return FALSE;

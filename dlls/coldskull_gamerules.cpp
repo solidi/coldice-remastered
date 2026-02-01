@@ -27,6 +27,7 @@
 extern int gmsgObjective;
 extern int gmsgScoreInfo;
 extern int gmsgItemPickup;
+extern int gmsgPlayClientSound;
 
 // Cold Skulls enhancement constants
 #define SKULL_MAGNET_THRESHOLD 2
@@ -194,8 +195,8 @@ void CSkullCharm::SkullTouch( CBaseEntity *pOther )
 				WRITE_BYTE(result);
 			MESSAGE_END();
 
-			MESSAGE_BEGIN( MSG_ONE, gmsgItemPickup, NULL, pPlayer->edict() );
-				WRITE_STRING( STRING(pev->classname) );
+			MESSAGE_BEGIN( MSG_ONE_UNRELIABLE, gmsgPlayClientSound, NULL, pPlayer->edict() );
+				WRITE_BYTE(CLIENT_SOUND_LEVEL_UP);
 			MESSAGE_END();
 		}
 
