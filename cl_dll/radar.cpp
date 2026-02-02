@@ -10,6 +10,23 @@
 #define PI_180 (3.14159265358979 / 180.0)
 #define MAX_DISTANCE 1000
 
+// Edge Indicator Configuration
+#define EDGE_INDICATOR_MIN_DISTANCE 		64.0f		// Distance at which arrow disappears completely
+#define EDGE_INDICATOR_FLIP_DISTANCE 		512.0f		// Distance at which arrow flips to point toward center
+#define EDGE_INDICATOR_Z_CHECK_DISTANCE 	256.0f		// Distance threshold for Z-axis vertical edge forcing
+#define EDGE_INDICATOR_Z_THRESHOLD 			96.0f		// Z-axis difference to force vertical edge (above/below)
+#define EDGE_INDICATOR_Z_CLOSE_DISTANCE 	128.0f		// Z-axis distance to enable pull-in behavior
+#define EDGE_INDICATOR_SCREEN_MARGIN 		20			// Pixel margin from screen edge
+#define EDGE_INDICATOR_SIZE_WIDTH 			XRES(20)	// Arrow width in pixels
+#define EDGE_INDICATOR_SIZE_HEIGHT 			YRES(20)	// Arrow height in pixels
+#define EDGE_INDICATOR_PULSE_FREQUENCY 		3.5f		// Pulse animation frequency (Hz)
+#define EDGE_INDICATOR_PULSE_AMPLITUDE 		0.3f		// Pulse amplitude modifier
+#define EDGE_INDICATOR_PULSE_OFFSET 		0.7f		// Pulse baseline offset
+#define EDGE_INDICATOR_ALPHA_MIN 			100			// Minimum alpha value
+#define EDGE_INDICATOR_ALPHA_MAX 			255			// Maximum alpha value
+#define EDGE_INDICATOR_ALPHA_RANGE 			155			// Alpha range for distance calculation
+#define EDGE_INDICATOR_STALE_TIMEOUT 		60.0f		// Server data stale timeout (seconds)
+
 extern cvar_t *cl_radar;
 
 #ifdef _DEBUG
@@ -77,22 +94,26 @@ void CHudRadar::DrawEdgeIndicator(int centerX, int centerY, float angle, float d
 	float dirY = -cos(radians); // Negative because screen Y is inverted
 	
 	// Override edge calculation if target is significantly above or below
+	// BUT only if within reasonable proximity (less than 256 units away)
 	// Threshold: 96 units in Z-axis
 	bool forceVerticalEdge = false;
 	bool forceTop = false;
 	bool forceBottom = false;
 	
-	if (zDiff >= 96.0f)
+	if (distance < EDGE_INDICATOR_Z_CHECK_DISTANCE)
 	{
-		// Target is significantly above - force top edge
-		forceVerticalEdge = true;
-		forceTop = true;
-	}
-	else if (zDiff <= -96.0f)
-	{
-		// Target is significantly below - force bottom edge
-		forceVerticalEdge = true;
-		forceBottom = true;
+		if (zDiff >= EDGE_INDICATOR_Z_THRESHOLD)
+		{
+			// Target is significantly above - force top edge
+			forceVerticalEdge = true;
+			forceTop = true;
+		}
+		else if (zDiff <= -EDGE_INDICATOR_Z_THRESHOLD)
+		{
+			// Target is significantly below - force bottom edge
+			forceVerticalEdge = true;
+			forceBottom = true;
+		}
 	}
 	
 	// Calculate edge intersection
@@ -101,7 +122,7 @@ void CHudRadar::DrawEdgeIndicator(int centerX, int centerY, float angle, float d
 	float absY = fabs(dirY);
 	
 	// Margin from screen edge
-	int margin = 20;
+	int margin = EDGE_INDICATOR_SCREEN_MARGIN;
 	
 	if (forceVerticalEdge)
 	{
@@ -145,11 +166,11 @@ void CHudRadar::DrawEdgeIndicator(int centerX, int centerY, float angle, float d
 	}
 	
 	// Calculate alpha based on distance (closer = more opaque)
-	int alpha = (int)(255 - (distance / (MAX_DISTANCE * 2)) * 155);
-	alpha = fmax(100, fmin(255, alpha));
+	int alpha = (int)(EDGE_INDICATOR_ALPHA_MAX - (distance / (MAX_DISTANCE * 2)) * EDGE_INDICATOR_ALPHA_RANGE);
+	alpha = fmax(EDGE_INDICATOR_ALPHA_MIN, fmin(EDGE_INDICATOR_ALPHA_MAX, alpha));
 	
 	// Pulse effect for visibility
-	float pulse = sin(gEngfuncs.GetClientTime() * 3.5f) * 0.3f + 0.7f;
+	float pulse = sin(gEngfuncs.GetClientTime() * EDGE_INDICATOR_PULSE_FREQUENCY) * EDGE_INDICATOR_PULSE_AMPLITUDE + EDGE_INDICATOR_PULSE_OFFSET;
 	alpha = (int)(alpha * pulse);
 	
 	// Color based on special type
@@ -181,25 +202,25 @@ void CHudRadar::DrawEdgeIndicator(int centerX, int centerY, float angle, float d
 	}
 	
 	// Draw large triangle pointing toward target
-	// Don't draw if too close (within 64 units)
-	if (distance < 64.0f)
+	// Don't draw if too close (within min distance)
+	if (distance < EDGE_INDICATOR_MIN_DISTANCE)
 		return;
 	
-	// Flip direction when player is very close (within 512 units)
-	// But only if also close in Z-axis (within 128 units vertically)
-	bool closeEnough = (distance < 512.0f) && (fabs(zDiff) < 128.0f);
+	// Flip direction when player is very close (within flip distance)
+	// But only if also close in Z-axis (within close distance vertically)
+	bool closeEnough = (distance < EDGE_INDICATOR_FLIP_DISTANCE) && (fabs(zDiff) < EDGE_INDICATOR_Z_CLOSE_DISTANCE);
 	bool flip = closeEnough;
 	
-	// Move arrow toward center when close (between 64 and 512 units)
+	// Move arrow toward center when close (between min and flip distance)
 	// AND close vertically
 	float interpolation = 0.0f;
 	if (closeEnough)
 	{
-		// Interpolate from edge (at 512 units) to center (at 64 units)
-		interpolation = (512.0f - distance) / (512.0f - 64.0f);
+		// Interpolate from edge (at flip distance) to center (at min distance)
+		interpolation = (EDGE_INDICATOR_FLIP_DISTANCE - distance) / (EDGE_INDICATOR_FLIP_DISTANCE - EDGE_INDICATOR_MIN_DISTANCE);
 		interpolation = fmax(0.0f, fmin(1.0f, interpolation)); // Clamp 0-1
 		
-		// Fade out as it moves toward center (full alpha at 512, zero at 64)
+		// Fade out as it moves toward center (full alpha at flip, zero at min)
 		float fadeMultiplier = 1.0f - interpolation;
 		alpha = (int)(alpha * fadeMultiplier);
 	}
@@ -208,7 +229,7 @@ void CHudRadar::DrawEdgeIndicator(int centerX, int centerY, float angle, float d
 	float finalX = edgeX + (centerX - edgeX) * interpolation;
 	float finalY = edgeY + (centerY - edgeY) * interpolation;
 	
-	int triSize = XRES(20);
+	int triSize = EDGE_INDICATOR_SIZE_WIDTH;
 	int x = (int)finalX;
 	int y = (int)finalY;
 	
@@ -225,7 +246,7 @@ void CHudRadar::DrawEdgeIndicator(int centerX, int centerY, float angle, float d
 			// Point left (toward center)
 			for (int i = 0; i < triSize; i++)
 			{
-				int height = (i * YRES(20)) / triSize;
+				int height = (i * EDGE_INDICATOR_SIZE_HEIGHT) / triSize;
 				FillRGBA(x - i, y - height / 2, 2, height, r, g, b, alpha);
 			}
 		}
@@ -234,7 +255,7 @@ void CHudRadar::DrawEdgeIndicator(int centerX, int centerY, float angle, float d
 			// Point right (toward object)
 			for (int i = 0; i < triSize; i++)
 			{
-				int height = (i * YRES(20)) / triSize;
+				int height = (i * EDGE_INDICATOR_SIZE_HEIGHT) / triSize;
 				FillRGBA(x + i, y - height / 2, 2, height, r, g, b, alpha);
 			}
 		}
@@ -579,8 +600,8 @@ int CHudRadar::Draw(float flTime)
 		if (!m_SpecialEntities[index].active)
 			continue;
 		
-		// Check if data is stale (older than 2 seconds)
-		if (gEngfuncs.GetClientTime() - m_SpecialEntities[index].last_update > 2.0f)
+		// Check if data is stale (older than timeout)
+		if (gEngfuncs.GetClientTime() - m_SpecialEntities[index].last_update > EDGE_INDICATOR_STALE_TIMEOUT)
 			continue;
 		
 		// Calculate angle and distance from local player to special entity
