@@ -29,6 +29,7 @@ extern int gmsgTeamNames;
 extern int gmsgTeamInfo;
 extern int gmsgObjective;
 extern int gmsgPlayClientSound;
+extern int gmsgSpecialEntity;
 
 extern DLL_GLOBAL BOOL g_fGameOver;
 
@@ -51,6 +52,28 @@ CColdSpot *CColdSpot::CreateColdSpot( Vector vecOrigin, int body )
 	pSpot->pev->angles = g_vecZero;
 	pSpot->Spawn();
 	pSpot->pev->body = body;
+
+	// Broadcast special entities to all clients for radar tracking
+	int slotIndex = 0;
+	MESSAGE_BEGIN(MSG_ALL, gmsgSpecialEntity);
+		WRITE_BYTE(slotIndex); // Index 0-7
+		WRITE_BYTE(1); // Active
+		WRITE_COORD(pSpot->pev->origin.x);
+		WRITE_COORD(pSpot->pev->origin.y);
+		WRITE_COORD(pSpot->pev->origin.z);
+		WRITE_BYTE(RADAR_COLD_SPOT); // Special type
+	MESSAGE_END();
+	slotIndex++;
+
+	// Clear remaining slots
+	for ( ; slotIndex < 8; slotIndex++ )
+	{
+		MESSAGE_BEGIN(MSG_ALL, gmsgSpecialEntity);
+			WRITE_BYTE(slotIndex);
+			WRITE_BYTE(0); // Not active
+		MESSAGE_END();
+	}
+
 	return pSpot;
 }
 
@@ -278,7 +301,17 @@ void CHalfLifeColdSpot::Think( void )
 		if (!pColdSpot)
 			pColdSpot = CColdSpot::CreateColdSpot(pentSpawnSpot->v.origin, 0);
 		else
+		{
 			UTIL_SetOrigin(pColdSpot->pev, pentSpawnSpot->v.origin);
+			MESSAGE_BEGIN(MSG_ALL, gmsgSpecialEntity);
+				WRITE_BYTE(0); // Index 0-7
+				WRITE_BYTE(1); // Active
+				WRITE_COORD(pColdSpot->pev->origin.x);
+				WRITE_COORD(pColdSpot->pev->origin.y);
+				WRITE_COORD(pColdSpot->pev->origin.z);
+				WRITE_BYTE(RADAR_COLD_SPOT); // Special type
+			MESSAGE_END();
+		}
 
 		UTIL_ClientPrintAll(HUD_PRINTTALK, "[ColdSpot]: The cold spot has moved!\n");
 
