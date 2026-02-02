@@ -31,6 +31,7 @@ extern int gmsgTeamInfo;
 extern int gmsgPlayClientSound;
 extern int gmsgCtfInfo;
 extern int gmsgBanner;
+extern int gmsgSpecialEntity;
 
 #define TEAM_BLUE 0
 #define TEAM_RED 1
@@ -300,6 +301,17 @@ CFlagBase *CFlagBase::CreateFlagBase( Vector vecOrigin, int body )
 		pBase->pev->fuser4 = RADAR_BASE_RED;
 	pBase->pev->iuser4 = TRUE; // mounted flag?
 	pBase->m_fNextTouch = gpGlobals->time;
+
+	// Broadcast special entities to all clients for radar tracking
+	MESSAGE_BEGIN(MSG_ALL, gmsgSpecialEntity);
+		WRITE_BYTE(body); // Index 0-7
+		WRITE_BYTE(1); // Active
+		WRITE_COORD(pBase->pev->origin.x);
+		WRITE_COORD(pBase->pev->origin.y);
+		WRITE_COORD(pBase->pev->origin.z);
+		WRITE_BYTE(pBase->pev->fuser4); // Special type
+	MESSAGE_END();
+
 	return pBase;
 }
 

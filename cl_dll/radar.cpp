@@ -601,8 +601,8 @@ int CHudRadar::Draw(float flTime)
 			continue;
 		
 		// Check if data is stale (older than timeout)
-		if (gEngfuncs.GetClientTime() - m_SpecialEntities[index].last_update > EDGE_INDICATOR_STALE_TIMEOUT)
-			continue;
+		// if (gEngfuncs.GetClientTime() - m_SpecialEntities[index].last_update > EDGE_INDICATOR_STALE_TIMEOUT)
+		//	continue;
 		
 		// Calculate angle and distance from local player to special entity
 		Vector vToEntity = m_SpecialEntities[index].origin - localPlayer->origin;
