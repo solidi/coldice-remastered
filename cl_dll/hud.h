@@ -681,7 +681,16 @@ typedef struct {
 	int special;
 } RADAR;
 
+typedef struct {
+	Vector origin;
+	int special_type;
+	float last_update;
+	bool active;
+} SPECIAL_ENTITY_INFO;
+
 #define MAX_RADAR_DOTS 64
+#define MAX_SPECIAL_ENTITIES 8
+
 class CHudRadar: public CHudBase
 {
 public:
@@ -690,10 +699,12 @@ public:
 	int Draw(float flTime);
 	void ProcessPlayerState( void );
 	void DrawEdgeIndicator(int centerX, int centerY, float angle, float distance, int special, float zDiff);
+	int MsgFunc_SpecEnt(const char *pszName, int iSize, void *pbuf);
 
 private:
 	int radar_height, radar_width;
 	RADAR m_RadarInfo[MAX_RADAR_DOTS];
+	SPECIAL_ENTITY_INFO m_SpecialEntities[MAX_SPECIAL_ENTITIES];
 };
 
 class CHudObjective : public CHudBase

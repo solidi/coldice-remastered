@@ -16,10 +16,16 @@ extern cvar_t *cl_radar;
 cvar_t *debug_radar = NULL;
 #endif
 
+DECLARE_MESSAGE( m_Radar, SpecEnt )
+
 int CHudRadar::Init(void)
 {
 	m_iFlags |= HUD_ACTIVE;
 	gHUD.AddHudElem(this);
+	
+	HOOK_MESSAGE( SpecEnt );
+	
+	memset(m_SpecialEntities, 0, sizeof(m_SpecialEntities));
 
 #ifdef _DEBUG
 	if( !debug_radar )
@@ -31,6 +37,34 @@ int CHudRadar::Init(void)
 
 int CHudRadar::VidInit(void)
 {
+	memset(m_SpecialEntities, 0, sizeof(m_SpecialEntities));
+	return 1;
+}
+
+int CHudRadar::MsgFunc_SpecEnt(const char *pszName, int iSize, void *pbuf)
+{
+	BEGIN_READ(pbuf, iSize);
+	
+	int index = READ_BYTE(); // Which slot (0-MAX_SPECIAL_ENTITIES)
+	if (index < 0 || index >= MAX_SPECIAL_ENTITIES)
+		return 0;
+	
+	int active = READ_BYTE(); // 1 = active, 0 = inactive
+	
+	if (active)
+	{
+		m_SpecialEntities[index].origin.x = READ_COORD();
+		m_SpecialEntities[index].origin.y = READ_COORD();
+		m_SpecialEntities[index].origin.z = READ_COORD();
+		m_SpecialEntities[index].special_type = READ_BYTE();
+		m_SpecialEntities[index].last_update = gEngfuncs.GetClientTime();
+		m_SpecialEntities[index].active = true;
+	}
+	else
+	{
+		m_SpecialEntities[index].active = false;
+	}
+	
 	return 1;
 }
 
@@ -536,6 +570,45 @@ int CHudRadar::Draw(float flTime)
 			m_RadarInfo[index].angle, 
 			m_RadarInfo[index].distance,
 			m_RadarInfo[index].special,
+			zDiff);
+	}
+	
+	// Second, draw edge indicators from server-sent special entities (always visible)
+	for (index = 0; index < MAX_SPECIAL_ENTITIES; index++)
+	{
+		if (!m_SpecialEntities[index].active)
+			continue;
+		
+		// Check if data is stale (older than 2 seconds)
+		if (gEngfuncs.GetClientTime() - m_SpecialEntities[index].last_update > 2.0f)
+			continue;
+		
+		// Calculate angle and distance from local player to special entity
+		Vector vToEntity = m_SpecialEntities[index].origin - localPlayer->origin;
+		float distance = vToEntity.Length();
+		float zDiff = m_SpecialEntities[index].origin.z - localPlayer->origin.z;
+		
+		Vector vAngles;
+		VectorAngles(vToEntity, vAngles);
+		
+		// Convert to 0-360 degrees
+		if (vAngles.y < 0)
+			vAngles.y += 360;
+		
+		Vector vViewAngles;
+		gEngfuncs.GetViewAngles((float*)vViewAngles);
+		float view_angle = vViewAngles.y;
+		
+		// Convert to 0-360 degrees
+		if (view_angle < 0)
+			view_angle += 360;
+		
+		float angle = view_angle - vAngles.y;
+		
+		DrawEdgeIndicator(screenCenterX, screenCenterY, 
+			angle, 
+			distance,
+			m_SpecialEntities[index].special_type,
 			zDiff);
 	}
 
