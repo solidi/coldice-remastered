@@ -268,7 +268,7 @@ void CHudRadar::DrawEdgeIndicator(int centerX, int centerY, float angle, float d
 			// Point right (toward center)
 			for (int i = 0; i < triSize; i++)
 			{
-				int height = (i * YRES(20)) / triSize;
+				int height = (i * EDGE_INDICATOR_SIZE_HEIGHT) / triSize;
 				FillRGBA(x + i, y - height / 2, 2, height, r, g, b, alpha);
 			}
 		}
@@ -277,7 +277,7 @@ void CHudRadar::DrawEdgeIndicator(int centerX, int centerY, float angle, float d
 			// Point left (toward object)
 			for (int i = 0; i < triSize; i++)
 			{
-				int height = (i * YRES(20)) / triSize;
+				int height = (i * EDGE_INDICATOR_SIZE_HEIGHT) / triSize;
 				FillRGBA(x - i, y - height / 2, 2, height, r, g, b, alpha);
 			}
 		}
@@ -290,7 +290,7 @@ void CHudRadar::DrawEdgeIndicator(int centerX, int centerY, float angle, float d
 			// Point up (toward center)
 			for (int i = 0; i < triSize; i++)
 			{
-				int width = (i * YRES(20)) / triSize;
+				int width = (i * EDGE_INDICATOR_SIZE_HEIGHT) / triSize;
 				FillRGBA(x - width / 2, y - i, width, 2, r, g, b, alpha);
 			}
 		}
@@ -299,7 +299,7 @@ void CHudRadar::DrawEdgeIndicator(int centerX, int centerY, float angle, float d
 			// Point down (toward object)
 			for (int i = 0; i < triSize; i++)
 			{
-				int width = (i * YRES(20)) / triSize;
+				int width = (i * EDGE_INDICATOR_SIZE_HEIGHT) / triSize;
 				FillRGBA(x - width / 2, y + i, width, 2, r, g, b, alpha);
 			}
 		}
@@ -312,7 +312,7 @@ void CHudRadar::DrawEdgeIndicator(int centerX, int centerY, float angle, float d
 			// Point down (toward center)
 			for (int i = 0; i < triSize; i++)
 			{
-				int width = (i * YRES(20)) / triSize;
+				int width = (i * EDGE_INDICATOR_SIZE_HEIGHT) / triSize;
 				FillRGBA(x - width / 2, y + i, width, 2, r, g, b, alpha);
 			}
 		}
@@ -321,7 +321,7 @@ void CHudRadar::DrawEdgeIndicator(int centerX, int centerY, float angle, float d
 			// Point up (toward object)
 			for (int i = 0; i < triSize; i++)
 			{
-				int width = (i * YRES(20)) / triSize;
+				int width = (i * EDGE_INDICATOR_SIZE_HEIGHT) / triSize;
 				FillRGBA(x - width / 2, y - i, width, 2, r, g, b, alpha);
 			}
 		}
