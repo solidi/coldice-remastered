@@ -234,7 +234,7 @@ int CItem::TakeDamage( entvars_t* pevInflictor, entvars_t* pevAttacker, float fl
 			{
 				extern int gmsgPlayClientSound;
 				MESSAGE_BEGIN( MSG_ONE_UNRELIABLE, gmsgPlayClientSound, NULL, peKiller->edict() );
-					WRITE_BYTE(CLIENT_SOUND_LEVEL_UP);
+					WRITE_BYTE(CLIENT_SOUND_NOPE);
 				MESSAGE_END();
 				ClientPrint(peKiller->pev, HUD_PRINTCENTER, "Decoy destroyed! -1 frag :(\n");
 			}

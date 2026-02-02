@@ -360,6 +360,12 @@ int CHud :: MsgFunc_PlayCSound( const char *pszName, int iSize, void *pbuf )
 		case CLIENT_SOUND_SIREN:
 			PlaySound("ambience/siren.wav", 1);
 			break;
+		case CLIENT_SOUND_EBELL:
+			PlaySound("plats/elevbell1.wav", 1);
+			break;
+		case CLIENT_SOUND_NOPE:
+			PlaySound("sound/nope.wav", 1);
+			break;
 	}
 	return 1;
 }

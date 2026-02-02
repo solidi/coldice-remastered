@@ -313,6 +313,9 @@ void CHalfLifeColdSpot::Think( void )
 			MESSAGE_END();
 		}
 
+		MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
+			WRITE_BYTE(CLIENT_SOUND_EBELL);
+		MESSAGE_END();
 		UTIL_ClientPrintAll(HUD_PRINTTALK, "[ColdSpot]: The cold spot has moved!\n");
 
 		if (!m_fColdSpotTime)
