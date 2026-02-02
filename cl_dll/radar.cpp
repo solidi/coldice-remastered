@@ -34,7 +34,7 @@ int CHudRadar::VidInit(void)
 	return 1;
 }
 
-void CHudRadar::DrawEdgeIndicator(int centerX, int centerY, float angle, float distance, int special)
+void CHudRadar::DrawEdgeIndicator(int centerX, int centerY, float angle, float distance, int special, float zDiff)
 {
 	float radians = angle * PI_180;
 	
@@ -42,15 +42,50 @@ void CHudRadar::DrawEdgeIndicator(int centerX, int centerY, float angle, float d
 	float dirX = sin(radians);
 	float dirY = -cos(radians); // Negative because screen Y is inverted
 	
+	// Override edge calculation if target is significantly above or below
+	// Threshold: 96 units in Z-axis
+	bool forceVerticalEdge = false;
+	bool forceTop = false;
+	bool forceBottom = false;
+	
+	if (zDiff >= 96.0f)
+	{
+		// Target is significantly above - force top edge
+		forceVerticalEdge = true;
+		forceTop = true;
+	}
+	else if (zDiff <= -96.0f)
+	{
+		// Target is significantly below - force bottom edge
+		forceVerticalEdge = true;
+		forceBottom = true;
+	}
+	
 	// Calculate edge intersection
 	float edgeX, edgeY;
 	float absX = fabs(dirX);
 	float absY = fabs(dirY);
 	
 	// Margin from screen edge
-	int margin = 40;
+	int margin = 20;
 	
-	if (absX > absY)
+	if (forceVerticalEdge)
+	{
+		// Force top or bottom edge based on Z difference
+		if (forceTop)
+		{
+			edgeY = margin;
+			edgeX = centerX + (edgeY - centerY) * (dirX / dirY);
+		}
+		else // forceBottom
+		{
+			edgeY = ScreenHeight - margin;
+			edgeX = centerX + (edgeY - centerY) * (dirX / dirY);
+		}
+		// Clamp X to screen bounds
+		edgeX = fmax((float)margin, fmin((float)(ScreenWidth - margin), edgeX));
+	}
+	else if (absX > absY)
 	{
 		// Hit left or right edge
 		if (dirX > 0)
@@ -112,45 +147,128 @@ void CHudRadar::DrawEdgeIndicator(int centerX, int centerY, float angle, float d
 	}
 	
 	// Draw large triangle pointing toward target
+	// Don't draw if too close (within 64 units)
+	if (distance < 64.0f)
+		return;
+	
+	// Flip direction when player is very close (within 512 units)
+	// But only if also close in Z-axis (within 128 units vertically)
+	bool closeEnough = (distance < 512.0f) && (fabs(zDiff) < 128.0f);
+	bool flip = closeEnough;
+	
+	// Move arrow toward center when close (between 64 and 512 units)
+	// AND close vertically
+	float interpolation = 0.0f;
+	if (closeEnough)
+	{
+		// Interpolate from edge (at 512 units) to center (at 64 units)
+		interpolation = (512.0f - distance) / (512.0f - 64.0f);
+		interpolation = fmax(0.0f, fmin(1.0f, interpolation)); // Clamp 0-1
+		
+		// Fade out as it moves toward center (full alpha at 512, zero at 64)
+		float fadeMultiplier = 1.0f - interpolation;
+		alpha = (int)(alpha * fadeMultiplier);
+	}
+	
+	// Interpolate position from edge to center
+	float finalX = edgeX + (centerX - edgeX) * interpolation;
+	float finalY = edgeY + (centerY - edgeY) * interpolation;
+	
 	int triSize = XRES(20);
-	int x = (int)edgeX;
-	int y = (int)edgeY;
+	int x = (int)finalX;
+	int y = (int)finalY;
+	
+	// Determine which edge we're on based on ORIGINAL edge position (not interpolated)
+	int edgeXInt = (int)edgeX;
+	int edgeYInt = (int)edgeY;
 	
 	// Calculate which edge we're on to orient triangle correctly
-	if (x < ScreenWidth / 4)
+	if (edgeXInt < ScreenWidth / 4)
 	{
-		// Left edge - triangle points right
-		for (int i = 0; i < triSize; i++)
+		// Left edge - triangle points right (or left when flipped)
+		if (flip)
 		{
-			int height = (i * YRES(20)) / triSize;
-			FillRGBA(x + i, y - height / 2, 2, height, r, g, b, alpha);
+			// Point left (toward center)
+			for (int i = 0; i < triSize; i++)
+			{
+				int height = (i * YRES(20)) / triSize;
+				FillRGBA(x - i, y - height / 2, 2, height, r, g, b, alpha);
+			}
+		}
+		else
+		{
+			// Point right (toward object)
+			for (int i = 0; i < triSize; i++)
+			{
+				int height = (i * YRES(20)) / triSize;
+				FillRGBA(x + i, y - height / 2, 2, height, r, g, b, alpha);
+			}
 		}
 	}
-	else if (x > ScreenWidth * 3 / 4)
+	else if (edgeXInt > ScreenWidth * 3 / 4)
 	{
-		// Right edge - triangle points left
-		for (int i = 0; i < triSize; i++)
+		// Right edge - triangle points left (or right when flipped)
+		if (flip)
 		{
-			int height = (i * YRES(20)) / triSize;
-			FillRGBA(x - i, y - height / 2, 2, height, r, g, b, alpha);
+			// Point right (toward center)
+			for (int i = 0; i < triSize; i++)
+			{
+				int height = (i * YRES(20)) / triSize;
+				FillRGBA(x + i, y - height / 2, 2, height, r, g, b, alpha);
+			}
+		}
+		else
+		{
+			// Point left (toward object)
+			for (int i = 0; i < triSize; i++)
+			{
+				int height = (i * YRES(20)) / triSize;
+				FillRGBA(x - i, y - height / 2, 2, height, r, g, b, alpha);
+			}
 		}
 	}
-	else if (y < ScreenHeight / 4)
+	else if (edgeYInt < ScreenHeight / 4)
 	{
-		// Top edge - triangle points down
-		for (int i = 0; i < triSize; i++)
+		// Top edge - triangle points down (or up when flipped)
+		if (flip)
 		{
-			int width = (i * YRES(20)) / triSize;
-			FillRGBA(x - width / 2, y + i, width, 2, r, g, b, alpha);
+			// Point up (toward center)
+			for (int i = 0; i < triSize; i++)
+			{
+				int width = (i * YRES(20)) / triSize;
+				FillRGBA(x - width / 2, y - i, width, 2, r, g, b, alpha);
+			}
+		}
+		else
+		{
+			// Point down (toward object)
+			for (int i = 0; i < triSize; i++)
+			{
+				int width = (i * YRES(20)) / triSize;
+				FillRGBA(x - width / 2, y + i, width, 2, r, g, b, alpha);
+			}
 		}
 	}
 	else
 	{
-		// Bottom edge - triangle points up
-		for (int i = 0; i < triSize; i++)
+		// Bottom edge - triangle points up (or down when flipped)
+		if (flip)
 		{
-			int width = (i * YRES(20)) / triSize;
-			FillRGBA(x - width / 2, y - i, width, 2, r, g, b, alpha);
+			// Point down (toward center)
+			for (int i = 0; i < triSize; i++)
+			{
+				int width = (i * YRES(20)) / triSize;
+				FillRGBA(x - width / 2, y + i, width, 2, r, g, b, alpha);
+			}
+		}
+		else
+		{
+			// Point up (toward object)
+			for (int i = 0; i < triSize; i++)
+			{
+				int width = (i * YRES(20)) / triSize;
+				FillRGBA(x - width / 2, y - i, width, 2, r, g, b, alpha);
+			}
 		}
 	}
 }
@@ -411,10 +529,14 @@ int CHudRadar::Draw(float flTime)
 		if (m_RadarInfo[index].special < RADAR_COLD_SPOT)
 			continue;
 		
+		// Calculate Z difference (height is normalized by 72, so multiply back)
+		float zDiff = m_RadarInfo[index].height * 72.0f;
+		
 		DrawEdgeIndicator(screenCenterX, screenCenterY, 
 			m_RadarInfo[index].angle, 
 			m_RadarInfo[index].distance,
-			m_RadarInfo[index].special);
+			m_RadarInfo[index].special,
+			zDiff);
 	}
 
 	return 1;
