@@ -68,7 +68,7 @@ void CSafeSpot::Spawn( void )
 	Precache();
 	SET_MODEL(ENT(pev), "models/coldspot.mdl");
 	pev->classname = MAKE_STRING("coldspot");
-	pev->fuser4 = 99; // to determine specific model index to size.
+	pev->fuser4 = RADAR_COLD_SPOT; // to determine specific model index to size.
 	pev->angles.x = 0;
 	pev->angles.z = 0;
 	pev->movetype = MOVETYPE_NONE;
@@ -111,7 +111,8 @@ void CSafeSpot::SafeSpotThink( void )
 			if (!found)
 			{
 				entvars_t *pevWorld = VARS( INDEXENT(0) );
-				plr->TakeDamage( pevWorld, plr->pev, 10, DMG_SHOCK );
+				plr->TakeDamage( pevWorld, plr->pev, 2, DMG_SHOCK );
+				ClientPrint(plr->pev, HUD_PRINTCENTER, "Taking damage - find the green zone!");
 			}
 		}
 	}
@@ -979,3 +980,9 @@ BOOL CHalfLifeLastManStanding::FPlayerCanTakeDamage( CBasePlayer *pPlayer, CBase
 
 	return CHalfLifeMultiplay::FPlayerCanTakeDamage( pPlayer, pAttacker );
 }
+
+BOOL CHalfLifeLastManStanding::IsTeamplay( void )
+{
+	return m_TeamBased;
+}
+

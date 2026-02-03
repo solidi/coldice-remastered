@@ -777,6 +777,8 @@ void CHalfLifePropHunt::PlayerSpawn( CBasePlayer *pPlayer )
 
 	char *key = g_engfuncs.pfnGetInfoKeyBuffer(pPlayer->edict());
 
+	PlayFootstepSounds(pPlayer, 1.0);
+
 	if ( pPlayer->pev->fuser4 > 0 )
 	{
 		strncpy( pPlayer->m_szTeamName, "props", TEAM_NAME_LENGTH );
@@ -824,6 +826,7 @@ BOOL CHalfLifePropHunt::FPlayerCanTakeDamage( CBasePlayer *pPlayer, CBaseEntity 
 	if (pPlayer->pev->fuser4 > 0)
 	{
 		DeactivateDecoys(pPlayer);
+		PlayFootstepSounds(pPlayer, 1.0);
 
 		CLIENT_COMMAND(pPlayer->edict(), "firstperson\n");
 		pPlayer->pev->fuser4 = 0;
@@ -857,6 +860,10 @@ BOOL CHalfLifePropHunt::FPlayerCanTakeDamage( CBasePlayer *pPlayer, CBaseEntity 
 			WRITE_SHORT( kp->m_iDeaths );
 			WRITE_SHORT( kp->m_iRoundWins );
 			WRITE_SHORT( g_pGameRules->GetTeamIndex( kp->m_szTeamName ) + 1 );
+			MESSAGE_END();
+
+			MESSAGE_BEGIN( MSG_ONE_UNRELIABLE, gmsgPlayClientSound, NULL, pAttacker->edict() );
+				WRITE_BYTE(CLIENT_SOUND_LEVEL_UP);
 			MESSAGE_END();
 		}
 
@@ -1088,4 +1095,22 @@ int CHalfLifePropHunt::ItemShouldRespawn( CItem *pItem )
 int CHalfLifePropHunt::AmmoShouldRespawn( CBasePlayerAmmo *pAmmo )
 {
 	return GR_AMMO_RESPAWN_NO;
+}
+
+BOOL CHalfLifePropHunt::IsTeamplay( void )
+{
+	return TRUE;
+}
+
+BOOL CHalfLifePropHunt :: PlayFootstepSounds( CBasePlayer *pl, float fvol )
+{
+	if ( pl->pev->fuser4 > 0 )
+	{
+		g_engfuncs.pfnSetPhysicsKeyValue(pl->edict(), "prop", "1");
+		return FALSE;
+	}
+
+	g_engfuncs.pfnSetPhysicsKeyValue(pl->edict(), "prop", "0");
+
+	return CHalfLifeMultiplay::PlayFootstepSounds( pl, fvol );
 }

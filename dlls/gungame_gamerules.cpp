@@ -345,6 +345,11 @@ void CHalfLifeGunGame::PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller, e
 				if (ggsteallevel.value > 0)
 					plr->GiveNamedItem("weapon_knife");
 				plr->GiveNamedItem(STRING(ALLOC_STRING(weapon)));
+				
+				MESSAGE_BEGIN( MSG_ONE_UNRELIABLE, gmsgPlayClientSound, NULL, plr->edict() );
+					WRITE_BYTE(CLIENT_SOUND_LEVEL_UP);
+				MESSAGE_END();
+				ClientPrint(plr->pev, HUD_PRINTCENTER, UTIL_VarArgs("You Have Leveled Up!\n"));
 			}
 		}
 	}

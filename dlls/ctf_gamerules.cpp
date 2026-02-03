@@ -30,6 +30,8 @@ extern int gmsgTeamNames;
 extern int gmsgTeamInfo;
 extern int gmsgPlayClientSound;
 extern int gmsgCtfInfo;
+extern int gmsgBanner;
+extern int gmsgSpecialEntity;
 
 #define TEAM_BLUE 0
 #define TEAM_RED 1
@@ -73,7 +75,7 @@ CFlagCharm *CFlagCharm::CreateFlag( Vector vecOrigin, int body )
 	if (body == TEAM_RED)
 	{
 		pFlag->pev->rendercolor = Vector(255, 0, 0);
-		pFlag->pev->fuser4 = TEAM_RED + 2;
+		pFlag->pev->fuser4 = RADAR_FLAG_RED;
 	}
 	return pFlag;
 }
@@ -87,7 +89,7 @@ void CFlagCharm::Spawn( void )
 	pev->renderfx = kRenderFxGlowShell;
 	pev->renderamt = 5;
 	pev->rendercolor = Vector(0, 0, 255);
-	pev->fuser4 = TEAM_BLUE + 2;
+	pev->fuser4 = RADAR_FLAG_BLUE;
 
 	pev->angles = g_vecZero;
 	pev->movetype = MOVETYPE_TOSS;
@@ -120,7 +122,7 @@ void CFlagCharm::ReturnThink( void )
 
 	Vector vRedBase = ((CHalfLifeCaptureTheFlag *)g_pGameRules)->pRedBase->pev->origin;
 	Vector vBlueBase = ((CHalfLifeCaptureTheFlag *)g_pGameRules)->pBlueBase->pev->origin;
-	Vector returnOrigin = (pev->fuser4 - 2) == TEAM_RED ? vRedBase : vBlueBase;
+	Vector returnOrigin = (pev->fuser4 == RADAR_FLAG_RED) ? vRedBase : vBlueBase;
 
 	if (!m_fReturnTime && !pev->aiment && pev->origin != returnOrigin)
 		m_fReturnTime = gpGlobals->time + 30.0;
@@ -128,19 +130,27 @@ void CFlagCharm::ReturnThink( void )
 	if (m_fReturnTime && !pev->aiment && m_fReturnTime < gpGlobals->time)
 	{
 		EHANDLE pMyBase = ((CHalfLifeCaptureTheFlag *)g_pGameRules)->pBlueBase;
-		if (pev->fuser4 - 2 == TEAM_RED)
+		if (pev->fuser4 == RADAR_FLAG_RED)
 			pMyBase = ((CHalfLifeCaptureTheFlag *)g_pGameRules)->pRedBase;
 		pMyBase->pev->iuser4 = TRUE;
 
-		if (pev->fuser4 - 2 == TEAM_RED)
+		if (pev->fuser4 == RADAR_FLAG_RED)
 			((CHalfLifeCaptureTheFlag *)g_pGameRules)->UpdateHud(-1, 0);
 		else
 			((CHalfLifeCaptureTheFlag *)g_pGameRules)->UpdateHud(0, -1);
 
+		MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
+			WRITE_BYTE(CLIENT_SOUND_EBELL);
+		MESSAGE_END();
+		UTIL_ClientPrintAll( HUD_PRINTCENTER, "%s flag returned to base!", (pev->fuser4 == RADAR_FLAG_RED) ? "Red" : "Blue" );
+
 		UTIL_SetOrigin(pev, returnOrigin);
 		pev->angles = g_vecZero;
-		m_fReturnTime = 0;
 	}
+
+	// Always reset timer if in base
+	if (pev->origin == returnOrigin)
+		m_fReturnTime = 0;
 
 	pev->nextthink = gpGlobals->time + 1.0;
 }
@@ -168,11 +178,11 @@ void CFlagCharm::FlagTouch( CBaseEntity *pOther )
 		if (!pPlayer->pFlag)
 		{
 			EHANDLE pMyBase = ((CHalfLifeCaptureTheFlag *)g_pGameRules)->pBlueBase;
-			if (pev->fuser4 - 2 == TEAM_RED)
+			if (pev->fuser4 == RADAR_FLAG_RED)
 				pMyBase = ((CHalfLifeCaptureTheFlag *)g_pGameRules)->pRedBase;
 
 			// Flag pick up at base
-			if ((pPlayer->pev->fuser4 + 2) != pev->fuser4)
+			if ((pPlayer->pev->fuser4 + RADAR_FLAG_BLUE) != pev->fuser4)
 			{
 				pMyBase->pev->iuser4 = FALSE;
 
@@ -190,7 +200,7 @@ void CFlagCharm::FlagTouch( CBaseEntity *pOther )
 						WRITE_BYTE(0);
 					MESSAGE_END();
 
-					ClientPrint(pPlayer->pev, HUD_PRINTCENTER, "You have the flag!");
+					ClientPrint(pPlayer->pev, HUD_PRINTCENTER, UTIL_VarArgs("You have the %s flag!", (pPlayer->pev->fuser4 == TEAM_RED) ? "blue" : "red"));
 
 					if (pPlayer->pev->fuser4 == TEAM_RED)
 						((CHalfLifeCaptureTheFlag *)g_pGameRules)->UpdateHud(1, -1, pPlayer);
@@ -222,38 +232,39 @@ void CFlagCharm::FlagTouch( CBaseEntity *pOther )
 				MESSAGE_END();
 			}
 			// Returning
-			else if ((pPlayer->pev->fuser4 + 2) == pev->fuser4)
+			else if ((pPlayer->pev->fuser4 + RADAR_FLAG_BLUE) == pev->fuser4)
 			{
 				// Cannot touch same flag in its base
 				Vector vRedBase = ((CHalfLifeCaptureTheFlag *)g_pGameRules)->pRedBase->pev->origin;
 				Vector vBlueBase = ((CHalfLifeCaptureTheFlag *)g_pGameRules)->pBlueBase->pev->origin;
-				Vector og = (pev->fuser4 == TEAM_RED + 2) ? vRedBase : vBlueBase;
+				Vector og = (pev->fuser4 == RADAR_FLAG_RED) ? vRedBase : vBlueBase;
 				if (pev->origin != og)
 				{
-					ClientPrint(pPlayer->pev, HUD_PRINTCENTER, "You've returned the flag to base!");
-					EMIT_SOUND(pPlayer->edict(), CHAN_ITEM, "rune_pickup.wav", 1, ATTN_NORM);
-
 					pMyBase->pev->iuser4 = TRUE;
 
 					pPlayer->m_fFlagTime = gpGlobals->time + 1.0;
-					//pev->solid = SOLID_TRIGGER;
 					pev->movetype = MOVETYPE_TOSS;
 					pev->aiment = 0;
 					pev->sequence = FLAG_POSITIONED;
 					pev->angles = g_vecZero;
 					UTIL_SetOrigin(pev, og);
 
-					if (pev->fuser4 == TEAM_RED + 2)
+					if (pev->fuser4 == RADAR_FLAG_RED)
 						((CHalfLifeCaptureTheFlag *)g_pGameRules)->UpdateHud(-1, 0);
 					else
 						((CHalfLifeCaptureTheFlag *)g_pGameRules)->UpdateHud(0, -1);
+
+					MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
+						WRITE_BYTE(CLIENT_SOUND_NOPE);
+					MESSAGE_END();
+					UTIL_ClientPrintAll( HUD_PRINTCENTER, "%s flag returned by %s!", (pev->fuser4 == RADAR_FLAG_RED) ? "Red" : "Blue", STRING(pPlayer->pev->netname) );
 				}
 			}
 		}
 		else
 		{
 			// Touch my flag while holding the enemies one
-			if ((pPlayer->pev->fuser4 + 2) == pev->fuser4)
+			if ((pPlayer->pev->fuser4 + RADAR_FLAG_BLUE) == pev->fuser4)
 			{
 				ClientPrint(pPlayer->pev, HUD_PRINTCENTER, "Cannot return while holding a flag!");
 				pPlayer->m_fFlagTime = gpGlobals->time + 1.0;
@@ -287,9 +298,20 @@ CFlagBase *CFlagBase::CreateFlagBase( Vector vecOrigin, int body )
 	pBase->Spawn();
 	pBase->pev->body = body;
 	if (body == TEAM_RED)
-		pBase->pev->fuser4 = TEAM_RED + 2;
+		pBase->pev->fuser4 = RADAR_BASE_RED;
 	pBase->pev->iuser4 = TRUE; // mounted flag?
 	pBase->m_fNextTouch = gpGlobals->time;
+
+	// Broadcast special entities to all clients for radar tracking
+	MESSAGE_BEGIN(MSG_ALL, gmsgSpecialEntity);
+		WRITE_BYTE(body); // Index 0-7
+		WRITE_BYTE(1); // Active
+		WRITE_COORD(pBase->pev->origin.x);
+		WRITE_COORD(pBase->pev->origin.y);
+		WRITE_COORD(pBase->pev->origin.z);
+		WRITE_BYTE(pBase->pev->fuser4); // Special type
+	MESSAGE_END();
+
 	return pBase;
 }
 
@@ -304,7 +326,7 @@ void CFlagBase::Spawn( void )
 	Precache();
 	SET_MODEL(ENT(pev), "models/flagbase.mdl");
 	pev->classname = MAKE_STRING("base");
-	pev->fuser4 = TEAM_BLUE + 2;
+	pev->fuser4 = RADAR_BASE_BLUE;
 
 	pev->angles.x = 0;
 	pev->angles.z = 0;
@@ -337,65 +359,73 @@ void CFlagBase::CTFTouch( CBaseEntity *pOther )
 			Vector vRedBase = ((CHalfLifeCaptureTheFlag *)g_pGameRules)->pRedBase->pev->origin;
 			Vector vBlueBase = ((CHalfLifeCaptureTheFlag *)g_pGameRules)->pBlueBase->pev->origin;
 			EHANDLE pOtherBase = ((CHalfLifeCaptureTheFlag *)g_pGameRules)->pRedBase;
-			if (pev->fuser4 - 2 == TEAM_RED)
+			if (pev->fuser4 == RADAR_BASE_RED)
 				pOtherBase = ((CHalfLifeCaptureTheFlag *)g_pGameRules)->pBlueBase;
 
-			// search for current flag, otherwise no score.
-			if (pFlag->pev->fuser4 != pev->fuser4 && pev->iuser4 == TRUE)
+			// search for enemy flag, otherwise no score.
+			if (pFlag->pev->fuser4 != (pev->fuser4 - 2))
 			{
-				// Return flag state
-				int flagid = pFlag->pev->fuser4;
-				pOtherBase->pev->iuser4 = TRUE;
-
-				m_fNextTouch = gpGlobals->time + 1.0;
-				pPlayer->m_fFlagTime = gpGlobals->time + 1.0;
-
-				//pFlag->pev->solid = SOLID_TRIGGER;
-				pFlag->pev->movetype = MOVETYPE_TOSS;
-				pFlag->pev->aiment = 0;
-				pFlag->pev->sequence = FLAG_POSITIONED;
-				pFlag->pev->angles = g_vecZero;
-
-				UTIL_SetOrigin(pFlag->pev, (pFlag->pev->fuser4 == TEAM_RED + 2) ? vRedBase : vBlueBase);
-				pPlayer->pFlag = NULL;
-
-				for (int i = 1; i <= gpGlobals->maxClients; i++)
+				// My flag is at my base, so I score
+				if (pev->iuser4 == TRUE)
 				{
-					CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
-					if ( plr && plr->IsPlayer() && !plr->HasDisconnected )
+					// Return flag state
+					int flagid = pFlag->pev->fuser4;
+					pOtherBase->pev->iuser4 = TRUE;
+
+					m_fNextTouch = gpGlobals->time + 1.0;
+					pPlayer->m_fFlagTime = gpGlobals->time + 1.0;
+
+					pFlag->pev->movetype = MOVETYPE_TOSS;
+					pFlag->pev->aiment = 0;
+					pFlag->pev->sequence = FLAG_POSITIONED;
+					pFlag->pev->angles = g_vecZero;
+
+					UTIL_SetOrigin(pFlag->pev, (pFlag->pev->fuser4 == RADAR_FLAG_RED) ? vRedBase : vBlueBase);
+					pPlayer->pFlag = NULL;
+
+					for (int i = 1; i <= gpGlobals->maxClients; i++)
 					{
-						if (!FBitSet(plr->pev->flags, FL_FAKECLIENT))
+						CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
+						if ( plr && plr->IsPlayer() && !plr->HasDisconnected )
 						{
-							MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, plr->edict());
-								WRITE_STRING(UTIL_VarArgs("Capture the %s flag", (plr->pev->fuser4 == TEAM_RED) ? "blue" : "red"));
-								WRITE_STRING(UTIL_VarArgs("You're on %s team", (pPlayer->pev->fuser4 == TEAM_RED) ? "red" : "blue"));
-								WRITE_BYTE(0);
-							MESSAGE_END();
+							if (!FBitSet(plr->pev->flags, FL_FAKECLIENT))
+							{
+								MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, plr->edict());
+									WRITE_STRING(UTIL_VarArgs("Capture the %s flag", (plr->pev->fuser4 == TEAM_RED) ? "blue" : "red"));
+									WRITE_STRING(UTIL_VarArgs("You're on %s team", (pPlayer->pev->fuser4 == TEAM_RED) ? "red" : "blue"));
+									WRITE_BYTE(0);
+								MESSAGE_END();
+							}
 						}
 					}
+
+					ClientPrint(pPlayer->pev, HUD_PRINTCENTER, "You've scored!");
+					UTIL_ClientPrintAll(HUD_PRINTCENTER, "%s scored for the %s team!\n", STRING(pPlayer->pev->netname), pPlayer->m_szTeamName);
+
+					MESSAGE_BEGIN(MSG_BROADCAST, gmsgPlayClientSound);
+						WRITE_BYTE(CLIENT_SOUND_CTF_CAPTURE);
+					MESSAGE_END();
+
+					pPlayer->Celebrate();
+
+					MESSAGE_BEGIN( MSG_ALL, gmsgScoreInfo );
+						WRITE_BYTE( ENTINDEX(pPlayer->edict()) );
+						WRITE_SHORT( pPlayer->pev->frags );
+						WRITE_SHORT( pPlayer->m_iDeaths );
+						WRITE_SHORT( ++pPlayer->m_iRoundWins );
+						WRITE_SHORT( g_pGameRules->GetTeamIndex( pPlayer->m_szTeamName ) + 1 );
+					MESSAGE_END();
+
+					if (flagid == RADAR_FLAG_RED)
+						((CHalfLifeCaptureTheFlag *)g_pGameRules)->UpdateHud(-1, 0);
+					else
+						((CHalfLifeCaptureTheFlag *)g_pGameRules)->UpdateHud(0, -1);
 				}
-
-				ClientPrint(pPlayer->pev, HUD_PRINTCENTER, "You've scored!");
-				UTIL_ClientPrintAll(HUD_PRINTTALK, "[CtF]: %s has scored a point for the %s team!\n", STRING(pPlayer->pev->netname), pPlayer->m_szTeamName);
-
-				MESSAGE_BEGIN(MSG_BROADCAST, gmsgPlayClientSound);
-					WRITE_BYTE(CLIENT_SOUND_CTF_CAPTURE);
-				MESSAGE_END();
-
-				pPlayer->Celebrate();
-
-				MESSAGE_BEGIN( MSG_ALL, gmsgScoreInfo );
-					WRITE_BYTE( ENTINDEX(pPlayer->edict()) );
-					WRITE_SHORT( pPlayer->pev->frags );
-					WRITE_SHORT( pPlayer->m_iDeaths );
-					WRITE_SHORT( ++pPlayer->m_iRoundWins );
-					WRITE_SHORT( g_pGameRules->GetTeamIndex( pPlayer->m_szTeamName ) + 1 );
-				MESSAGE_END();
-
-				if (flagid == TEAM_RED + 2)
-					((CHalfLifeCaptureTheFlag *)g_pGameRules)->UpdateHud(-1, 0);
 				else
-					((CHalfLifeCaptureTheFlag *)g_pGameRules)->UpdateHud(0, -1);
+				{
+					ClientPrint(pPlayer->pev, HUD_PRINTCENTER, "Cannot score while flag is missing!");
+					pPlayer->m_fFlagTime = gpGlobals->time + 1.0;
+				}
 			}
 		}
 	}
@@ -602,6 +632,23 @@ void CHalfLifeCaptureTheFlag::Think( void )
 		else
 			m_fSpawnRedHardware = gpGlobals->time + 2.0;
 	}
+
+	for (int i = 1; i <= gpGlobals->maxClients; i++)
+	{
+		CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
+		if ( plr && plr->IsPlayer() && !plr->HasDisconnected )
+		{
+			if (plr->m_iShowGameModeMessage > -1 && plr->m_iShowGameModeMessage < gpGlobals->time && !FBitSet(plr->pev->flags, FL_FAKECLIENT))
+			{
+				MESSAGE_BEGIN(MSG_ONE, gmsgBanner, NULL, plr->edict());
+					WRITE_STRING(UTIL_VarArgs("You Are On Team %s", plr->pev->fuser4 == TEAM_RED ? "Red" : "Blue"));
+					WRITE_STRING(UTIL_VarArgs("Capture the %s flag and run it back to your base!", plr->pev->fuser4 == TEAM_RED ? "Blue" : "Red"));
+					WRITE_BYTE(80);
+				MESSAGE_END();
+				plr->m_iShowGameModeMessage = -1;
+			}
+		}
+	}
 }
 
 int CHalfLifeCaptureTheFlag::GetTeamIndex( const char *pTeamName )
@@ -645,6 +692,9 @@ void CHalfLifeCaptureTheFlag::PlayerSpawn( CBasePlayer *pPlayer )
 	CHalfLifeMultiplay::PlayerSpawn( pPlayer );
 
 	CHalfLifeMultiplay::SavePlayerModel(pPlayer);
+
+	if (pPlayer->m_iShowGameModeMessage > -1)
+		pPlayer->m_iShowGameModeMessage = gpGlobals->time + 0.5;
 }
 
 extern DLL_GLOBAL BOOL g_fGameOver;
@@ -746,7 +796,7 @@ CBaseEntity *CHalfLifeCaptureTheFlag::DropCharm( CBasePlayer *pPlayer, Vector or
 
 	if (pFlag)
 	{
-		if (pFlag->pev->fuser4 == TEAM_RED + 2)
+		if (pFlag->pev->fuser4 == RADAR_FLAG_RED)
 			((CHalfLifeCaptureTheFlag *)g_pGameRules)->UpdateHud(-1, 2);
 		else
 			((CHalfLifeCaptureTheFlag *)g_pGameRules)->UpdateHud(2, -1);
@@ -901,4 +951,9 @@ BOOL CHalfLifeCaptureTheFlag::FPlayerCanTakeDamage( CBasePlayer *pPlayer, CBaseE
 	}
 
 	return CHalfLifeMultiplay::FPlayerCanTakeDamage( pPlayer, pAttacker );
+}
+
+BOOL CHalfLifeCaptureTheFlag::IsTeamplay( void )
+{
+	return TRUE;
 }

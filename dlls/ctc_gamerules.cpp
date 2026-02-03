@@ -31,6 +31,7 @@ extern int gmsgObjective;
 extern int gmsgTeamNames;
 extern int gmsgTeamInfo;
 extern int gmsgStatusIcon;
+extern int gmsgSpecialEntity;
 
 #define SPAWN_TIME 30.0
 
@@ -115,11 +116,9 @@ void CHalfLifeCaptureTheChumtoad::Think( void )
 					if (plr->m_iHoldingChumtoad)
 					{
 						plr->m_iHoldingChumtoad = FALSE;
-						if (plr->HasNamedPlayerItem("weapon_chumtoad"))
-						{
-							if (plr->m_pActiveItem)
-								plr->RemovePlayerItem(plr->m_pActiveItem);
-						}
+						UTIL_MakeVectors(plr->pev->v_angle);
+						DropCharm(plr, plr->pev->origin + gpGlobals->v_forward * 64);
+						plr->RemoveNamedItem("weapon_chumtoad");
 					}
 				}
 			}
@@ -138,6 +137,9 @@ void CHalfLifeCaptureTheChumtoad::Think( void )
 					UTIL_ClientPrintAll(HUD_PRINTTALK, "[CtC]: The chumtoad has spawned!\n");
 					m_fCreateChumtoadTimer = 0;
 					m_fMoveChumtoadTimer = gpGlobals->time + SPAWN_TIME;
+					MESSAGE_BEGIN(MSG_BROADCAST, gmsgPlayClientSound);
+						WRITE_BYTE(CLIENT_SOUND_CTF_CAPTURE);
+					MESSAGE_END();
 				}
 				else
 				{
@@ -242,6 +244,9 @@ BOOL CHalfLifeCaptureTheChumtoad::CreateChumtoad()
 
 void CHalfLifeCaptureTheChumtoad::CaptureCharm( CBasePlayer *pPlayer )
 {
+	if (UTIL_GetPlayerCount() < 2)
+		return;
+
 	pPlayer->m_iHoldingChumtoad = TRUE;
 	m_fChumtoadInPlay = TRUE;
 
@@ -249,7 +254,7 @@ void CHalfLifeCaptureTheChumtoad::CaptureCharm( CBasePlayer *pPlayer )
 	pPlayer->pev->renderamt = 10;
 	pPlayer->pev->rendercolor = Vector(0, 200, 0);
 
-	pPlayer->pev->fuser4 = 1;
+	pPlayer->pev->fuser4 = RADAR_CHUMTOAD;
 	m_pHolder = (CBaseEntity *)pPlayer;
 
 	int m_iTrail = PRECACHE_MODEL("sprites/smoke.spr");
@@ -260,15 +265,9 @@ void CHalfLifeCaptureTheChumtoad::CaptureCharm( CBasePlayer *pPlayer )
 		WRITE_SHORT( m_iTrail );	// model
 		WRITE_BYTE( 50 ); // life
 		WRITE_BYTE( 3 );  // width
-		if (icesprites.value) {
-			WRITE_BYTE( 0 );   // r, g, b
-			WRITE_BYTE( 160 );   // r, g, b
-			WRITE_BYTE( 255 );   // r, g, b
-		} else {
-			WRITE_BYTE( 224 );   // r, g, b
-			WRITE_BYTE( 224 );   // r, g, b
-			WRITE_BYTE( 255 );   // r, g, b
-		}
+		WRITE_BYTE( 0 );   // r, g, b
+		WRITE_BYTE( 200 );   // r, g, b
+		WRITE_BYTE( 0 );   // r, g, b
 		WRITE_BYTE( 200 );	// brightness
 	MESSAGE_END();
 
@@ -426,16 +425,11 @@ void CHalfLifeCaptureTheChumtoad::PlayerThink( CBasePlayer *pPlayer )
 
 					UTIL_ClientPrintAll(HUD_PRINTTALK, "[CtC]: %s has scored a point!\n", 
 						STRING(pPlayer->pev->netname));
+					
+					ClientPrint(pPlayer->pev, HUD_PRINTCENTER, UTIL_VarArgs("You Have Scored a Point!\n"));
 
 					MESSAGE_BEGIN( MSG_ONE_UNRELIABLE, gmsgPlayClientSound, NULL, pPlayer->edict() );
-					switch (RANDOM_LONG(1,6))
-					{
-						case 1: WRITE_BYTE(CLIENT_SOUND_WHICKEDSICK); break;
-						case 2: WRITE_BYTE(CLIENT_SOUND_EXCELLENT); break;
-						case 3: WRITE_BYTE(CLIENT_SOUND_IMPRESSIVE); break;
-						case 4: WRITE_BYTE(CLIENT_SOUND_UNSTOPPABLE); break;
-						default: WRITE_BYTE(0); break;
-					}
+						WRITE_BYTE(CLIENT_SOUND_LEVEL_UP);
 					MESSAGE_END();
 
 					pPlayer->m_iChumtoadCounter = 0;
@@ -623,10 +617,15 @@ int CHalfLifeCaptureTheChumtoad::GetTeamIndex( const char *pTeamName )
 	if ( pTeamName && *pTeamName != 0 )
 	{
 		if (!strcmp(pTeamName, "holder"))
-			return 1;
+			return 3; // green, not red.
 		else
 			return 0;
 	}
 	
 	return -1;	// No match
+}
+
+BOOL CHalfLifeCaptureTheChumtoad::IsTeamplay( void )
+{
+	return TRUE;
 }

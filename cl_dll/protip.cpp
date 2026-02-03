@@ -103,8 +103,6 @@ int CHudProTip::Draw(float flTime)
 
 	for (int i = 0; i < QUEUE_SIZE; i++)
 	{
-		//gEngfuncs.Con_DPrintf("q index=%d, time=%.2f, ctime=%.2f\n", i, m_MessageQueue[i].time, gEngfuncs.GetClientTime());
-
 		if (m_MessageQueue[i].time > 0 &&
 			m_MessageQueue[i].time > gEngfuncs.GetClientTime() &&
 			m_MessageQueue[i].time <= (gEngfuncs.GetClientTime() + SECONDS_TO_LIVE + 3)) // in case of large values
@@ -123,7 +121,6 @@ int CHudProTip::Draw(float flTime)
 
 			m_MessageQueue[i].y_pos = y;
 
-			//int a = (int)(fabs(sin((m_MessageQueue[i].time - gEngfuncs.GetClientTime()) * 1)) * 256.0);
 			int fade_time = 2;
 			int start = (m_MessageQueue[i].time - fade_time);
 			int a = MAX_ALPHA, r = 200, g = 200, b = 200;
@@ -131,16 +128,28 @@ int CHudProTip::Draw(float flTime)
 				a = fmin(MAX_ALPHA * ((m_MessageQueue[i].time - gEngfuncs.GetClientTime()) / fade_time), MAX_ALPHA);
 			ScaleColors(r, g, b, a);
 
-			int size = ConsoleStringLen(m_MessageQueue[i].message);
-			int x = (ScreenWidth / 2) - (size / 2);
-			gHUD.DrawHudString(x, m_MessageQueue[i].y_pos, ScreenWidth, (char *)m_MessageQueue[i].message, r, g, b );
+			// Get actual sprite dimensions
+			wrect_t *rect = &gHUD.GetSpriteRect(gHUD.GetSpriteIndex("mouse"));
+			int iconWidth = rect->right - rect->left;
+			int gap = 8; // Gap between icon and text
+			
+			// Calculate text width using HUD font character widths
+			int textWidth = 0;
+			for (const char *p = m_MessageQueue[i].message; *p; p++)
+				textWidth += gHUD.m_scrinfo.charWidths[*p];
+			
+			int totalWidth = iconWidth + gap + textWidth;
+			
+			// Center the entire protip (icon + gap + text) on screen
+			int startX = (ScreenWidth - totalWidth) / 2;
+			int textX = startX + iconWidth + gap;
+			
+			gHUD.DrawHudString(textX, m_MessageQueue[i].y_pos, ScreenWidth, (char *)m_MessageQueue[i].message, r, g, b );
 
 			UnpackRGB(r,g,b, HudColor());
 			ScaleColors(r, g, b, a);
 			SPR_Set(m_hMouseClick, r, g, b);
-			SPR_DrawAdditive(0, x - 48, y - 12, &gHUD.GetSpriteRect(gHUD.GetSpriteIndex("mouse")));
-
-			//gEngfuncs.Con_DPrintf("drawing msg=%s, index=%d, x=%d, y=%d\n", m_MessageQueue[i].message, i, x, m_MessageQueue[i].y_pos);
+			SPR_DrawAdditive(0, startX, y - 12, rect);
 		}
 		else
 			m_MessageQueue[i].time = 0;

@@ -37,6 +37,7 @@ public:
 	virtual BOOL CanHavePlayerItem( CBasePlayer *pPlayer, CBasePlayerItem *pItem );
 	virtual BOOL CanRandomizeWeapon( const char *name );
 	virtual void DetermineWinner( void );
+	virtual BOOL IsTeamplay( void );
 
 private:
 	int m_iSurvivorsRemain;

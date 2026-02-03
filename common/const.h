@@ -933,6 +933,10 @@ typedef struct
 #define CLIENT_SOUND_THREE 32
 #define CLIENT_SOUND_ROUND_OVER 33
 #define CLIENT_SOUND_CHICKEN 34
+#define CLIENT_SOUND_LEVEL_UP 35
+#define CLIENT_SOUND_SIREN 36
+#define CLIENT_SOUND_EBELL 37
+#define CLIENT_SOUND_NOPE 38
 
 #define SKIN_NORMAL 0
 #define SKIN_INVERSE 1
@@ -950,6 +954,19 @@ typedef struct
 #define TXT_CHANNEL_MUTATOR_TITLE	10
 #define TXT_CHANNEL_GAME_INFO		11
 #define TXT_CHANNEL_TAUNT			12
+
+#define RADAR_TEAM_BLUE		0
+#define RADAR_TEAM_RED		1
+#define RADAR_VIRUS			3
+#define RADAR_COLD_SPOT		4
+#define RADAR_CHUMTOAD		5
+#define RADAR_BUSTER		6
+#define RADAR_HORDE			8
+#define RADAR_JESUS			9
+#define RADAR_FLAG_BLUE		10
+#define RADAR_FLAG_RED		11
+#define RADAR_BASE_BLUE		12
+#define RADAR_BASE_RED		13
 
 #endif
 

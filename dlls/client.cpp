@@ -396,7 +396,7 @@ void GameplayVote(edict_t *pEntity, const char *text)
 	static int m_iNeedsVotes = 0;
 	static int m_iVotes[32];
 
-	if (voting.value && UTIL_stristr(text, "vote"))
+	if (voting.value && (UTIL_stristr(text, "vote") || UTIL_stristr(text, "rtv")))
 	{
 		// Start vote, capture player count for majority count
 		if (m_fVoteTime < gpGlobals->time)

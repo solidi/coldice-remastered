@@ -43,6 +43,7 @@ public:
 	virtual BOOL ShouldAutoAim( CBasePlayer *pPlayer, edict_t *target );
 	virtual BOOL MutatorAllowed(const char *mutator);
 	virtual int GetTeamIndex( const char *pTeamName );
+	virtual BOOL IsTeamplay( void );
 
 private:
 	BOOL m_fChumtoadInPlay;

@@ -610,3 +610,8 @@ BOOL CHalfLifeArena::IsRoundBased( void )
 {
 	return TRUE;
 }
+
+BOOL CHalfLifeArena::IsTeamplay( void )
+{
+	return TRUE;
+}

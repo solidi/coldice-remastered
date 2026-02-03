@@ -220,6 +220,7 @@ int gmsgChaos = 0;
 int gmsgSafeSpot = 0;
 int gmsgDEraser = 0;
 int gmsgBanner = 0;
+int gmsgSpecialEntity = 0;
 
 void LinkUserMessages( void )
 {
@@ -292,6 +293,7 @@ void LinkUserMessages( void )
 	gmsgSafeSpot = REG_USER_MSG("Spot", 1);
 	gmsgDEraser = REG_USER_MSG("DEraser", 0);
 	gmsgBanner = REG_USER_MSG("Banner", -1);
+	gmsgSpecialEntity = REG_USER_MSG("SpecEnt", -1);
 }
 
 LINK_ENTITY_TO_CLASS( player, CBasePlayer );
@@ -1406,7 +1408,7 @@ void CBasePlayer::SetAnimation( PLAYER_ANIM playerAnim )
 		pev->sequence = ideal;
 		pev->framerate = 1.0;
 		pev->gaitsequence = 0;
-
+		ResetSequenceInfo( );
 		return;
 	}
 
@@ -4540,6 +4542,43 @@ void CBasePlayer::GiveExplosives()
 	GiveNamedItem("weapon_snark");
 	if (!HasNamedPlayerItem("weapon_freezegun"))
 		GiveNamedItem("weapon_freezegun");
+}
+
+void CBasePlayer::RemoveNamedItem(const char *name)
+{
+	if (HasNamedPlayerItem(name))
+	{
+		CBasePlayerItem *pWeapon;
+		const char *pszItemName = name;
+
+		for (int i = 0; i < MAX_ITEM_TYPES; i++)
+		{
+			pWeapon = m_rgpPlayerItems[ i ];
+			while ( pWeapon )
+			{
+				// try to match by name. 
+				if ( !strcmp( pszItemName, STRING( pWeapon->pev->classname ) ) )
+					break;
+
+				pWeapon = pWeapon->m_pNext; 
+			}
+
+			if ( pWeapon )
+			{
+				if (RemovePlayerItem( pWeapon ))
+				{
+					if ( !g_pGameRules->GetNextBestWeapon( this, pWeapon, FALSE, FALSE ) )
+						return; // can't drop the item they asked for, may be our last item or something we can't holster
+
+					if (pWeapon->m_iId < 32)
+						pev->weapons &= ~(1<<pWeapon->m_iId);// take item off hud
+					else
+						m_iWeapons2 &= ~(1<<(pWeapon->m_iId - 32));// take item off hud
+				}
+				break;
+			}
+		}
+	}
 }
 
 void CBasePlayer::GiveNamedItem( const char *pszName )

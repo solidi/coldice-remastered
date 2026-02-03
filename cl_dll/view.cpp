@@ -1023,9 +1023,18 @@ void V_CalcNormalRefdef ( struct ref_params_s *pparams )
 		}
 	}
 
-	gHUD.m_ExtraViewModel.origin = view->origin;
-	gHUD.m_ExtraViewModel.angles = view->angles;
-	gHUD.m_ExtraViewModel.curstate.angles = view->curstate.angles;
+	// Don't override angles if dead hands are active (they should be locked)
+	if (!(ent->curstate.eflags & EFLAG_DEADHANDS))
+	{
+		gHUD.m_ExtraViewModel.origin = view->origin;
+		gHUD.m_ExtraViewModel.angles = view->angles;
+		gHUD.m_ExtraViewModel.curstate.angles = view->curstate.angles;
+	}
+	else
+	{
+		// Only update position for dead hands, keep angles locked
+		gHUD.m_ExtraViewModel.origin = view->origin;
+	}
 
 	lasttime = pparams->time;
 

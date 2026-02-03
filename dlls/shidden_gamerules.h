@@ -36,6 +36,7 @@ public:
 	virtual BOOL MutatorAllowed(const char *mutator);
 	virtual BOOL IsRoundBased( void );
 	virtual void DetermineWinner( void );
+	virtual BOOL IsTeamplay( void );
 
 private:
 	int m_iSmeltersRemain;

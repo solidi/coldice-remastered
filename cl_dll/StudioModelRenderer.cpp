@@ -1059,15 +1059,19 @@ void CStudioModelRenderer::StudioSetupBones ( void )
 			{
 				if (m_pCurrentEntity != gEngfuncs.GetViewModel())
 				{
-					for (int j = 0; j < 3; ++j)
+					for (int b = 0; b < 3; ++b)
 					{
-						(*m_pbonetransform)[i][j][2] *= 0.5f;
+						for (int j = 0; j < 3; ++j)
+						{
+							(*m_pbonetransform)[i][b][j] *= 0.5f;
+						}
 					}
-					(*m_pbonetransform)[i][2][3] -= 16.0f;
+
+					(*m_pbonetransform)[i][2][3] -= 8.0f;
 				}
 			}
 		} 
-		else 
+		else
 		{
 			ConcatTransforms ((*m_pbonetransform)[pbones[i].parent], bonematrix, (*m_pbonetransform)[i]);
 			ConcatTransforms ((*m_plighttransform)[pbones[i].parent], bonematrix, (*m_plighttransform)[i]);
@@ -1096,7 +1100,7 @@ void CStudioModelRenderer::StudioSetupBones ( void )
 			}
 		}
 
-		if (gHUD.m_GameMode == GAME_LMS && m_pCurrentEntity->curstate.fuser4 == 99)
+		if (gHUD.m_GameMode == GAME_LMS && m_pCurrentEntity->curstate.fuser4 == RADAR_COLD_SPOT)
 		{
 			for (int x = 0; x <= 2; x++)
 				for (int y = 0; y <= 2; y++)

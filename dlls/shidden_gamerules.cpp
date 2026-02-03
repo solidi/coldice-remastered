@@ -787,3 +787,8 @@ BOOL CHalfLifeShidden::IsRoundBased( void )
 {
 	return TRUE;
 }
+
+BOOL CHalfLifeShidden::IsTeamplay( void )
+{
+	return TRUE;
+}

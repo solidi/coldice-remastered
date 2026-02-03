@@ -354,6 +354,18 @@ int CHud :: MsgFunc_PlayCSound( const char *pszName, int iSize, void *pbuf )
 		case CLIENT_SOUND_CHICKEN:
 			PlaySound("chicken.wav", 1);
 			break;
+		case CLIENT_SOUND_LEVEL_UP:
+			PlaySound("level_up.wav", 1);
+			break;
+		case CLIENT_SOUND_SIREN:
+			PlaySound("ambience/siren.wav", 1);
+			break;
+		case CLIENT_SOUND_EBELL:
+			PlaySound("plats/elevbell1.wav", 1);
+			break;
+		case CLIENT_SOUND_NOPE:
+			PlaySound("sound/nope.wav", 1);
+			break;
 	}
 	return 1;
 }
@@ -512,7 +524,15 @@ void CHud :: MsgFunc_MParticle( const char *pszName, int iSize, void *pbuf )
 int CHud :: MsgFunc_Spot( const char *pszName, int iSize, void *pbuf )
 {
 	BEGIN_READ( pbuf, iSize );
+	int previous = gHUD.m_SafeSpotSize;
+	if (previous < 0 || previous > 20)
+		gHUD.m_SafeSpotSize = previous = 0;
+
 	gHUD.m_SafeSpotSize = READ_BYTE();
+	if (previous > gHUD.m_SafeSpotSize)
+	{
+		PlaySound("ambience/siren.wav", 1);
+	}
 	return 1;
 }
 

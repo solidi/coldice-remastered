@@ -127,7 +127,7 @@ void CCaptureChumtoad::Spawn( void )
 	pev->rendercolor.x = 0;
 	pev->rendercolor.y = 200;
 	pev->rendercolor.z = 0;
-	pev->fuser4 = 1;
+	pev->fuser4 = RADAR_CHUMTOAD;
 
 	m_flDie = gpGlobals->time + SQUEEK_DETONATE_DELAY;
 
@@ -144,15 +144,9 @@ void CCaptureChumtoad::Spawn( void )
 		WRITE_SHORT( m_iTrail );	// model
 		WRITE_BYTE( 50 ); // life
 		WRITE_BYTE( 3 );  // width
-		if (icesprites.value) {
-			WRITE_BYTE( 0 );   // r, g, b
-			WRITE_BYTE( 160 );   // r, g, b
-			WRITE_BYTE( 255 );   // r, g, b
-		} else {
-			WRITE_BYTE( 224 );   // r, g, b
-			WRITE_BYTE( 224 );   // r, g, b
-			WRITE_BYTE( 255 );   // r, g, b
-		}
+		WRITE_BYTE( 0 );   // r, g, b
+		WRITE_BYTE( 200 );   // r, g, b
+		WRITE_BYTE( 0 );   // r, g, b
 		WRITE_BYTE( 200 );	// brightness
 	MESSAGE_END();
 

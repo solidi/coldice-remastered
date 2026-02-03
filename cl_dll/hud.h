@@ -23,7 +23,7 @@
 
 #define RGB_YELLOWISH 0x00FFA000 //255,160,0
 #define RGB_REDISH 0x00FF1010 //255,160,0
-#define RGB_GREENISH 0x0000A000 //0,160,0
+#define RGB_GREENISH 0x0000B000 //0,200,0
 #define RGB_BLUEISH 0x0000A0FF //0,160,255
 
 #ifndef _WIN32
@@ -681,7 +681,16 @@ typedef struct {
 	int special;
 } RADAR;
 
+typedef struct {
+	Vector origin;
+	int special_type;
+	float last_update;
+	bool active;
+} SPECIAL_ENTITY_INFO;
+
 #define MAX_RADAR_DOTS 64
+#define MAX_SPECIAL_ENTITIES 8
+
 class CHudRadar: public CHudBase
 {
 public:
@@ -689,10 +698,13 @@ public:
 	int VidInit( void );
 	int Draw(float flTime);
 	void ProcessPlayerState( void );
+	void DrawEdgeIndicator(int centerX, int centerY, float angle, float distance, int special, float zDiff);
+	int MsgFunc_SpecEnt(const char *pszName, int iSize, void *pbuf);
 
 private:
 	int radar_height, radar_width;
 	RADAR m_RadarInfo[MAX_RADAR_DOTS];
+	SPECIAL_ENTITY_INFO m_SpecialEntities[MAX_SPECIAL_ENTITIES];
 };
 
 class CHudObjective : public CHudBase

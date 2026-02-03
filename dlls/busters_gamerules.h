@@ -35,6 +35,7 @@ public:
 	virtual BOOL ShouldAutoAim( CBasePlayer *pPlayer, edict_t *target );
 	virtual BOOL MutatorAllowed(const char *mutator);
 	virtual BOOL FPlayerCanTakeDamage( CBasePlayer *pPlayer, CBaseEntity *pAttacker );
+	virtual BOOL IsTeamplay( void );
 
 	void SetPlayerModel( CBasePlayer* pPlayer );
 

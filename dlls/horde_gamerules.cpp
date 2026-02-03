@@ -403,7 +403,7 @@ void CHalfLifeHorde::Think( void )
 					ALERT(at_aiconsole, ">>> [Horde] created %s\n", monster);
 
 					// Radar mark
-					pEntity->pev->fuser4 = 2;
+					pEntity->pev->fuser4 = RADAR_HORDE;
 
 					if (hardness > 1)
 					{
@@ -890,5 +890,10 @@ BOOL CHalfLifeHorde::CanRandomizeWeapon( const char *name )
 	if (strcmp(name, "weapon_nuke") == 0)
 		return FALSE;
 
+	return TRUE;
+}
+
+BOOL CHalfLifeHorde::IsTeamplay( void )
+{
 	return TRUE;
 }
