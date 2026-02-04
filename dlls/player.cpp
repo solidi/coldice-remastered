@@ -496,7 +496,9 @@ void CBasePlayer :: TraceAttack( entvars_t *pevAttacker, float flDamage, Vector 
 
 		if (pAttacker && pAttacker->IsPlayer())
 		{
-			pLastAssist = pAttacker;
+			// Set the assist if the player is not the killing blow
+			if (flDamage < pev->health)
+				pLastAssist = pAttacker;
 		}
 
 		if ( pAttacker->IsPlayer() && pAttacker->m_fHasRune == RUNE_VAMPIRE && (pVictim != pAttacker) )

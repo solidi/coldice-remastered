@@ -2196,16 +2196,35 @@ void CHalfLifeMultiplay::DeathNotice( CBasePlayer *pVictim, entvars_t *pKiller, 
 	if ( pKiller->flags & FL_CLIENT )
 	{
 		killer_index = ENTINDEX(ENT(pKiller));
-		if (pVictim->pLastAssist)
+
+		// Check for assist credit
+		if (g_pGameRules->IsTeamplay() && pVictim->pLastAssist)
 		{
 			assist_index = pVictim->pLastAssist->entindex();
+
+			// **FIX: Only award assist if assister is on same team as killer**
 			if (assist_index != killer_index)
 			{
-				CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex(assist_index);
-				if (plr)
-					plr->m_iAssists += 1;
-				else
+				CBasePlayer *peKiller = (CBasePlayer*)CBaseEntity::Instance( pKiller );
+				CBasePlayer *plrAssist = (CBasePlayer *)UTIL_PlayerByIndex(assist_index);
+				if (plrAssist && peKiller &&
+					g_pGameRules->PlayerRelationship(peKiller, plrAssist) != GR_TEAMMATE)
+				{
+					// Not on same team, don't give assist credit
 					assist_index = -1;
+				}
+				else if (plrAssist)
+				{
+					plrAssist->m_iAssists += 1;
+				}
+				else
+				{
+					assist_index = -1;
+				}
+			}
+			else
+			{
+				assist_index = -1; // Killer and assister are the same person
 			}
 			pVictim->pLastAssist = NULL;
 		}
