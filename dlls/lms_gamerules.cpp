@@ -265,7 +265,7 @@ void CHalfLifeLastManStanding::Think( void )
 		else
 			UTIL_SetOrigin(pSafeSpot->pev, pentSpawnSpot->v.origin);
 
-		UTIL_ClientPrintAll(HUD_PRINTTALK, "[Royale]: The safe spot has appeared!\n");
+		UTIL_ClientPrintAll(HUD_PRINTTALK, "[Royale] The safe spot has appeared!\n");
 		m_fSpawnSafeSpot = 0;
 	}
 
@@ -292,7 +292,7 @@ void CHalfLifeLastManStanding::Think( void )
 				MESSAGE_BEGIN(MSG_ALL, gmsgSafeSpot);
 					WRITE_BYTE(pSafeSpot->pev->body);
 				MESSAGE_END();
-				UTIL_ClientPrintAll(HUD_PRINTTALK, "[Royale]: The safe spot has shrunk!\n");
+				UTIL_ClientPrintAll(HUD_PRINTTALK, "[Royale] The safe spot has shrunk!\n");
 			}
 				
 			m_fNextShrinkTime = gpGlobals->time + ((roundtimelimit.value * 60) / 15);
@@ -647,7 +647,7 @@ BOOL CHalfLifeLastManStanding::HasGameTimerExpired( void )
 		else
 		{
 			UTIL_ClientPrintAll(HUD_PRINTCENTER, "Time is Up: Match ends in a draw!\n" );
-			UTIL_ClientPrintAll(HUD_PRINTTALK, "* No winners in this round!\n");
+			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Royale] No winners in this round!\n");
 
 			MESSAGE_BEGIN(MSG_BROADCAST, gmsgObjective);
 				WRITE_STRING("Time is up!");
@@ -723,7 +723,7 @@ void CHalfLifeLastManStanding::PlayerKilled( CBasePlayer *pVictim, entvars_t *pK
 
 		if ( !pVictim->pev->frags )
 		{
-			UTIL_ClientPrintAll(HUD_PRINTTALK, UTIL_VarArgs("* %s has been eliminated from the round!\n", STRING(pVictim->pev->netname)));
+			UTIL_ClientPrintAll(HUD_PRINTTALK, UTIL_VarArgs("[Royale] %s has been eliminated from the round!\n", STRING(pVictim->pev->netname)));
 			MESSAGE_BEGIN( MSG_ONE_UNRELIABLE, gmsgPlayClientSound, NULL, pVictim->edict() );
 				WRITE_BYTE(CLIENT_SOUND_HULIMATING_DEAFEAT);
 			MESSAGE_END();
@@ -784,7 +784,7 @@ void CHalfLifeLastManStanding::PlayerSpawn( CBasePlayer *pPlayer )
 			}
 
 			char text[256];
-			sprintf( text, "[Royale]: You're on team \'%s\'\n", pPlayer->m_szTeamName );
+			sprintf( text, "[Royale] You're on team \'%s\'\n", pPlayer->m_szTeamName );
 			UTIL_SayText( text, pPlayer );
 		}
 		else
@@ -883,21 +883,21 @@ void CHalfLifeLastManStanding::ClientUserInfoChanged( CBasePlayer *pPlayer, char
 	// prevent skin/color/model changes
 	if ( !stricmp( "red", pPlayer->m_szTeamName ) && !stricmp( "santa", mdls ) )
 	{
-		ClientPrint( pPlayer->pev, HUD_PRINTCONSOLE, "[Royale]: You're on team '%s' To change, type 'model iceman'\n", pPlayer->m_szTeamName );
+		ClientPrint( pPlayer->pev, HUD_PRINTCONSOLE, "[Royale] You're on team '%s' To change, type 'model iceman'\n", pPlayer->m_szTeamName );
 		return;
 	}
 	if ( !stricmp( "blue", pPlayer->m_szTeamName ) && !stricmp( "iceman", mdls ) )
 	{
-		ClientPrint( pPlayer->pev, HUD_PRINTCONSOLE, "[Royale]: You're on team '%s' To change, type 'model santa'\n", pPlayer->m_szTeamName );
+		ClientPrint( pPlayer->pev, HUD_PRINTCONSOLE, "[Royale] You're on team '%s' To change, type 'model santa'\n", pPlayer->m_szTeamName );
 		return;
 	}
 
 	if ( stricmp( mdls, "iceman" ) && stricmp( mdls, "santa" ) )
 	{
 		g_engfuncs.pfnSetClientKeyValue( clientIndex, g_engfuncs.pfnGetInfoKeyBuffer( pPlayer->edict() ), "model", (char *)(pPlayer->pev->fuser4 == TEAM_RED ? "santa" : "iceman") );
-		sprintf( text, "* Can't change team to \'%s\'\n", mdls );
+		sprintf( text, "[Royale] Can't change team to \'%s\'\n", mdls );
 		UTIL_SayText( text, pPlayer );
-		sprintf( text, "* Server limits teams to \'%s\'\n", "iceman (blue), santa (red)" );
+		sprintf( text, "[Royale] Server limits teams to \'%s\'\n", "iceman (blue), santa (red)" );
 		UTIL_SayText( text, pPlayer );
 		return;
 	}
@@ -927,7 +927,7 @@ void CHalfLifeLastManStanding::ClientUserInfoChanged( CBasePlayer *pPlayer, char
 	}
 
 	// notify everyone of the team change
-	sprintf( text, "[Royale]: %s has changed to team \'%s\'\n", STRING(pPlayer->pev->netname), pPlayer->m_szTeamName );
+	sprintf( text, "[Royale] %s has changed to team \'%s\'\n", STRING(pPlayer->pev->netname), pPlayer->m_szTeamName );
 	UTIL_SayTextAll( text, pPlayer );
 
 	// notify everyone's HUD of the team change

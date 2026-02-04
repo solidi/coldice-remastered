@@ -1016,17 +1016,17 @@ BOOL CHalfLifeMultiplay::HasGameTimerExpired( void )
 
 	if ( !_30secwarning && (m_flRoundTimeLimit - 30) < gpGlobals->time )
 	{
-		UTIL_ClientPrintAll(HUD_PRINTTALK, "* 30 second warning...\n");
+		UTIL_ClientPrintAll(HUD_PRINTTALK, "[Game] 30 second warning...\n");
 		_30secwarning = TRUE;
 	}
 	else if ( !_15secwarning && (m_flRoundTimeLimit - 15) < gpGlobals->time )
 	{
-		UTIL_ClientPrintAll(HUD_PRINTTALK, "* 15 second warning...\n");
+		UTIL_ClientPrintAll(HUD_PRINTTALK, "[Game] 15 second warning...\n");
 		_15secwarning = TRUE;
 	}
 	else if ( !_3secwarning && (m_flRoundTimeLimit - 3) < gpGlobals->time )
 	{
-		UTIL_ClientPrintAll(HUD_PRINTTALK, "* 3 second warning...\n");
+		UTIL_ClientPrintAll(HUD_PRINTTALK, "[Game] 3 second warning...\n");
 		_3secwarning = TRUE;
 	}
 
@@ -1196,14 +1196,14 @@ void CHalfLifeMultiplay::DisplayWinnersGoods( CBasePlayer *pPlayer )
 	//and display to the world what he does best!
 	if (roundlimit.value > 0)
 	{
-		UTIL_ClientPrintAll(HUD_PRINTTALK, UTIL_VarArgs("* %s has won round #%d of %d!\n", STRING(pPlayer->pev->netname), m_iSuccessfulRounds+1, (int)roundlimit.value));
-		UTIL_ClientPrintAll(HUD_PRINTTALK, UTIL_VarArgs("* %s record is %i for %i [%.1f%%]\n", STRING(pPlayer->pev->netname),
+		UTIL_ClientPrintAll(HUD_PRINTTALK, UTIL_VarArgs("[Game] %s has won round #%d of %d!\n", STRING(pPlayer->pev->netname), m_iSuccessfulRounds+1, (int)roundlimit.value));
+		UTIL_ClientPrintAll(HUD_PRINTTALK, UTIL_VarArgs("[Game] %s record is %i for %i [%.1f%%]\n", STRING(pPlayer->pev->netname),
 			pPlayer->m_iRoundWins,
 			pPlayer->m_iRoundPlays,
 			((float)pPlayer->m_iRoundWins / (float)pPlayer->m_iRoundPlays) * 100 ));
 	}
 	else
-		UTIL_ClientPrintAll(HUD_PRINTTALK, UTIL_VarArgs("* %s has won round!\n", STRING(pPlayer->pev->netname)));
+		UTIL_ClientPrintAll(HUD_PRINTTALK, UTIL_VarArgs("[Game] %s has won round!\n", STRING(pPlayer->pev->netname)));
 }
 
 void CHalfLifeMultiplay::ResetGameMode( void )
@@ -1410,7 +1410,7 @@ void CHalfLifeMultiplay :: UpdateGameMode( CBasePlayer *pPlayer )
 void CHalfLifeMultiplay :: InitHUD( CBasePlayer *pl )
 {
 	// notify other clients of player joining the game
-	UTIL_ClientPrintAll( HUD_PRINTNOTIFY, UTIL_VarArgs( "%s has joined the game\n", 
+	UTIL_ClientPrintAll( HUD_PRINTNOTIFY, UTIL_VarArgs( "[Game] %s has joined the game\n", 
 		( pl->pev->netname && STRING(pl->pev->netname)[0] != 0 ) ? STRING(pl->pev->netname) : "unconnected" ) );
 
 	// team match?
@@ -1567,7 +1567,7 @@ void CHalfLifeMultiplay :: ClientDisconnected( edict_t *pClient )
 			if ( g_GameInProgress )
 			{
 				if ( pPlayer->IsInArena && !pPlayer->IsSpectator() )
-					UTIL_ClientPrintAll(HUD_PRINTTALK, UTIL_VarArgs("%s has left the round!\n", STRING(pPlayer->pev->netname)));
+					UTIL_ClientPrintAll(HUD_PRINTTALK, UTIL_VarArgs("[Game] %s has left the round!\n", STRING(pPlayer->pev->netname)));
 			}
 			pPlayer->IsInArena = FALSE;
 
@@ -1723,9 +1723,9 @@ void CHalfLifeMultiplay :: PlayerThink( CBasePlayer *pPlayer )
 
 	if (pPlayer->m_iShownWelcomeMessage != -1 && pPlayer->m_iShownWelcomeMessage < gpGlobals->time) {
 #ifdef GIT
-		ClientPrint(pPlayer->pev, HUD_PRINTTALK, "Welcome to Cold Ice Remastered v1 (%s). For commands, type \"help\" in the console.\n", TO_STRING(GIT));
+		ClientPrint(pPlayer->pev, HUD_PRINTTALK, "[System] Welcome to Cold Ice Remastered v1 (%s). For commands, type \"help\" in the console.\n", TO_STRING(GIT));
 #else
-		ClientPrint(pPlayer->pev, HUD_PRINTTALK, "Welcome to Cold Ice Remastered v1. For commands, type \"help\" in the console.\n");
+		ClientPrint(pPlayer->pev, HUD_PRINTTALK, "[System] Welcome to Cold Ice Remastered v1. For commands, type \"help\" in the console.\n");
 #endif
 
 		// Play music

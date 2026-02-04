@@ -489,7 +489,7 @@ BOOL CHalfLifeArena::HasGameTimerExpired( void )
 		else
 		{
 			UTIL_ClientPrintAll(HUD_PRINTCENTER, "Time is Up: Match ends in a draw!\n" );
-			UTIL_ClientPrintAll(HUD_PRINTTALK, "* No winners in this round!\n");
+			UTIL_ClientPrintAll(HUD_PRINTTALK, "[1v1] No winners in this round!\n");
 
 			MESSAGE_BEGIN(MSG_BROADCAST, gmsgObjective);
 				WRITE_STRING("Time is up!");

@@ -101,7 +101,7 @@ void CHalfLifeChilldemic::DetermineWinner( void )
 			}
 
 			UTIL_ClientPrintAll(HUD_PRINTCENTER, "Numerous victors!");
-			UTIL_ClientPrintAll(HUD_PRINTTALK, "* Round ends with winners!\n");
+			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Demic] Round ends with winners!\n");
 			MESSAGE_BEGIN(MSG_BROADCAST, gmsgObjective);
 				WRITE_STRING("Chilldemic Completed!");
 				WRITE_STRING(UTIL_VarArgs("%s win!", m_iSurvivorsRemain ? "Survivors" : "Skeletons"));
@@ -113,7 +113,7 @@ void CHalfLifeChilldemic::DetermineWinner( void )
 	else
 	{
 		UTIL_ClientPrintAll(HUD_PRINTCENTER, "Round is over!\nNo one has won!\n");
-		UTIL_ClientPrintAll(HUD_PRINTTALK, "* Round ends with no winners!\n");
+		UTIL_ClientPrintAll(HUD_PRINTTALK, "[Demic] Round ends with no winners!\n");
 		MESSAGE_BEGIN(MSG_BROADCAST, gmsgObjective);
 			WRITE_STRING("Chilldemic Completed!");
 			WRITE_STRING("");
@@ -349,7 +349,7 @@ void CHalfLifeChilldemic::Think( void )
 			if ( survivors_left <= 0 && skeletons_left <= 0 )
 			{
 				UTIL_ClientPrintAll(HUD_PRINTCENTER, "Everyone has been killed!\n");
-				UTIL_ClientPrintAll(HUD_PRINTTALK, "* No winners in this round!\n");
+				UTIL_ClientPrintAll(HUD_PRINTTALK, "[Demic] No winners in this round!\n");
 				MESSAGE_BEGIN(MSG_BROADCAST, gmsgObjective);
 					WRITE_STRING("Everyone died!");
 					WRITE_STRING("");
@@ -470,7 +470,7 @@ void CHalfLifeChilldemic::Think( void )
 			WRITE_STRING( "skeletons" );
 		MESSAGE_END();
 
-		UTIL_ClientPrintAll(HUD_PRINTTALK, UTIL_VarArgs("* %d players have entered the arena!\n", clients));
+		UTIL_ClientPrintAll(HUD_PRINTTALK, UTIL_VarArgs("[Demic] %d players have entered the arena!\n", clients));
 	}
 	else
 	{
@@ -642,7 +642,7 @@ void CHalfLifeChilldemic::ClientUserInfoChanged( CBasePlayer *pPlayer, char *inf
 	int clientIndex = pPlayer->entindex();
 	if ( pPlayer->pev->fuser4 != RADAR_VIRUS && !stricmp( "skeleton", mdls ) )
 	{
-		ClientPrint( pPlayer->pev, HUD_PRINTCONSOLE, "[Chilldemic]: Changing to 'skeleton' is not allowed\n");
+		ClientPrint( pPlayer->pev, HUD_PRINTCONSOLE, "[Chilldemic] Changing to 'skeleton' is not allowed\n");
 		g_engfuncs.pfnSetClientKeyValue( clientIndex, g_engfuncs.pfnGetInfoKeyBuffer( pPlayer->edict() ), "model", "iceman" );
 		return;
 	}
@@ -650,7 +650,7 @@ void CHalfLifeChilldemic::ClientUserInfoChanged( CBasePlayer *pPlayer, char *inf
 	// Enforce skeleton on infected players
 	if ( pPlayer->pev->fuser4 == RADAR_VIRUS && stricmp( "skeleton", mdls ) )
 	{
-		ClientPrint( pPlayer->pev, HUD_PRINTCONSOLE, "[Chilldemic]: Changing back 'skeleton' due to infection\n");
+		ClientPrint( pPlayer->pev, HUD_PRINTCONSOLE, "[Chilldemic] Changing back 'skeleton' due to infection\n");
 		g_engfuncs.pfnSetClientKeyValue( clientIndex, g_engfuncs.pfnGetInfoKeyBuffer( pPlayer->edict() ), "model", "skeleton" );
 		return;
 	}
@@ -685,7 +685,7 @@ void CHalfLifeChilldemic::PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller
 		if (survivors_left >= 1)
 		{
 			UTIL_ClientPrintAll(HUD_PRINTTALK,
-			UTIL_VarArgs("* %s has been infected! %d Survivors remain!\n",
+			UTIL_VarArgs("[Demic] %s has been infected! %d Survivors remain!\n",
 			STRING(pVictim->pev->netname), survivors_left));
 
 			MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
@@ -694,7 +694,7 @@ void CHalfLifeChilldemic::PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller
 		}
 		else if (survivors_left == 0)
 		{
-			UTIL_ClientPrintAll(HUD_PRINTTALK, UTIL_VarArgs("* Survivors defeated!\n"));
+			UTIL_ClientPrintAll(HUD_PRINTTALK, UTIL_VarArgs("[Demic] Survivors defeated!\n"));
 		}
 
 		pVictim->pev->fuser4 = RADAR_VIRUS;

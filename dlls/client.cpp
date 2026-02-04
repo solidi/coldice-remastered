@@ -676,7 +676,7 @@ void Host_Say( edict_t *pEntity, int teamonly )
 	g_engfuncs.pfnServerPrint( text );
 
 	if (UTIL_stristr(text, "jope"))
-		UTIL_ClientPrintAll(HUD_PRINTTALK, "ALL HAIL KING JOPE!\n");
+		UTIL_ClientPrintAll(HUD_PRINTTALK, "[GSS] ALL HAIL KING JOPE!\n");
 
 	GameplayVote(pEntity, text);
 	MutatorVote(pEntity, text);
@@ -864,7 +864,7 @@ void ClientCommand( edict_t *pEntity )
 				plr->m_flNextHook = gpGlobals->time + grapplinghookdeploytime.value;
 			}
 		} else {
-			ClientPrint( pev, HUD_PRINTCONSOLE, "Grappling hook is disabled.\n" );
+			ClientPrint( pev, HUD_PRINTCONSOLE, "[System] Grappling hook is disabled.\n" );
 		}
 	}
 	else if (FStrEq(pcmd, "-hook" ))
@@ -895,11 +895,11 @@ void ClientCommand( edict_t *pEntity )
 			if ( pPlayer->pev->flags & FL_GODMODE ) {
 				pPlayer->pev->flags &= ~FL_GODMODE;
 				pPlayer->pev->flags &= ~FL_NOTARGET; // chumtoads and things
-				ClientPrint(pPlayer->pev, HUD_PRINTCONSOLE, "God mode OFF\n");
+				ClientPrint(pPlayer->pev, HUD_PRINTCONSOLE, "[System] God mode OFF\n");
 			} else {
 				pPlayer->pev->flags |= FL_GODMODE;
 				pPlayer->pev->flags |= FL_NOTARGET;
-				ClientPrint(pPlayer->pev, HUD_PRINTCONSOLE, "God mode ON\n");
+				ClientPrint(pPlayer->pev, HUD_PRINTCONSOLE, "[System] God mode ON\n");
 			}
 		}
 	}
@@ -926,11 +926,11 @@ void ClientCommand( edict_t *pEntity )
 			pPlayer->StartObserver(pentSpawnSpot->v.origin, VARS(pentSpawnSpot)->angles);
 
 			// notify other clients of player switching to spectator mode
-			UTIL_ClientPrintAll( HUD_PRINTNOTIFY, UTIL_VarArgs( "%s switched to spectator mode\n", 
+			UTIL_ClientPrintAll( HUD_PRINTNOTIFY, UTIL_VarArgs( "[Game] %s switched to spectator mode\n", 
 			 	( pev->netname && STRING(pev->netname)[0] != 0 ) ? STRING(pev->netname) : "unconnected" ) );
 		}
 		else
-			ClientPrint( pev, HUD_PRINTCONSOLE, "Spectator mode is disabled.\n" );
+			ClientPrint( pev, HUD_PRINTCONSOLE, "[System] Spectator mode is disabled.\n" );
 			
 	}
 	else if ( FStrEq(pcmd, "vote" ) )
@@ -1474,7 +1474,7 @@ void ClientCommand( edict_t *pEntity )
 		command[127] = '\0';
 
 		// tell the user they entered an unknown command
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, UTIL_VarArgs( "Unknown command: %s\n", command ) );
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, UTIL_VarArgs( "[System] Unknown command: %s\n", command ) );
 	}
 }
 
@@ -1559,7 +1559,7 @@ void ClientUserInfoChanged( edict_t *pEntity, char *infobuffer )
 		if (gpGlobals->maxClients > 1)
 		{
 			char text[256];
-			sprintf( text, "* %s changed name to %s\n", STRING(pEntity->v.netname), g_engfuncs.pfnInfoKeyValue( infobuffer, "name" ) );
+			sprintf( text, "[System] %s changed name to %s\n", STRING(pEntity->v.netname), g_engfuncs.pfnInfoKeyValue( infobuffer, "name" ) );
 			MESSAGE_BEGIN( MSG_ALL, gmsgSayText, NULL );
 				WRITE_BYTE( ENTINDEX(pEntity) );
 				WRITE_STRING( text );

@@ -186,7 +186,7 @@ void CHalfLifeHorde::DetermineWinner( void )
 			}
 
 			UTIL_ClientPrintAll(HUD_PRINTCENTER, "Numerous victors!");
-			UTIL_ClientPrintAll(HUD_PRINTTALK, "* Round ends with winners!\n");
+			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Horde] Round ends with winners!\n");
 			MESSAGE_BEGIN(MSG_BROADCAST, gmsgObjective);
 				WRITE_STRING(UTIL_VarArgs("Wave #%d Completed!", m_iWaveNumber));
 				WRITE_STRING(UTIL_VarArgs("%s win!", m_iSurvivorsRemain ? "Survivors" : "Monsters"));
@@ -198,7 +198,7 @@ void CHalfLifeHorde::DetermineWinner( void )
 	else
 	{
 		UTIL_ClientPrintAll(HUD_PRINTCENTER, "Round is over!\nNo one has won!\n");
-		UTIL_ClientPrintAll(HUD_PRINTTALK, "* Round ends with no winners!\n");
+		UTIL_ClientPrintAll(HUD_PRINTTALK, "[Horde] Round ends with no winners!\n");
 		MESSAGE_BEGIN(MSG_BROADCAST, gmsgObjective);
 			WRITE_STRING(UTIL_VarArgs("Wave #%d Completed!", m_iWaveNumber));
 			WRITE_STRING("");
@@ -607,7 +607,7 @@ void CHalfLifeHorde::Think( void )
 		MESSAGE_END();
 
 		UTIL_ClientPrintAll(HUD_PRINTCENTER, UTIL_VarArgs("Horde has begun!\n"));
-		UTIL_ClientPrintAll(HUD_PRINTTALK, UTIL_VarArgs("* %d players have entered the arena!\n", clients));
+		UTIL_ClientPrintAll(HUD_PRINTTALK, UTIL_VarArgs("[Horde] %d players have entered the arena!\n", clients));
 	}
 	else
 	{
@@ -779,7 +779,7 @@ void CHalfLifeHorde::PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller, ent
 	if (survivors_left >= 1)
 	{
 		UTIL_ClientPrintAll(HUD_PRINTTALK,
-		UTIL_VarArgs("* %s has been defeated! %d survivors remain!\n",
+		UTIL_VarArgs("[Horde] %s has been defeated! %d survivors remain!\n",
 		STRING(pVictim->pev->netname), survivors_left));
 
 		MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
@@ -788,7 +788,7 @@ void CHalfLifeHorde::PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller, ent
 	}
 	else if (survivors_left == 0)
 	{
-		UTIL_ClientPrintAll(HUD_PRINTTALK, UTIL_VarArgs("* Survivors defeated by horde!\n"));
+		UTIL_ClientPrintAll(HUD_PRINTTALK, UTIL_VarArgs("[Horde] Survivors defeated by horde!\n"));
 	}
 }
 

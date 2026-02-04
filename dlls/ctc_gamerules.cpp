@@ -134,7 +134,7 @@ void CHalfLifeCaptureTheChumtoad::Think( void )
 			{
 				if (CreateChumtoad())
 				{
-					UTIL_ClientPrintAll(HUD_PRINTTALK, "[CtC]: The chumtoad has spawned!\n");
+					UTIL_ClientPrintAll(HUD_PRINTTALK, "[CtC] The chumtoad has spawned!\n");
 					m_fCreateChumtoadTimer = 0;
 					m_fMoveChumtoadTimer = gpGlobals->time + SPAWN_TIME;
 					MESSAGE_BEGIN(MSG_BROADCAST, gmsgPlayClientSound);
@@ -161,7 +161,7 @@ void CHalfLifeCaptureTheChumtoad::Think( void )
 			{
 				UTIL_SetOrigin(VARS(pChumtoad), pSpot->pev->origin);
 				m_fMoveChumtoadTimer = gpGlobals->time + SPAWN_TIME;
-				UTIL_ClientPrintAll(HUD_PRINTTALK, "[CtC]: The chumtoad has teleported!\n");
+				UTIL_ClientPrintAll(HUD_PRINTTALK, "[CtC] The chumtoad has teleported!\n");
 			}
 		}
 
@@ -271,7 +271,7 @@ void CHalfLifeCaptureTheChumtoad::CaptureCharm( CBasePlayer *pPlayer )
 		WRITE_BYTE( 200 );	// brightness
 	MESSAGE_END();
 
-	UTIL_ClientPrintAll(HUD_PRINTTALK, "[CtC]: %s has captured the chumtoad!\n",
+	UTIL_ClientPrintAll(HUD_PRINTTALK, "[CtC] %s has captured the chumtoad!\n",
 	STRING(pPlayer->pev->netname));
 
 	MESSAGE_BEGIN(MSG_BROADCAST, gmsgPlayClientSound);
@@ -321,7 +321,7 @@ CBaseEntity *CHalfLifeCaptureTheChumtoad::DropCharm( CBasePlayer *pPlayer, Vecto
 		WRITE_SHORT( pPlayer->entindex() );	// entity
 	MESSAGE_END();
 
-	UTIL_ClientPrintAll(HUD_PRINTTALK, "[CtC]: %s has dropped the chumtoad!\n",
+	UTIL_ClientPrintAll(HUD_PRINTTALK, "[CtC] %s has dropped the chumtoad!\n",
 		STRING(pPlayer->pev->netname));
 
 	MESSAGE_BEGIN(MSG_BROADCAST, gmsgPlayClientSound);
@@ -423,7 +423,7 @@ void CHalfLifeCaptureTheChumtoad::PlayerThink( CBasePlayer *pPlayer )
 						WRITE_SHORT( g_pGameRules->GetTeamIndex( pPlayer->m_szTeamName ) + 1 );
 					MESSAGE_END();
 
-					UTIL_ClientPrintAll(HUD_PRINTTALK, "[CtC]: %s has scored a point!\n", 
+					UTIL_ClientPrintAll(HUD_PRINTTALK, "[CtC] %s has scored a point!\n", 
 						STRING(pPlayer->pev->netname));
 					
 					ClientPrint(pPlayer->pev, HUD_PRINTCENTER, UTIL_VarArgs("You Have Scored a Point!\n"));

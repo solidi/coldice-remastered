@@ -98,7 +98,7 @@ void CHalfLifeShidden::DetermineWinner( void )
 			}
 
 			UTIL_ClientPrintAll(HUD_PRINTCENTER, "Numerous victors!");
-			UTIL_ClientPrintAll(HUD_PRINTTALK, "* Round ends with winners!\n");
+			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Shidden] Round ends with winners!\n");
 			MESSAGE_BEGIN(MSG_BROADCAST, gmsgObjective);
 				WRITE_STRING("Shidden Completed!");
 				WRITE_STRING(UTIL_VarArgs("%s win!", m_iDealtersRemain ? "Dealters" : "Smelters"));
@@ -110,7 +110,7 @@ void CHalfLifeShidden::DetermineWinner( void )
 	else
 	{
 		UTIL_ClientPrintAll(HUD_PRINTCENTER, "Round is over!\nNo one has won!\n");
-		UTIL_ClientPrintAll(HUD_PRINTTALK, "* Round ends with no winners!\n");
+		UTIL_ClientPrintAll(HUD_PRINTTALK, "[Shidden] Round ends with no winners!\n");
 		MESSAGE_BEGIN(MSG_BROADCAST, gmsgObjective);
 			WRITE_STRING("Shidden Completed!");
 			WRITE_STRING("");
@@ -478,7 +478,7 @@ void CHalfLifeShidden::Think( void )
 			WRITE_STRING( "dealters" );
 		MESSAGE_END();
 
-		UTIL_ClientPrintAll(HUD_PRINTTALK, UTIL_VarArgs("* %d players have entered the arena!\n", clients));
+		UTIL_ClientPrintAll(HUD_PRINTTALK, UTIL_VarArgs("[Shidden] %d players have entered the arena!\n", clients));
 	}
 	else
 	{
@@ -693,7 +693,7 @@ void CHalfLifeShidden::PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller, e
 		if (smelters_left >= 1)
 		{
 			UTIL_ClientPrintAll(HUD_PRINTTALK,
-			UTIL_VarArgs("* %s has been dealted! %d Smelters remain!\n",
+			UTIL_VarArgs("[Shidden] %s has been dealted! %d Smelters remain!\n",
 			STRING(pVictim->pev->netname), smelters_left));
 
 			MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
@@ -702,7 +702,7 @@ void CHalfLifeShidden::PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller, e
 		}
 		else if (smelters_left == 0)
 		{
-			UTIL_ClientPrintAll(HUD_PRINTTALK, UTIL_VarArgs("* Smelters defeated!\n"));
+			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Shidden] Smelters defeated!\n");
 		}
 	}
 }
