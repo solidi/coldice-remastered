@@ -19,6 +19,7 @@ int CHudTimer::Init()
 	m_bPanicColorChange = false;
 	m_iTime = 0;
 	m_fStartTime = 0;
+	m_iLastSoundSecond = -1;
 
 	gHUD.AddHudElem(this);
 
@@ -57,6 +58,8 @@ int CHudTimer::Draw( float fTime )
 	int minutes = fmin(fmax(0, (int)( m_iTime + m_fStartTime - gHUD.m_flTime ) / 60), 99);
 	int seconds = fmin(fmax(0, (int)( m_iTime + m_fStartTime - gHUD.m_flTime ) - (minutes * 60)), 59);
 	float percent = fmin(fmax(0, (m_iTime + m_fStartTime - gHUD.m_flTime) / (m_iTime)), 100);
+
+	FVoxTimerCallOut(seconds, minutes);
 
 	if ( minutes * 60 + seconds > 20 )
 	{
@@ -101,6 +104,56 @@ int CHudTimer::Draw( float fTime )
 	gHUD.DrawHudNumber(x + iWatchWidth / 2, y, DHN_2DIGITS | DHN_DRAWZERO | DHN_PADZERO, seconds, r, g, b);
 
 	return 1;
+}
+
+void CHudTimer::FVoxTimerCallOut(int seconds, int minutes)
+{
+	// Play sounds only once per second (not every frame)
+	if (m_iLastSoundSecond != seconds)
+	{
+		m_iLastSoundSecond = seconds;
+
+		// Time announcements: bell at 53s, number at 52s, "minutes" at 51s
+		struct TimeAnnouncement
+		{
+			int minute;
+			const char *numberSound;
+		};
+
+		static const TimeAnnouncement announcements[] = {
+			{30, "fvox/thirty.wav"},
+			{20, "fvox/twenty.wav"},
+			{10, "fvox/ten.wav"},
+			{5, "fvox/five.wav"},
+			{3, "fvox/three.wav"},
+			{1, "fvox/one.wav"}
+		};
+
+		for (int i = 0; i < sizeof(announcements) / sizeof(announcements[0]); i++)
+		{
+			if (minutes == announcements[i].minute - 1)
+			{
+				if (seconds == 59)
+					PlaySound("fvox/bell.wav", 1);
+				else if (seconds == 58)
+					PlaySound((char *)announcements[i].numberSound, 1);
+				else if (seconds == 57)
+					PlaySound("fvox/minutes.wav", 1);
+			}
+		}
+
+		// Final countdown (1-5 seconds)
+		if (minutes == 0 && seconds >= 1 && seconds <= 5)
+		{
+			static const char *countdownSounds[] = {
+				"fvox/one.wav",
+				"fvox/two.wav",
+				"fvox/three.wav",
+				"fvox/four.wav",
+				"fvox/five.wav"};
+			PlaySound((char *)countdownSounds[seconds - 1], 1);
+		}
+	}
 }
 
 int CHudTimer::MsgFunc_RoundTime(const char *pszName, int iSize, void *pbuf)
