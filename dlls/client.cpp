@@ -608,15 +608,21 @@ void Host_Say( edict_t *pEntity, int teamonly )
 	if ( !p || !p[0] || !Q_UnicodeValidate ( p ) )
 		return;  // no character found, so say nothing
 
+	char timeStr[32];
+	time_t rawtime;
+	struct tm * timeinfo;
+	time(&rawtime);
+	timeinfo = localtime(&rawtime);
+	strftime(timeStr, sizeof(timeStr), "[%H:%M] ", timeinfo);
+
 // turn on color set 2  (color on,  no sound)
 	// turn on color set 2  (color on,  no sound)
 	if ( player->IsObserver() && ( teamonly ) )
-		sprintf( text, "%c(SPEC) %s: ", 2, STRING( pEntity->v.netname ) );
+		sprintf( text, "%c%s(SPEC) %s: ", 2, timeStr, STRING( pEntity->v.netname ) );
 	else if ( teamonly )
-		sprintf( text, "%c(TEAM) %s: ", 2, STRING( pEntity->v.netname ) );
+		sprintf( text, "%c%s(TEAM) %s: ", 2, timeStr, STRING( pEntity->v.netname ) );
 	else
-		sprintf( text, "%c%s: ", 2, STRING( pEntity->v.netname ) );
-
+		sprintf( text, "%c%s%s: ", 2, timeStr, STRING( pEntity->v.netname ) );
 	j = sizeof(text) - 2 - strlen(text);  // -2 for /n and null terminator
 	if ( (int)strlen(p) > j )
 		p[j] = 0;
