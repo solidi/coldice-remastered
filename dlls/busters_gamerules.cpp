@@ -355,6 +355,19 @@ void CMultiplayBusters::PlayerGotWeapon( CBasePlayer* pPlayer, CBasePlayerItem* 
 {
 	if ( pWeapon->m_iId == WEAPON_EGON )
 	{
+		// **FIX: Check if someone else is already busting**
+		for ( int i = 1; i <= gpGlobals->maxClients; i++ )
+		{
+			CBasePlayer* pOtherPlayer = (CBasePlayer*)UTIL_PlayerByIndex( i );
+			if ( pOtherPlayer && pOtherPlayer != pPlayer && IsPlayerBusting( pOtherPlayer ) )
+			{
+				// Someone else is already the buster, remove this egon
+				pPlayer->RemovePlayerItem( pWeapon );
+				pWeapon->Kill();
+				return;
+			}
+		}
+
 		// **FIX: Reset timer when egon is picked up**
 		m_flEgonBustingCheckTime = -1.0f;
 
