@@ -1162,6 +1162,8 @@ void CHalfLifeMultiplay::SuckToSpectator( CBasePlayer *pPlayer )
 			WRITE_SHORT( 0 );
 		MESSAGE_END();
 
+		// If is in middle of the game, reset observer
+		pPlayer->m_iObserverLastMode = OBS_ROAMING;
 		edict_t *pentSpawnSpot = g_pGameRules->GetPlayerSpawnSpot( pPlayer );
 		pPlayer->StartObserver(pentSpawnSpot->v.origin, VARS(pentSpawnSpot)->angles);
 	}
