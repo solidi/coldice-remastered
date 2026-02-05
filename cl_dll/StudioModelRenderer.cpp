@@ -1499,12 +1499,21 @@ int CStudioModelRenderer::StudioDrawModel( int flags )
 			m_pCurrentEntity->curstate.rendercolor.r = pTarget->curstate.rendercolor.r;
 			m_pCurrentEntity->curstate.rendercolor.g = pTarget->curstate.rendercolor.g;
 			m_pCurrentEntity->curstate.rendercolor.b = pTarget->curstate.rendercolor.b;
-			m_pCurrentEntity->curstate.rendermode = kRenderNormal;
-			if ( pTarget && pTarget->curstate.renderfx == kRenderFxGlowShell )
+			if ( pTarget->curstate.renderfx == kRenderFxGlowShell )
 				m_pCurrentEntity->curstate.renderfx = kRenderFxGlowShell;
 			else
 				m_pCurrentEntity->curstate.renderfx = kRenderFxNone;
-			m_pCurrentEntity->curstate.renderamt = fmin(fmax(pTarget->curstate.renderamt, 0), 10);
+			if ( pTarget->curstate.rendermode == kRenderTransAlpha )
+			{
+				m_pCurrentEntity->curstate.renderfx = kRenderFxNone;
+				m_pCurrentEntity->curstate.rendermode = kRenderTransAdd;
+				m_pCurrentEntity->curstate.renderamt = 255; // always this value with the viewmodel.
+			}
+			else
+			{
+				m_pCurrentEntity->curstate.rendermode = kRenderNormal;
+				m_pCurrentEntity->curstate.renderamt = fmin(fmax(pTarget->curstate.renderamt, 0), 10);
+			}
 		}
 #endif 
 

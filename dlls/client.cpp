@@ -44,6 +44,8 @@
 #include "func_break.h"
 #include "const.h"
 #include "effects.h"
+#include <time.h>
+
 
 #if defined( GRAPPLING_HOOK )
 #include "grapplinghook.h"

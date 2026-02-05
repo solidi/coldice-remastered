@@ -1765,8 +1765,11 @@ void CHalfLifeMultiplay :: PlayerThink( CBasePlayer *pPlayer )
 			if (!MutatorEnabled(MUTATOR_GODMODE))
 				pPlayer->pev->flags &= ~FL_GODMODE;
 			pPlayer->pev->rendermode = kRenderNormal;
-			pPlayer->pev->renderfx = kRenderFxNone;
-			pPlayer->pev->renderamt = 0;
+			if (!pPlayer->m_fHasRune)
+			{
+				pPlayer->pev->renderfx = kRenderFxNone;
+				pPlayer->pev->renderamt = 0;
+			}
 			pPlayer->m_fLastSpawnTime = 0;
 
 			if (MutatorEnabled(MUTATOR_INVISIBLE))
@@ -2227,7 +2230,7 @@ void CHalfLifeMultiplay::DeathNotice( CBasePlayer *pVictim, entvars_t *pKiller, 
 	{
 		killer_index = ENTINDEX(ENT(pKiller));
 
-		// Check for assist credit
+		// Check for assist
 		if (g_pGameRules->IsTeamplay() && pVictim->pLastAssist)
 		{
 			assist_index = pVictim->pLastAssist->entindex();

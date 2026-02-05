@@ -519,12 +519,21 @@ void LoadTempViewModel(const char *modelName, int sequence)
 	pExtraModel->curstate.rendercolor.r = player->curstate.rendercolor.r;
 	pExtraModel->curstate.rendercolor.g = player->curstate.rendercolor.g;
 	pExtraModel->curstate.rendercolor.b = player->curstate.rendercolor.b;
-	if ( player && player->curstate.renderfx == kRenderFxGlowShell )
-		pExtraModel->curstate.renderfx =  player->curstate.renderfx;
+	if ( player->curstate.renderfx == kRenderFxGlowShell )
+		pExtraModel->curstate.renderfx = kRenderFxGlowShell;
 	else
 		pExtraModel->curstate.renderfx = kRenderFxNone;
-	pExtraModel->curstate.rendermode = kRenderNormal;
-	pExtraModel->curstate.renderamt = fmin(fmax(player->curstate.renderamt, 0), 10);
+	if ( player->curstate.rendermode == kRenderTransAlpha )
+	{
+		pExtraModel->curstate.renderfx = kRenderFxNone;
+		pExtraModel->curstate.rendermode = kRenderTransAdd;
+		pExtraModel->curstate.renderamt = 255;
+	}
+	else
+	{
+		pExtraModel->curstate.rendermode = kRenderNormal;
+		pExtraModel->curstate.renderamt = fmin(fmax(player->curstate.renderamt, 0), 10);
+	}
 
 	float multipler = GetWeaponMultipler();
 	float fps = pseqdesc->fps / multipler;
