@@ -1034,16 +1034,6 @@ void ClientCommand( edict_t *pEntity )
 			pPlayer->m_iBurstCount = kRenderFxNone;
 
 		ClientPrint( pev, HUD_PRINTCONSOLE, UTIL_VarArgs( "fx set to: %d\n", pPlayer->m_iBurstCount ));
-		
-		/*MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
-			WRITE_BYTE( TE_PARTICLEBURST );
-			WRITE_COORD(pev->origin.x);
-			WRITE_COORD(pev->origin.y);
-			WRITE_COORD(pev->origin.z);
-			WRITE_SHORT( 50 );
-			WRITE_BYTE((unsigned short)pPlayer->m_iBurstCount++);
-			WRITE_BYTE( 5 );
-		MESSAGE_END();*/
 
 		pPlayer->pev->renderfx = pPlayer->m_iBurstCount++;
 	}
@@ -1066,6 +1056,34 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( pev, HUD_PRINTCONSOLE, UTIL_VarArgs( "amt set to: %d\n", pPlayer->m_iAmt ));
 
 		pPlayer->pev->renderamt = pPlayer->m_iAmt++;
+	}
+	else if (FStrEq(pcmd, "rcolor"))
+	{
+		CBasePlayer *pPlayer = GetClassPtr((CBasePlayer *)pev);
+		if (pPlayer->m_iAmtR > 255 ||  pPlayer->m_iAmtR < 0)
+			pPlayer->m_iAmtR = 0;
+
+		ClientPrint( pev, HUD_PRINTCONSOLE, UTIL_VarArgs( "rcolor set to: %d\n", pPlayer->m_iAmtR ));
+
+		pPlayer->pev->rendercolor.x = pPlayer->m_iAmtR++;
+	}
+	else if (FStrEq(pcmd, "gcolor"))
+	{
+		CBasePlayer *pPlayer = GetClassPtr((CBasePlayer *)pev);
+		if (pPlayer->m_iAmtG > 255 ||  pPlayer->m_iAmtG < 0)
+			pPlayer->m_iAmtG = 0;
+		ClientPrint( pev, HUD_PRINTCONSOLE, UTIL_VarArgs( "gcolor set to: %d\n", pPlayer->m_iAmtG ));
+
+		pPlayer->pev->rendercolor.y = pPlayer->m_iAmtG++;
+	}
+	else if (FStrEq(pcmd, "bcolor"))
+	{
+		CBasePlayer *pPlayer = GetClassPtr((CBasePlayer *)pev);
+		if (pPlayer->m_iAmtB > 255 ||  pPlayer->m_iAmtB < 0)
+			pPlayer->m_iAmtB = 0;
+		ClientPrint( pev, HUD_PRINTCONSOLE, UTIL_VarArgs( "bcolor set to: %d\n", pPlayer->m_iAmtB ));
+
+		pPlayer->pev->rendercolor.z = pPlayer->m_iAmtB++;
 	}
 	else if ( FStrEq( pcmd, "fog_off") )
 	{
