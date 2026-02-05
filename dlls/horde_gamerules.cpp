@@ -530,19 +530,19 @@ void CHalfLifeHorde::Think( void )
 
 	int clients = CheckClients();
 
+	if ( m_fWaitForPlayersTime == -1 )
+	{
+		m_fWaitForPlayersTime = gpGlobals->time + roundwaittime.value;
+		RemoveAndFillItems();
+		extern void ClearBodyQue();
+		ClearBodyQue();
+		MESSAGE_BEGIN( MSG_ALL, gmsgDEraser );
+		MESSAGE_END();
+	}
+
 	// Any persons
 	if ( clients > 0 )
 	{
-		if ( m_fWaitForPlayersTime == -1 )
-		{
-			m_fWaitForPlayersTime = gpGlobals->time + roundwaittime.value;
-			RemoveAndFillItems();
-			extern void ClearBodyQue();
-			ClearBodyQue();
-			MESSAGE_BEGIN( MSG_ALL, gmsgDEraser );
-			MESSAGE_END();
-		}
-
 		if ( m_fWaitForPlayersTime > gpGlobals->time )
 		{
 			SuckAllToSpectator();

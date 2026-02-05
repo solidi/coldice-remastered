@@ -261,18 +261,18 @@ void CHalfLifeArena::Think( void )
 	ALERT( at_notice, UTIL_VarArgs("CheckClients(): %i\n", clients ));
 #endif
 
+	if ( m_fWaitForPlayersTime == -1 )
+	{
+		m_fWaitForPlayersTime = gpGlobals->time + roundwaittime.value;
+		RemoveAndFillItems();
+		extern void ClearBodyQue();
+		ClearBodyQue();
+		MESSAGE_BEGIN( MSG_ALL, gmsgDEraser );
+		MESSAGE_END();
+	}
+
 	if ( clients > 1 )
 	{
-		if ( m_fWaitForPlayersTime == -1 )
-		{
-			m_fWaitForPlayersTime = gpGlobals->time + roundwaittime.value;
-			RemoveAndFillItems();
-			extern void ClearBodyQue();
-			ClearBodyQue();
-			MESSAGE_BEGIN( MSG_ALL, gmsgDEraser );
-			MESSAGE_END();
-		}
-
 		if ( m_fWaitForPlayersTime > gpGlobals->time )
 		{
 			SuckAllToSpectator();
