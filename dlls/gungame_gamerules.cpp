@@ -316,7 +316,7 @@ void CHalfLifeGunGame::PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller, e
 				{
 					plr->m_iRoundWins = roundWins + 1;
 					plr->pev->frags = ((roundWins + 2) * (int)ggfrags.value);
-					ClientPrint(plr->pev, HUD_PRINTTALK, UTIL_VarArgs("[GunGame]: You level was increased by a steal!\n"));
+					ClientPrint(plr->pev, HUD_PRINTTALK, UTIL_VarArgs("[GunGame] You level was increased by a steal!\n"));
 
 					MESSAGE_BEGIN( MSG_ALL, gmsgScoreInfo );
 						WRITE_BYTE( ENTINDEX(plr->edict()) );

@@ -1207,7 +1207,7 @@ void CHalfLifeMultiplay::DisplayWinnersGoods( CBasePlayer *pPlayer )
 	if (roundlimit.value > 0)
 	{
 		UTIL_ClientPrintAll(HUD_PRINTTALK, UTIL_VarArgs("[Game] %s has won round #%d of %d!\n", STRING(pPlayer->pev->netname), m_iSuccessfulRounds+1, (int)roundlimit.value));
-		UTIL_ClientPrintAll(HUD_PRINTTALK, UTIL_VarArgs("[Game] %s record is %i for %i [%.1f%%]\n", STRING(pPlayer->pev->netname),
+		UTIL_ClientPrintAll(HUD_PRINTTALK, UTIL_VarArgs("[Game] %s record is %i for %i [%.1f%%%%]\n", STRING(pPlayer->pev->netname),
 			pPlayer->m_iRoundWins,
 			pPlayer->m_iRoundPlays,
 			((float)pPlayer->m_iRoundWins / (float)pPlayer->m_iRoundPlays) * 100 ));

@@ -859,7 +859,7 @@ void UTIL_ClientPrintAll( int msg_dest, const char *msg_name, const char *param1
 		timeinfo = localtime(&rawtime);
 		strftime(timeStr, sizeof(timeStr), "[%H:%M] ", timeinfo);
 
-		sprintf(formattedMsg, "%s%s", timeStr, msg_name);
+		snprintf(formattedMsg, sizeof(formattedMsg), "%s%s", timeStr, msg_name);
 		finalMsg = formattedMsg;
 	}
 
@@ -900,7 +900,7 @@ void ClientPrint( entvars_t *client, int msg_dest, const char *msg_name, const c
 		timeinfo = localtime(&rawtime);
 		strftime(timeStr, sizeof(timeStr), "[%H:%M] ", timeinfo);
 
-		sprintf(formattedMsg, "%s%s", timeStr, msg_name);
+		snprintf(formattedMsg, sizeof(formattedMsg), "%s%s", timeStr, msg_name);
 		finalMsg = formattedMsg;
 	}
 
@@ -932,7 +932,7 @@ void UTIL_SayText( const char *pText, CBaseEntity *pEntity )
 	time(&rawtime);
 	timeinfo = localtime(&rawtime);
 	strftime(timeStr, sizeof(timeStr), "[%H:%M] ", timeinfo);
-	sprintf(formattedMsg, "%s%s", timeStr, pText);
+	snprintf(formattedMsg, sizeof(formattedMsg), "%s%s", timeStr, pText);
 	finalMsg = formattedMsg;
 
 	MESSAGE_BEGIN( MSG_ONE, gmsgSayText, NULL, pEntity->edict() );
@@ -951,7 +951,7 @@ void UTIL_SayTextAll( const char *pText, CBaseEntity *pEntity )
 	time(&rawtime);
 	timeinfo = localtime(&rawtime);
 	strftime(timeStr, sizeof(timeStr), "[%H:%M] ", timeinfo);
-	sprintf(formattedMsg, "%s%s", timeStr, pText);
+	snprintf(formattedMsg, sizeof(formattedMsg), "%s%s", timeStr, pText);
 	finalMsg = formattedMsg;
 
 	MESSAGE_BEGIN( MSG_BROADCAST, gmsgSayText, NULL );

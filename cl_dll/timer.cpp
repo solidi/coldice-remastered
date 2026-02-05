@@ -113,7 +113,6 @@ void CHudTimer::FVoxTimerCallOut(int seconds, int minutes)
 	{
 		m_iLastSoundSecond = seconds;
 
-		// Time announcements: bell at 53s, number at 52s, "minutes" at 51s
 		struct TimeAnnouncement
 		{
 			int minute;
