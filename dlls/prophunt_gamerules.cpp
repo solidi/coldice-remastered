@@ -1002,6 +1002,11 @@ void CHalfLifePropHunt::MonsterKilled( CBaseMonster *pVictim, entvars_t *pKiller
 	// Reduce frags if killed harmless item
 	if (plr && plr->IsPlayer())
 	{
+		MESSAGE_BEGIN( MSG_ONE_UNRELIABLE, gmsgPlayClientSound, NULL, plr->edict() );
+			WRITE_BYTE(CLIENT_SOUND_NOPE);
+		MESSAGE_END();
+		ClientPrint(plr->pev, HUD_PRINTCENTER, "Decoy destroyed! -1 frag :(\n");
+
 		MESSAGE_BEGIN( MSG_ALL, gmsgScoreInfo );
 			WRITE_BYTE( ENTINDEX(plr->edict()) );
 			WRITE_SHORT( --plr->pev->frags );
