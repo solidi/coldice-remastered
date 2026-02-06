@@ -250,12 +250,12 @@ void CHalfLifePropHunt::DetermineWinner( void )
 		if (!IsEqual)
 		{
 			UTIL_ClientPrintAll(HUD_PRINTCENTER,
-				UTIL_VarArgs("%s doled the most frags!\n", STRING(highballer->pev->netname)));
+				UTIL_VarArgs("%s scored the most points!\n", STRING(highballer->pev->netname)));
 			MESSAGE_BEGIN(MSG_BROADCAST, gmsgObjective);
 				WRITE_STRING("Prophunt Completed!");
 				WRITE_STRING(UTIL_VarArgs("%s win!", m_iHuntersRemain ? "Hunters" : "Props"));
 				WRITE_BYTE(0);
-				WRITE_STRING(UTIL_VarArgs("%s doled the most frags!\n", STRING(highballer->pev->netname)));
+				WRITE_STRING(UTIL_VarArgs("%s scored the most points!\n", STRING(highballer->pev->netname)));
 			MESSAGE_END();
 
 			DisplayWinnersGoods( highballer );
@@ -1023,7 +1023,7 @@ void CHalfLifePropHunt::PlayerThink( CBasePlayer *pPlayer )
 
 	if (pPlayer->pev->fuser4 > 0)
 	{	
-		pPlayer->pev->air_finished = gpGlobals->time + 5; // never drown
+		pPlayer->pev->air_finished = gpGlobals->time + 10; // never drown
 
 		if (pPlayer->m_flNextPropSound && pPlayer->m_flNextPropSound < gpGlobals->time)
 		{
