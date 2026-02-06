@@ -281,7 +281,7 @@ void ScorePanel::Update()
 		m_HeaderLabels[i].setFgColor( r, g, b, 0 );
 	}
 
-	if (ScoreBased() && gHUD.m_Teamplay != GAME_TEAMPLAY)
+	if (ScoreBased())
 	{
 		if (gHUD.m_Teamplay == GAME_GUNGAME)
 			m_HeaderLabels[COLUMN_SCORE].setText(CHudTextMessage::BufferedLocaliseTextString("#LEVEL"));
@@ -289,6 +289,10 @@ void ScorePanel::Update()
 			m_HeaderLabels[COLUMN_SCORE].setText(CHudTextMessage::BufferedLocaliseTextString("#SKULLS"));
 		else
 			m_HeaderLabels[COLUMN_SCORE].setText(CHudTextMessage::BufferedLocaliseTextString("#SCORE"));
+	}
+	else if (gHUD.m_Teamplay == GAME_TEAMPLAY)
+	{
+		m_HeaderLabels[COLUMN_SCORE].setText("ASSISTS");
 	}
 	else
 		m_HeaderLabels[COLUMN_SCORE].setText("");
@@ -904,7 +908,7 @@ void ScorePanel::FillGrid()
 					sprintf(sz, "%d",  g_PlayerExtraInfo[ m_iSortedRows[row] ].deaths );
 					break;
 				case COLUMN_SCORE:
-					if ((ScoreBased() && gHUD.m_Teamplay != GAME_TEAMPLAY))
+					if (ScoreBased() || gHUD.m_Teamplay == GAME_TEAMPLAY)
 						sprintf(sz, "%d",  g_PlayerExtraInfo[ m_iSortedRows[row] ].playerclass );
 					break;
 				case COLUMN_LATENCY:

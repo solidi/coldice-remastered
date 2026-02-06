@@ -991,7 +991,12 @@ void CHalfLifeMultiplay::InsertClientsIntoArena(float fragcount)
 				WRITE_BYTE( ENTINDEX(plr->edict()) );
 				WRITE_SHORT( plr->pev->frags = fragcount );
 				WRITE_SHORT( plr->m_iDeaths = 0 );
-				WRITE_SHORT( g_GameMode != GAME_GUNGAME ? plr->m_iRoundWins : plr->m_iRoundWins + 1 );
+				if (g_GameMode == GAME_TEAMPLAY)
+					WRITE_SHORT( plr->m_iAssists );
+				else if (g_GameMode == GAME_GUNGAME )
+					WRITE_SHORT( plr->m_iRoundWins + 1 );
+				else
+					WRITE_SHORT( plr->m_iRoundWins );
 				WRITE_SHORT( GetTeamIndex( plr->m_szTeamName ) + 1 );
 			MESSAGE_END();
 			plr->m_iAssists = 0;
@@ -1016,17 +1021,17 @@ BOOL CHalfLifeMultiplay::HasGameTimerExpired( void )
 
 	if ( !_30secwarning && (m_flRoundTimeLimit - 30) < gpGlobals->time )
 	{
-		UTIL_ClientPrintAll(HUD_PRINTTALK, "* 30 second warning...\n");
+		UTIL_ClientPrintAll(HUD_PRINTTALK, "[Game] 30 second warning...\n");
 		_30secwarning = TRUE;
 	}
 	else if ( !_15secwarning && (m_flRoundTimeLimit - 15) < gpGlobals->time )
 	{
-		UTIL_ClientPrintAll(HUD_PRINTTALK, "* 15 second warning...\n");
+		UTIL_ClientPrintAll(HUD_PRINTTALK, "[Game] 15 second warning...\n");
 		_15secwarning = TRUE;
 	}
 	else if ( !_3secwarning && (m_flRoundTimeLimit - 3) < gpGlobals->time )
 	{
-		UTIL_ClientPrintAll(HUD_PRINTTALK, "* 3 second warning...\n");
+		UTIL_ClientPrintAll(HUD_PRINTTALK, "[Game] 3 second warning...\n");
 		_3secwarning = TRUE;
 	}
 
@@ -1148,10 +1153,17 @@ void CHalfLifeMultiplay::SuckToSpectator( CBasePlayer *pPlayer )
 			WRITE_BYTE( ENTINDEX(pPlayer->edict()) );
 			WRITE_SHORT( pPlayer->pev->frags = 0 );
 			WRITE_SHORT( pPlayer->m_iDeaths = 0 );
-			WRITE_SHORT( g_GameMode != GAME_GUNGAME ? pPlayer->m_iRoundWins : pPlayer->m_iRoundWins + 1 );
+			if (g_GameMode == GAME_TEAMPLAY)
+				WRITE_SHORT( pPlayer->m_iAssists );
+			else if (g_GameMode == GAME_GUNGAME )
+				WRITE_SHORT( pPlayer->m_iRoundWins + 1 );
+			else
+				WRITE_SHORT( pPlayer->m_iRoundWins );
 			WRITE_SHORT( 0 );
 		MESSAGE_END();
 
+		// If is in middle of the game, reset observer
+		pPlayer->m_iObserverLastMode = OBS_ROAMING;
 		edict_t *pentSpawnSpot = g_pGameRules->GetPlayerSpawnSpot( pPlayer );
 		pPlayer->StartObserver(pentSpawnSpot->v.origin, VARS(pentSpawnSpot)->angles);
 	}
@@ -1196,14 +1208,14 @@ void CHalfLifeMultiplay::DisplayWinnersGoods( CBasePlayer *pPlayer )
 	//and display to the world what he does best!
 	if (roundlimit.value > 0)
 	{
-		UTIL_ClientPrintAll(HUD_PRINTTALK, UTIL_VarArgs("* %s has won round #%d of %d!\n", STRING(pPlayer->pev->netname), m_iSuccessfulRounds+1, (int)roundlimit.value));
-		UTIL_ClientPrintAll(HUD_PRINTTALK, UTIL_VarArgs("* %s record is %i for %i [%.1f%%]\n", STRING(pPlayer->pev->netname),
+		UTIL_ClientPrintAll(HUD_PRINTTALK, UTIL_VarArgs("[Game] %s has won round #%d of %d!\n", STRING(pPlayer->pev->netname), m_iSuccessfulRounds+1, (int)roundlimit.value));
+		UTIL_ClientPrintAll(HUD_PRINTTALK, UTIL_VarArgs("[Game] %s record is %i for %i [%.1f%%%%]\n", STRING(pPlayer->pev->netname),
 			pPlayer->m_iRoundWins,
 			pPlayer->m_iRoundPlays,
 			((float)pPlayer->m_iRoundWins / (float)pPlayer->m_iRoundPlays) * 100 ));
 	}
 	else
-		UTIL_ClientPrintAll(HUD_PRINTTALK, UTIL_VarArgs("* %s has won round!\n", STRING(pPlayer->pev->netname)));
+		UTIL_ClientPrintAll(HUD_PRINTTALK, UTIL_VarArgs("[Game] %s has won round!\n", STRING(pPlayer->pev->netname)));
 }
 
 void CHalfLifeMultiplay::ResetGameMode( void )
@@ -1410,7 +1422,7 @@ void CHalfLifeMultiplay :: UpdateGameMode( CBasePlayer *pPlayer )
 void CHalfLifeMultiplay :: InitHUD( CBasePlayer *pl )
 {
 	// notify other clients of player joining the game
-	UTIL_ClientPrintAll( HUD_PRINTNOTIFY, UTIL_VarArgs( "%s has joined the game\n", 
+	UTIL_ClientPrintAll( HUD_PRINTNOTIFY, UTIL_VarArgs( "[Game] %s has joined the game\n", 
 		( pl->pev->netname && STRING(pl->pev->netname)[0] != 0 ) ? STRING(pl->pev->netname) : "unconnected" ) );
 
 	// team match?
@@ -1511,7 +1523,12 @@ void CHalfLifeMultiplay :: InitHUD( CBasePlayer *pl )
 				WRITE_BYTE( i );	// client number
 				WRITE_SHORT( plr->pev->frags );
 				WRITE_SHORT( plr->m_iDeaths );
-				WRITE_SHORT( g_GameMode != GAME_GUNGAME ? plr->m_iRoundWins : plr->m_iRoundWins + 1 );
+				if (g_GameMode == GAME_TEAMPLAY)
+					WRITE_SHORT( plr->m_iAssists );
+				else if (g_GameMode == GAME_GUNGAME )
+					WRITE_SHORT( plr->m_iRoundWins + 1 );
+				else
+					WRITE_SHORT( plr->m_iRoundWins );
 				WRITE_SHORT( GetTeamIndex( plr->m_szTeamName ) + 1 );
 			MESSAGE_END();
 		}
@@ -1567,7 +1584,7 @@ void CHalfLifeMultiplay :: ClientDisconnected( edict_t *pClient )
 			if ( g_GameInProgress )
 			{
 				if ( pPlayer->IsInArena && !pPlayer->IsSpectator() )
-					UTIL_ClientPrintAll(HUD_PRINTTALK, UTIL_VarArgs("%s has left the round!\n", STRING(pPlayer->pev->netname)));
+					UTIL_ClientPrintAll(HUD_PRINTTALK, UTIL_VarArgs("[Game] %s has left the round!\n", STRING(pPlayer->pev->netname)));
 			}
 			pPlayer->IsInArena = FALSE;
 
@@ -1589,7 +1606,12 @@ void CHalfLifeMultiplay :: ClientDisconnected( edict_t *pClient )
 					WRITE_BYTE( ENTINDEX(pPlayer->edict()) );
 					WRITE_SHORT( pPlayer->pev->frags );
 					WRITE_SHORT( pPlayer->m_iDeaths );
-					WRITE_SHORT( g_GameMode != GAME_GUNGAME ? pPlayer->m_iRoundWins : pPlayer->m_iRoundWins + 1 );
+					if (g_GameMode == GAME_TEAMPLAY)
+						WRITE_SHORT( pPlayer->m_iAssists );
+					else if (g_GameMode == GAME_GUNGAME )
+						WRITE_SHORT( pPlayer->m_iRoundWins + 1 );
+					else
+						WRITE_SHORT( pPlayer->m_iRoundWins );
 					WRITE_SHORT( GetTeamIndex( pPlayer->m_szTeamName ) + 1 );
 				MESSAGE_END();
 			}
@@ -1723,9 +1745,9 @@ void CHalfLifeMultiplay :: PlayerThink( CBasePlayer *pPlayer )
 
 	if (pPlayer->m_iShownWelcomeMessage != -1 && pPlayer->m_iShownWelcomeMessage < gpGlobals->time) {
 #ifdef GIT
-		ClientPrint(pPlayer->pev, HUD_PRINTTALK, "Welcome to Cold Ice Remastered v1 (%s). For commands, type \"help\" in the console.\n", TO_STRING(GIT));
+		ClientPrint(pPlayer->pev, HUD_PRINTTALK, "[System] Welcome to Cold Ice Remastered v1 (%s). For commands, type \"help\" in the console.\n", TO_STRING(GIT));
 #else
-		ClientPrint(pPlayer->pev, HUD_PRINTTALK, "Welcome to Cold Ice Remastered v1. For commands, type \"help\" in the console.\n");
+		ClientPrint(pPlayer->pev, HUD_PRINTTALK, "[System] Welcome to Cold Ice Remastered v1. For commands, type \"help\" in the console.\n");
 #endif
 
 		// Play music
@@ -1745,8 +1767,11 @@ void CHalfLifeMultiplay :: PlayerThink( CBasePlayer *pPlayer )
 			if (!MutatorEnabled(MUTATOR_GODMODE))
 				pPlayer->pev->flags &= ~FL_GODMODE;
 			pPlayer->pev->rendermode = kRenderNormal;
-			pPlayer->pev->renderfx = kRenderFxNone;
-			pPlayer->pev->renderamt = 0;
+			if (!pPlayer->m_fHasRune)
+			{
+				pPlayer->pev->renderfx = kRenderFxNone;
+				pPlayer->pev->renderamt = 0;
+			}
 			pPlayer->m_fLastSpawnTime = 0;
 
 			if (MutatorEnabled(MUTATOR_INVISIBLE))
@@ -2048,7 +2073,12 @@ void CHalfLifeMultiplay :: PlayerKilled( CBasePlayer *pVictim, entvars_t *pKille
 		WRITE_BYTE( ENTINDEX(pVictim->edict()) );
 		WRITE_SHORT( pVictim->pev->frags );
 		WRITE_SHORT( pVictim->m_iDeaths );
-		WRITE_SHORT( g_GameMode != GAME_GUNGAME ? pVictim->m_iRoundWins : pVictim->m_iRoundWins + 1 );
+		if (g_GameMode == GAME_TEAMPLAY)
+			WRITE_SHORT( pVictim->m_iAssists );
+		else if (g_GameMode == GAME_GUNGAME )
+			WRITE_SHORT( pVictim->m_iRoundWins + 1 );
+		else
+			WRITE_SHORT( pVictim->m_iRoundWins );
 		WRITE_SHORT( GetTeamIndex( pVictim->m_szTeamName ) + 1 );
 	MESSAGE_END();
 
@@ -2062,7 +2092,12 @@ void CHalfLifeMultiplay :: PlayerKilled( CBasePlayer *pVictim, entvars_t *pKille
 			WRITE_BYTE( ENTINDEX(PK->edict()) );
 			WRITE_SHORT( PK->pev->frags );
 			WRITE_SHORT( PK->m_iDeaths );
-			WRITE_SHORT( g_GameMode != GAME_GUNGAME ? PK->m_iRoundWins : PK->m_iRoundWins + 1 );
+			if (g_GameMode == GAME_TEAMPLAY)
+				WRITE_SHORT( PK->m_iAssists );
+			else if (g_GameMode == GAME_GUNGAME )
+				WRITE_SHORT( PK->m_iRoundWins + 1 );
+			else
+				WRITE_SHORT( PK->m_iRoundWins );
 			WRITE_SHORT( GetTeamIndex( PK->m_szTeamName) + 1 );
 		MESSAGE_END();
 
@@ -2196,16 +2231,35 @@ void CHalfLifeMultiplay::DeathNotice( CBasePlayer *pVictim, entvars_t *pKiller, 
 	if ( pKiller->flags & FL_CLIENT )
 	{
 		killer_index = ENTINDEX(ENT(pKiller));
-		if (pVictim->pLastAssist)
+
+		// Check for assist
+		if (g_pGameRules->IsTeamplay() && pVictim->pLastAssist)
 		{
 			assist_index = pVictim->pLastAssist->entindex();
+
+			// **FIX: Only award assist if assister is on same team as killer**
 			if (assist_index != killer_index)
 			{
-				CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex(assist_index);
-				if (plr)
-					plr->m_iAssists += 1;
-				else
+				CBasePlayer *peKiller = (CBasePlayer*)CBaseEntity::Instance( pKiller );
+				CBasePlayer *plrAssist = (CBasePlayer *)UTIL_PlayerByIndex(assist_index);
+				if (plrAssist && peKiller &&
+					g_pGameRules->PlayerRelationship(peKiller, plrAssist) != GR_TEAMMATE)
+				{
+					// Not on same team, don't give assist credit
 					assist_index = -1;
+				}
+				else if (plrAssist)
+				{
+					plrAssist->m_iAssists += 1;
+				}
+				else
+				{
+					assist_index = -1;
+				}
+			}
+			else
+			{
+				assist_index = -1; // Killer and assister are the same person
 			}
 			pVictim->pLastAssist = NULL;
 		}

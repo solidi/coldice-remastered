@@ -277,7 +277,7 @@ void CHalfLifePropHunt::DetermineWinner( void )
 			}
 
 			UTIL_ClientPrintAll(HUD_PRINTCENTER, "Numerous victors!");
-			UTIL_ClientPrintAll(HUD_PRINTTALK, "* Round ends with winners!\n");
+			UTIL_ClientPrintAll(HUD_PRINTTALK, "[PropHunt] Round ends with winners!\n");
 			MESSAGE_BEGIN(MSG_BROADCAST, gmsgObjective);
 				WRITE_STRING("Prophunt Completed!");
 				WRITE_STRING(UTIL_VarArgs("%s win!", m_iHuntersRemain ? "Hunters" : "Props"));
@@ -289,7 +289,7 @@ void CHalfLifePropHunt::DetermineWinner( void )
 	else
 	{
 		UTIL_ClientPrintAll(HUD_PRINTCENTER, "Round is over!\nNo one has won!\n");
-		UTIL_ClientPrintAll(HUD_PRINTTALK, "* Round ends with no winners!\n");
+		UTIL_ClientPrintAll(HUD_PRINTTALK, "[PropHunt] Round ends with no winners!\n");
 		MESSAGE_BEGIN(MSG_BROADCAST, gmsgObjective);
 			WRITE_STRING("Prophunt Completed!");
 			WRITE_STRING("");
@@ -573,18 +573,18 @@ void CHalfLifePropHunt::Think( void )
 
 	int clients = CheckClients();
 
+	if ( m_fWaitForPlayersTime == -1 )
+	{
+		m_fWaitForPlayersTime = gpGlobals->time + roundwaittime.value;
+		RemoveAndFillItems();
+		extern void ClearBodyQue();
+		ClearBodyQue();
+		MESSAGE_BEGIN( MSG_ALL, gmsgDEraser );
+		MESSAGE_END();
+	}
+
 	if ( clients > 1 )
 	{
-		if ( m_fWaitForPlayersTime == -1 )
-		{
-			m_fWaitForPlayersTime = gpGlobals->time + roundwaittime.value;
-			RemoveAndFillItems();
-			extern void ClearBodyQue();
-			ClearBodyQue();
-			MESSAGE_BEGIN( MSG_ALL, gmsgDEraser );
-			MESSAGE_END();
-		}
-
 		if ( m_fWaitForPlayersTime > gpGlobals->time )
 		{
 			SuckAllToSpectator();
@@ -684,7 +684,7 @@ void CHalfLifePropHunt::Think( void )
 			WRITE_STRING( "props" );
 		MESSAGE_END();
 
-		UTIL_ClientPrintAll(HUD_PRINTTALK, UTIL_VarArgs("* %d players have entered the arena!\n", clients));
+		UTIL_ClientPrintAll(HUD_PRINTTALK, UTIL_VarArgs("[PropHunt] %d players have entered the arena!\n", clients));
 
 		flUpdateTime = gpGlobals->time; // force now, so hunter freeze immediately.
 		return;

@@ -777,6 +777,8 @@ void CWorld :: SetGameMode( void )
 			szGameModeList[RANDOM_LONG(0,(int)ARRAYSIZE(szGameModeList) - 1)]);
 	}
 
+	const char *currentTeamList = CVAR_GET_STRING("mp_teamlist");
+
 	for (int i = 0; i < ARRAYSIZE(szGameModeList); i++)
 	{
 		if (strcmp(szGameModeList[i], gamemode.string) == 0 || atoi(gamemode.string) == i)
@@ -787,6 +789,13 @@ void CWorld :: SetGameMode( void )
 			switch (g_GameMode)
 			{
 			case GAME_TEAMPLAY:
+				if (strcmp(currentTeamList, "buster;ghosts") == 0 ||
+					strcmp(currentTeamList, "skeletons;survivors") == 0 ||
+					strcmp(currentTeamList, "jesus;santa") == 0)
+				{
+					// Previous gamemode's teamlist, reset to default
+					CVAR_SET_STRING("mp_teamlist", "iceman;santa;holo;commando");
+				}
 				CVAR_SET_STRING( "mp_teamplay", "1" );
 				break;
 
@@ -795,7 +804,7 @@ void CWorld :: SetGameMode( void )
 				break;
 
 			case GAME_CHILLDEMIC:
-				CVAR_SET_STRING( "mp_teamlist", "skeleton;survivors" );
+				CVAR_SET_STRING( "mp_teamlist", "skeletons;survivors" );
 				break;
 
 			case GAME_ICEMAN:

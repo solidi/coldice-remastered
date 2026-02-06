@@ -1496,31 +1496,23 @@ int CStudioModelRenderer::StudioDrawModel( int flags )
 			if (gHUD.m_Teamplay == GAME_GUNGAME && !strcmp(m_pCurrentEntity->model->name, "models/v_knife.mdl"))
 				m_pCurrentEntity->curstate.skin = SKIN_GOLD;
 
-			if ( pTarget && pTarget->curstate.renderfx == kRenderFxGlowShell )
-			{
+			m_pCurrentEntity->curstate.rendercolor.r = pTarget->curstate.rendercolor.r;
+			m_pCurrentEntity->curstate.rendercolor.g = pTarget->curstate.rendercolor.g;
+			m_pCurrentEntity->curstate.rendercolor.b = pTarget->curstate.rendercolor.b;
+			if ( pTarget->curstate.renderfx == kRenderFxGlowShell )
 				m_pCurrentEntity->curstate.renderfx = kRenderFxGlowShell;
-				m_pCurrentEntity->curstate.rendercolor.r = pTarget->curstate.rendercolor.r;
-				m_pCurrentEntity->curstate.rendercolor.g = pTarget->curstate.rendercolor.g;
-				m_pCurrentEntity->curstate.rendercolor.b = pTarget->curstate.rendercolor.b;
-				m_pCurrentEntity->curstate.renderamt = fmin(fmax(pTarget->curstate.renderamt, 0), 10);
-			}
-			else if ( pTarget && pTarget->curstate.rendermode == kRenderTransAlpha )
+			else
+				m_pCurrentEntity->curstate.renderfx = kRenderFxNone;
+			if ( pTarget->curstate.rendermode == kRenderTransAlpha )
 			{
 				m_pCurrentEntity->curstate.renderfx = kRenderFxNone;
 				m_pCurrentEntity->curstate.rendermode = kRenderTransAdd;
-				m_pCurrentEntity->curstate.rendercolor.r = 0;
-				m_pCurrentEntity->curstate.rendercolor.g = 0;
-				m_pCurrentEntity->curstate.rendercolor.b = 0;
-				m_pCurrentEntity->curstate.renderamt = pTarget->curstate.renderamt;
+				m_pCurrentEntity->curstate.renderamt = 255; // always this value with the viewmodel.
 			}
 			else
 			{
-				m_pCurrentEntity->curstate.renderfx = kRenderFxNone;
 				m_pCurrentEntity->curstate.rendermode = kRenderNormal;
-				m_pCurrentEntity->curstate.rendercolor.r = 0;
-				m_pCurrentEntity->curstate.rendercolor.g = 0;
-				m_pCurrentEntity->curstate.rendercolor.b = 0;
-				m_pCurrentEntity->curstate.renderamt = 0;
+				m_pCurrentEntity->curstate.renderamt = fmin(fmax(pTarget->curstate.renderamt, 0), 10);
 			}
 		}
 #endif 

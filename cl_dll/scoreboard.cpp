@@ -177,6 +177,10 @@ int CHudScoreboard :: Draw( float fTime )
 		else
 			gHUD.DrawHudString( SCORE_RANGE_MIN + xpos_rel + 5, ypos, ScreenWidth, "Score", r, g, b );
 	}
+	else if (gHUD.m_Teamplay == GAME_TEAMPLAY)
+	{
+		gHUD.DrawHudString( SCORE_RANGE_MIN + xpos_rel + 5, ypos, ScreenWidth, "Assists", r, g, b );
+	}
 	gHUD.DrawHudString( PING_RANGE_MAX + xpos_rel - 20, ypos, ScreenWidth, "Ping", r, g, b );
 
 	if ( can_show_packetloss )
@@ -483,8 +487,8 @@ int CHudScoreboard :: DrawPlayers( int xpos_rel, float list_slot, int nameoffset
 		xpos = DEATHS_RANGE_MAX + xpos_rel;
 		gHUD.DrawHudNumberString( xpos, ypos, DEATHS_RANGE_MIN + xpos_rel, g_PlayerExtraInfo[best_player].deaths, r, g, b );
 
-		// draw score
-		if (ScoreBased())
+		// draw score or assists
+		if (ScoreBased() || gHUD.m_Teamplay == GAME_TEAMPLAY)
 		{
 			xpos = SCORE_RANGE_MAX + xpos_rel;
 			gHUD.DrawHudNumberString( xpos, ypos, SCORE_RANGE_MIN + xpos_rel, g_PlayerExtraInfo[best_player].playerclass, r, g, b );

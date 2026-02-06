@@ -845,10 +845,28 @@ void UTIL_HudMessageAll( const hudtextparms_t &textparms, const char *pMessage )
 extern int gmsgTextMsg, gmsgSayText;
 void UTIL_ClientPrintAll( int msg_dest, const char *msg_name, const char *param1, const char *param2, const char *param3, const char *param4 )
 {
+	const char *finalMsg = msg_name;
+	char timeStr[32];
+	char formattedMsg[256];
+
+	// Only add timestamp for HUD_PRINTTALK messages (value is 1)
+	if ( msg_dest == HUD_PRINTTALK)
+	{
+		time_t rawtime;
+		struct tm * timeinfo;
+
+		time(&rawtime);
+		timeinfo = localtime(&rawtime);
+		strftime(timeStr, sizeof(timeStr), "[%H:%M] ", timeinfo);
+
+		snprintf(formattedMsg, sizeof(formattedMsg), "%s%s", timeStr, msg_name);
+		finalMsg = formattedMsg;
+	}
+
 	//ALERT(at_aiconsole, "UTIL_ClientPrintAll - msg_dest=%d msg_name=%s\n", msg_dest, msg_name);
 	MESSAGE_BEGIN( MSG_BROADCAST, gmsgTextMsg );
 		WRITE_BYTE( msg_dest );
-		WRITE_STRING( msg_name );
+		WRITE_STRING( finalMsg );
 
 		if ( param1 )
 			WRITE_STRING( param1 );
@@ -868,10 +886,27 @@ void ClientPrint( entvars_t *client, int msg_dest, const char *msg_name, const c
 	if (client->flags & FL_FAKECLIENT)
 		return;
 
+	const char *finalMsg = msg_name;
+	char timeStr[32];
+	char formattedMsg[256];
+
+	// Only add timestamp for HUD_PRINTTALK messages (value is 1)
+	if ( msg_dest == HUD_PRINTTALK)
+	{
+		time_t rawtime;
+		struct tm * timeinfo;
+
+		time(&rawtime);
+		timeinfo = localtime(&rawtime);
+		strftime(timeStr, sizeof(timeStr), "[%H:%M] ", timeinfo);
+
+		snprintf(formattedMsg, sizeof(formattedMsg), "%s%s", timeStr, msg_name);
+		finalMsg = formattedMsg;
+	}
+
 	MESSAGE_BEGIN( MSG_ONE, gmsgTextMsg, NULL, client );
 		WRITE_BYTE( msg_dest );
-		WRITE_STRING( msg_name );
-
+		WRITE_STRING( finalMsg );
 		if ( param1 )
 			WRITE_STRING( param1 );
 		if ( param2 )
@@ -889,17 +924,39 @@ void UTIL_SayText( const char *pText, CBaseEntity *pEntity )
 	if ( !pEntity->IsNetClient() )
 		return;
 
+	const char *finalMsg = pText;
+	char timeStr[32];
+	char formattedMsg[256];
+	time_t rawtime;
+	struct tm * timeinfo;
+	time(&rawtime);
+	timeinfo = localtime(&rawtime);
+	strftime(timeStr, sizeof(timeStr), "[%H:%M] ", timeinfo);
+	snprintf(formattedMsg, sizeof(formattedMsg), "%s%s", timeStr, pText);
+	finalMsg = formattedMsg;
+
 	MESSAGE_BEGIN( MSG_ONE, gmsgSayText, NULL, pEntity->edict() );
 		WRITE_BYTE( pEntity->entindex() );
-		WRITE_STRING( pText );
+		WRITE_STRING( finalMsg );
 	MESSAGE_END();
 }
 
 void UTIL_SayTextAll( const char *pText, CBaseEntity *pEntity )
 {
+	const char *finalMsg = pText;
+	char timeStr[32];
+	char formattedMsg[256];
+	time_t rawtime;
+	struct tm * timeinfo;
+	time(&rawtime);
+	timeinfo = localtime(&rawtime);
+	strftime(timeStr, sizeof(timeStr), "[%H:%M] ", timeinfo);
+	snprintf(formattedMsg, sizeof(formattedMsg), "%s%s", timeStr, pText);
+	finalMsg = formattedMsg;
+
 	MESSAGE_BEGIN( MSG_BROADCAST, gmsgSayText, NULL );
 		WRITE_BYTE( pEntity->entindex() );
-		WRITE_STRING( pText );
+		WRITE_STRING( finalMsg );
 	MESSAGE_END();
 }
 

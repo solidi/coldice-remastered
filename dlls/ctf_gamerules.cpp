@@ -551,7 +551,7 @@ void CHalfLifeCaptureTheFlag::InitHUD( CBasePlayer *pPlayer )
 	MESSAGE_END();
 
 	char text[256];
-	sprintf( text, "[CtF]: You're on team \'%s\'\n", pPlayer->m_szTeamName );
+	sprintf( text, "[CtF] You're on team \'%s\'\n", pPlayer->m_szTeamName );
 	UTIL_SayText( text, pPlayer );
 
 	// notify everyone's HUD of the team change
@@ -717,22 +717,22 @@ void CHalfLifeCaptureTheFlag::ClientUserInfoChanged( CBasePlayer *pPlayer, char 
 	// prevent skin/color/model changes
 	if ( !stricmp( "red", pPlayer->m_szTeamName ) && !stricmp( "santa", mdls ) )
 	{
-		ClientPrint( pPlayer->pev, HUD_PRINTCONSOLE, "[CtF]: You're on team '%s' To change, type 'model iceman'\n", pPlayer->m_szTeamName );
+		ClientPrint( pPlayer->pev, HUD_PRINTCONSOLE, "[CtF] You're on team '%s' To change, type 'model iceman'\n", pPlayer->m_szTeamName );
 		CLIENT_COMMAND(pPlayer->edict(), "model santa\n");
 		return;
 	}
 	if ( !stricmp( "blue", pPlayer->m_szTeamName ) && !stricmp( "iceman", mdls ) )
 	{
-		ClientPrint( pPlayer->pev, HUD_PRINTCONSOLE, "[CtF]: You're on team '%s' To change, type 'model santa'\n", pPlayer->m_szTeamName );
+		ClientPrint( pPlayer->pev, HUD_PRINTCONSOLE, "[CtF] You're on team '%s' To change, type 'model santa'\n", pPlayer->m_szTeamName );
 		return;
 	}
 
 	if ( stricmp( mdls, "iceman" ) && stricmp( mdls, "santa" ) )
 	{
 		g_engfuncs.pfnSetClientKeyValue( clientIndex, g_engfuncs.pfnGetInfoKeyBuffer( pPlayer->edict() ), "model", (char *)(pPlayer->pev->fuser4 == TEAM_RED ? "santa" : "iceman") );
-		sprintf( text, "* Can't change team to \'%s\'\n", mdls );
+		sprintf( text, "[CtF] Can't change team to \'%s\'\n", mdls );
 		UTIL_SayText( text, pPlayer );
-		sprintf( text, "* Server limits teams to \'%s\'\n", "iceman (blue), santa (red)" );
+		sprintf( text, "[CtF] Server limits teams to \'%s\'\n", "iceman (blue), santa (red)" );
 		UTIL_SayText( text, pPlayer );
 		return;
 	}
@@ -766,7 +766,7 @@ void CHalfLifeCaptureTheFlag::ClientUserInfoChanged( CBasePlayer *pPlayer, char 
 	}
 
 	// notify everyone of the team change
-	sprintf( text, "[CtF]: %s has changed to team \'%s\'\n", STRING(pPlayer->pev->netname), pPlayer->m_szTeamName );
+	sprintf( text, "[CtF] %s has changed to team \'%s\'\n", STRING(pPlayer->pev->netname), pPlayer->m_szTeamName );
 	UTIL_SayTextAll( text, pPlayer );
 
 	// notify everyone's HUD of the team change

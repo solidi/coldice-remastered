@@ -44,6 +44,8 @@
 #include "func_break.h"
 #include "const.h"
 #include "effects.h"
+#include <time.h>
+
 
 #if defined( GRAPPLING_HOOK )
 #include "grapplinghook.h"
@@ -257,7 +259,7 @@ void ClientPutInServer( edict_t *pEntity )
 	if (g_pGameRules->IsRoundBased())
 	{
 		pPlayer->pev->iuser1 = 1;
-		pPlayer->m_iObserverLastMode = 1;
+		pPlayer->m_iObserverLastMode = OBS_ROAMING;
 		pPlayer->m_flForceToObserverTime = 0;
 		pPlayer->pev->effects |= EF_NODRAW;
 		pPlayer->pev->solid = SOLID_NOT;
@@ -608,15 +610,21 @@ void Host_Say( edict_t *pEntity, int teamonly )
 	if ( !p || !p[0] || !Q_UnicodeValidate ( p ) )
 		return;  // no character found, so say nothing
 
+	char timeStr[32];
+	time_t rawtime;
+	struct tm * timeinfo;
+	time(&rawtime);
+	timeinfo = localtime(&rawtime);
+	strftime(timeStr, sizeof(timeStr), "[%H:%M] ", timeinfo);
+
 // turn on color set 2  (color on,  no sound)
 	// turn on color set 2  (color on,  no sound)
 	if ( player->IsObserver() && ( teamonly ) )
-		sprintf( text, "%c(SPEC) %s: ", 2, STRING( pEntity->v.netname ) );
+		snprintf( text, sizeof(text), "%c%s(SPEC) %s: ", 2, timeStr, STRING( pEntity->v.netname ) );
 	else if ( teamonly )
-		sprintf( text, "%c(TEAM) %s: ", 2, STRING( pEntity->v.netname ) );
+		snprintf( text, sizeof(text), "%c%s(TEAM) %s: ", 2, timeStr, STRING( pEntity->v.netname ) );
 	else
-		sprintf( text, "%c%s: ", 2, STRING( pEntity->v.netname ) );
-
+		snprintf( text, sizeof(text), "%c%s%s: ", 2, timeStr, STRING( pEntity->v.netname ) );
 	j = sizeof(text) - 2 - strlen(text);  // -2 for /n and null terminator
 	if ( (int)strlen(p) > j )
 		p[j] = 0;
@@ -676,7 +684,7 @@ void Host_Say( edict_t *pEntity, int teamonly )
 	g_engfuncs.pfnServerPrint( text );
 
 	if (UTIL_stristr(text, "jope"))
-		UTIL_ClientPrintAll(HUD_PRINTTALK, "ALL HAIL KING JOPE!\n");
+		UTIL_ClientPrintAll(HUD_PRINTTALK, "[GSS] ALL HAIL KING JOPE!\n");
 
 	GameplayVote(pEntity, text);
 	MutatorVote(pEntity, text);
@@ -864,7 +872,7 @@ void ClientCommand( edict_t *pEntity )
 				plr->m_flNextHook = gpGlobals->time + grapplinghookdeploytime.value;
 			}
 		} else {
-			ClientPrint( pev, HUD_PRINTCONSOLE, "Grappling hook is disabled.\n" );
+			ClientPrint( pev, HUD_PRINTCONSOLE, "[System] Grappling hook is disabled.\n" );
 		}
 	}
 	else if (FStrEq(pcmd, "-hook" ))
@@ -895,11 +903,11 @@ void ClientCommand( edict_t *pEntity )
 			if ( pPlayer->pev->flags & FL_GODMODE ) {
 				pPlayer->pev->flags &= ~FL_GODMODE;
 				pPlayer->pev->flags &= ~FL_NOTARGET; // chumtoads and things
-				ClientPrint(pPlayer->pev, HUD_PRINTCONSOLE, "God mode OFF\n");
+				ClientPrint(pPlayer->pev, HUD_PRINTCONSOLE, "[System] God mode OFF\n");
 			} else {
 				pPlayer->pev->flags |= FL_GODMODE;
 				pPlayer->pev->flags |= FL_NOTARGET;
-				ClientPrint(pPlayer->pev, HUD_PRINTCONSOLE, "God mode ON\n");
+				ClientPrint(pPlayer->pev, HUD_PRINTCONSOLE, "[System] God mode ON\n");
 			}
 		}
 	}
@@ -926,11 +934,11 @@ void ClientCommand( edict_t *pEntity )
 			pPlayer->StartObserver(pentSpawnSpot->v.origin, VARS(pentSpawnSpot)->angles);
 
 			// notify other clients of player switching to spectator mode
-			UTIL_ClientPrintAll( HUD_PRINTNOTIFY, UTIL_VarArgs( "%s switched to spectator mode\n", 
+			UTIL_ClientPrintAll( HUD_PRINTNOTIFY, UTIL_VarArgs( "[Game] %s switched to spectator mode\n", 
 			 	( pev->netname && STRING(pev->netname)[0] != 0 ) ? STRING(pev->netname) : "unconnected" ) );
 		}
 		else
-			ClientPrint( pev, HUD_PRINTCONSOLE, "Spectator mode is disabled.\n" );
+			ClientPrint( pev, HUD_PRINTCONSOLE, "[System] Spectator mode is disabled.\n" );
 			
 	}
 	else if ( FStrEq(pcmd, "vote" ) )
@@ -1026,16 +1034,6 @@ void ClientCommand( edict_t *pEntity )
 			pPlayer->m_iBurstCount = kRenderFxNone;
 
 		ClientPrint( pev, HUD_PRINTCONSOLE, UTIL_VarArgs( "fx set to: %d\n", pPlayer->m_iBurstCount ));
-		
-		/*MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
-			WRITE_BYTE( TE_PARTICLEBURST );
-			WRITE_COORD(pev->origin.x);
-			WRITE_COORD(pev->origin.y);
-			WRITE_COORD(pev->origin.z);
-			WRITE_SHORT( 50 );
-			WRITE_BYTE((unsigned short)pPlayer->m_iBurstCount++);
-			WRITE_BYTE( 5 );
-		MESSAGE_END();*/
 
 		pPlayer->pev->renderfx = pPlayer->m_iBurstCount++;
 	}
@@ -1058,6 +1056,34 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( pev, HUD_PRINTCONSOLE, UTIL_VarArgs( "amt set to: %d\n", pPlayer->m_iAmt ));
 
 		pPlayer->pev->renderamt = pPlayer->m_iAmt++;
+	}
+	else if (FStrEq(pcmd, "rcolor"))
+	{
+		CBasePlayer *pPlayer = GetClassPtr((CBasePlayer *)pev);
+		if (pPlayer->m_iAmtR > 255 ||  pPlayer->m_iAmtR < 0)
+			pPlayer->m_iAmtR = 0;
+
+		ClientPrint( pev, HUD_PRINTCONSOLE, UTIL_VarArgs( "rcolor set to: %d\n", pPlayer->m_iAmtR ));
+
+		pPlayer->pev->rendercolor.x = pPlayer->m_iAmtR++;
+	}
+	else if (FStrEq(pcmd, "gcolor"))
+	{
+		CBasePlayer *pPlayer = GetClassPtr((CBasePlayer *)pev);
+		if (pPlayer->m_iAmtG > 255 ||  pPlayer->m_iAmtG < 0)
+			pPlayer->m_iAmtG = 0;
+		ClientPrint( pev, HUD_PRINTCONSOLE, UTIL_VarArgs( "gcolor set to: %d\n", pPlayer->m_iAmtG ));
+
+		pPlayer->pev->rendercolor.y = pPlayer->m_iAmtG++;
+	}
+	else if (FStrEq(pcmd, "bcolor"))
+	{
+		CBasePlayer *pPlayer = GetClassPtr((CBasePlayer *)pev);
+		if (pPlayer->m_iAmtB > 255 ||  pPlayer->m_iAmtB < 0)
+			pPlayer->m_iAmtB = 0;
+		ClientPrint( pev, HUD_PRINTCONSOLE, UTIL_VarArgs( "bcolor set to: %d\n", pPlayer->m_iAmtB ));
+
+		pPlayer->pev->rendercolor.z = pPlayer->m_iAmtB++;
 	}
 	else if ( FStrEq( pcmd, "fog_off") )
 	{
@@ -1474,7 +1500,7 @@ void ClientCommand( edict_t *pEntity )
 		command[127] = '\0';
 
 		// tell the user they entered an unknown command
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, UTIL_VarArgs( "Unknown command: %s\n", command ) );
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, UTIL_VarArgs( "[System] Unknown command: %s\n", command ) );
 	}
 }
 
@@ -1559,7 +1585,7 @@ void ClientUserInfoChanged( edict_t *pEntity, char *infobuffer )
 		if (gpGlobals->maxClients > 1)
 		{
 			char text[256];
-			sprintf( text, "* %s changed name to %s\n", STRING(pEntity->v.netname), g_engfuncs.pfnInfoKeyValue( infobuffer, "name" ) );
+			sprintf( text, "[System] %s changed name to %s\n", STRING(pEntity->v.netname), g_engfuncs.pfnInfoKeyValue( infobuffer, "name" ) );
 			MESSAGE_BEGIN( MSG_ALL, gmsgSayText, NULL );
 				WRITE_BYTE( ENTINDEX(pEntity) );
 				WRITE_STRING( text );

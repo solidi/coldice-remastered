@@ -282,7 +282,7 @@ void CHalfLifeGunGame::PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller, e
 					WRITE_SHORT( pVictim->m_iRoundWins + 1 );
 					WRITE_SHORT( 0 );
 				MESSAGE_END();
-				ClientPrint(pVictim->pev, HUD_PRINTTALK, "[GunGame]: You level was lost by suicide!\n");
+				ClientPrint(pVictim->pev, HUD_PRINTTALK, "[GunGame] You level was lost by suicide!\n");
 
 				m_fRefreshStats = gpGlobals->time;
 			}
@@ -306,7 +306,7 @@ void CHalfLifeGunGame::PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller, e
 						WRITE_SHORT( 0 );
 					MESSAGE_END();
 					ClientPrint(pVictim->pev, HUD_PRINTTALK,
-						UTIL_VarArgs("[GunGame]: You level was stolen by %s!\n",
+						UTIL_VarArgs("[GunGame] You level was stolen by %s!\n",
 						STRING(plr->pev->netname)));
 				}
 
@@ -316,7 +316,7 @@ void CHalfLifeGunGame::PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller, e
 				{
 					plr->m_iRoundWins = roundWins + 1;
 					plr->pev->frags = ((roundWins + 2) * (int)ggfrags.value);
-					ClientPrint(plr->pev, HUD_PRINTTALK, UTIL_VarArgs("[GunGame]: You level was increased by a steal!\n"));
+					ClientPrint(plr->pev, HUD_PRINTTALK, UTIL_VarArgs("[GunGame] You level was increased by a steal!\n"));
 
 					MESSAGE_BEGIN( MSG_ALL, gmsgScoreInfo );
 						WRITE_BYTE( ENTINDEX(plr->edict()) );
@@ -428,7 +428,7 @@ int CHalfLifeGunGame::IPointsForKill( CBasePlayer *pAttacker, CBasePlayer *pKill
 				int voiceId = 0;
 
 				ClientPrint(pAttacker->pev, HUD_PRINTTALK,
-					UTIL_VarArgs("[GunGame]: You increased your level to %d (obtained %s)!\n",
+					UTIL_VarArgs("[GunGame] You increased your level to %d (obtained %s)!\n",
 					newLevel+1, g_WeaponId[newLevel]));
 
 				// Set highest game level
@@ -513,7 +513,7 @@ int CHalfLifeGunGame::IPointsForKill( CBasePlayer *pAttacker, CBasePlayer *pKill
 				int inc = 2;
 				currentLevel == 0 ? inc = 1 : 0; 
 				ClientPrint(pAttacker->pev, HUD_PRINTTALK,
-					UTIL_VarArgs("[GunGame]: You need %d frags to reach level %s!\n",
+					UTIL_VarArgs("[GunGame] You need %d frags to reach level %s!\n",
 					((currentLevel+inc) * (int)ggfrags.value) - ((int)pAttacker->pev->frags+1), g_WeaponId[currentLevel+1]));
 			}
 		}
@@ -557,7 +557,7 @@ void CHalfLifeGunGame::PlayerSpawn( CBasePlayer *pPlayer )
 	int inc = 2;
 	currentLevel == 0 ? inc = 1 : 0; 
 
-	ClientPrint(pPlayer->pev, HUD_PRINTTALK, UTIL_VarArgs("[GunGame]: You need %d frags to reach level %s.\n",
+	ClientPrint(pPlayer->pev, HUD_PRINTTALK, UTIL_VarArgs("[GunGame] You need %d frags to reach level %s.\n",
 		((currentLevel+inc) * (int)ggfrags.value) - ((int)pPlayer->pev->frags), g_WeaponId[currentLevel+1]));
 
 	g_pGameRules->SpawnMutators(pPlayer);

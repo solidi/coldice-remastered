@@ -1093,7 +1093,7 @@ void CGameRules::AddInstantMutator(void)
 	switch (random)
 	{
 		case 0:
-			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators]: Nothing selected!\n");
+			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] Nothing selected!\n");
 			break;
 		case 1:
 			for (int i = 1; i <= gpGlobals->maxClients; i++)
@@ -1103,7 +1103,7 @@ void CGameRules::AddInstantMutator(void)
 				if (pPlayer && pPlayer->IsPlayer() && !pl->IsSpectator() && pl->IsAlive() && !pl->HasDisconnected)
 					pPlayer->pev->health += 1;
 			}
-			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators]: +1 health!\n");
+			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] +1 health!\n");
 			break;
 		case 2:
 			for (int i = 1; i <= gpGlobals->maxClients; i++)
@@ -1126,7 +1126,7 @@ void CGameRules::AddInstantMutator(void)
 					}
 				}
 			}
-			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators]: Swap health and armor!\n");
+			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] Swap health and armor!\n");
 			break;
 		case 3:
 			for (int i = 1; i <= gpGlobals->maxClients; i++)
@@ -1136,7 +1136,7 @@ void CGameRules::AddInstantMutator(void)
 				if (pPlayer && pPlayer->IsPlayer() && !pl->IsSpectator() && pl->IsAlive() && !pl->HasDisconnected)
 					pPlayer->pev->health += 100;
 			}
-			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators]: +100 health!\n");
+			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] +100 health!\n");
 			break;
 		case 4:
 			for (int i = 1; i <= gpGlobals->maxClients; i++)
@@ -1146,7 +1146,7 @@ void CGameRules::AddInstantMutator(void)
 				if (pPlayer && pPlayer->IsPlayer() && !pl->IsSpectator() && pl->IsAlive() && !pl->HasDisconnected)
 					pPlayer->pev->armorvalue += 100;
 			}
-			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators]: +100 armor!\n");
+			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] +100 armor!\n");
 			break;
 		case 5:
 			for (int i = 1; i <= gpGlobals->maxClients; i++)
@@ -1157,7 +1157,7 @@ void CGameRules::AddInstantMutator(void)
 					&& !pl->HasDisconnected && !FBitSet(pPlayer->pev->flags, FL_GODMODE))
 					pPlayer->pev->health = pPlayer->pev->health = 1;
 			}
-			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators]: 1 health!\n");
+			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] 1 health!\n");
 			break;
 		case 6:
 			for (int i = 1; i <= gpGlobals->maxClients; i++)
@@ -1170,7 +1170,7 @@ void CGameRules::AddInstantMutator(void)
 					pPlayer->pev->armorvalue = 69;
 				}
 			}
-			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators]: Nice!\n");
+			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] Nice!\n");
 			break;
 		case 7:
 			for (int i = 1; i <= gpGlobals->maxClients; i++)
@@ -1184,7 +1184,7 @@ void CGameRules::AddInstantMutator(void)
 					pPlayer->pev->armorvalue = 67;
 				}
 			}
-			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators]: Six, seeeeven!\n");
+			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] Six, seeeeven!\n");
 			break;
 		case 8:
 			for (int i = 1; i <= gpGlobals->maxClients; ++i)
@@ -1206,7 +1206,7 @@ void CGameRules::AddInstantMutator(void)
 					CGrenade::ShootTimed(pPlayer->pev, org, vel, RANDOM_FLOAT(2.0f, 4.0f));
 				}
 			}
-			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators]: Hot potato!\n");
+			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] Hot potato!\n");
 			break;
 		case 9:
 			for (int i = 1; i <= gpGlobals->maxClients; ++i)
@@ -1217,7 +1217,7 @@ void CGameRules::AddInstantMutator(void)
 					&& !pl->HasDisconnected && !FBitSet(pPlayer->pev->flags, FL_GODMODE))
 					pPlayer->TakeDamage(VARS(eoNullEntity), VARS(eoNullEntity), RANDOM_FLOAT(10.0f, 20.0f), DMG_SLASH);
 			}
-			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators]: Random damage!\n");
+			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] Random damage!\n");
 			break;
 		case 10:
 			for (int i = 1; i <= gpGlobals->maxClients; ++i)
@@ -1243,7 +1243,7 @@ void CGameRules::AddInstantMutator(void)
 					}
 				}
 			}
-			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators]: Tripmine!\n");
+			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] Tripmine!\n");
 			break;
 		case 11:
 			for (int i = 1; i <= gpGlobals->maxClients; ++i)
@@ -1276,7 +1276,7 @@ void CGameRules::AddInstantMutator(void)
 					}
 				}
 			}
-			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators]: Pet Snark!\n");
+			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] Pet Snark!\n");
 			break;
 		case 12:
 			if (!g_pGameRules->MutatorAllowed("chumxplode"))
@@ -1312,7 +1312,7 @@ void CGameRules::AddInstantMutator(void)
 					}
 				}
 			}
-			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators]: Pet Chumtoad!\n");
+			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] Pet Chumtoad!\n");
 			break;
 		case 13:
 			for (int i = 1; i <= gpGlobals->maxClients; ++i)
@@ -1344,7 +1344,7 @@ void CGameRules::AddInstantMutator(void)
 					}
 				}
 			}
-			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators]: Human assassin!\n");
+			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] Human assassin!\n");
 			break;
 	}
 

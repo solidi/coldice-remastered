@@ -99,7 +99,7 @@ void CHalfLifeJesusVsSanta::DetermineWinner( void )
 			}
 
 			UTIL_ClientPrintAll(HUD_PRINTCENTER, "Numerous victors!");
-			UTIL_ClientPrintAll(HUD_PRINTTALK, "* Round ends with winners!\n");
+			UTIL_ClientPrintAll(HUD_PRINTTALK, "[JvS] Round ends with winners!\n");
 			MESSAGE_BEGIN(MSG_BROADCAST, gmsgObjective);
 				WRITE_STRING("JVS Completed!");
 				WRITE_STRING(UTIL_VarArgs("%s win!", pArmoredMan && pArmoredMan->IsAlive() ? "Jesus" : "Santas"));
@@ -111,7 +111,7 @@ void CHalfLifeJesusVsSanta::DetermineWinner( void )
 	else
 	{
 		UTIL_ClientPrintAll(HUD_PRINTCENTER, "Round is over!\nNo one has won!\n");
-		UTIL_ClientPrintAll(HUD_PRINTTALK, "* Round ends with no winners!\n");
+		UTIL_ClientPrintAll(HUD_PRINTTALK, "[JvS] Round ends with no winners!\n");
 		MESSAGE_BEGIN(MSG_BROADCAST, gmsgObjective);
 			WRITE_STRING("JVS Completed!");
 			WRITE_STRING("");
@@ -319,18 +319,18 @@ void CHalfLifeJesusVsSanta::Think( void )
 
 	int clients = CheckClients();
 
+	if ( m_fWaitForPlayersTime == -1 )
+	{
+		m_fWaitForPlayersTime = gpGlobals->time + roundwaittime.value;
+		RemoveAndFillItems();
+		extern void ClearBodyQue();
+		ClearBodyQue();
+		MESSAGE_BEGIN( MSG_ALL, gmsgDEraser );
+		MESSAGE_END();
+	}
+
 	if ( clients > 1 )
 	{
-		if ( m_fWaitForPlayersTime == -1 )
-		{
-			m_fWaitForPlayersTime = gpGlobals->time + roundwaittime.value;
-			RemoveAndFillItems();
-			extern void ClearBodyQue();
-			ClearBodyQue();
-			MESSAGE_BEGIN( MSG_ALL, gmsgDEraser );
-			MESSAGE_END();
-		}
-
 		if ( m_fWaitForPlayersTime > gpGlobals->time )
 		{
 			SuckAllToSpectator();
@@ -406,7 +406,7 @@ void CHalfLifeJesusVsSanta::Think( void )
 			WRITE_STRING( "santa" );
 		MESSAGE_END();
 
-		UTIL_ClientPrintAll(HUD_PRINTTALK, UTIL_VarArgs("* %d players have entered the arena!\n", clients));
+		UTIL_ClientPrintAll(HUD_PRINTTALK, UTIL_VarArgs("[JvS] %d players have entered the arena!\n", clients));
 	}
 	else
 	{
@@ -595,7 +595,7 @@ void CHalfLifeJesusVsSanta::PlayerKilled( CBasePlayer *pVictim, entvars_t *pKill
 			}
 		}
 		UTIL_ClientPrintAll(HUD_PRINTTALK,
-			UTIL_VarArgs("* %s has been eliminated! %d Santas remain!\n",
+			UTIL_VarArgs("[JvS] %s has been eliminated! %d Santas remain!\n",
 			STRING(pVictim->pev->netname), clientsLeft > 0 ? clientsLeft - 1 : 0));
 		if (clientsLeft > 1)
 		{

@@ -496,7 +496,9 @@ void CBasePlayer :: TraceAttack( entvars_t *pevAttacker, float flDamage, Vector 
 
 		if (pAttacker && pAttacker->IsPlayer())
 		{
-			pLastAssist = pAttacker;
+			// Set the assist if the player is not the killing blow
+			if (flDamage < pev->health)
+				pLastAssist = pAttacker;
 		}
 
 		if ( pAttacker->IsPlayer() && pAttacker->m_fHasRune == RUNE_VAMPIRE && (pVictim != pAttacker) )
@@ -908,19 +910,22 @@ void CBasePlayer::PackDeadPlayerItems( void )
 				switch ( iAmmoRules )
 				{
 				case GR_PLR_DROP_AMMO_ALL:
-					iPackAmmo[ iPA++ ] = i;
+					if ( iPA < MAX_AMMO_SLOTS )
+						iPackAmmo[ iPA++ ] = i;
 					break;
 
 				case GR_PLR_DROP_AMMO_ACTIVE:
 					if ( m_pActiveItem && i == m_pActiveItem->PrimaryAmmoIndex() ) 
 					{
 						// this is the primary ammo type for the active weapon
-						iPackAmmo[ iPA++ ] = i;
+						if ( iPA < MAX_AMMO_SLOTS )
+							iPackAmmo[ iPA++ ] = i;
 					}
 					else if ( m_pActiveItem && i == m_pActiveItem->SecondaryAmmoIndex() ) 
 					{
 						// this is the secondary ammo type for the active weapon
-						iPackAmmo[ iPA++ ] = i;
+						if ( iPA < MAX_AMMO_SLOTS )
+							iPackAmmo[ iPA++ ] = i;
 					}
 					break;
 
@@ -997,9 +1002,11 @@ void CBasePlayer::PackDeadPlayerItems( void )
 			else
 			{
 			// pack the ammo
-				while ( iPackAmmo[ iPA ] != -1 )
+				while ( iPA < MAX_AMMO_SLOTS && iPackAmmo[ iPA ] != -1 )
 				{
-					pWeaponBox->PackAmmo( MAKE_STRING( CBasePlayerItem::AmmoInfoArray[ iPackAmmo[ iPA ] ].pszName ), m_rgAmmo[ iPackAmmo[ iPA ] ] );
+					const char* psz = CBasePlayerItem::AmmoInfoArray[iPackAmmo[iPA]].pszName;
+					if (psz && psz[0])
+						pWeaponBox->PackAmmo( MAKE_STRING( CBasePlayerItem::AmmoInfoArray[ iPackAmmo[ iPA ] ].pszName ), m_rgAmmo[ iPackAmmo[ iPA ] ] );
 					iPA++;
 				}
 

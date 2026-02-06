@@ -738,6 +738,7 @@ public:
 	int Init( void );
 	int VidInit( void );
 	int Draw(float fTime);
+	void FVoxTimerCallOut(int seconds, int minutes);
 	int MsgFunc_RoundTime(const char *pszName, int iSize, void *pbuf);
 	int MsgFunc_ShowTimer(const char *pszName, int iSize, void *pbuf);
 
@@ -747,6 +748,7 @@ private:
 	float m_fStartTime;
 	bool m_bPanicColorChange;
 	float m_flPanicTime;
+	int m_iLastSoundSecond;
 };
 
 class CHudBanner : public CHudBase

@@ -246,7 +246,7 @@ void CHalfLifeColdSpot::InitHUD( CBasePlayer *pPlayer )
 	MESSAGE_END();
 
 	char text[64];
-	sprintf( text, "[ColdSpot]: You're on team \'%s\'\n", pPlayer->m_szTeamName );
+	sprintf( text, "[ColdSpot] You're on team \'%s\'\n", pPlayer->m_szTeamName );
 	UTIL_SayText( text, pPlayer );
 
 	// notify everyone's HUD of the team change
@@ -316,7 +316,7 @@ void CHalfLifeColdSpot::Think( void )
 		MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
 			WRITE_BYTE(CLIENT_SOUND_EBELL);
 		MESSAGE_END();
-		UTIL_ClientPrintAll(HUD_PRINTTALK, "[ColdSpot]: The cold spot has moved!\n");
+		UTIL_ClientPrintAll(HUD_PRINTTALK, "[ColdSpot] The cold spot has moved!\n");
 
 		if (!m_fColdSpotTime)
 			m_fSpawnColdSpot = 0;
@@ -378,21 +378,21 @@ void CHalfLifeColdSpot::ClientUserInfoChanged( CBasePlayer *pPlayer, char *infob
 	// prevent skin/color/model changes
 	if ( !stricmp( "red", pPlayer->m_szTeamName ) && !stricmp( "santa", mdls ) )
 	{
-		ClientPrint( pPlayer->pev, HUD_PRINTCONSOLE, "[ColdSpot]: You're on team '%s' To change, type 'model iceman'\n", pPlayer->m_szTeamName );
+		ClientPrint( pPlayer->pev, HUD_PRINTCONSOLE, "[ColdSpot] You're on team '%s' To change, type 'model iceman'\n", pPlayer->m_szTeamName );
 		return;
 	}
 	if ( !stricmp( "blue", pPlayer->m_szTeamName ) && !stricmp( "iceman", mdls ) )
 	{
-		ClientPrint( pPlayer->pev, HUD_PRINTCONSOLE, "[ColdSpot]: You're on team '%s' To change, type 'model santa'\n", pPlayer->m_szTeamName );
+		ClientPrint( pPlayer->pev, HUD_PRINTCONSOLE, "[ColdSpot] You're on team '%s' To change, type 'model santa'\n", pPlayer->m_szTeamName );
 		return;
 	}
 
 	if ( stricmp( mdls, "iceman" ) && stricmp( mdls, "santa" ) )
 	{
 		g_engfuncs.pfnSetClientKeyValue( clientIndex, g_engfuncs.pfnGetInfoKeyBuffer( pPlayer->edict() ), "model", (char *)(pPlayer->pev->fuser4 == TEAM_RED ? "santa" : "iceman") );
-		sprintf( text, "* Can't change team to \'%s\'\n", mdls );
+		sprintf( text, "[ColdSpot] Can't change team to \'%s\'\n", mdls );
 		UTIL_SayText( text, pPlayer );
-		sprintf( text, "* Server limits teams to \'%s\'\n", "iceman (blue), santa (red)" );
+		sprintf( text, "[ColdSpot] Server limits teams to \'%s\'\n", "iceman (blue), santa (red)" );
 		UTIL_SayText( text, pPlayer );
 		return;
 	}
@@ -423,7 +423,7 @@ void CHalfLifeColdSpot::ClientUserInfoChanged( CBasePlayer *pPlayer, char *infob
 	}
 
 	// notify everyone of the team change
-	sprintf( text, "[ColdSpot]: %s has changed to team \'%s\'\n", STRING(pPlayer->pev->netname), pPlayer->m_szTeamName );
+	sprintf( text, "[ColdSpot] %s has changed to team \'%s\'\n", STRING(pPlayer->pev->netname), pPlayer->m_szTeamName );
 	UTIL_SayTextAll( text, pPlayer );
 
 	// notify everyone's HUD of the team change

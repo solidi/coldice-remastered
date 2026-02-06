@@ -196,9 +196,9 @@ void CMultiplayBusters::PlayerKilled( CBasePlayer* pVictim, entvars_t* pKiller, 
 		if ( peKiller )
 		{
 			if ( pVictim != peKiller )
-				UTIL_ClientPrintAll( HUD_PRINTTALK, UTIL_VarArgs( "[Busters]: %s has killed the Buster!\n", STRING( (CBasePlayer*)peKiller->pev->netname ) ) );
+				UTIL_ClientPrintAll( HUD_PRINTTALK, UTIL_VarArgs( "[Busters] %s has killed the Buster!\n", STRING( (CBasePlayer*)peKiller->pev->netname ) ) );
 			else
-				UTIL_ClientPrintAll( HUD_PRINTTALK, UTIL_VarArgs( "[Busters]: %s died!\n", STRING( (CBasePlayer*)peKiller->pev->netname ) ) );
+				UTIL_ClientPrintAll( HUD_PRINTTALK, UTIL_VarArgs( "[Busters] %s died!\n", STRING( (CBasePlayer*)peKiller->pev->netname ) ) );
 		}
 
 		pVictim->pev->renderfx = kRenderFxNone;
@@ -355,6 +355,19 @@ void CMultiplayBusters::PlayerGotWeapon( CBasePlayer* pPlayer, CBasePlayerItem* 
 {
 	if ( pWeapon->m_iId == WEAPON_EGON )
 	{
+		// **FIX: Check if someone else is already busting**
+		for ( int i = 1; i <= gpGlobals->maxClients; i++ )
+		{
+			CBasePlayer* pOtherPlayer = (CBasePlayer*)UTIL_PlayerByIndex( i );
+			if ( pOtherPlayer && pOtherPlayer != pPlayer && IsPlayerBusting( pOtherPlayer ) )
+			{
+				// Someone else is already the buster, remove this egon
+				pPlayer->RemovePlayerItem( pWeapon );
+				pWeapon->Kill();
+				return;
+			}
+		}
+
 		// **FIX: Reset timer when egon is picked up**
 		m_flEgonBustingCheckTime = -1.0f;
 
@@ -363,7 +376,7 @@ void CMultiplayBusters::PlayerGotWeapon( CBasePlayer* pPlayer, CBasePlayerItem* 
 			return;
 
 		UTIL_ClientPrintAll( HUD_PRINTCENTER, "Long live the new Buster!" );
-		UTIL_ClientPrintAll( HUD_PRINTTALK, UTIL_VarArgs( "[Busters]: %s is busting!\n", STRING( (CBasePlayer*)pPlayer->pev->netname ) ) );
+		UTIL_ClientPrintAll( HUD_PRINTTALK, UTIL_VarArgs( "[Busters] %s is busting!\n", STRING( (CBasePlayer*)pPlayer->pev->netname ) ) );
 
 		if (pPlayer->m_iShowGameModeMessage == -1 && !FBitSet(pPlayer->pev->flags, FL_FAKECLIENT))
 		{

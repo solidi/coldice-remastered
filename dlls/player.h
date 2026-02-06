@@ -505,6 +505,9 @@ public:
 	int m_iBurstCount;
 	int m_iModeCount;
 	int m_iAmt;
+	int m_iAmtR;
+	int m_iAmtG;
+	int m_iAmtB;
 
 	BOOL m_iExitObserver;
 

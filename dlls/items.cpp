@@ -1220,11 +1220,19 @@ void CWorldRunes::DropRune(CBasePlayer *pPlayer) {
 
 	pPlayer->m_fHasRune = 0;
 	pPlayer->m_flRuneHealTime = 0;
-	if (!pPlayer->IsArmoredMan && !g_pGameRules->MutatorEnabled(MUTATOR_MEGASPEED))
+	BOOL isSkeleton = (g_pGameRules->IsShidden() && pPlayer->pev->fuser4 > 0); 
+	if (!pPlayer->IsArmoredMan &&
+		!g_pGameRules->MutatorEnabled(MUTATOR_MEGASPEED) &&
+		!isSkeleton)
 		g_engfuncs.pfnSetPhysicsKeyValue( pPlayer->edict(), "haste", "0" );
-	pPlayer->pev->rendermode = kRenderNormal;
-	pPlayer->pev->renderfx = kRenderFxNone;
-	pPlayer->pev->renderamt = 0;
+	if (!pPlayer->IsArmoredMan && 
+		!g_pGameRules->MutatorEnabled(MUTATOR_INVISIBLE) &&
+		!isSkeleton)
+	{
+		pPlayer->pev->rendermode = kRenderNormal;
+		pPlayer->pev->renderfx = kRenderFxNone;
+		pPlayer->pev->renderamt = 0;
+	}
 
 	UTIL_MakeVectors(pPlayer->pev->v_angle);
 	CRune *pRune = (CRune *)CBaseEntity::Create(sz_Rune, pPlayer->GetGunPosition( ) + gpGlobals->v_forward * 32, pPlayer->pev->angles, pPlayer->edict());

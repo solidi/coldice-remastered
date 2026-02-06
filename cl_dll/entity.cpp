@@ -514,6 +514,26 @@ void LoadTempViewModel(const char *modelName, int sequence)
 	pExtraModel->curstate.animtime = gEngfuncs.GetClientTime() + 0.01;
 	pExtraModel->curstate.effects |= EF_VIEWMODEL &~ EF_NODRAW;
 	pExtraModel->curstate.skin = gHUD.m_IceModelsIndex;
+	
+	cl_entity_t *player = gEngfuncs.GetLocalPlayer();
+	pExtraModel->curstate.rendercolor.r = player->curstate.rendercolor.r;
+	pExtraModel->curstate.rendercolor.g = player->curstate.rendercolor.g;
+	pExtraModel->curstate.rendercolor.b = player->curstate.rendercolor.b;
+	if ( player->curstate.renderfx == kRenderFxGlowShell )
+		pExtraModel->curstate.renderfx = kRenderFxGlowShell;
+	else
+		pExtraModel->curstate.renderfx = kRenderFxNone;
+	if ( player->curstate.rendermode == kRenderTransAlpha )
+	{
+		pExtraModel->curstate.renderfx = kRenderFxNone;
+		pExtraModel->curstate.rendermode = kRenderTransAdd;
+		pExtraModel->curstate.renderamt = 255;
+	}
+	else
+	{
+		pExtraModel->curstate.rendermode = kRenderNormal;
+		pExtraModel->curstate.renderamt = fmin(fmax(player->curstate.renderamt, 0), 10);
+	}
 
 	float multipler = GetWeaponMultipler();
 	float fps = pseqdesc->fps / multipler;
