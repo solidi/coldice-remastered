@@ -38,6 +38,10 @@ CHalfLifeJesusVsSanta::CHalfLifeJesusVsSanta()
 {
 	pArmoredMan = NULL;
 	PauseMutators();
+
+	m_iJesusPoolSize = 0;
+	m_bJesusPoolNeedsRefresh = TRUE;
+	memset(m_iJesusPool, 0, sizeof(m_iJesusPool));
 }
 
 void CHalfLifeJesusVsSanta::DetermineWinner( void )
@@ -367,13 +371,54 @@ void CHalfLifeJesusVsSanta::Think( void )
 			return;
 		}
 
-		ALERT(at_console, "Players in arena:\n");
-
 		//frags + time.
 		SetRoundLimits();
 
-		int armoredman = m_iPlayersInArena[RANDOM_LONG(0, clients-1)];
-		ALERT(at_console, "clients set to %d, armor man set to index=%d\n", clients, armoredman);
+		// **NEW: Build/refresh the Jesus candidate pool**
+		if (m_iJesusPoolSize == 0 || m_bJesusPoolNeedsRefresh)
+		{
+			m_iJesusPoolSize = 0;
+			for (int i = 0; i < clients; i++)
+			{
+				int playerIndex = m_iPlayersInArena[i];
+				CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex(playerIndex);
+				
+				// Only add valid, connected players
+				if (plr && plr->IsPlayer() && !plr->HasDisconnected)
+				{
+					m_iJesusPool[m_iJesusPoolSize] = playerIndex;
+					m_iJesusPoolSize++;
+				}
+			}
+			m_bJesusPoolNeedsRefresh = FALSE;
+			
+			if (m_iJesusPoolSize == 0)
+			{
+				ALERT(at_console, "ERROR: No valid players for Jesus pool!\n");
+				return;
+			}
+			
+			ALERT(at_console, "Jesus pool refreshed with %d candidates\n", m_iJesusPoolSize);
+		 }
+
+		// **NEW: Select Jesus from the pool and remove them**
+		int poolIndex = RANDOM_LONG(0, m_iJesusPoolSize - 1);
+		int armoredman = m_iJesusPool[poolIndex];
+		
+		// Remove selected player from pool by swapping with last element
+		m_iJesusPool[poolIndex] = m_iJesusPool[m_iJesusPoolSize - 1];
+		m_iJesusPoolSize--;
+		
+		// If pool is exhausted, mark for refresh next round
+		if (m_iJesusPoolSize == 0)
+		{
+			ALERT(at_console, "Jesus pool exhausted, will refresh next round\n");
+			m_bJesusPoolNeedsRefresh = TRUE;
+		}
+		
+		ALERT(at_console, "clients set to %d, armor man set to index=%d (pool remaining: %d)\n", 
+			clients, armoredman, m_iJesusPoolSize);
+			
 		for ( int i = 1; i <= gpGlobals->maxClients; i++ )
 		{
 			CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
@@ -719,4 +764,19 @@ BOOL CHalfLifeJesusVsSanta::IsRoundBased( void )
 BOOL CHalfLifeJesusVsSanta::IsTeamplay( void )
 {
 	return TRUE;
+}
+
+BOOL CHalfLifeJesusVsSanta::ClientConnected( edict_t *pEntity, const char *pszName, const char *pszAddress, char szRejectReason[ 128 ] )
+{
+	m_bJesusPoolNeedsRefresh = TRUE;
+
+	return CHalfLifeMultiplay::ClientConnected( pEntity, pszName, pszAddress, szRejectReason);
+}
+
+void CHalfLifeJesusVsSanta::ClientDisconnected( edict_t *pClient )
+{
+	// **Mark pool for refresh when a player disconnects**
+	m_bJesusPoolNeedsRefresh = TRUE;
+		
+	CHalfLifeMultiplay::ClientDisconnected(pClient);
 }

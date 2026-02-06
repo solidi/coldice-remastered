@@ -38,7 +38,14 @@ public:
 	virtual BOOL IsRoundBased( void );
 	virtual void DetermineWinner( void );
 	virtual BOOL IsTeamplay( void );
+	virtual BOOL ClientConnected( edict_t *pEntity, const char *pszName, const char *pszAddress, char szRejectReason[ 128 ] );
+	virtual void ClientDisconnected( edict_t *pClient );
 
 private:
 	CBasePlayer *pArmoredMan;
+	
+	// **NEW: Jesus selection pool**
+	int m_iJesusPool[32];           // Pool of player indices eligible to be Jesus
+	int m_iJesusPoolSize;           // Current size of the pool
+	BOOL m_bJesusPoolNeedsRefresh;  // Flag to rebuild pool when exhausted or players change
 };
