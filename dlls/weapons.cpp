@@ -1023,6 +1023,10 @@ void CBasePlayerItem::DefaultTouch( CBaseEntity *pOther )
 			UTIL_Remove( this );
 		}
 
+		// Prop Hunt: Prevent weapon pickup if currently disguised
+		if (g_pGameRules->IsPropHunt() && pPlayer->pev->fuser4 > 0)
+			return;
+
 		if ( pPlayer->pev->deadflag == DEAD_NO )
 		{
 			ProvideDualItem(pPlayer, STRING(this->pev->classname));
