@@ -1257,6 +1257,21 @@ void CBasePlayer::SetAnimation( PLAYER_ANIM playerAnim )
 	float speed;
 	char szAnim[64];
 
+	if (g_pGameRules->IsPropHunt() && pev->fuser4 > 0)
+	{
+		int maxWeaponModels = 52; //dual handg
+		int ideal = pev->fuser4 >= maxWeaponModels ? ((pev->fuser4 - maxWeaponModels) * 2) + floatingweapons.value : (pev->fuser4 * 2) + floatingweapons.value;
+		if (pev->sequence == ideal)
+		{
+			return;
+		}
+
+		pev->sequence = ideal;
+		pev->frame = 0;
+		ResetSequenceInfo( );
+		return;
+	}
+
 	speed = pev->velocity.Length2D();
 
 	if (pev->flags & FL_FROZEN)
@@ -1403,20 +1418,6 @@ void CBasePlayer::SetAnimation( PLAYER_ANIM playerAnim )
 			m_IdealActivity = ACT_WALK;
 		}
 		break;
-	}
-
-	if (g_pGameRules->IsPropHunt() && pev->fuser4 > 0)
-	{
-		int maxWeaponModels = 52; //dual handg
-		int ideal = pev->fuser4 >= maxWeaponModels ? ((pev->fuser4 - maxWeaponModels) * 2) + floatingweapons.value : (pev->fuser4 * 2) + floatingweapons.value;
-		if (pev->sequence == ideal)
-			return;
-
-		pev->sequence = ideal;
-		pev->framerate = 1.0;
-		pev->gaitsequence = 0;
-		ResetSequenceInfo( );
-		return;
 	}
 
 	switch (m_IdealActivity)

@@ -2103,6 +2103,8 @@ int CStudioModelRenderer::StudioDrawPlayer( int flags, entity_state_t *pplayer )
 		m_pCurrentEntity->curstate.skin = gHUD.m_IceModelsIndex;
 		m_pCurrentEntity->origin[2] = m_pCurrentEntity->origin[2] - 36;
 		m_pCurrentEntity->angles = Vector(0,0,0);
+		m_pCurrentEntity->curstate.animtime = 0;
+		m_pCurrentEntity->curstate.gaitsequence = 0;
 	}
 
 	if (pplayer->gaitsequence)

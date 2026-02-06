@@ -784,6 +784,7 @@ void CHalfLifePropHunt::PlayerSpawn( CBasePlayer *pPlayer )
 		strncpy( pPlayer->m_szTeamName, "props", TEAM_NAME_LENGTH );
 		pPlayer->pev->health = 1;
 		pPlayer->pev->armorvalue = 0;
+		pPlayer->pev->gaitsequence = 0;
 		pPlayer->GiveNamedItem("weapon_handgrenade");
 		CLIENT_COMMAND(pPlayer->edict(), "thirdperson\n");
 	}
