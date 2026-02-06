@@ -1027,44 +1027,60 @@ mutators_t *CGameRules::GetMutators()
 
 void CGameRules::AddRandomMutator(const char *cvarName, BOOL withBar, BOOL three)
 {
-	int attempts = 0;
 	int adjcount = fmin(fmax(mutatorcount.value, 0), 7);
 	int mutatorTime = fmin(fmax(mutatortime.value, 10), 120);
 	float choasIncrement = mutatorTime;
 
-	while (attempts < adjcount)
+	if (m_iMutatorPoolSize <= 0 || (m_iMutatorPoolSize >= MAX_MUTATORS))
 	{
-		int index = RANDOM_LONG(1,(int)ARRAYSIZE(g_szMutators) - 1);
-		const char *tryIt = g_szMutators[index];
-
-		// If gamerules disallows it
-		if (!g_pGameRules->MutatorAllowed(tryIt))
+		// Build the initial pool of all available mutators
+		m_iMutatorPoolSize = 0;
+		for (int i = 1; i < (int)ARRAYSIZE(g_szMutators); i++)
 		{
-			attempts++;
-			continue;
+			// Check if this mutator is allowed by gamerules and not filtered
+			if (g_pGameRules->MutatorAllowed(g_szMutators[i]) &&
+				(strlen(chaosfilter.string) < 2 || !strstr(chaosfilter.string, g_szMutators[i])))
+			{
+				m_iMutatorPool[m_iMutatorPoolSize] = i;
+				m_iMutatorPoolSize++;
+			}
 		}
+		
+		// If pool is empty, nothing we can do
+		if (m_iMutatorPoolSize == 0)
+		{
+			ALERT(at_console, "[Mutators] No mutators available in pool\n");
+			return;
+		}
+		
+		ALERT(at_console, "[Mutators] Initialized pool with %d available mutators\n", m_iMutatorPoolSize);
+	}
 
-		// If already loaded
+	int attempts = 0;
+	int maxAttempts = m_iMutatorPoolSize * 2; // Give reasonable attempts
+
+	while (attempts < maxAttempts && m_iMutatorPoolSize > 0)
+	{
+		// Pick a random index from the current pool
+		int poolIndex = RANDOM_LONG(0, m_iMutatorPoolSize - 1);
+		int mutatorIndex = m_iMutatorPool[poolIndex];
+		const char *tryIt = g_szMutators[mutatorIndex];
+
+		// Check if already loaded
 		if (strlen(addmutator.string) > 2 && strstr(addmutator.string, tryIt))
 		{
 			attempts++;
 			continue;
 		}
 
-		// If chaosfilter disallows it
-		if (strlen(chaosfilter.string) > 2 && strstr(chaosfilter.string, tryIt))
-		{
-			// ALERT(at_console, "Ignoring \"%s\", found in sv_chaosfilter\n", tryIt);
-			attempts++;
-			continue;
-		}
-
+		// Found a valid mutator, add it
 		cvar_t *cvarp = CVAR_GET_POINTER(cvarName);
 		char mutatorToAdd[512];
 		if (withBar || three)
-			sprintf(mutatorToAdd, "%s;", g_szMutators[index]);
+			sprintf(mutatorToAdd, "%s;", tryIt);
 		else
-			sprintf(mutatorToAdd, "%s253;", g_szMutators[index]);
+			sprintf(mutatorToAdd, "%s253;", tryIt);
+		
 		if (strlen(cvarp->string))
 		{
 			strcat(mutatorToAdd, cvarp->string);
@@ -1078,8 +1094,25 @@ void CGameRules::AddRandomMutator(const char *cvarName, BOOL withBar, BOOL three
 			MESSAGE_END();
 		}
 
-		break;
+		ALERT(at_console, "[Mutators] Selected '%s' from pool (remaining: %d)\n", tryIt, m_iMutatorPoolSize - 1);
+
+		// **Remove this mutator from the pool by swapping with last element**
+		m_iMutatorPool[poolIndex] = m_iMutatorPool[m_iMutatorPoolSize - 1];
+		m_iMutatorPoolSize--;
+
+		ALERT(at_console, ">>| [Mutators] Pool size is %d\n", m_iMutatorPoolSize);
+
+		// **If pool is exhausted, reset it**
+		if (m_iMutatorPoolSize == 0)
+		{
+			ALERT(at_console, ">>| [Mutators] Pool exhausted, resetting for next cycle\n");
+			m_iMutatorPoolSize = 0; // This will trigger rebuild on next call
+		}
+
+		return;
 	}
+
+	ALERT(at_console, "[Mutators] Failed to find valid mutator after %d attempts\n", attempts);
 }
 
 extern int gmsgPlayClientSound;
