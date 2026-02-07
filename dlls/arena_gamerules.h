@@ -30,4 +30,7 @@ public:
 
 private:
 	int m_iPlayer1, m_iPlayer2;
+	int m_iReigningChampion; // Player index of the current champion
+	int m_iOpponentPool[32]; // Pool of player indices available as opponents
+	int m_iOpponentPoolSize; // Current size of the opponent pool
 };

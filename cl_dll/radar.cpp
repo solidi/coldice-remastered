@@ -180,13 +180,15 @@ void CHudRadar::DrawEdgeIndicator(int centerX, int centerY, float angle, float d
 		special == RADAR_VIRUS ||
 		special == RADAR_HORDE ||
 		special == RADAR_FLAG_RED ||
-		special == RADAR_BASE_RED)
+		special == RADAR_BASE_RED ||
+		special == RADAR_ARENA_RED)
 	{
 		// Red for special targets (chumtoad, etc.)
 		r = 240; g = 0; b = 0;
 	}
 	else if (special == RADAR_TEAM_BLUE || special == RADAR_JESUS || 
-			 special == RADAR_FLAG_BLUE || special == RADAR_BASE_BLUE)
+			 special == RADAR_FLAG_BLUE || special == RADAR_BASE_BLUE ||
+			 special == RADAR_ARENA_BLUE)
 	{
 		// Blue
 		r = 0; g = 0; b = 240;
@@ -530,7 +532,8 @@ int CHudRadar::Draw(float flTime)
 			m_RadarInfo[index].special == RADAR_BUSTER ||
 			m_RadarInfo[index].special == RADAR_HORDE ||
 			m_RadarInfo[index].special == RADAR_FLAG_RED ||
-			m_RadarInfo[index].special == RADAR_BASE_RED)
+			m_RadarInfo[index].special == RADAR_BASE_RED ||
+			m_RadarInfo[index].special == RADAR_ARENA_RED)
 		{
 			if (gHUD.m_GameMode != GAME_ICEMAN &&
 				m_RadarInfo[index].special != RADAR_TEAM_RED)
@@ -541,7 +544,8 @@ int CHudRadar::Draw(float flTime)
 		if (m_RadarInfo[index].special == RADAR_TEAM_BLUE ||
 			m_RadarInfo[index].special == RADAR_JESUS ||
 			m_RadarInfo[index].special == RADAR_FLAG_BLUE ||
-			m_RadarInfo[index].special == RADAR_BASE_BLUE)
+			m_RadarInfo[index].special == RADAR_BASE_BLUE ||
+			m_RadarInfo[index].special == RADAR_ARENA_BLUE)
 		{
 			if (m_RadarInfo[index].special != RADAR_TEAM_BLUE)
 				size *= 2;
