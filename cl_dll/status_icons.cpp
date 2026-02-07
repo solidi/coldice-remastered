@@ -258,7 +258,7 @@ void CHudStatusIcons::DrawMutators( void )
 	{
 		// because chaos is 0 or 1
 		int id = mutatorId + 1;
-		ToggleMutatorIcon(id, sMutators[mutatorId]);
+		ToggleMutatorIcon(id, sMutators[mutatorId].name);
 	}
 }
 
