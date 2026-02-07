@@ -645,7 +645,7 @@ void CHalfLifePropHunt::Think( void )
 			player[i] = tmp;
 		}
 
-		m_fUnFreezeHunters = gpGlobals->time + 30.0;
+		m_fUnFreezeHunters = gpGlobals->time + prophunttime.value;
 
 		for ( int i = 0; i < count; i++ )
 		{
