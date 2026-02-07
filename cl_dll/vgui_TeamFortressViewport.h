@@ -1814,6 +1814,7 @@ class CVoteMutatorPanel : public CMenuPanel
 {
 private:
 	CTFScrollPanel		*m_pScrollPanel;
+	LineBorder			*m_pScrollPanelBorder;
 	ColorButton			*m_pButtons[MAX_MUTATORS];
 	Label 				*pTitleLabel;
 

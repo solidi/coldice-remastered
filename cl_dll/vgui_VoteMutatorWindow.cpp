@@ -1,6 +1,10 @@
 
 #include "VGUI_Font.h"
+#include "VGUI_ScrollPanel.h"
+#include "VGUI_ScrollBar.h"
 #include <VGUI_TextImage.h>
+#include <VGUI_Scheme.h>
+#include <VGUI_App.h>
 
 #include "hud.h"
 #include "cl_util.h"
@@ -18,14 +22,14 @@
 #include "vgui_ServerBrowser.h"
 
 // Menu Dimensions
-#define MUTATORMENU_TITLE_X				XRES(40)
+#define MUTATORMENU_TITLE_X				XRES(80)
 #define MUTATORMENU_TITLE_Y				YRES(32)
-#define MUTATORMENU_SCROLL_X			XRES(40)
+#define MUTATORMENU_SCROLL_X			XRES(80)
 #define MUTATORMENU_SCROLL_Y			YRES(80)
-#define MUTATORMENU_SCROLL_WIDE			XRES(560)
+#define MUTATORMENU_SCROLL_WIDE			XRES(480)
 #define MUTATORMENU_SCROLL_TALL			YRES(340)
 #define MUTATORMENU_NUM_COLUMNS			2
-#define MUTATORMENU_BUTTON_SIZE_X		XRES(268)
+#define MUTATORMENU_BUTTON_SIZE_X		XRES(222)
 #define MUTATORMENU_BUTTON_SIZE_Y		YRES(36)
 #define MUTATORMENU_BUTTON_SPACER_Y		YRES(4)
 #define MUTATORMENU_BUTTON_SPACER_X		XRES(8)
@@ -59,7 +63,8 @@ CVoteMutatorPanel::CVoteMutatorPanel(int iTrans, int iRemoveMe, int x,int y,int 
 	m_pScrollPanel->setParent(this);
 	m_pScrollPanel->setScrollBarAutoVisible(true, true);
 	m_pScrollPanel->setScrollBarVisible(false, true);
-	m_pScrollPanel->setBorder( new LineBorder( Color(r, g, b, 0)) );
+	m_pScrollPanelBorder = new LineBorder( Color(r, g, b, 255) );
+	m_pScrollPanel->setBorder( m_pScrollPanelBorder );
 	m_pScrollPanel->validate();
 
 	// Create the buttons inside scroll panel
@@ -111,7 +116,7 @@ CVoteMutatorPanel::CVoteMutatorPanel(int iTrans, int iRemoveMe, int x,int y,int 
 		m_pButtons[i]->setParent( m_pScrollPanel->getClient() );
 		
 		// Add subtitle label as a child of the button
-		Label *pSubtitle = new Label( "", XRES(10), MUTATORMENU_BUTTON_SIZE_Y - YRES(14) );
+		Label *pSubtitle = new Label( "", XRES(10), MUTATORMENU_BUTTON_SIZE_Y - YRES(16) );
 		pSubtitle->setParent( m_pButtons[i] );
 		pSubtitle->setFont( Scheme::sf_primary3 );
 		pSubtitle->setContentAlignment( vgui::Label::a_west );
@@ -197,6 +202,26 @@ void CVoteMutatorPanel::Update()
 		}
 	}
 
+	// Update scroll panel border and scrollbar colors (once per update, not per button)
+	int r, g, b, a = 0;
+	UnpackRGB(r, g, b, HudColor());
+	m_pScrollPanel->setBorder( new LineBorder( Color(r, g, b, 255) ) );
+	pTitleLabel->setFgColor(r, g, b, 0);
+	
+	// Update scheme colors for scrollbar components
+	Scheme* pScheme = App::getInstance()->getScheme();
+	pScheme->setColor(Scheme::sc_primary1, r, g, b, a);
+	pScheme->setColor(Scheme::sc_primary2, r, g, b, a);
+	pScheme->setColor(Scheme::sc_secondary1, r, g, b, a);
+	
+	// Force scrollbars to repaint with new colors
+	ScrollBar* pVerticalScrollBar = m_pScrollPanel->getVerticalScrollBar();
+	ScrollBar* pHorizontalScrollBar = m_pScrollPanel->getHorizontalScrollBar();
+	if (pVerticalScrollBar)
+		pVerticalScrollBar->repaint();
+	if (pHorizontalScrollBar)
+		pHorizontalScrollBar->repaint();
+
 	for ( int i = 0; i < MAX_MUTATORS; i++ )
 	{
 		if (m_pButtons[i])
@@ -210,10 +235,7 @@ void CVoteMutatorPanel::Update()
 				m_pButtons[i]->setArmed(true);
 			}
 
-			int r, g, b, a = 0;
-			UnpackRGB(r, g, b, HudColor());
 			m_pButtons[i]->setUnArmedColor(r, g, b, 0);
-			pTitleLabel->setFgColor( r, g, b, 0 );
 			if (votes[i] > 0)
 			{
 				m_pButtons[i]->setArmed(true);
