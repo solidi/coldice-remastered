@@ -1503,7 +1503,8 @@ int CStudioModelRenderer::StudioDrawModel( int flags )
 				m_pCurrentEntity->curstate.renderfx = kRenderFxGlowShell;
 			else
 				m_pCurrentEntity->curstate.renderfx = kRenderFxNone;
-			if ( pTarget->curstate.rendermode == kRenderTransAlpha )
+			if ( pTarget->curstate.rendermode == kRenderTransAlpha ||
+				pTarget->curstate.rendermode == kRenderTransAdd )
 			{
 				m_pCurrentEntity->curstate.renderfx = kRenderFxNone;
 				m_pCurrentEntity->curstate.rendermode = kRenderTransAdd;
