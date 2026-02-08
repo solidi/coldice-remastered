@@ -179,26 +179,24 @@ void CDisc::ReturnToThrower( void )
 	if (m_bDecapitate)
 	{
 		STOP_SOUND( edict(), CHAN_VOICE, "weapons/rocket1.wav" );
-		if ( !m_bRemoveSelf && m_hOwner )
+		if ( !m_bRemoveSelf )
 			((CBasePlayer*)(CBaseEntity*)m_hOwner)->GiveAmmo( MAX_DISCS, "disc", MAX_DISCS );
 	}
 	else
 	{
-		if ( !m_bRemoveSelf && m_hOwner )
+		if ( !m_bRemoveSelf )
 			((CBasePlayer*)(CBaseEntity*)m_hOwner)->GiveAmmo( 1, "disc", MAX_DISCS );
 	}
 
 	UTIL_Remove( this );
-	if (m_hOwner)
-		((CBasePlayer*)(CBaseEntity*)m_hOwner)->m_iFlyingDiscs -= 1;
-
+	((CBasePlayer*)(CBaseEntity*)m_hOwner)->m_iFlyingDiscs -= 1;
 }
 
 void CDisc::DiscTouch ( CBaseEntity *pOther )
 {
 	if ( pOther->IsAlive() )
 	{
-		if ( m_hOwner && ((CBaseEntity*)m_hOwner) == pOther )
+		if ( ((CBaseEntity*)m_hOwner) == pOther )
 		{
 			if (m_fDontTouchOwner < gpGlobals->time)
 			{
@@ -254,24 +252,21 @@ void CDisc::DiscTouch ( CBaseEntity *pOther )
 
 						UTIL_MakeVectors(pev->angles);
 						TraceResult tr;
-						entvars_t *pevOwner = NULL;
-						if (m_hOwner)
-							pevOwner = m_hOwner->pev;
 						Vector vecEnd = pev->origin + gpGlobals->v_forward * 32;
-						UTIL_TraceLine(pev->origin, vecEnd, dont_ignore_monsters, ENT(pevOwner), &tr);
+						UTIL_TraceLine(pev->origin, vecEnd, dont_ignore_monsters, ENT(m_hOwner->pev), &tr);
 
 						if (tr.iHitgroup == HITGROUP_HEAD)
 						{
 							extern entvars_t *g_pevLastInflictor;
 							g_pevLastInflictor = pev;
 							((CBasePlayer*)pOther)->pev->health = 0; // without this, player can walk as a ghost.
-							((CBasePlayer*)pOther)->Killed(pevOwner, GIB_NEVER);
+							((CBasePlayer*)pOther)->Killed(m_hOwner->pev, GIB_NEVER);
 						}
 						else
 						{
 							ClearMultiDamage();
-							pOther->TraceAttack(pevOwner, gSkillData.plrDmgCrowbar, gpGlobals->v_forward, &tr, DMG_SLASH);
-							ApplyMultiDamage(pev, pevOwner);
+							pOther->TraceAttack(m_hOwner->pev, gSkillData.plrDmgCrowbar, gpGlobals->v_forward, &tr, DMG_SLASH);
+							ApplyMultiDamage(pev, m_hOwner->pev);
 						}
 
 						m_fDontTouchEnemies = gpGlobals->time + 2.0;
@@ -283,14 +278,11 @@ void CDisc::DiscTouch ( CBaseEntity *pOther )
 				UTIL_MakeVectors(pev->angles);
 				TraceResult tr;
 				Vector vecEnd = pev->origin + gpGlobals->v_forward * 32;
-				entvars_t *pevOwner = NULL;
-				if (m_hOwner)
-					pevOwner = m_hOwner->pev;
-				UTIL_TraceLine(pev->origin, vecEnd, dont_ignore_monsters, ENT(pevOwner), &tr);
+				UTIL_TraceLine(pev->origin, vecEnd, dont_ignore_monsters, ENT(m_hOwner->pev), &tr);
 				
 				ClearMultiDamage();
-				pOther->TraceAttack(pevOwner, gSkillData.plrDmgCrowbar, gpGlobals->v_forward, &tr, DMG_SLASH);
-				ApplyMultiDamage(pev, pevOwner);
+				pOther->TraceAttack(m_hOwner->pev, gSkillData.plrDmgCrowbar, gpGlobals->v_forward, &tr, DMG_SLASH);
+				ApplyMultiDamage(pev, m_hOwner->pev);
 
 				m_fDontTouchEnemies = gpGlobals->time + 2.0;	
 			}
@@ -345,8 +337,7 @@ void CDisc::DiscThink()
 		{
 			STOP_SOUND( edict(), CHAN_VOICE, "weapons/rocket1.wav" );
 			UTIL_Remove( this );
-			if (m_hOwner)
-				((CBasePlayer*)(CBaseEntity*)m_hOwner)->m_iFlyingDiscs -= 1;
+			((CBasePlayer*)(CBaseEntity*)m_hOwner)->m_iFlyingDiscs -= 1;
 			return;
 		}
 
@@ -368,8 +359,7 @@ void CDisc::DiscThink()
 		else
 		{
 			UTIL_Remove( this );
-			if (m_hOwner)
-				((CBasePlayer*)(CBaseEntity*)m_hOwner)->m_iFlyingDiscs -= 1;
+			((CBasePlayer*)(CBaseEntity*)m_hOwner)->m_iFlyingDiscs -= 1;
 		}
 	}
 
