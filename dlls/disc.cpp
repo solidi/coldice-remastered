@@ -252,26 +252,27 @@ void CDisc::DiscTouch ( CBaseEntity *pOther )
 						if ( m_bTeleported )
 							((CBasePlayer*)pOther)->m_flLastDiscHitTeleport = gpGlobals->time;
 
-						UTIL_MakeVectors(pev->angles);
-						TraceResult tr;
-						entvars_t *pevOwner = NULL;
+						// Only do damage if owner still exists
 						if (m_hOwner)
-							pevOwner = m_hOwner->pev;
-						Vector vecEnd = pev->origin + gpGlobals->v_forward * 32;
-						UTIL_TraceLine(pev->origin, vecEnd, dont_ignore_monsters, ENT(pevOwner), &tr);
+						{
+							UTIL_MakeVectors(pev->angles);
+							TraceResult tr;
+							Vector vecEnd = pev->origin + gpGlobals->v_forward * 32;
+							UTIL_TraceLine(pev->origin, vecEnd, dont_ignore_monsters, ENT(m_hOwner->pev), &tr);
 
-						if (tr.iHitgroup == HITGROUP_HEAD)
-						{
-							extern entvars_t *g_pevLastInflictor;
-							g_pevLastInflictor = pev;
-							((CBasePlayer*)pOther)->pev->health = 0; // without this, player can walk as a ghost.
-							((CBasePlayer*)pOther)->Killed(pevOwner, GIB_NEVER);
-						}
-						else
-						{
-							ClearMultiDamage();
-							pOther->TraceAttack(pevOwner, gSkillData.plrDmgCrowbar, gpGlobals->v_forward, &tr, DMG_SLASH);
-							ApplyMultiDamage(pev, pevOwner);
+							if (tr.iHitgroup == HITGROUP_HEAD)
+							{
+								extern entvars_t *g_pevLastInflictor;
+								g_pevLastInflictor = pev;
+								((CBasePlayer*)pOther)->pev->health = 0; // without this, player can walk as a ghost.
+								((CBasePlayer*)pOther)->Killed(m_hOwner->pev, GIB_NEVER);
+							}
+							else
+							{
+								ClearMultiDamage();
+								pOther->TraceAttack(m_hOwner->pev, gSkillData.plrDmgCrowbar, gpGlobals->v_forward, &tr, DMG_SLASH);
+								ApplyMultiDamage(pev, m_hOwner->pev);
+							}
 						}
 
 						m_fDontTouchEnemies = gpGlobals->time + 2.0;
@@ -280,17 +281,18 @@ void CDisc::DiscTouch ( CBaseEntity *pOther )
 			}
 			else
 			{
-				UTIL_MakeVectors(pev->angles);
-				TraceResult tr;
-				Vector vecEnd = pev->origin + gpGlobals->v_forward * 32;
-				entvars_t *pevOwner = NULL;
+				// Only do damage if owner still exists
 				if (m_hOwner)
-					pevOwner = m_hOwner->pev;
-				UTIL_TraceLine(pev->origin, vecEnd, dont_ignore_monsters, ENT(pevOwner), &tr);
-				
-				ClearMultiDamage();
-				pOther->TraceAttack(pevOwner, gSkillData.plrDmgCrowbar, gpGlobals->v_forward, &tr, DMG_SLASH);
-				ApplyMultiDamage(pev, pevOwner);
+				{
+					UTIL_MakeVectors(pev->angles);
+					TraceResult tr;
+					Vector vecEnd = pev->origin + gpGlobals->v_forward * 32;
+					UTIL_TraceLine(pev->origin, vecEnd, dont_ignore_monsters, ENT(m_hOwner->pev), &tr);
+					
+					ClearMultiDamage();
+					pOther->TraceAttack(m_hOwner->pev, gSkillData.plrDmgCrowbar, gpGlobals->v_forward, &tr, DMG_SLASH);
+					ApplyMultiDamage(pev, m_hOwner->pev);
+				}
 
 				m_fDontTouchEnemies = gpGlobals->time + 2.0;	
 			}
