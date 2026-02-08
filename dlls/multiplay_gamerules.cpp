@@ -1094,6 +1094,7 @@ void CHalfLifeMultiplay::RemoveAndFillItems( void )
 		"rune_gravity",
 		"rune_cloak",
 		"rune_strength",
+		"disc",
 	};
 
 	CBaseEntity *pEntity = NULL;
@@ -2110,6 +2111,7 @@ void CHalfLifeMultiplay :: PlayerKilled( CBasePlayer *pVictim, entvars_t *pKille
 	if (g_pGameRules->FAllowMonsters())
 		DeactivateItems(pVictim, "monster_human_assassin");
 	DeactivatePortals( pVictim );
+	DeactivateItems(pVictim, "disc");
 #endif
 
 	if (m_iVolatile ||

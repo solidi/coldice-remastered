@@ -9,7 +9,7 @@ public:
 	void	Precache( void );
 	void	EXPORT DiscTouch( CBaseEntity *pOther );
 	void	EXPORT DiscThink( void );
-	static	CDisc *CreateDisc( Vector vecOrigin, Vector vecAngles, CBaseEntity *pOwner, bool bDecapitator, int iPowerupFlags );
+	static	CDisc *CreateDisc( Vector vecOrigin, Vector vecAngles, CBaseEntity *pOwner );
 
 	//void	SetObjectCollisionBox( void );
 	void	ReturnToThrower( void );
@@ -22,12 +22,6 @@ public:
 	EHANDLE		m_hOwner;		// Don't store in pev->owner, because it needs to hit its owner
 	int			m_iTrail;
 	int			m_iSpriteTexture;
-	bool		m_bDecapitate;	// True if this is a decapitating shot
-	bool		m_bRemoveSelf;  // True if the owner of this disc has died
-	int			m_iPowerupFlags;// Flags for any powerups active on this disc
-	bool		m_bTeleported;  // Disc has gone through a teleport
-
-	EHANDLE m_pLockTarget;
 	
 	Vector	m_vecActualVelocity;
 	Vector	m_vecSideVelocity;

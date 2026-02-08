@@ -473,6 +473,8 @@ Activity CBaseMonster :: GetDeathActivity ( void )
 		switch ( m_LastHitGroup )
 		{
 			case HITGROUP_HEAD:
+			case HITGROUP_GENERIC:
+			case HITGROUP_CHEST:
 				CGib::SpawnHeadGib( pev, TRUE );
 				SetBodygroup( 0, 1 );
 				deathActivity = ACT_DIE_HEADSHOT;

@@ -1214,7 +1214,7 @@ void CBasePlayerWeapon::ItemPostFrame( void )
 				m_pPlayer->SetAnimation( PLAYER_ATTACK1 );
 				Vector vecFireDir = m_pPlayer->pev->v_angle;
 				UTIL_MakeVectors( vecFireDir );
-				CDisc::CreateDisc( m_pPlayer->pev->origin + (m_pPlayer->pev->view_ofs) + gpGlobals->v_forward * 16, vecFireDir, m_pPlayer, FALSE, 0 );
+				CDisc::CreateDisc( m_pPlayer->pev->origin + (m_pPlayer->pev->view_ofs) + gpGlobals->v_forward * 16, vecFireDir, m_pPlayer);
 				EMIT_SOUND_DYN( m_pPlayer->edict(), CHAN_WEAPON, "weapons/cbar_miss1.wav", 1.0, ATTN_NORM, 0, 98 + RANDOM_LONG(0,3)); 
 
 				m_flNextPrimaryAttack = m_flNextSecondaryAttack =  UTIL_WeaponTimeBase() + 0.5;
@@ -1231,9 +1231,9 @@ void CBasePlayerWeapon::ItemPostFrame( void )
 				m_pPlayer->SetAnimation( PLAYER_ATTACK1 );
 				Vector vecFireDir = m_pPlayer->pev->v_angle;
 				UTIL_MakeVectors( vecFireDir );
-				CDisc::CreateDisc( m_pPlayer->pev->origin + m_pPlayer->pev->view_ofs + gpGlobals->v_forward * 16, vecFireDir, m_pPlayer, FALSE, 0 );
-				CDisc::CreateDisc( m_pPlayer->pev->origin + m_pPlayer->pev->view_ofs + gpGlobals->v_forward * 16 + gpGlobals->v_right * -24, vecFireDir, m_pPlayer, FALSE, 0 );
-				CDisc::CreateDisc( m_pPlayer->pev->origin + m_pPlayer->pev->view_ofs + gpGlobals->v_forward * 16 + gpGlobals->v_right * 24, vecFireDir, m_pPlayer, FALSE, 0 );
+				CDisc::CreateDisc( m_pPlayer->pev->origin + m_pPlayer->pev->view_ofs + gpGlobals->v_forward * 16, vecFireDir, m_pPlayer );
+				CDisc::CreateDisc( m_pPlayer->pev->origin + m_pPlayer->pev->view_ofs + gpGlobals->v_forward * 16 + gpGlobals->v_right * -24, vecFireDir, m_pPlayer );
+				CDisc::CreateDisc( m_pPlayer->pev->origin + m_pPlayer->pev->view_ofs + gpGlobals->v_forward * 16 + gpGlobals->v_right * 24, vecFireDir, m_pPlayer );
 				EMIT_SOUND_DYN( m_pPlayer->edict(), CHAN_WEAPON, "weapons/cbar_miss1.wav", 1.0, ATTN_NORM, 0, 98 + RANDOM_LONG(0,3)); 
 
 				m_flNextPrimaryAttack = m_flNextSecondaryAttack =  UTIL_WeaponTimeBase() + 0.5;
