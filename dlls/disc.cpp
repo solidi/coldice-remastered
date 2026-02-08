@@ -29,11 +29,10 @@
 // Disc trail colors
 float g_iaDiscColors[33][3] =
 {
-	{ 255, 255, 255, },
-	{ 250, 0, 0 },
-	{ 0, 0, 250 },
-	{ 0, 250, 0 },
-	{ 128, 128, 0 },
+	{ 0, 160, 255 },	// Cold Ice
+	{ 200, 90, 70 },	// Red
+	{ 225, 205, 45 },	// Yellow
+	{ 145, 215, 140 },	// Green
 	{ 128, 0, 128 },
 	{ 0, 128, 128 },
 	{ 128, 128, 128 },
@@ -61,6 +60,7 @@ float g_iaDiscColors[33][3] =
 	{ 128, 250, 64 },
 	{ 64, 128, 250 },
 	{ 128, 64, 250 },
+	{ 255, 255, 255 },
 };
 
 enum disc_e 
@@ -106,13 +106,7 @@ void CDisc::Spawn( void )
 	m_pLockTarget = NULL;
 
 	UTIL_MakeVectors( pev->angles );
-
-	// Fast powerup makes discs go faster
-	//if ( m_iPowerupFlags & POW_FAST )
-	//	pev->velocity = gpGlobals->v_forward * DISC_VELOCITY * 1.5;
-	//else
-		pev->velocity = gpGlobals->v_forward * DISC_VELOCITY;
-
+	pev->velocity = gpGlobals->v_forward * DISC_VELOCITY;
 	pev->angles = UTIL_VecToAngles(pev->velocity);
 
 	// Pull our owner out so we will still touch it
@@ -121,6 +115,11 @@ void CDisc::Spawn( void )
 	pev->owner = NULL;
 
 	// Trail
+	// Clamp team index to prevent array overflow
+	int teamIndex = pev->team;
+	if (teamIndex < 0 || teamIndex >= 33)
+		teamIndex = 0;
+
 	MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
 		WRITE_BYTE( TE_BEAMFOLLOW );
 		WRITE_SHORT(entindex());	// entity
@@ -133,9 +132,9 @@ void CDisc::Spawn( void )
 
 		WRITE_BYTE( 3 );  // width
 
-		WRITE_BYTE( g_iaDiscColors[pev->team][0] ); // r, g, b
-		WRITE_BYTE( g_iaDiscColors[pev->team][1] ); // r, g, b
-		WRITE_BYTE( g_iaDiscColors[pev->team][2] ); // r, g, b
+		WRITE_BYTE( g_iaDiscColors[teamIndex][0] ); // r, g, b
+		WRITE_BYTE( g_iaDiscColors[teamIndex][1] ); // r, g, b
+		WRITE_BYTE( g_iaDiscColors[teamIndex][2] ); // r, g, b
 
 		WRITE_BYTE( 250 );	// brightness
 	MESSAGE_END();
@@ -147,7 +146,13 @@ void CDisc::Spawn( void )
 	// Highlighter
 	pev->renderfx = kRenderFxGlowShell;
 	for (int i = 0; i <= 2;i ++)
-		pev->rendercolor[i] = g_iaDiscColors[pev->team][i];
+	{
+		// Clamp team index to prevent array overflow
+		int teamIndex = pev->team;
+		if (teamIndex < 0 || teamIndex >= 33)
+			teamIndex = 0;
+		pev->rendercolor[i] = g_iaDiscColors[teamIndex][i];
+	}
 	pev->renderamt = 10;
 
 	pev->nextthink = gpGlobals->time + 0.1;
@@ -167,14 +172,6 @@ void CDisc::Precache( void )
 	m_iTrail = PRECACHE_MODEL("sprites/smoke.spr");
 	m_iSpriteTexture = PRECACHE_MODEL( "sprites/lgtning.spr" );
 }
-
-/*
-void CDisc::SetObjectCollisionBox( void )
-{
-	pev->absmin = pev->origin + Vector( -8, -8, 8 );
-	pev->absmax = pev->origin + Vector( 8, 8, 8 );
-}
-*/
 
 // Give the disc back to it's owner
 void CDisc::ReturnToThrower( void )
@@ -197,8 +194,7 @@ void CDisc::ReturnToThrower( void )
 
 void CDisc::DiscTouch ( CBaseEntity *pOther )
 {
-	// Push players backwards
-	if ( pOther->IsPlayer() )
+	if ( pOther->IsAlive() )
 	{
 		if ( ((CBaseEntity*)m_hOwner) == pOther )
 		{
@@ -214,91 +210,81 @@ void CDisc::DiscTouch ( CBaseEntity *pOther )
 		}
 		else if ( m_fDontTouchEnemies < gpGlobals->time)
 		{
-			if ( pev->team != pOther->pev->team )
+			if (pOther->IsPlayer())
 			{
-				//((CBasePlayer*)pOther)->m_LastHitGroup = HITGROUP_GENERIC;
-
-				// Do freeze seperately so you can freeze and shatter a person with a single shot
-                /*
-				if ( m_iPowerupFlags & POW_FREEZE && ((CBasePlayer*)pOther)->m_iFrozen == FALSE )
+				if ( pev->team != pOther->pev->team )
 				{
-					// Freeze the player and make them glow blue
-					EMIT_SOUND_DYN( pOther->edict(), CHAN_WEAPON, "weapons/electro5.wav", 1.0, ATTN_NORM, 0, 98 + RANDOM_LONG(0,3)); 
-					((CBasePlayer*)pOther)->Freeze();
-
-					// If it's not a decap, return now. If it's a decap, continue to shatter
-					if ( !m_bDecapitate )
+					// Decap or push
+					if (m_bDecapitate)
 					{
+						// Decapitate!
+						if ( m_bTeleported )
+							((CBasePlayer*)pOther)->m_flLastDiscHitTeleport = gpGlobals->time;
+
+						m_fDontTouchEnemies = gpGlobals->time + 0.5;
+					}
+					else 
+					{
+						// Play thwack sound
+						switch( RANDOM_LONG(0,2) )
+						{
+						case 0:
+							EMIT_SOUND_DYN( pOther->edict(), CHAN_ITEM, "weapons/cbar_hitbod1.wav", 1.0, ATTN_NORM, 0, 98 + RANDOM_LONG(0,3)); 
+							break;
+						case 1:
+							EMIT_SOUND_DYN( pOther->edict(), CHAN_ITEM, "weapons/cbar_hitbod2.wav", 1.0, ATTN_NORM, 0, 98 + RANDOM_LONG(0,3)); 
+							break;
+						case 2:
+							EMIT_SOUND_DYN( pOther->edict(), CHAN_ITEM, "weapons/cbar_hitbod3.wav", 1.0, ATTN_NORM, 0, 98 + RANDOM_LONG(0,3)); 
+							break;
+						}
+
+						// Push the player
+						Vector vecDir = pev->velocity.Normalize();
+						pOther->pev->flags &= ~FL_ONGROUND;
+						((CBasePlayer*)pOther)->m_vecHitVelocity = vecDir * DISC_PUSH_MULTIPLIER;
+
+						((CBasePlayer*)pOther)->m_hLastPlayerToHitMe = m_hOwner;
+						((CBasePlayer*)pOther)->m_flLastDiscHit = gpGlobals->time;
+						((CBasePlayer*)pOther)->m_iLastDiscBounces = m_iBounces;
+						if ( m_bTeleported )
+							((CBasePlayer*)pOther)->m_flLastDiscHitTeleport = gpGlobals->time;
+
+						UTIL_MakeVectors(pev->angles);
+						TraceResult tr;
+						Vector vecEnd = pev->origin + gpGlobals->v_forward * 32;
+						UTIL_TraceLine(pev->origin, vecEnd, dont_ignore_monsters, ENT(m_hOwner->pev), &tr);
+
+						if (tr.iHitgroup == HITGROUP_HEAD)
+						{
+							extern entvars_t *g_pevLastInflictor;
+							g_pevLastInflictor = pev;
+							((CBasePlayer*)pOther)->pev->health = 0; // without this, player can walk as a ghost.
+							((CBasePlayer*)pOther)->Killed(m_hOwner->pev, GIB_NEVER);
+						}
+						else
+						{
+							ClearMultiDamage();
+							pOther->TraceAttack(m_hOwner->pev, gSkillData.plrDmgCrowbar, gpGlobals->v_forward, &tr, DMG_SLASH);
+							ApplyMultiDamage(pev, m_hOwner->pev);
+						}
+
 						m_fDontTouchEnemies = gpGlobals->time + 2.0;
-						return;
 					}
 				}
-                */
+			}
+			else
+			{
+				UTIL_MakeVectors(pev->angles);
+				TraceResult tr;
+				Vector vecEnd = pev->origin + gpGlobals->v_forward * 32;
+				UTIL_TraceLine(pev->origin, vecEnd, dont_ignore_monsters, ENT(m_hOwner->pev), &tr);
+				
+				ClearMultiDamage();
+				pOther->TraceAttack(m_hOwner->pev, gSkillData.plrDmgCrowbar, gpGlobals->v_forward, &tr, DMG_SLASH);
+				ApplyMultiDamage(pev, m_hOwner->pev);
 
-				// Decap or push
-				if (m_bDecapitate)
-				{
-					// Decapitate!
-					if ( m_bTeleported )
-						((CBasePlayer*)pOther)->m_flLastDiscHitTeleport = gpGlobals->time;
-					//((CBasePlayer*)pOther)->Decapitate( ((CBaseEntity*)m_hOwner)->pev );
-
-					m_fDontTouchEnemies = gpGlobals->time + 0.5;
-				}
-				else 
-				{
-					// Play thwack sound
-					switch( RANDOM_LONG(0,2) )
-					{
-					case 0:
-						EMIT_SOUND_DYN( pOther->edict(), CHAN_ITEM, "weapons/cbar_hitbod1.wav", 1.0, ATTN_NORM, 0, 98 + RANDOM_LONG(0,3)); 
-						break;
-					case 1:
-						EMIT_SOUND_DYN( pOther->edict(), CHAN_ITEM, "weapons/cbar_hitbod2.wav", 1.0, ATTN_NORM, 0, 98 + RANDOM_LONG(0,3)); 
-						break;
-					case 2:
-						EMIT_SOUND_DYN( pOther->edict(), CHAN_ITEM, "weapons/cbar_hitbod3.wav", 1.0, ATTN_NORM, 0, 98 + RANDOM_LONG(0,3)); 
-						break;
-					}
-
-					// Push the player
-					Vector vecDir = pev->velocity.Normalize();
-					pOther->pev->flags &= ~FL_ONGROUND;
-					((CBasePlayer*)pOther)->m_vecHitVelocity = vecDir * DISC_PUSH_MULTIPLIER;
-
-					// Shield flash only if the player isnt frozen
-                    /*
-					if ( ((CBasePlayer*)pOther)->m_iFrozen == false )
-					{
-						pOther->pev->renderfx = kRenderFxGlowShell;
-						pOther->pev->rendercolor.x = 255;
-						pOther->pev->renderamt = 150;
-					}
-                    */
-
-					((CBasePlayer*)pOther)->m_hLastPlayerToHitMe = m_hOwner;
-					((CBasePlayer*)pOther)->m_flLastDiscHit = gpGlobals->time;
-					((CBasePlayer*)pOther)->m_iLastDiscBounces = m_iBounces;
-					if ( m_bTeleported )
-						((CBasePlayer*)pOther)->m_flLastDiscHitTeleport = gpGlobals->time;
-
-					UTIL_MakeVectors(pev->angles);
-					TraceResult tr;
-					Vector vecEnd = pev->origin + gpGlobals->v_forward * 32;
-					UTIL_TraceLine(pev->origin, vecEnd, dont_ignore_monsters, ENT(m_hOwner->pev), &tr);
-					
-					ClearMultiDamage();
-					pOther->TraceAttack(m_hOwner->pev, gSkillData.plrDmgCrowbar, gpGlobals->v_forward, &tr, DMG_SLASH);
-					ApplyMultiDamage(pev, m_hOwner->pev);
-
-					if (tr.iHitgroup == HITGROUP_HEAD)
-					{
-						((CBasePlayer*)pOther)->pev->health = 0; // without this, player can walk as a ghost.
-						((CBasePlayer*)pOther)->Killed(m_hOwner->pev, GIB_NEVER);
-					}
-
-					m_fDontTouchEnemies = gpGlobals->time + 2.0;
-				}
+				m_fDontTouchEnemies = gpGlobals->time + 2.0;	
 			}
 		}
 	}
@@ -390,15 +376,14 @@ CDisc *CDisc::CreateDisc( Vector vecOrigin, Vector vecAngles, CBaseEntity *pOwne
 
 	UTIL_SetOrigin( pDisc->pev, vecOrigin );
 	pDisc->m_iPowerupFlags = iPowerupFlags;
-	// Hard shots always decapitate
-	//if ( pDisc->m_iPowerupFlags & POW_HARD )
-	//	pDisc->m_bDecapitate = TRUE;
-	//else
-		pDisc->m_bDecapitate = bDecapitator;
+	pDisc->m_bDecapitate = bDecapitator;
 
 	pDisc->pev->angles = vecAngles;
 	pDisc->pev->owner = pOwner->edict();
-	pDisc->pev->team = pOwner->entindex();//pOwner->pev->team;
+	if (pOwner->IsPlayer())
+		pDisc->pev->team = g_pGameRules->GetTeamIndex(((CBasePlayer *)pOwner)->m_szTeamName);
+	else
+		pDisc->pev->team = 0;
 	pDisc->pev->iuser4 = pOwner->pev->iuser4;
 
 	// Set the Group Info
