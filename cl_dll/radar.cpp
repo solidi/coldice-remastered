@@ -261,6 +261,17 @@ void CHudRadar::DrawEdgeIndicator(int centerX, int centerY, float angle, float d
 				FillRGBA(x + i, y - height / 2, 2, height, r, g, b, alpha);
 			}
 		}
+		
+		// Draw distance text - position based on arrow direction (only if > 12 ft)
+		char distText[16];
+		int distanceFeet = (int)(distance * 0.01904f * 3.28084f);
+		if (distanceFeet > 12)
+		{
+			sprintf(distText, "%d ft", distanceFeet);
+			int textHeight = gHUD.m_scrinfo.iCharHeight;
+			int textX = flip ? (x + 2) : (x + triSize + 2);  // When flipped (pointing left), text closer to arrow base
+			gHUD.DrawHudString(textX, y - textHeight / 2, ScreenWidth, distText, r, g, b);
+		}
 	}
 	else if (edgeXInt > ScreenWidth * 3 / 4)
 	{
@@ -282,6 +293,18 @@ void CHudRadar::DrawEdgeIndicator(int centerX, int centerY, float angle, float d
 				int height = (i * EDGE_INDICATOR_SIZE_HEIGHT) / triSize;
 				FillRGBA(x - i, y - height / 2, 2, height, r, g, b, alpha);
 			}
+		}
+		
+		// Draw distance text - position based on arrow direction (only if > 12 ft)
+		char distText[16];
+		int distanceFeet = (int)(distance * 0.01904f * 3.28084f);
+		if (distanceFeet > 12)
+		{
+			sprintf(distText, "%d ft", distanceFeet);
+			int textWidth = gHUD.m_scrinfo.charWidths['0'] * strlen(distText);
+			int textHeight = gHUD.m_scrinfo.iCharHeight;
+			int textX = flip ? (x - textWidth - 2) : (x - triSize - textWidth - 2);  // When flipped (pointing right), text closer to arrow base
+			gHUD.DrawHudString(textX, y - textHeight / 2, ScreenWidth, distText, r, g, b);
 		}
 	}
 	else if (edgeYInt < ScreenHeight / 4)
@@ -305,6 +328,17 @@ void CHudRadar::DrawEdgeIndicator(int centerX, int centerY, float angle, float d
 				FillRGBA(x - width / 2, y + i, width, 2, r, g, b, alpha);
 			}
 		}
+		
+		// Draw distance text - position based on arrow direction (only if > 12 ft)
+		char distText[16];
+		int distanceFeet = (int)(distance * 0.01904f * 3.28084f);
+		if (distanceFeet > 12)
+		{
+			sprintf(distText, "%d ft", distanceFeet);
+			int textWidth = gHUD.m_scrinfo.charWidths['0'] * strlen(distText);
+			int textY = flip ? (y + 2) : (y + triSize + 2);  // When flipped (pointing up), text closer to arrow base
+			gHUD.DrawHudString(x - textWidth / 2, textY, ScreenWidth, distText, r, g, b);
+		}
 	}
 	else
 	{
@@ -326,6 +360,17 @@ void CHudRadar::DrawEdgeIndicator(int centerX, int centerY, float angle, float d
 				int width = (i * EDGE_INDICATOR_SIZE_HEIGHT) / triSize;
 				FillRGBA(x - width / 2, y - i, width, 2, r, g, b, alpha);
 			}
+		}
+		
+		// Draw distance text - position based on arrow direction (only if > 12 ft)
+		char distText[16];
+		int distanceFeet = (int)(distance * 0.01904f * 3.28084f);
+		if (distanceFeet > 12)
+		{
+			sprintf(distText, "%d ft", distanceFeet);
+			int textWidth = gHUD.m_scrinfo.charWidths['0'] * strlen(distText);
+			int textY = flip ? (y + triSize + 2) : (y + 2);  // When not flipped (pointing up), text closer to arrow base
+			gHUD.DrawHudString(x - textWidth / 2, textY, ScreenWidth, distText, r, g, b);
 		}
 	}
 }
