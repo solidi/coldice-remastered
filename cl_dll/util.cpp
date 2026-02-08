@@ -154,7 +154,10 @@ unsigned long HudColor()
 	if (gHUD.m_GameMode)
 	{
 		cl_entity_t *local = gEngfuncs.GetLocalPlayer();
-		if (local->curstate.fuser4 == RADAR_TEAM_RED || local->curstate.fuser4 == RADAR_ARENA_RED ||
+		if (local->curstate.fuser4 == RADAR_TEAM_RED || 
+			local->curstate.fuser4 == RADAR_ARENA_RED ||
+			local->curstate.fuser4 == RADAR_BUSTER ||
+			local->curstate.fuser4 == RADAR_VIRUS ||
 			(local->curstate.fuser4 > 0 && gHUD.m_GameMode == GAME_PROPHUNT))
 		{
 			if (colorchange != RGB_REDISH)
