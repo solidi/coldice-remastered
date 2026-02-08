@@ -2219,7 +2219,8 @@ void CBasePlayer::ClimbingPhysics()
 			m_flNextAttack = UTIL_WeaponTimeBase() + 0.5;
 
 			SetAnimation( PLAYER_PULL_UP );
-			EMIT_SOUND(ENT(pev), CHAN_BODY, "wallclimb.wav", 1, ATTN_NORM);
+			if (g_pGameRules->PlayFootstepSounds(this, 1.0))
+				EMIT_SOUND(ENT(pev), CHAN_BODY, "wallclimb.wav", 1, ATTN_NORM);
 		}
 	}
 
@@ -2392,7 +2393,10 @@ void CBasePlayer::Jump()
 
 		// ->PM_Playsound does not play sound on client when in air
 		if (m_iJumpCount == 2)
-			EMIT_SOUND(ENT(pev), CHAN_VOICE, "player/pl_step1.wav", 1, ATTN_NORM);
+		{
+			if (g_pGameRules->PlayFootstepSounds(this, 1.0))
+				EMIT_SOUND(ENT(pev), CHAN_VOICE, "player/pl_step1.wav", 1, ATTN_NORM);
+		}
 
 		if (pev->velocity.Length2D() > 100 && m_iJumpCount == 3)
 			StartFrontFlip();

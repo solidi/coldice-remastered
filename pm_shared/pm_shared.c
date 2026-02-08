@@ -2537,6 +2537,8 @@ void PM_Jump (void)
 		return;
 	}
 
+	qboolean canSound = atoi( pmove->PM_Info_ValueForKey( pmove->physinfo, "prop" ) ) == 1 ? false : true;
+
 	// If we are in the water most of the way...
 	if (pmove->waterlevel >= 2)
 	{	// swimming, not jumping
@@ -2552,6 +2554,9 @@ void PM_Jump (void)
 		// play swiming sound
 		if ( pmove->flSwimTime <= 0 )
 		{
+			if ( !canSound )
+				return;
+
 			// Don't play sound again for 1 second
 			pmove->flSwimTime = 1000;
 			switch ( pmove->RandomLong( 0, 3 ) )

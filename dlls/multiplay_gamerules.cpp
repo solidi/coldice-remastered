@@ -2815,7 +2815,7 @@ BOOL CHalfLifeMultiplay :: PlayFootstepSounds( CBasePlayer *pl, float fvol )
 	if ( pl->IsOnLadder() || pl->pev->velocity.Length2D() > 220 )
 		return TRUE;  // only make step sounds in multiplayer if the player is moving fast enough
 
-	return FALSE;
+	return TRUE;
 }
 
 BOOL CHalfLifeMultiplay :: FAllowFlashlight( void ) 
