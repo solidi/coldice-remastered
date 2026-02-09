@@ -13,7 +13,7 @@
 // Edge Indicator Configuration
 #define EDGE_INDICATOR_MIN_DISTANCE 		64.0f		// Distance at which arrow disappears completely
 #define EDGE_INDICATOR_FLIP_DISTANCE 		512.0f		// Distance at which arrow flips to point toward center
-#define EDGE_INDICATOR_Z_CHECK_DISTANCE 	256.0f		// Distance threshold for Z-axis vertical edge forcing
+#define EDGE_INDICATOR_Z_CHECK_DISTANCE 	512.0f		// Distance threshold for Z-axis vertical edge forcing
 #define EDGE_INDICATOR_Z_THRESHOLD 			96.0f		// Z-axis difference to force vertical edge (above/below)
 #define EDGE_INDICATOR_Z_CLOSE_DISTANCE 	128.0f		// Z-axis distance to enable pull-in behavior
 #define EDGE_INDICATOR_SCREEN_MARGIN 		20			// Pixel margin from screen edge
