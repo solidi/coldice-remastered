@@ -68,12 +68,18 @@ class TeamFortressViewport;
 char* GetVGUITGAName(const char *pszName);
 BitmapTGA *LoadTGAForRes(const char* pImageName);
 void ScaleColors( int &r, int &g, int &b, int a );
+
+struct MutatorInfo {
+	const char* name;
+	const char* description;
+};
+
 extern char *sTFClassSelection[];
 extern int sTFValidClassInts[];
 extern char *sLocalisedClasses[];
 extern char *sGameplayModes[];
 extern char *sBuiltInMaps[];
-extern char *sMutators[];
+extern MutatorInfo sMutators[];
 extern int iTeamColors[5][3];
 extern int iNumberOfTeamColors;
 extern TeamFortressViewport *gViewPort;
@@ -1807,6 +1813,8 @@ public:
 class CVoteMutatorPanel : public CMenuPanel
 {
 private:
+	CTFScrollPanel		*m_pScrollPanel;
+	LineBorder			*m_pScrollPanelBorder;
 	ColorButton			*m_pButtons[MAX_MUTATORS];
 	Label 				*pTitleLabel;
 

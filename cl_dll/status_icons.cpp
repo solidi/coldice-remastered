@@ -66,6 +66,10 @@ int CHudStatusIcons::Draw( float flTime )
 	int time = gHUD.m_ChaosTime;
 	if (time > gHUD.m_flTime)
 	{
+		int minutes = fmin(fmax(0, (int)( gHUD.m_ChaosTime - gHUD.m_flTime ) / 60), 99);
+		int seconds = fmin(fmax(0, (int)( gHUD.m_ChaosTime - gHUD.m_flTime ) - (minutes * 60)), 59);
+		gHUD.m_Timer.FVoxTimerCallOut(seconds, minutes);
+
 		int r, g, b;
 		UnpackRGB(r,g,b, HudColor());
 		ScaleColors(r, g, b, MIN_ALPHA);
@@ -258,7 +262,7 @@ void CHudStatusIcons::DrawMutators( void )
 	{
 		// because chaos is 0 or 1
 		int id = mutatorId + 1;
-		ToggleMutatorIcon(id, sMutators[mutatorId]);
+		ToggleMutatorIcon(id, sMutators[mutatorId].name);
 	}
 }
 

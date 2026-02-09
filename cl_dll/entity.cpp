@@ -523,7 +523,8 @@ void LoadTempViewModel(const char *modelName, int sequence)
 		pExtraModel->curstate.renderfx = kRenderFxGlowShell;
 	else
 		pExtraModel->curstate.renderfx = kRenderFxNone;
-	if ( player->curstate.rendermode == kRenderTransAlpha )
+	if ( player->curstate.rendermode == kRenderTransAlpha ||
+		 player->curstate.rendermode == kRenderTransAdd )
 	{
 		pExtraModel->curstate.renderfx = kRenderFxNone;
 		pExtraModel->curstate.rendermode = kRenderTransAdd;

@@ -748,7 +748,7 @@ void Vote( CBasePlayer *pPlayer, int vote )
 			MESSAGE_END();
 
 			ALERT(at_aiconsole, "id[%d] voted for #%d\n", pPlayer->entindex(), vote);
-			ClientPrint(pPlayer->pev, HUD_PRINTTALK, UTIL_VarArgs("[VOTE] You voted for \"%s\". Waiting for others to tally vote.\n", vote == (MUTATOR_VOLATILE + 1) ? "random" : g_szMutators[vote-1]));
+			ClientPrint(pPlayer->pev, HUD_PRINTTALK, UTIL_VarArgs("[VOTE] You voted for \"%s\". Waiting for others to tally vote.\n", vote == (MAX_MUTATORS + 1) ? "random" : g_szMutators[vote-1]));
 		}
 		else
 		{
@@ -1352,6 +1352,7 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_meleedrop \"[0|1]\"\" - allow kick or punch attcks to drop weapons out of hands\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_moreblood [0-5]\" - Increase blood up to 0-5 times\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_nukemode \"[0|1|2]\"\" - 2 - nuke kills all, 1 - radius damage, 0 - sharts nothing but bubbles\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_prophunttime\" - Sets the amount of time for prophunter freeze\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_scorelimit\" - Sets the maximum score limit before map change\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_randomgamemodes \"[0|1]\"\" - selects a random gamemode on map change\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_randomweapon [0|1]\" - To spawn with a random weapon\n");

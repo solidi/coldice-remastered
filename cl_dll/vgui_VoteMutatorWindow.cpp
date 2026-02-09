@@ -1,6 +1,10 @@
 
 #include "VGUI_Font.h"
+#include "VGUI_ScrollPanel.h"
+#include "VGUI_ScrollBar.h"
 #include <VGUI_TextImage.h>
+#include <VGUI_Scheme.h>
+#include <VGUI_App.h>
 
 #include "hud.h"
 #include "cl_util.h"
@@ -18,14 +22,17 @@
 #include "vgui_ServerBrowser.h"
 
 // Menu Dimensions
-#define MUTATORMENU_TITLE_X				XRES(40)
+#define MUTATORMENU_TITLE_X				XRES(80)
 #define MUTATORMENU_TITLE_Y				YRES(32)
-#define MUTATORMENU_TOPLEFT_BUTTON_X		XRES(40)
-#define MUTATORMENU_TOPLEFT_BUTTON_Y		YRES(80)
-#define MUTATORMENU_BUTTON_SIZE_X			XRES(92)
-#define MUTATORMENU_BUTTON_SIZE_Y			YRES(22)
-#define MUTATORMENU_BUTTON_SPACER_Y		YRES(8)
-#define MUTATORMENU_ITEMS_PER_COL		13
+#define MUTATORMENU_SCROLL_X			XRES(80)
+#define MUTATORMENU_SCROLL_Y			YRES(80)
+#define MUTATORMENU_SCROLL_WIDE			XRES(480)
+#define MUTATORMENU_SCROLL_TALL			YRES(340)
+#define MUTATORMENU_NUM_COLUMNS			2
+#define MUTATORMENU_BUTTON_SIZE_X		XRES(222)
+#define MUTATORMENU_BUTTON_SIZE_Y		YRES(36)
+#define MUTATORMENU_BUTTON_SPACER_Y		YRES(4)
+#define MUTATORMENU_BUTTON_SPACER_X		XRES(8)
 
 // Creation
 CVoteMutatorPanel::CVoteMutatorPanel(int iTrans, int iRemoveMe, int x,int y,int wide,int tall) : CMenuPanel(iTrans, iRemoveMe, x,y,wide,tall)
@@ -51,48 +58,79 @@ CVoteMutatorPanel::CVoteMutatorPanel(int iTrans, int iRemoveMe, int x,int y,int 
 	pTitleLabel->setContentAlignment( vgui::Label::a_west );
 	pTitleLabel->setText(gHUD.m_TextMessage.BufferedLocaliseTextString("#Title_VoteMutator"));
 
-	// Create the buttons
+	// Create the scroll panel
+	m_pScrollPanel = new CTFScrollPanel( MUTATORMENU_SCROLL_X, MUTATORMENU_SCROLL_Y, MUTATORMENU_SCROLL_WIDE, MUTATORMENU_SCROLL_TALL );
+	m_pScrollPanel->setParent(this);
+	m_pScrollPanel->setScrollBarAutoVisible(true, true);
+	m_pScrollPanel->setScrollBarVisible(false, true);
+	m_pScrollPanelBorder = new LineBorder( Color(r, g, b, 255) );
+	m_pScrollPanel->setBorder( m_pScrollPanelBorder );
+	m_pScrollPanel->validate();
+
+	// Create the buttons inside scroll panel
 	int positionCount = 0;
 	for (int i = 0; i < MAX_MUTATORS; i++)
 	{
 		m_pButtons[i] = NULL;
-		if (strstr(sMutators[i], "slowmo") ||
-			strstr(sMutators[i], "speedup") ||
-			strstr(sMutators[i], "topsyturvy") ||
-			strstr(sMutators[i], "itemsexplode") ||
-			strstr(sMutators[i], "explosiveai"))
+		if (strstr(sMutators[i].name, "slowmo") ||
+			strstr(sMutators[i].name, "speedup") ||
+			strstr(sMutators[i].name, "topsyturvy") ||
+			strstr(sMutators[i].name, "itemsexplode") ||
+			strstr(sMutators[i].name, "explosiveai"))
 		{
 			continue;
 		}
 
-		// Space for random button
-		int xI = positionCount+1;
-		int degree = (positionCount+1) / MUTATORMENU_ITEMS_PER_COL;
+		// Calculate position in grid layout
+		int column, row;
+		
+		// Special handling for "Random" button (last mutator) - always first position
 		if (i == MAX_MUTATORS - 1)
 		{
-			xI = 0;
-			degree = 0;
+			row = 0;
+			column = 0;
 		}
-		char sz[256];
-		int iYPos = MUTATORMENU_TOPLEFT_BUTTON_Y + ( (MUTATORMENU_BUTTON_SIZE_Y + MUTATORMENU_BUTTON_SPACER_Y) * xI );
-		int spacer = 0;
-		spacer = (MUTATORMENU_BUTTON_SIZE_X + 10) * degree;
-		iYPos = MUTATORMENU_TOPLEFT_BUTTON_Y + ( (MUTATORMENU_BUTTON_SIZE_Y + MUTATORMENU_BUTTON_SPACER_Y) * (xI - (MUTATORMENU_ITEMS_PER_COL * degree)));
+		else
+		{
+			// Regular buttons start at position 1 to leave space for Random at position 0
+			column = (positionCount + 1) % 2;
+			row = (positionCount + 1) / 2;
+			positionCount++;
+		}
+		
+		int iXPos = MUTATORMENU_BUTTON_SPACER_X + (column * (MUTATORMENU_BUTTON_SIZE_X + MUTATORMENU_BUTTON_SPACER_X));
+		int iYPos = MUTATORMENU_BUTTON_SPACER_Y + (row * (MUTATORMENU_BUTTON_SIZE_Y + MUTATORMENU_BUTTON_SPACER_Y));
 		
 		char voteCommand[16];
 		sprintf(voteCommand, "vote %d", i+1);
 		ActionSignal *pASignal = new CMenuHandler_StringCommandClassSelect(voteCommand, false );
 
 		// mutator buttons
-		sprintf(sz, " %s", sMutators[i]);
-		m_pButtons[i] = new ColorButton( sz, MUTATORMENU_TOPLEFT_BUTTON_X + spacer, iYPos, MUTATORMENU_BUTTON_SIZE_X, MUTATORMENU_BUTTON_SIZE_Y, false, true);
+		char sz[256];
+		sprintf(sz, " %s", sMutators[i].name);
+		m_pButtons[i] = new ColorButton( sz, iXPos, iYPos, MUTATORMENU_BUTTON_SIZE_X, MUTATORMENU_BUTTON_SIZE_Y, false, true);
 		m_pButtons[i]->setBoundKey( (char)255 );
 		m_pButtons[i]->setContentAlignment( vgui::Label::a_west );
 		m_pButtons[i]->addActionSignal( pASignal );
 		m_pButtons[i]->addInputSignal( new CHandler_MenuButtonOver(this, i) );
-		m_pButtons[i]->setParent(this);
-		positionCount++;
+		m_pButtons[i]->setParent( m_pScrollPanel->getClient() );
+		
+		// Add subtitle label as a child of the button
+		Label *pSubtitle = new Label( "", XRES(10), MUTATORMENU_BUTTON_SIZE_Y - YRES(16) );
+		pSubtitle->setParent( m_pButtons[i] );
+		pSubtitle->setFont( Scheme::sf_primary3 );
+		pSubtitle->setContentAlignment( vgui::Label::a_west );
+		
+		// Use scheme color for subtitle (dimmed for visual hierarchy)
+		int sr = 255, sg = 255, sb = 255, sa = 125;
+		//pSchemes->getFgColor( hClassWindowText, sr, sg, sb, sa );
+		pSubtitle->setFgColor( sr, sg, sb, sa );
+		pSubtitle->setBgColor( 0, 0, 0, 255 );
+		pSubtitle->setText( sMutators[i].description );
 	}
+	
+	// Validate scroll panel after adding all buttons
+	m_pScrollPanel->validate();
 
 	m_iCurrentInfo = 0;
 }
@@ -164,12 +202,36 @@ void CVoteMutatorPanel::Update()
 		}
 	}
 
+	// Update scroll panel border and scrollbar colors (once per update, not per button)
+	int r, g, b, a = 0;
+	UnpackRGB(r, g, b, HudColor());
+	if (m_pScrollPanelBorder)
+	{
+		m_pScrollPanelBorder->setColor(Color(r, g, b, 255));
+		m_pScrollPanel->setBorder(m_pScrollPanelBorder);
+	}
+	pTitleLabel->setFgColor(r, g, b, 0);
+	
+	// Update scheme colors for scrollbar components
+	Scheme* pScheme = App::getInstance()->getScheme();
+	pScheme->setColor(Scheme::sc_primary1, r, g, b, a);
+	pScheme->setColor(Scheme::sc_primary2, r, g, b, a);
+	pScheme->setColor(Scheme::sc_secondary1, r, g, b, a);
+	
+	// Force scrollbars to repaint with new colors
+	ScrollBar* pVerticalScrollBar = m_pScrollPanel->getVerticalScrollBar();
+	ScrollBar* pHorizontalScrollBar = m_pScrollPanel->getHorizontalScrollBar();
+	if (pVerticalScrollBar)
+		pVerticalScrollBar->repaint();
+	if (pHorizontalScrollBar)
+		pHorizontalScrollBar->repaint();
+
 	for ( int i = 0; i < MAX_MUTATORS; i++ )
 	{
 		if (m_pButtons[i])
 		{
 			char sz[64];
-			sprintf(sz, " %-2d %s", votes[i], sMutators[i]);
+			sprintf(sz, " %-2d %s", votes[i], sMutators[i].name);
 			m_pButtons[i]->setText(sz);
 
 			if ((myVote - 1) == i)
@@ -177,10 +239,7 @@ void CVoteMutatorPanel::Update()
 				m_pButtons[i]->setArmed(true);
 			}
 
-			int r, g, b, a = 0;
-			UnpackRGB(r, g, b, HudColor());
 			m_pButtons[i]->setUnArmedColor(r, g, b, 0);
-			pTitleLabel->setFgColor( r, g, b, 0 );
 			if (votes[i] > 0)
 			{
 				m_pButtons[i]->setArmed(true);
@@ -206,7 +265,7 @@ void CVoteMutatorPanel::Update()
 
 	pTitleLabel->setText("%s | Your Vote: %s | Time Left: %.1f\n",
 		gHUD.m_TextMessage.BufferedLocaliseTextString("#Title_VoteMutator"),
-		myVote > 0 ? sMutators[myVote-1] : "None", seconds);
+		myVote > 0 ? sMutators[myVote-1].name : "None", seconds);
 }
 
 //======================================

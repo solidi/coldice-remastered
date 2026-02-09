@@ -230,6 +230,8 @@ protected:
 	BOOL m_iNotTheBees = 0;
 	BOOL m_iDontShoot = 0;
 	BOOL m_iVolatile = 0;
+	int m_iMutatorPool[128];// Array to hold available mutator indices
+	int m_iMutatorPoolSize = 0;
 
 private:
 	char m_flCheckGameMode[64] = "";

@@ -213,8 +213,8 @@ void DeactivateDecoys( CBasePlayer *pOwner )
 
 CHalfLifePropHunt::CHalfLifePropHunt()
 {
-	m_iHuntersRemain = 0;
-	m_iPropsRemain = 0;
+	m_iHuntersRemain = m_iHuntersStarted = 0;
+	m_iPropsRemain = m_iPropsStarted = 0;
 	PauseMutators();
 }
 
@@ -250,12 +250,12 @@ void CHalfLifePropHunt::DetermineWinner( void )
 		if (!IsEqual)
 		{
 			UTIL_ClientPrintAll(HUD_PRINTCENTER,
-				UTIL_VarArgs("%s doled the most frags!\n", STRING(highballer->pev->netname)));
+				UTIL_VarArgs("%s scored the most points!\n", STRING(highballer->pev->netname)));
 			MESSAGE_BEGIN(MSG_BROADCAST, gmsgObjective);
 				WRITE_STRING("Prophunt Completed!");
-				WRITE_STRING(UTIL_VarArgs("%s win!", m_iHuntersRemain ? "Hunters" : "Props"));
+				WRITE_STRING(UTIL_VarArgs("%s win!", m_iPropsRemain ? "Props" : "Hunters"));
 				WRITE_BYTE(0);
-				WRITE_STRING(UTIL_VarArgs("%s doled the most frags!\n", STRING(highballer->pev->netname)));
+				WRITE_STRING(UTIL_VarArgs("%s scored the most points!\n", STRING(highballer->pev->netname)));
 			MESSAGE_END();
 
 			DisplayWinnersGoods( highballer );
@@ -280,7 +280,7 @@ void CHalfLifePropHunt::DetermineWinner( void )
 			UTIL_ClientPrintAll(HUD_PRINTTALK, "[PropHunt] Round ends with winners!\n");
 			MESSAGE_BEGIN(MSG_BROADCAST, gmsgObjective);
 				WRITE_STRING("Prophunt Completed!");
-				WRITE_STRING(UTIL_VarArgs("%s win!", m_iHuntersRemain ? "Hunters" : "Props"));
+				WRITE_STRING(UTIL_VarArgs("%s win!", m_iPropsRemain ? "Props" : "Hunters"));
 				WRITE_BYTE(0);
 				WRITE_STRING("Numerous victors!");
 			MESSAGE_END();
@@ -394,7 +394,7 @@ void CHalfLifePropHunt::Think( void )
 								MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, plr->edict());
 									WRITE_STRING("Hide!");
 									WRITE_STRING(UTIL_VarArgs("Hunters alive: %d", hunters_left));
-									WRITE_BYTE(float(hunters_left) / (m_iPlayersInGame) * 100);
+									WRITE_BYTE(float(hunters_left) / (m_iHuntersStarted) * 100);
 									if (roundlimit.value > 0)
 										WRITE_STRING(UTIL_VarArgs("Round %d of %d", m_iSuccessfulRounds+1, (int)roundlimit.value));
 								MESSAGE_END();
@@ -429,7 +429,7 @@ void CHalfLifePropHunt::Think( void )
 								MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, plr->edict());
 									WRITE_STRING("Hunt the props!");
 									WRITE_STRING(UTIL_VarArgs("Props remain: %d", props_left));
-									WRITE_BYTE(float(props_left) / (m_iPlayersInGame) * 100);
+									WRITE_BYTE(float(props_left) / (m_iPropsStarted) * 100);
 									if (roundlimit.value > 0)
 										WRITE_STRING(UTIL_VarArgs("Round %d of %d", m_iSuccessfulRounds+1, (int)roundlimit.value));
 								MESSAGE_END();
@@ -441,7 +441,7 @@ void CHalfLifePropHunt::Think( void )
 									MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, plr->edict());
 										WRITE_STRING("Find props!");
 										WRITE_STRING(UTIL_VarArgs("Props remain: %d", props_left));
-										WRITE_BYTE(float(props_left) / (m_iPlayersInGame) * 100);
+										WRITE_BYTE(float(props_left) / (m_iPropsStarted) * 100);
 										if (roundlimit.value > 0)
 											WRITE_STRING(UTIL_VarArgs("Round %d of %d", m_iSuccessfulRounds+1, (int)roundlimit.value));
 									MESSAGE_END();
@@ -627,7 +627,7 @@ void CHalfLifePropHunt::Think( void )
 		// Balance teams
   		// Implementing Fisher–Yates shuffle
 		int i, j, tmp; // create local variables to hold values for shuffle
-		int count = 0;
+		int count = m_iPropsStarted = m_iHuntersStarted = 0;
 		int player[32];
 
 		for ( i = 1; i <= gpGlobals->maxClients; i++ )
@@ -645,7 +645,7 @@ void CHalfLifePropHunt::Think( void )
 			player[i] = tmp;
 		}
 
-		m_fUnFreezeHunters = gpGlobals->time + 30.0;
+		m_fUnFreezeHunters = gpGlobals->time + prophunttime.value;
 
 		for ( int i = 0; i < count; i++ )
 		{
@@ -655,12 +655,14 @@ void CHalfLifePropHunt::Think( void )
 				plr->pev->fuser4 = i % 2;
 				if (plr->pev->fuser4 > 0)
 				{
+					m_iPropsStarted++;
 					plr->pev->fuser3 = m_fUnFreezeHunters;
 					plr->pev->fuser4 = RANDOM_LONG(1, 30);
 					plr->m_flNextPropSound = gpGlobals->time + RANDOM_FLOAT(25,35);
 				}
 				else
 				{
+					m_iHuntersStarted++;
 					plr->EnableControl(FALSE);
 				}
 			}
@@ -784,6 +786,7 @@ void CHalfLifePropHunt::PlayerSpawn( CBasePlayer *pPlayer )
 		strncpy( pPlayer->m_szTeamName, "props", TEAM_NAME_LENGTH );
 		pPlayer->pev->health = 1;
 		pPlayer->pev->armorvalue = 0;
+		pPlayer->pev->gaitsequence = 0;
 		pPlayer->GiveNamedItem("weapon_handgrenade");
 		CLIENT_COMMAND(pPlayer->edict(), "thirdperson\n");
 	}
@@ -1001,6 +1004,11 @@ void CHalfLifePropHunt::MonsterKilled( CBaseMonster *pVictim, entvars_t *pKiller
 	// Reduce frags if killed harmless item
 	if (plr && plr->IsPlayer())
 	{
+		MESSAGE_BEGIN( MSG_ONE_UNRELIABLE, gmsgPlayClientSound, NULL, plr->edict() );
+			WRITE_BYTE(CLIENT_SOUND_NOPE);
+		MESSAGE_END();
+		ClientPrint(plr->pev, HUD_PRINTCENTER, "Decoy destroyed! -1 frag :(\n");
+
 		MESSAGE_BEGIN( MSG_ALL, gmsgScoreInfo );
 			WRITE_BYTE( ENTINDEX(plr->edict()) );
 			WRITE_SHORT( --plr->pev->frags );
@@ -1017,7 +1025,7 @@ void CHalfLifePropHunt::PlayerThink( CBasePlayer *pPlayer )
 
 	if (pPlayer->pev->fuser4 > 0)
 	{	
-		pPlayer->pev->air_finished = gpGlobals->time + 5; // never drown
+		pPlayer->pev->air_finished = gpGlobals->time + 10; // never drown
 
 		if (pPlayer->m_flNextPropSound && pPlayer->m_flNextPropSound < gpGlobals->time)
 		{

@@ -228,17 +228,6 @@ int CItem::TakeDamage( entvars_t* pevInflictor, entvars_t* pevAttacker, float fl
 				WRITE_COORD( pev->origin.z );
 			MESSAGE_END();
 
-			int killer_index = ENTINDEX(ENT(pevAttacker));
-			CBasePlayer *peKiller = (CBasePlayer *)UTIL_PlayerByIndex(killer_index);
-			if (peKiller && peKiller->IsPlayer())
-			{
-				extern int gmsgPlayClientSound;
-				MESSAGE_BEGIN( MSG_ONE_UNRELIABLE, gmsgPlayClientSound, NULL, peKiller->edict() );
-					WRITE_BYTE(CLIENT_SOUND_NOPE);
-				MESSAGE_END();
-				ClientPrint(peKiller->pev, HUD_PRINTCENTER, "Decoy destroyed! -1 frag :(\n");
-			}
-
 			g_pGameRules->MonsterKilled( NULL, pevAttacker );
 		}
 

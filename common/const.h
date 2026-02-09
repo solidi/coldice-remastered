@@ -967,6 +967,8 @@ typedef struct
 #define RADAR_FLAG_RED		11
 #define RADAR_BASE_BLUE		12
 #define RADAR_BASE_RED		13
+#define RADAR_ARENA_RED		14
+#define RADAR_ARENA_BLUE	15
 
 #endif
 

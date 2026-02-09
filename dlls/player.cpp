@@ -1257,6 +1257,21 @@ void CBasePlayer::SetAnimation( PLAYER_ANIM playerAnim )
 	float speed;
 	char szAnim[64];
 
+	if (g_pGameRules->IsPropHunt() && pev->fuser4 > 0)
+	{
+		int maxWeaponModels = 52; //dual handg
+		int ideal = pev->fuser4 >= maxWeaponModels ? ((pev->fuser4 - maxWeaponModels) * 2) + floatingweapons.value : (pev->fuser4 * 2) + floatingweapons.value;
+		if (pev->sequence == ideal)
+		{
+			return;
+		}
+
+		pev->sequence = ideal;
+		pev->frame = 0;
+		ResetSequenceInfo( );
+		return;
+	}
+
 	speed = pev->velocity.Length2D();
 
 	if (pev->flags & FL_FROZEN)
@@ -1403,20 +1418,6 @@ void CBasePlayer::SetAnimation( PLAYER_ANIM playerAnim )
 			m_IdealActivity = ACT_WALK;
 		}
 		break;
-	}
-
-	if (g_pGameRules->IsPropHunt() && pev->fuser4 > 0)
-	{
-		int maxWeaponModels = 52; //dual handg
-		int ideal = pev->fuser4 >= maxWeaponModels ? ((pev->fuser4 - maxWeaponModels) * 2) + floatingweapons.value : (pev->fuser4 * 2) + floatingweapons.value;
-		if (pev->sequence == ideal)
-			return;
-
-		pev->sequence = ideal;
-		pev->framerate = 1.0;
-		pev->gaitsequence = 0;
-		ResetSequenceInfo( );
-		return;
 	}
 
 	switch (m_IdealActivity)
@@ -2218,7 +2219,8 @@ void CBasePlayer::ClimbingPhysics()
 			m_flNextAttack = UTIL_WeaponTimeBase() + 0.5;
 
 			SetAnimation( PLAYER_PULL_UP );
-			EMIT_SOUND(ENT(pev), CHAN_BODY, "wallclimb.wav", 1, ATTN_NORM);
+			if (g_pGameRules->PlayFootstepSounds(this, 1.0))
+				EMIT_SOUND(ENT(pev), CHAN_BODY, "wallclimb.wav", 1, ATTN_NORM);
 		}
 	}
 
@@ -2391,7 +2393,10 @@ void CBasePlayer::Jump()
 
 		// ->PM_Playsound does not play sound on client when in air
 		if (m_iJumpCount == 2)
-			EMIT_SOUND(ENT(pev), CHAN_VOICE, "player/pl_step1.wav", 1, ATTN_NORM);
+		{
+			if (g_pGameRules->PlayFootstepSounds(this, 1.0))
+				EMIT_SOUND(ENT(pev), CHAN_VOICE, "player/pl_step1.wav", 1, ATTN_NORM);
+		}
 
 		if (pev->velocity.Length2D() > 100 && m_iJumpCount == 3)
 			StartFrontFlip();

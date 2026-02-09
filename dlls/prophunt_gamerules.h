@@ -51,7 +51,9 @@ public:
 	virtual BOOL PlayFootstepSounds( CBasePlayer *pl, float fvol );
 
 private:
+	int m_iHuntersStarted;
 	int m_iHuntersRemain;
 	int m_iPropsRemain;
+	int m_iPropsStarted;
 	float m_fUnFreezeHunters;
 };

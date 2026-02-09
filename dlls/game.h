@@ -98,6 +98,7 @@ extern cvar_t   scorelimit;
 extern cvar_t   roundwaittime;
 extern cvar_t   royaleteam;
 extern cvar_t   royaledamage;
+extern cvar_t   prophunttime;
 
 // Engine Cvars
 extern cvar_t	*g_psv_gravity;

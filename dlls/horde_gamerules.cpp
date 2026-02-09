@@ -129,69 +129,82 @@ ReturnSpot:
 
 void CHalfLifeHorde::DetermineWinner( void )
 {
-	int highest = 1;
-	BOOL IsEqual = FALSE;
-	CBasePlayer *highballer = NULL;
+	int highest = -9999;
+	CBasePlayer *winners[32];
+	int winnerCount = 0;
 
+	// First pass: find the highest score
 	for ( int i = 1; i <= gpGlobals->maxClients; i++ )
 	{
 		CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
 
 		if ( plr && plr->IsPlayer() && plr->IsInArena )
 		{
-			if ( highest <= plr->pev->frags )
+			if ( plr->pev->frags > highest )
 			{
-				if ( highballer && highest == plr->pev->frags )
-				{
-					IsEqual = TRUE;
-					continue;
-				}
-
-				IsEqual = FALSE;
 				highest = plr->pev->frags;
-				highballer = plr;
 			}
 		}
 	}
 
-	if ( highballer )
+	// Second pass: collect all players with the highest score
+	for ( int i = 1; i <= gpGlobals->maxClients; i++ )
 	{
-		if (!IsEqual)
+		CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
+
+		if ( plr && plr->IsPlayer() && plr->IsInArena )
 		{
+			if ( plr->pev->frags == highest && winnerCount < 32 )
+			{
+				winners[winnerCount] = plr;
+				winnerCount++;
+				plr->m_iRoundWins++;
+				plr->Celebrate();
+			}
+		}
+	}
+
+	if ( winnerCount > 0 )
+	{
+		if ( winnerCount == 1 )
+		{
+			// Single winner
 			UTIL_ClientPrintAll(HUD_PRINTCENTER,
-				UTIL_VarArgs("%s doled the most enemy frags!\n", STRING(highballer->pev->netname)));
+				UTIL_VarArgs("%s dispatched the most enemies!\n", STRING(winners[0]->pev->netname)));
 			MESSAGE_BEGIN(MSG_BROADCAST, gmsgObjective);
 				WRITE_STRING(UTIL_VarArgs("Wave #%d Completed!", m_iWaveNumber));
 				WRITE_STRING(UTIL_VarArgs("%s win!", m_iSurvivorsRemain ? "Survivors" : "Monsters"));
 				WRITE_BYTE(0);
-				WRITE_STRING(UTIL_VarArgs("%s doled the most frags!\n", STRING(highballer->pev->netname)));
+				WRITE_STRING(UTIL_VarArgs("%s dispatched the most enemies!\n", STRING(winners[0]->pev->netname)));
 			MESSAGE_END();
 
-			DisplayWinnersGoods( highballer );
+			DisplayWinnersGoods( winners[0] );
 		}
 		else
 		{
-			for ( int i = 1; i <= gpGlobals->maxClients; i++ )
+			// Multiple winners (tie)
+			char winnerNames[512] = "";
+			for ( int i = 0; i < winnerCount; i++ )
 			{
-				CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
-
-				if ( plr && plr->IsPlayer() && plr->IsInArena )
+				if ( i > 0 )
 				{
-					if ( plr->pev->frags == highest)
-					{
-						plr->m_iRoundWins++;
-						plr->Celebrate();
-					}
+					if ( i == winnerCount - 1 )
+						strcat( winnerNames, " and " );
+					else
+						strcat( winnerNames, ", " );
 				}
+				strncat( winnerNames, STRING(winners[i]->pev->netname), sizeof(winnerNames) - strlen(winnerNames) - 1 );
 			}
 
-			UTIL_ClientPrintAll(HUD_PRINTCENTER, "Numerous victors!");
-			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Horde] Round ends with winners!\n");
+			UTIL_ClientPrintAll(HUD_PRINTCENTER,
+				UTIL_VarArgs("%s tied with %d frags!\n", winnerNames, highest));
+			UTIL_ClientPrintAll(HUD_PRINTTALK,
+				UTIL_VarArgs("[Horde] Winners: %s (tied with %d frags)\n", winnerNames, highest));
 			MESSAGE_BEGIN(MSG_BROADCAST, gmsgObjective);
 				WRITE_STRING(UTIL_VarArgs("Wave #%d Completed!", m_iWaveNumber));
 				WRITE_STRING(UTIL_VarArgs("%s win!", m_iSurvivorsRemain ? "Survivors" : "Monsters"));
 				WRITE_BYTE(0);
-				WRITE_STRING("Numerous victors!");
+				WRITE_STRING(UTIL_VarArgs("%s tied!", winnerNames));
 			MESSAGE_END();
 		}
 	}

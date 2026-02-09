@@ -33,6 +33,7 @@ extern int gmsgTeamInfo;
 extern int gmsgSafeSpot;
 extern int gmsgDEraser;
 extern int gmsgBanner;
+extern int gmsgSpecialEntity;
 
 extern DLL_GLOBAL BOOL g_fGameOver;
 
@@ -55,6 +56,27 @@ CSafeSpot *CSafeSpot::CreateSafeSpot( Vector vecOrigin, int body )
 	pSpot->pev->angles = g_vecZero;
 	pSpot->Spawn();
 	pSpot->pev->body = body; // to set specific size requirement by using fuser4 as id.
+
+	int slotIndex = 0;
+	MESSAGE_BEGIN(MSG_ALL, gmsgSpecialEntity);
+		WRITE_BYTE(slotIndex); // Index 0-7
+		WRITE_BYTE(1); // Active
+		WRITE_COORD(pSpot->pev->origin.x);
+		WRITE_COORD(pSpot->pev->origin.y);
+		WRITE_COORD(pSpot->pev->origin.z);
+		WRITE_BYTE(RADAR_COLD_SPOT); // Special type
+	MESSAGE_END();
+	slotIndex++;
+
+	// Clear remaining slots
+	for ( ; slotIndex < 8; slotIndex++ )
+	{
+		MESSAGE_BEGIN(MSG_ALL, gmsgSpecialEntity);
+			WRITE_BYTE(slotIndex);
+			WRITE_BYTE(0); // Not active
+		MESSAGE_END();
+	}
+
 	return pSpot;
 }
 

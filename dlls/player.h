@@ -284,10 +284,6 @@ public:
 	int m_iChumtoadDropCounter;
 
 	// Ricochet
-	EHANDLE m_hLastPlayerToHitMe;
-	float m_flLastDiscHit;
-	int m_iLastDiscBounces;
-	float m_flLastDiscHitTeleport;
 	Vector m_vecHitVelocity;
 	int m_iFlyingDiscs;
 
