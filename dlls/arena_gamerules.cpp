@@ -224,7 +224,7 @@ void CHalfLifeArena::Think( void )
 
 					// Winner becomes the reigning champion
 					m_iReigningChampion = i;
-					ALERT(at_console, "Champion %d continues (pool size: %d)\n", m_iReigningChampion, m_iOpponentPoolSize);
+					ALERT(at_console, "[1v1] Champion %d continues (pool size: %d)\n", m_iReigningChampion, m_iOpponentPoolSize);
 
 					m_iSuccessfulRounds++;
 					flUpdateTime = gpGlobals->time + 3.0;
@@ -266,7 +266,7 @@ void CHalfLifeArena::Think( void )
 	int clients = CheckClients();
 
 #ifdef _DEBUG
-	ALERT( at_notice, UTIL_VarArgs("CheckClients(): %i\n", clients ));
+	ALERT( at_notice, UTIL_VarArgs("[1v1] CheckClients(): %i\n", clients ));
 #endif
 
 	if ( m_fWaitForPlayersTime == -1 )
@@ -336,7 +336,7 @@ void CHalfLifeArena::Think( void )
 			
 			if ( m_iOpponentPoolSize < 2 )
 			{
-				ALERT(at_console, "Not enough players for opponent pool\n");
+				ALERT(at_console, "[1v1] Not enough players for opponent pool\n");
 				flUpdateTime = gpGlobals->time + 1.0;
 				return;
 			}
@@ -357,7 +357,7 @@ void CHalfLifeArena::Think( void )
 			m_iOpponentPool[idx2] = m_iOpponentPool[m_iOpponentPoolSize - 1];
 			m_iOpponentPoolSize--;
 			
-			ALERT(at_console, "First round: %d vs %d (pool size: %d)\n", m_iPlayer1, m_iPlayer2, m_iOpponentPoolSize);
+			ALERT(at_console, "[1v1] First round: %d vs %d (pool size: %d)\n", m_iPlayer1, m_iPlayer2, m_iOpponentPoolSize);
 		}
 		else
 		{
@@ -401,13 +401,13 @@ void CHalfLifeArena::Think( void )
 				m_iOpponentPool[opponentIdx] = m_iOpponentPool[m_iOpponentPoolSize - 1];
 				m_iOpponentPoolSize--;
 				
-				ALERT(at_console, "Champion %d defends against %d (pool size: %d)\n", 
+				ALERT(at_console, "[1v1] Champion %d defends against %d (pool size: %d)\n", 
 					m_iPlayer1, m_iPlayer2, m_iOpponentPoolSize);
 			}
 			else
 			{
 				// Pool exhausted, rebuild it (excluding champion)
-				ALERT(at_console, "Pool exhausted, rebuilding (champion continues)\n");
+				ALERT(at_console, "[1v1] Pool exhausted, rebuilding (champion continues)\n");
 				m_iOpponentPoolSize = 0;
 				
 				for ( int i = 0; i < clients; i++ )
@@ -427,7 +427,7 @@ void CHalfLifeArena::Think( void )
 				
 				if ( m_iOpponentPoolSize == 0 )
 				{
-					ALERT(at_console, "No opponents available for champion\n");
+					ALERT(at_console, "[1v1] No opponents available for champion\n");
 					m_iReigningChampion = 0; // Reset for next round
 					flUpdateTime = gpGlobals->time + 1.0; // Retry after 1 second
 					return;
@@ -441,7 +441,7 @@ void CHalfLifeArena::Think( void )
 				m_iOpponentPool[opponentIdx] = m_iOpponentPool[m_iOpponentPoolSize - 1];
 				m_iOpponentPoolSize--;
 				
-				ALERT(at_console, "Champion %d defends against %d (rebuilt pool, size: %d)\n", 
+				ALERT(at_console, "[1v1] Champion %d defends against %d (rebuilt pool, size: %d)\n", 
 					m_iPlayer1, m_iPlayer2, m_iOpponentPoolSize);
 			}
 		}
@@ -454,6 +454,14 @@ void CHalfLifeArena::Think( void )
 
 		CBasePlayer *pPlayer1 = (CBasePlayer *)UTIL_PlayerByIndex( m_iPlayer1 );
 		CBasePlayer *pPlayer2 = (CBasePlayer *)UTIL_PlayerByIndex( m_iPlayer2 );
+
+		if (pPlayer1 == NULL || pPlayer2 == NULL)
+		{
+			ALERT(at_console, "[1v1] Error finding players for arena match\n");
+			m_iReigningChampion = 0; // Reset champion to rebuild pool next round
+			flUpdateTime = gpGlobals->time + 1.0; // Retry after 1 second
+			return;
+		}
 
 		char *key = g_engfuncs.pfnGetInfoKeyBuffer(pPlayer1->edict());
 		strncpy( pPlayer1->m_szTeamName, "blue", TEAM_NAME_LENGTH );
@@ -616,7 +624,7 @@ BOOL CHalfLifeArena::HasGameTimerExpired( void )
 			// Winner becomes the champion
 			int winnerIndex = ENTINDEX(highballer->edict());
 			m_iReigningChampion = winnerIndex;
-			ALERT(at_console, "Champion %d continues (pool size: %d)\n", m_iReigningChampion, m_iOpponentPoolSize);
+			ALERT(at_console, "[1v1] Champion %d continues (pool size: %d)\n", m_iReigningChampion, m_iOpponentPoolSize);
 		}
 		else
 		{
