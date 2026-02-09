@@ -298,6 +298,7 @@ CDisc *CDisc::CreateDisc( Vector vecOrigin, Vector vecAngles, CBaseEntity *pOwne
 
 	pDisc->pev->angles = vecAngles;
 	pDisc->pev->owner = pOwner->edict();
+	pDisc->pev->euser1 = pOwner->edict();
 	int index = g_pGameRules->GetTeamIndex(((CBasePlayer *)pOwner)->m_szTeamName);
 	pDisc->pev->team = index == -1 ? 0 : index;
 	pDisc->pev->iuser4 = pOwner->pev->iuser4;
