@@ -205,7 +205,11 @@ void CVoteMutatorPanel::Update()
 	// Update scroll panel border and scrollbar colors (once per update, not per button)
 	int r, g, b, a = 0;
 	UnpackRGB(r, g, b, HudColor());
-	m_pScrollPanel->setBorder( new LineBorder( Color(r, g, b, 255) ) );
+	if (m_pScrollPanelBorder)
+	{
+		m_pScrollPanelBorder->setColor(Color(r, g, b, 255));
+		m_pScrollPanel->setBorder(m_pScrollPanelBorder);
+	}
 	pTitleLabel->setFgColor(r, g, b, 0);
 	
 	// Update scheme colors for scrollbar components
