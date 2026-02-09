@@ -1027,7 +1027,6 @@ mutators_t *CGameRules::GetMutators()
 
 void CGameRules::AddRandomMutator(const char *cvarName, BOOL withBar, BOOL three)
 {
-	int adjcount = fmin(fmax(mutatorcount.value, 0), 7);
 	int mutatorTime = fmin(fmax(mutatortime.value, 10), 120);
 	float choasIncrement = mutatorTime;
 
