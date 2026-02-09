@@ -64,6 +64,8 @@ int CHudHealth::Init(void)
 	m_iFlags = 0;
 	m_bitsDamage = 0;
 	m_fAttackFront = m_fAttackRear = m_fAttackRight = m_fAttackLeft = 0;
+	m_flPanicTime = 0;
+	m_bPanicColorChange = false;
 	giDmgHeight = 0;
 	giDmgWidth = 0;
 
@@ -205,11 +207,25 @@ int CHudHealth::Draw(float flTime)
 	else
 		a = MIN_ALPHA;
 
-	// If health is getting low, make it bright red
-	if (m_iHealth <= 15)
+	// If health is getting low, make it bright red with flashing effect
+	if (m_iHealth <= 25)
+	{
+		m_flPanicTime += gHUD.m_flTimeDelta;
+		// Flash interval based on health (lower health = faster flash)
+		if (m_flPanicTime > ((float)m_iHealth / 45.0f) + 0.1f)
+		{
+			m_flPanicTime = 0;
+			m_bPanicColorChange = !m_bPanicColorChange;
+		}
 		a = 255;
-		
-	GetPainColor( r, g, b );
+	}
+	else
+	{
+		m_bPanicColorChange = false;
+	}
+
+	// Flash between normal color and red when health is critical
+	UnpackRGB(r, g, b, m_bPanicColorChange ? RGB_REDISH : HudColor());
 	ScaleColors(r, g, b, a );
 
 	// Only draw health if we have the suit.

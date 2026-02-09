@@ -114,11 +114,13 @@ public:
 	void GetPainColor( int &r, int &g, int &b );
 	float m_fFade;
 	int	m_bitsDamage;
+	float m_flPanicTime;
+	bool m_bPanicColorChange;
 
 private:
 	HSPRITE m_hSprite;
 	HSPRITE m_hDamage;
-	
+
 	DAMAGE_IMAGE m_dmg[NUM_DMG_TYPES];
 	int DrawPain(float fTime);
 	int DrawDamage(float fTime);
