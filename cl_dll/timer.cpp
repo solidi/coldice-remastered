@@ -108,10 +108,12 @@ int CHudTimer::Draw( float fTime )
 
 void CHudTimer::FVoxTimerCallOut(int seconds, int minutes)
 {
+	int time = (int)gHUD.m_flTime;
+
 	// Play sounds only once per second (not every frame)
-	if (m_iLastSoundSecond != seconds)
+	if (m_iLastSoundSecond != time)
 	{
-		m_iLastSoundSecond = seconds;
+		m_iLastSoundSecond = time;
 
 		struct TimeAnnouncement
 		{
