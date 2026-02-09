@@ -194,8 +194,6 @@ void CHalfLifeHorde::DetermineWinner( void )
 						strcat( winnerNames, ", " );
 				}
 				strncat( winnerNames, STRING(winners[i]->pev->netname), sizeof(winnerNames) - strlen(winnerNames) - 1 );
-				winners[i]->m_iRoundWins++;
-				winners[i]->Celebrate();
 			}
 
 			UTIL_ClientPrintAll(HUD_PRINTCENTER,
