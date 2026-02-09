@@ -1068,6 +1068,9 @@ void CGameRules::AddRandomMutator(const char *cvarName, BOOL withBar, BOOL three
 		// Check if already loaded
 		if (strlen(addmutator.string) > 2 && strstr(addmutator.string, tryIt))
 		{
+			// Remove this mutator from the pool to avoid repeated re-selection
+			m_iMutatorPool[poolIndex] = m_iMutatorPool[m_iMutatorPoolSize - 1];
+			m_iMutatorPoolSize--;
 			attempts++;
 			continue;
 		}
