@@ -2302,14 +2302,29 @@ void EV_FireGrenadeLauncher( event_args_t *args )
 
 	EV_GunSmoke(gEngfuncs.GetViewModel()->attachment[0], 0.7, idx, args->ducking, forward, right, up, 0, 0, 0);
 
-	switch( gEngfuncs.pfnRandomLong( 0, 1 ) )
+	if (args->bparam1)
 	{
-	case 0:
-		gEngfuncs.pEventAPI->EV_PlaySound( idx, origin, CHAN_WEAPON, "weapons/glauncher.wav", 1, ATTN_NORM, 0, 94 + gEngfuncs.pfnRandomLong( 0, 0xf ) );
-		break;
-	case 1:
-		gEngfuncs.pEventAPI->EV_PlaySound( idx, origin, CHAN_WEAPON, "weapons/glauncher2.wav", 1, ATTN_NORM, 0, 94 + gEngfuncs.pfnRandomLong( 0, 0xf ) );
-		break;
+		switch( gEngfuncs.pfnRandomLong( 0, 1 ) )
+		{
+		case 0:
+			gEngfuncs.pEventAPI->EV_PlaySound( idx, origin, CHAN_WEAPON, "m16_glauncher.wav", 1, ATTN_NORM, 0, 94 + gEngfuncs.pfnRandomLong( 0, 0xf ) );
+			break;
+		case 1:
+			gEngfuncs.pEventAPI->EV_PlaySound( idx, origin, CHAN_WEAPON, "m16_glauncher2.wav", 1, ATTN_NORM, 0, 94 + gEngfuncs.pfnRandomLong( 0, 0xf ) );
+			break;
+		}
+	}
+	else
+	{
+		switch( gEngfuncs.pfnRandomLong( 0, 1 ) )
+		{
+		case 0:
+			gEngfuncs.pEventAPI->EV_PlaySound( idx, origin, CHAN_WEAPON, "weapons/glauncher.wav", 1, ATTN_NORM, 0, 94 + gEngfuncs.pfnRandomLong( 0, 0xf ) );
+			break;
+		case 1:
+			gEngfuncs.pEventAPI->EV_PlaySound( idx, origin, CHAN_WEAPON, "weapons/glauncher2.wav", 1, ATTN_NORM, 0, 94 + gEngfuncs.pfnRandomLong( 0, 0xf ) );
+			break;
+		}
 	}
 }
 

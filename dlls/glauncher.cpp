@@ -67,6 +67,9 @@ void CGrenadeLauncher::Precache( void )
 
 	PRECACHE_SOUND("weapons/357_cock1.wav");
 
+	// Precache flying_snowball for GAME_SNOWBALL mode
+	UTIL_PrecacheOther( "flying_snowball" );
+
 	m_usGrenadeLauncher = PRECACHE_EVENT( 1, "events/glauncher.sc" );
 }
 
@@ -135,30 +138,49 @@ void CGrenadeLauncher::PrimaryAttack()
 	m_pPlayer->m_iExtraSoundTypes = bits_SOUND_DANGER;
 	m_pPlayer->m_flStopExtraSoundTime = UTIL_WeaponTimeBase() + 0.2;
 
-	m_iClip--;
-
 	// player "shoot" animation
 	m_pPlayer->SetAnimation( PLAYER_ATTACK1 );
 
 	Vector vecAiming = m_pPlayer->GetAutoaimVector( AUTOAIM_10DEGREES );
+	Vector vecSrc = m_pPlayer->pev->origin + m_pPlayer->pev->view_ofs + vecAiming * 16;
 
-	// we don't add in player velocity anymore.
-	CGrenade::ShootContact( m_pPlayer->pev, 
-							m_pPlayer->pev->origin + m_pPlayer->pev->view_ofs + vecAiming * 16, 
-							vecAiming * 800 );
+	int snowballfight = 0;
+#ifndef CLIENT_DLL
+	snowballfight = g_pGameRules->IsSnowballFight();
+#endif
+
+	// GAME_SNOWBALL mode: fire snowballs at rapid pace
+	if (snowballfight)
+	{
+#ifndef CLIENT_DLL
+		// Fire a flying snowball projectile
+		CFlyingSnowball::Shoot( m_pPlayer->pev, vecSrc, vecAiming * 1500, m_pPlayer );
+#endif
+		// Rapid fire rate for snowball mode
+		m_flNextPrimaryAttack = GetNextAttackDelay(0.3);
+		m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 0.3;
+		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 2.0;
+	}
+	else
+	{
+		m_iClip--;
+
+		// Normal grenade launcher mode
+		CGrenade::ShootContact( m_pPlayer->pev, vecSrc, vecAiming * 800 );
+		
+		m_flNextPrimaryAttack = GetNextAttackDelay(1.3);
+		m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 1.3;
+		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 5.0;
+	}
 
 	int flags;
 #if defined( CLIENT_WEAPONS )
-	flags = FEV_NOTHOST;
+	flags = FEV_RELIABLE;
 #else
 	flags = 0;
 #endif
 
-	PLAYBACK_EVENT( flags, m_pPlayer->edict(), m_usGrenadeLauncher );
-	
-	m_flNextPrimaryAttack = GetNextAttackDelay(1.3);
-	m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 1.3;
-	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 5;// idle pretty soon after shooting.
+	PLAYBACK_EVENT_FULL( flags, m_pPlayer->edict(), m_usGrenadeLauncher,  0.0, (float *)&g_vecZero, (float *)&g_vecZero, 0, 0, 0, 0, snowballfight, 0 );
 
 	if (!m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType])
 		// HEV suit - indicate out of ammo condition
@@ -167,6 +189,9 @@ void CGrenadeLauncher::PrimaryAttack()
 
 void CGrenadeLauncher::SecondaryAttack( void )
 {
+	// TODO: Future GAME_SNOWBALL mode secondary fire behavior will be added here
+	// Keep this open for special snowball launcher functionality
+	
 	// don't fire underwater
 	if (m_pPlayer->pev->waterlevel == 3)
 	{
