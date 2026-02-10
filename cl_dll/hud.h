@@ -756,6 +756,7 @@ class CHudBanner : public CHudBase
 public:
 	int Init( void );
 	int VidInit( void );
+	void Reset( void );
 	int Draw(float fTime);
 	int MsgFunc_Banner(const char *pszName, int iSize, void *pbuf);
 	void ShowBanner(const char *title, const char *subtitle, float duration);

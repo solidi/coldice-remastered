@@ -61,6 +61,16 @@ int CHudBanner::VidInit()
 	return 1;
 }
 
+void CHudBanner::Reset()
+{
+	// Reset banner state on map change or respawn
+	m_bActive = false;
+	m_flShowUntil = 0.0f;
+	m_szTitle[0] = '\0';
+	m_szSubtitle[0] = '\0';
+	m_iFlags &= ~HUD_ACTIVE;
+}
+
 int CHudBanner::MsgFunc_Banner(const char *pszName, int iSize, void *pbuf)
 {
 	BEGIN_READ( pbuf, iSize );
