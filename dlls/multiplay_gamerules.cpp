@@ -159,7 +159,7 @@ void CHalfLifeMultiplay::RefreshSkillData( void )
 // override some values for multiplay.
 
 	// Snowball
-	if (snowballfight.value)
+	if (g_GameMode == GAME_SNOWBALL)
 		gSkillData.plrDmgSnowball = 250;
 
 	if (MutatorEnabled(MUTATOR_GOLDENGUNS))
@@ -1879,7 +1879,7 @@ void CHalfLifeMultiplay :: PlayerSpawn( CBasePlayer *pPlayer )
 	}
 	else if ( addDefault )
 	{
-		if (snowballfight.value)
+		if (g_GameMode == GAME_SNOWBALL)
 		{
 			pPlayer->GiveNamedItem("weapon_vice");
 			pPlayer->GiveNamedItem("weapon_snowball");
@@ -2694,7 +2694,7 @@ BOOL CHalfLifeMultiplay::IsAllowedToSpawn( CBaseEntity *pEntity )
 		return TRUE;
 	}
 
-	if (snowballfight.value && 
+	if (g_GameMode == GAME_SNOWBALL && 
 		(strncmp(STRING(pEntity->pev->classname), "weapon_", 7) == 0 ||
 		strncmp(STRING(pEntity->pev->classname), "ammo_", 5) == 0))
 	{
