@@ -2758,6 +2758,8 @@ int CHalfLifeMultiplay::DeadPlayerWeapons( CBasePlayer *pPlayer )
 {
 	if (g_pGameRules->MutatorEnabled(MUTATOR_MAXPACK))
 		return GR_PLR_DROP_GUN_ALL;
+	else if (g_pGameRules->IsSnowballFight())
+		return GR_PLR_DROP_GUN_NO;
 	else
 		return GR_PLR_DROP_GUN_ACTIVE;
 }
@@ -2768,6 +2770,8 @@ int CHalfLifeMultiplay::DeadPlayerAmmo( CBasePlayer *pPlayer )
 {
 	if (g_pGameRules->MutatorEnabled(MUTATOR_MAXPACK))
 		return GR_PLR_DROP_AMMO_ALL;
+	else if (g_pGameRules->IsSnowballFight())
+		return GR_PLR_DROP_AMMO_NO;
 	else
 		return GR_PLR_DROP_AMMO_ACTIVE;
 }
@@ -2779,7 +2783,10 @@ BOOL CHalfLifeMultiplay::IsAllowedSingleWeapon( CBaseEntity *pEntity )
 
 BOOL CHalfLifeMultiplay::IsAllowedToDropWeapon( CBasePlayer *pPlayer )
 {
-	return TRUE;
+	if (g_pGameRules->IsSnowballFight())
+		return FALSE;
+	else
+		return TRUE;
 }
 
 BOOL CHalfLifeMultiplay::IsAllowedToHolsterWeapon( void )

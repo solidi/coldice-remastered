@@ -2280,6 +2280,7 @@ enum glauncher_e
 	GLAUNCHER_HOLSTER,
 	GLAUNCHER_RELOAD,
 	GLAUNCHER_SHOOT,
+	GLAUNCHER_SHOOT2,
 };
 
 void EV_FireGrenadeLauncher( event_args_t *args )
@@ -2296,8 +2297,16 @@ void EV_FireGrenadeLauncher( event_args_t *args )
 
 	if ( EV_IsLocal( idx ) )
 	{
-		gEngfuncs.pEventAPI->EV_WeaponAnimation( GLAUNCHER_SHOOT, 2 );
-		V_PunchAxis(PITCH, -10 );
+		if (args->bparam1)
+		{
+			gEngfuncs.pEventAPI->EV_WeaponAnimation( GLAUNCHER_SHOOT2, 2 );
+			V_PunchAxis(PITCH, -5);
+		} 
+		else
+		{
+			gEngfuncs.pEventAPI->EV_WeaponAnimation( GLAUNCHER_SHOOT, 2 );
+			V_PunchAxis(PITCH, -10);
+		}
 	}
 
 	EV_GunSmoke(gEngfuncs.GetViewModel()->attachment[0], 0.7, idx, args->ducking, forward, right, up, 0, 0, 0);
