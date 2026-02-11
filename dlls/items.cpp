@@ -607,8 +607,6 @@ class CFragRune : public CRune
 			MESSAGE_END();
 
 			ShowStatus(pPlayer, "rune_frag", 106, 13, 173);
-			pPlayer->DisplayHudMessage("Frag Rune", TXT_CHANNEL_RUNE_TITLE, -1, 0.07, 106, 13, 173, 0, 0.2, 1.0, 1.5, 0.5);
-			pPlayer->DisplayHudMessage("This rune will increase your frags by double!", TXT_CHANNEL_RUNE_DESC, -1, 0.1, 210, 210, 210, 0, 0.2, 1.0, 1.5, 0.5);
 
 			return TRUE;
 		}
@@ -669,8 +667,6 @@ class CVampireRune : public CRune
 			MESSAGE_END();
 
 			ShowStatus(pPlayer, "rune_vampire", 200, 0, 0);
-			pPlayer->DisplayHudMessage("Vampire Rune", TXT_CHANNEL_RUNE_TITLE, -1, 0.07, 200, 0, 0, 0, 0.2, 1.0, 1.5, 0.5);
-			pPlayer->DisplayHudMessage("This rune will give you health and armor for the damage you deal!", TXT_CHANNEL_RUNE_DESC, -1, 0.1, 210, 210, 210, 0, 0.2, 1.0, 1.5, 0.5);
 
 			return TRUE;
 		}
@@ -731,8 +727,6 @@ class CProtectRune : public CRune
 			MESSAGE_END();
 
 			ShowStatus(pPlayer, "rune_protect", 0, 200, 0);
-			pPlayer->DisplayHudMessage("Protect Rune", TXT_CHANNEL_RUNE_TITLE, -1, 0.07, 0, 200, 0, 0, 0.2, 1.0, 1.5, 0.5);
-			pPlayer->DisplayHudMessage("This rune will protect you from half the damage!", TXT_CHANNEL_RUNE_DESC, -1, 0.1, 210, 210, 210, 0, 0.2, 1.0, 1.5, 0.5);
 
 			return TRUE;
 		}
@@ -793,8 +787,6 @@ class CRegenRune : public CRune
 			MESSAGE_END();
 
 			ShowStatus(pPlayer, "rune_regen", 200, 0, 200);
-			pPlayer->DisplayHudMessage("Health Regeneration Rune", TXT_CHANNEL_RUNE_TITLE, -1, 0.07, 200, 0, 200, 0, 0.2, 1.0, 1.5, 0.5);
-			pPlayer->DisplayHudMessage("This rune will slowly regenerate your current health!", TXT_CHANNEL_RUNE_DESC, -1, 0.1, 210, 210, 210, 0, 0.2, 1.0, 1.5, 0.5);
 
 			return TRUE;
 		}
@@ -857,8 +849,6 @@ class CHasteRune : public CRune
 			MESSAGE_END();
 
 			ShowStatus(pPlayer, "rune_haste", 200, 128, 0);
-			pPlayer->DisplayHudMessage("Haste Rune", TXT_CHANNEL_RUNE_TITLE, -1, 0.07, 200, 128, 0, 0, 0.2, 1.0, 1.5, 0.5);
-			pPlayer->DisplayHudMessage("This rune will makes you run twice as fast!", TXT_CHANNEL_RUNE_DESC, -1, 0.1, 210, 210, 210, 0, 0.2, 1.0, 1.5, 0.5);
 
 			return TRUE;
 		}
@@ -920,8 +910,6 @@ class CGravityRune : public CRune
 			MESSAGE_END();
 
 			ShowStatus(pPlayer, "rune_gravity", 0, 115, 230);
-			pPlayer->DisplayHudMessage("Gravity Rune", TXT_CHANNEL_RUNE_TITLE, -1, 0.07, 0, 115, 230, 0, 0.2, 1.0, 1.5, 0.5);
-			pPlayer->DisplayHudMessage("This rune will reduce your gravity by 80%!", TXT_CHANNEL_RUNE_DESC, -1, 0.1, 210, 210, 210, 0, 0.2, 1.0, 1.5, 0.5);
 
 			return TRUE;
 		}
@@ -982,8 +970,6 @@ class CStrengthRune : public CRune
 			MESSAGE_END();
 
 			ShowStatus(pPlayer, "rune_strength", 106, 13, 173);
-			pPlayer->DisplayHudMessage("Strength Rune", TXT_CHANNEL_RUNE_TITLE, -1, 0.07, 106, 13, 173, 0, 0.2, 1.0, 1.5, 0.5);
-			pPlayer->DisplayHudMessage("This rune will increase your attack damage by 50%!", TXT_CHANNEL_RUNE_DESC, -1, 0.1, 210, 210, 210, 0, 0.2, 1.0, 1.5, 0.5);
 
 			return TRUE;
 		}
@@ -1043,8 +1029,6 @@ class CCloakRune : public CRune
 			MESSAGE_END();
 
 			ShowStatus(pPlayer, "rune_cloak", 200, 200, 200);
-			pPlayer->DisplayHudMessage("Cloak Rune", TXT_CHANNEL_RUNE_TITLE, -1, 0.07, 200, 200, 200, 0, 0.2, 1.0, 1.5, 0.5);
-			pPlayer->DisplayHudMessage("This rune will make you semi-transparent!", TXT_CHANNEL_RUNE_DESC, -1, 0.1, 210, 210, 210, 0, 0.2, 1.0, 1.5, 0.5);
 
 			return TRUE;
 		}
@@ -1064,6 +1048,8 @@ class CAmmoRune : public CRune
 
 		if (g_pGameRules->IsInstagib())
 			pev->body = RUNE_HORNET - 1;
+		else if (g_pGameRules->IsSnowballFight())
+			pev->body = RUNE_SNOWBALL - 1;
 		else
 			pev->body = RUNE_AMMO - 1;
 		pev->renderfx = kRenderFxGlowShell;
@@ -1111,14 +1097,15 @@ class CAmmoRune : public CRune
 			{
 				pPlayer->GiveNamedItem("weapon_hornetgun");
 				ShowStatus(pPlayer, "rune_hornet", 200, 200, 0);
-				pPlayer->DisplayHudMessage("Hornet Rune", TXT_CHANNEL_RUNE_TITLE, -1, 0.07, 200, 200, 0, 0, 0.2, 1.0, 1.5, 0.5);
-				pPlayer->DisplayHudMessage("This rune gives you killer hornets!", TXT_CHANNEL_RUNE_DESC, -1, 0.1, 210, 210, 210, 0, 0.2, 1.0, 1.5, 0.5);
+			}
+			else if (g_pGameRules->IsSnowballFight())
+			{
+				pPlayer->GiveNamedItem("weapon_glauncher");
+				ShowStatus(pPlayer, "rune_slauncher", 200, 200, 0);
 			}
 			else
 			{
 				ShowStatus(pPlayer, "rune_ammo", 200, 200, 0);
-				pPlayer->DisplayHudMessage("Ammo Rune", TXT_CHANNEL_RUNE_TITLE, -1, 0.07, 200, 200, 0, 0, 0.2, 1.0, 1.5, 0.5);
-				pPlayer->DisplayHudMessage("This rune will regenerate ammo!", TXT_CHANNEL_RUNE_DESC, -1, 0.1, 210, 210, 210, 0, 0.2, 1.0, 1.5, 0.5);
 			}
 
 			return TRUE;
@@ -1196,11 +1183,14 @@ void CWorldRunes::DropRune(CBasePlayer *pPlayer) {
 			break;
 		case RUNE_AMMO:
 			sz_Rune = "rune_ammo";
-			if (g_pGameRules->IsInstagib() && 
-				!FBitSet(pPlayer->pev->deadflag, DEAD_DYING) && !FBitSet(pPlayer->pev->deadflag, DEAD_DEAD))
+			if (!FBitSet(pPlayer->pev->deadflag, DEAD_DYING) &&
+				!FBitSet(pPlayer->pev->deadflag, DEAD_DEAD))
 			{
 				// Remove hornet gun if player is alive
-				pPlayer->RemoveNamedItem("weapon_hornetgun");
+				if (g_pGameRules->IsInstagib())
+					pPlayer->RemoveNamedItem("weapon_hornetgun");
+				else if (g_pGameRules->IsSnowballFight())
+					pPlayer->RemoveNamedItem("weapon_glauncher");
 			}
 			break;
 		default:
