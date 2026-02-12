@@ -1363,7 +1363,6 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_royaleteam [0|1]\" - set battle royale as two-team based\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_royaldamage [0|1]\" - apply damage to persons outside the safe area\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_rtvtime\" - seconds until the rtv ends\n");
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_snowballfight [0|1]\" - Replace all weapons with deadly snowballs!\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_spawnitems\" - Spawn items or not\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_spawnprotectiontime\" - amount of time in seconds a player is protected from damage\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_spawnweaponlist \"weapon_9mmhandgun\"\" A semicolon separated list of the player's spawn weapons\n");

@@ -2059,6 +2059,11 @@ BOOL CGameRules::IsHorde()
 	return g_GameMode == GAME_HORDE;
 }
 
+BOOL CGameRules::IsSnowballFight()
+{
+	return g_GameMode == GAME_SNOWBALL;
+}
+
 void CGameRules::PauseMutators( void )
 {
 	if (m_bMutatorsPaused)

@@ -942,7 +942,7 @@ CBaseEntity* CBasePlayerItem::Respawn( void )
 				pNewWeapon = CBaseEntity::Create((char *)STRING(ALLOC_STRING(name)), g_pGameRules->VecWeaponRespawnSpot(this), pev->angles, pev->owner);
 			}
 		}
-	} else if (snowballfight.value) {
+	} else if (g_pGameRules->IsSnowballFight()) {
 		if (strncmp(STRING(pev->classname), "weapon_snowball", 15) != 0) {
 			pNewWeapon = CBaseEntity::Create("weapon_snowball", g_pGameRules->VecWeaponRespawnSpot(this), pev->angles, pev->owner);
 		}
@@ -2651,23 +2651,9 @@ void CBasePlayerWeapon::ThrowSnowball(BOOL m_iCheckAmmo)
 
 	m_pPlayer->m_fGrenadeTime = gpGlobals->time + 0.75;
 
-	Vector angThrow = m_pPlayer->pev->v_angle + m_pPlayer->pev->punchangle;
-
-	if ( angThrow.x < 0 )
-		angThrow.x = -10 + angThrow.x * ( ( 90 - 10 ) / 90.0 );
-	else
-		angThrow.x = -10 + angThrow.x * ( ( 90 + 10 ) / 90.0 );
-
-	float flVel = ( 90 - angThrow.x ) * 4;
-	if ( flVel > 500 )
-		flVel = 500;
-
-	UTIL_MakeVectors( angThrow );
-	Vector vecSrc = m_pPlayer->pev->origin + m_pPlayer->pev->view_ofs + gpGlobals->v_forward * 16;
-	Vector vecThrow = gpGlobals->v_forward * flVel + m_pPlayer->pev->velocity;
-
-	// alway explode seconds after the pin was pulled
-	CFlyingSnowball::Shoot(m_pPlayer->pev, vecSrc, vecThrow, m_pPlayer);
+	Vector vecAiming = m_pPlayer->GetAutoaimVector( AUTOAIM_10DEGREES );
+	Vector vecSrc = m_pPlayer->pev->origin + m_pPlayer->pev->view_ofs + vecAiming * 16;
+	CFlyingSnowball::Shoot( m_pPlayer->pev, vecSrc, vecAiming * 1500, m_pPlayer );
 
 	// player "shoot" animation
 	m_pPlayer->SetAnimation( PLAYER_ATTACK1 );

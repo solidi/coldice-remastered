@@ -215,6 +215,7 @@ public:
 	virtual BOOL IsBusters();
 	virtual BOOL IsGunGame();
 	virtual BOOL IsHorde();
+	virtual BOOL IsSnowballFight();
 
 	virtual BOOL AllowMeleeDrop() = 0;
 

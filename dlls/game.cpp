@@ -60,7 +60,6 @@ cvar_t	jumpheight = {"sv_jumpheight","45", FCVAR_SERVER };
 cvar_t	icesprites = {"mp_icesprites","1", FCVAR_SERVER };
 cvar_t	randomweapon = {"mp_randomweapon", "0", FCVAR_SERVER };
 cvar_t	interactiveitems = {"mp_interactiveitems","grenade;monster_satchel;monster_chumtoad;monster_snark;monster_barrel;gib", FCVAR_SERVER };
-cvar_t	snowballfight = {"mp_snowballfight","0", FCVAR_SERVER };
 cvar_t	spawnweapons = {"mp_spawnweapons","1", FCVAR_SERVER };
 cvar_t	disallowlist = {"sv_disallowlist","", FCVAR_SERVER };
 cvar_t	nukemode = {"mp_nukemode","2", FCVAR_SERVER };
@@ -733,7 +732,6 @@ void GameDLLInit( void )
 	CVAR_REGISTER(&icesprites);
 	CVAR_REGISTER(&randomweapon);
 	CVAR_REGISTER(&interactiveitems);
-	CVAR_REGISTER(&snowballfight);
 	CVAR_REGISTER(&spawnweapons);
 	CVAR_REGISTER(&spawnitems);
 	CVAR_REGISTER(&disallowlist);

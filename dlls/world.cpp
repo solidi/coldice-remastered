@@ -767,12 +767,9 @@ void CWorld :: SetGameMode( void )
 	char textfile[64];
 	g_GameMode = -1;
 
-	CVAR_SET_STRING("mp_snowballfight", "0");
-
 	// Randomize if set
 	if (CVAR_GET_FLOAT("mp_randomgamemodes") > 0)
 	{
-		CVAR_SET_STRING("mp_snowballfight", "0");
 		CVAR_SET_STRING("mp_gamemode",
 			szGameModeList[RANDOM_LONG(0,(int)ARRAYSIZE(szGameModeList) - 1)]);
 	}
@@ -811,8 +808,6 @@ void CWorld :: SetGameMode( void )
 				CVAR_SET_STRING( "mp_teamlist", "jesus;santa" );
 				break;
 
-			case GAME_SNOWBALL:
-				CVAR_SET_STRING("mp_snowballfight", "1");
 				/*
 				CBaseEntity *pEntity = NULL;
 				ALERT(at_aiconsole, ">>>> TRYING\n");

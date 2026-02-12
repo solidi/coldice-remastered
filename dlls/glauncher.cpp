@@ -32,6 +32,7 @@ enum glauncher_e
 	GLAUNCHER_HOLSTER,
 	GLAUNCHER_RELOAD,
 	GLAUNCHER_SHOOT,
+	GLAUNCHER_SHOOT2,
 };
 
 #ifdef GLAUNCHER
@@ -66,6 +67,13 @@ void CGrenadeLauncher::Precache( void )
 	PRECACHE_SOUND("glauncher_bad.wav");
 
 	PRECACHE_SOUND("weapons/357_cock1.wav");
+
+	PRECACHE_SOUND( "m16_glauncher.wav" );
+	PRECACHE_SOUND( "m16_glauncher2.wav" );
+
+	// Precache flying_snowball and snowbomb for GAME_SNOWBALL mode
+	UTIL_PrecacheOther( "flying_snowball" );
+	UTIL_PrecacheOther( "snowbomb" );
 
 	m_usGrenadeLauncher = PRECACHE_EVENT( 1, "events/glauncher.sc" );
 }
@@ -135,30 +143,49 @@ void CGrenadeLauncher::PrimaryAttack()
 	m_pPlayer->m_iExtraSoundTypes = bits_SOUND_DANGER;
 	m_pPlayer->m_flStopExtraSoundTime = UTIL_WeaponTimeBase() + 0.2;
 
-	m_iClip--;
-
 	// player "shoot" animation
 	m_pPlayer->SetAnimation( PLAYER_ATTACK1 );
 
 	Vector vecAiming = m_pPlayer->GetAutoaimVector( AUTOAIM_10DEGREES );
+	Vector vecSrc = m_pPlayer->pev->origin + m_pPlayer->pev->view_ofs + vecAiming * 16;
 
-	// we don't add in player velocity anymore.
-	CGrenade::ShootContact( m_pPlayer->pev, 
-							m_pPlayer->pev->origin + m_pPlayer->pev->view_ofs + vecAiming * 16, 
-							vecAiming * 800 );
+	int snowballfight = 0;
+#ifndef CLIENT_DLL
+	snowballfight = g_pGameRules->IsSnowballFight();
+#endif
+
+	// GAME_SNOWBALL mode: fire snowballs at rapid pace
+	if (snowballfight)
+	{
+#ifndef CLIENT_DLL
+		// Fire a flying snowball projectile
+		CFlyingSnowball::Shoot( m_pPlayer->pev, vecSrc, vecAiming * 1500, m_pPlayer );
+#endif
+		// Rapid fire rate for snowball mode
+		m_flNextPrimaryAttack = GetNextAttackDelay(0.3);
+		m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 0.3;
+		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 2.0;
+	}
+	else
+	{
+		m_iClip--;
+
+		// Normal grenade launcher mode
+		CGrenade::ShootContact( m_pPlayer->pev, vecSrc, vecAiming * 800 );
+		
+		m_flNextPrimaryAttack = GetNextAttackDelay(1.3);
+		m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 1.3;
+		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 5.0;
+	}
 
 	int flags;
 #if defined( CLIENT_WEAPONS )
-	flags = FEV_NOTHOST;
+	flags = FEV_RELIABLE;
 #else
 	flags = 0;
 #endif
 
-	PLAYBACK_EVENT( flags, m_pPlayer->edict(), m_usGrenadeLauncher );
-	
-	m_flNextPrimaryAttack = GetNextAttackDelay(1.3);
-	m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 1.3;
-	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 5;// idle pretty soon after shooting.
+	PLAYBACK_EVENT_FULL( flags, m_pPlayer->edict(), m_usGrenadeLauncher,  0.0, (float *)&g_vecZero, (float *)&g_vecZero, 0, 0, 0, 0, snowballfight, 0 );
 
 	if (!m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType])
 		// HEV suit - indicate out of ammo condition
@@ -187,20 +214,41 @@ void CGrenadeLauncher::SecondaryAttack( void )
 	m_pPlayer->m_iExtraSoundTypes = bits_SOUND_DANGER;
 	m_pPlayer->m_flStopExtraSoundTime = UTIL_WeaponTimeBase() + 0.2;
 
-	m_iClip--;
-
 	// player "shoot" animation
 	m_pPlayer->SetAnimation( PLAYER_ATTACK1 );
 
 	Vector vecAiming = m_pPlayer->GetAutoaimVector( AUTOAIM_10DEGREES );
+	Vector vecSrc = m_pPlayer->pev->origin + m_pPlayer->pev->view_ofs + vecAiming * 16;
 
-	if (RANDOM_LONG(0,2) == 0) {
-		EMIT_SOUND_DYN(ENT(m_pPlayer->pev), CHAN_VOICE, "glauncher_bad.wav", RANDOM_FLOAT(0.92, 1.0), ATTN_NORM, 0, 98 + RANDOM_LONG(0,3));	
+	int snowballfight = 0;
+#ifndef CLIENT_DLL
+	snowballfight = g_pGameRules->IsSnowballFight();
+#endif
+
+	// GAME_SNOWBALL mode: fire a bouncing snowbomb that explodes into 6 snowballs
+	if (snowballfight)
+	{
+#ifndef CLIENT_DLL
+		// Create and launch a snowbomb
+		CSnowbomb *pBomb = CSnowbomb::CreateSnowbomb( vecSrc, vecAiming, m_pPlayer );
+		if (pBomb)
+		{
+			// Slower velocity than regular snowballs (1000 vs 1500)
+			pBomb->pev->velocity = vecAiming * 1000;
+		}
+#endif
 	}
+	else
+	{
+		m_iClip--;
 
-	CGrenade::ShootTimedCluster(m_pPlayer->pev, 
-							m_pPlayer->pev->origin + m_pPlayer->pev->view_ofs + vecAiming * 16, 
-							vecAiming * 800, 6 );
+		// Normal cluster grenade mode
+		if (RANDOM_LONG(0,2) == 0) {
+			EMIT_SOUND_DYN(ENT(m_pPlayer->pev), CHAN_VOICE, "glauncher_bad.wav", RANDOM_FLOAT(0.92, 1.0), ATTN_NORM, 0, 98 + RANDOM_LONG(0,3));	
+		}
+
+		CGrenade::ShootTimedCluster(m_pPlayer->pev, vecSrc, vecAiming * 800, 6 );
+	}
 
 	int flags;
 #if defined( CLIENT_WEAPONS )

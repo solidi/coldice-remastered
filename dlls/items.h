@@ -39,6 +39,7 @@ public:
 #define RUNE_FLAKE		10
 #define RUNE_SKULL		11
 #define RUNE_HORNET		12
+#define RUNE_SNOWBALL	13
 
 class CWorldRunes : public CBaseEntity
 {

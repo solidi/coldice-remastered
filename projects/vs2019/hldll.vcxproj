@@ -231,6 +231,8 @@
     <ClCompile Include="..\..\dlls\smg.cpp" />
     <ClCompile Include="..\..\dlls\sniper_rifle.cpp" />
     <ClCompile Include="..\..\dlls\snowball.cpp" />
+    <ClCompile Include="..\..\dlls\flying_snowball.cpp" />
+    <ClCompile Include="..\..\dlls\snowbomb.cpp" />
     <ClCompile Include="..\..\dlls\sound.cpp" />
     <ClCompile Include="..\..\dlls\soundent.cpp" />
     <ClCompile Include="..\..\dlls\spectator.cpp" />

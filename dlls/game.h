@@ -57,7 +57,6 @@ extern cvar_t   jumpheight;
 extern cvar_t   icesprites;
 extern cvar_t   randomweapon;
 extern cvar_t   interactiveitems;
-extern cvar_t   snowballfight;
 extern cvar_t   spawnweapons;
 extern cvar_t   spawnitems;
 extern cvar_t   disallowlist;

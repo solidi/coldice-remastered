@@ -4614,9 +4614,11 @@ void CBasePlayer::GiveNamedItem( const char *pszName )
 		}
 	}
 
-	if (snowballfight.value) {
-		if (strncmp(pszName, "weapon_fists", 12) != 0 && strncmp(pszName, "weapon_snowball", 15) != 0 &&
-			strncmp(pszName, "weapon_vice", 11) != 0) {
+	if (g_pGameRules->IsSnowballFight()) {
+		if (strncmp(pszName, "weapon_fists", 12) != 0 &&
+			strncmp(pszName, "weapon_snowball", 15) != 0 &&
+			strncmp(pszName, "weapon_vice", 11) != 0 &&
+			strncmp(pszName, "weapon_glauncher", 16) != 0) {
 			return;
 		}
 	}
