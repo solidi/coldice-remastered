@@ -101,6 +101,12 @@ void CFlakBomb :: BombTouch ( CBaseEntity *pOther )
 {
 	pev->velocity = pev->velocity * 0.8;
 	STOP_SOUND( edict(), CHAN_VOICE, "rocket1.wav" );
+
+	if ( pOther->IsAlive() && (pOther->pev->flags & (FL_CLIENT|FL_MONSTER)) )
+	{
+		SetThink( &CFlakBomb::BlowUp );
+		pev->nextthink = gpGlobals->time;
+	}
 }
 
 void CFlakBomb :: BlowUp() {
