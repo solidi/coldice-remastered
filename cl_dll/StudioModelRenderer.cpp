@@ -1055,6 +1055,17 @@ void CStudioModelRenderer::StudioSetupBones ( void )
 				}
 			}
 
+			if (m_pCurrentEntity->curstate.scale > 2)
+			{
+				for (int b = 0; b < 3; ++b)
+				{
+					for (int j = 0; j < 3; ++j)
+					{
+						(*m_pbonetransform)[i][b][j] *= m_pCurrentEntity->curstate.scale;
+					}
+				}
+			}
+
 			if (MutatorEnabled(MUTATOR_MINIME))
 			{
 				if (m_pCurrentEntity != gEngfuncs.GetViewModel())
