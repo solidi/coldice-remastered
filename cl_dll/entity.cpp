@@ -242,7 +242,7 @@ void CL_DLLEXPORT HUD_TxferPredictionData ( struct entity_state_s *ps, const str
 		// iuser3 is not used for duck prevention (since the spectator can't duck at all)
 		pcd->iuser1 = g_iUser1;	// observer mode
 		pcd->iuser2 = g_iUser2; // first target
-		pcd->iuser3 = g_iUser3; // second target
+		pcd->iuser3 = g_iUser3; // menu mode
 	}
 
 	// Fire prevention

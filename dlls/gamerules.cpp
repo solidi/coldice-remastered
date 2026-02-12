@@ -2064,6 +2064,11 @@ BOOL CGameRules::IsSnowballFight()
 	return g_GameMode == GAME_SNOWBALL;
 }
 
+BOOL CGameRules::IsCtF()
+{
+	return g_GameMode == GAME_CTF;
+}
+
 void CGameRules::PauseMutators( void )
 {
 	if (m_bMutatorsPaused)

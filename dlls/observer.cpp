@@ -268,8 +268,6 @@ void CBasePlayer::Observer_SetMode( int iMode )
 	else
 		pev->iuser2 = ENTINDEX( m_hObserverTarget->edict() );
 	
-	pev->iuser3 = 0;	// clear second target from death cam
-	
 	// print spepctaor mode on client screen
 
 	char modemsg[16];

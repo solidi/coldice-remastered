@@ -1758,6 +1758,10 @@ void CHalfLifeMultiplay :: PlayerThink( CBasePlayer *pPlayer )
 			pT->Use(pPlayer, pPlayer, USE_ON, 0);
 		}
 
+		// Always play, never spectate
+		if (FBitSet(pPlayer->pev->flags, FL_FAKECLIENT) && pPlayer->pev->iuser3 > 0)
+			pPlayer->ExitObserver();
+
 		pPlayer->m_iShownWelcomeMessage = -1;
 	}
 
@@ -1850,7 +1854,9 @@ void CHalfLifeMultiplay :: PlayerSpawn( CBasePlayer *pPlayer )
 {
 	// Place player in spectator mode if joining during a game
 	// Or if the game begins that requires spectators
-	if ((g_GameInProgress && !pPlayer->IsInArena) || (!g_GameInProgress && IsRoundBased()))
+	if ((g_GameInProgress && !pPlayer->IsInArena) || 
+		(!g_GameInProgress && IsRoundBased()) ||
+		pPlayer->pev->iuser3 > 0)
 	{
 		return;
 	}

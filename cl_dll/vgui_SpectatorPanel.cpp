@@ -107,21 +107,21 @@ void SpectatorPanel::Initialize()
 	pp->setFgColor( r, g, b, 0 );
 	pp->setBgColor( r, g, b, 0 );
 
-	Label *dead = new Label( "", 10, 10, wide, PANEL_HEIGHT - 10 );
-	dead->setParent(m_TopBorder);
-	dead->setFont( pSchemes->getFont(hLargeScheme) );
-	dead->setPaintBackgroundEnabled(false);
-	dead->setFgColor( 255, 255, 255, 0 );
-	dead->setContentAlignment( vgui::Label::a_northwest );
-	dead->setText(CHudTextMessage::BufferedLocaliseTextString( "#You_Dead" ));
+	m_TopLeftTitle = new Label( "", 10, 10, wide, PANEL_HEIGHT - 10 );
+	m_TopLeftTitle->setParent(m_TopBorder);
+	m_TopLeftTitle->setFont( pSchemes->getFont(hLargeScheme) );
+	m_TopLeftTitle->setPaintBackgroundEnabled(false);
+	m_TopLeftTitle->setFgColor( 255, 255, 255, 0 );
+	m_TopLeftTitle->setContentAlignment( vgui::Label::a_northwest );
+	m_TopLeftTitle->setText(CHudTextMessage::BufferedLocaliseTextString( "#You_Dead" ));
 
-	Label *explain = new Label( "", 10, 0, wide, PANEL_HEIGHT - 10 );
-	explain->setParent(m_TopBorder);
-	explain->setFont( pSchemes->getFont(hSmallScheme) );
-	explain->setPaintBackgroundEnabled(false);
-	explain->setFgColor( 255, 255, 255, 0 );
-	explain->setContentAlignment( vgui::Label::a_southwest );
-	explain->setText(CHudTextMessage::BufferedLocaliseTextString( "#Next_Round" ));
+	m_TopLeftSummary = new Label( "", 10, 0, wide, PANEL_HEIGHT - 10 );
+	m_TopLeftSummary->setParent(m_TopBorder);
+	m_TopLeftSummary->setFont( pSchemes->getFont(hSmallScheme) );
+	m_TopLeftSummary->setPaintBackgroundEnabled(false);
+	m_TopLeftSummary->setFgColor( 255, 255, 255, 0 );
+	m_TopLeftSummary->setContentAlignment( vgui::Label::a_southwest );
+	m_TopLeftSummary->setText(CHudTextMessage::BufferedLocaliseTextString( "#Next_Round" ));
 
 	Label *commands = new Label( "", 0, 0, wide - 10, PANEL_HEIGHT );
 	commands->setParent(m_TopBorder);
@@ -274,6 +274,55 @@ void SpectatorPanel::Initialize()
 	m_ExtraInfo->setVisible( false );
 	m_Separator->setVisible( false );
 	m_TimerImage->setVisible( false );
+
+	// Create team selection options panel - vertical layout, aligned left with objective HUD
+	int btnWidth = ScreenWidth / 8;
+	int btnHeight = YRES(35);
+	int btnSpacing = YRES(5);
+	int panelWidth = btnWidth + XRES(20); // button + left and right margins
+	int panelHeight = (btnHeight * 4) + (btnSpacing * 5); // 4 buttons + 5 margins (top, 3 between, bottom)
+	int panelX = 10;  // Align with objective HUD left margin
+	int panelY = YRES(160);  // Below objective menu with margin
+
+	m_OptionsPanel = new CTransparentPanel(200, panelX, panelY, panelWidth, panelHeight);
+	m_OptionsPanel->setParent(this);
+	m_OptionsPanel->setVisible(false);
+
+	int btnX = XRES(10);
+	int btnY = btnSpacing;
+
+	// Auto Assign button (top)
+	m_AutoAssignButton = new CommandButton("Auto Join", btnX, btnY, btnWidth, btnHeight, false);
+	m_AutoAssignButton->setParent(m_OptionsPanel);
+	m_AutoAssignButton->addActionSignal(new CMenuHandler_StringCommand("auto_join"));
+	m_AutoAssignButton->setBoundKey((char)255);  // Disable key prefix spacing
+	m_AutoAssignButton->setContentAlignment(vgui::Label::a_center);
+	
+	// Join Blue button
+	btnY += btnHeight + btnSpacing;
+	m_JoinBlueButton = new CommandButton("Join Blue", btnX, btnY, btnWidth, btnHeight, false);
+	m_JoinBlueButton->setParent(m_OptionsPanel);
+	m_JoinBlueButton->addActionSignal(new CMenuHandler_StringCommand("join_blue"));
+	m_JoinBlueButton->setBoundKey((char)255);  // Disable key prefix spacing
+	m_JoinBlueButton->setContentAlignment(vgui::Label::a_center);
+
+	// Join Red button
+	btnY += btnHeight + btnSpacing;
+	m_JoinRedButton = new CommandButton("Join Red", btnX, btnY, btnWidth, btnHeight, false);
+	m_JoinRedButton->setParent(m_OptionsPanel);
+	m_JoinRedButton->addActionSignal(new CMenuHandler_StringCommand("join_red"));
+	m_JoinRedButton->setBoundKey((char)255);  // Disable key prefix spacing
+	m_JoinRedButton->setContentAlignment(vgui::Label::a_center);
+
+	// Spectate button (bottom)
+	btnY += btnHeight + btnSpacing;
+	m_SpectateButton = new CommandButton("Spectate", btnX, btnY, btnWidth, btnHeight, false);
+	m_SpectateButton->setParent(m_OptionsPanel);
+	m_SpectateButton->addActionSignal(new CMenuHandler_StringCommand("spectate"));
+	m_SpectateButton->setBoundKey((char)255);  // Disable key prefix spacing
+	m_SpectateButton->setContentAlignment(vgui::Label::a_center);
+
+	m_optionsVisible = false;
 		
 }
 
@@ -319,6 +368,71 @@ void SpectatorPanel::ShowMenu(bool isVisible)
 
 	m_menuVisible = isVisible;
 
+	gViewPort->UpdateCursorState();
+}
+
+void SpectatorPanel::ShowOptions(bool isVisible)
+{
+	if (!isVisible)
+	{
+		m_OptionsPanel->setVisible(false);
+		m_optionsVisible = false;
+		gViewPort->UpdateCursorState();
+		return;
+	}
+
+	m_TopLeftSummary->setText("Select Mode");
+	m_TopLeftSummary->setText("Watch or participate in this game");
+
+	// Show/hide buttons based on menu mode 
+	int menuMode = g_iUser3;
+
+	// Reset all buttons to hidden first
+	m_AutoAssignButton->setVisible(false);
+	m_JoinBlueButton->setVisible(false);
+	m_JoinRedButton->setVisible(false);
+	m_SpectateButton->setVisible(false);
+
+	switch (menuMode)
+	{
+	case OBS_UNDECIDED_SIMPLE:
+		// Show: Auto Assign, Spectate
+		m_AutoAssignButton->setVisible(true);
+		m_SpectateButton->setVisible(true);
+		break;
+
+	case OBS_UNDECIDED_BLUE:
+		// Show: Auto Assign, Join Blue, Spectate
+		m_AutoAssignButton->setVisible(true);
+		m_JoinBlueButton->setVisible(true);
+		m_SpectateButton->setVisible(true);
+		break;
+
+	case OBS_UNDECIDED_RED:
+		// Show: Auto Assign, Join Red, Spectate
+		m_AutoAssignButton->setVisible(true);
+		m_JoinRedButton->setVisible(true);
+		m_SpectateButton->setVisible(true);
+		break;
+
+	case OBS_UNDECIDED_BOTH:
+		// Show: All buttons
+		m_AutoAssignButton->setVisible(true);
+		m_JoinBlueButton->setVisible(true);
+		m_JoinRedButton->setVisible(true);
+		m_SpectateButton->setVisible(true);
+		break;
+
+	default:
+		// Don't show the panel for other modes
+		m_OptionsPanel->setVisible(false);
+		m_optionsVisible = false;
+		gViewPort->UpdateCursorState();
+		return;
+	}
+
+	m_OptionsPanel->setVisible(true);
+	m_optionsVisible = true;
 	gViewPort->UpdateCursorState();
 }
 
@@ -448,6 +562,31 @@ void SpectatorPanel::Update()
 
 	m_Separator->setPos( ScreenWidth - ( iTextWidth + XRES ( 2*SEPERATOR_WIDTH+SEPERATOR_WIDTH/2+offset ) ) , YRES( 5 ) );
 	m_Separator->setSize( XRES( 1 ),  PANEL_HEIGHT - 10  );
+
+	if (!g_iUser3)
+	{
+		if (gHUD.m_Teamplay == GAME_ARENA ||
+			gHUD.m_Teamplay == GAME_LMS ||
+			gHUD.m_Teamplay == GAME_CHILLDEMIC ||
+			gHUD.m_Teamplay == GAME_HORDE ||
+			gHUD.m_Teamplay == GAME_ICEMAN ||
+			gHUD.m_Teamplay == GAME_PROPHUNT ||
+			gHUD.m_Teamplay == GAME_SHIDDEN)
+		{
+			m_TopLeftTitle->setText(CHudTextMessage::BufferedLocaliseTextString( "#You_Dead" ));
+			m_TopLeftSummary->setText(CHudTextMessage::BufferedLocaliseTextString( "#Next_Round" ));
+		}
+		else
+		{
+			m_TopLeftTitle->setText(CHudTextMessage::BufferedLocaliseTextString( "#You_Spec" ));
+			m_TopLeftSummary->setText(CHudTextMessage::BufferedLocaliseTextString( "#Spec_Menu" ));
+		}
+	}
+	else
+	{
+		m_TopLeftTitle->setText(CHudTextMessage::BufferedLocaliseTextString( "#Choose_Option" ));
+		m_TopLeftSummary->setText("");
+	}
 
 	for ( j= 0; j < TEAM_NUMBER; j++ )
 	{

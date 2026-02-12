@@ -35,6 +35,8 @@ public:
 	virtual BOOL FPlayerCanTakeDamage( CBasePlayer *pPlayer, CBaseEntity *pAttacker );
 	virtual BOOL IsTeamplay( void );
 
+	void AutoJoin( CBasePlayer *pPlayer, int team );
+
 	EHANDLE pRedBase;
 	EHANDLE pBlueBase;
 

@@ -709,11 +709,10 @@ void CHudSpectator::DirectorMessage( int iSize, void *pbuf )
 														
 							if ( m_autoDirector->value )
 							{
-								if ( (g_iUser2 != m_lastPrimaryObject) || (g_iUser3 != m_lastSecondaryObject) )
+								if ( (g_iUser2 != m_lastPrimaryObject) )
 									V_ResetChaseCam();	
 
 								g_iUser2 = m_lastPrimaryObject;
-								g_iUser3 = m_lastSecondaryObject;
 								m_IsInterpolating = false;
 								m_ChaseEntity = 0;
 							}
@@ -1166,7 +1165,6 @@ void CHudSpectator::SetModes(int iNewMainMode, int iNewInsetMode)
 			if ( IsActivePlayer( gEngfuncs.GetEntityByIndex( m_lastPrimaryObject ) ) )
 			{
 				g_iUser2 = m_lastPrimaryObject;
-				g_iUser3 = m_lastSecondaryObject;
 			}
 			else
 				FindNextPlayer(false); // find any target

@@ -57,6 +57,7 @@ public:
 
 	void EnableInsetView(bool isEnabled);
 	void ShowMenu(bool isVisible);
+	void ShowOptions(bool isVisible);
 
 	DropDownButton		  *	m_OptionButton;
 //	CommandButton     *	m_HideButton;
@@ -77,6 +78,8 @@ public:
 	Label			*m_CurrentTime;
 	Label			*m_ExtraInfo;
 	Panel			*m_Separator;
+	Label			*m_TopLeftTitle;
+	Label			*m_TopLeftSummary;
 
 	Label			*m_TeamScores[TEAM_NUMBER];
 	
@@ -84,6 +87,14 @@ public:
 
 	bool			m_menuVisible;
 	bool			m_insetVisible;
+
+	// Team selection options
+	CTransparentPanel *		m_OptionsPanel;
+	CommandButton *			m_AutoAssignButton;
+	CommandButton *			m_JoinBlueButton;
+	CommandButton *			m_JoinRedButton;
+	CommandButton *			m_SpectateButton;
+	bool					m_optionsVisible;
 };
 
 

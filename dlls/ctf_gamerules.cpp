@@ -22,6 +22,7 @@
 #include "ctf_gamerules.h"
 #include "game.h"
 #include "items.h"
+#include "pm_shared.h"
 
 extern int gmsgObjective;
 extern int gmsgScoreInfo;
@@ -512,7 +513,7 @@ ReturnSpot:
 	return pSpot->edict();
 }
 
-void CHalfLifeCaptureTheFlag::InitHUD( CBasePlayer *pPlayer )
+void CHalfLifeCaptureTheFlag::AutoJoin( CBasePlayer *pPlayer, int team )
 {
 	int blueteam = 0, redteam = 0;
 	for (int i = 1; i <= gpGlobals->maxClients; i++)
@@ -527,7 +528,10 @@ void CHalfLifeCaptureTheFlag::InitHUD( CBasePlayer *pPlayer )
 		}
 	}
 
-	pPlayer->pev->fuser4 = redteam >= blueteam ? TEAM_BLUE : TEAM_RED;
+	if (team > TEAM_RED)
+		pPlayer->pev->fuser4 = redteam >= blueteam ? TEAM_BLUE : TEAM_RED;
+	else
+		pPlayer->pev->fuser4 = team;
 
 	if (pPlayer->pev->fuser4 == TEAM_BLUE)
 	{
@@ -541,14 +545,6 @@ void CHalfLifeCaptureTheFlag::InitHUD( CBasePlayer *pPlayer )
 		g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer->edict()),
 			g_engfuncs.pfnGetInfoKeyBuffer(pPlayer->edict()), "model", "santa");
 	}
-
-	CHalfLifeMultiplay::InitHUD( pPlayer );
-
-	MESSAGE_BEGIN(MSG_ONE, gmsgTeamNames, NULL, pPlayer->edict());
-		WRITE_BYTE( 2 );
-		WRITE_STRING( "blue" );
-		WRITE_STRING( "red" );
-	MESSAGE_END();
 
 	char text[256];
 	sprintf( text, "[CtF] You're on team \'%s\'\n", pPlayer->m_szTeamName );
@@ -575,7 +571,21 @@ void CHalfLifeCaptureTheFlag::InitHUD( CBasePlayer *pPlayer )
 			WRITE_STRING(UTIL_VarArgs("You're on %s team", (pPlayer->pev->fuser4 == TEAM_RED) ? "red" : "blue"));
 			WRITE_BYTE(0);
 		MESSAGE_END();
+	}
+}
 
+void CHalfLifeCaptureTheFlag::InitHUD( CBasePlayer *pPlayer )
+{
+	CHalfLifeMultiplay::InitHUD( pPlayer );
+
+	MESSAGE_BEGIN(MSG_ONE, gmsgTeamNames, NULL, pPlayer->edict());
+		WRITE_BYTE( 2 );
+		WRITE_STRING( "blue" );
+		WRITE_STRING( "red" );
+	MESSAGE_END();
+
+	if (!FBitSet(pPlayer->pev->flags, FL_FAKECLIENT))
+	{
 		MESSAGE_BEGIN(MSG_ONE, gmsgCtfInfo, NULL, pPlayer->edict());
 			WRITE_BYTE(m_iBlueScore);
 			WRITE_BYTE(m_iRedScore);
@@ -693,6 +703,19 @@ void CHalfLifeCaptureTheFlag::PlayerSpawn( CBasePlayer *pPlayer )
 
 	CHalfLifeMultiplay::SavePlayerModel(pPlayer);
 
+	// New player
+	if (pPlayer->pev->iuser3 > 0)
+	{
+		pPlayer->pev->iuser3 = OBS_UNDECIDED_BOTH;
+		return;
+	}
+	else if (pPlayer->pev->iuser3 == 0) // Spectator now joining
+	{
+		AutoJoin(pPlayer, pPlayer->m_iObserverWeapon);
+		pPlayer->pev->iuser3 = -1;
+		pPlayer->m_iObserverWeapon = 0; // Used as the menu option
+	}
+
 	if (pPlayer->m_iShowGameModeMessage > -1)
 		pPlayer->m_iShowGameModeMessage = gpGlobals->time + 0.5;
 }
@@ -712,6 +735,9 @@ void CHalfLifeCaptureTheFlag::ClientUserInfoChanged( CBasePlayer *pPlayer, char 
 
 	// Ignore ctf on model changing back.
 	if ( g_fGameOver )
+		return;
+
+	if (pPlayer->IsSpectator())
 		return;
 
 	// prevent skin/color/model changes
@@ -756,13 +782,11 @@ void CHalfLifeCaptureTheFlag::ClientUserInfoChanged( CBasePlayer *pPlayer, char 
 	{
 		strncpy( pPlayer->m_szTeamName, "red", TEAM_NAME_LENGTH );
 		g_engfuncs.pfnSetClientKeyValue( clientIndex, g_engfuncs.pfnGetInfoKeyBuffer( pPlayer->edict() ), "model", "santa" );
-		//g_engfuncs.pfnSetClientKeyValue( clientIndex, g_engfuncs.pfnGetInfoKeyBuffer( pPlayer->edict() ), "team", pPlayer->m_szTeamName );
 	}
 	else
 	{
 		strncpy( pPlayer->m_szTeamName, "blue", TEAM_NAME_LENGTH );
 		g_engfuncs.pfnSetClientKeyValue( clientIndex, g_engfuncs.pfnGetInfoKeyBuffer( pPlayer->edict() ), "model", "iceman" );
-		//g_engfuncs.pfnSetClientKeyValue( clientIndex, g_engfuncs.pfnGetInfoKeyBuffer( pPlayer->edict() ), "team", pPlayer->m_szTeamName );
 	}
 
 	// notify everyone of the team change
