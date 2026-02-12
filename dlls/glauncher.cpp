@@ -68,6 +68,9 @@ void CGrenadeLauncher::Precache( void )
 
 	PRECACHE_SOUND("weapons/357_cock1.wav");
 
+	PRECACHE_SOUND( "m16_glauncher.wav" );
+	PRECACHE_SOUND( "m16_glauncher2.wav" );
+
 	// Precache flying_snowball and snowbomb for GAME_SNOWBALL mode
 	UTIL_PrecacheOther( "flying_snowball" );
 	UTIL_PrecacheOther( "snowbomb" );
@@ -233,11 +236,7 @@ void CGrenadeLauncher::SecondaryAttack( void )
 			// Slower velocity than regular snowballs (1000 vs 1500)
 			pBomb->pev->velocity = vecAiming * 1000;
 		}
-#endif		
-		// Moderate fire rate for snowbomb mode
-		m_flNextSecondaryAttack = GetNextAttackDelay(0.8);
-		m_flNextPrimaryAttack = UTIL_WeaponTimeBase() + 0.8;
-		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 2.5;
+#endif
 	}
 	else
 	{
@@ -249,10 +248,6 @@ void CGrenadeLauncher::SecondaryAttack( void )
 		}
 
 		CGrenade::ShootTimedCluster(m_pPlayer->pev, vecSrc, vecAiming * 800, 6 );
-		
-		m_flNextSecondaryAttack = GetNextAttackDelay(1.3);
-		m_flNextPrimaryAttack = UTIL_WeaponTimeBase() + 1.3;
-		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 5.0;
 	}
 
 	int flags;

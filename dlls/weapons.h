@@ -2752,7 +2752,7 @@ public:
 	BOOL EXPORT ShouldCollide( CBaseEntity *pOther );
 	static CSnowbomb *CreateSnowbomb( Vector vecOrigin, Vector vecAngles, CBaseEntity *pOwner );
 
-	CBaseEntity *owner;
+	EHANDLE m_hOwner;
 };
 
 class CFlyingSnowball : public CBaseEntity

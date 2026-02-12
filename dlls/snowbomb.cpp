@@ -33,7 +33,7 @@ CSnowbomb *CSnowbomb::CreateSnowbomb( Vector vecOrigin, Vector vecAngles, CBaseE
 	pBomb->pev->angles = vecAngles;
 	pBomb->Spawn();
 	pBomb->SetTouch( &CSnowbomb::BombTouch );
-	pBomb->owner = pOwner;
+	pBomb->m_hOwner = pOwner;
 	if (pOwner)
 		pBomb->pev->owner = pOwner->edict();
 
@@ -113,8 +113,8 @@ void CSnowbomb::BlowUp( void )
 {
 	// Get the owner for the spawned snowballs
 	entvars_t *pevOwner = NULL;
-	if (owner)
-		pevOwner = owner->pev;
+	if (m_hOwner)
+		pevOwner = m_hOwner->pev;
 	else if (pev->owner)
 		pevOwner = VARS(pev->owner);
 
