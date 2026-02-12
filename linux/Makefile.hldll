@@ -225,6 +225,7 @@ HLDLL_OBJS = \
 	$(HLDLL_OBJ_DIR)/sniper_rifle.o \
 	$(HLDLL_OBJ_DIR)/snowball.o \
 	$(HLDLL_OBJ_DIR)/flying_snowball.o \
+	$(HLDLL_OBJ_DIR)/snowbomb.o \
 	$(HLDLL_OBJ_DIR)/sound.o \
 	$(HLDLL_OBJ_DIR)/soundent.o \
 	$(HLDLL_OBJ_DIR)/spectator.o \

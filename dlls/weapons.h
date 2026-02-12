@@ -2742,6 +2742,19 @@ private:
 	int m_ViceMode;
 };
 
+class CSnowbomb : public CGrenade
+{
+public:
+	void Spawn( void );
+	void Precache( void );
+	void EXPORT BombTouch( CBaseEntity *pOther );
+	void EXPORT BlowUp( void );
+	BOOL EXPORT ShouldCollide( CBaseEntity *pOther );
+	static CSnowbomb *CreateSnowbomb( Vector vecOrigin, Vector vecAngles, CBaseEntity *pOwner );
+
+	CBaseEntity *owner;
+};
+
 class CFlyingSnowball : public CBaseEntity
 {
 public:

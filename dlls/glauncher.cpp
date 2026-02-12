@@ -68,8 +68,9 @@ void CGrenadeLauncher::Precache( void )
 
 	PRECACHE_SOUND("weapons/357_cock1.wav");
 
-	// Precache flying_snowball for GAME_SNOWBALL mode
+	// Precache flying_snowball and snowbomb for GAME_SNOWBALL mode
 	UTIL_PrecacheOther( "flying_snowball" );
+	UTIL_PrecacheOther( "snowbomb" );
 
 	m_usGrenadeLauncher = PRECACHE_EVENT( 1, "events/glauncher.sc" );
 }
@@ -190,9 +191,6 @@ void CGrenadeLauncher::PrimaryAttack()
 
 void CGrenadeLauncher::SecondaryAttack( void )
 {
-	// TODO: Future GAME_SNOWBALL mode secondary fire behavior will be added here
-	// Keep this open for special snowball launcher functionality
-	
 	// don't fire underwater
 	if (m_pPlayer->pev->waterlevel == 3)
 	{
@@ -213,20 +211,49 @@ void CGrenadeLauncher::SecondaryAttack( void )
 	m_pPlayer->m_iExtraSoundTypes = bits_SOUND_DANGER;
 	m_pPlayer->m_flStopExtraSoundTime = UTIL_WeaponTimeBase() + 0.2;
 
-	m_iClip--;
-
 	// player "shoot" animation
 	m_pPlayer->SetAnimation( PLAYER_ATTACK1 );
 
 	Vector vecAiming = m_pPlayer->GetAutoaimVector( AUTOAIM_10DEGREES );
+	Vector vecSrc = m_pPlayer->pev->origin + m_pPlayer->pev->view_ofs + vecAiming * 16;
 
-	if (RANDOM_LONG(0,2) == 0) {
-		EMIT_SOUND_DYN(ENT(m_pPlayer->pev), CHAN_VOICE, "glauncher_bad.wav", RANDOM_FLOAT(0.92, 1.0), ATTN_NORM, 0, 98 + RANDOM_LONG(0,3));	
+	int snowballfight = 0;
+#ifndef CLIENT_DLL
+	snowballfight = g_pGameRules->IsSnowballFight();
+#endif
+
+	// GAME_SNOWBALL mode: fire a bouncing snowbomb that explodes into 6 snowballs
+	if (snowballfight)
+	{
+#ifndef CLIENT_DLL
+		// Create and launch a snowbomb
+		CSnowbomb *pBomb = CSnowbomb::CreateSnowbomb( vecSrc, vecAiming, m_pPlayer );
+		if (pBomb)
+		{
+			// Slower velocity than regular snowballs (1000 vs 1500)
+			pBomb->pev->velocity = vecAiming * 1000;
+		}
+#endif		
+		// Moderate fire rate for snowbomb mode
+		m_flNextSecondaryAttack = GetNextAttackDelay(0.8);
+		m_flNextPrimaryAttack = UTIL_WeaponTimeBase() + 0.8;
+		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 2.5;
 	}
+	else
+	{
+		m_iClip--;
 
-	CGrenade::ShootTimedCluster(m_pPlayer->pev, 
-							m_pPlayer->pev->origin + m_pPlayer->pev->view_ofs + vecAiming * 16, 
-							vecAiming * 800, 6 );
+		// Normal cluster grenade mode
+		if (RANDOM_LONG(0,2) == 0) {
+			EMIT_SOUND_DYN(ENT(m_pPlayer->pev), CHAN_VOICE, "glauncher_bad.wav", RANDOM_FLOAT(0.92, 1.0), ATTN_NORM, 0, 98 + RANDOM_LONG(0,3));	
+		}
+
+		CGrenade::ShootTimedCluster(m_pPlayer->pev, vecSrc, vecAiming * 800, 6 );
+		
+		m_flNextSecondaryAttack = GetNextAttackDelay(1.3);
+		m_flNextPrimaryAttack = UTIL_WeaponTimeBase() + 1.3;
+		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 5.0;
+	}
 
 	int flags;
 #if defined( CLIENT_WEAPONS )
