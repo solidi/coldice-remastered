@@ -90,10 +90,10 @@ public:
 
 	// Team selection options
 	CTransparentPanel *		m_OptionsPanel;
-	CommandButton *			m_AutoAssignButton;
-	CommandButton *			m_JoinBlueButton;
-	CommandButton *			m_JoinRedButton;
-	CommandButton *			m_SpectateButton;
+	ColorButton *			m_AutoAssignButton;
+	ColorButton *			m_JoinBlueButton;
+	ColorButton *			m_JoinRedButton;
+	ColorButton *			m_SpectateButton;
 	bool					m_optionsVisible;
 };
 

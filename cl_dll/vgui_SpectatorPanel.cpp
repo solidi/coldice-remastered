@@ -275,14 +275,14 @@ void SpectatorPanel::Initialize()
 	m_Separator->setVisible( false );
 	m_TimerImage->setVisible( false );
 
-	// Create team selection options panel - vertical layout, aligned left with objective HUD
+	// Create team selection options panel - vertical layout, centered on screen
 	int btnWidth = ScreenWidth / 8;
 	int btnHeight = YRES(35);
 	int btnSpacing = YRES(5);
 	int panelWidth = btnWidth + XRES(20); // button + left and right margins
 	int panelHeight = (btnHeight * 4) + (btnSpacing * 5); // 4 buttons + 5 margins (top, 3 between, bottom)
-	int panelX = 10;  // Align with objective HUD left margin
-	int panelY = YRES(160);  // Below objective menu with margin
+	int panelX = (ScreenWidth - panelWidth) / 2;  // Centered horizontally
+	int panelY = (ScreenHeight - panelHeight) / 2;  // Centered vertically
 
 	m_OptionsPanel = new CTransparentPanel(200, panelX, panelY, panelWidth, panelHeight);
 	m_OptionsPanel->setParent(this);
@@ -291,36 +291,59 @@ void SpectatorPanel::Initialize()
 	int btnX = XRES(10);
 	int btnY = btnSpacing;
 
+	// Get HudColor for button styling
+	UnpackRGB(r, g, b, HudColor());
+
 	// Auto Assign button (top)
-	m_AutoAssignButton = new CommandButton("Auto Join", btnX, btnY, btnWidth, btnHeight, false);
+	m_AutoAssignButton = new ColorButton("Auto Join", btnX, btnY, btnWidth, btnHeight, false, false);
 	m_AutoAssignButton->setParent(m_OptionsPanel);
 	m_AutoAssignButton->addActionSignal(new CMenuHandler_StringCommand("auto_join"));
 	m_AutoAssignButton->setBoundKey((char)255);  // Disable key prefix spacing
 	m_AutoAssignButton->setContentAlignment(vgui::Label::a_center);
+	m_AutoAssignButton->setUnArmedColor(r, g, b, 0);  // HudColor text when not armed
+	m_AutoAssignButton->setArmedColor(255, 255, 255, 0);  // White text when armed
+	m_AutoAssignButton->setUnArmedBorderColor(r, g, b, 0);  // HudColor border
+	m_AutoAssignButton->setArmedBorderColor(255, 255, 255, 0);  // White border when armed
+	m_AutoAssignButton->setBgColor(r, g, b, 0);  // Blue background when armed
 	
 	// Join Blue button
 	btnY += btnHeight + btnSpacing;
-	m_JoinBlueButton = new CommandButton("Join Blue", btnX, btnY, btnWidth, btnHeight, false);
+	m_JoinBlueButton = new ColorButton("Join Blue", btnX, btnY, btnWidth, btnHeight, false, false);
 	m_JoinBlueButton->setParent(m_OptionsPanel);
 	m_JoinBlueButton->addActionSignal(new CMenuHandler_StringCommand("join_blue"));
 	m_JoinBlueButton->setBoundKey((char)255);  // Disable key prefix spacing
 	m_JoinBlueButton->setContentAlignment(vgui::Label::a_center);
+	m_JoinBlueButton->setUnArmedColor(r, g, b, 0);  // HudColor text when not armed
+	m_JoinBlueButton->setArmedColor(255, 255, 255, 0);  // White text when armed
+	m_JoinBlueButton->setUnArmedBorderColor(r, g, b, 0);  // HudColor border
+	m_JoinBlueButton->setArmedBorderColor(255, 255, 255, 0);  // White border when armed
+	m_JoinBlueButton->setBgColor(r, g, b, 0);  // Blue background when armed
 
 	// Join Red button
 	btnY += btnHeight + btnSpacing;
-	m_JoinRedButton = new CommandButton("Join Red", btnX, btnY, btnWidth, btnHeight, false);
+	m_JoinRedButton = new ColorButton("Join Red", btnX, btnY, btnWidth, btnHeight, false, false);
 	m_JoinRedButton->setParent(m_OptionsPanel);
 	m_JoinRedButton->addActionSignal(new CMenuHandler_StringCommand("join_red"));
 	m_JoinRedButton->setBoundKey((char)255);  // Disable key prefix spacing
 	m_JoinRedButton->setContentAlignment(vgui::Label::a_center);
+	m_JoinRedButton->setUnArmedColor(r, g, b, 0);  // HudColor text when not armed
+	m_JoinRedButton->setArmedColor(255, 255, 255, 0);  // White text when armed
+	m_JoinRedButton->setUnArmedBorderColor(r, g, b, 0);  // HudColor border
+	m_JoinRedButton->setArmedBorderColor(255, 255, 255, 0);  // White border when armed
+	m_JoinRedButton->setBgColor(r, g, b, 0);  // Blue background when armed
 
 	// Spectate button (bottom)
 	btnY += btnHeight + btnSpacing;
-	m_SpectateButton = new CommandButton("Spectate", btnX, btnY, btnWidth, btnHeight, false);
+	m_SpectateButton = new ColorButton("Spectate", btnX, btnY, btnWidth, btnHeight, false, false);
 	m_SpectateButton->setParent(m_OptionsPanel);
 	m_SpectateButton->addActionSignal(new CMenuHandler_StringCommand("spectate"));
 	m_SpectateButton->setBoundKey((char)255);  // Disable key prefix spacing
 	m_SpectateButton->setContentAlignment(vgui::Label::a_center);
+	m_SpectateButton->setUnArmedColor(r, g, b, 0);  // HudColor text when not armed
+	m_SpectateButton->setArmedColor(255, 255, 255, 0);  // White text when armed
+	m_SpectateButton->setUnArmedBorderColor(r, g, b, 0);  // HudColor border
+	m_SpectateButton->setArmedBorderColor(255, 255, 255, 0);  // White border when armed
+	m_SpectateButton->setBgColor(r, g, b, 0);  // Blue background when armed
 
 	m_optionsVisible = false;
 		
@@ -376,6 +399,10 @@ void SpectatorPanel::ShowOptions(bool isVisible)
 	if (!isVisible)
 	{
 		m_OptionsPanel->setVisible(false);
+		m_AutoAssignButton->setArmed(false);
+		m_JoinBlueButton->setArmed(false);
+		m_JoinRedButton->setArmed(false);
+		m_SpectateButton->setArmed(false);
 		m_optionsVisible = false;
 		gViewPort->UpdateCursorState();
 		return;
@@ -584,8 +611,10 @@ void SpectatorPanel::Update()
 	}
 	else
 	{
-		m_TopLeftTitle->setText(CHudTextMessage::BufferedLocaliseTextString( "#Choose_Option" ));
-		m_TopLeftSummary->setText("");
+		char title[80];
+		sprintf( title, "#%s", sGameplayModes[gHUD.m_Teamplay] );
+		m_TopLeftTitle->setText(CHudTextMessage::BufferedLocaliseTextString(title));
+		m_TopLeftSummary->setText(CHudTextMessage::BufferedLocaliseTextString( "#Choose_Option" ));
 	}
 
 	for ( j= 0; j < TEAM_NUMBER; j++ )
