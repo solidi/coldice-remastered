@@ -23,6 +23,7 @@
 #include "game.h"
 #include "items.h"
 #include "shake.h"
+#include "pm_shared.h"
 
 extern int gmsgScoreInfo;
 extern int gmsgTeamNames;
@@ -30,6 +31,7 @@ extern int gmsgTeamInfo;
 extern int gmsgObjective;
 extern int gmsgPlayClientSound;
 extern int gmsgSpecialEntity;
+extern int gmsgBanner;
 
 extern DLL_GLOBAL BOOL g_fGameOver;
 
@@ -207,7 +209,7 @@ ReturnSpot:
 	return pSpot->edict();
 }
 
-void CHalfLifeColdSpot::InitHUD( CBasePlayer *pPlayer )
+void CHalfLifeColdSpot::AutoJoin( CBasePlayer *pPlayer, int team )
 {
 	int blueteam = 0, redteam = 0;
 	for (int i = 1; i <= gpGlobals->maxClients; i++)
@@ -222,7 +224,10 @@ void CHalfLifeColdSpot::InitHUD( CBasePlayer *pPlayer )
 		}
 	}
 
-	pPlayer->pev->fuser4 = redteam >= blueteam ? TEAM_BLUE : TEAM_RED;
+	if (team > TEAM_RED)
+		pPlayer->pev->fuser4 = redteam >= blueteam ? TEAM_BLUE : TEAM_RED;
+	else
+		pPlayer->pev->fuser4 = team;
 
 	if (pPlayer->pev->fuser4 == TEAM_BLUE)
 	{
@@ -236,14 +241,6 @@ void CHalfLifeColdSpot::InitHUD( CBasePlayer *pPlayer )
 		g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer->edict()),
 			g_engfuncs.pfnGetInfoKeyBuffer(pPlayer->edict()), "model", "santa");
 	}
-
-	CHalfLifeMultiplay::InitHUD( pPlayer );
-
-	MESSAGE_BEGIN(MSG_ONE, gmsgTeamNames, NULL, pPlayer->edict());
-		WRITE_BYTE( 2 );
-		WRITE_STRING( "blue" );
-		WRITE_STRING( "red" );
-	MESSAGE_END();
 
 	char text[64];
 	sprintf( text, "[ColdSpot] You're on team \'%s\'\n", pPlayer->m_szTeamName );
@@ -263,15 +260,6 @@ void CHalfLifeColdSpot::InitHUD( CBasePlayer *pPlayer )
 		WRITE_SHORT( g_pGameRules->GetTeamIndex( pPlayer->m_szTeamName ) + 1 );
 	MESSAGE_END();
 
-	if (!FBitSet(pPlayer->pev->flags, FL_FAKECLIENT))
-	{
-		MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL, pPlayer->edict());
-			WRITE_STRING("Hold the cold spot");
-			WRITE_STRING(UTIL_VarArgs("You're on %s team", (pPlayer->pev->fuser4 == TEAM_RED) ? "red" : "blue"));
-			WRITE_BYTE(0);
-		MESSAGE_END();
-	}
-
 	for ( int i = 1; i <= gpGlobals->maxClients; i++ )
 	{
 		CBaseEntity *plr = UTIL_PlayerByIndex( i );
@@ -282,6 +270,26 @@ void CHalfLifeColdSpot::InitHUD( CBasePlayer *pPlayer )
 				WRITE_STRING( plr->TeamID() );
 			MESSAGE_END();
 		}
+	}
+}
+
+void CHalfLifeColdSpot::InitHUD( CBasePlayer *pPlayer )
+{
+	CHalfLifeMultiplay::InitHUD( pPlayer );
+
+	MESSAGE_BEGIN(MSG_ONE, gmsgTeamNames, NULL, pPlayer->edict());
+		WRITE_BYTE( 2 );
+		WRITE_STRING( "blue" );
+		WRITE_STRING( "red" );
+	MESSAGE_END();
+
+	if (!FBitSet(pPlayer->pev->flags, FL_FAKECLIENT))
+	{
+		MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL, pPlayer->edict());
+			WRITE_STRING("Hold the cold spot");
+			WRITE_STRING(UTIL_VarArgs("You're on %s team", (pPlayer->pev->fuser4 == TEAM_RED) ? "red" : "blue"));
+			WRITE_BYTE(0);
+		MESSAGE_END();
 	}
 }
 
@@ -322,6 +330,26 @@ void CHalfLifeColdSpot::Think( void )
 			m_fSpawnColdSpot = 0;
 		else
 			m_fSpawnColdSpot = gpGlobals->time + m_fColdSpotTime;
+	}
+}
+
+void CHalfLifeColdSpot::PlayerThink( CBasePlayer *pPlayer )
+{
+	CHalfLifeMultiplay::PlayerThink(pPlayer);
+
+	if (pPlayer->m_iShowGameModeMessage > -1 &&
+		pPlayer->m_iShowGameModeMessage < gpGlobals->time &&
+		!FBitSet(pPlayer->pev->flags, FL_FAKECLIENT))
+	{
+		MESSAGE_BEGIN(MSG_ONE, gmsgBanner, NULL, pPlayer->edict());
+			if (pPlayer->pev->fuser4 == TEAM_RED)
+				WRITE_STRING("You're on Team Red!");
+			else
+				WRITE_STRING("You're on Team Blue!");
+			WRITE_STRING("Find the cold spot and hold it to score points!");
+			WRITE_BYTE(80);
+		MESSAGE_END();
+		pPlayer->m_iShowGameModeMessage = -1;
 	}
 }
 
@@ -366,6 +394,20 @@ void CHalfLifeColdSpot::PlayerSpawn( CBasePlayer *pPlayer )
 	CHalfLifeMultiplay::PlayerSpawn( pPlayer );
 
 	CHalfLifeMultiplay::SavePlayerModel(pPlayer);
+
+	// New player
+	if (pPlayer->pev->iuser3 > 0)
+	{
+		pPlayer->pev->iuser3 = OBS_UNDECIDED_BOTH;
+		return;
+	}
+	else if (pPlayer->pev->iuser3 == 0) // Spectator now joining
+	{
+		AutoJoin(pPlayer, pPlayer->m_iObserverWeapon);
+		pPlayer->pev->iuser3 = -1;
+		pPlayer->m_iObserverWeapon = 0; // Used as the menu option
+		pPlayer->m_iShowGameModeMessage = gpGlobals->time + 0.5;
+	}
 }
 
 void CHalfLifeColdSpot::ClientUserInfoChanged( CBasePlayer *pPlayer, char *infobuffer )
@@ -374,6 +416,9 @@ void CHalfLifeColdSpot::ClientUserInfoChanged( CBasePlayer *pPlayer, char *infob
 	char text[1024];
 	char *mdls = g_engfuncs.pfnInfoKeyValue( infobuffer, "model" );
 	int clientIndex = pPlayer->entindex();
+
+	if (pPlayer->IsSpectator())
+		return;
 
 	// prevent skin/color/model changes
 	if ( !stricmp( "red", pPlayer->m_szTeamName ) && !stricmp( "santa", mdls ) )

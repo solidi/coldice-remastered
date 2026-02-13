@@ -2069,6 +2069,11 @@ BOOL CGameRules::IsCtF()
 	return g_GameMode == GAME_CTF;
 }
 
+BOOL CGameRules::IsColdSpot()
+{
+	return g_GameMode == GAME_COLDSPOT;
+}
+
 void CGameRules::PauseMutators( void )
 {
 	if (m_bMutatorsPaused)

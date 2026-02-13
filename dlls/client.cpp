@@ -952,7 +952,7 @@ void ClientCommand( edict_t *pEntity )
 	}
 	else if (FStrEq(pcmd, "join_blue" ))
 	{
-		if ( g_pGameRules->IsCtF() )
+		if ( g_pGameRules->IsCtF() || g_pGameRules->IsColdSpot() )
 		{
 			if (pev->iuser3 > 0)
 			{
@@ -968,7 +968,7 @@ void ClientCommand( edict_t *pEntity )
 	}
 	else if (FStrEq(pcmd, "join_red" ))
 	{
-		if ( g_pGameRules->IsCtF() )
+		if ( g_pGameRules->IsCtF() || g_pGameRules->IsColdSpot() )
 		{
 			if (pev->iuser3 > 0)
 			{
