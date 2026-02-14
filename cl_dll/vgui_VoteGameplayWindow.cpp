@@ -308,7 +308,7 @@ void CVoteGameplayPanel::Update()
 				m_pVoteTallyLabels[i]->setText(voteSz);
 				
 				// Update vote tally color to match button state
-				if (votes[i] == highest)
+				if (votes[i] == highest && votes[i] > 0)
 				{
 					m_pVoteTallyLabels[i]->setFgColor(255, 255, 255, 0);
 				}
