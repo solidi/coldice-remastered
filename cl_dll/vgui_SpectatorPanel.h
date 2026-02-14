@@ -94,7 +94,9 @@ public:
 	ColorButton *			m_JoinBlueButton;
 	ColorButton *			m_JoinRedButton;
 	ColorButton *			m_SpectateButton;
+	ColorButton *			m_SurpriseMeButton;
 	bool					m_optionsVisible;
+	float					m_flSurpriseMeCooldown;
 };
 
 
@@ -117,6 +119,20 @@ public:
 	{
 		m_pFather->ActionSignal(m_cmd);
 	}
+};
+
+class CSpectatorHandler_SurpriseMe : public ActionSignal
+{
+private:
+	SpectatorPanel * m_pParent;
+
+public:
+	CSpectatorHandler_SurpriseMe( SpectatorPanel * panel )
+	{
+		m_pParent = panel;
+	}
+
+	virtual void actionPerformed( Panel * panel );
 };
 
 

@@ -332,6 +332,19 @@ void SpectatorPanel::Initialize()
 	m_JoinRedButton->setArmedBorderColor(255, 255, 255, 0);  // White border when armed
 	m_JoinRedButton->setBgColor(r, g, b, 0);  // Blue background when armed
 
+	// Surprise Me button (third)
+	btnY += btnHeight + btnSpacing;
+	m_SurpriseMeButton = new ColorButton("Surprise Me", btnX, btnY, btnWidth, btnHeight, false, false);
+	m_SurpriseMeButton->setParent(m_OptionsPanel);
+	m_SurpriseMeButton->addActionSignal(new CSpectatorHandler_SurpriseMe(this));
+	m_SurpriseMeButton->setBoundKey((char)255);  // Disable key prefix spacing
+	m_SurpriseMeButton->setContentAlignment(vgui::Label::a_center);
+	m_SurpriseMeButton->setUnArmedColor(r, g, b, 0);  // HudColor text when not armed
+	m_SurpriseMeButton->setArmedColor(255, 255, 255, 0);  // White text when armed
+	m_SurpriseMeButton->setUnArmedBorderColor(r, g, b, 0);  // HudColor border
+	m_SurpriseMeButton->setArmedBorderColor(255, 255, 255, 0);  // White border when armed
+	m_SurpriseMeButton->setBgColor(r, g, b, 0);  // Blue background when armed
+
 	// Spectate button (bottom)
 	btnY += btnHeight + btnSpacing;
 	m_SpectateButton = new ColorButton("Spectate", btnX, btnY, btnWidth, btnHeight, false, false);
@@ -346,6 +359,7 @@ void SpectatorPanel::Initialize()
 	m_SpectateButton->setBgColor(r, g, b, 0);  // Blue background when armed
 
 	m_optionsVisible = false;
+	m_flSurpriseMeCooldown = 0.0f;
 		
 }
 
@@ -402,6 +416,7 @@ void SpectatorPanel::ShowOptions(bool isVisible)
 		m_AutoAssignButton->setArmed(false);
 		m_JoinBlueButton->setArmed(false);
 		m_JoinRedButton->setArmed(false);
+		m_SurpriseMeButton->setArmed(false);
 		m_SpectateButton->setArmed(false);
 		m_optionsVisible = false;
 		gViewPort->UpdateCursorState();
@@ -418,6 +433,7 @@ void SpectatorPanel::ShowOptions(bool isVisible)
 	m_AutoAssignButton->setVisible(false);
 	m_JoinBlueButton->setVisible(false);
 	m_JoinRedButton->setVisible(false);
+	m_SurpriseMeButton->setVisible(false);
 	m_SpectateButton->setVisible(false);
 
 	int visibleButtonCount = 0;
@@ -425,10 +441,11 @@ void SpectatorPanel::ShowOptions(bool isVisible)
 	switch (menuMode)
 	{
 	case OBS_UNDECIDED_SIMPLE:
-		// Show: Auto Assign, Spectate
+		// Show: Auto Assign, Surprise Me, Spectate
 		m_AutoAssignButton->setVisible(true);
+		m_SurpriseMeButton->setVisible(true);
 		m_SpectateButton->setVisible(true);
-		visibleButtonCount = 2;
+		visibleButtonCount = 3;
 		break;
 
 	case OBS_UNDECIDED_BLUE:
@@ -494,6 +511,12 @@ void SpectatorPanel::ShowOptions(bool isVisible)
 	if (m_JoinRedButton->isVisible())
 	{
 		m_JoinRedButton->setPos(btnX, currentY);
+		currentY += btnHeight + btnSpacing;
+	}
+	
+	if (m_SurpriseMeButton->isVisible())
+	{
+		m_SurpriseMeButton->setPos(btnX, currentY);
 		currentY += btnHeight + btnSpacing;
 	}
 	
@@ -668,5 +691,33 @@ void SpectatorPanel::Update()
 			
 		m_TeamScores[j]->getTextSize( iwidth, iheight );
 		m_TeamScores[j]->setBounds( ScreenWidth - ( iTextWidth + XRES ( 2*SEPERATOR_WIDTH+2*SEPERATOR_WIDTH/2+offset ) + iwidth ), YRES( SEPERATOR_HEIGHT ) + ( iheight * j ), iwidth, iheight );
+	}
+}
+
+void CSpectatorHandler_SurpriseMe::actionPerformed( Panel * panel )
+{
+	float currentTime = gEngfuncs.GetClientTime();
+	
+	// Check if cooldown has expired
+	if (currentTime >= m_pParent->m_flSurpriseMeCooldown)
+	{
+		// Array of funny sounds - easy to add more!
+		const char* surpriseSounds[] = {
+			"handgun_selected.wav",
+			"fart.wav",
+			"chicken.wav",
+			"hohoho.wav",
+			"shart.wav"
+		};
+		const int numSounds = sizeof(surpriseSounds) / sizeof(surpriseSounds[0]);
+		
+		// Pick a random sound
+		int randomIndex = gEngfuncs.pfnRandomLong(0, numSounds - 1);
+		
+		// Play the randomly selected sound
+		gEngfuncs.pfnPlaySoundByName((char*)surpriseSounds[randomIndex], 1.0f);
+		
+		// Set cooldown for 3 seconds from now
+		m_pParent->m_flSurpriseMeCooldown = currentTime + 3.0f;
 	}
 }
