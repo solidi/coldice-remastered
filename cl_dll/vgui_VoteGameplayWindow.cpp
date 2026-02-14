@@ -107,6 +107,15 @@ CVoteGameplayPanel::CVoteGameplayPanel(int iTrans, int iRemoveMe, int x,int y,in
 		sprintf(voteCommand, "vote %d", i+1);
 		ActionSignal *pASignal = new CMenuHandler_StringCommandClassSelect(voteCommand, false );
 
+		vgui::Font *font = pSchemes->getFont(hTitleScheme);
+		int delta = XRES(15), deltaY = YRES(9);
+		if (ScreenWidth <= 1024)
+		{
+			font = pSchemes->getFont(hClassWindowText);
+			delta = XRES(25);
+			deltaY = YRES(5);
+		}
+	
 		// gameplay button
 		sprintf(sz, "%s", sGameplayModes[i]);
 		char* localName = CHudTextMessage::BufferedLocaliseTextString( sz );
@@ -116,13 +125,13 @@ CVoteGameplayPanel::CVoteGameplayPanel(int iTrans, int iRemoveMe, int x,int y,in
 		m_pButtons[i]->setContentAlignment( vgui::Label::a_west );
 		m_pButtons[i]->addActionSignal( pASignal );
 		m_pButtons[i]->addInputSignal( new CHandler_MenuButtonOver(this, i) );
-		m_pButtons[i]->setFont( pSchemes->getFont(hClassWindowText) );
+		m_pButtons[i]->setFont( font );
 		m_pButtons[i]->setParent( this );
 		
 		// Add vote tally label (right-aligned, vertically centered)
-		m_pVoteTallyLabels[i] = new Label( "0", GAMEMENU_BUTTON_SIZE_X - XRES(25), YRES(7) );
+		m_pVoteTallyLabels[i] = new Label( "0", GAMEMENU_BUTTON_SIZE_X - delta, deltaY );
 		m_pVoteTallyLabels[i]->setParent( m_pButtons[i] );
-		m_pVoteTallyLabels[i]->setFont( pSchemes->getFont(hClassWindowText) );
+		m_pVoteTallyLabels[i]->setFont( font );
 		m_pVoteTallyLabels[i]->setContentAlignment( vgui::Label::a_east );
 		m_pVoteTallyLabels[i]->setSize( XRES(10), YRES(18) );
 		pSchemes->getFgColor( hTitleScheme, r, g, b, a );

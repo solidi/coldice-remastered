@@ -134,7 +134,7 @@ CVoteMutatorPanel::CVoteMutatorPanel(int iTrans, int iRemoveMe, int x,int y,int 
 		pSubtitle->setContentAlignment( vgui::Label::a_west );
 		
 		// Use scheme color for subtitle (dimmed for visual hierarchy)
-		int sr = 255, sg = 255, sb = 255, sa = 125;
+		int sr = 255, sg = 255, sb = 255, sa = 75;
 		//pSchemes->getFgColor( hClassWindowText, sr, sg, sb, sa );
 		pSubtitle->setFgColor( sr, sg, sb, sa );
 		pSubtitle->setBgColor( 0, 0, 0, 255 );
@@ -255,7 +255,7 @@ void CVoteMutatorPanel::Update()
 				m_pVoteTallyLabels[i]->setText(voteSz);
 				
 				// Update vote tally color to match button state
-				if (i == hi || i == s || i == t)
+				if ((i == hi || i == s || i == t) && votes[i] > 0)
 				{
 					m_pVoteTallyLabels[i]->setFgColor(255, 255, 255, 0);
 				}
