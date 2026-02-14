@@ -423,7 +423,7 @@ void CHalfLifeMultiplay :: Think ( void )
 						gameIndex = RANDOM_LONG(GAME_FFA, TOTAL_GAME_MODES);
 					}
 
-					UTIL_ClientPrintAll(HUD_PRINTTALK, UTIL_VarArgs("[VOTE] %s is the next gameplay mode!\n", gamePlayModes[gameIndex]));
+					UTIL_ClientPrintAll(HUD_PRINTTALK, UTIL_VarArgs("[VOTE] %s is the next gameplay mode with %d votes!\n", gamePlayModes[gameIndex], highest));
 
 					if (gameIndex == GAME_TEAMPLAY)
 					{
@@ -557,7 +557,7 @@ void CHalfLifeMultiplay :: Think ( void )
 					}
 					else
 					{
-						UTIL_ClientPrintAll(HUD_PRINTTALK, UTIL_VarArgs("[VOTE] \"%s\" is the next mutator!\n", g_szMutators[fIndex]));
+						UTIL_ClientPrintAll(HUD_PRINTTALK, UTIL_VarArgs("[VOTE] \"%s\" is the next mutator with %d votes!\n", g_szMutators[fIndex], first));
 						SERVER_COMMAND(UTIL_VarArgs("sv_mutatorlist \"%ss253\"\n", g_szMutators[fIndex]));
 					}
 				}
@@ -643,7 +643,7 @@ void CHalfLifeMultiplay :: Think ( void )
 						m_iDecidedMapIndex = RANDOM_LONG(0, BUILT_IN_MAP_COUNT - 1);
 					}
 
-					UTIL_ClientPrintAll(HUD_PRINTTALK, UTIL_VarArgs("[VOTE] %s is the next map!\n", sBuiltInMaps[m_iDecidedMapIndex]));
+					UTIL_ClientPrintAll(HUD_PRINTTALK, UTIL_VarArgs("[VOTE] %s is the next map with %d votes!\n", sBuiltInMaps[m_iDecidedMapIndex], highest));
 				}
 			}
 		}
