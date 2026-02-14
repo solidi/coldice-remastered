@@ -53,6 +53,7 @@ extern int gmsgVoteMutator;
 extern int gmsgShowTimer;
 extern int gmsgRoundTime;
 extern int gmsgAddMutator;
+extern int gmsgBanner;
 
 extern DLL_GLOBAL int g_GameMode;
 extern int gmsgPlayClientSound;
@@ -1683,6 +1684,21 @@ BOOL CHalfLifeMultiplay::FPlayerCanTakeDamage( CBasePlayer *pPlayer, CBaseEntity
 
 void CHalfLifeMultiplay :: PlayerThink( CBasePlayer *pPlayer )
 {
+	if (g_pGameRules->IsSnowballFight())
+	{
+		if (pPlayer->m_iShowGameModeMessage > -1 &&
+			pPlayer->m_iShowGameModeMessage < gpGlobals->time &&
+			!FBitSet(pPlayer->pev->flags, FL_FAKECLIENT))
+		{
+			MESSAGE_BEGIN(MSG_ONE, gmsgBanner, NULL, pPlayer->edict());
+				WRITE_STRING("Snowball Fight");
+				WRITE_STRING("Lots of balls, sometimes with launchers.");
+				WRITE_BYTE(80);
+			MESSAGE_END();
+			pPlayer->m_iShowGameModeMessage = -1;
+		}
+	}
+
 	if (g_pGameRules->MutatorEnabled(MUTATOR_LIGHTSOUT))
 	{
 		// Everready
@@ -1769,7 +1785,10 @@ void CHalfLifeMultiplay :: PlayerThink( CBasePlayer *pPlayer )
 
 		// Always play, never spectate
 		if (FBitSet(pPlayer->pev->flags, FL_FAKECLIENT) && pPlayer->pev->iuser3 > 0)
+		{
+			pPlayer->m_iObserverWeapon = 2; // always auto join
 			pPlayer->ExitObserver();
+		}
 
 		pPlayer->m_iShownWelcomeMessage = -1;
 	}
@@ -1868,6 +1887,17 @@ void CHalfLifeMultiplay :: PlayerSpawn( CBasePlayer *pPlayer )
 		pPlayer->pev->iuser3 > 0)
 	{
 		return;
+	}
+
+	// New player
+	if (g_pGameRules->IsSnowballFight())
+	{
+		if (pPlayer->pev->iuser3 == 0) // Spectator now joining
+		{
+			pPlayer->pev->iuser3 = -1;
+			pPlayer->m_iObserverWeapon = 0; // Used as the menu option
+			pPlayer->m_iShowGameModeMessage = gpGlobals->time + 0.5;
+		}
 	}
 
 	// Pause player during voting
