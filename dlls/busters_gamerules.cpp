@@ -67,8 +67,6 @@ CMultiplayBusters::CMultiplayBusters()
 
 void CMultiplayBusters::InitHUD( CBasePlayer *pPlayer )
 {
-	strncpy( pPlayer->m_szTeamName, "ghosts", TEAM_NAME_LENGTH );
-
 	CHalfLifeMultiplay::InitHUD( pPlayer );
 
 	if (!FBitSet(pPlayer->pev->flags, FL_FAKECLIENT))
@@ -85,24 +83,27 @@ void CMultiplayBusters::InitHUD( CBasePlayer *pPlayer )
 			WRITE_STRING( "ghosts" );
 			WRITE_STRING( "busters" );
 		MESSAGE_END();
-	}
 
-	MESSAGE_BEGIN( MSG_ALL, gmsgTeamInfo );
-		WRITE_BYTE( ENTINDEX(pPlayer->edict()) );
-		WRITE_STRING( pPlayer->m_szTeamName );
-	MESSAGE_END();
-
-	for ( int i = 1; i <= gpGlobals->maxClients; i++ )
-	{
-		CBaseEntity *plr = UTIL_PlayerByIndex( i );
-		if ( plr && !FBitSet(pPlayer->pev->flags, FL_FAKECLIENT) )
+		for ( int i = 1; i <= gpGlobals->maxClients; i++ )
 		{
-			MESSAGE_BEGIN( MSG_ONE, gmsgTeamInfo, NULL, pPlayer->edict() );
-				WRITE_BYTE( plr->entindex() );
-				WRITE_STRING( plr->TeamID() );
-			MESSAGE_END();
+			CBaseEntity *plr = UTIL_PlayerByIndex( i );
+			if ( plr )
+			{
+				MESSAGE_BEGIN( MSG_ONE, gmsgTeamInfo, NULL, pPlayer->edict() );
+					WRITE_BYTE( plr->entindex() );
+					WRITE_STRING( plr->TeamID() );
+				MESSAGE_END();
+			}
 		}
 	}
+
+	MESSAGE_BEGIN( MSG_ALL, gmsgScoreInfo );
+		WRITE_BYTE( ENTINDEX(pPlayer->edict()) );
+		WRITE_SHORT( pPlayer->pev->frags );
+		WRITE_SHORT( pPlayer->m_iDeaths );
+		WRITE_SHORT( pPlayer->m_iRoundWins );
+		WRITE_SHORT( g_pGameRules->GetTeamIndex( pPlayer->m_szTeamName ) + 1 );
+	MESSAGE_END();
 }
 
 void CMultiplayBusters::Think()
@@ -419,6 +420,9 @@ void CMultiplayBusters::PlayerGotWeapon( CBasePlayer* pPlayer, CBasePlayerItem* 
 
 void CMultiplayBusters::ClientUserInfoChanged( CBasePlayer* pPlayer, char* infobuffer )
 {
+	if (pPlayer->IsSpectator())
+		return;
+
 	SetPlayerModel( pPlayer );
 }
 
@@ -428,8 +432,23 @@ void CMultiplayBusters::PlayerSpawn( CBasePlayer* pPlayer )
 
 	CHalfLifeMultiplay::SavePlayerModel(pPlayer);
 
-	if (pPlayer->m_iShowGameModeMessage > -1)
+	// New player
+	if (pPlayer->pev->iuser3 > 0)
+	{
+		// Already set to simple in client.cpp
+		return;
+	}
+	else if (pPlayer->pev->iuser3 == 0) // Spectator now joining
+	{
+		strncpy( pPlayer->m_szTeamName, "ghosts", TEAM_NAME_LENGTH );
+		MESSAGE_BEGIN( MSG_ALL, gmsgTeamInfo );
+			WRITE_BYTE( ENTINDEX(pPlayer->edict()) );
+			WRITE_STRING( pPlayer->m_szTeamName );
+		MESSAGE_END();
+		pPlayer->pev->iuser3 = -1;
+		pPlayer->m_iObserverWeapon = 0; // Used as the menu option
 		pPlayer->m_iShowGameModeMessage = gpGlobals->time + 0.5;
+	}
 
 	SetPlayerModel( pPlayer );
 }
