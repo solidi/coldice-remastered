@@ -714,10 +714,8 @@ void CHalfLifeCaptureTheFlag::PlayerSpawn( CBasePlayer *pPlayer )
 		AutoJoin(pPlayer, pPlayer->m_iObserverWeapon);
 		pPlayer->pev->iuser3 = -1;
 		pPlayer->m_iObserverWeapon = 0; // Used as the menu option
-	}
-
-	if (pPlayer->m_iShowGameModeMessage > -1)
 		pPlayer->m_iShowGameModeMessage = gpGlobals->time + 0.5;
+	}
 }
 
 extern DLL_GLOBAL BOOL g_fGameOver;
