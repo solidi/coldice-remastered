@@ -549,23 +549,12 @@ void CHalfLifeShidden::PlayerSpawn( CBasePlayer *pPlayer )
 		pPlayer->pev->gravity = 0.25;
 		pPlayer->MakeInvisible();
 		strncpy( pPlayer->m_szTeamName, "dealters", TEAM_NAME_LENGTH );
-		MESSAGE_BEGIN(MSG_ONE, gmsgBanner, NULL, pPlayer->edict());
-			WRITE_STRING("You Are on Team Dealters");
-			WRITE_STRING("What's farting got to do with it?");
-			WRITE_BYTE(80);
-		MESSAGE_END();
 	}
 	else
 	{
 		strncpy( pPlayer->m_szTeamName, "smelters", TEAM_NAME_LENGTH );
 		pPlayer->pev->fuser3 = 0; // bots need to identify their team.
 		pPlayer->MakeVisible();
-
-		MESSAGE_BEGIN(MSG_ONE, gmsgBanner, NULL, pPlayer->edict());
-			WRITE_STRING("You Are on Team Smelters");
-			WRITE_STRING("Do you smell what I smell from these skeletons?");
-			WRITE_BYTE(80);
-		MESSAGE_END();
 	}
 
 	// notify everyone's HUD of the team change
@@ -581,11 +570,36 @@ void CHalfLifeShidden::PlayerSpawn( CBasePlayer *pPlayer )
 		WRITE_SHORT( pPlayer->m_iRoundWins );
 		WRITE_SHORT( g_pGameRules->GetTeamIndex( pPlayer->m_szTeamName ) + 1 );
 	MESSAGE_END();
+
+	pPlayer->m_iShowGameModeMessage = gpGlobals->time + 0.5;
 }
 
 void CHalfLifeShidden::PlayerThink( CBasePlayer *pPlayer )
 {
 	CHalfLifeMultiplay::PlayerThink(pPlayer);
+
+	if (pPlayer->m_iShowGameModeMessage > -1 &&
+		pPlayer->m_iShowGameModeMessage < gpGlobals->time &&
+		!FBitSet(pPlayer->pev->flags, FL_FAKECLIENT))
+	{
+		if (pPlayer->pev->fuser4 > 0)
+		{
+			MESSAGE_BEGIN(MSG_ONE, gmsgBanner, NULL, pPlayer->edict());
+				WRITE_STRING("You Are on Team Dealters");
+				WRITE_STRING("What's farting got to do with it?");
+				WRITE_BYTE(80);
+			MESSAGE_END();
+		} 
+		else
+		{
+			MESSAGE_BEGIN(MSG_ONE, gmsgBanner, NULL, pPlayer->edict());
+				WRITE_STRING("You Are on Team Smelters");
+				WRITE_STRING("Do you smell what I smell from these skeletons?");
+				WRITE_BYTE(80);
+			MESSAGE_END();
+		}
+		pPlayer->m_iShowGameModeMessage = -1;
+	}
 
 	if (pPlayer->pev->fuser4 > 0)
 	{

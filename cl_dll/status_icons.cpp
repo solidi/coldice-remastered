@@ -62,6 +62,9 @@ int CHudStatusIcons::Draw( float flTime )
 	if (gEngfuncs.IsSpectateOnly() || gHUD.m_iShowingWeaponMenu)
 		return 1;
 
+	if (g_iUser3 > 0) // when there is a menu, don't show status icons
+		return 1;
+
 	// Chaos bar
 	int time = gHUD.m_ChaosTime;
 	if (time > gHUD.m_flTime)

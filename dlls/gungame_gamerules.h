@@ -22,6 +22,7 @@ public:
 	virtual void PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller, entvars_t *pInflictor );
 	virtual int IPointsForKill( CBasePlayer *pAttacker, CBasePlayer *pKilled );
 	virtual void Think ( void );
+	virtual void PlayerThink( CBasePlayer *pPlayer );
 	virtual void PlayerSpawn( CBasePlayer *pPlayer );
 	virtual BOOL IsAllowedToSpawn( CBaseEntity *pEntity );
 	virtual int DeadPlayerWeapons( CBasePlayer *pPlayer );

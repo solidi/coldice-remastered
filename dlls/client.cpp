@@ -252,14 +252,17 @@ void ClientPutInServer( edict_t *pEntity )
 
 	pPlayer->pev->iuser1 = 0;	// disable any spec modes
 	pPlayer->pev->iuser2 = 0; 
+	pPlayer->pev->iuser3 = 0;	// menu status of spectator
+
+	if (!g_pGameRules->IsRoundBased())
+		pPlayer->pev->iuser3 = OBS_UNDECIDED_SIMPLE;
 
 	// Allocate a CBasePlayer for pev, and call spawn
 	pPlayer->Spawn();
 
-	if (g_pGameRules->IsRoundBased())
+	// Always spectate at first
 	{
-		pPlayer->pev->iuser1 = 1;
-		pPlayer->m_iObserverLastMode = OBS_ROAMING;
+		pPlayer->pev->iuser1 = pPlayer->m_iObserverLastMode = OBS_ROAMING;
 		pPlayer->m_flForceToObserverTime = 0;
 		pPlayer->pev->effects |= EF_NODRAW;
 		pPlayer->pev->solid = SOLID_NOT;
@@ -923,11 +926,69 @@ void ClientCommand( edict_t *pEntity )
 	{
 		GetClassPtr((CBasePlayer *)pev)->SelectLastItem();
 	}
+	else if (FStrEq(pcmd, "menu" ))
+	{
+		CBasePlayer * pPlayer = GetClassPtr((CBasePlayer *)pev);
+		if ( !g_pGameRules->IsRoundBased() && pPlayer->IsSpectator() )
+		{
+			if (g_pGameRules->IsCtF())
+				pev->iuser3 = OBS_UNDECIDED_BOTH;
+			else
+				pev->iuser3	= OBS_UNDECIDED_SIMPLE;
+		}
+		else
+		{
+			ClientPrint( pev, HUD_PRINTCONSOLE, "[System] Team selection menu is only available in free-for-all modes while spectating.\n" );
+		}
+	}
+	else if (FStrEq(pcmd, "auto_join" ))
+	{
+		if ( !g_pGameRules->IsRoundBased() && pev->iuser3 > 0 )
+		{
+			CBasePlayer * pPlayer = GetClassPtr((CBasePlayer *)pev);
+			pPlayer->m_iObserverWeapon = OBS_MENU_3;
+			pPlayer->ExitObserver();
+		}
+	}
+	else if (FStrEq(pcmd, "join_blue" ))
+	{
+		if ( g_pGameRules->IsCtF() || g_pGameRules->IsColdSpot() )
+		{
+			if (pev->iuser3 > 0)
+			{
+				CBasePlayer * pPlayer = GetClassPtr((CBasePlayer *)pev);
+				pPlayer->m_iObserverWeapon = OBS_MENU_1;
+				pPlayer->ExitObserver();
+			}
+			else
+			{
+				CLIENT_COMMAND( pEntity, "model iceman\n" );
+			}
+		}
+	}
+	else if (FStrEq(pcmd, "join_red" ))
+	{
+		if ( g_pGameRules->IsCtF() || g_pGameRules->IsColdSpot() )
+		{
+			if (pev->iuser3 > 0)
+			{
+				CBasePlayer * pPlayer = GetClassPtr((CBasePlayer *)pev);
+				pPlayer->m_iObserverWeapon = OBS_MENU_2;
+				pPlayer->ExitObserver();
+			}
+			else
+			{
+				CLIENT_COMMAND( pEntity, "model santa\n" );
+			}
+		}
+	}
 	else if ( FStrEq( pcmd, "spectate" ) )	// clients wants to become a spectator
 	{
 			// always allow proxies to become a spectator
-		if ( (pev->flags & FL_PROXY) || allow_spectators.value  )
+		if ( (pev->flags & FL_PROXY) || allow_spectators.value || (!g_pGameRules->IsRoundBased() && pev->iuser3 > 0)  )
 		{
+			pev->iuser3 = 0;
+
 			CBasePlayer * pPlayer = GetClassPtr((CBasePlayer *)pev);
 
 			edict_t *pentSpawnSpot = g_pGameRules->GetPlayerSpawnSpot( pPlayer );
@@ -2716,11 +2777,13 @@ void UpdateClientData ( const edict_t *ent, int sendweapons, struct clientdata_s
 		// don't use spec vars from chased player
 		cd->iuser1			= pevOrg->iuser1;
 		cd->iuser2			= pevOrg->iuser2;
+		cd->iuser3			= pevOrg->iuser3;
 	}
 	else
 	{
 		cd->iuser1			= pev->iuser1;
 		cd->iuser2			= pev->iuser2;
+		cd->iuser3			= pev->iuser3;
 	}
 
 	

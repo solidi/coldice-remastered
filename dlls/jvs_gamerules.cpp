@@ -251,7 +251,7 @@ void CHalfLifeJesusVsSanta::Think( void )
 
 				if ( plr && plr->IsPlayer() && !plr->HasDisconnected && !FBitSet(plr->pev->flags, FL_FAKECLIENT) && !plr->IsSpectator() )
 				{
-					if (plr->pev->fuser4 > 0)
+					if (plr->pev->fuser4 == RADAR_TEAM_RED)
 					{
 						MESSAGE_BEGIN(MSG_ONE, gmsgBanner, NULL, plr->edict());
 							WRITE_STRING("You Are On Team Santa");

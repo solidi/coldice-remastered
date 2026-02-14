@@ -33,4 +33,14 @@ char PM_FindTextureType( char *name );
 #define OBS_MAP_FREE			5
 #define OBS_MAP_CHASE			6
 
+#define OBS_UNDECIDED_SIMPLE	7
+#define OBS_UNDECIDED_BLUE		8
+#define OBS_UNDECIDED_RED		9
+#define OBS_UNDECIDED_BOTH		10
+
+#define OBS_MENU_1				0
+#define OBS_MENU_2				1
+#define OBS_MENU_3				2
+#define OBS_MENU_4				3
+
 #endif

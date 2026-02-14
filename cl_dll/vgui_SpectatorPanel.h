@@ -57,6 +57,7 @@ public:
 
 	void EnableInsetView(bool isEnabled);
 	void ShowMenu(bool isVisible);
+	void ShowOptions(bool isVisible);
 
 	DropDownButton		  *	m_OptionButton;
 //	CommandButton     *	m_HideButton;
@@ -77,6 +78,8 @@ public:
 	Label			*m_CurrentTime;
 	Label			*m_ExtraInfo;
 	Panel			*m_Separator;
+	Label			*m_TopLeftTitle;
+	Label			*m_TopLeftSummary;
 
 	Label			*m_TeamScores[TEAM_NUMBER];
 	
@@ -84,6 +87,16 @@ public:
 
 	bool			m_menuVisible;
 	bool			m_insetVisible;
+
+	// Team selection options
+	CTransparentPanel *		m_OptionsPanel;
+	ColorButton *			m_AutoAssignButton;
+	ColorButton *			m_JoinBlueButton;
+	ColorButton *			m_JoinRedButton;
+	ColorButton *			m_SpectateButton;
+	ColorButton *			m_SurpriseMeButton;
+	bool					m_optionsVisible;
+	float					m_flSurpriseMeCooldown;
 };
 
 
@@ -106,6 +119,20 @@ public:
 	{
 		m_pFather->ActionSignal(m_cmd);
 	}
+};
+
+class CSpectatorHandler_SurpriseMe : public ActionSignal
+{
+private:
+	SpectatorPanel * m_pParent;
+
+public:
+	CSpectatorHandler_SurpriseMe( SpectatorPanel * panel )
+	{
+		m_pParent = panel;
+	}
+
+	virtual void actionPerformed( Panel * panel );
 };
 
 

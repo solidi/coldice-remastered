@@ -32,6 +32,7 @@ extern int gmsgTeamNames;
 extern int gmsgTeamInfo;
 extern int gmsgStatusIcon;
 extern int gmsgSpecialEntity;
+extern int gmsgBanner;
 
 #define SPAWN_TIME 30.0
 
@@ -173,19 +174,32 @@ void CHalfLifeCaptureTheChumtoad::InitHUD( CBasePlayer *pPlayer )
 {
 	CHalfLifeMultiplay::InitHUD( pPlayer );
 
-	MESSAGE_BEGIN(MSG_ONE, gmsgTeamNames, NULL, pPlayer->edict());
-		WRITE_BYTE( 2 );
-		WRITE_STRING( "chaser" );
-		WRITE_STRING( "holder" );
-	MESSAGE_END();
+	if (!FBitSet(pPlayer->pev->flags, FL_FAKECLIENT))
+	{
+		MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL, pPlayer->edict());
+			WRITE_STRING("Capture the chumtoad");
+			WRITE_STRING("");
+			WRITE_BYTE(0);
+		MESSAGE_END();
 
-	strncpy( pPlayer->m_szTeamName, "chaser", TEAM_NAME_LENGTH );
+		MESSAGE_BEGIN(MSG_ONE, gmsgTeamNames, NULL, pPlayer->edict());
+			WRITE_BYTE( 2 );
+			WRITE_STRING( "chaser" );
+			WRITE_STRING( "holder" );
+		MESSAGE_END();
 
-	// notify everyone's HUD of the team change
-	MESSAGE_BEGIN( MSG_ALL, gmsgTeamInfo );
-		WRITE_BYTE( ENTINDEX(pPlayer->edict()) );
-		WRITE_STRING( pPlayer->m_szTeamName );
-	MESSAGE_END();
+		for ( int i = 1; i <= gpGlobals->maxClients; i++ )
+		{
+			CBaseEntity *plr = UTIL_PlayerByIndex( i );
+			if ( plr )
+			{
+				MESSAGE_BEGIN( MSG_ONE, gmsgTeamInfo, NULL, pPlayer->edict() );
+					WRITE_BYTE( plr->entindex() );
+					WRITE_STRING( plr->TeamID() );
+				MESSAGE_END();
+			}
+		}
+	}
 
 	MESSAGE_BEGIN( MSG_ALL, gmsgScoreInfo );
 		WRITE_BYTE( ENTINDEX(pPlayer->edict()) );
@@ -194,27 +208,6 @@ void CHalfLifeCaptureTheChumtoad::InitHUD( CBasePlayer *pPlayer )
 		WRITE_SHORT( pPlayer->m_iRoundWins );
 		WRITE_SHORT( g_pGameRules->GetTeamIndex( pPlayer->m_szTeamName ) + 1 );
 	MESSAGE_END();
-
-	for ( int i = 1; i <= gpGlobals->maxClients; i++ )
-	{
-		CBaseEntity *plr = UTIL_PlayerByIndex( i );
-		if ( plr && !FBitSet(pPlayer->pev->flags, FL_FAKECLIENT) )
-		{
-			MESSAGE_BEGIN( MSG_ONE, gmsgTeamInfo, NULL, pPlayer->edict() );
-				WRITE_BYTE( plr->entindex() );
-				WRITE_STRING( plr->TeamID() );
-			MESSAGE_END();
-		}
-	}
-
-	if (!FBitSet(pPlayer->pev->flags, FL_FAKECLIENT))
-	{
-		MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL, pPlayer->edict());
-			WRITE_STRING("Capture the chumtoad");
-			WRITE_STRING("");
-			WRITE_BYTE(0);
-		MESSAGE_END();
-	}
 }
 
 BOOL CHalfLifeCaptureTheChumtoad::CreateChumtoad()
@@ -376,6 +369,18 @@ void CHalfLifeCaptureTheChumtoad::PlayerThink( CBasePlayer *pPlayer )
 		}
 	}
 
+	if (pPlayer->m_iShowGameModeMessage > -1 && 
+		pPlayer->m_iShowGameModeMessage < gpGlobals->time && 
+		!FBitSet(pPlayer->pev->flags, FL_FAKECLIENT))
+	{
+		MESSAGE_BEGIN(MSG_ONE, gmsgBanner, NULL, pPlayer->edict());
+			WRITE_STRING("Capture The Chumtoad");
+			WRITE_STRING("Kind of like Quake's capture the chicken, but with a chumtoad.");
+			WRITE_BYTE(80);
+		MESSAGE_END();
+		pPlayer->m_iShowGameModeMessage = -1;
+	}
+
 	// Updates once per second
 	int time_remaining = (int)gpGlobals->time;
 	BOOL foundChumtoad = FALSE, scoringPoints = FALSE;
@@ -472,6 +477,24 @@ BOOL CHalfLifeCaptureTheChumtoad::AllowGrapplingHook( CBasePlayer *pPlayer )
 void CHalfLifeCaptureTheChumtoad::PlayerSpawn( CBasePlayer *pPlayer )
 {
 	CHalfLifeMultiplay::PlayerSpawn(pPlayer);
+
+	// New player
+	if (pPlayer->pev->iuser3 > 0)
+	{
+		// Already set to simple in client.cpp
+		return;
+	}
+	else if (pPlayer->pev->iuser3 == 0) // Spectator now joining
+	{
+		strncpy( pPlayer->m_szTeamName, "chaser", TEAM_NAME_LENGTH );
+		MESSAGE_BEGIN( MSG_ALL, gmsgTeamInfo );
+			WRITE_BYTE( ENTINDEX(pPlayer->edict()) );
+			WRITE_STRING( pPlayer->m_szTeamName );
+		MESSAGE_END();
+		pPlayer->pev->iuser3 = -1;
+		pPlayer->m_iObserverWeapon = 0; // Used as the menu option
+		pPlayer->m_iShowGameModeMessage = gpGlobals->time + 0.5;
+	}
 
 	// Needed for dropping weapons on kill
 	pPlayer->m_iHoldingChumtoad = FALSE;

@@ -53,6 +53,7 @@ extern int gmsgVoteMutator;
 extern int gmsgShowTimer;
 extern int gmsgRoundTime;
 extern int gmsgAddMutator;
+extern int gmsgBanner;
 
 extern DLL_GLOBAL int g_GameMode;
 extern int gmsgPlayClientSound;
@@ -1510,7 +1511,16 @@ void CHalfLifeMultiplay :: InitHUD( CBasePlayer *pl )
 		WRITE_SHORT( 0 );
 	MESSAGE_END();
 
-	SendMOTDToClient( pl->edict() );
+	if (!FBitSet(pl->pev->flags, FL_FAKECLIENT))
+	{
+		// send the server name
+		MESSAGE_BEGIN( MSG_ONE, gmsgServerName, NULL, pl->edict() );
+			WRITE_STRING( CVAR_GET_STRING("hostname") );
+		MESSAGE_END();
+	}
+
+	if (g_pGameRules->IsRoundBased())
+		SendMOTDToClient( pl->edict() );
 
 	// loop through all active players and send their score info to the new client
 	for ( int i = 1; i <= gpGlobals->maxClients; i++ )
@@ -1674,6 +1684,21 @@ BOOL CHalfLifeMultiplay::FPlayerCanTakeDamage( CBasePlayer *pPlayer, CBaseEntity
 
 void CHalfLifeMultiplay :: PlayerThink( CBasePlayer *pPlayer )
 {
+	if (g_pGameRules->IsSnowballFight())
+	{
+		if (pPlayer->m_iShowGameModeMessage > -1 &&
+			pPlayer->m_iShowGameModeMessage < gpGlobals->time &&
+			!FBitSet(pPlayer->pev->flags, FL_FAKECLIENT))
+		{
+			MESSAGE_BEGIN(MSG_ONE, gmsgBanner, NULL, pPlayer->edict());
+				WRITE_STRING("Snowball Fight");
+				WRITE_STRING("Lots of balls, sometimes with launchers.");
+				WRITE_BYTE(80);
+			MESSAGE_END();
+			pPlayer->m_iShowGameModeMessage = -1;
+		}
+	}
+
 	if (g_pGameRules->MutatorEnabled(MUTATOR_LIGHTSOUT))
 	{
 		// Everready
@@ -1756,6 +1781,13 @@ void CHalfLifeMultiplay :: PlayerThink( CBasePlayer *pPlayer )
 		if ( pT && pT->edict() && pPlayer->m_iPlayMusic )
 		{
 			pT->Use(pPlayer, pPlayer, USE_ON, 0);
+		}
+
+		// Always play, never spectate
+		if (FBitSet(pPlayer->pev->flags, FL_FAKECLIENT) && pPlayer->pev->iuser3 > 0)
+		{
+			pPlayer->m_iObserverWeapon = 2; // always auto join
+			pPlayer->ExitObserver();
 		}
 
 		pPlayer->m_iShownWelcomeMessage = -1;
@@ -1850,9 +1882,22 @@ void CHalfLifeMultiplay :: PlayerSpawn( CBasePlayer *pPlayer )
 {
 	// Place player in spectator mode if joining during a game
 	// Or if the game begins that requires spectators
-	if ((g_GameInProgress && !pPlayer->IsInArena) || (!g_GameInProgress && IsRoundBased()))
+	if ((g_GameInProgress && !pPlayer->IsInArena) || 
+		(!g_GameInProgress && IsRoundBased()) ||
+		pPlayer->pev->iuser3 > 0)
 	{
 		return;
+	}
+
+	// New player
+	if (g_pGameRules->IsSnowballFight())
+	{
+		if (pPlayer->pev->iuser3 == 0) // Spectator now joining
+		{
+			pPlayer->pev->iuser3 = -1;
+			pPlayer->m_iObserverWeapon = 0; // Used as the menu option
+			pPlayer->m_iShowGameModeMessage = gpGlobals->time + 0.5;
+		}
 	}
 
 	// Pause player during voting
@@ -3404,11 +3449,6 @@ void CHalfLifeMultiplay :: SendMOTDToClient( edict_t *client )
 	int length, char_count = 0;
 	char *pFileList;
 	char *aFileList = pFileList = (char*)LOAD_FILE_FOR_ME( (char *)CVAR_GET_STRING( "motdfile" ), &length );
-
-	// send the server name
-	MESSAGE_BEGIN( MSG_ONE, gmsgServerName, NULL, client );
-		WRITE_STRING( CVAR_GET_STRING("hostname") );
-	MESSAGE_END();
 
 	// Send the message of the day
 	// read it chunk-by-chunk,  and send it in parts

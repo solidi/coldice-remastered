@@ -255,7 +255,7 @@ void CBasePlayer::Observer_SetMode( int iMode )
 		// if we didn't find a valid target switch to roaming
 		if (m_hObserverTarget == NULL)
 		{
-			ClientPrint( pev, HUD_PRINTCENTER, "#Spec_NoTarget"  );
+			// ClientPrint( pev, HUD_PRINTCENTER, "#Spec_NoTarget"  );
 			pev->iuser1 = OBS_ROAMING;
 		}
 	}
@@ -268,13 +268,11 @@ void CBasePlayer::Observer_SetMode( int iMode )
 	else
 		pev->iuser2 = ENTINDEX( m_hObserverTarget->edict() );
 	
-	pev->iuser3 = 0;	// clear second target from death cam
-	
 	// print spepctaor mode on client screen
 
 	char modemsg[16];
 	sprintf(modemsg,"#Spec_Mode%i", pev->iuser1 );
-	ClientPrint( pev, HUD_PRINTCENTER, modemsg );
+	// ClientPrint( pev, HUD_PRINTCENTER, modemsg );
 
 	m_iObserverLastMode = iMode;
 }

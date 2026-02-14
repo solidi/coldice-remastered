@@ -107,21 +107,21 @@ void SpectatorPanel::Initialize()
 	pp->setFgColor( r, g, b, 0 );
 	pp->setBgColor( r, g, b, 0 );
 
-	Label *dead = new Label( "", 10, 10, wide, PANEL_HEIGHT - 10 );
-	dead->setParent(m_TopBorder);
-	dead->setFont( pSchemes->getFont(hLargeScheme) );
-	dead->setPaintBackgroundEnabled(false);
-	dead->setFgColor( 255, 255, 255, 0 );
-	dead->setContentAlignment( vgui::Label::a_northwest );
-	dead->setText(CHudTextMessage::BufferedLocaliseTextString( "#You_Dead" ));
+	m_TopLeftTitle = new Label( "", 10, 10, wide, PANEL_HEIGHT - 10 );
+	m_TopLeftTitle->setParent(m_TopBorder);
+	m_TopLeftTitle->setFont( pSchemes->getFont(hLargeScheme) );
+	m_TopLeftTitle->setPaintBackgroundEnabled(false);
+	m_TopLeftTitle->setFgColor( 255, 255, 255, 0 );
+	m_TopLeftTitle->setContentAlignment( vgui::Label::a_northwest );
+	m_TopLeftTitle->setText(CHudTextMessage::BufferedLocaliseTextString( "#You_Dead" ));
 
-	Label *explain = new Label( "", 10, 0, wide, PANEL_HEIGHT - 10 );
-	explain->setParent(m_TopBorder);
-	explain->setFont( pSchemes->getFont(hSmallScheme) );
-	explain->setPaintBackgroundEnabled(false);
-	explain->setFgColor( 255, 255, 255, 0 );
-	explain->setContentAlignment( vgui::Label::a_southwest );
-	explain->setText(CHudTextMessage::BufferedLocaliseTextString( "#Next_Round" ));
+	m_TopLeftSummary = new Label( "", 10, 0, wide, PANEL_HEIGHT - 10 );
+	m_TopLeftSummary->setParent(m_TopBorder);
+	m_TopLeftSummary->setFont( pSchemes->getFont(hSmallScheme) );
+	m_TopLeftSummary->setPaintBackgroundEnabled(false);
+	m_TopLeftSummary->setFgColor( 255, 255, 255, 0 );
+	m_TopLeftSummary->setContentAlignment( vgui::Label::a_southwest );
+	m_TopLeftSummary->setText(CHudTextMessage::BufferedLocaliseTextString( "#Next_Round" ));
 
 	Label *commands = new Label( "", 0, 0, wide - 10, PANEL_HEIGHT );
 	commands->setParent(m_TopBorder);
@@ -274,6 +274,92 @@ void SpectatorPanel::Initialize()
 	m_ExtraInfo->setVisible( false );
 	m_Separator->setVisible( false );
 	m_TimerImage->setVisible( false );
+
+	// Create team selection options panel - vertical layout, centered on screen
+	int btnWidth = ScreenWidth / 8;
+	int btnHeight = YRES(35);
+	int btnSpacing = YRES(5);
+	int panelWidth = btnWidth + XRES(20); // button + left and right margins
+	int panelHeight = (btnHeight * 4) + (btnSpacing * 5); // 4 buttons + 5 margins (top, 3 between, bottom)
+	int panelX = (ScreenWidth - panelWidth) / 2;  // Centered horizontally
+	int panelY = (ScreenHeight - panelHeight) / 2;  // Centered vertically
+
+	m_OptionsPanel = new CTransparentPanel(200, panelX, panelY, panelWidth, panelHeight);
+	m_OptionsPanel->setParent(this);
+	m_OptionsPanel->setVisible(false);
+
+	int btnX = XRES(10);
+	int btnY = btnSpacing;
+
+	// Get HudColor for button styling
+	UnpackRGB(r, g, b, HudColor());
+
+	// Auto Assign button (top)
+	m_AutoAssignButton = new ColorButton("Auto Join", btnX, btnY, btnWidth, btnHeight, false, false);
+	m_AutoAssignButton->setParent(m_OptionsPanel);
+	m_AutoAssignButton->addActionSignal(new CMenuHandler_StringCommand("auto_join"));
+	m_AutoAssignButton->setBoundKey((char)255);  // Disable key prefix spacing
+	m_AutoAssignButton->setContentAlignment(vgui::Label::a_center);
+	m_AutoAssignButton->setUnArmedColor(r, g, b, 0);  // HudColor text when not armed
+	m_AutoAssignButton->setArmedColor(255, 255, 255, 0);  // White text when armed
+	m_AutoAssignButton->setUnArmedBorderColor(r, g, b, 0);  // HudColor border
+	m_AutoAssignButton->setArmedBorderColor(255, 255, 255, 0);  // White border when armed
+	m_AutoAssignButton->setBgColor(r, g, b, 0);
+	
+	// Join Blue button
+	btnY += btnHeight + btnSpacing;
+	m_JoinBlueButton = new ColorButton("Join Blue", btnX, btnY, btnWidth, btnHeight, false, false);
+	m_JoinBlueButton->setParent(m_OptionsPanel);
+	m_JoinBlueButton->addActionSignal(new CMenuHandler_StringCommand("join_blue"));
+	m_JoinBlueButton->setBoundKey((char)255);  // Disable key prefix spacing
+	m_JoinBlueButton->setContentAlignment(vgui::Label::a_center);
+	m_JoinBlueButton->setUnArmedColor(r, g, b, 0);  // HudColor text when not armed
+	m_JoinBlueButton->setArmedColor(255, 255, 255, 0);  // White text when armed
+	m_JoinBlueButton->setUnArmedBorderColor(r, g, b, 0);  // HudColor border
+	m_JoinBlueButton->setArmedBorderColor(255, 255, 255, 0);  // White border when armed
+	m_JoinBlueButton->setBgColor(r, g, b, 0);
+
+	// Join Red button
+	btnY += btnHeight + btnSpacing;
+	m_JoinRedButton = new ColorButton("Join Red", btnX, btnY, btnWidth, btnHeight, false, false);
+	m_JoinRedButton->setParent(m_OptionsPanel);
+	m_JoinRedButton->addActionSignal(new CMenuHandler_StringCommand("join_red"));
+	m_JoinRedButton->setBoundKey((char)255);  // Disable key prefix spacing
+	m_JoinRedButton->setContentAlignment(vgui::Label::a_center);
+	m_JoinRedButton->setUnArmedColor(r, g, b, 0);  // HudColor text when not armed
+	m_JoinRedButton->setArmedColor(255, 255, 255, 0);  // White text when armed
+	m_JoinRedButton->setUnArmedBorderColor(r, g, b, 0);  // HudColor border
+	m_JoinRedButton->setArmedBorderColor(255, 255, 255, 0);  // White border when armed
+	m_JoinRedButton->setBgColor(r, g, b, 0);
+
+	// Surprise Me button (third)
+	btnY += btnHeight + btnSpacing;
+	m_SurpriseMeButton = new ColorButton("Surprise Me", btnX, btnY, btnWidth, btnHeight, false, false);
+	m_SurpriseMeButton->setParent(m_OptionsPanel);
+	m_SurpriseMeButton->addActionSignal(new CSpectatorHandler_SurpriseMe(this));
+	m_SurpriseMeButton->setBoundKey((char)255);  // Disable key prefix spacing
+	m_SurpriseMeButton->setContentAlignment(vgui::Label::a_center);
+	m_SurpriseMeButton->setUnArmedColor(r, g, b, 0);  // HudColor text when not armed
+	m_SurpriseMeButton->setArmedColor(255, 255, 255, 0);  // White text when armed
+	m_SurpriseMeButton->setUnArmedBorderColor(r, g, b, 0);  // HudColor border
+	m_SurpriseMeButton->setArmedBorderColor(255, 255, 255, 0);  // White border when armed
+	m_SurpriseMeButton->setBgColor(r, g, b, 0);
+
+	// Spectate button (bottom)
+	btnY += btnHeight + btnSpacing;
+	m_SpectateButton = new ColorButton("Spectate", btnX, btnY, btnWidth, btnHeight, false, false);
+	m_SpectateButton->setParent(m_OptionsPanel);
+	m_SpectateButton->addActionSignal(new CMenuHandler_StringCommand("spectate"));
+	m_SpectateButton->setBoundKey((char)255);  // Disable key prefix spacing
+	m_SpectateButton->setContentAlignment(vgui::Label::a_center);
+	m_SpectateButton->setUnArmedColor(r, g, b, 0);  // HudColor text when not armed
+	m_SpectateButton->setArmedColor(255, 255, 255, 0);  // White text when armed
+	m_SpectateButton->setUnArmedBorderColor(r, g, b, 0);  // HudColor border
+	m_SpectateButton->setArmedBorderColor(255, 255, 255, 0);  // White border when armed
+	m_SpectateButton->setBgColor(r, g, b, 0);
+
+	m_optionsVisible = false;
+	m_flSurpriseMeCooldown = 0.0f;
 		
 }
 
@@ -319,6 +405,129 @@ void SpectatorPanel::ShowMenu(bool isVisible)
 
 	m_menuVisible = isVisible;
 
+	gViewPort->UpdateCursorState();
+}
+
+void SpectatorPanel::ShowOptions(bool isVisible)
+{
+	if (!isVisible)
+	{
+		m_OptionsPanel->setVisible(false);
+		m_AutoAssignButton->setArmed(false);
+		m_JoinBlueButton->setArmed(false);
+		m_JoinRedButton->setArmed(false);
+		m_SurpriseMeButton->setArmed(false);
+		m_SpectateButton->setArmed(false);
+		m_optionsVisible = false;
+		gViewPort->UpdateCursorState();
+		return;
+	}
+
+	m_TopLeftTitle->setText(CHudTextMessage::BufferedLocaliseTextString( "#Select_Mode" ));
+	m_TopLeftSummary->setText(CHudTextMessage::BufferedLocaliseTextString( "#Choose_Option" ));
+
+	// Show/hide buttons based on menu mode 
+	int menuMode = g_iUser3;
+
+	// Reset all buttons to hidden first
+	m_AutoAssignButton->setVisible(false);
+	m_JoinBlueButton->setVisible(false);
+	m_JoinRedButton->setVisible(false);
+	m_SurpriseMeButton->setVisible(false);
+	m_SpectateButton->setVisible(false);
+
+	int visibleButtonCount = 0;
+
+	switch (menuMode)
+	{
+	case OBS_UNDECIDED_SIMPLE:
+		// Show: Auto Assign, Surprise Me, Spectate
+		m_AutoAssignButton->setVisible(true);
+		m_SurpriseMeButton->setVisible(true);
+		m_SpectateButton->setVisible(true);
+		visibleButtonCount = 3;
+		break;
+
+	case OBS_UNDECIDED_BLUE:
+		// Show: Auto Assign, Join Blue, Spectate
+		m_AutoAssignButton->setVisible(true);
+		m_JoinBlueButton->setVisible(true);
+		m_SpectateButton->setVisible(true);
+		visibleButtonCount = 3;
+		break;
+
+	case OBS_UNDECIDED_RED:
+		// Show: Auto Assign, Join Red, Spectate
+		m_AutoAssignButton->setVisible(true);
+		m_JoinRedButton->setVisible(true);
+		m_SpectateButton->setVisible(true);
+		visibleButtonCount = 3;
+		break;
+
+	case OBS_UNDECIDED_BOTH:
+		// Show: All buttons
+		m_AutoAssignButton->setVisible(true);
+		m_JoinBlueButton->setVisible(true);
+		m_JoinRedButton->setVisible(true);
+		m_SpectateButton->setVisible(true);
+		visibleButtonCount = 4;
+		break;
+
+	default:
+		// Don't show the panel for other modes
+		m_OptionsPanel->setVisible(false);
+		m_optionsVisible = false;
+		gViewPort->UpdateCursorState();
+		return;
+	}
+
+	// Resize panel to fit only visible buttons
+	int btnWidth = ScreenWidth / 8;
+	int btnHeight = YRES(35);
+	int btnSpacing = YRES(5);
+	int panelWidth = btnWidth + XRES(20);
+	int panelHeight = (btnHeight * visibleButtonCount) + (btnSpacing * (visibleButtonCount + 1));
+	int panelX = (ScreenWidth - panelWidth) / 2;
+	int panelY = (ScreenHeight - panelHeight) / 2;
+	
+	m_OptionsPanel->setBounds(panelX, panelY, panelWidth, panelHeight);
+
+	// Reposition visible buttons sequentially
+	int btnX = XRES(10);
+	int currentY = btnSpacing;
+	
+	if (m_AutoAssignButton->isVisible())
+	{
+		m_AutoAssignButton->setPos(btnX, currentY);
+		currentY += btnHeight + btnSpacing;
+	}
+	
+	if (m_JoinBlueButton->isVisible())
+	{
+		m_JoinBlueButton->setPos(btnX, currentY);
+		currentY += btnHeight + btnSpacing;
+	}
+	
+	if (m_JoinRedButton->isVisible())
+	{
+		m_JoinRedButton->setPos(btnX, currentY);
+		currentY += btnHeight + btnSpacing;
+	}
+	
+	if (m_SurpriseMeButton->isVisible())
+	{
+		m_SurpriseMeButton->setPos(btnX, currentY);
+		currentY += btnHeight + btnSpacing;
+	}
+	
+	if (m_SpectateButton->isVisible())
+	{
+		m_SpectateButton->setPos(btnX, currentY);
+		currentY += btnHeight + btnSpacing;
+	}
+
+	m_OptionsPanel->setVisible(true);
+	m_optionsVisible = true;
 	gViewPort->UpdateCursorState();
 }
 
@@ -449,11 +658,66 @@ void SpectatorPanel::Update()
 	m_Separator->setPos( ScreenWidth - ( iTextWidth + XRES ( 2*SEPERATOR_WIDTH+SEPERATOR_WIDTH/2+offset ) ) , YRES( 5 ) );
 	m_Separator->setSize( XRES( 1 ),  PANEL_HEIGHT - 10  );
 
+	if (!g_iUser3)
+	{
+		if (gHUD.m_Teamplay == GAME_ARENA ||
+			gHUD.m_Teamplay == GAME_LMS ||
+			gHUD.m_Teamplay == GAME_CHILLDEMIC ||
+			gHUD.m_Teamplay == GAME_HORDE ||
+			gHUD.m_Teamplay == GAME_ICEMAN ||
+			gHUD.m_Teamplay == GAME_PROPHUNT ||
+			gHUD.m_Teamplay == GAME_SHIDDEN)
+		{
+			m_TopLeftTitle->setText(CHudTextMessage::BufferedLocaliseTextString( "#You_Dead" ));
+			m_TopLeftSummary->setText(CHudTextMessage::BufferedLocaliseTextString( "#Next_Round" ));
+		}
+		else
+		{
+			m_TopLeftTitle->setText(CHudTextMessage::BufferedLocaliseTextString( "#You_Spec" ));
+			m_TopLeftSummary->setText(CHudTextMessage::BufferedLocaliseTextString( "#Spec_Menu" ));
+		}
+	}
+	else
+	{
+		char title[80];
+		sprintf( title, "#%s", sGameplayModes[gHUD.m_Teamplay] );
+		m_TopLeftTitle->setText(CHudTextMessage::BufferedLocaliseTextString(title));
+		m_TopLeftSummary->setText(CHudTextMessage::BufferedLocaliseTextString( "#Choose_Option" ));
+	}
+
 	for ( j= 0; j < TEAM_NUMBER; j++ )
 	{
 		int iwidth, iheight;
 			
 		m_TeamScores[j]->getTextSize( iwidth, iheight );
 		m_TeamScores[j]->setBounds( ScreenWidth - ( iTextWidth + XRES ( 2*SEPERATOR_WIDTH+2*SEPERATOR_WIDTH/2+offset ) + iwidth ), YRES( SEPERATOR_HEIGHT ) + ( iheight * j ), iwidth, iheight );
+	}
+}
+
+void CSpectatorHandler_SurpriseMe::actionPerformed( Panel * panel )
+{
+	float currentTime = gEngfuncs.GetClientTime();
+	
+	// Check if cooldown has expired
+	if (currentTime >= m_pParent->m_flSurpriseMeCooldown)
+	{
+		// Array of funny sounds - easy to add more!
+		const char* surpriseSounds[] = {
+			"handgun_selected.wav",
+			"fart.wav",
+			"chicken.wav",
+			"hohoho.wav",
+			"shart.wav"
+		};
+		const int numSounds = sizeof(surpriseSounds) / sizeof(surpriseSounds[0]);
+		
+		// Pick a random sound
+		int randomIndex = gEngfuncs.pfnRandomLong(0, numSounds - 1);
+		
+		// Play the randomly selected sound
+		gEngfuncs.pfnPlaySoundByName((char*)surpriseSounds[randomIndex], 1.0f);
+		
+		// Set cooldown for 3 seconds from now
+		m_pParent->m_flSurpriseMeCooldown = currentTime + 3.0f;
 	}
 }

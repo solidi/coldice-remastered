@@ -242,7 +242,7 @@ void CL_DLLEXPORT HUD_TxferPredictionData ( struct entity_state_s *ps, const str
 		// iuser3 is not used for duck prevention (since the spectator can't duck at all)
 		pcd->iuser1 = g_iUser1;	// observer mode
 		pcd->iuser2 = g_iUser2; // first target
-		pcd->iuser3 = g_iUser3; // second target
+		pcd->iuser3 = g_iUser3; // menu mode
 	}
 
 	// Fire prevention
@@ -583,7 +583,13 @@ void CL_DLLEXPORT HUD_TempEntUpdate (
 
 	currentEflag = player->curstate.eflags;
 
-	if (player && !cam_thirdperson && !g_iUser1)
+	if ((g_iUser1 == OBS_IN_EYE || gHUD.m_Spectator.m_pip->value == INSET_IN_EYE) && g_iUser2)
+	{
+		player = gEngfuncs.GetEntityByIndex( g_iUser2 );
+		currentEflag = player ? player->curstate.eflags : 0;
+	}
+
+	if (player && !cam_thirdperson)
 	{
 		if (gHUD.m_flExtraViewModelTime == 0 /*|| currentEflag != lastEflag*/)
 		{

@@ -1737,6 +1737,18 @@ void TeamFortressViewport::UpdateSpectatorPanel()
 
 			// gHUD.m_TextMessage.MsgFunc_TextMsg( NULL, strlen( tempString ) + 1, tempString );
 		}
+
+		// Show team selection options menu for undecided modes
+		if ( g_iUser3 >= OBS_UNDECIDED_SIMPLE )
+		{
+			m_pSpectatorPanel->ShowOptions( true );
+			gEngfuncs.pfnClientCmd("crosshair 0\n");
+		}
+		else
+		{
+			m_pSpectatorPanel->ShowOptions( false );
+			gEngfuncs.pfnClientCmd("crosshair 1\n");
+		}
 		
 		sprintf(bottomText,"#Spec_Mode%d", g_iUser1 );
 		sprintf(helpString2,"#Spec_Mode%d", g_iUser1 );
@@ -1842,6 +1854,7 @@ void TeamFortressViewport::UpdateSpectatorPanel()
 		{
 			m_pSpectatorPanel->setVisible( false );
 			m_pSpectatorPanel->ShowMenu( false );	// dsiable all menus/buttons
+			m_pSpectatorPanel->ShowOptions( false );	// hide team selection options
 		}
 	}
 
@@ -2316,7 +2329,7 @@ void TeamFortressViewport::UpdateOnPlayerInfo()
 void TeamFortressViewport::UpdateCursorState()
 {
 	// Need cursor if any VGUI window is up
-	if ( m_pSpectatorPanel->m_menuVisible || m_pCurrentMenu || m_pTeamMenu->isVisible() || m_pServerBrowser->isVisible() || GetClientVoiceMgr()->IsInSquelchMode() )
+	if ( m_pSpectatorPanel->m_menuVisible || m_pSpectatorPanel->m_optionsVisible || m_pCurrentMenu || m_pTeamMenu->isVisible() || m_pServerBrowser->isVisible() || GetClientVoiceMgr()->IsInSquelchMode() )
 	{
 		g_iVisibleMouse = true;
 		App::getInstance()->setCursorOveride( App::getInstance()->getScheme()->getCursor(Scheme::scu_arrow) );

@@ -22,6 +22,7 @@ public:
 	edict_t *EntSelectSpawnPoint( const char *szSpawnPoint );
 	virtual void InitHUD( CBasePlayer *pPlayer );
 	virtual void Think( void );
+	virtual void PlayerThink( CBasePlayer *pPlayer );
 	virtual int GetTeamIndex( const char *pTeamName );
 	virtual int PlayerRelationship( CBaseEntity *pPlayer, CBaseEntity *pTarget );
 	virtual const char *GetTeamID( CBaseEntity *pEntity );
@@ -30,7 +31,9 @@ public:
 	virtual void PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller, entvars_t *pInflictor );
 	virtual BOOL ShouldAutoAim( CBasePlayer *pPlayer, edict_t *target );
 	virtual BOOL FPlayerCanTakeDamage( CBasePlayer *pPlayer, CBaseEntity *pAttacker );
+
 	void UpdateHud( void );
+	void AutoJoin( CBasePlayer *pPlayer, int team );
 
 private:
 	BOOL m_DisableDeathPenalty;

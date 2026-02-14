@@ -7308,7 +7308,7 @@ void CBasePlayer::DisplayHudMessage(const char *message, int channel, float x, f
 
 void CBasePlayer::ExitObserver( void )
 {
-	pev->iuser1 = pev->iuser2 = 0;
+	pev->iuser1 = pev->iuser2 = pev->iuser3 = 0;
 	m_iHideHUD = 0;
 	m_iExitObserver = TRUE;
 	Spawn();

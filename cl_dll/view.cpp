@@ -1593,12 +1593,8 @@ void V_GetChasePos(int target, float * cl_angles, float * origin, float * angles
 	
 	if ( gHUD.m_Spectator.m_autoDirector->value )
 	{
-		if ( g_iUser3 )
-			V_GetDirectedChasePosition( ent, gEngfuncs.GetEntityByIndex( g_iUser3 ),
-				angles, origin );
-		else
-			V_GetDirectedChasePosition( ent, ( cl_entity_t*)0xFFFFFFFF,
-				angles, origin );
+		V_GetDirectedChasePosition( ent, ( cl_entity_t*)0xFFFFFFFF,
+			angles, origin );
 	}
 	else
 	{
