@@ -28,6 +28,7 @@ extern int gmsgObjective;
 extern int gmsgScoreInfo;
 extern int gmsgItemPickup;
 extern int gmsgPlayClientSound;
+extern int gmsgBanner;
 
 // Cold Skulls enhancement constants
 #define SKULL_MAGNET_THRESHOLD 2
@@ -235,6 +236,24 @@ void CHalfLifeColdSkull::InitHUD( CBasePlayer *pPlayer )
 	}
 }
 
+void CHalfLifeColdSkull::PlayerSpawn( CBasePlayer* pPlayer )
+{
+	CHalfLifeMultiplay::PlayerSpawn( pPlayer );
+
+	// New player
+	if (pPlayer->pev->iuser3 > 0)
+	{
+		// Already set to simple in client.cpp
+		return;
+	}
+	else if (pPlayer->pev->iuser3 == 0) // Spectator now joining
+	{
+		pPlayer->pev->iuser3 = -1;
+		pPlayer->m_iObserverWeapon = 0; // Used as the menu option
+		pPlayer->m_iShowGameModeMessage = gpGlobals->time + 0.5;
+	}
+}
+
 void CreateSkull( CBasePlayer *pVictim, int amount, CBasePlayer *pKiller = NULL )
 {
 	int skullCount = 0;
@@ -282,6 +301,23 @@ void CreateSkull( CBasePlayer *pVictim, int amount, CBasePlayer *pKiller = NULL 
 			pSkull->pev->rendercolor = Vector(128, 128, 128);
 		else if (amount == 1)
 			pSkull->pev->rendercolor = Vector(255, 128, 128);
+	}
+}
+
+void CHalfLifeColdSkull::PlayerThink( CBasePlayer *pPlayer )
+{
+	CHalfLifeMultiplay::PlayerThink(pPlayer);
+
+	if (pPlayer->m_iShowGameModeMessage > -1 && 
+		pPlayer->m_iShowGameModeMessage < gpGlobals->time && 
+		!FBitSet(pPlayer->pev->flags, FL_FAKECLIENT))
+	{
+		MESSAGE_BEGIN(MSG_ONE, gmsgBanner, NULL, pPlayer->edict());
+			WRITE_STRING("Collect The Skulls");
+			WRITE_STRING("Frag your opponents and their heads will come to you.");
+			WRITE_BYTE(80);
+		MESSAGE_END();
+		pPlayer->m_iShowGameModeMessage = -1;
 	}
 }
 

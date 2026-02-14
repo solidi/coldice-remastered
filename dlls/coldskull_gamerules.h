@@ -20,4 +20,6 @@ public:
 	virtual const char *GetGameDescription( void ) { return "Cold Ice Cold Skulls"; }
 	virtual void InitHUD( CBasePlayer *pPlayer );
 	virtual void PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller, entvars_t *pInflictor );
+	virtual void PlayerThink( CBasePlayer *pPlayer );
+	virtual void PlayerSpawn( CBasePlayer *pPlayer );
 };
