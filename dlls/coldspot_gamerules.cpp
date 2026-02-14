@@ -287,7 +287,7 @@ void CHalfLifeColdSpot::InitHUD( CBasePlayer *pPlayer )
 	{
 		MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL, pPlayer->edict());
 			WRITE_STRING("Hold the cold spot");
-			WRITE_STRING(UTIL_VarArgs("You're on %s team", (pPlayer->pev->fuser4 == TEAM_RED) ? "red" : "blue"));
+			WRITE_STRING("You're spectating");
 			WRITE_BYTE(0);
 		MESSAGE_END();
 	}
@@ -348,6 +348,11 @@ void CHalfLifeColdSpot::PlayerThink( CBasePlayer *pPlayer )
 				WRITE_STRING("You're on Team Blue!");
 			WRITE_STRING("Find the cold spot and hold it to score points!");
 			WRITE_BYTE(80);
+		MESSAGE_END();
+		MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL, pPlayer->edict());
+			WRITE_STRING("Hold the cold spot");
+			WRITE_STRING(UTIL_VarArgs("You're on team %s", (pPlayer->pev->fuser4 == TEAM_RED) ? "red" : "blue"));
+			WRITE_BYTE(0);
 		MESSAGE_END();
 		pPlayer->m_iShowGameModeMessage = -1;
 	}
