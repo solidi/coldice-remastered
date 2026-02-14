@@ -34,6 +34,7 @@ extern int gmsgScoreInfo;
 extern int gmsgObjective;
 extern int gmsgRoundTime;
 extern int gmsgShowTimer;
+extern int gmsgBanner;
 
 #define MAXLEVEL 49
 
@@ -261,10 +262,14 @@ void CHalfLifeGunGame::InitHUD( CBasePlayer *pPlayer )
 
 void CHalfLifeGunGame::PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller, entvars_t *pInflictor )
 {
+	int roundsBefore = 0;
+	CBaseEntity *ktmp = CBaseEntity::Instance( pKiller );
+	if (ktmp && ktmp->IsPlayer())
+		roundsBefore = ((CBasePlayer *)ktmp)->m_iRoundWins;
+
 	CHalfLifeMultiplay::PlayerKilled( pVictim, pKiller, pInflictor );
 
 	// Go back in levels when killed self or suicide
-	CBaseEntity *ktmp = CBaseEntity::Instance( pKiller );
 	if (ktmp)
 	{
 		// Suicide
@@ -334,6 +339,12 @@ void CHalfLifeGunGame::PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller, e
 		if (ktmp->IsPlayer())
 		{
 			CBasePlayer *plr = ((CBasePlayer *)ktmp);
+
+			if (roundsBefore >= plr->m_iRoundWins)
+			{
+				return;
+			}
+
 			char weapon[32];
 			sprintf(weapon, "%s%s", "weapon_", g_WeaponId[plr->m_iRoundWins]);
 
@@ -524,6 +535,18 @@ int CHalfLifeGunGame::IPointsForKill( CBasePlayer *pAttacker, CBasePlayer *pKill
 
 void CHalfLifeGunGame::PlayerSpawn( CBasePlayer *pPlayer )
 {
+	// New player
+	if (pPlayer->pev->iuser3 > 0)
+	{
+		return;
+	}
+	else if (pPlayer->pev->iuser3 == 0) // Spectator now joining
+	{
+		pPlayer->pev->iuser3 = -1;
+		pPlayer->m_iObserverWeapon = 0; // Used as the menu option
+		pPlayer->m_iShowGameModeMessage = gpGlobals->time + 0.5;
+	}
+
 	pPlayer->pev->weapons |= (1<<WEAPON_SUIT);
 	if (!pPlayer->HasNamedPlayerItem("weapon_fists"))
 		pPlayer->GiveNamedItem("weapon_fists");
@@ -561,6 +584,23 @@ void CHalfLifeGunGame::PlayerSpawn( CBasePlayer *pPlayer )
 		((currentLevel+inc) * (int)ggfrags.value) - ((int)pPlayer->pev->frags), g_WeaponId[currentLevel+1]));
 
 	g_pGameRules->SpawnMutators(pPlayer);
+}
+
+void CHalfLifeGunGame::PlayerThink( CBasePlayer *pPlayer )
+{
+	CHalfLifeMultiplay::PlayerThink(pPlayer);
+
+	if (pPlayer->m_iShowGameModeMessage > -1 &&
+		pPlayer->m_iShowGameModeMessage < gpGlobals->time &&
+		!FBitSet(pPlayer->pev->flags, FL_FAKECLIENT))
+	{
+		MESSAGE_BEGIN(MSG_ONE, gmsgBanner, NULL, pPlayer->edict());
+			WRITE_STRING("Gun Game");
+			WRITE_STRING("Each weapon sucks more than the last.");
+			WRITE_BYTE(80);
+		MESSAGE_END();
+		pPlayer->m_iShowGameModeMessage = -1;
+	}
 }
 
 const char *ammoList[] =
