@@ -420,12 +420,15 @@ void SpectatorPanel::ShowOptions(bool isVisible)
 	m_JoinRedButton->setVisible(false);
 	m_SpectateButton->setVisible(false);
 
+	int visibleButtonCount = 0;
+
 	switch (menuMode)
 	{
 	case OBS_UNDECIDED_SIMPLE:
 		// Show: Auto Assign, Spectate
 		m_AutoAssignButton->setVisible(true);
 		m_SpectateButton->setVisible(true);
+		visibleButtonCount = 2;
 		break;
 
 	case OBS_UNDECIDED_BLUE:
@@ -433,6 +436,7 @@ void SpectatorPanel::ShowOptions(bool isVisible)
 		m_AutoAssignButton->setVisible(true);
 		m_JoinBlueButton->setVisible(true);
 		m_SpectateButton->setVisible(true);
+		visibleButtonCount = 3;
 		break;
 
 	case OBS_UNDECIDED_RED:
@@ -440,6 +444,7 @@ void SpectatorPanel::ShowOptions(bool isVisible)
 		m_AutoAssignButton->setVisible(true);
 		m_JoinRedButton->setVisible(true);
 		m_SpectateButton->setVisible(true);
+		visibleButtonCount = 3;
 		break;
 
 	case OBS_UNDECIDED_BOTH:
@@ -448,6 +453,7 @@ void SpectatorPanel::ShowOptions(bool isVisible)
 		m_JoinBlueButton->setVisible(true);
 		m_JoinRedButton->setVisible(true);
 		m_SpectateButton->setVisible(true);
+		visibleButtonCount = 4;
 		break;
 
 	default:
@@ -456,6 +462,45 @@ void SpectatorPanel::ShowOptions(bool isVisible)
 		m_optionsVisible = false;
 		gViewPort->UpdateCursorState();
 		return;
+	}
+
+	// Resize panel to fit only visible buttons
+	int btnWidth = ScreenWidth / 8;
+	int btnHeight = YRES(35);
+	int btnSpacing = YRES(5);
+	int panelWidth = btnWidth + XRES(20);
+	int panelHeight = (btnHeight * visibleButtonCount) + (btnSpacing * (visibleButtonCount + 1));
+	int panelX = (ScreenWidth - panelWidth) / 2;
+	int panelY = (ScreenHeight - panelHeight) / 2;
+	
+	m_OptionsPanel->setBounds(panelX, panelY, panelWidth, panelHeight);
+
+	// Reposition visible buttons sequentially
+	int btnX = XRES(10);
+	int currentY = btnSpacing;
+	
+	if (m_AutoAssignButton->isVisible())
+	{
+		m_AutoAssignButton->setPos(btnX, currentY);
+		currentY += btnHeight + btnSpacing;
+	}
+	
+	if (m_JoinBlueButton->isVisible())
+	{
+		m_JoinBlueButton->setPos(btnX, currentY);
+		currentY += btnHeight + btnSpacing;
+	}
+	
+	if (m_JoinRedButton->isVisible())
+	{
+		m_JoinRedButton->setPos(btnX, currentY);
+		currentY += btnHeight + btnSpacing;
+	}
+	
+	if (m_SpectateButton->isVisible())
+	{
+		m_SpectateButton->setPos(btnX, currentY);
+		currentY += btnHeight + btnSpacing;
 	}
 
 	m_OptionsPanel->setVisible(true);
