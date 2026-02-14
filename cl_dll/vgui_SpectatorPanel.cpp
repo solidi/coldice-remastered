@@ -304,7 +304,7 @@ void SpectatorPanel::Initialize()
 	m_AutoAssignButton->setArmedColor(255, 255, 255, 0);  // White text when armed
 	m_AutoAssignButton->setUnArmedBorderColor(r, g, b, 0);  // HudColor border
 	m_AutoAssignButton->setArmedBorderColor(255, 255, 255, 0);  // White border when armed
-	m_AutoAssignButton->setBgColor(r, g, b, 0);  // Blue background when armed
+	m_AutoAssignButton->setBgColor(r, g, b, 0);
 	
 	// Join Blue button
 	btnY += btnHeight + btnSpacing;
@@ -317,7 +317,7 @@ void SpectatorPanel::Initialize()
 	m_JoinBlueButton->setArmedColor(255, 255, 255, 0);  // White text when armed
 	m_JoinBlueButton->setUnArmedBorderColor(r, g, b, 0);  // HudColor border
 	m_JoinBlueButton->setArmedBorderColor(255, 255, 255, 0);  // White border when armed
-	m_JoinBlueButton->setBgColor(r, g, b, 0);  // Blue background when armed
+	m_JoinBlueButton->setBgColor(r, g, b, 0);
 
 	// Join Red button
 	btnY += btnHeight + btnSpacing;
@@ -330,7 +330,7 @@ void SpectatorPanel::Initialize()
 	m_JoinRedButton->setArmedColor(255, 255, 255, 0);  // White text when armed
 	m_JoinRedButton->setUnArmedBorderColor(r, g, b, 0);  // HudColor border
 	m_JoinRedButton->setArmedBorderColor(255, 255, 255, 0);  // White border when armed
-	m_JoinRedButton->setBgColor(r, g, b, 0);  // Blue background when armed
+	m_JoinRedButton->setBgColor(r, g, b, 0);
 
 	// Surprise Me button (third)
 	btnY += btnHeight + btnSpacing;
@@ -343,7 +343,7 @@ void SpectatorPanel::Initialize()
 	m_SurpriseMeButton->setArmedColor(255, 255, 255, 0);  // White text when armed
 	m_SurpriseMeButton->setUnArmedBorderColor(r, g, b, 0);  // HudColor border
 	m_SurpriseMeButton->setArmedBorderColor(255, 255, 255, 0);  // White border when armed
-	m_SurpriseMeButton->setBgColor(r, g, b, 0);  // Blue background when armed
+	m_SurpriseMeButton->setBgColor(r, g, b, 0);
 
 	// Spectate button (bottom)
 	btnY += btnHeight + btnSpacing;
@@ -356,7 +356,7 @@ void SpectatorPanel::Initialize()
 	m_SpectateButton->setArmedColor(255, 255, 255, 0);  // White text when armed
 	m_SpectateButton->setUnArmedBorderColor(r, g, b, 0);  // HudColor border
 	m_SpectateButton->setArmedBorderColor(255, 255, 255, 0);  // White border when armed
-	m_SpectateButton->setBgColor(r, g, b, 0);  // Blue background when armed
+	m_SpectateButton->setBgColor(r, g, b, 0);
 
 	m_optionsVisible = false;
 	m_flSurpriseMeCooldown = 0.0f;
@@ -423,8 +423,8 @@ void SpectatorPanel::ShowOptions(bool isVisible)
 		return;
 	}
 
-	m_TopLeftSummary->setText("Select Mode");
-	m_TopLeftSummary->setText("Watch or participate in this game");
+	m_TopLeftTitle->setText(CHudTextMessage::BufferedLocaliseTextString( "#Select_Mode" ));
+	m_TopLeftSummary->setText(CHudTextMessage::BufferedLocaliseTextString( "#Choose_Option" ));
 
 	// Show/hide buttons based on menu mode 
 	int menuMode = g_iUser3;
