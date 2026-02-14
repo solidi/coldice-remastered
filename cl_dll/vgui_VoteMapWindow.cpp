@@ -1,6 +1,10 @@
 
 #include "VGUI_Font.h"
+#include "VGUI_ScrollPanel.h"
+#include "VGUI_ScrollBar.h"
 #include <VGUI_TextImage.h>
+#include <VGUI_Scheme.h>
+#include <VGUI_App.h>
 
 #include "hud.h"
 #include "cl_util.h"
@@ -18,6 +22,8 @@
 #include "vgui_ServerBrowser.h"
 
 // Map Menu Dimensions
+#define MAPMENU_SCROLL_X			XRES(80)
+#define MAPMENU_SCROLL_Y			YRES(80)
 #define MAPMENU_TITLE_X				XRES(40)
 #define MAPMENU_TITLE_Y				YRES(32)
 #define MAPMENU_TOPLEFT_BUTTON_X		XRES(40)
@@ -51,36 +57,67 @@ CVoteMapPanel::CVoteMapPanel(int iTrans, int iRemoveMe, int x,int y,int wide,int
 	pTitleLabel->setContentAlignment( vgui::Label::a_west );
 	pTitleLabel->setText(gHUD.m_TextMessage.BufferedLocaliseTextString("#Title_VoteMap"));
 
-	// Create the map buttons
+	// Create the scroll panel
+	m_pScrollPanel = new CTFScrollPanel( MAPMENU_SCROLL_X, MAPMENU_SCROLL_Y, XRES(480), YRES(340) );
+	m_pScrollPanel->setParent(this);
+	m_pScrollPanel->setScrollBarAutoVisible(true, true);
+	m_pScrollPanel->setScrollBarVisible(false, true);
+	m_pScrollPanelBorder = new LineBorder( Color(r, g, b, 255) );
+	m_pScrollPanel->setBorder( m_pScrollPanelBorder );
+	m_pScrollPanel->validate();
+
+	// Create the map buttons inside scroll panel
+	int positionCount = 0;
 	for (int i = 0; i < BUILT_IN_MAP_COUNT; i++)
 	{
-		// Space for random button
-		int xI = i+1;
-		int degree = (i+1) / MAPMENU_ITEMS_PER_COL;
+		// Calculate position in grid layout (2 columns)
+		int column, row;
+		
+		// Special handling for "Random" button (last map) - always first position
 		if (i == BUILT_IN_MAP_COUNT - 1)
 		{
-			xI = 0;
-			degree = 0;
+			row = 0;
+			column = 0;
 		}
-		char sz[256];
-		int iYPos = MAPMENU_TOPLEFT_BUTTON_Y + ( (MAPMENU_BUTTON_SIZE_Y + MAPMENU_BUTTON_SPACER_Y) * xI );
-		int spacer = 0;
-		spacer = (MAPMENU_BUTTON_SIZE_X + 10) * degree;
-		iYPos = MAPMENU_TOPLEFT_BUTTON_Y + ( (MAPMENU_BUTTON_SIZE_Y + MAPMENU_BUTTON_SPACER_Y) * (xI - (MAPMENU_ITEMS_PER_COL * degree)));
+		else
+		{
+			// Regular buttons start at position 1 to leave space for Random at position 0
+			column = (positionCount + 1) % 2;
+			row = (positionCount + 1) / 2;
+			positionCount++;
+		}
+		
+		int iXPos = XRES(8) + (column * (XRES(222) + XRES(8)));
+		int iYPos = YRES(4) + (row * (YRES(36) + YRES(4)));
 		
 		char voteCommand[16];
 		sprintf(voteCommand, "vote %d", i+1);
 		ActionSignal *pASignal = new CMenuHandler_StringCommandClassSelect(voteCommand, false );
 
 		// Map button
+		char sz[256];
 		sprintf(sz, " %s", sBuiltInMaps[i]);
-		m_pButtons[i] = new ColorButton( sz, MAPMENU_TOPLEFT_BUTTON_X + spacer, iYPos, MAPMENU_BUTTON_SIZE_X, MAPMENU_BUTTON_SIZE_Y, false, true);
+		m_pButtons[i] = new ColorButton( sz, iXPos, iYPos, XRES(222), YRES(36), false, true);
 		m_pButtons[i]->setBoundKey( (char)255 );
 		m_pButtons[i]->setContentAlignment( vgui::Label::a_west );
 		m_pButtons[i]->addActionSignal( pASignal );
 		m_pButtons[i]->addInputSignal( new CHandler_MenuButtonOver(this, i) );
-		m_pButtons[i]->setParent(this);
+		m_pButtons[i]->setFont( pSchemes->getFont(hTitleScheme) );
+		m_pButtons[i]->setParent( m_pScrollPanel->getClient() );
+		
+		// Add vote tally label (right-aligned, vertically centered)
+		m_pVoteTallyLabels[i] = new Label( "0", XRES(222) - XRES(25), YRES(10) );
+		m_pVoteTallyLabels[i]->setParent( m_pButtons[i] );
+		m_pVoteTallyLabels[i]->setFont( pSchemes->getFont(hTitleScheme) );
+		m_pVoteTallyLabels[i]->setContentAlignment( vgui::Label::a_east );
+		m_pVoteTallyLabels[i]->setSize( XRES(10), YRES(18) );
+		pSchemes->getFgColor( hTitleScheme, r, g, b, a );
+		m_pVoteTallyLabels[i]->setFgColor( r, g, b, a );
+		m_pVoteTallyLabels[i]->setBgColor( 0, 0, 0, 255 );
 	}
+	
+	// Validate scroll panel after adding all buttons
+	m_pScrollPanel->validate();
 
 	m_iCurrentInfo = 0;
 }
@@ -122,21 +159,61 @@ void CVoteMapPanel::Update()
 		}
 	}
 
+	// Update scroll panel border and scrollbar colors (once per update, not per button)
+	int r, g, b, a = 0;
+	UnpackRGB(r, g, b, HudColor());
+	if (m_pScrollPanelBorder)
+	{
+		m_pScrollPanelBorder->setColor(Color(r, g, b, 255));
+		m_pScrollPanel->setBorder(m_pScrollPanelBorder);
+	}
+	pTitleLabel->setFgColor(r, g, b, 0);
+	
+	// Update scheme colors for scrollbar components
+	Scheme* pScheme = App::getInstance()->getScheme();
+	pScheme->setColor(Scheme::sc_primary1, r, g, b, a);
+	pScheme->setColor(Scheme::sc_primary2, r, g, b, a);
+	pScheme->setColor(Scheme::sc_secondary1, r, g, b, a);
+	
+	// Force scrollbars to repaint with new colors
+	ScrollBar* pVerticalScrollBar = m_pScrollPanel->getVerticalScrollBar();
+	ScrollBar* pHorizontalScrollBar = m_pScrollPanel->getHorizontalScrollBar();
+	if (pVerticalScrollBar)
+		pVerticalScrollBar->repaint();
+	if (pHorizontalScrollBar)
+		pHorizontalScrollBar->repaint();
+
 	for ( int i = 0; i < BUILT_IN_MAP_COUNT; i++ )
 	{
 		if (m_pButtons[i])
 		{
+			// Update button text (without vote count)
 			char sz[64];
-			sprintf(sz, " %-2d %s", votes[i], sBuiltInMaps[i]);
+			sprintf(sz, " %s", sBuiltInMaps[i]);
 			m_pButtons[i]->setText(sz);
+			
+			// Update vote tally label
+			if (m_pVoteTallyLabels[i])
+			{
+				char voteSz[16];
+				sprintf(voteSz, "%d", votes[i]);
+				m_pVoteTallyLabels[i]->setText(voteSz);
+				
+				// Update vote tally color to match button state
+				if (votes[i] == highest && votes[i] > 0)
+				{
+					m_pVoteTallyLabels[i]->setFgColor(255, 255, 255, 0);
+				}
+				else
+				{
+					m_pVoteTallyLabels[i]->setFgColor(r, g, b, 0);
+				}
+			}
 
 			if ((myVote - 1) == i)
 				m_pButtons[i]->setArmed(true);
 
-			int r, g, b, a = 0;
-			UnpackRGB(r, g, b, HudColor());
 			m_pButtons[i]->setUnArmedColor(r, g, b, 0);
-			pTitleLabel->setFgColor( r, g, b, 0 );
 			if (votes[i] > 0)
 			{
 				m_pButtons[i]->setArmed(true);

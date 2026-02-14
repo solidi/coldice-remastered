@@ -107,6 +107,15 @@ CVoteGameplayPanel::CVoteGameplayPanel(int iTrans, int iRemoveMe, int x,int y,in
 		sprintf(voteCommand, "vote %d", i+1);
 		ActionSignal *pASignal = new CMenuHandler_StringCommandClassSelect(voteCommand, false );
 
+		vgui::Font *font = pSchemes->getFont(hTitleScheme);
+		int delta = XRES(15), deltaY = YRES(9);
+		if (ScreenWidth <= 1024)
+		{
+			font = pSchemes->getFont(hClassWindowText);
+			delta = XRES(25);
+			deltaY = YRES(5);
+		}
+	
 		// gameplay button
 		sprintf(sz, "%s", sGameplayModes[i]);
 		char* localName = CHudTextMessage::BufferedLocaliseTextString( sz );
@@ -116,7 +125,18 @@ CVoteGameplayPanel::CVoteGameplayPanel(int iTrans, int iRemoveMe, int x,int y,in
 		m_pButtons[i]->setContentAlignment( vgui::Label::a_west );
 		m_pButtons[i]->addActionSignal( pASignal );
 		m_pButtons[i]->addInputSignal( new CHandler_MenuButtonOver(this, i) );
+		m_pButtons[i]->setFont( font );
 		m_pButtons[i]->setParent( this );
+		
+		// Add vote tally label (right-aligned, vertically centered)
+		m_pVoteTallyLabels[i] = new Label( "0", GAMEMENU_BUTTON_SIZE_X - delta, deltaY );
+		m_pVoteTallyLabels[i]->setParent( m_pButtons[i] );
+		m_pVoteTallyLabels[i]->setFont( font );
+		m_pVoteTallyLabels[i]->setContentAlignment( vgui::Label::a_east );
+		m_pVoteTallyLabels[i]->setSize( XRES(10), YRES(18) );
+		pSchemes->getFgColor( hTitleScheme, r, g, b, a );
+		m_pVoteTallyLabels[i]->setFgColor( r, g, b, a );
+		m_pVoteTallyLabels[i]->setBgColor( 0, 0, 0, 255 );
 
 		// Create the game Info Window
 		m_pGameInfoPanel[i] = new CTransparentPanel( 255, 0, 0, clientWide, GAMEMENU_WINDOW_SIZE_Y );
@@ -273,11 +293,30 @@ void CVoteGameplayPanel::Update()
 	{
 		if (m_pButtons[i])
 		{
+			// Update button text (without vote count)
 			char sz[256];
 			sprintf(sz, "#%s", sGameplayModes[i]);
 			char* localName = CHudTextMessage::BufferedLocaliseTextString( sz );
-			sprintf(sz, " %-2d %s", votes[i], localName);
+			sprintf(sz, " %s", localName);
 			m_pButtons[i]->setText(sz);
+			
+			// Update vote tally label
+			if (m_pVoteTallyLabels[i])
+			{
+				char voteSz[16];
+				sprintf(voteSz, "%d", votes[i]);
+				m_pVoteTallyLabels[i]->setText(voteSz);
+				
+				// Update vote tally color to match button state
+				if (votes[i] == highest && votes[i] > 0)
+				{
+					m_pVoteTallyLabels[i]->setFgColor(255, 255, 255, 0);
+				}
+				else
+				{
+					m_pVoteTallyLabels[i]->setFgColor(r, g, b, 0);
+				}
+			}
 
 			if ((myVote - 1) == i)
 				m_pButtons[i]->setArmed(true);

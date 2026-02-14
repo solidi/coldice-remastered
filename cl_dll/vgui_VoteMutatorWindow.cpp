@@ -72,6 +72,7 @@ CVoteMutatorPanel::CVoteMutatorPanel(int iTrans, int iRemoveMe, int x,int y,int 
 	for (int i = 0; i < MAX_MUTATORS; i++)
 	{
 		m_pButtons[i] = NULL;
+		m_pVoteTallyLabels[i] = NULL;
 		if (strstr(sMutators[i].name, "slowmo") ||
 			strstr(sMutators[i].name, "speedup") ||
 			strstr(sMutators[i].name, "topsyturvy") ||
@@ -114,15 +115,26 @@ CVoteMutatorPanel::CVoteMutatorPanel(int iTrans, int iRemoveMe, int x,int y,int 
 		m_pButtons[i]->addActionSignal( pASignal );
 		m_pButtons[i]->addInputSignal( new CHandler_MenuButtonOver(this, i) );
 		m_pButtons[i]->setParent( m_pScrollPanel->getClient() );
+		m_pButtons[i]->setFont( pSchemes->getFont(hTitleScheme) );
+		
+		// Add vote tally label (right-aligned, vertically centered)
+		m_pVoteTallyLabels[i] = new Label( "0", MUTATORMENU_BUTTON_SIZE_X - XRES(25), YRES(10) );
+		m_pVoteTallyLabels[i]->setParent( m_pButtons[i] );
+		m_pVoteTallyLabels[i]->setFont( pSchemes->getFont(hTitleScheme) );
+		m_pVoteTallyLabels[i]->setContentAlignment( vgui::Label::a_east );
+		m_pVoteTallyLabels[i]->setSize( XRES(10), YRES(18) );
+		pSchemes->getFgColor( hTitleScheme, r, g, b, a );
+		m_pVoteTallyLabels[i]->setFgColor( r, g, b, a );
+		m_pVoteTallyLabels[i]->setBgColor( 0, 0, 0, 255 );
 		
 		// Add subtitle label as a child of the button
-		Label *pSubtitle = new Label( "", XRES(10), MUTATORMENU_BUTTON_SIZE_Y - YRES(16) );
+		Label *pSubtitle = new Label( "", XRES(5), MUTATORMENU_BUTTON_SIZE_Y - YRES(16) );
 		pSubtitle->setParent( m_pButtons[i] );
-		pSubtitle->setFont( Scheme::sf_primary3 );
+		pSubtitle->setFont( pSchemes->getFont(hClassWindowText) );
 		pSubtitle->setContentAlignment( vgui::Label::a_west );
 		
 		// Use scheme color for subtitle (dimmed for visual hierarchy)
-		int sr = 255, sg = 255, sb = 255, sa = 125;
+		int sr = 255, sg = 255, sb = 255, sa = 75;
 		//pSchemes->getFgColor( hClassWindowText, sr, sg, sb, sa );
 		pSubtitle->setFgColor( sr, sg, sb, sa );
 		pSubtitle->setBgColor( 0, 0, 0, 255 );
@@ -230,9 +242,28 @@ void CVoteMutatorPanel::Update()
 	{
 		if (m_pButtons[i])
 		{
+			// Update button text (without vote count)
 			char sz[64];
-			sprintf(sz, " %-2d %s", votes[i], sMutators[i].name);
+			sprintf(sz, " %s", sMutators[i].name);
 			m_pButtons[i]->setText(sz);
+			
+			// Update vote tally label
+			if (m_pVoteTallyLabels[i])
+			{
+				char voteSz[16];
+				sprintf(voteSz, "%d", votes[i]);
+				m_pVoteTallyLabels[i]->setText(voteSz);
+				
+				// Update vote tally color to match button state
+				if ((i == hi || i == s || i == t) && votes[i] > 0)
+				{
+					m_pVoteTallyLabels[i]->setFgColor(255, 255, 255, 0);
+				}
+				else
+				{
+					m_pVoteTallyLabels[i]->setFgColor(r, g, b, 0);
+				}
+			}
 
 			if ((myVote - 1) == i)
 			{
