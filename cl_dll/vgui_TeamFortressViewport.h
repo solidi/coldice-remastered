@@ -1749,6 +1749,7 @@ class CVoteGameplayPanel : public CMenuPanel
 private:
 	CTransparentPanel	*m_pGameInfoPanel[MAX_MODES + 1];
 	ColorButton			*m_pButtons[MAX_MODES + 1];
+	Label				*m_pVoteTallyLabels[MAX_MODES + 1];
 	ScrollPanel			*m_pScrollPanel;
 
 	//CImageLabel			*m_pClassImages[MAX_TEAMS][MAX_MODES + 1];
@@ -1783,7 +1784,10 @@ public:
 class CVoteMapPanel : public CMenuPanel
 {
 private:
+	CTFScrollPanel		*m_pScrollPanel;
+	LineBorder			*m_pScrollPanelBorder;
 	ColorButton			*m_pButtons[BUILT_IN_MAP_COUNT];
+	Label				*m_pVoteTallyLabels[BUILT_IN_MAP_COUNT];
 	Label 				*pTitleLabel;
 
 	int					m_iCurrentInfo;
@@ -1816,6 +1820,7 @@ private:
 	CTFScrollPanel		*m_pScrollPanel;
 	LineBorder			*m_pScrollPanelBorder;
 	ColorButton			*m_pButtons[MAX_MUTATORS];
+	Label				*m_pVoteTallyLabels[MAX_MUTATORS];
 	Label 				*pTitleLabel;
 
 	int					m_iCurrentInfo;
