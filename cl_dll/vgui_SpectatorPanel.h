@@ -60,15 +60,12 @@ public:
 	void ShowOptions(bool isVisible);
 
 	DropDownButton		  *	m_OptionButton;
-//	CommandButton     *	m_HideButton;
-	//ColorButton	  *	m_PrevPlayerButton;
-	//ColorButton	  *	m_NextPlayerButton;
+	Panel			* m_PinLine;
 	CImageButton	  *	m_PrevPlayerButton;
 	CImageButton	  *	m_NextPlayerButton;
 	DropDownButton     *	m_CamButton;	
 
 	CTransparentPanel *			m_TopBorder;
-	CTransparentPanel *			m_BottomBorder;
 
 	ColorButton		*m_InsetViewButton;
 	

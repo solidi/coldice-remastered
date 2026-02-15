@@ -100,12 +100,12 @@ void SpectatorPanel::Initialize()
 	
 	m_TopBorder = new CTransparentPanel(64, 0, 0, ScreenWidth, PANEL_HEIGHT);
 	m_TopBorder->setParent(this);
-	Panel *pp = new Panel( 0, PANEL_HEIGHT, ScreenWidth, 1);
-	pp->setParent( this );
+	m_PinLine = new Panel( 0, PANEL_HEIGHT, ScreenWidth, 1);
+	m_PinLine->setParent( this );
 	int r, g, b;
 	UnpackRGB(r, g, b, HudColor());
-	pp->setFgColor( r, g, b, 0 );
-	pp->setBgColor( r, g, b, 0 );
+	m_PinLine->setFgColor( r, g, b, 0 );
+	m_PinLine->setBgColor( r, g, b, 0 );
 
 	m_TopLeftTitle = new Label( "", 10, 10, wide, PANEL_HEIGHT - 10 );
 	m_TopLeftTitle->setParent(m_TopBorder);
@@ -130,9 +130,6 @@ void SpectatorPanel::Initialize()
 	commands->setFgColor( 255, 255, 255, 0 );
 	commands->setContentAlignment( vgui::Label::a_east );
 	commands->setText("Switch targets [ +ATTACK ]\nSwitch mode [ +JUMP ]\nView inset [ +USE ]");
-
-	m_BottomBorder = new CTransparentPanel(64, 0, ScreenHeight - PANEL_HEIGHT, ScreenWidth, PANEL_HEIGHT);
-	//m_BottomBorder->setParent(this);
 
 	setPaintBackgroundEnabled(false);
 
@@ -179,7 +176,6 @@ void SpectatorPanel::Initialize()
 	// Initialize command buttons.
 //	m_OptionButton = new ColorButton( CHudTextMessage::BufferedLocaliseTextString( "#SPECT_OPTIONS" ), XRES(15), YRES(6), XRES(OPTIONS_BUTTON_X), YRES(20), false, false );
 	m_OptionButton = new DropDownButton( CHudTextMessage::BufferedLocaliseTextString( "#SPECT_OPTIONS" ), XRES(15), YRES(6), XRES(OPTIONS_BUTTON_X), YRES(20), false, false );
-	//m_OptionButton->setParent( m_BottomBorder );
 	m_OptionButton->setContentAlignment( vgui::Label::a_center );
 	m_OptionButton->setBoundKey( (char)255 );	// special no bound to avoid leading spaces in name 
 	m_OptionButton->addActionSignal( new CSpectatorHandler_Command(this,SPECTATOR_PANEL_CMD_OPTIONS) );
@@ -189,7 +185,6 @@ void SpectatorPanel::Initialize()
 	m_OptionButton->setArmedColor ( 194, 202, 54, 0 );
 
 	m_CamButton = new DropDownButton( CHudTextMessage::BufferedLocaliseTextString( "#CAM_OPTIONS" ),  ScreenWidth - ( XRES ( CAMOPTIONS_BUTTON_X ) + 15 ), YRES(6), XRES ( CAMOPTIONS_BUTTON_X ), YRES(20), false, false );
-	//m_CamButton->setParent( m_BottomBorder );
 	m_CamButton->setContentAlignment( vgui::Label::a_center );
 	m_CamButton->setBoundKey( (char)255 );	// special no bound to avoid leading spaces in name 
 	m_CamButton->addActionSignal( new CSpectatorHandler_Command( this, SPECTATOR_PANEL_CMD_CAMERA ) );
@@ -200,7 +195,6 @@ void SpectatorPanel::Initialize()
 
 //	m_PrevPlayerButton= new ColorButton("<", XRES( 15 + OPTIONS_BUTTON_X + 15 ), YRES(6), XRES(24), YRES(20), false, false );
 	m_PrevPlayerButton= new CImageButton("arrowleft", XRES( 15 + OPTIONS_BUTTON_X + 15 ), YRES(6), XRES(24), YRES(20), false, false );
-	//m_PrevPlayerButton->setParent( m_BottomBorder );
 	m_PrevPlayerButton->setContentAlignment( vgui::Label::a_center );
 	m_PrevPlayerButton->setBoundKey( (char)255 );	// special no bound to avoid leading spaces in name 
 	m_PrevPlayerButton->addActionSignal( new CSpectatorHandler_Command(this,SPECTATOR_PANEL_CMD_PREVPLAYER) );
@@ -211,7 +205,6 @@ void SpectatorPanel::Initialize()
 
 //	m_NextPlayerButton= new ColorButton(">", (ScreenWidth - (XRES ( CAMOPTIONS_BUTTON_X ) + 15)) - XRES ( 24 + 15 ), YRES(6), XRES(24), YRES(20),false, false );
 	m_NextPlayerButton= new CImageButton("arrowright", (ScreenWidth - (XRES ( CAMOPTIONS_BUTTON_X ) + 15)) - XRES ( 24 + 15 ), YRES(6), XRES(24), YRES(20),false, false );
-	//m_NextPlayerButton->setParent( m_BottomBorder );
 	m_NextPlayerButton->setContentAlignment( vgui::Label::a_center );
 	m_NextPlayerButton->setBoundKey( (char)255 );	// special no bound to avoid leading spaces in name 
 	m_NextPlayerButton->addActionSignal( new CSpectatorHandler_Command(this,SPECTATOR_PANEL_CMD_NEXTPLAYER) );
@@ -228,7 +221,6 @@ void SpectatorPanel::Initialize()
 		 XRES( ( 15 + OPTIONS_BUTTON_X + 15 ) + 31 ), YRES(6), flLabelSize, YRES(20), 
 		false, false );
 
-	//m_BottomMainButton->setParent(m_BottomBorder);
 	m_BottomMainButton->setPaintBackgroundEnabled(false);
 	m_BottomMainButton->setFgColor( Scheme::sc_primary1 );
 	m_BottomMainButton->setContentAlignment( vgui::Label::a_center );
@@ -657,6 +649,27 @@ void SpectatorPanel::Update()
 
 	m_Separator->setPos( ScreenWidth - ( iTextWidth + XRES ( 2*SEPERATOR_WIDTH+SEPERATOR_WIDTH/2+offset ) ) , YRES( 5 ) );
 	m_Separator->setSize( XRES( 1 ),  PANEL_HEIGHT - 10  );
+
+	int r, g, b;
+	UnpackRGB(r, g, b, HudColor());
+	m_PinLine->setFgColor( r, g, b, 0 );
+	m_PinLine->setBgColor( r, g, b, 0 );
+
+	m_AutoAssignButton->setUnArmedColor(r, g, b, 0);
+	m_AutoAssignButton->setUnArmedBorderColor(r, g, b, 0);
+	m_AutoAssignButton->setBgColor(r, g, b, 0);
+	m_SurpriseMeButton->setUnArmedColor(r, g, b, 0);
+	m_SurpriseMeButton->setUnArmedBorderColor(r, g, b, 0);
+	m_SurpriseMeButton->setBgColor(r, g, b, 0);
+	m_JoinBlueButton->setUnArmedColor(r, g, b, 0);
+	m_JoinBlueButton->setUnArmedBorderColor(r, g, b, 0);
+	m_JoinBlueButton->setBgColor(r, g, b, 0);
+	m_JoinRedButton->setUnArmedColor(r, g, b, 0);
+	m_JoinRedButton->setUnArmedBorderColor(r, g, b, 0);
+	m_JoinRedButton->setBgColor(r, g, b, 0);
+	m_SpectateButton->setUnArmedColor(r, g, b, 0);
+	m_SpectateButton->setUnArmedBorderColor(r, g, b, 0);
+	m_SpectateButton->setBgColor(r, g, b, 0);
 
 	if (!g_iUser3)
 	{
