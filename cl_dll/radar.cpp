@@ -90,7 +90,7 @@ void CHudRadar::DrawInWorldIndicator(Vector worldOrigin, float distance, int spe
 {
 	// Raise the indicator 64 units above the target's origin
 	Vector elevatedOrigin = worldOrigin;
-	elevatedOrigin.z += 64.0f;
+	elevatedOrigin.z += 32.0f;
 
 	// Project world position to screen coordinates
 	vec3_t screenPos;
