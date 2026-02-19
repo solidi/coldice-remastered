@@ -88,9 +88,13 @@ int CHudRadar::MsgFunc_SpecEnt(const char *pszName, int iSize, void *pbuf)
 
 void CHudRadar::DrawInWorldIndicator(Vector worldOrigin, float distance, int special)
 {
+	// Raise the indicator 64 units above the target's origin
+	Vector elevatedOrigin = worldOrigin;
+	elevatedOrigin.z += 64.0f;
+
 	// Project world position to screen coordinates
 	vec3_t screenPos;
-	if (gEngfuncs.pTriAPI->WorldToScreen((float*)worldOrigin, (float*)screenPos))
+	if (gEngfuncs.pTriAPI->WorldToScreen((float*)elevatedOrigin, (float*)screenPos))
 		return; // Behind the viewer
 	
 	// WorldToScreen returns [-1, 1] range, convert to pixel coordinates
@@ -103,7 +107,19 @@ void CHudRadar::DrawInWorldIndicator(Vector worldOrigin, float distance, int spe
 		return;
 	
 	// Color based on special type
-	int r = 0, g = 240, b = 0; // Green for RADAR_COLD_SPOT
+	int r, g, b;
+	if (special == RADAR_BASE_RED)
+	{
+		r = 240; g = 0; b = 0; // Red for RADAR_BASE_RED
+	}
+	else if (special == RADAR_BASE_BLUE)
+	{
+		r = 0; g = 0; b = 240; // Blue for RADAR_BASE_BLUE
+	}
+	else
+	{
+		r = 0; g = 240; b = 0; // Green for RADAR_COLD_SPOT
+	}
 	
 	// Alpha based on distance
 	int alpha = (int)(EDGE_INDICATOR_ALPHA_MAX - (distance / (MAX_DISTANCE * 2)) * EDGE_INDICATOR_ALPHA_RANGE);
@@ -684,9 +700,11 @@ int CHudRadar::Draw(float flTime)
 		// Calculate Z difference (height is normalized by 72, so multiply back)
 		float zDiff = m_RadarInfo[index].height * 72.0f;
 		
-		// RADAR_COLD_SPOT uses world-space projection (shows only when facing target)
-		if (m_RadarInfo[index].special == RADAR_COLD_SPOT)
-			continue; // Cold spots come from server-sent entities, skip here
+		// These use world-space projection (shows only when facing target) via server-sent entities
+		if (m_RadarInfo[index].special == RADAR_COLD_SPOT ||
+			m_RadarInfo[index].special == RADAR_BASE_RED ||
+			m_RadarInfo[index].special == RADAR_BASE_BLUE)
+			continue; // Come from server-sent entities, skip here
 		
 		DrawEdgeIndicator(screenCenterX, screenCenterY, 
 			m_RadarInfo[index].angle, 
@@ -727,8 +745,10 @@ int CHudRadar::Draw(float flTime)
 		
 		float angle = view_angle - vAngles.y;
 		
-		// RADAR_COLD_SPOT uses world-space projection instead of edge indicator
-		if (m_SpecialEntities[index].special_type == RADAR_COLD_SPOT)
+		// These use world-space projection instead of edge indicator
+		if (m_SpecialEntities[index].special_type == RADAR_COLD_SPOT ||
+			m_SpecialEntities[index].special_type == RADAR_BASE_RED ||
+			m_SpecialEntities[index].special_type == RADAR_BASE_BLUE)
 		{
 			DrawInWorldIndicator(m_SpecialEntities[index].origin, distance, m_SpecialEntities[index].special_type);
 			continue;
