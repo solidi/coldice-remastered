@@ -113,6 +113,19 @@ void CColdSpot::ColdSpotThink( void )
 		if ( ent->IsPlayer() && ent->IsAlive() && !ent->pev->iuser1 )
 		{
 			CBasePlayer *pPlayer = (CBasePlayer *)ent;
+
+			// Check line of sight before awarding points
+			TraceResult tr;
+			Vector vecEyePos = pPlayer->pev->origin + pPlayer->pev->view_ofs;
+			UTIL_TraceLine( pev->origin, vecEyePos, ignore_monsters, ignore_glass, ENT(pev), &tr );
+
+			// Only award points if trace hit the player (clear line of sight)
+			if ( tr.flFraction < 1.0f && tr.pHit != ent->edict() )
+			{
+				ClientPrint(pPlayer->pev, HUD_PRINTCENTER, "To score, see the cold spot center!\n");
+				continue; // Something is blocking the view, skip this player
+			}
+
 			MESSAGE_BEGIN( MSG_ALL, gmsgScoreInfo );
 				WRITE_BYTE( ENTINDEX(ent->edict()) );
 				WRITE_SHORT( pPlayer->pev->frags );
