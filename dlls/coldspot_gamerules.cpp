@@ -228,7 +228,7 @@ void CHalfLifeColdSpot::AutoJoin( CBasePlayer *pPlayer, int team )
 	for (int i = 1; i <= gpGlobals->maxClients; i++)
 	{
 		CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
-		if ( plr && plr->IsPlayer() && !plr->HasDisconnected )
+		if ( plr && plr != pPlayer && plr->IsPlayer() && !plr->HasDisconnected )
 		{
 			if (plr->pev->fuser4 == TEAM_BLUE)
 				blueteam++;
