@@ -88,7 +88,7 @@ int CHudRadar::MsgFunc_SpecEnt(const char *pszName, int iSize, void *pbuf)
 
 void CHudRadar::DrawInWorldIndicator(Vector worldOrigin, float distance, int special)
 {
-	// Raise the indicator 64 units above the target's origin
+	// Raise the indicator these units above the target's origin
 	Vector elevatedOrigin = worldOrigin;
 	elevatedOrigin.z += 32.0f;
 
