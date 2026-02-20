@@ -187,7 +187,7 @@ void CChainsaw::SecondaryAttack()
 			if (flPitch > 180) flPitch -= 360; // Normalize pitch to -180 to 180
 			
 			// Base forward velocity using horizontal angle only
-			UTIL_MakeVectors(Vector(0, m_pPlayer->pev->angles.y, 0));
+			UTIL_MakeVectors(Vector(0, m_pPlayer->pev->v_angle.y, 0));
 			m_pPlayer->pev->velocity = m_pPlayer->pev->velocity + (gpGlobals->v_forward * 750);
 
 			if (bHitWall)
