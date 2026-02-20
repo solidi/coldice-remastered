@@ -179,13 +179,33 @@ void CChainsaw::SecondaryAttack()
 			Vector vecEnd = vecSrc + gpGlobals->v_forward * 96;
 			UTIL_TraceLine(vecSrc, vecEnd, ignore_monsters, ENT( m_pPlayer->pev ), &tr);
 
-			//ALERT(at_aiconsole, "flFraction=%.2f, fStartSolid=%d\n", tr.flFraction, tr.fStartSolid);
-
+			// Check if we're hitting a wall/brush (increased detection range for better climbing)
+			BOOL bHitWall = (tr.fStartSolid || tr.flFraction < 0.5);
+			
+			// Get pitch angle to determine if player is looking up
+			float flPitch = m_pPlayer->pev->v_angle.x;
+			if (flPitch > 180) flPitch -= 360; // Normalize pitch to -180 to 180
+			
+			// Base forward velocity using horizontal angle only
 			UTIL_MakeVectors(Vector(0, m_pPlayer->pev->angles.y, 0));
 			m_pPlayer->pev->velocity = m_pPlayer->pev->velocity + (gpGlobals->v_forward * 750);
 
-			if (tr.fStartSolid || tr.flFraction < 0.25)
-				m_pPlayer->pev->velocity = m_pPlayer->pev->velocity + (gpGlobals->v_up * 300);
+			if (bHitWall)
+			{
+				// Add upward velocity when hitting a wall
+				float flUpwardBoost = 300;
+				
+				// If looking up at the wall, add extra vertical climb velocity
+				if (flPitch < -10) // Looking up (pitch is negative when looking up in GoldSrc)
+				{
+					// Scale upward velocity based on pitch angle
+					// More upward look = more climb velocity
+					float flClimbScale = min(1.0f, -flPitch / 45.0f); // Scale from 0 to 1 over 45 degrees
+					flUpwardBoost = 300 + (flClimbScale * 400); // 300 to 700 upward velocity
+				}
+				
+				m_pPlayer->pev->velocity = m_pPlayer->pev->velocity + (gpGlobals->v_up * flUpwardBoost);
+			}
 		}
 		EMIT_SOUND_DYN(ENT(m_pPlayer->pev), CHAN_WEAPON, "chainsaw_attack1_loop.wav", 1.0, ATTN_NORM, 0, 98 + RANDOM_LONG(0,3));
 		m_flNextSecondaryAttack = m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 0.15;
