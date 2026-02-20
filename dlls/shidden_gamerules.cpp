@@ -389,7 +389,7 @@ void CHalfLifeShidden::Think( void )
 		MESSAGE_END();
 	}
 
-	if ( clients > 1 )
+	if ( clients > 2 )
 	{
 		if ( m_fWaitForPlayersTime > gpGlobals->time )
 		{
@@ -451,12 +451,18 @@ void CHalfLifeShidden::Think( void )
 			player[i] = tmp;
 		}
 
+		// Assign teams at a 2:1 smelter:dealter ratio.
+		// floor(count/3) dealters (minimum 1), the rest are smelters.
+		// The array is already shuffled so the first dealterCount slots get fuser4=1.
+		int dealterCount = count / 3;
+		if ( dealterCount < 1 ) dealterCount = 1;
+
 		for ( int i = 0; i < count; i++ )
 		{
 			CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( player[i] );
 
 			if ( plr && plr->IsPlayer() && !plr->HasDisconnected )
-				plr->pev->fuser4 = i % 2;
+				plr->pev->fuser4 = ( i < dealterCount ) ? 1 : 0;
 		}
 
 		g_GameInProgress = TRUE;
@@ -486,7 +492,7 @@ void CHalfLifeShidden::Think( void )
 		m_flRoundTimeLimit = 0;
 		MESSAGE_BEGIN(MSG_BROADCAST, gmsgObjective);
 			WRITE_STRING("Shidden");
-			WRITE_STRING("Waiting for other players");
+			WRITE_STRING("Need at least 3 players");
 			WRITE_BYTE(0);
 			if (roundlimit.value > 0)
 				WRITE_STRING(UTIL_VarArgs("%d Rounds", (int)roundlimit.value));
