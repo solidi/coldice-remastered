@@ -304,6 +304,18 @@ void CHalfLifeColdSpot::InitHUD( CBasePlayer *pPlayer )
 			WRITE_BYTE(0);
 		MESSAGE_END();
 	}
+
+	if (pColdSpot)
+	{
+		MESSAGE_BEGIN(MSG_ALL, gmsgSpecialEntity);
+			WRITE_BYTE(0); // Index 0-7
+			WRITE_BYTE(1); // Active
+			WRITE_COORD(pColdSpot->pev->origin.x);
+			WRITE_COORD(pColdSpot->pev->origin.y);
+			WRITE_COORD(pColdSpot->pev->origin.z);
+			WRITE_BYTE(RADAR_COLD_SPOT); // Special type
+		MESSAGE_END();
+	}
 }
 
 void CHalfLifeColdSpot::Think( void )

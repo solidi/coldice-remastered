@@ -31,7 +31,6 @@ extern int gmsgObjective;
 extern int gmsgTeamNames;
 extern int gmsgTeamInfo;
 extern int gmsgStatusIcon;
-extern int gmsgSpecialEntity;
 extern int gmsgBanner;
 
 #define SPAWN_TIME 30.0
