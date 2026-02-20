@@ -519,7 +519,7 @@ void CHalfLifeCaptureTheFlag::AutoJoin( CBasePlayer *pPlayer, int team )
 	for (int i = 1; i <= gpGlobals->maxClients; i++)
 	{
 		CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
-		if ( plr && plr->IsPlayer() && !plr->HasDisconnected )
+		if ( plr && plr != pPlayer && plr->IsPlayer() && !plr->HasDisconnected )
 		{
 			if (plr->pev->fuser4 == TEAM_BLUE)
 				blueteam++;
@@ -604,6 +604,28 @@ void CHalfLifeCaptureTheFlag::InitHUD( CBasePlayer *pPlayer )
 				WRITE_STRING( plr->TeamID() );
 			MESSAGE_END();
 		}
+	}
+
+	// Send special entities for radar if joining and bases are available.
+	if (pRedBase && pBlueBase)
+	{
+		MESSAGE_BEGIN(MSG_ONE, gmsgSpecialEntity, NULL, pPlayer->edict());
+			WRITE_BYTE(TEAM_RED); // Index 0-7
+			WRITE_BYTE(1); // Active
+			WRITE_COORD(pRedBase->pev->origin.x);
+			WRITE_COORD(pRedBase->pev->origin.y);
+			WRITE_COORD(pRedBase->pev->origin.z);
+			WRITE_BYTE(pRedBase->pev->fuser4); // Special type
+		MESSAGE_END();
+
+		MESSAGE_BEGIN(MSG_ONE, gmsgSpecialEntity, NULL, pPlayer->edict());
+			WRITE_BYTE(TEAM_BLUE); // Index 0-7
+			WRITE_BYTE(1); // Active
+			WRITE_COORD(pBlueBase->pev->origin.x);
+			WRITE_COORD(pBlueBase->pev->origin.y);
+			WRITE_COORD(pBlueBase->pev->origin.z);
+			WRITE_BYTE(pBlueBase->pev->fuser4); // Special type
+		MESSAGE_END();
 	}
 }
 

@@ -113,6 +113,19 @@ void CColdSpot::ColdSpotThink( void )
 		if ( ent->IsPlayer() && ent->IsAlive() && !ent->pev->iuser1 )
 		{
 			CBasePlayer *pPlayer = (CBasePlayer *)ent;
+
+			// Check line of sight before awarding points
+			TraceResult tr;
+			Vector vecEyePos = pPlayer->pev->origin + pPlayer->pev->view_ofs;
+			UTIL_TraceLine( pev->origin, vecEyePos, ignore_monsters, ignore_glass, ENT(pev), &tr );
+
+			// Only award points if trace hit the player (clear line of sight)
+			if ( tr.flFraction < 1.0f && tr.pHit != ent->edict() )
+			{
+				ClientPrint(pPlayer->pev, HUD_PRINTCENTER, "To score, see the cold spot center!\n");
+				continue; // Something is blocking the view, skip this player
+			}
+
 			MESSAGE_BEGIN( MSG_ALL, gmsgScoreInfo );
 				WRITE_BYTE( ENTINDEX(ent->edict()) );
 				WRITE_SHORT( pPlayer->pev->frags );
@@ -215,7 +228,7 @@ void CHalfLifeColdSpot::AutoJoin( CBasePlayer *pPlayer, int team )
 	for (int i = 1; i <= gpGlobals->maxClients; i++)
 	{
 		CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
-		if ( plr && plr->IsPlayer() && !plr->HasDisconnected )
+		if ( plr && plr != pPlayer && plr->IsPlayer() && !plr->HasDisconnected )
 		{
 			if (plr->pev->fuser4 == TEAM_BLUE)
 				blueteam++;
@@ -289,6 +302,18 @@ void CHalfLifeColdSpot::InitHUD( CBasePlayer *pPlayer )
 			WRITE_STRING("Hold the cold spot");
 			WRITE_STRING("You're spectating");
 			WRITE_BYTE(0);
+		MESSAGE_END();
+	}
+
+	if (pColdSpot)
+	{
+		MESSAGE_BEGIN(MSG_ALL, gmsgSpecialEntity);
+			WRITE_BYTE(0); // Index 0-7
+			WRITE_BYTE(1); // Active
+			WRITE_COORD(pColdSpot->pev->origin.x);
+			WRITE_COORD(pColdSpot->pev->origin.y);
+			WRITE_COORD(pColdSpot->pev->origin.z);
+			WRITE_BYTE(RADAR_COLD_SPOT); // Special type
 		MESSAGE_END();
 	}
 }

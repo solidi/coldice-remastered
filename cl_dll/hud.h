@@ -699,6 +699,7 @@ public:
 	int Draw(float flTime);
 	void ProcessPlayerState( void );
 	void DrawEdgeIndicator(int centerX, int centerY, float angle, float distance, int special, float zDiff);
+	void DrawInWorldIndicator(Vector worldOrigin, float distance, int special);
 	int MsgFunc_SpecEnt(const char *pszName, int iSize, void *pbuf);
 
 private:

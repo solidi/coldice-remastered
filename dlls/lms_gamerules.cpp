@@ -212,6 +212,18 @@ void CHalfLifeLastManStanding::InitHUD( CBasePlayer *pPlayer )
 			MESSAGE_END();
 		}
 	}
+
+	if (pSafeSpot)
+	{
+		MESSAGE_BEGIN(MSG_ALL, gmsgSpecialEntity);
+			WRITE_BYTE(0); // Index 0-7
+			WRITE_BYTE(1); // Active
+			WRITE_COORD(pSafeSpot->pev->origin.x);
+			WRITE_COORD(pSafeSpot->pev->origin.y);
+			WRITE_COORD(pSafeSpot->pev->origin.z);
+			WRITE_BYTE(RADAR_COLD_SPOT); // Special type
+		MESSAGE_END();
+	}
 }
 
 edict_t *CHalfLifeLastManStanding::EntSelectSpawnPoint( const char *szSpawnPoint )
@@ -780,7 +792,7 @@ void CHalfLifeLastManStanding::PlayerSpawn( CBasePlayer *pPlayer )
 			for (int i = 1; i <= gpGlobals->maxClients; i++)
 			{
 				CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
-				if ( plr && plr->IsPlayer() && !plr->HasDisconnected )
+				if ( plr && plr != pPlayer && plr->IsPlayer() && !plr->HasDisconnected )
 				{
 					if (plr->pev->fuser4 == TEAM_BLUE)
 						blueteam++;

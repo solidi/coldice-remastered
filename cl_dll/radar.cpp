@@ -5,6 +5,7 @@
 #include <string.h>
 #include <stdio.h>
 #include "com_model.h"
+#include "triangleapi.h"
 #include "vgui_TeamFortressViewport.h"
 
 #define PI_180 (3.14159265358979 / 180.0)
@@ -83,6 +84,69 @@ int CHudRadar::MsgFunc_SpecEnt(const char *pszName, int iSize, void *pbuf)
 	}
 	
 	return 1;
+}
+
+void CHudRadar::DrawInWorldIndicator(Vector worldOrigin, float distance, int special)
+{
+	// Raise the indicator these units above the target's origin
+	Vector elevatedOrigin = worldOrigin;
+	elevatedOrigin.z += 32.0f;
+
+	// Project world position to screen coordinates
+	vec3_t screenPos;
+	if (gEngfuncs.pTriAPI->WorldToScreen((float*)elevatedOrigin, (float*)screenPos))
+		return; // Behind the viewer
+	
+	// WorldToScreen returns [-1, 1] range, convert to pixel coordinates
+	int x = (int)((screenPos[0] + 1.0f) * 0.5f * ScreenWidth);
+	int y = (int)((1.0f - screenPos[1]) * 0.5f * ScreenHeight);
+	
+	// Only draw if on screen
+	int margin = EDGE_INDICATOR_SCREEN_MARGIN;
+	if (x < margin || x > ScreenWidth - margin || y < margin || y > ScreenHeight - margin)
+		return;
+	
+	// Color based on special type
+	int r, g, b;
+	if (special == RADAR_BASE_RED)
+	{
+		r = 240; g = 0; b = 0; // Red for RADAR_BASE_RED
+	}
+	else if (special == RADAR_BASE_BLUE)
+	{
+		r = 0; g = 0; b = 240; // Blue for RADAR_BASE_BLUE
+	}
+	else
+	{
+		r = 0; g = 240; b = 0; // Green for RADAR_COLD_SPOT
+	}
+	
+	// Alpha based on distance
+	int alpha = (int)(EDGE_INDICATOR_ALPHA_MAX - (distance / (MAX_DISTANCE * 2)) * EDGE_INDICATOR_ALPHA_RANGE);
+	alpha = fmax(EDGE_INDICATOR_ALPHA_MIN, fmin(EDGE_INDICATOR_ALPHA_MAX, alpha));
+	
+	// Pulse effect
+	float pulse = sin(gEngfuncs.GetClientTime() * EDGE_INDICATOR_PULSE_FREQUENCY) * EDGE_INDICATOR_PULSE_AMPLITUDE + EDGE_INDICATOR_PULSE_OFFSET;
+	alpha = (int)(alpha * pulse);
+	
+	// Draw downward-pointing triangle (tip at bottom)
+	int triW = EDGE_INDICATOR_SIZE_WIDTH;
+	int triH = EDGE_INDICATOR_SIZE_HEIGHT;
+	for (int i = 0; i < triH; i++)
+	{
+		int width = triW - (i * triW) / triH;
+		FillRGBA(x - width / 2, y + i, width, 2, r, g, b, alpha);
+	}
+	
+	// Draw distance text below the triangle tip (only if > 12 ft)
+	int distanceFeet = (int)(distance * 0.01904f * 3.28084f);
+	if (distanceFeet > 12)
+	{
+		char distText[16];
+		sprintf(distText, "%d ft", distanceFeet);
+		int textWidth = gHUD.m_scrinfo.charWidths['0'] * strlen(distText);
+		gHUD.DrawHudString(x - textWidth / 2, y + triH + 2, ScreenWidth, distText, r, g, b);
+	}
 }
 
 void CHudRadar::DrawEdgeIndicator(int centerX, int centerY, float angle, float distance, int special, float zDiff)
@@ -636,6 +700,12 @@ int CHudRadar::Draw(float flTime)
 		// Calculate Z difference (height is normalized by 72, so multiply back)
 		float zDiff = m_RadarInfo[index].height * 72.0f;
 		
+		// These use world-space projection (shows only when facing target) via server-sent entities
+		if (m_RadarInfo[index].special == RADAR_COLD_SPOT ||
+			m_RadarInfo[index].special == RADAR_BASE_RED ||
+			m_RadarInfo[index].special == RADAR_BASE_BLUE)
+			continue; // Come from server-sent entities, skip here
+		
 		DrawEdgeIndicator(screenCenterX, screenCenterY, 
 			m_RadarInfo[index].angle, 
 			m_RadarInfo[index].distance,
@@ -674,6 +744,15 @@ int CHudRadar::Draw(float flTime)
 			view_angle += 360;
 		
 		float angle = view_angle - vAngles.y;
+		
+		// These use world-space projection instead of edge indicator
+		if (m_SpecialEntities[index].special_type == RADAR_COLD_SPOT ||
+			m_SpecialEntities[index].special_type == RADAR_BASE_RED ||
+			m_SpecialEntities[index].special_type == RADAR_BASE_BLUE)
+		{
+			DrawInWorldIndicator(m_SpecialEntities[index].origin, distance, m_SpecialEntities[index].special_type);
+			continue;
+		}
 		
 		DrawEdgeIndicator(screenCenterX, screenCenterY, 
 			angle, 
