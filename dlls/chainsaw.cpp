@@ -201,7 +201,7 @@ void CChainsaw::SecondaryAttack()
 					// Scale upward velocity based on pitch angle
 					// More upward look = more climb velocity
 					float flClimbScale = fmin(1.0f, -flPitch / 45.0f); // Scale from 0 to 1 over 45 degrees
-					flUpwardBoost = 300 + (flClimbScale * 400); // 300 to 700 upward velocity
+					flUpwardBoost = 300 + (flClimbScale * 400); // 300 to 700 upward velocity (capped at -45 degrees pitch)
 				}
 				
 				m_pPlayer->pev->velocity = m_pPlayer->pev->velocity + (gpGlobals->v_up * flUpwardBoost);
