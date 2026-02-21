@@ -3661,6 +3661,16 @@ void CBasePlayer::CheckShiddenStomp( void )
 			UTIL_VarArgs( "[Shidden] %s stomped %s!\n",
 				STRING( pev->netname ), STRING( pVictim->pev->netname ) ) );
 
+		MESSAGE_BEGIN( MSG_PVS, SVC_TEMPENTITY, pVictim->pev->origin );
+			WRITE_BYTE( TE_SMOKE );
+			WRITE_COORD( pVictim->pev->origin.x );
+			WRITE_COORD( pVictim->pev->origin.y );
+			WRITE_COORD( pVictim->pev->origin.z );
+			WRITE_SHORT( g_sModelIndexFartSmoke );
+			WRITE_BYTE( 48 ); // scale * 10
+			WRITE_BYTE( 4 ); // framerate
+		MESSAGE_END();
+
 		pVictim->pev->health = 0;
 		pVictim->Killed( pev, GIB_ALWAYS );
 

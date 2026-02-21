@@ -556,7 +556,7 @@ void CHalfLifeShidden::PlayerSpawn( CBasePlayer *pPlayer )
 	{
 		g_engfuncs.pfnSetPhysicsKeyValue(pPlayer->edict(), "haste", "1");
 		pPlayer->pev->fuser3 = 1; // bots need to identify their team.
-		pPlayer->pev->gravity = 0.65;
+		pPlayer->pev->gravity = 0.70;
 		pPlayer->MakeInvisible();
 		strncpy( pPlayer->m_szTeamName, "dealters", TEAM_NAME_LENGTH );
 
@@ -624,7 +624,7 @@ void CHalfLifeShidden::PlayerThink( CBasePlayer *pPlayer )
 
 		if (pPlayer->pev->gravity >= 0.9)
 		{
-			pPlayer->pev->gravity = 0.65;
+			pPlayer->pev->gravity = 0.70;
 		}
 	}
 }
