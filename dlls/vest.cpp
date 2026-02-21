@@ -158,6 +158,9 @@ void CVest::BlowThink() {
 }
 
 void CVest::GoneThink() {
+	if (!m_pPlayer)
+		return;
+
 	CGrenade::Vest( m_pPlayer->pev, pev->origin, gSkillData.plrDmgVest );
 
 	if (!FBitSet(m_pPlayer->pev->flags, FL_GODMODE))
