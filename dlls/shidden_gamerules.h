@@ -28,6 +28,7 @@ public:
 	virtual BOOL FPlayerCanRespawn( CBasePlayer *pPlayer );
 	virtual void PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller, entvars_t *pInflictor );
 	virtual BOOL CanHavePlayerItem( CBasePlayer *pPlayer, CBasePlayerItem *pWeapon );
+	virtual BOOL CanHaveItem( CBasePlayer *pPlayer, CItem *pItem );
 	virtual int GetTeamIndex( const char *pTeamName );
 	virtual BOOL CanRandomizeWeapon( const char *name );
 	virtual int PlayerRelationship( CBaseEntity *pPlayer, CBaseEntity *pTarget );

@@ -556,7 +556,7 @@ void CHalfLifeShidden::PlayerSpawn( CBasePlayer *pPlayer )
 	{
 		g_engfuncs.pfnSetPhysicsKeyValue(pPlayer->edict(), "haste", "1");
 		pPlayer->pev->fuser3 = 1; // bots need to identify their team.
-		pPlayer->pev->gravity = 0.25;
+		pPlayer->pev->gravity = 0.65;
 		pPlayer->MakeInvisible();
 		strncpy( pPlayer->m_szTeamName, "dealters", TEAM_NAME_LENGTH );
 
@@ -624,7 +624,7 @@ void CHalfLifeShidden::PlayerThink( CBasePlayer *pPlayer )
 
 		if (pPlayer->pev->gravity >= 0.9)
 		{
-			pPlayer->pev->gravity = 0.5;
+			pPlayer->pev->gravity = 0.65;
 		}
 	}
 }
@@ -702,7 +702,7 @@ BOOL CHalfLifeShidden::FPlayerCanTakeDamage( CBasePlayer *pPlayer, CBaseEntity *
 				pPlayer->pev->rendercolor.z = 50; // green fart glow
 				EMIT_SOUND( ENT(pPlayer->pev), CHAN_BODY, "freezing.wav", 1, ATTN_NORM );
 				UTIL_ScreenFade( pPlayer, Vector(120, 220, 50), 1, 2, 128, FFADE_IN );
-				ClientPrint( pPlayer->pev, HUD_PRINTCENTER, "Farted on! You're frozen!\nOnly a knife can finish you!" );
+				ClientPrint( pPlayer->pev, HUD_PRINTCENTER, "Farted on! You're frozen!" );
 				return FALSE; // no damage, just freeze
 			}
 		}
@@ -823,7 +823,22 @@ BOOL CHalfLifeShidden::CanHavePlayerItem( CBasePlayer *pPlayer, CBasePlayerItem 
 	if (!strcmp(STRING(pItem->pev->classname), "weapon_nuke"))
 		return FALSE;
 
+	if (pPlayer->pev->fuser4 == SHIDDEN_DEALTER)
+	{
+		if (strcmp(STRING(pItem->pev->classname), "weapon_fists") &&
+			strcmp(STRING(pItem->pev->classname), "weapon_knife"))
+			return FALSE;
+	}
+
 	return CHalfLifeMultiplay::CanHavePlayerItem( pPlayer, pItem );
+}
+
+BOOL CHalfLifeShidden::CanHaveItem( CBasePlayer *pPlayer, CItem *pItem )
+{
+	if (pPlayer->pev->fuser4 == SHIDDEN_DEALTER)
+		return FALSE;
+
+	return CHalfLifeMultiplay::CanHaveItem( pPlayer, pItem );
 }
 
 int CHalfLifeShidden::GetTeamIndex( const char *pTeamName )

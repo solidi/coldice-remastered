@@ -4703,7 +4703,10 @@ void CBasePlayer::GiveNamedItem( const char *pszName )
 		}
 	}
 
-	if (g_pGameRules->IsChilldemic() || g_pGameRules->IsJVS() || g_pGameRules->IsHorde())
+	if (g_pGameRules->IsChilldemic() || 
+		g_pGameRules->IsJVS() || 
+		g_pGameRules->IsHorde() ||
+		g_pGameRules->IsShidden())
 	{
 		if (strcmp(pszName, "weapon_nuke") == 0) {
 			// No nukes in these game modes.
@@ -4731,6 +4734,13 @@ void CBasePlayer::GiveNamedItem( const char *pszName )
 			ALERT(at_console, "Not allowed an egon unless you are the buster.\n");
 			return;
 		}
+	}
+
+	// Dealters limited weapon range
+	if (g_pGameRules->IsShidden() && pev->fuser4 == 1)
+	{
+		if (strcmp(pszName, "weapon_fists") && strcmp(pszName, "weapon_knife"))
+			return;
 	}
 
 	edict_t	*pent;

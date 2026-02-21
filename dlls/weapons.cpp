@@ -1027,6 +1027,9 @@ void CBasePlayerItem::DefaultTouch( CBaseEntity *pOther )
 		if (g_pGameRules->IsPropHunt() && pPlayer->pev->fuser4 > 0)
 			return;
 
+		if (g_pGameRules->IsShidden() && pPlayer->pev->fuser4 > 0)
+			return;
+
 		if ( pPlayer->pev->deadflag == DEAD_NO )
 		{
 			ProvideDualItem(pPlayer, STRING(this->pev->classname));
