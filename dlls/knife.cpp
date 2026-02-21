@@ -605,9 +605,54 @@ void CFlyingKnife::Precache( )
 
 void CFlyingKnife::SpinTouch( CBaseEntity *pOther )
 {
+	// Shidden: flying knife from a dealter hits a smelter.
+	// We bypass FPlayerCanTakeDamage entirely here so that:
+	//   - a frozen smelter is instantly killed,
+	//   - a non-frozen smelter takes normal flying-knife damage
+	//     (without triggering the fart-freeze path in FPlayerCanTakeDamage).
+	bool bShiddenHandled = false;
+#ifndef CLIENT_DLL
+	if ( g_pGameRules->IsShidden() && pOther->IsPlayer() && pev->owner != NULL )
+	{
+		CBasePlayer *pOwner  = (CBasePlayer *)CBaseEntity::Instance( pev->owner );
+		CBasePlayer *pVictim = (CBasePlayer *)pOther;
+		if ( pOwner && pOwner->pev->fuser4 > 0 &&
+			 pVictim->pev->fuser4 == 0 && pVictim->IsAlive() )
+		{
+			bShiddenHandled = true;
+			if ( pVictim->m_iFreezeCounter > 0 )
+			{
+				// Frozen smelter: instant kill.
+				pVictim->m_iFreezeCounter = -1;
+				pVictim->pev->renderamt   = 0;
+				pVictim->pev->renderfx    = kRenderFxNone;
+				ClearBits( pVictim->pev->flags, FL_FROZEN );
+
+				extern entvars_t *g_pevLastInflictor;
+				g_pevLastInflictor = pev;
+				pVictim->pev->health = 0;
+				pVictim->Killed( pOwner->pev, GIB_ALWAYS );
+			}
+			else
+			{
+				// Non-frozen smelter: apply flying-knife damage directly.
+				float flDmg = gSkillData.plrDmgFlyingKnife;
+				pVictim->pev->health -= flDmg;
+				if ( pVictim->pev->health <= 0.0f )
+				{
+					extern entvars_t *g_pevLastInflictor;
+					g_pevLastInflictor = pev;
+					pVictim->pev->health = 0;
+					pVictim->Killed( pOwner->pev, GIB_ALWAYS );
+				}
+			}
+		}
+	}
+#endif
+
 	// We touched something in the game. Look to see if the object
 	// is allowed to take damage. 
-	if (pOther->pev->takedamage)
+	if (!bShiddenHandled && pOther->pev->takedamage)
 	{
 		// Get the traceline info to the target.
 		TraceResult tr = UTIL_GetGlobalTrace( );

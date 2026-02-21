@@ -21,6 +21,7 @@
 #include "gamerules.h"
 #include "shidden_gamerules.h"
 #include "game.h"
+#include "shake.h"
 
 extern int gmsgObjective;
 extern int gmsgTeamNames;
@@ -31,6 +32,9 @@ extern int gmsgShowTimer;
 extern int gmsgStatusIcon;
 extern int gmsgDEraser;
 extern int gmsgBanner;
+
+#define SHIDDEN_SMELTER 0 
+#define SHIDDEN_DEALTER 1
 
 CHalfLifeShidden::CHalfLifeShidden()
 {
@@ -160,7 +164,7 @@ void CHalfLifeShidden::Think( void )
 
 				if ( plr->IsInArena && !plr->IsSpectator() )
 				{
-					if (plr->pev->fuser4 > 0)
+					if (plr->pev->fuser4 == SHIDDEN_DEALTER)
 						dealters_left++;
 					else
 						smelters_left++;
@@ -182,7 +186,7 @@ void CHalfLifeShidden::Think( void )
 				{
 					if (!FBitSet(plr->pev->flags, FL_FAKECLIENT))
 					{
-						if (plr->pev->fuser4 > 0)
+						if (plr->pev->fuser4 == SHIDDEN_DEALTER)
 						{
 							if (smelters_left > 1)
 							{
@@ -299,7 +303,7 @@ void CHalfLifeShidden::Think( void )
 			{
 				CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
 
-				if ( plr && plr->IsPlayer() && !plr->HasDisconnected && plr->pev->fuser4 > 0 )
+				if ( plr && plr->IsPlayer() && !plr->HasDisconnected && plr->pev->fuser4 == SHIDDEN_DEALTER )
 				{
 					if (!FBitSet(plr->pev->flags, FL_FAKECLIENT) && !plr->IsSpectator())
 					{
@@ -331,7 +335,7 @@ void CHalfLifeShidden::Think( void )
 			{
 				CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
 
-				if ( plr && plr->IsPlayer() && !plr->HasDisconnected && plr->pev->fuser4 > 0 )
+				if ( plr && plr->IsPlayer() && !plr->HasDisconnected && plr->pev->fuser4 == SHIDDEN_DEALTER )
 				{
 					if (!FBitSet(plr->pev->flags, FL_FAKECLIENT))
 					{
@@ -462,7 +466,7 @@ void CHalfLifeShidden::Think( void )
 			CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( player[i] );
 
 			if ( plr && plr->IsPlayer() && !plr->HasDisconnected )
-				plr->pev->fuser4 = ( i < dealterCount ) ? 1 : 0;
+				plr->pev->fuser4 = ( i < dealterCount ) ? SHIDDEN_DEALTER : SHIDDEN_SMELTER;
 		}
 
 		g_GameInProgress = TRUE;
@@ -548,13 +552,17 @@ void CHalfLifeShidden::PlayerSpawn( CBasePlayer *pPlayer )
 
 	char *key = g_engfuncs.pfnGetInfoKeyBuffer(pPlayer->edict());
 
-	if ( pPlayer->pev->fuser4 > 0 )
+	if ( pPlayer->pev->fuser4 == SHIDDEN_DEALTER )
 	{
 		g_engfuncs.pfnSetPhysicsKeyValue(pPlayer->edict(), "haste", "1");
 		pPlayer->pev->fuser3 = 1; // bots need to identify their team.
 		pPlayer->pev->gravity = 0.25;
 		pPlayer->MakeInvisible();
 		strncpy( pPlayer->m_szTeamName, "dealters", TEAM_NAME_LENGTH );
+
+		pPlayer->RemoveAllItems( FALSE );
+		pPlayer->GiveNamedItem( "weapon_fists" );
+		pPlayer->GiveNamedItem( "weapon_knife" );
 	}
 	else
 	{
@@ -588,11 +596,11 @@ void CHalfLifeShidden::PlayerThink( CBasePlayer *pPlayer )
 		pPlayer->m_iShowGameModeMessage < gpGlobals->time &&
 		!FBitSet(pPlayer->pev->flags, FL_FAKECLIENT))
 	{
-		if (pPlayer->pev->fuser4 > 0)
+		if (pPlayer->pev->fuser4 == SHIDDEN_DEALTER)
 		{
 			MESSAGE_BEGIN(MSG_ONE, gmsgBanner, NULL, pPlayer->edict());
 				WRITE_STRING("You Are on Team Dealters");
-				WRITE_STRING("What's farting got to do with it?");
+				WRITE_STRING("Stomp them right there, or fart on them - then knife them!");
 				WRITE_BYTE(80);
 			MESSAGE_END();
 		} 
@@ -607,7 +615,7 @@ void CHalfLifeShidden::PlayerThink( CBasePlayer *pPlayer )
 		pPlayer->m_iShowGameModeMessage = -1;
 	}
 
-	if (pPlayer->pev->fuser4 > 0)
+	if (pPlayer->pev->fuser4 == SHIDDEN_DEALTER)
 	{
 		if (pPlayer->pev->rendermode == kRenderNormal)
 		{
@@ -657,11 +665,82 @@ BOOL CHalfLifeShidden::FPlayerCanTakeDamage( CBasePlayer *pPlayer, CBaseEntity *
 		}
 	}
 
+	// Fart-freeze mechanic: dealter attacks smelter.
+	// No g_GameInProgress guard — fart does 800 damage and would
+	// bypass freeze entirely if the round hasn't officially started.
+	if ( pAttacker && pAttacker->IsPlayer() )
+	{
+		CBasePlayer *pAttackerPlayer = (CBasePlayer *)pAttacker;
+
+		if ( pAttackerPlayer->pev->fuser4 == SHIDDEN_DEALTER && 
+			 pPlayer->pev->fuser4 == SHIDDEN_SMELTER )
+		{
+			// Knife always passes through — melee and FPlayerTookDamage handle
+			// the instant-kill-if-frozen logic. Non-frozen smelters take normal damage.
+			BOOL attackerHasKnife = pAttackerPlayer->m_pActiveItem &&
+									pAttackerPlayer->m_pActiveItem->m_iId == WEAPON_KNIFE;
+			BOOL isOffhand = (gMultiDamage.pEntity == pPlayer && (gMultiDamage.type & DMG_PUNCH || gMultiDamage.type & DMG_KICK) && 
+						(pAttackerPlayer->pev->flags & FL_CLIENT) && gMultiDamage.time > gpGlobals->time - 0.5);
+			if ( attackerHasKnife && !isOffhand )
+				return TRUE;
+
+			// Non-knife (fart) hit:
+			if ( pPlayer->m_iFreezeCounter > 0 )
+			{
+				ClientPrint( pAttackerPlayer->pev, HUD_PRINTCENTER, "Use your knife!\n" );
+				return FALSE; // already frozen — only knife finishes them
+			}
+
+			if (pPlayer->IsFartedOn)
+			{
+				pPlayer->IsFartedOn = FALSE; // special for shidden
+				// Smelter is not frozen: freeze for 5 seconds, deal no damage.
+				pPlayer->m_iFreezeCounter = pPlayer->pev->renderamt = 50; // 50 * 0.1 s = 5 s
+				pPlayer->pev->renderfx   = kRenderFxGlowShell;
+				pPlayer->pev->rendercolor.x = 120;
+				pPlayer->pev->rendercolor.y = 220;
+				pPlayer->pev->rendercolor.z = 50; // green fart glow
+				EMIT_SOUND( ENT(pPlayer->pev), CHAN_BODY, "freezing.wav", 1, ATTN_NORM );
+				UTIL_ScreenFade( pPlayer, Vector(120, 220, 50), 1, 2, 128, FFADE_IN );
+				ClientPrint( pPlayer->pev, HUD_PRINTCENTER, "Farted on! You're frozen!\nOnly a knife can finish you!" );
+				return FALSE; // no damage, just freeze
+			}
+		}
+	}
+
 	return CHalfLifeMultiplay::FPlayerCanTakeDamage( pPlayer, pAttacker );
 }
 
 void CHalfLifeShidden::FPlayerTookDamage( float flDamage, CBasePlayer *pVictim, CBaseEntity *pKiller)
 {
+	// Knife one-shot on a frozen smelter.
+	// FPlayerCanTakeDamage already verified this is a dealter with a knife;
+	// here we force the kill regardless of remaining health.
+	if ( pKiller && pKiller->IsPlayer() &&
+		 pVictim->pev->fuser4 == SHIDDEN_SMELTER && pVictim->m_iFreezeCounter > 0 && pVictim->IsAlive() )
+	{
+		CBasePlayer *pKillerPlayer = (CBasePlayer *)pKiller;
+		BOOL isOffhand = (gMultiDamage.pEntity == pVictim && (gMultiDamage.type & DMG_PUNCH || gMultiDamage.type & DMG_KICK) && 
+						(pKillerPlayer->pev->flags & FL_CLIENT) && gMultiDamage.time > gpGlobals->time - 0.5);
+		if ( pKillerPlayer->pev->fuser4 == SHIDDEN_DEALTER &&
+			 pKillerPlayer->m_pActiveItem &&
+			 pKillerPlayer->m_pActiveItem->m_iId == WEAPON_KNIFE &&
+			 !isOffhand )
+		{
+			pVictim->IsFartedOn = FALSE; // special for shidden
+			// Unfreeze first so Killed() doesn't re-enter freeze logic.
+			pVictim->m_iFreezeCounter = -1;
+			pVictim->pev->renderamt   = 0;
+			pVictim->pev->renderfx    = kRenderFxNone;
+			ClearBits( pVictim->pev->flags, FL_FROZEN );
+
+			pVictim->pev->health = 0;
+			pVictim->Killed( pKiller->pev, GIB_ALWAYS );
+		}
+
+		return;
+	}
+
 	CBasePlayer *pPlayerAttacker = NULL;
 
 	if (pKiller && pKiller->IsPlayer())
@@ -696,7 +775,7 @@ void CHalfLifeShidden::PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller, e
 			CBasePlayer *pPlayer = (CBasePlayer *)UTIL_PlayerByIndex(m_iPlayersInArena[i-1]);
 			if (pPlayer && !pPlayer->IsSpectator() && pPlayer != pVictim && !pPlayer->HasDisconnected)
 			{
-				if (pPlayer->pev->fuser4 == 0)
+				if (pPlayer->pev->fuser4 == SHIDDEN_SMELTER)
 					smelters_left++;
 				else
 					dealters_left++;
@@ -708,7 +787,7 @@ void CHalfLifeShidden::PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller, e
 	m_iDealtersRemain = dealters_left;
 
 	// Person was smelter
-	if ( pVictim->pev->fuser4 == 0 )
+	if ( pVictim->pev->fuser4 == SHIDDEN_SMELTER )
 	{
 		if (smelters_left >= 1)
 		{

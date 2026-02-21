@@ -290,6 +290,9 @@ public:
 	// Prophunt
 	int m_iPropsDeployed;
 
+	// Shidden
+	BOOL IsFartedOn;
+
 	BOOL GetHeaviestWeapon( CBasePlayerItem *pCurrentWeapon );
 
 	EHANDLE pHeldItem;

@@ -1145,7 +1145,7 @@ void CBasePlayerWeapon::ItemPostFrame( void )
 	}
 
 	if ((g_pGameRules->MutatorEnabled(MUTATOR_DEALTER) && oktofire) ||
-		(g_pGameRules->IsShidden() && m_pPlayer->pev->fuser4 > 0)) {
+		(g_pGameRules->IsShidden() && m_pPlayer->pev->fuser4 > 0 && m_iId != WEAPON_KNIFE)) {
 		if ((m_pPlayer->pev->button & IN_ATTACK) &&
 			CanAttack( m_flNextPrimaryAttack, gpGlobals->time, UseDecrement() ))
 		{

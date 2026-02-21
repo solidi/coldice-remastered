@@ -530,6 +530,16 @@ void CBasePlayer :: TraceAttack( entvars_t *pevAttacker, float flDamage, Vector 
 		// Any hint of farts is deadly
 		if (FBitSet(bitsDamageType, DMG_FART))
 		{
+			// In Shidden the fart-freeze mechanic lives in FPlayerCanTakeDamage.
+			// TraceAttack bypasses that, so redirect through TakeDamage so the
+			// gamerules override gets a chance to freeze instead of instakill.
+			if (g_pGameRules->IsShidden())
+			{
+				IsFartedOn = TRUE;
+				TakeDamage(pevAttacker, pevAttacker, flDamage, bitsDamageType);
+				return;
+			}
+
 			if (!FBitSet(pev->effects, EF_NODRAW) &&
 				!FBitSet(pev->effects, FL_GODMODE))
 			{
@@ -3645,11 +3655,14 @@ void CBasePlayer::CheckShiddenStomp( void )
 			continue;
 
 		// Stomp! Kill the smelter instantly.
+		// Use Killed() directly to bypass FPlayerCanTakeDamage (which would
+		// otherwise intercept the hit as a fart-freeze instead of a kill).
 		UTIL_ClientPrintAll( HUD_PRINTTALK,
 			UTIL_VarArgs( "[Shidden] %s stomped %s!\n",
 				STRING( pev->netname ), STRING( pVictim->pev->netname ) ) );
 
-		pVictim->TakeDamage( pev, pev, 9999, DMG_CRUSH );
+		pVictim->pev->health = 0;
+		pVictim->Killed( pev, GIB_ALWAYS );
 
 		// Bounce the dealter upward slightly so they don't clip into the floor.
 		pev->velocity.z = 250;
@@ -5521,6 +5534,10 @@ void CBasePlayer::AutoMelee()
 		return;
 
 	if (g_pGameRules->IsGunGame() && m_pActiveItem && m_pActiveItem->m_iId == WEAPON_KNIFE)
+		return;
+
+	if (g_pGameRules->IsShidden() && pev->fuser4 == 1 &&
+		m_pActiveItem && m_pActiveItem->m_iId == WEAPON_KNIFE)
 		return;
 
 	if (m_flNextAutoMelee > gpGlobals->time)
