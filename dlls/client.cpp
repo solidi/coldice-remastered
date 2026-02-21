@@ -99,7 +99,17 @@ BOOL ClientConnect( edict_t *pEntity, const char *pszName, const char *pszAddres
 {
 	char text[256] = "" ;
 	if ( pEntity->v.netname )
-		_snprintf( text, sizeof(text), "+ %s has entered the game\n", STRING(pEntity->v.netname) );
+	{
+		char timeStr[32];
+		char formattedMsg[64];
+		time_t rawtime;
+		struct tm * timeinfo;
+		time(&rawtime);
+		timeinfo = localtime(&rawtime);
+		strftime(timeStr, sizeof(timeStr), "[%H:%M]", timeinfo);
+		snprintf(formattedMsg, sizeof(formattedMsg), "%s%s", timeStr, "");
+		_snprintf( text, sizeof(text), "%s [Game] %s has entered the game\n", formattedMsg, STRING(pEntity->v.netname) );
+	}
 	text[ sizeof(text) - 1 ] = 0;
 	MESSAGE_BEGIN( MSG_ALL, gmsgSayText, NULL );
 		WRITE_BYTE( ENTINDEX(pEntity) );
@@ -142,7 +152,18 @@ void ClientDisconnect( edict_t *pEntity )
 
 	char text[256] = "" ;
 	if ( pEntity->v.netname )
-		_snprintf( text, sizeof(text), "- %s has left the game\n", STRING(pEntity->v.netname) );
+	{
+		char timeStr[32];
+		char formattedMsg[64];
+		time_t rawtime;
+		struct tm * timeinfo;
+		time(&rawtime);
+		timeinfo = localtime(&rawtime);
+		strftime(timeStr, sizeof(timeStr), "[%H:%M]", timeinfo);
+		snprintf(formattedMsg, sizeof(formattedMsg), "%s%s", timeStr, "");
+		_snprintf( text, sizeof(text), "%s [Game] %s has left the game\n", formattedMsg, STRING(pEntity->v.netname) );
+	}
+
 	text[ sizeof(text) - 1 ] = 0;
 	MESSAGE_BEGIN( MSG_ALL, gmsgSayText, NULL );
 		WRITE_BYTE( ENTINDEX(pEntity) );
