@@ -903,3 +903,11 @@ BOOL CHalfLifeShidden::IsTeamplay( void )
 {
 	return TRUE;
 }
+
+BOOL CHalfLifeShidden::AllowRuneSpawn( const char *szRune )
+{
+	if (!strcmp("rune_cloak", szRune))
+		return FALSE;
+
+	return TRUE;
+}

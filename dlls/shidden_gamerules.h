@@ -37,6 +37,7 @@ public:
 	virtual BOOL IsRoundBased( void );
 	virtual void DetermineWinner( void );
 	virtual BOOL IsTeamplay( void );
+	virtual BOOL AllowRuneSpawn( const char *szRune );
 
 private:
 	int m_iSmeltersRemain;
