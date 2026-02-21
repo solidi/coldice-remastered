@@ -734,6 +734,8 @@ void CHalfLifeShidden::FPlayerTookDamage( float flDamage, CBasePlayer *pVictim, 
 			pVictim->pev->renderfx    = kRenderFxNone;
 			ClearBits( pVictim->pev->flags, FL_FROZEN );
 
+			extern entvars_t *g_pevLastInflictor;
+			g_pevLastInflictor = pKillerPlayer->m_pActiveItem->pev;
 			pVictim->pev->health = 0;
 			pVictim->Killed( pKiller->pev, GIB_ALWAYS );
 		}

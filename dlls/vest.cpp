@@ -158,13 +158,14 @@ void CVest::BlowThink() {
 }
 
 void CVest::GoneThink() {
+	CGrenade::Vest( m_pPlayer->pev, pev->origin, gSkillData.plrDmgVest );
+
 	if (!FBitSet(m_pPlayer->pev->flags, FL_GODMODE))
 	{
 		ClearMultiDamage();
 		m_pPlayer->pev->health = 0; // without this, player can walk as a ghost.
 		m_pPlayer->Killed(m_pPlayer->pev, pev, GIB_ALWAYS);
 	}
-	CGrenade::Vest( m_pPlayer->pev, pev->origin, gSkillData.plrDmgVest );
 
 #ifndef CLIENT_DLL
 	if (allowvoiceovers.value)
