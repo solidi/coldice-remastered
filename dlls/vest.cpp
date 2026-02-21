@@ -162,9 +162,12 @@ void CVest::GoneThink() {
 
 	if (!FBitSet(m_pPlayer->pev->flags, FL_GODMODE))
 	{
-		ClearMultiDamage();
-		m_pPlayer->pev->health = 0; // without this, player can walk as a ghost.
-		m_pPlayer->Killed(m_pPlayer->pev, pev, GIB_ALWAYS);
+		if (m_pPlayer && m_pPlayer->IsAlive())
+		{
+			ClearMultiDamage();
+			m_pPlayer->pev->health = 0; // without this, player can walk as a ghost.
+			m_pPlayer->Killed(m_pPlayer->pev, pev, GIB_ALWAYS);
+		}
 	}
 
 #ifndef CLIENT_DLL
