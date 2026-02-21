@@ -537,6 +537,7 @@ void CBasePlayer :: TraceAttack( entvars_t *pevAttacker, float flDamage, Vector 
 			{
 				IsFartedOn = TRUE;
 				TakeDamage(pevAttacker, pevAttacker, flDamage, bitsDamageType);
+				IsFartedOn = FALSE;
 				return;
 			}
 

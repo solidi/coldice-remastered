@@ -693,7 +693,6 @@ BOOL CHalfLifeShidden::FPlayerCanTakeDamage( CBasePlayer *pPlayer, CBaseEntity *
 
 			if (pPlayer->IsFartedOn)
 			{
-				pPlayer->IsFartedOn = FALSE; // special for shidden
 				// Smelter is not frozen: freeze for 5 seconds, deal no damage.
 				pPlayer->m_iFreezeCounter = pPlayer->pev->renderamt = 50; // 50 * 0.1 s = 5 s
 				pPlayer->pev->renderfx   = kRenderFxGlowShell;
@@ -727,7 +726,6 @@ void CHalfLifeShidden::FPlayerTookDamage( float flDamage, CBasePlayer *pVictim, 
 			 pKillerPlayer->m_pActiveItem->m_iId == WEAPON_KNIFE &&
 			 !isOffhand )
 		{
-			pVictim->IsFartedOn = FALSE; // special for shidden
 			// Unfreeze first so Killed() doesn't re-enter freeze logic.
 			pVictim->m_iFreezeCounter = -1;
 			pVictim->pev->renderamt   = 0;
