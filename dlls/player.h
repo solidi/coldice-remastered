@@ -291,7 +291,7 @@ public:
 	int m_iPropsDeployed;
 
 	// Shidden
-	BOOL IsFartedOn;
+	BOOL IsFartedOn = FALSE;
 
 	BOOL GetHeaviestWeapon( CBasePlayerItem *pCurrentWeapon );
 

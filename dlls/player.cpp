@@ -3621,7 +3621,7 @@ void CBasePlayer::CheckShiddenStomp( void )
 		return;
 
 	// Need a meaningful downward fall velocity to register a stomp.
-	// Dealters have reduced gravity (~0.25), so the threshold is lower than
+	// Dealters have reduced gravity (~0.65), so the threshold is lower than
 	// the standard fall-damage speed.
 	if ( m_flFallVelocity < 200.0f )
 		return;
