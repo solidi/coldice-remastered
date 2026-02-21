@@ -530,6 +530,17 @@ void CBasePlayer :: TraceAttack( entvars_t *pevAttacker, float flDamage, Vector 
 		// Any hint of farts is deadly
 		if (FBitSet(bitsDamageType, DMG_FART))
 		{
+			// In Shidden the fart-freeze mechanic lives in FPlayerCanTakeDamage.
+			// TraceAttack bypasses that, so redirect through TakeDamage so the
+			// gamerules override gets a chance to freeze instead of instakill.
+			if (g_pGameRules->IsShidden())
+			{
+				IsFartedOn = TRUE;
+				TakeDamage(pevAttacker, pevAttacker, flDamage, bitsDamageType);
+				IsFartedOn = FALSE;
+				return;
+			}
+
 			if (!FBitSet(pev->effects, EF_NODRAW) &&
 				!FBitSet(pev->effects, FL_GODMODE))
 			{
@@ -3598,6 +3609,77 @@ void CBasePlayer :: UpdatePlayerSound ( void )
 }
 
 
+// Shidden stomp mechanic: dealters (invisible team) can instantly kill smelters
+// by jumping and falling on top of them.
+void CBasePlayer::CheckShiddenStomp( void )
+{
+	// Only active in Shidden mode
+	if ( !g_pGameRules->IsShidden() )
+		return;
+
+	// Only dealters can stomp (fuser4 > 0)
+	if ( pev->fuser4 <= 0 )
+		return;
+
+	// Need a meaningful downward fall velocity to register a stomp.
+	// Dealters have reduced gravity (~0.65), so the threshold is lower than
+	// the standard fall-damage speed.
+	if ( m_flFallVelocity < 200.0f )
+		return;
+
+	// Search for smelters within stomping range of the dealter's feet.
+	CBaseEntity *pEntity = NULL;
+	while ( ( pEntity = UTIL_FindEntityInSphere( pEntity, pev->origin, 48 ) ) != NULL )
+	{
+		if ( !pEntity->IsPlayer() )
+			continue;
+
+		CBasePlayer *pVictim = (CBasePlayer *)pEntity;
+
+		if ( pVictim == this )
+			continue;
+
+		if ( !pVictim->IsAlive() )
+			continue;
+
+		if ( !pVictim->IsInArena )
+			continue;
+
+		// Target must be a smelter (fuser4 == 0)
+		if ( pVictim->pev->fuser4 != 0 )
+			continue;
+
+		// The smelter must be at or below the dealter's feet level.
+		// Player origins sit at the base of the hull; allow +36 units of
+		// vertical tolerance to cover the top of a standing smelter's head.
+		if ( pVictim->pev->origin.z > pev->origin.z + 36 )
+			continue;
+
+		// Stomp! Kill the smelter instantly.
+		// Use Killed() directly to bypass FPlayerCanTakeDamage (which would
+		// otherwise intercept the hit as a fart-freeze instead of a kill).
+		UTIL_ClientPrintAll( HUD_PRINTTALK,
+			UTIL_VarArgs( "[Shidden] %s stomped %s!\n",
+				STRING( pev->netname ), STRING( pVictim->pev->netname ) ) );
+
+		MESSAGE_BEGIN( MSG_PVS, SVC_TEMPENTITY, pVictim->pev->origin );
+			WRITE_BYTE( TE_SMOKE );
+			WRITE_COORD( pVictim->pev->origin.x );
+			WRITE_COORD( pVictim->pev->origin.y );
+			WRITE_COORD( pVictim->pev->origin.z );
+			WRITE_SHORT( g_sModelIndexFartSmoke );
+			WRITE_BYTE( 48 ); // scale * 10
+			WRITE_BYTE( 4 ); // framerate
+		MESSAGE_END();
+
+		pVictim->pev->health = 0;
+		pVictim->Killed( pev, GIB_ALWAYS );
+
+		// Bounce the dealter upward slightly so they don't clip into the floor.
+		pev->velocity.z = 250;
+	}
+}
+
 void CBasePlayer::PostThink()
 {
 	if ( g_fGameOver )
@@ -3672,6 +3754,7 @@ void CBasePlayer::PostThink()
 			CSoundEnt::InsertSound ( bits_SOUND_PLAYER, pev->origin, m_flFallVelocity, 0.2 );
 			// ALERT( at_console, "fall %f\n", m_flFallVelocity );
 		}
+		CheckShiddenStomp();
 		m_flFallVelocity = 0;
 	}
 
@@ -4631,7 +4714,10 @@ void CBasePlayer::GiveNamedItem( const char *pszName )
 		}
 	}
 
-	if (g_pGameRules->IsChilldemic() || g_pGameRules->IsJVS() || g_pGameRules->IsHorde())
+	if (g_pGameRules->IsChilldemic() || 
+		g_pGameRules->IsJVS() || 
+		g_pGameRules->IsHorde() ||
+		g_pGameRules->IsShidden())
 	{
 		if (strcmp(pszName, "weapon_nuke") == 0) {
 			// No nukes in these game modes.
@@ -4659,6 +4745,13 @@ void CBasePlayer::GiveNamedItem( const char *pszName )
 			ALERT(at_console, "Not allowed an egon unless you are the buster.\n");
 			return;
 		}
+	}
+
+	// Dealters limited weapon range
+	if (g_pGameRules->IsShidden() && pev->fuser4 == 1)
+	{
+		if (strcmp(pszName, "weapon_fists") && strcmp(pszName, "weapon_knife"))
+			return;
 	}
 
 	edict_t	*pent;
@@ -5464,6 +5557,10 @@ void CBasePlayer::AutoMelee()
 	if (g_pGameRules->IsGunGame() && m_pActiveItem && m_pActiveItem->m_iId == WEAPON_KNIFE)
 		return;
 
+	if (g_pGameRules->IsShidden() && pev->fuser4 == 1 &&
+		m_pActiveItem && m_pActiveItem->m_iId == WEAPON_KNIFE)
+		return;
+
 	if (m_flNextAutoMelee > gpGlobals->time)
 		return;
 
@@ -5859,10 +5956,13 @@ void CBasePlayer::CheatImpulseCommands( int iImpulse, BOOL m_iFromClient )
 	{
 		if (!FBitSet(pev->flags, FL_GODMODE) && iImpulse)
 		{
-			ClearMultiDamage();
-			pev->health = 0; // without this, player can walk as a ghost.
-			Killed(pev, pev, GIB_ALWAYS);
 			CGrenade::Vest( pev, pev->origin, gSkillData.plrDmgVest );
+			if (IsAlive())
+			{
+				ClearMultiDamage();
+				pev->health = 0; // without this, player can walk as a ghost.
+				Killed(pev, pev, GIB_ALWAYS);
+			}
 			ClientPrint(pev, HUD_PRINTCENTER, "No cheaters when sv_cheats is OFF!\n");
 		}
 		return;

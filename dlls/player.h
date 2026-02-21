@@ -290,6 +290,9 @@ public:
 	// Prophunt
 	int m_iPropsDeployed;
 
+	// Shidden
+	BOOL IsFartedOn = FALSE;
+
 	BOOL GetHeaviestWeapon( CBasePlayerItem *pCurrentWeapon );
 
 	EHANDLE pHeldItem;
@@ -405,6 +408,7 @@ public:
 	void SetSuitUpdate(char *name, int fgroup, int iNoRepeat);
 	void UpdateGeigerCounter( void );
 	void CheckTimeBasedDamage( void );
+	void CheckShiddenStomp( void );
 
 	BOOL FBecomeProne ( void );
 	void BarnacleVictimBitten ( entvars_t *pevBarnacle );
