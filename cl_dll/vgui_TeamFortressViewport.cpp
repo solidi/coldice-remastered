@@ -1742,12 +1742,10 @@ void TeamFortressViewport::UpdateSpectatorPanel()
 		if ( g_iUser3 >= OBS_UNDECIDED_SIMPLE )
 		{
 			m_pSpectatorPanel->ShowOptions( true );
-			gEngfuncs.pfnClientCmd("crosshair 0\n");
 		}
 		else
 		{
 			m_pSpectatorPanel->ShowOptions( false );
-			gEngfuncs.pfnClientCmd("crosshair 1\n");
 		}
 		
 		sprintf(bottomText,"#Spec_Mode%d", g_iUser1 );
