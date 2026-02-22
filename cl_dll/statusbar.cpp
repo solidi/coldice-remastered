@@ -203,18 +203,30 @@ int CHudStatusBar :: Draw( float fTime )
 
 		if (m_iStatusValues[2] > 0)
 		{
-			int r, g, b, a = 180;
+			int r, g, b, a = 200;
 			int y = YRES(70);
 			int y2 = YRES(82);
-			int size = XRES(200);
-			int percent = XRES(m_iStatusValues[2] * 2);
-			int amount = fmin(fmax(0, XRES(200)), XRES(200));
-			UnpackRGB( r, g, b, HudColor() );
+			int size = XRES(125);
+			int barHeight = gHUD.m_iFontHeight / 2;
+			// Clamp filled width to [0, size]
+			int filled = (int)fmin(fmax(0.0f, (float)XRES(m_iStatusValues[2] * 1.25)), (float)size);
+			int empty = size - filled;
+			int barX = (ScreenWidth / 2) - (size / 2);
+			if (m_iStatusValues[2] > 25)
+				UnpackRGB( r, g, b, RGB_BLUEISH );
+			else
+				UnpackRGB( r, g, b, RGB_REDISH );
 
-			FillRGBA(((ScreenWidth / 2) - (size / 2)) - XRES(2), y - YRES(2), size + XRES(4), (y2 - y) + YRES(gHUD.m_iFontHeight / 2), r, g, b, 30);
+			// Outer glow border
+			FillRGBA(barX - XRES(2), y - YRES(2), size + XRES(4), (y2 - y) + YRES(barHeight), r, g, b, 30);
 
-			FillRGBA((ScreenWidth / 2) - (size / 2), y, amount, gHUD.m_iFontHeight / 2, r, g, b, a);
-			FillRGBA(((ScreenWidth / 2) - (size / 2)) + percent, y, fabs(percent - size), gHUD.m_iFontHeight / 2, r, g, b, a / 2);
+			// Health remaining: bright HUD color
+			if (filled > 0)
+				FillRGBA(barX, y, filled, barHeight, r, g, b, a);
+
+			// Health missing: solid black for strong contrast
+			if (empty > 0)
+				FillRGBA(barX + filled, y, empty, barHeight, r, g, b, 60);
 
 			DrawConsoleString( (ScreenWidth / 2) - (size / 2), y2, m_szStatusBar[0] );
 			DrawConsoleString( (ScreenWidth / 2) - (size / 2), y2, m_szStatusBar[1] );
