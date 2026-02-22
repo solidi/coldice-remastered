@@ -484,7 +484,7 @@ void CHudRadar::ProcessPlayerState(void)
 		if (gHUD.m_GameMode == GAME_PROPHUNT)
 		{
 			// No props
-			if (pClient->curstate.fuser4 > 0)
+			if (localPlayer != pClient && pClient->curstate.fuser4 > 0)
 				continue;
 		}
 		else if (gHUD.m_GameMode == GAME_CTF)

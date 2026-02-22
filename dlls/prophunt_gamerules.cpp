@@ -561,6 +561,9 @@ void CHalfLifePropHunt::Think( void )
 
 			UTIL_ClientPrintAll(HUD_PRINTCENTER, "Hunters are free!");
 
+			// Restore mutators when round begins
+			RestoreMutators();
+
 			MESSAGE_BEGIN(MSG_BROADCAST, gmsgPlayClientSound);
 				WRITE_BYTE(CLIENT_SOUND_GOGOGO);
 			MESSAGE_END();
@@ -669,9 +672,6 @@ void CHalfLifePropHunt::Think( void )
 		}
 
 		g_GameInProgress = TRUE;
-		
-		// Restore mutators when round begins
-		RestoreMutators();
 
 		InsertClientsIntoArena(0);
 
