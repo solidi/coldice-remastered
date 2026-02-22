@@ -660,7 +660,7 @@ BOOL CHalfLifeArena::HasGameTimerExpired( void )
 BOOL CHalfLifeArena::FPlayerCanRespawn( CBasePlayer *pPlayer )
 {
 	if ( !g_GameInProgress )
-		return FALSE; 
+		return FALSE;
 
 	CBasePlayer *pPlayer1 = (CBasePlayer *)UTIL_PlayerByIndex( m_iPlayer1 );
 	CBasePlayer *pPlayer2 = (CBasePlayer *)UTIL_PlayerByIndex( m_iPlayer2 );
@@ -670,7 +670,7 @@ BOOL CHalfLifeArena::FPlayerCanRespawn( CBasePlayer *pPlayer )
 	if (pPlayer2 && pPlayer2 == pPlayer)
 		return TRUE;
 
-	if ( !pPlayer->m_flForceToObserverTime )
+	if ( !pPlayer->IsAlive() && !pPlayer->m_flForceToObserverTime )
 		pPlayer->m_flForceToObserverTime = gpGlobals->time + 3.0;
 
 	return FALSE;

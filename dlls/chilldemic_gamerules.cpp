@@ -196,6 +196,7 @@ void CHalfLifeChilldemic::Think( void )
 		}
 
 		m_iSurvivorsRemain = survivors_left;
+		m_iSkeletonsRemain = skeletons_left;
 
 		// Skeleton messages
 		for ( int i = 1; i <= gpGlobals->maxClients; i++ )
@@ -629,7 +630,7 @@ BOOL CHalfLifeChilldemic::FPlayerCanRespawn( CBasePlayer *pPlayer )
 	if ( pPlayer->pev->fuser4 > 0 && m_iSurvivorsRemain >= 1 && !pPlayer->m_flForceToObserverTime )
 		return TRUE;
 
-	if ( !pPlayer->m_flForceToObserverTime )
+	if ( !pPlayer->IsAlive() && !pPlayer->m_flForceToObserverTime )
 		pPlayer->m_flForceToObserverTime = gpGlobals->time + 3.0;
 
 	return FALSE;

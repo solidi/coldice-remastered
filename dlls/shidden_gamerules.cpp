@@ -765,7 +765,7 @@ void CHalfLifeShidden::FPlayerTookDamage( float flDamage, CBasePlayer *pVictim, 
 
 BOOL CHalfLifeShidden::FPlayerCanRespawn( CBasePlayer *pPlayer )
 {
-	if ( !pPlayer->m_flForceToObserverTime )
+	if ( !pPlayer->IsAlive() && !pPlayer->m_flForceToObserverTime )
 		pPlayer->m_flForceToObserverTime = gpGlobals->time + 3.0;
 
 	return FALSE;

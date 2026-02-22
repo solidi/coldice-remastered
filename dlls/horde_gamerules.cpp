@@ -761,7 +761,7 @@ void CHalfLifeHorde::FPlayerTookDamage( float flDamage, CBasePlayer *pVictim, CB
 
 BOOL CHalfLifeHorde::FPlayerCanRespawn( CBasePlayer *pPlayer )
 {
-	if ( !pPlayer->m_flForceToObserverTime )
+	if ( !pPlayer->IsAlive() && !pPlayer->m_flForceToObserverTime )
 		pPlayer->m_flForceToObserverTime = gpGlobals->time + 3.0;
 
 	return FALSE;
