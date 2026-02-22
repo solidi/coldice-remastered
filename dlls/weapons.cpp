@@ -1024,7 +1024,7 @@ void CBasePlayerItem::DefaultTouch( CBaseEntity *pOther )
 		}
 
 		// Prop Hunt: Prevent weapon pickup if currently disguised
-		if (g_pGameRules->IsPropHunt() && pPlayer->pev->fuser4 > 0)
+		if (g_pGameRules->IsPropHunt() && pPlayer->pev->fuser4 >= TEAM_PROPS)
 			return;
 
 		if (g_pGameRules->IsShidden() && pPlayer->pev->fuser4 > 0)
@@ -1084,7 +1084,7 @@ void CBasePlayerWeapon::ItemPostFrame( void )
 	if (g_pGameRules->IsCtC() && m_pPlayer->pev->fuser4 > 0)
 		oktofire = FALSE;
 
-	if (g_pGameRules->IsPropHunt() && m_pPlayer->pev->fuser4 > 0) {
+	if (g_pGameRules->IsPropHunt() && m_pPlayer->pev->fuser4 >= TEAM_PROPS) {
 		if ((m_pPlayer->pev->button & IN_ATTACK) &&
 			CanAttack( m_flNextPrimaryAttack, gpGlobals->time, UseDecrement() ))
 		{
@@ -2723,7 +2723,7 @@ void CBasePlayerWeapon::StartPunch( BOOL holdingSomething )
 	}
 
 	// Prop limitation
-	if ( g_pGameRules->IsPropHunt() && m_pPlayer->pev->fuser4 > 0 )
+	if ( g_pGameRules->IsPropHunt() && m_pPlayer->pev->fuser4 >= TEAM_PROPS )
 		return;
 
 	Holster();
@@ -2953,7 +2953,7 @@ void CBasePlayerWeapon::StartKick( BOOL holdingSomething )
 	}
 
 	// Prop limitation
-	if ( g_pGameRules->IsPropHunt() && m_pPlayer->pev->fuser4 > 0 )
+	if ( g_pGameRules->IsPropHunt() && m_pPlayer->pev->fuser4 >= TEAM_PROPS )
 		return;
 
 	m_pPlayer->m_EFlags &= ~EFLAG_CANCEL;

@@ -225,7 +225,7 @@ void ClientKill( edict_t *pEntity )
 	if ( pl->m_fNextSuicideTime > gpGlobals->time )
 		return;  // prevent suiciding too ofter
 
-	if ( g_pGameRules->IsPropHunt() && pl->pev->fuser4 > 0 )
+	if ( g_pGameRules->IsPropHunt() && pl->pev->fuser4 >= TEAM_PROPS )
 		return; // props cannot suicide
 
 	if ( pl->IsSpectator() )
@@ -1204,7 +1204,7 @@ void ClientCommand( edict_t *pEntity )
 
 		pPlayer->pev->health = 1;
 		pPlayer->pev->armorvalue = 0;
-		pPlayer->pev->fuser4 = 1;
+		pPlayer->pev->fuser4 = TEAM_PROPS;
 		//DROP_TO_FLOOR ( ENT(pPlayer->pev) );
 		ALERT(at_aiconsole, "now set to fuser4 > 0\n");
 		CLIENT_COMMAND(pPlayer->edict(), "thirdperson\n");
