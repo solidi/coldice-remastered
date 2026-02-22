@@ -235,7 +235,7 @@ void LinkUserMessages( void )
 	gmsgGeigerRange = REG_USER_MSG("Geiger", 1);
 	gmsgFlashlight = REG_USER_MSG("Flashlight", 2);
 	gmsgFlashBattery = REG_USER_MSG("FlashBat", 1);
-	gmsgHealth = REG_USER_MSG( "Health", 2);
+	gmsgHealth = REG_USER_MSG( "Health", 3);
 	gmsgDamage = REG_USER_MSG( "Damage", 12 );
 	gmsgBattery = REG_USER_MSG( "Battery", 2);
 	gmsgTrain = REG_USER_MSG( "Train", 1);
@@ -1162,6 +1162,10 @@ void CBasePlayer::Killed( entvars_t *pevAttacker, int iGib )
 	m_iClientHealth = 0;
 	MESSAGE_BEGIN( MSG_ONE, gmsgHealth, NULL, pev );
 		WRITE_SHORT( m_iClientHealth );
+		if (!g_pGameRules->FPlayerCanRespawn(this))
+			WRITE_BYTE( 0 );
+		else
+			WRITE_BYTE( 35 );
 	MESSAGE_END();
 
 	// Tell Ammo Hud that the player is dead
@@ -6605,6 +6609,10 @@ void CBasePlayer :: UpdateClientData( void )
 		// send "health" update message
 		MESSAGE_BEGIN( MSG_ONE, gmsgHealth, NULL, pev );
 			WRITE_SHORT( iHealth );
+			if (!g_pGameRules->FPlayerCanRespawn(this))
+				WRITE_BYTE( 0 );
+			else
+				WRITE_BYTE( 35 );
 		MESSAGE_END();
 
 		m_iClientHealth = pev->health;
