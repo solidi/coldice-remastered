@@ -1162,7 +1162,7 @@ void CBasePlayer::Killed( entvars_t *pevAttacker, int iGib )
 	m_iClientHealth = 0;
 	MESSAGE_BEGIN( MSG_ONE, gmsgHealth, NULL, pev );
 		WRITE_SHORT( m_iClientHealth );
-		if (!g_pGameRules->FPlayerCanRespawn(this))
+		if (!g_pGameRules->FPlayerCanRespawn(this) || !g_pGameRules->IsMultiplayer())
 			WRITE_BYTE( 0 );
 		else
 			WRITE_BYTE( 35 );
@@ -6609,7 +6609,7 @@ void CBasePlayer :: UpdateClientData( void )
 		// send "health" update message
 		MESSAGE_BEGIN( MSG_ONE, gmsgHealth, NULL, pev );
 			WRITE_SHORT( iHealth );
-			if (!g_pGameRules->FPlayerCanRespawn(this))
+			if (!g_pGameRules->FPlayerCanRespawn(this) || !g_pGameRules->IsMultiplayer())
 				WRITE_BYTE( 0 );
 			else
 				WRITE_BYTE( 35 );

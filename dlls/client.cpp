@@ -273,13 +273,14 @@ void ClientPutInServer( edict_t *pEntity )
 	pPlayer->pev->iuser2 = 0; 
 	pPlayer->pev->iuser3 = 0;	// menu status of spectator
 
-	if (!g_pGameRules->IsRoundBased())
+	if (g_pGameRules->IsMultiplayer() && !g_pGameRules->IsRoundBased())
 		pPlayer->pev->iuser3 = OBS_UNDECIDED_SIMPLE;
 
 	// Allocate a CBasePlayer for pev, and call spawn
 	pPlayer->Spawn();
 
 	// Always spectate at first
+	if (g_pGameRules->IsMultiplayer())
 	{
 		pPlayer->pev->iuser1 = pPlayer->m_iObserverLastMode = OBS_ROAMING;
 		pPlayer->m_flForceToObserverTime = 0;
