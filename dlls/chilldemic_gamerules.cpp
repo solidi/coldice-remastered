@@ -163,7 +163,7 @@ void CHalfLifeChilldemic::Think( void )
 
 				if ( plr->IsInArena && !plr->IsSpectator() /*&& plr->IsAlive()*/ )
 				{
-					if (plr->pev->fuser4 > 0)
+					if (plr->pev->fuser4 == TEAM_SKELETONS)
 						skeletons_left++;
 					else
 						survivors_left++;
@@ -209,7 +209,7 @@ void CHalfLifeChilldemic::Think( void )
 				{
 					if (!FBitSet(plr->pev->flags, FL_FAKECLIENT))
 					{
-						if (plr->pev->fuser4 > 0)
+						if (plr->pev->fuser4 == TEAM_SKELETONS)
 						{
 							if (survivors_left > 1)
 							{
@@ -290,7 +290,7 @@ void CHalfLifeChilldemic::Think( void )
 
 				if ( plr && plr->IsPlayer() && !plr->HasDisconnected && !FBitSet(plr->pev->flags, FL_FAKECLIENT) && !plr->IsSpectator() )
 				{
-					if (plr->pev->fuser4 > 0)
+					if (plr->pev->fuser4 == TEAM_SKELETONS)
 					{
 						MESSAGE_BEGIN( MSG_ONE, gmsgStatusIcon, NULL, plr->edict() );
 							WRITE_BYTE(1);
@@ -334,7 +334,13 @@ void CHalfLifeChilldemic::Think( void )
 			{
 				CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
 
-				if ( plr && plr->IsPlayer() && !plr->HasDisconnected && plr->pev->fuser4 > 0 )
+				if ( plr && plr->IsPlayer() && !plr->HasDisconnected && plr->pev->fuser4 == TEAM_SKELETONS )
+				{
+					MESSAGE_BEGIN( MSG_ONE, gmsgStatusIcon, NULL, plr->edict() );
+						WRITE_BYTE(0);
+						WRITE_STRING("skeleton");
+					MESSAGE_END();
+				}
 				{
 					if (!FBitSet(plr->pev->flags, FL_FAKECLIENT))
 					{
@@ -450,7 +456,7 @@ void CHalfLifeChilldemic::Think( void )
 		int skeleton = m_iPlayersInArena[RANDOM_LONG(0, clients-1)];
 		ALERT(at_console, "clients set to %d, virus set to index=%d\n", clients, skeleton);
 		CBasePlayer *pl = (CBasePlayer *)UTIL_PlayerByIndex( skeleton );
-		pl->pev->fuser4 = RADAR_VIRUS;
+		pl->pev->fuser4 = TEAM_SKELETONS;
 
 		g_GameInProgress = TRUE;
 		
@@ -584,7 +590,7 @@ void CHalfLifeChilldemic::PlayerSpawn( CBasePlayer *pPlayer )
 		g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer->edict()), key, "pm", mdls);
 	char *pmodel = g_engfuncs.pfnInfoKeyValue(key, "pm");
 
-	if ( pPlayer->pev->fuser4 > 0 )
+	if ( pPlayer->pev->fuser4 == TEAM_SKELETONS )
 	{
 		pPlayer->RemoveAllItems(FALSE);
 		pPlayer->GiveNamedItem("weapon_vest");
@@ -627,7 +633,7 @@ void CHalfLifeChilldemic::PlayerSpawn( CBasePlayer *pPlayer )
 BOOL CHalfLifeChilldemic::FPlayerCanRespawn( CBasePlayer *pPlayer )
 {
 	// Skeletons can respawn if a survivor is left.
-	if ( pPlayer->pev->fuser4 > 0 && m_iSurvivorsRemain >= 1 && !pPlayer->m_flForceToObserverTime )
+	if ( pPlayer->pev->fuser4 == TEAM_SKELETONS && m_iSurvivorsRemain >= 1 && !pPlayer->m_flForceToObserverTime )
 		return TRUE;
 
 	if ( !pPlayer->IsAlive() && !pPlayer->m_flForceToObserverTime )
@@ -724,7 +730,7 @@ BOOL CHalfLifeChilldemic::CanHavePlayerItem( CBasePlayer *pPlayer, CBasePlayerIt
 	if (!strcmp(STRING(pItem->pev->classname), "weapon_nuke"))
 		return FALSE;
 
-	if (pPlayer->pev->fuser4 > 0 &&
+	if (pPlayer->pev->fuser4 == TEAM_SKELETONS &&
 		strcmp(STRING(pItem->pev->classname), "weapon_fists") &&
 		strcmp(STRING(pItem->pev->classname), "weapon_chainsaw") &&
 		strcmp(STRING(pItem->pev->classname), "weapon_knife") &&
