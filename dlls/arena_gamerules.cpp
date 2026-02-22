@@ -660,17 +660,23 @@ BOOL CHalfLifeArena::HasGameTimerExpired( void )
 BOOL CHalfLifeArena::FPlayerCanRespawn( CBasePlayer *pPlayer )
 {
 	if ( !g_GameInProgress )
-		return FALSE; 
+		return FALSE;
 
 	CBasePlayer *pPlayer1 = (CBasePlayer *)UTIL_PlayerByIndex( m_iPlayer1 );
 	CBasePlayer *pPlayer2 = (CBasePlayer *)UTIL_PlayerByIndex( m_iPlayer2 );
 
-	if (pPlayer1 && pPlayer1 == pPlayer)
-		return TRUE;
-	if (pPlayer2 && pPlayer2 == pPlayer)
-		return TRUE;
+	// Allow respawn if player is in the current match and has not yet reached frag limit
+	if (pPlayer1 && pPlayer2 && (pPlayer1 == pPlayer || pPlayer2 == pPlayer))
+	{
+		int fragsToGo = 0;
+		if (pPlayer1 == pPlayer)
+			fragsToGo = int(roundfraglimit.value - pPlayer2->pev->frags);
+		else if (pPlayer2 == pPlayer)
+			fragsToGo = int(roundfraglimit.value - pPlayer1->pev->frags);
+		return fragsToGo >= 1;
+	}
 
-	if ( !pPlayer->m_flForceToObserverTime )
+	if ( !pPlayer->IsAlive() && !pPlayer->m_flForceToObserverTime )
 		pPlayer->m_flForceToObserverTime = gpGlobals->time + 3.0;
 
 	return FALSE;

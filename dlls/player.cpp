@@ -235,7 +235,7 @@ void LinkUserMessages( void )
 	gmsgGeigerRange = REG_USER_MSG("Geiger", 1);
 	gmsgFlashlight = REG_USER_MSG("Flashlight", 2);
 	gmsgFlashBattery = REG_USER_MSG("FlashBat", 1);
-	gmsgHealth = REG_USER_MSG( "Health", 2);
+	gmsgHealth = REG_USER_MSG( "Health", 3);
 	gmsgDamage = REG_USER_MSG( "Damage", 12 );
 	gmsgBattery = REG_USER_MSG( "Battery", 2);
 	gmsgTrain = REG_USER_MSG( "Train", 1);
@@ -1162,6 +1162,10 @@ void CBasePlayer::Killed( entvars_t *pevAttacker, int iGib )
 	m_iClientHealth = 0;
 	MESSAGE_BEGIN( MSG_ONE, gmsgHealth, NULL, pev );
 		WRITE_SHORT( m_iClientHealth );
+		if (!g_pGameRules->FPlayerCanRespawn(this) || !g_pGameRules->IsMultiplayer())
+			WRITE_BYTE( 0 );
+		else
+			WRITE_BYTE( 35 );
 	MESSAGE_END();
 
 	// Tell Ammo Hud that the player is dead
@@ -1268,7 +1272,7 @@ void CBasePlayer::SetAnimation( PLAYER_ANIM playerAnim )
 	float speed;
 	char szAnim[64];
 
-	if (g_pGameRules->IsPropHunt() && pev->fuser4 > 0)
+	if (g_pGameRules->IsPropHunt() && pev->fuser4 >= TEAM_PROPS)
 	{
 		int maxWeaponModels = 52; //dual handg
 		int ideal = pev->fuser4 >= maxWeaponModels ? ((pev->fuser4 - maxWeaponModels) * 2) + floatingweapons.value : (pev->fuser4 * 2) + floatingweapons.value;
@@ -4733,7 +4737,7 @@ void CBasePlayer::GiveNamedItem( const char *pszName )
 		}
 	}
 
-	if (g_pGameRules->IsPropHunt() && pev->fuser4 > 0 && stricmp(pszName, "weapon_fists") != 0 &&
+	if (g_pGameRules->IsPropHunt() && pev->fuser4 >= TEAM_PROPS && stricmp(pszName, "weapon_fists") != 0 &&
 		stricmp(pszName, "weapon_handgrenade") != 0)
 	{
 		return;
@@ -5039,7 +5043,7 @@ void CBasePlayer::StartSelacoSlide( void )
 		return;
 
 	// Prop limitation
-	if ( g_pGameRules->IsPropHunt() && pev->fuser4 > 0 )
+	if ( g_pGameRules->IsPropHunt() && pev->fuser4 >= TEAM_PROPS )
 		return;
 
 	if (!m_fSelacoSliding && m_fOffhandTime < gpGlobals->time) {
@@ -5324,7 +5328,7 @@ void CBasePlayer::StartRightFlip( void )
 		return;
 
 	// Prop limitation
-	if ( g_pGameRules->IsPropHunt() && pev->fuser4 > 0 )
+	if ( g_pGameRules->IsPropHunt() && pev->fuser4 >= TEAM_PROPS )
 		return;
 
 	if (m_fFlipTime < gpGlobals->time) {
@@ -5350,7 +5354,7 @@ void CBasePlayer::StartLeftFlip( void )
 		return;
 
 	// Prop limitation
-	if ( g_pGameRules->IsPropHunt() && pev->fuser4 > 0 )
+	if ( g_pGameRules->IsPropHunt() && pev->fuser4 >= TEAM_PROPS )
 		return;
 
 	if (m_fFlipTime < gpGlobals->time) {
@@ -5375,7 +5379,7 @@ void CBasePlayer::StartBackFlip( void )
 		return;
 
 	// Prop limitation
-	if ( g_pGameRules->IsPropHunt() && pev->fuser4 > 0 )
+	if ( g_pGameRules->IsPropHunt() && pev->fuser4 >= TEAM_PROPS )
 		return;
 
 	if (m_fFlipTime < gpGlobals->time) {
@@ -5400,7 +5404,7 @@ void CBasePlayer::StartFrontFlip( void )
 		return;
 
 	// Prop limitation
-	if ( g_pGameRules->IsPropHunt() && pev->fuser4 > 0 )
+	if ( g_pGameRules->IsPropHunt() && pev->fuser4 >= TEAM_PROPS )
 		return;
 
 	if (m_fFlipTime < gpGlobals->time) {
@@ -5798,7 +5802,7 @@ void CBasePlayer::StartForceGrab( void )
 	}
 
 	// Prop limitation
-	if ( g_pGameRules->IsPropHunt() && pev->fuser4 > 0 )
+	if ( g_pGameRules->IsPropHunt() && pev->fuser4 >= TEAM_PROPS )
 		return;
 
 	// Already got a hook, fly it back.
@@ -6605,6 +6609,10 @@ void CBasePlayer :: UpdateClientData( void )
 		// send "health" update message
 		MESSAGE_BEGIN( MSG_ONE, gmsgHealth, NULL, pev );
 			WRITE_SHORT( iHealth );
+			if (!g_pGameRules->FPlayerCanRespawn(this) || !g_pGameRules->IsMultiplayer())
+				WRITE_BYTE( 0 );
+			else
+				WRITE_BYTE( 35 );
 		MESSAGE_END();
 
 		m_iClientHealth = pev->health;

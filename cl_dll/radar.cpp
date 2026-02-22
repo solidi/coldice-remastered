@@ -272,9 +272,18 @@ void CHudRadar::DrawEdgeIndicator(int centerX, int centerY, float angle, float d
 	if (distance < EDGE_INDICATOR_MIN_DISTANCE)
 		return;
 	
-	// Flip direction when player is very close (within flip distance)
-	// But only if also close in Z-axis (within close distance vertically)
-	bool closeEnough = (distance < EDGE_INDICATOR_FLIP_DISTANCE) && (fabs(zDiff) < EDGE_INDICATOR_Z_CLOSE_DISTANCE);
+	// Determine if the entity is within the player's forward FOV (±90°)
+	// Normalise angle to [-180, 180] - 0 = straight ahead, ±180 = directly behind
+	float normalizedAngle = angle;
+	while (normalizedAngle >  180.0f) normalizedAngle -= 360.0f;
+	while (normalizedAngle < -180.0f) normalizedAngle += 360.0f;
+	bool inFOV = fabs(normalizedAngle) < 70.0f;
+
+	// Flip direction when player is very close (within flip distance),
+	// close in Z-axis, AND the entity is within the forward FOV.
+	// When the entity is behind the player the arrow stays at the edge
+	// pointing outward - pulling it inward would be confusing.
+	bool closeEnough = (distance < EDGE_INDICATOR_FLIP_DISTANCE) && (fabs(zDiff) < EDGE_INDICATOR_Z_CLOSE_DISTANCE) && inFOV;
 	bool flip = closeEnough;
 	
 	// Move arrow toward center when close (between min and flip distance)
@@ -475,7 +484,7 @@ void CHudRadar::ProcessPlayerState(void)
 		if (gHUD.m_GameMode == GAME_PROPHUNT)
 		{
 			// No props
-			if (pClient->curstate.fuser4 > 0)
+			if (localPlayer != pClient && pClient->curstate.fuser4 > 0)
 				continue;
 		}
 		else if (gHUD.m_GameMode == GAME_CTF)

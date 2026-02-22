@@ -339,7 +339,7 @@ void CHalfLifePropHunt::Think( void )
 
 				if ( plr->IsInArena && !plr->IsSpectator() )
 				{
-					if (plr->pev->fuser4 > 0)
+					if (plr->pev->fuser4 >= TEAM_PROPS)
 						props_left++;
 					else
 						hunters_left++;
@@ -359,7 +359,7 @@ void CHalfLifePropHunt::Think( void )
 				if ( plr && plr->IsPlayer() && !plr->HasDisconnected && !FBitSet(plr->pev->flags, FL_FAKECLIENT) && !plr->IsSpectator() )
 				{
 					MESSAGE_BEGIN(MSG_ONE, gmsgBanner, NULL, plr->edict());
-						if (plr->pev->fuser4 > 0)
+						if (plr->pev->fuser4 >= TEAM_PROPS)
 						{
 							WRITE_STRING("You Are a Prop!");
 							WRITE_STRING("Hide as an item (ATTACK) and throw decoys (RELOAD)!");
@@ -387,7 +387,7 @@ void CHalfLifePropHunt::Think( void )
 				{
 					if (!FBitSet(plr->pev->flags, FL_FAKECLIENT))
 					{
-						if (plr->pev->fuser4 > 0)
+						if (plr->pev->fuser4 >= TEAM_PROPS)
 						{
 							if (hunters_left > 1)
 							{
@@ -561,6 +561,9 @@ void CHalfLifePropHunt::Think( void )
 
 			UTIL_ClientPrintAll(HUD_PRINTCENTER, "Hunters are free!");
 
+			// Restore mutators when round begins
+			RestoreMutators();
+
 			MESSAGE_BEGIN(MSG_BROADCAST, gmsgPlayClientSound);
 				WRITE_BYTE(CLIENT_SOUND_GOGOGO);
 			MESSAGE_END();
@@ -653,7 +656,7 @@ void CHalfLifePropHunt::Think( void )
 
 			if ( plr && plr->IsPlayer() && !plr->HasDisconnected ) {
 				plr->pev->fuser4 = i % 2;
-				if (plr->pev->fuser4 > 0)
+				if (plr->pev->fuser4 >= TEAM_PROPS)
 				{
 					m_iPropsStarted++;
 					plr->pev->fuser3 = m_fUnFreezeHunters;
@@ -669,9 +672,6 @@ void CHalfLifePropHunt::Think( void )
 		}
 
 		g_GameInProgress = TRUE;
-		
-		// Restore mutators when round begins
-		RestoreMutators();
 
 		InsertClientsIntoArena(0);
 
@@ -781,7 +781,7 @@ void CHalfLifePropHunt::PlayerSpawn( CBasePlayer *pPlayer )
 
 	PlayFootstepSounds(pPlayer, 1.0);
 
-	if ( pPlayer->pev->fuser4 > 0 )
+	if ( pPlayer->pev->fuser4 >= TEAM_PROPS )
 	{
 		strncpy( pPlayer->m_szTeamName, "props", TEAM_NAME_LENGTH );
 		pPlayer->pev->health = 1;
@@ -813,7 +813,7 @@ void CHalfLifePropHunt::PlayerSpawn( CBasePlayer *pPlayer )
 
 BOOL CHalfLifePropHunt::FPlayerCanTakeDamage( CBasePlayer *pPlayer, CBaseEntity *pAttacker )
 {
-	if (pPlayer->pev->fuser4 > 0 && m_fUnFreezeHunters > 0)
+	if (pPlayer->pev->fuser4 >= TEAM_PROPS && m_fUnFreezeHunters > 0)
 		return FALSE; // props cannot change to hunter yet.
 
 	if ( pAttacker && pAttacker->IsPlayer() && pPlayer->pev->fuser4 == pAttacker->pev->fuser4 )
@@ -826,7 +826,7 @@ BOOL CHalfLifePropHunt::FPlayerCanTakeDamage( CBasePlayer *pPlayer, CBaseEntity 
 		}
 	}
 
-	if (pPlayer->pev->fuser4 > 0)
+	if (pPlayer->pev->fuser4 >= TEAM_PROPS)
 	{
 		DeactivateDecoys(pPlayer);
 		PlayFootstepSounds(pPlayer, 1.0);
@@ -893,7 +893,7 @@ void CHalfLifePropHunt::FPlayerTookDamage( float flDamage, CBasePlayer *pVictim,
 float CHalfLifePropHunt::FlPlayerFallDamage( CBasePlayer *pPlayer )
 {
 	// Props take no fall damage
-	if (pPlayer->pev->fuser4 > 0)
+	if (pPlayer->pev->fuser4 >= TEAM_PROPS)
 		return 0.0f;
 
 	return CHalfLifeMultiplay::FlPlayerFallDamage( pPlayer );
@@ -949,7 +949,7 @@ BOOL CHalfLifePropHunt::ShouldAutoAim( CBasePlayer *pPlayer, edict_t *target )
 
 BOOL CHalfLifePropHunt::CanHavePlayerItem( CBasePlayer *pPlayer, CBasePlayerItem *pItem )
 {
-	if (pPlayer->pev->fuser4 > 0 &&
+	if (pPlayer->pev->fuser4 >= TEAM_PROPS &&
 		strcmp(STRING(pItem->pev->classname), "weapon_fists") &&
 		strcmp(STRING(pItem->pev->classname), "weapon_handgrenade"))
 		return FALSE;
@@ -959,7 +959,7 @@ BOOL CHalfLifePropHunt::CanHavePlayerItem( CBasePlayer *pPlayer, CBasePlayerItem
 
 BOOL CHalfLifePropHunt::CanHaveItem( CBasePlayer *pPlayer, CItem *pItem )
 {
-	if (pPlayer->pev->fuser4 > 0)
+	if (pPlayer->pev->fuser4 >= TEAM_PROPS)
 		return FALSE;
 
 	return CHalfLifeMultiplay::CanHaveItem( pPlayer, pItem );
@@ -967,7 +967,7 @@ BOOL CHalfLifePropHunt::CanHaveItem( CBasePlayer *pPlayer, CItem *pItem )
 
 BOOL CHalfLifePropHunt::IsAllowedToDropWeapon( CBasePlayer *pPlayer )
 {
-	if (pPlayer->pev->fuser4 > 0)
+	if (pPlayer->pev->fuser4 >= TEAM_PROPS)
 		return FALSE;
 
 	return CHalfLifeMultiplay::IsAllowedToDropWeapon( pPlayer );
@@ -975,7 +975,7 @@ BOOL CHalfLifePropHunt::IsAllowedToDropWeapon( CBasePlayer *pPlayer )
 
 int CHalfLifePropHunt::DeadPlayerWeapons( CBasePlayer *pPlayer )
 {
-	if (pPlayer->pev->fuser4 > 0)
+	if (pPlayer->pev->fuser4 >= TEAM_PROPS)
 		return GR_PLR_DROP_GUN_NO;
 
 	return CHalfLifeMultiplay::DeadPlayerWeapons( pPlayer );
@@ -983,7 +983,7 @@ int CHalfLifePropHunt::DeadPlayerWeapons( CBasePlayer *pPlayer )
 
 int CHalfLifePropHunt::DeadPlayerAmmo( CBasePlayer *pPlayer )
 {
-	if (pPlayer->pev->fuser4 > 0)
+	if (pPlayer->pev->fuser4 >= TEAM_PROPS)
 		return GR_PLR_DROP_AMMO_NO;
 
 	return CHalfLifeMultiplay::DeadPlayerAmmo( pPlayer );
@@ -991,7 +991,7 @@ int CHalfLifePropHunt::DeadPlayerAmmo( CBasePlayer *pPlayer )
 
 BOOL CHalfLifePropHunt::CanHavePlayerAmmo( CBasePlayer *pPlayer, CBasePlayerAmmo *pAmmo )
 {
-	if (pPlayer->pev->fuser4 > 0)
+	if (pPlayer->pev->fuser4 >= TEAM_PROPS)
 		return FALSE;
 
 	return CHalfLifeMultiplay::CanHavePlayerAmmo( pPlayer, pAmmo );
@@ -1023,7 +1023,7 @@ void CHalfLifePropHunt::PlayerThink( CBasePlayer *pPlayer )
 {
 	CHalfLifeMultiplay::PlayerThink(pPlayer);
 
-	if (pPlayer->pev->fuser4 > 0)
+	if (pPlayer->pev->fuser4 >= TEAM_PROPS)
 	{	
 		pPlayer->pev->air_finished = gpGlobals->time + 10; // never drown
 
@@ -1046,7 +1046,7 @@ BOOL CHalfLifePropHunt::IsRoundBased( void )
 
 BOOL CHalfLifePropHunt::FPlayerCanRespawn( CBasePlayer *pPlayer )
 {
-	if ( !pPlayer->m_flForceToObserverTime )
+	if ( !pPlayer->IsAlive() && !pPlayer->m_flForceToObserverTime )
 		pPlayer->m_flForceToObserverTime = gpGlobals->time + 3.0;
 
 	return FALSE;
@@ -1112,7 +1112,7 @@ BOOL CHalfLifePropHunt::IsTeamplay( void )
 
 BOOL CHalfLifePropHunt :: PlayFootstepSounds( CBasePlayer *pl, float fvol )
 {
-	if ( pl->pev->fuser4 > 0 )
+	if ( pl->pev->fuser4 >= TEAM_PROPS )
 	{
 		g_engfuncs.pfnSetPhysicsKeyValue(pl->edict(), "prop", "1");
 		return FALSE;

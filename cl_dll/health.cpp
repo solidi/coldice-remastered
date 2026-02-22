@@ -107,6 +107,7 @@ int CHudHealth:: MsgFunc_Health(const char *pszName,  int iSize, void *pbuf )
 	// TODO: update local health data
 	BEGIN_READ( pbuf, iSize );
 	int x = READ_SHORT();
+	int mode = READ_BYTE();
 
 	m_iFlags |= HUD_ACTIVE;
 
@@ -117,7 +118,7 @@ int CHudHealth:: MsgFunc_Health(const char *pszName,  int iSize, void *pbuf )
 		m_iHealth = x;
 
 		if (m_iHealth <= 0)
-			gHUD.m_fPlayerDeadTime = gEngfuncs.GetClientTime() + 3.5;
+			gHUD.m_fPlayerDeadTime = gEngfuncs.GetClientTime() + (mode / 10.0f);
 		else
 			gHUD.m_fPlayerDeadTime = 0;
 	}

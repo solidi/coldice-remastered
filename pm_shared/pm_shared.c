@@ -1845,6 +1845,9 @@ void PM_SpectatorMove (void)
 		smove = pmove->cmd.sidemove;
 		
 		VectorNormalize (pmove->forward);
+		// Zero out the Z component of right so that strafing does not
+		// produce a vertical component due to view roll.
+		pmove->right[2] = 0;
 		VectorNormalize (pmove->right);
 
 		for (i=0 ; i<3 ; i++)
@@ -2138,6 +2141,11 @@ void PM_LadderMove( physent_t *pLadder )
 		}
 
 		AngleVectors( pmove->angles, vpn, v_right, NULL );
+
+		// Zero out the Z component of v_right so that strafing on a ladder
+		// does not produce a vertical component due to view roll.
+		v_right[2] = 0;
+		VectorNormalize( v_right );
 
 		if ( pmove->flags & FL_DUCKING )
 		{
