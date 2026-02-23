@@ -72,6 +72,9 @@ void CL_UnloadParticleMan( void );
 void InitInput (void);
 void EV_HookEvents( void );
 void IN_Commands( void );
+void Tinnitus_Hook( void );
+void Tinnitus_RegisterCommands( void );
+void Tinnitus_Frame( double time );
 
 void TriHud_Init();
 void TriHUD_VidInit();
@@ -168,6 +171,7 @@ int CL_DLLEXPORT Initialize( cl_enginefunc_t *pEnginefuncs, int iVersion )
 	memcpy(&gEngfuncs, pEnginefuncs, sizeof(cl_enginefunc_t));
 
 	EV_HookEvents();
+	Tinnitus_Hook();
 	CL_LoadParticleMan();
 
 	TriHud_Init();
@@ -224,6 +228,7 @@ void CL_DLLEXPORT HUD_Init( void )
 	InitInput();
 	gHUD.Init();
 	Scheme_Init();
+	Tinnitus_RegisterCommands();
 }
 
 
@@ -315,6 +320,8 @@ void CL_DLLEXPORT HUD_Frame( double time )
 	ServersThink( time );
 
 	GetClientVoiceMgr()->Frame(time);
+
+	Tinnitus_Frame( time );
 }
 
 
