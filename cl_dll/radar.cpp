@@ -599,6 +599,9 @@ int CHudRadar::Draw(float flTime)
 	if (gViewPort->IsScoreBoardVisible())
 		return 1;
 
+	if (MutatorEnabled(MUTATOR_NORADAR))
+		return 1;
+
 	ProcessPlayerState();
 
 	UnpackRGB(r, g, b, HudColor());
