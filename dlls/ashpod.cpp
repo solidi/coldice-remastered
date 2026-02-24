@@ -89,8 +89,8 @@ int CAshpod::GetItemInfo(ItemInfo *p)
 	p->pszAmmo2 = NULL;
 	p->iMaxAmmo2 = -1;
 	p->iMaxClip = WEAPON_NOCLIP;
-	p->iSlot = 3;
-	p->iPosition = 8;
+	p->iSlot = 5;
+	p->iPosition = 6;
 	p->iFlags = 0;
 	p->iId = m_iId = WEAPON_ASHPOD;
 	p->iWeight = ASHPOD_WEIGHT;
