@@ -1412,7 +1412,7 @@ int SENTENCEG_Lookup(const char *sample, char *sentencenum)
 void EMIT_SOUND_DYN(edict_t *entity, int channel, const char *sample, float volume, float attenuation,
 						   int flags, int pitch)
 {
-	if (g_pGameRules->MutatorEnabled(MUTATOR_TINNITUS))
+	if (g_pGameRules && g_pGameRules->MutatorEnabled(MUTATOR_TINNITUS))
 		volume *= 0.1f;
 
 	if (sample && *sample == '!')

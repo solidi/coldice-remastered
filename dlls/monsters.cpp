@@ -2373,7 +2373,9 @@ BOOL CBaseMonster :: FindCover ( Vector vecThreat, Vector vecViewOffset, float f
 
 	if ( iMyNode == NO_NODE )
 	{
+#ifdef _DEBUG
 		ALERT ( at_aiconsole, "FindCover() - %s has no nearest node!\n", STRING(pev->classname));
+#endif
 		if ( g_ExplosiveAI )
 		{
 			CGrenade::Vest( pev, pev->origin, gSkillData.plrDmgVest );
@@ -2485,7 +2487,9 @@ BOOL CBaseMonster :: BuildNearestRoute ( Vector vecThreat, Vector vecViewOffset,
 
 	if ( iMyNode == NO_NODE )
 	{
+#ifdef _DEBUG
 		ALERT ( at_aiconsole, "BuildNearestRoute() - %s has no nearest node!\n", STRING(pev->classname));
+#endif
 		return FALSE;
 	}
 

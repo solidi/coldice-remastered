@@ -1069,8 +1069,9 @@ void CGameRules::AddRandomMutator(const char *cvarName, BOOL withBar, BOOL three
 			ALERT(at_console, "[Mutators] No mutators available in pool\n");
 			return;
 		}
-		
+#ifdef _DEBUG
 		ALERT(at_console, "[Mutators] Initialized pool with %d available mutators\n", m_iMutatorPoolSize);
+#endif
 	}
 
 	int attempts = 0;
@@ -1114,18 +1115,22 @@ void CGameRules::AddRandomMutator(const char *cvarName, BOOL withBar, BOOL three
 			MESSAGE_END();
 		}
 
+#ifdef _DEBUG
 		ALERT(at_console, "[Mutators] Selected '%s' from pool (remaining: %d)\n", tryIt, m_iMutatorPoolSize - 1);
-
+#endif
 		// **Remove this mutator from the pool by swapping with last element**
 		m_iMutatorPool[poolIndex] = m_iMutatorPool[m_iMutatorPoolSize - 1];
 		m_iMutatorPoolSize--;
 
-		ALERT(at_console, ">>| [Mutators] Pool size is %d\n", m_iMutatorPoolSize);
-
+#ifdef _DEBUG
+		ALERT(at_console, ">> [Mutators] Pool size is %d\n", m_iMutatorPoolSize);
+#endif
 		// **If pool is exhausted, reset it**
 		if (m_iMutatorPoolSize == 0)
 		{
+#ifdef _DEBUG
 			ALERT(at_console, ">>| [Mutators] Pool exhausted, resetting for next cycle\n");
+#endif
 			m_iMutatorPoolSize = 0; // This will trigger rebuild on next call
 		}
 

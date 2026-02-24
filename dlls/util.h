@@ -512,7 +512,7 @@ inline void EMIT_SOUND(edict_t *entity, int channel, const char *sample, float v
 	BOOL s = g_pGameRules && g_pGameRules->MutatorEnabled(MUTATOR_STAHP);
 	BOOL n = g_pGameRules && g_pGameRules->MutatorEnabled(MUTATOR_NAPKIN);
 
-	if (g_pGameRules->MutatorEnabled(MUTATOR_TINNITUS))
+	if (g_pGameRules && g_pGameRules->MutatorEnabled(MUTATOR_TINNITUS))
 		volume *= 0.1f;
 
 	if (!s && !n)
