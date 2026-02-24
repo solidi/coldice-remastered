@@ -402,6 +402,8 @@ int CHud :: MsgFunc_AddMut( const char *pszName, int iSize, void *pbuf )
 				// Specific for client
 				if (mutatorId == MUTATOR_THIRDPERSON)
 					gEngfuncs.pfnClientCmd("thirdperson\n");
+				else if (mutatorId == MUTATOR_TINNITUS)
+					gEngfuncs.pfnClientCmd("tinnitus_start\n");
 				else if (mutatorId == MUTATOR_CLOSEUP)
 					g_IronSight = TRUE;
 

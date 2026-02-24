@@ -63,6 +63,7 @@ extern DLL_GLOBAL int g_GameMode;
 DLL_GLOBAL const char *g_szMutators[] = {
 	"chaos",
 	"999",
+	"amidead",
 	"astronaut",
 	"autoaim",
 	"barrels",
@@ -101,11 +102,13 @@ DLL_GLOBAL const char *g_szMutators[] = {
 	"loopback",
 	"marshmellow",
 	"maxpack",
+	"mcclane",
 	"megarun",
 	"minime",
 	"mirror",
 	"napkinstory",
 	"noclip",
+	"noradar",
 	"noreload",
 	"notify",
 	"notthebees",
@@ -119,6 +122,7 @@ DLL_GLOBAL const char *g_szMutators[] = {
 	"pushy",
 	"railguns",
 	"randomweapon",
+	"rats",
 	"ricochet",
 	"rocketbees",
 	"rocketcrowbar",
@@ -126,6 +130,7 @@ DLL_GLOBAL const char *g_szMutators[] = {
 	"sanic",
 	"santahat",
 	"sildenafil",
+	"skyhook",
 	"slowbullets",
 	"slowmo",
 	"slowweapons",
@@ -135,9 +140,11 @@ DLL_GLOBAL const char *g_szMutators[] = {
 	"superjump",
 	"thirdperson",
 	"three",
+	"tinnitus",
 	"toilet",
 	"topsyturvy",
 	"turrets",
+	"upsidedown",
 	"vested",
 	"volatile",
 };
@@ -634,6 +641,17 @@ void CGameRules::EnvMutators( void )
 
 		if (pPlayer && pPlayer->IsPlayer() && !pl->HasDisconnected)
 		{
+			if (MutatorEnabled(MUTATOR_TINNITUS))
+			{
+				if (strcmp(g_engfuncs.pfnGetPhysicsKeyValue(pPlayer->edict(), "prop"), "2") != 0)
+					g_engfuncs.pfnSetPhysicsKeyValue(pPlayer->edict(), "prop", "2");
+			}
+			else
+			{
+				if (strcmp(g_engfuncs.pfnGetPhysicsKeyValue(pPlayer->edict(), "prop"), "0") != 0)
+					g_engfuncs.pfnSetPhysicsKeyValue(pPlayer->edict(), "prop", "0");
+			}
+
 			if (MutatorEnabled(MUTATOR_FOG))
 			{
 				MESSAGE_BEGIN(MSG_ONE, gmsgFog, NULL, pPlayer->edict());
