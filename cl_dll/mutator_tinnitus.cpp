@@ -28,7 +28,7 @@
 #define TINNITUS_SOUND      "tinnitus_buzz.wav"
 #define TINNITUS_VOLUME     0.85f   // buzz volume (world sounds are crushed, this is "loud")
 #define TINNITUS_DUCK       0.05f   // all other sounds are multiplied by this
-#define TINNITUS_DURATION   5.0    // length of tinnitus_buzz.wav in seconds
+#define TINNITUS_DURATION   41.0    // length of tinnitus_buzz.wav in seconds
 
 // ---------------------------------------------------------------------------
 // State
