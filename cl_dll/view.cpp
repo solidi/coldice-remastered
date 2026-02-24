@@ -757,6 +757,21 @@ void V_CalcNormalRefdef ( struct ref_params_s *pparams )
 	view->angles[ROLL]  -= bob * 1;
 	view->angles[PITCH] -= bob * 0.3;
 
+	if (MutatorEnabled(MUTATOR_MCCLANE))
+	{
+		view->angles[ROLL] = -180; //guns
+	}
+
+	if (MutatorEnabled(MUTATOR_UPSIDEDOWN))
+	{
+		pparams->viewangles[ROLL] = 180; //total view
+	}
+
+	if (MutatorEnabled(MUTATOR_AMIDEAD))
+	{
+		pparams->viewangles[ROLL] = 80; //total view
+	}
+
 	if (cl_glasshud->value) {
 		V_GlassHud(bob, pparams->time, pparams->frametime);
 	} else {
