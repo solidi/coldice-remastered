@@ -1327,8 +1327,10 @@ void CBaseMonster :: SetActivity ( Activity NewActivity )
 	}
 	else
 	{
+#ifdef _DEBUG
 		// Not available try to get default anim
 		ALERT ( at_aiconsole, "%s has no sequence for act:%d\n", STRING(pev->classname), NewActivity );
+#endif
 		pev->sequence		= 0;	// Set to the reset anim (if it's there)
 	}
 
@@ -1364,7 +1366,9 @@ void CBaseMonster :: SetSequenceByName ( char *szSequence )
 	else
 	{
 		// Not available try to get default anim
+#ifdef _DEBUG
 		ALERT ( at_aiconsole, "%s has no sequence named:%f\n", STRING(pev->classname), szSequence );
+#endif
 		pev->sequence		= 0;	// Set to the reset anim (if it's there)
 	}
 }

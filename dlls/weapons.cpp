@@ -497,6 +497,7 @@ void W_Precache(void)
 	UTIL_PrecacheOther( "monster_barrel" );
 	UTIL_PrecacheOther( "monster_sentry" );
 	UTIL_PrecacheOther( "monster_human_assassin" );
+	UTIL_PrecacheOther( "monster_rat" );
 	UTIL_PrecacheOther( "tracer" );
 	UTIL_PrecacheOther( "disc" );
 	UTIL_PrecacheOther( "monster_tombstone" );
