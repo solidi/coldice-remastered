@@ -3778,6 +3778,57 @@ void CBasePlayer::PostThink()
 
 	UpdatePlayerSound();
 
+	// Check for sky texture touch mutator (skyhook)
+	if (g_pGameRules && g_pGameRules->MutatorEnabled(MUTATOR_SKYHOOK))
+	{
+		// Trace from player position in multiple directions
+		TraceResult tr;
+		Vector vecSrc = pev->origin + pev->view_ofs;
+		edict_t *pWorld = g_engfuncs.pfnPEntityOfEntIndex(0);
+		
+		// Check forward direction (where player is looking/moving)
+		UTIL_MakeVectors(pev->v_angle);
+		Vector vecEnd = vecSrc + (gpGlobals->v_forward * 96);
+		
+		UTIL_TraceLine(vecSrc, vecEnd, ignore_monsters, ENT(pev), &tr);
+		
+		// Check if we hit a solid surface and it's sky texture
+		if (tr.flFraction < 1.0)
+		{
+			edict_t *pEntity = pWorld;
+			if (tr.pHit)
+				pEntity = tr.pHit;
+			const char *pTextureName = TRACE_TEXTURE(pEntity, vecSrc, vecEnd);
+			
+			if (pTextureName && stricmp(pTextureName, "sky") == 0)
+			{
+				// Kill the player instantly
+				pev->health = 0;
+				Killed(VARS(eoNullEntity), GIB_ALWAYS);
+				return;
+			}
+		}
+		
+		// Also check upward direction
+		vecEnd = vecSrc + Vector(0, 0, 96);
+		UTIL_TraceLine(vecSrc, vecEnd, ignore_monsters, ENT(pev), &tr);
+		
+		if (tr.flFraction < 1.0)
+		{
+			edict_t *pEntity = pWorld;
+			if (tr.pHit)
+				pEntity = tr.pHit;
+			const char *pTextureName = TRACE_TEXTURE(pEntity, vecSrc, vecEnd);
+			
+			if (pTextureName && stricmp(pTextureName, "sky") == 0)
+			{
+				pev->health = 0;
+				Killed(VARS(eoNullEntity), GIB_ALWAYS);
+				return;
+			}
+		}
+	}
+
 	if (m_fThawTime <= gpGlobals->time && m_iFreezeCounter >= 0) {
 		if (!FBitSet(pev->flags, FL_GODMODE)) {
 			if (m_iFreezeCounter > 0) {
