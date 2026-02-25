@@ -1272,6 +1272,7 @@ void CWorldRunes::CreateRune(char *sz_RuneClass)
 		ALERT (at_console, "%s did not spawn.\n", sz_RuneClass);
 	}
 
+	// For every rune that spawns, spawn a turret and barrel if the mutators are enabled * 2
 	for (int i = 0; i < 2; i++)
 	{
 		if (g_pGameRules->MutatorEnabled(MUTATOR_TURRETS)) {
@@ -1300,6 +1301,33 @@ void CWorldRunes::CreateRune(char *sz_RuneClass)
 					pBarrel->pev->velocity.x = RANDOM_FLOAT( -400, 400 );
 					pBarrel->pev->velocity.y = RANDOM_FLOAT( -400, 400 );
 					pBarrel->pev->velocity.z = RANDOM_FLOAT( 0, 400 );
+				}
+			}
+		}
+
+		// Spawn rats for MUTATOR_RATS
+		if (g_pGameRules->MutatorEnabled(MUTATOR_RATS))
+		{
+			int ratCount = RANDOM_LONG(3, 5);
+			for (int j = 0; j < ratCount; j++)
+			{
+				m_pSpot = SelectSpawnPoint(pPlaces[RANDOM_LONG(0,ARRAYSIZE(pPlaces)-1)]);
+				if (m_pSpot)
+				{
+					Vector origin = m_pSpot->pev->origin;
+					// Spawn slightly above ground
+					origin.z += 8;
+					
+					CBaseEntity *pRat = CBaseEntity::Create("monster_rat",
+						origin, Vector(0, RANDOM_FLOAT(0, 360), 0), NULL);
+					if (pRat)
+					{
+						// Mark rat as spawned by this mutator for cleanup
+						pRat->pev->iuser1 = MUTATOR_RATS;
+						// Give rats slight random velocity
+						pRat->pev->velocity.x = RANDOM_FLOAT(-50, 50);
+						pRat->pev->velocity.y = RANDOM_FLOAT(-50, 50);
+					}
 				}
 			}
 		}

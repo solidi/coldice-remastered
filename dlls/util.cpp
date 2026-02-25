@@ -624,6 +624,9 @@ void UTIL_EmitAmbientSound( edict_t *entity, const Vector &vecOrigin, const char
 	float rgfl[3];
 	vecOrigin.CopyToArray(rgfl);
 
+	if (g_pGameRules && g_pGameRules->MutatorEnabled(MUTATOR_TINNITUS))
+		vol *= 0.10f;
+
 	if (samp && *samp == '!')
 	{
 		char name[32];

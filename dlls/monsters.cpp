@@ -1327,8 +1327,10 @@ void CBaseMonster :: SetActivity ( Activity NewActivity )
 	}
 	else
 	{
+#ifdef _DEBUG
 		// Not available try to get default anim
 		ALERT ( at_aiconsole, "%s has no sequence for act:%d\n", STRING(pev->classname), NewActivity );
+#endif
 		pev->sequence		= 0;	// Set to the reset anim (if it's there)
 	}
 
@@ -1364,7 +1366,9 @@ void CBaseMonster :: SetSequenceByName ( char *szSequence )
 	else
 	{
 		// Not available try to get default anim
-		ALERT ( at_aiconsole, "%s has no sequence named:%f\n", STRING(pev->classname), szSequence );
+#ifdef _DEBUG
+		ALERT ( at_aiconsole, "%s has no sequence named:%s\n", STRING(pev->classname), szSequence );
+#endif
 		pev->sequence		= 0;	// Set to the reset anim (if it's there)
 	}
 }
@@ -2369,7 +2373,9 @@ BOOL CBaseMonster :: FindCover ( Vector vecThreat, Vector vecViewOffset, float f
 
 	if ( iMyNode == NO_NODE )
 	{
+#ifdef _DEBUG
 		ALERT ( at_aiconsole, "FindCover() - %s has no nearest node!\n", STRING(pev->classname));
+#endif
 		if ( g_ExplosiveAI )
 		{
 			CGrenade::Vest( pev, pev->origin, gSkillData.plrDmgVest );
@@ -2481,7 +2487,9 @@ BOOL CBaseMonster :: BuildNearestRoute ( Vector vecThreat, Vector vecViewOffset,
 
 	if ( iMyNode == NO_NODE )
 	{
+#ifdef _DEBUG
 		ALERT ( at_aiconsole, "BuildNearestRoute() - %s has no nearest node!\n", STRING(pev->classname));
+#endif
 		return FALSE;
 	}
 

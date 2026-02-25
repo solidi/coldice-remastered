@@ -425,6 +425,10 @@ void CL_DLLEXPORT HUD_StudioEvent( const struct mstudioevent_s *event, const str
 		return;
 	}
 
+	float volume = 1.0f;
+	if (MutatorEnabled(MUTATOR_TINNITUS))
+		volume *= 0.1f;
+
 	switch( event->event )
 	{
 	case 5001:
@@ -464,7 +468,7 @@ void CL_DLLEXPORT HUD_StudioEvent( const struct mstudioevent_s *event, const str
 		break;
 	// Client side sound
 	case 5004:
-		gEngfuncs.pfnPlaySoundByNameAtLocation( (char *)event->options, 1.0, (float *)&entity->attachment[0] );
+		gEngfuncs.pfnPlaySoundByNameAtLocation( (char *)event->options, volume, (float *)&entity->attachment[0] );
 		break;
 	case 5005:
 		if (cl_announcehumor && !cl_announcehumor->value) {
@@ -480,7 +484,7 @@ void CL_DLLEXPORT HUD_StudioEvent( const struct mstudioevent_s *event, const str
 			sprintf(soundPath, "%s/%s", cl_voiceoverpath->string, (char *)event->options);
 		else
 			strcpy(soundPath, (char *)event->options);
-		gEngfuncs.pfnPlaySoundByNameAtLocation( soundPath, 1.0, (float *)&entity->attachment[0] );
+		gEngfuncs.pfnPlaySoundByNameAtLocation( soundPath, volume, (float *)&entity->attachment[0] );
 		g_DeploySoundTime = gEngfuncs.GetClientTime() + 1.0;
 		break;
 	default:

@@ -416,15 +416,6 @@ void IN_ScaleMouse( float *x, float *y )
 	// This is the default sensitivity
 	float mouse_senstivity = ( gHUD.GetSensitivity() != 0 ) ? gHUD.GetSensitivity() : sensitivity->value;
 
-	if (gEngfuncs.GetMaxClients() == 1)
-	{
-		if (MutatorEnabled(MUTATOR_TOPSYTURVY) &&
-			(g_iUser1 < 1 && !gEngfuncs.IsSpectateOnly()))
-		{
-			mouse_senstivity *= -1;
-		}
-	}
-
 	// Using special accleration values
 	if ( m_customaccel->value != 0 ) 
 	{ 
@@ -457,6 +448,21 @@ void IN_ScaleMouse( float *x, float *y )
 		// Just apply the default
 		*x *= mouse_senstivity;
 		*y *= mouse_senstivity;
+	}
+
+	// Apply per-axis inversions for mutators (only when not spectating)
+	if ( g_iUser1 < 1 && !gEngfuncs.IsSpectateOnly() )
+	{
+		// flips left/right only
+		if ( MutatorEnabled(MUTATOR_MIRROR) || 
+			 MutatorEnabled(MUTATOR_TOPSYTURVY) || 
+			 MutatorEnabled(MUTATOR_UPSIDEDOWN) )
+			*x *= -1;
+
+		// flip up/down only
+		if ( MutatorEnabled(MUTATOR_TOPSYTURVY) ||
+			 MutatorEnabled(MUTATOR_UPSIDEDOWN) )
+			*y *= -1;
 	}
 }
 

@@ -305,7 +305,7 @@ void PM_PlayStepSound( int step, float fvol )
 		return;
 	}
 
-	qboolean canSound = atoi( pmove->PM_Info_ValueForKey( pmove->physinfo, "prop" ) ) == 1 ? false : true;
+	qboolean canSound = atoi( pmove->PM_Info_ValueForKey( pmove->physinfo, "prop" ) ) >= 1 ? false : true;
 	if ( !canSound )
 	{
 		return;
@@ -2545,7 +2545,7 @@ void PM_Jump (void)
 		return;
 	}
 
-	qboolean canSound = atoi( pmove->PM_Info_ValueForKey( pmove->physinfo, "prop" ) ) == 1 ? false : true;
+	qboolean canSound = atoi( pmove->PM_Info_ValueForKey( pmove->physinfo, "prop" ) ) >= 1 ? false : true;
 
 	// If we are in the water most of the way...
 	if (pmove->waterlevel >= 2)

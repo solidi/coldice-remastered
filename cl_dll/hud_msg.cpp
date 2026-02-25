@@ -383,6 +383,12 @@ int CHud :: MsgFunc_AddMut( const char *pszName, int iSize, void *pbuf )
 		mutators_t *t = m_Mutators;
 		while (t != NULL)
 		{
+			if (t->mutatorId == MUTATOR_THIRDPERSON)
+				gEngfuncs.pfnClientCmd("firstperson\n");
+			else if (t->mutatorId == MUTATOR_TINNITUS)
+				gEngfuncs.pfnClientCmd("tinnitus_stop\n");
+			else if (t->mutatorId == MUTATOR_CLOSEUP)
+				g_IronSight = FALSE;
 			t->timeToLive = t->startTime;
 			t = t->next;
 		}
@@ -402,6 +408,8 @@ int CHud :: MsgFunc_AddMut( const char *pszName, int iSize, void *pbuf )
 				// Specific for client
 				if (mutatorId == MUTATOR_THIRDPERSON)
 					gEngfuncs.pfnClientCmd("thirdperson\n");
+				else if (mutatorId == MUTATOR_TINNITUS)
+					gEngfuncs.pfnClientCmd("tinnitus_start\n");
 				else if (mutatorId == MUTATOR_CLOSEUP)
 					g_IronSight = TRUE;
 

@@ -638,29 +638,14 @@ void CL_AdjustAngles ( float frametime, float *viewangles )
 	if (cl_yawspeed)
 		yawspeed = cl_yawspeed->value;
 
-	bool mirrorenabled = MutatorEnabled(MUTATOR_MIRROR) && !g_iUser1;
+	bool mirrorenabled = MutatorEnabled(MUTATOR_MIRROR) && !g_iUser1 && !gEngfuncs.IsSpectateOnly();
+	bool upsidedownenabled = (MutatorEnabled(MUTATOR_TOPSYTURVY) ||
+							  MutatorEnabled(MUTATOR_UPSIDEDOWN)) && !g_iUser1 && !gEngfuncs.IsSpectateOnly();
 
 	if (!(in_strafe.state & 1))
 	{
-		if (gEngfuncs.GetMaxClients() == 1)
-		{
-			if (MutatorEnabled(MUTATOR_TOPSYTURVY) &&
-				(g_iUser1 < 1 && !gEngfuncs.IsSpectateOnly()))
-			{
-				viewangles[YAW] += speed*yawspeed*CL_KeyState ((mirrorenabled ? &in_left : &in_right));
-				viewangles[YAW] -= speed*yawspeed*CL_KeyState ((mirrorenabled ? &in_right : &in_left));
-			}
-			else
-			{
-				viewangles[YAW] -= speed*yawspeed*CL_KeyState ((mirrorenabled ? &in_left : &in_right));
-				viewangles[YAW] += speed*yawspeed*CL_KeyState ((mirrorenabled ? &in_right : &in_left));
-			}
-		}
-		else
-		{
-			viewangles[YAW] -= speed*yawspeed*CL_KeyState ((mirrorenabled ? &in_left : &in_right));
-			viewangles[YAW] += speed*yawspeed*CL_KeyState ((mirrorenabled ? &in_right : &in_left));
-		}
+		viewangles[YAW] -= speed*yawspeed*CL_KeyState ((mirrorenabled || upsidedownenabled ? &in_left : &in_right));
+		viewangles[YAW] += speed*yawspeed*CL_KeyState ((mirrorenabled || upsidedownenabled ? &in_right : &in_left));
 
 		viewangles[YAW] = anglemod(viewangles[YAW]);
 	}
@@ -671,26 +656,11 @@ void CL_AdjustAngles ( float frametime, float *viewangles )
 		viewangles[PITCH] += speed*cl_pitchspeed->value * CL_KeyState ((mirrorenabled ? &in_forward : &in_back));
 	}
 	
-	up = CL_KeyState (&in_lookup);
-	down = CL_KeyState(&in_lookdown);
+	up = CL_KeyState ((upsidedownenabled ? &in_lookdown : &in_lookup));
+	down = CL_KeyState((upsidedownenabled ? &in_lookup : &in_lookdown));
 
-	if (gEngfuncs.GetMaxClients() == 1)
-	{
-		if (MutatorEnabled(MUTATOR_TOPSYTURVY) &&
-			(g_iUser1 < 1 && !gEngfuncs.IsSpectateOnly()))
-		{
-			viewangles[PITCH] += speed*cl_pitchspeed->value * up;
-			viewangles[PITCH] -= speed*cl_pitchspeed->value * down;
-		} else {
-			viewangles[PITCH] -= speed*cl_pitchspeed->value * up;
-			viewangles[PITCH] += speed*cl_pitchspeed->value * down;
-		}
-	}
-	else
-	{
-		viewangles[PITCH] -= speed*cl_pitchspeed->value * up;
-		viewangles[PITCH] += speed*cl_pitchspeed->value * down;
-	}
+	viewangles[PITCH] -= speed*cl_pitchspeed->value * up;
+	viewangles[PITCH] += speed*cl_pitchspeed->value * down;
 
 	if (up || down)
 		V_StopPitchDrift ();
@@ -722,7 +692,9 @@ void CL_DLLEXPORT CL_CreateMove ( float frametime, struct usercmd_s *cmd, int ac
 	float spd;
 	vec3_t viewangles;
 	static vec3_t oldangles;
-	bool mirrorenabled = MutatorEnabled(MUTATOR_MIRROR) && !g_iUser1;
+	bool upsidedownEnabled = (MutatorEnabled(MUTATOR_TOPSYTURVY) ||
+						  	 MutatorEnabled(MUTATOR_UPSIDEDOWN)) && !g_iUser1 && !gEngfuncs.IsSpectateOnly();
+	bool mirrorOnlyEnabled = MutatorEnabled(MUTATOR_MIRROR) && !g_iUser1 && !gEngfuncs.IsSpectateOnly();
 
 	if ( active && !Bench_Active() )
 	{
@@ -738,20 +710,20 @@ void CL_DLLEXPORT CL_CreateMove ( float frametime, struct usercmd_s *cmd, int ac
 
 		if ( in_strafe.state & 1 )
 		{
-			cmd->sidemove += cl_sidespeed->value * CL_KeyState (mirrorenabled ? &in_left : &in_right);
-			cmd->sidemove -= cl_sidespeed->value * CL_KeyState (mirrorenabled ? &in_right : &in_left);
+			cmd->sidemove += cl_sidespeed->value * CL_KeyState (mirrorOnlyEnabled || upsidedownEnabled ? &in_left : &in_right);
+			cmd->sidemove -= cl_sidespeed->value * CL_KeyState (mirrorOnlyEnabled || upsidedownEnabled ? &in_right : &in_left);
 		}
 
-		cmd->sidemove += cl_sidespeed->value * CL_KeyState (mirrorenabled ? &in_moveleft : &in_moveright);
-		cmd->sidemove -= cl_sidespeed->value * CL_KeyState (mirrorenabled ? &in_moveright : &in_moveleft);
+		cmd->sidemove += cl_sidespeed->value * CL_KeyState (mirrorOnlyEnabled || upsidedownEnabled ? &in_moveleft : &in_moveright);
+		cmd->sidemove -= cl_sidespeed->value * CL_KeyState (mirrorOnlyEnabled || upsidedownEnabled ? &in_moveright : &in_moveleft);
 
 		cmd->upmove += cl_upspeed->value * CL_KeyState (&in_up);
 		cmd->upmove -= cl_upspeed->value * CL_KeyState (&in_down);
 
 		if ( !(in_klook.state & 1 ) )
 		{	
-			cmd->forwardmove += cl_forwardspeed->value * CL_KeyState ((mirrorenabled ? &in_back : &in_forward));
-			cmd->forwardmove -= cl_backspeed->value * CL_KeyState ((mirrorenabled ? &in_forward : &in_back));
+			cmd->forwardmove += cl_forwardspeed->value * CL_KeyState (&in_forward);
+			cmd->forwardmove -= cl_backspeed->value * CL_KeyState (&in_back);
 		}	
 
 		// adjust for speed key

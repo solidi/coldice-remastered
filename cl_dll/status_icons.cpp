@@ -145,6 +145,8 @@ int CHudStatusIcons::Draw( float flTime )
 			if (m->timeToLive < gHUD.m_flTime && m->timeToLive != -1) {
 				if (m->mutatorId == MUTATOR_THIRDPERSON)
 					gEngfuncs.pfnClientCmd("firstperson\n");
+				else if (m->mutatorId == MUTATOR_TINNITUS)
+					gEngfuncs.pfnClientCmd("tinnitus_stop\n");
 				else if (m->mutatorId == MUTATOR_CLOSEUP)
 					g_IronSight = FALSE;
 
