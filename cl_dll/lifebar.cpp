@@ -216,7 +216,7 @@ int CHudLifeBar::UpdateSprites()
 		if (MutatorEnabled(MUTATOR_MINIME))
 			pEnt->origin[2] = 18;
 		else
-			pEnt->origin[2] = 45;
+			pEnt->origin[2] = 36;
 
 		VectorAdd(pEnt->origin, pClient->origin, pEnt->origin);
 
@@ -251,13 +251,19 @@ void CHudLifeBar::AddDamageNumber(int playerIndex, int damage)
 		{
 			m_DamageNumbers[playerIndex][i].damage = damage;
 			m_DamageNumbers[playerIndex][i].spawnTime = gEngfuncs.GetClientTime();
-			m_DamageNumbers[playerIndex][i].lifetime = 1.5f;  // second duration
+			m_DamageNumbers[playerIndex][i].lifetime = 2.5f;  // longer so arc is visible
 			m_DamageNumbers[playerIndex][i].active = true;
 			
 			// Store the world position where damage occurred (with random offset and above head)
 			m_DamageNumbers[playerIndex][i].worldPosition[0] = pClient->origin[0] + gEngfuncs.pfnRandomFloat(-20, 20);
 			m_DamageNumbers[playerIndex][i].worldPosition[1] = pClient->origin[1] + gEngfuncs.pfnRandomFloat(-20, 20);
 			m_DamageNumbers[playerIndex][i].worldPosition[2] = pClient->origin[2] + gEngfuncs.pfnRandomFloat(40, 45);  // Above player's head
+			
+			// Random horizontal arc: pick a direction angle and a small drift speed
+			float horizAngle = gEngfuncs.pfnRandomFloat(0.0f, 2.0f * 3.14159265f);
+			float horizSpeed = gEngfuncs.pfnRandomFloat(15.0f, 35.0f);
+			m_DamageNumbers[playerIndex][i].horizVelX = cosf(horizAngle) * horizSpeed;
+			m_DamageNumbers[playerIndex][i].horizVelY = sinf(horizAngle) * horizSpeed;
 			
 			break;
 		}
@@ -302,26 +308,33 @@ void CHudLifeBar::RenderDamageNumbers()
 			float fadeRatio = 1.0f - (elapsed / dmg.lifetime);
 			int alpha = (int)(255 * fadeRatio);
 			
-			// Calculate vertical float effect
-			float floatOffset = elapsed * 60.0f;  // Float upward at x units/sec
+			// Ballistic arc: rise then fall under gravity
+			// floatOffset = v0*t - 0.5*g*t^2  (world units)
+			const float kInitVel  = 60.0f;  // upward launch velocity (units/sec)
+			const float kGravity  = 90.0f;  // downward acceleration (units/sec^2)
+			float floatOffset = kInitVel * elapsed - 0.5f * kGravity * elapsed * elapsed;
 			
+			// Horizontal drift: simple linear (no gravity on horizontal)
+			float horizOffsetX = dmg.horizVelX * elapsed;
+			float horizOffsetY = dmg.horizVelY * elapsed;
+
 			// Render each digit of the damage number using locked world position
-			RenderDamageDigits(dmg.damage, dmg.worldPosition, floatOffset, alpha, entityIndex);
+			RenderDamageDigits(dmg.damage, dmg.worldPosition, floatOffset, horizOffsetX, horizOffsetY, alpha, entityIndex);
 		}
 	}
 }
 
-void CHudLifeBar::RenderDamageDigits(int damage, vec3_t worldPosition, float floatOffset, int alpha, int &entityIndex)
+void CHudLifeBar::RenderDamageDigits(int damage, vec3_t worldPosition, float floatOffset, float horizOffsetX, float horizOffsetY, int alpha, int &entityIndex)
 {
 	char damageStr[16];
-	sprintf(damageStr, "%d", damage);
+	sprintf(damageStr, "%d", damage);  // digits only, no "-"
 	int numDigits = strlen(damageStr);
 	
-	// Use the locked world position with float offset
+	// Use the locked world position with ballistic and horizontal arc offsets
 	vec3_t worldPos;
-	worldPos[0] = worldPosition[0];
-	worldPos[1] = worldPosition[1];
-	worldPos[2] = worldPosition[2] + floatOffset;  // Add float offset to locked position
+	worldPos[0] = worldPosition[0] + horizOffsetX;
+	worldPos[1] = worldPosition[1] + horizOffsetY;
+	worldPos[2] = worldPosition[2] + floatOffset;
 	
 	// Convert world position to screen coordinates
 	vec3_t screen;
@@ -337,17 +350,43 @@ void CHudLifeBar::RenderDamageDigits(int damage, vec3_t worldPosition, float flo
 	int iHeight = gHUD.GetSpriteRect(gHUD.m_HUD_number_0).bottom - gHUD.GetSpriteRect(gHUD.m_HUD_number_0).top;
 	
 	// Scaling factor
-	float scale = 0.8f;
+	float scale = 1.5f;
 	int scaledWidth = (int)(iWidth * scale);
 	int scaledHeight = (int)(iHeight * scale);
-	
-	// Center the number
-	screenX -= (numDigits * scaledWidth) / 2;
-	
+
+	// Clamp rendered size beyond a distance threshold so numbers don't dominate at range
+	const float kSizeClampDist = 350.0f;  // units; numbers are full size up to this distance
+	cl_entity_t *localPlayer = gEngfuncs.GetLocalPlayer();
+	float dx = worldPos[0] - localPlayer->origin[0];
+	float dy = worldPos[1] - localPlayer->origin[1];
+	float dz = worldPos[2] - localPlayer->origin[2];
+	float dist = sqrtf(dx*dx + dy*dy + dz*dz);
+	if (dist > kSizeClampDist)
+	{
+		float clampFactor = kSizeClampDist / dist;
+		scaledWidth  = (int)(scaledWidth  * clampFactor);
+		scaledHeight = (int)(scaledHeight * clampFactor);
+	}
+
+	// Minus sign dimensions: proportional to digit size
+	int minusW   = (int)(scaledWidth  * 0.55f);  // slightly narrower than a digit
+	int minusH   = (int)(scaledHeight * 0.12f);  // thin horizontal bar
+	int minusGap = (int)(scaledWidth  * 0.05f);  // gap between minus and first digit
+
+	// Center the whole group (minus + gap + digits) around screenX
+	int totalWidth  = minusW + minusGap + (numDigits * scaledWidth);
+	int startX      = screenX - totalWidth / 2;
+	int minusY      = screenY + (scaledHeight - minusH) / 2;  // vertically centered on digits
+
+	// Draw minus sign as a filled rectangle (red-tinted)
+	gEngfuncs.pfnFillRGBA(startX, minusY, minusW, minusH, 255, 80, 80, alpha);
+
+	int digitStartX = startX + minusW + minusGap;
+
 	// Calculate color with alpha
 	int r = (int)(255 * (alpha / 255.0f));
-	int g = (int)(255 * (alpha / 255.0f));
-	int b = (int)(255 * (alpha / 255.0f));
+	int g = (int)(80 * (alpha / 255.0f));
+	int b = (int)(80 * (alpha / 255.0f));
 	
 	// Draw each digit using 2D sprite rendering
 	for (int i = 0; i < numDigits; i++)
@@ -385,8 +424,8 @@ void CHudLifeBar::RenderDamageDigits(int damage, vec3_t worldPosition, float flo
 		float s2 = (float)rect.right / (float)spriteSheetWidth;
 		float t2 = (float)rect.bottom / (float)spriteSheetHeight;
 		
-		// Draw scaled quad
-		int drawX = screenX + (i * scaledWidth);
+		// Draw scaled quad starting after the minus sign
+		int drawX = digitStartX + (i * scaledWidth);
 		int drawY = screenY;
 		
 		gEngfuncs.pTriAPI->RenderMode(kRenderTransAdd);

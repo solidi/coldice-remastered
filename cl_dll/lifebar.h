@@ -31,6 +31,8 @@ struct s_DamageNumber {
     float lifetime;           // How long it should exist
     vec3_t worldPosition;     // Locked world position where damage occurred
     bool active;              // Whether this slot is in use
+    float horizVelX;          // World-space horizontal drift velocity (X)
+    float horizVelY;          // World-space horizontal drift velocity (Y)
 };
 
 class CHudLifeBar: public CHudBase
@@ -47,7 +49,7 @@ public:
 private:
 	void AddDamageNumber(int playerIndex, int damage);
 	void RenderDamageNumbers();
-	void RenderDamageDigits(int damage, vec3_t worldPosition, float floatOffset, int alpha, int &entityIndex);
+	void RenderDamageDigits(int damage, vec3_t worldPosition, float floatOffset, float horizOffsetX, float horizOffsetY, int alpha, int &entityIndex);
 	
 	HSPRITE m_LifeBarHeadModel;
 	cl_entity_s		m_LifeBarModels[VOICE_MAX_PLAYERS+1];
