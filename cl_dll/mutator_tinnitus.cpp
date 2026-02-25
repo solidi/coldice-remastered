@@ -11,7 +11,7 @@
 //   "tinnitus_stop"    -- silence the buzz and restore normal volume
 //
 // Sound requirement:
-//   sound/ambience/tinnitus_buzz.wav  must be present on the client and server.
+//   sound/tinnitus_buzz.wav  must be present on the client and server.
 //   The WAV must have SMPL loop-point markers so the engine loops it on
 //   CHAN_STATIC without extra re-trigger logic.
 //

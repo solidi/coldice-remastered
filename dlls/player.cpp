@@ -3779,12 +3779,14 @@ void CBasePlayer::PostThink()
 	UpdatePlayerSound();
 
 	// Check for sky texture touch mutator (skyhook)
-	if (g_pGameRules && g_pGameRules->MutatorEnabled(MUTATOR_SKYHOOK))
+	if (g_pGameRules && g_pGameRules->MutatorEnabled(MUTATOR_SKYHOOK) && m_TextureTouchTime <= gpGlobals->time)
 	{
 		// Trace from player position in multiple directions
 		TraceResult tr;
 		Vector vecSrc = pev->origin + pev->view_ofs;
 		edict_t *pWorld = g_engfuncs.pfnPEntityOfEntIndex(0);
+
+		m_TextureTouchTime = gpGlobals->time + 1.0;
 		
 		// Check forward direction (where player is looking/moving)
 		UTIL_MakeVectors(pev->v_angle);

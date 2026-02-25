@@ -511,6 +511,8 @@ public:
 
 	BOOL m_iExitObserver;
 
+	float m_TextureTouchTime = 0;
+
 	float m_fFeignTime;
 
 	void Taunt( void );

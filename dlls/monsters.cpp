@@ -1367,7 +1367,7 @@ void CBaseMonster :: SetSequenceByName ( char *szSequence )
 	{
 		// Not available try to get default anim
 #ifdef _DEBUG
-		ALERT ( at_aiconsole, "%s has no sequence named:%f\n", STRING(pev->classname), szSequence );
+		ALERT ( at_aiconsole, "%s has no sequence named:%s\n", STRING(pev->classname), szSequence );
 #endif
 		pev->sequence		= 0;	// Set to the reset anim (if it's there)
 	}

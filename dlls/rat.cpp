@@ -110,6 +110,7 @@ void CRat :: Spawn()
 	{
 		SetThink( &CRat::MonsterThink );
 		pev->nextthink = gpGlobals->time + 0.1f;
+		pev->dmgtime = gpGlobals->time + 25.0f; // self-destruct
 	}
 }
 
@@ -172,6 +173,14 @@ void CRat :: Killed( entvars_t *pevAttacker, int iGib )
 //=========================================================
 void CRat :: MonsterThink( void )
 {
+	if (pev->dmgtime < gpGlobals->time)
+	{
+		pev->nextthink = -1;
+		// Time to self-destruct
+		Explode();
+		return;
+	}
+
 	pev->nextthink = gpGlobals->time + 0.1f;
 	
 	float flInterval = StudioFrameAdvance();

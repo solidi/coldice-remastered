@@ -571,6 +571,20 @@ CGameRules *InstallGameRules( void )
 
 void CGameRules::EnvMutators( void )
 {
+	// Cleanup rats when mutator ends
+	if (!MutatorEnabled(MUTATOR_RATS))
+	{
+		ALERT(at_console, ">>>> !!! Removing rats...\n");
+		CBaseEntity *pRat = NULL;
+		while ((pRat = UTIL_FindEntityByClassname(pRat, "monster_rat")) != NULL)
+		{
+			if (pRat->pev->iuser1 == MUTATOR_RATS)
+			{
+				UTIL_Remove(pRat);
+			}
+		}
+	}
+
 	if (MutatorEnabled(MUTATOR_SLOWMO) && CVAR_GET_FLOAT("sys_timescale") != 0.49f)
 		CVAR_SET_FLOAT("sys_timescale", 0.49);
 	else
@@ -1424,19 +1438,6 @@ void CGameRules::MutatorsThink(void)
 	// Don't process mutators during round intermission
 	if (m_bMutatorsPaused)
 		return;
-
-	// Cleanup rats when mutator ends
-	if (!MutatorEnabled(MUTATOR_RATS))
-	{
-		CBaseEntity *pRat = NULL;
-		while ((pRat = UTIL_FindEntityByClassname(pRat, "monster_rat")) != NULL)
-		{
-			if (pRat->pev->iuser1 == MUTATOR_RATS)
-			{
-				UTIL_Remove(pRat);
-			}
-		}
-	}
 
 	if (m_flAddMutatorTime < gpGlobals->time)
 	{
