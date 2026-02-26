@@ -220,7 +220,7 @@ int CHudLifeBar::UpdateSprites()
 
 		VectorAdd(pEnt->origin, pClient->origin, pEnt->origin);
 
-		if (cl_lifemeter && cl_lifemeter->value == 1)
+		if (cl_lifemeter && cl_lifemeter->value >= 1)
 			gEngfuncs.CL_CreateVisibleEntity(ET_NORMAL, pEnt);
 	}
 
