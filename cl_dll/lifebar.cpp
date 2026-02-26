@@ -98,7 +98,7 @@ int CHudLifeBar::MsgFunc_LifeBar(const char *pszName,  int iSize, void *pbuf )
 	int iLocalPlayerIndex = gEngfuncs.GetLocalPlayer()->index;
 	cl_entity_s *pClient = gEngfuncs.GetEntityByIndex(index);
 	// gEngfuncs.Con_DPrintf(">>>>> armor=%d, hit=%d, who=%d\n", armor, index, hitindex);
-	int health = pClient->curstate.health;
+	int health = pClient ? pClient->curstate.health : 0;
 	
 	// Initialize previous health if not yet set (first time tracking this player)
 	int prevHealth = GetLifeBar()->m_PreviousHealth[index];
@@ -111,7 +111,7 @@ int CHudLifeBar::MsgFunc_LifeBar(const char *pszName,  int iSize, void *pbuf )
 	if (prevHealth > health && prevHealth > 0 && health > 0)
 	{
 		int damageTaken = prevHealth - health;
-		//if (cl_lifemeter && cl_lifemeter->value > 1)
+		if (cl_lifemeter)
 		{
 			if (cl_lifemeter->value == 2)
 				damageTaken = health; // Show current health instead of damage taken
@@ -156,7 +156,7 @@ int CHudLifeBar::UpdateSprites()
 	{
 		cl_entity_s *pClient = gEngfuncs.GetEntityByIndex(i+1);
 
-		if (IsPropHunt() && pClient->curstate.fuser4 > 0)
+		if (IsPropHunt() && pClient && pClient->curstate.fuser4 > 0)
 			return 0;
 		
 		// Initialize previous health for ALL visible players (before any other checks)
@@ -170,15 +170,15 @@ int CHudLifeBar::UpdateSprites()
 			}
 		}
 		
-		int health = pClient->curstate.health;
-		int armor = m_LifeBarData[i+1].armor;
-		
 		if (m_LifeBarData[i+1].refreshTime < gEngfuncs.GetClientTime())
 			continue;
 		
 		// Don't show an icon if the player is not in our PVS.
 		if (!pClient || pClient->curstate.messagenum < localPlayer->curstate.messagenum)
 			continue;
+
+		int health = pClient->curstate.health;
+		// int armor = m_LifeBarData[i+1].armor;
 
 		// Don't show an icon for dead or spectating players (ie: invisible entities).
 		if (pClient->curstate.effects & EF_NODRAW)
@@ -247,6 +247,9 @@ void CHudLifeBar::AddDamageNumber(int playerIndex, int damage)
 	// Find an available slot
 	for (int i = 0; i < MAX_DAMAGE_NUMBERS; i++)
 	{
+		if (playerIndex < 1 || playerIndex > VOICE_MAX_PLAYERS)
+			break;
+
 		if (!m_DamageNumbers[playerIndex][i].active)
 		{
 			m_DamageNumbers[playerIndex][i].damage = damage;
@@ -315,7 +318,7 @@ void CHudLifeBar::RenderDamageNumbers()
 			// Ballistic arc: rise then fall under gravity
 			// floatOffset = v0*t - 0.5*g*t^2  (world units)
 			const float kInitVel  = 60.0f;  // upward launch velocity (units/sec)
-			const float kGravity  = 90.0f;  // downward acceleration (units/sec^2)
+			const float kGravity  = 120.0f;  // downward acceleration (units/sec^2)
 			float floatOffset = kInitVel * elapsed - 0.5f * kGravity * elapsed * elapsed;
 			
 			// Horizontal drift: simple linear (no gravity on horizontal)
@@ -323,15 +326,15 @@ void CHudLifeBar::RenderDamageNumbers()
 			float horizOffsetY = dmg.horizVelY * elapsed;
 
 			// Render each digit of the damage number using locked world position
-			RenderDamageDigits(dmg.damage, dmg.worldPosition, floatOffset, horizOffsetX, horizOffsetY, alpha, entityIndex);
+			RenderDamageDigits(dmg.damage, dmg.worldPosition, floatOffset, horizOffsetX, horizOffsetY, alpha);
 		}
 	}
 }
 
-void CHudLifeBar::RenderDamageDigits(int damage, vec3_t worldPosition, float floatOffset, float horizOffsetX, float horizOffsetY, int alpha, int &entityIndex)
+void CHudLifeBar::RenderDamageDigits(int damage, vec3_t worldPosition, float floatOffset, float horizOffsetX, float horizOffsetY, int alpha)
 {
 	char damageStr[16];
-	sprintf(damageStr, "%d", damage);  // digits only, no "-"
+	snprintf(damageStr, sizeof(damageStr), "%d", damage);  // digits only, no "-"
 	int numDigits = strlen(damageStr);
 	
 	// Use the locked world position with ballistic and horizontal arc offsets

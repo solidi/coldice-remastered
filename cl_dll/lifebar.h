@@ -49,7 +49,7 @@ public:
 private:
 	void AddDamageNumber(int playerIndex, int damage);
 	void RenderDamageNumbers();
-	void RenderDamageDigits(int damage, vec3_t worldPosition, float floatOffset, float horizOffsetX, float horizOffsetY, int alpha, int &entityIndex);
+	void RenderDamageDigits(int damage, vec3_t worldPosition, float floatOffset, float horizOffsetX, float horizOffsetY, int alpha);
 	
 	HSPRITE m_LifeBarHeadModel;
 	cl_entity_s		m_LifeBarModels[VOICE_MAX_PLAYERS+1];
