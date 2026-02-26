@@ -598,7 +598,7 @@ void CHud :: Init( void )
 	CVAR_CREATE( "cl_aws", "1", FCVAR_ARCHIVE | FCVAR_USERINFO );
 	CVAR_CREATE( "cl_minfo", "1", FCVAR_ARCHIVE | FCVAR_USERINFO );
 	CVAR_CREATE( "cl_awt", "1", FCVAR_ARCHIVE | FCVAR_USERINFO );
-	cl_lifemeter = CVAR_CREATE( "cl_lifemeters", "1", FCVAR_ARCHIVE );
+	cl_lifemeter = CVAR_CREATE( "cl_lifemeters", "2", FCVAR_ARCHIVE );
 	cl_achievements = CVAR_CREATE( "cl_achievements", "3", FCVAR_ARCHIVE );
 	cl_antivomit = CVAR_CREATE( "cl_antivomit", "0", FCVAR_ARCHIVE );
 	cl_keyboardacrobatics = CVAR_CREATE( "cl_kacro", "1", FCVAR_ARCHIVE | FCVAR_USERINFO );

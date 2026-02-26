@@ -111,9 +111,9 @@ int CHudLifeBar::MsgFunc_LifeBar(const char *pszName,  int iSize, void *pbuf )
 	if (prevHealth > health && prevHealth > 0 && health > 0)
 	{
 		int damageTaken = prevHealth - health;
-		if (cl_lifemeter)
+		if (cl_lifemeter && cl_lifemeter->value > 1)
 		{
-			if (cl_lifemeter->value == 2)
+			if (cl_lifemeter->value > 2)
 				damageTaken = health; // Show current health instead of damage taken
 			GetLifeBar()->AddDamageNumber(index, damageTaken);
 		}
@@ -386,7 +386,8 @@ void CHudLifeBar::RenderDamageDigits(int damage, vec3_t worldPosition, float flo
 	int minusY      = screenY + (scaledHeight - minusH) / 2;  // vertically centered on digits
 
 	// Draw minus sign as a filled rectangle
-	gEngfuncs.pfnFillRGBA(startX, minusY, minusW, minusH, 255, 255, 255, alpha);
+	if (cl_lifemeter && cl_lifemeter->value == 2)
+		gEngfuncs.pfnFillRGBA(startX, minusY, minusW, minusH, 255, 255, 255, alpha);
 
 	int digitStartX = startX + minusW + minusGap;
 
