@@ -111,7 +111,7 @@ int CHudLifeBar::MsgFunc_LifeBar(const char *pszName,  int iSize, void *pbuf )
 	if (prevHealth > health && prevHealth > 0 && health > 0)
 	{
 		int damageTaken = prevHealth - health;
-		if (cl_lifemeter && cl_lifemeter->value > 1)
+		//if (cl_lifemeter && cl_lifemeter->value > 1)
 		{
 			if (cl_lifemeter->value == 2)
 				damageTaken = health; // Show current health instead of damage taken
@@ -216,7 +216,7 @@ int CHudLifeBar::UpdateSprites()
 		if (MutatorEnabled(MUTATOR_MINIME))
 			pEnt->origin[2] = 18;
 		else
-			pEnt->origin[2] = 36;
+			pEnt->origin[2] = 45;
 
 		VectorAdd(pEnt->origin, pClient->origin, pEnt->origin);
 
@@ -283,7 +283,11 @@ void CHudLifeBar::RenderDamageNumbers()
 		
 		if (!pClient || pClient->curstate.effects & EF_NODRAW)
 			continue;
-		
+
+		// Don't render for the local player in first person (unless in thirdperson mode)
+		if (localPlayer == pClient && !MutatorEnabled(MUTATOR_THIRDPERSON))
+			continue;
+
 		// Don't show an icon if the player is not in our PVS.
 		if (pClient->curstate.messagenum < localPlayer->curstate.messagenum)
 			continue;
@@ -378,15 +382,15 @@ void CHudLifeBar::RenderDamageDigits(int damage, vec3_t worldPosition, float flo
 	int startX      = screenX - totalWidth / 2;
 	int minusY      = screenY + (scaledHeight - minusH) / 2;  // vertically centered on digits
 
-	// Draw minus sign as a filled rectangle (red-tinted)
-	gEngfuncs.pfnFillRGBA(startX, minusY, minusW, minusH, 255, 80, 80, alpha);
+	// Draw minus sign as a filled rectangle
+	gEngfuncs.pfnFillRGBA(startX, minusY, minusW, minusH, 255, 255, 255, alpha);
 
 	int digitStartX = startX + minusW + minusGap;
 
 	// Calculate color with alpha
 	int r = (int)(255 * (alpha / 255.0f));
-	int g = (int)(80 * (alpha / 255.0f));
-	int b = (int)(80 * (alpha / 255.0f));
+	int g = (int)(255 * (alpha / 255.0f));
+	int b = (int)(255 * (alpha / 255.0f));
 	
 	// Draw each digit using 2D sprite rendering
 	for (int i = 0; i < numDigits; i++)
