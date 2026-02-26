@@ -354,7 +354,7 @@ void CHudLifeBar::RenderDamageDigits(int damage, vec3_t worldPosition, float flo
 	int iHeight = gHUD.GetSpriteRect(gHUD.m_HUD_number_0).bottom - gHUD.GetSpriteRect(gHUD.m_HUD_number_0).top;
 	
 	// Scaling factor
-	float scale = 1.5f;
+	float scale = ScreenWidth <= 768 ? 1.0f : 1.5f;
 	int scaledWidth = (int)(iWidth * scale);
 	int scaledHeight = (int)(iHeight * scale);
 
