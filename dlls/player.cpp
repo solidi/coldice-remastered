@@ -5908,11 +5908,12 @@ void CBasePlayer::StartForceGrab( void )
 	EMIT_SOUND(ENT(pev), CHAN_VOICE, "heaven.wav", 1, ATTN_NORM);
 
 	// Put gun away
-	if (m_pActiveItem)
+	if (m_pActiveItem && !FBitSet(m_pActiveItem->iFlags(), ITEM_FLAG_SINGLE_HAND))
 	{
 		((CBasePlayerWeapon *)m_pActiveItem)->m_flNextPrimaryAttack = 
 		((CBasePlayerWeapon *)m_pActiveItem)->m_flNextSecondaryAttack = 
-		((CBasePlayerWeapon *)m_pActiveItem)->GetNextAttackDelay(100);
+		((CBasePlayerWeapon *)m_pActiveItem)->GetNextAttackDelay(25.0);
+		//arbitrary long time to prevent weapon use during grab
 
 		m_pActiveItem->Holster();
 	}
