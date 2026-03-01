@@ -7510,10 +7510,11 @@ void CBasePlayer::Taunt( void )
 			{
 				m_pActiveItem->Holster();
 				m_flNextAttack = UTIL_WeaponTimeBase() + 3.25;
-				m_fOffhandTime = gpGlobals->time + 2.0;
 				pev->viewmodel = 0; 
 				pev->weaponmodel = 0;
 			}
+
+			m_fOffhandTime = gpGlobals->time + 3.25;
 
 			int tauntIndex = RANDOM_LONG(0,4);
 			strcpy( m_szAnimExtention, "crowbar" );
@@ -7529,7 +7530,7 @@ void CBasePlayer::Taunt( void )
 		}
 		else
 		{
-			if (m_pActiveItem)
+			if (m_pActiveItem && !FBitSet(m_pActiveItem->iFlags(), ITEM_FLAG_SINGLE_HAND))
 				m_pActiveItem->DeployLowKey();
 			m_EFlags &= ~EFLAG_TAUNT;
 			m_EFlags |= EFLAG_CANCEL;

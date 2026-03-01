@@ -2719,7 +2719,9 @@ void CBasePlayerWeapon::StartPunch( BOOL holdingSomething )
 	if (m_pPlayer->m_fForceGrabTime >= gpGlobals->time)
 		return;
 
-	if (!CanAttack( m_flNextPrimaryAttack, gpGlobals->time, UseDecrement() )) {
+	BOOL canUseOffhand = FBitSet(iFlags(), ITEM_FLAG_SINGLE_HAND);
+
+	if (!canUseOffhand && !CanAttack( m_flNextPrimaryAttack, gpGlobals->time, UseDecrement() )) {
 		return;
 	}
 
@@ -2727,7 +2729,7 @@ void CBasePlayerWeapon::StartPunch( BOOL holdingSomething )
 	if ( g_pGameRules->IsPropHunt() && m_pPlayer->pev->fuser4 >= TEAM_PROPS )
 		return;
 
-	if (!FBitSet(iFlags(), ITEM_FLAG_SINGLE_HAND))
+	if (!canUseOffhand)
 	{
 		Holster();
 	}
@@ -2951,8 +2953,9 @@ void CBasePlayerWeapon::EndPunch( void )
 
 	if (!FBitSet(iFlags(), ITEM_FLAG_SINGLE_HAND))
 		DeployLowKey();
-	else
-		m_pPlayer->m_EFlags &= ~EFLAG_PUNCH;
+
+	// Always cancel
+	m_pPlayer->m_EFlags &= ~EFLAG_PUNCH;
 }
 
 void CBasePlayerWeapon::StartKick( BOOL holdingSomething )
