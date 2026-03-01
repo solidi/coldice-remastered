@@ -613,7 +613,7 @@ void CL_DLLEXPORT HUD_TempEntUpdate (
 			}
 			else if ((player->curstate.eflags & EFLAG_TAUNT))
 			{
-				LoadTempViewModel("models/v_taunt.mdl", gEngfuncs.pfnRandomLong(1,2));
+				LoadTempViewModel("models/v_taunt.mdl", 2);
 			}
 			else if ((player->curstate.eflags & EFLAG_HURRICANE))
 			{

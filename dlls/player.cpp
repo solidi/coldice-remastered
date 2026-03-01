@@ -7505,19 +7505,19 @@ void CBasePlayer::Taunt( void )
 	{
 		if (m_fTauntFullTime < gpGlobals->time)
 		{
-			if (m_pActiveItem)
+			if (m_pActiveItem && !FBitSet(m_pActiveItem->iFlags(), ITEM_FLAG_SINGLE_HAND))
 			{
 				m_pActiveItem->Holster();
 				m_flNextAttack = UTIL_WeaponTimeBase() + 3.25;
 				m_fOffhandTime = gpGlobals->time + 2.0;
+				pev->viewmodel = 0; 
+				pev->weaponmodel = 0;
 			}
 
 			int tauntIndex = RANDOM_LONG(0,4);
 			strcpy( m_szAnimExtention, "crowbar" );
 			EMIT_SOUND(ENT(pev), CHAN_VOICE, m_fTaunts[tauntIndex].sound, 1, ATTN_NORM);
 			SetAnimation( PLAYER_ATTACK1 );
-			pev->viewmodel = 0; 
-			pev->weaponmodel = 0;
 			m_EFlags &= ~EFLAG_CANCEL;
 			m_EFlags |= EFLAG_TAUNT;
 			DisplayHudMessage(m_fTaunts[tauntIndex].text,
