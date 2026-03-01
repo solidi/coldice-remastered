@@ -1745,7 +1745,7 @@ void CBasePlayer::PlayerDeathThink(void)
 	if ( HasWeapons() )
 	{
 		// If we got killed during these events, cancel them
-		m_EFlags &= ~EFLAG_PLAYERKICK & ~EFLAG_SLIDE & ~EFLAG_HURRICANE;
+		m_EFlags &= ~EFLAG_PLAYERKICK & ~EFLAG_SLIDE & ~EFLAG_HURRICANE & EFLAG_PUNCH;
 		m_EFlags &= ~EFLAG_FORCEGRAB & ~EFLAG_THROW;
 
 		// we drop the guns here because weapons that have an area effect and can kill their user

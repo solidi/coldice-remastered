@@ -627,6 +627,10 @@ void CL_DLLEXPORT HUD_TempEntUpdate (
 			{
 				LoadTempViewModel("models/v_grenade.mdl", 4);
 			}
+			else if ((player->curstate.eflags & EFLAG_PUNCH))
+			{
+				LoadTempViewModel("models/v_fists.mdl", 14);
+			}
 		}
 
 		//gEngfuncs.Con_DPrintf("player->curstate.eflags = %d\n", player->curstate.eflags);

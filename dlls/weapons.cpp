@@ -2727,14 +2727,24 @@ void CBasePlayerWeapon::StartPunch( BOOL holdingSomething )
 	if ( g_pGameRules->IsPropHunt() && m_pPlayer->pev->fuser4 >= TEAM_PROPS )
 		return;
 
-	Holster();
+	if (!FBitSet(iFlags(), ITEM_FLAG_SINGLE_HAND))
+	{
+		Holster();
+	}
+	else
+	{
+		m_pPlayer->m_EFlags &= ~EFLAG_CANCEL;
+		m_pPlayer->m_EFlags |= EFLAG_PUNCH;
+	}
+
 	m_pPlayer->m_fOffhandTime = gpGlobals->time + 0.55;
 	PunchAttack(holdingSomething);
 }
 
 void CBasePlayerWeapon::PunchAttack( BOOL holdingSomething )
 {
-	m_pPlayer->pev->viewmodel = MAKE_STRING("models/v_fists.mdl");
+	if (!FBitSet(iFlags(), ITEM_FLAG_SINGLE_HAND))
+		m_pPlayer->pev->viewmodel = MAKE_STRING("models/v_fists.mdl");
 
 	TraceResult tr;
 	UTIL_MakeVectors (m_pPlayer->pev->v_angle);
@@ -2808,12 +2818,15 @@ void CBasePlayerWeapon::PunchAttack( BOOL holdingSomething )
 	}
 #endif
 
-	switch( RANDOM_LONG(0,1) )
+	if (!FBitSet(iFlags(), ITEM_FLAG_SINGLE_HAND))
 	{
-	case 0:
-		SendWeaponAnim( LEFT_MISS ); break;
-	case 1:
-		SendWeaponAnim( RIGHT_MISS ); break;
+		switch( RANDOM_LONG(0,1) )
+		{
+		case 0:
+			SendWeaponAnim( LEFT_MISS ); break;
+		case 1:
+			SendWeaponAnim( RIGHT_MISS ); break;
+		}
 	}
 
 	// player "shoot" animation
@@ -2924,17 +2937,22 @@ void CBasePlayerWeapon::PunchAttack( BOOL holdingSomething )
 	SetThink( &CBasePlayerWeapon::EndPunch );
 	pev->nextthink = gpGlobals->time + (0.28 * g_pGameRules->WeaponMultipler());
 
-	m_flNextPrimaryAttack = m_flNextSecondaryAttack = (GetNextAttackDelay(0.3) * g_pGameRules->WeaponMultipler());
-	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + UTIL_SharedRandomFloat( m_pPlayer->random_seed, 10, 15 );
+	if (!FBitSet(iFlags(), ITEM_FLAG_SINGLE_HAND))
+	{
+		m_flNextPrimaryAttack = m_flNextSecondaryAttack = (GetNextAttackDelay(0.3) * g_pGameRules->WeaponMultipler());
+		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + UTIL_SharedRandomFloat( m_pPlayer->random_seed, 10, 15 );\
+	}
 }
 
 void CBasePlayerWeapon::EndPunch( void )
 {
-	if (m_trBootHit.flFraction < 1.0) {
+	if (m_trBootHit.flFraction < 1.0)
 		DecalGunshot( &m_trBootHit, BULLET_PLAYER_FIST );
-	}
 
-	DeployLowKey();
+	if (!FBitSet(iFlags(), ITEM_FLAG_SINGLE_HAND))
+		DeployLowKey();
+	else
+		m_pPlayer->m_EFlags &= ~EFLAG_PUNCH;
 }
 
 void CBasePlayerWeapon::StartKick( BOOL holdingSomething )
