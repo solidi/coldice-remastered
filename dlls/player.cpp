@@ -563,6 +563,23 @@ void CBasePlayer :: TraceAttack( entvars_t *pevAttacker, float flDamage, Vector 
 			return;
 		}
 
+		if (FBitSet(bitsDamageType, DMG_BLAST))
+		{
+			BOOL showHand = FALSE;
+			if (m_pActiveItem)
+			{
+				if (m_pActiveItem->iFlags() & ITEM_FLAG_SINGLE_HAND)
+					showHand = TRUE;
+			}
+
+			if (showHand)
+			{
+				m_EFlags &= ~EFLAG_CANCEL;
+				m_EFlags |= EFLAG_FORCEGRAB;
+				m_flProtectionHand = gpGlobals->time + 1.0;
+			}
+		}
+
 		SpawnBlood(ptr->vecEndPos, BloodColor(), flDamage);// a little surface blood.
 		TraceBleed( flDamage, vecDir, ptr, bitsDamageType );
 		AddMultiDamage( pevAttacker, this, flDamage, bitsDamageType );
@@ -2917,6 +2934,12 @@ void CBasePlayer::PreThink(void)
 	{
 		pev->velocity = m_vecHitVelocity;
 		m_vecHitVelocity = g_vecZero;
+	}
+
+	if (m_flProtectionHand && m_flProtectionHand < gpGlobals->time)
+	{
+		m_flProtectionHand = 0;
+		m_EFlags &= ~EFLAG_FORCEGRAB;
 	}
 
 	if (m_fTauntFullTime && m_fTauntFullTime <= gpGlobals->time)

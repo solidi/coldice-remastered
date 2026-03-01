@@ -308,6 +308,7 @@ public:
 	void EndForceGrab( void );
 	float m_fForceGrabTime;
 	EHANDLE m_Banana;
+	float m_flProtectionHand;
 
 	virtual void Spawn( void );
 	void Pain( void );
