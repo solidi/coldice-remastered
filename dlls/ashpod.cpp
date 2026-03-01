@@ -91,7 +91,7 @@ int CAshpod::GetItemInfo(ItemInfo *p)
 	p->iMaxClip = WEAPON_NOCLIP;
 	p->iSlot = 5;
 	p->iPosition = 6;
-	p->iFlags = 0;
+	p->iFlags = ITEM_FLAG_SINGLE_HAND;
 	p->iId = m_iId = WEAPON_ASHPOD;
 	p->iWeight = ASHPOD_WEIGHT;
 	p->pszDisplayName = " Aperture Science Handheld Portal Device";

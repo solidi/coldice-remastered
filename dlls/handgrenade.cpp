@@ -76,7 +76,7 @@ int CHandGrenade::GetItemInfo(ItemInfo *p)
 	p->iPosition = 1;
 	p->iId = m_iId = WEAPON_HANDGRENADE;
 	p->iWeight = HANDGRENADE_WEIGHT;
-	p->iFlags = ITEM_FLAG_LIMITINWORLD | ITEM_FLAG_EXHAUSTIBLE;
+	p->iFlags = ITEM_FLAG_LIMITINWORLD | ITEM_FLAG_EXHAUSTIBLE | ITEM_FLAG_SINGLE_HAND;
 	p->pszDisplayName = "6-Pack Cluster Grenades";
 
 	return 1;

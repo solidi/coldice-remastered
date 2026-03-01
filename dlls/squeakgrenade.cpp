@@ -468,7 +468,7 @@ int CSqueak::GetItemInfo(ItemInfo *p)
 	p->iPosition = 4;
 	p->iId = m_iId = WEAPON_SNARK;
 	p->iWeight = SNARK_WEIGHT;
-	p->iFlags = ITEM_FLAG_LIMITINWORLD | ITEM_FLAG_EXHAUSTIBLE;
+	p->iFlags = ITEM_FLAG_LIMITINWORLD | ITEM_FLAG_EXHAUSTIBLE | ITEM_FLAG_SINGLE_HAND;
 	p->pszDisplayName = "Squeak Grenade";
 
 	return 1;
