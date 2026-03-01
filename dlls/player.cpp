@@ -1745,8 +1745,8 @@ void CBasePlayer::PlayerDeathThink(void)
 	if ( HasWeapons() )
 	{
 		// If we got killed during these events, cancel them
-		m_EFlags &= ~EFLAG_PLAYERKICK & ~EFLAG_SLIDE & ~EFLAG_HURRICANE & EFLAG_PUNCH;
-		m_EFlags &= ~EFLAG_FORCEGRAB & ~EFLAG_THROW;
+		m_EFlags &= ~EFLAG_PLAYERKICK & ~EFLAG_SLIDE & ~EFLAG_HURRICANE & ~EFLAG_PUNCH;
+		m_EFlags &= ~EFLAG_FORCEGRAB & ~EFLAG_THROW & ~EFLAG_GRENADE;
 
 		// we drop the guns here because weapons that have an area effect and can kill their user
 		// will sometimes crash coming back from CBasePlayer::Killed() if they kill their owner because the
@@ -3008,9 +3008,10 @@ void CBasePlayer::PreThink(void)
 		}
 	}
 
-	if (m_fOffhandTime && m_fOffhandTime < gpGlobals->time && FBitSet(m_EFlags, EFLAG_THROW))
+	if (m_fOffhandTime && m_fOffhandTime < gpGlobals->time &&
+		(FBitSet(m_EFlags, EFLAG_THROW) || FBitSet(m_EFlags, EFLAG_GRENADE)))
 	{
-		m_EFlags &= ~EFLAG_THROW;
+		m_EFlags &= ~EFLAG_THROW & ~EFLAG_GRENADE;
 		m_fOffhandTime = 0;
 	}
 

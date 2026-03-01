@@ -129,6 +129,7 @@
 #define EFLAG_FORCEGRAB (1 << 9)
 #define EFLAG_THROW (1 << 10)
 #define EFLAG_PUNCH (1 << 11)
+#define EFLAG_GRENADE (1 << 12)
 
 //
 // temp entity events

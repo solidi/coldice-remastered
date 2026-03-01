@@ -607,6 +607,17 @@ void CStudioModelRenderer::StudioSetUpTransform (int trivial_accept)
 		}
 	}
 
+	if (m_pCurrentEntity == &gHUD.m_ExtraViewModel)
+	{
+		cl_entity_t *localPlayer = gEngfuncs.GetLocalPlayer();
+		if (localPlayer && (localPlayer->curstate.eflags & EFLAG_GRENADE))
+		{
+			(*m_protationmatrix)[0][1] *= -1;
+			(*m_protationmatrix)[1][1] *= -1;
+			(*m_protationmatrix)[2][1] *= -1;
+		}
+	}
+
 	(*m_protationmatrix)[0][3] = modelpos[0];
 	(*m_protationmatrix)[1][3] = modelpos[1];
 	(*m_protationmatrix)[2][3] = modelpos[2];

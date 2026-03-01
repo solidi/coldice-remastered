@@ -2608,6 +2608,13 @@ void CBasePlayerWeapon::ThrowGrenade(BOOL m_iCheckAmmo)
 		m_pPlayer->m_rgAmmo[index]--;
 	}
 
+	if (m_pPlayer->m_pActiveItem && FBitSet(m_pPlayer->m_pActiveItem->iFlags(), ITEM_FLAG_SINGLE_HAND))
+	{
+		m_pPlayer->m_EFlags &= ~EFLAG_CANCEL;
+		m_pPlayer->m_EFlags |= EFLAG_GRENADE;
+		m_pPlayer->m_fOffhandTime = gpGlobals->time + 0.55;
+	}
+
 	m_pPlayer->SetAnimation( PLAYER_PUNCH );
 	m_pPlayer->m_fGrenadeTime = gpGlobals->time + (0.75 * g_pGameRules->WeaponMultipler());
 

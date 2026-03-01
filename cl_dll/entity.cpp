@@ -625,7 +625,11 @@ void CL_DLLEXPORT HUD_TempEntUpdate (
 			}
 			else if ((player->curstate.eflags & EFLAG_THROW))
 			{
-				LoadTempViewModel("models/v_grenade.mdl", 4);
+				LoadTempViewModel("models/v_grenade.mdl", 3);
+			}
+			else if ((player->curstate.eflags & EFLAG_GRENADE))
+			{
+				LoadTempViewModel("models/v_grenade.mdl", 3);
 			}
 			else if ((player->curstate.eflags & EFLAG_PUNCH))
 			{
