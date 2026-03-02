@@ -572,7 +572,9 @@ void CBasePlayer :: TraceAttack( entvars_t *pevAttacker, float flDamage, Vector 
 					showHand = TRUE;
 			}
 
-			if (showHand)
+			if (showHand && 
+				m_fOffhandTime < gpGlobals->time && 
+				m_fForceGrabTime < gpGlobals->time)
 			{
 				m_EFlags &= ~EFLAG_CANCEL;
 				m_EFlags |= EFLAG_PROTECT;
@@ -2939,7 +2941,6 @@ void CBasePlayer::PreThink(void)
 	if (m_flProtectionHand && m_flProtectionHand < gpGlobals->time)
 	{
 		m_flProtectionHand = 0;
-		m_EFlags &= ~EFLAG_FORCEGRAB;
 		m_EFlags &= ~EFLAG_PROTECT;
 	}
 
@@ -4102,6 +4103,9 @@ void CBasePlayer::Spawn( void )
 	m_fSelacoZ = VEC_VIEW.z;
 	m_fSelacoCount = 0;
 	m_flNextWallClimb = 0;
+	m_fOffhandTime = 0;
+	m_fForceGrabTime = 0;
+	m_flProtectionHand = 0;
 	if (spawnprotectiontime.value > 0)
 		m_fLastSpawnTime = gpGlobals->time + spawnprotectiontime.value;
 	else

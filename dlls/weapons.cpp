@@ -2949,7 +2949,7 @@ void CBasePlayerWeapon::PunchAttack( BOOL holdingSomething )
 	if (!FBitSet(iFlags(), ITEM_FLAG_SINGLE_HAND))
 	{
 		m_flNextPrimaryAttack = m_flNextSecondaryAttack = (GetNextAttackDelay(0.3) * g_pGameRules->WeaponMultipler());
-		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + UTIL_SharedRandomFloat( m_pPlayer->random_seed, 10, 15 );\
+		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + UTIL_SharedRandomFloat( m_pPlayer->random_seed, 10, 15 );
 	}
 }
 
