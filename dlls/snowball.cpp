@@ -74,7 +74,7 @@ int CSnowball::GetItemInfo(ItemInfo *p)
 	p->iPosition = 0;
 	p->iId = m_iId = WEAPON_SNOWBALL;
 	p->iWeight = SNOWBALL_WEIGHT;
-	p->iFlags = ITEM_FLAG_LIMITINWORLD | ITEM_FLAG_EXHAUSTIBLE;
+	p->iFlags = ITEM_FLAG_LIMITINWORLD | ITEM_FLAG_EXHAUSTIBLE | ITEM_FLAG_SINGLE_HAND;
 	p->pszDisplayName = "Snowball";
 
 	return 1;

@@ -246,6 +246,7 @@ int CRocketCrowbar::GetItemInfo(ItemInfo *p)
 	p->iId = WEAPON_ROCKETCROWBAR;
 	p->iWeight = ROCKETCROWBAR_WEIGHT;
 	p->pszDisplayName = "Rocket Crowbar";
+	p->iFlags = ITEM_FLAG_SINGLE_HAND;
 	return 1;
 }
 

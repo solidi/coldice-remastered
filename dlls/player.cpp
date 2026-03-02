@@ -563,6 +563,23 @@ void CBasePlayer :: TraceAttack( entvars_t *pevAttacker, float flDamage, Vector 
 			return;
 		}
 
+		if (FBitSet(bitsDamageType, DMG_BLAST))
+		{
+			BOOL showHand = FALSE;
+			if (m_pActiveItem)
+			{
+				if (m_pActiveItem->iFlags() & ITEM_FLAG_SINGLE_HAND)
+					showHand = TRUE;
+			}
+
+			if (showHand)
+			{
+				m_EFlags &= ~EFLAG_CANCEL;
+				m_EFlags |= EFLAG_PROTECT;
+				m_flProtectionHand = gpGlobals->time + 1.0;
+			}
+		}
+
 		SpawnBlood(ptr->vecEndPos, BloodColor(), flDamage);// a little surface blood.
 		TraceBleed( flDamage, vecDir, ptr, bitsDamageType );
 		AddMultiDamage( pevAttacker, this, flDamage, bitsDamageType );
@@ -1728,8 +1745,8 @@ void CBasePlayer::PlayerDeathThink(void)
 	if ( HasWeapons() )
 	{
 		// If we got killed during these events, cancel them
-		m_EFlags &= ~EFLAG_PLAYERKICK & ~EFLAG_SLIDE & ~EFLAG_HURRICANE;
-		m_EFlags &= ~EFLAG_FORCEGRAB & ~EFLAG_THROW;
+		m_EFlags &= ~EFLAG_PLAYERKICK & ~EFLAG_SLIDE & ~EFLAG_HURRICANE & ~EFLAG_PUNCH;
+		m_EFlags &= ~EFLAG_FORCEGRAB & ~EFLAG_PROTECT & ~EFLAG_THROW & ~EFLAG_GRENADE;
 
 		// we drop the guns here because weapons that have an area effect and can kill their user
 		// will sometimes crash coming back from CBasePlayer::Killed() if they kill their owner because the
@@ -2919,6 +2936,13 @@ void CBasePlayer::PreThink(void)
 		m_vecHitVelocity = g_vecZero;
 	}
 
+	if (m_flProtectionHand && m_flProtectionHand < gpGlobals->time)
+	{
+		m_flProtectionHand = 0;
+		m_EFlags &= ~EFLAG_FORCEGRAB;
+		m_EFlags &= ~EFLAG_PROTECT;
+	}
+
 	if (m_fTauntFullTime && m_fTauntFullTime <= gpGlobals->time)
 	{
 		m_EFlags &= ~EFLAG_TAUNT;
@@ -2985,9 +3009,10 @@ void CBasePlayer::PreThink(void)
 		}
 	}
 
-	if (m_fOffhandTime && m_fOffhandTime < gpGlobals->time && FBitSet(m_EFlags, EFLAG_THROW))
+	if (m_fOffhandTime && m_fOffhandTime < gpGlobals->time &&
+		(FBitSet(m_EFlags, EFLAG_THROW) || FBitSet(m_EFlags, EFLAG_GRENADE)))
 	{
-		m_EFlags &= ~EFLAG_THROW;
+		m_EFlags &= ~EFLAG_THROW & ~EFLAG_GRENADE;
 		m_fOffhandTime = 0;
 	}
 
@@ -5885,11 +5910,12 @@ void CBasePlayer::StartForceGrab( void )
 	EMIT_SOUND(ENT(pev), CHAN_VOICE, "heaven.wav", 1, ATTN_NORM);
 
 	// Put gun away
-	if (m_pActiveItem)
+	if (m_pActiveItem && !FBitSet(m_pActiveItem->iFlags(), ITEM_FLAG_SINGLE_HAND))
 	{
 		((CBasePlayerWeapon *)m_pActiveItem)->m_flNextPrimaryAttack = 
 		((CBasePlayerWeapon *)m_pActiveItem)->m_flNextSecondaryAttack = 
-		((CBasePlayerWeapon *)m_pActiveItem)->GetNextAttackDelay(100);
+		((CBasePlayerWeapon *)m_pActiveItem)->GetNextAttackDelay(25.0);
+		//arbitrary long time to prevent weapon use during grab
 
 		m_pActiveItem->Holster();
 	}
@@ -5991,7 +6017,7 @@ void CBasePlayer::TryGrabAgain( void )
 
 void CBasePlayer::EndForceGrab( void )
 {
-	if (m_pActiveItem)
+	if (m_pActiveItem && !FBitSet(m_pActiveItem->iFlags(), ITEM_FLAG_SINGLE_HAND))
 	{
 		((CBasePlayerWeapon *)m_pActiveItem)->m_flNextPrimaryAttack = 
 		((CBasePlayerWeapon *)m_pActiveItem)->m_flNextSecondaryAttack = 
@@ -7482,19 +7508,20 @@ void CBasePlayer::Taunt( void )
 	{
 		if (m_fTauntFullTime < gpGlobals->time)
 		{
-			if (m_pActiveItem)
+			if (m_pActiveItem && !FBitSet(m_pActiveItem->iFlags(), ITEM_FLAG_SINGLE_HAND))
 			{
 				m_pActiveItem->Holster();
 				m_flNextAttack = UTIL_WeaponTimeBase() + 3.25;
-				m_fOffhandTime = gpGlobals->time + 2.0;
+				pev->viewmodel = 0; 
+				pev->weaponmodel = 0;
 			}
+
+			m_fOffhandTime = gpGlobals->time + 3.25;
 
 			int tauntIndex = RANDOM_LONG(0,4);
 			strcpy( m_szAnimExtention, "crowbar" );
 			EMIT_SOUND(ENT(pev), CHAN_VOICE, m_fTaunts[tauntIndex].sound, 1, ATTN_NORM);
 			SetAnimation( PLAYER_ATTACK1 );
-			pev->viewmodel = 0; 
-			pev->weaponmodel = 0;
 			m_EFlags &= ~EFLAG_CANCEL;
 			m_EFlags |= EFLAG_TAUNT;
 			DisplayHudMessage(m_fTaunts[tauntIndex].text,
@@ -7505,7 +7532,7 @@ void CBasePlayer::Taunt( void )
 		}
 		else
 		{
-			if (m_pActiveItem)
+			if (m_pActiveItem && !FBitSet(m_pActiveItem->iFlags(), ITEM_FLAG_SINGLE_HAND))
 				m_pActiveItem->DeployLowKey();
 			m_EFlags &= ~EFLAG_TAUNT;
 			m_EFlags |= EFLAG_CANCEL;

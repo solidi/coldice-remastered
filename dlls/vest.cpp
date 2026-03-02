@@ -74,7 +74,7 @@ int CVest::GetItemInfo(ItemInfo *p)
 	p->iMaxClip = WEAPON_NOCLIP;
 	p->iSlot = 4;
 	p->iPosition = 6;
-	p->iFlags = 0;
+	p->iFlags = ITEM_FLAG_SINGLE_HAND;
 	p->iId = m_iId = WEAPON_VEST;
 	p->iWeight = VEST_WEIGHT;
 	p->pszDisplayName = "Leeroy Jenkins Dynamite Vest";

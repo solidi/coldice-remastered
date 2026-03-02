@@ -98,7 +98,7 @@ int CRailgun::GetItemInfo(ItemInfo *p)
 	p->iSlot = 3;
 	p->iPosition = 4;
 	p->iId = m_iId = WEAPON_RAILGUN;
-	p->iFlags = 0;
+	p->iFlags = ITEM_FLAG_SINGLE_HAND;
 	p->iWeight = RAILGUN_WEIGHT;
 	p->pszDisplayName = "Quake II Railgun";
 

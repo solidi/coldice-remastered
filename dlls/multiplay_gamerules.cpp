@@ -2059,7 +2059,9 @@ void CHalfLifeMultiplay :: PlayerKilled( CBasePlayer *pVictim, entvars_t *pKille
 			pKiller->frags += IPointsForKill( peKiller, pVictim );
 
 		if (!UTIL_GetAlivePlayersInSphere(peKiller, 1024) &&
-			peKiller->m_iAutoTaunt)
+			peKiller->m_iAutoTaunt &&
+			peKiller->m_pActiveItem &&
+			FBitSet(peKiller->m_pActiveItem->iFlags(), ITEM_FLAG_SINGLE_HAND))
 			peKiller->m_fTauntTime = gpGlobals->time + 0.75;
 
 		if (!m_iFirstBloodDecided && PlayerRelationship( pVictim, peKiller ) != GR_TEAMMATE)
