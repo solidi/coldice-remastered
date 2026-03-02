@@ -6017,7 +6017,7 @@ void CBasePlayer::TryGrabAgain( void )
 
 void CBasePlayer::EndForceGrab( void )
 {
-	if (m_pActiveItem)
+	if (m_pActiveItem && !FBitSet(m_pActiveItem->iFlags(), ITEM_FLAG_SINGLE_HAND))
 	{
 		((CBasePlayerWeapon *)m_pActiveItem)->m_flNextPrimaryAttack = 
 		((CBasePlayerWeapon *)m_pActiveItem)->m_flNextSecondaryAttack = 
