@@ -635,6 +635,10 @@ void CL_DLLEXPORT HUD_TempEntUpdate (
 			{
 				LoadTempViewModel("models/v_fists.mdl", 14);
 			}
+			else if ((player->curstate.eflags & EFLAG_PROTECT))
+			{
+				LoadTempViewModel("models/v_forcegrab.mdl", 2);
+			}
 		}
 
 		//gEngfuncs.Con_DPrintf("player->curstate.eflags = %d\n", player->curstate.eflags);
@@ -655,6 +659,9 @@ void CL_DLLEXPORT HUD_TempEntUpdate (
 		gHUD.m_flExtraViewModelTime = gEngfuncs.GetClientTime() + 0.05;
 
 	if (player && ((player->curstate.eflags & EFLAG_FORCEGRAB)))
+		gHUD.m_flExtraViewModelTime = gEngfuncs.GetClientTime() + 0.05;
+
+	if (player && ((player->curstate.eflags & EFLAG_PROTECT)))
 		gHUD.m_flExtraViewModelTime = gEngfuncs.GetClientTime() + 0.05;
 
 	//static bool extra = false;

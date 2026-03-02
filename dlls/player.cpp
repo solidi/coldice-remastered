@@ -575,7 +575,7 @@ void CBasePlayer :: TraceAttack( entvars_t *pevAttacker, float flDamage, Vector 
 			if (showHand)
 			{
 				m_EFlags &= ~EFLAG_CANCEL;
-				m_EFlags |= EFLAG_FORCEGRAB;
+				m_EFlags |= EFLAG_PROTECT;
 				m_flProtectionHand = gpGlobals->time + 1.0;
 			}
 		}
@@ -1746,7 +1746,7 @@ void CBasePlayer::PlayerDeathThink(void)
 	{
 		// If we got killed during these events, cancel them
 		m_EFlags &= ~EFLAG_PLAYERKICK & ~EFLAG_SLIDE & ~EFLAG_HURRICANE & ~EFLAG_PUNCH;
-		m_EFlags &= ~EFLAG_FORCEGRAB & ~EFLAG_THROW & ~EFLAG_GRENADE;
+		m_EFlags &= ~EFLAG_FORCEGRAB & ~EFLAG_PROTECT & ~EFLAG_THROW & ~EFLAG_GRENADE;
 
 		// we drop the guns here because weapons that have an area effect and can kill their user
 		// will sometimes crash coming back from CBasePlayer::Killed() if they kill their owner because the
@@ -2940,6 +2940,7 @@ void CBasePlayer::PreThink(void)
 	{
 		m_flProtectionHand = 0;
 		m_EFlags &= ~EFLAG_FORCEGRAB;
+		m_EFlags &= ~EFLAG_PROTECT;
 	}
 
 	if (m_fTauntFullTime && m_fTauntFullTime <= gpGlobals->time)
