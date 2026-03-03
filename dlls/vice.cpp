@@ -74,7 +74,7 @@ int CVice::GetItemInfo(ItemInfo *p)
 	p->iSlot = 6;
 	p->iPosition = 5;
 	p->iId = WEAPON_VICE;
-	p->iFlags = ITEM_FLAG_NODROP;
+	p->iFlags = ITEM_FLAG_NODROP | ITEM_FLAG_SINGLE_HAND;
 	p->iWeight = VICE_WEIGHT;
 	p->pszDisplayName = "Vice";
 	return 1;

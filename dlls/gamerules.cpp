@@ -1738,18 +1738,21 @@ void CGameRules::MutatorsThink(void)
 					pl->MakeVisible();
 				}
 
-				if (MutatorEnabled(MUTATOR_999)) {
-					pl->pev->max_health = 999;
-					pl->pev->health = 999;
-					pl->pev->armorvalue = 999;
-				}
-				else
+				if (pl->IsAlive())
 				{
-					pl->pev->max_health = 100;
-					if (pl->pev->health > 100)
-						pl->pev->health = 100;
-					if (pl->pev->armorvalue > 100)
-						pl->pev->armorvalue = 100;
+					if (MutatorEnabled(MUTATOR_999)) {
+						pl->pev->max_health = 999;
+						pl->pev->health = 999;
+						pl->pev->armorvalue = 999;
+					}
+					else
+					{
+						pl->pev->max_health = 100;
+						if (pl->pev->health > 100)
+							pl->pev->health = 100;
+						if (pl->pev->armorvalue > 100)
+							pl->pev->armorvalue = 100;
+					}
 				}
 
 				if (MutatorEnabled(MUTATOR_JEEPATHON)) {

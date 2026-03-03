@@ -51,6 +51,7 @@ int CFingerGun::GetItemInfo(ItemInfo *p)
 	p->iId = m_iId = WEAPON_FINGERGUN;
 	p->iWeight = FINGERGUN_WEIGHT;
 	p->pszDisplayName = "Fingergun";
+	p->iFlags = ITEM_FLAG_SINGLE_HAND;
 
 	return 1;
 }

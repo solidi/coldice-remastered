@@ -78,7 +78,7 @@ int CChaingun::GetItemInfo(ItemInfo *p)
 	p->iMaxClip = CHAINGUN_MAX_CLIP;
 	p->iSlot = 2;
 	p->iPosition = 6;
-	p->iFlags = 0;
+	p->iFlags = ITEM_FLAG_SINGLE_HAND;
 	p->iId = m_iId = WEAPON_CHAINGUN;
 	p->iWeight = CHAINGUN_WEIGHT;
 	p->pszDisplayName = "25-Inch Chaingun";

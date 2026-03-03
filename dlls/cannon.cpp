@@ -302,7 +302,7 @@ int CCannon::GetItemInfo(ItemInfo *p)
 	p->iSlot = 3;
 	p->iPosition = 6;
 	p->iId = m_iId = WEAPON_CANNON;
-	p->iFlags = 0;
+	p->iFlags = ITEM_FLAG_SINGLE_HAND;
 	p->iWeight = CANNON_WEIGHT;
 	p->pszDisplayName = "30-Pound Automatic Assault Cannon";
 

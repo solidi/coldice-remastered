@@ -94,6 +94,7 @@ int CWrench::GetItemInfo(ItemInfo *p)
 	p->iId = WEAPON_WRENCH;
 	p->iWeight = WRENCH_WEIGHT;
 	p->pszDisplayName = "40 Pound Monkey Wrench";
+	p->iFlags = ITEM_FLAG_SINGLE_HAND;
 	return 1;
 }
 

@@ -613,7 +613,7 @@ void CL_DLLEXPORT HUD_TempEntUpdate (
 			}
 			else if ((player->curstate.eflags & EFLAG_TAUNT))
 			{
-				LoadTempViewModel("models/v_taunt.mdl", gEngfuncs.pfnRandomLong(1,2));
+				LoadTempViewModel("models/v_taunt.mdl", 2);
 			}
 			else if ((player->curstate.eflags & EFLAG_HURRICANE))
 			{
@@ -625,7 +625,19 @@ void CL_DLLEXPORT HUD_TempEntUpdate (
 			}
 			else if ((player->curstate.eflags & EFLAG_THROW))
 			{
-				LoadTempViewModel("models/v_grenade.mdl", 4);
+				LoadTempViewModel("models/v_grenade.mdl", 3);
+			}
+			else if ((player->curstate.eflags & EFLAG_GRENADE))
+			{
+				LoadTempViewModel("models/v_grenade.mdl", 3);
+			}
+			else if ((player->curstate.eflags & EFLAG_PUNCH))
+			{
+				LoadTempViewModel("models/v_fists.mdl", 14);
+			}
+			else if ((player->curstate.eflags & EFLAG_PROTECT))
+			{
+				LoadTempViewModel("models/v_forcegrab.mdl", 2);
 			}
 		}
 
@@ -647,6 +659,9 @@ void CL_DLLEXPORT HUD_TempEntUpdate (
 		gHUD.m_flExtraViewModelTime = gEngfuncs.GetClientTime() + 0.05;
 
 	if (player && ((player->curstate.eflags & EFLAG_FORCEGRAB)))
+		gHUD.m_flExtraViewModelTime = gEngfuncs.GetClientTime() + 0.05;
+
+	if (player && ((player->curstate.eflags & EFLAG_PROTECT)))
 		gHUD.m_flExtraViewModelTime = gEngfuncs.GetClientTime() + 0.05;
 
 	//static bool extra = false;
