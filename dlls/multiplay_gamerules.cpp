@@ -1276,7 +1276,8 @@ BOOL CHalfLifeMultiplay::AllowMeleeDrop( void )
 
 float CHalfLifeMultiplay::WeaponMultipler( void )
 {
-	if (g_pGameRules->MutatorEnabled(MUTATOR_FASTWEAPONS))
+	if (g_pGameRules->MutatorEnabled(MUTATOR_FASTWEAPONS) ||
+		g_pGameRules->MutatorEnabled(MUTATOR_SILDENAFIL))
 		return 0.33;
 
 	if (g_pGameRules->MutatorEnabled(MUTATOR_SLOWWEAPONS))
