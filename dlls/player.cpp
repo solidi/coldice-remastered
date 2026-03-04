@@ -6669,9 +6669,11 @@ void CBasePlayer :: UpdateClientData( void )
 		}
 		else
 		{
+			// No portals active — send all-zero vectors so the client clears its portal state.
+			// Must match the 12 READ_COORD() calls in __MsgFunc_Portal on the client.
 			MESSAGE_BEGIN(MSG_ONE, gmsgPortal, NULL, pev);
-			WRITE_BYTE(0); // first portal;
-			WRITE_BYTE(0); // second portal;
+			for (int i = 0; i < 12; i++)
+				WRITE_COORD(0);
 			MESSAGE_END();
 		}
 	}
