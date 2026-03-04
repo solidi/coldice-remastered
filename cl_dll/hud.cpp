@@ -521,6 +521,7 @@ void CHud :: Init( void )
 	HOOK_MESSAGE( ViewMode );
 	HOOK_MESSAGE( SetFOV );
 	HOOK_MESSAGE( Concuss );
+	HOOK_MESSAGE( Portal );
 
 	// TFFree CommandMenu
 	HOOK_COMMAND( "+commandmenu", OpenCommandMenu );
@@ -698,9 +699,6 @@ void CHud :: Init( void )
 	InitRain();
 #ifdef _WIN32
 	g_ImGUIManager.Init();
-#endif
-#ifndef __APPLE__
-	gPortalRenderer.Init();
 #endif
 	m_Particle.Init();
 

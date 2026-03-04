@@ -203,6 +203,7 @@ int CL_DLLEXPORT HUD_VidInit( void )
 
 #ifndef __APPLE__
 	gColorCor.InitScreen();
+	gPortalRenderer.Init();
 #endif
 
 	VGui_Startup();
