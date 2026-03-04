@@ -551,12 +551,19 @@ void CHalfLifePropHunt::Think( void )
 		}
 		else if (m_fUnFreezeHunters > 0)
 		{
+			CBaseEntity *musicEnt = UTIL_FindEntityByClassname(NULL, "trigger_mp3audio");
 			for ( int i = 1; i <= gpGlobals->maxClients; i++ )
 			{
 				CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
 
-				if ( plr && plr->IsPlayer() && !plr->HasDisconnected && plr->pev->fuser4 == 0 )
-					plr->EnableControl(TRUE);
+				if ( plr && plr->IsPlayer() && !plr->HasDisconnected )
+				{
+					if ( plr->pev->fuser4 == 0 )
+						plr->EnableControl(TRUE);
+
+					if ( musicEnt && musicEnt->edict() )
+						musicEnt->Use(plr, plr, USE_ON, plr->m_iPlayMusic);
+				}
 			}
 
 			UTIL_ClientPrintAll(HUD_PRINTCENTER, "Hunters are free!");
@@ -668,6 +675,8 @@ void CHalfLifePropHunt::Think( void )
 					m_iHuntersStarted++;
 					plr->EnableControl(FALSE);
 				}
+				if (plr->m_iPlayMusic)
+					CLIENT_COMMAND(plr->edict(), "mp3 loop media/pause-beat.mp3\n");
 			}
 		}
 

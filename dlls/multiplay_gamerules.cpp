@@ -1783,11 +1783,10 @@ void CHalfLifeMultiplay :: PlayerThink( CBasePlayer *pPlayer )
 		ClientPrint(pPlayer->pev, HUD_PRINTTALK, "[System] Welcome to Cold Ice Remastered v1. For commands, type \"help\" in the console.\n");
 #endif
 
-		// Play music
 		CBaseEntity *pT = UTIL_FindEntityByClassname( NULL, "trigger_mp3audio");
-		if ( pT && pT->edict() && pPlayer->m_iPlayMusic )
+		if ( pT && pT->edict() )
 		{
-			pT->Use(pPlayer, pPlayer, USE_ON, 0);
+			pT->Use(pPlayer, pPlayer, USE_ON, pPlayer->m_iPlayMusic);
 		}
 
 		// Always play, never spectate
