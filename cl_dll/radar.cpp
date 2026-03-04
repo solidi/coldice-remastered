@@ -670,7 +670,7 @@ int CHudRadar::Draw(float flTime)
 		{
 			if (m_RadarInfo[index].special != RADAR_TEAM_BLUE)
 				size *= 2;
-			fr = 0; fg = 0; fb = 240;
+			fr = 0; fg = 160; fb = 240;
 		}
 
 		if (m_RadarInfo[index].special == RADAR_COLD_SPOT ||
