@@ -5876,6 +5876,9 @@ void CBasePlayer::StartForceGrab( void )
 	if (m_fOffhandTime >= gpGlobals->time)
 		return;
 
+	if (g_pGameRules->MutatorEnabled(MUTATOR_RICOCHET))
+		return;
+
 	if ( g_pGameRules->IsInstagib() )
 	{
 		ClientPrint(pev, HUD_PRINTCENTER, "Forcegrab disabled in this gamemode.");
@@ -7510,9 +7513,11 @@ void CBasePlayer::Taunt( void )
 	if (IsAlive() && pev->deadflag == DEAD_NO && m_fSelacoSliding != TRUE &&
 		m_fTauntCancelTime < gpGlobals->time)
 	{
+		BOOL checkWeapon = (!FBitSet(m_pActiveItem->iFlags(), ITEM_FLAG_SINGLE_HAND) &&
+							!g_pGameRules->MutatorEnabled(MUTATOR_RICOCHET));
 		if (m_fTauntFullTime < gpGlobals->time)
 		{
-			if (m_pActiveItem && !FBitSet(m_pActiveItem->iFlags(), ITEM_FLAG_SINGLE_HAND))
+			if (m_pActiveItem && checkWeapon)
 			{
 				m_pActiveItem->Holster();
 				m_flNextAttack = UTIL_WeaponTimeBase() + 3.25;
@@ -7536,7 +7541,7 @@ void CBasePlayer::Taunt( void )
 		}
 		else
 		{
-			if (m_pActiveItem && !FBitSet(m_pActiveItem->iFlags(), ITEM_FLAG_SINGLE_HAND))
+			if (m_pActiveItem && checkWeapon)
 				m_pActiveItem->DeployLowKey();
 			m_EFlags &= ~EFLAG_TAUNT;
 			m_EFlags |= EFLAG_CANCEL;

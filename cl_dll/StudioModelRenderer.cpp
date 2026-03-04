@@ -1310,6 +1310,9 @@ int CStudioModelRenderer::StudioDrawModel( int flags )
 	IEngineStudio.GetViewInfo( m_vRenderOrigin, m_vUp, m_vRight, m_vNormal );
 	IEngineStudio.GetAliasScale( &m_fSoftwareXScale, &m_fSoftwareYScale );
 
+	if (MutatorEnabled(MUTATOR_RICOCHET) && m_pCurrentEntity == gEngfuncs.GetViewModel())
+		return 0;
+
 	if (cl_icemodels && gHUD.m_IceModelsIndex != SKIN_MUTATOR && gHUD.m_IceModelsIndex != cl_icemodels->value)
 	{
 		gHUD.m_IceModelsIndex = cl_icemodels->value;
