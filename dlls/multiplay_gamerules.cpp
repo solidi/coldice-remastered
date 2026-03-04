@@ -2803,7 +2803,10 @@ BOOL CHalfLifeMultiplay::IsAllowedToSpawn( CBaseEntity *pEntity )
 
 		if (strncmp(STRING(pEntity->pev->classname), "weapon_snowball", 15) != 0)
 		{
-			CBaseEntity::Create("weapon_snowball", pEntity->pev->origin, pEntity->pev->angles, pEntity->pev->owner);
+			if (RANDOM_LONG(0, 8) == 0)
+				CBaseEntity::Create("rune_ammo", pEntity->pev->origin, pEntity->pev->angles, pEntity->pev->owner);
+			else
+				CBaseEntity::Create("weapon_snowball", pEntity->pev->origin, pEntity->pev->angles, pEntity->pev->owner);
 			return FALSE;
 		}
 	}

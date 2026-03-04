@@ -945,7 +945,10 @@ CBaseEntity* CBasePlayerItem::Respawn( void )
 		}
 	} else if (g_pGameRules->IsSnowballFight()) {
 		if (strncmp(STRING(pev->classname), "weapon_snowball", 15) != 0) {
-			pNewWeapon = CBaseEntity::Create("weapon_snowball", g_pGameRules->VecWeaponRespawnSpot(this), pev->angles, pev->owner);
+			if (RANDOM_LONG(0, 8) == 0)
+				pNewWeapon = CBaseEntity::Create("rune_ammo", g_pGameRules->VecWeaponRespawnSpot(this), pev->angles, pev->owner);
+			else
+				pNewWeapon = CBaseEntity::Create("weapon_snowball", g_pGameRules->VecWeaponRespawnSpot(this), pev->angles, pev->owner);
 		}
 	} else {
 		for (int group = 0; (group < ARRAYSIZE(weaponsList) - 1) && pNewWeapon == NULL; group++) {
