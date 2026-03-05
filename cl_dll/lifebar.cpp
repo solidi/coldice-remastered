@@ -26,6 +26,12 @@
 
 DECLARE_MESSAGE(m_LifeBar, LifeBar)
 
+extern CHudLifeBar g_LifeBar;
+int __MsgFunc_MLifeBar(const char *pszName, int iSize, void *pbuf)
+{
+	return g_LifeBar.MsgFunc_MLifeBar(pszName, iSize, pbuf);
+}
+
 extern int cam_thirdperson;
 extern cvar_t *cl_lifemeter;
 extern cvar_t *cl_playpoint;
@@ -50,11 +56,14 @@ CHudLifeBar::CHudLifeBar()
 			m_DamageNumbers[i][j].active = false;
 		}
 	}
+	// Initialize horde monster tracking slots
+	memset(m_MonsterEntries, 0, sizeof(m_MonsterEntries));
 }
 
 int CHudLifeBar::Init(void)
 {
 	HOOK_MESSAGE(LifeBar);
+	HOOK_MESSAGE(MLifeBar);
 
 	m_iFlags = HUD_ACTIVE;  // Always active
 	gHUD.AddHudElem(this);
@@ -73,6 +82,8 @@ void CHudLifeBar::Reset( void )
 			m_DamageNumbers[i][j].active = false;
 		}
 	}
+	// Clear horde monster tracking on map change
+	memset(m_MonsterEntries, 0, sizeof(m_MonsterEntries));
 }
 
 int CHudLifeBar::VidInit(void)
@@ -131,6 +142,103 @@ int CHudLifeBar::MsgFunc_LifeBar(const char *pszName,  int iSize, void *pbuf )
 		}
 	}
 
+	return 1;
+}
+
+int CHudLifeBar::MsgFunc_MLifeBar(const char *pszName, int iSize, void *pbuf)
+{
+	BEGIN_READ(pbuf, iSize);
+	int entityIndex  = READ_SHORT();
+	int currentHealth = READ_SHORT();
+	int maxHealth    = READ_SHORT();
+
+	if (entityIndex <= 0 || maxHealth <= 0)
+		return 1;
+
+	float now = gEngfuncs.GetClientTime();
+
+	// Find existing slot for this monster, or allocate the best available one
+	int slot        = -1;
+	int fallback    = -1;
+	int oldestSlot  = 0;
+	float oldestTime = 9999999.0f;
+
+	for (int i = 0; i < MAX_HORDE_MONSTERS; i++)
+	{
+		if (m_MonsterEntries[i].entityIndex == entityIndex)
+		{
+			slot = i;
+			break;
+		}
+		if (fallback == -1 &&
+			(m_MonsterEntries[i].entityIndex == 0 || m_MonsterEntries[i].refreshTime < now))
+		{
+			fallback = i;
+		}
+		if (m_MonsterEntries[i].refreshTime < oldestTime)
+		{
+			oldestTime = m_MonsterEntries[i].refreshTime;
+			oldestSlot = i;
+		}
+	}
+
+	if (slot == -1)
+	{
+		// New entity - use empty/expired slot or evict the oldest
+		slot = (fallback != -1) ? fallback : oldestSlot;
+		m_MonsterEntries[slot].entityIndex   = entityIndex;
+		m_MonsterEntries[slot].previousHealth = currentHealth;
+		m_MonsterEntries[slot].refreshTime   = now + 3.0f;
+		for (int j = 0; j < MAX_DAMAGE_NUMBERS; j++)
+			m_MonsterEntries[slot].damageNumbers[j].active = false;
+		return 1;  // No delta on first message
+	}
+
+	// Refresh slot expiry
+	m_MonsterEntries[slot].refreshTime = now + 3.0f;
+
+	int prevHealth = m_MonsterEntries[slot].previousHealth;
+
+	if (cl_lifemeter && cl_lifemeter->value > 1 &&
+		prevHealth > currentHealth && prevHealth > 0 && currentHealth >= 0)
+	{
+		int damageTaken = (cl_lifemeter->value > 2) ? currentHealth : (prevHealth - currentHealth);
+
+		for (int i = 0; i < MAX_DAMAGE_NUMBERS; i++)
+		{
+			if (!m_MonsterEntries[slot].damageNumbers[i].active)
+			{
+				s_DamageNumber &dmg = m_MonsterEntries[slot].damageNumbers[i];
+				dmg.damage    = damageTaken;
+				dmg.spawnTime = now;
+				dmg.lifetime  = 2.5f;
+				dmg.active    = true;
+				// Try to seed world position from entity origin now;
+				// if entity not yet available on client, resolved lazily in RenderDamageNumbers.
+				cl_entity_s *pEnt = gEngfuncs.GetEntityByIndex(entityIndex);
+				if (pEnt && (pEnt->curstate.effects & EF_NODRAW) == 0 &&
+					(pEnt->origin[0] != 0.0f || pEnt->origin[1] != 0.0f || pEnt->origin[2] != 0.0f))
+				{
+					dmg.worldPosition[0] = pEnt->origin[0] + gEngfuncs.pfnRandomFloat(-20, 20);
+					dmg.worldPosition[1] = pEnt->origin[1] + gEngfuncs.pfnRandomFloat(-20, 20);
+					dmg.worldPosition[2] = pEnt->origin[2] + gEngfuncs.pfnRandomFloat(40, 55);
+					dmg.positionSet = true;
+				}
+				else
+				{
+					dmg.worldPosition[0] = dmg.worldPosition[1] = dmg.worldPosition[2] = 0.0f;
+					dmg.positionSet = false;
+				}
+				float angle = gEngfuncs.pfnRandomFloat(0.0f, 2.0f * 3.14159265f);
+				float speed = gEngfuncs.pfnRandomFloat(15.0f, 35.0f);
+				dmg.horizVelX = cosf(angle) * speed;
+				dmg.horizVelY = sinf(angle) * speed;
+				break;
+			}
+		}
+	}
+
+	m_MonsterEntries[slot].previousHealth = currentHealth;
 	return 1;
 }
 
@@ -256,6 +364,7 @@ void CHudLifeBar::AddDamageNumber(int playerIndex, int damage)
 			m_DamageNumbers[playerIndex][i].spawnTime = gEngfuncs.GetClientTime();
 			m_DamageNumbers[playerIndex][i].lifetime = 2.5f;  // longer so arc is visible
 			m_DamageNumbers[playerIndex][i].active = true;
+			m_DamageNumbers[playerIndex][i].positionSet = true;
 			
 			// Store the world position where damage occurred (with random offset and above head)
 			m_DamageNumbers[playerIndex][i].worldPosition[0] = pClient->origin[0] + gEngfuncs.pfnRandomFloat(-20, 20);
@@ -326,6 +435,64 @@ void CHudLifeBar::RenderDamageNumbers()
 			float horizOffsetY = dmg.horizVelY * elapsed;
 
 			// Render each digit of the damage number using locked world position
+			RenderDamageDigits(dmg.damage, dmg.worldPosition, floatOffset, horizOffsetX, horizOffsetY, alpha);
+		}
+	}
+
+	// Render damage numbers for horde monsters
+	for (int i = 0; i < MAX_HORDE_MONSTERS; i++)
+	{
+		if (m_MonsterEntries[i].entityIndex == 0)
+			continue;
+
+		// Expire stale slots
+		if (m_MonsterEntries[i].refreshTime < currentTime)
+		{
+			m_MonsterEntries[i].entityIndex = 0;
+			continue;
+		}
+
+		cl_entity_s *pEnt = gEngfuncs.GetEntityByIndex(m_MonsterEntries[i].entityIndex);
+		if (!pEnt || (pEnt->curstate.effects & EF_NODRAW))
+			continue;
+
+		for (int j = 0; j < MAX_DAMAGE_NUMBERS; j++)
+		{
+			s_DamageNumber &dmg = m_MonsterEntries[i].damageNumbers[j];
+
+			if (!dmg.active)
+				continue;
+			// Lazily resolve world position if entity wasn't available at spawn time
+			if (!dmg.positionSet)
+			{
+				if (pEnt && (pEnt->origin[0] != 0.0f || pEnt->origin[1] != 0.0f || pEnt->origin[2] != 0.0f))
+				{
+					dmg.worldPosition[0] = pEnt->origin[0] + gEngfuncs.pfnRandomFloat(-20, 20);
+					dmg.worldPosition[1] = pEnt->origin[1] + gEngfuncs.pfnRandomFloat(-20, 20);
+					dmg.worldPosition[2] = pEnt->origin[2] + gEngfuncs.pfnRandomFloat(40, 55);
+					dmg.positionSet = true;
+				}
+				else
+				{
+					continue;  // Entity still not available, skip this frame
+				}
+			}
+			float elapsed = currentTime - dmg.spawnTime;
+			if (elapsed > dmg.lifetime)
+			{
+				dmg.active = false;
+				continue;
+			}
+
+			float fadeRatio = 1.0f - (elapsed / dmg.lifetime);
+			int alpha = (int)(255 * fadeRatio);
+
+			const float kInitVel = 60.0f;
+			const float kGravity = 120.0f;
+			float floatOffset  = kInitVel * elapsed - 0.5f * kGravity * elapsed * elapsed;
+			float horizOffsetX = dmg.horizVelX * elapsed;
+			float horizOffsetY = dmg.horizVelY * elapsed;
+
 			RenderDamageDigits(dmg.damage, dmg.worldPosition, floatOffset, horizOffsetX, horizOffsetY, alpha);
 		}
 	}

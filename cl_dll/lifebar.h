@@ -18,6 +18,7 @@
 #pragma once
 
 #define MAX_DAMAGE_NUMBERS 5  // Allow up to 5 simultaneous damage numbers per player
+#define MAX_HORDE_MONSTERS 48  // Max concurrent horde monster damage tracking slots
 
 struct s_LifeBarData {
     int health;
@@ -31,8 +32,16 @@ struct s_DamageNumber {
     float lifetime;           // How long it should exist
     vec3_t worldPosition;     // Locked world position where damage occurred
     bool active;              // Whether this slot is in use
+    bool positionSet;         // Whether worldPosition has been resolved from entity origin
     float horizVelX;          // World-space horizontal drift velocity (X)
     float horizVelY;          // World-space horizontal drift velocity (Y)
+};
+
+struct s_MonsterEntry {
+    int entityIndex;          // Entity index of the horde monster (0 = unused)
+    int previousHealth;       // Last known health for delta calculation
+    float refreshTime;        // Client time after which this slot expires
+    s_DamageNumber damageNumbers[MAX_DAMAGE_NUMBERS];
 };
 
 class CHudLifeBar: public CHudBase
@@ -45,6 +54,7 @@ public:
 	virtual int Draw(float flTime);
 	virtual void Reset( void );
 	int MsgFunc_LifeBar(const char *pszName,  int iSize, void *pbuf);
+	int MsgFunc_MLifeBar(const char *pszName, int iSize, void *pbuf);
 
 private:
 	void AddDamageNumber(int playerIndex, int damage);
@@ -56,6 +66,7 @@ private:
 	s_LifeBarData m_LifeBarData[VOICE_MAX_PLAYERS+1];
 	s_DamageNumber m_DamageNumbers[VOICE_MAX_PLAYERS+1][MAX_DAMAGE_NUMBERS];
 	int m_PreviousHealth[VOICE_MAX_PLAYERS+1];  // Track previous health to calculate delta
+	s_MonsterEntry m_MonsterEntries[MAX_HORDE_MONSTERS];  // Horde monster damage tracking
 };
 
 CHudLifeBar* GetLifeBar();

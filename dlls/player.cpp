@@ -197,6 +197,7 @@ int gmsgStatusValue = 0;
 int gmsgStatusIcon = 0;
 int gmsgAcrobatics = 0;
 int gmsgLifeBar = 0;
+int gmsgMonsterLifeBar = 0;
 int gmsgReceiveW = 0;
 int gmsgPlayClientSound = 0;
 int gmsgParticle = 0;
@@ -270,6 +271,7 @@ void LinkUserMessages( void )
 	gmsgStatusIcon = REG_USER_MSG("StatusIcon", -1);
 	gmsgAcrobatics = REG_USER_MSG("Acrobatics", 1);
 	gmsgLifeBar = REG_USER_MSG("LifeBar", 3);
+	gmsgMonsterLifeBar = REG_USER_MSG("MLifeBar", 6);
 	gmsgReceiveW = REG_USER_MSG("ReceiveW", 1);
 	gmsgPlayClientSound = REG_USER_MSG("PlayCSound", 1);
 	gmsgParticle = REG_USER_MSG("Particle", -1);
