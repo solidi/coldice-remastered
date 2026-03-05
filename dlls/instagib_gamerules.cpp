@@ -24,6 +24,7 @@
 #include "items.h"
 
 extern int gmsgObjective;
+extern int gmsgBanner;
 
 class CTombstone : public CBaseEntity
 {
@@ -117,6 +118,18 @@ void CHalfLifeInstagib::PlayerThink( CBasePlayer *pPlayer )
 
 	if ( flUpdateTime > gpGlobals->time )
 		return;
+
+	if (pPlayer->m_iShowGameModeMessage > -1 && 
+		pPlayer->m_iShowGameModeMessage < gpGlobals->time && 
+		!FBitSet(pPlayer->pev->flags, FL_FAKECLIENT))
+	{
+		MESSAGE_BEGIN(MSG_ONE, gmsgBanner, NULL, pPlayer->edict());
+			WRITE_STRING("Instagib");
+			WRITE_STRING("Pew, pew, pew (strategy is to click faster).");
+			WRITE_BYTE(80);
+		MESSAGE_END();
+		pPlayer->m_iShowGameModeMessage = -1;
+	}
 
 	typedef struct {
 		int	clientID = -1;
@@ -258,6 +271,19 @@ BOOL CHalfLifeInstagib::IsAllowedToSpawn( CBaseEntity *pEntity )
 void CHalfLifeInstagib::PlayerSpawn( CBasePlayer *pPlayer )
 {
 	CHalfLifeMultiplay::PlayerSpawn(pPlayer);
+
+	// New player
+	if (pPlayer->pev->iuser3 > 0)
+	{
+		// Already set to simple in client.cpp
+		return;
+	}
+	else if (pPlayer->pev->iuser3 == 0) // Spectator now joining
+	{
+		pPlayer->pev->iuser3 = -1;
+		pPlayer->m_iObserverWeapon = 0; // Used as the menu option
+		pPlayer->m_iShowGameModeMessage = gpGlobals->time + 0.5;
+	}
 
 	pPlayer->GiveNamedItem("weapon_zapgun");
 }

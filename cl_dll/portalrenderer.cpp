@@ -63,42 +63,42 @@ void CPortalRenderer::Init()
 	glBindTexture(GL_TEXTURE_RECTANGLE_NV, portalPass_1);
 	glTexParameteri(GL_TEXTURE_RECTANGLE_NV, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_RECTANGLE_NV, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexImage2D(GL_TEXTURE_RECTANGLE_NV, 0, GL_RGB8, ScreenWidth, ScreenHeight, 0, GL_RGB8, GL_UNSIGNED_BYTE, pBlankTex);
+	glTexImage2D(GL_TEXTURE_RECTANGLE_NV, 0, GL_RGB8, ScreenWidth, ScreenHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, pBlankTex);
 
 	// Create the SCREEN-HOLDING TEXTURE
 	glGenTextures(1, &portalPass_2);
 	glBindTexture(GL_TEXTURE_RECTANGLE_NV, portalPass_2);
 	glTexParameteri(GL_TEXTURE_RECTANGLE_NV, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_RECTANGLE_NV, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexImage2D(GL_TEXTURE_RECTANGLE_NV, 0, GL_RGB8, ScreenWidth, ScreenHeight, 0, GL_RGB8, GL_UNSIGNED_BYTE, pBlankTex);
+	glTexImage2D(GL_TEXTURE_RECTANGLE_NV, 0, GL_RGB8, ScreenWidth, ScreenHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, pBlankTex);
 
 	// Create the SCREEN-HOLDING TEXTURE
 	glGenTextures(1, &screenpass);
 	glBindTexture(GL_TEXTURE_RECTANGLE_NV, screenpass);
 	glTexParameteri(GL_TEXTURE_RECTANGLE_NV, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_RECTANGLE_NV, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexImage2D(GL_TEXTURE_RECTANGLE_NV, 0, GL_RGB8, ScreenWidth, ScreenHeight, 0, GL_RGB8, GL_UNSIGNED_BYTE, pBlankTex);
+	glTexImage2D(GL_TEXTURE_RECTANGLE_NV, 0, GL_RGB8, ScreenWidth, ScreenHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, pBlankTex);
 
 	// Create the SCREEN-HOLDING TEXTURE
 	glGenTextures(1, &finalPortal[0]);
 	glBindTexture(GL_TEXTURE_2D, finalPortal[0]);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, ScreenWidth, ScreenHeight, 0, GL_RGB8, GL_UNSIGNED_BYTE, pBlankTex);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, ScreenWidth, ScreenHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, pBlankTex);
 
 	// Create the SCREEN-HOLDING TEXTURE
 	glGenTextures(1, &finalPortal[1]);
 	glBindTexture(GL_TEXTURE_2D, finalPortal[1]);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, ScreenWidth, ScreenHeight, 0, GL_RGB8, GL_UNSIGNED_BYTE, pBlankTex);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, ScreenWidth, ScreenHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, pBlankTex);
 
 	// Create the SCREEN-HOLDING TEXTURE
 	glGenTextures(1, &blankshit);
 	glBindTexture(GL_TEXTURE_2D, blankshit);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, ScreenWidth, ScreenHeight, 0, GL_RGB8, GL_UNSIGNED_BYTE, pBlankTex);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, ScreenWidth, ScreenHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, pBlankTex);
 
 	// free the memory
 	delete[] pBlankTex;
@@ -111,6 +111,9 @@ void CPortalRenderer::VidInit()
 
 void CPortalRenderer::DrawPortal()
 {
+	if (!m_bIsDrawingPortal)
+		return;
+
 	R_SetupScreenStuff();
 
 	// =========== FIRST PORTAL =========== 
@@ -157,11 +160,11 @@ void CPortalRenderer::DrawPortal()
 		glViewport(x - width / 2, y - height / 2, width, height);
 		glBindTexture(GL_TEXTURE_RECTANGLE_NV, portalPass_1);
 		glBegin(GL_QUADS);
-		DrawQuad(width, height, x - width / 2, y - height / 2);
+		// Sample from the center of the captured texture — the portal camera
+		// was positioned at the portal origin looking straight ahead, so the
+		// through-portal view is in the middle of the full-screen capture.
+		DrawQuad(width, height, ScreenWidth / 2 - width / 2, ScreenHeight / 2 - height / 2);
 		glEnd();
-
-		glBindTexture(GL_TEXTURE_2D, finalPortal[0]);
-		glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, 0, 0, width, height, 0);
 
 		portalSize[0].x = width;
 		portalSize[0].y = height;
@@ -211,11 +214,9 @@ void CPortalRenderer::DrawPortal()
 		glViewport(x - width / 2, y - height / 2, width, height);
 		glBindTexture(GL_TEXTURE_RECTANGLE_NV, portalPass_2);
 		glBegin(GL_QUADS);
-		DrawQuad(width, height, x - width / 2, y - height / 2);
+		// Sample from center of the captured texture (same reason as portal 1)
+		DrawQuad(width, height, ScreenWidth / 2 - width / 2, ScreenHeight / 2 - height / 2);
 		glEnd();
-
-		glBindTexture(GL_TEXTURE_2D, finalPortal[1]);
-		glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, 0, 0, width, height, 0);
 
 		portalSize[1].x = width;
 		portalSize[1].y = height;
@@ -236,11 +237,28 @@ void CPortalRenderer::CapturePortalView(int pass)
 	R_SetupScreenStuff();
 
 	if (pass == 0)
+	{
+		// Capture full-screen portal1 view (camera was at portal2 origin)
 		glBindTexture(GL_TEXTURE_RECTANGLE_NV, portalPass_1);
+		glCopyTexImage2D(GL_TEXTURE_RECTANGLE_NV, 0, GL_RGBA8, 0, 0, ScreenWidth, ScreenHeight, 0);
+		// Also store as GL_TEXTURE_2D for use by the portal model renderer
+		glBindTexture(GL_TEXTURE_2D, finalPortal[0]);
+		glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, 0, 0, ScreenWidth, ScreenHeight, 0);
+	}
 	else if (pass == 1)
+	{
+		// Capture full-screen portal2 view (camera was at portal1 origin)
 		glBindTexture(GL_TEXTURE_RECTANGLE_NV, portalPass_2);
+		glCopyTexImage2D(GL_TEXTURE_RECTANGLE_NV, 0, GL_RGBA8, 0, 0, ScreenWidth, ScreenHeight, 0);
+		// Also store as GL_TEXTURE_2D for use by the portal model renderer
+		glBindTexture(GL_TEXTURE_2D, finalPortal[1]);
+		glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, 0, 0, ScreenWidth, ScreenHeight, 0);
+	}
 	else if (pass == 2)
+	{
 		glBindTexture(GL_TEXTURE_RECTANGLE_NV, screenpass);
+		glCopyTexImage2D(GL_TEXTURE_RECTANGLE_NV, 0, GL_RGBA8, 0, 0, ScreenWidth, ScreenHeight, 0);
+	}
 	else
 	{
 		glBindTexture(GL_TEXTURE_2D, blankshit);
@@ -249,7 +267,6 @@ void CPortalRenderer::CapturePortalView(int pass)
 		return;
 	}
 
-	glCopyTexImage2D(GL_TEXTURE_RECTANGLE_NV, 0, GL_RGBA8, 0, 0, ScreenWidth, ScreenHeight, 0);
 	R_ResetScreenStuff();
 }
 

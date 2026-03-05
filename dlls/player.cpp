@@ -5876,6 +5876,9 @@ void CBasePlayer::StartForceGrab( void )
 	if (m_fOffhandTime >= gpGlobals->time)
 		return;
 
+	if (g_pGameRules->MutatorEnabled(MUTATOR_RICOCHET))
+		return;
+
 	if ( g_pGameRules->IsInstagib() )
 	{
 		ClientPrint(pev, HUD_PRINTCENTER, "Forcegrab disabled in this gamemode.");
@@ -6666,9 +6669,11 @@ void CBasePlayer :: UpdateClientData( void )
 		}
 		else
 		{
+			// No portals active — send all-zero vectors so the client clears its portal state.
+			// Must match the 12 READ_COORD() calls in __MsgFunc_Portal on the client.
 			MESSAGE_BEGIN(MSG_ONE, gmsgPortal, NULL, pev);
-			WRITE_BYTE(0); // first portal;
-			WRITE_BYTE(0); // second portal;
+			for (int i = 0; i < 12; i++)
+				WRITE_COORD(0);
 			MESSAGE_END();
 		}
 	}
@@ -7510,9 +7515,12 @@ void CBasePlayer::Taunt( void )
 	if (IsAlive() && pev->deadflag == DEAD_NO && m_fSelacoSliding != TRUE &&
 		m_fTauntCancelTime < gpGlobals->time)
 	{
+		BOOL checkWeapon = (m_pActiveItem &&
+							!FBitSet(m_pActiveItem->iFlags(), ITEM_FLAG_SINGLE_HAND) &&
+							!g_pGameRules->MutatorEnabled(MUTATOR_RICOCHET));
 		if (m_fTauntFullTime < gpGlobals->time)
 		{
-			if (m_pActiveItem && !FBitSet(m_pActiveItem->iFlags(), ITEM_FLAG_SINGLE_HAND))
+			if (checkWeapon)
 			{
 				m_pActiveItem->Holster();
 				m_flNextAttack = UTIL_WeaponTimeBase() + 3.25;
@@ -7536,7 +7544,7 @@ void CBasePlayer::Taunt( void )
 		}
 		else
 		{
-			if (m_pActiveItem && !FBitSet(m_pActiveItem->iFlags(), ITEM_FLAG_SINGLE_HAND))
+			if (checkWeapon)
 				m_pActiveItem->DeployLowKey();
 			m_EFlags &= ~EFLAG_TAUNT;
 			m_EFlags |= EFLAG_CANCEL;

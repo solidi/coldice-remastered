@@ -1563,11 +1563,11 @@ void ClientUserInfoChanged( edict_t *pEntity, char *infobuffer )
 			CBaseEntity *pT = UTIL_FindEntityByClassname( NULL, "trigger_mp3audio");
 			if ( pT && pT->edict() )
 			{
-				pT->Use(pl, pl, USE_ON, 0);
+				pT->Use(pl, pl, USE_ON, newvalue);
 			}
 		}
 
-		pl->m_iPlayMusic = atoi(pszPlayMusic);
+		pl->m_iPlayMusic = newvalue;
 	}
 
 	// msg everyone if someone changes their name,  and it isn't the first time (changing no name to current name)

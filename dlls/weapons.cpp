@@ -945,7 +945,10 @@ CBaseEntity* CBasePlayerItem::Respawn( void )
 		}
 	} else if (g_pGameRules->IsSnowballFight()) {
 		if (strncmp(STRING(pev->classname), "weapon_snowball", 15) != 0) {
-			pNewWeapon = CBaseEntity::Create("weapon_snowball", g_pGameRules->VecWeaponRespawnSpot(this), pev->angles, pev->owner);
+			if (RANDOM_LONG(0, 8) == 0)
+				pNewWeapon = CBaseEntity::Create("rune_ammo", g_pGameRules->VecWeaponRespawnSpot(this), pev->angles, pev->owner);
+			else
+				pNewWeapon = CBaseEntity::Create("weapon_snowball", g_pGameRules->VecWeaponRespawnSpot(this), pev->angles, pev->owner);
 		}
 	} else {
 		for (int group = 0; (group < ARRAYSIZE(weaponsList) - 1) && pNewWeapon == NULL; group++) {
@@ -2608,7 +2611,10 @@ void CBasePlayerWeapon::ThrowGrenade(BOOL m_iCheckAmmo)
 		m_pPlayer->m_rgAmmo[index]--;
 	}
 
-	if (m_pPlayer->m_pActiveItem && FBitSet(m_pPlayer->m_pActiveItem->iFlags(), ITEM_FLAG_SINGLE_HAND))
+	BOOL showModel = (m_pPlayer->m_pActiveItem && FBitSet(m_pPlayer->m_pActiveItem->iFlags(), ITEM_FLAG_SINGLE_HAND)) ||
+					 g_pGameRules->MutatorEnabled(MUTATOR_RICOCHET);
+
+	if (showModel)
 	{
 		m_pPlayer->m_EFlags &= ~EFLAG_CANCEL;
 		m_pPlayer->m_EFlags |= EFLAG_GRENADE;
@@ -2736,7 +2742,7 @@ void CBasePlayerWeapon::StartPunch( BOOL holdingSomething )
 	if ( g_pGameRules->IsPropHunt() && m_pPlayer->pev->fuser4 >= TEAM_PROPS )
 		return;
 
-	if (!canUseOffhand)
+	if (!canUseOffhand && !g_pGameRules->MutatorEnabled(MUTATOR_RICOCHET))
 	{
 		Holster();
 	}
@@ -2752,7 +2758,10 @@ void CBasePlayerWeapon::StartPunch( BOOL holdingSomething )
 
 void CBasePlayerWeapon::PunchAttack( BOOL holdingSomething )
 {
-	if (!FBitSet(iFlags(), ITEM_FLAG_SINGLE_HAND))
+	BOOL checkWeapon = (!FBitSet(iFlags(), ITEM_FLAG_SINGLE_HAND) &&
+						!g_pGameRules->MutatorEnabled(MUTATOR_RICOCHET));
+
+	if (checkWeapon)
 		m_pPlayer->pev->viewmodel = MAKE_STRING("models/v_fists.mdl");
 
 	TraceResult tr;
@@ -2827,7 +2836,7 @@ void CBasePlayerWeapon::PunchAttack( BOOL holdingSomething )
 	}
 #endif
 
-	if (!FBitSet(iFlags(), ITEM_FLAG_SINGLE_HAND))
+	if (checkWeapon)
 	{
 		switch( RANDOM_LONG(0,1) )
 		{
@@ -2946,7 +2955,7 @@ void CBasePlayerWeapon::PunchAttack( BOOL holdingSomething )
 	SetThink( &CBasePlayerWeapon::EndPunch );
 	pev->nextthink = gpGlobals->time + (0.28 * g_pGameRules->WeaponMultipler());
 
-	if (!FBitSet(iFlags(), ITEM_FLAG_SINGLE_HAND))
+	if (checkWeapon)
 	{
 		m_flNextPrimaryAttack = m_flNextSecondaryAttack = (GetNextAttackDelay(0.3) * g_pGameRules->WeaponMultipler());
 		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + UTIL_SharedRandomFloat( m_pPlayer->random_seed, 10, 15 );
@@ -2958,7 +2967,8 @@ void CBasePlayerWeapon::EndPunch( void )
 	if (m_trBootHit.flFraction < 1.0)
 		DecalGunshot( &m_trBootHit, BULLET_PLAYER_FIST );
 
-	if (!FBitSet(iFlags(), ITEM_FLAG_SINGLE_HAND))
+	if ((!FBitSet(iFlags(), ITEM_FLAG_SINGLE_HAND) &&
+		!g_pGameRules->MutatorEnabled(MUTATOR_RICOCHET)))
 		DeployLowKey();
 
 	// Always cancel
@@ -3289,6 +3299,9 @@ void CBasePlayerWeapon::ThrowWeapon( BOOL holdingSomething )
 		return;
 
 	if (m_pPlayer->m_fOffhandTime >= gpGlobals->time)
+		return;
+
+	if (g_pGameRules->MutatorEnabled(MUTATOR_RICOCHET))
 		return;
 
 	if (g_pGameRules->IsGunGame() || g_pGameRules->IsInstagib())

@@ -364,6 +364,13 @@ public:
 	virtual int PlayerRelationship( CBaseEntity *pPlayer, CBaseEntity *pTarget );
 };
 
+#define VOTE_GAMEPLAY_TRANSITION 1
+#define VOTE_GAMEPLAY_OPEN 2
+#define VOTE_MUTATORS_TRANSITION 3
+#define VOTE_MUTATORS_OPEN 4
+#define VOTE_MAPS_TRANSITION 5
+#define VOTE_MAPS_OPEN 6
+
 //=========================================================
 // CHalfLifeMultiplay - rules for the basic half life multiplayer
 // competition

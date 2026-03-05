@@ -609,7 +609,7 @@ void CHud :: Init( void )
 	cl_particlesystem = CVAR_CREATE( "cl_particlesystem", "1", FCVAR_ARCHIVE );
 	cl_radar = CVAR_CREATE( "cl_radar", "1", FCVAR_ARCHIVE );
 	cl_portalmirror = CVAR_CREATE("cl_portalmirror", "0", FCVAR_ARCHIVE);
-	cl_screeneffects = CVAR_CREATE("cl_screeneffects", "0", FCVAR_ARCHIVE);
+	cl_screeneffects = CVAR_CREATE("cl_screeneffects", "1", FCVAR_ARCHIVE);
 	cl_customtempents = CVAR_CREATE("cl_customtempents", "1", FCVAR_ARCHIVE);
 	cl_voiceoverpath = CVAR_CREATE("cl_voiceoverpath", "", FCVAR_ARCHIVE);
 	cl_objectives = CVAR_CREATE("cl_objectives", "1", FCVAR_ARCHIVE);
@@ -698,9 +698,6 @@ void CHud :: Init( void )
 	InitRain();
 #ifdef _WIN32
 	g_ImGUIManager.Init();
-#endif
-#ifndef __APPLE__
-	gPortalRenderer.Init();
 #endif
 	m_Particle.Init();
 

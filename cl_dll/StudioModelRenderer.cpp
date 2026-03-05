@@ -1310,6 +1310,9 @@ int CStudioModelRenderer::StudioDrawModel( int flags )
 	IEngineStudio.GetViewInfo( m_vRenderOrigin, m_vUp, m_vRight, m_vNormal );
 	IEngineStudio.GetAliasScale( &m_fSoftwareXScale, &m_fSoftwareYScale );
 
+	if (MutatorEnabled(MUTATOR_RICOCHET) && m_pCurrentEntity == gEngfuncs.GetViewModel())
+		return 0;
+
 	if (cl_icemodels && gHUD.m_IceModelsIndex != SKIN_MUTATOR && gHUD.m_IceModelsIndex != cl_icemodels->value)
 	{
 		gHUD.m_IceModelsIndex = cl_icemodels->value;
@@ -1554,21 +1557,18 @@ int CStudioModelRenderer::StudioDrawModel( int flags )
 
 				if (pHdr->textureindex > 0)
 				{
+					// skin value identifies which portal entity this is (0 or 1)
+					int portalIdx = (m_pCurrentEntity->curstate.skin >= 0 && m_pCurrentEntity->curstate.skin < 2)
+						? m_pCurrentEntity->curstate.skin : 0;
 					for (int i = 0; i < pHdr->numtextures; i++)
 					{
 						savedtexture.push_back(pTexture[i]);
-						// memcpy(&pTexture[i], &pTexture[pHdr->numtextures + 1], sizeof(mstudiotexture_t));
-						if (!strcmp(pTexture[i].name, "lul2.bmp"))
+						if (!strcmp(pTexture[i].name, "lul2.bmp") || !strcmp(pTexture[i].name, "lul.bmp"))
 						{
-							pTexture[i].index = gPortalRenderer.blankshit;
-							//pTexture[i].width = gPortalRenderer.portalSize[0].x;
-							//pTexture[i].height = -gPortalRenderer.portalSize[0].y;
-						}
-						else if (!strcmp(pTexture[i].name, "lul.bmp"))
-						{
-							pTexture[i].index = gPortalRenderer.blankshit;
-							//pTexture[i].width = gPortalRenderer.portalSize[1].x;
-							//pTexture[i].height = -gPortalRenderer.portalSize[1].y;
+							// Use the portal-view capture for this portal entity.
+							// finalPortal[0] = view through portal 1, finalPortal[1] = view through portal 2.
+							// Captured during V_CalcRefdef before 3D model rendering occurs.
+							pTexture[i].index = gPortalRenderer.finalPortal[portalIdx];
 						}
 					}
 				}

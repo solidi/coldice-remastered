@@ -346,9 +346,10 @@ void CHalfLifeMultiplay :: Think ( void )
 
 		if (voting.value >= 10)
 		{
-			if (m_iVoteUnderway == 1 && ((m_flIntermissionEndTime - mp_chattime.value - (timeLeft - 3)) < gpGlobals->time))
+			if (m_iVoteUnderway == VOTE_GAMEPLAY_TRANSITION &&
+				((m_flIntermissionEndTime - mp_chattime.value - (timeLeft - 3)) < gpGlobals->time))
 			{
-				m_iVoteUnderway = 2;
+				m_iVoteUnderway = VOTE_GAMEPLAY_OPEN;
 
 				MESSAGE_BEGIN(MSG_ALL, gmsgVoteGameplay);
 					WRITE_BYTE(voting.value);
@@ -368,9 +369,10 @@ void CHalfLifeMultiplay :: Think ( void )
 				}
 			}
 			// Game mode vote ended
-			else if (m_iVoteUnderway == 2 && ((m_flIntermissionEndTime - mp_chattime.value - (timeLeft - voting.value - 3)) < gpGlobals->time))
+			else if (m_iVoteUnderway == VOTE_GAMEPLAY_OPEN &&
+				((m_flIntermissionEndTime - mp_chattime.value - (timeLeft - voting.value - 3)) < gpGlobals->time))
 			{
-				m_iVoteUnderway = 3;
+				m_iVoteUnderway = VOTE_MUTATORS_TRANSITION;
 
 				MESSAGE_BEGIN(MSG_ALL, gmsgVoteGameplay);
 					WRITE_BYTE(0);
@@ -439,9 +441,10 @@ void CHalfLifeMultiplay :: Think ( void )
 			}
 
 			// Mutator vote STARTED
-			if (m_iVoteUnderway == 3 && ((m_flIntermissionEndTime - mp_chattime.value - (timeLeft - voting.value - 6)) < gpGlobals->time))
+			if (m_iVoteUnderway == VOTE_MUTATORS_TRANSITION &&
+				((m_flIntermissionEndTime - mp_chattime.value - (timeLeft - voting.value - 6)) < gpGlobals->time))
 			{
-				m_iVoteUnderway = 4;
+				m_iVoteUnderway = VOTE_MUTATORS_OPEN;
 
 				MESSAGE_BEGIN(MSG_ALL, gmsgVoteMutator);
 					WRITE_BYTE(voting.value);
@@ -462,9 +465,10 @@ void CHalfLifeMultiplay :: Think ( void )
 			}
 
 			// Mutator vote ended
-			if (m_iVoteUnderway == 4 && ((m_flIntermissionEndTime - mp_chattime.value - (timeLeft - (voting.value * 2) - 6)) < gpGlobals->time))
+			if (m_iVoteUnderway == VOTE_MUTATORS_OPEN &&
+				((m_flIntermissionEndTime - mp_chattime.value - (timeLeft - (voting.value * 2) - 6)) < gpGlobals->time))
 			{
-				m_iVoteUnderway = 5;
+				m_iVoteUnderway = VOTE_MAPS_TRANSITION;
 
 				MESSAGE_BEGIN(MSG_ALL, gmsgVoteMutator);
 					WRITE_BYTE(0);
@@ -564,9 +568,10 @@ void CHalfLifeMultiplay :: Think ( void )
 			}
 
 			// Map vote STARTED
-			if (m_iVoteUnderway == 5 && ((m_flIntermissionEndTime - mp_chattime.value - (timeLeft - (voting.value * 2) - 9)) < gpGlobals->time))
+			if (m_iVoteUnderway == VOTE_MAPS_TRANSITION &&
+				((m_flIntermissionEndTime - mp_chattime.value - (timeLeft - (voting.value * 2) - 9)) < gpGlobals->time))
 			{
-				m_iVoteUnderway = 6;
+				m_iVoteUnderway = VOTE_MAPS_OPEN;
 
 				MESSAGE_BEGIN(MSG_ALL, gmsgVoteMap);
 					WRITE_BYTE(voting.value);
@@ -587,7 +592,8 @@ void CHalfLifeMultiplay :: Think ( void )
 			}
 
 			// Map vote ended
-			if (m_iVoteUnderway == 6 && (((m_flIntermissionEndTime - mp_chattime.value) - (timeLeft - (voting.value * 3) - 9)) < gpGlobals->time))
+			if (m_iVoteUnderway == VOTE_MAPS_OPEN &&
+				(((m_flIntermissionEndTime - mp_chattime.value) - (timeLeft - (voting.value * 3) - 9)) < gpGlobals->time))
 			{
 				m_iVoteUnderway = 0;
 
@@ -1270,7 +1276,8 @@ BOOL CHalfLifeMultiplay::AllowMeleeDrop( void )
 
 float CHalfLifeMultiplay::WeaponMultipler( void )
 {
-	if (g_pGameRules->MutatorEnabled(MUTATOR_FASTWEAPONS))
+	if (g_pGameRules->MutatorEnabled(MUTATOR_FASTWEAPONS) ||
+		g_pGameRules->MutatorEnabled(MUTATOR_SILDENAFIL))
 		return 0.33;
 
 	if (g_pGameRules->MutatorEnabled(MUTATOR_SLOWWEAPONS))
@@ -1776,11 +1783,10 @@ void CHalfLifeMultiplay :: PlayerThink( CBasePlayer *pPlayer )
 		ClientPrint(pPlayer->pev, HUD_PRINTTALK, "[System] Welcome to Cold Ice Remastered v1. For commands, type \"help\" in the console.\n");
 #endif
 
-		// Play music
 		CBaseEntity *pT = UTIL_FindEntityByClassname( NULL, "trigger_mp3audio");
-		if ( pT && pT->edict() && pPlayer->m_iPlayMusic )
+		if ( pT && pT->edict() )
 		{
-			pT->Use(pPlayer, pPlayer, USE_ON, 0);
+			pT->Use(pPlayer, pPlayer, USE_ON, pPlayer->m_iPlayMusic);
 		}
 
 		// Always play, never spectate
@@ -1902,7 +1908,51 @@ void CHalfLifeMultiplay :: PlayerSpawn( CBasePlayer *pPlayer )
 
 	// Pause player during voting
 	if (m_iVoteUnderway)
+	{
 		pPlayer->EnableControl(FALSE);
+
+		// Send the currently active vote menu to a late-joining player so they
+		// see the same vote screen as everyone else instead of being frozen with
+		// a blank display until the next MSG_ALL broadcast.
+		// Transition states (1, 3, 5) have no open menu, so nothing is sent;
+		// the player will receive the next phase via the normal MSG_ALL send.
+		if (m_iVoteUnderway == VOTE_GAMEPLAY_OPEN || m_iVoteUnderway == VOTE_MUTATORS_OPEN || m_iVoteUnderway == VOTE_MAPS_OPEN)
+		{
+			int timeLeft = (int)(voting.value * 3) + 12;
+			float voteEndTime;
+			int msgId;
+
+			if (m_iVoteUnderway == VOTE_GAMEPLAY_OPEN)
+			{
+				// Gameplay vote active
+				voteEndTime = m_flIntermissionEndTime - mp_chattime.value
+				              - (timeLeft - (int)voting.value - 3);
+				msgId = gmsgVoteGameplay;
+			}
+			else if (m_iVoteUnderway == VOTE_MUTATORS_OPEN)
+			{
+				// Mutator vote active
+				voteEndTime = m_flIntermissionEndTime - mp_chattime.value
+				              - (timeLeft - (int)(voting.value * 2) - 6);
+				msgId = gmsgVoteMutator;
+			}
+			else // m_iVoteUnderway == VOTE_MAPS_OPEN
+			{
+				// Map vote active
+				voteEndTime = (m_flIntermissionEndTime - mp_chattime.value)
+				              - (timeLeft - (int)(voting.value * 3) - 9);
+				msgId = gmsgVoteMap;
+			}
+
+			int remainingSeconds = (int)(voteEndTime - gpGlobals->time);
+			if (remainingSeconds < 1)   remainingSeconds = 1;
+			if (remainingSeconds > 255) remainingSeconds = 255;
+
+			MESSAGE_BEGIN(MSG_ONE, msgId, NULL, pPlayer->edict());
+				WRITE_BYTE(remainingSeconds);
+			MESSAGE_END();
+		}
+	}
 
 	BOOL		addDefault;
 	CBaseEntity	*pWeaponEntity = NULL;
@@ -2752,7 +2802,10 @@ BOOL CHalfLifeMultiplay::IsAllowedToSpawn( CBaseEntity *pEntity )
 
 		if (strncmp(STRING(pEntity->pev->classname), "weapon_snowball", 15) != 0)
 		{
-			CBaseEntity::Create("weapon_snowball", pEntity->pev->origin, pEntity->pev->angles, pEntity->pev->owner);
+			if (RANDOM_LONG(0, 8) == 0)
+				CBaseEntity::Create("rune_ammo", pEntity->pev->origin, pEntity->pev->angles, pEntity->pev->owner);
+			else
+				CBaseEntity::Create("weapon_snowball", pEntity->pev->origin, pEntity->pev->angles, pEntity->pev->owner);
 			return FALSE;
 		}
 	}
@@ -2933,7 +2986,7 @@ void CHalfLifeMultiplay :: GoToIntermission( void )
 	if (voting.value >= 10)
 	{
 		m_flIntermissionEndTime += (voting.value * 3) + 12; 
-		m_iVoteUnderway = 1;
+		m_iVoteUnderway = VOTE_GAMEPLAY_TRANSITION;
 	}
 
 	// Clear previous message at intermission

@@ -229,7 +229,8 @@ const char *GetGameName( void );
 inline float GetWeaponMultipler()
 {
 	float multipler = 1;
-	if (MutatorEnabled(MUTATOR_FASTWEAPONS))
+	if (MutatorEnabled(MUTATOR_FASTWEAPONS) ||
+		MutatorEnabled(MUTATOR_SILDENAFIL))
 		multipler = 0.33;
 	else if (MutatorEnabled(MUTATOR_SLOWWEAPONS))
 		multipler = 3;

@@ -25,6 +25,7 @@
 #include "parsemsg.h"
 #include "event_api.h"
 #include "vgui_TeamFortressViewport.h"
+#include "pm_shared.h"
 
 DECLARE_MESSAGE( m_StatusIcons, StatusIcon );
 
@@ -62,7 +63,7 @@ int CHudStatusIcons::Draw( float flTime )
 	if (gEngfuncs.IsSpectateOnly() || gHUD.m_iShowingWeaponMenu)
 		return 1;
 
-	if (g_iUser3 > 0) // when there is a menu, don't show status icons
+	if (g_iUser3 >= OBS_BEGIN && g_iUser3 <= OBS_END) // when there is a menu, don't show status icons
 		return 1;
 
 	// Chaos bar

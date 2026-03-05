@@ -39,9 +39,7 @@ enum nuke_e {
 	NUKE_FIDGET_UL,	// unloaded fidget
 };
 
-#ifdef NUKE
 LINK_ENTITY_TO_CLASS( weapon_nuke, CNuke );
-#endif
 
 #ifndef CLIENT_DLL
 

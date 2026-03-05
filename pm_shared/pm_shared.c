@@ -2822,6 +2822,9 @@ PM_PlayWaterSounds
 */
 void PM_PlayWaterSounds( void )
 {
+	if (pmove->spectator)
+		return;
+
 	// Did we enter or leave water?
 	if  ( ( pmove->oldwaterlevel == 0 && pmove->waterlevel != 0 ) ||
 		  ( pmove->oldwaterlevel != 0 && pmove->waterlevel == 0 ) )

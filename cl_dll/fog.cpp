@@ -25,6 +25,10 @@
 #include <windows.h>
 #endif
 
+#ifndef __APPLE__
+#include "GL/gl.h"
+#endif
+
 // Class declaration
 CFog gFog;
 
@@ -59,9 +63,11 @@ void CFog::SetGLFog( Vector color )
 #ifndef __APPLE__
 	glEnable(GL_FOG);
 	glFogi(GL_FOG_MODE, GL_LINEAR);
-	glFogf(GL_FOG_DENSITY, 0.5);
 
-	glFogfv(GL_FOG_COLOR, color);
+	// GL_FOG_COLOR requires a 4-component RGBA array; passing a 3-component Vector
+	// leaves the alpha undefined, which causes some drivers to render invisible fog.
+	GLfloat fogColorRGBA[4] = { color[0], color[1], color[2], 1.0f };
+	glFogfv(GL_FOG_COLOR, fogColorRGBA);
 	glFogf(GL_FOG_START, m_fogParams.startdist);
 	glFogf(GL_FOG_END, m_fogParams.enddist);
 #endif

@@ -574,7 +574,6 @@ void CGameRules::EnvMutators( void )
 	// Cleanup rats when mutator ends
 	if (!MutatorEnabled(MUTATOR_RATS))
 	{
-		ALERT(at_console, ">>>> !!! Removing rats...\n");
 		CBaseEntity *pRat = NULL;
 		while ((pRat = UTIL_FindEntityByClassname(pRat, "monster_rat")) != NULL)
 		{
