@@ -2611,10 +2611,10 @@ void CBasePlayerWeapon::ThrowGrenade(BOOL m_iCheckAmmo)
 		m_pPlayer->m_rgAmmo[index]--;
 	}
 
-	BOOL showModel = (FBitSet(m_pPlayer->m_pActiveItem->iFlags(), ITEM_FLAG_SINGLE_HAND) ||
-					 g_pGameRules->MutatorEnabled(MUTATOR_RICOCHET));
+	BOOL showModel = (m_pPlayer->m_pActiveItem && FBitSet(m_pPlayer->m_pActiveItem->iFlags(), ITEM_FLAG_SINGLE_HAND)) ||
+					 g_pGameRules->MutatorEnabled(MUTATOR_RICOCHET);
 
-	if (m_pPlayer->m_pActiveItem && showModel)
+	if (showModel)
 	{
 		m_pPlayer->m_EFlags &= ~EFLAG_CANCEL;
 		m_pPlayer->m_EFlags |= EFLAG_GRENADE;
