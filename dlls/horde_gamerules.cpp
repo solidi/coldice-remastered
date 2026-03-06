@@ -35,12 +35,12 @@ extern int gmsgDEraser;
 
 // In order of hardness
 const char *szMonsters[] = {
-	//"monster_headcrab",
-	//"monster_zombie",
-	//"monster_houndeye",
+	"monster_headcrab",
+	"monster_zombie",
+	"monster_houndeye",
+	"monster_human_grunt",
 	"monster_panther",
 	"monster_human_assassin",
-	"monster_human_grunt",
 	"monster_gargantua"
 };
 
@@ -408,19 +408,24 @@ void CHalfLifeHorde::Think( void )
 				// Health increases all monsters.
 				int hardness = (m_iWaveNumber / float(ARRAYSIZE(szMonsters) * ENEMY_TOTAL)) * 10;
 
+#ifdef _DEBUG
 				ALERT(at_aiconsole, ">>> [Horde] m_iWaveNumber=%d, index=%d, monsterRound=%d, i=%d, hardness=%d\n", m_iWaveNumber, index, monsterRound, i, hardness);
-
+#endif
 				if (pEntity)
 				{
 					m_iTotalEnemies++;
+#ifdef _DEBUG
 					ALERT(at_aiconsole, ">>> [Horde] created %s\n", monster);
+#endif
 
 					// Radar mark
 					pEntity->pev->fuser4 = RADAR_HORDE;
 
 					if (hardness > 1)
 					{
+#ifdef _DEBUG
 						ALERT(at_aiconsole, ">>> [Horde] hardness at %d, health was %.0f, now is %.0f\n", hardness, pEntity->pev->max_health, pEntity->pev->max_health * hardness);
+#endif
 						pEntity->pev->max_health = pEntity->pev->max_health * hardness;
 						pEntity->pev->health = pEntity->pev->max_health;
 					}
