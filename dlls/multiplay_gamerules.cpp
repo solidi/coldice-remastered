@@ -1118,7 +1118,10 @@ void CHalfLifeMultiplay::RemoveAndFillItems( void )
 			// Clean up tripmine beam before removal
 			if (strcmp(pRemoveThese[itemIndex], "monster_tripmine") == 0)
 			{
-				pEntity->Killed(NULL, GIB_NEVER);
+				//pEntity->Killed(NULL, GIB_NEVER);
+				((CTripmineGrenade *)pEntity)->SetThink( &CTripmineGrenade::SUB_Remove );
+				((CTripmineGrenade *)pEntity)->KillBeam();
+				((CTripmineGrenade *)pEntity)->pev->nextthink = gpGlobals->time + 0.1;
 			}
 			else
 			{
