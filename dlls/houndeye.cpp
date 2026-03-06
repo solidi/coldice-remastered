@@ -49,7 +49,8 @@ enum
 	TASK_HOUND_THREAT_DISPLAY,
 	TASK_HOUND_FALL_ASLEEP,
 	TASK_HOUND_WAKE_UP,
-	TASK_HOUND_HOP_BACK
+	TASK_HOUND_HOP_BACK,
+	TASK_HOUND_DIRECT_APPROACH
 };
 
 //=========================================================
@@ -60,6 +61,7 @@ enum
 	SCHED_HOUND_AGITATED = LAST_COMMON_SCHEDULE + 1,
 	SCHED_HOUND_HOP_RETREAT,
 	SCHED_HOUND_FAIL,
+	SCHED_HOUND_DIRECT_APPROACH,
 };
 
 //=========================================================
@@ -194,7 +196,10 @@ BOOL CHoundeye :: FCanActiveIdle ( void )
 //=========================================================
 BOOL CHoundeye :: CheckRangeAttack1 ( float flDot, float flDist )
 {
-	if ( flDist <= ( HOUNDEYE_MAX_ATTACK_RADIUS * 0.5 ) && flDot >= 0.3 )
+	// Sonic attack is omnidirectional; in horde relax dot so the houndeye
+	// fires even when the player is at a steep angle below/above.
+	float flRequiredDot = g_pGameRules->IsMultiplayer() ? -1.0f : 0.3f;
+	if ( flDist <= ( HOUNDEYE_MAX_ATTACK_RADIUS * 0.5 ) && flDot >= flRequiredDot )
 	{
 		return TRUE;
 	}
@@ -724,6 +729,69 @@ void CHoundeye :: StartTask ( Task_t *pTask )
 			m_IdealActivity = ACT_LEAP;
 			break;
 		}
+	case TASK_HOUND_DIRECT_APPROACH:
+		{
+			if ( m_hEnemy == NULL ) { TaskFail(); break; }
+
+			// Try standard nav routing first.
+			if ( BuildRoute( m_hEnemy->pev->origin, bits_MF_TO_ENEMY, m_hEnemy ) ||
+				 BuildNearestRoute( m_hEnemy->pev->origin, m_hEnemy->pev->view_ofs, 0,
+									(m_hEnemy->pev->origin - pev->origin).Length() ) )
+			{
+				TaskComplete();
+				break;
+			}
+
+			// Already airborne from a previous launch — don't push again.
+			// Let gravity and the existing velocity carry the houndeye down.
+			if ( !FBitSet( pev->flags, FL_ONGROUND ) )
+			{
+				RouteNew();
+				m_movementGoal = MOVEGOAL_NONE;
+				TaskComplete();
+				break;
+			}
+
+			// Nav graph failed (e.g. houndeye on a crate with no nav nodes).
+			// Launch ballistically toward enemy — same technique as panthereye leap.
+			Vector vecToEnemy = m_hEnemy->pev->origin - pev->origin;
+			float flHeight	  = vecToEnemy.z;
+
+			float gravity = g_psv_gravity->value;
+			if ( gravity <= 1 ) gravity = 1;
+
+			Vector vecLaunch;
+			if ( flHeight < -16 )
+			{
+				// Enemy is below — push horizontally off the ledge; gravity does the rest.
+				Vector vec2D = vecToEnemy;
+				vec2D.z = 0;
+				float len = vec2D.Length();
+				if ( len > 0 ) vec2D = vec2D * ( 1.0f / len );
+				vecLaunch	  = vec2D * 200.0f;
+				vecLaunch.z = 0;
+			}
+			else
+			{
+				// Enemy at same level or above — arc up.
+				if ( flHeight < 16 ) flHeight = 16;
+				float speed = sqrt( 2.0f * gravity * flHeight );
+				float time  = speed / gravity;
+				vecLaunch	  = vecToEnemy * ( 1.0f / time );
+				vecLaunch.z = speed * 0.9f;
+				float dist  = vecLaunch.Length();
+				if ( dist > 650 ) vecLaunch = vecLaunch * ( 650.0f / dist );
+			}
+
+			ClearBits( pev->flags, FL_ONGROUND );
+			UTIL_SetOrigin( pev, pev->origin + Vector( 0, 0, 1 ) );
+			pev->velocity = vecLaunch;
+
+			RouteNew();
+			m_movementGoal = MOVEGOAL_NONE;
+			TaskComplete();
+			break;
+		}
 	case TASK_RANGE_ATTACK1:
 		{
 			m_IdealActivity = ACT_RANGE_ATTACK1;
@@ -1147,6 +1215,31 @@ Schedule_t	slHoundCombatFailNoPVS[] =
 	},
 };
 
+//=========================================================
+// Horde direct-approach: bypass nav graph when on a crate/ledge.
+//=========================================================
+Task_t tlHoundDirectApproach[] =
+{
+	{ TASK_STOP_MOVING,				(float)0 },
+	{ TASK_HOUND_DIRECT_APPROACH,	(float)0 },
+	{ TASK_RUN_PATH,				(float)0 },
+	{ TASK_WAIT_FOR_MOVEMENT,		(float)0 },
+};
+
+Schedule_t slHoundDirectApproach[] =
+{
+	{
+		tlHoundDirectApproach,
+		ARRAYSIZE( tlHoundDirectApproach ),
+		bits_COND_NEW_ENEMY			|
+		bits_COND_ENEMY_DEAD		|
+		bits_COND_CAN_RANGE_ATTACK1	|
+		bits_COND_TASK_FAILED,
+		0,
+		"HoundDirectApproach"
+	},
+};
+
 DEFINE_CUSTOM_SCHEDULES( CHoundeye )
 {
 	slHoundGuardPack,
@@ -1160,6 +1253,7 @@ DEFINE_CUSTOM_SCHEDULES( CHoundeye )
 	slHoundHopRetreat,
 	slHoundCombatFailPVS,
 	slHoundCombatFailNoPVS,
+	slHoundDirectApproach,
 };
 
 IMPLEMENT_CUSTOM_SCHEDULES( CHoundeye, CSquadMonster );
@@ -1265,6 +1359,20 @@ Schedule_t* CHoundeye :: GetScheduleOfType ( int Type )
 				return CSquadMonster :: GetScheduleOfType ( Type );
 			}
 		}
+	case SCHED_HOUND_DIRECT_APPROACH:
+		{
+			return &slHoundDirectApproach[ 0 ];
+		}
+	case SCHED_CHASE_ENEMY_FAILED:
+		{
+			// Only redirect when on the ground. If already airborne from a previous
+			// launch, let the existing velocity carry the houndeye rather than
+			// re-applying another push (which causes floating).
+			if ( g_pGameRules->IsMultiplayer() && m_hEnemy != NULL
+				 && FBitSet( pev->flags, FL_ONGROUND ) )
+				return &slHoundDirectApproach[ 0 ];
+			return CSquadMonster :: GetScheduleOfType ( Type );
+		}
 	default:
 		{
 			return CSquadMonster :: GetScheduleOfType ( Type );
@@ -1286,6 +1394,17 @@ Schedule_t *CHoundeye :: GetSchedule( void )
 			{
 				// call base class, all code to handle dead enemies is centralized there.
 				return CBaseMonster :: GetSchedule();
+			}
+
+			// In horde mode be immediately aggressive: skip squad slot-locking so every
+			// houndeye attacks independently, and always chase rather than stall on a ledge.
+			if ( g_pGameRules->IsMultiplayer() )
+			{
+				if ( HasConditions( bits_COND_CAN_RANGE_ATTACK1 ) )
+					return GetScheduleOfType( SCHED_RANGE_ATTACK1 );
+
+				// No range attack available (e.g. player is below on a ledge) - chase them down.
+				return GetScheduleOfType( SCHED_CHASE_ENEMY );
 			}
 
 			if ( HasConditions( bits_COND_LIGHT_DAMAGE | bits_COND_HEAVY_DAMAGE ) )
