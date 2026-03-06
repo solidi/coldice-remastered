@@ -23,6 +23,7 @@
 #include	"cbase.h"
 #include	"monsters.h"
 #include	"schedule.h"
+#include	"game.h"
 
 
 //=========================================================
@@ -33,6 +34,19 @@
 #define	ZOMBIE_AE_ATTACK_BOTH		0x03
 
 #define ZOMBIE_FLINCH_DELAY			2		// at most one flinch every n secs
+
+//=========================================================
+// Custom horde schedule / task IDs
+//=========================================================
+enum
+{
+	SCHED_ZOMBIE_DIRECT_APPROACH = LAST_COMMON_SCHEDULE + 1,
+};
+
+enum
+{
+	TASK_ZOMBIE_DIRECT_APPROACH = LAST_COMMON_TASK + 1,
+};
 
 class CZombie : public CBaseMonster
 {
@@ -61,10 +75,48 @@ public:
 	// No range attacks
 	BOOL CheckRangeAttack1 ( float flDot, float flDist ) { return FALSE; }
 	BOOL CheckRangeAttack2 ( float flDot, float flDist ) { return FALSE; }
+	BOOL CheckMeleeAttack1 ( float flDot, float flDist );
+	Schedule_t *GetSchedule( void );
+	Schedule_t *GetScheduleOfType( int Type );
+	void StartTask( Task_t *pTask );
 	int TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int bitsDamageType );
+
+	CUSTOM_SCHEDULES;
 };
 
 LINK_ENTITY_TO_CLASS( monster_zombie, CZombie );
+
+//=========================================================
+// Direct-approach schedule: bypasses nav graph so the zombie
+// walks off crates/ledges using MOVETYPE_STEP physics.
+//=========================================================
+Task_t tlZombieDirectApproach[] =
+{
+	{ TASK_STOP_MOVING,				(float)0 },
+	{ TASK_ZOMBIE_DIRECT_APPROACH,	(float)0 },
+	{ TASK_RUN_PATH,				(float)0 },
+	{ TASK_WAIT_FOR_MOVEMENT,		(float)0 },
+};
+
+Schedule_t slZombieDirectApproach[] =
+{
+	{
+		tlZombieDirectApproach,
+		ARRAYSIZE( tlZombieDirectApproach ),
+		bits_COND_NEW_ENEMY			|
+		bits_COND_ENEMY_DEAD		|
+		bits_COND_CAN_MELEE_ATTACK1	|
+		bits_COND_TASK_FAILED,
+		0,
+		"ZombieDirectApproach"
+	},
+};
+
+DEFINE_CUSTOM_SCHEDULES( CZombie )
+{
+	slZombieDirectApproach,
+};
+IMPLEMENT_CUSTOM_SCHEDULES( CZombie, CBaseMonster );
 
 const char *CZombie::pAttackHitSounds[] = 
 {
@@ -154,6 +206,23 @@ int CZombie :: TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, floa
 	if (g_pGameRules->IsMultiplayer())
 	{
 		flDamage *= 0.25;
+
+		// Force the attacker as our enemy immediately, even if they are out of sight
+		// (e.g. player hitting the zombie from below a ledge). This ensures the zombie
+		// turns and walks toward the attacker to engage.
+		if ( IsAlive() && pevAttacker && (pevAttacker->flags & (FL_MONSTER | FL_CLIENT)) )
+		{
+			CBaseEntity *pAttacker = CBaseEntity::Instance( pevAttacker );
+			if ( pAttacker && pAttacker != this && m_hEnemy != pAttacker )
+			{
+				if ( m_hEnemy != NULL )
+					PushEnemy( m_hEnemy, m_vecEnemyLKP );
+				m_hEnemy = pAttacker;
+				m_vecEnemyLKP = pevAttacker->origin;
+				SetConditions( bits_COND_NEW_ENEMY );
+				m_IdealMonsterState = MONSTERSTATE_COMBAT;
+			}
+		}
 	}
 
 	return CBaseMonster::TakeDamage( pevInflictor, pevAttacker, flDamage, bitsDamageType );
@@ -330,6 +399,161 @@ void CZombie :: Precache()
 //=========================================================
 
 
+
+//=========================================================
+// CheckMeleeAttack1 - overridden for zombie so that in horde
+// mode it attacks more aggressively: relaxed dot threshold and
+// no requirement for the enemy to be on the ground.
+//=========================================================
+BOOL CZombie :: CheckMeleeAttack1 ( float flDot, float flDist )
+{
+	if ( flDist <= 64 )
+	{
+		if ( g_pGameRules->IsMultiplayer() )
+		{
+			// In horde: attack at steep angles (ledge above/below) and don't
+			// require the enemy to be standing on the ground.
+			if ( flDot >= 0.5 && m_hEnemy != NULL )
+				return TRUE;
+		}
+		else
+		{
+			if ( flDot >= 0.7 && m_hEnemy != NULL && FBitSet( m_hEnemy->pev->flags, FL_ONGROUND ) )
+				return TRUE;
+		}
+	}
+	return FALSE;
+}
+
+//=========================================================
+// GetScheduleOfType - in horde, retry the chase instead of
+// taking cover when pathfinding to enemy fails.
+//=========================================================
+Schedule_t *CZombie :: GetScheduleOfType( int Type )
+{
+	if ( g_pGameRules->IsMultiplayer() && Type == SCHED_CHASE_ENEMY_FAILED )
+	{
+		// Only redirect when on the ground. If already airborne from a previous
+		// launch, let the existing velocity carry the zombie rather than
+		// re-applying another push (which causes floating).
+		if ( m_hEnemy != NULL && FBitSet( pev->flags, FL_ONGROUND ) )
+			return &slZombieDirectApproach[0];
+
+		// No enemy left - retry the standard chase
+		return GetScheduleOfType( SCHED_CHASE_ENEMY );
+	}
+
+	return CBaseMonster::GetScheduleOfType( Type );
+}
+
+//=========================================================
+// StartTask - handle the zombie's custom direct-approach task.
+//=========================================================
+void CZombie :: StartTask( Task_t *pTask )
+{
+	switch ( pTask->iTask )
+	{
+	case TASK_ZOMBIE_DIRECT_APPROACH:
+		{
+			if ( m_hEnemy == NULL )
+			{
+				TaskFail();
+				return;
+			}
+
+			// Try standard routing first.
+			if ( BuildRoute( m_hEnemy->pev->origin, bits_MF_TO_ENEMY, m_hEnemy ) ||
+				 BuildNearestRoute( m_hEnemy->pev->origin, m_hEnemy->pev->view_ofs, 0,
+									(m_hEnemy->pev->origin - pev->origin).Length() ) )
+			{
+				TaskComplete();
+				return;
+			}
+
+			// Already airborne from a previous launch — don't push again.
+			// Let gravity and the existing velocity carry the zombie down.
+			if ( !FBitSet( pev->flags, FL_ONGROUND ) )
+			{
+				RouteNew();
+				m_movementGoal = MOVEGOAL_NONE;
+				TaskComplete();
+				return;
+			}
+
+			// All nav routing failed (zombie on isolated geometry like a crate with
+			// no nav nodes). Launch the zombie physically toward the enemy, using
+			// the same gravity-based ballistic technique as the panthereye leap.
+			Vector vecToEnemy = m_hEnemy->pev->origin - pev->origin;
+			float flHeight    = vecToEnemy.z;
+
+			float gravity = g_psv_gravity->value;
+			if ( gravity <= 1 ) gravity = 1;
+
+			Vector vecLaunch;
+			if ( flHeight < -16 )
+			{
+				// Enemy is below us — step off the ledge with horizontal momentum.
+				// Zero out Z so gravity pulls the zombie down naturally.
+				Vector vec2D = vecToEnemy;
+				vec2D.z = 0;
+				float len = vec2D.Length();
+				if ( len > 0 ) vec2D = vec2D * (1.0f / len);
+				vecLaunch   = vec2D * 200.0f;
+				vecLaunch.z = 0;
+			}
+			else
+			{
+				// Enemy at same level or above — arc up to reach them (same formula
+				// as panthereye's DIABLO_AE_JUMPATTACK).
+				if ( flHeight < 16 ) flHeight = 16;
+				float speed = sqrt( 2.0f * gravity * flHeight );
+				float time  = speed / gravity;
+				vecLaunch   = vecToEnemy * ( 1.0f / time );
+				vecLaunch.z = speed * 0.9f;
+				float dist  = vecLaunch.Length();
+				if ( dist > 650 ) vecLaunch = vecLaunch * ( 650.0f / dist );
+			}
+
+			// Lift off and apply velocity — same technique as panthereye's jump.
+			// Clearing FL_ONGROUND lets the engine treat the zombie as airborne
+			// so the velocity is actually applied (MOVETYPE_STEP ignores velocity
+			// on grounded entities).
+			ClearBits( pev->flags, FL_ONGROUND );
+			UTIL_SetOrigin( pev, pev->origin + Vector( 0, 0, 1 ) );
+			pev->velocity = vecLaunch;
+
+			// Clear the route so TASK_WAIT_FOR_MOVEMENT finishes immediately.
+			RouteNew();
+			m_movementGoal = MOVEGOAL_NONE;
+			TaskComplete();
+		}
+		break;
+
+	default:
+		CBaseMonster::StartTask( pTask );
+		break;
+	}
+}
+
+//=========================================================
+// GetSchedule - horde override for aggressive combat behavior.
+//=========================================================
+Schedule_t *CZombie :: GetSchedule( void )
+{
+	if ( m_MonsterState == MONSTERSTATE_COMBAT && g_pGameRules->IsMultiplayer() )
+	{
+		if ( HasConditions( bits_COND_ENEMY_DEAD ) )
+			return CBaseMonster::GetSchedule();
+
+		// In horde: melee if possible, otherwise chase off the ledge.
+		if ( HasConditions( bits_COND_CAN_MELEE_ATTACK1 ) )
+			return GetScheduleOfType( SCHED_MELEE_ATTACK1 );
+
+		return GetScheduleOfType( SCHED_CHASE_ENEMY );
+	}
+
+	return CBaseMonster::GetSchedule();
+}
 
 int CZombie::IgnoreConditions ( void )
 {
