@@ -1604,8 +1604,8 @@ void CHalfLifeMultiplay :: ClientDisconnected( edict_t *pClient )
 			pPlayer->HasDisconnected = TRUE;
 			if ( g_GameInProgress )
 			{
-				if ( pPlayer->IsInArena && !pPlayer->IsSpectator() )
-					UTIL_ClientPrintAll(HUD_PRINTTALK, UTIL_VarArgs("[Game] %s has left the round!\n", STRING(pPlayer->pev->netname)));
+				//if ( pPlayer->IsInArena && !pPlayer->IsSpectator() )
+				//	UTIL_ClientPrintAll(HUD_PRINTTALK, UTIL_VarArgs("[Game] %s has left the round!\n", STRING(pPlayer->pev->netname)));
 			}
 			pPlayer->IsInArena = FALSE;
 
