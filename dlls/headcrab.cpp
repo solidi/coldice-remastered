@@ -96,6 +96,7 @@ public:
 	virtual int GetVoicePitch( void ) { return 100; }
 	virtual float GetSoundVolue( void ) { return 1.0; }
 	Schedule_t* GetScheduleOfType ( int Type );
+	Schedule_t* GetSchedule( void );
 
 	CUSTOM_SCHEDULES;
 
@@ -403,9 +404,13 @@ void CHeadCrab :: StartTask ( Task_t *pTask )
 //=========================================================
 BOOL CHeadCrab :: CheckRangeAttack1 ( float flDot, float flDist )
 {
-	if ( FBitSet( pev->flags, FL_ONGROUND ) && flDist <= 256 && flDot >= 0.65 )
+	if ( FBitSet( pev->flags, FL_ONGROUND ) && flDist <= 256 )
 	{
-		return TRUE;
+		// In horde mode, use a relaxed dot threshold so the headcrab jumps at
+		// players that are above or below it on a ledge.
+		float flRequiredDot = g_pGameRules->IsMultiplayer() ? 0.3f : 0.65f;
+		if ( flDot >= flRequiredDot )
+			return TRUE;
 	}
 	return FALSE;
 }
@@ -472,6 +477,24 @@ void CHeadCrab :: PainSound ( void )
 void CHeadCrab :: DeathSound ( void )
 {
 	EMIT_SOUND_DYN( edict(), CHAN_VOICE, RANDOM_SOUND_ARRAY(pDeathSounds), GetSoundVolue(), ATTN_IDLE, 0, GetVoicePitch() );
+}
+
+Schedule_t* CHeadCrab :: GetSchedule( void )
+{
+	if ( m_MonsterState == MONSTERSTATE_COMBAT && g_pGameRules->IsMultiplayer() )
+	{
+		if ( HasConditions( bits_COND_ENEMY_DEAD ) )
+			return CBaseMonster::GetSchedule();
+
+		// In horde mode be immediately aggressive: jump at the player when in range,
+		// otherwise chase them down even off ledges.
+		if ( HasConditions( bits_COND_CAN_RANGE_ATTACK1 ) )
+			return GetScheduleOfType( SCHED_RANGE_ATTACK1 );
+
+		return GetScheduleOfType( SCHED_CHASE_ENEMY );
+	}
+
+	return CBaseMonster::GetSchedule();
 }
 
 Schedule_t* CHeadCrab :: GetScheduleOfType ( int Type )
