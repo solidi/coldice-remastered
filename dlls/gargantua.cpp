@@ -30,6 +30,7 @@
 #include	"decals.h"
 #include	"explode.h"
 #include	"func_break.h"
+#include	"game.h"
 
 //=========================================================
 // Gargantua Monster
@@ -217,6 +218,7 @@ public:
 		pev->absmax = pev->origin + Vector( 80, 80, 214 );
 	}
 
+	Schedule_t *GetSchedule( void );
 	Schedule_t *GetScheduleOfType( int Type );
 	void StartTask( Task_t *pTask );
 	void RunTask( Task_t *pTask );
@@ -387,8 +389,14 @@ enum
 
 enum
 {
+	SCHED_GARG_DIRECT_APPROACH = LAST_COMMON_SCHEDULE + 1,
+};
+
+enum
+{
 	TASK_SOUND_ATTACK = LAST_COMMON_TASK + 1,
 	TASK_FLAME_SWEEP,
+	TASK_GARG_DIRECT_APPROACH,
 };
 
 Task_t	tlGargFlame[] =
@@ -434,10 +442,37 @@ Schedule_t	slGargSwipe[] =
 };
 
 
+//=========================================================
+// Horde direct-approach: bypass nav graph when on a crate/ledge.
+//=========================================================
+Task_t tlGargDirectApproach[] =
+{
+	{ TASK_STOP_MOVING,					(float)0 },
+	{ TASK_GARG_DIRECT_APPROACH,		(float)0 },
+	{ TASK_RUN_PATH,					(float)0 },
+	{ TASK_WAIT_FOR_MOVEMENT,			(float)0 },
+};
+
+Schedule_t slGargDirectApproach[] =
+{
+	{
+		tlGargDirectApproach,
+		ARRAYSIZE( tlGargDirectApproach ),
+		bits_COND_NEW_ENEMY				|
+		bits_COND_ENEMY_DEAD			|
+		bits_COND_CAN_MELEE_ATTACK1		|
+		bits_COND_CAN_MELEE_ATTACK2		|
+		bits_COND_TASK_FAILED,
+		0,
+		"GargDirectApproach"
+	},
+};
+
 DEFINE_CUSTOM_SCHEDULES( CGargantua )
 {
 	slGargFlame,
 	slGargSwipe,
+	slGargDirectApproach,
 };
 
 IMPLEMENT_CUSTOM_SCHEDULES( CGargantua, CBaseMonster );
@@ -522,6 +557,8 @@ void CGargantua :: FlameCreate( void )
 			m_pFlame[i]->SetScrollRate( 20 );
 			// attachment is 1 based in SetEndAttachment
 			m_pFlame[i]->SetEndAttachment( attach + 2 );
+			if (g_pGameRules->IsMultiplayer())
+				m_pFlame[i]->LiveForTime( 10.0f );
 			CSoundEnt::InsertSound( bits_SOUND_COMBAT, posGun, 384, 0.3 );
 		}
 	}
@@ -887,6 +924,22 @@ int CGargantua::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, flo
 	if (g_pGameRules->IsMultiplayer())
 	{
 		flDamage *= 0.25;
+
+		// Force the attacker as our enemy immediately so garg engages even when
+		// the player is below/out of sight (e.g. shooting from below a crate).
+		if ( IsAlive() && pevAttacker && (pevAttacker->flags & (FL_MONSTER | FL_CLIENT)) )
+		{
+			CBaseEntity *pAttacker = CBaseEntity::Instance( pevAttacker );
+			if ( pAttacker && pAttacker != this && m_hEnemy != pAttacker )
+			{
+				if ( m_hEnemy != NULL )
+					PushEnemy( m_hEnemy, m_vecEnemyLKP );
+				m_hEnemy = pAttacker;
+				m_vecEnemyLKP = pevAttacker->origin;
+				SetConditions( bits_COND_NEW_ENEMY );
+				m_IdealMonsterState = MONSTERSTATE_COMBAT;
+			}
+		}
 	}
 
 	return CBaseMonster::TakeDamage( pevInflictor, pevAttacker, flDamage, bitsDamageType );
@@ -1080,6 +1133,26 @@ CBaseEntity* CGargantua::GargantuaCheckTraceHullAttack(float flDist, int iDamage
 }
 
 
+Schedule_t *CGargantua::GetSchedule( void )
+{
+	if ( m_MonsterState == MONSTERSTATE_COMBAT && g_pGameRules->IsMultiplayer() )
+	{
+		if ( HasConditions( bits_COND_ENEMY_DEAD ) )
+			return CBaseMonster::GetSchedule();
+
+		if ( HasConditions( bits_COND_CAN_MELEE_ATTACK1 ) )
+			return GetScheduleOfType( SCHED_MELEE_ATTACK1 );
+		if ( HasConditions( bits_COND_CAN_MELEE_ATTACK2 ) )
+			return GetScheduleOfType( SCHED_MELEE_ATTACK2 );
+		if ( HasConditions( bits_COND_CAN_RANGE_ATTACK1 ) )
+			return GetScheduleOfType( SCHED_RANGE_ATTACK1 );
+
+		return GetScheduleOfType( SCHED_CHASE_ENEMY );
+	}
+
+	return CBaseMonster::GetSchedule();
+}
+
 Schedule_t *CGargantua::GetScheduleOfType( int Type )
 {
 	// HACKHACK - turn off the flames if they are on and garg goes scripted / dead
@@ -1092,6 +1165,14 @@ Schedule_t *CGargantua::GetScheduleOfType( int Type )
 			return slGargFlame;
 		case SCHED_MELEE_ATTACK1:
 			return slGargSwipe;
+		case SCHED_CHASE_ENEMY_FAILED:
+			// Only redirect when on the ground. If already airborne from a previous
+			// launch, let the existing velocity carry the garg rather than
+			// re-applying another push (which causes the "floating" effect).
+			if ( g_pGameRules->IsMultiplayer() && m_hEnemy != NULL
+				 && FBitSet( pev->flags, FL_ONGROUND ) )
+				return &slGargDirectApproach[0];
+			return CBaseMonster::GetScheduleOfType( Type );
 		break;
 	}
 
@@ -1103,6 +1184,70 @@ void CGargantua::StartTask( Task_t *pTask )
 {
 	switch ( pTask->iTask )
 	{
+	case TASK_GARG_DIRECT_APPROACH:
+		{
+			if ( m_hEnemy == NULL ) { TaskFail(); break; }
+
+			// Try standard nav routing first.
+			if ( BuildRoute( m_hEnemy->pev->origin, bits_MF_TO_ENEMY, m_hEnemy ) ||
+				 BuildNearestRoute( m_hEnemy->pev->origin, m_hEnemy->pev->view_ofs, 0,
+									(m_hEnemy->pev->origin - pev->origin).Length() ) )
+			{
+				TaskComplete();
+				break;
+			}
+
+			// Already airborne from a previous launch — don't push again.
+			// Let gravity and the existing velocity carry the garg down.
+			if ( !FBitSet( pev->flags, FL_ONGROUND ) )
+			{
+				RouteNew();
+				m_movementGoal = MOVEGOAL_NONE;
+				TaskComplete();
+				break;
+			}
+
+			// Nav graph failed (garg on isolated geometry with no nav nodes).
+			// Push horizontally off the ledge; gravity handles the drop.
+			Vector vecToEnemy = m_hEnemy->pev->origin - pev->origin;
+			float flHeight	  = vecToEnemy.z;
+
+			float gravity = g_psv_gravity->value;
+			if ( gravity <= 1 ) gravity = 1;
+
+			Vector vecLaunch;
+			if ( flHeight < -16 )
+			{
+				// Enemy below — step off the ledge.
+				Vector vec2D = vecToEnemy;
+				vec2D.z = 0;
+				float len = vec2D.Length();
+				if ( len > 0 ) vec2D = vec2D * ( 1.0f / len );
+				vecLaunch	  = vec2D * 200.0f;
+				vecLaunch.z = 0;
+			}
+			else
+			{
+				// Same level or above — arc up.
+				if ( flHeight < 16 ) flHeight = 16;
+				float speed = sqrt( 2.0f * gravity * flHeight );
+				float time  = speed / gravity;
+				vecLaunch	  = vecToEnemy * ( 1.0f / time );
+				vecLaunch.z = speed * 0.9f;
+				float dist  = vecLaunch.Length();
+				if ( dist > 650 ) vecLaunch = vecLaunch * ( 650.0f / dist );
+			}
+
+			ClearBits( pev->flags, FL_ONGROUND );
+			UTIL_SetOrigin( pev, pev->origin + Vector( 0, 0, 1 ) );
+			pev->velocity = vecLaunch;
+
+			RouteNew();
+			m_movementGoal = MOVEGOAL_NONE;
+			TaskComplete();
+		}
+		break;
+
 	case TASK_FLAME_SWEEP:
 		FlameCreate();
 		m_flWaitFinished = gpGlobals->time + pTask->flData;
