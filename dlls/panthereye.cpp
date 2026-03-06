@@ -335,7 +335,7 @@ void CDiablo::Spawn()
 	// For horde
 	if (g_pGameRules->IsMultiplayer())
 	{
-		pev->framerate = 2.0;
+		pev->framerate = 1.5;
 		m_flFieldOfView = -0.707; // 270 degrees;
 	}
 	else
@@ -418,7 +418,7 @@ void CDiablo::SetYawSpeed(void)
 {
 	// For horde
 	if (g_pGameRules->IsMultiplayer())
-		pev->framerate = 2.0;
+		pev->framerate = 1.5;
 
 	int ys = 90;
 	switch (m_Activity)
@@ -469,7 +469,7 @@ void CDiablo::HandleAnimEvent(MonsterEvent_t* pEvent)
 {
 	// For horde
 	if (g_pGameRules->IsMultiplayer())
-		pev->framerate = 2.0;
+		pev->framerate = 1.5;
 
 	switch (pEvent->event)
 	{
