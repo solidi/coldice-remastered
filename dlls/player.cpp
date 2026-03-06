@@ -1910,6 +1910,8 @@ void CBasePlayer::StartObserver( Vector vecPosition, Vector vecViewAngle )
 	DeactivatePortals(this);
 	DeactivateDecoys(this);
 
+	ClearFlames();
+
 	if ( m_pTank != NULL )
 	{
 		m_pTank->Use( this, this, USE_OFF, 0 );
@@ -1980,6 +1982,24 @@ void CBasePlayer::StartObserver( Vector vecPosition, Vector vecViewAngle )
 // PlayerUse - handles USE keypress
 //
 #define	PLAYER_SEARCH_RADIUS	(float)64
+
+void CBasePlayer::ClearFlames( void )
+{
+	// Clear out the player's burn
+	pev->playerclass = 0;
+	m_fBurnTime = 0.0;
+	m_hFlameOwner = NULL;
+	MESSAGE_BEGIN( MSG_ALL, gmsgFlameKill );
+		WRITE_SHORT( entindex() );
+	MESSAGE_END();
+	MESSAGE_BEGIN( MSG_ALL, gmsgFlameMsg );
+		WRITE_SHORT( entindex() );
+		WRITE_BYTE( 0 );
+	MESSAGE_END();
+	m_bPlayerOnFire = 0;
+	nextburntime = 0;
+	//--
+}
 
 void CBasePlayer::PlayerUse ( void )
 {
@@ -4185,17 +4205,7 @@ void CBasePlayer::Spawn( void )
 	m_flNextChatTime = gpGlobals->time;
 
 	// Flames
-	pev->playerclass = 0;
-	m_fBurnTime = 0.0;
-	m_hFlameOwner = NULL;
-	MESSAGE_BEGIN( MSG_ALL, gmsgFlameKill );
-		WRITE_SHORT( entindex() );
-	MESSAGE_END();
-	MESSAGE_BEGIN( MSG_ALL, gmsgFlameMsg );
-		WRITE_SHORT( entindex() );
-		WRITE_BYTE( 0 );
-	MESSAGE_END();
-	m_bPlayerOnFire = 0;
+	ClearFlames();
 
 #if defined( GRAPPLING_HOOK )
 	if (pGrapplingHook) {
