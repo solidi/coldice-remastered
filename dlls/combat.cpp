@@ -34,6 +34,7 @@
 #include "game.h"
 #include "gamerules.h"
 
+extern int gmsgMonsterLifeBar;  // Registered in player.cpp
 extern DLL_GLOBAL Vector		g_vecAttackDir;
 extern DLL_GLOBAL int			g_iSkillLevel;
 
@@ -1063,7 +1064,21 @@ int CBaseMonster :: TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker,
 	// do the damage
 	pev->health -= flTake;
 
-	
+	// Notify clients of horde monster health change so damage numbers can be shown
+	if (g_pGameRules->IsHorde() && pev->fuser4 == RADAR_HORDE && pev->max_health > 0)
+	{
+		int entIdx = ENTINDEX(edict());
+		if (entIdx > 0)
+		{
+			int sendHealth = (int)pev->health;  // may be <= 0 on killing blow
+			MESSAGE_BEGIN(MSG_PVS, gmsgMonsterLifeBar, pev->origin);
+				WRITE_SHORT(entIdx);
+				WRITE_SHORT(sendHealth);
+				WRITE_SHORT((int)pev->max_health);
+			MESSAGE_END();
+		}
+	}
+
 	// HACKHACK Don't kill monsters in a script.  Let them break their scripts first
 	if ( m_MonsterState == MONSTERSTATE_SCRIPT )
 	{

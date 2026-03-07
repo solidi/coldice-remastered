@@ -205,7 +205,9 @@ MONSTERSTATE CBaseMonster :: GetIdealState ( void )
 			{
 				m_IdealMonsterState = MONSTERSTATE_ALERT;
 				// pev->effects = EF_BRIGHTFIELD;
+#ifdef _DEBUG
 				ALERT ( at_aiconsole, "***Combat state with no enemy!\n" );
+#endif
 			}
 			break;
 		}

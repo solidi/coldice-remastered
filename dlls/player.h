@@ -473,6 +473,7 @@ public:
 	float nextburntime;
 	byte m_bPlayerOnFire;
 	void PlayerBurn(void);
+	void ClearFlames(void);
 
 	float m_fVoteCoolDown;
 

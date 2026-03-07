@@ -140,10 +140,6 @@ void ClientDisconnect( edict_t *pEntity )
 		return;
 
 	pEntity->v.playerclass = 0;
-	/*MESSAGE_BEGIN( MSG_ALL, gmsgDelPart );
-		WRITE_SHORT( ENTINDEX(pEntity) );
-		WRITE_BYTE( 10 );
-	MESSAGE_END();*/
 	MESSAGE_BEGIN( MSG_ALL, gmsgFlameKill );
 		WRITE_SHORT( ENTINDEX(pEntity) );
 	MESSAGE_END();

@@ -41,6 +41,7 @@
 #include	"soundent.h"
 #include	"effects.h"
 #include	"customentity.h"
+#include	"game.h"
 
 int g_fGruntQuestion;				// true if an idle grunt asked a question. Cleared when someone answers.
 
@@ -93,7 +94,7 @@ extern DLL_GLOBAL int		g_iSkillLevel;
 enum
 {
 	SCHED_GRUNT_SUPPRESS = LAST_COMMON_SCHEDULE + 1,
-	SCHED_GRUNT_ESTABLISH_LINE_OF_FIRE,// move to a location to set up an attack against the enemy. (usually when a friendly is in the way).
+	SCHED_GRUNT_ESTABLISH_LINE_OF_FIRE,
 	SCHED_GRUNT_COVER_AND_RELOAD,
 	SCHED_GRUNT_SWEEP,
 	SCHED_GRUNT_FOUND_ENEMY,
@@ -101,8 +102,9 @@ enum
 	SCHED_GRUNT_REPEL_ATTACK,
 	SCHED_GRUNT_REPEL_LAND,
 	SCHED_GRUNT_WAIT_FACE_ENEMY,
-	SCHED_GRUNT_TAKECOVER_FAILED,// special schedule type that forces analysis of conditions and picks the best possible schedule to recover from this type of failure.
+	SCHED_GRUNT_TAKECOVER_FAILED,
 	SCHED_GRUNT_ELOF_FAIL,
+	SCHED_GRUNT_DIRECT_APPROACH,
 };
 
 //=========================================================
@@ -113,6 +115,7 @@ enum
 	TASK_GRUNT_FACE_TOSS_DIR = LAST_COMMON_TASK + 1,
 	TASK_GRUNT_SPEAK_SENTENCE,
 	TASK_GRUNT_CHECK_FIRE,
+	TASK_GRUNT_DIRECT_APPROACH,
 };
 
 //=========================================================
@@ -634,9 +637,25 @@ int CHGrunt :: TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, floa
 	Forget( bits_MEMORY_INCOVER );
 
 	// For horde
-	if (g_pGameRules->IsMultiplayer())
+	if (g_pGameRules->IsHorde())
 	{
 		flDamage *= 0.25;
+
+		// Force the attacker as our enemy immediately so grunt engages even
+		// when the player is below/out of sight (e.g. shooting from below a crate).
+		if ( IsAlive() && pevAttacker && (pevAttacker->flags & (FL_MONSTER | FL_CLIENT)) )
+		{
+			CBaseEntity *pAttacker = CBaseEntity::Instance( pevAttacker );
+			if ( pAttacker && pAttacker != this && m_hEnemy != pAttacker )
+			{
+				if ( m_hEnemy != NULL )
+					PushEnemy( m_hEnemy, m_vecEnemyLKP );
+				m_hEnemy = pAttacker;
+				m_vecEnemyLKP = pevAttacker->origin;
+				SetConditions( bits_COND_NEW_ENEMY );
+				m_IdealMonsterState = MONSTERSTATE_COMBAT;
+			}
+		}
 	}
 
 	return CSquadMonster :: TakeDamage ( pevInflictor, pevAttacker, flDamage, bitsDamageType );
@@ -995,7 +1014,7 @@ void CHGrunt :: Spawn()
 	pev->movetype		= MOVETYPE_STEP;
 	m_bloodColor		= BLOOD_COLOR_RED;
 	pev->effects		= 0;
-	pev->health			= (g_pGameRules->IsMultiplayer()) ? gSkillData.hgruntHealth * 4 : gSkillData.hgruntHealth;
+	pev->health			= (g_pGameRules->IsHorde()) ? gSkillData.hgruntHealth * 2 : gSkillData.hgruntHealth;
 	m_flFieldOfView		= 0.2;// indicates the width of this monster's forward view cone ( as a dotproduct result )
 	m_MonsterState		= MONSTERSTATE_NONE;
 	m_flNextGrenadeCheck = gpGlobals->time + 1;
@@ -1101,6 +1120,69 @@ void CHGrunt :: StartTask ( Task_t *pTask )
 			SetConditions( bits_COND_GRUNT_NOFIRE );
 		}
 		TaskComplete();
+		break;
+
+	case TASK_GRUNT_DIRECT_APPROACH:
+		{
+			if ( m_hEnemy == NULL ) { TaskFail(); break; }
+
+			// Try standard nav routing first.
+			if ( BuildRoute( m_hEnemy->pev->origin, bits_MF_TO_ENEMY, m_hEnemy ) ||
+				 BuildNearestRoute( m_hEnemy->pev->origin, m_hEnemy->pev->view_ofs, 0,
+									(m_hEnemy->pev->origin - pev->origin).Length() ) )
+			{
+				TaskComplete();
+				break;
+			}
+
+			// Already airborne — don't push again, let gravity carry the grunt down.
+			if ( !FBitSet( pev->flags, FL_ONGROUND ) )
+			{
+				RouteNew();
+				m_movementGoal = MOVEGOAL_NONE;
+				TaskComplete();
+				break;
+			}
+
+			// Nav graph failed (grunt on isolated geometry with no nav nodes).
+			// Push horizontally off the ledge; gravity handles the drop.
+			Vector vecToEnemy = m_hEnemy->pev->origin - pev->origin;
+			float flHeight	  = vecToEnemy.z;
+
+			float gravity = g_psv_gravity->value;
+			if ( gravity <= 1 ) gravity = 1;
+
+			Vector vecLaunch;
+			if ( flHeight < -16 )
+			{
+				// Enemy is below — step off the ledge.
+				Vector vec2D = vecToEnemy;
+				vec2D.z = 0;
+				float len = vec2D.Length();
+				if ( len > 0 ) vec2D = vec2D * ( 1.0f / len );
+				vecLaunch	  = vec2D * 200.0f;
+				vecLaunch.z = 0;
+			}
+			else
+			{
+				// Same level or above — arc up.
+				if ( flHeight < 16 ) flHeight = 16;
+				float speed = sqrt( 2.0f * gravity * flHeight );
+				float time  = speed / gravity;
+				vecLaunch	  = vecToEnemy * ( 1.0f / time );
+				vecLaunch.z = speed * 0.9f;
+				float dist  = vecLaunch.Length();
+				if ( dist > 650 ) vecLaunch = vecLaunch * ( 650.0f / dist );
+			}
+
+			ClearBits( pev->flags, FL_ONGROUND );
+			UTIL_SetOrigin( pev, pev->origin + Vector( 0, 0, 1 ) );
+			pev->velocity = vecLaunch;
+
+			RouteNew();
+			m_movementGoal = MOVEGOAL_NONE;
+			TaskComplete();
+		}
 		break;
 
 	case TASK_GRUNT_SPEAK_SENTENCE:
@@ -1841,6 +1923,33 @@ Schedule_t	slGruntRepelLand[] =
 };
 
 
+//=========================================================
+// Horde direct-approach: bypass nav graph when on a crate/ledge.
+//=========================================================
+Task_t tlGruntDirectApproach[] =
+{
+	{ TASK_STOP_MOVING,					(float)0 },
+	{ TASK_GRUNT_DIRECT_APPROACH,		(float)0 },
+	{ TASK_RUN_PATH,					(float)0 },
+	{ TASK_WAIT_FOR_MOVEMENT,			(float)0 },
+};
+
+Schedule_t slGruntDirectApproach[] =
+{
+	{
+		tlGruntDirectApproach,
+		ARRAYSIZE( tlGruntDirectApproach ),
+		bits_COND_NEW_ENEMY				|
+		bits_COND_ENEMY_DEAD			|
+		bits_COND_CAN_RANGE_ATTACK1		|
+		bits_COND_CAN_RANGE_ATTACK2		|
+		bits_COND_CAN_MELEE_ATTACK1		|
+		bits_COND_TASK_FAILED,
+		0,
+		"GruntDirectApproach"
+	},
+};
+
 DEFINE_CUSTOM_SCHEDULES( CHGrunt )
 {
 	slGruntFail,
@@ -1864,6 +1973,7 @@ DEFINE_CUSTOM_SCHEDULES( CHGrunt )
 	slGruntRepel,
 	slGruntRepelAttack,
 	slGruntRepelLand,
+	slGruntDirectApproach,
 };
 
 IMPLEMENT_CUSTOM_SCHEDULES( CHGrunt, CSquadMonster );
@@ -2232,6 +2342,16 @@ Schedule_t* CHGrunt :: GetScheduleOfType ( int Type )
 {
 	switch	( Type )
 	{
+	case SCHED_CHASE_ENEMY_FAILED:
+		{
+			// In horde, when pathfinding fails (e.g. grunt on a crate with no nav
+			// nodes), drop off the ledge toward the player instead of hiding.
+			// Only fire when on the ground to prevent repeated pushes mid-air.
+			if ( g_pGameRules->IsHorde() && m_hEnemy != NULL
+				 && FBitSet( pev->flags, FL_ONGROUND ) )
+				return &slGruntDirectApproach[ 0 ];
+			return CSquadMonster :: GetScheduleOfType ( Type );
+		}
 	case SCHED_TAKE_COVER_FROM_ENEMY:
 		{
 			if ( InSquad() )

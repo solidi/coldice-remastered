@@ -197,6 +197,7 @@ int gmsgStatusValue = 0;
 int gmsgStatusIcon = 0;
 int gmsgAcrobatics = 0;
 int gmsgLifeBar = 0;
+int gmsgMonsterLifeBar = 0;
 int gmsgReceiveW = 0;
 int gmsgPlayClientSound = 0;
 int gmsgParticle = 0;
@@ -270,6 +271,7 @@ void LinkUserMessages( void )
 	gmsgStatusIcon = REG_USER_MSG("StatusIcon", -1);
 	gmsgAcrobatics = REG_USER_MSG("Acrobatics", 1);
 	gmsgLifeBar = REG_USER_MSG("LifeBar", 3);
+	gmsgMonsterLifeBar = REG_USER_MSG("MLifeBar", 6);
 	gmsgReceiveW = REG_USER_MSG("ReceiveW", 1);
 	gmsgPlayClientSound = REG_USER_MSG("PlayCSound", 1);
 	gmsgParticle = REG_USER_MSG("Particle", -1);
@@ -1908,6 +1910,8 @@ void CBasePlayer::StartObserver( Vector vecPosition, Vector vecViewAngle )
 	DeactivatePortals(this);
 	DeactivateDecoys(this);
 
+	ClearFlames();
+
 	if ( m_pTank != NULL )
 	{
 		m_pTank->Use( this, this, USE_OFF, 0 );
@@ -1978,6 +1982,24 @@ void CBasePlayer::StartObserver( Vector vecPosition, Vector vecViewAngle )
 // PlayerUse - handles USE keypress
 //
 #define	PLAYER_SEARCH_RADIUS	(float)64
+
+void CBasePlayer::ClearFlames( void )
+{
+	// Clear out the player's burn
+	pev->playerclass = 0;
+	m_fBurnTime = 0.0;
+	m_hFlameOwner = NULL;
+	MESSAGE_BEGIN( MSG_ALL, gmsgFlameKill );
+		WRITE_SHORT( entindex() );
+	MESSAGE_END();
+	MESSAGE_BEGIN( MSG_ALL, gmsgFlameMsg );
+		WRITE_SHORT( entindex() );
+		WRITE_BYTE( 0 );
+	MESSAGE_END();
+	m_bPlayerOnFire = 0;
+	nextburntime = 0;
+	//--
+}
 
 void CBasePlayer::PlayerUse ( void )
 {
@@ -4183,17 +4205,7 @@ void CBasePlayer::Spawn( void )
 	m_flNextChatTime = gpGlobals->time;
 
 	// Flames
-	pev->playerclass = 0;
-	m_fBurnTime = 0.0;
-	m_hFlameOwner = NULL;
-	MESSAGE_BEGIN( MSG_ALL, gmsgFlameKill );
-		WRITE_SHORT( entindex() );
-	MESSAGE_END();
-	MESSAGE_BEGIN( MSG_ALL, gmsgFlameMsg );
-		WRITE_SHORT( entindex() );
-		WRITE_BYTE( 0 );
-	MESSAGE_END();
-	m_bPlayerOnFire = 0;
+	ClearFlames();
 
 #if defined( GRAPPLING_HOOK )
 	if (pGrapplingHook) {

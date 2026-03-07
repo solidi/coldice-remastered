@@ -677,6 +677,7 @@ private:
 };
 
 typedef struct {
+	Vector origin;
 	float angle, distance, height;
 	int special;
 } RADAR;

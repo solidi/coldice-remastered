@@ -108,7 +108,7 @@ void CHudRadar::DrawInWorldIndicator(Vector worldOrigin, float distance, int spe
 	
 	// Color based on special type
 	int r, g, b;
-	if (special == RADAR_BASE_RED)
+	if (special == RADAR_BASE_RED || special == RADAR_HORDE)
 	{
 		r = 240; g = 0; b = 0; // Red for RADAR_BASE_RED
 	}
@@ -130,8 +130,8 @@ void CHudRadar::DrawInWorldIndicator(Vector worldOrigin, float distance, int spe
 	alpha = (int)(alpha * pulse);
 	
 	// Draw downward-pointing triangle (tip at bottom)
-	int triW = EDGE_INDICATOR_SIZE_WIDTH;
-	int triH = EDGE_INDICATOR_SIZE_HEIGHT;
+	int triW = EDGE_INDICATOR_SIZE_WIDTH - XRES(10); // Slightly narrower than defined size for better proportions
+	int triH = EDGE_INDICATOR_SIZE_HEIGHT - YRES(12); // Slightly shorter than defined size for better proportions
 	for (int i = 0; i < triH; i++)
 	{
 		int width = triW - (i * triW) / triH;
@@ -450,7 +450,7 @@ void CHudRadar::DrawEdgeIndicator(int centerX, int centerY, float angle, float d
 
 void CHudRadar::ProcessPlayerState(void)
 {
-	Vector v_player[MAX_RADAR_DOTS], v_other, v_radar;
+	Vector v_player[MAX_RADAR_DOTS], v_other, v_radar, v_origin[MAX_RADAR_DOTS];
 	int b_specials[MAX_RADAR_DOTS] = {false};
 	float distanceLocal, player_distance[MAX_RADAR_DOTS], player_height[MAX_RADAR_DOTS], view_angle;
 	int num_players = 0;
@@ -515,6 +515,7 @@ void CHudRadar::ProcessPlayerState(void)
 		distanceLocal = v_other.Length();
 
 		v_player[num_players] = v_other;
+		v_origin[num_players] = pClient->origin + Vector(0, 0, int(pClient->curstate.maxs.z) - int(pClient->curstate.maxs.z * 0.3)); // Raise origin for better visibility on radar
 		player_distance[num_players] = distanceLocal <= MAX_DISTANCE ? distanceLocal : MAX_DISTANCE;
 		// Player is 72 units high, adjust height diff to linear scale
 		player_height[num_players] = ((pClient->origin.z - localPlayer->origin.z) / 72);
@@ -552,6 +553,7 @@ void CHudRadar::ProcessPlayerState(void)
 		view_angle = (view_angle - v_radar.y);
 
 		RADAR radarInfo;
+		radarInfo.origin = v_origin[index];
 		radarInfo.distance = player_distance[index];
 		radarInfo.height = player_height[index];
 		radarInfo.angle = view_angle;
@@ -717,6 +719,12 @@ int CHudRadar::Draw(float flTime)
 			m_RadarInfo[index].special == RADAR_BASE_RED ||
 			m_RadarInfo[index].special == RADAR_BASE_BLUE)
 			continue; // Come from server-sent entities, skip here
+		
+		if (m_RadarInfo[index].special == RADAR_HORDE)
+		{
+			DrawInWorldIndicator(m_RadarInfo[index].origin, m_RadarInfo[index].distance, m_RadarInfo[index].special);
+			continue;
+		}
 		
 		DrawEdgeIndicator(screenCenterX, screenCenterY, 
 			m_RadarInfo[index].angle, 
