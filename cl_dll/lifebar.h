@@ -39,7 +39,6 @@ struct s_DamageNumber {
 
 struct s_MonsterEntry {
     int entityIndex;          // Entity index of the horde monster (0 = unused)
-    int previousHealth;       // Last known health for delta calculation
     float refreshTime;        // Client time after which this slot expires
     s_DamageNumber damageNumbers[MAX_DAMAGE_NUMBERS];
 };

@@ -1071,10 +1071,12 @@ int CBaseMonster :: TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker,
 		if (entIdx > 0)
 		{
 			int sendHealth = (int)pev->health;  // may be <= 0 on killing blow
+			int sendDamage = (int)flTake;         // actual damage dealt this hit
 			MESSAGE_BEGIN(MSG_PVS, gmsgMonsterLifeBar, pev->origin);
 				WRITE_SHORT(entIdx);
 				WRITE_SHORT(sendHealth);
 				WRITE_SHORT((int)pev->max_health);
+				WRITE_SHORT(sendDamage);
 			MESSAGE_END();
 		}
 	}

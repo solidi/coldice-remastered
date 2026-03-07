@@ -148,9 +148,10 @@ int CHudLifeBar::MsgFunc_LifeBar(const char *pszName,  int iSize, void *pbuf )
 int CHudLifeBar::MsgFunc_MLifeBar(const char *pszName, int iSize, void *pbuf)
 {
 	BEGIN_READ(pbuf, iSize);
-	int entityIndex  = READ_SHORT();
+	int entityIndex   = READ_SHORT();
 	int currentHealth = READ_SHORT();
-	int maxHealth    = READ_SHORT();
+	int maxHealth     = READ_SHORT();
+	int damageDelta   = READ_SHORT();  // damage dealt this hit, sent directly by server
 
 	if (entityIndex <= 0 || maxHealth <= 0)
 		return 1;
@@ -186,23 +187,19 @@ int CHudLifeBar::MsgFunc_MLifeBar(const char *pszName, int iSize, void *pbuf)
 	{
 		// New entity - use empty/expired slot or evict the oldest
 		slot = (fallback != -1) ? fallback : oldestSlot;
-		m_MonsterEntries[slot].entityIndex   = entityIndex;
-		m_MonsterEntries[slot].previousHealth = currentHealth;
-		m_MonsterEntries[slot].refreshTime   = now + 3.0f;
+		m_MonsterEntries[slot].entityIndex = entityIndex;
 		for (int j = 0; j < MAX_DAMAGE_NUMBERS; j++)
 			m_MonsterEntries[slot].damageNumbers[j].active = false;
-		return 1;  // No delta on first message
 	}
 
 	// Refresh slot expiry
 	m_MonsterEntries[slot].refreshTime = now + 3.0f;
 
-	int prevHealth = m_MonsterEntries[slot].previousHealth;
-
+	// Use the server-supplied damage delta so every hit (including the first) shows a number
 	if (cl_lifemeter && cl_lifemeter->value > 1 &&
-		prevHealth > currentHealth && prevHealth > 0 && currentHealth >= 0)
+		damageDelta > 0 && currentHealth >= 0)
 	{
-		int damageTaken = (cl_lifemeter->value > 2) ? currentHealth : (prevHealth - currentHealth);
+		int damageTaken = (cl_lifemeter->value > 2) ? currentHealth : damageDelta;
 
 		for (int i = 0; i < MAX_DAMAGE_NUMBERS; i++)
 		{
@@ -238,7 +235,6 @@ int CHudLifeBar::MsgFunc_MLifeBar(const char *pszName, int iSize, void *pbuf)
 		}
 	}
 
-	m_MonsterEntries[slot].previousHealth = currentHealth;
 	return 1;
 }
 
