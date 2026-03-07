@@ -789,7 +789,10 @@ void CGargantua :: Spawn()
 	Precache( );
 
 	SET_MODEL(ENT(pev), "models/garg.mdl");
-	UTIL_SetSize( pev, Vector( -32, -32, 0 ), Vector( 32, 32, 64 ) );
+	if (g_pGameRules && g_pGameRules->IsMultiplayer())
+		UTIL_SetSize( pev, Vector( -32, -32, 0 ), Vector( 32, 32, 128 ) );
+	else
+		UTIL_SetSize( pev, Vector( -32, -32, 0 ), Vector( 32, 32, 64 ) );
 
 	pev->classname = MAKE_STRING("monster_gargantua");
 

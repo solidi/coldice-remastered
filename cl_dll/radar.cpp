@@ -515,7 +515,7 @@ void CHudRadar::ProcessPlayerState(void)
 		distanceLocal = v_other.Length();
 
 		v_player[num_players] = v_other;
-		v_origin[num_players] = pClient->origin + Vector(0, 0, 56); // Raise origin for better visibility on radar
+		v_origin[num_players] = pClient->origin + Vector(0, 0, int(pClient->curstate.maxs.z) - int(pClient->curstate.maxs.z * 0.3)); // Raise origin for better visibility on radar
 		player_distance[num_players] = distanceLocal <= MAX_DISTANCE ? distanceLocal : MAX_DISTANCE;
 		// Player is 72 units high, adjust height diff to linear scale
 		player_height[num_players] = ((pClient->origin.z - localPlayer->origin.z) / 72);
