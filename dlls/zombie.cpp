@@ -203,7 +203,7 @@ int CZombie :: TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, floa
 		PainSound();
 
 	// For horde
-	if (g_pGameRules->IsMultiplayer())
+	if (g_pGameRules->IsHorde())
 	{
 		flDamage *= 0.25;
 
@@ -409,7 +409,7 @@ BOOL CZombie :: CheckMeleeAttack1 ( float flDot, float flDist )
 {
 	if ( flDist <= 64 )
 	{
-		if ( g_pGameRules->IsMultiplayer() )
+		if ( g_pGameRules->IsHorde() )
 		{
 			// In horde: attack at steep angles (ledge above/below) and don't
 			// require the enemy to be standing on the ground.
@@ -431,7 +431,7 @@ BOOL CZombie :: CheckMeleeAttack1 ( float flDot, float flDist )
 //=========================================================
 Schedule_t *CZombie :: GetScheduleOfType( int Type )
 {
-	if ( g_pGameRules->IsMultiplayer() && Type == SCHED_CHASE_ENEMY_FAILED )
+	if ( g_pGameRules->IsHorde() && Type == SCHED_CHASE_ENEMY_FAILED )
 	{
 		// Only redirect when on the ground. If already airborne from a previous
 		// launch, let the existing velocity carry the zombie rather than
@@ -540,7 +540,7 @@ void CZombie :: StartTask( Task_t *pTask )
 //=========================================================
 Schedule_t *CZombie :: GetSchedule( void )
 {
-	if ( m_MonsterState == MONSTERSTATE_COMBAT && g_pGameRules->IsMultiplayer() )
+	if ( m_MonsterState == MONSTERSTATE_COMBAT && g_pGameRules->IsHorde() )
 	{
 		if ( HasConditions( bits_COND_ENEMY_DEAD ) )
 			return CBaseMonster::GetSchedule();

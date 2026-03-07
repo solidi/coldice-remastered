@@ -408,7 +408,7 @@ BOOL CHeadCrab :: CheckRangeAttack1 ( float flDot, float flDist )
 	{
 		// In horde mode, use a relaxed dot threshold so the headcrab jumps at
 		// players that are above or below it on a ledge.
-		float flRequiredDot = g_pGameRules->IsMultiplayer() ? 0.3f : 0.65f;
+		float flRequiredDot = g_pGameRules->IsHorde() ? 0.3f : 0.65f;
 		if ( flDot >= flRequiredDot )
 			return TRUE;
 	}
@@ -438,7 +438,7 @@ int CHeadCrab :: TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, fl
 		flDamage = 0;
 
 	// For horde
-	if (g_pGameRules->IsMultiplayer())
+	if (g_pGameRules->IsHorde())
 	{
 		flDamage *= 0.25;
 	}
@@ -481,7 +481,7 @@ void CHeadCrab :: DeathSound ( void )
 
 Schedule_t* CHeadCrab :: GetSchedule( void )
 {
-	if ( m_MonsterState == MONSTERSTATE_COMBAT && g_pGameRules->IsMultiplayer() )
+	if ( m_MonsterState == MONSTERSTATE_COMBAT && g_pGameRules->IsHorde() )
 	{
 		if ( HasConditions( bits_COND_ENEMY_DEAD ) )
 			return CBaseMonster::GetSchedule();

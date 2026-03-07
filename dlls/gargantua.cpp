@@ -557,7 +557,7 @@ void CGargantua :: FlameCreate( void )
 			m_pFlame[i]->SetScrollRate( 20 );
 			// attachment is 1 based in SetEndAttachment
 			m_pFlame[i]->SetEndAttachment( attach + 2 );
-			if (g_pGameRules->IsMultiplayer())
+			if (g_pGameRules->IsHorde())
 				m_pFlame[i]->LiveForTime( 10.0f );
 			CSoundEnt::InsertSound( bits_SOUND_COMBAT, posGun, 384, 0.3 );
 		}
@@ -789,7 +789,7 @@ void CGargantua :: Spawn()
 	Precache( );
 
 	SET_MODEL(ENT(pev), "models/garg.mdl");
-	if (g_pGameRules && g_pGameRules->IsMultiplayer())
+	if (g_pGameRules && g_pGameRules->IsHorde())
 		UTIL_SetSize( pev, Vector( -32, -32, 0 ), Vector( 32, 32, 128 ) );
 	else
 		UTIL_SetSize( pev, Vector( -32, -32, 0 ), Vector( 32, 32, 64 ) );
@@ -914,7 +914,7 @@ int CGargantua::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, flo
 
 	if ( IsAlive() )
 	{
-		if ( !g_pGameRules->IsMultiplayer() )
+		if ( !g_pGameRules->IsHorde() )
 		{
 			if ( !(bitsDamageType & GARG_DAMAGE) )
 				flDamage *= 0.01;
@@ -924,7 +924,7 @@ int CGargantua::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, flo
 	}
 
 	// For horde
-	if (g_pGameRules->IsMultiplayer())
+	if (g_pGameRules->IsHorde())
 	{
 		flDamage *= 0.25;
 
@@ -1138,7 +1138,7 @@ CBaseEntity* CGargantua::GargantuaCheckTraceHullAttack(float flDist, int iDamage
 
 Schedule_t *CGargantua::GetSchedule( void )
 {
-	if ( m_MonsterState == MONSTERSTATE_COMBAT && g_pGameRules->IsMultiplayer() )
+	if ( m_MonsterState == MONSTERSTATE_COMBAT && g_pGameRules->IsHorde() )
 	{
 		if ( HasConditions( bits_COND_ENEMY_DEAD ) )
 			return CBaseMonster::GetSchedule();
@@ -1172,7 +1172,7 @@ Schedule_t *CGargantua::GetScheduleOfType( int Type )
 			// Only redirect when on the ground. If already airborne from a previous
 			// launch, let the existing velocity carry the garg rather than
 			// re-applying another push (which causes the "floating" effect).
-			if ( g_pGameRules->IsMultiplayer() && m_hEnemy != NULL
+			if ( g_pGameRules->IsHorde() && m_hEnemy != NULL
 				 && FBitSet( pev->flags, FL_ONGROUND ) )
 				return &slGargDirectApproach[0];
 			return CBaseMonster::GetScheduleOfType( Type );

@@ -637,7 +637,7 @@ int CHGrunt :: TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, floa
 	Forget( bits_MEMORY_INCOVER );
 
 	// For horde
-	if (g_pGameRules->IsMultiplayer())
+	if (g_pGameRules->IsHorde())
 	{
 		flDamage *= 0.25;
 
@@ -1014,7 +1014,7 @@ void CHGrunt :: Spawn()
 	pev->movetype		= MOVETYPE_STEP;
 	m_bloodColor		= BLOOD_COLOR_RED;
 	pev->effects		= 0;
-	pev->health			= (g_pGameRules->IsMultiplayer()) ? gSkillData.hgruntHealth * 2 : gSkillData.hgruntHealth;
+	pev->health			= (g_pGameRules->IsHorde()) ? gSkillData.hgruntHealth * 2 : gSkillData.hgruntHealth;
 	m_flFieldOfView		= 0.2;// indicates the width of this monster's forward view cone ( as a dotproduct result )
 	m_MonsterState		= MONSTERSTATE_NONE;
 	m_flNextGrenadeCheck = gpGlobals->time + 1;
@@ -2347,7 +2347,7 @@ Schedule_t* CHGrunt :: GetScheduleOfType ( int Type )
 			// In horde, when pathfinding fails (e.g. grunt on a crate with no nav
 			// nodes), drop off the ledge toward the player instead of hiding.
 			// Only fire when on the ground to prevent repeated pushes mid-air.
-			if ( g_pGameRules->IsMultiplayer() && m_hEnemy != NULL
+			if ( g_pGameRules->IsHorde() && m_hEnemy != NULL
 				 && FBitSet( pev->flags, FL_ONGROUND ) )
 				return &slGruntDirectApproach[ 0 ];
 			return CSquadMonster :: GetScheduleOfType ( Type );

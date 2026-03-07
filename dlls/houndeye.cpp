@@ -198,7 +198,7 @@ BOOL CHoundeye :: CheckRangeAttack1 ( float flDot, float flDist )
 {
 	// Sonic attack is omnidirectional; in horde relax dot so the houndeye
 	// fires even when the player is at a steep angle below/above.
-	float flRequiredDot = g_pGameRules->IsMultiplayer() ? -1.0f : 0.3f;
+	float flRequiredDot = g_pGameRules->IsHorde() ? -1.0f : 0.3f;
 	if ( flDist <= ( HOUNDEYE_MAX_ATTACK_RADIUS * 0.5 ) && flDot >= flRequiredDot )
 	{
 		return TRUE;
@@ -514,7 +514,7 @@ void CHoundeye :: PainSound ( void )
 int CHoundeye :: TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int bitsDamageType )
 {
 	// For horde
-	if (g_pGameRules->IsMultiplayer())
+	if (g_pGameRules->IsHorde())
 	{
 		flDamage *= 0.25;
 	}
@@ -1368,7 +1368,7 @@ Schedule_t* CHoundeye :: GetScheduleOfType ( int Type )
 			// Only redirect when on the ground. If already airborne from a previous
 			// launch, let the existing velocity carry the houndeye rather than
 			// re-applying another push (which causes floating).
-			if ( g_pGameRules->IsMultiplayer() && m_hEnemy != NULL
+			if ( g_pGameRules->IsHorde() && m_hEnemy != NULL
 				 && FBitSet( pev->flags, FL_ONGROUND ) )
 				return &slHoundDirectApproach[ 0 ];
 			return CSquadMonster :: GetScheduleOfType ( Type );
@@ -1398,7 +1398,7 @@ Schedule_t *CHoundeye :: GetSchedule( void )
 
 			// In horde mode be immediately aggressive: skip squad slot-locking so every
 			// houndeye attacks independently, and always chase rather than stall on a ledge.
-			if ( g_pGameRules->IsMultiplayer() )
+			if ( g_pGameRules->IsHorde() )
 			{
 				if ( HasConditions( bits_COND_CAN_RANGE_ATTACK1 ) )
 					return GetScheduleOfType( SCHED_RANGE_ATTACK1 );

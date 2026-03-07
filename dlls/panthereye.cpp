@@ -333,7 +333,7 @@ void CDiablo::Spawn()
 	pev->view_ofs = Vector(0, 0, 24);	// position of the eyes relative to monster's origin.
 
 	// For horde
-	if (g_pGameRules->IsMultiplayer())
+	if (g_pGameRules->IsHorde())
 	{
 		pev->framerate = 1.5;
 		m_flFieldOfView = -0.707; // 270 degrees;
@@ -402,7 +402,7 @@ int	CDiablo::Classify(void)
 
 int CDiablo::IRelationship ( CBaseEntity *pTarget )
 {
-	if ( g_pGameRules->IsMultiplayer() && FClassnameIs( pTarget->pev, "monster_panther" ) )
+	if ( g_pGameRules->IsHorde() && FClassnameIs( pTarget->pev, "monster_panther" ) )
 	{
 		return R_AL;
 	}
@@ -417,7 +417,7 @@ int CDiablo::IRelationship ( CBaseEntity *pTarget )
 void CDiablo::SetYawSpeed(void)
 {
 	// For horde
-	if (g_pGameRules->IsMultiplayer())
+	if (g_pGameRules->IsHorde())
 		pev->framerate = 1.5;
 
 	int ys = 90;
@@ -468,7 +468,7 @@ float CDiablo::GetEnemyHeight(void)
 void CDiablo::HandleAnimEvent(MonsterEvent_t* pEvent)
 {
 	// For horde
-	if (g_pGameRules->IsMultiplayer())
+	if (g_pGameRules->IsHorde())
 		pev->framerate = 1.5;
 
 	switch (pEvent->event)
@@ -594,7 +594,7 @@ BOOL CDiablo::IsInGodMode( CBaseEntity *pEntity ) const
 //=========================================================
 void CDiablo::ForceDownwardAttackConditions( CBaseEntity *pTarget )
 {
-	if ( !pTarget || !g_pGameRules->IsMultiplayer() )
+	if ( !pTarget || !g_pGameRules->IsHorde() )
 		return;
 	
 	// Force visibility conditions so base class AI doesn't clear them
@@ -645,7 +645,7 @@ int CDiablo::TakeDamage(entvars_t* pevInflictor, entvars_t* pevAttacker, float f
 			m_vecEnemyLKP = pAttacker->pev->origin;
 			
 			// In horde mode, force immediate aggressive engagement
-			if ( g_pGameRules->IsMultiplayer() )
+			if ( g_pGameRules->IsHorde() )
 			{
 				SetConditions( bits_COND_NEW_ENEMY | bits_COND_SEE_ENEMY | bits_COND_SEE_CLIENT );
 				m_IdealMonsterState = MONSTERSTATE_COMBAT;
@@ -686,7 +686,7 @@ int CDiablo::TakeDamage(entvars_t* pevInflictor, entvars_t* pevAttacker, float f
 	}
 
 	// For horde: reduce damage taken (but not as much as before for better balance)
-	if (g_pGameRules->IsMultiplayer())
+	if (g_pGameRules->IsHorde())
 	{
 		flDamage *= 0.5;
 	}
@@ -701,7 +701,7 @@ int CDiablo::TakeDamage(entvars_t* pevInflictor, entvars_t* pevAttacker, float f
 void CDiablo::Look ( int iDistance )
 {
 	// In horde mode, use aggressive radius-based detection for players below
-	if ( g_pGameRules->IsMultiplayer() )
+	if ( g_pGameRules->IsHorde() )
 	{
 		// Check for players below using simple radius check (bypasses visibility)
 		CBaseEntity *pList[100];
@@ -759,7 +759,7 @@ void CDiablo::Look ( int iDistance )
 void CDiablo::CheckAttacks ( CBaseEntity *pTarget, float flDist )
 {
 	// In horde mode with targets below, ensure base class doesn't clear our conditions
-	if ( g_pGameRules->IsMultiplayer() && m_fPissed && pTarget && IsEnemyBelowUs( pTarget ) )
+	if ( g_pGameRules->IsHorde() && m_fPissed && pTarget && IsEnemyBelowUs( pTarget ) )
 	{
 		// Pre-force conditions before base class check
 		ForceDownwardAttackConditions( pTarget );
@@ -769,7 +769,7 @@ void CDiablo::CheckAttacks ( CBaseEntity *pTarget, float flDist )
 	CBaseMonster::CheckAttacks( pTarget, flDist );
 	
 	// Re-force conditions after base class (in case it cleared them)
-	if ( g_pGameRules->IsMultiplayer() && m_fPissed && pTarget && IsEnemyBelowUs( pTarget ) )
+	if ( g_pGameRules->IsHorde() && m_fPissed && pTarget && IsEnemyBelowUs( pTarget ) )
 	{
 		ForceDownwardAttackConditions( pTarget );
 	}
@@ -783,7 +783,7 @@ BOOL CDiablo::CheckRangeAttack1(float flDot, float flDist)
 	if (m_flNextAttack < gpGlobals->time && FBitSet(pev->flags, FL_ONGROUND))
 	{
 		// In horde mode with targets below, use special rules
-		if ( g_pGameRules->IsMultiplayer() && m_hEnemy != NULL && IsEnemyBelowUs( m_hEnemy ) )
+		if ( g_pGameRules->IsHorde() && m_hEnemy != NULL && IsEnemyBelowUs( m_hEnemy ) )
 		{
 			// For downward targets: ignore facing angle (flDot), only check distance
 			// Distance restrictions still apply: 32-512 units horizontally
@@ -822,7 +822,7 @@ int CDiablo::CheckLocalMove ( const Vector &vecStart, const Vector &vecEnd, CBas
 	int iReturn = CBaseMonster::CheckLocalMove( vecStart, vecEnd, pTarget, pflDist );
 	
 	// In horde mode, be even more aggressive about elevation changes
-	if ( g_pGameRules->IsMultiplayer() )
+	if ( g_pGameRules->IsHorde() )
 	{
 		// Override the height restriction - panthereye can drop up to 1024 units in horde mode
 		if ( iReturn == LOCALMOVE_INVALID_DONT_TRIANGULATE )
@@ -879,7 +879,7 @@ BOOL CDiablo::FInViewCone ( CBaseEntity *pEntity )
 	float heightDiff = pEntity->pev->origin.z - pev->origin.z;
 	
 	// For horde mode, use wider field of view
-	if (g_pGameRules->IsMultiplayer())
+	if (g_pGameRules->IsHorde())
 	{
 		// If target is significantly below (more than 32 units), be very lenient
 		if ( heightDiff < -32 )
@@ -977,7 +977,7 @@ BOOL CDiablo::FInViewCone ( Vector *pOrigin )
 	float heightDiff = pOrigin->z - pev->origin.z;
 	
 	// For horde mode, use wider field of view
-	if (g_pGameRules->IsMultiplayer())
+	if (g_pGameRules->IsHorde())
 	{
 		// If target is significantly below, be very lenient
 		if ( heightDiff < -32 )
@@ -1104,7 +1104,7 @@ Schedule_t* CDiablo::GetSchedule(void)
 			return CBaseMonster::GetSchedule();
 
 		// In horde mode, always be aggressive immediately
-		if (g_pGameRules->IsMultiplayer())
+		if (g_pGameRules->IsHorde())
 		{
 			if (HasConditions(bits_COND_CAN_MELEE_ATTACK1))
 				return GetScheduleOfType(SCHED_MELEE_ATTACK1);
@@ -1178,7 +1178,7 @@ void CDiablo::StartTask(Task_t* pTask)
 	{
 		// In horde mode, if enemy is below us, skip facing requirement
 		// The leap attack will handle trajectory automatically
-		if ( g_pGameRules->IsMultiplayer() && m_hEnemy != NULL )
+		if ( g_pGameRules->IsHorde() && m_hEnemy != NULL )
 		{
 			float heightDiff = pev->origin.z - m_hEnemy->pev->origin.z;
 			if ( heightDiff > 32 )
@@ -1438,7 +1438,7 @@ void CDiablo::RunAI(void)
 	}
 	
 	// In horde mode, if we have a valid pissed enemy, be aggressive
-	if ( g_pGameRules->IsMultiplayer() && m_fPissed && m_hEnemy != NULL )
+	if ( g_pGameRules->IsHorde() && m_fPissed && m_hEnemy != NULL )
 	{
 		BOOL bEnemyBelow = IsEnemyBelowUs( m_hEnemy );
 		
@@ -1466,7 +1466,7 @@ void CDiablo::RunAI(void)
 	
 	// AFTER base class runs, re-force conditions for enemies below
 	// This ensures base class CheckAttacks doesn't clear our forced conditions
-	if ( g_pGameRules->IsMultiplayer() && m_fPissed && m_hEnemy != NULL && IsEnemyBelowUs( m_hEnemy ) )
+	if ( g_pGameRules->IsHorde() && m_fPissed && m_hEnemy != NULL && IsEnemyBelowUs( m_hEnemy ) )
 	{
 		ForceDownwardAttackConditions( m_hEnemy );
 	}
