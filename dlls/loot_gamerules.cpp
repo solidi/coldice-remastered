@@ -822,19 +822,32 @@ void CHalfLifeLoot::StartRound( int clients )
 		m_iPlayersInArena[j] = tmp;
 	}
 
+	// Shuffle the team name order so the same player doesn't always land on "iceman"
+	int teamNameOrder[4] = { 0, 1, 2, 3 };
+	for ( int i = 3; i > 0; i-- )
+	{
+		int j              = RANDOM_LONG(0, i);
+		int tmp            = teamNameOrder[i];
+		teamNameOrder[i]   = teamNameOrder[j];
+		teamNameOrder[j]   = tmp;
+	}
+
 	// Team assignment:
 	//   ≤ 8 players: form pairs — consecutive shuffled players share a team
 	//                (4 players → 2 teams of 2; 6 → 3 teams of 2; 8 → 4 teams of 2;
 	//                 odd counts get one solo team e.g. 5 → 2+2+1)
 	//   > 8 players: 4 teams, round-robin balanced
+	// teamNameOrder remaps slot → name-index so the same player doesn't always land
+	// on "iceman" just because they happen to be assigned slot 0.
 	for ( int i = 0; i < clients; i++ )
 	{
-		int t = (clients <= 8) ? (i / 2) : (i % 4);
-		if ( t > 3 ) t = 3;   // safety clamp to 4 teams max
-		if ( m_iTeamPlayerCount[t] < 32 )
+		int t      = (clients <= 8) ? (i / 2) : (i % 4);
+		if ( t > 3 ) t = 3;                    // safety clamp to 4 teams max
+		int name_t = teamNameOrder[t];          // use name-index for all arrays
+		if ( m_iTeamPlayerCount[name_t] < 32 )
 		{
-			m_iTeamPlayers[t][m_iTeamPlayerCount[t]] = m_iPlayersInArena[i];
-			m_iTeamPlayerCount[t]++;
+			m_iTeamPlayers[name_t][m_iTeamPlayerCount[name_t]] = m_iPlayersInArena[i];
+			m_iTeamPlayerCount[name_t]++;
 		}
 	}
 
@@ -862,13 +875,15 @@ void CHalfLifeLoot::StartRound( int clients )
 
 		m_vecTeamSpawnOrigin[t] = pUsedSpots[t] ? pUsedSpots[t]->pev->origin : g_vecZero;
 
-		// Assign team name and loot-team index to each player on this team
+		// Assign team name and loot-team index to each player on this team.
+		// t is already in name-index space (m_iTeamPlayers[t] was stored that way above).
 		for ( int j = 0; j < m_iTeamPlayerCount[t]; j++ )
 		{
 			CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( m_iTeamPlayers[t][j] );
 			if ( !plr ) continue;
 
 			plr->m_iLootTeam = t;
+			plr->pev->fuser4 = t;
 			strncpy( plr->m_szTeamName, s_TeamNames[t], TEAM_NAME_LENGTH );
 		}
 	}
