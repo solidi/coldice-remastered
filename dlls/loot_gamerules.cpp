@@ -40,7 +40,7 @@ extern int gmsgSpecialEntity;
 
 extern DLL_GLOBAL BOOL g_fGameOver;
 
-const char *CHalfLifeLoot::s_TeamNames[4] = { "iceman", "santa", "holo", "commando" };
+const char *CHalfLifeLoot::s_TeamNames[4] = { "iceman", "santa", "gina", "frost" };
 
 // ============================================================
 // CLootCrate
@@ -899,8 +899,8 @@ void CHalfLifeLoot::StartRound( int clients )
 		WRITE_BYTE( 4 );
 		WRITE_STRING( "iceman" );
 		WRITE_STRING( "santa" );
-		WRITE_STRING( "holo" );
-		WRITE_STRING( "commando" );
+		WRITE_STRING( "gina" );
+		WRITE_STRING( "frost" );
 	MESSAGE_END();
 
 	// Update all player HUDs
@@ -990,7 +990,7 @@ void CHalfLifeLoot::CaptureCharm( CBasePlayer *pPlayer )
 	// Green glow on holder
 	pPlayer->pev->renderfx    = kRenderFxGlowShell;
 	pPlayer->pev->renderamt   = 10;
-	pPlayer->pev->rendercolor = Vector(0, 200, 0);
+	pPlayer->pev->rendercolor = Vector(255, 117, 24);
 	pPlayer->pev->fuser4      = RADAR_LOOT;
 
 	// Attach a green beam trail to the holder
@@ -1001,10 +1001,10 @@ void CHalfLifeLoot::CaptureCharm( CBasePlayer *pPlayer )
 		WRITE_SHORT( iTrail );
 		WRITE_BYTE ( 50 );   // life
 		WRITE_BYTE ( 3  );   // width
-		WRITE_BYTE ( 0  );   // r
-		WRITE_BYTE ( 200 );  // g
-		WRITE_BYTE ( 0  );   // b
-		WRITE_BYTE ( 200 );  // brightness
+		WRITE_BYTE ( 255 );   // r
+		WRITE_BYTE ( 117 );  // g
+		WRITE_BYTE ( 24 );   // b
+		WRITE_BYTE ( 30 );  // brightness
 	MESSAGE_END();
 
 	// Status icon on holder and all alive teammates
@@ -1830,8 +1830,8 @@ void CHalfLifeLoot::InitHUD( CBasePlayer *pPlayer )
 			WRITE_BYTE( 4 );
 			WRITE_STRING( "iceman" );
 			WRITE_STRING( "santa" );
-			WRITE_STRING( "holo" );
-			WRITE_STRING( "commando" );
+			WRITE_STRING( "gina" );
+			WRITE_STRING( "frost" );
 		MESSAGE_END();
 	}
 

@@ -67,7 +67,7 @@ public:
 	BOOL IsGameInProgress( void ) { return g_GameInProgress; }
 	BOOL IsLootFree( void ) { return (CBaseEntity *)m_hLootHolder == NULL; }
 
-	static const char *s_TeamNames[4]; // "iceman", "santa", "holo", "commando"
+	static const char *s_TeamNames[4]; // "iceman", "santa", "gina", "frost"
 
 private:
 	void StartRound( int clients );

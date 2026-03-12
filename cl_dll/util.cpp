@@ -168,7 +168,8 @@ unsigned long HudColor()
 			}
 			return RGB_REDISH;
 		}
-		else if (local->curstate.fuser4 == RADAR_CHUMTOAD)
+		else if (local->curstate.fuser4 == RADAR_CHUMTOAD ||
+				 local->curstate.fuser4 == RADAR_TEAM_GREEN)
 		{
 			if (colorchange != RGB_GREENISH)
 			{
@@ -177,6 +178,26 @@ unsigned long HudColor()
 				colorchange = RGB_GREENISH;
 			}
 			return RGB_GREENISH;
+		}
+		else if (local->curstate.fuser4 == RADAR_TEAM_YELLOW)
+		{
+			if (colorchange != RGB_YELLOWISH)
+			{
+				gEngfuncs.pfnClientCmd("con_color \"255 180 30\"\n");
+				gEngfuncs.pfnClientCmd("tracerred \"1\"\ntracerblue \"0\"\ntracergreen \"0.8\"\n");
+				colorchange = RGB_YELLOWISH;
+			}
+			return RGB_YELLOWISH;
+		}
+		else if (local->curstate.fuser4 == RADAR_LOOT)
+		{
+			if (colorchange != RGB_ORANGEISH)
+			{
+				gEngfuncs.pfnClientCmd("con_color \"255 95 30\"\n");
+				gEngfuncs.pfnClientCmd("tracerred \"1\"\ntracerblue \"0\"\ntracergreen \"0.65\"\n");
+				colorchange = RGB_ORANGEISH;
+			}
+			return RGB_ORANGEISH;
 		}
 	}
 
