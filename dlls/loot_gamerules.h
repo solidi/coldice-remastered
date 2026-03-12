@@ -65,6 +65,7 @@ public:
 private:
 	void StartRound( int clients );
 	void EndRound( int winningTeam ); // -1 = tiebreaker; >= 0 = goal already scored by OnGoalReached
+	void ExposeLoot( void );          // Break all crates, move loot to random spawn point
 	void SpawnLootEntities( void );
 	BOOL FindSafeFloorPosition( Vector &out, float minDistFromAvoid, Vector avoid, int maxAttempts );
 	void GiveTeamWeapons( int teamIndex );
@@ -97,6 +98,10 @@ private:
 	// Deferred round-end after goal celebration (4 second window)
 	float   m_flCelebrationEndTime;  // gpGlobals->time when EndRound should fire; 0 = not pending
 	int     m_iPendingWinnerTeam;    // team index to pass to EndRound when the timer fires
+
+	// Loot exposure event (5-min no-pickup or 60s left)
+	float   m_flRoundStartTime;      // gpGlobals->time when current round started
+	BOOL    m_bLootExposed;          // TRUE once crates shattered and loot placed at deathmatch spawn
 
 	Vector  m_vecUsedSpots[32];     // Spawn origins already assigned to a team (dedup)
 	int     m_iUsedSpotCount;

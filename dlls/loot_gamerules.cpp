@@ -341,6 +341,8 @@ CHalfLifeLoot::CHalfLifeLoot()
 	m_fSpawnGroupSolidRestoreTime = 0;
 	m_flCelebrationEndTime = 0;
 	m_iPendingWinnerTeam   = -1;
+	m_flRoundStartTime     = 0;
+	m_bLootExposed         = FALSE;
 
 	memset( m_flTeamHoldTime,    0, sizeof(m_flTeamHoldTime) );
 	memset( m_iTeamPlayers,      0, sizeof(m_iTeamPlayers) );
@@ -402,6 +404,89 @@ BOOL CHalfLifeLoot::FindSafeFloorPosition( Vector &out, float minDistFromAvoid,
 		return TRUE;
 	}
 	return FALSE;
+}
+
+// ============================================================
+// ExposeLoot
+//   Triggered when 5 minutes pass with the loot still hidden
+//   in a crate, or when 60 seconds remain on the round timer.
+//   Shatters all remaining crates and drops the loot at a
+//   random info_player_deathmatch spawn point.
+// ============================================================
+void CHalfLifeLoot::ExposeLoot( void )
+{
+	m_bLootExposed = TRUE;
+
+	// Pick a random info_player_deathmatch as the loot landing spot
+	Vector exposedOrigin = g_vecZero;
+	{
+		int skip = RANDOM_LONG(0, 7);
+		CBaseEntity *pSpot = NULL;
+		for ( int i = 0; i <= skip; i++ )
+		{
+			CBaseEntity *pNext = UTIL_FindEntityByClassname( pSpot, "info_player_deathmatch" );
+			if ( !pNext ) break;
+			pSpot = pNext;
+		}
+		if ( pSpot )
+			exposedOrigin = pSpot->pev->origin;
+	}
+
+	// Shatter every remaining crate; suppress their individual loot-spawn callbacks
+	{
+		CBaseEntity *pEnt = NULL;
+		while ( (pEnt = UTIL_FindEntityByClassname(pEnt, "loot_crate")) != NULL )
+		{
+			CLootCrate *pCrate = (CLootCrate *)pEnt;
+			pCrate->m_bHasLoot = FALSE;  // prevent Break() from calling SpawnLootAtPosition
+			pCrate->Break();
+		}
+	}
+
+	// Place / relocate the loot entity
+	CBaseEntity *pLoot = (CBaseEntity *)m_hLootEntity;
+	if ( pLoot && (CBaseEntity *)m_hLootHolder == NULL )
+	{
+		// Already in the world but unclaimed — teleport to chosen spawn
+		((CLootEntity *)pLoot)->Drop( exposedOrigin + Vector(0, 0, 36) );
+	}
+	else if ( !pLoot )
+	{
+		// Still inside a crate — spawn it at the chosen spot now
+		SpawnLootAtPosition( exposedOrigin );
+		pLoot = (CBaseEntity *)m_hLootEntity;
+	}
+
+	// Green radar dot for the loot (slot 1)
+	if ( pLoot )
+	{
+		MESSAGE_BEGIN( MSG_ALL, gmsgSpecialEntity );
+			WRITE_BYTE ( 1 );
+			WRITE_BYTE ( 1 );
+			WRITE_COORD( pLoot->pev->origin.x );
+			WRITE_COORD( pLoot->pev->origin.y );
+			WRITE_COORD( pLoot->pev->origin.z );
+			WRITE_BYTE ( RADAR_LOOT );
+		MESSAGE_END();
+	}
+
+	// Center-screen flash
+	UTIL_ClientPrintAll( HUD_PRINTCENTER, "Loot Exposed!\nFind it!\n" );
+
+	// Objective panel for every real player
+	for ( int i = 1; i <= gpGlobals->maxClients; i++ )
+	{
+		CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
+		if ( !plr || !plr->IsPlayer() || FBitSet(plr->pev->flags, FL_FAKECLIENT) ) continue;
+		MESSAGE_BEGIN( MSG_ONE, gmsgObjective, NULL, plr->edict() );
+			WRITE_STRING( "Loot Exposed!" );
+			WRITE_STRING( "Crates shattered - grab it!" );
+			WRITE_BYTE( 0 );
+		MESSAGE_END();
+	}
+
+	ALERT( at_console, "[Loot] Loot exposed at (%.0f, %.0f, %.0f)\n",
+	       exposedOrigin.x, exposedOrigin.y, exposedOrigin.z );
 }
 
 // ============================================================
@@ -561,6 +646,8 @@ void CHalfLifeLoot::StartRound( int clients )
 	m_hGoalEntity      = (CBaseEntity *)NULL;
 	m_flCelebrationEndTime = 0;
 	m_iPendingWinnerTeam   = -1;
+	m_bLootExposed         = FALSE;
+	m_flRoundStartTime     = 0;
 	memset( m_vecUsedSpots, 0, sizeof(m_vecUsedSpots) );
 
 	// Fisher-Yates shuffle of available player slots
@@ -677,6 +764,8 @@ void CHalfLifeLoot::StartRound( int clients )
 	m_iCountDown          = 5;
 	m_fWaitForPlayersTime = -1;
 	m_fSendBannerTime     = gpGlobals->time + 1.0f;
+	m_flRoundStartTime    = gpGlobals->time;
+	m_bLootExposed        = FALSE;
 
 	UTIL_ClientPrintAll( HUD_PRINTTALK,
 	    UTIL_VarArgs("[Loot] %d players have entered! Find and break crates!\n", clients) );
@@ -1367,6 +1456,18 @@ void CHalfLifeLoot::Think( void )
 			{
 				plr->m_flForceToObserverTime = gpGlobals->time;
 			}
+		}
+
+		// Expose loot after 5 minutes with no one finding it, or with 60s left on the clock
+		if ( !m_bLootExposed && (CBaseEntity *)m_hLootHolder == NULL )
+		{
+			BOOL timeout5min = ( (CBaseEntity *)m_hLootEntity == NULL &&
+			                     m_flRoundStartTime > 0 &&
+			                     gpGlobals->time - m_flRoundStartTime >= 300.0f );
+			BOOL last60sec   = ( m_flRoundTimeLimit > 0 &&
+			                     (m_flRoundTimeLimit - gpGlobals->time) <= 60.0f );
+			if ( timeout5min || last60sec )
+				ExposeLoot();
 		}
 
 		SendObjectiveUpdate();
