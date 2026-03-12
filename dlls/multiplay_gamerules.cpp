@@ -2690,6 +2690,35 @@ BOOL CHalfLifeMultiplay::CanHavePlayerAmmo( CBasePlayer *pPlayer, CBasePlayerAmm
 
 //=========================================================
 //=========================================================
+BOOL CHalfLifeMultiplay::CanHaveNamedItem( CBasePlayer *pPlayer, const char *pszItemName )
+{
+	if (disallowlist.string && strstr(disallowlist.string, pszItemName)) {
+		ALERT(at_aiconsole, "%s has been disallowed on the server.\n", pszItemName);
+		return FALSE;
+	}
+
+	// Do not allow giving items in dualsonly mode
+	if (dualsonly.value) {
+		if (strncmp(pszItemName, "weapon_fists", 12) != 0 && 
+			strncmp(pszItemName, "weapon_dual_", 12) != 0) {
+			return FALSE;
+		}
+	}
+
+	if (g_pGameRules->IsSnowballFight()) {
+		if (strncmp(pszItemName, "weapon_fists", 12) != 0 &&
+			strncmp(pszItemName, "weapon_snowball", 15) != 0 &&
+			strncmp(pszItemName, "weapon_vice", 11) != 0 &&
+			strncmp(pszItemName, "weapon_glauncher", 16) != 0) {
+			return FALSE;
+		}
+	}
+
+	return TRUE;
+}
+
+//=========================================================
+//=========================================================
 BOOL CHalfLifeMultiplay::CanHaveItem( CBasePlayer *pPlayer, CItem *pItem )
 {
 	return TRUE;

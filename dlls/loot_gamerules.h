@@ -45,6 +45,7 @@ public:
 	virtual int   IPointsForKill( CBasePlayer *pAttacker, CBasePlayer *pKilled );
 	virtual BOOL  AllowRuneSpawn( const char *szRune );
 	virtual BOOL  IsArmoredMan( CBasePlayer *pPlayer ) { return FALSE; }
+	virtual BOOL  CanHaveNamedItem( CBasePlayer *pPlayer, const char *pszItemName );
 
 	// CTC-style canonical charm methods (central authority for loot state changes)
 	virtual void        CaptureCharm( CBasePlayer *pPlayer );

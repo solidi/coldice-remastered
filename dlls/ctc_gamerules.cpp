@@ -651,3 +651,16 @@ BOOL CHalfLifeCaptureTheChumtoad::IsTeamplay( void )
 {
 	return TRUE;
 }
+
+BOOL CHalfLifeCaptureTheChumtoad::CanHaveNamedItem( CBasePlayer *pPlayer, const char *pszItemName )
+{
+	if (pPlayer->pev->fuser4 == 0)
+	{
+		if (strcmp(pszItemName, "weapon_chumtoad") == 0) {
+			ALERT(at_console, "Not allowed a chumtoad without capturing it.\n");
+			return FALSE;
+		}
+	}
+
+	return CHalfLifeMultiplay::CanHaveNamedItem( pPlayer, pszItemName );
+}

@@ -1034,6 +1034,7 @@ void CBasePlayerItem::DefaultTouch( CBaseEntity *pOther )
 		if (g_pGameRules->IsShidden() && pPlayer->pev->fuser4 > 0)
 			return;
 
+		// The weapon should stay
 		if (g_pGameRules->IsLoot())
 			return;
 
@@ -2314,41 +2315,9 @@ void CWeaponBox::Touch( CBaseEntity *pOther )
 		return;
 	}
 
-	if (g_pGameRules->IsLoot())
+	if ( !g_pGameRules->CanHaveNamedItem( (CBasePlayer *)pOther, STRING(pev->classname) ) )
 	{
-		CBasePlayer *pPlayer = (CBasePlayer *)pOther;
-		// Determine whether this player benefits from loot-advantage (3-weapon rule)
-		BOOL hasLootAdvantage = pPlayer->m_bHoldingLoot;
-		if ( !hasLootAdvantage && pPlayer->m_iLootTeam >= 0 )
-		{
-			for ( int i = 1; i <= gpGlobals->maxClients; i++ )
-			{
-				CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
-				if ( plr && plr->IsPlayer() && plr != pPlayer &&
-				     plr->IsAlive() && plr->m_iLootTeam == pPlayer->m_iLootTeam &&
-				     plr->m_bHoldingLoot )
-				{
-					hasLootAdvantage = TRUE;
-					break;
-				}
-			}
-		}
-
-		int count = 0;
-		for ( int i = 0; i < MAX_ITEM_TYPES; i++ )
-		{
-			CBasePlayerItem *pItem = pPlayer->m_rgpPlayerItems[i];
-			while ( pItem )
-			{
-				if ( strcmp(STRING(pItem->pev->classname), "weapon_fists") != 0 )
-					count++;
-				pItem = pItem->m_pNext;
-			}
-		}
-
-		int maxWeapons = hasLootAdvantage ? 3 : 1;
-		if ( count >= maxWeapons )
-			return;  // At limit; +use swap in player.cpp handles the swap
+		return;
 	}
 
 	CBasePlayer *pPlayer = (CBasePlayer *)pOther;

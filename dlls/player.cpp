@@ -4805,74 +4805,8 @@ void CBasePlayer::GiveNamedItem( const char *pszName )
 	if ( pev->iuser1 )	// player is in spectator mode
 		return;
 
-	if (disallowlist.string && strstr(disallowlist.string, pszName)) {
-		ALERT(at_aiconsole, "%s has been disallowed on the server.\n", pszName);
+	if ( !g_pGameRules->CanHaveNamedItem( this, STRING(pev->classname) ) )
 		return;
-	}
-
-	// Do not allow giving items in dualsonly mode
-	if (dualsonly.value) {
-		if (strncmp(pszName, "weapon_fists", 12) != 0 && strncmp(pszName, "weapon_dual_", 12) != 0) {
-			return;
-		}
-	}
-
-	if (g_pGameRules->IsSnowballFight()) {
-		if (strncmp(pszName, "weapon_fists", 12) != 0 &&
-			strncmp(pszName, "weapon_snowball", 15) != 0 &&
-			strncmp(pszName, "weapon_vice", 11) != 0 &&
-			strncmp(pszName, "weapon_glauncher", 16) != 0) {
-			return;
-		}
-	}
-
-	if (g_pGameRules->IsCtC() && pev->fuser4 == 0)
-	{
-		if (strcmp(pszName, "weapon_chumtoad") == 0) {
-			ALERT(at_console, "Not allowed a chumtoad without capturing it.\n");
-			return;
-		}
-	}
-
-	if (g_pGameRules->IsChilldemic() || 
-		g_pGameRules->IsJVS() || 
-		g_pGameRules->IsHorde() ||
-		g_pGameRules->IsShidden())
-	{
-		if (strcmp(pszName, "weapon_nuke") == 0) {
-			// No nukes in these game modes.
-			return;
-		}
-	}
-
-	if (g_pGameRules->IsInstagib()) {
-		if (stricmp(pszName, "weapon_fists") != 0 &&
-			stricmp(pszName, "weapon_hornetgun") != 0 &&
-			stricmp(pszName, "weapon_zapgun") != 0) {
-			return;
-		}
-	}
-
-	if (g_pGameRules->IsPropHunt() && pev->fuser4 >= TEAM_PROPS && stricmp(pszName, "weapon_fists") != 0 &&
-		stricmp(pszName, "weapon_handgrenade") != 0)
-	{
-		return;
-	}
-
-	if (g_pGameRules->IsBusters() && pev->fuser4 == 0)
-	{
-		if (strcmp(pszName, "weapon_egon") == 0) {
-			ALERT(at_console, "Not allowed an egon unless you are the buster.\n");
-			return;
-		}
-	}
-
-	// Dealters limited weapon range
-	if (g_pGameRules->IsShidden() && pev->fuser4 == 1)
-	{
-		if (strcmp(pszName, "weapon_fists") && strcmp(pszName, "weapon_knife"))
-			return;
-	}
 
 	edict_t	*pent;
 

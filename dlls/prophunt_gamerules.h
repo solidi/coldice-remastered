@@ -49,6 +49,7 @@ public:
 	virtual int AmmoShouldRespawn( CBasePlayerAmmo *pAmmo );
 	virtual BOOL IsTeamplay( void );
 	virtual BOOL PlayFootstepSounds( CBasePlayer *pl, float fvol );
+	virtual BOOL CanHaveNamedItem( CBasePlayer *pPlayer, const char *pszItemName );
 
 private:
 	int m_iHuntersStarted;

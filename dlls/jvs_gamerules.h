@@ -40,6 +40,7 @@ public:
 	virtual BOOL IsTeamplay( void );
 	virtual BOOL ClientConnected( edict_t *pEntity, const char *pszName, const char *pszAddress, char szRejectReason[ 128 ] );
 	virtual void ClientDisconnected( edict_t *pClient );
+	virtual BOOL CanHaveNamedItem( CBasePlayer *pPlayer, const char *pszItemName );
 
 private:
 	CBasePlayer *pArmoredMan;
