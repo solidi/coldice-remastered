@@ -626,32 +626,88 @@ void CHalfLifeLoot::SpawnLootEntities( void )
 
 	ALERT(at_console, "[Loot] Spawning %d crates (loot at index %d)\n", count, lootCrateIndex);
 
-	// Fallback weapon-entity classnames tried when floor trace fails
+	// Fallback weapon-entity classnames tried when floor trace fails.
+	// These are shuffled per-crate so no single entity becomes the magnet.
 	static const char *wFallback[] = {
 		"weapon_shotgun", "weapon_mp5", "weapon_crowbar",
 		"ammo_buckshot",  "weapon_357", "weapon_9mmclip"
 	};
 	const int wFallbackCount = 6;
 
+	// Track placed positions to enforce minimum crate separation
+	const float MIN_CRATE_SEP = 96.0f;
+	Vector crateSpots[32];
+	int    crateSpotCount = 0;
+
 	for ( int i = 0; i < count; i++ )
 	{
 		Vector spawnPos;
-		BOOL found = FindSafeFloorPosition( spawnPos, 0, g_vecZero, 30 );
+		BOOL found = FALSE;
+
+		// Up to 4 passes of random floor positions; re-roll if too close to an existing crate.
+		// Strictness relaxes across passes so we always place something.
+		for ( int pass = 0; pass < 4 && !found; pass++ )
+		{
+			int attempts = ( pass < 2 ) ? 30 : 15;
+			Vector candidate;
+			if ( !FindSafeFloorPosition( candidate, 0, g_vecZero, attempts ) )
+				break;
+
+			BOOL tooClose = FALSE;
+			for ( int k = 0; k < crateSpotCount && !tooClose; k++ )
+				if ( (candidate - crateSpots[k]).Length() < MIN_CRATE_SEP )
+					tooClose = TRUE;
+
+			if ( !tooClose ) { spawnPos = candidate; found = TRUE; }
+		}
 
 		if ( !found )
 		{
-			// Try to piggy-back on an existing weapon entity
+			// Fallback: piggy-back on a random weapon entity.
+			// Shuffle a local index array so we don't always start from weapon_shotgun.
+			int order[6] = { 0, 1, 2, 3, 4, 5 };
+			for ( int s = wFallbackCount - 1; s > 0; s-- )
+			{
+				int j    = RANDOM_LONG( 0, s );
+				int tmp  = order[s]; order[s] = order[j]; order[j] = tmp;
+			}
+
 			for ( int f = 0; f < wFallbackCount && !found; f++ )
 			{
-				CBaseEntity *pW = UTIL_FindEntityByClassname( NULL, wFallback[f] );
-				if ( pW ) { spawnPos = pW->pev->origin + Vector(0,0,32); found = TRUE; }
+				// Iterate all entities of this class and pick a random one
+				CBaseEntity *pW    = NULL;
+				CBaseEntity *candidates[16];
+				int          nCand = 0;
+				while ( nCand < 16 &&
+				        (pW = UTIL_FindEntityByClassname( pW, wFallback[order[f]] )) != NULL )
+					candidates[nCand++] = pW;
+
+				if ( nCand == 0 ) continue;
+
+				// Try each candidate (shuffled order); skip if a crate is already close
+				int pick = RANDOM_LONG( 0, nCand - 1 );
+				for ( int c = 0; c < nCand && !found; c++ )
+				{
+					Vector candidate = candidates[(pick + c) % nCand]->pev->origin + Vector(0, 0, 32);
+
+					BOOL tooClose = FALSE;
+					for ( int k = 0; k < crateSpotCount && !tooClose; k++ )
+						if ( (candidate - crateSpots[k]).Length() < MIN_CRATE_SEP )
+							tooClose = TRUE;
+
+					if ( !tooClose ) { spawnPos = candidate; found = TRUE; }
+				}
 			}
+
 			if ( !found ) continue;
 		}
 
 		CBaseEntity *pEnt = CBaseEntity::Create( "loot_crate", spawnPos, g_vecZero, NULL );
 		if ( pEnt )
 		{
+			if ( crateSpotCount < 32 )
+				crateSpots[crateSpotCount++] = spawnPos;
+
 			m_iTotalCrates++;
 			m_iCratesLeft++;
 			CLootCrate *pCrate = (CLootCrate *)pEnt;
@@ -1098,6 +1154,8 @@ void CHalfLifeLoot::OnGoalReached( CBasePlayer *pPlayer )
 	if ( m_flLootPickupTime > 0 && teamIdx >= 0 && teamIdx < 4 )
 		m_flTeamHoldTime[teamIdx] += gpGlobals->time - m_flLootPickupTime;
 	m_flLootPickupTime = 0;
+
+	m_flLastObjUpdate = gpGlobals->time + 4.0f;
 
 	// Award 2 points to the scorer
 	pPlayer->m_iRoundWins += 2;
