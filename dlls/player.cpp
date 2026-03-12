@@ -2170,6 +2170,28 @@ void CBasePlayer::PlayerUse ( void )
 	{
 		if ( m_afButtonPressed & IN_USE )
 			EMIT_SOUND( ENT(pev), CHAN_ITEM, "common/wpn_denyselect.wav", 0.4, ATTN_NORM);
+
+		// [Loot] +use weapon swap: at weapon limit and touching an uncarriable weapon,
+		// drop active weapon and allow pickup on the next touch frame.
+		if ( (m_afButtonPressed & IN_USE) && g_pGameRules && g_pGameRules->IsLoot() )
+		{
+			CBaseEntity *pSwap = NULL;
+			while ( (pSwap = UTIL_FindEntityInSphere(pSwap, pev->origin, PLAYER_SEARCH_RADIUS)) != NULL )
+			{
+				if ( pSwap->IsPlayer() ) continue;
+				CBasePlayerItem *pWpn = dynamic_cast<CBasePlayerItem *>(pSwap);
+				if ( pWpn && !g_pGameRules->CanHavePlayerItem(this, pWpn) )
+				{
+					if ( m_pActiveItem &&
+					     strcmp(STRING(m_pActiveItem->pev->classname), "weapon_fists") != 0 )
+					{
+						DropPlayerItem( (char *)STRING(m_pActiveItem->pev->classname) );
+						ClientPrint(pev, HUD_PRINTCENTER, "[Loot] Swapped weapon");
+					}
+					break;
+				}
+			}
+		}
 	}
 }
 

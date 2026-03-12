@@ -189,6 +189,7 @@
     <ClCompile Include="..\..\dlls\islave.cpp" />
     <ClCompile Include="..\..\dlls\items.cpp" />
     <ClCompile Include="..\..\dlls\jvs_gamerules.cpp" />
+    <ClCompile Include="..\..\dlls\loot_gamerules.cpp" />
     <ClCompile Include="..\..\dlls\knife.cpp" />
     <ClCompile Include="..\..\dlls\leech.cpp" />
     <ClCompile Include="..\..\dlls\lights.cpp" />
@@ -298,6 +299,7 @@
     <ClInclude Include="..\..\dlls\instagib_gamerules.h" />
     <ClInclude Include="..\..\dlls\items.h" />
     <ClInclude Include="..\..\dlls\jvs_gamerules.h" />
+    <ClInclude Include="..\..\dlls\loot_gamerules.h" />
     <ClInclude Include="..\..\dlls\lms_gamerules.h" />
     <ClInclude Include="..\..\dlls\monsterevent.h" />
     <ClInclude Include="..\..\dlls\monsters.h" />

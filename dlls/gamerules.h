@@ -217,6 +217,7 @@ public:
 	virtual BOOL IsHorde();
 	virtual BOOL IsSnowballFight();
 	virtual BOOL IsCtF();
+	virtual BOOL IsLoot();
 	virtual BOOL IsColdSpot();
 
 	virtual BOOL AllowMeleeDrop() = 0;

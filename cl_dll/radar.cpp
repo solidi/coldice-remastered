@@ -257,7 +257,7 @@ void CHudRadar::DrawEdgeIndicator(int centerX, int centerY, float angle, float d
 		// Blue
 		r = 0; g = 0; b = 240;
 	}
-	else if (special == RADAR_COLD_SPOT || special == RADAR_CHUMTOAD)
+	else if (special == RADAR_COLD_SPOT || special == RADAR_CHUMTOAD || special == RADAR_LOOT)
 	{
 		// Green
 		r = 0; g = 240; b = 0;
@@ -676,7 +676,8 @@ int CHudRadar::Draw(float flTime)
 		}
 
 		if (m_RadarInfo[index].special == RADAR_COLD_SPOT ||
-			m_RadarInfo[index].special == RADAR_CHUMTOAD)
+			m_RadarInfo[index].special == RADAR_CHUMTOAD ||
+			m_RadarInfo[index].special == RADAR_LOOT)
 		{
 			size *= 2;
 			fr = 0; fg = 240; fb = 0;

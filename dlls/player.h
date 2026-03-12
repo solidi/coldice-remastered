@@ -280,6 +280,10 @@ public:
 
 	BOOL m_iHoldingChumtoad;
 	int m_iChumtoadCounter;
+
+	// Loot game mode
+	BOOL m_bHoldingLoot;
+	int  m_iLootTeam;
 	int m_iCaptureTime;
 	int m_iChumtoadDropCounter;
 
