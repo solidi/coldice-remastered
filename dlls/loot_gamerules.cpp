@@ -59,8 +59,9 @@ public:
 
 	int  ObjectCaps( void ) { return CBaseEntity::ObjectCaps() & ~FCAP_ACROSS_TRANSITION; }
 
-	BOOL m_bHasLoot;
-	int  m_iGibModel;
+	BOOL   m_bHasLoot;
+	int    m_iGibModel;
+	EHANDLE m_pLastAttacker;    // player who dealt the killing blow
 };
 
 LINK_ENTITY_TO_CLASS( loot_crate, CLootCrate );
@@ -86,8 +87,9 @@ void CLootCrate::Spawn( void )
 	pev->health    = 25;
 	pev->sequence  = 0;
 	pev->animtime  = gpGlobals->time;
-	pev->framerate = 1.0f;
-	m_bHasLoot     = FALSE;
+	pev->framerate    = 1.0f;
+	m_bHasLoot       = FALSE;
+	m_pLastAttacker  = (CBaseEntity *)NULL;
 
 	UTIL_SetSize( pev, Vector(-16, -16, 0), Vector(16, 16, 48) );
 	UTIL_SetOrigin( pev, pev->origin );
@@ -109,6 +111,8 @@ int CLootCrate::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker,
 
 	if ( pev->health <= 0 )
 	{
+		if ( pevAttacker && pevAttacker->flags & FL_CLIENT )
+			m_pLastAttacker = CBaseEntity::Instance( ENT(pevAttacker) );
 		Break();
 		return 0;
 	}
@@ -143,6 +147,13 @@ void CLootCrate::Break( void )
 
 	if ( m_bHasLoot && g_pGameRules && g_pGameRules->IsLoot() )
 		((CHalfLifeLoot *)g_pGameRules)->SpawnLootAtPosition( pev->origin );
+	else if ( (CBaseEntity *)m_pLastAttacker != NULL )
+	{
+		// Tell the breaker they found an empty crate
+		MESSAGE_BEGIN( MSG_ONE, gmsgPlayClientSound, NULL, ((CBaseEntity *)m_pLastAttacker)->edict() );
+			WRITE_BYTE( CLIENT_SOUND_NOPE );
+		MESSAGE_END();
+	}
 
 	UTIL_Remove( this );
 }
@@ -1024,6 +1035,20 @@ void CHalfLifeLoot::OnGoalReached( CBasePlayer *pPlayer )
 	m_hLootHolder = (CBaseEntity *)NULL;
 	pPlayer->m_bHoldingLoot = FALSE;
 	pPlayer->pev->fuser4 = 0;
+
+	// Kill the green beam trail on the scorer
+	MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
+		WRITE_BYTE ( TE_KILLBEAM );
+		WRITE_SHORT( pPlayer->entindex() );
+	MESSAGE_END();
+
+	// Remove the loot entity from the world
+	CBaseEntity *pLoot = (CBaseEntity *)m_hLootEntity;
+	if ( pLoot )
+	{
+		UTIL_Remove( pLoot );
+		m_hLootEntity = (CBaseEntity *)NULL;
+	}
 
 	UTIL_ClientPrintAll( HUD_PRINTCENTER,
 	    UTIL_VarArgs("%s scored for team %s!\n",
