@@ -2176,11 +2176,11 @@ void CBasePlayer::PlayerUse ( void )
 		if ( (m_afButtonPressed & IN_USE) && g_pGameRules && g_pGameRules->IsLoot() )
 		{
 			CBaseEntity *pSwap = NULL;
-			while ( (pSwap = UTIL_FindEntityInSphere(pSwap, pev->origin, PLAYER_SEARCH_RADIUS)) != NULL )
+			while ( (pSwap = UTIL_FindEntityInSphere(pSwap, pev->origin, 32)) != NULL )
 			{
 				if ( pSwap->IsPlayer() ) continue;
 				CBasePlayerItem *pWpn = dynamic_cast<CBasePlayerItem *>(pSwap);
-				if ( pWpn && !g_pGameRules->CanHavePlayerItem(this, pWpn) )
+				if ( pWpn && pWpn->m_pPlayer != this && !g_pGameRules->CanHavePlayerItem(this, pWpn) )
 				{
 					if ( m_pActiveItem &&
 					     strcmp(STRING(m_pActiveItem->pev->classname), "weapon_fists") != 0 )

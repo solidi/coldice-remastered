@@ -198,6 +198,7 @@ void CLootEntity::Spawn( void )
 	pev->movetype  = MOVETYPE_TOSS;
 	pev->effects   = 0;
 	pev->takedamage = DAMAGE_NO;
+	pev->fuser4     = RADAR_LOOT;
 
 	UTIL_SetSize( pev, Vector(-16, -16, -16), Vector(16, 16, 16) );
 	UTIL_SetOrigin( pev, pev->origin );
@@ -479,19 +480,6 @@ void CHalfLifeLoot::ExposeLoot( void )
 		pLoot = (CBaseEntity *)m_hLootEntity;
 	}
 
-	// Green radar dot for the loot (slot 1)
-	if ( pLoot )
-	{
-		MESSAGE_BEGIN( MSG_ALL, gmsgSpecialEntity );
-			WRITE_BYTE ( 1 );
-			WRITE_BYTE ( 1 );
-			WRITE_COORD( pLoot->pev->origin.x );
-			WRITE_COORD( pLoot->pev->origin.y );
-			WRITE_COORD( pLoot->pev->origin.z );
-			WRITE_BYTE ( RADAR_LOOT );
-		MESSAGE_END();
-	}
-
 	// Center-screen flash
 	UTIL_ClientPrintAll( HUD_PRINTCENTER, "Loot Exposed!\nFind it!\n" );
 
@@ -506,6 +494,8 @@ void CHalfLifeLoot::ExposeLoot( void )
 			WRITE_BYTE( 0 );
 		MESSAGE_END();
 	}
+
+	m_flLastObjUpdate = gpGlobals->time + 4.0f;
 
 	ALERT( at_console, "[Loot] Loot exposed at (%.0f, %.0f, %.0f)\n",
 	       exposedOrigin.x, exposedOrigin.y, exposedOrigin.z );
@@ -541,6 +531,20 @@ void CHalfLifeLoot::SpawnLootAtPosition( Vector origin )
 		pLoot->pev->velocity.y = RANDOM_FLOAT(-80, 80);
 		pLoot->pev->velocity.z = RANDOM_FLOAT(100, 200);
 		m_hLootEntity = pLoot;
+	}
+
+	// Mark loot as exposed so OnCrateBroken suppresses objective-update spam
+	m_bLootExposed = TRUE;
+
+	// Shatter all remaining crates — loot has been found
+	CBaseEntity *pEnt = NULL;
+	while ( (pEnt = UTIL_FindEntityByClassname( pEnt, "loot_crate" )) != NULL )
+	{
+		CLootCrate *pCrate = (CLootCrate *)pEnt;
+		// Skip the originating crate — it is already mid-Break() and will be removed
+		if ( pCrate->pev->solid == SOLID_NOT ) continue;
+		pCrate->m_bHasLoot = FALSE;  // prevent recursion
+		pCrate->Break();
 	}
 }
 
@@ -1066,6 +1070,9 @@ void CHalfLifeLoot::OnGoalReached( CBasePlayer *pPlayer )
 	m_hLootHolder = (CBaseEntity *)NULL;
 	pPlayer->m_bHoldingLoot = FALSE;
 	pPlayer->pev->fuser4 = 0;
+	pPlayer->pev->renderfx    = kRenderFxNone;
+	pPlayer->pev->renderamt   = 0;
+	pPlayer->pev->rendercolor = Vector(0, 0, 0);
 
 	// Kill the green beam trail on the scorer
 	MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
@@ -1398,7 +1405,7 @@ void CHalfLifeLoot::SendObjectiveUpdate( void )
 		else if ( plr->m_iLootTeam == pHolder->m_iLootTeam )
 		{
 			if ( plr == pHolder )
-				detail = "Get to the goal!";
+				detail = "You have the loot!";
 			else
 				detail = UTIL_VarArgs("Cover %s!", STRING(pHolder->pev->netname));
 			title = "Get to the goal!";
@@ -1543,6 +1550,8 @@ void CHalfLifeLoot::Think( void )
 			// One team survived — celebrate before tearing down the round
 			if ( lastTeamIdx >= 0 )
 			{
+				m_flLastObjUpdate = gpGlobals->time + 5.0f;
+
 				// Surviving team members celebrate
 				for ( int i = 1; i <= gpGlobals->maxClients; i++ )
 				{
