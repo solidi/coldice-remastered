@@ -56,6 +56,7 @@ public:
 	int  TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker,
 	                 float flDamage, int bitsDamageType );
 	void Break( void );
+	void EXPORT LostThink( void );  // watches for crates that fell out of bounds
 
 	int  ObjectCaps( void ) { return CBaseEntity::ObjectCaps() & ~FCAP_ACROSS_TRANSITION; }
 
@@ -94,6 +95,10 @@ void CLootCrate::Spawn( void )
 
 	UTIL_SetSize( pev, Vector(-32, -32, 0), Vector(32, 32, 64) );
 	UTIL_SetOrigin( pev, pev->origin );
+
+	// Check 2.5 s after spawn that the crate hasn't fallen out of the map
+	SetThink( &CLootCrate::LostThink );
+	pev->nextthink = gpGlobals->time + 2.5f;
 }
 
 int CLootCrate::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker,
@@ -124,6 +129,7 @@ void CLootCrate::Break( void )
 {
 	pev->takedamage = DAMAGE_NO;
 	pev->solid      = SOLID_NOT;
+	SetThink( NULL );  // cancel LostThink
 
 	EMIT_SOUND_DYN( ENT(pev), CHAN_VOICE, "debris/wood1.wav", 0.8f, ATTN_NORM, 0, 95 );
 
@@ -163,6 +169,33 @@ void CLootCrate::Break( void )
 	}
 
 	UTIL_Remove( this );
+}
+
+void CLootCrate::LostThink( void )
+{
+	// If still in the air, keep watching for a bit longer
+	if ( pev->movetype == MOVETYPE_TOSS && !FBitSet(pev->flags, FL_ONGROUND) )
+	{
+		pev->nextthink = gpGlobals->time + 1.0f;
+		return;
+	}
+
+	// Compare against world lower bound
+	float worldFloor = VARS(ENT(0))->absmin.z;
+	if ( worldFloor > -1024 ) worldFloor = -1024;  // sanity: never trust a tiny map extent
+
+	if ( pev->origin.z < worldFloor + 128 )
+	{
+		// Crate has fallen out of the level
+		ALERT( at_console, "[Loot] Crate fell out of level at (%.0f, %.0f, %.0f)\n",
+		       pev->origin.x, pev->origin.y, pev->origin.z );
+
+		if ( g_pGameRules && g_pGameRules->IsLoot() )
+			((CHalfLifeLoot *)g_pGameRules)->OnCrateLost( this );
+		else
+			UTIL_Remove( this );
+	}
+	// else: crate landed safely, no further checking needed
 }
 
 // ============================================================
@@ -499,6 +532,35 @@ void CHalfLifeLoot::ExposeLoot( void )
 
 	ALERT( at_console, "[Loot] Loot exposed at (%.0f, %.0f, %.0f)\n",
 	       exposedOrigin.x, exposedOrigin.y, exposedOrigin.z );
+}
+
+// ============================================================
+// OnCrateLost  (called by CLootCrate::LostThink when a crate
+//              escapes the map without being broken)
+// ============================================================
+void CHalfLifeLoot::OnCrateLost( CLootCrate *pCrate )
+{
+	BOOL hadLoot = pCrate->m_bHasLoot;
+	pCrate->m_bHasLoot = FALSE;  // prevent any further callbacks
+	UTIL_Remove( pCrate );
+
+	if ( m_iCratesLeft  > 0 ) m_iCratesLeft--;
+	if ( m_iTotalCrates > 0 ) m_iTotalCrates--;
+
+	ALERT( at_console, "[Loot] Crate lost (hadLoot=%d). Crates remaining: %d/%d\n",
+	       hadLoot, m_iCratesLeft, m_iTotalCrates );
+
+	if ( hadLoot && !m_bLootExposed )
+	{
+		// The loot crate escaped — immediately expose loot at a random spawn
+		ExposeLoot();
+	}
+	else if ( !m_bLootExposed )
+	{
+		// Non-loot crate — just refresh the crate count on the objective panel
+		m_flLastObjUpdate = 0;
+		SendObjectiveUpdate();
+	}
 }
 
 // ============================================================

@@ -57,6 +57,9 @@ public:
 	// Called by CLootCrate whenever any crate breaks (loot or empty)
 	void OnCrateBroken( void );
 
+	// Called by CLootCrate when a crate falls out of map bounds
+	void OnCrateLost( class CLootCrate *pCrate );
+
 	// Called by CLootGoal when a loot-holder touches it
 	void OnGoalReached( CBasePlayer *pPlayer );
 
