@@ -54,6 +54,9 @@ public:
 	// Called by CLootCrate when it breaks and m_bHasLoot is set
 	void SpawnLootAtPosition( Vector origin );
 
+	// Called by CLootCrate whenever any crate breaks (loot or empty)
+	void OnCrateBroken( void );
+
 	// Called by CLootGoal when a loot-holder touches it
 	void OnGoalReached( CBasePlayer *pPlayer );
 
@@ -103,6 +106,10 @@ private:
 	// Loot exposure event (5-min no-pickup or 60s left)
 	float   m_flRoundStartTime;      // gpGlobals->time when current round started
 	BOOL    m_bLootExposed;          // TRUE once crates shattered and loot placed at deathmatch spawn
+
+	// Crate count tracking
+	int     m_iTotalCrates;          // How many crates were spawned this round
+	int     m_iCratesLeft;           // How many are still standing
 
 	Vector  m_vecUsedSpots[32];     // Spawn origins already assigned to a team (dedup)
 	int     m_iUsedSpotCount;

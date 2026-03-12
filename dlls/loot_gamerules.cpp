@@ -88,10 +88,11 @@ void CLootCrate::Spawn( void )
 	pev->sequence  = 0;
 	pev->animtime  = gpGlobals->time;
 	pev->framerate    = 1.0f;
+	pev->fuser4      = RADAR_BASE_BLUE;
 	m_bHasLoot       = FALSE;
 	m_pLastAttacker  = (CBaseEntity *)NULL;
 
-	UTIL_SetSize( pev, Vector(-16, -16, 0), Vector(16, 16, 48) );
+	UTIL_SetSize( pev, Vector(-32, -32, 0), Vector(32, 32, 64) );
 	UTIL_SetOrigin( pev, pev->origin );
 }
 
@@ -145,9 +146,15 @@ void CLootCrate::Break( void )
 		WRITE_BYTE ( 0  );           // flags
 	MESSAGE_END();
 
-	if ( m_bHasLoot && g_pGameRules && g_pGameRules->IsLoot() )
-		((CHalfLifeLoot *)g_pGameRules)->SpawnLootAtPosition( pev->origin );
-	else if ( (CBaseEntity *)m_pLastAttacker != NULL )
+	if ( g_pGameRules && g_pGameRules->IsLoot() )
+	{
+		CHalfLifeLoot *pRules = (CHalfLifeLoot *)g_pGameRules;
+		if ( m_bHasLoot )
+			pRules->SpawnLootAtPosition( pev->origin );
+		pRules->OnCrateBroken();
+	}
+
+	if ( !m_bHasLoot && (CBaseEntity *)m_pLastAttacker != NULL )
 	{
 		// Tell the breaker they found an empty crate
 		MESSAGE_BEGIN( MSG_ONE, gmsgPlayClientSound, NULL, ((CBaseEntity *)m_pLastAttacker)->edict() );
@@ -258,6 +265,7 @@ void CLootEntity::Drop( Vector origin )
 	pev->movetype  = MOVETYPE_TOSS;
 	pev->aiment   = NULL;
 	pev->owner    = NULL;
+	pev->sequence = 0;
 
 	// Bounds check before placing
 	/*TraceResult tr;
@@ -311,6 +319,7 @@ void CLootGoal::Spawn( void )
 	pev->takedamage = DAMAGE_NO;
 	pev->effects   = 0;
 	pev->framerate = 1;
+	pev->fuser4 = RADAR_BASE_RED;
 
 	UTIL_SetSize( pev, Vector(-48, -48, -32), Vector(48, 48, 48) );
 	UTIL_SetOrigin( pev, pev->origin );
@@ -354,6 +363,8 @@ CHalfLifeLoot::CHalfLifeLoot()
 	m_iPendingWinnerTeam   = -1;
 	m_flRoundStartTime     = 0;
 	m_bLootExposed         = FALSE;
+	m_iTotalCrates         = 0;
+	m_iCratesLeft          = 0;
 
 	memset( m_flTeamHoldTime,    0, sizeof(m_flTeamHoldTime) );
 	memset( m_iTeamPlayers,      0, sizeof(m_iTeamPlayers) );
@@ -501,6 +512,21 @@ void CHalfLifeLoot::ExposeLoot( void )
 }
 
 // ============================================================
+// OnCrateBroken  (called by CLootCrate::Break for every crate)
+// ============================================================
+void CHalfLifeLoot::OnCrateBroken( void )
+{
+	if ( m_iCratesLeft > 0 ) m_iCratesLeft--;
+
+	// ExposeLoot handles its own objective messaging; skip during mass-shatter
+	if ( m_bLootExposed ) return;
+
+	// Immediately push updated crate count to all real players
+	m_flLastObjUpdate = 0;
+	SendObjectiveUpdate();
+}
+
+// ============================================================
 // SpawnLootAtPosition  (callback from CLootCrate::Break)
 // ============================================================
 void CHalfLifeLoot::SpawnLootAtPosition( Vector origin )
@@ -560,6 +586,8 @@ void CHalfLifeLoot::SpawnLootEntities( void )
 		CBaseEntity *pEnt = CBaseEntity::Create( "loot_crate", spawnPos, g_vecZero, NULL );
 		if ( pEnt )
 		{
+			m_iTotalCrates++;
+			m_iCratesLeft++;
 			CLootCrate *pCrate = (CLootCrate *)pEnt;
 			if ( i == lootCrateIndex )
 			{
@@ -659,6 +687,8 @@ void CHalfLifeLoot::StartRound( int clients )
 	m_iPendingWinnerTeam   = -1;
 	m_bLootExposed         = FALSE;
 	m_flRoundStartTime     = 0;
+	m_iTotalCrates         = 0;
+	m_iCratesLeft          = 0;
 	memset( m_vecUsedSpots, 0, sizeof(m_vecUsedSpots) );
 
 	// Fisher-Yates shuffle of available player slots
@@ -828,6 +858,7 @@ void CHalfLifeLoot::CaptureCharm( CBasePlayer *pPlayer )
 		pLootEnt->SetTouch( NULL );
 		pLootEnt->pev->movetype = MOVETYPE_FOLLOW;
 		pLootEnt->pev->aiment = pPlayer->edict();
+		pLootEnt->pev->sequence = 1;
 	}
 
 	m_hLootHolder      = pPlayer;
@@ -1382,6 +1413,8 @@ void CHalfLifeLoot::SendObjectiveUpdate( void )
 			WRITE_STRING( title );
 			WRITE_STRING( detail );
 			WRITE_BYTE( 0 );
+			if ( m_iTotalCrates > 0 && !m_bLootExposed && !(CBaseEntity *)m_hLootHolder )
+				WRITE_STRING( UTIL_VarArgs("%d of %d crates left", m_iCratesLeft, m_iTotalCrates) );
 		MESSAGE_END();
 	}
 }
@@ -1505,10 +1538,41 @@ void CHalfLifeLoot::Think( void )
 			if ( teamAlive[t] > 0 ) { teamsAlive++; lastTeamIdx = t; }
 		}
 
-		if ( totalAlive == 0 || teamsAlive <= 1 )
+		if ( ( totalAlive == 0 || teamsAlive <= 1 ) && m_flCelebrationEndTime == 0 )
 		{
-			// If exactly one team remains, they win by survival
-			EndRound( lastTeamIdx );
+			// One team survived — celebrate before tearing down the round
+			if ( lastTeamIdx >= 0 )
+			{
+				// Surviving team members celebrate
+				for ( int i = 1; i <= gpGlobals->maxClients; i++ )
+				{
+					CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
+					if ( plr && plr->IsPlayer() && plr->IsInArena &&
+					     plr->IsAlive() && plr->m_iLootTeam == lastTeamIdx )
+						plr->Celebrate();
+				}
+
+				// Objective panel for every real player
+				for ( int i = 1; i <= gpGlobals->maxClients; i++ )
+				{
+					CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
+					if ( !plr || !plr->IsPlayer() || FBitSet(plr->pev->flags, FL_FAKECLIENT) ) continue;
+					MESSAGE_BEGIN( MSG_ONE, gmsgObjective, NULL, plr->edict() );
+						WRITE_STRING( "Round Over" );
+						WRITE_STRING( UTIL_VarArgs("Team %s won the round!", s_TeamNames[lastTeamIdx]) );
+						WRITE_BYTE( 0 );
+					MESSAGE_END();
+				}
+
+				UTIL_ClientPrintAll( HUD_PRINTCENTER,
+				    UTIL_VarArgs("Team %s wins!\n", s_TeamNames[lastTeamIdx]) );
+				MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
+					WRITE_BYTE( CLIENT_SOUND_OUTSTANDING );
+				MESSAGE_END();
+			}
+
+			m_iPendingWinnerTeam   = lastTeamIdx;
+			m_flCelebrationEndTime = gpGlobals->time + 4.0f;
 			return;
 		}
 
@@ -1629,6 +1693,8 @@ void CHalfLifeLoot::InitHUD( CBasePlayer *pPlayer )
 			else
 				WRITE_STRING( "" );
 			WRITE_BYTE( 0 );
+			if ( g_GameInProgress && m_iTotalCrates > 0 && !m_bLootExposed && !(CBaseEntity *)m_hLootHolder )
+				WRITE_STRING( UTIL_VarArgs("%d of %d crates left", m_iCratesLeft, m_iTotalCrates) );
 		MESSAGE_END();
 
 		MESSAGE_BEGIN( MSG_ONE, gmsgTeamNames, NULL, pPlayer->edict() );
