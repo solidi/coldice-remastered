@@ -78,6 +78,7 @@ private:
 	void GiveTeamWeapons( int teamIndex );
 	void StripToFists( CBasePlayer *pPlayer );
 	void ReduceToOneWeapon( CBasePlayer *pPlayer );
+	void PlaceAtTeamSpawn( CBasePlayer *pPlayer, int teamIdx );
 	void SendObjectiveUpdate( void );
 	void CleanupRoundEntities( void );
 	void SendGoalSpecialEntity( void );
@@ -101,6 +102,10 @@ private:
 	// TODO: FALLBACK -- if SOLID_NOT on a living player causes a crash, remove the
 	// pev->solid assignments in StartRound and accept a brief overlap at spawn.
 	float   m_fSpawnGroupSolidRestoreTime;
+
+	// Deferred crate spawn: SpawnLootEntities fires 3 s after players enter arena
+	// so no crate is placed on top of a player still settling at their spawn point.
+	float   m_flCrateSpawnTime;
 
 	// Deferred round-end after goal celebration (4 second window)
 	float   m_flCelebrationEndTime;  // gpGlobals->time when EndRound should fire; 0 = not pending

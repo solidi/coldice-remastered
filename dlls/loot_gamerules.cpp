@@ -249,8 +249,7 @@ void CLootEntity::LootTouch( CBaseEntity *pOther )
 	CBasePlayer *pPlayer = (CBasePlayer *)pOther;
 	if ( !pPlayer->IsAlive() )
 		return;
-	if ( FBitSet( pPlayer->pev->flags, FL_FAKECLIENT ) )
-		return;
+
 	if ( pev->effects & EF_NODRAW )   // already held - touch is disabled
 		return;
 
@@ -393,6 +392,7 @@ CHalfLifeLoot::CHalfLifeLoot()
 	m_flLastObjUpdate  = 0;
 	m_iUsedSpotCount   = 0;
 	m_fSpawnGroupSolidRestoreTime = 0;
+	m_flCrateSpawnTime     = 0;
 	m_flCelebrationEndTime = 0;
 	m_iPendingWinnerTeam   = -1;
 	m_flRoundStartTime     = 0;
@@ -608,6 +608,10 @@ void CHalfLifeLoot::SpawnLootAtPosition( Vector origin )
 		pCrate->m_bHasLoot = FALSE;  // prevent recursion
 		pCrate->Break();
 	}
+
+	MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
+		WRITE_BYTE( CLIENT_SOUND_SIREN );
+	MESSAGE_END();
 }
 
 // ============================================================
@@ -635,9 +639,25 @@ void CHalfLifeLoot::SpawnLootEntities( void )
 	const int wFallbackCount = 6;
 
 	// Track placed positions to enforce minimum crate separation
-	const float MIN_CRATE_SEP = 96.0f;
+	const float MIN_CRATE_SEP    = 96.0f;
+	// Minimum clear radius around a candidate before we consider spawning there.
+	// A crate is ~32 units wide and a player hull is 32 units — 80 gives a safe buffer.
+	const float CRATE_PLAYER_RADIUS = 80.0f;
 	Vector crateSpots[32];
 	int    crateSpotCount = 0;
+
+	// Returns TRUE if any living player is within CRATE_PLAYER_RADIUS of pos.
+	auto PlayerNearby = [&]( const Vector &pos ) -> BOOL
+	{
+		for ( int n = 1; n <= gpGlobals->maxClients; n++ )
+		{
+			CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex(n);
+			if ( !plr || !plr->IsAlive() ) continue;
+			if ( (plr->pev->origin - pos).Length() < CRATE_PLAYER_RADIUS )
+				return TRUE;
+		}
+		return FALSE;
+	};
 
 	for ( int i = 0; i < count; i++ )
 	{
@@ -658,7 +678,7 @@ void CHalfLifeLoot::SpawnLootEntities( void )
 				if ( (candidate - crateSpots[k]).Length() < MIN_CRATE_SEP )
 					tooClose = TRUE;
 
-			if ( !tooClose ) { spawnPos = candidate; found = TRUE; }
+			if ( !tooClose && !PlayerNearby(candidate) ) { spawnPos = candidate; found = TRUE; }
 		}
 
 		if ( !found )
@@ -695,7 +715,7 @@ void CHalfLifeLoot::SpawnLootEntities( void )
 						if ( (candidate - crateSpots[k]).Length() < MIN_CRATE_SEP )
 							tooClose = TRUE;
 
-					if ( !tooClose ) { spawnPos = candidate; found = TRUE; }
+					if ( !tooClose && !PlayerNearby(candidate) ) { spawnPos = candidate; found = TRUE; }
 				}
 			}
 
@@ -873,7 +893,9 @@ void CHalfLifeLoot::StartRound( int clients )
 			pUsedSpots[t] = UTIL_FindEntityByClassname( NULL, "info_player_deathmatch" );
 		}
 
-		m_vecTeamSpawnOrigin[t] = pUsedSpots[t] ? pUsedSpots[t]->pev->origin : g_vecZero;
+		// +36 Z lifts the player's hull centre above the floor (same offset used
+		// everywhere else in this file when placing entities at spawn points).
+		m_vecTeamSpawnOrigin[t] = pUsedSpots[t] ? pUsedSpots[t]->pev->origin + Vector(0, 0, 36) : g_vecZero;
 
 		// Assign team name and loot-team index to each player on this team.
 		// t is already in name-index space (m_iTeamPlayers[t] was stored that way above).
@@ -907,7 +929,9 @@ void CHalfLifeLoot::StartRound( int clients )
 
 	InsertClientsIntoArena( 0 );
 
-	SpawnLootEntities();
+	// Delay crate spawning by 3 seconds so players have fully settled at
+	// their spawn points before crates are placed (avoids spawning on top of them).
+	m_flCrateSpawnTime = gpGlobals->time + 3.0f;
 
 	// Broadcast team names (4 slots)
 	MESSAGE_BEGIN( MSG_ALL, gmsgTeamNames );
@@ -1547,16 +1571,28 @@ void CHalfLifeLoot::SendObjectiveUpdate( void )
 		}
 		else
 		{
-			title  = UTIL_VarArgs("Frag %s!", STRING(pHolder->pev->netname));
+			// Use a local buffer for title so the second UTIL_VarArgs call
+			// (for detail) does not overwrite the shared static VarArgs buffer
+			// that title already points into.
+			static char titleBuf[64];
+			snprintf( titleBuf, sizeof(titleBuf), "Frag %s!", STRING(pHolder->pev->netname) );
+			title  = titleBuf;
 			detail = UTIL_VarArgs("%s has the loot!", STRING(pHolder->pev->netname));
 		}
 
 		MESSAGE_BEGIN( MSG_ONE_UNRELIABLE, gmsgObjective, NULL, plr->edict() );
 			WRITE_STRING( title );
 			WRITE_STRING( detail );
-			WRITE_BYTE( 0 );
 			if ( m_iTotalCrates > 0 && !m_bLootExposed && !(CBaseEntity *)m_hLootHolder )
+			{
+				WRITE_BYTE( ((m_iTotalCrates - m_iCratesLeft) / (float)m_iTotalCrates) * 100 );
 				WRITE_STRING( UTIL_VarArgs("%d of %d crates left", m_iCratesLeft, m_iTotalCrates) );
+			}
+			else
+			{
+				WRITE_BYTE( 0 );
+				WRITE_STRING( "" );
+			}
 		MESSAGE_END();
 	}
 }
@@ -1591,6 +1627,13 @@ void CHalfLifeLoot::Think( void )
 	if ( m_flRoundTimeLimit )
 	{
 		if ( HasGameTimerExpired() ) return;
+	}
+
+	// Fire deferred crate spawn
+	if ( m_flCrateSpawnTime > 0 && gpGlobals->time >= m_flCrateSpawnTime )
+	{
+		m_flCrateSpawnTime = 0;
+		SpawnLootEntities();
 	}
 
 	// Restore SOLID_SLIDEBOX after spawn grouping window
@@ -1889,6 +1932,143 @@ void CHalfLifeLoot::InitHUD( CBasePlayer *pPlayer )
 }
 
 // ============================================================
+// PlaceAtTeamSpawn
+// Finds a clear world position for pPlayer around their team's
+// assigned spawn origin and calls UTIL_SetOrigin to place them.
+//
+// Three-pass search:
+//   1. 16 offsets (8 compass + diagonals, at two heights) around the base.
+//   2. Full scan of every info_player_deathmatch in the map.
+//   3. Upward nudge (1 unit/step, up to 72 units) to escape floor-clipping.
+// Followed by a push-away loop that resolves any remaining player overlap.
+// ============================================================
+void CHalfLifeLoot::PlaceAtTeamSpawn( CBasePlayer *pPlayer, int teamIdx )
+{
+	// Determine this player's slot index within the team (used to select the
+	// initial offset so teammates don't all start on exactly the same spot).
+	int posInTeam = 0;
+	for ( int j = 0; j < m_iTeamPlayerCount[teamIdx]; j++ )
+	{
+		if ( m_iTeamPlayers[teamIdx][j] == pPlayer->entindex() )
+		{
+			posInTeam = j;
+			break;
+		}
+	}
+
+	// A standing player's hull is 32 units wide; 48 gives a comfortable margin.
+	static const float PLAYER_AVOID_RADIUS = 48.0f;
+
+	// 8-compass + diagonal offsets at floor level, then repeated ~18 units
+	// higher, giving 16 candidates before falling back to wider searches.
+	static const Vector s_SpawnOffsets[] = {
+		Vector(  0,   0,  0),
+		Vector( 48,   0,  0),
+		Vector(-48,   0,  0),
+		Vector(  0,  48,  0),
+		Vector(  0, -48,  0),
+		Vector( 34,  34,  0),
+		Vector(-34,  34,  0),
+		Vector(-34, -34,  0),
+		Vector( 34, -34,  0),
+		Vector(  0,   0, 18),
+		Vector( 48,   0, 18),
+		Vector(-48,   0, 18),
+		Vector(  0,  48, 18),
+		Vector(  0, -48, 18),
+		Vector( 34,  34, 18),
+		Vector(-34, -34, 18),
+	};
+	static const int s_NumSpawnOffsets = ARRAYSIZE(s_SpawnOffsets);
+
+	// Returns TRUE when pos is clear of world geometry AND no other living
+	// player is within PLAYER_AVOID_RADIUS.  Traces with ignore_monsters so
+	// only BSP faces are tested; players are checked explicitly.
+	auto IsClear = [&]( const Vector &pos ) -> BOOL
+	{
+		TraceResult tr;
+		UTIL_TraceHull( pos, pos, ignore_monsters, human_hull,
+		                ENT(pPlayer->pev), &tr );
+		if ( tr.fStartSolid ) return FALSE;
+
+		for ( int n = 1; n <= gpGlobals->maxClients; n++ )
+		{
+			CBasePlayer *other = (CBasePlayer *)UTIL_PlayerByIndex(n);
+			if ( !other || other == pPlayer || !other->IsAlive() ) continue;
+			if ( (other->pev->origin - pos).Length() < PLAYER_AVOID_RADIUS )
+				return FALSE;
+		}
+		return TRUE;
+	};
+
+	Vector baseOrigin = m_vecTeamSpawnOrigin[teamIdx];
+	Vector spawnPos   = baseOrigin + s_SpawnOffsets[posInTeam % s_NumSpawnOffsets];
+	BOOL   placed     = FALSE;
+
+	// Pass 1: offsets around the team's assigned spawn point.
+	for ( int o = 0; o < s_NumSpawnOffsets && !placed; o++ )
+	{
+		Vector tryPos = baseOrigin + s_SpawnOffsets[(posInTeam + o) % s_NumSpawnOffsets];
+		if ( IsClear(tryPos) ) { spawnPos = tryPos; placed = TRUE; }
+	}
+
+	// Pass 2: every info_player_deathmatch in the map.
+	if ( !placed )
+	{
+		CBaseEntity *pSpot = NULL;
+		while ( !placed && (pSpot = UTIL_FindEntityByClassname( pSpot, "info_player_deathmatch" )) != NULL )
+		{
+			Vector candidate = pSpot->pev->origin + Vector(0, 0, 36);
+			if ( IsClear(candidate) ) { spawnPos = candidate; placed = TRUE; }
+		}
+	}
+
+	// Pass 3: nudge upward to escape floor-clipping.
+	if ( !placed )
+	{
+		for ( int step = 1; step <= 72 && !placed; step++ )
+		{
+			Vector nudge = spawnPos;
+			nudge.z     += step;
+			if ( IsClear(nudge) ) { spawnPos = nudge; placed = TRUE; }
+		}
+	}
+
+	UTIL_SetOrigin( pPlayer->pev, spawnPos );
+
+	// Post-placement de-overlap: push this player directly away from the
+	// nearest overlapper, up to 8 times, stopping if a wall blocks the push.
+	for ( int attempt = 0; attempt < 8; attempt++ )
+	{
+		CBasePlayer *nearest  = NULL;
+		float        nearDist = PLAYER_AVOID_RADIUS;
+
+		for ( int n = 1; n <= gpGlobals->maxClients; n++ )
+		{
+			CBasePlayer *other = (CBasePlayer *)UTIL_PlayerByIndex(n);
+			if ( !other || other == pPlayer || !other->IsAlive() ) continue;
+			float d = (other->pev->origin - spawnPos).Length();
+			if ( d < nearDist ) { nearDist = d; nearest = other; }
+		}
+
+		if ( !nearest ) break;
+
+		Vector away = spawnPos - nearest->pev->origin;
+		if ( away.Length() < 1.0f ) away = Vector(1, 0, 0);  // degenerate: same origin
+		away = away.Normalize() * PLAYER_AVOID_RADIUS;
+
+		Vector candidate = spawnPos + away;
+		TraceResult tr;
+		UTIL_TraceHull( candidate, candidate, ignore_monsters, human_hull,
+		                ENT(pPlayer->pev), &tr );
+		if ( !tr.fStartSolid )
+			{ spawnPos = candidate; UTIL_SetOrigin( pPlayer->pev, spawnPos ); }
+		else
+			break;
+	}
+}
+
+// ============================================================
 // PlayerSpawn
 // ============================================================
 void CHalfLifeLoot::PlayerSpawn( CBasePlayer *pPlayer )
@@ -1912,39 +2092,7 @@ void CHalfLifeLoot::PlayerSpawn( CBasePlayer *pPlayer )
 	{
 		int teamIdx = pPlayer->m_iLootTeam;
 
-		// Determine this player's index within the team (0 = first member)
-		int posInTeam = 0;
-		for ( int j = 0; j < m_iTeamPlayerCount[teamIdx]; j++ )
-		{
-			if ( m_iTeamPlayers[teamIdx][j] == pPlayer->entindex() )
-			{
-				posInTeam = j;
-				break;
-			}
-		}
-
-		static const Vector offsets[4] = {
-			Vector(  0,   0, 0),
-			Vector( 48,   0, 0),
-			Vector(-48,   0, 0),
-			Vector(  0,  48, 0),
-		};
-
-		Vector baseOrigin = m_vecTeamSpawnOrigin[teamIdx];
-		Vector spawnPos   = baseOrigin + offsets[posInTeam % 4];
-
-		// Try to find a non-stuck offset; rotate through if blocked
-		BOOL placed = FALSE;
-		for ( int o = 0; o < 4 && !placed; o++ )
-		{
-			Vector tryPos = baseOrigin + offsets[(posInTeam + o) % 4];
-			TraceResult tr;
-			UTIL_TraceHull( tryPos, tryPos, dont_ignore_monsters, human_hull,
-			                ENT(pPlayer->pev), &tr );
-			if ( !tr.fStartSolid ) { spawnPos = tryPos; placed = TRUE; }
-		}
-
-		UTIL_SetOrigin( pPlayer->pev, spawnPos );
+		PlaceAtTeamSpawn( pPlayer, teamIdx );
 
 		// Enforce the team model so everyone on the same team looks the part
 		char *key = g_engfuncs.pfnGetInfoKeyBuffer( pPlayer->edict() );

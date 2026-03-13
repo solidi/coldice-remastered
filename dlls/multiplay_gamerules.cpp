@@ -1102,6 +1102,7 @@ void CHalfLifeMultiplay::RemoveAndFillItems( void )
 		"rune_cloak",
 		"rune_strength",
 		"disc",
+		"hornet",
 	};
 
 	CBaseEntity *pEntity = NULL;
