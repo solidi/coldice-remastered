@@ -525,6 +525,7 @@ void CHalfLifeLoot::ExposeLoot( void )
 			WRITE_STRING( "Loot Exposed!" );
 			WRITE_STRING( "Crates shattered - grab it!" );
 			WRITE_BYTE( 0 );
+			WRITE_STRING( "" );
 		MESSAGE_END();
 	}
 
@@ -1453,6 +1454,7 @@ void CHalfLifeLoot::EndRound( int winningTeam )
 				WRITE_STRING( "Round Over" );
 				WRITE_STRING( pWinner ? UTIL_VarArgs("Team %s wins", pWinner) : "No winner" );
 				WRITE_BYTE( 0 );
+				WRITE_STRING( "" );
 			MESSAGE_END();
 		}
 	}
@@ -1748,6 +1750,7 @@ void CHalfLifeLoot::Think( void )
 						WRITE_STRING( "Round Over" );
 						WRITE_STRING( UTIL_VarArgs("Team %s won the round!", s_TeamNames[lastTeamIdx]) );
 						WRITE_BYTE( 0 );
+						WRITE_STRING( "" );
 					MESSAGE_END();
 				}
 
@@ -1882,6 +1885,8 @@ void CHalfLifeLoot::InitHUD( CBasePlayer *pPlayer )
 			WRITE_BYTE( 0 );
 			if ( g_GameInProgress && m_iTotalCrates > 0 && !m_bLootExposed && !(CBaseEntity *)m_hLootHolder )
 				WRITE_STRING( UTIL_VarArgs("%d of %d crates left", m_iCratesLeft, m_iTotalCrates) );
+			else
+				WRITE_STRING( "" );
 		MESSAGE_END();
 
 		MESSAGE_BEGIN( MSG_ONE, gmsgTeamNames, NULL, pPlayer->edict() );
