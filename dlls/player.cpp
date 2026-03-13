@@ -4805,7 +4805,7 @@ void CBasePlayer::GiveNamedItem( const char *pszName )
 	if ( pev->iuser1 )	// player is in spectator mode
 		return;
 
-	if ( !g_pGameRules->CanHaveNamedItem( this, STRING(pev->classname) ) )
+	if (g_pGameRules && !g_pGameRules->CanHaveNamedItem( this, pszName ))
 		return;
 
 	edict_t	*pent;

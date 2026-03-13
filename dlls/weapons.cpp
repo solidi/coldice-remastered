@@ -2317,11 +2317,6 @@ void CWeaponBox::Touch( CBaseEntity *pOther )
 		return;
 	}
 
-	if ( !g_pGameRules->CanHaveNamedItem( (CBasePlayer *)pOther, STRING(pev->classname) ) )
-	{
-		return;
-	}
-
 	CBasePlayer *pPlayer = (CBasePlayer *)pOther;
 	int i;
 
@@ -2357,6 +2352,9 @@ void CWeaponBox::Touch( CBaseEntity *pOther )
 
 				pItem = m_rgpPlayerItems[ i ];
 				m_rgpPlayerItems[ i ] = m_rgpPlayerItems[ i ]->m_pNext;// unlink this weapon from the box
+
+				if ( !g_pGameRules->CanHaveNamedItem( (CBasePlayer *)pOther, STRING(pItem->pev->classname) ) )
+					continue;
 
 				if ( pPlayer->AddPlayerItem( pItem ) )
 				{
