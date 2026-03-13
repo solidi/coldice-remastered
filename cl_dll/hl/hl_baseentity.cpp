@@ -38,6 +38,7 @@ enginefuncs_t g_engfuncs;
 globalvars_t  *gpGlobals;
 CGameRules*	g_pGameRules;
 short g_sModelIndexSmoke;
+short g_sModelIndexSmoke2;
 short g_sModelIndexSnowballHit;
 
 ItemInfo CBasePlayerItem::ItemInfoArray[MAX_WEAPONS];

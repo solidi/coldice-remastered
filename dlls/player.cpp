@@ -5757,7 +5757,7 @@ void CGrabWeapon::Spawn( void )
 		WRITE_BYTE( TE_BEAMENTS );
 		WRITE_SHORT(entindex());	// entity
 		WRITE_SHORT(m_hOwner->entindex());
-		WRITE_SHORT(PRECACHE_MODEL("sprites/smoke.spr"));	// model
+		WRITE_SHORT(g_sModelIndexSmoke2);	// model
 		WRITE_BYTE( 0 );
 		WRITE_BYTE( 1 );
 		WRITE_BYTE( 100 ); // life

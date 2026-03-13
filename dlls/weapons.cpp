@@ -48,6 +48,7 @@ DLL_GLOBAL  const char *g_pModelNameLaser = "sprites/laserbeam.spr";
 DLL_GLOBAL	short	g_sModelIndexLaserDot;// holds the index for the laser beam dot
 DLL_GLOBAL	short	g_sModelIndexFireball;// holds the index for the fireball
 DLL_GLOBAL	short	g_sModelIndexSmoke;// holds the index for the smoke cloud
+DLL_GLOBAL	short	g_sModelIndexSmoke2;// holds the index for the smoke cloud 2
 DLL_GLOBAL	short	g_sModelIndexWExplosion;// holds the index for the underwater explosion
 DLL_GLOBAL	short	g_sModelIndexBubbles;// holds the index for the bubbles model
 DLL_GLOBAL	short	g_sModelIndexBloodDrop;// holds the sprite index for the initial blood
@@ -514,6 +515,7 @@ void W_Precache(void)
 	g_sModelIndexBubbles = PRECACHE_MODEL ("sprites/bubble.spr");//bubbles
 	g_sModelIndexBloodSpray = PRECACHE_MODEL ("sprites/bloodspray.spr"); // initial blood
 	g_sModelIndexBloodDrop = PRECACHE_MODEL ("sprites/blood.spr"); // splattered blood 
+	g_sModelIndexSmoke2 = PRECACHE_MODEL ("sprites/smoke.spr");// smoke 2
 
 	g_sModelIndexLaser = PRECACHE_MODEL( (char *)g_pModelNameLaser );
 	g_sModelIndexLaserDot = PRECACHE_MODEL("sprites/laserdot.spr");

@@ -147,7 +147,7 @@ void CDisc::Precache( void )
 	PRECACHE_SOUND("weapons/xbow_hit1.wav");
 	PRECACHE_SOUND("weapons/xbow_hit2.wav");
 	PRECACHE_SOUND("weapons/rocket1.wav");
-	m_iTrail = PRECACHE_MODEL("sprites/smoke.spr");
+	m_iTrail = g_sModelIndexSmoke2;
 	m_iSpriteTexture = PRECACHE_MODEL( "sprites/lgtning.spr" );
 }
 

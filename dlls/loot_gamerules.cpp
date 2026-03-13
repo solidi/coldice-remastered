@@ -1033,7 +1033,7 @@ void CHalfLifeLoot::CaptureCharm( CBasePlayer *pPlayer )
 	pPlayer->pev->fuser4      = RADAR_LOOT;
 
 	// Attach a green beam trail to the holder
-	int iTrail = PRECACHE_MODEL("sprites/smoke.spr");
+	int iTrail = g_sModelIndexSmoke2;
 	MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
 		WRITE_BYTE ( TE_BEAMFOLLOW );
 		WRITE_SHORT( pPlayer->entindex() );

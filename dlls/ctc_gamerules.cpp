@@ -249,7 +249,7 @@ void CHalfLifeCaptureTheChumtoad::CaptureCharm( CBasePlayer *pPlayer )
 	pPlayer->pev->fuser4 = RADAR_CHUMTOAD;
 	m_pHolder = (CBaseEntity *)pPlayer;
 
-	int m_iTrail = PRECACHE_MODEL("sprites/smoke.spr");
+	int m_iTrail = g_sModelIndexSmoke2;
 
 	MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
 		WRITE_BYTE( TE_BEAMFOLLOW );
