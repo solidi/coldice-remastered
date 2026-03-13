@@ -1131,3 +1131,15 @@ BOOL CHalfLifePropHunt :: PlayFootstepSounds( CBasePlayer *pl, float fvol )
 
 	return CHalfLifeMultiplay::PlayFootstepSounds( pl, fvol );
 }
+
+BOOL CHalfLifePropHunt::CanHaveNamedItem( CBasePlayer *pPlayer, const char *pszItemName )
+{
+	if (pPlayer->pev->fuser4 >= TEAM_PROPS && 
+		stricmp(pszItemName, "weapon_fists") != 0 &&
+		stricmp(pszItemName, "weapon_handgrenade") != 0)
+	{
+		return FALSE;
+	}
+
+	return CHalfLifeMultiplay::CanHaveNamedItem( pPlayer, pszItemName );
+}

@@ -780,3 +780,12 @@ void CHalfLifeJesusVsSanta::ClientDisconnected( edict_t *pClient )
 		
 	CHalfLifeMultiplay::ClientDisconnected(pClient);
 }
+
+BOOL CHalfLifeJesusVsSanta::CanHaveNamedItem( CBasePlayer *pPlayer, const char *pszItemName )
+{
+	if (strcmp(pszItemName, "weapon_nuke") == 0) {
+		return FALSE;
+	}
+
+	return CHalfLifeMultiplay::CanHaveNamedItem( pPlayer, pszItemName );
+}

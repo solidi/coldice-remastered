@@ -564,3 +564,16 @@ BOOL CMultiplayBusters::IsTeamplay( void )
 {
 	return TRUE;
 }
+
+BOOL CMultiplayBusters::CanHaveNamedItem( CBasePlayer *pPlayer, const char *pszItemName )
+{
+	if (pPlayer->pev->fuser4 == 0)
+	{
+		if (strcmp(pszItemName, "weapon_egon") == 0) {
+			ALERT(at_console, "Not allowed an egon unless you are the buster.\n");
+			return FALSE;
+		}
+	}
+
+	return CHalfLifeMultiplay::CanHaveNamedItem( pPlayer, pszItemName );
+}

@@ -902,10 +902,11 @@ typedef struct
 #define GAME_HORDE 10
 #define GAME_INSTAGIB 11
 #define GAME_ICEMAN 12
-#define GAME_PROPHUNT 13
-#define GAME_SHIDDEN 14
-#define GAME_SNOWBALL 15
-#define GAME_TEAMPLAY 16
+#define GAME_LOOT 13
+#define GAME_PROPHUNT 14
+#define GAME_SHIDDEN 15
+#define GAME_SNOWBALL 16
+#define GAME_TEAMPLAY 17
 
 #define TEAM_SKELETONS RADAR_VIRUS
 #define TEAM_PROPS 1
@@ -970,10 +971,12 @@ typedef struct
 
 #define RADAR_TEAM_BLUE		0
 #define RADAR_TEAM_RED		1
-#define RADAR_VIRUS			3
-#define RADAR_COLD_SPOT		4
-#define RADAR_CHUMTOAD		5
-#define RADAR_BUSTER		6
+#define RADAR_TEAM_YELLOW	2
+#define RADAR_TEAM_GREEN	3
+#define RADAR_VIRUS			4
+#define RADAR_COLD_SPOT		5
+#define RADAR_CHUMTOAD		6
+#define RADAR_BUSTER		7
 #define RADAR_HORDE			8
 #define RADAR_JESUS			9
 #define RADAR_FLAG_BLUE		10
@@ -982,6 +985,7 @@ typedef struct
 #define RADAR_BASE_RED		13
 #define RADAR_ARENA_RED		14
 #define RADAR_ARENA_BLUE	15
+#define RADAR_LOOT			16
 
 #endif
 

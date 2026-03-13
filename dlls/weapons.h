@@ -536,6 +536,7 @@ extern DLL_GLOBAL	const char *g_pModelNameLaser;
 extern DLL_GLOBAL	short	g_sModelIndexLaserDot;// holds the index for the laser beam dot
 extern DLL_GLOBAL	short	g_sModelIndexFireball;// holds the index for the fireball
 extern DLL_GLOBAL	short	g_sModelIndexSmoke;// holds the index for the smoke cloud
+extern DLL_GLOBAL	short	g_sModelIndexSmoke2;// holds the index for the smoke cloud
 extern DLL_GLOBAL	short	g_sModelIndexWExplosion;// holds the index for the underwater explosion
 extern DLL_GLOBAL	short	g_sModelIndexBubbles;// holds the index for the bubbles model
 extern DLL_GLOBAL	short	g_sModelIndexBloodDrop;// holds the sprite index for blood drops

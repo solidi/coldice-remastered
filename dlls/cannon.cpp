@@ -120,7 +120,7 @@ void CFlakBomb :: BlowUp() {
 
 void CFlakBomb :: Precache( void )
 {
-	m_iTrail = PRECACHE_MODEL("sprites/smoke.spr");
+	m_iTrail = g_sModelIndexSmoke2;
 	PRECACHE_MODEL("sprites/xspark4.spr");
 	PRECACHE_MODEL("sprites/ice_xspark4.spr");
 	PRECACHE_SOUND ("rocket1.wav");
@@ -184,7 +184,7 @@ void CFlak :: Spawn( )
 	MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
 		WRITE_BYTE( TE_BEAMFOLLOW );
 		WRITE_SHORT(entindex());	// entity
-		WRITE_SHORT(PRECACHE_MODEL("sprites/smoke.spr"));	// model
+		WRITE_SHORT(g_sModelIndexSmoke2);	// model
 		WRITE_BYTE( 7 ); // life
 		WRITE_BYTE( 2 );  // width
 		WRITE_BYTE( 200 );   // r, g, b

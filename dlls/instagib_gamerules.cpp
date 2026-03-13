@@ -327,3 +327,14 @@ BOOL CHalfLifeInstagib::AllowRuneSpawn( const char *szRune )
 
 	return TRUE;
 }
+
+BOOL CHalfLifeInstagib::CanHaveNamedItem( CBasePlayer *pPlayer, const char *pszItemName )
+{
+	if (stricmp(pszItemName, "weapon_fists") != 0 &&
+		stricmp(pszItemName, "weapon_hornetgun") != 0 &&
+		stricmp(pszItemName, "weapon_zapgun") != 0) {
+		return FALSE;
+	}
+
+	return CHalfLifeMultiplay::CanHaveNamedItem( pPlayer, pszItemName );
+}

@@ -378,6 +378,13 @@ int CHalfLifeRules :: WeaponShouldRespawn( CBasePlayerItem *pWeapon )
 
 //=========================================================
 //=========================================================
+BOOL CHalfLifeRules::CanHaveNamedItem( CBasePlayer *pPlayer, const char *pszItemName )
+{
+	return TRUE;
+}
+
+//=========================================================
+//=========================================================
 BOOL CHalfLifeRules::CanHaveItem( CBasePlayer *pPlayer, CItem *pItem )
 {
 	return TRUE;

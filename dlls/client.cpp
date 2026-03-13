@@ -264,6 +264,8 @@ void ClientPutInServer( edict_t *pEntity )
 	pPlayer->m_iDisplayInfoMessage = 1;
 	pPlayer->m_iKeyboardAcrobatics = 1;
 	pPlayer->HasDisconnected = FALSE;
+	pPlayer->m_bHoldingLoot  = FALSE;
+	pPlayer->m_iLootTeam     = -1;
 
 	pPlayer->pev->iuser1 = 0;	// disable any spec modes
 	pPlayer->pev->iuser2 = 0; 
@@ -1410,6 +1412,7 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"gungame\"\" - get frags with specific weapons and level up!\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"horde\"\" - frag monsters in each wave\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"instagib\"\" - gib with zappers to make tombstones!\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"loot\"\" - teamplay with hidden loot, get it to the goal!\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"jvs\"\" - game mode is Jesus vs Santa - defeat him!\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"prophunt\"\" - hide and don't be found!\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"lms\"\" - game mode is battle royale\n");

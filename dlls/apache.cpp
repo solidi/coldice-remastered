@@ -991,7 +991,7 @@ void CApacheHVR :: Spawn( void )
 void CApacheHVR :: Precache( void )
 {
 	PRECACHE_MODEL("models/HVR.mdl");
-	m_iTrail = PRECACHE_MODEL("sprites/smoke.spr");
+	m_iTrail = g_sModelIndexSmoke2;
 	PRECACHE_SOUND ("weapons/rocket1.wav");
 }
 

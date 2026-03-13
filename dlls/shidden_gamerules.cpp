@@ -924,3 +924,19 @@ BOOL CHalfLifeShidden::AllowRuneSpawn( const char *szRune )
 
 	return TRUE;
 }
+
+BOOL CHalfLifeShidden::CanHaveNamedItem( CBasePlayer *pPlayer, const char *pszItemName )
+{
+	// Dealters limited weapon range
+	if (pPlayer->pev->fuser4 == SHIDDEN_DEALTER)
+	{
+		if (strcmp(pszItemName, "weapon_fists") && strcmp(pszItemName, "weapon_knife"))
+			return FALSE;
+	}
+
+	if (strcmp(pszItemName, "weapon_nuke") == 0) {
+		return FALSE;
+	}
+
+	return CHalfLifeMultiplay::CanHaveNamedItem( pPlayer, pszItemName );
+}
