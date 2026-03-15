@@ -76,7 +76,7 @@ void CSnowbomb::Spawn( )
 	MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
 		WRITE_BYTE( TE_BEAMFOLLOW );
 		WRITE_SHORT(entindex());	// entity
-		WRITE_SHORT(PRECACHE_MODEL("sprites/smoke.spr"));	// model
+		WRITE_SHORT(g_sModelIndexSmoke2);	// model
 		WRITE_BYTE( 15 ); // life
 		WRITE_BYTE( 4 );  // width (larger than flying_snowball)
 		WRITE_BYTE( 224 );   // r, g, b
@@ -164,8 +164,6 @@ void CSnowbomb::BlowUp( void )
 void CSnowbomb::Precache( void )
 {
 	PRECACHE_MODEL("models/w_weapons.mdl");
-	PRECACHE_MODEL("sprites/smoke.spr");
-	
 	PRECACHE_SOUND("snowball_miss.wav");
 	PRECACHE_SOUND("snowball_hitbod.wav");
 	PRECACHE_SOUND("snowball_throw.wav");

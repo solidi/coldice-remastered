@@ -49,7 +49,7 @@ void CHook::Precache( )
 	PRECACHE_SOUND("weapons/xbow_hit1.wav");
 	PRECACHE_SOUND("grapple_deploy.wav");
 
-	ropesprite = PRECACHE_MODEL("sprites/smoke.spr");
+	ropesprite = g_sModelIndexSmoke2;
 }
 
 int CHook :: Classify ( void )

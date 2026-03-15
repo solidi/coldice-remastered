@@ -88,7 +88,7 @@ void CDrunkRocket::RocketTouch ( CBaseEntity *pOther )
 
 void CDrunkRocket::Precache( void )
 {
-	m_iTrail = PRECACHE_MODEL("sprites/smoke.spr");
+	m_iTrail = g_sModelIndexSmoke2;
 	PRECACHE_SOUND ("rocket1.wav");
 }
 

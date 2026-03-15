@@ -164,7 +164,7 @@ void CCaptureChumtoad::Precache( void )
 	PRECACHE_SOUND("chumtoad_hunt2.wav");
 	PRECACHE_SOUND("chumtoad_hunt3.wav");
 
-	m_iTrail = PRECACHE_MODEL("sprites/smoke.spr");
+	m_iTrail = g_sModelIndexSmoke2;
 }
 
 void CCaptureChumtoad::Killed( entvars_t *pevAttacker, int iGib )

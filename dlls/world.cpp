@@ -756,6 +756,7 @@ const char *szGameModeList [] =
 	"horde",
 	"instagib",
 	"jvs",
+	"loot",
 	"prophunt",
 	"shidden",
 	"snowball",
@@ -791,7 +792,7 @@ void CWorld :: SetGameMode( void )
 					strcmp(currentTeamList, "jesus;santa") == 0)
 				{
 					// Previous gamemode's teamlist, reset to default
-					CVAR_SET_STRING("mp_teamlist", "iceman;santa;holo;commando");
+					CVAR_SET_STRING("mp_teamlist", "iceman;santa;gina;frost");
 				}
 				CVAR_SET_STRING( "mp_teamplay", "1" );
 				break;

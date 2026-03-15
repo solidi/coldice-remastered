@@ -29,6 +29,7 @@
 #include	"gungame_gamerules.h"
 #include	"ctc_gamerules.h"
 #include	"jvs_gamerules.h"
+#include	"loot_gamerules.h"
 #include	"chilldemic_gamerules.h"
 #include	"lms_gamerules.h"
 #include	"coldskull_gamerules.h"
@@ -550,6 +551,8 @@ CGameRules *InstallGameRules( void )
 				return new CHalfLifeInstagib;
 			case GAME_ICEMAN:
 				return new CHalfLifeJesusVsSanta;
+			case GAME_LOOT:
+				return new CHalfLifeLoot;
 			case GAME_PROPHUNT:
 				return new CHalfLifePropHunt;
 			case GAME_SHIDDEN:
@@ -2106,6 +2109,11 @@ BOOL CGameRules::IsSnowballFight()
 BOOL CGameRules::IsCtF()
 {
 	return g_GameMode == GAME_CTF;
+}
+
+BOOL CGameRules::IsLoot()
+{
+	return g_GameMode == GAME_LOOT;
 }
 
 BOOL CGameRules::IsColdSpot()

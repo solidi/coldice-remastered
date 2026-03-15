@@ -48,6 +48,7 @@ DLL_GLOBAL  const char *g_pModelNameLaser = "sprites/laserbeam.spr";
 DLL_GLOBAL	short	g_sModelIndexLaserDot;// holds the index for the laser beam dot
 DLL_GLOBAL	short	g_sModelIndexFireball;// holds the index for the fireball
 DLL_GLOBAL	short	g_sModelIndexSmoke;// holds the index for the smoke cloud
+DLL_GLOBAL	short	g_sModelIndexSmoke2;// holds the index for the smoke cloud 2
 DLL_GLOBAL	short	g_sModelIndexWExplosion;// holds the index for the underwater explosion
 DLL_GLOBAL	short	g_sModelIndexBubbles;// holds the index for the bubbles model
 DLL_GLOBAL	short	g_sModelIndexBloodDrop;// holds the sprite index for the initial blood
@@ -514,6 +515,7 @@ void W_Precache(void)
 	g_sModelIndexBubbles = PRECACHE_MODEL ("sprites/bubble.spr");//bubbles
 	g_sModelIndexBloodSpray = PRECACHE_MODEL ("sprites/bloodspray.spr"); // initial blood
 	g_sModelIndexBloodDrop = PRECACHE_MODEL ("sprites/blood.spr"); // splattered blood 
+	g_sModelIndexSmoke2 = PRECACHE_MODEL ("sprites/smoke.spr");// smoke 2
 
 	g_sModelIndexLaser = PRECACHE_MODEL( (char *)g_pModelNameLaser );
 	g_sModelIndexLaserDot = PRECACHE_MODEL("sprites/laserdot.spr");
@@ -1032,6 +1034,10 @@ void CBasePlayerItem::DefaultTouch( CBaseEntity *pOther )
 			return;
 
 		if (g_pGameRules->IsShidden() && pPlayer->pev->fuser4 > 0)
+			return;
+
+		// The weapon should stay
+		if (g_pGameRules->IsLoot())
 			return;
 
 		if ( pPlayer->pev->deadflag == DEAD_NO )
@@ -2346,6 +2352,9 @@ void CWeaponBox::Touch( CBaseEntity *pOther )
 
 				pItem = m_rgpPlayerItems[ i ];
 				m_rgpPlayerItems[ i ] = m_rgpPlayerItems[ i ]->m_pNext;// unlink this weapon from the box
+
+				if ( !g_pGameRules->CanHaveNamedItem( (CBasePlayer *)pOther, STRING(pItem->pev->classname) ) )
+					continue;
 
 				if ( pPlayer->AddPlayerItem( pItem ) )
 				{

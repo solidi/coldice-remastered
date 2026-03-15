@@ -262,6 +262,11 @@ void CHudRadar::DrawEdgeIndicator(int centerX, int centerY, float angle, float d
 		// Green
 		r = 0; g = 240; b = 0;
 	}
+	else if (special == RADAR_LOOT)
+	{
+		// Orange
+		r = 255; g = 117; b = 24;
+	}
 	else
 	{
 		UnpackRGB(r, g, b, RGB_YELLOWISH);
@@ -675,11 +680,24 @@ int CHudRadar::Draw(float flTime)
 			fr = 0; fg = 160; fb = 240;
 		}
 
+		if (m_RadarInfo[index].special == RADAR_TEAM_YELLOW)
+		{
+			fr = 240; fg = 240; fb = 0;
+		}
+
 		if (m_RadarInfo[index].special == RADAR_COLD_SPOT ||
-			m_RadarInfo[index].special == RADAR_CHUMTOAD)
+			m_RadarInfo[index].special == RADAR_CHUMTOAD ||
+			m_RadarInfo[index].special == RADAR_TEAM_GREEN)
+		{
+			if (m_RadarInfo[index].special != RADAR_TEAM_GREEN)
+				size *= 2;
+			fr = 0; fg = 240; fb = 0;
+		}
+
+		if (m_RadarInfo[index].special == RADAR_LOOT)
 		{
 			size *= 2;
-			fr = 0; fg = 240; fb = 0;
+			fr = 255; fg = 117; fb = 24;
 		}
 
 		// Highlight yourself in grey/white

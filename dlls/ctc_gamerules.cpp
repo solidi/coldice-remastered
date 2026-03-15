@@ -249,7 +249,7 @@ void CHalfLifeCaptureTheChumtoad::CaptureCharm( CBasePlayer *pPlayer )
 	pPlayer->pev->fuser4 = RADAR_CHUMTOAD;
 	m_pHolder = (CBaseEntity *)pPlayer;
 
-	int m_iTrail = PRECACHE_MODEL("sprites/smoke.spr");
+	int m_iTrail = g_sModelIndexSmoke2;
 
 	MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
 		WRITE_BYTE( TE_BEAMFOLLOW );
@@ -650,4 +650,17 @@ int CHalfLifeCaptureTheChumtoad::GetTeamIndex( const char *pTeamName )
 BOOL CHalfLifeCaptureTheChumtoad::IsTeamplay( void )
 {
 	return TRUE;
+}
+
+BOOL CHalfLifeCaptureTheChumtoad::CanHaveNamedItem( CBasePlayer *pPlayer, const char *pszItemName )
+{
+	if (pPlayer->pev->fuser4 == 0)
+	{
+		if (strcmp(pszItemName, "weapon_chumtoad") == 0) {
+			ALERT(at_console, "Not allowed a chumtoad without capturing it.\n");
+			return FALSE;
+		}
+	}
+
+	return CHalfLifeMultiplay::CanHaveNamedItem( pPlayer, pszItemName );
 }

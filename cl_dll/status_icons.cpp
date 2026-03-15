@@ -197,6 +197,14 @@ int CHudStatusIcons::MsgFunc_StatusIcon( const char *pszName, int iSize, void *p
 		DisableIcon( pszIconName );
 	}
 
+	if (pszIconName && strncmp(pszIconName, "loot", 4) == 0)
+	{
+		if (ShouldEnable)
+			gEngfuncs.pfnClientCmd("thirdperson\n");
+		else
+			gEngfuncs.pfnClientCmd("firstperson\n");
+	}
+
 	return 1;
 }
 

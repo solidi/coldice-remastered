@@ -915,3 +915,12 @@ BOOL CHalfLifeHorde::IsTeamplay( void )
 {
 	return TRUE;
 }
+
+BOOL CHalfLifeHorde::CanHaveNamedItem( CBasePlayer *pPlayer, const char *pszItemName )
+{
+	if (strcmp(pszItemName, "weapon_nuke") == 0) {
+		return FALSE;
+	}
+
+	return CHalfLifeMultiplay::CanHaveNamedItem( pPlayer, pszItemName );
+}

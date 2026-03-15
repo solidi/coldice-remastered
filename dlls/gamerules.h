@@ -129,6 +129,7 @@ public:
 	virtual Vector VecWeaponRespawnSpot( CBasePlayerItem *pWeapon ) = 0;// where in the world should this weapon respawn?
 
 // Item retrieval
+	virtual BOOL CanHaveNamedItem( CBasePlayer *pPlayer, const char *pszItemName ) = 0;
 	virtual BOOL CanHaveItem( CBasePlayer *pPlayer, CItem *pItem ) = 0;// is this player allowed to take this item?
 	virtual void PlayerGotItem( CBasePlayer *pPlayer, CItem *pItem ) = 0;// call each time a player picks up an item (battery, healthkit, longjump)
 
@@ -217,6 +218,7 @@ public:
 	virtual BOOL IsHorde();
 	virtual BOOL IsSnowballFight();
 	virtual BOOL IsCtF();
+	virtual BOOL IsLoot();
 	virtual BOOL IsColdSpot();
 
 	virtual BOOL AllowMeleeDrop() = 0;
@@ -316,6 +318,7 @@ public:
 	virtual Vector VecWeaponRespawnSpot( CBasePlayerItem *pWeapon );
 
 // Item retrieval
+	virtual BOOL CanHaveNamedItem( CBasePlayer *pPlayer, const char *pszItemName );
 	virtual BOOL CanHaveItem( CBasePlayer *pPlayer, CItem *pItem );
 	virtual void PlayerGotItem( CBasePlayer *pPlayer, CItem *pItem );
 
@@ -440,6 +443,7 @@ public:
 	virtual Vector VecWeaponRespawnSpot( CBasePlayerItem *pWeapon );
 
 // Item retrieval
+	virtual BOOL CanHaveNamedItem( CBasePlayer *pPlayer, const char *pszItemName );
 	virtual BOOL CanHaveItem( CBasePlayer *pPlayer, CItem *pItem );
 	virtual void PlayerGotItem( CBasePlayer *pPlayer, CItem *pItem );
 

@@ -39,6 +39,7 @@ public:
 	virtual void DetermineWinner( void );
 	virtual BOOL IsTeamplay( void );
 	virtual BOOL AllowRuneSpawn( const char *szRune );
+	virtual BOOL CanHaveNamedItem( CBasePlayer *pPlayer, const char *pszItemName );
 
 private:
 	int m_iSmeltersRemain;

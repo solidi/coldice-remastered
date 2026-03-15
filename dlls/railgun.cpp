@@ -74,7 +74,7 @@ void CRailgun::Precache( void )
 	PRECACHE_MODEL( RAIL_BEAM_SPRITE );	
 	m_iGlow = PRECACHE_MODEL ( "sprites/blueflare1.spr" );
 	m_iBalls = PRECACHE_MODEL( "sprites/blueflare1.spr" );
-	m_iBeam = PRECACHE_MODEL ( "sprites/smoke.spr" );
+	m_iBeam = g_sModelIndexSmoke2;
 }
 
 int CRailgun::AddToPlayer( CBasePlayer *pPlayer )

@@ -36,6 +36,7 @@ public:
 	virtual BOOL MutatorAllowed(const char *mutator);
 	virtual BOOL FPlayerCanTakeDamage( CBasePlayer *pPlayer, CBaseEntity *pAttacker );
 	virtual BOOL IsTeamplay( void );
+	virtual BOOL CanHaveNamedItem( CBasePlayer *pPlayer, const char *pszItemName );
 
 	void SetPlayerModel( CBasePlayer* pPlayer );
 

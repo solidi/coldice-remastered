@@ -251,7 +251,7 @@ void CNukeRocket::Killed(entvars_t *pevAttacker, int iGib) {
 
 void CNukeRocket :: Precache( void )
 {
-	m_iTrail = PRECACHE_MODEL("sprites/smoke.spr");
+	m_iTrail = g_sModelIndexSmoke2;
 	m_iExp = PRECACHE_MODEL("sprites/nuke2.spr");
 	m_iIceExp = PRECACHE_MODEL("sprites/ice_nuke2.spr");
 	PRECACHE_SOUND ("rocket1.wav");
