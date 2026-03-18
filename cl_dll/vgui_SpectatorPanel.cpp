@@ -705,6 +705,15 @@ void SpectatorPanel::Update()
 		m_TeamScores[j]->getTextSize( iwidth, iheight );
 		m_TeamScores[j]->setBounds( ScreenWidth - ( iTextWidth + XRES ( 2*SEPERATOR_WIDTH+2*SEPERATOR_WIDTH/2+offset ) + iwidth ), YRES( SEPERATOR_HEIGHT ) + ( iheight * j ), iwidth, iheight );
 	}
+
+	if ( gEngfuncs.GetClientTime() <= m_flSurpriseMeCooldown)
+	{
+		m_SurpriseMeButton->setVisible(false);
+	}
+	else
+	{
+		m_SurpriseMeButton->setVisible(true);
+	}
 }
 
 void CSpectatorHandler_SurpriseMe::actionPerformed( Panel * panel )
@@ -720,7 +729,8 @@ void CSpectatorHandler_SurpriseMe::actionPerformed( Panel * panel )
 			"fart.wav",
 			"chicken.wav",
 			"hohoho.wav",
-			"shart.wav"
+			"shart.wav",
+			"barney/c1a2_ba_4zomb.wav",
 		};
 		const int numSounds = sizeof(surpriseSounds) / sizeof(surpriseSounds[0]);
 		
