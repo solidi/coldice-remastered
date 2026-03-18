@@ -708,11 +708,11 @@ void SpectatorPanel::Update()
 
 	if ( gEngfuncs.GetClientTime() <= m_flSurpriseMeCooldown)
 	{
-		m_SurpriseMeButton->setArmed(true);
+		m_SurpriseMeButton->setVisible(false);
 	}
 	else
 	{
-		m_SurpriseMeButton->setArmed(false);
+		m_SurpriseMeButton->setVisible(true);
 	}
 }
 
