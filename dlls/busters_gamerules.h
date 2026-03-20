@@ -37,10 +37,14 @@ public:
 	virtual BOOL FPlayerCanTakeDamage( CBasePlayer *pPlayer, CBaseEntity *pAttacker );
 	virtual BOOL IsTeamplay( void );
 	virtual BOOL CanHaveNamedItem( CBasePlayer *pPlayer, const char *pszItemName );
-
+	virtual BOOL FShouldSwitchWeapon( CBasePlayer *pPlayer, CBasePlayerItem *pWeapon );
+	virtual BOOL CanRandomizeWeapon( const char *name );
+	virtual BOOL CanHavePlayerAmmo( CBasePlayer *pPlayer, CBasePlayerAmmo *pAmmo );
+	virtual BOOL IsAllowedToDropWeapon( CBasePlayer *pPlayer );
 	void SetPlayerModel( CBasePlayer* pPlayer );
 
 protected:
 	float m_flEgonBustingCheckTime = -1.0f;
+	float m_flCheckForWeapons = -1.0f;
 	void CheckForEgons( void );
 };
