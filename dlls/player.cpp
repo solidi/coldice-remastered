@@ -5848,16 +5848,12 @@ void CBasePlayer::StartForceGrab( void )
 	if (g_pGameRules->MutatorEnabled(MUTATOR_RICOCHET))
 		return;
 
-	if ( g_pGameRules->IsInstagib() )
+	if (!g_pGameRules->IsAllowedToDropWeapon(this))
 	{
 		ClientPrint(pev, HUD_PRINTCENTER, "Forcegrab disabled in this gamemode.");
 		m_fOffhandTime = gpGlobals->time + 0.5;
 		return;
 	}
-
-	// Prop limitation
-	if ( g_pGameRules->IsPropHunt() && pev->fuser4 >= TEAM_PROPS )
-		return;
 
 	// Already got a hook, fly it back.
 	if (m_Banana)
