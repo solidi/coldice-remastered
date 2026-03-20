@@ -325,6 +325,8 @@ void CHalfLifeTeamplay::ChangePlayerTeam( CBasePlayer *pPlayer, const char *pTea
 		WRITE_SHORT( g_pGameRules->GetTeamIndex( pPlayer->m_szTeamName ) + 1 );
 	MESSAGE_END();
 
+	pPlayer->pev->fuser4 = GetTeamIndex( pPlayer->m_szTeamName );
+
 	if (!FBitSet(pPlayer->pev->flags, FL_FAKECLIENT))
 	{
 		MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, pPlayer->edict());
@@ -360,7 +362,7 @@ void CHalfLifeTeamplay::ClientUserInfoChanged( CBasePlayer *pPlayer, char *infob
 		return;
 	}
 
-	if ( defaultteam.value || !IsValidTeam( mdls ) )
+	if ( defaultteam.value || !IsValidTeam( mdls ) || FBitSet(pPlayer->pev->flags, FL_GODMODE) )
 	{
 		int clientIndex = pPlayer->entindex();
 
