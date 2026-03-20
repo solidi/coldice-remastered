@@ -310,9 +310,6 @@ void CHalfLifeShidden::Think( void )
 						MESSAGE_BEGIN( MSG_ONE, gmsgStatusIcon, NULL, plr->edict() );
 							WRITE_BYTE(1);
 							WRITE_STRING("dealter");
-							WRITE_BYTE(0);
-							WRITE_BYTE(160);
-							WRITE_BYTE(255);
 						MESSAGE_END();
 					}
 				}

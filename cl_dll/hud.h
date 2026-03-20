@@ -559,7 +559,7 @@ public:
 	
 	//had to make these public so CHud could access them (to enable concussion icon)
 	//could use a friend declaration instead...
-	void EnableIcon( char *pszIconName, unsigned char red, unsigned char green, unsigned char blue, float timeToLive, float startTime );
+	void EnableIcon( char *pszIconName, float timeToLive, float startTime );
 	void DisableIcon( char *pszIconName );
 
 private:
@@ -569,7 +569,6 @@ private:
 		char szSpriteName[MAX_ICONSPRITENAME_LENGTH];
 		HSPRITE spr;
 		wrect_t rc;
-		unsigned char r, g, b;
 		int startTime = 0;
 		int timeToLive = 0;
 	} icon_sprite_t;

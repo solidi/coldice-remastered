@@ -1060,11 +1060,8 @@ void CHalfLifeLoot::CaptureCharm( CBasePlayer *pPlayer )
 		if ( plr == pPlayer || (plr->IsAlive() && plr->m_iLootTeam == teamIdx) )
 		{
 			MESSAGE_BEGIN( MSG_ONE, gmsgStatusIcon, NULL, plr->edict() );
-				WRITE_BYTE( 1 );          // enable
+				WRITE_BYTE( 1 );
 				WRITE_STRING( "loot" );
-				WRITE_BYTE( 0   );
-				WRITE_BYTE( 180 );
-				WRITE_BYTE( 0   );
 			MESSAGE_END();
 		}
 	}

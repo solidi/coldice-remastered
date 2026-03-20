@@ -295,9 +295,6 @@ void CHalfLifeChilldemic::Think( void )
 						MESSAGE_BEGIN( MSG_ONE, gmsgStatusIcon, NULL, plr->edict() );
 							WRITE_BYTE(1);
 							WRITE_STRING("skeleton");
-							WRITE_BYTE(0);
-							WRITE_BYTE(160);
-							WRITE_BYTE(255);
 						MESSAGE_END();
 
 						MESSAGE_BEGIN(MSG_ONE, gmsgBanner, NULL, plr->edict());

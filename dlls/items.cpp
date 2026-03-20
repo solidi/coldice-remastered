@@ -532,9 +532,6 @@ void CRune::ShowStatus(CBasePlayer *pPlayer, const char* icon, int r, int g, int
 	MESSAGE_BEGIN( MSG_ONE, gmsgStatusIcon, NULL, pPlayer->edict() );
 		WRITE_BYTE(1);
 		WRITE_STRING(icon);
-		WRITE_BYTE(r);
-		WRITE_BYTE(g);
-		WRITE_BYTE(b);
 	MESSAGE_END();
 
 	UTIL_ScreenFade( pPlayer, Vector(r, g, b), 1, 1, 64, FFADE_IN);

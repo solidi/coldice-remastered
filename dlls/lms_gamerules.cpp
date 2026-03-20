@@ -569,8 +569,6 @@ void CHalfLifeLastManStanding::Think( void )
 			return;
 		}
 
-		ALERT(at_console, "Players in LMS: ");
-
 		g_GameInProgress = TRUE;
 		
 		// Restore mutators when round begins
@@ -579,7 +577,6 @@ void CHalfLifeLastManStanding::Think( void )
 		//frags + time.
 		SetRoundLimits();
 		InsertClientsIntoArena(startwithlives.value);
-		ALERT(at_console, "\n");
 
 		m_iCountDown = 5;
 		m_fWaitForPlayersTime = -1;
@@ -801,7 +798,6 @@ void CHalfLifeLastManStanding::PlayerSpawn( CBasePlayer *pPlayer )
 				}
 			}
 
-			ALERT(at_aiconsole, "blueteam=%d, redteam=%d\n", blueteam, redteam);
 			pPlayer->pev->fuser4 = redteam >= blueteam ? TEAM_BLUE : TEAM_RED;
 
 			if (pPlayer->pev->fuser4 == TEAM_BLUE)

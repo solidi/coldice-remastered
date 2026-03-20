@@ -273,9 +273,6 @@ void CHalfLifeCaptureTheChumtoad::CaptureCharm( CBasePlayer *pPlayer )
 	MESSAGE_BEGIN( MSG_ONE, gmsgStatusIcon, NULL, pPlayer->edict() );
 		WRITE_BYTE(1);
 		WRITE_STRING("chumtoad");
-		WRITE_BYTE(0);
-		WRITE_BYTE(160);
-		WRITE_BYTE(255);
 	MESSAGE_END();
 
 	// notify everyone's HUD of the team change
