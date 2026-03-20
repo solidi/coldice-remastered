@@ -447,6 +447,11 @@ class CItemLongJump : public CItem
 				WRITE_STRING( STRING(pev->classname) );
 			MESSAGE_END();
 
+			MESSAGE_BEGIN( MSG_ONE, gmsgStatusIcon, NULL, pPlayer->edict() );
+				WRITE_BYTE(1);
+				WRITE_STRING("longjump");
+			MESSAGE_END();
+
 			EMIT_SOUND_SUIT( pPlayer->edict(), "!HEV_A1" );	// Play the longjump sound UNDONE: Kelly? correct sound?
 			return TRUE;		
 		}
