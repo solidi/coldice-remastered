@@ -1027,6 +1027,8 @@ void CHalfLifeLoot::CaptureCharm( CBasePlayer *pPlayer )
 	m_flLootPickupTime = gpGlobals->time;
 	pPlayer->m_bHoldingLoot = TRUE;
 
+	pPlayer->m_fCameraDelay = 0;
+
 	// Green glow on holder
 	pPlayer->pev->renderfx    = kRenderFxGlowShell;
 	pPlayer->pev->renderamt   = 10;
@@ -1131,10 +1133,7 @@ CBaseEntity *CHalfLifeLoot::DropCharm( CBasePlayer *pPlayer, Vector origin )
 
 		if ( plr == pPlayer || plr->m_iLootTeam == teamIdx )
 		{
-			MESSAGE_BEGIN( MSG_ONE, gmsgStatusIcon, NULL, plr->edict() );
-				WRITE_BYTE( 0 );          // disable
-				WRITE_STRING( "loot" );
-			MESSAGE_END();
+			plr->m_fCameraDelay = gpGlobals->time + 4.0;
 		}
 	}
 
@@ -2139,6 +2138,15 @@ void CHalfLifeLoot::PlayerThink( CBasePlayer *pPlayer )
 			GoToIntermission();
 			return;
 		}
+	}
+
+	if (pPlayer->m_fCameraDelay && pPlayer->m_fCameraDelay < gpGlobals->time)
+	{
+		MESSAGE_BEGIN( MSG_ONE, gmsgStatusIcon, NULL, pPlayer->edict() );
+				WRITE_BYTE( 0 );
+				WRITE_STRING( "loot" );
+			MESSAGE_END();
+		pPlayer->m_fCameraDelay = 0;
 	}
 
 	// Game-mode welcome banner for new/rejoining players
