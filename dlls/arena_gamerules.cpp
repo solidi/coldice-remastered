@@ -236,7 +236,10 @@ void CHalfLifeArena::Think( void )
 					if ( plr->IsSpectator() )
 					{
 						MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, plr->edict() );
-							WRITE_STRING(UTIL_VarArgs("1 vs. 1: Round %d of %.0f", m_iSuccessfulRounds + 1, roundlimit.value ));
+							if (roundlimit.value > 0)
+								WRITE_STRING(UTIL_VarArgs("1 vs. 1: Round %d of %.0f", m_iSuccessfulRounds + 1, roundlimit.value ));
+							else
+								WRITE_STRING(UTIL_VarArgs("1 vs. 1: Round %d", m_iSuccessfulRounds + 1));
 							WRITE_STRING(UTIL_VarArgs("%s (%.0f/%.0f) vs. %s (%.0f/%.0f)\n",
 							STRING(pPlayer1->pev->netname),
 							pPlayer1->pev->health,
