@@ -44,7 +44,9 @@ public:
 	virtual BOOL MutatorAllowed(const char *mutator);
 	virtual int GetTeamIndex( const char *pTeamName );
 	virtual BOOL IsTeamplay( void );
-	virtual BOOL  CanHaveNamedItem( CBasePlayer *pPlayer, const char *pszItemName );
+	virtual BOOL CanHaveNamedItem( CBasePlayer *pPlayer, const char *pszItemName );
+	virtual BOOL CanHavePlayerItem( CBasePlayer *pPlayer, CBasePlayerItem *pItem );
+	virtual BOOL CanHavePlayerAmmo( CBasePlayer *pPlayer, CBasePlayerAmmo *pAmmo );
 
 private:
 	BOOL m_fChumtoadInPlay;

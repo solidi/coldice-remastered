@@ -247,6 +247,7 @@ void CHalfLifeCaptureTheChumtoad::CaptureCharm( CBasePlayer *pPlayer )
 	pPlayer->pev->rendercolor = Vector(0, 200, 0);
 
 	pPlayer->pev->fuser4 = RADAR_CHUMTOAD;
+	pPlayer->m_fCameraDelay = 0;
 	m_pHolder = (CBaseEntity *)pPlayer;
 
 	int m_iTrail = g_sModelIndexSmoke2;
@@ -303,6 +304,7 @@ CBaseEntity *CHalfLifeCaptureTheChumtoad::DropCharm( CBasePlayer *pPlayer, Vecto
 	pPlayer->pev->renderamt = 0;
 
 	pPlayer->pev->fuser4 = 0;
+	pPlayer->m_fCameraDelay = gpGlobals->time + 4.0;
 	m_pHolder = NULL;
 
 	MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
@@ -315,11 +317,6 @@ CBaseEntity *CHalfLifeCaptureTheChumtoad::DropCharm( CBasePlayer *pPlayer, Vecto
 
 	MESSAGE_BEGIN(MSG_BROADCAST, gmsgPlayClientSound);
 		WRITE_BYTE(CLIENT_SOUND_MANIAC);
-	MESSAGE_END();
-
-	MESSAGE_BEGIN( MSG_ONE, gmsgStatusIcon, NULL, pPlayer->edict() );
-		WRITE_BYTE(0);
-		WRITE_STRING("chumtoad");
 	MESSAGE_END();
 
 	strncpy( pPlayer->m_szTeamName, "chaser", TEAM_NAME_LENGTH );
@@ -363,6 +360,16 @@ void CHalfLifeCaptureTheChumtoad::PlayerThink( CBasePlayer *pPlayer )
 			GoToIntermission();
 			return;
 		}
+	}
+
+	if (pPlayer->m_fCameraDelay && pPlayer->m_fCameraDelay < gpGlobals->time)
+	{
+		// Only received if the player is alive.
+		MESSAGE_BEGIN( MSG_ONE, gmsgStatusIcon, NULL, pPlayer->edict() );
+			WRITE_BYTE(0);
+			WRITE_STRING("chumtoad");
+		MESSAGE_END();
+		pPlayer->m_fCameraDelay = 0;
 	}
 
 	if (pPlayer->m_iShowGameModeMessage > -1 && 
@@ -652,15 +659,39 @@ BOOL CHalfLifeCaptureTheChumtoad::IsTeamplay( void )
 	return TRUE;
 }
 
+BOOL CHalfLifeCaptureTheChumtoad::CanHavePlayerItem( CBasePlayer *pPlayer, CBasePlayerItem *pItem )
+{
+	if (pPlayer->pev->fuser4 == RADAR_CHUMTOAD &&
+		strcmp(STRING(pItem->pev->classname), "weapon_chumtoad"))
+		return FALSE;
+
+	return CHalfLifeMultiplay::CanHavePlayerItem(pPlayer, pItem);
+}
+
 BOOL CHalfLifeCaptureTheChumtoad::CanHaveNamedItem( CBasePlayer *pPlayer, const char *pszItemName )
 {
 	if (pPlayer->pev->fuser4 == 0)
 	{
 		if (strcmp(pszItemName, "weapon_chumtoad") == 0) {
-			ALERT(at_console, "Not allowed a chumtoad without capturing it.\n");
+			return FALSE;
+		}
+	}
+
+	if (pPlayer->pev->fuser4 == RADAR_CHUMTOAD)
+	{
+		if (strcmp(pszItemName, "weapon_chumtoad") != 0) {
 			return FALSE;
 		}
 	}
 
 	return CHalfLifeMultiplay::CanHaveNamedItem( pPlayer, pszItemName );
 }
+
+BOOL CHalfLifeCaptureTheChumtoad::CanHavePlayerAmmo( CBasePlayer *pPlayer, CBasePlayerAmmo *pAmmo )
+{
+	if (pPlayer->pev->fuser4 == RADAR_CHUMTOAD)
+		return FALSE;
+
+	return CHalfLifeMultiplay::CanHavePlayerAmmo( pPlayer, pAmmo );
+}
+
