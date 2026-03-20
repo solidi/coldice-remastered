@@ -705,15 +705,6 @@ void SpectatorPanel::Update()
 		m_TeamScores[j]->getTextSize( iwidth, iheight );
 		m_TeamScores[j]->setBounds( ScreenWidth - ( iTextWidth + XRES ( 2*SEPERATOR_WIDTH+2*SEPERATOR_WIDTH/2+offset ) + iwidth ), YRES( SEPERATOR_HEIGHT ) + ( iheight * j ), iwidth, iheight );
 	}
-
-	if ( gEngfuncs.GetClientTime() <= m_flSurpriseMeCooldown)
-	{
-		m_SurpriseMeButton->setVisible(false);
-	}
-	else
-	{
-		m_SurpriseMeButton->setVisible(true);
-	}
 }
 
 void CSpectatorHandler_SurpriseMe::actionPerformed( Panel * panel )
