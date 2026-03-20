@@ -90,7 +90,15 @@ void CHudRadar::DrawInWorldIndicator(Vector worldOrigin, float distance, int spe
 {
 	// Raise the indicator these units above the target's origin
 	Vector elevatedOrigin = worldOrigin;
-	elevatedOrigin.z += 32.0f;
+	elevatedOrigin.z += 24.0f;
+
+	// Single player games, no indicators
+	if (gHUD.m_GameMode == GAME_FFA ||
+		gHUD.m_GameMode == GAME_GUNGAME ||
+		gHUD.m_GameMode == GAME_SNOWBALL ||
+		gHUD.m_GameMode == GAME_INSTAGIB ||
+		gHUD.m_GameMode == GAME_COLDSKULL)
+		return;
 
 	// Project world position to screen coordinates
 	vec3_t screenPos;
@@ -108,13 +116,21 @@ void CHudRadar::DrawInWorldIndicator(Vector worldOrigin, float distance, int spe
 	
 	// Color based on special type
 	int r, g, b;
-	if (special == RADAR_BASE_RED || special == RADAR_HORDE)
+	if (special == RADAR_BASE_RED ||
+		special == RADAR_HORDE ||
+		special == RADAR_TEAM_RED ||
+		special == RADAR_VIRUS)
 	{
 		r = 240; g = 0; b = 0; // Red for RADAR_BASE_RED
 	}
-	else if (special == RADAR_BASE_BLUE)
+	else if (special == RADAR_BASE_BLUE ||
+			special == RADAR_TEAM_BLUE)
 	{
 		r = 0; g = 0; b = 240; // Blue for RADAR_BASE_BLUE
+	}
+	else if (special == RADAR_TEAM_YELLOW)
+	{
+		r = 240; g = 240; b = 0; // Yellow for RADAR_TEAM_YELLOW
 	}
 	else
 	{
@@ -717,16 +733,8 @@ int CHudRadar::Draw(float flTime)
 	// First, draw edge indicators from PVS-based radar (for players)
 	for (index = 0; index < num_players; index++)
 	{
-		// Show edge indicators for all special entities, always
-		if (!m_RadarInfo[index].special)
-			continue;
-		
 		// Don't show edge indicator for yourself
 		if ((localPlayer->index - 1) == index)
-			continue;
-		
-		// Don't draw team players
-		if (m_RadarInfo[index].special < RADAR_COLD_SPOT)
 			continue;
 		
 		// Calculate Z difference (height is normalized by 72, so multiply back)
@@ -738,12 +746,21 @@ int CHudRadar::Draw(float flTime)
 			m_RadarInfo[index].special == RADAR_BASE_BLUE)
 			continue; // Come from server-sent entities, skip here
 		
-		if (m_RadarInfo[index].special == RADAR_HORDE)
+		if (m_RadarInfo[index].special == RADAR_HORDE ||
+			(localPlayer->curstate.fuser4 == m_RadarInfo[index].special))
 		{
 			DrawInWorldIndicator(m_RadarInfo[index].origin, m_RadarInfo[index].distance, m_RadarInfo[index].special);
 			continue;
 		}
-		
+
+		// Show edge indicators for all special entities, always
+		if (!m_RadarInfo[index].special)
+			continue;
+
+		// Don't draw team players
+		if (m_RadarInfo[index].special < RADAR_COLD_SPOT)
+			continue;
+
 		DrawEdgeIndicator(screenCenterX, screenCenterY, 
 			m_RadarInfo[index].angle, 
 			m_RadarInfo[index].distance,
