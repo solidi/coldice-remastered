@@ -191,7 +191,13 @@ int CHudStatusIcons::MsgFunc_StatusIcon( const char *pszName, int iSize, void *p
 		DisableIcon( pszIconName );
 	}
 
-	if (pszIconName && strncmp(pszIconName, "loot", 4) == 0)
+	// Special entities for perspective switching
+	if (pszIconName &&
+		(strncmp(pszIconName, "loot", 4) == 0 ||
+		 strncmp(pszIconName, "flag", 4) == 0) ||
+		 strncmp(pszIconName, "chumtoad", 8) == 0 ||
+		 strncmp(pszIconName, "buster", 6) == 0 ||
+		 strncmp(pszIconName, "virus", 5) == 0)
 	{
 		if (ShouldEnable)
 			gEngfuncs.pfnClientCmd("thirdperson\n");
@@ -276,5 +282,13 @@ void CHudStatusIcons::ToggleMutatorIcon(int mutatorId, const char *mutator)
 		EnableIcon((char *)mutator, t.timeToLive, t.startTime);
 	}
 	else
-		DisableIcon((char *)mutator);
+	{
+		if (mutatorId == MUTATOR_LONGJUMP)
+		{
+			if (atoi(gEngfuncs.PhysInfo_ValueForKey("slj")) != 1)
+				DisableIcon((char *)mutator);
+		}
+		else
+			DisableIcon((char *)mutator);
+	}
 }
