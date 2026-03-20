@@ -1033,6 +1033,15 @@ void CBasePlayerItem::DefaultTouch( CBaseEntity *pOther )
 		if (g_pGameRules->IsPropHunt() && pPlayer->pev->fuser4 >= TEAM_PROPS)
 			return;
 
+		if (g_pGameRules->IsCtC() && pPlayer->pev->fuser4 == RADAR_CHUMTOAD)
+			return;
+
+		if (g_pGameRules->IsBusters() && pPlayer->pev->fuser4 == RADAR_BUSTER)
+			return;
+
+		if (g_pGameRules->IsChilldemic() && pPlayer->pev->fuser4 == RADAR_VIRUS)
+			return;
+
 		if (g_pGameRules->IsShidden() && pPlayer->pev->fuser4 > 0)
 			return;
 
