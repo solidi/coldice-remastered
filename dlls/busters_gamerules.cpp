@@ -542,6 +542,9 @@ BOOL CMultiplayBusters::MutatorAllowed(const char *mutator)
 	if (strstr(mutator, g_szMutators[MUTATOR_BUSTERS - 1]) || atoi(mutator) == MUTATOR_BUSTERS)
 		return FALSE;
 
+	if (strstr(mutator, g_szMutators[MUTATOR_THIRDPERSON - 1]) || atoi(mutator) == MUTATOR_THIRDPERSON)
+		return FALSE;
+
 	return CHalfLifeMultiplay::MutatorAllowed(mutator);
 }
 

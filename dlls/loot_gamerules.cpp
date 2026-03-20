@@ -2365,7 +2365,7 @@ BOOL CHalfLifeLoot::MutatorAllowed( const char *mutator )
 	if ( strstr(mutator, g_szMutators[MUTATOR_RANDOMWEAPON- 1]) || atoi(mutator) == MUTATOR_RANDOMWEAPON) return FALSE;
 	if ( strstr(mutator, g_szMutators[MUTATOR_DONTSHOOT   - 1]) || atoi(mutator) == MUTATOR_DONTSHOOT   ) return FALSE;
 	if ( strstr(mutator, g_szMutators[MUTATOR_MAXPACK     - 1]) || atoi(mutator) == MUTATOR_MAXPACK     ) return FALSE;
-
+	if ( strstr(mutator, g_szMutators[MUTATOR_THIRDPERSON - 1]) || atoi(mutator) == MUTATOR_THIRDPERSON ) return FALSE;
 	return CHalfLifeMultiplay::MutatorAllowed( mutator );
 }
 

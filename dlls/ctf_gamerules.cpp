@@ -1001,3 +1001,10 @@ BOOL CHalfLifeCaptureTheFlag::IsTeamplay( void )
 {
 	return TRUE;
 }
+
+BOOL CHalfLifeCaptureTheFlag::MutatorAllowed(const char *mutator)
+{
+	if (strstr(mutator, g_szMutators[MUTATOR_THIRDPERSON - 1]) || atoi(mutator) == MUTATOR_THIRDPERSON)
+		return FALSE;
+	return TRUE;
+}

@@ -54,6 +54,8 @@ void CHudStatusIcons::Reset( void )
 	memset( m_IconList, 0, sizeof m_IconList );
 	m_iFlags |= HUD_ACTIVE;
 	m_flCheckMutators = 0;
+	if (!MutatorEnabled(MUTATOR_THIRDPERSON))
+		gEngfuncs.pfnClientCmd("firstperson\n");
 	DrawMutators();
 }
 
