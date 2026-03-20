@@ -33,6 +33,7 @@ extern int gmsgPlayClientSound;
 extern int gmsgCtfInfo;
 extern int gmsgBanner;
 extern int gmsgSpecialEntity;
+extern int gmsgStatusIcon;
 
 #define TEAM_BLUE 0
 #define TEAM_RED 1
@@ -192,6 +193,8 @@ void CFlagCharm::FlagTouch( CBaseEntity *pOther )
 				pPlayer->pFlag = this;
 				pev->movetype = MOVETYPE_FOLLOW;
 				pev->sequence = CARRIED;
+
+				g_pGameRules->CaptureCharm(pPlayer);
 
 				if (!FBitSet(pPlayer->pev->flags, FL_FAKECLIENT))
 				{
@@ -380,6 +383,8 @@ void CFlagBase::CTFTouch( CBaseEntity *pOther )
 					pFlag->pev->aiment = 0;
 					pFlag->pev->sequence = FLAG_POSITIONED;
 					pFlag->pev->angles = g_vecZero;
+
+					pPlayer->m_fCameraDelay = gpGlobals->time + 4.0;
 
 					UTIL_SetOrigin(pFlag->pev, (pFlag->pev->fuser4 == RADAR_FLAG_RED) ? vRedBase : vBlueBase);
 					pPlayer->pFlag = NULL;
@@ -664,22 +669,33 @@ void CHalfLifeCaptureTheFlag::Think( void )
 		else
 			m_fSpawnRedHardware = gpGlobals->time + 2.0;
 	}
+}
 
-	for (int i = 1; i <= gpGlobals->maxClients; i++)
+void CHalfLifeCaptureTheFlag::PlayerThink( CBasePlayer *pPlayer )
+{
+	CHalfLifeMultiplay::PlayerThink(pPlayer);
+
+	if (!pPlayer->HasDisconnected)
 	{
-		CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
-		if ( plr && plr->IsPlayer() && !plr->HasDisconnected )
+		if (pPlayer->m_iShowGameModeMessage > -1 && pPlayer->m_iShowGameModeMessage < gpGlobals->time && !FBitSet(pPlayer->pev->flags, FL_FAKECLIENT))
 		{
-			if (plr->m_iShowGameModeMessage > -1 && plr->m_iShowGameModeMessage < gpGlobals->time && !FBitSet(plr->pev->flags, FL_FAKECLIENT))
-			{
-				MESSAGE_BEGIN(MSG_ONE, gmsgBanner, NULL, plr->edict());
-					WRITE_STRING(UTIL_VarArgs("You Are On Team %s", plr->pev->fuser4 == TEAM_RED ? "Red" : "Blue"));
-					WRITE_STRING(UTIL_VarArgs("Capture the %s flag and run it back to your base!", plr->pev->fuser4 == TEAM_RED ? "Blue" : "Red"));
-					WRITE_BYTE(80);
-				MESSAGE_END();
-				plr->m_iShowGameModeMessage = -1;
-			}
+			MESSAGE_BEGIN(MSG_ONE, gmsgBanner, NULL, pPlayer->edict());
+				WRITE_STRING(UTIL_VarArgs("You Are On Team %s", pPlayer->pev->fuser4 == TEAM_RED ? "Red" : "Blue"));
+				WRITE_STRING(UTIL_VarArgs("Capture the %s flag and run it back to your base!", pPlayer->pev->fuser4 == TEAM_RED ? "Blue" : "Red"));
+				WRITE_BYTE(80);
+			MESSAGE_END();
+			pPlayer->m_iShowGameModeMessage = -1;
 		}
+	}
+
+	if (pPlayer->m_fCameraDelay && pPlayer->m_fCameraDelay < gpGlobals->time)
+	{
+		// Only received if the player is alive.
+		MESSAGE_BEGIN( MSG_ONE, gmsgStatusIcon, NULL, pPlayer->edict() );
+			WRITE_BYTE(0);
+			WRITE_STRING("flag");
+		MESSAGE_END();
+		pPlayer->m_fCameraDelay = 0;
 	}
 }
 
@@ -834,6 +850,14 @@ void CHalfLifeCaptureTheFlag::ClientUserInfoChanged( CBasePlayer *pPlayer, char 
 	MESSAGE_END();
 }
 
+void CHalfLifeCaptureTheFlag::CaptureCharm( CBasePlayer *pPlayer )
+{
+	MESSAGE_BEGIN( MSG_ONE, gmsgStatusIcon, NULL, pPlayer->edict() );
+		WRITE_BYTE(1);
+		WRITE_STRING("flag");
+	MESSAGE_END();
+}
+
 CBaseEntity *CHalfLifeCaptureTheFlag::DropCharm( CBasePlayer *pPlayer, Vector origin )
 {
 	CBaseEntity *pFlag = pPlayer->pFlag;
@@ -845,7 +869,6 @@ CBaseEntity *CHalfLifeCaptureTheFlag::DropCharm( CBasePlayer *pPlayer, Vector or
 		else
 			((CHalfLifeCaptureTheFlag *)g_pGameRules)->UpdateHud(2, -1);
 
-		//pFlag->pev->solid = SOLID_TRIGGER;
 		pFlag->pev->movetype = MOVETYPE_TOSS;
 		pFlag->pev->aiment = 0;
 		pFlag->pev->sequence = ON_GROUND;
