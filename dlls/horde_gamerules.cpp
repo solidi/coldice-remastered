@@ -654,7 +654,7 @@ void CHalfLifeHorde::PlayerThink( CBasePlayer *pPlayer )
 		!FBitSet(pPlayer->pev->flags, FL_FAKECLIENT))
 	{
 		MESSAGE_BEGIN(MSG_ONE, gmsgBanner, NULL, pPlayer->edict());
-			WRITE_STRING("Horde Battle!");
+			WRITE_STRING(UTIL_VarArgs("Horde Mode, Wave #%d", m_iSuccessfulRounds + 1));
 			WRITE_STRING("Find the monsters. Kill them!");
 			WRITE_BYTE(80);
 		MESSAGE_END();
