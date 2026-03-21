@@ -172,7 +172,7 @@ int CHudStatusIcons::Draw( float flTime )
 }
 
 // Message handler for StatusIcon message
-// accepts five values:
+// accepts two values:
 //		byte   : TRUE = ENABLE icon, FALSE = DISABLE icon
 //		string : the sprite name to display
 int CHudStatusIcons::MsgFunc_StatusIcon( const char *pszName, int iSize, void *pbuf )
@@ -194,10 +194,10 @@ int CHudStatusIcons::MsgFunc_StatusIcon( const char *pszName, int iSize, void *p
 	// Special entities for perspective switching
 	if (pszIconName &&
 		(strncmp(pszIconName, "loot", 4) == 0 ||
-		 strncmp(pszIconName, "flag", 4) == 0) ||
+		 strncmp(pszIconName, "flag", 4) == 0 ||
 		 strncmp(pszIconName, "chumtoad", 8) == 0 ||
 		 strncmp(pszIconName, "buster", 6) == 0 ||
-		 strncmp(pszIconName, "virus", 5) == 0)
+		 strncmp(pszIconName, "virus", 5) == 0))
 	{
 		if (ShouldEnable)
 			gEngfuncs.pfnClientCmd("thirdperson\n");

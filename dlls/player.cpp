@@ -4158,6 +4158,7 @@ void CBasePlayer::Spawn( void )
 	m_fFlipButtonTime = m_fFlipTime = 0;
 	m_fTauntTime = 0;
 	m_flEjectShotShell = 0;
+	m_fCameraDelay = 0;
 
 	g_engfuncs.pfnSetPhysicsKeyValue( edict(), "slj", "0" );
 	g_engfuncs.pfnSetPhysicsKeyValue( edict(), "hl", "1" );
