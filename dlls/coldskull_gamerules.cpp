@@ -23,6 +23,7 @@
 #include "game.h"
 #include "items.h"
 #include "voice_gamemgr.h"
+#include "shake.h"
 
 extern int gmsgObjective;
 extern int gmsgScoreInfo;
@@ -96,15 +97,23 @@ void CSkullCharm::ThinkSolid( void )
 
 void CSkullCharm::SkullMagnetThink( void )
 {
+	bool bHasTarget = false;
+
 	// Priority 1: Magnetism to killer if assigned
 	if (pev->euser1 != NULL)
 	{
 		CBasePlayer *pKiller = (CBasePlayer *)CBaseEntity::Instance(pev->euser1);
 		if (pKiller && pKiller->IsPlayer() && pKiller->IsAlive())
 		{
-			// Pull skull toward killer
-			Vector vecDir = (pKiller->pev->origin - pev->origin).Normalize();
-			pev->velocity = vecDir * 300.0f;
+			// Switch to FLY so gravity doesn't pull the skull into the floor
+			pev->movetype = MOVETYPE_FLY;
+			Vector vecDelta = pKiller->pev->origin - pev->origin;
+			float flDist = vecDelta.Length();
+			float flSpeed = flDist < 128.0f ? (flDist * 3.0f) : 500.0f; // ease in when close
+			Vector vecDesired = vecDelta.Normalize() * flSpeed;
+			// Lerp toward desired velocity for a smooth glide (no sharp snapping)
+			pev->velocity = pev->velocity + (vecDesired - pev->velocity) * 0.4f;
+			bHasTarget = true;
 		}
 		else
 		{
@@ -112,7 +121,8 @@ void CSkullCharm::SkullMagnetThink( void )
 			pev->euser1 = NULL;
 		}
 	}
-	else
+
+	if (!bHasTarget)
 	{
 		// Priority 2: Magnetism to nearby players with skulls
 		CBaseEntity *pEntity = NULL;
@@ -123,13 +133,25 @@ void CSkullCharm::SkullMagnetThink( void )
 				CBasePlayer *pPlayer = (CBasePlayer *)pEntity;
 				if (pPlayer->m_iRoundWins >= SKULL_MAGNET_THRESHOLD)
 				{
-					// Pull skull toward player
-					Vector vecDir = (pPlayer->pev->origin - pev->origin).Normalize();
-					pev->velocity = vecDir * 300.0f;
+					// Switch to FLY so gravity doesn't pull the skull into the floor
+					pev->movetype = MOVETYPE_FLY;
+					Vector vecDelta = pPlayer->pev->origin - pev->origin;
+					float flDist = vecDelta.Length();
+					float flSpeed = flDist < 128.0f ? (flDist * 3.0f) : 500.0f; // ease in when close
+					Vector vecDesired = vecDelta.Normalize() * flSpeed;
+					// Lerp toward desired velocity for a smooth glide (no sharp snapping)
+					pev->velocity = pev->velocity + (vecDesired - pev->velocity) * 0.4f;
+					bHasTarget = true;
 					break;
 				}
 			}
 		}
+	}
+
+	if (!bHasTarget)
+	{
+		// No target - restore toss physics so the skull rests naturally on the ground
+		pev->movetype = MOVETYPE_TOSS;
 	}
 
 	// Check if it's time to fade
@@ -172,6 +194,8 @@ void CSkullCharm::SkullTouch( CBaseEntity *pOther )
 	{
 		// Use quieter sound to reduce message overhead with many players
 		EMIT_SOUND_DYN( pPlayer->edict(), CHAN_ITEM, "rune_pickup.wav", 0.5, ATTN_NORM, 0, PITCH_NORM );
+
+		UTIL_ScreenFade(pPlayer, pev->rendercolor, 0.25, 0.25, 64, FFADE_IN);
 
 		pPlayer->m_iRoundWins += pev->fuser1;
 		MESSAGE_BEGIN( MSG_ALL, gmsgScoreInfo );

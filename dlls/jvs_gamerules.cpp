@@ -233,9 +233,6 @@ void CHalfLifeJesusVsSanta::Think( void )
 				MESSAGE_BEGIN( MSG_ONE, gmsgStatusIcon, NULL, pArmoredMan->edict() );
 					WRITE_BYTE(1);
 					WRITE_STRING("jesus");
-					WRITE_BYTE(0);
-					WRITE_BYTE(160);
-					WRITE_BYTE(255);
 				MESSAGE_END();
 
 				MESSAGE_BEGIN(MSG_ONE, gmsgBanner, NULL, pArmoredMan->edict());

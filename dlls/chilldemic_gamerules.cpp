@@ -295,9 +295,6 @@ void CHalfLifeChilldemic::Think( void )
 						MESSAGE_BEGIN( MSG_ONE, gmsgStatusIcon, NULL, plr->edict() );
 							WRITE_BYTE(1);
 							WRITE_STRING("skeleton");
-							WRITE_BYTE(0);
-							WRITE_BYTE(160);
-							WRITE_BYTE(255);
 						MESSAGE_END();
 
 						MESSAGE_BEGIN(MSG_ONE, gmsgBanner, NULL, plr->edict());
@@ -334,21 +331,12 @@ void CHalfLifeChilldemic::Think( void )
 			{
 				CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
 
-				if ( plr && plr->IsPlayer() && !plr->HasDisconnected && plr->pev->fuser4 == TEAM_SKELETONS )
+				if ( plr && plr->IsPlayer() && !plr->HasDisconnected && !FBitSet(plr->pev->flags, FL_FAKECLIENT) )
 				{
 					MESSAGE_BEGIN( MSG_ONE, gmsgStatusIcon, NULL, plr->edict() );
 						WRITE_BYTE(0);
 						WRITE_STRING("skeleton");
 					MESSAGE_END();
-				}
-				{
-					if (!FBitSet(plr->pev->flags, FL_FAKECLIENT))
-					{
-						MESSAGE_BEGIN( MSG_ONE, gmsgStatusIcon, NULL, plr->edict() );
-							WRITE_BYTE(0);
-							WRITE_STRING("skeleton");
-						MESSAGE_END();
-					}
 				}
 			}
 
@@ -496,6 +484,23 @@ void CHalfLifeChilldemic::Think( void )
 	flUpdateTime = gpGlobals->time + 1.0;
 }
 
+void CHalfLifeChilldemic::PlayerThink( CBasePlayer *pPlayer )
+{
+	CHalfLifeMultiplay::PlayerThink(pPlayer);
+
+	if (m_flIntermissionEndTime)
+		return;
+
+	if (pPlayer->m_fCameraDelay && pPlayer->m_fCameraDelay < gpGlobals->time)
+	{
+		MESSAGE_BEGIN( MSG_ONE, gmsgStatusIcon, NULL, pPlayer->edict() );
+			WRITE_BYTE(1);
+			WRITE_STRING("virus");
+		MESSAGE_END();
+		pPlayer->m_fCameraDelay = 0;
+	}
+}
+
 void CHalfLifeChilldemic::InitHUD( CBasePlayer *pPlayer )
 {
 	CHalfLifeMultiplay::InitHUD( pPlayer );
@@ -593,10 +598,13 @@ void CHalfLifeChilldemic::PlayerSpawn( CBasePlayer *pPlayer )
 	if ( pPlayer->pev->fuser4 == TEAM_SKELETONS )
 	{
 		pPlayer->RemoveAllItems(FALSE);
+		pPlayer->GiveNamedItem("weapon_fists");
 		pPlayer->GiveNamedItem("weapon_vest");
 		pPlayer->GiveNamedItem("weapon_chainsaw");
 		pPlayer->pev->max_health = pPlayer->pev->health = 50;
 		g_engfuncs.pfnSetPhysicsKeyValue(pPlayer->edict(), "haste", "1");
+
+		pPlayer->m_fCameraDelay = gpGlobals->time + 0.5;
 
 		strncpy( pPlayer->m_szTeamName, "skeletons", TEAM_NAME_LENGTH );
 		g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer->edict()), key, "model", "skeleton");
@@ -736,7 +744,8 @@ BOOL CHalfLifeChilldemic::CanHavePlayerItem( CBasePlayer *pPlayer, CBasePlayerIt
 		strcmp(STRING(pItem->pev->classname), "weapon_knife") &&
 		strcmp(STRING(pItem->pev->classname), "weapon_crowbar") &&
 		strcmp(STRING(pItem->pev->classname), "weapon_wrench") &&
-		strcmp(STRING(pItem->pev->classname), "weapon_dual_wrench"))
+		strcmp(STRING(pItem->pev->classname), "weapon_dual_wrench") &&
+		strcmp(STRING(pItem->pev->classname), "weapon_vest"))
 		return FALSE;
 
 	return CHalfLifeMultiplay::CanHavePlayerItem( pPlayer, pItem );
@@ -814,5 +823,32 @@ BOOL CHalfLifeChilldemic::CanHaveNamedItem( CBasePlayer *pPlayer, const char *ps
 		return FALSE;
 	}
 
+	if (pPlayer->pev->fuser4 == TEAM_SKELETONS &&
+		strcmp(pszItemName, "weapon_fists") &&
+		strcmp(pszItemName, "weapon_chainsaw") &&
+		strcmp(pszItemName, "weapon_knife") &&
+		strcmp(pszItemName, "weapon_crowbar") &&
+		strcmp(pszItemName, "weapon_wrench") &&
+		strcmp(pszItemName, "weapon_dual_wrench") &&
+		strcmp(pszItemName, "weapon_vest"))
+		return FALSE;
+
 	return CHalfLifeMultiplay::CanHaveNamedItem( pPlayer, pszItemName );
 }
+
+BOOL CHalfLifeChilldemic::CanHavePlayerAmmo( CBasePlayer *pPlayer, CBasePlayerAmmo *pAmmo )
+{
+	if (pPlayer->pev->fuser4 == RADAR_VIRUS)
+		return FALSE;
+
+	return CHalfLifeMultiplay::CanHavePlayerAmmo( pPlayer, pAmmo );
+}
+
+BOOL CHalfLifeChilldemic::MutatorAllowed(const char *mutator)
+{
+	if (strstr(mutator, g_szMutators[MUTATOR_THIRDPERSON - 1]) || atoi(mutator) == MUTATOR_THIRDPERSON)
+		return FALSE;
+
+	return CHalfLifeMultiplay::MutatorAllowed(mutator);
+}
+

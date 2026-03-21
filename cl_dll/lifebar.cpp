@@ -23,6 +23,7 @@
 #include <string.h>
 #include "entity_types.h"
 #include "triangleapi.h"
+#include "pm_shared.h"
 
 DECLARE_MESSAGE(m_LifeBar, LifeBar)
 
@@ -266,7 +267,11 @@ int CHudLifeBar::UpdateSprites()
 
 		if (IsPropHunt() && pClient && pClient->curstate.fuser4 > 0)
 			return 0;
-		
+
+		if ((g_iUser1 == OBS_IN_EYE || gHUD.m_Spectator.m_pip->value == INSET_IN_EYE) &&
+			g_iUser2 == i)
+			return 0;
+
 		// Initialize previous health for ALL visible players (before any other checks)
 		// This ensures we track health even before the first lifebar message arrives
 		if (pClient && pClient->player && !(pClient->curstate.effects & EF_NODRAW))

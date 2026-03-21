@@ -126,6 +126,8 @@ void CSafeSpot::SafeSpotThink( void )
 				if ( ent == plr )
 				{
 					found = TRUE;
+					if (plr->pev->health > 0 && plr->pev->health < plr->pev->max_health)
+						plr->pev->health += 2;
 					continue;
 				}
 			}
@@ -569,8 +571,6 @@ void CHalfLifeLastManStanding::Think( void )
 			return;
 		}
 
-		ALERT(at_console, "Players in LMS: ");
-
 		g_GameInProgress = TRUE;
 		
 		// Restore mutators when round begins
@@ -579,7 +579,6 @@ void CHalfLifeLastManStanding::Think( void )
 		//frags + time.
 		SetRoundLimits();
 		InsertClientsIntoArena(startwithlives.value);
-		ALERT(at_console, "\n");
 
 		m_iCountDown = 5;
 		m_fWaitForPlayersTime = -1;
@@ -628,71 +627,143 @@ BOOL CHalfLifeLastManStanding::HasGameTimerExpired( void )
 	//time is up
 	if ( CHalfLifeMultiplay::HasGameTimerExpired() )
 	{
-		int highest = 1;
-		BOOL IsEqual = FALSE;
-		CBasePlayer *highballer = NULL;
-
-		for ( int i = 1; i <= gpGlobals->maxClients; i++ )
+		if ( m_TeamBased )
 		{
-			CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
+			// Sum remaining lives per team
+			int redLives = 0;
+			int blueLives = 0;
 
-			if ( plr && plr->IsPlayer() && plr->IsInArena )
+			for ( int i = 1; i <= gpGlobals->maxClients; i++ )
 			{
-				if ( highest <= plr->pev->frags )
+				CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
+
+				if ( plr && plr->IsPlayer() && plr->IsInArena )
 				{
-					if ( highballer && highest == plr->pev->frags )
+					if ( plr->pev->fuser4 == TEAM_RED )
+						redLives += (int)plr->pev->frags;
+					else
+						blueLives += (int)plr->pev->frags;
+				}
+			}
+
+			int winningTeam = -1;
+			if ( redLives > blueLives )
+			{
+				winningTeam = TEAM_RED;
+				UTIL_ClientPrintAll(HUD_PRINTCENTER, "Time is Up: Red team wins!\n");
+				MESSAGE_BEGIN(MSG_BROADCAST, gmsgObjective);
+					WRITE_STRING("Time is up!");
+					WRITE_STRING("");
+					WRITE_BYTE(0);
+					WRITE_STRING("Red team wins!");
+				MESSAGE_END();
+			}
+			else if ( blueLives > redLives )
+			{
+				winningTeam = TEAM_BLUE;
+				UTIL_ClientPrintAll(HUD_PRINTCENTER, "Time is Up: Blue team wins!\n");
+				MESSAGE_BEGIN(MSG_BROADCAST, gmsgObjective);
+					WRITE_STRING("Time is up!");
+					WRITE_STRING("");
+					WRITE_BYTE(0);
+					WRITE_STRING("Blue team wins!");
+				MESSAGE_END();
+			}
+			else
+			{
+				UTIL_ClientPrintAll(HUD_PRINTCENTER, "Time is Up: Match ends in a draw!\n");
+				UTIL_ClientPrintAll(HUD_PRINTTALK, "[Royale] No winners in this round!\n");
+				MESSAGE_BEGIN(MSG_BROADCAST, gmsgObjective);
+					WRITE_STRING("Time is up!");
+					WRITE_STRING("");
+					WRITE_BYTE(0);
+					WRITE_STRING("Match ends in a draw!");
+				MESSAGE_END();
+				MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
+					WRITE_BYTE(CLIENT_SOUND_HULIMATING_DEAFEAT);
+				MESSAGE_END();
+			}
+
+			if ( winningTeam != -1 )
+			{
+				for ( int i = 1; i <= gpGlobals->maxClients; i++ )
+				{
+					CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
+
+					if ( plr && plr->IsPlayer() && plr->IsInArena )
 					{
-						if (m_TeamBased && highballer->pev->fuser4 != plr->pev->fuser4)
+						if ( plr->pev->fuser4 == winningTeam )
 						{
-							IsEqual = TRUE;
-							continue;
-						}
-						else
-						{
-							IsEqual = TRUE;
-							continue;
+							plr->m_iRoundWins++;
+							plr->Celebrate();
+							MESSAGE_BEGIN( MSG_ONE, gmsgPlayClientSound, NULL, plr->edict() );
+								WRITE_BYTE(CLIENT_SOUND_LMS);
+							MESSAGE_END();
 						}
 					}
-
-					IsEqual = FALSE;
-					highest = plr->pev->frags;
-					highballer = plr;
 				}
 			}
 		}
-
-		if ( !IsEqual && highballer )
-		{
-			DisplayWinnersGoods( highballer );
-			UTIL_ClientPrintAll(HUD_PRINTCENTER,
-				UTIL_VarArgs("Time is Up: %s is the Victor!\n", STRING(highballer->pev->netname)));
-
-			MESSAGE_BEGIN(MSG_BROADCAST, gmsgObjective);
-				WRITE_STRING("Time is up!");
-				WRITE_STRING("");
-				WRITE_BYTE(0);
-				WRITE_STRING(UTIL_VarArgs("%s is the victor!\n", STRING(highballer->pev->netname)));
-			MESSAGE_END();
-
-			MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
-				WRITE_BYTE(CLIENT_SOUND_OUTSTANDING);
-			MESSAGE_END();
-		}
 		else
 		{
-			UTIL_ClientPrintAll(HUD_PRINTCENTER, "Time is Up: Match ends in a draw!\n" );
-			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Royale] No winners in this round!\n");
+			int highest = 1;
+			BOOL IsEqual = FALSE;
+			CBasePlayer *highballer = NULL;
 
-			MESSAGE_BEGIN(MSG_BROADCAST, gmsgObjective);
-				WRITE_STRING("Time is up!");
-				WRITE_STRING("");
-				WRITE_BYTE(0);
-				WRITE_STRING("Match ends in a draw!");
-			MESSAGE_END();
+			for ( int i = 1; i <= gpGlobals->maxClients; i++ )
+			{
+				CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
 
-			MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
-				WRITE_BYTE(CLIENT_SOUND_HULIMATING_DEAFEAT);
-			MESSAGE_END();
+				if ( plr && plr->IsPlayer() && plr->IsInArena )
+				{
+					if ( highest <= plr->pev->frags )
+					{
+						if ( highballer && highest == plr->pev->frags )
+						{
+							IsEqual = TRUE;
+							continue;
+						}
+
+						IsEqual = FALSE;
+						highest = plr->pev->frags;
+						highballer = plr;
+					}
+				}
+			}
+
+			if ( !IsEqual && highballer )
+			{
+				DisplayWinnersGoods( highballer );
+				UTIL_ClientPrintAll(HUD_PRINTCENTER,
+					UTIL_VarArgs("Time is Up: %s is the Victor!\n", STRING(highballer->pev->netname)));
+
+				MESSAGE_BEGIN(MSG_BROADCAST, gmsgObjective);
+					WRITE_STRING("Time is up!");
+					WRITE_STRING("");
+					WRITE_BYTE(0);
+					WRITE_STRING(UTIL_VarArgs("%s is the victor!\n", STRING(highballer->pev->netname)));
+				MESSAGE_END();
+
+				MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
+					WRITE_BYTE(CLIENT_SOUND_OUTSTANDING);
+				MESSAGE_END();
+			}
+			else
+			{
+				UTIL_ClientPrintAll(HUD_PRINTCENTER, "Time is Up: Match ends in a draw!\n" );
+				UTIL_ClientPrintAll(HUD_PRINTTALK, "[Royale] No winners in this round!\n");
+
+				MESSAGE_BEGIN(MSG_BROADCAST, gmsgObjective);
+					WRITE_STRING("Time is up!");
+					WRITE_STRING("");
+					WRITE_BYTE(0);
+					WRITE_STRING("Match ends in a draw!");
+				MESSAGE_END();
+
+				MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
+					WRITE_BYTE(CLIENT_SOUND_HULIMATING_DEAFEAT);
+				MESSAGE_END();
+			}
 		}
 
 		g_GameInProgress = FALSE;
@@ -801,7 +872,6 @@ void CHalfLifeLastManStanding::PlayerSpawn( CBasePlayer *pPlayer )
 				}
 			}
 
-			ALERT(at_aiconsole, "blueteam=%d, redteam=%d\n", blueteam, redteam);
 			pPlayer->pev->fuser4 = redteam >= blueteam ? TEAM_BLUE : TEAM_RED;
 
 			if (pPlayer->pev->fuser4 == TEAM_BLUE)

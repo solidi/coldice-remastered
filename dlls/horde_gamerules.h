@@ -39,6 +39,7 @@ public:
 	virtual void DetermineWinner( void );
 	virtual BOOL IsTeamplay( void );
 	virtual BOOL CanHaveNamedItem( CBasePlayer *pPlayer, const char *pszItemName );
+	virtual void PlayerThink( CBasePlayer *pPlayer );
 
 private:
 	int m_iSurvivorsRemain;

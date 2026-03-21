@@ -4157,6 +4157,8 @@ void CBasePlayer::Spawn( void )
 
 	m_fFlipButtonTime = m_fFlipTime = 0;
 	m_fTauntTime = 0;
+	m_flEjectShotShell = 0;
+	m_fCameraDelay = 0;
 
 	g_engfuncs.pfnSetPhysicsKeyValue( edict(), "slj", "0" );
 	g_engfuncs.pfnSetPhysicsKeyValue( edict(), "hl", "1" );
@@ -5847,16 +5849,12 @@ void CBasePlayer::StartForceGrab( void )
 	if (g_pGameRules->MutatorEnabled(MUTATOR_RICOCHET))
 		return;
 
-	if ( g_pGameRules->IsInstagib() )
+	if (!g_pGameRules->IsAllowedToDropWeapon(this))
 	{
 		ClientPrint(pev, HUD_PRINTCENTER, "Forcegrab disabled in this gamemode.");
 		m_fOffhandTime = gpGlobals->time + 0.5;
 		return;
 	}
-
-	// Prop limitation
-	if ( g_pGameRules->IsPropHunt() && pev->fuser4 >= TEAM_PROPS )
-		return;
 
 	// Already got a hook, fly it back.
 	if (m_Banana)
@@ -5903,7 +5901,9 @@ void CBasePlayer::StartForceGrab( void )
 	if (pHit && pHit->IsPlayer())
 	{
 		CBasePlayer *plr = (CBasePlayer *)pHit;
-		if (plr->m_pActiveItem && stricmp(STRING(plr->m_pActiveItem->pev->classname), "weapon_fists") != 0)
+		if (plr->m_pActiveItem &&
+			g_pGameRules->PlayerRelationship( this, pHit ) != GR_TEAMMATE &&
+			stricmp(STRING(plr->m_pActiveItem->pev->classname), "weapon_fists") != 0)
 		{
 			m_Banana = CBaseEntity::Create("monster_grabweapon", tr.vecEndPos, Vector(-90, pev->angles.y + 90, -90), edict());
 			if (m_Banana)
@@ -5958,7 +5958,9 @@ void CBasePlayer::TryGrabAgain( void )
 		if (pHit && pHit->IsPlayer())
 		{
 			CBasePlayer *plr = (CBasePlayer *)pHit;
-			if (plr->m_pActiveItem && stricmp(STRING(plr->m_pActiveItem->pev->classname), "weapon_fists") != 0)
+			if (plr->m_pActiveItem &&
+				g_pGameRules->PlayerRelationship( this, pHit ) != GR_TEAMMATE &&
+				stricmp(STRING(plr->m_pActiveItem->pev->classname), "weapon_fists") != 0)
 			{
 				m_Banana = CBaseEntity::Create("monster_grabweapon", tr.vecEndPos, Vector(-90, pev->angles.y + 90, -90), edict());
 				if (m_Banana)
@@ -5971,7 +5973,12 @@ void CBasePlayer::TryGrabAgain( void )
 					EMIT_SOUND(edict(), CHAN_VOICE, "odetojoy.wav", 1, ATTN_NORM);
 
 					ClientPrint(plr->pev, HUD_PRINTCENTER, "Your weapon has been taken!\n");
-					plr->DropPlayerItem("", FALSE);
+					if (plr->m_pActiveItem->m_iId < 32)
+						plr->pev->weapons &= ~(1<<plr->m_pActiveItem->m_iId);
+					else
+						plr->m_iWeapons2 &= ~(1<<(plr->m_pActiveItem->m_iId - 32));
+					plr->m_pActiveItem->SetThink( &CBasePlayerItem::DestroyItem );
+					plr->m_pActiveItem->pev->nextthink = gpGlobals->time + 0.1;
 
 					pev->nextthink = -1;
 				}

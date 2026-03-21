@@ -1027,6 +1027,8 @@ void CHalfLifeLoot::CaptureCharm( CBasePlayer *pPlayer )
 	m_flLootPickupTime = gpGlobals->time;
 	pPlayer->m_bHoldingLoot = TRUE;
 
+	pPlayer->m_fCameraDelay = 0;
+
 	// Green glow on holder
 	pPlayer->pev->renderfx    = kRenderFxGlowShell;
 	pPlayer->pev->renderamt   = 10;
@@ -1060,11 +1062,8 @@ void CHalfLifeLoot::CaptureCharm( CBasePlayer *pPlayer )
 		if ( plr == pPlayer || (plr->IsAlive() && plr->m_iLootTeam == teamIdx) )
 		{
 			MESSAGE_BEGIN( MSG_ONE, gmsgStatusIcon, NULL, plr->edict() );
-				WRITE_BYTE( 1 );          // enable
+				WRITE_BYTE( 1 );
 				WRITE_STRING( "loot" );
-				WRITE_BYTE( 0   );
-				WRITE_BYTE( 180 );
-				WRITE_BYTE( 0   );
 			MESSAGE_END();
 		}
 	}
@@ -1134,10 +1133,7 @@ CBaseEntity *CHalfLifeLoot::DropCharm( CBasePlayer *pPlayer, Vector origin )
 
 		if ( plr == pPlayer || plr->m_iLootTeam == teamIdx )
 		{
-			MESSAGE_BEGIN( MSG_ONE, gmsgStatusIcon, NULL, plr->edict() );
-				WRITE_BYTE( 0 );          // disable
-				WRITE_STRING( "loot" );
-			MESSAGE_END();
+			plr->m_fCameraDelay = gpGlobals->time + 4.0;
 		}
 	}
 
@@ -2144,6 +2140,15 @@ void CHalfLifeLoot::PlayerThink( CBasePlayer *pPlayer )
 		}
 	}
 
+	if (pPlayer->m_fCameraDelay && pPlayer->m_fCameraDelay < gpGlobals->time)
+	{
+		MESSAGE_BEGIN( MSG_ONE, gmsgStatusIcon, NULL, pPlayer->edict() );
+				WRITE_BYTE( 0 );
+				WRITE_STRING( "loot" );
+			MESSAGE_END();
+		pPlayer->m_fCameraDelay = 0;
+	}
+
 	// Game-mode welcome banner for new/rejoining players
 	if ( pPlayer->m_iShowGameModeMessage > -1 &&
 	     pPlayer->m_iShowGameModeMessage < (int)gpGlobals->time &&
@@ -2368,7 +2373,7 @@ BOOL CHalfLifeLoot::MutatorAllowed( const char *mutator )
 	if ( strstr(mutator, g_szMutators[MUTATOR_RANDOMWEAPON- 1]) || atoi(mutator) == MUTATOR_RANDOMWEAPON) return FALSE;
 	if ( strstr(mutator, g_szMutators[MUTATOR_DONTSHOOT   - 1]) || atoi(mutator) == MUTATOR_DONTSHOOT   ) return FALSE;
 	if ( strstr(mutator, g_szMutators[MUTATOR_MAXPACK     - 1]) || atoi(mutator) == MUTATOR_MAXPACK     ) return FALSE;
-
+	if ( strstr(mutator, g_szMutators[MUTATOR_THIRDPERSON - 1]) || atoi(mutator) == MUTATOR_THIRDPERSON ) return FALSE;
 	return CHalfLifeMultiplay::MutatorAllowed( mutator );
 }
 

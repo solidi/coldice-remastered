@@ -32,6 +32,7 @@ extern int gmsgScoreInfo;
 extern int gmsgTeamNames;
 extern int gmsgDeathMsg;
 extern int gmsgDEraser;
+extern int gmsgBanner;
 
 // In order of hardness
 const char *szMonsters[] = {
@@ -644,6 +645,23 @@ void CHalfLifeHorde::Think( void )
 	flUpdateTime = gpGlobals->time + 1.0;
 }
 
+void CHalfLifeHorde::PlayerThink( CBasePlayer *pPlayer )
+{
+	CHalfLifeMultiplay::PlayerThink(pPlayer);
+
+	if (pPlayer->m_iShowGameModeMessage > -1 &&
+		pPlayer->m_iShowGameModeMessage < gpGlobals->time &&
+		!FBitSet(pPlayer->pev->flags, FL_FAKECLIENT))
+	{
+		MESSAGE_BEGIN(MSG_ONE, gmsgBanner, NULL, pPlayer->edict());
+			WRITE_STRING(UTIL_VarArgs("Horde Mode, Wave #%d", m_iSuccessfulRounds + 1));
+			WRITE_STRING("Find the monsters. Kill them!");
+			WRITE_BYTE(80);
+		MESSAGE_END();
+		pPlayer->m_iShowGameModeMessage = -1;
+	}
+}
+
 void CHalfLifeHorde::InitHUD( CBasePlayer *pPlayer )
 {
 	CHalfLifeMultiplay::InitHUD( pPlayer );
@@ -694,7 +712,8 @@ void CHalfLifeHorde::PlayerSpawn( CBasePlayer *pPlayer )
 
 	pPlayer->pev->fuser3 = 1; // bots need to identify their team.
 	strncpy( pPlayer->m_szTeamName, "survivors", TEAM_NAME_LENGTH );
-	//g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer->edict()), key, "team", pPlayer->m_szTeamName);
+
+	pPlayer->m_iShowGameModeMessage = gpGlobals->time + 0.5;
 
 	// notify everyone's HUD of the team change
 	MESSAGE_BEGIN( MSG_ALL, gmsgTeamInfo );

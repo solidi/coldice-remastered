@@ -497,6 +497,7 @@ public:
 	EHANDLE pFlag;
 	float m_fFlagTime;
 	float m_fCelebrateTime;
+	float m_fCameraDelay;
 	void Celebrate( void );
 
 	float m_fCreditsTime;

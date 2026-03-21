@@ -45,6 +45,7 @@ public:
 	virtual BOOL IsValidTeam( const char *pTeamName );
 	const char *SetDefaultPlayerTeam( CBasePlayer *pPlayer );
 	virtual void ChangePlayerTeam( CBasePlayer *pPlayer, const char *pTeamName, BOOL bKill, BOOL bGib );
+	virtual void PlayerSpawn( CBasePlayer *pPlayer );
 
 private:
 	void RecountTeams( bool bResendInfo = FALSE );

@@ -1033,6 +1033,15 @@ void CBasePlayerItem::DefaultTouch( CBaseEntity *pOther )
 		if (g_pGameRules->IsPropHunt() && pPlayer->pev->fuser4 >= TEAM_PROPS)
 			return;
 
+		if (g_pGameRules->IsCtC() && pPlayer->pev->fuser4 == RADAR_CHUMTOAD)
+			return;
+
+		if (g_pGameRules->IsBusters() && pPlayer->pev->fuser4 == RADAR_BUSTER)
+			return;
+
+		if (g_pGameRules->IsChilldemic() && pPlayer->pev->fuser4 == RADAR_VIRUS)
+			return;
+
 		if (g_pGameRules->IsShidden() && pPlayer->pev->fuser4 > 0)
 			return;
 
@@ -3313,16 +3322,9 @@ void CBasePlayerWeapon::ThrowWeapon( BOOL holdingSomething )
 	if (g_pGameRules->MutatorEnabled(MUTATOR_RICOCHET))
 		return;
 
-	if (g_pGameRules->IsGunGame() || g_pGameRules->IsInstagib())
+	if (!g_pGameRules->IsAllowedToDropWeapon(m_pPlayer))
 	{
-		ClientPrint(m_pPlayer->pev, HUD_PRINTCENTER, "Throw is disabled in gamemode.");
-		m_pPlayer->m_fOffhandTime = gpGlobals->time + 0.5;
-		return;
-	}
-
-	if (m_iId == WEAPON_EGON && g_pGameRules->IsBusters())
-	{
-		ClientPrint(m_pPlayer->pev, HUD_PRINTCENTER, "Throw is disabled in gamemode.");
+		ClientPrint(m_pPlayer->pev, HUD_PRINTCENTER, "Throw is disabled in this gamemode.");
 		m_pPlayer->m_fOffhandTime = gpGlobals->time + 0.5;
 		return;
 	}

@@ -19,6 +19,7 @@ public:
 	CHalfLifeChilldemic();
 	virtual const char *GetGameDescription( void ) { return "Cold Ice Remastered Chilldemic"; }
 	virtual void Think ( void );
+	virtual void PlayerThink( CBasePlayer *pPlayer );
 	virtual void InitHUD( CBasePlayer *pl );
 	virtual BOOL HasGameTimerExpired( void );
 	virtual BOOL FPlayerCanTakeDamage( CBasePlayer *pPlayer, CBaseEntity *pAttacker );
@@ -36,6 +37,8 @@ public:
 	virtual void DetermineWinner( void );
 	virtual BOOL IsTeamplay( void );
 	virtual BOOL CanHaveNamedItem( CBasePlayer *pPlayer, const char *pszItemName );
+	virtual BOOL CanHavePlayerAmmo( CBasePlayer *pPlayer, CBasePlayerAmmo *pAmmo );
+	virtual BOOL MutatorAllowed(const char *mutator);
 
 private:
 	int m_iSurvivorsRemain;

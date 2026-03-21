@@ -22,11 +22,13 @@ public:
 	virtual BOOL IsSpawnPointValid( CBaseEntity *pSpot );
 	virtual void InitHUD( CBasePlayer *pPlayer );
 	virtual void Think( void );
+	virtual void PlayerThink( CBasePlayer *pPlayer );
 	virtual void PlayerSpawn( CBasePlayer *pPlayer );
 	virtual int GetTeamIndex( const char *pTeamName );
 	virtual int PlayerRelationship( CBaseEntity *pPlayer, CBaseEntity *pTarget );
 	virtual const char *GetTeamID( CBaseEntity *pEntity );
 	virtual void ClientUserInfoChanged( CBasePlayer *pPlayer, char *infobuffer );
+	virtual void CaptureCharm( CBasePlayer *pPlayer );
 	virtual CBaseEntity *DropCharm( CBasePlayer *pPlayer, Vector origin );
 	virtual void ClientDisconnected( edict_t *pClient );
 	virtual void UpdateHud( int bluemode, int redmode, CBasePlayer *pPlayer = NULL );
@@ -34,6 +36,7 @@ public:
 	virtual BOOL ShouldAutoAim( CBasePlayer *pPlayer, edict_t *target );
 	virtual BOOL FPlayerCanTakeDamage( CBasePlayer *pPlayer, CBaseEntity *pAttacker );
 	virtual BOOL IsTeamplay( void );
+	virtual BOOL MutatorAllowed(const char *mutator);
 
 	void AutoJoin( CBasePlayer *pPlayer, int team );
 

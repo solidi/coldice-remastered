@@ -24,6 +24,8 @@
 #include	"teamplay_gamerules.h"
 #include	"game.h"
 #include	"items.h"
+#include	"pm_shared.h"
+
 
 static char team_names[MAX_TEAMS][MAX_TEAMNAME_LENGTH];
 static int team_scores[MAX_TEAMS];
@@ -223,7 +225,6 @@ void CHalfLifeTeamplay::InitHUD( CBasePlayer *pPlayer )
 {
 	int i;
 
-	SetDefaultPlayerTeam( pPlayer );
 	CHalfLifeMultiplay::InitHUD( pPlayer );
 
 	// Send down the team names
@@ -235,24 +236,6 @@ void CHalfLifeTeamplay::InitHUD( CBasePlayer *pPlayer )
 		}
 	MESSAGE_END();
 
-	RecountTeams();
-
-	char *mdls = g_engfuncs.pfnInfoKeyValue( g_engfuncs.pfnGetInfoKeyBuffer( pPlayer->edict() ), "model" );
-	// update the current player of the team he is joining
-	char text[1024];
-	if ( !strcmp( mdls, pPlayer->m_szTeamName ) )
-	{
-		sprintf( text, "[Teamplay] you are on team \'%s\'\n", pPlayer->m_szTeamName );
-	}
-	else
-	{
-		sprintf( text, "[Teamplay] assigned to team %s\n", pPlayer->m_szTeamName );
-	}
-
-	ChangePlayerTeam( pPlayer, pPlayer->m_szTeamName, FALSE, FALSE );
-	UTIL_SayText( text, pPlayer );
-	int clientIndex = pPlayer->entindex();
-	RecountTeams();
 	// update this player with all the other players team info
 	// loop through all active players and send their team info to the new client
 	for ( i = 1; i <= gpGlobals->maxClients; i++ )
@@ -271,7 +254,7 @@ void CHalfLifeTeamplay::InitHUD( CBasePlayer *pPlayer )
 	{
 		MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, pPlayer->edict());
 			WRITE_STRING("Teamplay");
-			WRITE_STRING(UTIL_VarArgs("Don't hurt %s", pPlayer->m_szTeamName));
+			WRITE_STRING("Select an option");
 			WRITE_BYTE(0);
 		MESSAGE_END();
 	}
@@ -309,7 +292,6 @@ void CHalfLifeTeamplay::ChangePlayerTeam( CBasePlayer *pPlayer, const char *pTea
 	strncpy( pPlayer->m_szTeamName, pTeamName, TEAM_NAME_LENGTH );
 
 	g_engfuncs.pfnSetClientKeyValue( clientIndex, g_engfuncs.pfnGetInfoKeyBuffer( pPlayer->edict() ), "model", pPlayer->m_szTeamName );
-	//g_engfuncs.pfnSetClientKeyValue( clientIndex, g_engfuncs.pfnGetInfoKeyBuffer( pPlayer->edict() ), "team", pPlayer->m_szTeamName );
 
 	// notify everyone's HUD of the team change
 	MESSAGE_BEGIN( MSG_ALL, gmsgTeamInfo );
@@ -325,6 +307,8 @@ void CHalfLifeTeamplay::ChangePlayerTeam( CBasePlayer *pPlayer, const char *pTea
 		WRITE_SHORT( g_pGameRules->GetTeamIndex( pPlayer->m_szTeamName ) + 1 );
 	MESSAGE_END();
 
+	pPlayer->pev->fuser4 = GetTeamIndex( pPlayer->m_szTeamName );
+
 	if (!FBitSet(pPlayer->pev->flags, FL_FAKECLIENT))
 	{
 		MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, pPlayer->edict());
@@ -332,6 +316,50 @@ void CHalfLifeTeamplay::ChangePlayerTeam( CBasePlayer *pPlayer, const char *pTea
 			WRITE_STRING(UTIL_VarArgs("Don't hurt %s", pPlayer->m_szTeamName));
 			WRITE_BYTE(0);
 		MESSAGE_END();
+	}
+}
+
+void CHalfLifeTeamplay::PlayerSpawn( CBasePlayer *pPlayer )
+{
+	CHalfLifeMultiplay::PlayerSpawn(pPlayer);
+
+	// New player
+	if (pPlayer->pev->iuser3 > 0)
+	{
+		pPlayer->pev->iuser3 = OBS_UNDECIDED_SIMPLE;
+		return;
+	}
+	else if (pPlayer->pev->iuser3 == 0) // Spectator now joining
+	{
+		pPlayer->pev->iuser3 = -1;
+		pPlayer->m_iObserverWeapon = 0; // Used as the menu option
+
+		SetDefaultPlayerTeam( pPlayer );
+		RecountTeams();
+		char *mdls = g_engfuncs.pfnInfoKeyValue( g_engfuncs.pfnGetInfoKeyBuffer( pPlayer->edict() ), "model" );
+		// update the current player of the team he is joining
+		char text[1024];
+		if ( !strcmp( mdls, pPlayer->m_szTeamName ) )
+		{
+			sprintf( text, "[Teamplay] you are on team \'%s\'\n", pPlayer->m_szTeamName );
+		}
+		else
+		{
+			sprintf( text, "[Teamplay] assigned to team %s\n", pPlayer->m_szTeamName );
+		}
+
+		ChangePlayerTeam( pPlayer, pPlayer->m_szTeamName, FALSE, FALSE );
+		UTIL_SayText( text, pPlayer );
+		int clientIndex = pPlayer->entindex();
+		RecountTeams();
+		if (!FBitSet(pPlayer->pev->flags, FL_FAKECLIENT))
+		{
+			MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, pPlayer->edict());
+				WRITE_STRING("Teamplay");
+				WRITE_STRING(UTIL_VarArgs("Don't hurt %s", pPlayer->m_szTeamName));
+				WRITE_BYTE(0);
+			MESSAGE_END();
+		}
 	}
 }
 
@@ -349,6 +377,9 @@ void CHalfLifeTeamplay::ClientUserInfoChanged( CBasePlayer *pPlayer, char *infob
 	if ( !stricmp( mdls, pPlayer->m_szTeamName ) )
 		return;
 
+	if ( pPlayer->IsSpectator() )
+		return;
+
 	if ( defaultteam.value )
 	{
 		int clientIndex = pPlayer->entindex();
@@ -360,7 +391,7 @@ void CHalfLifeTeamplay::ClientUserInfoChanged( CBasePlayer *pPlayer, char *infob
 		return;
 	}
 
-	if ( defaultteam.value || !IsValidTeam( mdls ) )
+	if ( defaultteam.value || !IsValidTeam( mdls ) || FBitSet(pPlayer->pev->flags, FL_GODMODE) )
 	{
 		int clientIndex = pPlayer->entindex();
 

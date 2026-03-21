@@ -54,6 +54,8 @@ void CHudStatusIcons::Reset( void )
 	memset( m_IconList, 0, sizeof m_IconList );
 	m_iFlags |= HUD_ACTIVE;
 	m_flCheckMutators = 0;
+	if (!MutatorEnabled(MUTATOR_THIRDPERSON))
+		gEngfuncs.pfnClientCmd("firstperson\n");
 	DrawMutators();
 }
 
@@ -97,10 +99,8 @@ int CHudStatusIcons::Draw( float flTime )
 			if (i < max)
 			{
 				y -= ( m_IconList[i].rc.bottom - m_IconList[i].rc.top ) + 18;
-				
-				int r = m_IconList[i].r;
-				int g = m_IconList[i].g;
-				int b = m_IconList[i].b;
+
+				int r, g, b;
 				UnpackRGB(r,g,b, HudColor());
 				ScaleColors(r, g, b, MIN_ALPHA);
 				SPR_Set( m_IconList[i].spr, r, g, b );
@@ -172,12 +172,9 @@ int CHudStatusIcons::Draw( float flTime )
 }
 
 // Message handler for StatusIcon message
-// accepts five values:
+// accepts two values:
 //		byte   : TRUE = ENABLE icon, FALSE = DISABLE icon
 //		string : the sprite name to display
-//		byte   : red
-//		byte   : green
-//		byte   : blue
 int CHudStatusIcons::MsgFunc_StatusIcon( const char *pszName, int iSize, void *pbuf )
 {
 	BEGIN_READ( pbuf, iSize );
@@ -186,10 +183,7 @@ int CHudStatusIcons::MsgFunc_StatusIcon( const char *pszName, int iSize, void *p
 	char *pszIconName = READ_STRING();
 	if ( ShouldEnable )
 	{
-		int r = READ_BYTE();
-		int g = READ_BYTE();
-		int b = READ_BYTE();
-		EnableIcon( pszIconName, r, g, b, 0, 0);
+		EnableIcon( pszIconName, 0, 0);
 		m_iFlags |= HUD_ACTIVE;
 	}
 	else
@@ -197,7 +191,13 @@ int CHudStatusIcons::MsgFunc_StatusIcon( const char *pszName, int iSize, void *p
 		DisableIcon( pszIconName );
 	}
 
-	if (pszIconName && strncmp(pszIconName, "loot", 4) == 0)
+	// Special entities for perspective switching
+	if (pszIconName &&
+		(strncmp(pszIconName, "loot", 4) == 0 ||
+		 strncmp(pszIconName, "flag", 4) == 0 ||
+		 strncmp(pszIconName, "chumtoad", 8) == 0 ||
+		 strncmp(pszIconName, "buster", 6) == 0 ||
+		 strncmp(pszIconName, "virus", 5) == 0))
 	{
 		if (ShouldEnable)
 			gEngfuncs.pfnClientCmd("thirdperson\n");
@@ -209,7 +209,7 @@ int CHudStatusIcons::MsgFunc_StatusIcon( const char *pszName, int iSize, void *p
 }
 
 // add the icon to the icon list, and set it's drawing color
-void CHudStatusIcons::EnableIcon( char *pszIconName, unsigned char red, unsigned char green, unsigned char blue, float timeToLive, float startTime )
+void CHudStatusIcons::EnableIcon( char *pszIconName, float timeToLive, float startTime )
 {
 	int i;
 	// check to see if the sprite is in the current list
@@ -240,19 +240,9 @@ void CHudStatusIcons::EnableIcon( char *pszIconName, unsigned char red, unsigned
 	int spr_index = gHUD.GetSpriteIndex( pszIconName );
 	m_IconList[i].spr = gHUD.GetSprite( spr_index );
 	m_IconList[i].rc = gHUD.GetSpriteRect( spr_index );
-	m_IconList[i].r = red;
-	m_IconList[i].g = green;
-	m_IconList[i].b = blue;
 	m_IconList[i].timeToLive = timeToLive;
 	m_IconList[i].startTime = startTime;
 	strcpy( m_IconList[i].szSpriteName, pszIconName );
-
-	// Hack: Play Timer sound when a grenade icon is played (in 0.8 seconds)
-	// if ( strstr(m_IconList[i].szSpriteName, "grenade") )
-	// {
-	//	cl_entity_t *pthisplayer = gEngfuncs.GetLocalPlayer();
-	//	gEngfuncs.pEventAPI->EV_PlaySound( pthisplayer->index, pthisplayer->origin, CHAN_STATIC, "weapons/timer.wav", 1.0, ATTN_NORM, 0, PITCH_NORM );
-	//}
 }
 
 void CHudStatusIcons::DisableIcon( char *pszIconName )
@@ -289,8 +279,16 @@ void CHudStatusIcons::ToggleMutatorIcon(int mutatorId, const char *mutator)
 	if (MutatorEnabled(mutatorId))
 	{
 		mutators_t t = GetMutator(mutatorId);
-		EnableIcon((char *)mutator,r,g,b,t.timeToLive,t.startTime);
+		EnableIcon((char *)mutator, t.timeToLive, t.startTime);
 	}
 	else
-		DisableIcon((char *)mutator);
+	{
+		if (mutatorId == MUTATOR_LONGJUMP)
+		{
+			if (atoi(gEngfuncs.PhysInfo_ValueForKey("slj")) != 1)
+				DisableIcon((char *)mutator);
+		}
+		else
+			DisableIcon((char *)mutator);
+	}
 }

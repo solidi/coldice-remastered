@@ -33,6 +33,7 @@ extern int gmsgTeamInfo;
 extern int gmsgScoreInfo;
 extern int gmsgPlayClientSound;
 extern int gmsgBanner;
+extern int gmsgStatusIcon;
 
 extern DLL_GLOBAL BOOL g_fGameOver;
 
@@ -117,6 +118,15 @@ void CMultiplayBusters::Think()
 			CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
 			if ( plr && plr->IsPlayer() && !plr->HasDisconnected )
 			{
+				if (plr->m_fCameraDelay && plr->m_fCameraDelay < gpGlobals->time)
+				{
+					MESSAGE_BEGIN( MSG_ONE, gmsgStatusIcon, NULL, plr->edict() );
+						WRITE_BYTE(0);
+						WRITE_STRING("buster");
+					MESSAGE_END();
+					plr->m_fCameraDelay = 0;
+				}
+
 				// End session if hit round limit
 				if ( plr->m_iRoundWins >= scorelimit.value )
 				{
@@ -165,6 +175,8 @@ void CMultiplayBusters::PlayerKilled( CBasePlayer* pVictim, entvars_t* pKiller, 
 			WRITE_BYTE(0);
 			WRITE_STRING("");
 		MESSAGE_END();
+
+		pVictim->m_fCameraDelay = gpGlobals->time + 4.0;
 
 		MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
 			WRITE_BYTE(CLIENT_SOUND_MASSACRE);
@@ -236,6 +248,27 @@ int CMultiplayBusters::WeaponShouldRespawn( CBasePlayerItem* pWeapon )
 //=========================================================
 void CMultiplayBusters::CheckForEgons()
 {
+	// If a weapon is stolen
+	if ( m_flCheckForWeapons <= gpGlobals->time )
+	{
+		for ( int i = 1; i <= gpGlobals->maxClients; i++ )
+		{
+			CBasePlayer* pPlayer = (CBasePlayer*)UTIL_PlayerByIndex( i );
+
+			if (pPlayer && pPlayer->IsAlive() && !pPlayer->HasDisconnected &&
+				strcmp(pPlayer->m_szTeamName, "busters") == 0 &&
+				!IsPlayerBusting(pPlayer))
+			{
+				SetPlayerModel( pPlayer );
+				pPlayer->pev->renderfx = kRenderFxNone;
+				pPlayer->pev->renderamt = 0;
+				pPlayer->pev->rendercolor = Vector( 0, 0, 0 );
+				pPlayer->m_fCameraDelay = gpGlobals->time;
+			}
+		}
+		m_flCheckForWeapons = gpGlobals->time + 1.0f;
+	}
+
 	if ( m_flEgonBustingCheckTime <= 0.0f )
 	{
 		m_flEgonBustingCheckTime = gpGlobals->time + EGON_BUSTING_TIME;
@@ -386,6 +419,11 @@ void CMultiplayBusters::PlayerGotWeapon( CBasePlayer* pPlayer, CBasePlayerItem* 
 				WRITE_STRING("Blast those ghosts (really, skeletons)");
 				WRITE_BYTE(80);
 			MESSAGE_END();
+			MESSAGE_BEGIN(MSG_ONE, gmsgStatusIcon, NULL, pPlayer->edict());
+				WRITE_BYTE(1);
+				WRITE_STRING("buster");
+			MESSAGE_END();
+			pPlayer->m_fCameraDelay = 0;
 			pPlayer->m_iShowGameModeMessage = -2;
 		}
 	
@@ -542,6 +580,9 @@ BOOL CMultiplayBusters::MutatorAllowed(const char *mutator)
 	if (strstr(mutator, g_szMutators[MUTATOR_BUSTERS - 1]) || atoi(mutator) == MUTATOR_BUSTERS)
 		return FALSE;
 
+	if (strstr(mutator, g_szMutators[MUTATOR_THIRDPERSON - 1]) || atoi(mutator) == MUTATOR_THIRDPERSON)
+		return FALSE;
+
 	return CHalfLifeMultiplay::MutatorAllowed(mutator);
 }
 
@@ -567,13 +608,77 @@ BOOL CMultiplayBusters::IsTeamplay( void )
 
 BOOL CMultiplayBusters::CanHaveNamedItem( CBasePlayer *pPlayer, const char *pszItemName )
 {
-	if (pPlayer->pev->fuser4 == 0)
+	if (strcmp(pszItemName, "weapon_egon") == 0)
 	{
-		if (strcmp(pszItemName, "weapon_egon") == 0) {
-			ALERT(at_console, "Not allowed an egon unless you are the buster.\n");
-			return FALSE;
+		for ( int i = 1; i <= gpGlobals->maxClients; i++ )
+		{
+			CBasePlayer* pPlayer = (CBasePlayer*)UTIL_PlayerByIndex( i );
+
+			// Someone is busting, no need to continue
+			if ( IsPlayerBusting( pPlayer ) )
+				return FALSE;
 		}
 	}
 
 	return CHalfLifeMultiplay::CanHaveNamedItem( pPlayer, pszItemName );
+}
+
+BOOL CMultiplayBusters::FShouldSwitchWeapon( CBasePlayer *pPlayer, CBasePlayerItem *pWeapon )
+{
+	if (pWeapon && pWeapon->m_iId == WEAPON_EGON)
+	{
+		// If the player is picking up an Egon, always switch to it
+		return TRUE;
+	}
+
+	return CHalfLifeMultiplay::FShouldSwitchWeapon( pPlayer, pWeapon );
+}
+
+BOOL CMultiplayBusters::CanRandomizeWeapon( const char *name )
+{
+	if ( !strcmp(name, "weapon_egon") )
+		return FALSE;
+	return TRUE;
+}
+
+BOOL CMultiplayBusters::CanHavePlayerAmmo( CBasePlayer *pPlayer, CBasePlayerAmmo *pAmmo )
+{
+	if (pPlayer->pev->fuser4 == RADAR_BUSTER)
+		return FALSE;
+
+	return CHalfLifeMultiplay::CanHavePlayerAmmo( pPlayer, pAmmo );
+}
+
+BOOL CMultiplayBusters::IsAllowedToDropWeapon( CBasePlayer *pPlayer )
+{
+	if (pPlayer->pev->fuser4 == RADAR_BUSTER)
+		return FALSE;
+
+	return CHalfLifeMultiplay::IsAllowedToDropWeapon( pPlayer );
+}
+
+void CMultiplayBusters::ClientDisconnected( edict_t *pClient )
+{
+	if (pClient)
+	{
+		CBasePlayer *pPlayer = (CBasePlayer *)CBaseEntity::Instance(pClient);
+
+		if (pPlayer)
+		{
+			if (IsPlayerBusting( pPlayer ) )
+			{
+				//Reset egon check time so a new buster will be chosen immediately
+				m_flEgonBustingCheckTime = -1.0f;
+
+				MESSAGE_BEGIN(MSG_BROADCAST, gmsgObjective);
+					WRITE_STRING("Bust 'em");
+					WRITE_STRING("The Buster disconnected!!");
+					WRITE_BYTE(0);
+					WRITE_STRING("");
+				MESSAGE_END();
+			}
+		}
+	}
+
+	CHalfLifeMultiplay::ClientDisconnected( pClient );
 }
