@@ -34,6 +34,7 @@ public:
 	virtual BOOL CanHavePlayerItem( CBasePlayer *pPlayer, CBasePlayerItem *pWeapon );
 	virtual BOOL CanRandomizeWeapon( const char *name );
 	virtual BOOL FPlayerCanTakeDamage( CBasePlayer *pPlayer, CBaseEntity *pAttacker );
+	virtual BOOL GetNextBestWeapon( CBasePlayer *pPlayer, CBasePlayerItem *pCurrentWeapon, BOOL dropBox, BOOL explode );
 	virtual BOOL MutatorAllowed(const char *mutator);
 
 private:

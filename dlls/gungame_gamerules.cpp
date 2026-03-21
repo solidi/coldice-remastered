@@ -477,6 +477,7 @@ int CHalfLifeGunGame::IPointsForKill( CBasePlayer *pAttacker, CBasePlayer *pKill
 
 						// Update scoreboard for winner
 						pAttacker->m_iRoundWins++;
+						pAttacker->Celebrate();
 
 						UTIL_ClientPrintAll(HUD_PRINTCENTER, UTIL_VarArgs("%s has won GunGame!\n", STRING(pAttacker->pev->netname)));
 
@@ -683,6 +684,36 @@ BOOL CHalfLifeGunGame::FPlayerCanTakeDamage( CBasePlayer *pPlayer, CBaseEntity *
 		return FALSE;
 
 	return TRUE;
+}
+
+BOOL CHalfLifeGunGame::GetNextBestWeapon( CBasePlayer *pPlayer, CBasePlayerItem *pCurrentWeapon, BOOL dropBox, BOOL explode )
+{
+	// In GunGame, weapon_fists has iWeight=-20 to prevent auto-switching TO it when
+	// a higher-weight weapon is picked up. However, this also causes GetNextBestWeapon
+	// to skip fists entirely (the base uses iBestWeight=-1 as the floor). When the
+	// player's current weapon is empty and fists is the only other weapon, explicitly
+	// fall back to fists so the player is not stuck on an empty weapon.
+	if (CHalfLifeMultiplay::GetNextBestWeapon(pPlayer, pCurrentWeapon, dropBox, explode))
+		return TRUE;
+
+	// Search all slots for weapon_fists as a last resort
+	for (int i = 0; i < MAX_ITEM_TYPES; i++)
+	{
+		CBasePlayerItem *pCheck = pPlayer->m_rgpPlayerItems[i];
+		while (pCheck)
+		{
+			if (pCheck != pCurrentWeapon &&
+				FClassnameIs(pCheck->pev, "weapon_fists") &&
+				pCheck->CanDeploy())
+			{
+				pPlayer->SwitchWeapon(pCheck);
+				return TRUE;
+			}
+			pCheck = pCheck->m_pNext;
+		}
+	}
+
+	return FALSE;
 }
 
 BOOL CHalfLifeGunGame::MutatorAllowed(const char *mutator)
