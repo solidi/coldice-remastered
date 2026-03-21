@@ -656,3 +656,29 @@ BOOL CMultiplayBusters::IsAllowedToDropWeapon( CBasePlayer *pPlayer )
 
 	return CHalfLifeMultiplay::IsAllowedToDropWeapon( pPlayer );
 }
+
+void CMultiplayBusters::ClientDisconnected( edict_t *pClient )
+{
+	if (pClient)
+	{
+		CBasePlayer *pPlayer = (CBasePlayer *)CBaseEntity::Instance(pClient);
+
+		if (pPlayer)
+		{
+			if (IsPlayerBusting( pPlayer ) )
+			{
+				//Reset egon check time so a new buster will be chosen immediately
+				m_flEgonBustingCheckTime = -1.0f;
+
+				MESSAGE_BEGIN(MSG_BROADCAST, gmsgObjective);
+					WRITE_STRING("Bust 'em");
+					WRITE_STRING("The Buster disconnected!!");
+					WRITE_BYTE(0);
+					WRITE_STRING("");
+				MESSAGE_END();
+			}
+		}
+	}
+
+	CHalfLifeMultiplay::ClientDisconnected( pClient );
+}

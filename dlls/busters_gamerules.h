@@ -41,6 +41,7 @@ public:
 	virtual BOOL CanRandomizeWeapon( const char *name );
 	virtual BOOL CanHavePlayerAmmo( CBasePlayer *pPlayer, CBasePlayerAmmo *pAmmo );
 	virtual BOOL IsAllowedToDropWeapon( CBasePlayer *pPlayer );
+	virtual void ClientDisconnected( edict_t *pClient );
 	void SetPlayerModel( CBasePlayer* pPlayer );
 
 protected:
