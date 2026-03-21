@@ -5900,7 +5900,9 @@ void CBasePlayer::StartForceGrab( void )
 	if (pHit && pHit->IsPlayer())
 	{
 		CBasePlayer *plr = (CBasePlayer *)pHit;
-		if (plr->m_pActiveItem && stricmp(STRING(plr->m_pActiveItem->pev->classname), "weapon_fists") != 0)
+		if (plr->m_pActiveItem &&
+			g_pGameRules->PlayerRelationship( this, pHit ) != GR_TEAMMATE &&
+			stricmp(STRING(plr->m_pActiveItem->pev->classname), "weapon_fists") != 0)
 		{
 			m_Banana = CBaseEntity::Create("monster_grabweapon", tr.vecEndPos, Vector(-90, pev->angles.y + 90, -90), edict());
 			if (m_Banana)
@@ -5955,7 +5957,9 @@ void CBasePlayer::TryGrabAgain( void )
 		if (pHit && pHit->IsPlayer())
 		{
 			CBasePlayer *plr = (CBasePlayer *)pHit;
-			if (plr->m_pActiveItem && stricmp(STRING(plr->m_pActiveItem->pev->classname), "weapon_fists") != 0)
+			if (plr->m_pActiveItem &&
+				g_pGameRules->PlayerRelationship( this, pHit ) != GR_TEAMMATE &&
+				stricmp(STRING(plr->m_pActiveItem->pev->classname), "weapon_fists") != 0)
 			{
 				m_Banana = CBaseEntity::Create("monster_grabweapon", tr.vecEndPos, Vector(-90, pev->angles.y + 90, -90), edict());
 				if (m_Banana)
