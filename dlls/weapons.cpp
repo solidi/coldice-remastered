@@ -3322,8 +3322,12 @@ void CBasePlayerWeapon::ThrowWeapon( BOOL holdingSomething )
 	if (g_pGameRules->MutatorEnabled(MUTATOR_RICOCHET))
 		return;
 
-	if (g_pGameRules->IsAllowedToDropWeapon(m_pPlayer))
+	if (!g_pGameRules->IsAllowedToDropWeapon(m_pPlayer))
+	{
+		ClientPrint(m_pPlayer->pev, HUD_PRINTCENTER, "Throw is disabled in this gamemode.");
+		m_pPlayer->m_fOffhandTime = gpGlobals->time + 0.5;
 		return;
+	}
 
 	if (m_pPlayer->m_fForceGrabTime >= gpGlobals->time)
 		return;
