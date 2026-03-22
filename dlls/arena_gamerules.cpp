@@ -138,6 +138,8 @@ void CHalfLifeArena::Think( void )
 						WRITE_STRING(UTIL_VarArgs("%s is the victor!\n", STRING(pPlayer2->pev->netname)));
 					MESSAGE_END();
 					DisplayWinnersGoods( pPlayer2 );
+					m_iReigningChampion = ENTINDEX(pPlayer2->edict());
+					ALERT(at_console, "[1v1] Champion %d continues after opponent disconnect (pool size: %d)\n", m_iReigningChampion, m_iOpponentPoolSize);
 					MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
 						WRITE_BYTE(CLIENT_SOUND_OUTSTANDING);
 					MESSAGE_END();
@@ -154,6 +156,8 @@ void CHalfLifeArena::Think( void )
 						WRITE_STRING(UTIL_VarArgs("%s is the victor!\n", STRING(pPlayer1->pev->netname)));
 					MESSAGE_END();
 					DisplayWinnersGoods( pPlayer1 );
+					m_iReigningChampion = ENTINDEX(pPlayer1->edict());
+					ALERT(at_console, "[1v1] Champion %d continues after opponent disconnect (pool size: %d)\n", m_iReigningChampion, m_iOpponentPoolSize);
 					MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
 						WRITE_BYTE(CLIENT_SOUND_OUTSTANDING);
 					MESSAGE_END();
