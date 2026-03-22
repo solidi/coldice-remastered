@@ -617,9 +617,9 @@ BOOL CHalfLifeArena::HasGameTimerExpired( void )
 	//time is up
 	if ( CHalfLifeMultiplay::HasGameTimerExpired() )
 	{
-		// Start at INT_MIN so even a 0 or negative frag player can be
+		// Start at -9999 so even a 0 or negative frag player can be
 		// recognised as the winner (e.g. 0 frags beats -1 from suicides).
-		int highest = INT_MIN;
+		int highest = -9999;
 		BOOL IsEqual = FALSE;
 		CBasePlayer *highballer = NULL;
 
