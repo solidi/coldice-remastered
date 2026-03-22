@@ -462,11 +462,23 @@ void CHalfLifeArena::Think( void )
 		CBasePlayer *pPlayer1 = (CBasePlayer *)UTIL_PlayerByIndex( m_iPlayer1 );
 		CBasePlayer *pPlayer2 = (CBasePlayer *)UTIL_PlayerByIndex( m_iPlayer2 );
 
-		if (pPlayer1 == NULL || pPlayer2 == NULL)
+		if (pPlayer1 == NULL)
 		{
-			ALERT(at_console, "[1v1] Error finding players for arena match\n");
-			m_iReigningChampion = 0; // Reset champion to rebuild pool next round
-			flUpdateTime = gpGlobals->time + 1.0; // Retry after 1 second
+			// Champion slot is invalid - full reset
+			ALERT(at_console, "[1v1] Error: champion player (index %d) not found, resetting\n", m_iPlayer1);
+			m_iReigningChampion = 0;
+			m_iOpponentPoolSize = 0;
+			flUpdateTime = gpGlobals->time + 1.0;
+			return;
+		}
+
+		if (pPlayer2 == NULL)
+		{
+			// Challenger was in the pool but has since disconnected - stale entry was
+			// already removed when selected, so just retry without disturbing the champion.
+			ALERT(at_console, "[1v1] Challenger (index %d) no longer valid, retrying pool\n", m_iPlayer2);
+			m_iPlayer2 = 0;
+			flUpdateTime = gpGlobals->time + 1.0;
 			return;
 		}
 
