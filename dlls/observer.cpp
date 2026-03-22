@@ -54,6 +54,8 @@ void CBasePlayer::Observer_FindNextPlayer( bool bReverse )
 			continue;
 		if ( pEnt == this )
 			continue;
+		if ( ((CBasePlayer*)pEnt)->HasDisconnected )
+			continue;
 		// Don't spec observers or players who haven't picked a class yet
 		if ( ((CBasePlayer*)pEnt)->IsObserver() || (pEnt->pev->effects & EF_NODRAW) )
 			continue;
