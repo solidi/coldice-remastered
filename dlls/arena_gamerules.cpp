@@ -482,11 +482,9 @@ void CHalfLifeArena::Think( void )
 			return;
 		}
 
-		char *key = g_engfuncs.pfnGetInfoKeyBuffer(pPlayer1->edict());
 		strncpy( pPlayer1->m_szTeamName, "blue", TEAM_NAME_LENGTH );
 		pPlayer1->pev->fuser4 = RADAR_ARENA_BLUE;
 
-		key = g_engfuncs.pfnGetInfoKeyBuffer(pPlayer2->edict());
 		strncpy( pPlayer2->m_szTeamName, "red", TEAM_NAME_LENGTH );
 		pPlayer2->pev->fuser4 = RADAR_ARENA_RED;
 
