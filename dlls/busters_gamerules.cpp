@@ -612,10 +612,10 @@ BOOL CMultiplayBusters::CanHaveNamedItem( CBasePlayer *pPlayer, const char *pszI
 	{
 		for ( int i = 1; i <= gpGlobals->maxClients; i++ )
 		{
-			CBasePlayer* pPlayer = (CBasePlayer*)UTIL_PlayerByIndex( i );
+			CBasePlayer* pOtherPlayer = (CBasePlayer*)UTIL_PlayerByIndex( i );
 
 			// Someone is busting, no need to continue
-			if ( IsPlayerBusting( pPlayer ) )
+			if ( IsPlayerBusting( pOtherPlayer ) )
 				return FALSE;
 		}
 	}
