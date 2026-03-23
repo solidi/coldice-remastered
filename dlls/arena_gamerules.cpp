@@ -43,6 +43,17 @@ CHalfLifeArena::CHalfLifeArena()
 	PauseMutators();
 }
 
+void CHalfLifeArena::SendScoreInfo( CBasePlayer *pPlayer )
+{
+	MESSAGE_BEGIN( MSG_ALL, gmsgScoreInfo );
+		WRITE_BYTE( ENTINDEX(pPlayer->edict()) );
+		WRITE_SHORT( (int)pPlayer->pev->frags );
+		WRITE_SHORT( pPlayer->m_iDeaths );
+		WRITE_SHORT( pPlayer->m_iRoundWins );
+		WRITE_SHORT( g_pGameRules->GetTeamIndex( pPlayer->m_szTeamName ) + 1 );
+	MESSAGE_END();
+}
+
 void CHalfLifeArena::InitHUD( CBasePlayer *pPlayer )
 {
 	CHalfLifeMultiplay::InitHUD( pPlayer );
@@ -138,6 +149,9 @@ void CHalfLifeArena::Think( void )
 						WRITE_STRING(UTIL_VarArgs("%s is the victor!\n", STRING(pPlayer2->pev->netname)));
 					MESSAGE_END();
 					DisplayWinnersGoods( pPlayer2 );
+					SendScoreInfo( pPlayer2 );
+					m_iReigningChampion = ENTINDEX(pPlayer2->edict());
+					ALERT(at_console, "[1v1] Champion %d continues after opponent disconnect (pool size: %d)\n", m_iReigningChampion, m_iOpponentPoolSize);
 					MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
 						WRITE_BYTE(CLIENT_SOUND_OUTSTANDING);
 					MESSAGE_END();
@@ -154,6 +168,9 @@ void CHalfLifeArena::Think( void )
 						WRITE_STRING(UTIL_VarArgs("%s is the victor!\n", STRING(pPlayer1->pev->netname)));
 					MESSAGE_END();
 					DisplayWinnersGoods( pPlayer1 );
+					SendScoreInfo( pPlayer1 );
+					m_iReigningChampion = ENTINDEX(pPlayer1->edict());
+					ALERT(at_console, "[1v1] Champion %d continues after opponent disconnect (pool size: %d)\n", m_iReigningChampion, m_iOpponentPoolSize);
 					MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
 						WRITE_BYTE(CLIENT_SOUND_OUTSTANDING);
 					MESSAGE_END();
@@ -217,7 +234,9 @@ void CHalfLifeArena::Think( void )
 						WRITE_STRING(UTIL_VarArgs("%s is the victor!\n", STRING(plr->pev->netname)));
 					MESSAGE_END();
 
+					UTIL_ClientPrintAll(HUD_PRINTCENTER, UTIL_VarArgs("%s is the victor!\n", STRING(plr->pev->netname)));
 					DisplayWinnersGoods( plr );
+					SendScoreInfo( plr );
 					MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
 						WRITE_BYTE(CLIENT_SOUND_OUTSTANDING);
 					MESSAGE_END();
@@ -458,19 +477,29 @@ void CHalfLifeArena::Think( void )
 		CBasePlayer *pPlayer1 = (CBasePlayer *)UTIL_PlayerByIndex( m_iPlayer1 );
 		CBasePlayer *pPlayer2 = (CBasePlayer *)UTIL_PlayerByIndex( m_iPlayer2 );
 
-		if (pPlayer1 == NULL || pPlayer2 == NULL)
+		if (pPlayer1 == NULL)
 		{
-			ALERT(at_console, "[1v1] Error finding players for arena match\n");
-			m_iReigningChampion = 0; // Reset champion to rebuild pool next round
-			flUpdateTime = gpGlobals->time + 1.0; // Retry after 1 second
+			// Champion slot is invalid - full reset
+			ALERT(at_console, "[1v1] Error: champion player (index %d) not found, resetting\n", m_iPlayer1);
+			m_iReigningChampion = 0;
+			m_iOpponentPoolSize = 0;
+			flUpdateTime = gpGlobals->time + 1.0;
 			return;
 		}
 
-		char *key = g_engfuncs.pfnGetInfoKeyBuffer(pPlayer1->edict());
+		if (pPlayer2 == NULL)
+		{
+			// Challenger was in the pool but has since disconnected - stale entry was
+			// already removed when selected, so just retry without disturbing the champion.
+			ALERT(at_console, "[1v1] Challenger (index %d) no longer valid, retrying pool\n", m_iPlayer2);
+			m_iPlayer2 = 0;
+			flUpdateTime = gpGlobals->time + 1.0;
+			return;
+		}
+
 		strncpy( pPlayer1->m_szTeamName, "blue", TEAM_NAME_LENGTH );
 		pPlayer1->pev->fuser4 = RADAR_ARENA_BLUE;
 
-		key = g_engfuncs.pfnGetInfoKeyBuffer(pPlayer2->edict());
 		strncpy( pPlayer2->m_szTeamName, "red", TEAM_NAME_LENGTH );
 		pPlayer2->pev->fuser4 = RADAR_ARENA_RED;
 
@@ -501,13 +530,9 @@ void CHalfLifeArena::Think( void )
 			{ 
 				if ( m_iPlayer1 == i || m_iPlayer2 == i )
 				{
-					MESSAGE_BEGIN( MSG_ALL, gmsgScoreInfo );
-						WRITE_BYTE( ENTINDEX(plr->edict()) );
-						WRITE_SHORT( plr->pev->frags = 0 );
-						WRITE_SHORT( plr->m_iDeaths = 0 );
-						WRITE_SHORT( plr->m_iRoundWins );
-						WRITE_SHORT( g_pGameRules->GetTeamIndex( plr->m_szTeamName ) + 1 );
-					MESSAGE_END();
+					plr->pev->frags = 0;
+					plr->m_iDeaths = 0;
+					SendScoreInfo( plr );
 					plr->m_iAssists = 0;
 
 					ALERT(at_console, "| %s ", STRING(plr->pev->netname) );
@@ -582,7 +607,9 @@ BOOL CHalfLifeArena::HasGameTimerExpired( void )
 	//time is up
 	if ( CHalfLifeMultiplay::HasGameTimerExpired() )
 	{
-		int highest = 1;
+		// Start at -9999 so even a 0 or negative frag player can be
+		// recognised as the winner (e.g. 0 frags beats -1 from suicides).
+		int highest = -9999;
 		BOOL IsEqual = FALSE;
 		CBasePlayer *highballer = NULL;
 
@@ -610,6 +637,7 @@ BOOL CHalfLifeArena::HasGameTimerExpired( void )
 		if ( !IsEqual && highballer )
 		{
 			DisplayWinnersGoods( highballer );
+			SendScoreInfo( highballer );
 			UTIL_ClientPrintAll(HUD_PRINTCENTER,
 				UTIL_VarArgs("Time is Up: %s is the Victor!\n", STRING(highballer->pev->netname)));
 
