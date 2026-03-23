@@ -122,7 +122,7 @@ void CMultiplayBusters::Think()
 				{
 					MESSAGE_BEGIN( MSG_ONE, gmsgStatusIcon, NULL, plr->edict() );
 						WRITE_BYTE(0);
-						WRITE_STRING("buster");
+						WRITE_STRING("cam_buster");
 					MESSAGE_END();
 					plr->m_fCameraDelay = 0;
 				}
@@ -434,7 +434,7 @@ void CMultiplayBusters::PlayerGotWeapon( CBasePlayer* pPlayer, CBasePlayerItem* 
 
 		MESSAGE_BEGIN(MSG_ONE, gmsgStatusIcon, NULL, pPlayer->edict());
 			WRITE_BYTE(1);
-			WRITE_STRING("buster");
+			WRITE_STRING("cam_buster");
 		MESSAGE_END();
 		pPlayer->m_fCameraDelay = 0;
 

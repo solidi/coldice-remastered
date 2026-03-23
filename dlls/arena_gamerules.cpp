@@ -33,6 +33,7 @@ extern int gmsgTeamNames;
 extern int gmsgTeamInfo;
 extern int gmsgDEraser;
 extern int gmsgBanner;
+extern int gmsgStatusIcon;
 
 CHalfLifeArena::CHalfLifeArena()
 {

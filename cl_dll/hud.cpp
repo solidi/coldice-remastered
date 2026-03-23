@@ -73,6 +73,7 @@ cvar_t *cl_objectives;
 cvar_t *cl_crosshairammo;
 cvar_t *cl_respawnbar;
 cvar_t *cl_showposition;
+cvar_t *cl_thirdcamera;
 
 cvar_t *cl_vmx;
 cvar_t *cl_vmy;
@@ -619,6 +620,7 @@ void CHud :: Init( void )
 	cl_crosshairammo = CVAR_CREATE("cl_crosshairammo", "1", FCVAR_ARCHIVE);
 	cl_respawnbar = CVAR_CREATE("cl_respawnbar", "1", FCVAR_ARCHIVE);
 	cl_showposition = CVAR_CREATE( "cl_showposition", "1", FCVAR_ARCHIVE );
+	cl_thirdcamera = CVAR_CREATE( "cl_thirdcamera", "1", FCVAR_ARCHIVE );
 
 	cl_vmx = CVAR_CREATE( "cl_vmx", "0", FCVAR_ARCHIVE );
 	cl_vmy = CVAR_CREATE( "cl_vmy", "0", FCVAR_ARCHIVE );

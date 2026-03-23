@@ -1,4 +1,4 @@
-//========= Copyright © 1996-2002, Valve LLC, All rights reserved. ============
+//========= Copyright ï¿½ 1996-2002, Valve LLC, All rights reserved. ============
 //
 // Purpose: 
 //
@@ -20,5 +20,7 @@ void CAM_Init( void );
 void CAM_ClearStates( void );
 void CAM_StartMouseMove(void);
 void CAM_EndMouseMove(void);
+void CAM_ToThirdPerson(void);
+void CAM_ToFirstPerson(void);
 
 #endif		// _CAMERA_H_

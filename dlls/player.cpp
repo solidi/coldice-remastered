@@ -5707,6 +5707,12 @@ void CBasePlayer::Celebrate( void )
 	if (m_fCelebrateTime < gpGlobals->time) {
 		m_fCelebrateTime = gpGlobals->time + 6.5;
 		SetAnimation( PLAYER_CELEBRATE );
+
+		// Trophy icon and camera work to show off the winner!
+		MESSAGE_BEGIN(MSG_ONE, gmsgStatusIcon, NULL, edict());
+			WRITE_BYTE(1);
+			WRITE_STRING("cam_winner");
+		MESSAGE_END();
 	}
 }
 

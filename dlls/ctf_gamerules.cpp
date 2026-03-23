@@ -693,7 +693,7 @@ void CHalfLifeCaptureTheFlag::PlayerThink( CBasePlayer *pPlayer )
 		// Only received if the player is alive.
 		MESSAGE_BEGIN( MSG_ONE, gmsgStatusIcon, NULL, pPlayer->edict() );
 			WRITE_BYTE(0);
-			WRITE_STRING("flag");
+			WRITE_STRING("cam_flag");
 		MESSAGE_END();
 		pPlayer->m_fCameraDelay = 0;
 	}
@@ -854,7 +854,7 @@ void CHalfLifeCaptureTheFlag::CaptureCharm( CBasePlayer *pPlayer )
 {
 	MESSAGE_BEGIN( MSG_ONE, gmsgStatusIcon, NULL, pPlayer->edict() );
 		WRITE_BYTE(1);
-		WRITE_STRING("flag");
+		WRITE_STRING("cam_flag");
 	MESSAGE_END();
 }
 
