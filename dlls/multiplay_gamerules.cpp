@@ -1227,7 +1227,7 @@ void CHalfLifeMultiplay::DisplayWinnersGoods( CBasePlayer *pPlayer )
 			((float)pPlayer->m_iRoundWins / (float)pPlayer->m_iRoundPlays) * 100 ));
 	}
 	else
-		UTIL_ClientPrintAll(HUD_PRINTTALK, UTIL_VarArgs("[Game] %s has won round!\n", STRING(pPlayer->pev->netname)));
+		UTIL_ClientPrintAll(HUD_PRINTTALK, UTIL_VarArgs("[Game] %s has won the round!\n", STRING(pPlayer->pev->netname)));
 }
 
 void CHalfLifeMultiplay::ResetGameMode( void )

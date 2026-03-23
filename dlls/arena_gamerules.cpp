@@ -234,6 +234,7 @@ void CHalfLifeArena::Think( void )
 						WRITE_STRING(UTIL_VarArgs("%s is the victor!\n", STRING(plr->pev->netname)));
 					MESSAGE_END();
 
+					UTIL_ClientPrintAll(HUD_PRINTCENTER, UTIL_VarArgs("%s is the victor!\n", STRING(plr->pev->netname)));
 					DisplayWinnersGoods( plr );
 					SendScoreInfo( plr );
 					MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
