@@ -434,6 +434,11 @@ void CAM_ToThirdPerson(void)
 { 
 	vec3_t viewangles;
 
+	// Allow user to deny thirdperson views
+	extern cvar_t *cl_thirdcamera;
+	if (cl_thirdcamera && cl_thirdcamera->value <= 0)
+		return;
+
 	gEngfuncs.GetViewAngles( (float *)viewangles );
 
 	if( !cam_thirdperson )

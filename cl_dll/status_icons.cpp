@@ -192,11 +192,10 @@ int CHudStatusIcons::MsgFunc_StatusIcon( const char *pszName, int iSize, void *p
 	}
 
 	// Special entities for perspective switching
-	extern cvar_t *cl_thirdcamera;
 	if (pszIconName &&
 		(strstr(pszIconName, "cam_")))
 	{
-		if (ShouldEnable && cl_thirdcamera && cl_thirdcamera->value > 0)
+		if (ShouldEnable)
 			CAM_ToThirdPerson();
 		else
 			CAM_ToFirstPerson();
