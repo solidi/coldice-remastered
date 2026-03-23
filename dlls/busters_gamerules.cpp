@@ -308,21 +308,31 @@ void CMultiplayBusters::CheckForEgons()
 			}
 		}
 
+		// Collect all candidates tied at the lowest frag count, then randomly pick one
 		int bBestFrags = 9999;
-		CBasePlayer* pBestPlayer = NULL;
+		CBasePlayer* pCandidates[32];
+		int nCandidates = 0;
 
 		for ( int i = 1; i <= gpGlobals->maxClients; i++ )
 		{
 			CBasePlayer* pPlayer = (CBasePlayer*)UTIL_PlayerByIndex( i );
 
-			// **FIX: Check if player is valid for busting**
-			if ( pPlayer && !pPlayer->HasDisconnected && !pPlayer->IsSpectator() 
-				 && pPlayer->IsAlive() && pPlayer->pev->frags <= bBestFrags )
+			if ( pPlayer && !pPlayer->HasDisconnected && !pPlayer->IsSpectator() && pPlayer->IsAlive() )
 			{
-				bBestFrags = pPlayer->pev->frags;
-				pBestPlayer = pPlayer;
+				int frags = (int)pPlayer->pev->frags;
+				if ( frags < bBestFrags )
+				{
+					bBestFrags = frags;
+					nCandidates = 0;
+				}
+				if ( frags == bBestFrags && nCandidates < 32 )
+				{
+					pCandidates[nCandidates++] = pPlayer;
+				}
 			}
 		}
+
+		CBasePlayer* pBestPlayer = ( nCandidates > 0 ) ? pCandidates[RANDOM_LONG( 0, nCandidates - 1 )] : NULL;
 
 		if ( pBestPlayer )
 		{
