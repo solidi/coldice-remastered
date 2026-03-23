@@ -215,8 +215,8 @@ void CMultiplayBusters::PlayerKilled( CBasePlayer* pVictim, entvars_t* pKiller, 
 		}
 
 		pVictim->pev->renderfx = kRenderFxNone;
+		pVictim->pev->renderamt = 0;
 		pVictim->pev->rendercolor = g_vecZero;
-		//pVictim->pev->effects &= ~EF_BRIGHTFIELD;
 	}
 
 	CHalfLifeMultiplay::PlayerKilled( pVictim, pKiller, pInflictor );
