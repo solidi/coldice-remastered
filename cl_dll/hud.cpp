@@ -595,7 +595,6 @@ void CHud :: Init( void )
 	cl_announcehumor = CVAR_CREATE( "cl_announcehumor", "1", FCVAR_ARCHIVE );
 	cl_showtips = CVAR_CREATE( "cl_showtips", "1", FCVAR_ARCHIVE );
 	cl_flashonpickup = CVAR_CREATE( "cl_flashonpickup", "1", FCVAR_ARCHIVE );
-	CVAR_CREATE("cl_shadows", "0", FCVAR_ARCHIVE);
 	CVAR_CREATE( "cl_aws", "1", FCVAR_ARCHIVE | FCVAR_USERINFO );
 	CVAR_CREATE( "cl_minfo", "1", FCVAR_ARCHIVE | FCVAR_USERINFO );
 	CVAR_CREATE( "cl_awt", "1", FCVAR_ARCHIVE | FCVAR_USERINFO );

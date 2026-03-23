@@ -553,7 +553,7 @@ void CHud::ShowTextTips( void ) {
 		"This mod supports a grappling hook. If allowed by the server, bind \"+hook\" to deploy.\n",
 		"Cold Ice Remastered contains works from the community. For all credits, see readme.txt.\n",
 		"Swap between single and dual weapons, if available, bind \"impulse 205\".\n",
-		"To enable experimental model shadows, type \"cl_shadows 1\".\n",
+		"To enable experimental model shadows, type \"r_shadows 1\".\n",
 		"To five-high your friend with your hand, bind \"impulse 207\" to a button to punch.\n",
 		"While looking ahead, tap \"+forward\" three times to perform a slide kick.\n",
 		"Did you know you can pick up live grenades? Look at a live grenade and tap \"+use\".\n",

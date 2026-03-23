@@ -1356,7 +1356,6 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "[Client Help More]\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_radar [0|1]\" enables or disables player radar\n" );
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_righthand [0|1|-1]\" - Left/Right Handed Models, or left knife\n");
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_shadows [0|1]\" - Show rendered shadows underneath models\n" );
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_showposition [0|1]\" - Show leaderboard position\n" );
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_showtips [0|1]\" - Show random text tips during play\n" );
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_thirdcamera [0|1]\" - Allow third person camera in game modes\n" );
