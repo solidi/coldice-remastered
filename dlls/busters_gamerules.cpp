@@ -429,14 +429,15 @@ void CMultiplayBusters::PlayerGotWeapon( CBasePlayer* pPlayer, CBasePlayerItem* 
 				WRITE_STRING("Blast those ghosts (really, skeletons)");
 				WRITE_BYTE(80);
 			MESSAGE_END();
-			MESSAGE_BEGIN(MSG_ONE, gmsgStatusIcon, NULL, pPlayer->edict());
-				WRITE_BYTE(1);
-				WRITE_STRING("buster");
-			MESSAGE_END();
-			pPlayer->m_fCameraDelay = 0;
 			pPlayer->m_iShowGameModeMessage = -2;
 		}
-	
+
+		MESSAGE_BEGIN(MSG_ONE, gmsgStatusIcon, NULL, pPlayer->edict());
+			WRITE_BYTE(1);
+			WRITE_STRING("buster");
+		MESSAGE_END();
+		pPlayer->m_fCameraDelay = 0;
+
 		MESSAGE_BEGIN(MSG_BROADCAST, gmsgObjective);
 			WRITE_STRING("Bust 'em");
 			WRITE_STRING(UTIL_VarArgs("%s is busting!\n", STRING( (CBasePlayer*)pPlayer->pev->netname)));
