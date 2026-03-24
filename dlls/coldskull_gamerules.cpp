@@ -109,7 +109,8 @@ void CSkullCharm::SkullMagnetThink( void )
 		{
 			// Switch to FLY so gravity doesn't pull the skull into the floor
 			pev->movetype = MOVETYPE_FLY;
-			Vector vecDelta = pKiller->pev->origin - pev->origin;
+			Vector vecTarget = pKiller->pev->origin + Vector(0, 0, -28); // aim at lower body, not center
+			Vector vecDelta = vecTarget - pev->origin;
 			float flDist = vecDelta.Length();
 			float flSpeed = flDist < 128.0f ? (flDist * 3.0f) : 500.0f; // ease in when close
 			Vector vecDesired = vecDelta.Normalize() * flSpeed;
@@ -137,7 +138,8 @@ void CSkullCharm::SkullMagnetThink( void )
 				{
 					// Switch to FLY so gravity doesn't pull the skull into the floor
 					pev->movetype = MOVETYPE_FLY;
-					Vector vecDelta = pPlayer->pev->origin - pev->origin;
+					Vector vecTarget = pPlayer->pev->origin + Vector(0, 0, -28); // aim at lower body, not center
+					Vector vecDelta = vecTarget - pev->origin;
 					float flDist = vecDelta.Length();
 					float flSpeed = flDist < 128.0f ? (flDist * 3.0f) : 500.0f; // ease in when close
 					Vector vecDesired = vecDelta.Normalize() * flSpeed;
