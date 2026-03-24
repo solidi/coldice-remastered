@@ -107,6 +107,13 @@ void CColdSpot::ColdSpotThink( void )
 	if (g_fGameOver)
 		return;
 
+	// First pass: collect all eligible players (alive, not spectating, clear LoS)
+	// and determine whether the spot is contested (both teams present).
+	CBasePlayer *eligiblePlayers[32];
+	int eligibleCount = 0;
+	bool bBluePresent = false;
+	bool bRedPresent = false;
+
 	CBaseEntity *ent = NULL;
 	while ( (ent = UTIL_FindEntityInSphere( ent, pev->origin, 256 )) != NULL )
 	{
@@ -126,25 +133,50 @@ void CColdSpot::ColdSpotThink( void )
 				continue; // Something is blocking the view, skip this player
 			}
 
-			MESSAGE_BEGIN( MSG_ALL, gmsgScoreInfo );
-				WRITE_BYTE( ENTINDEX(ent->edict()) );
-				WRITE_SHORT( pPlayer->pev->frags );
-				WRITE_SHORT( pPlayer->m_iDeaths );
-				WRITE_SHORT( ++pPlayer->m_iRoundWins );
-				WRITE_SHORT( g_pGameRules->GetTeamIndex( pPlayer->m_szTeamName ) + 1 );
-			MESSAGE_END();
-			
-			UTIL_ScreenFade( ent, Vector(0, 255, 0), 0.25, 2, 32, FFADE_IN);
-			((CHalfLifeColdSpot *)g_pGameRules)->UpdateHud();
+			if ( eligibleCount < 32 )
+				eligiblePlayers[eligibleCount++] = pPlayer;
 
-			if (!FBitSet(pPlayer->pev->flags, FL_FAKECLIENT))
-			{
-				MESSAGE_BEGIN( MSG_ONE_UNRELIABLE, gmsgPlayClientSound, NULL, pPlayer->edict() );
-					WRITE_BYTE(CLIENT_SOUND_LEVEL_UP);
-				MESSAGE_END();
-			}
-			ClientPrint(pPlayer->pev, HUD_PRINTCENTER, UTIL_VarArgs("You Have Scored a Point!\n"));
+			if ( pPlayer->pev->fuser4 == TEAM_BLUE )
+				bBluePresent = true;
+			else
+				bRedPresent = true;
 		}
+	}
+
+	// Second pass: if both teams are on the spot it's contested — no one scores.
+	bool bContested = bBluePresent && bRedPresent;
+
+	for ( int i = 0; i < eligibleCount; i++ )
+	{
+		CBasePlayer *pPlayer = eligiblePlayers[i];
+
+		if ( bContested )
+		{
+			ClientPrint(pPlayer->pev, HUD_PRINTCENTER, "Spot is contested! Hold it alone to score!\n");
+			continue;
+		}
+
+		MESSAGE_BEGIN( MSG_ALL, gmsgScoreInfo );
+			WRITE_BYTE( ENTINDEX(pPlayer->edict()) );
+			WRITE_SHORT( pPlayer->pev->frags );
+			WRITE_SHORT( pPlayer->m_iDeaths );
+			WRITE_SHORT( ++pPlayer->m_iRoundWins );
+			WRITE_SHORT( g_pGameRules->GetTeamIndex( pPlayer->m_szTeamName ) + 1 );
+		MESSAGE_END();
+
+		if (pPlayer->pev->health > 0 && pPlayer->pev->health < pPlayer->pev->max_health)
+			pPlayer->pev->health += 2;
+
+		UTIL_ScreenFade( pPlayer, Vector(0, 255, 0), 0.25, 2, 32, FFADE_IN);
+		((CHalfLifeColdSpot *)g_pGameRules)->UpdateHud();
+
+		if (!FBitSet(pPlayer->pev->flags, FL_FAKECLIENT))
+		{
+			MESSAGE_BEGIN( MSG_ONE_UNRELIABLE, gmsgPlayClientSound, NULL, pPlayer->edict() );
+				WRITE_BYTE(CLIENT_SOUND_LEVEL_UP);
+			MESSAGE_END();
+		}
+		ClientPrint(pPlayer->pev, HUD_PRINTCENTER, UTIL_VarArgs("You Have Scored a Point!\n"));
 	}
 
 	pev->nextthink = gpGlobals->time + 2.0;
