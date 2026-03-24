@@ -3067,6 +3067,18 @@ void CBasePlayer::PreThink(void)
 		m_fTauntTime = 0;
 	}
 
+	if (m_fCelebrateTime && IsAlive() && !IsSpectator() && 
+		m_fCelebrateTime < gpGlobals->time)
+	{
+		m_fCelebrateTime = 0;
+
+		// Trophy icon and camera work to show off the winner!
+		MESSAGE_BEGIN(MSG_ONE, gmsgStatusIcon, NULL, edict());
+			WRITE_BYTE(0);
+			WRITE_STRING("cam_winner");
+		MESSAGE_END();
+	}
+
 	if (m_fCreditsTime && m_fCreditsTime < gpGlobals->time)
 	{
 		if (m_iCreditMode == 1)
@@ -5707,6 +5719,12 @@ void CBasePlayer::Celebrate( void )
 	if (m_fCelebrateTime < gpGlobals->time) {
 		m_fCelebrateTime = gpGlobals->time + 6.5;
 		SetAnimation( PLAYER_CELEBRATE );
+
+		// Trophy icon and camera work to show off the winner!
+		MESSAGE_BEGIN(MSG_ONE, gmsgStatusIcon, NULL, edict());
+			WRITE_BYTE(1);
+			WRITE_STRING("cam_winner");
+		MESSAGE_END();
 	}
 }
 

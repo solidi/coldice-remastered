@@ -1063,7 +1063,7 @@ void CHalfLifeLoot::CaptureCharm( CBasePlayer *pPlayer )
 		{
 			MESSAGE_BEGIN( MSG_ONE, gmsgStatusIcon, NULL, plr->edict() );
 				WRITE_BYTE( 1 );
-				WRITE_STRING( "loot" );
+				WRITE_STRING( "cam_loot" );
 			MESSAGE_END();
 		}
 	}
@@ -1395,7 +1395,7 @@ void CHalfLifeLoot::EndRound( int winningTeam )
 		{
 			MESSAGE_BEGIN( MSG_ONE, gmsgStatusIcon, NULL, plr->edict() );
 				WRITE_BYTE( 0 );
-				WRITE_STRING( "loot" );
+				WRITE_STRING( "cam_loot" );
 			MESSAGE_END();
 		}
 
@@ -2142,9 +2142,9 @@ void CHalfLifeLoot::PlayerThink( CBasePlayer *pPlayer )
 
 	if (pPlayer->m_fCameraDelay && pPlayer->m_fCameraDelay < gpGlobals->time)
 	{
-		MESSAGE_BEGIN( MSG_ONE, gmsgStatusIcon, NULL, pPlayer->edict() );
-				WRITE_BYTE( 0 );
-				WRITE_STRING( "loot" );
+		MESSAGE_BEGIN(MSG_ONE, gmsgStatusIcon, NULL, pPlayer->edict());
+				WRITE_BYTE(0);
+				WRITE_STRING("cam_loot");
 			MESSAGE_END();
 		pPlayer->m_fCameraDelay = 0;
 	}

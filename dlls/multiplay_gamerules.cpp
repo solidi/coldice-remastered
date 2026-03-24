@@ -1793,14 +1793,14 @@ void CHalfLifeMultiplay :: PlayerThink( CBasePlayer *pPlayer )
 			pT->Use(pPlayer, pPlayer, USE_ON, pPlayer->m_iPlayMusic);
 		}
 
-		// Always play, never spectate
-		if (FBitSet(pPlayer->pev->flags, FL_FAKECLIENT) && pPlayer->pev->iuser3 > 0)
-		{
-			pPlayer->m_iObserverWeapon = 2; // always auto join
-			pPlayer->ExitObserver();
-		}
-
 		pPlayer->m_iShownWelcomeMessage = -1;
+	}
+
+	// Always play, never spectate
+	if (FBitSet(pPlayer->pev->flags, FL_FAKECLIENT) && pPlayer->pev->iuser3 > 0)
+	{
+		pPlayer->m_iObserverWeapon = 2; // always auto join
+		pPlayer->ExitObserver();
 	}
 
 	if (pPlayer->m_fLastSpawnTime && pPlayer->m_fLastSpawnTime <= gpGlobals->time)

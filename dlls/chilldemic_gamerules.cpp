@@ -495,7 +495,7 @@ void CHalfLifeChilldemic::PlayerThink( CBasePlayer *pPlayer )
 	{
 		MESSAGE_BEGIN( MSG_ONE, gmsgStatusIcon, NULL, pPlayer->edict() );
 			WRITE_BYTE(1);
-			WRITE_STRING("virus");
+			WRITE_STRING("cam_virus");
 		MESSAGE_END();
 		pPlayer->m_fCameraDelay = 0;
 	}

@@ -122,7 +122,7 @@ void CMultiplayBusters::Think()
 				{
 					MESSAGE_BEGIN( MSG_ONE, gmsgStatusIcon, NULL, plr->edict() );
 						WRITE_BYTE(0);
-						WRITE_STRING("buster");
+						WRITE_STRING("cam_buster");
 					MESSAGE_END();
 					plr->m_fCameraDelay = 0;
 				}
@@ -215,8 +215,8 @@ void CMultiplayBusters::PlayerKilled( CBasePlayer* pVictim, entvars_t* pKiller, 
 		}
 
 		pVictim->pev->renderfx = kRenderFxNone;
+		pVictim->pev->renderamt = 0;
 		pVictim->pev->rendercolor = g_vecZero;
-		//pVictim->pev->effects &= ~EF_BRIGHTFIELD;
 	}
 
 	CHalfLifeMultiplay::PlayerKilled( pVictim, pKiller, pInflictor );
@@ -308,21 +308,31 @@ void CMultiplayBusters::CheckForEgons()
 			}
 		}
 
+		// Collect all candidates tied at the lowest frag count, then randomly pick one
 		int bBestFrags = 9999;
-		CBasePlayer* pBestPlayer = NULL;
+		CBasePlayer* pCandidates[32];
+		int nCandidates = 0;
 
 		for ( int i = 1; i <= gpGlobals->maxClients; i++ )
 		{
 			CBasePlayer* pPlayer = (CBasePlayer*)UTIL_PlayerByIndex( i );
 
-			// **FIX: Check if player is valid for busting**
-			if ( pPlayer && !pPlayer->HasDisconnected && !pPlayer->IsSpectator() 
-				 && pPlayer->IsAlive() && pPlayer->pev->frags <= bBestFrags )
+			if ( pPlayer && !pPlayer->HasDisconnected && !pPlayer->IsSpectator() && pPlayer->IsAlive() )
 			{
-				bBestFrags = pPlayer->pev->frags;
-				pBestPlayer = pPlayer;
+				int frags = (int)pPlayer->pev->frags;
+				if ( frags < bBestFrags )
+				{
+					bBestFrags = frags;
+					nCandidates = 0;
+				}
+				if ( frags == bBestFrags && nCandidates < 32 )
+				{
+					pCandidates[nCandidates++] = pPlayer;
+				}
 			}
 		}
+
+		CBasePlayer* pBestPlayer = ( nCandidates > 0 ) ? pCandidates[RANDOM_LONG( 0, nCandidates - 1 )] : NULL;
 
 		if ( pBestPlayer )
 		{
@@ -419,14 +429,15 @@ void CMultiplayBusters::PlayerGotWeapon( CBasePlayer* pPlayer, CBasePlayerItem* 
 				WRITE_STRING("Blast those ghosts (really, skeletons)");
 				WRITE_BYTE(80);
 			MESSAGE_END();
-			MESSAGE_BEGIN(MSG_ONE, gmsgStatusIcon, NULL, pPlayer->edict());
-				WRITE_BYTE(1);
-				WRITE_STRING("buster");
-			MESSAGE_END();
-			pPlayer->m_fCameraDelay = 0;
 			pPlayer->m_iShowGameModeMessage = -2;
 		}
-	
+
+		MESSAGE_BEGIN(MSG_ONE, gmsgStatusIcon, NULL, pPlayer->edict());
+			WRITE_BYTE(1);
+			WRITE_STRING("cam_buster");
+		MESSAGE_END();
+		pPlayer->m_fCameraDelay = 0;
+
 		MESSAGE_BEGIN(MSG_BROADCAST, gmsgObjective);
 			WRITE_STRING("Bust 'em");
 			WRITE_STRING(UTIL_VarArgs("%s is busting!\n", STRING( (CBasePlayer*)pPlayer->pev->netname)));
@@ -612,10 +623,10 @@ BOOL CMultiplayBusters::CanHaveNamedItem( CBasePlayer *pPlayer, const char *pszI
 	{
 		for ( int i = 1; i <= gpGlobals->maxClients; i++ )
 		{
-			CBasePlayer* pPlayer = (CBasePlayer*)UTIL_PlayerByIndex( i );
+			CBasePlayer* pOtherPlayer = (CBasePlayer*)UTIL_PlayerByIndex( i );
 
 			// Someone is busting, no need to continue
-			if ( IsPlayerBusting( pPlayer ) )
+			if ( IsPlayerBusting( pOtherPlayer ) )
 				return FALSE;
 		}
 	}

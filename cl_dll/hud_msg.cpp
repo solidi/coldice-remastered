@@ -25,6 +25,7 @@
 #include "particlesys.h"
 #include "particlemgr.h"
 #include "FlameSystem.h"
+#include "camera.h"
 
 extern "C"
 {
@@ -128,7 +129,7 @@ void CHud :: MsgFunc_InitHUD( const char *pszName, int iSize, void *pbuf )
 	gHUD.m_Scoreboard.m_iShowscoresHeld = FALSE;
 
 	gHUD.m_Mutators = NULL;
-	gEngfuncs.pfnClientCmd("firstperson\n");
+	CAM_ToFirstPerson();
 	gHUD.m_StatusIcons.Reset();
 
 	g_IronSight = FALSE;
@@ -384,7 +385,7 @@ int CHud :: MsgFunc_AddMut( const char *pszName, int iSize, void *pbuf )
 		while (t != NULL)
 		{
 			if (t->mutatorId == MUTATOR_THIRDPERSON)
-				gEngfuncs.pfnClientCmd("firstperson\n");
+				CAM_ToFirstPerson();
 			else if (t->mutatorId == MUTATOR_TINNITUS)
 				gEngfuncs.pfnClientCmd("tinnitus_stop\n");
 			else if (t->mutatorId == MUTATOR_CLOSEUP)
@@ -407,7 +408,7 @@ int CHud :: MsgFunc_AddMut( const char *pszName, int iSize, void *pbuf )
 
 				// Specific for client
 				if (mutatorId == MUTATOR_THIRDPERSON)
-					gEngfuncs.pfnClientCmd("thirdperson\n");
+					CAM_ToThirdPerson();
 				else if (mutatorId == MUTATOR_TINNITUS)
 					gEngfuncs.pfnClientCmd("tinnitus_start\n");
 				else if (mutatorId == MUTATOR_CLOSEUP)

@@ -26,6 +26,7 @@
 #include "event_api.h"
 #include "vgui_TeamFortressViewport.h"
 #include "pm_shared.h"
+#include "camera.h"
 
 DECLARE_MESSAGE( m_StatusIcons, StatusIcon );
 
@@ -55,7 +56,7 @@ void CHudStatusIcons::Reset( void )
 	m_iFlags |= HUD_ACTIVE;
 	m_flCheckMutators = 0;
 	if (!MutatorEnabled(MUTATOR_THIRDPERSON))
-		gEngfuncs.pfnClientCmd("firstperson\n");
+		CAM_ToFirstPerson();
 	DrawMutators();
 }
 
@@ -96,6 +97,14 @@ int CHudStatusIcons::Draw( float flTime )
 	{
 		if ( m_IconList[i].spr )
 		{
+			// Label the icon for clarity
+			const char *szSpriteName = m_IconList[i].szSpriteName;
+			if (strncmp(szSpriteName, "rune_", 5) == 0)
+				szSpriteName += 5;
+			else if (strncmp(szSpriteName, "cam_", 4) == 0)
+				szSpriteName += 4;
+			int size = ConsoleStringLen(szSpriteName);
+
 			if (i < max)
 			{
 				y -= ( m_IconList[i].rc.bottom - m_IconList[i].rc.top ) + 18;
@@ -117,20 +126,11 @@ int CHudStatusIcons::Draw( float flTime )
 					FillRGBA(x, y + 64, width, 2, r, g, b, MAX_ALPHA);
 				}
 
-				// Label the icon for clarity
-				const char *szSpriteName = m_IconList[i].szSpriteName;
-				if (strncmp(szSpriteName, "rune_", 5) == 0)
-					szSpriteName += 5;
-				int size = ConsoleStringLen(szSpriteName);
 				DrawConsoleString(x + (((m_IconList[i].rc.right - m_IconList[i].rc.left) / 2) - (size / 2)), y + (m_IconList[i].rc.bottom - m_IconList[i].rc.top), szSpriteName);
 			}
 			else
 			{
 				y -= 18;
-				const char *szSpriteName = m_IconList[i].szSpriteName;
-				if (strncmp(szSpriteName, "rune_", 5) == 0)
-					szSpriteName += 5;
-				int size = ConsoleStringLen(szSpriteName);
 				DrawConsoleString(x + (((m_IconList[i].rc.right - m_IconList[i].rc.left) / 2) - (size / 2)), y, szSpriteName);
 			}
 		}
@@ -145,7 +145,7 @@ int CHudStatusIcons::Draw( float flTime )
 			// gEngfuncs.Con_DPrintf(">>> delete? mutator[id=%d, ttl=%.2f < ? (combined)=%.2f]\n", m->mutatorId, m->timeToLive, gHUD.m_flTime );
 			if (m->timeToLive < gHUD.m_flTime && m->timeToLive != -1) {
 				if (m->mutatorId == MUTATOR_THIRDPERSON)
-					gEngfuncs.pfnClientCmd("firstperson\n");
+					CAM_ToFirstPerson();
 				else if (m->mutatorId == MUTATOR_TINNITUS)
 					gEngfuncs.pfnClientCmd("tinnitus_stop\n");
 				else if (m->mutatorId == MUTATOR_CLOSEUP)
@@ -193,16 +193,12 @@ int CHudStatusIcons::MsgFunc_StatusIcon( const char *pszName, int iSize, void *p
 
 	// Special entities for perspective switching
 	if (pszIconName &&
-		(strncmp(pszIconName, "loot", 4) == 0 ||
-		 strncmp(pszIconName, "flag", 4) == 0 ||
-		 strncmp(pszIconName, "chumtoad", 8) == 0 ||
-		 strncmp(pszIconName, "buster", 6) == 0 ||
-		 strncmp(pszIconName, "virus", 5) == 0))
+		(strstr(pszIconName, "cam_")))
 	{
 		if (ShouldEnable)
-			gEngfuncs.pfnClientCmd("thirdperson\n");
+			CAM_ToThirdPerson();
 		else
-			gEngfuncs.pfnClientCmd("firstperson\n");
+			CAM_ToFirstPerson();
 	}
 
 	return 1;

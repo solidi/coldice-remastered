@@ -273,7 +273,7 @@ void CHalfLifeCaptureTheChumtoad::CaptureCharm( CBasePlayer *pPlayer )
 
 	MESSAGE_BEGIN( MSG_ONE, gmsgStatusIcon, NULL, pPlayer->edict() );
 		WRITE_BYTE(1);
-		WRITE_STRING("chumtoad");
+		WRITE_STRING("cam_chumtoad");
 	MESSAGE_END();
 
 	// notify everyone's HUD of the team change
@@ -367,7 +367,7 @@ void CHalfLifeCaptureTheChumtoad::PlayerThink( CBasePlayer *pPlayer )
 		// Only received if the player is alive.
 		MESSAGE_BEGIN( MSG_ONE, gmsgStatusIcon, NULL, pPlayer->edict() );
 			WRITE_BYTE(0);
-			WRITE_STRING("chumtoad");
+			WRITE_STRING("cam_chumtoad");
 		MESSAGE_END();
 		pPlayer->m_fCameraDelay = 0;
 	}
