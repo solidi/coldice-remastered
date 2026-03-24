@@ -874,9 +874,12 @@ BOOL CHalfLifePropHunt::FPlayerCanTakeDamage( CBasePlayer *pPlayer, CBaseEntity 
 			WRITE_SHORT( g_pGameRules->GetTeamIndex( kp->m_szTeamName ) + 1 );
 			MESSAGE_END();
 
-			MESSAGE_BEGIN( MSG_ONE_UNRELIABLE, gmsgPlayClientSound, NULL, pAttacker->edict() );
-				WRITE_BYTE(CLIENT_SOUND_LEVEL_UP);
-			MESSAGE_END();
+			if (!FBitSet(pAttacker->pev->flags, FL_FAKECLIENT))
+			{
+				MESSAGE_BEGIN( MSG_ONE_UNRELIABLE, gmsgPlayClientSound, NULL, pAttacker->edict() );
+					WRITE_BYTE(CLIENT_SOUND_LEVEL_UP);
+				MESSAGE_END();
+			}
 		}
 
 		return FALSE;
@@ -1013,9 +1016,12 @@ void CHalfLifePropHunt::MonsterKilled( CBaseMonster *pVictim, entvars_t *pKiller
 	// Reduce frags if killed harmless item
 	if (plr && plr->IsPlayer())
 	{
-		MESSAGE_BEGIN( MSG_ONE_UNRELIABLE, gmsgPlayClientSound, NULL, plr->edict() );
-			WRITE_BYTE(CLIENT_SOUND_NOPE);
-		MESSAGE_END();
+		if (!FBitSet(plr->pev->flags, FL_FAKECLIENT))
+		{
+			MESSAGE_BEGIN( MSG_ONE_UNRELIABLE, gmsgPlayClientSound, NULL, plr->edict() );
+				WRITE_BYTE(CLIENT_SOUND_NOPE);
+			MESSAGE_END();
+		}
 		ClientPrint(plr->pev, HUD_PRINTCENTER, "Decoy destroyed! -1 frag :(\n");
 
 		MESSAGE_BEGIN( MSG_ALL, gmsgScoreInfo );

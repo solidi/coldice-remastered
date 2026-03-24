@@ -1008,11 +1008,14 @@ void CHalfLifeMultiplay::InsertClientsIntoArena(float fragcount)
 			MESSAGE_END();
 			plr->m_iAssists = 0;
 
-			MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, plr->edict() );
-				WRITE_STRING("");
-				WRITE_STRING("");
-				WRITE_BYTE(0);
-			MESSAGE_END();
+			if (!FBitSet(plr->pev->flags, FL_FAKECLIENT))
+			{
+				MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, plr->edict() );
+					WRITE_STRING("");
+					WRITE_STRING("");
+					WRITE_BYTE(0);
+				MESSAGE_END();
+			}
 
 			plr->IsInArena = TRUE;
 			plr->ExitObserver();

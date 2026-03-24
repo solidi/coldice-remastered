@@ -235,9 +235,12 @@ void CHalfLifeGunGame::Think( void )
 		// Needed to delay voice over since deploy of weapon mutes client play sound
 		if (m_hVoiceHandle != NULL && m_iVoiceId > 0)
 		{
-			MESSAGE_BEGIN( MSG_ONE_UNRELIABLE, gmsgPlayClientSound, NULL, m_hVoiceHandle->edict() );
-				WRITE_BYTE(m_iVoiceId);
-			MESSAGE_END();
+			if (!FBitSet(m_hVoiceHandle->pev->flags, FL_FAKECLIENT))
+			{
+				MESSAGE_BEGIN( MSG_ONE_UNRELIABLE, gmsgPlayClientSound, NULL, m_hVoiceHandle->edict() );
+					WRITE_BYTE(m_iVoiceId);
+				MESSAGE_END();
+			}
 			m_hVoiceHandle = NULL;
 			m_iVoiceId = 0;
 		}
@@ -357,9 +360,12 @@ void CHalfLifeGunGame::PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller, e
 					plr->GiveNamedItem("weapon_knife");
 				plr->GiveNamedItem(STRING(ALLOC_STRING(weapon)));
 				
-				MESSAGE_BEGIN( MSG_ONE_UNRELIABLE, gmsgPlayClientSound, NULL, plr->edict() );
-					WRITE_BYTE(CLIENT_SOUND_LEVEL_UP);
-				MESSAGE_END();
+				if (!FBitSet(plr->pev->flags, FL_FAKECLIENT))
+				{
+					MESSAGE_BEGIN( MSG_ONE_UNRELIABLE, gmsgPlayClientSound, NULL, plr->edict() );
+						WRITE_BYTE(CLIENT_SOUND_LEVEL_UP);
+					MESSAGE_END();
+				}
 				ClientPrint(plr->pev, HUD_PRINTCENTER, UTIL_VarArgs("You Have Leveled Up!\n"));
 			}
 		}
@@ -454,7 +460,7 @@ int CHalfLifeGunGame::IPointsForKill( CBasePlayer *pAttacker, CBasePlayer *pKill
 							CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
 							if ( plr && plr->IsPlayer() && !plr->HasDisconnected )
 							{
-								if (plr != pAttacker && plr->m_iRoundWins == (m_iTopLevel-1)) {
+								if (plr != pAttacker && plr->m_iRoundWins == (m_iTopLevel-1) && !FBitSet(plr->pev->flags, FL_FAKECLIENT)) {
 									// Play immediately since GiveNamedItem is not used in this context
 									MESSAGE_BEGIN( MSG_ONE_UNRELIABLE, gmsgPlayClientSound, NULL, plr->edict() );
 										WRITE_BYTE(CLIENT_SOUND_LOSTLEAD);

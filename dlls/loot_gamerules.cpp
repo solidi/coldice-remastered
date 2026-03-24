@@ -1578,20 +1578,23 @@ void CHalfLifeLoot::SendObjectiveUpdate( void )
 			detail = UTIL_VarArgs("%s has the loot!", STRING(pHolder->pev->netname));
 		}
 
-		MESSAGE_BEGIN( MSG_ONE_UNRELIABLE, gmsgObjective, NULL, plr->edict() );
-			WRITE_STRING( title );
-			WRITE_STRING( detail );
-			if ( m_iTotalCrates > 0 && !m_bLootExposed && !(CBaseEntity *)m_hLootHolder )
-			{
-				WRITE_BYTE( ((m_iTotalCrates - m_iCratesLeft) / (float)m_iTotalCrates) * 100 );
-				WRITE_STRING( UTIL_VarArgs("%d of %d crates left", m_iCratesLeft, m_iTotalCrates) );
-			}
-			else
-			{
-				WRITE_BYTE( 0 );
-				WRITE_STRING( "" );
-			}
-		MESSAGE_END();
+		if (!FBitSet(plr->pev->flags, FL_FAKECLIENT))
+		{
+			MESSAGE_BEGIN( MSG_ONE_UNRELIABLE, gmsgObjective, NULL, plr->edict() );
+				WRITE_STRING( title );
+				WRITE_STRING( detail );
+				if ( m_iTotalCrates > 0 && !m_bLootExposed && !(CBaseEntity *)m_hLootHolder )
+				{
+					WRITE_BYTE( ((m_iTotalCrates - m_iCratesLeft) / (float)m_iTotalCrates) * 100 );
+					WRITE_STRING( UTIL_VarArgs("%d of %d crates left", m_iCratesLeft, m_iTotalCrates) );
+				}
+				else
+				{
+					WRITE_BYTE( 0 );
+					WRITE_STRING( "" );
+				}
+			MESSAGE_END();
+		}
 	}
 }
 

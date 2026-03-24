@@ -370,12 +370,15 @@ void CHalfLifeColdSkull::PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller,
 	int myfrags = pVictim->m_iRoundWins;
 	if (frags == 0)
 		frags = 100;
-	int result = (myfrags / frags) * 100;
-	MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, pVictim->edict());
-		WRITE_STRING("Collect the skulls");
-		WRITE_STRING(UTIL_VarArgs("Your progress: %d of %d", myfrags, frags));
-		WRITE_BYTE(result);
-	MESSAGE_END();
+	int result = (int)((float)myfrags / frags * 100);
+	if (!FBitSet(pVictim->pev->flags, FL_FAKECLIENT))
+	{
+		MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, pVictim->edict());
+			WRITE_STRING("Collect the skulls");
+			WRITE_STRING(UTIL_VarArgs("Your progress: %d of %d", myfrags, frags));
+			WRITE_BYTE(result);
+		MESSAGE_END();
+	}
 
 	if (remain <= 1)
 	{
