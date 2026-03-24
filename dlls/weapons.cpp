@@ -2989,8 +2989,10 @@ void CBasePlayerWeapon::EndPunch( void )
 		!g_pGameRules->MutatorEnabled(MUTATOR_RICOCHET)))
 		DeployLowKey();
 
-	// Always cancel
-	m_pPlayer->m_EFlags &= ~EFLAG_PUNCH;
+	// Always cancel — guard against m_pPlayer being NULL if the weapon was
+	// removed from the player before this think fired.
+	if (m_pPlayer)
+		m_pPlayer->m_EFlags &= ~EFLAG_PUNCH;
 }
 
 void CBasePlayerWeapon::StartKick( BOOL holdingSomething )
@@ -3241,7 +3243,8 @@ void CBasePlayerWeapon::EndKick( void )
 		DecalGunshot( &m_trBootHit, BULLET_PLAYER_BOOT );
 	}
 
-	m_pPlayer->m_EFlags &= ~EFLAG_PLAYERKICK;
+	if (m_pPlayer)
+		m_pPlayer->m_EFlags &= ~EFLAG_PLAYERKICK;
 }
 
 class CThrowWeapon : public CBaseEntity
