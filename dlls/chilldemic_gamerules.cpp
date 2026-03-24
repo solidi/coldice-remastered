@@ -197,6 +197,7 @@ void CHalfLifeChilldemic::Think( void )
 
 		m_iSurvivorsRemain = survivors_left;
 		m_iSkeletonsRemain = skeletons_left;
+		m_iPlayersInGame = survivors_left + skeletons_left;
 
 		// Skeleton messages
 		for ( int i = 1; i <= gpGlobals->maxClients; i++ )
