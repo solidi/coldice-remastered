@@ -371,13 +371,6 @@ void CHalfLifeChilldemic::Think( void )
 					WRITE_BYTE(CLIENT_SOUND_OUTSTANDING);
 				MESSAGE_END();
 			}
-			else if (survivors_left == 1)
-			{
-				DetermineWinner();
-				MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
-					WRITE_BYTE(CLIENT_SOUND_OUTSTANDING);
-				MESSAGE_END();
-			}
 
 			m_iSuccessfulRounds++;
 			flUpdateTime = gpGlobals->time + 3.0;
