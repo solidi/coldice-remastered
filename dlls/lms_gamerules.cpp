@@ -217,7 +217,7 @@ void CHalfLifeLastManStanding::InitHUD( CBasePlayer *pPlayer )
 
 	if (pSafeSpot)
 	{
-		MESSAGE_BEGIN(MSG_ALL, gmsgSpecialEntity);
+		MESSAGE_BEGIN(MSG_ONE, gmsgSpecialEntity, NULL, pPlayer->edict());
 			WRITE_BYTE(0); // Index 0-7
 			WRITE_BYTE(1); // Active
 			WRITE_COORD(pSafeSpot->pev->origin.x);

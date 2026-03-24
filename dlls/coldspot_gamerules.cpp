@@ -107,6 +107,13 @@ void CColdSpot::ColdSpotThink( void )
 	if (g_fGameOver)
 		return;
 
+	// First pass: collect all eligible players (alive, not spectating, clear LoS)
+	// and determine whether the spot is contested (both teams present).
+	CBasePlayer *eligiblePlayers[32];
+	int eligibleCount = 0;
+	bool bBluePresent = false;
+	bool bRedPresent = false;
+
 	CBaseEntity *ent = NULL;
 	while ( (ent = UTIL_FindEntityInSphere( ent, pev->origin, 256 )) != NULL )
 	{
@@ -114,37 +121,68 @@ void CColdSpot::ColdSpotThink( void )
 		{
 			CBasePlayer *pPlayer = (CBasePlayer *)ent;
 
-			// Check line of sight before awarding points
+			// Check line of sight before awarding points.
+			// dont_ignore_monsters makes the player entity solid to the trace,
+			// so tr.pHit == ent->edict() means clear LoS to the player.
 			TraceResult tr;
 			Vector vecEyePos = pPlayer->pev->origin + pPlayer->pev->view_ofs;
-			UTIL_TraceLine( pev->origin, vecEyePos, ignore_monsters, ignore_glass, ENT(pev), &tr );
+			UTIL_TraceLine( pev->origin, vecEyePos, dont_ignore_monsters, ignore_glass, ENT(pev), &tr );
 
-			// Only award points if trace hit the player (clear line of sight)
+			// Block scoring if something other than the player stopped the trace
 			if ( tr.flFraction < 1.0f && tr.pHit != ent->edict() )
 			{
 				ClientPrint(pPlayer->pev, HUD_PRINTCENTER, "To score, see the cold spot center!\n");
 				continue; // Something is blocking the view, skip this player
 			}
 
-			MESSAGE_BEGIN( MSG_ALL, gmsgScoreInfo );
-				WRITE_BYTE( ENTINDEX(ent->edict()) );
-				WRITE_SHORT( pPlayer->pev->frags );
-				WRITE_SHORT( pPlayer->m_iDeaths );
-				WRITE_SHORT( ++pPlayer->m_iRoundWins );
-				WRITE_SHORT( g_pGameRules->GetTeamIndex( pPlayer->m_szTeamName ) + 1 );
-			MESSAGE_END();
-			
-			UTIL_ScreenFade( ent, Vector(0, 255, 0), 0.25, 2, 32, FFADE_IN);
-			((CHalfLifeColdSpot *)g_pGameRules)->UpdateHud();
+			if ( eligibleCount < 32 )
+				eligiblePlayers[eligibleCount++] = pPlayer;
 
-			if (!FBitSet(pPlayer->pev->flags, FL_FAKECLIENT))
+			if ( pPlayer->pev->fuser4 == TEAM_BLUE )
 			{
-				MESSAGE_BEGIN( MSG_ONE_UNRELIABLE, gmsgPlayClientSound, NULL, pPlayer->edict() );
-					WRITE_BYTE(CLIENT_SOUND_LEVEL_UP);
-				MESSAGE_END();
+				bBluePresent = true;
 			}
-			ClientPrint(pPlayer->pev, HUD_PRINTCENTER, UTIL_VarArgs("You Have Scored a Point!\n"));
+			else if ( pPlayer->pev->fuser4 == TEAM_RED )
+			{
+				bRedPresent = true;
+			}
 		}
+	}
+
+	// Second pass: if both teams are on the spot it's contested — no one scores.
+	bool bContested = bBluePresent && bRedPresent;
+
+	for ( int i = 0; i < eligibleCount; i++ )
+	{
+		CBasePlayer *pPlayer = eligiblePlayers[i];
+
+		if ( bContested )
+		{
+			ClientPrint(pPlayer->pev, HUD_PRINTCENTER, "Spot is contested! Hold it alone to score!\n");
+			continue;
+		}
+
+		MESSAGE_BEGIN( MSG_ALL, gmsgScoreInfo );
+			WRITE_BYTE( ENTINDEX(pPlayer->edict()) );
+			WRITE_SHORT( pPlayer->pev->frags );
+			WRITE_SHORT( pPlayer->m_iDeaths );
+			WRITE_SHORT( ++pPlayer->m_iRoundWins );
+			WRITE_SHORT( g_pGameRules->GetTeamIndex( pPlayer->m_szTeamName ) + 1 );
+		MESSAGE_END();
+
+		if (pPlayer->pev->health > 0 && pPlayer->pev->health < pPlayer->pev->max_health)
+			pPlayer->pev->health += 2;
+
+		UTIL_ScreenFade( pPlayer, Vector(0, 255, 0), 0.25, 2, 32, FFADE_IN);
+		((CHalfLifeColdSpot *)g_pGameRules)->UpdateHud();
+
+		if (!FBitSet(pPlayer->pev->flags, FL_FAKECLIENT))
+		{
+			MESSAGE_BEGIN( MSG_ONE_UNRELIABLE, gmsgPlayClientSound, NULL, pPlayer->edict() );
+				WRITE_BYTE(CLIENT_SOUND_LEVEL_UP);
+			MESSAGE_END();
+		}
+		ClientPrint(pPlayer->pev, HUD_PRINTCENTER, UTIL_VarArgs("You Have Scored a Point!\n"));
 	}
 
 	pev->nextthink = gpGlobals->time + 2.0;
@@ -310,7 +348,7 @@ void CHalfLifeColdSpot::InitHUD( CBasePlayer *pPlayer )
 
 	if (pColdSpot)
 	{
-		MESSAGE_BEGIN(MSG_ALL, gmsgSpecialEntity);
+		MESSAGE_BEGIN(MSG_ONE, gmsgSpecialEntity, NULL, pPlayer->edict());
 			WRITE_BYTE(0); // Index 0-7
 			WRITE_BYTE(1); // Active
 			WRITE_COORD(pColdSpot->pev->origin.x);
@@ -329,7 +367,10 @@ void CHalfLifeColdSpot::Think( void )
 		return;
 
 	if (coldspottime.value != m_fColdSpotTime)
-		m_fColdSpotTime = m_fSpawnColdSpot = coldspottime.value;
+	{
+		m_fColdSpotTime = coldspottime.value;
+		m_fSpawnColdSpot = m_fColdSpotTime ? gpGlobals->time + m_fColdSpotTime : 0;
+	}
 
 	if (m_fSpawnColdSpot && m_fSpawnColdSpot < gpGlobals->time)
 	{
