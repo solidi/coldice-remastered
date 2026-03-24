@@ -139,9 +139,13 @@ void CColdSpot::ColdSpotThink( void )
 				eligiblePlayers[eligibleCount++] = pPlayer;
 
 			if ( pPlayer->pev->fuser4 == TEAM_BLUE )
+			{
 				bBluePresent = true;
-			else
+			}
+			else if ( pPlayer->pev->fuser4 == TEAM_RED )
+			{
 				bRedPresent = true;
+			}
 		}
 	}
 
