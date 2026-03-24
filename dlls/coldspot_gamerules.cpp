@@ -361,7 +361,10 @@ void CHalfLifeColdSpot::Think( void )
 		return;
 
 	if (coldspottime.value != m_fColdSpotTime)
-		m_fColdSpotTime = m_fSpawnColdSpot = coldspottime.value;
+	{
+		m_fColdSpotTime = coldspottime.value;
+		m_fSpawnColdSpot = m_fColdSpotTime ? gpGlobals->time + m_fColdSpotTime : 0;
+	}
 
 	if (m_fSpawnColdSpot && m_fSpawnColdSpot < gpGlobals->time)
 	{
