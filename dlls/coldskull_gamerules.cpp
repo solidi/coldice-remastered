@@ -70,6 +70,8 @@ void CSkullCharm::Spawn( void )
 	UTIL_SetSize( pev, g_vecZero, g_vecZero );
 	UTIL_SetOrigin( pev, pev->origin );
 
+	pev->dmgtime = gpGlobals->time + 25.0;
+
 	SetTouch( &CSkullCharm::SkullTouch );
 	SetThink( &CSkullCharm::ThinkSolid );
 	pev->nextthink = gpGlobals->time + 0.5;
@@ -155,10 +157,10 @@ void CSkullCharm::SkullMagnetThink( void )
 	}
 
 	// Check if it's time to fade
-	if (pev->nextthink > gpGlobals->time + 25.0)
+	if (gpGlobals->time >= pev->dmgtime)
 	{
 		SetThink( &CBaseEntity::SUB_StartFadeOut );
-		pev->nextthink = gpGlobals->time + 25.0;
+		pev->nextthink = gpGlobals->time;
 	}
 	else
 	{
@@ -210,7 +212,7 @@ void CSkullCharm::SkullTouch( CBaseEntity *pOther )
 		int myfrags = pPlayer->m_iRoundWins;
 		if (frags == 0)
 			frags = 100;
-		int result = (myfrags / frags) * 100;
+		int result = (int)((float)myfrags / frags * 100);
 		
 		if (!FBitSet(pPlayer->pev->flags, FL_FAKECLIENT))
 		{
@@ -318,9 +320,9 @@ void CreateSkull( CBasePlayer *pVictim, int amount, CBasePlayer *pKiller = NULL 
 		if (amount >= 40)
 			pSkull->pev->rendercolor = Vector(255, 0, 0);
 		else if (amount == 20)
-			pSkull->pev->rendercolor = Vector(255, 0, 128);
+			pSkull->pev->rendercolor = Vector(128, 0, 255);  // Purple Crystal
 		else if (amount == 10)
-			pSkull->pev->rendercolor = Vector(255, 0, 128);
+			pSkull->pev->rendercolor = Vector(255, 215, 0);  // Gold
 		else if (amount == 5)
 			pSkull->pev->rendercolor = Vector(128, 128, 128);
 		else if (amount == 1)
