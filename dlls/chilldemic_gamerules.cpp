@@ -161,7 +161,7 @@ void CHalfLifeChilldemic::Think( void )
 					plr->m_flForceToObserverTime = 0;
 				}
 
-				if ( plr->IsInArena && !plr->IsSpectator() /*&& plr->IsAlive()*/ )
+				if ( plr->IsInArena && !plr->IsSpectator() )
 				{
 					if (plr->pev->fuser4 == TEAM_SKELETONS)
 						skeletons_left++;
@@ -175,7 +175,7 @@ void CHalfLifeChilldemic::Think( void )
 					{
 						MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL, plr->edict());
 							if (m_iSurvivorsRemain >= 1 && m_iSkeletonsRemain <= 0)
-								WRITE_STRING("Suvivors have won!");
+								WRITE_STRING("Survivors have won!");
 							else if (m_iSkeletonsRemain >= 1 && m_iSurvivorsRemain <= 0)
 								WRITE_STRING("Skeletons have won!");
 							else
@@ -606,7 +606,7 @@ void CHalfLifeChilldemic::PlayerSpawn( CBasePlayer *pPlayer )
 	{
 		char *defaultPlayerModels[4] = { "iceman", "commando", "jesus", "hhev", };
 		char modelName[32];
-		if (pmodel && (strlen(pmodel) && strlen(modelName) < 31))
+		if (pmodel && strlen(pmodel) > 0 && strlen(pmodel) < 31)
 			strcpy(modelName, pmodel);
 		else
 			strcpy(modelName, defaultPlayerModels[RANDOM_LONG(0,3)]);
