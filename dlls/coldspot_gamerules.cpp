@@ -121,12 +121,14 @@ void CColdSpot::ColdSpotThink( void )
 		{
 			CBasePlayer *pPlayer = (CBasePlayer *)ent;
 
-			// Check line of sight before awarding points
+			// Check line of sight before awarding points.
+			// dont_ignore_monsters makes the player entity solid to the trace,
+			// so tr.pHit == ent->edict() means clear LoS to the player.
 			TraceResult tr;
 			Vector vecEyePos = pPlayer->pev->origin + pPlayer->pev->view_ofs;
-			UTIL_TraceLine( pev->origin, vecEyePos, ignore_monsters, ignore_glass, ENT(pev), &tr );
+			UTIL_TraceLine( pev->origin, vecEyePos, dont_ignore_monsters, ignore_glass, ENT(pev), &tr );
 
-			// Only award points if trace hit the player (clear line of sight)
+			// Block scoring if something other than the player stopped the trace
 			if ( tr.flFraction < 1.0f && tr.pHit != ent->edict() )
 			{
 				ClientPrint(pPlayer->pev, HUD_PRINTCENTER, "To score, see the cold spot center!\n");
