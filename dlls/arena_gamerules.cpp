@@ -740,7 +740,7 @@ void CHalfLifeArena::PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller, ent
 						WRITE_STRING(UTIL_VarArgs("They need: %d", int(roundfraglimit.value - pPlayer2->pev->frags)));
 					else
 						WRITE_STRING("");
-					WRITE_BYTE(fmax(0, (pPlayer1->pev->frags / roundfraglimit.value) * 100));
+					WRITE_BYTE(fmin(fmax(0, (pPlayer1->pev->frags / roundfraglimit.value) * 100), 100));
 					if (fragsToGo < 1)
 						WRITE_STRING("You are the WINNER!");
 					else
@@ -760,7 +760,7 @@ void CHalfLifeArena::PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller, ent
 						WRITE_STRING(UTIL_VarArgs("They need: %d", int(roundfraglimit.value - pPlayer1->pev->frags)));
 					else
 						WRITE_STRING("");
-					WRITE_BYTE(fmax(0, (pPlayer2->pev->frags / roundfraglimit.value) * 100));
+					WRITE_BYTE(fmin(fmax(0, (pPlayer2->pev->frags / roundfraglimit.value) * 100), 100));
 					if (fragsToGo < 1)
 						WRITE_STRING("You are the WINNER!");
 					else
