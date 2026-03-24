@@ -435,10 +435,12 @@ void CHalfLifeCaptureTheChumtoad::PlayerThink( CBasePlayer *pPlayer )
 						STRING(pPlayer->pev->netname));
 					
 					ClientPrint(pPlayer->pev, HUD_PRINTCENTER, UTIL_VarArgs("You Have Scored a Point!\n"));
-
-					MESSAGE_BEGIN( MSG_ONE_UNRELIABLE, gmsgPlayClientSound, NULL, pPlayer->edict() );
-						WRITE_BYTE(CLIENT_SOUND_LEVEL_UP);
-					MESSAGE_END();
+					if (!FBitSet(pPlayer->pev->flags, FL_FAKECLIENT))
+					{
+						MESSAGE_BEGIN( MSG_ONE_UNRELIABLE, gmsgPlayClientSound, NULL, pPlayer->edict() );
+							WRITE_BYTE(CLIENT_SOUND_LEVEL_UP);
+						MESSAGE_END();
+					}
 
 					pPlayer->m_iChumtoadCounter = 0;
 				}

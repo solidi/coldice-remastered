@@ -255,20 +255,23 @@ void CHalfLifeArena::Think( void )
 					//for clients who connected while game in progress.
 					if ( plr->IsSpectator() )
 					{
-						MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, plr->edict() );
-							if (roundlimit.value > 0)
-								WRITE_STRING(UTIL_VarArgs("1 vs. 1: Round %d of %.0f", m_iSuccessfulRounds + 1, roundlimit.value ));
-							else
-								WRITE_STRING(UTIL_VarArgs("1 vs. 1: Round %d", m_iSuccessfulRounds + 1));
-							WRITE_STRING(UTIL_VarArgs("%s (%.0f/%.0f) vs. %s (%.0f/%.0f)\n",
-							STRING(pPlayer1->pev->netname),
-							pPlayer1->pev->health,
-							pPlayer1->pev->armorvalue,
-							STRING(pPlayer2->pev->netname),
-							pPlayer2->pev->health,
-							pPlayer2->pev->armorvalue));
-							WRITE_BYTE(0);
-						MESSAGE_END();
+						if (!FBitSet(plr->pev->flags, FL_FAKECLIENT))
+						{
+							MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, plr->edict() );
+								if (roundlimit.value > 0)
+									WRITE_STRING(UTIL_VarArgs("1 vs. 1: Round %d of %.0f", m_iSuccessfulRounds + 1, roundlimit.value ));
+								else
+									WRITE_STRING(UTIL_VarArgs("1 vs. 1: Round %d", m_iSuccessfulRounds + 1));
+								WRITE_STRING(UTIL_VarArgs("%s (%.0f/%.0f) vs. %s (%.0f/%.0f)\n",
+								STRING(pPlayer1->pev->netname),
+								pPlayer1->pev->health,
+								pPlayer1->pev->armorvalue,
+								STRING(pPlayer2->pev->netname),
+								pPlayer2->pev->health,
+								pPlayer2->pev->armorvalue));
+								WRITE_BYTE(0);
+							MESSAGE_END();
+						}
 					} else {
 						// Send them to observer
 						if (!plr->IsInArena)
@@ -726,38 +729,44 @@ void CHalfLifeArena::PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller, ent
 		if (pPlayer1 && pPlayer2)
 		{
 			int fragsToGo = int(roundfraglimit.value - pPlayer1->pev->frags);
-			MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, pPlayer1->edict());
-				if (fragsToGo >= 1)
-					WRITE_STRING(UTIL_VarArgs("Defeat %s", STRING(pPlayer2->pev->netname)));
-				else
-					WRITE_STRING(UTIL_VarArgs("You Defeated %s!", STRING(pPlayer2->pev->netname)));
-				if (fragsToGo >= 1)
-					WRITE_STRING(UTIL_VarArgs("They need: %d", int(roundfraglimit.value - pPlayer2->pev->frags)));
-				else
-					WRITE_STRING("");
-				WRITE_BYTE(fmax(0, (pPlayer1->pev->frags / roundfraglimit.value) * 100));
-				if (fragsToGo < 1)
-					WRITE_STRING("You are the WINNER!");
-				else
-					WRITE_STRING(UTIL_VarArgs("You need: %d", fragsToGo));
-			MESSAGE_END();
+			if (!FBitSet(pPlayer1->pev->flags, FL_FAKECLIENT))
+			{
+				MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, pPlayer1->edict());
+					if (fragsToGo >= 1)
+						WRITE_STRING(UTIL_VarArgs("Defeat %s", STRING(pPlayer2->pev->netname)));
+					else
+						WRITE_STRING(UTIL_VarArgs("You Defeated %s!", STRING(pPlayer2->pev->netname)));
+					if (fragsToGo >= 1)
+						WRITE_STRING(UTIL_VarArgs("They need: %d", int(roundfraglimit.value - pPlayer2->pev->frags)));
+					else
+						WRITE_STRING("");
+					WRITE_BYTE(fmin(fmax(0, (pPlayer1->pev->frags / roundfraglimit.value) * 100), 100));
+					if (fragsToGo < 1)
+						WRITE_STRING("You are the WINNER!");
+					else
+						WRITE_STRING(UTIL_VarArgs("You need: %d", fragsToGo));
+				MESSAGE_END();
+			}
 
 			fragsToGo = int(roundfraglimit.value - pPlayer2->pev->frags);
-			MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, pPlayer2->edict());
-				if (fragsToGo >= 1)
-					WRITE_STRING(UTIL_VarArgs("Defeat %s", STRING(pPlayer1->pev->netname)));
-				else
-					WRITE_STRING(UTIL_VarArgs("You Defeated %s!", STRING(pPlayer1->pev->netname)));
-				if (fragsToGo >= 1)
-					WRITE_STRING(UTIL_VarArgs("They need: %d", int(roundfraglimit.value - pPlayer1->pev->frags)));
-				else
-					WRITE_STRING("");
-				WRITE_BYTE(fmax(0, (pPlayer2->pev->frags / roundfraglimit.value) * 100));
-				if (fragsToGo < 1)
-					WRITE_STRING("You are the WINNER!");
-				else
-					WRITE_STRING(UTIL_VarArgs("You need: %d", fragsToGo));
-			MESSAGE_END();
+			if (!FBitSet(pPlayer2->pev->flags, FL_FAKECLIENT))
+			{
+				MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, pPlayer2->edict());
+					if (fragsToGo >= 1)
+						WRITE_STRING(UTIL_VarArgs("Defeat %s", STRING(pPlayer1->pev->netname)));
+					else
+						WRITE_STRING(UTIL_VarArgs("You Defeated %s!", STRING(pPlayer1->pev->netname)));
+					if (fragsToGo >= 1)
+						WRITE_STRING(UTIL_VarArgs("They need: %d", int(roundfraglimit.value - pPlayer1->pev->frags)));
+					else
+						WRITE_STRING("");
+					WRITE_BYTE(fmin(fmax(0, (pPlayer2->pev->frags / roundfraglimit.value) * 100), 100));
+					if (fragsToGo < 1)
+						WRITE_STRING("You are the WINNER!");
+					else
+						WRITE_STRING(UTIL_VarArgs("You need: %d", fragsToGo));
+				MESSAGE_END();
+			}
 		}
 	}
 }

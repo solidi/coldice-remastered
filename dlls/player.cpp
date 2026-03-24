@@ -3072,11 +3072,14 @@ void CBasePlayer::PreThink(void)
 	{
 		m_fCelebrateTime = 0;
 
-		// Trophy icon and camera work to show off the winner!
-		MESSAGE_BEGIN(MSG_ONE, gmsgStatusIcon, NULL, edict());
-			WRITE_BYTE(0);
-			WRITE_STRING("cam_winner");
-		MESSAGE_END();
+		if (!FBitSet(pev->flags, FL_FAKECLIENT))
+		{
+			// Trophy icon and camera work to show off the winner!
+			MESSAGE_BEGIN(MSG_ONE, gmsgStatusIcon, NULL, edict());
+				WRITE_BYTE(0);
+				WRITE_STRING("cam_winner");
+			MESSAGE_END();
+		}
 	}
 
 	if (m_fCreditsTime && m_fCreditsTime < gpGlobals->time)

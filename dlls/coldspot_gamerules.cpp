@@ -137,9 +137,12 @@ void CColdSpot::ColdSpotThink( void )
 			UTIL_ScreenFade( ent, Vector(0, 255, 0), 0.25, 2, 32, FFADE_IN);
 			((CHalfLifeColdSpot *)g_pGameRules)->UpdateHud();
 
-			MESSAGE_BEGIN( MSG_ONE_UNRELIABLE, gmsgPlayClientSound, NULL, pPlayer->edict() );
-				WRITE_BYTE(CLIENT_SOUND_LEVEL_UP);
-			MESSAGE_END();
+			if (!FBitSet(pPlayer->pev->flags, FL_FAKECLIENT))
+			{
+				MESSAGE_BEGIN( MSG_ONE_UNRELIABLE, gmsgPlayClientSound, NULL, pPlayer->edict() );
+					WRITE_BYTE(CLIENT_SOUND_LEVEL_UP);
+				MESSAGE_END();
+			}
 			ClientPrint(pPlayer->pev, HUD_PRINTCENTER, UTIL_VarArgs("You Have Scored a Point!\n"));
 		}
 	}

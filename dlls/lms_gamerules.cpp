@@ -504,9 +504,12 @@ void CHalfLifeLastManStanding::Think( void )
 					UTIL_ClientPrintAll(HUD_PRINTCENTER, UTIL_VarArgs("%s\nis standing!\n", client_name ));
 
 					CBasePlayer *pl = (CBasePlayer *)UTIL_PlayerByIndex( client_index );
-					MESSAGE_BEGIN( MSG_ONE_UNRELIABLE, gmsgPlayClientSound, NULL, pl->edict() );
-						WRITE_BYTE(CLIENT_SOUND_LMS);
-					MESSAGE_END();
+					if (!FBitSet(pl->pev->flags, FL_FAKECLIENT))
+					{
+						MESSAGE_BEGIN( MSG_ONE_UNRELIABLE, gmsgPlayClientSound, NULL, pl->edict() );
+							WRITE_BYTE(CLIENT_SOUND_LMS);
+						MESSAGE_END();
+					}
 					DisplayWinnersGoods( pl );
 				}	
 				else
@@ -829,9 +832,12 @@ void CHalfLifeLastManStanding::PlayerKilled( CBasePlayer *pVictim, entvars_t *pK
 		if ( !pVictim->pev->frags )
 		{
 			UTIL_ClientPrintAll(HUD_PRINTTALK, UTIL_VarArgs("[Royale] %s has been eliminated from the round!\n", STRING(pVictim->pev->netname)));
-			MESSAGE_BEGIN( MSG_ONE_UNRELIABLE, gmsgPlayClientSound, NULL, pVictim->edict() );
-				WRITE_BYTE(CLIENT_SOUND_HULIMATING_DEAFEAT);
-			MESSAGE_END();
+			if (!FBitSet(pVictim->pev->flags, FL_FAKECLIENT))
+			{
+				MESSAGE_BEGIN( MSG_ONE_UNRELIABLE, gmsgPlayClientSound, NULL, pVictim->edict() );
+					WRITE_BYTE(CLIENT_SOUND_HULIMATING_DEAFEAT);
+				MESSAGE_END();
+			}
 		}
 	}
 }
