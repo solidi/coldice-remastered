@@ -5724,13 +5724,10 @@ void CBasePlayer::Celebrate( void )
 		SetAnimation( PLAYER_CELEBRATE );
 
 		// Trophy icon and camera work to show off the winner!
-		if (!FBitSet(pev->flags, FL_FAKECLIENT))
-		{
-			MESSAGE_BEGIN(MSG_ONE, gmsgStatusIcon, NULL, edict());
-				WRITE_BYTE(1);
-				WRITE_STRING("cam_winner");
-			MESSAGE_END();
-		}
+		MESSAGE_BEGIN(MSG_ONE, gmsgStatusIcon, NULL, edict());
+			WRITE_BYTE(1);
+			WRITE_STRING("cam_winner");
+		MESSAGE_END();
 	}
 }
 

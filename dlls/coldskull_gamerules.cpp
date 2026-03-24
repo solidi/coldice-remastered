@@ -213,6 +213,10 @@ void CSkullCharm::SkullTouch( CBaseEntity *pOther )
 		if (frags == 0)
 			frags = 100;
 		int result = (int)((float)myfrags / frags * 100);
+		if (result < 0)
+			result = 0;
+		else if (result > 100)
+			result = 100;
 		
 		if (!FBitSet(pPlayer->pev->flags, FL_FAKECLIENT))
 		{
@@ -373,6 +377,10 @@ void CHalfLifeColdSkull::PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller,
 	if (frags == 0)
 		frags = 100;
 	int result = (int)((float)myfrags / frags * 100);
+	if (result < 0)
+		result = 0;
+	else if (result > 100)
+		result = 100;
 	if (!FBitSet(pVictim->pev->flags, FL_FAKECLIENT))
 	{
 		MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, pVictim->edict());
