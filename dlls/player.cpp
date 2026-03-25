@@ -6346,6 +6346,9 @@ int CBasePlayer::RemovePlayerItem( CBasePlayerItem *pItem )
 		pItem->Holster( );
 		pItem->pev->nextthink = 0;// crowbar may be trying to swing again, etc.
 		pItem->SetThink( NULL );
+		// If weapon player animation was in progress when the weapon was removed
+		// prevent the punch animation from getting stuck in a loop.
+		m_EFlags &= ~EFLAG_PLAYERKICK & ~EFLAG_PUNCH & ~EFLAG_THROW & ~EFLAG_GRENADE;
 		m_pActiveItem = NULL;
 		pev->viewmodel = 0;
 		pev->weaponmodel = 0;

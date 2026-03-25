@@ -117,7 +117,10 @@ void CHalfLifeCaptureTheChumtoad::Think( void )
 					{
 						plr->m_iHoldingChumtoad = FALSE;
 						UTIL_MakeVectors(plr->pev->v_angle);
-						DropCharm(plr, plr->pev->origin + gpGlobals->v_forward * 64);
+						CBaseEntity *pDropped = DropCharm(plr, plr->pev->origin + gpGlobals->v_forward * 64);
+						if (pDropped)
+							UTIL_Remove(pDropped); // Don't litter a toad that will just be cleaned up next tick
+						m_fCreateChumtoadTimer = 0; // Reset so toad respawns properly when a second player joins
 						plr->RemoveNamedItem("weapon_chumtoad");
 					}
 				}
@@ -231,7 +234,7 @@ BOOL CHalfLifeCaptureTheChumtoad::CreateChumtoad()
 		pToad->pev->velocity.z = RANDOM_FLOAT(0, 300);
 	}
 
-	return TRUE;
+	return pToad ? TRUE : FALSE;
 }
 
 void CHalfLifeCaptureTheChumtoad::CaptureCharm( CBasePlayer *pPlayer )
@@ -355,7 +358,7 @@ void CHalfLifeCaptureTheChumtoad::PlayerThink( CBasePlayer *pPlayer )
 	if (!g_fGameOver)
 	{
 		// End session if hit round limit
-		if ( pPlayer->m_iRoundWins >= scorelimit.value )
+		if ( scorelimit.value > 0 && pPlayer->m_iRoundWins >= scorelimit.value )
 		{
 			GoToIntermission();
 			return;
@@ -386,7 +389,7 @@ void CHalfLifeCaptureTheChumtoad::PlayerThink( CBasePlayer *pPlayer )
 
 	// Updates once per second
 	int time_remaining = (int)gpGlobals->time;
-	BOOL foundChumtoad = FALSE, scoringPoints = FALSE;
+	BOOL scoringPoints = FALSE;
 	char *message;
 
 	if (pPlayer->m_iCaptureTime != time_remaining)
@@ -573,7 +576,7 @@ BOOL CHalfLifeCaptureTheChumtoad::IsAllowedToDropWeapon( CBasePlayer *pPlayer )
 
 BOOL CHalfLifeCaptureTheChumtoad::AllowRuneSpawn( const char *szRune )
 {
-	if (!strcmp("rune_frag", szRune));
+	if (!strcmp("rune_frag", szRune))
 		return FALSE;
 
 	return TRUE;
