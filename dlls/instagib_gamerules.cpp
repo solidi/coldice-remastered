@@ -93,11 +93,6 @@ void CTombstone::TombstoneThink( void )
 	pev->nextthink = gpGlobals->time + 0.25;
 }
 
-CHalfLifeInstagib::CHalfLifeInstagib()
-{
-
-}
-
 void CHalfLifeInstagib::InitHUD( CBasePlayer *pPlayer )
 {
 	CHalfLifeMultiplay::InitHUD( pPlayer );
@@ -108,6 +103,7 @@ void CHalfLifeInstagib::InitHUD( CBasePlayer *pPlayer )
 			WRITE_STRING("Instagib 'em");
 			WRITE_STRING("");
 			WRITE_BYTE(0);
+			WRITE_STRING("");
 		MESSAGE_END();
 	}
 }
@@ -115,9 +111,6 @@ void CHalfLifeInstagib::InitHUD( CBasePlayer *pPlayer )
 void CHalfLifeInstagib::PlayerThink( CBasePlayer *pPlayer )
 {
 	CHalfLifeMultiplay::PlayerThink(pPlayer);
-
-	if ( flUpdateTime > gpGlobals->time )
-		return;
 
 	if (pPlayer->m_iShowGameModeMessage > -1 && 
 		pPlayer->m_iShowGameModeMessage < gpGlobals->time && 
@@ -130,10 +123,22 @@ void CHalfLifeInstagib::PlayerThink( CBasePlayer *pPlayer )
 		MESSAGE_END();
 		pPlayer->m_iShowGameModeMessage = -1;
 	}
+}
+
+void CHalfLifeInstagib::Think(void)
+{
+	CHalfLifeMultiplay::Think();
+
+	// No loop during intermission
+	if ( m_flIntermissionEndTime )
+		return;
+
+	if ( flUpdateTime > gpGlobals->time )
+		return;
 
 	typedef struct {
 		int	clientID = -1;
-		int frags = -1;
+		int frags = -9999;
 	} frag_map_t;
 
 	frag_map_t frags[32 + 1];
@@ -141,13 +146,13 @@ void CHalfLifeInstagib::PlayerThink( CBasePlayer *pPlayer )
 
 	for ( int i = 1; i <= gpGlobals->maxClients; i++ )
 	{
-		CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
+		CBasePlayer *pPlayer = (CBasePlayer *)UTIL_PlayerByIndex( i );
 		frag_map_t x;
 		x.clientID = i;
 
-		if ( plr && plr->IsPlayer() && !plr->HasDisconnected )
+		if ( pPlayer && pPlayer->IsPlayer() && !pPlayer->HasDisconnected )
 		{
-			x.frags = plr->pev->frags;
+			x.frags = pPlayer->pev->frags;
 			totalPlayers++;
 		}
 
@@ -169,34 +174,34 @@ void CHalfLifeInstagib::PlayerThink( CBasePlayer *pPlayer )
 
 	for (int i = 1; i <= gpGlobals->maxClients; i++)
 	{
-		if (frags[i].clientID == pPlayer->entindex())
-		{
-			if (!FBitSet(pPlayer->pev->flags, FL_FAKECLIENT))
-			{
-				MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, pPlayer->edict());
-					WRITE_STRING("Instagib 'em");
-					WRITE_STRING(UTIL_VarArgs("Rank: %d / %d", i, totalPlayers));
-					WRITE_BYTE(0);
-					int myfrags = frags[i].frags;
-					// Calculate spread: difference between your frags and the position above you
-					if ( i > 1 ) {
-						// There's someone above you, show how far behind/ahead you are
-						WRITE_STRING(UTIL_VarArgs("Spread: %+d", (myfrags - frags[i - 1].frags)));
-					}
-					else {
-						// You're in first place, show how far ahead you are from second place
-						if (totalPlayers > 1) {
-							WRITE_STRING(UTIL_VarArgs("Spread: %+d", (myfrags - frags[i + 1].frags)));
-						} else {
-							WRITE_STRING("Spread: --");
-						}
-					}
-				MESSAGE_END();
+		if (frags[i].frags == -9999) continue; // disconnected/empty slot
+
+		CBasePlayer *pPlayer = (CBasePlayer *)UTIL_PlayerByIndex( frags[i].clientID );
+		if (!pPlayer || !pPlayer->IsPlayer() || pPlayer->HasDisconnected) continue;
+		if (FBitSet(pPlayer->pev->flags, FL_FAKECLIENT)) continue;
+
+		int myfrags = frags[i].frags;
+		MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, pPlayer->edict());
+			WRITE_STRING("Instagib 'em");
+			WRITE_STRING(UTIL_VarArgs("Rank: %d / %d", i, totalPlayers));
+			WRITE_BYTE(0);
+			// Calculate spread: difference between your frags and the position above you
+			if ( i > 1 ) {
+				// There's someone above you, show how far behind/ahead you are
+				WRITE_STRING(UTIL_VarArgs("Spread: %+d", (myfrags - frags[i - 1].frags)));
 			}
-		}
+			else {
+				// You're in first place, show how far ahead you are from second place
+				if (totalPlayers > 1) {
+					WRITE_STRING(UTIL_VarArgs("Spread: %+d", (myfrags - frags[i + 1].frags)));
+				} else {
+					WRITE_STRING("Spread: --");
+				}
+			}
+		MESSAGE_END();
 	}
 
-	flUpdateTime = gpGlobals->time + 3.0;
+	flUpdateTime = gpGlobals->time + 2.0;
 }
 
 BOOL CHalfLifeInstagib::MutatorAllowed(const char *mutator)
@@ -292,7 +297,8 @@ void CHalfLifeInstagib::PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller, 
 {
 	CHalfLifeMultiplay::PlayerKilled( pVictim, pKiller, pInflictor );
 
-	CBaseEntity::Create( "monster_tombstone", Vector(pVictim->pev->origin.x, pVictim->pev->origin.y, pVictim->pev->origin.z), Vector(pKiller->angles.x, pKiller->angles.y, 0), NULL );
+	// Tombstone faces the killer's yaw.
+	CBaseEntity::Create( "monster_tombstone", Vector(pVictim->pev->origin.x, pVictim->pev->origin.y, pVictim->pev->origin.z), Vector(0, pKiller->angles.y, 0), NULL );
 }
 
 int CHalfLifeInstagib::DeadPlayerWeapons( CBasePlayer *pPlayer )
