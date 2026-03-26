@@ -400,7 +400,7 @@ int CHalfLifeGunGame::IPointsForKill( CBasePlayer *pAttacker, CBasePlayer *pKill
 
 		// Attacker
 		int currentLevel = (int)pAttacker->m_iRoundWins;
-		if (currentLevel <= MAXLEVEL)
+		if (currentLevel < MAXLEVEL)
 		{
 			// Note, frags are increased after this method, so assume +1
 			if ((int)pAttacker->pev->frags+1 >= ((currentLevel+1) * (int)ggfrags.value))
