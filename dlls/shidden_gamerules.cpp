@@ -641,6 +641,8 @@ BOOL CHalfLifeShidden::HasGameTimerExpired( void )
 			WRITE_BYTE(0);
 		MESSAGE_END();
 
+		PauseMutators();
+
 		m_iSuccessfulRounds++;
 		flUpdateTime = gpGlobals->time + 3.0;
 		m_flRoundTimeLimit = 0;
