@@ -148,6 +148,7 @@ void CFlagCharm::ReturnThink( void )
 
 		UTIL_SetOrigin(pev, returnOrigin);
 		pev->angles = g_vecZero;
+		pev->sequence = FLAG_POSITIONED;
 	}
 
 	// Always reset timer if in base
@@ -189,6 +190,7 @@ void CFlagCharm::FlagTouch( CBaseEntity *pOther )
 				pMyBase->pev->iuser4 = FALSE;
 
 				pev->aiment = pOther->edict();
+				m_fReturnTime = 0;
 				pPlayer->m_fFlagTime = gpGlobals->time + 1.0;
 				pPlayer->pFlag = this;
 				pev->movetype = MOVETYPE_FOLLOW;
