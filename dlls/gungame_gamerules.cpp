@@ -402,10 +402,8 @@ int CHalfLifeGunGame::IPointsForKill( CBasePlayer *pAttacker, CBasePlayer *pKill
 		int currentLevel = (int)pAttacker->m_iRoundWins;
 		if (currentLevel <= MAXLEVEL)
 		{
-			int inc = 2;
-			currentLevel == 0 ? inc = 1 : 0; 
 			// Note, frags are increased after this method, so assume +1
-			if ((int)pAttacker->pev->frags+1 >= ((currentLevel+inc) * (int)ggfrags.value))
+			if ((int)pAttacker->pev->frags+1 >= ((currentLevel+1) * (int)ggfrags.value))
 			{
 				if (!strcmp(g_WeaponId[pAttacker->m_iRoundWins], "snark"))
 					DeactivateItems(pAttacker, "monster_snark");
@@ -528,11 +526,9 @@ int CHalfLifeGunGame::IPointsForKill( CBasePlayer *pAttacker, CBasePlayer *pKill
 			}
 			else 
 			{
-				int inc = 2;
-				currentLevel == 0 ? inc = 1 : 0; 
 				ClientPrint(pAttacker->pev, HUD_PRINTTALK,
 					UTIL_VarArgs("[GunGame] You need %d frags to reach level %s!\n",
-					((currentLevel+inc) * (int)ggfrags.value) - ((int)pAttacker->pev->frags+1), g_WeaponId[currentLevel+1]));
+					((currentLevel+1) * (int)ggfrags.value) - ((int)pAttacker->pev->frags+1), g_WeaponId[currentLevel+1]));
 			}
 		}
 	}
@@ -584,11 +580,8 @@ void CHalfLifeGunGame::PlayerSpawn( CBasePlayer *pPlayer )
 	if (!pPlayer->HasNamedPlayerItem(weapon))
 		pPlayer->GiveNamedItem(STRING(ALLOC_STRING(weapon)));
 
-	int inc = 2;
-	currentLevel == 0 ? inc = 1 : 0; 
-
 	ClientPrint(pPlayer->pev, HUD_PRINTTALK, UTIL_VarArgs("[GunGame] You need %d frags to reach level %s.\n",
-		((currentLevel+inc) * (int)ggfrags.value) - ((int)pPlayer->pev->frags), g_WeaponId[currentLevel+1]));
+		((currentLevel+1) * (int)ggfrags.value) - ((int)pPlayer->pev->frags), g_WeaponId[currentLevel+1]));
 
 	g_pGameRules->SpawnMutators(pPlayer);
 }
