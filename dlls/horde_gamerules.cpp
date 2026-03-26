@@ -538,7 +538,6 @@ void CHalfLifeHorde::Think( void )
 				WRITE_BYTE(CLIENT_SOUND_WAVE_ENDED);
 			MESSAGE_END();
 
-			m_iSuccessfulRounds++;
 			flUpdateTime = gpGlobals->time + 3.0;
 			return;
 		}
@@ -608,6 +607,7 @@ void CHalfLifeHorde::Think( void )
 
 		InsertClientsIntoArena(0);
 
+		m_iWaveNumber = (m_iWaveNumber > 0) ? m_iWaveNumber - 1 : 0;
 		m_fBeginWaveTime = gpGlobals->time + 3.0;
 
 		m_iCountDown = 5;
@@ -747,7 +747,6 @@ BOOL CHalfLifeHorde::HasGameTimerExpired( void )
 
 		PauseMutators();
 
-		m_iSuccessfulRounds++;
 		flUpdateTime = gpGlobals->time + 3.0;
 		m_flRoundTimeLimit = 0;
 		return TRUE;
@@ -805,7 +804,8 @@ void CHalfLifeHorde::PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller, ent
 		//if (m_iPlayersInArena[i-1] > 0)
 		{
 			CBasePlayer *pPlayer = (CBasePlayer *)UTIL_PlayerByIndex(i);
-			if (pPlayer && !pPlayer->IsSpectator() && pPlayer != pVictim && !pPlayer->HasDisconnected)
+			if (pPlayer && !pPlayer->IsSpectator() && pPlayer != pVictim && 
+				!pPlayer->HasDisconnected && pPlayer->IsInArena)
 			{
 				survivors_left++;
 			}
