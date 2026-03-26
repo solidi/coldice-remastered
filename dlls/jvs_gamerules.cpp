@@ -54,7 +54,7 @@ void CHalfLifeJesusVsSanta::DetermineWinner( void )
 	{
 		CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
 
-		if ( plr && plr->IsPlayer() && plr->IsInArena )
+		if ( plr && plr->IsPlayer() && plr->IsInArena && plr->IsAlive() )
 		{
 			if ( highest <= plr->pev->frags )
 			{
@@ -92,7 +92,7 @@ void CHalfLifeJesusVsSanta::DetermineWinner( void )
 			{
 				CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
 
-				if ( plr && plr->IsPlayer() && plr->IsInArena )
+				if ( plr && plr->IsPlayer() && plr->IsInArena && plr->IsAlive() )
 				{
 					if ( plr->pev->frags == highest)
 					{
@@ -212,7 +212,7 @@ void CHalfLifeJesusVsSanta::Think( void )
 				}
 				else
 				{
-					if ((clients_alive - 1) >= 1)
+					if (pArmoredMan && (clients_alive - 1) >= 1)
 					{
 						MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, plr->edict());
 							WRITE_STRING(UTIL_VarArgs("Defeat %s as Jesus", STRING(pArmoredMan->pev->netname)));
@@ -623,8 +623,6 @@ BOOL CHalfLifeJesusVsSanta::FPlayerCanRespawn( CBasePlayer *pPlayer )
 
 void CHalfLifeJesusVsSanta::PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller, entvars_t *pInflictor )
 {
-	pVictim->pev->frags = 0; // clear immediately for winner determination
-
 	CHalfLifeMultiplay::PlayerKilled(pVictim, pKiller, pInflictor);
 
 	if ( !pVictim->IsArmoredMan )
