@@ -1229,6 +1229,7 @@ void CHalfLifeLoot::OnGoalReached( CBasePlayer *pPlayer )
 	m_hLootHolder = (CBaseEntity *)NULL;
 	pPlayer->m_bHoldingLoot = FALSE;
 	pPlayer->pev->fuser4 = 0;
+	pPlayer->pev->rendermode  = kRenderNormal;
 	pPlayer->pev->renderfx    = kRenderFxNone;
 	pPlayer->pev->renderamt   = 0;
 	pPlayer->pev->rendercolor = Vector(0, 0, 0);
