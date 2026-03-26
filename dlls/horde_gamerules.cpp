@@ -656,7 +656,7 @@ void CHalfLifeHorde::PlayerThink( CBasePlayer *pPlayer )
 
 	if (!g_fGameOver)
 	{
-		// End session if hit round limit
+		// End session if hit score limit
 		if ( scorelimit.value > 0 && pPlayer->m_iRoundWins >= scorelimit.value )
 		{
 			GoToIntermission();

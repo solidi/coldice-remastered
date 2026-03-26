@@ -127,7 +127,7 @@ void CMultiplayBusters::Think()
 					plr->m_fCameraDelay = 0;
 				}
 
-				// End session if hit round limit
+				// End session if hit score limit
 				if ( plr->m_iRoundWins >= scorelimit.value )
 				{
 					GoToIntermission();
