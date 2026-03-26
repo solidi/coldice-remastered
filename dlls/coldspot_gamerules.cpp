@@ -32,6 +32,7 @@ extern int gmsgObjective;
 extern int gmsgPlayClientSound;
 extern int gmsgSpecialEntity;
 extern int gmsgBanner;
+extern int gmsgStatusIcon;
 
 extern DLL_GLOBAL BOOL g_fGameOver;
 
@@ -155,6 +156,15 @@ void CColdSpot::ColdSpotThink( void )
 	for ( int i = 0; i < eligibleCount; i++ )
 	{
 		CBasePlayer *pPlayer = eligiblePlayers[i];
+
+		if (!pPlayer->m_fCameraDelay)
+		{
+			MESSAGE_BEGIN(MSG_ONE, gmsgStatusIcon, NULL, pPlayer->edict());
+				WRITE_BYTE(1);
+				WRITE_STRING("cam_zone");
+			MESSAGE_END();
+		}
+		pPlayer->m_fCameraDelay = gpGlobals->time + 3.0;
 
 		if ( bContested )
 		{
@@ -405,6 +415,15 @@ void CHalfLifeColdSpot::Think( void )
 void CHalfLifeColdSpot::PlayerThink( CBasePlayer *pPlayer )
 {
 	CHalfLifeMultiplay::PlayerThink(pPlayer);
+
+	if (pPlayer->m_fCameraDelay && pPlayer->m_fCameraDelay <= gpGlobals->time)
+	{
+		MESSAGE_BEGIN(MSG_ONE, gmsgStatusIcon, NULL, pPlayer->edict());
+			WRITE_BYTE(0);
+			WRITE_STRING("cam_zone");
+		MESSAGE_END();
+		pPlayer->m_fCameraDelay = 0;
+	}
 
 	if (pPlayer->m_iShowGameModeMessage > -1 &&
 		pPlayer->m_iShowGameModeMessage < gpGlobals->time &&
