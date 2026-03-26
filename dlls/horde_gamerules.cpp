@@ -34,6 +34,8 @@ extern int gmsgDeathMsg;
 extern int gmsgDEraser;
 extern int gmsgBanner;
 
+extern DLL_GLOBAL BOOL g_fGameOver;
+
 // In order of hardness
 const char *szMonsters[] = {
 	"monster_headcrab",
@@ -648,6 +650,19 @@ void CHalfLifeHorde::Think( void )
 void CHalfLifeHorde::PlayerThink( CBasePlayer *pPlayer )
 {
 	CHalfLifeMultiplay::PlayerThink(pPlayer);
+
+	if (m_flIntermissionEndTime)
+		return;
+
+	if (!g_fGameOver)
+	{
+		// End session if hit round limit
+		if ( scorelimit.value > 0 && pPlayer->m_iRoundWins >= scorelimit.value )
+		{
+			GoToIntermission();
+			return;
+		}
+	}
 
 	if (pPlayer->m_iShowGameModeMessage > -1 &&
 		pPlayer->m_iShowGameModeMessage < gpGlobals->time &&
