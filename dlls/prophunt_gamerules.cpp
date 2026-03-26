@@ -727,10 +727,11 @@ BOOL CHalfLifePropHunt::HasGameTimerExpired( void )
 		MESSAGE_END();
 
 		g_GameInProgress = FALSE;
-		PauseMutators();
 		MESSAGE_BEGIN(MSG_ALL, gmsgShowTimer);
 			WRITE_BYTE(0);
 		MESSAGE_END();
+
+		PauseMutators();
 
 		m_iSuccessfulRounds++;
 		flUpdateTime = gpGlobals->time + 3.0;

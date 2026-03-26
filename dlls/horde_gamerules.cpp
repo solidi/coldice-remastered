@@ -34,6 +34,8 @@ extern int gmsgDeathMsg;
 extern int gmsgDEraser;
 extern int gmsgBanner;
 
+extern DLL_GLOBAL BOOL g_fGameOver;
+
 // In order of hardness
 const char *szMonsters[] = {
 	"monster_headcrab",
@@ -155,7 +157,7 @@ void CHalfLifeHorde::DetermineWinner( void )
 
 		if ( plr && plr->IsPlayer() && plr->IsInArena )
 		{
-			if ( plr->pev->frags == highest && winnerCount < 32 )
+			if ( plr->pev->frags == highest && winnerCount < 32 && highest > 0 )
 			{
 				winners[winnerCount] = plr;
 				winnerCount++;
@@ -190,9 +192,9 @@ void CHalfLifeHorde::DetermineWinner( void )
 				if ( i > 0 )
 				{
 					if ( i == winnerCount - 1 )
-						strcat( winnerNames, " and " );
+						strncat( winnerNames, " and ", sizeof(winnerNames) - strlen(winnerNames) - 1 );
 					else
-						strcat( winnerNames, ", " );
+						strncat( winnerNames, ", ", sizeof(winnerNames) - strlen(winnerNames) - 1 );
 				}
 				strncat( winnerNames, STRING(winners[i]->pev->netname), sizeof(winnerNames) - strlen(winnerNames) - 1 );
 			}
@@ -538,7 +540,6 @@ void CHalfLifeHorde::Think( void )
 				WRITE_BYTE(CLIENT_SOUND_WAVE_ENDED);
 			MESSAGE_END();
 
-			m_iSuccessfulRounds++;
 			flUpdateTime = gpGlobals->time + 3.0;
 			return;
 		}
@@ -608,6 +609,7 @@ void CHalfLifeHorde::Think( void )
 
 		InsertClientsIntoArena(0);
 
+		m_iWaveNumber = (m_iWaveNumber > 0) ? m_iWaveNumber - 1 : 0;
 		m_fBeginWaveTime = gpGlobals->time + 3.0;
 
 		m_iCountDown = 5;
@@ -648,6 +650,19 @@ void CHalfLifeHorde::Think( void )
 void CHalfLifeHorde::PlayerThink( CBasePlayer *pPlayer )
 {
 	CHalfLifeMultiplay::PlayerThink(pPlayer);
+
+	if (m_flIntermissionEndTime)
+		return;
+
+	if (!g_fGameOver)
+	{
+		// End session if hit score limit
+		if ( scorelimit.value > 0 && pPlayer->m_iRoundWins >= scorelimit.value )
+		{
+			GoToIntermission();
+			return;
+		}
+	}
 
 	if (pPlayer->m_iShowGameModeMessage > -1 &&
 		pPlayer->m_iShowGameModeMessage < gpGlobals->time &&
@@ -745,7 +760,8 @@ BOOL CHalfLifeHorde::HasGameTimerExpired( void )
 			WRITE_BYTE(0);
 		MESSAGE_END();
 
-		m_iSuccessfulRounds++;
+		PauseMutators();
+
 		flUpdateTime = gpGlobals->time + 3.0;
 		m_flRoundTimeLimit = 0;
 		return TRUE;
@@ -803,7 +819,8 @@ void CHalfLifeHorde::PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller, ent
 		//if (m_iPlayersInArena[i-1] > 0)
 		{
 			CBasePlayer *pPlayer = (CBasePlayer *)UTIL_PlayerByIndex(i);
-			if (pPlayer && !pPlayer->IsSpectator() && pPlayer != pVictim && !pPlayer->HasDisconnected)
+			if (pPlayer && !pPlayer->IsSpectator() && pPlayer != pVictim && 
+				!pPlayer->HasDisconnected && pPlayer->IsInArena)
 			{
 				survivors_left++;
 			}

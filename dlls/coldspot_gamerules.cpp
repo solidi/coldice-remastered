@@ -667,7 +667,7 @@ void CHalfLifeColdSpot::UpdateHud( void )
 		}
 	}
 
-	// End session if hit round limit
+	// End session if hit score limit
 	if ( redscore >= scorelimit.value || bluescore >= scorelimit.value )
 	{
 		GoToIntermission();
