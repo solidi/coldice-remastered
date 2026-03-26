@@ -1727,18 +1727,28 @@ void CHalfLifeLoot::Think( void )
 
 		if ( ( totalAlive == 0 || teamsAlive <= 1 ) && m_flCelebrationEndTime == 0 )
 		{
-			// One team survived — celebrate before tearing down the round
+			// One team survived — award points, celebrate, then tear down the round
 			if ( lastTeamIdx >= 0 )
 			{
 				m_flLastObjUpdate = gpGlobals->time + 5.0f;
 
-				// Surviving team members celebrate
+				// Award 1 point to each surviving member of the winning team
+				// and trigger their celebrate animation.
 				for ( int i = 1; i <= gpGlobals->maxClients; i++ )
 				{
 					CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
-					if ( plr && plr->IsPlayer() && plr->IsInArena &&
-					     plr->IsAlive() && plr->m_iLootTeam == lastTeamIdx )
-						plr->Celebrate();
+					if ( !plr || !plr->IsPlayer() || !plr->IsInArena ) continue;
+					if ( !plr->IsAlive() || plr->m_iLootTeam != lastTeamIdx ) continue;
+
+					plr->m_iRoundWins++;
+					plr->Celebrate();
+					MESSAGE_BEGIN( MSG_ALL, gmsgScoreInfo );
+						WRITE_BYTE ( ENTINDEX(plr->edict()) );
+						WRITE_SHORT( plr->pev->frags );
+						WRITE_SHORT( plr->m_iDeaths );
+						WRITE_SHORT( plr->m_iRoundWins );
+						WRITE_SHORT( GetTeamIndex(plr->m_szTeamName) + 1 );
+					MESSAGE_END();
 				}
 
 				// Objective panel for every real player
