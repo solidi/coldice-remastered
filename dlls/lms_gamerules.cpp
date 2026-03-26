@@ -301,14 +301,34 @@ void CHalfLifeLastManStanding::Think( void )
 
 	if (m_fSpawnSafeSpot && m_fSpawnSafeSpot < gpGlobals->time)
 	{
-		edict_t *pentSpawnSpot = EntSelectSpawnPoint("info_player_start");
-		if (!pSafeSpot)
-			pSafeSpot = CSafeSpot::CreateSafeSpot(pentSpawnSpot->v.origin, 8);
+		edict_t *pentSpawnSpot = EntSelectSpawnPoint("info_player_deathmatch");
+		if (FNullEnt(pentSpawnSpot) || pentSpawnSpot == INDEXENT(0))
+		{
+			ALERT(at_error, "[Royale] No info_player_deathmatch found — safe spot placement skipped.\n");
+			m_fSpawnSafeSpot = 0;
+		}
 		else
-			UTIL_SetOrigin(pSafeSpot->pev, pentSpawnSpot->v.origin);
+		{
+			if (!pSafeSpot)
+			{
+				pSafeSpot = CSafeSpot::CreateSafeSpot(pentSpawnSpot->v.origin, 8);
+			}
+			else
+			{
+				UTIL_SetOrigin(pSafeSpot->pev, pentSpawnSpot->v.origin);
+				MESSAGE_BEGIN(MSG_ALL, gmsgSpecialEntity);
+					WRITE_BYTE(0); // Index 0
+					WRITE_BYTE(1); // Active
+					WRITE_COORD(pSafeSpot->pev->origin.x);
+					WRITE_COORD(pSafeSpot->pev->origin.y);
+					WRITE_COORD(pSafeSpot->pev->origin.z);
+					WRITE_BYTE(RADAR_COLD_SPOT);
+				MESSAGE_END();
+			}
 
-		UTIL_ClientPrintAll(HUD_PRINTTALK, "[Royale] The safe spot has appeared!\n");
-		m_fSpawnSafeSpot = 0;
+			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Royale] The safe spot has appeared!\n");
+			m_fSpawnSafeSpot = 0;
+		}
 	}
 
 //===================================================
@@ -601,6 +621,7 @@ void CHalfLifeLastManStanding::Think( void )
 				WRITE_BYTE(pSafeSpot->pev->body);
 			MESSAGE_END();
 			m_fNextShrinkTime = gpGlobals->time + ((roundtimelimit.value * 60) / 15);
+			m_fSpawnSafeSpot = gpGlobals->time + 1.0; // relocate zone for this round
 		}
 
 		// Resend team info
