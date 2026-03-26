@@ -148,6 +148,7 @@ void CFlagCharm::ReturnThink( void )
 
 		UTIL_SetOrigin(pev, returnOrigin);
 		pev->angles = g_vecZero;
+		pev->sequence = FLAG_POSITIONED;
 	}
 
 	// Always reset timer if in base
@@ -189,6 +190,7 @@ void CFlagCharm::FlagTouch( CBaseEntity *pOther )
 				pMyBase->pev->iuser4 = FALSE;
 
 				pev->aiment = pOther->edict();
+				m_fReturnTime = 0;
 				pPlayer->m_fFlagTime = gpGlobals->time + 1.0;
 				pPlayer->pFlag = this;
 				pev->movetype = MOVETYPE_FOLLOW;
@@ -384,7 +386,10 @@ void CFlagBase::CTFTouch( CBaseEntity *pOther )
 					pFlag->pev->sequence = FLAG_POSITIONED;
 					pFlag->pev->angles = g_vecZero;
 
-					pPlayer->m_fCameraDelay = gpGlobals->time + 4.0;
+					MESSAGE_BEGIN( MSG_ONE, gmsgStatusIcon, NULL, pPlayer->edict() );
+						WRITE_BYTE(0);
+						WRITE_STRING("cam_flag");
+					MESSAGE_END();
 
 					UTIL_SetOrigin(pFlag->pev, (pFlag->pev->fuser4 == RADAR_FLAG_RED) ? vRedBase : vBlueBase);
 					pPlayer->pFlag = NULL;
@@ -687,16 +692,6 @@ void CHalfLifeCaptureTheFlag::PlayerThink( CBasePlayer *pPlayer )
 			pPlayer->m_iShowGameModeMessage = -1;
 		}
 	}
-
-	if (pPlayer->m_fCameraDelay && pPlayer->m_fCameraDelay < gpGlobals->time)
-	{
-		// Only received if the player is alive.
-		MESSAGE_BEGIN( MSG_ONE, gmsgStatusIcon, NULL, pPlayer->edict() );
-			WRITE_BYTE(0);
-			WRITE_STRING("cam_flag");
-		MESSAGE_END();
-		pPlayer->m_fCameraDelay = 0;
-	}
 }
 
 int CHalfLifeCaptureTheFlag::GetTeamIndex( const char *pTeamName )
@@ -904,7 +899,7 @@ CBaseEntity *CHalfLifeCaptureTheFlag::DropCharm( CBasePlayer *pPlayer, Vector or
 					{
 						MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, plr->edict());
 							WRITE_STRING(UTIL_VarArgs("%s has the flag!", STRING(pPlayerWithFlag->pev->netname)));
-							WRITE_STRING(UTIL_VarArgs("You're on %s team", (pPlayer->pev->fuser4 == TEAM_RED) ? "red" : "blue"));
+							WRITE_STRING(UTIL_VarArgs("You're on %s team", (plr->pev->fuser4 == TEAM_RED) ? "red" : "blue"));
 							WRITE_BYTE(0);
 						MESSAGE_END();
 					}
@@ -912,7 +907,7 @@ CBaseEntity *CHalfLifeCaptureTheFlag::DropCharm( CBasePlayer *pPlayer, Vector or
 					{
 						MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, plr->edict());
 							WRITE_STRING(UTIL_VarArgs("Capture the %s flag", (plr->pev->fuser4 == TEAM_RED) ? "blue" : "red"));
-							WRITE_STRING(UTIL_VarArgs("You're on %s team", (pPlayer->pev->fuser4 == TEAM_RED) ? "red" : "blue"));
+							WRITE_STRING(UTIL_VarArgs("You're on %s team", (plr->pev->fuser4 == TEAM_RED) ? "red" : "blue"));
 							WRITE_BYTE(0);
 						MESSAGE_END();
 					}
@@ -973,8 +968,8 @@ void CHalfLifeCaptureTheFlag::UpdateHud(int bluemode, int redmode, CBasePlayer *
 				MESSAGE_BEGIN(MSG_ONE, gmsgCtfInfo, NULL, plr->edict());
 					WRITE_BYTE(m_iBlueScore);
 					WRITE_BYTE(m_iRedScore);
-					plr == pPlayer && plr->pev->fuser4 == TEAM_RED ? WRITE_BYTE(3) : WRITE_BYTE(bluemode);
-					plr == pPlayer && plr->pev->fuser4 == TEAM_BLUE ? WRITE_BYTE(3) : WRITE_BYTE(redmode);
+					plr == pPlayer && plr->pev->fuser4 == TEAM_RED ? WRITE_BYTE(3) : WRITE_BYTE(bluemode != -1 ? bluemode : m_iBlueMode);
+					plr == pPlayer && plr->pev->fuser4 == TEAM_BLUE ? WRITE_BYTE(3) : WRITE_BYTE(redmode != -1 ? redmode : m_iRedMode);
 				MESSAGE_END();
 			}
 		}
