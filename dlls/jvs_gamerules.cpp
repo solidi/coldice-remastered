@@ -559,9 +559,11 @@ void CHalfLifeJesusVsSanta::FPlayerTookDamage( float flDamage, CBasePlayer *pVic
 	if (pKiller && pKiller->IsPlayer())
 	{
 		pPlayerAttacker = (CBasePlayer *)pKiller;
-		if ( pPlayerAttacker != pVictim && !pPlayerAttacker->IsArmoredMan && !pVictim->IsArmoredMan )
+		if ( pPlayerAttacker != pVictim && !pPlayerAttacker->IsArmoredMan &&
+			!pVictim->IsArmoredMan && pPlayerAttacker->m_fCameraDelay < gpGlobals->time )
 		{
 			ClientPrint(pPlayerAttacker->pev, HUD_PRINTCENTER, "Destroy Jesus!\nNot your teammate!");
+			pPlayerAttacker->m_fCameraDelay	= gpGlobals->time + 2.0;
 		}
 	}
 }
