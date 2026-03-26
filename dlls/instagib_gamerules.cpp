@@ -93,11 +93,6 @@ void CTombstone::TombstoneThink( void )
 	pev->nextthink = gpGlobals->time + 0.25;
 }
 
-CHalfLifeInstagib::CHalfLifeInstagib()
-{
-
-}
-
 void CHalfLifeInstagib::InitHUD( CBasePlayer *pPlayer )
 {
 	CHalfLifeMultiplay::InitHUD( pPlayer );
@@ -108,6 +103,7 @@ void CHalfLifeInstagib::InitHUD( CBasePlayer *pPlayer )
 			WRITE_STRING("Instagib 'em");
 			WRITE_STRING("");
 			WRITE_BYTE(0);
+			WRITE_STRING("");
 		MESSAGE_END();
 	}
 }
