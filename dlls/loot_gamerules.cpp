@@ -406,6 +406,7 @@ CHalfLifeLoot::CHalfLifeLoot()
 	memset( m_iTeamPlayerCount,  0, sizeof(m_iTeamPlayerCount) );
 	memset( m_vecTeamSpawnOrigin,0, sizeof(m_vecTeamSpawnOrigin) );
 	memset( m_vecUsedSpots,      0, sizeof(m_vecUsedSpots) );
+	memset( m_flWeaponHintTime,  0, sizeof(m_flWeaponHintTime) );
 
 	UTIL_PrecacheOther("loot_entity");
 	UTIL_PrecacheOther("loot_crate");
@@ -2335,7 +2336,23 @@ BOOL CHalfLifeLoot::CanHavePlayerItem( CBasePlayer *pPlayer, CBasePlayerItem *pI
 
 		int maxWeapons = hasLootAdvantage ? 3 : 1;
 		if ( CountNonFistWeapons(pPlayer) >= maxWeapons )
+		{
+			// Remind the player they are at their weapon limit.
+			// Rate-limited to once per 2 seconds to avoid HUD spam while standing over a weapon.
+			int slot = ENTINDEX( pPlayer->edict() );
+			if ( slot >= 1 && slot <= 32 && gpGlobals->time >= m_flWeaponHintTime[slot] )
+			{
+				m_flWeaponHintTime[slot] = gpGlobals->time + 2.0f;
+				if ( !FBitSet(pPlayer->pev->flags, FL_FAKECLIENT) )
+				{
+					ClientPrint( pPlayer->pev, HUD_PRINTCENTER,
+					    maxWeapons == 1
+					        ? "Drop your weapon first!"
+					        : "Drop a weapon first!" );
+				}
+			}
 			return FALSE;  // At limit; +use swap in player.cpp handles the swap
+		}
 	}
 
 	return CHalfLifeMultiplay::CanHavePlayerItem( pPlayer, pItem );
