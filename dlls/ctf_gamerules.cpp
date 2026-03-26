@@ -386,7 +386,10 @@ void CFlagBase::CTFTouch( CBaseEntity *pOther )
 					pFlag->pev->sequence = FLAG_POSITIONED;
 					pFlag->pev->angles = g_vecZero;
 
-					pPlayer->m_fCameraDelay = gpGlobals->time + 4.0;
+					MESSAGE_BEGIN( MSG_ONE, gmsgStatusIcon, NULL, pPlayer->edict() );
+						WRITE_BYTE(0);
+						WRITE_STRING("cam_flag");
+					MESSAGE_END();
 
 					UTIL_SetOrigin(pFlag->pev, (pFlag->pev->fuser4 == RADAR_FLAG_RED) ? vRedBase : vBlueBase);
 					pPlayer->pFlag = NULL;
@@ -688,16 +691,6 @@ void CHalfLifeCaptureTheFlag::PlayerThink( CBasePlayer *pPlayer )
 			MESSAGE_END();
 			pPlayer->m_iShowGameModeMessage = -1;
 		}
-	}
-
-	if (pPlayer->m_fCameraDelay && pPlayer->m_fCameraDelay < gpGlobals->time)
-	{
-		// Only received if the player is alive.
-		MESSAGE_BEGIN( MSG_ONE, gmsgStatusIcon, NULL, pPlayer->edict() );
-			WRITE_BYTE(0);
-			WRITE_STRING("cam_flag");
-		MESSAGE_END();
-		pPlayer->m_fCameraDelay = 0;
 	}
 }
 
