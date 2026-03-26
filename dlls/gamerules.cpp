@@ -1747,7 +1747,7 @@ void CGameRules::MutatorsThink(void)
 						pl->pev->health = 999;
 						pl->pev->armorvalue = 999;
 					}
-					else
+					else if (!pl->IsArmoredMan && pl->pev->fuser4 != RADAR_VIRUS)
 					{
 						pl->pev->max_health = 100;
 						if (pl->pev->health > 100)

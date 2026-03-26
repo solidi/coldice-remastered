@@ -284,10 +284,11 @@ void CHalfLifeJesusVsSanta::Think( void )
 				MESSAGE_END();
 			}
 
+			DetermineWinner();
+
 			//armored man is alive.
 			if ( pArmoredMan && pArmoredMan->IsAlive() && clients_alive == 1 )
 			{
-				DetermineWinner();
 				MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
 					WRITE_BYTE(CLIENT_SOUND_KILLINGMACHINE);
 				MESSAGE_END();
@@ -295,7 +296,6 @@ void CHalfLifeJesusVsSanta::Think( void )
 			//the man has been killed.
 			else if ( pArmoredMan && !pArmoredMan->IsAlive() )
 			{
-				DetermineWinner();
 				MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
 					WRITE_BYTE(CLIENT_SOUND_OUTSTANDING);
 				MESSAGE_END();
@@ -303,7 +303,6 @@ void CHalfLifeJesusVsSanta::Think( void )
 			//everyone died.
 			else
 			{
-				DetermineWinner();
 				MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
 					WRITE_BYTE(CLIENT_SOUND_HULIMATING_DEAFEAT);
 				MESSAGE_END();
@@ -585,7 +584,7 @@ void CHalfLifeJesusVsSanta::PlayerSpawn( CBasePlayer *pPlayer )
 	{
 		pPlayer->GiveMelees();
 		pPlayer->GiveExplosives();
-		pPlayer->pev->max_health = pPlayer->pev->health = pPlayer->pev->armorvalue = 750;
+		pPlayer->pev->health = pPlayer->pev->armorvalue = pPlayer->pev->max_health = 750;
 		g_engfuncs.pfnSetPhysicsKeyValue(pPlayer->edict(), "haste", "1");
 		pPlayer->GiveNamedItem("rune_cloak");
 		strncpy( pPlayer->m_szTeamName, "jesus", TEAM_NAME_LENGTH );
