@@ -129,6 +129,10 @@ void CHalfLifeInstagib::Think(void)
 {
 	CHalfLifeMultiplay::Think();
 
+	// No loop during intermission
+	if ( m_flIntermissionEndTime )
+		return;
+
 	if ( flUpdateTime > gpGlobals->time )
 		return;
 
