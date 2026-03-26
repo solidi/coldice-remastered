@@ -285,7 +285,13 @@ void CHalfLifeLastManStanding::Think( void )
 
 	// No loop during intermission
 	if ( m_flIntermissionEndTime )
+	{
+		CSafeSpot *spot = NULL;
+		if (spot = (CSafeSpot *)UTIL_FindEntityByClassname(NULL, "safespot"))
+			UTIL_Remove(spot);
+		flUpdateTime = gpGlobals->time + 1.0;
 		return;
+	}
 
 	if ( m_flRoundTimeLimit )
 	{
