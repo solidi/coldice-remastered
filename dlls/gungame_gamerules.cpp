@@ -339,7 +339,7 @@ void CHalfLifeGunGame::PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller, e
 			}
 		}
 
-		if (ktmp->IsPlayer())
+		if (ktmp && ktmp->IsPlayer())
 		{
 			CBasePlayer *plr = ((CBasePlayer *)ktmp);
 
