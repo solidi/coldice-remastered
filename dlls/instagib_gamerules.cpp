@@ -297,7 +297,7 @@ void CHalfLifeInstagib::PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller, 
 {
 	CHalfLifeMultiplay::PlayerKilled( pVictim, pKiller, pInflictor );
 
-	// Tombstone faces killers angle.
+	// Tombstone faces the killer's yaw.
 	CBaseEntity::Create( "monster_tombstone", Vector(pVictim->pev->origin.x, pVictim->pev->origin.y, pVictim->pev->origin.z), Vector(0, pKiller->angles.y, 0), NULL );
 }
 
