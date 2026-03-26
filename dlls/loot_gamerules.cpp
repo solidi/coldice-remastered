@@ -85,7 +85,7 @@ void CLootCrate::Spawn( void )
 	pev->solid     = SOLID_BBOX;
 	pev->movetype  = MOVETYPE_TOSS;
 	pev->takedamage = DAMAGE_YES;
-	pev->health    = 25;
+	pev->health    = 50;
 	pev->sequence  = 0;
 	pev->animtime  = gpGlobals->time;
 	pev->framerate    = 1.0f;
@@ -299,6 +299,7 @@ void CLootEntity::Drop( Vector origin )
 	pev->aiment   = NULL;
 	pev->owner    = NULL;
 	pev->sequence = 0;
+	pev->angles = g_vecZero;
 
 	// Bounds check before placing
 	/*TraceResult tr;
@@ -2174,7 +2175,17 @@ void CHalfLifeLoot::PlayerKilled( CBasePlayer *pVictim,
 	if ( pVictim->m_bHoldingLoot )
 	{
 		UTIL_MakeVectors( pVictim->pev->v_angle );
-		DropCharm( pVictim, pVictim->pev->origin + gpGlobals->v_forward * 32 );
+		Vector dropPos = pVictim->pev->origin + gpGlobals->v_forward * 32;
+
+		// If the forward drop point is blocked by geometry, fall back to the
+		// victim's own origin so the loot entity isn't placed inside a wall.
+		TraceResult tr;
+		UTIL_TraceLine( pVictim->pev->origin, dropPos, ignore_monsters,
+		                ENT(pVictim->pev), &tr );
+		if ( tr.flFraction < 1.0f )
+			dropPos = pVictim->pev->origin;
+
+		DropCharm( pVictim, dropPos );
 	}
 
 	if ( !pVictim->m_flForceToObserverTime )
