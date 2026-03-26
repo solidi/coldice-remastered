@@ -20,6 +20,7 @@ public:
 	virtual const char *GetGameDescription( void ) { return "Cold Ice Remastered Instagib"; }
 	virtual void InitHUD( CBasePlayer *pPlayer );
 	virtual BOOL MutatorAllowed(const char *mutator);
+	virtual void Think( void );
 	virtual void PlayerThink( CBasePlayer *pPlayer );
 	virtual BOOL IsAllowedToSpawn( CBaseEntity *pEntity );
 	virtual void PlayerSpawn( CBasePlayer *pPlayer );
