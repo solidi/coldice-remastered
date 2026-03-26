@@ -290,7 +290,7 @@ void CHalfLifeGunGame::PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller, e
 					WRITE_SHORT( pVictim->m_iRoundWins + 1 );
 					WRITE_SHORT( 0 );
 				MESSAGE_END();
-				ClientPrint(pVictim->pev, HUD_PRINTTALK, "[GunGame] You level was lost by suicide!\n");
+				ClientPrint(pVictim->pev, HUD_PRINTTALK, "[GunGame] Your level was lost by suicide!\n");
 
 				m_fRefreshStats = gpGlobals->time;
 			}
@@ -314,7 +314,7 @@ void CHalfLifeGunGame::PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller, e
 						WRITE_SHORT( 0 );
 					MESSAGE_END();
 					ClientPrint(pVictim->pev, HUD_PRINTTALK,
-						UTIL_VarArgs("[GunGame] You level was stolen by %s!\n",
+						UTIL_VarArgs("[GunGame] Your level was stolen by %s!\n",
 						STRING(plr->pev->netname)));
 				}
 
@@ -324,7 +324,7 @@ void CHalfLifeGunGame::PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller, e
 				{
 					plr->m_iRoundWins = roundWins + 1;
 					plr->pev->frags = ((roundWins + 2) * (int)ggfrags.value);
-					ClientPrint(plr->pev, HUD_PRINTTALK, UTIL_VarArgs("[GunGame] You level was increased by a steal!\n"));
+					ClientPrint(plr->pev, HUD_PRINTTALK, UTIL_VarArgs("[GunGame] Your level was increased by a steal!\n"));
 
 					MESSAGE_BEGIN( MSG_ALL, gmsgScoreInfo );
 						WRITE_BYTE( ENTINDEX(plr->edict()) );
