@@ -207,7 +207,7 @@ void CHalfLifeGunGame::Think( void )
 				{
 					if (!FBitSet(plr->pev->flags, FL_FAKECLIENT))
 					{
-						int result = ((m_iTopLevel + 1) / MAXLEVEL) * 100;
+						int result = (int)(((float)(m_iTopLevel + 1) / MAXLEVEL) * 100.0f);
 						MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, plr->edict());
 							WRITE_STRING("GunGame in progress");
 							WRITE_STRING(UTIL_VarArgs("Top level is %s [%d of %d]", g_WeaponId[m_iTopLevel], m_iTopLevel + 1, MAXLEVEL));
@@ -217,7 +217,7 @@ void CHalfLifeGunGame::Think( void )
 				}
 				else
 				{
-					int result = ((plr->m_iRoundWins + 1) / MAXLEVEL) * 100;
+					int result = (int)(((float)(plr->m_iRoundWins + 1) / MAXLEVEL) * 100.0f);
 
 					if (!FBitSet(plr->pev->flags, FL_FAKECLIENT))
 					{
