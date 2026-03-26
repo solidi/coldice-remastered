@@ -493,32 +493,41 @@ void CHalfLifeLastManStanding::Think( void )
 
 			if (m_TeamBased)
 			{
-				int highest = 1;
-				BOOL IsEqual = FALSE;
-				CBasePlayer *highballer = NULL;
-				int type = TEAM_BLUE;
-
-				if (blueTeam == 0)
+				if (redTeam == 0 && blueTeam == 0)
 				{
-					type = TEAM_RED;
-					UTIL_ClientPrintAll(HUD_PRINTCENTER, "Red team wins!\n");
+					// Both teams wiped out on the same tick — draw
+					UTIL_ClientPrintAll(HUD_PRINTCENTER, "Both teams eliminated - Draw!\n");
+					UTIL_ClientPrintAll(HUD_PRINTTALK, "[Royale] No winners in this round!\n");
+					MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
+						WRITE_BYTE(CLIENT_SOUND_HULIMATING_DEAFEAT);
+					MESSAGE_END();
 				}
 				else
-					UTIL_ClientPrintAll(HUD_PRINTCENTER, "Blue team wins!\n");
-
-				for ( int i = 1; i <= gpGlobals->maxClients; i++ )
 				{
-					CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
+					int type = TEAM_BLUE;
 
-					if ( plr && plr->IsPlayer() && plr->IsInArena )
+					if (blueTeam == 0)
 					{
-						if ( plr->pev->fuser4 == type )
+						type = TEAM_RED;
+						UTIL_ClientPrintAll(HUD_PRINTCENTER, "Red team wins!\n");
+					}
+					else
+						UTIL_ClientPrintAll(HUD_PRINTCENTER, "Blue team wins!\n");
+
+					for ( int i = 1; i <= gpGlobals->maxClients; i++ )
+					{
+						CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
+
+						if ( plr && plr->IsPlayer() && plr->IsInArena )
 						{
-							plr->m_iRoundWins++;
-							plr->Celebrate();
-							MESSAGE_BEGIN( MSG_ONE, gmsgPlayClientSound, NULL, plr->edict() );
-								WRITE_BYTE(CLIENT_SOUND_LMS);
-							MESSAGE_END();
+							if ( plr->pev->fuser4 == type )
+							{
+								plr->m_iRoundWins++;
+								plr->Celebrate();
+								MESSAGE_BEGIN( MSG_ONE, gmsgPlayClientSound, NULL, plr->edict() );
+									WRITE_BYTE(CLIENT_SOUND_LMS);
+								MESSAGE_END();
+							}
 						}
 					}
 				}
@@ -898,7 +907,8 @@ void CHalfLifeLastManStanding::PlayerSpawn( CBasePlayer *pPlayer )
 			for (int i = 1; i <= gpGlobals->maxClients; i++)
 			{
 				CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
-				if ( plr && plr != pPlayer && plr->IsPlayer() && !plr->HasDisconnected )
+				if ( plr && plr != pPlayer && plr->IsPlayer() && 
+					!plr->HasDisconnected && plr->IsInArena )
 				{
 					if (plr->pev->fuser4 == TEAM_BLUE)
 						blueteam++;
