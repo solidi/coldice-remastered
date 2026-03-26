@@ -16,7 +16,6 @@
 class CHalfLifeInstagib : public CHalfLifeMultiplay
 {
 public:
-	CHalfLifeInstagib();
 	virtual const char *GetGameDescription( void ) { return "Cold Ice Remastered Instagib"; }
 	virtual void InitHUD( CBasePlayer *pPlayer );
 	virtual BOOL MutatorAllowed(const char *mutator);
