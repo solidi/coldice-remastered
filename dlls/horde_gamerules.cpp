@@ -155,7 +155,7 @@ void CHalfLifeHorde::DetermineWinner( void )
 
 		if ( plr && plr->IsPlayer() && plr->IsInArena )
 		{
-			if ( plr->pev->frags == highest && winnerCount < 32 )
+			if ( plr->pev->frags == highest && winnerCount < 32 && highest > 0 )
 			{
 				winners[winnerCount] = plr;
 				winnerCount++;
@@ -190,9 +190,9 @@ void CHalfLifeHorde::DetermineWinner( void )
 				if ( i > 0 )
 				{
 					if ( i == winnerCount - 1 )
-						strcat( winnerNames, " and " );
+						strncat( winnerNames, " and ", sizeof(winnerNames) - strlen(winnerNames) - 1 );
 					else
-						strcat( winnerNames, ", " );
+						strncat( winnerNames, ", ", sizeof(winnerNames) - strlen(winnerNames) - 1 );
 				}
 				strncat( winnerNames, STRING(winners[i]->pev->netname), sizeof(winnerNames) - strlen(winnerNames) - 1 );
 			}
