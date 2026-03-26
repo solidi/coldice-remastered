@@ -54,7 +54,7 @@ void CHalfLifeJesusVsSanta::DetermineWinner( void )
 	{
 		CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
 
-		if ( plr && plr->IsPlayer() && plr->IsInArena )
+		if ( plr && plr->IsPlayer() && plr->IsInArena && plr->IsAlive() )
 		{
 			if ( highest <= plr->pev->frags )
 			{
@@ -92,7 +92,7 @@ void CHalfLifeJesusVsSanta::DetermineWinner( void )
 			{
 				CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
 
-				if ( plr && plr->IsPlayer() && plr->IsInArena )
+				if ( plr && plr->IsPlayer() && plr->IsInArena && plr->IsAlive() )
 				{
 					if ( plr->pev->frags == highest)
 					{
@@ -212,7 +212,7 @@ void CHalfLifeJesusVsSanta::Think( void )
 				}
 				else
 				{
-					if ((clients_alive - 1) >= 1)
+					if (pArmoredMan && (clients_alive - 1) >= 1)
 					{
 						MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, plr->edict());
 							WRITE_STRING(UTIL_VarArgs("Defeat %s as Jesus", STRING(pArmoredMan->pev->netname)));
@@ -284,10 +284,11 @@ void CHalfLifeJesusVsSanta::Think( void )
 				MESSAGE_END();
 			}
 
+			DetermineWinner();
+
 			//armored man is alive.
 			if ( pArmoredMan && pArmoredMan->IsAlive() && clients_alive == 1 )
 			{
-				DetermineWinner();
 				MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
 					WRITE_BYTE(CLIENT_SOUND_KILLINGMACHINE);
 				MESSAGE_END();
@@ -295,7 +296,6 @@ void CHalfLifeJesusVsSanta::Think( void )
 			//the man has been killed.
 			else if ( pArmoredMan && !pArmoredMan->IsAlive() )
 			{
-				DetermineWinner();
 				MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
 					WRITE_BYTE(CLIENT_SOUND_OUTSTANDING);
 				MESSAGE_END();
@@ -303,7 +303,6 @@ void CHalfLifeJesusVsSanta::Think( void )
 			//everyone died.
 			else
 			{
-				DetermineWinner();
 				MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
 					WRITE_BYTE(CLIENT_SOUND_HULIMATING_DEAFEAT);
 				MESSAGE_END();
@@ -559,9 +558,11 @@ void CHalfLifeJesusVsSanta::FPlayerTookDamage( float flDamage, CBasePlayer *pVic
 	if (pKiller && pKiller->IsPlayer())
 	{
 		pPlayerAttacker = (CBasePlayer *)pKiller;
-		if ( pPlayerAttacker != pVictim && !pPlayerAttacker->IsArmoredMan && !pVictim->IsArmoredMan )
+		if ( pPlayerAttacker != pVictim && !pPlayerAttacker->IsArmoredMan &&
+			!pVictim->IsArmoredMan && pPlayerAttacker->m_fCameraDelay < gpGlobals->time )
 		{
 			ClientPrint(pPlayerAttacker->pev, HUD_PRINTCENTER, "Destroy Jesus!\nNot your teammate!");
+			pPlayerAttacker->m_fCameraDelay	= gpGlobals->time + 2.0;
 		}
 	}
 }
@@ -583,7 +584,7 @@ void CHalfLifeJesusVsSanta::PlayerSpawn( CBasePlayer *pPlayer )
 	{
 		pPlayer->GiveMelees();
 		pPlayer->GiveExplosives();
-		pPlayer->pev->max_health = pPlayer->pev->health = pPlayer->pev->armorvalue = 750;
+		pPlayer->pev->health = pPlayer->pev->armorvalue = pPlayer->pev->max_health = 750;
 		g_engfuncs.pfnSetPhysicsKeyValue(pPlayer->edict(), "haste", "1");
 		pPlayer->GiveNamedItem("rune_cloak");
 		strncpy( pPlayer->m_szTeamName, "jesus", TEAM_NAME_LENGTH );
@@ -623,8 +624,6 @@ BOOL CHalfLifeJesusVsSanta::FPlayerCanRespawn( CBasePlayer *pPlayer )
 
 void CHalfLifeJesusVsSanta::PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller, entvars_t *pInflictor )
 {
-	pVictim->pev->frags = 0; // clear immediately for winner determination
-
 	CHalfLifeMultiplay::PlayerKilled(pVictim, pKiller, pInflictor);
 
 	if ( !pVictim->IsArmoredMan )
@@ -647,6 +646,16 @@ void CHalfLifeJesusVsSanta::PlayerKilled( CBasePlayer *pVictim, entvars_t *pKill
 				WRITE_BYTE(CLIENT_SOUND_MASSACRE);
 			MESSAGE_END();
 		}
+	}
+	else if ( pVictim->IsArmoredMan )
+	{
+		CBaseEntity *ktmp = CBaseEntity::Instance( pKiller );
+		CBasePlayer *pKillerPlayer = (ktmp && ktmp->IsPlayer()) ? (CBasePlayer *)ktmp : NULL;
+		if ( pKillerPlayer && pKillerPlayer != pVictim )
+			UTIL_ClientPrintAll(HUD_PRINTTALK,
+				UTIL_VarArgs("[JvS] Jesus has been defeated by %s!\n", STRING(pKillerPlayer->pev->netname)));
+		else
+			UTIL_ClientPrintAll(HUD_PRINTTALK, "[JvS] Jesus has been defeated!\n");
 	}
 }
 
