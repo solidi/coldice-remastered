@@ -968,8 +968,8 @@ void CHalfLifeCaptureTheFlag::UpdateHud(int bluemode, int redmode, CBasePlayer *
 				MESSAGE_BEGIN(MSG_ONE, gmsgCtfInfo, NULL, plr->edict());
 					WRITE_BYTE(m_iBlueScore);
 					WRITE_BYTE(m_iRedScore);
-					plr == pPlayer && plr->pev->fuser4 == TEAM_RED ? WRITE_BYTE(3) : WRITE_BYTE(bluemode);
-					plr == pPlayer && plr->pev->fuser4 == TEAM_BLUE ? WRITE_BYTE(3) : WRITE_BYTE(redmode);
+					plr == pPlayer && plr->pev->fuser4 == TEAM_RED ? WRITE_BYTE(3) : WRITE_BYTE(bluemode != -1 ? bluemode : m_iBlueMode);
+					plr == pPlayer && plr->pev->fuser4 == TEAM_BLUE ? WRITE_BYTE(3) : WRITE_BYTE(redmode != -1 ? redmode : m_iRedMode);
 				MESSAGE_END();
 			}
 		}
