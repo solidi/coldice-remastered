@@ -546,8 +546,10 @@ void CHalfLifeLoot::OnCrateLost( CLootCrate *pCrate )
 	pCrate->m_bHasLoot = FALSE;  // prevent any further callbacks
 	UTIL_Remove( pCrate );
 
-	if ( m_iCratesLeft  > 0 ) m_iCratesLeft--;
-	if ( m_iTotalCrates > 0 ) m_iTotalCrates--;
+	// Only decrement the "remaining" counter; m_iTotalCrates is the fixed
+	// denominator for the round (how many were spawned) and must not change
+	// mid-round or the objective panel progress fraction will be wrong.
+	if ( m_iCratesLeft > 0 ) m_iCratesLeft--;
 
 	ALERT( at_console, "[Loot] Crate lost (hadLoot=%d). Crates remaining: %d/%d\n",
 	       hadLoot, m_iCratesLeft, m_iTotalCrates );
@@ -1314,7 +1316,7 @@ void CHalfLifeLoot::EndRound( int winningTeam )
 				bestTeam = t;
 				tied     = FALSE;
 			}
-			else if ( m_flTeamHoldTime[t] > 0 && m_flTeamHoldTime[t] == bestTime )
+			else if ( m_flTeamHoldTime[t] > 0 && fabsf(m_flTeamHoldTime[t] - bestTime) < 0.5f )
 			{
 				tied = TRUE;
 			}
