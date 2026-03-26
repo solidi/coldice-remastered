@@ -906,7 +906,7 @@ CBaseEntity *CHalfLifeCaptureTheFlag::DropCharm( CBasePlayer *pPlayer, Vector or
 					{
 						MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, plr->edict());
 							WRITE_STRING(UTIL_VarArgs("%s has the flag!", STRING(pPlayerWithFlag->pev->netname)));
-							WRITE_STRING(UTIL_VarArgs("You're on %s team", (pPlayer->pev->fuser4 == TEAM_RED) ? "red" : "blue"));
+							WRITE_STRING(UTIL_VarArgs("You're on %s team", (plr->pev->fuser4 == TEAM_RED) ? "red" : "blue"));
 							WRITE_BYTE(0);
 						MESSAGE_END();
 					}
@@ -914,7 +914,7 @@ CBaseEntity *CHalfLifeCaptureTheFlag::DropCharm( CBasePlayer *pPlayer, Vector or
 					{
 						MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, plr->edict());
 							WRITE_STRING(UTIL_VarArgs("Capture the %s flag", (plr->pev->fuser4 == TEAM_RED) ? "blue" : "red"));
-							WRITE_STRING(UTIL_VarArgs("You're on %s team", (pPlayer->pev->fuser4 == TEAM_RED) ? "red" : "blue"));
+							WRITE_STRING(UTIL_VarArgs("You're on %s team", (plr->pev->fuser4 == TEAM_RED) ? "red" : "blue"));
 							WRITE_BYTE(0);
 						MESSAGE_END();
 					}
