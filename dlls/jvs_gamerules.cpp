@@ -648,6 +648,16 @@ void CHalfLifeJesusVsSanta::PlayerKilled( CBasePlayer *pVictim, entvars_t *pKill
 			MESSAGE_END();
 		}
 	}
+	else if ( pVictim->IsArmoredMan )
+	{
+		CBaseEntity *ktmp = CBaseEntity::Instance( pKiller );
+		CBasePlayer *pKillerPlayer = (ktmp && ktmp->IsPlayer()) ? (CBasePlayer *)ktmp : NULL;
+		if ( pKillerPlayer && pKillerPlayer != pVictim )
+			UTIL_ClientPrintAll(HUD_PRINTTALK,
+				UTIL_VarArgs("[JvS] Jesus has been defeated by %s!\n", STRING(pKillerPlayer->pev->netname)));
+		else
+			UTIL_ClientPrintAll(HUD_PRINTTALK, "[JvS] Jesus has been defeated!\n");
+	}
 }
 
 BOOL CHalfLifeJesusVsSanta::CanHavePlayerItem( CBasePlayer *pPlayer, CBasePlayerItem *pItem )
