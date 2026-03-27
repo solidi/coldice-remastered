@@ -494,12 +494,20 @@ void CHalfLifePropHunt::Think( void )
 								WRITE_STRING("Hunters have won!");
 								if (roundlimit.value > 0)
 									WRITE_STRING(UTIL_VarArgs("Round %d of %d", m_iSuccessfulRounds+1, (int)roundlimit.value));
+								else
+									WRITE_STRING("");
+								WRITE_BYTE(0);
+								WRITE_STRING("");
 							}
 							else if (m_iPropsRemain >= 1 && m_iHuntersRemain <= 0)
 							{
 								WRITE_STRING("Props have won!");
 								if (roundlimit.value > 0)
 									WRITE_STRING(UTIL_VarArgs("Round %d of %d", m_iSuccessfulRounds+1, (int)roundlimit.value));
+								else
+									WRITE_STRING("");
+								WRITE_BYTE(0);
+								WRITE_STRING("");
 							}
 							else
 							{
@@ -508,6 +516,8 @@ void CHalfLifePropHunt::Think( void )
 								WRITE_BYTE(float(m_iPropsRemain) / (m_iPlayersInGame) * 100);
 								if (roundlimit.value > 0)
 									WRITE_STRING(UTIL_VarArgs("Round %d of %d", m_iSuccessfulRounds+1, (int)roundlimit.value));
+								else
+									WRITE_STRING("");
 							}
 						MESSAGE_END();
 					} else {
