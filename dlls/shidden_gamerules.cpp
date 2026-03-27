@@ -78,7 +78,7 @@ void CHalfLifeShidden::DetermineWinner( void )
 				UTIL_VarArgs("%s doled the most frags!\n", STRING(highballer->pev->netname)));
 			MESSAGE_BEGIN(MSG_BROADCAST, gmsgObjective);
 				WRITE_STRING("Shidden Completed!");
-				WRITE_STRING(UTIL_VarArgs("%s win!", m_iDealtersRemain ? "Dealters" : "Smelters"));
+				WRITE_STRING(UTIL_VarArgs("%s win!", highballer->pev->fuser4 == SHIDDEN_DEALTER ? "Dealters" : "Smelters"));
 				WRITE_BYTE(0);
 				WRITE_STRING(UTIL_VarArgs("%s doled the most frags!\n", STRING(highballer->pev->netname)));
 			MESSAGE_END();
@@ -105,7 +105,10 @@ void CHalfLifeShidden::DetermineWinner( void )
 			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Shidden] Round ends with winners!\n");
 			MESSAGE_BEGIN(MSG_BROADCAST, gmsgObjective);
 				WRITE_STRING("Shidden Completed!");
-				WRITE_STRING(UTIL_VarArgs("%s win!", m_iDealtersRemain ? "Dealters" : "Smelters"));
+				if (m_iDealtersRemain == 0 && m_iSmeltersRemain == 0)
+					WRITE_STRING("Mutual destruction!");
+				else
+					WRITE_STRING(UTIL_VarArgs("%s win!", m_iDealtersRemain ? "Dealters" : "Smelters"));
 				WRITE_BYTE(0);
 				WRITE_STRING("Numerous victors!");
 			MESSAGE_END();
@@ -196,6 +199,8 @@ void CHalfLifeShidden::Think( void )
 									WRITE_BYTE(float(smelters_left) / (m_iPlayersInGame) * 100);
 									if (roundlimit.value > 0)
 										WRITE_STRING(UTIL_VarArgs("Round %d of %d", m_iSuccessfulRounds+1, (int)roundlimit.value));
+									else
+										WRITE_STRING("");
 								MESSAGE_END();
 							}
 							else if (smelters_left == 1)
@@ -206,6 +211,8 @@ void CHalfLifeShidden::Think( void )
 									WRITE_BYTE(0);
 									if (roundlimit.value > 0)
 										WRITE_STRING(UTIL_VarArgs("Round %d of %d", m_iSuccessfulRounds+1, (int)roundlimit.value));
+									else
+										WRITE_STRING("");
 								MESSAGE_END();
 							}
 							else
@@ -231,6 +238,8 @@ void CHalfLifeShidden::Think( void )
 									WRITE_BYTE(float(dealters_left) / (m_iPlayersInGame) * 100);
 									if (roundlimit.value > 0)
 										WRITE_STRING(UTIL_VarArgs("Round %d of %d", m_iSuccessfulRounds+1, (int)roundlimit.value));
+									else
+										WRITE_STRING("");
 								MESSAGE_END();
 							}
 							else
@@ -243,6 +252,8 @@ void CHalfLifeShidden::Think( void )
 										WRITE_BYTE(float(dealters_left) / (m_iPlayersInGame) * 100);
 										if (roundlimit.value > 0)
 											WRITE_STRING(UTIL_VarArgs("Round %d of %d", m_iSuccessfulRounds+1, (int)roundlimit.value));
+										else
+											WRITE_STRING("");
 									MESSAGE_END();
 								}
 								else
@@ -272,12 +283,20 @@ void CHalfLifeShidden::Think( void )
 								WRITE_STRING("Smelters have won!");
 								if (roundlimit.value > 0)
 									WRITE_STRING(UTIL_VarArgs("Round %d of %d", m_iSuccessfulRounds+1, (int)roundlimit.value));
+								else
+									WRITE_STRING("");
+								WRITE_BYTE(0);
+								WRITE_STRING("");
 							}
 							else if (m_iDealtersRemain >= 1 && m_iSmeltersRemain <= 0)
 							{
 								WRITE_STRING("Dealters have won!");
 								if (roundlimit.value > 0)
 									WRITE_STRING(UTIL_VarArgs("Round %d of %d", m_iSuccessfulRounds+1, (int)roundlimit.value));
+								else
+									WRITE_STRING("");
+								WRITE_BYTE(0);
+								WRITE_STRING("");
 							}
 							else
 							{
@@ -286,6 +305,8 @@ void CHalfLifeShidden::Think( void )
 								WRITE_BYTE(float(m_iSmeltersRemain) / (m_iPlayersInGame) * 100);
 								if (roundlimit.value > 0)
 									WRITE_STRING(UTIL_VarArgs("Round %d of %d", m_iSuccessfulRounds+1, (int)roundlimit.value));
+								else
+									WRITE_STRING("");
 							}
 						MESSAGE_END();
 					} else {
@@ -497,6 +518,8 @@ void CHalfLifeShidden::Think( void )
 			WRITE_BYTE(0);
 			if (roundlimit.value > 0)
 				WRITE_STRING(UTIL_VarArgs("%d Rounds", (int)roundlimit.value));
+			else
+				WRITE_STRING("");
 		MESSAGE_END();
 		m_fWaitForPlayersTime = gpGlobals->time + roundwaittime.value;
 	}
@@ -514,6 +537,7 @@ void CHalfLifeShidden::InitHUD( CBasePlayer *pPlayer )
 			WRITE_STRING("The Shidden");
 			WRITE_STRING("");
 			WRITE_BYTE(0);
+			WRITE_STRING("");
 		MESSAGE_END();
 
 		MESSAGE_BEGIN(MSG_ONE, gmsgTeamNames, NULL, pPlayer->edict());
