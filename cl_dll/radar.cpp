@@ -132,6 +132,10 @@ void CHudRadar::DrawInWorldIndicator(Vector worldOrigin, float distance, int spe
 	{
 		r = 240; g = 240; b = 0; // Yellow for RADAR_TEAM_YELLOW
 	}
+	else if (special == RADAR_LOOT)
+	{
+		r = 255; g = 117; b = 24; // Orange for RADAR_LOOT
+	}
 	else
 	{
 		r = 0; g = 240; b = 0; // Green for RADAR_COLD_SPOT

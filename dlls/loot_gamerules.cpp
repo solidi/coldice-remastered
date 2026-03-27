@@ -85,7 +85,7 @@ void CLootCrate::Spawn( void )
 	pev->solid     = SOLID_BBOX;
 	pev->movetype  = MOVETYPE_TOSS;
 	pev->takedamage = DAMAGE_YES;
-	pev->health    = 25;
+	pev->health    = 50;
 	pev->sequence  = 0;
 	pev->animtime  = gpGlobals->time;
 	pev->framerate    = 1.0f;
@@ -299,6 +299,7 @@ void CLootEntity::Drop( Vector origin )
 	pev->aiment   = NULL;
 	pev->owner    = NULL;
 	pev->sequence = 0;
+	pev->angles = g_vecZero;
 
 	// Bounds check before placing
 	/*TraceResult tr;
@@ -405,6 +406,7 @@ CHalfLifeLoot::CHalfLifeLoot()
 	memset( m_iTeamPlayerCount,  0, sizeof(m_iTeamPlayerCount) );
 	memset( m_vecTeamSpawnOrigin,0, sizeof(m_vecTeamSpawnOrigin) );
 	memset( m_vecUsedSpots,      0, sizeof(m_vecUsedSpots) );
+	memset( m_flWeaponHintTime,  0, sizeof(m_flWeaponHintTime) );
 
 	UTIL_PrecacheOther("loot_entity");
 	UTIL_PrecacheOther("loot_crate");
@@ -545,8 +547,10 @@ void CHalfLifeLoot::OnCrateLost( CLootCrate *pCrate )
 	pCrate->m_bHasLoot = FALSE;  // prevent any further callbacks
 	UTIL_Remove( pCrate );
 
-	if ( m_iCratesLeft  > 0 ) m_iCratesLeft--;
-	if ( m_iTotalCrates > 0 ) m_iTotalCrates--;
+	// Only decrement the "remaining" counter; m_iTotalCrates is the fixed
+	// denominator for the round (how many were spawned) and must not change
+	// mid-round or the objective panel progress fraction will be wrong.
+	if ( m_iCratesLeft > 0 ) m_iCratesLeft--;
 
 	ALERT( at_console, "[Loot] Crate lost (hadLoot=%d). Crates remaining: %d/%d\n",
 	       hadLoot, m_iCratesLeft, m_iTotalCrates );
@@ -1226,6 +1230,7 @@ void CHalfLifeLoot::OnGoalReached( CBasePlayer *pPlayer )
 	m_hLootHolder = (CBaseEntity *)NULL;
 	pPlayer->m_bHoldingLoot = FALSE;
 	pPlayer->pev->fuser4 = 0;
+	pPlayer->pev->rendermode  = kRenderNormal;
 	pPlayer->pev->renderfx    = kRenderFxNone;
 	pPlayer->pev->renderamt   = 0;
 	pPlayer->pev->rendercolor = Vector(0, 0, 0);
@@ -1313,7 +1318,7 @@ void CHalfLifeLoot::EndRound( int winningTeam )
 				bestTeam = t;
 				tied     = FALSE;
 			}
-			else if ( m_flTeamHoldTime[t] > 0 && m_flTeamHoldTime[t] == bestTime )
+			else if ( m_flTeamHoldTime[t] > 0 && fabsf(m_flTeamHoldTime[t] - bestTime) < 0.5f )
 			{
 				tied = TRUE;
 			}
@@ -1723,18 +1728,28 @@ void CHalfLifeLoot::Think( void )
 
 		if ( ( totalAlive == 0 || teamsAlive <= 1 ) && m_flCelebrationEndTime == 0 )
 		{
-			// One team survived — celebrate before tearing down the round
+			// Round over: if a team survived, award points and celebrate, then tear down the round
 			if ( lastTeamIdx >= 0 )
 			{
 				m_flLastObjUpdate = gpGlobals->time + 5.0f;
 
-				// Surviving team members celebrate
+				// Award 1 point to each surviving member of the winning team
+				// and trigger their celebrate animation.
 				for ( int i = 1; i <= gpGlobals->maxClients; i++ )
 				{
 					CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
-					if ( plr && plr->IsPlayer() && plr->IsInArena &&
-					     plr->IsAlive() && plr->m_iLootTeam == lastTeamIdx )
-						plr->Celebrate();
+					if ( !plr || !plr->IsPlayer() || !plr->IsInArena ) continue;
+					if ( !plr->IsAlive() || plr->m_iLootTeam != lastTeamIdx ) continue;
+
+					plr->m_iRoundWins++;
+					plr->Celebrate();
+					MESSAGE_BEGIN( MSG_ALL, gmsgScoreInfo );
+						WRITE_BYTE ( ENTINDEX(plr->edict()) );
+						WRITE_SHORT( plr->pev->frags );
+						WRITE_SHORT( plr->m_iDeaths );
+						WRITE_SHORT( plr->m_iRoundWins );
+						WRITE_SHORT( GetTeamIndex(plr->m_szTeamName) + 1 );
+					MESSAGE_END();
 				}
 
 				// Objective panel for every real player
@@ -2174,7 +2189,17 @@ void CHalfLifeLoot::PlayerKilled( CBasePlayer *pVictim,
 	if ( pVictim->m_bHoldingLoot )
 	{
 		UTIL_MakeVectors( pVictim->pev->v_angle );
-		DropCharm( pVictim, pVictim->pev->origin + gpGlobals->v_forward * 32 );
+		Vector dropPos = pVictim->pev->origin + gpGlobals->v_forward * 32;
+
+		// If the forward drop point is blocked by geometry, fall back to the
+		// victim's own origin so the loot entity isn't placed inside a wall.
+		TraceResult tr;
+		UTIL_TraceLine( pVictim->pev->origin, dropPos, ignore_monsters,
+		                ENT(pVictim->pev), &tr );
+		if ( tr.flFraction < 1.0f )
+			dropPos = pVictim->pev->origin;
+
+		DropCharm( pVictim, dropPos );
 	}
 
 	if ( !pVictim->m_flForceToObserverTime )
@@ -2311,7 +2336,23 @@ BOOL CHalfLifeLoot::CanHavePlayerItem( CBasePlayer *pPlayer, CBasePlayerItem *pI
 
 		int maxWeapons = hasLootAdvantage ? 3 : 1;
 		if ( CountNonFistWeapons(pPlayer) >= maxWeapons )
+		{
+			// Remind the player they are at their weapon limit.
+			// Rate-limited to once per 2 seconds to avoid HUD spam while standing over a weapon.
+			int slot = ENTINDEX( pPlayer->edict() );
+			if ( slot >= 1 && slot <= 32 && gpGlobals->time >= m_flWeaponHintTime[slot] )
+			{
+				m_flWeaponHintTime[slot] = gpGlobals->time + 2.0f;
+				if ( !FBitSet(pPlayer->pev->flags, FL_FAKECLIENT) )
+				{
+					ClientPrint( pPlayer->pev, HUD_PRINTCENTER,
+					    maxWeapons == 1
+					        ? "Drop your weapon first!"
+					        : "Drop a weapon first!" );
+				}
+			}
 			return FALSE;  // At limit; +use swap in player.cpp handles the swap
+		}
 	}
 
 	return CHalfLifeMultiplay::CanHavePlayerItem( pPlayer, pItem );

@@ -121,4 +121,7 @@ private:
 
 	Vector  m_vecUsedSpots[32];     // Spawn origins already assigned to a team (dedup)
 	int     m_iUsedSpotCount;
+
+	// Per-player cooldown for "weapon limit" hint (indexed by ENTINDEX, 1-based)
+	float   m_flWeaponHintTime[33];
 };
