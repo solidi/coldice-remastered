@@ -631,7 +631,7 @@ void CHalfLifeShidden::PlayerThink( CBasePlayer *pPlayer )
 		{
 			MESSAGE_BEGIN(MSG_ONE, gmsgBanner, NULL, pPlayer->edict());
 				WRITE_STRING("You Are on Team Dealters");
-				WRITE_STRING("Stomp them right there, or fart on them - then knife them!");
+				WRITE_STRING("Stomp them or fart on them (with your fists) - then knife them!");
 				WRITE_BYTE(80);
 			MESSAGE_END();
 		} 
