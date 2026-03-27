@@ -814,6 +814,24 @@ void CHalfLifeShidden::PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller, e
 			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Shidden] Smelters defeated!\n");
 		}
 	}
+	// Person was dealter
+	else if ( pVictim->pev->fuser4 == SHIDDEN_DEALTER )
+	{
+		if (dealters_left >= 1)
+		{
+			UTIL_ClientPrintAll(HUD_PRINTTALK,
+			UTIL_VarArgs("[Shidden] %s has been smelted! %d Dealters remain!\n",
+			STRING(pVictim->pev->netname), dealters_left));
+
+			MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
+				WRITE_BYTE(CLIENT_SOUND_MASSACRE);
+			MESSAGE_END();
+		}
+		else if (dealters_left == 0)
+		{
+			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Shidden] Dealters defeated!\n");
+		}
+	}
 }
 
 BOOL CHalfLifeShidden::CanHavePlayerItem( CBasePlayer *pPlayer, CBasePlayerItem *pItem )
