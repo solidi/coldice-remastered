@@ -782,7 +782,8 @@ void CHalfLifeShidden::PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller, e
 		if (m_iPlayersInArena[i-1] > 0)
 		{
 			CBasePlayer *pPlayer = (CBasePlayer *)UTIL_PlayerByIndex(m_iPlayersInArena[i-1]);
-			if (pPlayer && !pPlayer->IsSpectator() && pPlayer != pVictim && !pPlayer->HasDisconnected)
+			if (pPlayer && pPlayer->IsAlive() && !pPlayer->IsSpectator() &&
+				pPlayer != pVictim && !pPlayer->HasDisconnected)
 			{
 				if (pPlayer->pev->fuser4 == SHIDDEN_SMELTER)
 					smelters_left++;
