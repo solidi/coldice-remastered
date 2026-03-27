@@ -87,13 +87,22 @@ void CHalfLifeShidden::DetermineWinner( void )
 		}
 		else
 		{
+			// Determine which team survived so we only credit winners on the surviving side.
+			// If both counts are 0 (mutual destruction) we award all tied top-fraggers.
+			int winningTeam = -1; // -1 means no team filter (mutual destruction)
+			if ( m_iDealtersRemain > 0 )
+				winningTeam = SHIDDEN_DEALTER;
+			else if ( m_iSmeltersRemain > 0 )
+				winningTeam = SHIDDEN_SMELTER;
+
 			for ( int i = 1; i <= gpGlobals->maxClients; i++ )
 			{
 				CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
 
 				if ( plr && plr->IsPlayer() && plr->IsInArena )
 				{
-					if ( plr->pev->frags == highest)
+					if ( plr->pev->frags == highest &&
+						 (winningTeam == -1 || (int)plr->pev->fuser4 == winningTeam) )
 					{
 						plr->m_iRoundWins++;
 						plr->Celebrate();
