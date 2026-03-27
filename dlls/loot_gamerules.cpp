@@ -1728,7 +1728,7 @@ void CHalfLifeLoot::Think( void )
 
 		if ( ( totalAlive == 0 || teamsAlive <= 1 ) && m_flCelebrationEndTime == 0 )
 		{
-			// One team survived — award points, celebrate, then tear down the round
+			// Round over: if a team survived, award points and celebrate, then tear down the round
 			if ( lastTeamIdx >= 0 )
 			{
 				m_flLastObjUpdate = gpGlobals->time + 5.0f;
