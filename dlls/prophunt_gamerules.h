@@ -42,6 +42,7 @@ public:
 	virtual BOOL FPlayerCanRespawn( CBasePlayer *pPlayer );
 	virtual BOOL MutatorAllowed(const char *mutator);
 	virtual void DetermineWinner( void );
+	virtual void ClientDisconnected( edict_t *pClient );
 	virtual void PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller, entvars_t *pInflictor );
 	virtual BOOL AllowRuneSpawn( const char *szRune );
 	virtual int WeaponShouldRespawn( CBasePlayerItem *pWeapon );

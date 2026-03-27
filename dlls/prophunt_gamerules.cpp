@@ -1125,6 +1125,18 @@ BOOL CHalfLifePropHunt::MutatorAllowed(const char *mutator)
 	return CHalfLifeMultiplay::MutatorAllowed(mutator);
 }
 
+void CHalfLifePropHunt::ClientDisconnected( edict_t *pClient )
+{
+	if ( pClient )
+	{
+		CBasePlayer *pPlayer = (CBasePlayer *)CBaseEntity::Instance( pClient );
+		if ( pPlayer && pPlayer->pev->fuser4 >= TEAM_PROPS )
+			DeactivateDecoys( pPlayer );
+	}
+
+	CHalfLifeMultiplay::ClientDisconnected( pClient );
+}
+
 void CHalfLifePropHunt::PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller, entvars_t *pInflictor )
 {
 	pVictim->pev->frags = 0; // clear immediately for winner determination
