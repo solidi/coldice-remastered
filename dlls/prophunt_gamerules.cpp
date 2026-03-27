@@ -97,7 +97,9 @@ void CPropDecoy::Killed( entvars_t *pevAttacker, int iGib )
 	if (pevAttacker)
 	{
 		CBasePlayer *plr = GetClassPtr((CBasePlayer *)pevAttacker);
-		((CBasePlayer *)(CBaseEntity *)m_hOwner)->m_iPropsDeployed--;
+
+		if (m_hOwner)
+			((CBasePlayer *)(CBaseEntity *)m_hOwner)->m_iPropsDeployed--;
 
 		MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
 			WRITE_BYTE( TE_TAREXPLOSION );
@@ -108,7 +110,7 @@ void CPropDecoy::Killed( entvars_t *pevAttacker, int iGib )
 
 		if (plr && plr->IsPlayer())
 		{
-			if (plr->pev != m_hOwner->pev)
+			if (!m_hOwner || plr->pev != m_hOwner->pev)
 			{
 				MESSAGE_BEGIN( MSG_ALL, gmsgScoreInfo );
 					WRITE_BYTE( ENTINDEX(plr->edict()) );
@@ -118,13 +120,23 @@ void CPropDecoy::Killed( entvars_t *pevAttacker, int iGib )
 					WRITE_SHORT( g_pGameRules->GetTeamIndex( plr->m_szTeamName ) + 1 );
 				MESSAGE_END();
 
-				ClientPrint(m_hOwner->pev, HUD_PRINTCENTER, UTIL_VarArgs("+1 point for decoy touch.\n", plr->m_iPropsDeployed));
+				if (m_hOwner)
+				{
+					CBasePlayer *pOwner = (CBasePlayer *)(CBaseEntity *)m_hOwner;
+					ClientPrint(m_hOwner->pev, HUD_PRINTCENTER, UTIL_VarArgs("+1 point for decoy touch. (%d decoys left)\n", pOwner->m_iPropsDeployed));
+				}
 			}
 			else
-				ClientPrint(m_hOwner->pev, HUD_PRINTCENTER, UTIL_VarArgs("%d decoys are deployed.\n", plr->m_iPropsDeployed));
+			{
+				CBasePlayer *pOwner = (CBasePlayer *)(CBaseEntity *)m_hOwner;
+				ClientPrint(m_hOwner->pev, HUD_PRINTCENTER, UTIL_VarArgs("%d decoys are deployed.\n", pOwner->m_iPropsDeployed));
+			}
 		}
-		else
-			ClientPrint(m_hOwner->pev, HUD_PRINTCENTER, UTIL_VarArgs("%d decoys are deployed.\n", plr->m_iPropsDeployed));
+		else if (m_hOwner)
+		{
+			CBasePlayer *pOwner = (CBasePlayer *)(CBaseEntity *)m_hOwner;
+			ClientPrint(m_hOwner->pev, HUD_PRINTCENTER, UTIL_VarArgs("%d decoys are deployed.\n", pOwner->m_iPropsDeployed));
+		}
 	}
 
 	CBaseEntity::Killed( pevAttacker, iGib );
@@ -133,14 +145,14 @@ void CPropDecoy::Killed( entvars_t *pevAttacker, int iGib )
 void CPropDecoy::PropDecoyThink( void )
 {
 	CBaseEntity *ent = NULL;
-	BOOL yes = FALSE;
 
 	while ( (ent = UTIL_FindEntityInSphere( ent, pev->origin, 32 )) != NULL )
 	{
-		if (FClassnameIs(ent->pev, "player") /*&& ent->pev != m_hOwner->pev*/)
+		CBasePlayer *plr = (CBasePlayer *)ent;
+		if (plr && plr->IsPlayer() && plr->IsAlive() && !plr->IsObserver() && plr->IsInArena)
 		{
-			PropDecoyTouch(ent);
-			break;
+			PropDecoyTouch(plr);
+			return; // PropDecoyTouch may remove this entity; do not access pev after
 		}
 	}
 
@@ -149,7 +161,7 @@ void CPropDecoy::PropDecoyThink( void )
 
 BOOL CPropDecoy::ShouldCollide( CBaseEntity *pOther )
 {
-	if (pOther->pev == m_hOwner->pev)
+	if (m_hOwner && pOther->pev == m_hOwner->pev)
 		return FALSE;
 
 	return TRUE;
@@ -160,12 +172,14 @@ void CPropDecoy::PropDecoyTouch( CBaseEntity *pOther )
 	if (pOther->IsPlayer() && pOther->IsAlive())
 	{
 		CBasePlayer *plr = (CBasePlayer *)pOther;
-		((CBasePlayer *)(CBaseEntity *)m_hOwner)->m_iPropsDeployed--;
+
+		if (m_hOwner)
+			((CBasePlayer *)(CBaseEntity *)m_hOwner)->m_iPropsDeployed--;
 
 		SetTouch(NULL);
 		SetThink(NULL);
 
-		if (((CBaseEntity*)m_hOwner) != pOther)
+		if (!m_hOwner || ((CBaseEntity*)m_hOwner) != pOther)
 		{
 			MESSAGE_BEGIN( MSG_ALL, gmsgScoreInfo );
 				WRITE_BYTE( ENTINDEX(plr->edict()) );
@@ -175,10 +189,17 @@ void CPropDecoy::PropDecoyTouch( CBaseEntity *pOther )
 				WRITE_SHORT( g_pGameRules->GetTeamIndex( plr->m_szTeamName ) + 1 );
 			MESSAGE_END();
 
-			ClientPrint(m_hOwner->pev, HUD_PRINTCENTER, UTIL_VarArgs("+1 point for decoy touch.\n", plr->m_iPropsDeployed));
+			if (m_hOwner)
+			{
+				CBasePlayer *pOwner = (CBasePlayer *)(CBaseEntity *)m_hOwner;
+				ClientPrint(m_hOwner->pev, HUD_PRINTCENTER, UTIL_VarArgs("+1 point for decoy touch. (%d decoys left)\n", pOwner->m_iPropsDeployed));
+			}
 		}
 		else
-			ClientPrint(m_hOwner->pev, HUD_PRINTCENTER, UTIL_VarArgs("%d decoys are deployed.\n", plr->m_iPropsDeployed));
+		{
+			CBasePlayer *pOwner = (CBasePlayer *)(CBaseEntity *)m_hOwner;
+			ClientPrint(m_hOwner->pev, HUD_PRINTCENTER, UTIL_VarArgs("%d decoys are deployed.\n", pOwner->m_iPropsDeployed));
+		}
 
 		// Play catch sound
 		EMIT_SOUND_DYN(pOther->edict(), CHAN_WEAPON, "items/gunpickup2.wav", 1.0, ATTN_NORM, 0, 98 + RANDOM_LONG(0,3)); 
@@ -397,6 +418,8 @@ void CHalfLifePropHunt::Think( void )
 									WRITE_BYTE(float(hunters_left) / (m_iHuntersStarted) * 100);
 									if (roundlimit.value > 0)
 										WRITE_STRING(UTIL_VarArgs("Round %d of %d", m_iSuccessfulRounds+1, (int)roundlimit.value));
+									else
+										WRITE_STRING("");
 								MESSAGE_END();
 							}
 							else if (hunters_left == 1)
@@ -407,6 +430,8 @@ void CHalfLifePropHunt::Think( void )
 									WRITE_BYTE(0);
 									if (roundlimit.value > 0)
 										WRITE_STRING(UTIL_VarArgs("Round %d of %d", m_iSuccessfulRounds+1, (int)roundlimit.value));
+									else
+										WRITE_STRING("");
 								MESSAGE_END();
 							}
 							else
@@ -432,6 +457,8 @@ void CHalfLifePropHunt::Think( void )
 									WRITE_BYTE(float(props_left) / (m_iPropsStarted) * 100);
 									if (roundlimit.value > 0)
 										WRITE_STRING(UTIL_VarArgs("Round %d of %d", m_iSuccessfulRounds+1, (int)roundlimit.value));
+									else
+										WRITE_STRING("");
 								MESSAGE_END();
 							}
 							else
@@ -444,6 +471,8 @@ void CHalfLifePropHunt::Think( void )
 										WRITE_BYTE(float(props_left) / (m_iPropsStarted) * 100);
 										if (roundlimit.value > 0)
 											WRITE_STRING(UTIL_VarArgs("Round %d of %d", m_iSuccessfulRounds+1, (int)roundlimit.value));
+										else
+											WRITE_STRING("");
 									MESSAGE_END();
 								}
 								else
@@ -473,12 +502,20 @@ void CHalfLifePropHunt::Think( void )
 								WRITE_STRING("Hunters have won!");
 								if (roundlimit.value > 0)
 									WRITE_STRING(UTIL_VarArgs("Round %d of %d", m_iSuccessfulRounds+1, (int)roundlimit.value));
+								else
+									WRITE_STRING("");
+								WRITE_BYTE(0);
+								WRITE_STRING("");
 							}
 							else if (m_iPropsRemain >= 1 && m_iHuntersRemain <= 0)
 							{
 								WRITE_STRING("Props have won!");
 								if (roundlimit.value > 0)
 									WRITE_STRING(UTIL_VarArgs("Round %d of %d", m_iSuccessfulRounds+1, (int)roundlimit.value));
+								else
+									WRITE_STRING("");
+								WRITE_BYTE(0);
+								WRITE_STRING("");
 							}
 							else
 							{
@@ -487,6 +524,8 @@ void CHalfLifePropHunt::Think( void )
 								WRITE_BYTE(float(m_iPropsRemain) / (m_iPlayersInGame) * 100);
 								if (roundlimit.value > 0)
 									WRITE_STRING(UTIL_VarArgs("Round %d of %d", m_iSuccessfulRounds+1, (int)roundlimit.value));
+								else
+									WRITE_STRING("");
 							}
 						MESSAGE_END();
 					} else {
@@ -662,7 +701,7 @@ void CHalfLifePropHunt::Think( void )
 			CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( player[i] );
 
 			if ( plr && plr->IsPlayer() && !plr->HasDisconnected ) {
-				plr->pev->fuser4 = i % 2;
+				plr->pev->fuser4 = (i + 1) % 2;
 				if (plr->pev->fuser4 >= TEAM_PROPS)
 				{
 					m_iPropsStarted++;
@@ -710,6 +749,8 @@ void CHalfLifePropHunt::Think( void )
 			WRITE_BYTE(0);
 			if (roundlimit.value > 0)
 				WRITE_STRING(UTIL_VarArgs("%d Rounds", (int)roundlimit.value));
+			else
+				WRITE_STRING("");
 		MESSAGE_END();
 		m_fWaitForPlayersTime = gpGlobals->time + roundwaittime.value;
 	}
@@ -754,6 +795,8 @@ void CHalfLifePropHunt::InitHUD( CBasePlayer *pPlayer )
 			WRITE_BYTE(0);
 			if (roundlimit.value > 0)
 				WRITE_STRING(UTIL_VarArgs("Round %d of %d", m_iSuccessfulRounds+1, (int)roundlimit.value));
+			else
+				WRITE_STRING("");
 		MESSAGE_END();
 
 		MESSAGE_BEGIN(MSG_ONE, gmsgTeamNames, NULL, pPlayer->edict());
@@ -826,7 +869,7 @@ BOOL CHalfLifePropHunt::FPlayerCanTakeDamage( CBasePlayer *pPlayer, CBaseEntity 
 	if (pPlayer->pev->fuser4 >= TEAM_PROPS && m_fUnFreezeHunters > 0)
 		return FALSE; // props cannot change to hunter yet.
 
-	if ( pAttacker && pAttacker->IsPlayer() && pPlayer->pev->fuser4 == pAttacker->pev->fuser4 )
+	if ( pAttacker && pAttacker->IsPlayer() && PlayerRelationship( pPlayer, pAttacker ) == GR_TEAMMATE )
 	{
 		// my teammate hit me.
 		if ( (friendlyfire.value == 0) && (pAttacker != pPlayer) )
@@ -1092,6 +1135,18 @@ BOOL CHalfLifePropHunt::MutatorAllowed(const char *mutator)
 		return FALSE;
 
 	return CHalfLifeMultiplay::MutatorAllowed(mutator);
+}
+
+void CHalfLifePropHunt::ClientDisconnected( edict_t *pClient )
+{
+	if ( pClient )
+	{
+		CBasePlayer *pPlayer = (CBasePlayer *)CBaseEntity::Instance( pClient );
+		if ( pPlayer && pPlayer->pev->fuser4 >= TEAM_PROPS )
+			DeactivateDecoys( pPlayer );
+	}
+
+	CHalfLifeMultiplay::ClientDisconnected( pClient );
 }
 
 void CHalfLifePropHunt::PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller, entvars_t *pInflictor )
