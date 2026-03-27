@@ -590,9 +590,10 @@ void CHalfLifeShidden::PlayerSpawn( CBasePlayer *pPlayer )
 		pPlayer->MakeInvisible();
 		strncpy( pPlayer->m_szTeamName, "dealters", TEAM_NAME_LENGTH );
 
-		pPlayer->RemoveAllItems( FALSE );
-		pPlayer->GiveNamedItem( "weapon_fists" );
-		pPlayer->GiveNamedItem( "weapon_knife" );
+		pPlayer->RemoveAllItems(FALSE);
+		pPlayer->GiveNamedItem("weapon_fists");
+		pPlayer->GiveNamedItem("weapon_knife");
+		pPlayer->SelectItem("weapon_fists");
 	}
 	else
 	{
