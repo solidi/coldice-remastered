@@ -5626,6 +5626,9 @@ void CBasePlayer::AutoMelee()
 	if (pev->flags & FL_FROZEN)
 		return;
 
+	if (g_pGameRules->IsPropHunt())
+		return;
+
 	if (g_pGameRules->IsGunGame() && m_pActiveItem && m_pActiveItem->m_iId == WEAPON_KNIFE)
 		return;
 

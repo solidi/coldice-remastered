@@ -204,6 +204,7 @@ void CFlagCharm::FlagTouch( CBaseEntity *pOther )
 						WRITE_STRING("You have the flag!");
 						WRITE_STRING(UTIL_VarArgs("Get it to %s base", (pPlayer->pev->fuser4 == TEAM_RED) ? "red" : "blue"));
 						WRITE_BYTE(0);
+						WRITE_STRING("");
 					MESSAGE_END();
 
 					ClientPrint(pPlayer->pev, HUD_PRINTCENTER, UTIL_VarArgs("You have the %s flag!", (pPlayer->pev->fuser4 == TEAM_RED) ? "blue" : "red"));
@@ -226,6 +227,7 @@ void CFlagCharm::FlagTouch( CBaseEntity *pOther )
 										WRITE_STRING(UTIL_VarArgs("%s has the flag!", STRING(pPlayer->pev->netname)));
 										WRITE_STRING(UTIL_VarArgs("You're on %s team", (pPlayer->pev->fuser4 == TEAM_RED) ? "red" : "blue"));
 										WRITE_BYTE(0);
+										WRITE_STRING("");
 									MESSAGE_END();
 								}
 							}
@@ -405,6 +407,7 @@ void CFlagBase::CTFTouch( CBaseEntity *pOther )
 									WRITE_STRING(UTIL_VarArgs("Capture the %s flag", (plr->pev->fuser4 == TEAM_RED) ? "blue" : "red"));
 									WRITE_STRING(UTIL_VarArgs("You're on %s team", (pPlayer->pev->fuser4 == TEAM_RED) ? "red" : "blue"));
 									WRITE_BYTE(0);
+									WRITE_STRING("");
 								MESSAGE_END();
 							}
 						}
@@ -580,6 +583,7 @@ void CHalfLifeCaptureTheFlag::AutoJoin( CBasePlayer *pPlayer, int team )
 			WRITE_STRING(UTIL_VarArgs("Capture the %s flag", (pPlayer->pev->fuser4 == TEAM_RED) ? "blue" : "red"));
 			WRITE_STRING(UTIL_VarArgs("You're on %s team", (pPlayer->pev->fuser4 == TEAM_RED) ? "red" : "blue"));
 			WRITE_BYTE(0);
+			WRITE_STRING("");
 		MESSAGE_END();
 	}
 }
@@ -844,6 +848,7 @@ void CHalfLifeCaptureTheFlag::ClientUserInfoChanged( CBasePlayer *pPlayer, char 
 			WRITE_STRING(UTIL_VarArgs("Capture the %s flag", (pPlayer->pev->fuser4 == TEAM_RED) ? "blue" : "red"));
 			WRITE_STRING(UTIL_VarArgs("You're on %s team", (pPlayer->pev->fuser4 == TEAM_RED) ? "red" : "blue"));
 			WRITE_BYTE(0);
+			WRITE_STRING("");
 		MESSAGE_END();
 	}
 }
@@ -901,6 +906,7 @@ CBaseEntity *CHalfLifeCaptureTheFlag::DropCharm( CBasePlayer *pPlayer, Vector or
 							WRITE_STRING(UTIL_VarArgs("%s has the flag!", STRING(pPlayerWithFlag->pev->netname)));
 							WRITE_STRING(UTIL_VarArgs("You're on %s team", (plr->pev->fuser4 == TEAM_RED) ? "red" : "blue"));
 							WRITE_BYTE(0);
+							WRITE_STRING("");
 						MESSAGE_END();
 					}
 					else
@@ -909,6 +915,7 @@ CBaseEntity *CHalfLifeCaptureTheFlag::DropCharm( CBasePlayer *pPlayer, Vector or
 							WRITE_STRING(UTIL_VarArgs("Capture the %s flag", (plr->pev->fuser4 == TEAM_RED) ? "blue" : "red"));
 							WRITE_STRING(UTIL_VarArgs("You're on %s team", (plr->pev->fuser4 == TEAM_RED) ? "red" : "blue"));
 							WRITE_BYTE(0);
+							WRITE_STRING("");
 						MESSAGE_END();
 					}
 				}

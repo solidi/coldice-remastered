@@ -256,6 +256,7 @@ void CHalfLifeTeamplay::InitHUD( CBasePlayer *pPlayer )
 			WRITE_STRING("Teamplay");
 			WRITE_STRING("Select an option");
 			WRITE_BYTE(0);
+			WRITE_STRING("");
 		MESSAGE_END();
 	}
 }
@@ -315,6 +316,7 @@ void CHalfLifeTeamplay::ChangePlayerTeam( CBasePlayer *pPlayer, const char *pTea
 			WRITE_STRING("Teamplay");
 			WRITE_STRING(UTIL_VarArgs("Don't hurt %s", pPlayer->m_szTeamName));
 			WRITE_BYTE(0);
+			WRITE_STRING("");
 		MESSAGE_END();
 	}
 }
@@ -358,6 +360,7 @@ void CHalfLifeTeamplay::PlayerSpawn( CBasePlayer *pPlayer )
 				WRITE_STRING("Teamplay");
 				WRITE_STRING(UTIL_VarArgs("Don't hurt %s", pPlayer->m_szTeamName));
 				WRITE_BYTE(0);
+				WRITE_STRING("");
 			MESSAGE_END();
 		}
 	}

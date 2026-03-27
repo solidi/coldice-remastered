@@ -192,6 +192,8 @@ void CHalfLifeJesusVsSanta::Think( void )
 							WRITE_BYTE(float(clients_alive - 1) / (m_iPlayersInGame - 1) * 100);
 							if (roundlimit.value > 0)
 								WRITE_STRING(UTIL_VarArgs("Round %d of %d", m_iSuccessfulRounds+1, (int)roundlimit.value));
+							else
+								WRITE_STRING("");
 						MESSAGE_END();
 					}
 				}
@@ -220,6 +222,8 @@ void CHalfLifeJesusVsSanta::Think( void )
 							WRITE_BYTE(float(clients_alive - 1) / (m_iPlayersInGame - 1) * 100);
 							if (roundlimit.value > 0)
 								WRITE_STRING(UTIL_VarArgs("Round %d of %d", m_iSuccessfulRounds+1, (int)roundlimit.value));
+							else
+								WRITE_STRING("");
 						MESSAGE_END();
 					}
 				}
@@ -459,6 +463,8 @@ void CHalfLifeJesusVsSanta::Think( void )
 			WRITE_BYTE(0);
 			if (roundlimit.value > 0)
 				WRITE_STRING(UTIL_VarArgs("%d Rounds", (int)roundlimit.value));
+			else
+				WRITE_STRING("");
 		MESSAGE_END();
 		m_fWaitForPlayersTime = gpGlobals->time + roundwaittime.value;
 	}
@@ -488,6 +494,7 @@ void CHalfLifeJesusVsSanta::InitHUD( CBasePlayer *pPlayer )
 			else
 				WRITE_STRING("");
 			WRITE_BYTE(0);
+			WRITE_STRING("");
 		MESSAGE_END();
 
 		MESSAGE_BEGIN(MSG_ONE, gmsgTeamNames, NULL, pPlayer->edict());

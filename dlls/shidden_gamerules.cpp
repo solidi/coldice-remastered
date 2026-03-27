@@ -78,7 +78,7 @@ void CHalfLifeShidden::DetermineWinner( void )
 				UTIL_VarArgs("%s doled the most frags!\n", STRING(highballer->pev->netname)));
 			MESSAGE_BEGIN(MSG_BROADCAST, gmsgObjective);
 				WRITE_STRING("Shidden Completed!");
-				WRITE_STRING(UTIL_VarArgs("%s win!", m_iDealtersRemain ? "Dealters" : "Smelters"));
+				WRITE_STRING(UTIL_VarArgs("%s win!", highballer->pev->fuser4 == SHIDDEN_DEALTER ? "Dealters" : "Smelters"));
 				WRITE_BYTE(0);
 				WRITE_STRING(UTIL_VarArgs("%s doled the most frags!\n", STRING(highballer->pev->netname)));
 			MESSAGE_END();
@@ -87,13 +87,23 @@ void CHalfLifeShidden::DetermineWinner( void )
 		}
 		else
 		{
+			// Determine which team survived so we only credit winners on the surviving side.
+			// If both counts are 0 (mutual destruction) or both are > 0 (both sides survive),
+			// we award all tied top-fraggers, regardless of team.
+			int winningTeam = -1; // -1 means no team filter
+			if ( m_iDealtersRemain > 0 && m_iSmeltersRemain == 0 )
+				winningTeam = SHIDDEN_DEALTER;
+			else if ( m_iSmeltersRemain > 0 && m_iDealtersRemain == 0 )
+				winningTeam = SHIDDEN_SMELTER;
+
 			for ( int i = 1; i <= gpGlobals->maxClients; i++ )
 			{
 				CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
 
 				if ( plr && plr->IsPlayer() && plr->IsInArena )
 				{
-					if ( plr->pev->frags == highest)
+					if ( plr->pev->frags == highest &&
+						 (winningTeam == -1 || (int)plr->pev->fuser4 == winningTeam) )
 					{
 						plr->m_iRoundWins++;
 						plr->Celebrate();
@@ -105,7 +115,21 @@ void CHalfLifeShidden::DetermineWinner( void )
 			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Shidden] Round ends with winners!\n");
 			MESSAGE_BEGIN(MSG_BROADCAST, gmsgObjective);
 				WRITE_STRING("Shidden Completed!");
-				WRITE_STRING(UTIL_VarArgs("%s win!", m_iDealtersRemain ? "Dealters" : "Smelters"));
+				if (m_iDealtersRemain == 0 && m_iSmeltersRemain == 0)
+				{
+					WRITE_STRING("Mutual destruction!");
+				}
+				else if (m_iDealtersRemain > 0 && m_iSmeltersRemain > 0)
+				{
+					// Both teams still have players alive (e.g., timer expired) — treat as a tie/timeout.
+					WRITE_STRING("Round ends in a tie!");
+				}
+				else
+				{
+					// Only one team has survivors; report that team as the winner.
+					const char *pszWinningTeamName = (m_iDealtersRemain > 0) ? "Dealters" : "Smelters";
+					WRITE_STRING(UTIL_VarArgs("%s win!", pszWinningTeamName));
+				}
 				WRITE_BYTE(0);
 				WRITE_STRING("Numerous victors!");
 			MESSAGE_END();
@@ -196,6 +220,8 @@ void CHalfLifeShidden::Think( void )
 									WRITE_BYTE(float(smelters_left) / (m_iPlayersInGame) * 100);
 									if (roundlimit.value > 0)
 										WRITE_STRING(UTIL_VarArgs("Round %d of %d", m_iSuccessfulRounds+1, (int)roundlimit.value));
+									else
+										WRITE_STRING("");
 								MESSAGE_END();
 							}
 							else if (smelters_left == 1)
@@ -206,6 +232,8 @@ void CHalfLifeShidden::Think( void )
 									WRITE_BYTE(0);
 									if (roundlimit.value > 0)
 										WRITE_STRING(UTIL_VarArgs("Round %d of %d", m_iSuccessfulRounds+1, (int)roundlimit.value));
+									else
+										WRITE_STRING("");
 								MESSAGE_END();
 							}
 							else
@@ -231,6 +259,8 @@ void CHalfLifeShidden::Think( void )
 									WRITE_BYTE(float(dealters_left) / (m_iPlayersInGame) * 100);
 									if (roundlimit.value > 0)
 										WRITE_STRING(UTIL_VarArgs("Round %d of %d", m_iSuccessfulRounds+1, (int)roundlimit.value));
+									else
+										WRITE_STRING("");
 								MESSAGE_END();
 							}
 							else
@@ -243,6 +273,8 @@ void CHalfLifeShidden::Think( void )
 										WRITE_BYTE(float(dealters_left) / (m_iPlayersInGame) * 100);
 										if (roundlimit.value > 0)
 											WRITE_STRING(UTIL_VarArgs("Round %d of %d", m_iSuccessfulRounds+1, (int)roundlimit.value));
+										else
+											WRITE_STRING("");
 									MESSAGE_END();
 								}
 								else
@@ -272,12 +304,20 @@ void CHalfLifeShidden::Think( void )
 								WRITE_STRING("Smelters have won!");
 								if (roundlimit.value > 0)
 									WRITE_STRING(UTIL_VarArgs("Round %d of %d", m_iSuccessfulRounds+1, (int)roundlimit.value));
+								else
+									WRITE_STRING("");
+								WRITE_BYTE(0);
+								WRITE_STRING("");
 							}
 							else if (m_iDealtersRemain >= 1 && m_iSmeltersRemain <= 0)
 							{
 								WRITE_STRING("Dealters have won!");
 								if (roundlimit.value > 0)
 									WRITE_STRING(UTIL_VarArgs("Round %d of %d", m_iSuccessfulRounds+1, (int)roundlimit.value));
+								else
+									WRITE_STRING("");
+								WRITE_BYTE(0);
+								WRITE_STRING("");
 							}
 							else
 							{
@@ -286,6 +326,8 @@ void CHalfLifeShidden::Think( void )
 								WRITE_BYTE(float(m_iSmeltersRemain) / (m_iPlayersInGame) * 100);
 								if (roundlimit.value > 0)
 									WRITE_STRING(UTIL_VarArgs("Round %d of %d", m_iSuccessfulRounds+1, (int)roundlimit.value));
+								else
+									WRITE_STRING("");
 							}
 						MESSAGE_END();
 					} else {
@@ -497,6 +539,8 @@ void CHalfLifeShidden::Think( void )
 			WRITE_BYTE(0);
 			if (roundlimit.value > 0)
 				WRITE_STRING(UTIL_VarArgs("%d Rounds", (int)roundlimit.value));
+			else
+				WRITE_STRING("");
 		MESSAGE_END();
 		m_fWaitForPlayersTime = gpGlobals->time + roundwaittime.value;
 	}
@@ -514,6 +558,7 @@ void CHalfLifeShidden::InitHUD( CBasePlayer *pPlayer )
 			WRITE_STRING("The Shidden");
 			WRITE_STRING("");
 			WRITE_BYTE(0);
+			WRITE_STRING("");
 		MESSAGE_END();
 
 		MESSAGE_BEGIN(MSG_ONE, gmsgTeamNames, NULL, pPlayer->edict());
@@ -557,9 +602,10 @@ void CHalfLifeShidden::PlayerSpawn( CBasePlayer *pPlayer )
 		pPlayer->MakeInvisible();
 		strncpy( pPlayer->m_szTeamName, "dealters", TEAM_NAME_LENGTH );
 
-		pPlayer->RemoveAllItems( FALSE );
-		pPlayer->GiveNamedItem( "weapon_fists" );
-		pPlayer->GiveNamedItem( "weapon_knife" );
+		pPlayer->RemoveAllItems(FALSE);
+		pPlayer->GiveNamedItem("weapon_fists");
+		pPlayer->GiveNamedItem("weapon_knife");
+		pPlayer->SelectItem("weapon_fists");
 	}
 	else
 	{
@@ -597,7 +643,7 @@ void CHalfLifeShidden::PlayerThink( CBasePlayer *pPlayer )
 		{
 			MESSAGE_BEGIN(MSG_ONE, gmsgBanner, NULL, pPlayer->edict());
 				WRITE_STRING("You Are on Team Dealters");
-				WRITE_STRING("Stomp them right there, or fart on them - then knife them!");
+				WRITE_STRING("Stomp them or fart on them (with your fists) - then knife them!");
 				WRITE_BYTE(80);
 			MESSAGE_END();
 		} 
@@ -782,7 +828,8 @@ void CHalfLifeShidden::PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller, e
 		if (m_iPlayersInArena[i-1] > 0)
 		{
 			CBasePlayer *pPlayer = (CBasePlayer *)UTIL_PlayerByIndex(m_iPlayersInArena[i-1]);
-			if (pPlayer && !pPlayer->IsSpectator() && pPlayer != pVictim && !pPlayer->HasDisconnected)
+			if (pPlayer && pPlayer->IsAlive() && !pPlayer->IsSpectator() &&
+				pPlayer != pVictim && !pPlayer->HasDisconnected)
 			{
 				if (pPlayer->pev->fuser4 == SHIDDEN_SMELTER)
 					smelters_left++;
@@ -811,6 +858,24 @@ void CHalfLifeShidden::PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller, e
 		else if (smelters_left == 0)
 		{
 			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Shidden] Smelters defeated!\n");
+		}
+	}
+	// Person was dealter
+	else if ( pVictim->pev->fuser4 == SHIDDEN_DEALTER )
+	{
+		if (dealters_left >= 1)
+		{
+			UTIL_ClientPrintAll(HUD_PRINTTALK,
+			UTIL_VarArgs("[Shidden] %s has been smelted! %d Dealters remain!\n",
+			STRING(pVictim->pev->netname), dealters_left));
+
+			MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
+				WRITE_BYTE(CLIENT_SOUND_MASSACRE);
+			MESSAGE_END();
+		}
+		else if (dealters_left == 0)
+		{
+			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Shidden] Dealters defeated!\n");
 		}
 	}
 }

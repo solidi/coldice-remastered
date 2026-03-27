@@ -780,6 +780,7 @@ void CHalfLifeMultiplay :: Think ( void )
 						WRITE_STRING("Snowball 'em");
 					WRITE_STRING(UTIL_VarArgs("Fraglimit %.0f", fraglimit.value));
 					WRITE_BYTE(0);
+					WRITE_STRING("");
 				MESSAGE_END();
 			}
 			else
@@ -791,6 +792,7 @@ void CHalfLifeMultiplay :: Think ( void )
 						WRITE_STRING("Snowball 'em");
 					WRITE_STRING("No limit");
 					WRITE_BYTE(0);
+					WRITE_STRING("");
 				MESSAGE_END();
 			}
 
@@ -1014,6 +1016,7 @@ void CHalfLifeMultiplay::InsertClientsIntoArena(float fragcount)
 					WRITE_STRING("");
 					WRITE_STRING("");
 					WRITE_BYTE(0);
+					WRITE_STRING("");
 				MESSAGE_END();
 			}
 
@@ -1500,6 +1503,7 @@ void CHalfLifeMultiplay :: InitHUD( CBasePlayer *pl )
 				else
 					WRITE_STRING("No limit");
 				WRITE_BYTE(0);
+				WRITE_STRING("");
 			MESSAGE_END();
 		}
 		else if (g_GameMode == GAME_SNOWBALL)
@@ -1511,6 +1515,7 @@ void CHalfLifeMultiplay :: InitHUD( CBasePlayer *pl )
 				else
 					WRITE_STRING("No limit");
 				WRITE_BYTE(0);
+				WRITE_STRING("");
 			MESSAGE_END();
 		}
 	}
