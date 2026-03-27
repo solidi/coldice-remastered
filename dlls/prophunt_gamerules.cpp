@@ -97,7 +97,9 @@ void CPropDecoy::Killed( entvars_t *pevAttacker, int iGib )
 	if (pevAttacker)
 	{
 		CBasePlayer *plr = GetClassPtr((CBasePlayer *)pevAttacker);
-		((CBasePlayer *)(CBaseEntity *)m_hOwner)->m_iPropsDeployed--;
+
+		if (m_hOwner)
+			((CBasePlayer *)(CBaseEntity *)m_hOwner)->m_iPropsDeployed--;
 
 		MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
 			WRITE_BYTE( TE_TAREXPLOSION );
@@ -108,7 +110,7 @@ void CPropDecoy::Killed( entvars_t *pevAttacker, int iGib )
 
 		if (plr && plr->IsPlayer())
 		{
-			if (plr->pev != m_hOwner->pev)
+			if (!m_hOwner || plr->pev != m_hOwner->pev)
 			{
 				MESSAGE_BEGIN( MSG_ALL, gmsgScoreInfo );
 					WRITE_BYTE( ENTINDEX(plr->edict()) );
@@ -118,12 +120,13 @@ void CPropDecoy::Killed( entvars_t *pevAttacker, int iGib )
 					WRITE_SHORT( g_pGameRules->GetTeamIndex( plr->m_szTeamName ) + 1 );
 				MESSAGE_END();
 
-				ClientPrint(m_hOwner->pev, HUD_PRINTCENTER, UTIL_VarArgs("+1 point for decoy touch.\n", plr->m_iPropsDeployed));
+				if (m_hOwner)
+					ClientPrint(m_hOwner->pev, HUD_PRINTCENTER, UTIL_VarArgs("+1 point for decoy touch.\n", plr->m_iPropsDeployed));
 			}
 			else
 				ClientPrint(m_hOwner->pev, HUD_PRINTCENTER, UTIL_VarArgs("%d decoys are deployed.\n", plr->m_iPropsDeployed));
 		}
-		else
+		else if (m_hOwner)
 			ClientPrint(m_hOwner->pev, HUD_PRINTCENTER, UTIL_VarArgs("%d decoys are deployed.\n", plr->m_iPropsDeployed));
 	}
 
@@ -140,7 +143,7 @@ void CPropDecoy::PropDecoyThink( void )
 		if (FClassnameIs(ent->pev, "player") /*&& ent->pev != m_hOwner->pev*/)
 		{
 			PropDecoyTouch(ent);
-			break;
+			return; // PropDecoyTouch may remove this entity; do not access pev after
 		}
 	}
 
@@ -149,7 +152,7 @@ void CPropDecoy::PropDecoyThink( void )
 
 BOOL CPropDecoy::ShouldCollide( CBaseEntity *pOther )
 {
-	if (pOther->pev == m_hOwner->pev)
+	if (m_hOwner && pOther->pev == m_hOwner->pev)
 		return FALSE;
 
 	return TRUE;
@@ -160,12 +163,14 @@ void CPropDecoy::PropDecoyTouch( CBaseEntity *pOther )
 	if (pOther->IsPlayer() && pOther->IsAlive())
 	{
 		CBasePlayer *plr = (CBasePlayer *)pOther;
-		((CBasePlayer *)(CBaseEntity *)m_hOwner)->m_iPropsDeployed--;
+
+		if (m_hOwner)
+			((CBasePlayer *)(CBaseEntity *)m_hOwner)->m_iPropsDeployed--;
 
 		SetTouch(NULL);
 		SetThink(NULL);
 
-		if (((CBaseEntity*)m_hOwner) != pOther)
+		if (!m_hOwner || ((CBaseEntity*)m_hOwner) != pOther)
 		{
 			MESSAGE_BEGIN( MSG_ALL, gmsgScoreInfo );
 				WRITE_BYTE( ENTINDEX(plr->edict()) );
@@ -175,7 +180,8 @@ void CPropDecoy::PropDecoyTouch( CBaseEntity *pOther )
 				WRITE_SHORT( g_pGameRules->GetTeamIndex( plr->m_szTeamName ) + 1 );
 			MESSAGE_END();
 
-			ClientPrint(m_hOwner->pev, HUD_PRINTCENTER, UTIL_VarArgs("+1 point for decoy touch.\n", plr->m_iPropsDeployed));
+			if (m_hOwner)
+				ClientPrint(m_hOwner->pev, HUD_PRINTCENTER, UTIL_VarArgs("+1 point for decoy touch.\n", plr->m_iPropsDeployed));
 		}
 		else
 			ClientPrint(m_hOwner->pev, HUD_PRINTCENTER, UTIL_VarArgs("%d decoys are deployed.\n", plr->m_iPropsDeployed));
