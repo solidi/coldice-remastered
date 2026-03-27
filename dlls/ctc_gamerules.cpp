@@ -77,6 +77,7 @@ void CHalfLifeCaptureTheChumtoad::Think( void )
 			else
 				WRITE_STRING("Chumtoad waiting for players");
 			WRITE_BYTE(0);
+			WRITE_STRING("");
 		MESSAGE_END();
 
 		// Find toad, remove extras
@@ -182,6 +183,7 @@ void CHalfLifeCaptureTheChumtoad::InitHUD( CBasePlayer *pPlayer )
 			WRITE_STRING("Capture the chumtoad");
 			WRITE_STRING("");
 			WRITE_BYTE(0);
+			WRITE_STRING("");
 		MESSAGE_END();
 
 		MESSAGE_BEGIN(MSG_ONE, gmsgTeamNames, NULL, pPlayer->edict());

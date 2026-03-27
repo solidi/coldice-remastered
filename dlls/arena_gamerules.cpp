@@ -68,6 +68,7 @@ void CHalfLifeArena::InitHUD( CBasePlayer *pPlayer )
 			else
 				WRITE_STRING("");
 			WRITE_BYTE(0);
+			WRITE_STRING("");
 		MESSAGE_END();
 
 		MESSAGE_BEGIN(MSG_ONE, gmsgTeamNames, NULL, pPlayer->edict());
@@ -270,6 +271,7 @@ void CHalfLifeArena::Think( void )
 								pPlayer2->pev->health,
 								pPlayer2->pev->armorvalue));
 								WRITE_BYTE(0);
+								WRITE_STRING("");
 							MESSAGE_END();
 						}
 					} else {
@@ -574,6 +576,8 @@ void CHalfLifeArena::Think( void )
 				WRITE_BYTE(0);
 				if (roundlimit.value > 0)
 					WRITE_STRING(UTIL_VarArgs("Round %d of %d", m_iSuccessfulRounds+1, (int)roundlimit.value));
+				else
+					WRITE_STRING("");
 			MESSAGE_END();
 		}
 
@@ -585,6 +589,8 @@ void CHalfLifeArena::Think( void )
 				WRITE_BYTE(0);
 				if (roundlimit.value > 0)
 					WRITE_STRING(UTIL_VarArgs("Round %d of %d", m_iSuccessfulRounds+1, (int)roundlimit.value));
+				else
+					WRITE_STRING("");
 			MESSAGE_END();
 		}
 	}
@@ -597,6 +603,8 @@ void CHalfLifeArena::Think( void )
 			WRITE_BYTE(0);
 			if (roundlimit.value > 0)
 				WRITE_STRING(UTIL_VarArgs("%d Rounds", (int)roundlimit.value));
+			else
+				WRITE_STRING("");
 		MESSAGE_END();
 		m_flRoundTimeLimit = 0;
 		m_fWaitForPlayersTime = gpGlobals->time + roundwaittime.value;

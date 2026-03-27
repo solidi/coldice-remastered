@@ -212,6 +212,7 @@ void CHalfLifeGunGame::Think( void )
 							WRITE_STRING("GunGame in progress");
 							WRITE_STRING(UTIL_VarArgs("Top level is %s [%d of %d]", g_WeaponId[m_iTopLevel], m_iTopLevel + 1, MAXLEVEL));
 							WRITE_BYTE(result);
+							WRITE_STRING("");
 						MESSAGE_END();
 					}
 				}
@@ -259,6 +260,7 @@ void CHalfLifeGunGame::InitHUD( CBasePlayer *pPlayer )
 			WRITE_STRING("Get through your weapon list");
 			WRITE_STRING(UTIL_VarArgs("Your progress: %d of %d", pPlayer->m_iRoundWins + 1, MAXLEVEL));
 			WRITE_BYTE(0);
+			WRITE_STRING("");
 		MESSAGE_END();
 	}
 }

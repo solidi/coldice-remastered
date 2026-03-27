@@ -175,9 +175,17 @@ void CHalfLifeChilldemic::Think( void )
 					{
 						MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL, plr->edict());
 							if (m_iSurvivorsRemain >= 1 && m_iSkeletonsRemain <= 0)
+							{
 								WRITE_STRING("Survivors have won!");
+								WRITE_STRING("");
+								WRITE_BYTE(0);
+							}
 							else if (m_iSkeletonsRemain >= 1 && m_iSurvivorsRemain <= 0)
+							{
 								WRITE_STRING("Skeletons have won!");
+								WRITE_STRING("");
+								WRITE_BYTE(0);
+							}
 							else
 							{
 								WRITE_STRING(UTIL_VarArgs("Skeletons left: %d", m_iSkeletonsRemain));
@@ -186,6 +194,8 @@ void CHalfLifeChilldemic::Think( void )
 							}
 							if (roundlimit.value > 0)
 								WRITE_STRING(UTIL_VarArgs("Round %d of %d", m_iSuccessfulRounds+1, (int)roundlimit.value));
+							else
+								WRITE_STRING("");
 						MESSAGE_END();
 					} else {
 						// Send them to observer
@@ -220,6 +230,8 @@ void CHalfLifeChilldemic::Think( void )
 									WRITE_BYTE(float(survivors_left) / (m_iPlayersInGame) * 100);
 									if (roundlimit.value > 0)
 										WRITE_STRING(UTIL_VarArgs("Round %d of %d", m_iSuccessfulRounds+1, (int)roundlimit.value));
+									else
+										WRITE_STRING("");
 								MESSAGE_END();
 							}
 							else if (survivors_left == 1)
@@ -230,6 +242,8 @@ void CHalfLifeChilldemic::Think( void )
 									WRITE_BYTE(0);
 									if (roundlimit.value > 0)
 										WRITE_STRING(UTIL_VarArgs("Round %d of %d", m_iSuccessfulRounds+1, (int)roundlimit.value));
+									else
+										WRITE_STRING("");
 								MESSAGE_END();
 							}
 							else
@@ -252,6 +266,8 @@ void CHalfLifeChilldemic::Think( void )
 									WRITE_BYTE(float(survivors_left) / (m_iPlayersInGame) * 100);
 									if (roundlimit.value > 0)
 										WRITE_STRING(UTIL_VarArgs("Round %d of %d", m_iSuccessfulRounds+1, (int)roundlimit.value));
+									else
+										WRITE_STRING("");
 								MESSAGE_END();
 							}
 							else
@@ -264,6 +280,8 @@ void CHalfLifeChilldemic::Think( void )
 										WRITE_BYTE(float(skeletons_left) / (m_iPlayersInGame) * 100);
 										if (roundlimit.value > 0)
 											WRITE_STRING(UTIL_VarArgs("Round %d of %d", m_iSuccessfulRounds+1, (int)roundlimit.value));
+										else
+											WRITE_STRING("");
 									MESSAGE_END();
 								}
 								else
@@ -471,6 +489,8 @@ void CHalfLifeChilldemic::Think( void )
 			WRITE_BYTE(0);
 			if (roundlimit.value > 0)
 				WRITE_STRING(UTIL_VarArgs("%d Rounds", (int)roundlimit.value));
+			else
+				WRITE_STRING("");
 		MESSAGE_END();
 		m_fWaitForPlayersTime = gpGlobals->time + roundwaittime.value;
 	}
@@ -508,6 +528,7 @@ void CHalfLifeChilldemic::InitHUD( CBasePlayer *pPlayer )
 			else
 				WRITE_STRING("");
 			WRITE_BYTE(0);
+			WRITE_STRING("");
 		MESSAGE_END();
 
 		MESSAGE_BEGIN(MSG_ONE, gmsgTeamNames, NULL, pPlayer->edict());

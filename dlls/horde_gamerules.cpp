@@ -447,6 +447,8 @@ void CHalfLifeHorde::Think( void )
 					WRITE_BYTE(float(m_iEnemiesRemain) / (m_iTotalEnemies) * 100);
 					if (roundlimit.value > 0)
 						WRITE_STRING(UTIL_VarArgs("Round %d of %d", m_iSuccessfulRounds+1, (int)roundlimit.value));
+					else
+						WRITE_STRING("");
 				MESSAGE_END();
 			}
 
@@ -474,6 +476,8 @@ void CHalfLifeHorde::Think( void )
 				WRITE_BYTE(float(m_iEnemiesRemain) / (m_iTotalEnemies) * 100);
 				if (roundlimit.value > 0)
 					WRITE_STRING(UTIL_VarArgs("Round %d of %d", m_iSuccessfulRounds+1, (int)roundlimit.value));
+				else
+					WRITE_STRING("");
 			MESSAGE_END();
 		}
 
@@ -640,6 +644,8 @@ void CHalfLifeHorde::Think( void )
 			WRITE_BYTE(0);
 			if (roundlimit.value > 0)
 				WRITE_STRING(UTIL_VarArgs("%d Rounds", (int)roundlimit.value));
+			else
+				WRITE_STRING("");
 		MESSAGE_END();
 		m_fWaitForPlayersTime = gpGlobals->time + roundwaittime.value;
 	}
@@ -690,6 +696,7 @@ void CHalfLifeHorde::InitHUD( CBasePlayer *pPlayer )
 			else
 				WRITE_STRING("");
 			WRITE_BYTE(0);
+			WRITE_STRING("");
 		MESSAGE_END();
 
 		MESSAGE_BEGIN(MSG_ONE, gmsgTeamNames, NULL, pPlayer->edict());

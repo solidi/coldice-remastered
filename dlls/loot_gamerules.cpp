@@ -1845,6 +1845,8 @@ void CHalfLifeLoot::Think( void )
 			WRITE_BYTE( 0 );
 			if ( roundlimit.value > 0 )
 				WRITE_STRING( UTIL_VarArgs("%d Rounds", (int)roundlimit.value) );
+			else
+				WRITE_STRING("");
 		MESSAGE_END();
 		m_fWaitForPlayersTime = gpGlobals->time + roundwaittime.value;
 	}

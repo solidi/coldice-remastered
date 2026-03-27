@@ -1192,6 +1192,7 @@ void ClientCommand( edict_t *pEntity )
 			WRITE_STRING(text);
 			WRITE_STRING("xyz");
 			WRITE_BYTE(RANDOM_LONG(1,100));
+			WRITE_STRING("");
 		MESSAGE_END();
 	}
 	else if ( FStrEq(pcmd, "prop" ) )

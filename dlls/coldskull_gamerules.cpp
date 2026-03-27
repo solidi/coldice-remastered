@@ -226,6 +226,7 @@ void CSkullCharm::SkullTouch( CBaseEntity *pOther )
 				WRITE_STRING("Collect the skulls");
 				WRITE_STRING(UTIL_VarArgs("Your progress: %d of %d", myfrags, frags));
 				WRITE_BYTE(result);
+				WRITE_STRING("");
 			MESSAGE_END();
 
 			MESSAGE_BEGIN( MSG_ONE_UNRELIABLE, gmsgPlayClientSound, NULL, pPlayer->edict() );
@@ -264,6 +265,7 @@ void CHalfLifeColdSkull::InitHUD( CBasePlayer *pPlayer )
 			WRITE_STRING("Collect the skulls");
 			WRITE_STRING(UTIL_VarArgs("Your progress: 0 of %d", frags));
 			WRITE_BYTE(0);
+			WRITE_STRING("");
 		MESSAGE_END();
 	}
 }
@@ -389,6 +391,7 @@ void CHalfLifeColdSkull::PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller,
 			WRITE_STRING("Collect the skulls");
 			WRITE_STRING(UTIL_VarArgs("Your progress: %d of %d", myfrags, frags));
 			WRITE_BYTE(result);
+			WRITE_STRING("");
 		MESSAGE_END();
 	}
 
