@@ -88,11 +88,12 @@ void CHalfLifeShidden::DetermineWinner( void )
 		else
 		{
 			// Determine which team survived so we only credit winners on the surviving side.
-			// If both counts are 0 (mutual destruction) we award all tied top-fraggers.
-			int winningTeam = -1; // -1 means no team filter (mutual destruction)
-			if ( m_iDealtersRemain > 0 )
+			// If both counts are 0 (mutual destruction) or both are > 0 (both sides survive),
+			// we award all tied top-fraggers, regardless of team.
+			int winningTeam = -1; // -1 means no team filter
+			if ( m_iDealtersRemain > 0 && m_iSmeltersRemain == 0 )
 				winningTeam = SHIDDEN_DEALTER;
-			else if ( m_iSmeltersRemain > 0 )
+			else if ( m_iSmeltersRemain > 0 && m_iDealtersRemain == 0 )
 				winningTeam = SHIDDEN_SMELTER;
 
 			for ( int i = 1; i <= gpGlobals->maxClients; i++ )
@@ -115,9 +116,20 @@ void CHalfLifeShidden::DetermineWinner( void )
 			MESSAGE_BEGIN(MSG_BROADCAST, gmsgObjective);
 				WRITE_STRING("Shidden Completed!");
 				if (m_iDealtersRemain == 0 && m_iSmeltersRemain == 0)
+				{
 					WRITE_STRING("Mutual destruction!");
+				}
+				else if (m_iDealtersRemain > 0 && m_iSmeltersRemain > 0)
+				{
+					// Both teams still have players alive (e.g., timer expired) — treat as a tie/timeout.
+					WRITE_STRING("Round ends in a tie!");
+				}
 				else
-					WRITE_STRING(UTIL_VarArgs("%s win!", m_iDealtersRemain ? "Dealters" : "Smelters"));
+				{
+					// Only one team has survivors; report that team as the winner.
+					const char *pszWinningTeamName = (m_iDealtersRemain > 0) ? "Dealters" : "Smelters";
+					WRITE_STRING(UTIL_VarArgs("%s win!", pszWinningTeamName));
+				}
 				WRITE_BYTE(0);
 				WRITE_STRING("Numerous victors!");
 			MESSAGE_END();
