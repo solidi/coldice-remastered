@@ -418,6 +418,8 @@ void CHalfLifePropHunt::Think( void )
 									WRITE_BYTE(float(hunters_left) / (m_iHuntersStarted) * 100);
 									if (roundlimit.value > 0)
 										WRITE_STRING(UTIL_VarArgs("Round %d of %d", m_iSuccessfulRounds+1, (int)roundlimit.value));
+									else
+										WRITE_STRING("");
 								MESSAGE_END();
 							}
 							else if (hunters_left == 1)
@@ -428,6 +430,8 @@ void CHalfLifePropHunt::Think( void )
 									WRITE_BYTE(0);
 									if (roundlimit.value > 0)
 										WRITE_STRING(UTIL_VarArgs("Round %d of %d", m_iSuccessfulRounds+1, (int)roundlimit.value));
+									else
+										WRITE_STRING("");
 								MESSAGE_END();
 							}
 							else
@@ -453,6 +457,8 @@ void CHalfLifePropHunt::Think( void )
 									WRITE_BYTE(float(props_left) / (m_iPropsStarted) * 100);
 									if (roundlimit.value > 0)
 										WRITE_STRING(UTIL_VarArgs("Round %d of %d", m_iSuccessfulRounds+1, (int)roundlimit.value));
+									else
+										WRITE_STRING("");
 								MESSAGE_END();
 							}
 							else
@@ -465,6 +471,8 @@ void CHalfLifePropHunt::Think( void )
 										WRITE_BYTE(float(props_left) / (m_iPropsStarted) * 100);
 										if (roundlimit.value > 0)
 											WRITE_STRING(UTIL_VarArgs("Round %d of %d", m_iSuccessfulRounds+1, (int)roundlimit.value));
+										else
+											WRITE_STRING("");
 									MESSAGE_END();
 								}
 								else
@@ -741,6 +749,8 @@ void CHalfLifePropHunt::Think( void )
 			WRITE_BYTE(0);
 			if (roundlimit.value > 0)
 				WRITE_STRING(UTIL_VarArgs("%d Rounds", (int)roundlimit.value));
+			else
+				WRITE_STRING("");
 		MESSAGE_END();
 		m_fWaitForPlayersTime = gpGlobals->time + roundwaittime.value;
 	}
@@ -785,6 +795,8 @@ void CHalfLifePropHunt::InitHUD( CBasePlayer *pPlayer )
 			WRITE_BYTE(0);
 			if (roundlimit.value > 0)
 				WRITE_STRING(UTIL_VarArgs("Round %d of %d", m_iSuccessfulRounds+1, (int)roundlimit.value));
+			else
+				WRITE_STRING("");
 		MESSAGE_END();
 
 		MESSAGE_BEGIN(MSG_ONE, gmsgTeamNames, NULL, pPlayer->edict());
