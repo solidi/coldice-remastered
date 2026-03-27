@@ -693,7 +693,7 @@ void CHalfLifePropHunt::Think( void )
 			CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( player[i] );
 
 			if ( plr && plr->IsPlayer() && !plr->HasDisconnected ) {
-				plr->pev->fuser4 = i % 2;
+				plr->pev->fuser4 = (i + 1) % 2;
 				if (plr->pev->fuser4 >= TEAM_PROPS)
 				{
 					m_iPropsStarted++;
