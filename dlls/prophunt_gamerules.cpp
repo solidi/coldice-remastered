@@ -121,13 +121,22 @@ void CPropDecoy::Killed( entvars_t *pevAttacker, int iGib )
 				MESSAGE_END();
 
 				if (m_hOwner)
-					ClientPrint(m_hOwner->pev, HUD_PRINTCENTER, UTIL_VarArgs("+1 point for decoy touch.\n", plr->m_iPropsDeployed));
+				{
+					CBasePlayer *pOwner = (CBasePlayer *)(CBaseEntity *)m_hOwner;
+					ClientPrint(m_hOwner->pev, HUD_PRINTCENTER, UTIL_VarArgs("+1 point for decoy touch. (%d decoys left)\n", pOwner->m_iPropsDeployed));
+				}
 			}
 			else
-				ClientPrint(m_hOwner->pev, HUD_PRINTCENTER, UTIL_VarArgs("%d decoys are deployed.\n", plr->m_iPropsDeployed));
+			{
+				CBasePlayer *pOwner = (CBasePlayer *)(CBaseEntity *)m_hOwner;
+				ClientPrint(m_hOwner->pev, HUD_PRINTCENTER, UTIL_VarArgs("%d decoys are deployed.\n", pOwner->m_iPropsDeployed));
+			}
 		}
 		else if (m_hOwner)
-			ClientPrint(m_hOwner->pev, HUD_PRINTCENTER, UTIL_VarArgs("%d decoys are deployed.\n", plr->m_iPropsDeployed));
+		{
+			CBasePlayer *pOwner = (CBasePlayer *)(CBaseEntity *)m_hOwner;
+			ClientPrint(m_hOwner->pev, HUD_PRINTCENTER, UTIL_VarArgs("%d decoys are deployed.\n", pOwner->m_iPropsDeployed));
+		}
 	}
 
 	CBaseEntity::Killed( pevAttacker, iGib );
@@ -181,10 +190,16 @@ void CPropDecoy::PropDecoyTouch( CBaseEntity *pOther )
 			MESSAGE_END();
 
 			if (m_hOwner)
-				ClientPrint(m_hOwner->pev, HUD_PRINTCENTER, UTIL_VarArgs("+1 point for decoy touch.\n", plr->m_iPropsDeployed));
+			{
+				CBasePlayer *pOwner = (CBasePlayer *)(CBaseEntity *)m_hOwner;
+				ClientPrint(m_hOwner->pev, HUD_PRINTCENTER, UTIL_VarArgs("+1 point for decoy touch. (%d decoys left)\n", pOwner->m_iPropsDeployed));
+			}
 		}
 		else
-			ClientPrint(m_hOwner->pev, HUD_PRINTCENTER, UTIL_VarArgs("%d decoys are deployed.\n", plr->m_iPropsDeployed));
+		{
+			CBasePlayer *pOwner = (CBasePlayer *)(CBaseEntity *)m_hOwner;
+			ClientPrint(m_hOwner->pev, HUD_PRINTCENTER, UTIL_VarArgs("%d decoys are deployed.\n", pOwner->m_iPropsDeployed));
+		}
 
 		// Play catch sound
 		EMIT_SOUND_DYN(pOther->edict(), CHAN_WEAPON, "items/gunpickup2.wav", 1.0, ATTN_NORM, 0, 98 + RANDOM_LONG(0,3)); 
