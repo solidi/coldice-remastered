@@ -145,13 +145,13 @@ void CPropDecoy::Killed( entvars_t *pevAttacker, int iGib )
 void CPropDecoy::PropDecoyThink( void )
 {
 	CBaseEntity *ent = NULL;
-	BOOL yes = FALSE;
 
 	while ( (ent = UTIL_FindEntityInSphere( ent, pev->origin, 32 )) != NULL )
 	{
-		if (FClassnameIs(ent->pev, "player") /*&& ent->pev != m_hOwner->pev*/)
+		CBasePlayer *plr = (CBasePlayer *)ent;
+		if (plr && plr->IsPlayer() && plr->IsAlive() && !plr->IsObserver() && plr->IsInArena)
 		{
-			PropDecoyTouch(ent);
+			PropDecoyTouch(plr);
 			return; // PropDecoyTouch may remove this entity; do not access pev after
 		}
 	}
