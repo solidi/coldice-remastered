@@ -1170,11 +1170,11 @@ void CGoldenPlayer::GoldenPlayerThink( void )
 		pev->angles.y = m_fBaseYaw;
 
 		// Translate so the feet stay planted at death position.
-		// halfH = stand half-height (36 units), halfW = hull half-width/radius (16 units).
+		// halfH = stand half-height (36 units), halfW = hull half-width/radius (8 units).
 		// The +halfW*sin(tipRad) term lifts the model as it falls so the model's
 		// back edge rests on the floor instead of sinking through it.
 		const float halfH = 36.0f;
-		const float halfW = 16.0f;
+		const float halfW = 8.0f;
 		float tipRad = tipAngle * ( (float)M_PI / 180.0f );
 
 		// Additive death velocity: statue slides with the player's momentum at
@@ -1292,6 +1292,7 @@ void CBasePlayer::Killed( entvars_t *pevAttacker, int iGib )
 
 	pev->deadflag		= DEAD_DYING;
 	pev->movetype		= MOVETYPE_TOSS;
+	int oldFlags 		= pev->flags;
 	ClearBits( pev->flags, FL_ONGROUND );
 	if (pev->velocity.z < 10)
 		pev->velocity.z += RANDOM_FLOAT(0,300);
@@ -1378,7 +1379,7 @@ void CBasePlayer::Killed( entvars_t *pevAttacker, int iGib )
 		return;
 	}
 
-	if ( g_pGameRules->MutatorEnabled( MUTATOR_GOLDENGUNS ) )
+	if ( g_pGameRules->MutatorEnabled( MUTATOR_GOLDENGUNS ) && FBitSet(oldFlags, FL_ONGROUND))
 	{
 		// Silently destroy all weapons — golden players never drop items
 		/*for ( int gi = 0; gi < MAX_ITEM_TYPES; gi++ )
@@ -1445,6 +1446,7 @@ void CBasePlayer::Killed( entvars_t *pevAttacker, int iGib )
 				pGolden->pev->colormap  = pev->colormap;
 				pGolden->pev->framerate = 0.0f;         // freeze animation
 				pGolden->pev->effects   = EF_NOINTERP;
+				pGolden->pev->movetype  = MOVETYPE_NONE;   // don't let it move until we start the think function
 				pGolden->pev->solid     = SOLID_NOT;
 				pGolden->pev->takedamage = DAMAGE_NO;
 
