@@ -151,7 +151,8 @@ void CGrenadeLauncher::PrimaryAttack()
 
 	int snowballfight = 0;
 #ifndef CLIENT_DLL
-	snowballfight = g_pGameRules->IsSnowballFight();
+	snowballfight = g_pGameRules->IsSnowballFight() ||
+					g_pGameRules->MutatorEnabled(MUTATOR_SNOWBALL);
 #endif
 
 	// GAME_SNOWBALL mode: fire snowballs at rapid pace
@@ -222,7 +223,8 @@ void CGrenadeLauncher::SecondaryAttack( void )
 
 	int snowballfight = 0;
 #ifndef CLIENT_DLL
-	snowballfight = g_pGameRules->IsSnowballFight();
+	snowballfight = g_pGameRules->IsSnowballFight() ||
+					g_pGameRules->MutatorEnabled(MUTATOR_SNOWBALL);
 #endif
 
 	// GAME_SNOWBALL mode: fire a bouncing snowbomb that explodes into 6 snowballs
