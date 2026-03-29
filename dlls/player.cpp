@@ -1132,13 +1132,14 @@ public:
 	void EXPORT GoldenPlayerThink( void );
 	virtual int ObjectCaps( void ) { return FCAP_DONT_SAVE; }
 
-	Vector  m_vecInitialOrigin; // world-space foot position at spawn
-	Vector  m_vecTipDir;        // horizontal unit vector; statue falls toward this
-	float   m_fBaseYaw;         // entity yaw at death, kept constant throughout
-	float   m_fTipStartTime;    // time tipping began
-	float   m_fTipDuration;     // total tip time (2 - 3 seconds)
-	float   m_fCleanupTime;     // time entity is removed after landing
-	bool    m_bLanded;          // true once the statue has hit the ground
+	Vector  m_vecInitialOrigin;  // world-space foot position at spawn
+	Vector  m_vecTipDir;         // horizontal unit vector; statue falls toward this
+	Vector  m_vecDeathVelocity;  // player's XY velocity at moment of death
+	float   m_fBaseYaw;          // entity yaw at death, kept constant throughout
+	float   m_fTipStartTime;     // time tipping began
+	float   m_fTipDuration;      // total tip time (2 - 3 seconds)
+	float   m_fCleanupTime;      // time entity is removed after landing
+	bool    m_bLanded;           // true once the statue has hit the ground
 };
 
 LINK_ENTITY_TO_CLASS( monster_goldenplayer, CGoldenPlayer );
@@ -1169,13 +1170,44 @@ void CGoldenPlayer::GoldenPlayerThink( void )
 		pev->angles.y = m_fBaseYaw;
 
 		// Translate so the feet stay planted at death position.
-		// Player stand half-height ~36 units; pivot at foot level.
+		// halfH = stand half-height (36 units), halfW = hull half-width/radius (16 units).
+		// The +halfW*sin(tipRad) term lifts the model as it falls so the model's
+		// back edge rests on the floor instead of sinking through it.
 		const float halfH = 36.0f;
+		const float halfW = 16.0f;
 		float tipRad = tipAngle * ( (float)M_PI / 180.0f );
-		pev->origin.x = m_vecInitialOrigin.x + m_vecTipDir.x * halfH * sin( tipRad );
-		pev->origin.y = m_vecInitialOrigin.y + m_vecTipDir.y * halfH * sin( tipRad );
-		pev->origin.z = m_vecInitialOrigin.z + halfH * ( cos( tipRad ) - 1.0f );
 
+		// Additive death velocity: statue slides with the player's momentum at
+		// the moment of death, decelerating smoothly to rest by the time it lands.
+		// Scaled to 20% of player velocity so the slide is subtle, not a full skid.
+		// Integral of v*(1 - s/D) ds from 0 to elapsed = v*(elapsed - elapsed²/(2D))
+		const float SLIDE_SCALE = 0.2f;
+		float slideDecay = SLIDE_SCALE * ( elapsed - ( elapsed * elapsed ) / ( 2.0f * m_fTipDuration ) );
+
+		Vector desiredOrigin;
+		desiredOrigin.x = m_vecInitialOrigin.x + m_vecTipDir.x * halfH * sin( tipRad ) + m_vecDeathVelocity.x * slideDecay;
+		desiredOrigin.y = m_vecInitialOrigin.y + m_vecTipDir.y * halfH * sin( tipRad ) + m_vecDeathVelocity.y * slideDecay;
+		desiredOrigin.z = m_vecInitialOrigin.z + halfH * ( cos( tipRad ) - 1.0f ) + halfW * sin( tipRad );
+
+		// Clamp XY slide against world geometry — prevents the statue from
+		// passing through nearby walls.  Trace at the new Z so only walls are
+		// detected, not the floor or ceiling.
+		if ( m_vecDeathVelocity.x != 0.0f || m_vecDeathVelocity.y != 0.0f )
+		{
+			TraceResult tr;
+			Vector traceFrom( pev->origin.x, pev->origin.y, desiredOrigin.z );
+			Vector traceTo( desiredOrigin.x, desiredOrigin.y, desiredOrigin.z );
+			UTIL_TraceLine( traceFrom, traceTo, ignore_monsters, edict(), &tr );
+			if ( tr.flFraction < 1.0f )
+			{
+				// Wall hit — kill slide so it doesn't resume on future ticks
+				m_vecDeathVelocity = g_vecZero;
+				desiredOrigin.x = tr.vecEndPos.x;
+				desiredOrigin.y = tr.vecEndPos.y;
+			}
+		}
+
+		pev->origin   = desiredOrigin;
 		pev->effects |= EF_NOINTERP;
 
 		if ( t >= 1.0f )
@@ -1416,9 +1448,10 @@ void CBasePlayer::Killed( entvars_t *pevAttacker, int iGib )
 				pGolden->pev->solid     = SOLID_NOT;
 				pGolden->pev->takedamage = DAMAGE_NO;
 
-				pGolden->m_vecInitialOrigin = pev->origin;
-				pGolden->m_vecTipDir        = vecTipDir;
-				pGolden->m_fBaseYaw         = pev->angles.y;
+				pGolden->m_vecInitialOrigin  = pev->origin;
+				pGolden->m_vecTipDir         = vecTipDir;
+				pGolden->m_vecDeathVelocity  = Vector( pev->velocity.x, pev->velocity.y, 0.0f );
+				pGolden->m_fBaseYaw          = pev->angles.y;
 				pGolden->m_fTipStartTime    = gpGlobals->time;
 				pGolden->m_fTipDuration     = RANDOM_FLOAT( 0.75f, 1.25f );
 				pGolden->m_fCleanupTime     = 0.0f;
