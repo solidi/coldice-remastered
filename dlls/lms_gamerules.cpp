@@ -830,6 +830,9 @@ BOOL CHalfLifeLastManStanding::HasGameTimerExpired( void )
 
 BOOL CHalfLifeLastManStanding::FPlayerCanRespawn( CBasePlayer *pPlayer )
 {
+	if (!g_GameInProgress)
+		return FALSE;
+
 	if ( pPlayer->pev->frags <= 0 )
 	{
 		if ( !pPlayer->IsAlive() && !pPlayer->m_flForceToObserverTime )
