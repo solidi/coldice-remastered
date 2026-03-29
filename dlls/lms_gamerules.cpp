@@ -34,6 +34,7 @@ extern int gmsgSafeSpot;
 extern int gmsgDEraser;
 extern int gmsgBanner;
 extern int gmsgSpecialEntity;
+extern int gmsgStatusIcon;
 
 extern DLL_GLOBAL BOOL g_fGameOver;
 
@@ -137,6 +138,15 @@ void CSafeSpot::SafeSpotThink( void )
 				entvars_t *pevWorld = VARS( INDEXENT(0) );
 				plr->TakeDamage( pevWorld, plr->pev, 2, DMG_SHOCK );
 				ClientPrint(plr->pev, HUD_PRINTCENTER, "Taking damage - find the green zone!");
+
+				if (!plr->m_fCameraDelay)
+				{
+					MESSAGE_BEGIN(MSG_ONE, gmsgStatusIcon, NULL, plr->edict());
+						WRITE_BYTE(1);
+						WRITE_STRING("cam_danger");
+					MESSAGE_END();
+				}
+				plr->m_fCameraDelay = gpGlobals->time + 2.0;
 			}
 		}
 	}
@@ -275,6 +285,26 @@ ReturnSpot:
 
 	pLastSpawnPoint = pSpot;
 	return pSpot->edict();
+}
+
+void CHalfLifeLastManStanding::PlayerThink( CBasePlayer *pPlayer )
+{
+	CHalfLifeMultiplay::PlayerThink( pPlayer );
+
+	if (g_fGameOver)
+		return;
+
+	if (!g_GameInProgress)
+		return;
+
+	if (pPlayer->m_fCameraDelay && pPlayer->m_fCameraDelay <= gpGlobals->time)
+	{
+		MESSAGE_BEGIN(MSG_ONE, gmsgStatusIcon, NULL, pPlayer->edict());
+			WRITE_BYTE(0);
+			WRITE_STRING("cam_danger");
+		MESSAGE_END();
+		pPlayer->m_fCameraDelay = 0;
+	}
 }
 
 void CHalfLifeLastManStanding::Think( void )
@@ -491,6 +521,9 @@ void CHalfLifeLastManStanding::Think( void )
 			//stop timer / end game.
 			m_flRoundTimeLimit = 0;
 			g_GameInProgress = FALSE;
+			// Avoid more damage
+			if (pSafeSpot)
+				pSafeSpot->pev->nextthink = gpGlobals->time + 5.0;
 			PauseMutators();
 			MESSAGE_BEGIN(MSG_ALL, gmsgShowTimer);
 				WRITE_BYTE(0);
@@ -817,6 +850,9 @@ BOOL CHalfLifeLastManStanding::HasGameTimerExpired( void )
 			WRITE_BYTE(0);
 		MESSAGE_END();
 
+		// Avoid more damage
+		if (pSafeSpot)
+			pSafeSpot->pev->nextthink = gpGlobals->time + 5.0;
 		PauseMutators();
 
 		m_iSuccessfulRounds++;
@@ -830,6 +866,9 @@ BOOL CHalfLifeLastManStanding::HasGameTimerExpired( void )
 
 BOOL CHalfLifeLastManStanding::FPlayerCanRespawn( CBasePlayer *pPlayer )
 {
+	if (!g_GameInProgress)
+		return FALSE;
+
 	if ( pPlayer->pev->frags <= 0 )
 	{
 		if ( !pPlayer->IsAlive() && !pPlayer->m_flForceToObserverTime )

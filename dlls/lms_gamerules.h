@@ -19,6 +19,7 @@ public:
 	CHalfLifeLastManStanding();
 	virtual const char *GetGameDescription( void ) { return "Cold Ice Remastered Battle Royale"; }
 	virtual void Think( void );
+	virtual void PlayerThink( CBasePlayer *pPlayer );
 	virtual BOOL HasGameTimerExpired( void );
 	virtual void InitHUD( CBasePlayer *pPlayer );
 	virtual BOOL FPlayerCanRespawn( CBasePlayer *pPlayer );

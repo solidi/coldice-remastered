@@ -657,6 +657,9 @@ void CHalfLifeChilldemic::PlayerSpawn( CBasePlayer *pPlayer )
 
 BOOL CHalfLifeChilldemic::FPlayerCanRespawn( CBasePlayer *pPlayer )
 {
+	if ( !g_GameInProgress )
+		return FALSE;
+
 	// Skeletons can respawn if a survivor is left.
 	if ( pPlayer->pev->fuser4 == TEAM_SKELETONS && m_iSurvivorsRemain >= 1 && !pPlayer->m_flForceToObserverTime )
 		return TRUE;

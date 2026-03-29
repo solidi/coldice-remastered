@@ -5723,6 +5723,9 @@ void CBasePlayer::Celebrate( void )
 	if (pev->waterlevel == 3)
 		return;
 
+	if (!IsAlive())
+		return;
+
 	if (m_fCelebrateTime < gpGlobals->time) {
 		m_fCelebrateTime = gpGlobals->time + 6.5;
 		SetAnimation( PLAYER_CELEBRATE );
