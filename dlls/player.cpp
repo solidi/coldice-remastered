@@ -1137,7 +1137,7 @@ public:
 	Vector  m_vecDeathVelocity;  // player's XY velocity at moment of death
 	float   m_fBaseYaw;          // entity yaw at death, kept constant throughout
 	float   m_fTipStartTime;     // time tipping began
-	float   m_fTipDuration;      // total tip time (2 - 3 seconds)
+	float   m_fTipDuration;      // total tip time (0.75 - 1.25 seconds; randomized in Killed)
 	float   m_fCleanupTime;      // time entity is removed after landing
 	bool    m_bLanded;           // true once the statue has hit the ground
 };
@@ -1207,7 +1207,7 @@ void CGoldenPlayer::GoldenPlayerThink( void )
 			}
 		}
 
-		pev->origin   = desiredOrigin;
+		UTIL_SetOrigin( pev, desiredOrigin );
 		pev->effects |= EF_NOINTERP;
 
 		if ( t >= 1.0f )
@@ -1384,25 +1384,9 @@ void CBasePlayer::Killed( entvars_t *pevAttacker, int iGib )
 		pev->skin = 1;
 		if (FBitSet(oldFlags, FL_ONGROUND))
 		{
-			// Silently destroy all weapons — golden players never drop items
-			/*for ( int gi = 0; gi < MAX_ITEM_TYPES; gi++ )
-			{
-				CBasePlayerItem *pItem = m_rgpPlayerItems[ gi ];
-				while ( pItem )
-				{
-					CBasePlayerItem *pNext = pItem->m_pNext;
-					pItem->m_pPlayer = NULL;
-					UTIL_Remove( pItem );
-					pItem = pNext;
-				}
-				m_rgpPlayerItems[ gi ] = NULL;
-			}
-			m_pActiveItem = m_pLastItem = NULL;
-			m_fKnownItem  = FALSE;
-			pev->viewmodel  = 0;
-			pev->weaponmodel = 0;*/
+			// NOTE: Golden player weapon/item cleanup is intentionally not performed here.
 
-			// Tip direction: away from attacker (stat falls opposite to shot direction).
+			// Tip direction: away from attacker (statue falls opposite to shot direction).
 			// Falls back along (victim - attacker), horizontal plane only.
 			Vector vecTipDir;
 			if ( pevAttacker && pevAttacker != pev )
