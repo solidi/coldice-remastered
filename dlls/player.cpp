@@ -1379,101 +1379,105 @@ void CBasePlayer::Killed( entvars_t *pevAttacker, int iGib )
 		return;
 	}
 
-	if ( g_pGameRules->MutatorEnabled( MUTATOR_GOLDENGUNS ) && FBitSet(oldFlags, FL_ONGROUND))
+	if ( g_pGameRules->MutatorEnabled( MUTATOR_GOLDENGUNS ))
 	{
-		// Silently destroy all weapons — golden players never drop items
-		/*for ( int gi = 0; gi < MAX_ITEM_TYPES; gi++ )
+		pev->skin = 1;
+		if (FBitSet(oldFlags, FL_ONGROUND))
 		{
-			CBasePlayerItem *pItem = m_rgpPlayerItems[ gi ];
-			while ( pItem )
+			// Silently destroy all weapons — golden players never drop items
+			/*for ( int gi = 0; gi < MAX_ITEM_TYPES; gi++ )
 			{
-				CBasePlayerItem *pNext = pItem->m_pNext;
-				pItem->m_pPlayer = NULL;
-				UTIL_Remove( pItem );
-				pItem = pNext;
+				CBasePlayerItem *pItem = m_rgpPlayerItems[ gi ];
+				while ( pItem )
+				{
+					CBasePlayerItem *pNext = pItem->m_pNext;
+					pItem->m_pPlayer = NULL;
+					UTIL_Remove( pItem );
+					pItem = pNext;
+				}
+				m_rgpPlayerItems[ gi ] = NULL;
 			}
-			m_rgpPlayerItems[ gi ] = NULL;
-		}
-		m_pActiveItem = m_pLastItem = NULL;
-		m_fKnownItem  = FALSE;
-		pev->viewmodel  = 0;
-		pev->weaponmodel = 0;*/
+			m_pActiveItem = m_pLastItem = NULL;
+			m_fKnownItem  = FALSE;
+			pev->viewmodel  = 0;
+			pev->weaponmodel = 0;*/
 
-		// Tip direction: away from attacker (stat falls opposite to shot direction).
-		// Falls back along (victim - attacker), horizontal plane only.
-		Vector vecTipDir;
-		if ( pevAttacker && pevAttacker != pev )
-		{
-			Vector vecDiff( pev->origin.x - pevAttacker->origin.x,
-			                pev->origin.y - pevAttacker->origin.y, 0.0f );
-			float len = vecDiff.Length();
-			if ( len > 4.0f )
+			// Tip direction: away from attacker (stat falls opposite to shot direction).
+			// Falls back along (victim - attacker), horizontal plane only.
+			Vector vecTipDir;
+			if ( pevAttacker && pevAttacker != pev )
 			{
-				vecTipDir = vecDiff * ( 1.0f / len );
+				Vector vecDiff( pev->origin.x - pevAttacker->origin.x,
+								pev->origin.y - pevAttacker->origin.y, 0.0f );
+				float len = vecDiff.Length();
+				if ( len > 4.0f )
+				{
+					vecTipDir = vecDiff * ( 1.0f / len );
+				}
+				else
+				{
+					// Attacker at same position; fall in player's own backward direction
+					float yr = pev->angles.y * ( (float)M_PI / 180.0f );
+					vecTipDir = Vector( -cos( yr ), -sin( yr ), 0.0f );
+				}
 			}
 			else
 			{
-				// Attacker at same position; fall in player's own backward direction
 				float yr = pev->angles.y * ( (float)M_PI / 180.0f );
 				vecTipDir = Vector( -cos( yr ), -sin( yr ), 0.0f );
 			}
-		}
-		else
-		{
-			float yr = pev->angles.y * ( (float)M_PI / 180.0f );
-			vecTipDir = Vector( -cos( yr ), -sin( yr ), 0.0f );
-		}
 
-		// Spawn the golden statue at the exact death position
-		edict_t *pEnt = CREATE_NAMED_ENTITY( MAKE_STRING( "monster_goldenplayer" ) );
-		if ( !FNullEnt( pEnt ) )
-		{
-			CGoldenPlayer *pGolden = (CGoldenPlayer *)GET_PRIVATE( pEnt );
-			if ( pGolden )
+			// Spawn the golden statue at the exact death position
+			edict_t *pEnt = CREATE_NAMED_ENTITY( MAKE_STRING( "monster_goldenplayer" ) );
+			if ( !FNullEnt( pEnt ) )
 			{
-				SET_MODEL( pEnt, "models/goldenplayer.mdl" );
-				UTIL_SetOrigin( pGolden->pev, pev->origin );
-				UTIL_SetSize( pGolden->pev, pev->mins, pev->maxs );
+				CGoldenPlayer *pGolden = (CGoldenPlayer *)GET_PRIVATE( pEnt );
+				if ( pGolden )
+				{
+					SET_MODEL( pEnt, "models/goldenplayer.mdl" );
+					UTIL_SetOrigin( pGolden->pev, pev->origin );
+					UTIL_SetSize( pGolden->pev, pev->mins, pev->maxs );
 
-				pGolden->pev->angles.x  = 0.0f;
-				pGolden->pev->angles.y  = pev->angles.y;
-				pGolden->pev->angles.z  = 0.0f;
-				pGolden->pev->skin      = 0;
-				pGolden->pev->body      = 0;
-				pGolden->pev->sequence  = 0;
-				pGolden->pev->frame     = 0;
-				pGolden->pev->animtime  = pev->animtime;
-				pGolden->pev->colormap  = pev->colormap;
-				pGolden->pev->framerate = 0.0f;         // freeze animation
-				pGolden->pev->effects   = EF_NOINTERP;
-				pGolden->pev->movetype  = MOVETYPE_NONE;   // don't let it move until we start the think function
-				pGolden->pev->solid     = SOLID_NOT;
-				pGolden->pev->takedamage = DAMAGE_NO;
+					pGolden->pev->angles.x  = 0.0f;
+					pGolden->pev->angles.y  = pev->angles.y;
+					pGolden->pev->angles.z  = 0.0f;
+					pGolden->pev->skin      = 0;
+					pGolden->pev->body      = 0;
+					pGolden->pev->sequence  = 0;
+					pGolden->pev->frame     = 0;
+					pGolden->pev->animtime  = pev->animtime;
+					pGolden->pev->colormap  = pev->colormap;
+					pGolden->pev->framerate = 0.0f;         // freeze animation
+					pGolden->pev->effects   = EF_NOINTERP;
+					pGolden->pev->movetype  = MOVETYPE_NONE;   // don't let it move until we start the think function
+					pGolden->pev->solid     = SOLID_NOT;
+					pGolden->pev->takedamage = DAMAGE_NO;
 
-				pGolden->m_vecInitialOrigin  = pev->origin;
-				pGolden->m_vecTipDir         = vecTipDir;
-				pGolden->m_vecDeathVelocity  = Vector( pev->velocity.x, pev->velocity.y, 0.0f );
-				pGolden->m_fBaseYaw          = pev->angles.y;
-				pGolden->m_fTipStartTime    = gpGlobals->time;
-				pGolden->m_fTipDuration     = RANDOM_FLOAT( 0.75f, 1.25f );
-				pGolden->m_fCleanupTime     = 0.0f;
-				pGolden->m_bLanded          = false;
+					pGolden->m_vecInitialOrigin  = pev->origin;
+					pGolden->m_vecTipDir         = vecTipDir;
+					pGolden->m_vecDeathVelocity  = Vector( pev->velocity.x, pev->velocity.y, 0.0f );
+					pGolden->m_fBaseYaw          = pev->angles.y;
+					pGolden->m_fTipStartTime    = gpGlobals->time;
+					pGolden->m_fTipDuration     = RANDOM_FLOAT( 0.75f, 1.25f );
+					pGolden->m_fCleanupTime     = 0.0f;
+					pGolden->m_bLanded          = false;
 
-				pGolden->SetThink( &CGoldenPlayer::GoldenPlayerThink );
-				pGolden->pev->nextthink = gpGlobals->time + 0.05f;
+					pGolden->SetThink( &CGoldenPlayer::GoldenPlayerThink );
+					pGolden->pev->nextthink = gpGlobals->time + 0.05f;
+				}
 			}
+
+			// Hide the real player immediately; statue takes its place.
+			// PlayerDeathThink still runs so respawn timers work normally.
+			pev->effects |= EF_NODRAW;
+			pev->solid    = SOLID_NOT;
+
+			pev->angles.x = 0;
+			pev->angles.z = 0;
+			SetThink( &CBasePlayer::PlayerDeathThink );
+			pev->nextthink = gpGlobals->time + 0.1;
+			return;
 		}
-
-		// Hide the real player immediately; statue takes its place.
-		// PlayerDeathThink still runs so respawn timers work normally.
-		pev->effects |= EF_NODRAW;
-		pev->solid    = SOLID_NOT;
-
-		pev->angles.x = 0;
-		pev->angles.z = 0;
-		SetThink( &CBasePlayer::PlayerDeathThink );
-		pev->nextthink = gpGlobals->time + 0.1;
-		return;
 	}
 
 	// No gib during sanic
@@ -4472,6 +4476,7 @@ void CBasePlayer::Spawn( void )
 	}
 #endif
 
+	pev->skin = 0;
 	g_pGameRules->PlayerSpawn( this );
 	m_iExitObserver = FALSE;
 }
