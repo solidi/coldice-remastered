@@ -1120,6 +1120,126 @@ void CBasePlayer::RemoveAllItems( BOOL removeSuit )
 	MESSAGE_END();
 }
 
+//=========================================================
+// CGoldenPlayer - golden statue death for MUTATOR_GOLDENGUNS.
+// Spawned at the player's exact death position.  Tips over
+// like a heavy metal statue falling away from the attacker,
+// then lies flat and is removed after 30 seconds.
+//=========================================================
+class CGoldenPlayer : public CBaseEntity
+{
+public:
+	void EXPORT GoldenPlayerThink( void );
+	virtual int ObjectCaps( void ) { return FCAP_DONT_SAVE; }
+
+	Vector  m_vecInitialOrigin;  // world-space foot position at spawn
+	Vector  m_vecTipDir;         // horizontal unit vector; statue falls toward this
+	Vector  m_vecDeathVelocity;  // player's XY velocity at moment of death
+	float   m_fBaseYaw;          // entity yaw at death, kept constant throughout
+	float   m_fTipStartTime;     // time tipping began
+	float   m_fTipDuration;      // total tip time (0.75 - 1.25 seconds; randomized in Killed)
+	float   m_fCleanupTime;      // time entity is removed after landing
+	bool    m_bLanded;           // true once the statue has hit the ground
+};
+
+LINK_ENTITY_TO_CLASS( monster_goldenplayer, CGoldenPlayer );
+
+void CGoldenPlayer::GoldenPlayerThink( void )
+{
+	if ( !m_bLanded )
+	{
+		float elapsed = gpGlobals->time - m_fTipStartTime;
+		float t = elapsed / m_fTipDuration;
+		if ( t > 1.0f ) t = 1.0f;
+
+		// Quadratic ease-in: slow start, gravity-like acceleration
+		float tipAngle = 90.0f * t * t;
+
+		// Decompose tip direction into forward/right components of the entity's
+		// base yaw.  GoldSrc: fwd=(cos y, sin y, 0), right=(sin y, -cos y, 0)
+		float yawRad = m_fBaseYaw * ( (float)M_PI / 180.0f );
+		float fwdX = cos( yawRad ), fwdY = sin( yawRad );
+		float rtX  = sin( yawRad ), rtY  = -cos( yawRad );
+
+		float fwdDot   = m_vecTipDir.x * fwdX + m_vecTipDir.y * fwdY;
+		float rightDot = m_vecTipDir.x * rtX  + m_vecTipDir.y * rtY;
+
+		// Pitch: positive = top falls forward.  Roll: positive = right side down.
+		pev->angles.x = tipAngle * fwdDot;
+		pev->angles.z = tipAngle * rightDot;
+		pev->angles.y = m_fBaseYaw;
+
+		// Translate so the feet stay planted at death position.
+		// halfH = stand half-height (36 units), halfW = hull half-width/radius (8 units).
+		// The +halfW*sin(tipRad) term lifts the model as it falls so the model's
+		// back edge rests on the floor instead of sinking through it.
+		const float halfH = 36.0f;
+		const float halfW = 8.0f;
+		float tipRad = tipAngle * ( (float)M_PI / 180.0f );
+
+		// Additive death velocity: statue slides with the player's momentum at
+		// the moment of death, decelerating smoothly to rest by the time it lands.
+		// Scaled to 20% of player velocity so the slide is subtle, not a full skid.
+		// Integral of v*(1 - s/D) ds from 0 to elapsed = v*(elapsed - elapsed²/(2D))
+		const float SLIDE_SCALE = 0.2f;
+		float slideDecay = SLIDE_SCALE * ( elapsed - ( elapsed * elapsed ) / ( 2.0f * m_fTipDuration ) );
+
+		Vector desiredOrigin;
+		desiredOrigin.x = m_vecInitialOrigin.x + m_vecTipDir.x * halfH * sin( tipRad ) + m_vecDeathVelocity.x * slideDecay;
+		desiredOrigin.y = m_vecInitialOrigin.y + m_vecTipDir.y * halfH * sin( tipRad ) + m_vecDeathVelocity.y * slideDecay;
+		desiredOrigin.z = m_vecInitialOrigin.z + halfH * ( cos( tipRad ) - 1.0f ) + halfW * sin( tipRad );
+
+		// Clamp XY slide against world geometry — prevents the statue from
+		// passing through nearby walls.  Trace at the new Z so only walls are
+		// detected, not the floor or ceiling.
+		if ( m_vecDeathVelocity.x != 0.0f || m_vecDeathVelocity.y != 0.0f )
+		{
+			TraceResult tr;
+			Vector traceFrom( pev->origin.x, pev->origin.y, desiredOrigin.z );
+			Vector traceTo( desiredOrigin.x, desiredOrigin.y, desiredOrigin.z );
+			UTIL_TraceLine( traceFrom, traceTo, ignore_monsters, edict(), &tr );
+			if ( tr.flFraction < 1.0f )
+			{
+				// Wall hit — kill slide so it doesn't resume on future ticks
+				m_vecDeathVelocity = g_vecZero;
+				desiredOrigin.x = tr.vecEndPos.x;
+				desiredOrigin.y = tr.vecEndPos.y;
+			}
+		}
+
+		UTIL_SetOrigin( pev, desiredOrigin );
+		pev->effects |= EF_NOINTERP;
+
+		if ( t >= 1.0f )
+		{
+			m_bLanded = true;
+			m_fCleanupTime = gpGlobals->time + 30.0f;
+
+			if ( RANDOM_LONG( 0, 1 ) )
+				EMIT_SOUND( edict(), CHAN_BODY, "debris/bustmetal1.wav", 1.0f, ATTN_NORM );
+			else
+				EMIT_SOUND( edict(), CHAN_BODY, "debris/bustmetal2.wav", 1.0f, ATTN_NORM );
+
+			pev->nextthink = gpGlobals->time + 1.0f;
+			return;
+		}
+
+		pev->nextthink = gpGlobals->time + 0.05f;
+	}
+	else
+	{
+		// Lying flat; wait out the display timer then remove
+		if ( gpGlobals->time >= m_fCleanupTime )
+		{
+			UTIL_Remove( this );
+			return;
+		}
+		pev->nextthink = gpGlobals->time + 1.0f;
+	}
+}
+
+//=========================================================
+
 /*
  * GLOBALS ASSUMED SET:  g_ulModelIndexPlayer
  *
@@ -1172,6 +1292,7 @@ void CBasePlayer::Killed( entvars_t *pevAttacker, int iGib )
 
 	pev->deadflag		= DEAD_DYING;
 	pev->movetype		= MOVETYPE_TOSS;
+	int oldFlags 		= pev->flags;
 	ClearBits( pev->flags, FL_ONGROUND );
 	if (pev->velocity.z < 10)
 		pev->velocity.z += RANDOM_FLOAT(0,300);
@@ -1256,6 +1377,88 @@ void CBasePlayer::Killed( entvars_t *pevAttacker, int iGib )
 		pev->effects |= EF_NODRAW;
 
 		return;
+	}
+
+	if ( g_pGameRules->MutatorEnabled( MUTATOR_GOLDENGUNS ))
+	{
+		pev->skin = 1;
+		if (FBitSet(oldFlags, FL_ONGROUND))
+		{
+			// NOTE: Golden player weapon/item cleanup is intentionally not performed here.
+
+			// Tip direction: away from attacker (statue falls opposite to shot direction).
+			// Falls back along (victim - attacker), horizontal plane only.
+			Vector vecTipDir;
+			if ( pevAttacker && pevAttacker != pev )
+			{
+				Vector vecDiff( pev->origin.x - pevAttacker->origin.x,
+								pev->origin.y - pevAttacker->origin.y, 0.0f );
+				float len = vecDiff.Length();
+				if ( len > 4.0f )
+				{
+					vecTipDir = vecDiff * ( 1.0f / len );
+				}
+				else
+				{
+					// Attacker at same position; fall in player's own backward direction
+					float yr = pev->angles.y * ( (float)M_PI / 180.0f );
+					vecTipDir = Vector( -cos( yr ), -sin( yr ), 0.0f );
+				}
+			}
+			else
+			{
+				float yr = pev->angles.y * ( (float)M_PI / 180.0f );
+				vecTipDir = Vector( -cos( yr ), -sin( yr ), 0.0f );
+			}
+
+			// Spawn the golden statue at the exact death position
+			CBaseEntity *pBaseEnt = CBaseEntity::Create( "monster_goldenplayer", pev->origin, pev->angles, NULL );
+			CGoldenPlayer *pGolden = pBaseEnt ? static_cast<CGoldenPlayer *>( pBaseEnt ) : NULL;
+			if ( pGolden )
+			{
+				SET_MODEL( pGolden->edict(), "models/goldenplayer.mdl" );
+				UTIL_SetOrigin( pGolden->pev, pev->origin );
+				UTIL_SetSize( pGolden->pev, pev->mins, pev->maxs );
+
+				pGolden->pev->angles.x  = 0.0f;
+				pGolden->pev->angles.y  = pev->angles.y;
+				pGolden->pev->angles.z  = 0.0f;
+				pGolden->pev->skin      = 0;
+				pGolden->pev->body      = 0;
+				pGolden->pev->sequence  = 0;
+				pGolden->pev->frame     = 0;
+				pGolden->pev->animtime  = pev->animtime;
+				pGolden->pev->colormap  = pev->colormap;
+				pGolden->pev->framerate = 0.0f;         // freeze animation
+				pGolden->pev->effects   = EF_NOINTERP;
+				pGolden->pev->movetype  = MOVETYPE_NONE;   // don't let it move until we start the think function
+				pGolden->pev->solid     = SOLID_NOT;
+				pGolden->pev->takedamage = DAMAGE_NO;
+
+				pGolden->m_vecInitialOrigin  = pev->origin;
+				pGolden->m_vecTipDir         = vecTipDir;
+				pGolden->m_vecDeathVelocity  = Vector( pev->velocity.x, pev->velocity.y, 0.0f );
+				pGolden->m_fBaseYaw          = pev->angles.y;
+				pGolden->m_fTipStartTime    = gpGlobals->time;
+				pGolden->m_fTipDuration     = RANDOM_FLOAT( 0.75f, 1.25f );
+				pGolden->m_fCleanupTime     = 0.0f;
+				pGolden->m_bLanded          = false;
+
+				pGolden->SetThink( &CGoldenPlayer::GoldenPlayerThink );
+				pGolden->pev->nextthink = gpGlobals->time + 0.05f;
+			}
+
+			// Hide the real player immediately; statue takes its place.
+			// PlayerDeathThink still runs so respawn timers work normally.
+			pev->effects |= EF_NODRAW;
+			pev->solid    = SOLID_NOT;
+
+			pev->angles.x = 0;
+			pev->angles.z = 0;
+			SetThink( &CBasePlayer::PlayerDeathThink );
+			pev->nextthink = gpGlobals->time + 0.1;
+			return;
+		}
 	}
 
 	// No gib during sanic
@@ -4254,6 +4457,7 @@ void CBasePlayer::Spawn( void )
 	}
 #endif
 
+	pev->skin = 0;
 	g_pGameRules->PlayerSpawn( this );
 	m_iExitObserver = FALSE;
 }

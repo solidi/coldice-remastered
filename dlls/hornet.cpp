@@ -103,7 +103,7 @@ void CHornet :: Spawn( void )
 	if ( !pSoundEnt )
 		pSoundEnt = edict();
 
-	if ( g_pGameRules->IsInstagib() )
+	if ( g_pGameRules->IsInstagib() || g_pGameRules->MutatorEnabled(MUTATOR_INSTAGIB) )
 	{
 		pev->dmg = 9999;
 	}

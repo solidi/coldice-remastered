@@ -299,6 +299,7 @@ void CopyToBodyQue(entvars_t *pev)
 	pevHead->deadflag	= pev->deadflag;
 	pevHead->renderfx	= kRenderFxDeadPlayer;
 	pevHead->renderamt	= ENTINDEX( ENT( pev ) );
+	pevHead->skin		= pev->skin;
 
 	// Let them eat cake
 	if (g_pGameRules->MutatorEnabled(MUTATOR_RICOCHET))

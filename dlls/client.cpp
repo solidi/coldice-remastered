@@ -1772,6 +1772,12 @@ void ClientPrecache( void )
 	PRECACHE_SOUND("player/pl_metal3.wav");
 	PRECACHE_SOUND("player/pl_metal4.wav");
 
+	// Golden statue model and landing sounds (MUTATOR_GOLDENGUNS)
+	PRECACHE_MODEL("models/goldenplayer.mdl");
+	PRECACHE_SOUND("debris/bustmetal1.wav");
+	PRECACHE_SOUND("debris/bustmetal2.wav");
+	UTIL_PrecacheOther("monster_goldenplayer");
+
 	PRECACHE_SOUND("player/pl_dirt1.wav");		// walk on dirt
 	PRECACHE_SOUND("player/pl_dirt2.wav");
 	PRECACHE_SOUND("player/pl_dirt3.wav");
