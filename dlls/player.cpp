@@ -1412,43 +1412,40 @@ void CBasePlayer::Killed( entvars_t *pevAttacker, int iGib )
 			}
 
 			// Spawn the golden statue at the exact death position
-			edict_t *pEnt = CREATE_NAMED_ENTITY( MAKE_STRING( "monster_goldenplayer" ) );
-			if ( !FNullEnt( pEnt ) )
+			CBaseEntity *pBaseEnt = CBaseEntity::Create( "monster_goldenplayer", pev->origin, pev->angles, NULL );
+			CGoldenPlayer *pGolden = pBaseEnt ? static_cast<CGoldenPlayer *>( pBaseEnt ) : NULL;
+			if ( pGolden )
 			{
-				CGoldenPlayer *pGolden = (CGoldenPlayer *)GET_PRIVATE( pEnt );
-				if ( pGolden )
-				{
-					SET_MODEL( pEnt, "models/goldenplayer.mdl" );
-					UTIL_SetOrigin( pGolden->pev, pev->origin );
-					UTIL_SetSize( pGolden->pev, pev->mins, pev->maxs );
+				SET_MODEL( pGolden->edict(), "models/goldenplayer.mdl" );
+				UTIL_SetOrigin( pGolden->pev, pev->origin );
+				UTIL_SetSize( pGolden->pev, pev->mins, pev->maxs );
 
-					pGolden->pev->angles.x  = 0.0f;
-					pGolden->pev->angles.y  = pev->angles.y;
-					pGolden->pev->angles.z  = 0.0f;
-					pGolden->pev->skin      = 0;
-					pGolden->pev->body      = 0;
-					pGolden->pev->sequence  = 0;
-					pGolden->pev->frame     = 0;
-					pGolden->pev->animtime  = pev->animtime;
-					pGolden->pev->colormap  = pev->colormap;
-					pGolden->pev->framerate = 0.0f;         // freeze animation
-					pGolden->pev->effects   = EF_NOINTERP;
-					pGolden->pev->movetype  = MOVETYPE_NONE;   // don't let it move until we start the think function
-					pGolden->pev->solid     = SOLID_NOT;
-					pGolden->pev->takedamage = DAMAGE_NO;
+				pGolden->pev->angles.x  = 0.0f;
+				pGolden->pev->angles.y  = pev->angles.y;
+				pGolden->pev->angles.z  = 0.0f;
+				pGolden->pev->skin      = 0;
+				pGolden->pev->body      = 0;
+				pGolden->pev->sequence  = 0;
+				pGolden->pev->frame     = 0;
+				pGolden->pev->animtime  = pev->animtime;
+				pGolden->pev->colormap  = pev->colormap;
+				pGolden->pev->framerate = 0.0f;         // freeze animation
+				pGolden->pev->effects   = EF_NOINTERP;
+				pGolden->pev->movetype  = MOVETYPE_NONE;   // don't let it move until we start the think function
+				pGolden->pev->solid     = SOLID_NOT;
+				pGolden->pev->takedamage = DAMAGE_NO;
 
-					pGolden->m_vecInitialOrigin  = pev->origin;
-					pGolden->m_vecTipDir         = vecTipDir;
-					pGolden->m_vecDeathVelocity  = Vector( pev->velocity.x, pev->velocity.y, 0.0f );
-					pGolden->m_fBaseYaw          = pev->angles.y;
-					pGolden->m_fTipStartTime    = gpGlobals->time;
-					pGolden->m_fTipDuration     = RANDOM_FLOAT( 0.75f, 1.25f );
-					pGolden->m_fCleanupTime     = 0.0f;
-					pGolden->m_bLanded          = false;
+				pGolden->m_vecInitialOrigin  = pev->origin;
+				pGolden->m_vecTipDir         = vecTipDir;
+				pGolden->m_vecDeathVelocity  = Vector( pev->velocity.x, pev->velocity.y, 0.0f );
+				pGolden->m_fBaseYaw          = pev->angles.y;
+				pGolden->m_fTipStartTime    = gpGlobals->time;
+				pGolden->m_fTipDuration     = RANDOM_FLOAT( 0.75f, 1.25f );
+				pGolden->m_fCleanupTime     = 0.0f;
+				pGolden->m_bLanded          = false;
 
-					pGolden->SetThink( &CGoldenPlayer::GoldenPlayerThink );
-					pGolden->pev->nextthink = gpGlobals->time + 0.05f;
-				}
+				pGolden->SetThink( &CGoldenPlayer::GoldenPlayerThink );
+				pGolden->pev->nextthink = gpGlobals->time + 0.05f;
 			}
 
 			// Hide the real player immediately; statue takes its place.
