@@ -1450,8 +1450,7 @@ void CGameRules::MutatorsThink(void)
 			char list[512];
 			char second[512] = {""};
 			strcpy(list, mutatorlist.string);
-			mutator = list;
-			mutator = strtok( mutator, ";" );
+			mutator = strtok( list, ";" );
 			BOOL first = FALSE;
 			while ( mutator != NULL && *mutator )
 			{
@@ -1462,7 +1461,11 @@ void CGameRules::MutatorsThink(void)
 				}
 				else
 				{
-					sprintf(second, "%s;%s;", second, mutator);
+					// Append "name;" without a leading separator
+					if (strlen(second))
+						sprintf(second + strlen(second), ";%s", mutator);
+					else
+						sprintf(second, "%s", mutator);
 				}
 				mutator = strtok( NULL, ";" );
 			}
