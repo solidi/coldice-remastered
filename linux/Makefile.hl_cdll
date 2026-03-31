@@ -104,6 +104,7 @@ HL1_OBJS = \
 	$(HL1_OBJ_DIR)/ammo.o \
 	$(HL1_OBJ_DIR)/ammo_secondary.o \
 	$(HL1_OBJ_DIR)/ammohistory.o \
+	$(HL1_OBJ_DIR)/banner.o \
 	$(HL1_OBJ_DIR)/battery.o \
 	$(HL1_OBJ_DIR)/cdll_int.o \
 	$(HL1_OBJ_DIR)/colorcor.o \
@@ -131,6 +132,7 @@ HL1_OBJS = \
 	$(HL1_OBJ_DIR)/menu.o \
 	$(HL1_OBJ_DIR)/message.o \
 	$(HL1_OBJ_DIR)/MOTD.o \
+	$(HL1_OBJ_DIR)/mutator_tinnitus.o \
 	$(HL1_OBJ_DIR)/nukecrosshair.o \
 	$(HL1_OBJ_DIR)/objective.o \
 	$(HL1_OBJ_DIR)/portalrenderer.o \
