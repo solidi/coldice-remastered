@@ -256,8 +256,6 @@ char *sBuiltInMaps[] =
 	"RANDOM",
 };
 
-#define BUILT_IN_MAP_COUNT 37
-
 char *gamePlayModes[] = {
 	"Deathmatch",
 	"1 vs. 1",
