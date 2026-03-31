@@ -7741,7 +7741,6 @@ void CBasePlayer::Taunt( void )
 			m_fOffhandTime = gpGlobals->time + 3.25;
 
 			int tauntIndex = RANDOM_LONG(0,4);
-			strcpy( m_szAnimExtention, "crowbar" );
 			EMIT_SOUND(ENT(pev), CHAN_VOICE, m_fTaunts[tauntIndex].sound, 1, ATTN_NORM);
 			SetAnimation( PLAYER_ATTACK1 );
 			m_EFlags &= ~EFLAG_CANCEL;

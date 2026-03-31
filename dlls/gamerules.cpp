@@ -1116,7 +1116,7 @@ void CGameRules::AddRandomMutator(const char *cvarName, BOOL withBar, BOOL three
 		if (withBar || three)
 			sprintf(mutatorToAdd, "%s;", tryIt);
 		else
-			sprintf(mutatorToAdd, "%s253;", tryIt);
+			sprintf(mutatorToAdd, "%s 0;", tryIt);
 		
 		if (strlen(cvarp->string))
 		{
@@ -1450,8 +1450,7 @@ void CGameRules::MutatorsThink(void)
 			char list[512];
 			char second[512] = {""};
 			strcpy(list, mutatorlist.string);
-			mutator = list;
-			mutator = strtok( mutator, ";" );
+			mutator = strtok( list, ";" );
 			BOOL first = FALSE;
 			while ( mutator != NULL && *mutator )
 			{
@@ -1462,7 +1461,11 @@ void CGameRules::MutatorsThink(void)
 				}
 				else
 				{
-					sprintf(second, "%s;%s;", second, mutator);
+					// Append "name;" without a leading separator
+					if (strlen(second))
+						sprintf(second + strlen(second), ";%s", mutator);
+					else
+						sprintf(second, "%s", mutator);
 				}
 				mutator = strtok( NULL, ";" );
 			}
@@ -1494,7 +1497,7 @@ void CGameRules::MutatorsThink(void)
 				{
 					MESSAGE_BEGIN(MSG_ALL, gmsgAddMutator);
 						WRITE_BYTE(254);
-						WRITE_BYTE(mutatorTime);
+						WRITE_SHORT(mutatorTime);
 					MESSAGE_END();
 
 					m_flChaosMutatorTime = 0;
@@ -1536,18 +1539,34 @@ void CGameRules::MutatorsThink(void)
 
 							if (add)
 							{
-								// Forever
-								if (strstr(addmutator.string, "253"))
-									mutatorTime = 253;
+								// Parse optional duration: "mutatorname duration"
+								// duration == 0 means permanent (no TTL)
+								int customDuration = -1;
+								const char *space = strchr(addmutator.string, ' ');
+								if (space)
+								{
+									char *endPtr;
+									long parsed = strtol(space + 1, &endPtr, 10);
+									if (endPtr != space + 1)
+										customDuration = (int)parsed;
+								}
+
+								int sendDuration;
+								if (customDuration == 0)
+									sendDuration = 0; // permanent sentinel
+								else if (customDuration > 0)
+									sendDuration = customDuration;
+								else
+									sendDuration = mutatorTime; // default from mutatortime cvar
 
 								MESSAGE_BEGIN(MSG_ALL, gmsgAddMutator);
 									WRITE_BYTE(i + 1);
-									WRITE_BYTE(mutatorTime);
+									WRITE_SHORT(sendDuration);
 								MESSAGE_END();
 
 								mutators_t *mutator = new mutators_t();
 								mutator->mutatorId = i + 1;
-								mutator->timeToLive = mutatorTime == 253 ? -1 : gpGlobals->time + mutatorTime;
+								mutator->timeToLive = sendDuration == 0 ? -1 : gpGlobals->time + sendDuration;
 								mutator->next = m_Mutators ? m_Mutators : NULL;
 								m_Mutators = mutator;
 
@@ -2179,7 +2198,7 @@ void CGameRules::PauseMutators( void )
 	{
 		MESSAGE_BEGIN(MSG_ALL, gmsgAddMutator);
 			WRITE_BYTE(254); // Clear all mutators signal
-			WRITE_BYTE(0);
+			WRITE_SHORT(0);
 		MESSAGE_END();
 	}
 }
@@ -2238,10 +2257,23 @@ void CGameRules::RestoreMutators( void )
 		// Notify clients of restored mutator
 		if (gmsgAddMutator)
 		{
+			int timeRemaining;
+			if (restored->timeToLive == -1)
+			{
+				// Permanent mutator: use 0 as sentinel value
+				timeRemaining = 0;
+			}
+			else
+			{
+				// Non-permanent mutator: compute remaining time and clamp to at least 1
+				float remaining = restored->timeToLive - gpGlobals->time;
+				timeRemaining = (int)remaining;
+				if (timeRemaining <= 0)
+					timeRemaining = 1;
+			}
 			MESSAGE_BEGIN(MSG_ALL, gmsgAddMutator);
 				WRITE_BYTE(current->mutatorId);
-				int timeRemaining = (restored->timeToLive == -1) ? 253 : (int)(restored->timeToLive - gpGlobals->time);
-				WRITE_BYTE(timeRemaining);
+				WRITE_SHORT(timeRemaining);
 			MESSAGE_END();
 			
 			ALERT(at_console, "[Mutators] Restored mutator '%s' with %d seconds remaining\n",

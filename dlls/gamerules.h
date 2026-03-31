@@ -228,6 +228,7 @@ public:
 	virtual void VoteForMutator( void ) {}
 
 	int m_iVoteCount[32];
+	int m_iVoteUnderway;
 
 	char szSkyColorRed[64] = "", szSkyColorGreen[64] = "", szSkyColorBlue[64] = "";
 
@@ -523,7 +524,6 @@ protected:
 	virtual void GoToIntermission( void );
 	float m_flIntermissionEndTime;
 	BOOL m_iEndIntermissionButtonHit;
-	int m_iVoteUnderway;
 	int m_iDecidedMapIndex;
 	void SendMOTDToClient( edict_t *client );
 
@@ -551,6 +551,7 @@ protected:
 
 extern CGameRules*	g_pGameRules;
 #define MAX_MUTATORS MUTATOR_VOLATILE
+#define BUILT_IN_MAP_COUNT 37
 extern const char *g_szMutators[MAX_MUTATORS];
 
 #endif	//GAMERULES_H
