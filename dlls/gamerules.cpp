@@ -1541,7 +1541,12 @@ void CGameRules::MutatorsThink(void)
 								int customDuration = -1;
 								const char *space = strchr(addmutator.string, ' ');
 								if (space)
-									customDuration = atoi(space + 1);
+								{
+									char *endPtr;
+									long parsed = strtol(space + 1, &endPtr, 10);
+									if (endPtr != space + 1)
+										customDuration = (int)parsed;
+								}
 
 								int sendDuration;
 								if (customDuration == 0)
@@ -2249,9 +2254,22 @@ void CGameRules::RestoreMutators( void )
 		// Notify clients of restored mutator
 		if (gmsgAddMutator)
 		{
+			int timeRemaining;
+			if (restored->timeToLive == -1)
+			{
+				// Permanent mutator: use 0 as sentinel value
+				timeRemaining = 0;
+			}
+			else
+			{
+				// Non-permanent mutator: compute remaining time and clamp to at least 1
+				float remaining = restored->timeToLive - gpGlobals->time;
+				timeRemaining = (int)remaining;
+				if (timeRemaining <= 0)
+					timeRemaining = 1;
+			}
 			MESSAGE_BEGIN(MSG_ALL, gmsgAddMutator);
 				WRITE_BYTE(current->mutatorId);
-				int timeRemaining = (restored->timeToLive == -1) ? 0 : (int)(restored->timeToLive - gpGlobals->time);
 				WRITE_SHORT(timeRemaining);
 			MESSAGE_END();
 			

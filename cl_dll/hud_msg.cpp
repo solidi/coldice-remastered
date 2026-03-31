@@ -375,11 +375,10 @@ int CHud :: MsgFunc_AddMut( const char *pszName, int iSize, void *pbuf )
 {
 	BEGIN_READ( pbuf, iSize );
 	int mutatorId = READ_BYTE();
-	int mtime = READ_SHORT();
-	int time = (int)gHUD.m_flTime + mtime;
 
 	if (mutatorId == 254)
 	{
+		READ_SHORT(); // consume unused duration field
 		m_ChaosTime = m_ChaosStartTime;
 		mutators_t *t = m_Mutators;
 		while (t != NULL)
@@ -397,6 +396,9 @@ int CHud :: MsgFunc_AddMut( const char *pszName, int iSize, void *pbuf )
 		// add
 		while (mutatorId != -1)
 		{
+			int mtime = READ_SHORT();
+			int time = (int)gHUD.m_flTime + mtime;
+
 			if (mutatorId != 255)
 			{
 				mutators_t *mutator = new mutators_t();
@@ -419,7 +421,6 @@ int CHud :: MsgFunc_AddMut( const char *pszName, int iSize, void *pbuf )
 			}
 
 			mutatorId = READ_BYTE();
-			time = (int)gHUD.m_flTime + READ_SHORT();
 		}
 	}
 
