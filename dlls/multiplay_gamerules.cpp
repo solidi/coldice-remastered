@@ -1489,7 +1489,9 @@ void CHalfLifeMultiplay :: InitHUD( CBasePlayer *pl )
 			while (t != NULL)
 			{
 				WRITE_BYTE(t->mutatorId);
-				WRITE_BYTE(t->timeToLive);
+				// 0 = permanent; otherwise send remaining seconds
+				int remaining = (t->timeToLive == -1) ? 0 : max(1, (int)(t->timeToLive - gpGlobals->time));
+				WRITE_SHORT(remaining);
 				t = t->next;
 			}
 		MESSAGE_END();

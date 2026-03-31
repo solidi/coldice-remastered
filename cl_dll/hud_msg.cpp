@@ -375,7 +375,7 @@ int CHud :: MsgFunc_AddMut( const char *pszName, int iSize, void *pbuf )
 {
 	BEGIN_READ( pbuf, iSize );
 	int mutatorId = READ_BYTE();
-	int mtime = READ_BYTE();
+	int mtime = READ_SHORT();
 	int time = (int)gHUD.m_flTime + mtime;
 
 	if (mutatorId == 254)
@@ -402,7 +402,7 @@ int CHud :: MsgFunc_AddMut( const char *pszName, int iSize, void *pbuf )
 				mutators_t *mutator = new mutators_t();
 				mutator->mutatorId = mutatorId;
 				mutator->startTime = gHUD.m_flTime;
-				mutator->timeToLive = mtime == 253 ? -1 : time;
+				mutator->timeToLive = mtime == 0 ? -1 : time;
 				mutator->next = m_Mutators ? m_Mutators : NULL;
 				m_Mutators = mutator;
 
@@ -419,7 +419,7 @@ int CHud :: MsgFunc_AddMut( const char *pszName, int iSize, void *pbuf )
 			}
 
 			mutatorId = READ_BYTE();
-			time = (int)gHUD.m_flTime + READ_BYTE();
+			time = (int)gHUD.m_flTime + READ_SHORT();
 		}
 	}
 

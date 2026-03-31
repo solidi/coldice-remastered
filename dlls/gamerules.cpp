@@ -1494,7 +1494,7 @@ void CGameRules::MutatorsThink(void)
 				{
 					MESSAGE_BEGIN(MSG_ALL, gmsgAddMutator);
 						WRITE_BYTE(254);
-						WRITE_BYTE(mutatorTime);
+						WRITE_SHORT(mutatorTime);
 					MESSAGE_END();
 
 					m_flChaosMutatorTime = 0;
@@ -1536,18 +1536,29 @@ void CGameRules::MutatorsThink(void)
 
 							if (add)
 							{
-								// Forever
-								if (strstr(addmutator.string, "253"))
-									mutatorTime = 253;
+								// Parse optional duration: "mutatorname duration"
+								// duration == 0 means permanent (no TTL)
+								int customDuration = -1;
+								const char *space = strchr(addmutator.string, ' ');
+								if (space)
+									customDuration = atoi(space + 1);
+
+								int sendDuration;
+								if (customDuration == 0)
+									sendDuration = 0; // permanent sentinel
+								else if (customDuration > 0)
+									sendDuration = customDuration;
+								else
+									sendDuration = mutatorTime; // default from mutatortime cvar
 
 								MESSAGE_BEGIN(MSG_ALL, gmsgAddMutator);
 									WRITE_BYTE(i + 1);
-									WRITE_BYTE(mutatorTime);
+									WRITE_SHORT(sendDuration);
 								MESSAGE_END();
 
 								mutators_t *mutator = new mutators_t();
 								mutator->mutatorId = i + 1;
-								mutator->timeToLive = mutatorTime == 253 ? -1 : gpGlobals->time + mutatorTime;
+								mutator->timeToLive = sendDuration == 0 ? -1 : gpGlobals->time + sendDuration;
 								mutator->next = m_Mutators ? m_Mutators : NULL;
 								m_Mutators = mutator;
 
@@ -2179,7 +2190,7 @@ void CGameRules::PauseMutators( void )
 	{
 		MESSAGE_BEGIN(MSG_ALL, gmsgAddMutator);
 			WRITE_BYTE(254); // Clear all mutators signal
-			WRITE_BYTE(0);
+			WRITE_SHORT(0);
 		MESSAGE_END();
 	}
 }
@@ -2240,8 +2251,8 @@ void CGameRules::RestoreMutators( void )
 		{
 			MESSAGE_BEGIN(MSG_ALL, gmsgAddMutator);
 				WRITE_BYTE(current->mutatorId);
-				int timeRemaining = (restored->timeToLive == -1) ? 253 : (int)(restored->timeToLive - gpGlobals->time);
-				WRITE_BYTE(timeRemaining);
+				int timeRemaining = (restored->timeToLive == -1) ? 0 : (int)(restored->timeToLive - gpGlobals->time);
+				WRITE_SHORT(timeRemaining);
 			MESSAGE_END();
 			
 			ALERT(at_console, "[Mutators] Restored mutator '%s' with %d seconds remaining\n",
