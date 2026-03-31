@@ -1116,7 +1116,7 @@ void CGameRules::AddRandomMutator(const char *cvarName, BOOL withBar, BOOL three
 		if (withBar || three)
 			sprintf(mutatorToAdd, "%s;", tryIt);
 		else
-			sprintf(mutatorToAdd, "%s253;", tryIt);
+			sprintf(mutatorToAdd, "%s 0;", tryIt);
 		
 		if (strlen(cvarp->string))
 		{

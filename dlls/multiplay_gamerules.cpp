@@ -552,17 +552,17 @@ void CHalfLifeMultiplay :: Think ( void )
 					if (fIndex >= 0 && sIndex >= 0 && tIndex >= 0)
 					{
 						UTIL_ClientPrintAll(HUD_PRINTTALK, "[VOTE] \"%s\", \"%s\" and \"%s\" are the next mutators!\n", g_szMutators[fIndex], g_szMutators[sIndex], g_szMutators[tIndex]);
-						SERVER_COMMAND(UTIL_VarArgs("sv_mutatorlist \"%s253;%s253;%s253\"\n", g_szMutators[fIndex], g_szMutators[sIndex], g_szMutators[tIndex]));
+						SERVER_COMMAND(UTIL_VarArgs("sv_mutatorlist \"%s 0;%s 0;%s 0\"\n", g_szMutators[fIndex], g_szMutators[sIndex], g_szMutators[tIndex]));
 					}
 					else if (fIndex >= 0 && sIndex >= 0)
 					{
 						UTIL_ClientPrintAll(HUD_PRINTTALK, UTIL_VarArgs("[VOTE] \"%s\" and \"%s\" are the next mutators!\n", g_szMutators[fIndex], g_szMutators[sIndex]));
-						SERVER_COMMAND(UTIL_VarArgs("sv_mutatorlist \"%s253;%s253\"\n", g_szMutators[fIndex], g_szMutators[sIndex]));
+						SERVER_COMMAND(UTIL_VarArgs("sv_mutatorlist \"%s 0;%s 0\"\n", g_szMutators[fIndex], g_szMutators[sIndex]));
 					}
 					else
 					{
 						UTIL_ClientPrintAll(HUD_PRINTTALK, UTIL_VarArgs("[VOTE] \"%s\" is the next mutator with %d votes!\n", g_szMutators[fIndex], first));
-						SERVER_COMMAND(UTIL_VarArgs("sv_mutatorlist \"%ss253\"\n", g_szMutators[fIndex]));
+						SERVER_COMMAND(UTIL_VarArgs("sv_mutatorlist \"%s 0\"\n", g_szMutators[fIndex]));
 					}
 				}
 			}
@@ -908,17 +908,17 @@ void CHalfLifeMultiplay::CheckMutatorRTV( void )
 				if (fIndex >= 0 && sIndex >= 0 && tIndex >= 0)
 				{
 					UTIL_ClientPrintAll(HUD_PRINTTALK, "[VOTE] \"%s\", \"%s\" and \"%s\" are the new mutators!\n", g_szMutators[fIndex], g_szMutators[sIndex], g_szMutators[tIndex]);
-					SERVER_COMMAND(UTIL_VarArgs("sv_mutatorlist \"%s253;%s253;%s253\"\n", g_szMutators[fIndex], g_szMutators[sIndex], g_szMutators[tIndex]));
+					SERVER_COMMAND(UTIL_VarArgs("sv_mutatorlist \"%s 0;%s 0;%s 0\"\n", g_szMutators[fIndex], g_szMutators[sIndex], g_szMutators[tIndex]));
 				}
 				else if (fIndex >= 0 && sIndex >= 0)
 				{
 					UTIL_ClientPrintAll(HUD_PRINTTALK, UTIL_VarArgs("[VOTE] \"%s\" and \"%s\" are the new mutators!\n", g_szMutators[fIndex], g_szMutators[sIndex]));
-					SERVER_COMMAND(UTIL_VarArgs("sv_mutatorlist \"%s253;%s253\"\n", g_szMutators[fIndex], g_szMutators[sIndex]));
+					SERVER_COMMAND(UTIL_VarArgs("sv_mutatorlist \"%s 0;%s 0\"\n", g_szMutators[fIndex], g_szMutators[sIndex]));
 				}
 				else
 				{
 					UTIL_ClientPrintAll(HUD_PRINTTALK, UTIL_VarArgs("[VOTE] \"%s\" is the new mutator!\n", g_szMutators[fIndex]));
-					SERVER_COMMAND(UTIL_VarArgs("sv_mutatorlist \"%ss253\"\n", g_szMutators[fIndex]));
+					SERVER_COMMAND(UTIL_VarArgs("sv_mutatorlist \"%s 0\"\n", g_szMutators[fIndex]));
 				}
 			}
 
@@ -1490,7 +1490,7 @@ void CHalfLifeMultiplay :: InitHUD( CBasePlayer *pl )
 			{
 				WRITE_BYTE(t->mutatorId);
 				// 0 = permanent; otherwise send remaining seconds
-				int remaining = (t->timeToLive == -1) ? 0 : max(1, (int)(t->timeToLive - gpGlobals->time));
+				int remaining = (t->timeToLive == -1) ? 0 : fmax(1, (int)(t->timeToLive - gpGlobals->time));
 				WRITE_SHORT(remaining);
 				t = t->next;
 			}
