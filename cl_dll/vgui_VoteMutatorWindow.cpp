@@ -309,20 +309,7 @@ bool CVoteMutatorPanel::SlotInput( int iSlot )
 	if ( !m_pButtons[ iSlot ] )
 		return false;
 
-	//if ( !(m_pButtons[ iSlot ]->IsNotValid()) )
-	{
-		for (int i = 0; i < MAX_MUTATORS; i++)
-		{
-			if (m_pButtons[i])
-				m_pButtons[i]->setArmed( false );
-		}
-
-		m_pButtons[ iSlot ]->setArmed( true );
-		m_iCurrentInfo = iSlot;
-		m_pButtons[ iSlot ]->fireActionSignal();
-		return true;
-	}
-
+	// Do nothing.
 	return false;
 }
 

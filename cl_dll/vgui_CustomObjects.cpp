@@ -533,6 +533,13 @@ void CHandler_MenuButtonOver::cursorEntered(Panel *panel)
 
 void CMenuHandler_StringCommandClassSelect::actionPerformed(Panel* panel)
 {
+	// Ignore clicks that arrive within 0.5s of the menu opening.
+	// This prevents stale mouse-button state from auto-firing a vote the moment
+	// the panel becomes visible (e.g. player was shooting during intermission).
+	CMenuPanel *pMenu = gViewPort->m_pCurrentMenu;
+	if ( pMenu && ( gHUD.m_flTime - pMenu->GetOpenTime() ) < 0.5f )
+		return;
+
 	CMenuHandler_StringCommand::actionPerformed( panel );
 
 	// THIS IS NOW BEING DONE ON THE TFC SERVER TO AVOID KILLING SOMEONE THEN 
