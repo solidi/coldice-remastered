@@ -1107,6 +1107,7 @@ void CHalfLifeMultiplay::RemoveAndFillItems( void )
 		"rune_strength",
 		"disc",
 		"hornet",
+		"monster_goldenplayer",
 	};
 
 	CBaseEntity *pEntity = NULL;
