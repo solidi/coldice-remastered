@@ -1302,27 +1302,36 @@ void CBasePlayer::Killed( entvars_t *pevAttacker, int iGib )
 
 	// send "health" update message to zero
 	m_iClientHealth = 0;
-	MESSAGE_BEGIN( MSG_ONE, gmsgHealth, NULL, pev );
-		WRITE_SHORT( m_iClientHealth );
-		if (!g_pGameRules->FPlayerCanRespawn(this) || !g_pGameRules->IsMultiplayer())
-			WRITE_BYTE( 0 );
-		else
-			WRITE_BYTE( 35 );
-	MESSAGE_END();
+	if (!FBitSet(pev->flags, FL_FAKECLIENT))
+	{
+		MESSAGE_BEGIN( MSG_ONE, gmsgHealth, NULL, pev );
+			WRITE_SHORT( m_iClientHealth );
+			if (!g_pGameRules->FPlayerCanRespawn(this) || !g_pGameRules->IsMultiplayer())
+				WRITE_BYTE( 0 );
+			else
+				WRITE_BYTE( 35 );
+		MESSAGE_END();
+	}
 
 	// Tell Ammo Hud that the player is dead
-	MESSAGE_BEGIN( MSG_ONE, gmsgCurWeapon, NULL, pev );
-		WRITE_BYTE(0);
-		WRITE_BYTE(0XFF);
-		WRITE_BYTE(0xFF);
-	MESSAGE_END();
+	if (!FBitSet(pev->flags, FL_FAKECLIENT))
+	{
+		MESSAGE_BEGIN( MSG_ONE, gmsgCurWeapon, NULL, pev );
+			WRITE_BYTE(0);
+			WRITE_BYTE(0XFF);
+			WRITE_BYTE(0xFF);
+		MESSAGE_END();
+	}
 
 	// reset FOV
 	pev->fov = m_iFOV = m_iClientFOV = 0;
 
-	MESSAGE_BEGIN( MSG_ONE, gmsgSetFOV, NULL, pev );
-		WRITE_BYTE(0);
-	MESSAGE_END();
+	if (!FBitSet(pev->flags, FL_FAKECLIENT))
+	{
+		MESSAGE_BEGIN( MSG_ONE, gmsgSetFOV, NULL, pev );
+			WRITE_BYTE(0);
+		MESSAGE_END();
+	}
 
 
 	// UNDONE: Put this in, but add FFADE_PERMANENT and make fade time 8.8 instead of 4.12
