@@ -153,8 +153,8 @@ int CHudScoreboard :: Draw( float fTime )
 	// Server name
 	char szServerName[256];
 	sprintf( szServerName, "%s", GetServerName() );
-	FillRGBA( xpos - 5, ypos - 20, FAR_RIGHT, 22, r, g, b, 50);
-	gHUD.DrawHudString( xpos, ypos - 20, NAME_RANGE_MAX + xpos_rel, szServerName, r, g, b );
+	FillRGBA( xpos - 5, ypos - mapnameMargin, FAR_RIGHT, 22, r, g, b, 50);
+	gHUD.DrawHudString( xpos, ypos - mapnameMargin, NAME_RANGE_MAX + xpos_rel, szServerName, r, g, b );
 
 	// Game mode and map name
 	char szTitle[256];
@@ -162,7 +162,7 @@ int CHudScoreboard :: Draw( float fTime )
 	FillRGBA( xpos - 5, ypos, FAR_RIGHT, 22, r, g, b, 50);
 	gHUD.DrawHudString( xpos, ypos, NAME_RANGE_MAX + xpos_rel, szTitle, r, g, b );
 
-	ypos += 20;
+	ypos += mapnameMargin;
 
 	if ( (!ScoreBased() || IndividualPlayer()) && gHUD.m_Teamplay != GAME_TEAMPLAY )
 		gHUD.DrawHudString( xpos, ypos, NAME_RANGE_MAX + xpos_rel, "Player", r, g, b );
@@ -198,7 +198,7 @@ int CHudScoreboard :: Draw( float fTime )
 	}
 
 	list_slot += 1.2;
-	ypos = ROW_RANGE_MIN + margin + mapnameMargin + (list_slot * ROW_GAP) + 20;
+	ypos = ROW_RANGE_MIN + margin + (2 * mapnameMargin) + (list_slot * ROW_GAP);
 	xpos = NAME_RANGE_MIN + xpos_rel;
 	FillRGBA( xpos - 5, ypos, FAR_RIGHT, 1, r, g, b, 255);  // draw the seperator line
 	
