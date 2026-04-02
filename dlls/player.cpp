@@ -2134,18 +2134,24 @@ void CBasePlayer::StartObserver( Vector vecPosition, Vector vecViewAngle )
 	SetSuitUpdate(NULL, FALSE, 0);
 
 	// Tell Ammo Hud that the player is dead
-	MESSAGE_BEGIN( MSG_ONE, gmsgCurWeapon, NULL, pev );
-		WRITE_BYTE(0);
-		WRITE_BYTE(0XFF);
-		WRITE_BYTE(0xFF);
-	MESSAGE_END();
+	if (!FBitSet(pev->flags, FL_FAKECLIENT))
+	{
+		MESSAGE_BEGIN( MSG_ONE, gmsgCurWeapon, NULL, pev );
+			WRITE_BYTE(0);
+			WRITE_BYTE(0XFF);
+			WRITE_BYTE(0xFF);
+		MESSAGE_END();
+	}
 
 	// reset FOV
 	m_iFOV = m_iClientFOV = 0;
 	pev->fov = m_iFOV;
-	MESSAGE_BEGIN( MSG_ONE, gmsgSetFOV, NULL, pev );
-		WRITE_BYTE(0);
-	MESSAGE_END();
+	if (!FBitSet(pev->flags, FL_FAKECLIENT))
+	{
+		MESSAGE_BEGIN( MSG_ONE, gmsgSetFOV, NULL, pev );
+			WRITE_BYTE(0);
+		MESSAGE_END();
+	}
 
 	// Cold Ice
 	ClearBits(m_EFlags, EFLAG_DEADHANDS);
@@ -6813,6 +6819,9 @@ reflecting all of the HUD state info.
 */
 void CBasePlayer :: UpdateClientData( void )
 {
+	if (FBitSet(pev->flags, FL_FAKECLIENT) && IsObserver())
+		return;
+
 	if (m_fInitHUD)
 	{
 		m_fInitHUD = FALSE;
