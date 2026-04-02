@@ -150,10 +150,19 @@ int CHudScoreboard :: Draw( float fTime )
 	FAR_RIGHT = can_show_packetloss ? PL_RANGE_MAX : PING_RANGE_MAX;
 	FAR_RIGHT += 5;
 
-	char szTitle[256];
-	sprintf( szTitle, "%s | %s | %s", GetServerName(), GetGameName(), GetMapName() );
+	// Server name
+	char szServerName[256];
+	sprintf( szServerName, "%s", GetServerName() );
 	FillRGBA( xpos - 5, ypos - 20, FAR_RIGHT, 22, r, g, b, 50);
-	gHUD.DrawHudString( xpos, ypos - 20, NAME_RANGE_MAX + xpos_rel, szTitle, r, g, b );
+	gHUD.DrawHudString( xpos, ypos - 20, NAME_RANGE_MAX + xpos_rel, szServerName, r, g, b );
+
+	// Game mode and map name
+	char szTitle[256];
+	sprintf( szTitle, "%s | %s", GetGameName(), GetMapName() );
+	FillRGBA( xpos - 5, ypos, FAR_RIGHT, 22, r, g, b, 50);
+	gHUD.DrawHudString( xpos, ypos, NAME_RANGE_MAX + xpos_rel, szTitle, r, g, b );
+
+	ypos += 20;
 
 	if ( (!ScoreBased() || IndividualPlayer()) && gHUD.m_Teamplay != GAME_TEAMPLAY )
 		gHUD.DrawHudString( xpos, ypos, NAME_RANGE_MAX + xpos_rel, "Player", r, g, b );
@@ -189,7 +198,7 @@ int CHudScoreboard :: Draw( float fTime )
 	}
 
 	list_slot += 1.2;
-	ypos = ROW_RANGE_MIN + margin + mapnameMargin + (list_slot * ROW_GAP);
+	ypos = ROW_RANGE_MIN + margin + mapnameMargin + (list_slot * ROW_GAP) + 20;
 	xpos = NAME_RANGE_MIN + xpos_rel;
 	FillRGBA( xpos - 5, ypos, FAR_RIGHT, 1, r, g, b, 255);  // draw the seperator line
 	
@@ -309,7 +318,7 @@ int CHudScoreboard :: Draw( float fTime )
 		// draw out the best team
 		team_info_t *team_info = &g_TeamInfo[best_team];
 
-		ypos = ROW_RANGE_MIN + margin + (list_slot * ROW_GAP);
+		ypos = ROW_RANGE_MIN + margin + (list_slot * ROW_GAP) + 20;
 
 		// check we haven't drawn too far down
 		if ( ypos > ROW_RANGE_MAX )  // don't draw to close to the lower border
@@ -447,7 +456,7 @@ int CHudScoreboard :: DrawPlayers( int xpos_rel, float list_slot, int nameoffset
 		// draw out the best player
 		hud_player_info_t *pl_info = &g_PlayerInfoList[best_player];
 
-		int ypos = ROW_RANGE_MIN + margin + (list_slot * ROW_GAP);
+		int ypos = ROW_RANGE_MIN + margin + (list_slot * ROW_GAP) + 20;
 
 		// check we haven't drawn too far down
 		if ( ypos > ROW_RANGE_MAX )  // don't draw to close to the lower border
