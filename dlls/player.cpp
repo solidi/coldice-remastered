@@ -1092,16 +1092,17 @@ void CBasePlayer::RemoveAllItems( BOOL removeSuit )
 	CBasePlayerItem *pCurrent, *pPendingItem;
 	for (i = 0; i < MAX_ITEM_TYPES; i++)
 	{
-		// Use a local variable rather than m_pActiveItem so that any code
-		// observing m_pActiveItem during Drop() cannot see a half-freed pointer.
+		// Null the slot FIRST so that any re-entrant code (e.g. triggered via
+		// Holster callbacks) that reads m_rgpPlayerItems sees a clean state and
+		// cannot reach the weapon we are about to Drop().
 		pCurrent = m_rgpPlayerItems[i];
-		while (pCurrent)
+		m_rgpPlayerItems[i] = NULL;
+		while (pCurrent && pCurrent->m_pPlayer == this)
 		{
 			pPendingItem = pCurrent->m_pNext;
 			pCurrent->Drop( );
 			pCurrent = pPendingItem;
 		}
-		m_rgpPlayerItems[i] = NULL;
 	}
 	m_pActiveItem = NULL;
 
@@ -6531,10 +6532,13 @@ int CBasePlayer::AddPlayerItem( CBasePlayerItem *pItem )
 
 	while (pInsert)
 	{
-		// Bot patch: existing weapon in slot has NULL player (stale entity).
-		// Kill the incoming item so it doesn't become an orphaned live entity
-		// that re-fires DefaultTouch every frame and exhausts the entity pool.
+		// Bot patch: existing weapon in slot has NULL player (stale entity, was
+		// Drop()'d/Kill()'d without RemovePlayerItem).  Clear the slot so that
+		// once its edict is released by SUB_Remove we no longer hold a dangling
+		// pointer.  Kill the incoming item and bail — it will be re-given on the
+		// next clean spawn.
 		if (pInsert->m_pPlayer == NULL) {
+			m_rgpPlayerItems[pItem->iItemSlot()] = NULL;
 			pItem->Kill();
 			return FALSE;
 		}
