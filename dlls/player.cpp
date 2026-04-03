@@ -5077,7 +5077,7 @@ void CBasePlayer::GiveNamedItem( const char *pszName )
 	{
 		CBaseEntity *pGiven = CBaseEntity::Instance( pent );
 		if ( pGiven )
-			pGiven->Kill();
+			UTIL_Remove( pGiven );
 	}
 }
 
