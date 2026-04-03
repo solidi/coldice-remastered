@@ -2095,7 +2095,6 @@ void CHalfLifeMultiplay :: PlayerKilled( CBasePlayer *pVictim, entvars_t *pKille
 
 
 	FireTargets( "game_playerdie", pVictim, pVictim, USE_TOGGLE, 0 );
-	ALERT( at_console, "[KC] after game_playerdie\n" );
 
 	if ( ktmp && (ktmp->Classify() == CLASS_PLAYER) )
 		peKiller = (CBasePlayer*)ktmp;
@@ -2123,14 +2122,12 @@ void CHalfLifeMultiplay :: PlayerKilled( CBasePlayer *pVictim, entvars_t *pKille
 		pKiller->frags += IPointsForKill( peKiller, pVictim );
 		if (peKiller->m_iAssists && (peKiller->m_iAssists % 3 == 0))
 			pKiller->frags += IPointsForKill( peKiller, pVictim );
-		ALERT( at_console, "[KC] after IPointsForKill\n" );
 
 		if (!UTIL_GetAlivePlayersInSphere(peKiller, 1024) &&
 			peKiller->m_iAutoTaunt &&
 			peKiller->m_pActiveItem &&
 			FBitSet(peKiller->m_pActiveItem->iFlags(), ITEM_FLAG_SINGLE_HAND))
 			peKiller->m_fTauntTime = gpGlobals->time + 0.75;
-		ALERT( at_console, "[KC] after UTIL_GetAlivePlayersInSphere\n" );
 
 		if (!m_iFirstBloodDecided && PlayerRelationship( pVictim, peKiller ) != GR_TEAMMATE)
 		{
@@ -2175,9 +2172,7 @@ void CHalfLifeMultiplay :: PlayerKilled( CBasePlayer *pVictim, entvars_t *pKille
 			MESSAGE_END();
 		}
 
-		ALERT( at_console, "[KC] before game_playerkill\n" );
 		FireTargets( "game_playerkill", ktmp, ktmp, USE_TOGGLE, 0 );
-		ALERT( at_console, "[KC] after game_playerkill\n" );
 	}
 	else
 	{  // killed by the world
@@ -2185,7 +2180,6 @@ void CHalfLifeMultiplay :: PlayerKilled( CBasePlayer *pVictim, entvars_t *pKille
 			pKiller->frags -= 1;
 	}
 
-	ALERT( at_console, "[KC] updating scores\n" );
 	// update the scores
 	// killed scores
 	MESSAGE_BEGIN( MSG_ALL, gmsgScoreInfo );
@@ -2223,7 +2217,6 @@ void CHalfLifeMultiplay :: PlayerKilled( CBasePlayer *pVictim, entvars_t *pKille
 		// let the killer paint another decal as soon as he'd like.
 		PK->m_flNextDecalTime = gpGlobals->time;
 	}
-	ALERT( at_console, "[KC] before deactivate items\n" );
 #ifndef HLDEMO_BUILD
 	if ( pVictim->HasNamedPlayerItem("weapon_satchel") )
 		DeactivateSatchels( pVictim );
@@ -2231,7 +2224,6 @@ void CHalfLifeMultiplay :: PlayerKilled( CBasePlayer *pVictim, entvars_t *pKille
 		DeactivateItems(pVictim, "monster_human_assassin");
 	DeactivatePortals( pVictim );
 	DeactivateItems(pVictim, "disc");
-	ALERT( at_console, "[KC] after deactivate items\n" );
 #endif
 
 	if (m_iVolatile ||
@@ -2324,7 +2316,6 @@ void CHalfLifeMultiplay :: PlayerKilled( CBasePlayer *pVictim, entvars_t *pKille
 				hornet->pev->velocity = (gpGlobals->v_right * -1) * RANDOM_LONG(100, 200);
 		}
 	}
-	ALERT( at_console, "[KC] PlayerKilled complete\n" );
 }
 
 //=========================================================
