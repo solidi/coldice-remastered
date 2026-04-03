@@ -705,7 +705,7 @@ BOOL CHalfLifeGunGame::GetNextBestWeapon( CBasePlayer *pPlayer, CBasePlayerItem 
 	for (int i = 0; i < MAX_ITEM_TYPES; i++)
 	{
 		CBasePlayerItem *pCheck = pPlayer->m_rgpPlayerItems[i];
-		while (pCheck)
+		while (pCheck && pCheck->m_pPlayer == pPlayer)
 		{
 			if (pCheck != pCurrentWeapon &&
 				FClassnameIs(pCheck->pev, "weapon_fists") &&

@@ -904,12 +904,12 @@ void CBasePlayer::PackDeadPlayerItems( void )
 // go through all of the weapons and make a list of the ones to pack
 	for ( i = 0 ; i < MAX_ITEM_TYPES ; i++ )
 	{
-		if ( m_rgpPlayerItems[ i ] )
+		if ( m_rgpPlayerItems[ i ] && m_rgpPlayerItems[ i ]->m_pPlayer == this )
 		{
 			// there's a weapon here. Should I pack it?
 			CBasePlayerItem *pPlayerItem = m_rgpPlayerItems[ i ];
 
-			while ( pPlayerItem )
+			while ( pPlayerItem && pPlayerItem->m_pPlayer == this )
 			{
 				switch( iWeaponRules )
 				{
@@ -1012,7 +1012,7 @@ void CBasePlayer::PackDeadPlayerItems( void )
 					{
 						CBasePlayerItem *pItem = m_rgpPlayerItems[i];
 
-						if ( pItem )
+						if ( pItem && pItem->m_pPlayer == this )
 						{
 							if ( !strcmp( "weapon_egon", STRING( pItem->pev->classname ) ) )
 							{
@@ -4166,11 +4166,11 @@ pt_end:
 	// go through all of the weapons and make a list of the ones to pack
 	for ( int i = 0 ; i < MAX_ITEM_TYPES ; i++ )
 	{
-		if ( m_rgpPlayerItems[ i ] )
+		if ( m_rgpPlayerItems[ i ] && m_rgpPlayerItems[ i ]->m_pPlayer == this )
 		{
 			CBasePlayerItem *pPlayerItem = m_rgpPlayerItems[ i ];
 
-			while ( pPlayerItem )
+			while ( pPlayerItem && pPlayerItem->m_pPlayer == this )
 			{
 				CBasePlayerWeapon *gun;
 
@@ -4624,7 +4624,7 @@ void CBasePlayer::SelectNextItem( int iItem )
 
 	pItem = m_rgpPlayerItems[ iItem ];
 	
-	if (!pItem)
+	if (!pItem || pItem->m_pPlayer != this)
 		return;
 
 	if (pItem == m_pActiveItem)
@@ -4684,11 +4684,11 @@ void CBasePlayer::SelectItem(const char *pstr)
 
 	for (int i = 0; i < MAX_ITEM_TYPES; i++)
 	{
-		if (m_rgpPlayerItems[i])
+		if (m_rgpPlayerItems[i] && m_rgpPlayerItems[i]->m_pPlayer == this)
 		{
 			pItem = m_rgpPlayerItems[i];
 	
-			while (pItem)
+			while (pItem && pItem->m_pPlayer == this)
 			{
 				if (FClassnameIs(pItem->pev, pstr))
 					break;
@@ -5016,7 +5016,7 @@ void CBasePlayer::RemoveNamedItem(const char *name)
 		for (int i = 0; i < MAX_ITEM_TYPES; i++)
 		{
 			pWeapon = m_rgpPlayerItems[ i ];
-			while ( pWeapon )
+			while ( pWeapon && pWeapon->m_pPlayer == this )
 			{
 				// try to match by name. 
 				if ( !strcmp( pszItemName, STRING( pWeapon->pev->classname ) ) )
@@ -7530,7 +7530,7 @@ void CBasePlayer::DropPlayerItem ( char *pszItemName, BOOL weaponbox, BOOL explo
 	{
 		pWeapon = m_rgpPlayerItems[ i ];
 
-		while ( pWeapon )
+		while ( pWeapon && pWeapon->m_pPlayer == this )
 		{
 			if ( pszItemName )
 			{
@@ -7648,7 +7648,7 @@ BOOL CBasePlayer::HasNamedPlayerItem( const char *pszItemName )
 	{
 		pItem = m_rgpPlayerItems[ i ];
 		
-		while (pItem)
+		while (pItem && pItem->m_pPlayer == this)
 		{
 			if ( !strcmp( pszItemName, STRING( pItem->pev->classname ) ) )
 			{
@@ -7672,7 +7672,7 @@ BOOL CBasePlayer::GetHeaviestWeapon( CBasePlayerItem *pCurrentWeapon )
 		pCheck = m_rgpPlayerItems[ i ];
 		ALERT(at_aiconsole, "i=%d\n", i);
 
-		while ( pCheck && pCheck->m_pPlayer )
+		while ( pCheck && pCheck->m_pPlayer == this )
 		{
 			ALERT(at_aiconsole, "pCheck->iWeight()=%d\n", pCheck->iWeight());
 			if ( pCheck->iWeight() > iBestWeight && pCheck != pCurrentWeapon )

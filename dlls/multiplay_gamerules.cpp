@@ -1363,7 +1363,7 @@ BOOL CHalfLifeMultiplay :: GetNextBestWeapon( CBasePlayer *pPlayer, CBasePlayerI
 	{
 		pCheck = pPlayer->m_rgpPlayerItems[ i ];
 
-		while ( pCheck )
+		while ( pCheck && pCheck->m_pPlayer == pPlayer )
 		{
 			if ( pCheck->iWeight() > -1 && pCheck->iWeight() == pCurrentWeapon->iWeight() && pCheck != pCurrentWeapon )
 			{
