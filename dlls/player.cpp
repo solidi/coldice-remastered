@@ -6609,6 +6609,7 @@ int CBasePlayer::RemovePlayerItem( CBasePlayerItem *pItem )
 	if (pPrev == pItem)
 	{
 		m_rgpPlayerItems[pItem->iItemSlot()] = pItem->m_pNext;
+		pItem->m_pNext = NULL;  // prevent dangling chain if caller still holds pItem
 		return TRUE;
 	}
 	else
@@ -6620,6 +6621,7 @@ int CBasePlayer::RemovePlayerItem( CBasePlayerItem *pItem )
 		if (pPrev)
 		{
 			pPrev->m_pNext = pItem->m_pNext;
+			pItem->m_pNext = NULL;  // prevent dangling chain if caller still holds pItem
 			return TRUE;
 		}
 	}

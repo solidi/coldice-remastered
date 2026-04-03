@@ -1479,6 +1479,7 @@ void CBasePlayerItem::Drop( void )
 	SetTouch( NULL );
 	SetThink(&CBasePlayerItem::SUB_Remove);
 	pev->nextthink = gpGlobals->time + .1;
+	m_pNext = NULL;  // prevent stale m_pNext chains after this entity is freed
 }
 
 void CBasePlayerItem::Kill( void )
@@ -1486,6 +1487,7 @@ void CBasePlayerItem::Kill( void )
 	SetTouch( NULL );
 	SetThink(&CBasePlayerItem::SUB_Remove);
 	pev->nextthink = gpGlobals->time + .1;
+	m_pNext = NULL;  // prevent stale m_pNext chains after this entity is freed
 }
 
 void CBasePlayerItem::Holster( int skiplocal /* = 0 */ )
@@ -1600,7 +1602,7 @@ int CBasePlayerWeapon::UpdateClientData( CBasePlayer *pPlayer )
 		pPlayer->m_fWeapon = TRUE;
 	}
 
-	if ( m_pNext && m_pNext->m_pPlayer )
+	if ( m_pNext && m_pNext->m_pPlayer == pPlayer )
 		m_pNext->UpdateClientData( pPlayer );
 
 	return 1;
