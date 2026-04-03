@@ -3599,7 +3599,8 @@ BOOL CHalfLifeMultiplay::MutatorAllowed(const char *mutator)
 		strstr(mutator, g_szMutators[MUTATOR_PORTAL - 1]) || atoi(mutator) == MUTATOR_PORTAL ||
 		strstr(mutator, g_szMutators[MUTATOR_RANDOMWEAPON - 1]) || atoi(mutator) == MUTATOR_RANDOMWEAPON ||
 		strstr(mutator, g_szMutators[MUTATOR_ROCKETCROWBAR - 1]) || atoi(mutator) == MUTATOR_ROCKETCROWBAR ||
-		strstr(mutator, g_szMutators[MUTATOR_VESTED - 1]) || atoi(mutator) == MUTATOR_VESTED)
+		strstr(mutator, g_szMutators[MUTATOR_VESTED - 1]) || atoi(mutator) == MUTATOR_VESTED ||
+		strstr(mutator, g_szMutators[MUTATOR_FIREBULLETS - 1]) || atoi(mutator) == MUTATOR_FIREBULLETS)
 		return !(g_GameMode == GAME_SNOWBALL);
 	
 	return TRUE;
