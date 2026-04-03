@@ -34,6 +34,9 @@ CFlyingSnowball * CFlyingSnowball::Shoot( entvars_t *pevOwner, Vector vecStart, 
 	UTIL_SetOrigin( pSnowball->pev, vecStart );
 	pSnowball->pev->velocity = vecVelocity;
 
+	// Maximum lifetime so snowballs do not accumulate and exhaust the entity pool.
+	pSnowball->pev->dmgtime = gpGlobals->time + 8.0;
+
 	// Tumble through the air
 	//pSnowball->pev->avelocity.x = -1000;
 	pSnowball->pev->gravity = 0.1;
@@ -107,6 +110,12 @@ void CFlyingSnowball::Precache( )
 
 void CFlyingSnowball::SpinTouch( CBaseEntity *pOther )
 {
+	// Guard against multiple touch calls queued in the same engine frame.
+	if (pev->solid == SOLID_NOT)
+		return;
+
+	SetTouch( NULL );
+
 	// We touched something in the game. Look to see if the object
 	// is allowed to take damage.
 	if (pOther->pev->takedamage)
@@ -186,6 +195,14 @@ void CFlyingSnowball::SpinTouch( CBaseEntity *pOther )
 
 void CFlyingSnowball::BubbleThink( void )
 {
+	// Expire after maximum lifetime to prevent entity exhaustion.
+	if (pev->dmgtime && gpGlobals->time > pev->dmgtime)
+	{
+		SetThink( &CBaseEntity::SUB_Remove );
+		pev->nextthink = gpGlobals->time + 0.1;
+		return;
+	}
+
 	// Only think every .25 seconds.
 	pev->nextthink = gpGlobals->time + 0.25;
 
