@@ -845,6 +845,7 @@ int CBasePlayer :: TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, 
 //=========================================================
 void CBasePlayer::PackDeadPlayerItems( void )
 {
+	ALERT( at_console, "[KC] PackDeadPlayerItems enter\n" );
 	int iWeaponRules;
 	int iAmmoRules;
 	int i;
@@ -894,7 +895,9 @@ void CBasePlayer::PackDeadPlayerItems( void )
 	if ( iWeaponRules == GR_PLR_DROP_GUN_NO && iAmmoRules == GR_PLR_DROP_AMMO_NO )
 	{
 		// nothing to pack. Remove the weapons and return. Don't call create on the box!
+		ALERT( at_console, "[KC] PackDeadPlayerItems early exit (no drop)\n" );
 		RemoveAllItems( TRUE );
+		ALERT( at_console, "[KC] PackDeadPlayerItems after RemoveAllItems\n" );
 		return;
 	}
 
@@ -1062,6 +1065,7 @@ void CBasePlayer::PackDeadPlayerItems( void )
 
 void CBasePlayer::RemoveAllItems( BOOL removeSuit )
 {
+	ALERT( at_console, "[KC] RemoveAllItems enter\n" );
 	if (!m_fKnownItem)
 	{
 		return;
@@ -1121,6 +1125,7 @@ void CBasePlayer::RemoveAllItems( BOOL removeSuit )
 		WRITE_BYTE(0);
 		WRITE_BYTE(0);
 	MESSAGE_END();
+	ALERT( at_console, "[KC] RemoveAllItems done\n" );
 }
 
 //=========================================================
@@ -1260,6 +1265,7 @@ void CBasePlayer::Killed( entvars_t *pevAttacker, int iGib )
 		m_pActiveItem->Holster( );
 
 	g_pGameRules->PlayerKilled( this, pevAttacker, g_pevLastInflictor );
+	ALERT( at_console, "[KC] back from PlayerKilled\n" );
 
 	STOP_SOUND( edict(), CHAN_VOICE, "scientist/scream1.wav" );
 
