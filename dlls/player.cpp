@@ -5019,13 +5019,20 @@ void CBasePlayer::RemoveNamedItem(const char *name)
 			{
 				if (RemovePlayerItem( pWeapon ))
 				{
-					if ( !g_pGameRules->GetNextBestWeapon( this, pWeapon, FALSE, FALSE ) )
-						return; // can't drop the item they asked for, may be our last item or something we can't holster
-
+					// Always clear the HUD bit — do not let GetNextBestWeapon's
+					// return value gate this; a failed switch leaves a ghost icon.
 					if (pWeapon->m_iId < 32)
-						pev->weapons &= ~(1<<pWeapon->m_iId);// take item off hud
+						pev->weapons &= ~(1<<pWeapon->m_iId);
 					else
-						m_iWeapons2 &= ~(1<<(pWeapon->m_iId - 32));// take item off hud
+						m_iWeapons2 &= ~(1<<(pWeapon->m_iId - 32));
+
+					g_pGameRules->GetNextBestWeapon( this, pWeapon, FALSE, FALSE );
+
+					// RemovePlayerItem only unlinks the weapon from the inventory
+					// list; it does not destroy the entity.  Without Kill() the
+					// weapon persists as an invisible MOVETYPE_FOLLOW ghost
+					// attached to the player and never gets freed.
+					pWeapon->Kill();
 				}
 				break;
 			}
@@ -5061,6 +5068,17 @@ void CBasePlayer::GiveNamedItem( const char *pszName )
 
 	DispatchSpawn( pent );
 	DispatchTouch( pent, ENT( pev ) );
+
+	// If the weapon entity was not attached to this player (pickup failed for
+	// any reason) and hasn't already been scheduled for removal, clean it up.
+	// Orphaned SOLID_BBOX entities with DefaultTouch active will re-fire every
+	// frame and eventually exhaust the entity pool.
+	if ( !FNullEnt( pent ) && pent->v.movetype != MOVETYPE_FOLLOW )
+	{
+		CBaseEntity *pGiven = CBaseEntity::Instance( pent );
+		if ( pGiven )
+			pGiven->Kill();
+	}
 }
 
 
@@ -6503,8 +6521,11 @@ int CBasePlayer::AddPlayerItem( CBasePlayerItem *pItem )
 
 	while (pInsert)
 	{
-		// Bot patch
+		// Bot patch: existing weapon in slot has NULL player (stale entity).
+		// Kill the incoming item so it doesn't become an orphaned live entity
+		// that re-fires DefaultTouch every frame and exhausts the entity pool.
 		if (pInsert->m_pPlayer == NULL) {
+			pItem->Kill();
 			return FALSE;
 		}
 
