@@ -1076,6 +1076,7 @@ void CBasePlayer::RemoveAllItems( BOOL removeSuit )
 	}
 
 	m_pLastItem = NULL;
+	m_pLastRef  = NULL;  // prevent stale pointer surviving across death/respawn
 
 	if ( m_pTank != NULL )
 	{
@@ -1084,15 +1085,17 @@ void CBasePlayer::RemoveAllItems( BOOL removeSuit )
 	}
 
 	int i;
-	CBasePlayerItem *pPendingItem;
+	CBasePlayerItem *pCurrent, *pPendingItem;
 	for (i = 0; i < MAX_ITEM_TYPES; i++)
 	{
-		m_pActiveItem = m_rgpPlayerItems[i];
-		while (m_pActiveItem)
+		// Use a local variable rather than m_pActiveItem so that any code
+		// observing m_pActiveItem during Drop() cannot see a half-freed pointer.
+		pCurrent = m_rgpPlayerItems[i];
+		while (pCurrent)
 		{
-			pPendingItem = m_pActiveItem->m_pNext; 
-			m_pActiveItem->Drop( );
-			m_pActiveItem = pPendingItem;
+			pPendingItem = pCurrent->m_pNext;
+			pCurrent->Drop( );
+			pCurrent = pPendingItem;
 		}
 		m_rgpPlayerItems[i] = NULL;
 	}
@@ -4445,6 +4448,7 @@ void CBasePlayer::Spawn( void )
 	m_fNoPlayerSound = FALSE;// normal sound behavior.
 
 	m_pLastItem = NULL;
+	m_pLastRef  = NULL;  // prevent stale pointer surviving into new life
 	m_fInitHUD = TRUE;
 	m_iClientHideHUD = -1;  // force this to be recalculated
 	m_fWeapon = FALSE;
@@ -6694,15 +6698,31 @@ void CBasePlayer::ItemPreFrame()
 	}
 
 	if (g_pGameRules->IsAllowedToHolsterWeapon() && !m_pActiveItem && HasWeapons()) {
-		if (m_pLastItem && m_pLastItem->CanDeploy())
+		// Guard: verify m_pLastItem is still live and owned by this player before
+		// promoting it to active. A stale m_pLastRef surviving a death/respawn
+		// cycle can produce a recycled-edict pointer here → corrupt vtable crash.
+		if (m_pLastItem && m_pLastItem->m_pPlayer == this && m_pLastItem->CanDeploy())
 		{
 			m_pActiveItem = m_pLastItem;//We set the chosen weapon to lastitem in selectitem func. //Now we`ll set it to the active weapon and draws it with ChangeGun.
 			ChangeGun();
+		}
+		else if (m_pLastItem && m_pLastItem->m_pPlayer != this)
+		{
+			// Stale pointer — clear it to prevent repeated bad promotions.
+			m_pLastItem = NULL;
 		}
 	}
 
 	if (!m_pActiveItem)
 		return;
+
+	// Guard: same check as ItemPostFrame — defend against a recycled edict whose
+	// m_pPlayer was overwritten by the new entity that reused the slot.
+	if (!m_pActiveItem->m_pPlayer || m_pActiveItem->m_pPlayer != this)
+	{
+		m_pActiveItem = NULL;
+		return;
+	}
 
 	m_pActiveItem->ItemPreFrame( );
 }
