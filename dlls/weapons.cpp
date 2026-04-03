@@ -1480,6 +1480,7 @@ void CBasePlayerItem::Drop( void )
 	SetThink(&CBasePlayerItem::SUB_Remove);
 	pev->nextthink = gpGlobals->time + .1;
 	m_pNext = NULL;  // prevent stale m_pNext chains after this entity is freed
+	m_pPlayer = NULL; // prevent UpdateClientData guard from passing on a pending-free edict
 }
 
 void CBasePlayerItem::Kill( void )
@@ -1488,6 +1489,7 @@ void CBasePlayerItem::Kill( void )
 	SetThink(&CBasePlayerItem::SUB_Remove);
 	pev->nextthink = gpGlobals->time + .1;
 	m_pNext = NULL;  // prevent stale m_pNext chains after this entity is freed
+	m_pPlayer = NULL; // prevent UpdateClientData guard from passing on a pending-free edict
 }
 
 void CBasePlayerItem::Holster( int skiplocal /* = 0 */ )

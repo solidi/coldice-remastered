@@ -7140,7 +7140,11 @@ void CBasePlayer :: UpdateClientData( void )
 	// Update all the items
 	for ( int i = 0; i < MAX_ITEM_TYPES; i++ )
 	{
-		if ( m_rgpPlayerItems[i] && m_rgpPlayerItems[i]->m_pPlayer )  // each item updates it's successors
+		// Guard: m_pPlayer must be this player. A weapon pending removal has
+		// m_pPlayer cleared by Drop()/Kill(), so the null check handles that.
+		// The ownership check catches recycled edict slots where a new entity
+		// reused the address and overwrote m_pPlayer with a different player.
+		if ( m_rgpPlayerItems[i] && m_rgpPlayerItems[i]->m_pPlayer == this )
 			m_rgpPlayerItems[i]->UpdateClientData( this );
 	}
 
