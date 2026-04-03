@@ -1175,7 +1175,7 @@ void CGameRules::AddInstantMutator(void)
 				CBaseEntity *pPlayer = UTIL_PlayerByIndex( i );
 				CBasePlayer *pl = (CBasePlayer *)pPlayer;
 				if (pPlayer && pPlayer->IsPlayer() && !pl->IsSpectator() && pl->IsAlive() && !pl->HasDisconnected)
-					pPlayer->pev->health = min(pPlayer->pev->health + 1.0f, pPlayer->pev->max_health);
+					pPlayer->pev->health = fmin(pPlayer->pev->health + 1.0f, pPlayer->pev->max_health);
 			}
 			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] +1 health!\n");
 			break;
@@ -1208,7 +1208,7 @@ void CGameRules::AddInstantMutator(void)
 				CBaseEntity *pPlayer = UTIL_PlayerByIndex( i );
 				CBasePlayer *pl = (CBasePlayer *)pPlayer;
 				if (pPlayer && pPlayer->IsPlayer() && !pl->IsSpectator() && pl->IsAlive() && !pl->HasDisconnected)
-					pPlayer->pev->health = min(pPlayer->pev->health + 100.0f, pPlayer->pev->max_health);
+					pPlayer->pev->health = fmin(pPlayer->pev->health + 100.0f, pPlayer->pev->max_health);
 			}
 			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] +100 health!\n");
 			break;
@@ -1218,7 +1218,7 @@ void CGameRules::AddInstantMutator(void)
 				CBaseEntity *pPlayer = UTIL_PlayerByIndex( i );
 				CBasePlayer *pl = (CBasePlayer *)pPlayer;
 				if (pPlayer && pPlayer->IsPlayer() && !pl->IsSpectator() && pl->IsAlive() && !pl->HasDisconnected)
-					pPlayer->pev->armorvalue = min(pPlayer->pev->armorvalue + 100.0f, pPlayer->pev->max_health);
+					pPlayer->pev->armorvalue = fmin(pPlayer->pev->armorvalue + 100.0f, pPlayer->pev->max_health);
 			}
 			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] +100 armor!\n");
 			break;
