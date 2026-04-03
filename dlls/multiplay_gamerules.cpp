@@ -1762,13 +1762,15 @@ void CHalfLifeMultiplay :: PlayerThink( CBasePlayer *pPlayer )
 		{
 			if (pPlayer->m_pActiveItem)
 			{
-				CBasePlayerWeapon *pWeapon = (CBasePlayerWeapon*)pPlayer->m_pActiveItem;
+				CBasePlayerWeapon *pWeapon = (CBasePlayerWeapon*)pPlayer->m_pActiveItem->GetWeaponPtr();
 
-				if (pPlayer->m_rgAmmo[pWeapon->m_iPrimaryAmmoType] < pWeapon->iMaxAmmo1()) {
+				if (pWeapon && pWeapon->m_iPrimaryAmmoType >= 0 &&
+					pPlayer->m_rgAmmo[pWeapon->m_iPrimaryAmmoType] < pWeapon->iMaxAmmo1()) {
 					pPlayer->m_rgAmmo[pWeapon->m_iPrimaryAmmoType] += 1;
 					UTIL_ScreenFade( pPlayer, Vector(200,200,0), .5, .5, 32, FFADE_IN);
 					pPlayer->m_flRuneHealTime = gpGlobals->time + 1.0;
-				} else if (pPlayer->m_rgAmmo[pWeapon->m_iSecondaryAmmoType] < pWeapon->iMaxAmmo2()) {
+				} else if (pWeapon && pWeapon->m_iSecondaryAmmoType >= 0 &&
+					pPlayer->m_rgAmmo[pWeapon->m_iSecondaryAmmoType] < pWeapon->iMaxAmmo2()) {
 					pPlayer->m_rgAmmo[pWeapon->m_iSecondaryAmmoType] += 1;
 					UTIL_ScreenFade( pPlayer, Vector(200,200,0), .5, .5, 32, FFADE_IN);
 					pPlayer->m_flRuneHealTime = gpGlobals->time + 1.0;
