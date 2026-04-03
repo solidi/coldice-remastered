@@ -901,12 +901,12 @@ void CBasePlayer::PackDeadPlayerItems( void )
 // go through all of the weapons and make a list of the ones to pack
 	for ( i = 0 ; i < MAX_ITEM_TYPES ; i++ )
 	{
-		if ( m_rgpPlayerItems[ i ] )
+		if ( m_rgpPlayerItems[ i ] && m_rgpPlayerItems[ i ]->m_pPlayer == this )
 		{
 			// there's a weapon here. Should I pack it?
 			CBasePlayerItem *pPlayerItem = m_rgpPlayerItems[ i ];
 
-			while ( pPlayerItem )
+			while ( pPlayerItem && pPlayerItem->m_pPlayer == this )
 			{
 				switch( iWeaponRules )
 				{
@@ -1009,7 +1009,7 @@ void CBasePlayer::PackDeadPlayerItems( void )
 					{
 						CBasePlayerItem *pItem = m_rgpPlayerItems[i];
 
-						if ( pItem )
+						if ( pItem && pItem->m_pPlayer == this )
 						{
 							if ( !strcmp( "weapon_egon", STRING( pItem->pev->classname ) ) )
 							{
@@ -1076,6 +1076,7 @@ void CBasePlayer::RemoveAllItems( BOOL removeSuit )
 	}
 
 	m_pLastItem = NULL;
+	m_pLastRef  = NULL;  // prevent stale pointer surviving across death/respawn
 
 	if ( m_pTank != NULL )
 	{
@@ -1084,17 +1085,20 @@ void CBasePlayer::RemoveAllItems( BOOL removeSuit )
 	}
 
 	int i;
-	CBasePlayerItem *pPendingItem;
+	CBasePlayerItem *pCurrent, *pPendingItem;
 	for (i = 0; i < MAX_ITEM_TYPES; i++)
 	{
-		m_pActiveItem = m_rgpPlayerItems[i];
-		while (m_pActiveItem)
-		{
-			pPendingItem = m_pActiveItem->m_pNext; 
-			m_pActiveItem->Drop( );
-			m_pActiveItem = pPendingItem;
-		}
+		// Null the slot FIRST so that any re-entrant code (e.g. triggered via
+		// Holster callbacks) that reads m_rgpPlayerItems sees a clean state and
+		// cannot reach the weapon we are about to Drop().
+		pCurrent = m_rgpPlayerItems[i];
 		m_rgpPlayerItems[i] = NULL;
+		while (pCurrent && pCurrent->m_pPlayer == this)
+		{
+			pPendingItem = pCurrent->m_pNext;
+			pCurrent->Drop( );
+			pCurrent = pPendingItem;
+		}
 	}
 	m_pActiveItem = NULL;
 
@@ -4157,11 +4161,11 @@ pt_end:
 	// go through all of the weapons and make a list of the ones to pack
 	for ( int i = 0 ; i < MAX_ITEM_TYPES ; i++ )
 	{
-		if ( m_rgpPlayerItems[ i ] )
+		if ( m_rgpPlayerItems[ i ] && m_rgpPlayerItems[ i ]->m_pPlayer == this )
 		{
 			CBasePlayerItem *pPlayerItem = m_rgpPlayerItems[ i ];
 
-			while ( pPlayerItem )
+			while ( pPlayerItem && pPlayerItem->m_pPlayer == this )
 			{
 				CBasePlayerWeapon *gun;
 
@@ -4445,6 +4449,7 @@ void CBasePlayer::Spawn( void )
 	m_fNoPlayerSound = FALSE;// normal sound behavior.
 
 	m_pLastItem = NULL;
+	m_pLastRef  = NULL;  // prevent stale pointer surviving into new life
 	m_fInitHUD = TRUE;
 	m_iClientHideHUD = -1;  // force this to be recalculated
 	m_fWeapon = FALSE;
@@ -4614,7 +4619,7 @@ void CBasePlayer::SelectNextItem( int iItem )
 
 	pItem = m_rgpPlayerItems[ iItem ];
 	
-	if (!pItem)
+	if (!pItem || pItem->m_pPlayer != this)
 		return;
 
 	if (pItem == m_pActiveItem)
@@ -4674,11 +4679,11 @@ void CBasePlayer::SelectItem(const char *pstr)
 
 	for (int i = 0; i < MAX_ITEM_TYPES; i++)
 	{
-		if (m_rgpPlayerItems[i])
+		if (m_rgpPlayerItems[i] && m_rgpPlayerItems[i]->m_pPlayer == this)
 		{
 			pItem = m_rgpPlayerItems[i];
 	
-			while (pItem)
+			while (pItem && pItem->m_pPlayer == this)
 			{
 				if (FClassnameIs(pItem->pev, pstr))
 					break;
@@ -5006,7 +5011,7 @@ void CBasePlayer::RemoveNamedItem(const char *name)
 		for (int i = 0; i < MAX_ITEM_TYPES; i++)
 		{
 			pWeapon = m_rgpPlayerItems[ i ];
-			while ( pWeapon )
+			while ( pWeapon && pWeapon->m_pPlayer == this )
 			{
 				// try to match by name. 
 				if ( !strcmp( pszItemName, STRING( pWeapon->pev->classname ) ) )
@@ -5019,13 +5024,20 @@ void CBasePlayer::RemoveNamedItem(const char *name)
 			{
 				if (RemovePlayerItem( pWeapon ))
 				{
-					if ( !g_pGameRules->GetNextBestWeapon( this, pWeapon, FALSE, FALSE ) )
-						return; // can't drop the item they asked for, may be our last item or something we can't holster
-
+					// Always clear the HUD bit — do not let GetNextBestWeapon's
+					// return value gate this; a failed switch leaves a ghost icon.
 					if (pWeapon->m_iId < 32)
-						pev->weapons &= ~(1<<pWeapon->m_iId);// take item off hud
+						pev->weapons &= ~(1<<pWeapon->m_iId);
 					else
-						m_iWeapons2 &= ~(1<<(pWeapon->m_iId - 32));// take item off hud
+						m_iWeapons2 &= ~(1<<(pWeapon->m_iId - 32));
+
+					g_pGameRules->GetNextBestWeapon( this, pWeapon, FALSE, FALSE );
+
+					// RemovePlayerItem only unlinks the weapon from the inventory
+					// list; it does not destroy the entity.  Without Kill() the
+					// weapon persists as an invisible MOVETYPE_FOLLOW ghost
+					// attached to the player and never gets freed.
+					pWeapon->Kill();
 				}
 				break;
 			}
@@ -5061,6 +5073,17 @@ void CBasePlayer::GiveNamedItem( const char *pszName )
 
 	DispatchSpawn( pent );
 	DispatchTouch( pent, ENT( pev ) );
+
+	// If the weapon entity was not attached to this player (pickup failed for
+	// any reason) and hasn't already been scheduled for removal, clean it up.
+	// Orphaned SOLID_BBOX entities with DefaultTouch active will re-fire every
+	// frame and eventually exhaust the entity pool.
+	if ( !FNullEnt( pent ) && pent->v.movetype != MOVETYPE_FOLLOW )
+	{
+		CBaseEntity *pGiven = CBaseEntity::Instance( pent );
+		if ( pGiven )
+			UTIL_Remove( pGiven );
+	}
 }
 
 
@@ -6503,8 +6526,14 @@ int CBasePlayer::AddPlayerItem( CBasePlayerItem *pItem )
 
 	while (pInsert)
 	{
-		// Bot patch
+		// Bot patch: existing weapon in slot has NULL player (stale entity, was
+		// Drop()'d/Kill()'d without RemovePlayerItem).  Clear the slot so that
+		// once its edict is released by SUB_Remove we no longer hold a dangling
+		// pointer.  Kill the incoming item and bail — it will be re-given on the
+		// next clean spawn.
 		if (pInsert->m_pPlayer == NULL) {
+			m_rgpPlayerItems[pItem->iItemSlot()] = NULL;
+			pItem->Kill();
 			return FALSE;
 		}
 
@@ -6588,6 +6617,7 @@ int CBasePlayer::RemovePlayerItem( CBasePlayerItem *pItem )
 	if (pPrev == pItem)
 	{
 		m_rgpPlayerItems[pItem->iItemSlot()] = pItem->m_pNext;
+		pItem->m_pNext = NULL;  // prevent dangling chain if caller still holds pItem
 		return TRUE;
 	}
 	else
@@ -6599,6 +6629,7 @@ int CBasePlayer::RemovePlayerItem( CBasePlayerItem *pItem )
 		if (pPrev)
 		{
 			pPrev->m_pNext = pItem->m_pNext;
+			pItem->m_pNext = NULL;  // prevent dangling chain if caller still holds pItem
 			return TRUE;
 		}
 	}
@@ -6671,15 +6702,32 @@ void CBasePlayer::ItemPreFrame()
 	}
 
 	if (g_pGameRules->IsAllowedToHolsterWeapon() && !m_pActiveItem && HasWeapons()) {
-		if (m_pLastItem && m_pLastItem->CanDeploy())
+		// Guard: verify m_pLastItem is still live and owned by this player before
+		// promoting it to active. A stale m_pLastRef surviving a death/respawn
+		// cycle can produce a recycled-edict pointer here → corrupt vtable crash.
+		if (m_pLastItem && m_pLastItem->m_pPlayer == this && m_pLastItem->CanDeploy())
 		{
 			m_pActiveItem = m_pLastItem;//We set the chosen weapon to lastitem in selectitem func. //Now we`ll set it to the active weapon and draws it with ChangeGun.
 			ChangeGun();
+		}
+		else if (m_pLastItem && m_pLastItem->m_pPlayer != this)
+		{
+			// Stale pointer — clear it to prevent repeated bad promotions.
+			m_pLastItem = NULL;
 		}
 	}
 
 	if (!m_pActiveItem)
 		return;
+
+	// Guard: verify the active item is still owned by this player before use —
+	// defend against a recycled edict whose m_pPlayer was overwritten by the
+	// new entity that reused the slot.
+	if (!m_pActiveItem->m_pPlayer || m_pActiveItem->m_pPlayer != this)
+	{
+		m_pActiveItem = NULL;
+		return;
+	}
 
 	m_pActiveItem->ItemPreFrame( );
 }
@@ -7091,7 +7139,11 @@ void CBasePlayer :: UpdateClientData( void )
 	// Update all the items
 	for ( int i = 0; i < MAX_ITEM_TYPES; i++ )
 	{
-		if ( m_rgpPlayerItems[i] && m_rgpPlayerItems[i]->m_pPlayer )  // each item updates it's successors
+		// Guard: m_pPlayer must be this player. A weapon pending removal has
+		// m_pPlayer cleared by Drop()/Kill(), so the null check handles that.
+		// The ownership check catches recycled edict slots where a new entity
+		// reused the address and overwrote m_pPlayer with a different player.
+		if ( m_rgpPlayerItems[i] && m_rgpPlayerItems[i]->m_pPlayer == this )
 			m_rgpPlayerItems[i]->UpdateClientData( this );
 	}
 
@@ -7477,7 +7529,7 @@ void CBasePlayer::DropPlayerItem ( char *pszItemName, BOOL weaponbox, BOOL explo
 	{
 		pWeapon = m_rgpPlayerItems[ i ];
 
-		while ( pWeapon )
+		while ( pWeapon && pWeapon->m_pPlayer == this )
 		{
 			if ( pszItemName )
 			{
@@ -7595,7 +7647,7 @@ BOOL CBasePlayer::HasNamedPlayerItem( const char *pszItemName )
 	{
 		pItem = m_rgpPlayerItems[ i ];
 		
-		while (pItem)
+		while (pItem && pItem->m_pPlayer == this)
 		{
 			if ( !strcmp( pszItemName, STRING( pItem->pev->classname ) ) )
 			{
@@ -7619,7 +7671,7 @@ BOOL CBasePlayer::GetHeaviestWeapon( CBasePlayerItem *pCurrentWeapon )
 		pCheck = m_rgpPlayerItems[ i ];
 		ALERT(at_aiconsole, "i=%d\n", i);
 
-		while ( pCheck && pCheck->m_pPlayer )
+		while ( pCheck && pCheck->m_pPlayer == this )
 		{
 			ALERT(at_aiconsole, "pCheck->iWeight()=%d\n", pCheck->iWeight());
 			if ( pCheck->iWeight() > iBestWeight && pCheck != pCurrentWeapon )

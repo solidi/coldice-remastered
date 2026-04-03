@@ -211,8 +211,18 @@ void FireTargets( const char *targetName, CBaseEntity *pActivator, CBaseEntity *
 
 	ALERT( at_aiconsole, "Firing: (%s)\n", targetName );
 
+	// Guard against map-entity cycles (A → B → A) that would spin forever.
+	int fireGuard = 0;
+	const int MAX_FIRE_TARGETS = 1024;
+
 	for (;;)
 	{
+		if ( ++fireGuard > MAX_FIRE_TARGETS )
+		{
+			ALERT( at_console, "FireTargets(%s): iteration guard triggered!\n", targetName );
+			break;
+		}
+
 		pentTarget = FIND_ENTITY_BY_TARGETNAME(pentTarget, targetName);
 		if (FNullEnt(pentTarget))
 			break;

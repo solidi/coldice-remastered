@@ -1102,7 +1102,10 @@ class CAmmoRune : public CRune
 			}
 			else if (g_pGameRules->IsSnowballFight())
 			{
-				pPlayer->GiveNamedItem("weapon_glauncher");
+				// Guard against giving a second glauncher if one is already held
+				// (e.g. from a previous rune that wasn't properly cleaned up).
+				if (!pPlayer->HasNamedPlayerItem("weapon_glauncher"))
+					pPlayer->GiveNamedItem("weapon_glauncher");
 				ShowStatus(pPlayer, "rune_slauncher", 200, 200, 0);
 			}
 			else

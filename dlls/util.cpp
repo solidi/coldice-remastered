@@ -1861,15 +1861,27 @@ int UTIL_GetAlivePlayersInSphere( CBasePlayer *pl, int radius )
 {
 	CBaseEntity *pent = NULL;
 	int count = 0;
+	// Safety guard: pfnFindEntityInSphere can mis-traverse stale area
+	// links on Linux when an entity changes solid mid-physics-step.
+	// Cap iterations so we never spin forever.
+	int guard = 0;
+	const int MAX_SPHERE_ITERS = 4096;
 
 	while ((pent = UTIL_FindEntityInSphere( pent, pl->pev->origin, radius )) != NULL)
 	{
+		if ( ++guard > MAX_SPHERE_ITERS )
+		{
+			ALERT( at_console, "UTIL_GetAlivePlayersInSphere: iteration guard triggered!\n" );
+			break;
+		}
+
 		if ( pent == pl )
 			continue;
 
 		if (pent->IsPlayer())
 		{
-			CBasePlayer *plr = (CBasePlayer *)pl;
+			// Fixed: was incorrectly casting pl instead of pent.
+			CBasePlayer *plr = (CBasePlayer *)pent;
 			if (!plr->IsObserver() && pent->pev->health > 0)
 				count++;
 		}

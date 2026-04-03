@@ -1363,7 +1363,7 @@ BOOL CHalfLifeMultiplay :: GetNextBestWeapon( CBasePlayer *pPlayer, CBasePlayerI
 	{
 		pCheck = pPlayer->m_rgpPlayerItems[ i ];
 
-		while ( pCheck )
+		while ( pCheck && pCheck->m_pPlayer == pPlayer )
 		{
 			if ( pCheck->iWeight() > -1 && pCheck->iWeight() == pCurrentWeapon->iWeight() && pCheck != pCurrentWeapon )
 			{
@@ -3599,7 +3599,8 @@ BOOL CHalfLifeMultiplay::MutatorAllowed(const char *mutator)
 		strstr(mutator, g_szMutators[MUTATOR_PORTAL - 1]) || atoi(mutator) == MUTATOR_PORTAL ||
 		strstr(mutator, g_szMutators[MUTATOR_RANDOMWEAPON - 1]) || atoi(mutator) == MUTATOR_RANDOMWEAPON ||
 		strstr(mutator, g_szMutators[MUTATOR_ROCKETCROWBAR - 1]) || atoi(mutator) == MUTATOR_ROCKETCROWBAR ||
-		strstr(mutator, g_szMutators[MUTATOR_VESTED - 1]) || atoi(mutator) == MUTATOR_VESTED)
+		strstr(mutator, g_szMutators[MUTATOR_VESTED - 1]) || atoi(mutator) == MUTATOR_VESTED ||
+		strstr(mutator, g_szMutators[MUTATOR_FIREBULLETS - 1]) || atoi(mutator) == MUTATOR_FIREBULLETS)
 		return !(g_GameMode == GAME_SNOWBALL);
 	
 	return TRUE;

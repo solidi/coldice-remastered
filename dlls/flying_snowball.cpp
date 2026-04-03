@@ -34,6 +34,9 @@ CFlyingSnowball * CFlyingSnowball::Shoot( entvars_t *pevOwner, Vector vecStart, 
 	UTIL_SetOrigin( pSnowball->pev, vecStart );
 	pSnowball->pev->velocity = vecVelocity;
 
+	// Maximum lifetime so snowballs do not accumulate and exhaust the entity pool.
+	pSnowball->pev->dmgtime = gpGlobals->time + 8.0;
+
 	// Tumble through the air
 	//pSnowball->pev->avelocity.x = -1000;
 	pSnowball->pev->gravity = 0.1;
@@ -107,6 +110,27 @@ void CFlyingSnowball::Precache( )
 
 void CFlyingSnowball::SpinTouch( CBaseEntity *pOther )
 {
+	// Guard against multiple touch calls queued in the same engine frame.
+	// Set SOLID_NOT immediately — before any processing — so that any further
+	// touch events already queued by the engine (e.g. hitting two bots in the
+	// same physics step) hit this guard and return without double-processing.
+	// On Linux the GoldSrc engine may dispatch queued touches without
+	// re-checking the touch function pointer, making this the only reliable
+	// re-entrancy barrier.
+	if (pev->solid == SOLID_NOT)
+		return;
+	pev->solid = SOLID_NOT;
+	pev->effects |= EF_NODRAW;
+
+	SetTouch( NULL );
+
+	// Cache whether we hit a player BEFORE calling ApplyMultiDamage.
+	// The kill chain triggered by ApplyMultiDamage (PlayerKilled -> FireTargets
+	// -> entity activation) may alter entity state in ways that make a virtual
+	// call on pOther unsafe after the damage is applied, particularly on Linux
+	// where the heap can reuse a freed edict slot within the same frame.
+	const BOOL bHitPlayer = pOther->IsPlayer();
+
 	// We touched something in the game. Look to see if the object
 	// is allowed to take damage.
 	if (pOther->pev->takedamage)
@@ -127,7 +151,7 @@ void CFlyingSnowball::SpinTouch( CBaseEntity *pOther )
 
 	// If we hit a player, make a nice squishy thunk sound. Otherwise
 	// make a clang noise and throw a bunch of sparks.
-	if (pOther->IsPlayer()) {
+	if (bHitPlayer) {
 		EMIT_SOUND_DYN(ENT(pev), CHAN_WEAPON, "snowball_hitbod.wav",
 							1.0, ATTN_NORM, 0, 100);
 	}
@@ -136,10 +160,6 @@ void CFlyingSnowball::SpinTouch( CBaseEntity *pOther )
 		EMIT_SOUND_DYN(ENT(pev), CHAN_WEAPON, "snowball_miss.wav",
 							1.0, ATTN_NORM, 0, 100);
 	}
-
-	// Don't draw the flying snowball anymore.
-	pev->effects |= EF_NODRAW;
-	pev->solid = SOLID_NOT;
 
 	// Get the unit vector in the direction of motion.
 	Vector vecDir = pev->velocity.Normalize( );
@@ -186,6 +206,14 @@ void CFlyingSnowball::SpinTouch( CBaseEntity *pOther )
 
 void CFlyingSnowball::BubbleThink( void )
 {
+	// Expire after maximum lifetime to prevent entity exhaustion.
+	if (pev->dmgtime && gpGlobals->time > pev->dmgtime)
+	{
+		SetThink( &CBaseEntity::SUB_Remove );
+		pev->nextthink = gpGlobals->time + 0.1;
+		return;
+	}
+
 	// Only think every .25 seconds.
 	pev->nextthink = gpGlobals->time + 0.25;
 
