@@ -35,6 +35,7 @@
 #include	"coldskull_gamerules.h"
 #include	"arena_gamerules.h"
 #include	"ctf_gamerules.h"
+#include	"kts_gamerules.h"
 #include	"shidden_gamerules.h"
 #include	"horde_gamerules.h"
 #include	"instagib_gamerules.h"
@@ -551,6 +552,8 @@ CGameRules *InstallGameRules( void )
 				return new CHalfLifeInstagib;
 			case GAME_ICEMAN:
 				return new CHalfLifeJesusVsSanta;
+			case GAME_KTS:
+				return new CHalfLifeKickTheSnowball;
 			case GAME_LOOT:
 				return new CHalfLifeLoot;
 			case GAME_PROPHUNT:
@@ -2133,6 +2136,11 @@ BOOL CGameRules::IsCtF()
 BOOL CGameRules::IsLoot()
 {
 	return g_GameMode == GAME_LOOT;
+}
+
+BOOL CGameRules::IsKickTheSnowball()
+{
+	return g_GameMode == GAME_KTS;
 }
 
 BOOL CGameRules::IsColdSpot()

@@ -6168,6 +6168,22 @@ void CBasePlayer::StartForceGrab( void )
 	// Hit!
 	CBaseEntity *pHit = CBaseEntity::Instance( tr.pHit );
 
+	// --- Snowball forcegrab ---
+	// Grab a kts_snowball that is slow enough to control (<= 75 u/s).
+	// Uses pev->owner to track the grabber and pev->iuser1 for mode (0=attract, 1=repel).
+	// The tap-again path already sets m_Banana->pev->iuser1 = 1, which BallThink reads as repel.
+	if (!m_Banana && pHit && FClassnameIs(pHit->pev, "kts_snowball") &&
+		pHit->pev->velocity.Length() <= 75.0f &&
+		FNullEnt(pHit->pev->owner))  // not already grabbed
+	{
+		pHit->pev->owner  = edict();  // store grabber (also disables self-collision)
+		pHit->pev->iuser1 = 0;        // attract mode
+		m_Banana = pHit;
+
+		STOP_SOUND(edict(), CHAN_VOICE, "heaven.wav");
+		EMIT_SOUND(edict(), CHAN_VOICE, "odetojoy.wav", 1, ATTN_NORM);
+	}
+
 	if (pHit && pHit->IsPlayer())
 	{
 		CBasePlayer *plr = (CBasePlayer *)pHit;
@@ -6224,6 +6240,21 @@ void CBasePlayer::TryGrabAgain( void )
 
 		// Hit!
 		CBaseEntity *pHit = CBaseEntity::Instance( tr.pHit );
+
+		// --- Snowball forcegrab (retry window) ---
+		if (!m_Banana && pHit && FClassnameIs(pHit->pev, "kts_snowball") &&
+			pHit->pev->velocity.Length() <= 75.0f &&
+			FNullEnt(pHit->pev->owner))
+		{
+			pHit->pev->owner  = edict();
+			pHit->pev->iuser1 = 0;
+			m_Banana = pHit;
+
+			STOP_SOUND(edict(), CHAN_VOICE, "heaven.wav");
+			EMIT_SOUND(edict(), CHAN_VOICE, "odetojoy.wav", 1, ATTN_NORM);
+
+			pev->nextthink = -1;
+		}
 
 		if (pHit && pHit->IsPlayer())
 		{

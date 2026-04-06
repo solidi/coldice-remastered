@@ -242,7 +242,8 @@ bool ScoreBased( void )
 			gHUD.m_Teamplay == GAME_PROPHUNT ||
 			gHUD.m_Teamplay == GAME_SHIDDEN ||
 			gHUD.m_Teamplay == GAME_GUNGAME ||
-			gHUD.m_Teamplay == GAME_LOOT);
+			gHUD.m_Teamplay == GAME_LOOT ||
+			gHUD.m_Teamplay == GAME_KTS);
 }
 
 bool SortByWins( void )
@@ -253,7 +254,8 @@ bool SortByWins( void )
 			gHUD.m_Teamplay == GAME_CTC ||
 			gHUD.m_Teamplay == GAME_CTF ||
 			gHUD.m_Teamplay == GAME_GUNGAME ||
-			gHUD.m_Teamplay == GAME_LOOT);
+			gHUD.m_Teamplay == GAME_LOOT ||
+			gHUD.m_Teamplay == GAME_KTS);
 }
 
 bool IndividualPlayer( void )
@@ -314,6 +316,8 @@ const char *GetGameName( void )
 	{
 		case GAME_ARENA:
 			return "1 vs. 1";
+		case GAME_LMS:
+			return "Battle Royale";
 		case GAME_BUSTERS:
 			return "Busters";
 		case GAME_CHILLDEMIC:	
@@ -334,10 +338,10 @@ const char *GetGameName( void )
 			return "Instagib";
 		case GAME_ICEMAN:
 			return "Santas vs. Jesus";
+		case GAME_KTS:
+			return "Kick the Snowball";
 		case GAME_LOOT:
 			return "Loot";
-		case GAME_LMS:
-			return "Battle Royale";
 		case GAME_PROPHUNT:
 			return "Prop Hunt";
 		case GAME_SHIDDEN:

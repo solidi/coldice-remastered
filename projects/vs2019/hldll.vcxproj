@@ -189,6 +189,7 @@
     <ClCompile Include="..\..\dlls\islave.cpp" />
     <ClCompile Include="..\..\dlls\items.cpp" />
     <ClCompile Include="..\..\dlls\jvs_gamerules.cpp" />
+    <ClCompile Include="..\..\dlls\kts_gamerules.cpp" />
     <ClCompile Include="..\..\dlls\loot_gamerules.cpp" />
     <ClCompile Include="..\..\dlls\knife.cpp" />
     <ClCompile Include="..\..\dlls\leech.cpp" />

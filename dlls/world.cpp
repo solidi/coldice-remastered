@@ -744,24 +744,25 @@ void CWorld :: Precache( void )
 extern DLL_GLOBAL int g_GameMode;
 const char *szGameModeList [] =
 {
-	"ffa",
-	"arena",
-	"lms",
-	"busters",
-	"chilldemic",
-	"coldskull",
-	"coldspot",
-	"ctc",
-	"ctf",
-	"gungame",
-	"horde",
-	"instagib",
-	"jvs",
-	"loot",
-	"prophunt",
-	"shidden",
-	"snowball",
-	"teamplay",
+	"ffa",		// 0  GAME_FFA
+	"arena",	// 1  GAME_ARENA
+	"lms",		// 2 GAME_LMS
+	"busters",	// 3  GAME_BUSTERS
+	"chilldemic",	// 4  GAME_CHILLDEMIC
+	"coldskull",	// 5  GAME_COLDSKULL
+	"coldspot",	// 6  GAME_COLDSPOT
+	"ctc",		// 7  GAME_CTC
+	"ctf",		// 8  GAME_CTF
+	"gungame",	// 9  GAME_GUNGAME
+	"horde",	// 10  GAME_HORDE
+	"instagib",	// 11 GAME_INSTAGIB
+	"jvs",		// 12 GAME_ICEMAN
+	"kts",		// 13 GAME_KTS
+	"loot",		// 14 GAME_LOOT
+	"prophunt",	// 15 GAME_PROPHUNT
+	"shidden",	// 16 GAME_SHIDDEN
+	"snowball",	// 17 GAME_SNOWBALL
+	"teamplay",	// 18 GAME_TEAMPLAY
 };
 
 void CWorld :: SetGameMode( void )

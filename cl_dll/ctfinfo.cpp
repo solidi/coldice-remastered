@@ -45,7 +45,7 @@ int CHudCtfInfo::MsgFunc_CtfInfo(const char *pszName,  int iSize, void *pbuf)
 
 int CHudCtfInfo::Draw(float flTime)
 {
-	if (gHUD.m_GameMode != GAME_CTF)
+	if (gHUD.m_GameMode != GAME_CTF && gHUD.m_GameMode != GAME_KTS)
 		return 1;
 
 	if (gHUD.m_Health.m_bitsDamage)

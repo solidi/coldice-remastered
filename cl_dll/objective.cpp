@@ -229,30 +229,33 @@ int CHudObjective::Draw(float flTime)
 	extern cvar_t *cl_showposition;
 	if (cl_showposition && cl_showposition->value)
 	{
-		if (!g_iUser1 && gHUD.m_GameMode != GAME_CTF && strlen(m_szGoalMessage))
+		if (gHUD.m_GameMode != GAME_CTF && gHUD.m_GameMode != GAME_KTS)
 		{
-			if (g_ScoreTime < gEngfuncs.GetClientTime())
+			if (!g_iUser1 && strlen(m_szGoalMessage))
 			{
-				int old = g_PositionCount;
-				CalcPosition();
-				//if (old != 1 && g_PositionCount == 1)
-				//	PlaySound("takenlead.wav", 1);
-				//if (old == 1 && g_PositionCount != 1)
-				//	PlaySound("lostlead.wav", 1);
-				g_ScoreTime = gEngfuncs.GetClientTime() + gEngfuncs.pfnRandomFloat(3, 5);
-			}
+				if (g_ScoreTime < gEngfuncs.GetClientTime())
+				{
+					int old = g_PositionCount;
+					CalcPosition();
+					//if (old != 1 && g_PositionCount == 1)
+					//	PlaySound("takenlead.wav", 1);
+					//if (old == 1 && g_PositionCount != 1)
+					//	PlaySound("lostlead.wav", 1);
+					g_ScoreTime = gEngfuncs.GetClientTime() + gEngfuncs.pfnRandomFloat(3, 5);
+				}
 
-			if (!gHUD.m_Health.m_bitsDamage)
-			{
-				int r, g, b;
-				UnpackRGB(r, g, b, HudColor());
-				ScaleColors(r, g, b, MIN_ALPHA);
-				int y = ((ScreenHeight - gHUD.m_iFontHeight - gHUD.m_iFontHeight / 2) - 64) + g_yP;
-				int x = 24 + g_xP;
-				SPR_Set(gHUD.GetSprite(gHUD.GetSpriteIndex("item_ctfflagg")), r, g, b);
-				SPR_DrawAdditive(0, x, y, &gHUD.GetSpriteRect(gHUD.GetSpriteIndex("item_ctfflagg")));
-				gHUD.DrawHudNumber(x + 48, y + 12, DHN_2DIGITS | DHN_DRAWZERO, g_PositionCount, r, g, b);
-				//gHUD.DrawHudNumber(x + 64, y + 12, DHN_2DIGITS | DHN_DRAWZERO, g_TotalCount, r, g, b);
+				if (!gHUD.m_Health.m_bitsDamage)
+				{
+					int r, g, b;
+					UnpackRGB(r, g, b, HudColor());
+					ScaleColors(r, g, b, MIN_ALPHA);
+					int y = ((ScreenHeight - gHUD.m_iFontHeight - gHUD.m_iFontHeight / 2) - 64) + g_yP;
+					int x = 24 + g_xP;
+					SPR_Set(gHUD.GetSprite(gHUD.GetSpriteIndex("item_ctfflagg")), r, g, b);
+					SPR_DrawAdditive(0, x, y, &gHUD.GetSpriteRect(gHUD.GetSpriteIndex("item_ctfflagg")));
+					gHUD.DrawHudNumber(x + 48, y + 12, DHN_2DIGITS | DHN_DRAWZERO, g_PositionCount, r, g, b);
+					//gHUD.DrawHudNumber(x + 64, y + 12, DHN_2DIGITS | DHN_DRAWZERO, g_TotalCount, r, g, b);
+				}
 			}
 		}
 	}

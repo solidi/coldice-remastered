@@ -219,6 +219,7 @@ public:
 	virtual BOOL IsSnowballFight();
 	virtual BOOL IsCtF();
 	virtual BOOL IsLoot();
+	virtual BOOL IsKickTheSnowball();
 	virtual BOOL IsColdSpot();
 
 	virtual BOOL AllowMeleeDrop() = 0;

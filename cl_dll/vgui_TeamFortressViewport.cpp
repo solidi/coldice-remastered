@@ -143,6 +143,7 @@ char *sGameplayModes[] =
 	"horde",
 	"instagib",
 	"jvs",
+	"kts",
 	"loot",
 	"prophunt",
 	"shidden",
