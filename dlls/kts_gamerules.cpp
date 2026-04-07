@@ -109,7 +109,11 @@ void CKtsSnowball::Spawn( void )
 	pev->takedamage = DAMAGE_YES;
 	pev->health     = 9999;
 
-	pev->friction   = 0.1f;	// inverse elasticity — 0.1 = 90% energy retained per bounce
+	// Clear FL_ONGROUND — recycled edict slots may retain this flag from a
+	// previous entity, which would suppress gravity and leave the ball floating.
+	ClearBits(pev->flags, FL_ONGROUND);
+
+	pev->friction   = 0.2f;	// inverse elasticity
 	pev->fuser4     = RADAR_SNOWBALL;
 
 	UTIL_SetSize( pev, Vector(-12, -12, -12), Vector(12, 12, 12) );
@@ -298,16 +302,29 @@ void CKtsSnowball::BallTouch( CBaseEntity *pOther )
 		dir = dir + moveDir * 0.75f;
 	}
 
-	dir.z = 0.1f; // slight upward component for natural feel
+	// Normalize the horizontal direction first so the upward tilt produces
+	// a consistent launch angle regardless of the velocity-blend magnitude.
+	float hlen = dir.Length();
+	if (hlen > 0)
+	{
+		dir = dir * (1.0f / hlen);
+	}
+	else
+	{
+		// Fallback: use view direction (flatten to horizontal)
+		MAKE_VECTORS(pPlayer->pev->v_angle);
+		dir = gpGlobals->v_forward;
+		dir.z = 0.0f;
+		float fl = dir.Length();
+		if (fl > 0) dir = dir * (1.0f / fl);
+	}
+
+	// Sliding launches the ball at ~29° upward (satisfying pop);
+	// a normal walk touch gives a gentle deflection.
+	dir.z = pPlayer->m_fSelacoSliding ? 0.55f : 0.1f;
 	float len = dir.Length();
 	if (len > 0)
 		dir = dir * (1.0f / len);
-	else
-	{
-		// Fallback: use view direction
-		MAKE_VECTORS(pPlayer->pev->v_angle);
-		dir = gpGlobals->v_forward;
-	}
 
 	// Damage to player if ball is already fast on impact
 	float preSpeed = pev->velocity.Length();
@@ -911,7 +928,7 @@ void CHalfLifeKickTheSnowball::OnGoalScored( int scoringTeam, CBaseEntity *pScor
 	else
 		UpdateHud(0, -1);
 
-	// Schedule ball respawn — 3-second delay
+	// Schedule ball respawn
 	m_fBallRespawnTime = gpGlobals->time + KTS_BALL_RESPAWN_DELAY;
 
 	// Broadcast "Ball incoming!" objective notice
