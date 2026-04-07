@@ -35,6 +35,12 @@ public:
 	virtual BOOL FPlayerCanTakeDamage( CBasePlayer *pPlayer, CBaseEntity *pAttacker );
 	virtual BOOL IsTeamplay( void );
 	virtual BOOL MutatorAllowed(const char *mutator);
+	virtual BOOL CanHaveNamedItem( CBasePlayer *pPlayer, const char *pszItemName );
+	virtual int DeadPlayerWeapons( CBasePlayer *pPlayer );
+	virtual int DeadPlayerAmmo( CBasePlayer *pPlayer );
+	virtual BOOL IsAllowedToDropWeapon( CBasePlayer *pPlayer );
+	virtual BOOL AllowRuneSpawn( const char *szRune );
+	virtual BOOL IsAllowedToSpawn( CBaseEntity *pEntity );
 
 	void AutoJoin( CBasePlayer *pPlayer, int team );
 	void OnGoalScored( int scoringTeam, CBaseEntity *pBall );

@@ -1244,3 +1244,56 @@ BOOL CHalfLifeKickTheSnowball::MutatorAllowed( const char *mutator )
 
 	return CHalfLifeMultiplay::MutatorAllowed(mutator);
 }
+
+BOOL CHalfLifeKickTheSnowball::CanHaveNamedItem( CBasePlayer *pPlayer, const char *pszItemName )
+{
+	if (strcmp(pszItemName, "weapon_fists") != 0 &&
+		strcmp(pszItemName, "weapon_gravitygun") != 0) {
+		return FALSE;
+	}
+
+	return TRUE;
+}
+
+int CHalfLifeKickTheSnowball::DeadPlayerWeapons( CBasePlayer *pPlayer )
+{
+	return GR_PLR_DROP_GUN_NO;
+}
+
+int CHalfLifeKickTheSnowball::DeadPlayerAmmo( CBasePlayer *pPlayer )
+{
+	return GR_PLR_DROP_AMMO_NO;
+}
+
+BOOL CHalfLifeKickTheSnowball::IsAllowedToDropWeapon( CBasePlayer *pPlayer )
+{
+	return FALSE;
+}
+
+BOOL CHalfLifeKickTheSnowball::AllowRuneSpawn( const char *szRune )
+{
+	if (!strcmp("rune_ammo", szRune))
+		return FALSE;
+	return TRUE;
+}
+
+const char *itemList[] =
+{
+	"item_healthkit",
+	"item_battery",
+	"item_longjump",
+};
+
+BOOL CHalfLifeKickTheSnowball::IsAllowedToSpawn( CBaseEntity *pEntity )
+{
+	if (!FBitSet(pEntity->pev->spawnflags, SF_GIVEITEM) &&
+		(strncmp(STRING(pEntity->pev->classname), "weapon_", 7) == 0 ||
+		strncmp(STRING(pEntity->pev->classname), "ammo_", 5) == 0))
+	{
+		CBaseEntity::Create((char *)itemList[RANDOM_LONG(0, ARRAYSIZE(itemList)-1)], pEntity->pev->origin, pEntity->pev->angles, pEntity->pev->owner);
+		return FALSE;
+	}
+
+	return TRUE;
+}
+
