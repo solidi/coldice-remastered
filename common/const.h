@@ -954,6 +954,7 @@ typedef struct
 #define CLIENT_SOUND_NOPE 38
 #define CLIENT_SOUND_SOCCER 39
 #define CLIENT_SOUND_GOL 40
+#define CLIENT_SOUND_AIRHORN 41
 
 #define SKIN_NORMAL 0
 #define SKIN_INVERSE 1

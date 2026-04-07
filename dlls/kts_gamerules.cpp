@@ -419,11 +419,10 @@ void CKtsSnowball::ResetToMidpoint( void )
 	// that is already idling at the midpoint (e.g. just spawned, no one nearby).
 	if (distToSpawn > 128.0f)
 	{
-		MESSAGE_BEGIN(MSG_ALL, gmsgObjective);
-			WRITE_STRING("Ball reset!");
-			WRITE_STRING("Ball returned to midpoint.");
-			WRITE_BYTE(0);
-			WRITE_STRING("");
+		UTIL_ClientPrintAll(HUD_PRINTTALK, "Ball reset to mid field!\n");
+
+		MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
+			WRITE_BYTE(CLIENT_SOUND_AIRHORN);
 		MESSAGE_END();
 	}
 }
@@ -781,7 +780,10 @@ void CHalfLifeKickTheSnowball::SpawnBallAtMidpoint( void )
 		{
 			MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL, plr->edict());
 				WRITE_STRING("Ball in play!");
-				WRITE_STRING(UTIL_VarArgs("Kick the snowball into the %s goal!",
+				if (plr->IsSpectator())
+					WRITE_STRING("Watch the action!");
+				else
+					WRITE_STRING(UTIL_VarArgs("Kick the snowball into the %s goal!",
 						(plr->pev->fuser4 == TEAM_RED) ? "blue" : "red"));
 				WRITE_BYTE(0);
 				WRITE_STRING("");
