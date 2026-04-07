@@ -48,10 +48,11 @@ extern int gmsgStatusIcon;
 // Force magnitudes applied to ball
 #define KTS_FORCE_TOUCH       600.0f   // player walks into ball / punch
 #define KTS_FORCE_SLIDE       900.0f   // player is sliding when they touch ball
-#define KTS_FORCE_DAMAGE_MULT 3.0f     // damage * 3 = force (gives ~50 bullet, ~600 rocket)
+#define KTS_FORCE_DAMAGE_MULT 3.0f     // damage * 3 = force for explosions/melee (~300 rocket)
+#define KTS_FORCE_BULLET_MULT 20.0f    // per-bullet force (~160 per 9mm bullet)
 
 // Ball gets reset after this many seconds motionless
-#define KTS_STUCK_TIMEOUT     5.0f
+#define KTS_STUCK_TIMEOUT     3.0f
 
 // Ball respawn delay after a goal
 #define KTS_BALL_RESPAWN_DELAY 3.0f
@@ -149,11 +150,8 @@ void CKtsSnowball::BallThink( void )
 		}
 		else if (pev->iuser1 == 1)
 		{
-			// Repel: slam away from the owner
-			Vector slamDir = (pev->origin - pOwner->pev->origin);
-			float len = slamDir.Length();
-			if (len > 0.0f) slamDir = slamDir * (1.0f / len);
-			else             { MAKE_VECTORS(pOwner->pev->v_angle); slamDir = gpGlobals->v_forward; }
+			MAKE_VECTORS(pOwner->pev->v_angle);
+			Vector slamDir = gpGlobals->v_forward;
 
 			pev->velocity  = slamDir * 1500.0f;
 			m_hLastToucher = pOwner;
@@ -168,6 +166,29 @@ void CKtsSnowball::BallThink( void )
 			// Attract: pull toward owner at 350 u/s
 			Vector dir = (pOwner->pev->origin - pev->origin);
 			float dist = dir.Length();
+
+			// Auto-release: ball reached the player — slam it away in their
+			// view direction so they can't hold it indefinitely.
+			if (dist < 60.0f)
+			{
+				CBaseEntity *p = Instance( pev->owner );
+				CBasePlayer *pPlayer = NULL;
+				if (p && p->IsPlayer())
+				{
+					pPlayer = (CBasePlayer *)p;
+					pPlayer->EndForceGrab();
+				}
+
+				MAKE_VECTORS(pOwner->pev->v_angle);
+				pev->velocity  = gpGlobals->v_forward * 1500.0f;
+				m_hLastToucher = pOwner;
+				m_fStuckTime   = -1.0f;
+				pev->owner     = NULL;
+				pev->iuser1    = 0;
+				pev->nextthink = gpGlobals->time + 0.1f;
+				return;
+			}
+
 			if (dist > 0.0f) dir = dir * (1.0f / dist);
 
 			pev->velocity  = dir * 350.0f;
@@ -213,6 +234,10 @@ void CKtsSnowball::BallTouch( CBaseEntity *pOther )
 	if (pPlayer->pev->deadflag != DEAD_NO)
 		return;
 
+	// No touch when flying on grab
+	if (pPlayer->pev->movetype != MOVETYPE_FLY)
+		return;
+
 	// If this player is the current grab owner, ignore the touch
 	// (ball is floating toward them — don't apply kick force)
 	if (!FNullEnt(pev->owner) && pev->owner == pPlayer->edict())
@@ -225,8 +250,22 @@ void CKtsSnowball::BallTouch( CBaseEntity *pOther )
 		pev->iuser1 = 0;
 	}
 
-	// Direction from player to ball
+	// Direction from player to ball (horizontal base)
 	Vector dir = (pev->origin - pPlayer->pev->origin);
+	dir.z = 0.0f;
+
+	// Blend in the player's horizontal movement direction so that running
+	// along a wall redirects the ball along it rather than back into it.
+	// A stationary player still gets a clean away-from-body kick.
+	Vector playerVel = pPlayer->pev->velocity;
+	playerVel.z = 0.0f;
+	float playerSpeed = playerVel.Length();
+	if (playerSpeed > 50.0f)
+	{
+		Vector moveDir = playerVel * (1.0f / playerSpeed);
+		dir = dir + moveDir * 0.75f;
+	}
+
 	dir.z = 0.1f; // slight upward component for natural feel
 	float len = dir.Length();
 	if (len > 0)
@@ -260,8 +299,10 @@ int CKtsSnowball::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, f
 	if (!pevInflictor)
 		return 0;
 
-	// Force magnitude: damage * 3 → ~50 bullet, ~600 rocket, ~200 melee punch
-	float magnitude = flDamage * KTS_FORCE_DAMAGE_MULT;
+	// Bullets need a much higher per-hit multiplier since their damage is low (7-8 per shot).
+	// Explosions and melee keep the base multiplier.
+	float mult      = (bitsDamageType & DMG_BULLET) ? KTS_FORCE_BULLET_MULT : KTS_FORCE_DAMAGE_MULT;
+	float magnitude = flDamage * mult;
 
 	Vector pushDir = (pev->origin - pevInflictor->origin);
 	float len = pushDir.Length();
@@ -290,6 +331,43 @@ int CKtsSnowball::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, f
 	return 1;
 }
 
+// -------------------------------------------------------
+// FindSafeBallSpawn — finds the closest entity to `center`
+// among weapon_*, and ammo_* and
+// returns its origin + a standing height offset.
+// -------------------------------------------------------
+static Vector FindSafeBallSpawn( const Vector &center,
+	const Vector &redGoalOrigin, const Vector &blueGoalOrigin )
+{
+	static const char *classnames[] = {
+		"weapon_",
+		"ammo_",
+	};
+
+	CBaseEntity *pBestSpot = NULL;
+	float        bestDist  = 9999999.0f;
+
+	for (int c = 0; c < ARRAYSIZE(classnames); c++)
+	{
+		CBaseEntity *pSpot = NULL;
+		while ((pSpot = UTIL_FindEntityByClassname(pSpot, classnames[c])) != NULL)
+		{
+			float dist = (pSpot->pev->origin - center).Length();
+			if (dist < bestDist)
+			{
+				bestDist  = dist;
+				pBestSpot = pSpot;
+			}
+		}
+	}
+
+	if (pBestSpot)
+		return pBestSpot->pev->origin + Vector(0, 0, 36);
+
+	// No entities found at all — return center as absolute last resort
+	return center + Vector(0, 0, 36);
+}
+
 void CKtsSnowball::ResetToMidpoint( void )
 {
 	m_hLastToucher = NULL;
@@ -305,10 +383,8 @@ void CKtsSnowball::ResetToMidpoint( void )
 		return;
 
 	Vector midpoint = (pKts->pRedGoal->pev->origin + pKts->pBlueGoal->pev->origin) * 0.5f;
-
-	TraceResult tr;
-	UTIL_TraceLine(midpoint + Vector(0,0,64), midpoint + Vector(0,0,-512), ignore_monsters, ENT(pev), &tr);
-	Vector spawnPos = (tr.flFraction < 1.0f) ? tr.vecEndPos + Vector(0,0,36) : midpoint;
+	Vector spawnPos = FindSafeBallSpawn(midpoint,
+		pKts->pRedGoal->pev->origin, pKts->pBlueGoal->pev->origin);
 
 	float distToSpawn = (pev->origin - spawnPos).Length();
 
@@ -381,9 +457,13 @@ void CKtsGoal::Spawn( void )
 	pev->movetype  = MOVETYPE_NONE;
 	pev->solid     = SOLID_TRIGGER;
 	SET_MODEL( ENT(pev), "models/teleporter_orange_rings.mdl" );
+    pev->animtime = gpGlobals->time;
+    pev->framerate = 1.0f;
+    pev->rendermode = kRenderTransColor;
+    pev->renderamt = 128;
 
-	// 64w x 16d x 144h — orientation-agnostic trigger volume
-	UTIL_SetSize( pev, Vector(-32, -8, 0), Vector(32, 8, 144) );
+	// 64w x 16d x 72h — orientation-agnostic trigger volume
+	UTIL_SetSize( pev, Vector(-32, -8, -72), Vector(32, 8, 72) );
 	UTIL_SetOrigin( pev, pev->origin );
 
 	SetTouch( &CKtsGoal::GoalTouch );
@@ -666,22 +746,27 @@ void CHalfLifeKickTheSnowball::SpawnBallAtMidpoint( void )
 	MESSAGE_END();
 
 	Vector midpoint = (pRedGoal->pev->origin + pBlueGoal->pev->origin) * 0.5f;
-
-	TraceResult tr;
-	UTIL_TraceLine(midpoint + Vector(0, 0, 64), midpoint + Vector(0, 0, -512),
-		ignore_monsters, NULL, &tr);
-	Vector spawnPos = (tr.flFraction < 1.0f) ? tr.vecEndPos + Vector(0, 0, 36) : midpoint;
+	Vector spawnPos = FindSafeBallSpawn(midpoint,
+		pRedGoal->pev->origin, pBlueGoal->pev->origin);
 
 	CKtsSnowball *pNewBall = CKtsSnowball::CreateBall(spawnPos);
 	pBall = pNewBall;
 
 	// Replace the lingering "Ball incoming!" objective now that the ball is live
-	MESSAGE_BEGIN(MSG_ALL, gmsgObjective);
-		WRITE_STRING("Ball in play!");
-		WRITE_STRING("Kick it into the opposing goal!");
-		WRITE_BYTE(0);
-		WRITE_STRING("");
-	MESSAGE_END();
+	for (int i = 1; i <= gpGlobals->maxClients; i++)
+	{
+		CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex(i);
+		if (plr && plr->IsPlayer() && !plr->HasDisconnected && !FBitSet(plr->pev->flags, FL_FAKECLIENT))
+		{
+		    MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL, plr->edict());
+				WRITE_STRING("Ball in play!");
+				WRITE_STRING(UTIL_VarArgs("Kick the snowball into the %s goal!",
+						(plr->pev->fuser4 == TEAM_RED) ? "blue" : "red"));
+				WRITE_BYTE(0);
+				WRITE_STRING("");
+			MESSAGE_END();
+		}
+	}
 }
 
 void CHalfLifeKickTheSnowball::OnGoalScored( int scoringTeam, CBaseEntity *pScoredBall )

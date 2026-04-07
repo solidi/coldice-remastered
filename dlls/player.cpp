@@ -6311,6 +6311,7 @@ void CBasePlayer::EndForceGrab( void )
 	STOP_SOUND(edict(), CHAN_VOICE, "heaven.wav");
 	STOP_SOUND(edict(), CHAN_VOICE, "odetojoy.wav");
 	m_EFlags &= ~EFLAG_FORCEGRAB;
+	m_Banana = NULL;
 }
 
 //=========================================================
