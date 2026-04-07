@@ -54,11 +54,21 @@ extern int gmsgStatusIcon;
 // Ball gets reset after this many seconds motionless
 #define KTS_STUCK_TIMEOUT     3.0f
 
+// Ball gets reset after this many seconds without any player contact
+#define KTS_IDLE_RESET_TIME   20.0f
+
 // Ball respawn delay after a goal
 #define KTS_BALL_RESPAWN_DELAY 6.0f
 
 // Minimum z before the ball is considered out of bounds
 #define KTS_FALLING_Z_LIMIT   -4096.0f
+
+// Dribble tuning
+#define KTS_DRIBBLE_ACQUIRE_SPEED  250.0f   // max ball speed (u/s) to auto-acquire dribble
+#define KTS_DRIBBLE_ACQUIRE_DIST   72.0f    // proximity radius for auto-acquire
+#define KTS_DRIBBLE_BALL_OFFSET    44.0f    // how far ahead of player (units) to hold ball
+#define KTS_DRIBBLE_TRACK_SPEED    500.0f   // velocity used when moving ball toward target
+#define KTS_DRIBBLE_LOSE_DV        200.0f   // geometry ΔV that breaks dribble control
 
 //=========================================================
 // CKtsSnowball — physics snowball entity
@@ -76,6 +86,10 @@ public:
 	void ResetToMidpoint( void );
 
 	EHANDLE m_hLastToucher;
+	EHANDLE m_hDribbler;
+	float   m_fDribbleSoundTime;
+	float   m_fLastThinkSpeed;   // ball speed as of last BallThink — used in BallTouch
+	float   m_fLastPlayerTouchTime; // time of last player contact; -1 until first touch
 	float   m_fStuckTime;
 	float   m_fBounceTime;
 	Vector  m_vLastContactVelocity;
@@ -85,6 +99,7 @@ void CKtsSnowball::Precache( void )
 {
 	PRECACHE_MODEL("models/w_weapons.mdl");
 	PRECACHE_SOUND("ball_bounce.wav");
+	PRECACHE_SOUND("dribble.wav");
 }
 
 CKtsSnowball *CKtsSnowball::CreateBall( Vector vecOrigin )
@@ -120,6 +135,10 @@ void CKtsSnowball::Spawn( void )
 	UTIL_SetOrigin( pev, pev->origin );
 
 	m_hLastToucher         = NULL;
+	m_hDribbler            = NULL;
+	m_fDribbleSoundTime    = -1.0f;
+	m_fLastThinkSpeed      = 0.0f;
+	m_fLastPlayerTouchTime = gpGlobals->time;  // clock starts at spawn
 	m_fStuckTime           = -1.0f;
 	m_fBounceTime          = -1.0f;
 	m_vLastContactVelocity = g_vecZero;
@@ -134,6 +153,12 @@ void CKtsSnowball::Spawn( void )
 
 void CKtsSnowball::BallThink( void )
 {
+	// Cache ball speed before any collision physics can modify pev->velocity.
+	// BallTouch reads this value so its dribble/kick decision is based on the
+	// ball's actual pre-contact speed rather than the post-bounce velocity the
+	// engine writes before firing touch callbacks.
+	m_fLastThinkSpeed = pev->velocity.Length();
+
 	// Bail out if we've already been scored/removed
 	if (g_pGameRules)
 	{
@@ -150,6 +175,148 @@ void CKtsSnowball::BallThink( void )
 		if (!FNullEnt(pGrabber))
 			m_hLastToucher = CBaseEntity::Instance(pGrabber);
 		pev->iuser2 = 0;
+	}
+
+	// -------------------------------------------------------
+	// Dribble system
+	// When the ball is moving slowly and a player is nearby,
+	// they automatically take control at their feet.  While in
+	// dribble mode the ball tracks just ahead of the controller.
+	// Kicking (m_fKickEndTime) fires a full-force kick and
+	// releases control.  Geometry impacts or a tackle by another
+	// player also break dribble.
+	// -------------------------------------------------------
+
+	// Auto-acquire: no active controller, no forcegrab, ball is slow
+	if (!m_hDribbler && FNullEnt(pev->owner))
+	{
+		float ballSpeed = pev->velocity.Length();
+		if (ballSpeed < KTS_DRIBBLE_ACQUIRE_SPEED)
+		{
+			CBasePlayer *pBest = NULL;
+			float bestDist = KTS_DRIBBLE_ACQUIRE_DIST;
+			for (int i = 1; i <= gpGlobals->maxClients; i++)
+			{
+				CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex(i);
+				if (!plr || !plr->IsPlayer() || plr->HasDisconnected) continue;
+				if (plr->pev->deadflag != DEAD_NO || plr->IsSpectator()) continue;
+				float dist = (pev->origin - plr->pev->origin).Length();
+				if (dist < bestDist)
+				{
+					bestDist = dist;
+					pBest    = plr;
+				}
+			}
+			if (pBest)
+				g_pGameRules->CaptureCharm(pBest);
+		}
+	}
+
+	// Dribble maintain / kick detection
+	if (m_hDribbler)
+	{
+		CBaseEntity *pDribEnt = (CBaseEntity *)m_hDribbler;
+		CBasePlayer *pDribbler = (pDribEnt && pDribEnt->IsPlayer())
+			? (CBasePlayer *)pDribEnt : NULL;
+
+		// Release if controller is invalid, dead, or spectating
+		if (!pDribbler || pDribbler->pev->deadflag != DEAD_NO ||
+			pDribbler->IsSpectator() || pDribbler->HasDisconnected ||
+			!FNullEnt(pev->owner))
+		{
+			g_pGameRules->DropCharm(pDribbler, pev->origin);
+		}
+		else
+		{
+			// Tackle check — scan for non-dribbling players near the ball.
+			// (Ball is SOLID_NOT during dribble so BallTouch won't fire for them.)
+			for (int ti = 1; ti <= gpGlobals->maxClients; ti++)
+			{
+				CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex(ti);
+				if (!plr || !plr->IsPlayer() || plr->HasDisconnected) continue;
+				if (plr->pev->deadflag != DEAD_NO || plr->IsSpectator()) continue;
+				if ((CBaseEntity *)m_hDribbler == (CBaseEntity *)plr) continue;
+				float tdist = (pev->origin - plr->pev->origin).Length();
+					if (tdist < KTS_DRIBBLE_ACQUIRE_DIST)
+					{
+						g_pGameRules->DropCharm(pDribbler, pev->origin);
+						pev->nextthink = gpGlobals->time + 0.1f;
+						return;
+					}
+				}
+
+			// Kick detected — fire in view direction and release
+			if (pDribbler->m_fKickEndTime > gpGlobals->time)
+			{
+				MAKE_VECTORS(pDribbler->pev->v_angle);
+				// Use the full view forward (includes pitch) so the ball goes
+				// exactly where the player is looking — up, down, or level.
+				Vector dir = gpGlobals->v_forward;
+				float dlen = dir.Length();
+				if (dlen > 0) dir = dir * (1.0f / dlen);
+
+				float kickForce = pDribbler->m_fSelacoSliding
+					? KTS_FORCE_SLIDE : KTS_FORCE_TOUCH;
+
+				EMIT_SOUND(ENT(pDribbler->pev), CHAN_BODY, "fists_hitbod.wav", 1, ATTN_NORM);
+
+				g_pGameRules->DropCharm(pDribbler, pev->origin);
+				pev->velocity  = dir * kickForce;
+				m_hLastToucher = pDribbler;
+				m_fStuckTime   = -1.0f;
+				pev->nextthink = gpGlobals->time + 0.1f;
+				return;
+			}
+
+			// Keep ball just ahead of the dribbler at foot level
+			MAKE_VECTORS(pDribbler->pev->v_angle);
+			Vector forward = gpGlobals->v_forward;
+			forward.z = 0.0f;
+			float fl = forward.Length();
+			if (fl > 0) forward = forward * (1.0f / fl);
+
+			// Trace down from the target XY to find the actual slope surface so
+			// the ball follows inclines rather than targeting a fixed-Z point that
+			// may be underground or floating above tilted geometry.
+			Vector targetXY = pDribbler->pev->origin + forward * KTS_DRIBBLE_BALL_OFFSET;
+			TraceResult trSlope;
+			UTIL_TraceLine( targetXY + Vector(0, 0, 48.0f),
+			                targetXY + Vector(0, 0, -96.0f),
+			                ignore_monsters, ENT(pev), &trSlope );
+			float targetZ = (trSlope.flFraction < 1.0f)
+				? trSlope.vecEndPos.z + 12.0f          // ball radius above slope surface
+				: pDribbler->pev->origin.z - 20.0f;   // fallback: flat ground estimate
+			Vector target = Vector(targetXY.x, targetXY.y, targetZ);
+
+			Vector toTarget = target - pev->origin;
+			float  tdist    = toTarget.Length();
+
+			// Too far — geometry is blocking the ball; release dribble
+			if (tdist > 128.0f)
+			{
+				g_pGameRules->DropCharm(pDribbler, pev->origin);
+				pev->nextthink = gpGlobals->time + 0.1f;
+				return;
+			}
+
+			if (tdist > 1.0f)
+				pev->velocity = (toTarget * (1.0f / tdist)) * KTS_DRIBBLE_TRACK_SPEED;
+			else
+				pev->velocity = g_vecZero;
+
+			// Dribble bounce sound — re-emit every 5.8 s to loop the 6 s clip
+			if (m_fDribbleSoundTime >= 0.0f && gpGlobals->time >= m_fDribbleSoundTime)
+			{
+				EMIT_SOUND_DYN(ENT(pev), CHAN_ITEM, "dribble.wav",
+					0.8f, ATTN_NORM, 0, PITCH_NORM);
+				m_fDribbleSoundTime = gpGlobals->time + 5.8f;
+			}
+
+			m_hLastToucher = pDribbler;
+			m_fStuckTime   = -1.0f;
+			pev->nextthink = gpGlobals->time + 0.1f;
+			return;  // skip stuck / OOB checks while dribbling
+		}
 	}
 
 	// -------------------------------------------------------
@@ -225,6 +392,13 @@ void CKtsSnowball::BallThink( void )
 		return;
 	}
 
+	// Idle check — no player contact for KTS_IDLE_RESET_TIME seconds
+	if (gpGlobals->time - m_fLastPlayerTouchTime > KTS_IDLE_RESET_TIME)
+	{
+		ResetToMidpoint();
+		return;
+	}
+
 	// Stuck (motionless) check
 	if (pev->velocity.Length() < 20.0f)
 	{
@@ -255,6 +429,11 @@ void CKtsSnowball::BallTouch( CBaseEntity *pOther )
 	//   • rolling at constant speed / gravity micro-bounces → tiny ΔV → silent
 	if (!pOther->IsPlayer())
 	{
+		// While dribbling (MOVETYPE_FLY) skip all non-player touch logic.
+		// The "too far" check in BallThink handles geometry blocking cleanly.
+		if (m_hDribbler)
+			return;
+
 		Vector curVel    = pev->velocity;
 		float  deltaSpeed = (curVel - m_vLastContactVelocity).Length();
 		m_vLastContactVelocity = curVel;
@@ -266,6 +445,7 @@ void CKtsSnowball::BallTouch( CBaseEntity *pOther )
 				ATTN_NORM, 0, PITCH_NORM);
 			m_fBounceTime = gpGlobals->time + 0.2f;
 		}
+
 		return;
 	}
 
@@ -273,6 +453,18 @@ void CKtsSnowball::BallTouch( CBaseEntity *pOther )
 
 	if (pPlayer->pev->deadflag != DEAD_NO)
 		return;
+
+	// Any live player contact resets the idle timer
+	m_fLastPlayerTouchTime = gpGlobals->time;
+
+	// Suppress touch for the active dribbler — BallThink drives the ball
+	// and handles kick detection; a passive contact should not fire a kick.
+	if (m_hDribbler && (CBaseEntity *)m_hDribbler == (CBaseEntity *)pPlayer)
+		return;
+
+	// Tackle: another player touches while someone else is dribbling
+	if (m_hDribbler)
+		g_pGameRules->DropCharm((CBasePlayer *)(CBaseEntity *)m_hDribbler, g_vecZero);
 
 	// If this player is the current grab owner, ignore the touch
 	// (ball is floating toward them — don't apply kick force)
@@ -284,6 +476,20 @@ void CKtsSnowball::BallTouch( CBaseEntity *pOther )
 	{
 		pev->owner  = NULL;
 		pev->iuser1 = 0;
+	}
+
+	// Ball is slow — acquire dribble immediately rather than kicking it away.
+	// Use the speed cached by BallThink rather than live pev->velocity: the
+	// engine updates pev->velocity with elastic collision response *before*
+	// calling this touch function, so a stationary ball can read 400+ u/s here.
+	{
+		if (m_fLastThinkSpeed < KTS_DRIBBLE_ACQUIRE_SPEED)
+		{
+			g_pGameRules->CaptureCharm(pPlayer);
+			m_hLastToucher = pPlayer;
+			m_fStuckTime   = -1.0f;
+			return;
+		}
 	}
 
 	// Direction from player to ball (horizontal base)
@@ -347,6 +553,10 @@ int CKtsSnowball::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, f
 {
 	if (!pevInflictor)
 		return 0;
+
+	// Any external impact breaks dribble control
+	if (m_hDribbler)
+		g_pGameRules->DropCharm(NULL, pev->origin);
 
 	// Bullets need a much higher per-hit multiplier since their damage is low (7-8 per shot).
 	// Explosions and melee keep the base multiplier.
@@ -433,6 +643,8 @@ static Vector FindSafeBallSpawn( const Vector &center,
 void CKtsSnowball::ResetToMidpoint( void )
 {
 	m_hLastToucher         = NULL;
+	if (m_hDribbler) g_pGameRules->DropCharm(NULL, g_vecZero);
+	m_fLastPlayerTouchTime = gpGlobals->time;  // restart idle clock from midpoint
 	m_fStuckTime           = -1.0f;
 	m_vLastContactVelocity = g_vecZero;
 	pev->iuser1    = 0;
@@ -951,6 +1163,15 @@ void CHalfLifeKickTheSnowball::PlayerThink( CBasePlayer *pPlayer )
 {
 	CHalfLifeMultiplay::PlayerThink(pPlayer);
 
+	if (pPlayer->m_fCameraDelay && pPlayer->m_fCameraDelay < gpGlobals->time)
+	{
+		MESSAGE_BEGIN( MSG_ONE, gmsgStatusIcon, NULL, pPlayer->edict() );
+			WRITE_BYTE(0);
+			WRITE_STRING("cam_dribble");
+		MESSAGE_END();
+		pPlayer->m_fCameraDelay = 0;
+	}
+
 	if (!pPlayer->HasDisconnected)
 	{
 		if (pPlayer->m_iShowGameModeMessage > -1 &&
@@ -1254,6 +1475,73 @@ BOOL CHalfLifeKickTheSnowball::FPlayerCanTakeDamage( CBasePlayer *pPlayer, CBase
 			return FALSE;
 	}
 	return CHalfLifeMultiplay::FPlayerCanTakeDamage(pPlayer, pAttacker);
+}
+
+// CaptureCharm — player grabs the ball (begins dribbling).
+void CHalfLifeKickTheSnowball::CaptureCharm( CBasePlayer *pPlayer )
+{
+	if (!pBall || !pPlayer) return;
+
+	MESSAGE_BEGIN( MSG_ONE, gmsgStatusIcon, NULL, pPlayer->edict() );
+		WRITE_BYTE(1);
+		WRITE_STRING("cam_dribble");
+	MESSAGE_END();
+
+	MESSAGE_BEGIN( MSG_ONE, gmsgPlayClientSound, NULL, pPlayer->edict() );
+		WRITE_BYTE(CLIENT_SOUND_LEVEL_UP);
+	MESSAGE_END();
+	pPlayer->m_fCameraDelay = 0;
+
+	pPlayer->m_flNextAutoMelee = gpGlobals->time + 300.0; // temporary stop of automelee
+
+	CKtsSnowball *pActualBall = (CKtsSnowball *)(CBaseEntity *)pBall;
+	pActualBall->m_hDribbler         = pPlayer;
+	pActualBall->m_fDribbleSoundTime = 0.0f;   // play on next BallThink
+	pActualBall->m_fLastPlayerTouchTime = gpGlobals->time;  // dribble counts as contact
+	pActualBall->pev->movetype       = MOVETYPE_FLY;
+	pActualBall->pev->solid          = SOLID_NOT;
+	ClearBits(pActualBall->pev->flags, FL_ONGROUND);
+	// UTIL_SetOrigin is intentionally skipped: SOLID_NOT has no clip-list presence
+	// so no immediate relink is needed; the next physics step handles it safely.
+}
+
+// DropCharm — player releases the ball (dribble ends); restores normal physics.
+// Pass origin = g_vecZero when called from a touch callback to skip UTIL_SetOrigin
+// (relinking inside a clip-walk is unsafe); pass the ball's real origin otherwise.
+CBaseEntity *CHalfLifeKickTheSnowball::DropCharm( CBasePlayer *pPlayer, Vector origin )
+{
+	if (!pBall) return NULL;
+
+	if (pPlayer)
+	{
+		pPlayer->m_fCameraDelay = gpGlobals->time + 2.0f;
+		pPlayer->m_flNextAutoMelee = gpGlobals->time + 1.0;
+	}
+	CKtsSnowball *pActualBall = (CKtsSnowball *)(CBaseEntity *)pBall;
+	EMIT_SOUND_DYN(ENT(pActualBall->pev), CHAN_ITEM, "dribble.wav", 0.0f, 0.0f, SND_STOP, 0);
+	pActualBall->m_hDribbler         = NULL;
+	pActualBall->m_fDribbleSoundTime = -1.0f;
+	pActualBall->pev->movetype       = MOVETYPE_BOUNCE;
+	pActualBall->pev->solid          = SOLID_BBOX;
+	if (origin != g_vecZero)
+		UTIL_SetOrigin(pActualBall->pev, origin);  // relink after solid restore
+	ClearBits(pActualBall->pev->flags, FL_ONGROUND);
+	return pActualBall;
+}
+
+void CHalfLifeKickTheSnowball::FPlayerTookDamage( float flDamage, CBasePlayer *pVictim, CBaseEntity *pKiller )
+{
+	// If the player who took damage is currently dribbling, release the ball.
+	// This covers fists, slides, and any other weapon hit — regardless of
+	// SOLID_NOT making the ball itself untouchable.
+	if (!pBall || !pVictim)
+		return;
+
+	CKtsSnowball *pActualBall = (CKtsSnowball *)(CBaseEntity *)pBall;
+	if (pActualBall && (CBaseEntity *)pActualBall->m_hDribbler == (CBaseEntity *)pVictim)
+	{
+		DropCharm(pVictim, pActualBall->pev->origin);
+	}
 }
 
 BOOL CHalfLifeKickTheSnowball::IsTeamplay( void )

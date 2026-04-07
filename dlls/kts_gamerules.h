@@ -33,6 +33,9 @@ public:
 	virtual void PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller, entvars_t *pInflictor );
 	virtual BOOL ShouldAutoAim( CBasePlayer *pPlayer, edict_t *target );
 	virtual BOOL FPlayerCanTakeDamage( CBasePlayer *pPlayer, CBaseEntity *pAttacker );
+	virtual void FPlayerTookDamage( float flDamage, CBasePlayer *pVictim, CBaseEntity *pKiller );
+	virtual void CaptureCharm( CBasePlayer *pPlayer );
+	virtual CBaseEntity *DropCharm( CBasePlayer *pPlayer, Vector origin );
 	virtual BOOL IsTeamplay( void );
 	virtual BOOL MutatorAllowed(const char *mutator);
 	virtual BOOL CanHaveNamedItem( CBasePlayer *pPlayer, const char *pszItemName );
