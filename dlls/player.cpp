@@ -2360,7 +2360,7 @@ void CBasePlayer::PlayerUse ( void )
 			pHeldItem->pev->framerate = 0;
 			pHeldItem->pev->sequence = 0;
 			pHeldItem->pev->movetype = MOVETYPE_FLY;
-			UTIL_SetOrigin(pHeldItem->pev, GetGunPosition() + gpGlobals->v_forward * 40 + gpGlobals->v_up * -10);
+			UTIL_SetOrigin(pHeldItem->pev, GetGunPosition() + gpGlobals->v_forward * 48 + gpGlobals->v_up * -10);
 			pev->punchangle = Vector(-4, -2, -4);
 
 			if (m_pActiveItem && m_pActiveItem->m_pPlayer)
@@ -3144,7 +3144,7 @@ void CBasePlayer::PreThink(void)
 		// Update coords
 		if (pHeldItem != NULL) {
 			UTIL_MakeVectors( pev->v_angle );
-			UTIL_SetOrigin(pHeldItem->pev, GetGunPosition() + gpGlobals->v_forward * 40 + gpGlobals->v_up * -10);
+			UTIL_SetOrigin(pHeldItem->pev, GetGunPosition() + gpGlobals->v_forward * 48 + gpGlobals->v_up * -10);
 			pHeldItem->pev->angles = pev->angles;
 			pHeldItem->pev->velocity = pev->velocity;
 		}

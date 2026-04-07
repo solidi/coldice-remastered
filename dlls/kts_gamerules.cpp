@@ -115,6 +115,7 @@ void CKtsSnowball::Spawn( void )
 	m_hLastToucher = NULL;
 	m_fStuckTime   = -1.0f;
 	pev->iuser1    = 0;
+	pev->iuser2    = 0;
 	pev->owner     = NULL;
 
 	SetTouch( &CKtsSnowball::BallTouch );
@@ -244,10 +245,6 @@ void CKtsSnowball::BallTouch( CBaseEntity *pOther )
 	if (pPlayer->pev->deadflag != DEAD_NO)
 		return;
 
-	// No touch when flying on grab
-	if (pPlayer->pev->movetype != MOVETYPE_FLY)
-		return;
-
 	// If this player is the current grab owner, ignore the touch
 	// (ball is floating toward them — don't apply kick force)
 	if (!FNullEnt(pev->owner) && pev->owner == pPlayer->edict())
@@ -342,32 +339,45 @@ int CKtsSnowball::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, f
 }
 
 // -------------------------------------------------------
-// FindSafeBallSpawn — finds the closest entity to `center`
-// among weapon_*, and ammo_* and
+// FindSafeBallSpawn — finds the entity closest to `center`
+// among info_player_deathmatch, weapon_*, and ammo_* and
 // returns its origin + a standing height offset.
+// Note: UTIL_FindEntityByClassname only does exact matching,
+// so weapon_* and ammo_* require a full edict-list scan.
 // -------------------------------------------------------
 static Vector FindSafeBallSpawn( const Vector &center,
 	const Vector &redGoalOrigin, const Vector &blueGoalOrigin )
 {
-	static const char *classnames[] = {
-		"weapon_",
-		"ammo_",
-	};
-
 	CBaseEntity *pBestSpot = NULL;
 	float        bestDist  = 9999999.0f;
 
-	for (int c = 0; c < ARRAYSIZE(classnames); c++)
+	// info_player_deathmatch — exact classname, use the fast lookup
+	CBaseEntity *pSpot = NULL;
+	while ((pSpot = UTIL_FindEntityByClassname(pSpot, "info_player_deathmatch")) != NULL)
 	{
-		CBaseEntity *pSpot = NULL;
-		while ((pSpot = UTIL_FindEntityByClassname(pSpot, classnames[c])) != NULL)
+		float dist = (pSpot->pev->origin - center).Length();
+		if (dist < bestDist)
 		{
-			float dist = (pSpot->pev->origin - center).Length();
-			if (dist < bestDist)
-			{
-				bestDist  = dist;
-				pBestSpot = pSpot;
-			}
+			bestDist  = dist;
+			pBestSpot = pSpot;
+		}
+	}
+
+	// weapon_* and ammo_* — prefix match requires iterating all edicts
+	for (int i = 1; i < gpGlobals->maxEntities; i++)
+	{
+		edict_t *pEdict = INDEXENT(i);
+		if (!pEdict || pEdict->free) continue;
+		const char *cn = STRING(pEdict->v.classname);
+		if (!cn || !*cn) continue;
+		if (strncmp(cn, "weapon_", 7) != 0 && strncmp(cn, "ammo_", 5) != 0) continue;
+		CBaseEntity *pEnt = CBaseEntity::Instance(pEdict);
+		if (!pEnt) continue;
+		float dist = (pEnt->pev->origin - center).Length();
+		if (dist < bestDist)
+		{
+			bestDist  = dist;
+			pBestSpot = pEnt;
 		}
 	}
 
@@ -383,6 +393,7 @@ void CKtsSnowball::ResetToMidpoint( void )
 	m_hLastToucher = NULL;
 	m_fStuckTime   = -1.0f;
 	pev->iuser1    = 0;
+	pev->iuser2    = 0;
 	pev->owner     = NULL;
 
 	if (!g_pGameRules)
@@ -467,10 +478,10 @@ void CKtsGoal::Spawn( void )
 	pev->movetype  = MOVETYPE_NONE;
 	pev->solid     = SOLID_TRIGGER;
 	SET_MODEL( ENT(pev), "models/teleporter_orange_rings.mdl" );
-    pev->animtime = gpGlobals->time;
-    pev->framerate = 1.0f;
-    pev->rendermode = kRenderTransColor;
-    pev->renderamt = 128;
+	pev->animtime = gpGlobals->time;
+	pev->framerate = 1.0f;
+	pev->rendermode = kRenderTransColor;
+	pev->renderamt = 128;
 
 	// 64w x 16d x 72h — orientation-agnostic trigger volume
 	UTIL_SetSize( pev, Vector(-32, -8, -72), Vector(32, 8, 72) );
@@ -768,7 +779,7 @@ void CHalfLifeKickTheSnowball::SpawnBallAtMidpoint( void )
 		CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex(i);
 		if (plr && plr->IsPlayer() && !plr->HasDisconnected && !FBitSet(plr->pev->flags, FL_FAKECLIENT))
 		{
-		    MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL, plr->edict());
+			MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL, plr->edict());
 				WRITE_STRING("Ball in play!");
 				WRITE_STRING(UTIL_VarArgs("Kick the snowball into the %s goal!",
 						(plr->pev->fuser4 == TEAM_RED) ? "blue" : "red"));
@@ -859,10 +870,7 @@ void CHalfLifeKickTheSnowball::OnGoalScored( int scoringTeam, CBaseEntity *pScor
 		if (plr && plr->IsPlayer() && !plr->HasDisconnected && !FBitSet(plr->pev->flags, FL_FAKECLIENT))
 		{
 			MESSAGE_BEGIN(MSG_ONE, gmsgBanner, NULL, plr->edict());
-				if (pScorer)
-					WRITE_STRING(UTIL_VarArgs("GOAL! %s Team Scores!", teamName));
-				else
-					WRITE_STRING(UTIL_VarArgs("GOAL! %s Team Scores!", teamName));
+				WRITE_STRING(UTIL_VarArgs("GOAL! %s Team Scores!", teamName));
 				WRITE_STRING(pScorer ? UTIL_VarArgs("%s kicked it in!", STRING(pScorer->pev->netname)) : "Goal!");
 				WRITE_BYTE(80);
 			MESSAGE_END();
