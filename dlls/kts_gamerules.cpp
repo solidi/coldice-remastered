@@ -903,9 +903,16 @@ void CHalfLifeKickTheSnowball::OnGoalScored( int scoringTeam, CBaseEntity *pScor
 		}
 	}
 
-	// Celebrate for scorer
-	if (pScorer)
-		pScorer->Celebrate();
+	// Celebrate for all players on the scoring team
+	for (int i = 1; i <= gpGlobals->maxClients; i++)
+	{
+		CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex(i);
+		if (plr && plr->IsPlayer() && !plr->HasDisconnected &&
+			GetTeamIndex(plr->m_szTeamName) == scoringTeam)
+		{
+			plr->Celebrate();
+		}
+	}
 
 	// Banner announcement
 	const char *teamName = (scoringTeam == TEAM_BLUE) ? "Blue" : "Red";
