@@ -55,7 +55,7 @@ extern int gmsgStatusIcon;
 #define KTS_STUCK_TIMEOUT     3.0f
 
 // Ball respawn delay after a goal
-#define KTS_BALL_RESPAWN_DELAY 3.0f
+#define KTS_BALL_RESPAWN_DELAY 6.0f
 
 // Minimum z before the ball is considered out of bounds
 #define KTS_FALLING_Z_LIMIT   -4096.0f
@@ -77,11 +77,14 @@ public:
 
 	EHANDLE m_hLastToucher;
 	float   m_fStuckTime;
+	float   m_fBounceTime;
+	Vector  m_vLastContactVelocity;
 };
 
 void CKtsSnowball::Precache( void )
 {
 	PRECACHE_MODEL("models/w_weapons.mdl");
+	PRECACHE_SOUND("ball_bounce.wav");
 }
 
 CKtsSnowball *CKtsSnowball::CreateBall( Vector vecOrigin )
@@ -112,8 +115,10 @@ void CKtsSnowball::Spawn( void )
 	UTIL_SetSize( pev, Vector(-12, -12, -12), Vector(12, 12, 12) );
 	UTIL_SetOrigin( pev, pev->origin );
 
-	m_hLastToucher = NULL;
-	m_fStuckTime   = -1.0f;
+	m_hLastToucher         = NULL;
+	m_fStuckTime           = -1.0f;
+	m_fBounceTime          = -1.0f;
+	m_vLastContactVelocity = g_vecZero;
 	pev->iuser1    = 0;
 	pev->iuser2    = 0;
 	pev->owner     = NULL;
@@ -237,8 +242,28 @@ void CKtsSnowball::BallThink( void )
 
 void CKtsSnowball::BallTouch( CBaseEntity *pOther )
 {
-	if (!pOther || !pOther->IsPlayer())
+	if (!pOther)
 		return;
+
+	// Surface bounce sound — non-player contact (wall, floor, brush).
+	// Gate on velocity *change* (ΔV) rather than raw speed so that:
+	//   • real impacts (velocity direction reverses) → large ΔV → plays
+	//   • rolling at constant speed / gravity micro-bounces → tiny ΔV → silent
+	if (!pOther->IsPlayer())
+	{
+		Vector curVel    = pev->velocity;
+		float  deltaSpeed = (curVel - m_vLastContactVelocity).Length();
+		m_vLastContactVelocity = curVel;
+
+		if (deltaSpeed > 120.0f && gpGlobals->time > m_fBounceTime)
+		{
+			EMIT_SOUND_DYN(ENT(pev), CHAN_AUTO, "ball_bounce.wav",
+				min(0.9f, 1),
+				ATTN_NORM, 0, PITCH_NORM);
+			m_fBounceTime = gpGlobals->time + 0.2f;
+		}
+		return;
+	}
 
 	CBasePlayer *pPlayer = (CBasePlayer *)pOther;
 
@@ -390,8 +415,9 @@ static Vector FindSafeBallSpawn( const Vector &center,
 
 void CKtsSnowball::ResetToMidpoint( void )
 {
-	m_hLastToucher = NULL;
-	m_fStuckTime   = -1.0f;
+	m_hLastToucher         = NULL;
+	m_fStuckTime           = -1.0f;
+	m_vLastContactVelocity = g_vecZero;
 	pev->iuser1    = 0;
 	pev->iuser2    = 0;
 	pev->owner     = NULL;
