@@ -441,7 +441,7 @@ void CKtsSnowball::BallTouch( CBaseEntity *pOther )
 		if (deltaSpeed > 120.0f && gpGlobals->time > m_fBounceTime)
 		{
 			EMIT_SOUND_DYN(ENT(pev), CHAN_AUTO, "ball_bounce.wav",
-				fmin(0.9f, 1),
+				0.9f,
 				ATTN_NORM, 0, PITCH_NORM);
 			m_fBounceTime = gpGlobals->time + 0.2f;
 		}
@@ -463,7 +463,7 @@ void CKtsSnowball::BallTouch( CBaseEntity *pOther )
 		return;
 
 	// Tackle: another player touches while someone else is dribbling
-	if (m_hDribbler)
+	if (m_hDribbler && g_pGameRules)
 		g_pGameRules->DropCharm((CBasePlayer *)(CBaseEntity *)m_hDribbler, g_vecZero);
 
 	// If this player is the current grab owner, ignore the touch
@@ -483,7 +483,7 @@ void CKtsSnowball::BallTouch( CBaseEntity *pOther )
 	// engine updates pev->velocity with elastic collision response *before*
 	// calling this touch function, so a stationary ball can read 400+ u/s here.
 	{
-		if (m_fLastThinkSpeed < KTS_DRIBBLE_ACQUIRE_SPEED)
+		if (m_fLastThinkSpeed < KTS_DRIBBLE_ACQUIRE_SPEED && g_pGameRules)
 		{
 			g_pGameRules->CaptureCharm(pPlayer);
 			m_hLastToucher = pPlayer;
@@ -555,7 +555,7 @@ int CKtsSnowball::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, f
 		return 0;
 
 	// Any external impact breaks dribble control
-	if (m_hDribbler)
+	if (m_hDribbler && g_pGameRules)
 		g_pGameRules->DropCharm(NULL, pev->origin);
 
 	// Bullets need a much higher per-hit multiplier since their damage is low (7-8 per shot).
@@ -643,7 +643,7 @@ static Vector FindSafeBallSpawn( const Vector &center,
 void CKtsSnowball::ResetToMidpoint( void )
 {
 	m_hLastToucher         = NULL;
-	if (m_hDribbler) g_pGameRules->DropCharm(NULL, g_vecZero);
+	if (m_hDribbler && g_pGameRules) g_pGameRules->DropCharm(NULL, g_vecZero);
 	m_fLastPlayerTouchTime = gpGlobals->time;  // restart idle clock from midpoint
 	m_fStuckTime           = -1.0f;
 	m_vLastContactVelocity = g_vecZero;
@@ -1073,6 +1073,10 @@ void CHalfLifeKickTheSnowball::OnGoalScored( int scoringTeam, CBaseEntity *pScor
 				pOwnGoal = pLast;
 		}
 	}
+
+	// Release active dribbler before nulling pBall — DropCharm needs pBall to work.
+	if (pBallPtr->m_hDribbler)
+		DropCharm((CBasePlayer *)(CBaseEntity *)pBallPtr->m_hDribbler, g_vecZero);
 
 	// Remove the ball now (touches can still fire briefly — guard with pBall == NULL)
 	pBall = NULL;
