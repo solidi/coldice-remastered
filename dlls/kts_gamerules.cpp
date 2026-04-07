@@ -132,6 +132,16 @@ void CKtsSnowball::BallThink( void )
 			return;
 	}
 
+	// Sync last-toucher when the gravity gun picked up or launched the ball.
+	// iuser2 is set to the operator's entity index by gravitygun.cpp.
+	if (pev->iuser2 != 0)
+	{
+		edict_t *pGrabber = INDEXENT(pev->iuser2);
+		if (!FNullEnt(pGrabber))
+			m_hLastToucher = CBaseEntity::Instance(pGrabber);
+		pev->iuser2 = 0;
+	}
+
 	// -------------------------------------------------------
 	// Forcegrab attract / repel logic
 	// pev->owner holds the grabbing player's edict while active.
@@ -917,6 +927,8 @@ void CHalfLifeKickTheSnowball::PlayerSpawn( CBasePlayer *pPlayer )
 		pPlayer->m_iObserverWeapon = 0;
 		pPlayer->m_iShowGameModeMessage = gpGlobals->time + 0.5f;
 	}
+
+	pPlayer->GiveNamedItem("weapon_gravitygun");
 }
 
 extern DLL_GLOBAL BOOL g_fGameOver;
