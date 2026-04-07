@@ -441,7 +441,7 @@ void CKtsSnowball::BallTouch( CBaseEntity *pOther )
 		if (deltaSpeed > 120.0f && gpGlobals->time > m_fBounceTime)
 		{
 			EMIT_SOUND_DYN(ENT(pev), CHAN_AUTO, "ball_bounce.wav",
-				min(0.9f, 1),
+				fmin(0.9f, 1),
 				ATTN_NORM, 0, PITCH_NORM);
 			m_fBounceTime = gpGlobals->time + 0.2f;
 		}
