@@ -140,13 +140,16 @@ void CGravityGun::PrimaryAttack()
 			m_flTimeWeaponIdle = UTIL_WeaponTimeBase();
 		}
 
-		if (pEntity && strstr(STRING(pEntity->pev->classname), "worldspawn"))
+		if (!g_pGameRules->IsKickTheSnowball())
 		{
-			UTIL_MakeVectors( m_pPlayer->pev->v_angle );
-			Vector vecSrc = pev->origin + pev->view_ofs + gpGlobals->v_forward * 64 + gpGlobals->v_up * 18;
-			m_pCurrentEntity = CBaseEntity::Create( "monster_barrel", vecSrc, Vector(0, pev->v_angle.y, 0), m_pPlayer->edict());
-			m_pCurrentEntity->pev->iuser3 = 1;
-			EMIT_SOUND(ENT(m_pPlayer->pev), CHAN_WEAPON, "weapons/rocketfire1.wav", 1.0, ATTN_NORM);
+			if (pEntity && strstr(STRING(pEntity->pev->classname), "worldspawn"))
+			{
+				UTIL_MakeVectors( m_pPlayer->pev->v_angle );
+				Vector vecSrc = pev->origin + pev->view_ofs + gpGlobals->v_forward * 64 + gpGlobals->v_up * 18;
+				m_pCurrentEntity = CBaseEntity::Create( "monster_barrel", vecSrc, Vector(0, pev->v_angle.y, 0), m_pPlayer->edict());
+				m_pCurrentEntity->pev->iuser3 = 1;
+				EMIT_SOUND(ENT(m_pPlayer->pev), CHAN_WEAPON, "weapons/rocketfire1.wav", 1.0, ATTN_NORM);
+			}
 		}
 		#endif
 	}
@@ -196,6 +199,21 @@ void CGravityGun::ItemPostFrame()
 {
 	if (m_pCurrentEntity)
 	{
+		// Drop the held entity if it has drifted too far from the player
+		// (e.g. snagged on geometry while the player kept moving).
+		float holdDist = (m_pCurrentEntity->pev->origin - m_pPlayer->pev->origin).Length();
+		if (holdDist > 128.0f)
+		{
+			STOP_SOUND(ENT(m_pPlayer->pev), CHAN_WEAPON, "ambience/pulsemachine.wav");
+			m_pCurrentEntity->pev->iuser3 = 0;
+			m_pCurrentEntity->pev->velocity = g_vecZero;
+			m_pCurrentEntity = NULL;
+			SendWeaponAnim(GRAVITYGUN_FIRE);
+			m_flTimeWeaponIdle = UTIL_WeaponTimeBase();
+			CBasePlayerWeapon::ItemPostFrame();
+			return;
+		}
+
 		m_pPlayer->m_flNextAutoMelee = gpGlobals->time + 0.5f; // always advance melee if I have an item
 		m_pPlayer->GetAutoaimVector(0.0f);
 
@@ -300,6 +318,7 @@ void CGravityGun::WeaponIdle()
 	{
 		if (pPotentialTarget)
 		{
+			m_pPlayer->m_flNextAutoMelee = gpGlobals->time + 1.5f; // always advance melee if I have an item
 			SendWeaponAnim(GRAVITYGUN_PICKUP);
 			m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 1.0f;
 			m_bFoundPotentialTarget = true;
