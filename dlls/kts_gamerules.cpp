@@ -66,8 +66,8 @@ extern int gmsgStatusIcon;
 // Dribble tuning
 #define KTS_DRIBBLE_ACQUIRE_SPEED  250.0f   // max ball speed (u/s) to auto-acquire dribble
 #define KTS_DRIBBLE_ACQUIRE_DIST   72.0f    // proximity radius for auto-acquire
-#define KTS_DRIBBLE_BALL_OFFSET    44.0f    // how far ahead of player (units) to hold ball
-#define KTS_DRIBBLE_TRACK_SPEED    500.0f   // velocity used when moving ball toward target
+#define KTS_DRIBBLE_BALL_OFFSET    64.0f    // how far ahead of player (units) to hold ball
+#define KTS_DRIBBLE_TRACK_SPEED    600.0f   // velocity used when moving ball toward target
 #define KTS_DRIBBLE_LOSE_DV        200.0f   // geometry ΔV that breaks dribble control
 
 //=========================================================
@@ -191,7 +191,7 @@ void CKtsSnowball::BallThink( void )
 	if (!m_hDribbler && FNullEnt(pev->owner))
 	{
 		float ballSpeed = pev->velocity.Length();
-		if (ballSpeed < KTS_DRIBBLE_ACQUIRE_SPEED)
+		//if (ballSpeed < KTS_DRIBBLE_ACQUIRE_SPEED)
 		{
 			CBasePlayer *pBest = NULL;
 			float bestDist = KTS_DRIBBLE_ACQUIRE_DIST;
@@ -246,11 +246,17 @@ void CKtsSnowball::BallThink( void )
 				}
 
 			// Kick detected — fire in view direction and release
-			if (pDribbler->m_fKickEndTime > gpGlobals->time)
+			if (pDribbler->m_fKickEndTime > gpGlobals->time ||
+				pDribbler->m_fSelacoSliding)
 			{
-				MAKE_VECTORS(pDribbler->pev->v_angle);
-				// Use the full view forward (includes pitch) so the ball goes
-				// exactly where the player is looking — up, down, or level.
+				// Clamp pitch so a dribble-kick can never send the ball straight
+				// into the floor.  With MOVETYPE_NOCLIP the ball would tunnel
+				// through the BSP if launched downward.
+				Vector clampedAngle = pDribbler->pev->v_angle;
+				if (clampedAngle.x > 0.0f && clampedAngle.x <= 180.0f)
+					clampedAngle.x = -5.0f;
+
+				MAKE_VECTORS(clampedAngle);
 				Vector dir = gpGlobals->v_forward;
 				float dlen = dir.Length();
 				if (dlen > 0) dir = dir * (1.0f / dlen);
@@ -300,7 +306,23 @@ void CKtsSnowball::BallThink( void )
 			}
 
 			if (tdist > 1.0f)
-				pev->velocity = (toTarget * (1.0f / tdist)) * KTS_DRIBBLE_TRACK_SPEED;
+			{
+				// Spring-damper tracking: speed scales with distance so the ball
+				// decelerates as it nears the target instead of overshooting at
+				// constant velocity.  KTS_DRIBBLE_TRACK_SPEED is the cap.
+				float springSpeed = tdist * 18.0f;
+				if (springSpeed > KTS_DRIBBLE_TRACK_SPEED)
+					springSpeed = KTS_DRIBBLE_TRACK_SPEED;
+
+				Vector trackVel = (toTarget * (1.0f / tdist)) * springSpeed;
+
+				// Feed-forward: carry the player's own XY momentum into the ball
+				// velocity so the ball leads with the player rather than chasing
+				// from behind.  50 % blend keeps it smooth without overcorrecting.
+				Vector playerFF = Vector(pDribbler->pev->velocity.x,
+				                        pDribbler->pev->velocity.y, 0.0f);
+				pev->velocity = trackVel + playerFF * 0.5f;
+			}
 			else
 				pev->velocity = g_vecZero;
 
@@ -314,6 +336,36 @@ void CKtsSnowball::BallThink( void )
 
 			m_hLastToucher = pDribbler;
 			m_fStuckTime   = -1.0f;
+
+			// MOVETYPE_NOCLIP skips trigger touch events, so manually check whether
+			// the ball has entered a goal trigger volume this think.
+			if (g_pGameRules)
+			{
+				CHalfLifeKickTheSnowball *pGoalKts = (CHalfLifeKickTheSnowball *)g_pGameRules;
+				if (pGoalKts->pRedGoal)
+				{
+					CBaseEntity *pGoal = (CBaseEntity *)pGoalKts->pRedGoal;
+					if (pev->origin.x > pGoal->pev->absmin.x && pev->origin.x < pGoal->pev->absmax.x &&
+						pev->origin.y > pGoal->pev->absmin.y && pev->origin.y < pGoal->pev->absmax.y &&
+						pev->origin.z > pGoal->pev->absmin.z && pev->origin.z < pGoal->pev->absmax.z)
+					{
+						pGoalKts->OnGoalScored(TEAM_BLUE, this);
+						return;
+					}
+				}
+				if (pGoalKts->pBlueGoal)
+				{
+					CBaseEntity *pGoal = (CBaseEntity *)pGoalKts->pBlueGoal;
+					if (pev->origin.x > pGoal->pev->absmin.x && pev->origin.x < pGoal->pev->absmax.x &&
+						pev->origin.y > pGoal->pev->absmin.y && pev->origin.y < pGoal->pev->absmax.y &&
+						pev->origin.z > pGoal->pev->absmin.z && pev->origin.z < pGoal->pev->absmax.z)
+					{
+						pGoalKts->OnGoalScored(TEAM_RED, this);
+						return;
+					}
+				}
+			}
+
 			pev->nextthink = gpGlobals->time + 0.1f;
 			return;  // skip stuck / OOB checks while dribbling
 		}
@@ -429,8 +481,8 @@ void CKtsSnowball::BallTouch( CBaseEntity *pOther )
 	//   • rolling at constant speed / gravity micro-bounces → tiny ΔV → silent
 	if (!pOther->IsPlayer())
 	{
-		// While dribbling (MOVETYPE_FLY) skip all non-player touch logic.
-		// The "too far" check in BallThink handles geometry blocking cleanly.
+		// While dribbling (MOVETYPE_NOCLIP) skip all non-player touch logic.
+		// BallThink drives position and also handles manual goal detection.
 		if (m_hDribbler)
 			return;
 
@@ -1502,7 +1554,9 @@ void CHalfLifeKickTheSnowball::CaptureCharm( CBasePlayer *pPlayer )
 	pActualBall->m_hDribbler         = pPlayer;
 	pActualBall->m_fDribbleSoundTime = 0.0f;   // play on next BallThink
 	pActualBall->m_fLastPlayerTouchTime = gpGlobals->time;  // dribble counts as contact
-	pActualBall->pev->movetype       = MOVETYPE_FLY;
+	// MOVETYPE_NOCLIP: ball passes through BSP geometry so slope transitions never
+	// jam it against a face and stall it away from the player.
+	pActualBall->pev->movetype       = MOVETYPE_NOCLIP;
 	pActualBall->pev->solid          = SOLID_NOT;
 	ClearBits(pActualBall->pev->flags, FL_ONGROUND);
 	// UTIL_SetOrigin is intentionally skipped: SOLID_NOT has no clip-list presence
