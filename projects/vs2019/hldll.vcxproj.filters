@@ -635,6 +635,9 @@
     <ClInclude Include="..\..\dlls\jvs_gamerules.h">
       <Filter>Header Files\dlls</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\dlls\kts_gamerules.h">
+      <Filter>Header Files\dlls</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\dlls\lms_gamerules.h">
       <Filter>Header Files\dlls</Filter>
     </ClInclude>

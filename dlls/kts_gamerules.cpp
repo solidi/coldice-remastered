@@ -160,7 +160,7 @@ void CKtsSnowball::BallThink( void )
 	m_fLastThinkSpeed = pev->velocity.Length();
 
 	// Bail out if we've already been scored/removed
-	if (g_pGameRules)
+	if (g_pGameRules && g_pGameRules->IsKickTheSnowball())
 	{
 		CHalfLifeKickTheSnowball *pKts = (CHalfLifeKickTheSnowball *)g_pGameRules;
 		if ((CBaseEntity *)pKts->pBall != this)
@@ -649,8 +649,7 @@ int CKtsSnowball::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, f
 // Note: UTIL_FindEntityByClassname only does exact matching,
 // so weapon_* and ammo_* require a full edict-list scan.
 // -------------------------------------------------------
-static Vector FindSafeBallSpawn( const Vector &center,
-	const Vector &redGoalOrigin, const Vector &blueGoalOrigin )
+static Vector FindSafeBallSpawn( const Vector &center )
 {
 	CBaseEntity *pBestSpot = NULL;
 	float        bestDist  = 9999999.0f;
@@ -707,12 +706,11 @@ void CKtsSnowball::ResetToMidpoint( void )
 		return;
 
 	CHalfLifeKickTheSnowball *pKts = (CHalfLifeKickTheSnowball *)g_pGameRules;
-	if (!pKts->pRedGoal || !pKts->pBlueGoal)
+	if (!g_pGameRules->IsKickTheSnowball() || !pKts->pRedGoal || !pKts->pBlueGoal)
 		return;
 
 	Vector midpoint = (pKts->pRedGoal->pev->origin + pKts->pBlueGoal->pev->origin) * 0.5f;
-	Vector spawnPos = FindSafeBallSpawn(midpoint,
-		pKts->pRedGoal->pev->origin, pKts->pBlueGoal->pev->origin);
+	Vector spawnPos = FindSafeBallSpawn(midpoint);
 
 	float distToSpawn = (pev->origin - spawnPos).Length();
 
@@ -805,6 +803,9 @@ void CKtsGoal::GoalTouch( CBaseEntity *pOther )
 		return;
 
 	CHalfLifeKickTheSnowball *pKts = (CHalfLifeKickTheSnowball *)g_pGameRules;
+
+	if (!g_pGameRules->IsKickTheSnowball())
+		return;
 
 	// Ignore if this isn't the active ball (already scored, or FL_KILLME re-touch)
 	if ((CBaseEntity *)pKts->pBall != pOther)
@@ -1073,8 +1074,7 @@ void CHalfLifeKickTheSnowball::SpawnBallAtMidpoint( void )
 	MESSAGE_END();
 
 	Vector midpoint = (pRedGoal->pev->origin + pBlueGoal->pev->origin) * 0.5f;
-	Vector spawnPos = FindSafeBallSpawn(midpoint,
-		pRedGoal->pev->origin, pBlueGoal->pev->origin);
+	Vector spawnPos = FindSafeBallSpawn(midpoint);
 
 	CKtsSnowball *pNewBall = CKtsSnowball::CreateBall(spawnPos);
 	pBall = pNewBall;
@@ -1209,7 +1209,7 @@ void CHalfLifeKickTheSnowball::OnGoalScored( int scoringTeam, CBaseEntity *pScor
 	// Broadcast "Ball incoming!" objective notice
 	MESSAGE_BEGIN(MSG_ALL, gmsgObjective);
 		WRITE_STRING("Ball incoming!");
-		WRITE_STRING("Respawning in 3 seconds...");
+		WRITE_STRING(UTIL_VarArgs("Respawning in %.0f seconds...", KTS_BALL_RESPAWN_DELAY));
 		WRITE_BYTE(0);
 		WRITE_STRING("");
 	MESSAGE_END();
@@ -1525,12 +1525,16 @@ BOOL CHalfLifeKickTheSnowball::ShouldAutoAim( CBasePlayer *pPlayer, edict_t *tar
 
 BOOL CHalfLifeKickTheSnowball::FPlayerCanTakeDamage( CBasePlayer *pPlayer, CBaseEntity *pAttacker )
 {
-	if (pAttacker && PlayerRelationship(pPlayer, pAttacker) == GR_TEAMMATE)
+	if (!pBall || !pPlayer)
+		return FALSE;
+
+	CKtsSnowball *pActualBall = (CKtsSnowball *)(CBaseEntity *)pBall;
+	if (pActualBall && (CBaseEntity *)pActualBall->m_hDribbler == (CBaseEntity *)pPlayer)
 	{
-		if ((friendlyfire.value == 0) && (pAttacker != pPlayer))
-			return FALSE;
+		DropCharm(pPlayer, pActualBall->pev->origin);
 	}
-	return CHalfLifeMultiplay::FPlayerCanTakeDamage(pPlayer, pAttacker);
+
+	return FALSE;
 }
 
 // CaptureCharm — player grabs the ball (begins dribbling).
@@ -1573,7 +1577,7 @@ CBaseEntity *CHalfLifeKickTheSnowball::DropCharm( CBasePlayer *pPlayer, Vector o
 	if (pPlayer)
 	{
 		pPlayer->m_fCameraDelay = gpGlobals->time + 2.0f;
-		pPlayer->m_flNextAutoMelee = gpGlobals->time + 1.0;
+		pPlayer->m_flNextAutoMelee = gpGlobals->time + 3.0;
 	}
 	CKtsSnowball *pActualBall = (CKtsSnowball *)(CBaseEntity *)pBall;
 	EMIT_SOUND_DYN(ENT(pActualBall->pev), CHAN_ITEM, "dribble.wav", 0.0f, 0.0f, SND_STOP, 0);
@@ -1666,4 +1670,3 @@ BOOL CHalfLifeKickTheSnowball::IsAllowedToSpawn( CBaseEntity *pEntity )
 
 	return TRUE;
 }
-
