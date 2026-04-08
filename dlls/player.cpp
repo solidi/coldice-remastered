@@ -584,8 +584,19 @@ void CBasePlayer :: TraceAttack( entvars_t *pevAttacker, float flDamage, Vector 
 			}
 		}
 
-		SpawnBlood(ptr->vecEndPos, BloodColor(), flDamage);// a little surface blood.
-		TraceBleed( flDamage, vecDir, ptr, bitsDamageType );
+		// Suppress blood and decals when the player cannot take damage.
+		// This covers: godmode, gamerules that block all damage (e.g. KTS),
+		// and any entity that has been set to DAMAGE_NO at runtime.
+		bool canBleed = !FBitSet(pev->flags, FL_GODMODE)
+			&& pev->takedamage != DAMAGE_NO
+			&& g_pGameRules->FPlayerCanTakeDamage(
+				GetClassPtr((CBasePlayer *)pev),
+				CBaseEntity::Instance(pevAttacker));
+		if (canBleed)
+		{
+			SpawnBlood(ptr->vecEndPos, BloodColor(), flDamage);// a little surface blood.
+			TraceBleed( flDamage, vecDir, ptr, bitsDamageType );
+		}
 		AddMultiDamage( pevAttacker, this, flDamage, bitsDamageType );
 	}
 }
