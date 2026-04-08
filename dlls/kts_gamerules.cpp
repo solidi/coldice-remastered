@@ -240,6 +240,14 @@ void CKtsSnowball::BallThink( void )
 					if (tdist < KTS_DRIBBLE_ACQUIRE_DIST)
 					{
 						g_pGameRules->DropCharm(pDribbler, pev->origin);
+						// Push the ball away from the tackler so it rolls free
+						// in a natural direction rather than dropping straight
+						// down at floor level where it can clip geometry.
+						Vector pushDir = pev->origin - plr->pev->origin;
+						pushDir.z = 0.0f;
+						float plen = pushDir.Length();
+						if (plen > 0.01f) pushDir = pushDir * (1.0f / plen);
+						pev->velocity = pushDir * 200.0f + Vector(0, 0, 120.0f);
 						pev->nextthink = gpGlobals->time + 0.1f;
 						return;
 					}
@@ -1564,8 +1572,34 @@ void CHalfLifeKickTheSnowball::CaptureCharm( CBasePlayer *pPlayer )
 	pActualBall->pev->movetype       = MOVETYPE_NOCLIP;
 	pActualBall->pev->solid          = SOLID_NOT;
 	ClearBits(pActualBall->pev->flags, FL_ONGROUND);
-	// UTIL_SetOrigin is intentionally skipped: SOLID_NOT has no clip-list presence
-	// so no immediate relink is needed; the next physics step handles it safely.
+
+	// Snap the ball to the dribble position immediately so there is no
+	// visible jump.  Without this the spring-damper in BallThink has to
+	// close the gap over several ticks: the ball could be up to 72 u behind
+	// the player at acquisition while the target is 64 u ahead — a total
+	// potential gap of ~136 u.  UTIL_SetOrigin is safe here because the ball
+	// is already SOLID_NOT / MOVETYPE_NOCLIP (no clip-list entry to corrupt).
+	{
+		MAKE_VECTORS(pPlayer->pev->v_angle);
+		Vector forward = gpGlobals->v_forward;
+		forward.z = 0.0f;
+		float fl = forward.Length();
+		if (fl > 0.001f) forward = forward * (1.0f / fl);
+
+		Vector snapXY = pPlayer->pev->origin + forward * KTS_DRIBBLE_BALL_OFFSET;
+
+		// Trace down to find the actual floor so the snap respects slopes.
+		TraceResult trSnap;
+		UTIL_TraceLine( snapXY + Vector(0, 0, 48.0f),
+		                snapXY + Vector(0, 0, -96.0f),
+		                ignore_monsters, ENT(pActualBall->pev), &trSnap );
+		float snapZ = (trSnap.flFraction < 1.0f)
+			? trSnap.vecEndPos.z + 12.0f
+			: pPlayer->pev->origin.z - 20.0f;
+
+		UTIL_SetOrigin(pActualBall->pev, Vector(snapXY.x, snapXY.y, snapZ));
+		pActualBall->pev->velocity = g_vecZero;
+	}
 }
 
 // DropCharm — player releases the ball (dribble ends); restores normal physics.
@@ -1587,7 +1621,19 @@ CBaseEntity *CHalfLifeKickTheSnowball::DropCharm( CBasePlayer *pPlayer, Vector o
 	pActualBall->pev->movetype       = MOVETYPE_BOUNCE;
 	pActualBall->pev->solid          = SOLID_BBOX;
 	if (origin != g_vecZero)
-		UTIL_SetOrigin(pActualBall->pev, origin);  // relink after solid restore
+	{
+		// Lift the drop point above the floor before relinking so the ball
+		// cannot be embedded in the floor or a wall when SOLID_BBOX is
+		// restored.  During dribble the ball sits at floorZ+12; the spring-
+		// damper velocity may be pointing directly into adjacent geometry.
+		// A 20 u upward nudge gives MOVETYPE_BOUNCE room to start cleanly.
+		Vector safeOrigin = origin;
+		safeOrigin.z += 20.0f;
+		UTIL_SetOrigin(pActualBall->pev, safeOrigin);
+	}
+	// Zero any residual tracking velocity. Callers that want a directional
+	// push (tackle, hit) set pev->velocity themselves after DropCharm returns.
+	pActualBall->pev->velocity = g_vecZero;
 	ClearBits(pActualBall->pev->flags, FL_ONGROUND);
 	return pActualBall;
 }
@@ -1603,7 +1649,27 @@ void CHalfLifeKickTheSnowball::FPlayerTookDamage( float flDamage, CBasePlayer *p
 	CKtsSnowball *pActualBall = (CKtsSnowball *)(CBaseEntity *)pBall;
 	if (pActualBall && (CBaseEntity *)pActualBall->m_hDribbler == (CBaseEntity *)pVictim)
 	{
-		DropCharm(pVictim, pActualBall->pev->origin);
+		CBaseEntity *pDropped = DropCharm(pVictim, pActualBall->pev->origin);
+		if (pDropped)
+		{
+			// Push ball away from the attacker so it separates cleanly
+			// rather than sitting stationary at floor level where BOUNCE
+			// physics can push it through a wall on the next frame.
+			Vector pushDir = pVictim->pev->origin - pKiller->pev->origin;
+			pushDir.z = 0.0f;
+			float plen = pushDir.Length();
+			if (plen > 0.01f)
+				pushDir = pushDir * (1.0f / plen);
+			else
+			{
+				// Attacker and victim at exact same XY — push in dribbler's forward
+				MAKE_VECTORS(pVictim->pev->v_angle);
+				pushDir = gpGlobals->v_forward;
+				pushDir.z = 0.0f;
+				if (pushDir.Length() > 0.01f) pushDir = pushDir.Normalize();
+			}
+			pDropped->pev->velocity = pushDir * 180.0f + Vector(0, 0, 120.0f);
+		}
 	}
 }
 
