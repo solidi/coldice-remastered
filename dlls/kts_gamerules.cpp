@@ -1293,17 +1293,15 @@ void CHalfLifeKickTheSnowball::ClientUserInfoChanged( CBasePlayer *pPlayer, char
 	if (pPlayer->IsSpectator())
 		return;
 
-	if (!stricmp("red", pPlayer->m_szTeamName) && stricmp("santa", mdls))
+	if ( !stricmp( "red", pPlayer->m_szTeamName ) && !stricmp( "santa", mdls ) )
 	{
-		ClientPrint(pPlayer->pev, HUD_PRINTCONSOLE,
-			"[KtS] You're on team '%s', model locked to 'santa'\n", pPlayer->m_szTeamName);
+		ClientPrint( pPlayer->pev, HUD_PRINTCONSOLE, "[CtF] You're on team '%s' To change, type 'join_blue'\n", pPlayer->m_szTeamName );
 		CLIENT_COMMAND(pPlayer->edict(), "model santa\n");
 		return;
 	}
-	if (!stricmp("blue", pPlayer->m_szTeamName) && stricmp("iceman", mdls))
+	if ( !stricmp( "blue", pPlayer->m_szTeamName ) && !stricmp( "iceman", mdls ) )
 	{
-		ClientPrint(pPlayer->pev, HUD_PRINTCONSOLE,
-			"[KtS] You're on team '%s', model locked to 'iceman'\n", pPlayer->m_szTeamName);
+		ClientPrint( pPlayer->pev, HUD_PRINTCONSOLE, "[CtF] You're on team '%s' To change, type 'join_red'\n", pPlayer->m_szTeamName );
 		CLIENT_COMMAND(pPlayer->edict(), "model iceman\n");
 		return;
 	}
