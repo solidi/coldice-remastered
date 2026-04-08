@@ -1145,7 +1145,7 @@ void CHalfLifeKickTheSnowball::OnGoalScored( int scoringTeam, CBaseEntity *pScor
 	UTIL_Remove(pScoredBall);
 
 	// Own-goal penalty: deduct a frag from the own-goal maker
-	if (pOwnGoal)
+	/*if (pOwnGoal)
 	{
 		pOwnGoal->pev->frags -= 1;
 		MESSAGE_BEGIN(MSG_ALL, gmsgScoreInfo);
@@ -1155,9 +1155,9 @@ void CHalfLifeKickTheSnowball::OnGoalScored( int scoringTeam, CBaseEntity *pScor
 			WRITE_SHORT(pOwnGoal->m_iRoundWins);
 			WRITE_SHORT(GetTeamIndex(pOwnGoal->m_szTeamName) + 1);
 		MESSAGE_END();
-	}
+	}*/
 
-	// Award frags and round wins to scoring team; bonus frag to scorer
+	// Award round wins to scoring team; bonus round win to scorer
 	for (int i = 1; i <= gpGlobals->maxClients; i++)
 	{
 		CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex(i);
@@ -1165,10 +1165,10 @@ void CHalfLifeKickTheSnowball::OnGoalScored( int scoringTeam, CBaseEntity *pScor
 		{
 			if (GetTeamIndex(plr->m_szTeamName) == scoringTeam)
 			{
-				plr->pev->frags++;
+				//plr->pev->frags++;
 				plr->m_iRoundWins++;
 				if (plr == pScorer)
-					plr->pev->frags++; // bonus for the player who kicked it in
+					plr->m_iRoundWins++; // bonus for the player who kicked it in
 
 				MESSAGE_BEGIN(MSG_ALL, gmsgScoreInfo);
 					WRITE_BYTE(ENTINDEX(plr->edict()));

@@ -58,9 +58,9 @@ public:
 
 SBColumnInfo g_ColumnInfo[NUM_COLUMNS] =
 {
-	{NULL,			24,			Label::a_east},		// tracker column
-	{NULL,			140,		Label::a_east},		// name
-	{NULL,			56,			Label::a_east},		// class
+	{NULL,			20,			Label::a_east},		// tracker column
+	{NULL,			135,		Label::a_east},		// name
+	{NULL,			50,			Label::a_east},		// class
 	{"#FRAGS",		40,			Label::a_east},
 	{"#DEATHS",		46,			Label::a_east},
 	{"#SCORE",		46,			Label::a_east},
@@ -283,6 +283,12 @@ void ScorePanel::Update()
 
 	if (ScoreBased())
 	{
+		if (gHUD.m_Teamplay == GAME_KTS)
+		{
+			m_HeaderLabels[COLUMN_KILLS].setText("");
+			m_HeaderLabels[COLUMN_DEATHS].setText("");
+		}
+	
 		if (gHUD.m_Teamplay == GAME_GUNGAME)
 			m_HeaderLabels[COLUMN_SCORE].setText(CHudTextMessage::BufferedLocaliseTextString("#LEVEL"));
 		else if (gHUD.m_Teamplay == GAME_COLDSKULL)
@@ -902,10 +908,12 @@ void ScorePanel::FillGrid()
 					break;
 #else
 				case COLUMN_KILLS:
-					sprintf(sz, "%d",  g_PlayerExtraInfo[ m_iSortedRows[row] ].frags );
+					if (gHUD.m_Teamplay != GAME_KTS)
+						sprintf(sz, "%d",  g_PlayerExtraInfo[ m_iSortedRows[row] ].frags );
 					break;
 				case COLUMN_DEATHS:
-					sprintf(sz, "%d",  g_PlayerExtraInfo[ m_iSortedRows[row] ].deaths );
+					if (gHUD.m_Teamplay != GAME_KTS)
+						sprintf(sz, "%d",  g_PlayerExtraInfo[ m_iSortedRows[row] ].deaths );
 					break;
 				case COLUMN_SCORE:
 					if (ScoreBased() || gHUD.m_Teamplay == GAME_TEAMPLAY)
