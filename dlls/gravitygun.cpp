@@ -255,6 +255,9 @@ CBaseEntity* CGravityGun::GetEntity(float fldist, bool m_bTakeDamage)
 	else
 		pEntity = CBaseEntity::Instance(tr.pHit);
 
+	if (pEntity && pEntity->IsPlayer())
+		return NULL;
+
 	if (m_bTakeDamage)
 	{
 		if (!pEntity)
