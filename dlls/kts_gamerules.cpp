@@ -1276,7 +1276,7 @@ void CHalfLifeKickTheSnowball::ClientUserInfoChanged( CBasePlayer *pPlayer, char
 	char *mdls = g_engfuncs.pfnInfoKeyValue(infobuffer, "model");
 	int clientIndex = pPlayer->entindex();
 
-	if (!pPlayer->m_szTeamName || !strlen(pPlayer->m_szTeamName))
+	if (!pPlayer->m_szTeamName[0])
 		return;
 
 	if (g_fGameOver)
@@ -1285,17 +1285,18 @@ void CHalfLifeKickTheSnowball::ClientUserInfoChanged( CBasePlayer *pPlayer, char
 	if (pPlayer->IsSpectator())
 		return;
 
-	if (!stricmp("red", pPlayer->m_szTeamName) && !stricmp("santa", mdls))
+	if (!stricmp("red", pPlayer->m_szTeamName) && stricmp("santa", mdls))
 	{
 		ClientPrint(pPlayer->pev, HUD_PRINTCONSOLE,
-			"[KtS] You're on team '%s'. To change, type 'model iceman'\n", pPlayer->m_szTeamName);
+			"[KtS] You're on team '%s', model locked to 'santa'\n", pPlayer->m_szTeamName);
 		CLIENT_COMMAND(pPlayer->edict(), "model santa\n");
 		return;
 	}
-	if (!stricmp("blue", pPlayer->m_szTeamName) && !stricmp("iceman", mdls))
+	if (!stricmp("blue", pPlayer->m_szTeamName) && stricmp("iceman", mdls))
 	{
 		ClientPrint(pPlayer->pev, HUD_PRINTCONSOLE,
-			"[KtS] You're on team '%s'. To change, type 'model santa'\n", pPlayer->m_szTeamName);
+			"[KtS] You're on team '%s', model locked to 'iceman'\n", pPlayer->m_szTeamName);
+		CLIENT_COMMAND(pPlayer->edict(), "model iceman\n");
 		return;
 	}
 
