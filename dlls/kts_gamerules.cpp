@@ -795,8 +795,10 @@ void CKtsGoal::Spawn( void )
 	pev->rendermode = kRenderTransColor;
 	pev->renderamt = 128;
 
-	// 64w x 16d x 72h — orientation-agnostic trigger volume
-	UTIL_SetSize( pev, Vector(-32, -8, -72), Vector(32, 8, 72) );
+	// 64w x 64d x 72h — symmetric trigger so the ball scores from any approach angle.
+	// The original 16-unit Y-depth caused the ball to tunnel through the plane between
+	// BallThink intervals when the bot approached from a non-X direction.
+	UTIL_SetSize( pev, Vector(-32, -32, -72), Vector(32, 32, 72) );
 	UTIL_SetOrigin( pev, pev->origin );
 
 	SetTouch( &CKtsGoal::GoalTouch );
@@ -1565,6 +1567,10 @@ void CHalfLifeKickTheSnowball::CaptureCharm( CBasePlayer *pPlayer )
 	pActualBall->m_hDribbler         = pPlayer;
 	pActualBall->m_fDribbleSoundTime = 0.0f;   // play on next BallThink
 	pActualBall->m_fLastPlayerTouchTime = gpGlobals->time;  // dribble counts as contact
+	// pev->euser1: mod-reserved edict pointer, used by bot code to identify
+	// the dribbler authoritatively. (pev->owner has engine collision semantics
+	// and must not be used here.)
+	pActualBall->pev->euser1         = ENT(pPlayer->pev);
 	// MOVETYPE_NOCLIP: ball passes through BSP geometry so slope transitions never
 	// jam it against a face and stall it away from the player.
 	pActualBall->pev->movetype       = MOVETYPE_NOCLIP;
@@ -1615,6 +1621,7 @@ CBaseEntity *CHalfLifeKickTheSnowball::DropCharm( CBasePlayer *pPlayer, Vector o
 	CKtsSnowball *pActualBall = (CKtsSnowball *)(CBaseEntity *)pBall;
 	EMIT_SOUND_DYN(ENT(pActualBall->pev), CHAN_ITEM, "dribble.wav", 0.0f, 0.0f, SND_STOP, 0);
 	pActualBall->m_hDribbler         = NULL;
+	pActualBall->pev->euser1         = NULL;  // clear dribbler euser1
 	pActualBall->m_fDribbleSoundTime = -1.0f;
 	pActualBall->pev->movetype       = MOVETYPE_BOUNCE;
 	pActualBall->pev->solid          = SOLID_BBOX;
