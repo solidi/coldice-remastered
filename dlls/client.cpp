@@ -958,7 +958,7 @@ void ClientCommand( edict_t *pEntity )
 		CBasePlayer * pPlayer = GetClassPtr((CBasePlayer *)pev);
 		if ( !g_pGameRules->IsRoundBased() && pPlayer->IsSpectator() )
 		{
-			if (g_pGameRules->IsCtF())
+			if (g_pGameRules->IsCtF() || g_pGameRules->IsKickTheSnowball())
 				pev->iuser3 = OBS_UNDECIDED_BOTH;
 			else
 				pev->iuser3	= OBS_UNDECIDED_SIMPLE;
@@ -979,7 +979,7 @@ void ClientCommand( edict_t *pEntity )
 	}
 	else if (FStrEq(pcmd, "join_blue" ))
 	{
-		if ( g_pGameRules->IsCtF() || g_pGameRules->IsColdSpot() )
+		if ( g_pGameRules->IsCtF() || g_pGameRules->IsColdSpot() || g_pGameRules->IsKickTheSnowball() )
 		{
 			if (pev->iuser3 > 0)
 			{
@@ -995,7 +995,7 @@ void ClientCommand( edict_t *pEntity )
 	}
 	else if (FStrEq(pcmd, "join_red" ))
 	{
-		if ( g_pGameRules->IsCtF() || g_pGameRules->IsColdSpot() )
+		if ( g_pGameRules->IsCtF() || g_pGameRules->IsColdSpot() || g_pGameRules->IsKickTheSnowball() )
 		{
 			if (pev->iuser3 > 0)
 			{
@@ -1426,6 +1426,7 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"horde\" - frag monsters in each wave\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"instagib\" - gib with zappers to make tombstones!\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"jvs\" - game mode is Jesus vs Santa - defeat him!\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"kts\" - two teamed footie with a snowball\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"loot\" - teamplay with hidden loot, get it to the goal!\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"prophunt\" - hide and don't be found!\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"shidden\" - invisible dealters and those smelters\n");
@@ -1441,7 +1442,9 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_holsterweapons [0|1]\" - Holstering weapons for more realistic gameplay\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_iceblood [0|1]\" - Enable blue blood\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_icesprites [0|1]\" - Switch between select ice or real environment sprites\n");
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_interactiveitems \"grenade;monster_satchel;monster_chumtoad;monster_snark;monster_barrel;gib\"\" - A semicolon separated list of items that are \"interactive\" (kickable, pickupable)\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_interactiveitems \"grenade;monster_satchel;monster_chumtoad;monster_snark;monster_barrel;gib;kts_snowball\"\" - A semicolon separated list of items that are \"interactive\" (kickable, pickupable)\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_ktsspawn1\" - name of entity where blue goal will spawn\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_ktsspawn2\" - name of entity where red goal will spawn\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_meleedrop \"[0|1]\"\" - allow kick or punch attcks to drop weapons out of hands\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_moreblood [0-5]\" - Increase blood up to 0-5 times\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_nukemode \"[0|1|2]\"\" - 2 - nuke kills all, 1 - radius damage, 0 - sharts nothing but bubbles\n");

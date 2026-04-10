@@ -584,8 +584,19 @@ void CBasePlayer :: TraceAttack( entvars_t *pevAttacker, float flDamage, Vector 
 			}
 		}
 
-		SpawnBlood(ptr->vecEndPos, BloodColor(), flDamage);// a little surface blood.
-		TraceBleed( flDamage, vecDir, ptr, bitsDamageType );
+		// Suppress blood and decals when the player cannot take damage.
+		// This covers: godmode, gamerules that block all damage (e.g. KTS),
+		// and any entity that has been set to DAMAGE_NO at runtime.
+		bool canBleed = !FBitSet(pev->flags, FL_GODMODE)
+			&& pev->takedamage != DAMAGE_NO
+			&& g_pGameRules->FPlayerCanTakeDamage(
+				GetClassPtr((CBasePlayer *)pev),
+				CBaseEntity::Instance(pevAttacker));
+		if (canBleed)
+		{
+			SpawnBlood(ptr->vecEndPos, BloodColor(), flDamage);// a little surface blood.
+			TraceBleed( flDamage, vecDir, ptr, bitsDamageType );
+		}
 		AddMultiDamage( pevAttacker, this, flDamage, bitsDamageType );
 	}
 }
@@ -2360,7 +2371,7 @@ void CBasePlayer::PlayerUse ( void )
 			pHeldItem->pev->framerate = 0;
 			pHeldItem->pev->sequence = 0;
 			pHeldItem->pev->movetype = MOVETYPE_FLY;
-			UTIL_SetOrigin(pHeldItem->pev, GetGunPosition() + gpGlobals->v_forward * 40 + gpGlobals->v_up * -10);
+			UTIL_SetOrigin(pHeldItem->pev, GetGunPosition() + gpGlobals->v_forward * 48 + gpGlobals->v_up * -10);
 			pev->punchangle = Vector(-4, -2, -4);
 
 			if (m_pActiveItem && m_pActiveItem->m_pPlayer)
@@ -3144,7 +3155,7 @@ void CBasePlayer::PreThink(void)
 		// Update coords
 		if (pHeldItem != NULL) {
 			UTIL_MakeVectors( pev->v_angle );
-			UTIL_SetOrigin(pHeldItem->pev, GetGunPosition() + gpGlobals->v_forward * 40 + gpGlobals->v_up * -10);
+			UTIL_SetOrigin(pHeldItem->pev, GetGunPosition() + gpGlobals->v_forward * 48 + gpGlobals->v_up * -10);
 			pHeldItem->pev->angles = pev->angles;
 			pHeldItem->pev->velocity = pev->velocity;
 		}
@@ -6168,6 +6179,22 @@ void CBasePlayer::StartForceGrab( void )
 	// Hit!
 	CBaseEntity *pHit = CBaseEntity::Instance( tr.pHit );
 
+	// --- Snowball forcegrab ---
+	// Grab a kts_snowball that is slow enough to control (<= 75 u/s).
+	// Uses pev->owner to track the grabber and pev->iuser1 for mode (0=attract, 1=repel).
+	// The tap-again path already sets m_Banana->pev->iuser1 = 1, which BallThink reads as repel.
+	if (!m_Banana && pHit && FClassnameIs(pHit->pev, "kts_snowball") &&
+		pHit->pev->velocity.Length() <= 75.0f &&
+		FNullEnt(pHit->pev->owner))  // not already grabbed
+	{
+		pHit->pev->owner  = edict();  // store grabber (also disables self-collision)
+		pHit->pev->iuser1 = 0;        // attract mode
+		m_Banana = pHit;
+
+		STOP_SOUND(edict(), CHAN_VOICE, "heaven.wav");
+		EMIT_SOUND(edict(), CHAN_VOICE, "odetojoy.wav", 1, ATTN_NORM);
+	}
+
 	if (pHit && pHit->IsPlayer())
 	{
 		CBasePlayer *plr = (CBasePlayer *)pHit;
@@ -6225,6 +6252,21 @@ void CBasePlayer::TryGrabAgain( void )
 		// Hit!
 		CBaseEntity *pHit = CBaseEntity::Instance( tr.pHit );
 
+		// --- Snowball forcegrab (retry window) ---
+		if (!m_Banana && pHit && FClassnameIs(pHit->pev, "kts_snowball") &&
+			pHit->pev->velocity.Length() <= 75.0f &&
+			FNullEnt(pHit->pev->owner))
+		{
+			pHit->pev->owner  = edict();
+			pHit->pev->iuser1 = 0;
+			m_Banana = pHit;
+
+			STOP_SOUND(edict(), CHAN_VOICE, "heaven.wav");
+			EMIT_SOUND(edict(), CHAN_VOICE, "odetojoy.wav", 1, ATTN_NORM);
+
+			pev->nextthink = -1;
+		}
+
 		if (pHit && pHit->IsPlayer())
 		{
 			CBasePlayer *plr = (CBasePlayer *)pHit;
@@ -6280,6 +6322,7 @@ void CBasePlayer::EndForceGrab( void )
 	STOP_SOUND(edict(), CHAN_VOICE, "heaven.wav");
 	STOP_SOUND(edict(), CHAN_VOICE, "odetojoy.wav");
 	m_EFlags &= ~EFLAG_FORCEGRAB;
+	m_Banana = NULL;
 }
 
 //=========================================================

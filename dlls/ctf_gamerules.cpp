@@ -764,8 +764,7 @@ void CHalfLifeCaptureTheFlag::ClientUserInfoChanged( CBasePlayer *pPlayer, char 
 	char *mdls = g_engfuncs.pfnInfoKeyValue( infobuffer, "model" );
 	int clientIndex = pPlayer->entindex();
 
-	// Spectator
-	if ( !pPlayer->m_szTeamName || !strlen(pPlayer->m_szTeamName) )
+	if (!pPlayer->m_szTeamName[0])
 		return;
 
 	// Ignore ctf on model changing back.
@@ -778,13 +777,14 @@ void CHalfLifeCaptureTheFlag::ClientUserInfoChanged( CBasePlayer *pPlayer, char 
 	// prevent skin/color/model changes
 	if ( !stricmp( "red", pPlayer->m_szTeamName ) && !stricmp( "santa", mdls ) )
 	{
-		ClientPrint( pPlayer->pev, HUD_PRINTCONSOLE, "[CtF] You're on team '%s' To change, type 'model iceman'\n", pPlayer->m_szTeamName );
+		ClientPrint( pPlayer->pev, HUD_PRINTCONSOLE, "[CtF] You're on team '%s' To change, type 'join_blue'\n", pPlayer->m_szTeamName );
 		CLIENT_COMMAND(pPlayer->edict(), "model santa\n");
 		return;
 	}
 	if ( !stricmp( "blue", pPlayer->m_szTeamName ) && !stricmp( "iceman", mdls ) )
 	{
-		ClientPrint( pPlayer->pev, HUD_PRINTCONSOLE, "[CtF] You're on team '%s' To change, type 'model santa'\n", pPlayer->m_szTeamName );
+		ClientPrint( pPlayer->pev, HUD_PRINTCONSOLE, "[CtF] You're on team '%s' To change, type 'join_red'\n", pPlayer->m_szTeamName );
+		CLIENT_COMMAND(pPlayer->edict(), "model iceman\n");
 		return;
 	}
 

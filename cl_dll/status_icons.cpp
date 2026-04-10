@@ -198,7 +198,20 @@ int CHudStatusIcons::MsgFunc_StatusIcon( const char *pszName, int iSize, void *p
 		if (ShouldEnable)
 			CAM_ToThirdPerson();
 		else
-			CAM_ToFirstPerson();
+		{
+			// Only revert to first person if no other cam_ icons are still active
+			bool otherCamActive = false;
+			for (int i = 0; i < MAX_ICONSPRITES; i++)
+			{
+				if (m_IconList[i].spr && strstr(m_IconList[i].szSpriteName, "cam_"))
+				{
+					otherCamActive = true;
+					break;
+				}
+			}
+			if (!otherCamActive)
+				CAM_ToFirstPerson();
+		}
 	}
 
 	return 1;

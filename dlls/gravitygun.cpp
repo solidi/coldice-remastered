@@ -116,13 +116,15 @@ void CGravityGun::PrimaryAttack()
 			isBspModel = true;
 
 		m_pCurrentEntity->pev->velocity = m_pPlayer->pev->velocity + forward * 1024;
+		if (FClassnameIs(m_pCurrentEntity->pev, "kts_snowball"))
+				m_pCurrentEntity->pev->iuser2 = ENTINDEX(m_pPlayer->edict());
 		m_pCurrentEntity->pev->iuser3 = 0;
 		m_pCurrentEntity = NULL;
 		m_flTimeWeaponIdle = UTIL_WeaponTimeBase();
 	}
 	else
 	{
-		CBaseEntity* pEntity = GetEntity(324, true);
+		CBaseEntity* pEntity = GetEntity(256, true);
 		#ifndef CLIENT_DLL
 		TraceResult tr = UTIL_GetGlobalTrace();
 		if (pEntity)
@@ -138,13 +140,16 @@ void CGravityGun::PrimaryAttack()
 			m_flTimeWeaponIdle = UTIL_WeaponTimeBase();
 		}
 
-		if (pEntity && strstr(STRING(pEntity->pev->classname), "worldspawn"))
+		if (!g_pGameRules->IsKickTheSnowball())
 		{
-			UTIL_MakeVectors( m_pPlayer->pev->v_angle );
-			Vector vecSrc = pev->origin + pev->view_ofs + gpGlobals->v_forward * 64 + gpGlobals->v_up * 18;
-			m_pCurrentEntity = CBaseEntity::Create( "monster_barrel", vecSrc, Vector(0, pev->v_angle.y, 0), m_pPlayer->edict());
-			m_pCurrentEntity->pev->iuser3 = 1;
-			EMIT_SOUND(ENT(m_pPlayer->pev), CHAN_WEAPON, "weapons/rocketfire1.wav", 1.0, ATTN_NORM);
+			if (pEntity && strstr(STRING(pEntity->pev->classname), "worldspawn"))
+			{
+				UTIL_MakeVectors( m_pPlayer->pev->v_angle );
+				Vector vecSrc = pev->origin + pev->view_ofs + gpGlobals->v_forward * 64 + gpGlobals->v_up * 18;
+				m_pCurrentEntity = CBaseEntity::Create( "monster_barrel", vecSrc, Vector(0, pev->v_angle.y, 0), m_pPlayer->edict());
+				m_pCurrentEntity->pev->iuser3 = 1;
+				EMIT_SOUND(ENT(m_pPlayer->pev), CHAN_WEAPON, "weapons/rocketfire1.wav", 1.0, ATTN_NORM);
+			}
 		}
 		#endif
 	}
@@ -169,11 +174,13 @@ void CGravityGun::SecondaryAttack()
 	}
 	else
 	{
-		m_pCurrentEntity = GetEntity(2048);
+		m_pCurrentEntity = GetEntity(256);
 		if (m_pCurrentEntity)
 		{
 			m_pCurrentEntity->pev->origin[2] += 0.2f;
 			m_pCurrentEntity->pev->iuser3 = 1;
+			if (FClassnameIs(m_pCurrentEntity->pev, "kts_snowball"))
+				m_pCurrentEntity->pev->iuser2 = ENTINDEX(m_pPlayer->edict());
 			SendWeaponAnim(GRAVITYGUN_HOLD_IDLE);
 			EMIT_SOUND_DYN(ENT(m_pPlayer->pev), CHAN_WEAPON, "ambience/pulsemachine.wav", 1.0, ATTN_NORM, 0, PITCH_HIGH);
 			m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 0.53f;
@@ -192,6 +199,22 @@ void CGravityGun::ItemPostFrame()
 {
 	if (m_pCurrentEntity)
 	{
+		// Drop the held entity if it has drifted too far from the player
+		// (e.g. snagged on geometry while the player kept moving).
+		float holdDist = (m_pCurrentEntity->pev->origin - m_pPlayer->pev->origin).Length();
+		if (holdDist > 128.0f)
+		{
+			STOP_SOUND(ENT(m_pPlayer->pev), CHAN_WEAPON, "ambience/pulsemachine.wav");
+			m_pCurrentEntity->pev->iuser3 = 0;
+			m_pCurrentEntity->pev->velocity = g_vecZero;
+			m_pCurrentEntity = NULL;
+			SendWeaponAnim(GRAVITYGUN_FIRE);
+			m_flTimeWeaponIdle = UTIL_WeaponTimeBase();
+			CBasePlayerWeapon::ItemPostFrame();
+			return;
+		}
+
+		m_pPlayer->m_flNextAutoMelee = gpGlobals->time + 0.5f; // always advance melee if I have an item
 		m_pPlayer->GetAutoaimVector(0.0f);
 
 		if (m_pCurrentEntity->IsBSPModel())
@@ -232,6 +255,9 @@ CBaseEntity* CGravityGun::GetEntity(float fldist, bool m_bTakeDamage)
 	else
 		pEntity = CBaseEntity::Instance(tr.pHit);
 
+	if (pEntity && pEntity->IsPlayer())
+		return NULL;
+
 	if (m_bTakeDamage)
 	{
 		if (!pEntity)
@@ -265,7 +291,7 @@ void CGravityGun::WeaponIdle()
 
 	if (!m_pCurrentEntity)
 	{
-		pPotentialTarget = GetEntity(2048);
+		pPotentialTarget = GetEntity(256);
 		if (m_bFoundPotentialTarget && !pPotentialTarget)
 		{
 			m_bFoundPotentialTarget = false;
@@ -295,6 +321,7 @@ void CGravityGun::WeaponIdle()
 	{
 		if (pPotentialTarget)
 		{
+			m_pPlayer->m_flNextAutoMelee = gpGlobals->time + 1.5f; // always advance melee if I have an item
 			SendWeaponAnim(GRAVITYGUN_PICKUP);
 			m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 1.0f;
 			m_bFoundPotentialTarget = true;

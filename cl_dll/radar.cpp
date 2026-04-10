@@ -287,6 +287,11 @@ void CHudRadar::DrawEdgeIndicator(int centerX, int centerY, float angle, float d
 		// Orange
 		r = 255; g = 117; b = 24;
 	}
+	else if (special == RADAR_SNOWBALL)
+	{
+		// White
+		r = 255; g = 255; b = 255;
+	}
 	else
 	{
 		UnpackRGB(r, g, b, RGB_YELLOWISH);
@@ -718,6 +723,12 @@ int CHudRadar::Draw(float flTime)
 		{
 			size *= 2;
 			fr = 255; fg = 117; fb = 24;
+		}
+
+		if (m_RadarInfo[index].special == RADAR_SNOWBALL)
+		{
+			size *= 2;
+			fr = 255; fg = 255; fb = 255;
 		}
 
 		// Highlight yourself in grey/white

@@ -257,23 +257,25 @@ char *sBuiltInMaps[] =
 };
 
 char *gamePlayModes[] = {
-	"Deathmatch",
-	"1 vs. 1",
-	"Battle Royal",
-	"Busters",
-	"Chilldemic",
-	"Cold Skulls",
-	"Cold Spot",
-	"Capture The Chumtoad",
-	"Capture The Flag",
-	"GunGame",
-	"Horde",
-	"Instagib",
-	"Jesus vs. Santa",
-	"Prop Hunt",
-	"Shidden",
-	"Snowballs",
-	"Teamplay",
+	"Deathmatch",		// 0  GAME_FFA
+	"1 vs. 1",			// 1  GAME_ARENA
+	"Battle Royale",	// 2 GAME_LMS
+	"Busters",			// 3  GAME_BUSTERS
+	"Chilldemic",		// 4  GAME_CHILLDEMIC
+	"Cold Skulls",		// 5  GAME_COLDSKULL
+	"Cold Spot",		// 6  GAME_COLDSPOT
+	"Capture The Chumtoad",	// 7  GAME_CTC
+	"Capture The Flag",	// 8  GAME_CTF
+	"GunGame",			// 9  GAME_GUNGAME
+	"Horde",			// 10  GAME_HORDE
+	"Instagib",			// 11 GAME_INSTAGIB
+	"Jesus vs. Santa",	// 12 GAME_ICEMAN
+	"Kick the Snowball",	// 13 GAME_KTS
+	"Loot",				// 14 GAME_LOOT
+	"Prop Hunt",		// 15 GAME_PROPHUNT
+	"Shidden",			// 16 GAME_SHIDDEN
+	"Snowball Fight",	// 17 GAME_SNOWBALL
+	"Teamplay",			// 18 GAME_TEAMPLAY
 };
 
 extern void Vote( CBasePlayer *pPlayer, int vote );

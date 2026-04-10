@@ -2885,6 +2885,8 @@ void CBasePlayerWeapon::PunchAttack( BOOL holdingSomething )
 			flVol = 0.1;
 			fHitWorld = FALSE;
 
+			Deploy();
+
 			UTIL_MakeVectors( m_pPlayer->pev->v_angle );
 			Vector smoke = tr.vecEndPos - gpGlobals->v_forward * 10;
 			CSprite *pSprite = CSprite::SpriteCreate( "sprites/gunsmoke.spr", smoke, TRUE );
@@ -3113,6 +3115,8 @@ void CBasePlayerWeapon::KickAttack( BOOL holdingSomething )
 			m_pPlayer->m_iWeaponVolume = 128;
 			flVol = 0.1;
 			fHitWorld = FALSE;
+
+			Deploy();
 
 			UTIL_MakeVectors( m_pPlayer->pev->v_angle );
 			Vector smoke = tr.vecEndPos - gpGlobals->v_forward * 10;
