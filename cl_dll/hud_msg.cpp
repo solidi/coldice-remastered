@@ -207,11 +207,11 @@ int CHud :: MsgFunc_Acrobatics(const char *pszName, int iSize, void *pbuf )
 	{
 	case ACROBATICS_ROLL_RIGHT:
 		axis = ROLL;
-		amount = -360;
+		amount = 360;
 		break;
 	case ACROBATICS_ROLL_LEFT:
 		axis = ROLL;
-		amount = 360;
+		amount = -360;
 		break;
 	case ACROBATICS_FLIP_BACK:
 		axis = PITCH;

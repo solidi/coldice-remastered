@@ -2711,11 +2711,30 @@ void CBasePlayer::Jump()
 
 		if (pev->velocity.Length2D() > 100 && m_iJumpCount == 3)
 		{
-			UTIL_MakeVectors(pev->angles);
-			if (DotProduct(pev->velocity, gpGlobals->v_forward) >= 0)
-				StartFrontFlip();
+			// Use yaw-only angles so v_forward/v_right are flat (no Z component),
+			// preventing the pitch of the view from affecting the direction check.
+			UTIL_MakeVectors( Vector( 0, pev->angles.y, 0 ) );
+
+			// Flatten velocity to XY so vertical jump speed doesn't skew the dot products.
+			Vector vel2D( pev->velocity.x, pev->velocity.y, 0 );
+
+			float dotFwd   = DotProduct( vel2D, gpGlobals->v_forward );
+			float dotRight = DotProduct( vel2D, gpGlobals->v_right );
+
+			if ( fabs( dotFwd ) >= fabs( dotRight ) )
+			{
+				if ( dotFwd >= 0 )
+					StartFrontFlip();
+				else
+					StartBackFlip();
+			}
 			else
-				StartBackFlip();
+			{
+				if ( dotRight >= 0 )
+					StartRightFlip();
+				else
+					StartLeftFlip();
+			}
 		}
 
 		return;
@@ -5659,7 +5678,7 @@ void CBasePlayer::StartRightFlip( void )
 		return;
 
 	if (m_fFlipTime < gpGlobals->time) {
-		if (FBitSet(pev->flags, FL_ONGROUND)) {
+		if (FBitSet(pev->flags, FL_ONGROUND) || m_iJumpCount == 3) {
 			UTIL_MakeVectors(pev->angles);
 			pev->velocity = (gpGlobals->v_right * 300) + (gpGlobals->v_up * 400);
 			m_fFlipTime = gpGlobals->time + 0.75;
@@ -5685,7 +5704,7 @@ void CBasePlayer::StartLeftFlip( void )
 		return;
 
 	if (m_fFlipTime < gpGlobals->time) {
-		if (FBitSet(pev->flags, FL_ONGROUND)) {
+		if (FBitSet(pev->flags, FL_ONGROUND) || m_iJumpCount == 3) {
 			UTIL_MakeVectors(pev->angles);
 			pev->velocity = (gpGlobals->v_right * -300) + (gpGlobals->v_up * 400);
 			m_fFlipTime = gpGlobals->time + 0.75;
