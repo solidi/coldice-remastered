@@ -2710,7 +2710,13 @@ void CBasePlayer::Jump()
 		}
 
 		if (pev->velocity.Length2D() > 100 && m_iJumpCount == 3)
-			StartFrontFlip();
+		{
+			UTIL_MakeVectors(pev->angles);
+			if (DotProduct(pev->velocity, gpGlobals->v_forward) >= 0)
+				StartFrontFlip();
+			else
+				StartBackFlip();
+		}
 
 		return;
 	}
@@ -5704,7 +5710,7 @@ void CBasePlayer::StartBackFlip( void )
 		return;
 
 	if (m_fFlipTime < gpGlobals->time) {
-		if (FBitSet(pev->flags, FL_ONGROUND)) {
+		if (FBitSet(pev->flags, FL_ONGROUND) || m_iJumpCount == 3) {
 			UTIL_MakeVectors(pev->angles);
 			pev->velocity = (gpGlobals->v_forward * -300) + (gpGlobals->v_up * 400);
 			m_fFlipTime = gpGlobals->time + 0.75;
