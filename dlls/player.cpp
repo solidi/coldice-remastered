@@ -4191,6 +4191,30 @@ void CBasePlayer::PostThink()
 		m_fThawTime = gpGlobals->time + 0.1;
 	}
 
+	// Drive pev->punchangle every frame during an active flip so that weapon/projectile
+	// fire direction matches the animated view rotation.  PostThink runs after PM physics
+	// (which decays punchangle), so the value set here is what gets networked to the client
+	// and used for the next fire command.  The client no longer calls V_PunchAxis for flips;
+	// the networked punchangle handles the view.
+	// Suppress entirely in third-person: no view roll is visible and firing should remain
+	// in the player's facing direction.
+	if ( m_fFlipStartTime > 0 )
+	{
+		if ( gpGlobals->time >= m_fFlipTime || m_bIsThirdPerson || m_bAntiVomit )
+		{
+			// Flip finished, or client is in third-person (m_bIsThirdPerson),
+			// or client has cl_antivomit==1 (m_bAntiVomit — persistent preference, not reset here).
+			pev->punchangle = g_vecZero;
+			m_fFlipStartTime = 0;
+		}
+		else
+		{
+			float flipDuration = m_fFlipTime - m_fFlipStartTime;
+			float flipProgress = ( gpGlobals->time - m_fFlipStartTime ) / flipDuration;
+			pev->punchangle = m_vecFlipPunchAngle * flipProgress;
+		}
+	}
+
 pt_end:
 #if defined( CLIENT_WEAPONS )
 		// Decay timers on weapons
@@ -5683,10 +5707,8 @@ void CBasePlayer::StartRightFlip( void )
 			pev->velocity = (gpGlobals->v_right * 300) + (gpGlobals->v_up * 400);
 			m_fFlipTime = gpGlobals->time + 0.75;
 			SetAnimation( PLAYER_RIGHT_FLIP );
-			//UTIL_ScreenShake( pev->origin, 15.0, 55.0, 1.25, 15.0 );
-			MESSAGE_BEGIN( MSG_ONE, gmsgAcrobatics, NULL, pev );
-				WRITE_BYTE( ACROBATICS_ROLL_RIGHT );
-			MESSAGE_END();
+			m_fFlipStartTime = gpGlobals->time;
+			m_vecFlipPunchAngle = Vector( 0, 0, 360 );
 		}
 	}
 }
@@ -5709,9 +5731,8 @@ void CBasePlayer::StartLeftFlip( void )
 			pev->velocity = (gpGlobals->v_right * -300) + (gpGlobals->v_up * 400);
 			m_fFlipTime = gpGlobals->time + 0.75;
 			SetAnimation( PLAYER_LEFT_FLIP );
-			MESSAGE_BEGIN( MSG_ONE, gmsgAcrobatics, NULL, pev );
-				WRITE_BYTE( ACROBATICS_ROLL_LEFT );
-			MESSAGE_END();
+			m_fFlipStartTime = gpGlobals->time;
+			m_vecFlipPunchAngle = Vector( 0, 0, -360 );
 		}
 	}
 }
@@ -5734,9 +5755,12 @@ void CBasePlayer::StartBackFlip( void )
 			pev->velocity = (gpGlobals->v_forward * -300) + (gpGlobals->v_up * 400);
 			m_fFlipTime = gpGlobals->time + 0.75;
 			SetAnimation( PLAYER_BACK_FLIP );
+			// Maintain gun position
 			MESSAGE_BEGIN( MSG_ONE, gmsgAcrobatics, NULL, pev );
 				WRITE_BYTE( ACROBATICS_FLIP_BACK );
 			MESSAGE_END();
+			m_fFlipStartTime = gpGlobals->time;
+			m_vecFlipPunchAngle = Vector( -360, 0, 0 );
 		}
 	}
 }
@@ -5760,6 +5784,9 @@ void CBasePlayer::StartFrontFlip( void )
 			UTIL_MakeVectors(pev->angles);
 			pev->velocity = (gpGlobals->v_forward * 300) + (gpGlobals->v_up * 400);
 			SetAnimation( PLAYER_FRONT_FLIP );
+			m_fFlipStartTime = gpGlobals->time;
+			m_vecFlipPunchAngle = Vector( 360, 0, 0 );
+			// Maintain gun position
 			MESSAGE_BEGIN( MSG_ONE, gmsgAcrobatics, NULL, pev );
 				WRITE_BYTE( ACROBATICS_FLIP_FRONT );
 			MESSAGE_END();
@@ -5782,9 +5809,12 @@ void CBasePlayer::StartHurricaneKick( void )
 
 		m_fFlipTime = gpGlobals->time + 1.375;
 		SetAnimation( PLAYER_HURRICANE_KICK );
+		// Maintain gun position
 		MESSAGE_BEGIN( MSG_ONE, gmsgAcrobatics, NULL, pev );
 			WRITE_BYTE( ACROBATICS_HURRICANE_KICK );
 		MESSAGE_END();
+		m_fFlipStartTime = gpGlobals->time;
+		m_vecFlipPunchAngle = Vector( 0, -720, 0 );
 
 		EMIT_SOUND(ENT(pev), CHAN_VOICE, "fists_hurricane.wav", 1, ATTN_NORM);
 

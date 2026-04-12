@@ -421,6 +421,29 @@ Go to the trouble of combining multiple pellets into a single damage call.
 */
 void EV_HLDM_FireBullets( int idx, float *forward, float *right, float *up, int cShots, float *vecSrc, float *vecDirShooting, float flDistance, int iBulletType, int iTracerFreq, int *tracerCount, float flSpreadX, float flSpreadY )
 {
+	// For the local player, add punchangle to the bullet visual direction so that
+	// client-side traces (decals, tracers) match the server-side aim direction.
+	// The server uses v_angle + punchangle via GetAutoaimVector(); the event arrives
+	// with only v_angle in args->angles.  We recover the base angles from 'forward',
+	// then re-derive the entire forward/right/up frame with punchangle added.
+	extern vec3_t g_vecServerPunchAngle;
+	vec3_t adj_forward, adj_right, adj_up, adj_aim;
+	if ( EV_IsLocal( idx ) &&
+	     ( g_vecServerPunchAngle[0] != 0.0f ||
+	       g_vecServerPunchAngle[1] != 0.0f ||
+	       g_vecServerPunchAngle[2] != 0.0f ) )
+	{
+		vec3_t baseAngles;
+		VectorAngles( forward, baseAngles );
+		VectorAdd( baseAngles, g_vecServerPunchAngle, baseAngles );
+		AngleVectors( baseAngles, adj_forward, adj_right, adj_up );
+		VectorCopy( adj_forward, adj_aim );
+		forward        = adj_forward;
+		right          = adj_right;
+		up             = adj_up;
+		vecDirShooting = adj_aim;
+	}
+
 	int i;
 	pmtrace_t tr;
 	int iShot;

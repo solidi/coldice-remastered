@@ -1506,6 +1506,27 @@ void ClientCommand( edict_t *pEntity )
 		ALERT(at_console, "[gpGlobals->maxClients=%d]\n", gpGlobals->maxClients);
 	}
 #endif
+	else if ( FStrEq(pcmd, "ci_cam_on") )
+	{
+		// Sent by CAM_ToThirdPerson() on the client; tracks per-player third-person state
+		// so that server-side flip punchangle is suppressed for this player.
+		GetClassPtr((CBasePlayer *)pev)->m_bIsThirdPerson = TRUE;
+	}
+	else if ( FStrEq(pcmd, "ci_cam_off") )
+	{
+		// Sent by CAM_ToFirstPerson() on the client.
+		GetClassPtr((CBasePlayer *)pev)->m_bIsThirdPerson = FALSE;
+	}
+	else if ( FStrEq(pcmd, "ci_antivomit_on") )
+	{
+		// Client's cl_antivomit==1: suppress flip punchangle for this player.
+		GetClassPtr((CBasePlayer *)pev)->m_bAntiVomit = TRUE;
+	}
+	else if ( FStrEq(pcmd, "ci_antivomit_off") )
+	{
+		// Client's cl_antivomit==0: allow flip punchangle for this player.
+		GetClassPtr((CBasePlayer *)pev)->m_bAntiVomit = FALSE;
+	}
 	else if ( g_pGameRules->ClientCommand( GetClassPtr((CBasePlayer *)pev), pcmd ) )
 	{
 		// MenuSelect returns true only if the command is properly handled,  so don't print a warning

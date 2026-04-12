@@ -447,7 +447,10 @@ void CAM_ToThirdPerson(void)
 		
 		cam_ofs[ YAW ] = viewangles[ YAW ]; 
 		cam_ofs[ PITCH ] = viewangles[ PITCH ]; 
-		cam_ofs[ 2 ] = CAM_MIN_DIST; 
+		cam_ofs[ 2 ] = CAM_MIN_DIST;
+
+		// Notify the server so it can suppress flip punchangle for this player.
+		gEngfuncs.pfnServerCmd( "ci_cam_on\n" );
 	}
 
 	gEngfuncs.Cvar_SetValue( "cam_command", 0 );
@@ -455,6 +458,12 @@ void CAM_ToThirdPerson(void)
 
 void CAM_ToFirstPerson(void) 
 { 
+	if( cam_thirdperson )
+	{
+		// Notify the server so it restores normal flip punchangle for this player.
+		gEngfuncs.pfnServerCmd( "ci_cam_off\n" );
+	}
+
 	cam_thirdperson = 0;
 	
 	gEngfuncs.Cvar_SetValue( "cam_command", 0 );

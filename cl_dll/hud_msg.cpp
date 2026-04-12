@@ -88,6 +88,19 @@ void CHud :: MsgFunc_ViewMode( const char *pszName, int iSize, void *pbuf )
 	CAM_ToFirstPerson();
 }
 
+// Syncs cl_antivomit to the server whenever its value changes.  Called on InitHUD
+// (unconditional) and from MsgFunc_Acrobatics (lazy change-detection).
+static void SyncAntiVomitState( bool bForce = false )
+{
+	static float s_lastValue = -1.f;
+	float cur = cl_antivomit ? cl_antivomit->value : 0.f;
+	if ( bForce || cur != s_lastValue )
+	{
+		s_lastValue = cur;
+		gEngfuncs.pfnServerCmd( cur ? "ci_antivomit_on\n" : "ci_antivomit_off\n" );
+	}
+}
+
 void CHud :: MsgFunc_InitHUD( const char *pszName, int iSize, void *pbuf )
 {
 	// prepare all hud data
@@ -138,6 +151,9 @@ void CHud :: MsgFunc_InitHUD( const char *pszName, int iSize, void *pbuf )
 	gHUD.m_ChaosTime = 0;
 	gHUD.m_ChaosStartTime = 0;
 	gHUD.m_ChaosIncrement = 0;
+
+	// Force-sync cl_antivomit so the server has the right value from the start.
+	SyncAntiVomitState( true );
 }
 
 
@@ -199,24 +215,21 @@ int CHud :: MsgFunc_Acrobatics(const char *pszName, int iSize, void *pbuf )
 	if (CL_IsThirdPerson())
 		return 1;
 
+	// Lazily sync cl_antivomit to the server if it changed since last time.
+	SyncAntiVomitState();
+
 	BEGIN_READ( pbuf, iSize );
 	int mode = READ_BYTE();
 	int axis = 0, amount = 0;
 	float time = 1.0;
 	switch (mode)
 	{
-	case ACROBATICS_ROLL_RIGHT:
-		axis = ROLL;
-		amount = 360;
-		break;
-	case ACROBATICS_ROLL_LEFT:
-		axis = ROLL;
-		amount = -360;
-		break;
+	// Maintain gun position
 	case ACROBATICS_FLIP_BACK:
 		axis = PITCH;
 		amount = 360;
 		break;
+	// Maintain gun position
 	case ACROBATICS_FLIP_FRONT:
 		axis = PITCH;
 		amount = -360;
@@ -225,6 +238,7 @@ int CHud :: MsgFunc_Acrobatics(const char *pszName, int iSize, void *pbuf )
 		g_WallClimb = gEngfuncs.GetClientTime() + 1;
 		gHUD.m_WallClimb.m_iFlags |= HUD_ACTIVE;
 		break;
+	// Maintain gun position
 	case ACROBATICS_HURRICANE_KICK:
 		axis = YAW;
 		amount = -720;
@@ -235,8 +249,8 @@ int CHud :: MsgFunc_Acrobatics(const char *pszName, int iSize, void *pbuf )
 	}
 
 	if (amount > 0 || amount < 0) {
-		if (!cl_antivomit->value)
-			V_PunchAxis(axis, amount);
+		//if (!cl_antivomit->value)
+		//	V_PunchAxis(axis, amount);
 		g_AcrobatTime = gEngfuncs.GetClientTime() + time;
 	}
 

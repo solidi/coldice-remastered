@@ -110,6 +110,7 @@ int			v_cameraMode = CAM_MODE_FOCUS;
 qboolean	v_resetCamera = 1;
 
 vec3_t ev_punchangle;
+vec3_t g_vecServerPunchAngle;  // server-networked punchangle, updated each frame for use in event handlers
 
 cvar_t	*scr_ofsx;
 cvar_t	*scr_ofsy;
@@ -524,8 +525,14 @@ typedef struct
 
 void V_DoPunchAngles(struct ref_params_s *pparams)
 {
-	// Add in the punchangle, if any
-	VectorAdd ( pparams->viewangles, pparams->punchangle, pparams->viewangles );
+	// Add in the punchangle, if any.
+	// In third-person the flip animation plays on the player model, so skip rotating
+	// the camera — but leave pparams->punchangle intact so the server-authoritative
+	// weapon/projectile direction is unaffected.
+	VectorCopy( pparams->punchangle, g_vecServerPunchAngle );
+
+	if ( !CL_IsThirdPerson() )
+		VectorAdd ( pparams->viewangles, pparams->punchangle, pparams->viewangles );
 
 	// Include client side punch, too
 	VectorAdd ( pparams->viewangles, (float *)&ev_punchangle, pparams->viewangles);
@@ -785,7 +792,11 @@ void V_CalcNormalRefdef ( struct ref_params_s *pparams )
 
 	static float kF = 0, kF2 = 0, kR = 0, kR2 = 0, t1 = 0, t2 = 0;
 	if (cl_weaponsway->value == 1) {
-		if (!g_IronSight && g_AcrobatTime < gEngfuncs.GetClientTime()) {
+		bool bFlipping = g_AcrobatTime >= gEngfuncs.GetClientTime() ||
+		                 ( g_vecServerPunchAngle[0] != 0.0f ||
+		                   g_vecServerPunchAngle[1] != 0.0f ||
+		                   g_vecServerPunchAngle[2] != 0.0f );
+		if (!g_IronSight && !bFlipping) {
 			V_WeaponSway(pparams->cl_viewangles[YAW], pparams->frametime, pparams->time, view);
 			V_WeaponPull( pparams->time, pparams->frametime, view, pparams->cmd->forwardmove, pparams->forward, kF, kF2, t1, false );
 			V_WeaponPull( pparams->time, pparams->frametime, view, pparams->cmd->sidemove, pparams->right, kR, kR2, t2, true );
@@ -1016,8 +1027,10 @@ void V_CalcNormalRefdef ( struct ref_params_s *pparams )
 		ent->prevstate.angles[ 0 ] = pitch;
 		ent->latched.prevangles[ 0 ] = pitch;
 
-		// Add in the punchangle, if any
-		VectorAdd(pparams->viewangles, pparams->punchangle, pparams->viewangles);
+		// Punchangle view rotation is suppressed in third-person: the server still sets
+		// pev->punchangle for correct weapon/projectile aim, but we don't want the
+		// third-person camera to spin with the flip animation.
+		// VectorAdd(pparams->viewangles, pparams->punchangle, pparams->viewangles);
 
 		// Include client side punch, too
 		VectorAdd(pparams->viewangles, (float*)&ev_punchangle, pparams->viewangles);

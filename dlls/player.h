@@ -273,6 +273,10 @@ public:
 	float m_fFlipButtonTime;
 	int m_fFlipType;
 	int m_fKickCount;
+	float m_fFlipStartTime;     // gpGlobals->time when the current flip began
+	Vector m_vecFlipPunchAngle; // total punchangle to animate through (e.g. Vector(-360,0,0) for front flip)
+	BOOL m_bIsThirdPerson;      // TRUE when this player's client is in third-person view
+	BOOL m_bAntiVomit;          // TRUE when client's cl_antivomit==0; suppresses flip punchangle for one flip
 
 	void AutoMelee( void );
 	float m_flNextAutoMelee;
