@@ -210,15 +210,9 @@ void CSkullCharm::SkullTouch( CBaseEntity *pOther )
 			WRITE_SHORT( g_pGameRules->GetTeamIndex( pPlayer->m_szTeamName ) + 1 );
 		MESSAGE_END();
 
-		int frags = fraglimit.value;
+		int frags = fraglimit.value <= 0 ? 100 : fraglimit.value;
 		int myfrags = pPlayer->m_iRoundWins;
-		if (frags == 0)
-			frags = 100;
-		int result = (int)((float)myfrags / frags * 100);
-		if (result < 0)
-			result = 0;
-		else if (result > 100)
-			result = 100;
+		int result = fmin(fmax(0, (myfrags * 100) / frags), 100);
 		
 		if (!FBitSet(pPlayer->pev->flags, FL_FAKECLIENT))
 		{
@@ -258,12 +252,10 @@ void CHalfLifeColdSkull::InitHUD( CBasePlayer *pPlayer )
 
 	if (!FBitSet(pPlayer->pev->flags, FL_FAKECLIENT))
 	{
-		int frags = fraglimit.value;
-		if (frags == 0)
-			frags = 100;
+		int frags = fraglimit.value <= 0 ? 100 : fraglimit.value;
 		MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL, pPlayer->edict());
 			WRITE_STRING("Collect the skulls");
-			WRITE_STRING(UTIL_VarArgs("Your progress: 0 of %d", frags));
+			WRITE_STRING(UTIL_VarArgs("Skull limit is %d", frags));
 			WRITE_BYTE(0);
 			WRITE_STRING("");
 		MESSAGE_END();
@@ -285,6 +277,16 @@ void CHalfLifeColdSkull::PlayerSpawn( CBasePlayer* pPlayer )
 		pPlayer->pev->iuser3 = -1;
 		pPlayer->m_iObserverWeapon = 0; // Used as the menu option
 		pPlayer->m_iShowGameModeMessage = gpGlobals->time + 0.5;
+
+		int frags = fraglimit.value <= 0 ? 100 : fraglimit.value;
+		int progress = pPlayer->m_iRoundWins;
+		int percent = fmin(fmax(0, (progress * 100) / frags), 100);
+		MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL, pPlayer->edict());
+			WRITE_STRING("Collect the skulls");
+			WRITE_STRING(UTIL_VarArgs("Your progress: %d of %d", progress, frags));
+			WRITE_BYTE(percent);
+			WRITE_STRING("");
+		MESSAGE_END();
 	}
 }
 
@@ -376,15 +378,9 @@ void CHalfLifeColdSkull::PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller,
 		WRITE_SHORT( GetTeamIndex( pVictim->m_szTeamName ) + 1 );
 	MESSAGE_END();
 
-	int frags = fraglimit.value;
+	int frags = fraglimit.value <= 0 ? 100 : fraglimit.value;
 	int myfrags = pVictim->m_iRoundWins;
-	if (frags == 0)
-		frags = 100;
-	int result = (int)((float)myfrags / frags * 100);
-	if (result < 0)
-		result = 0;
-	else if (result > 100)
-		result = 100;
+	int result = fmin(fmax(0, (myfrags * 100) / frags), 100);
 	if (!FBitSet(pVictim->pev->flags, FL_FAKECLIENT))
 	{
 		MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, pVictim->edict());
