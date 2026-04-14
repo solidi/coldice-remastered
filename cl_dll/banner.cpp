@@ -19,14 +19,14 @@
 // Displays a centered banner with title and subtitle text for a specified duration.
 // Useful for team notifications, round start messages, and gameplay instructions.
 //
-// Usage from client-side:
-//   gHUD.m_Banner.ShowBanner("You are on team Smelters", "Do you smell what I smell?", 5.0f);
+// Client-side usage:
+//   gHUD.m_Banner.ShowBanner("You are on team Smelters", "Do you smell what I smell?", 8.0f);
 //
-// Server-side message format (not implemented yet):
-//   MESSAGE_BEGIN(MSG_ONE, gmsgBanner, NULL, pPlayer);
+// Server-side message format:
+//   MESSAGE_BEGIN(MSG_ONE, gmsgBanner, NULL, pPlayer->edict());
 //     WRITE_STRING("You are on team Smelters");  // Title
 //     WRITE_STRING("Do you smell what I smell?");  // Subtitle
-//     WRITE_BYTE(50);  // Duration in tenths of a second (50 = 5.0 seconds)
+//     WRITE_BYTE(80);  // Duration in tenths of a second (80 = 8.0 seconds)
 //   MESSAGE_END();
 //
 
