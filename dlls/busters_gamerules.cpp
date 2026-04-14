@@ -454,9 +454,12 @@ void CMultiplayBusters::PlayerGotWeapon( CBasePlayer* pPlayer, CBasePlayerItem* 
 		pPlayer->pev->health = pPlayer->pev->max_health;
 		pPlayer->pev->armorvalue = 100;
 
-		pPlayer->pev->renderfx = kRenderFxGlowShell;
-		pPlayer->pev->renderamt = 25;
-		pPlayer->pev->rendercolor = Vector( 0, 75, 250 );
+		if (!pPlayer->m_fHasRune)
+		{
+			pPlayer->pev->renderfx = kRenderFxGlowShell;
+			pPlayer->pev->renderamt = 25;
+			pPlayer->pev->rendercolor = Vector( 0, 75, 250 );
+		}
 
 		CBasePlayerWeapon *pEgon = (CBasePlayerWeapon*)pWeapon;
 

@@ -247,9 +247,12 @@ void CHalfLifeCaptureTheChumtoad::CaptureCharm( CBasePlayer *pPlayer )
 	pPlayer->m_iHoldingChumtoad = TRUE;
 	m_fChumtoadInPlay = TRUE;
 
-	pPlayer->pev->renderfx = kRenderFxGlowShell;
-	pPlayer->pev->renderamt = 10;
-	pPlayer->pev->rendercolor = Vector(0, 200, 0);
+	if (!pPlayer->m_fHasRune)
+	{
+		pPlayer->pev->renderfx = kRenderFxGlowShell;
+		pPlayer->pev->renderamt = 10;
+		pPlayer->pev->rendercolor = Vector(0, 200, 0);
+	}
 
 	pPlayer->pev->fuser4 = RADAR_CHUMTOAD;
 	pPlayer->m_fCameraDelay = 0;
