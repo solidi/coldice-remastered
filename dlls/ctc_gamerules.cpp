@@ -436,9 +436,9 @@ void CHalfLifeCaptureTheChumtoad::PlayerThink( CBasePlayer *pPlayer )
 					pPlayer->m_iChumtoadDropCounter--;
 			}
 
+			int secondsUntilPoint = ctcsecondsforpoint.value > 0 ? ctcsecondsforpoint.value : 10;
 			if (scoringPoints)
 			{
-				int secondsUntilPoint = ctcsecondsforpoint.value > 0 ? ctcsecondsforpoint.value : 10;
 				if (pPlayer->m_iChumtoadCounter % secondsUntilPoint == 0)
 				{
 					MESSAGE_BEGIN( MSG_ALL, gmsgScoreInfo );
@@ -469,7 +469,7 @@ void CHalfLifeCaptureTheChumtoad::PlayerThink( CBasePlayer *pPlayer )
 				UTIL_BloodDecalTrace(&tr, BLOOD_COLOR_YELLOW);
 			}
 
-			int percent = fmin(fmax(0, (pPlayer->m_iChumtoadCounter * 10)), 100);
+			int percent = (int)fmin(fmax(0.0f, ((float)pPlayer->m_iChumtoadCounter / secondsUntilPoint) * 100.0f), 100.0f);
 			MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, pPlayer->edict());
 				WRITE_STRING("Carrying the chumtoad!");
 				WRITE_STRING(message);
