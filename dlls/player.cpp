@@ -2454,9 +2454,14 @@ void CBasePlayer::ClimbingPhysics()
 	if (!acrobatics.value)
 		return;
 
+	// No observers
 	if (pev->iuser1)
 		return;
-	
+
+	// No bots
+	if (FBitSet(pev->flags, FL_FAKECLIENT))
+		return;
+
 	if (g_pGameRules->MutatorEnabled(MUTATOR_NOCLIP))
 		return;
 
