@@ -71,7 +71,7 @@ void CHalfLifeCaptureTheChumtoad::Think( void )
 		for (int i = 1; i <= gpGlobals->maxClients; i++ )
 		{
 			CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
-			if (plr && plr->IsPlayer() && !plr->m_iHoldingChumtoad)
+			if (plr && plr->IsPlayer() && !plr->HasDisconnected && !(plr->pev->flags & FL_FAKECLIENT) && !plr->m_iHoldingChumtoad)
 			{
 				MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, plr->edict());
 					if (plr->IsSpectator())
