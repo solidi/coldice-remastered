@@ -1034,9 +1034,12 @@ void CHalfLifeLoot::CaptureCharm( CBasePlayer *pPlayer )
 	pPlayer->m_fCameraDelay = 0;
 
 	// Green glow on holder
-	pPlayer->pev->renderfx    = kRenderFxGlowShell;
-	pPlayer->pev->renderamt   = 10;
-	pPlayer->pev->rendercolor = Vector(255, 117, 24);
+	if (!pPlayer->m_fHasRune)
+	{
+		pPlayer->pev->renderfx    = kRenderFxGlowShell;
+		pPlayer->pev->renderamt   = 10;
+		pPlayer->pev->rendercolor = Vector(255, 117, 24);
+	}
 	pPlayer->pev->fuser4      = RADAR_LOOT;
 
 	// Attach a green beam trail to the holder

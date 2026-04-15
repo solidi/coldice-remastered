@@ -550,9 +550,7 @@ void CRune::ShellPlayer(CBasePlayer *pPlayer, int r, int g, int b)
 
 	pPlayer->pev->renderfx = kRenderFxGlowShell;
 	pPlayer->pev->renderamt = 5;
-	pPlayer->pev->rendercolor.x = r;
-	pPlayer->pev->rendercolor.y = g;
-	pPlayer->pev->rendercolor.z = b;
+	pPlayer->pev->rendercolor = Vector(r, g, b);
 }
 
 //===================================================================
@@ -569,9 +567,7 @@ class CFragRune : public CRune
 		pev->body = RUNE_FRAG - 1;
 		pev->renderfx = kRenderFxGlowShell;
 		pev->renderamt = 5;
-		pev->rendercolor.x = 106;
-		pev->rendercolor.y = 13;
-		pev->rendercolor.z = 173;
+		pev->rendercolor = Vector(106, 13, 173);
 
 		MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
 			WRITE_BYTE( TE_PARTICLEBURST );
@@ -629,9 +625,7 @@ class CVampireRune : public CRune
 		pev->body = RUNE_VAMPIRE - 1;
 		pev->renderfx = kRenderFxGlowShell;
 		pev->renderamt = 5;
-		pev->rendercolor.x = 200;
-		pev->rendercolor.y = 0;
-		pev->rendercolor.z = 0;
+		pev->rendercolor = Vector(200, 0, 0);
 
 		MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
 			WRITE_BYTE( TE_PARTICLEBURST );
@@ -689,9 +683,7 @@ class CProtectRune : public CRune
 		pev->body = RUNE_PROTECT - 1;
 		pev->renderfx = kRenderFxGlowShell;
 		pev->renderamt = 5;
-		pev->rendercolor.x = 0;
-		pev->rendercolor.y = 200;
-		pev->rendercolor.z = 0;
+		pev->rendercolor = Vector(0, 200, 0);
 
 		MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
 			WRITE_BYTE( TE_PARTICLEBURST );
@@ -749,9 +741,7 @@ class CRegenRune : public CRune
 		pev->body = RUNE_REGEN - 1;
 		pev->renderfx = kRenderFxGlowShell;
 		pev->renderamt = 5;
-		pev->rendercolor.x = 200;
-		pev->rendercolor.y = 0;
-		pev->rendercolor.z = 200;
+		pev->rendercolor = Vector(200, 0, 200);
 
 		MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
 			WRITE_BYTE( TE_PARTICLEBURST );
@@ -809,9 +799,7 @@ class CHasteRune : public CRune
 		pev->body = RUNE_HASTE - 1;
 		pev->renderfx = kRenderFxGlowShell;
 		pev->renderamt = 5;
-		pev->rendercolor.x = 200;
-		pev->rendercolor.y = 128;
-		pev->rendercolor.z = 0;
+		pev->rendercolor = Vector(200, 128, 0);
 
 		MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
 			WRITE_BYTE( TE_PARTICLEBURST );
@@ -871,9 +859,7 @@ class CGravityRune : public CRune
 		pev->body = RUNE_GRAVITY - 1;
 		pev->renderfx = kRenderFxGlowShell;
 		pev->renderamt = 5;
-		pev->rendercolor.x = 0;
-		pev->rendercolor.y = 115;
-		pev->rendercolor.z = 230;
+		pev->rendercolor = Vector(0, 115, 230);
 
 		MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
 			WRITE_BYTE( TE_PARTICLEBURST );
@@ -932,9 +918,7 @@ class CStrengthRune : public CRune
 		pev->body = RUNE_STRENGTH - 1;
 		pev->renderfx = kRenderFxGlowShell;
 		pev->renderamt = 5;
-		pev->rendercolor.x = 106;
-		pev->rendercolor.y = 13;
-		pev->rendercolor.z = 173;
+		pev->rendercolor = Vector(106, 13, 173);
 
 		MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
 			WRITE_BYTE( TE_PARTICLEBURST );
@@ -992,9 +976,7 @@ class CCloakRune : public CRune
 		pev->body = RUNE_CLOAK - 1;
 		pev->renderfx = kRenderFxGlowShell;
 		pev->renderamt = 5;
-		pev->rendercolor.x = 200;
-		pev->rendercolor.y = 200;
-		pev->rendercolor.z = 200;
+		pev->rendercolor = Vector(200, 200, 200);
 
 		MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
 			WRITE_BYTE( TE_PARTICLEBURST );
@@ -1056,9 +1038,7 @@ class CAmmoRune : public CRune
 			pev->body = RUNE_AMMO - 1;
 		pev->renderfx = kRenderFxGlowShell;
 		pev->renderamt = 5;
-		pev->rendercolor.x = 200;
-		pev->rendercolor.y = 200;
-		pev->rendercolor.z = 0;
+		pev->rendercolor = Vector(200, 200, 0);
 
 		MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
 			WRITE_BYTE( TE_PARTICLEBURST );

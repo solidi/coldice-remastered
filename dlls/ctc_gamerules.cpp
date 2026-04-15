@@ -68,17 +68,27 @@ void CHalfLifeCaptureTheChumtoad::Think( void )
 
 		int playerCount = UTIL_GetPlayerCount();
 
-		MESSAGE_BEGIN(MSG_BROADCAST, gmsgObjective);
-			WRITE_STRING("Get the chumtoad");
-			if (m_pHolder)
-				WRITE_STRING(m_fChumtoadInPlay ? UTIL_VarArgs("%s has it!", STRING(m_pHolder->pev->netname)) : "The chumtoad is free");
-			else if ( playerCount > 1 )
-				WRITE_STRING(m_fChumtoadInPlay ? "The chumtoad is held" : "The chumtoad is free");
-			else
-				WRITE_STRING("Chumtoad waiting for players");
-			WRITE_BYTE(0);
-			WRITE_STRING("");
-		MESSAGE_END();
+		for (int i = 1; i <= gpGlobals->maxClients; i++ )
+		{
+			CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
+			if (plr && plr->IsPlayer() && !plr->HasDisconnected && !(plr->pev->flags & FL_FAKECLIENT) && !plr->m_iHoldingChumtoad)
+			{
+				MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, plr->edict());
+					if (plr->IsSpectator())
+						WRITE_STRING("Watching CtC");
+					else
+						WRITE_STRING("Get the chumtoad");
+					if (m_pHolder)
+						WRITE_STRING(m_fChumtoadInPlay ? UTIL_VarArgs("%s has it!", STRING(m_pHolder->pev->netname)) : "The chumtoad is free");
+					else if ( playerCount > 1 )
+						WRITE_STRING(m_fChumtoadInPlay ? "The chumtoad is held" : "The chumtoad is free");
+					else
+						WRITE_STRING("Chumtoad waiting for players");
+					WRITE_BYTE(0);
+					WRITE_STRING("");
+				MESSAGE_END();
+			}
+		}
 
 		// Find toad, remove extras
 		while (!FNullEnt(pEdict))
@@ -247,9 +257,12 @@ void CHalfLifeCaptureTheChumtoad::CaptureCharm( CBasePlayer *pPlayer )
 	pPlayer->m_iHoldingChumtoad = TRUE;
 	m_fChumtoadInPlay = TRUE;
 
-	pPlayer->pev->renderfx = kRenderFxGlowShell;
-	pPlayer->pev->renderamt = 10;
-	pPlayer->pev->rendercolor = Vector(0, 200, 0);
+	if (!pPlayer->m_fHasRune)
+	{
+		pPlayer->pev->renderfx = kRenderFxGlowShell;
+		pPlayer->pev->renderamt = 10;
+		pPlayer->pev->rendercolor = Vector(0, 200, 0);
+	}
 
 	pPlayer->pev->fuser4 = RADAR_CHUMTOAD;
 	pPlayer->m_fCameraDelay = 0;
@@ -402,14 +415,14 @@ void CHalfLifeCaptureTheChumtoad::PlayerThink( CBasePlayer *pPlayer )
 			if (pPlayer->pev->velocity.Length() > 50)
 			{
 				pPlayer->m_iChumtoadCounter++;
-				message = UTIL_VarArgs("Running with the Chumtoad!\nPoints: %d | Timer: %d", 
+				message = UTIL_VarArgs("Points: %d | Timer: %d", 
 						(int)pPlayer->m_iRoundWins, pPlayer->m_iChumtoadCounter);
 				scoringPoints = TRUE;
 				pPlayer->m_iChumtoadDropCounter = 10;
 			}
 			else
 			{
-				message = UTIL_VarArgs("Keep running to score points\nor the chumtoad will slip away!");
+				message = UTIL_VarArgs("Keep running to score points\n");
 
 				if (RANDOM_LONG(0, pPlayer->m_iChumtoadDropCounter) == 0 && pPlayer->m_pActiveItem)
 				{
@@ -423,9 +436,9 @@ void CHalfLifeCaptureTheChumtoad::PlayerThink( CBasePlayer *pPlayer )
 					pPlayer->m_iChumtoadDropCounter--;
 			}
 
+			int secondsUntilPoint = ctcsecondsforpoint.value > 0 ? ctcsecondsforpoint.value : 10;
 			if (scoringPoints)
 			{
-				int secondsUntilPoint = ctcsecondsforpoint.value > 0 ? ctcsecondsforpoint.value : 10;
 				if (pPlayer->m_iChumtoadCounter % secondsUntilPoint == 0)
 				{
 					MESSAGE_BEGIN( MSG_ALL, gmsgScoreInfo );
@@ -456,8 +469,13 @@ void CHalfLifeCaptureTheChumtoad::PlayerThink( CBasePlayer *pPlayer )
 				UTIL_BloodDecalTrace(&tr, BLOOD_COLOR_YELLOW);
 			}
 
-			pPlayer->DisplayHudMessage(message,
-			TXT_CHANNEL_GAME_INFO, -1, 0.83, 255, 255, 255, 0, 0.25, 0.25, 2, 0);
+			int percent = (int)fmin(fmax(0.0f, ((float)pPlayer->m_iChumtoadCounter / secondsUntilPoint) * 100.0f), 100.0f);
+			MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, pPlayer->edict());
+				WRITE_STRING("Carrying the chumtoad!");
+				WRITE_STRING(message);
+				WRITE_BYTE(percent);
+				WRITE_STRING("");
+			MESSAGE_END();
 		}
 	}
 
