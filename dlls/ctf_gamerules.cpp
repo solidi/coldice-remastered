@@ -225,7 +225,10 @@ void CFlagCharm::FlagTouch( CBaseEntity *pOther )
 								{
 									MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, plr->edict());
 										WRITE_STRING(UTIL_VarArgs("%s has the flag!", STRING(pPlayer->pev->netname)));
-										WRITE_STRING(UTIL_VarArgs("You're on %s team", (pPlayer->pev->fuser4 == TEAM_RED) ? "red" : "blue"));
+										if (!plr->IsSpectator())
+											WRITE_STRING(UTIL_VarArgs("You're on %s team", (plr->pev->fuser4 == TEAM_RED) ? "red" : "blue"));
+										else
+											WRITE_STRING(UTIL_VarArgs("You're spectating"));
 										WRITE_BYTE(0);
 										WRITE_STRING("");
 									MESSAGE_END();
@@ -405,7 +408,10 @@ void CFlagBase::CTFTouch( CBaseEntity *pOther )
 							{
 								MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, plr->edict());
 									WRITE_STRING(UTIL_VarArgs("Capture the %s flag", (plr->pev->fuser4 == TEAM_RED) ? "blue" : "red"));
-									WRITE_STRING(UTIL_VarArgs("You're on %s team", (pPlayer->pev->fuser4 == TEAM_RED) ? "red" : "blue"));
+									if (!plr->IsSpectator())
+										WRITE_STRING(UTIL_VarArgs("You're on %s team", (plr->pev->fuser4 == TEAM_RED) ? "red" : "blue"));
+									else
+										WRITE_STRING(UTIL_VarArgs("You're spectating"));
 									WRITE_BYTE(0);
 									WRITE_STRING("");
 								MESSAGE_END();
@@ -904,7 +910,10 @@ CBaseEntity *CHalfLifeCaptureTheFlag::DropCharm( CBasePlayer *pPlayer, Vector or
 					{
 						MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, plr->edict());
 							WRITE_STRING(UTIL_VarArgs("%s has the flag!", STRING(pPlayerWithFlag->pev->netname)));
-							WRITE_STRING(UTIL_VarArgs("You're on %s team", (plr->pev->fuser4 == TEAM_RED) ? "red" : "blue"));
+							if (!plr->IsSpectator())
+								WRITE_STRING(UTIL_VarArgs("You're on %s team", (plr->pev->fuser4 == TEAM_RED) ? "red" : "blue"));
+							else
+								WRITE_STRING(UTIL_VarArgs("You're spectating"));
 							WRITE_BYTE(0);
 							WRITE_STRING("");
 						MESSAGE_END();
@@ -913,7 +922,10 @@ CBaseEntity *CHalfLifeCaptureTheFlag::DropCharm( CBasePlayer *pPlayer, Vector or
 					{
 						MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, plr->edict());
 							WRITE_STRING(UTIL_VarArgs("Capture the %s flag", (plr->pev->fuser4 == TEAM_RED) ? "blue" : "red"));
-							WRITE_STRING(UTIL_VarArgs("You're on %s team", (plr->pev->fuser4 == TEAM_RED) ? "red" : "blue"));
+							if (!plr->IsSpectator())
+								WRITE_STRING(UTIL_VarArgs("You're on %s team", (plr->pev->fuser4 == TEAM_RED) ? "red" : "blue"));
+							else
+								WRITE_STRING(UTIL_VarArgs("You're spectating"));
 							WRITE_BYTE(0);
 							WRITE_STRING("");
 						MESSAGE_END();
