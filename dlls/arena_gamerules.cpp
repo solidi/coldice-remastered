@@ -25,7 +25,6 @@
 #include "voice_gamemgr.h"
 
 extern int gmsgShowTimer;
-extern int gmsgStatusText;
 extern int gmsgObjective;
 extern int gmsgPlayClientSound;
 extern int gmsgScoreInfo;
@@ -191,24 +190,6 @@ void CHalfLifeArena::Think( void )
 			//player must exist
 			if ( plr && plr->IsPlayer() && !plr->HasDisconnected )
 			{
-				if (plr == pPlayer1 || plr == pPlayer2)
-				{
-					char message[64];
-					if (plr == pPlayer1)
-						sprintf(message, "Fighting %s", STRING(pPlayer2->pev->netname));
-					else
-						sprintf(message, "Fighting %s", STRING(pPlayer1->pev->netname));
-
-					if (!FBitSet(plr->pev->flags, FL_FAKECLIENT))
-					{
-						MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgStatusText, NULL, plr->edict() );
-							WRITE_BYTE( 0 );
-							WRITE_BYTE( ENTINDEX(plr->edict()) );
-							WRITE_STRING( message );
-						MESSAGE_END();
-					}
-				}
-
 				// Force spectate on those that died.
 				if ( plr != pPlayer1 && plr != pPlayer2 &&
 					plr->m_flForceToObserverTime && plr->m_flForceToObserverTime < gpGlobals->time )
