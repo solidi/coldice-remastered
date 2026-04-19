@@ -139,7 +139,7 @@ static void GetRadarColor(int special, int &r, int &g, int &b)
 	}
 	else
 	{
-		UnpackRGB(r, g, b, RGB_YELLOWISH);
+		UnpackRGB(r, g, b, HudColor());
 	}
 }
 
