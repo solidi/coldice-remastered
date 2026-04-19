@@ -1364,6 +1364,7 @@ void ClientCommand( edict_t *pEntity )
 	else if ( FStrEq( pcmd, "help_more" )  )
 	{
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "[Client Help More]\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_compass [0|1]\" enables or disables player HUD compass\n" );
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_radar [0|1]\" enables or disables player radar\n" );
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_righthand [0|1|-1]\" - Left/Right Handed Models, or left knife\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_showposition [0|1]\" - Show leaderboard position\n" );

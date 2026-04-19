@@ -28,7 +28,22 @@
 #define EDGE_INDICATOR_ALPHA_RANGE 			155			// Alpha range for distance calculation
 #define EDGE_INDICATOR_STALE_TIMEOUT 		60.0f		// Server data stale timeout (seconds)
 
+// Compass Bar Configuration
+#define COMPASS_FOV 					120.0f		// Visible angular range in degrees
+#define COMPASS_HALF_FOV 				(COMPASS_FOV / 2.0f)
+#define COMPASS_BAR_WIDTH_FRAC 			0.5f		// Fraction of ScreenWidth
+#define COMPASS_Y_OFFSET 				YRES(36)		// Top margin in pixels
+#define COMPASS_LINE_THICKNESS 			1			// Horizontal line height
+#define COMPASS_TICK_HEIGHT 			YRES(4)		// Small tick mark height
+#define COMPASS_CARDINAL_TICK_HEIGHT 	YRES(6)		// Tall tick for N/E/S/W
+#define COMPASS_TICK_SPACING 			15.0f		// Degrees between small ticks
+#define COMPASS_TARGET_TRI_WIDTH 		XRES(6)		// Target triangle width
+#define COMPASS_TARGET_TRI_HEIGHT 		YRES(6)		// Target triangle height
+#define COMPASS_LINE_ALPHA 				140			// Compass line/tick alpha
+#define COMPASS_CARDINAL_ALPHA 			180			// Cardinal letter alpha
+
 extern cvar_t *cl_radar;
+extern cvar_t *cl_compass;
 
 #ifdef _DEBUG
 cvar_t *debug_radar = NULL;
@@ -86,6 +101,54 @@ int CHudRadar::MsgFunc_SpecEnt(const char *pszName, int iSize, void *pbuf)
 	return 1;
 }
 
+static void GetRadarColor(int special, int &r, int &g, int &b)
+{
+	if (special == RADAR_TEAM_RED ||
+		special == RADAR_BUSTER ||
+		special == RADAR_VIRUS ||
+		special == RADAR_HORDE ||
+		special == RADAR_FLAG_RED ||
+		special == RADAR_BASE_RED ||
+		special == RADAR_ARENA_RED)
+	{
+		r = 240; g = 0; b = 0;
+	}
+	else if (special == RADAR_TEAM_BLUE)
+	{
+		r = 0; g = 160; b = 240;
+	}
+	else if (special == RADAR_JESUS ||
+			 special == RADAR_FLAG_BLUE || special == RADAR_BASE_BLUE ||
+			 special == RADAR_ARENA_BLUE)
+	{
+		r = 0; g = 0; b = 240;
+	}
+	else if (special == RADAR_COLD_SPOT || special == RADAR_CHUMTOAD)
+	{
+		r = 0; g = 240; b = 0;
+	}
+	else if (special == RADAR_LOOT)
+	{
+		r = 255; g = 117; b = 24;
+	}
+	else if (special == RADAR_SNOWBALL)
+	{
+		r = 255; g = 255; b = 255;
+	}
+	else if (special == RADAR_TEAM_YELLOW)
+	{
+		r = 240; g = 240; b = 0;
+	}
+	else if (special == RADAR_TEAM_GREEN)
+	{
+		r = 0; g = 240; b = 0;
+	}
+	else
+	{
+		UnpackRGB(r, g, b, RGB_YELLOWISH);
+	}
+}
+
 void CHudRadar::DrawInWorldIndicator(Vector worldOrigin, float distance, int special)
 {
 	// Raise the indicator these units above the target's origin
@@ -116,30 +179,7 @@ void CHudRadar::DrawInWorldIndicator(Vector worldOrigin, float distance, int spe
 	
 	// Color based on special type
 	int r, g, b;
-	if (special == RADAR_BASE_RED ||
-		special == RADAR_HORDE ||
-		special == RADAR_TEAM_RED ||
-		special == RADAR_VIRUS)
-	{
-		r = 240; g = 0; b = 0; // Red for RADAR_BASE_RED
-	}
-	else if (special == RADAR_BASE_BLUE ||
-			special == RADAR_TEAM_BLUE)
-	{
-		r = 0; g = 0; b = 240; // Blue for RADAR_BASE_BLUE
-	}
-	else if (special == RADAR_TEAM_YELLOW)
-	{
-		r = 240; g = 240; b = 0; // Yellow for RADAR_TEAM_YELLOW
-	}
-	else if (special == RADAR_LOOT)
-	{
-		r = 255; g = 117; b = 24; // Orange for RADAR_LOOT
-	}
-	else
-	{
-		r = 0; g = 240; b = 0; // Green for RADAR_COLD_SPOT
-	}
+	GetRadarColor(special, r, g, b);
 	
 	// Alpha based on distance
 	int alpha = (int)(EDGE_INDICATOR_ALPHA_MAX - (distance / (MAX_DISTANCE * 2)) * EDGE_INDICATOR_ALPHA_RANGE);
@@ -166,6 +206,132 @@ void CHudRadar::DrawInWorldIndicator(Vector worldOrigin, float distance, int spe
 		sprintf(distText, "%d ft", distanceFeet);
 		int textWidth = gHUD.m_scrinfo.charWidths['0'] * strlen(distText);
 		gHUD.DrawHudString(x - textWidth / 2, y + triH + 2, ScreenWidth, distText, r, g, b);
+	}
+}
+
+static float NormalizeAngle180(float angle)
+{
+	while (angle > 180.0f) angle -= 360.0f;
+	while (angle < -180.0f) angle += 360.0f;
+	return angle;
+}
+
+void CHudRadar::DrawCompass(void)
+{
+	int r, g, b;
+	UnpackRGB(r, g, b, HudColor());
+
+	// Get player yaw
+	Vector vAngles;
+	gEngfuncs.GetViewAngles((float*)vAngles);
+	float playerYaw = vAngles.y;
+	if (playerYaw < 0)
+		playerYaw += 360.0f;
+
+	// Compass bar geometry
+	int barWidth = (int)(ScreenWidth * COMPASS_BAR_WIDTH_FRAC);
+	int barX = (ScreenWidth - barWidth) / 2;
+	int barY = COMPASS_Y_OFFSET;
+
+	// Draw horizontal line
+	FillRGBA(barX, barY, barWidth, COMPASS_LINE_THICKNESS, r, g, b, COMPASS_LINE_ALPHA);
+
+	int barCenterX = barX + barWidth / 2;
+	float pixelsPerDegree = (float)barWidth / COMPASS_FOV;
+
+	// Draw tick marks and cardinal directions
+	static const char *cardinals[] = { "N", "E", "S", "W" };
+	static const float cardinalAngles[] = { 0.0f, 90.0f, 180.0f, 270.0f };
+
+	for (float tickAngle = 0.0f; tickAngle < 360.0f; tickAngle += COMPASS_TICK_SPACING)
+	{
+		float diff = NormalizeAngle180(tickAngle - playerYaw);
+		if (fabs(diff) > COMPASS_HALF_FOV)
+			continue;
+
+		int tickX = barCenterX + (int)(diff * pixelsPerDegree);
+
+		// Check if this is a cardinal direction
+		bool isCardinal = false;
+		const char *cardinalLabel = NULL;
+		for (int c = 0; c < 4; c++)
+		{
+			if (fabs(tickAngle - cardinalAngles[c]) < 0.1f)
+			{
+				isCardinal = true;
+				cardinalLabel = cardinals[c];
+				break;
+			}
+		}
+
+		if (isCardinal)
+		{
+			int tickH = COMPASS_CARDINAL_TICK_HEIGHT;
+			FillRGBA(tickX, barY - tickH, 1, tickH, r, g, b, COMPASS_CARDINAL_ALPHA);
+
+			// Draw cardinal letter above the tick
+			int charWidth = gHUD.m_scrinfo.charWidths[(unsigned char)cardinalLabel[0]];
+			int textY = barY - tickH - gHUD.m_scrinfo.iCharHeight;
+			char buf[2] = { cardinalLabel[0], '\0' };
+			gHUD.DrawHudString(tickX - charWidth / 2, textY, ScreenWidth, buf, r, g, b);
+		}
+		else
+		{
+			int tickH = COMPASS_TICK_HEIGHT;
+			FillRGBA(tickX, barY - tickH, 1, tickH, r, g, b, COMPASS_LINE_ALPHA);
+		}
+	}
+
+	// Draw target markers from PVS radar data
+	int num_players = gHUD.m_PlayersInRadar;
+	cl_entity_t *localPlayer = gEngfuncs.GetLocalPlayer();
+
+	for (int index = 0; index < num_players; index++)
+	{
+		// Skip self
+		if ((localPlayer->index - 1) == index)
+			continue;
+
+		int special = m_RadarInfo[index].special;
+
+		// Only show special entities (same filter as edge indicators)
+		//if (!special)
+		//	continue;
+		//if (special < RADAR_COLD_SPOT)
+		//	continue;
+
+		// Map the radar angle onto the compass
+		// m_RadarInfo[].angle is already relative to view (view_angle - entity_angle)
+		float angleDiff = NormalizeAngle180(m_RadarInfo[index].angle);
+		if (fabs(angleDiff) > COMPASS_HALF_FOV)
+			continue;
+
+		int targetX = barCenterX + (int)(angleDiff * pixelsPerDegree);
+
+		// Get target color
+		int tr, tg, tb;
+		GetRadarColor(special, tr, tg, tb);
+
+		// Draw small downward triangle below the compass line
+		int triW = COMPASS_TARGET_TRI_WIDTH;
+		int triH = COMPASS_TARGET_TRI_HEIGHT;
+		int triTop = barY + 2;
+		for (int i = 0; i < triH; i++)
+		{
+			int width = triW - (i * triW) / triH;
+			FillRGBA(targetX - width / 2, triTop + i, width, 1, tr, tg, tb, 200);
+		}
+
+		// Draw distance text below triangle (skip if <= 12 ft)
+		float distance = m_RadarInfo[index].distance;
+		int distanceFeet = (int)(distance * 0.01904f * 3.28084f);
+		if (distanceFeet > 12)
+		{
+			char distText[16];
+			sprintf(distText, "%d ft", distanceFeet);
+			int textWidth = gHUD.m_scrinfo.charWidths['0'] * strlen(distText);
+			gHUD.DrawHudString(targetX - textWidth / 2, triTop + triH + 1, ScreenWidth, distText, tr, tg, tb);
+		}
 	}
 }
 
@@ -259,43 +425,7 @@ void CHudRadar::DrawEdgeIndicator(int centerX, int centerY, float angle, float d
 	
 	// Color based on special type
 	int r, g, b;
-	if (special == RADAR_TEAM_RED ||
-		special == RADAR_BUSTER || 
-		special == RADAR_VIRUS ||
-		special == RADAR_HORDE ||
-		special == RADAR_FLAG_RED ||
-		special == RADAR_BASE_RED ||
-		special == RADAR_ARENA_RED)
-	{
-		// Red for special targets (chumtoad, etc.)
-		r = 240; g = 0; b = 0;
-	}
-	else if (special == RADAR_TEAM_BLUE || special == RADAR_JESUS || 
-			 special == RADAR_FLAG_BLUE || special == RADAR_BASE_BLUE ||
-			 special == RADAR_ARENA_BLUE)
-	{
-		// Blue
-		r = 0; g = 0; b = 240;
-	}
-	else if (special == RADAR_COLD_SPOT || special == RADAR_CHUMTOAD)
-	{
-		// Green
-		r = 0; g = 240; b = 0;
-	}
-	else if (special == RADAR_LOOT)
-	{
-		// Orange
-		r = 255; g = 117; b = 24;
-	}
-	else if (special == RADAR_SNOWBALL)
-	{
-		// White
-		r = 255; g = 255; b = 255;
-	}
-	else
-	{
-		UnpackRGB(r, g, b, RGB_YELLOWISH);
-	}
+	GetRadarColor(special, r, g, b);
 	
 	// Draw large triangle pointing toward target
 	// Don't draw if too close (within min distance)
@@ -636,6 +766,9 @@ int CHudRadar::Draw(float flTime)
 
 	ProcessPlayerState();
 
+	if (cl_compass->value)
+		DrawCompass();
+
 	UnpackRGB(r, g, b, HudColor());
 
 	x = 0;
@@ -691,7 +824,6 @@ int CHudRadar::Draw(float flTime)
 			if (gHUD.m_GameMode != GAME_ICEMAN &&
 				m_RadarInfo[index].special != RADAR_TEAM_RED)
 				size *= 2;
-			fr = 240; fg = 0; fb = 0;
 		}
 
 		if (m_RadarInfo[index].special == RADAR_TEAM_BLUE ||
@@ -702,12 +834,6 @@ int CHudRadar::Draw(float flTime)
 		{
 			if (m_RadarInfo[index].special != RADAR_TEAM_BLUE)
 				size *= 2;
-			fr = 0; fg = 160; fb = 240;
-		}
-
-		if (m_RadarInfo[index].special == RADAR_TEAM_YELLOW)
-		{
-			fr = 240; fg = 240; fb = 0;
 		}
 
 		if (m_RadarInfo[index].special == RADAR_COLD_SPOT ||
@@ -716,20 +842,19 @@ int CHudRadar::Draw(float flTime)
 		{
 			if (m_RadarInfo[index].special != RADAR_TEAM_GREEN)
 				size *= 2;
-			fr = 0; fg = 240; fb = 0;
 		}
 
 		if (m_RadarInfo[index].special == RADAR_LOOT)
 		{
 			size *= 2;
-			fr = 255; fg = 117; fb = 24;
 		}
 
 		if (m_RadarInfo[index].special == RADAR_SNOWBALL)
 		{
 			size *= 2;
-			fr = 255; fg = 255; fb = 255;
 		}
+
+		GetRadarColor(m_RadarInfo[index].special, fr, fg, fb);
 
 		// Highlight yourself in grey/white
 		if ((gEngfuncs.GetLocalPlayer()->index - 1) == index)
