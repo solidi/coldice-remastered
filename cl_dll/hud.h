@@ -699,8 +699,9 @@ public:
 	int VidInit( void );
 	int Draw(float flTime);
 	void ProcessPlayerState( void );
-	void DrawEdgeIndicator(int centerX, int centerY, float angle, float distance, int special, float zDiff);
+	void DrawBehindIndicator(float angle, float distance, int special);
 	void DrawInWorldIndicator(Vector worldOrigin, float distance, int special);
+	void DrawCompass(void);
 	int MsgFunc_SpecEnt(const char *pszName, int iSize, void *pbuf);
 
 private:

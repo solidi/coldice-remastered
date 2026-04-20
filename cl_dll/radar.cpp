@@ -11,24 +11,33 @@
 #define PI_180 (3.14159265358979 / 180.0)
 #define MAX_DISTANCE 1000
 
-// Edge Indicator Configuration
-#define EDGE_INDICATOR_MIN_DISTANCE 		64.0f		// Distance at which arrow disappears completely
-#define EDGE_INDICATOR_FLIP_DISTANCE 		512.0f		// Distance at which arrow flips to point toward center
-#define EDGE_INDICATOR_Z_CHECK_DISTANCE 	512.0f		// Distance threshold for Z-axis vertical edge forcing
-#define EDGE_INDICATOR_Z_THRESHOLD 			96.0f		// Z-axis difference to force vertical edge (above/below)
-#define EDGE_INDICATOR_Z_CLOSE_DISTANCE 	128.0f		// Z-axis distance to enable pull-in behavior
-#define EDGE_INDICATOR_SCREEN_MARGIN 		20			// Pixel margin from screen edge
-#define EDGE_INDICATOR_SIZE_WIDTH 			XRES(20)	// Arrow width in pixels
-#define EDGE_INDICATOR_SIZE_HEIGHT 			YRES(20)	// Arrow height in pixels
-#define EDGE_INDICATOR_PULSE_FREQUENCY 		3.5f		// Pulse animation frequency (Hz)
-#define EDGE_INDICATOR_PULSE_AMPLITUDE 		0.3f		// Pulse amplitude modifier
-#define EDGE_INDICATOR_PULSE_OFFSET 		0.7f		// Pulse baseline offset
-#define EDGE_INDICATOR_ALPHA_MIN 			100			// Minimum alpha value
-#define EDGE_INDICATOR_ALPHA_MAX 			255			// Maximum alpha value
-#define EDGE_INDICATOR_ALPHA_RANGE 			155			// Alpha range for distance calculation
-#define EDGE_INDICATOR_STALE_TIMEOUT 		60.0f		// Server data stale timeout (seconds)
+// Behind Indicator Configuration
+#define BEHIND_INDICATOR_MAX_DISTANCE 		448.0f		// Max distance (~28 ft) for behind warning
+#define BEHIND_INDICATOR_SCREEN_MARGIN 		20			// Pixel margin from screen edge
+#define BEHIND_INDICATOR_SIZE_WIDTH 			XRES(20)	// Arrow width in pixels
+#define BEHIND_INDICATOR_SIZE_HEIGHT 		YRES(20)	// Arrow height in pixels
+#define BEHIND_INDICATOR_PULSE_FREQUENCY 	3.5f		// Pulse animation frequency (Hz)
+#define BEHIND_INDICATOR_PULSE_AMPLITUDE 	0.3f		// Pulse amplitude modifier
+#define BEHIND_INDICATOR_PULSE_OFFSET 		0.7f		// Pulse baseline offset
+#define BEHIND_INDICATOR_ALPHA_MIN 			100			// Minimum alpha value
+#define BEHIND_INDICATOR_ALPHA_MAX 			255			// Maximum alpha value
+
+// Compass Bar Configuration
+#define COMPASS_FOV 					120.0f		// Visible angular range in degrees
+#define COMPASS_HALF_FOV 				(COMPASS_FOV / 2.0f)
+#define COMPASS_BAR_WIDTH_FRAC 			0.5f		// Fraction of ScreenWidth
+#define COMPASS_Y_OFFSET 				YRES(36)		// Top margin in pixels
+#define COMPASS_LINE_THICKNESS 			1			// Horizontal line height
+#define COMPASS_TICK_HEIGHT 			YRES(4)		// Small tick mark height
+#define COMPASS_CARDINAL_TICK_HEIGHT 	YRES(6)		// Tall tick for N/E/S/W
+#define COMPASS_TICK_SPACING 			15.0f		// Degrees between small ticks
+#define COMPASS_TARGET_TRI_WIDTH 		XRES(6)		// Target triangle width
+#define COMPASS_TARGET_TRI_HEIGHT 		YRES(6)		// Target triangle height
+#define COMPASS_LINE_ALPHA 				140			// Compass line/tick alpha
+#define COMPASS_CARDINAL_ALPHA 			180			// Cardinal letter alpha
 
 extern cvar_t *cl_radar;
+extern cvar_t *cl_compass;
 
 #ifdef _DEBUG
 cvar_t *debug_radar = NULL;
@@ -86,6 +95,54 @@ int CHudRadar::MsgFunc_SpecEnt(const char *pszName, int iSize, void *pbuf)
 	return 1;
 }
 
+static void GetRadarColor(int special, int &r, int &g, int &b)
+{
+	if (special == RADAR_TEAM_RED ||
+		special == RADAR_BUSTER ||
+		special == RADAR_VIRUS ||
+		special == RADAR_HORDE ||
+		special == RADAR_FLAG_RED ||
+		special == RADAR_BASE_RED ||
+		special == RADAR_ARENA_RED)
+	{
+		r = 240; g = 0; b = 0;
+	}
+	else if (special == RADAR_TEAM_BLUE)
+	{
+		r = 0; g = 160; b = 240;
+	}
+	else if (special == RADAR_JESUS ||
+			 special == RADAR_FLAG_BLUE || special == RADAR_BASE_BLUE ||
+			 special == RADAR_ARENA_BLUE)
+	{
+		r = 0; g = 0; b = 240;
+	}
+	else if (special == RADAR_COLD_SPOT || special == RADAR_CHUMTOAD)
+	{
+		r = 0; g = 240; b = 0;
+	}
+	else if (special == RADAR_LOOT)
+	{
+		r = 255; g = 117; b = 24;
+	}
+	else if (special == RADAR_SNOWBALL)
+	{
+		r = 255; g = 255; b = 255;
+	}
+	else if (special == RADAR_TEAM_YELLOW)
+	{
+		r = 240; g = 240; b = 0;
+	}
+	else if (special == RADAR_TEAM_GREEN)
+	{
+		r = 0; g = 240; b = 0;
+	}
+	else
+	{
+		UnpackRGB(r, g, b, HudColor());
+	}
+}
+
 void CHudRadar::DrawInWorldIndicator(Vector worldOrigin, float distance, int special)
 {
 	// Raise the indicator these units above the target's origin
@@ -110,48 +167,25 @@ void CHudRadar::DrawInWorldIndicator(Vector worldOrigin, float distance, int spe
 	int y = (int)((1.0f - screenPos[1]) * 0.5f * ScreenHeight);
 	
 	// Only draw if on screen
-	int margin = EDGE_INDICATOR_SCREEN_MARGIN;
+	int margin = 20;
 	if (x < margin || x > ScreenWidth - margin || y < margin || y > ScreenHeight - margin)
 		return;
 	
 	// Color based on special type
 	int r, g, b;
-	if (special == RADAR_BASE_RED ||
-		special == RADAR_HORDE ||
-		special == RADAR_TEAM_RED ||
-		special == RADAR_VIRUS)
-	{
-		r = 240; g = 0; b = 0; // Red for RADAR_BASE_RED
-	}
-	else if (special == RADAR_BASE_BLUE ||
-			special == RADAR_TEAM_BLUE)
-	{
-		r = 0; g = 0; b = 240; // Blue for RADAR_BASE_BLUE
-	}
-	else if (special == RADAR_TEAM_YELLOW)
-	{
-		r = 240; g = 240; b = 0; // Yellow for RADAR_TEAM_YELLOW
-	}
-	else if (special == RADAR_LOOT)
-	{
-		r = 255; g = 117; b = 24; // Orange for RADAR_LOOT
-	}
-	else
-	{
-		r = 0; g = 240; b = 0; // Green for RADAR_COLD_SPOT
-	}
+	GetRadarColor(special, r, g, b);
 	
 	// Alpha based on distance
-	int alpha = (int)(EDGE_INDICATOR_ALPHA_MAX - (distance / (MAX_DISTANCE * 2)) * EDGE_INDICATOR_ALPHA_RANGE);
-	alpha = fmax(EDGE_INDICATOR_ALPHA_MIN, fmin(EDGE_INDICATOR_ALPHA_MAX, alpha));
+	int alpha = (int)(255 - (distance / (MAX_DISTANCE * 2)) * 155);
+	alpha = fmax(100, fmin(255, alpha));
 	
 	// Pulse effect
-	float pulse = sin(gEngfuncs.GetClientTime() * EDGE_INDICATOR_PULSE_FREQUENCY) * EDGE_INDICATOR_PULSE_AMPLITUDE + EDGE_INDICATOR_PULSE_OFFSET;
+	float pulse = sin(gEngfuncs.GetClientTime() * 3.5f) * 0.3f + 0.7f;
 	alpha = (int)(alpha * pulse);
 	
 	// Draw downward-pointing triangle (tip at bottom)
-	int triW = EDGE_INDICATOR_SIZE_WIDTH - XRES(10); // Slightly narrower than defined size for better proportions
-	int triH = EDGE_INDICATOR_SIZE_HEIGHT - YRES(12); // Slightly shorter than defined size for better proportions
+	int triW = XRES(10);
+	int triH = YRES(8);
 	for (int i = 0; i < triH; i++)
 	{
 		int width = triW - (i * triW) / triH;
@@ -169,311 +203,230 @@ void CHudRadar::DrawInWorldIndicator(Vector worldOrigin, float distance, int spe
 	}
 }
 
-void CHudRadar::DrawEdgeIndicator(int centerX, int centerY, float angle, float distance, int special, float zDiff)
+static float NormalizeAngle180(float angle)
 {
-	float radians = angle * PI_180;
-	
-	// Calculate direction vector
-	float dirX = sin(radians);
-	float dirY = -cos(radians); // Negative because screen Y is inverted
-	
-	// Override edge calculation if target is significantly above or below
-	// BUT only if within reasonable proximity (less than 256 units away)
-	// Threshold: 96 units in Z-axis
-	bool forceVerticalEdge = false;
-	bool forceTop = false;
-	bool forceBottom = false;
-	
-	if (distance < EDGE_INDICATOR_Z_CHECK_DISTANCE)
+	while (angle > 180.0f) angle -= 360.0f;
+	while (angle < -180.0f) angle += 360.0f;
+	return angle;
+}
+
+void CHudRadar::DrawCompass(void)
+{
+	int r, g, b;
+	UnpackRGB(r, g, b, HudColor());
+
+	// Get player yaw
+	Vector vAngles;
+	gEngfuncs.GetViewAngles((float*)vAngles);
+	float playerYaw = vAngles.y;
+	if (playerYaw < 0)
+		playerYaw += 360.0f;
+
+	// Compass bar geometry
+	int barWidth = (int)(ScreenWidth * COMPASS_BAR_WIDTH_FRAC);
+	int barX = (ScreenWidth - barWidth) / 2;
+	int barY = COMPASS_Y_OFFSET;
+
+	// Draw horizontal line
+	FillRGBA(barX, barY, barWidth, COMPASS_LINE_THICKNESS, r, g, b, COMPASS_LINE_ALPHA);
+
+	int barCenterX = barX + barWidth / 2;
+	float pixelsPerDegree = (float)barWidth / COMPASS_FOV;
+
+	// Draw tick marks and cardinal directions
+	static const char *cardinals[] = { "N", "E", "S", "W" };
+	static const float cardinalAngles[] = { 0.0f, 90.0f, 180.0f, 270.0f };
+
+	for (float tickAngle = 0.0f; tickAngle < 360.0f; tickAngle += COMPASS_TICK_SPACING)
 	{
-		if (zDiff >= EDGE_INDICATOR_Z_THRESHOLD)
+		float diff = NormalizeAngle180(tickAngle - playerYaw);
+		if (fabs(diff) > COMPASS_HALF_FOV)
+			continue;
+
+		int tickX = barCenterX + (int)(diff * pixelsPerDegree);
+
+		// Check if this is a cardinal direction
+		bool isCardinal = false;
+		const char *cardinalLabel = NULL;
+		for (int c = 0; c < 4; c++)
 		{
-			// Target is significantly above - force top edge
-			forceVerticalEdge = true;
-			forceTop = true;
+			if (fabs(tickAngle - cardinalAngles[c]) < 0.1f)
+			{
+				isCardinal = true;
+				cardinalLabel = cardinals[c];
+				break;
+			}
 		}
-		else if (zDiff <= -EDGE_INDICATOR_Z_THRESHOLD)
+
+		if (isCardinal)
 		{
-			// Target is significantly below - force bottom edge
-			forceVerticalEdge = true;
-			forceBottom = true;
+			int tickH = COMPASS_CARDINAL_TICK_HEIGHT;
+			FillRGBA(tickX, barY - tickH, 1, tickH, r, g, b, COMPASS_CARDINAL_ALPHA);
+
+			// Draw cardinal letter above the tick
+			int charWidth = gHUD.m_scrinfo.charWidths[(unsigned char)cardinalLabel[0]];
+			int textY = barY - tickH - gHUD.m_scrinfo.iCharHeight;
+			char buf[2] = { cardinalLabel[0], '\0' };
+			gHUD.DrawHudString(tickX - charWidth / 2, textY, ScreenWidth, buf, r, g, b);
 		}
-	}
-	
-	// Calculate edge intersection
-	float edgeX, edgeY;
-	float absX = fabs(dirX);
-	float absY = fabs(dirY);
-	
-	// Margin from screen edge
-	int margin = EDGE_INDICATOR_SCREEN_MARGIN;
-	
-	if (forceVerticalEdge)
-	{
-		// Force top or bottom edge based on Z difference
-		if (forceTop)
-		{
-			edgeY = margin;
-			edgeX = centerX + (edgeY - centerY) * (dirX / dirY);
-		}
-		else // forceBottom
-		{
-			edgeY = ScreenHeight - margin;
-			edgeX = centerX + (edgeY - centerY) * (dirX / dirY);
-		}
-		// Clamp X to screen bounds
-		edgeX = fmax((float)margin, fmin((float)(ScreenWidth - margin), edgeX));
-	}
-	else if (absX > absY)
-	{
-		// Hit left or right edge
-		if (dirX > 0)
-			edgeX = ScreenWidth - margin;
 		else
-			edgeX = margin;
-		edgeY = centerY + (edgeX - centerX) * (dirY / dirX);
-		
-		// Clamp Y to screen bounds
-		edgeY = fmax((float)margin, fmin((float)(ScreenHeight - margin), edgeY));
+		{
+			int tickH = COMPASS_TICK_HEIGHT;
+			FillRGBA(tickX, barY - tickH, 1, tickH, r, g, b, COMPASS_LINE_ALPHA);
+		}
 	}
-	else
+
+	// Draw target markers from PVS radar data
+	int num_players = gHUD.m_PlayersInRadar;
+	cl_entity_t *localPlayer = gEngfuncs.GetLocalPlayer();
+
+	for (int index = 0; index < num_players; index++)
 	{
-		// Hit top or bottom edge
-		if (dirY > 0)
-			edgeY = ScreenHeight - margin;
-		else
-			edgeY = margin;
-		edgeX = centerX + (edgeY - centerY) * (dirX / dirY);
-		
-		// Clamp X to screen bounds
-		edgeX = fmax((float)margin, fmin((float)(ScreenWidth - margin), edgeX));
+		// Skip self
+		if ((localPlayer->index - 1) == index)
+			continue;
+
+		int special = m_RadarInfo[index].special;
+
+		// Only show special entities (same filter as edge indicators)
+		//if (!special)
+		//	continue;
+		//if (special < RADAR_COLD_SPOT)
+		//	continue;
+
+		// Map the radar angle onto the compass
+		// m_RadarInfo[].angle is already relative to view (view_angle - entity_angle)
+		float angleDiff = NormalizeAngle180(m_RadarInfo[index].angle);
+		if (fabs(angleDiff) > COMPASS_HALF_FOV)
+			continue;
+
+		int targetX = barCenterX + (int)(angleDiff * pixelsPerDegree);
+
+		// Get target color
+		int tr, tg, tb;
+		GetRadarColor(special, tr, tg, tb);
+
+		// Draw small downward triangle below the compass line
+		int triW = COMPASS_TARGET_TRI_WIDTH;
+		int triH = COMPASS_TARGET_TRI_HEIGHT;
+		int triTop = barY + 2;
+		for (int i = 0; i < triH; i++)
+		{
+			int width = triW - (i * triW) / triH;
+			FillRGBA(targetX - width / 2, triTop + i, width, 1, tr, tg, tb, 200);
+		}
+
+		// Draw distance text below triangle (skip if <= 12 ft)
+		float distance = m_RadarInfo[index].distance;
+		int distanceFeet = (int)(distance * 0.01904f * 3.28084f);
+		if (distanceFeet > 12)
+		{
+			char distText[16];
+			sprintf(distText, "%d ft", distanceFeet);
+			int textWidth = gHUD.m_scrinfo.charWidths['0'] * strlen(distText);
+			gHUD.DrawHudString(targetX - textWidth / 2, triTop + triH + 1, ScreenWidth, distText, tr, tg, tb);
+		}
 	}
-	
-	// Calculate alpha based on distance (closer = more opaque)
-	int alpha = (int)(EDGE_INDICATOR_ALPHA_MAX - (distance / (MAX_DISTANCE * 2)) * EDGE_INDICATOR_ALPHA_RANGE);
-	alpha = fmax(EDGE_INDICATOR_ALPHA_MIN, fmin(EDGE_INDICATOR_ALPHA_MAX, alpha));
-	
-	// Pulse effect for visibility
-	float pulse = sin(gEngfuncs.GetClientTime() * EDGE_INDICATOR_PULSE_FREQUENCY) * EDGE_INDICATOR_PULSE_AMPLITUDE + EDGE_INDICATOR_PULSE_OFFSET;
-	alpha = (int)(alpha * pulse);
-	
+}
+
+void CHudRadar::DrawBehindIndicator(float angle, float distance, int special)
+{
+	// Only show if target is outside the compass FOV (behind the player)
+	float normalizedAngle = NormalizeAngle180(angle);
+	if (fabs(normalizedAngle) <= COMPASS_HALF_FOV)
+		return;
+
+	// Only show if within close range
+	if (distance > BEHIND_INDICATOR_MAX_DISTANCE)
+		return;
+
 	// Color based on special type
 	int r, g, b;
-	if (special == RADAR_TEAM_RED ||
-		special == RADAR_BUSTER || 
-		special == RADAR_VIRUS ||
-		special == RADAR_HORDE ||
-		special == RADAR_FLAG_RED ||
-		special == RADAR_BASE_RED ||
-		special == RADAR_ARENA_RED)
-	{
-		// Red for special targets (chumtoad, etc.)
-		r = 240; g = 0; b = 0;
-	}
-	else if (special == RADAR_TEAM_BLUE || special == RADAR_JESUS || 
-			 special == RADAR_FLAG_BLUE || special == RADAR_BASE_BLUE ||
-			 special == RADAR_ARENA_BLUE)
-	{
-		// Blue
-		r = 0; g = 0; b = 240;
-	}
-	else if (special == RADAR_COLD_SPOT || special == RADAR_CHUMTOAD)
-	{
-		// Green
-		r = 0; g = 240; b = 0;
-	}
-	else if (special == RADAR_LOOT)
-	{
-		// Orange
-		r = 255; g = 117; b = 24;
-	}
-	else if (special == RADAR_SNOWBALL)
-	{
-		// White
-		r = 255; g = 255; b = 255;
-	}
-	else
-	{
-		UnpackRGB(r, g, b, RGB_YELLOWISH);
-	}
-	
-	// Draw large triangle pointing toward target
-	// Don't draw if too close (within min distance)
-	if (distance < EDGE_INDICATOR_MIN_DISTANCE)
-		return;
-	
-	// Determine if the entity is within the player's forward FOV (±90°)
-	// Normalise angle to [-180, 180] - 0 = straight ahead, ±180 = directly behind
-	float normalizedAngle = angle;
-	while (normalizedAngle >  180.0f) normalizedAngle -= 360.0f;
-	while (normalizedAngle < -180.0f) normalizedAngle += 360.0f;
-	bool inFOV = fabs(normalizedAngle) < 70.0f;
+	GetRadarColor(special, r, g, b);
 
-	// Flip direction when player is very close (within flip distance),
-	// close in Z-axis, AND the entity is within the forward FOV.
-	// When the entity is behind the player the arrow stays at the edge
-	// pointing outward - pulling it inward would be confusing.
-	bool closeEnough = (distance < EDGE_INDICATOR_FLIP_DISTANCE) && (fabs(zDiff) < EDGE_INDICATOR_Z_CLOSE_DISTANCE) && inFOV;
-	bool flip = closeEnough;
-	
-	// Move arrow toward center when close (between min and flip distance)
-	// AND close vertically
-	float interpolation = 0.0f;
-	if (closeEnough)
+	// Alpha: closer = more opaque, pulse for visibility
+	float distFrac = distance / BEHIND_INDICATOR_MAX_DISTANCE;
+	int alpha = (int)(BEHIND_INDICATOR_ALPHA_MAX - distFrac * (BEHIND_INDICATOR_ALPHA_MAX - BEHIND_INDICATOR_ALPHA_MIN));
+	float pulse = sin(gEngfuncs.GetClientTime() * BEHIND_INDICATOR_PULSE_FREQUENCY) * BEHIND_INDICATOR_PULSE_AMPLITUDE + BEHIND_INDICATOR_PULSE_OFFSET;
+	alpha = (int)(alpha * pulse);
+
+	int margin = BEHIND_INDICATOR_SCREEN_MARGIN;
+	int triW = BEHIND_INDICATOR_SIZE_WIDTH;
+	int triH = BEHIND_INDICATOR_SIZE_HEIGHT;
+
+	// Map behind angle to a U-shaped path along screen edges:
+	//   Side edge (mid-height -> bottom corner) then bottom edge (corner -> center)
+	float absAngle = fabs(normalizedAngle);
+	float behindRange = 180.0f - COMPASS_HALF_FOV; // degrees of behind arc
+	float behindFrac = (absAngle - COMPASS_HALF_FOV) / behindRange; // 0 at compass edge, 1 at directly behind
+	bool isLeft = (normalizedAngle < 0); // negative angle = target to left of view
+
+	int x, y;
+
+	if (behindFrac <= 0.5f)
 	{
-		// Interpolate from edge (at flip distance) to center (at min distance)
-		interpolation = (EDGE_INDICATOR_FLIP_DISTANCE - distance) / (EDGE_INDICATOR_FLIP_DISTANCE - EDGE_INDICATOR_MIN_DISTANCE);
-		interpolation = fmax(0.0f, fmin(1.0f, interpolation)); // Clamp 0-1
-		
-		// Fade out as it moves toward center (full alpha at flip, zero at min)
-		float fadeMultiplier = 1.0f - interpolation;
-		alpha = (int)(alpha * fadeMultiplier);
-	}
-	
-	// Interpolate position from edge to center
-	float finalX = edgeX + (centerX - edgeX) * interpolation;
-	float finalY = edgeY + (centerY - edgeY) * interpolation;
-	
-	int triSize = EDGE_INDICATOR_SIZE_WIDTH;
-	int x = (int)finalX;
-	int y = (int)finalY;
-	
-	// Determine which edge we're on based on ORIGINAL edge position (not interpolated)
-	int edgeXInt = (int)edgeX;
-	int edgeYInt = (int)edgeY;
-	
-	// Calculate which edge we're on to orient triangle correctly
-	if (edgeXInt < ScreenWidth / 4)
-	{
-		// Left edge - triangle points right (or left when flipped)
-		if (flip)
+		// Phase 1: Side edge — slide from mid-height down to bottom corner
+		float t = behindFrac * 2.0f;
+		y = (int)(ScreenHeight * 0.5f + t * (ScreenHeight - margin - ScreenHeight * 0.5f));
+
+		// Draw arrow pointing toward the screen edge (tip at edge, base inward)
+		if (isLeft)
 		{
-			// Point left (toward center)
-			for (int i = 0; i < triSize; i++)
+			for (int i = 0; i < triW; i++)
 			{
-				int height = (i * EDGE_INDICATOR_SIZE_HEIGHT) / triSize;
-				FillRGBA(x - i, y - height / 2, 2, height, r, g, b, alpha);
+				int height = (i * triH) / triW;
+				FillRGBA(margin + i, y - height / 2, 2, height, r, g, b, alpha);
 			}
 		}
 		else
 		{
-			// Point right (toward object)
-			for (int i = 0; i < triSize; i++)
+			for (int i = 0; i < triW; i++)
 			{
-				int height = (i * EDGE_INDICATOR_SIZE_HEIGHT) / triSize;
-				FillRGBA(x + i, y - height / 2, 2, height, r, g, b, alpha);
+				int height = (i * triH) / triW;
+				FillRGBA(ScreenWidth - margin - i, y - height / 2, 2, height, r, g, b, alpha);
 			}
 		}
-		
-		// Draw distance text - position based on arrow direction (only if > 12 ft)
-		char distText[16];
+
+		// Distance text inward from arrow
 		int distanceFeet = (int)(distance * 0.01904f * 3.28084f);
-		if (distanceFeet > 12)
+		if (distanceFeet > 0)
 		{
-			sprintf(distText, "%d ft", distanceFeet);
-			int textHeight = gHUD.m_scrinfo.iCharHeight;
-			int textX = flip ? (x + 2) : (x + triSize + 2);  // When flipped (pointing left), text closer to arrow base
-			gHUD.DrawHudString(textX, y - textHeight / 2, ScreenWidth, distText, r, g, b);
-		}
-	}
-	else if (edgeXInt > ScreenWidth * 3 / 4)
-	{
-		// Right edge - triangle points left (or right when flipped)
-		if (flip)
-		{
-			// Point right (toward center)
-			for (int i = 0; i < triSize; i++)
-			{
-				int height = (i * EDGE_INDICATOR_SIZE_HEIGHT) / triSize;
-				FillRGBA(x + i, y - height / 2, 2, height, r, g, b, alpha);
-			}
-		}
-		else
-		{
-			// Point left (toward object)
-			for (int i = 0; i < triSize; i++)
-			{
-				int height = (i * EDGE_INDICATOR_SIZE_HEIGHT) / triSize;
-				FillRGBA(x - i, y - height / 2, 2, height, r, g, b, alpha);
-			}
-		}
-		
-		// Draw distance text - position based on arrow direction (only if > 12 ft)
-		char distText[16];
-		int distanceFeet = (int)(distance * 0.01904f * 3.28084f);
-		if (distanceFeet > 12)
-		{
+			char distText[16];
 			sprintf(distText, "%d ft", distanceFeet);
 			int textWidth = gHUD.m_scrinfo.charWidths['0'] * strlen(distText);
 			int textHeight = gHUD.m_scrinfo.iCharHeight;
-			int textX = flip ? (x - textWidth - 2) : (x - triSize - textWidth - 2);  // When flipped (pointing right), text closer to arrow base
-			gHUD.DrawHudString(textX, y - textHeight / 2, ScreenWidth, distText, r, g, b);
-		}
-	}
-	else if (edgeYInt < ScreenHeight / 4)
-	{
-		// Top edge - triangle points down (or up when flipped)
-		if (flip)
-		{
-			// Point up (toward center)
-			for (int i = 0; i < triSize; i++)
-			{
-				int width = (i * EDGE_INDICATOR_SIZE_HEIGHT) / triSize;
-				FillRGBA(x - width / 2, y - i, width, 2, r, g, b, alpha);
-			}
-		}
-		else
-		{
-			// Point down (toward object)
-			for (int i = 0; i < triSize; i++)
-			{
-				int width = (i * EDGE_INDICATOR_SIZE_HEIGHT) / triSize;
-				FillRGBA(x - width / 2, y + i, width, 2, r, g, b, alpha);
-			}
-		}
-		
-		// Draw distance text - position based on arrow direction (only if > 12 ft)
-		char distText[16];
-		int distanceFeet = (int)(distance * 0.01904f * 3.28084f);
-		if (distanceFeet > 12)
-		{
-			sprintf(distText, "%d ft", distanceFeet);
-			int textWidth = gHUD.m_scrinfo.charWidths['0'] * strlen(distText);
-			int textY = flip ? (y + 2) : (y + triSize + 2);  // When flipped (pointing up), text closer to arrow base
-			gHUD.DrawHudString(x - textWidth / 2, textY, ScreenWidth, distText, r, g, b);
+			if (isLeft)
+				gHUD.DrawHudString(margin + triW + 2, y - textHeight / 2, ScreenWidth, distText, r, g, b);
+			else
+				gHUD.DrawHudString(ScreenWidth - margin - triW - textWidth - 2, y - textHeight / 2, ScreenWidth, distText, r, g, b);
 		}
 	}
 	else
 	{
-		// Bottom edge - triangle points up (or down when flipped)
-		if (flip)
-		{
-			// Point down (toward center)
-			for (int i = 0; i < triSize; i++)
-			{
-				int width = (i * EDGE_INDICATOR_SIZE_HEIGHT) / triSize;
-				FillRGBA(x - width / 2, y + i, width, 2, r, g, b, alpha);
-			}
-		}
+		// Phase 2: Bottom edge — slide from corner toward center
+		float t = (behindFrac - 0.5f) * 2.0f;
+		if (isLeft)
+			x = (int)(margin + t * (ScreenWidth * 0.5f - margin));
 		else
+			x = (int)((ScreenWidth - margin) - t * (ScreenWidth * 0.5f - margin));
+
+		// Draw downward-pointing arrow with tip at margin, base above
+		int baseY = ScreenHeight - margin - triH;
+		for (int i = 0; i < triH; i++)
 		{
-			// Point up (toward object)
-			for (int i = 0; i < triSize; i++)
-			{
-				int width = (i * EDGE_INDICATOR_SIZE_HEIGHT) / triSize;
-				FillRGBA(x - width / 2, y - i, width, 2, r, g, b, alpha);
-			}
+			int width = triW - (i * triW) / triH;
+			FillRGBA(x - width / 2, baseY + i, width, 2, r, g, b, alpha);
 		}
-		
-		// Draw distance text - position based on arrow direction (only if > 12 ft)
-		char distText[16];
+
+		// Distance text above arrow
 		int distanceFeet = (int)(distance * 0.01904f * 3.28084f);
-		if (distanceFeet > 12)
+		if (distanceFeet > 0)
 		{
+			char distText[16];
 			sprintf(distText, "%d ft", distanceFeet);
 			int textWidth = gHUD.m_scrinfo.charWidths['0'] * strlen(distText);
-			int textY = flip ? (y + triSize + 2) : (y + 2);  // When not flipped (pointing up), text closer to arrow base
-			gHUD.DrawHudString(x - textWidth / 2, textY, ScreenWidth, distText, r, g, b);
+			int textHeight = gHUD.m_scrinfo.iCharHeight;
+			gHUD.DrawHudString(x - textWidth / 2, baseY - textHeight - 2, ScreenWidth, distText, r, g, b);
 		}
 	}
 }
@@ -636,6 +589,9 @@ int CHudRadar::Draw(float flTime)
 
 	ProcessPlayerState();
 
+	if (cl_compass->value)
+		DrawCompass();
+
 	UnpackRGB(r, g, b, HudColor());
 
 	x = 0;
@@ -691,7 +647,6 @@ int CHudRadar::Draw(float flTime)
 			if (gHUD.m_GameMode != GAME_ICEMAN &&
 				m_RadarInfo[index].special != RADAR_TEAM_RED)
 				size *= 2;
-			fr = 240; fg = 0; fb = 0;
 		}
 
 		if (m_RadarInfo[index].special == RADAR_TEAM_BLUE ||
@@ -702,12 +657,6 @@ int CHudRadar::Draw(float flTime)
 		{
 			if (m_RadarInfo[index].special != RADAR_TEAM_BLUE)
 				size *= 2;
-			fr = 0; fg = 160; fb = 240;
-		}
-
-		if (m_RadarInfo[index].special == RADAR_TEAM_YELLOW)
-		{
-			fr = 240; fg = 240; fb = 0;
 		}
 
 		if (m_RadarInfo[index].special == RADAR_COLD_SPOT ||
@@ -716,20 +665,19 @@ int CHudRadar::Draw(float flTime)
 		{
 			if (m_RadarInfo[index].special != RADAR_TEAM_GREEN)
 				size *= 2;
-			fr = 0; fg = 240; fb = 0;
 		}
 
 		if (m_RadarInfo[index].special == RADAR_LOOT)
 		{
 			size *= 2;
-			fr = 255; fg = 117; fb = 24;
 		}
 
 		if (m_RadarInfo[index].special == RADAR_SNOWBALL)
 		{
 			size *= 2;
-			fr = 255; fg = 255; fb = 255;
 		}
+
+		GetRadarColor(m_RadarInfo[index].special, fr, fg, fb);
 
 		// Highlight yourself in grey/white
 		if ((gEngfuncs.GetLocalPlayer()->index - 1) == index)
@@ -740,20 +688,15 @@ int CHudRadar::Draw(float flTime)
 		FillRGBA(pos_x, pos_y, size, size, fr, fg, fb, alpha);
 	}
 
-	// Draw edge indicators for special tracked entities
-	int screenCenterX = ScreenWidth / 2;
-	int screenCenterY = ScreenHeight / 2;
+	// Draw indicators for special tracked entities
 	cl_entity_t *localPlayer = gEngfuncs.GetLocalPlayer();
 	
-	// First, draw edge indicators from PVS-based radar (for players)
+	// First, draw indicators from PVS-based radar (for players)
 	for (index = 0; index < num_players; index++)
 	{
-		// Don't show edge indicator for yourself
+		// Don't show indicator for yourself
 		if ((localPlayer->index - 1) == index)
 			continue;
-		
-		// Calculate Z difference (height is normalized by 72, so multiply back)
-		float zDiff = m_RadarInfo[index].height * 72.0f;
 		
 		// These use world-space projection (shows only when facing target) via server-sent entities
 		if (m_RadarInfo[index].special == RADAR_COLD_SPOT ||
@@ -768,7 +711,10 @@ int CHudRadar::Draw(float flTime)
 			continue;
 		}
 
-		// Show edge indicators for all special entities, always
+		// Behind indicators only show when compass is enabled
+		if (!cl_compass->value)
+			continue;
+
 		if (!m_RadarInfo[index].special)
 			continue;
 
@@ -776,46 +722,22 @@ int CHudRadar::Draw(float flTime)
 		if (m_RadarInfo[index].special < RADAR_COLD_SPOT)
 			continue;
 
-		DrawEdgeIndicator(screenCenterX, screenCenterY, 
+		DrawBehindIndicator(
 			m_RadarInfo[index].angle, 
 			m_RadarInfo[index].distance,
-			m_RadarInfo[index].special,
-			zDiff);
+			m_RadarInfo[index].special);
 	}
 	
-	// Second, draw edge indicators from server-sent special entities (always visible)
+	// Second, draw indicators from server-sent special entities
 	for (index = 0; index < MAX_SPECIAL_ENTITIES; index++)
 	{
 		if (!m_SpecialEntities[index].active)
 			continue;
 		
-		// Check if data is stale (older than timeout)
-		// if (gEngfuncs.GetClientTime() - m_SpecialEntities[index].last_update > EDGE_INDICATOR_STALE_TIMEOUT)
-		//	continue;
-		
-		// Calculate angle and distance from local player to special entity
 		Vector vToEntity = m_SpecialEntities[index].origin - localPlayer->origin;
 		float distance = vToEntity.Length();
-		float zDiff = m_SpecialEntities[index].origin.z - localPlayer->origin.z;
-		
-		Vector vAngles;
-		VectorAngles(vToEntity, vAngles);
-		
-		// Convert to 0-360 degrees
-		if (vAngles.y < 0)
-			vAngles.y += 360;
-		
-		Vector vViewAngles;
-		gEngfuncs.GetViewAngles((float*)vViewAngles);
-		float view_angle = vViewAngles.y;
-		
-		// Convert to 0-360 degrees
-		if (view_angle < 0)
-			view_angle += 360;
-		
-		float angle = view_angle - vAngles.y;
-		
-		// These use world-space projection instead of edge indicator
+
+		// In-world indicators are always visible
 		if (m_SpecialEntities[index].special_type == RADAR_COLD_SPOT ||
 			m_SpecialEntities[index].special_type == RADAR_BASE_RED ||
 			m_SpecialEntities[index].special_type == RADAR_BASE_BLUE)
@@ -823,12 +745,28 @@ int CHudRadar::Draw(float flTime)
 			DrawInWorldIndicator(m_SpecialEntities[index].origin, distance, m_SpecialEntities[index].special_type);
 			continue;
 		}
+
+		// Behind indicators only show when compass is enabled
+		if (!cl_compass->value)
+			continue;
 		
-		DrawEdgeIndicator(screenCenterX, screenCenterY, 
+		Vector vAngles;
+		VectorAngles(vToEntity, vAngles);
+		if (vAngles.y < 0)
+			vAngles.y += 360;
+		
+		Vector vViewAngles;
+		gEngfuncs.GetViewAngles((float*)vViewAngles);
+		float view_angle = vViewAngles.y;
+		if (view_angle < 0)
+			view_angle += 360;
+		
+		float angle = view_angle - vAngles.y;
+		
+		DrawBehindIndicator(
 			angle, 
 			distance,
-			m_SpecialEntities[index].special_type,
-			zDiff);
+			m_SpecialEntities[index].special_type);
 	}
 
 	return 1;
