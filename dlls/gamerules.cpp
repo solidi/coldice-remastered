@@ -840,10 +840,6 @@ void CGameRules::SpawnMutators(CBasePlayer *pPlayer)
 		}
 	}
 
-	// For decap reset
-	if (MutatorEnabled(MUTATOR_RICOCHET))
-		pPlayer->pev->body = 0;
-
 	if (MutatorEnabled(MUTATOR_NOCLIP))
 		pPlayer->pev->movetype = MOVETYPE_NOCLIP;
 

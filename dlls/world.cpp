@@ -302,8 +302,7 @@ void CopyToBodyQue(entvars_t *pev)
 	pevHead->skin		= pev->skin;
 
 	// Let them eat cake
-	if (g_pGameRules->MutatorEnabled(MUTATOR_RICOCHET))
-		pevHead->body		= pev->body;
+	pevHead->body		= pev->body;
 
 	pevHead->effects    = pev->effects | EF_NOINTERP;
 	//pevHead->goalstarttime = pev->goalstarttime;
