@@ -952,7 +952,7 @@ void CHalfLifeCaptureTheFlag::ClientDisconnected( edict_t *pClient )
 	}
 }
 
-void CHalfLifeCaptureTheFlag::UpdateHud(int bluemode, int redmode, CBasePlayer *pPlayer)
+void CHalfLifeCaptureTheFlag::UpdateHud(int bluemode, int redmode)
 {
 	int bluescore = 0;
 	int redscore = 0;

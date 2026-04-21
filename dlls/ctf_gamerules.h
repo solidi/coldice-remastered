@@ -31,7 +31,7 @@ public:
 	virtual void CaptureCharm( CBasePlayer *pPlayer );
 	virtual CBaseEntity *DropCharm( CBasePlayer *pPlayer, Vector origin );
 	virtual void ClientDisconnected( edict_t *pClient );
-	virtual void UpdateHud( int bluemode, int redmode, CBasePlayer *pPlayer = NULL );
+	virtual void UpdateHud( int bluemode, int redmode );
 	virtual void PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller, entvars_t *pInflictor );
 	virtual BOOL ShouldAutoAim( CBasePlayer *pPlayer, edict_t *target );
 	virtual BOOL FPlayerCanTakeDamage( CBasePlayer *pPlayer, CBaseEntity *pAttacker );
