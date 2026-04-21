@@ -481,6 +481,17 @@ Activity CBaseMonster :: GetDeathActivity ( void )
 				deathActivity = ACT_DIE_HEADSHOT;
 		}
 	}
+	else if (!g_pGameRules->MutatorEnabled(MUTATOR_TOILET))
+	{
+		switch ( m_LastHitGroup )
+		{
+			case HITGROUP_HEAD:
+			case HITGROUP_GENERIC:
+			case HITGROUP_CHEST:
+				SetBodygroup( 0, 1 );
+				deathActivity = ACT_DIE_HEADSHOT;
+		}
+	}
 
 	// can we perform the prescribed death?
 	if ( LookupActivity ( deathActivity ) == ACTIVITY_NOT_AVAILABLE )

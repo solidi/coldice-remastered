@@ -208,31 +208,31 @@ void CFlagCharm::FlagTouch( CBaseEntity *pOther )
 					MESSAGE_END();
 
 					ClientPrint(pPlayer->pev, HUD_PRINTCENTER, UTIL_VarArgs("You have the %s flag!", (pPlayer->pev->fuser4 == TEAM_RED) ? "blue" : "red"));
+				}
 
-					if (pPlayer->pev->fuser4 == TEAM_RED)
-						((CHalfLifeCaptureTheFlag *)g_pGameRules)->UpdateHud(1, -1, pPlayer);
-					else
-						((CHalfLifeCaptureTheFlag *)g_pGameRules)->UpdateHud(-1, 1, pPlayer);
+				if (pPlayer->pev->fuser4 == TEAM_RED)
+					((CHalfLifeCaptureTheFlag *)g_pGameRules)->UpdateHud(1, -1);
+				else
+					((CHalfLifeCaptureTheFlag *)g_pGameRules)->UpdateHud(-1, 1);
 
-					for (int i = 1; i <= gpGlobals->maxClients; i++)
+				for (int i = 1; i <= gpGlobals->maxClients; i++)
+				{
+					CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
+					if ( plr && plr->IsPlayer() && !plr->HasDisconnected )
 					{
-						CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
-						if ( plr && plr->IsPlayer() && !plr->HasDisconnected )
+						if (!FBitSet(plr->pev->flags, FL_FAKECLIENT))
 						{
-							if (!FBitSet(plr->pev->flags, FL_FAKECLIENT))
+							if (!plr->pFlag)
 							{
-								if (!plr->pFlag)
-								{
-									MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, plr->edict());
-										WRITE_STRING(UTIL_VarArgs("%s has the flag!", STRING(pPlayer->pev->netname)));
-										if (!plr->IsSpectator())
-											WRITE_STRING(UTIL_VarArgs("You're on %s team", (plr->pev->fuser4 == TEAM_RED) ? "red" : "blue"));
-										else
-											WRITE_STRING(UTIL_VarArgs("You're spectating"));
-										WRITE_BYTE(0);
-										WRITE_STRING("");
-									MESSAGE_END();
-								}
+								MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, plr->edict());
+									WRITE_STRING(UTIL_VarArgs("%s has the flag!", STRING(pPlayer->pev->netname)));
+									if (!plr->IsSpectator())
+										WRITE_STRING(UTIL_VarArgs("You're on %s team", (plr->pev->fuser4 == TEAM_RED) ? "red" : "blue"));
+									else
+										WRITE_STRING(UTIL_VarArgs("You're spectating"));
+									WRITE_BYTE(0);
+									WRITE_STRING("");
+								MESSAGE_END();
 							}
 						}
 					}
@@ -873,11 +873,6 @@ CBaseEntity *CHalfLifeCaptureTheFlag::DropCharm( CBasePlayer *pPlayer, Vector or
 
 	if (pFlag)
 	{
-		if (pFlag->pev->fuser4 == RADAR_FLAG_RED)
-			((CHalfLifeCaptureTheFlag *)g_pGameRules)->UpdateHud(-1, 2);
-		else
-			((CHalfLifeCaptureTheFlag *)g_pGameRules)->UpdateHud(2, -1);
-
 		pFlag->pev->movetype = MOVETYPE_TOSS;
 		pFlag->pev->aiment = 0;
 		pFlag->pev->sequence = ON_GROUND;
@@ -887,6 +882,11 @@ CBaseEntity *CHalfLifeCaptureTheFlag::DropCharm( CBasePlayer *pPlayer, Vector or
 
 		pPlayer->m_fFlagTime = gpGlobals->time + 0.25;
 		pPlayer->pFlag = NULL;
+
+		if (pFlag->pev->fuser4 == RADAR_FLAG_RED)
+			((CHalfLifeCaptureTheFlag *)g_pGameRules)->UpdateHud(-1, 2);
+		else
+			((CHalfLifeCaptureTheFlag *)g_pGameRules)->UpdateHud(2, -1);
 
 		CBasePlayer *pPlayerWithFlag = NULL;
 		for (int i = 1; i <= gpGlobals->maxClients; i++)
@@ -952,7 +952,7 @@ void CHalfLifeCaptureTheFlag::ClientDisconnected( edict_t *pClient )
 	}
 }
 
-void CHalfLifeCaptureTheFlag::UpdateHud(int bluemode, int redmode, CBasePlayer *pPlayer)
+void CHalfLifeCaptureTheFlag::UpdateHud(int bluemode, int redmode)
 {
 	int bluescore = 0;
 	int redscore = 0;
@@ -984,11 +984,23 @@ void CHalfLifeCaptureTheFlag::UpdateHud(int bluemode, int redmode, CBasePlayer *
 		{
 			if (!FBitSet(plr->pev->flags, FL_FAKECLIENT))
 			{
+				int sendBlue = m_iBlueMode;
+				int sendRed = m_iRedMode;
+
+				if (plr->pFlag)
+				{
+					CBaseEntity *pCarriedFlag = plr->pFlag;
+					if (pCarriedFlag->pev->fuser4 == RADAR_FLAG_BLUE)
+						sendBlue = 3;
+					else if (pCarriedFlag->pev->fuser4 == RADAR_FLAG_RED)
+						sendRed = 3;
+				}
+
 				MESSAGE_BEGIN(MSG_ONE, gmsgCtfInfo, NULL, plr->edict());
 					WRITE_BYTE(m_iBlueScore);
 					WRITE_BYTE(m_iRedScore);
-					plr == pPlayer && plr->pev->fuser4 == TEAM_RED ? WRITE_BYTE(3) : WRITE_BYTE(bluemode != -1 ? bluemode : m_iBlueMode);
-					plr == pPlayer && plr->pev->fuser4 == TEAM_BLUE ? WRITE_BYTE(3) : WRITE_BYTE(redmode != -1 ? redmode : m_iRedMode);
+					WRITE_BYTE(sendBlue);
+					WRITE_BYTE(sendRed);
 				MESSAGE_END();
 			}
 		}

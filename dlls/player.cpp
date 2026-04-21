@@ -4519,6 +4519,7 @@ void CBasePlayer::Spawn( void )
 #endif
 
 	pev->skin = 0;
+	pev->body = 0;
 	g_pGameRules->PlayerSpawn( this );
 	m_iExitObserver = FALSE;
 }
