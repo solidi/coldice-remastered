@@ -481,7 +481,7 @@ Activity CBaseMonster :: GetDeathActivity ( void )
 				deathActivity = ACT_DIE_HEADSHOT;
 		}
 	}
-	else
+	else if (!g_pGameRules->MutatorEnabled(MUTATOR_TOILET))
 	{
 		switch ( m_LastHitGroup )
 		{

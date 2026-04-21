@@ -175,6 +175,9 @@ void CHalfLifeCaptureTheChumtoad::Think( void )
 			{
 				UTIL_SetOrigin(VARS(pChumtoad), pSpot->pev->origin);
 				m_fMoveChumtoadTimer = gpGlobals->time + SPAWN_TIME;
+				MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
+					WRITE_BYTE(CLIENT_SOUND_EBELL);
+				MESSAGE_END();
 				UTIL_ClientPrintAll(HUD_PRINTTALK, "[CtC] The chumtoad has teleported!\n");
 			}
 		}
