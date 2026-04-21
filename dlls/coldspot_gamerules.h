@@ -43,4 +43,13 @@ private:
 	EHANDLE pColdSpot;
 	int m_iBlueScore;
 	int m_iRedScore;
+
+	// Last broadcast objective state — used to suppress redundant
+	// gmsgObjective sends when nothing on the HUD has changed.
+	int m_iLastHudHoldingTeam;
+	int m_iLastHudBlueCounter;
+	int m_iLastHudRedCounter;
+	int m_iLastHudBlueScore;
+	int m_iLastHudRedScore;
+	bool m_bLastHudValid;
 };
