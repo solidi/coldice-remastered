@@ -46,6 +46,19 @@ public:
 	void Precache( void );
 	void Spawn( void );
 	EXPORT void ColdSpotThink( void );
+
+	// Scoring tick counters. Each tick (1s) while a team holds the spot
+	// uncontested, its counter increments. At 10, a point is awarded and
+	// the counter resets. Contested or empty = paused (counter retained).
+	int m_iBlueCounter;
+	int m_iRedCounter;
+
+	// Current hold state, updated each tick by ColdSpotThink:
+	//   TEAM_BLUE / TEAM_RED = that team is alone in the zone and scoring
+	//   -1                   = empty or contested (counters paused)
+	// This is what UpdateHud uses to decide which progress counter to show;
+	// counters themselves are retained across pauses per the game rules.
+	int m_iHoldingTeam;
 };
 
 CColdSpot *CColdSpot::CreateColdSpot( Vector vecOrigin, int body )
@@ -99,6 +112,10 @@ void CColdSpot::Spawn( void )
 	UTIL_SetSize(pev, g_vecZero, g_vecZero);
 	UTIL_SetOrigin( pev, pev->origin );
 
+	m_iBlueCounter = 0;
+	m_iRedCounter = 0;
+	m_iHoldingTeam = -1;
+
 	SetThink( &CColdSpot::ColdSpotThink );
 	pev->nextthink = gpGlobals->time + 2.0;
 }
@@ -150,9 +167,18 @@ void CColdSpot::ColdSpotThink( void )
 		}
 	}
 
-	// Second pass: if both teams are on the spot it's contested — no one scores.
 	bool bContested = bBluePresent && bRedPresent;
 
+	// Track current hold state for the HUD: which team (if any) is alone
+	// on the spot and currently scoring.  Empty or contested = -1 (paused).
+	if ( bContested || (!bBluePresent && !bRedPresent) )
+		m_iHoldingTeam = -1;
+	else if ( bBluePresent )
+		m_iHoldingTeam = TEAM_BLUE;
+	else
+		m_iHoldingTeam = TEAM_RED;
+
+	// Show cam_zone icon + contested warning to every in-zone player
 	for ( int i = 0; i < eligibleCount; i++ )
 	{
 		CBasePlayer *pPlayer = eligiblePlayers[i];
@@ -168,34 +194,74 @@ void CColdSpot::ColdSpotThink( void )
 
 		if ( bContested )
 		{
-			ClientPrint(pPlayer->pev, HUD_PRINTCENTER, "Spot is contested! Hold it alone to score!\n");
-			continue;
+			ClientPrint(pPlayer->pev, HUD_PRINTCENTER, "Spot contested. Hold it alone to score!\n");
 		}
-
-		MESSAGE_BEGIN( MSG_ALL, gmsgScoreInfo );
-			WRITE_BYTE( ENTINDEX(pPlayer->edict()) );
-			WRITE_SHORT( pPlayer->pev->frags );
-			WRITE_SHORT( pPlayer->m_iDeaths );
-			WRITE_SHORT( ++pPlayer->m_iRoundWins );
-			WRITE_SHORT( g_pGameRules->GetTeamIndex( pPlayer->m_szTeamName ) + 1 );
-		MESSAGE_END();
-
-		if (pPlayer->pev->health > 0 && pPlayer->pev->health < pPlayer->pev->max_health)
-			pPlayer->pev->health += 2;
-
-		UTIL_ScreenFade( pPlayer, Vector(0, 255, 0), 0.25, 2, 32, FFADE_IN);
-		((CHalfLifeColdSpot *)g_pGameRules)->UpdateHud();
-
-		if (!FBitSet(pPlayer->pev->flags, FL_FAKECLIENT))
-		{
-			MESSAGE_BEGIN( MSG_ONE_UNRELIABLE, gmsgPlayClientSound, NULL, pPlayer->edict() );
-				WRITE_BYTE(CLIENT_SOUND_LEVEL_UP);
-			MESSAGE_END();
-		}
-		ClientPrint(pPlayer->pev, HUD_PRINTCENTER, UTIL_VarArgs("You Have Scored a Point!\n"));
 	}
 
-	pev->nextthink = gpGlobals->time + 2.0;
+	// Tick the holding team's counter. Contested or empty = paused (counter retained).
+	int scoringTeam = -1;
+	if ( !bContested )
+	{
+		if ( bBluePresent )
+		{
+			m_iBlueCounter++;
+			if ( m_iBlueCounter >= 10 )
+			{
+				scoringTeam = TEAM_BLUE;
+				m_iBlueCounter = 0;
+			}
+		}
+		else if ( bRedPresent )
+		{
+			m_iRedCounter++;
+			if ( m_iRedCounter >= 10 )
+			{
+				scoringTeam = TEAM_RED;
+				m_iRedCounter = 0;
+			}
+		}
+	}
+
+	// Award points to every eligible teammate on the scoring team
+	if ( scoringTeam != -1 )
+	{
+		int score = 0;
+		for ( int i = 0; i < eligibleCount; i++ )
+		{
+			CBasePlayer *pPlayer = eligiblePlayers[i];
+			if ( pPlayer->pev->fuser4 != scoringTeam )
+				continue;
+
+			MESSAGE_BEGIN( MSG_ALL, gmsgScoreInfo );
+				WRITE_BYTE( ENTINDEX(pPlayer->edict()) );
+				WRITE_SHORT( pPlayer->pev->frags );
+				WRITE_SHORT( pPlayer->m_iDeaths );
+				WRITE_SHORT( ++pPlayer->m_iRoundWins );
+				WRITE_SHORT( g_pGameRules->GetTeamIndex( pPlayer->m_szTeamName ) + 1 );
+			MESSAGE_END();
+			score++;
+
+			if (pPlayer->pev->health > 0 && pPlayer->pev->health < pPlayer->pev->max_health)
+				pPlayer->pev->health += 2;
+
+			UTIL_ScreenFade( pPlayer, Vector(0, 255, 0), 0.25, 2, 32, FFADE_IN);
+
+			if (!FBitSet(pPlayer->pev->flags, FL_FAKECLIENT))
+			{
+				MESSAGE_BEGIN( MSG_ONE_UNRELIABLE, gmsgPlayClientSound, NULL, pPlayer->edict() );
+					WRITE_BYTE(CLIENT_SOUND_LEVEL_UP);
+				MESSAGE_END();
+			}
+		}
+
+		// Broadcast scoring message to everyone
+		const char *teamName = (scoringTeam == TEAM_RED) ? "Red" : "Blue";
+		UTIL_ClientPrintAll( HUD_PRINTCENTER, UTIL_VarArgs("%s Team Scored %d Point%s!\n", teamName, score, score == 1 ? "" : "s") );
+	}
+
+	((CHalfLifeColdSpot *)g_pGameRules)->UpdateHud();
+
+	pev->nextthink = gpGlobals->time + 1.0;
 }
 
 LINK_ENTITY_TO_CLASS( coldspot, CColdSpot );
@@ -211,6 +277,12 @@ CHalfLifeColdSpot::CHalfLifeColdSpot()
 	m_fSpawnColdSpot = gpGlobals->time + 2.0;
 	m_fColdSpotTime = coldspottime.value;
 	m_iBlueScore = m_iRedScore = 0;
+	m_iLastHudHoldingTeam = -2; // force first UpdateHud to send
+	m_iLastHudBlueCounter = 0;
+	m_iLastHudRedCounter = 0;
+	m_iLastHudBlueScore = 0;
+	m_iLastHudRedScore = 0;
+	m_bLastHudValid = false;
 }
 
 BOOL CHalfLifeColdSpot::IsSpawnPointValid( CBaseEntity *pSpot )
@@ -400,6 +472,16 @@ void CHalfLifeColdSpot::Think( void )
 				WRITE_BYTE(RADAR_COLD_SPOT); // Special type
 			MESSAGE_END();
 		}
+
+		// Reset the scoring counters and HUD when the spot relocates — any
+		// in-progress team counter would otherwise stay stale on the objective.
+		CColdSpot *pSpot = (CColdSpot *)((CBaseEntity *)pColdSpot);
+		if ( pSpot )
+		{
+			pSpot->m_iBlueCounter = 0;
+			pSpot->m_iRedCounter = 0;
+		}
+		UpdateHud();
 
 		MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
 			WRITE_BYTE(CLIENT_SOUND_EBELL);
@@ -646,30 +728,66 @@ void CHalfLifeColdSpot::UpdateHud( void )
 	m_iBlueScore = bluescore;
 	m_iRedScore = redscore;
 
-	for (int i = 1; i <= gpGlobals->maxClients; i++)
+	// Build the primary objective line based on the current hold state
+	// (not just "which counter is non-zero"): after the spot swaps hands,
+	// both counters can legitimately be > 0 but only the holding team's
+	// progress should be shown; empty / contested shows the default.
+	char szObjective[64];
+	CColdSpot *pSpot = (CColdSpot *)((CBaseEntity *)pColdSpot);
+	int holdingTeam = pSpot ? pSpot->m_iHoldingTeam : -1;
+	int blueCounter = pSpot ? pSpot->m_iBlueCounter : 0;
+	int redCounter = pSpot ? pSpot->m_iRedCounter : 0;
+	if ( holdingTeam == TEAM_BLUE )
+		sprintf( szObjective, "Blue Scoring: %d of 10", blueCounter );
+	else if ( holdingTeam == TEAM_RED )
+		sprintf( szObjective, "Red Scoring: %d of 10", redCounter );
+	else
+		strcpy( szObjective, "Hold the cold spot" );
+
+	// Suppress redundant broadcasts: if nothing the HUD shows has changed
+	// since the last send, skip the per-client gmsgObjective loop.  Still
+	// check scorelimit below so intermission isn't delayed.
+	bool bHudChanged = !m_bLastHudValid ||
+		holdingTeam != m_iLastHudHoldingTeam ||
+		blueCounter != m_iLastHudBlueCounter ||
+		redCounter  != m_iLastHudRedCounter  ||
+		bluescore   != m_iLastHudBlueScore   ||
+		redscore    != m_iLastHudRedScore;
+
+	if ( bHudChanged )
 	{
-		CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
-		if ( plr && plr->IsPlayer() && !plr->HasDisconnected )
+		for (int i = 1; i <= gpGlobals->maxClients; i++)
 		{
-			if (!FBitSet(plr->pev->flags, FL_FAKECLIENT))
+			CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
+			if ( plr && plr->IsPlayer() && !plr->HasDisconnected )
 			{
-				MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL, plr->edict());
-					WRITE_STRING("Hold the cold spot");
-					if (plr->pev->fuser4 == TEAM_RED)
-					{
-						WRITE_STRING(UTIL_VarArgs("Red Team: %d", m_iRedScore));
-						WRITE_BYTE(0);
-						WRITE_STRING(UTIL_VarArgs("Blue Team: %d", m_iBlueScore));
-					}
-					else
-					{
-						WRITE_STRING(UTIL_VarArgs("Blue Team: %d", m_iBlueScore));
-						WRITE_BYTE(0);
-						WRITE_STRING(UTIL_VarArgs("Red Team: %d", m_iRedScore));
-					}
-				MESSAGE_END();
+				if (!FBitSet(plr->pev->flags, FL_FAKECLIENT))
+				{
+					MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL, plr->edict());
+						WRITE_STRING(szObjective);
+						if (plr->pev->fuser4 == TEAM_RED)
+						{
+							WRITE_STRING(UTIL_VarArgs("Red Team: %d", m_iRedScore));
+							WRITE_BYTE(0);
+							WRITE_STRING(UTIL_VarArgs("Blue Team: %d", m_iBlueScore));
+						}
+						else
+						{
+							WRITE_STRING(UTIL_VarArgs("Blue Team: %d", m_iBlueScore));
+							WRITE_BYTE(0);
+							WRITE_STRING(UTIL_VarArgs("Red Team: %d", m_iRedScore));
+						}
+					MESSAGE_END();
+				}
 			}
 		}
+
+		m_iLastHudHoldingTeam = holdingTeam;
+		m_iLastHudBlueCounter = blueCounter;
+		m_iLastHudRedCounter  = redCounter;
+		m_iLastHudBlueScore   = bluescore;
+		m_iLastHudRedScore    = redscore;
+		m_bLastHudValid       = true;
 	}
 
 	// End session if hit score limit
