@@ -608,7 +608,7 @@ void CHud :: Init( void )
 	cl_hudbend = CVAR_CREATE( "cl_hudbend", "0.0", FCVAR_ARCHIVE );
 	cl_wallclimbindicator = CVAR_CREATE( "cl_wallclimbindicator", "1", FCVAR_ARCHIVE );
 	cl_particlesystem = CVAR_CREATE( "cl_particlesystem", "1", FCVAR_ARCHIVE );
-	cl_radar = CVAR_CREATE( "cl_radar", "1", FCVAR_ARCHIVE );
+	cl_radar = CVAR_CREATE( "cl_radar", "2", FCVAR_ARCHIVE );
 	cl_compass = CVAR_CREATE( "cl_compass", "1", FCVAR_ARCHIVE );
 	cl_portalmirror = CVAR_CREATE("cl_portalmirror", "0", FCVAR_ARCHIVE);
 	cl_screeneffects = CVAR_CREATE("cl_screeneffects", "1", FCVAR_ARCHIVE);
