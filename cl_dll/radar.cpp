@@ -688,6 +688,10 @@ int CHudRadar::Draw(float flTime)
 		FillRGBA(pos_x, pos_y, size, size, fr, fg, fb, alpha);
 	}
 
+	// No indicators if radar mode is 0 (off) or 1 (radar only)
+	if (cl_radar->value < 2)
+		return 1;
+
 	// Draw indicators for special tracked entities
 	cl_entity_t *localPlayer = gEngfuncs.GetLocalPlayer();
 	
