@@ -449,6 +449,84 @@ void CMultiplayBusters::PlayerGotWeapon( CBasePlayer* pPlayer, CBasePlayerItem* 
 			WRITE_BYTE(CLIENT_SOUND_PICKUPYOURWEAPON);
 		MESSAGE_END();
 
+		// ---------------------------------------------------------------
+		// Radial purge: when a player picks up the egon, gib every other
+		// player within range and play a fireball+ring shockwave at the
+		// pickup origin.  The new buster is excluded via ignoreAttacker.
+		// This breaks up the tight cluster that forms when the previous
+		// buster dies surrounded by ghosts, giving the new buster a beat
+		// of breathing room and visually cueing the role transition.
+		//
+		// Must run BEFORE SetPlayerModel(): PlayerGotWeapon is called
+		// from CBasePlayer::AddPlayerItem before the egon is inserted
+		// into m_rgpPlayerItems, so IsPlayerBusting() still reports
+		// FALSE and SetPlayerModel() would (re)assign fuser4 = 0.  We
+		// promote fuser4 to RADAR_BUSTER here so the blast's victims
+		// (ghosts, fuser4 == 0) don't share the attacker's team flag
+		// and get rejected by FPlayerCanTakeDamage as friendly fire.
+		// SetPlayerModel() below will set fuser4 again to the same
+		// value once IsPlayerBusting() flips true on the next frame
+		// via PlayerSpawn / ClientUserInfoChanged paths.
+		// ---------------------------------------------------------------
+		{
+			pPlayer->pev->fuser4 = RADAR_BUSTER;
+
+			Vector vecBlast = pPlayer->pev->origin;
+			int iContents = UTIL_PointContents ( vecBlast );
+
+			// Fireball + dynamic light + sound (PAS so distant players hear it)
+			MESSAGE_BEGIN( MSG_PAS, SVC_TEMPENTITY, vecBlast );
+				WRITE_BYTE( TE_EXPLOSION );
+				WRITE_COORD( vecBlast.x );
+				WRITE_COORD( vecBlast.y );
+				WRITE_COORD( vecBlast.z );
+				if (iContents != CONTENTS_WATER)
+				{
+					if (icesprites.value) {
+						WRITE_SHORT( g_sModelIndexIceFireball );
+					} else {
+						WRITE_SHORT( g_sModelIndexFireball );
+					}
+				}
+				else
+				{
+					WRITE_SHORT( g_sModelIndexWExplosion );
+				}
+				WRITE_BYTE( 30 );                 // scale * 10
+				WRITE_BYTE( 15 );                 // framerate
+				WRITE_BYTE( TE_EXPLFLAG_NONE );
+			MESSAGE_END();
+
+			// Expanding ring shockwave (vertical cylinder reads as a halo)
+			MESSAGE_BEGIN( MSG_PVS, SVC_TEMPENTITY, vecBlast );
+				WRITE_BYTE( TE_BEAMCYLINDER );
+				WRITE_COORD( vecBlast.x );
+				WRITE_COORD( vecBlast.y );
+				WRITE_COORD( vecBlast.z );
+				WRITE_COORD( vecBlast.x );
+				WRITE_COORD( vecBlast.y );
+				WRITE_COORD( vecBlast.z + 256 );  // expansion radius
+				WRITE_SHORT( g_sModelLightning );
+				WRITE_BYTE( 0 );                  // start frame
+				WRITE_BYTE( 0 );                  // framerate
+				WRITE_BYTE( 12 );                 // life (1.2s)
+				WRITE_BYTE( 16 );                 // width
+				WRITE_BYTE( 0 );                  // noise
+				WRITE_BYTE( 100 );                // r
+				WRITE_BYTE( 180 );                // g
+				WRITE_BYTE( 255 );                // b — buster blue tint
+				WRITE_BYTE( 200 );                // brightness
+				WRITE_BYTE( 0 );                  // speed
+			MESSAGE_END();
+
+			// Gib every other player inside the radius.  ignoreAttacker=TRUE
+			// so the new buster (the attacker) is skipped; DMG_ALWAYSGIB
+			// guarantees a clean gib regardless of damage rolls.
+			::RadiusDamage( vecBlast, pPlayer->pev, pPlayer->pev,
+				999.0f, 256.0f, CLASS_NONE,
+				DMG_BLAST | DMG_ALWAYSGIB, TRUE );
+		}
+
 		SetPlayerModel( pPlayer );
 
 		pPlayer->pev->health = pPlayer->pev->max_health;
