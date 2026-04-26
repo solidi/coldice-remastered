@@ -1000,6 +1000,8 @@ class CCloakRune : public CRune
 		if ( !pPlayer->m_fHasRune )
 		{
 			pPlayer->m_fHasRune = RUNE_CLOAK;
+			pPlayer->pev->renderfx = kRenderFxNone;
+			pPlayer->pev->rendercolor = g_vecZero;
 			pPlayer->pev->rendermode = kRenderTransAlpha;
 
 			MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
