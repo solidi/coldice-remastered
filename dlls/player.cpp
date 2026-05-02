@@ -214,6 +214,7 @@ int gmsgVoteFor = 0;
 int gmsgVoteGameplay = 0;
 int gmsgVoteMap = 0;
 int gmsgVoteMutator = 0;
+int gmsgMapList = 0;
 int gmsgCtfInfo = 0;
 int gmsgAddMutator = 0;
 int gmsgFog = 0;
@@ -288,6 +289,7 @@ void LinkUserMessages( void )
 	gmsgVoteGameplay = REG_USER_MSG("VoteGame", 1);
 	gmsgVoteMap = REG_USER_MSG("VoteMap", 1);
 	gmsgVoteMutator = REG_USER_MSG("VoteMutator", 1);
+	gmsgMapList = REG_USER_MSG("MapList", -1);  // dynamic-length: chunked map manifest
 	gmsgCtfInfo = REG_USER_MSG("CtfInfo", 4);
 	gmsgAddMutator = REG_USER_MSG("AddMut", -1);
 	gmsgFog = REG_USER_MSG("Fog", 9);

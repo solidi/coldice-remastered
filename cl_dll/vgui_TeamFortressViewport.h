@@ -78,7 +78,6 @@ extern char *sTFClassSelection[];
 extern int sTFValidClassInts[];
 extern char *sLocalisedClasses[];
 extern char *sGameplayModes[];
-extern char *sBuiltInMaps[];
 extern MutatorInfo sMutators[];
 extern int iTeamColors[5][3];
 extern int iNumberOfTeamColors;
@@ -646,6 +645,7 @@ public:
 	int MsgFunc_VoteGame( const char *pszName, int iSize, void *pbuf );
 	int MsgFunc_VoteMap( const char *pszName, int iSize, void *pbuf );
 	int MsgFunc_VoteMutator( const char *pszName, int iSize, void *pbuf );
+	int MsgFunc_MapList( const char *pszName, int iSize, void *pbuf );
 
 	// Input
 	bool SlotInput( int iSlot );
@@ -1741,8 +1741,20 @@ public:
 };
 
 #define MAX_MODES	GAME_TEAMPLAY + 1 // TEAMPLAY + RANDOM
-#define BUILT_IN_MAP_COUNT	38 // end list + RANDOM
+// Map list is now dynamic (built from mapcyclefile and sent over the wire).
+// MAX_CLIENT_MAPS sizes the UI arrays: up to 128 server maps + 1 synthetic
+// RANDOM entry that is always appended at the LAST array index but DISPLAYED
+// FIRST in every vote panel.
+#define MAX_CLIENT_MAPS	129
 #define MAX_MUTATORS	MUTATOR_VOLATILE + 1 // MUTATOR_VOLATILE + RANDOM
+
+// Dynamic client-side map list. Populated by TeamFortressViewport::MsgFunc_MapList.
+// Defined in vgui_TeamFortressViewport.cpp.
+extern char g_szClientMaps[MAX_CLIENT_MAPS][32];
+extern int  g_iClientMapSizes[MAX_CLIENT_MAPS];
+extern int  g_iClientMapCount;
+extern bool g_bMapListReceived;
+const char *MapSizeLabel( int size );
 
 class CVoteGameplayPanel : public CMenuPanel
 {
@@ -1786,10 +1798,11 @@ class CVoteMapPanel : public CMenuPanel
 private:
 	CTFScrollPanel		*m_pScrollPanel;
 	LineBorder			*m_pScrollPanelBorder;
-	ColorButton			*m_pButtons[BUILT_IN_MAP_COUNT];
-	Label				*m_pVoteTallyLabels[BUILT_IN_MAP_COUNT];
+	ColorButton			*m_pButtons[MAX_CLIENT_MAPS];
+	Label				*m_pVoteTallyLabels[MAX_CLIENT_MAPS];
 	Label 				*pTitleLabel;
 
+	int					m_iButtonCount;	// number of slots actually used in m_pButtons (count + 1 for RANDOM)
 	int					m_iCurrentInfo;
 
 	float				m_fStartTime;
@@ -1802,6 +1815,10 @@ public:
 	virtual void Update( void );
 	virtual void SetActiveInfo( int iInput );
 	virtual void Initialize( void );
+
+	// Builds (or rebuilds) the per-map vote buttons against the current
+	// dynamic map list (g_szClientMaps[]). Called from Open().
+	void BuildButtons( void );
 
 	virtual void Reset( void )
 	{

@@ -214,47 +214,12 @@ extern cvar_t timeleft, fragsleft, roundtimeleft;
 
 extern cvar_t mp_chattime;
 
-char *sBuiltInMaps[] =
-{
-	"bounce2",
-	"canyon",
-	"catacombs",
-	"chillworks",
-	"cold_base",
-	"coldice",
-	"comet",
-	"defroster",
-	"datafloe",
-	"depot",
-	"doublefrost",
-	"drift",
-	"fences",
-	"focus",
-	"frostfire",
-	"frostmill",
-	"frosty",
-	"frozen_bunker",
-	"frozenwarehouse",
-	"furrow",
-	"glacialcore",
-	"glupshitto",
-	"ice_pit",
-	"latenightxmas",
-	"overflow",
-	"quadfrost",
-	"snow_camp",
-	"snowcross",
-	"snowtransit",
-	"snowyard",
-	"stalkyard2",
-	"storm",
-	"thechill",
-	"themill",
-	"thetemple",
-	"training",
-	"training2",
-	"RANDOM",
-};
+// Dynamic server map list (built from mapcyclefile at runtime).
+// See gamerules.h for details. RANDOM is appended client-side at index g_iServerMapCount.
+char g_szServerMaps[MAX_SERVER_MAPS][32];
+int  g_iServerMapSizes[MAX_SERVER_MAPS];
+int  g_iServerMapCount = 0;
+static char g_szPreviousMapListFile[64] = "";
 
 char *gamePlayModes[] = {
 	"Deathmatch",		// 0  GAME_FFA
@@ -573,6 +538,9 @@ void CHalfLifeMultiplay :: Think ( void )
 			{
 				m_iVoteUnderway = VOTE_MAPS_OPEN;
 
+				// Make sure the dynamic map list is up to date before opening voting.
+				EnsureServerMapList();
+
 				MESSAGE_BEGIN(MSG_ALL, gmsgVoteMap);
 					WRITE_BYTE(voting.value);
 				MESSAGE_END();
@@ -580,13 +548,15 @@ void CHalfLifeMultiplay :: Think ( void )
 					WRITE_BYTE(CLIENT_SOUND_VOTEMAP);
 				MESSAGE_END();
 
-				// Bots get a vote
+				// Bots get a vote (1..count is a real map, count+1 is RANDOM)
+				int maxVote = g_iServerMapCount + 1;
+				if (maxVote < 2) maxVote = 2; // safety
 				for (int i = 1; i <= gpGlobals->maxClients; i++)
 				{
 					CBasePlayer *pPlayer = (CBasePlayer *)UTIL_PlayerByIndex( i );
 					if (pPlayer && FBitSet(pPlayer->pev->flags, FL_FAKECLIENT) && !pPlayer->HasDisconnected)
 					{
-						::Vote(pPlayer, RANDOM_LONG(1, BUILT_IN_MAP_COUNT + 1));
+						::Vote(pPlayer, RANDOM_LONG(1, maxVote));
 					}
 				}
 			}
@@ -601,25 +571,25 @@ void CHalfLifeMultiplay :: Think ( void )
 					WRITE_BYTE(0);
 				MESSAGE_END();
 
-				// tally votes
-				int vote[BUILT_IN_MAP_COUNT + 1 /*random*/];
+				// tally votes (slots 0..count-1 are real maps; slot count is RANDOM)
+				int slots = g_iServerMapCount + 1;
+				int vote[MAX_SERVER_MAPS + 1];
 				memset(vote, 0, sizeof(vote));
 
 				for (int j = 1; j <= gpGlobals->maxClients; j++)
 				{
 					int mapIndex = g_pGameRules->m_iVoteCount[j-1];
-					if ((mapIndex-1) >= 0 && (mapIndex-1) <= BUILT_IN_MAP_COUNT + 1 /*random*/)
+					if ((mapIndex-1) >= 0 && (mapIndex-1) < slots)
 						vote[mapIndex-1]++;
-					// ALERT(at_console, "mapIndex=%d vote[%d]=%d\n", mapIndex-1, mapIndex-1, vote[mapIndex-1]);
 				}
 
 				int highest = -9999;
 				int mapIndex = 0;
-				for (int i = 0; i < BUILT_IN_MAP_COUNT + 1 /*random*/; i++)
+				for (int i = 0; i < slots; i++)
 				{
 					if (highest <= vote[i])
 					{
-						// Tie, determine random if this index should be selected instead.
+						// Tie: 50/50 whether to switch.
 						if (highest == vote[i]) {
 							if (RANDOM_LONG(0, 1)) {
 								m_iDecidedMapIndex = mapIndex = i;
@@ -630,7 +600,6 @@ void CHalfLifeMultiplay :: Think ( void )
 							highest = vote[i];
 							m_iDecidedMapIndex = mapIndex = i;
 						}
-						// ALERT(at_console, "highest=%d, vote[i]=%d, mapIndex=%d\n", highest, vote[i], mapIndex);
 					}
 				}
 
@@ -642,14 +611,18 @@ void CHalfLifeMultiplay :: Think ( void )
 				else
 				{
 					ALERT(at_console, "m_iDecidedMapIndex=%d\n", m_iDecidedMapIndex);
-					
-					if (m_iDecidedMapIndex == BUILT_IN_MAP_COUNT /*random*/)
+
+					if (m_iDecidedMapIndex == g_iServerMapCount /*random*/)
 					{
 						UTIL_ClientPrintAll(HUD_PRINTTALK, "[VOTE] Randomizing map...\n");
-						m_iDecidedMapIndex = RANDOM_LONG(0, BUILT_IN_MAP_COUNT - 1);
+						if (g_iServerMapCount > 0)
+							m_iDecidedMapIndex = RANDOM_LONG(0, g_iServerMapCount - 1);
+						else
+							m_iDecidedMapIndex = -1;
 					}
 
-					UTIL_ClientPrintAll(HUD_PRINTTALK, UTIL_VarArgs("[VOTE] %s is the next map with %d votes!\n", sBuiltInMaps[m_iDecidedMapIndex], highest));
+					if (m_iDecidedMapIndex >= 0 && m_iDecidedMapIndex < g_iServerMapCount)
+						UTIL_ClientPrintAll(HUD_PRINTTALK, UTIL_VarArgs("[VOTE] %s is the next map with %d votes!\n", g_szServerMaps[m_iDecidedMapIndex], highest));
 				}
 			}
 		}
@@ -1543,6 +1516,12 @@ void CHalfLifeMultiplay :: InitHUD( CBasePlayer *pl )
 
 	if (g_pGameRules->IsRoundBased())
 		SendMOTDToClient( pl->edict() );
+
+	// Send the dynamic map list (parsed from mapcyclefile) to the new client so
+	// the vgui vote menu can show the right entries. Re-sent on every InitHUD
+	// in case the file changed between connections.
+	if (!FBitSet(pl->pev->flags, FL_FAKECLIENT))
+		SendMapListToClient( pl->edict() );
 
 	// loop through all active players and send their score info to the new client
 	for ( int i = 1; i <= gpGlobals->maxClients; i++ )
@@ -3399,6 +3378,130 @@ void ExtractCommandString( char *s, char *szCommand )
 
 /*
 ==============
+ParseMapSize
+
+Map a "small"/"medium"/"large"/"mega" string to MAP_SIZE_* constant.
+Unknown / missing values silently default to MAP_SIZE_MEDIUM.
+==============
+*/
+static int ParseMapSize( const char *s )
+{
+	if ( !s || !s[0] )
+		return MAP_SIZE_MEDIUM;
+	if ( !stricmp( s, "small" ) )  return MAP_SIZE_SMALL;
+	if ( !stricmp( s, "medium" ) ) return MAP_SIZE_MEDIUM;
+	if ( !stricmp( s, "large" ) )  return MAP_SIZE_LARGE;
+	if ( !stricmp( s, "mega" ) )   return MAP_SIZE_MEGA;
+	return MAP_SIZE_MEDIUM;
+}
+
+static int CompareMapNames( const void *a, const void *b )
+{
+	return stricmp( (const char *)a, (const char *)b );
+}
+
+/*
+==============
+BuildServerMapList
+
+Re-parses the current mapcyclefile cvar into g_szServerMaps[] / g_iServerMapSizes[].
+Validates each map (IS_MAP_VALID), reads the optional "\size\" info-string key,
+de-duplicates, sorts case-insensitively, and caps at MAX_SERVER_MAPS entries.
+==============
+*/
+void BuildServerMapList( void )
+{
+	const char *filename = CVAR_GET_STRING( "mapcyclefile" );
+	int length;
+	char *pFileList = (char *)LOAD_FILE_FOR_ME( (char *)filename, &length );
+
+	g_iServerMapCount = 0;
+
+	if ( pFileList && length )
+	{
+		// Pair arrays so we can sort name+size together.
+		struct entry_t { char name[32]; int size; };
+		entry_t entries[MAX_SERVER_MAPS];
+		int count = 0;
+
+		char *cursor = pFileList;
+		while ( count < MAX_SERVER_MAPS )
+		{
+			char szMap[32];
+			char szRule[MAX_RULE_BUFFER];
+			memset( szRule, 0, sizeof(szRule) );
+
+			cursor = COM_Parse( cursor );
+			if ( strlen( com_token ) <= 0 )
+				break;
+			strncpy( szMap, com_token, sizeof(szMap) - 1 );
+			szMap[sizeof(szMap) - 1] = 0;
+
+			// Optional info-string buffer on the same line.
+			if ( COM_TokenWaiting( cursor ) )
+			{
+				cursor = COM_Parse( cursor );
+				if ( strlen( com_token ) > 0 )
+					strncpy( szRule, com_token, sizeof(szRule) - 1 );
+			}
+
+			if ( !IS_MAP_VALID( szMap ) )
+			{
+				ALERT( at_console, "Skipping %s from mapcycle, not a valid map\n", szMap );
+				continue;
+			}
+
+			// De-dupe (case-insensitive).
+			BOOL duplicate = FALSE;
+			for ( int i = 0; i < count; i++ )
+			{
+				if ( !stricmp( entries[i].name, szMap ) )
+				{
+					duplicate = TRUE;
+					break;
+				}
+			}
+			if ( duplicate )
+				continue;
+
+			int size = MAP_SIZE_MEDIUM;
+			if ( szRule[0] )
+				size = ParseMapSize( g_engfuncs.pfnInfoKeyValue( szRule, "size" ) );
+
+			strcpy( entries[count].name, szMap );
+			entries[count].size = size;
+			count++;
+		}
+
+		FREE_FILE( pFileList );
+
+		// Sort alphabetically, case-insensitive, by name.
+		// Each entry is sizeof(entry_t); name is at offset 0 so we can pass CompareMapNames.
+		qsort( entries, count, sizeof(entry_t), CompareMapNames );
+
+		for ( int i = 0; i < count; i++ )
+		{
+			strcpy( g_szServerMaps[i], entries[i].name );
+			g_iServerMapSizes[i] = entries[i].size;
+		}
+		g_iServerMapCount = count;
+	}
+
+	strncpy( g_szPreviousMapListFile, filename, sizeof(g_szPreviousMapListFile) - 1 );
+	g_szPreviousMapListFile[sizeof(g_szPreviousMapListFile) - 1] = 0;
+
+	ALERT( at_console, "BuildServerMapList: %d maps loaded from %s\n", g_iServerMapCount, filename );
+}
+
+void EnsureServerMapList( void )
+{
+	const char *filename = CVAR_GET_STRING( "mapcyclefile" );
+	if ( g_iServerMapCount == 0 || strcmp( filename, g_szPreviousMapListFile ) != 0 )
+		BuildServerMapList();
+}
+
+/*
+==============
 ChangeLevel
 
 Server is changing to a new level, check mapcycle.txt for map name and setup info
@@ -3519,9 +3622,9 @@ void CHalfLifeMultiplay :: ChangeLevel( void )
 	g_fGameOver = TRUE;
 
 	// Intercept map vote
-	if (m_iDecidedMapIndex > -1)
+	if (m_iDecidedMapIndex > -1 && m_iDecidedMapIndex < g_iServerMapCount)
 	{
-		strcpy(szNextMap, sBuiltInMaps[m_iDecidedMapIndex]);
+		strcpy(szNextMap, g_szServerMaps[m_iDecidedMapIndex]);
 	}
 
 	ALERT( at_console, "CHANGE LEVEL: %s\n", szNextMap );
@@ -3581,6 +3684,65 @@ void CHalfLifeMultiplay :: SendMOTDToClient( edict_t *client )
 	}
 
 	FREE_FILE( aFileList );
+}
+
+extern int gmsgMapList;
+
+#define MAP_LIST_MAPS_PER_CHUNK 4   // header(4) + 4*(name<=32 + size byte) ~= 136 bytes; well under 192-byte cap
+
+/*
+==============
+SendMapListToClient
+
+Streams the dynamic server map list to one client in chunks. Format per chunk:
+  BYTE  seq          // chunk index, 0-based
+  BYTE  isLast       // 1 on the final chunk, 0 otherwise
+  BYTE  total        // total map count (only meaningful on seq==0)
+  BYTE  numInChunk   // number of map entries packed into this chunk (1..MAP_LIST_MAPS_PER_CHUNK)
+  repeat numInChunk times:
+    BYTE   size      // MAP_SIZE_*
+    STRING name      // null-terminated map name
+==============
+*/
+void CHalfLifeMultiplay :: SendMapListToClient( edict_t *client )
+{
+	if ( !client )
+		return;
+
+	EnsureServerMapList();
+
+	int total = g_iServerMapCount;
+	int seq = 0;
+	int sent = 0;
+
+	// Always send at least one (possibly empty) chunk so the client knows the list arrived.
+	do
+	{
+		int remaining = total - sent;
+		int chunkSize = remaining;
+		if ( chunkSize > MAP_LIST_MAPS_PER_CHUNK )
+			chunkSize = MAP_LIST_MAPS_PER_CHUNK;
+		if ( chunkSize < 0 )
+			chunkSize = 0;
+
+		BOOL isLast = ( sent + chunkSize >= total ) ? TRUE : FALSE;
+
+		MESSAGE_BEGIN( MSG_ONE, gmsgMapList, NULL, client );
+			WRITE_BYTE( seq );
+			WRITE_BYTE( isLast ? 1 : 0 );
+			WRITE_BYTE( total );
+			WRITE_BYTE( chunkSize );
+			for ( int i = 0; i < chunkSize; i++ )
+			{
+				WRITE_BYTE( g_iServerMapSizes[sent + i] );
+				WRITE_STRING( g_szServerMaps[sent + i] );
+			}
+		MESSAGE_END();
+
+		sent += chunkSize;
+		seq++;
+	}
+	while ( sent < total );
 }
 
 BOOL CHalfLifeMultiplay::MutatorAllowed(const char *mutator)

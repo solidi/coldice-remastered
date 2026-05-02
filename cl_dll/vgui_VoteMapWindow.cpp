@@ -66,60 +66,115 @@ CVoteMapPanel::CVoteMapPanel(int iTrans, int iRemoveMe, int x,int y,int wide,int
 	m_pScrollPanel->setBorder( m_pScrollPanelBorder );
 	m_pScrollPanel->validate();
 
-	// Create the map buttons inside scroll panel
-	int positionCount = 0;
-	for (int i = 0; i < BUILT_IN_MAP_COUNT; i++)
+	// Buttons are constructed lazily in Open() because the dynamic map list
+	// (g_szClientMaps[] / g_iClientMapCount) may not have arrived yet at
+	// CMenuPanel construction time.
+	for ( int i = 0; i < MAX_CLIENT_MAPS; i++ )
 	{
-		// Calculate position in grid layout (2 columns)
-		int column, row;
-		
-		// Special handling for "Random" button (last map) - always first position
-		if (i == BUILT_IN_MAP_COUNT - 1)
+		m_pButtons[i] = NULL;
+		m_pVoteTallyLabels[i] = NULL;
+	}
+	m_iButtonCount = 0;
+	m_iCurrentInfo = 0;
+}
+
+// Builds (or rebuilds) the per-map vote buttons using the current dynamic
+// map list. Safe to call multiple times -- existing buttons are removed
+// before being rebuilt. RANDOM is always rendered as the FIRST visible
+// cell (row 0, column 0) but assigned the LAST array index / vote ID
+// (g_iClientMapCount + 1) to match server-side tally arithmetic.
+void CVoteMapPanel::BuildButtons( void )
+{
+	CSchemeManager *pSchemes = gViewPort->GetSchemeManager();
+	SchemeHandle_t hTitleScheme = pSchemes->getSchemeHandle( "Title Font" );
+	int r, g, b, a;
+	pSchemes->getFgColor( hTitleScheme, r, g, b, a );
+
+	// Tear down any previously-built buttons (e.g. if the map list arrived
+	// after the panel was first opened).
+	for ( int i = 0; i < m_iButtonCount; i++ )
+	{
+		if ( m_pButtons[i] )
 		{
+			m_pButtons[i]->setVisible( false );
+			m_pButtons[i] = NULL;
+		}
+		if ( m_pVoteTallyLabels[i] )
+		{
+			m_pVoteTallyLabels[i]->setVisible( false );
+			m_pVoteTallyLabels[i] = NULL;
+		}
+	}
+
+	// Effective slot count: real maps + RANDOM. If the server never sent us a
+	// list, fall back to RANDOM-only so the menu still works.
+	int realMaps = g_iClientMapCount;
+	if ( realMaps < 0 ) realMaps = 0;
+	if ( realMaps > MAX_CLIENT_MAPS - 1 ) realMaps = MAX_CLIENT_MAPS - 1;
+	int totalSlots = realMaps + 1; // +1 for RANDOM
+	m_iButtonCount = totalSlots;
+
+	int positionCount = 0;
+	for ( int i = 0; i < totalSlots; i++ )
+	{
+		// Decide the cell's display position.
+		int column, row;
+		bool isRandom = ( i == totalSlots - 1 ); // RANDOM is the last array entry
+
+		if ( isRandom )
+		{
+			// RANDOM is ALWAYS the first visible cell.
 			row = 0;
 			column = 0;
 		}
 		else
 		{
-			// Regular buttons start at position 1 to leave space for Random at position 0
-			column = (positionCount + 1) % 2;
-			row = (positionCount + 1) / 2;
+			// Real maps fill the remaining cells, leaving slot 0/0 for RANDOM.
+			column = ( positionCount + 1 ) % 2;
+			row    = ( positionCount + 1 ) / 2;
 			positionCount++;
 		}
-		
-		int iXPos = XRES(8) + (column * (XRES(222) + XRES(8)));
-		int iYPos = YRES(4) + (row * (YRES(36) + YRES(4)));
-		
-		char voteCommand[16];
-		sprintf(voteCommand, "vote %d", i+1);
-		ActionSignal *pASignal = new CMenuHandler_StringCommandClassSelect(voteCommand, false );
 
-		// Map button
-		char sz[256];
-		sprintf(sz, " %s", sBuiltInMaps[i]);
-		m_pButtons[i] = new ColorButton( sz, iXPos, iYPos, XRES(222), YRES(36), false, true);
+		int iXPos = XRES(8) + ( column * (XRES(222) + XRES(8)) );
+		int iYPos = YRES(4) + ( row    * (YRES(36)  + YRES(4)) );
+
+		// Vote command uses 1-based array index. Server-side tally arithmetic
+		// expects RANDOM at vote ID == g_iServerMapCount + 1, which equals
+		// totalSlots here (since totalSlots = realMaps + 1).
+		char voteCommand[16];
+		sprintf( voteCommand, "vote %d", i + 1 );
+		ActionSignal *pASignal = new CMenuHandler_StringCommandClassSelect( voteCommand, false );
+
+		// Button label: "<map> (<size>)" for real maps, "RANDOM" for the random slot.
+		char sz[64];
+		if ( isRandom )
+		{
+			sprintf( sz, " RANDOM" );
+		}
+		else
+		{
+			sprintf( sz, " %s (%s)", g_szClientMaps[i], MapSizeLabel( g_iClientMapSizes[i] ) );
+		}
+
+		m_pButtons[i] = new ColorButton( sz, iXPos, iYPos, XRES(222), YRES(36), false, true );
 		m_pButtons[i]->setBoundKey( (char)255 );
 		m_pButtons[i]->setContentAlignment( vgui::Label::a_west );
 		m_pButtons[i]->addActionSignal( pASignal );
 		m_pButtons[i]->addInputSignal( new CHandler_MenuButtonOver(this, i) );
 		m_pButtons[i]->setFont( pSchemes->getFont(hTitleScheme) );
 		m_pButtons[i]->setParent( m_pScrollPanel->getClient() );
-		
-		// Add vote tally label (right-aligned, vertically centered)
+
+		// Vote tally label (right-aligned)
 		m_pVoteTallyLabels[i] = new Label( "0", XRES(222) - XRES(25), YRES(10) );
 		m_pVoteTallyLabels[i]->setParent( m_pButtons[i] );
 		m_pVoteTallyLabels[i]->setFont( pSchemes->getFont(hTitleScheme) );
 		m_pVoteTallyLabels[i]->setContentAlignment( vgui::Label::a_east );
 		m_pVoteTallyLabels[i]->setSize( XRES(10), YRES(18) );
-		pSchemes->getFgColor( hTitleScheme, r, g, b, a );
 		m_pVoteTallyLabels[i]->setFgColor( r, g, b, a );
 		m_pVoteTallyLabels[i]->setBgColor( 0, 0, 0, 255 );
 	}
-	
-	// Validate scroll panel after adding all buttons
-	m_pScrollPanel->validate();
 
-	m_iCurrentInfo = 0;
+	m_pScrollPanel->validate();
 }
 
 void CVoteMapPanel::Update()
@@ -128,16 +183,22 @@ void CVoteMapPanel::Update()
 	float minutes = fmax( 0, (int)( m_iTime + m_fStartTime - gHUD.m_flTime ) / 60);
 	float seconds = fmax( 0, ( m_iTime + m_fStartTime - gHUD.m_flTime ) - (minutes * 60));
 
-	int votes[BUILT_IN_MAP_COUNT];
+	int votes[MAX_CLIENT_MAPS];
 	int myVote = -1;
+
+	int slots = m_iButtonCount;
+	if ( slots > MAX_CLIENT_MAPS ) slots = MAX_CLIENT_MAPS;
 
 	// Count votes
 	int highest = -1, hi = -1;
-	for (int j = 0; j < BUILT_IN_MAP_COUNT; j++)
-		m_pButtons[j]->setArmed(false);
+	for (int j = 0; j < slots; j++)
+	{
+		if (m_pButtons[j])
+			m_pButtons[j]->setArmed(false);
+	}
 
 	// Count votes
-	for ( int i = 0; i < BUILT_IN_MAP_COUNT; i++ )
+	for ( int i = 0; i < slots; i++ )
 	{
 		votes[i] = 0;
 		for ( int j = 1; j <= MAX_PLAYERS; j++ )
@@ -148,14 +209,11 @@ void CVoteMapPanel::Update()
 			if (g_PlayerExtraInfo[j].vote == (i + 1))
 				votes[i] += 1;
 		}
-		
-		for ( int j = 1; j <= MAX_PLAYERS; j++ )
+
+		if (highest < votes[i])
 		{
-			if (highest < votes[i])
-			{
-				highest = votes[i];
-				hi = i;
-			}
+			highest = votes[i];
+			hi = i;
 		}
 	}
 
@@ -183,15 +241,20 @@ void CVoteMapPanel::Update()
 	if (pHorizontalScrollBar)
 		pHorizontalScrollBar->repaint();
 
-	for ( int i = 0; i < BUILT_IN_MAP_COUNT; i++ )
+	for ( int i = 0; i < slots; i++ )
 	{
 		if (m_pButtons[i])
 		{
-			// Update button text (without vote count)
+			// Update button text. RANDOM is the last array entry; everything
+			// before it is a real map with a size suffix.
+			bool isRandom = ( i == slots - 1 );
 			char sz[64];
-			sprintf(sz, " %s", sBuiltInMaps[i]);
+			if ( isRandom )
+				sprintf( sz, " RANDOM" );
+			else
+				sprintf( sz, " %s (%s)", g_szClientMaps[i], MapSizeLabel( g_iClientMapSizes[i] ) );
 			m_pButtons[i]->setText(sz);
-			
+
 			// Update vote tally label
 			if (m_pVoteTallyLabels[i])
 			{
@@ -237,7 +300,15 @@ void CVoteMapPanel::Update()
 		}
 	}
 
-	pTitleLabel->setText("%s | Your Vote: %s | Time Left: %.1f\n", gHUD.m_TextMessage.BufferedLocaliseTextString("#Title_VoteMap"), myVote > 0 ? sBuiltInMaps[myVote-1] : "None", seconds);
+	const char *myVoteName = "None";
+	if ( myVote > 0 && myVote <= m_iButtonCount )
+	{
+		if ( myVote == m_iButtonCount )
+			myVoteName = "RANDOM";
+		else
+			myVoteName = g_szClientMaps[myVote - 1];
+	}
+	pTitleLabel->setText("%s | Your Vote: %s | Time Left: %.1f\n", gHUD.m_TextMessage.BufferedLocaliseTextString("#Title_VoteMap"), myVoteName, seconds);
 }
 
 //======================================
@@ -258,6 +329,10 @@ bool CVoteMapPanel::SlotInput( int iSlot )
 // Update the Class menu before opening it
 void CVoteMapPanel::Open( void )
 {
+	// (Re)build buttons against the current dynamic map list. The list arrives
+	// asynchronously over a user message, so the count may differ between when
+	// the panel was constructed and when it's first shown.
+	BuildButtons();
 	SetActiveInfo(0);
 	Update();
 	CMenuPanel::Open();
@@ -275,7 +350,7 @@ void CVoteMapPanel::Initialize( void )
 // Mouse is over a class button, bring up the class info
 void CVoteMapPanel::SetActiveInfo( int iInput )
 {
-	if ( iInput > (BUILT_IN_MAP_COUNT - 1) || iInput < 0 )
+	if ( iInput >= m_iButtonCount || iInput < 0 )
 		iInput = 0;
 
 	m_iCurrentInfo = iInput;
