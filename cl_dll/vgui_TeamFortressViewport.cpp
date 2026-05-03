@@ -152,47 +152,28 @@ char *sGameplayModes[] =
 	"random",
 };
 
-char *sBuiltInMaps[] =
+// ---------------------------------------------------------------------------
+// Dynamic client-side map list, populated by MsgFunc_MapList from server.
+// Entry [0..g_iClientMapCount-1] are real maps; the synthetic RANDOM slot is
+// not stored here -- vote menus always render RANDOM as the FIRST visible cell
+// while assigning it the LAST array/vote index (== g_iClientMapCount + 1).
+// ---------------------------------------------------------------------------
+char g_szClientMaps[MAX_CLIENT_MAPS][32];
+int  g_iClientMapSizes[MAX_CLIENT_MAPS];
+int  g_iClientMapCount = 0;
+bool g_bMapListReceived = false;
+
+const char *MapSizeLabel( int size )
 {
-	"bounce2 (large)",
-	"canyon (mega)",
-	"catacombs (large)",
-	"chillworks (large)",
-	"cold_base (medium)",
-	"coldice (medium)",
-	"comet (medium)",
-	"defroster (large)",
-	"datafloe (medium)",
-	"depot (small)",
-	"doublefrost (medium)",
-	"drift (mega)",
-	"fences (medium)",
-	"focus (large)",
-	"frostfire (mega)",
-	"frostmill (medium)",
-	"frosty (small)",
-	"frozen_bunker (small)",
-	"frozenwarehouse (medium)",
-	"furrow (small)",
-	"glacialcore (small)",
-	"glupshitto (small)",
-	"ice_pit (medium)",
-	"latenightxmas (medium)",
-	"overflow (medium)",
-	"quadfrost (large)",
-	"snow_camp (mega)",
-	"snowcross (medium)",
-	"snowtransit (medium)",
-	"snowyard (small)",
-	"stalkyard2 (small)",
-	"storm (medium)",
-	"thechill (medium)",
-	"themill (medium)",
-	"thetemple (large)",
-	"training (small)",
-	"training2 (medium)",
-	"RANDOM",
-};
+	switch ( size )
+	{
+		case 0:  return "small";
+		case 1:  return "medium";
+		case 2:  return "large";
+		case 3:  return "mega";
+		default: return "medium";
+	}
+}
 
 MutatorInfo sMutators[] = {
 	{ "CHAOS", "cycle all on a timer" },
@@ -2759,6 +2740,44 @@ int TeamFortressViewport::MsgFunc_VoteMutator( const char *pszName, int iSize, v
 			g_PlayerExtraInfo[j].vote = 0;
 		HideVGUIMenu();
 	}
+
+	return 1;
+}
+
+// Receive the server's dynamic map list. Format documented in
+// CHalfLifeMultiplay::SendMapListToClient (multiplay_gamerules.cpp).
+int TeamFortressViewport::MsgFunc_MapList( const char *pszName, int iSize, void *pbuf )
+{
+	BEGIN_READ( pbuf, iSize );
+	int seq        = READ_BYTE();
+	int isLast     = READ_BYTE();
+	int total      = READ_BYTE();
+	int numInChunk = READ_BYTE();
+
+	if ( seq == 0 )
+	{
+		// First chunk: reset our list using the announced total.
+		g_iClientMapCount  = 0;
+		g_bMapListReceived = false;
+		if ( total < 0 ) total = 0;
+		if ( total > MAX_CLIENT_MAPS - 1 ) total = MAX_CLIENT_MAPS - 1;
+	}
+
+	for ( int i = 0; i < numInChunk; i++ )
+	{
+		int size = READ_BYTE();
+		const char *name = READ_STRING();
+		if ( g_iClientMapCount < MAX_CLIENT_MAPS - 1 && name && name[0] )
+		{
+			strncpy( g_szClientMaps[g_iClientMapCount], name, sizeof(g_szClientMaps[0]) - 1 );
+			g_szClientMaps[g_iClientMapCount][sizeof(g_szClientMaps[0]) - 1] = 0;
+			g_iClientMapSizes[g_iClientMapCount] = size;
+			g_iClientMapCount++;
+		}
+	}
+
+	if ( isLast )
+		g_bMapListReceived = true;
 
 	return 1;
 }

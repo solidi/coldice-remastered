@@ -527,6 +527,7 @@ protected:
 	BOOL m_iEndIntermissionButtonHit;
 	int m_iDecidedMapIndex;
 	void SendMOTDToClient( edict_t *client );
+	void SendMapListToClient( edict_t *client );
 
 	// Cold Ice Remastered Game Modes
 	float m_fSendArmoredManMessage = 0;
@@ -552,7 +553,22 @@ protected:
 
 extern CGameRules*	g_pGameRules;
 #define MAX_MUTATORS MUTATOR_VOLATILE
-#define BUILT_IN_MAP_COUNT 37
 extern const char *g_szMutators[MAX_MUTATORS];
+
+// Dynamic server map list, parsed from mapcycle.txt at runtime.
+// Each entry has a name and a size class (0=small, 1=medium, 2=large, 3=mega).
+// Maps are stored alphabetically. RANDOM is not stored here; clients append it
+// at array index g_iServerMapCount when constructing their UI.
+#define MAX_SERVER_MAPS 128
+#define MAP_SIZE_SMALL  0
+#define MAP_SIZE_MEDIUM 1
+#define MAP_SIZE_LARGE  2
+#define MAP_SIZE_MEGA   3
+extern char g_szServerMaps[MAX_SERVER_MAPS][32];
+extern int  g_iServerMapSizes[MAX_SERVER_MAPS];
+extern int  g_iServerMapCount;
+
+void BuildServerMapList( void );          // (re)parse mapcyclefile into the arrays above
+void EnsureServerMapList( void );         // build only if not yet built / file changed
 
 #endif	//GAMERULES_H

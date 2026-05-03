@@ -751,7 +751,6 @@ extern int gmsgVoteGameplay;
 extern int gmsgVoteMap;
 extern int gmsgVoteMutator;
 extern char *gamePlayModes[];
-extern char *sBuiltInMaps[];
 
 void Vote( CBasePlayer *pPlayer, int vote )
 {
@@ -775,7 +774,7 @@ void Vote( CBasePlayer *pPlayer, int vote )
 			if (g_pGameRules->m_iVoteUnderway == VOTE_GAMEPLAY_OPEN)
 				voteDisplayName = (vote < 1 || vote > TOTAL_GAME_MODES) ? "random" : gamePlayModes[vote-1];
 			else if (g_pGameRules->m_iVoteUnderway == VOTE_MAPS_OPEN)
-				voteDisplayName = (vote < 1 || vote > BUILT_IN_MAP_COUNT) ? "random" : sBuiltInMaps[vote-1];
+				voteDisplayName = (vote < 1 || vote > g_iServerMapCount) ? "random" : g_szServerMaps[vote-1];
 			else
 				voteDisplayName = (vote < 1 || vote > MAX_MUTATORS) ? "random" : g_szMutators[vote-1];
 			ClientPrint(pPlayer->pev, HUD_PRINTTALK, UTIL_VarArgs("[VOTE] You voted for \"%s\". Waiting for others to tally vote.\n", voteDisplayName));
