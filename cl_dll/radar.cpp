@@ -306,14 +306,40 @@ void CHudRadar::DrawCompass(void)
 		int tr, tg, tb;
 		GetRadarColor(special, tr, tg, tb);
 
-		// Draw small downward triangle below the compass line
+		// Draw target marker below the compass line.
+		// Shape depends on relative height of target vs. local player:
+		//   - 64+ units above  -> upward-pointing triangle (tip at top)
+		//   - within +/- 63 u  -> square
+		//   - 64+ units below  -> downward-pointing triangle (tip at bottom)
 		int triW = COMPASS_TARGET_TRI_WIDTH;
 		int triH = COMPASS_TARGET_TRI_HEIGHT;
 		int triTop = barY + 2;
-		for (int i = 0; i < triH; i++)
+		// m_RadarInfo[].height is (entity.z - local.z) / 72; threshold 64 units = 64/72.
+		float heightUnits = m_RadarInfo[index].height * 72.0f;
+		if (heightUnits >= 64.0f)
 		{
-			int width = triW - (i * triW) / triH;
-			FillRGBA(targetX - width / 2, triTop + i, width, 1, tr, tg, tb, 200);
+			// Pointing up: tip at top, widening downward
+			for (int i = 0; i < triH; i++)
+			{
+				int width = (i * triW) / triH;
+				if (width < 1) width = 1;
+				FillRGBA(targetX - width / 2, triTop + i, width, 1, tr, tg, tb, 200);
+			}
+		}
+		else if (heightUnits <= -64.0f)
+		{
+			// Pointing down: wide at top, tip at bottom
+			for (int i = 0; i < triH; i++)
+			{
+				int width = triW - (i * triW) / triH;
+				if (width < 1) width = 1;
+				FillRGBA(targetX - width / 2, triTop + i, width, 1, tr, tg, tb, 200);
+			}
+		}
+		else
+		{
+			// Square (same overall footprint as the triangle)
+			FillRGBA(targetX - triW / 2, triTop, triW, triH, tr, tg, tb, 200);
 		}
 
 		// Draw distance text below triangle (skip if <= 12 ft)
