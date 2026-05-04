@@ -462,7 +462,8 @@ void CHalfLifeHorde::Think( void )
 		// Per-monster fields used (free on monster_* pev):
 		//   pev->vuser1 = last-sampled origin
 		//   pev->fuser1 = time when the monster first went stationary
-		//                 (0 = haven't observed it yet, or just moved)
+		//                 (0 = haven't observed it yet; after moving,
+		//                  it is reset to gpGlobals->time)
 		//
 		// "Stationary" = moved < 24u since last sample.  "Not in a
 		// fight" = m_hEnemy is null or its target is dead.  Monsters
@@ -528,7 +529,7 @@ void CHalfLifeHorde::Think( void )
 			for (int i = 0; i < iTeleportCount; i++)
 			{
 				edict_t *m_pSpot = EntSelectSpawnPoint("info_player_deathmatch");
-				if (m_pSpot == NULL)
+				if (FNullEnt(m_pSpot) || ENTINDEX(m_pSpot) == 0)
 					continue;
 
 				UTIL_SetOrigin(&pTeleport[i]->v, m_pSpot->v.origin);
