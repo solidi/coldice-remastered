@@ -455,17 +455,152 @@ void CHalfLifeHorde::Think( void )
 			m_fBeginWaveTime = 0;
 		}
 
-		// detect enemies
+		// detect enemies + sample idle state for the stuck-monster
+		// teleporter.  We piggyback on this pass so we don't FIND_ENTITY
+		// the world twice each tick.
+		//
+		// Per-monster fields used (free on monster_* pev):
+		//   pev->vuser1 = last-sampled origin
+		//   pev->fuser1 = time when the monster first went stationary
+		//                 (0 = haven't observed it yet; after moving,
+		//                  it is reset to gpGlobals->time)
+		//
+		// "Stationary" = moved < 24u since last sample.  "Not in a
+		// fight" = m_hEnemy is null or its target is dead.  Monsters
+		// that satisfy both for >= 30s get batched into pTeleport[]
+		// and moved to fresh spawn points after the loop.
 		edict_t *pEdict = FIND_ENTITY_BY_STRING(NULL, "message", "horde");
 		m_iEnemiesRemain = 0;
+		edict_t *pTeleport[64];
+		int      iTeleportCount = 0;
 		while (!FNullEnt(pEdict))
 		{
 			m_iEnemiesRemain++;
 
 			if (pEdict->v.deadflag == DEAD_DEAD || pEdict->v.flags & EF_NODRAW)
+			{
 				UTIL_Remove(CBaseEntity::Instance(pEdict));
+			}
+			else
+			{
+				// Idle sampling
+				Vector vecCur = pEdict->v.origin;
+				Vector vecLast = pEdict->v.vuser1;
+
+				// First observation: seed and skip.
+				if (vecLast == g_vecZero || pEdict->v.fuser1 == 0)
+				{
+					pEdict->v.vuser1 = vecCur;
+					pEdict->v.fuser1 = gpGlobals->time;
+				}
+				else if ((vecCur - vecLast).Length() >= 24.0f)
+				{
+					// Moved meaningfully — reset the stationary timer.
+					pEdict->v.vuser1 = vecCur;
+					pEdict->v.fuser1 = gpGlobals->time;
+				}
+				else if (gpGlobals->time - pEdict->v.fuser1 >= 30.0f
+					&& iTeleportCount < (int)ARRAYSIZE(pTeleport))
+				{
+					// Stationary >= 30s.  Verify "not in a fight": the
+					// monster's AI target is null/dead.
+					BOOL inFight = FALSE;
+					CBaseEntity *pEnt = CBaseEntity::Instance(pEdict);
+					CBaseMonster *pMon = pEnt ? pEnt->MyMonsterPointer() : NULL;
+					if (pMon && pMon->m_hEnemy != NULL)
+					{
+						CBaseEntity *pFoe = (CBaseEntity *)((CBaseEntity *)pMon->m_hEnemy);
+						if (pFoe && pFoe->IsAlive())
+							inFight = TRUE;
+					}
+
+					if (!inFight)
+						pTeleport[iTeleportCount++] = pEdict;
+				}
+			}
 
 			pEdict = FIND_ENTITY_BY_STRING(pEdict, "message", "horde");
+		}
+
+		// Batch teleport any stuck monsters and notify players.
+		if (iTeleportCount > 0)
+		{
+			int iMoved = 0;
+			for (int i = 0; i < iTeleportCount; i++)
+			{
+				// Try several spawn points until we find one that's
+				// clear of players and other horde monsters.  We
+				// deliberately do NOT telefrag here (unlike the wave-
+				// spawn path), because a stuck-monster teleport is a
+				// quality-of-life shuffle — it must not punish a
+				// nearby survivor by gibbing them.  If every attempt
+				// is blocked we just leave the monster in place; it
+				// will get re-flagged on the next tick and try again.
+				edict_t *m_pSpot = NULL;
+				const int kMaxAttempts = 8;
+				for (int attempt = 0; attempt < kMaxAttempts; attempt++)
+				{
+					edict_t *pCandidate = EntSelectSpawnPoint("info_player_deathmatch");
+					if (FNullEnt(pCandidate) || ENTINDEX(pCandidate) == 0)
+						continue;
+
+					BOOL bClear = TRUE;
+					CBaseEntity *pBlocker = NULL;
+					while ((pBlocker = UTIL_FindEntityInSphere(
+						pBlocker, pCandidate->v.origin, 64)) != NULL)
+					{
+						// Ignore the monster we're moving (it can't
+						// collide with itself, and the spawn picker
+						// may even hand us the spot it currently
+						// stands on).
+						if (pBlocker->edict() == pTeleport[i])
+							continue;
+						// Players block — never teleport on top of one.
+						if (pBlocker->IsPlayer() && pBlocker->IsAlive())
+						{
+							bClear = FALSE;
+							break;
+						}
+						// Other live horde monsters block — don't pile
+						// monsters into the same spot.
+						if (pBlocker->IsAlive() && pBlocker->pev
+							&& !strcmp(STRING(pBlocker->pev->message), "horde"))
+						{
+							bClear = FALSE;
+							break;
+						}
+					}
+
+					if (bClear)
+					{
+						m_pSpot = pCandidate;
+						break;
+					}
+				}
+
+				if (FNullEnt(m_pSpot))
+					continue;  // no clear spot this tick — try next tick
+
+				UTIL_SetOrigin(&pTeleport[i]->v, m_pSpot->v.origin);
+				pTeleport[i]->v.angles = m_pSpot->v.angles;
+				pTeleport[i]->v.velocity = g_vecZero;
+
+				// Re-seed idle samples so the next tick doesn't immediately
+				// re-flag them as stuck.
+				pTeleport[i]->v.vuser1 = m_pSpot->v.origin;
+				pTeleport[i]->v.fuser1 = gpGlobals->time;
+				iMoved++;
+			}
+
+			if (iMoved > 0)
+			{
+				UTIL_ClientPrintAll(HUD_PRINTTALK,
+					UTIL_VarArgs("[Horde] Teleported %d monster%s\n",
+						iMoved, iMoved == 1 ? "" : "s"));
+				MESSAGE_BEGIN(MSG_BROADCAST, gmsgPlayClientSound);
+					WRITE_BYTE(CLIENT_SOUND_EBELL);
+				MESSAGE_END();
+			}
 		}
 
 		if (m_iEnemiesRemain >= 1 && m_iTotalEnemies >= 1)
