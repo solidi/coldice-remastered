@@ -528,9 +528,58 @@ void CHalfLifeHorde::Think( void )
 			int iMoved = 0;
 			for (int i = 0; i < iTeleportCount; i++)
 			{
-				edict_t *m_pSpot = EntSelectSpawnPoint("info_player_deathmatch");
-				if (FNullEnt(m_pSpot) || ENTINDEX(m_pSpot) == 0)
-					continue;
+				// Try several spawn points until we find one that's
+				// clear of players and other horde monsters.  We
+				// deliberately do NOT telefrag here (unlike the wave-
+				// spawn path), because a stuck-monster teleport is a
+				// quality-of-life shuffle — it must not punish a
+				// nearby survivor by gibbing them.  If every attempt
+				// is blocked we just leave the monster in place; it
+				// will get re-flagged on the next tick and try again.
+				edict_t *m_pSpot = NULL;
+				const int kMaxAttempts = 8;
+				for (int attempt = 0; attempt < kMaxAttempts; attempt++)
+				{
+					edict_t *pCandidate = EntSelectSpawnPoint("info_player_deathmatch");
+					if (FNullEnt(pCandidate) || ENTINDEX(pCandidate) == 0)
+						continue;
+
+					BOOL bClear = TRUE;
+					CBaseEntity *pBlocker = NULL;
+					while ((pBlocker = UTIL_FindEntityInSphere(
+						pBlocker, pCandidate->v.origin, 64)) != NULL)
+					{
+						// Ignore the monster we're moving (it can't
+						// collide with itself, and the spawn picker
+						// may even hand us the spot it currently
+						// stands on).
+						if (pBlocker->edict() == pTeleport[i])
+							continue;
+						// Players block — never teleport on top of one.
+						if (pBlocker->IsPlayer() && pBlocker->IsAlive())
+						{
+							bClear = FALSE;
+							break;
+						}
+						// Other live horde monsters block — don't pile
+						// monsters into the same spot.
+						if (pBlocker->IsAlive() && pBlocker->pev
+							&& !strcmp(STRING(pBlocker->pev->message), "horde"))
+						{
+							bClear = FALSE;
+							break;
+						}
+					}
+
+					if (bClear)
+					{
+						m_pSpot = pCandidate;
+						break;
+					}
+				}
+
+				if (FNullEnt(m_pSpot))
+					continue;  // no clear spot this tick — try next tick
 
 				UTIL_SetOrigin(&pTeleport[i]->v, m_pSpot->v.origin);
 				pTeleport[i]->v.angles = m_pSpot->v.angles;
