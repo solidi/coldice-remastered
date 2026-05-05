@@ -483,7 +483,8 @@ void CHalfLifeShidden::Think( void )
 		{
 			CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
 
-			if ( plr && plr->IsPlayer() && !plr->HasDisconnected )
+			// Limbo gating: only committed-to-play players enter the team-balance shuffle.
+			if ( plr && plr->IsPlayer() && plr->IsCommittedToPlay() )
 				player[count++] = i;
 		}
 
@@ -504,7 +505,8 @@ void CHalfLifeShidden::Think( void )
 		{
 			CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( player[i] );
 
-			if ( plr && plr->IsPlayer() && !plr->HasDisconnected )
+			// Pool was already filtered for committed-to-play above; defensive recheck.
+			if ( plr && plr->IsPlayer() && plr->IsCommittedToPlay() )
 				plr->pev->fuser4 = ( i < dealterCount ) ? SHIDDEN_DEALTER : SHIDDEN_SMELTER;
 		}
 

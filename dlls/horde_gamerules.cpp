@@ -320,7 +320,9 @@ void CHalfLifeHorde::Think( void )
 			{
 				CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
 
-				if ( plr && plr->IsPlayer() && !plr->HasDisconnected )
+				// Limbo gating: only auto-admit committed observers into the wave. Limbo
+				// (menu open) and Chose-Spectate players stay as observers.
+				if ( plr && plr->IsPlayer() && plr->IsCommittedToPlay() )
 				{
 					// Get back in
 					if (plr->IsObserver())
@@ -635,7 +637,10 @@ void CHalfLifeHorde::Think( void )
 			{
 				CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
 
-				if ( plr && plr->IsPlayer() && !plr->HasDisconnected )
+				// Limbo gating: only committed-to-play players are credited a round
+				// (m_iRoundPlays) and have their score reset. Limbo / Chose-Spectate did
+				// not participate in this wave.
+				if ( plr && plr->IsPlayer() && plr->IsCommittedToPlay() )
 				{
 					MESSAGE_BEGIN(MSG_ALL, gmsgScoreInfo);
 						WRITE_BYTE( ENTINDEX(plr->edict()) );

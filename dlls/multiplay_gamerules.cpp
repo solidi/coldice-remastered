@@ -938,7 +938,9 @@ int CHalfLifeMultiplay::CheckClients( void )
 		m_iPlayersInArena[i-1] = 0;
 
 		CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
-		if ( plr && plr->IsPlayer() && !plr->HasDisconnected )
+		// Limbo gating: only count players who have committed to play. Limbo (menu open)
+		// and Chose-Spectate players are not eligible for round admission.
+		if ( plr && plr->IsPlayer() && plr->IsCommittedToPlay() )
 		{
 #ifdef _DEBUG
 			ALERT(at_aiconsole, "%s[%d] is accounted for\n", STRING(plr->pev->netname), i);
@@ -963,7 +965,8 @@ void CHalfLifeMultiplay::InsertClientsIntoArena(float fragcount)
 	{
 		CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
 
-		if ( plr && plr->IsPlayer() && !plr->HasDisconnected )
+		// Limbo gating: only admit committed players. Limbo + Chose-Spectate stay observers.
+		if ( plr && plr->IsPlayer() && plr->IsCommittedToPlay() )
 		{ 
 			// Joining spectators do not get game mode message.
 			UpdateGameMode( plr );
@@ -1514,8 +1517,8 @@ void CHalfLifeMultiplay :: InitHUD( CBasePlayer *pl )
 		MESSAGE_END();
 	}
 
-	if (g_pGameRules->IsRoundBased())
-		SendMOTDToClient( pl->edict() );
+	// Don't send the MOTD since there is always a spectator menu.
+	// SendMOTDToClient( pl->edict() );
 
 	// Send the dynamic map list (parsed from mapcyclefile) to the new client so
 	// the vgui vote menu can show the right entries. Re-sent on every InitHUD
@@ -1791,6 +1794,7 @@ void CHalfLifeMultiplay :: PlayerThink( CBasePlayer *pPlayer )
 	// Always play, never spectate
 	if (FBitSet(pPlayer->pev->flags, FL_FAKECLIENT) && pPlayer->pev->iuser3 > 0)
 	{
+		pPlayer->m_bWantsToPlay = TRUE;	// bots always commit to play
 		pPlayer->m_iObserverWeapon = 2; // always auto join
 		pPlayer->ExitObserver();
 	}

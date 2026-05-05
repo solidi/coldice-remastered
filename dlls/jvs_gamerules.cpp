@@ -383,8 +383,8 @@ void CHalfLifeJesusVsSanta::Think( void )
 				int playerIndex = m_iPlayersInArena[i];
 				CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex(playerIndex);
 				
-				// Only add valid, connected players
-				if (plr && plr->IsPlayer() && !plr->HasDisconnected)
+				// Limbo gating: only committed-to-play players are eligible to be Jesus.
+				if (plr && plr->IsPlayer() && plr->IsCommittedToPlay())
 				{
 					m_iJesusPool[m_iJesusPoolSize] = playerIndex;
 					m_iJesusPoolSize++;
@@ -422,7 +422,8 @@ void CHalfLifeJesusVsSanta::Think( void )
 		for ( int i = 1; i <= gpGlobals->maxClients; i++ )
 		{
 			CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
-			if ( plr && plr->IsPlayer() && !plr->HasDisconnected )
+			// Limbo gating: only assign team to committed-to-play players.
+			if ( plr && plr->IsPlayer() && plr->IsCommittedToPlay() )
 				plr->pev->fuser4 = RADAR_TEAM_RED;
 		}
 		pArmoredMan = (CBasePlayer *)UTIL_PlayerByIndex( armoredman );

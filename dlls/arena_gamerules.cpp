@@ -336,7 +336,8 @@ void CHalfLifeArena::Think( void )
 				int playerIndex = m_iPlayersInArena[i];
 				CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex(playerIndex);
 				
-				if ( plr && plr->IsPlayer() && !plr->HasDisconnected )
+				// Limbo gating: Chose-Spectate / Limbo never enter the opponent pool.
+				if ( plr && plr->IsPlayer() && plr->IsCommittedToPlay() )
 				{
 					m_iOpponentPool[m_iOpponentPoolSize] = playerIndex;
 					m_iOpponentPoolSize++;
@@ -426,7 +427,8 @@ void CHalfLifeArena::Think( void )
 					if ( playerIndex != m_iReigningChampion )
 					{
 						CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex(playerIndex);
-						if ( plr && plr->IsPlayer() && !plr->HasDisconnected )
+						// Limbo gating: Chose-Spectate / Limbo never enter the opponent pool.
+						if ( plr && plr->IsPlayer() && plr->IsCommittedToPlay() )
 						{
 							m_iOpponentPool[m_iOpponentPoolSize] = playerIndex;
 							m_iOpponentPoolSize++;
@@ -513,7 +515,10 @@ void CHalfLifeArena::Think( void )
 		{
 			CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
 
-			if ( plr && plr->IsPlayer() && !plr->HasDisconnected )
+			// Limbo gating: only the two selected players (committed) become combatants;
+			// other committed players get sucked to spectator. Limbo + Chose-Spectate are
+			// already observers and are skipped entirely.
+			if ( plr && plr->IsPlayer() && plr->IsCommittedToPlay() )
 			{ 
 				if ( m_iPlayer1 == i || m_iPlayer2 == i )
 				{
