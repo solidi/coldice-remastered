@@ -21,6 +21,7 @@
 #include	"soundent.h"
 #include	"nodes.h"
 #include	"talkmonster.h"
+#include	"player.h"
 
 
 float	CTalkMonster::g_talkWaitTime = 0;		// time delay until it's ok to speak: used so that two NPCs don't talk at once
@@ -155,6 +156,20 @@ void CBaseMonster :: Look ( int iDistance )
 	for ( int i = 0; i < count; i++ )
 	{
 		pSightEnt = pList[i];
+
+		// Multiplayer: never target spectators / observer-state players.
+		// Spectators have EF_NODRAW set by StartObserver and are not
+		// participating in the round; horde monsters (and any other
+		// AI using the base Look path) must ignore them entirely so
+		// they don't track or attack invisible observers.
+		if ( pSightEnt && pSightEnt->IsPlayer() )
+		{
+			CBasePlayer *pPlr = (CBasePlayer *)pSightEnt;
+			if ( pPlr->IsObserver() || pPlr->IsSpectator() ||
+				FBitSet( pSightEnt->pev->effects, EF_NODRAW ) )
+				continue;
+		}
+
 		if ( pSightEnt != this && pSightEnt->pev->health > 0 )
 		{
 			// the looker will want to consider this entity

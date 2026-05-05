@@ -33,6 +33,7 @@
 #include "decals.h"
 #include "soundent.h"
 #include "gamerules.h"
+#include "player.h"
 
 #define MONSTER_CUT_CORNER_DIST		8 // 8 means the monster's bounding box is contained without the box of the node in WC
 
@@ -1144,7 +1145,22 @@ int CBaseMonster :: CheckEnemy ( CBaseEntity *pEnemy )
 
 	iUpdatedLKP = FALSE;
 	ClearConditions ( bits_COND_ENEMY_FACING_ME );
-	
+
+	// Multiplayer: if our locked enemy transitioned to spectator/observer,
+	// drop the lock. Spectators have EF_NODRAW set by StartObserver and
+	// must never be tracked by AI.
+	if ( pEnemy && pEnemy->IsPlayer() )
+	{
+		CBasePlayer *pPlr = (CBasePlayer *)pEnemy;
+		if ( pPlr->IsObserver() || pPlr->IsSpectator() ||
+			FBitSet( pEnemy->pev->effects, EF_NODRAW ) )
+		{
+			SetConditions ( bits_COND_ENEMY_DEAD );
+			ClearConditions( bits_COND_SEE_ENEMY | bits_COND_ENEMY_OCCLUDED );
+			return FALSE;
+		}
+	}
+
 	if ( !FVisible( pEnemy ) )
 	{
 		ASSERT(!HasConditions(bits_COND_SEE_ENEMY));
