@@ -461,15 +461,26 @@ void CHalfLifeHorde::Think( void )
 		// teleporter.  We piggyback on this pass so we don't FIND_ENTITY
 		// the world twice each tick.
 		//
-		// Per-monster fields used (free on monster_* pev):
-		//   pev->vuser1 = last-sampled origin
-		//   pev->fuser1 = time when the monster first went stationary
-		//                 (0 = haven't observed it yet; after moving,
-		//                  it is reset to gpGlobals->time)
+		// Two parallel "stuck" tracks are evaluated; either one fires a
+		// teleport when its window has elapsed AND the monster is not in
+		// a fight.  This catches both fully-stuck and aimlessly-wandering
+		// monsters that never get discovered by a survivor.
 		//
-		// "Stationary" = moved < 24u since last sample.  "Not in a
-		// fight" = m_hEnemy is null or its target is dead.  Monsters
-		// that satisfy both for >= 30s get batched into pTeleport[]
+		// Per-monster fields used (free on monster_* pev):
+		//   pev->vuser1 = origin sample for the "stationary" track
+		//   pev->fuser1 = time the stationary track last reset
+		//                 (0 = haven't observed it yet)
+		//   pev->vuser2 = anchor origin for the "wander" track
+		//   pev->fuser2 = time the wander track last reset
+		//
+		// Stationary track: moved < 24u since last 1.5s sample.  Catches
+		// monsters wedged in geometry.
+		// Wander track:     stayed within 320u of an anchor for the whole
+		// window.  Catches monsters that pace back-and-forth in a small
+		// area (each tick they move > 24u so the stationary track keeps
+		// resetting, but they never actually leave the room).
+		// "Not in a fight" = m_hEnemy is null or its target is dead.
+		// Either track satisfied for >= 30s gets batched into pTeleport[]
 		// and moved to fresh spawn points after the loop.
 		edict_t *pEdict = FIND_ENTITY_BY_STRING(NULL, "message", "horde");
 		m_iEnemiesRemain = 0;
@@ -485,40 +496,64 @@ void CHalfLifeHorde::Think( void )
 			}
 			else
 			{
-				// Idle sampling
-				Vector vecCur = pEdict->v.origin;
-				Vector vecLast = pEdict->v.vuser1;
+				// Determine combat state once — both tracks need it,
+				// and a fight resets both (monsters in active combat
+				// should never be teleported).
+				BOOL inFight = FALSE;
+				CBaseEntity *pEnt = CBaseEntity::Instance(pEdict);
+				CBaseMonster *pMon = pEnt ? pEnt->MyMonsterPointer() : NULL;
+				if (pMon && pMon->m_hEnemy != NULL)
+				{
+					CBaseEntity *pFoe = (CBaseEntity *)((CBaseEntity *)pMon->m_hEnemy);
+					if (pFoe && pFoe->IsAlive())
+						inFight = TRUE;
+				}
 
-				// First observation: seed and skip.
-				if (vecLast == g_vecZero || pEdict->v.fuser1 == 0)
+				Vector vecCur = pEdict->v.origin;
+				BOOL bFlagged = FALSE;
+
+				// --- Stationary track (vuser1 / fuser1) ---
+				Vector vecLast = pEdict->v.vuser1;
+				if (vecLast == g_vecZero || pEdict->v.fuser1 == 0 || inFight)
 				{
 					pEdict->v.vuser1 = vecCur;
 					pEdict->v.fuser1 = gpGlobals->time;
 				}
 				else if ((vecCur - vecLast).Length() >= 24.0f)
 				{
-					// Moved meaningfully — reset the stationary timer.
 					pEdict->v.vuser1 = vecCur;
 					pEdict->v.fuser1 = gpGlobals->time;
 				}
 				else if (gpGlobals->time - pEdict->v.fuser1 >= 30.0f
 					&& iTeleportCount < (int)ARRAYSIZE(pTeleport))
 				{
-					// Stationary >= 30s.  Verify "not in a fight": the
-					// monster's AI target is null/dead.
-					BOOL inFight = FALSE;
-					CBaseEntity *pEnt = CBaseEntity::Instance(pEdict);
-					CBaseMonster *pMon = pEnt ? pEnt->MyMonsterPointer() : NULL;
-					if (pMon && pMon->m_hEnemy != NULL)
-					{
-						CBaseEntity *pFoe = (CBaseEntity *)((CBaseEntity *)pMon->m_hEnemy);
-						if (pFoe && pFoe->IsAlive())
-							inFight = TRUE;
-					}
-
-					if (!inFight)
-						pTeleport[iTeleportCount++] = pEdict;
+					bFlagged = TRUE;
 				}
+
+				// --- Wander track (vuser2 / fuser2) ---
+				// Anchor reset on first observation, on combat, or when
+				// the monster strays > 320u from the anchor.  Otherwise
+				// it accrues idle-wander time.
+				Vector vecAnchor = pEdict->v.vuser2;
+				if (vecAnchor == g_vecZero || pEdict->v.fuser2 == 0 || inFight)
+				{
+					pEdict->v.vuser2 = vecCur;
+					pEdict->v.fuser2 = gpGlobals->time;
+				}
+				else if ((vecCur - vecAnchor).Length() >= 320.0f)
+				{
+					pEdict->v.vuser2 = vecCur;
+					pEdict->v.fuser2 = gpGlobals->time;
+				}
+				else if (!bFlagged
+					&& gpGlobals->time - pEdict->v.fuser2 >= 30.0f
+					&& iTeleportCount < (int)ARRAYSIZE(pTeleport))
+				{
+					bFlagged = TRUE;
+				}
+
+				if (bFlagged && !inFight)
+					pTeleport[iTeleportCount++] = pEdict;
 			}
 
 			pEdict = FIND_ENTITY_BY_STRING(pEdict, "message", "horde");
@@ -587,10 +622,19 @@ void CHalfLifeHorde::Think( void )
 				pTeleport[i]->v.angles = m_pSpot->v.angles;
 				pTeleport[i]->v.velocity = g_vecZero;
 
+				// Drop to the floor so monsters don't hover after a
+				// teleport (info_player_deathmatch entities sit a bit
+				// above ground).  DROP_TO_FLOOR returns -1 if the
+				// monster is stuck or has no floor; in that case the
+				// engine leaves the origin alone, which is fine.
+				DROP_TO_FLOOR( pTeleport[i] );
+
 				// Re-seed idle samples so the next tick doesn't immediately
 				// re-flag them as stuck.
-				pTeleport[i]->v.vuser1 = m_pSpot->v.origin;
+				pTeleport[i]->v.vuser1 = pTeleport[i]->v.origin;
 				pTeleport[i]->v.fuser1 = gpGlobals->time;
+				pTeleport[i]->v.vuser2 = pTeleport[i]->v.origin;
+				pTeleport[i]->v.fuser2 = gpGlobals->time;
 				iMoved++;
 			}
 
