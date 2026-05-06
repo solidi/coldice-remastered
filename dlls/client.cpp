@@ -1037,6 +1037,24 @@ void ClientCommand( edict_t *pEntity )
 	}
 	else if ( FStrEq( pcmd, "spectate" ) )	// clients wants to become a spectator
 	{
+		CBasePlayer * pPlayer = GetClassPtr((CBasePlayer *)pev);
+
+		// Mid-round bail-out guard: in round-based modes, only honor "spectate" when
+		// the player is in the limbo menu (iuser3 > 0) or already an observer. An
+		// active in-arena combatant must NOT be able to drop to spectator mid-round
+		// in modes like Arena / Shidden / JvS — that would let them dodge a kill,
+		// flip the win condition, or strand a 1v1 / Jesus role. Proxies always allowed.
+		if ( g_pGameRules->IsRoundBased()
+			&& !(pev->flags & FL_PROXY)
+			&& pev->iuser3 == 0
+			&& !pPlayer->IsObserver()
+			&& pPlayer->IsInArena )
+		{
+			ClientPrint( pev, HUD_PRINTCENTER,
+				"Cannot spectate mid-round.\nYou will be able to choose after this round.\n" );
+			return;
+		}
+
 			// Always allow proxies; always allow in round-based modes (Limbo + spectate must
 			// always be available so non-committed players don't break round counting); and
 			// in non-round-based modes, allow either when allow_spectators cvar is set or when
@@ -1045,7 +1063,6 @@ void ClientCommand( edict_t *pEntity )
 		{
 			pev->iuser3 = 0;
 
-			CBasePlayer * pPlayer = GetClassPtr((CBasePlayer *)pev);
 			pPlayer->m_bWantsToPlay = FALSE;	// chose-spectate
 
 			edict_t *pentSpawnSpot = g_pGameRules->GetPlayerSpawnSpot( pPlayer );
