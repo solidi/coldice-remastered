@@ -374,6 +374,32 @@ void CHalfLifeJesusVsSanta::Think( void )
 		//frags + time.
 		SetRoundLimits();
 
+		// Prune stale entries from the cached Jesus pool.  Players in
+		// the pool can transition to Limbo / Chose-Spectate (no longer
+		// IsCommittedToPlay) or disconnect between rounds.  If we don't
+		// drop them here, the random pick below could land on a non-
+		// committed player — InsertClientsIntoArena would then skip
+		// them and the round would start without a spawned Jesus.
+		{
+			int iWrite = 0;
+			for ( int iRead = 0; iRead < m_iJesusPoolSize; iRead++ )
+			{
+				int playerIndex = m_iJesusPool[iRead];
+				CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex(playerIndex);
+				if ( plr && plr->IsPlayer() && !plr->HasDisconnected
+					&& plr->IsCommittedToPlay() )
+				{
+					m_iJesusPool[iWrite++] = playerIndex;
+				}
+				else
+				{
+					ALERT(at_console, "[JvS] Pruning stale pool entry %d (not committed)\n",
+						playerIndex);
+				}
+			}
+			m_iJesusPoolSize = iWrite;
+		}
+
 		// **NEW: Build/refresh the Jesus candidate pool**
 		if (m_iJesusPoolSize == 0 || m_bJesusPoolNeedsRefresh)
 		{

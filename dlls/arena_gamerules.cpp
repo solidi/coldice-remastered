@@ -325,6 +325,33 @@ void CHalfLifeArena::Think( void )
 			return;
 		}
 
+		// Prune stale entries from the opponent pool.  Players in the
+		// pool can transition to Limbo / Chose-Spectate (no longer
+		// IsCommittedToPlay) or disconnect between rounds.  If we don't
+		// drop them here, a champion-defends draw could pick a non-
+		// committed player as m_iPlayer2 — InsertClientsIntoArena would
+		// then skip them and the round would start with a missing
+		// challenger.
+		{
+			int iWrite = 0;
+			for ( int iRead = 0; iRead < m_iOpponentPoolSize; iRead++ )
+			{
+				int playerIndex = m_iOpponentPool[iRead];
+				CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex(playerIndex);
+				if ( plr && plr->IsPlayer() && !plr->HasDisconnected
+					&& plr->IsCommittedToPlay() )
+				{
+					m_iOpponentPool[iWrite++] = playerIndex;
+				}
+				else
+				{
+					ALERT(at_console, "[1v1] Pruning stale pool entry %d (not committed)\n",
+						playerIndex);
+				}
+			}
+			m_iOpponentPoolSize = iWrite;
+		}
+
 		// **Build or refresh the opponent pool if needed**
 		if ( m_iReigningChampion == 0 )
 		{
