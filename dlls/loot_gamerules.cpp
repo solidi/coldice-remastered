@@ -921,7 +921,8 @@ void CHalfLifeLoot::StartRound( int clients )
 	for ( int i = 1; i <= gpGlobals->maxClients; i++ )
 	{
 		CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
-		if ( plr && plr->IsPlayer() && !plr->HasDisconnected )
+		// Limbo gating: only committed players are about to spawn; observers stay SOLID_NOT.
+		if ( plr && plr->IsPlayer() && plr->IsCommittedToPlay() )
 			plr->pev->solid = SOLID_NOT;
 	}
 	m_fSpawnGroupSolidRestoreTime = gpGlobals->time + 3.0f;

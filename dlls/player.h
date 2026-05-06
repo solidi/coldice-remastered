@@ -251,11 +251,13 @@ public:
 
 	BOOL HasDisconnected;
 	BOOL IsInArena;
+	BOOL m_bWantsToPlay;	// TRUE once player has chosen Auto Join (committed to play). FALSE for Limbo (menu open) and Chose-Spectate.
 	int m_iRoundWins;
 	int m_iRoundPlays;
 	float m_flForceToObserverTime;
 	void ExitObserver( void );
 	BOOL IsSpectator( void ) { return ( m_afPhysicsFlags & PFLAG_OBSERVER ? TRUE : FALSE ); };
+	BOOL IsCommittedToPlay( void ) { return ( m_bWantsToPlay && !HasDisconnected ) ? TRUE : FALSE; };
 
 	BOOL IsArmoredMan;
 	float m_fHallelujahTime;

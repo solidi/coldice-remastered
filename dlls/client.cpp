@@ -271,8 +271,14 @@ void ClientPutInServer( edict_t *pEntity )
 	pPlayer->pev->iuser2 = 0; 
 	pPlayer->pev->iuser3 = 0;	// menu status of spectator
 
-	if (g_pGameRules->IsMultiplayer() && !g_pGameRules->IsRoundBased())
+	// Limbo: connecting humans see the join menu in ALL multiplayer modes (round-based
+	// included). Bots are auto-committed below so they always join immediately.
+	if (g_pGameRules->IsMultiplayer())
 		pPlayer->pev->iuser3 = OBS_UNDECIDED_SIMPLE;
+
+	pPlayer->m_bWantsToPlay = FALSE;
+	if (FBitSet(pPlayer->pev->flags, FL_FAKECLIENT))
+		pPlayer->m_bWantsToPlay = TRUE;	// bots always commit to play
 
 	// Allocate a CBasePlayer for pev, and call spawn
 	pPlayer->Spawn();
@@ -955,25 +961,46 @@ void ClientCommand( edict_t *pEntity )
 	else if (FStrEq(pcmd, "menu" ))
 	{
 		CBasePlayer * pPlayer = GetClassPtr((CBasePlayer *)pev);
-		if ( !g_pGameRules->IsRoundBased() && pPlayer->IsSpectator() )
+		// Mid-round block: in round-based modes, only allow re-opening the menu while spectating
+		// (i.e. not currently committed and playing). This prevents an active player from popping
+		// the limbo menu mid-round.
+		if ( pPlayer->IsSpectator() )
 		{
 			if (g_pGameRules->IsCtF() || g_pGameRules->IsKickTheSnowball())
 				pev->iuser3 = OBS_UNDECIDED_BOTH;
 			else
 				pev->iuser3	= OBS_UNDECIDED_SIMPLE;
+			pPlayer->m_bWantsToPlay = FALSE;
 		}
 		else
 		{
-			ClientPrint( pev, HUD_PRINTCONSOLE, "[System] Team selection menu is only available in free-for-all modes while spectating.\n" );
+			ClientPrint( pev, HUD_PRINTCONSOLE, "[System] Team selection menu is only available while spectating.\n" );
 		}
 	}
 	else if (FStrEq(pcmd, "auto_join" ))
 	{
-		if ( !g_pGameRules->IsRoundBased() && pev->iuser3 > 0 )
+		if ( pev->iuser3 > 0 )
 		{
 			CBasePlayer * pPlayer = GetClassPtr((CBasePlayer *)pev);
+			pPlayer->m_bWantsToPlay = TRUE;	// commit to play
 			pPlayer->m_iObserverWeapon = OBS_MENU_3;
-			pPlayer->ExitObserver();
+			// In round-based modes the gamerules CheckClients/InsertClientsIntoArena will
+			// admit this player at the next round boundary. Calling ExitObserver here lets
+			// non-round-based modes (FFA/CtF/etc.) drop in immediately; round-based modes
+			// will keep them in observer until the round transition naturally re-spawns them.
+			if ( !g_pGameRules->IsRoundBased() )
+			{
+				pPlayer->ExitObserver();
+			}
+			else
+			{
+				// Round-based: dismiss the limbo menu now so the player gets visual feedback,
+				// and acknowledge that they'll enter at the next round boundary. ExitObserver
+				// is intentionally NOT called -- the round-start ingress (InsertClientsIntoArena
+				// or Arena's manual selection) will admit them when the round flips.
+				pev->iuser3 = 0;
+				ClientPrint( pev, HUD_PRINTCENTER, "You will play next round\n" );
+			}
 		}
 	}
 	else if (FStrEq(pcmd, "join_blue" ))
@@ -1010,15 +1037,39 @@ void ClientCommand( edict_t *pEntity )
 	}
 	else if ( FStrEq( pcmd, "spectate" ) )	// clients wants to become a spectator
 	{
-			// always allow proxies to become a spectator
-		if ( (pev->flags & FL_PROXY) || allow_spectators.value || (!g_pGameRules->IsRoundBased() && pev->iuser3 > 0)  )
+		CBasePlayer * pPlayer = GetClassPtr((CBasePlayer *)pev);
+
+		// Mid-round bail-out guard: in round-based modes, only honor "spectate" when
+		// the player is in the limbo menu (iuser3 > 0) or already an observer. An
+		// active in-arena combatant must NOT be able to drop to spectator mid-round
+		// in modes like Arena / Shidden / JvS — that would let them dodge a kill,
+		// flip the win condition, or strand a 1v1 / Jesus role. Proxies always allowed.
+		if ( g_pGameRules->IsRoundBased()
+			&& !(pev->flags & FL_PROXY)
+			&& pev->iuser3 == 0
+			&& !pPlayer->IsObserver()
+			&& pPlayer->IsInArena )
+		{
+			ClientPrint( pev, HUD_PRINTCENTER,
+				"Cannot spectate mid-round.\nYou will be able to choose after this round.\n" );
+			return;
+		}
+
+			// Always allow proxies; always allow in round-based modes (Limbo + spectate must
+			// always be available so non-committed players don't break round counting); and
+			// in non-round-based modes, allow either when allow_spectators cvar is set or when
+			// the player is currently in the limbo menu.
+		if ( (pev->flags & FL_PROXY) || g_pGameRules->IsRoundBased() || allow_spectators.value || pev->iuser3 > 0 )
 		{
 			pev->iuser3 = 0;
 
-			CBasePlayer * pPlayer = GetClassPtr((CBasePlayer *)pev);
+			pPlayer->m_bWantsToPlay = FALSE;	// chose-spectate
 
 			edict_t *pentSpawnSpot = g_pGameRules->GetPlayerSpawnSpot( pPlayer );
 			pPlayer->StartObserver(pentSpawnSpot->v.origin, VARS(pentSpawnSpot)->angles);
+
+			// Acknowledge the choice on-screen so the player sees the limbo menu dismiss.
+			ClientPrint( pev, HUD_PRINTCENTER, "You will remain in spectator mode\n" );
 
 			// notify other clients of player switching to spectator mode
 			UTIL_ClientPrintAll( HUD_PRINTNOTIFY, UTIL_VarArgs( "[Game] %s switched to spectator mode\n", 

@@ -374,6 +374,32 @@ void CHalfLifeJesusVsSanta::Think( void )
 		//frags + time.
 		SetRoundLimits();
 
+		// Prune stale entries from the cached Jesus pool.  Players in
+		// the pool can transition to Limbo / Chose-Spectate (no longer
+		// IsCommittedToPlay) or disconnect between rounds.  If we don't
+		// drop them here, the random pick below could land on a non-
+		// committed player — InsertClientsIntoArena would then skip
+		// them and the round would start without a spawned Jesus.
+		{
+			int iWrite = 0;
+			for ( int iRead = 0; iRead < m_iJesusPoolSize; iRead++ )
+			{
+				int playerIndex = m_iJesusPool[iRead];
+				CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex(playerIndex);
+				if ( plr && plr->IsPlayer() && !plr->HasDisconnected
+					&& plr->IsCommittedToPlay() )
+				{
+					m_iJesusPool[iWrite++] = playerIndex;
+				}
+				else
+				{
+					ALERT(at_console, "[JvS] Pruning stale pool entry %d (not committed)\n",
+						playerIndex);
+				}
+			}
+			m_iJesusPoolSize = iWrite;
+		}
+
 		// **NEW: Build/refresh the Jesus candidate pool**
 		if (m_iJesusPoolSize == 0 || m_bJesusPoolNeedsRefresh)
 		{
@@ -383,8 +409,8 @@ void CHalfLifeJesusVsSanta::Think( void )
 				int playerIndex = m_iPlayersInArena[i];
 				CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex(playerIndex);
 				
-				// Only add valid, connected players
-				if (plr && plr->IsPlayer() && !plr->HasDisconnected)
+				// Limbo gating: only committed-to-play players are eligible to be Jesus.
+				if (plr && plr->IsPlayer() && plr->IsCommittedToPlay())
 				{
 					m_iJesusPool[m_iJesusPoolSize] = playerIndex;
 					m_iJesusPoolSize++;
@@ -422,7 +448,8 @@ void CHalfLifeJesusVsSanta::Think( void )
 		for ( int i = 1; i <= gpGlobals->maxClients; i++ )
 		{
 			CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
-			if ( plr && plr->IsPlayer() && !plr->HasDisconnected )
+			// Limbo gating: only assign team to committed-to-play players.
+			if ( plr && plr->IsPlayer() && plr->IsCommittedToPlay() )
 				plr->pev->fuser4 = RADAR_TEAM_RED;
 		}
 		pArmoredMan = (CBasePlayer *)UTIL_PlayerByIndex( armoredman );

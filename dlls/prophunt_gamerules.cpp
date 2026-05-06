@@ -580,7 +580,7 @@ void CHalfLifePropHunt::Think( void )
 			for ( int i = 1; i <= gpGlobals->maxClients; i++ )
 			{
 				CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
-				if ( plr && plr->IsPlayer() && !plr->HasDisconnected && plr->pev->fuser4 == 0 )
+				if ( plr && plr->IsPlayer() && plr->IsCommittedToPlay() && plr->pev->fuser4 == 0 )
 				{
 					plr->EnableControl(FALSE);
 					UTIL_ScreenFade( plr, Vector(0,0,0), 0.2, m_fUnFreezeHunters - gpGlobals->time, 255, FFADE_OUT | FFADE_MODULATE );
@@ -595,7 +595,7 @@ void CHalfLifePropHunt::Think( void )
 			{
 				CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
 
-				if ( plr && plr->IsPlayer() && !plr->HasDisconnected )
+				if ( plr && plr->IsPlayer() && plr->IsCommittedToPlay() )
 				{
 					if ( plr->pev->fuser4 == 0 )
 						plr->EnableControl(TRUE);
@@ -683,7 +683,8 @@ void CHalfLifePropHunt::Think( void )
 		{
 			CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
 
-			if ( plr && plr->IsPlayer() && !plr->HasDisconnected )
+			// Limbo gating: only committed-to-play players enter the team-balance shuffle.
+			if ( plr && plr->IsPlayer() && plr->IsCommittedToPlay() )
 				player[count++] = i;
 		}
 
@@ -700,7 +701,8 @@ void CHalfLifePropHunt::Think( void )
 		{
 			CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( player[i] );
 
-			if ( plr && plr->IsPlayer() && !plr->HasDisconnected ) {
+			// Pool was already filtered for committed-to-play above; defensive recheck.
+			if ( plr && plr->IsPlayer() && plr->IsCommittedToPlay() ) {
 				plr->pev->fuser4 = (i + 1) % 2;
 				if (plr->pev->fuser4 >= TEAM_PROPS)
 				{
