@@ -1069,7 +1069,7 @@ void ClientCommand( edict_t *pEntity )
 			pPlayer->StartObserver(pentSpawnSpot->v.origin, VARS(pentSpawnSpot)->angles);
 
 			// Acknowledge the choice on-screen so the player sees the limbo menu dismiss.
-			ClientPrint( pev, HUD_PRINTCENTER, "You will remain in spectator mode\nUse +commandmenu for the menu" );
+			ClientPrint( pev, HUD_PRINTCENTER, "You will remain in spectator mode\nUse +commandmenu for the menu\n" );
 
 			// notify other clients of player switching to spectator mode
 			UTIL_ClientPrintAll( HUD_PRINTNOTIFY, UTIL_VarArgs( "[Game] %s switched to spectator mode\n", 
