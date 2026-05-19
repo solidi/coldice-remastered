@@ -108,6 +108,9 @@ void CHalfLifeChilldemic::DetermineWinner( void )
 				WRITE_BYTE(0);
 				WRITE_STRING("Numerous victors!");
 			MESSAGE_END();
+			MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
+				WRITE_BYTE(CLIENT_SOUND_CLAPPING);
+			MESSAGE_END();
 		}
 	}
 	else

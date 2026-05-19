@@ -376,6 +376,9 @@ int CHud :: MsgFunc_PlayCSound( const char *pszName, int iSize, void *pbuf )
 		case CLIENT_SOUND_AIRHORN:
 			PlaySound("sound/airhorn.wav", 1);
 			break;
+		case CLIENT_SOUND_CLAPPING:
+			PlaySound("sound/goal_1.wav", 1);
+			break;
 	}
 	return 1;
 }
