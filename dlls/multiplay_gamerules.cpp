@@ -1892,6 +1892,15 @@ void CHalfLifeMultiplay :: PlayerSpawn( CBasePlayer *pPlayer )
 		(!g_GameInProgress && IsRoundBased()) ||
 		pPlayer->pev->iuser3 > 0)
 	{
+		// Immediately move the late-joiner to observer instead of leaving them
+		// solid + visible in the world until the next gamerules Think tick
+		// picks them up via m_flForceToObserverTime.  Without this, connecting
+		// clients (bots especially) flash into the playfield for ~0.5-1.5 s
+		// before being sucked to spectator — observed in PropHunt but
+		// applies to every round-based mode (Arena, Horde, Chilldemic, JVS,
+		// LMS, PropHunt, Shidden, Loot) that shares this early-return guard.
+		if (IsRoundBased() && !pPlayer->IsSpectator() && !pPlayer->HasDisconnected)
+			SuckToSpectator( pPlayer );
 		return;
 	}
 
