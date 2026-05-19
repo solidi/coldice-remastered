@@ -470,7 +470,9 @@ void CHalfLifePropHunt::Think( void )
 								MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, plr->edict());
 									WRITE_STRING("Hide!");
 									WRITE_STRING(UTIL_VarArgs("Hunters alive: %d", hunters_left));
-									WRITE_BYTE(float(hunters_left) / (m_iHuntersStarted) * 100);
+									WRITE_BYTE(m_iHuntersStarted > 0
+										? (int)(float(hunters_left) / float(m_iHuntersStarted) * 100.0f)
+										: 0);
 									if (roundlimit.value > 0)
 										WRITE_STRING(UTIL_VarArgs("Round %d of %d", m_iSuccessfulRounds+1, (int)roundlimit.value));
 									else
@@ -509,7 +511,9 @@ void CHalfLifePropHunt::Think( void )
 								MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, plr->edict());
 									WRITE_STRING("Hunt the props!");
 									WRITE_STRING(UTIL_VarArgs("Props remain: %d", props_left));
-									WRITE_BYTE(float(props_left) / (m_iPropsStarted) * 100);
+									WRITE_BYTE(m_iPropsStarted > 0
+										? (int)(float(props_left) / float(m_iPropsStarted) * 100.0f)
+										: 0);
 									if (roundlimit.value > 0)
 										WRITE_STRING(UTIL_VarArgs("Round %d of %d", m_iSuccessfulRounds+1, (int)roundlimit.value));
 									else
@@ -523,7 +527,9 @@ void CHalfLifePropHunt::Think( void )
 									MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, plr->edict());
 										WRITE_STRING("Find props!");
 										WRITE_STRING(UTIL_VarArgs("Props remain: %d", props_left));
-										WRITE_BYTE(float(props_left) / (m_iPropsStarted) * 100);
+										WRITE_BYTE(m_iPropsStarted > 0
+											? (int)(float(props_left) / float(m_iPropsStarted) * 100.0f)
+											: 0);
 										if (roundlimit.value > 0)
 											WRITE_STRING(UTIL_VarArgs("Round %d of %d", m_iSuccessfulRounds+1, (int)roundlimit.value));
 										else
@@ -576,7 +582,12 @@ void CHalfLifePropHunt::Think( void )
 							{
 								WRITE_STRING(UTIL_VarArgs("Hunters left: %d", m_iHuntersRemain));
 								WRITE_STRING(UTIL_VarArgs("Props left: %d", m_iPropsRemain));
-								WRITE_BYTE(float(m_iPropsRemain) / (m_iPlayersInGame) * 100);
+								// Bar is attached to the "Props left" info line, so scale
+								// against the snapshot of props that started this round
+								// (captured during team balance).  Renders 100% at start.
+								WRITE_BYTE(m_iPropsStarted > 0
+									? (int)(float(m_iPropsRemain) / float(m_iPropsStarted) * 100.0f)
+									: 0);
 								if (roundlimit.value > 0)
 									WRITE_STRING(UTIL_VarArgs("Round %d of %d", m_iSuccessfulRounds+1, (int)roundlimit.value));
 								else
