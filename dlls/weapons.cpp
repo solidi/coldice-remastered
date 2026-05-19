@@ -1142,12 +1142,12 @@ void CBasePlayerWeapon::ItemPostFrame( void )
 				CBaseEntity *p = CBaseEntity::Create( "monster_propdecoy", vecSrc, Vector(0, m_pPlayer->pev->v_angle.y, 0), m_pPlayer->edict() );
 				if (p)
 				{
-					if (m_pPlayer->pev->fuser4 >= 50)
+					if (m_pPlayer->pev->fuser4 >= 52)
 					{
 						SET_MODEL( p->edict(), "models/w_ammo.mdl");
 					}
-					p->pev->body = m_pPlayer->pev->fuser4 >= 50 ? m_pPlayer->pev->fuser4 - 49 : m_pPlayer->pev->fuser4;
-					p->pev->sequence = p->pev->body >= 50 ? ((p->pev->body - 49) * 2) + floatingweapons.value : (p->pev->body * 2) + floatingweapons.value;
+					p->pev->body = m_pPlayer->pev->fuser4 >= 52 ? m_pPlayer->pev->fuser4 - 52 : m_pPlayer->pev->fuser4;
+					p->pev->sequence = (p->pev->body * 2) + floatingweapons.value;
 				}
 			}
 			else

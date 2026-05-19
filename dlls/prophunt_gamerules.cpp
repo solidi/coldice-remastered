@@ -236,6 +236,7 @@ CHalfLifePropHunt::CHalfLifePropHunt()
 {
 	m_iHuntersRemain = m_iHuntersStarted = 0;
 	m_iPropsRemain = m_iPropsStarted = 0;
+	m_fNextLastPropGrenade = 0;
 	PauseMutators();
 }
 
@@ -305,6 +306,9 @@ void CHalfLifePropHunt::DetermineWinner( void )
 				WRITE_BYTE(0);
 				WRITE_STRING("Numerous victors!");
 			MESSAGE_END();
+			MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
+				WRITE_BYTE(CLIENT_SOUND_CLAPPING);
+			MESSAGE_END();
 		}
 	}
 	else
@@ -371,6 +375,58 @@ void CHalfLifePropHunt::Think( void )
 		m_iHuntersRemain = hunters_left;
 		m_iPropsRemain = props_left;
 
+		// Last-prop buff: when exactly one prop remains in a round that started with
+		// at least two props, top up their HP once and periodically resupply grenades.
+		// State is signalled cross-DLL via pev->fuser3 = -1 (a sentinel that the bot
+		// reads as DESPERATE).  fuser3 was previously the prop-freeze deadline
+		// (positive value) so the negative sentinel is unambiguous and never
+		// collides with the freeze window.  We used to set kRenderFxGlowShell here
+		// but that field is shared with the player's freeze-rune mechanic (see
+		// player.cpp), so it could either clobber an unrelated visual or fail to
+		// trigger the first-time gate when the prop was already frozen.
+		if (props_left == 1 && m_iPropsStarted >= 2)
+		{
+			for (int i = 1; i <= gpGlobals->maxClients; i++)
+			{
+				CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex(i);
+				if (!plr || !plr->IsPlayer() || plr->HasDisconnected) continue;
+				if (!plr->IsInArena || plr->IsSpectator()) continue;
+				if (plr->pev->fuser4 < TEAM_PROPS) continue;
+
+				if (plr->pev->fuser3 >= 0)
+				{
+					// First-time trigger: stamp the DESPERATE sentinel, restore HP,
+					// banner, and reset the resupply timer so the next tick gives an
+					// immediate grenade (otherwise a stale timer from a prior round
+					// could delay the first resupply by up to 5 s).
+					plr->pev->fuser3 = -1.0f;
+					m_fNextLastPropGrenade = 0;
+					int topup = (int)prophealth.value * 2;
+					if (topup < 20) topup = 20;
+					plr->pev->health = topup;
+					plr->pev->max_health = topup;
+					if (!FBitSet(plr->pev->flags, FL_FAKECLIENT))
+					{
+						MESSAGE_BEGIN(MSG_ONE, gmsgBanner, NULL, plr->edict());
+							WRITE_STRING("Last Prop Standing!");
+							WRITE_STRING("Extra HP + grenade resupply. Survive the timer!");
+							WRITE_BYTE(80);
+						MESSAGE_END();
+					}
+					MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
+						WRITE_BYTE(CLIENT_SOUND_EBELL);
+					MESSAGE_END();
+					UTIL_ClientPrintAll(HUD_PRINTTALK, UTIL_VarArgs("[PropHunt] %s is the last prop standing!\n", STRING(plr->pev->netname)));
+				}
+				// Periodic grenade resupply every 5 seconds while last prop is alive.
+				if (m_fNextLastPropGrenade < gpGlobals->time)
+				{
+					plr->GiveAmmo(1, "Hand Grenade", HANDGRENADE_MAX_CARRY);
+					m_fNextLastPropGrenade = gpGlobals->time + 5.0;
+				}
+			}
+		}
+
 		if (m_fSendArmoredManMessage != -1 && m_fSendArmoredManMessage < gpGlobals->time)
 		{
 			for ( int i = 1; i <= gpGlobals->maxClients; i++ )
@@ -415,7 +471,9 @@ void CHalfLifePropHunt::Think( void )
 								MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, plr->edict());
 									WRITE_STRING("Hide!");
 									WRITE_STRING(UTIL_VarArgs("Hunters alive: %d", hunters_left));
-									WRITE_BYTE(float(hunters_left) / (m_iHuntersStarted) * 100);
+									WRITE_BYTE(m_iHuntersStarted > 0
+										? (int)(float(hunters_left) / float(m_iHuntersStarted) * 100.0f)
+										: 0);
 									if (roundlimit.value > 0)
 										WRITE_STRING(UTIL_VarArgs("Round %d of %d", m_iSuccessfulRounds+1, (int)roundlimit.value));
 									else
@@ -454,7 +512,9 @@ void CHalfLifePropHunt::Think( void )
 								MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, plr->edict());
 									WRITE_STRING("Hunt the props!");
 									WRITE_STRING(UTIL_VarArgs("Props remain: %d", props_left));
-									WRITE_BYTE(float(props_left) / (m_iPropsStarted) * 100);
+									WRITE_BYTE(m_iPropsStarted > 0
+										? (int)(float(props_left) / float(m_iPropsStarted) * 100.0f)
+										: 0);
 									if (roundlimit.value > 0)
 										WRITE_STRING(UTIL_VarArgs("Round %d of %d", m_iSuccessfulRounds+1, (int)roundlimit.value));
 									else
@@ -468,7 +528,9 @@ void CHalfLifePropHunt::Think( void )
 									MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, plr->edict());
 										WRITE_STRING("Find props!");
 										WRITE_STRING(UTIL_VarArgs("Props remain: %d", props_left));
-										WRITE_BYTE(float(props_left) / (m_iPropsStarted) * 100);
+										WRITE_BYTE(m_iPropsStarted > 0
+											? (int)(float(props_left) / float(m_iPropsStarted) * 100.0f)
+											: 0);
 										if (roundlimit.value > 0)
 											WRITE_STRING(UTIL_VarArgs("Round %d of %d", m_iSuccessfulRounds+1, (int)roundlimit.value));
 										else
@@ -521,7 +583,12 @@ void CHalfLifePropHunt::Think( void )
 							{
 								WRITE_STRING(UTIL_VarArgs("Hunters left: %d", m_iHuntersRemain));
 								WRITE_STRING(UTIL_VarArgs("Props left: %d", m_iPropsRemain));
-								WRITE_BYTE(float(m_iPropsRemain) / (m_iPlayersInGame) * 100);
+								// Bar is attached to the "Props left" info line, so scale
+								// against the snapshot of props that started this round
+								// (captured during team balance).  Renders 100% at start.
+								WRITE_BYTE(m_iPropsStarted > 0
+									? (int)(float(m_iPropsRemain) / float(m_iPropsStarted) * 100.0f)
+									: 0);
 								if (roundlimit.value > 0)
 									WRITE_STRING(UTIL_VarArgs("Round %d of %d", m_iSuccessfulRounds+1, (int)roundlimit.value));
 								else
@@ -696,6 +763,7 @@ void CHalfLifePropHunt::Think( void )
 		}
 
 		m_fUnFreezeHunters = gpGlobals->time + prophunttime.value;
+		m_fNextLastPropGrenade = 0; // reset across rounds so the next last prop gets an immediate resupply
 
 		for ( int i = 0; i < count; i++ )
 		{
@@ -708,7 +776,7 @@ void CHalfLifePropHunt::Think( void )
 				{
 					m_iPropsStarted++;
 					plr->pev->fuser3 = m_fUnFreezeHunters;
-					plr->pev->fuser4 = RANDOM_LONG(1, 30);
+					plr->pev->fuser4 = 31; // suit
 					plr->m_flNextPropSound = gpGlobals->time + RANDOM_FLOAT(25,35);
 				}
 				else
@@ -839,9 +907,16 @@ void CHalfLifePropHunt::PlayerSpawn( CBasePlayer *pPlayer )
 	if ( pPlayer->pev->fuser4 >= TEAM_PROPS )
 	{
 		strncpy( pPlayer->m_szTeamName, "props", TEAM_NAME_LENGTH );
-		pPlayer->pev->health = 1;
+		// Prop HP buffer — absorbs `mp_prophealth` worth of damage proxy (PROP_DAMAGE_PROXY per hit)
+		// before the prop is converted into a hunter.  Default 20 → ~4 hits to convert.
+		int propHp = (int)prophealth.value;
+		if (propHp < 1) propHp = 1;
+		pPlayer->pev->health = propHp;
+		pPlayer->pev->max_health = propHp;
 		pPlayer->pev->armorvalue = 0;
 		pPlayer->pev->gaitsequence = 0;
+		pPlayer->pev->fuser1 = 0; // hunter self-cost tracker (unused for props)
+		pPlayer->pev->fuser2 = 0; // prop morph cooldown
 		pPlayer->GiveNamedItem("weapon_handgrenade");
 		CLIENT_COMMAND(pPlayer->edict(), "thirdperson\n");
 	}
@@ -849,6 +924,10 @@ void CHalfLifePropHunt::PlayerSpawn( CBasePlayer *pPlayer )
 	{
 		strncpy( pPlayer->m_szTeamName, "hunters", TEAM_NAME_LENGTH );
 		pPlayer->pev->fuser3 = 1; // bot timer to unfreeze
+		pPlayer->pev->fuser1 = 0; // reset hunter self-cost shot tracker
+		// Hunters always start with a flamethrower
+		pPlayer->GiveNamedItem("weapon_flamethrower");
+		pPlayer->GiveAmmo( FUEL_MAX_CARRY, "uranium", FUEL_MAX_CARRY );
 	}
 
 	// notify everyone's HUD of the team change
@@ -883,13 +962,29 @@ BOOL CHalfLifePropHunt::FPlayerCanTakeDamage( CBasePlayer *pPlayer, CBaseEntity 
 
 	if (pPlayer->pev->fuser4 >= TEAM_PROPS)
 	{
+		// HP buffer: every hit subtracts PROP_DAMAGE_PROXY from the prop's pev->health.
+		// While the buffer is still positive we silently absorb the hit (return FALSE
+		// so the real damage system never runs).  Only the killing tick converts.
+		const int PROP_DAMAGE_PROXY = 5;
+		pPlayer->pev->health -= PROP_DAMAGE_PROXY;
+		if (pPlayer->pev->health > 0)
+		{
+			EMIT_SOUND_DYN(ENT(pPlayer->pev), CHAN_BODY, "player/pl_pain2.wav", 0.6, ATTN_IDLE, 0, 100);
+			return FALSE;
+		}
+
+		// Buffer exhausted — convert prop into hunter.
 		DeactivateDecoys(pPlayer);
 		PlayFootstepSounds(pPlayer, 1.0);
 
 		CLIENT_COMMAND(pPlayer->edict(), "firstperson\n");
 		pPlayer->pev->fuser4 = 0;
 		pPlayer->pev->fuser3 = 1; // bot timer to unfreeze
+		pPlayer->pev->fuser1 = 0; // reset hunter self-cost shot tracker
 		pPlayer->pev->health = 100;
+		pPlayer->pev->max_health = 100;
+		// Cancel prop haste
+		g_engfuncs.pfnSetPhysicsKeyValue(pPlayer->edict(), "haste", "0");
 		pPlayer->GiveRandomWeapon("weapon_nuke");
 
 		strncpy( pPlayer->m_szTeamName, "hunters", TEAM_NAME_LENGTH );
@@ -912,6 +1007,11 @@ BOOL CHalfLifePropHunt::FPlayerCanTakeDamage( CBasePlayer *pPlayer, CBaseEntity 
 		{
 			CBasePlayer *kp = (CBasePlayer *)pAttacker;
 			kp->pev->frags += 2;
+			// Kill-heal: hunter who finished off a prop gets fully restored
+			if (kp->pev->max_health > 0)
+				kp->pev->health = kp->pev->max_health;
+			else
+				kp->pev->health = 100;
 			MESSAGE_BEGIN( MSG_ALL, gmsgScoreInfo );
 			WRITE_BYTE( ENTINDEX(kp->edict()) );
 			WRITE_SHORT( kp->pev->frags );
@@ -1088,6 +1188,15 @@ void CHalfLifePropHunt::PlayerThink( CBasePlayer *pPlayer )
 	{	
 		pPlayer->pev->air_finished = gpGlobals->time + 10; // never drown
 
+		// Prop haste — equivalent to the Haste rune, ~1.5x movement speed
+		g_engfuncs.pfnSetPhysicsKeyValue(pPlayer->edict(), "haste", "1");
+
+		// Body/morph cycling is handled entirely in CBasePlayerWeapon::ItemPostFrame
+		// (weapons.cpp:1106) so the IN_ATTACK / IN_ATTACK2 button is consumed exactly
+		// once.  Doing it here too would advance the body twice per press because
+		// PlayerThink runs in PreThink, before ItemPostFrame, and both paths look at
+		// the same m_afButtonPressed / pev->button state.
+
 		if (pPlayer->m_flNextPropSound && pPlayer->m_flNextPropSound < gpGlobals->time)
 		{
 			EMIT_SOUND(ENT(pPlayer->pev), CHAN_VOICE, "sprayer.wav", 1, ATTN_NORM);
@@ -1097,6 +1206,29 @@ void CHalfLifePropHunt::PlayerThink( CBasePlayer *pPlayer )
 	else
 	{
 		pPlayer->m_flNextPropSound = 0;
+		g_engfuncs.pfnSetPhysicsKeyValue(pPlayer->edict(), "haste", "0");
+
+		// Hunter self-cost: each weapon shot drains a small amount of HP.
+		// Detect a shot by watching m_flNextPrimaryAttack increase on the active item.
+		// Excludes melee/grenade.  Clamps health to a minimum of 5 so hunters can't
+		// suicide-fire.
+		if (pPlayer->m_pActiveItem && hunterselfcost.value > 0 && pPlayer->IsAlive())
+		{
+			const char *cn = STRING(pPlayer->m_pActiveItem->pev->classname);
+			bool exclude = (cn && (!strcmp(cn, "weapon_fists") || !strcmp(cn, "weapon_handgrenade")));
+			CBasePlayerWeapon *w = (CBasePlayerWeapon *)pPlayer->m_pActiveItem;
+			float npa = w->m_flNextPrimaryAttack;
+			float prev = pPlayer->pev->fuser1;
+			if (!exclude && prev > 0 && npa > prev && (npa - prev) < 5.0f)
+			{
+				int cost = (int)hunterselfcost.value;
+				if (pPlayer->pev->health - cost > 5)
+					pPlayer->pev->health -= cost;
+				else if (pPlayer->pev->health > 5)
+					pPlayer->pev->health = 5;
+			}
+			pPlayer->pev->fuser1 = npa;
+		}
 	}
 }
 

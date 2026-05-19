@@ -102,6 +102,8 @@ cvar_t	roundwaittime = {"mp_roundwaittime","10", FCVAR_SERVER };
 cvar_t	royaleteam = {"mp_royaleteam","1", FCVAR_SERVER };
 cvar_t	royaledamage = {"mp_royaledamage","1", FCVAR_SERVER };
 cvar_t	prophunttime = {"mp_prophunttime","30", FCVAR_SERVER };
+cvar_t	prophealth = {"mp_prophealth","20", FCVAR_SERVER };
+cvar_t	hunterselfcost = {"mp_hunterselfcost","1", FCVAR_SERVER };
 
 cvar_t  allow_spectators = { "allow_spectators", "0.0", FCVAR_SERVER };		// 0 prevents players from being spectators
 
@@ -776,6 +778,8 @@ void GameDLLInit( void )
 	CVAR_REGISTER(&royaleteam);
 	CVAR_REGISTER(&royaledamage);
 	CVAR_REGISTER(&prophunttime);
+	CVAR_REGISTER(&prophealth);
+	CVAR_REGISTER(&hunterselfcost);
 
 	CVAR_REGISTER (&mp_chattime);
 
