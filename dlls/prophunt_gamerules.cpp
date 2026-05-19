@@ -376,9 +376,14 @@ void CHalfLifePropHunt::Think( void )
 		m_iPropsRemain = props_left;
 
 		// Last-prop buff: when exactly one prop remains in a round that started with
-		// at least two props, light them up with a green glow shell, top up their HP
-		// once, and periodically resupply grenades.  The glow doubles as a cross-DLL
-		// flag so the bot side (DESPERATE role) and the radar render can react.
+		// at least two props, top up their HP once and periodically resupply grenades.
+		// State is signalled cross-DLL via pev->fuser3 = -1 (a sentinel that the bot
+		// reads as DESPERATE).  fuser3 was previously the prop-freeze deadline
+		// (positive value) so the negative sentinel is unambiguous and never
+		// collides with the freeze window.  We used to set kRenderFxGlowShell here
+		// but that field is shared with the player's freeze-rune mechanic (see
+		// player.cpp), so it could either clobber an unrelated visual or fail to
+		// trigger the first-time gate when the prop was already frozen.
 		if (props_left == 1 && m_iPropsStarted >= 2)
 		{
 			for (int i = 1; i <= gpGlobals->maxClients; i++)
@@ -388,18 +393,14 @@ void CHalfLifePropHunt::Think( void )
 				if (!plr->IsInArena || plr->IsSpectator()) continue;
 				if (plr->pev->fuser4 < TEAM_PROPS) continue;
 
-				if (plr->pev->renderfx != kRenderFxGlowShell)
+				if (plr->pev->fuser3 >= 0)
 				{
-					// First-time trigger: mark the last prop (renderfx serves as
-					// a cross-DLL DESPERATE flag the bot AI reads), restore HP
-					// buffer, banner.  The glow shell itself is rendered
-					// INVISIBLE (renderamt = 0) so the prop doesn't light up
-					// as a beacon — players asked to keep the buff, not the
-					// visible shell.
-					plr->pev->renderfx = kRenderFxGlowShell;
-					plr->pev->rendermode = kRenderNormal;
-					plr->pev->rendercolor = Vector(0, 0, 0);
-					plr->pev->renderamt = 0;
+					// First-time trigger: stamp the DESPERATE sentinel, restore HP,
+					// banner, and reset the resupply timer so the next tick gives an
+					// immediate grenade (otherwise a stale timer from a prior round
+					// could delay the first resupply by up to 5 s).
+					plr->pev->fuser3 = -1.0f;
+					m_fNextLastPropGrenade = 0;
 					int topup = (int)prophealth.value * 2;
 					if (topup < 20) topup = 20;
 					plr->pev->health = topup;
@@ -762,6 +763,7 @@ void CHalfLifePropHunt::Think( void )
 		}
 
 		m_fUnFreezeHunters = gpGlobals->time + prophunttime.value;
+		m_fNextLastPropGrenade = 0; // reset across rounds so the next last prop gets an immediate resupply
 
 		for ( int i = 0; i < count; i++ )
 		{
@@ -774,7 +776,7 @@ void CHalfLifePropHunt::Think( void )
 				{
 					m_iPropsStarted++;
 					plr->pev->fuser3 = m_fUnFreezeHunters;
-					plr->pev->fuser4 = RANDOM_LONG(1, PROP_BODY_MAX);
+					plr->pev->fuser4 = 31; // suit
 					plr->m_flNextPropSound = gpGlobals->time + RANDOM_FLOAT(25,35);
 				}
 				else
@@ -913,9 +915,6 @@ void CHalfLifePropHunt::PlayerSpawn( CBasePlayer *pPlayer )
 		pPlayer->pev->max_health = propHp;
 		pPlayer->pev->armorvalue = 0;
 		pPlayer->pev->gaitsequence = 0;
-		// Clear any leftover last-prop glow from a previous life
-		pPlayer->pev->renderfx = kRenderFxNone;
-		pPlayer->pev->rendermode = kRenderNormal;
 		pPlayer->pev->fuser1 = 0; // hunter self-cost tracker (unused for props)
 		pPlayer->pev->fuser2 = 0; // prop morph cooldown
 		pPlayer->GiveNamedItem("weapon_handgrenade");
@@ -970,9 +969,7 @@ BOOL CHalfLifePropHunt::FPlayerCanTakeDamage( CBasePlayer *pPlayer, CBaseEntity 
 		pPlayer->pev->health -= PROP_DAMAGE_PROXY;
 		if (pPlayer->pev->health > 0)
 		{
-			// audible feedback to the prop only — keeps cover from the hunter
-			if (!FBitSet(pPlayer->pev->flags, FL_FAKECLIENT))
-				EMIT_SOUND_DYN(ENT(pPlayer->pev), CHAN_BODY, "player/pl_pain2.wav", 0.6, ATTN_IDLE, 0, 100);
+			EMIT_SOUND_DYN(ENT(pPlayer->pev), CHAN_BODY, "player/pl_pain2.wav", 0.6, ATTN_IDLE, 0, 100);
 			return FALSE;
 		}
 
@@ -986,9 +983,6 @@ BOOL CHalfLifePropHunt::FPlayerCanTakeDamage( CBasePlayer *pPlayer, CBaseEntity 
 		pPlayer->pev->fuser1 = 0; // reset hunter self-cost shot tracker
 		pPlayer->pev->health = 100;
 		pPlayer->pev->max_health = 100;
-		// Clear last-prop glow shell
-		pPlayer->pev->renderfx = kRenderFxNone;
-		pPlayer->pev->rendermode = kRenderNormal;
 		// Cancel prop haste
 		g_engfuncs.pfnSetPhysicsKeyValue(pPlayer->edict(), "haste", "0");
 		pPlayer->GiveRandomWeapon("weapon_nuke");
@@ -1197,41 +1191,11 @@ void CHalfLifePropHunt::PlayerThink( CBasePlayer *pPlayer )
 		// Prop haste — equivalent to the Haste rune, ~1.5x movement speed
 		g_engfuncs.pfnSetPhysicsKeyValue(pPlayer->edict(), "haste", "1");
 
-		// Body/morph cycle while holding fists.
-		// IN_ATTACK rising-edge → next body, IN_ATTACK2 → previous body.
-		// Cooldown of 0.3s stored in pev->fuser2 (otherwise unused in prophunt).
-		if (m_fUnFreezeHunters <= gpGlobals->time || m_fUnFreezeHunters == 0
-			|| pPlayer->m_pActiveItem) // allow morph during freeze too
-		{
-			if (pPlayer->pev->fuser2 < gpGlobals->time && pPlayer->m_pActiveItem)
-			{
-				const char *cn = STRING(pPlayer->m_pActiveItem->pev->classname);
-				bool isFists = (cn && !strcmp(cn, "weapon_fists"));
-				if (isFists)
-				{
-					int cur = (int)pPlayer->pev->fuser4;
-					if (cur < 1) cur = 1;
-					if (cur > PROP_BODY_MAX) cur = PROP_BODY_MAX;
-					bool morphed = false;
-					if (pPlayer->m_afButtonPressed & IN_ATTACK)
-					{
-						cur = (cur % PROP_BODY_MAX) + 1;
-						morphed = true;
-					}
-					else if (pPlayer->m_afButtonPressed & IN_ATTACK2)
-					{
-						cur = cur - 1;
-						if (cur < 1) cur = PROP_BODY_MAX;
-						morphed = true;
-					}
-					if (morphed)
-					{
-						pPlayer->pev->fuser4 = cur;
-						pPlayer->pev->fuser2 = gpGlobals->time + 0.3;
-					}
-				}
-			}
-		}
+		// Body/morph cycling is handled entirely in CBasePlayerWeapon::ItemPostFrame
+		// (weapons.cpp:1106) so the IN_ATTACK / IN_ATTACK2 button is consumed exactly
+		// once.  Doing it here too would advance the body twice per press because
+		// PlayerThink runs in PreThink, before ItemPostFrame, and both paths look at
+		// the same m_afButtonPressed / pev->button state.
 
 		if (pPlayer->m_flNextPropSound && pPlayer->m_flNextPropSound < gpGlobals->time)
 		{

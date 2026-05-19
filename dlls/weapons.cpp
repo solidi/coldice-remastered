@@ -1147,7 +1147,7 @@ void CBasePlayerWeapon::ItemPostFrame( void )
 						SET_MODEL( p->edict(), "models/w_ammo.mdl");
 					}
 					p->pev->body = m_pPlayer->pev->fuser4 >= 52 ? m_pPlayer->pev->fuser4 - 52 : m_pPlayer->pev->fuser4;
-					p->pev->sequence = p->pev->body >= 52 ? ((p->pev->body - 52) * 2) + floatingweapons.value : (p->pev->body * 2) + floatingweapons.value;
+					p->pev->sequence = (p->pev->body * 2) + floatingweapons.value;
 				}
 			}
 			else
