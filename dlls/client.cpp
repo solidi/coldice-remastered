@@ -1491,6 +1491,7 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_grapplinghook [0|1]\" - Allow grappling hook on server\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_grapplinghookdeploytime 1.0\" - Time (seconds) when next grappling hook can deploy\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_holsterweapons [0|1]\" - Holstering weapons for more realistic gameplay\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_hunterselfcost\" - Amount of damage taken by hunter when firing his weapon\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_iceblood [0|1]\" - Enable blue blood\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_icesprites [0|1]\" - Switch between select ice or real environment sprites\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_interactiveitems \"grenade;monster_satchel;monster_chumtoad;monster_snark;monster_barrel;gib;kts_snowball\"\" - A semicolon separated list of items that are \"interactive\" (kickable, pickupable)\n");
@@ -1499,6 +1500,7 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_meleedrop \"[0|1]\"\" - allow kick or punch attcks to drop weapons out of hands\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_moreblood [0-5]\" - Increase blood up to 0-5 times\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_nukemode \"[0|1|2]\"\" - 2 - nuke kills all, 1 - radius damage, 0 - sharts nothing but bubbles\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_prophealth\" - Sets the amount of starting health for prop\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_prophunttime\" - Sets the amount of time for prophunter freeze\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_scorelimit\" - Sets the maximum score limit before map change\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_randomgamemodes \"[0|1]\"\" - selects a random gamemode on map change\n");

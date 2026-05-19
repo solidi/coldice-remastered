@@ -911,6 +911,7 @@ typedef struct
 
 #define TEAM_SKELETONS RADAR_VIRUS
 #define TEAM_PROPS 1
+#define PROP_BODY_MAX 70   // body indices 1..51 render via w_weapons.mdl, 52..70 via w_ammo.mdl
 
 #define TOTAL_GAME_MODES GAME_TEAMPLAY
 

@@ -58,4 +58,5 @@ private:
 	int m_iPropsRemain;
 	int m_iPropsStarted;
 	float m_fUnFreezeHunters;
+	float m_fNextLastPropGrenade;
 };
