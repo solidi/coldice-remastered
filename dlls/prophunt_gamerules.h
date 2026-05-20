@@ -52,6 +52,15 @@ public:
 	virtual BOOL PlayFootstepSounds( CBasePlayer *pl, float fvol );
 	virtual BOOL CanHaveNamedItem( CBasePlayer *pPlayer, const char *pszItemName );
 
+	// Prop +use morph (see ai/prophunt_gamerules.md).  TryPropMorphToItem hides the
+	// passed world item (EF_NODRAW + SOLID_NOT) and stamps the prop's fuser4 to the
+	// body slot derived from pItem->pev->body / pev->model.  Returns FALSE for
+	// hunters, unsupported entities (anything not w_weapons.mdl / w_ammo.mdl, or
+	// the render-gap slots 32 / 34), out-of-range targets, or items already
+	// anchored to someone.  ReleasePropAnchor restores the item synchronously.
+	BOOL TryPropMorphToItem( CBasePlayer *pProp, CBaseEntity *pItem );
+	void ReleasePropAnchor( CBasePlayer *pProp );
+
 private:
 	int m_iHuntersStarted;
 	int m_iHuntersRemain;

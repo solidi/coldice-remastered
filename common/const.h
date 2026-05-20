@@ -913,6 +913,16 @@ typedef struct
 #define TEAM_PROPS 1
 #define PROP_BODY_MAX 70   // body indices 1..51 render via w_weapons.mdl, 52..70 via w_ammo.mdl
 
+// Prop +use morph (see ai/prophunt_gamerules.md).  A prop within USE radius of
+// a w_weapons.mdl / w_ammo.mdl entity and pressing +use morphs onto that item:
+// the item is hidden (EF_NODRAW + SOLID_NOT) and the prop's fuser4 is set to
+// the body slot that matches the item's pev->body.  Walking outside the HOLD
+// radius for GRACE seconds restores the item; returning before then cancels
+// the timer.
+#define PROP_ANCHOR_USE_RADIUS   80.0f
+#define PROP_ANCHOR_HOLD_RADIUS  128.0f
+#define PROP_ANCHOR_GRACE        2.0f
+
 #define TOTAL_GAME_MODES GAME_TEAMPLAY
 
 #define CLIENT_SOUND_PREPAREFORBATTLE 1

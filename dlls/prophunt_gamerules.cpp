@@ -240,6 +240,96 @@ CHalfLifePropHunt::CHalfLifePropHunt()
 	PauseMutators();
 }
 
+// ---------- Prop +use morph helpers ----------
+//
+// Map a world item entity to the prop fuser4 body slot it should display as.
+// Returns 0 (invalid) for anything that isn't a w_weapons.mdl / w_ammo.mdl
+// entity, or if the derived body lands on a render gap (32 or 34).
+//
+// The +1 offset on the weapon side reconciles the world-weapon convention
+// (CWeaponBox / CBasePlayerWeapon spawn with pev->body = m_iId - 1, range
+// 0..50) with the prop-display convention (fuser4 range 1..51 for weapons).
+// The +52 offset on the ammo side mirrors the decoy spawn formula at
+// weapons.cpp:1149 (decoy body = fuser4 - 52 when fuser4 >= 52).
+static int PP_BodyFromItem( CBaseEntity *pItem )
+{
+	if ( !pItem || !pItem->pev->model ) return 0;
+	const char *mdl = STRING( pItem->pev->model );
+	if ( !mdl || !*mdl ) return 0;
+
+	int body = pItem->pev->body;
+	int target = 0;
+	if ( strstr( mdl, "w_weapons.mdl" ) )
+		target = body;
+	else if ( strstr( mdl, "w_ammo.mdl" ) )
+		target = body + 52;
+	else
+		return 0;
+
+	if ( target < 1 || target > PROP_BODY_MAX ) return 0;
+	if ( target == 32 || target == 34 ) return 0;   // unused w_weapons.mdl slots
+	return target;
+}
+
+BOOL CHalfLifePropHunt::TryPropMorphToItem( CBasePlayer *pProp, CBaseEntity *pItem )
+{
+	if ( !pProp || !pItem ) return FALSE;
+	if ( pProp->pev->fuser4 < TEAM_PROPS ) return FALSE;   // hunters never morph
+	if ( !pProp->IsAlive() || pProp->IsSpectator() ) return FALSE;
+
+	// One anchor at a time: prop must drop the current one first by leaving
+	// the hold radius for the grace period.
+	if ( pProp->m_hPropAnchor && (CBaseEntity *)pProp->m_hPropAnchor != NULL )
+		return FALSE;
+
+	// Already anchored by some other prop (or naturally hidden).  We treat
+	// SOLID_NOT + EF_NODRAW as the "already taken" proxy.
+	if ( pItem->pev->solid == SOLID_NOT && (pItem->pev->effects & EF_NODRAW) )
+		return FALSE;
+
+	int target = PP_BodyFromItem( pItem );
+	if ( target == 0 ) return FALSE;
+
+	// Range check (server is authoritative — bots and humans hit the same gate).
+	if ( (pProp->pev->origin - pItem->pev->origin).Length() > PROP_ANCHOR_USE_RADIUS )
+		return FALSE;
+
+	// Stash original solid then hide.
+	pProp->m_iPropAnchorSavedSolid = pItem->pev->solid;
+	pItem->pev->effects |= EF_NODRAW;
+	pItem->pev->solid    = SOLID_NOT;
+
+	pProp->m_hPropAnchor = pItem;
+	pProp->m_fPropAnchorLeaveTime = 0;
+
+	// Snap the prop body to the item.
+	pProp->pev->fuser4 = (float)target;
+	pProp->pev->fuser2 = gpGlobals->time + 0.3;   // re-use morph cooldown so weapon scroll doesn't immediately step
+
+	EMIT_SOUND( ENT(pProp->pev), CHAN_ITEM, "items/gunpickup4.wav", 0.6, ATTN_NORM );
+	if ( !FBitSet( pProp->pev->flags, FL_FAKECLIENT ) )
+		ClientPrint( pProp->pev, HUD_PRINTCENTER, "Morphed!  Stay near the item to keep it hidden.\n" );
+
+	return TRUE;
+}
+
+void CHalfLifePropHunt::ReleasePropAnchor( CBasePlayer *pProp )
+{
+	if ( !pProp ) return;
+	CBaseEntity *pItem = pProp->m_hPropAnchor;
+	if ( pItem )
+	{
+		pItem->pev->effects &= ~EF_NODRAW;
+		// Restore stored solid; fall back to SOLID_TRIGGER (the standard pickup solid)
+		// if no value was captured (shouldn't happen but cheap to defend).
+		pItem->pev->solid = pProp->m_iPropAnchorSavedSolid
+			? pProp->m_iPropAnchorSavedSolid : SOLID_TRIGGER;
+	}
+	pProp->m_hPropAnchor = NULL;
+	pProp->m_fPropAnchorLeaveTime = 0;
+	pProp->m_iPropAnchorSavedSolid = 0;
+}
+
 void CHalfLifePropHunt::DetermineWinner( void )
 {
 	int highest = -9999;
@@ -439,7 +529,7 @@ void CHalfLifePropHunt::Think( void )
 						if (plr->pev->fuser4 >= TEAM_PROPS)
 						{
 							WRITE_STRING("You Are a Prop!");
-							WRITE_STRING("Hide as an item (ATTACK) and throw decoys (RELOAD)!");
+							WRITE_STRING("Hide as an item (USE) and throw decoys (RELOAD)!");
 						}
 						else
 						{
@@ -893,6 +983,9 @@ void CHalfLifePropHunt::PlayerSpawn( CBasePlayer *pPlayer )
 {
 	CHalfLifeMultiplay::PlayerSpawn(pPlayer);
 
+	// Drop any leftover +use morph anchor from the previous life / round.
+	ReleasePropAnchor(pPlayer);
+
 	// Place player in spectator mode if joining during a game
 	// Or if the game begins that requires spectators
 	if ((g_GameInProgress && !pPlayer->IsInArena) || (!g_GameInProgress && IsRoundBased()))
@@ -975,6 +1068,7 @@ BOOL CHalfLifePropHunt::FPlayerCanTakeDamage( CBasePlayer *pPlayer, CBaseEntity 
 
 		// Buffer exhausted — convert prop into hunter.
 		DeactivateDecoys(pPlayer);
+		ReleasePropAnchor(pPlayer);   // restore any +use-morph item before the team flip
 		PlayFootstepSounds(pPlayer, 1.0);
 
 		CLIENT_COMMAND(pPlayer->edict(), "firstperson\n");
@@ -1197,6 +1291,34 @@ void CHalfLifePropHunt::PlayerThink( CBasePlayer *pPlayer )
 		// PlayerThink runs in PreThink, before ItemPostFrame, and both paths look at
 		// the same m_afButtonPressed / pev->button state.
 
+		// Anchored-item upkeep: if the prop has +use morphed onto a world item,
+		// release the item once the prop has been outside PROP_ANCHOR_HOLD_RADIUS
+		// for PROP_ANCHOR_GRACE seconds.  Re-entering the radius cancels the timer.
+		// A NULL EHANDLE (item removed) clears state silently.
+		CBaseEntity *pAnchor = pPlayer->m_hPropAnchor;
+		if (pPlayer->m_hPropAnchor && !pAnchor)
+		{
+			pPlayer->m_hPropAnchor = NULL;
+			pPlayer->m_fPropAnchorLeaveTime = 0;
+			pPlayer->m_iPropAnchorSavedSolid = 0;
+		}
+		else if (pAnchor)
+		{
+			float dist = (pPlayer->pev->origin - pAnchor->pev->origin).Length();
+			if (dist <= PROP_ANCHOR_HOLD_RADIUS)
+			{
+				if (pPlayer->m_fPropAnchorLeaveTime != 0)
+					pPlayer->m_fPropAnchorLeaveTime = 0;
+			}
+			else
+			{
+				if (pPlayer->m_fPropAnchorLeaveTime == 0)
+					pPlayer->m_fPropAnchorLeaveTime = gpGlobals->time + PROP_ANCHOR_GRACE;
+				else if (pPlayer->m_fPropAnchorLeaveTime < gpGlobals->time)
+					ReleasePropAnchor(pPlayer);
+			}
+		}
+
 		if (pPlayer->m_flNextPropSound && pPlayer->m_flNextPropSound < gpGlobals->time)
 		{
 			EMIT_SOUND(ENT(pPlayer->pev), CHAN_VOICE, "sprayer.wav", 1, ATTN_NORM);
@@ -1277,7 +1399,10 @@ void CHalfLifePropHunt::ClientDisconnected( edict_t *pClient )
 	{
 		CBasePlayer *pPlayer = (CBasePlayer *)CBaseEntity::Instance( pClient );
 		if ( pPlayer && pPlayer->pev->fuser4 >= TEAM_PROPS )
+		{
 			DeactivateDecoys( pPlayer );
+			ReleasePropAnchor( pPlayer );
+		}
 	}
 
 	CHalfLifeMultiplay::ClientDisconnected( pClient );

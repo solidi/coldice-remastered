@@ -296,6 +296,17 @@ public:
 	// Prophunt
 	int m_iPropsDeployed;
 
+	// Prophunt +use morph state.  m_hPropAnchor is the world item the prop is
+	// currently morphed onto (item is EF_NODRAW + SOLID_NOT while held).
+	// m_fPropAnchorLeaveTime is 0 while the prop is inside PROP_ANCHOR_HOLD_RADIUS;
+	// when they step outside it becomes gpGlobals->time + PROP_ANCHOR_GRACE and
+	// the item is restored when that deadline passes.  Re-entering the radius
+	// before the deadline clears the timer.  m_iPropAnchorSavedSolid stores the
+	// item's original pev->solid so we can restore the exact value.
+	EHANDLE m_hPropAnchor;
+	float   m_fPropAnchorLeaveTime;
+	int     m_iPropAnchorSavedSolid;
+
 	// Shidden
 	BOOL IsFartedOn = FALSE;
 
