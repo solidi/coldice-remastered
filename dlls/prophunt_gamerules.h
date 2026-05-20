@@ -31,7 +31,6 @@ public:
 	virtual const char *GetTeamID( CBaseEntity *pEntity );
 	virtual BOOL ShouldAutoAim( CBasePlayer *pPlayer, edict_t *target );
 	virtual BOOL CanHavePlayerItem( CBasePlayer *pPlayer, CBasePlayerItem *pItem );
-	virtual BOOL CanHaveItem( CBasePlayer *pPlayer, CItem *pItem );
 	virtual BOOL IsAllowedToDropWeapon( CBasePlayer *pPlayer );
 	virtual int DeadPlayerWeapons( CBasePlayer *pPlayer );
 	virtual int DeadPlayerAmmo( CBasePlayer *pPlayer );

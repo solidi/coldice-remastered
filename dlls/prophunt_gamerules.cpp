@@ -737,7 +737,7 @@ void CHalfLifePropHunt::Think( void )
 			for ( int i = 1; i <= gpGlobals->maxClients; i++ )
 			{
 				CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
-				if ( plr && plr->IsPlayer() && plr->IsCommittedToPlay() && plr->pev->fuser4 == 0 )
+				if ( plr && plr->IsPlayer() && plr->IsCommittedToPlay() && plr->pev->fuser4 == TEAM_HUNTERS )
 				{
 					plr->EnableControl(FALSE);
 					UTIL_ScreenFade( plr, Vector(0,0,0), 0.2, m_fUnFreezeHunters - gpGlobals->time, 255, FFADE_OUT | FFADE_MODULATE );
@@ -754,7 +754,7 @@ void CHalfLifePropHunt::Think( void )
 
 				if ( plr && plr->IsPlayer() && plr->IsCommittedToPlay() )
 				{
-					if ( plr->pev->fuser4 == 0 )
+					if ( plr->pev->fuser4 == TEAM_HUNTERS )
 						plr->EnableControl(TRUE);
 
 					if ( musicEnt && musicEnt->edict() )
@@ -1209,14 +1209,6 @@ BOOL CHalfLifePropHunt::CanHavePlayerItem( CBasePlayer *pPlayer, CBasePlayerItem
 	return CHalfLifeMultiplay::CanHavePlayerItem( pPlayer, pItem );
 }
 
-BOOL CHalfLifePropHunt::CanHaveItem( CBasePlayer *pPlayer, CItem *pItem )
-{
-	if (pPlayer->pev->fuser4 >= TEAM_PROPS)
-		return FALSE;
-
-	return CHalfLifeMultiplay::CanHaveItem( pPlayer, pItem );
-}
-
 BOOL CHalfLifePropHunt::IsAllowedToDropWeapon( CBasePlayer *pPlayer )
 {
 	if (pPlayer->pev->fuser4 >= TEAM_PROPS)
@@ -1254,7 +1246,7 @@ void CHalfLifePropHunt::MonsterKilled( CBaseMonster *pVictim, entvars_t *pKiller
 	CBasePlayer *plr = (CBasePlayer *)CBaseEntity::Instance( pKiller );
 
 	// Reduce frags if killed harmless item
-	if (plr && plr->IsPlayer())
+	if (plr && plr->IsPlayer() && plr->pev->fuser4 == TEAM_HUNTERS)
 	{
 		if (!FBitSet(plr->pev->flags, FL_FAKECLIENT))
 		{
@@ -1262,7 +1254,7 @@ void CHalfLifePropHunt::MonsterKilled( CBaseMonster *pVictim, entvars_t *pKiller
 				WRITE_BYTE(CLIENT_SOUND_NOPE);
 			MESSAGE_END();
 		}
-		ClientPrint(plr->pev, HUD_PRINTCENTER, "Decoy destroyed! -1 frag :(\n");
+		ClientPrint(plr->pev, HUD_PRINTCENTER, "Decoy destroyed! -1 point :(\n");
 
 		MESSAGE_BEGIN( MSG_ALL, gmsgScoreInfo );
 			WRITE_BYTE( ENTINDEX(plr->edict()) );
