@@ -292,11 +292,6 @@ typedef struct model_s
 // additional model data
 //
 	cache_user_t	cache;		// only access through Mod_Extradata
-
-// Aim points
-	vec3_t			aim_punch;
-	vec3_t			aim_angles;
-
 } model_t;
 
 typedef vec_t vec4_t[4];
