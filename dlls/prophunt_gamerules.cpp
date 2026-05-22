@@ -246,11 +246,11 @@ CHalfLifePropHunt::CHalfLifePropHunt()
 // Returns 0 (invalid) for anything that isn't a w_weapons.mdl / w_ammo.mdl
 // entity, or if the derived body lands on a render gap (32 or 34).
 //
-// The +1 offset on the weapon side reconciles the world-weapon convention
-// (CWeaponBox / CBasePlayerWeapon spawn with pev->body = m_iId - 1, range
-// 0..50) with the prop-display convention (fuser4 range 1..51 for weapons).
-// The +52 offset on the ammo side mirrors the decoy spawn formula at
-// weapons.cpp:1149 (decoy body = fuser4 - 52 when fuser4 >= 52).
+// Weapon models use the world-model body index directly (target = body),
+// so only weapon bodies already in the valid prop-display range survive the
+// bounds check below. The +52 offset on the ammo side mirrors the decoy
+// spawn formula at weapons.cpp:1149 (decoy body = fuser4 - 52 when
+// fuser4 >= 52).
 static int PP_BodyFromItem( CBaseEntity *pItem )
 {
 	if ( !pItem || !pItem->pev->model ) return 0;
@@ -1288,7 +1288,7 @@ void CHalfLifePropHunt::PlayerThink( CBasePlayer *pPlayer )
 		// for PROP_ANCHOR_GRACE seconds.  Re-entering the radius cancels the timer.
 		// A NULL EHANDLE (item removed) clears state silently.
 		CBaseEntity *pAnchor = pPlayer->m_hPropAnchor;
-		if (pPlayer->m_hPropAnchor && !pAnchor)
+		if (pPlayer->m_hPropAnchor.Get() == NULL)
 		{
 			pPlayer->m_hPropAnchor = NULL;
 			pPlayer->m_fPropAnchorLeaveTime = 0;
