@@ -2355,6 +2355,8 @@ void CBasePlayer::PlayerUse ( void )
 				MESSAGE_BEGIN( MSG_ONE_UNRELIABLE, gmsgPlayClientSound, NULL, pev );
 					WRITE_BYTE(CLIENT_SOUND_LEVEL_UP);
 				MESSAGE_END();
+				m_afButtonPressed &= ~IN_USE;   // consume the edge so the standard scan doesn't also fire
+				return;
 			}
 			else
 			{
@@ -2363,10 +2365,7 @@ void CBasePlayer::PlayerUse ( void )
 				MESSAGE_END();
 				if ( !FBitSet( pev->flags, FL_FAKECLIENT ) )
 					ClientPrint( pev, HUD_PRINTCENTER, "Can't Morph!\nExit area. Try another item.\n" );
-
 			}
-			m_afButtonPressed &= ~IN_USE;   // consume the edge so the standard scan doesn't also fire
-			return;
 		}
 	}
 
