@@ -33,6 +33,7 @@
 #include "shake.h"
 #include "decals.h"
 #include "gamerules.h"
+#include "prophunt_gamerules.h"
 #include "game.h"
 #include "pm_shared.h"
 #include "hltv.h"
@@ -2313,7 +2314,61 @@ void CBasePlayer::PlayerUse ( void )
 	float flDot;
 
 	UTIL_MakeVectors ( pev->v_angle );// so we know which way we are facing
-	
+
+	// PropHunt +use morph: a live prop pressing +use within PROP_ANCHOR_USE_RADIUS
+	// of a w_weapons.mdl / w_ammo.mdl entity hides that item and snaps the prop's
+	// fuser4 body slot to match.  Done before the standard FCAP scan because those
+	// world items are SOLID_TRIGGER with no FCAP_*_USE flags (they would never be
+	// picked by the normal loop) and because we want to consume the IN_USE edge.
+	if ( g_pGameRules && g_pGameRules->IsPropHunt() &&
+	     pev->fuser4 >= TEAM_PROPS &&
+	     (m_afButtonPressed & IN_USE) &&
+	     IsAlive() && !IsSpectator() )
+	{
+		CBaseEntity *pScan = NULL;
+		CBaseEntity *pBest = NULL;
+		float flBestDist = PROP_ANCHOR_USE_RADIUS + 1.0f;
+		while ( (pScan = UTIL_FindEntityInSphere(pScan, pev->origin, PROP_ANCHOR_USE_RADIUS)) != NULL )
+		{
+			if ( !pScan->pev->model ) continue;
+			const char *m = STRING(pScan->pev->model);
+			if ( !m || (!strstr(m, "w_weapons.mdl") && !strstr(m, "w_ammo.mdl")) )
+				continue;
+			// Skip items already anchored (hidden + non-solid).
+			if ( pScan->pev->solid == SOLID_NOT && (pScan->pev->effects & EF_NODRAW) )
+				continue;
+			// Use nearest-in-radius rather than a narrow view cone.  Props
+			// usually walk onto an item (it ends up at their feet), which
+			// scores poorly on the standard dot-product cone test.  The 80u
+			// sphere is already tight enough to act as the selector.
+			float d = (pScan->pev->origin - pev->origin).Length();
+			if ( d < flBestDist )
+			{
+				flBestDist = d;
+				pBest      = pScan;
+			}
+		}
+		if ( pBest )
+		{
+			if (((CHalfLifePropHunt *)g_pGameRules)->TryPropMorphToItem(this, pBest))
+			{
+				MESSAGE_BEGIN( MSG_ONE_UNRELIABLE, gmsgPlayClientSound, NULL, pev );
+					WRITE_BYTE(CLIENT_SOUND_LEVEL_UP);
+				MESSAGE_END();
+				m_afButtonPressed &= ~IN_USE;   // consume the edge so the standard scan doesn't also fire
+				return;
+			}
+			else
+			{
+				MESSAGE_BEGIN( MSG_ONE_UNRELIABLE, gmsgPlayClientSound, NULL, pev );
+					WRITE_BYTE(CLIENT_SOUND_NOPE);
+				MESSAGE_END();
+				if ( !FBitSet( pev->flags, FL_FAKECLIENT ) )
+					ClientPrint( pev, HUD_PRINTCENTER, "Can't Morph!\nExit area. Try another item.\n" );
+			}
+		}
+	}
+
 	while ((pObject = UTIL_FindEntityInSphere( pObject, pev->origin, pev->flags & FL_FAKECLIENT ? 192 : PLAYER_SEARCH_RADIUS )) != NULL)
 	{
 

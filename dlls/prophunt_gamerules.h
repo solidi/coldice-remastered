@@ -31,7 +31,6 @@ public:
 	virtual const char *GetTeamID( CBaseEntity *pEntity );
 	virtual BOOL ShouldAutoAim( CBasePlayer *pPlayer, edict_t *target );
 	virtual BOOL CanHavePlayerItem( CBasePlayer *pPlayer, CBasePlayerItem *pItem );
-	virtual BOOL CanHaveItem( CBasePlayer *pPlayer, CItem *pItem );
 	virtual BOOL IsAllowedToDropWeapon( CBasePlayer *pPlayer );
 	virtual int DeadPlayerWeapons( CBasePlayer *pPlayer );
 	virtual int DeadPlayerAmmo( CBasePlayer *pPlayer );
@@ -51,6 +50,15 @@ public:
 	virtual BOOL IsTeamplay( void );
 	virtual BOOL PlayFootstepSounds( CBasePlayer *pl, float fvol );
 	virtual BOOL CanHaveNamedItem( CBasePlayer *pPlayer, const char *pszItemName );
+
+	// Prop +use morph (see ai/prophunt_gamerules.md).  TryPropMorphToItem hides the
+	// passed world item (EF_NODRAW + SOLID_NOT) and stamps the prop's fuser4 to the
+	// body slot derived from pItem->pev->body / pev->model.  Returns FALSE for
+	// hunters, unsupported entities (anything not w_weapons.mdl / w_ammo.mdl, or
+	// the render-gap slots 32 / 34), out-of-range targets, or items already
+	// anchored to someone.  ReleasePropAnchor restores the item synchronously.
+	BOOL TryPropMorphToItem( CBasePlayer *pProp, CBaseEntity *pItem );
+	void ReleasePropAnchor( CBasePlayer *pProp );
 
 private:
 	int m_iHuntersStarted;

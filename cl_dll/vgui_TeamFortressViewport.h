@@ -703,6 +703,8 @@ public:
 	{
 		gEngfuncs.pfnClientCmd(m_pszCommand);
 
+		PlaySound("wpn_select.wav", 1);
+
 		if (m_iCloseVGUIMenu)
 			gViewPort->HideTopMenu();
 		else
