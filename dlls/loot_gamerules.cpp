@@ -1720,6 +1720,35 @@ void CHalfLifeLoot::Think( void )
 				ExposeLoot();
 		}
 
+		// Last-resort auto-assign: with 30s left and the loot still
+		// loose on the ground (already exposed), force-give it to a
+		// random surviving player so the round has a chance to
+		// produce a loot score instead of timing out untouched.
+		if ( m_bLootExposed
+		     && (CBaseEntity *)m_hLootHolder == NULL
+		     && (CBaseEntity *)m_hLootEntity != NULL
+		     && m_flRoundTimeLimit > 0
+		     && (m_flRoundTimeLimit - gpGlobals->time) <= 30.0f )
+		{
+			CBasePlayer *candidates[32];
+			int nCand = 0;
+			for ( int i = 1; i <= gpGlobals->maxClients && nCand < 32; i++ )
+			{
+				CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
+				if ( !plr || !plr->IsPlayer() || plr->HasDisconnected ) continue;
+				if ( !plr->IsAlive() || plr->IsSpectator() ) continue;
+				if ( plr->m_iLootTeam < 0 || plr->m_iLootTeam > 3 ) continue;
+				candidates[nCand++] = plr;
+			}
+			if ( nCand > 0 )
+			{
+				CBasePlayer *pLucky = candidates[ RANDOM_LONG(0, nCand - 1) ];
+				UTIL_ClientPrintAll( HUD_PRINTCENTER,
+					"The loot has chosen a bearer!\n" );
+				CaptureCharm( pLucky );
+			}
+		}
+
 		SendObjectiveUpdate();
 
 		// Determine how many teams still have living players
