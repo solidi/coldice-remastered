@@ -1736,7 +1736,7 @@ void CHalfLifeLoot::Think( void )
 			{
 				CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
 				if ( !plr || !plr->IsPlayer() || plr->HasDisconnected ) continue;
-				if ( !plr->IsAlive() || plr->IsSpectator() ) continue;
+				if ( !plr->IsInArena || !plr->IsAlive() || plr->IsSpectator() ) continue;
 				if ( plr->m_iLootTeam < 0 || plr->m_iLootTeam > 3 ) continue;
 				candidates[nCand++] = plr;
 			}
