@@ -6259,7 +6259,13 @@ void CGrabWeapon::GrabWeaponTouch( CBaseEntity *pOther )
 					pOrig->pev->effects &= ~EF_NODRAW;
 					pOrig->pev->solid    = SOLID_TRIGGER;
 					pOrig->pev->flags   |= FL_ONGROUND; // CRune::RuneTouch requires this
-					UTIL_SetOrigin(pOrig->pev, plr->pev->origin);
+					// NOTE: Do NOT move the entity onto the grabber here.
+					// DispatchTouch fires the touch handler directly without
+					// a position/trace check, and the engine's respawn pipeline
+					// (VecWeaponRespawnSpot, CItem::Materialize, ammo Materialize)
+					// uses pev->origin to pick the respawn location. Keeping
+					// the entity at its original spot guarantees it respawns
+					// where it started.
 
 					DispatchTouch(pOrig->edict(), plr->edict());
 
@@ -6405,9 +6411,15 @@ static void AcquireForceGrabWorldItem( CBasePlayer *pPlayer, CBaseEntity *pWorld
 	else if (strncmp(cls, "ammo_", 5) == 0)       iType = 5;
 	else                                          return;
 
+	// Spawn the proxy 64u above the world item so it floats at chest
+	// height and is easier to control, instead of dragging along the
+	// ground.
+	Vector vecSpawn = pWorld->pev->origin;
+	vecSpawn.z += 64.0f;
+
 	CBaseEntity *pProj = CBaseEntity::Create(
 		"monster_grabweapon",
-		pWorld->pev->origin,
+		vecSpawn,
 		Vector(-90, pPlayer->pev->angles.y + 90, -90),
 		pPlayer->edict());
 	if (!pProj)
