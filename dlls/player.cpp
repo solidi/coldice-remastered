@@ -6176,6 +6176,24 @@ void CGrabWeapon::GrabWeaponThink( void )
 
 void CGrabWeapon::GrabWeaponTouch( CBaseEntity *pOther )
 {
+	if (!pOther)
+		return;
+
+	// REPEL mode: the banana has been bounced back at an enemy. It must
+	// damage the first player it strikes (any enemy in its path, not
+	// only the original target) and disappear on any non-player contact
+	// (world brush, breakable, etc.) so it never bounces indefinitely.
+	if (pev->iuser1 == REPEL && pOther != (CBaseEntity*)m_hOwner)
+	{
+		if (pOther->IsPlayer())
+		{
+			ClearMultiDamage();
+			pOther->TakeDamage(pev, m_hOwner ? m_hOwner->pev : pev, 100, DMG_CLUB);
+		}
+		UTIL_Remove(this);
+		return;
+	}
+
 	if (pOther->IsPlayer())
 	{
 		if (((CBaseEntity*)m_hOwner) == pOther)
@@ -6253,6 +6271,11 @@ void CGrabWeapon::GrabWeaponTouch( CBaseEntity *pOther )
 						pOrig->pev->movetype != MOVETYPE_FOLLOW &&
 						!(pOrig->pev->effects & EF_NODRAW))
 					{
+						// Restore the original spawn location stashed in vuser1 by
+						// AcquireForceGrabWorldItem so the item respawns where it
+						// started, not at the grabber's feet.
+						UTIL_SetOrigin(pOrig->pev, pOrig->pev->vuser1);
+
 						pOrig->pev->effects |= EF_NODRAW;
 						pOrig->pev->solid    = SOLID_NOT;
 						pOrig->SetTouch( NULL );
@@ -6303,14 +6326,6 @@ void CGrabWeapon::GrabWeaponTouch( CBaseEntity *pOther )
 			STOP_SOUND(pOther->edict(), CHAN_VOICE, "odetojoy.wav");
 			// Play catch sound
 			EMIT_SOUND_DYN(pOther->edict(), CHAN_WEAPON, "items/gunpickup2.wav", 1.0, ATTN_NORM, 0, 98 + RANDOM_LONG(0,3)); 
-			UTIL_Remove(this);
-		}
-		else if (pev->iuser1 == REPEL && pev->enemy)
-		{
-			ClearMultiDamage();
-			CBaseEntity *e = CBaseEntity::Instance(pev->enemy);
-			if (e)
-				e->TakeDamage(pev, m_hOwner->pev, 100, DMG_CLUB);
 			UTIL_Remove(this);
 		}
 	}
@@ -6413,6 +6428,10 @@ static void AcquireForceGrabWorldItem( CBasePlayer *pPlayer, CBaseEntity *pWorld
 
 	STOP_SOUND(pPlayer->edict(), CHAN_VOICE, "heaven.wav");
 	EMIT_SOUND(pPlayer->edict(), CHAN_VOICE, "odetojoy.wav", 1, ATTN_NORM);
+
+	// Remember the original spawn location so the item respawns there
+	// (not at the grabber's location) if the pickup fails or is cancelled.
+	pWorld->pev->vuser1 = pWorld->pev->origin;
 
 	// Hide the original immediately and queue it on the engine's
 	// existing respawn pipeline. On cancel/repel/death this remains
@@ -6600,7 +6619,7 @@ void CBasePlayer::TryGrabAgain( void )
 			FNullEnt(pHit->pev->owner))
 		{
 			pHit->pev->owner  = edict();
-			pHit->pev->iuser1 = 0;
+			pHit->pev->iuser1 = 0; // attract mode
 			m_Banana = pHit;
 
 			STOP_SOUND(edict(), CHAN_VOICE, "heaven.wav");
