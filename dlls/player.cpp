@@ -6153,6 +6153,8 @@ void CGrabWeapon::GrabWeaponThink( void )
 	
 	if (pev->iuser1 == ATTRACT)
 		vecDir = ( m_hOwner->pev->origin - pev->origin );
+	else if (pev->vuser2.Length() > 0.1f)
+		vecDir = pev->vuser2; // direction locked in by player when REPEL was triggered
 	else
 		vecDir = ( pev->enemy->v.origin - pev->origin );
 
@@ -6489,9 +6491,12 @@ void CBasePlayer::StartForceGrab( void )
 		return;
 	}
 
-	// Already got a hook, fly it back.
+	// Already got a hook, fly it back in the direction the player is
+	// currently aiming (locked in at the moment of trigger).
 	if (m_Banana)
 	{
+		UTIL_MakeVectors( pev->v_angle );
+		m_Banana->pev->vuser2 = gpGlobals->v_forward;
 		m_Banana->pev->iuser1 = 1;
 		STOP_SOUND(edict(), CHAN_VOICE, "odetojoy.wav");
 		EMIT_SOUND(edict(), CHAN_VOICE, "weapons/glauncher.wav", 1, ATTN_NORM);
