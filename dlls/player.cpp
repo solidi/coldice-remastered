@@ -6183,15 +6183,121 @@ void CGrabWeapon::GrabWeaponTouch( CBaseEntity *pOther )
 			CBasePlayer *plr = (CBasePlayer *)pOther;
 			plr->m_EFlags &= ~EFLAG_FORCEGRAB;
 			plr->m_fForceGrabTime = 0;
+
 			if (plr->m_pActiveItem)
 			{
 				((CBasePlayerWeapon *)plr->m_pActiveItem)->m_flNextPrimaryAttack = 
 				((CBasePlayerWeapon *)plr->m_pActiveItem)->m_flNextSecondaryAttack = 
 				((CBasePlayerWeapon *)plr->m_pActiveItem)->GetNextAttackDelay(0);
+			}
 
-				if (!plr->HasNamedPlayerItem(STRING(pev->message)))
-					plr->GiveNamedItem(STRING(pev->message));
-				plr->SelectItem(STRING(pev->message));
+			int iType = pev->iuser2;
+			if (iType == 4)
+			{
+				// Weaponbox: teleport the original onto the grabber and
+				// invoke its existing Touch handler to unpack it.
+				CBaseEntity *pBox = NULL;
+				if (!FNullEnt(pev->enemy))
+					pBox = CBaseEntity::Instance(pev->enemy);
+				if (pBox)
+				{
+					pBox->pev->effects &= ~EF_NODRAW;
+					pBox->pev->solid = SOLID_TRIGGER;
+					pBox->pev->flags |= FL_ONGROUND;
+					UTIL_SetOrigin(pBox->pev, plr->pev->origin);
+					DispatchTouch(pBox->edict(), plr->edict());
+				}
+			}
+			else if ((iType >= 1 && iType <= 3) || iType == 5)
+			{
+				// World pickup: resurrect the hidden original onto the
+				// grabber and dispatch its own touch handler. This avoids
+				// quirks in GiveNamedItem (FL_ONGROUND requirement for
+				// CRune::RuneTouch, DROP_TO_FLOOR failure for CItem::Spawn,
+				// etc.) and grants whatever the original class would grant.
+				CBaseEntity *pOrig = NULL;
+				if (!FNullEnt(pev->enemy))
+					pOrig = CBaseEntity::Instance(pev->enemy);
+				if (pOrig && !(pOrig->pev->flags & FL_KILLME))
+				{
+					// Cancel any pending respawn think so it doesn't fire
+					// while we briefly resurrect the entity.
+					pOrig->SetThink( NULL );
+					pOrig->pev->nextthink = -1;
+
+					// Restore the per-class touch handler we cleared in
+					// AcquireForceGrabWorldItem.
+					if (iType == 1)
+						pOrig->SetTouch( &CBasePlayerItem::DefaultTouch );
+					else if (iType == 2)
+						pOrig->SetTouch( &CItem::ItemTouch );
+					else if (iType == 3)
+						pOrig->SetTouch( &CRune::RuneTouch );
+					else /* iType == 5 */
+						pOrig->SetTouch( &CBasePlayerAmmo::DefaultTouch );
+
+					pOrig->pev->effects &= ~EF_NODRAW;
+					pOrig->pev->solid    = SOLID_TRIGGER;
+					pOrig->pev->flags   |= FL_ONGROUND; // CRune::RuneTouch requires this
+					UTIL_SetOrigin(pOrig->pev, plr->pev->origin);
+
+					DispatchTouch(pOrig->edict(), plr->edict());
+
+					// Pickup-failure cleanup: if the touch handler did not
+					// consume the entity (player already had the rune,
+					// CanHaveItem returned FALSE, etc.) it is sitting visible
+					// at the grabber's feet. Re-hide and queue a respawn so it
+					// returns to its original spot.
+					if (!FNullEnt(pOrig->edict()) &&
+						!(pOrig->pev->flags & FL_KILLME) &&
+						pOrig->pev->movetype != MOVETYPE_FOLLOW &&
+						!(pOrig->pev->effects & EF_NODRAW))
+					{
+						pOrig->pev->effects |= EF_NODRAW;
+						pOrig->pev->solid    = SOLID_NOT;
+						pOrig->SetTouch( NULL );
+
+						if (iType == 1)
+						{
+							pOrig->SetThink( &CBasePlayerItem::AttemptToMaterialize );
+							pOrig->pev->nextthink = g_pGameRules->FlWeaponRespawnTime( (CBasePlayerItem*)pOrig );
+						}
+						else if (iType == 2)
+						{
+							pOrig->SetThink( &CItem::Materialize );
+							pOrig->pev->nextthink = g_pGameRules->FlItemRespawnTime( (CItem*)pOrig );
+						}
+						else if (iType == 5)
+						{
+							pOrig->SetThink( &CBasePlayerAmmo::Materialize );
+							pOrig->pev->nextthink = g_pGameRules->FlAmmoRespawnTime( (CBasePlayerAmmo*)pOrig );
+						}
+						else /* rune */
+						{
+							pOrig->SetThink( &CBaseEntity::SUB_Remove );
+							pOrig->pev->nextthink = gpGlobals->time + 0.1f;
+						}
+					}
+				}
+			}
+			else
+			{
+				// Existing player-steal path.
+				if (plr->m_pActiveItem)
+				{
+					if (!plr->HasNamedPlayerItem(STRING(pev->message)))
+						plr->GiveNamedItem(STRING(pev->message));
+					plr->SelectItem(STRING(pev->message));
+				}
+			}
+
+			// Restore the holstered view model for world-item paths. The
+			// player-steal path's SelectItem above already deployed the new
+			// active weapon, so skip there.
+			if (iType != 0 && plr->m_pActiveItem &&
+				!FBitSet(plr->m_pActiveItem->iFlags(), ITEM_FLAG_SINGLE_HAND))
+			{
+				plr->m_pActiveItem->DeployLowKey();
 			}
 
 			STOP_SOUND(pOther->edict(), CHAN_VOICE, "odetojoy.wav");
@@ -6207,6 +6313,142 @@ void CGrabWeapon::GrabWeaponTouch( CBaseEntity *pOther )
 				e->TakeDamage(pev, m_hOwner->pev, 100, DMG_CLUB);
 			UTIL_Remove(this);
 		}
+	}
+}
+
+//=========================================================
+// FindForceGrabWorldItem
+//
+// Sweeps a bounded sphere along the aim ray looking for a world
+// pickup entity (weapon_*, item_*, rune_*, weaponbox) that
+// UTIL_TraceLine would miss because those entities are SOLID_TRIGGER.
+//
+// Walks 0..1024 units in 64-unit steps with a 32-unit search radius;
+// returns the first matching entity or NULL.
+//=========================================================
+CBaseEntity *CBasePlayer::FindForceGrabWorldItem( const Vector &vecSrc, const Vector &vecDir )
+{
+	if (!g_pGameRules->IsMultiplayer())
+		return NULL;
+
+	for (int i = 0; i <= 16; i++)
+	{
+		Vector pt = vecSrc + vecDir * ((float)i * 64.0f);
+		CBaseEntity *pEnt = NULL;
+		while ((pEnt = UTIL_FindEntityInSphere(pEnt, pt, 32.0f)) != NULL)
+		{
+			if (pEnt == this)
+				continue;
+			if (pEnt->pev->effects & EF_NODRAW)
+				continue;
+
+			// Skip player-carried items.
+			if (!FNullEnt(pEnt->pev->owner))
+			{
+				CBaseEntity *pOwner = CBaseEntity::Instance(pEnt->pev->owner);
+				if (pOwner && pOwner->IsPlayer())
+					continue;
+			}
+
+			const char *cls = STRING(pEnt->pev->classname);
+			if (!cls || !cls[0])
+				continue;
+
+			if (strncmp(cls, "weapon_", 7) == 0 ||
+				strncmp(cls, "item_", 5) == 0 ||
+				strncmp(cls, "rune_", 5) == 0 ||
+				strncmp(cls, "ammo_", 5) == 0 ||
+				strcmp(cls, "weaponbox") == 0)
+			{
+				return pEnt;
+			}
+		}
+	}
+	return NULL;
+}
+
+//=========================================================
+// AcquireForceGrabWorldItem
+//
+// Spawns the monster_grabweapon proxy for a world pickup and
+// hides the original immediately, queueing the engine's standard
+// respawn pipeline.
+//=========================================================
+static void AcquireForceGrabWorldItem( CBasePlayer *pPlayer, CBaseEntity *pWorld )
+{
+	if (!pPlayer || !pWorld)
+		return;
+
+	const char *cls = STRING(pWorld->pev->classname);
+	int iType = 0;
+	if (strcmp(cls, "weaponbox") == 0)            iType = 4;
+	else if (strncmp(cls, "weapon_", 7) == 0)     iType = 1;
+	else if (strncmp(cls, "item_", 5) == 0)       iType = 2;
+	else if (strncmp(cls, "rune_", 5) == 0)       iType = 3;
+	else if (strncmp(cls, "ammo_", 5) == 0)       iType = 5;
+	else                                          return;
+
+	CBaseEntity *pProj = CBaseEntity::Create(
+		"monster_grabweapon",
+		pWorld->pev->origin,
+		Vector(-90, pPlayer->pev->angles.y + 90, -90),
+		pPlayer->edict());
+	if (!pProj)
+		return;
+
+	pProj->pev->message = pWorld->pev->classname;
+	pProj->pev->enemy   = pWorld->edict();
+	pProj->pev->iuser2  = iType;
+
+	// Override the proxy's model with the source entity's model so the
+	// player sees the actual item/rune/weapon/box flying toward them
+	// (CGrabWeapon::Spawn defaults to w_weapons.mdl, which only suits
+	// the player-steal path).
+	if (!FStringNull(pWorld->pev->model))
+		SET_MODEL(pProj->edict(), STRING(pWorld->pev->model));
+	pProj->pev->body = pWorld->pev->body;
+	pProj->pev->skin = pWorld->pev->skin;
+
+	pPlayer->m_Banana = pProj;
+
+	STOP_SOUND(pPlayer->edict(), CHAN_VOICE, "heaven.wav");
+	EMIT_SOUND(pPlayer->edict(), CHAN_VOICE, "odetojoy.wav", 1, ATTN_NORM);
+
+	// Hide the original immediately and queue it on the engine's
+	// existing respawn pipeline. On cancel/repel/death this remains
+	// NODRAW until Materialize fires; acceptable because the 2.5 s
+	// grab cooldown is well under the 20-30 s respawn time.
+	pWorld->pev->effects |= EF_NODRAW;
+	pWorld->SetTouch( NULL );
+
+	if (iType == 1)            // weapon_
+	{
+		pWorld->pev->solid = SOLID_NOT;
+		pWorld->SetThink( &CBasePlayerItem::AttemptToMaterialize );
+		pWorld->pev->nextthink = g_pGameRules->FlWeaponRespawnTime( (CBasePlayerItem*)pWorld );
+	}
+	else if (iType == 2)       // item_
+	{
+		pWorld->pev->solid = SOLID_NOT;
+		pWorld->SetThink( &CItem::Materialize );
+		pWorld->pev->nextthink = g_pGameRules->FlItemRespawnTime( (CItem*)pWorld );
+	}
+	else if (iType == 3)       // rune_  -- consumed; let it linger NODRAW
+	{                          // briefly so REPEL still has a valid enemy.
+		pWorld->pev->solid = SOLID_NOT;
+		pWorld->SetThink( &CBaseEntity::SUB_Remove );
+		pWorld->pev->nextthink = gpGlobals->time + 3.0f;
+	}
+	else if (iType == 5)       // ammo_
+	{
+		pWorld->pev->solid = SOLID_NOT;
+		pWorld->SetThink( &CBasePlayerAmmo::Materialize );
+		pWorld->pev->nextthink = g_pGameRules->FlAmmoRespawnTime( (CBasePlayerAmmo*)pWorld );
+	}
+	else                       // weaponbox -- keep solid; we'll teleport
+	{                          // it onto the grabber at ATTRACT touch.
+		// hidden via EF_NODRAW + SetTouch(NULL); leave solid so engine
+		// physics still keep it grounded.
 	}
 }
 
@@ -6314,6 +6556,15 @@ void CBasePlayer::StartForceGrab( void )
 		}
 	}
 
+	// World-item tractor: if nothing was grabbed via the trace path,
+	// sweep along the aim ray for weapon_/item_/rune_/weaponbox.
+	if (!m_Banana)
+	{
+		CBaseEntity *pWorld = FindForceGrabWorldItem(vecSrc, vecDir);
+		if (pWorld)
+			AcquireForceGrabWorldItem(this, pWorld);
+	}
+
 	m_fForceGrabTime = gpGlobals->time + 2.5;
 
 	if (!m_Banana)
@@ -6385,6 +6636,18 @@ void CBasePlayer::TryGrabAgain( void )
 
 					pev->nextthink = -1;
 				}
+			}
+		}
+
+		// World-item tractor retry: sweep for weapon_/item_/rune_/weaponbox.
+		if (!m_Banana)
+		{
+			CBaseEntity *pWorld = FindForceGrabWorldItem(vecSrc, vecDir);
+			if (pWorld)
+			{
+				AcquireForceGrabWorldItem(this, pWorld);
+				if (m_Banana)
+					pev->nextthink = -1;
 			}
 		}
 

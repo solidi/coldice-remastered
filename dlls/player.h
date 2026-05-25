@@ -323,6 +323,7 @@ public:
 	void StartForceGrab( void );
 	void TryGrabAgain( void );
 	void EndForceGrab( void );
+	CBaseEntity *FindForceGrabWorldItem( const Vector &vecSrc, const Vector &vecDir );
 	float m_fForceGrabTime;
 	EHANDLE m_Banana;
 	float m_flProtectionHand;
