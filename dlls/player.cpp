@@ -6365,13 +6365,13 @@ CBaseEntity *CBasePlayer::FindForceGrabWorldItem( const Vector &vecSrc, const Ve
 			if (pEnt->pev->effects & EF_NODRAW)
 				continue;
 
-			// Skip player-carried items.
-			if (!FNullEnt(pEnt->pev->owner))
-			{
-				CBaseEntity *pOwner = CBaseEntity::Instance(pEnt->pev->owner);
-				if (pOwner && pOwner->IsPlayer())
-					continue;
-			}
+			// Skip items currently attached to a player's inventory
+			// (AttachToPlayer sets MOVETYPE_FOLLOW). Do NOT skip on
+			// pev->owner alone — weaponboxes dropped on death/drop keep
+			// pev->owner pointing at the dropper, and we want those to
+			// be force-grabbable.
+			if (pEnt->pev->movetype == MOVETYPE_FOLLOW)
+				continue;
 
 			const char *cls = STRING(pEnt->pev->classname);
 			if (!cls || !cls[0])
