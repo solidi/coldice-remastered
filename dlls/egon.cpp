@@ -118,8 +118,8 @@ int CEgon::AddToPlayer( CBasePlayer *pPlayer )
 
 void CEgon::Holster( int skiplocal /* = 0 */ )
 {
-	CBasePlayerWeapon::DefaultHolster(EGON_HOLSTER);
 	EndAttack();
+	CBasePlayerWeapon::DefaultHolster(EGON_HOLSTER);
 }
 
 int CEgon::GetItemInfo(ItemInfo *p)
