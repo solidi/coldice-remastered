@@ -34,12 +34,155 @@ extern int gmsgStatusIcon;
 extern int gmsgBanner;
 
 #define SPAWN_TIME 30.0
+#define Toad_STAGGER_TIME (SPAWN_TIME * 0.5)
+
+// Throttle capture/drop notification sounds so rapid multi-toad pickup/drop
+// churn (especially with mp_ctctoadcount > 1) doesn't spam the client sound
+// channel. Print messages still fire every time; only the sound is gated.
+#define CtC_PICKDROP_SOUND_COOLDOWN 3.0f
+
+static int CtCConfiguredToadCount()
+{
+	int configured = (int)ctctoadcount.value;
+	if (configured < 1)
+		configured = 1;
+	else if (configured > 5)
+		configured = 5;
+
+	return configured;
+}
+
+static int CtCTargetToadCount(int playerCount)
+{
+	if (playerCount < 2)
+		return 0;
+
+	int maxByPlayers = playerCount - 1;
+	int target = CtCConfiguredToadCount();
+	if (target > maxByPlayers)
+		target = maxByPlayers;
+
+	return target;
+}
+
+static int CtCCountHolders(CBasePlayer *holders[], int maxHolders, CBasePlayer **ppFirstHolder)
+{
+	int holderCount = 0;
+	if (ppFirstHolder)
+		*ppFirstHolder = NULL;
+
+	for (int i = 1; i <= gpGlobals->maxClients; i++)
+	{
+		CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex(i);
+		if (!plr || !plr->IsPlayer() || plr->HasDisconnected)
+			continue;
+
+		if (!plr->m_iHoldingChumtoad)
+			continue;
+
+		if (ppFirstHolder && *ppFirstHolder == NULL)
+			*ppFirstHolder = plr;
+
+		if (holders && holderCount < maxHolders)
+			holders[holderCount] = plr;
+
+		holderCount++;
+	}
+
+	return holderCount;
+}
+
+static int CtCCountLooseToads(void)
+{
+	int looseCount = 0;
+	edict_t *pEdict = FIND_ENTITY_BY_CLASSNAME(NULL, "monster_ctctoad");
+	while (!FNullEnt(pEdict))
+	{
+		if (pEdict->v.iuser1 == 1)
+			looseCount++;
+		pEdict = FIND_ENTITY_BY_CLASSNAME(pEdict, "monster_ctctoad");
+	}
+
+	return looseCount;
+}
+
+static void CtCRemoveAllLooseToads(void)
+{
+	edict_t *pEdict = FIND_ENTITY_BY_CLASSNAME(NULL, "monster_ctctoad");
+	while (!FNullEnt(pEdict))
+	{
+		edict_t *pNext = FIND_ENTITY_BY_CLASSNAME(pEdict, "monster_ctctoad");
+		UTIL_Remove(CBaseEntity::Instance(pEdict));
+		pEdict = pNext;
+	}
+}
+
+static BOOL CtCForceRemoveHolderToad(CHalfLifeCaptureTheChumtoad *pRules, CBasePlayer *pPlayer)
+{
+	if (!pRules || !pPlayer || !pPlayer->m_iHoldingChumtoad)
+		return FALSE;
+
+	pPlayer->m_iHoldingChumtoad = FALSE;
+	UTIL_MakeVectors(pPlayer->pev->v_angle);
+	CBaseEntity *pDropped = pRules->DropCharm(pPlayer, pPlayer->pev->origin + gpGlobals->v_forward * 64);
+	if (pDropped)
+		UTIL_Remove(pDropped);
+	pPlayer->RemoveNamedItem("weapon_chumtoad");
+
+	return TRUE;
+}
+
+static BOOL CtCRemoveOneLooseToad(void)
+{
+	edict_t *pEdict = FIND_ENTITY_BY_CLASSNAME(NULL, "monster_ctctoad");
+	while (!FNullEnt(pEdict))
+	{
+		if (pEdict->v.iuser1 == 1)
+		{
+			UTIL_Remove(CBaseEntity::Instance(pEdict));
+			return TRUE;
+		}
+
+		pEdict = FIND_ENTITY_BY_CLASSNAME(pEdict, "monster_ctctoad");
+	}
+
+	return FALSE;
+}
+
+static BOOL CtCTeleportLooseToads(void)
+{
+	BOOL moved = FALSE;
+	edict_t *pEdict = FIND_ENTITY_BY_CLASSNAME(NULL, "monster_ctctoad");
+	while (!FNullEnt(pEdict))
+	{
+		edict_t *pNext = FIND_ENTITY_BY_CLASSNAME(pEdict, "monster_ctctoad");
+		if (pEdict->v.iuser1 == 1)
+		{
+			CBaseEntity *pSpot = NULL;
+			for (int i = RANDOM_LONG(1, 8); i > 0; i--)
+				pSpot = UTIL_FindEntityByClassname(pSpot, "info_player_deathmatch");
+
+			if (pSpot)
+			{
+				UTIL_SetOrigin(VARS(pEdict), pSpot->pev->origin);
+				moved = TRUE;
+			}
+		}
+
+		pEdict = pNext;
+	}
+
+	return moved;
+}
 
 CHalfLifeCaptureTheChumtoad::CHalfLifeCaptureTheChumtoad()
 {
 	m_pHolder = NULL; // must initialize, otherwise, GET() crash.
 	m_fChumtoadInPlay = FALSE;
-	m_fCreateChumtoadTimer = m_fMoveChumtoadTimer = 0;
+	m_fCreateChumtoadTimer = 0;
+	m_fRemoveChumtoadTimer = 0;
+	m_fMoveChumtoadTimer = 0;
+	m_flCtCNextPickDropSoundTime = 0.0f;
 	m_fChumtoadPlayTimer = gpGlobals->time;
 }
 
@@ -62,123 +205,197 @@ void CHalfLifeCaptureTheChumtoad::Think( void )
 
 	if (m_fChumtoadPlayTimer < gpGlobals->time)
 	{
-		edict_t *pEdict = FIND_ENTITY_BY_CLASSNAME(NULL, "monster_ctctoad");
-		edict_t *pChumtoad = NULL;
-		BOOL foundToad = FALSE;
-
 		int playerCount = UTIL_GetPlayerCount();
+		int targetToadCount = CtCTargetToadCount(playerCount);
 
-		for (int i = 1; i <= gpGlobals->maxClients; i++ )
+		if (targetToadCount <= 0)
 		{
-			CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
+			for (int i = 1; i <= gpGlobals->maxClients; i++)
+			{
+				CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex(i);
+				if (plr && plr->IsPlayer() && !plr->HasDisconnected && plr->m_iHoldingChumtoad)
+					CtCForceRemoveHolderToad(this, plr);
+			}
+
+			CtCRemoveAllLooseToads();
+			m_fCreateChumtoadTimer = 0;
+			m_fRemoveChumtoadTimer = 0;
+			m_fMoveChumtoadTimer = 0;
+			m_fChumtoadInPlay = FALSE;
+			m_pHolder = NULL;
+		}
+		else
+		{
+			CBasePlayer *firstHolder = NULL;
+			int holderCount = CtCCountHolders(NULL, 0, &firstHolder);
+			int looseCount = CtCCountLooseToads();
+			int totalToads = holderCount + looseCount;
+
+			m_fChumtoadInPlay = holderCount > 0;
+			m_pHolder = firstHolder;
+
+			int hardMaxToads = playerCount - 1;
+			while (totalToads > hardMaxToads)
+			{
+				if (CtCRemoveOneLooseToad())
+				{
+					totalToads--;
+					continue;
+				}
+
+				CBasePlayer *holders[32];
+				int holderCandidates = CtCCountHolders(holders, 32, NULL);
+				if (holderCandidates < 1)
+					break;
+
+				CBasePlayer *removePlayer = holders[RANDOM_LONG(0, holderCandidates - 1)];
+				if (!CtCForceRemoveHolderToad(this, removePlayer))
+					break;
+
+				totalToads--;
+			}
+
+			if (totalToads > targetToadCount)
+			{
+				if (m_fRemoveChumtoadTimer <= 0)
+					m_fRemoveChumtoadTimer = gpGlobals->time;
+
+				if (m_fRemoveChumtoadTimer <= gpGlobals->time)
+				{
+					BOOL removed = CtCRemoveOneLooseToad();
+					if (!removed)
+					{
+						CBasePlayer *holders[32];
+						int holderCandidates = CtCCountHolders(holders, 32, NULL);
+						if (holderCandidates > 0)
+						{
+							CBasePlayer *removePlayer = holders[RANDOM_LONG(0, holderCandidates - 1)];
+							removed = CtCForceRemoveHolderToad(this, removePlayer);
+						}
+					}
+
+					if (removed)
+						totalToads--;
+
+					if (totalToads > targetToadCount)
+						m_fRemoveChumtoadTimer = gpGlobals->time + Toad_STAGGER_TIME;
+					else
+						m_fRemoveChumtoadTimer = 0;
+				}
+			}
+			else
+			{
+				m_fRemoveChumtoadTimer = 0;
+			}
+
+			if (totalToads < targetToadCount)
+			{
+				if (m_fCreateChumtoadTimer <= 0)
+					m_fCreateChumtoadTimer = gpGlobals->time;
+
+				if (m_fCreateChumtoadTimer <= gpGlobals->time)
+				{
+					if (CreateChumtoad())
+					{
+						totalToads++;
+						UTIL_ClientPrintAll(HUD_PRINTTALK, "[CtC] A chumtoad has spawned!\n");
+						MESSAGE_BEGIN(MSG_BROADCAST, gmsgPlayClientSound);
+							WRITE_BYTE(CLIENT_SOUND_CTF_CAPTURE);
+						MESSAGE_END();
+
+						if (m_fMoveChumtoadTimer <= 0)
+							m_fMoveChumtoadTimer = gpGlobals->time + SPAWN_TIME;
+
+						if (totalToads < targetToadCount)
+							m_fCreateChumtoadTimer = gpGlobals->time + Toad_STAGGER_TIME;
+						else
+							m_fCreateChumtoadTimer = 0;
+					}
+					else
+					{
+						m_fCreateChumtoadTimer = gpGlobals->time + 1.0;
+					}
+				}
+			}
+			else
+			{
+				m_fCreateChumtoadTimer = 0;
+			}
+
+			holderCount = CtCCountHolders(NULL, 0, &firstHolder);
+			looseCount = CtCCountLooseToads();
+			m_fChumtoadInPlay = holderCount > 0;
+			m_pHolder = firstHolder;
+
+			if (looseCount > 0)
+			{
+				if (m_fMoveChumtoadTimer <= 0)
+					m_fMoveChumtoadTimer = gpGlobals->time + SPAWN_TIME;
+
+				if (m_fMoveChumtoadTimer <= gpGlobals->time)
+				{
+					if (CtCTeleportLooseToads())
+					{
+						m_fMoveChumtoadTimer = gpGlobals->time + SPAWN_TIME;
+						MESSAGE_BEGIN(MSG_BROADCAST, gmsgPlayClientSound);
+							WRITE_BYTE(CLIENT_SOUND_EBELL);
+						MESSAGE_END();
+						UTIL_ClientPrintAll(HUD_PRINTTALK, looseCount > 1 ? "[CtC] The chumtoads have teleported!\n" : "[CtC] The chumtoad has teleported!\n");
+					}
+					else
+					{
+						m_fMoveChumtoadTimer = gpGlobals->time + 1.0;
+					}
+				}
+			}
+			else
+			{
+				m_fMoveChumtoadTimer = 0;
+			}
+		}
+
+		CBasePlayer *firstHolder = NULL;
+		int holderCount = CtCCountHolders(NULL, 0, &firstHolder);
+		int looseCount = CtCCountLooseToads();
+		m_fChumtoadInPlay = holderCount > 0;
+		m_pHolder = firstHolder;
+
+		for (int i = 1; i <= gpGlobals->maxClients; i++)
+		{
+			CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex(i);
 			if (plr && plr->IsPlayer() && !plr->HasDisconnected && !(plr->pev->flags & FL_FAKECLIENT) && !plr->m_iHoldingChumtoad)
 			{
+				const char *objectiveText = "";
+				if (targetToadCount <= 1)
+				{
+					if (m_pHolder)
+						objectiveText = m_fChumtoadInPlay ? UTIL_VarArgs("%s has it!", STRING(m_pHolder->pev->netname)) : "The chumtoad is free";
+					else if (playerCount > 1)
+						objectiveText = m_fChumtoadInPlay ? "The chumtoad is held" : "The chumtoad is free";
+					else
+						objectiveText = "Chumtoad waiting for players";
+				}
+				else
+				{
+					if (holderCount > 0)
+						objectiveText = UTIL_VarArgs("%d of %d toad holders.", holderCount, targetToadCount);
+					else if (looseCount > 0)
+						objectiveText = UTIL_VarArgs("%d of %d chumtoads are free.", looseCount, targetToadCount);
+					else if (playerCount > 1)
+						objectiveText = "Spawning chumtoads...";
+					else
+						objectiveText = "Chumtoad waiting for players";
+				}
+
 				MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, plr->edict());
 					if (plr->IsSpectator())
 						WRITE_STRING("Watching CtC");
 					else
 						WRITE_STRING("Get the chumtoad");
-					if (m_pHolder)
-						WRITE_STRING(m_fChumtoadInPlay ? UTIL_VarArgs("%s has it!", STRING(m_pHolder->pev->netname)) : "The chumtoad is free");
-					else if ( playerCount > 1 )
-						WRITE_STRING(m_fChumtoadInPlay ? "The chumtoad is held" : "The chumtoad is free");
-					else
-						WRITE_STRING("Chumtoad waiting for players");
+					WRITE_STRING(objectiveText);
 					WRITE_BYTE(0);
 					WRITE_STRING("");
 				MESSAGE_END();
-			}
-		}
-
-		// Find toad, remove extras
-		while (!FNullEnt(pEdict))
-		{
-			// Remove all when not enough players
-			if ( playerCount < 2 )
-			{
-				foundToad = TRUE;
-			}
-
-			if (!foundToad)
-			{
-				if (pEdict->v.iuser1 == 1)
-				{
-					pChumtoad = pEdict;
-					foundToad = TRUE;
-				}
-			}
-			else
-			{
-				// Uh?
-				UTIL_Remove(CBaseEntity::Instance(pEdict));
-			}
-
-			pEdict = FIND_ENTITY_BY_CLASSNAME(pEdict, "monster_ctctoad");
-		}
-
-		if (playerCount < 2)
-		{
-			// Player check, only one person should have the toad at any one time
-			for ( int i = 1; i <= gpGlobals->maxClients; i++ )
-			{
-				CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
-				if (plr && plr->IsPlayer())
-				{
-					if (plr->m_iHoldingChumtoad)
-					{
-						plr->m_iHoldingChumtoad = FALSE;
-						UTIL_MakeVectors(plr->pev->v_angle);
-						CBaseEntity *pDropped = DropCharm(plr, plr->pev->origin + gpGlobals->v_forward * 64);
-						if (pDropped)
-							UTIL_Remove(pDropped); // Don't litter a toad that will just be cleaned up next tick
-						m_fCreateChumtoadTimer = 0; // Reset so toad respawns properly when a second player joins
-						plr->RemoveNamedItem("weapon_chumtoad");
-					}
-				}
-			}
-		}
-
-		// No chumtoad, create it
-		if (FNullEnt(pChumtoad) && m_fChumtoadInPlay == FALSE)
-		{
-			if (m_fCreateChumtoadTimer == 0 || playerCount < 2) 
-				m_fCreateChumtoadTimer = gpGlobals->time + 3.0;
-			
-			if (m_fCreateChumtoadTimer > 0 && m_fCreateChumtoadTimer <= gpGlobals->time)
-			{
-				if (CreateChumtoad())
-				{
-					UTIL_ClientPrintAll(HUD_PRINTTALK, "[CtC] The chumtoad has spawned!\n");
-					m_fCreateChumtoadTimer = 0;
-					m_fMoveChumtoadTimer = gpGlobals->time + SPAWN_TIME;
-					MESSAGE_BEGIN(MSG_BROADCAST, gmsgPlayClientSound);
-						WRITE_BYTE(CLIENT_SOUND_CTF_CAPTURE);
-					MESSAGE_END();
-				}
-				else
-				{
-					// Keep trying
-					m_fCreateChumtoadTimer = gpGlobals->time + 1.0;
-				}
-			}
-		}
-
-		// Chumtoad hopping around, move it once and a while
-		if (!FNullEnt(pChumtoad) && m_fChumtoadInPlay == FALSE && m_fMoveChumtoadTimer <= gpGlobals->time)
-		{
-			CBaseEntity *pSpot = NULL;
-			for (int i = RANDOM_LONG(1,8); i > 0; i--)
-				pSpot = UTIL_FindEntityByClassname( pSpot, "info_player_deathmatch");
-			if (pSpot == NULL)
-				m_fMoveChumtoadTimer = gpGlobals->time + 1.0;
-			else
-			{
-				UTIL_SetOrigin(VARS(pChumtoad), pSpot->pev->origin);
-				m_fMoveChumtoadTimer = gpGlobals->time + SPAWN_TIME;
-				MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
-					WRITE_BYTE(CLIENT_SOUND_EBELL);
-				MESSAGE_END();
-				UTIL_ClientPrintAll(HUD_PRINTTALK, "[CtC] The chumtoad has teleported!\n");
 			}
 		}
 
@@ -288,9 +505,13 @@ void CHalfLifeCaptureTheChumtoad::CaptureCharm( CBasePlayer *pPlayer )
 	UTIL_ClientPrintAll(HUD_PRINTTALK, "[CtC] %s has captured the chumtoad!\n",
 	STRING(pPlayer->pev->netname));
 
-	MESSAGE_BEGIN(MSG_BROADCAST, gmsgPlayClientSound);
-		WRITE_BYTE(CLIENT_SOUND_BULLSEYE);
-	MESSAGE_END();
+	if (gpGlobals->time >= m_flCtCNextPickDropSoundTime)
+	{
+		MESSAGE_BEGIN(MSG_BROADCAST, gmsgPlayClientSound);
+			WRITE_BYTE(CLIENT_SOUND_BULLSEYE);
+		MESSAGE_END();
+		m_flCtCNextPickDropSoundTime = gpGlobals->time + CtC_PICKDROP_SOUND_COOLDOWN;
+	}
 
 	MESSAGE_BEGIN( MSG_ONE, gmsgStatusIcon, NULL, pPlayer->edict() );
 		WRITE_BYTE(1);
@@ -312,13 +533,14 @@ void CHalfLifeCaptureTheChumtoad::CaptureCharm( CBasePlayer *pPlayer )
 	MESSAGE_END();
 
 	pPlayer->m_iChumtoadCounter = pPlayer->m_iCaptureTime = 0;
-	m_fCreateChumtoadTimer = -1;
-	m_fMoveChumtoadTimer = 0;
+	m_fCreateChumtoadTimer = 0;
+	if (m_fMoveChumtoadTimer <= 0)
+		m_fMoveChumtoadTimer = gpGlobals->time + SPAWN_TIME;
 }
 
 CBaseEntity *CHalfLifeCaptureTheChumtoad::DropCharm( CBasePlayer *pPlayer, Vector origin )
 {
-	m_fChumtoadInPlay = FALSE;
+	pPlayer->m_iHoldingChumtoad = FALSE;
 
 	pPlayer->pev->rendermode = kRenderNormal;
 	pPlayer->pev->renderfx = kRenderFxNone;
@@ -326,7 +548,6 @@ CBaseEntity *CHalfLifeCaptureTheChumtoad::DropCharm( CBasePlayer *pPlayer, Vecto
 
 	pPlayer->pev->fuser4 = 0;
 	pPlayer->m_fCameraDelay = gpGlobals->time + 4.0;
-	m_pHolder = NULL;
 
 	MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
 		WRITE_BYTE( TE_KILLBEAM );
@@ -336,9 +557,13 @@ CBaseEntity *CHalfLifeCaptureTheChumtoad::DropCharm( CBasePlayer *pPlayer, Vecto
 	UTIL_ClientPrintAll(HUD_PRINTTALK, "[CtC] %s has dropped the chumtoad!\n",
 		STRING(pPlayer->pev->netname));
 
-	MESSAGE_BEGIN(MSG_BROADCAST, gmsgPlayClientSound);
-		WRITE_BYTE(CLIENT_SOUND_MANIAC);
-	MESSAGE_END();
+	if (gpGlobals->time >= m_flCtCNextPickDropSoundTime)
+	{
+		MESSAGE_BEGIN(MSG_BROADCAST, gmsgPlayClientSound);
+			WRITE_BYTE(CLIENT_SOUND_MANIAC);
+		MESSAGE_END();
+		m_flCtCNextPickDropSoundTime = gpGlobals->time + CtC_PICKDROP_SOUND_COOLDOWN;
+	}
 
 	strncpy( pPlayer->m_szTeamName, "chaser", TEAM_NAME_LENGTH );
 	MESSAGE_BEGIN( MSG_ALL, gmsgTeamInfo );
@@ -353,13 +578,18 @@ CBaseEntity *CHalfLifeCaptureTheChumtoad::DropCharm( CBasePlayer *pPlayer, Vecto
 		WRITE_SHORT( g_pGameRules->GetTeamIndex( pPlayer->m_szTeamName ) + 1 );
 	MESSAGE_END();
 
-	m_fCreateChumtoadTimer = -1;
+	m_fCreateChumtoadTimer = 0;
 	m_fMoveChumtoadTimer = gpGlobals->time + SPAWN_TIME;
 	CBaseEntity *pChumtoad = CBaseEntity::Create("monster_ctctoad", origin, pPlayer->pev->v_angle, NULL);
 	if (pChumtoad)
 		pChumtoad->pev->iuser1 = 1;
 	else
 		m_fCreateChumtoadTimer = gpGlobals->time + 1.0; // in case we could not create a chumtoad
+
+	CBasePlayer *firstHolder = NULL;
+	int holderCount = CtCCountHolders(NULL, 0, &firstHolder);
+	m_fChumtoadInPlay = holderCount > 0;
+	m_pHolder = firstHolder;
 
 	return pChumtoad;
 }
@@ -553,7 +783,19 @@ void CHalfLifeCaptureTheChumtoad::ClientDisconnected( edict_t *pClient )
 
 int CHalfLifeCaptureTheChumtoad::DeadPlayerWeapons( CBasePlayer *pPlayer )
 {
-	return pPlayer->m_iHoldingChumtoad ? GR_PLR_DROP_GUN_NO : CHalfLifeMultiplay::DeadPlayerWeapons(pPlayer);
+	if (!pPlayer)
+		return GR_PLR_DROP_GUN_NO;
+
+	// PackDeadPlayerItems runs after CtC drop logic clears m_iHoldingChumtoad.
+	// Block gunbox drops if player still has/holds chumtoad in inventory.
+	if (pPlayer->m_iHoldingChumtoad ||
+		pPlayer->HasNamedPlayerItem("weapon_chumtoad") ||
+		(pPlayer->m_pActiveItem && FStrEq("weapon_chumtoad", STRING(pPlayer->m_pActiveItem->pev->classname))))
+	{
+		return GR_PLR_DROP_GUN_NO;
+	}
+
+	return CHalfLifeMultiplay::DeadPlayerWeapons(pPlayer);
 }
 
 BOOL CHalfLifeCaptureTheChumtoad::FPlayerCanTakeDamage( CBasePlayer *pPlayer, CBaseEntity *pAttacker )

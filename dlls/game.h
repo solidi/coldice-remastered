@@ -75,6 +75,7 @@ extern cvar_t   ggsteallevel;
 extern cvar_t   ggfrags;
 extern cvar_t   ggsuicide;
 extern cvar_t   ctcsecondsforpoint;
+extern cvar_t   ctctoadcount;
 extern cvar_t   slowbullets;
 extern cvar_t   breakabletime;
 extern cvar_t   voting;

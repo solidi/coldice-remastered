@@ -52,6 +52,8 @@ private:
 	BOOL m_fChumtoadInPlay;
 	float m_fChumtoadPlayTimer;
 	float m_fCreateChumtoadTimer;
+	float m_fRemoveChumtoadTimer;
 	float m_fMoveChumtoadTimer;
+	float m_flCtCNextPickDropSoundTime;
 	EHANDLE m_pHolder;
 };

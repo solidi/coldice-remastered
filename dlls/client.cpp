@@ -1458,6 +1458,7 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_coldspotspawn\" - name of entity where the cold spot will spawn\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_coldspottime\" - how long the coldspot stays in an area.\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_ctcsecondsforpoint\" - amount of second holding chumtoad for a point\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_ctctoadcount\" - desired number of chumtoads in CtC (1-5, capped by players)\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_ctfspawn1\" - name of entity where blue base will spawn\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_ctfspawn2\" - name of entity where red base will spawn\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_ctfdistance\" - units inbetween flags\n");
