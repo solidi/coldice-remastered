@@ -75,6 +75,37 @@ LINK_ENTITY_TO_CLASS( monster_ctctoad, CCaptureChumtoad );
 
 #define SQUEEK_DETONATE_DELAY	15.0
 
+static CBasePlayer *CtCFindVisibleChaseTarget(CCaptureChumtoad *pToad)
+{
+	if (!pToad)
+		return NULL;
+
+	CBasePlayer *pBest = NULL;
+	float bestDist = 8192.0f;
+
+	for (int i = 1; i <= gpGlobals->maxClients; ++i)
+	{
+		CBasePlayer *pPlayer = (CBasePlayer *)UTIL_PlayerByIndex(i);
+		if (!pPlayer || !pPlayer->IsPlayer() || pPlayer->HasDisconnected || !pPlayer->IsAlive())
+			continue;
+
+		if (pPlayer->m_iHoldingChumtoad || pPlayer->HasNamedPlayerItem("weapon_chumtoad"))
+			continue;
+
+		if (!pToad->FVisible(pPlayer))
+			continue;
+
+		float dist = (pPlayer->EyePosition() - pToad->pev->origin).Length();
+		if (dist < bestDist)
+		{
+			bestDist = dist;
+			pBest = pPlayer;
+		}
+	}
+
+	return pBest;
+}
+
 int CCaptureChumtoad::Classify( void )
 {
 	if (m_iMyClass != 0)
@@ -257,11 +288,29 @@ void CCaptureChumtoad::HuntThink( void )
 
 	UTIL_MakeVectors( pev->angles );
 
+	if (m_hEnemy && m_hEnemy->IsPlayer())
+	{
+		CBasePlayer *pEnemyPlayer = (CBasePlayer *)m_hEnemy.Get();
+		if (pEnemyPlayer && (pEnemyPlayer->m_iHoldingChumtoad || pEnemyPlayer->HasNamedPlayerItem("weapon_chumtoad")))
+			m_hEnemy = NULL;
+	}
+
 	if (m_hEnemy == NULL || !m_hEnemy->IsAlive())
 	{
 		// find target, bounce a bit towards it.
-		Look( 512 );
-		m_hEnemy = BestVisibleEnemy( );
+		m_hEnemy = CtCFindVisibleChaseTarget(this);
+		if (m_hEnemy == NULL)
+		{
+			Look( 512 );
+			m_hEnemy = BestVisibleEnemy( );
+
+			if (m_hEnemy && m_hEnemy->IsPlayer())
+			{
+				CBasePlayer *pEnemyPlayer = (CBasePlayer *)m_hEnemy.Get();
+				if (pEnemyPlayer && (pEnemyPlayer->m_iHoldingChumtoad || pEnemyPlayer->HasNamedPlayerItem("weapon_chumtoad")))
+					m_hEnemy = NULL;
+			}
+		}
 	}
 
 /*

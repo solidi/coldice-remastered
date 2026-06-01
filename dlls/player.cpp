@@ -4557,6 +4557,17 @@ void CBasePlayer::Spawn( void )
 	m_pClientActiveItem = NULL;
 	m_iClientBattery = -1;
 
+	// Defensive: GetClassPtr may hand us a recycled edict whose private data
+	// still contains stale CBasePlayerItem* values in m_rgpPlayerItems. If any
+	// inventory-walking call (HasNamedPlayerItem, etc.) runs before AddPlayerItem
+	// repopulates the slots — which happens under high join churn while CtC
+	// toad AI is scanning every client — it would dereference a garbage pointer
+	// like 0x21 and crash. On respawn RemoveAllItems already NULLed the slots,
+	// so doing it again is redundant but safe.
+	for (int wi = 0; wi < MAX_ITEM_TYPES; wi++)
+		m_rgpPlayerItems[wi] = NULL;
+	m_pActiveItem = NULL;
+
 	// reset all ammo values to 0
 	for ( int i = 0; i < MAX_AMMO_SLOTS; i++ )
 	{
@@ -8056,7 +8067,10 @@ BOOL CBasePlayer::HasPlayerItem( CBasePlayerItem *pCheckItem )
 {
 	CBasePlayerItem *pItem = m_rgpPlayerItems[pCheckItem->iItemSlot()];
 
-	while (pItem)
+	// Ownership guard: under join/respawn churn the slot may hold a stale or
+	// recycled pointer whose m_pPlayer no longer points at this player.
+	// Walking it would crash on a garbage m_pNext.
+	while (pItem && pItem->m_pPlayer == this)
 	{
 		if (FClassnameIs( pItem->pev, STRING( pCheckItem->pev->classname) ))
 		{
@@ -8073,6 +8087,15 @@ BOOL CBasePlayer::HasPlayerItem( CBasePlayerItem *pCheckItem )
 //=========================================================
 BOOL CBasePlayer::HasNamedPlayerItem( const char *pszItemName )
 {
+	if ( !pszItemName )
+		return FALSE;
+
+	// Inventory hasn't been initialized yet (connecting client, pre-Spawn). The
+	// m_rgpPlayerItems array may still contain stale pointers from a recycled
+	// edict. Bail out instead of dereferencing them.
+	if ( !m_fKnownItem )
+		return FALSE;
+
 	CBasePlayerItem *pItem;
 	int i;
  
@@ -8082,7 +8105,11 @@ BOOL CBasePlayer::HasNamedPlayerItem( const char *pszItemName )
 		
 		while (pItem && pItem->m_pPlayer == this)
 		{
-			if ( !strcmp( pszItemName, STRING( pItem->pev->classname ) ) )
+			// Guard against a corrupt classname (e.g. recycled edict where pev
+			// is no longer a CBasePlayerItem). FStringNull/STRING handle null,
+			// strcmp would fault on a wild pointer.
+			if ( !FStringNull( pItem->pev->classname ) &&
+				 !strcmp( pszItemName, STRING( pItem->pev->classname ) ) )
 			{
 				return TRUE;
 			}
