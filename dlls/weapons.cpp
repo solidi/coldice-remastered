@@ -1408,7 +1408,7 @@ void CBasePlayerWeapon::ItemPostFrame( void )
 			m_flNextPrimaryAttack = m_flNextSecondaryAttack = (m_flNextPrimaryAttack * multipler);
 		}
 	}
-	else if ( m_pPlayer->pev->button & IN_RELOAD && iMaxClip() != WEAPON_NOCLIP && !m_fInReload ) 
+	else if ( m_pPlayer->pev->button & IN_RELOAD && (iMaxClip() != WEAPON_NOCLIP || AcceptReload()) && !m_fInReload ) 
 	{
 		if (m_pPlayer->m_iHoldingItem) {
 			m_pPlayer->ReleaseHeldItem(100);

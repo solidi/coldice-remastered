@@ -300,6 +300,7 @@ void CSatchel::Precache( void )
 	PRECACHE_MODEL("models/p_satchel_radio.mdl");
 
 	UTIL_PrecacheOther( "monster_satchel" );
+	UTIL_PrecacheOther( "monster_proxmine" );
 }
 
 
@@ -630,6 +631,34 @@ void DeactivateItems( CBasePlayer *pOwner, const char *item )
 
 		pFind = FIND_ENTITY_BY_CLASSNAME( pFind, item );
 	}
+}
+
+void CSatchel::Reload( void )
+{
+#ifndef CLIENT_DLL
+	// don't allow placing a prox mine while the radio detonator is out
+	if ( m_chargeReady != 0 )
+		return;
+
+	if ( m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] <= 0 )
+		return;
+
+	if ( m_pPlayer->m_flNextAttack > UTIL_WeaponTimeBase() )
+		return;
+
+	extern BOOL DeployProxMine( CBasePlayer *pPlayer );
+	if ( DeployProxMine( m_pPlayer ) )
+	{
+		m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType]--;
+		m_pPlayer->SetAnimation( PLAYER_ATTACK1 );
+		SendWeaponAnim( SATCHEL_DROP );
+	}
+
+	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 1.0;
+	m_flNextPrimaryAttack = UTIL_WeaponTimeBase() + 1.0;
+	m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 1.0;
+	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 1.0;
+#endif
 }
 
 #endif

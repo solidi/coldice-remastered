@@ -440,6 +440,13 @@ int CHalfLifeGunGame::IPointsForKill( CBasePlayer *pAttacker, CBasePlayer *pKill
 				else if (!strcmp(g_WeaponId[pAttacker->m_iRoundWins], "satchel"))
 					DeactivateSatchels(pAttacker);
 
+				// proximity mines are deployed from both weapon_tripmine and
+				// weapon_satchel via +reload; clean them up whenever the
+				// player levels past either one.
+				if (!strcmp(g_WeaponId[pAttacker->m_iRoundWins], "tripmine") ||
+					!strcmp(g_WeaponId[pAttacker->m_iRoundWins], "satchel"))
+					DeactivateItems(pAttacker, "monster_proxmine");
+
 				pAttacker->m_iRoundWins += 1;
 				int newLevel = (int)pAttacker->m_iRoundWins;
 				int voiceId = 0;

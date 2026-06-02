@@ -361,6 +361,7 @@ void CTripmine::Precache( void )
 	PRECACHE_MODEL ("models/v_tripmine.mdl");
 	PRECACHE_MODEL ("models/p_weapons.mdl");
 	UTIL_PrecacheOther( "monster_tripmine" );
+	UTIL_PrecacheOther( "monster_proxmine" );
 
 	m_usTripFire = PRECACHE_EVENT( 1, "events/tripfire.sc" );
 }
@@ -509,5 +510,419 @@ void CTripmine::WeaponIdle( void )
 }
 
 
+//=========================================================
+// CProxMine - proximity mine variant of the tripmine. Mounts
+// to a surface, charges up, then detonates whenever an enemy
+// (non-owner, non-teammate, line-of-sight) walks within range.
+// Deployed by the player via the +reload bind while holding
+// either weapon_tripmine or weapon_satchel.
+//=========================================================
+#ifndef CLIENT_DLL
+
+#include "effects.h"
+
+#define PROXMINE_ARM_TIME		2.5f
+#define PROXMINE_SCAN_RATE		0.15f
+#define PROXMINE_DETECT_RADIUS	200.0f
+#define PROXMINE_BLINK_RATE		0.5f
+
+class CProxMine : public CGrenade
+{
+public:
+	void Spawn( void );
+	void Precache( void );
+
+	virtual int		Save( CSave &save );
+	virtual int		Restore( CRestore &restore );
+	static	TYPEDESCRIPTION m_SaveData[];
+
+	int TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int bitsDamageType );
+
+	void EXPORT PowerupThink( void );
+	void EXPORT ProxThink( void );
+	void EXPORT DelayDeathThink( void );
+	void Killed( entvars_t *pevAttacker, int iGib );
+
+	void MakeIndicator( void );
+	void KillIndicator( void );
+
+private:
+	float		m_flPowerUp;
+	Vector		m_vecDir;
+	EHANDLE		m_hOwner;
+	Vector		m_posOwner;
+	Vector		m_angleOwner;
+	edict_t		*m_pRealOwner;
+	CSprite		*m_pIndicator;
+	float		m_flBlinkNext;
+	int			m_iBlinkOn;
+	float		m_flScanNext;
+};
+
+LINK_ENTITY_TO_CLASS( monster_proxmine, CProxMine );
+
+TYPEDESCRIPTION	CProxMine::m_SaveData[] =
+{
+	DEFINE_FIELD( CProxMine, m_flPowerUp, FIELD_TIME ),
+	DEFINE_FIELD( CProxMine, m_vecDir, FIELD_VECTOR ),
+	DEFINE_FIELD( CProxMine, m_hOwner, FIELD_EHANDLE ),
+	DEFINE_FIELD( CProxMine, m_posOwner, FIELD_POSITION_VECTOR ),
+	DEFINE_FIELD( CProxMine, m_angleOwner, FIELD_VECTOR ),
+	DEFINE_FIELD( CProxMine, m_pRealOwner, FIELD_EDICT ),
+	DEFINE_FIELD( CProxMine, m_pIndicator, FIELD_CLASSPTR ),
+	DEFINE_FIELD( CProxMine, m_flBlinkNext, FIELD_TIME ),
+	DEFINE_FIELD( CProxMine, m_iBlinkOn, FIELD_INTEGER ),
+	DEFINE_FIELD( CProxMine, m_flScanNext, FIELD_TIME ),
+};
+
+IMPLEMENT_SAVERESTORE( CProxMine, CGrenade );
+
+void CProxMine::Precache( void )
+{
+	PRECACHE_MODEL( "models/w_satchel.mdl" );
+	PRECACHE_MODEL( "sprites/glow01.spr" );
+	PRECACHE_SOUND( "weapons/mine_deploy.wav" );
+	PRECACHE_SOUND( "weapons/mine_charge.wav" );
+	PRECACHE_SOUND( "mine_activate.wav" );
+}
+
+void CProxMine::Spawn( void )
+{
+	Precache();
+	pev->movetype = MOVETYPE_FLY;
+	pev->solid = SOLID_NOT;
+
+	SET_MODEL( ENT(pev), "models/w_satchel.mdl" );
+	pev->frame = 0;
+	pev->body = 0;
+	pev->sequence = 0;
+	ResetSequenceInfo();
+	pev->framerate = 0;
+
+	UTIL_SetSize( pev, Vector( -8, -8, -8 ), Vector( 8, 8, 8 ) );
+	UTIL_SetOrigin( pev, pev->origin );
+
+	m_flPowerUp = gpGlobals->time + PROXMINE_ARM_TIME;
+	m_flBlinkNext = 0;
+	m_iBlinkOn = 0;
+	m_flScanNext = 0;
+	m_pIndicator = NULL;
+
+	SetThink( &CProxMine::PowerupThink );
+	pev->nextthink = gpGlobals->time + 0.2;
+
+	pev->takedamage = DAMAGE_YES;
+	pev->dmg = gSkillData.plrDmgTripmine;
+	pev->health = 1;
+
+	if (pev->owner != NULL)
+	{
+		EMIT_SOUND( ENT(pev), CHAN_VOICE, "weapons/mine_deploy.wav", 1.0, ATTN_NORM );
+		EMIT_SOUND( ENT(pev), CHAN_BODY, "weapons/mine_charge.wav", 0.5, ATTN_NORM );
+		m_pRealOwner = pev->owner;
+	}
+
+	// The deployer (DeployProxMine) stores the surface normal in pev->movedir
+	// so we can keep m_vecDir (used by PowerupThink's surface trace and
+	// DelayDeathThink's blast trace) independent from pev->angles, which is
+	// reserved for the visible model orientation (flat, facing the placer).
+	if (pev->movedir.x * pev->movedir.x + pev->movedir.y * pev->movedir.y + pev->movedir.z * pev->movedir.z > 0.01f)
+	{
+		m_vecDir = pev->movedir;
+	}
+	else
+	{
+		// Fallback for legacy spawns (e.g. save/restore from older builds):
+		// derive direction from angles as the tripmine does.
+		UTIL_MakeAimVectors( pev->angles );
+		m_vecDir = gpGlobals->v_forward;
+	}
+}
+
+void CProxMine::MakeIndicator( void )
+{
+	if (m_pIndicator)
+		return;
+
+	// Sit the indicator just in front of the mine so it isn't buried in the model.
+	Vector vecSpot = pev->origin + m_vecDir * 4;
+	m_pIndicator = CSprite::SpriteCreate( "sprites/glow01.spr", vecSpot, FALSE );
+	if (m_pIndicator)
+	{
+		m_pIndicator->SetTransparency( kRenderGlow, 255, 32, 32, 200, kRenderFxNoDissipation );
+		m_pIndicator->SetScale( 0.2 );
+		m_pIndicator->SetAttachment( edict(), 0 );
+	}
+}
+
+void CProxMine::KillIndicator( void )
+{
+	if (m_pIndicator)
+	{
+		UTIL_Remove( m_pIndicator );
+		m_pIndicator = NULL;
+	}
+}
+
+void CProxMine::PowerupThink( void )
+{
+	TraceResult tr;
+
+	if (m_hOwner == NULL)
+	{
+		// find the surface we're sitting on
+		edict_t *oldowner = pev->owner;
+		pev->owner = NULL;
+		UTIL_TraceLine( pev->origin + m_vecDir * 8, pev->origin - m_vecDir * 32, dont_ignore_monsters, ENT(pev), &tr );
+		if (tr.fStartSolid || (oldowner && tr.pHit == oldowner))
+		{
+			pev->owner = oldowner;
+			m_flPowerUp += 0.1;
+			pev->nextthink = gpGlobals->time + 0.1;
+			return;
+		}
+		if (tr.flFraction < 1.0)
+		{
+			pev->owner = tr.pHit;
+			m_hOwner = CBaseEntity::Instance( pev->owner );
+			m_posOwner = m_hOwner->pev->origin;
+			m_angleOwner = m_hOwner->pev->angles;
+		}
+		else
+		{
+			// no surface - remove
+			STOP_SOUND( ENT(pev), CHAN_VOICE, "weapons/mine_deploy.wav" );
+			STOP_SOUND( ENT(pev), CHAN_BODY, "weapons/mine_charge.wav" );
+			SetThink( &CProxMine::SUB_Remove );
+			pev->nextthink = gpGlobals->time + 0.1;
+			return;
+		}
+	}
+	else if (m_posOwner != m_hOwner->pev->origin || m_angleOwner != m_hOwner->pev->angles)
+	{
+		// host moved - knock the mine off and let it die
+		STOP_SOUND( ENT(pev), CHAN_VOICE, "weapons/mine_deploy.wav" );
+		STOP_SOUND( ENT(pev), CHAN_BODY, "weapons/mine_charge.wav" );
+		SetThink( &CProxMine::SUB_Remove );
+		pev->nextthink = gpGlobals->time + 0.1;
+		return;
+	}
+
+	if (gpGlobals->time > m_flPowerUp)
+	{
+		// armed!
+		pev->solid = SOLID_BBOX;
+		UTIL_SetOrigin( pev, pev->origin );
+
+		EMIT_SOUND_DYN( ENT(pev), CHAN_VOICE, "mine_activate.wav", 0.5, ATTN_NORM, 0, 100 );
+
+		MakeIndicator();
+
+		m_flScanNext = gpGlobals->time;
+		m_flBlinkNext = gpGlobals->time;
+		SetThink( &CProxMine::ProxThink );
+		pev->nextthink = gpGlobals->time + 0.05;
+		return;
+	}
+	pev->nextthink = gpGlobals->time + 0.1;
+}
+
+void CProxMine::ProxThink( void )
+{
+	// host moved? disarm.
+	if (m_hOwner != NULL && (m_posOwner != m_hOwner->pev->origin || m_angleOwner != m_hOwner->pev->angles))
+	{
+		pev->owner = m_pRealOwner;
+		pev->health = 0;
+		Killed( VARS( pev->owner ), GIB_NORMAL );
+		return;
+	}
+
+	// indicator blink
+	if (gpGlobals->time >= m_flBlinkNext)
+	{
+		m_iBlinkOn = !m_iBlinkOn;
+		if (m_pIndicator)
+		{
+			m_pIndicator->pev->renderamt = m_iBlinkOn ? 220 : 32;
+		}
+		m_flBlinkNext = gpGlobals->time + PROXMINE_BLINK_RATE;
+	}
+
+	// proximity scan
+	if (gpGlobals->time >= m_flScanNext)
+	{
+		m_flScanNext = gpGlobals->time + PROXMINE_SCAN_RATE;
+
+		CBaseEntity *pTarget = NULL;
+		while ((pTarget = UTIL_FindEntityInSphere( pTarget, pev->origin, PROXMINE_DETECT_RADIUS )) != NULL)
+		{
+			if (pTarget->edict() == edict())
+				continue;
+			if (!pTarget->pev->takedamage || pTarget->pev->takedamage == DAMAGE_NO)
+				continue;
+			if (pTarget->pev->health <= 0)
+				continue;
+			if (!pTarget->IsPlayer() && !(pTarget->pev->flags & FL_MONSTER))
+				continue;
+
+			// ignore the placer and their teammates
+			if (m_pRealOwner)
+			{
+				if (pTarget->edict() == m_pRealOwner)
+					continue;
+				if (pTarget->IsPlayer() && g_pGameRules)
+				{
+					CBaseEntity *pOwnerEnt = CBaseEntity::Instance( m_pRealOwner );
+					if (pOwnerEnt && g_pGameRules->PlayerRelationship( pTarget, pOwnerEnt ) == GR_TEAMMATE)
+						continue;
+				}
+			}
+
+			// line of sight to entity center
+			TraceResult tr;
+			UTIL_TraceLine( pev->origin, pTarget->Center(), dont_ignore_monsters, ENT(pev), &tr );
+			if (tr.flFraction < 1.0 && tr.pHit != pTarget->edict())
+				continue;
+
+			// detonate
+			pev->owner = m_pRealOwner ? m_pRealOwner : ENT(pTarget->pev);
+			pev->health = 0;
+			Killed( VARS( pev->owner ), GIB_NORMAL );
+			return;
+		}
+	}
+
+	pev->nextthink = gpGlobals->time + 0.05;
+}
+
+int CProxMine::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int bitsDamageType )
+{
+	if (gpGlobals->time < m_flPowerUp && flDamage < pev->health)
+	{
+		// disarm safely while powering up
+		SetThink( &CProxMine::SUB_Remove );
+		pev->nextthink = gpGlobals->time + 0.1;
+		KillIndicator();
+		return FALSE;
+	}
+	return CGrenade::TakeDamage( pevInflictor, pevAttacker, flDamage, bitsDamageType );
+}
+
+void CProxMine::Killed( entvars_t *pevAttacker, int iGib )
+{
+	pev->takedamage = DAMAGE_NO;
+
+	if (pevAttacker && (pevAttacker->flags & FL_CLIENT))
+	{
+		pev->owner = ENT( pevAttacker );
+	}
+
+	SetThink( &CProxMine::DelayDeathThink );
+	pev->nextthink = gpGlobals->time + RANDOM_FLOAT( 0.05, 0.15 );
+
+	EMIT_SOUND( ENT(pev), CHAN_BODY, "common/null.wav", 0.5, ATTN_NORM );
+}
+
+void CProxMine::DelayDeathThink( void )
+{
+	KillIndicator();
+	TraceResult tr;
+	UTIL_TraceLine( pev->origin + m_vecDir * 8, pev->origin - m_vecDir * 64, dont_ignore_monsters, ENT(pev), &tr );
+	Explode( &tr, DMG_BLAST );
+}
+
+#endif // !CLIENT_DLL
+
+//=========================================================
+// Helper used by both weapon_tripmine and weapon_satchel:
+// trace forward and create a monster_proxmine on the surface.
+//
+// Placement rules:
+//  - The mine's *visible* orientation is flat (pitch/roll 0) with yaw
+//    aimed back at the player, so the model always faces the placer
+//    regardless of whether it stuck to a floor, ceiling, or wall.
+//  - The *surface normal* is shipped over to the entity through
+//    pev->movedir (set before DispatchSpawn) so the proxmine's trace
+//    logic in PowerupThink / DelayDeathThink doesn't depend on angles.
+//=========================================================
+#ifndef CLIENT_DLL
+BOOL DeployProxMine( CBasePlayer *pPlayer )
+{
+	UTIL_MakeVectors( pPlayer->pev->v_angle + pPlayer->pev->punchangle );
+	Vector vecSrc = pPlayer->GetGunPosition();
+	Vector vecAiming = gpGlobals->v_forward;
+
+	TraceResult tr;
+	UTIL_TraceLine( vecSrc, vecSrc + vecAiming * 128, dont_ignore_monsters, ENT( pPlayer->pev ), &tr );
+
+	if (tr.flFraction >= 1.0)
+		return FALSE;
+
+	CBaseEntity *pEntity = CBaseEntity::Instance( tr.pHit );
+	if (!pEntity || (pEntity->pev->flags & FL_CONVEYOR))
+		return FALSE;
+
+	// must be (mostly) world-like to mount to
+	if (pEntity->pev->movetype != MOVETYPE_NONE && pEntity->pev->movetype != MOVETYPE_PUSH)
+		return FALSE;
+
+	Vector vecOrigin = tr.vecEndPos + tr.vecPlaneNormal * 8;
+
+	// Face the placer: model lies flat, yaw rotated 180 from the
+	// player->mine direction so the front of the satchel points at them.
+	Vector vecFlat = pPlayer->pev->origin - vecOrigin;
+	vecFlat.z = 0;
+	float flYaw;
+	if (vecFlat.x * vecFlat.x + vecFlat.y * vecFlat.y > 1.0f)
+		flYaw = UTIL_VecToYaw( vecFlat );
+	else
+		flYaw = pPlayer->pev->v_angle.y; // edge case: standing on top of it
+	Vector vecAngles( 0, UTIL_AngleMod( flYaw + 180 ), 0 );
+
+	// Manual two-step Create so we can populate pev->movedir BEFORE Spawn().
+	edict_t *pent = CREATE_NAMED_ENTITY( MAKE_STRING("monster_proxmine") );
+	if (FNullEnt(pent))
+		return FALSE;
+
+	entvars_t *pevMine = VARS(pent);
+	pevMine->origin = vecOrigin;
+	pevMine->angles = vecAngles;
+	pevMine->owner = pPlayer->edict();
+	pevMine->movedir = tr.vecPlaneNormal; // surface normal, read by Spawn()
+
+	DispatchSpawn( pent );
+	return TRUE;
+}
+#endif
+
+void CTripmine::Reload( void )
+{
+#ifndef CLIENT_DLL
+	if (m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] <= 0)
+		return;
+
+	if (m_pPlayer->m_flNextAttack > UTIL_WeaponTimeBase())
+		return;
+
+	if (DeployProxMine( m_pPlayer ))
+	{
+		m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType]--;
+		m_pPlayer->SetAnimation( PLAYER_ATTACK1 );
+		SendWeaponAnim( TRIPMINE_ARM1 );
+
+		if (m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] <= 0)
+		{
+			m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 1.0;
+			RetireWeapon();
+			return;
+		}
+	}
+
+	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 1.0;
+	m_flNextPrimaryAttack = UTIL_WeaponTimeBase() + 1.0;
+	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 1.0;
+#endif
+}
 
 

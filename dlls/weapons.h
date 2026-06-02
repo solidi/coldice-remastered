@@ -444,6 +444,7 @@ public:
 	virtual void PrimaryAttack( void ) { return; }				// do "+ATTACK"
 	virtual void SecondaryAttack( void ) { return; }			// do "+ATTACK2"
 	virtual void Reload( void ) { return; }						// do "+RELOAD"
+	virtual BOOL AcceptReload( void ) { return FALSE; }			// Force ItemPostFrame to dispatch Reload() even when iMaxClip == WEAPON_NOCLIP
 	virtual void WeaponIdle( void ) { return; }					// called when no buttons pressed
 	virtual int UpdateClientData( CBasePlayer *pPlayer );		// sends hud info to client dll, if things have changed
 	virtual void RetireWeapon( void );
@@ -1284,7 +1285,9 @@ public:
 	void Holster( int skiplocal = 0 );
 	void WeaponIdle( void );
 	void Throw( void );
-	
+	void Reload( void );
+	virtual BOOL AcceptReload( void ) { return TRUE; }
+
 	virtual BOOL UseDecrement( void )
 	{ 
 #if defined( CLIENT_WEAPONS )
@@ -1350,6 +1353,8 @@ public:
 	BOOL Deploy( void );
 	void Holster( int skiplocal = 0 );
 	void WeaponIdle( void );
+	void Reload( void );
+	virtual BOOL AcceptReload( void ) { return TRUE; }
 
 	virtual BOOL UseDecrement( void )
 	{ 

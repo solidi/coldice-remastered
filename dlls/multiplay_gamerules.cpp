@@ -1066,6 +1066,7 @@ void CHalfLifeMultiplay::RemoveAndFillItems( void )
 	{
 		"monster_satchel",
 		"monster_tripmine",
+		"monster_proxmine",
 		"monster_chumtoad",
 		"monster_snark",
 		"monster_barrel",
