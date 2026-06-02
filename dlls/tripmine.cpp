@@ -644,14 +644,19 @@ void CProxMine::MakeIndicator( void )
 	if (m_pIndicator)
 		return;
 
-	// Sit the indicator just in front of the mine so it isn't buried in the model.
-	Vector vecSpot = pev->origin + m_vecDir * 4;
+	// Float the indicator slightly off the surface in front of the mine so
+	// it doesn't get buried in the satchel model. We deliberately do NOT
+	// call SetAttachment here: w_satchel.mdl has no attachment points, so
+	// SetAttachment(edict(), 0) would snap the sprite to the mine's pev
+	// origin and the small kRenderGlow would render *inside* the model and
+	// be invisible. The mine never moves once armed, so a world-space
+	// sprite is fine.
+	Vector vecSpot = pev->origin + m_vecDir * 6;
 	m_pIndicator = CSprite::SpriteCreate( "sprites/glow01.spr", vecSpot, FALSE );
 	if (m_pIndicator)
 	{
-		m_pIndicator->SetTransparency( kRenderGlow, 255, 32, 32, 200, kRenderFxNoDissipation );
-		m_pIndicator->SetScale( 0.2 );
-		m_pIndicator->SetAttachment( edict(), 0 );
+		m_pIndicator->SetTransparency( kRenderGlow, 255, 32, 32, 220, kRenderFxNoDissipation );
+		m_pIndicator->SetScale( 0.4 );
 	}
 }
 
