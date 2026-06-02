@@ -282,12 +282,12 @@ void CSatchel::Spawn( )
 	m_iDefaultAmmo = SATCHEL_DEFAULT_GIVE;
 	pev->dmg = gSkillData.plrDmgSatchel;
 
+	FallInit();// get ready to fall down.
+
 #ifndef CLIENT_DLL
 	int floating = floatingweapons.value ? 1 : 0;
 	pev->sequence = floating;
 #endif
-
-	FallInit();// get ready to fall down.
 }
 
 

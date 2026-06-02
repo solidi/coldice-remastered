@@ -334,14 +334,15 @@ void CTripmine::Spawn( )
 	SET_MODEL(ENT(pev), "models/v_tripmine.mdl");
 	pev->frame = 0;
 	pev->body = 3;
-#ifndef CLIENT_DLL
-	int floating = floatingweapons.value ? 1 : TRIPMINE_GROUND;
-	pev->sequence = floating;
-#endif
 	// ResetSequenceInfo( );
 	pev->framerate = 0;
 
 	FallInit();// get ready to fall down
+
+#ifndef CLIENT_DLL
+	int floating = floatingweapons.value ? 1 : TRIPMINE_GROUND;
+	pev->sequence = floating;
+#endif
 
 	m_iDefaultAmmo = TRIPMINE_DEFAULT_GIVE;
 	pev->dmg = gSkillData.plrDmgTripmine;
