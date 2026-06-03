@@ -845,12 +845,14 @@ void CProxMine::DelayDeathThink( void )
 // trace forward and create a monster_proxmine on the surface.
 //
 // Placement rules:
-//  - The mine's *visible* orientation is flat (pitch/roll 0) with yaw
-//    aimed back at the player, so the model always faces the placer
-//    regardless of whether it stuck to a floor, ceiling, or wall.
-//  - The *surface normal* is shipped over to the entity through
+//  - The mine's *visible* orientation is taken straight from the surface
+//    normal via UTIL_VecToAngles, matching the tripmine. The satchel
+//    therefore always points outward: lying flat on floors, hanging from
+//    ceilings, flush against walls.
+//  - The surface normal is also shipped over to the entity through
 //    pev->movedir (set before DispatchSpawn) so the proxmine's trace
-//    logic in PowerupThink / DelayDeathThink doesn't depend on angles.
+//    logic in PowerupThink / DelayDeathThink doesn't have to re-derive
+//    it from angles.
 //=========================================================
 #ifndef CLIENT_DLL
 BOOL DeployProxMine( CBasePlayer *pPlayer )
@@ -875,16 +877,18 @@ BOOL DeployProxMine( CBasePlayer *pPlayer )
 
 	Vector vecOrigin = tr.vecEndPos + tr.vecPlaneNormal * 8;
 
-	// Face the placer: model lies flat, yaw rotated 180 from the
-	// player->mine direction so the front of the satchel points at them.
-	Vector vecFlat = pPlayer->pev->origin - vecOrigin;
-	vecFlat.z = 0;
-	float flYaw;
-	if (vecFlat.x * vecFlat.x + vecFlat.y * vecFlat.y > 1.0f)
-		flYaw = UTIL_VecToYaw( vecFlat );
-	else
-		flYaw = pPlayer->pev->v_angle.y; // edge case: standing on top of it
-	Vector vecAngles( 0, UTIL_AngleMod( flYaw + 180 ), 0 );
+	// Orient so the satchel's *face* points outward on every surface.
+	// w_satchel.mdl's local +X is the satchel's BACK (the model stands
+	// upright facing -X by default). UTIL_VecToAngles makes local +X point
+	// along the supplied vector, so feeding -normal pushes the back INTO
+	// the surface and leaves the face pointing out:
+	//   floor  ( 0, 0, 1)  ->  -n=( 0, 0,-1)  pitch=+90, face points up
+	//   ceil   ( 0, 0,-1)  ->  -n=( 0, 0, 1)  pitch=-90, face points down
+	//   wall   (nx,ny, 0)  ->  yaw flipped 180, face points away from wall
+	// A simple +180 yaw fix-up doesn't work on the floor/ceiling cases
+	// because at pitch=±90 yaw is gimbal-locked and doesn't change which
+	// face is up.
+	Vector vecAngles = UTIL_VecToAngles( -tr.vecPlaneNormal );
 
 	// Manual two-step Create so we can populate pev->movedir BEFORE Spawn().
 	edict_t *pent = CREATE_NAMED_ENTITY( MAKE_STRING("monster_proxmine") );
