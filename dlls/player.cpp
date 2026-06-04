@@ -677,8 +677,9 @@ int CBasePlayer :: TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, 
 		flDamage = flNew;
 	}
 
+	const int iDamage = (int)flDamage;
 	if (g_pGameRules->IsChilldemic() && IsInArena && !IsSpectator() &&
-		pev->fuser4 != RADAR_VIRUS && ((int)flDamage >= (int)pev->health))
+		pev->fuser4 != RADAR_VIRUS && iDamage > 0 && iDamage >= pev->health)
 	{
 		m_bChilldemicPendingConvert = TRUE;
 		m_vecChilldemicRespawnOrigin = pev->origin;
@@ -1977,7 +1978,7 @@ void CBasePlayer::PlayerDeathThink(void)
 
 		Spawn();
 		UTIL_SetOrigin(pev, m_vecChilldemicRespawnOrigin);
-		pev->angles = m_vecChilldemicRespawnAngles;
+		pev->angles = pev->v_angle = m_vecChilldemicRespawnAngles;
 		pev->fixangle = TRUE;
 		pev->flags |= FL_GODMODE;
 		m_fLastSpawnTime = gpGlobals->time + 3.0f;
