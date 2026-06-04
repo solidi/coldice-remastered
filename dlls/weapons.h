@@ -444,6 +444,7 @@ public:
 	virtual void PrimaryAttack( void ) { return; }				// do "+ATTACK"
 	virtual void SecondaryAttack( void ) { return; }			// do "+ATTACK2"
 	virtual void Reload( void ) { return; }						// do "+RELOAD"
+	virtual BOOL AcceptReload( void ) { return FALSE; }			// Force ItemPostFrame to dispatch Reload() even when iMaxClip == WEAPON_NOCLIP
 	virtual void WeaponIdle( void ) { return; }					// called when no buttons pressed
 	virtual int UpdateClientData( CBasePlayer *pPlayer );		// sends hud info to client dll, if things have changed
 	virtual void RetireWeapon( void );
@@ -1284,7 +1285,9 @@ public:
 	void Holster( int skiplocal = 0 );
 	void WeaponIdle( void );
 	void Throw( void );
-	
+	void Reload( void );
+	virtual BOOL AcceptReload( void ) { return TRUE; }
+
 	virtual BOOL UseDecrement( void )
 	{ 
 #if defined( CLIENT_WEAPONS )
@@ -1293,6 +1296,39 @@ public:
 		return FALSE;
 #endif
 	}
+};
+
+class CProxMine : public CGrenade
+{
+public:
+	void Spawn( void );
+	void Precache( void );
+
+	virtual int		Save( CSave &save );
+	virtual int		Restore( CRestore &restore );
+	static	TYPEDESCRIPTION m_SaveData[];
+
+	int TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int bitsDamageType );
+
+	void EXPORT PowerupThink( void );
+	void EXPORT ProxThink( void );
+	void EXPORT DelayDeathThink( void );
+	void Killed( entvars_t *pevAttacker, int iGib );
+
+	void MakeIndicator( void );
+	void KillIndicator( void );
+
+private:
+	float		m_flPowerUp;
+	Vector		m_vecDir;
+	EHANDLE		m_hOwner;
+	Vector		m_posOwner;
+	Vector		m_angleOwner;
+	edict_t		*m_pRealOwner;
+	CSprite		*m_pIndicator;
+	float		m_flBlinkNext;
+	int			m_iBlinkOn;
+	float		m_flScanNext;
 };
 
 class CTripmineGrenade : public CGrenade
@@ -1350,6 +1386,8 @@ public:
 	BOOL Deploy( void );
 	void Holster( int skiplocal = 0 );
 	void WeaponIdle( void );
+	void Reload( void );
+	virtual BOOL AcceptReload( void ) { return TRUE; }
 
 	virtual BOOL UseDecrement( void )
 	{ 

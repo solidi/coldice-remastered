@@ -808,6 +808,7 @@ enum e_protips {
 	FORCEGRAB_TIP,
 	PROP_TIP,
 	DROP_TIP,
+	PROX_TIP,
 };
 
 extern void ProTip(int id, const char *message);
@@ -889,10 +890,12 @@ void HUD_WeaponsPostThink( local_state_s *from, local_state_s *to, usercmd_t *cm
 
 		case WEAPON_SATCHEL:
 			pWeapon = &g_Satchel;
+			ProTip(PROX_TIP, "Use RELOAD button to place proxmines");
 			break;
 
 		case WEAPON_TRIPMINE:
 			pWeapon = &g_Tripmine;
+			ProTip(PROX_TIP, "Use RELOAD button to place proxmines");
 			break;
 
 		case WEAPON_SNARK:

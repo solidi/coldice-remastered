@@ -1066,6 +1066,7 @@ void CHalfLifeMultiplay::RemoveAndFillItems( void )
 	{
 		"monster_satchel",
 		"monster_tripmine",
+		"monster_proxmine",
 		"monster_chumtoad",
 		"monster_snark",
 		"monster_barrel",
@@ -1092,20 +1093,19 @@ void CHalfLifeMultiplay::RemoveAndFillItems( void )
 	for (int itemIndex = 0; itemIndex < ARRAYSIZE(pRemoveThese); itemIndex++)
 	{
 		while ((pEntity = UTIL_FindEntityByClassname(pEntity, pRemoveThese[itemIndex])) != NULL)
-		{
-			/*ALERT(at_aiconsole, "Remove %s at [x=%.2f,y=%.2f,z=%.2f]\n", 
-				pRemoveThese[itemIndex],
-				pEntity->pev->origin.x,
-				pEntity->pev->origin.y,
-				pEntity->pev->origin.z);*/
-			
+		{			
 			// Clean up tripmine beam before removal
 			if (strcmp(pRemoveThese[itemIndex], "monster_tripmine") == 0)
 			{
-				//pEntity->Killed(NULL, GIB_NEVER);
 				((CTripmineGrenade *)pEntity)->SetThink( &CTripmineGrenade::SUB_Remove );
 				((CTripmineGrenade *)pEntity)->KillBeam();
 				((CTripmineGrenade *)pEntity)->pev->nextthink = gpGlobals->time + 0.1;
+			}
+			else if (strcmp(pRemoveThese[itemIndex], "monster_proxmine") == 0)
+			{
+				((CProxMine *)pEntity)->SetThink( &CProxMine::SUB_Remove );
+				((CProxMine *)pEntity)->KillIndicator();
+				((CProxMine *)pEntity)->pev->nextthink = gpGlobals->time + 0.1;
 			}
 			else
 			{
@@ -1125,11 +1125,6 @@ void CHalfLifeMultiplay::RemoveAndFillItems( void )
 	{
 		while ((pEntity = UTIL_FindEntityByClassname(pEntity, pRechargeThese[itemIndex])) != NULL)
 		{
-			/*ALERT(at_aiconsole, "Recharge %s at [x=%.2f,y=%.2f,z=%.2f]\n", 
-				pRechargeThese[itemIndex],
-				pEntity->pev->origin.x,
-				pEntity->pev->origin.y,
-				pEntity->pev->origin.z);*/
 			pEntity->OverrideReset();
 		}
 	}
