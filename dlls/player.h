@@ -258,6 +258,10 @@ public:
 	BOOL m_bChilldemicPendingConvert;
 	Vector m_vecChilldemicRespawnOrigin;
 	Vector m_vecChilldemicRespawnAngles;
+	// One-shot: suppress SetDefaultPlayerTeam + GetPlayerSpawnSpot inside Spawn()
+	// for in-place revivals (e.g. Chilldemic infection) that must not fire
+	// info_player_deathmatch targets or telefrag another player via EntSelectSpawnPoint.
+	BOOL m_bSkipSpawnPointSelect;
 	void ExitObserver( void );
 	BOOL IsSpectator( void ) { return ( m_afPhysicsFlags & PFLAG_OBSERVER ? TRUE : FALSE ); };
 	BOOL IsCommittedToPlay( void ) { return ( m_bWantsToPlay && !HasDisconnected ) ? TRUE : FALSE; };

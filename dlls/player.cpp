@@ -1966,16 +1966,14 @@ void CBasePlayer::PlayerDeathThink(void)
 	{
 		m_bChilldemicPendingConvert = FALSE;
 
-		// Apply infection state at the deferred conversion boundary so death/body
-		// handling for the fatal hit is finalized before changing model/team.
-		/*pev->fuser4 = RADAR_VIRUS;
-		g_engfuncs.pfnSetClientKeyValue( ENTINDEX( edict() ),
-			g_engfuncs.pfnGetInfoKeyBuffer( edict() ), "model", "skeleton" );
-		strncpy( m_szTeamName, "skeletons", TEAM_NAME_LENGTH );*/
-
 		if (HasWeapons())
 			PackDeadPlayerItems();
 
+		// In-place revival: skip GetPlayerSpawnSpot so we don't fire spawn-point
+		// targets or risk EntSelectSpawnPoint telefragging another player when no
+		// free info_player_deathmatch is available. We teleport back to the death
+		// origin ourselves below.
+		m_bSkipSpawnPointSelect = TRUE;
 		Spawn();
 		UTIL_SetOrigin(pev, m_vecChilldemicRespawnOrigin);
 		pev->angles = pev->v_angle = m_vecChilldemicRespawnAngles;
@@ -1983,6 +1981,7 @@ void CBasePlayer::PlayerDeathThink(void)
 		pev->flags |= FL_GODMODE;
 		m_fLastSpawnTime = gpGlobals->time + 3.0f;
 		m_fEffectTime = gpGlobals->time + 0.25f;
+		UTIL_ScreenFade(this, Vector(200, 0, 0), 0.25f, 0.5f, 128, FFADE_IN);
 
 		// Prevent PlayerDeathThink from firing again. Spawn() does not reset
 		// nextthink, so the old value from Killed() would re-trigger this think
@@ -4573,8 +4572,12 @@ void CBasePlayer::Spawn( void )
 // dont let uninitialized value here hurt the player
 	m_flFallVelocity = 0;
 
-	g_pGameRules->SetDefaultPlayerTeam( this );
-	g_pGameRules->GetPlayerSpawnSpot( this );
+	if ( !m_bSkipSpawnPointSelect )
+	{
+		g_pGameRules->SetDefaultPlayerTeam( this );
+		g_pGameRules->GetPlayerSpawnSpot( this );
+	}
+	m_bSkipSpawnPointSelect = FALSE;
 
     SET_MODEL(ENT(pev), "models/player/iceman/iceman.mdl");
     g_ulModelIndexPlayer = pev->modelindex;
