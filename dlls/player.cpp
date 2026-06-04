@@ -1975,12 +1975,6 @@ void CBasePlayer::PlayerDeathThink(void)
 		if (HasWeapons())
 			PackDeadPlayerItems();
 
-		// Invalidate any body queue entries that reference this player before converting.
-		// kRenderFxDeadPlayer entries render using the player's CURRENT model, so after
-		// the model changes to skeleton, old survivor-death entries would show standing
-		// skeletons with mismatched sequences from the survivor model's index space.
-		// ClearPlayerBodyQue(ENTINDEX(edict()));
-
 		Spawn();
 		UTIL_SetOrigin(pev, m_vecChilldemicRespawnOrigin);
 		pev->angles = m_vecChilldemicRespawnAngles;
