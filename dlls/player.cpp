@@ -677,6 +677,14 @@ int CBasePlayer :: TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, 
 		flDamage = flNew;
 	}
 
+	if (g_pGameRules->IsChilldemic() && IsInArena && !IsSpectator() &&
+		pev->fuser4 != RADAR_VIRUS && ((int)flDamage >= (int)pev->health))
+	{
+		m_bChilldemicPendingConvert = TRUE;
+		m_vecChilldemicRespawnOrigin = pev->origin;
+		m_vecChilldemicRespawnAngles = pev->angles;
+	}
+
 	// this cast to INT is critical!!! If a player ends up with 0.5 health, the engine will get that
 	// as an int (zero) and think the player is dead! (this will incite a clientside screentilt, etc)
 	fTookDamage = CBaseMonster::TakeDamage(pevInflictor, pevAttacker, (int)flDamage, bitsDamageType);
@@ -1953,6 +1961,42 @@ BOOL CBasePlayer::IsOnLadder( void )
 
 void CBasePlayer::PlayerDeathThink(void)
 {
+	if (m_bChilldemicPendingConvert)
+	{
+		m_bChilldemicPendingConvert = FALSE;
+
+		// Apply infection state at the deferred conversion boundary so death/body
+		// handling for the fatal hit is finalized before changing model/team.
+		/*pev->fuser4 = RADAR_VIRUS;
+		g_engfuncs.pfnSetClientKeyValue( ENTINDEX( edict() ),
+			g_engfuncs.pfnGetInfoKeyBuffer( edict() ), "model", "skeleton" );
+		strncpy( m_szTeamName, "skeletons", TEAM_NAME_LENGTH );*/
+
+		if (HasWeapons())
+			PackDeadPlayerItems();
+
+		// Invalidate any body queue entries that reference this player before converting.
+		// kRenderFxDeadPlayer entries render using the player's CURRENT model, so after
+		// the model changes to skeleton, old survivor-death entries would show standing
+		// skeletons with mismatched sequences from the survivor model's index space.
+		// ClearPlayerBodyQue(ENTINDEX(edict()));
+
+		Spawn();
+		UTIL_SetOrigin(pev, m_vecChilldemicRespawnOrigin);
+		pev->angles = m_vecChilldemicRespawnAngles;
+		pev->fixangle = TRUE;
+		pev->flags |= FL_GODMODE;
+		m_fLastSpawnTime = gpGlobals->time + 3.0f;
+		m_fEffectTime = gpGlobals->time + 0.25f;
+
+		// Prevent PlayerDeathThink from firing again. Spawn() does not reset
+		// nextthink, so the old value from Killed() would re-trigger this think
+		// next frame. That second fire calls StartDeathCam() -> CopyToBodyQue()
+		// on the now-live skeleton entity, stamping a skeleton aim1 corpse entry.
+		pev->nextthink = -1;
+		return;
+	}
+
 	float flForward;
 
 	if (FBitSet(pev->flags, FL_ONGROUND))
@@ -2173,6 +2217,14 @@ void CBasePlayer::StartObserver( Vector vecPosition, Vector vecViewAngle )
 
 	// Cold Ice
 	ClearBits(m_EFlags, EFLAG_DEADHANDS);
+	ClearBits(m_EFlags, EFLAG_PLAYERKICK);
+	ClearBits(m_EFlags, EFLAG_SLIDE);
+	ClearBits(m_EFlags, EFLAG_HURRICANE);
+	ClearBits(m_EFlags, EFLAG_PUNCH);
+	ClearBits(m_EFlags, EFLAG_FORCEGRAB);
+	ClearBits(m_EFlags, EFLAG_PROTECT);
+	ClearBits(m_EFlags, EFLAG_THROW);
+	ClearBits(m_EFlags, EFLAG_GRENADE);
 	CLIENT_COMMAND(edict(), "firstperson\n");
 	EnableControl(TRUE);
 	m_fHasRune = 0;
