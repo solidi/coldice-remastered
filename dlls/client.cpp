@@ -279,6 +279,9 @@ void ClientPutInServer( edict_t *pEntity )
 	pPlayer->m_bWantsToPlay = FALSE;
 	if (FBitSet(pPlayer->pev->flags, FL_FAKECLIENT))
 		pPlayer->m_bWantsToPlay = TRUE;	// bots always commit to play
+	pPlayer->m_bChilldemicPendingConvert = FALSE;
+	pPlayer->m_vecChilldemicRespawnOrigin = g_vecZero;
+	pPlayer->m_vecChilldemicRespawnAngles = g_vecZero;
 
 	// Allocate a CBasePlayer for pev, and call spawn
 	pPlayer->Spawn();

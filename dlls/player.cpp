@@ -677,6 +677,15 @@ int CBasePlayer :: TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, 
 		flDamage = flNew;
 	}
 
+	const int iDamage = (int)flDamage;
+	if (g_pGameRules->IsChilldemic() && IsInArena && !IsSpectator() &&
+		pev->fuser4 != RADAR_VIRUS && iDamage > 0 && iDamage >= pev->health)
+	{
+		m_bChilldemicPendingConvert = TRUE;
+		m_vecChilldemicRespawnOrigin = pev->origin;
+		m_vecChilldemicRespawnAngles = pev->angles;
+	}
+
 	// this cast to INT is critical!!! If a player ends up with 0.5 health, the engine will get that
 	// as an int (zero) and think the player is dead! (this will incite a clientside screentilt, etc)
 	fTookDamage = CBaseMonster::TakeDamage(pevInflictor, pevAttacker, (int)flDamage, bitsDamageType);
@@ -1953,6 +1962,35 @@ BOOL CBasePlayer::IsOnLadder( void )
 
 void CBasePlayer::PlayerDeathThink(void)
 {
+	if (m_bChilldemicPendingConvert)
+	{
+		m_bChilldemicPendingConvert = FALSE;
+
+		if (HasWeapons())
+			PackDeadPlayerItems();
+
+		// In-place revival: skip GetPlayerSpawnSpot so we don't fire spawn-point
+		// targets or risk EntSelectSpawnPoint telefragging another player when no
+		// free info_player_deathmatch is available. We teleport back to the death
+		// origin ourselves below.
+		m_bSkipSpawnPointSelect = TRUE;
+		Spawn();
+		UTIL_SetOrigin(pev, m_vecChilldemicRespawnOrigin);
+		pev->angles = pev->v_angle = m_vecChilldemicRespawnAngles;
+		pev->fixangle = TRUE;
+		pev->flags |= FL_GODMODE;
+		m_fLastSpawnTime = gpGlobals->time + 3.0f;
+		m_fEffectTime = gpGlobals->time + 0.25f;
+		UTIL_ScreenFade(this, Vector(200, 0, 0), 0.25f, 0.5f, 128, FFADE_IN);
+
+		// Prevent PlayerDeathThink from firing again. Spawn() does not reset
+		// nextthink, so the old value from Killed() would re-trigger this think
+		// next frame. That second fire calls StartDeathCam() -> CopyToBodyQue()
+		// on the now-live skeleton entity, stamping a skeleton aim1 corpse entry.
+		pev->nextthink = -1;
+		return;
+	}
+
 	float flForward;
 
 	if (FBitSet(pev->flags, FL_ONGROUND))
@@ -2173,6 +2211,14 @@ void CBasePlayer::StartObserver( Vector vecPosition, Vector vecViewAngle )
 
 	// Cold Ice
 	ClearBits(m_EFlags, EFLAG_DEADHANDS);
+	ClearBits(m_EFlags, EFLAG_PLAYERKICK);
+	ClearBits(m_EFlags, EFLAG_SLIDE);
+	ClearBits(m_EFlags, EFLAG_HURRICANE);
+	ClearBits(m_EFlags, EFLAG_PUNCH);
+	ClearBits(m_EFlags, EFLAG_FORCEGRAB);
+	ClearBits(m_EFlags, EFLAG_PROTECT);
+	ClearBits(m_EFlags, EFLAG_THROW);
+	ClearBits(m_EFlags, EFLAG_GRENADE);
 	CLIENT_COMMAND(edict(), "firstperson\n");
 	EnableControl(TRUE);
 	m_fHasRune = 0;
@@ -4526,8 +4572,12 @@ void CBasePlayer::Spawn( void )
 // dont let uninitialized value here hurt the player
 	m_flFallVelocity = 0;
 
-	g_pGameRules->SetDefaultPlayerTeam( this );
-	g_pGameRules->GetPlayerSpawnSpot( this );
+	if ( !m_bSkipSpawnPointSelect )
+	{
+		g_pGameRules->SetDefaultPlayerTeam( this );
+		g_pGameRules->GetPlayerSpawnSpot( this );
+	}
+	m_bSkipSpawnPointSelect = FALSE;
 
     SET_MODEL(ENT(pev), "models/player/iceman/iceman.mdl");
     g_ulModelIndexPlayer = pev->modelindex;

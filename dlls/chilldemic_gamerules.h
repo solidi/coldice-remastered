@@ -43,4 +43,6 @@ public:
 private:
 	int m_iSurvivorsRemain;
 	int m_iSkeletonsRemain;
+	int m_iRoundStartSurvivors;
+	int m_iRoundStartSkeletons;
 };

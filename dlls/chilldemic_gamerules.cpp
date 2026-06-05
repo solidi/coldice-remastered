@@ -35,10 +35,25 @@ extern int gmsgScoreInfo;
 extern int gmsgDEraser;
 extern int gmsgBanner;
 
+static int ObjectivePercent( int current, int total )
+{
+	if ( total <= 0 )
+		return 0;
+
+	int pct = (int)( ( (float)current * 100.0f / (float)total ) + 0.5f );
+	if ( pct < 0 )
+		pct = 0;
+	if ( pct > 100 )
+		pct = 100;
+	return pct;
+}
+
 CHalfLifeChilldemic::CHalfLifeChilldemic()
 {
 	m_iSurvivorsRemain = 0;
 	m_iSkeletonsRemain = 0;
+	m_iRoundStartSurvivors = 0;
+	m_iRoundStartSkeletons = 0;
 	PauseMutators();
 }
 
@@ -193,7 +208,7 @@ void CHalfLifeChilldemic::Think( void )
 							{
 								WRITE_STRING(UTIL_VarArgs("Skeletons left: %d", m_iSkeletonsRemain));
 								WRITE_STRING(UTIL_VarArgs("Survivors left: %d", m_iSurvivorsRemain));
-								WRITE_BYTE(float(m_iSurvivorsRemain) / (m_iPlayersInGame) * 100);
+								WRITE_BYTE(ObjectivePercent(m_iSurvivorsRemain, m_iRoundStartSurvivors));
 							}
 							if (roundlimit.value > 0)
 								WRITE_STRING(UTIL_VarArgs("Round %d of %d", m_iSuccessfulRounds+1, (int)roundlimit.value));
@@ -230,7 +245,7 @@ void CHalfLifeChilldemic::Think( void )
 								MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, plr->edict());
 									WRITE_STRING("Free their bones");
 									WRITE_STRING(UTIL_VarArgs("Survivors alive: %d", survivors_left));
-									WRITE_BYTE(float(survivors_left) / (m_iPlayersInGame) * 100);
+									WRITE_BYTE(ObjectivePercent(survivors_left, m_iRoundStartSurvivors));
 									if (roundlimit.value > 0)
 										WRITE_STRING(UTIL_VarArgs("Round %d of %d", m_iSuccessfulRounds+1, (int)roundlimit.value));
 									else
@@ -266,7 +281,7 @@ void CHalfLifeChilldemic::Think( void )
 								MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, plr->edict());
 									WRITE_STRING("Survive");
 									WRITE_STRING(UTIL_VarArgs("Survivors remain: %d", survivors_left));
-									WRITE_BYTE(float(survivors_left) / (m_iPlayersInGame) * 100);
+									WRITE_BYTE(ObjectivePercent(survivors_left, m_iRoundStartSurvivors));
 									if (roundlimit.value > 0)
 										WRITE_STRING(UTIL_VarArgs("Round %d of %d", m_iSuccessfulRounds+1, (int)roundlimit.value));
 									else
@@ -280,7 +295,7 @@ void CHalfLifeChilldemic::Think( void )
 									MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, plr->edict());
 										WRITE_STRING("You remain! SURVIVE!");
 										WRITE_STRING(UTIL_VarArgs("Skeletons remain: %d", skeletons_left));
-										WRITE_BYTE(float(skeletons_left) / (m_iPlayersInGame) * 100);
+										WRITE_BYTE(ObjectivePercent(skeletons_left, m_iRoundStartSkeletons));
 										if (roundlimit.value > 0)
 											WRITE_STRING(UTIL_VarArgs("Round %d of %d", m_iSuccessfulRounds+1, (int)roundlimit.value));
 										else
@@ -456,10 +471,57 @@ void CHalfLifeChilldemic::Think( void )
 		//frags + time.
 		SetRoundLimits();
 
-		int skeleton = m_iPlayersInArena[RANDOM_LONG(0, clients-1)];
+		CBasePlayer *plr = NULL;
+		int skeleton = 0;
+		for ( int attempt = 0; attempt < clients; attempt++ )
+		{
+			skeleton = m_iPlayersInArena[RANDOM_LONG(0, clients-1)];
+			if ( skeleton <= 0 )
+				continue;
+
+			CBasePlayer *candidate = (CBasePlayer *)UTIL_PlayerByIndex( skeleton );
+			if ( candidate && candidate->IsPlayer() && !candidate->HasDisconnected )
+			{
+				plr = candidate;
+				break;
+			}
+		}
+
+		if ( !plr )
+		{
+			int retryClients = CheckClients();
+			if ( retryClients > 1 )
+			{
+#ifdef _DEBUG
+				ALERT(at_console, "chilldemic: no valid patient zero this tick, retrying\n");
+#endif
+				flUpdateTime = gpGlobals->time + 0.2;
+				return;
+			}
+
+			SuckAllToSpectator();
+			m_flRoundTimeLimit = 0;
+			MESSAGE_BEGIN(MSG_BROADCAST, gmsgObjective);
+				WRITE_STRING("Chilldemic");
+				WRITE_STRING("Waiting for other players");
+				WRITE_BYTE(0);
+				if (roundlimit.value > 0)
+					WRITE_STRING(UTIL_VarArgs("%d Rounds", (int)roundlimit.value));
+				else
+					WRITE_STRING("");
+			MESSAGE_END();
+			m_fWaitForPlayersTime = gpGlobals->time + roundwaittime.value;
+			flUpdateTime = gpGlobals->time + 1.0;
+			return;
+		}
+
+		m_iRoundStartSurvivors = clients - 1;
+		m_iRoundStartSkeletons = 1;
+#ifdef _DEBUG
 		ALERT(at_console, "clients set to %d, virus set to index=%d\n", clients, skeleton);
-		CBasePlayer *pl = (CBasePlayer *)UTIL_PlayerByIndex( skeleton );
-		pl->pev->fuser4 = TEAM_SKELETONS;
+#endif
+		plr->pev->fuser4 = TEAM_SKELETONS;
+		UTIL_ClientPrintAll(HUD_PRINTTALK, UTIL_VarArgs("[Demic] %s is patient zero!\n", STRING(plr->pev->netname)));
 
 		g_GameInProgress = TRUE;
 		

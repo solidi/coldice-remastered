@@ -70,8 +70,12 @@ void CBasePlayer::Observer_FindNextPlayer( bool bReverse )
 	// Did we find a target?
 	if ( m_hObserverTarget )
 	{
-		// Move to the target
-		UTIL_SetOrigin( pev, m_hObserverTarget->pev->origin );
+		// Move to eye level and align to the target's view direction on switch.
+		Vector vecTargetEye = m_hObserverTarget->pev->origin;
+		vecTargetEye.z += 32;
+		UTIL_SetOrigin( pev, vecTargetEye );
+		pev->angles = pev->v_angle = m_hObserverTarget->pev->v_angle;
+		pev->fixangle = TRUE;
 
 		// ALERT( at_console, "Now Tracking %s\n", STRING( m_hObserverTarget->pev->netname ) );
 
@@ -165,7 +169,7 @@ void CBasePlayer::Observer_CheckTarget()
 	}
 
 	// check taget
-	if (target->pev->deadflag == DEAD_DEAD)
+	if (target->pev->deadflag == DEAD_DEAD || target->pev->deadflag == DEAD_RESPAWNABLE)
 	{
 		if ( (target->m_fDeadTime + 2.0f ) < gpGlobals->time )
 		{
