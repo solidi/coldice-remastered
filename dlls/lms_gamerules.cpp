@@ -329,9 +329,9 @@ void CHalfLifeLastManStanding::Think( void )
 		while ((spot = (CSafeSpot *)UTIL_FindEntityByClassname(spot, "safespot")) != NULL)
 			UTIL_Remove(spot);
 		// Cached pointer now dangles — entity slot may be recycled before
-		// the next Think.  Drop it and re-arm the spawn timer so the next
-		// round (post-intermission) creates a fresh spot.
-		pSafeSpot       = NULL;
+		// the next Think. Drop it and clear the spawn timer; the next round
+		// (post-intermission) will arm m_fSpawnSafeSpot and create a fresh spot.
+		pSafeSpot        = NULL;
 		m_fSpawnSafeSpot = 0;
 		flUpdateTime = gpGlobals->time + 1.0;
 		return;
@@ -1085,7 +1085,7 @@ void CHalfLifeLastManStanding::ClientUserInfoChanged( CBasePlayer *pPlayer, char
 
 	// prevent skin/color/model changes
 	char text[1024];
-	char *mdls = g_engfuncs.pfnInfoKeyValue( infobuffer, "model" );
+	const char *mdls = g_engfuncs.pfnInfoKeyValue( infobuffer, "model" );
 	int clientIndex = pPlayer->entindex();
 
 	// Engine returns "" when the key is absent, but treat NULL defensively
