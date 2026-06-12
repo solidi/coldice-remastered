@@ -326,8 +326,13 @@ void CHalfLifeLastManStanding::Think( void )
 	if ( m_flIntermissionEndTime )
 	{
 		CSafeSpot *spot = NULL;
-		if (spot = (CSafeSpot *)UTIL_FindEntityByClassname(NULL, "safespot"))
+		while ((spot = (CSafeSpot *)UTIL_FindEntityByClassname(spot, "safespot")) != NULL)
 			UTIL_Remove(spot);
+		// Cached pointer now dangles — entity slot may be recycled before
+		// the next Think.  Drop it and re-arm the spawn timer so the next
+		// round (post-intermission) creates a fresh spot.
+		pSafeSpot       = NULL;
+		m_fSpawnSafeSpot = 0;
 		flUpdateTime = gpGlobals->time + 1.0;
 		return;
 	}
@@ -675,6 +680,13 @@ void CHalfLifeLastManStanding::Think( void )
 			MESSAGE_END();
 			m_fNextShrinkTime = gpGlobals->time + ((roundtimelimit.value * 60) / 15);
 			m_fSpawnSafeSpot = gpGlobals->time + 1.0; // relocate zone for this round
+		}
+		else
+		{
+			// No cached spot (first round, or removed during intermission).
+			// Arm the spawn timer so the next Think creates one.
+			m_fNextShrinkTime = gpGlobals->time + ((roundtimelimit.value * 60) / 15);
+			m_fSpawnSafeSpot  = gpGlobals->time + 1.0;
 		}
 
 		// Resend team info
