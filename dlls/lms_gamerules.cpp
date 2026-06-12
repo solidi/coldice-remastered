@@ -588,13 +588,16 @@ void CHalfLifeLastManStanding::Think( void )
 					UTIL_ClientPrintAll(HUD_PRINTCENTER, UTIL_VarArgs("%s\nis standing!\n", client_name ));
 
 					CBasePlayer *pl = (CBasePlayer *)UTIL_PlayerByIndex( client_index );
-					if (!FBitSet(pl->pev->flags, FL_FAKECLIENT))
+					if ( pl )
 					{
-						MESSAGE_BEGIN( MSG_ONE_UNRELIABLE, gmsgPlayClientSound, NULL, pl->edict() );
-							WRITE_BYTE(CLIENT_SOUND_LMS);
-						MESSAGE_END();
+						if (!FBitSet(pl->pev->flags, FL_FAKECLIENT))
+						{
+							MESSAGE_BEGIN( MSG_ONE_UNRELIABLE, gmsgPlayClientSound, NULL, pl->edict() );
+								WRITE_BYTE(CLIENT_SOUND_LMS);
+							MESSAGE_END();
+						}
+						DisplayWinnersGoods( pl );
 					}
-					DisplayWinnersGoods( pl );
 				}	
 				else
 				{
@@ -1084,6 +1087,12 @@ void CHalfLifeLastManStanding::ClientUserInfoChanged( CBasePlayer *pPlayer, char
 	char text[1024];
 	char *mdls = g_engfuncs.pfnInfoKeyValue( infobuffer, "model" );
 	int clientIndex = pPlayer->entindex();
+
+	// Engine returns "" when the key is absent, but treat NULL defensively
+	// since stricmp(NULL, ...) is UB — a malformed userinfo buffer would
+	// otherwise crash the server.
+	if ( !mdls )
+		mdls = "";
 
 	if (!pPlayer->m_szTeamName[0])
 		return;
