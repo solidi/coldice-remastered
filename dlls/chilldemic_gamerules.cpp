@@ -725,9 +725,16 @@ BOOL CHalfLifeChilldemic::FPlayerCanRespawn( CBasePlayer *pPlayer )
 	if ( !g_GameInProgress )
 		return FALSE;
 
-	// Skeletons can respawn if a survivor is left.
-	if ( pPlayer->pev->fuser4 == TEAM_SKELETONS && m_iSurvivorsRemain >= 1 && !pPlayer->m_flForceToObserverTime )
-		return TRUE;
+	// Skeletons can respawn only while at least one survivor is actively in arena.
+	if ( pPlayer->pev->fuser4 == TEAM_SKELETONS && !pPlayer->m_flForceToObserverTime )
+	{
+		for ( int i = 1; i <= gpGlobals->maxClients; i++ )
+		{
+			CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
+			if ( plr && plr->IsPlayer() && !plr->HasDisconnected && plr->IsInArena && !plr->IsSpectator() && plr->pev->fuser4 != TEAM_SKELETONS )
+				return TRUE;
+		}
+	}
 
 	if ( !pPlayer->IsAlive() && !pPlayer->m_flForceToObserverTime )
 		pPlayer->m_flForceToObserverTime = gpGlobals->time + 3.0;
