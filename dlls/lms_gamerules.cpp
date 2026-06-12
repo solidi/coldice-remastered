@@ -139,6 +139,12 @@ void CSafeSpot::SafeSpotThink( void )
 				plr->TakeDamage( pevWorld, plr->pev, 2, DMG_SHOCK );
 				ClientPrint(plr->pev, HUD_PRINTCENTER, "Taking damage - find the green zone!");
 
+				// Visible blood puff at chest height so the hit reads in
+				// third-person — DMG_SHOCK alone produces no particles.
+				Vector vecBlood = plr->pev->origin;
+				vecBlood.z += 16;
+				SpawnBlood( vecBlood, plr->BloodColor(), 8 );
+
 				if (!plr->m_fCameraDelay)
 				{
 					MESSAGE_BEGIN(MSG_ONE, gmsgStatusIcon, NULL, plr->edict());
