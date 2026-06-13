@@ -384,6 +384,27 @@ int __MsgFunc_MapList(const char *pszName, int iSize, void *pbuf)
 	return 0;
 }
 
+int __MsgFunc_GameOpts(const char *pszName, int iSize, void *pbuf)
+{
+	if (gViewPort)
+		return gViewPort->MsgFunc_GameOpts( pszName, iSize, pbuf );
+	return 0;
+}
+
+int __MsgFunc_VoteOpts(const char *pszName, int iSize, void *pbuf)
+{
+	if (gViewPort)
+		return gViewPort->MsgFunc_VoteOpts( pszName, iSize, pbuf );
+	return 0;
+}
+
+int __MsgFunc_VOptFor(const char *pszName, int iSize, void *pbuf)
+{
+	if (gViewPort)
+		return gViewPort->MsgFunc_VOptFor( pszName, iSize, pbuf );
+	return 0;
+}
+
 int __MsgFunc_BuildSt(const char *pszName, int iSize, void *pbuf)
 {
 	if (gViewPort)
@@ -579,6 +600,9 @@ void CHud :: Init( void )
 	HOOK_MESSAGE( VoteMap );
 	HOOK_MESSAGE( VoteMutator );
 	HOOK_MESSAGE( MapList );
+	HOOK_MESSAGE( GameOpts );
+	HOOK_MESSAGE( VoteOpts );
+	HOOK_MESSAGE( VOptFor );
 	HOOK_MESSAGE( AddMut );
 	HOOK_MESSAGE( Chaos );
 	HOOK_MESSAGE( Spot );

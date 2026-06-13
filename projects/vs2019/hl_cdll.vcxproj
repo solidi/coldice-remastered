@@ -175,6 +175,7 @@
     <ClCompile Include="..\..\cl_dll\vgui_VoteGameplayWindow.cpp" />
     <ClCompile Include="..\..\cl_dll\vgui_VoteMapWindow.cpp" />
     <ClCompile Include="..\..\cl_dll\vgui_VoteMutatorWindow.cpp" />
+    <ClCompile Include="..\..\cl_dll\vgui_VoteGameOptionsWindow.cpp" />
     <ClCompile Include="..\..\cl_dll\view.cpp" />
     <ClCompile Include="..\..\cl_dll\voice_status.cpp" />
     <ClCompile Include="..\..\cl_dll\wallclimb.cpp" />

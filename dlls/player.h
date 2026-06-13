@@ -501,6 +501,7 @@ public:
 	void ClearFlames(void);
 
 	float m_fVoteCoolDown;
+	float m_fGameOptsResendCoolDown;
 
 	float m_flEjectBrass;
 	float m_flEjectShotShell;
