@@ -139,6 +139,12 @@ void CSafeSpot::SafeSpotThink( void )
 				plr->TakeDamage( pevWorld, plr->pev, 2, DMG_SHOCK );
 				ClientPrint(plr->pev, HUD_PRINTCENTER, "Taking damage - find the green zone!");
 
+				// Visible blood puff at chest height so the hit reads in
+				// third-person — DMG_SHOCK alone produces no particles.
+				Vector vecBlood = plr->pev->origin;
+				vecBlood.z += 16;
+				SpawnBlood( vecBlood, plr->BloodColor(), 8 );
+
 				if (!plr->m_fCameraDelay)
 				{
 					MESSAGE_BEGIN(MSG_ONE, gmsgStatusIcon, NULL, plr->edict());
@@ -320,8 +326,13 @@ void CHalfLifeLastManStanding::Think( void )
 	if ( m_flIntermissionEndTime )
 	{
 		CSafeSpot *spot = NULL;
-		if (spot = (CSafeSpot *)UTIL_FindEntityByClassname(NULL, "safespot"))
+		while ((spot = (CSafeSpot *)UTIL_FindEntityByClassname(spot, "safespot")) != NULL)
 			UTIL_Remove(spot);
+		// Cached pointer now dangles — entity slot may be recycled before
+		// the next Think. Drop it and clear the spawn timer; the next round
+		// (post-intermission) will arm m_fSpawnSafeSpot and create a fresh spot.
+		pSafeSpot        = NULL;
+		m_fSpawnSafeSpot = 0;
 		flUpdateTime = gpGlobals->time + 1.0;
 		return;
 	}
@@ -577,13 +588,16 @@ void CHalfLifeLastManStanding::Think( void )
 					UTIL_ClientPrintAll(HUD_PRINTCENTER, UTIL_VarArgs("%s\nis standing!\n", client_name ));
 
 					CBasePlayer *pl = (CBasePlayer *)UTIL_PlayerByIndex( client_index );
-					if (!FBitSet(pl->pev->flags, FL_FAKECLIENT))
+					if ( pl )
 					{
-						MESSAGE_BEGIN( MSG_ONE_UNRELIABLE, gmsgPlayClientSound, NULL, pl->edict() );
-							WRITE_BYTE(CLIENT_SOUND_LMS);
-						MESSAGE_END();
+						if (!FBitSet(pl->pev->flags, FL_FAKECLIENT))
+						{
+							MESSAGE_BEGIN( MSG_ONE_UNRELIABLE, gmsgPlayClientSound, NULL, pl->edict() );
+								WRITE_BYTE(CLIENT_SOUND_LMS);
+							MESSAGE_END();
+						}
+						DisplayWinnersGoods( pl );
 					}
-					DisplayWinnersGoods( pl );
 				}	
 				else
 				{
@@ -669,6 +683,13 @@ void CHalfLifeLastManStanding::Think( void )
 			MESSAGE_END();
 			m_fNextShrinkTime = gpGlobals->time + ((roundtimelimit.value * 60) / 15);
 			m_fSpawnSafeSpot = gpGlobals->time + 1.0; // relocate zone for this round
+		}
+		else
+		{
+			// No cached spot (first round, or removed during intermission).
+			// Arm the spawn timer so the next Think creates one.
+			m_fNextShrinkTime = gpGlobals->time + ((roundtimelimit.value * 60) / 15);
+			m_fSpawnSafeSpot  = gpGlobals->time + 1.0;
 		}
 
 		// Resend team info
@@ -1064,8 +1085,14 @@ void CHalfLifeLastManStanding::ClientUserInfoChanged( CBasePlayer *pPlayer, char
 
 	// prevent skin/color/model changes
 	char text[1024];
-	char *mdls = g_engfuncs.pfnInfoKeyValue( infobuffer, "model" );
+	const char *mdls = g_engfuncs.pfnInfoKeyValue( infobuffer, "model" );
 	int clientIndex = pPlayer->entindex();
+
+	// Engine returns "" when the key is absent, but treat NULL defensively
+	// since stricmp(NULL, ...) is UB — a malformed userinfo buffer would
+	// otherwise crash the server.
+	if ( !mdls )
+		mdls = "";
 
 	if (!pPlayer->m_szTeamName[0])
 		return;
