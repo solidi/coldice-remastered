@@ -238,7 +238,7 @@ void CVoteGameOptionsPanel::Update()
 	// Track whether the local player has cast a vote on every active row;
 	// if so, auto-close the panel after a short grace period so they can see
 	// the final tally state (mirrors the mutator-RTV menu's dismiss flow).
-	BOOL allVoted = ( m_iRowCount > 0 );
+	bool allVoted = ( m_iRowCount > 0 );
 
 	// Per-row tally update.
 	for ( int k = 0; k < m_iRowCount; k++ )
@@ -279,7 +279,7 @@ void CVoteGameOptionsPanel::Update()
 			}
 		}
 		if ( myPick < 0 )
-			allVoted = FALSE;
+			allVoted = false;
 
 		// Two independent visual cues:
 		//  1. Row title prepends [X]/[ ] so the local player can see at a
@@ -313,8 +313,8 @@ void CVoteGameOptionsPanel::Update()
 			btn->setArmed( false );
 			btn->setUnArmedColor( r, g, b, 0 );
 
-			BOOL isWinner = ( hi == o && counts[o] > 0 );
-			BOOL isMine   = ( myPick == o );
+			bool isWinner = ( hi == o && counts[o] > 0 );
+			bool isMine   = ( myPick == o );
 
 			if ( isMine )
 				btn->setArmed( true );
