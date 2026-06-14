@@ -49,7 +49,7 @@ server-driven and can differ between games.
 #define GOMENU_SCROLL_TALL			YRES(340)
 #define GOMENU_ROW_HEIGHT			YRES(36)
 #define GOMENU_ROW_SPACER_Y			YRES(4)
-#define GOMENU_LABEL_WIDE			XRES(80)
+#define GOMENU_LABEL_WIDE			XRES(110)
 #define GOMENU_BUTTON_WIDE			XRES(80)
 #define GOMENU_BUTTON_GAP			XRES(4)
 
@@ -281,6 +281,23 @@ void CVoteGameOptionsPanel::Update()
 		if ( myPick < 0 )
 			allVoted = FALSE;
 
+		// Two independent visual cues:
+		//  1. Row title prepends [X]/[ ] so the local player can see at a
+		//     glance which rows still need a vote.
+		//  2. Per-button highlight uses border color for the local pick
+		//     (yellow) so it stays visible whether or not it is also the
+		//     leading option, which keeps the existing fill semantics
+		//     (solid blue = winner) intact.
+		if ( m_pRowLabels[k] )
+		{
+			char titleBuf[96];
+			const char *marker = ( myPick >= 0 ) ? "[X]" : "[ ]";
+			_snprintf( titleBuf, sizeof(titleBuf), " %s %s%s",
+				marker, it.title, it.restart ? " (restart)" : "" );
+			titleBuf[sizeof(titleBuf) - 1] = 0;
+			m_pRowLabels[k]->setText( titleBuf );
+		}
+
 		for ( int o = 0; o < nopt; o++ )
 		{
 			ColorButton *btn = m_pRowButtons[k][o];
@@ -302,19 +319,29 @@ void CVoteGameOptionsPanel::Update()
 			if ( isMine )
 				btn->setArmed( true );
 
+			// Border channel: mine wins over winner so the pick is always
+			// visible. Yellow contrasts against both the blue fill and the
+			// white winner border.
+			Color borderColor;
+			if ( isMine )
+				borderColor = Color( 255, 255, 0, a );
+			else if ( isWinner )
+				borderColor = Color( 255, 255, 255, a );
+			else
+				borderColor = Color( r, g, b, a );
+			btn->setBorder( new LineBorder( borderColor ) );
+
 			if ( counts[o] > 0 )
 			{
 				btn->setArmed( true );
 				if ( isWinner )
 				{
-					btn->setBorder( new LineBorder( Color( 255, 255, 255, a ) ) );
 					btn->setBgColor( r, g, b, 0 );
 					btn->setArmedColor( 255, 255, 255, 0 );
 					if ( tly ) tly->setFgColor( 255, 255, 255, 0 );
 				}
 				else
 				{
-					btn->setBorder( new LineBorder( Color( r, g, b, a ) ) );
 					btn->setBgColor( r, g, b, 255 );
 					btn->setArmedColor( r, g, b, 0 );
 					if ( tly ) tly->setFgColor( r, g, b, 0 );
@@ -322,7 +349,6 @@ void CVoteGameOptionsPanel::Update()
 			}
 			else
 			{
-				btn->setBorder( new LineBorder( Color( r, g, b, a ) ) );
 				if ( tly ) tly->setFgColor( r, g, b, 0 );
 			}
 		}

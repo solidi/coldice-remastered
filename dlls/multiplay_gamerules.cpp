@@ -119,6 +119,7 @@ CHalfLifeMultiplay :: CHalfLifeMultiplay()
 	m_bGameOptionsRTVOnly = FALSE;
 	m_pGameOptionsRTVInitiator = NULL;
 	m_fGameOptionsVoteTime = 0;
+	m_iElectedGameMode = -1;
 	
 	// 11/8/98
 	// Modified by YWB:  Server .cfg file is now a cvar, so that 
@@ -418,6 +419,11 @@ void CHalfLifeMultiplay :: Think ( void )
 
 					UTIL_ClientPrintAll(HUD_PRINTTALK, UTIL_VarArgs("[VOTE] %s is the next gameplay mode with %d votes!\n", gamePlayModes[gameIndex], highest));
 
+					// Remember the elected mode so the upcoming game-options vote
+					// filters against it instead of stale g_GameMode (intermission
+					// skips CheckGameMode() until the next map loads).
+					m_iElectedGameMode = gameIndex;
+
 					if (gameIndex == GAME_TEAMPLAY)
 					{
 						SERVER_COMMAND("mp_gamemode 0\n");
@@ -447,6 +453,7 @@ void CHalfLifeMultiplay :: Think ( void )
 					UTIL_ClientPrintAll(HUD_PRINTTALK, "[VOTE] No game options to vote on for current mode.\n");
 					m_iVoteUnderway = VOTE_MUTATORS_TRANSITION;
 					m_flIntermissionEndTime -= voting.value;
+					m_iElectedGameMode = -1;
 				}
 				else
 				{
@@ -473,7 +480,7 @@ void CHalfLifeMultiplay :: Think ( void )
 							WRITE_BYTE(m_iActiveGameOptions[k]);
 					MESSAGE_END();
 					MESSAGE_BEGIN(MSG_BROADCAST, gmsgPlayClientSound);
-						WRITE_BYTE(CLIENT_SOUND_VOTEMUTATOR);  // shared opening tone
+						WRITE_BYTE(CLIENT_SOUND_VOTEGAMEOPTIONS);  // shared opening tone
 					MESSAGE_END();
 
 					// Reset tally and have bots cast random per-item votes.
@@ -517,6 +524,7 @@ void CHalfLifeMultiplay :: Think ( void )
 				MESSAGE_END();
 
 				TallyGameOptionsVote(FALSE);
+				m_iElectedGameMode = -1;
 			}
 
 			// Mutator vote STARTED
@@ -4381,8 +4389,13 @@ void CHalfLifeMultiplay::BuildActiveGameOptions( void )
 {
 	m_iActiveGameOptionsCount = 0;
 	const char *modeName = NULL;
-	if ( g_GameMode >= 0 && g_GameMode <= TOTAL_GAME_MODES )
-		modeName = szGameModeList[g_GameMode];
+	// During the end-of-round flow CheckGameMode() is suppressed (intermission
+	// gate at the top of Think()), so g_GameMode still reflects the previous
+	// round even though the gameplay vote just elected a new mode. Prefer the
+	// elected mode if one is pending; falls through to g_GameMode for RTV.
+	int mode = ( m_iElectedGameMode >= 0 ) ? m_iElectedGameMode : g_GameMode;
+	if ( mode >= 0 && mode <= TOTAL_GAME_MODES )
+		modeName = szGameModeList[mode];
 
 	for ( int i = 0; i < g_iGameOptionsCount && m_iActiveGameOptionsCount < 32; i++ )
 	{
@@ -4499,7 +4512,7 @@ void CHalfLifeMultiplay::TallyGameOptionsVote( BOOL fromRTV )
 		CVAR_SET_STRING( it.cvar, winnerValue );
 
 		UTIL_ClientPrintAll( HUD_PRINTTALK,
-			UTIL_VarArgs( "[VOTE] %s: %s\n", it.title, winnerLabel ) );
+			UTIL_VarArgs( "[VOTE] %s: %s%s\n", it.title, winnerLabel, tiedCount > 1 ? " (tie breaker)" : "" ) );
 
 		if ( it.restart )
 			needsRestart = TRUE;
@@ -4528,6 +4541,9 @@ for `voting.value` seconds, then tallies. If zero matches, applies G9 path
 void CHalfLifeMultiplay::VoteForGameOptions( BOOL fromRTV )
 {
 	EnsureGameOptionsList();
+	// RTV path: gameplay vote is not running, so use current g_GameMode.
+	if ( fromRTV )
+		m_iElectedGameMode = -1;
 	BuildActiveGameOptions();
 
 	if ( m_iActiveGameOptionsCount == 0 )
@@ -4572,7 +4588,7 @@ void CHalfLifeMultiplay::VoteForGameOptions( BOOL fromRTV )
 			WRITE_BYTE( m_iActiveGameOptions[k] );
 	MESSAGE_END();
 	MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
-		WRITE_BYTE( CLIENT_SOUND_VOTEMUTATOR );
+		WRITE_BYTE( CLIENT_SOUND_VOTEGAMEOPTIONS );
 	MESSAGE_END();
 
 	if ( fromRTV )

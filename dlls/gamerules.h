@@ -542,6 +542,7 @@ public:
 	BOOL     m_bGameOptionsRTVOnly;
 	edict_t *m_pGameOptionsRTVInitiator;
 	float    m_fGameOptionsVoteTime;            // mid-game RTV open expiry (0 = inactive)
+	int      m_iElectedGameMode;                // gameplay-vote winner pending mp_gamemode apply; -1 = use g_GameMode
 
 protected:
 	virtual void ChangeLevel( void );
