@@ -306,20 +306,19 @@ void CVoteGameplayPanel::Update()
 				char voteSz[16];
 				sprintf(voteSz, "%d", votes[i]);
 				m_pVoteTallyLabels[i]->setText(voteSz);
-				
-				// Update vote tally color to match button state
-				if (votes[i] == highest && votes[i] > 0)
-				{
-					m_pVoteTallyLabels[i]->setFgColor(255, 255, 255, 0);
-				}
-				else
-				{
-					m_pVoteTallyLabels[i]->setFgColor(r, g, b, 0);
-				}
+				m_pVoteTallyLabels[i]->setFgColor(r, g, b, 0);
 			}
 
+			Color borderColor;
 			if ((myVote - 1) == i)
+			{
 				m_pButtons[i]->setArmed(true);
+				borderColor = Color( 255, 255, 255, a );
+				m_pVoteTallyLabels[i]->setFgColor(255, 255, 255, 0);
+			}
+			else
+				borderColor = Color( r, g, b, a );
+			m_pButtons[i]->setBorder( new LineBorder( borderColor ) );
 
 			m_pButtons[i]->setUnArmedColor(r, g, b, 0);
 			pTitleLabel->setFgColor( r, g, b, 0 );
@@ -331,18 +330,11 @@ void CVoteGameplayPanel::Update()
 			if (votes[i] > 0)
 			{
 				m_pButtons[i]->setArmed(true);
-				if (votes[i] == highest)
-				{
-					m_pButtons[i]->setBorder(new LineBorder(Color(255, 255, 255, a)));
-					m_pButtons[i]->setBgColor(r, g, b, 0);
+				m_pButtons[i]->setBgColor(r, g, b, 255);
+				if ((myVote - 1) == i)
 					m_pButtons[i]->setArmedColor(255, 255, 255, 0);
-				}
-				else
-				{
-					m_pButtons[i]->setBorder(new LineBorder(Color(r, g, b, a)));
-					m_pButtons[i]->setBgColor(r, g, b, 255);
+				else 
 					m_pButtons[i]->setArmedColor(r, g, b, 0);
-				}
 			}
 			else
 			{

@@ -49,7 +49,7 @@ server-driven and can differ between games.
 #define GOMENU_SCROLL_TALL			YRES(340)
 #define GOMENU_ROW_HEIGHT			YRES(36)
 #define GOMENU_ROW_SPACER_Y			YRES(4)
-#define GOMENU_LABEL_WIDE			XRES(110)
+#define GOMENU_LABEL_WIDE			XRES(140)
 #define GOMENU_BUTTON_WIDE			XRES(80)
 #define GOMENU_BUTTON_GAP			XRES(4)
 
@@ -104,6 +104,7 @@ void CVoteGameOptionsPanel::BuildRows( void )
 	CSchemeManager *pSchemes = gViewPort->GetSchemeManager();
 	SchemeHandle_t hTitleScheme = pSchemes->getSchemeHandle( "Title Font" );
 	SchemeHandle_t hClassWindowText = pSchemes->getSchemeHandle( "Briefing Text" );
+	SchemeHandle_t hPrimaryButtonText = pSchemes->getSchemeHandle( "Primary Button Text" );
 
 	int r, g, b, a;
 	pSchemes->getFgColor( hTitleScheme, r, g, b, a );
@@ -163,7 +164,7 @@ void CVoteGameOptionsPanel::BuildRows( void )
 		// Title label on the left.
 		m_pRowLabels[k] = new Label( "", GOMENU_ROW_SPACER_Y, yPos );
 		m_pRowLabels[k]->setParent( m_pScrollPanel->getClient() );
-		m_pRowLabels[k]->setFont( pSchemes->getFont( hTitleScheme ) );
+		m_pRowLabels[k]->setFont( pSchemes->getFont( ScreenWidth >= 1024 ? hTitleScheme : hPrimaryButtonText ) );
 		m_pRowLabels[k]->setSize( GOMENU_LABEL_WIDE, GOMENU_ROW_HEIGHT );
 		m_pRowLabels[k]->setContentAlignment( vgui::Label::a_west );
 		m_pRowLabels[k]->setFgColor( r, g, b, 0 );
@@ -190,20 +191,30 @@ void CVoteGameOptionsPanel::BuildRows( void )
 			cmdBuf[sizeof(cmdBuf) - 1] = 0;
 			ActionSignal *pASig = new CMenuHandler_StringCommand( cmdBuf, false );
 
-			m_pRowButtons[k][o] = new ColorButton( it.labels[o],
+			vgui::Font *font = pSchemes->getFont(hPrimaryButtonText);
+			int delta = XRES(15), deltaY = YRES(9);
+			if (ScreenWidth <= 1024)
+			{
+				font = pSchemes->getFont(hClassWindowText);
+				delta = XRES(25);
+				deltaY = YRES(5);
+			}
+
+			char sz[64];
+			sprintf(sz, " %s", it.labels[o]);
+			m_pRowButtons[k][o] = new ColorButton( sz,
 				xPos, yPos, GOMENU_BUTTON_WIDE, GOMENU_ROW_HEIGHT, false, true );
 			m_pRowButtons[k][o]->setBoundKey( (char)255 );
-			m_pRowButtons[k][o]->setContentAlignment( vgui::Label::a_northwest );
+			m_pRowButtons[k][o]->setContentAlignment( vgui::Label::a_west );
 			m_pRowButtons[k][o]->addActionSignal( pASig );
 			m_pRowButtons[k][o]->setParent( m_pScrollPanel->getClient() );
-			m_pRowButtons[k][o]->setFont( pSchemes->getFont( hTitleScheme ) );
+			m_pRowButtons[k][o]->setFont( font );
 
 			m_pRowVoteTallies[k][o] = new Label( "0",
-				GOMENU_BUTTON_WIDE - XRES(18), YRES(2) );
+				GOMENU_BUTTON_WIDE - XRES(22), GOMENU_ROW_HEIGHT / 2.5f );
 			m_pRowVoteTallies[k][o]->setParent( m_pRowButtons[k][o] );
-			m_pRowVoteTallies[k][o]->setFont( pSchemes->getFont( hTitleScheme ) );
-			m_pRowVoteTallies[k][o]->setContentAlignment( vgui::Label::a_east );
-			m_pRowVoteTallies[k][o]->setSize( XRES(14), YRES(14) );
+			m_pRowVoteTallies[k][o]->setFont( font );
+			m_pRowVoteTallies[k][o]->setContentAlignment( vgui::Label::a_northeast );
 			m_pRowVoteTallies[k][o]->setFgColor( r, g, b, 0 );
 			m_pRowVoteTallies[k][o]->setBgColor( 0, 0, 0, 255 );
 		}
@@ -324,9 +335,11 @@ void CVoteGameOptionsPanel::Update()
 			// white winner border.
 			Color borderColor;
 			if ( isMine )
-				borderColor = Color( 255, 255, 0, a );
-			else if ( isWinner )
+			{
 				borderColor = Color( 255, 255, 255, a );
+				if ( tly )
+					tly->setFgColor(255, 255, 255, 0);
+			}	
 			else
 				borderColor = Color( r, g, b, a );
 			btn->setBorder( new LineBorder( borderColor ) );
@@ -334,18 +347,11 @@ void CVoteGameOptionsPanel::Update()
 			if ( counts[o] > 0 )
 			{
 				btn->setArmed( true );
-				if ( isWinner )
-				{
-					btn->setBgColor( r, g, b, 0 );
-					btn->setArmedColor( 255, 255, 255, 0 );
-					if ( tly ) tly->setFgColor( 255, 255, 255, 0 );
-				}
-				else
-				{
-					btn->setBgColor( r, g, b, 255 );
-					btn->setArmedColor( r, g, b, 0 );
-					if ( tly ) tly->setFgColor( r, g, b, 0 );
-				}
+				btn->setBgColor(r, g, b, 255);
+				if ( isMine )
+					btn->setArmedColor(255, 255, 255, 0);
+				else 
+					btn->setArmedColor(r, g, b, 0);
 			}
 			else
 			{

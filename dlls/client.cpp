@@ -806,7 +806,7 @@ void Vote( CBasePlayer *pPlayer, int vote )
 			ALERT(at_aiconsole, "id[%d] please provide a vote tally e.g. \"vote 1\"\n", pPlayer->entindex());
 		}
 
-		pPlayer->m_fVoteCoolDown = gpGlobals->time + 1.0;
+		pPlayer->m_fVoteCoolDown = gpGlobals->time + 0.5;
 	}
 	else
 	{
@@ -878,7 +878,7 @@ void VoteOption( CBasePlayer *pPlayer, int item, int option )
 	ClientPrint(pPlayer->pev, HUD_PRINTTALK, UTIL_VarArgs("[VOTE] You voted \"%s\" on %s.\n",
 		g_GameOptions[realIdx].labels[option - 1], g_GameOptions[realIdx].title));
 
-	pPlayer->m_fVoteCoolDown = gpGlobals->time + 1.0;
+	pPlayer->m_fVoteCoolDown = gpGlobals->time + 0.5;
 }
 
 // Chat-driven RTV for game-options. Mirrors MutatorVote(); substring match
