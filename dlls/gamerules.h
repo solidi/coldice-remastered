@@ -371,6 +371,8 @@ public:
 
 #define VOTE_GAMEPLAY_TRANSITION 1
 #define VOTE_GAMEPLAY_OPEN 2
+#define VOTE_GAMEOPTIONS_TRANSITION 7
+#define VOTE_GAMEOPTIONS_OPEN 8
 #define VOTE_MUTATORS_TRANSITION 3
 #define VOTE_MUTATORS_OPEN 4
 #define VOTE_MAPS_TRANSITION 5
@@ -496,6 +498,7 @@ public:
 	// Immediately end a multiplayer game
 	virtual void EndMultiplayerGame( void ) { GoToIntermission(); }
 	virtual void VoteForMutator( void );
+	virtual void VoteForGameOptions( BOOL fromRTV );
 	int RandomizeMutator( void );
 
 	virtual BOOL IsArmoredMan( CBasePlayer *pPlayer ) { return FALSE; }
@@ -519,6 +522,27 @@ public:
 	void SavePlayerModel(CBasePlayer *pPlayer);
 	void ResetPlayerSettings(CBasePlayer *pPlayer);
 	void CheckMutatorRTV( void );
+	void CheckGameOptionsRTV( void );                 // public: mid-game game-options RTV timer
+	void SendGameOptionsToClient( edict_t *client );  // public: client.cpp::gameoptions_resend command
+	void BuildActiveGameOptions( void );              // public: filter g_GameOptions[] for the current g_GameMode
+	void TallyGameOptionsVote( BOOL fromRTV );        // public: count + apply per-item votes
+
+	// Game-options voting state (per intermission / per RTV cycle).
+	// m_iActiveGameOptions[] holds indices into g_GameOptions[] for items
+	// whose 'game' filter matches the current mode (or "*"). Tally is a 2D
+	// matrix: player entindex -> per-active-item option vote.
+	// Public so client.cpp::VoteOption() / ::GameOptionsVote() can read+write
+	// without virtual-function plumbing; mirrors the public m_iVoteCount[] on
+	// the base class.
+	int      m_iActiveGameOptions[32];
+	int      m_iActiveGameOptionsCount;
+	int      m_iGameOptionsVotes[32][32];      // [entindex-1][activeItemIdx] -> option index, -1 unvoted
+	float    m_fGameOptionsLastSent[32];
+	int      m_iGameOptionsRevisionSent[32];
+	BOOL     m_bGameOptionsRTVOnly;
+	edict_t *m_pGameOptionsRTVInitiator;
+	float    m_fGameOptionsVoteTime;            // mid-game RTV open expiry (0 = inactive)
+	int      m_iElectedGameMode;                // gameplay-vote winner pending mp_gamemode apply; -1 = use g_GameMode
 
 protected:
 	virtual void ChangeLevel( void );
@@ -570,5 +594,41 @@ extern int  g_iServerMapCount;
 
 void BuildServerMapList( void );          // (re)parse mapcyclefile into the arrays above
 void EnsureServerMapList( void );         // build only if not yet built / file changed
+
+// Dynamic game-options manifest, parsed from gameoptions.txt at runtime.
+// Each item is one cvar with 2..5 voter-selectable options, filterable by
+// game mode short-name (or "*" for any mode). File order is preserved.
+// See workspace/ai/game_options_system.md for the full file-format spec.
+#define MAX_GAME_OPTIONS         32
+#define MAX_GAME_OPTION_VALUES   5
+#define MAX_GAME_OPTION_TITLE    64
+#define MAX_GAME_OPTION_CVAR     32
+#define MAX_GAME_OPTION_LABEL    24
+#define MAX_GAME_OPTION_GAME     16
+#define MAX_GAME_OPTION_VALUE    32
+
+struct game_option_t
+{
+	char game[MAX_GAME_OPTION_GAME];
+	char cvar[MAX_GAME_OPTION_CVAR];
+	char title[MAX_GAME_OPTION_TITLE];
+	BOOL restart;
+	int  numOptions;
+	char labels[MAX_GAME_OPTION_VALUES][MAX_GAME_OPTION_LABEL];
+	char values[MAX_GAME_OPTION_VALUES][MAX_GAME_OPTION_VALUE];
+};
+
+extern game_option_t g_GameOptions[MAX_GAME_OPTIONS];
+extern int           g_iGameOptionsCount;
+extern int           g_iGameOptionsRevision;
+extern int           g_iGameOptionsParseErrors;
+
+#define GAME_OPTIONS_PARSE_LOG_LINES 16
+#define GAME_OPTIONS_PARSE_LOG_WIDTH 128
+extern char g_szGameOptionsParseLog[GAME_OPTIONS_PARSE_LOG_LINES][GAME_OPTIONS_PARSE_LOG_WIDTH];
+extern int  g_iGameOptionsParseLogCount;
+
+void BuildGameOptionsList( void );        // (re)parse gameoptions.txt; bumps revision
+void EnsureGameOptionsList( void );       // build only if not yet built / file changed
 
 #endif	//GAMERULES_H

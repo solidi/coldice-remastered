@@ -163,6 +163,21 @@ int  g_iClientMapSizes[MAX_CLIENT_MAPS];
 int  g_iClientMapCount = 0;
 bool g_bMapListReceived = false;
 
+// ---------------------------------------------------------------------------
+// Dynamic client-side game-options list, populated by MsgFunc_GameOpts.
+// Mirrors the server's g_GameOptions[] (gameoptions.txt). Cvar names and
+// values are NEVER stored client-side: the panel sends only "voteopt <item>
+// <option>" and the server resolves to the actual cvar.
+// ---------------------------------------------------------------------------
+client_game_option_t g_GameOptionsClient[MAX_CLIENT_GAME_OPTIONS];
+int                  g_iGameOptionsClientCount       = 0;
+int                  g_iGameOptionsRevisionClient    = -1;
+bool                 g_bGameOptionsReceived          = false;
+int                  g_iActiveGameOptionsClient[MAX_CLIENT_GAME_OPTIONS];
+int                  g_iActiveGameOptionsClientCount = 0;
+int                  g_PlayerOptVote[MAX_PLAYERS + 1][MAX_CLIENT_GAME_OPTIONS];
+bool                 g_bGameOptsResendRequested      = false;
+
 const char *MapSizeLabel( int size )
 {
 	switch ( size )
@@ -689,6 +704,7 @@ TeamFortressViewport::TeamFortressViewport(int x,int y,int wide,int tall) : Pane
 	m_pVoteGameplayMenu = NULL;
 	m_pVoteMapMenu = NULL;
 	m_pVoteMutatorMenu = NULL;
+	m_pVoteGameOptionsMenu = NULL;
 
 	Initialize();
 	addInputSignal( new CViewPortInputHandler );
@@ -750,6 +766,7 @@ TeamFortressViewport::TeamFortressViewport(int x,int y,int wide,int tall) : Pane
 	CreateVoteGameplayMenu();
 	CreateVoteMapMenu();
 	CreateVoteMutatorMenu();
+	CreateVoteGameOptionsMenu();
 
 	// Init command menus
 	m_iNumMenus = 0;
@@ -803,6 +820,10 @@ void TeamFortressViewport::Initialize( void )
 	if (m_pVoteMutatorMenu)
 	{
 		m_pVoteMutatorMenu->Initialize();
+	}
+	if (m_pVoteGameOptionsMenu)
+	{
+		m_pVoteGameOptionsMenu->Initialize();
 	}
 	if (m_pScoreBoard)
 	{
@@ -2041,7 +2062,8 @@ void TeamFortressViewport::ShowVGUIMenu( int iMenu, int timer )
 	// after map change, before intermission's turned off
 	if ( gHUD.m_iIntermission && 
 		(iMenu != MENU_INTRO 
-		&& iMenu != MENU_VOTEGAMEPLAY && iMenu != MENU_VOTEMAP && iMenu != MENU_VOTEMUTATOR) )
+		&& iMenu != MENU_VOTEGAMEPLAY && iMenu != MENU_VOTEMAP && iMenu != MENU_VOTEMUTATOR
+		&& iMenu != MENU_VOTEGAMEOPTIONS) )
 		return;
 
 	// Don't create one if it's already in the list
@@ -2092,6 +2114,10 @@ void TeamFortressViewport::ShowVGUIMenu( int iMenu, int timer )
 
 	case MENU_VOTEMUTATOR:
 		pNewMenu = ShowVoteMutatorMenu(timer);
+		break;
+
+	case MENU_VOTEGAMEOPTIONS:
+		pNewMenu = ShowVoteGameOptionsMenu(timer);
 		break;
 
 	default:
@@ -2279,6 +2305,30 @@ void TeamFortressViewport::CreateVoteMutatorMenu()
 }
 
 //======================================================================================
+// VOTE GAME-OPTIONS MENU
+//======================================================================================
+
+CMenuPanel* TeamFortressViewport::ShowVoteGameOptionsMenu(int timer)
+{
+	// Don't open menus in demo playback
+	if ( gEngfuncs.pDemoAPI->IsPlayingback() )
+		return NULL;
+	if ( !m_pVoteGameOptionsMenu )
+		return NULL;
+
+	m_pVoteGameOptionsMenu->Reset();
+	m_pVoteGameOptionsMenu->m_iTime = timer;
+	return m_pVoteGameOptionsMenu;
+}
+
+void TeamFortressViewport::CreateVoteGameOptionsMenu()
+{
+	m_pVoteGameOptionsMenu = new CVoteGameOptionsPanel(35, false, 0, 0, ScreenWidth, ScreenHeight);
+	m_pVoteGameOptionsMenu->setParent(this);
+	m_pVoteGameOptionsMenu->setVisible( false );
+}
+
+//======================================================================================
 //======================================================================================
 // SPECTATOR MENU
 //======================================================================================
@@ -2309,6 +2359,8 @@ void TeamFortressViewport::UpdateOnPlayerInfo()
 		m_pVoteMapMenu->Update();
 	if (m_pVoteMutatorMenu && m_pVoteMutatorMenu->isVisible())
 		m_pVoteMutatorMenu->Update();
+	if (m_pVoteGameOptionsMenu && m_pVoteGameOptionsMenu->isVisible())
+		m_pVoteGameOptionsMenu->Update();
 	if (m_pScoreBoard)
 		m_pScoreBoard->Update();
 }
@@ -2419,6 +2471,11 @@ void TeamFortressViewport::paintBackground()
 	if ( m_pVoteMutatorMenu->isVisible() )
 	{
 		m_pVoteMutatorMenu->Update();
+	}
+
+	if ( m_pVoteGameOptionsMenu && m_pVoteGameOptionsMenu->isVisible() )
+	{
+		m_pVoteGameOptionsMenu->Update();
 	}
 
 	int extents[4];
@@ -2779,6 +2836,166 @@ int TeamFortressViewport::MsgFunc_MapList( const char *pszName, int iSize, void 
 	if ( isLast )
 		g_bMapListReceived = true;
 
+	return 1;
+}
+
+// ---------------------------------------------------------------------------
+// MsgFunc_GameOpts -- receive chunked game-options manifest from server.
+// Format (per chunk, matches CHalfLifeMultiplay::SendGameOptionsToClient):
+//   BYTE  revision
+//   BYTE  seq
+//   BYTE  isLast
+//   BYTE  total
+//   BYTE  numInChunk
+//   For each item in chunk:
+//     STRING game (max 16)
+//     STRING cvar (max 32)          -- server-only, drained here
+//     STRING title (max 64)
+//     BYTE   restart (0/1)
+//     BYTE   numOptions
+//     For each option:
+//       STRING label (max 24)
+//       STRING value (max 32)       -- server-only, drained here
+// G6: every chunk carries the revision -- if it changes mid-stream we drop
+// the partial buffer and request a resend.
+// ---------------------------------------------------------------------------
+int TeamFortressViewport::MsgFunc_GameOpts( const char *pszName, int iSize, void *pbuf )
+{
+	BEGIN_READ( pbuf, iSize );
+	int revision   = READ_BYTE();
+	int seq        = READ_BYTE();
+	int isLast     = READ_BYTE();
+	int total      = READ_BYTE();
+	int numInChunk = READ_BYTE();
+
+	// G6: if revision shifted mid-stream, abort and re-request.
+	if ( seq != 0 && revision != g_iGameOptionsRevisionClient )
+	{
+		g_iGameOptionsClientCount   = 0;
+		g_bGameOptionsReceived      = false;
+		if ( !g_bGameOptsResendRequested )
+		{
+			g_bGameOptsResendRequested = true;
+			gEngfuncs.pfnClientCmd( "gameoptions_resend\n" );
+		}
+		return 1;
+	}
+
+	if ( seq == 0 )
+	{
+		g_iGameOptionsClientCount      = 0;
+		g_iGameOptionsRevisionClient   = revision;
+		g_bGameOptionsReceived         = false;
+		g_bGameOptsResendRequested     = false;
+		if ( total < 0 ) total = 0;
+		if ( total > MAX_CLIENT_GAME_OPTIONS ) total = MAX_CLIENT_GAME_OPTIONS;
+	}
+
+	for ( int i = 0; i < numInChunk; i++ )
+	{
+		if ( g_iGameOptionsClientCount >= MAX_CLIENT_GAME_OPTIONS )
+		{
+			// Drain remaining fields in this slot so the parser stays aligned.
+			READ_STRING(); READ_STRING(); READ_STRING(); READ_BYTE();
+			int nopt = READ_BYTE();
+			for ( int o = 0; o < nopt; o++ ) { READ_STRING(); READ_STRING(); }
+			continue;
+		}
+		client_game_option_t &slot = g_GameOptionsClient[g_iGameOptionsClientCount];
+		// READ_STRING returns a pointer to a shared static engine buffer that
+		// the next READ_STRING call overwrites. Copy each token immediately.
+		const char *tmp;
+		tmp = READ_STRING();
+		strncpy( slot.game, tmp ? tmp : "", sizeof(slot.game) - 1 );
+		slot.game[sizeof(slot.game) - 1] = 0;
+		READ_STRING();                          // cvar -- server-only
+		tmp = READ_STRING();
+		strncpy( slot.title, tmp ? tmp : "", sizeof(slot.title) - 1 );
+		slot.title[sizeof(slot.title) - 1] = 0;
+		int restart       = READ_BYTE();
+		int nopt          = READ_BYTE();
+		if ( nopt < 0 ) nopt = 0;
+		if ( nopt > MAX_CLIENT_GAME_OPTION_VALUES ) nopt = MAX_CLIENT_GAME_OPTION_VALUES;
+
+		slot.restart    = restart ? 1 : 0;
+		slot.numOptions = nopt;
+
+		for ( int o = 0; o < nopt; o++ )
+		{
+			tmp = READ_STRING();
+			strncpy( slot.labels[o], tmp ? tmp : "", sizeof(slot.labels[o]) - 1 );
+			slot.labels[o][sizeof(slot.labels[o]) - 1] = 0;
+			READ_STRING();                      // value -- server-only
+		}
+
+		g_iGameOptionsClientCount++;
+	}
+
+	if ( isLast )
+		g_bGameOptionsReceived = true;
+
+	return 1;
+}
+
+// MsgFunc_VoteOpts -- open or close the per-item game-options vote panel.
+// Format: BYTE revision, BYTE timer, BYTE activeCount, BYTE[activeCount] indices
+// timer == 0 means close (clear votes + hide panel).
+// G6: if revision doesn't match what we have, request a resend and skip open.
+int TeamFortressViewport::MsgFunc_VoteOpts( const char *pszName, int iSize, void *pbuf )
+{
+	BEGIN_READ( pbuf, iSize );
+	int revision    = READ_BYTE();
+	int timer       = READ_BYTE();
+	int activeCount = READ_BYTE();
+
+	if ( timer == 0 )
+	{
+		for ( int i = 0; i <= MAX_PLAYERS; i++ )
+			for ( int k = 0; k < MAX_CLIENT_GAME_OPTIONS; k++ )
+				g_PlayerOptVote[i][k] = -1;
+		g_iActiveGameOptionsClientCount = 0;
+		HideVGUIMenu();
+		return 1;
+	}
+
+	if ( activeCount < 0 ) activeCount = 0;
+	if ( activeCount > MAX_CLIENT_GAME_OPTIONS ) activeCount = MAX_CLIENT_GAME_OPTIONS;
+	g_iActiveGameOptionsClientCount = activeCount;
+	for ( int k = 0; k < activeCount; k++ )
+		g_iActiveGameOptionsClient[k] = READ_BYTE();
+
+	for ( int i = 0; i <= MAX_PLAYERS; i++ )
+		for ( int k = 0; k < MAX_CLIENT_GAME_OPTIONS; k++ )
+			g_PlayerOptVote[i][k] = -1;
+
+	if ( revision != g_iGameOptionsRevisionClient || !g_bGameOptionsReceived )
+	{
+		if ( !g_bGameOptsResendRequested )
+		{
+			g_bGameOptsResendRequested = true;
+			gEngfuncs.pfnClientCmd( "gameoptions_resend\n" );
+		}
+		// G4: still open a placeholder panel so the user sees the timer.
+	}
+
+	ShowVGUIMenu( MENU_VOTEGAMEOPTIONS, timer );
+	return 1;
+}
+
+// MsgFunc_VOptFor -- mirror one client's per-item vote to all clients for
+// the live tally display. BYTE client, BYTE item (1-based), BYTE option (1-based).
+int TeamFortressViewport::MsgFunc_VOptFor( const char *pszName, int iSize, void *pbuf )
+{
+	BEGIN_READ( pbuf, iSize );
+	int client = READ_BYTE();
+	int item   = READ_BYTE();
+	int option = READ_BYTE();
+
+	if ( client < 1 || client > MAX_PLAYERS ) return 1;
+	if ( item   < 1 || item   > g_iActiveGameOptionsClientCount ) return 1;
+	if ( option < 1 || option > MAX_CLIENT_GAME_OPTION_VALUES )   return 1;
+
+	g_PlayerOptVote[client][item - 1] = option - 1;
 	return 1;
 }
 

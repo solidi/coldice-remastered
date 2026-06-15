@@ -216,6 +216,9 @@ int gmsgVoteGameplay = 0;
 int gmsgVoteMap = 0;
 int gmsgVoteMutator = 0;
 int gmsgMapList = 0;
+int gmsgGameOpts = 0;
+int gmsgVoteOpts = 0;
+int gmsgVOptFor = 0;
 int gmsgCtfInfo = 0;
 int gmsgAddMutator = 0;
 int gmsgFog = 0;
@@ -291,6 +294,9 @@ void LinkUserMessages( void )
 	gmsgVoteMap = REG_USER_MSG("VoteMap", 1);
 	gmsgVoteMutator = REG_USER_MSG("VoteMutator", 1);
 	gmsgMapList = REG_USER_MSG("MapList", -1);  // dynamic-length: chunked map manifest
+	gmsgGameOpts = REG_USER_MSG("GameOpts", -1);  // dynamic-length: chunked game-options manifest
+	gmsgVoteOpts = REG_USER_MSG("VoteOpts", -1);  // dynamic-length: open/close + active-item index list
+	gmsgVOptFor  = REG_USER_MSG("VOptFor", 3);    // BYTE client, BYTE item, BYTE option
 	gmsgCtfInfo = REG_USER_MSG("CtfInfo", 4);
 	gmsgAddMutator = REG_USER_MSG("AddMut", -1);
 	gmsgFog = REG_USER_MSG("Fog", 9);
@@ -1979,7 +1985,7 @@ void CBasePlayer::PlayerDeathThink(void)
 		pev->angles = pev->v_angle = m_vecChilldemicRespawnAngles;
 		pev->fixangle = TRUE;
 		pev->flags |= FL_GODMODE;
-		m_fLastSpawnTime = gpGlobals->time + 3.0f;
+		m_fLastSpawnTime = gpGlobals->time + spawnprotectiontime.value;
 		m_fEffectTime = gpGlobals->time + 0.25f;
 		UTIL_ScreenFade(this, Vector(200, 0, 0), 0.25f, 0.5f, 128, FFADE_IN);
 

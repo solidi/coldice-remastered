@@ -54,6 +54,9 @@ extern int gmsgShowTimer;
 extern int gmsgRoundTime;
 extern int gmsgAddMutator;
 extern int gmsgBanner;
+extern int gmsgGameOpts;
+extern int gmsgVoteOpts;
+extern int gmsgVOptFor;
 
 extern DLL_GLOBAL int g_GameMode;
 extern int gmsgPlayClientSound;
@@ -106,6 +109,17 @@ CHalfLifeMultiplay :: CHalfLifeMultiplay()
 	m_iVoteUnderway = 0;
 	m_iDecidedMapIndex = -1;
 	m_fMutatorVoteTime = 0;
+
+	// Game-options voting state. -1 in m_iGameOptionsVotes means "unvoted".
+	m_iActiveGameOptionsCount = 0;
+	memset(m_iActiveGameOptions, 0, sizeof(m_iActiveGameOptions));
+	memset(m_iGameOptionsVotes, -1, sizeof(m_iGameOptionsVotes));
+	memset(m_fGameOptionsLastSent, 0, sizeof(m_fGameOptionsLastSent));
+	memset(m_iGameOptionsRevisionSent, 0, sizeof(m_iGameOptionsRevisionSent));
+	m_bGameOptionsRTVOnly = FALSE;
+	m_pGameOptionsRTVInitiator = NULL;
+	m_fGameOptionsVoteTime = 0;
+	m_iElectedGameMode = -1;
 	
 	// 11/8/98
 	// Modified by YWB:  Server .cfg file is now a cvar, so that 
@@ -221,6 +235,18 @@ int  g_iServerMapSizes[MAX_SERVER_MAPS];
 int  g_iServerMapCount = 0;
 static char g_szPreviousMapListFile[64] = "";
 
+// Dynamic game-options manifest (built from gameoptions.txt at runtime).
+// See gamerules.h for the struct and workspace/ai/game_options_system.md for
+// the full file-format spec. Manifest is broadcast to clients on connect and
+// every time the active subset changes.
+game_option_t g_GameOptions[MAX_GAME_OPTIONS];
+int           g_iGameOptionsCount = 0;
+int           g_iGameOptionsRevision = 0;
+int           g_iGameOptionsParseErrors = 0;
+char          g_szGameOptionsParseLog[GAME_OPTIONS_PARSE_LOG_LINES][GAME_OPTIONS_PARSE_LOG_WIDTH];
+int           g_iGameOptionsParseLogCount = 0;
+static char   g_szPreviousGameOptionsFile[64] = "";
+
 char *gamePlayModes[] = {
 	"Deathmatch",		// 0  GAME_FFA
 	"1 vs. 1",			// 1  GAME_ARENA
@@ -296,6 +322,7 @@ void CHalfLifeMultiplay :: Think ( void )
 	int time_remaining = 0;
 
 	CheckMutatorRTV();
+	CheckGameOptionsRTV();
 
 	if ( g_fGameOver )   // someone else quit the game already
 	{
@@ -306,7 +333,7 @@ void CHalfLifeMultiplay :: Think ( void )
 		else if ( time > MAX_INTERMISSION_TIME )
 			CVAR_SET_STRING( "mp_chattime", UTIL_dtos1( MAX_INTERMISSION_TIME ) );
 
-		int timeLeft = (voting.value * 3) + 12;
+		int timeLeft = (voting.value * 4) + 12;
 		m_flIntermissionEndTime = g_flIntermissionStartTime + mp_chattime.value + timeLeft;
 
 		if (voting.value >= 10)
@@ -337,7 +364,7 @@ void CHalfLifeMultiplay :: Think ( void )
 			else if (m_iVoteUnderway == VOTE_GAMEPLAY_OPEN &&
 				((m_flIntermissionEndTime - mp_chattime.value - (timeLeft - voting.value - 3)) < gpGlobals->time))
 			{
-				m_iVoteUnderway = VOTE_MUTATORS_TRANSITION;
+				m_iVoteUnderway = VOTE_GAMEOPTIONS_TRANSITION;
 
 				MESSAGE_BEGIN(MSG_ALL, gmsgVoteGameplay);
 					WRITE_BYTE(0);
@@ -392,6 +419,11 @@ void CHalfLifeMultiplay :: Think ( void )
 
 					UTIL_ClientPrintAll(HUD_PRINTTALK, UTIL_VarArgs("[VOTE] %s is the next gameplay mode with %d votes!\n", gamePlayModes[gameIndex], highest));
 
+					// Remember the elected mode so the upcoming game-options vote
+					// filters against it instead of stale g_GameMode (intermission
+					// skips CheckGameMode() until the next map loads).
+					m_iElectedGameMode = gameIndex;
+
 					if (gameIndex == GAME_TEAMPLAY)
 					{
 						SERVER_COMMAND("mp_gamemode 0\n");
@@ -405,9 +437,99 @@ void CHalfLifeMultiplay :: Think ( void )
 				}
 			}
 
+			// Game-options vote STARTED
+			if (m_iVoteUnderway == VOTE_GAMEOPTIONS_TRANSITION &&
+				((m_flIntermissionEndTime - mp_chattime.value - (timeLeft - voting.value - 6)) < gpGlobals->time))
+			{
+				EnsureGameOptionsList();
+
+				// Build active subset for the just-elected gameplay mode.
+				BuildActiveGameOptions();
+
+				if (m_iActiveGameOptionsCount == 0)
+				{
+					// G8: nothing to vote on; skip directly to mutators and give the
+					// time back so we don't have dead air.
+					UTIL_ClientPrintAll(HUD_PRINTTALK, "[VOTE] No game options to vote on for current mode.\n");
+					m_iVoteUnderway = VOTE_MUTATORS_TRANSITION;
+					m_flIntermissionEndTime -= voting.value;
+					m_iElectedGameMode = -1;
+				}
+				else
+				{
+					m_iVoteUnderway = VOTE_GAMEOPTIONS_OPEN;
+
+					// G5: resend manifest to any client whose stored revision is stale
+					// before the vote-open message is broadcast.
+					for (int i = 1; i <= gpGlobals->maxClients; i++)
+					{
+						CBasePlayer *pPlayer = (CBasePlayer *)UTIL_PlayerByIndex(i);
+						if (pPlayer && !FBitSet(pPlayer->pev->flags, FL_FAKECLIENT) && !pPlayer->HasDisconnected
+							&& m_iGameOptionsRevisionSent[i - 1] != g_iGameOptionsRevision)
+						{
+							SendGameOptionsToClient(pPlayer->edict());
+						}
+					}
+
+					// Open the panel: revision + timer + activeCount + active indices.
+					MESSAGE_BEGIN(MSG_ALL, gmsgVoteOpts);
+						WRITE_BYTE(g_iGameOptionsRevision & 0xFF);
+						WRITE_BYTE((int)voting.value);
+						WRITE_BYTE(m_iActiveGameOptionsCount);
+						for (int k = 0; k < m_iActiveGameOptionsCount; k++)
+							WRITE_BYTE(m_iActiveGameOptions[k]);
+					MESSAGE_END();
+					MESSAGE_BEGIN(MSG_BROADCAST, gmsgPlayClientSound);
+						WRITE_BYTE(CLIENT_SOUND_VOTEGAMEOPTIONS);  // shared opening tone
+					MESSAGE_END();
+
+					// Reset tally and have bots cast random per-item votes.
+					// Broadcast each so clients populate g_PlayerOptVote[][] and
+					// see the bot's vote in the live tally (matches VoteOption()).
+					memset(m_iGameOptionsVotes, -1, sizeof(m_iGameOptionsVotes));
+					for (int i = 1; i <= gpGlobals->maxClients; i++)
+					{
+						CBasePlayer *pPlayer = (CBasePlayer *)UTIL_PlayerByIndex(i);
+						if (pPlayer && FBitSet(pPlayer->pev->flags, FL_FAKECLIENT) && !pPlayer->HasDisconnected)
+						{
+							for (int k = 0; k < m_iActiveGameOptionsCount; k++)
+							{
+								int realIdx = m_iActiveGameOptions[k];
+								int numOpts = g_GameOptions[realIdx].numOptions;
+								if (numOpts < 2) continue;
+								int pick = RANDOM_LONG(0, numOpts - 1);
+								m_iGameOptionsVotes[i - 1][k] = pick;
+
+								MESSAGE_BEGIN(MSG_ALL, gmsgVOptFor);
+									WRITE_BYTE(i);           // client index, 1-based
+									WRITE_BYTE(k + 1);       // item, 1-based
+									WRITE_BYTE(pick + 1);    // option, 1-based
+								MESSAGE_END();
+							}
+						}
+					}
+				}
+			}
+
+			// Game-options vote ended
+			if (m_iVoteUnderway == VOTE_GAMEOPTIONS_OPEN &&
+				((m_flIntermissionEndTime - mp_chattime.value - (timeLeft - (voting.value * 2) - 6)) < gpGlobals->time))
+			{
+				m_iVoteUnderway = VOTE_MUTATORS_TRANSITION;
+
+				MESSAGE_BEGIN(MSG_ALL, gmsgVoteOpts);
+					WRITE_BYTE(g_iGameOptionsRevision & 0xFF);
+					WRITE_BYTE(0);                  // timer=0 closes the panel
+					WRITE_BYTE(0);
+				MESSAGE_END();
+
+				TallyGameOptionsVote(FALSE);
+				m_iElectedGameMode = -1;
+			}
+
 			// Mutator vote STARTED
 			if (m_iVoteUnderway == VOTE_MUTATORS_TRANSITION &&
-				((m_flIntermissionEndTime - mp_chattime.value - (timeLeft - voting.value - 6)) < gpGlobals->time))
+				((m_flIntermissionEndTime - mp_chattime.value - (timeLeft - (voting.value * 2) - 9)) < gpGlobals->time))
 			{
 				m_iVoteUnderway = VOTE_MUTATORS_OPEN;
 
@@ -431,7 +553,7 @@ void CHalfLifeMultiplay :: Think ( void )
 
 			// Mutator vote ended
 			if (m_iVoteUnderway == VOTE_MUTATORS_OPEN &&
-				((m_flIntermissionEndTime - mp_chattime.value - (timeLeft - (voting.value * 2) - 6)) < gpGlobals->time))
+				((m_flIntermissionEndTime - mp_chattime.value - (timeLeft - (voting.value * 3) - 9)) < gpGlobals->time))
 			{
 				m_iVoteUnderway = VOTE_MAPS_TRANSITION;
 
@@ -534,7 +656,7 @@ void CHalfLifeMultiplay :: Think ( void )
 
 			// Map vote STARTED
 			if (m_iVoteUnderway == VOTE_MAPS_TRANSITION &&
-				((m_flIntermissionEndTime - mp_chattime.value - (timeLeft - (voting.value * 2) - 9)) < gpGlobals->time))
+				((m_flIntermissionEndTime - mp_chattime.value - (timeLeft - (voting.value * 3) - 12)) < gpGlobals->time))
 			{
 				m_iVoteUnderway = VOTE_MAPS_OPEN;
 
@@ -563,7 +685,7 @@ void CHalfLifeMultiplay :: Think ( void )
 
 			// Map vote ended
 			if (m_iVoteUnderway == VOTE_MAPS_OPEN &&
-				(((m_flIntermissionEndTime - mp_chattime.value) - (timeLeft - (voting.value * 3) - 9)) < gpGlobals->time))
+				(((m_flIntermissionEndTime - mp_chattime.value) - (timeLeft - (voting.value * 4) - 12)) < gpGlobals->time))
 			{
 				m_iVoteUnderway = 0;
 
@@ -809,6 +931,10 @@ void CHalfLifeMultiplay::CheckMutatorRTV( void )
 			// tally votes
 			int vote[MAX_MUTATORS+2]; //+1, +1 RANDOM
 			memset(vote, -1, sizeof(vote));
+
+			MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
+				WRITE_BYTE( CLIENT_SOUND_EBELL );
+			MESSAGE_END();
 
 			for (int j = 1; j <= gpGlobals->maxClients; j++)
 			{
@@ -1519,7 +1645,10 @@ void CHalfLifeMultiplay :: InitHUD( CBasePlayer *pl )
 	// the vgui vote menu can show the right entries. Re-sent on every InitHUD
 	// in case the file changed between connections.
 	if (!FBitSet(pl->pev->flags, FL_FAKECLIENT))
+	{
 		SendMapListToClient( pl->edict() );
+		SendGameOptionsToClient( pl->edict() );
+	}
 
 	// loop through all active players and send their score info to the new client
 	for ( int i = 1; i <= gpGlobals->maxClients; i++ )
@@ -3751,6 +3880,780 @@ void CHalfLifeMultiplay :: SendMapListToClient( edict_t *client )
 		seq++;
 	}
 	while ( sent < total );
+}
+
+// ---------------------------------------------------------------------------
+// Game-options manifest: parser, cache, broadcast, and active-subset builder.
+// Mirrors the BuildServerMapList / SendMapListToClient pattern in this file.
+// File-format spec lives in workspace/ai/game_options_system.md.
+// ---------------------------------------------------------------------------
+
+#define GAME_OPTIONS_PER_CHUNK 2  // per-chunk byte budget stays under the 192-byte engine cap
+
+static void GameOptionsLogf( int line, const char *fmt, ... )
+{
+	if ( g_iGameOptionsParseLogCount >= GAME_OPTIONS_PARSE_LOG_LINES )
+	{
+		g_iGameOptionsParseErrors++;
+		return;
+	}
+	char body[GAME_OPTIONS_PARSE_LOG_WIDTH];
+	va_list ap;
+	va_start( ap, fmt );
+	vsnprintf( body, sizeof(body), fmt, ap );
+	va_end( ap );
+	snprintf( g_szGameOptionsParseLog[g_iGameOptionsParseLogCount], GAME_OPTIONS_PARSE_LOG_WIDTH,
+		"line %d: %s", line, body );
+	g_iGameOptionsParseLogCount++;
+	g_iGameOptionsParseErrors++;
+}
+
+// G1.h forbidden-character guard for option values: the apply step uses
+// CVAR_SET_STRING (not SERVER_COMMAND) but we still scrub at parse time so
+// operators don't ship a config that silently rejects a row at vote time.
+static BOOL GameOptionsValueClean( const char *s )
+{
+	if ( !s )
+		return FALSE;
+	for ( const char *p = s; *p; p++ )
+	{
+		if ( *p == ';' || *p == '\n' || *p == '\r' ||
+		     *p == '\"' || *p == '\\' || *p == '$' )
+			return FALSE;
+	}
+	return TRUE;
+}
+
+// G1.b: cvar names allow only [A-Za-z0-9_].
+static BOOL GameOptionsCvarNameClean( const char *s )
+{
+	if ( !s || !s[0] )
+		return FALSE;
+	for ( const char *p = s; *p; p++ )
+	{
+		char c = *p;
+		if ( !( (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') ||
+		        (c >= '0' && c <= '9') || c == '_' ) )
+			return FALSE;
+	}
+	return TRUE;
+}
+
+// Returns TRUE if `tag` is "*" or matches one of the entries in szGameModeList[].
+static BOOL GameOptionsGameTagValid( const char *tag )
+{
+	if ( !tag || !tag[0] )
+		return FALSE;
+	if ( !strcmp( tag, "*" ) )
+		return TRUE;
+	for ( int i = 0; i < TOTAL_GAME_MODES + 1; i++ )
+	{
+		if ( !stricmp( tag, szGameModeList[i] ) )
+			return TRUE;
+	}
+	return FALSE;
+}
+
+// Wraps COM_Parse and tracks 1-based source line numbers for log messages.
+// Caller maintains `line`; we count '\n' between the input cursor and the
+// freshly-returned token position. com_token receives the parsed token.
+static char *GameOptionsParse( char *cursor, int *line )
+{
+	if ( !cursor )
+		return NULL;
+	char *next = COM_Parse( cursor );
+	// Count newlines we just stepped over (cursor -> com_token start).
+	// com_token start isn't exposed, so scan cursor through next and count.
+	for ( char *p = cursor; p && p < next; p++ )
+	{
+		if ( *p == '\n' )
+			(*line)++;
+	}
+	return next;
+}
+
+void BuildGameOptionsList( void )
+{
+	const char *filename = "gameoptions.txt";
+	int length = 0;
+	char *pFile = (char *)LOAD_FILE_FOR_ME( (char *)filename, &length );
+
+	g_iGameOptionsCount = 0;
+	g_iGameOptionsParseErrors = 0;
+	g_iGameOptionsParseLogCount = 0;
+	memset( g_GameOptions, 0, sizeof(g_GameOptions) );
+
+	strncpy( g_szPreviousGameOptionsFile, filename, sizeof(g_szPreviousGameOptionsFile) - 1 );
+	g_szPreviousGameOptionsFile[sizeof(g_szPreviousGameOptionsFile) - 1] = 0;
+
+	if ( !pFile || length <= 0 )
+	{
+		if ( pFile )
+			FREE_FILE( pFile );
+		// G2.5: missing file is not an error.
+		ALERT( at_notice, "[GameOptions] gameoptions.txt not present; vote phase disabled.\n" );
+		return;
+	}
+
+	g_iGameOptionsRevision++;
+
+	int line = 1;
+	int itemSerial = 0;
+	char *cursor = pFile;
+	BOOL capped = FALSE;
+
+	while ( cursor )
+	{
+		cursor = GameOptionsParse( cursor, &line );
+		if ( !cursor || !com_token[0] )
+			break;
+
+		// Source-style block header: the leading token is the item title.
+		// Reject anything that looks like stray punctuation so we resync on
+		// malformed files instead of swallowing a brace as a title.
+		if ( !strcmp( com_token, "{" ) || !strcmp( com_token, "}" ) )
+		{
+			GameOptionsLogf( line, "expected item title, got \"%s\"", com_token );
+			continue;
+		}
+
+		char headerTitle[MAX_GAME_OPTION_TITLE];
+		strncpy( headerTitle, com_token, sizeof(headerTitle) - 1 );
+		headerTitle[sizeof(headerTitle) - 1] = 0;
+
+		int itemLine = line;
+		itemSerial++;
+
+		// G1.j cap: stop reading further items but keep parser well-behaved.
+		if ( g_iGameOptionsCount >= MAX_GAME_OPTIONS )
+		{
+			if ( !capped )
+			{
+				GameOptionsLogf( itemLine, "reached %d-item cap, ignoring remaining entries", MAX_GAME_OPTIONS );
+				capped = TRUE;
+			}
+			// Skip this whole item block.
+			int depth = 0;
+			do {
+				cursor = GameOptionsParse( cursor, &line );
+				if ( !cursor || !com_token[0] )
+					break;
+				if ( !strcmp( com_token, "{" ) ) depth++;
+				else if ( !strcmp( com_token, "}" ) ) depth--;
+			} while ( depth > 0 );
+			continue;
+		}
+
+		// Open brace.
+		cursor = GameOptionsParse( cursor, &line );
+		if ( !cursor || strcmp( com_token, "{" ) != 0 )
+		{
+			GameOptionsLogf( itemLine, "item #%d: expected '{'", itemSerial );
+			break;
+		}
+
+		game_option_t item;
+		memset( &item, 0, sizeof(item) );
+		item.restart = FALSE;
+		item.numOptions = 0;
+		BOOL haveCvar = FALSE, haveTitle = TRUE, haveGame = FALSE;
+		BOOL itemBad = FALSE;
+		strncpy( item.title, headerTitle, MAX_GAME_OPTION_TITLE - 1 );
+
+		while ( cursor )
+		{
+			cursor = GameOptionsParse( cursor, &line );
+			if ( !cursor || !com_token[0] )
+			{
+				GameOptionsLogf( itemLine, "item #%d: EOF inside block", itemSerial );
+				itemBad = TRUE;
+				break;
+			}
+			if ( !strcmp( com_token, "}" ) )
+				break;
+
+			char key[64];
+			strncpy( key, com_token, sizeof(key) - 1 );
+			key[sizeof(key) - 1] = 0;
+
+			if ( !stricmp( key, "options" ) )
+			{
+				// Expect '{', then label/value pairs until '}'.
+				cursor = GameOptionsParse( cursor, &line );
+				if ( !cursor || strcmp( com_token, "{" ) != 0 )
+				{
+					GameOptionsLogf( itemLine, "item #%d: options block missing '{'", itemSerial );
+					itemBad = TRUE;
+					break;
+				}
+				while ( cursor )
+				{
+					cursor = GameOptionsParse( cursor, &line );
+					if ( !cursor || !com_token[0] )
+					{
+						GameOptionsLogf( itemLine, "item #%d: EOF inside options block", itemSerial );
+						itemBad = TRUE;
+						break;
+					}
+					if ( !strcmp( com_token, "}" ) )
+						break;
+
+					char label[MAX_GAME_OPTION_LABEL];
+					strncpy( label, com_token, sizeof(label) - 1 );
+					label[sizeof(label) - 1] = 0;
+
+					cursor = GameOptionsParse( cursor, &line );
+					if ( !cursor )
+					{
+						GameOptionsLogf( itemLine, "item #%d: EOF after option label \"%s\"", itemSerial, label );
+						itemBad = TRUE;
+						break;
+					}
+					const char *rawValue = com_token; // may be empty string when value omitted as ""
+
+					if ( item.numOptions >= MAX_GAME_OPTION_VALUES )
+					{
+						GameOptionsLogf( itemLine, "item #%d: more than %d options, extras ignored", itemSerial, MAX_GAME_OPTION_VALUES );
+						continue;
+					}
+					if ( !label[0] || strlen( label ) >= MAX_GAME_OPTION_LABEL )
+					{
+						GameOptionsLogf( itemLine, "item #%d: option label \"%s\" too long or empty, skipped", itemSerial, label );
+						continue;
+					}
+					const char *effective = ( rawValue && rawValue[0] ) ? rawValue : label;
+					if ( strlen( effective ) >= MAX_GAME_OPTION_VALUE )
+					{
+						GameOptionsLogf( itemLine, "item #%d: option value \"%s\" too long, skipped", itemSerial, effective );
+						continue;
+					}
+					if ( !GameOptionsValueClean( effective ) )
+					{
+						GameOptionsLogf( itemLine, "item #%d: option value \"%s\" contains forbidden character, skipped", itemSerial, effective );
+						continue;
+					}
+					strncpy( item.labels[item.numOptions], label, MAX_GAME_OPTION_LABEL - 1 );
+					strncpy( item.values[item.numOptions], effective, MAX_GAME_OPTION_VALUE - 1 );
+					item.numOptions++;
+				}
+				if ( itemBad ) break;
+				continue;
+			}
+
+			// All other keys take exactly one value token.
+			cursor = GameOptionsParse( cursor, &line );
+			if ( !cursor )
+			{
+				GameOptionsLogf( itemLine, "item #%d: EOF after key \"%s\"", itemSerial, key );
+				itemBad = TRUE;
+				break;
+			}
+			const char *value = com_token;
+
+			if ( !stricmp( key, "cvar" ) )
+			{
+				if ( !value || !value[0] )
+				{
+					GameOptionsLogf( itemLine, "item #%d: empty cvar field, skipped", itemSerial );
+					itemBad = TRUE;
+				}
+				else if ( strlen( value ) >= MAX_GAME_OPTION_CVAR )
+				{
+					GameOptionsLogf( itemLine, "item #%d: cvar \"%s\" too long, skipped", itemSerial, value );
+					itemBad = TRUE;
+				}
+				else if ( !GameOptionsCvarNameClean( value ) )
+				{
+					GameOptionsLogf( itemLine, "item #%d: cvar \"%s\" has invalid characters, skipped", itemSerial, value );
+					itemBad = TRUE;
+				}
+				else
+				{
+					strncpy( item.cvar, value, MAX_GAME_OPTION_CVAR - 1 );
+					haveCvar = TRUE;
+				}
+			}
+			else if ( !stricmp( key, "title" ) )
+			{
+				// Legacy override: explicit "title" key replaces the block header.
+				if ( value && value[0] && strlen( value ) < MAX_GAME_OPTION_TITLE )
+				{
+					strncpy( item.title, value, MAX_GAME_OPTION_TITLE - 1 );
+					haveTitle = TRUE;
+				}
+				else
+				{
+					GameOptionsLogf( itemLine, "item #%d: title \"%s\" empty or too long, ignored", itemSerial, value ? value : "" );
+				}
+			}
+			else if ( !stricmp( key, "game" ) )
+			{
+				if ( !GameOptionsGameTagValid( value ) )
+				{
+					GameOptionsLogf( itemLine, "item #%d: unknown game tag \"%s\", skipped", itemSerial, value ? value : "" );
+					itemBad = TRUE;
+				}
+				else
+				{
+					strncpy( item.game, value, MAX_GAME_OPTION_GAME - 1 );
+					haveGame = TRUE;
+				}
+			}
+			else if ( !stricmp( key, "restart" ) )
+			{
+				item.restart = ( atoi( value ) != 0 ) ? TRUE : FALSE;
+			}
+			else
+			{
+				// Source-style format: any other key is a vote-option label/value pair.
+				const char *effective = ( value && value[0] ) ? value : key;
+				if ( item.numOptions >= MAX_GAME_OPTION_VALUES )
+				{
+					GameOptionsLogf( itemLine, "item #%d: more than %d options, \"%s\" ignored", itemSerial, MAX_GAME_OPTION_VALUES, key );
+				}
+				else if ( strlen( key ) >= MAX_GAME_OPTION_LABEL )
+				{
+					GameOptionsLogf( itemLine, "item #%d: option label \"%s\" too long, skipped", itemSerial, key );
+				}
+				else if ( strlen( effective ) >= MAX_GAME_OPTION_VALUE )
+				{
+					GameOptionsLogf( itemLine, "item #%d: option value \"%s\" too long, skipped", itemSerial, effective );
+				}
+				else if ( !GameOptionsValueClean( effective ) )
+				{
+					GameOptionsLogf( itemLine, "item #%d: option value \"%s\" contains forbidden character, skipped", itemSerial, effective );
+				}
+				else
+				{
+					strncpy( item.labels[item.numOptions], key, MAX_GAME_OPTION_LABEL - 1 );
+					strncpy( item.values[item.numOptions], effective, MAX_GAME_OPTION_VALUE - 1 );
+					item.numOptions++;
+				}
+			}
+		}
+
+		if ( itemBad )
+			continue;
+
+		// G1 final checks per accepted item.
+		if ( !haveCvar )
+		{
+			GameOptionsLogf( itemLine, "item #%d: missing cvar field, skipped", itemSerial );
+			continue;
+		}
+		if ( !haveTitle )
+		{
+			GameOptionsLogf( itemLine, "item #%d (%s): missing title, skipped", itemSerial, item.cvar );
+			continue;
+		}
+		if ( !haveGame )
+		{
+			GameOptionsLogf( itemLine, "item #%d (%s): missing game tag, skipped", itemSerial, item.cvar );
+			continue;
+		}
+		if ( item.numOptions < 2 )
+		{
+			GameOptionsLogf( itemLine, "item #%d (%s): need 2-5 options, got %d, skipped", itemSerial, item.cvar, item.numOptions );
+			continue;
+		}
+		// G1.c: cvar must be registered with the engine.
+		if ( !CVAR_GET_POINTER( item.cvar ) )
+		{
+			GameOptionsLogf( itemLine, "item #%d: cvar \"%s\" is not registered, skipped", itemSerial, item.cvar );
+			continue;
+		}
+		// G1.i: no duplicate cvar.
+		BOOL dup = FALSE;
+		for ( int k = 0; k < g_iGameOptionsCount; k++ )
+		{
+			if ( !stricmp( g_GameOptions[k].cvar, item.cvar ) && !stricmp( g_GameOptions[k].game, item.game ) )
+			{
+				GameOptionsLogf( itemLine, "item #%d: duplicate cvar \"%s\" already at item %d, skipped", itemSerial, item.cvar, k + 1 );
+				dup = TRUE;
+				break;
+			}
+		}
+		if ( dup )
+			continue;
+
+		g_GameOptions[g_iGameOptionsCount] = item;
+		g_iGameOptionsCount++;
+	}
+
+	FREE_FILE( pFile );
+
+	int warns = 0;
+	int errs = g_iGameOptionsParseErrors;
+	ALERT( at_notice, "[GameOptions] Loaded %d item(s) from gameoptions.txt (%d error(s), %d warning(s))\n",
+		g_iGameOptionsCount, errs, warns );
+	if ( errs > 0 )
+		ALERT( at_notice, "[GameOptions] Use 'gameoptions_status' for details.\n" );
+	if ( g_iGameOptionsCount == 0 && length > 0 )
+		ALERT( at_notice, "[GameOptions] WARNING: no valid items loaded; vote phase will be skipped.\n" );
+}
+
+void EnsureGameOptionsList( void )
+{
+	if ( g_iGameOptionsCount == 0 && g_iGameOptionsRevision == 0 )
+		BuildGameOptionsList();
+}
+
+/*
+==============
+SendGameOptionsToClient
+
+Streams the manifest to one client in chunks. Format per chunk (all chunks
+carry the manifest revision so the client can detect mid-cycle reloads):
+  BYTE  revision     // G6: stamped on every chunk
+  BYTE  seq          // chunk index, 0-based
+  BYTE  isLast       // 1 on the final chunk, 0 otherwise
+  BYTE  total        // total item count (only meaningful on seq==0)
+  BYTE  numInChunk   // 1..GAME_OPTIONS_PER_CHUNK
+  repeat numInChunk:
+    STRING game
+    STRING cvar
+    STRING title
+    BYTE   restart
+    BYTE   numOptions
+    repeat numOptions:
+      STRING label
+      STRING value
+==============
+*/
+void CHalfLifeMultiplay::SendGameOptionsToClient( edict_t *client )
+{
+	if ( !client )
+		return;
+
+	EnsureGameOptionsList();
+
+	int total = g_iGameOptionsCount;
+	int seq = 0;
+	int sent = 0;
+
+	do
+	{
+		int remaining = total - sent;
+		int chunkSize = remaining;
+		if ( chunkSize > GAME_OPTIONS_PER_CHUNK )
+			chunkSize = GAME_OPTIONS_PER_CHUNK;
+		if ( chunkSize < 0 )
+			chunkSize = 0;
+
+		BOOL isLast = ( sent + chunkSize >= total ) ? TRUE : FALSE;
+
+		MESSAGE_BEGIN( MSG_ONE, gmsgGameOpts, NULL, client );
+			WRITE_BYTE( g_iGameOptionsRevision & 0xFF );
+			WRITE_BYTE( seq );
+			WRITE_BYTE( isLast ? 1 : 0 );
+			WRITE_BYTE( total );
+			WRITE_BYTE( chunkSize );
+			for ( int i = 0; i < chunkSize; i++ )
+			{
+				const game_option_t &it = g_GameOptions[sent + i];
+				WRITE_STRING( it.game );
+				WRITE_STRING( it.cvar );
+				WRITE_STRING( it.title );
+				WRITE_BYTE( it.restart ? 1 : 0 );
+				WRITE_BYTE( it.numOptions );
+				for ( int o = 0; o < it.numOptions; o++ )
+				{
+					WRITE_STRING( it.labels[o] );
+					WRITE_STRING( it.values[o] );
+				}
+			}
+		MESSAGE_END();
+
+		sent += chunkSize;
+		seq++;
+	}
+	while ( sent < total );
+
+	int idx = ENTINDEX( client );
+	if ( idx >= 1 && idx <= 32 )
+	{
+		m_fGameOptionsLastSent[idx - 1] = gpGlobals->time;
+		m_iGameOptionsRevisionSent[idx - 1] = g_iGameOptionsRevision;
+	}
+}
+
+/*
+==============
+BuildActiveGameOptions
+
+Filters g_GameOptions[] against the current g_GameMode short-name (or "*").
+Result lands in m_iActiveGameOptions[] / m_iActiveGameOptionsCount.
+File order is preserved (no sort).
+==============
+*/
+void CHalfLifeMultiplay::BuildActiveGameOptions( void )
+{
+	m_iActiveGameOptionsCount = 0;
+	const char *modeName = NULL;
+	// During the end-of-round flow CheckGameMode() is suppressed (intermission
+	// gate at the top of Think()), so g_GameMode still reflects the previous
+	// round even though the gameplay vote just elected a new mode. Prefer the
+	// elected mode if one is pending; falls through to g_GameMode for RTV.
+	int mode = ( m_iElectedGameMode >= 0 ) ? m_iElectedGameMode : g_GameMode;
+	if ( mode >= 0 && mode <= TOTAL_GAME_MODES )
+		modeName = szGameModeList[mode];
+
+	for ( int i = 0; i < g_iGameOptionsCount && m_iActiveGameOptionsCount < 32; i++ )
+	{
+		const game_option_t &it = g_GameOptions[i];
+		BOOL match = FALSE;
+		if ( !strcmp( it.game, "*" ) )
+			match = TRUE;
+		else if ( modeName && !stricmp( it.game, modeName ) )
+			match = TRUE;
+		if ( match )
+		{
+			m_iActiveGameOptions[m_iActiveGameOptionsCount] = i;
+			m_iActiveGameOptionsCount++;
+		}
+	}
+}
+
+/*
+==============
+TallyGameOptionsVote
+
+For each active item, counts the per-option votes recorded in
+m_iGameOptionsVotes[][]. Picks the option with the most votes; ties are
+broken with a uniform random pick across all tied options. Zero-vote items
+are skipped (cvar unchanged) and announced as such.
+
+Apply path uses CVAR_SET_STRING (not SERVER_COMMAND) per G7 -- this bypasses
+the command parser entirely and is immune to ; / quote injection. G7.1
+re-validates the value against the same forbidden-character set as parse
+time, and G7.2 re-resolves the cvar pointer in case a plugin unregistered it
+between intermissions.
+
+When fromRTV && anyWinnerHadRestart, issue a changelevel to the current map
+so the new cvars take effect on a fresh round.
+==============
+*/
+void CHalfLifeMultiplay::TallyGameOptionsVote( BOOL fromRTV )
+{
+	BOOL needsRestart = FALSE;
+
+	for ( int k = 0; k < m_iActiveGameOptionsCount; k++ )
+	{
+		int realIdx = m_iActiveGameOptions[k];
+		if ( realIdx < 0 || realIdx >= g_iGameOptionsCount )
+			continue;
+		const game_option_t &it = g_GameOptions[realIdx];
+		int numOpts = it.numOptions;
+		if ( numOpts < 2 )
+			continue;
+
+		int counts[MAX_GAME_OPTION_VALUES];
+		memset( counts, 0, sizeof(counts) );
+
+		for ( int p = 0; p < 32; p++ )
+		{
+			int v = m_iGameOptionsVotes[p][k];
+			if ( v >= 0 && v < numOpts )
+				counts[v]++;
+		}
+
+		int best = 0;
+		for ( int o = 0; o < numOpts; o++ )
+			if ( counts[o] > best ) best = counts[o];
+
+		if ( best < 1 )
+		{
+			UTIL_ClientPrintAll( HUD_PRINTTALK,
+				UTIL_VarArgs( "[VOTE] No votes on %s, leaving cvar.\n", it.title ) );
+			continue;
+		}
+
+		// Gather tied option indices.
+		int tied[MAX_GAME_OPTION_VALUES];
+		int tiedCount = 0;
+		for ( int o = 0; o < numOpts; o++ )
+		{
+			if ( counts[o] == best )
+				tied[tiedCount++] = o;
+		}
+
+		int winner = ( tiedCount > 1 )
+			? tied[RANDOM_LONG( 0, tiedCount - 1 )]
+			: tied[0];
+
+		const char *winnerValue = it.values[winner];
+		const char *winnerLabel = it.labels[winner];
+
+		// G7.1: defence-in-depth forbidden-character check.
+		BOOL clean = TRUE;
+		for ( const char *p = winnerValue; *p; p++ )
+		{
+			if ( *p == ';' || *p == '\n' || *p == '\r' ||
+			     *p == '\"' || *p == '\\' || *p == '$' )
+			{
+				clean = FALSE;
+				break;
+			}
+		}
+		if ( !clean )
+		{
+			UTIL_ClientPrintAll( HUD_PRINTTALK,
+				UTIL_VarArgs( "[VOTE] internal error applying %s, value rejected.\n", it.title ) );
+			continue;
+		}
+
+		// G7.2: re-resolve cvar pointer.
+		if ( !CVAR_GET_POINTER( it.cvar ) )
+		{
+			UTIL_ClientPrintAll( HUD_PRINTTALK,
+				UTIL_VarArgs( "[VOTE] %s: cvar gone, skipped.\n", it.title ) );
+			continue;
+		}
+
+		CVAR_SET_STRING( it.cvar, winnerValue );
+
+		UTIL_ClientPrintAll( HUD_PRINTTALK,
+			UTIL_VarArgs( "[VOTE] %s: %s%s\n", it.title, winnerLabel, tiedCount > 1 ? " (tie breaker)" : "" ) );
+
+		if ( it.restart )
+			needsRestart = TRUE;
+	}
+
+	// G7 + plan.E: restart only meaningful during RTV. Map-end already chains
+	// into ChangeLevel() so the cvars apply on the next map regardless.
+	if ( fromRTV && needsRestart )
+	{
+		const char *mapName = STRING( gpGlobals->mapname );
+		if ( mapName && mapName[0] && IS_MAP_VALID( (char *)mapName ) )
+			SERVER_COMMAND( UTIL_VarArgs( "changelevel %s\n", mapName ) );
+	}
+}
+
+/*
+==============
+VoteForGameOptions
+
+RTV one-shot. Called from client.cpp::GameOptionsVote() after enough chat
+votes accumulate. Filters items against CURRENT g_GameMode, opens the panel
+for `voting.value` seconds, then tallies. If zero matches, applies G9 path
+(direct chat to initiator, RTV state reset).
+==============
+*/
+void CHalfLifeMultiplay::VoteForGameOptions( BOOL fromRTV )
+{
+	EnsureGameOptionsList();
+	// RTV path: gameplay vote is not running, so use current g_GameMode.
+	if ( fromRTV )
+		m_iElectedGameMode = -1;
+	BuildActiveGameOptions();
+
+	if ( m_iActiveGameOptionsCount == 0 )
+	{
+		// G9: no-op feedback to the initiator (not just all-chat) so they
+		// don't think the command silently failed.
+		if ( fromRTV && m_pGameOptionsRTVInitiator )
+		{
+			ClientPrint( &m_pGameOptionsRTVInitiator->v, HUD_PRINTTALK,
+				"[VOTE] No game options available for the current mode.\n" );
+		}
+		else
+		{
+			UTIL_ClientPrintAll( HUD_PRINTTALK,
+				"[VOTE] No game options available for the current mode.\n" );
+		}
+		m_bGameOptionsRTVOnly = FALSE;
+		m_pGameOptionsRTVInitiator = NULL;
+		return;
+	}
+
+	m_bGameOptionsRTVOnly = fromRTV ? TRUE : FALSE;
+
+	// G5: resend manifest to stale clients first.
+	for ( int i = 1; i <= gpGlobals->maxClients; i++ )
+	{
+		CBasePlayer *pPlayer = (CBasePlayer *)UTIL_PlayerByIndex( i );
+		if ( pPlayer && !FBitSet( pPlayer->pev->flags, FL_FAKECLIENT ) && !pPlayer->HasDisconnected
+			&& m_iGameOptionsRevisionSent[i - 1] != g_iGameOptionsRevision )
+		{
+			SendGameOptionsToClient( pPlayer->edict() );
+		}
+	}
+
+	memset( m_iGameOptionsVotes, -1, sizeof(m_iGameOptionsVotes) );
+
+	MESSAGE_BEGIN( MSG_ALL, gmsgVoteOpts );
+		WRITE_BYTE( g_iGameOptionsRevision & 0xFF );
+		WRITE_BYTE( (int)voting.value );
+		WRITE_BYTE( m_iActiveGameOptionsCount );
+		for ( int k = 0; k < m_iActiveGameOptionsCount; k++ )
+			WRITE_BYTE( m_iActiveGameOptions[k] );
+	MESSAGE_END();
+	MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
+		WRITE_BYTE( CLIENT_SOUND_VOTEGAMEOPTIONS );
+	MESSAGE_END();
+
+	if ( fromRTV )
+		m_fGameOptionsVoteTime = gpGlobals->time + voting.value;
+
+	// Bots get a random per-item vote. Broadcast each so clients see the
+	// tally update; the VoteOption() path does this for humans, but bots
+	// never enter that path, so we replicate the broadcast inline.
+	for ( int i = 1; i <= gpGlobals->maxClients; i++ )
+	{
+		CBasePlayer *pPlayer = (CBasePlayer *)UTIL_PlayerByIndex( i );
+		if ( pPlayer && FBitSet( pPlayer->pev->flags, FL_FAKECLIENT ) && !pPlayer->HasDisconnected )
+		{
+			for ( int k = 0; k < m_iActiveGameOptionsCount; k++ )
+			{
+				int realIdx = m_iActiveGameOptions[k];
+				int numOpts = g_GameOptions[realIdx].numOptions;
+				if ( numOpts < 2 ) continue;
+				int pick = RANDOM_LONG( 0, numOpts - 1 );
+				m_iGameOptionsVotes[i - 1][k] = pick;
+
+				MESSAGE_BEGIN( MSG_ALL, gmsgVOptFor );
+					WRITE_BYTE( i );           // client index, 1-based
+					WRITE_BYTE( k + 1 );       // item, 1-based
+					WRITE_BYTE( pick + 1 );    // option, 1-based
+				MESSAGE_END();
+			}
+		}
+	}
+}
+
+/*
+==============
+CheckGameOptionsRTV
+
+Mid-game RTV-only tally trigger. Inside the normal intermission Think()
+state machine, VOTE_GAMEOPTIONS_OPEN advances when the time-bucket math
+expires. For an RTV-triggered vote there is no intermission scheduler, so
+we run a tiny standalone timer here.
+==============
+*/
+void CHalfLifeMultiplay::CheckGameOptionsRTV( void )
+{
+	if ( m_fGameOptionsVoteTime <= 0 )
+		return;
+	if ( gpGlobals->time < m_fGameOptionsVoteTime )
+		return;
+
+	// Close panel for everyone.
+	MESSAGE_BEGIN( MSG_ALL, gmsgVoteOpts );
+		WRITE_BYTE( g_iGameOptionsRevision & 0xFF );
+		WRITE_BYTE( 0 );  // timer = 0 -> close
+		WRITE_BYTE( 0 );  // count
+	MESSAGE_END();
+
+	TallyGameOptionsVote( TRUE );
+
+	MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
+		WRITE_BYTE( CLIENT_SOUND_EBELL );
+	MESSAGE_END();
+
+	m_fGameOptionsVoteTime = 0;
+	m_bGameOptionsRTVOnly = FALSE;
+	m_pGameOptionsRTVInitiator = NULL;
 }
 
 BOOL CHalfLifeMultiplay::MutatorAllowed(const char *mutator)

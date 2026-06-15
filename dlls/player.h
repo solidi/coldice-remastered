@@ -500,7 +500,8 @@ public:
 	void PlayerBurn(void);
 	void ClearFlames(void);
 
-	float m_fVoteCoolDown;
+	float m_fVoteCoolDown = 0;
+	float m_fGameOptsResendCoolDown = 0;
 
 	float m_flEjectBrass;
 	float m_flEjectShotShell;

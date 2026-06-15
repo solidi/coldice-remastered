@@ -43,6 +43,7 @@
 #define MENU_VOTEGAMEPLAY			10
 #define MENU_VOTEMAP				11
 #define MENU_VOTEMUTATOR			12
+#define MENU_VOTEGAMEOPTIONS		13
 #endif
 using namespace vgui;
 
@@ -62,6 +63,7 @@ class CClassMenuPanel;
 class CVoteGameplayPanel;
 class CVoteMapPanel;
 class CVoteMutatorPanel;
+class CVoteGameOptionsPanel;
 class CTeamMenuPanel;
 class TeamFortressViewport;
 
@@ -534,6 +536,8 @@ private:
 	CMenuPanel*	 ShowVoteMapMenu( int timer );
 	void		 CreateVoteMutatorMenu( void );
 	CMenuPanel*	 ShowVoteMutatorMenu( int timer );
+	void		 CreateVoteGameOptionsMenu( void );
+	CMenuPanel*	 ShowVoteGameOptionsMenu( int timer );
 	
 	// Scheme handler
 	CSchemeManager m_SchemeManager;
@@ -646,6 +650,9 @@ public:
 	int MsgFunc_VoteMap( const char *pszName, int iSize, void *pbuf );
 	int MsgFunc_VoteMutator( const char *pszName, int iSize, void *pbuf );
 	int MsgFunc_MapList( const char *pszName, int iSize, void *pbuf );
+	int MsgFunc_GameOpts( const char *pszName, int iSize, void *pbuf );  // game-options manifest (chunked)
+	int MsgFunc_VoteOpts( const char *pszName, int iSize, void *pbuf );  // open/close game-options vote panel
+	int MsgFunc_VOptFor( const char *pszName, int iSize, void *pbuf );   // mirrored per-item vote
 
 	// Input
 	bool SlotInput( int iSlot );
@@ -673,6 +680,7 @@ public:
 	CVoteGameplayPanel	*m_pVoteGameplayMenu;
 	CVoteMapPanel		*m_pVoteMapMenu;
 	CVoteMutatorPanel	*m_pVoteMutatorMenu;
+	CVoteGameOptionsPanel	*m_pVoteGameOptionsMenu;
 };
 
 //============================================================
@@ -1758,6 +1766,38 @@ extern int  g_iClientMapCount;
 extern bool g_bMapListReceived;
 const char *MapSizeLabel( int size );
 
+// ---------------------------------------------------------------------------
+// Game-options voting (mirrors gameoptions.txt parsed by the server).
+// Populated by TeamFortressViewport::MsgFunc_GameOpts.
+// Active subset (filtered for current g_GameMode) arrives via MsgFunc_VoteOpts.
+// Each player's per-item vote arrives via MsgFunc_VOptFor and is mirrored back
+// to all clients for the live tally display.
+// ---------------------------------------------------------------------------
+#define MAX_CLIENT_GAME_OPTIONS			32
+#define MAX_CLIENT_GAME_OPTION_VALUES	5
+#define MAX_CLIENT_GAME_OPTION_TITLE	64
+#define MAX_CLIENT_GAME_OPTION_LABEL	24
+#define MAX_CLIENT_GAME_OPTION_GAME		16
+#define MAX_CLIENT_GAME_OPTION_VALUE	32
+
+struct client_game_option_t
+{
+	char	game[MAX_CLIENT_GAME_OPTION_GAME];
+	char	title[MAX_CLIENT_GAME_OPTION_TITLE];
+	int		restart;
+	int		numOptions;
+	char	labels[MAX_CLIENT_GAME_OPTION_VALUES][MAX_CLIENT_GAME_OPTION_LABEL];
+};
+
+extern client_game_option_t g_GameOptionsClient[MAX_CLIENT_GAME_OPTIONS];
+extern int                  g_iGameOptionsClientCount;
+extern int                  g_iGameOptionsRevisionClient;
+extern bool                 g_bGameOptionsReceived;
+extern int                  g_iActiveGameOptionsClient[MAX_CLIENT_GAME_OPTIONS];
+extern int                  g_iActiveGameOptionsClientCount;
+extern int                  g_PlayerOptVote[MAX_PLAYERS + 1][MAX_CLIENT_GAME_OPTIONS]; // [client][active-slot]
+extern bool                 g_bGameOptsResendRequested;
+
 class CVoteGameplayPanel : public CMenuPanel
 {
 private:
@@ -1862,6 +1902,55 @@ public:
 		m_iTime = 30.0;
 		m_iCurrentInfo = 0;
 	}
+
+	float m_iTime;
+};
+
+// ---------------------------------------------------------------------------
+// CVoteGameOptionsPanel -- the dynamic, server-driven game-options vote
+// window. Each row corresponds to one active item from g_GameOptionsClient[]
+// (already filtered server-side for the current g_GameMode). The row layout
+// is title-left, [opt1][opt2]...[optN]-right, with one buttoned tally label
+	// per option. The user can pick exactly one option per item; selecting a
+	// different option revises their vote for that row (server uses the latest
+	// per-player vote when tallying).
+	// Implementation lives in vgui_VoteGameOptionsWindow.cpp.
+// ---------------------------------------------------------------------------
+class CVoteGameOptionsPanel : public CMenuPanel
+{
+private:
+	CTFScrollPanel		*m_pScrollPanel;
+	LineBorder			*m_pScrollPanelBorder;
+	Label				*m_pTitleLabel;
+	Label				*m_pRowLabels[MAX_CLIENT_GAME_OPTIONS];
+	ColorButton			*m_pRowButtons[MAX_CLIENT_GAME_OPTIONS][MAX_CLIENT_GAME_OPTION_VALUES];
+	Label				*m_pRowVoteTallies[MAX_CLIENT_GAME_OPTIONS][MAX_CLIENT_GAME_OPTION_VALUES];
+
+	int					m_iRowCount;     // == g_iActiveGameOptionsClientCount snapshot at Open()
+	int					m_iLocalPick[MAX_CLIENT_GAME_OPTIONS]; // 0-based option, -1 = unvoted
+	float				m_fStartTime;
+	float				m_fAutoCloseTime; // > 0 once local player has voted every row; panel hides at this time
+
+public:
+	CVoteGameOptionsPanel( int iTrans, int iRemoveMe, int x, int y, int wide, int tall );
+
+	virtual bool SlotInput( int iSlot );
+	virtual void Open( void );
+	virtual void Update( void );
+	virtual void Initialize( void );
+
+	virtual void Reset( void )
+	{
+		CMenuPanel::Reset();
+		m_fStartTime = gHUD.m_flTime;
+		m_iTime = 30.0;
+		m_fAutoCloseTime = 0;
+		for ( int k = 0; k < MAX_CLIENT_GAME_OPTIONS; k++ )
+			m_iLocalPick[k] = -1;
+	}
+
+	void BuildRows( void );
+	void OnRowButton( int row, int option );
 
 	float m_iTime;
 };
