@@ -4265,7 +4265,7 @@ void BuildGameOptionsList( void )
 		BOOL dup = FALSE;
 		for ( int k = 0; k < g_iGameOptionsCount; k++ )
 		{
-			if ( !stricmp( g_GameOptions[k].cvar, item.cvar ) )
+			if ( !stricmp( g_GameOptions[k].cvar, item.cvar ) && !stricmp( g_GameOptions[k].game, item.game ) )
 			{
 				GameOptionsLogf( itemLine, "item #%d: duplicate cvar \"%s\" already at item %d, skipped", itemSerial, item.cvar, k + 1 );
 				dup = TRUE;

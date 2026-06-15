@@ -1985,7 +1985,7 @@ void CBasePlayer::PlayerDeathThink(void)
 		pev->angles = pev->v_angle = m_vecChilldemicRespawnAngles;
 		pev->fixangle = TRUE;
 		pev->flags |= FL_GODMODE;
-		m_fLastSpawnTime = gpGlobals->time + 3.0f;
+		m_fLastSpawnTime = gpGlobals->time + spawnprotectiontime.value;
 		m_fEffectTime = gpGlobals->time + 0.25f;
 		UTIL_ScreenFade(this, Vector(200, 0, 0), 0.25f, 0.5f, 128, FFADE_IN);
 

@@ -1658,6 +1658,9 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_weather [0|1]\" - allow or disallow weather effects on client\n" );
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"feign\" - Fake your death\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"drop_rune\" - Drop rune\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"gameoptions\" - type in the chat to start a game-options vote\n" );
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"gameoptions_resend\" - re-request the current game-options manifest\n" );
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"gameoptions_status\" - print game-options parser state\n" );
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"impulse 205\" - Swap between single and dual weapon, if available\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"impulse 206\" - Kick\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"impulse 207\" - Punch\n");
@@ -1672,9 +1675,6 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"impulse 216\" - Drop Explosive Weapon\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"keyboard\" - Show default key binds on HUD\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mutator\" - type in the chat to start a mutator vote\n" );
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"gameoptions\" - type in the chat to start a game-options vote (server-defined cvars)\n" );
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"gameoptions_resend\" - re-request the current game-options manifest (rate-limited)\n" );
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"gameoptions_status\" - print game-options parser state (listenserver host / sv_cheats 1)\n" );
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"snowman\" - God mode (when sv_cheats 1)\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"vote\" - type in the chat to start a vote\n" );
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "For more, see readme.txt\n" );
