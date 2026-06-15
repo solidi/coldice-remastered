@@ -3981,7 +3981,6 @@ void BuildGameOptionsList( void )
 	g_iGameOptionsCount = 0;
 	g_iGameOptionsParseErrors = 0;
 	g_iGameOptionsParseLogCount = 0;
-	g_iGameOptionsRevision++;
 	memset( g_GameOptions, 0, sizeof(g_GameOptions) );
 
 	strncpy( g_szPreviousGameOptionsFile, filename, sizeof(g_szPreviousGameOptionsFile) - 1 );
@@ -3995,6 +3994,8 @@ void BuildGameOptionsList( void )
 		ALERT( at_notice, "[GameOptions] gameoptions.txt not present; vote phase disabled.\n" );
 		return;
 	}
+
+	g_iGameOptionsRevision++;
 
 	int line = 1;
 	int itemSerial = 0;

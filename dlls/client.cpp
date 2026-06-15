@@ -426,7 +426,7 @@ void GameplayVote(edict_t *pEntity, const char *text)
 {
 	static float m_fVoteTime = 0;
 	static int m_iNeedsVotes = 0;
-	static int m_iVotes[32];
+	static int m_iVotes[33];
 
 	if (voting.value && (UTIL_stristr(text, "vote") || UTIL_stristr(text, "rtv")))
 	{
@@ -502,7 +502,7 @@ void MutatorVote(edict_t *pEntity, const char *text)
 {
 	static float m_fVoteTime = 0;
 	static int m_iNeedsVotes = 0;
-	static int m_iVotes[32];
+	static int m_iVotes[33];
 
 	CBasePlayer *pPlayer = NULL;
 	entvars_t *pev = &pEntity->v;
