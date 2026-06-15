@@ -887,7 +887,7 @@ void GameOptionsVote(edict_t *pEntity, const char *text)
 {
 	static float m_fVoteTime = 0;
 	static int   m_iNeedsVotes = 0;
-	static int   m_iVotes[32];
+	static int   m_iVotes[33];
 	static edict_t *m_pInitiator = NULL;
 
 	CBasePlayer *pPlayer = NULL;

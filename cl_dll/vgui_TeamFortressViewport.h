@@ -1911,10 +1911,10 @@ public:
 // window. Each row corresponds to one active item from g_GameOptionsClient[]
 // (already filtered server-side for the current g_GameMode). The row layout
 // is title-left, [opt1][opt2]...[optN]-right, with one buttoned tally label
-// per option. The user can pick exactly one option per item; clicking the
-// same option a second time is a no-op (server enforces "first vote wins per
-// row" via TallyGameOptionsVote, but the UI also dims already-picked rows).
-// Implementation lives in vgui_VoteGameOptionsWindow.cpp.
+	// per option. The user can pick exactly one option per item; selecting a
+	// different option revises their vote for that row (server uses the latest
+	// per-player vote when tallying).
+	// Implementation lives in vgui_VoteGameOptionsWindow.cpp.
 // ---------------------------------------------------------------------------
 class CVoteGameOptionsPanel : public CMenuPanel
 {

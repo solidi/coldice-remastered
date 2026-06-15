@@ -249,8 +249,7 @@ void CVoteGameOptionsPanel::Update()
 	// Track whether the local player has cast a vote on every active row;
 	// if so, auto-close the panel after a short grace period so they can see
 	// the final tally state (mirrors the mutator-RTV menu's dismiss flow).
-	bool allVoted = ( m_iRowCount > 0 );
-
+	bool allVoted = ( g_bGameOptionsReceived && ( m_iRowCount > 0 ) );
 	// Per-row tally update.
 	for ( int k = 0; k < m_iRowCount; k++ )
 	{
