@@ -8691,7 +8691,15 @@ float IceExplode(CBaseEntity *pAttacker, CBaseEntity *pEntity, int bitsDamageTyp
 		EMIT_SOUND(ENT(pEntity->pev), CHAN_BODY, "freezing.wav", 1, ATTN_NORM);
 	
 	pEntity->pev->renderfx = kRenderFxGlowShell;
-	((CBasePlayer *)pEntity)->m_iFreezeCounter = pEntity->pev->renderamt += 15;
+	// Cap stacked freeze hits so the glow shell can't grow unboundedly from
+	// repeated DMG_FREEZE applications. 60 leaves one stack above the kill
+	// threshold (>45) so the shatter branch still fires on overflow.
+	{
+		const int stacked = (int)pEntity->pev->renderamt + 15;
+		const int capped  = stacked < 60 ? stacked : 60;
+		pEntity->pev->renderamt = (float)capped;
+		((CBasePlayer *)pEntity)->m_iFreezeCounter = capped;
+	}
 	pEntity->pev->rendercolor.x = 0;
 	pEntity->pev->rendercolor.y = 115;
 	pEntity->pev->rendercolor.z = 230;
