@@ -4299,6 +4299,7 @@ void CBasePlayer::PostThink()
 				m_iFreezeCounter = --pev->renderamt;
 			} else if (m_iFreezeCounter == 0) {
 				pev->renderfx = kRenderFxNone;
+				pev->rendercolor = g_vecZero;
 				m_iFreezeCounter = pev->renderamt = 0;
 				pev->flags &= ~FL_FROZEN;
 				m_iFreezeCounter = -1;

@@ -624,8 +624,6 @@ void CHalfLifeShidden::PlayerSpawn( CBasePlayer *pPlayer )
 		return;
 	}
 
-	char *key = g_engfuncs.pfnGetInfoKeyBuffer(pPlayer->edict());
-
 	if ( pPlayer->pev->fuser4 == SHIDDEN_DEALTER )
 	{
 		g_engfuncs.pfnSetPhysicsKeyValue(pPlayer->edict(), "haste", "1");
@@ -789,6 +787,9 @@ BOOL CHalfLifeShidden::FPlayerCanTakeDamage( CBasePlayer *pPlayer, CBaseEntity *
 
 void CHalfLifeShidden::FPlayerTookDamage( float flDamage, CBasePlayer *pVictim, CBaseEntity *pKiller)
 {
+	if ( !pVictim )
+		return;
+
 	// Knife one-shot on a frozen smelter.
 	// FPlayerCanTakeDamage already verified this is a dealter with a knife;
 	// here we force the kill regardless of remaining health.
