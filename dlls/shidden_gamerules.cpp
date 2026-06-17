@@ -621,6 +621,13 @@ void CHalfLifeShidden::PlayerSpawn( CBasePlayer *pPlayer )
 	// Or if the game begins that requires spectators
 	if ((g_GameInProgress && !pPlayer->IsInArena) || (!g_GameInProgress && IsRoundBased()))
 	{
+		// Clear role-specific carry-over if this player is not an active round actor.
+		pPlayer->pev->fuser4 = SHIDDEN_SMELTER;
+		pPlayer->pev->fuser3 = SHIDDEN_SMELTER;
+		pPlayer->pev->gravity = 1.0f;
+		pPlayer->m_iFreezeCounter = -1;
+		pPlayer->pev->iuser4 = -1;
+		g_engfuncs.pfnSetPhysicsKeyValue(pPlayer->edict(), "haste", "0");
 		return;
 	}
 
