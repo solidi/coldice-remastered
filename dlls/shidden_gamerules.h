@@ -44,4 +44,6 @@ public:
 private:
 	int m_iSmeltersRemain;
 	int m_iDealtersRemain;
+	int m_iSmeltersStart;   // smelter count at round start (denominator for HUD bar)
+	int m_iDealtersStart;   // dealter count at round start (denominator for HUD bar)
 };

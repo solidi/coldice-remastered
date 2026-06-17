@@ -40,6 +40,8 @@ CHalfLifeShidden::CHalfLifeShidden()
 {
 	m_iSmeltersRemain = 0;
 	m_iDealtersRemain = 0;
+	m_iSmeltersStart = 0;
+	m_iDealtersStart = 0;
 	PauseMutators();
 }
 
@@ -174,6 +176,15 @@ void CHalfLifeShidden::Think( void )
 	{
 		int smelters_left = 0;
 		int dealters_left = 0;
+		// Per-team denominators for the HUD progress bar.  Using the
+		// round-start counts (set in the team-assignment block below)
+		// makes the bar read 100% at round start and deplete to 0% as
+		// that team is eliminated, instead of capping at ~66% when the
+		// total-player denominator includes the opposing team.
+		const int smelterDenom = (m_iSmeltersStart > 0) ? m_iSmeltersStart : 1;
+		const int dealterDenom = (m_iDealtersStart > 0) ? m_iDealtersStart : 1;
+		const int totalDenom   = (m_iSmeltersStart + m_iDealtersStart > 0)
+			? (m_iSmeltersStart + m_iDealtersStart) : 1;
 
 		// Player accountings
 		for ( int i = 1; i <= gpGlobals->maxClients; i++ )
@@ -220,7 +231,7 @@ void CHalfLifeShidden::Think( void )
 								MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, plr->edict());
 									WRITE_STRING("Fart on 'em");
 									WRITE_STRING(UTIL_VarArgs("Smelters alive: %d", smelters_left));
-									WRITE_BYTE(float(smelters_left) / (m_iPlayersInGame) * 100);
+									WRITE_BYTE(float(smelters_left) / smelterDenom * 100);
 									if (roundlimit.value > 0)
 										WRITE_STRING(UTIL_VarArgs("Round %d of %d", m_iSuccessfulRounds+1, (int)roundlimit.value));
 									else
@@ -259,7 +270,7 @@ void CHalfLifeShidden::Think( void )
 								MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, plr->edict());
 									WRITE_STRING("Smell it");
 									WRITE_STRING(UTIL_VarArgs("Dealters remain: %d", dealters_left));
-									WRITE_BYTE(float(dealters_left) / (m_iPlayersInGame) * 100);
+									WRITE_BYTE(float(dealters_left) / dealterDenom * 100);
 									if (roundlimit.value > 0)
 										WRITE_STRING(UTIL_VarArgs("Round %d of %d", m_iSuccessfulRounds+1, (int)roundlimit.value));
 									else
@@ -273,7 +284,7 @@ void CHalfLifeShidden::Think( void )
 									MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, plr->edict());
 										WRITE_STRING("Find that dealter!");
 										WRITE_STRING(UTIL_VarArgs("Dealter remain: %d", dealters_left));
-										WRITE_BYTE(float(dealters_left) / (m_iPlayersInGame) * 100);
+										WRITE_BYTE(float(dealters_left) / dealterDenom * 100);
 										if (roundlimit.value > 0)
 											WRITE_STRING(UTIL_VarArgs("Round %d of %d", m_iSuccessfulRounds+1, (int)roundlimit.value));
 										else
@@ -326,7 +337,9 @@ void CHalfLifeShidden::Think( void )
 							{
 								WRITE_STRING(UTIL_VarArgs("Dealters left: %d", m_iDealtersRemain));
 								WRITE_STRING(UTIL_VarArgs("Smelters left: %d", m_iSmeltersRemain));
-								WRITE_BYTE(float(m_iSmeltersRemain) / (m_iPlayersInGame) * 100);
+								// Spectator bar reflects total survivors as a fraction of the
+								// round-start total — 100% at the start, 0% on mutual wipe.
+								WRITE_BYTE(float(m_iSmeltersRemain + m_iDealtersRemain) / totalDenom * 100);
 								if (roundlimit.value > 0)
 									WRITE_STRING(UTIL_VarArgs("Round %d of %d", m_iSuccessfulRounds+1, (int)roundlimit.value));
 								else
@@ -504,13 +517,27 @@ void CHalfLifeShidden::Think( void )
 		int dealterCount = count / 3;
 		if ( dealterCount < 1 ) dealterCount = 1;
 
+		// Snapshot round-start team sizes for the HUD bar denominators.
+		// Recounted from actual assignments below in case IsCommittedToPlay()
+		// drops a previously-committed slot between the pool fill and now.
+		m_iSmeltersStart = 0;
+		m_iDealtersStart = 0;
+
 		for ( int i = 0; i < count; i++ )
 		{
 			CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( player[i] );
 
 			// Pool was already filtered for committed-to-play above; defensive recheck.
 			if ( plr && plr->IsPlayer() && plr->IsCommittedToPlay() )
+			{
 				plr->pev->fuser4 = ( i < dealterCount ) ? SHIDDEN_DEALTER : SHIDDEN_SMELTER;
+				plr->pev->fuser3 = plr->pev->fuser4;
+
+				if ( (int)plr->pev->fuser4 == SHIDDEN_DEALTER )
+					m_iDealtersStart++;
+				else
+					m_iSmeltersStart++;
+			}
 		}
 
 		g_GameInProgress = TRUE;
