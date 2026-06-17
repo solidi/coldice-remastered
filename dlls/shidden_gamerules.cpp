@@ -47,7 +47,7 @@ CHalfLifeShidden::CHalfLifeShidden()
 
 void CHalfLifeShidden::DetermineWinner( void )
 {
-	int highest = 1;
+	int highest = 0;
 	BOOL IsEqual = FALSE;
 	CBasePlayer *highballer = NULL;
 
@@ -639,8 +639,10 @@ void CHalfLifeShidden::PlayerSpawn( CBasePlayer *pPlayer )
 	}
 	else
 	{
+		g_engfuncs.pfnSetPhysicsKeyValue(pPlayer->edict(), "haste", "0");
 		strncpy( pPlayer->m_szTeamName, "smelters", TEAM_NAME_LENGTH );
 		pPlayer->pev->fuser3 = 0; // bots need to identify their team.
+		pPlayer->pev->gravity = 1.0f;
 		pPlayer->MakeVisible();
 	}
 
@@ -857,18 +859,16 @@ void CHalfLifeShidden::PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller, e
 
 	int smelters_left = 0;
 	int dealters_left = 0;
-	for (int i = 1; i <= gpGlobals->maxClients; i++) {
-		if (m_iPlayersInArena[i-1] > 0)
+	for (int i = 1; i <= gpGlobals->maxClients; i++)
+	{
+		CBasePlayer *pPlayer = (CBasePlayer *)UTIL_PlayerByIndex(i);
+		if (pPlayer && pPlayer->IsPlayer() && pPlayer->IsInArena && pPlayer->IsAlive() &&
+			!pPlayer->IsSpectator() && pPlayer != pVictim && !pPlayer->HasDisconnected)
 		{
-			CBasePlayer *pPlayer = (CBasePlayer *)UTIL_PlayerByIndex(m_iPlayersInArena[i-1]);
-			if (pPlayer && pPlayer->IsAlive() && !pPlayer->IsSpectator() &&
-				pPlayer != pVictim && !pPlayer->HasDisconnected)
-			{
-				if (pPlayer->pev->fuser4 == SHIDDEN_SMELTER)
-					smelters_left++;
-				else
-					dealters_left++;
-			}
+			if (pPlayer->pev->fuser4 == SHIDDEN_SMELTER)
+				smelters_left++;
+			else
+				dealters_left++;
 		}
 	}
 
