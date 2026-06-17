@@ -752,6 +752,7 @@ BOOL CHalfLifeShidden::FPlayerCanTakeDamage( CBasePlayer *pPlayer, CBaseEntity *
 		if ( pAttackerPlayer->pev->fuser4 == SHIDDEN_DEALTER && 
 			 pPlayer->pev->fuser4 == SHIDDEN_SMELTER )
 		{
+			const BOOL isFartDamage = (gMultiDamage.type & DMG_FART) != 0;
 			// Knife always passes through — melee and FPlayerTookDamage handle
 			// the instant-kill-if-frozen logic. Non-frozen smelters take normal damage.
 			BOOL attackerHasKnife = pAttackerPlayer->m_pActiveItem &&
@@ -768,10 +769,18 @@ BOOL CHalfLifeShidden::FPlayerCanTakeDamage( CBasePlayer *pPlayer, CBaseEntity *
 				return FALSE; // already frozen — only knife finishes them
 			}
 
-			if (pPlayer->IsFartedOn)
+			if (pPlayer->IsFartedOn || isFartDamage)
 			{
-				// Smelter is not frozen: freeze for 5 seconds, deal no damage.
-				pPlayer->m_iFreezeCounter = pPlayer->pev->renderamt = 50; // 50 * 0.1 s = 5 s
+				// Smelter is not frozen: freeze for ~5 seconds, deal no damage.
+				// Counter ticks down every 0.1s in player.cpp::PostThink. renderamt
+				// doubles as the kRenderFxGlowShell thickness, so 50 was visually
+				// huge; cap shell at SHIDDEN_FREEZE_SHELL_MAX and keep counter at
+				// SHIDDEN_FREEZE_TICKS so freeze duration is independent of glow size.
+				const int SHIDDEN_FREEZE_TICKS      = 50;  // 50 * 0.1s = 5s
+				const int SHIDDEN_FREEZE_SHELL_MAX  = 25;  // glow thickness cap
+				pPlayer->m_iFreezeCounter = SHIDDEN_FREEZE_TICKS;
+				pPlayer->pev->renderamt   = SHIDDEN_FREEZE_SHELL_MAX;
+				pPlayer->pev->iuser4 = pPlayer->m_iFreezeCounter; // cross-DLL signal for grave_bot
 				pPlayer->pev->renderfx   = kRenderFxGlowShell;
 				pPlayer->pev->rendercolor.x = 120;
 				pPlayer->pev->rendercolor.y = 220;
@@ -808,6 +817,7 @@ void CHalfLifeShidden::FPlayerTookDamage( float flDamage, CBasePlayer *pVictim, 
 		{
 			// Unfreeze first so Killed() doesn't re-enter freeze logic.
 			pVictim->m_iFreezeCounter = -1;
+			pVictim->pev->iuser4      = -1; // cross-DLL freeze signal
 			pVictim->pev->renderamt   = 0;
 			pVictim->pev->renderfx    = kRenderFxNone;
 			ClearBits( pVictim->pev->flags, FL_FROZEN );

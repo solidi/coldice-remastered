@@ -1315,6 +1315,7 @@ void CBasePlayer::Killed( entvars_t *pevAttacker, int iGib )
 		m_iFreezeCounter = 0;
 		pev->renderamt = 0;
 		pev->flags &= ~FL_FROZEN;
+		pev->iuser4 = 0;
 	}
 
 	SetAnimation( PLAYER_DIE );
@@ -4306,7 +4307,23 @@ void CBasePlayer::PostThink()
 			}
 		}
 
+		// Cross-DLL signal for grave_bot: positive = frozen ticks remaining.
+		pev->iuser4 = m_iFreezeCounter;
+
 		m_fThawTime = gpGlobals->time + 0.1;
+	}
+	else if (m_iFreezeCounter < 0 && (pev->flags & FL_FROZEN) && !FBitSet(pev->flags, FL_GODMODE)) {
+		// Counter already past zero but FL_FROZEN never got cleared — happens
+		// when an external path (gamerules kill, respawn, godmode toggle)
+		// reset m_iFreezeCounter without dropping the flag.  Without this
+		// the player stays glued in place forever.
+		pev->flags &= ~FL_FROZEN;
+		if (pev->renderfx == kRenderFxGlowShell) {
+			pev->renderfx    = kRenderFxNone;
+			pev->renderamt   = 0;
+			pev->rendercolor = g_vecZero;
+		}
+		pev->iuser4 = -1;
 	}
 
 pt_end:
@@ -4531,6 +4548,7 @@ void CBasePlayer::Spawn( void )
 	pev->weapons = 0;
 	m_iWeapons2 = 0;
 	m_iFreezeCounter 	= -1;
+	pev->iuser4         = -1; // Cross-DLL freeze signal for grave_bot; mirrors m_iFreezeCounter.
 	pHeldItem = NULL;
 	m_iHoldingItem = FALSE;
 	m_fSelacoSliding = m_fSelacoHit = FALSE;
