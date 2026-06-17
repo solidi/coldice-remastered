@@ -5349,6 +5349,20 @@ void CBasePlayer::ImpulseCommands( )
 	PlayerUse();
 		
 	int iImpulse = (int)pev->impulse;
+
+	// FL_FROZEN players (Shidden fart-freeze, prophunt round-freeze, any
+	// other gameplay that pins the player) must not be able to fire
+	// off-hand action impulses.  m_Activity is clamped to ACT_FROZEN at
+	// the animation layer, so e.g. StartKick / StartPunch silently apply
+	// their damage with no visible animation — letting a frozen smelter
+	// kick the dealter that's mid-finish.  Flashlight / decal / cheat
+	// impulses are still allowed; only the action set is gated.
+	if ((pev->flags & FL_FROZEN) && iImpulse >= 205 && iImpulse <= 216)
+	{
+		pev->impulse = 0;
+		return;
+	}
+
 	switch (iImpulse)
 	{
 	case 99:
