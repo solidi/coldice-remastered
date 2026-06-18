@@ -40,12 +40,14 @@ CHalfLifeShidden::CHalfLifeShidden()
 {
 	m_iSmeltersRemain = 0;
 	m_iDealtersRemain = 0;
+	m_iSmeltersStart = 0;
+	m_iDealtersStart = 0;
 	PauseMutators();
 }
 
 void CHalfLifeShidden::DetermineWinner( void )
 {
-	int highest = 1;
+	int highest = 0;
 	BOOL IsEqual = FALSE;
 	CBasePlayer *highballer = NULL;
 
@@ -174,6 +176,15 @@ void CHalfLifeShidden::Think( void )
 	{
 		int smelters_left = 0;
 		int dealters_left = 0;
+		// Per-team denominators for the HUD progress bar.  Using the
+		// round-start counts (set in the team-assignment block below)
+		// makes the bar read 100% at round start and deplete to 0% as
+		// that team is eliminated, instead of capping at ~66% when the
+		// total-player denominator includes the opposing team.
+		const int smelterDenom = (m_iSmeltersStart > 0) ? m_iSmeltersStart : 1;
+		const int dealterDenom = (m_iDealtersStart > 0) ? m_iDealtersStart : 1;
+		const int totalDenom   = (m_iSmeltersStart + m_iDealtersStart > 0)
+			? (m_iSmeltersStart + m_iDealtersStart) : 1;
 
 		// Player accountings
 		for ( int i = 1; i <= gpGlobals->maxClients; i++ )
@@ -220,7 +231,7 @@ void CHalfLifeShidden::Think( void )
 								MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, plr->edict());
 									WRITE_STRING("Fart on 'em");
 									WRITE_STRING(UTIL_VarArgs("Smelters alive: %d", smelters_left));
-									WRITE_BYTE(float(smelters_left) / (m_iPlayersInGame) * 100);
+									WRITE_BYTE(float(smelters_left) / smelterDenom * 100);
 									if (roundlimit.value > 0)
 										WRITE_STRING(UTIL_VarArgs("Round %d of %d", m_iSuccessfulRounds+1, (int)roundlimit.value));
 									else
@@ -259,7 +270,7 @@ void CHalfLifeShidden::Think( void )
 								MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, plr->edict());
 									WRITE_STRING("Smell it");
 									WRITE_STRING(UTIL_VarArgs("Dealters remain: %d", dealters_left));
-									WRITE_BYTE(float(dealters_left) / (m_iPlayersInGame) * 100);
+									WRITE_BYTE(float(dealters_left) / dealterDenom * 100);
 									if (roundlimit.value > 0)
 										WRITE_STRING(UTIL_VarArgs("Round %d of %d", m_iSuccessfulRounds+1, (int)roundlimit.value));
 									else
@@ -273,7 +284,7 @@ void CHalfLifeShidden::Think( void )
 									MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, plr->edict());
 										WRITE_STRING("Find that dealter!");
 										WRITE_STRING(UTIL_VarArgs("Dealter remain: %d", dealters_left));
-										WRITE_BYTE(float(dealters_left) / (m_iPlayersInGame) * 100);
+										WRITE_BYTE(float(dealters_left) / dealterDenom * 100);
 										if (roundlimit.value > 0)
 											WRITE_STRING(UTIL_VarArgs("Round %d of %d", m_iSuccessfulRounds+1, (int)roundlimit.value));
 										else
@@ -326,7 +337,9 @@ void CHalfLifeShidden::Think( void )
 							{
 								WRITE_STRING(UTIL_VarArgs("Dealters left: %d", m_iDealtersRemain));
 								WRITE_STRING(UTIL_VarArgs("Smelters left: %d", m_iSmeltersRemain));
-								WRITE_BYTE(float(m_iSmeltersRemain) / (m_iPlayersInGame) * 100);
+								// Spectator bar reflects total survivors as a fraction of the
+								// round-start total — 100% at the start, 0% on mutual wipe.
+								WRITE_BYTE(float(m_iSmeltersRemain + m_iDealtersRemain) / totalDenom * 100);
 								if (roundlimit.value > 0)
 									WRITE_STRING(UTIL_VarArgs("Round %d of %d", m_iSuccessfulRounds+1, (int)roundlimit.value));
 								else
@@ -504,13 +517,27 @@ void CHalfLifeShidden::Think( void )
 		int dealterCount = count / 3;
 		if ( dealterCount < 1 ) dealterCount = 1;
 
+		// Snapshot round-start team sizes for the HUD bar denominators.
+		// Recounted from actual assignments below in case IsCommittedToPlay()
+		// drops a previously-committed slot between the pool fill and now.
+		m_iSmeltersStart = 0;
+		m_iDealtersStart = 0;
+
 		for ( int i = 0; i < count; i++ )
 		{
 			CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( player[i] );
 
 			// Pool was already filtered for committed-to-play above; defensive recheck.
 			if ( plr && plr->IsPlayer() && plr->IsCommittedToPlay() )
+			{
 				plr->pev->fuser4 = ( i < dealterCount ) ? SHIDDEN_DEALTER : SHIDDEN_SMELTER;
+				plr->pev->fuser3 = plr->pev->fuser4;
+
+				if ( (int)plr->pev->fuser4 == SHIDDEN_DEALTER )
+					m_iDealtersStart++;
+				else
+					m_iSmeltersStart++;
+			}
 		}
 
 		g_GameInProgress = TRUE;
@@ -594,10 +621,15 @@ void CHalfLifeShidden::PlayerSpawn( CBasePlayer *pPlayer )
 	// Or if the game begins that requires spectators
 	if ((g_GameInProgress && !pPlayer->IsInArena) || (!g_GameInProgress && IsRoundBased()))
 	{
+		// Clear role-specific carry-over if this player is not an active round actor.
+		pPlayer->pev->fuser4 = SHIDDEN_SMELTER;
+		pPlayer->pev->fuser3 = SHIDDEN_SMELTER;
+		pPlayer->pev->gravity = 1.0f;
+		pPlayer->m_iFreezeCounter = -1;
+		pPlayer->pev->iuser4 = -1;
+		g_engfuncs.pfnSetPhysicsKeyValue(pPlayer->edict(), "haste", "0");
 		return;
 	}
-
-	char *key = g_engfuncs.pfnGetInfoKeyBuffer(pPlayer->edict());
 
 	if ( pPlayer->pev->fuser4 == SHIDDEN_DEALTER )
 	{
@@ -614,8 +646,10 @@ void CHalfLifeShidden::PlayerSpawn( CBasePlayer *pPlayer )
 	}
 	else
 	{
+		g_engfuncs.pfnSetPhysicsKeyValue(pPlayer->edict(), "haste", "0");
 		strncpy( pPlayer->m_szTeamName, "smelters", TEAM_NAME_LENGTH );
 		pPlayer->pev->fuser3 = 0; // bots need to identify their team.
+		pPlayer->pev->gravity = 1.0f;
 		pPlayer->MakeVisible();
 	}
 
@@ -725,6 +759,7 @@ BOOL CHalfLifeShidden::FPlayerCanTakeDamage( CBasePlayer *pPlayer, CBaseEntity *
 		if ( pAttackerPlayer->pev->fuser4 == SHIDDEN_DEALTER && 
 			 pPlayer->pev->fuser4 == SHIDDEN_SMELTER )
 		{
+			const BOOL isFartDamage = (gMultiDamage.type & DMG_FART) != 0;
 			// Knife always passes through — melee and FPlayerTookDamage handle
 			// the instant-kill-if-frozen logic. Non-frozen smelters take normal damage.
 			BOOL attackerHasKnife = pAttackerPlayer->m_pActiveItem &&
@@ -741,10 +776,18 @@ BOOL CHalfLifeShidden::FPlayerCanTakeDamage( CBasePlayer *pPlayer, CBaseEntity *
 				return FALSE; // already frozen — only knife finishes them
 			}
 
-			if (pPlayer->IsFartedOn)
+			if (pPlayer->IsFartedOn || isFartDamage)
 			{
-				// Smelter is not frozen: freeze for 5 seconds, deal no damage.
-				pPlayer->m_iFreezeCounter = pPlayer->pev->renderamt = 50; // 50 * 0.1 s = 5 s
+				// Smelter is not frozen: freeze for ~5 seconds, deal no damage.
+				// Counter ticks down every 0.1s in player.cpp::PostThink. renderamt
+				// doubles as the kRenderFxGlowShell thickness, so 50 was visually
+				// huge; cap shell at SHIDDEN_FREEZE_SHELL_MAX and keep counter at
+				// SHIDDEN_FREEZE_TICKS so freeze duration is independent of glow size.
+				const int SHIDDEN_FREEZE_TICKS      = 50;  // 50 * 0.1s = 5s
+				const int SHIDDEN_FREEZE_SHELL_MAX  = 25;  // glow thickness cap
+				pPlayer->m_iFreezeCounter = SHIDDEN_FREEZE_TICKS;
+				pPlayer->pev->renderamt   = SHIDDEN_FREEZE_SHELL_MAX;
+				pPlayer->pev->iuser4 = pPlayer->m_iFreezeCounter; // cross-DLL signal for grave_bot
 				pPlayer->pev->renderfx   = kRenderFxGlowShell;
 				pPlayer->pev->rendercolor.x = 120;
 				pPlayer->pev->rendercolor.y = 220;
@@ -762,6 +805,9 @@ BOOL CHalfLifeShidden::FPlayerCanTakeDamage( CBasePlayer *pPlayer, CBaseEntity *
 
 void CHalfLifeShidden::FPlayerTookDamage( float flDamage, CBasePlayer *pVictim, CBaseEntity *pKiller)
 {
+	if ( !pVictim )
+		return;
+
 	// Knife one-shot on a frozen smelter.
 	// FPlayerCanTakeDamage already verified this is a dealter with a knife;
 	// here we force the kill regardless of remaining health.
@@ -778,6 +824,7 @@ void CHalfLifeShidden::FPlayerTookDamage( float flDamage, CBasePlayer *pVictim, 
 		{
 			// Unfreeze first so Killed() doesn't re-enter freeze logic.
 			pVictim->m_iFreezeCounter = -1;
+			pVictim->pev->iuser4      = -1; // cross-DLL freeze signal
 			pVictim->pev->renderamt   = 0;
 			pVictim->pev->renderfx    = kRenderFxNone;
 			ClearBits( pVictim->pev->flags, FL_FROZEN );
@@ -829,18 +876,16 @@ void CHalfLifeShidden::PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller, e
 
 	int smelters_left = 0;
 	int dealters_left = 0;
-	for (int i = 1; i <= gpGlobals->maxClients; i++) {
-		if (m_iPlayersInArena[i-1] > 0)
+	for (int i = 1; i <= gpGlobals->maxClients; i++)
+	{
+		CBasePlayer *pPlayer = (CBasePlayer *)UTIL_PlayerByIndex(i);
+		if (pPlayer && pPlayer->IsPlayer() && pPlayer->IsInArena && pPlayer->IsAlive() &&
+			!pPlayer->IsSpectator() && pPlayer != pVictim && !pPlayer->HasDisconnected)
 		{
-			CBasePlayer *pPlayer = (CBasePlayer *)UTIL_PlayerByIndex(m_iPlayersInArena[i-1]);
-			if (pPlayer && pPlayer->IsAlive() && !pPlayer->IsSpectator() &&
-				pPlayer != pVictim && !pPlayer->HasDisconnected)
-			{
-				if (pPlayer->pev->fuser4 == SHIDDEN_SMELTER)
-					smelters_left++;
-				else
-					dealters_left++;
-			}
+			if (pPlayer->pev->fuser4 == SHIDDEN_SMELTER)
+				smelters_left++;
+			else
+				dealters_left++;
 		}
 	}
 
