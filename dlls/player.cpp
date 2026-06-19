@@ -6806,8 +6806,11 @@ void CBasePlayer::EndForceGrab( void )
 		((CBasePlayerWeapon *)m_pActiveItem)->m_flNextPrimaryAttack = 
 		((CBasePlayerWeapon *)m_pActiveItem)->m_flNextSecondaryAttack = 
 		((CBasePlayerWeapon *)m_pActiveItem)->GetNextAttackDelay(0);
+		m_fForceGrabTime = 0;
 		m_pActiveItem->DeployLowKey();
 	}
+
+	m_fForceGrabTime = gpGlobals->time + 2.5; // prevent immediate regrab
 
 	STOP_SOUND(edict(), CHAN_VOICE, "heaven.wav");
 	STOP_SOUND(edict(), CHAN_VOICE, "odetojoy.wav");
