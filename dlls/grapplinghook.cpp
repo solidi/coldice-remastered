@@ -186,6 +186,16 @@ void CHook::HookTouch( CBaseEntity *pOther )
 
 		m_fHookInWall = TRUE;
 		m_fActiveHook = TRUE;
+
+		if ( !pevOwner )
+		{
+			// Owner vanished mid-flight (disconnect / level transition).
+			// Don't try to drag a dead reference; just self-destruct.
+			SetThink( &CBaseEntity::SUB_Remove );
+			pev->nextthink = gpGlobals->time + 0.1;
+			return;
+		}
+
 		pevOwner->pev->movetype = MOVETYPE_FLY;
 
 		UTIL_Sparks( pev->origin );
@@ -207,14 +217,47 @@ void CHook::KillHook( void )
 	SUB_Remove();
 }
 
+// Detach from the owning player so a dangling pointer can never be deref'd.
+// Covers all removal paths: KillHook, Think death-branch, level transitions,
+// and engine-side cleanup. Also restores player physics if the hook was
+// torn down while still controlling the player (engine-forced removal).
+void CHook::UpdateOnRemove( void )
+{
+	CBaseEntity *pOwner = pevOwner;
+	if ( pOwner && pOwner->IsPlayer() )
+	{
+		CBasePlayer *pPlayer = (CBasePlayer *)pOwner;
+		if ( pPlayer->pGrapplingHook == this )
+			pPlayer->pGrapplingHook = NULL;
+
+		// If we still claim the player's movetype (didn't go through KillHook),
+		// release them so they don't get stuck in MOVETYPE_FLY.
+		if ( m_fActiveHook && pPlayer->IsAlive() )
+		{
+			pPlayer->pev->movetype = MOVETYPE_WALK;
+			pPlayer->pev->gravity = 1;
+		}
+	}
+
+	m_fActiveHook = FALSE;
+	m_fHookInWall = FALSE;
+	m_fPlayerAtEnd = FALSE;
+
+	CBaseEntity::UpdateOnRemove();
+}
+
 void CHook::Think ( void )
 {
-	if ( pevOwner && !pevOwner->IsAlive() )
+	if ( !pevOwner || !pevOwner->IsAlive() )
 	{
+		// Owner is gone (disconnected / freed) or dead: tear down safely.
+		// Clearing think/touch first avoids any chance of a stale callback
+		// firing between now and the SUB_Remove tick.
 		m_fActiveHook = FALSE;
 		m_fHookInWall = FALSE;
 		m_fPlayerAtEnd = FALSE;
-		SetThink(&CBaseEntity::SUB_Remove);
+		SetTouch( NULL );
+		SetThink( &CBaseEntity::SUB_Remove );
 		pev->nextthink = gpGlobals->time + 0.1;
 		return;
 	}

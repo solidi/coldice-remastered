@@ -14,6 +14,8 @@ public:
 	void FireHook( void );
 	void KillHook( void );
 
+	void UpdateOnRemove( void );
+
 	virtual int ObjectCaps( void ) { return CBaseEntity::ObjectCaps() & ~FCAP_ACROSS_TRANSITION | FCAP_PORTAL; }
 
 private:
