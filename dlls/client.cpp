@@ -1726,6 +1726,11 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_holsterweapons [0|1]\" - Holstering weapons for more realistic gameplay\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_hunterselfcost\" - Amount of damage taken by hunter when firing his weapon\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_iceblood [0|1]\" - Enable blue blood\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "For more, type help_server_more\n" );
+	}
+	else if ( FStrEq( pcmd, "help_server_more" )  )
+	{
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "[Server Help More]\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_icesprites [0|1]\" - Switch between select ice or real environment sprites\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_interactiveitems \"grenade;monster_satchel;monster_chumtoad;monster_snark;monster_barrel;gib;kts_snowball\"\" - A semicolon separated list of items that are \"interactive\" (kickable, pickupable)\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_ktsspawn1\" - name of entity where blue goal will spawn\n");
@@ -1754,6 +1759,7 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_voting [time]\" - enable or disable end of the map voting with timer\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_acrobatics [0|1]\" allow or disallow wall climbing, slides, and flips\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_botsmelee [0|1]\" - enable or disable bot close combat\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_bots_hook [0|1]\" - enable or disable bot grappling hook usage\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_breakabletime\" - amount of seconds before a breakable entity respawns\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_chaosfilter\" - a list of mutators inwhich are ignored during chaos mode\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_defaultbots [0-31|-1]\" amount of bots added to server, -1 for manual mode\n");
@@ -1767,11 +1773,6 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"chaos\" - randomly selects number of mutators with sv_mutatorcount!\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"clear\" - removes all applied mutators\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "For all mutator options, see readme.txt\n");
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "For more, type help_server_more\n" );
-	}
-	else if ( FStrEq( pcmd, "help_server_more" )  )
-	{
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "[Server Help More]\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_instantmutators [0|1]\" - enable or disable instant mutators.\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"sv_weather [0|1]\" allow or disallow weather effects on server.\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "For more, see readme.txt\n" );
