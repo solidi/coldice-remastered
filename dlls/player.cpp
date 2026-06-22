@@ -5488,13 +5488,13 @@ void CBasePlayer::ImpulseCommands( )
 			((CBasePlayerWeapon *)m_pActiveItem)->ThrowWeapon(TRUE);
 		}
 		break;
-/*
+#if defined( GRAPPLING_HOOK )
 	case 217:
 		if ( g_pGameRules->AllowGrapplingHook(this) ) {
 			if (pGrapplingHook == NULL && m_flNextHook < gpGlobals->time) {
 				pGrapplingHook = CHook::HookCreate(this);
 				pGrapplingHook->FireHook();
-				m_flNextHook = gpGlobals->time + 1.0;
+				m_flNextHook = gpGlobals->time + grapplinghookdeploytime.value;
 			}
 		}
 		break;
@@ -5506,7 +5506,7 @@ void CBasePlayer::ImpulseCommands( )
 			}
 		}
 		break;
-*/
+#endif
 	default:
 		// check all of the cheat impulse commands now
 		CheatImpulseCommands( iImpulse, TRUE );
