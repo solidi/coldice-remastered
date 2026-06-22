@@ -1109,10 +1109,18 @@ void ClientCommand( edict_t *pEntity )
 			if ( pPlayer->pev->flags & FL_GODMODE ) {
 				pPlayer->pev->flags &= ~FL_GODMODE;
 				pPlayer->pev->flags &= ~FL_NOTARGET; // chumtoads and things
+				MESSAGE_BEGIN( MSG_ONE, gmsgStatusIcon, NULL, pPlayer->edict() );
+					WRITE_BYTE(0);
+					WRITE_STRING("godmode");
+				MESSAGE_END();
 				ClientPrint(pPlayer->pev, HUD_PRINTCONSOLE, "[System] God mode OFF\n");
 			} else {
 				pPlayer->pev->flags |= FL_GODMODE;
 				pPlayer->pev->flags |= FL_NOTARGET;
+				MESSAGE_BEGIN( MSG_ONE, gmsgStatusIcon, NULL, pPlayer->edict() );
+					WRITE_BYTE(1);
+					WRITE_STRING("godmode");
+				MESSAGE_END();
 				ClientPrint(pPlayer->pev, HUD_PRINTCONSOLE, "[System] God mode ON\n");
 			}
 		}

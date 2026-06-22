@@ -889,6 +889,8 @@ typedef struct
 #define MUTATOR_VESTED 85
 #define MUTATOR_VOLATILE 86
 
+#define MAX_MUTATORS_CL	MUTATOR_VOLATILE + 1 // MUTATOR_VOLATILE + RANDOM
+
 #define GAME_FFA 0
 #define GAME_ARENA 1
 #define GAME_LMS 2

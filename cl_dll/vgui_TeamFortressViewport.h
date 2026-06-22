@@ -21,6 +21,7 @@
 #include<VGUI_ScrollPanel.h>
 #include<VGUI_ScrollBar.h>
 #include<VGUI_Slider.h>
+#include "const.h"
 
 // custom scheme handling
 #include "vgui_SchemeManager.h"
@@ -1756,7 +1757,6 @@ public:
 // RANDOM entry that is always appended at the LAST array index but DISPLAYED
 // FIRST in every vote panel.
 #define MAX_CLIENT_MAPS	129
-#define MAX_MUTATORS	MUTATOR_VOLATILE + 1 // MUTATOR_VOLATILE + RANDOM
 
 // Dynamic client-side map list. Populated by TeamFortressViewport::MsgFunc_MapList.
 // Defined in vgui_TeamFortressViewport.cpp.
@@ -1878,8 +1878,8 @@ class CVoteMutatorPanel : public CMenuPanel
 private:
 	CTFScrollPanel		*m_pScrollPanel;
 	LineBorder			*m_pScrollPanelBorder;
-	ColorButton			*m_pButtons[MAX_MUTATORS];
-	Label				*m_pVoteTallyLabels[MAX_MUTATORS];
+	ColorButton			*m_pButtons[MAX_MUTATORS_CL];
+	Label				*m_pVoteTallyLabels[MAX_MUTATORS_CL];
 	Label 				*pTitleLabel;
 
 	int					m_iCurrentInfo;

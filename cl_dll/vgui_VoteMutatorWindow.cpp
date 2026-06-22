@@ -69,7 +69,7 @@ CVoteMutatorPanel::CVoteMutatorPanel(int iTrans, int iRemoveMe, int x,int y,int 
 
 	// Create the buttons inside scroll panel
 	int positionCount = 0;
-	for (int i = 0; i < MAX_MUTATORS; i++)
+	for (int i = 0; i < MAX_MUTATORS_CL; i++)
 	{
 		m_pButtons[i] = NULL;
 		m_pVoteTallyLabels[i] = NULL;
@@ -86,7 +86,7 @@ CVoteMutatorPanel::CVoteMutatorPanel(int iTrans, int iRemoveMe, int x,int y,int 
 		int column, row;
 		
 		// Special handling for "Random" button (last mutator) - always first position
-		if (i == MAX_MUTATORS - 1)
+		if (i == MAX_MUTATORS_CL - 1)
 		{
 			row = 0;
 			column = 0;
@@ -153,11 +153,11 @@ void CVoteMutatorPanel::Update()
 	float minutes = fmax( 0, (int)( m_iTime + m_fStartTime - gHUD.m_flTime ) / 60);
 	float seconds = fmax( 0, ( m_iTime + m_fStartTime - gHUD.m_flTime ) - (minutes * 60));
 
-	int votes[MAX_MUTATORS];
+	int votes[MAX_MUTATORS_CL];
 	int myVote = -1;
 
 	// Count votes
-	for (int j = 0; j < MAX_MUTATORS; j++)
+	for (int j = 0; j < MAX_MUTATORS_CL; j++)
 	{
 		if (m_pButtons[j])
 			m_pButtons[j]->setArmed(false);
@@ -165,7 +165,7 @@ void CVoteMutatorPanel::Update()
 
 	// Count votes
 	int highest = -1, hi = -1;
-	for ( int i = 0; i < MAX_MUTATORS; i++ )
+	for ( int i = 0; i < MAX_MUTATORS_CL; i++ )
 	{
 		votes[i] = 0;
 		for ( int j = 1; j <= MAX_PLAYERS; j++ )
@@ -189,7 +189,7 @@ void CVoteMutatorPanel::Update()
 
 	int second = -1, s = -1;
 
-	for ( int i = 0; i < MAX_MUTATORS; i++ )
+	for ( int i = 0; i < MAX_MUTATORS_CL; i++ )
 	{
 		for ( int j = 1; j <= MAX_PLAYERS; j++ )
 		{
@@ -202,7 +202,7 @@ void CVoteMutatorPanel::Update()
 	}
 
 	int third = -1, t = -1;
-	for ( int i = 0; i < MAX_MUTATORS; i++ )
+	for ( int i = 0; i < MAX_MUTATORS_CL; i++ )
 	{
 		for ( int j = 1; j <= MAX_PLAYERS; j++ )
 		{
@@ -238,7 +238,7 @@ void CVoteMutatorPanel::Update()
 	if (pHorizontalScrollBar)
 		pHorizontalScrollBar->repaint();
 
-	for ( int i = 0; i < MAX_MUTATORS; i++ )
+	for ( int i = 0; i < MAX_MUTATORS_CL; i++ )
 	{
 		if (m_pButtons[i])
 		{
@@ -325,7 +325,7 @@ void CVoteMutatorPanel::Initialize( void )
 // Mouse is over a class button, bring up the class info
 void CVoteMutatorPanel::SetActiveInfo( int iInput )
 {
-	if ( iInput > (MAX_MUTATORS - 1) || iInput < 0 )
+	if ( iInput > (MAX_MUTATORS_CL - 1) || iInput < 0 )
 		iInput = 0;
 
 	m_iCurrentInfo = iInput;
