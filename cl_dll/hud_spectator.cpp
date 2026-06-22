@@ -1574,7 +1574,15 @@ void CHudSpectator::DrawOverviewEntities()
 
 		hSpriteModel = (struct model_s *)gEngfuncs.GetSpritePointer( m_OverviewEntities[i].hSprite );
 		ent = m_OverviewEntities[i].entity;
-		
+
+		// stored entity pointers can outlive the underlying engine entity
+		// (level change / entity slot recycled), so re-validate before use
+		if ( !ent || !ent->model )
+		{
+			memset( &m_OverviewEntities[i], 0, sizeof( overviewEntity_t ) );
+			continue;
+		}
+
 		gEngfuncs.pTriAPI->SpriteTexture( hSpriteModel, 0 );
 		gEngfuncs.pTriAPI->RenderMode( kRenderTransTexture );
 
@@ -1672,6 +1680,9 @@ void CHudSpectator::DrawOverviewEntities()
 		VectorSubtract(offset, screen, offset );
 
 		int playerNum = ent->index - 1;
+
+		if ( playerNum < 0 || playerNum >= MAX_PLAYERS )
+			continue;
 
 		m_vPlayerPos[playerNum][0] = screen[0];	
 		m_vPlayerPos[playerNum][1] = screen[1] + Length(offset);	
