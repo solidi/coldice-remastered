@@ -229,7 +229,7 @@ int CHudObjective::Draw(float flTime)
 	extern cvar_t *cl_showposition;
 	if (cl_showposition && cl_showposition->value)
 	{
-		if (gHUD.m_GameMode != GAME_CTF && gHUD.m_GameMode != GAME_KTS)
+		if ( (!ScoreBased() || IndividualPlayer()) && gHUD.m_Teamplay != GAME_TEAMPLAY )
 		{
 			if (!g_iUser1 && strlen(m_szGoalMessage))
 			{
@@ -254,7 +254,9 @@ int CHudObjective::Draw(float flTime)
 					SPR_Set(gHUD.GetSprite(gHUD.GetSpriteIndex("item_ctfflagg")), r, g, b);
 					SPR_DrawAdditive(0, x, y, &gHUD.GetSpriteRect(gHUD.GetSpriteIndex("item_ctfflagg")));
 					gHUD.DrawHudNumber(x + 48, y + 12, DHN_2DIGITS | DHN_DRAWZERO, g_PositionCount, r, g, b);
-					//gHUD.DrawHudNumber(x + 64, y + 12, DHN_2DIGITS | DHN_DRAWZERO, g_TotalCount, r, g, b);
+					SPR_Set(gHUD.GetSprite(gHUD.GetSpriteIndex("item_ctfslash")), r, g, b);
+					SPR_DrawAdditive(0, x + 96, y, &gHUD.GetSpriteRect(gHUD.GetSpriteIndex("item_ctfslash")));
+					gHUD.DrawHudNumber(x + 126, y + 12, DHN_2DIGITS | DHN_DRAWZERO, g_TotalCount - 1, r, g, b);
 				}
 			}
 		}
