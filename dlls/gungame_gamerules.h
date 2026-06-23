@@ -44,4 +44,11 @@ private:
 	EHANDLE m_hLeader;
 	EHANDLE m_hVoiceHandle;
 	int m_iVoiceId;
+
+	// Defer the strip+regrant out of PlayerKilled so it never runs while a
+	// weapon's PrimaryAttack/Fire is still on the call stack (otherwise
+	// CBasePlayerItem::Drop() NULLs m_pPlayer on the firing weapon and the
+	// post-fire writes in CGauss::PrimaryAttack etc. dereference NULL).
+	int m_iPendingLevelUp[33]; // indexed by ENTINDEX; non-zero = pending
+	void ProcessPendingLevelUps( void );
 };
