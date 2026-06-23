@@ -268,7 +268,7 @@ void CVoteMapPanel::Update()
 			if ((myVote - 1) == i)
 			{
 				m_pButtons[i]->setArmed(true);
-				borderColor = Color( 255, 255, 0, a );
+				borderColor = Color( 255, 255, 255, a );
 				m_pVoteTallyLabels[i]->setFgColor(255, 255, 255, 0);
 			}
 			else
