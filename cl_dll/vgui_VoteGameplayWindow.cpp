@@ -71,7 +71,8 @@ CVoteGameplayPanel::CVoteGameplayPanel(int iTrans, int iRemoveMe, int x,int y,in
 	m_pScrollPanel->setScrollBarAutoVisible(false, false);
 	m_pScrollPanel->setScrollBarVisible(true, true);
 	UnpackRGB(r, g, b, HudColor());
-	m_pScrollPanel->setBorder( new LineBorder( Color(r, g, b, 0) ) );
+	m_pScrollPanelBorder = new LineBorder( Color(r, g, b, 0) );
+	m_pScrollPanel->setBorder( m_pScrollPanelBorder );
 	m_pScrollPanel->validate();
 
 	int clientWide=m_pScrollPanel->getClient()->getWide();
@@ -84,6 +85,7 @@ CVoteGameplayPanel::CVoteGameplayPanel(int iTrans, int iRemoveMe, int x,int y,in
 	// Create the gameplay buttons
 	for (int i = 0; i <= MAX_MODES; i++)
 	{
+		m_pButtonBorders[i] = NULL;
 		char sz[256];
 		int shift = i+1;
 		int iXPos = GAMEMENU_TOPLEFT_BUTTON_X;
@@ -121,6 +123,8 @@ CVoteGameplayPanel::CVoteGameplayPanel(int iTrans, int iRemoveMe, int x,int y,in
 		char* localName = CHudTextMessage::BufferedLocaliseTextString( sz );
 		sprintf(sz, "%s", localName );
 		m_pButtons[i] = new ColorButton( sz, iXPos, iYPos, GAMEMENU_BUTTON_SIZE_X, GAMEMENU_BUTTON_SIZE_Y, false, true);
+		m_pButtonBorders[i] = new LineBorder( Color(r, g, b, a) );
+		m_pButtons[i]->setBorder( m_pButtonBorders[i] );
 		m_pButtons[i]->setBoundKey( (char)255 );
 		m_pButtons[i]->setContentAlignment( vgui::Label::a_west );
 		m_pButtons[i]->addActionSignal( pASignal );
@@ -287,7 +291,11 @@ void CVoteGameplayPanel::Update()
 
 	int r, g, b, a = 0;
 	UnpackRGB(r, g, b, HudColor());
-	m_pScrollPanel->setBorder( new LineBorder( Color(r, g, b, 0) ) );
+	if ( m_pScrollPanelBorder )
+	{
+		m_pScrollPanelBorder->setLineColor(r, g, b, 0);
+		m_pScrollPanel->setBorder( m_pScrollPanelBorder );
+	}
 
 	for ( int i = 0; i <= MAX_MODES; i++ )
 	{
@@ -317,8 +325,25 @@ void CVoteGameplayPanel::Update()
 				m_pVoteTallyLabels[i]->setFgColor(255, 255, 255, 0);
 			}
 			else
-				borderColor = Color( r, g, b, a );
-			m_pButtons[i]->setBorder( new LineBorder( borderColor ) );
+			{
+				// Update vote tally color to match button state
+				if (votes[i] == highest && votes[i] > 0)
+				{
+					borderColor = Color( 0, 255, 0, a );
+					m_pVoteTallyLabels[i]->setFgColor(0, 255, 0, 0);
+				}
+				else
+				{
+					borderColor = Color( r, g, b, a );
+				}
+			}
+			if ( m_pButtonBorders[i] )
+			{
+				int br, bg, bb, ba;
+				borderColor.getColor(br, bg, bb, ba);
+				m_pButtonBorders[i]->setLineColor(br, bg, bb, ba);
+				m_pButtons[i]->setBorder( m_pButtonBorders[i] );
+			}
 
 			m_pButtons[i]->setUnArmedColor(r, g, b, 0);
 			pTitleLabel->setFgColor( r, g, b, 0 );
@@ -333,12 +358,18 @@ void CVoteGameplayPanel::Update()
 				m_pButtons[i]->setBgColor(r, g, b, 255);
 				if ((myVote - 1) == i)
 					m_pButtons[i]->setArmedColor(255, 255, 255, 0);
-				else 
+				else if (votes[i] == highest && votes[i] > 0)
+					m_pButtons[i]->setArmedColor(0, 255, 0, 0);
+				else
 					m_pButtons[i]->setArmedColor(r, g, b, 0);
 			}
 			else
 			{
-				m_pButtons[i]->setBorder(new LineBorder( Color(r, g, b, a)));
+				if ( m_pButtonBorders[i] )
+				{
+					m_pButtonBorders[i]->setLineColor(r, g, b, a);
+					m_pButtons[i]->setBorder( m_pButtonBorders[i] );
+				}
 			}
 		}
 	}

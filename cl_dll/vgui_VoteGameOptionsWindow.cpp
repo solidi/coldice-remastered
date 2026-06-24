@@ -91,6 +91,7 @@ CVoteGameOptionsPanel::CVoteGameOptionsPanel( int iTrans, int iRemoveMe, int x, 
 		for ( int o = 0; o < MAX_CLIENT_GAME_OPTION_VALUES; o++ )
 		{
 			m_pRowButtons[k][o]    = NULL;
+			m_pRowButtonBorders[k][o] = NULL;
 			m_pRowVoteTallies[k][o] = NULL;
 		}
 	}
@@ -123,6 +124,10 @@ void CVoteGameOptionsPanel::BuildRows( void )
 			{
 				m_pRowButtons[k][o]->setVisible( false );
 				m_pRowButtons[k][o] = NULL;
+			}
+			if ( m_pRowButtonBorders[k][o] )
+			{
+				m_pRowButtonBorders[k][o] = NULL;
 			}
 			if ( m_pRowVoteTallies[k][o] )
 			{
@@ -204,6 +209,8 @@ void CVoteGameOptionsPanel::BuildRows( void )
 			sprintf(sz, " %s", it.labels[o]);
 			m_pRowButtons[k][o] = new ColorButton( sz,
 				xPos, yPos, GOMENU_BUTTON_WIDE, GOMENU_ROW_HEIGHT, false, true );
+			m_pRowButtonBorders[k][o] = new LineBorder( Color(r, g, b, a) );
+			m_pRowButtons[k][o]->setBorder( m_pRowButtonBorders[k][o] );
 			m_pRowButtons[k][o]->setBoundKey( (char)255 );
 			m_pRowButtons[k][o]->setContentAlignment( vgui::Label::a_west );
 			m_pRowButtons[k][o]->addActionSignal( pASig );
@@ -232,7 +239,7 @@ void CVoteGameOptionsPanel::Update()
 
 	if ( m_pScrollPanelBorder )
 	{
-		m_pScrollPanelBorder->setColor( Color( r, g, b, 255 ) );
+		m_pScrollPanelBorder->setLineColor( r, g, b, 255 );
 		m_pScrollPanel->setBorder( m_pScrollPanelBorder );
 	}
 	m_pTitleLabel->setFgColor( r, g, b, 0 );
@@ -340,8 +347,24 @@ void CVoteGameOptionsPanel::Update()
 					tly->setFgColor(255, 255, 255, 0);
 			}	
 			else
-				borderColor = Color( r, g, b, a );
-			btn->setBorder( new LineBorder( borderColor ) );
+			{
+				// Update vote tally color to match button state
+				if ( isWinner )
+				{
+					borderColor = Color( 0, 255, 0, a );
+				}
+				else
+				{
+					borderColor = Color( r, g, b, a );
+				}
+			}
+			if ( m_pRowButtonBorders[k][o] )
+			{
+				int br, bg, bb, ba;
+				borderColor.getColor( br, bg, bb, ba );
+				m_pRowButtonBorders[k][o]->setLineColor( br, bg, bb, ba );
+				btn->setBorder( m_pRowButtonBorders[k][o] );
+			}
 
 			if ( counts[o] > 0 )
 			{

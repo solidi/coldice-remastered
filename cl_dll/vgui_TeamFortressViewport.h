@@ -1803,8 +1803,10 @@ class CVoteGameplayPanel : public CMenuPanel
 private:
 	CTransparentPanel	*m_pGameInfoPanel[MAX_MODES + 1];
 	ColorButton			*m_pButtons[MAX_MODES + 1];
+	LineBorder			*m_pButtonBorders[MAX_MODES + 1];
 	Label				*m_pVoteTallyLabels[MAX_MODES + 1];
 	ScrollPanel			*m_pScrollPanel;
+	LineBorder			*m_pScrollPanelBorder;
 
 	//CImageLabel			*m_pClassImages[MAX_TEAMS][MAX_MODES + 1];
 	Label 				*pTitleLabel;
@@ -1841,6 +1843,7 @@ private:
 	CTFScrollPanel		*m_pScrollPanel;
 	LineBorder			*m_pScrollPanelBorder;
 	ColorButton			*m_pButtons[MAX_CLIENT_MAPS];
+	LineBorder			*m_pButtonBorders[MAX_CLIENT_MAPS];
 	Label				*m_pVoteTallyLabels[MAX_CLIENT_MAPS];
 	Label 				*pTitleLabel;
 
@@ -1879,6 +1882,7 @@ private:
 	CTFScrollPanel		*m_pScrollPanel;
 	LineBorder			*m_pScrollPanelBorder;
 	ColorButton			*m_pButtons[MAX_MUTATORS_CL];
+	LineBorder			*m_pButtonBorders[MAX_MUTATORS_CL];
 	Label				*m_pVoteTallyLabels[MAX_MUTATORS_CL];
 	Label 				*pTitleLabel;
 
@@ -1924,6 +1928,7 @@ private:
 	Label				*m_pTitleLabel;
 	Label				*m_pRowLabels[MAX_CLIENT_GAME_OPTIONS];
 	ColorButton			*m_pRowButtons[MAX_CLIENT_GAME_OPTIONS][MAX_CLIENT_GAME_OPTION_VALUES];
+	LineBorder			*m_pRowButtonBorders[MAX_CLIENT_GAME_OPTIONS][MAX_CLIENT_GAME_OPTION_VALUES];
 	Label				*m_pRowVoteTallies[MAX_CLIENT_GAME_OPTIONS][MAX_CLIENT_GAME_OPTION_VALUES];
 
 	int					m_iRowCount;     // == g_iActiveGameOptionsClientCount snapshot at Open()

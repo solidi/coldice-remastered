@@ -72,6 +72,7 @@ CVoteMutatorPanel::CVoteMutatorPanel(int iTrans, int iRemoveMe, int x,int y,int 
 	for (int i = 0; i < MAX_MUTATORS_CL; i++)
 	{
 		m_pButtons[i] = NULL;
+		m_pButtonBorders[i] = NULL;
 		m_pVoteTallyLabels[i] = NULL;
 		if (strstr(sMutators[i].name, "slowmo") ||
 			strstr(sMutators[i].name, "speedup") ||
@@ -110,6 +111,8 @@ CVoteMutatorPanel::CVoteMutatorPanel(int iTrans, int iRemoveMe, int x,int y,int 
 		char sz[256];
 		sprintf(sz, " %s", sMutators[i].name);
 		m_pButtons[i] = new ColorButton( sz, iXPos, iYPos, MUTATORMENU_BUTTON_SIZE_X, MUTATORMENU_BUTTON_SIZE_Y, false, true);
+		m_pButtonBorders[i] = new LineBorder( Color(r, g, b, a) );
+		m_pButtons[i]->setBorder( m_pButtonBorders[i] );
 		m_pButtons[i]->setBoundKey( (char)255 );
 		m_pButtons[i]->setContentAlignment( vgui::Label::a_west );
 		m_pButtons[i]->addActionSignal( pASignal );
@@ -219,7 +222,7 @@ void CVoteMutatorPanel::Update()
 	UnpackRGB(r, g, b, HudColor());
 	if (m_pScrollPanelBorder)
 	{
-		m_pScrollPanelBorder->setColor(Color(r, g, b, 255));
+		m_pScrollPanelBorder->setLineColor(r, g, b, 255);
 		m_pScrollPanel->setBorder(m_pScrollPanelBorder);
 	}
 	pTitleLabel->setFgColor(r, g, b, 0);
@@ -264,8 +267,24 @@ void CVoteMutatorPanel::Update()
 				m_pVoteTallyLabels[i]->setFgColor(255, 255, 255, 0);
 			}
 			else
-				borderColor = Color( r, g, b, a );
-			m_pButtons[i]->setBorder( new LineBorder( borderColor ) );
+			{
+				// Update vote tally color to match button state
+				if ((i == hi || i == s || i == t) && votes[i] > 0)
+				{
+					borderColor = Color( 0, 255, 0, a );
+				}
+				else
+				{
+					borderColor = Color( r, g, b, a );
+				}
+			}
+			if ( m_pButtonBorders[i] )
+			{
+				int br, bg, bb, ba;
+				borderColor.getColor(br, bg, bb, ba);
+				m_pButtonBorders[i]->setLineColor(br, bg, bb, ba);
+				m_pButtons[i]->setBorder( m_pButtonBorders[i] );
+			}
 
 
 			m_pButtons[i]->setUnArmedColor(r, g, b, 0);
@@ -280,7 +299,11 @@ void CVoteMutatorPanel::Update()
 			}
 			else
 			{
-				m_pButtons[i]->setBorder(new LineBorder( Color(r, g, b, a)));
+				if ( m_pButtonBorders[i] )
+				{
+					m_pButtonBorders[i]->setLineColor(r, g, b, a);
+					m_pButtons[i]->setBorder( m_pButtonBorders[i] );
+				}
 			}
 		}
 	}

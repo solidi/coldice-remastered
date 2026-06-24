@@ -72,6 +72,7 @@ CVoteMapPanel::CVoteMapPanel(int iTrans, int iRemoveMe, int x,int y,int wide,int
 	for ( int i = 0; i < MAX_CLIENT_MAPS; i++ )
 	{
 		m_pButtons[i] = NULL;
+		m_pButtonBorders[i] = NULL;
 		m_pVoteTallyLabels[i] = NULL;
 	}
 	m_iButtonCount = 0;
@@ -98,6 +99,10 @@ void CVoteMapPanel::BuildButtons( void )
 		{
 			m_pButtons[i]->setVisible( false );
 			m_pButtons[i] = NULL;
+		}
+		if ( m_pButtonBorders[i] )
+		{
+			m_pButtonBorders[i] = NULL;
 		}
 		if ( m_pVoteTallyLabels[i] )
 		{
@@ -157,6 +162,8 @@ void CVoteMapPanel::BuildButtons( void )
 		}
 
 		m_pButtons[i] = new ColorButton( sz, iXPos, iYPos, XRES(222), YRES(36), false, true );
+		m_pButtonBorders[i] = new LineBorder( Color(r, g, b, a) );
+		m_pButtons[i]->setBorder( m_pButtonBorders[i] );
 		m_pButtons[i]->setBoundKey( (char)255 );
 		m_pButtons[i]->setContentAlignment( vgui::Label::a_west );
 		m_pButtons[i]->addActionSignal( pASignal );
@@ -222,7 +229,7 @@ void CVoteMapPanel::Update()
 	UnpackRGB(r, g, b, HudColor());
 	if (m_pScrollPanelBorder)
 	{
-		m_pScrollPanelBorder->setColor(Color(r, g, b, 255));
+		m_pScrollPanelBorder->setLineColor(r, g, b, 255);
 		m_pScrollPanel->setBorder(m_pScrollPanelBorder);
 	}
 	pTitleLabel->setFgColor(r, g, b, 0);
@@ -272,8 +279,25 @@ void CVoteMapPanel::Update()
 				m_pVoteTallyLabels[i]->setFgColor(255, 255, 255, 0);
 			}
 			else
-				borderColor = Color( r, g, b, a );
-			m_pButtons[i]->setBorder( new LineBorder( borderColor ) );
+			{
+				// Update vote tally color to match button state
+				if (votes[i] == highest && votes[i] > 0)
+				{
+					borderColor = Color( 0, 255, 0, a );
+				}
+				else
+				{
+					borderColor = Color( r, g, b, a );
+				}
+			}
+
+			if ( m_pButtonBorders[i] )
+			{
+				int br, bg, bb, ba;
+				borderColor.getColor(br, bg, bb, ba);
+				m_pButtonBorders[i]->setLineColor(br, bg, bb, ba);
+				m_pButtons[i]->setBorder( m_pButtonBorders[i] );
+			}
 
 			m_pButtons[i]->setUnArmedColor(r, g, b, 0);
 			if (votes[i] > 0)
@@ -287,7 +311,11 @@ void CVoteMapPanel::Update()
 			}
 			else
 			{
-				m_pButtons[i]->setBorder(new LineBorder( Color(r, g, b, a)));
+				if ( m_pButtonBorders[i] )
+				{
+					m_pButtonBorders[i]->setLineColor(r, g, b, a);
+					m_pButtons[i]->setBorder( m_pButtonBorders[i] );
+				}
 			}
 		}
 	}
