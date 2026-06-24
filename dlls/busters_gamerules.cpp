@@ -74,7 +74,7 @@ void CMultiplayBusters::InitHUD( CBasePlayer *pPlayer )
 	{
 		MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL, pPlayer->edict());
 			WRITE_STRING("Bust 'em");
-			WRITE_STRING("");
+			WRITE_STRING("You're spectating");
 			WRITE_BYTE(0);
 			WRITE_STRING("");
 		MESSAGE_END();

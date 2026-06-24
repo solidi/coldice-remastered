@@ -101,7 +101,7 @@ void CHalfLifeInstagib::InitHUD( CBasePlayer *pPlayer )
 	{
 		MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL, pPlayer->edict());
 			WRITE_STRING("Instagib 'em");
-			WRITE_STRING("");
+			WRITE_STRING("You're spectating");
 			WRITE_BYTE(0);
 			WRITE_STRING("");
 		MESSAGE_END();
@@ -179,6 +179,17 @@ void CHalfLifeInstagib::Think(void)
 		CBasePlayer *pPlayer = (CBasePlayer *)UTIL_PlayerByIndex( frags[i].clientID );
 		if (!pPlayer || !pPlayer->IsPlayer() || pPlayer->HasDisconnected) continue;
 		if (FBitSet(pPlayer->pev->flags, FL_FAKECLIENT)) continue;
+
+		if (pPlayer->IsSpectator())
+		{
+			MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, pPlayer->edict());
+				WRITE_STRING("Instagib 'em");
+				WRITE_STRING("Observing players");
+				WRITE_BYTE(0);
+				WRITE_STRING("");
+			MESSAGE_END();
+			continue;
+		}
 
 		int myfrags = frags[i].frags;
 		MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, pPlayer->edict());

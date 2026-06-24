@@ -304,8 +304,8 @@ void CHalfLifeGunGame::InitHUD( CBasePlayer *pPlayer )
 	if (!FBitSet(pPlayer->pev->flags, FL_FAKECLIENT))
 	{
 		MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL, pPlayer->edict());
-			WRITE_STRING("Get through your weapon list");
-			WRITE_STRING(UTIL_VarArgs("Your progress: %d of %d", pPlayer->m_iRoundWins + 1, MAXLEVEL));
+			WRITE_STRING("Gungame");
+			WRITE_STRING("You're spectating");
 			WRITE_BYTE(0);
 			WRITE_STRING("");
 		MESSAGE_END();

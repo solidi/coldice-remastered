@@ -969,6 +969,13 @@ void CHalfLifeKickTheSnowball::InitHUD( CBasePlayer *pPlayer )
 
 	if (!FBitSet(pPlayer->pev->flags, FL_FAKECLIENT))
 	{
+		MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL, pPlayer->edict());
+			WRITE_STRING("Kick the Snowball");
+			WRITE_STRING("You're spectating");
+			WRITE_BYTE(0);
+			WRITE_STRING("");
+		MESSAGE_END();
+
 		MESSAGE_BEGIN(MSG_ONE, gmsgCtfInfo, NULL, pPlayer->edict());
 			WRITE_BYTE(m_iBlueScore);
 			WRITE_BYTE(m_iRedScore);
