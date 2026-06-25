@@ -36,10 +36,16 @@
 
 #include "colorcor.h"
 
-CColorCorTexture::CColorCorTexture() {};
+CColorCorTexture::CColorCorTexture() : g_texture(0) {};
 
 void CColorCorTexture::Init(int width, int height)
 {
+	if (g_texture)
+	{
+		glDeleteTextures(1, &g_texture);
+		g_texture = 0;
+	}
+
 	// create a load of blank pixels to create textures with
 	unsigned char* pBlankTex = new unsigned char[width * height * 3];
 	memset(pBlankTex, 0, width * height * 3);

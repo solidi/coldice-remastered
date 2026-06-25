@@ -54,6 +54,38 @@ void DrawQuad(int width, int height, int ofsX, int ofsY)
 
 void CPortalRenderer::Init()
 {
+	// Reinitialize on VidInit/map change without leaking old GL texture objects.
+	if (portalPass_1)
+	{
+		glDeleteTextures(1, &portalPass_1);
+		portalPass_1 = 0;
+	}
+	if (portalPass_2)
+	{
+		glDeleteTextures(1, &portalPass_2);
+		portalPass_2 = 0;
+	}
+	if (screenpass)
+	{
+		glDeleteTextures(1, &screenpass);
+		screenpass = 0;
+	}
+	if (blankshit)
+	{
+		glDeleteTextures(1, &blankshit);
+		blankshit = 0;
+	}
+	if (finalPortal[0])
+	{
+		glDeleteTextures(1, &finalPortal[0]);
+		finalPortal[0] = 0;
+	}
+	if (finalPortal[1])
+	{
+		glDeleteTextures(1, &finalPortal[1]);
+		finalPortal[1] = 0;
+	}
+
 	// create a load of blank pixels to create textures with
 	unsigned char* pBlankTex = new unsigned char[ScreenWidth * ScreenHeight * 3];
 	memset(pBlankTex, 0, ScreenWidth * ScreenHeight * 3);
