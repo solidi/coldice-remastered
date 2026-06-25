@@ -38,6 +38,8 @@ CHalfLifeArena::CHalfLifeArena()
 	m_iFirstBloodDecided = TRUE; // no first blood award
 	m_iReigningChampion = 0;
 	m_iOpponentPoolSize = 0;
+	m_flPlayer1MissingSince = 0;
+	m_flPlayer2MissingSince = 0;
 	memset(m_iOpponentPool, 0, sizeof(m_iOpponentPool));
 	PauseMutators();
 }
@@ -113,12 +115,50 @@ void CHalfLifeArena::Think( void )
 		CBasePlayer *pPlayer1 = (CBasePlayer *)UTIL_PlayerByIndex( m_iPlayer1 );
 		CBasePlayer *pPlayer2 = (CBasePlayer *)UTIL_PlayerByIndex( m_iPlayer2 );
 
-		// when a player disconnects...
-		bool p1Disconnected = !pPlayer1 || pPlayer1->HasDisconnected;
-		bool p2Disconnected = !pPlayer2 || pPlayer2->HasDisconnected;
+		// Debounce transient missing/disconnect states.  During connect/slot churn,
+		// player pointers/flags can flicker for a frame.  Don't end the round on
+		// a one-tick blip.
+		bool p1MissingNow = (!pPlayer1 || pPlayer1->HasDisconnected || pPlayer1->IsSpectator());
+		bool p2MissingNow = (!pPlayer2 || pPlayer2->HasDisconnected || pPlayer2->IsSpectator());
+
+		if (p1MissingNow)
+		{
+			if (m_flPlayer1MissingSince <= 0)
+				m_flPlayer1MissingSince = gpGlobals->time;
+		}
+		else
+		{
+			m_flPlayer1MissingSince = 0;
+		}
+
+		if (p2MissingNow)
+		{
+			if (m_flPlayer2MissingSince <= 0)
+				m_flPlayer2MissingSince = gpGlobals->time;
+		}
+		else
+		{
+			m_flPlayer2MissingSince = 0;
+		}
+
+		bool p1Disconnected = p1MissingNow &&
+			(m_flPlayer1MissingSince > 0) &&
+			((gpGlobals->time - m_flPlayer1MissingSince) >= 1.0f);
+		bool p2Disconnected = p2MissingNow &&
+			(m_flPlayer2MissingSince > 0) &&
+			((gpGlobals->time - m_flPlayer2MissingSince) >= 1.0f);
+
+		if (!p1Disconnected && !p2Disconnected && (p1MissingNow || p2MissingNow))
+		{
+			flUpdateTime = gpGlobals->time + 0.2;
+			return;
+		}
 
 		if ( p1Disconnected || p2Disconnected )
 		{
+			m_flPlayer1MissingSince = 0;
+			m_flPlayer2MissingSince = 0;
+
 			//stop timer / end game.
 			m_flRoundTimeLimit = 0;
 			g_GameInProgress = FALSE;
@@ -189,6 +229,41 @@ void CHalfLifeArena::Think( void )
 			//player must exist
 			if ( plr && plr->IsPlayer() && !plr->HasDisconnected )
 			{
+				const bool isActiveCombatant = (plr == pPlayer1 || plr == pPlayer2);
+
+				// During an active arena round, ONLY the two selected duelists may
+				// remain active.  Any late joiner or non-duelist is forced to
+				// spectator immediately so they cannot influence round outcome.
+				if (!isActiveCombatant)
+				{
+					if (!plr->IsSpectator())
+					{
+						SuckToSpectator( plr );
+						plr->m_flForceToObserverTime = 0;
+					}
+
+					if (!FBitSet(plr->pev->flags, FL_FAKECLIENT) && pPlayer1 && pPlayer2)
+					{
+						MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, plr->edict() );
+							if (roundlimit.value > 0)
+								WRITE_STRING(UTIL_VarArgs("1 vs. 1: Round %d of %.0f", m_iSuccessfulRounds + 1, roundlimit.value ));
+							else
+								WRITE_STRING(UTIL_VarArgs("1 vs. 1: Round %d", m_iSuccessfulRounds + 1));
+							WRITE_STRING(UTIL_VarArgs("%s (%.0f/%.0f) vs. %s (%.0f/%.0f)\n",
+							STRING(pPlayer1->pev->netname),
+							pPlayer1->pev->health,
+							pPlayer1->pev->armorvalue,
+							STRING(pPlayer2->pev->netname),
+							pPlayer2->pev->health,
+							pPlayer2->pev->armorvalue));
+							WRITE_BYTE(0);
+							WRITE_STRING("");
+						MESSAGE_END();
+					}
+
+					continue;
+				}
+
 				// Force spectate on those that died.
 				if ( plr != pPlayer1 && plr != pPlayer2 &&
 					plr->m_flForceToObserverTime && plr->m_flForceToObserverTime < gpGlobals->time )
@@ -201,6 +276,9 @@ void CHalfLifeArena::Think( void )
 				// and frags are >= set server value.
 				if ( plr->IsInArena && plr->pev->frags >= roundfraglimit.value )
 				{
+					m_flPlayer1MissingSince = 0;
+					m_flPlayer2MissingSince = 0;
+
 					//stop timer / end game.
 					m_flRoundTimeLimit = 0;
 					g_GameInProgress = FALSE;
