@@ -169,7 +169,9 @@ void CBasePlayer::Observer_CheckTarget()
 	}
 
 	// check taget
-	if (target->pev->deadflag == DEAD_DEAD || target->pev->deadflag == DEAD_RESPAWNABLE)
+	if (target->pev->deadflag == DEAD_DEAD || 
+		target->pev->deadflag == DEAD_RESPAWNABLE ||
+		target->HasDisconnected)
 	{
 		if ( (target->m_fDeadTime + 2.0f ) < gpGlobals->time )
 		{

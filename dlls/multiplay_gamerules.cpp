@@ -44,7 +44,6 @@ extern int gmsgScoreInfo;
 extern int gmsgTeamInfo;
 extern int gmsgMOTD;
 extern int gmsgServerName;
-extern int gmsgStatusIcon;
 extern int gmsgObjective;
 
 extern int gmsgVoteGameplay;

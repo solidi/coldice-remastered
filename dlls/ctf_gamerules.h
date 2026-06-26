@@ -44,8 +44,11 @@ public:
 	EHANDLE pBlueBase;
 
 private:
+	edict_t *SelectRandomEntityByClassname( const char *szClassname );
 	float m_fSpawnBlueHardware = -1;
 	float m_fSpawnRedHardware = -1;
+	int m_iBlueHardwareSpawnFailures = 0;
+	int m_iRedHardwareSpawnFailures = 0;
 	int m_iBlueScore;
 	int m_iRedScore;
 	int m_iBlueMode;

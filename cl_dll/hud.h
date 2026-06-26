@@ -57,6 +57,7 @@ typedef struct {
 } POSITION;
 
 #include "global_consts.h"
+#include "const.h"
 
 typedef struct {
 	unsigned char r,g,b,a;
@@ -574,6 +575,7 @@ private:
 	} icon_sprite_t;
 
 	icon_sprite_t m_IconList[MAX_ICONSPRITES];
+	int m_LastMutatorStatus[MAX_MUTATORS_CL];
 
 	float m_flCheckMutators;
 

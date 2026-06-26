@@ -69,9 +69,10 @@ CVoteMutatorPanel::CVoteMutatorPanel(int iTrans, int iRemoveMe, int x,int y,int 
 
 	// Create the buttons inside scroll panel
 	int positionCount = 0;
-	for (int i = 0; i < MAX_MUTATORS; i++)
+	for (int i = 0; i < MAX_MUTATORS_CL; i++)
 	{
 		m_pButtons[i] = NULL;
+		m_pButtonBorders[i] = NULL;
 		m_pVoteTallyLabels[i] = NULL;
 		if (strstr(sMutators[i].name, "slowmo") ||
 			strstr(sMutators[i].name, "speedup") ||
@@ -86,7 +87,7 @@ CVoteMutatorPanel::CVoteMutatorPanel(int iTrans, int iRemoveMe, int x,int y,int 
 		int column, row;
 		
 		// Special handling for "Random" button (last mutator) - always first position
-		if (i == MAX_MUTATORS - 1)
+		if (i == MAX_MUTATORS_CL - 1)
 		{
 			row = 0;
 			column = 0;
@@ -110,6 +111,8 @@ CVoteMutatorPanel::CVoteMutatorPanel(int iTrans, int iRemoveMe, int x,int y,int 
 		char sz[256];
 		sprintf(sz, " %s", sMutators[i].name);
 		m_pButtons[i] = new ColorButton( sz, iXPos, iYPos, MUTATORMENU_BUTTON_SIZE_X, MUTATORMENU_BUTTON_SIZE_Y, false, true);
+		m_pButtonBorders[i] = new LineBorder( Color(r, g, b, a) );
+		m_pButtons[i]->setBorder( m_pButtonBorders[i] );
 		m_pButtons[i]->setBoundKey( (char)255 );
 		m_pButtons[i]->setContentAlignment( vgui::Label::a_west );
 		m_pButtons[i]->addActionSignal( pASignal );
@@ -153,11 +156,11 @@ void CVoteMutatorPanel::Update()
 	float minutes = fmax( 0, (int)( m_iTime + m_fStartTime - gHUD.m_flTime ) / 60);
 	float seconds = fmax( 0, ( m_iTime + m_fStartTime - gHUD.m_flTime ) - (minutes * 60));
 
-	int votes[MAX_MUTATORS];
+	int votes[MAX_MUTATORS_CL];
 	int myVote = -1;
 
 	// Count votes
-	for (int j = 0; j < MAX_MUTATORS; j++)
+	for (int j = 0; j < MAX_MUTATORS_CL; j++)
 	{
 		if (m_pButtons[j])
 			m_pButtons[j]->setArmed(false);
@@ -165,7 +168,7 @@ void CVoteMutatorPanel::Update()
 
 	// Count votes
 	int highest = -1, hi = -1;
-	for ( int i = 0; i < MAX_MUTATORS; i++ )
+	for ( int i = 0; i < MAX_MUTATORS_CL; i++ )
 	{
 		votes[i] = 0;
 		for ( int j = 1; j <= MAX_PLAYERS; j++ )
@@ -189,7 +192,7 @@ void CVoteMutatorPanel::Update()
 
 	int second = -1, s = -1;
 
-	for ( int i = 0; i < MAX_MUTATORS; i++ )
+	for ( int i = 0; i < MAX_MUTATORS_CL; i++ )
 	{
 		for ( int j = 1; j <= MAX_PLAYERS; j++ )
 		{
@@ -202,7 +205,7 @@ void CVoteMutatorPanel::Update()
 	}
 
 	int third = -1, t = -1;
-	for ( int i = 0; i < MAX_MUTATORS; i++ )
+	for ( int i = 0; i < MAX_MUTATORS_CL; i++ )
 	{
 		for ( int j = 1; j <= MAX_PLAYERS; j++ )
 		{
@@ -219,7 +222,7 @@ void CVoteMutatorPanel::Update()
 	UnpackRGB(r, g, b, HudColor());
 	if (m_pScrollPanelBorder)
 	{
-		m_pScrollPanelBorder->setColor(Color(r, g, b, 255));
+		m_pScrollPanelBorder->setLineColor(r, g, b, 255);
 		m_pScrollPanel->setBorder(m_pScrollPanelBorder);
 	}
 	pTitleLabel->setFgColor(r, g, b, 0);
@@ -238,7 +241,7 @@ void CVoteMutatorPanel::Update()
 	if (pHorizontalScrollBar)
 		pHorizontalScrollBar->repaint();
 
-	for ( int i = 0; i < MAX_MUTATORS; i++ )
+	for ( int i = 0; i < MAX_MUTATORS_CL; i++ )
 	{
 		if (m_pButtons[i])
 		{
@@ -260,12 +263,28 @@ void CVoteMutatorPanel::Update()
 			if ((myVote - 1) == i)
 			{
 				m_pButtons[i]->setArmed(true);
-				borderColor = Color( 255, 255, 0, a );
+				borderColor = Color( 255, 255, 255, a );
 				m_pVoteTallyLabels[i]->setFgColor(255, 255, 255, 0);
 			}
 			else
-				borderColor = Color( r, g, b, a );
-			m_pButtons[i]->setBorder( new LineBorder( borderColor ) );
+			{
+				// Update vote tally color to match button state
+				if ((i == hi || i == s || i == t) && votes[i] > 0)
+				{
+					borderColor = Color( 0, 255, 0, a );
+				}
+				else
+				{
+					borderColor = Color( r, g, b, a );
+				}
+			}
+			if ( m_pButtonBorders[i] )
+			{
+				int br, bg, bb, ba;
+				borderColor.getColor(br, bg, bb, ba);
+				m_pButtonBorders[i]->setLineColor(br, bg, bb, ba);
+				m_pButtons[i]->setBorder( m_pButtonBorders[i] );
+			}
 
 
 			m_pButtons[i]->setUnArmedColor(r, g, b, 0);
@@ -280,7 +299,11 @@ void CVoteMutatorPanel::Update()
 			}
 			else
 			{
-				m_pButtons[i]->setBorder(new LineBorder( Color(r, g, b, a)));
+				if ( m_pButtonBorders[i] )
+				{
+					m_pButtonBorders[i]->setLineColor(r, g, b, a);
+					m_pButtons[i]->setBorder( m_pButtonBorders[i] );
+				}
 			}
 		}
 	}
@@ -325,7 +348,7 @@ void CVoteMutatorPanel::Initialize( void )
 // Mouse is over a class button, bring up the class info
 void CVoteMutatorPanel::SetActiveInfo( int iInput )
 {
-	if ( iInput > (MAX_MUTATORS - 1) || iInput < 0 )
+	if ( iInput > (MAX_MUTATORS_CL - 1) || iInput < 0 )
 		iInput = 0;
 
 	m_iCurrentInfo = iInput;

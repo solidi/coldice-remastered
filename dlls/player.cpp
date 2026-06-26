@@ -6197,6 +6197,7 @@ private:
 		ATTRACT = 0,
 		REPEL
 	};
+	float m_fExpireTime = 0;
 };
 
 LINK_ENTITY_TO_CLASS( monster_grabweapon, CGrabWeapon );
@@ -6244,6 +6245,7 @@ void CGrabWeapon::Spawn( void )
 		WRITE_BYTE( 1 ); // scroll
 	MESSAGE_END();  // move PHS/PVS data sending into here (SEND_ALL, SEND_PVS, SEND_PHS)
 
+	m_fExpireTime = gpGlobals->time + 5.0;
 	pev->nextthink = gpGlobals->time + 0.1;
 }
 
@@ -6265,12 +6267,29 @@ void CGrabWeapon::GrabWeaponThink( void )
 	else
 		pev->velocity = vecDir * 1900;
 
-	if (m_hOwner && !m_hOwner->IsAlive())
+	if ((m_hOwner && !m_hOwner->IsAlive()))
 	{
 		STOP_SOUND(m_hOwner->edict(), CHAN_VOICE, "odetojoy.wav");
 		SetThink(NULL);
 		pev->nextthink = -1;
 		UTIL_Remove(this);
+	}
+
+	// Expire after 5 seconds if it hasn't hit anything.
+	if (gpGlobals->time > m_fExpireTime)
+	{
+		if (m_hOwner)
+		{
+			if (m_hOwner->IsPlayer() && m_hOwner->IsAlive())
+				((CBasePlayer*)(CBaseEntity*)m_hOwner)->EndForceGrab();
+
+			STOP_SOUND(m_hOwner->edict(), CHAN_VOICE, "odetojoy.wav");
+		}
+
+		SetThink(NULL);
+		pev->nextthink = -1;
+		UTIL_Remove(this);
+		return;
 	}
 
 	pev->nextthink = gpGlobals->time + 0.1;

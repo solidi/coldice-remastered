@@ -21,6 +21,7 @@
 #include<VGUI_ScrollPanel.h>
 #include<VGUI_ScrollBar.h>
 #include<VGUI_Slider.h>
+#include "const.h"
 
 // custom scheme handling
 #include "vgui_SchemeManager.h"
@@ -1756,7 +1757,6 @@ public:
 // RANDOM entry that is always appended at the LAST array index but DISPLAYED
 // FIRST in every vote panel.
 #define MAX_CLIENT_MAPS	129
-#define MAX_MUTATORS	MUTATOR_VOLATILE + 1 // MUTATOR_VOLATILE + RANDOM
 
 // Dynamic client-side map list. Populated by TeamFortressViewport::MsgFunc_MapList.
 // Defined in vgui_TeamFortressViewport.cpp.
@@ -1803,8 +1803,10 @@ class CVoteGameplayPanel : public CMenuPanel
 private:
 	CTransparentPanel	*m_pGameInfoPanel[MAX_MODES + 1];
 	ColorButton			*m_pButtons[MAX_MODES + 1];
+	LineBorder			*m_pButtonBorders[MAX_MODES + 1];
 	Label				*m_pVoteTallyLabels[MAX_MODES + 1];
 	ScrollPanel			*m_pScrollPanel;
+	LineBorder			*m_pScrollPanelBorder;
 
 	//CImageLabel			*m_pClassImages[MAX_TEAMS][MAX_MODES + 1];
 	Label 				*pTitleLabel;
@@ -1841,6 +1843,7 @@ private:
 	CTFScrollPanel		*m_pScrollPanel;
 	LineBorder			*m_pScrollPanelBorder;
 	ColorButton			*m_pButtons[MAX_CLIENT_MAPS];
+	LineBorder			*m_pButtonBorders[MAX_CLIENT_MAPS];
 	Label				*m_pVoteTallyLabels[MAX_CLIENT_MAPS];
 	Label 				*pTitleLabel;
 
@@ -1878,8 +1881,9 @@ class CVoteMutatorPanel : public CMenuPanel
 private:
 	CTFScrollPanel		*m_pScrollPanel;
 	LineBorder			*m_pScrollPanelBorder;
-	ColorButton			*m_pButtons[MAX_MUTATORS];
-	Label				*m_pVoteTallyLabels[MAX_MUTATORS];
+	ColorButton			*m_pButtons[MAX_MUTATORS_CL];
+	LineBorder			*m_pButtonBorders[MAX_MUTATORS_CL];
+	Label				*m_pVoteTallyLabels[MAX_MUTATORS_CL];
 	Label 				*pTitleLabel;
 
 	int					m_iCurrentInfo;
@@ -1924,6 +1928,7 @@ private:
 	Label				*m_pTitleLabel;
 	Label				*m_pRowLabels[MAX_CLIENT_GAME_OPTIONS];
 	ColorButton			*m_pRowButtons[MAX_CLIENT_GAME_OPTIONS][MAX_CLIENT_GAME_OPTION_VALUES];
+	LineBorder			*m_pRowButtonBorders[MAX_CLIENT_GAME_OPTIONS][MAX_CLIENT_GAME_OPTION_VALUES];
 	Label				*m_pRowVoteTallies[MAX_CLIENT_GAME_OPTIONS][MAX_CLIENT_GAME_OPTION_VALUES];
 
 	int					m_iRowCount;     // == g_iActiveGameOptionsClientCount snapshot at Open()

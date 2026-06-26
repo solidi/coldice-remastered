@@ -107,6 +107,50 @@ CHalfLifeGunGame::CHalfLifeGunGame()
 	m_iSuccessfulRounds = 0;
 
 	m_iFirstBloodDecided = TRUE; // no first blood award
+
+	memset( m_iPendingLevelUp, 0, sizeof(m_iPendingLevelUp) );
+}
+
+void CHalfLifeGunGame::ProcessPendingLevelUps( void )
+{
+	int maxIdx = (int)(sizeof(m_iPendingLevelUp) / sizeof(m_iPendingLevelUp[0]));
+	int limit = gpGlobals->maxClients;
+	if (limit >= maxIdx)
+		limit = maxIdx - 1;
+
+	for (int i = 1; i <= limit; i++)
+	{
+		if (!m_iPendingLevelUp[i])
+			continue;
+
+		m_iPendingLevelUp[i] = 0;
+
+		CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
+		if (!plr || !plr->IsPlayer() || plr->HasDisconnected)
+			continue;
+		if (!plr->IsAlive())
+			continue;
+		if (plr->m_iRoundWins <= 0 || plr->m_iRoundWins >= MAXLEVEL)
+			continue;
+
+		char weapon[32];
+		sprintf(weapon, "%s%s", "weapon_", g_WeaponId[plr->m_iRoundWins]);
+
+		plr->RemoveAllItems(FALSE);
+		GiveMutators(plr);
+		plr->GiveNamedItem("weapon_fists");
+		if (ggsteallevel.value > 0)
+			plr->GiveNamedItem("weapon_knife");
+		plr->GiveNamedItem(STRING(ALLOC_STRING(weapon)));
+
+		if (!FBitSet(plr->pev->flags, FL_FAKECLIENT))
+		{
+			MESSAGE_BEGIN( MSG_ONE_UNRELIABLE, gmsgPlayClientSound, NULL, plr->edict() );
+				WRITE_BYTE(CLIENT_SOUND_LEVEL_UP);
+			MESSAGE_END();
+		}
+		ClientPrint(plr->pev, HUD_PRINTCENTER, UTIL_VarArgs("You Have Leveled Up!\n"));
+	}
 }
 
 void CHalfLifeGunGame::Think( void )
@@ -176,7 +220,7 @@ void CHalfLifeGunGame::Think( void )
 					plr->Spawn();
 			}
 
-			m_fRefreshStats = gpGlobals->time;
+			m_fRefreshStats = gpGlobals->time + 0.5;
 		}
 		else
 		{
@@ -197,6 +241,9 @@ void CHalfLifeGunGame::Think( void )
 
 	if (m_fRefreshStats > 0 && m_fRefreshStats <= gpGlobals->time)
 	{
+		// Run any kill-deferred strip+regrant before anything else this frame,
+		// so it executes outside any weapon Fire() call stack.
+		ProcessPendingLevelUps();
 		for ( int i = 1; i <= gpGlobals->maxClients; i++ )
 		{
 			CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
@@ -257,8 +304,8 @@ void CHalfLifeGunGame::InitHUD( CBasePlayer *pPlayer )
 	if (!FBitSet(pPlayer->pev->flags, FL_FAKECLIENT))
 	{
 		MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL, pPlayer->edict());
-			WRITE_STRING("Get through your weapon list");
-			WRITE_STRING(UTIL_VarArgs("Your progress: %d of %d", pPlayer->m_iRoundWins + 1, MAXLEVEL));
+			WRITE_STRING("Gungame");
+			WRITE_STRING("");
 			WRITE_BYTE(0);
 			WRITE_STRING("");
 		MESSAGE_END();
@@ -294,7 +341,7 @@ void CHalfLifeGunGame::PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller, e
 				MESSAGE_END();
 				ClientPrint(pVictim->pev, HUD_PRINTTALK, "[GunGame] Your level was lost by suicide!\n");
 
-				m_fRefreshStats = gpGlobals->time;
+				m_fRefreshStats = gpGlobals->time + 0.5;
 			}
 		}
 		// Steals
@@ -337,7 +384,7 @@ void CHalfLifeGunGame::PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller, e
 					MESSAGE_END();
 				}
 
-				m_fRefreshStats = gpGlobals->time;
+				m_fRefreshStats = gpGlobals->time + 0.5;
 			}
 		}
 
@@ -350,25 +397,17 @@ void CHalfLifeGunGame::PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller, e
 				return;
 			}
 
-			char weapon[32];
-			sprintf(weapon, "%s%s", "weapon_", g_WeaponId[plr->m_iRoundWins]);
-
-			if (plr->IsAlive() && plr->m_iRoundWins < MAXLEVEL)
+			// Defer the strip+regrant. Doing it here is unsafe because we are
+			// reached from inside the firing weapon's PrimaryAttack -> Fire
+			// damage callback; RemoveAllItems would Drop() that very weapon
+			// and NULL its m_pPlayer, then the caller dereferences it on
+			// return (crash in CGauss::PrimaryAttack at the post-fire
+			// m_pPlayer->m_flNextAttack write).
+			if (plr->m_iRoundWins < MAXLEVEL)
 			{
-				plr->RemoveAllItems(FALSE);
-				GiveMutators(plr);
-				plr->GiveNamedItem("weapon_fists");
-				if (ggsteallevel.value > 0)
-					plr->GiveNamedItem("weapon_knife");
-				plr->GiveNamedItem(STRING(ALLOC_STRING(weapon)));
-				
-				if (!FBitSet(plr->pev->flags, FL_FAKECLIENT))
-				{
-					MESSAGE_BEGIN( MSG_ONE_UNRELIABLE, gmsgPlayClientSound, NULL, plr->edict() );
-						WRITE_BYTE(CLIENT_SOUND_LEVEL_UP);
-					MESSAGE_END();
-				}
-				ClientPrint(plr->pev, HUD_PRINTCENTER, UTIL_VarArgs("You Have Leveled Up!\n"));
+				int idx = ENTINDEX(plr->edict());
+				if (idx >= 1 && idx < (int)(sizeof(m_iPendingLevelUp) / sizeof(m_iPendingLevelUp[0])))
+					m_iPendingLevelUp[idx] = 1;
 			}
 		}
 	}

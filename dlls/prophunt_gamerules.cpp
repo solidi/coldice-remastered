@@ -29,7 +29,6 @@ extern int gmsgObjective;
 extern int gmsgTeamNames;
 extern int gmsgTeamInfo;
 extern int gmsgScoreInfo;
-extern int gmsgStatusIcon;
 extern int gmsgShowTimer;
 extern int gmsgPlayClientSound;
 extern int gmsgDEraser;

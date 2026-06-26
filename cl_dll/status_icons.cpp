@@ -53,6 +53,7 @@ int CHudStatusIcons::VidInit( void )
 void CHudStatusIcons::Reset( void )
 {
 	memset( m_IconList, 0, sizeof m_IconList );
+	memset( m_LastMutatorStatus, 0, sizeof m_LastMutatorStatus );
 	m_iFlags |= HUD_ACTIVE;
 	m_flCheckMutators = 0;
 	if (!MutatorEnabled(MUTATOR_THIRDPERSON))
@@ -271,7 +272,7 @@ void CHudStatusIcons::DisableIcon( char *pszIconName )
 void CHudStatusIcons::DrawMutators( void )
 {
 	// No chaos or random.
-	for (int mutatorId = 1; mutatorId < (MAX_MUTATORS - 1); mutatorId++)
+	for (int mutatorId = 1; mutatorId < (MAX_MUTATORS_CL - 1); mutatorId++)
 	{
 		// because chaos is 0 or 1
 		int id = mutatorId + 1;
@@ -287,11 +288,18 @@ void CHudStatusIcons::ToggleMutatorIcon(int mutatorId, const char *mutator)
 
 	if (MutatorEnabled(mutatorId))
 	{
+		if (m_LastMutatorStatus[mutatorId] == 1)
+			return; // already active, so no need to enable again
+
+		m_LastMutatorStatus[mutatorId] = 1;
 		mutators_t t = GetMutator(mutatorId);
 		EnableIcon((char *)mutator, t.timeToLive, t.startTime);
 	}
 	else
 	{
+		if (m_LastMutatorStatus[mutatorId] == 0)
+			return; // not currently active, so no need to disable
+
 		if (mutatorId == MUTATOR_LONGJUMP)
 		{
 			if (atoi(gEngfuncs.PhysInfo_ValueForKey("slj")) != 1)
@@ -299,5 +307,7 @@ void CHudStatusIcons::ToggleMutatorIcon(int mutatorId, const char *mutator)
 		}
 		else
 			DisableIcon((char *)mutator);
+
+		m_LastMutatorStatus[mutatorId] = 0;
 	}
 }

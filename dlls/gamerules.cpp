@@ -474,7 +474,7 @@ void CGameRules::RefreshSkillData ( void )
 // to separate player damage and monster hivehand damage. Since it's so late in the project, we've
 // added plrDmgHornet to the SKILLDATA struct, but not to the engine CVar list, so it's inaccesible
 // via SKILLS.CFG. Any player hivehand tuning must take place in the code. (sjb)
-	gSkillData.plrDmgHornet = 7;
+	gSkillData.plrDmgHornet = GetSkillCvar( "sk_hornet_dmg");
 
 
 	// HEALTH/CHARGE
@@ -1188,8 +1188,9 @@ void CGameRules::AddInstantMutator(void)
 				{
 					if (pPlayer->pev->armorvalue <= 0)
 					{
-						pPlayer->pev->health = 0;
-						pl->Killed(VARS(eoNullEntity), VARS(eoNullEntity), GIB_ALWAYS);
+					int temp = pPlayer->pev->health;
+					pPlayer->pev->health = 1;
+					pPlayer->pev->armorvalue = temp;
 					}
 					else
 					{

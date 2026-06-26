@@ -461,9 +461,27 @@ CHalfLifeCaptureTheFlag::CHalfLifeCaptureTheFlag()
 	pRedBase = pBlueBase = NULL;
 	m_fSpawnBlueHardware = gpGlobals->time + 2.0;
 	m_fSpawnRedHardware = gpGlobals->time + 2.0;
+	m_iBlueHardwareSpawnFailures = 0;
+	m_iRedHardwareSpawnFailures = 0;
 	m_iBlueScore = m_iRedScore = m_iBlueMode = m_iRedMode = 0;
 	UTIL_PrecacheOther("flag");
 	UTIL_PrecacheOther("base");
+}
+
+edict_t *CHalfLifeCaptureTheFlag::SelectRandomEntityByClassname( const char *szClassname )
+{
+	CBaseEntity *pSpot = NULL;
+
+	for ( int i = RANDOM_LONG(1,5); i > 0; i-- )
+		pSpot = UTIL_FindEntityByClassname( pSpot, szClassname );
+
+	if ( FNullEnt( pSpot ) )
+		pSpot = UTIL_FindEntityByClassname( pSpot, szClassname );
+
+	if ( FNullEnt( pSpot ) )
+		return NULL;
+
+	return pSpot->edict();
 }
 
 BOOL CHalfLifeCaptureTheFlag::IsSpawnPointValid( CBaseEntity *pSpot )
@@ -606,6 +624,13 @@ void CHalfLifeCaptureTheFlag::InitHUD( CBasePlayer *pPlayer )
 
 	if (!FBitSet(pPlayer->pev->flags, FL_FAKECLIENT))
 	{
+		MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL, pPlayer->edict());
+			WRITE_STRING("Capture the flag");
+			WRITE_STRING("You're spectating");
+			WRITE_BYTE(0);
+			WRITE_STRING("");
+		MESSAGE_END();
+
 		MESSAGE_BEGIN(MSG_ONE, gmsgCtfInfo, NULL, pPlayer->edict());
 			WRITE_BYTE(m_iBlueScore);
 			WRITE_BYTE(m_iRedScore);
@@ -656,9 +681,33 @@ void CHalfLifeCaptureTheFlag::Think( void )
 	if (m_fSpawnBlueHardware != -1 && m_fSpawnBlueHardware < gpGlobals->time)
 	{
 		edict_t *pentSpawnSpot = EntSelectSpawnPoint(ctfspawn1.string);
+		BOOL bFallback = FALSE;
+
+		if (!pentSpawnSpot)
+		{
+			m_iBlueHardwareSpawnFailures++;
+
+			if (m_iBlueHardwareSpawnFailures >= 3)
+			{
+				pentSpawnSpot = SelectRandomEntityByClassname("info_player_deathmatch");
+				if (pentSpawnSpot)
+				{
+					bFallback = TRUE;
+					ALERT(at_console, "[CtF] Blue base fallback: using random info_player_deathmatch after %d failed spawn attempts (target '%s').\n", m_iBlueHardwareSpawnFailures, ctfspawn1.string);
+				}
+				else
+				{
+					ALERT(at_error, "[CtF] Blue base fallback failed: no info_player_deathmatch found.\n");
+				}
+			}
+		}
 		if (pentSpawnSpot)
 		{
-			ALERT(at_console, "[CtF] Blue base set!\n");
+			m_iBlueHardwareSpawnFailures = 0;
+			if (bFallback)
+				ALERT(at_console, "[CtF] Blue base set via fallback spot.\n");
+			else
+				ALERT(at_console, "[CtF] Blue base set!\n");
 			CFlagCharm::CreateFlag(pentSpawnSpot->v.origin, TEAM_BLUE);
 			pBlueBase = CFlagBase::CreateFlagBase(pentSpawnSpot->v.origin, TEAM_BLUE);
 			m_fSpawnBlueHardware = -1;
@@ -672,9 +721,33 @@ void CHalfLifeCaptureTheFlag::Think( void )
 	if (m_fSpawnRedHardware != -1 && m_fSpawnRedHardware < gpGlobals->time)
 	{
 		edict_t *pentSpawnSpot2 = EntSelectSpawnPoint(ctfspawn2.string);
+		BOOL bFallback = FALSE;
+
+		if (!pentSpawnSpot2)
+		{
+			m_iRedHardwareSpawnFailures++;
+
+			if (m_iRedHardwareSpawnFailures >= 3)
+			{
+				pentSpawnSpot2 = SelectRandomEntityByClassname("info_player_deathmatch");
+				if (pentSpawnSpot2)
+				{
+					bFallback = TRUE;
+					ALERT(at_console, "[CtF] Red base fallback: using random info_player_deathmatch after %d failed spawn attempts (target '%s').\n", m_iRedHardwareSpawnFailures, ctfspawn2.string);
+				}
+				else
+				{
+					ALERT(at_error, "[CtF] Red base fallback failed: no info_player_deathmatch found.\n");
+				}
+			}
+		}
 		if (pentSpawnSpot2)
 		{
-			ALERT(at_console, "[CtF] Red base set!\n");
+			m_iRedHardwareSpawnFailures = 0;
+			if (bFallback)
+				ALERT(at_console, "[CtF] Red base set via fallback spot.\n");
+			else
+				ALERT(at_console, "[CtF] Red base set!\n");
 			CFlagCharm::CreateFlag(pentSpawnSpot2->v.origin, TEAM_RED);
 			pRedBase = CFlagBase::CreateFlagBase(pentSpawnSpot2->v.origin, TEAM_RED);
 			m_fSpawnRedHardware = -1;
