@@ -6278,10 +6278,14 @@ void CGrabWeapon::GrabWeaponThink( void )
 	// Expire after 5 seconds if it hasn't hit anything.
 	if (gpGlobals->time > m_fExpireTime)
 	{
-		if (m_hOwner && m_hOwner->IsAlive())
-			((CBasePlayer*)(CBaseEntity*)m_hOwner)->EndForceGrab();
+		if (m_hOwner)
+		{
+			if (m_hOwner->IsPlayer() && m_hOwner->IsAlive())
+				((CBasePlayer*)(CBaseEntity*)m_hOwner)->EndForceGrab();
 
-		STOP_SOUND(m_hOwner->edict(), CHAN_VOICE, "odetojoy.wav");
+			STOP_SOUND(m_hOwner->edict(), CHAN_VOICE, "odetojoy.wav");
+		}
+
 		SetThink(NULL);
 		pev->nextthink = -1;
 		UTIL_Remove(this);
