@@ -1188,8 +1188,9 @@ void CGameRules::AddInstantMutator(void)
 				{
 					if (pPlayer->pev->armorvalue <= 0)
 					{
-						pPlayer->pev->health = 1;
-						//pl->Killed(VARS(eoNullEntity), VARS(eoNullEntity), GIB_ALWAYS);
+					int temp = pPlayer->pev->health;
+					pPlayer->pev->health = 1;
+					pPlayer->pev->armorvalue = temp;
 					}
 					else
 					{

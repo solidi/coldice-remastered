@@ -481,16 +481,7 @@ edict_t *CHalfLifeCaptureTheFlag::SelectRandomEntityByClassname( const char *szC
 	if ( FNullEnt( pSpot ) )
 		return NULL;
 
-	CBaseEntity *pFirstSpot = pSpot;
-	do
-	{
-		if ( pSpot )
-			return pSpot->edict();
-
-		pSpot = UTIL_FindEntityByClassname( pSpot, szClassname );
-	} while ( pSpot != pFirstSpot );
-
-	return NULL;
+	return pSpot->edict();
 }
 
 BOOL CHalfLifeCaptureTheFlag::IsSpawnPointValid( CBaseEntity *pSpot )
