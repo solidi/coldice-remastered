@@ -373,6 +373,8 @@ public:
 #define VOTE_GAMEPLAY_OPEN 2
 #define VOTE_GAMEOPTIONS_TRANSITION 7
 #define VOTE_GAMEOPTIONS_OPEN 8
+#define VOTE_SERVEROPTIONS_TRANSITION 9
+#define VOTE_SERVEROPTIONS_OPEN 10
 #define VOTE_MUTATORS_TRANSITION 3
 #define VOTE_MUTATORS_OPEN 4
 #define VOTE_MAPS_TRANSITION 5
@@ -499,6 +501,7 @@ public:
 	virtual void EndMultiplayerGame( void ) { GoToIntermission(); }
 	virtual void VoteForMutator( void );
 	virtual void VoteForGameOptions( BOOL fromRTV );
+	virtual void VoteForServerOptions( BOOL fromRTV );
 	int RandomizeMutator( void );
 
 	virtual BOOL IsArmoredMan( CBasePlayer *pPlayer ) { return FALSE; }
@@ -523,10 +526,14 @@ public:
 	void ResetPlayerSettings(CBasePlayer *pPlayer);
 	void CheckMutatorRTV( void );
 	void CheckGameOptionsRTV( void );                 // public: mid-game game-options RTV timer
+	void CheckServerOptionsRTV( void );               // public: mid-game server-options RTV timer
 	void PumpClientManifestSends( void );             // public: paced map/options manifest streaming
 	void SendGameOptionsToClient( edict_t *client );  // public: client.cpp::gameoptions_resend command
+	void SendServerOptionsToClient( edict_t *client );// public: client.cpp::serveroptions_resend command
 	void BuildActiveGameOptions( void );              // public: filter g_GameOptions[] for the current g_GameMode
+	void BuildActiveServerOptions( void );            // public: currently all g_ServerOptions[] rows
 	void TallyGameOptionsVote( BOOL fromRTV );        // public: count + apply per-item votes
+	void TallyServerOptionsVote( BOOL fromRTV );      // public: count + apply per-item votes
 
 	// Game-options voting state (per intermission / per RTV cycle).
 	// m_iActiveGameOptions[] holds indices into g_GameOptions[] for items
@@ -543,6 +550,17 @@ public:
 	BOOL     m_bGameOptionsRTVOnly;
 	edict_t *m_pGameOptionsRTVInitiator;
 	float    m_fGameOptionsVoteTime;            // mid-game RTV open expiry (0 = inactive)
+
+	// Server-options voting state (global rows; no game-mode filter key).
+	int      m_iActiveServerOptions[64];
+	int      m_iActiveServerOptionsCount;
+	int      m_iServerOptionsVotes[32][64];     // [entindex-1][activeItemIdx] -> option index, -1 unvoted
+	float    m_fServerOptionsLastSent[32];
+	int      m_iServerOptionsRevisionSent[32];
+	BOOL     m_bServerOptionsRTVOnly;
+	edict_t *m_pServerOptionsRTVInitiator;
+	float    m_fServerOptionsVoteTime;          // mid-game RTV open expiry (0 = inactive)
+
 	int      m_iElectedGameMode;                // gameplay-vote winner pending mp_gamemode apply; -1 = use g_GameMode
 
 	// Per-client manifest stream cursors. -1 means idle/no pending stream.
@@ -550,6 +568,8 @@ public:
 	int      m_iMapListStreamSeq[32];
 	int      m_iGameOptionsStreamNext[32];
 	int      m_iGameOptionsStreamSeq[32];
+	int      m_iServerOptionsStreamNext[32];
+	int      m_iServerOptionsStreamSeq[32];
 
 protected:
 	virtual void ChangeLevel( void );
@@ -637,5 +657,38 @@ extern int  g_iGameOptionsParseLogCount;
 
 void BuildGameOptionsList( void );        // (re)parse gameoptions.txt; bumps revision
 void EnsureGameOptionsList( void );       // build only if not yet built / file changed
+
+// Dynamic server-options manifest, parsed from serveroptions.txt at runtime.
+// Each item is one global cvar with 2..5 voter-selectable options.
+// Unlike game-options, there is no per-mode "game" token.
+#define MAX_SERVER_OPTIONS         64
+#define MAX_SERVER_OPTION_VALUES   5
+#define MAX_SERVER_OPTION_TITLE    64
+#define MAX_SERVER_OPTION_CVAR     32
+#define MAX_SERVER_OPTION_LABEL    24
+#define MAX_SERVER_OPTION_VALUE    32
+
+struct server_option_t
+{
+	char cvar[MAX_SERVER_OPTION_CVAR];
+	char title[MAX_SERVER_OPTION_TITLE];
+	BOOL restart;
+	int  numOptions;
+	char labels[MAX_SERVER_OPTION_VALUES][MAX_SERVER_OPTION_LABEL];
+	char values[MAX_SERVER_OPTION_VALUES][MAX_SERVER_OPTION_VALUE];
+};
+
+extern server_option_t g_ServerOptions[MAX_SERVER_OPTIONS];
+extern int             g_iServerOptionsCount;
+extern int             g_iServerOptionsRevision;
+extern int             g_iServerOptionsParseErrors;
+
+#define SERVER_OPTIONS_PARSE_LOG_LINES 16
+#define SERVER_OPTIONS_PARSE_LOG_WIDTH 128
+extern char g_szServerOptionsParseLog[SERVER_OPTIONS_PARSE_LOG_LINES][SERVER_OPTIONS_PARSE_LOG_WIDTH];
+extern int  g_iServerOptionsParseLogCount;
+
+void BuildServerOptionsList( void );      // (re)parse serveroptions.txt; bumps revision
+void EnsureServerOptionsList( void );     // build only if not yet built / file changed
 
 #endif	//GAMERULES_H

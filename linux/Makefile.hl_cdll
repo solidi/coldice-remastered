@@ -168,6 +168,7 @@ HL1_OBJS = \
 	$(HL1_OBJ_DIR)/vgui_VoteMapWindow.o \
 	$(HL1_OBJ_DIR)/vgui_VoteMutatorWindow.o \
 	$(HL1_OBJ_DIR)/vgui_VoteGameOptionsWindow.o \
+	$(HL1_OBJ_DIR)/vgui_VoteServerOptionsWindow.o \
 	$(HL1_OBJ_DIR)/wallclimb.o \
 	$(HL1_OBJ_DIR)/voice_status.o \
 	$(HL1_OBJ_DIR)/hud_servers.o \

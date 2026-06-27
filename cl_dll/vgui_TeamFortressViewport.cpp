@@ -179,6 +179,21 @@ int                  g_PlayerOptVote[MAX_PLAYERS + 1][MAX_CLIENT_GAME_OPTIONS];
 bool                 g_bGameOptsResendRequested      = false;
 bool                 g_bGameOptionsAutoCloseOnComplete = false;
 
+// ---------------------------------------------------------------------------
+// Dynamic client-side server-options list, populated by MsgFunc_SrvOpts.
+// Mirrors the server's g_ServerOptions[] (serveroptions.txt). Cvar names and
+// values are never retained client-side beyond stream alignment drains.
+// ---------------------------------------------------------------------------
+client_server_option_t g_ServerOptionsClient[MAX_CLIENT_SERVER_OPTIONS];
+int                    g_iServerOptionsClientCount       = 0;
+int                    g_iServerOptionsRevisionClient    = -1;
+bool                   g_bServerOptionsReceived          = false;
+int                    g_iActiveServerOptionsClient[MAX_CLIENT_SERVER_OPTIONS];
+int                    g_iActiveServerOptionsClientCount = 0;
+int                    g_PlayerSrvOptVote[MAX_PLAYERS + 1][MAX_CLIENT_SERVER_OPTIONS];
+bool                   g_bServerOptsResendRequested      = false;
+bool                   g_bServerOptionsAutoCloseOnComplete = false;
+
 const char *MapSizeLabel( int size )
 {
 	switch ( size )
@@ -706,6 +721,7 @@ TeamFortressViewport::TeamFortressViewport(int x,int y,int wide,int tall) : Pane
 	m_pVoteMapMenu = NULL;
 	m_pVoteMutatorMenu = NULL;
 	m_pVoteGameOptionsMenu = NULL;
+	m_pVoteServerOptionsMenu = NULL;
 
 	Initialize();
 	addInputSignal( new CViewPortInputHandler );
@@ -768,6 +784,7 @@ TeamFortressViewport::TeamFortressViewport(int x,int y,int wide,int tall) : Pane
 	CreateVoteMapMenu();
 	CreateVoteMutatorMenu();
 	CreateVoteGameOptionsMenu();
+	CreateVoteServerOptionsMenu();
 
 	// Init command menus
 	m_iNumMenus = 0;
@@ -825,6 +842,10 @@ void TeamFortressViewport::Initialize( void )
 	if (m_pVoteGameOptionsMenu)
 	{
 		m_pVoteGameOptionsMenu->Initialize();
+	}
+	if (m_pVoteServerOptionsMenu)
+	{
+		m_pVoteServerOptionsMenu->Initialize();
 	}
 	if (m_pScoreBoard)
 	{
@@ -2064,7 +2085,7 @@ void TeamFortressViewport::ShowVGUIMenu( int iMenu, int timer )
 	if ( gHUD.m_iIntermission && 
 		(iMenu != MENU_INTRO 
 		&& iMenu != MENU_VOTEGAMEPLAY && iMenu != MENU_VOTEMAP && iMenu != MENU_VOTEMUTATOR
-		&& iMenu != MENU_VOTEGAMEOPTIONS) )
+		&& iMenu != MENU_VOTEGAMEOPTIONS && iMenu != MENU_VOTESERVEROPTIONS) )
 		return;
 
 	// Don't create one if it's already in the list
@@ -2119,6 +2140,10 @@ void TeamFortressViewport::ShowVGUIMenu( int iMenu, int timer )
 
 	case MENU_VOTEGAMEOPTIONS:
 		pNewMenu = ShowVoteGameOptionsMenu(timer);
+		break;
+
+	case MENU_VOTESERVEROPTIONS:
+		pNewMenu = ShowVoteServerOptionsMenu(timer);
 		break;
 
 	default:
@@ -2330,6 +2355,29 @@ void TeamFortressViewport::CreateVoteGameOptionsMenu()
 }
 
 //======================================================================================
+// VOTE SERVER-OPTIONS MENU
+//======================================================================================
+
+CMenuPanel* TeamFortressViewport::ShowVoteServerOptionsMenu(int timer)
+{
+	if ( gEngfuncs.pDemoAPI->IsPlayingback() )
+		return NULL;
+	if ( !m_pVoteServerOptionsMenu )
+		return NULL;
+
+	m_pVoteServerOptionsMenu->Reset();
+	m_pVoteServerOptionsMenu->m_iTime = timer;
+	return m_pVoteServerOptionsMenu;
+}
+
+void TeamFortressViewport::CreateVoteServerOptionsMenu()
+{
+	m_pVoteServerOptionsMenu = new CVoteServerOptionsPanel(35, false, 0, 0, ScreenWidth, ScreenHeight);
+	m_pVoteServerOptionsMenu->setParent(this);
+	m_pVoteServerOptionsMenu->setVisible( false );
+}
+
+//======================================================================================
 //======================================================================================
 // SPECTATOR MENU
 //======================================================================================
@@ -2362,6 +2410,8 @@ void TeamFortressViewport::UpdateOnPlayerInfo()
 		m_pVoteMutatorMenu->Update();
 	if (m_pVoteGameOptionsMenu && m_pVoteGameOptionsMenu->isVisible())
 		m_pVoteGameOptionsMenu->Update();
+	if (m_pVoteServerOptionsMenu && m_pVoteServerOptionsMenu->isVisible())
+		m_pVoteServerOptionsMenu->Update();
 	if (m_pScoreBoard)
 		m_pScoreBoard->Update();
 }
@@ -2477,6 +2527,10 @@ void TeamFortressViewport::paintBackground()
 	if ( m_pVoteGameOptionsMenu && m_pVoteGameOptionsMenu->isVisible() )
 	{
 		m_pVoteGameOptionsMenu->Update();
+	}
+	if ( m_pVoteServerOptionsMenu && m_pVoteServerOptionsMenu->isVisible() )
+	{
+		m_pVoteServerOptionsMenu->Update();
 	}
 
 	int extents[4];
@@ -3005,6 +3059,152 @@ int TeamFortressViewport::MsgFunc_VOptFor( const char *pszName, int iSize, void 
 	if ( option < 1 || option > MAX_CLIENT_GAME_OPTION_VALUES )   return 1;
 
 	g_PlayerOptVote[client][item - 1] = option - 1;
+	return 1;
+}
+
+// MsgFunc_SrvOpts -- receive chunked server-options manifest from server.
+// Format per chunk:
+//   BYTE revision, BYTE seq, BYTE isLast, BYTE total, BYTE numInChunk
+//   For each item:
+//     STRING cvar (drained client-side)
+//     STRING title
+//     BYTE restart
+//     BYTE numOptions
+//     For each option: STRING label, STRING value (value drained client-side)
+int TeamFortressViewport::MsgFunc_SrvOpts( const char *pszName, int iSize, void *pbuf )
+{
+	BEGIN_READ( pbuf, iSize );
+	int revision   = READ_BYTE();
+	int seq        = READ_BYTE();
+	int isLast     = READ_BYTE();
+	int total      = READ_BYTE();
+	int numInChunk = READ_BYTE();
+
+	if ( seq != 0 && revision != g_iServerOptionsRevisionClient )
+	{
+		g_iServerOptionsClientCount = 0;
+		g_bServerOptionsReceived = false;
+		if ( !g_bServerOptsResendRequested )
+		{
+			g_bServerOptsResendRequested = true;
+			gEngfuncs.pfnClientCmd( "serveroptions_resend\n" );
+		}
+		return 1;
+	}
+
+	if ( seq == 0 )
+	{
+		g_iServerOptionsClientCount = 0;
+		g_iServerOptionsRevisionClient = revision;
+		g_bServerOptionsReceived = false;
+		g_bServerOptsResendRequested = false;
+		if ( total < 0 ) total = 0;
+		if ( total > MAX_CLIENT_SERVER_OPTIONS ) total = MAX_CLIENT_SERVER_OPTIONS;
+	}
+
+	for ( int i = 0; i < numInChunk; i++ )
+	{
+		if ( g_iServerOptionsClientCount >= MAX_CLIENT_SERVER_OPTIONS )
+		{
+			READ_STRING(); READ_STRING(); READ_BYTE();
+			int nopt = READ_BYTE();
+			for ( int o = 0; o < nopt; o++ ) { READ_STRING(); READ_STRING(); }
+			continue;
+		}
+		client_server_option_t &slot = g_ServerOptionsClient[g_iServerOptionsClientCount];
+		const char *tmp;
+
+		READ_STRING(); // cvar -- server-only
+		tmp = READ_STRING();
+		strncpy( slot.title, tmp ? tmp : "", sizeof(slot.title) - 1 );
+		slot.title[sizeof(slot.title) - 1] = 0;
+
+		int restart = READ_BYTE();
+		int nopt = READ_BYTE();
+		if ( nopt < 0 ) nopt = 0;
+		if ( nopt > MAX_CLIENT_SERVER_OPTION_VALUES ) nopt = MAX_CLIENT_SERVER_OPTION_VALUES;
+
+		slot.restart = restart ? 1 : 0;
+		slot.numOptions = nopt;
+
+		for ( int o = 0; o < nopt; o++ )
+		{
+			tmp = READ_STRING();
+			strncpy( slot.labels[o], tmp ? tmp : "", sizeof(slot.labels[o]) - 1 );
+			slot.labels[o][sizeof(slot.labels[o]) - 1] = 0;
+			READ_STRING(); // value -- server-only
+		}
+
+		g_iServerOptionsClientCount++;
+	}
+
+	if ( isLast )
+		g_bServerOptionsReceived = true;
+
+	return 1;
+}
+
+// MsgFunc_VoteSrvOp -- open or close the per-item server-options vote panel.
+// Format: BYTE revision, BYTE timer, BYTE activeCount, BYTE[activeCount] indices, [optional] BYTE flags
+int TeamFortressViewport::MsgFunc_VoteSrvOp( const char *pszName, int iSize, void *pbuf )
+{
+	BEGIN_READ( pbuf, iSize );
+	int revision    = READ_BYTE();
+	int timer       = READ_BYTE();
+	int activeCount = READ_BYTE();
+
+	if ( timer == 0 )
+	{
+		for ( int i = 0; i <= MAX_PLAYERS; i++ )
+			for ( int k = 0; k < MAX_CLIENT_SERVER_OPTIONS; k++ )
+				g_PlayerSrvOptVote[i][k] = -1;
+		g_iActiveServerOptionsClientCount = 0;
+		g_bServerOptionsAutoCloseOnComplete = false;
+		HideVGUIMenu();
+		return 1;
+	}
+
+	if ( activeCount < 0 ) activeCount = 0;
+	if ( activeCount > MAX_CLIENT_SERVER_OPTIONS ) activeCount = MAX_CLIENT_SERVER_OPTIONS;
+	g_iActiveServerOptionsClientCount = activeCount;
+	for ( int k = 0; k < activeCount; k++ )
+		g_iActiveServerOptionsClient[k] = READ_BYTE();
+
+	int flags = 0;
+	if ( iSize > ( 3 + activeCount ) )
+		flags = READ_BYTE();
+	g_bServerOptionsAutoCloseOnComplete = ( flags & 0x01 ) ? true : false;
+
+	for ( int i = 0; i <= MAX_PLAYERS; i++ )
+		for ( int k = 0; k < MAX_CLIENT_SERVER_OPTIONS; k++ )
+			g_PlayerSrvOptVote[i][k] = -1;
+
+	if ( revision != g_iServerOptionsRevisionClient || !g_bServerOptionsReceived )
+	{
+		if ( !g_bServerOptsResendRequested )
+		{
+			g_bServerOptsResendRequested = true;
+			gEngfuncs.pfnClientCmd( "serveroptions_resend\n" );
+		}
+	}
+
+	ShowVGUIMenu( MENU_VOTESERVEROPTIONS, timer );
+	return 1;
+}
+
+// MsgFunc_SOptFor -- mirror one client's per-item server-options vote.
+int TeamFortressViewport::MsgFunc_SOptFor( const char *pszName, int iSize, void *pbuf )
+{
+	BEGIN_READ( pbuf, iSize );
+	int client = READ_BYTE();
+	int item   = READ_BYTE();
+	int option = READ_BYTE();
+
+	if ( client < 1 || client > MAX_PLAYERS ) return 1;
+	if ( item   < 1 || item   > g_iActiveServerOptionsClientCount ) return 1;
+	if ( option < 1 || option > MAX_CLIENT_SERVER_OPTION_VALUES )   return 1;
+
+	g_PlayerSrvOptVote[client][item - 1] = option - 1;
 	return 1;
 }
 

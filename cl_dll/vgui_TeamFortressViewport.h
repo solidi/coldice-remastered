@@ -45,6 +45,7 @@
 #define MENU_VOTEMAP				11
 #define MENU_VOTEMUTATOR			12
 #define MENU_VOTEGAMEOPTIONS		13
+#define MENU_VOTESERVEROPTIONS	14
 #endif
 using namespace vgui;
 
@@ -65,6 +66,7 @@ class CVoteGameplayPanel;
 class CVoteMapPanel;
 class CVoteMutatorPanel;
 class CVoteGameOptionsPanel;
+class CVoteServerOptionsPanel;
 class CTeamMenuPanel;
 class TeamFortressViewport;
 
@@ -539,6 +541,8 @@ private:
 	CMenuPanel*	 ShowVoteMutatorMenu( int timer );
 	void		 CreateVoteGameOptionsMenu( void );
 	CMenuPanel*	 ShowVoteGameOptionsMenu( int timer );
+	void		 CreateVoteServerOptionsMenu( void );
+	CMenuPanel*	 ShowVoteServerOptionsMenu( int timer );
 	
 	// Scheme handler
 	CSchemeManager m_SchemeManager;
@@ -654,6 +658,9 @@ public:
 	int MsgFunc_GameOpts( const char *pszName, int iSize, void *pbuf );  // game-options manifest (chunked)
 	int MsgFunc_VoteOpts( const char *pszName, int iSize, void *pbuf );  // open/close game-options vote panel
 	int MsgFunc_VOptFor( const char *pszName, int iSize, void *pbuf );   // mirrored per-item vote
+	int MsgFunc_SrvOpts( const char *pszName, int iSize, void *pbuf );   // server-options manifest (chunked)
+	int MsgFunc_VoteSrvOp( const char *pszName, int iSize, void *pbuf ); // open/close server-options vote panel
+	int MsgFunc_SOptFor( const char *pszName, int iSize, void *pbuf );   // mirrored per-item vote
 
 	// Input
 	bool SlotInput( int iSlot );
@@ -682,6 +689,7 @@ public:
 	CVoteMapPanel		*m_pVoteMapMenu;
 	CVoteMutatorPanel	*m_pVoteMutatorMenu;
 	CVoteGameOptionsPanel	*m_pVoteGameOptionsMenu;
+	CVoteServerOptionsPanel	*m_pVoteServerOptionsMenu;
 };
 
 //============================================================
@@ -1799,6 +1807,36 @@ extern int                  g_PlayerOptVote[MAX_PLAYERS + 1][MAX_CLIENT_GAME_OPT
 extern bool                 g_bGameOptsResendRequested;
 extern bool                 g_bGameOptionsAutoCloseOnComplete;
 
+// ---------------------------------------------------------------------------
+// Server-options voting (mirrors serveroptions.txt parsed by the server).
+// Populated by TeamFortressViewport::MsgFunc_SrvOpts.
+// Active subset arrives via MsgFunc_VoteSrvOp.
+// Live per-player votes are mirrored by MsgFunc_SOptFor.
+// ---------------------------------------------------------------------------
+#define MAX_CLIENT_SERVER_OPTIONS			64
+#define MAX_CLIENT_SERVER_OPTION_VALUES	5
+#define MAX_CLIENT_SERVER_OPTION_TITLE	64
+#define MAX_CLIENT_SERVER_OPTION_LABEL	24
+#define MAX_CLIENT_SERVER_OPTION_VALUE	32
+
+struct client_server_option_t
+{
+	char	title[MAX_CLIENT_SERVER_OPTION_TITLE];
+	int		restart;
+	int		numOptions;
+	char	labels[MAX_CLIENT_SERVER_OPTION_VALUES][MAX_CLIENT_SERVER_OPTION_LABEL];
+};
+
+extern client_server_option_t g_ServerOptionsClient[MAX_CLIENT_SERVER_OPTIONS];
+extern int                    g_iServerOptionsClientCount;
+extern int                    g_iServerOptionsRevisionClient;
+extern bool                   g_bServerOptionsReceived;
+extern int                    g_iActiveServerOptionsClient[MAX_CLIENT_SERVER_OPTIONS];
+extern int                    g_iActiveServerOptionsClientCount;
+extern int                    g_PlayerSrvOptVote[MAX_PLAYERS + 1][MAX_CLIENT_SERVER_OPTIONS];
+extern bool                   g_bServerOptsResendRequested;
+extern bool                   g_bServerOptionsAutoCloseOnComplete;
+
 class CVoteGameplayPanel : public CMenuPanel
 {
 private:
@@ -1955,6 +1993,46 @@ public:
 		m_iTime = 30.0;
 		m_fAutoCloseTime = 0;
 		for ( int k = 0; k < MAX_CLIENT_GAME_OPTIONS; k++ )
+			m_iLocalPick[k] = -1;
+	}
+
+	void BuildRows( void );
+	void OnRowButton( int row, int option );
+
+	float m_iTime;
+};
+
+class CVoteServerOptionsPanel : public CMenuPanel
+{
+private:
+	CTFScrollPanel		*m_pScrollPanel;
+	LineBorder		*m_pScrollPanelBorder;
+	Label			*m_pTitleLabel;
+	Label			*m_pRowLabels[MAX_CLIENT_SERVER_OPTIONS];
+	ColorButton		*m_pRowButtons[MAX_CLIENT_SERVER_OPTIONS][MAX_CLIENT_SERVER_OPTION_VALUES];
+	LineBorder		*m_pRowButtonBorders[MAX_CLIENT_SERVER_OPTIONS][MAX_CLIENT_SERVER_OPTION_VALUES];
+	Label			*m_pRowVoteTallies[MAX_CLIENT_SERVER_OPTIONS][MAX_CLIENT_SERVER_OPTION_VALUES];
+
+	int				m_iRowCount;
+	int				m_iLocalPick[MAX_CLIENT_SERVER_OPTIONS];
+	float				m_fStartTime;
+	float				m_fAutoCloseTime;
+
+public:
+	CVoteServerOptionsPanel( int iTrans, int iRemoveMe, int x, int y, int wide, int tall );
+
+	virtual bool SlotInput( int iSlot );
+	virtual void Open( void );
+	virtual void Update( void );
+	virtual void Initialize( void );
+
+	virtual void Reset( void )
+	{
+		CMenuPanel::Reset();
+		m_fStartTime = gHUD.m_flTime;
+		m_iTime = 30.0;
+		m_fAutoCloseTime = 0;
+		for ( int k = 0; k < MAX_CLIENT_SERVER_OPTIONS; k++ )
 			m_iLocalPick[k] = -1;
 	}
 

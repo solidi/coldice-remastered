@@ -502,6 +502,7 @@ public:
 
 	float m_fVoteCoolDown = 0;
 	float m_fGameOptsResendCoolDown = 0;
+	float m_fServerOptsResendCoolDown = 0;
 
 	float m_flEjectBrass;
 	float m_flEjectShotShell;
