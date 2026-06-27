@@ -1,20 +1,8 @@
 /*
 ==============
-vgui_VoteGameOptionsWindow.cpp
+vgui_VoteServerOptionsWindow.cpp
 
-Implements CVoteGameOptionsPanel -- the dynamic game-options vote panel.
-
-Each row corresponds to one entry in g_iActiveGameOptionsClient[], which is
-populated by MsgFunc_VoteOpts and indexes into the parsed g_GameOptionsClient[]
-manifest (sent earlier via MsgFunc_GameOpts on connect or on revision change).
-
-Row layout: [TitleLabel-west .... [opt1][opt2]...[optN]-east], one row per
-active item. Clicking an option button issues "voteopt <item> <option>\n"
-where both indices are 1-based (matches the server's ClientCommand handler).
-
-The panel is rebuilt at Open() time. We do not keep static slots like the
-mutator panel does because the row count and option counts are entirely
-server-driven and can differ between games.
+Implements CVoteServerOptionsPanel -- the dynamic server-options vote panel.
 ==============
 */
 
@@ -40,23 +28,19 @@ server-driven and can differ between games.
 #include "vgui_TeamFortressViewport.h"
 #include "vgui_ServerBrowser.h"
 
-// Layout constants (mirrors VoteMutatorWindow magnitude).
-#define GOMENU_TITLE_X				XRES(80)
-#define GOMENU_TITLE_Y				YRES(32)
-#define GOMENU_SCROLL_X				XRES(80)
-#define GOMENU_SCROLL_Y				YRES(80)
-#define GOMENU_SCROLL_WIDE			XRES(480)
-#define GOMENU_SCROLL_TALL			YRES(340)
-#define GOMENU_ROW_HEIGHT			YRES(36)
-#define GOMENU_ROW_SPACER_Y			YRES(4)
-#define GOMENU_LABEL_WIDE			XRES(140)
-#define GOMENU_BUTTON_WIDE			XRES(80)
-#define GOMENU_BUTTON_GAP			XRES(4)
+#define SOMENU_TITLE_X              XRES(80)
+#define SOMENU_TITLE_Y              YRES(32)
+#define SOMENU_SCROLL_X             XRES(80)
+#define SOMENU_SCROLL_Y             YRES(80)
+#define SOMENU_SCROLL_WIDE          XRES(480)
+#define SOMENU_SCROLL_TALL          YRES(340)
+#define SOMENU_ROW_HEIGHT           YRES(36)
+#define SOMENU_ROW_SPACER_Y         YRES(4)
+#define SOMENU_LABEL_WIDE           XRES(140)
+#define SOMENU_BUTTON_WIDE          XRES(80)
+#define SOMENU_BUTTON_GAP           XRES(4)
 
-// CMenuHandler_StringCommand fires a fixed string ("voteopt R O\n") at the engine.
-// We allocate one per (row, option) cell and let VGUI own them.
-
-CVoteGameOptionsPanel::CVoteGameOptionsPanel( int iTrans, int iRemoveMe, int x, int y, int wide, int tall )
+CVoteServerOptionsPanel::CVoteServerOptionsPanel( int iTrans, int iRemoveMe, int x, int y, int wide, int tall )
 	: CMenuPanel( iTrans, iRemoveMe, x, y, wide, tall )
 {
 	CSchemeManager *pSchemes = gViewPort->GetSchemeManager();
@@ -64,7 +48,7 @@ CVoteGameOptionsPanel::CVoteGameOptionsPanel( int iTrans, int iRemoveMe, int x, 
 
 	int r, g, b, a;
 
-	m_pTitleLabel = new Label( "", GOMENU_TITLE_X, GOMENU_TITLE_Y );
+	m_pTitleLabel = new Label( "", SOMENU_TITLE_X, SOMENU_TITLE_Y );
 	m_pTitleLabel->setParent( this );
 	m_pTitleLabel->setFont( pSchemes->getFont( hTitleScheme ) );
 	pSchemes->getFgColor( hTitleScheme, r, g, b, a );
@@ -72,9 +56,9 @@ CVoteGameOptionsPanel::CVoteGameOptionsPanel( int iTrans, int iRemoveMe, int x, 
 	pSchemes->getBgColor( hTitleScheme, r, g, b, a );
 	m_pTitleLabel->setBgColor( r, g, b, a );
 	m_pTitleLabel->setContentAlignment( vgui::Label::a_west );
-	m_pTitleLabel->setText( "Game Options Vote" );
+	m_pTitleLabel->setText( "Server Options Vote" );
 
-	m_pScrollPanel = new CTFScrollPanel( GOMENU_SCROLL_X, GOMENU_SCROLL_Y, GOMENU_SCROLL_WIDE, GOMENU_SCROLL_TALL );
+	m_pScrollPanel = new CTFScrollPanel( SOMENU_SCROLL_X, SOMENU_SCROLL_Y, SOMENU_SCROLL_WIDE, SOMENU_SCROLL_TALL );
 	m_pScrollPanel->setParent( this );
 	m_pScrollPanel->setScrollBarAutoVisible( true, true );
 	m_pScrollPanel->setScrollBarVisible( false, true );
@@ -84,23 +68,20 @@ CVoteGameOptionsPanel::CVoteGameOptionsPanel( int iTrans, int iRemoveMe, int x, 
 
 	m_iRowCount = 0;
 	m_fAutoCloseTime = 0;
-	for ( int k = 0; k < MAX_CLIENT_GAME_OPTIONS; k++ )
+	for ( int k = 0; k < MAX_CLIENT_SERVER_OPTIONS; k++ )
 	{
 		m_pRowLabels[k] = NULL;
 		m_iLocalPick[k] = -1;
-		for ( int o = 0; o < MAX_CLIENT_GAME_OPTION_VALUES; o++ )
+		for ( int o = 0; o < MAX_CLIENT_SERVER_OPTION_VALUES; o++ )
 		{
-			m_pRowButtons[k][o]    = NULL;
+			m_pRowButtons[k][o] = NULL;
 			m_pRowButtonBorders[k][o] = NULL;
 			m_pRowVoteTallies[k][o] = NULL;
 		}
 	}
 }
 
-// Rebuild the row widgets from g_iActiveGameOptionsClient[]. Called once
-// per Open(). On stale-manifest (G4 path) we render a placeholder row so
-// the timer still shows.
-void CVoteGameOptionsPanel::BuildRows( void )
+void CVoteServerOptionsPanel::BuildRows( void )
 {
 	CSchemeManager *pSchemes = gViewPort->GetSchemeManager();
 	SchemeHandle_t hTitleScheme = pSchemes->getSchemeHandle( "Title Font" );
@@ -110,15 +91,14 @@ void CVoteGameOptionsPanel::BuildRows( void )
 	int r, g, b, a;
 	pSchemes->getFgColor( hTitleScheme, r, g, b, a );
 
-	// Tear down any prior widgets.
-	for ( int k = 0; k < MAX_CLIENT_GAME_OPTIONS; k++ )
+	for ( int k = 0; k < MAX_CLIENT_SERVER_OPTIONS; k++ )
 	{
 		if ( m_pRowLabels[k] )
 		{
 			m_pRowLabels[k]->setVisible( false );
 			m_pRowLabels[k] = NULL;
 		}
-		for ( int o = 0; o < MAX_CLIENT_GAME_OPTION_VALUES; o++ )
+		for ( int o = 0; o < MAX_CLIENT_SERVER_OPTION_VALUES; o++ )
 		{
 			if ( m_pRowButtons[k][o] )
 			{
@@ -137,18 +117,17 @@ void CVoteGameOptionsPanel::BuildRows( void )
 		}
 	}
 
-	m_iRowCount = g_iActiveGameOptionsClientCount;
-	if ( m_iRowCount > MAX_CLIENT_GAME_OPTIONS )
-		m_iRowCount = MAX_CLIENT_GAME_OPTIONS;
+	m_iRowCount = g_iActiveServerOptionsClientCount;
+	if ( m_iRowCount > MAX_CLIENT_SERVER_OPTIONS )
+		m_iRowCount = MAX_CLIENT_SERVER_OPTIONS;
 
-	// G4: if manifest hasn't arrived, render a wait-row.
-	if ( !g_bGameOptionsReceived || m_iRowCount == 0 )
+	if ( !g_bServerOptionsReceived || m_iRowCount == 0 )
 	{
-		Label *pWait = new Label( "Waiting for game-options manifest...",
-			GOMENU_ROW_SPACER_Y, GOMENU_ROW_SPACER_Y );
+		Label *pWait = new Label( "Waiting for server-options manifest...",
+			SOMENU_ROW_SPACER_Y, SOMENU_ROW_SPACER_Y );
 		pWait->setParent( m_pScrollPanel->getClient() );
 		pWait->setFont( pSchemes->getFont( hClassWindowText ) );
-		pWait->setSize( GOMENU_SCROLL_WIDE - XRES(20), GOMENU_ROW_HEIGHT );
+		pWait->setSize( SOMENU_SCROLL_WIDE - XRES(20), SOMENU_ROW_HEIGHT );
 		pWait->setContentAlignment( vgui::Label::a_west );
 		pWait->setFgColor( r, g, b, 0 );
 		pWait->setBgColor( 0, 0, 0, 255 );
@@ -159,18 +138,17 @@ void CVoteGameOptionsPanel::BuildRows( void )
 
 	for ( int k = 0; k < m_iRowCount; k++ )
 	{
-		int realIdx = g_iActiveGameOptionsClient[k];
-		if ( realIdx < 0 || realIdx >= g_iGameOptionsClientCount )
+		int realIdx = g_iActiveServerOptionsClient[k];
+		if ( realIdx < 0 || realIdx >= g_iServerOptionsClientCount )
 			continue;
-		const client_game_option_t &it = g_GameOptionsClient[realIdx];
+		const client_server_option_t &it = g_ServerOptionsClient[realIdx];
 
-		int yPos = GOMENU_ROW_SPACER_Y + k * ( GOMENU_ROW_HEIGHT + GOMENU_ROW_SPACER_Y );
+		int yPos = SOMENU_ROW_SPACER_Y + k * ( SOMENU_ROW_HEIGHT + SOMENU_ROW_SPACER_Y );
 
-		// Title label on the left.
-		m_pRowLabels[k] = new Label( "", GOMENU_ROW_SPACER_Y, yPos );
+		m_pRowLabels[k] = new Label( "", SOMENU_ROW_SPACER_Y, yPos );
 		m_pRowLabels[k]->setParent( m_pScrollPanel->getClient() );
 		m_pRowLabels[k]->setFont( pSchemes->getFont( ScreenWidth >= 1024 ? hTitleScheme : hPrimaryButtonText ) );
-		m_pRowLabels[k]->setSize( GOMENU_LABEL_WIDE, GOMENU_ROW_HEIGHT );
+		m_pRowLabels[k]->setSize( SOMENU_LABEL_WIDE, SOMENU_ROW_HEIGHT );
 		m_pRowLabels[k]->setContentAlignment( vgui::Label::a_west );
 		m_pRowLabels[k]->setFgColor( r, g, b, 0 );
 		m_pRowLabels[k]->setBgColor( 0, 0, 0, 255 );
@@ -181,34 +159,28 @@ void CVoteGameOptionsPanel::BuildRows( void )
 		titleBuf[sizeof(titleBuf) - 1] = 0;
 		m_pRowLabels[k]->setText( titleBuf );
 
-		// Option buttons to the right of the label.
 		int nopt = it.numOptions;
-		if ( nopt > MAX_CLIENT_GAME_OPTION_VALUES )
-			nopt = MAX_CLIENT_GAME_OPTION_VALUES;
+		if ( nopt > MAX_CLIENT_SERVER_OPTION_VALUES )
+			nopt = MAX_CLIENT_SERVER_OPTION_VALUES;
 
 		for ( int o = 0; o < nopt; o++ )
 		{
-			int xPos = GOMENU_ROW_SPACER_Y + GOMENU_LABEL_WIDE
-			         + o * ( GOMENU_BUTTON_WIDE + GOMENU_BUTTON_GAP );
+			int xPos = SOMENU_ROW_SPACER_Y + SOMENU_LABEL_WIDE
+			         + o * ( SOMENU_BUTTON_WIDE + SOMENU_BUTTON_GAP );
 
-			char cmdBuf[24];
-			_snprintf( cmdBuf, sizeof(cmdBuf), "voteopt %d %d\n", k + 1, o + 1 );
+			char cmdBuf[28];
+			_snprintf( cmdBuf, sizeof(cmdBuf), "votesrvopt %d %d\n", k + 1, o + 1 );
 			cmdBuf[sizeof(cmdBuf) - 1] = 0;
 			ActionSignal *pASig = new CMenuHandler_StringCommand( cmdBuf, false );
 
 			vgui::Font *font = pSchemes->getFont(hPrimaryButtonText);
-			int delta = XRES(15), deltaY = YRES(9);
 			if (ScreenWidth <= 1024)
-			{
 				font = pSchemes->getFont(hClassWindowText);
-				delta = XRES(25);
-				deltaY = YRES(5);
-			}
 
 			char sz[64];
 			sprintf(sz, " %s", it.labels[o]);
 			m_pRowButtons[k][o] = new ColorButton( sz,
-				xPos, yPos, GOMENU_BUTTON_WIDE, GOMENU_ROW_HEIGHT, false, true );
+				xPos, yPos, SOMENU_BUTTON_WIDE, SOMENU_ROW_HEIGHT, false, true );
 			m_pRowButtonBorders[k][o] = new LineBorder( Color(r, g, b, a) );
 			m_pRowButtons[k][o]->setBorder( m_pRowButtonBorders[k][o] );
 			m_pRowButtons[k][o]->setBoundKey( (char)255 );
@@ -218,7 +190,7 @@ void CVoteGameOptionsPanel::BuildRows( void )
 			m_pRowButtons[k][o]->setFont( font );
 
 			m_pRowVoteTallies[k][o] = new Label( "0",
-				GOMENU_BUTTON_WIDE - XRES(22), GOMENU_ROW_HEIGHT / 2.5f );
+				SOMENU_BUTTON_WIDE - XRES(22), SOMENU_ROW_HEIGHT / 2.5f );
 			m_pRowVoteTallies[k][o]->setParent( m_pRowButtons[k][o] );
 			m_pRowVoteTallies[k][o]->setFont( font );
 			m_pRowVoteTallies[k][o]->setContentAlignment( vgui::Label::a_northeast );
@@ -230,7 +202,7 @@ void CVoteGameOptionsPanel::BuildRows( void )
 	m_pScrollPanel->validate();
 }
 
-void CVoteGameOptionsPanel::Update()
+void CVoteServerOptionsPanel::Update()
 {
 	float timeLeft = fmax( 0.0f, ( m_iTime + m_fStartTime - gHUD.m_flTime ) );
 
@@ -253,25 +225,21 @@ void CVoteGameOptionsPanel::Update()
 	if ( pVerticalScrollBar )
 		pVerticalScrollBar->repaint();
 
-	// RTV flow auto-closes once all rows are voted; intermission flow keeps
-	// the panel visible until the server closes it (next voting panel opens).
-	bool allVoted = ( g_bGameOptionsAutoCloseOnComplete && g_bGameOptionsReceived && ( m_iRowCount > 0 ) );
-	// Per-row tally update.
+	bool allVoted = ( g_bServerOptionsAutoCloseOnComplete && g_bServerOptionsReceived && ( m_iRowCount > 0 ) );
 	for ( int k = 0; k < m_iRowCount; k++ )
 	{
-		int realIdx = g_iActiveGameOptionsClient[k];
-		if ( realIdx < 0 || realIdx >= g_iGameOptionsClientCount )
+		int realIdx = g_iActiveServerOptionsClient[k];
+		if ( realIdx < 0 || realIdx >= g_iServerOptionsClientCount )
 			continue;
-		const client_game_option_t &it = g_GameOptionsClient[realIdx];
+		const client_server_option_t &it = g_ServerOptionsClient[realIdx];
 		int nopt = it.numOptions;
-		if ( nopt > MAX_CLIENT_GAME_OPTION_VALUES )
-			nopt = MAX_CLIENT_GAME_OPTION_VALUES;
+		if ( nopt > MAX_CLIENT_SERVER_OPTION_VALUES )
+			nopt = MAX_CLIENT_SERVER_OPTION_VALUES;
 
-		// Find leader for this row.
-		int counts[MAX_CLIENT_GAME_OPTION_VALUES] = { 0 };
+		int counts[MAX_CLIENT_SERVER_OPTION_VALUES] = { 0 };
 		for ( int p = 1; p <= MAX_PLAYERS; p++ )
 		{
-			int v = g_PlayerOptVote[p][k];
+			int v = g_PlayerSrvOptVote[p][k];
 			if ( v >= 0 && v < nopt )
 				counts[v]++;
 		}
@@ -290,20 +258,13 @@ void CVoteGameOptionsPanel::Update()
 		{
 			if ( g_PlayerInfoList[p].thisplayer )
 			{
-				myPick = g_PlayerOptVote[p][k];
+				myPick = g_PlayerSrvOptVote[p][k];
 				break;
 			}
 		}
 		if ( myPick < 0 )
 			allVoted = false;
 
-		// Two independent visual cues:
-		//  1. Row title prepends [X]/[ ] so the local player can see at a
-		//     glance which rows still need a vote.
-		//  2. Per-button highlight uses border color for the local pick
-		//     (yellow) so it stays visible whether or not it is also the
-		//     leading option, which keeps the existing fill semantics
-		//     (solid blue = winner) intact.
 		if ( m_pRowLabels[k] )
 		{
 			char titleBuf[96];
@@ -335,27 +296,19 @@ void CVoteGameOptionsPanel::Update()
 			if ( isMine )
 				btn->setArmed( true );
 
-			// Border channel: mine wins over winner so the pick is always
-			// visible. Yellow contrasts against both the blue fill and the
-			// white winner border.
 			Color borderColor;
 			if ( isMine )
 			{
 				borderColor = Color( 255, 255, 255, a );
 				if ( tly )
 					tly->setFgColor(255, 255, 255, 0);
-			}	
+			}
 			else
 			{
-				// Update vote tally color to match button state
 				if ( isWinner )
-				{
 					borderColor = Color( 0, 255, 0, a );
-				}
 				else
-				{
 					borderColor = Color( r, g, b, a );
-				}
 			}
 			if ( m_pRowButtonBorders[k][o] )
 			{
@@ -371,7 +324,7 @@ void CVoteGameOptionsPanel::Update()
 				btn->setBgColor(r, g, b, 255);
 				if ( isMine )
 					btn->setArmedColor(255, 255, 255, 0);
-				else 
+				else
 					btn->setArmedColor(r, g, b, 0);
 			}
 			else
@@ -381,10 +334,6 @@ void CVoteGameOptionsPanel::Update()
 		}
 	}
 
-	// RTV-only auto-close once the local player has voted on every active row.
-	// 1.5s grace gives the user time to see the final tally state before
-	// the panel disappears. Intermission voting keeps this panel open until
-	// the server sends timer=0 and transitions to the next panel.
 	if ( allVoted )
 	{
 		if ( m_fAutoCloseTime <= 0 )
@@ -397,38 +346,35 @@ void CVoteGameOptionsPanel::Update()
 	}
 	else
 	{
-		// Player revised a vote back to nothing somehow; cancel the timer.
 		m_fAutoCloseTime = 0;
 	}
 
 	char hdr[160];
 	_snprintf( hdr, sizeof(hdr),
-		"Game Options Vote | Items: %d | Time Left: %.1f",
+		"Server Options Vote | Items: %d | Time Left: %.1f",
 		m_iRowCount, timeLeft );
 	hdr[sizeof(hdr) - 1] = 0;
 	m_pTitleLabel->setText( hdr );
 }
 
-bool CVoteGameOptionsPanel::SlotInput( int iSlot )
+bool CVoteServerOptionsPanel::SlotInput( int iSlot )
 {
-	return false;  // numeric slots don't map cleanly to 2-D voteopt; no-op.
+	return false;
 }
 
-void CVoteGameOptionsPanel::Open( void )
+void CVoteServerOptionsPanel::Open( void )
 {
 	BuildRows();
 	Update();
 	CMenuPanel::Open();
 }
 
-void CVoteGameOptionsPanel::Initialize( void )
+void CVoteServerOptionsPanel::Initialize( void )
 {
 	setVisible( false );
 }
 
-void CVoteGameOptionsPanel::OnRowButton( int row, int option )
+void CVoteServerOptionsPanel::OnRowButton( int row, int option )
 {
-	// Reserved for future direct-callback wiring; ColorButton uses
-	// CMenuHandler_StringCommand pre-built commands instead.
 	m_iLocalPick[row] = option;
 }

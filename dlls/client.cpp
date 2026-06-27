@@ -498,6 +498,136 @@ void GameplayVote(edict_t *pEntity, const char *text)
 	}
 }
 
+enum rtv_gate_kind_e
+{
+	RTV_GATE_KIND_NONE = 0,
+	RTV_GATE_KIND_MUTATOR,
+	RTV_GATE_KIND_GAMEOPTIONS,
+	RTV_GATE_KIND_SERVEROPTIONS
+};
+
+enum rtv_gate_state_e
+{
+	RTV_GATE_STATE_IDLE = 0,
+	RTV_GATE_STATE_COLLECTING,
+	RTV_GATE_STATE_VOTING,
+	RTV_GATE_STATE_COOLDOWN
+};
+
+static int   g_iRTVGateKind = RTV_GATE_KIND_NONE;
+static int   g_iRTVGateState = RTV_GATE_STATE_IDLE;
+static float g_fRTVGateUntil = 0;
+
+static const char *RTVGateKindName( int kind )
+{
+	switch ( kind )
+	{
+	case RTV_GATE_KIND_MUTATOR: return "mutator";
+	case RTV_GATE_KIND_GAMEOPTIONS: return "gameoptions";
+	case RTV_GATE_KIND_SERVEROPTIONS: return "serveroptions";
+	default: return "unknown";
+	}
+}
+
+static int RTVGateSecondsLeft( float until )
+{
+	float left = until - gpGlobals->time;
+	if ( left < 0 ) left = 0;
+	return (int)( left + 0.999f );
+}
+
+static float RTVGateCooldownSeconds( void )
+{
+	float seconds = rtvcooldown.value;
+	if ( seconds < 0 ) seconds = 0;
+	return seconds;
+}
+
+static void RTVGateClear( void )
+{
+	g_iRTVGateKind = RTV_GATE_KIND_NONE;
+	g_iRTVGateState = RTV_GATE_STATE_IDLE;
+	g_fRTVGateUntil = 0;
+}
+
+static void RTVGateBeginCooldown( int kind )
+{
+	float seconds = RTVGateCooldownSeconds();
+	if ( seconds <= 0 )
+	{
+		RTVGateClear();
+		return;
+	}
+
+	g_iRTVGateKind = kind;
+	g_iRTVGateState = RTV_GATE_STATE_COOLDOWN;
+	g_fRTVGateUntil = gpGlobals->time + seconds;
+}
+
+static void RTVGateBeginCollecting( int kind, float collectSeconds )
+{
+	g_iRTVGateKind = kind;
+	g_iRTVGateState = RTV_GATE_STATE_COLLECTING;
+	g_fRTVGateUntil = gpGlobals->time + collectSeconds;
+}
+
+static void RTVGateBeginVoting( int kind, float voteEndsAt )
+{
+	g_iRTVGateKind = kind;
+	g_iRTVGateState = RTV_GATE_STATE_VOTING;
+	g_fRTVGateUntil = voteEndsAt;
+}
+
+static void RTVGateRefresh( void )
+{
+	if ( g_iRTVGateState == RTV_GATE_STATE_IDLE )
+		return;
+	if ( gpGlobals->time < g_fRTVGateUntil )
+		return;
+
+	if ( g_iRTVGateState == RTV_GATE_STATE_COOLDOWN )
+	{
+		RTVGateClear();
+		return;
+	}
+
+	// Collect/tally or an RTV vote window has ended. Move into post-RTV cooldown.
+	RTVGateBeginCooldown( g_iRTVGateKind );
+}
+
+static BOOL RTVGateBlocksCall( edict_t *pEntity, int requestedKind )
+{
+	RTVGateRefresh();
+
+	if ( g_iRTVGateState == RTV_GATE_STATE_IDLE )
+		return FALSE;
+
+	// Allow same-type callers to continue contributing while that RTV is collecting.
+	if ( g_iRTVGateState == RTV_GATE_STATE_COLLECTING && g_iRTVGateKind == requestedKind )
+		return FALSE;
+
+	const char *which = RTVGateKindName( g_iRTVGateKind );
+	int wait = RTVGateSecondsLeft( g_fRTVGateUntil );
+
+	if ( g_iRTVGateState == RTV_GATE_STATE_COLLECTING )
+	{
+		ClientPrint( &pEntity->v, HUD_PRINTTALK,
+			UTIL_VarArgs("[VOTE] Another RTV is in progress (%s). Wait %d second(s) before starting another.\n", which, wait ) );
+	}
+	else if ( g_iRTVGateState == RTV_GATE_STATE_VOTING )
+	{
+		ClientPrint( &pEntity->v, HUD_PRINTTALK,
+			UTIL_VarArgs("[VOTE] Another RTV is in progress (%s vote open). Wait %d second(s) before starting another.\n", which, wait ) );
+	}
+	else
+	{
+		ClientPrint( &pEntity->v, HUD_PRINTTALK,
+			UTIL_VarArgs("[VOTE] RTV cooldown is active after %s. Wait %d second(s) before starting another.\n", which, wait ) );
+	}
+
+	return TRUE;
+}
+
 void MutatorVote(edict_t *pEntity, const char *text)
 {
 	static float m_fVoteTime = 0;
@@ -512,6 +642,9 @@ void MutatorVote(edict_t *pEntity, const char *text)
 
 	if (voting.value && UTIL_stristr(text, "mutator"))
 	{
+		if (RTVGateBlocksCall(pEntity, RTV_GATE_KIND_MUTATOR))
+			return;
+
 		// Start vote, capture player count for majority count
 		if (m_fVoteTime < gpGlobals->time)
 		{
@@ -540,9 +673,11 @@ void MutatorVote(edict_t *pEntity, const char *text)
 				m_iNeedsVotes = m_fVoteTime = 0;
 				UTIL_ClientPrintAll(HUD_PRINTTALK, "[VOTE] Single person gets the vote.\n");
 				g_pGameRules->VoteForMutator();
+				RTVGateBeginVoting(RTV_GATE_KIND_MUTATOR, gpGlobals->time + voting.value);
 			}
 			else
 			{
+				RTVGateBeginCollecting(RTV_GATE_KIND_MUTATOR, rtvtime.value);
 				UTIL_ClientPrintAll(HUD_PRINTTALK,
 					UTIL_VarArgs("[VOTE] We need %.0f vote(s) in %.0f seconds. Others, type \"mutator\" to vote.\n", fmax(1, m_iNeedsVotes - 1), rtvtime.value));
 			}
@@ -569,6 +704,7 @@ void MutatorVote(edict_t *pEntity, const char *text)
 					m_iNeedsVotes = m_fVoteTime = 0;
 					UTIL_ClientPrintAll(HUD_PRINTTALK, "[VOTE] Mutator vote success!\n");
 					g_pGameRules->VoteForMutator();
+					RTVGateBeginVoting(RTV_GATE_KIND_MUTATOR, gpGlobals->time + voting.value);
 				}
 				else
 				{
@@ -583,6 +719,7 @@ void MutatorVote(edict_t *pEntity, const char *text)
 // Forward decl -- definition lives further down so it can call into
 // CHalfLifeMultiplay::VoteForGameOptions().
 void GameOptionsVote(edict_t *pEntity, const char *text);
+void ServerOptionsVote(edict_t *pEntity, const char *text);
 
 //// HOST_SAY
 // String comes in as
@@ -729,6 +866,7 @@ void Host_Say( edict_t *pEntity, int teamonly )
 	GameplayVote(pEntity, text);
 	MutatorVote(pEntity, text);
 	GameOptionsVote(pEntity, text);
+	ServerOptionsVote(pEntity, text);
 
 	char * temp;
 	if ( teamonly )
@@ -772,6 +910,8 @@ extern int gmsgVoteMap;
 extern int gmsgVoteMutator;
 extern int gmsgVoteOpts;
 extern int gmsgVOptFor;
+extern int gmsgVoteSrvOp;
+extern int gmsgSOptFor;
 extern char *gamePlayModes[];
 
 void Vote( CBasePlayer *pPlayer, int vote )
@@ -798,7 +938,13 @@ void Vote( CBasePlayer *pPlayer, int vote )
 			else if (g_pGameRules->m_iVoteUnderway == VOTE_MAPS_OPEN)
 				voteDisplayName = (vote < 1 || vote > g_iServerMapCount) ? "random" : g_szServerMaps[vote-1];
 			else
-				voteDisplayName = (vote < 1 || vote > MAX_MUTATORS) ? "random" : g_szMutators[vote-1];
+			{
+				const int instantVoteId = MAX_MUTATORS + 2; // synthetic mutator vote slot
+				if ( vote == instantVoteId )
+					voteDisplayName = "INSTANT MUTATORS";
+				else
+					voteDisplayName = (vote < 1 || vote > MAX_MUTATORS) ? "random" : g_szMutators[vote-1];
+			}
 			ClientPrint(pPlayer->pev, HUD_PRINTTALK, UTIL_VarArgs("[VOTE] You voted for \"%s\". Waiting for others to tally vote.\n", voteDisplayName));
 		}
 		else
@@ -881,6 +1027,69 @@ void VoteOption( CBasePlayer *pPlayer, int item, int option )
 	pPlayer->m_fVoteCoolDown = gpGlobals->time + 0.5;
 }
 
+// Cast a vote for one of an active server-option item's options.
+//   item    : 1-based index into m_iActiveServerOptions
+//   option  : 1-based index into the item's options array
+void VoteServerOption( CBasePlayer *pPlayer, int item, int option )
+{
+	if (pPlayer->m_fVoteCoolDown >= gpGlobals->time)
+	{
+		ALERT(at_aiconsole, "id[%d] votesrvopt cool down time left: %.2f\n", pPlayer->entindex(), pPlayer->m_fVoteCoolDown - gpGlobals->time);
+		return;
+	}
+
+	CHalfLifeMultiplay *mp = (CHalfLifeMultiplay *)g_pGameRules;
+	if (!mp)
+	{
+		ClientPrint(pPlayer->pev, HUD_PRINTTALK, "[VOTE] No server-options vote is currently open.\n");
+		return;
+	}
+	BOOL voteOpen = ( mp->m_iVoteUnderway == VOTE_SERVEROPTIONS_OPEN ) ||
+	                ( mp->m_fServerOptionsVoteTime > gpGlobals->time );
+	if (!voteOpen)
+	{
+		ClientPrint(pPlayer->pev, HUD_PRINTTALK, "[VOTE] No server-options vote is currently open.\n");
+		return;
+	}
+
+	int active = mp->m_iActiveServerOptionsCount;
+	if (item < 1 || item > active)
+	{
+		ALERT(at_aiconsole, "id[%d] votesrvopt item %d out of range (1..%d)\n", pPlayer->entindex(), item, active);
+		return;
+	}
+	int itemArrayIdx = item - 1;
+	int realIdx = mp->m_iActiveServerOptions[itemArrayIdx];
+	if (realIdx < 0 || realIdx >= g_iServerOptionsCount)
+		return;
+	int numOpts = g_ServerOptions[realIdx].numOptions;
+	if (option < 1 || option > numOpts)
+	{
+		ALERT(at_aiconsole, "id[%d] votesrvopt option %d out of range (1..%d) for item %d\n", pPlayer->entindex(), option, numOpts, item);
+		return;
+	}
+
+	int entIdx = pPlayer->entindex();
+	if (entIdx < 1 || entIdx > 32)
+		return;
+	mp->m_iServerOptionsVotes[entIdx - 1][itemArrayIdx] = option - 1;
+
+	MESSAGE_BEGIN(MSG_ALL, gmsgSOptFor);
+		WRITE_BYTE(entIdx);
+		WRITE_BYTE(item);
+		WRITE_BYTE(option);
+	MESSAGE_END();
+
+	MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgPlayClientSound, NULL, pPlayer->edict());
+		WRITE_BYTE(CLIENT_SOUND_GREATJOB);
+	MESSAGE_END();
+
+	ClientPrint(pPlayer->pev, HUD_PRINTTALK, UTIL_VarArgs("[VOTE] You voted \"%s\" on %s.\n",
+		g_ServerOptions[realIdx].labels[option - 1], g_ServerOptions[realIdx].title));
+
+	pPlayer->m_fVoteCoolDown = gpGlobals->time + 0.5;
+}
+
 // Chat-driven RTV for game-options. Mirrors MutatorVote(); substring match
 // on "gameoptions". Majority of human players within rtvtime triggers the vote.
 void GameOptionsVote(edict_t *pEntity, const char *text)
@@ -898,6 +1107,9 @@ void GameOptionsVote(edict_t *pEntity, const char *text)
 
 	if (voting.value && UTIL_stristr(text, "gameoptions"))
 	{
+		if (RTVGateBlocksCall(pEntity, RTV_GATE_KIND_GAMEOPTIONS))
+			return;
+
 		// Start vote
 		if (m_fVoteTime < gpGlobals->time)
 		{
@@ -924,11 +1136,25 @@ void GameOptionsVote(edict_t *pEntity, const char *text)
 			{
 				m_iNeedsVotes = m_fVoteTime = 0;
 				UTIL_ClientPrintAll(HUD_PRINTTALK, "[VOTE] Single person gets the vote.\n");
-				((CHalfLifeMultiplay *)g_pGameRules)->VoteForGameOptions(TRUE);
+				CHalfLifeMultiplay *mp = (CHalfLifeMultiplay *)g_pGameRules;
+				if (mp)
+				{
+					mp->m_pGameOptionsRTVInitiator = m_pInitiator;
+					mp->VoteForGameOptions(TRUE);
+					if (mp->m_fGameOptionsVoteTime > gpGlobals->time)
+						RTVGateBeginVoting(RTV_GATE_KIND_GAMEOPTIONS, mp->m_fGameOptionsVoteTime);
+					else
+						RTVGateBeginCooldown(RTV_GATE_KIND_GAMEOPTIONS);
+				}
+				else
+				{
+					RTVGateBeginCooldown(RTV_GATE_KIND_GAMEOPTIONS);
+				}
 				m_pInitiator = NULL;
 			}
 			else
 			{
+				RTVGateBeginCollecting(RTV_GATE_KIND_GAMEOPTIONS, rtvtime.value);
 				UTIL_ClientPrintAll(HUD_PRINTTALK,
 					UTIL_VarArgs("[VOTE] We need %.0f vote(s) in %.0f seconds. Others, type \"gameoptions\" to vote.\n", fmax(1, m_iNeedsVotes - 1), rtvtime.value));
 			}
@@ -956,6 +1182,126 @@ void GameOptionsVote(edict_t *pEntity, const char *text)
 					{
 						mp->m_pGameOptionsRTVInitiator = m_pInitiator;
 						mp->VoteForGameOptions(TRUE);
+						if (mp->m_fGameOptionsVoteTime > gpGlobals->time)
+							RTVGateBeginVoting(RTV_GATE_KIND_GAMEOPTIONS, mp->m_fGameOptionsVoteTime);
+						else
+							RTVGateBeginCooldown(RTV_GATE_KIND_GAMEOPTIONS);
+					}
+					else
+					{
+						RTVGateBeginCooldown(RTV_GATE_KIND_GAMEOPTIONS);
+					}
+					m_pInitiator = NULL;
+				}
+				else
+				{
+					UTIL_ClientPrintAll(HUD_PRINTTALK,
+						UTIL_VarArgs("[VOTE] %s voted (%d / %d)\n", STRING(pEntity->v.netname), votes, m_iNeedsVotes));
+				}
+			}
+		}
+	}
+}
+
+// Chat-driven RTV for server-options. Mirrors GameOptionsVote(); substring
+// match on "serveroptions" and threshold count via existing RTV logic.
+void ServerOptionsVote(edict_t *pEntity, const char *text)
+{
+	static float m_fVoteTime = 0;
+	static int   m_iNeedsVotes = 0;
+	static int   m_iVotes[33];
+	static edict_t *m_pInitiator = NULL;
+
+	CBasePlayer *pPlayer = NULL;
+	entvars_t *pev = &pEntity->v;
+	pPlayer = GetClassPtr((CBasePlayer *)pev);
+	if (pEntity->v.iuser1 == OBS_ROAMING || pPlayer->IsSpectator())
+		return;
+
+	if (voting.value && UTIL_stristr(text, "serveroptions"))
+	{
+		if (RTVGateBlocksCall(pEntity, RTV_GATE_KIND_SERVEROPTIONS))
+			return;
+
+		if (m_fVoteTime < gpGlobals->time)
+		{
+			int players = 0;
+			for (int i = 1; i <= gpGlobals->maxClients; i++)
+			{
+				CBasePlayer *p = (CBasePlayer *)UTIL_PlayerByIndex(i);
+				if (p && !FBitSet(p->pev->flags, FL_FAKECLIENT) && !p->HasDisconnected)
+					players++;
+			}
+
+			m_fVoteTime = gpGlobals->time + rtvtime.value;
+			m_iNeedsVotes = (players / 2) + 1;
+			m_pInitiator = pEntity;
+
+			memset(m_iVotes, 0, sizeof(m_iVotes));
+			m_iVotes[ENTINDEX(pEntity)] = 1;
+
+			MESSAGE_BEGIN(MSG_ALL, gmsgPlayClientSound);
+				WRITE_BYTE(CLIENT_SOUND_VOTESTARTED);
+			MESSAGE_END();
+
+			if (m_iNeedsVotes <= 1)
+			{
+				m_iNeedsVotes = m_fVoteTime = 0;
+				UTIL_ClientPrintAll(HUD_PRINTTALK, "[VOTE] Single person gets the vote.\n");
+				CHalfLifeMultiplay *mp = (CHalfLifeMultiplay *)g_pGameRules;
+				if (mp)
+				{
+					mp->m_pServerOptionsRTVInitiator = m_pInitiator;
+					mp->VoteForServerOptions(TRUE);
+					if (mp->m_fServerOptionsVoteTime > gpGlobals->time)
+						RTVGateBeginVoting(RTV_GATE_KIND_SERVEROPTIONS, mp->m_fServerOptionsVoteTime);
+					else
+						RTVGateBeginCooldown(RTV_GATE_KIND_SERVEROPTIONS);
+				}
+				else
+				{
+					RTVGateBeginCooldown(RTV_GATE_KIND_SERVEROPTIONS);
+				}
+				m_pInitiator = NULL;
+			}
+			else
+			{
+				RTVGateBeginCollecting(RTV_GATE_KIND_SERVEROPTIONS, rtvtime.value);
+				UTIL_ClientPrintAll(HUD_PRINTTALK,
+					UTIL_VarArgs("[VOTE] We need %.0f vote(s) in %.0f seconds. Others, type \"serveroptions\" to vote.\n", fmax(1, m_iNeedsVotes - 1), rtvtime.value));
+			}
+		}
+		else
+		{
+			if (m_iVotes[ENTINDEX(pEntity)] <= 0)
+			{
+				m_iVotes[ENTINDEX(pEntity)] = 1;
+
+				int votes = 0;
+				for (int i = 1; i <= gpGlobals->maxClients; i++)
+				{
+					CBaseEntity *p = UTIL_PlayerByIndex(i);
+					if (p && m_iVotes[p->entindex()] > 0)
+						votes++;
+				}
+
+				if (votes >= m_iNeedsVotes)
+				{
+					m_iNeedsVotes = m_fVoteTime = 0;
+					UTIL_ClientPrintAll(HUD_PRINTTALK, "[VOTE] Server-options vote success!\n");
+					CHalfLifeMultiplay *mp = (CHalfLifeMultiplay *)g_pGameRules;
+					if (mp)
+					{
+						mp->m_pServerOptionsRTVInitiator = m_pInitiator;
+						mp->VoteForServerOptions(TRUE);
+						if (mp->m_fServerOptionsVoteTime > gpGlobals->time)
+							RTVGateBeginVoting(RTV_GATE_KIND_SERVEROPTIONS, mp->m_fServerOptionsVoteTime);
+						else
+							RTVGateBeginCooldown(RTV_GATE_KIND_SERVEROPTIONS);
+					}
+					else
+					{
+						RTVGateBeginCooldown(RTV_GATE_KIND_SERVEROPTIONS);
 					}
 					m_pInitiator = NULL;
 				}
@@ -1280,6 +1626,20 @@ void ClientCommand( edict_t *pEntity )
 			VoteOption(pPlayer, item, option);
 		}
 	}
+	else if ( FStrEq(pcmd, "votesrvopt" ) )
+	{
+		CBasePlayer *pPlayer = GetClassPtr((CBasePlayer *)pev);
+		int item = (CMD_ARGC() > 1) ? atoi(CMD_ARGV(1)) : -1;
+		int option = (CMD_ARGC() > 2) ? atoi(CMD_ARGV(2)) : -1;
+		if (item < 1 || option < 1)
+		{
+			ClientPrint(pev, HUD_PRINTCONSOLE, "usage: votesrvopt <itemIndex> <optionIndex>\n");
+		}
+		else
+		{
+			VoteServerOption(pPlayer, item, option);
+		}
+	}
 	else if ( FStrEq(pcmd, "gameoptions_resend" ) )
 	{
 		CBasePlayer *pPlayer = GetClassPtr((CBasePlayer *)pev);
@@ -1294,6 +1654,22 @@ void ClientCommand( edict_t *pEntity )
 			if (mp)
 				mp->SendGameOptionsToClient( pEntity );
 			pPlayer->m_fGameOptsResendCoolDown = gpGlobals->time + 5.0;
+		}
+	}
+	else if ( FStrEq(pcmd, "serveroptions_resend" ) )
+	{
+		CBasePlayer *pPlayer = GetClassPtr((CBasePlayer *)pev);
+		if (pPlayer->m_fServerOptsResendCoolDown > gpGlobals->time)
+		{
+			ClientPrint(pev, HUD_PRINTCONSOLE, UTIL_VarArgs("serveroptions_resend: cooldown %.1fs\n",
+				pPlayer->m_fServerOptsResendCoolDown - gpGlobals->time));
+		}
+		else
+		{
+			CHalfLifeMultiplay *mp = (CHalfLifeMultiplay *)g_pGameRules;
+			if (mp)
+				mp->SendServerOptionsToClient( pEntity );
+			pPlayer->m_fServerOptsResendCoolDown = gpGlobals->time + 5.0;
 		}
 	}
 	else if ( FStrEq(pcmd, "gameoptions_status" ) )
@@ -1321,6 +1697,29 @@ void ClientCommand( edict_t *pEntity )
 				cvar_t *cv = CVAR_GET_POINTER(it.cvar);
 				ClientPrint(pev, HUD_PRINTCONSOLE, UTIL_VarArgs("  #%d game=%s cvar=%s value=\"%s\" restart=%d title=\"%s\" opts=%d\n",
 					i + 1, it.game, it.cvar, cv ? cv->string : "(unregistered)", it.restart ? 1 : 0, it.title, it.numOptions));
+			}
+		}
+	}
+	else if ( FStrEq(pcmd, "serveroptions_status" ) )
+	{
+		BOOL allowed = ( ENTINDEX(pEntity) == 1 && !IS_DEDICATED_SERVER() ) ||
+		               ( CVAR_GET_FLOAT("sv_cheats") != 0.0f );
+		if (!allowed)
+		{
+			ClientPrint(pev, HUD_PRINTCONSOLE, "serveroptions_status: not authorized (listenserver host or sv_cheats only)\n");
+		}
+		else
+		{
+			ClientPrint(pev, HUD_PRINTCONSOLE, UTIL_VarArgs("[ServerOptions] revision=%d, loaded=%d, parse-errors=%d\n",
+				g_iServerOptionsRevision, g_iServerOptionsCount, g_iServerOptionsParseErrors));
+			for (int i = 0; i < g_iServerOptionsParseLogCount; i++)
+				ClientPrint(pev, HUD_PRINTCONSOLE, UTIL_VarArgs("  %s\n", g_szServerOptionsParseLog[i]));
+			for (int i = 0; i < g_iServerOptionsCount; i++)
+			{
+				const server_option_t &it = g_ServerOptions[i];
+				cvar_t *cv = CVAR_GET_POINTER(it.cvar);
+				ClientPrint(pev, HUD_PRINTCONSOLE, UTIL_VarArgs("  #%d cvar=%s value=\"%s\" restart=%d title=\"%s\" opts=%d\n",
+					i + 1, it.cvar, cv ? cv->string : "(unregistered)", it.restart ? 1 : 0, it.title, it.numOptions));
 			}
 		}
 	}
@@ -1758,6 +2157,7 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_royaleteam [0|1]\" - set battle royale as two-team based\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_royaldamage [0|1]\" - apply damage to persons outside the safe area\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_rtvtime\" - seconds until the rtv ends\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_rtvcooldown\" - cooldown in seconds before another mutator/gameoptions/serveroptions rtv can start\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_spawnitems\" - Spawn items or not\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_spawnprotectiontime\" - amount of time in seconds a player is protected from damage\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_spawnweaponlist \"weapon_9mmhandgun\"\" A semicolon separated list of the player's spawn weapons\n");

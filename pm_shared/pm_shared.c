@@ -700,6 +700,11 @@ void PM_CheckVelocity ()
 			pmove->Con_Printf ("PM  Got a NaN velocity %i\n", i);
 			pmove->velocity[i] = 0;
 		}
+		if (IS_NAN(pmove->basevelocity[i]))
+		{
+			pmove->Con_Printf ("PM  Got a NaN base velocity %i\n", i);
+			pmove->basevelocity[i] = 0;
+		}
 		if (IS_NAN(pmove->origin[i]))
 		{
 			pmove->Con_Printf ("PM  Got a NaN origin on %i\n", i);
@@ -716,6 +721,19 @@ void PM_CheckVelocity ()
 		{
 			pmove->Con_DPrintf ("PM  Got a velocity too low on %i\n", i);
 			pmove->velocity[i] = -pmove->movevars->maxvelocity;
+		}
+
+		// Base velocity is added/subtracted around movement steps,
+		// so it must also stay finite and within sane bounds.
+		if (pmove->basevelocity[i] > pmove->movevars->maxvelocity)
+		{
+			pmove->Con_DPrintf ("PM  Got a base velocity too high on %i\n", i);
+			pmove->basevelocity[i] = pmove->movevars->maxvelocity;
+		}
+		else if (pmove->basevelocity[i] < -pmove->movevars->maxvelocity)
+		{
+			pmove->Con_DPrintf ("PM  Got a base velocity too low on %i\n", i);
+			pmove->basevelocity[i] = -pmove->movevars->maxvelocity;
 		}
 	}
 }
@@ -837,20 +855,10 @@ int PM_FlyMove (void)
 
 	for (bumpcount=0 ; bumpcount<numbumps ; bumpcount++)
 	{
+		PM_CheckVelocity();
+
 		if (!pmove->velocity[0] && !pmove->velocity[1] && !pmove->velocity[2])
 			break;
-
-		// Clip nan/min/max velocity.
-		if (pmove->velocity[0] > pmove->movevars->maxvelocity || pmove->velocity[1] > pmove->movevars->maxvelocity || pmove->velocity[2] > pmove->movevars->maxvelocity ||
-			pmove->velocity[0] < -pmove->movevars->maxvelocity || pmove->velocity[1] < -pmove->movevars->maxvelocity || pmove->velocity[2] < -pmove->movevars->maxvelocity ||
-			pmove->velocity[0] != pmove->velocity[0] || pmove->velocity[1] != pmove->velocity[1] || pmove->velocity[2] != pmove->velocity[2])
-		{
-			pmove->Con_DPrintf(">>> Stuck velocity %f %f %f\n", pmove->velocity[0], pmove->velocity[1], pmove->velocity[2]);
-			VectorCopy (vec3_origin, pmove->velocity);
-			VectorCopy (vec3_origin, original_velocity);
-			VectorCopy (vec3_origin, primal_velocity);
-			break;
-		}
 
 		// Assume we can move all the way from the current origin to the
 		//  end point.
