@@ -177,6 +177,7 @@ int                  g_iActiveGameOptionsClient[MAX_CLIENT_GAME_OPTIONS];
 int                  g_iActiveGameOptionsClientCount = 0;
 int                  g_PlayerOptVote[MAX_PLAYERS + 1][MAX_CLIENT_GAME_OPTIONS];
 bool                 g_bGameOptsResendRequested      = false;
+bool                 g_bGameOptionsAutoCloseOnComplete = false;
 
 const char *MapSizeLabel( int size )
 {
@@ -2954,6 +2955,7 @@ int TeamFortressViewport::MsgFunc_VoteOpts( const char *pszName, int iSize, void
 			for ( int k = 0; k < MAX_CLIENT_GAME_OPTIONS; k++ )
 				g_PlayerOptVote[i][k] = -1;
 		g_iActiveGameOptionsClientCount = 0;
+		g_bGameOptionsAutoCloseOnComplete = false;
 		HideVGUIMenu();
 		return 1;
 	}
@@ -2963,6 +2965,12 @@ int TeamFortressViewport::MsgFunc_VoteOpts( const char *pszName, int iSize, void
 	g_iActiveGameOptionsClientCount = activeCount;
 	for ( int k = 0; k < activeCount; k++ )
 		g_iActiveGameOptionsClient[k] = READ_BYTE();
+
+	// Backward-compatible optional flags byte.
+	int flags = 0;
+	if ( iSize > ( 3 + activeCount ) )
+		flags = READ_BYTE();
+	g_bGameOptionsAutoCloseOnComplete = ( flags & 0x01 ) ? true : false;
 
 	for ( int i = 0; i <= MAX_PLAYERS; i++ )
 		for ( int k = 0; k < MAX_CLIENT_GAME_OPTIONS; k++ )

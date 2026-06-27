@@ -1797,6 +1797,7 @@ extern int                  g_iActiveGameOptionsClient[MAX_CLIENT_GAME_OPTIONS];
 extern int                  g_iActiveGameOptionsClientCount;
 extern int                  g_PlayerOptVote[MAX_PLAYERS + 1][MAX_CLIENT_GAME_OPTIONS]; // [client][active-slot]
 extern bool                 g_bGameOptsResendRequested;
+extern bool                 g_bGameOptionsAutoCloseOnComplete;
 
 class CVoteGameplayPanel : public CMenuPanel
 {
@@ -1884,6 +1885,9 @@ private:
 	ColorButton			*m_pButtons[MAX_MUTATORS_CL];
 	LineBorder			*m_pButtonBorders[MAX_MUTATORS_CL];
 	Label				*m_pVoteTallyLabels[MAX_MUTATORS_CL];
+	ColorButton			*m_pInstantButton;
+	LineBorder			*m_pInstantButtonBorder;
+	Label				*m_pInstantVoteTallyLabel;
 	Label 				*pTitleLabel;
 
 	int					m_iCurrentInfo;

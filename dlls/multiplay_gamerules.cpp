@@ -276,7 +276,9 @@ int CHalfLifeMultiplay::RandomizeMutator( void )
 	int attempts = 3, mutatorVote = 1;
 	while (attempts > 0)
 	{
-		mutatorVote = RANDOM_LONG(MUTATOR_CHAOS, MAX_MUTATORS + 1 /*random*/);
+		// Vote ids: 1..MAX_MUTATORS = real mutators, MAX_MUTATORS+1 = RANDOM,
+		// MAX_MUTATORS+2 = synthetic INSTANT MUTATORS toggle.
+		mutatorVote = RANDOM_LONG(MUTATOR_CHAOS, MAX_MUTATORS + 2 /*random + instant*/);
 		if (mutatorVote - 1 >= MAX_MUTATORS)
 			break;
 		const char *tryIt = g_szMutators[mutatorVote - 1];
@@ -477,6 +479,7 @@ void CHalfLifeMultiplay :: Think ( void )
 						WRITE_BYTE(m_iActiveGameOptionsCount);
 						for (int k = 0; k < m_iActiveGameOptionsCount; k++)
 							WRITE_BYTE(m_iActiveGameOptions[k]);
+						WRITE_BYTE(0); // flags: intermission vote keeps panel open until closed by next panel
 					MESSAGE_END();
 					MESSAGE_BEGIN(MSG_BROADCAST, gmsgPlayClientSound);
 						WRITE_BYTE(CLIENT_SOUND_VOTEGAMEOPTIONS);  // shared opening tone
@@ -561,13 +564,13 @@ void CHalfLifeMultiplay :: Think ( void )
 				MESSAGE_END();
 
 				// tally votes
-				int vote[MAX_MUTATORS+2]; //+1, +1 RANDOM
+				int vote[MAX_MUTATORS+2]; // +1 RANDOM, +1 INSTANT MUTATORS (synthetic)
 				memset(vote, -1, sizeof(vote));
 
 				for (int j = 1; j <= gpGlobals->maxClients; j++)
 				{
 					int mutatorIndex = g_pGameRules->m_iVoteCount[j-1];
-					if ((mutatorIndex-1) >= 0 && (mutatorIndex-1) <= MAX_MUTATORS + 1 /*random*/)
+					if ((mutatorIndex-1) >= 0 && (mutatorIndex-1) <= MAX_MUTATORS + 1 /*instant*/)
 					{
 						if (vote[mutatorIndex-1] == -1) vote[mutatorIndex-1] = 0;
 						vote[mutatorIndex-1]++;
@@ -580,7 +583,7 @@ void CHalfLifeMultiplay :: Think ( void )
 				int fIndex, sIndex, tIndex;
 				fIndex = sIndex = tIndex = -1;
 
-				for (int i = 0; i <= MAX_MUTATORS + 1 /*random*/; i++)
+				for (int i = 0; i <= MAX_MUTATORS + 1 /*instant*/; i++)
 				{
 					if (vote[i] > first)
 					{
@@ -609,47 +612,79 @@ void CHalfLifeMultiplay :: Think ( void )
 
 				ALERT(at_aiconsole, "first=%d, fIndex=%d, second=%d, sIndex=%d, third=%d, tIndex=%d\n", first, fIndex, second, sIndex, third, tIndex);
 
+				const int kRandomIndex = MAX_MUTATORS;      // vote id MAX_MUTATORS + 1
+				const int kInstantIndex = MAX_MUTATORS + 1; // vote id MAX_MUTATORS + 2
+
 				if (first < 0 && second < 0 && third < 0)
 				{
 					UTIL_ClientPrintAll(HUD_PRINTTALK, "[VOTE] Not enough votes received for mutators.\n");
+					SERVER_COMMAND("sv_instantmutators 0\n");
 				}
 				else
 				{
-					if (fIndex == MAX_MUTATORS /*random*/)
+					if (fIndex == kRandomIndex /*random*/)
 					{
 						UTIL_ClientPrintAll(HUD_PRINTTALK, "[VOTE] Randomizing mutator mode #1...\n");
 						fIndex = RandomizeMutator() - 1;
 					}
 
-					if (sIndex == MAX_MUTATORS /*random*/)
+					if (sIndex == kRandomIndex /*random*/)
 					{
 						UTIL_ClientPrintAll(HUD_PRINTTALK, "[VOTE] Randomizing mutator mode #2...\n");
 						sIndex = RandomizeMutator() - 1;
 					}
 
-					if (tIndex == MAX_MUTATORS /*random*/)
+					if (tIndex == kRandomIndex /*random*/)
 					{
 						UTIL_ClientPrintAll(HUD_PRINTTALK, "[VOTE] Randomizing mutator mode #3...\n");
 						tIndex = RandomizeMutator() - 1;
 					}
 
+					const BOOL instantEnabled = (fIndex == kInstantIndex) || (sIndex == kInstantIndex) || (tIndex == kInstantIndex);
+					SERVER_COMMAND( instantEnabled ? "sv_instantmutators 1\n" : "sv_instantmutators 0\n" );
+
+					int chosen[3];
+					int chosenCount = 0;
+					int top[3] = { fIndex, sIndex, tIndex };
+					for ( int n = 0; n < 3; n++ )
+					{
+						if ( top[n] >= 0 && top[n] < MAX_MUTATORS )
+							chosen[chosenCount++] = top[n];
+					}
+
 					ALERT(at_aiconsole, "fIndex=%d, sIndex=%d, tIndex=%d\n", fIndex, sIndex, tIndex);
 
-					if (fIndex >= 0 && sIndex >= 0 && tIndex >= 0)
+					if (chosenCount >= 3)
 					{
-						UTIL_ClientPrintAll(HUD_PRINTTALK, "[VOTE] \"%s\", \"%s\" and \"%s\" are the next mutators!\n", g_szMutators[fIndex], g_szMutators[sIndex], g_szMutators[tIndex]);
-						SERVER_COMMAND(UTIL_VarArgs("sv_mutatorlist \"%s 0;%s 0;%s 0\"\n", g_szMutators[fIndex], g_szMutators[sIndex], g_szMutators[tIndex]));
+						UTIL_ClientPrintAll(HUD_PRINTTALK, "[VOTE] \"%s\", \"%s\" and \"%s\" are the next mutators!\n",
+							g_szMutators[chosen[0]], g_szMutators[chosen[1]], g_szMutators[chosen[2]]);
+						SERVER_COMMAND(UTIL_VarArgs("sv_mutatorlist \"%s 0;%s 0;%s 0\"\n",
+							g_szMutators[chosen[0]], g_szMutators[chosen[1]], g_szMutators[chosen[2]]));
 					}
-					else if (fIndex >= 0 && sIndex >= 0)
+					else if (chosenCount == 2)
 					{
-						UTIL_ClientPrintAll(HUD_PRINTTALK, UTIL_VarArgs("[VOTE] \"%s\" and \"%s\" are the next mutators!\n", g_szMutators[fIndex], g_szMutators[sIndex]));
-						SERVER_COMMAND(UTIL_VarArgs("sv_mutatorlist \"%s 0;%s 0\"\n", g_szMutators[fIndex], g_szMutators[sIndex]));
+						UTIL_ClientPrintAll(HUD_PRINTTALK, UTIL_VarArgs("[VOTE] \"%s\" and \"%s\" are the next mutators!\n",
+							g_szMutators[chosen[0]], g_szMutators[chosen[1]]));
+						SERVER_COMMAND(UTIL_VarArgs("sv_mutatorlist \"%s 0;%s 0\"\n",
+							g_szMutators[chosen[0]], g_szMutators[chosen[1]]));
+					}
+					else if (chosenCount == 1)
+					{
+						UTIL_ClientPrintAll(HUD_PRINTTALK, UTIL_VarArgs("[VOTE] \"%s\" is the next mutator with %d votes!\n",
+							g_szMutators[chosen[0]], first));
+						SERVER_COMMAND(UTIL_VarArgs("sv_mutatorlist \"%s 0\"\n", g_szMutators[chosen[0]]));
 					}
 					else
 					{
-						UTIL_ClientPrintAll(HUD_PRINTTALK, UTIL_VarArgs("[VOTE] \"%s\" is the next mutator with %d votes!\n", g_szMutators[fIndex], first));
-						SERVER_COMMAND(UTIL_VarArgs("sv_mutatorlist \"%s 0\"\n", g_szMutators[fIndex]));
+						SERVER_COMMAND("sv_mutatorlist \"\"\n");
+						if (instantEnabled)
+							UTIL_ClientPrintAll(HUD_PRINTTALK, "[VOTE] INSTANT MUTATORS enabled for next map.\n");
+						else
+							UTIL_ClientPrintAll(HUD_PRINTTALK, "[VOTE] No mutator selected for next map.\n");
 					}
+
+					if (instantEnabled && chosenCount > 0)
+						UTIL_ClientPrintAll(HUD_PRINTTALK, "[VOTE] INSTANT MUTATORS enabled for next map.\n");
 				}
 			}
 
@@ -928,7 +963,7 @@ void CHalfLifeMultiplay::CheckMutatorRTV( void )
 			MESSAGE_END();
 
 			// tally votes
-			int vote[MAX_MUTATORS+2]; //+1, +1 RANDOM
+			int vote[MAX_MUTATORS+2]; // +1 RANDOM, +1 INSTANT MUTATORS (synthetic)
 			memset(vote, -1, sizeof(vote));
 
 			MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
@@ -938,7 +973,7 @@ void CHalfLifeMultiplay::CheckMutatorRTV( void )
 			for (int j = 1; j <= gpGlobals->maxClients; j++)
 			{
 				int mutatorIndex = g_pGameRules->m_iVoteCount[j-1];
-				if ((mutatorIndex-1) >= 0 && (mutatorIndex-1) <= MAX_MUTATORS + 1 /*random*/)
+				if ((mutatorIndex-1) >= 0 && (mutatorIndex-1) <= MAX_MUTATORS + 1 /*instant*/)
 				{
 					if (vote[mutatorIndex-1] == -1) vote[mutatorIndex-1] = 0;
 					vote[mutatorIndex-1]++;
@@ -950,7 +985,7 @@ void CHalfLifeMultiplay::CheckMutatorRTV( void )
 			int fIndex, sIndex, tIndex;
 			fIndex = sIndex = tIndex = -1;
 
-			for (int i = 0; i <= MAX_MUTATORS + 1 /*random*/; i++)
+			for (int i = 0; i <= MAX_MUTATORS + 1 /*instant*/; i++)
 			{
 				if (vote[i] > first)
 				{
@@ -977,47 +1012,78 @@ void CHalfLifeMultiplay::CheckMutatorRTV( void )
 
 			memset(m_iVoteCount, -1, sizeof(m_iVoteCount));
 
+			const int kRandomIndex = MAX_MUTATORS;      // vote id MAX_MUTATORS + 1
+			const int kInstantIndex = MAX_MUTATORS + 1; // vote id MAX_MUTATORS + 2
+
 			if (first < 0 && second < 0 && third < 0)
 			{
 				UTIL_ClientPrintAll(HUD_PRINTTALK, "[VOTE] Not enough votes received for mutators.\n");
+				CVAR_SET_STRING("sv_instantmutators", "0");
 			}
 			else
 			{
-				if (fIndex == MAX_MUTATORS /*random*/)
+				if (fIndex == kRandomIndex /*random*/)
 				{
 					UTIL_ClientPrintAll(HUD_PRINTTALK, "[VOTE] Randomizing mutator mode #1...\n");
 					fIndex = RandomizeMutator() - 1;
 				}
 
-				if (sIndex == MAX_MUTATORS /*random*/)
+				if (sIndex == kRandomIndex /*random*/)
 				{
 					UTIL_ClientPrintAll(HUD_PRINTTALK, "[VOTE] Randomizing mutator mode #2...\n");
 					sIndex = RandomizeMutator() - 1;
 				}
 
-				if (tIndex == MAX_MUTATORS /*random*/)
+				if (tIndex == kRandomIndex /*random*/)
 				{
 					UTIL_ClientPrintAll(HUD_PRINTTALK, "[VOTE] Randomizing mutator mode #3...\n");
 					tIndex = RandomizeMutator() - 1;
 				}
 
+				const BOOL instantEnabled = (fIndex == kInstantIndex) || (sIndex == kInstantIndex) || (tIndex == kInstantIndex);
+				CVAR_SET_STRING("sv_instantmutators", instantEnabled ? "1" : "0");
+				if (instantEnabled)
+					g_pGameRules->AddInstantMutator();
+
+				int chosen[3];
+				int chosenCount = 0;
+				int top[3] = { fIndex, sIndex, tIndex };
+				for ( int n = 0; n < 3; n++ )
+				{
+					if ( top[n] >= 0 && top[n] < MAX_MUTATORS )
+						chosen[chosenCount++] = top[n];
+				}
+
 				ALERT(at_aiconsole, "fIndex=%d, sIndex=%d, tIndex=%d\n", fIndex, sIndex, tIndex);
 
-				if (fIndex >= 0 && sIndex >= 0 && tIndex >= 0)
+				if (chosenCount >= 3)
 				{
-					UTIL_ClientPrintAll(HUD_PRINTTALK, "[VOTE] \"%s\", \"%s\" and \"%s\" are the new mutators!\n", g_szMutators[fIndex], g_szMutators[sIndex], g_szMutators[tIndex]);
-					SERVER_COMMAND(UTIL_VarArgs("sv_mutatorlist \"%s 0;%s 0;%s 0\"\n", g_szMutators[fIndex], g_szMutators[sIndex], g_szMutators[tIndex]));
+					UTIL_ClientPrintAll(HUD_PRINTTALK, "[VOTE] \"%s\", \"%s\" and \"%s\" are the new mutators!\n",
+						g_szMutators[chosen[0]], g_szMutators[chosen[1]], g_szMutators[chosen[2]]);
+					SERVER_COMMAND(UTIL_VarArgs("sv_mutatorlist \"%s 0;%s 0;%s 0\"\n",
+						g_szMutators[chosen[0]], g_szMutators[chosen[1]], g_szMutators[chosen[2]]));
 				}
-				else if (fIndex >= 0 && sIndex >= 0)
+				else if (chosenCount == 2)
 				{
-					UTIL_ClientPrintAll(HUD_PRINTTALK, UTIL_VarArgs("[VOTE] \"%s\" and \"%s\" are the new mutators!\n", g_szMutators[fIndex], g_szMutators[sIndex]));
-					SERVER_COMMAND(UTIL_VarArgs("sv_mutatorlist \"%s 0;%s 0\"\n", g_szMutators[fIndex], g_szMutators[sIndex]));
+					UTIL_ClientPrintAll(HUD_PRINTTALK, UTIL_VarArgs("[VOTE] \"%s\" and \"%s\" are the new mutators!\n",
+						g_szMutators[chosen[0]], g_szMutators[chosen[1]]));
+					SERVER_COMMAND(UTIL_VarArgs("sv_mutatorlist \"%s 0;%s 0\"\n",
+						g_szMutators[chosen[0]], g_szMutators[chosen[1]]));
+				}
+				else if (chosenCount == 1)
+				{
+					UTIL_ClientPrintAll(HUD_PRINTTALK, UTIL_VarArgs("[VOTE] \"%s\" is the new mutator!\n", g_szMutators[chosen[0]]));
+					SERVER_COMMAND(UTIL_VarArgs("sv_mutatorlist \"%s 0\"\n", g_szMutators[chosen[0]]));
 				}
 				else
 				{
-					UTIL_ClientPrintAll(HUD_PRINTTALK, UTIL_VarArgs("[VOTE] \"%s\" is the new mutator!\n", g_szMutators[fIndex]));
-					SERVER_COMMAND(UTIL_VarArgs("sv_mutatorlist \"%s 0\"\n", g_szMutators[fIndex]));
+					SERVER_COMMAND("sv_mutatorlist \"\"\n");
+					if (!instantEnabled)
+						UTIL_ClientPrintAll(HUD_PRINTTALK, "[VOTE] No mutator selected.\n");
 				}
+
+				if (instantEnabled)
+					UTIL_ClientPrintAll(HUD_PRINTTALK, "[VOTE] INSTANT MUTATORS enabled.\n");
 			}
 
 			m_fMutatorVoteTime = 0;
@@ -1031,6 +1097,7 @@ void CHalfLifeMultiplay::VoteForMutator( void )
 		return;
 
 	SERVER_COMMAND("sv_addmutator \"clear\"\n");
+	CVAR_SET_STRING("sv_instantmutators", "0");
 
 	MESSAGE_BEGIN( MSG_ALL, gmsgVoteMutator );
 		WRITE_BYTE(voting.value);
@@ -4586,6 +4653,7 @@ void CHalfLifeMultiplay::VoteForGameOptions( BOOL fromRTV )
 		WRITE_BYTE( m_iActiveGameOptionsCount );
 		for ( int k = 0; k < m_iActiveGameOptionsCount; k++ )
 			WRITE_BYTE( m_iActiveGameOptions[k] );
+		WRITE_BYTE( fromRTV ? 1 : 0 ); // flags bit 0: auto-close after local player voted every row
 	MESSAGE_END();
 	MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
 		WRITE_BYTE( CLIENT_SOUND_VOTEGAMEOPTIONS );

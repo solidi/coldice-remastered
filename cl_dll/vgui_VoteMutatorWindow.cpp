@@ -69,6 +69,9 @@ CVoteMutatorPanel::CVoteMutatorPanel(int iTrans, int iRemoveMe, int x,int y,int 
 
 	// Create the buttons inside scroll panel
 	int positionCount = 0;
+	m_pInstantButton = NULL;
+	m_pInstantButtonBorder = NULL;
+	m_pInstantVoteTallyLabel = NULL;
 	for (int i = 0; i < MAX_MUTATORS_CL; i++)
 	{
 		m_pButtons[i] = NULL;
@@ -142,6 +145,47 @@ CVoteMutatorPanel::CVoteMutatorPanel(int iTrans, int iRemoveMe, int x,int y,int 
 		pSubtitle->setFgColor( sr, sg, sb, sa );
 		pSubtitle->setBgColor( 0, 0, 0, 255 );
 		pSubtitle->setText( sMutators[i].description );
+
+		// Synthetic slot injected right after CHAOS.
+		if ( i == 0 )
+		{
+			int instantColumn = (positionCount + 1) % 2;
+			int instantRow = (positionCount + 1) / 2;
+			positionCount++;
+
+			int iXPosInstant = MUTATORMENU_BUTTON_SPACER_X + (instantColumn * (MUTATORMENU_BUTTON_SIZE_X + MUTATORMENU_BUTTON_SPACER_X));
+			int iYPosInstant = MUTATORMENU_BUTTON_SPACER_Y + (instantRow * (MUTATORMENU_BUTTON_SIZE_Y + MUTATORMENU_BUTTON_SPACER_Y));
+
+			char voteCommandInstant[16];
+			sprintf(voteCommandInstant, "vote %d", MUTATOR_VOTE_INSTANT);
+			ActionSignal *pASignalInstant = new CMenuHandler_StringCommandClassSelect(voteCommandInstant, false );
+
+			m_pInstantButton = new ColorButton( "INSTANT", iXPosInstant, iYPosInstant,
+				MUTATORMENU_BUTTON_SIZE_X, MUTATORMENU_BUTTON_SIZE_Y, false, true );
+			m_pInstantButtonBorder = new LineBorder( Color(r, g, b, a) );
+			m_pInstantButton->setBorder( m_pInstantButtonBorder );
+			m_pInstantButton->setBoundKey( (char)255 );
+			m_pInstantButton->setContentAlignment( vgui::Label::a_northwest );
+			m_pInstantButton->addActionSignal( pASignalInstant );
+			m_pInstantButton->setParent( m_pScrollPanel->getClient() );
+			m_pInstantButton->setFont( pSchemes->getFont(hTitleScheme) );
+
+			m_pInstantVoteTallyLabel = new Label( "0", MUTATORMENU_BUTTON_SIZE_X - XRES(25), YRES(10) );
+			m_pInstantVoteTallyLabel->setParent( m_pInstantButton );
+			m_pInstantVoteTallyLabel->setFont( pSchemes->getFont(hTitleScheme) );
+			m_pInstantVoteTallyLabel->setContentAlignment( vgui::Label::a_east );
+			m_pInstantVoteTallyLabel->setSize( XRES(10), YRES(18) );
+			m_pInstantVoteTallyLabel->setFgColor( r, g, b, a );
+			m_pInstantVoteTallyLabel->setBgColor( 0, 0, 0, 255 );
+
+			Label *pInstantSubtitle = new Label( "", XRES(5), MUTATORMENU_BUTTON_SIZE_Y - YRES(16) );
+			pInstantSubtitle->setParent( m_pInstantButton );
+			pInstantSubtitle->setFont( pSchemes->getFont(hClassWindowText) );
+			pInstantSubtitle->setContentAlignment( vgui::Label::a_west );
+			pInstantSubtitle->setFgColor( sr, sg, sb, sa );
+			pInstantSubtitle->setBgColor( 0, 0, 0, 255 );
+			pInstantSubtitle->setText( "swapped stats, tripmines, etc." );
+		}
 	}
 	
 	// Validate scroll panel after adding all buttons
@@ -308,9 +352,71 @@ void CVoteMutatorPanel::Update()
 		}
 	}
 
+	if ( m_pInstantButton )
+	{
+		if ( m_pInstantVoteTallyLabel )
+		{
+			char voteSz[16];
+			sprintf(voteSz, "%d", votes[MUTATOR_MENU_INSTANT_SLOT]);
+			m_pInstantVoteTallyLabel->setText(voteSz);
+			m_pInstantVoteTallyLabel->setFgColor(r, g, b, 0);
+		}
+
+		Color borderColor;
+		if ( myVote == MUTATOR_VOTE_INSTANT )
+		{
+			m_pInstantButton->setArmed(true);
+			borderColor = Color( 255, 255, 255, a );
+			if ( m_pInstantVoteTallyLabel )
+				m_pInstantVoteTallyLabel->setFgColor(255, 255, 255, 0);
+		}
+		else
+		{
+			if ((MUTATOR_MENU_INSTANT_SLOT == hi || MUTATOR_MENU_INSTANT_SLOT == s || MUTATOR_MENU_INSTANT_SLOT == t)
+				&& votes[MUTATOR_MENU_INSTANT_SLOT] > 0)
+			{
+				borderColor = Color( 0, 255, 0, a );
+			}
+			else
+			{
+				borderColor = Color( r, g, b, a );
+			}
+		}
+
+		if ( m_pInstantButtonBorder )
+		{
+			int br, bg, bb, ba;
+			borderColor.getColor(br, bg, bb, ba);
+			m_pInstantButtonBorder->setLineColor(br, bg, bb, ba);
+			m_pInstantButton->setBorder( m_pInstantButtonBorder );
+		}
+
+		m_pInstantButton->setUnArmedColor(r, g, b, 0);
+		if ( votes[MUTATOR_MENU_INSTANT_SLOT] > 0 )
+		{
+			m_pInstantButton->setArmed(true);
+			m_pInstantButton->setBgColor(r, g, b, 255);
+			if ( myVote == MUTATOR_VOTE_INSTANT )
+				m_pInstantButton->setArmedColor(255, 255, 255, 0);
+			else
+				m_pInstantButton->setArmedColor(r, g, b, 0);
+		}
+		else if ( m_pInstantButtonBorder )
+		{
+			m_pInstantButtonBorder->setLineColor(r, g, b, a);
+			m_pInstantButton->setBorder( m_pInstantButtonBorder );
+		}
+	}
+
+	const char *myVoteName = "None";
+	if ( myVote == MUTATOR_VOTE_INSTANT )
+		myVoteName = "INSTANT";
+	else if ( myVote > 0 && myVote <= MAX_MUTATORS_CL )
+		myVoteName = sMutators[myVote - 1].name;
+
 	pTitleLabel->setText("%s | Your Vote: %s | Time Left: %.1f\n",
 		gHUD.m_TextMessage.BufferedLocaliseTextString("#Title_VoteMutator"),
-		myVote > 0 ? sMutators[myVote-1].name : "None", seconds);
+		myVoteName, seconds);
 }
 
 //======================================

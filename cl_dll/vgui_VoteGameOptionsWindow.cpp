@@ -232,7 +232,7 @@ void CVoteGameOptionsPanel::BuildRows( void )
 
 void CVoteGameOptionsPanel::Update()
 {
-	int seconds = (int)fmax( 0, ( m_iTime + m_fStartTime - gHUD.m_flTime ) );
+	float timeLeft = fmax( 0.0f, ( m_iTime + m_fStartTime - gHUD.m_flTime ) );
 
 	int r, g, b, a = 0;
 	UnpackRGB( r, g, b, HudColor() );
@@ -253,10 +253,9 @@ void CVoteGameOptionsPanel::Update()
 	if ( pVerticalScrollBar )
 		pVerticalScrollBar->repaint();
 
-	// Track whether the local player has cast a vote on every active row;
-	// if so, auto-close the panel after a short grace period so they can see
-	// the final tally state (mirrors the mutator-RTV menu's dismiss flow).
-	bool allVoted = ( g_bGameOptionsReceived && ( m_iRowCount > 0 ) );
+	// RTV flow auto-closes once all rows are voted; intermission flow keeps
+	// the panel visible until the server closes it (next voting panel opens).
+	bool allVoted = ( g_bGameOptionsAutoCloseOnComplete && g_bGameOptionsReceived && ( m_iRowCount > 0 ) );
 	// Per-row tally update.
 	for ( int k = 0; k < m_iRowCount; k++ )
 	{
@@ -382,10 +381,10 @@ void CVoteGameOptionsPanel::Update()
 		}
 	}
 
-	// Auto-close once the local player has voted on every active row.
+	// RTV-only auto-close once the local player has voted on every active row.
 	// 1.5s grace gives the user time to see the final tally state before
-	// the panel disappears. The server-side vote timer keeps running and
-	// the tally still applies as usual when it expires.
+	// the panel disappears. Intermission voting keeps this panel open until
+	// the server sends timer=0 and transitions to the next panel.
 	if ( allVoted )
 	{
 		if ( m_fAutoCloseTime <= 0 )
@@ -404,8 +403,8 @@ void CVoteGameOptionsPanel::Update()
 
 	char hdr[160];
 	_snprintf( hdr, sizeof(hdr),
-		"Game Options Vote | Items: %d | Time Left: %d",
-		m_iRowCount, seconds );
+		"Game Options Vote | Items: %d | Time Left: %.1f",
+		m_iRowCount, timeLeft );
 	hdr[sizeof(hdr) - 1] = 0;
 	m_pTitleLabel->setText( hdr );
 }
