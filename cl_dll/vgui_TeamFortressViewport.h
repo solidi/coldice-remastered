@@ -1773,7 +1773,7 @@ const char *MapSizeLabel( int size );
 // Each player's per-item vote arrives via MsgFunc_VOptFor and is mirrored back
 // to all clients for the live tally display.
 // ---------------------------------------------------------------------------
-#define MAX_CLIENT_GAME_OPTIONS			32
+#define MAX_CLIENT_GAME_OPTIONS			64
 #define MAX_CLIENT_GAME_OPTION_VALUES	5
 #define MAX_CLIENT_GAME_OPTION_TITLE	64
 #define MAX_CLIENT_GAME_OPTION_LABEL	24

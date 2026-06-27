@@ -523,6 +523,7 @@ public:
 	void ResetPlayerSettings(CBasePlayer *pPlayer);
 	void CheckMutatorRTV( void );
 	void CheckGameOptionsRTV( void );                 // public: mid-game game-options RTV timer
+	void PumpClientManifestSends( void );             // public: paced map/options manifest streaming
 	void SendGameOptionsToClient( edict_t *client );  // public: client.cpp::gameoptions_resend command
 	void BuildActiveGameOptions( void );              // public: filter g_GameOptions[] for the current g_GameMode
 	void TallyGameOptionsVote( BOOL fromRTV );        // public: count + apply per-item votes
@@ -534,15 +535,21 @@ public:
 	// Public so client.cpp::VoteOption() / ::GameOptionsVote() can read+write
 	// without virtual-function plumbing; mirrors the public m_iVoteCount[] on
 	// the base class.
-	int      m_iActiveGameOptions[32];
+	int      m_iActiveGameOptions[64];
 	int      m_iActiveGameOptionsCount;
-	int      m_iGameOptionsVotes[32][32];      // [entindex-1][activeItemIdx] -> option index, -1 unvoted
+	int      m_iGameOptionsVotes[32][64];      // [entindex-1][activeItemIdx] -> option index, -1 unvoted
 	float    m_fGameOptionsLastSent[32];
 	int      m_iGameOptionsRevisionSent[32];
 	BOOL     m_bGameOptionsRTVOnly;
 	edict_t *m_pGameOptionsRTVInitiator;
 	float    m_fGameOptionsVoteTime;            // mid-game RTV open expiry (0 = inactive)
 	int      m_iElectedGameMode;                // gameplay-vote winner pending mp_gamemode apply; -1 = use g_GameMode
+
+	// Per-client manifest stream cursors. -1 means idle/no pending stream.
+	int      m_iMapListStreamNext[32];
+	int      m_iMapListStreamSeq[32];
+	int      m_iGameOptionsStreamNext[32];
+	int      m_iGameOptionsStreamSeq[32];
 
 protected:
 	virtual void ChangeLevel( void );
@@ -599,7 +606,7 @@ void EnsureServerMapList( void );         // build only if not yet built / file 
 // Each item is one cvar with 2..5 voter-selectable options, filterable by
 // game mode short-name (or "*" for any mode). File order is preserved.
 // See workspace/ai/game_options_system.md for the full file-format spec.
-#define MAX_GAME_OPTIONS         32
+#define MAX_GAME_OPTIONS         64
 #define MAX_GAME_OPTION_VALUES   5
 #define MAX_GAME_OPTION_TITLE    64
 #define MAX_GAME_OPTION_CVAR     32

@@ -115,6 +115,13 @@ CHalfLifeMultiplay :: CHalfLifeMultiplay()
 	memset(m_iGameOptionsVotes, -1, sizeof(m_iGameOptionsVotes));
 	memset(m_fGameOptionsLastSent, 0, sizeof(m_fGameOptionsLastSent));
 	memset(m_iGameOptionsRevisionSent, 0, sizeof(m_iGameOptionsRevisionSent));
+	for ( int i = 0; i < 32; i++ )
+	{
+		m_iMapListStreamNext[i] = -1;
+		m_iMapListStreamSeq[i] = 0;
+		m_iGameOptionsStreamNext[i] = -1;
+		m_iGameOptionsStreamSeq[i] = 0;
+	}
 	m_bGameOptionsRTVOnly = FALSE;
 	m_pGameOptionsRTVInitiator = NULL;
 	m_fGameOptionsVoteTime = 0;
@@ -324,6 +331,7 @@ void CHalfLifeMultiplay :: Think ( void )
 
 	CheckMutatorRTV();
 	CheckGameOptionsRTV();
+	PumpClientManifestSends();
 
 	if ( g_fGameOver )   // someone else quit the game already
 	{
@@ -468,7 +476,8 @@ void CHalfLifeMultiplay :: Think ( void )
 						if (pPlayer && !FBitSet(pPlayer->pev->flags, FL_FAKECLIENT) && !pPlayer->HasDisconnected
 							&& m_iGameOptionsRevisionSent[i - 1] != g_iGameOptionsRevision)
 						{
-							SendGameOptionsToClient(pPlayer->edict());
+							m_iGameOptionsStreamNext[i - 1] = 0;
+							m_iGameOptionsStreamSeq[i - 1] = 0;
 						}
 					}
 
@@ -1712,8 +1721,14 @@ void CHalfLifeMultiplay :: InitHUD( CBasePlayer *pl )
 	// in case the file changed between connections.
 	if (!FBitSet(pl->pev->flags, FL_FAKECLIENT))
 	{
-		SendMapListToClient( pl->edict() );
-		SendGameOptionsToClient( pl->edict() );
+		int idx = ENTINDEX( pl->edict() );
+		if ( idx >= 1 && idx <= 32 )
+		{
+			m_iMapListStreamNext[idx - 1] = 0;
+			m_iMapListStreamSeq[idx - 1] = 0;
+			m_iGameOptionsStreamNext[idx - 1] = 0;
+			m_iGameOptionsStreamSeq[idx - 1] = 0;
+		}
 	}
 
 	// loop through all active players and send their score info to the new client
@@ -1759,6 +1774,14 @@ void CHalfLifeMultiplay :: ClientDisconnected( edict_t *pClient )
 	if ( pClient )
 	{
 		CBasePlayer *pPlayer = (CBasePlayer *)CBaseEntity::Instance( pClient );
+		int idx = ENTINDEX( pClient );
+		if ( idx >= 1 && idx <= 32 )
+		{
+			m_iMapListStreamNext[idx - 1] = -1;
+			m_iMapListStreamSeq[idx - 1] = 0;
+			m_iGameOptionsStreamNext[idx - 1] = -1;
+			m_iGameOptionsStreamSeq[idx - 1] = 0;
+		}
 
 		if ( pPlayer )
 		{
@@ -3892,6 +3915,7 @@ void CHalfLifeMultiplay :: SendMOTDToClient( edict_t *client )
 extern int gmsgMapList;
 
 #define MAP_LIST_MAPS_PER_CHUNK 4   // header(4) + 4*(name<=32 + size byte) ~= 136 bytes; well under 192-byte cap
+#define MANIFEST_STREAM_CHUNKS_PER_THINK 1
 
 /*
 ==============
@@ -3946,6 +3970,13 @@ void CHalfLifeMultiplay :: SendMapListToClient( edict_t *client )
 		seq++;
 	}
 	while ( sent < total );
+
+	int idx = ENTINDEX( client );
+	if ( idx >= 1 && idx <= 32 )
+	{
+		m_iMapListStreamNext[idx - 1] = -1;
+		m_iMapListStreamSeq[idx - 1] = 0;
+	}
 }
 
 // ---------------------------------------------------------------------------
@@ -3954,7 +3985,9 @@ void CHalfLifeMultiplay :: SendMapListToClient( edict_t *client )
 // File-format spec lives in workspace/ai/game_options_system.md.
 // ---------------------------------------------------------------------------
 
-#define GAME_OPTIONS_PER_CHUNK 2  // per-chunk byte budget stays under the 192-byte engine cap
+#define GAME_OPTIONS_MAX_MSG_BYTES      192
+#define GAME_OPTIONS_CHUNK_HEADER_BYTES 5    // revision, seq, isLast, total, numInChunk
+#define GAME_OPTIONS_CHUNK_BUDGET_BYTES (GAME_OPTIONS_MAX_MSG_BYTES - 4)  // leave a small cushion under cap
 
 static void GameOptionsLogf( int line, const char *fmt, ... )
 {
@@ -3972,6 +4005,27 @@ static void GameOptionsLogf( int line, const char *fmt, ... )
 		"line %d: %s", line, body );
 	g_iGameOptionsParseLogCount++;
 	g_iGameOptionsParseErrors++;
+}
+
+// Serialized payload size for one manifest item as written by SendGameOptionsToClient().
+static int GameOptionsWireSize( const game_option_t &it )
+{
+	int bytes = 0;
+	bytes += (int)strlen( it.game ) + 1;
+	bytes += (int)strlen( it.cvar ) + 1;
+	bytes += (int)strlen( it.title ) + 1;
+	bytes += 2; // restart + numOptions
+
+	int nopt = it.numOptions;
+	if ( nopt < 0 ) nopt = 0;
+	if ( nopt > MAX_GAME_OPTION_VALUES ) nopt = MAX_GAME_OPTION_VALUES;
+	for ( int o = 0; o < nopt; o++ )
+	{
+		bytes += (int)strlen( it.labels[o] ) + 1;
+		bytes += (int)strlen( it.values[o] ) + 1;
+	}
+
+	return bytes;
 }
 
 // G1.h forbidden-character guard for option values: the apply step uses
@@ -4322,6 +4376,14 @@ void BuildGameOptionsList( void )
 			GameOptionsLogf( itemLine, "item #%d (%s): need 2-5 options, got %d, skipped", itemSerial, item.cvar, item.numOptions );
 			continue;
 		}
+		int wireBytes = GameOptionsWireSize( item ) + GAME_OPTIONS_CHUNK_HEADER_BYTES;
+		if ( wireBytes > GAME_OPTIONS_CHUNK_BUDGET_BYTES )
+		{
+			GameOptionsLogf( itemLine,
+				"item #%d (%s): serialized size %d exceeds %d-byte message budget, skipped",
+				itemSerial, item.cvar, wireBytes, GAME_OPTIONS_CHUNK_BUDGET_BYTES );
+			continue;
+		}
 		// G1.c: cvar must be registered with the engine.
 		if ( !CVAR_GET_POINTER( item.cvar ) )
 		{
@@ -4374,7 +4436,7 @@ carry the manifest revision so the client can detect mid-cycle reloads):
   BYTE  seq          // chunk index, 0-based
   BYTE  isLast       // 1 on the final chunk, 0 otherwise
   BYTE  total        // total item count (only meaningful on seq==0)
-  BYTE  numInChunk   // 1..GAME_OPTIONS_PER_CHUNK
+	BYTE  numInChunk   // byte-budgeted dynamic count; may be 0 on empty manifest
   repeat numInChunk:
     STRING game
     STRING cvar
@@ -4399,12 +4461,24 @@ void CHalfLifeMultiplay::SendGameOptionsToClient( edict_t *client )
 
 	do
 	{
-		int remaining = total - sent;
-		int chunkSize = remaining;
-		if ( chunkSize > GAME_OPTIONS_PER_CHUNK )
-			chunkSize = GAME_OPTIONS_PER_CHUNK;
+		int chunkSize = 0;
+		int bytesUsed = GAME_OPTIONS_CHUNK_HEADER_BYTES;
+		while ( sent + chunkSize < total )
+		{
+			const game_option_t &it = g_GameOptions[sent + chunkSize];
+			int itemBytes = GameOptionsWireSize( it );
+			if ( bytesUsed + itemBytes > GAME_OPTIONS_CHUNK_BUDGET_BYTES )
+				break;
+			bytesUsed += itemBytes;
+			chunkSize++;
+		}
 		if ( chunkSize < 0 )
 			chunkSize = 0;
+		if ( chunkSize == 0 && sent < total )
+		{
+			// Should not happen because BuildGameOptionsList filters oversize items.
+			chunkSize = 1;
+		}
 
 		BOOL isLast = ( sent + chunkSize >= total ) ? TRUE : FALSE;
 
@@ -4440,6 +4514,152 @@ void CHalfLifeMultiplay::SendGameOptionsToClient( edict_t *client )
 	{
 		m_fGameOptionsLastSent[idx - 1] = gpGlobals->time;
 		m_iGameOptionsRevisionSent[idx - 1] = g_iGameOptionsRevision;
+		m_iGameOptionsStreamNext[idx - 1] = -1;
+		m_iGameOptionsStreamSeq[idx - 1] = 0;
+	}
+}
+
+void CHalfLifeMultiplay::PumpClientManifestSends( void )
+{
+	BOOL needsMapList = FALSE;
+	BOOL needsGameOpts = FALSE;
+
+	for ( int i = 1; i <= gpGlobals->maxClients; i++ )
+	{
+		int idx = i - 1;
+		if ( m_iMapListStreamNext[idx] >= 0 ) needsMapList = TRUE;
+		if ( m_iGameOptionsStreamNext[idx] >= 0 ) needsGameOpts = TRUE;
+	}
+
+	if ( needsMapList ) EnsureServerMapList();
+	if ( needsGameOpts ) EnsureGameOptionsList();
+
+	for ( int i = 1; i <= gpGlobals->maxClients; i++ )
+	{
+		CBasePlayer *pPlayer = (CBasePlayer *)UTIL_PlayerByIndex( i );
+		if ( !pPlayer || FBitSet( pPlayer->pev->flags, FL_FAKECLIENT ) || pPlayer->HasDisconnected )
+			continue;
+
+		edict_t *client = pPlayer->edict();
+		int idx = i - 1;
+
+		for ( int sentChunks = 0; sentChunks < MANIFEST_STREAM_CHUNKS_PER_THINK && m_iMapListStreamNext[idx] >= 0; sentChunks++ )
+		{
+			int total = g_iServerMapCount;
+			int sent = m_iMapListStreamNext[idx];
+			int seq = m_iMapListStreamSeq[idx];
+
+			int chunkSize = 0;
+			BOOL isLast = FALSE;
+			if ( total <= 0 )
+			{
+				chunkSize = 0;
+				isLast = TRUE;
+			}
+			else
+			{
+				if ( sent < 0 ) sent = 0;
+				if ( sent > total ) sent = total;
+				int remaining = total - sent;
+				chunkSize = remaining;
+				if ( chunkSize > MAP_LIST_MAPS_PER_CHUNK )
+					chunkSize = MAP_LIST_MAPS_PER_CHUNK;
+				if ( chunkSize < 0 )
+					chunkSize = 0;
+				isLast = ( sent + chunkSize >= total ) ? TRUE : FALSE;
+			}
+
+			MESSAGE_BEGIN( MSG_ONE, gmsgMapList, NULL, client );
+				WRITE_BYTE( seq );
+				WRITE_BYTE( isLast ? 1 : 0 );
+				WRITE_BYTE( total );
+				WRITE_BYTE( chunkSize );
+				for ( int m = 0; m < chunkSize; m++ )
+				{
+					WRITE_BYTE( g_iServerMapSizes[sent + m] );
+					WRITE_STRING( g_szServerMaps[sent + m] );
+				}
+			MESSAGE_END();
+
+			if ( isLast )
+			{
+				m_iMapListStreamNext[idx] = -1;
+				m_iMapListStreamSeq[idx] = 0;
+			}
+			else
+			{
+				m_iMapListStreamNext[idx] = sent + chunkSize;
+				m_iMapListStreamSeq[idx] = seq + 1;
+			}
+		}
+
+		for ( int sentChunks = 0; sentChunks < MANIFEST_STREAM_CHUNKS_PER_THINK && m_iGameOptionsStreamNext[idx] >= 0; sentChunks++ )
+		{
+			int total = g_iGameOptionsCount;
+			int sent = m_iGameOptionsStreamNext[idx];
+			int seq = m_iGameOptionsStreamSeq[idx];
+
+			int chunkSize = 0;
+			BOOL isLast = FALSE;
+			if ( total <= 0 )
+			{
+				chunkSize = 0;
+				isLast = TRUE;
+			}
+			else
+			{
+				if ( sent < 0 ) sent = 0;
+				if ( sent > total ) sent = total;
+				int bytesUsed = GAME_OPTIONS_CHUNK_HEADER_BYTES;
+				while ( sent + chunkSize < total )
+				{
+					const game_option_t &it = g_GameOptions[sent + chunkSize];
+					int itemBytes = GameOptionsWireSize( it );
+					if ( bytesUsed + itemBytes > GAME_OPTIONS_CHUNK_BUDGET_BYTES )
+						break;
+					bytesUsed += itemBytes;
+					chunkSize++;
+				}
+				if ( chunkSize == 0 && sent < total )
+					chunkSize = 1; // oversized items are filtered during parse; this is a safety fallback
+				isLast = ( sent + chunkSize >= total ) ? TRUE : FALSE;
+			}
+
+			MESSAGE_BEGIN( MSG_ONE, gmsgGameOpts, NULL, client );
+				WRITE_BYTE( g_iGameOptionsRevision & 0xFF );
+				WRITE_BYTE( seq );
+				WRITE_BYTE( isLast ? 1 : 0 );
+				WRITE_BYTE( total );
+				WRITE_BYTE( chunkSize );
+				for ( int g = 0; g < chunkSize; g++ )
+				{
+					const game_option_t &it = g_GameOptions[sent + g];
+					WRITE_STRING( it.game );
+					WRITE_STRING( it.cvar );
+					WRITE_STRING( it.title );
+					WRITE_BYTE( it.restart ? 1 : 0 );
+					WRITE_BYTE( it.numOptions );
+					for ( int o = 0; o < it.numOptions; o++ )
+					{
+						WRITE_STRING( it.labels[o] );
+						WRITE_STRING( it.values[o] );
+					}
+				}
+			MESSAGE_END();
+
+			if ( isLast )
+			{
+				m_iGameOptionsStreamNext[idx] = -1;
+				m_iGameOptionsStreamSeq[idx] = 0;
+				m_fGameOptionsLastSent[idx] = gpGlobals->time;
+				m_iGameOptionsRevisionSent[idx] = g_iGameOptionsRevision;
+			}
+			else
+			{
+				m_iGameOptionsStreamNext[idx] = sent + chunkSize;
+				m_iGameOptionsStreamSeq[idx] = seq + 1;
+			}
+		}
 	}
 }
 
@@ -4464,7 +4684,7 @@ void CHalfLifeMultiplay::BuildActiveGameOptions( void )
 	if ( mode >= 0 && mode <= TOTAL_GAME_MODES )
 		modeName = szGameModeList[mode];
 
-	for ( int i = 0; i < g_iGameOptionsCount && m_iActiveGameOptionsCount < 32; i++ )
+	for ( int i = 0; i < g_iGameOptionsCount && m_iActiveGameOptionsCount < MAX_GAME_OPTIONS; i++ )
 	{
 		const game_option_t &it = g_GameOptions[i];
 		BOOL match = FALSE;
@@ -4641,7 +4861,8 @@ void CHalfLifeMultiplay::VoteForGameOptions( BOOL fromRTV )
 		if ( pPlayer && !FBitSet( pPlayer->pev->flags, FL_FAKECLIENT ) && !pPlayer->HasDisconnected
 			&& m_iGameOptionsRevisionSent[i - 1] != g_iGameOptionsRevision )
 		{
-			SendGameOptionsToClient( pPlayer->edict() );
+			m_iGameOptionsStreamNext[i - 1] = 0;
+			m_iGameOptionsStreamSeq[i - 1] = 0;
 		}
 	}
 
