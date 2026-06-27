@@ -306,11 +306,8 @@ int CHalfLifeMultiplay::RandomizeMutator( void )
 	int attempts = 3, mutatorVote = 1;
 	while (attempts > 0)
 	{
-		// Vote ids: 1..MAX_MUTATORS = real mutators, MAX_MUTATORS+1 = RANDOM,
-		// MAX_MUTATORS+2 = synthetic INSTANT MUTATORS toggle.
-		mutatorVote = RANDOM_LONG(MUTATOR_CHAOS, MAX_MUTATORS + 2 /*random + instant*/);
-		if (mutatorVote - 1 >= MAX_MUTATORS)
-			break;
+		// When randomizing a RANDOM slot, only pick from real mutators (vote ids 1..MAX_MUTATORS).
+		mutatorVote = RANDOM_LONG( MUTATOR_CHAOS, MAX_MUTATORS );
 		const char *tryIt = g_szMutators[mutatorVote - 1];
 
 		// If gamerules disallows it
