@@ -83,6 +83,7 @@ cvar_t	slowbullets = {"sv_slowbullets","0", FCVAR_SERVER };
 cvar_t	breakabletime = {"sv_breakabletime","20", FCVAR_SERVER };
 cvar_t	voting = {"mp_voting","30", FCVAR_SERVER };
 cvar_t	rtvtime = {"mp_rtvtime","60", FCVAR_SERVER };
+cvar_t	rtvcooldown = {"mp_rtvcooldown","10", FCVAR_SERVER };
 cvar_t	spawnprotectiontime = {"mp_spawnprotectiontime","3", FCVAR_SERVER };
 cvar_t	chaosfilter = {"sv_chaosfilter","itemsexplode;", FCVAR_SERVER };
 cvar_t	meleedrop = {"mp_meleedrop","0", FCVAR_SERVER };
@@ -760,6 +761,7 @@ void GameDLLInit( void )
 	CVAR_REGISTER(&breakabletime);
 	CVAR_REGISTER(&voting);
 	CVAR_REGISTER(&rtvtime);
+	CVAR_REGISTER(&rtvcooldown);
 	CVAR_REGISTER(&spawnprotectiontime);
 	CVAR_REGISTER(&chaosfilter);
 	CVAR_REGISTER(&meleedrop);
