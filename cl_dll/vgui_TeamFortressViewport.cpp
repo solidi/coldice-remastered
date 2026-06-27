@@ -2939,7 +2939,8 @@ int TeamFortressViewport::MsgFunc_GameOpts( const char *pszName, int iSize, void
 }
 
 // MsgFunc_VoteOpts -- open or close the per-item game-options vote panel.
-// Format: BYTE revision, BYTE timer, BYTE activeCount, BYTE[activeCount] indices
+// Format: BYTE revision, BYTE timer, BYTE activeCount, BYTE[activeCount] indices, [optional] BYTE flags
+// flags bit 0: panel may auto-close once local player voted every row (RTV behavior).
 // timer == 0 means close (clear votes + hide panel).
 // G6: if revision doesn't match what we have, request a resend and skip open.
 int TeamFortressViewport::MsgFunc_VoteOpts( const char *pszName, int iSize, void *pbuf )

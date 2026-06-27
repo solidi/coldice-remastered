@@ -34,6 +34,11 @@
 #define MUTATORMENU_BUTTON_SPACER_Y		YRES(4)
 #define MUTATORMENU_BUTTON_SPACER_X		XRES(8)
 
+// Synthetic mutator-vote option (not part of g_szMutators[]).
+#define MUTATOR_VOTE_INSTANT            (MAX_MUTATORS_CL + 1)
+#define MUTATOR_MENU_INSTANT_SLOT       MAX_MUTATORS_CL
+#define MUTATOR_MENU_TOTAL_SLOTS        (MAX_MUTATORS_CL + 1)
+
 // Creation
 CVoteMutatorPanel::CVoteMutatorPanel(int iTrans, int iRemoveMe, int x,int y,int wide,int tall) : CMenuPanel(iTrans, iRemoveMe, x,y,wide,tall)
 {
@@ -200,7 +205,7 @@ void CVoteMutatorPanel::Update()
 	float minutes = fmax( 0, (int)( m_iTime + m_fStartTime - gHUD.m_flTime ) / 60);
 	float seconds = fmax( 0, ( m_iTime + m_fStartTime - gHUD.m_flTime ) - (minutes * 60));
 
-	int votes[MAX_MUTATORS_CL];
+	int votes[MUTATOR_MENU_TOTAL_SLOTS];
 	int myVote = -1;
 
 	// Count votes
@@ -208,13 +213,15 @@ void CVoteMutatorPanel::Update()
 	{
 		if (m_pButtons[j])
 			m_pButtons[j]->setArmed(false);
+		votes[j] = 0;
 	}
+	votes[MUTATOR_MENU_INSTANT_SLOT] = 0;
+	if (m_pInstantButton)
+		m_pInstantButton->setArmed(false);
 
 	// Count votes
-	int highest = -1, hi = -1;
 	for ( int i = 0; i < MAX_MUTATORS_CL; i++ )
 	{
-		votes[i] = 0;
 		for ( int j = 1; j <= MAX_PLAYERS; j++ )
 		{
 			if ( g_PlayerInfoList[j].thisplayer )
@@ -223,41 +230,45 @@ void CVoteMutatorPanel::Update()
 			if (g_PlayerExtraInfo[j].vote == (i + 1))
 				votes[i] += 1;
 		}
+	}
 
-		for ( int j = 1; j <= MAX_PLAYERS; j++ )
+	for ( int j = 1; j <= MAX_PLAYERS; j++ )
+	{
+		if ( g_PlayerInfoList[j].thisplayer )
+			myVote = g_PlayerExtraInfo[j].vote;
+
+		if ( g_PlayerExtraInfo[j].vote == MUTATOR_VOTE_INSTANT )
+			votes[MUTATOR_MENU_INSTANT_SLOT] += 1;
+	}
+
+	int highest = -1, hi = -1;
+	for ( int i = 0; i < MUTATOR_MENU_TOTAL_SLOTS; i++ )
+	{
+		if (highest < votes[i])
 		{
-			if (highest < votes[i])
-			{
-				highest = votes[i];
-				hi = i;
-			}
+			highest = votes[i];
+			hi = i;
 		}
 	}
 
 	int second = -1, s = -1;
 
-	for ( int i = 0; i < MAX_MUTATORS_CL; i++ )
+	for ( int i = 0; i < MUTATOR_MENU_TOTAL_SLOTS; i++ )
 	{
-		for ( int j = 1; j <= MAX_PLAYERS; j++ )
+		if (second < votes[i] && second <= highest && i != hi)
 		{
-			if (second < votes[i] && second <= highest && i != hi)
-			{
-				second = votes[i];
-				s = i;
-			}
+			second = votes[i];
+			s = i;
 		}
 	}
 
 	int third = -1, t = -1;
-	for ( int i = 0; i < MAX_MUTATORS_CL; i++ )
+	for ( int i = 0; i < MUTATOR_MENU_TOTAL_SLOTS; i++ )
 	{
-		for ( int j = 1; j <= MAX_PLAYERS; j++ )
+		if (third < votes[i] && third <= second && i != hi && i != s)
 		{
-			if (third < votes[i] && third <= second && i != hi && i != s)
-			{
-				third = votes[i];
-				t = i;
-			}
+			third = votes[i];
+			t = i;
 		}
 	}
 

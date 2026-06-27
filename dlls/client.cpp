@@ -798,7 +798,13 @@ void Vote( CBasePlayer *pPlayer, int vote )
 			else if (g_pGameRules->m_iVoteUnderway == VOTE_MAPS_OPEN)
 				voteDisplayName = (vote < 1 || vote > g_iServerMapCount) ? "random" : g_szServerMaps[vote-1];
 			else
-				voteDisplayName = (vote < 1 || vote > MAX_MUTATORS) ? "random" : g_szMutators[vote-1];
+			{
+				const int instantVoteId = MAX_MUTATORS + 2; // synthetic mutator vote slot
+				if ( vote == instantVoteId )
+					voteDisplayName = "INSTANT MUTATORS";
+				else
+					voteDisplayName = (vote < 1 || vote > MAX_MUTATORS) ? "random" : g_szMutators[vote-1];
+			}
 			ClientPrint(pPlayer->pev, HUD_PRINTTALK, UTIL_VarArgs("[VOTE] You voted for \"%s\". Waiting for others to tally vote.\n", voteDisplayName));
 		}
 		else
