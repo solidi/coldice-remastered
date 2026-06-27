@@ -1530,16 +1530,11 @@ public:
 #endif
 	}
 
-	// rail, rail, rail
-	void CreateTrail(Vector,Vector);
-
 	void ProvideDualItem(CBasePlayer *pPlayer, const char *itemName);
 	void SwapDualWeapon( void );
 
 private:
-	int m_iBalls;
-	int m_iGlow;
-	int m_iBeam;
+	unsigned short m_usRailgunFire;
 };
 
 class CDualRailgun : public CBasePlayerWeapon
@@ -1561,8 +1556,8 @@ public:
 	void FireThink( void );
 	void WeaponIdle( void );
 
-	void StartFire( Vector vecAiming, Vector vecSrc, Vector effectSrc);
-	void Fire( Vector vecSrc, Vector vecDirShooting, Vector effectSrc, float flDamage );
+	void StartFire( Vector vecAiming, Vector vecSrc, Vector effectSrc, int iRailSide );
+	void Fire( Vector vecSrc, Vector vecDirShooting, Vector effectSrc, float flDamage, int iRailSide );
 
 	virtual BOOL UseDecrement( void )
 	{
@@ -1573,16 +1568,11 @@ public:
 #endif
 	}
 
-	// rail, rail, rail
-	void CreateTrail(Vector,Vector);
-
 	void ProvideSingleItem(CBasePlayer *pPlayer, const char *itemName);
 	void SwapDualWeapon( void );
 
 private:
-	int m_iBalls;
-	int m_iGlow;
-	int m_iBeam;
+	unsigned short m_usRailgunFire;
 	int m_iAltFire;
 };
 
