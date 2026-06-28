@@ -81,6 +81,8 @@ void EV_Knife( struct event_args_s *args );
 void EV_ChumtoadFire( struct event_args_s *args );
 void EV_ChumtoadRelease( struct event_args_s *args );
 void EV_FireSniperRifle( struct event_args_s *args );
+void EV_FireRailgun( struct event_args_s *args );
+void EV_FireDualRailgun( struct event_args_s *args );
 void EV_FireCannon( struct event_args_s *args );
 void EV_FireCannonFlak( struct event_args_s *args );
 void EV_FireMag60( struct event_args_s *args  );
@@ -139,6 +141,9 @@ void EV_VehiclePitchAdjust( struct event_args_s *args );
 #define VECTOR_CONE_10DEGREES Vector( 0.08716, 0.08716, 0.08716 )
 #define VECTOR_CONE_15DEGREES Vector( 0.13053, 0.13053, 0.13053 )
 #define VECTOR_CONE_20DEGREES Vector( 0.17365, 0.17365, 0.17365 )
+
+#define RAIL_BEAM_SPRITE "sprites/xbeam1.spr"
+#define RAIL_GLOW_SPRITE "sprites/blueflare1.spr"
 
 #define VectorAverage(a, b, o) {((o)[0] = ((a)[0] + (b)[0]) * 0.5, (o)[1] = ((a)[1] + (b)[1]) * 0.5, (o)[2] = ((a)[2] + (b)[2]) * 0.5);}
 
@@ -2073,6 +2078,150 @@ void EV_FireSniperRifle( event_args_t *args )
 	EV_GunSmoke(gEngfuncs.GetViewModel()->attachment[0], 0.5, idx, args->ducking, forward, right, up, 0, 0, 0);
 
 	EV_HLDM_FireBullets( idx, forward, right, up, 1, vecSrc, vecAiming, 8192, BULLET_PLAYER_MP5, 0, &tracerCount[idx-1], args->fparam1, args->fparam2 );
+}
+
+enum railgun_side_e
+{
+	RAILGUN_SIDE_RIGHT = 0,
+	RAILGUN_SIDE_LEFT,
+};
+
+static void EV_RailgunCreateTrail( vec3_t start, vec3_t end, int beamModel )
+{
+	BEAM *pOuterBeam = gEngfuncs.pEfxAPI->R_BeamPoints( start, end, beamModel, 0.25, 4.0, 0.2, 220.0, 12.0, 0, 0.0, 0, 113, 230 );
+	if ( pOuterBeam )
+		pOuterBeam->flags |= FBEAM_SINENOISE;
+
+	BEAM *pInnerBeam = gEngfuncs.pEfxAPI->R_BeamPoints( start, end, beamModel, 0.25, 2.0, 0.08, 240.0, 12.0, 0, 0.0, 200, 200, 200 );
+	if ( pInnerBeam )
+		pInnerBeam->flags |= FBEAM_SINENOISE;
+
+	BEAM *pCoreBeam = gEngfuncs.pEfxAPI->R_BeamPoints( start, end, beamModel, 0.25, 5.0, 0.0, 180.0, 12.0, 0, 0.0, 200, 200, 200 );
+	if ( pCoreBeam )
+		pCoreBeam->flags |= FBEAM_SINENOISE;
+}
+
+static void EV_RailgunImpact( const pmtrace_t &tr, int glowModel, int ballsModel )
+{
+	pmtrace_t impactTrace = tr;
+	vec3_t sparkEnd;
+
+	EV_HLDM_DecalGunshot( &impactTrace, BULLET_PLAYER_357 );
+	gEngfuncs.pEfxAPI->R_TempSprite( impactTrace.endpos, vec3_origin, 0.3, glowModel, kRenderGlow, kRenderFxNoDissipation, 0.8, 0.2, FTENT_FADEOUT );
+
+	VectorAdd( impactTrace.endpos, impactTrace.plane.normal, sparkEnd );
+	gEngfuncs.pEfxAPI->R_Sprite_Trail( TE_SPRITETRAIL, impactTrace.endpos, sparkEnd, ballsModel, 4, 0.6, gEngfuncs.pfnRandomFloat(0.1, 0.2), 1.0, 200, 20 );
+}
+
+static void EV_RailgunCommon( event_args_t *args, float rightOffset )
+{
+	int idx;
+	int nMaxPunchThroughs = 3;
+	int beamModel;
+	int glowModel;
+	int ballsModel;
+	bool firstBeam = FALSE;
+	vec3_t origin;
+	vec3_t angles;
+	vec3_t vecSrc;
+	vec3_t vecDir;
+	vec3_t vecDest;
+	vec3_t vecAiming;
+	vec3_t up;
+	vec3_t right;
+	vec3_t forward;
+	vec3_t effectSrc;
+	pmtrace_t tr;
+
+	idx = args->entindex;
+	VectorCopy( args->origin, origin );
+	VectorCopy( args->angles, angles );
+
+	beamModel = gEngfuncs.pEventAPI->EV_FindModelIndex( RAIL_BEAM_SPRITE );
+	glowModel = gEngfuncs.pEventAPI->EV_FindModelIndex( RAIL_GLOW_SPRITE );
+	ballsModel = glowModel;
+
+	AngleVectors( angles, forward, right, up );
+	VectorCopy( forward, vecAiming );
+	VectorCopy( vecAiming, vecDir );
+
+	EV_GetGunPosition( args, vecSrc, origin );
+	VectorScale( up, -12.0, effectSrc );
+	VectorMA( effectSrc, rightOffset, right, effectSrc );
+	VectorMA( effectSrc, 32.0, vecAiming, effectSrc );
+	VectorAdd( vecSrc, effectSrc, vecDest );
+	VectorMA( vecDest, 4096.0, vecDir, vecDest );
+
+	if ( EV_IsLocal( idx ) )
+	{
+		EV_MuzzleFlash();
+	}
+
+	gEngfuncs.pEventAPI->EV_PlaySound( idx, origin, CHAN_WEAPON, "railgun_fire2.wav", 0.9, ATTN_NORM, 0, PITCH_NORM );
+
+	while ( nMaxPunchThroughs > 0 )
+	{
+		if ( firstBeam )
+		{
+			float n = -DotProduct( tr.plane.normal, vecDir );
+			if ( n < 0.5 )
+			{
+				vec3_t reflected;
+				VectorMA( vecDir, 2.0 * n, tr.plane.normal, reflected );
+				VectorCopy( reflected, vecDir );
+				VectorMA( tr.endpos, 8.0, vecDir, vecSrc );
+				VectorMA( vecSrc, 8192.0, vecDir, vecDest );
+			}
+		}
+		firstBeam = TRUE;
+
+		gEngfuncs.pEventAPI->EV_SetUpPlayerPrediction( false, true );
+		gEngfuncs.pEventAPI->EV_PushPMStates();
+		gEngfuncs.pEventAPI->EV_SetSolidPlayers( idx - 1 );
+		gEngfuncs.pEventAPI->EV_SetTraceHull( 2 );
+		gEngfuncs.pEventAPI->EV_PlayerTrace( vecSrc, vecDest, PM_STUDIO_BOX, -1, &tr );
+		gEngfuncs.pEventAPI->EV_PopPMStates();
+
+		if ( tr.allsolid )
+		{
+			break;
+		}
+
+		// Always show the beams, even if they are not a refraction
+		// if ( tr.fraction > 0.02 )
+		{
+			vec3_t trailStart;
+			VectorAdd( vecSrc, effectSrc, trailStart );
+			EV_RailgunCreateTrail( trailStart, tr.endpos, beamModel );
+		}
+
+		VectorClear( effectSrc );
+
+		physent_t *pEntity = gEngfuncs.pEventAPI->EV_GetPhysent( tr.ent );
+		if ( pEntity == NULL )
+		{
+			return;
+		}
+
+		if ( pEntity->solid == SOLID_BSP )
+		{
+			EV_RailgunImpact( tr, glowModel, ballsModel );
+			nMaxPunchThroughs--;
+		}
+
+		VectorAdd( tr.endpos, vecDir, vecSrc );
+	}
+}
+
+void EV_FireRailgun( event_args_t *args )
+{
+	EV_RailgunCommon( args, 12.0 );
+}
+
+void EV_FireDualRailgun( event_args_t *args )
+{
+	float rightOffset = ( args->iparam1 == RAILGUN_SIDE_LEFT ) ? -12.0f : 16.0f;
+	EV_RailgunCommon( args, rightOffset );
 }
 
 enum cannon_e {

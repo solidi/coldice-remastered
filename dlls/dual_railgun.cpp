@@ -23,8 +23,6 @@
 #include "soundent.h"
 #include "shake.h"
 #include "gamerules.h"
-#include "effects.h"
-#include "customentity.h"
 #include "decals.h"
 #include "game.h"
 
@@ -39,6 +37,11 @@ enum dual_railgun_e {
 	DUAL_RAILGUN_HOLSTER,
 	DUAL_RAILGUN_DRAW_LOWKEY,
 	DUAL_RAILGUN_DRAW
+};
+
+enum railgun_side_e {
+	RAILGUN_SIDE_RIGHT = 0,
+	RAILGUN_SIDE_LEFT,
 };
 
 #ifdef DUALRAILGUN
@@ -66,12 +69,11 @@ void CDualRailgun::Precache( void )
 {
 	PRECACHE_MODEL("models/v_dual_railgun.mdl");
 
-	PRECACHE_SOUND("railgun_fire.wav");
+	PRECACHE_SOUND("railgun_fire2.wav");
 	
-	PRECACHE_MODEL( RAIL_BEAM_SPRITE );	
-	m_iGlow = PRECACHE_MODEL ( "sprites/blueflare1.spr" );
-	m_iBalls = PRECACHE_MODEL( "sprites/blueflare1.spr" );
-	m_iBeam = g_sModelIndexSmoke2;
+	PRECACHE_MODEL( RAIL_BEAM_SPRITE );
+	PRECACHE_MODEL( "sprites/blueflare1.spr" );
+	m_usRailgunFire = PRECACHE_EVENT( 1, "events/dual_railgun.sc" );
 }
 
 int CDualRailgun::AddToPlayer( CBasePlayer *pPlayer )
@@ -138,20 +140,20 @@ void CDualRailgun::PrimaryAttack()
 	m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] -= 2;
 
 	int right = 16;
+	int side = RAILGUN_SIDE_RIGHT;
 	if (!m_iAltFire) {
 		SendWeaponAnim( DUAL_RAILGUN_FIRE_RIGHT );
 	} else {
 		SendWeaponAnim( DUAL_RAILGUN_FIRE_LEFT );
 		right = -12;
+		side = RAILGUN_SIDE_LEFT;
 	}
 	m_iAltFire++;
 	if (m_iAltFire > 1) m_iAltFire = 0;
 
 	Vector vecAiming = m_pPlayer->GetAutoaimVector( AUTOAIM_10DEGREES );
 	Vector vecSrc = m_pPlayer->GetGunPosition();
-#ifndef CLIENT_DLL
-	StartFire(vecAiming, vecSrc, (gpGlobals->v_up * -12 + gpGlobals->v_right * right + vecAiming * 32));
-#endif
+	StartFire(vecAiming, vecSrc, (gpGlobals->v_up * -12 + gpGlobals->v_right * right + vecAiming * 32), side);
 	m_pPlayer->pev->punchangle.x = RANDOM_LONG(-5, -8);
 
 	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + UTIL_SharedRandomFloat( m_pPlayer->random_seed, 10, 15 );
@@ -174,8 +176,13 @@ void CDualRailgun::SecondaryAttack()
 	Vector vecAiming = m_pPlayer->GetAutoaimVector( AUTOAIM_10DEGREES );
 	Vector vecSrc = m_pPlayer->GetGunPosition();
 	SendWeaponAnim( DUAL_RAILGUN_FIRE_BOTH );
+	StartFire(vecAiming, vecSrc, (gpGlobals->v_up * -12 + gpGlobals->v_right * 16 + vecAiming * 32), RAILGUN_SIDE_RIGHT);
+#ifdef CLIENT_DLL
+	PLAYBACK_EVENT_FULL( FEV_NOTHOST, m_pPlayer->edict(), m_usRailgunFire, 0.2,
+		(float *)&m_pPlayer->pev->origin, (float *)&m_pPlayer->pev->angles,
+		gSkillData.plrDmgRailgun, 0.0, RAILGUN_SIDE_LEFT, 0, 0, 0 );
+#endif
 #ifndef CLIENT_DLL
-	StartFire(vecAiming, vecSrc, (gpGlobals->v_up * -12 + gpGlobals->v_right * 16 + vecAiming * 32));
 	SetThink( &CDualRailgun::FireThink );
 	pev->nextthink = gpGlobals->time + (0.2 * g_pGameRules->WeaponMultipler());
 #endif
@@ -188,59 +195,37 @@ void CDualRailgun::FireThink( void )
 {
 	Vector vecAiming = m_pPlayer->GetAutoaimVector( AUTOAIM_10DEGREES );
 	Vector vecSrc = m_pPlayer->GetGunPosition();
-	StartFire(vecAiming, vecSrc, (gpGlobals->v_up * -12 + gpGlobals->v_right * -12 + vecAiming * 32));
+	StartFire(vecAiming, vecSrc, (gpGlobals->v_up * -12 + gpGlobals->v_right * -12 + vecAiming * 32), RAILGUN_SIDE_LEFT);
 	m_pPlayer->pev->punchangle.x = RANDOM_LONG(-8, -12);
 }
-
-void CDualRailgun::CreateTrail(Vector a, Vector b)
-{
-	CBeam *m_pBeam = CBeam::BeamCreate( RAIL_BEAM_SPRITE, 40 );
-	m_pBeam->PointsInit(b,a);
-	m_pBeam->SetFlags( BEAM_FSINE );
-	m_pBeam->SetColor( 0, 113, 230 );
-	m_pBeam->LiveForTime( 0.25 );
-	m_pBeam->SetScrollRate ( 12 );
-	m_pBeam->SetNoise( 20 );
-	m_pBeam->pev->spawnflags |= SF_BEAM_TEMPORARY;
-
-	CBeam *m_inBeam = CBeam::BeamCreate( RAIL_BEAM_SPRITE, 20 );
-	m_inBeam->PointsInit(b,a);
-	m_inBeam->SetFlags( BEAM_FSINE );
-	m_inBeam->SetColor( 200, 200, 200 );
-	m_inBeam->pev->spawnflags |= SF_BEAM_TEMPORARY;
-	m_inBeam->LiveForTime( 0.25 );
-	m_inBeam->SetScrollRate ( 12 );
-	m_inBeam->SetNoise( 10 );
-
-	CBeam *m_lBeam = CBeam::BeamCreate( RAIL_BEAM_SPRITE, 50 );
-	m_lBeam->PointsInit(b,a);
-	m_lBeam->SetFlags( BEAM_FSINE );
-	m_lBeam->SetColor( 200, 200, 200 );
-	m_lBeam->SetScrollRate ( 12 );
-	m_lBeam->pev->spawnflags |= SF_BEAM_TEMPORARY;
-	m_lBeam->LiveForTime( 0.25 );
-}
-
-void CDualRailgun::StartFire( Vector vecAiming, Vector vecSrc, Vector effectSrc)
+void CDualRailgun::StartFire( Vector vecAiming, Vector vecSrc, Vector effectSrc, int iRailSide )
 {	
 	m_pPlayer->pev->effects = (int)(m_pPlayer->pev->effects) | EF_MUZZLEFLASH;
 	m_pPlayer->SetAnimation( PLAYER_ATTACK1 );
-
-	EMIT_SOUND(ENT(m_pPlayer->pev), CHAN_WEAPON, "railgun_fire.wav", 0.9, ATTN_NORM);
-
-	Fire( vecSrc, vecAiming, effectSrc, gSkillData.plrDmgRailgun );
+	Fire( vecSrc, vecAiming, effectSrc, gSkillData.plrDmgRailgun, iRailSide );
 }
 
-void CDualRailgun::Fire( Vector vecSrc, Vector vecDir, Vector effectSrc, float flDamage )
+void CDualRailgun::Fire( Vector vecSrc, Vector vecDir, Vector effectSrc, float flDamage, int iRailSide )
 {
 	m_pPlayer->m_iWeaponVolume = RAILGUN_PRIMARY_FIRE_VOLUME;
+
+	int flags;
+#if defined( CLIENT_WEAPONS )
+	flags = FEV_NOTHOST;
+#else
+	flags = 0;
+#endif
+
+	PLAYBACK_EVENT_FULL( flags, m_pPlayer->edict(), m_usRailgunFire, 0.0,
+		(float *)&m_pPlayer->pev->origin, (float *)&m_pPlayer->pev->angles,
+		flDamage, 0.0, iRailSide, 0, 0, 0 );
 
 	Vector vecDest = vecSrc + effectSrc + vecDir * 4096;
 	edict_t *pentIgnore = ENT(m_pPlayer->pev);
 	TraceResult tr;
 
 #ifndef CLIENT_DLL
-	int nMaxPunchThroughs = RANDOM_LONG(2,4);
+	int nMaxPunchThroughs = 3;
 	BOOL firstBeam = FALSE;
 	while (nMaxPunchThroughs > 0)
 	{
@@ -262,8 +247,6 @@ void CDualRailgun::Fire( Vector vecSrc, Vector vecDir, Vector effectSrc, float f
 		firstBeam = TRUE;
 
 		UTIL_TraceLine(vecSrc, vecDest, dont_ignore_monsters, pentIgnore, &tr);
-		if (tr.flFraction > 0.02) // no trail when too close to an entity
-			CreateTrail(vecSrc + effectSrc, tr.vecEndPos);
 
 		effectSrc = Vector(0,0,0);
 		//if (tr.fAllSolid)
@@ -282,41 +265,12 @@ void CDualRailgun::Fire( Vector vecSrc, Vector vecDir, Vector effectSrc, float f
 		}
 		else
 		{
-			// Make some balls and a decal
-#ifndef CLIENT_DLL
+			// Keep server decals authoritative while visual beam/trail is client event-driven.
 			int decal = DECAL_GUNSHOT1 + RANDOM_LONG(0,4);
 			if (g_pGameRules->MutatorEnabled(MUTATOR_PAINTBALL)) {
 				decal = DECAL_PAINT1 + RANDOM_LONG(0, 7);
 			}
 			UTIL_DecalTrace(&tr, decal);
-#endif
-
-			MESSAGE_BEGIN( MSG_PAS, SVC_TEMPENTITY, tr.vecEndPos );
-				WRITE_BYTE( TE_GLOWSPRITE );
-				WRITE_COORD( tr.vecEndPos.x);	// pos
-				WRITE_COORD( tr.vecEndPos.y);
-				WRITE_COORD( tr.vecEndPos.z);
-				WRITE_SHORT( m_iGlow );		    // model
-				WRITE_BYTE( 20 );				// life * 10
-				WRITE_BYTE( 3 );				// size * 10
-				WRITE_BYTE( 200 );			    // brightness
-			MESSAGE_END();
-
-			MESSAGE_BEGIN( MSG_PVS, SVC_TEMPENTITY, tr.vecEndPos );
-				WRITE_BYTE( TE_SPRITETRAIL );
-				WRITE_COORD( tr.vecEndPos.x );
-				WRITE_COORD( tr.vecEndPos.y );
-				WRITE_COORD( tr.vecEndPos.z );
-				WRITE_COORD( tr.vecEndPos.x + tr.vecPlaneNormal.x );
-				WRITE_COORD( tr.vecEndPos.y + tr.vecPlaneNormal.y );
-				WRITE_COORD( tr.vecEndPos.z + tr.vecPlaneNormal.z );
-				WRITE_SHORT( m_iBalls );		    // model
-				WRITE_BYTE( 4 );				    // count
-				WRITE_BYTE( 6 );				    // life * 10
-				WRITE_BYTE( RANDOM_LONG( 1, 2 ) );	// size * 10
-				WRITE_BYTE( 10 );				    // amplitude * 0.1
-				WRITE_BYTE( 20 );				    // speed * 100
-			MESSAGE_END();
 
 			nMaxPunchThroughs--; // only when through solids.
 		}
