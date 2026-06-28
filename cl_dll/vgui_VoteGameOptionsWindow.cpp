@@ -388,7 +388,7 @@ void CVoteGameOptionsPanel::Update()
 	if ( allVoted )
 	{
 		if ( m_fAutoCloseTime <= 0 )
-			m_fAutoCloseTime = gHUD.m_flTime + 1.5f;
+			m_fAutoCloseTime = gHUD.m_flTime + 2.0f;
 		else if ( gHUD.m_flTime >= m_fAutoCloseTime )
 		{
 			gViewPort->HideVGUIMenu();

@@ -422,11 +422,17 @@ bool Q_UnicodeValidate( const char *pUTF8 )
 
 extern int gmsgPlayClientSound;
 
+static void RTVTickServerEpoch( void );
+static void RTVSyncVoteWindowEpoch( int &voteEpoch, float &voteTime, int &needsVotes, int (&votes)[33], edict_t **ppInitiator = NULL );
+
 void GameplayVote(edict_t *pEntity, const char *text)
 {
 	static float m_fVoteTime = 0;
 	static int m_iNeedsVotes = 0;
 	static int m_iVotes[33];
+	static int m_iVoteEpoch = -1;
+
+	RTVSyncVoteWindowEpoch( m_iVoteEpoch, m_fVoteTime, m_iNeedsVotes, m_iVotes );
 
 	if (voting.value && (UTIL_stristr(text, "vote") || UTIL_stristr(text, "rtv")))
 	{
@@ -529,7 +535,7 @@ static const char *RTVGateKindName( int kind )
 	case RTV_GATE_KIND_MUTATOR: return "mutators";
 	case RTV_GATE_KIND_GAMEOPTIONS: return "gameoptions";
 	case RTV_GATE_KIND_SERVEROPTIONS: return "serveroptions";
-	default: return "unknown";
+	default: return "startup";
 	}
 }
 
@@ -545,6 +551,36 @@ static float RTVGateCooldownSeconds( void )
 	float seconds = rtvcooldown.value;
 	if ( seconds < 0 ) seconds = 0;
 	return seconds;
+}
+static float g_fRTVLastServerTime = -1.0f;
+static int   g_iRTVServerEpoch = 0;
+static BOOL  g_bRTVStartupCooldownApplied = FALSE;
+
+static void RTVTickServerEpoch( void )
+{
+	if ( g_fRTVLastServerTime >= 0.0f && gpGlobals->time + 0.001f < g_fRTVLastServerTime )
+	{
+		g_iRTVServerEpoch++;
+		g_bRTVStartupCooldownApplied = FALSE;
+	}
+
+	g_fRTVLastServerTime = gpGlobals->time;
+}
+
+static void RTVSyncVoteWindowEpoch( int &voteEpoch, float &voteTime, int &needsVotes, int (&votes)[33], edict_t **ppInitiator )
+{
+	RTVTickServerEpoch();
+
+	if ( voteEpoch == g_iRTVServerEpoch )
+		return;
+
+	voteEpoch = g_iRTVServerEpoch;
+	voteTime = 0.0f;
+	needsVotes = 0;
+	memset( votes, 0, sizeof( int ) * 33 );
+
+	if ( ppInitiator )
+		*ppInitiator = NULL;
 }
 
 static void RTVGateClear( void )
@@ -584,6 +620,27 @@ static void RTVGateBeginVoting( int kind, float voteEndsAt )
 
 static void RTVGateRefresh( void )
 {
+	RTVTickServerEpoch();
+
+	if ( !g_bRTVStartupCooldownApplied )
+	{
+		float seconds = RTVGateCooldownSeconds();
+		if ( seconds > 0.0f )
+		{
+			g_iRTVGateKind = RTV_GATE_KIND_NONE;
+			g_iRTVGateState = RTV_GATE_STATE_COOLDOWN;
+			// gpGlobals->time resets near 0 on a fresh map, so this keeps
+			// startup cooldown anchored to map-start time, not first chat use.
+			g_fRTVGateUntil = seconds;
+		}
+		else
+		{
+			RTVGateClear();
+		}
+
+		g_bRTVStartupCooldownApplied = TRUE;
+	}
+
 	if ( g_iRTVGateState == RTV_GATE_STATE_IDLE )
 		return;
 	if ( gpGlobals->time < g_fRTVGateUntil )
@@ -637,6 +694,9 @@ void MutatorVote(edict_t *pEntity, const char *text)
 	static float m_fVoteTime = 0;
 	static int m_iNeedsVotes = 0;
 	static int m_iVotes[33];
+	static int m_iVoteEpoch = -1;
+
+	RTVSyncVoteWindowEpoch( m_iVoteEpoch, m_fVoteTime, m_iNeedsVotes, m_iVotes );
 
 	CBasePlayer *pPlayer = NULL;
 	entvars_t *pev = &pEntity->v;
@@ -725,6 +785,9 @@ void GameModeVoteRTV(edict_t *pEntity, const char *text)
 	static float m_fVoteTime = 0;
 	static int m_iNeedsVotes = 0;
 	static int m_iVotes[33];
+	static int m_iVoteEpoch = -1;
+
+	RTVSyncVoteWindowEpoch( m_iVoteEpoch, m_fVoteTime, m_iNeedsVotes, m_iVotes );
 
 	CBasePlayer *pPlayer = NULL;
 	entvars_t *pev = &pEntity->v;
@@ -829,6 +892,9 @@ void MapVoteRTV(edict_t *pEntity, const char *text)
 	static float m_fVoteTime = 0;
 	static int m_iNeedsVotes = 0;
 	static int m_iVotes[33];
+	static int m_iVoteEpoch = -1;
+
+	RTVSyncVoteWindowEpoch( m_iVoteEpoch, m_fVoteTime, m_iNeedsVotes, m_iVotes );
 
 	CBasePlayer *pPlayer = NULL;
 	entvars_t *pev = &pEntity->v;
@@ -1148,11 +1214,28 @@ void Vote( CBasePlayer *pPlayer, int vote )
 			MESSAGE_END();
 
 			ALERT(at_aiconsole, "id[%d] voted for #%d\n", pPlayer->entindex(), vote);
-			const char *voteDisplayName;
-			if (g_pGameRules->m_iVoteUnderway == VOTE_GAMEPLAY_OPEN)
-				voteDisplayName = (vote < 1 || vote > TOTAL_GAME_MODES) ? "random" : gamePlayModes[vote-1];
-			else if (g_pGameRules->m_iVoteUnderway == VOTE_MAPS_OPEN)
+			const char *voteDisplayName = "random";
+			CHalfLifeMultiplay *mp = (CHalfLifeMultiplay *)g_pGameRules;
+
+			// Resolve vote context from both intermission phase voting and mid-game RTV windows.
+			const BOOL gameplayVoteOpen =
+				(g_pGameRules->m_iVoteUnderway == VOTE_GAMEPLAY_OPEN) ||
+				(g_iRTVGateState == RTV_GATE_STATE_VOTING && g_iRTVGateKind == RTV_GATE_KIND_GAMEMODES) ||
+				(mp && mp->m_fGameplayVoteTime > gpGlobals->time);
+
+			const BOOL mapVoteOpen =
+				(g_pGameRules->m_iVoteUnderway == VOTE_MAPS_OPEN) ||
+				(g_iRTVGateState == RTV_GATE_STATE_VOTING && g_iRTVGateKind == RTV_GATE_KIND_MAPS) ||
+				(mp && mp->m_fMapVoteTime > gpGlobals->time);
+
+			if (mapVoteOpen)
+			{
 				voteDisplayName = (vote < 1 || vote > g_iServerMapCount) ? "random" : g_szServerMaps[vote-1];
+			}
+			else if (gameplayVoteOpen)
+			{
+				voteDisplayName = (vote < 1 || vote > TOTAL_GAME_MODES) ? "random" : gamePlayModes[vote-1];
+			}
 			else
 			{
 				const int instantVoteId = MAX_MUTATORS + 2; // synthetic mutator vote slot
@@ -1314,6 +1397,9 @@ void GameOptionsVote(edict_t *pEntity, const char *text)
 	static int   m_iNeedsVotes = 0;
 	static int   m_iVotes[33];
 	static edict_t *m_pInitiator = NULL;
+	static int m_iVoteEpoch = -1;
+
+	RTVSyncVoteWindowEpoch( m_iVoteEpoch, m_fVoteTime, m_iNeedsVotes, m_iVotes, &m_pInitiator );
 
 	CBasePlayer *pPlayer = NULL;
 	entvars_t *pev = &pEntity->v;
@@ -1427,6 +1513,9 @@ void ServerOptionsVote(edict_t *pEntity, const char *text)
 	static int   m_iNeedsVotes = 0;
 	static int   m_iVotes[33];
 	static edict_t *m_pInitiator = NULL;
+	static int m_iVoteEpoch = -1;
+
+	RTVSyncVoteWindowEpoch( m_iVoteEpoch, m_fVoteTime, m_iNeedsVotes, m_iVotes, &m_pInitiator );
 
 	CBasePlayer *pPlayer = NULL;
 	entvars_t *pev = &pEntity->v;

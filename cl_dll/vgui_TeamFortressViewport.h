@@ -1859,6 +1859,7 @@ private:
 	int					m_iCurrentInfo;
 
 	float				m_fStartTime;
+	float				m_fAutoCloseTime;
 
 public:
 	CVoteGameplayPanel(int iTrans, int iRemoveMe, int x,int y,int wide,int tall);
@@ -1875,6 +1876,7 @@ public:
 		m_fStartTime = gHUD.m_flTime;
 		m_iTime = 30.0;
 		m_iCurrentInfo = 0;
+		m_fAutoCloseTime = 0;
 	}
 
 	float m_iTime;
@@ -1894,6 +1896,7 @@ private:
 	int					m_iCurrentInfo;
 
 	float				m_fStartTime;
+	float				m_fAutoCloseTime;
 
 public:
 	CVoteMapPanel(int iTrans, int iRemoveMe, int x,int y,int wide,int tall);
@@ -1914,6 +1917,7 @@ public:
 		m_fStartTime = gHUD.m_flTime;
 		m_iTime = 30.0;
 		m_iCurrentInfo = 0;
+		m_fAutoCloseTime = 0;
 	}
 
 	float m_iTime;
