@@ -172,7 +172,15 @@ void CRailgun::StartFire( void )
 void CRailgun::Fire( Vector vecSrc, Vector vecDir, Vector effectSrc, float flDamage )
 {
 	m_pPlayer->m_iWeaponVolume = RAILGUN_PRIMARY_FIRE_VOLUME;
-	PLAYBACK_EVENT_FULL( FEV_NOTHOST, m_pPlayer->edict(), m_usRailgunFire, 0.0,
+
+	int flags;
+#if defined( CLIENT_WEAPONS )
+	flags = FEV_NOTHOST;
+#else
+	flags = 0;
+#endif
+
+	PLAYBACK_EVENT_FULL( flags, m_pPlayer->edict(), m_usRailgunFire, 0.0,
 		(float *)&m_pPlayer->pev->origin, (float *)&m_pPlayer->pev->angles,
 		flDamage, 0.0, 0, 0, 0, 0 );
 
