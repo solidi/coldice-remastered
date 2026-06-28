@@ -394,7 +394,7 @@ void CHalfLifeCaptureTheChumtoad::Think( void )
 						WRITE_STRING("Get the chumtoad");
 					WRITE_STRING(objectiveText);
 					WRITE_BYTE(0);
-					WRITE_STRING("");
+					WRITE_STRING(scorelimit.value > 0 ? UTIL_VarArgs("Scorelimit is %d", (int)scorelimit.value) : "No score limit");
 				MESSAGE_END();
 			}
 		}
@@ -411,9 +411,9 @@ void CHalfLifeCaptureTheChumtoad::InitHUD( CBasePlayer *pPlayer )
 	{
 		MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL, pPlayer->edict());
 			WRITE_STRING("Capture the chumtoad");
-			WRITE_STRING("You're spectating");
-			WRITE_BYTE(0);
 			WRITE_STRING("");
+			WRITE_BYTE(0);
+			WRITE_STRING(scorelimit.value > 0 ? UTIL_VarArgs("First to %d wins", (int)scorelimit.value) : "No score limit");
 		MESSAGE_END();
 
 		MESSAGE_BEGIN(MSG_ONE, gmsgTeamNames, NULL, pPlayer->edict());
