@@ -230,9 +230,32 @@ static BOOL BustersGrantEgonToLowestFragger( void )
 	return pBestPlayer->HasNamedPlayerItem( "weapon_egon" );
 }
 
+static const char* BustersObjectiveStatusText( int playerCount, int targetBusters, int holderCount, int looseCount, CBasePlayer* pPrimaryHolder )
+{
+	if ( targetBusters <= 0 || playerCount < 3 )
+		return "Busters waiting for players";
+
+	if ( targetBusters <= 1 )
+	{
+		if ( pPrimaryHolder )
+			return UTIL_VarArgs( "%s is busting!", STRING( pPrimaryHolder->pev->netname ) );
+		if ( looseCount > 0 )
+			return "The egon is free";
+		return "Selecting a buster...";
+	}
+
+	if ( holderCount > 0 )
+		return UTIL_VarArgs( "%d of %d busters are busting.", holderCount, targetBusters );
+	if ( looseCount > 0 )
+		return UTIL_VarArgs( "%d of %d egons are free.", looseCount, targetBusters );
+
+	return "Selecting busters...";
+}
+
 CMultiplayBusters::CMultiplayBusters()
 {
 	m_flEgonBustingCheckTime = -1;
+	m_flObjectiveUpdateTime = -1;
 }
 
 void CMultiplayBusters::InitHUD( CBasePlayer *pPlayer )
@@ -282,6 +305,12 @@ void CMultiplayBusters::Think()
 	{
 		CheckForEgons();
 
+		if ( m_flObjectiveUpdateTime < 0.0f || m_flObjectiveUpdateTime <= gpGlobals->time )
+		{
+			SendObjectiveUpdate();
+			m_flObjectiveUpdateTime = gpGlobals->time + 1.0f;
+		}
+
 		for (int i = 1; i <= gpGlobals->maxClients; i++)
 		{
 			CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
@@ -319,6 +348,36 @@ void CMultiplayBusters::Think()
 	CHalfLifeMultiplay::Think();
 }
 
+void CMultiplayBusters::SendObjectiveUpdate( void )
+{
+	int playerCount = UTIL_GetPlayerCount();
+	int targetBusters = BustersTargetCount( playerCount );
+	CBasePlayer* holders[32];
+	int holderCount = BustersCountHolders( holders, 32 );
+	int looseCount = BustersCountLooseEgons();
+	CBasePlayer* pPrimaryHolder = ( holderCount > 0 ) ? holders[0] : NULL;
+	const char *objectiveText = BustersObjectiveStatusText( playerCount, targetBusters, holderCount, looseCount, pPrimaryHolder );
+
+	for ( int i = 1; i <= gpGlobals->maxClients; i++ )
+	{
+		CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
+		if ( !plr || !plr->IsPlayer() || plr->HasDisconnected || FBitSet( plr->pev->flags, FL_FAKECLIENT ) )
+			continue;
+
+		MESSAGE_BEGIN( MSG_ONE_UNRELIABLE, gmsgObjective, NULL, plr->edict() );
+			if ( plr->IsSpectator() )
+				WRITE_STRING( "Watching Busters" );
+			else if ( IsPlayerBusting( plr ) )
+				WRITE_STRING( targetBusters > 1 ? "You Are Busting!" : "You Are The Buster!" );
+			else
+				WRITE_STRING( targetBusters > 1 ? "Defeat the busters" : "Defeat the buster" );
+			WRITE_STRING( objectiveText );
+			WRITE_BYTE( 0 );
+			WRITE_STRING( scorelimit.value > 0 ? UTIL_VarArgs( "Scorelimit is %d", (int)scorelimit.value ) : "No score limit" );
+		MESSAGE_END();
+	}
+}
+
 int CMultiplayBusters::IPointsForKill( CBasePlayer* pAttacker, CBasePlayer* pKilled )
 {
 	//If the attacker is busting, they get a point per kill
@@ -334,16 +393,11 @@ int CMultiplayBusters::IPointsForKill( CBasePlayer* pAttacker, CBasePlayer* pKil
 
 void CMultiplayBusters::PlayerKilled( CBasePlayer* pVictim, entvars_t* pKiller, entvars_t* pInflictor )
 {
-	if ( IsPlayerBusting( pVictim ) )
+	BOOL bVictimWasBuster = IsPlayerBusting( pVictim );
+	if ( bVictimWasBuster )
 	{
-		UTIL_ClientPrintAll( HUD_PRINTCENTER, "The Buster is dead!!" );
-
-		MESSAGE_BEGIN(MSG_BROADCAST, gmsgObjective);
-			WRITE_STRING("Bust 'em");
-			WRITE_STRING("The Buster is dead!!");
-			WRITE_BYTE(0);
-			WRITE_STRING("");
-		MESSAGE_END();
+		int targetBusters = BustersTargetCount( UTIL_GetPlayerCount() );
+		UTIL_ClientPrintAll( HUD_PRINTCENTER, targetBusters > 1 ? "A Buster is dead!!" : "The Buster is dead!!" );
 
 		pVictim->m_fCameraDelay = gpGlobals->time + 4.0;
 
@@ -389,6 +443,12 @@ void CMultiplayBusters::PlayerKilled( CBasePlayer* pVictim, entvars_t* pKiller, 
 	}
 
 	CHalfLifeMultiplay::PlayerKilled( pVictim, pKiller, pInflictor );
+
+	if ( bVictimWasBuster )
+	{
+		m_flObjectiveUpdateTime = 0.0f;
+		SendObjectiveUpdate();
+	}
 }
 
 void CMultiplayBusters::DeathNotice( CBasePlayer* pVictim, entvars_t* pKiller, entvars_t* pevInflictor )
@@ -565,12 +625,9 @@ void CMultiplayBusters::PlayerGotWeapon( CBasePlayer* pPlayer, CBasePlayerItem* 
 		MESSAGE_END();
 		pPlayer->m_fCameraDelay = 0;
 
-		MESSAGE_BEGIN(MSG_BROADCAST, gmsgObjective);
-			WRITE_STRING("Bust 'em");
-			WRITE_STRING(UTIL_VarArgs("%s is busting!\n", STRING( (CBasePlayer*)pPlayer->pev->netname)));
-			WRITE_BYTE(0);
-			WRITE_STRING(scorelimit.value > 0 ? UTIL_VarArgs("Scorelimit is %d", (int)scorelimit.value) : "No score limit");
-		MESSAGE_END();
+		// AddPlayerItem calls this before the egon is fully committed to inventory,
+		// so defer objective recompute to the next Think tick.
+		m_flObjectiveUpdateTime = 0.0f;
 
 		MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
 			WRITE_BYTE(CLIENT_SOUND_PICKUPYOURWEAPON);
