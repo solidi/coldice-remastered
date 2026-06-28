@@ -2370,7 +2370,7 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_weather [0|1]\" - allow or disallow weather effects on client\n" );
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"feign\" - Fake your death\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"drop_rune\" - Drop rune\n");
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"gamemode\" - type in the chat to start a rtv game mode vote\n" );
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"gamemodes\" - type in the chat to start a rtv game mode vote\n" );
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"gameoptions\" - type in the chat to start a game-options vote\n" );
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"impulse 205\" - Swap between single and dual weapon, if available\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"impulse 206\" - Kick\n");
