@@ -225,7 +225,7 @@ void CDualRailgun::Fire( Vector vecSrc, Vector vecDir, Vector effectSrc, float f
 	TraceResult tr;
 
 #ifndef CLIENT_DLL
-	int nMaxPunchThroughs = RANDOM_LONG(2,4);
+	int nMaxPunchThroughs = 3;
 	BOOL firstBeam = FALSE;
 	while (nMaxPunchThroughs > 0)
 	{

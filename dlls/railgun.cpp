@@ -189,7 +189,7 @@ void CRailgun::Fire( Vector vecSrc, Vector vecDir, Vector effectSrc, float flDam
 	TraceResult tr;
 
 #ifndef CLIENT_DLL
-	int nMaxPunchThroughs = RANDOM_LONG(2,4);
+	int nMaxPunchThroughs = 3;
 	BOOL firstBeam = FALSE;
 	while (nMaxPunchThroughs > 0)
 	{

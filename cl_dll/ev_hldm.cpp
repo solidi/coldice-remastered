@@ -2187,7 +2187,8 @@ static void EV_RailgunCommon( event_args_t *args, float rightOffset )
 			break;
 		}
 
-		if ( tr.fraction > 0.02 )
+		// Always show the beams, even if they are not a refraction
+		// if ( tr.fraction > 0.02 )
 		{
 			vec3_t trailStart;
 			VectorAdd( vecSrc, effectSrc, trailStart );
