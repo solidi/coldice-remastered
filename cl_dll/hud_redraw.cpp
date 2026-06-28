@@ -542,7 +542,7 @@ void CHud::ShowTextTips( void ) {
 		return;
 	}
 
-	const int MESSAGE_SIZE = 41;
+	const int MESSAGE_SIZE = 44;
 
 	const char* messageList[MESSAGE_SIZE] = {
 		"Tired of blue skins? Type \"cl_icemodels 0\" in the console switches to real-life skins.\n",
@@ -586,6 +586,9 @@ void CHud::ShowTextTips( void ) {
 		"Type \"mutator\" in the chat to start a rtv request.\n",
 		"Type \"cl_thirdcamera 0\" to turn off thirdperson in gamemodes.\n",
 		"Type \"gameoptions\" in the chat to start an option rtv request.\n",
+		"Type \"serveroptions\" in the chat to start an option rtv request.\n",
+		"Type \"gamemode\" in the chat to start an game mode rtv request.\n",
+		"Type \"maps\" in the chat to start a map rtv request.\n",
 	};
 
 	// Unstick after a level change

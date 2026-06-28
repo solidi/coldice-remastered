@@ -55,7 +55,7 @@ CVoteMapPanel::CVoteMapPanel(int iTrans, int iRemoveMe, int x,int y,int wide,int
 	pSchemes->getBgColor( hTitleScheme, r, g, b, a );
 	pTitleLabel->setBgColor( r, g, b, a );
 	pTitleLabel->setContentAlignment( vgui::Label::a_west );
-	pTitleLabel->setText(gHUD.m_TextMessage.BufferedLocaliseTextString("#Title_VoteMap"));
+	pTitleLabel->setText("Map Vote for ?");
 
 	// Create the scroll panel
 	m_pScrollPanel = new CTFScrollPanel( MAPMENU_SCROLL_X, MAPMENU_SCROLL_Y, XRES(480), YRES(340) );
@@ -328,7 +328,7 @@ void CVoteMapPanel::Update()
 		else
 			myVoteName = g_szClientMaps[myVote - 1];
 	}
-	pTitleLabel->setText("%s | Your Vote: %s | Time Left: %.1f\n", gHUD.m_TextMessage.BufferedLocaliseTextString("#Title_VoteMap"), myVoteName, seconds);
+	pTitleLabel->setText("Map Vote for %s | Your Vote: %s | Time Left: %.1f\n", g_szMapVoteModeClient, myVoteName, seconds);
 }
 
 //======================================

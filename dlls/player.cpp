@@ -294,8 +294,8 @@ void LinkUserMessages( void )
 	gmsgRoundTime = REG_USER_MSG("RoundTime", -1);
 	gmsgVoteFor = REG_USER_MSG("VoteFor", 3);
 	gmsgVoteGameplay = REG_USER_MSG("VoteGame", 1);
-	gmsgVoteMap = REG_USER_MSG("VoteMap", 1);
-	gmsgVoteMutator = REG_USER_MSG("VoteMutator", 1);
+	gmsgVoteMap = REG_USER_MSG("VoteMap", -1);
+	gmsgVoteMutator = REG_USER_MSG("VoteMutator", -1);
 	gmsgMapList = REG_USER_MSG("MapList", -1);  // dynamic-length: chunked map manifest
 	gmsgGameOpts = REG_USER_MSG("GameOpts", -1);  // dynamic-length: chunked game-options manifest
 	gmsgVoteOpts = REG_USER_MSG("VoteOpts", -1);  // dynamic-length: open/close + active-item index list

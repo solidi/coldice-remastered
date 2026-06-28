@@ -61,7 +61,7 @@ CVoteMutatorPanel::CVoteMutatorPanel(int iTrans, int iRemoveMe, int x,int y,int 
 	pSchemes->getBgColor( hTitleScheme, r, g, b, a );
 	pTitleLabel->setBgColor( r, g, b, a );
 	pTitleLabel->setContentAlignment( vgui::Label::a_west );
-	pTitleLabel->setText(gHUD.m_TextMessage.BufferedLocaliseTextString("#Title_VoteMutator"));
+	pTitleLabel->setText("Mutator Vote for ?");
 
 	// Create the scroll panel
 	m_pScrollPanel = new CTFScrollPanel( MUTATORMENU_SCROLL_X, MUTATORMENU_SCROLL_Y, MUTATORMENU_SCROLL_WIDE, MUTATORMENU_SCROLL_TALL );
@@ -425,8 +425,8 @@ void CVoteMutatorPanel::Update()
 	else if ( myVote > 0 && myVote <= MAX_MUTATORS_CL )
 		myVoteName = sMutators[myVote - 1].name;
 
-	pTitleLabel->setText("%s | Your Vote: %s | Time Left: %.1f\n",
-		gHUD.m_TextMessage.BufferedLocaliseTextString("#Title_VoteMutator"),
+	pTitleLabel->setText("Mutator Vote for %s | Your Vote: %s | Time Left: %.1f\n",
+		g_szMutatorVoteModeClient,
 		myVoteName, seconds);
 }
 

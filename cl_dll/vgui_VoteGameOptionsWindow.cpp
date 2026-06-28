@@ -72,7 +72,7 @@ CVoteGameOptionsPanel::CVoteGameOptionsPanel( int iTrans, int iRemoveMe, int x, 
 	pSchemes->getBgColor( hTitleScheme, r, g, b, a );
 	m_pTitleLabel->setBgColor( r, g, b, a );
 	m_pTitleLabel->setContentAlignment( vgui::Label::a_west );
-	m_pTitleLabel->setText( "Game Options Vote" );
+	m_pTitleLabel->setText( "Game Options for ?" );
 
 	m_pScrollPanel = new CTFScrollPanel( GOMENU_SCROLL_X, GOMENU_SCROLL_Y, GOMENU_SCROLL_WIDE, GOMENU_SCROLL_TALL );
 	m_pScrollPanel->setParent( this );
@@ -403,8 +403,8 @@ void CVoteGameOptionsPanel::Update()
 
 	char hdr[160];
 	_snprintf( hdr, sizeof(hdr),
-		"Game Options Vote | Items: %d | Time Left: %.1f",
-		m_iRowCount, timeLeft );
+		"Game Options for %s | Items: %d | Time Left: %.1f",
+		g_szGameOptionsVoteModeClient, m_iRowCount, timeLeft );
 	hdr[sizeof(hdr) - 1] = 0;
 	m_pTitleLabel->setText( hdr );
 }

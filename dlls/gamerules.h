@@ -500,6 +500,8 @@ public:
 	// Immediately end a multiplayer game
 	virtual void EndMultiplayerGame( void ) { GoToIntermission(); }
 	virtual void VoteForMutator( void );
+	virtual void VoteForGameplayRTV( void );
+	virtual void VoteForMapRTV( void );
 	virtual void VoteForGameOptions( BOOL fromRTV );
 	virtual void VoteForServerOptions( BOOL fromRTV );
 	int RandomizeMutator( void );
@@ -524,6 +526,8 @@ public:
 
 	void SavePlayerModel(CBasePlayer *pPlayer);
 	void ResetPlayerSettings(CBasePlayer *pPlayer);
+	void CheckGameplayRTV( void );
+	void CheckMapRTV( void );
 	void CheckMutatorRTV( void );
 	void CheckGameOptionsRTV( void );                 // public: mid-game game-options RTV timer
 	void CheckServerOptionsRTV( void );               // public: mid-game server-options RTV timer
@@ -562,6 +566,9 @@ public:
 	float    m_fServerOptionsVoteTime;          // mid-game RTV open expiry (0 = inactive)
 
 	int      m_iElectedGameMode;                // gameplay-vote winner pending mp_gamemode apply; -1 = use g_GameMode
+	float    m_fGameplayVoteTime;               // mid-game gamemodes RTV open expiry (0 = inactive)
+	float    m_fMapVoteTime;                    // mid-game maps RTV open expiry (0 = inactive)
+	BOOL     m_bSkipIntermissionVoting;         // set by gameplay/maps RTV success to keep intermission short/no extra votes
 
 	// Per-client manifest stream cursors. -1 means idle/no pending stream.
 	int      m_iMapListStreamNext[32];

@@ -501,6 +501,8 @@ void GameplayVote(edict_t *pEntity, const char *text)
 enum rtv_gate_kind_e
 {
 	RTV_GATE_KIND_NONE = 0,
+	RTV_GATE_KIND_GAMEMODES,
+	RTV_GATE_KIND_MAPS,
 	RTV_GATE_KIND_MUTATOR,
 	RTV_GATE_KIND_GAMEOPTIONS,
 	RTV_GATE_KIND_SERVEROPTIONS
@@ -522,7 +524,9 @@ static const char *RTVGateKindName( int kind )
 {
 	switch ( kind )
 	{
-	case RTV_GATE_KIND_MUTATOR: return "mutator";
+	case RTV_GATE_KIND_GAMEMODES: return "gamemodes";
+	case RTV_GATE_KIND_MAPS: return "maps";
+	case RTV_GATE_KIND_MUTATOR: return "mutators";
 	case RTV_GATE_KIND_GAMEOPTIONS: return "gameoptions";
 	case RTV_GATE_KIND_SERVEROPTIONS: return "serveroptions";
 	default: return "unknown";
@@ -640,7 +644,7 @@ void MutatorVote(edict_t *pEntity, const char *text)
 	if (pEntity->v.iuser1 == OBS_ROAMING || pPlayer->IsSpectator())
 		return; // spectators can't call or vote
 
-	if (voting.value && UTIL_stristr(text, "mutator"))
+	if (voting.value && UTIL_stristr(text, "mutators"))
 	{
 		if (RTVGateBlocksCall(pEntity, RTV_GATE_KIND_MUTATOR))
 			return;
@@ -716,8 +720,218 @@ void MutatorVote(edict_t *pEntity, const char *text)
 	}
 }
 
+void GameModeVoteRTV(edict_t *pEntity, const char *text)
+{
+	static float m_fVoteTime = 0;
+	static int m_iNeedsVotes = 0;
+	static int m_iVotes[33];
+
+	CBasePlayer *pPlayer = NULL;
+	entvars_t *pev = &pEntity->v;
+	pPlayer = GetClassPtr((CBasePlayer *)pev);
+	if (pEntity->v.iuser1 == OBS_ROAMING || pPlayer->IsSpectator())
+		return;
+
+	if (voting.value && UTIL_stristr(text, "gamemodes"))
+	{
+		if (RTVGateBlocksCall(pEntity, RTV_GATE_KIND_GAMEMODES))
+			return;
+
+		if (m_fVoteTime < gpGlobals->time)
+		{
+			int players = 0;
+			for (int i = 1; i <= gpGlobals->maxClients; i++)
+			{
+				CBasePlayer *p = (CBasePlayer *)UTIL_PlayerByIndex(i);
+				if (p && !FBitSet(p->pev->flags, FL_FAKECLIENT) && !p->HasDisconnected)
+					players++;
+			}
+
+			m_fVoteTime = gpGlobals->time + rtvtime.value;
+			m_iNeedsVotes = (players / 2) + 1;
+
+			memset(m_iVotes, 0, sizeof(m_iVotes));
+			m_iVotes[ENTINDEX(pEntity)] = 1;
+
+			MESSAGE_BEGIN(MSG_ALL, gmsgPlayClientSound);
+				WRITE_BYTE(CLIENT_SOUND_VOTESTARTED);
+			MESSAGE_END();
+
+			if (m_iNeedsVotes <= 1)
+			{
+				m_iNeedsVotes = m_fVoteTime = 0;
+				UTIL_ClientPrintAll(HUD_PRINTTALK, "[VOTE] Single person gets the vote.\n");
+				CHalfLifeMultiplay *mp = (CHalfLifeMultiplay *)g_pGameRules;
+				if (mp)
+				{
+					mp->VoteForGameplayRTV();
+					if (mp->m_fGameplayVoteTime > gpGlobals->time)
+						RTVGateBeginVoting(RTV_GATE_KIND_GAMEMODES, mp->m_fGameplayVoteTime);
+					else
+						RTVGateBeginCooldown(RTV_GATE_KIND_GAMEMODES);
+				}
+				else
+				{
+					RTVGateBeginCooldown(RTV_GATE_KIND_GAMEMODES);
+				}
+			}
+			else
+			{
+				RTVGateBeginCollecting(RTV_GATE_KIND_GAMEMODES, rtvtime.value);
+				UTIL_ClientPrintAll(HUD_PRINTTALK,
+					UTIL_VarArgs("[VOTE] We need %.0f vote(s) in %.0f seconds. Others, type \"gamemodes\" to vote.\n", fmax(1, m_iNeedsVotes - 1), rtvtime.value));
+			}
+		}
+		else
+		{
+			if (m_iVotes[ENTINDEX(pEntity)] <= 0)
+			{
+				m_iVotes[ENTINDEX(pEntity)] = 1;
+
+				int votes = 0;
+				for (int i = 1; i <= gpGlobals->maxClients; i++)
+				{
+					CBaseEntity *p = UTIL_PlayerByIndex(i);
+					if (p && m_iVotes[p->entindex()] > 0)
+						votes++;
+				}
+
+				if (votes >= m_iNeedsVotes)
+				{
+					m_iNeedsVotes = m_fVoteTime = 0;
+					UTIL_ClientPrintAll(HUD_PRINTTALK, "[VOTE] Gamemodes vote success!\n");
+					CHalfLifeMultiplay *mp = (CHalfLifeMultiplay *)g_pGameRules;
+					if (mp)
+					{
+						mp->VoteForGameplayRTV();
+						if (mp->m_fGameplayVoteTime > gpGlobals->time)
+							RTVGateBeginVoting(RTV_GATE_KIND_GAMEMODES, mp->m_fGameplayVoteTime);
+						else
+							RTVGateBeginCooldown(RTV_GATE_KIND_GAMEMODES);
+					}
+					else
+					{
+						RTVGateBeginCooldown(RTV_GATE_KIND_GAMEMODES);
+					}
+				}
+				else
+				{
+					UTIL_ClientPrintAll(HUD_PRINTTALK,
+						UTIL_VarArgs("[VOTE] %s voted (%d / %d)\n", STRING(pEntity->v.netname), votes, m_iNeedsVotes));
+				}
+			}
+		}
+	}
+}
+
+void MapVoteRTV(edict_t *pEntity, const char *text)
+{
+	static float m_fVoteTime = 0;
+	static int m_iNeedsVotes = 0;
+	static int m_iVotes[33];
+
+	CBasePlayer *pPlayer = NULL;
+	entvars_t *pev = &pEntity->v;
+	pPlayer = GetClassPtr((CBasePlayer *)pev);
+	if (pEntity->v.iuser1 == OBS_ROAMING || pPlayer->IsSpectator())
+		return;
+
+	if (voting.value && UTIL_stristr(text, "maps"))
+	{
+		if (RTVGateBlocksCall(pEntity, RTV_GATE_KIND_MAPS))
+			return;
+
+		if (m_fVoteTime < gpGlobals->time)
+		{
+			int players = 0;
+			for (int i = 1; i <= gpGlobals->maxClients; i++)
+			{
+				CBasePlayer *p = (CBasePlayer *)UTIL_PlayerByIndex(i);
+				if (p && !FBitSet(p->pev->flags, FL_FAKECLIENT) && !p->HasDisconnected)
+					players++;
+			}
+
+			m_fVoteTime = gpGlobals->time + rtvtime.value;
+			m_iNeedsVotes = (players / 2) + 1;
+
+			memset(m_iVotes, 0, sizeof(m_iVotes));
+			m_iVotes[ENTINDEX(pEntity)] = 1;
+
+			MESSAGE_BEGIN(MSG_ALL, gmsgPlayClientSound);
+				WRITE_BYTE(CLIENT_SOUND_VOTESTARTED);
+			MESSAGE_END();
+
+			if (m_iNeedsVotes <= 1)
+			{
+				m_iNeedsVotes = m_fVoteTime = 0;
+				UTIL_ClientPrintAll(HUD_PRINTTALK, "[VOTE] Single person gets the vote.\n");
+				CHalfLifeMultiplay *mp = (CHalfLifeMultiplay *)g_pGameRules;
+				if (mp)
+				{
+					mp->VoteForMapRTV();
+					if (mp->m_fMapVoteTime > gpGlobals->time)
+						RTVGateBeginVoting(RTV_GATE_KIND_MAPS, mp->m_fMapVoteTime);
+					else
+						RTVGateBeginCooldown(RTV_GATE_KIND_MAPS);
+				}
+				else
+				{
+					RTVGateBeginCooldown(RTV_GATE_KIND_MAPS);
+				}
+			}
+			else
+			{
+				RTVGateBeginCollecting(RTV_GATE_KIND_MAPS, rtvtime.value);
+				UTIL_ClientPrintAll(HUD_PRINTTALK,
+					UTIL_VarArgs("[VOTE] We need %.0f vote(s) in %.0f seconds. Others, type \"maps\" to vote.\n", fmax(1, m_iNeedsVotes - 1), rtvtime.value));
+			}
+		}
+		else
+		{
+			if (m_iVotes[ENTINDEX(pEntity)] <= 0)
+			{
+				m_iVotes[ENTINDEX(pEntity)] = 1;
+
+				int votes = 0;
+				for (int i = 1; i <= gpGlobals->maxClients; i++)
+				{
+					CBaseEntity *p = UTIL_PlayerByIndex(i);
+					if (p && m_iVotes[p->entindex()] > 0)
+						votes++;
+				}
+
+				if (votes >= m_iNeedsVotes)
+				{
+					m_iNeedsVotes = m_fVoteTime = 0;
+					UTIL_ClientPrintAll(HUD_PRINTTALK, "[VOTE] Maps vote success!\n");
+					CHalfLifeMultiplay *mp = (CHalfLifeMultiplay *)g_pGameRules;
+					if (mp)
+					{
+						mp->VoteForMapRTV();
+						if (mp->m_fMapVoteTime > gpGlobals->time)
+							RTVGateBeginVoting(RTV_GATE_KIND_MAPS, mp->m_fMapVoteTime);
+						else
+							RTVGateBeginCooldown(RTV_GATE_KIND_MAPS);
+					}
+					else
+					{
+						RTVGateBeginCooldown(RTV_GATE_KIND_MAPS);
+					}
+				}
+				else
+				{
+					UTIL_ClientPrintAll(HUD_PRINTTALK,
+						UTIL_VarArgs("[VOTE] %s voted (%d / %d)\n", STRING(pEntity->v.netname), votes, m_iNeedsVotes));
+				}
+			}
+		}
+	}
+}
+
 // Forward decl -- definition lives further down so it can call into
 // CHalfLifeMultiplay::VoteForGameOptions().
+void GameModeVoteRTV(edict_t *pEntity, const char *text);
+void MapVoteRTV(edict_t *pEntity, const char *text);
 void GameOptionsVote(edict_t *pEntity, const char *text);
 void ServerOptionsVote(edict_t *pEntity, const char *text);
 
@@ -864,6 +1078,8 @@ void Host_Say( edict_t *pEntity, int teamonly )
 		UTIL_ClientPrintAll(HUD_PRINTTALK, "[GSS] ALL HAIL KING JOPE!\n");
 
 	GameplayVote(pEntity, text);
+	GameModeVoteRTV(pEntity, text);
+	MapVoteRTV(pEntity, text);
 	MutatorVote(pEntity, text);
 	GameOptionsVote(pEntity, text);
 	ServerOptionsVote(pEntity, text);
@@ -2065,9 +2281,8 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_weather [0|1]\" - allow or disallow weather effects on client\n" );
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"feign\" - Fake your death\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"drop_rune\" - Drop rune\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"gamemode\" - type in the chat to start a rtv game mode vote\n" );
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"gameoptions\" - type in the chat to start a game-options vote\n" );
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"gameoptions_resend\" - re-request the current game-options manifest\n" );
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"gameoptions_status\" - print game-options parser state\n" );
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"impulse 205\" - Swap between single and dual weapon, if available\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"impulse 206\" - Kick\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"impulse 207\" - Punch\n");
@@ -2081,7 +2296,8 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"impulse 215\" - Force Grab\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"impulse 216\" - Drop Explosive Weapon\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"keyboard\" - Show default key binds on HUD\n");
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mutator\" - type in the chat to start a mutator vote\n" );
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"maps\" - type in the chat to start a rtv map vote\n" );
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mutators\" - type in the chat to start a mutator vote\n" );
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"snowman\" - God mode (when sv_cheats 1)\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"vote\" - type in the chat to start a vote\n" );
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "For more, see readme.txt\n" );
