@@ -162,6 +162,8 @@ char g_szClientMaps[MAX_CLIENT_MAPS][32];
 int  g_iClientMapSizes[MAX_CLIENT_MAPS];
 int  g_iClientMapCount = 0;
 bool g_bMapListReceived = false;
+char g_szMapVoteModeClient[32] = "?";
+char g_szMutatorVoteModeClient[32] = "?";
 
 // ---------------------------------------------------------------------------
 // Dynamic client-side game-options list, populated by MsgFunc_GameOpts.
@@ -178,6 +180,7 @@ int                  g_iActiveGameOptionsClientCount = 0;
 int                  g_PlayerOptVote[MAX_PLAYERS + 1][MAX_CLIENT_GAME_OPTIONS];
 bool                 g_bGameOptsResendRequested      = false;
 bool                 g_bGameOptionsAutoCloseOnComplete = false;
+char                 g_szGameOptionsVoteModeClient[32] = "?";
 
 // ---------------------------------------------------------------------------
 // Dynamic client-side server-options list, populated by MsgFunc_SrvOpts.
@@ -193,6 +196,27 @@ int                    g_iActiveServerOptionsClientCount = 0;
 int                    g_PlayerSrvOptVote[MAX_PLAYERS + 1][MAX_CLIENT_SERVER_OPTIONS];
 bool                   g_bServerOptsResendRequested      = false;
 bool                   g_bServerOptionsAutoCloseOnComplete = false;
+char                   g_szServerOptionsVoteModeClient[32] = "?";
+
+static void SetVoteModeLabel( char *dst, int modeIndex )
+{
+	const int modeCount = (int)( sizeof( sGameplayModes ) / sizeof( sGameplayModes[0] ) );
+	const char *token = ( modeIndex >= 0 && modeIndex < modeCount ) ? sGameplayModes[modeIndex] : NULL;
+	const char *mode = "?";
+	if ( token )
+	{
+		char key[64];
+		_snprintf( key, sizeof( key ), "#%s", token );
+		key[ sizeof( key ) - 1 ] = 0;
+		const char *localized = CHudTextMessage::BufferedLocaliseTextString( key );
+		if ( localized && localized[0] )
+			mode = localized;
+		else
+			mode = token;
+	}
+	strncpy( dst, mode, 31 );
+	dst[31] = 0;
+}
 
 const char *MapSizeLabel( int size )
 {
@@ -2824,14 +2848,21 @@ int TeamFortressViewport::MsgFunc_VoteMap( const char *pszName, int iSize, void 
 {
 	BEGIN_READ( pbuf, iSize );
 	int timer = READ_BYTE();
+	int modeIndex = -1;
+	if ( iSize > 1 )
+		modeIndex = READ_BYTE();
 	
 	if (timer > 0)
+	{
+		SetVoteModeLabel( g_szMapVoteModeClient, modeIndex );
 		ShowVGUIMenu( MENU_VOTEMAP, timer );
+	}
 	else
 	{
 		// Clear old votes
 		for ( int j = 1; j <= MAX_PLAYERS; j++ )
 			g_PlayerExtraInfo[j].vote = 0;
+		SetVoteModeLabel( g_szMapVoteModeClient, -1 );
 		HideVGUIMenu();
 	}
 
@@ -2842,14 +2873,21 @@ int TeamFortressViewport::MsgFunc_VoteMutator( const char *pszName, int iSize, v
 {
 	BEGIN_READ( pbuf, iSize );
 	int timer = READ_BYTE();
+	int modeIndex = -1;
+	if ( iSize > 1 )
+		modeIndex = READ_BYTE();
 	
 	if (timer > 0)
+	{
+		SetVoteModeLabel( g_szMutatorVoteModeClient, modeIndex );
 		ShowVGUIMenu( MENU_VOTEMUTATOR, timer );
+	}
 	else
 	{
 		// Clear old votes
 		for ( int j = 1; j <= MAX_PLAYERS; j++ )
 			g_PlayerExtraInfo[j].vote = 0;
+		SetVoteModeLabel( g_szMutatorVoteModeClient, -1 );
 		HideVGUIMenu();
 	}
 
@@ -3011,6 +3049,7 @@ int TeamFortressViewport::MsgFunc_VoteOpts( const char *pszName, int iSize, void
 				g_PlayerOptVote[i][k] = -1;
 		g_iActiveGameOptionsClientCount = 0;
 		g_bGameOptionsAutoCloseOnComplete = false;
+		SetVoteModeLabel( g_szGameOptionsVoteModeClient, -1 );
 		HideVGUIMenu();
 		return 1;
 	}
@@ -3021,11 +3060,23 @@ int TeamFortressViewport::MsgFunc_VoteOpts( const char *pszName, int iSize, void
 	for ( int k = 0; k < activeCount; k++ )
 		g_iActiveGameOptionsClient[k] = READ_BYTE();
 
-	// Backward-compatible optional flags byte.
+	// Backward-compatible optional payload:
+	//   old:  BYTE flags
+	//   new:  BYTE modeIndex, BYTE flags
+	int modeIndex = -1;
 	int flags = 0;
-	if ( iSize > ( 3 + activeCount ) )
+	int remaining = iSize - ( 3 + activeCount );
+	if ( remaining >= 2 )
+	{
+		modeIndex = READ_BYTE();
 		flags = READ_BYTE();
+	}
+	else if ( remaining >= 1 )
+	{
+		flags = READ_BYTE();
+	}
 	g_bGameOptionsAutoCloseOnComplete = ( flags & 0x01 ) ? true : false;
+	SetVoteModeLabel( g_szGameOptionsVoteModeClient, modeIndex );
 
 	for ( int i = 0; i <= MAX_PLAYERS; i++ )
 		for ( int k = 0; k < MAX_CLIENT_GAME_OPTIONS; k++ )
@@ -3160,6 +3211,7 @@ int TeamFortressViewport::MsgFunc_VoteSrvOp( const char *pszName, int iSize, voi
 				g_PlayerSrvOptVote[i][k] = -1;
 		g_iActiveServerOptionsClientCount = 0;
 		g_bServerOptionsAutoCloseOnComplete = false;
+		SetVoteModeLabel( g_szServerOptionsVoteModeClient, -1 );
 		HideVGUIMenu();
 		return 1;
 	}
@@ -3170,10 +3222,20 @@ int TeamFortressViewport::MsgFunc_VoteSrvOp( const char *pszName, int iSize, voi
 	for ( int k = 0; k < activeCount; k++ )
 		g_iActiveServerOptionsClient[k] = READ_BYTE();
 
+	int modeIndex = -1;
 	int flags = 0;
-	if ( iSize > ( 3 + activeCount ) )
+	int remaining = iSize - ( 3 + activeCount );
+	if ( remaining >= 2 )
+	{
+		modeIndex = READ_BYTE();
 		flags = READ_BYTE();
+	}
+	else if ( remaining >= 1 )
+	{
+		flags = READ_BYTE();
+	}
 	g_bServerOptionsAutoCloseOnComplete = ( flags & 0x01 ) ? true : false;
+	SetVoteModeLabel( g_szServerOptionsVoteModeClient, modeIndex );
 
 	for ( int i = 0; i <= MAX_PLAYERS; i++ )
 		for ( int k = 0; k < MAX_CLIENT_SERVER_OPTIONS; k++ )

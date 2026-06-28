@@ -1772,6 +1772,8 @@ extern char g_szClientMaps[MAX_CLIENT_MAPS][32];
 extern int  g_iClientMapSizes[MAX_CLIENT_MAPS];
 extern int  g_iClientMapCount;
 extern bool g_bMapListReceived;
+extern char g_szMapVoteModeClient[32];
+extern char g_szMutatorVoteModeClient[32];
 const char *MapSizeLabel( int size );
 
 // ---------------------------------------------------------------------------
@@ -1806,6 +1808,7 @@ extern int                  g_iActiveGameOptionsClientCount;
 extern int                  g_PlayerOptVote[MAX_PLAYERS + 1][MAX_CLIENT_GAME_OPTIONS]; // [client][active-slot]
 extern bool                 g_bGameOptsResendRequested;
 extern bool                 g_bGameOptionsAutoCloseOnComplete;
+extern char                 g_szGameOptionsVoteModeClient[32];
 
 // ---------------------------------------------------------------------------
 // Server-options voting (mirrors serveroptions.txt parsed by the server).
@@ -1836,6 +1839,7 @@ extern int                    g_iActiveServerOptionsClientCount;
 extern int                    g_PlayerSrvOptVote[MAX_PLAYERS + 1][MAX_CLIENT_SERVER_OPTIONS];
 extern bool                   g_bServerOptsResendRequested;
 extern bool                   g_bServerOptionsAutoCloseOnComplete;
+extern char                   g_szServerOptionsVoteModeClient[32];
 
 class CVoteGameplayPanel : public CMenuPanel
 {
@@ -1855,6 +1859,7 @@ private:
 	int					m_iCurrentInfo;
 
 	float				m_fStartTime;
+	float				m_fAutoCloseTime;
 
 public:
 	CVoteGameplayPanel(int iTrans, int iRemoveMe, int x,int y,int wide,int tall);
@@ -1871,6 +1876,7 @@ public:
 		m_fStartTime = gHUD.m_flTime;
 		m_iTime = 30.0;
 		m_iCurrentInfo = 0;
+		m_fAutoCloseTime = 0;
 	}
 
 	float m_iTime;
@@ -1890,6 +1896,7 @@ private:
 	int					m_iCurrentInfo;
 
 	float				m_fStartTime;
+	float				m_fAutoCloseTime;
 
 public:
 	CVoteMapPanel(int iTrans, int iRemoveMe, int x,int y,int wide,int tall);
@@ -1910,6 +1917,7 @@ public:
 		m_fStartTime = gHUD.m_flTime;
 		m_iTime = 30.0;
 		m_iCurrentInfo = 0;
+		m_fAutoCloseTime = 0;
 	}
 
 	float m_iTime;

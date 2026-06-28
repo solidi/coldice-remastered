@@ -56,7 +56,7 @@ CVoteServerOptionsPanel::CVoteServerOptionsPanel( int iTrans, int iRemoveMe, int
 	pSchemes->getBgColor( hTitleScheme, r, g, b, a );
 	m_pTitleLabel->setBgColor( r, g, b, a );
 	m_pTitleLabel->setContentAlignment( vgui::Label::a_west );
-	m_pTitleLabel->setText( "Server Options Vote" );
+	m_pTitleLabel->setText( "Server Options for ?" );
 
 	m_pScrollPanel = new CTFScrollPanel( SOMENU_SCROLL_X, SOMENU_SCROLL_Y, SOMENU_SCROLL_WIDE, SOMENU_SCROLL_TALL );
 	m_pScrollPanel->setParent( this );
@@ -337,7 +337,7 @@ void CVoteServerOptionsPanel::Update()
 	if ( allVoted )
 	{
 		if ( m_fAutoCloseTime <= 0 )
-			m_fAutoCloseTime = gHUD.m_flTime + 1.5f;
+			m_fAutoCloseTime = gHUD.m_flTime + 2.0f;
 		else if ( gHUD.m_flTime >= m_fAutoCloseTime )
 		{
 			gViewPort->HideVGUIMenu();
@@ -351,8 +351,8 @@ void CVoteServerOptionsPanel::Update()
 
 	char hdr[160];
 	_snprintf( hdr, sizeof(hdr),
-		"Server Options Vote | Items: %d | Time Left: %.1f",
-		m_iRowCount, timeLeft );
+		"Server Options for %s | Items: %d | Time Left: %.1f",
+		g_szServerOptionsVoteModeClient, m_iRowCount, timeLeft );
 	hdr[sizeof(hdr) - 1] = 0;
 	m_pTitleLabel->setText( hdr );
 }

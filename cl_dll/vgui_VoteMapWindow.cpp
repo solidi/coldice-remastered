@@ -33,6 +33,8 @@
 #define MAPMENU_BUTTON_SPACER_Y		YRES(8)
 #define MAPMENU_ITEMS_PER_COL		13
 
+static const float kRTVVotePanelCloseDelay = 2.0f;
+
 // Creation
 CVoteMapPanel::CVoteMapPanel(int iTrans, int iRemoveMe, int x,int y,int wide,int tall) : CMenuPanel(iTrans, iRemoveMe, x,y,wide,tall)
 {
@@ -55,7 +57,7 @@ CVoteMapPanel::CVoteMapPanel(int iTrans, int iRemoveMe, int x,int y,int wide,int
 	pSchemes->getBgColor( hTitleScheme, r, g, b, a );
 	pTitleLabel->setBgColor( r, g, b, a );
 	pTitleLabel->setContentAlignment( vgui::Label::a_west );
-	pTitleLabel->setText(gHUD.m_TextMessage.BufferedLocaliseTextString("#Title_VoteMap"));
+	pTitleLabel->setText("Map Vote for ?");
 
 	// Create the scroll panel
 	m_pScrollPanel = new CTFScrollPanel( MAPMENU_SCROLL_X, MAPMENU_SCROLL_Y, XRES(480), YRES(340) );
@@ -77,6 +79,7 @@ CVoteMapPanel::CVoteMapPanel(int iTrans, int iRemoveMe, int x,int y,int wide,int
 	}
 	m_iButtonCount = 0;
 	m_iCurrentInfo = 0;
+	m_fAutoCloseTime = 0;
 }
 
 // Builds (or rebuilds) the per-map vote buttons using the current dynamic
@@ -328,7 +331,23 @@ void CVoteMapPanel::Update()
 		else
 			myVoteName = g_szClientMaps[myVote - 1];
 	}
-	pTitleLabel->setText("%s | Your Vote: %s | Time Left: %.1f\n", gHUD.m_TextMessage.BufferedLocaliseTextString("#Title_VoteMap"), myVoteName, seconds);
+
+	if ( !gHUD.m_iIntermission && myVote > 0 )
+	{
+		if ( m_fAutoCloseTime <= 0 )
+			m_fAutoCloseTime = gHUD.m_flTime + kRTVVotePanelCloseDelay;
+		else if ( gHUD.m_flTime >= m_fAutoCloseTime )
+		{
+			gViewPort->HideVGUIMenu();
+			return;
+		}
+	}
+	else
+	{
+		m_fAutoCloseTime = 0;
+	}
+
+	pTitleLabel->setText("%s for %s | Your Vote: %s | Time Left: %.1f\n", gHUD.m_TextMessage.BufferedLocaliseTextString("#Title_VoteMap"), g_szMapVoteModeClient, myVoteName, seconds);
 }
 
 //======================================

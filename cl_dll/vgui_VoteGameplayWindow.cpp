@@ -35,6 +35,8 @@
 #define GAMEMENU_WINDOW_NAME_X			XRES(150)
 #define GAMEMENU_WINDOW_NAME_Y			YRES(8)
 
+static const float kRTVVotePanelCloseDelay = 2.0f;
+
 CVoteGameplayPanel::CVoteGameplayPanel(int iTrans, int iRemoveMe, int x,int y,int wide,int tall) : CMenuPanel(iTrans, iRemoveMe, x,y,wide,tall)
 {
 	// don't show graphics atm
@@ -248,6 +250,7 @@ CVoteGameplayPanel::CVoteGameplayPanel(int iTrans, int iRemoveMe, int x,int y,in
 	}
 
 	m_iCurrentInfo = 0;
+	m_fAutoCloseTime = 0;
 }
 
 // Update
@@ -372,6 +375,21 @@ void CVoteGameplayPanel::Update()
 				}
 			}
 		}
+	}
+
+	if ( !gHUD.m_iIntermission && myVote > 0 )
+	{
+		if ( m_fAutoCloseTime <= 0 )
+			m_fAutoCloseTime = gHUD.m_flTime + kRTVVotePanelCloseDelay;
+		else if ( gHUD.m_flTime >= m_fAutoCloseTime )
+		{
+			gViewPort->HideVGUIMenu();
+			return;
+		}
+	}
+	else
+	{
+		m_fAutoCloseTime = 0;
 	}
 
 	pTitleLabel->setText("%s | Your Vote: %s | Time Left: %.1f\n", gHUD.m_TextMessage.BufferedLocaliseTextString("#Title_VoteGameplay"), myVote > 0 ? sGameplayModes[myVote-1] : "None", seconds);

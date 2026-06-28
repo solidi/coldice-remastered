@@ -139,6 +139,9 @@ CHalfLifeMultiplay :: CHalfLifeMultiplay()
 	m_pServerOptionsRTVInitiator = NULL;
 	m_fServerOptionsVoteTime = 0;
 	m_iElectedGameMode = -1;
+	m_fGameplayVoteTime = 0;
+	m_fMapVoteTime = 0;
+	m_bSkipIntermissionVoting = FALSE;
 	
 	// 11/8/98
 	// Modified by YWB:  Server .cfg file is now a cvar, so that 
@@ -350,6 +353,8 @@ void CHalfLifeMultiplay :: Think ( void )
 	int time_remaining = 0;
 
 	CheckMutatorRTV();
+	CheckGameplayRTV();
+	CheckMapRTV();
 	CheckGameOptionsRTV();
 	CheckServerOptionsRTV();
 	PumpClientManifestSends();
@@ -363,10 +368,10 @@ void CHalfLifeMultiplay :: Think ( void )
 		else if ( time > MAX_INTERMISSION_TIME )
 			CVAR_SET_STRING( "mp_chattime", UTIL_dtos1( MAX_INTERMISSION_TIME ) );
 
-		int timeLeft = (voting.value * 5) + 15;
+		int timeLeft = m_bSkipIntermissionVoting ? 0 : (int)(voting.value * 5) + 15;
 		m_flIntermissionEndTime = g_flIntermissionStartTime + mp_chattime.value + timeLeft;
 
-		if (voting.value >= 10)
+		if (voting.value >= 10 && !m_bSkipIntermissionVoting)
 		{
 			if (m_iVoteUnderway == VOTE_GAMEPLAY_TRANSITION &&
 				((m_flIntermissionEndTime - mp_chattime.value - (timeLeft - 3)) < gpGlobals->time))
@@ -434,6 +439,7 @@ void CHalfLifeMultiplay :: Think ( void )
 				}
 
 				memset(m_iVoteCount, -1, sizeof(m_iVoteCount));
+				m_iElectedGameMode = -1;
 
 				if (highest <= 0)
 				{
@@ -483,11 +489,13 @@ void CHalfLifeMultiplay :: Think ( void )
 					UTIL_ClientPrintAll(HUD_PRINTTALK, "[VOTE] No game options to vote on for current mode.\n");
 					m_iVoteUnderway = VOTE_SERVEROPTIONS_TRANSITION;
 					m_flIntermissionEndTime -= voting.value;
-					m_iElectedGameMode = -1;
 				}
 				else
 				{
 					m_iVoteUnderway = VOTE_GAMEOPTIONS_OPEN;
+					int modeForVote = ( m_iElectedGameMode >= 0 ) ? m_iElectedGameMode : g_GameMode;
+					if ( modeForVote < 0 ) modeForVote = GAME_FFA;
+					if ( modeForVote > TOTAL_GAME_MODES ) modeForVote = TOTAL_GAME_MODES;
 
 					// G5: resend manifest to any client whose stored revision is stale
 					// before the vote-open message is broadcast.
@@ -509,6 +517,7 @@ void CHalfLifeMultiplay :: Think ( void )
 						WRITE_BYTE(m_iActiveGameOptionsCount);
 						for (int k = 0; k < m_iActiveGameOptionsCount; k++)
 							WRITE_BYTE(m_iActiveGameOptions[k]);
+						WRITE_BYTE(modeForVote); // mode context for panel title
 						WRITE_BYTE(0); // flags: intermission vote keeps panel open until closed by next panel
 					MESSAGE_END();
 					MESSAGE_BEGIN(MSG_BROADCAST, gmsgPlayClientSound);
@@ -556,7 +565,6 @@ void CHalfLifeMultiplay :: Think ( void )
 				MESSAGE_END();
 
 				TallyGameOptionsVote(FALSE);
-				m_iElectedGameMode = -1;
 			}
 
 			// Server-options vote STARTED
@@ -575,6 +583,9 @@ void CHalfLifeMultiplay :: Think ( void )
 				else
 				{
 					m_iVoteUnderway = VOTE_SERVEROPTIONS_OPEN;
+					int modeForVote = ( m_iElectedGameMode >= 0 ) ? m_iElectedGameMode : g_GameMode;
+					if ( modeForVote < 0 ) modeForVote = GAME_FFA;
+					if ( modeForVote > TOTAL_GAME_MODES ) modeForVote = TOTAL_GAME_MODES;
 
 					for (int i = 1; i <= gpGlobals->maxClients; i++)
 					{
@@ -593,6 +604,7 @@ void CHalfLifeMultiplay :: Think ( void )
 						WRITE_BYTE(m_iActiveServerOptionsCount);
 						for (int k = 0; k < m_iActiveServerOptionsCount; k++)
 							WRITE_BYTE(m_iActiveServerOptions[k]);
+						WRITE_BYTE(modeForVote); // mode context for panel title
 						WRITE_BYTE(0); // flags: intermission vote keeps panel open until closed by next panel
 					MESSAGE_END();
 					MESSAGE_BEGIN(MSG_BROADCAST, gmsgPlayClientSound);
@@ -644,9 +656,13 @@ void CHalfLifeMultiplay :: Think ( void )
 				((m_flIntermissionEndTime - mp_chattime.value - (timeLeft - (voting.value * 3) - 12)) < gpGlobals->time))
 			{
 				m_iVoteUnderway = VOTE_MUTATORS_OPEN;
+				int modeForVote = ( m_iElectedGameMode >= 0 ) ? m_iElectedGameMode : g_GameMode;
+				if ( modeForVote < 0 ) modeForVote = GAME_FFA;
+				if ( modeForVote > TOTAL_GAME_MODES ) modeForVote = TOTAL_GAME_MODES;
 
 				MESSAGE_BEGIN(MSG_ALL, gmsgVoteMutator);
 					WRITE_BYTE(voting.value);
+					WRITE_BYTE(modeForVote);
 				MESSAGE_END();
 				MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
 					WRITE_BYTE(CLIENT_SOUND_VOTEMUTATOR);
@@ -803,12 +819,16 @@ void CHalfLifeMultiplay :: Think ( void )
 				((m_flIntermissionEndTime - mp_chattime.value - (timeLeft - (voting.value * 4) - 15)) < gpGlobals->time))
 			{
 				m_iVoteUnderway = VOTE_MAPS_OPEN;
+				int modeForVote = ( m_iElectedGameMode >= 0 ) ? m_iElectedGameMode : g_GameMode;
+				if ( modeForVote < 0 ) modeForVote = GAME_FFA;
+				if ( modeForVote > TOTAL_GAME_MODES ) modeForVote = TOTAL_GAME_MODES;
 
 				// Make sure the dynamic map list is up to date before opening voting.
 				EnsureServerMapList();
 
 				MESSAGE_BEGIN(MSG_ALL, gmsgVoteMap);
 					WRITE_BYTE(voting.value);
+					WRITE_BYTE(modeForVote);
 				MESSAGE_END();
 				MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
 					WRITE_BYTE(CLIENT_SOUND_VOTEMAP);
@@ -890,6 +910,8 @@ void CHalfLifeMultiplay :: Think ( void )
 					if (m_iDecidedMapIndex >= 0 && m_iDecidedMapIndex < g_iServerMapCount)
 						UTIL_ClientPrintAll(HUD_PRINTTALK, UTIL_VarArgs("[VOTE] %s is the next map with %d votes!\n", g_szServerMaps[m_iDecidedMapIndex], highest));
 				}
+
+				m_iElectedGameMode = -1;
 			}
 		}
 
@@ -1201,16 +1223,246 @@ void CHalfLifeMultiplay::CheckMutatorRTV( void )
 	}
 }
 
+void CHalfLifeMultiplay::CheckGameplayRTV( void )
+{
+	if ( m_fGameplayVoteTime <= 0 )
+		return;
+	if ( gpGlobals->time < m_fGameplayVoteTime )
+		return;
+
+	MESSAGE_BEGIN(MSG_ALL, gmsgVoteGameplay);
+		WRITE_BYTE(0);
+	MESSAGE_END();
+
+	int vote[TOTAL_GAME_MODES + 2]; // +1 random slot
+	memset(vote, 0, sizeof(vote));
+
+	for (int j = 1; j <= gpGlobals->maxClients; j++)
+	{
+		int gameIndex = g_pGameRules->m_iVoteCount[j-1];
+		if ((gameIndex-1) >= GAME_FFA && (gameIndex-1) <= TOTAL_GAME_MODES + 1 /*random*/)
+			vote[gameIndex-1]++;
+	}
+
+	int highest = -9999;
+	int gameIndex = GAME_FFA;
+	for (int i = 0; i <= TOTAL_GAME_MODES + 1 /*random*/; i++)
+	{
+		if (highest <= vote[i])
+		{
+			if (highest == vote[i])
+			{
+				if (RANDOM_LONG(0, 1))
+					gameIndex = i;
+			}
+			else
+			{
+				highest = vote[i];
+				gameIndex = i;
+			}
+		}
+	}
+
+	memset(m_iVoteCount, -1, sizeof(m_iVoteCount));
+
+	if (highest <= 0)
+	{
+		UTIL_ClientPrintAll(HUD_PRINTTALK, "[VOTE] Not enough votes received for gameplay RTV.\n");
+	}
+	else
+	{
+		if (gameIndex == TOTAL_GAME_MODES + 1 /*random*/)
+		{
+			UTIL_ClientPrintAll(HUD_PRINTTALK, "[VOTE] Randomizing gameplay mode...\n");
+			gameIndex = RANDOM_LONG(GAME_FFA, TOTAL_GAME_MODES);
+		}
+
+		m_iElectedGameMode = gameIndex;
+
+		if (gameIndex == GAME_TEAMPLAY)
+		{
+			SERVER_COMMAND("mp_gamemode 0\n");
+			SERVER_COMMAND("mp_teamplay 1\n");
+		}
+		else
+		{
+			SERVER_COMMAND("mp_teamplay 0\n");
+			SERVER_COMMAND(UTIL_VarArgs("mp_gamemode %s\n", szGameModeList[gameIndex]));
+		}
+
+		UTIL_ClientPrintAll(HUD_PRINTTALK,
+			UTIL_VarArgs("[VOTE] RTV success! Gameplay mode changing to %s. Ending game to intermission...\n", gamePlayModes[gameIndex]));
+		m_bSkipIntermissionVoting = TRUE;
+		EndMultiplayerGame();
+	}
+
+	MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
+		WRITE_BYTE( CLIENT_SOUND_EBELL );
+	MESSAGE_END();
+
+	m_fGameplayVoteTime = 0;
+}
+
+void CHalfLifeMultiplay::CheckMapRTV( void )
+{
+	if ( m_fMapVoteTime <= 0 )
+		return;
+	if ( gpGlobals->time < m_fMapVoteTime )
+		return;
+
+	MESSAGE_BEGIN(MSG_ALL, gmsgVoteMap);
+		WRITE_BYTE(0);
+	MESSAGE_END();
+
+	int slots = g_iServerMapCount + 1; // +1 random
+	int vote[MAX_SERVER_MAPS + 1];
+	memset(vote, 0, sizeof(vote));
+
+	for (int j = 1; j <= gpGlobals->maxClients; j++)
+	{
+		int mapIndex = g_pGameRules->m_iVoteCount[j-1];
+		if ((mapIndex-1) >= 0 && (mapIndex-1) < slots)
+			vote[mapIndex-1]++;
+	}
+
+	int highest = -9999;
+	int mapIndex = 0;
+	for (int i = 0; i < slots; i++)
+	{
+		if (highest <= vote[i])
+		{
+			if (highest == vote[i])
+			{
+				if (RANDOM_LONG(0, 1))
+					m_iDecidedMapIndex = mapIndex = i;
+			}
+			else
+			{
+				highest = vote[i];
+				m_iDecidedMapIndex = mapIndex = i;
+			}
+		}
+	}
+
+	memset(m_iVoteCount, -1, sizeof(m_iVoteCount));
+
+	if (highest <= 0)
+	{
+		m_iDecidedMapIndex = -1;
+		UTIL_ClientPrintAll(HUD_PRINTTALK, "[VOTE] Not enough votes received for maps RTV.\n");
+	}
+	else
+	{
+		if (m_iDecidedMapIndex == g_iServerMapCount /*random*/)
+		{
+			UTIL_ClientPrintAll(HUD_PRINTTALK, "[VOTE] Randomizing map...\n");
+			if (g_iServerMapCount > 0)
+				m_iDecidedMapIndex = RANDOM_LONG(0, g_iServerMapCount - 1);
+			else
+				m_iDecidedMapIndex = -1;
+		}
+
+		if (m_iDecidedMapIndex >= 0 && m_iDecidedMapIndex < g_iServerMapCount)
+		{
+			UTIL_ClientPrintAll(HUD_PRINTTALK,
+				UTIL_VarArgs("[VOTE] RTV success! Map changing to %s. Ending game to intermission...\n", g_szServerMaps[m_iDecidedMapIndex]));
+			m_bSkipIntermissionVoting = TRUE;
+			EndMultiplayerGame();
+		}
+	}
+
+	MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
+		WRITE_BYTE( CLIENT_SOUND_EBELL );
+	MESSAGE_END();
+
+	m_fMapVoteTime = 0;
+}
+
+void CHalfLifeMultiplay::VoteForGameplayRTV( void )
+{
+	if (m_fGameplayVoteTime > gpGlobals->time)
+		return;
+
+	m_iElectedGameMode = -1;
+	memset(m_iVoteCount, -1, sizeof(m_iVoteCount));
+
+	MESSAGE_BEGIN( MSG_ALL, gmsgVoteGameplay );
+		WRITE_BYTE(voting.value);
+	MESSAGE_END();
+	MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
+		WRITE_BYTE(CLIENT_SOUND_VOTEGAME);
+	MESSAGE_END();
+
+	for (int i = 1; i <= gpGlobals->maxClients; i++)
+	{
+		CBasePlayer *pPlayer = (CBasePlayer *)UTIL_PlayerByIndex( i );
+		if (pPlayer && !pPlayer->HasDisconnected)
+		{
+			pPlayer->m_fVoteCoolDown = 0;
+			if (FBitSet(pPlayer->pev->flags, FL_FAKECLIENT))
+				::Vote(pPlayer, RANDOM_LONG(1, TOTAL_GAME_MODES + 2 /*random*/));
+		}
+	}
+
+	m_fGameplayVoteTime = gpGlobals->time + voting.value;
+}
+
+void CHalfLifeMultiplay::VoteForMapRTV( void )
+{
+	if (m_fMapVoteTime > gpGlobals->time)
+		return;
+
+	EnsureServerMapList();
+	if (g_iServerMapCount <= 0)
+	{
+		UTIL_ClientPrintAll(HUD_PRINTTALK, "[VOTE] No maps available to vote on.\n");
+		return;
+	}
+
+	memset(m_iVoteCount, -1, sizeof(m_iVoteCount));
+
+	int modeForVote = ( m_iElectedGameMode >= 0 ) ? m_iElectedGameMode : g_GameMode;
+	if ( modeForVote < 0 ) modeForVote = GAME_FFA;
+	if ( modeForVote > TOTAL_GAME_MODES ) modeForVote = TOTAL_GAME_MODES;
+
+	MESSAGE_BEGIN(MSG_ALL, gmsgVoteMap);
+		WRITE_BYTE(voting.value);
+		WRITE_BYTE(modeForVote);
+	MESSAGE_END();
+	MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
+		WRITE_BYTE(CLIENT_SOUND_VOTEMAP);
+	MESSAGE_END();
+
+	int maxVote = g_iServerMapCount + 1;
+	if (maxVote < 2) maxVote = 2;
+	for (int i = 1; i <= gpGlobals->maxClients; i++)
+	{
+		CBasePlayer *pPlayer = (CBasePlayer *)UTIL_PlayerByIndex( i );
+		if (pPlayer && !pPlayer->HasDisconnected)
+		{
+			pPlayer->m_fVoteCoolDown = 0;
+			if (FBitSet(pPlayer->pev->flags, FL_FAKECLIENT))
+				::Vote(pPlayer, RANDOM_LONG(1, maxVote));
+		}
+	}
+
+	m_fMapVoteTime = gpGlobals->time + voting.value;
+}
+
 void CHalfLifeMultiplay::VoteForMutator( void )
 {
 	if (m_fMutatorVoteTime > gpGlobals->time)
 		return;
+	int modeForVote = g_GameMode;
+	if ( modeForVote < 0 ) modeForVote = GAME_FFA;
+	if ( modeForVote > TOTAL_GAME_MODES ) modeForVote = TOTAL_GAME_MODES;
 
 	SERVER_COMMAND("sv_addmutator \"clear\"\n");
 	CVAR_SET_STRING("sv_instantmutators", "0");
 
 	MESSAGE_BEGIN( MSG_ALL, gmsgVoteMutator );
 		WRITE_BYTE(voting.value);
+		WRITE_BYTE(modeForVote);
 	MESSAGE_END();
 	MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
 		WRITE_BYTE(CLIENT_SOUND_VOTEMUTATOR);
@@ -2291,24 +2543,56 @@ void CHalfLifeMultiplay :: PlayerSpawn( CBasePlayer *pPlayer )
 
 			if ( m_iVoteUnderway == VOTE_GAMEOPTIONS_OPEN )
 			{
+				int modeForVote = ( m_iElectedGameMode >= 0 ) ? m_iElectedGameMode : g_GameMode;
+				if ( modeForVote < 0 ) modeForVote = GAME_FFA;
+				if ( modeForVote > TOTAL_GAME_MODES ) modeForVote = TOTAL_GAME_MODES;
+
 				MESSAGE_BEGIN(MSG_ONE, gmsgVoteOpts, NULL, pPlayer->edict());
 					WRITE_BYTE(g_iGameOptionsRevision & 0xFF);
 					WRITE_BYTE(remainingSeconds);
 					WRITE_BYTE(m_iActiveGameOptionsCount);
 					for (int k = 0; k < m_iActiveGameOptionsCount; k++)
 						WRITE_BYTE(m_iActiveGameOptions[k]);
+					WRITE_BYTE(modeForVote);
 					WRITE_BYTE(0);
 				MESSAGE_END();
 			}
 			else if ( m_iVoteUnderway == VOTE_SERVEROPTIONS_OPEN )
 			{
+				int modeForVote = ( m_iElectedGameMode >= 0 ) ? m_iElectedGameMode : g_GameMode;
+				if ( modeForVote < 0 ) modeForVote = GAME_FFA;
+				if ( modeForVote > TOTAL_GAME_MODES ) modeForVote = TOTAL_GAME_MODES;
+
 				MESSAGE_BEGIN(MSG_ONE, gmsgVoteSrvOp, NULL, pPlayer->edict());
 					WRITE_BYTE(g_iServerOptionsRevision & 0xFF);
 					WRITE_BYTE(remainingSeconds);
 					WRITE_BYTE(m_iActiveServerOptionsCount);
 					for (int k = 0; k < m_iActiveServerOptionsCount; k++)
 						WRITE_BYTE(m_iActiveServerOptions[k]);
+					WRITE_BYTE(modeForVote);
 					WRITE_BYTE(0);
+				MESSAGE_END();
+			}
+			else if ( m_iVoteUnderway == VOTE_MUTATORS_OPEN )
+			{
+				int modeForVote = ( m_iElectedGameMode >= 0 ) ? m_iElectedGameMode : g_GameMode;
+				if ( modeForVote < 0 ) modeForVote = GAME_FFA;
+				if ( modeForVote > TOTAL_GAME_MODES ) modeForVote = TOTAL_GAME_MODES;
+
+				MESSAGE_BEGIN(MSG_ONE, gmsgVoteMutator, NULL, pPlayer->edict());
+					WRITE_BYTE(remainingSeconds);
+					WRITE_BYTE(modeForVote);
+				MESSAGE_END();
+			}
+			else if ( m_iVoteUnderway == VOTE_MAPS_OPEN )
+			{
+				int modeForVote = ( m_iElectedGameMode >= 0 ) ? m_iElectedGameMode : g_GameMode;
+				if ( modeForVote < 0 ) modeForVote = GAME_FFA;
+				if ( modeForVote > TOTAL_GAME_MODES ) modeForVote = TOTAL_GAME_MODES;
+
+				MESSAGE_BEGIN(MSG_ONE, gmsgVoteMap, NULL, pPlayer->edict());
+					WRITE_BYTE(remainingSeconds);
+					WRITE_BYTE(modeForVote);
 				MESSAGE_END();
 			}
 			else
@@ -3378,10 +3662,14 @@ void CHalfLifeMultiplay :: GoToIntermission( void )
 	m_flIntermissionEndTime = gpGlobals->time + ( (int)mp_chattime.value );
 	g_flIntermissionStartTime = gpGlobals->time;
 
-	if (voting.value >= 10)
+	if (voting.value >= 10 && !m_bSkipIntermissionVoting)
 	{
 		m_flIntermissionEndTime += (voting.value * 5) + 15;
 		m_iVoteUnderway = VOTE_GAMEPLAY_TRANSITION;
+	}
+	else
+	{
+		m_iVoteUnderway = 0;
 	}
 
 	// Clear previous message at intermission
@@ -5574,6 +5862,9 @@ void CHalfLifeMultiplay::VoteForGameOptions( BOOL fromRTV )
 	// RTV path: gameplay vote is not running, so use current g_GameMode.
 	if ( fromRTV )
 		m_iElectedGameMode = -1;
+	int modeForVote = ( m_iElectedGameMode >= 0 ) ? m_iElectedGameMode : g_GameMode;
+	if ( modeForVote < 0 ) modeForVote = GAME_FFA;
+	if ( modeForVote > TOTAL_GAME_MODES ) modeForVote = TOTAL_GAME_MODES;
 	BuildActiveGameOptions();
 
 	if ( m_iActiveGameOptionsCount == 0 )
@@ -5617,6 +5908,7 @@ void CHalfLifeMultiplay::VoteForGameOptions( BOOL fromRTV )
 		WRITE_BYTE( m_iActiveGameOptionsCount );
 		for ( int k = 0; k < m_iActiveGameOptionsCount; k++ )
 			WRITE_BYTE( m_iActiveGameOptions[k] );
+		WRITE_BYTE( modeForVote );
 		WRITE_BYTE( fromRTV ? 1 : 0 ); // flags bit 0: auto-close after local player voted every row
 	MESSAGE_END();
 	MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
@@ -5689,7 +5981,12 @@ void CHalfLifeMultiplay::CheckGameOptionsRTV( void )
 
 void CHalfLifeMultiplay::VoteForServerOptions( BOOL fromRTV )
 {
+	if ( fromRTV )
+		m_iElectedGameMode = -1;
 	EnsureServerOptionsList();
+	int modeForVote = ( m_iElectedGameMode >= 0 ) ? m_iElectedGameMode : g_GameMode;
+	if ( modeForVote < 0 ) modeForVote = GAME_FFA;
+	if ( modeForVote > TOTAL_GAME_MODES ) modeForVote = TOTAL_GAME_MODES;
 	BuildActiveServerOptions();
 
 	if ( m_iActiveServerOptionsCount == 0 )
@@ -5730,6 +6027,7 @@ void CHalfLifeMultiplay::VoteForServerOptions( BOOL fromRTV )
 		WRITE_BYTE( m_iActiveServerOptionsCount );
 		for ( int k = 0; k < m_iActiveServerOptionsCount; k++ )
 			WRITE_BYTE( m_iActiveServerOptions[k] );
+		WRITE_BYTE( modeForVote );
 		WRITE_BYTE( fromRTV ? 1 : 0 );
 	MESSAGE_END();
 	MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
