@@ -61,6 +61,175 @@ BOOL BustingCanHaveItem( CBasePlayer* pPlayer, CBaseEntity* pItem )
 	return TRUE;
 }
 
+static int BustersConfiguredCount( void )
+{
+	int configured = (int)busterscount.value;
+	if (configured < 1)
+		configured = 1;
+	else if (configured > 3)
+		configured = 3;
+
+	return configured;
+}
+
+static int BustersTargetCount( int playerCount )
+{
+	// Keep at least a 2-ghosts-to-1-buster ratio.
+	if (playerCount < 3)
+		return 0;
+
+	int maxByRatio = playerCount / 3;
+	int target = BustersConfiguredCount();
+	if (target > maxByRatio)
+		target = maxByRatio;
+
+	return target;
+}
+
+static int BustersCountHolders( CBasePlayer* holders[], int maxHolders )
+{
+	int holderCount = 0;
+
+	for ( int i = 1; i <= gpGlobals->maxClients; i++ )
+	{
+		CBasePlayer* pPlayer = (CBasePlayer*)UTIL_PlayerByIndex( i );
+		if ( !pPlayer || !pPlayer->IsPlayer() || pPlayer->HasDisconnected )
+			continue;
+
+		if ( !IsPlayerBusting( pPlayer ) )
+			continue;
+
+		if ( holders && holderCount < maxHolders )
+			holders[holderCount] = pPlayer;
+
+		holderCount++;
+	}
+
+	return holderCount;
+}
+
+static int BustersCountLooseEgons( void )
+{
+	int looseCount = 0;
+	CBaseEntity* pEntity = NULL;
+
+	while ( ( pEntity = UTIL_FindEntityByClassname( pEntity, "weaponbox" ) ) != NULL )
+	{
+		CWeaponBox* pWeaponBox = (CWeaponBox*)pEntity;
+		if ( !pWeaponBox )
+			continue;
+
+		BOOL hasEgon = FALSE;
+		for ( int i = 0; i < MAX_ITEM_TYPES && !hasEgon; i++ )
+		{
+			CBasePlayerItem* pWeapon = pWeaponBox->m_rgpPlayerItems[i];
+			while ( pWeapon )
+			{
+				if ( pWeapon->m_iId == WEAPON_EGON )
+				{
+					hasEgon = TRUE;
+					break;
+				}
+
+				pWeapon = pWeapon->m_pNext;
+			}
+		}
+
+		if ( hasEgon )
+			looseCount++;
+	}
+
+	return looseCount;
+}
+
+static BOOL BustersRemoveOneLooseEgon( void )
+{
+	CBaseEntity* pEntity = NULL;
+
+	while ( ( pEntity = UTIL_FindEntityByClassname( pEntity, "weaponbox" ) ) != NULL )
+	{
+		CWeaponBox* pWeaponBox = (CWeaponBox*)pEntity;
+		if ( !pWeaponBox )
+			continue;
+
+		for ( int i = 0; i < MAX_ITEM_TYPES; i++ )
+		{
+			CBasePlayerItem* pWeapon = pWeaponBox->m_rgpPlayerItems[i];
+			while ( pWeapon )
+			{
+				if ( pWeapon->m_iId == WEAPON_EGON )
+				{
+					pWeaponBox->Kill();
+					return TRUE;
+				}
+
+				pWeapon = pWeapon->m_pNext;
+			}
+		}
+	}
+
+	return FALSE;
+}
+
+static BOOL BustersDemoteOneHolder( CMultiplayBusters* pRules )
+{
+	if ( !pRules )
+		return FALSE;
+
+	CBasePlayer* holders[32];
+	int holderCount = BustersCountHolders( holders, 32 );
+	if ( holderCount < 1 )
+		return FALSE;
+
+	CBasePlayer* pRemove = holders[RANDOM_LONG( 0, holderCount - 1 )];
+	if ( !pRemove )
+		return FALSE;
+
+	pRemove->RemoveNamedItem( "weapon_egon" );
+	pRemove->pev->fuser4 = 0;
+	pRemove->pev->renderfx = kRenderFxNone;
+	pRemove->pev->renderamt = 0;
+	pRemove->pev->rendercolor = Vector( 0, 0, 0 );
+	pRemove->m_fCameraDelay = gpGlobals->time;
+	pRules->SetPlayerModel( pRemove );
+
+	return TRUE;
+}
+
+static BOOL BustersGrantEgonToLowestFragger( void )
+{
+	int bestFrags = 9999;
+	CBasePlayer* candidates[32];
+	int candidateCount = 0;
+
+	for ( int i = 1; i <= gpGlobals->maxClients; i++ )
+	{
+		CBasePlayer* pPlayer = (CBasePlayer*)UTIL_PlayerByIndex( i );
+		if ( !pPlayer || pPlayer->HasDisconnected || pPlayer->IsSpectator() || !pPlayer->IsAlive() || IsPlayerBusting( pPlayer ) )
+			continue;
+
+		int frags = (int)pPlayer->pev->frags;
+		if ( frags < bestFrags )
+		{
+			bestFrags = frags;
+			candidateCount = 0;
+		}
+
+		if ( frags == bestFrags && candidateCount < 32 )
+			candidates[candidateCount++] = pPlayer;
+	}
+
+	CBasePlayer* pBestPlayer = ( candidateCount > 0 ) ? candidates[RANDOM_LONG( 0, candidateCount - 1 )] : NULL;
+	if ( !pBestPlayer )
+		return FALSE;
+
+	pBestPlayer->RemoveAllItems( false );
+	pBestPlayer->pev->fuser4 = RADAR_BUSTER;
+	pBestPlayer->GiveNamedItem( "weapon_egon" );
+
+	return pBestPlayer->HasNamedPlayerItem( "weapon_egon" );
+}
+
 CMultiplayBusters::CMultiplayBusters()
 {
 	m_flEgonBustingCheckTime = -1;
@@ -242,9 +411,8 @@ int CMultiplayBusters::WeaponShouldRespawn( CBasePlayerItem* pWeapon )
 
 //=========================================================
 // CheckForEgons:
-//Check to see if any player has an egon
-//If they don't then get the lowest player on the scoreboard and give them one
-//Then check to see if any weapon boxes out there has an egon, and delete it
+// Keep total egons (held + loose) aligned to the dynamic target count.
+// Adds are staggered by EGON_BUSTING_TIME; removals trim excess immediately.
 //=========================================================
 void CMultiplayBusters::CheckForEgons()
 {
@@ -269,107 +437,72 @@ void CMultiplayBusters::CheckForEgons()
 		m_flCheckForWeapons = gpGlobals->time + 1.0f;
 	}
 
+	int playerCount = UTIL_GetPlayerCount();
+	int targetBusters = BustersTargetCount( playerCount );
+	int holderCount = BustersCountHolders( NULL, 0 );
+	int looseCount = BustersCountLooseEgons();
+	int totalEgons = holderCount + looseCount;
+
+	if ( targetBusters <= 0 )
+	{
+		while ( BustersRemoveOneLooseEgon() )
+		{
+		}
+
+		while ( BustersDemoteOneHolder( this ) )
+		{
+		}
+
+		m_flEgonBustingCheckTime = -1.0f;
+		return;
+	}
+
+	while ( totalEgons > targetBusters )
+	{
+		if ( BustersRemoveOneLooseEgon() )
+		{
+			totalEgons--;
+			continue;
+		}
+
+		if ( BustersDemoteOneHolder( this ) )
+		{
+			totalEgons--;
+			continue;
+		}
+
+		break;
+	}
+
+	if ( totalEgons >= targetBusters )
+	{
+		m_flEgonBustingCheckTime = -1.0f;
+		return;
+	}
+
 	if ( m_flEgonBustingCheckTime <= 0.0f )
 	{
 		m_flEgonBustingCheckTime = gpGlobals->time + EGON_BUSTING_TIME;
 		return;
 	}
 
-	if ( m_flEgonBustingCheckTime <= gpGlobals->time )
+	if ( m_flEgonBustingCheckTime > gpGlobals->time )
+		return;
+
+	if ( BustersGrantEgonToLowestFragger() )
 	{
-		m_flEgonBustingCheckTime = -1.0f;
+		holderCount = BustersCountHolders( NULL, 0 );
+		looseCount = BustersCountLooseEgons();
+		totalEgons = holderCount + looseCount;
 
-		for ( int i = 1; i <= gpGlobals->maxClients; i++ )
-		{
-			CBasePlayer* pPlayer = (CBasePlayer*)UTIL_PlayerByIndex( i );
-
-			//Someone is busting, no need to continue
-			if ( IsPlayerBusting( pPlayer ) )
-				return;
-		}
-
-		// **FIX: Check for egons in weaponboxes before creating a new one**
-		CBaseEntity* pEntity = NULL;
-		while ( ( pEntity = UTIL_FindEntityByClassname( pEntity, "weaponbox" ) ) != NULL )
-		{
-			CWeaponBox* pWeaponBox = (CWeaponBox*)pEntity;
-			if ( pWeaponBox )
-			{
-				for ( int i = 0; i < MAX_ITEM_TYPES; i++ )
-				{
-					CBasePlayerItem* pWeapon = pWeaponBox->m_rgpPlayerItems[i];
-					while ( pWeapon )
-					{
-						if ( pWeapon->m_iId == WEAPON_EGON )
-							return; // Egon already exists, don't create another
-						pWeapon = pWeapon->m_pNext;
-					}
-				}
-			}
-		}
-
-		// Collect all candidates tied at the lowest frag count, then randomly pick one
-		int bBestFrags = 9999;
-		CBasePlayer* pCandidates[32];
-		int nCandidates = 0;
-
-		for ( int i = 1; i <= gpGlobals->maxClients; i++ )
-		{
-			CBasePlayer* pPlayer = (CBasePlayer*)UTIL_PlayerByIndex( i );
-
-			if ( pPlayer && !pPlayer->HasDisconnected && !pPlayer->IsSpectator() && pPlayer->IsAlive() )
-			{
-				int frags = (int)pPlayer->pev->frags;
-				if ( frags < bBestFrags )
-				{
-					bBestFrags = frags;
-					nCandidates = 0;
-				}
-				if ( frags == bBestFrags && nCandidates < 32 )
-				{
-					pCandidates[nCandidates++] = pPlayer;
-				}
-			}
-		}
-
-		CBasePlayer* pBestPlayer = ( nCandidates > 0 ) ? pCandidates[RANDOM_LONG( 0, nCandidates - 1 )] : NULL;
-
-		if ( pBestPlayer )
-		{
-			pBestPlayer->RemoveAllItems( false );
-			pBestPlayer->pev->fuser4 = RADAR_BUSTER; // so we can give the named item
-			pBestPlayer->GiveNamedItem( "weapon_egon" );
-
-			CBaseEntity* pEntity = NULL;
-
-			//Find a weaponbox that includes an Egon, then destroy it
-			while ( ( pEntity = UTIL_FindEntityByClassname( pEntity, "weaponbox" ) ) != NULL )
-			{
-				CWeaponBox* pWeaponBox = (CWeaponBox*)pEntity;
-
-				if ( pWeaponBox )
-				{
-					CBasePlayerItem* pWeapon;
-
-					for ( int i = 0; i < MAX_ITEM_TYPES; i++ )
-					{
-						pWeapon = pWeaponBox->m_rgpPlayerItems[i];
-
-						while ( pWeapon )
-						{
-							//There you are, bye box
-							if ( pWeapon->m_iId == WEAPON_EGON )
-							{
-								pWeaponBox->Kill();
-								break;
-							}
-
-							pWeapon = pWeapon->m_pNext;
-						}
-					}
-				}
-			}
-		}
+		if ( totalEgons < targetBusters )
+			m_flEgonBustingCheckTime = gpGlobals->time + EGON_BUSTING_TIME;
+		else
+			m_flEgonBustingCheckTime = -1.0f;
+	}
+	else
+	{
+		m_flEgonBustingCheckTime = gpGlobals->time + 1.0f;
 	}
 }
 
@@ -399,25 +532,19 @@ void CMultiplayBusters::PlayerGotWeapon( CBasePlayer* pPlayer, CBasePlayerItem* 
 {
 	if ( pWeapon->m_iId == WEAPON_EGON )
 	{
-		// **FIX: Check if someone else is already busting**
-		for ( int i = 1; i <= gpGlobals->maxClients; i++ )
+		int targetBusters = BustersTargetCount( UTIL_GetPlayerCount() );
+		int holderCount = BustersCountHolders( NULL, 0 );
+
+		if ( targetBusters <= 0 || holderCount >= targetBusters )
 		{
-			CBasePlayer* pOtherPlayer = (CBasePlayer*)UTIL_PlayerByIndex( i );
-			if ( pOtherPlayer && pOtherPlayer != pPlayer && IsPlayerBusting( pOtherPlayer ) )
-			{
-				// Someone else is already the buster, remove this egon
-				pPlayer->RemovePlayerItem( pWeapon );
-				pWeapon->Kill();
-				return;
-			}
+			// Cap reached: remove this egon pickup.
+			pPlayer->RemovePlayerItem( pWeapon );
+			pWeapon->Kill();
+			return;
 		}
 
-		// **FIX: Reset timer when egon is picked up**
+		// Reset timer when egon is picked up.
 		m_flEgonBustingCheckTime = -1.0f;
-
-		// **FIX: Prevent duplicate buster messages**
-		if ( IsPlayerBusting( pPlayer ) )
-			return;
 
 		UTIL_ClientPrintAll( HUD_PRINTCENTER, "Long live the new Buster!" );
 		UTIL_ClientPrintAll( HUD_PRINTTALK, UTIL_VarArgs( "[Busters] %s is busting!\n", STRING( (CBasePlayer*)pPlayer->pev->netname ) ) );
@@ -702,14 +829,14 @@ BOOL CMultiplayBusters::CanHaveNamedItem( CBasePlayer *pPlayer, const char *pszI
 {
 	if (strcmp(pszItemName, "weapon_egon") == 0)
 	{
-		for ( int i = 1; i <= gpGlobals->maxClients; i++ )
-		{
-			CBasePlayer* pOtherPlayer = (CBasePlayer*)UTIL_PlayerByIndex( i );
+		int targetBusters = BustersTargetCount( UTIL_GetPlayerCount() );
+		if ( targetBusters <= 0 )
+			return FALSE;
 
-			// Someone is busting, no need to continue
-			if ( IsPlayerBusting( pOtherPlayer ) )
-				return FALSE;
-		}
+		int holderCount = BustersCountHolders( NULL, 0 );
+		int looseCount = BustersCountLooseEgons();
+		if ( holderCount + looseCount >= targetBusters )
+			return FALSE;
 	}
 
 	return CHalfLifeMultiplay::CanHaveNamedItem( pPlayer, pszItemName );

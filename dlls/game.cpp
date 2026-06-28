@@ -79,6 +79,7 @@ cvar_t	ggsuicide = {"mp_ggsuicide","1", FCVAR_SERVER };
 cvar_t	spawnitems = {"mp_spawnitems","1", FCVAR_SERVER };
 cvar_t	ctcsecondsforpoint = {"mp_ctcsecondsforpoint","10", FCVAR_SERVER };
 cvar_t	ctctoadcount = {"mp_ctctoadcount","1", FCVAR_SERVER };
+cvar_t	busterscount = {"mp_busterscount","1", FCVAR_SERVER };
 cvar_t	slowbullets = {"sv_slowbullets","0", FCVAR_SERVER };
 cvar_t	breakabletime = {"sv_breakabletime","20", FCVAR_SERVER };
 cvar_t	voting = {"mp_voting","30", FCVAR_SERVER };
@@ -757,6 +758,7 @@ void GameDLLInit( void )
 	CVAR_REGISTER(&ggsuicide);
 	CVAR_REGISTER(&ctcsecondsforpoint);
 	CVAR_REGISTER(&ctctoadcount);
+	CVAR_REGISTER(&busterscount);
 	CVAR_REGISTER(&slowbullets);
 	CVAR_REGISTER(&breakabletime);
 	CVAR_REGISTER(&voting);
