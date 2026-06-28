@@ -2120,7 +2120,7 @@ static void EV_RailgunCommon( event_args_t *args, float rightOffset )
 	int beamModel;
 	int glowModel;
 	int ballsModel;
-	BOOL firstBeam = FALSE;
+	bool firstBeam = FALSE;
 	vec3_t origin;
 	vec3_t angles;
 	vec3_t vecSrc;
