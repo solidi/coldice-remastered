@@ -743,7 +743,7 @@ void MutatorVote(edict_t *pEntity, const char *text)
 			{
 				RTVGateBeginCollecting(RTV_GATE_KIND_MUTATOR, rtvtime.value);
 				UTIL_ClientPrintAll(HUD_PRINTTALK,
-					UTIL_VarArgs("[VOTE] We need %.0f vote(s) in %.0f seconds. Others, type \"mutator\" to vote.\n", fmax(1, m_iNeedsVotes - 1), rtvtime.value));
+					UTIL_VarArgs("[VOTE] We need %.0f vote(s) in %.0f seconds. Others, type \"mutators\" to vote.\n", fmax(1, m_iNeedsVotes - 1), rtvtime.value));
 			}
 		}
 		else

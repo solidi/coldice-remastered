@@ -583,11 +583,11 @@ void CHud::ShowTextTips( void ) {
 		"Bind \"feign\" to pass out, at least for a minute.\n",
 		"Type \"vote\" in the chat to start a vote request.\n",
 		"Bind \"taunt\" to let the competition know how you feel.\n",
-		"Type \"mutator\" in the chat to start a rtv request.\n",
+		"Type \"mutators\" in the chat to start a rtv request.\n",
 		"Type \"cl_thirdcamera 0\" to turn off thirdperson in gamemodes.\n",
 		"Type \"gameoptions\" in the chat to start an option rtv request.\n",
 		"Type \"serveroptions\" in the chat to start an option rtv request.\n",
-		"Type \"gamemode\" in the chat to start an game mode rtv request.\n",
+		"Type \"gamemodes\" in the chat to start an game mode rtv request.\n",
 		"Type \"maps\" in the chat to start a map rtv request.\n",
 	};
 
