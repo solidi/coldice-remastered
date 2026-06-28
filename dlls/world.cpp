@@ -599,6 +599,7 @@ void CWorld :: Precache( void )
 
 // player precaches     
 	W_Precache ();									// get weapon precaches
+	PrecacheRunes();								// runes can still be created by some game modes/options
 
 	ClientPrecache();
 

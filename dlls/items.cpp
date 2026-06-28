@@ -1117,7 +1117,7 @@ void CWorldRunes::Spawn( )
 	pev->nextthink = gpGlobals->time + 5.0;
 }
 
-void CWorldRunes::Precache( )
+void PrecacheRunes( void )
 {
 	UTIL_PrecacheOther("rune_frag");
 	UTIL_PrecacheOther("rune_vampire");
@@ -1128,6 +1128,11 @@ void CWorldRunes::Precache( )
 	UTIL_PrecacheOther("rune_strength");
 	UTIL_PrecacheOther("rune_cloak");
 	UTIL_PrecacheOther("rune_ammo");
+}
+
+void CWorldRunes::Precache( )
+{
+	PrecacheRunes();
 }
 
 CBaseEntity *CWorldRunes::SelectSpawnPoint(const char *spot)
