@@ -434,7 +434,16 @@ void GameplayVote(edict_t *pEntity, const char *text)
 
 	RTVSyncVoteWindowEpoch( m_iVoteEpoch, m_fVoteTime, m_iNeedsVotes, m_iVotes );
 
-	if (voting.value && (UTIL_stristr(text, "vote") || UTIL_stristr(text, "rtv")))
+	const BOOL wantsGenericRTV =
+		UTIL_stristr( text, "vote" ) ||
+		( UTIL_stristr( text, "rtv" ) &&
+			!UTIL_stristr( text, "gamemodes" ) &&
+			!UTIL_stristr( text, "maps" ) &&
+			!UTIL_stristr( text, "mutators" ) &&
+			!UTIL_stristr( text, "gameoptions" ) &&
+			!UTIL_stristr( text, "serveroptions" ) );
+
+	if ( voting.value && wantsGenericRTV )
 	{
 		// Start vote, capture player count for majority count
 		if (m_fVoteTime < gpGlobals->time)

@@ -347,7 +347,7 @@ void CVoteMapPanel::Update()
 		m_fAutoCloseTime = 0;
 	}
 
-	pTitleLabel->setText("Map Vote for %s | Your Vote: %s | Time Left: %.1f\n", g_szMapVoteModeClient, myVoteName, seconds);
+	pTitleLabel->setText("%s for %s | Your Vote: %s | Time Left: %.1f\n", gHUD.m_TextMessage.BufferedLocaliseTextString("#Title_VoteMap"), g_szMapVoteModeClient, myVoteName, seconds);
 }
 
 //======================================

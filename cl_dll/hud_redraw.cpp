@@ -587,7 +587,7 @@ void CHud::ShowTextTips( void ) {
 		"Type \"cl_thirdcamera 0\" to turn off thirdperson in gamemodes.\n",
 		"Type \"gameoptions\" in the chat to start an option rtv request.\n",
 		"Type \"serveroptions\" in the chat to start an option rtv request.\n",
-		"Type \"gamemodes\" in the chat to start an game mode rtv request.\n",
+		"Type \"gamemodes\" in the chat to start a game mode rtv request.\n",
 		"Type \"maps\" in the chat to start a map rtv request.\n",
 	};
 

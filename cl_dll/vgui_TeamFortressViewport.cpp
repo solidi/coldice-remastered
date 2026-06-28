@@ -201,9 +201,19 @@ char                   g_szServerOptionsVoteModeClient[32] = "?";
 static void SetVoteModeLabel( char *dst, int modeIndex )
 {
 	const int modeCount = (int)( sizeof( sGameplayModes ) / sizeof( sGameplayModes[0] ) );
+	const char *token = ( modeIndex >= 0 && modeIndex < modeCount ) ? sGameplayModes[modeIndex] : NULL;
 	const char *mode = "?";
-	if ( modeIndex >= 0 && modeIndex < modeCount )
-		mode = sGameplayModes[modeIndex];
+	if ( token )
+	{
+		char key[64];
+		_snprintf( key, sizeof( key ), "#%s", token );
+		key[ sizeof( key ) - 1 ] = 0;
+		const char *localized = CHudTextMessage::BufferedLocaliseTextString( key );
+		if ( localized && localized[0] )
+			mode = localized;
+		else
+			mode = token;
+	}
 	strncpy( dst, mode, 31 );
 	dst[31] = 0;
 }

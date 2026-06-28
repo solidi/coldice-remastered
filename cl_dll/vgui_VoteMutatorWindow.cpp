@@ -425,7 +425,8 @@ void CVoteMutatorPanel::Update()
 	else if ( myVote > 0 && myVote <= MAX_MUTATORS_CL )
 		myVoteName = sMutators[myVote - 1].name;
 
-	pTitleLabel->setText("Mutator Vote for %s | Your Vote: %s | Time Left: %.1f\n",
+	pTitleLabel->setText("%s for %s | Your Vote: %s | Time Left: %.1f\n",
+		gHUD.m_TextMessage.BufferedLocaliseTextString("#Title_VoteMutator"),
 		g_szMutatorVoteModeClient,
 		myVoteName, seconds);
 }
