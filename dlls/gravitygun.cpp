@@ -37,6 +37,25 @@ enum gravitygun_e {
 	GRAVITYGUN_HOLSTER,
 };
 
+static CBaseEntity *FindPlayerDribbledKtsBall(CBasePlayer *pPlayer)
+{
+	#ifdef CLIENT_DLL
+	return NULL;
+	#else
+	if (!pPlayer || !g_pGameRules || !g_pGameRules->IsKickTheSnowball())
+		return NULL;
+
+	CBaseEntity *pBall = NULL;
+	while ((pBall = UTIL_FindEntityByClassname(pBall, "kts_snowball")) != NULL)
+	{
+		if (pBall->pev && pBall->pev->euser1 == pPlayer->edict())
+			return pBall;
+	}
+
+	return NULL;
+	#endif
+}
+
 void CGravityGun::Spawn()
 {
 	Precache();
@@ -124,10 +143,25 @@ void CGravityGun::PrimaryAttack()
 	}
 	else
 	{
-		CBaseEntity* pEntity = GetEntity(256, true);
+		CBaseEntity* pEntity = FindPlayerDribbledKtsBall(m_pPlayer);
+		if (pEntity)
+		{
+			// KTS: if the player is already dribbling, a tap should always pick
+			// the ball up into gravity-gun hold, even when it is not in the trace.
+			g_pGameRules->DropCharm(m_pPlayer, pEntity->pev->origin);
+			m_pCurrentEntity = pEntity;
+			m_pCurrentEntity->pev->iuser3 = 1;
+			m_pCurrentEntity->pev->iuser2 = ENTINDEX(m_pPlayer->edict());
+			idx = ENTINDEX(pEntity->edict());
+			isBspModel = pEntity->IsBSPModel();
+			m_flTimeWeaponIdle = UTIL_WeaponTimeBase();
+		}
+
+		if (!m_pCurrentEntity)
+			pEntity = GetEntity(256, true);
 		#ifndef CLIENT_DLL
 		TraceResult tr = UTIL_GetGlobalTrace();
-		if (pEntity)
+		if (!m_pCurrentEntity && pEntity)
 		{
 			idx = ENTINDEX(pEntity->edict());
 			isBspModel = pEntity->IsBSPModel();
@@ -140,7 +174,7 @@ void CGravityGun::PrimaryAttack()
 			m_flTimeWeaponIdle = UTIL_WeaponTimeBase();
 		}
 
-		if (!g_pGameRules->IsKickTheSnowball())
+		if (!m_pCurrentEntity && !g_pGameRules->IsKickTheSnowball())
 		{
 			if (pEntity && strstr(STRING(pEntity->pev->classname), "worldspawn"))
 			{
@@ -168,13 +202,35 @@ void CGravityGun::SecondaryAttack()
 	if (m_pCurrentEntity)
 	{
 		STOP_SOUND(ENT(m_pPlayer->pev), CHAN_WEAPON, "ambience/pulsemachine.wav");
-		m_pCurrentEntity->pev->velocity = m_pPlayer->pev->velocity;
-		m_pCurrentEntity->pev->iuser3 = 0;
-		m_pCurrentEntity = NULL;
+		if (g_pGameRules && g_pGameRules->IsKickTheSnowball() &&
+			FClassnameIs(m_pCurrentEntity->pev, "kts_snowball"))
+		{
+			// KTS: secondary while holding the ball returns it to foot dribble.
+			m_pCurrentEntity->pev->iuser3 = 0;
+			m_pCurrentEntity->pev->velocity = g_vecZero;
+			m_pCurrentEntity = NULL;
+			g_pGameRules->CaptureCharm(m_pPlayer);
+		}
+		else
+		{
+			m_pCurrentEntity->pev->velocity = m_pPlayer->pev->velocity;
+			m_pCurrentEntity->pev->iuser3 = 0;
+			m_pCurrentEntity = NULL;
+		}
 	}
 	else
 	{
-		m_pCurrentEntity = GetEntity(256);
+		CBaseEntity *pEntity = FindPlayerDribbledKtsBall(m_pPlayer);
+		if (pEntity)
+		{
+			g_pGameRules->DropCharm(m_pPlayer, pEntity->pev->origin);
+			m_pCurrentEntity = pEntity;
+		}
+		else
+		{
+			m_pCurrentEntity = GetEntity(256);
+		}
+
 		if (m_pCurrentEntity)
 		{
 			m_pCurrentEntity->pev->origin[2] += 0.2f;
