@@ -1541,7 +1541,14 @@ BOOL CHalfLifeKickTheSnowball::ShouldAutoAim( CBasePlayer *pPlayer, edict_t *tar
 
 BOOL CHalfLifeKickTheSnowball::FPlayerCanTakeDamage( CBasePlayer *pPlayer, CBaseEntity *pAttacker )
 {
-	if (!pBall || !pPlayer)
+	if (!pPlayer)
+		return FALSE;
+
+	// Allow map hazards (void pits, kill brushes) to damage players.
+	if (pAttacker && pAttacker->pev && strcmp(STRING(pAttacker->pev->classname), "trigger_hurt") == 0)
+		return TRUE;
+
+	if (!pBall)
 		return FALSE;
 
 	CKtsSnowball *pActualBall = (CKtsSnowball *)(CBaseEntity *)pBall;
