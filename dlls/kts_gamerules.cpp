@@ -177,6 +177,42 @@ void CKtsSnowball::BallThink( void )
 		pev->iuser2 = 0;
 	}
 
+	// Gravity-gun hold and dribble are mutually exclusive states.
+	// If the ball is currently held by gravity gun (iuser3), suppress all
+	// dribble logic and clear any stale dribbler bridge fields.
+	if (pev->iuser3 != 0)
+	{
+		if (m_hDribbler || !FNullEnt(pev->euser1))
+		{
+			CBasePlayer *pDribbler = NULL;
+			CBaseEntity *pDribEnt = (CBaseEntity *)m_hDribbler;
+			if (pDribEnt && pDribEnt->IsPlayer())
+				pDribbler = (CBasePlayer *)pDribEnt;
+			else if (!FNullEnt(pev->euser1))
+			{
+				CBaseEntity *pEuser = CBaseEntity::Instance(pev->euser1);
+				if (pEuser && pEuser->IsPlayer())
+					pDribbler = (CBasePlayer *)pEuser;
+			}
+
+			if (pDribbler)
+				pDribbler->m_flNextAutoMelee = gpGlobals->time + 3.0f;
+
+			EMIT_SOUND_DYN(ENT(pev), CHAN_ITEM, "dribble.wav", 0.0f, 0.0f, SND_STOP, 0);
+			m_hDribbler = NULL;
+			pev->euser1 = NULL;
+			m_fDribbleSoundTime = -1.0f;
+			pev->movetype = MOVETYPE_BOUNCE;
+			pev->solid = SOLID_BBOX;
+			ClearBits(pev->flags, FL_ONGROUND);
+		}
+
+		m_fLastPlayerTouchTime = gpGlobals->time;
+		m_fStuckTime = -1.0f;
+		pev->nextthink = gpGlobals->time + 0.1f;
+		return;
+	}
+
 	// -------------------------------------------------------
 	// Dribble system
 	// When the ball is moving slowly and a player is nearby,
@@ -481,6 +517,10 @@ void CKtsSnowball::BallThink( void )
 void CKtsSnowball::BallTouch( CBaseEntity *pOther )
 {
 	if (!pOther)
+		return;
+
+	// While gravity-gun held, the ball should not enter dribble possession paths.
+	if (pev->iuser3 != 0)
 		return;
 
 	// Surface bounce sound — non-player contact (wall, floor, brush).
