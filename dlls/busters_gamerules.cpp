@@ -358,6 +358,13 @@ void CMultiplayBusters::SendObjectiveUpdate( void )
 	CBasePlayer* pPrimaryHolder = ( holderCount > 0 ) ? holders[0] : NULL;
 	const char *objectiveText = BustersObjectiveStatusText( playerCount, targetBusters, holderCount, looseCount, pPrimaryHolder );
 
+	char scoreLimitText[64];
+	if ( scorelimit.value > 0 )
+		_snprintf( scoreLimitText, sizeof( scoreLimitText ), "Scorelimit is %d", (int)scorelimit.value );
+	else
+		strcpy( scoreLimitText, "No score limit" );
+	scoreLimitText[sizeof( scoreLimitText ) - 1] = '\0';
+
 	for ( int i = 1; i <= gpGlobals->maxClients; i++ )
 	{
 		CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
@@ -373,7 +380,7 @@ void CMultiplayBusters::SendObjectiveUpdate( void )
 				WRITE_STRING( targetBusters > 1 ? "Defeat the busters" : "Defeat the buster" );
 			WRITE_STRING( objectiveText );
 			WRITE_BYTE( 0 );
-			WRITE_STRING( scorelimit.value > 0 ? UTIL_VarArgs( "Scorelimit is %d", (int)scorelimit.value ) : "No score limit" );
+			WRITE_STRING( scoreLimitText );
 		MESSAGE_END();
 	}
 }
@@ -607,7 +614,7 @@ void CMultiplayBusters::PlayerGotWeapon( CBasePlayer* pPlayer, CBasePlayerItem* 
 		m_flEgonBustingCheckTime = -1.0f;
 
 		UTIL_ClientPrintAll( HUD_PRINTCENTER, "Long live the new Buster!" );
-		UTIL_ClientPrintAll( HUD_PRINTTALK, UTIL_VarArgs( "[Busters] %s is busting!\n", STRING( (CBasePlayer*)pPlayer->pev->netname ) ) );
+		UTIL_ClientPrintAll( HUD_PRINTTALK, UTIL_VarArgs( "[Busters] %s is busting!\n", STRING( pPlayer->pev->netname ) ) );
 
 		if (pPlayer->m_iShowGameModeMessage == -1 && !FBitSet(pPlayer->pev->flags, FL_FAKECLIENT))
 		{
