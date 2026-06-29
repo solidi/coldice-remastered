@@ -47,5 +47,7 @@ public:
 protected:
 	float m_flEgonBustingCheckTime = -1.0f;
 	float m_flCheckForWeapons = -1.0f;
+	float m_flObjectiveUpdateTime = -1.0f;
 	void CheckForEgons( void );
+	void SendObjectiveUpdate( void );
 };

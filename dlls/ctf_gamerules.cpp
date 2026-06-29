@@ -413,7 +413,7 @@ void CFlagBase::CTFTouch( CBaseEntity *pOther )
 									else
 										WRITE_STRING(UTIL_VarArgs("You're spectating"));
 									WRITE_BYTE(0);
-									WRITE_STRING("");
+									WRITE_STRING(scorelimit.value > 0 ? UTIL_VarArgs("Scorelimit is %d", (int)scorelimit.value) : "No score limit");
 								MESSAGE_END();
 							}
 						}
@@ -626,9 +626,9 @@ void CHalfLifeCaptureTheFlag::InitHUD( CBasePlayer *pPlayer )
 	{
 		MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL, pPlayer->edict());
 			WRITE_STRING("Capture the flag");
-			WRITE_STRING("You're spectating");
-			WRITE_BYTE(0);
 			WRITE_STRING("");
+			WRITE_BYTE(0);
+			WRITE_STRING(scorelimit.value > 0 ? UTIL_VarArgs("First to %d wins", (int)scorelimit.value) : "No score limit");
 		MESSAGE_END();
 
 		MESSAGE_BEGIN(MSG_ONE, gmsgCtfInfo, NULL, pPlayer->edict());
@@ -1080,7 +1080,7 @@ void CHalfLifeCaptureTheFlag::UpdateHud(int bluemode, int redmode)
 	}
 
 	// End session if hit score limit
-	if ( redscore >= scorelimit.value || bluescore >= scorelimit.value )
+	if ( scorelimit.value > 0 && (redscore >= scorelimit.value || bluescore >= scorelimit.value) )
 	{
 		GoToIntermission();
 	}

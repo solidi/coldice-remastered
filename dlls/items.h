@@ -41,6 +41,8 @@ public:
 #define RUNE_HORNET		12
 #define RUNE_SNOWBALL	13
 
+void PrecacheRunes( void );
+
 class CWorldRunes : public CBaseEntity
 {
 public:

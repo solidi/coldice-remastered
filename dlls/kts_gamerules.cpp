@@ -971,9 +971,9 @@ void CHalfLifeKickTheSnowball::InitHUD( CBasePlayer *pPlayer )
 	{
 		MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL, pPlayer->edict());
 			WRITE_STRING("Kick the Snowball");
-			WRITE_STRING("You're spectating");
-			WRITE_BYTE(0);
 			WRITE_STRING("");
+			WRITE_BYTE(0);
+			WRITE_STRING(scorelimit.value > 0 ? UTIL_VarArgs("First to %d wins", (int)scorelimit.value) : "No score limit");
 		MESSAGE_END();
 
 		MESSAGE_BEGIN(MSG_ONE, gmsgCtfInfo, NULL, pPlayer->edict());
@@ -1110,7 +1110,7 @@ void CHalfLifeKickTheSnowball::SpawnBallAtMidpoint( void )
 					WRITE_STRING(UTIL_VarArgs("Kick the snowball into the %s goal!",
 						(plr->pev->fuser4 == TEAM_RED) ? "blue" : "red"));
 				WRITE_BYTE(0);
-				WRITE_STRING("");
+				WRITE_STRING(scorelimit.value > 0 ? UTIL_VarArgs("Scorelimit is %d", (int)scorelimit.value) : "No score limit");
 			MESSAGE_END();
 		}
 	}
@@ -1448,7 +1448,7 @@ void CHalfLifeKickTheSnowball::UpdateHud( int bluemode, int redmode, CBasePlayer
 	}
 
 	// End session if score limit reached
-	if (redscore >= scorelimit.value || bluescore >= scorelimit.value)
+	if (scorelimit.value > 0 && (redscore >= scorelimit.value || bluescore >= scorelimit.value))
 		GoToIntermission();
 }
 

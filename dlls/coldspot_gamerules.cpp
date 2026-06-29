@@ -423,9 +423,9 @@ void CHalfLifeColdSpot::InitHUD( CBasePlayer *pPlayer )
 	{
 		MESSAGE_BEGIN(MSG_ONE, gmsgObjective, NULL, pPlayer->edict());
 			WRITE_STRING("Hold the cold spot");
-			WRITE_STRING("You're spectating");
-			WRITE_BYTE(0);
 			WRITE_STRING("");
+			WRITE_BYTE(0);
+			WRITE_STRING(scorelimit.value > 0 ? UTIL_VarArgs("First to %d wins", (int)scorelimit.value) : "No score limit");
 		MESSAGE_END();
 	}
 
@@ -524,7 +524,7 @@ void CHalfLifeColdSpot::PlayerThink( CBasePlayer *pPlayer )
 			WRITE_STRING("Hold the cold spot");
 			WRITE_STRING(UTIL_VarArgs("You're on team %s", (pPlayer->pev->fuser4 == TEAM_RED) ? "red" : "blue"));
 			WRITE_BYTE(0);
-			WRITE_STRING("");
+			WRITE_STRING(scorelimit.value > 0 ? UTIL_VarArgs("Scorelimit is %d", (int)scorelimit.value) : "No score limit");
 		MESSAGE_END();
 		pPlayer->m_iShowGameModeMessage = -1;
 	}
@@ -791,7 +791,7 @@ void CHalfLifeColdSpot::UpdateHud( void )
 	}
 
 	// End session if hit score limit
-	if ( redscore >= scorelimit.value || bluescore >= scorelimit.value )
+	if ( scorelimit.value > 0 && (redscore >= scorelimit.value || bluescore >= scorelimit.value) )
 	{
 		GoToIntermission();
 	}
