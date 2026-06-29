@@ -6079,6 +6079,9 @@ void CBasePlayer::AutoMelee()
 	if (g_pGameRules->IsPropHunt())
 		return;
 
+	if (g_pGameRules->IsKickTheSnowball())
+		return;
+
 	if (g_pGameRules->IsGunGame() && m_pActiveItem && m_pActiveItem->m_iId == WEAPON_KNIFE)
 		return;
 
