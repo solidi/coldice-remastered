@@ -22,7 +22,6 @@ public:
 	virtual void Think( void );
 	virtual int IPointsForKill( CBasePlayer* pAttacker, CBasePlayer* pKilled );
 	virtual void PlayerKilled( CBasePlayer* pVictim, entvars_t* pKiller, entvars_t* pInflictor );
-	virtual void DeathNotice( CBasePlayer* pVictim, entvars_t* pKiller, entvars_t* pInflictor );
 	virtual int WeaponShouldRespawn( CBasePlayerItem* pWeapon );
 	virtual BOOL CanHavePlayerItem( CBasePlayer* pPlayer, CBasePlayerItem* pWeapon );
 	virtual BOOL CanHaveItem( CBasePlayer* pPlayer, CItem* pItem );

@@ -458,15 +458,6 @@ void CMultiplayBusters::PlayerKilled( CBasePlayer* pVictim, entvars_t* pKiller, 
 	}
 }
 
-void CMultiplayBusters::DeathNotice( CBasePlayer* pVictim, entvars_t* pKiller, entvars_t* pevInflictor )
-{
-	//Only death notices that the Buster was involved in in Busting game mode
-	if ( !IsPlayerBusting( pVictim ) && !IsPlayerBusting( CBaseEntity::Instance( pKiller ) ) )
-		return;
-
-	CHalfLifeMultiplay::DeathNotice( pVictim, pKiller, pevInflictor );
-}
-
 int CMultiplayBusters::WeaponShouldRespawn( CBasePlayerItem* pWeapon )
 {
 	if ( pWeapon->m_iId == WEAPON_EGON )
