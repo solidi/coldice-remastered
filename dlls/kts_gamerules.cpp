@@ -183,6 +183,7 @@ void CKtsSnowball::Spawn( void )
 	m_bWasGravityHeld      = FALSE;
 	pev->iuser1    = 0;
 	pev->iuser2    = 0;
+	pev->iuser3    = 0;
 	pev->owner     = NULL;
 
 	SetTouch( &CKtsSnowball::BallTouch );
@@ -829,6 +830,7 @@ void CKtsSnowball::ResetToMidpoint( void )
 	m_bWasGravityHeld      = FALSE;
 	pev->iuser1    = 0;
 	pev->iuser2    = 0;
+	pev->iuser3    = 0;
 	pev->owner     = NULL;
 
 	if (!g_pGameRules)
