@@ -64,7 +64,7 @@ extern int gmsgStatusIcon;
 #define KTS_FALLING_Z_LIMIT   -4096.0f
 
 // Dribble tuning
-#define KTS_DRIBBLE_ACQUIRE_SPEED  250.0f   // max ball speed (u/s) to auto-acquire dribble
+#define KTS_DRIBBLE_ACQUIRE_SPEED  350.0f   // max ball speed (u/s) to auto-acquire dribble
 #define KTS_DRIBBLE_ACQUIRE_DIST   72.0f    // proximity radius for auto-acquire
 #define KTS_DRIBBLE_BALL_OFFSET    64.0f    // how far ahead of player (units) to hold ball
 #define KTS_DRIBBLE_TRACK_SPEED    600.0f   // velocity used when moving ball toward target
