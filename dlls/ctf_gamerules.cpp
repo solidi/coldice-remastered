@@ -407,11 +407,16 @@ void CFlagBase::CTFTouch( CBaseEntity *pOther )
 							if (!FBitSet(plr->pev->flags, FL_FAKECLIENT))
 							{
 								MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, plr->edict());
-									WRITE_STRING(UTIL_VarArgs("Capture the %s flag", (plr->pev->fuser4 == TEAM_RED) ? "blue" : "red"));
 									if (!plr->IsSpectator())
+									{
+										WRITE_STRING(UTIL_VarArgs("Capture the %s flag", (plr->pev->fuser4 == TEAM_RED) ? "blue" : "red"));
 										WRITE_STRING(UTIL_VarArgs("You're on %s team", (plr->pev->fuser4 == TEAM_RED) ? "red" : "blue"));
+									}
 									else
+									{
+										WRITE_STRING("Capture the Flag");
 										WRITE_STRING(UTIL_VarArgs("You're spectating"));
+									}
 									WRITE_BYTE(0);
 									WRITE_STRING(scorelimit.value > 0 ? UTIL_VarArgs("Scorelimit is %d", (int)scorelimit.value) : "No score limit");
 								MESSAGE_END();
@@ -994,11 +999,16 @@ CBaseEntity *CHalfLifeCaptureTheFlag::DropCharm( CBasePlayer *pPlayer, Vector or
 					else
 					{
 						MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, plr->edict());
-							WRITE_STRING(UTIL_VarArgs("Capture the %s flag", (plr->pev->fuser4 == TEAM_RED) ? "blue" : "red"));
 							if (!plr->IsSpectator())
+							{
+								WRITE_STRING(UTIL_VarArgs("Capture the %s flag", (plr->pev->fuser4 == TEAM_RED) ? "blue" : "red"));
 								WRITE_STRING(UTIL_VarArgs("You're on %s team", (plr->pev->fuser4 == TEAM_RED) ? "red" : "blue"));
+							}
 							else
+							{
+								WRITE_STRING("Capture the Flag");
 								WRITE_STRING(UTIL_VarArgs("You're spectating"));
+							}
 							WRITE_BYTE(0);
 							WRITE_STRING("");
 						MESSAGE_END();
