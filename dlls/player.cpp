@@ -4676,6 +4676,30 @@ void CBasePlayer::Spawn( void )
 	m_iExitObserver = FALSE;
 }
 
+void CBasePlayer::ExpireSpawnProtection( void )
+{
+	if (!m_fLastSpawnTime)
+		return;
+
+	if (IsObserver())
+		return;
+
+	m_fLastSpawnTime = 0;
+
+	if (!g_pGameRules->MutatorEnabled(MUTATOR_GODMODE))
+		pev->flags &= ~FL_GODMODE;
+
+	pev->rendermode = kRenderNormal;
+	if (!m_fHasRune)
+	{
+		pev->renderfx = kRenderFxNone;
+		pev->renderamt = 0;
+	}
+
+	if (g_pGameRules->MutatorEnabled(MUTATOR_INVISIBLE))
+		MakeInvisible();
+}
+
 
 void CBasePlayer :: Precache( void )
 {
@@ -5962,6 +5986,7 @@ void CBasePlayer::StartHurricaneKick( void )
 
 		m_EFlags &= ~EFLAG_CANCEL;
 		m_EFlags |= EFLAG_HURRICANE;
+		ExpireSpawnProtection();
 
 		SetThink( &CBasePlayer::EndHurricaneKick );
 		pev->nextthink = gpGlobals->time + 1.4;

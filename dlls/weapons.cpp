@@ -1233,6 +1233,7 @@ void CBasePlayerWeapon::ItemPostFrame( void )
 		{
 			if (m_pPlayer->m_iFlyingDiscs < 3)
 			{
+				m_pPlayer->ExpireSpawnProtection();
 				m_pPlayer->SetAnimation( PLAYER_ATTACK1 );
 				Vector vecFireDir = m_pPlayer->pev->v_angle;
 				UTIL_MakeVectors( vecFireDir );
@@ -1250,6 +1251,7 @@ void CBasePlayerWeapon::ItemPostFrame( void )
 		{
 			if (m_pPlayer->m_iFlyingDiscs == 0)
 			{
+				m_pPlayer->ExpireSpawnProtection();
 				m_pPlayer->SetAnimation( PLAYER_ATTACK1 );
 				Vector vecFireDir = m_pPlayer->pev->v_angle;
 				UTIL_MakeVectors( vecFireDir );
@@ -1352,6 +1354,7 @@ void CBasePlayerWeapon::ItemPostFrame( void )
 					canFire = g_pGameRules->WeaponMutators(this);
 				if (canFire)
 				{
+					m_pPlayer->ExpireSpawnProtection();
 					SecondaryAttack();
 					m_flNextPrimaryAttack = m_flNextSecondaryAttack = (m_flNextSecondaryAttack * multipler);
 				}
@@ -1362,6 +1365,7 @@ void CBasePlayerWeapon::ItemPostFrame( void )
 				canFire = g_pGameRules->WeaponMutators(this);
 			if (canFire)
 			{
+				m_pPlayer->ExpireSpawnProtection();
 				SecondaryAttack();
 				m_flNextPrimaryAttack = m_flNextSecondaryAttack = (m_flNextSecondaryAttack * multipler);
 			}
@@ -1394,6 +1398,7 @@ void CBasePlayerWeapon::ItemPostFrame( void )
 					canFire = g_pGameRules->WeaponMutators(this);
 				if (canFire)
 				{
+					m_pPlayer->ExpireSpawnProtection();
 					PrimaryAttack();
 					m_flNextPrimaryAttack = m_flNextSecondaryAttack = (m_flNextPrimaryAttack * multipler);
 				}
@@ -1404,6 +1409,8 @@ void CBasePlayerWeapon::ItemPostFrame( void )
 				g_pGameRules->WeaponMutators(this);
 
 			// Allow passthru for satchels
+			if (!m_fFireOnEmpty || canFire)
+				m_pPlayer->ExpireSpawnProtection();
 			PrimaryAttack();
 			m_flNextPrimaryAttack = m_flNextSecondaryAttack = (m_flNextPrimaryAttack * multipler);
 		}
@@ -2775,6 +2782,7 @@ void CBasePlayerWeapon::StartPunch( BOOL holdingSomething )
 	}
 
 	m_pPlayer->m_fOffhandTime = gpGlobals->time + 0.55;
+	m_pPlayer->ExpireSpawnProtection();
 	PunchAttack(holdingSomething);
 }
 
@@ -3024,6 +3032,7 @@ void CBasePlayerWeapon::StartKick( BOOL holdingSomething )
 	m_pPlayer->m_EFlags &= ~EFLAG_CANCEL;
 	m_pPlayer->m_EFlags |= EFLAG_PLAYERKICK;
 	m_pPlayer->m_fOffhandTime = (gpGlobals->time + 0.55 * g_pGameRules->WeaponMultipler());
+	m_pPlayer->ExpireSpawnProtection();
 	KickAttack(holdingSomething);
 }
 
