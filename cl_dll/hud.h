@@ -801,9 +801,11 @@ enum e_protips {
 	FORCEGRAB_TIP,
 	PROP_TIP,
 	DROP_TIP,
+	PROX_TIP,
+	FREEZE_TIP,
 };
 
-#define PROTIPS_AMT	19
+#define PROTIPS_AMT	21
 
 
 
