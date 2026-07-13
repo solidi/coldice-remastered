@@ -2370,23 +2370,7 @@ void CHalfLifeMultiplay :: PlayerThink( CBasePlayer *pPlayer )
 	}
 
 	if (pPlayer->m_fLastSpawnTime && pPlayer->m_fLastSpawnTime <= gpGlobals->time)
-	{
-		if (!pPlayer->IsObserver())
-		{
-			if (!MutatorEnabled(MUTATOR_GODMODE))
-				pPlayer->pev->flags &= ~FL_GODMODE;
-			pPlayer->pev->rendermode = kRenderNormal;
-			if (!pPlayer->m_fHasRune)
-			{
-				pPlayer->pev->renderfx = kRenderFxNone;
-				pPlayer->pev->renderamt = 0;
-			}
-			pPlayer->m_fLastSpawnTime = 0;
-
-			if (MutatorEnabled(MUTATOR_INVISIBLE))
-				pPlayer->MakeInvisible();
-		}
-	}
+		pPlayer->ExpireSpawnProtection();
 
 	if (pPlayer->m_fEffectTime && pPlayer->m_fEffectTime <= gpGlobals->time)
 	{

@@ -330,6 +330,7 @@ public:
 	void StartForceGrab( void );
 	void TryGrabAgain( void );
 	void EndForceGrab( void );
+	void ExpireSpawnProtection( void );
 	CBaseEntity *FindForceGrabWorldItem( const Vector &vecSrc, const Vector &vecDir );
 	float m_fForceGrabTime;
 	EHANDLE m_Banana;

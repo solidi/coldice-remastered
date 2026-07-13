@@ -111,6 +111,11 @@ void CHook::FireHook( ) {
 	m_vVecDirHookMove = vecDir;
 
 	m_fActiveHook = TRUE;
+	if (pevOwner->IsPlayer())
+	{
+		CBaseEntity *pOwner = pevOwner;
+		((CBasePlayer *)pOwner)->ExpireSpawnProtection();
+	}
 
 	SetTouch( &CHook::HookTouch );
 	pev->nextthink = gpGlobals->time + 0.2;
