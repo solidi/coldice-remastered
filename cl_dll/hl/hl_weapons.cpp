@@ -809,6 +809,7 @@ enum e_protips {
 	PROP_TIP,
 	DROP_TIP,
 	PROX_TIP,
+	FREEZE_TIP,
 };
 
 extern void ProTip(int id, const char *message);
@@ -884,7 +885,10 @@ void HUD_WeaponsPostThink( local_state_s *from, local_state_s *to, usercmd_t *cm
 
 		case WEAPON_HANDGRENADE:
 			pWeapon = &g_HandGren;
-			ProTip(GRENADE_TIP, "Use offhand grenades, press Q or bind \"impulse 209\"");
+			if (RANDOM_LONG(0, 1) == 0)
+				ProTip(GRENADE_TIP, "Use offhand grenades, press Q or bind \"impulse 209\"");
+			else
+				ProTip(FREEZE_TIP, "Use RELOAD button to throw a freeze grenade");
 			ProTip(PROP_TIP, "You're a prop. ATTACK - models / RELOAD - decoy / Q - grenade");
 			break;
 

@@ -1243,11 +1243,13 @@ public:
 
 	void PrimaryAttack( void );
 	void SecondaryAttack( void );
+	void Reload( void );
 	BOOL DeployLowKey( void );
 	BOOL Deploy( void );
 	BOOL CanHolster( void );
 	void Holster( int skiplocal = 0 );
 	void WeaponIdle( void );
+	virtual BOOL AcceptReload( void ) { return TRUE; }
 	
 	virtual BOOL UseDecrement( void )
 	{ 
@@ -2804,6 +2806,16 @@ public:
 private:
 	unsigned short m_usVice;
 	int m_ViceMode;
+};
+
+class CFreezeGrenade : public CGrenade
+{
+public:
+	void Spawn( void );
+	void Precache( void );
+	void EXPORT FreezeTumbleThink( void );
+	void EXPORT FreezeDetonate( void );
+	static CFreezeGrenade *ShootTimed( entvars_t *pevOwner, Vector vecStart, Vector vecVelocity, float time );
 };
 
 class CSnowbomb : public CGrenade
