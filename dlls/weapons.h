@@ -66,6 +66,10 @@ public:
 	BOOL m_fRegisteredSound;// whether or not this grenade has issued its DANGER sound to the world sound list yet.
 };
 
+#define SF_GRENADE_DETONATE_CONTACT_LIVING 0x0002
+#define SF_GRENADE_CLUSTER_PAYLOAD         0x0004
+#define SF_GRENADE_FREEZE_PAYLOAD          0x0008
+
 
 // constant items
 #define ITEM_HEALTHKIT		1

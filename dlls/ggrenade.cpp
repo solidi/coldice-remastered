@@ -330,6 +330,28 @@ void CGrenade::BounceTouch( CBaseEntity *pOther )
 	if ( pOther->edict() == pev->owner )
 		return;
 
+	if ( FBitSet(pev->spawnflags, SF_GRENADE_DETONATE_CONTACT_LIVING) &&
+		 pOther->IsAlive() &&
+		 (pOther->pev->flags & (FL_CLIENT | FL_MONSTER)) )
+	{
+		SetTouch( NULL );
+
+		if ( FBitSet(pev->spawnflags, SF_GRENADE_FREEZE_PAYLOAD) )
+		{
+			((CFreezeGrenade *)this)->FreezeDetonate();
+		}
+		else if ( FBitSet(pev->spawnflags, SF_GRENADE_CLUSTER_PAYLOAD) )
+		{
+			ClusterDetonate();
+		}
+		else
+		{
+			Detonate();
+		}
+
+		return;
+	}
+
 	// only do damage if we're moving fairly fast
 	if (m_flNextAttack < gpGlobals->time && pev->velocity.Length() > 100)
 	{
@@ -710,6 +732,7 @@ CFreezeGrenade *CFreezeGrenade::ShootTimed( entvars_t *pevOwner, Vector vecStart
 	pGrenade->pev->velocity = vecVelocity;
 	pGrenade->pev->angles = UTIL_VecToAngles( pGrenade->pev->velocity );
 	pGrenade->pev->owner = ENT( pevOwner );
+	pGrenade->pev->spawnflags |= (SF_GRENADE_DETONATE_CONTACT_LIVING | SF_GRENADE_FREEZE_PAYLOAD);
 
 	pGrenade->SetTouch( &CGrenade::BounceTouch );
 	pGrenade->pev->dmgtime = gpGlobals->time + time;

@@ -209,14 +209,22 @@ void CHandGrenade::WeaponIdle( void )
 
 		if (m_fireState == 2) {
 #ifndef CLIENT_DLL
-			CFreezeGrenade::ShootTimed( m_pPlayer->pev, vecSrc, vecThrow, time );
+			CFreezeGrenade *pFreeze = CFreezeGrenade::ShootTimed( m_pPlayer->pev, vecSrc, vecThrow, time );
+			if (pFreeze)
+				pFreeze->pev->spawnflags |= SF_GRENADE_DETONATE_CONTACT_LIVING;
 #else
-			CGrenade::ShootTimed( m_pPlayer->pev, vecSrc, vecThrow, time );
+			CGrenade *pFreeze = CGrenade::ShootTimed( m_pPlayer->pev, vecSrc, vecThrow, time );
+			if (pFreeze)
+				pFreeze->pev->spawnflags |= SF_GRENADE_DETONATE_CONTACT_LIVING;
 #endif
 		} else if (m_fireState) {
-			CGrenade::ShootTimed( m_pPlayer->pev, vecSrc, vecThrow, time );
+			CGrenade *pTimed = CGrenade::ShootTimed( m_pPlayer->pev, vecSrc, vecThrow, time );
+			if (pTimed)
+				pTimed->pev->spawnflags |= SF_GRENADE_DETONATE_CONTACT_LIVING;
 		} else {
-			CGrenade::ShootTimedCluster( m_pPlayer->pev, vecSrc, vecThrow, time );
+			CGrenade *pCluster = CGrenade::ShootTimedCluster( m_pPlayer->pev, vecSrc, vecThrow, time );
+			if (pCluster)
+				pCluster->pev->spawnflags |= (SF_GRENADE_DETONATE_CONTACT_LIVING | SF_GRENADE_CLUSTER_PAYLOAD);
 		}
 
 		if ( flVel < 500 )
