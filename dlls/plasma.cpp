@@ -211,16 +211,20 @@ void CPlasma::Explode( void )
 
 	EMIT_SOUND(ENT(pev), CHAN_ITEM, "plasma_hitwall.wav", 1, ATTN_NORM);
 
+	Vector forward;
+
 	if ( m_pPlayer )
 	{
 		UTIL_MakeVectors( m_pPlayer->pev->v_angle );
+		forward = gpGlobals->v_forward;
 	}
 	else
 	{
-		UTIL_MakeVectors( pev->angles );
+		// pev->angles is used as a direction vector for plasma rockets (not Euler angles)
+		forward = pev->angles;
 	}
 
-	Vector t = pev->origin - gpGlobals->v_forward * 20;
+	Vector t = pev->origin - forward * 20;
 
 #ifndef CLIENT_DLL
 	MESSAGE_BEGIN( MSG_PAS, SVC_TEMPENTITY, pev->origin );
