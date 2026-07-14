@@ -28,11 +28,13 @@
 #include "decals.h"
 #include "game.h"
 #include "gamerules.h"
+#include "player.h"
 
 
 //===================grenade
 
 LINK_ENTITY_TO_CLASS( grenade, CGrenade );
+LINK_ENTITY_TO_CLASS( freezegrenade, CFreezeGrenade );
 
 // Grenades flagged with this will be triggered when the owner calls detonateSatchelCharges
 #define SF_DETONATE		0x0001
@@ -327,6 +329,28 @@ void CGrenade::BounceTouch( CBaseEntity *pOther )
 	// don't hit the guy that launched this grenade
 	if ( pOther->edict() == pev->owner )
 		return;
+
+	if ( FBitSet(pev->spawnflags, SF_GRENADE_DETONATE_CONTACT_LIVING) &&
+		 pOther->IsAlive() &&
+		 (pOther->pev->flags & (FL_CLIENT | FL_MONSTER)) )
+	{
+		SetTouch( NULL );
+
+		if ( FBitSet(pev->spawnflags, SF_GRENADE_FREEZE_PAYLOAD) )
+		{
+			((CFreezeGrenade *)this)->FreezeDetonate();
+		}
+		else if ( FBitSet(pev->spawnflags, SF_GRENADE_CLUSTER_PAYLOAD) )
+		{
+			ClusterDetonate();
+		}
+		else
+		{
+			Detonate();
+		}
+
+		return;
+	}
 
 	// only do damage if we're moving fairly fast
 	if (m_flNextAttack < gpGlobals->time && pev->velocity.Length() > 100)
@@ -671,6 +695,209 @@ void CGrenade::ClusterDetonate( void )
     CGrenade::ShootTimed(owner, pev->origin, Vector(RANDOM_LONG(-100, 100), RANDOM_LONG(-100, 100), RANDOM_LONG(-100, 100)) * RANDOM_LONG(2, 5), RANDOM_FLOAT(0.50, 2.50));
     CGrenade::ShootTimed(owner, pev->origin, Vector(RANDOM_LONG(-100, 100), RANDOM_LONG(-100, 100), RANDOM_LONG(-100, 100)) * RANDOM_LONG(2, 5), RANDOM_FLOAT(0.50, 2.50));
     CGrenade::ShootTimed(owner, pev->origin, Vector(RANDOM_LONG(-100, 100), RANDOM_LONG(-100, 100), RANDOM_LONG(-100, 100)) * RANDOM_LONG(2, 5), RANDOM_FLOAT(0.50, 2.50));
+}
+
+void CFreezeGrenade::Spawn( void )
+{
+	Precache();
+
+	pev->movetype = MOVETYPE_BOUNCE;
+	pev->classname = MAKE_STRING( "freezegrenade" );
+	pev->solid = SOLID_BBOX;
+
+	SET_MODEL( ENT(pev), "models/w_grenade.mdl" );
+	pev->body = 0;
+	pev->sequence = RANDOM_LONG( 4, 7 );
+	pev->framerate = 1.0;
+	ResetSequenceInfo();
+
+	UTIL_SetSize( pev, Vector( 0, 0, 0 ), Vector( 0, 0, 0 ) );
+
+	pev->dmg = 12;
+	m_fRegisteredSound = FALSE;
+}
+
+void CFreezeGrenade::Precache( void )
+{
+	PRECACHE_MODEL( "models/w_grenade.mdl" );
+	PRECACHE_SOUND( "weapons/explode3.wav" );
+	PRECACHE_SOUND( "snowball_hitbod.wav" );
+}
+
+CFreezeGrenade *CFreezeGrenade::ShootTimed( entvars_t *pevOwner, Vector vecStart, Vector vecVelocity, float time )
+{
+	CFreezeGrenade *pGrenade = GetClassPtr( (CFreezeGrenade *)NULL );
+	pGrenade->Spawn();
+	UTIL_SetOrigin( pGrenade->pev, vecStart );
+	pGrenade->pev->velocity = vecVelocity;
+	pGrenade->pev->angles = UTIL_VecToAngles( pGrenade->pev->velocity );
+	pGrenade->pev->owner = ENT( pevOwner );
+	pGrenade->pev->spawnflags |= (SF_GRENADE_DETONATE_CONTACT_LIVING | SF_GRENADE_FREEZE_PAYLOAD);
+
+	pGrenade->SetTouch( &CGrenade::BounceTouch );
+	pGrenade->pev->dmgtime = gpGlobals->time + time;
+	pGrenade->SetThink( &CFreezeGrenade::FreezeTumbleThink );
+	pGrenade->pev->nextthink = gpGlobals->time + 0.1;
+
+	if ( time < 0.1 )
+	{
+		pGrenade->pev->nextthink = gpGlobals->time;
+		pGrenade->pev->velocity = Vector( 0, 0, 0 );
+	}
+
+	pGrenade->pev->gravity = 0.5;
+	pGrenade->pev->friction = 0.8;
+
+	return pGrenade;
+}
+
+void CFreezeGrenade::FreezeTumbleThink( void )
+{
+	if ( !IsInWorld() )
+	{
+		UTIL_Remove( this );
+		return;
+	}
+
+	StudioFrameAdvance();
+	pev->nextthink = gpGlobals->time + 0.1;
+
+	if ( pev->dmgtime - 1 < gpGlobals->time )
+	{
+		CSoundEnt::InsertSound( bits_SOUND_DANGER, pev->origin + pev->velocity * ( pev->dmgtime - gpGlobals->time ), 300, 0.1 );
+	}
+
+	if ( pev->dmgtime <= gpGlobals->time )
+	{
+		SetThink( &CFreezeGrenade::FreezeDetonate );
+	}
+
+	if ( pev->waterlevel != 0 )
+	{
+		pev->velocity = pev->velocity * 0.5;
+		pev->framerate = 0.2;
+	}
+}
+
+void CFreezeGrenade::FreezeDetonate( void )
+{
+	const float flFreezeRadius = 128.0f;
+	const int minFreezeTicks = 30;
+
+	TraceResult tr;
+	Vector vecSpot = pev->origin + Vector( 0, 0, 8 );
+	UTIL_TraceLine( vecSpot, vecSpot + Vector( 0, 0, -40 ), ignore_monsters, ENT(pev), &tr );
+
+	pev->model = iStringNull;
+	pev->solid = SOLID_NOT;
+	pev->takedamage = DAMAGE_NO;
+
+	if ( tr.flFraction != 1.0 )
+	{
+		pev->origin = tr.vecEndPos + ( tr.vecPlaneNormal * 8 );
+	}
+
+	MESSAGE_BEGIN( MSG_PVS, SVC_TEMPENTITY, pev->origin );
+		WRITE_BYTE( TE_BEAMCYLINDER );
+		WRITE_COORD( pev->origin.x );
+		WRITE_COORD( pev->origin.y );
+		WRITE_COORD( pev->origin.z );
+		WRITE_COORD( pev->origin.x );
+		WRITE_COORD( pev->origin.y );
+		WRITE_COORD( pev->origin.z + 320 );
+		WRITE_SHORT( g_sModelLightning );
+		WRITE_BYTE( 0 );
+		WRITE_BYTE( 0 );
+		WRITE_BYTE( 8 );
+		WRITE_BYTE( 20 );
+		WRITE_BYTE( 0 );
+		WRITE_BYTE( 224 );
+		WRITE_BYTE( 224 );
+		WRITE_BYTE( 255 );
+		WRITE_BYTE( 192 );
+		WRITE_BYTE( 0 );
+	MESSAGE_END();
+
+	MESSAGE_BEGIN( MSG_PAS, SVC_TEMPENTITY, pev->origin );
+		WRITE_BYTE( TE_SPRITE );
+		WRITE_COORD( pev->origin.x );
+		WRITE_COORD( pev->origin.y );
+		WRITE_COORD( pev->origin.z );
+		WRITE_SHORT( g_sModelIndexSnowballHit );
+		WRITE_BYTE( 40 );
+		WRITE_BYTE( 128 );
+	MESSAGE_END();
+
+	MESSAGE_BEGIN( MSG_PVS, SVC_TEMPENTITY, pev->origin );
+		WRITE_BYTE( TE_DLIGHT );
+		WRITE_COORD( pev->origin.x );
+		WRITE_COORD( pev->origin.y );
+		WRITE_COORD( pev->origin.z );
+		WRITE_BYTE( 18 );
+		WRITE_BYTE( 224 );
+		WRITE_BYTE( 224 );
+		WRITE_BYTE( 255 );
+		WRITE_BYTE( 8 );
+		WRITE_BYTE( 12 );
+	MESSAGE_END();
+
+	CSoundEnt::InsertSound( bits_SOUND_COMBAT, pev->origin, NORMAL_EXPLOSION_VOLUME, 3.0 );
+
+	entvars_t *pevOwner = pev->owner ? VARS( pev->owner ) : NULL;
+	CBaseEntity *pAttacker = pevOwner ? CBaseEntity::Instance( pevOwner ) : this;
+	pev->owner = NULL;
+	::RadiusDamage( pev->origin, pev, pevOwner, pev->dmg, flFreezeRadius, CLASS_NONE, DMG_BLAST | DMG_FREEZE | DMG_NEVERGIB );
+
+	// Ensure freeze is actually applied on blast hits even when the generic
+	// DMG_FREEZE helper does not freeze (for example, self-hit edge cases).
+	CBaseEntity *pEntity = NULL;
+	while ( ( pEntity = UTIL_FindEntityInSphere( pEntity, pev->origin, flFreezeRadius ) ) != NULL )
+	{
+		if ( !pEntity->IsPlayer() || !pEntity->IsAlive() )
+			continue;
+
+		CBasePlayer *pPlayer = (CBasePlayer *)pEntity;
+		if ( FBitSet( pPlayer->pev->flags, FL_GODMODE ) || FBitSet( pPlayer->pev->effects, EF_NODRAW ) )
+			continue;
+
+		if ( g_pGameRules->IsArmoredMan( pPlayer ) )
+			continue;
+
+		if ( !g_pGameRules->FPlayerCanTakeDamage( pPlayer, pAttacker ) )
+			continue;
+
+		TraceResult trTarget;
+		Vector vecTarget = pPlayer->BodyTarget( pev->origin );
+		UTIL_TraceLine( pev->origin, vecTarget, dont_ignore_monsters, ENT(pev), &trTarget );
+		if ( trTarget.flFraction != 1.0 && trTarget.pHit != pPlayer->edict() )
+			continue;
+
+		int stacked = (int)pPlayer->pev->renderamt;
+		if ( stacked < minFreezeTicks )
+			stacked = minFreezeTicks;
+		if ( stacked > 60 )
+			stacked = 60;
+
+		if ( pPlayer->m_iFreezeCounter < 5 )
+			EMIT_SOUND( ENT(pPlayer->pev), CHAN_BODY, "freezing.wav", 1, ATTN_NORM );
+
+		pPlayer->pev->renderfx = kRenderFxGlowShell;
+		pPlayer->pev->renderamt = (float)stacked;
+		pPlayer->pev->rendercolor.x = 0;
+		pPlayer->pev->rendercolor.y = 115;
+		pPlayer->pev->rendercolor.z = 230;
+		pPlayer->m_iFreezeCounter = stacked;
+		pPlayer->pev->iuser4 = pPlayer->m_iFreezeCounter;
+		UTIL_ScreenFade( pPlayer, Vector(0, 113, 230), 1, 2, 128, 0 );
+	}
+
+	EMIT_SOUND_DYN( ENT(pev), CHAN_WEAPON, "weapons/explode3.wav", 0.9, ATTN_NORM, 0, 100 );
+	EMIT_SOUND_DYN( ENT(pev), CHAN_VOICE, "snowball_hitbod.wav", 0.7, ATTN_NORM, 0, 100 );
+
+	pev->effects |= EF_NODRAW;
+	pev->velocity = g_vecZero;
+	SetThink( &CBaseEntity::SUB_Remove );
+	pev->nextthink = gpGlobals->time + 0.1;
 }
 
 

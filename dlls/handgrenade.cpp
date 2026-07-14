@@ -62,6 +62,7 @@ void CHandGrenade::Precache( void )
 	PRECACHE_MODEL("models/v_grenade.mdl");
 	PRECACHE_MODEL("models/p_weapons.mdl");
 	PRECACHE_SOUND("grenade_throw.wav");
+	UTIL_PrecacheOther("freezegrenade");
 }
 
 int CHandGrenade::GetItemInfo(ItemInfo *p)
@@ -157,6 +158,20 @@ void CHandGrenade::SecondaryAttack()
 	}
 }
 
+void CHandGrenade::Reload()
+{
+	if ( m_flStartThrow || m_pPlayer->m_rgAmmo[ m_iPrimaryAmmoType ] <= 0 )
+		return;
+
+	m_flStartThrow = gpGlobals->time;
+	m_flReleaseThrow = 0;
+	m_fireState = 2;
+
+	SendWeaponAnim( HANDGRENADE_PINPULL );
+	m_pPlayer->pev->punchangle = Vector(0, -3, 0);
+	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 0.5;
+}
+
 void CHandGrenade::WeaponIdle( void )
 {
 	m_pPlayer->GetAutoaimVector( AUTOAIM_10DEGREES );
@@ -192,10 +207,24 @@ void CHandGrenade::WeaponIdle( void )
 		if (time < 0)
 			time = 0;
 
-		if (m_fireState) {
-			CGrenade::ShootTimed( m_pPlayer->pev, vecSrc, vecThrow, time );
+		if (m_fireState == 2) {
+#ifndef CLIENT_DLL
+			CFreezeGrenade *pFreeze = CFreezeGrenade::ShootTimed( m_pPlayer->pev, vecSrc, vecThrow, time );
+			if (pFreeze)
+				pFreeze->pev->spawnflags |= SF_GRENADE_DETONATE_CONTACT_LIVING;
+#else
+			CGrenade *pFreeze = CGrenade::ShootTimed( m_pPlayer->pev, vecSrc, vecThrow, time );
+			if (pFreeze)
+				pFreeze->pev->spawnflags |= SF_GRENADE_DETONATE_CONTACT_LIVING;
+#endif
+		} else if (m_fireState) {
+			CGrenade *pTimed = CGrenade::ShootTimed( m_pPlayer->pev, vecSrc, vecThrow, time );
+			if (pTimed)
+				pTimed->pev->spawnflags |= SF_GRENADE_DETONATE_CONTACT_LIVING;
 		} else {
-			CGrenade::ShootTimedCluster( m_pPlayer->pev, vecSrc, vecThrow, time );
+			CGrenade *pCluster = CGrenade::ShootTimedCluster( m_pPlayer->pev, vecSrc, vecThrow, time );
+			if (pCluster)
+				pCluster->pev->spawnflags |= (SF_GRENADE_DETONATE_CONTACT_LIVING | SF_GRENADE_CLUSTER_PAYLOAD);
 		}
 
 		if ( flVel < 500 )

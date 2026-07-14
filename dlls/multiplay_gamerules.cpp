@@ -1627,6 +1627,7 @@ void CHalfLifeMultiplay::RemoveAndFillItems( void )
 		"monster_sentry",
 		"nuke_rocket",
 		"rpg_rocket",
+		"freezegrenade",
 		"grenade",
 		"gib",
 		"weaponbox",
