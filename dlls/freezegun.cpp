@@ -39,6 +39,59 @@ enum freezegun_e {
 LINK_ENTITY_TO_CLASS(weapon_freezegun, CFreezeGun);
 #endif
 
+static float FreezeLaserDistanceToSegment( const Vector &point, const Vector &start, const Vector &end, float &segmentFrac )
+{
+	Vector segment = end - start;
+	float segmentLenSq = DotProduct( segment, segment );
+	segmentFrac = 0.0f;
+
+	if ( segmentLenSq > 0.0001f )
+	{
+		segmentFrac = DotProduct( point - start, segment ) / segmentLenSq;
+		if ( segmentFrac < 0.0f )
+			segmentFrac = 0.0f;
+		else if ( segmentFrac > 1.0f )
+			segmentFrac = 1.0f;
+	}
+
+	Vector closestPoint = start + segment * segmentFrac;
+	return ( point - closestPoint ).Length();
+}
+
+static CPlasma *FindPlasmaTargetAlongBeam( const Vector &vecStart, const Vector &vecEnd, CBaseEntity *pShooter, float flMaxBeamFraction )
+{
+	CBaseEntity *pEntity = NULL;
+	CPlasma *pClosestPlasma = NULL;
+	float flClosestFraction = flMaxBeamFraction;
+
+	while ( ( pEntity = UTIL_FindEntityByClassname( pEntity, "plasma" ) ) != NULL )
+	{
+		if ( pEntity->pev->solid == SOLID_NOT || FBitSet( pEntity->pev->effects, EF_NODRAW ) )
+		{
+			continue;
+		}
+
+		float flBeamFraction = 0.0f;
+		float flDistance = FreezeLaserDistanceToSegment( pEntity->pev->origin, vecStart, vecEnd, flBeamFraction );
+		if ( flDistance > 28.0f || flBeamFraction > flClosestFraction )
+		{
+			continue;
+		}
+
+		TraceResult losTrace;
+		UTIL_TraceLine( vecStart, pEntity->pev->origin, dont_ignore_monsters, pShooter ? ENT( pShooter->pev ) : NULL, &losTrace );
+		if ( losTrace.pHit != ENT( pEntity->pev ) && losTrace.flFraction < 1.0f )
+		{
+			continue;
+		}
+
+		pClosestPlasma = (CPlasma *)pEntity;
+		flClosestFraction = flBeamFraction;
+	}
+
+	return pClosestPlasma;
+}
+
 void CFreezeGun::Spawn()
 {
 	Precache();
@@ -67,6 +120,7 @@ void CFreezeGun::Precache(void)
 	UTIL_PrecacheOther("plasma");
 
 	m_usPlasmaFire = PRECACHE_EVENT(1, "events/freezegun.sc");
+	m_usPlasmaLaser = PRECACHE_EVENT(1, "events/freezegun_laser.sc");
 }
 
 int CFreezeGun::AddToPlayer(CBasePlayer *pPlayer)
@@ -207,7 +261,95 @@ void CFreezeGun::PrimaryAttack()
 		m_pPlayer->SetSuitUpdate("!HEV_AMO0", FALSE, 0);
 
 	m_flNextPrimaryAttack = GetNextAttackDelay(0.5);
-	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 0.5;
+	m_flNextSecondaryAttack = GetNextAttackDelay(0.0);
+	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase();
+}
+
+void CFreezeGun::SecondaryAttack()
+{
+	if (m_pPlayer->pev->waterlevel == 3)
+	{
+		PlayEmptySound();
+		m_flNextPrimaryAttack = m_flNextSecondaryAttack = GetNextAttackDelay(0.15);
+		return;
+	}
+
+	if (m_iClip <= 0)
+	{
+		Reload();
+		if (m_iClip == 0)
+			PlayEmptySound();
+		return;
+	}
+
+	m_pPlayer->m_iWeaponVolume = NORMAL_GUN_VOLUME;
+	m_pPlayer->m_iWeaponFlash = BRIGHT_GUN_FLASH;
+	m_iClip--;
+
+	int flags;
+#if defined( CLIENT_WEAPONS )
+	flags = FEV_NOTHOST;
+#else
+	flags = 0;
+#endif
+
+	m_pPlayer->SetAnimation(PLAYER_ATTACK1);
+	UTIL_MakeVectors( m_pPlayer->pev->v_angle );
+	Vector vecAiming = m_pPlayer->GetAutoaimVector( AUTOAIM_10DEGREES );
+	Vector vecSrc = m_pPlayer->GetGunPosition() + vecAiming * 16 + gpGlobals->v_right * 8 + gpGlobals->v_up * -8;
+
+#ifndef CLIENT_DLL
+	Vector vecEnd = vecSrc + vecAiming * 8192.0f;
+	TraceResult tr;
+	UTIL_TraceLine( vecSrc, vecEnd, dont_ignore_monsters, ENT( m_pPlayer->pev ), &tr );
+
+	CBaseEntity *pHit = CBaseEntity::Instance( tr.pHit );
+	CPlasma *pPlasma = NULL;
+
+	if ( pHit && pHit->pev && FClassnameIs( pHit->pev, "plasma" ) )
+	{
+		pPlasma = (CPlasma *)pHit;
+	}
+	else
+	{
+		float flMaxBeamFraction = tr.flFraction;
+		if ( flMaxBeamFraction <= 0.0f || flMaxBeamFraction > 1.0f )
+			flMaxBeamFraction = 1.0f;
+		pPlasma = FindPlasmaTargetAlongBeam( vecSrc, vecEnd, m_pPlayer, flMaxBeamFraction + 0.01f );
+	}
+
+	if ( pPlasma )
+	{
+		pPlasma->DetonateByLaser( m_pPlayer );
+	}
+	else if ( pHit && pHit->pev && pHit->pev->takedamage )
+	{
+		ClearMultiDamage();
+		pHit->TraceAttack( m_pPlayer->pev, pev->dmg, vecAiming, &tr, DMG_GENERIC | DMG_ENERGYBEAM | DMG_FREEZE );
+		ApplyMultiDamage( m_pPlayer->pev, m_pPlayer->pev );
+	}
+#endif
+
+	PLAYBACK_EVENT_FULL(
+		flags,
+		m_pPlayer->edict(),
+		m_usPlasmaLaser,
+		0.0,
+		(float *)&m_pPlayer->pev->origin,
+		(float *)&m_pPlayer->pev->angles,
+		0.0,
+		0.0,
+		0,
+		0,
+		FALSE,
+		0);
+
+	if (!m_iClip && m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] <= 0)
+		m_pPlayer->SetSuitUpdate("!HEV_AMO0", FALSE, 0);
+
+	m_flNextPrimaryAttack = m_flNextSecondaryAttack = GetNextAttackDelay(0.35);
+	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 0.2;
+	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 0.35;
 }
 
 void CFreezeGun::WeaponIdle( void )

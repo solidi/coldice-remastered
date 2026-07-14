@@ -25,6 +25,7 @@ public:
 
 	void Glow( void );
 	void Explode( void );
+	void DetonateByLaser( CBaseEntity *pAttacker );
 	void EXPORT RocketTouch( CBaseEntity *pOther );
 	void EXPORT FlyThink( void );
 	void EXPORT IgniteThink( void );
