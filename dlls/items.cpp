@@ -1352,25 +1352,11 @@ static int RuneClassToId(const char *szRuneClass)
 	if (!szRuneClass)
 		return 0;
 
-	if (!strcmp(szRuneClass, "rune_frag"))
-		return RUNE_FRAG;
-	if (!strcmp(szRuneClass, "rune_vampire"))
-		return RUNE_VAMPIRE;
-	if (!strcmp(szRuneClass, "rune_protect"))
-		return RUNE_PROTECT;
-	if (!strcmp(szRuneClass, "rune_regen"))
-		return RUNE_REGEN;
-	if (!strcmp(szRuneClass, "rune_haste"))
-		return RUNE_HASTE;
-	if (!strcmp(szRuneClass, "rune_gravity"))
-		return RUNE_GRAVITY;
-	if (!strcmp(szRuneClass, "rune_strength"))
-		return RUNE_STRENGTH;
-	if (!strcmp(szRuneClass, "rune_cloak"))
-		return RUNE_CLOAK;
-	if (!strcmp(szRuneClass, "rune_ammo"))
-		return RUNE_AMMO;
-
+	for (int i = 0; i < RUNE_COUNT; ++i)
+	{
+		if (!strcmp(szRuneClass, runeClassList[i]))
+			return i + 1; // RUNE_* IDs are 1-based
+	}
 	return 0;
 }
 
