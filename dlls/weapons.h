@@ -2338,6 +2338,7 @@ public:
 	int AddToPlayer( CBasePlayer *pPlayer );
 
 	void PrimaryAttack( void );
+	void SecondaryAttack( void );
 
 	BOOL DeployLowKey( void );
 	BOOL Deploy( void );
@@ -2359,6 +2360,7 @@ private:
 	int m_iIceMuzzlePlasma, m_iMuzzlePlasma;
 	int m_fInAttack;
 	unsigned short m_usPlasmaFire;
+	unsigned short m_usPlasmaLaser;
 };
 
 class CGravityGun : public CBasePlayerWeapon

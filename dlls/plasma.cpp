@@ -180,6 +180,20 @@ void CPlasma::RocketTouch( CBaseEntity *pOther )
 	Explode();
 }
 
+void CPlasma::DetonateByLaser( CBaseEntity *pAttacker )
+{
+	if ( pAttacker )
+	{
+		if ( pAttacker->edict() )
+		{
+			pev->owner = pAttacker->edict();
+		}
+		m_pPlayer = pAttacker;
+	}
+
+	Explode();
+}
+
 void CPlasma::Explode( void )
 {
 	pev->model = iStringNull;
@@ -197,7 +211,15 @@ void CPlasma::Explode( void )
 
 	EMIT_SOUND(ENT(pev), CHAN_ITEM, "plasma_hitwall.wav", 1, ATTN_NORM);
 
-	UTIL_MakeVectors( m_pPlayer->pev->v_angle );
+	if ( m_pPlayer )
+	{
+		UTIL_MakeVectors( m_pPlayer->pev->v_angle );
+	}
+	else
+	{
+		UTIL_MakeVectors( pev->angles );
+	}
+
 	Vector t = pev->origin - gpGlobals->v_forward * 20;
 
 #ifndef CLIENT_DLL

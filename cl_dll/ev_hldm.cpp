@@ -106,6 +106,7 @@ void EV_FireDualWrench( struct event_args_s *args  );
 void EV_FireDualUsas( struct event_args_s *args  );
 void EV_FireDualUsasBoth( struct event_args_s *args  );
 void EV_FireFreezeGun( struct event_args_s *args  );
+void EV_FireFreezeGunLaser( struct event_args_s *args );
 void EV_RocketCrowbar( struct event_args_s *args  );
 void EV_GravityGun( struct event_args_s *args  );
 void EV_FireFlameStream( struct event_args_s *args  );
@@ -3489,7 +3490,7 @@ void EV_FireFreezeGun( event_args_t *args )
 			gEngfuncs.pEventAPI->EV_WeaponAnimation( FREEZEGUN_SHOOT3, 0 );
 		}
 
-		V_PunchAxis(PITCH, gEngfuncs.pfnRandomFloat(-7.0, -9.0));
+		// V_PunchAxis(PITCH, gEngfuncs.pfnRandomFloat(-7.0, -9.0));
 	}
 
 	int fPrimaryFire = args->bparam2;
@@ -3497,6 +3498,78 @@ void EV_FireFreezeGun( event_args_t *args )
 	if ( fPrimaryFire )
 	{
 		gEngfuncs.pEventAPI->EV_PlaySound( idx, origin, CHAN_WEAPON, "freezegun_fire.wav", 1, ATTN_NORM, 0, 100 );
+	}
+}
+
+void EV_FireFreezeGunLaser( event_args_t *args )
+{
+	int idx;
+	int beamModel;
+	int glowModel;
+	vec3_t origin;
+	vec3_t angles;
+	vec3_t vecSrc;
+	vec3_t vecDest;
+	vec3_t up, right, forward;
+	pmtrace_t tr;
+
+	idx = args->entindex;
+	VectorCopy( args->origin, origin );
+	VectorCopy( args->angles, angles );
+
+	beamModel = gEngfuncs.pEventAPI->EV_FindModelIndex( RAIL_BEAM_SPRITE );
+	glowModel = gEngfuncs.pEventAPI->EV_FindModelIndex( RAIL_GLOW_SPRITE );
+
+	AngleVectors( angles, forward, right, up );
+	EV_GetGunPosition( args, vecSrc, origin );
+	VectorMA( vecSrc, 16.0, forward, vecSrc );
+	VectorMA( vecSrc, 8.0, right, vecSrc );
+	VectorMA( vecSrc, -8.0, up, vecSrc );
+	VectorMA( vecSrc, 8192.0, forward, vecDest );
+
+	if ( EV_IsLocal( idx ) )
+	{
+		EV_MuzzleFlash();
+
+		switch ( gEngfuncs.pfnRandomLong( 0, 2 ) )
+		{
+		case 0:
+			gEngfuncs.pEventAPI->EV_WeaponAnimation( FREEZEGUN_SHOOT1, 0 );
+			break;
+		case 1:
+			gEngfuncs.pEventAPI->EV_WeaponAnimation( FREEZEGUN_SHOOT2, 0 );
+			break;
+		default:
+			gEngfuncs.pEventAPI->EV_WeaponAnimation( FREEZEGUN_SHOOT3, 0 );
+			break;
+		}
+
+		V_PunchAxis( PITCH, gEngfuncs.pfnRandomFloat( -4.0, -6.0 ) );
+	}
+
+	gEngfuncs.pEventAPI->EV_PlaySound( idx, origin, CHAN_WEAPON, "railgun_fire2.wav", 1, ATTN_NORM, 0, 100 );
+
+	gEngfuncs.pEventAPI->EV_SetUpPlayerPrediction( false, true );
+	gEngfuncs.pEventAPI->EV_PushPMStates();
+	gEngfuncs.pEventAPI->EV_SetSolidPlayers( idx - 1 );
+	gEngfuncs.pEventAPI->EV_SetTraceHull( 2 );
+	gEngfuncs.pEventAPI->EV_PlayerTrace( vecSrc, vecDest, PM_STUDIO_BOX, -1, &tr );
+	gEngfuncs.pEventAPI->EV_PopPMStates();
+
+	if ( beamModel )
+	{
+		BEAM *pOuterBeam = gEngfuncs.pEfxAPI->R_BeamPoints( vecSrc, tr.endpos, beamModel, 0.2, 3.2, 0.05, 220.0, 8.0, 0, 0.0, 0, 113, 255 );
+		if ( pOuterBeam )
+			pOuterBeam->flags |= FBEAM_SINENOISE;
+
+		BEAM *pCoreBeam = gEngfuncs.pEfxAPI->R_BeamPoints( vecSrc, tr.endpos, beamModel, 0.2, 1.6, 0.0, 255.0, 8.0, 0, 0.0, 180, 220, 255 );
+		if ( pCoreBeam )
+			pCoreBeam->flags |= FBEAM_SINENOISE;
+	}
+
+	if ( glowModel )
+	{
+		gEngfuncs.pEfxAPI->R_TempSprite( tr.endpos, vec3_origin, 0.15, glowModel, kRenderGlow, kRenderFxNoDissipation, 0.9, 0.1, FTENT_FADEOUT );
 	}
 }
 

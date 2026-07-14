@@ -1401,6 +1401,8 @@ void CBasePlayerWeapon::ItemPostFrame( void )
 					m_pPlayer->ExpireSpawnProtection();
 					PrimaryAttack();
 					m_flNextPrimaryAttack = m_flNextSecondaryAttack = (m_flNextPrimaryAttack * multipler);
+					if ( m_iId == WEAPON_FREEZEGUN )
+						m_flNextSecondaryAttack = 0.0f;
 				}
 			}
 			m_bFired = TRUE;
@@ -1413,6 +1415,8 @@ void CBasePlayerWeapon::ItemPostFrame( void )
 				m_pPlayer->ExpireSpawnProtection();
 			PrimaryAttack();
 			m_flNextPrimaryAttack = m_flNextSecondaryAttack = (m_flNextPrimaryAttack * multipler);
+			if ( m_iId == WEAPON_FREEZEGUN )
+				m_flNextSecondaryAttack = 0.0f;
 		}
 	}
 	else if ( m_pPlayer->pev->button & IN_RELOAD && (iMaxClip() != WEAPON_NOCLIP || AcceptReload()) && !m_fInReload ) 
