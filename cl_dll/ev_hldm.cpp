@@ -123,6 +123,7 @@ void EV_FireDualChaingun( struct event_args_s *args  );
 void EV_FireDualHornetGun( struct event_args_s *args  );
 void EV_FireFingergun( struct event_args_s *args  );
 void EV_FireZapgun( struct event_args_s *args  );
+void EV_FireZapgunLaser( struct event_args_s *args );
 void EV_FireDualGlock( struct event_args_s *args );
 void EV_FireVice( struct event_args_s *args );
 
@@ -4228,79 +4229,103 @@ void EV_FireZapgun( event_args_t *args )
 	int idx;
 	vec3_t origin;
 	vec3_t angles;
-	vec3_t velocity;
-	pmtrace_t tr;
-
-	vec3_t vecSrc, vecAiming, vecEnd;
+	vec3_t vecSrc;
 	vec3_t up, right, forward;
-	float flSpread = 0.01;
+	int iBurstShot = args->bparam1;
 
 	idx = args->entindex;
 	VectorCopy( args->origin, origin );
 	VectorCopy( args->angles, angles );
-	VectorCopy( args->velocity, velocity );
 
 	AngleVectors( angles, forward, right, up );
-
-	VectorMA( vecSrc, 8192, forward, vecEnd );
 
 	if ( EV_IsLocal( idx ) )
 	{
 		// Add muzzle flash to current weapon model
 		EV_MuzzleFlash();
 		gEngfuncs.pEventAPI->EV_WeaponAnimation( ZAPGUN_SHOOT, 0 );
-
-		//V_PunchAxis(PITCH, gEngfuncs.pfnRandomFloat(-10.0, -15.0) );
-		//V_PunchAxis(YAW, gEngfuncs.pfnRandomFloat(-3.0, -5.0)); //yaw, - = right
-		//V_PunchAxis(ROLL, gEngfuncs.pfnRandomFloat(3.0, 5.0)); //roll, - = left
+		if ( iBurstShot )
+		{
+			V_PunchAxis(PITCH, gEngfuncs.pfnRandomFloat(-1.0, -2.0));
+		}
+		else
+		{
+			V_PunchAxis(PITCH, gEngfuncs.pfnRandomFloat(-2.0, -3.5));
+		}
 	}
 
-	gEngfuncs.pEventAPI->EV_PlaySound( idx, origin, CHAN_WEAPON, "zapgun.wav", gEngfuncs.pfnRandomFloat(0.8, 0.9), ATTN_NORM, 0, PITCH_NORM );
+	int iPitch = iBurstShot ? PITCH_NORM + gEngfuncs.pfnRandomLong(6, 16) : PITCH_NORM;
+	int iSoundChannel = iBurstShot ? CHAN_AUTO : CHAN_WEAPON;
+	gEngfuncs.pEventAPI->EV_PlaySound( idx, origin, iSoundChannel, "zapgun.wav", gEngfuncs.pfnRandomFloat(0.8, 0.9), ATTN_NORM, 0, iPitch );
 
 	EV_GetGunPosition( args, vecSrc, origin );
-	
-	VectorCopy( forward, vecAiming );
 
 	EV_GunSmoke(gEngfuncs.GetViewModel()->attachment[0], 0.6, idx, args->ducking, forward, right, up, 0, 0, 0);
+}
 
-/*
-	// Store off the old count
-	gEngfuncs.pEventAPI->EV_PushPMStates();
+void EV_FireZapgunLaser( event_args_t *args )
+{
+	int idx;
+	int beamModel;
+	int glowModel;
+	vec3_t origin;
+	vec3_t angles;
+	vec3_t vecSrc;
+	vec3_t vecDest;
+	vec3_t up, right, forward;
+	pmtrace_t tr;
 
-	// Now add in all of the players.
-	gEngfuncs.pEventAPI->EV_SetSolidPlayers ( idx - 1 );	
-	gEngfuncs.pEventAPI->EV_SetTraceHull( 2 );
-	gEngfuncs.pEventAPI->EV_PlayerTrace( vecSrc, vecEnd, PM_STUDIO_BOX, -1, &tr );
-	
-	//We hit something
-	if ( tr.fraction < 1.0 )
+	idx = args->entindex;
+	VectorCopy( args->origin, origin );
+	VectorCopy( args->angles, angles );
+
+	beamModel = gEngfuncs.pEventAPI->EV_FindModelIndex( RAIL_BEAM_SPRITE );
+	glowModel = gEngfuncs.pEventAPI->EV_FindModelIndex( RAIL_GLOW_SPRITE );
+
+	AngleVectors( angles, forward, right, up );
+	EV_GetGunPosition( args, vecSrc, origin );
+	VectorMA( vecSrc, 16.0, forward, vecSrc );
+	VectorMA( vecSrc, 8.0, right, vecSrc );
+	VectorMA( vecSrc, -8.0, up, vecSrc );
+	VectorMA( vecSrc, 8192.0, forward, vecDest );
+
+	if ( EV_IsLocal( idx ) )
 	{
-		physent_t *pe = gEngfuncs.pEventAPI->EV_GetPhysent( tr.ent ); 
-
-		//Not the world, let's assume we hit something organic ( dog, cat, uncle joe, etc ).
-		if ( pe->solid != SOLID_BSP )
-		{
-			switch( gEngfuncs.pfnRandomLong(0,1) )
-			{
-			case 0:
-				gEngfuncs.pEventAPI->EV_PlaySound( idx, tr.endpos, CHAN_BODY, "weapons/xbow_hitbod1.wav", 1, ATTN_NORM, 0, PITCH_NORM ); break;
-			case 1:
-				gEngfuncs.pEventAPI->EV_PlaySound( idx, tr.endpos, CHAN_BODY, "weapons/xbow_hitbod2.wav", 1, ATTN_NORM, 0, PITCH_NORM ); break;
-			}
-		}
-		//Stick to world but don't stick to glass, it might break and leave the bolt floating. It can still stick to other non-transparent breakables though.
-		else if ( pe->rendermode == kRenderNormal ) 
-		{
-			// gEngfuncs.pEventAPI->EV_PlaySound( 0, tr.endpos, CHAN_BODY, "weapons/xbow_hit1.wav", gEngfuncs.pfnRandomFloat(0.95, 1.0), ATTN_NORM, 0, PITCH_NORM );
-		
-			//Not underwater, do some sparks...
-			gEngfuncs.pEfxAPI->R_SparkShower( tr.endpos );
-		}
+		EV_MuzzleFlash();
+		gEngfuncs.pEventAPI->EV_WeaponAnimation( ZAPGUN_SHOOT, 0 );
+		V_PunchAxis( PITCH, gEngfuncs.pfnRandomFloat( -3.0, -4.0 ) );
 	}
 
+	gEngfuncs.pEventAPI->EV_PlaySound( idx, origin, CHAN_WEAPON, "railgun_fire2.wav", 0.95, ATTN_NORM, 0, 95 + gEngfuncs.pfnRandomLong(0, 4) );
+
+	gEngfuncs.pEventAPI->EV_SetUpPlayerPrediction( false, true );
+	gEngfuncs.pEventAPI->EV_PushPMStates();
+	gEngfuncs.pEventAPI->EV_SetSolidPlayers( idx - 1 );
+	gEngfuncs.pEventAPI->EV_SetTraceHull( 2 );
+	gEngfuncs.pEventAPI->EV_PlayerTrace( vecSrc, vecDest, PM_STUDIO_BOX, -1, &tr );
 	gEngfuncs.pEventAPI->EV_PopPMStates();
-*/
-	//EV_HLDM_FireBullets( idx, forward, right, up, 1, vecSrc, vecAiming, 8192, BULLET_PLAYER_357, 0, 0, args->fparam1, args->fparam2 );
+
+	int r = 255;
+	int g = 24;
+	int b = 24;
+	if ( gHUD.m_IceModelsIndex != SKIN_NORMAL )
+	{
+		r = 0;
+		g = 113;
+		b = 230;
+	}
+
+	if ( beamModel )
+	{
+		BEAM *pBeam = gEngfuncs.pEfxAPI->R_BeamPoints( vecSrc, tr.endpos, beamModel, 0.2, 2.2, 0.0, 220.0, 8.0, 0, 0.0, r, g, b );
+		if ( pBeam )
+			pBeam->flags |= FBEAM_SINENOISE;
+	}
+
+	if ( glowModel )
+	{
+		gEngfuncs.pEfxAPI->R_TempSprite( tr.endpos, vec3_origin, 0.15, glowModel, kRenderGlow, kRenderFxNoDissipation, 0.7, 0.1, FTENT_FADEOUT );
+	}
 }
 
 void EV_FireDualGlock( event_args_t *args )

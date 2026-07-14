@@ -811,6 +811,7 @@ enum e_protips {
 	PROX_TIP,
 	FREEZE_TIP,
 	LASER_TIP,
+	ZAPGUN_TIP,
 };
 
 extern void ProTip(int id, const char *message);
@@ -1057,6 +1058,7 @@ void HUD_WeaponsPostThink( local_state_s *from, local_state_s *to, usercmd_t *cm
 
 		case WEAPON_ZAPGUN:
 			pWeapon = &g_Zapgun;
+			ProTip(ZAPGUN_TIP, "Use RELOAD button to fire a stun laser");
 			break;
 
 		case WEAPON_DUAL_GLOCK:
