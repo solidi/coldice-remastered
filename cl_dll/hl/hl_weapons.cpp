@@ -810,6 +810,7 @@ enum e_protips {
 	DROP_TIP,
 	PROX_TIP,
 	FREEZE_TIP,
+	LASER_TIP,
 };
 
 extern void ProTip(int id, const char *message);
@@ -1008,6 +1009,7 @@ void HUD_WeaponsPostThink( local_state_s *from, local_state_s *to, usercmd_t *cm
 
 		case WEAPON_FREEZEGUN:
 			pWeapon = &g_FreezeGun;
+			ProTip(LASER_TIP, "Use ATTACK2 to blow up ice plasma");
 			break;
 
 		case WEAPON_ROCKETCROWBAR:
