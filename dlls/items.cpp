@@ -1235,6 +1235,9 @@ const char *pPlaces[] =
 	"ammo_crossbow",
 };
 
+static BOOL IsRuneUnavailableForWorldSpawn(const char *szRuneClass);
+static BOOL IsWorldRuneOneToOneEnabled(void);
+
 void CWorldRunes::CreateRune(char *sz_RuneClass)
 {
 	CBaseEntity *m_pSpot = SelectSpawnPoint("info_player_deathmatch");
@@ -1248,6 +1251,11 @@ void CWorldRunes::CreateRune(char *sz_RuneClass)
 	if (!g_pGameRules->AllowRuneSpawn(sz_RuneClass))
 	{
 		ALERT(at_aiconsole, "%s cannot spawn in this gameplay.\n", sz_RuneClass);
+		return;
+	}
+
+	if (IsWorldRuneOneToOneEnabled() && IsRuneUnavailableForWorldSpawn(sz_RuneClass))
+	{
 		return;
 	}
 
@@ -1338,6 +1346,77 @@ const char* runeClassList[RUNE_COUNT] = {
 	"rune_cloak",
 	"rune_ammo"
 };
+
+static int RuneClassToId(const char *szRuneClass)
+{
+	if (!szRuneClass)
+		return 0;
+
+	if (!strcmp(szRuneClass, "rune_frag"))
+		return RUNE_FRAG;
+	if (!strcmp(szRuneClass, "rune_vampire"))
+		return RUNE_VAMPIRE;
+	if (!strcmp(szRuneClass, "rune_protect"))
+		return RUNE_PROTECT;
+	if (!strcmp(szRuneClass, "rune_regen"))
+		return RUNE_REGEN;
+	if (!strcmp(szRuneClass, "rune_haste"))
+		return RUNE_HASTE;
+	if (!strcmp(szRuneClass, "rune_gravity"))
+		return RUNE_GRAVITY;
+	if (!strcmp(szRuneClass, "rune_strength"))
+		return RUNE_STRENGTH;
+	if (!strcmp(szRuneClass, "rune_cloak"))
+		return RUNE_CLOAK;
+	if (!strcmp(szRuneClass, "rune_ammo"))
+		return RUNE_AMMO;
+
+	return 0;
+}
+
+static BOOL IsRuneClassInWorld(const char *szRuneClass)
+{
+	if (!szRuneClass)
+		return FALSE;
+
+	return (UTIL_FindEntityByClassname(NULL, szRuneClass) != NULL);
+}
+
+static BOOL IsRuneHeldByPlayer(int runeId)
+{
+	if (!runeId)
+		return FALSE;
+
+	for (int i = 1; i <= gpGlobals->maxClients; i++)
+	{
+		CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex(i);
+		if (!plr || !plr->IsPlayer() || plr->HasDisconnected)
+			continue;
+
+		if (plr->m_fHasRune == runeId)
+			return TRUE;
+	}
+
+	return FALSE;
+}
+
+static BOOL IsRuneUnavailableForWorldSpawn(const char *szRuneClass)
+{
+	int runeId = RuneClassToId(szRuneClass);
+	if (!runeId)
+		return FALSE;
+
+	if (IsRuneClassInWorld(szRuneClass))
+		return TRUE;
+
+	return IsRuneHeldByPlayer(runeId);
+}
+
+static BOOL IsWorldRuneOneToOneEnabled(void)
+{
+	float allowRunes = CVAR_GET_FLOAT("mp_allowrunes");
+	return (allowRunes > 0.0f && allowRunes <= 1.0f);
+}
 
 void CWorldRunes::SpawnRunes( )
 {
