@@ -2722,11 +2722,18 @@ public:
 	int GetItemInfo(ItemInfo *p);
 	int AddToPlayer( CBasePlayer *pPlayer );
 	void PrimaryAttack( void );
+	void SecondaryAttack( void );
+	void Reload( void );
 	void ZapFire( float flSpread, float flCycleTime );
+	void FireZapProjectile( float flSpread, int iShotMode );
+	void FireZapLaser( void );
+	BOOL BlockFireUnderwater( float flLockout );
+	void EXPORT BurstThink( void );
 	BOOL DeployLowKey( void );
 	BOOL Deploy( void );
 	void Holster( int skiplocal );
 	void WeaponIdle( void );
+	virtual BOOL AcceptReload( void ) { return TRUE; }
 
 	virtual BOOL UseDecrement( void )
 	{ 
@@ -2741,6 +2748,8 @@ public:
 
 private:
 	unsigned short m_usFireZapgun;
+	unsigned short m_usFireZapgunLaser;
+	int m_iBurstShotsRemaining;
 };
 
 

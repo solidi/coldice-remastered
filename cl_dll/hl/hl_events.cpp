@@ -85,6 +85,7 @@ void EV_FireDualChaingun( struct event_args_s *args  );
 void EV_FireDualHornetGun( struct event_args_s *args  );
 void EV_FireFingergun( struct event_args_s *args  );
 void EV_FireZapgun( struct event_args_s *args  );
+void EV_FireZapgunLaser( struct event_args_s *args );
 void EV_FireDualGlock( struct event_args_s *args );
 void EV_FireVice( struct event_args_s *args );
 
@@ -174,6 +175,7 @@ void Game_HookEvents( void )
 	gEngfuncs.pfnHookEvent( "events/dual_hornetgun.sc",			EV_FireDualHornetGun );
 	gEngfuncs.pfnHookEvent( "events/fingergun.sc",				EV_FireFingergun );
 	gEngfuncs.pfnHookEvent( "events/zapgun.sc",					EV_FireZapgun );
+	gEngfuncs.pfnHookEvent( "events/zapgun_laser.sc",			EV_FireZapgunLaser );
 	gEngfuncs.pfnHookEvent( "events/vehicle.sc",				EV_VehiclePitchAdjust );
 	gEngfuncs.pfnHookEvent( "events/dual_glock.sc",				EV_FireDualGlock );
 	gEngfuncs.pfnHookEvent( "events/vice.sc",					EV_FireVice );
