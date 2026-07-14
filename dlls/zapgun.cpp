@@ -219,13 +219,11 @@ void CZapgun::FireZapProjectile( float flSpread, int iShotMode )
 	Vector spread = Vector( flSpread, flSpread, flSpread );
 	if ( m_pPlayer->pev->button & IN_IRONSIGHT )
 		spread = VECTOR_CONE_1DEGREES;
-	if ( spread.x > 0.0f )
-	{
-		vecDir.x += RANDOM_FLOAT( -spread.x, spread.x );
-		vecDir.y += RANDOM_FLOAT( -spread.y, spread.y );
-		vecDir.z += RANDOM_FLOAT( -spread.z, spread.z );
-		vecDir = vecDir.Normalize();
-	}
+if ( spread.x > 0.0f )
+{
+	vecDir = vecDir + gpGlobals->v_right * RANDOM_FLOAT( -spread.x, spread.x ) + gpGlobals->v_up * RANDOM_FLOAT( -spread.y, spread.y );
+	vecDir = vecDir.Normalize();
+}
 
 	PLAYBACK_EVENT_FULL( flags, m_pPlayer->edict(), m_usFireZapgun, 0.0, (float *)&g_vecZero, (float *)&g_vecZero, vecDir.x, vecDir.y, 0, 0, iShotMode, 0 );
 
