@@ -360,6 +360,9 @@ void CFlagBase::CTFTouch( CBaseEntity *pOther )
 		return;
 
 	CBasePlayer *pPlayer = (CBasePlayer *)pOther;
+	CHalfLifeCaptureTheFlag *pRules = (CHalfLifeCaptureTheFlag *)g_pGameRules;
+	if (!pRules || !pRules->pRedBase || !pRules->pBlueBase)
+		return;
 
 	if (pPlayer && pPlayer->IsPlayer())
 	{
@@ -367,11 +370,11 @@ void CFlagBase::CTFTouch( CBaseEntity *pOther )
 		if (pFlag && pPlayer->m_fFlagTime < gpGlobals->time)
 		{
 			// Capture
-			Vector vRedBase = ((CHalfLifeCaptureTheFlag *)g_pGameRules)->pRedBase->pev->origin;
-			Vector vBlueBase = ((CHalfLifeCaptureTheFlag *)g_pGameRules)->pBlueBase->pev->origin;
-			EHANDLE pOtherBase = ((CHalfLifeCaptureTheFlag *)g_pGameRules)->pRedBase;
+			Vector vRedBase = pRules->pRedBase->pev->origin;
+			Vector vBlueBase = pRules->pBlueBase->pev->origin;
+			EHANDLE pOtherBase = pRules->pRedBase;
 			if (pev->fuser4 == RADAR_BASE_RED)
-				pOtherBase = ((CHalfLifeCaptureTheFlag *)g_pGameRules)->pBlueBase;
+				pOtherBase = pRules->pBlueBase;
 
 			// search for enemy flag, otherwise no score.
 			if (pFlag->pev->fuser4 != (pev->fuser4 - 2))

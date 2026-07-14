@@ -1081,7 +1081,7 @@ void CHalfLifeHorde::MonsterKilled( CBaseMonster *pVictim, entvars_t *pKiller )
 	if (strcmp(STRING(pVictim->pev->message), "horde"))
 		return;
 
-	if ( pKiller && (ktmp->Classify() == CLASS_PLAYER) )
+	if ( ktmp && (ktmp->Classify() == CLASS_PLAYER) )
 		peKiller = (CBasePlayer*)ktmp;
 
 	if (peKiller)
