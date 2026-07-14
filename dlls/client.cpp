@@ -2406,7 +2406,7 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"addbot\" - Add a bot\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"botdontshoot [0|1]\" - Enable or disable bots attacking others\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"botpause [0|1]\" - Bots stay in place\n");
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_allowrunes [0|1]\" - Allow powerup runes on server\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_allowrunes [0|1|2]\" - Allow powerup runes on server; values > 1 spawn more runes\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_allowvoiceovers [0|1]\" - Allow public voiceovers\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_busterscount\" - desired number of busters (1-3, capped by 2:1 ratio)\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"mp_coldspotspawn\" - name of entity where the cold spot will spawn\n");

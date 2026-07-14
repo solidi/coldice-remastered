@@ -1235,6 +1235,9 @@ const char *pPlaces[] =
 	"ammo_crossbow",
 };
 
+static BOOL IsRuneUnavailableForWorldSpawn(const char *szRuneClass);
+static BOOL IsWorldRuneOneToOneEnabled(void);
+
 void CWorldRunes::CreateRune(char *sz_RuneClass)
 {
 	CBaseEntity *m_pSpot = SelectSpawnPoint("info_player_deathmatch");
@@ -1248,6 +1251,11 @@ void CWorldRunes::CreateRune(char *sz_RuneClass)
 	if (!g_pGameRules->AllowRuneSpawn(sz_RuneClass))
 	{
 		ALERT(at_aiconsole, "%s cannot spawn in this gameplay.\n", sz_RuneClass);
+		return;
+	}
+
+	if (IsWorldRuneOneToOneEnabled() && IsRuneUnavailableForWorldSpawn(sz_RuneClass))
+	{
 		return;
 	}
 
@@ -1338,6 +1346,63 @@ const char* runeClassList[RUNE_COUNT] = {
 	"rune_cloak",
 	"rune_ammo"
 };
+
+static int RuneClassToId(const char *szRuneClass)
+{
+	if (!szRuneClass)
+		return 0;
+
+	for (int i = 0; i < RUNE_COUNT; ++i)
+	{
+		if (!strcmp(szRuneClass, runeClassList[i]))
+			return i + 1; // RUNE_* IDs are 1-based
+	}
+	return 0;
+}
+
+static BOOL IsRuneClassInWorld(const char *szRuneClass)
+{
+	if (!szRuneClass)
+		return FALSE;
+
+	return (UTIL_FindEntityByClassname(NULL, szRuneClass) != NULL);
+}
+
+static BOOL IsRuneHeldByPlayer(int runeId)
+{
+	if (!runeId)
+		return FALSE;
+
+	for (int i = 1; i <= gpGlobals->maxClients; i++)
+	{
+		CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex(i);
+		if (!plr || !plr->IsPlayer() || plr->HasDisconnected)
+			continue;
+
+		if (plr->m_fHasRune == runeId)
+			return TRUE;
+	}
+
+	return FALSE;
+}
+
+static BOOL IsRuneUnavailableForWorldSpawn(const char *szRuneClass)
+{
+	int runeId = RuneClassToId(szRuneClass);
+	if (!runeId)
+		return FALSE;
+
+	if (IsRuneClassInWorld(szRuneClass))
+		return TRUE;
+
+	return IsRuneHeldByPlayer(runeId);
+}
+
+static BOOL IsWorldRuneOneToOneEnabled(void)
+{
+	float allowRunes = CVAR_GET_FLOAT("mp_allowrunes");
+	return (allowRunes > 0.0f && allowRunes <= 1.0f);
+}
 
 void CWorldRunes::SpawnRunes( )
 {
