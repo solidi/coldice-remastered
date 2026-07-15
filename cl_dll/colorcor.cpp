@@ -36,7 +36,82 @@
 
 #include "colorcor.h"
 
-CColorCorTexture::CColorCorTexture() : g_texture(0) {};
+CColorCorTexture::CColorCorTexture() : g_texture(0), m_bGpuGrayscaleSupported(false) {};
+
+void CColorCorTexture::ApplyCpuGrayscale(int width, int height)
+{
+	// CPU path: read pixels, convert to grayscale, and upload
+	// Validate dimensions to prevent integer overflow
+	// Check before multiplication to avoid overflow in the calculation itself
+	if (width <= 0 || height <= 0 || width > 16384 || height > 16384)
+		return; // Invalid or excessively large dimensions
+	
+	// Calculate buffer size with overflow check
+	size_t bufferSize = (size_t)width * (size_t)height * 4;
+	if (bufferSize > 16384 * 16384 * 4) // Double-check to prevent overflow
+		return;
+	
+	unsigned char* pPixels = new (std::nothrow) unsigned char[bufferSize];
+	if (!pPixels)
+		return; // Allocation failed
+	
+	glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, pPixels);
+	
+	// Convert to grayscale using luminance formula
+	for (size_t i = 0; i < bufferSize; i += 4)
+	{
+		unsigned char gray = (unsigned char)(0.299f * pPixels[i] + 0.587f * pPixels[i+1] + 0.114f * pPixels[i+2]);
+		pPixels[i] = gray;     // R
+		pPixels[i+1] = gray;   // G
+		pPixels[i+2] = gray;   // B
+		// Keep alpha as-is (pPixels[i+3])
+	}
+	
+	// Upload the grayscale texture
+	glTexImage2D(GL_TEXTURE_RECTANGLE_NV, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pPixels);
+	delete[] pPixels;
+}
+
+bool CColorCorTexture::TestGpuGrayscaleSupport(int width, int height)
+{
+	// Test if GL_LUMINANCE format works with glCopyTexImage2D on this device
+	// Some devices/drivers don't support GL_LUMINANCE with GL_TEXTURE_RECTANGLE_NV
+	
+	// Create a temporary test texture
+	GLuint testTexture;
+	glGenTextures(1, &testTexture);
+	glBindTexture(GL_TEXTURE_RECTANGLE_NV, testTexture);
+	
+	// Clear any previous errors with safety limit to prevent infinite loops
+	// 100 iterations should be more than enough for any reasonable error queue
+	const int ERROR_CLEAR_LIMIT = 100;
+	int errorClearCount = ERROR_CLEAR_LIMIT;
+	while (glGetError() != GL_NO_ERROR && --errorClearCount > 0);
+	
+	// Create a small test texture with RGBA data first
+	unsigned char rgbaTestData[4] = {128, 128, 128, 255}; // Gray pixel
+	glTexImage2D(GL_TEXTURE_RECTANGLE_NV, 0, GL_RGBA8, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, rgbaTestData);
+	
+	// Clear any errors from the setup with safety limit
+	errorClearCount = ERROR_CLEAR_LIMIT;
+	while (glGetError() != GL_NO_ERROR && --errorClearCount > 0);
+	
+	// Try to create a texture with GL_LUMINANCE format using single-channel test data
+	unsigned char luminanceTestData[1] = {128}; // Gray value
+	glTexImage2D(GL_TEXTURE_RECTANGLE_NV, 0, GL_LUMINANCE, 1, 1, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, luminanceTestData);
+	
+	// Check if an error occurred
+	GLenum error = glGetError();
+	bool supported = (error == GL_NO_ERROR);
+	
+	// Clean up test texture
+	glDeleteTextures(1, &testTexture);
+	
+	// Rebind our main texture
+	glBindTexture(GL_TEXTURE_RECTANGLE_NV, g_texture);
+	
+	return supported;
+}
 
 void CColorCorTexture::Init(int width, int height)
 {
@@ -60,6 +135,9 @@ void CColorCorTexture::Init(int width, int height)
 
 	// free the memory
 	delete[] pBlankTex;
+
+	// Test if GPU-accelerated grayscale (GL_LUMINANCE) works on this device
+	m_bGpuGrayscaleSupported = TestGpuGrayscaleSupport(width, height);
 }
 
 void CColorCorTexture::BindTexture(int width, int height)
@@ -69,21 +147,50 @@ void CColorCorTexture::BindTexture(int width, int height)
 	// Check if we need grayscale conversion (oldtime mutator or blackwhite cvar)
 	if (CVAR_GET_FLOAT("colorcor_blackwhite") == 1 || MutatorEnabled(MUTATOR_OLDTIME))
 	{
+		if (false)
+		{
+			// GPU path: use hardware-accelerated grayscale conversion
+			glCopyTexImage2D(GL_TEXTURE_RECTANGLE_NV, 0, GL_LUMINANCE, 0, 0, width, height, 0);
+			
+			// Check if it failed at runtime (rare, but possible)
+			if (glGetError() != GL_NO_ERROR)
+			{
+				// Mark as unsupported for future frames
+				// Note: This state change is safe because Half-Life's rendering
+				// happens on a single thread in the client DLL
+				m_bGpuGrayscaleSupported = false;
+				
+				// Fall back to CPU path for this frame
+				ApplyCpuGrayscale(width, height);
+			}
+		}
+		else
+		{
+			// CPU path: read pixels, convert to grayscale, and upload
+			ApplyCpuGrayscale(width, height);
+		}
+	}
+	else if (MutatorEnabled(MUTATOR_ASTRONAUT))
+	{
 		// Copy screen to temporary buffer
 		unsigned char* pPixels = new unsigned char[width * height * 4];
 		glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, pPixels);
 		
-		// Convert to grayscale using luminance formula
+		// Apply sepia tone using classic formula
 		for (int i = 0; i < width * height * 4; i += 4)
 		{
-			unsigned char gray = (unsigned char)(0.299f * pPixels[i] + 0.587f * pPixels[i+1] + 0.114f * pPixels[i+2]);
-			pPixels[i] = gray;     // R
-			pPixels[i+1] = gray;   // G
-			pPixels[i+2] = gray;   // B
+			unsigned char r = pPixels[i];
+			unsigned char g = pPixels[i+1];
+			unsigned char b = pPixels[i+2];
+			
+			// Sepia transformation matrix
+			pPixels[i]   = (unsigned char)fmin(255, (int)(r * 0.393f + g * 0.769f + b * 0.189f)); // R
+			pPixels[i+1] = (unsigned char)fmin(255, (int)(r * 0.349f + g * 0.686f + b * 0.168f)); // G
+			pPixels[i+2] = (unsigned char)fmin(255, (int)(r * 0.272f + g * 0.534f + b * 0.131f)); // B
 			// Keep alpha as-is (pPixels[i+3])
 		}
 		
-		// Upload the grayscale texture
+		// Upload the sepia texture
 		glTexImage2D(GL_TEXTURE_RECTANGLE_NV, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pPixels);
 		delete[] pPixels;
 	}

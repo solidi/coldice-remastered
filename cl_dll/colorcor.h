@@ -33,6 +33,11 @@ public:
 	float alpha;
 	float r,g,b;
 	float of;
+
+private:
+	bool m_bGpuGrayscaleSupported;
+	bool TestGpuGrayscaleSupport(int width, int height);
+	void ApplyCpuGrayscale(int width, int height);
 };
 
 class CColorCor
