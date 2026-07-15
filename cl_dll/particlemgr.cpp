@@ -210,10 +210,11 @@ void ParticleSystemManager::UpdateSystems( float frametime, int sky ) //LRC - no
 	while( pSystem )
 	{
 		// buz
-		cl_entity_t *ent = NULL;
-		ent = gEngfuncs.GetEntityByIndex(pSystem->m_iEntIndex);
-
+		extern cl_entity_t *UTIL_GetClientEntityWithServerIndex( int sv_index );
+		cl_entity_t *ent = UTIL_GetClientEntityWithServerIndex(pSystem->m_iEntIndex);
 		if (!ent)
+			ent = gEngfuncs.GetEntityByIndex(pSystem->m_iEntIndex);
+		if (!ent)
 		{
 			if (pSystem->m_iEntIndex > 0)
 			{
