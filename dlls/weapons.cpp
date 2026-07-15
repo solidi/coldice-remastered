@@ -1776,7 +1776,7 @@ BOOL CBasePlayerWeapon :: CanDeploy( void )
 
 BOOL CBasePlayerWeapon :: DefaultDeploy( char *szViewModel, char *szWeaponModel, int iAnim, char *szAnimExt, int skiplocal /* = 0 */, int body )
 {
-	if (!CanDeploy( ))
+	if (!CanDeploy( ) && !(iFlags() & ITEM_FLAG_SELECTONEMPTY))
 		return FALSE;
 
 	// In case we are taunting and we pick up better weapon.
