@@ -1904,12 +1904,14 @@ public:
 
 	void PrimaryAttack( void );
 	void SecondaryAttack( void );
+	void Reload( void );
 	BOOL DeployLowKey( void );
 	BOOL Deploy( void );
 	BOOL CanHolster( void );
 	void Holster( int skiplocal = 0 );
 	void WeaponIdle( void );
 	void EXPORT Throw( void );
+	virtual BOOL AcceptReload( void ) { return TRUE; }
 
 	virtual BOOL UseDecrement( void )
 	{

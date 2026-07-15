@@ -812,6 +812,7 @@ enum e_protips {
 	FREEZE_TIP,
 	LASER_TIP,
 	ZAPGUN_TIP,
+	SNOWBALL_TIP,
 };
 
 extern void ProTip(int id, const char *message);
@@ -964,6 +965,7 @@ void HUD_WeaponsPostThink( local_state_s *from, local_state_s *to, usercmd_t *cm
 
 		case WEAPON_SNOWBALL:
 			pWeapon = &g_Snowball;
+			ProTip(SNOWBALL_TIP, "Use RELOAD to make a new snowball");
 			break;
 
 		case WEAPON_CHAINSAW:
