@@ -137,7 +137,9 @@ void CHud :: MsgFunc_InitHUD( const char *pszName, int iSize, void *pbuf )
 		m = next;
 	}
 	gHUD.m_Mutators = NULL;
+	g_IronSight = FALSE;
 	CAM_ToFirstPerson();
+	gEngfuncs.pfnClientCmd("tinnitus_stop\n");
 	gHUD.m_StatusIcons.Reset();
 
 	g_IronSight = FALSE;

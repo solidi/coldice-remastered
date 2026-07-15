@@ -1612,7 +1612,8 @@ void CGameRules::MutatorsThink(void)
 		mutators_t *m = m_Mutators;
 		mutators_t *prev = NULL;
 		BOOL mutatorListChanged = FALSE;
-		char szMutators[128] = "";
+		char szMutators[(MAX_MUTATORS * 12) + 1] = "";
+		int mutatorListPos = 0;
 		while (m != NULL)
 		{
 			mutators_t *next = m->next;
@@ -1639,9 +1640,22 @@ void CGameRules::MutatorsThink(void)
 			}
 			else
 			{
-				char buffer[16];
-				sprintf(buffer, "%d;", m->mutatorId);
-				strcat(szMutators, buffer);
+				if (mutatorListPos < (int)sizeof(szMutators) - 1)
+				{
+					int written = snprintf(
+						szMutators + mutatorListPos,
+						sizeof(szMutators) - mutatorListPos,
+						"%d;",
+						m->mutatorId);
+
+					if (written > 0)
+					{
+						if (written >= (int)(sizeof(szMutators) - mutatorListPos))
+							mutatorListPos = (int)sizeof(szMutators) - 1;
+						else
+							mutatorListPos += written;
+					}
+				}
 				count++;
 				prev = m;
 			}
