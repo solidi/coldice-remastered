@@ -133,6 +133,11 @@ void CSnowball::Holster( int skiplocal /* = 0 */ )
 
 void CSnowball::PrimaryAttack()
 {
+	if ( m_fireState != 0 )
+	{
+		return;
+	}
+
 	if ( m_pPlayer->pev->waterlevel == 3 )
 	{
 		m_flNextPrimaryAttack = m_flNextSecondaryAttack = GetNextAttackDelay(0.15);
@@ -210,9 +215,20 @@ void CSnowball::Throw()
 
 void CSnowball::SecondaryAttack()
 {
+	if ( m_fireState != 0 )
+	{
+		return;
+	}
+
 	if ( m_pPlayer->pev->waterlevel == 3 )
 	{
 		m_flNextPrimaryAttack = m_flNextSecondaryAttack = GetNextAttackDelay(0.15);
+		return;
+	}
+
+	if ( m_pPlayer->m_rgAmmo[ m_iPrimaryAmmoType ] <= 0 )
+	{
+		Reload();
 		return;
 	}
 
@@ -277,6 +293,7 @@ void CSnowball::WeaponIdle( void )
 	if ( m_fireState == 2 )
 	{
 		m_fireState = 0;
+		m_flStartThrow = 0;
 		m_flReleaseThrow = -1;
 		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + UTIL_SharedRandomFloat( m_pPlayer->random_seed, 10, 15 );
 		return;
