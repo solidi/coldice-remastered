@@ -293,6 +293,8 @@ void CGib :: SpawnRandomGibs( entvars_t *pevVictim, int cGibs, int human )
 			MESSAGE_END();
 		}
 	}
+
+	delete [] gibsIndex;
 }
 
 

@@ -143,6 +143,7 @@ int CHudStatusIcons::Draw( float flTime )
 		mutators_t *m = gHUD.m_Mutators;
 		mutators_t *prev = NULL;
 		while (m != NULL) {
+			mutators_t *next = m->next;
 			// gEngfuncs.Con_DPrintf(">>> delete? mutator[id=%d, ttl=%.2f < ? (combined)=%.2f]\n", m->mutatorId, m->timeToLive, gHUD.m_flTime );
 			if (m->timeToLive < gHUD.m_flTime && m->timeToLive != -1) {
 				if (m->mutatorId == MUTATOR_THIRDPERSON)
@@ -153,17 +154,16 @@ int CHudStatusIcons::Draw( float flTime )
 					g_IronSight = FALSE;
 
 				if (prev) {
-					mutators_t *temp;
-					temp = prev->next;
-					prev->next = temp->next;
+					prev->next = m->next;
 				} else {
-					mutators_t *temp;
-					temp = gHUD.m_Mutators;
-					gHUD.m_Mutators = temp->next;
+					gHUD.m_Mutators = m->next;
 				}
+
+				delete m;
+			} else {
+				prev = m;
 			}
-			prev = m;
-			m = m->next;
+			m = next;
 		}
 		DrawMutators(); // update hud
 		m_flCheckMutators = gHUD.m_flTime + 1.0;
