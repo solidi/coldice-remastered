@@ -93,6 +93,7 @@ CFlameBall *CFlameBall::ShootFlameBall( entvars_t *pevOwner, Vector vecStart, Ve
 		WRITE_SHORT( pFlame->entindex() );
 		WRITE_STRING( "FlameSteam1.aur" );
 	MESSAGE_END();
+	pFlame->m_burnParticleEnabled = 1;
 #endif
 
 	return pFlame;

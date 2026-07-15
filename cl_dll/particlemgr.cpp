@@ -210,10 +210,36 @@ void ParticleSystemManager::UpdateSystems( float frametime, int sky ) //LRC - no
 	while( pSystem )
 	{
 		// buz
-		cl_entity_t *ent = NULL;
-		ent = gEngfuncs.GetEntityByIndex(pSystem->m_iEntIndex);
+		extern cl_entity_t *UTIL_GetClientEntityWithServerIndex( int sv_index );
+		cl_entity_t *ent = UTIL_GetClientEntityWithServerIndex(pSystem->m_iEntIndex);
+		if (!ent)
+			ent = gEngfuncs.GetEntityByIndex(pSystem->m_iEntIndex);
+		if (!ent)
+		{
+			if (pSystem->m_iEntIndex > 0)
+			{
+				if (pLast)
+				{
+					pLast->m_pNextSystem = pSystem->m_pNextSystem;
+					delete pSystem;
+					pSystem = pLast->m_pNextSystem;
+				}
+				else
+				{
+					m_pFirstSystem = pSystem->m_pNextSystem;
+					delete pSystem;
+					pSystem = m_pFirstSystem;
+				}
 
-		if (!ent || (ent->curstate.renderfx == 70 && !sky) ||
+				continue;
+			}
+
+			pLast = pSystem;
+			pSystem = pSystem->m_pNextSystem;
+			continue;
+		}
+
+		if ((ent->curstate.renderfx == 70 && !sky) ||
 			(ent->curstate.renderfx != 70 && sky))
 		{
 			pLast = pSystem;
@@ -285,25 +311,27 @@ void ParticleSystemManager::ClearSystems( void )
 void ParticleSystemManager::DeleteSystemWithEntity( int entindex )
 {
 	ParticleSystem *pPrev = NULL;
-	for (ParticleSystem *pSys = m_pFirstSystem; pSys; pSys = pSys->m_pNextSystem)
+	for (ParticleSystem *pSys = m_pFirstSystem; pSys;)
 	{
 		if (entindex == pSys->m_iEntIndex)
 		{
+			ParticleSystem *pNext = pSys->m_pNextSystem;
 			if (pPrev)
 			{
-				pPrev->m_pNextSystem = pSys->m_pNextSystem;
+				pPrev->m_pNextSystem = pNext;
 				delete pSys;
-				return;
-				/*pSys = pPrev;
-				continue;*/
+				pSys = pNext;
+				continue;
 			}
 			else // deleting first system
 			{
-				m_pFirstSystem = pSys->m_pNextSystem;
+				m_pFirstSystem = pNext;
 				delete pSys;
-				return;
+				pSys = pNext;
+				continue;
 			}
 		}
 		pPrev = pSys;
+		pSys = pSys->m_pNextSystem;
 	}
 }

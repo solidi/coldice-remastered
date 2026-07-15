@@ -245,7 +245,8 @@ ParticleSystem::ParticleSystem(int entindex, char *szFilename, float _EmitTime, 
 		c_bCosTableInit = true;
 	}
 
-	char *szFile = (char *)gEngfuncs.COM_LoadFile(szFilename, 5, NULL);
+	char *pLoadedFile = (char *)gEngfuncs.COM_LoadFile(szFilename, 5, NULL);
+	char *szFile = pLoadedFile;
 
 	/*
 	if (CachedParticleFiles[szFilename] == "")
@@ -294,7 +295,7 @@ ParticleSystem::ParticleSystem(int entindex, char *szFilename, float _EmitTime, 
 			szFile = gEngfuncs.COM_ParseFile(szFile, szToken);
 		}
 
-		gEngfuncs.COM_FreeFile( szFile );
+		gEngfuncs.COM_FreeFile( pLoadedFile );
 	}
 
 	AllocateParticles(iParticles);

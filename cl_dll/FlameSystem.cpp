@@ -14,21 +14,28 @@ CFlameSystem FlameSystem;
 
 void CFlameSystem::SetState(int EntIndex, int State)
 {
-	Data[EntIndex].Enable = State;
-	Data[EntIndex].NextTick = 0;
-	Data[EntIndex].NextDlight = 0;
+	if (State <= 0)
+	{
+		Extinguish(EntIndex);
+		return;
+	}
+
+	FlameSys &flame = Data[EntIndex];
+	flame.Enable = State;
+	flame.MaxFlames = 0;
+	flame.NextTick = 0;
+	flame.NextDlight = 0;
 
 	// gEngfuncs.Con_Printf("CFlameSystem::SetState EntIndex=%d,State=%d\n", EntIndex, State);
-
-	if (!State)
-		Extinguish(EntIndex);
 }
 
 void CFlameSystem::Extinguish(int EntIndex)
 {
 	// gEngfuncs.Con_Printf("CFlameSystem::Extinguish EntIndex=%d\n", EntIndex);
-	Data[EntIndex].Enable = 0;
-	Data[EntIndex].MaxFlames = 0;
+	std::map<int, FlameSys>::iterator it = Data.find(EntIndex);
+	if (it != Data.end())
+		Data.erase(it);
+
 	gEngfuncs.pEventAPI->EV_StopSound(EntIndex, CHAN_STATIC, "fire_loop.wav");
 }
 
@@ -38,7 +45,15 @@ extern vec3_t v_origin;
 
 void CFlameSystem::Process(cl_entity_s *Entity, const engine_studio_api_t &IEngineStudio)
 {
+	if (!Entity)
+		return;
+
 	int i = Entity->index;
+	std::map<int, FlameSys>::iterator it = Data.find(i);
+	if (it == Data.end() || it->second.Enable <= 0)
+		return;
+
+	FlameSys &flame = it->second;
 
 	studiohdr_t *ModelHeader;
 	mstudiobodyparts_t *m_pBodyPart;
@@ -51,39 +66,39 @@ void CFlameSystem::Process(cl_entity_s *Entity, const engine_studio_api_t &IEngi
 
 	Vector Origin;
 
-	if (Data[i].Enable > 0)
+	if (flame.Enable > 0)
 	{
-		if (Data[i].NextTick < gEngfuncs.GetClientTime())
+		if (flame.NextTick < gEngfuncs.GetClientTime())
 		{
-			Data[i].NextTick = gEngfuncs.GetClientTime() + 0.05;
+			flame.NextTick = gEngfuncs.GetClientTime() + 0.05;
 
 			ItIsViewModel = (Entity == gEngfuncs.GetViewModel()) ? TRUE : FALSE;
 
 			ModelHeader = (studiohdr_t *)IEngineStudio.Mod_Extradata(Entity->model);
 
-			if (!Data[i].MaxFlames)
+			if (!flame.MaxFlames)
 			{
 				if (ItIsViewModel)
 				{
-					Data[i].MaxFlames = 3;
+					flame.MaxFlames = 3;
 				}
 				else
 				{
-					Data[i].MaxFlames = (-Entity->curstate.mins[2] + Entity->curstate.maxs[2]) / 10;
+					flame.MaxFlames = (-Entity->curstate.mins[2] + Entity->curstate.maxs[2]) / 10;
 
-					if (Data[i].MaxFlames < 5)
-						Data[i].MaxFlames = 5;
+					if (flame.MaxFlames < 5)
+						flame.MaxFlames = 5;
 				}
 			}
 
-			if (Data[i].Enable != IS_SKELETON)
+			if (flame.Enable != IS_SKELETON)
 				gEngfuncs.pEventAPI->EV_PlaySound(i, Entity->curstate.origin, CHAN_STATIC,
 					"fire_loop.wav", 1, 0.7, (1 << 6) | (1 << 7), 100);
 
 			if (!ItIsViewModel)
 				BoneOrigin = (float(*)[MAXSTUDIOBONES][3][4])IEngineStudio.StudioGetBoneTransform();
 
-			for (int z = 0; z < Data[i].MaxFlames; z++)
+			for (int z = 0; z < flame.MaxFlames; z++)
 			{
 				if (ItIsViewModel)
 				{
@@ -107,9 +122,9 @@ void CFlameSystem::Process(cl_entity_s *Entity, const engine_studio_api_t &IEngi
 					VectorTransform(pstudioverts[Vert], (*BoneOrigin)[pvertbone[Vert]], Origin);
 				}
 				
-				if (Data[i].NextDlight < gEngfuncs.GetClientTime())
+				if (flame.NextDlight < gEngfuncs.GetClientTime())
 				{
-					Data[i].NextDlight = gEngfuncs.GetClientTime() + 0.15;
+					flame.NextDlight = gEngfuncs.GetClientTime() + 0.15;
 
 					/*
 					DynamicLight *dl = MY_AllocDlight(gEngfuncs.pfnRandomLong(-800, -700));
@@ -125,7 +140,7 @@ void CFlameSystem::Process(cl_entity_s *Entity, const engine_studio_api_t &IEngi
 				
 				particle *Particle = NULL;
 
-				if (Data[i].Enable != IS_SKELETON)
+				if (flame.Enable != IS_SKELETON)
 				{
 					switch (gEngfuncs.pfnRandomLong(0, 3))
 					{
@@ -165,7 +180,7 @@ void CFlameSystem::Process(cl_entity_s *Entity, const engine_studio_api_t &IEngi
 					}
 				}
 
-				if (Data[i].Enable != IS_SKELETON)
+				if (flame.Enable != IS_SKELETON)
 					BurnSmoke->ManualSpray(1, Origin + Vector(gEngfuncs.pfnRandomFloat(-3, 3),
 						gEngfuncs.pfnRandomFloat(-3, 3), gEngfuncs.pfnRandomFloat(-3, 3)));
 			}
