@@ -129,6 +129,13 @@ void CHud :: MsgFunc_InitHUD( const char *pszName, int iSize, void *pbuf )
 	gHUD.m_iShowingWeaponMenu = 0;
 	gHUD.m_Scoreboard.m_iShowscoresHeld = FALSE;
 
+	mutators_t *m = gHUD.m_Mutators;
+	while (m != NULL)
+	{
+		mutators_t *next = m->next;
+		delete m;
+		m = next;
+	}
 	gHUD.m_Mutators = NULL;
 	CAM_ToFirstPerson();
 	gHUD.m_StatusIcons.Reset();
@@ -399,30 +406,49 @@ int CHud :: MsgFunc_AddMut( const char *pszName, int iSize, void *pbuf )
 		mutators_t *t = m_Mutators;
 		while (t != NULL)
 		{
+			mutators_t *next = t->next;
 			if (t->mutatorId == MUTATOR_THIRDPERSON)
 				CAM_ToFirstPerson();
 			else if (t->mutatorId == MUTATOR_TINNITUS)
 				gEngfuncs.pfnClientCmd("tinnitus_stop\n");
 			else if (t->mutatorId == MUTATOR_CLOSEUP)
 				g_IronSight = FALSE;
-			t->timeToLive = t->startTime;
-			t = t->next;
+			delete t;
+			t = next;
 		}
+		m_Mutators = NULL;
 	} else {
-		// add
-		while (mutatorId != -1)
+		// add one or more mutators (server may batch entries)
+		while (READ_OK())
 		{
+			if (mutatorId == -1)
+				break;
+
 			int mtime = READ_SHORT();
+			if (!READ_OK())
+				break;
 			int time = (int)gHUD.m_flTime + mtime;
 
 			if (mutatorId != 255)
 			{
-				mutators_t *mutator = new mutators_t();
-				mutator->mutatorId = mutatorId;
+				mutators_t *mutator = m_Mutators;
+				while (mutator != NULL)
+				{
+					if (mutator->mutatorId == mutatorId)
+						break;
+					mutator = mutator->next;
+				}
+
+				if (mutator == NULL)
+				{
+					mutator = new mutators_t();
+					mutator->mutatorId = mutatorId;
+					mutator->next = m_Mutators ? m_Mutators : NULL;
+					m_Mutators = mutator;
+				}
+
 				mutator->startTime = gHUD.m_flTime;
 				mutator->timeToLive = mtime == 0 ? -1 : time;
-				mutator->next = m_Mutators ? m_Mutators : NULL;
-				m_Mutators = mutator;
 
 				// Specific for client
 				if (mutatorId == MUTATOR_THIRDPERSON)

@@ -771,6 +771,15 @@ void CHud :: Init( void )
 // cleans up memory allocated for m_rg* arrays
 CHud :: ~CHud()
 {
+	mutators_t *m = m_Mutators;
+	while (m != NULL)
+	{
+		mutators_t *next = m->next;
+		delete m;
+		m = next;
+	}
+	m_Mutators = NULL;
+
 	delete [] m_rghSprites;
 	delete [] m_rgrcRects;
 	delete [] m_rgszSpriteNames;

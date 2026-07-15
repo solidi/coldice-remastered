@@ -151,6 +151,25 @@ DLL_GLOBAL const char *g_szMutators[] = {
 	"volatile",
 };
 
+static void FreeMutatorChain(mutators_t *head)
+{
+	while (head != NULL)
+	{
+		mutators_t *next = head->next;
+		delete head;
+		head = next;
+	}
+}
+
+CGameRules::~CGameRules()
+{
+	FreeMutatorChain(m_Mutators);
+	m_Mutators = NULL;
+
+	FreeMutatorChain(m_SavedMutators);
+	m_SavedMutators = NULL;
+}
+
 //=========================================================
 //=========================================================
 BOOL CGameRules::CanHaveAmmo( CBasePlayer *pPlayer, const char *pszAmmoName, int iMaxCarry )
@@ -1592,9 +1611,12 @@ void CGameRules::MutatorsThink(void)
 		int count = 0;
 		mutators_t *m = m_Mutators;
 		mutators_t *prev = NULL;
+		BOOL mutatorListChanged = FALSE;
 		char szMutators[128] = "";
 		while (m != NULL)
 		{
+			mutators_t *next = m->next;
+
 			// ALERT(at_aiconsole, ">>> [%.2f] found m->mutatorId=%d [%.2f]\n", gpGlobals->time, m->mutatorId, m->timeToLive);
 
 			if (m->timeToLive <= gpGlobals->time && m->timeToLive != -1)
@@ -1602,19 +1624,18 @@ void CGameRules::MutatorsThink(void)
 				UTIL_LogPrintf( "Mutator \"%s\" disabled at %.2f\n", g_szMutators[m->mutatorId-1], gpGlobals->time);
 
 				m_flDetectedMutatorChange = gpGlobals->time + 1.0;
+				mutatorListChanged = TRUE;
 
 				if (prev)
 				{
-					mutators_t *temp;
-					temp = prev->next;
-					prev->next = temp->next;
+					prev->next = m->next;
 				}
 				else
 				{
-					mutators_t *temp;
-					temp = m_Mutators;
-					m_Mutators = temp->next;
+					m_Mutators = m->next;
 				}
+
+				delete m;
 			}
 			else
 			{
@@ -1622,14 +1643,19 @@ void CGameRules::MutatorsThink(void)
 				sprintf(buffer, "%d;", m->mutatorId);
 				strcat(szMutators, buffer);
 				count++;
+				prev = m;
 			}
 
-			prev = m;
-			m = m->next;
+			m = next;
 		}
 
-		// ALERT(at_aiconsole, "szMutators is \"%s\"\n", szMutators );
-		gpGlobals->startspot = ALLOC_STRING(szMutators);
+		// Keep the mutator-id mirror in startspot without allocating new pooled
+		// strings every tick when the value is unchanged.
+		const char *currentMutators = FStringNull(gpGlobals->startspot) ? "" : STRING(gpGlobals->startspot);
+		if (mutatorListChanged || strcmp(currentMutators, szMutators) != 0)
+		{
+			gpGlobals->startspot = ALLOC_STRING(szMutators);
+		}
 		// ALERT(at_aiconsole, "STRING(gpGlobals->startspot) is \"%s\"\n", STRING(gpGlobals->startspot) );
 
 		// chaos mode (skip during round intermission)
