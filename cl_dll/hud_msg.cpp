@@ -54,6 +54,7 @@ float g_RetractDistance = 0;
 float g_NotifyTime = 0;
 float g_ScoreTime = 0;
 extern cvar_t *cl_antivomit;
+extern cvar_t *cl_particlesystem;
 extern qboolean g_IronSight;
 
 /// USER-DEFINED SERVER MESSAGE HANDLERS
@@ -456,6 +457,9 @@ int CHud :: MsgFunc_Chaos( const char *pszName, int iSize, void *pbuf )
 int CHud :: MsgFunc_Particle( const char *pszName, int iSize, void *pbuf )
 {
 	BEGIN_READ( pbuf, iSize );
+	if (!cl_particlesystem || cl_particlesystem->value <= 0)
+		return 1;
+
 	int entindex = READ_SHORT();
 	char *sz = READ_STRING();
 	char fileName[64];
@@ -480,11 +484,11 @@ void CHud :: MsgFunc_DelPart( const char *pszName, int iSize, void *pbuf )
 {
 	BEGIN_READ( pbuf, iSize );
 	int entindex = READ_SHORT();
-	int del = READ_BYTE();
+	READ_BYTE(); // legacy count, no longer needed because we remove all matches for this entity
 
 	// gEngfuncs.Con_Printf("MsgFunc_DelPart entindex=%d,del=%d\n", entindex, del);
 
-	for (int i = 0; i <= del + 1; i++)
+	if (entindex > 0)
 		g_pParticleSystems.DeleteSystemWithEntity(entindex);
 
 	return;
@@ -521,6 +525,8 @@ void CHud :: MsgFunc_FlameKill( const char *pszName, int iSize, void *pbuf )
 void CHud :: MsgFunc_MParticle( const char *pszName, int iSize, void *pbuf )
 {
 	BEGIN_READ( pbuf, iSize );
+	if (!cl_particlesystem || cl_particlesystem->value <= 0)
+		return;
 
 	char *sz = READ_STRING();
 	int count = READ_BYTE();
