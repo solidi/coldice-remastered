@@ -28,6 +28,7 @@ struct s_LifeBarData {
 
 struct s_DamageNumber {
     int damage;               // Amount of damage
+	int attackerIndex;        // Attacker entity index (0 = unknown or non-player)
     float spawnTime;          // When it was created
     float lifetime;           // How long it should exist
     vec3_t worldPosition;     // Locked world position where damage occurred
@@ -57,9 +58,9 @@ public:
 	int MsgFunc_MLifeBar(const char *pszName, int iSize, void *pbuf);
 
 private:
-	void AddDamageNumber(int playerIndex, int damage);
+	void AddDamageNumber(int playerIndex, int damage, int attackerIndex);
 	void RenderDamageNumbers();
-	void RenderDamageDigits(int damage, vec3_t worldPosition, float floatOffset, float horizOffsetX, float horizOffsetY, int alpha);
+	void RenderDamageDigits(int damage, vec3_t worldPosition, float floatOffset, float horizOffsetX, float horizOffsetY, int alpha, int r, int g, int b, bool drawLocalMarker);
 	
 	HSPRITE m_LifeBarHeadModel;
 	cl_entity_s		m_LifeBarModels[VOICE_MAX_PLAYERS+1];
