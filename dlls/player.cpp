@@ -7294,7 +7294,8 @@ void CBasePlayer::ItemPreFrame()
 		// Guard: verify m_pLastItem is still live and owned by this player before
 		// promoting it to active. A stale m_pLastRef surviving a death/respawn
 		// cycle can produce a recycled-edict pointer here → corrupt vtable crash.
-		if (m_pLastItem && m_pLastItem->m_pPlayer == this && m_pLastItem->CanDeploy())
+		if (m_pLastItem && m_pLastItem->m_pPlayer == this &&
+			(m_pLastItem->CanDeploy() || (m_pLastItem->iFlags() & ITEM_FLAG_SELECTONEMPTY)))
 		{
 			m_pActiveItem = m_pLastItem;//We set the chosen weapon to lastitem in selectitem func. //Now we`ll set it to the active weapon and draws it with ChangeGun.
 			ChangeGun();

@@ -30,9 +30,14 @@ enum snowball_e {
 	SNOWBALL_THROW2,	// medium
 	SNOWBALL_THROW3,	// hard
 	SNOWBALL_HOLSTER,
+	SNOWBALL_HOLSTER_NOBALL,
 	SNOWBALL_DRAW_LOWKEY,
 	SNOWBALL_DRAW,	// with select sound, bro.
 };
+
+static const float SNOWBALL_RELOAD_HOLSTER_TIME = 0.5f;
+static const float SNOWBALL_RELOAD_DRAW_TIME = 0.5f;
+static const float SNOWBALL_RELOAD_TOTAL_TIME = SNOWBALL_RELOAD_HOLSTER_TIME + SNOWBALL_RELOAD_DRAW_TIME;
 
 #ifdef SNOWBALL
 LINK_ENTITY_TO_CLASS( weapon_snowball, CSnowball );
@@ -51,6 +56,9 @@ void CSnowball::Spawn( )
 
 	m_iDefaultAmmo = SNOWBALL_DEFAULT_GIVE;
 	pev->dmg = gSkillData.plrDmgSnowball;
+	m_fireState = 0;
+	m_flReleaseThrow = -1;
+	m_flStartThrow = 0;
 
 	FallInit();// get ready to fall down.
 }
@@ -74,7 +82,7 @@ int CSnowball::GetItemInfo(ItemInfo *p)
 	p->iPosition = 0;
 	p->iId = m_iId = WEAPON_SNOWBALL;
 	p->iWeight = SNOWBALL_WEIGHT;
-	p->iFlags = ITEM_FLAG_LIMITINWORLD | ITEM_FLAG_EXHAUSTIBLE | ITEM_FLAG_SINGLE_HAND;
+	p->iFlags = ITEM_FLAG_SELECTONEMPTY | ITEM_FLAG_LIMITINWORLD | ITEM_FLAG_EXHAUSTIBLE | ITEM_FLAG_NOAUTOSWITCHEMPTY | ITEM_FLAG_SINGLE_HAND;
 	p->pszDisplayName = "Snowball";
 
 	return 1;
@@ -92,12 +100,14 @@ int CSnowball::AddToPlayer( CBasePlayer *pPlayer )
 
 BOOL CSnowball::DeployLowKey( )
 {
+	m_fireState = 0;
 	m_flReleaseThrow = -1;
 	return DefaultDeploy( "models/v_snowball.mdl", "models/p_weapons.mdl", SNOWBALL_DRAW_LOWKEY, "crowbar" );
 }
 
 BOOL CSnowball::Deploy( )
 {
+	m_fireState = 0;
 	m_flReleaseThrow = -1;
 	return DefaultDeploy( "models/v_snowball.mdl", "models/p_weapons.mdl", SNOWBALL_DRAW, "crowbar" );
 }
@@ -111,23 +121,23 @@ BOOL CSnowball::CanHolster( void )
 void CSnowball::Holster( int skiplocal /* = 0 */ )
 {
 	CBasePlayerWeapon::DefaultHolster(-1);
-
-	if ( m_pPlayer->m_rgAmmo[ m_iPrimaryAmmoType ] )
-	{
+	m_fireState = 0;
+	
+	if (m_pPlayer->m_rgAmmo[ m_iPrimaryAmmoType ] > 0 )
 		SendWeaponAnim( SNOWBALL_HOLSTER );
-	}
 	else
-	{
-		m_pPlayer->pev->weapons &= ~(1<<WEAPON_SNOWBALL);
-		SetThink( &CSnowball::DestroyItem );
-		pev->nextthink = gpGlobals->time + 0.1;
-	}
+		SendWeaponAnim( SNOWBALL_HOLSTER_NOBALL );
 
 	EMIT_SOUND(ENT(m_pPlayer->pev), CHAN_WEAPON, "common/null.wav", 1.0, ATTN_NORM);
 }
 
 void CSnowball::PrimaryAttack()
 {
+	if ( m_fireState != 0 )
+	{
+		return;
+	}
+
 	if ( m_pPlayer->pev->waterlevel == 3 )
 	{
 		m_flNextPrimaryAttack = m_flNextSecondaryAttack = GetNextAttackDelay(0.15);
@@ -146,7 +156,7 @@ void CSnowball::PrimaryAttack()
 		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 0.75;
 		pev->nextthink = gpGlobals->time + 0.5;
 	} else {
-		RetireWeapon();
+		Reload();
 	}
 }
 
@@ -205,9 +215,20 @@ void CSnowball::Throw()
 
 void CSnowball::SecondaryAttack()
 {
+	if ( m_fireState != 0 )
+	{
+		return;
+	}
+
 	if ( m_pPlayer->pev->waterlevel == 3 )
 	{
 		m_flNextPrimaryAttack = m_flNextSecondaryAttack = GetNextAttackDelay(0.15);
+		return;
+	}
+
+	if ( m_pPlayer->m_rgAmmo[ m_iPrimaryAmmoType ] <= 0 )
+	{
+		Reload();
 		return;
 	}
 
@@ -221,6 +242,36 @@ void CSnowball::SecondaryAttack()
 	}
 }
 
+void CSnowball::Reload()
+{
+	if ( m_flStartThrow || m_flReleaseThrow > 0 )
+		return;
+
+	if ( m_fireState != 0 )
+		return;
+
+	if ( m_pPlayer->m_flNextAttack > UTIL_WeaponTimeBase() )
+		return;
+
+	if ( m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] >= SNOWBALL_MAX_CARRY )
+		return;
+
+	if (m_pPlayer->m_rgAmmo[ m_iPrimaryAmmoType ] > 0 )
+		SendWeaponAnim( SNOWBALL_HOLSTER );
+	else
+		SendWeaponAnim( SNOWBALL_HOLSTER_NOBALL );
+#ifndef CLIENT_DLL
+	m_pPlayer->GiveAmmo( 1, "Snowball", SNOWBALL_MAX_CARRY );
+#endif
+
+	m_fireState = 1;
+	m_flReleaseThrow = -1;
+	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + SNOWBALL_RELOAD_HOLSTER_TIME;
+	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + SNOWBALL_RELOAD_TOTAL_TIME;
+	m_flNextPrimaryAttack = UTIL_WeaponTimeBase() + SNOWBALL_RELOAD_TOTAL_TIME;
+	m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + SNOWBALL_RELOAD_TOTAL_TIME;
+}
+
 void CSnowball::WeaponIdle( void )
 {
 	if ( m_flReleaseThrow == 0 && m_flStartThrow )
@@ -230,6 +281,23 @@ void CSnowball::WeaponIdle( void )
 
 	if ( m_flTimeWeaponIdle > UTIL_WeaponTimeBase() )
 		return;
+
+	if ( m_fireState == 1 )
+	{
+		SendWeaponAnim( SNOWBALL_DRAW );
+		m_fireState = 2;
+		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + SNOWBALL_RELOAD_DRAW_TIME;
+		return;
+	}
+
+	if ( m_fireState == 2 )
+	{
+		m_fireState = 0;
+		m_flStartThrow = 0;
+		m_flReleaseThrow = -1;
+		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + UTIL_SharedRandomFloat( m_pPlayer->random_seed, 10, 15 );
+		return;
+	}
 
 	if ( m_flStartThrow )
 	{
@@ -297,7 +365,8 @@ void CSnowball::WeaponIdle( void )
 		}
 		else
 		{
-			RetireWeapon();
+			m_flReleaseThrow = -1;
+			Reload();
 			return;
 		}
 
@@ -308,6 +377,12 @@ void CSnowball::WeaponIdle( void )
 
 	if ( m_pPlayer->pev->button & IN_IRONSIGHT )
 		return;
+
+	if ( m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] <= 0 )
+	{
+		Reload();
+		return;
+	}
 
 	if ( m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] )
 	{
