@@ -1084,10 +1084,19 @@ int CBaseMonster :: TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker,
 		if (entIdx > 0)
 		{
 			int sendHealth = (int)pev->health;  // may be <= 0 on killing blow
+			int attackerIndex = 0;
+			if (!FNullEnt(pevAttacker) && (pevAttacker->flags & FL_CLIENT))
+			{
+				attackerIndex = ENTINDEX(ENT(pevAttacker));
+				if (attackerIndex < 1 || attackerIndex > gpGlobals->maxClients)
+					attackerIndex = 0;
+			}
+
 			MESSAGE_BEGIN(MSG_PVS, gmsgMonsterLifeBar, pev->origin);
 				WRITE_SHORT(entIdx);
 				WRITE_SHORT(sendHealth);
 				WRITE_SHORT((int)pev->max_health);
+				WRITE_SHORT(attackerIndex);
 			MESSAGE_END();
 		}
 	}

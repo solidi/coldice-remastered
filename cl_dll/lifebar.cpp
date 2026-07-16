@@ -54,7 +54,7 @@ CHudLifeBar::CHudLifeBar()
 		// Initialize all damage number slots
 		for (int j = 0; j < MAX_DAMAGE_NUMBERS; j++)
 		{
-			m_DamageNumbers[i][j].active = false;
+			memset(&m_DamageNumbers[i][j], 0, sizeof(s_DamageNumber));
 		}
 	}
 	// Initialize horde monster tracking slots
@@ -80,7 +80,7 @@ void CHudLifeBar::Reset( void )
 		
 		for (int j = 0; j < MAX_DAMAGE_NUMBERS; j++)
 		{
-			m_DamageNumbers[i][j].active = false;
+			memset(&m_DamageNumbers[i][j], 0, sizeof(s_DamageNumber));
 		}
 	}
 	// Clear horde monster tracking on map change
@@ -99,6 +99,8 @@ int CHudLifeBar::MsgFunc_LifeBar(const char *pszName,  int iSize, void *pbuf )
 	int armor = READ_BYTE(); // armor
 	int index = READ_BYTE(); // who renders
 	int hitindex = READ_BYTE(); // who hit me
+	if (hitindex < 1 || hitindex > VOICE_MAX_PLAYERS)
+		hitindex = 0;
 
 	if (armor > 100) armor = 0;
 	armor = fmin(fmax(armor, 0), 100);
@@ -111,28 +113,42 @@ int CHudLifeBar::MsgFunc_LifeBar(const char *pszName,  int iSize, void *pbuf )
 	cl_entity_s *pClient = gEngfuncs.GetEntityByIndex(index);
 	// gEngfuncs.Con_DPrintf(">>>>> armor=%d, hit=%d, who=%d\n", armor, index, hitindex);
 	int health = pClient ? pClient->curstate.health : 0;
+	int clampedHealth = health < 0 ? 0 : health;
 	
-	// Initialize previous health if not yet set (first time tracking this player)
+	// Initialize previous health if not yet set (first time tracking this player).
+	// Prefer previous networked state when available; if the local player caused
+	// the hit and we still have no history, assume max-health baseline so first-hit
+	// markers are not suppressed.
 	int prevHealth = GetLifeBar()->m_PreviousHealth[index];
-	if (prevHealth == 0 && health > 0)
+	if (prevHealth <= 0 && pClient)
 	{
-		prevHealth = health;
+		int prevStateHealth = pClient->prevstate.health;
+		if (prevStateHealth > clampedHealth)
+			prevHealth = prevStateHealth;
+	}
+	if (prevHealth <= 0)
+	{
+		int assumedMaxHealth = MutatorEnabled(MUTATOR_999) ? 999 : 100;
+		if (hitindex == iLocalPlayerIndex && clampedHealth < assumedMaxHealth)
+			prevHealth = assumedMaxHealth;
+		else
+			prevHealth = clampedHealth;
 	}
 	
 	// Detect damage (health decreased)
-	if (prevHealth > health && prevHealth > 0 && health > 0)
+	if (prevHealth > clampedHealth && prevHealth > 0)
 	{
-		int damageTaken = prevHealth - health;
+		int damageTaken = prevHealth - clampedHealth;
 		if (cl_lifemeter && cl_lifemeter->value > 1)
 		{
 			if (cl_lifemeter->value > 2)
-				damageTaken = health; // Show current health instead of damage taken
-			GetLifeBar()->AddDamageNumber(index, damageTaken);
+				damageTaken = clampedHealth; // Show current health instead of damage taken
+			GetLifeBar()->AddDamageNumber(index, damageTaken, hitindex);
 		}
 	}
 	
 	// Update previous health
-	GetLifeBar()->m_PreviousHealth[index] = health;
+	GetLifeBar()->m_PreviousHealth[index] = clampedHealth;
 
 	if (cl_playpoint && cl_playpoint->value)
 	{
@@ -148,15 +164,33 @@ int CHudLifeBar::MsgFunc_LifeBar(const char *pszName,  int iSize, void *pbuf )
 
 int CHudLifeBar::MsgFunc_MLifeBar(const char *pszName, int iSize, void *pbuf)
 {
+	if (iSize < 6)
+		return 1;
+
 	BEGIN_READ(pbuf, iSize);
 	int entityIndex  = READ_SHORT();
 	int currentHealth = READ_SHORT();
 	int maxHealth    = READ_SHORT();
+	int attackerIndex = 0;
+	if (iSize >= 8)
+	{
+		attackerIndex = READ_SHORT();
+		if (attackerIndex < 1 || attackerIndex > VOICE_MAX_PLAYERS)
+			attackerIndex = 0;
+	}
 
 	if (entityIndex <= 0 || maxHealth <= 0)
 		return 1;
 
+	int clampedCurrentHealth = currentHealth;
+	if (clampedCurrentHealth < 0)
+		clampedCurrentHealth = 0;
+	if (clampedCurrentHealth > maxHealth)
+		clampedCurrentHealth = maxHealth;
+
 	float now = gEngfuncs.GetClientTime();
+	cl_entity_t *localPlayer = gEngfuncs.GetLocalPlayer();
+	int localPlayerIndex = localPlayer ? localPlayer->index : 0;
 
 	// Find existing slot for this monster, or allocate the best available one
 	int slot        = -1;
@@ -188,11 +222,14 @@ int CHudLifeBar::MsgFunc_MLifeBar(const char *pszName, int iSize, void *pbuf)
 		// New entity - use empty/expired slot or evict the oldest
 		slot = (fallback != -1) ? fallback : oldestSlot;
 		m_MonsterEntries[slot].entityIndex   = entityIndex;
-		m_MonsterEntries[slot].previousHealth = currentHealth;
 		m_MonsterEntries[slot].refreshTime   = now + 3.0f;
 		for (int j = 0; j < MAX_DAMAGE_NUMBERS; j++)
-			m_MonsterEntries[slot].damageNumbers[j].active = false;
-		return 1;  // No delta on first message
+			memset(&m_MonsterEntries[slot].damageNumbers[j], 0, sizeof(s_DamageNumber));
+
+		int baselineHealth = clampedCurrentHealth;
+		if (attackerIndex == localPlayerIndex && clampedCurrentHealth < maxHealth)
+			baselineHealth = maxHealth;
+		m_MonsterEntries[slot].previousHealth = baselineHealth;
 	}
 
 	// Refresh slot expiry
@@ -201,9 +238,9 @@ int CHudLifeBar::MsgFunc_MLifeBar(const char *pszName, int iSize, void *pbuf)
 	int prevHealth = m_MonsterEntries[slot].previousHealth;
 
 	if (cl_lifemeter && cl_lifemeter->value > 1 &&
-		prevHealth > currentHealth && prevHealth > 0 && currentHealth >= 0)
+		prevHealth > clampedCurrentHealth && prevHealth > 0)
 	{
-		int damageTaken = (cl_lifemeter->value > 2) ? currentHealth : (prevHealth - currentHealth);
+		int damageTaken = (cl_lifemeter->value > 2) ? clampedCurrentHealth : (prevHealth - clampedCurrentHealth);
 
 		for (int i = 0; i < MAX_DAMAGE_NUMBERS; i++)
 		{
@@ -211,6 +248,7 @@ int CHudLifeBar::MsgFunc_MLifeBar(const char *pszName, int iSize, void *pbuf)
 			{
 				s_DamageNumber &dmg = m_MonsterEntries[slot].damageNumbers[i];
 				dmg.damage    = damageTaken;
+				dmg.attackerIndex = attackerIndex;
 				dmg.spawnTime = now;
 				dmg.lifetime  = 2.5f;
 				dmg.active    = true;
@@ -239,7 +277,7 @@ int CHudLifeBar::MsgFunc_MLifeBar(const char *pszName, int iSize, void *pbuf)
 		}
 	}
 
-	m_MonsterEntries[slot].previousHealth = currentHealth;
+	m_MonsterEntries[slot].previousHealth = clampedCurrentHealth;
 	return 1;
 }
 
@@ -351,11 +389,14 @@ int CHudLifeBar::Draw(float flTime)
 	return 1;
 }
 
-void CHudLifeBar::AddDamageNumber(int playerIndex, int damage)
+void CHudLifeBar::AddDamageNumber(int playerIndex, int damage, int attackerIndex)
 {
 	cl_entity_s *pClient = gEngfuncs.GetEntityByIndex(playerIndex);
 	if (!pClient)
 		return;
+
+	if (attackerIndex < 1 || attackerIndex > VOICE_MAX_PLAYERS)
+		attackerIndex = 0;
 	
 	// Find an available slot
 	for (int i = 0; i < MAX_DAMAGE_NUMBERS; i++)
@@ -366,6 +407,7 @@ void CHudLifeBar::AddDamageNumber(int playerIndex, int damage)
 		if (!m_DamageNumbers[playerIndex][i].active)
 		{
 			m_DamageNumbers[playerIndex][i].damage = damage;
+			m_DamageNumbers[playerIndex][i].attackerIndex = attackerIndex;
 			m_DamageNumbers[playerIndex][i].spawnTime = gEngfuncs.GetClientTime();
 			m_DamageNumbers[playerIndex][i].lifetime = 2.5f;  // longer so arc is visible
 			m_DamageNumbers[playerIndex][i].active = true;
@@ -390,9 +432,11 @@ void CHudLifeBar::AddDamageNumber(int playerIndex, int damage)
 void CHudLifeBar::RenderDamageNumbers()
 {
 	cl_entity_t *localPlayer = gEngfuncs.GetLocalPlayer();
+	if (!localPlayer)
+		return;
+
+	const int localPlayerIndex = localPlayer->index;
 	float currentTime = gEngfuncs.GetClientTime();
-	
-	int entityIndex = 0;  // Track which entity slot we're using
 	
 	for (int i = 0; i < 32; i++)
 	{
@@ -427,7 +471,16 @@ void CHudLifeBar::RenderDamageNumbers()
 			
 			// Calculate fade effect (fade out over time)
 			float fadeRatio = 1.0f - (elapsed / dmg.lifetime);
-			int alpha = (int)(255 * fadeRatio);
+			bool isLocalHit = (dmg.attackerIndex > 0 && dmg.attackerIndex == localPlayerIndex);
+			int alpha = (int)(255 * fadeRatio * (isLocalHit ? 1.0f : 0.50f));
+			if (alpha < 0)
+				alpha = 0;
+			if (alpha > 255)
+				alpha = 255;
+
+			int tintR = isLocalHit ? 255 : 220;
+			int tintG = isLocalHit ? 186 : 220;
+			int tintB = isLocalHit ? 64 : 220;
 			
 			// Ballistic arc: rise then fall under gravity
 			// floatOffset = v0*t - 0.5*g*t^2  (world units)
@@ -440,7 +493,7 @@ void CHudLifeBar::RenderDamageNumbers()
 			float horizOffsetY = dmg.horizVelY * elapsed;
 
 			// Render each digit of the damage number using locked world position
-			RenderDamageDigits(dmg.damage, dmg.worldPosition, floatOffset, horizOffsetX, horizOffsetY, alpha);
+			RenderDamageDigits(dmg.damage, dmg.worldPosition, floatOffset, horizOffsetX, horizOffsetY, alpha, tintR, tintG, tintB, isLocalHit);
 		}
 	}
 
@@ -490,7 +543,16 @@ void CHudLifeBar::RenderDamageNumbers()
 			}
 
 			float fadeRatio = 1.0f - (elapsed / dmg.lifetime);
-			int alpha = (int)(255 * fadeRatio);
+			bool isLocalHit = (dmg.attackerIndex > 0 && dmg.attackerIndex == localPlayerIndex);
+			int alpha = (int)(255 * fadeRatio * (isLocalHit ? 1.0f : 0.50f));
+			if (alpha < 0)
+				alpha = 0;
+			if (alpha > 255)
+				alpha = 255;
+
+			int tintR = isLocalHit ? 255 : 220;
+			int tintG = isLocalHit ? 186 : 220;
+			int tintB = isLocalHit ? 64 : 220;
 
 			const float kInitVel = 60.0f;
 			const float kGravity = 120.0f;
@@ -498,12 +560,12 @@ void CHudLifeBar::RenderDamageNumbers()
 			float horizOffsetX = dmg.horizVelX * elapsed;
 			float horizOffsetY = dmg.horizVelY * elapsed;
 
-			RenderDamageDigits(dmg.damage, dmg.worldPosition, floatOffset, horizOffsetX, horizOffsetY, alpha);
+			RenderDamageDigits(dmg.damage, dmg.worldPosition, floatOffset, horizOffsetX, horizOffsetY, alpha, tintR, tintG, tintB, isLocalHit);
 		}
 	}
 }
 
-void CHudLifeBar::RenderDamageDigits(int damage, vec3_t worldPosition, float floatOffset, float horizOffsetX, float horizOffsetY, int alpha)
+void CHudLifeBar::RenderDamageDigits(int damage, vec3_t worldPosition, float floatOffset, float horizOffsetX, float horizOffsetY, int alpha, int r, int g, int b, bool drawLocalMarker)
 {
 	char damageStr[16];
 	snprintf(damageStr, sizeof(damageStr), "%d", damage);  // digits only, no "-"
@@ -530,6 +592,7 @@ void CHudLifeBar::RenderDamageDigits(int damage, vec3_t worldPosition, float flo
 	
 	// Scaling factor
 	float scale = ScreenWidth <= 768 ? 1.0f : 1.5f;
+	drawLocalMarker ? scale *= 1.2f : scale *= 1.0f;
 	int scaledWidth = (int)(iWidth * scale);
 	int scaledHeight = (int)(iHeight * scale);
 
@@ -551,22 +614,34 @@ void CHudLifeBar::RenderDamageDigits(int damage, vec3_t worldPosition, float flo
 	int minusW   = (int)(scaledWidth  * 0.55f);  // slightly narrower than a digit
 	int minusH   = (int)(scaledHeight * 0.12f);  // thin horizontal bar
 	int minusGap = (int)(scaledWidth  * 0.05f);  // gap between minus and first digit
+	int markerSize = (int)(scaledHeight * 0.38f);
+	if (markerSize < 2)
+		markerSize = 2;
+	int markerGap = (int)(scaledWidth * 0.15f);
+	int markerWidth = drawLocalMarker ? (markerSize + markerGap) : 0;
 
-	// Center the whole group (minus + gap + digits) around screenX
-	int totalWidth  = minusW + minusGap + (numDigits * scaledWidth);
+	// Center the whole group (marker + minus + gap + digits) around screenX
+	int totalWidth  = markerWidth + minusW + minusGap + (numDigits * scaledWidth);
 	int startX      = screenX - totalWidth / 2;
+	int markerY     = screenY + (scaledHeight - markerSize) / 2;
+	int minusX      = startX + markerWidth;
 	int minusY      = screenY + (scaledHeight - minusH) / 2;  // vertically centered on digits
+
+	if (drawLocalMarker)
+	{
+		// Marker draw is currently disabled; keep block explicit so minus rendering stays independent.
+		// gEngfuncs.pfnFillRGBA(startX, markerY, markerSize, markerSize, r, g, b, alpha);
+	}
 
 	// Draw minus sign as a filled rectangle
 	if (cl_lifemeter && cl_lifemeter->value == 2)
-		gEngfuncs.pfnFillRGBA(startX, minusY, minusW, minusH, 255, 255, 255, alpha);
+		gEngfuncs.pfnFillRGBA(minusX, minusY, minusW, minusH, r, g, b, alpha);
 
-	int digitStartX = startX + minusW + minusGap;
-
+	int digitStartX = minusX + minusW + minusGap;
 	// Calculate color with alpha
-	int r = (int)(255 * (alpha / 255.0f));
-	int g = (int)(255 * (alpha / 255.0f));
-	int b = (int)(255 * (alpha / 255.0f));
+	r = (int)(r * (alpha / 255.0f));
+	g = (int)(g * (alpha / 255.0f));
+	b = (int)(b * (alpha / 255.0f));
 	
 	// Draw each digit using 2D sprite rendering
 	for (int i = 0; i < numDigits; i++)
