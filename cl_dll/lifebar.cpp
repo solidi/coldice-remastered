@@ -36,6 +36,7 @@ int __MsgFunc_MLifeBar(const char *pszName, int iSize, void *pbuf)
 extern int cam_thirdperson;
 extern cvar_t *cl_lifemeter;
 extern cvar_t *cl_playpoint;
+extern cvar_t *cl_icemodels;
 
 CHudLifeBar g_LifeBar;
 
@@ -437,6 +438,15 @@ void CHudLifeBar::RenderDamageNumbers()
 
 	const int localPlayerIndex = localPlayer->index;
 	float currentTime = gEngfuncs.GetClientTime();
+
+	int hotR = 255, hotG = 186, hotB = 64;  // Local player hit color
+	if (cl_icemodels && cl_icemodels->value > 0)
+	{
+		hotR = 0;
+		hotG = 160;
+		hotB = 255;  // Blue for ice models
+	}
+
 	
 	for (int i = 0; i < 32; i++)
 	{
@@ -478,9 +488,9 @@ void CHudLifeBar::RenderDamageNumbers()
 			if (alpha > 255)
 				alpha = 255;
 
-			int tintR = isLocalHit ? 255 : 220;
-			int tintG = isLocalHit ? 186 : 220;
-			int tintB = isLocalHit ? 64 : 220;
+			int tintR = isLocalHit ? hotR : 220;
+			int tintG = isLocalHit ? hotG : 220;
+			int tintB = isLocalHit ? hotB : 220;
 			
 			// Ballistic arc: rise then fall under gravity
 			// floatOffset = v0*t - 0.5*g*t^2  (world units)
@@ -550,9 +560,9 @@ void CHudLifeBar::RenderDamageNumbers()
 			if (alpha > 255)
 				alpha = 255;
 
-			int tintR = isLocalHit ? 255 : 220;
-			int tintG = isLocalHit ? 186 : 220;
-			int tintB = isLocalHit ? 64 : 220;
+			int tintR = isLocalHit ? hotR : 220;
+			int tintG = isLocalHit ? hotG : 220;
+			int tintB = isLocalHit ? hotB : 220;
 
 			const float kInitVel = 60.0f;
 			const float kGravity = 120.0f;
