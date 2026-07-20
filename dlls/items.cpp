@@ -493,6 +493,16 @@ void CRune::MakeTrigger( void )
 
 void CRune::RuneTouch( CBaseEntity *pOther )
 {
+	if (!pOther)
+		return;
+
+	const char *szClass = STRING(pev->classname);
+	if (!szClass || strncmp(szClass, "rune_", 5) != 0)
+	{
+		SetTouch( NULL );
+		return;
+	}
+
 	// Support if picked up and dropped
 	pev->velocity = pev->velocity * 0.5;
 	pev->avelocity = pev->avelocity * 0.5;

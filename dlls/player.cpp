@@ -6216,6 +6216,25 @@ void CBasePlayer::Celebrate( void )
 	}
 }
 
+static int ForceGrabClassToType( const char *cls )
+{
+	if (!cls || !cls[0])
+		return 0;
+
+	if (strcmp(cls, "weaponbox") == 0)
+		return 4;
+	if (strncmp(cls, "weapon_", 7) == 0)
+		return 1;
+	if (strncmp(cls, "item_", 5) == 0)
+		return 2;
+	if (strncmp(cls, "rune_", 5) == 0)
+		return 3;
+	if (strncmp(cls, "ammo_", 5) == 0)
+		return 5;
+
+	return 0;
+}
+
 class CGrabWeapon : public CBaseEntity
 {
 public:
@@ -6393,6 +6412,23 @@ void CGrabWeapon::GrabWeaponTouch( CBaseEntity *pOther )
 					pOrig = CBaseEntity::Instance(pev->enemy);
 				if (pOrig && !(pOrig->pev->flags & FL_KILLME))
 				{
+					const char *szExpectedClass = STRING(pev->message);
+					const char *szActualClass = STRING(pOrig->pev->classname);
+					int iResolvedType = ForceGrabClassToType(szActualClass);
+
+					// A cached edict can be recycled while the projectile is in-flight.
+					// Refuse to dispatch with a mismatched class/type.
+					if (!iResolvedType || strcmp(szExpectedClass, szActualClass) != 0)
+					{
+						ALERT(at_aiconsole, "ForceGrab: stale world item reference (expected %s, got %s)\n", szExpectedClass, szActualClass);
+						STOP_SOUND(pOther->edict(), CHAN_VOICE, "odetojoy.wav");
+						UTIL_Remove(this);
+						return;
+					}
+
+					iType = iResolvedType;
+					pev->iuser2 = iType;
+
 					// Cancel any pending respawn think so it doesn't fire
 					// while we briefly resurrect the entity.
 					pOrig->SetThink( NULL );
@@ -6556,13 +6592,9 @@ static void AcquireForceGrabWorldItem( CBasePlayer *pPlayer, CBaseEntity *pWorld
 		return;
 
 	const char *cls = STRING(pWorld->pev->classname);
-	int iType = 0;
-	if (strcmp(cls, "weaponbox") == 0)            iType = 4;
-	else if (strncmp(cls, "weapon_", 7) == 0)     iType = 1;
-	else if (strncmp(cls, "item_", 5) == 0)       iType = 2;
-	else if (strncmp(cls, "rune_", 5) == 0)       iType = 3;
-	else if (strncmp(cls, "ammo_", 5) == 0)       iType = 5;
-	else                                          return;
+	int iType = ForceGrabClassToType(cls);
+	if (!iType)
+		return;
 
 	// Spawn the proxy 64u above the world item so it floats at chest
 	// height and is easier to control, instead of dragging along the
