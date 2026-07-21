@@ -20,6 +20,7 @@
 #include "weapons.h"
 #include "nodes.h"
 #include "player.h"
+#include "effects.h"
 #include "gamerules.h"
 #include "game.h"
 
@@ -34,8 +35,164 @@ enum vest_radio_e {
 	VEST_RADIO_HOLSTER
 };
 
+static const float VEST_PROX_SCAN_RATE = 0.1f;
+static const float VEST_DETONATE_STAGE_TIME = 1.0f;
+static const float VEST_FAST_DETONATE_SCALE = 0.5f;
+
+void CVest::SetDangerStatusIcon( BOOL enabled )
+{
+#ifndef CLIENT_DLL
+	if (!m_pPlayer)
+		return;
+
+	MESSAGE_BEGIN(MSG_ONE, gmsgStatusIcon, NULL, m_pPlayer->edict());
+		WRITE_BYTE(enabled ? 1 : 0);
+		WRITE_STRING("cam_danger");
+	MESSAGE_END();
+#endif
+}
+
+void CVest::UpdateProximityIndicator( BOOL enabled )
+{
+#ifndef CLIENT_DLL
+	if (!m_pPlayer)
+		return;
+
+	if (enabled)
+	{
+		if (m_hProximityIndicator)
+			return;
+
+		CSprite *pIndicator = CSprite::SpriteCreate( "sprites/glow01.spr", m_pPlayer->pev->origin, FALSE );
+		if (pIndicator)
+		{
+			pIndicator->SetTransparency( kRenderGlow, 255, 32, 32, 220, kRenderFxStrobeFast );
+			pIndicator->SetScale( 0.25f );
+			pIndicator->SetAttachment( m_pPlayer->edict(), 2 );
+			m_hProximityIndicator = pIndicator;
+		}
+	}
+	else if (m_hProximityIndicator)
+	{
+		CBaseEntity *pIndicator = m_hProximityIndicator;
+		if (pIndicator)
+		{
+			UTIL_Remove( pIndicator );
+		}
+		m_hProximityIndicator = NULL;
+	}
+#endif
+}
+
+void CVest::SetProximityMode( BOOL enabled )
+{
+	m_fProximityMode = enabled;
+	SetDangerStatusIcon( enabled );
+	UpdateProximityIndicator( enabled );
+}
+
+BOOL CVest::FindProximityViolator( void )
+{
+	if (!m_pPlayer)
+		return FALSE;
+
+	const float flDamage = pev->dmg > 0 ? pev->dmg : gSkillData.plrDmgVest;
+	const float flRadius = flDamage * 2.5f;
+
+	CBaseEntity *pTarget = NULL;
+	while ((pTarget = UTIL_FindEntityInSphere( pTarget, m_pPlayer->pev->origin, flRadius )) != NULL)
+	{
+		if (pTarget == m_pPlayer)
+			continue;
+		if (pTarget->pev->takedamage == DAMAGE_NO)
+			continue;
+		if (pTarget->pev->health <= 0)
+			continue;
+		if (!pTarget->IsPlayer() && !(pTarget->pev->flags & FL_MONSTER))
+			continue;
+
+		// Do not detonate on targets that are currently protected from damage.
+		if (FBitSet(pTarget->pev->flags, FL_GODMODE))
+			continue;
+
+		// Treat invisible targets as protected for proximity purposes.
+		if (FBitSet(pTarget->pev->effects, EF_NODRAW) || pTarget->pev->rendermode == kRenderTransAlpha)
+			continue;
+
+		if (pTarget->IsPlayer() && g_pGameRules)
+		{
+			if (!g_pGameRules->FPlayerCanTakeDamage((CBasePlayer *)pTarget, m_pPlayer))
+				continue;
+		}
+
+		return TRUE;
+	}
+
+	return FALSE;
+}
+
+void CVest::BeginDetonationSequence( BOOL accelerated )
+{
+	if (m_fDetonationStarted)
+		return;
+
+	if (!m_pPlayer)
+		return;
+
+	m_fDetonationStarted = TRUE;
+	m_fAcceleratedDetonation = accelerated;
+
+#ifndef CLIENT_DLL
+	if (allowvoiceovers.value)
+		EMIT_SOUND(ENT(m_pPlayer->pev), CHAN_VOICE, "vest_attack.wav", 1, ATTN_NORM);
+#endif
+
+	SetDangerStatusIcon( TRUE );
+
+	SendWeaponAnim( VEST_RADIO_FIRE );
+	const float flScale = m_fAcceleratedDetonation ? VEST_FAST_DETONATE_SCALE : 1.0f;
+
+#ifndef CLIENT_DLL
+	SetThink( &CVest::BlowThink );
+	pev->nextthink = gpGlobals->time + (VEST_DETONATE_STAGE_TIME * flScale * g_pGameRules->WeaponMultipler());
+#endif
+
+	m_flNextPrimaryAttack = UTIL_WeaponTimeBase() + (2.0f * flScale);
+	m_flNextSecondaryAttack = UTIL_WeaponTimeBase();
+	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + (2.0f * flScale);
+}
+
+void CVest::ProximityThink( void )
+{
+	if (!m_pPlayer || !m_pPlayer->IsAlive())
+	{
+		SetProximityMode( FALSE );
+		pev->nextthink = -1;
+		return;
+	}
+
+	if (!m_fProximityMode || m_fDetonationStarted)
+	{
+		pev->nextthink = -1;
+		return;
+	}
+
+	if (FindProximityViolator())
+	{
+		BeginDetonationSequence( TRUE );
+		return;
+	}
+
+	pev->nextthink = gpGlobals->time + VEST_PROX_SCAN_RATE;
+}
+
 int CVest::AddToPlayer( CBasePlayer *pPlayer )
 {
+	m_fProximityMode = FALSE;
+	m_fAcceleratedDetonation = FALSE;
+	m_fDetonationStarted = FALSE;
+	m_hProximityIndicator = NULL;
+
 	if ( CBasePlayerWeapon::AddToPlayer( pPlayer ) )
 	{
 		WeaponPickup(pPlayer, m_iId);
@@ -53,6 +210,11 @@ void CVest::Spawn( )
 
 	m_iDefaultAmmo = SATCHEL_DEFAULT_GIVE;
 	pev->dmg = gSkillData.plrDmgVest;
+	m_fProximityMode = FALSE;
+	m_fAcceleratedDetonation = FALSE;
+	m_fDetonationStarted = FALSE;
+	m_hProximityIndicator = NULL;
+	m_iLightning = 0;
 
 	FallInit();
 }
@@ -64,6 +226,8 @@ void CVest::Precache( void )
 	PRECACHE_SOUND("vest_attack.wav");
 	PRECACHE_SOUND("vest_alive.wav");
 	PRECACHE_SOUND("vest_equip.wav");
+	PRECACHE_SOUND("buttons/blip1.wav");
+	PRECACHE_MODEL("sprites/glow01.spr");
 }
 
 int CVest::GetItemInfo(ItemInfo *p)
@@ -106,6 +270,10 @@ BOOL CVest::CanDeploy( void )
 
 BOOL CVest::DeployLowKey( )
 {
+	m_fDetonationStarted = FALSE;
+	m_fAcceleratedDetonation = FALSE;
+	SetProximityMode( FALSE );
+
 	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 0.25;
 	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + UTIL_SharedRandomFloat( m_pPlayer->random_seed, 10, 15 );
 	return DefaultDeploy( "models/v_vest_radio.mdl", "models/p_weapons.mdl", VEST_RADIO_DRAW_LOWKEY, "hive" );
@@ -113,6 +281,10 @@ BOOL CVest::DeployLowKey( )
 
 BOOL CVest::Deploy( )
 {
+	m_fDetonationStarted = FALSE;
+	m_fAcceleratedDetonation = FALSE;
+	SetProximityMode( FALSE );
+
 	EMIT_SOUND(ENT(m_pPlayer->pev), CHAN_VOICE, "vest_equip.wav", 1, ATTN_NORM);
 	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 0.25;
 	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + UTIL_SharedRandomFloat( m_pPlayer->random_seed, 10, 15 );
@@ -122,6 +294,10 @@ BOOL CVest::Deploy( )
 
 void CVest::Holster( int skiplocal )
 {
+	SetProximityMode( FALSE );
+	m_fDetonationStarted = FALSE;
+	m_fAcceleratedDetonation = FALSE;
+
 #ifndef CLIENT_DLL
 	if (allowvoiceovers.value)
 		STOP_SOUND(ENT(m_pPlayer->pev), CHAN_VOICE, "vest_attack.wav");
@@ -132,22 +308,29 @@ void CVest::Holster( int skiplocal )
 
 void CVest::PrimaryAttack()
 {
-#ifndef CLIENT_DLL
-	if (allowvoiceovers.value)
-		EMIT_SOUND(ENT(m_pPlayer->pev), CHAN_VOICE, "vest_attack.wav", 1, ATTN_NORM);
+	BeginDetonationSequence( FALSE );
+}
 
-	SetThink( &CVest::BlowThink );
-	pev->nextthink = gpGlobals->time + (1.0 * g_pGameRules->WeaponMultipler());
+void CVest::Reload()
+{
+	if (m_fDetonationStarted)
+		return;
 
-	MESSAGE_BEGIN(MSG_ONE, gmsgStatusIcon, NULL, m_pPlayer->edict());
-		WRITE_BYTE(1);
-		WRITE_STRING("cam_danger");
-	MESSAGE_END();
-#endif
+	if (m_fProximityMode)
+		return;
 
-	m_flNextPrimaryAttack = UTIL_WeaponTimeBase() + 2.0;
-	m_flNextSecondaryAttack = UTIL_WeaponTimeBase();
-	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 2.0;
+	SendWeaponAnim( VEST_RADIO_FIRE );
+	EMIT_SOUND(ENT(m_pPlayer->pev), CHAN_ITEM, "buttons/blip1.wav", 1, ATTN_NORM);
+	m_pPlayer->SetAnimation( PLAYER_ATTACK1 );
+
+	SetProximityMode( TRUE );
+	SetThink( &CVest::ProximityThink );
+	pev->nextthink = gpGlobals->time + VEST_PROX_SCAN_RATE;
+
+	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 0.35f;
+	m_flNextPrimaryAttack = m_pPlayer->m_flNextAttack;
+	m_flNextSecondaryAttack = m_pPlayer->m_flNextAttack;
+	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 0.5;
 }
 
 void CVest::BlowThink() {
@@ -160,13 +343,18 @@ void CVest::BlowThink() {
 
 	m_pPlayer->SetAnimation( PLAYER_JUMP );
 #ifndef CLIENT_DLL
-	pev->nextthink = gpGlobals->time + (0.5 * g_pGameRules->WeaponMultipler());
+	const float flScale = m_fAcceleratedDetonation ? VEST_FAST_DETONATE_SCALE : 1.0f;
+	pev->nextthink = gpGlobals->time + (VEST_DETONATE_STAGE_TIME * flScale * g_pGameRules->WeaponMultipler());
 #endif
 }
 
 void CVest::GoneThink() {
 	if (!m_pPlayer)
 		return;
+
+	SetProximityMode( FALSE );
+	m_fDetonationStarted = FALSE;
+	m_fAcceleratedDetonation = FALSE;
 
 	CGrenade::Vest( m_pPlayer->pev, pev->origin, gSkillData.plrDmgVest );
 
@@ -209,6 +397,10 @@ void CVest::GoneThink() {
 
 void CVest::SecondaryAttack()
 {
+	SetProximityMode( FALSE );
+	m_fDetonationStarted = FALSE;
+	m_fAcceleratedDetonation = FALSE;
+
 	pev->nextthink = -1;
 	EMIT_SOUND(ENT(m_pPlayer->pev), CHAN_VOICE, "vest_alive.wav", 1, ATTN_NORM);
 	SendWeaponAnim( VEST_RADIO_HOLSTER );
@@ -223,12 +415,9 @@ void CVest::SecondaryAttack()
 
 void CVest::RetireThink( )
 {
-#ifndef CLIENT_DLL
-	MESSAGE_BEGIN(MSG_ONE, gmsgStatusIcon, NULL, m_pPlayer->edict());
-		WRITE_BYTE(0);
-		WRITE_STRING("cam_danger");
-	MESSAGE_END();
-#endif
+	SetProximityMode( FALSE );
+	m_fDetonationStarted = FALSE;
+	m_fAcceleratedDetonation = FALSE;
 	RetireWeapon();
 }
 

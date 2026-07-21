@@ -910,7 +910,7 @@ void HUD_WeaponsPostThink( local_state_s *from, local_state_s *to, usercmd_t *cm
 
 		case WEAPON_VEST:
 			pWeapon = &g_Vest;
-			ProTip(VEST_TIP, "Use secondary attack to cancel ignition");
+			ProTip(VEST_TIP, "RELOAD enables proximity mode; ATTACK2 cancels");
 			break;
 
 		case WEAPON_CHUMTOAD:
