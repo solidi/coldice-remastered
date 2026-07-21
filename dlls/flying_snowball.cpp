@@ -25,6 +25,22 @@
 
 LINK_ENTITY_TO_CLASS( flying_snowball, CFlyingSnowball );
 
+namespace
+{
+	const float SNOWBALL_TRACK_MAX_DIST = 2400.0f;
+	const float SNOWBALL_TRACK_MIN_DOT = 0.50f;
+	const float SNOWBALL_TRACK_AIM_DOT = 0.80f;
+	const float SNOWBALL_TRACK_NUDGE = 0.08f;
+	const float SNOWBALL_TRACK_THINK_INTERVAL = 0.02f;
+
+	inline BOOL SnowballHasWorldLineOfSight( const Vector &vecStart, const Vector &vecEnd, edict_t *pentIgnore )
+	{
+		TraceResult tr;
+		UTIL_TraceLine( vecStart, vecEnd, ignore_monsters, pentIgnore, &tr );
+		return ( tr.flFraction >= 1.0f );
+	}
+}
+
 CFlyingSnowball * CFlyingSnowball::Shoot( entvars_t *pevOwner, Vector vecStart, Vector vecVelocity, CBasePlayer *m_pPlayer )
 {
 	CFlyingSnowball *pSnowball = GetClassPtr( (CFlyingSnowball *)NULL );
@@ -33,6 +49,8 @@ CFlyingSnowball * CFlyingSnowball::Shoot( entvars_t *pevOwner, Vector vecStart, 
 	pSnowball->Spawn();
 	UTIL_SetOrigin( pSnowball->pev, vecStart );
 	pSnowball->pev->velocity = vecVelocity;
+	pSnowball->AcquireTrackTarget();
+	pSnowball->ApplyTrackNudge();
 
 	// Maximum lifetime so snowballs do not accumulate and exhaust the entity pool.
 	pSnowball->pev->dmgtime = gpGlobals->time + 8.0;
@@ -90,10 +108,13 @@ void CFlyingSnowball::Spawn( )
 	// later to avoid hitting the player as they throw the snowball.
 	if ( pev->owner )
 		m_hOwner = Instance( pev->owner );
+	m_hTrackTarget = NULL;
+	m_fTrackTargetResolved = FALSE;
+	m_iTrackTurnSign = 0;
 
 	// Set the think funtion.
 	SetThink( &CFlyingSnowball::BubbleThink );
-	pev->nextthink = gpGlobals->time + 0.25;
+	pev->nextthink = gpGlobals->time + SNOWBALL_TRACK_THINK_INTERVAL;
 
 	// Set the touch function.
 	SetTouch( &CFlyingSnowball::SpinTouch );
@@ -204,6 +225,123 @@ void CFlyingSnowball::SpinTouch( CBaseEntity *pOther )
 	pev->nextthink = gpGlobals->time + .1;
 }
 
+void CFlyingSnowball::AcquireTrackTarget( void )
+{
+	m_fTrackTargetResolved = TRUE;
+	m_hTrackTarget = NULL;
+	m_iTrackTurnSign = 0;
+
+	Vector vecVelocity2D( pev->velocity.x, pev->velocity.y, 0 );
+	float flSpeed2D = vecVelocity2D.Length2D();
+	if ( flSpeed2D < 1.0f )
+		return;
+
+	Vector vecForward2D = vecVelocity2D / flSpeed2D;
+	Vector vecAimForward2D = vecForward2D;
+	if ( m_hOwner && m_hOwner->IsPlayer() )
+	{
+		UTIL_MakeAimVectors( m_hOwner->pev->v_angle );
+		Vector vecOwnerAim2D( gpGlobals->v_forward.x, gpGlobals->v_forward.y, 0 );
+		float flOwnerAimLen = vecOwnerAim2D.Length2D();
+		if ( flOwnerAimLen > 0.0001f )
+			vecAimForward2D = vecOwnerAim2D / flOwnerAimLen;
+	}
+
+	float flBestForwardDist = SNOWBALL_TRACK_MAX_DIST;
+	CBaseEntity *pBestTarget = NULL;
+
+	for ( int i = 1; i <= gpGlobals->maxClients; ++i )
+	{
+		CBaseEntity *pPlayer = UTIL_PlayerByIndex( i );
+		if ( !pPlayer || !pPlayer->IsPlayer() || !pPlayer->IsAlive() )
+			continue;
+
+		if ( m_hOwner && pPlayer->edict() == m_hOwner->edict() )
+			continue;
+
+		Vector vecTargetPos = pPlayer->pev->origin + pPlayer->pev->view_ofs;
+		Vector vecToTarget = vecTargetPos - pev->origin;
+		float flForwardDist = DotProduct( vecToTarget, vecAimForward2D );
+		if ( flForwardDist <= 0.0f || flForwardDist >= flBestForwardDist )
+			continue;
+
+		float flToTarget = vecToTarget.Length();
+		if ( flToTarget < 1.0f )
+			continue;
+
+		float flDot = flForwardDist / flToTarget;
+		if ( flDot < SNOWBALL_TRACK_MIN_DOT )
+			continue;
+
+		float flAimDot = DotProduct( vecToTarget / flToTarget, vecAimForward2D );
+		if ( flAimDot < SNOWBALL_TRACK_AIM_DOT )
+			continue;
+
+		if ( !SnowballHasWorldLineOfSight( pev->origin, vecTargetPos, ENT(pev) ) )
+			continue;
+
+		flBestForwardDist = flForwardDist;
+		pBestTarget = pPlayer;
+	}
+
+	if ( pBestTarget )
+		m_hTrackTarget = pBestTarget;
+}
+
+void CFlyingSnowball::ApplyTrackNudge( void )
+{
+	if ( !m_hTrackTarget )
+		return;
+
+	CBaseEntity *pTarget = m_hTrackTarget;
+	if ( !pTarget || !pTarget->IsAlive() )
+		return;
+
+	Vector vecVelocity2D( pev->velocity.x, pev->velocity.y, 0 );
+	float flSpeed2D = vecVelocity2D.Length2D();
+	if ( flSpeed2D < 1.0f )
+		return;
+
+	Vector vecTargetPos = pTarget->pev->origin + pTarget->pev->view_ofs;
+	if ( !SnowballHasWorldLineOfSight( pev->origin, vecTargetPos, ENT(pev) ) )
+	{
+		// Stop assisting once geometry blocks the path and continue as a normal toss.
+		m_hTrackTarget = NULL;
+		return;
+	}
+
+	Vector vecToTarget2D = vecTargetPos - pev->origin;
+	vecToTarget2D.z = 0;
+	float flToTarget2D = vecToTarget2D.Length2D();
+	if ( flToTarget2D < 1.0f )
+		return;
+
+	Vector vecCurrentDir2D = vecVelocity2D / flSpeed2D;
+	Vector vecTargetDir2D = vecToTarget2D / flToTarget2D;
+	float flDot = DotProduct( vecCurrentDir2D, vecTargetDir2D );
+	if ( flDot < 0.2f )
+		return;
+
+	float flCrossZ = (vecCurrentDir2D.x * vecTargetDir2D.y) - (vecCurrentDir2D.y * vecTargetDir2D.x);
+	if ( flCrossZ > -0.0001f && flCrossZ < 0.0001f )
+		return;
+
+	if ( m_iTrackTurnSign == 0 )
+		m_iTrackTurnSign = (flCrossZ > 0.0f) ? 1 : -1;
+	else if ( (flCrossZ > 0.0f && m_iTrackTurnSign < 0) || (flCrossZ < 0.0f && m_iTrackTurnSign > 0) )
+		return;
+
+	float flNudge = SNOWBALL_TRACK_NUDGE;
+	float flAbsCrossZ = (flCrossZ >= 0.0f) ? flCrossZ : -flCrossZ;
+	if ( flAbsCrossZ < flNudge )
+		flNudge = flAbsCrossZ;
+
+	Vector vecNewDir2D = (vecCurrentDir2D * (1.0f - flNudge) + vecTargetDir2D * flNudge).Normalize();
+
+	pev->velocity.x = vecNewDir2D.x * flSpeed2D;
+	pev->velocity.y = vecNewDir2D.y * flSpeed2D;
+}
+
 void CFlyingSnowball::BubbleThink( void )
 {
 	// Expire after maximum lifetime to prevent entity exhaustion.
@@ -214,8 +352,13 @@ void CFlyingSnowball::BubbleThink( void )
 		return;
 	}
 
-	// Only think every .25 seconds.
-	pev->nextthink = gpGlobals->time + 0.25;
+	if ( !m_fTrackTargetResolved )
+		AcquireTrackTarget();
+
+	ApplyTrackNudge();
+
+	// Think more frequently for smoother subtle steering.
+	pev->nextthink = gpGlobals->time + SNOWBALL_TRACK_THINK_INTERVAL;
 
 	// If the snowball enters water, make some bubbles.
 	if (pev->waterlevel)

@@ -2862,9 +2862,14 @@ public:
 	virtual int ObjectCaps( void ) { return (CBaseEntity::ObjectCaps() & ~FCAP_ACROSS_TRANSITION) | FCAP_PORTAL; }
 
 private:
+	void AcquireTrackTarget( void );
+	void ApplyTrackNudge( void );
 
 	EHANDLE m_hOwner;		 // Original owner is stored here so we can
 							// allow the wrench to hit the user.
+	EHANDLE m_hTrackTarget;
+	BOOL m_fTrackTargetResolved;
+	int m_iTrackTurnSign;
 };
 
 #endif // WEAPONS_H
