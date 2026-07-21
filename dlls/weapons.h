@@ -1484,6 +1484,9 @@ private:
 	BOOL m_fProximityMode;
 	BOOL m_fAcceleratedDetonation;
 	BOOL m_fDetonationStarted;
+	BOOL m_fProximityBlinkOn;
+	float m_flProximityBlinkNext;
+	float m_flProximityBlinkInterval;
 	EHANDLE m_hProximityIndicator;
 };
 

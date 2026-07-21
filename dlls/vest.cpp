@@ -38,6 +38,10 @@ enum vest_radio_e {
 static const float VEST_PROX_SCAN_RATE = 0.1f;
 static const float VEST_DETONATE_STAGE_TIME = 1.0f;
 static const float VEST_FAST_DETONATE_SCALE = 0.5f;
+static const float VEST_MAX_DETECT_RADIUS = 256.0f;
+static const float VEST_BLINK_INTERVAL_IDLE = 0.50f;
+static const float VEST_BLINK_INTERVAL_MIN = 0.10f;
+static const float VEST_BLINK_INTERVAL_MAX = 0.40f;
 
 void CVest::SetDangerStatusIcon( BOOL enabled )
 {
@@ -66,9 +70,13 @@ void CVest::UpdateProximityIndicator( BOOL enabled )
 		CSprite *pIndicator = CSprite::SpriteCreate( "sprites/glow01.spr", m_pPlayer->pev->origin, FALSE );
 		if (pIndicator)
 		{
-			pIndicator->SetTransparency( kRenderGlow, 255, 32, 32, 220, kRenderFxStrobeFast );
+			// Idle/armed state starts green; it turns red when a valid target is detected.
+			pIndicator->SetTransparency( kRenderGlow, 64, 255, 64, 220, kRenderFxNoDissipation );
 			pIndicator->SetScale( 0.25f );
 			pIndicator->SetAttachment( m_pPlayer->edict(), 2 );
+			m_fProximityBlinkOn = TRUE;
+			m_flProximityBlinkInterval = VEST_BLINK_INTERVAL_IDLE;
+			m_flProximityBlinkNext = gpGlobals->time + m_flProximityBlinkInterval;
 			m_hProximityIndicator = pIndicator;
 		}
 	}
@@ -93,11 +101,22 @@ void CVest::SetProximityMode( BOOL enabled )
 
 BOOL CVest::FindProximityViolator( void )
 {
+#ifdef CLIENT_DLL
+	return FALSE;
+#else
 	if (!m_pPlayer)
 		return FALSE;
 
 	const float flDamage = pev->dmg > 0 ? pev->dmg : gSkillData.plrDmgVest;
-	const float flRadius = flDamage * 2.5f;
+	const float flRadius = fmin(flDamage * 2.5f, VEST_MAX_DETECT_RADIUS);
+	const float flDetonateDistance = flDamage * 0.5f;
+	if (flRadius <= 1.0f)
+	{
+		m_flProximityBlinkInterval = VEST_BLINK_INTERVAL_IDLE;
+		return FALSE;
+	}
+	float flClosestDistance = flRadius + 1.0f;
+	BOOL bFoundVisibleVulnerableTarget = FALSE;
 
 	CBaseEntity *pTarget = NULL;
 	while ((pTarget = UTIL_FindEntityInSphere( pTarget, m_pPlayer->pev->origin, flRadius )) != NULL)
@@ -125,10 +144,67 @@ BOOL CVest::FindProximityViolator( void )
 				continue;
 		}
 
-		return TRUE;
+		// Require clear line of sight (same pattern as coldspot checks).
+		TraceResult tr;
+		Vector vecTarget = pTarget->IsPlayer() ? (pTarget->pev->origin + pTarget->pev->view_ofs) : pTarget->Center();
+		Vector vecStart = m_pPlayer->pev->origin + m_pPlayer->pev->view_ofs;
+		UTIL_TraceLine( vecStart, vecTarget, dont_ignore_monsters, ignore_glass, ENT(m_pPlayer->pev), &tr );
+		if (tr.flFraction < 1.0f && tr.pHit != pTarget->edict())
+			continue;
+
+		float flDistance = (vecTarget - m_pPlayer->pev->origin).Length();
+		if (flDistance < flClosestDistance)
+		{
+			flClosestDistance = flDistance;
+			bFoundVisibleVulnerableTarget = TRUE;
+		}
 	}
 
+	if (!bFoundVisibleVulnerableTarget)
+	{
+		if (m_hProximityIndicator)
+		{
+			CBaseEntity *pIndicator = m_hProximityIndicator;
+			if (pIndicator)
+			{
+				pIndicator->pev->rendercolor = Vector(64, 255, 64);
+			}
+		}
+
+		m_flProximityBlinkInterval = VEST_BLINK_INTERVAL_IDLE;
+		return FALSE;
+	}
+
+	if (m_hProximityIndicator)
+	{
+		CBaseEntity *pIndicator = m_hProximityIndicator;
+		if (pIndicator)
+		{
+			pIndicator->pev->rendercolor = Vector(255, 32, 32);
+		}
+	}
+
+	// Closer vulnerable targets blink faster.
+	float flFrac = flClosestDistance / flRadius;
+	if (flFrac < 0.0f)
+		flFrac = 0.0f;
+	if (flFrac > 1.0f)
+		flFrac = 1.0f;
+	float flNewBlinkInterval = VEST_BLINK_INTERVAL_MIN + (VEST_BLINK_INTERVAL_MAX - VEST_BLINK_INTERVAL_MIN) * flFrac;
+	if (flNewBlinkInterval < VEST_BLINK_INTERVAL_MIN)
+		flNewBlinkInterval = VEST_BLINK_INTERVAL_MIN;
+	if (flNewBlinkInterval > VEST_BLINK_INTERVAL_MAX)
+		flNewBlinkInterval = VEST_BLINK_INTERVAL_MAX;
+
+	if (flNewBlinkInterval < m_flProximityBlinkInterval)
+		m_flProximityBlinkNext = gpGlobals->time;
+	m_flProximityBlinkInterval = flNewBlinkInterval;
+
+	if (flClosestDistance <= flDetonateDistance)
+		return TRUE;
+
 	return FALSE;
+#endif
 }
 
 void CVest::BeginDetonationSequence( BOOL accelerated )
@@ -177,6 +253,19 @@ void CVest::ProximityThink( void )
 		return;
 	}
 
+#ifndef CLIENT_DLL
+	if (m_hProximityIndicator && gpGlobals->time >= m_flProximityBlinkNext)
+	{
+		m_fProximityBlinkOn = !m_fProximityBlinkOn;
+		CBaseEntity *pIndicator = m_hProximityIndicator;
+		if (pIndicator)
+		{
+			pIndicator->pev->renderamt = m_fProximityBlinkOn ? 220 : 32;
+		}
+		m_flProximityBlinkNext = gpGlobals->time + m_flProximityBlinkInterval;
+	}
+#endif
+
 	if (FindProximityViolator())
 	{
 		BeginDetonationSequence( TRUE );
@@ -191,6 +280,9 @@ int CVest::AddToPlayer( CBasePlayer *pPlayer )
 	m_fProximityMode = FALSE;
 	m_fAcceleratedDetonation = FALSE;
 	m_fDetonationStarted = FALSE;
+	m_fProximityBlinkOn = TRUE;
+	m_flProximityBlinkNext = 0;
+	m_flProximityBlinkInterval = VEST_BLINK_INTERVAL_IDLE;
 	m_hProximityIndicator = NULL;
 
 	if ( CBasePlayerWeapon::AddToPlayer( pPlayer ) )
@@ -213,6 +305,9 @@ void CVest::Spawn( )
 	m_fProximityMode = FALSE;
 	m_fAcceleratedDetonation = FALSE;
 	m_fDetonationStarted = FALSE;
+	m_fProximityBlinkOn = TRUE;
+	m_flProximityBlinkNext = 0;
+	m_flProximityBlinkInterval = VEST_BLINK_INTERVAL_IDLE;
 	m_hProximityIndicator = NULL;
 	m_iLightning = 0;
 
