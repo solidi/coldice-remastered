@@ -23,6 +23,8 @@
 #include "gamerules.h"
 #include "game.h"
 
+extern int gmsgStatusIcon;
+
 enum vest_radio_e {
 	VEST_RADIO_IDLE1 = 0,
 	VEST_RADIO_FIDGET1,
@@ -136,6 +138,11 @@ void CVest::PrimaryAttack()
 
 	SetThink( &CVest::BlowThink );
 	pev->nextthink = gpGlobals->time + (1.0 * g_pGameRules->WeaponMultipler());
+
+	MESSAGE_BEGIN(MSG_ONE, gmsgStatusIcon, NULL, m_pPlayer->edict());
+		WRITE_BYTE(1);
+		WRITE_STRING("cam_danger");
+	MESSAGE_END();
 #endif
 
 	m_flNextPrimaryAttack = UTIL_WeaponTimeBase() + 2.0;
@@ -216,6 +223,12 @@ void CVest::SecondaryAttack()
 
 void CVest::RetireThink( )
 {
+#ifndef CLIENT_DLL
+	MESSAGE_BEGIN(MSG_ONE, gmsgStatusIcon, NULL, m_pPlayer->edict());
+		WRITE_BYTE(0);
+		WRITE_STRING("cam_danger");
+	MESSAGE_END();
+#endif
 	RetireWeapon();
 }
 
