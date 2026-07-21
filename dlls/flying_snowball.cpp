@@ -261,16 +261,16 @@ void CFlyingSnowball::AcquireTrackTarget( void )
 
 		Vector vecTargetPos = pPlayer->pev->origin + pPlayer->pev->view_ofs;
 		Vector vecToTarget = vecTargetPos - pev->origin;
-		float flForwardDist = DotProduct( vecToTarget, vecAimForward2D );
+		float flToTarget = vecToTarget.Length();
+		if ( flToTarget < 1.0f || flToTarget > SNOWBALL_TRACK_MAX_DIST )
+			continue;
+
+		float flForwardDist = DotProduct( vecToTarget, vecForward2D );
 		if ( flForwardDist <= 0.0f || flForwardDist >= flBestForwardDist )
 			continue;
 
-		float flToTarget = vecToTarget.Length();
-		if ( flToTarget < 1.0f )
-			continue;
-
-		float flDot = flForwardDist / flToTarget;
-		if ( flDot < SNOWBALL_TRACK_MIN_DOT )
+		float flMoveDot = flForwardDist / flToTarget;
+		if ( flMoveDot < SNOWBALL_TRACK_MIN_DOT )
 			continue;
 
 		float flAimDot = DotProduct( vecToTarget / flToTarget, vecAimForward2D );
