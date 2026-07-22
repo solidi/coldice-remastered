@@ -1450,16 +1450,19 @@ public:
 	int AddToPlayer( CBasePlayer *pPlayer );
 	void PrimaryAttack( void );
 	void SecondaryAttack( void );
+	void Reload( void );
 	BOOL CanDeploy( void );
 	BOOL DeployLowKey( void );
 	BOOL Deploy( void );
 	BOOL IsUseable( void );
 	void EXPORT BlowThink( void );
 	void EXPORT GoneThink( void );
+	void EXPORT ProximityThink( void );
 	void RetireThink( void );
 
 	void Holster( int skiplocal = 0 );
 	void WeaponIdle( void );
+	virtual BOOL AcceptReload( void ) { return TRUE; }
 
 	virtual BOOL UseDecrement( void )
 	{
@@ -1471,7 +1474,20 @@ public:
 	}
 
 private:
+	void SetDangerStatusIcon( BOOL enabled );
+	void UpdateProximityIndicator( BOOL enabled );
+	void SetProximityMode( BOOL enabled );
+	void BeginDetonationSequence( BOOL accelerated );
+	BOOL FindProximityViolator( void );
+
 	int m_iLightning;
+	BOOL m_fProximityMode;
+	BOOL m_fAcceleratedDetonation;
+	BOOL m_fDetonationStarted;
+	BOOL m_fProximityBlinkOn;
+	float m_flProximityBlinkNext;
+	float m_flProximityBlinkInterval;
+	EHANDLE m_hProximityIndicator;
 };
 
 class CChumtoad : public CBasePlayerWeapon
