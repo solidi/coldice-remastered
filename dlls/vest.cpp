@@ -145,19 +145,21 @@ BOOL CVest::FindProximityViolator( void )
 		}
 
 		// Require clear line of sight (same pattern as coldspot checks).
-		TraceResult tr;
 		Vector vecTarget = pTarget->IsPlayer() ? (pTarget->pev->origin + pTarget->pev->view_ofs) : pTarget->Center();
+		float flDistance = (vecTarget - m_pPlayer->pev->origin).Length();
+		if (flDistance >= flClosestDistance)
+			continue;
+
+		TraceResult tr;
 		Vector vecStart = m_pPlayer->pev->origin + m_pPlayer->pev->view_ofs;
 		UTIL_TraceLine( vecStart, vecTarget, dont_ignore_monsters, ignore_glass, ENT(m_pPlayer->pev), &tr );
 		if (tr.flFraction < 1.0f && tr.pHit != pTarget->edict())
 			continue;
 
-		float flDistance = (vecTarget - m_pPlayer->pev->origin).Length();
-		if (flDistance < flClosestDistance)
-		{
-			flClosestDistance = flDistance;
-			bFoundVisibleVulnerableTarget = TRUE;
-		}
+		flClosestDistance = flDistance;
+		bFoundVisibleVulnerableTarget = TRUE;
+		if (flClosestDistance <= flDetonateDistance)
+			break;
 	}
 
 	if (!bFoundVisibleVulnerableTarget)
