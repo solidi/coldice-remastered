@@ -304,25 +304,7 @@ void CRocketCrowbar::Reload()
 #ifndef CLIENT_DLL
 	EMIT_SOUND(ENT(m_pPlayer->pev), CHAN_ITEM, "buttons/blip1.wav", 1, ATTN_NORM);
 
-	edict_t *pFind = FIND_ENTITY_BY_CLASSNAME(NULL, "drunk_rocket");
-	while (!FNullEnt(pFind))
-	{
-		CBaseEntity *pEnt = CBaseEntity::Instance(pFind);
-		pFind = FIND_ENTITY_BY_CLASSNAME(pFind, "drunk_rocket");
-
-		if (!pEnt)
-			continue;
-
-		if (pEnt->pev->solid == SOLID_NOT || (pEnt->pev->effects & EF_NODRAW))
-			continue;
-
-		if (pEnt->pev->owner != m_pPlayer->edict())
-			continue;
-
-		((CDrunkRocket *)pEnt)->Detonate();
-	}
-
-	pFind = FIND_ENTITY_BY_CLASSNAME(NULL, "rocketcrowbar");
+	edict_t *pFind = FIND_ENTITY_BY_CLASSNAME(NULL, "rocketcrowbar");
 	while (!FNullEnt(pFind))
 	{
 		CBaseEntity *pEnt = CBaseEntity::Instance(pFind);
