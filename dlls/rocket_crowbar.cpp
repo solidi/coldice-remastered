@@ -38,6 +38,9 @@ LINK_ENTITY_TO_CLASS( drunk_rocket, CDrunkRocket );
 //=========================================================
 CBaseEntity *CDrunkRocket::CreateDrunkRocket( Vector vecOrigin, Vector vecAngles, CBaseEntity *pOwner )
 {
+	if (!pOwner)
+		return NULL;
+
 	int speed = pOwner->pev->velocity.Length2D();
 	CDrunkRocket *pRocket = GetClassPtr( (CDrunkRocket *)NULL );
 	UTIL_SetOrigin( pRocket->pev, vecOrigin );
@@ -219,6 +222,7 @@ void CRocketCrowbar::Precache( void )
 	PRECACHE_SOUND("cbar_hitbod2.wav");
 	PRECACHE_SOUND("cbar_hitbod3.wav");
 	PRECACHE_SOUND("weapons/cbar_miss1.wav");
+	PRECACHE_SOUND("buttons/blip1.wav");
 
 	m_usRocketCrowbar = PRECACHE_EVENT ( 1, "events/rocketcrowbar.sc" );
 }
@@ -287,6 +291,42 @@ void CRocketCrowbar::SecondaryAttack()
 		SetThink( &CRocketCrowbar::SwingAgain );
 		pev->nextthink = gpGlobals->time + 0.1;
 	}
+}
+
+void CRocketCrowbar::Reload()
+{
+	if (!m_pPlayer)
+		return;
+
+	if (m_pPlayer->m_flNextAttack > UTIL_WeaponTimeBase())
+		return;
+
+#ifndef CLIENT_DLL
+	EMIT_SOUND(ENT(m_pPlayer->pev), CHAN_ITEM, "buttons/blip1.wav", 1, ATTN_NORM);
+
+	edict_t *pFind = FIND_ENTITY_BY_CLASSNAME(NULL, "rocketcrowbar");
+	while (!FNullEnt(pFind))
+	{
+		CBaseEntity *pEnt = CBaseEntity::Instance(pFind);
+		pFind = FIND_ENTITY_BY_CLASSNAME(pFind, "rocketcrowbar");
+
+		if (!pEnt)
+			continue;
+
+		if (pEnt->pev->solid == SOLID_NOT || (pEnt->pev->effects & EF_NODRAW))
+			continue;
+
+		if (pEnt->pev->owner != m_pPlayer->edict())
+			continue;
+
+		((CDrunkRocket *)pEnt)->Detonate();
+	}
+#endif
+
+	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 0.35;
+	m_flNextPrimaryAttack = m_pPlayer->m_flNextAttack;
+	m_flNextSecondaryAttack = m_pPlayer->m_flNextAttack;
+	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 0.5;
 }
 
 void CRocketCrowbar::Smack( )

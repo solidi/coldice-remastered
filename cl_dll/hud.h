@@ -806,9 +806,11 @@ enum e_protips {
 	LASER_TIP,
 	ZAPGUN_TIP,
 	SNOWBALL_TIP,
+	CHUMTOAD_TIP,
+	ROCKETCROWBAR_TIP,
 };
 
-#define PROTIPS_AMT	24
+#define PROTIPS_AMT	26
 
 
 
