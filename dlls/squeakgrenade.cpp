@@ -88,6 +88,7 @@ TYPEDESCRIPTION	CSqueakGrenade::m_SaveData[] =
 IMPLEMENT_SAVERESTORE( CSqueakGrenade, CGrenade );
 
 #define SQUEEK_DETONATE_DELAY	15.0
+#define SF_SNARK_EXPLICIT_DETONATE	(1 << 30)
 
 int CSqueakGrenade :: Classify ( void )
 {
@@ -166,6 +167,8 @@ void CSqueakGrenade::Precache( void )
 
 void CSqueakGrenade :: Killed( entvars_t *pevAttacker, int iGib )
 {
+	const BOOL bExplicitDetonate = FBitSet(pev->spawnflags, SF_SNARK_EXPLICIT_DETONATE);
+
 	pev->model = iStringNull;// make invisible
 	SetThink( &CSqueakGrenade::SUB_Remove );
 	SetTouch( NULL );
@@ -183,10 +186,60 @@ void CSqueakGrenade :: Killed( entvars_t *pevAttacker, int iGib )
 
 	UTIL_BloodDrips( pev->origin, g_vecZero, iceblood.value ? BLOOD_COLOR_BLUE : BLOOD_COLOR_GREEN, 80 );
 
-	if (m_hOwner != NULL)
-		RadiusDamage ( pev, m_hOwner->pev, pev->dmg, CLASS_NONE, DMG_BLAST );
+	if (bExplicitDetonate)
+	{
+		const float flBlastDamage = gSkillData.plrDmgHandGrenade;
+		const float flBlastRadius = flBlastDamage * 2.5f;
+		const int iExplodeSprite = (pev->waterlevel == 3)
+			? g_sModelIndexWExplosion
+			: (icesprites.value ? g_sModelIndexIceFireball : g_sModelIndexFireball);
+		const int iRingR = icesprites.value ? 128 : 255;
+		const int iRingG = icesprites.value ? 208 : 176;
+		const int iRingB = icesprites.value ? 255 : 96;
+
+		MESSAGE_BEGIN( MSG_PVS, SVC_TEMPENTITY, pev->origin );
+			WRITE_BYTE( TE_SPRITE );
+			WRITE_COORD( pev->origin.x );
+			WRITE_COORD( pev->origin.y );
+			WRITE_COORD( pev->origin.z + 8 );
+			WRITE_SHORT( iExplodeSprite );
+			WRITE_BYTE( 10 );
+			WRITE_BYTE( 180 );
+		MESSAGE_END();
+
+		MESSAGE_BEGIN( MSG_PVS, SVC_TEMPENTITY, pev->origin );
+			WRITE_BYTE( TE_BEAMCYLINDER );
+			WRITE_COORD( pev->origin.x );
+			WRITE_COORD( pev->origin.y );
+			WRITE_COORD( pev->origin.z );
+			WRITE_COORD( pev->origin.x );
+			WRITE_COORD( pev->origin.y );
+			WRITE_COORD( pev->origin.z + 192 );
+			WRITE_SHORT( g_sModelLightning );
+			WRITE_BYTE( 0 );
+			WRITE_BYTE( 0 );
+			WRITE_BYTE( 6 );
+			WRITE_BYTE( 12 );
+			WRITE_BYTE( 0 );
+			WRITE_BYTE( iRingR );
+			WRITE_BYTE( iRingG );
+			WRITE_BYTE( iRingB );
+			WRITE_BYTE( 128 );
+			WRITE_BYTE( 0 );
+		MESSAGE_END();
+
+		if (m_hOwner != NULL)
+			::RadiusDamage( pev->origin, pev, m_hOwner->pev, flBlastDamage, flBlastRadius, CLASS_NONE, DMG_BLAST );
+		else
+			::RadiusDamage( pev->origin, pev, pev, flBlastDamage, flBlastRadius, CLASS_NONE, DMG_BLAST );
+	}
 	else
-		RadiusDamage ( pev, pev, pev->dmg, CLASS_NONE, DMG_BLAST );
+	{
+		if (m_hOwner != NULL)
+			RadiusDamage ( pev, m_hOwner->pev, pev->dmg, CLASS_NONE, DMG_BLAST );
+		else
+			RadiusDamage ( pev, pev, pev->dmg, CLASS_NONE, DMG_BLAST );
+	}
 
 	// reset owner so death message happens
 	if (m_hOwner != NULL)
@@ -440,6 +493,7 @@ void CSqueak::Precache( void )
 	PRECACHE_MODEL("models/v_squeak.mdl");
 	PRECACHE_SOUND("squeek/sqk_hunt2.wav");
 	PRECACHE_SOUND("squeek/sqk_hunt3.wav");
+	PRECACHE_SOUND("buttons/blip1.wav");
 	UTIL_PrecacheOther("monster_snark");
 
 	m_usSnarkFire = PRECACHE_EVENT ( 1, "events/snarkfire.sc" );
@@ -665,6 +719,44 @@ void CSqueak::SecondaryAttack()
 			m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 0.5;
 		}
 	}
+}
+
+void CSqueak::Reload()
+{
+	if (!m_pPlayer)
+		return;
+
+	if (m_pPlayer->m_flNextAttack > UTIL_WeaponTimeBase())
+		return;
+
+#ifndef CLIENT_DLL
+	EMIT_SOUND(ENT(m_pPlayer->pev), CHAN_ITEM, "buttons/blip1.wav", 1, ATTN_NORM);
+
+	edict_t *pFind = FIND_ENTITY_BY_CLASSNAME(NULL, "monster_snark");
+	while (!FNullEnt(pFind))
+	{
+		CBaseEntity *pEnt = CBaseEntity::Instance(pFind);
+		pFind = FIND_ENTITY_BY_CLASSNAME(pFind, "monster_snark");
+
+		if (!pEnt)
+			continue;
+
+		if (pEnt->pev->solid == SOLID_NOT || pEnt->pev->takedamage == DAMAGE_NO)
+			continue;
+
+		if (pEnt->pev->owner != m_pPlayer->edict() && pEnt->pev->euser1 != m_pPlayer->edict())
+			continue;
+
+		pEnt->pev->spawnflags |= SF_SNARK_EXPLICIT_DETONATE;
+		pEnt->pev->health = -1;
+		pEnt->Killed(m_pPlayer->pev, 0);
+	}
+#endif
+
+	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 0.35;
+	m_flNextPrimaryAttack = m_pPlayer->m_flNextAttack;
+	m_flNextSecondaryAttack = m_pPlayer->m_flNextAttack;
+	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 0.5;
 }
 
 void CSqueak::WeaponIdle( void )

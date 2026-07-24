@@ -813,6 +813,8 @@ enum e_protips {
 	LASER_TIP,
 	ZAPGUN_TIP,
 	SNOWBALL_TIP,
+	CHUMTOAD_TIP,
+	ROCKETCROWBAR_TIP,
 };
 
 extern void ProTip(int id, const char *message);
@@ -915,6 +917,7 @@ void HUD_WeaponsPostThink( local_state_s *from, local_state_s *to, usercmd_t *cm
 
 		case WEAPON_CHUMTOAD:
 			pWeapon = &g_Chumtoad;
+			ProTip(CHUMTOAD_TIP, "Use RELOAD button to detonate your thrown chumtoads");
 			break;
 
 		case WEAPON_SNIPER_RIFLE:
@@ -1017,6 +1020,7 @@ void HUD_WeaponsPostThink( local_state_s *from, local_state_s *to, usercmd_t *cm
 
 		case WEAPON_ROCKETCROWBAR:
 			pWeapon = &g_RocketCrowbar;
+			ProTip(ROCKETCROWBAR_TIP, "Use RELOAD button to detonate your drunk rockets");
 			break;
 
 		case WEAPON_GRAVITYGUN:

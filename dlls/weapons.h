@@ -734,6 +734,7 @@ public:
 
 	void PrimaryAttack( void );
 	void SecondaryAttack( void );
+	void Reload( void );
 	int Swing( int fFirst );
 	BOOL DeployLowKey( void );
 	BOOL Deploy( void );
@@ -750,6 +751,8 @@ public:
 		return FALSE;
 #endif
 	}
+
+	virtual BOOL AcceptReload( void ) { return TRUE; }
 
 	virtual BOOL SemiAuto( void ) { return TRUE; }
 
@@ -1420,6 +1423,7 @@ public:
 
 	void PrimaryAttack( void );
 	void SecondaryAttack( void );
+	void Reload( void );
 	BOOL DeployLowKey( void );
 	BOOL Deploy( void );
 	void Holster( int skiplocal = 0 );
@@ -1434,6 +1438,8 @@ public:
 		return FALSE;
 #endif
 	}
+
+	virtual BOOL AcceptReload( void ) { return TRUE; }
 
 private:
 	unsigned short m_usSnarkFire;
@@ -1500,6 +1506,7 @@ public:
 
 	void PrimaryAttack( void );
 	void SecondaryAttack( void );
+	void Reload( void );
 	int AddToPlayer( CBasePlayer *pPlayer );
 	BOOL DeployLowKey( void );
 	BOOL Deploy( void );
@@ -1516,6 +1523,8 @@ public:
 		return FALSE;
 #endif
 	}
+
+	virtual BOOL AcceptReload( void ) { return TRUE; }
 
 private:
 	unsigned short m_usChumtoadFire;
