@@ -433,7 +433,7 @@ void CL_DLLEXPORT HUD_StudioEvent( const struct mstudioevent_s *event, const str
 	{
 	case 5001:
 		if ( iMuzzleFlash ) {
-			if ((gHUD.m_IceModelsIndex >= SKIN_INVERSE && gHUD.m_IceModelsIndex <= SKIN_EDITION))
+			if (UseIceVisualStyle())
 				R_RealMuzzleFlash(entity->attachment[0], atoi(event->options));
 			else	
 				gEngfuncs.pEfxAPI->R_MuzzleFlash( (float *)&entity->attachment[0], atoi( event->options) );
@@ -441,7 +441,7 @@ void CL_DLLEXPORT HUD_StudioEvent( const struct mstudioevent_s *event, const str
 		break;
 	case 5011:
 		if ( iMuzzleFlash ) {
-			if ((gHUD.m_IceModelsIndex >= SKIN_INVERSE && gHUD.m_IceModelsIndex <= SKIN_EDITION))
+			if (UseIceVisualStyle())
 				R_RealMuzzleFlash(entity->attachment[1], atoi(event->options));
 			else	
 				gEngfuncs.pEfxAPI->R_MuzzleFlash( (float *)&entity->attachment[1], atoi( event->options) );
@@ -449,7 +449,7 @@ void CL_DLLEXPORT HUD_StudioEvent( const struct mstudioevent_s *event, const str
 		break;
 	case 5021:
 		if ( iMuzzleFlash ) {
-			if ((gHUD.m_IceModelsIndex >= SKIN_INVERSE && gHUD.m_IceModelsIndex <= SKIN_EDITION))
+			if (UseIceVisualStyle())
 				R_RealMuzzleFlash(entity->attachment[2], atoi(event->options));
 			else	
 				gEngfuncs.pEfxAPI->R_MuzzleFlash( (float *)&entity->attachment[2], atoi( event->options) );
@@ -457,7 +457,7 @@ void CL_DLLEXPORT HUD_StudioEvent( const struct mstudioevent_s *event, const str
 		break;
 	case 5031:
 		if ( iMuzzleFlash ) {
-			if ((gHUD.m_IceModelsIndex >= SKIN_INVERSE && gHUD.m_IceModelsIndex <= SKIN_EDITION))
+			if (UseIceVisualStyle())
 				R_RealMuzzleFlash(entity->attachment[3], atoi(event->options));
 			else	
 				gEngfuncs.pEfxAPI->R_MuzzleFlash( (float *)&entity->attachment[3], atoi( event->options) );
@@ -517,7 +517,11 @@ void LoadTempViewModel(const char *modelName, int sequence)
 	pExtraModel->curstate.sequence = sequence;
 	pExtraModel->curstate.animtime = gEngfuncs.GetClientTime() + 0.01;
 	pExtraModel->curstate.effects |= EF_VIEWMODEL &~ EF_NODRAW;
-	pExtraModel->curstate.skin = gHUD.m_IceModelsIndex;
+	const int combinedSkin = GetCombinedViewModelSkinIndex(modelName);
+	if (pHdr->numskinfamilies > combinedSkin)
+		pExtraModel->curstate.skin = combinedSkin;
+	else
+		pExtraModel->curstate.skin = GetEffectiveWeaponModelIndex(modelName, true);
 	
 	cl_entity_t *player = gEngfuncs.GetLocalPlayer();
 	pExtraModel->curstate.rendercolor.r = player->curstate.rendercolor.r;

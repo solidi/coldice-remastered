@@ -35,7 +35,7 @@ int CHud::UpdateClientData(client_data_t *cdata, float time)
 {
 	if (!SetPLFlames)
 	{
-		g_pParticleSystems.RefreshFlameSystem(gHUD.m_IceModelsIndex ? gHUD.m_IceModelsIndex : 0);
+		g_pParticleSystems.RefreshFlameSystem(GetEffectiveWeaponModelIndex(NULL, false));
 		SetPLFlames = 1;
 	}
 

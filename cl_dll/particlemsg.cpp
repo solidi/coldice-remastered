@@ -34,10 +34,11 @@ int CHudParticle::Draw(float flTime)
 
 void CHudParticle::SetParticles()
 {
-	if (iceModels != gHUD.m_IceModelsIndex)
+	const int effectiveWeaponModel = GetEffectiveWeaponModelIndex(NULL, false);
+	if (iceModels != effectiveWeaponModel)
 	{
 		// gEngfuncs.Con_DPrintf("::: SetParticles -> Do Refresh\n");
 		g_pParticleSystems.reset = true;
-		iceModels = gHUD.m_IceModelsIndex;
+		iceModels = effectiveWeaponModel;
 	}
 }

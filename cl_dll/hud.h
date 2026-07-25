@@ -896,7 +896,8 @@ public:
 	int DrawHudNumberString( int xpos, int ypos, int iMinX, int iNumber, int r, int g, int b );
 	int GetNumWidth(int iNumber, int iFlags);
 
-	int	m_IceModelsIndex;
+	int	m_WeaponModelIndex;
+	int	m_SleeveModelIndex;
 	bool SetPLFlames;
 	mutators_t *m_Mutators;
 	int m_ChaosTime;

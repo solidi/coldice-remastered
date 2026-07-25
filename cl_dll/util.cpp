@@ -34,6 +34,9 @@
 
 vec3_t vec3_origin( 0, 0, 0 );
 
+extern cvar_t *cl_weaponmodel;
+extern cvar_t *cl_sleevemodel;
+
 double sqrt(double x);
 
 float Length(const float *v)
@@ -133,12 +136,148 @@ HSPRITE LoadSprite(const char *pszName)
 	return SPR_Load(sz);
 }
 
+static int ClampModelIndex(int value, int minValue, int maxValue)
+{
+	if (value < minValue)
+		return minValue;
+	if (value > maxValue)
+		return maxValue;
+	return value;
+}
+
+static bool ShouldForceTeamSleeveModel()
+{
+	switch (gHUD.m_GameMode)
+	{
+	case GAME_ARENA:
+	case GAME_LMS:
+	case GAME_BUSTERS:
+	case GAME_CHILLDEMIC:
+	case GAME_COLDSPOT:
+	case GAME_CTC:
+	case GAME_CTF:
+	case GAME_HORDE:
+	case GAME_ICEMAN:
+	case GAME_KTS:
+	case GAME_LOOT:
+	case GAME_PROPHUNT:
+	case GAME_SHIDDEN:
+	case GAME_TEAMPLAY:
+		return true;
+	default:
+		return false;
+	}
+}
+
+bool IsHalfLifeModelOverrideActive()
+{
+	return MutatorEnabled(MUTATOR_HALFLIFE);
+}
+
+int GetWeaponModelIndex()
+{
+	if (cl_weaponmodel)
+		return ClampModelIndex((int)cl_weaponmodel->value, SKIN_NORMAL, SKIN_GOLD);
+
+	return ClampModelIndex(gHUD.m_WeaponModelIndex, SKIN_NORMAL, SKIN_GOLD);
+}
+
+int GetSleeveModelIndex()
+{
+	if (cl_sleevemodel)
+		return ClampModelIndex((int)cl_sleevemodel->value, SLEEVE_ORANGE, SLEEVE_GREEN);
+
+	return ClampModelIndex(gHUD.m_SleeveModelIndex, SLEEVE_ORANGE, SLEEVE_GREEN);
+}
+
+static bool GetTeamForcedSleeveModelIndex(int &sleeveIndex)
+{
+	cl_entity_t *local = gEngfuncs.GetLocalPlayer();
+	if (!local)
+		return false;
+
+	if (!ShouldForceTeamSleeveModel())
+		return false;
+
+	const int special = (int)local->curstate.fuser4;
+	if (special == RADAR_TEAM_RED ||
+		special == RADAR_ARENA_RED ||
+		special == RADAR_BUSTER ||
+		special == RADAR_VIRUS ||
+		(special > 0 && gHUD.m_GameMode == GAME_PROPHUNT))
+	{
+		sleeveIndex = SLEEVE_RED;
+		return true;
+	}
+
+	if (special == RADAR_CHUMTOAD || special == RADAR_TEAM_GREEN)
+	{
+		sleeveIndex = SLEEVE_GREEN;
+		return true;
+	}
+
+	if (special == RADAR_TEAM_YELLOW)
+	{
+		sleeveIndex = SLEEVE_YELLOW;
+		return true;
+	}
+
+	if (special == RADAR_TEAM_BLUE || special == RADAR_ARENA_BLUE)
+	{
+		sleeveIndex = SLEEVE_BLUE;
+		return true;
+	}
+
+	return false;
+}
+
+int GetEffectiveSleeveModelIndex()
+{
+	if (IsHalfLifeModelOverrideActive())
+		return SLEEVE_ORANGE;
+
+	int forcedSleeveIndex = SLEEVE_ORANGE;
+	if (GetTeamForcedSleeveModelIndex(forcedSleeveIndex))
+		return forcedSleeveIndex;
+
+	return GetSleeveModelIndex();
+}
+
+int GetEffectiveWeaponModelIndex(const char *modelName, bool forViewModel)
+{
+	if (IsHalfLifeModelOverrideActive())
+		return SKIN_NORMAL;
+
+	int skin = GetWeaponModelIndex();
+	if (forViewModel)
+	{
+		if (MutatorEnabled(MUTATOR_GOLDENGUNS))
+			skin = SKIN_GOLD;
+		else if (modelName && gHUD.m_Teamplay == GAME_GUNGAME && !stricmp(modelName, "models/v_knife.mdl"))
+			skin = SKIN_GOLD;
+	}
+
+	return ClampModelIndex(skin, SKIN_NORMAL, SKIN_GOLD);
+}
+
+int GetCombinedViewModelSkinIndex(const char *modelName)
+{
+	const int weaponIndex = GetEffectiveWeaponModelIndex(modelName, true);
+	const int sleeveIndex = GetEffectiveSleeveModelIndex();
+	return (weaponIndex * 5) + sleeveIndex;
+}
+
+bool UseIceVisualStyle()
+{
+	const int weaponIndex = GetEffectiveWeaponModelIndex(NULL, false);
+	return weaponIndex >= SKIN_INVERSE && weaponIndex <= SKIN_EDITION;
+}
+
 unsigned long HudColor()
 {
 	static unsigned long colorchange = RGB_BLUEISH;
 
-	// Mutator always overrides
-	if (gHUD.m_IceModelsIndex == SKIN_MUTATOR)
+	if (IsHalfLifeModelOverrideActive())
 	{
 		if (colorchange != RGB_YELLOWISH)
 		{
@@ -201,7 +340,7 @@ unsigned long HudColor()
 		}
 	}
 
-	if ((gHUD.m_IceModelsIndex >= SKIN_INVERSE && gHUD.m_IceModelsIndex <= SKIN_GOLD))
+	if ((GetWeaponModelIndex() >= SKIN_INVERSE && GetWeaponModelIndex() <= SKIN_GOLD))
 	{
 		if (colorchange != RGB_BLUEISH)
 		{

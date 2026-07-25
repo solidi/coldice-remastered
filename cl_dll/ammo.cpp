@@ -268,8 +268,6 @@ DECLARE_COMMAND(m_Ammo, PrevWeapon);
 
 #define HISTORY_DRAW_TIME	"5"
 
-extern cvar_t *cl_icemodels;
-
 int CHudAmmo::Init(void)
 {
 	gHUD.AddHudElem(this);
@@ -605,12 +603,6 @@ int CHudAmmo::MsgFunc_HideWeapon( const char *pszName, int iSize, void *pbuf )
 		if ( m_pWeapon )
 			SetCrosshair( m_pWeapon->hCrosshair, m_pWeapon->rcCrosshair, r, g, b );
 	}
-
-	if ( gHUD.m_iHideHUDDisplay & HIDEHUD_ICE )
-		gHUD.m_IceModelsIndex = SKIN_MUTATOR;
-	else
-		if (cl_icemodels && cl_icemodels->value)
-			gHUD.m_IceModelsIndex = cl_icemodels->value;
 
 	return 1;
 }

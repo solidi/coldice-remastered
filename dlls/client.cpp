@@ -2350,7 +2350,8 @@ void ClientCommand( edict_t *pEntity )
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_gunsmoke [0|1]\" - turn on or off gun smoke effects when fired\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_hudbend\" - experimental bending factor of HUD elements\n" );
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_hudscale\" - experimental scaling factor of HUD elements\n" );
-		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_icemodels [0-6]\" - changes models with specific ice skins\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_weaponmodel [0-5]\" - changes weapon model skin variants\n");
+		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_sleevemodel [0-4]\" - changes HEV sleeve color\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_lifemeter [0|1|2|3]\" - display healthbar and damage numbers\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_minfo [0|1]\" - display weapon and rune pick up messages\n");
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, "\"cl_objectives [0|1]\" - show objective read out on HUD\n" );

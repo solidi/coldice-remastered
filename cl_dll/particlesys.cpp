@@ -805,7 +805,7 @@ void ParticleSystem::DrawSystem(std::list <particle *> &List)
 
 			gEngfuncs.pTriAPI->CullFace( TRI_NONE );
 
-				if ((gHUD.m_IceModelsIndex >= SKIN_INVERSE && gHUD.m_IceModelsIndex <= SKIN_EDITION))
+				if (UseIceVisualStyle())
 					gEngfuncs.pTriAPI->Color4f(FLAMECOLOR_BLUE, 1. / (pParticle->frame - 9));
 				else
 					gEngfuncs.pTriAPI->Color4f(FLAMECOLOR, 1. / (pParticle->frame - 9));

@@ -36,7 +36,6 @@ int __MsgFunc_MLifeBar(const char *pszName, int iSize, void *pbuf)
 extern int cam_thirdperson;
 extern cvar_t *cl_lifemeter;
 extern cvar_t *cl_playpoint;
-extern cvar_t *cl_icemodels;
 
 CHudLifeBar g_LifeBar;
 
@@ -440,7 +439,7 @@ void CHudLifeBar::RenderDamageNumbers()
 	float currentTime = gEngfuncs.GetClientTime();
 
 	int hotR = 255, hotG = 186, hotB = 64;  // Local player hit color
-	if (cl_icemodels && cl_icemodels->value > 0)
+	if (UseIceVisualStyle())
 	{
 		hotR = 0;
 		hotG = 160;
