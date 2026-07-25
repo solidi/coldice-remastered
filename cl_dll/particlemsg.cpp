@@ -35,10 +35,11 @@ int CHudParticle::Draw(float flTime)
 void CHudParticle::SetParticles()
 {
 	const int effectiveWeaponModel = GetEffectiveWeaponModelIndex(NULL, false);
-	if (iceModels != effectiveWeaponModel)
+	const int effectiveSleeveModel = GetEffectiveSleeveModelIndex();
+	if (iceModels != (effectiveWeaponModel + effectiveSleeveModel))
 	{
 		// gEngfuncs.Con_DPrintf("::: SetParticles -> Do Refresh\n");
 		g_pParticleSystems.reset = true;
-		iceModels = effectiveWeaponModel;
+		iceModels = (effectiveWeaponModel + effectiveSleeveModel);
 	}
 }

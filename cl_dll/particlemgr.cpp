@@ -30,7 +30,7 @@ void ParticleSystemManager::Setup( int mode )
 	ExpSmoke = new ParticleSystem(0, "aurora/SmokeExp.aur", 0, 0, Vector(1, 1, 1));
 	g_pParticleSystems.AddSystem(ExpSmoke, "ExpSmoke");
 
-	if (mode == 0 || mode > 3)
+	if (!mode)
 	{
 		Burn1 = new ParticleSystem(0, "aurora/Burn1.aur", 0, 0, Vector(1, 1, 1));
 		Burn2 = new ParticleSystem(0, "aurora/Burn2.aur", 0, 0, Vector(1, 1, 1));
@@ -66,7 +66,7 @@ void ParticleSystemManager::RefreshFlameSystem( int mode )
 	for (int i = 1; i <= gEngfuncs.GetMaxClients(); i++)
 	{
 		char temp[32];
-		if (mode > 0 && mode < 4)
+		if (mode)
 		{
 			sprintf(temp, "ice_fburst1 - %d", i);
 			g_pParticleSystems.AddSystem(new ParticleSystem(i, "aurora/ice_fburst1.aur"), temp);
@@ -290,7 +290,7 @@ void ParticleSystemManager::UpdateSystems( float frametime, int sky ) //LRC - no
 
 	if (reset)
 	{
-		Setup(GetEffectiveWeaponModelIndex(NULL, false));
+		Setup(UseIceVisualStyle());
 		FlameSystem.Init();
 		reset = false;
 	}

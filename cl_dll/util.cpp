@@ -270,7 +270,8 @@ int GetCombinedViewModelSkinIndex(const char *modelName)
 bool UseIceVisualStyle()
 {
 	const int weaponIndex = GetEffectiveWeaponModelIndex(NULL, false);
-	return weaponIndex >= SKIN_INVERSE && weaponIndex <= SKIN_EDITION;
+	const int GetSleeveIndex = GetEffectiveSleeveModelIndex();
+	return (weaponIndex >= SKIN_INVERSE && weaponIndex <= SKIN_EDITION) || GetSleeveIndex > SLEEVE_ORANGE;
 }
 
 unsigned long HudColor()
@@ -340,7 +341,8 @@ unsigned long HudColor()
 		}
 	}
 
-	if ((GetWeaponModelIndex() >= SKIN_INVERSE && GetWeaponModelIndex() <= SKIN_GOLD))
+	// General colors, if no specific gameplay team color is set
+	if ((GetSleeveModelIndex() == SLEEVE_BLUE))
 	{
 		if (colorchange != RGB_BLUEISH)
 		{
@@ -349,6 +351,26 @@ unsigned long HudColor()
 			colorchange = RGB_BLUEISH;
 		}
 		return RGB_BLUEISH;
+	}
+	else if ((GetSleeveModelIndex() == SLEEVE_RED))
+	{
+		if (colorchange != RGB_REDISH)
+		{
+			gEngfuncs.pfnClientCmd("con_color \"255 80 0\"\n");
+			gEngfuncs.pfnClientCmd("tracerred \"1\"\ntracerblue \"0\"\ntracergreen \"0\"\n");
+			colorchange = RGB_REDISH;
+		}
+		return RGB_REDISH;
+	}
+	else if ((GetSleeveModelIndex() == SLEEVE_GREEN))
+	{
+		if (colorchange != RGB_GREENISH)
+		{
+			gEngfuncs.pfnClientCmd("con_color \"0 200 0\"\n");
+			gEngfuncs.pfnClientCmd("tracerred \"0\"\ntracerblue \"0\"\ntracergreen \"1\"\n");
+			colorchange = RGB_GREENISH;
+		}
+		return RGB_GREENISH;
 	}
 
 	if (colorchange != RGB_YELLOWISH)
