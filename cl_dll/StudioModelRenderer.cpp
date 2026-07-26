@@ -34,7 +34,8 @@ static GLuint g_iBlankTex = 0;
 #endif
 
 extern cvar_t *tfc_newmodels;
-extern cvar_t *cl_icemodels;
+extern cvar_t *cl_weaponmodel;
+extern cvar_t *cl_sleevemodel;
 extern cvar_t *cl_portalmirror;
 
 extern extra_player_info_t  g_PlayerExtraInfo[MAX_PLAYERS+1];
@@ -65,7 +66,8 @@ void CStudioModelRenderer::Init( void )
 	m_pCvarHiModels			= IEngineStudio.GetCvar( "cl_himodels" );
 	m_pCvarDeveloper		= IEngineStudio.GetCvar( "developer" );
 	m_pCvarDrawEntities		= IEngineStudio.GetCvar( "r_drawentities" );
-	cl_icemodels			= gEngfuncs.pfnRegisterVariable ( "cl_icemodels", "2", FCVAR_ARCHIVE );
+	cl_weaponmodel			= gEngfuncs.pfnRegisterVariable ( "cl_weaponmodel", "0", FCVAR_ARCHIVE );
+	cl_sleevemodel			= gEngfuncs.pfnRegisterVariable ( "cl_sleevemodel", "1", FCVAR_ARCHIVE );
 	m_pCvarGlowModels		= gEngfuncs.pfnRegisterVariable ( "cl_glowmodels", "1", FCVAR_ARCHIVE );
 
 	m_pChromeSprite			= IEngineStudio.GetChromeSprite();
@@ -1298,9 +1300,14 @@ int CStudioModelRenderer::StudioDrawModel( int flags )
 	if (MutatorEnabled(MUTATOR_RICOCHET) && m_pCurrentEntity == gEngfuncs.GetViewModel())
 		return 0;
 
-	if (cl_icemodels && gHUD.m_IceModelsIndex != SKIN_MUTATOR && gHUD.m_IceModelsIndex != cl_icemodels->value)
+	if (cl_weaponmodel && gHUD.m_WeaponModelIndex != (int)cl_weaponmodel->value)
 	{
-		gHUD.m_IceModelsIndex = cl_icemodels->value;
+		gHUD.m_WeaponModelIndex = (int)cl_weaponmodel->value;
+	}
+
+	if (cl_sleevemodel && gHUD.m_SleeveModelIndex != (int)cl_sleevemodel->value)
+	{
+		gHUD.m_SleeveModelIndex = (int)cl_sleevemodel->value;
 	}
 
 	if (m_pCurrentEntity->curstate.renderfx == kRenderFxDeadPlayer)
@@ -1492,19 +1499,40 @@ int CStudioModelRenderer::StudioDrawModel( int flags )
 		m_nTopColor    = m_pCurrentEntity->curstate.colormap & 0xFF;
 		m_nBottomColor = (m_pCurrentEntity->curstate.colormap & 0xFF00) >> 8;
 
-		/*if ((m_pCurrentEntity->model && (strstr(m_pCurrentEntity->model->name, "w_"))) ||
-			m_pCurrentEntity == gEngfuncs.GetViewModel())*/
-		m_pCurrentEntity->curstate.skin = gHUD.m_IceModelsIndex;
+		const bool isViewModel = (m_pCurrentEntity == gEngfuncs.GetViewModel()) ||
+			(m_pCurrentEntity->curstate.iuser4 == 1) ||
+			((m_pCurrentEntity->curstate.effects & EF_VIEWMODEL) != 0);
+		const char *modelName = (m_pCurrentEntity->model) ? m_pCurrentEntity->model->name : NULL;
 
-		if ( m_pCurrentEntity == gEngfuncs.GetViewModel() )
+		if (isViewModel)
+		{
+			// Viewmodels now carry explicit sleeve colors in skin families; remap tinting
+			// can override those textures, so keep remap neutral for local first-person.
+			const bool isFirstPersonSpec = (g_iUser1 != 0);
+			if (!isFirstPersonSpec)
+			{
+				m_nTopColor = 0;
+				m_nBottomColor = 0;
+			}
+
+			const int effectiveWeapon = GetEffectiveWeaponModelIndex(modelName, true);
+			const int effectiveSleeve = GetEffectiveSleeveModelIndex();
+			const int combinedSkin = (effectiveWeapon * (SLEEVE_GREEN - SLEEVE_ORANGE + 1)) + effectiveSleeve;
+			if (m_pStudioHeader && m_pStudioHeader->numskinfamilies > combinedSkin)
+			{
+				m_pCurrentEntity->curstate.skin = combinedSkin;
+			}
+			else
+			{
+				m_pCurrentEntity->curstate.skin = effectiveWeapon;
+			}
+		}
+		else
+			m_pCurrentEntity->curstate.skin = GetEffectiveWeaponModelIndex(modelName, false);
+
+		if ( isViewModel )
 		{
 			cl_entity_t *pTarget = gEngfuncs.GetLocalPlayer();
-
-			if (MutatorEnabled(MUTATOR_GOLDENGUNS))
-				m_pCurrentEntity->curstate.skin = SKIN_GOLD;
-
-			if (gHUD.m_Teamplay == GAME_GUNGAME && !strcmp(m_pCurrentEntity->model->name, "models/v_knife.mdl"))
-				m_pCurrentEntity->curstate.skin = SKIN_GOLD;
 
 			m_pCurrentEntity->curstate.rendercolor.r = pTarget->curstate.rendercolor.r;
 			m_pCurrentEntity->curstate.rendercolor.g = pTarget->curstate.rendercolor.g;
@@ -2108,7 +2136,7 @@ int CStudioModelRenderer::StudioDrawPlayer( int flags, entity_state_t *pplayer )
 	if (prophunt)
 	{
 		m_pCurrentEntity->curstate.body = m_pCurrentEntity->curstate.fuser4 >= 52 ? m_pCurrentEntity->curstate.fuser4 - 52 : m_pCurrentEntity->curstate.fuser4;
-		m_pCurrentEntity->curstate.skin = gHUD.m_IceModelsIndex;
+		m_pCurrentEntity->curstate.skin = GetEffectiveWeaponModelIndex(NULL, false);
 		m_pCurrentEntity->origin[2] = m_pCurrentEntity->origin[2] - 36;
 		m_pCurrentEntity->angles = Vector(0,0,0);
 		m_pCurrentEntity->curstate.animtime = 0;
@@ -2342,7 +2370,7 @@ int CStudioModelRenderer::StudioDrawPlayer( int flags, entity_state_t *pplayer )
 
 			IEngineStudio.StudioSetupLighting (&lighting);
 
-			m_pCurrentEntity->curstate.skin = gHUD.m_IceModelsIndex;
+			m_pCurrentEntity->curstate.skin = GetEffectiveWeaponModelIndex(NULL, false);
 			m_pCurrentEntity->curstate.body = pplayer->team;
 			StudioRenderModel( );
 

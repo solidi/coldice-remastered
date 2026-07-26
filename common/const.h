@@ -976,10 +976,15 @@ typedef struct
 #define SKIN_INVERSE 1
 #define SKIN_ICE 2
 #define SKIN_EDITION 3
-#define SKIN_BLUEHEV 4
-#define SKIN_SILVER 5
-#define SKIN_GOLD 6
+#define SKIN_SILVER 4
+#define SKIN_GOLD 5
 #define SKIN_MUTATOR 99
+
+#define SLEEVE_ORANGE 0
+#define SLEEVE_BLUE 1
+#define SLEEVE_RED 2
+#define SLEEVE_YELLOW 3
+#define SLEEVE_GREEN 4
 
 #define TXT_CHANNEL_RUNE_TITLE		6
 #define TXT_CHANNEL_RUNE_DESC		7

@@ -54,7 +54,8 @@ cvar_t *cl_glasshud;
 cvar_t *cl_announcehumor;
 cvar_t *cl_showtips;
 cvar_t *cl_flashonpickup;
-cvar_t *cl_icemodels;
+cvar_t *cl_weaponmodel;
+cvar_t *cl_sleevemodel;
 cvar_t *cl_lifemeter;
 cvar_t *cl_achievements;
 cvar_t *cl_antivomit;
@@ -678,6 +679,8 @@ void CHud :: Init( void )
 	cl_respawnbar = CVAR_CREATE("cl_respawnbar", "1", FCVAR_ARCHIVE);
 	cl_showposition = CVAR_CREATE( "cl_showposition", "1", FCVAR_ARCHIVE );
 	cl_thirdcamera = CVAR_CREATE( "cl_thirdcamera", "1", FCVAR_ARCHIVE );
+	m_WeaponModelIndex = cl_weaponmodel ? (int)cl_weaponmodel->value : SKIN_ICE;
+	m_SleeveModelIndex = cl_sleevemodel ? (int)cl_sleevemodel->value : SLEEVE_BLUE;
 
 	cl_vmx = CVAR_CREATE( "cl_vmx", "0", FCVAR_ARCHIVE );
 	cl_vmy = CVAR_CREATE( "cl_vmy", "0", FCVAR_ARCHIVE );
@@ -826,8 +829,11 @@ void CHud :: VidInit( void )
 		CL_TempEntInit();
 	}
 
-	if (cl_icemodels)
-		m_IceModelsIndex = cl_icemodels->value;
+	if (cl_weaponmodel)
+		m_WeaponModelIndex = (int)cl_weaponmodel->value;
+
+	if (cl_sleevemodel)
+		m_SleeveModelIndex = (int)cl_sleevemodel->value;
 
 	// ----------
 	// Load Sprites

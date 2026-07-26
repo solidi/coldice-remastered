@@ -217,6 +217,13 @@ inline void UnpackRGB(int &r, int &g, int &b, unsigned long ulRGB)\
 HSPRITE LoadSprite(const char *pszName);
 
 unsigned long HudColor();
+bool IsHalfLifeModelOverrideActive();
+int GetWeaponModelIndex();
+int GetSleeveModelIndex();
+int GetEffectiveWeaponModelIndex(const char *modelName, bool forViewModel);
+int GetEffectiveSleeveModelIndex();
+int GetCombinedViewModelSkinIndex(const char *modelName);
+bool UseIceVisualStyle();
 
 float lerp(float a, float b, float f);
 bool ScoreBased( void );

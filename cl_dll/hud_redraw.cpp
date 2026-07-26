@@ -542,10 +542,10 @@ void CHud::ShowTextTips( void ) {
 		return;
 	}
 
-	const int MESSAGE_SIZE = 44;
+	const int MESSAGE_SIZE = 45;
 
 	const char* messageList[MESSAGE_SIZE] = {
-		"Tired of blue skins? Type \"cl_icemodels 0\" in the console switches to real-life skins.\n",
+		"Tired of blue skins? Type \"cl_weaponmodel 0\" in the console switches to real-life skins.\n",
 		"To five-high your friend with your leg, bind \"impulse 206\" to a button to kick.\n",
 		"Did you know you can shut off the humour? Type \"cl_announcehumor 0\" to make them shut up.\n",
 		"To stop these tips, type \"cl_showtips 0\".\n",
@@ -574,10 +574,11 @@ void CHud::ShowTextTips( void ) {
 		"Join our Cold Ice Discord at discord.com/invite/Hu2Q6pcJn3\n",
 		"To fake your death, type \"feign\" in the console or bind it to a key.\n",
 		"Custom voiceover support is available. Try cl_voiceoverpath \"hev\".\n",
-		"Type \"cl_icemodels 4\" in the console for real-life skins with a blue hev.\n",
+		"Type \"cl_weaponmodel 0\" and \"cl_sleevemodel 1\" for real-life skins with blue sleeves.\n",
 		"Tap \"+jump\" two times to perform a double jump.\n",
 		"Tap \"+jump\" three times while running to perform a frontflip.\n",
 		"Bind \"impulse 211\" to a button to perform a left flip.\n",
+		"Tap \"semicolon (;)\" to show a menu of useful client commands.\n",
 		"Bind \"impulse 212\" to a button to perform a back flip.\n",
 		"Bind \"impulse 213\" to a button to perform a front flip.\n",
 		"Bind \"feign\" to pass out, at least for a minute.\n",
