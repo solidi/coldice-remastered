@@ -36,10 +36,11 @@ void CHudParticle::SetParticles()
 {
 	const int effectiveWeaponModel = GetEffectiveWeaponModelIndex(NULL, false);
 	const int effectiveSleeveModel = GetEffectiveSleeveModelIndex();
-	if (iceModels != (effectiveWeaponModel + effectiveSleeveModel))
+	const int combinedModelKey = (effectiveWeaponModel * (SLEEVE_GREEN - SLEEVE_ORANGE + 1)) + effectiveSleeveModel;
+	if (iceModels != combinedModelKey)
 	{
 		// gEngfuncs.Con_DPrintf("::: SetParticles -> Do Refresh\n");
 		g_pParticleSystems.reset = true;
-		iceModels = (effectiveWeaponModel + effectiveSleeveModel);
+		iceModels = combinedModelKey;
 	}
 }
