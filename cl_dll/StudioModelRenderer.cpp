@@ -1517,12 +1517,10 @@ int CStudioModelRenderer::StudioDrawModel( int flags )
 
 			const int effectiveWeapon = GetEffectiveWeaponModelIndex(modelName, true);
 			const int effectiveSleeve = GetEffectiveSleeveModelIndex();
-			const int combinedSkin = (effectiveWeapon * 5) + effectiveSleeve;
-			bool usedFallback = true;
+			const int combinedSkin = (effectiveWeapon * (SLEEVE_GREEN - SLEEVE_ORANGE + 1)) + effectiveSleeve;
 			if (m_pStudioHeader && m_pStudioHeader->numskinfamilies > combinedSkin)
 			{
 				m_pCurrentEntity->curstate.skin = combinedSkin;
-				usedFallback = false;
 			}
 			else
 			{

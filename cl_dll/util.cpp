@@ -264,7 +264,7 @@ int GetCombinedViewModelSkinIndex(const char *modelName)
 {
 	const int weaponIndex = GetEffectiveWeaponModelIndex(modelName, true);
 	const int sleeveIndex = GetEffectiveSleeveModelIndex();
-	return (weaponIndex * 5) + sleeveIndex;
+	return (weaponIndex * (SLEEVE_GREEN - SLEEVE_ORANGE + 1)) + sleeveIndex;
 }
 
 bool UseIceVisualStyle()
