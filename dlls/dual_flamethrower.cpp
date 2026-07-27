@@ -24,6 +24,7 @@
 #include "gamerules.h"
 #include "flame.h"
 #include "flameball.h"
+#include "napalm_pool.h"
 #include "game.h"
 
 enum dual_flamethrower_e
@@ -41,6 +42,12 @@ enum dual_flamethrower_e
 	DUAL_FLAMETHROWER_DEPLOY,
 	DUAL_FLAMETHROWER_HOLSTER,
 };
+
+static const int DUAL_FLAMETHROWER_NAPALM_POOL_COUNT = 6;
+static const float DUAL_FLAMETHROWER_NAPALM_DAMAGE_PER_TICK = 1.0f;
+static const float DUAL_FLAMETHROWER_NAPALM_RADIUS = 48.0f;
+static const float DUAL_FLAMETHROWER_NAPALM_COOLDOWN = 1.5f;
+static const float DUAL_FLAMETHROWER_NAPALM_STARTUP_TIME = 1.5f;
 
 #ifdef DUALFLAMETHROWER
 LINK_ENTITY_TO_CLASS( weapon_dual_flamethrower, CDualFlameThrower );
@@ -94,6 +101,7 @@ void CDualFlameThrower::Precache( void )
 
 	UTIL_PrecacheOther("flamestream");
 	UTIL_PrecacheOther("flameball");
+	UTIL_PrecacheOther("napalm_pool");
 }
 
 int CDualFlameThrower::GetItemInfo(ItemInfo *p)
@@ -344,6 +352,94 @@ void CDualFlameThrower::SecondaryAttack( void )
 	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 5;
 
 	m_pPlayer->pev->punchangle.x -= 1;
+}
+
+void CDualFlameThrower::Reload( void )
+{
+	if (m_fireState != 0)
+	{
+		EndAttack();
+	}
+
+	m_fSecondaryFireTime = 0;
+	m_pPlayer->pev->playerclass = 0;
+
+	if (m_pPlayer->pev->waterlevel == 3)
+	{
+		PlayEmptySound();
+		m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 0.15;
+		m_flNextPrimaryAttack = m_flNextSecondaryAttack = m_pPlayer->m_flNextAttack;
+		return;
+	}
+
+	if (m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] <= 0)
+	{
+		PlayEmptySound();
+		m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 0.15;
+		m_flNextPrimaryAttack = m_flNextSecondaryAttack = m_pPlayer->m_flNextAttack;
+		return;
+	}
+
+#ifdef CLIENT_DLL
+	// Server drives placement outcome, animation, sound and event playback so
+	// prediction never desyncs valid vs invalid placement. Client only advances
+	// weapon timing so ItemPostFrame does not re-enter Reload.
+	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + DUAL_FLAMETHROWER_NAPALM_COOLDOWN;
+	m_flNextPrimaryAttack = m_flNextSecondaryAttack = m_pPlayer->m_flNextAttack;
+	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 1.0;
+	return;
+#else
+	if (!CNapalmPool::CanDeployPools( m_pPlayer ))
+	{
+		PlayEmptySound();
+		m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 0.25;
+		m_flNextPrimaryAttack = m_flNextSecondaryAttack = m_pPlayer->m_flNextAttack;
+		return;
+	}
+
+	int iPoolBudget = m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType];
+	if (iPoolBudget > DUAL_FLAMETHROWER_NAPALM_POOL_COUNT)
+		iPoolBudget = DUAL_FLAMETHROWER_NAPALM_POOL_COUNT;
+
+	int iPoolsSpawned = CNapalmPool::DeployPools(m_pPlayer, iPoolBudget,
+		DUAL_FLAMETHROWER_NAPALM_DAMAGE_PER_TICK, DUAL_FLAMETHROWER_NAPALM_RADIUS);
+
+	if (iPoolsSpawned <= 0)
+	{
+		PlayEmptySound();
+		m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 0.25;
+		m_flNextPrimaryAttack = m_flNextSecondaryAttack = m_pPlayer->m_flNextAttack;
+		return;
+	}
+
+	m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] -= iPoolsSpawned * DUAL_FLAMETHROWER_NAPALM_POOL_COUNT;
+	if (m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] < 0)
+		m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] = 0;
+
+	// Play a brief primary-attack-style flame burst that ends when napalm is
+	// considered thrown. Broadcast to all clients (including host) since this
+	// reload path is server-authoritative and not client-predicted.
+	PLAYBACK_EVENT_FULL( 0, m_pPlayer->edict(), m_usFlameStream, 0.0,
+		(float *)&m_pPlayer->pev->origin, (float *)&m_pPlayer->pev->angles, 0.0, 0.0, 0, 1, 1, 0 );
+	PLAYBACK_EVENT_FULL( 0, m_pPlayer->edict(), m_usFlameStream, 0.05,
+		(float *)&m_pPlayer->pev->origin, (float *)&m_pPlayer->pev->angles, 0.0, 0.0, 1, 1, 0, 0 );
+	PLAYBACK_EVENT_FULL( FEV_GLOBAL | FEV_RELIABLE, m_pPlayer->edict(), m_usFlameThrowerEnd, DUAL_FLAMETHROWER_NAPALM_STARTUP_TIME,
+		(float *)&m_pPlayer->pev->origin, (float *)&m_pPlayer->pev->angles, 0.0, 0.0, 1, 0, 0, 0 );
+
+	// playerclass=1 turns on the client-side flame stream particle emitter
+	// (aurora fburst*.aur) tied to this player's view attachment. WeaponIdle
+	// resets it to 0 once cooldown elapses, ending the visual naturally.
+	m_pPlayer->pev->playerclass = 1;
+
+	m_pPlayer->SetAnimation( PLAYER_ATTACK1 );
+
+	m_pPlayer->m_iWeaponVolume = NORMAL_GUN_VOLUME;
+	m_pPlayer->m_iWeaponFlash = NORMAL_GUN_FLASH;
+
+	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + DUAL_FLAMETHROWER_NAPALM_COOLDOWN;
+	m_flNextPrimaryAttack = m_flNextSecondaryAttack = m_pPlayer->m_flNextAttack;
+	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + DUAL_FLAMETHROWER_NAPALM_COOLDOWN + 0.5;
+#endif
 }
 
 void CDualFlameThrower::WeaponIdle( void )

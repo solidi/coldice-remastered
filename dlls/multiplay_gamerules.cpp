@@ -1628,6 +1628,7 @@ void CHalfLifeMultiplay::RemoveAndFillItems( void )
 		"nuke_rocket",
 		"rpg_rocket",
 		"freezegrenade",
+		"napalm_pool",
 		"grenade",
 		"gib",
 		"weaponbox",

@@ -2449,10 +2449,13 @@ public:
    void EndAttack( void );
    void PrimaryAttack( void );
    void SecondaryAttack( void );
+	void Reload( void );
    BOOL DeployLowKey( void );
    BOOL Deploy( void );
    void Holster( int skiplocal = 0 );
    void WeaponIdle( void );
+
+	virtual BOOL AcceptReload( void ) { return TRUE; }
 
 	virtual BOOL UseDecrement( void )
 	{ 
@@ -2491,6 +2494,7 @@ public:
    void EndAttack( void );
    void PrimaryAttack( void );
    void SecondaryAttack( void );
+	void Reload( void );
    BOOL DeployLowKey( void );
    BOOL Deploy( void );
    void Holster( int skiplocal = 0 );
@@ -2507,6 +2511,8 @@ public:
 		return FALSE;
 #endif
 	}
+
+   virtual BOOL AcceptReload( void ) { return TRUE; }
 
 	void ProvideSingleItem(CBasePlayer *pPlayer, const char *itemName);
 	void SwapDualWeapon( void );
