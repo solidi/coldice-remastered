@@ -815,6 +815,7 @@ enum e_protips {
 	SNOWBALL_TIP,
 	CHUMTOAD_TIP,
 	ROCKETCROWBAR_TIP,
+	DUAL_FLAMETHROWER_TIP,
 };
 
 extern void ProTip(int id, const char *message);
@@ -1035,6 +1036,7 @@ void HUD_WeaponsPostThink( local_state_s *from, local_state_s *to, usercmd_t *cm
 
 		case WEAPON_DUAL_FLAMETHROWER:
 			pWeapon = &g_DualFlameThrower;
+			ProTip(DUAL_FLAMETHROWER_TIP, "Use RELOAD to throw napalm pools");
 			break;
 
 		case WEAPON_ASHPOD:

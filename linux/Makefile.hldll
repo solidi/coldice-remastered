@@ -237,6 +237,7 @@ HLDLL_OBJS = \
 	$(HLDLL_OBJ_DIR)/talkmonster.o \
 	$(HLDLL_OBJ_DIR)/teamplay_gamerules.o \
 	$(HLDLL_OBJ_DIR)/multiplay_gamerules.o \
+	$(HLDLL_OBJ_DIR)/napalm_pool.o \
 	$(HLDLL_OBJ_DIR)/singleplay_gamerules.o \
 	$(HLDLL_OBJ_DIR)/tempmonster.o \
 	$(HLDLL_OBJ_DIR)/tentacle.o \

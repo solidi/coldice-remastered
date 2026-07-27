@@ -468,7 +468,10 @@ int CHalfLifeGunGame::IPointsForKill( CBasePlayer *pAttacker, CBasePlayer *pKill
 					DeactivateItems(pAttacker, "hornet");
 				else if (!strcmp(g_WeaponId[pAttacker->m_iRoundWins], "flamethrower") ||
 						!strcmp(g_WeaponId[pAttacker->m_iRoundWins], "dual_flamethrower"))
+				{
 					DeactivateItems(pAttacker, "flameball");
+					DeactivateItems(pAttacker, "napalm_pool");
+				}
 				else if (!strcmp(g_WeaponId[pAttacker->m_iRoundWins], "cannon"))
 				{
 					DeactivateItems(pAttacker, "flak");
