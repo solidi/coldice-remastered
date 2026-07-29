@@ -695,6 +695,8 @@ public:
 
 	void PrimaryAttack( void );
 	void SecondaryAttack( void );
+	void Reload( void );
+	void Smash( int fFatal );
 	void Throw( void );
 	int Swing( int fFirst );
 	BOOL DeployLowKey( void );
@@ -712,6 +714,8 @@ public:
 		return FALSE;
 #endif
 	}
+
+	virtual BOOL AcceptReload( void ) { return TRUE; }
 
 	BOOL CanDeploy();
 	BOOL CanSlide();
@@ -1892,6 +1896,8 @@ public:
 
 	void PrimaryAttack( void );
 	void SecondaryAttack( void );
+	void Reload( void );
+	void Smash( int fFatal );
 	void Throw( void );
 	int Swing( int fFirst );
 	BOOL Deploy( void );
@@ -1909,6 +1915,8 @@ public:
 		return FALSE;
 #endif
 	}
+
+	virtual BOOL AcceptReload( void ) { return TRUE; }
 
 	void ProvideDualItem(CBasePlayer *pPlayer, const char *itemName);
 	void SwapDualWeapon( void );
@@ -2295,6 +2303,8 @@ public:
 
 	void PrimaryAttack( void );
 	void SecondaryAttack( void );
+	void Reload( void );
+	void Smash( int fFatal );
 	void Throw( void );
 	int Swing( int fFirst );
 	BOOL DeployLowKey( void );
@@ -2312,6 +2322,8 @@ public:
 		return FALSE;
 #endif
 	}
+
+	virtual BOOL AcceptReload( void ) { return TRUE; }
 
 	BOOL CanDeploy();
 	BOOL CanSlide();

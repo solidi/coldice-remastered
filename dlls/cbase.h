@@ -377,6 +377,11 @@ public:
 	enum EGON_FIRESTATE { FIRE_OFF, FIRE_CHARGE };
 	int m_fireState;
 
+	// Melee charged-smash state (crowbar/wrench/dual wrench). Synced via weapon_data_t so
+	// client prediction keeps the same charge start / post-smash cooldown as the server.
+	float m_flSmashStart;
+	float m_flNextSmashCharge;
+
 	int m_burnParticleEnabled;
 	float m_fBurnTime;
 	EHANDLE m_hFlameOwner;

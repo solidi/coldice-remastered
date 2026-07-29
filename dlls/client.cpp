@@ -3502,9 +3502,11 @@ int GetWeaponData( struct edict_s *player, struct weapon_data_s *info )
 						item->fuser1					= fmax( gun->pev->fuser1, -0.001 );
 						item->fuser2					= gun->m_flStartThrow;
 						item->fuser3					= gun->m_flReleaseThrow;
+						item->fuser4					= gun->m_flSmashStart;
 						item->iuser1					= gun->m_chargeReady;
 						item->iuser2					= gun->m_fInAttack;
 						item->iuser3					= gun->m_fireState;
+						item->m_fReloadTime				= gun->m_flNextSmashCharge;
 						
 											
 //						item->m_flPumpTime				= fmax( gun->m_flPumpTime, -0.001 );

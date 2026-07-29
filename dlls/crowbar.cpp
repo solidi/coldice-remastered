@@ -78,6 +78,8 @@ void CCrowbar::Spawn( )
 	pev->body = WEAPON_CROWBAR - 1;
 
 	m_iClip = -1;
+	m_flSmashStart = 0;
+	m_flNextSmashCharge = 0;
 
 	FallInit();// get ready to fall down.
 }
@@ -133,6 +135,8 @@ BOOL CCrowbar::DeployLowKey( )
 {
 	m_flStartThrow = 0;
 	m_flReleaseThrow = -1;
+	m_flSmashStart = 0;
+	m_flNextSmashCharge = 0;
 	return DefaultDeploy( "models/v_crowbar.mdl", "models/p_weapons.mdl", CROWBAR_DRAW_LOWKEY, "crowbar" );
 }
 
@@ -140,6 +144,8 @@ BOOL CCrowbar::Deploy( )
 {
 	m_flStartThrow = 0;
 	m_flReleaseThrow = -1;
+	m_flSmashStart = 0;
+	m_flNextSmashCharge = 0;
 	return DefaultDeploy( "models/v_crowbar.mdl", "models/p_weapons.mdl", CROWBAR_DRAW, "crowbar" );
 }
 
@@ -151,6 +157,8 @@ BOOL CCrowbar::CanSlide()
 void CCrowbar::Holster( int skiplocal /* = 0 */ )
 {
 	CBasePlayerWeapon::DefaultHolster(-1);
+
+	m_flSmashStart = 0;
 
 	if (m_flReleaseThrow > 0) {
 		m_pPlayer->pev->weapons &= ~(1<<WEAPON_CROWBAR);
@@ -164,6 +172,9 @@ void CCrowbar::Holster( int skiplocal /* = 0 */ )
 
 void CCrowbar::PrimaryAttack()
 {
+	if (m_flSmashStart > 0)
+		return;
+
 	if (!m_flStartThrow && !Swing( 1 ))
 	{
 		SetThink( &CCrowbar::SwingAgain );
@@ -184,6 +195,9 @@ void CCrowbar::SecondaryAttack()
 		return PrimaryAttack();
 	}
 
+	if (m_flSmashStart > 0)
+		return;
+
 	if ( m_pPlayer->pev->waterlevel == 3 )
 	{
 		m_flNextPrimaryAttack = m_flNextSecondaryAttack = GetNextAttackDelay(0.15);
@@ -199,6 +213,136 @@ void CCrowbar::SecondaryAttack()
 	}
 
 	m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 0.5;
+}
+
+void CCrowbar::Reload( void )
+{
+#ifdef CLIENT_DLL
+	if (IsGunGame())
+#else
+	if (g_pGameRules->IsGunGame())
+#endif
+	{
+		m_flNextPrimaryAttack = UTIL_WeaponTimeBase() + 0.5;
+		return PrimaryAttack();
+	}
+
+	// Don't interleave with the throw pull-back.
+	if ( m_flStartThrow > 0 )
+		return;
+
+	// Post-smash cooldown gate: prevents per-frame retriggering when the button is tapped.
+	if ( gpGlobals->time < m_flNextSmashCharge )
+		return;
+
+	// Already charging a smash; just keep the idle timer parked.
+	if ( m_flSmashStart > 0 )
+	{
+		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 5.0;
+		return;
+	}
+
+	// Begin the smash charge: pull back the crowbar and remember when.
+	SendWeaponAnim( CROWBAR_PULL_BACK );
+	m_pPlayer->pev->punchangle = Vector(-2, -2, 0);
+	m_flSmashStart = gpGlobals->time;
+	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 5.0;
+}
+
+void CCrowbar::Smash( int fFatal )
+{
+	// Both tap and fatal release use the throw anim so it continues from the pull-back pose.
+	SendWeaponAnim( CROWBAR_THROW2 );
+
+	m_pPlayer->SetAnimation( PLAYER_ATTACK1 );
+	m_pPlayer->pev->punchangle = fFatal ? Vector(-8, 0, 0) : Vector(-4, 0, 0);
+
+	TraceResult tr;
+
+	UTIL_MakeVectors( m_pPlayer->pev->v_angle );
+	Vector vecSrc = m_pPlayer->GetGunPosition();
+	Vector vecEnd = vecSrc + gpGlobals->v_forward * 48;
+
+	UTIL_TraceLine( vecSrc, vecEnd, dont_ignore_monsters, ENT( m_pPlayer->pev ), &tr );
+
+#ifndef CLIENT_DLL
+	if ( tr.flFraction >= 1.0 )
+	{
+		UTIL_TraceHull( vecSrc, vecEnd, dont_ignore_monsters, head_hull, ENT( m_pPlayer->pev ), &tr );
+		if ( tr.flFraction < 1.0 )
+		{
+			CBaseEntity *pHit = CBaseEntity::Instance( tr.pHit );
+			if ( !pHit || pHit->IsBSPModel() )
+				UTIL_FindHullIntersection( vecSrc, tr, VEC_DUCK_HULL_MIN, VEC_DUCK_HULL_MAX, m_pPlayer->edict() );
+			vecEnd = tr.vecEndPos;
+		}
+	}
+#endif
+
+	// Skip m_usCrowbar event playback: its client callback plays a random ATTACK*MISS anim,
+	// which would override the CROWBAR_THROW2 pose set above. Sounds and decals are handled directly below.
+
+#ifndef CLIENT_DLL
+	if ( tr.flFraction < 1.0 )
+	{
+		CBaseEntity *pEntity = CBaseEntity::Instance( tr.pHit );
+
+		if ( pEntity && pEntity->pev->takedamage != DAMAGE_NO )
+		{
+			ClearMultiDamage();
+			if ( fFatal )
+			{
+				pEntity->TraceAttack( m_pPlayer->pev, 9999.0f, gpGlobals->v_forward, &tr, DMG_CLUB | DMG_ALWAYSGIB );
+			}
+			else
+			{
+				pEntity->TraceAttack( m_pPlayer->pev, gSkillData.plrDmgCrowbar, gpGlobals->v_forward, &tr, DMG_CLUB );
+			}
+			ApplyMultiDamage( m_pPlayer->pev, m_pPlayer->pev );
+
+			if ( pEntity->Classify() != CLASS_NONE && pEntity->Classify() != CLASS_MACHINE )
+			{
+				pEntity->pev->velocity = pEntity->pev->velocity + gpGlobals->v_forward * ( fFatal ? 500 : 200 );
+
+				switch ( RANDOM_LONG( 0, 2 ) )
+				{
+				case 0: EMIT_SOUND( ENT(m_pPlayer->pev), CHAN_BODY, "cbar_hitbod1.wav", 1, ATTN_NORM ); break;
+				case 1: EMIT_SOUND( ENT(m_pPlayer->pev), CHAN_BODY, "cbar_hitbod2.wav", 1, ATTN_NORM ); break;
+				case 2: EMIT_SOUND( ENT(m_pPlayer->pev), CHAN_BODY, "cbar_hitbod3.wav", 1, ATTN_NORM ); break;
+				}
+				m_pPlayer->m_iWeaponVolume = CROWBAR_BODYHIT_VOLUME;
+			}
+			else
+			{
+				// Non-flesh target: leave the heavy wrench-sized decal directly.
+				DecalGunshot( &tr, BULLET_PLAYER_WRENCH );
+			}
+		}
+		else
+		{
+			float fvolbar = TEXTURETYPE_PlaySound( &tr, vecSrc, vecSrc + (vecEnd - vecSrc) * 2, BULLET_PLAYER_CROWBAR );
+			if ( g_pGameRules->IsMultiplayer() )
+				fvolbar = 1;
+
+			EMIT_SOUND_DYN( ENT(m_pPlayer->pev), CHAN_BODY,
+				fFatal ? "weapons/cbar_hit2.wav" : "cbar_hit1.wav",
+				fvolbar, ATTN_NORM, 0, 96 + RANDOM_LONG( 0, 3 ) );
+
+			m_pPlayer->m_iWeaponVolume = CROWBAR_WALLHIT_VOLUME;
+			// Brush hit: wrench-sized decal to sell the extreme force.
+			DecalGunshot( &tr, BULLET_PLAYER_WRENCH );
+		}
+	}
+	else
+	{
+		EMIT_SOUND_DYN( ENT(m_pPlayer->pev), CHAN_WEAPON,
+			"weapons/cbar_miss1.wav", 1, ATTN_NORM, 0, 94 + RANDOM_LONG( 0, 0xF ) );
+	}
+#endif
+
+	m_flNextPrimaryAttack = m_flNextSecondaryAttack = GetNextAttackDelay( fFatal ? 0.9 : 0.5 );
+	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 1.0;
+	m_flNextSmashCharge = gpGlobals->time + ( fFatal ? 0.5f : 0.3f );
 }
 
 void CCrowbar::Throw()
@@ -414,6 +558,16 @@ int CCrowbar::Swing( int fFirst )
 void CCrowbar::WeaponIdle( void )
 {
 	m_pPlayer->GetAutoaimVector( AUTOAIM_10DEGREES );
+
+	// If the player was charging a smash and just released +reload, resolve it now.
+	if ( m_flSmashStart > 0 && !( m_pPlayer->pev->button & IN_RELOAD ) )
+	{
+		float flChargeTime = gpGlobals->time - m_flSmashStart;
+		m_flSmashStart = 0;
+
+		Smash( flChargeTime >= 1.0f ? TRUE : FALSE );
+		return;
+	}
 
 	if ( m_flTimeWeaponIdle > UTIL_WeaponTimeBase() )
 		return;
