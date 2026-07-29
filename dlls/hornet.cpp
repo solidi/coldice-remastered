@@ -189,6 +189,9 @@ void CHornet :: StartDart ( void )
 
 	SetTouch( &CHornet::DartTouch );
 
+	// Timeout, not a kill: zero health so SUB_Remove doesn't log
+	// "SUB_Remove called on hornet with health > 0".
+	pev->health = 0;
 	SetThink( &CHornet::SUB_Remove );
 	pev->nextthink = gpGlobals->time + 4;
 }
@@ -262,6 +265,8 @@ void CHornet :: TrackTarget ( void )
 	if (gpGlobals->time > m_flStopAttack)
 	{
 		SetTouch( NULL );
+		// Tracking timeout — zero health so SUB_Remove doesn't warn.
+		pev->health = 0;
 		SetThink( &CHornet::SUB_Remove );
 		pev->nextthink = gpGlobals->time + 0.1;
 		return;
@@ -443,6 +448,8 @@ void CHornet::DieTouch ( CBaseEntity *pOther )
 	pev->modelindex = 0;// so will disappear for the 0.1 secs we wait until NEXTTHINK gets rid
 	pev->solid = SOLID_NOT;
 
+	// Payload delivered — zero health so SUB_Remove doesn't warn on the sound-tail delay.
+	pev->health = 0;
 	SetThink ( &CHornet::SUB_Remove );
 	pev->nextthink = gpGlobals->time + 1;// stick around long enough for the sound to finish!
 }

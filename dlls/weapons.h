@@ -1215,11 +1215,14 @@ public:
 	void Holster( int skiplocal = 0 );
 	void Reload( void );
 	void WeaponIdle( void );
+	virtual BOOL AcceptReload( void ) { return TRUE; }
 	float m_flNextAnimTime;
 
 	float m_flRechargeTime;
-	
+	float m_flChargeNextEmpty;
+
 	int m_iFirePhase;// don't save me.
+	int m_iChargeSoundOn;// don't save me.
 
 	virtual BOOL UseDecrement( void )
 	{ 
@@ -2692,11 +2695,14 @@ public:
 	void Holster( int skiplocal = 0 );
 	void Reload( void );
 	void WeaponIdle( void );
+	virtual BOOL AcceptReload( void ) { return TRUE; }
 	float m_flNextAnimTime;
 
 	float m_flRechargeTime;
-	
+	float m_flChargeNextEmpty;
+
 	int m_iFirePhase;// don't save me.
+	int m_iChargeSoundOn;// don't save me.
 
 	virtual BOOL UseDecrement( void )
 	{ 
