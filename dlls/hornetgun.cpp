@@ -168,9 +168,13 @@ void CHgun::PrimaryAttack()
 #ifndef CLIENT_DLL
 	Vector vecAiming = m_pPlayer->GetAutoaimVector( AUTOAIM_10DEGREES );
 
+	// Only inherit a small fraction of the player's velocity so hard strafes
+	// nudge the trajectory instead of throwing hornets 40 degrees off-axis.
+	const float flInheritVel = 0.15f;
+
 	CBaseEntity *pHornet = CBaseEntity::Create( "hornet", m_pPlayer->GetGunPosition( ) + vecAiming * 16 + gpGlobals->v_right * 8 + gpGlobals->v_up * -12, UTIL_VecToAngles(vecAiming), m_pPlayer->edict() );
 	if (pHornet != NULL)
-		pHornet->pev->velocity = m_pPlayer->pev->velocity + vecAiming * 300;
+		pHornet->pev->velocity = m_pPlayer->pev->velocity * flInheritVel + vecAiming * 300;
 
 	m_flRechargeTime = gpGlobals->time + (0.5 * g_pGameRules->WeaponMultipler());
 #endif
