@@ -60,6 +60,8 @@ void CDualHgun::Spawn( )
 	m_iDefaultAmmo = HIVEHAND_DEFAULT_GIVE * 2;
 	pev->dmg = gSkillData.plrDmgHornet;
 	m_iFirePhase = 0;
+	m_iChargeSoundOn = 0;
+	m_flChargeNextEmpty = 0.0f;
 
 	FallInit();// get ready to fall down.
 }
@@ -70,6 +72,9 @@ void CDualHgun::Precache( void )
 	PRECACHE_MODEL("models/v_dual_hgun.mdl");
 
 	m_usHornetFire = PRECACHE_EVENT ( 1, "events/dual_hornetgun.sc" );
+
+	PRECACHE_SOUND("items/medcharge4.wav");
+	PRECACHE_SOUND("items/medshotno1.wav");
 
 	UTIL_PrecacheOther("hornet");
 }
@@ -123,6 +128,12 @@ BOOL CDualHgun::Deploy( )
 
 void CDualHgun::Holster( int skiplocal /* = 0 */ )
 {
+	if ( m_iChargeSoundOn )
+	{
+		STOP_SOUND( ENT(m_pPlayer->pev), CHAN_STATIC, "items/medcharge4.wav" );
+		m_iChargeSoundOn = 0;
+	}
+
 	CBasePlayerWeapon::DefaultHolster(DUAL_HGUN_DOWN, 1);
 
 	//!!!HACKHACK - can't select hornetgun if it's empty! no way to get ammo for it, either.
@@ -135,11 +146,22 @@ void CDualHgun::Holster( int skiplocal /* = 0 */ )
 
 void CDualHgun::PrimaryAttack()
 {
+	// Holding IN_RELOAD locks out firing so the hivehand isn't cycling shots
+	// while the fast-charge loop is running.
+	if ( m_pPlayer->pev->button & IN_RELOAD )
+	{
+		Reload();
+		m_flNextPrimaryAttack = UTIL_WeaponTimeBase() + 0.1;
+		return;
+	}
+
 	Reload( );
 
 	if (m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] <= 0)
 	{
-		m_flNextPrimaryAttack = UTIL_WeaponTimeBase() + 0.15;
+		// Longer cooldown while dry so we don't rapidly re-enter this branch
+		// every 0.15s; the recharge will backfill soon enough.
+		m_flNextPrimaryAttack = UTIL_WeaponTimeBase() + 0.5;
 		return;
 	}
 
@@ -177,11 +199,20 @@ void CDualHgun::PrimaryAttack()
 	// player "shoot" animation
 	m_pPlayer->SetAnimation( PLAYER_ATTACK1 );
 
-	m_flNextPrimaryAttack = GetNextAttackDelay(0.25);
-
-	if (m_flNextPrimaryAttack < UTIL_WeaponTimeBase() )
+	if ( m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] <= 0 )
 	{
-		m_flNextPrimaryAttack = UTIL_WeaponTimeBase() + 0.25;
+		// Just fired the last hornet: enforce a real cooldown so we don't
+		// immediately fall back into the empty-branch tap-fire loop.
+		m_flNextPrimaryAttack = UTIL_WeaponTimeBase() + 1.0;
+	}
+	else
+	{
+		m_flNextPrimaryAttack = GetNextAttackDelay(0.25);
+
+		if (m_flNextPrimaryAttack < UTIL_WeaponTimeBase() )
+		{
+			m_flNextPrimaryAttack = UTIL_WeaponTimeBase() + 0.25;
+		}
 	}
 
 	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + UTIL_SharedRandomFloat( m_pPlayer->random_seed, 10, 15 );
@@ -191,11 +222,18 @@ void CDualHgun::PrimaryAttack()
 
 void CDualHgun::SecondaryAttack( void )
 {
+	if ( m_pPlayer->pev->button & IN_RELOAD )
+	{
+		Reload();
+		m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 0.1;
+		return;
+	}
+
 	Reload();
 
 	if (m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] <= 0)
 	{
-		m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 0.15;
+		m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 0.5;
 		return;
 	}
 
@@ -269,17 +307,80 @@ void CDualHgun::SecondaryAttack( void )
 		// player "shoot" animation
 	m_pPlayer->SetAnimation( PLAYER_ATTACK1 );
 
-	m_flNextPrimaryAttack = m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 0.1;
+	if ( m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] <= 0 )
+	{
+		// Fired the last hornet on secondary — hold off before empty taps.
+		m_flNextPrimaryAttack = m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 1.0;
+	}
+	else
+	{
+		m_flNextPrimaryAttack = m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 0.1;
+	}
 	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + UTIL_SharedRandomFloat( m_pPlayer->random_seed, 10, 15 );
 }
 
 
 void CDualHgun::Reload( void )
 {
-	if (m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] >= HORNET_MAX_CARRY * 2)
+	// Same dual-mode recharge behavior as CHgun: passive callers trickle at the
+	// normal rate; holding IN_RELOAD doubles the rate and plays the func_healthcharger
+	// loop for audible feedback. See hornetgun.cpp for the reference implementation.
+	const int iCap = HORNET_MAX_CARRY * 2;
+	BOOL bReloadHeld = ( m_pPlayer->pev->button & IN_RELOAD ) != 0;
+	BOOL bFull = ( m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] >= iCap );
+
+	if ( bReloadHeld )
+	{
+		if ( bFull )
+		{
+			if ( m_iChargeSoundOn )
+			{
+				STOP_SOUND( ENT(m_pPlayer->pev), CHAN_STATIC, "items/medcharge4.wav" );
+				m_iChargeSoundOn = 0;
+			}
+			if ( m_flChargeNextEmpty <= gpGlobals->time )
+			{
+				EMIT_SOUND( ENT(m_pPlayer->pev), CHAN_ITEM, "items/medshotno1.wav", 1.0, ATTN_NORM );
+				m_flChargeNextEmpty = gpGlobals->time + 0.62f;
+			}
+			return;
+		}
+
+		if ( !m_iChargeSoundOn )
+		{
+			EMIT_SOUND( ENT(m_pPlayer->pev), CHAN_STATIC, "items/medcharge4.wav", 1.0, ATTN_NORM );
+			m_iChargeSoundOn = 1;
+		}
+
+		while (m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] < iCap && m_flRechargeTime < gpGlobals->time)
+		{
+			m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType]++;
+#ifndef CLIENT_DLL
+			// 2x rate: half of the passive 0.25s interval.
+			m_flRechargeTime += 0.125 * g_pGameRules->WeaponMultipler();
+#endif
+		}
+
+		if ( m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] >= iCap )
+		{
+			STOP_SOUND( ENT(m_pPlayer->pev), CHAN_STATIC, "items/medcharge4.wav" );
+			m_iChargeSoundOn = 0;
+			EMIT_SOUND( ENT(m_pPlayer->pev), CHAN_ITEM, "items/medshotno1.wav", 1.0, ATTN_NORM );
+			m_flChargeNextEmpty = gpGlobals->time + 0.62f;
+		}
+		return;
+	}
+
+	if ( m_iChargeSoundOn )
+	{
+		STOP_SOUND( ENT(m_pPlayer->pev), CHAN_STATIC, "items/medcharge4.wav" );
+		m_iChargeSoundOn = 0;
+	}
+
+	if ( bFull )
 		return;
 
-	while (m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] < (HORNET_MAX_CARRY * 2) && m_flRechargeTime < gpGlobals->time)
+	while (m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] < iCap && m_flRechargeTime < gpGlobals->time)
 	{
 		m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType]++;
 #ifndef CLIENT_DLL
