@@ -527,6 +527,10 @@ void PM_UpdateStepSound( void )
 	int	fLadder;
 	int step;
 
+	// Spectators/observers should never emit movement surface sounds.
+	if ( pmove->spectator || pmove->iuser1 > 0 )
+		return;
+
 	if ( pmove->flTimeStepSound > 0 )
 		return;
 
@@ -2843,7 +2847,7 @@ PM_PlayWaterSounds
 */
 void PM_PlayWaterSounds( void )
 {
-	if (pmove->spectator)
+	if ( pmove->spectator || pmove->iuser1 > 0 )
 		return;
 
 	// Did we enter or leave water?

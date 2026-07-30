@@ -1856,6 +1856,15 @@ void CBasePlayer::WaterMove()
 {
 	int air;
 
+	if ( IsObserver() || IsSpectator() )
+	{
+		if ( FBitSet(pev->flags, FL_INWATER) )
+		{
+			ClearBits(pev->flags, FL_INWATER);
+		}
+		return;
+	}
+
 	if (pev->movetype == MOVETYPE_NOCLIP)
 		return;
 
