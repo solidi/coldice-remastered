@@ -2555,6 +2555,7 @@ public:
 
 	void PrimaryAttack( void );
 	void SecondaryAttack( void );
+	void Reload( void );
 	void PortalFire( int state );
 	BOOL DeployLowKey( void );
 	BOOL Deploy( void );
@@ -2569,6 +2570,8 @@ public:
 		return FALSE;
 #endif
 	}
+
+	virtual BOOL AcceptReload( void ) { return TRUE; }
 
 	virtual BOOL SemiAuto( void ) { return TRUE; }
 
