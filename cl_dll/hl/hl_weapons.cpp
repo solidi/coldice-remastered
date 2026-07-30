@@ -1128,7 +1128,7 @@ void HUD_WeaponsPostThink( local_state_s *from, local_state_s *to, usercmd_t *cm
 		pCurrent->m_chargeReady			= pfrom->iuser1;
 		pCurrent->m_fInAttack			= pfrom->iuser2;
 		pCurrent->m_fireState			= pfrom->iuser3;
-		pCurrent->m_flNextSmashCharge	= pfrom->m_fReloadTime;
+		pCurrent->m_flNextSmashCharge	= gpGlobals->time + pfrom->m_fReloadTime;
 
 		pCurrent->m_iSecondaryAmmoType		= (int)from->client.vuser3[ 2 ];
 		pCurrent->m_iPrimaryAmmoType		= (int)from->client.vuser4[ 0 ];
