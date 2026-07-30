@@ -1124,9 +1124,11 @@ void HUD_WeaponsPostThink( local_state_s *from, local_state_s *to, usercmd_t *cm
 		pCurrent->pev->fuser1			= pfrom->fuser1;
 		pCurrent->m_flStartThrow		= pfrom->fuser2;
 		pCurrent->m_flReleaseThrow		= pfrom->fuser3;
+		pCurrent->m_flSmashStart		= pfrom->fuser4;
 		pCurrent->m_chargeReady			= pfrom->iuser1;
 		pCurrent->m_fInAttack			= pfrom->iuser2;
 		pCurrent->m_fireState			= pfrom->iuser3;
+		pCurrent->m_flNextSmashCharge	= gpGlobals->time + pfrom->m_fReloadTime;
 
 		pCurrent->m_iSecondaryAmmoType		= (int)from->client.vuser3[ 2 ];
 		pCurrent->m_iPrimaryAmmoType		= (int)from->client.vuser4[ 0 ];
@@ -1372,9 +1374,11 @@ void HUD_WeaponsPostThink( local_state_s *from, local_state_s *to, usercmd_t *cm
 		pto->fuser1						= pCurrent->pev->fuser1;
 		pto->fuser2						= pCurrent->m_flStartThrow;
 		pto->fuser3						= pCurrent->m_flReleaseThrow;
+		pto->fuser4						= pCurrent->m_flSmashStart;
 		pto->iuser1						= pCurrent->m_chargeReady;
 		pto->iuser2						= pCurrent->m_fInAttack;
 		pto->iuser3						= pCurrent->m_fireState;
+		pto->m_fReloadTime				= pCurrent->m_flNextSmashCharge;
 
 		// Decrement weapon counters, server does this at same time ( during post think, after doing everything else )
 		pto->m_flNextReload				-= cmd->msec / 1000.0;
