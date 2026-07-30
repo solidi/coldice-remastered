@@ -816,6 +816,7 @@ enum e_protips {
 	CHUMTOAD_TIP,
 	ROCKETCROWBAR_TIP,
 	DUAL_FLAMETHROWER_TIP,
+	ASHPOD_TIP,
 };
 
 extern void ProTip(int id, const char *message);
@@ -1041,6 +1042,7 @@ void HUD_WeaponsPostThink( local_state_s *from, local_state_s *to, usercmd_t *cm
 
 		case WEAPON_ASHPOD:
 			pWeapon = &g_Ashpod;
+			ProTip(ASHPOD_TIP, "Use RELOAD to clear portals");
 			break;
 
 		case WEAPON_SAWEDOFF:

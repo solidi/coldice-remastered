@@ -61,6 +61,8 @@ void CAshpod::Precache( void )
 
 	PRECACHE_SOUND("portalgun_shoot_blue.wav");
 	PRECACHE_SOUND("portalgun_shoot_red.wav");
+	PRECACHE_SOUND("buttons/blip1.wav");
+	PRECACHE_SOUND("common/wpn_denyselect.wav");
 
 	PRECACHE_SOUND ("handgun.wav");
 	PRECACHE_SOUND ("handgun_silenced.wav");
@@ -123,6 +125,43 @@ void CAshpod::PrimaryAttack()
 void CAshpod::SecondaryAttack()
 {
 	PortalFire(1);
+}
+
+void CAshpod::Reload()
+{
+	if (!m_pPlayer)
+		return;
+
+	// This mode is a button-press action, not a hold-to-repeat action.
+	if (!(m_pPlayer->pev->button & IN_RELOAD) || !(m_pPlayer->m_afButtonPressed & IN_RELOAD))
+		return;
+
+	const float flCooldown = 0.3f;
+	if (m_pPlayer->m_flNextAttack > UTIL_WeaponTimeBase())
+		return;
+
+	BOOL bCleared = FALSE;
+
+#ifndef CLIENT_DLL
+	for (int i = 0; i < 2; ++i)
+	{
+		if (!m_pPlayer->m_pPortal[i])
+			continue;
+
+		UTIL_Remove(m_pPlayer->m_pPortal[i]);
+		m_pPlayer->m_pPortal[i] = NULL;
+		bCleared = TRUE;
+	}
+
+	if (bCleared)
+		EMIT_SOUND(ENT(m_pPlayer->pev), CHAN_ITEM, "buttons/blip1.wav", 1, ATTN_NORM);
+	else
+		EMIT_SOUND(ENT(m_pPlayer->pev), CHAN_ITEM, "common/wpn_denyselect.wav", 0.8, ATTN_NORM);
+#endif
+
+	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + flCooldown;
+	m_flNextPrimaryAttack = m_flNextSecondaryAttack = m_pPlayer->m_flNextAttack;
+	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + flCooldown;
 }
 
 void CAshpod::PortalFire( int state )
