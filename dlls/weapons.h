@@ -2745,6 +2745,8 @@ public:
 	int AddToPlayer( CBasePlayer *pPlayer );
 	void PrimaryAttack( void );
 	void SecondaryAttack( void );
+	void FingerFire( void );
+	void EXPORT BurstThink( void );
 	BOOL DeployLowKey( void );
 	BOOL Deploy( void );
 	void Holster( int skiplocal = 0 );
@@ -2765,6 +2767,7 @@ public:
 
 private:
 	unsigned short m_usFireFingergun;
+	int m_iBurstShotsRemaining;
 };
 
 class CZapgun : public CBasePlayerWeapon

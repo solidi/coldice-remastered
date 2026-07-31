@@ -20,6 +20,12 @@
 #include "player.h"
 #include "gamerules.h"
 
+static const float FINGERGUN_PRIMARY_CYCLE = 0.30f;
+static const float FINGERGUN_BURST_CYCLE = 0.62f;
+static const float FINGERGUN_BURST_SHOT_GAP = 0.10f;
+static const float FINGERGUN_UNDERWATER_LOCKOUT = 0.15f;
+static const int FINGERGUN_BURST_SHOT_COUNT = 3;
+
 enum fingergun_e {
 	FINGERGUN_IDLE = 0,
 	FINGERGUN_IDLE_BOTH,
@@ -73,10 +79,11 @@ void CFingerGun::Spawn( )
 	m_iId = WEAPON_FINGERGUN;
 	SET_MODEL(ENT(pev), "models/w_weapons.mdl");
 	pev->body = WEAPON_CROWBAR - 1;
+	m_iBurstShotsRemaining = 0;
+	pev->nextthink = -1;
 
 	FallInit();// get ready to fall down.
 }
-
 
 void CFingerGun::Precache( void )
 {
@@ -93,34 +100,80 @@ void CFingerGun::Precache( void )
 
 BOOL CFingerGun::DeployLowKey( )
 {
+	m_iBurstShotsRemaining = 0;
+	pev->nextthink = -1;
 	return DefaultDeploy( "models/v_fingergun.mdl", iStringNull, FINGERGUN_DRAW_BOTH_LOWKEY, "python" );
 }
 
 BOOL CFingerGun::Deploy( )
 {
+	m_iBurstShotsRemaining = 0;
+	pev->nextthink = -1;
 	return DefaultDeploy( "models/v_fingergun.mdl", iStringNull, FINGERGUN_DRAW_BOTH, "python" );
 }
 
 void CFingerGun::Holster( int skiplocal /* = 0 */ )
 {
+	m_iBurstShotsRemaining = 0;
+	pev->nextthink = -1;
 	CBasePlayerWeapon::DefaultHolster(FINGERGUN_HOLSTER_BOTH);
 }
 
 void CFingerGun::SecondaryAttack( void )
 {
+	if (m_pPlayer->pev->waterlevel == 3)
+	{
+		PlayEmptySound( );
+		m_iBurstShotsRemaining = 0;
+		pev->nextthink = -1;
+		m_flNextSecondaryAttack = FINGERGUN_UNDERWATER_LOCKOUT;
+		return;
+	}
 
+	m_iBurstShotsRemaining = FINGERGUN_BURST_SHOT_COUNT - 1;
+	FingerFire();
+
+#ifdef CLIENT_DLL
+	Vector vecAiming = m_pPlayer->GetAutoaimVector( AUTOAIM_10DEGREES );
+
+	// Follow-up burst shots are server-think driven, so mirror delayed local playback.
+	PLAYBACK_EVENT_FULL( FEV_NOTHOST, m_pPlayer->edict(), m_usFireFingergun,
+		FINGERGUN_BURST_SHOT_GAP, (float *)&g_vecZero, (float *)&g_vecZero,
+		vecAiming.x, vecAiming.y, 0, 0, 0, 0 );
+	PLAYBACK_EVENT_FULL( FEV_NOTHOST, m_pPlayer->edict(), m_usFireFingergun,
+		FINGERGUN_BURST_SHOT_GAP * 2.0f, (float *)&g_vecZero, (float *)&g_vecZero,
+		vecAiming.x, vecAiming.y, 0, 0, 0, 0 );
+#endif
+
+	m_flNextPrimaryAttack = m_flNextSecondaryAttack = GetNextAttackDelay( FINGERGUN_BURST_CYCLE );
+	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + FINGERGUN_BURST_CYCLE;
+
+	if ( m_iBurstShotsRemaining > 0 )
+	{
+		SetThink( &CFingerGun::BurstThink );
+		pev->nextthink = gpGlobals->time + FINGERGUN_BURST_SHOT_GAP;
+	}
 }
 
 void CFingerGun::PrimaryAttack()
 {
+	m_iBurstShotsRemaining = 0;
+	pev->nextthink = -1;
+
 	// don't fire underwater
 	if (m_pPlayer->pev->waterlevel == 3)
 	{
 		PlayEmptySound( );
-		m_flNextPrimaryAttack = 0.15;
+		m_flNextPrimaryAttack = FINGERGUN_UNDERWATER_LOCKOUT;
 		return;
 	}
 
+	FingerFire();
+	m_flNextPrimaryAttack = FINGERGUN_PRIMARY_CYCLE;
+}
+
+void CFingerGun::FingerFire( void )
+{
 	m_pPlayer->m_iWeaponVolume = LOUD_GUN_VOLUME;
 	m_pPlayer->m_iWeaponFlash = BRIGHT_GUN_FLASH;
 	m_pPlayer->pev->effects = (int)(m_pPlayer->pev->effects) | EF_MUZZLEFLASH;
@@ -132,10 +185,6 @@ void CFingerGun::PrimaryAttack()
 
 	Vector vecSrc = m_pPlayer->GetGunPosition( );
 	Vector vecAiming = m_pPlayer->GetAutoaimVector( AUTOAIM_10DEGREES );
-
-	Vector spread = VECTOR_CONE_3DEGREES;
-	if ( m_pPlayer->pev->button & IN_IRONSIGHT )
-		spread = VECTOR_CONE_1DEGREES;
 
 	int dmg = 0;
 #ifndef CLIENT_DLL
@@ -172,8 +221,38 @@ void CFingerGun::PrimaryAttack()
 		// HEV suit - indicate out of ammo condition
 		m_pPlayer->SetSuitUpdate("!HEV_AMO0", FALSE, 0);
 
-	m_flNextPrimaryAttack = 0.3;
 	m_flTimeWeaponIdle = UTIL_SharedRandomFloat( m_pPlayer->random_seed, 10, 15 );
+}
+
+void CFingerGun::BurstThink( void )
+{
+	if ( !m_pPlayer || m_iBurstShotsRemaining <= 0 || m_pPlayer->m_pActiveItem != this )
+	{
+		m_iBurstShotsRemaining = 0;
+		pev->nextthink = -1;
+		return;
+	}
+
+	if (m_pPlayer->pev->waterlevel == 3)
+	{
+		PlayEmptySound( );
+		m_iBurstShotsRemaining = 0;
+		pev->nextthink = -1;
+		return;
+	}
+
+	FingerFire();
+	m_iBurstShotsRemaining--;
+
+	if ( m_iBurstShotsRemaining > 0 )
+	{
+		SetThink( &CFingerGun::BurstThink );
+		pev->nextthink = gpGlobals->time + FINGERGUN_BURST_SHOT_GAP;
+	}
+	else
+	{
+		pev->nextthink = -1;
+	}
 }
 
 void CFingerGun::WeaponIdle( void )
