@@ -28,6 +28,11 @@
 
 #define RAILGUN_PRIMARY_FIRE_VOLUME	450
 #define RAIL_BEAM_SPRITE "sprites/xbeam1.spr"
+#define DUAL_RAIL_NOVA_CHARGE_SOUND "weapons/egon_windup2.wav"
+#define DUAL_RAIL_NOVA_AMMO_COST 50
+#define DUAL_RAIL_NOVA_CHARGE_TIME 3.0f
+#define DUAL_RAIL_NOVA_DAMAGE 220.0f
+#define DUAL_RAIL_NOVA_RADIUS 280.0f
 
 enum dual_railgun_e {
 	DUAL_RAILGUN_IDLE = 0,
@@ -46,6 +51,104 @@ enum railgun_side_e {
 
 #ifdef DUALRAILGUN
 LINK_ENTITY_TO_CLASS( weapon_dual_railgun, CDualRailgun );
+#endif
+
+#ifndef CLIENT_DLL
+static int g_iDualRailNovaSprite = 0;
+static int g_iDualRailNovaIceSprite = 0;
+
+static Vector DualRailTraceImpactPoint( CBasePlayer *pPlayer, const Vector &vecSrc, const Vector &vecDir, const Vector &effectSrc )
+{
+	Vector vecDest = vecSrc + effectSrc + vecDir * 4096;
+	TraceResult tr;
+	UTIL_TraceLine( vecSrc, vecDest, dont_ignore_monsters, ENT(pPlayer->pev), &tr );
+	return tr.vecEndPos;
+}
+
+static void DualRailSpawnNovaExplosion( CBasePlayer *pPlayer, const Vector &origin )
+{
+	if ( !pPlayer )
+		return;
+
+	EMIT_SOUND_DYN( ENT(pPlayer->pev), CHAN_WEAPON, "nuke_explosion.wav", 0.8f, ATTN_NORM, 0, PITCH_NORM );
+	UTIL_ScreenShake( origin, 20.0f, 180.0f, 1.0f, 400.0f );
+
+	MESSAGE_BEGIN( MSG_PVS, SVC_TEMPENTITY, origin );
+		WRITE_BYTE( TE_BEAMDISK );
+		WRITE_COORD( origin.x );
+		WRITE_COORD( origin.y );
+		WRITE_COORD( origin.z + 16 );
+		WRITE_COORD( origin.x );
+		WRITE_COORD( origin.y );
+		WRITE_COORD( origin.z + DUAL_RAIL_NOVA_RADIUS * 2.0f );
+		WRITE_SHORT( g_sModelLightning );
+		WRITE_BYTE( 0 );
+		WRITE_BYTE( 0 );
+		WRITE_BYTE( 16 );
+		WRITE_BYTE( 60 );
+		WRITE_BYTE( 64 );
+		if ( icesprites.value )
+		{
+			WRITE_BYTE( 0 );
+			WRITE_BYTE( 113 );
+			WRITE_BYTE( 230 );
+		}
+		else
+		{
+			WRITE_BYTE( 120 );
+			WRITE_BYTE( 200 );
+			WRITE_BYTE( 255 );
+		}
+		WRITE_BYTE( 255 );
+		WRITE_BYTE( 0 );
+	MESSAGE_END();
+
+	MESSAGE_BEGIN( MSG_PVS, SVC_TEMPENTITY, origin );
+		WRITE_BYTE( TE_BEAMCYLINDER );
+		WRITE_COORD( origin.x );
+		WRITE_COORD( origin.y );
+		WRITE_COORD( origin.z + 16 );
+		WRITE_COORD( origin.x );
+		WRITE_COORD( origin.y );
+		WRITE_COORD( origin.z + DUAL_RAIL_NOVA_RADIUS * 2.0f );
+		WRITE_SHORT( g_sModelLightning );
+		WRITE_BYTE( 0 );
+		WRITE_BYTE( 0 );
+		WRITE_BYTE( 16 );
+		WRITE_BYTE( 60 );
+		WRITE_BYTE( 64 );
+		if ( icesprites.value )
+		{
+			WRITE_BYTE( 0 );
+			WRITE_BYTE( 113 );
+			WRITE_BYTE( 230 );
+		}
+		else
+		{
+			WRITE_BYTE( 120 );
+			WRITE_BYTE( 200 );
+			WRITE_BYTE( 255 );
+		}
+		WRITE_BYTE( 255 );
+		WRITE_BYTE( 0 );
+	MESSAGE_END();
+
+	MESSAGE_BEGIN( MSG_PAS, SVC_TEMPENTITY, origin );
+		WRITE_BYTE( TE_EXPLOSION );
+		WRITE_COORD( origin.x );
+		WRITE_COORD( origin.y );
+		WRITE_COORD( origin.z + 128 );
+		if ( icesprites.value )
+			WRITE_SHORT( g_iDualRailNovaIceSprite );
+		else
+			WRITE_SHORT( g_iDualRailNovaSprite );
+		WRITE_BYTE( 32 );
+		WRITE_BYTE( 24 );
+		WRITE_BYTE( TE_EXPLFLAG_NONE );
+	MESSAGE_END();
+
+	RadiusDamage( origin, pPlayer->pev, pPlayer->pev, DUAL_RAIL_NOVA_DAMAGE, DUAL_RAIL_NOVA_RADIUS, CLASS_NONE, DMG_RADIATION | DMG_BLAST | DMG_ALWAYSGIB, TRUE );
+}
 #endif
 
 //=========================================================
@@ -70,9 +173,17 @@ void CDualRailgun::Precache( void )
 	PRECACHE_MODEL("models/v_dual_railgun.mdl");
 
 	PRECACHE_SOUND("railgun_fire2.wav");
+	PRECACHE_SOUND( DUAL_RAIL_NOVA_CHARGE_SOUND );
+	PRECACHE_SOUND( "nuke_explosion.wav" );
 	
 	PRECACHE_MODEL( RAIL_BEAM_SPRITE );
 	PRECACHE_MODEL( "sprites/blueflare1.spr" );
+
+#ifndef CLIENT_DLL
+	g_iDualRailNovaSprite = PRECACHE_MODEL( "sprites/nuke2.spr" );
+	g_iDualRailNovaIceSprite = PRECACHE_MODEL( "sprites/ice_nuke2.spr" );
+#endif
+
 	m_usRailgunFire = PRECACHE_EVENT( 1, "events/dual_railgun.sc" );
 }
 
@@ -106,21 +217,41 @@ int CDualRailgun::GetItemInfo(ItemInfo *p)
 
 BOOL CDualRailgun::DeployLowKey( )
 {
+	m_fInAttack = 0;
 	return DefaultDeploy( "models/v_dual_railgun.mdl", "models/p_weapons.mdl", DUAL_RAILGUN_DRAW_LOWKEY, "dual_shotgun" );
 }
 
 BOOL CDualRailgun::Deploy( )
 {
+	m_fInAttack = 0;
 	return DefaultDeploy( "models/v_dual_railgun.mdl", "models/p_weapons.mdl", DUAL_RAILGUN_DRAW, "dual_shotgun" );
 }
 
 void CDualRailgun::Holster( int skiplocal )
 {
+	if ( m_fInAttack == 2 )
+	{
+		SetThink( NULL );
+		m_fInAttack = 0;
+	}
+	CancelChargedShot( FALSE );
 	CBasePlayerWeapon::DefaultHolster(DUAL_RAILGUN_HOLSTER);
 }
 
 void CDualRailgun::PrimaryAttack()
 {
+	if ( m_fInAttack == 2 )
+		return;
+
+	if ( m_fInAttack == 1 )
+	{
+		if ( m_pPlayer->pev->button & IN_RELOAD )
+			Reload();
+		else
+			CancelChargedShot();
+		return;
+	}
+
 	if (m_pPlayer->pev->waterlevel == 3)
 	{
 		PlayEmptySound( );
@@ -162,6 +293,18 @@ void CDualRailgun::PrimaryAttack()
 
 void CDualRailgun::SecondaryAttack()
 {
+	if ( m_fInAttack == 2 )
+		return;
+
+	if ( m_fInAttack == 1 )
+	{
+		if ( m_pPlayer->pev->button & IN_RELOAD )
+			Reload();
+		else
+			CancelChargedShot();
+		return;
+	}
+
 	if (m_pPlayer->pev->waterlevel == 3 || m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] < 2)
 	{
 		PlayEmptySound( );
@@ -191,13 +334,180 @@ void CDualRailgun::SecondaryAttack()
 	m_flNextSecondaryAttack = m_flNextPrimaryAttack = GetNextAttackDelay(0.75); 
 }
 
+void CDualRailgun::Reload( void )
+{
+	if ( m_fInAttack == 2 )
+		return;
+
+	if ( m_fInAttack != 1 && ( m_flNextPrimaryAttack > UTIL_WeaponTimeBase() || m_flNextSecondaryAttack > UTIL_WeaponTimeBase() ) )
+		return;
+
+	if ( m_pPlayer->pev->waterlevel == 3 )
+	{
+		if ( m_fInAttack == 1 )
+			CancelChargedShot();
+		m_flNextSecondaryAttack = m_flNextPrimaryAttack = GetNextAttackDelay(0.15);
+		m_pPlayer->m_flNextAttack = m_flNextPrimaryAttack;
+		return;
+	}
+
+	if ( m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] < DUAL_RAIL_NOVA_AMMO_COST )
+	{
+		if ( m_fInAttack == 1 )
+			CancelChargedShot( FALSE );
+		PlayEmptySound();
+		m_flNextSecondaryAttack = m_flNextPrimaryAttack = UTIL_WeaponTimeBase() + 0.25f;
+		m_pPlayer->m_flNextAttack = m_flNextPrimaryAttack;
+		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 0.3f;
+		return;
+	}
+
+	if ( m_fInAttack != 1 )
+	{
+		m_fInAttack = 1;
+		m_pPlayer->m_flStartCharge = gpGlobals->time;
+		m_flChargeSoundTime = gpGlobals->time;
+		m_flChargeAnimTime = gpGlobals->time;
+		SendWeaponAnim( DUAL_RAILGUN_IDLE, 0 );
+		m_pPlayer->m_iWeaponVolume = RAILGUN_PRIMARY_FIRE_VOLUME;
+		EMIT_SOUND_DYN( ENT(m_pPlayer->pev), CHAN_STATIC, DUAL_RAIL_NOVA_CHARGE_SOUND, 0.95f, ATTN_NORM, 0, 90 );
+	}
+
+	float flChargeFrac = ( gpGlobals->time - m_pPlayer->m_flStartCharge ) / DUAL_RAIL_NOVA_CHARGE_TIME;
+	if ( flChargeFrac < 0.0f )
+		flChargeFrac = 0.0f;
+	else if ( flChargeFrac > 1.0f )
+		flChargeFrac = 1.0f;
+
+	if ( gpGlobals->time >= m_flChargeSoundTime )
+	{
+		int iPitch = 90 + (int)( flChargeFrac * 95.0f );
+		if ( iPitch > 185 )
+			iPitch = 185;
+		EMIT_SOUND_DYN( ENT(m_pPlayer->pev), CHAN_STATIC, DUAL_RAIL_NOVA_CHARGE_SOUND, 0.95f, ATTN_NORM, SND_CHANGE_PITCH, iPitch );
+		m_flChargeSoundTime = gpGlobals->time + 0.08f;
+	}
+
+	if ( gpGlobals->time >= m_flChargeAnimTime )
+	{
+		SendWeaponAnim( DUAL_RAILGUN_IDLE, 0 );
+		m_pPlayer->SetAnimation( PLAYER_ATTACK1 );
+		m_pPlayer->pev->punchangle = m_pPlayer->pev->punchangle + Vector( RANDOM_FLOAT( -0.3f, 0.3f ), RANDOM_FLOAT( -0.6f, 0.6f ), 0 );
+		m_flChargeAnimTime = gpGlobals->time + 0.12f;
+	}
+
+	if ( flChargeFrac >= 1.0f )
+	{
+		FireChargedRight();
+		return;
+	}
+
+	m_flNextSecondaryAttack = m_flNextPrimaryAttack = UTIL_WeaponTimeBase() + 0.05f;
+	m_pPlayer->m_flNextAttack = m_flNextPrimaryAttack;
+	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 0.1f;
+}
+
 void CDualRailgun::FireThink( void )
 {
+	if ( m_fInAttack == 2 )
+	{
+		FireChargedLeft();
+		return;
+	}
+
 	Vector vecAiming = m_pPlayer->GetAutoaimVector( AUTOAIM_10DEGREES );
 	Vector vecSrc = m_pPlayer->GetGunPosition();
 	StartFire(vecAiming, vecSrc, (gpGlobals->v_up * -12 + gpGlobals->v_right * -12 + vecAiming * 32), RAILGUN_SIDE_LEFT);
 	m_pPlayer->pev->punchangle.x = RANDOM_LONG(-8, -12);
 }
+
+void CDualRailgun::CancelChargedShot( BOOL bPlayStopSound )
+{
+	if ( m_fInAttack != 1 )
+		return;
+
+	m_fInAttack = 0;
+	STOP_SOUND( ENT(m_pPlayer->pev), CHAN_STATIC, DUAL_RAIL_NOVA_CHARGE_SOUND );
+	if ( bPlayStopSound )
+		EMIT_SOUND_DYN( ENT(m_pPlayer->pev), CHAN_WEAPON, "weapons/egon_off1.wav", 0.8f, ATTN_NORM, 0, 110 );
+	SendWeaponAnim( DUAL_RAILGUN_IDLE, 0 );
+	m_flNextSecondaryAttack = m_flNextPrimaryAttack = UTIL_WeaponTimeBase() + 0.25f;
+	m_pPlayer->m_flNextAttack = m_flNextPrimaryAttack;
+	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 0.4f;
+}
+
+void CDualRailgun::FireChargedRight( void )
+{
+	if ( m_fInAttack != 1 )
+		return;
+
+	if ( m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] < DUAL_RAIL_NOVA_AMMO_COST )
+	{
+		CancelChargedShot( FALSE );
+		PlayEmptySound();
+		return;
+	}
+
+	m_fInAttack = 2;
+	STOP_SOUND( ENT(m_pPlayer->pev), CHAN_STATIC, DUAL_RAIL_NOVA_CHARGE_SOUND );
+	m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] -= DUAL_RAIL_NOVA_AMMO_COST;
+
+	Vector vecAiming = m_pPlayer->GetAutoaimVector( AUTOAIM_10DEGREES );
+	Vector vecSrc = m_pPlayer->GetGunPosition();
+	Vector effectSrc = gpGlobals->v_up * -12 + gpGlobals->v_right * 16 + vecAiming * 32;
+
+#ifndef CLIENT_DLL
+	Vector vecImpact = DualRailTraceImpactPoint( m_pPlayer, vecSrc, vecAiming, effectSrc );
+#endif
+
+	SendWeaponAnim( DUAL_RAILGUN_FIRE_RIGHT, 0 );
+	StartFire( vecAiming, vecSrc, effectSrc, RAILGUN_SIDE_RIGHT );
+	m_pPlayer->pev->punchangle.x = RANDOM_LONG( -6, -9 );
+
+#ifdef CLIENT_DLL
+	PLAYBACK_EVENT_FULL( FEV_NOTHOST, m_pPlayer->edict(), m_usRailgunFire, 0.25,
+		(float *)&m_pPlayer->pev->origin, (float *)&m_pPlayer->pev->angles,
+		gSkillData.plrDmgRailgun, 0.0, RAILGUN_SIDE_LEFT, 0, 0, 0 );
+#endif
+
+#ifndef CLIENT_DLL
+	DualRailSpawnNovaExplosion( m_pPlayer, vecImpact );
+	SetThink( &CDualRailgun::FireThink );
+	pev->nextthink = gpGlobals->time + 0.25f;
+#endif
+
+	m_flNextSecondaryAttack = m_flNextPrimaryAttack = UTIL_WeaponTimeBase() + 0.30f;
+	m_pPlayer->m_flNextAttack = m_flNextPrimaryAttack;
+	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 0.65f;
+}
+
+void CDualRailgun::FireChargedLeft( void )
+{
+	if ( m_fInAttack != 2 )
+		return;
+
+	Vector vecAiming = m_pPlayer->GetAutoaimVector( AUTOAIM_10DEGREES );
+	Vector vecSrc = m_pPlayer->GetGunPosition();
+	Vector effectSrc = gpGlobals->v_up * -12 + gpGlobals->v_right * -12 + vecAiming * 32;
+
+#ifndef CLIENT_DLL
+	Vector vecImpact = DualRailTraceImpactPoint( m_pPlayer, vecSrc, vecAiming, effectSrc );
+#endif
+
+	SendWeaponAnim( DUAL_RAILGUN_FIRE_LEFT, 0 );
+	StartFire( vecAiming, vecSrc, effectSrc, RAILGUN_SIDE_LEFT );
+	m_pPlayer->pev->punchangle.x = RANDOM_LONG( -8, -12 );
+
+#ifndef CLIENT_DLL
+	DualRailSpawnNovaExplosion( m_pPlayer, vecImpact );
+#endif
+
+	m_fInAttack = 0;
+	m_flNextSecondaryAttack = m_flNextPrimaryAttack = GetNextAttackDelay(2.0f);
+	m_pPlayer->m_flNextAttack = m_flNextPrimaryAttack;
+	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 1.0f;
+}
+
 void CDualRailgun::StartFire( Vector vecAiming, Vector vecSrc, Vector effectSrc, int iRailSide )
 {	
 	m_pPlayer->pev->effects = (int)(m_pPlayer->pev->effects) | EF_MUZZLEFLASH;
@@ -287,6 +597,15 @@ void CDualRailgun::Fire( Vector vecSrc, Vector vecDir, Vector effectSrc, float f
 
 void CDualRailgun::WeaponIdle( void )
 {
+	if ( m_fInAttack == 1 )
+	{
+		CancelChargedShot();
+		return;
+	}
+
+	if ( m_fInAttack == 2 )
+		return;
+
 	m_pPlayer->GetAutoaimVector( AUTOAIM_10DEGREES );
 
 	ResetEmptySound( );

@@ -1558,7 +1558,11 @@ public:
 
 	void PrimaryAttack( void );
 	void SecondaryAttack( void );
+	void Reload( void );
 	void WeaponIdle( void );
+	void CancelChargedShot( BOOL bPlayStopSound = TRUE );
+	void FireChargedShot( void );
+	virtual BOOL AcceptReload( void ) { return TRUE; }
 
 	void StartFire( void );
 	void Fire( Vector vecSrc, Vector vecDirShooting, Vector effectSrc, float flDamage );
@@ -1577,6 +1581,8 @@ public:
 
 private:
 	unsigned short m_usRailgunFire;
+	float m_flChargeSoundTime;
+	float m_flChargeAnimTime;
 };
 
 class CDualRailgun : public CBasePlayerWeapon
@@ -1595,8 +1601,13 @@ public:
 
 	void PrimaryAttack( void );
 	void SecondaryAttack( void );
+	void Reload( void );
 	void FireThink( void );
 	void WeaponIdle( void );
+	void CancelChargedShot( BOOL bPlayStopSound = TRUE );
+	void FireChargedRight( void );
+	void FireChargedLeft( void );
+	virtual BOOL AcceptReload( void ) { return TRUE; }
 
 	void StartFire( Vector vecAiming, Vector vecSrc, Vector effectSrc, int iRailSide );
 	void Fire( Vector vecSrc, Vector vecDirShooting, Vector effectSrc, float flDamage, int iRailSide );
@@ -1616,6 +1627,8 @@ public:
 private:
 	unsigned short m_usRailgunFire;
 	int m_iAltFire;
+	float m_flChargeSoundTime;
+	float m_flChargeAnimTime;
 };
 
 class CCannon : public CBasePlayerWeapon
