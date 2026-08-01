@@ -29,7 +29,7 @@
 #define RAILGUN_PRIMARY_FIRE_VOLUME	450
 #define RAIL_BEAM_SPRITE "sprites/xbeam1.spr"
 #define RAIL_NOVA_CHARGE_SOUND "weapons/egon_windup2.wav"
-#define RAIL_NOVA_AMMO_COST 50
+#define RAIL_NOVA_AMMO_COST 40
 #define RAIL_NOVA_CHARGE_TIME 3.0f
 #define RAIL_NOVA_DAMAGE 220.0f
 #define RAIL_NOVA_RADIUS 280.0f

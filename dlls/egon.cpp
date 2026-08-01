@@ -35,7 +35,7 @@
 #define EGON_SOUND_STARTUP		"weapons/egon_windup2.wav"
 #define EGON_NOVA_BALL_SPRITE	"sprites/nhth1.spr"
 
-#define EGON_NOVA_AMMO_COST		50
+#define EGON_NOVA_AMMO_COST		40
 #define EGON_NOVA_CHARGE_TIME		3.0f
 #define EGON_NOVA_LIFETIME		5.0f
 #define EGON_NOVA_SPEED			350.0f
