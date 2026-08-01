@@ -817,6 +817,9 @@ enum e_protips {
 	ROCKETCROWBAR_TIP,
 	DUAL_FLAMETHROWER_TIP,
 	ASHPOD_TIP,
+	HGUN_TIP,
+	RAIL_TIP,
+	EGON_TIP,
 };
 
 extern void ProTip(int id, const char *message);
@@ -884,10 +887,12 @@ void HUD_WeaponsPostThink( local_state_s *from, local_state_s *to, usercmd_t *cm
 
 		case WEAPON_EGON:
 			pWeapon = &g_Egon;
+			ProTip(EGON_TIP, "Hold RELOAD to fire an nova bomb");
 			break;
 
 		case WEAPON_HORNETGUN:
 			pWeapon = &g_HGun;
+			ProTip(HGUN_TIP, "Hold RELOAD to regenerate hornets faster");
 			break;
 
 		case WEAPON_HANDGRENADE:
@@ -928,10 +933,12 @@ void HUD_WeaponsPostThink( local_state_s *from, local_state_s *to, usercmd_t *cm
 
 		case WEAPON_RAILGUN:
 			pWeapon = &g_Railgun;
+			ProTip(RAIL_TIP, "Hold RELOAD to fire an explosive nova rail attack");
 			break;
 
 		case WEAPON_DUAL_RAILGUN:
 			pWeapon = &g_DualRailgun;
+			ProTip(RAIL_TIP, "Hold RELOAD to fire an explosive nova rail attack");
 			break;
 
 		case WEAPON_CANNON:
@@ -1059,6 +1066,7 @@ void HUD_WeaponsPostThink( local_state_s *from, local_state_s *to, usercmd_t *cm
 
 		case WEAPON_DUAL_HORNETGUN:
 			pWeapon = &g_DualHornetgun;
+			ProTip(HGUN_TIP, "Hold RELOAD to regenerate hornets faster");
 			break;
 
 		case WEAPON_FINGERGUN:
