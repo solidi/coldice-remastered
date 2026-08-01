@@ -887,7 +887,7 @@ void HUD_WeaponsPostThink( local_state_s *from, local_state_s *to, usercmd_t *cm
 
 		case WEAPON_EGON:
 			pWeapon = &g_Egon;
-			ProTip(EGON_TIP, "Hold RELOAD to fire an nova bomb");
+			ProTip(EGON_TIP, "Hold RELOAD to fire a nova bomb");
 			break;
 
 		case WEAPON_HORNETGUN:

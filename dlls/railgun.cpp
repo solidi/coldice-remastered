@@ -173,7 +173,7 @@ void CRailgun::Precache( void )
 	PRECACHE_SOUND("railgun_fire2.wav");
 	PRECACHE_SOUND( RAIL_NOVA_CHARGE_SOUND );
 	PRECACHE_SOUND( "nuke_explosion.wav" );
-	
+	PRECACHE_SOUND( "weapons/egon_off1.wav" );
 	PRECACHE_MODEL( RAIL_BEAM_SPRITE );
 	PRECACHE_MODEL( "sprites/blueflare1.spr" );
 
