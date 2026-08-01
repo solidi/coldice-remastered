@@ -1163,7 +1163,10 @@ public:
 	void Attack( void );
 	void PrimaryAttack( void );
 	void SecondaryAttack( void );
+	void Reload( void );
 	void WeaponIdle( void );
+	void CancelNovaCharge( BOOL bPlayStopSound = TRUE );
+	virtual BOOL AcceptReload( void ) { return TRUE; }
 
 	float m_flAmmoUseTime;// since we use < 1 point of ammo per update, we subtract ammo on a timer.
 
@@ -1175,6 +1178,7 @@ public:
 	BOOL HasAmmo( void );
 
 	void UseAmmo( int count );
+	void FireNovaShot( void );
 	
 	enum EGON_FIREMODE { FIRE_NARROW, FIRE_WIDE};
 
