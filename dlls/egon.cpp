@@ -24,6 +24,8 @@
 #include "effects.h"
 #include "customentity.h"
 #include "gamerules.h"
+#include "shake.h"
+#include "game.h"
 
 #define	EGON_PRIMARY_VOLUME		450
 #define EGON_BEAM_SPRITE		"sprites/xbeam1.spr"
@@ -31,6 +33,17 @@
 #define EGON_SOUND_OFF			"weapons/egon_off1.wav"
 #define EGON_SOUND_RUN			"weapons/egon_run3.wav"
 #define EGON_SOUND_STARTUP		"weapons/egon_windup2.wav"
+#define EGON_NOVA_BALL_SPRITE	"sprites/nhth1.spr"
+
+#define EGON_NOVA_AMMO_COST		40
+#define EGON_NOVA_CHARGE_TIME		3.0f
+#define EGON_NOVA_LIFETIME		5.0f
+#define EGON_NOVA_SPEED			350.0f
+#define EGON_NOVA_AURA_RADIUS		280.0f
+#define EGON_NOVA_AURA_INTERVAL	0.25f
+#define EGON_NOVA_AURA_DAMAGE		24.0f
+#define EGON_NOVA_BLAST_RADIUS		380.0f
+#define EGON_NOVA_BLAST_DAMAGE		320.0f
 
 #define EGON_SWITCH_NARROW_TIME			0.75			// Time it takes to switch fire modes
 #define EGON_SWITCH_WIDE_TIME			1.5
@@ -52,6 +65,38 @@ enum egon_e {
 
 #ifdef EGON
 LINK_ENTITY_TO_CLASS( weapon_egon, CEgon );
+#endif
+
+#ifndef CLIENT_DLL
+class CEgonNovaBall : public CBaseEntity
+{
+public:
+	static CEgonNovaBall *CreateNovaBall( const Vector &vecOrigin, const Vector &vecVelocity, CBaseEntity *pOwner );
+
+	void Spawn( void );
+	void Precache( void );
+
+	void EXPORT FlyThink( void );
+	void EXPORT NovaTouch( CBaseEntity *pOther );
+
+	void EmitAuraBeam( const Vector &vecTarget );
+	void DealAuraDamage( void );
+	void DoSupernova( void );
+
+	BOOL IsEnemyLivingTarget( CBaseEntity *pTarget );
+	BOOL IsBreakableTarget( CBaseEntity *pTarget );
+
+private:
+	EHANDLE m_hOwner;
+	float m_flDieTime;
+	float m_flNextAuraTick;
+	int m_iTrailSprite;
+	int m_iIceTrailSprite;
+	int m_iNovaSprite;
+	int m_iIceNovaSprite;
+};
+
+LINK_ENTITY_TO_CLASS( egon_nova_ball, CEgonNovaBall );
 #endif
 
 void CEgon::Spawn( )
@@ -86,12 +131,17 @@ void CEgon::Precache( void )
 
 	m_usEgonFire = PRECACHE_EVENT ( 1, "events/egon_fire.sc" );
 	m_usEgonStop = PRECACHE_EVENT ( 1, "events/egon_stop.sc" );
+
+#ifndef CLIENT_DLL
+	UTIL_PrecacheOther( "egon_nova_ball" );
+#endif
 }
 
 BOOL CEgon::DeployLowKey( void )
 {
 	m_deployed = FALSE;
 	m_fireState = FIRE_OFF;
+	m_fInAttack = 0;
 	m_fireMode = FIRE_WIDE;
 	return DefaultDeploy( "models/v_egon.mdl", "models/p_weapons.mdl", EGON_DRAW_LOWKEY, "egon" );
 }
@@ -100,6 +150,7 @@ BOOL CEgon::Deploy( void )
 {
 	m_deployed = FALSE;
 	m_fireState = FIRE_OFF;
+	m_fInAttack = 0;
 	m_fireMode = FIRE_WIDE;
 	return DefaultDeploy( "models/v_egon.mdl", "models/p_weapons.mdl", EGON_DRAW, "egon" );
 }
@@ -118,6 +169,7 @@ int CEgon::AddToPlayer( CBasePlayer *pPlayer )
 
 void CEgon::Holster( int skiplocal /* = 0 */ )
 {
+	CancelNovaCharge( FALSE );
 	EndAttack();
 	CBasePlayerWeapon::DefaultHolster(EGON_HOLSTER);
 }
@@ -251,11 +303,29 @@ void CEgon::Attack( void )
 
 void CEgon::PrimaryAttack( void )
 {
+	if ( m_fInAttack == 1 )
+	{
+		if ( m_pPlayer->pev->button & IN_RELOAD )
+			Reload();
+		else
+			CancelNovaCharge();
+		return;
+	}
+
 	Attack();
 }
 
 void CEgon::SecondaryAttack( void )
 {
+	if ( m_fInAttack == 1 )
+	{
+		if ( m_pPlayer->pev->button & IN_RELOAD )
+			Reload();
+		else
+			CancelNovaCharge();
+		return;
+	}
+
 	if ( m_pPlayer->pev->waterlevel == 3 )
 	{
 		m_flNextPrimaryAttack = m_flNextSecondaryAttack = GetNextAttackDelay(0.15);
@@ -271,6 +341,127 @@ void CEgon::SecondaryAttack( void )
 	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 2.5;
 
 	SendWeaponAnim(EGON_FIDGET1);
+}
+
+void CEgon::Reload( void )
+{
+	if ( m_fInAttack != 1 && ( m_flNextPrimaryAttack > UTIL_WeaponTimeBase() || m_flNextSecondaryAttack > UTIL_WeaponTimeBase() ) )
+		return;
+
+	if ( m_pPlayer->pev->waterlevel == 3 )
+	{
+		if ( m_fInAttack == 1 )
+			CancelNovaCharge();
+		m_flNextPrimaryAttack = m_flNextSecondaryAttack = GetNextAttackDelay(0.15);
+		return;
+	}
+
+	if ( m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] < EGON_NOVA_AMMO_COST )
+	{
+		if ( m_fInAttack == 1 )
+			CancelNovaCharge( FALSE );
+		PlayEmptySound();
+		m_flNextPrimaryAttack = m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 0.25f;
+		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 0.3f;
+		return;
+	}
+
+	if ( m_fInAttack != 1 )
+	{
+		if ( m_fireState != FIRE_OFF || m_pBeam )
+			EndAttack();
+
+		m_fInAttack = 1;
+		m_pPlayer->m_flStartCharge = gpGlobals->time;
+		m_shootTime = gpGlobals->time;
+		m_shakeTime = gpGlobals->time;
+		SendWeaponAnim( EGON_ALTFIREON, 0 );
+		m_pPlayer->m_iWeaponVolume = EGON_PRIMARY_VOLUME;
+		EMIT_SOUND_DYN( ENT(m_pPlayer->pev), CHAN_STATIC, EGON_SOUND_STARTUP, 0.95, ATTN_NORM, 0, 90 );
+	}
+
+	float flChargeFrac = ( gpGlobals->time - m_pPlayer->m_flStartCharge ) / EGON_NOVA_CHARGE_TIME;
+	if ( flChargeFrac < 0.0f )
+		flChargeFrac = 0.0f;
+	else if ( flChargeFrac > 1.0f )
+		flChargeFrac = 1.0f;
+
+	if ( gpGlobals->time >= m_shootTime )
+	{
+		int iPitch = 90 + (int)( flChargeFrac * 95.0f );
+		if ( iPitch > 185 )
+			iPitch = 185;
+		EMIT_SOUND_DYN( ENT(m_pPlayer->pev), CHAN_STATIC, EGON_SOUND_STARTUP, 0.95, ATTN_NORM, SND_CHANGE_PITCH, iPitch );
+		m_shootTime = gpGlobals->time + 0.08f;
+	}
+
+	if ( gpGlobals->time >= m_shakeTime )
+	{
+		SendWeaponAnim( EGON_FIRE1 + RANDOM_LONG( 0, 3 ), 0 );
+		m_pPlayer->SetAnimation( PLAYER_ATTACK1 );
+		m_pPlayer->pev->punchangle = m_pPlayer->pev->punchangle + Vector( RANDOM_FLOAT( -0.4f, 0.4f ), RANDOM_FLOAT( -0.8f, 0.8f ), 0 );
+		m_shakeTime = gpGlobals->time + 0.42f;
+	}
+
+	if ( flChargeFrac >= 1.0f )
+	{
+		FireNovaShot();
+		return;
+	}
+
+	m_flNextPrimaryAttack = m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 0.05f;
+	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 0.1f;
+}
+
+void CEgon::CancelNovaCharge( BOOL bPlayStopSound )
+{
+	if ( m_fInAttack != 1 )
+		return;
+
+	m_fInAttack = 0;
+	STOP_SOUND( ENT(m_pPlayer->pev), CHAN_STATIC, EGON_SOUND_STARTUP );
+
+	if ( bPlayStopSound )
+		EMIT_SOUND_DYN( ENT(m_pPlayer->pev), CHAN_WEAPON, EGON_SOUND_OFF, 0.8, ATTN_NORM, 0, 110 );
+
+	SendWeaponAnim( EGON_ALTFIREOFF, 0 );
+	m_flNextPrimaryAttack = m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 0.3f;
+	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 0.5f;
+}
+
+void CEgon::FireNovaShot( void )
+{
+	if ( m_fInAttack != 1 )
+		return;
+
+	if ( m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] < EGON_NOVA_AMMO_COST )
+	{
+		CancelNovaCharge( FALSE );
+		PlayEmptySound();
+		return;
+	}
+
+	m_fInAttack = 0;
+	STOP_SOUND( ENT(m_pPlayer->pev), CHAN_STATIC, EGON_SOUND_STARTUP );
+	UseAmmo( EGON_NOVA_AMMO_COST );
+
+	UTIL_MakeVectors( m_pPlayer->pev->v_angle + m_pPlayer->pev->punchangle );
+	Vector vecForward = gpGlobals->v_forward;
+	Vector vecSource = m_pPlayer->pev->origin + m_pPlayer->pev->view_ofs + vecForward * 16 + gpGlobals->v_right * 6 - gpGlobals->v_up * 6;
+	Vector vecVelocity = vecForward * EGON_NOVA_SPEED + m_pPlayer->pev->velocity * 0.35f;
+
+#ifndef CLIENT_DLL
+	CEgonNovaBall::CreateNovaBall( vecSource, vecVelocity, m_pPlayer );
+#endif
+
+	m_pPlayer->SetAnimation( PLAYER_ATTACK1 );
+	m_pPlayer->pev->punchangle = Vector( -4, -2, 0 );
+	m_pPlayer->m_iWeaponVolume = EGON_PRIMARY_VOLUME;
+	EMIT_SOUND_DYN( ENT(m_pPlayer->pev), CHAN_WEAPON, EGON_SOUND_RUN, 1.0, ATTN_NORM, 0, 150 );
+	SendWeaponAnim( EGON_FIRE1 + RANDOM_LONG( 0, 3 ), 0 );
+
+	m_flNextPrimaryAttack = m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 2.0f;
+	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 1.0f;
 }
 
 void CEgon::Fire( const Vector &vecOrigSrc, const Vector &vecDir )
@@ -524,6 +715,12 @@ void CEgon::DestroyEffect( void )
 
 void CEgon::WeaponIdle( void )
 {
+	if ( m_fInAttack == 1 )
+	{
+		CancelNovaCharge();
+		return;
+	}
+
 	m_pPlayer->GetAutoaimVector( AUTOAIM_10DEGREES );
 
 	ResetEmptySound( );
@@ -567,6 +764,9 @@ BOOL CEgon::CanHolster( void )
 
 void CEgon::EndAttack( void )
 {
+	if ( m_fInAttack == 1 )
+		CancelNovaCharge( FALSE );
+
 	bool bMakeNoise = false;
 		
 	if ( m_fireState != FIRE_OFF ) //Checking the button just in case!.
@@ -581,6 +781,338 @@ void CEgon::EndAttack( void )
 
 	DestroyEffect();
 }
+
+
+#ifndef CLIENT_DLL
+CEgonNovaBall *CEgonNovaBall::CreateNovaBall( const Vector &vecOrigin, const Vector &vecVelocity, CBaseEntity *pOwner )
+{
+	if ( !pOwner )
+		return NULL;
+
+	CEgonNovaBall *pBall = (CEgonNovaBall *)CBaseEntity::Create( "egon_nova_ball", vecOrigin, UTIL_VecToAngles( vecVelocity ), pOwner->edict() );
+	if ( !pBall )
+		return NULL;
+
+	pBall->pev->velocity = vecVelocity;
+	pBall->m_hOwner = pOwner;
+	pBall->pev->owner = pOwner->edict();
+	return pBall;
+}
+
+void CEgonNovaBall::Precache( void )
+{
+	PRECACHE_MODEL( EGON_NOVA_BALL_SPRITE );
+	m_iTrailSprite = PRECACHE_MODEL( EGON_BEAM_SPRITE );
+	m_iIceTrailSprite = PRECACHE_MODEL( "sprites/ice_plasmatrail.spr" );
+	m_iNovaSprite = PRECACHE_MODEL( "sprites/nuke2.spr" );
+	m_iIceNovaSprite = PRECACHE_MODEL( "sprites/ice_nuke2.spr" );
+	PRECACHE_SOUND( "nuke_explosion.wav" );
+	PRECACHE_SOUND( "weapons/electro4.wav" );
+}
+
+void CEgonNovaBall::Spawn( void )
+{
+	Precache();
+
+	pev->classname = MAKE_STRING( "egon_nova_ball" );
+	pev->movetype = MOVETYPE_FLY;
+	pev->solid = SOLID_BBOX;
+	pev->gravity = 0;
+	pev->friction = 1.0f;
+	pev->dmg = EGON_NOVA_BLAST_DAMAGE;
+	pev->rendermode = kRenderTransAdd;
+	pev->renderamt = 255;
+	pev->rendercolor.x = 255;
+	pev->rendercolor.y = 255;
+	pev->rendercolor.z = 255;
+	pev->scale = 2.0f;
+	pev->frame = 0;
+	pev->framerate = 12.0f;
+
+	SET_MODEL( ENT(pev), EGON_NOVA_BALL_SPRITE );
+	UTIL_SetSize( pev, Vector( -6, -6, -6 ), Vector( 6, 6, 6 ) );
+	UTIL_SetOrigin( pev, pev->origin );
+
+	m_flDieTime = gpGlobals->time + EGON_NOVA_LIFETIME;
+	m_flNextAuraTick = gpGlobals->time + EGON_NOVA_AURA_INTERVAL;
+
+	SetTouch( &CEgonNovaBall::NovaTouch );
+	SetThink( &CEgonNovaBall::FlyThink );
+	pev->nextthink = gpGlobals->time + 0.05f;
+
+	MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
+		WRITE_BYTE( TE_BEAMFOLLOW );
+		WRITE_SHORT( entindex() );
+		if ( icesprites.value )
+			WRITE_SHORT( m_iIceTrailSprite );
+		else
+			WRITE_SHORT( m_iTrailSprite );
+		WRITE_BYTE( 8 );
+		WRITE_BYTE( 10 );
+		if ( icesprites.value )
+		{
+			WRITE_BYTE( 0 );
+			WRITE_BYTE( 113 );
+			WRITE_BYTE( 230 );
+		}
+		else
+		{
+			WRITE_BYTE( 80 );
+			WRITE_BYTE( 180 );
+			WRITE_BYTE( 255 );
+		}
+		WRITE_BYTE( 220 );
+	MESSAGE_END();
+}
+
+void CEgonNovaBall::NovaTouch( CBaseEntity *pOther )
+{
+	if ( pOther && pOther->edict() == pev->owner )
+		return;
+
+	DoSupernova();
+}
+
+void CEgonNovaBall::FlyThink( void )
+{
+	if ( pev->waterlevel == 3 || UTIL_PointContents( pev->origin ) == CONTENT_WATER )
+	{
+		DoSupernova();
+		return;
+	}
+
+	if ( gpGlobals->time >= m_flNextAuraTick )
+	{
+		DealAuraDamage();
+		m_flNextAuraTick = gpGlobals->time + EGON_NOVA_AURA_INTERVAL;
+	}
+
+	if ( gpGlobals->time >= m_flDieTime )
+	{
+		DoSupernova();
+		return;
+	}
+
+	pev->frame += pev->framerate * 0.05f;
+	if ( pev->frame > 10 )
+		pev->frame = 0;
+
+	pev->nextthink = gpGlobals->time + 0.05f;
+}
+
+BOOL CEgonNovaBall::IsEnemyLivingTarget( CBaseEntity *pTarget )
+{
+	if ( !pTarget || !pTarget->pev || pTarget->pev->takedamage == DAMAGE_NO || pTarget->pev->health <= 0 )
+		return FALSE;
+
+	if ( !pTarget->IsPlayer() && !(pTarget->pev->flags & FL_MONSTER) )
+		return FALSE;
+
+	CBaseEntity *pOwner = m_hOwner;
+	if ( pOwner )
+	{
+		if ( pTarget->edict() == pOwner->edict() )
+			return FALSE;
+
+		if ( g_pGameRules->PlayerRelationship( pOwner, pTarget ) == GR_TEAMMATE )
+			return FALSE;
+	}
+
+	return TRUE;
+}
+
+BOOL CEgonNovaBall::IsBreakableTarget( CBaseEntity *pTarget )
+{
+	if ( !pTarget || !pTarget->pev || pTarget->pev->takedamage == DAMAGE_NO )
+		return FALSE;
+
+	return FClassnameIs( pTarget->pev, "func_breakable" ) ||
+		FClassnameIs( pTarget->pev, "func_pushable" ) ||
+		FClassnameIs( pTarget->pev, "monster_barrel" );
+}
+
+void CEgonNovaBall::EmitAuraBeam( const Vector &vecTarget )
+{
+	MESSAGE_BEGIN( MSG_PVS, SVC_TEMPENTITY, pev->origin );
+		WRITE_BYTE( TE_BEAMPOINTS );
+		WRITE_COORD( pev->origin.x );
+		WRITE_COORD( pev->origin.y );
+		WRITE_COORD( pev->origin.z );
+		WRITE_COORD( vecTarget.x );
+		WRITE_COORD( vecTarget.y );
+		WRITE_COORD( vecTarget.z );
+		WRITE_SHORT( g_sModelLightning );
+		WRITE_BYTE( 0 );
+		WRITE_BYTE( 12 );
+		WRITE_BYTE( 3 );
+		WRITE_BYTE( 20 );
+		WRITE_BYTE( 25 );
+		if ( icesprites.value )
+		{
+			WRITE_BYTE( 128 );
+			WRITE_BYTE( 200 );
+			WRITE_BYTE( 255 );
+		}
+		else
+		{
+			WRITE_BYTE( 80 );
+			WRITE_BYTE( 200 );
+			WRITE_BYTE( 255 );
+		}
+		WRITE_BYTE( 220 );
+		WRITE_BYTE( 25 );
+	MESSAGE_END();
+}
+
+void CEgonNovaBall::DealAuraDamage( void )
+{
+	CBaseEntity *pTarget = NULL;
+	CBaseEntity *pOwner = m_hOwner;
+	entvars_t *pevAttacker = pOwner ? pOwner->pev : pev;
+
+	while ( ( pTarget = UTIL_FindEntityInSphere( pTarget, pev->origin, EGON_NOVA_AURA_RADIUS ) ) != NULL )
+	{
+		if ( !IsEnemyLivingTarget( pTarget ) )
+			continue;
+
+		TraceResult tr;
+		UTIL_TraceLine( pev->origin, pTarget->Center(), dont_ignore_monsters, ENT(pev), &tr );
+		if ( tr.flFraction < 1.0f && tr.pHit != pTarget->edict() )
+			continue;
+
+		pTarget->TakeDamage( pev, pevAttacker, EGON_NOVA_AURA_DAMAGE, DMG_ENERGYBEAM | DMG_NEVERGIB );
+		EmitAuraBeam( pTarget->Center() );
+	}
+}
+
+void CEgonNovaBall::DoSupernova( void )
+{
+	if ( pev->solid == SOLID_NOT )
+		return;
+
+	SetTouch( NULL );
+	SetThink( NULL );
+
+	pev->solid = SOLID_NOT;
+	pev->effects |= EF_NODRAW;
+
+	EMIT_SOUND_DYN( ENT(pev), CHAN_VOICE, "nuke_explosion.wav", 0.85f, ATTN_NORM, 0, PITCH_NORM );
+	UTIL_ScreenShake( pev->origin, 20.0f, 180.0f, 1.2f, 400.0f );
+
+	MESSAGE_BEGIN( MSG_PVS, SVC_TEMPENTITY, pev->origin );
+		WRITE_BYTE( TE_BEAMDISK );
+		WRITE_COORD( pev->origin.x );
+		WRITE_COORD( pev->origin.y );
+		WRITE_COORD( pev->origin.z + 16 );
+		WRITE_COORD( pev->origin.x );
+		WRITE_COORD( pev->origin.y );
+		WRITE_COORD( pev->origin.z + EGON_NOVA_BLAST_RADIUS * 2.0f );
+		WRITE_SHORT( g_sModelLightning );
+		WRITE_BYTE( 0 );
+		WRITE_BYTE( 0 );
+		WRITE_BYTE( 16 );
+		WRITE_BYTE( 60 );
+		WRITE_BYTE( 64 );
+		if ( icesprites.value )
+		{
+			WRITE_BYTE( 0 );
+			WRITE_BYTE( 113 );
+			WRITE_BYTE( 230 );
+		}
+		else
+		{
+			WRITE_BYTE( 120 );
+			WRITE_BYTE( 200 );
+			WRITE_BYTE( 255 );
+		}
+		WRITE_BYTE( 255 );
+		WRITE_BYTE( 0 );
+	MESSAGE_END();
+
+	MESSAGE_BEGIN( MSG_PVS, SVC_TEMPENTITY, pev->origin );
+		WRITE_BYTE( TE_BEAMCYLINDER );
+		WRITE_COORD( pev->origin.x );
+		WRITE_COORD( pev->origin.y );
+		WRITE_COORD( pev->origin.z + 16 );
+		WRITE_COORD( pev->origin.x );
+		WRITE_COORD( pev->origin.y );
+		WRITE_COORD( pev->origin.z + EGON_NOVA_BLAST_RADIUS * 2.0f );
+		WRITE_SHORT( g_sModelLightning );
+		WRITE_BYTE( 0 );
+		WRITE_BYTE( 0 );
+		WRITE_BYTE( 16 );
+		WRITE_BYTE( 60 );
+		WRITE_BYTE( 64 );
+		if ( icesprites.value )
+		{
+			WRITE_BYTE( 0 );
+			WRITE_BYTE( 113 );
+			WRITE_BYTE( 230 );
+		}
+		else
+		{
+			WRITE_BYTE( 120 );
+			WRITE_BYTE( 200 );
+			WRITE_BYTE( 255 );
+		}
+		WRITE_BYTE( 255 );
+		WRITE_BYTE( 0 );
+	MESSAGE_END();
+
+	MESSAGE_BEGIN( MSG_PAS, SVC_TEMPENTITY, pev->origin );
+		WRITE_BYTE( TE_EXPLOSION );
+		WRITE_COORD( pev->origin.x );
+		WRITE_COORD( pev->origin.y );
+		WRITE_COORD( pev->origin.z + 128 );
+		if ( icesprites.value )
+			WRITE_SHORT( m_iIceNovaSprite );
+		else
+			WRITE_SHORT( m_iNovaSprite );
+		WRITE_BYTE( 32 );
+		WRITE_BYTE( 24 );
+		WRITE_BYTE( TE_EXPLFLAG_NONE );
+	MESSAGE_END();
+
+	CBaseEntity *pTarget = NULL;
+	CBaseEntity *pOwner = m_hOwner;
+	entvars_t *pevAttacker = pOwner ? pOwner->pev : pev;
+
+	while ( ( pTarget = UTIL_FindEntityInSphere( pTarget, pev->origin, EGON_NOVA_BLAST_RADIUS ) ) != NULL )
+	{
+		if ( pTarget == this || !pTarget->pev || pTarget->pev->takedamage == DAMAGE_NO )
+			continue;
+
+		const BOOL bLiving = ( pTarget->IsPlayer() || ( pTarget->pev->flags & FL_MONSTER ) );
+		if ( bLiving )
+		{
+			if ( !IsEnemyLivingTarget( pTarget ) )
+				continue;
+		}
+		else if ( !IsBreakableTarget( pTarget ) )
+		{
+			continue;
+		}
+
+		TraceResult tr;
+		UTIL_TraceLine( pev->origin, pTarget->Center(), dont_ignore_monsters, ENT(pev), &tr );
+		if ( tr.flFraction < 1.0f && tr.pHit != pTarget->edict() )
+			continue;
+
+		float flDist = ( pTarget->Center() - pev->origin ).Length();
+		float flScale = 1.0f - ( flDist / EGON_NOVA_BLAST_RADIUS );
+		if ( flScale <= 0.0f )
+			continue;
+
+		float flDamage = EGON_NOVA_BLAST_DAMAGE * flScale;
+		if ( flDamage < 1.0f )
+			flDamage = 1.0f;
+
+		pTarget->TakeDamage( pev, pevAttacker, flDamage, DMG_ENERGYBEAM | DMG_BLAST | DMG_ALWAYSGIB );
+	}
+
+	UTIL_Remove( this );
+}
+#endif
 
 
 

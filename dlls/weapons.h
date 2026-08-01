@@ -233,32 +233,32 @@ public:
 
 
 // the default amount of ammo that comes with each gun when it spawns
-#define GLOCK_DEFAULT_GIVE			17
-#define PYTHON_DEFAULT_GIVE			6
-#define MP5_DEFAULT_GIVE			50
-#define MP5_M203_DEFAULT_GIVE		0
-#define SHOTGUN_DEFAULT_GIVE		12
-#define CROSSBOW_DEFAULT_GIVE		30
+#define GLOCK_DEFAULT_GIVE			34
+#define PYTHON_DEFAULT_GIVE			12
+#define MP5_DEFAULT_GIVE			100
+#define MP5_M203_DEFAULT_GIVE		2
+#define SHOTGUN_DEFAULT_GIVE		24
+#define CROSSBOW_DEFAULT_GIVE		60
 #define RPG_DEFAULT_GIVE			5
-#define GAUSS_DEFAULT_GIVE			20
-#define EGON_DEFAULT_GIVE			20
-#define HANDGRENADE_DEFAULT_GIVE	5
-#define SATCHEL_DEFAULT_GIVE		1
-#define TRIPMINE_DEFAULT_GIVE		1
-#define SNARK_DEFAULT_GIVE			5
+#define GAUSS_DEFAULT_GIVE			45
+#define EGON_DEFAULT_GIVE			45
+#define HANDGRENADE_DEFAULT_GIVE	10
+#define SATCHEL_DEFAULT_GIVE		2
+#define TRIPMINE_DEFAULT_GIVE		2
+#define SNARK_DEFAULT_GIVE			10
 #define HIVEHAND_DEFAULT_GIVE		8
-#define RAILGUN_DEFAULT_GIVE		10
-#define CANNON_DEFAULT_GIVE			10
+#define RAILGUN_DEFAULT_GIVE		45
+#define CANNON_DEFAULT_GIVE			12
 #define MAG60_DEFAULT_GIVE			44
 #define CHAINGUN_DEFAULT_GIVE		100
 #define GLAUNCHER_DEFAULT_GIVE		10
-#define SMG_DEFAULT_GIVE			50
+#define SMG_DEFAULT_GIVE			100
 #define USAS_DEFAULT_GIVE			40
-#define SNOWBALL_DEFAULT_GIVE		5
-#define _12_GAUGE_DEFAULT_GIVE		12
-#define NUKE_DEFAULT_GIVE			3
-#define DEAGLE_DEFAULT_GIVE			9
-#define FREEZEGUN_DEFAULT_GIVE		60
+#define SNOWBALL_DEFAULT_GIVE		10
+#define _12_GAUGE_DEFAULT_GIVE		24
+#define NUKE_DEFAULT_GIVE			1
+#define DEAGLE_DEFAULT_GIVE			18
+#define FREEZEGUN_DEFAULT_GIVE		100
 #define FLAMETHROWER_DEFAULT_GIVE	100
 
 // The amount of ammo given to a player by an ammo item.
@@ -1163,7 +1163,10 @@ public:
 	void Attack( void );
 	void PrimaryAttack( void );
 	void SecondaryAttack( void );
+	void Reload( void );
 	void WeaponIdle( void );
+	void CancelNovaCharge( BOOL bPlayStopSound = TRUE );
+	virtual BOOL AcceptReload( void ) { return TRUE; }
 
 	float m_flAmmoUseTime;// since we use < 1 point of ammo per update, we subtract ammo on a timer.
 
@@ -1175,6 +1178,7 @@ public:
 	BOOL HasAmmo( void );
 
 	void UseAmmo( int count );
+	void FireNovaShot( void );
 	
 	enum EGON_FIREMODE { FIRE_NARROW, FIRE_WIDE};
 
@@ -1554,7 +1558,11 @@ public:
 
 	void PrimaryAttack( void );
 	void SecondaryAttack( void );
+	void Reload( void );
 	void WeaponIdle( void );
+	void CancelChargedShot( BOOL bPlayStopSound = TRUE );
+	void FireChargedShot( void );
+	virtual BOOL AcceptReload( void ) { return TRUE; }
 
 	void StartFire( void );
 	void Fire( Vector vecSrc, Vector vecDirShooting, Vector effectSrc, float flDamage );
@@ -1573,6 +1581,8 @@ public:
 
 private:
 	unsigned short m_usRailgunFire;
+	float m_flChargeSoundTime;
+	float m_flChargeAnimTime;
 };
 
 class CDualRailgun : public CBasePlayerWeapon
@@ -1591,8 +1601,13 @@ public:
 
 	void PrimaryAttack( void );
 	void SecondaryAttack( void );
+	void Reload( void );
 	void FireThink( void );
 	void WeaponIdle( void );
+	void CancelChargedShot( BOOL bPlayStopSound = TRUE );
+	void FireChargedRight( void );
+	void FireChargedLeft( void );
+	virtual BOOL AcceptReload( void ) { return TRUE; }
 
 	void StartFire( Vector vecAiming, Vector vecSrc, Vector effectSrc, int iRailSide );
 	void Fire( Vector vecSrc, Vector vecDirShooting, Vector effectSrc, float flDamage, int iRailSide );
@@ -1612,6 +1627,8 @@ public:
 private:
 	unsigned short m_usRailgunFire;
 	int m_iAltFire;
+	float m_flChargeSoundTime;
+	float m_flChargeAnimTime;
 };
 
 class CCannon : public CBasePlayerWeapon
