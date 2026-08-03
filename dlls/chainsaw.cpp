@@ -299,7 +299,7 @@ void CChainsaw::Reload( void )
 
 void CChainsaw::TripleSlashThink( void )
 {
-	if (!m_bTripleSlashActive || m_iTripleSlashRemaining <= 0)
+	if (!m_pPlayer || !m_bTripleSlashActive || m_iTripleSlashRemaining <= 0)
 	{
 		m_iTripleSlashRemaining = 0;
 		m_bTripleSlashActive = FALSE;
@@ -314,6 +314,7 @@ void CChainsaw::TripleSlashThink( void )
 		SetThink(NULL);
 		m_flNextPrimaryAttack = m_flNextSecondaryAttack = GetNextAttackDelay(CHAINSAW_TRIPLE_SLASH_COOLDOWN);
 		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + CHAINSAW_TRIPLE_SLASH_COOLDOWN;
+		m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + CHAINSAW_TRIPLE_SLASH_COOLDOWN;
 		return;
 	}
 
@@ -473,6 +474,10 @@ int CChainsaw::Swing( int fFirst, BOOL animation )
 
 			// delay the decal a bit
 			m_trHit = tr;
+
+			// Triple-slash owns the think callback for combo timing, so apply impact FX inline.
+			if (m_bTripleSlashActive)
+				Smack();
 		}
 
 		m_pPlayer->m_iWeaponVolume = flVol * CHAINSAW_WALLHIT_VOLUME;
