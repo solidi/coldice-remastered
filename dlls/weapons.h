@@ -1989,7 +1989,10 @@ public:
 
 	void PrimaryAttack( void );
 	void SecondaryAttack( void );
+	void Reload( void );
+	virtual BOOL AcceptReload( void ) { return TRUE; }
 	int Swing( int fFirst, BOOL animation );
+	void EXPORT TripleSlashThink( void );
 	BOOL DeployLowKey( void );
 	BOOL Deploy( void );
 	void Holster( int skiplocal = 0 );
@@ -2008,6 +2011,8 @@ public:
 
 private:
 	unsigned short m_usChainsaw;
+	int m_iTripleSlashRemaining;
+	BOOL m_bTripleSlashActive;
 };
 
 
