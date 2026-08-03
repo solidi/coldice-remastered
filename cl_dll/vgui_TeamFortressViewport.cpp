@@ -311,7 +311,7 @@ MutatorInfo sMutators[] = {
 	{ "thirdperson", "see yourself die" },
 	{ "three", "three mutators at once" },
 	{ "tinnitus", "ringing in your ears" },
-	{ "toilet", "why are their toilets?" },
+	{ "toilet", "why are there toilets?" },
 	{ "topsyturvy", "topsyturvy" },
 	{ "turrets", "they shoot everyone" },
 	{ "upsidedown", "why is everything upside down?" },
