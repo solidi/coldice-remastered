@@ -24,6 +24,8 @@
 
 #define	CHAINSAW_BODYHIT_VOLUME 128
 #define	CHAINSAW_WALLHIT_VOLUME 512
+#define CHAINSAW_TRIPLE_SLASH_INTERVAL 0.25
+#define CHAINSAW_TRIPLE_SLASH_COOLDOWN 0.4
 
 #ifdef CHAINSAW
 LINK_ENTITY_TO_CLASS( weapon_chainsaw, CChainsaw );
@@ -53,6 +55,9 @@ void CChainsaw::Spawn( )
 	SET_MODEL(ENT(pev), "models/w_weapons.mdl");
 	pev->body = WEAPON_CHAINSAW - 1;
 	m_iClip = -1;
+	m_iSwing = 0;
+	m_iTripleSlashRemaining = 0;
+	m_bTripleSlashActive = FALSE;
 
 	FallInit();// get ready to fall down.
 }
@@ -101,6 +106,8 @@ BOOL CChainsaw::DeployLowKey( )
 {
 	m_flStartThrow = 0;
 	m_flReleaseThrow = -1;
+	m_iTripleSlashRemaining = 0;
+	m_bTripleSlashActive = FALSE;
 
 	BOOL success = DefaultDeploy( "models/v_chainsaw.mdl", "models/p_weapons.mdl", CHAINSAW_DRAW_LOWKEY, "crowbar" );
 	
@@ -114,6 +121,8 @@ BOOL CChainsaw::Deploy( )
 {
 	m_flStartThrow = 0;
 	m_flReleaseThrow = -1;
+	m_iTripleSlashRemaining = 0;
+	m_bTripleSlashActive = FALSE;
 
 	BOOL success = DefaultDeploy( "models/v_chainsaw.mdl", "models/p_weapons.mdl", CHAINSAW_DRAW, "crowbar" );
 	
@@ -126,6 +135,9 @@ BOOL CChainsaw::Deploy( )
 void CChainsaw::Holster( int skiplocal /* = 0 */ )
 {
 	CBasePlayerWeapon::DefaultHolster(-1);
+	m_iTripleSlashRemaining = 0;
+	m_bTripleSlashActive = FALSE;
+	SetThink(NULL);
 
 	if (m_flReleaseThrow > 0) {
 		m_pPlayer->pev->weapons &= ~(1<<WEAPON_CHAINSAW);
@@ -138,6 +150,17 @@ void CChainsaw::Holster( int skiplocal /* = 0 */ )
 
 void CChainsaw::PrimaryAttack()
 {
+#ifndef CLIENT_DLL
+	if (m_bTripleSlashActive && m_iTripleSlashRemaining <= 0)
+	{
+		m_bTripleSlashActive = FALSE;
+		SetThink(NULL);
+	}
+
+	if (m_bTripleSlashActive)
+		return;
+#endif
+
 	if (m_pPlayer->pev->waterlevel == 3)
 	{
 		PlayEmptySound( );
@@ -154,6 +177,17 @@ void CChainsaw::PrimaryAttack()
 
 void CChainsaw::SecondaryAttack()
 {
+#ifndef CLIENT_DLL
+	if (m_bTripleSlashActive && m_iTripleSlashRemaining <= 0)
+	{
+		m_bTripleSlashActive = FALSE;
+		SetThink(NULL);
+	}
+
+	if (m_bTripleSlashActive)
+		return;
+#endif
+
 	if (m_pPlayer->pev->waterlevel == 3)
 	{
 		PlayEmptySound( );
@@ -210,6 +244,99 @@ void CChainsaw::SecondaryAttack()
 		EMIT_SOUND_DYN(ENT(m_pPlayer->pev), CHAN_WEAPON, "chainsaw_attack1_loop.wav", 1.0, ATTN_NORM, 0, 98 + RANDOM_LONG(0,3));
 		m_flNextSecondaryAttack = m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 0.15;
 	}
+}
+
+void CChainsaw::Reload( void )
+{
+	if (!m_pPlayer)
+		return;
+
+	// Trigger the combo only once per reload press, not while holding the button.
+	if (!(m_pPlayer->pev->button & IN_RELOAD) || !(m_pPlayer->m_afButtonPressed & IN_RELOAD))
+		return;
+
+	if (m_pPlayer->pev->waterlevel == 3)
+	{
+		PlayEmptySound( );
+		m_flNextPrimaryAttack = m_flNextSecondaryAttack = GetNextAttackDelay(0.15);
+		return;
+	}
+
+	if (m_bTripleSlashActive || m_flStartThrow)
+		return;
+
+	if (m_flNextPrimaryAttack > UTIL_WeaponTimeBase() || m_flNextSecondaryAttack > UTIL_WeaponTimeBase())
+		return;
+
+	m_bTripleSlashActive = TRUE;
+	m_iTripleSlashRemaining = 3;
+	SendWeaponAnim( CHAINSAW_RELOAD );
+	m_pPlayer->SetAnimation( PLAYER_ATTACK1 );
+	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + CHAINSAW_TRIPLE_SLASH_INTERVAL;
+
+#if defined( CLIENT_DLL )
+	// Predicted weapons do not process SetThink callbacks client-side; schedule local playback directly.
+	for (int i = 0; i < 3; ++i)
+	{
+		PLAYBACK_EVENT_FULL( FEV_NOTHOST, m_pPlayer->edict(), m_usChainsaw,
+			CHAINSAW_TRIPLE_SLASH_INTERVAL * i, (float *)&g_vecZero, (float *)&g_vecZero, 0, 0, 0,
+			0.0, TRUE, 0.0 );
+	}
+
+	m_iTripleSlashRemaining = 0;
+	m_bTripleSlashActive = FALSE;
+	m_flNextPrimaryAttack = m_flNextSecondaryAttack = GetNextAttackDelay(CHAINSAW_TRIPLE_SLASH_COOLDOWN);
+	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + CHAINSAW_TRIPLE_SLASH_COOLDOWN;
+	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + CHAINSAW_TRIPLE_SLASH_COOLDOWN;
+	return;
+#endif
+
+	m_flNextPrimaryAttack = m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + CHAINSAW_TRIPLE_SLASH_INTERVAL;
+	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + CHAINSAW_TRIPLE_SLASH_INTERVAL;
+	SetThink( &CChainsaw::TripleSlashThink );
+	pev->nextthink = gpGlobals->time + 0.01;
+}
+
+void CChainsaw::TripleSlashThink( void )
+{
+	if (!m_pPlayer || !m_bTripleSlashActive || m_iTripleSlashRemaining <= 0)
+	{
+		m_iTripleSlashRemaining = 0;
+		m_bTripleSlashActive = FALSE;
+		SetThink(NULL);
+		return;
+	}
+
+	if (m_pPlayer->pev->waterlevel == 3)
+	{
+		m_iTripleSlashRemaining = 0;
+		m_bTripleSlashActive = FALSE;
+		SetThink(NULL);
+		m_flNextPrimaryAttack = m_flNextSecondaryAttack = GetNextAttackDelay(CHAINSAW_TRIPLE_SLASH_COOLDOWN);
+		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + CHAINSAW_TRIPLE_SLASH_COOLDOWN;
+		m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + CHAINSAW_TRIPLE_SLASH_COOLDOWN;
+		return;
+	}
+
+	--m_iTripleSlashRemaining;
+	Swing( 1, TRUE );
+
+	if (m_iTripleSlashRemaining > 0)
+	{
+		const float flNextSlash = UTIL_WeaponTimeBase() + CHAINSAW_TRIPLE_SLASH_INTERVAL;
+		m_flNextPrimaryAttack = m_flNextSecondaryAttack = flNextSlash;
+		m_pPlayer->m_flNextAttack = flNextSlash;
+		m_flTimeWeaponIdle = flNextSlash;
+		SetThink( &CChainsaw::TripleSlashThink );
+		pev->nextthink = gpGlobals->time + CHAINSAW_TRIPLE_SLASH_INTERVAL;
+		return;
+	}
+
+	m_bTripleSlashActive = FALSE;
+	SetThink(NULL);
+	m_flNextPrimaryAttack = m_flNextSecondaryAttack = GetNextAttackDelay(CHAINSAW_TRIPLE_SLASH_COOLDOWN);
+	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + CHAINSAW_TRIPLE_SLASH_COOLDOWN;
+	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + CHAINSAW_TRIPLE_SLASH_COOLDOWN;
 }
 
 void CChainsaw::Smack( )
@@ -347,15 +474,22 @@ int CChainsaw::Swing( int fFirst, BOOL animation )
 
 			// delay the decal a bit
 			m_trHit = tr;
+
+			// Triple-slash owns the think callback for combo timing, so apply impact FX inline.
+			if (m_bTripleSlashActive)
+				Smack();
 		}
 
 		m_pPlayer->m_iWeaponVolume = flVol * CHAINSAW_WALLHIT_VOLUME;
 #endif
 		m_flNextPrimaryAttack = GetNextAttackDelay(0.25);
 		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 0.5;
-		
-		SetThink( &CChainsaw::Smack );
-		pev->nextthink = UTIL_WeaponTimeBase() + 0.2;
+
+		if (!m_bTripleSlashActive)
+		{
+			SetThink( &CChainsaw::Smack );
+			pev->nextthink = UTIL_WeaponTimeBase() + 0.2;
+		}
 	}
 
 	return fDidHit;
