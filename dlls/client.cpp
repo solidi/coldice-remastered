@@ -254,6 +254,7 @@ void ClientPutInServer( edict_t *pEntity )
 
 	pPlayer = GetClassPtr((CBasePlayer *)pev);
 	pPlayer->SetCustomDecalFrames(-1); // Assume none;
+	pPlayer->m_fGameHUDInitialized = FALSE;
 
 	// Cold Ice client defaults
 	pPlayer->m_iAutoWepSwitch = 1;

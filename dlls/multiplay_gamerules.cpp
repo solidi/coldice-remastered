@@ -2000,9 +2000,18 @@ void CHalfLifeMultiplay :: InitHUD( CBasePlayer *pl )
 			float flTimeLimit = timelimit.value * 60;
 			float time_remaining = (int)( flTimeLimit - gpGlobals->time );
 
-			MESSAGE_BEGIN(MSG_ONE, gmsgRoundTime, NULL, pl->edict());
-				WRITE_SHORT(time_remaining);
-			MESSAGE_END();
+			if (time_remaining > 0)
+			{
+				MESSAGE_BEGIN(MSG_ONE, gmsgRoundTime, NULL, pl->edict());
+					WRITE_SHORT(time_remaining);
+				MESSAGE_END();
+			}
+			else
+			{
+				MESSAGE_BEGIN(MSG_ONE, gmsgShowTimer, NULL, pl->edict());
+					WRITE_BYTE(0);
+				MESSAGE_END();
+			}
 		}
 		else
 		{

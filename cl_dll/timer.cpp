@@ -161,8 +161,17 @@ int CHudTimer::MsgFunc_RoundTime(const char *pszName, int iSize, void *pbuf)
 {
 	BEGIN_READ( pbuf, iSize );
 	m_iTime = READ_SHORT();
-	m_fStartTime = gHUD.m_flTime;
-	m_iFlags |= HUD_ACTIVE;
+	if (m_iTime > 0)
+	{
+		m_fStartTime = gHUD.m_flTime;
+		m_iFlags |= HUD_ACTIVE;
+	}
+	else
+	{
+		m_iTime = 0;
+		m_fStartTime = 0;
+		m_iFlags &= ~HUD_ACTIVE;
+	}
 	return 1;
 }
 
