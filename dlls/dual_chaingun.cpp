@@ -136,7 +136,7 @@ void CDualChaingun::PrimaryAttack()
 		return;
 	}
 
-	if ( m_iWeaponMode == DUAL_CHAINGUN_IDLE && m_iClip > 0 )
+	if ( (m_iWeaponMode == DUAL_CHAINGUN_IDLE || m_iWeaponMode == DUAL_CHAINGUN_IDLE1) && m_iClip > 0 )
 	{
 		SendWeaponAnim( DUAL_CHAINGUN_SPINUP, 1, 1 );
 		EMIT_SOUND_DYN(ENT(m_pPlayer->pev), CHAN_WEAPON, "chaingun_spinup.wav", RANDOM_FLOAT(0.92, 1.0), ATTN_NORM, 0, 98 + RANDOM_LONG(0,3));
@@ -182,7 +182,7 @@ void CDualChaingun::SecondaryAttack()
 		return;
 	}
 
-	if ( m_iWeaponMode == DUAL_CHAINGUN_IDLE && m_iClip > 0 )
+	if ( (m_iWeaponMode == DUAL_CHAINGUN_IDLE || m_iWeaponMode == DUAL_CHAINGUN_IDLE1) && m_iClip > 0 )
 	{
 		SendWeaponAnim( DUAL_CHAINGUN_SPINUP, 1, 1 );
 		EMIT_SOUND_DYN(ENT(m_pPlayer->pev), CHAN_WEAPON, "chaingun_spinup.wav", RANDOM_FLOAT(0.92, 1.0), ATTN_NORM, 0, 98 + RANDOM_LONG(0,3));	
