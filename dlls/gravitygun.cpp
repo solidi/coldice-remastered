@@ -39,7 +39,6 @@ enum gravitygun_e {
 };
 
 static const float GRAVITYGUN_REPULSE_RADIUS = 180.0f;
-static const float GRAVITYGUN_REPULSE_FORWARD_OFFSET = 48.0f;
 static const float GRAVITYGUN_REPULSE_FORCE_MIN = 1150.0f;
 static const float GRAVITYGUN_REPULSE_FORCE_MAX = 1900.0f;
 static const float GRAVITYGUN_REPULSE_UP_BIAS = 0.35f;
