@@ -2438,6 +2438,7 @@ public:
 
 	void PrimaryAttack();
 	void SecondaryAttack();
+	void Reload();
 	BOOL DeployLowKey( void );
 	BOOL Deploy();
 	void Holster(int skiplocal);
@@ -2467,9 +2468,13 @@ public:
 	}
 
 	virtual BOOL SemiAuto( void ) { return TRUE; }
+	virtual BOOL AcceptReload( void ) { return TRUE; }
 
 private:
 	unsigned short m_usGravGun;
+	int m_iRepulseBurstSprite;
+	int m_iRepulseFlashSprite;
+	float m_flNextRepulseTime;
 };
 
 class CFlameThrower : public CBasePlayerWeapon

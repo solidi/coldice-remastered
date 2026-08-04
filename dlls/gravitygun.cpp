@@ -20,6 +20,7 @@
 #include "weapons.h"
 #include "player.h"
 #include "gamerules.h"
+#include "game.h"
 
 #define VectorAverage(a, b, o) {((o)[0] = ((a)[0] + (b)[0]) * 0.5, (o)[1] = ((a)[1] + (b)[1]) * 0.5, (o)[2] = ((a)[2] + (b)[2]) * 0.5);}
 
@@ -36,6 +37,198 @@ enum gravitygun_e {
 	GRAVITYGUN_DRAW,
 	GRAVITYGUN_HOLSTER,
 };
+
+static const float GRAVITYGUN_REPULSE_RADIUS = 180.0f;
+static const float GRAVITYGUN_REPULSE_FORCE_MIN = 1150.0f;
+static const float GRAVITYGUN_REPULSE_FORCE_MAX = 1900.0f;
+static const float GRAVITYGUN_REPULSE_UP_BIAS = 0.35f;
+static const float GRAVITYGUN_REPULSE_UPLIFT_MIN = 220.0f;
+static const float GRAVITYGUN_REPULSE_UPLIFT_MAX = 420.0f;
+static const float GRAVITYGUN_REPULSE_DAMAGE = 8.0f;
+static const float GRAVITYGUN_REPULSE_COOLDOWN_SUCCESS = 0.85f;
+static const float GRAVITYGUN_REPULSE_COOLDOWN_FAIL = 0.45f;
+
+static BOOL GravityGunCanRepulseTarget(CBasePlayer *pOwner, CBaseEntity *pTarget)
+{
+	if (!pOwner || !pTarget || !pTarget->pev || pTarget == pOwner)
+		return FALSE;
+
+	if (FClassnameIs(pTarget->pev, "worldspawn"))
+		return FALSE;
+
+	if (pTarget->IsPlayer() || (pTarget->pev->flags & FL_MONSTER))
+		return pTarget->IsAlive();
+
+	if (pTarget->pev->solid == SOLID_NOT || pTarget->pev->movetype == MOVETYPE_FOLLOW)
+		return FALSE;
+
+	if (pTarget->pev->movetype == MOVETYPE_NONE ||
+		pTarget->pev->movetype == MOVETYPE_PUSH ||
+		pTarget->pev->movetype == MOVETYPE_NOCLIP)
+	{
+		return FALSE;
+	}
+
+	if (pTarget->IsBSPModel() && pTarget->pev->movetype != MOVETYPE_PUSHSTEP)
+		return FALSE;
+
+	return TRUE;
+}
+
+static BOOL GravityGunHasRepulseLOS(CBasePlayer *pOwner, CBaseEntity *pTarget, const Vector &vecStart)
+{
+	if (!pOwner || !pTarget)
+		return FALSE;
+
+	TraceResult tr;
+	UTIL_TraceLine(vecStart, pTarget->Center(), dont_ignore_monsters, ENT(pOwner->pev), &tr);
+
+	return (tr.flFraction >= 1.0f || tr.pHit == pTarget->edict());
+}
+
+static BOOL GravityGunRepulseTarget(CBasePlayer *pOwner, CBaseEntity *pTarget, const Vector &vecBurstOrigin)
+{
+	if (!GravityGunCanRepulseTarget(pOwner, pTarget) || !GravityGunHasRepulseLOS(pOwner, pTarget, vecBurstOrigin))
+		return FALSE;
+
+	Vector vecToTarget = pTarget->Center() - vecBurstOrigin;
+	float flDistance = vecToTarget.Length();
+
+	if (flDistance <= 1.0f)
+		vecToTarget = gpGlobals->v_forward;
+	else
+		vecToTarget = vecToTarget / flDistance;
+
+	Vector vecLaunchDir = vecToTarget + gpGlobals->v_forward * 0.55f + Vector(0, 0, GRAVITYGUN_REPULSE_UP_BIAS);
+	if (vecLaunchDir.Length() <= 0.01f)
+		vecLaunchDir = gpGlobals->v_forward;
+	else
+		vecLaunchDir = vecLaunchDir.Normalize();
+
+	float flScale = 1.0f - (flDistance / GRAVITYGUN_REPULSE_RADIUS);
+	if (flScale < 0.0f)
+		flScale = 0.0f;
+	if (flScale > 1.0f)
+		flScale = 1.0f;
+
+	const float flForce = GRAVITYGUN_REPULSE_FORCE_MIN + (GRAVITYGUN_REPULSE_FORCE_MAX - GRAVITYGUN_REPULSE_FORCE_MIN) * flScale;
+	const float flUplift = GRAVITYGUN_REPULSE_UPLIFT_MIN + (GRAVITYGUN_REPULSE_UPLIFT_MAX - GRAVITYGUN_REPULSE_UPLIFT_MIN) * flScale;
+
+	pTarget->pev->flags &= ~FL_ONGROUND;
+	pTarget->pev->velocity = vecLaunchDir * flForce + pOwner->pev->velocity * 0.45f;
+	pTarget->pev->velocity.z += flUplift;
+
+	if (pTarget->pev->takedamage != DAMAGE_NO)
+	{
+		pTarget->TakeDamage(pOwner->pev, pOwner->pev, GRAVITYGUN_REPULSE_DAMAGE, DMG_SONIC | DMG_NEVERGIB);
+	}
+
+	return TRUE;
+}
+
+static void GravityGunRepulseBurstFX(CBasePlayer *pOwner, int iBeamSprite, int iFlashSprite, const Vector &vecOrigin)
+{
+	if (!pOwner || (iBeamSprite <= 0 && iFlashSprite <= 0))
+		return;
+
+	if (iBeamSprite > 0)
+	{
+		MESSAGE_BEGIN(MSG_BROADCAST, SVC_TEMPENTITY);
+			WRITE_BYTE(TE_BEAMDISK);
+			WRITE_COORD(vecOrigin.x);
+			WRITE_COORD(vecOrigin.y);
+			WRITE_COORD(vecOrigin.z);
+			WRITE_COORD(vecOrigin.x);
+			WRITE_COORD(vecOrigin.y);
+			WRITE_COORD(vecOrigin.z + GRAVITYGUN_REPULSE_RADIUS);
+			WRITE_SHORT(iBeamSprite);
+			WRITE_BYTE(0);
+			WRITE_BYTE(0);
+			WRITE_BYTE(10);
+			WRITE_BYTE(36);
+			WRITE_BYTE(0);
+			if ( icesprites.value )
+			{
+				WRITE_BYTE( 0 );
+				WRITE_BYTE( 113 );
+				WRITE_BYTE( 230 );
+			}
+			else
+			{
+				WRITE_BYTE(255);
+				WRITE_BYTE(180);
+				WRITE_BYTE(48);
+			}
+			WRITE_BYTE(255);
+			WRITE_BYTE(0);
+		MESSAGE_END();
+
+		MESSAGE_BEGIN(MSG_BROADCAST, SVC_TEMPENTITY);
+			WRITE_BYTE(TE_BEAMCYLINDER);
+			WRITE_COORD(vecOrigin.x);
+			WRITE_COORD(vecOrigin.y);
+			WRITE_COORD(vecOrigin.z + 8);
+			WRITE_COORD(vecOrigin.x);
+			WRITE_COORD(vecOrigin.y);
+			WRITE_COORD(vecOrigin.z + GRAVITYGUN_REPULSE_RADIUS);
+			WRITE_SHORT(iBeamSprite);
+			WRITE_BYTE(0);
+			WRITE_BYTE(0);
+			WRITE_BYTE(10);
+			WRITE_BYTE(28);
+			WRITE_BYTE(0);
+			if ( icesprites.value )
+			{
+				WRITE_BYTE( 0 );
+				WRITE_BYTE( 113 );
+				WRITE_BYTE( 230 );
+			}
+			else
+			{
+				WRITE_BYTE(255);
+				WRITE_BYTE(210);
+				WRITE_BYTE(72);
+			}
+			WRITE_BYTE(240);
+			WRITE_BYTE(0);
+		MESSAGE_END();
+	}
+
+	if (iFlashSprite > 0)
+	{
+		MESSAGE_BEGIN(MSG_BROADCAST, SVC_TEMPENTITY);
+			WRITE_BYTE(TE_SPRITE);
+			WRITE_COORD(vecOrigin.x);
+			WRITE_COORD(vecOrigin.y);
+			WRITE_COORD(vecOrigin.z + 12);
+			WRITE_SHORT(iFlashSprite);
+			WRITE_BYTE(24);
+			WRITE_BYTE(180);
+		MESSAGE_END();
+	}
+
+	MESSAGE_BEGIN(MSG_BROADCAST, SVC_TEMPENTITY);
+		WRITE_BYTE(TE_DLIGHT);
+		WRITE_COORD(vecOrigin.x);
+		WRITE_COORD(vecOrigin.y);
+		WRITE_COORD(vecOrigin.z + 8);
+		WRITE_BYTE(45);
+		if ( icesprites.value )
+		{
+			WRITE_BYTE( 0 );
+			WRITE_BYTE( 113 );
+			WRITE_BYTE( 230 );
+		}
+		else
+		{
+			WRITE_BYTE( 255 );
+			WRITE_BYTE( 180 );
+			WRITE_BYTE( 48 );
+		}
+		WRITE_BYTE(6);
+		WRITE_BYTE(30);
+	MESSAGE_END();
+}
 
 static CBaseEntity *FindPlayerDribbledKtsBall(CBasePlayer *pPlayer)
 {
@@ -58,6 +251,14 @@ static CBaseEntity *FindPlayerDribbledKtsBall(CBasePlayer *pPlayer)
 
 void CGravityGun::Spawn()
 {
+	m_iRepulseBurstSprite = 0;
+	m_iRepulseFlashSprite = 0;
+	m_flNextRepulseTime = 0;
+	m_flNextIdleTime = 0;
+	m_bResetIdle = false;
+	m_bFoundPotentialTarget = false;
+	m_pCurrentEntity = NULL;
+
 	Precache();
 
 	pev->classname = MAKE_STRING("weapon_gravitygun");
@@ -73,8 +274,10 @@ void CGravityGun::Spawn()
 void CGravityGun::Precache()
 {
 	PRECACHE_MODEL("models/v_gravitygun.mdl");
-
+	m_iRepulseBurstSprite = PRECACHE_MODEL("sprites/lgtning.spr");
+	m_iRepulseFlashSprite = PRECACHE_MODEL("sprites/glowbig.spr");
 	PRECACHE_SOUND("weapons/rocketfire1.wav");
+	PRECACHE_SOUND("common/wpn_denyselect.wav");
 
 	m_usGravGun = PRECACHE_EVENT(1, "events/gravitygun.sc");
 }
@@ -249,6 +452,74 @@ void CGravityGun::SecondaryAttack()
 
 	if (!m_pCurrentEntity)
 		SendWeaponAnim(GRAVITYGUN_FIRE);
+}
+
+void CGravityGun::Reload()
+{
+	if (!m_pPlayer)
+		return;
+
+	if (gpGlobals->time < m_flNextRepulseTime)
+		return;
+
+	const float flWeaponMultiplier = (g_pGameRules ? g_pGameRules->WeaponMultipler() : 1.0f);
+
+#ifdef CLIENT_DLL
+	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + GRAVITYGUN_REPULSE_COOLDOWN_FAIL * flWeaponMultiplier;
+	return;
+#else
+	UTIL_MakeVectors(m_pPlayer->pev->v_angle);
+	const Vector vecBurstOrigin = m_pPlayer->pev->origin + gpGlobals->v_forward * 36.0f + gpGlobals->v_up * 28.0f;
+
+	int iTargetsPushed = 0;
+	CBaseEntity *pHeldEntity = m_pCurrentEntity;
+
+	if (pHeldEntity)
+	{
+		STOP_SOUND(ENT(m_pPlayer->pev), CHAN_WEAPON, "ambience/pulsemachine.wav");
+		pHeldEntity->pev->iuser3 = 0;
+
+		if (FClassnameIs(pHeldEntity->pev, "kts_snowball"))
+			pHeldEntity->pev->iuser2 = ENTINDEX(m_pPlayer->edict());
+
+		if (GravityGunRepulseTarget(m_pPlayer, pHeldEntity, vecBurstOrigin))
+			iTargetsPushed++;
+
+		m_pCurrentEntity = NULL;
+	}
+
+	CBaseEntity *pEntity = NULL;
+	while ((pEntity = UTIL_FindEntityInSphere(pEntity, vecBurstOrigin, GRAVITYGUN_REPULSE_RADIUS)) != NULL)
+	{
+		if (pEntity == pHeldEntity)
+			continue;
+
+		if (GravityGunRepulseTarget(m_pPlayer, pEntity, vecBurstOrigin))
+			iTargetsPushed++;
+	}
+
+	const bool bSuccess = (iTargetsPushed > 0);
+	const float flCooldown = (bSuccess ? GRAVITYGUN_REPULSE_COOLDOWN_SUCCESS : GRAVITYGUN_REPULSE_COOLDOWN_FAIL) * flWeaponMultiplier;
+
+	if (bSuccess)
+	{
+		SendWeaponAnim(GRAVITYGUN_FIRE);
+		EMIT_SOUND(ENT(m_pPlayer->pev), CHAN_WEAPON, "weapons/rocketfire1.wav", 1.0f, ATTN_NORM);
+		GravityGunRepulseBurstFX(m_pPlayer, m_iRepulseBurstSprite, m_iRepulseFlashSprite, vecBurstOrigin);
+		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 0.7f;
+	}
+	else
+	{
+		SendWeaponAnim(GRAVITYGUN_PICKUP);
+		EMIT_SOUND(ENT(m_pPlayer->pev), CHAN_ITEM, "common/wpn_denyselect.wav", 0.8f, ATTN_NORM);
+		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 0.45f;
+	}
+
+	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + flCooldown;
+	m_flNextPrimaryAttack = m_flNextSecondaryAttack = GetNextAttackDelay(flCooldown);
+	m_flNextRepulseTime = gpGlobals->time + flCooldown;
+	m_flNextIdleTime = gpGlobals->time + 0.6f;
+#endif
 }
 
 void CGravityGun::ItemPostFrame()
