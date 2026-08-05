@@ -424,12 +424,17 @@ void CNuke::Reload( void )
 
 #ifndef CLIENT_DLL
 	CBaseEntity *pPackage = Create( "monster_satchel", vecSrc, vecAiming, m_pPlayer->edict() );
-	if (pPackage)
+	if (!pPackage)
 	{
-		pPackage->pev->spawnflags |= SF_SATCHEL_NUKE_PACKAGE;
-		pPackage->pev->velocity = vecThrow;
-		pPackage->pev->avelocity.y = RANDOM_LONG(180, 420);
+		PlayEmptySound();
+		m_flNextPrimaryAttack = m_flNextSecondaryAttack = GetNextAttackDelay(0.15);
+		m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 0.15;
+		return;
 	}
+
+	pPackage->pev->spawnflags |= SF_SATCHEL_NUKE_PACKAGE;
+	pPackage->pev->velocity = vecThrow;
+	pPackage->pev->avelocity.y = RANDOM_LONG(180, 420);
 
 	EMIT_SOUND( ENT(m_pPlayer->pev), CHAN_WEAPON, "weapons/glauncher.wav", 1, ATTN_NORM );
 #endif

@@ -934,6 +934,17 @@ void CProxMine::DelayDeathThink( void )
 			if (pEntity->pev->takedamage == DAMAGE_NO || pEntity->pev->health <= 0)
 				continue;
 
+			// Match nuke global-kill behavior: respect godmode/spectator state and avoid teammate kills.
+			if (FBitSet( pEntity->pev->flags, FL_GODMODE ) || pEntity->pev->iuser1)
+				continue;
+
+			if (g_pGameRules && m_pRealOwner)
+			{
+				CBaseEntity *pOwnerEnt = CBaseEntity::Instance( m_pRealOwner );
+				if (pOwnerEnt && g_pGameRules->PlayerRelationship( pOwnerEnt, pEntity ) != GR_NOTTEAMMATE)
+					continue;
+			}
+
 			ClearMultiDamage();
 			g_pevLastInflictor = pev;
 			pEntity->TakeDamage( pev, pevOwner, 1, DMG_RADIATION );
