@@ -419,7 +419,7 @@ void CNuke::Reload( void )
 
 	Vector vecAiming = m_pPlayer->GetAutoaimVector( AUTOAIM_5DEGREES );
 	UTIL_MakeVectors( m_pPlayer->pev->v_angle );
-	Vector vecSrc = m_pPlayer->GetGunPosition() + gpGlobals->v_forward * 12 + gpGlobals->v_right * 8 + gpGlobals->v_up * -12;
+	Vector vecSrc = m_pPlayer->GetGunPosition() + gpGlobals->v_forward * 12 + gpGlobals->v_right * 8 + gpGlobals->v_up * -3;
 	Vector vecThrow = vecAiming * 460 + m_pPlayer->pev->velocity;
 
 #ifndef CLIENT_DLL

@@ -673,12 +673,25 @@ void CProxMine::PowerupThink( void )
 		}
 		else
 		{
-			// no surface - remove
-			STOP_SOUND( ENT(pev), CHAN_VOICE, "weapons/mine_deploy.wav" );
-			STOP_SOUND( ENT(pev), CHAN_BODY, "weapons/mine_charge.wav" );
-			SetThink( &CProxMine::SUB_Remove );
-			pev->nextthink = gpGlobals->time + 0.1;
-			return;
+			TraceResult trReverse;
+			UTIL_TraceLine( pev->origin - m_vecDir * 8, pev->origin + m_vecDir * 32, dont_ignore_monsters, ENT(pev), &trReverse );
+			if (trReverse.flFraction < 1.0)
+			{
+				pev->owner = trReverse.pHit;
+				m_hOwner = CBaseEntity::Instance( pev->owner );
+				m_posOwner = m_hOwner->pev->origin;
+				m_angleOwner = m_hOwner->pev->angles;
+				m_vecDir = -m_vecDir;
+			}
+			else
+			{
+				// no surface - remove
+				STOP_SOUND( ENT(pev), CHAN_VOICE, "weapons/mine_deploy.wav" );
+				STOP_SOUND( ENT(pev), CHAN_BODY, "weapons/mine_charge.wav" );
+				SetThink( &CProxMine::SUB_Remove );
+				pev->nextthink = gpGlobals->time + 0.1;
+				return;
+			}
 		}
 	}
 	else if (m_posOwner != m_hOwner->pev->origin || m_angleOwner != m_hOwner->pev->angles)

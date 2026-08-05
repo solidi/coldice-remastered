@@ -133,6 +133,7 @@ void CSatchelCharge::SatchelSlide( CBaseEntity *pOther )
 		}
 
 		Vector vecNormal = Vector(0, 0, 1);
+		Vector vecAttachOrigin = pev->origin;
 		if (pOther && pOther->IsBSPModel())
 		{
 			Vector vecVelDir = pev->velocity;
@@ -142,21 +143,31 @@ void CSatchelCharge::SatchelSlide( CBaseEntity *pOther )
 			else
 				vecVelDir = Vector(0, 0, -1);
 
+			vecNormal = -vecVelDir;
+
 			TraceResult trAttach;
-			UTIL_TraceLine( pev->origin + vecVelDir * 4, pev->origin - vecVelDir * 24, ignore_monsters, edict(), &trAttach );
+			UTIL_TraceLine( pev->origin - vecVelDir * 8, pev->origin + vecVelDir * 24, ignore_monsters, edict(), &trAttach );
 			if (trAttach.flFraction < 1.0f)
+			{
 				vecNormal = trAttach.vecPlaneNormal;
+				vecAttachOrigin = trAttach.vecEndPos + vecNormal * 8;
+			}
+			else
+			{
+				vecAttachOrigin = pev->origin + vecNormal * 8;
+			}
 		}
 		else if (pOther)
 		{
 			vecNormal = (pev->origin - pOther->Center()).Normalize();
+			vecAttachOrigin = pev->origin + vecNormal * 8;
 		}
 
 		float flNormalLenSq = vecNormal.x * vecNormal.x + vecNormal.y * vecNormal.y + vecNormal.z * vecNormal.z;
 		if (flNormalLenSq < 0.01f)
 			vecNormal = Vector(0, 0, 1);
 
-		if (pOwner && DeployProxMineAt( pOwner, pev->origin + vecNormal * 8, vecNormal, TRUE ))
+		if (pOwner && DeployProxMineAt( pOwner, vecAttachOrigin, vecNormal, TRUE ))
 		{
 			BounceSound();
 			UTIL_Remove( this );
