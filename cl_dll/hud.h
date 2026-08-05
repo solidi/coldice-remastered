@@ -813,9 +813,10 @@ enum e_protips {
 	HGUN_TIP,
 	RAIL_TIP,
 	EGON_TIP,
+	CHAINGUN_TIP,
 };
 
-#define PROTIPS_AMT	31
+#define PROTIPS_AMT	32
 
 
 
