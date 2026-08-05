@@ -37,6 +37,9 @@ enum dual_chaingun_e
 	DUAL_CHAINGUN_RELOAD,
 };
 
+static const float DUAL_CHAINGUN_PREREV_BONUS_TIME = 5.0f;
+static const float DUAL_CHAINGUN_PREREV_IDLE_DELAY = 0.1f;
+
 #ifdef DUALCHAINGUN
 LINK_ENTITY_TO_CLASS( weapon_dual_chaingun, CDualChaingun );
 #endif
@@ -51,6 +54,11 @@ void CDualChaingun::Spawn( )
 
 	m_iDefaultAmmo = CHAINGUN_DEFAULT_GIVE * 2;
 	pev->dmg = gSkillData.plrDmg357;
+	m_iWeaponMode = DUAL_CHAINGUN_IDLE;
+	m_fFireMagnitude = 0;
+	m_flSmashStart = 0;
+	m_flNextSmashCharge = 0;
+	m_chargeReady = 0;
 
 	FallInit();
 }
@@ -98,22 +106,62 @@ int CDualChaingun::AddToPlayer( CBasePlayer *pPlayer )
 
 BOOL CDualChaingun::DeployLowKey( )
 {
+	m_iWeaponMode = DUAL_CHAINGUN_IDLE;
+	m_fFireMagnitude = 0;
+	m_flSmashStart = 0;
+	m_flNextSmashCharge = 0;
+	m_chargeReady = 0;
 	return DefaultDeploy( "models/v_dual_chaingun.mdl", "models/p_weapons.mdl", DUAL_CHAINGUN_DRAW_LOWKEY, "dual_egon", 0, 1 );
 }
 
 BOOL CDualChaingun::Deploy( )
 {
+	m_iWeaponMode = DUAL_CHAINGUN_IDLE;
+	m_fFireMagnitude = 0;
+	m_flSmashStart = 0;
+	m_flNextSmashCharge = 0;
+	m_chargeReady = 0;
 	return DefaultDeploy( "models/v_dual_chaingun.mdl", "models/p_weapons.mdl", DUAL_CHAINGUN_DRAW, "dual_egon", 0, 1 );
 }
 
 void CDualChaingun::Holster( int skiplocal )
 {
 	pev->nextthink = -1;
+	m_iWeaponMode = DUAL_CHAINGUN_IDLE;
+	m_fFireMagnitude = 0;
+	m_flSmashStart = 0;
+	m_flNextSmashCharge = 0;
+	m_chargeReady = 0;
 	CBasePlayerWeapon::DefaultHolster(DUAL_CHAINGUN_HOLSTER, 1);
 }
 
 void CDualChaingun::PrimaryAttack()
 {
+	const float flNow = gpGlobals->time;
+
+	if ( m_flSmashStart > 0 && !( m_pPlayer->pev->button & IN_RELOAD ) )
+	{
+		m_flSmashStart = 0;
+		m_chargeReady = 1;
+		m_flNextSmashCharge = flNow + DUAL_CHAINGUN_PREREV_BONUS_TIME;
+	}
+
+	if ( m_chargeReady && m_flNextSmashCharge <= flNow )
+	{
+		m_chargeReady = 0;
+		m_flNextSmashCharge = 0;
+
+		if ( m_iWeaponMode == DUAL_CHAINGUN_FIRE_BOTH )
+		{
+			SendWeaponAnim( DUAL_CHAINGUN_SPINDOWN, 1, 1 );
+			EMIT_SOUND_DYN(ENT(m_pPlayer->pev), CHAN_WEAPON, "chaingun_spindown.wav", RANDOM_FLOAT(0.92, 1.0), ATTN_NORM, 0, 98 + RANDOM_LONG(0,3));
+			m_iWeaponMode = DUAL_CHAINGUN_IDLE;
+			m_fFireMagnitude = 0;
+		}
+	}
+
+	BOOL bPreRevBonus = ( m_chargeReady && m_flNextSmashCharge > flNow );
+
 	if ( m_pPlayer->pev->waterlevel == 3 )
 	{
 		PlayEmptySound();
@@ -138,11 +186,16 @@ void CDualChaingun::PrimaryAttack()
 
 	if ( (m_iWeaponMode == DUAL_CHAINGUN_IDLE || m_iWeaponMode == DUAL_CHAINGUN_IDLE1) && m_iClip > 0 )
 	{
-		SendWeaponAnim( DUAL_CHAINGUN_SPINUP, 1, 1 );
-		EMIT_SOUND_DYN(ENT(m_pPlayer->pev), CHAN_WEAPON, "chaingun_spinup.wav", RANDOM_FLOAT(0.92, 1.0), ATTN_NORM, 0, 98 + RANDOM_LONG(0,3));
-		m_flNextPrimaryAttack = UTIL_WeaponTimeBase() + 0.4;
+		if ( !bPreRevBonus )
+		{
+			SendWeaponAnim( DUAL_CHAINGUN_SPINUP, 1, 1 );
+			EMIT_SOUND_DYN(ENT(m_pPlayer->pev), CHAN_WEAPON, "chaingun_spinup.wav", RANDOM_FLOAT(0.92, 1.0), ATTN_NORM, 0, 98 + RANDOM_LONG(0,3));
+			m_flNextPrimaryAttack = UTIL_WeaponTimeBase() + 0.4;
+			m_iWeaponMode = DUAL_CHAINGUN_FIRE_BOTH;
+			return;
+		}
+
 		m_iWeaponMode = DUAL_CHAINGUN_FIRE_BOTH;
-		return;
 	}
 
 	SlowDownPlayer();
@@ -154,7 +207,7 @@ void CDualChaingun::PrimaryAttack()
 		m_fFireMagnitude++;
 
 	if (m_iWeaponMode == DUAL_CHAINGUN_FIRE_BOTH && m_iClip > 0) {
-		Fire(VECTOR_CONE_3DEGREES.x, 1/(float) m_fFireMagnitude);
+		Fire( bPreRevBonus ? VECTOR_CONE_2DEGREES.x : VECTOR_CONE_5DEGREES.x, 1/(float) m_fFireMagnitude);
 	}
 }
 
@@ -254,26 +307,90 @@ void CDualChaingun::SlowDownPlayer()
 
 void CDualChaingun::Reload( void )
 {
-	if ( m_iClip < (CHAINGUN_MAX_CLIP * 2) )
+	const float flNow = UTIL_WeaponTimeBase();
+
+	if ( m_iClip < (CHAINGUN_MAX_CLIP * 2) && m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] > 0 )
 	{
+		m_flSmashStart = 0;
+		m_flNextSmashCharge = 0;
+		m_chargeReady = 0;
+		m_iWeaponMode = DUAL_CHAINGUN_IDLE;
+		m_fFireMagnitude = 0;
+
 		EMIT_SOUND_DYN(ENT(m_pPlayer->pev), CHAN_WEAPON, "chaingun_reload.wav", RANDOM_FLOAT(0.92, 1.0), ATTN_NORM, 0, 98 + RANDOM_LONG(0,3));	
 		DefaultReload( CHAINGUN_MAX_CLIP, DUAL_CHAINGUN_RELOAD, 2.5, 1 );
+		return;
 	}
+
+	if ( m_iClip <= 0 )
+		return;
+
+	if ( m_pPlayer->pev->waterlevel == 3 )
+	{
+		PlayEmptySound();
+		m_pPlayer->m_flNextAttack = m_flNextPrimaryAttack = m_flNextSecondaryAttack = flNow + 0.15f;
+		return;
+	}
+
+	if ( m_iWeaponMode == DUAL_CHAINGUN_IDLE || m_iWeaponMode == DUAL_CHAINGUN_IDLE1 )
+	{
+		SendWeaponAnim( DUAL_CHAINGUN_SPINUP, 1, 1 );
+		EMIT_SOUND_DYN(ENT(m_pPlayer->pev), CHAN_WEAPON, "chaingun_spinup.wav", RANDOM_FLOAT(0.92, 1.0), ATTN_NORM, 0, 98 + RANDOM_LONG(0,3));
+		m_iWeaponMode = DUAL_CHAINGUN_FIRE_BOTH;
+	}
+
+	if ( m_flSmashStart <= 0 )
+		m_flSmashStart = gpGlobals->time;
+
+	m_chargeReady = 0;
+	m_flNextSmashCharge = 0;
+
+	if (m_fFireMagnitude == 0)
+		m_fFireMagnitude = 4;
+
+	if (m_fFireMagnitude < 8)
+		m_fFireMagnitude++;
+
+	SlowDownPlayer();
+
+	m_pPlayer->m_flNextAttack = m_flNextPrimaryAttack = m_flNextSecondaryAttack = flNow;
+	m_flTimeWeaponIdle = flNow + DUAL_CHAINGUN_PREREV_IDLE_DELAY;
 }
 
 void CDualChaingun::WeaponIdle( void )
 {
 	m_pPlayer->GetAutoaimVector( AUTOAIM_10DEGREES );
+	const float flNow = UTIL_WeaponTimeBase();
+
+	if ( m_flSmashStart > 0 && !( m_pPlayer->pev->button & IN_RELOAD ) )
+	{
+		m_flSmashStart = 0;
+		m_chargeReady = 1;
+		m_flNextSmashCharge = gpGlobals->time + DUAL_CHAINGUN_PREREV_BONUS_TIME;
+	}
+
+	if ( m_chargeReady && m_flNextSmashCharge <= gpGlobals->time )
+	{
+		m_chargeReady = 0;
+		m_flNextSmashCharge = 0;
+	}
 
 	if (m_iWeaponMode == DUAL_CHAINGUN_FIRE_BOTH)
 	{
+		if ( m_flSmashStart > 0 || m_chargeReady )
+		{
+			m_flTimeWeaponIdle = flNow + DUAL_CHAINGUN_PREREV_IDLE_DELAY;
+			return;
+		}
+
 		SendWeaponAnim( DUAL_CHAINGUN_SPINDOWN, 1, 1 );
 		EMIT_SOUND_DYN(ENT(m_pPlayer->pev), CHAN_WEAPON, "chaingun_spindown.wav", RANDOM_FLOAT(0.92, 1.0), ATTN_NORM, 0, 98 + RANDOM_LONG(0,3));
 		m_iWeaponMode = DUAL_CHAINGUN_IDLE;
+		m_fFireMagnitude = 0;
 		return;
 	}
 	
-	if (m_flTimeWeaponIdle > UTIL_WeaponTimeBase())
+	if (m_flTimeWeaponIdle > flNow)
 		return;
 
 	if ( m_pPlayer->pev->button & IN_IRONSIGHT )

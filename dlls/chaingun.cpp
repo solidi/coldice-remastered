@@ -37,6 +37,9 @@ enum chaingun_e
 	CHAINGUN_RELOAD,
 };
 
+static const float CHAINGUN_PREREV_BONUS_TIME = 5.0f;
+static const float CHAINGUN_PREREV_IDLE_DELAY = 0.1f;
+
 #ifdef CHAINGUN
 LINK_ENTITY_TO_CLASS( weapon_chaingun, CChaingun );
 #endif
@@ -51,6 +54,11 @@ void CChaingun::Spawn( )
 
 	m_iDefaultAmmo = CHAINGUN_DEFAULT_GIVE;
 	pev->dmg = gSkillData.plrDmg357;
+	m_iWeaponMode = CHAINGUN_IDLE;
+	m_fFireMagnitude = 0;
+	m_flSmashStart = 0;
+	m_flNextSmashCharge = 0;
+	m_chargeReady = 0;
 
 	FallInit();
 }
@@ -98,22 +106,62 @@ int CChaingun::AddToPlayer( CBasePlayer *pPlayer )
 
 BOOL CChaingun::DeployLowKey( )
 {
+	m_iWeaponMode = CHAINGUN_IDLE;
+	m_fFireMagnitude = 0;
+	m_flSmashStart = 0;
+	m_flNextSmashCharge = 0;
+	m_chargeReady = 0;
 	return DefaultDeploy( "models/v_dual_chaingun.mdl", "models/p_weapons.mdl", CHAINGUN_DRAW_LOWKEY, "mp5" );
 }
 
 BOOL CChaingun::Deploy( )
 {
+	m_iWeaponMode = CHAINGUN_IDLE;
+	m_fFireMagnitude = 0;
+	m_flSmashStart = 0;
+	m_flNextSmashCharge = 0;
+	m_chargeReady = 0;
 	return DefaultDeploy( "models/v_dual_chaingun.mdl", "models/p_weapons.mdl", CHAINGUN_DRAW, "mp5" );
 }
 
 void CChaingun::Holster( int skiplocal )
 {
 	pev->nextthink = -1;
+	m_iWeaponMode = CHAINGUN_IDLE;
+	m_fFireMagnitude = 0;
+	m_flSmashStart = 0;
+	m_flNextSmashCharge = 0;
+	m_chargeReady = 0;
 	CBasePlayerWeapon::DefaultHolster(CHAINGUN_HOLSTER);
 }
 
 void CChaingun::PrimaryAttack()
 {
+	const float flNow = gpGlobals->time;
+
+	if ( m_flSmashStart > 0 && !( m_pPlayer->pev->button & IN_RELOAD ) )
+	{
+		m_flSmashStart = 0;
+		m_chargeReady = 1;
+		m_flNextSmashCharge = flNow + CHAINGUN_PREREV_BONUS_TIME;
+	}
+
+	if ( m_chargeReady && m_flNextSmashCharge <= flNow )
+	{
+		m_chargeReady = 0;
+		m_flNextSmashCharge = 0;
+
+		if ( m_iWeaponMode == CHAINGUN_FIRE )
+		{
+			SendWeaponAnim( CHAINGUN_SPINDOWN );
+			EMIT_SOUND_DYN(ENT(m_pPlayer->pev), CHAN_WEAPON, "chaingun_spindown.wav", RANDOM_FLOAT(0.92, 1.0), ATTN_NORM, 0, 98 + RANDOM_LONG(0,3));
+			m_iWeaponMode = CHAINGUN_IDLE;
+			m_fFireMagnitude = 0;
+		}
+	}
+
+	BOOL bPreRevBonus = ( m_chargeReady && m_flNextSmashCharge > flNow );
+
 	if ( m_pPlayer->pev->waterlevel == 3 )
 	{
 		PlayEmptySound();
@@ -138,11 +186,16 @@ void CChaingun::PrimaryAttack()
 
 	if ( m_iWeaponMode == CHAINGUN_IDLE && m_iClip > 0 )
 	{
-		SendWeaponAnim( CHAINGUN_SPINUP );
-		EMIT_SOUND_DYN(ENT(m_pPlayer->pev), CHAN_WEAPON, "chaingun_spinup.wav", RANDOM_FLOAT(0.92, 1.0), ATTN_NORM, 0, 98 + RANDOM_LONG(0,3));	
-		m_flNextPrimaryAttack = UTIL_WeaponTimeBase() + 0.4;
+		if ( !bPreRevBonus )
+		{
+			SendWeaponAnim( CHAINGUN_SPINUP );
+			EMIT_SOUND_DYN(ENT(m_pPlayer->pev), CHAN_WEAPON, "chaingun_spinup.wav", RANDOM_FLOAT(0.92, 1.0), ATTN_NORM, 0, 98 + RANDOM_LONG(0,3));
+			m_flNextPrimaryAttack = UTIL_WeaponTimeBase() + 0.4;
+			m_iWeaponMode = CHAINGUN_FIRE;
+			return;
+		}
+
 		m_iWeaponMode = CHAINGUN_FIRE;
-		return;
 	}
 
 	SlowDownPlayer();
@@ -154,7 +207,7 @@ void CChaingun::PrimaryAttack()
 		m_fFireMagnitude++;
 
 	if (m_iWeaponMode == CHAINGUN_FIRE && m_iClip > 0) {
-		Fire(VECTOR_CONE_3DEGREES.x, 1/(float) m_fFireMagnitude);
+		Fire( bPreRevBonus ? VECTOR_CONE_2DEGREES.x : VECTOR_CONE_5DEGREES.x, 1/(float) m_fFireMagnitude);
 	}
 }
 
@@ -258,26 +311,90 @@ void CChaingun::SlowDownPlayer()
 
 void CChaingun::Reload( void )
 {
-	if ( m_iClip < CHAINGUN_MAX_CLIP )
+	const float flNow = UTIL_WeaponTimeBase();
+
+	if ( m_iClip < CHAINGUN_MAX_CLIP && m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] > 0 )
 	{
+		m_flSmashStart = 0;
+		m_flNextSmashCharge = 0;
+		m_chargeReady = 0;
+		m_iWeaponMode = CHAINGUN_IDLE;
+		m_fFireMagnitude = 0;
+
 		EMIT_SOUND_DYN(ENT(m_pPlayer->pev), CHAN_WEAPON, "chaingun_reload.wav", RANDOM_FLOAT(0.92, 1.0), ATTN_NORM, 0, 98 + RANDOM_LONG(0,3));	
 		DefaultReload( CHAINGUN_MAX_CLIP, CHAINGUN_RELOAD, 2.5 );
+		return;
 	}
+
+	if ( m_iClip <= 0 )
+		return;
+
+	if ( m_pPlayer->pev->waterlevel == 3 )
+	{
+		PlayEmptySound();
+		m_pPlayer->m_flNextAttack = m_flNextPrimaryAttack = m_flNextSecondaryAttack = flNow + 0.15f;
+		return;
+	}
+
+	if ( m_iWeaponMode == CHAINGUN_IDLE )
+	{
+		SendWeaponAnim( CHAINGUN_SPINUP );
+		EMIT_SOUND_DYN(ENT(m_pPlayer->pev), CHAN_WEAPON, "chaingun_spinup.wav", RANDOM_FLOAT(0.92, 1.0), ATTN_NORM, 0, 98 + RANDOM_LONG(0,3));
+		m_iWeaponMode = CHAINGUN_FIRE;
+	}
+
+	if ( m_flSmashStart <= 0 )
+		m_flSmashStart = gpGlobals->time;
+
+	m_chargeReady = 0;
+	m_flNextSmashCharge = 0;
+
+	if (m_fFireMagnitude == 0)
+		m_fFireMagnitude = 4;
+
+	if (m_fFireMagnitude < 8)
+		m_fFireMagnitude++;
+
+	SlowDownPlayer();
+
+	m_pPlayer->m_flNextAttack = m_flNextPrimaryAttack = m_flNextSecondaryAttack = flNow;
+	m_flTimeWeaponIdle = flNow + CHAINGUN_PREREV_IDLE_DELAY;
 }
 
 void CChaingun::WeaponIdle( void )
 {
 	m_pPlayer->GetAutoaimVector( AUTOAIM_10DEGREES );
+	const float flNow = UTIL_WeaponTimeBase();
+
+	if ( m_flSmashStart > 0 && !( m_pPlayer->pev->button & IN_RELOAD ) )
+	{
+		m_flSmashStart = 0;
+		m_chargeReady = 1;
+		m_flNextSmashCharge = gpGlobals->time + CHAINGUN_PREREV_BONUS_TIME;
+	}
+
+	if ( m_chargeReady && m_flNextSmashCharge <= gpGlobals->time )
+	{
+		m_chargeReady = 0;
+		m_flNextSmashCharge = 0;
+	}
 
 	if (m_iWeaponMode == CHAINGUN_FIRE)
 	{
+		if ( m_flSmashStart > 0 || m_chargeReady )
+		{
+			m_flTimeWeaponIdle = flNow + CHAINGUN_PREREV_IDLE_DELAY;
+			return;
+		}
+
 		SendWeaponAnim( CHAINGUN_SPINDOWN );
 		EMIT_SOUND_DYN(ENT(m_pPlayer->pev), CHAN_WEAPON, "chaingun_spindown.wav", RANDOM_FLOAT(0.92, 1.0), ATTN_NORM, 0, 98 + RANDOM_LONG(0,3));
 		m_iWeaponMode = CHAINGUN_IDLE;
+		m_fFireMagnitude = 0;
 		return;
 	}
 	
-	if (m_flTimeWeaponIdle > UTIL_WeaponTimeBase())
+	if (m_flTimeWeaponIdle > flNow)
 		return;
 
 	if ( m_pPlayer->pev->button & IN_IRONSIGHT )
