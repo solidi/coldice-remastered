@@ -820,6 +820,7 @@ enum e_protips {
 	HGUN_TIP,
 	RAIL_TIP,
 	EGON_TIP,
+	CHAINGUN_TIP,
 };
 
 extern void ProTip(int id, const char *message);
@@ -951,6 +952,7 @@ void HUD_WeaponsPostThink( local_state_s *from, local_state_s *to, usercmd_t *cm
 
 		case WEAPON_CHAINGUN:
 			pWeapon = &g_Chaingun;
+			ProTip(CHAINGUN_TIP, "Hold RELOAD to pre-spin for better accuracy");
 			break;
 
 		case WEAPON_GLAUNCHER:
@@ -1062,6 +1064,7 @@ void HUD_WeaponsPostThink( local_state_s *from, local_state_s *to, usercmd_t *cm
 
 		case WEAPON_DUAL_CHAINGUN:
 			pWeapon = &g_DualChaingun;
+			ProTip(CHAINGUN_TIP, "Hold RELOAD to pre-spin for better accuracy");
 			break;
 
 		case WEAPON_DUAL_HORNETGUN:
