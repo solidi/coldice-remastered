@@ -24,6 +24,8 @@ void DeactivateSatchels( CBasePlayer *pOwner );
 void DeactivateItems( CBasePlayer *pOwner, const char *item );
 void DeactivatePortals( CBasePlayer *pOwner );
 void DeactivateDecoys( CBasePlayer *pOwner );
+BOOL DeployProxMine( CBasePlayer *pPlayer, BOOL bNuclear = FALSE );
+BOOL DeployProxMineAt( CBasePlayer *pPlayer, const Vector &vecOrigin, const Vector &vecSurfaceNormal, BOOL bNuclear = FALSE );
 
 // Contact Grenade / Timed grenade / Satchel Charge
 class CGrenade : public CBaseMonster
@@ -69,6 +71,8 @@ public:
 #define SF_GRENADE_DETONATE_CONTACT_LIVING 0x0002
 #define SF_GRENADE_CLUSTER_PAYLOAD         0x0004
 #define SF_GRENADE_FREEZE_PAYLOAD          0x0008
+#define SF_SATCHEL_NUKE_PACKAGE            0x0010
+#define SF_PROXMINE_NUCLEAR                0x0020
 
 
 // constant items
@@ -2082,6 +2086,7 @@ public:
 
 	virtual BOOL CanKick( void ) { return FALSE; }
 	virtual BOOL CanPunch( void ) { return FALSE; }
+	virtual BOOL AcceptReload( void ) { return TRUE; }
 
 private:
 	unsigned short m_usNuke;

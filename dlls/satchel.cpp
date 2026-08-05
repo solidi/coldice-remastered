@@ -117,11 +117,67 @@ void CSatchelCharge :: Spawn( void )
 
 void CSatchelCharge::SatchelSlide( CBaseEntity *pOther )
 {
-	entvars_t	*pevOther = pOther->pev;
-
 	// don't hit the guy that launched this grenade
 	if ( pOther->edict() == pev->owner )
 		return;
+
+#ifndef CLIENT_DLL
+	if ( FBitSet( pev->spawnflags, SF_SATCHEL_NUKE_PACKAGE ) )
+	{
+		CBasePlayer *pOwner = NULL;
+		if (pev->owner)
+		{
+			CBaseEntity *pOwnerEnt = CBaseEntity::Instance( pev->owner );
+			if (pOwnerEnt && pOwnerEnt->IsPlayer())
+				pOwner = (CBasePlayer *)pOwnerEnt;
+		}
+
+		Vector vecNormal = Vector(0, 0, 1);
+		Vector vecAttachOrigin = pev->origin;
+		if (pOther && pOther->IsBSPModel())
+		{
+			Vector vecVelDir = pev->velocity;
+			float flVelLen = vecVelDir.Length();
+			if (flVelLen > 1.0f)
+				vecVelDir = vecVelDir / flVelLen;
+			else
+				vecVelDir = Vector(0, 0, -1);
+
+			vecNormal = -vecVelDir;
+
+			TraceResult trAttach;
+			UTIL_TraceLine( pev->origin - vecVelDir * 8, pev->origin + vecVelDir * 24, ignore_monsters, edict(), &trAttach );
+			if (trAttach.flFraction < 1.0f)
+			{
+				vecNormal = trAttach.vecPlaneNormal;
+				vecAttachOrigin = trAttach.vecEndPos + vecNormal * 8;
+			}
+			else
+			{
+				vecAttachOrigin = pev->origin + vecNormal * 8;
+			}
+		}
+		else if (pOther)
+		{
+			vecNormal = (pev->origin - pOther->Center()).Normalize();
+			vecAttachOrigin = pev->origin + vecNormal * 8;
+		}
+
+		float flNormalLenSq = vecNormal.x * vecNormal.x + vecNormal.y * vecNormal.y + vecNormal.z * vecNormal.z;
+		if (flNormalLenSq < 0.01f)
+			vecNormal = Vector(0, 0, 1);
+
+		if (pOwner && DeployProxMineAt( pOwner, vecAttachOrigin, vecNormal, TRUE ))
+		{
+			BounceSound();
+			UTIL_Remove( this );
+			return;
+		}
+
+		UTIL_Remove( this );
+		return;
+	}
+#endif
 
 	// pev->avelocity = Vector (300, 300, 300);
 	pev->gravity = 1;// normal gravity now
@@ -172,7 +228,7 @@ void CSatchelCharge :: SatchelThink( void )
 		pev->velocity.z -= 8;
 	}
 
-	if ( !m_transformed && pev->velocity.Length() < 150 ) {
+	if ( !FBitSet( pev->spawnflags, SF_SATCHEL_NUKE_PACKAGE ) && !m_transformed && pev->velocity.Length() < 150 ) {
 		MESSAGE_BEGIN( MSG_PVS, SVC_TEMPENTITY, pev->origin );
 			WRITE_BYTE( TE_SMOKE );
 			WRITE_COORD( pev->origin.x );
@@ -646,7 +702,6 @@ void CSatchel::Reload( void )
 	if ( m_pPlayer->m_flNextAttack > UTIL_WeaponTimeBase() )
 		return;
 
-	extern BOOL DeployProxMine( CBasePlayer *pPlayer );
 	if ( DeployProxMine( m_pPlayer ) )
 	{
 		m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType]--;

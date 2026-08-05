@@ -393,35 +393,56 @@ void CNukeRocket::UpdateOnRemove( void )
 
 void CNuke::Reload( void )
 {
-	int iResult = 0;
+	if ( !(m_pPlayer->m_afButtonPressed & IN_RELOAD) )
+		return;
 
-	if ( m_iClip == 1 )
+#ifndef CLIENT_DLL
+	if (!nukemode.value)
 	{
-		// don't bother with any of this if don't need to reload.
+		Shart();
+		return;
+	}
+#endif
+
+	if ( m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] <= 0 )
+	{
+		PlayEmptySound();
+		m_flNextPrimaryAttack = m_flNextSecondaryAttack = GetNextAttackDelay(0.15);
+		m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 0.15;
 		return;
 	}
 
-	if ( m_pPlayer->ammo_rockets <= 0 )
+	m_pPlayer->m_iWeaponVolume = LOUD_GUN_VOLUME;
+	SendWeaponAnim( NUKE_RELOAD );
+	m_pPlayer->SetAnimation( PLAYER_ATTACK1 );
+	m_pPlayer->pev->punchangle = Vector( -4, -2, -4 );
+
+	Vector vecAiming = m_pPlayer->GetAutoaimVector( AUTOAIM_5DEGREES );
+	UTIL_MakeVectors( m_pPlayer->pev->v_angle );
+	Vector vecSrc = m_pPlayer->GetGunPosition() + gpGlobals->v_forward * 12 + gpGlobals->v_right * 8 + gpGlobals->v_up * -3;
+	Vector vecThrow = vecAiming * 460 + m_pPlayer->pev->velocity;
+
+#ifndef CLIENT_DLL
+	CBaseEntity *pPackage = Create( "monster_satchel", vecSrc, vecAiming, m_pPlayer->edict() );
+	if (!pPackage)
+	{
+		PlayEmptySound();
+		m_flNextPrimaryAttack = m_flNextSecondaryAttack = GetNextAttackDelay(0.15);
+		m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 0.15;
 		return;
+	}
 
-	// because the Nuke waits to autoreload when no missiles are active while  the LTD is on, the
-	// weapons code is constantly calling into this function, but is often denied because 
-	// a) missiles are in flight, but the LTD is on
-	// or
-	// b) player is totally out of ammo and has nothing to switch to, and should be allowed to
-	//    shine the designator around
-	//
-	// Set the next attack time into the future so that WeaponIdle will get called more often
-	// than reload, allowing the Nuke LTD to be updated
-	
-	m_flNextPrimaryAttack = GetNextAttackDelay(0.5);
+	pPackage->pev->spawnflags |= SF_SATCHEL_NUKE_PACKAGE;
+	pPackage->pev->velocity = vecThrow;
+	pPackage->pev->avelocity.y = RANDOM_LONG(180, 420);
 
-	//if ( m_iClip == 0 )
-	//	iResult = DefaultReload( NUKE_MAX_CLIP, NUKE_RELOAD, 2 );
-	
-	if ( iResult )
-		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + UTIL_SharedRandomFloat( m_pPlayer->random_seed, 10, 15 );
-	
+	EMIT_SOUND( ENT(m_pPlayer->pev), CHAN_WEAPON, "weapons/glauncher.wav", 1, ATTN_NORM );
+#endif
+
+	m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType]--;
+	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 1.0;
+	m_flNextPrimaryAttack = m_flNextSecondaryAttack = GetNextAttackDelay(1.0);
+	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 1.0;
 }
 
 void CNuke::Spawn( )
@@ -444,6 +465,7 @@ void CNuke::Precache( void )
 	PRECACHE_SOUND("items/9mmclip1.wav");
 
 	UTIL_PrecacheOther( "nuke_rocket" );
+	UTIL_PrecacheOther( "monster_satchel" );
 
 	PRECACHE_SOUND("weapons/rocketfire1.wav");
 	PRECACHE_SOUND("weapons/glauncher.wav"); // alternative fire sound

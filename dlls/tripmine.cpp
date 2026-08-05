@@ -525,9 +525,13 @@ void CTripmine::WeaponIdle( void )
 #define PROXMINE_ARM_TIME		2.5f
 #define PROXMINE_SCAN_RATE		0.15f
 #define PROXMINE_DETECT_RADIUS	200.0f
+#define PROXMINE_NUCLEAR_DETECT_RADIUS	220.0f
 #define PROXMINE_BLINK_RATE		0.5f
 
 LINK_ENTITY_TO_CLASS( monster_proxmine, CProxMine );
+
+static int g_iProxMineNukeExpSprite = 0;
+static int g_iProxMineNukeIceExpSprite = 0;
 
 TYPEDESCRIPTION	CProxMine::m_SaveData[] =
 {
@@ -549,9 +553,12 @@ void CProxMine::Precache( void )
 {
 	PRECACHE_MODEL( "models/w_satchel.mdl" );
 	PRECACHE_MODEL( "sprites/glow01.spr" );
+	g_iProxMineNukeExpSprite = PRECACHE_MODEL( "sprites/nuke2.spr" );
+	g_iProxMineNukeIceExpSprite = PRECACHE_MODEL( "sprites/ice_nuke2.spr" );
 	PRECACHE_SOUND( "weapons/mine_deploy.wav" );
 	PRECACHE_SOUND( "weapons/mine_charge.wav" );
 	PRECACHE_SOUND( "mine_activate.wav" );
+	PRECACHE_SOUND( "nuke_explosion.wav" );
 }
 
 void CProxMine::Spawn( void )
@@ -580,7 +587,10 @@ void CProxMine::Spawn( void )
 	pev->nextthink = gpGlobals->time + 0.2;
 
 	pev->takedamage = DAMAGE_YES;
-	pev->dmg = gSkillData.plrDmgTripmine;
+	if ( FBitSet( pev->spawnflags, SF_PROXMINE_NUCLEAR ) )
+		pev->dmg = gSkillData.plrDmgNuke;
+	else
+		pev->dmg = gSkillData.plrDmgTripmine;
 	pev->health = 1;
 
 	if (pev->owner != NULL)
@@ -663,12 +673,25 @@ void CProxMine::PowerupThink( void )
 		}
 		else
 		{
-			// no surface - remove
-			STOP_SOUND( ENT(pev), CHAN_VOICE, "weapons/mine_deploy.wav" );
-			STOP_SOUND( ENT(pev), CHAN_BODY, "weapons/mine_charge.wav" );
-			SetThink( &CProxMine::SUB_Remove );
-			pev->nextthink = gpGlobals->time + 0.1;
-			return;
+			TraceResult trReverse;
+			UTIL_TraceLine( pev->origin - m_vecDir * 8, pev->origin + m_vecDir * 32, dont_ignore_monsters, ENT(pev), &trReverse );
+			if (trReverse.flFraction < 1.0)
+			{
+				pev->owner = trReverse.pHit;
+				m_hOwner = CBaseEntity::Instance( pev->owner );
+				m_posOwner = m_hOwner->pev->origin;
+				m_angleOwner = m_hOwner->pev->angles;
+				m_vecDir = -m_vecDir;
+			}
+			else
+			{
+				// no surface - remove
+				STOP_SOUND( ENT(pev), CHAN_VOICE, "weapons/mine_deploy.wav" );
+				STOP_SOUND( ENT(pev), CHAN_BODY, "weapons/mine_charge.wav" );
+				SetThink( &CProxMine::SUB_Remove );
+				pev->nextthink = gpGlobals->time + 0.1;
+				return;
+			}
 		}
 	}
 	else if (m_posOwner != m_hOwner->pev->origin || m_angleOwner != m_hOwner->pev->angles)
@@ -702,6 +725,9 @@ void CProxMine::PowerupThink( void )
 
 void CProxMine::ProxThink( void )
 {
+	const BOOL bNuclear = FBitSet( pev->spawnflags, SF_PROXMINE_NUCLEAR );
+	const float flDetectRadius = bNuclear ? PROXMINE_NUCLEAR_DETECT_RADIUS : PROXMINE_DETECT_RADIUS;
+
 	// host moved? disarm.
 	if (m_hOwner != NULL && (m_posOwner != m_hOwner->pev->origin || m_angleOwner != m_hOwner->pev->angles))
 	{
@@ -728,7 +754,7 @@ void CProxMine::ProxThink( void )
 		m_flScanNext = gpGlobals->time + PROXMINE_SCAN_RATE;
 
 		CBaseEntity *pTarget = NULL;
-		while ((pTarget = UTIL_FindEntityInSphere( pTarget, pev->origin, PROXMINE_DETECT_RADIUS )) != NULL)
+		while ((pTarget = UTIL_FindEntityInSphere( pTarget, pev->origin, flDetectRadius )) != NULL)
 		{
 			if (pTarget->edict() == edict())
 				continue;
@@ -744,7 +770,7 @@ void CProxMine::ProxThink( void )
 			{
 				if (pTarget->edict() == m_pRealOwner)
 					continue;
-				if (pTarget->IsPlayer() && g_pGameRules)
+				if (!bNuclear && pTarget->IsPlayer() && g_pGameRules)
 				{
 					CBaseEntity *pOwnerEnt = CBaseEntity::Instance( m_pRealOwner );
 					if (pOwnerEnt && g_pGameRules->PlayerRelationship( pTarget, pOwnerEnt ) == GR_TEAMMATE)
@@ -800,6 +826,136 @@ void CProxMine::Killed( entvars_t *pevAttacker, int iGib )
 void CProxMine::DelayDeathThink( void )
 {
 	KillIndicator();
+
+	if ( FBitSet( pev->spawnflags, SF_PROXMINE_NUCLEAR ) )
+	{
+		entvars_t *pevOwner = m_pRealOwner ? VARS( m_pRealOwner ) : pev;
+
+		float flBlastHeight = pev->dmg * 3.0f;
+		if (flBlastHeight > 2048.0f)
+			flBlastHeight = 2048.0f;
+
+		UTIL_ScreenShake( pev->origin, 48.0, 300.0, 6.0, 0 );
+		EMIT_SOUND( ENT(pev), CHAN_VOICE, "nuke_explosion.wav", 1, 0.5 );
+
+		MESSAGE_BEGIN( MSG_PVS, SVC_TEMPENTITY );
+			WRITE_BYTE( TE_BEAMDISK );
+			WRITE_COORD( pev->origin.x );
+			WRITE_COORD( pev->origin.y );
+			WRITE_COORD( pev->origin.z + 32 );
+			WRITE_COORD( pev->origin.x );
+			WRITE_COORD( pev->origin.y );
+			WRITE_COORD( pev->origin.z + flBlastHeight );
+			WRITE_SHORT( g_sModelLightning );
+			WRITE_BYTE( 0 );
+			WRITE_BYTE( 0 );
+			WRITE_BYTE( 25 );
+			WRITE_BYTE( 100 );
+			WRITE_BYTE( 100 );
+			if (icesprites.value)
+			{
+				WRITE_BYTE( 0 );
+				WRITE_BYTE( 113 );
+				WRITE_BYTE( 230 );
+			}
+			else
+			{
+				WRITE_BYTE( 255 );
+				WRITE_BYTE( 160 );
+				WRITE_BYTE( 100 );
+			}
+			WRITE_BYTE( 255 );
+			WRITE_BYTE( 0 );
+		MESSAGE_END();
+
+		MESSAGE_BEGIN( MSG_PVS, SVC_TEMPENTITY );
+			WRITE_BYTE( TE_BEAMCYLINDER );
+			WRITE_COORD( pev->origin.x );
+			WRITE_COORD( pev->origin.y );
+			WRITE_COORD( pev->origin.z + 32 );
+			WRITE_COORD( pev->origin.x );
+			WRITE_COORD( pev->origin.y );
+			WRITE_COORD( pev->origin.z + flBlastHeight );
+			WRITE_SHORT( g_sModelLightning );
+			WRITE_BYTE( 0 );
+			WRITE_BYTE( 0 );
+			WRITE_BYTE( 25 );
+			WRITE_BYTE( 100 );
+			WRITE_BYTE( 100 );
+			if (icesprites.value)
+			{
+				WRITE_BYTE( 0 );
+				WRITE_BYTE( 113 );
+				WRITE_BYTE( 230 );
+			}
+			else
+			{
+				WRITE_BYTE( 255 );
+				WRITE_BYTE( 160 );
+				WRITE_BYTE( 100 );
+			}
+			WRITE_BYTE( 255 );
+			WRITE_BYTE( 0 );
+		MESSAGE_END();
+
+		MESSAGE_BEGIN( MSG_PAS, SVC_TEMPENTITY, pev->origin );
+			WRITE_BYTE( TE_EXPLOSION );
+			WRITE_COORD( pev->origin.x );
+			WRITE_COORD( pev->origin.y );
+			WRITE_COORD( pev->origin.z + 256 );
+			if (icesprites.value)
+				WRITE_SHORT( g_iProxMineNukeIceExpSprite );
+			else
+				WRITE_SHORT( g_iProxMineNukeExpSprite );
+			WRITE_BYTE( 50 );
+			WRITE_BYTE( 20 );
+			WRITE_BYTE( TE_EXPLFLAG_NONE );
+		MESSAGE_END();
+
+		edict_t *pEdict = g_engfuncs.pfnPEntityOfEntIndex( 1 );
+		CBaseEntity *pEntity;
+		extern entvars_t *g_pevLastInflictor;
+
+		for ( int i = 1; i < gpGlobals->maxEntities; i++, pEdict++ )
+		{
+			if (pEdict->free)
+				continue;
+
+			if (!(pEdict->v.flags & (FL_CLIENT | FL_MONSTER)))
+				continue;
+
+			if (m_pRealOwner && pEdict == m_pRealOwner)
+				continue;
+
+			pEntity = CBaseEntity::Instance( pEdict );
+			if (!pEntity)
+				continue;
+
+			if (pEntity->pev->takedamage == DAMAGE_NO || pEntity->pev->health <= 0)
+				continue;
+
+			// Match nuke global-kill behavior: respect godmode/spectator state and avoid teammate kills.
+			if (FBitSet( pEntity->pev->flags, FL_GODMODE ) || pEntity->pev->iuser1)
+				continue;
+
+			if (g_pGameRules && m_pRealOwner)
+			{
+				CBaseEntity *pOwnerEnt = CBaseEntity::Instance( m_pRealOwner );
+				if (pOwnerEnt && g_pGameRules->PlayerRelationship( pOwnerEnt, pEntity ) != GR_NOTTEAMMATE)
+					continue;
+			}
+
+			ClearMultiDamage();
+			g_pevLastInflictor = pev;
+			pEntity->TakeDamage( pev, pevOwner, 1, DMG_RADIATION );
+			pEntity->pev->health = 0;
+			pEntity->Killed( pevOwner, GIB_ALWAYS );
+		}
+
+		UTIL_Remove( this );
+		return;
+	}
+
 	TraceResult tr;
 	UTIL_TraceLine( pev->origin + m_vecDir * 8, pev->origin - m_vecDir * 64, dont_ignore_monsters, ENT(pev), &tr );
 	Explode( &tr, DMG_BLAST );
@@ -822,7 +978,38 @@ void CProxMine::DelayDeathThink( void )
 //    it from angles.
 //=========================================================
 #ifndef CLIENT_DLL
-BOOL DeployProxMine( CBasePlayer *pPlayer )
+BOOL DeployProxMineAt( CBasePlayer *pPlayer, const Vector &vecOrigin, const Vector &vecSurfaceNormal, BOOL bNuclear )
+{
+	if (!pPlayer)
+		return FALSE;
+
+	Vector vecNormal = vecSurfaceNormal;
+	float flNormalLenSq = vecNormal.x * vecNormal.x + vecNormal.y * vecNormal.y + vecNormal.z * vecNormal.z;
+	if (flNormalLenSq < 0.01f)
+		vecNormal = Vector(0, 0, 1);
+	else
+		vecNormal = vecNormal.Normalize();
+
+	Vector vecAngles = UTIL_VecToAngles( -vecNormal );
+
+	// Manual two-step Create so we can populate pev->movedir BEFORE Spawn().
+	edict_t *pent = CREATE_NAMED_ENTITY( MAKE_STRING("monster_proxmine") );
+	if (FNullEnt(pent))
+		return FALSE;
+
+	entvars_t *pevMine = VARS(pent);
+	pevMine->origin = vecOrigin;
+	pevMine->angles = vecAngles;
+	pevMine->owner = pPlayer->edict();
+	pevMine->movedir = vecNormal;
+	if (bNuclear)
+		pevMine->spawnflags |= SF_PROXMINE_NUCLEAR;
+
+	DispatchSpawn( pent );
+	return TRUE;
+}
+
+BOOL DeployProxMine( CBasePlayer *pPlayer, BOOL bNuclear )
 {
 	UTIL_MakeVectors( pPlayer->pev->v_angle + pPlayer->pev->punchangle );
 	Vector vecSrc = pPlayer->GetGunPosition();
@@ -843,33 +1030,7 @@ BOOL DeployProxMine( CBasePlayer *pPlayer )
 		return FALSE;
 
 	Vector vecOrigin = tr.vecEndPos + tr.vecPlaneNormal * 8;
-
-	// Orient so the satchel's *face* points outward on every surface.
-	// w_satchel.mdl's local +X is the satchel's BACK (the model stands
-	// upright facing -X by default). UTIL_VecToAngles makes local +X point
-	// along the supplied vector, so feeding -normal pushes the back INTO
-	// the surface and leaves the face pointing out:
-	//   floor  ( 0, 0, 1)  ->  -n=( 0, 0,-1)  pitch=+90, face points up
-	//   ceil   ( 0, 0,-1)  ->  -n=( 0, 0, 1)  pitch=-90, face points down
-	//   wall   (nx,ny, 0)  ->  yaw flipped 180, face points away from wall
-	// A simple +180 yaw fix-up doesn't work on the floor/ceiling cases
-	// because at pitch=±90 yaw is gimbal-locked and doesn't change which
-	// face is up.
-	Vector vecAngles = UTIL_VecToAngles( -tr.vecPlaneNormal );
-
-	// Manual two-step Create so we can populate pev->movedir BEFORE Spawn().
-	edict_t *pent = CREATE_NAMED_ENTITY( MAKE_STRING("monster_proxmine") );
-	if (FNullEnt(pent))
-		return FALSE;
-
-	entvars_t *pevMine = VARS(pent);
-	pevMine->origin = vecOrigin;
-	pevMine->angles = vecAngles;
-	pevMine->owner = pPlayer->edict();
-	pevMine->movedir = tr.vecPlaneNormal; // surface normal, read by Spawn()
-
-	DispatchSpawn( pent );
-	return TRUE;
+	return DeployProxMineAt( pPlayer, vecOrigin, tr.vecPlaneNormal, bNuclear );
 }
 #endif
 
