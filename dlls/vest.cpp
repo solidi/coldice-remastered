@@ -510,6 +510,32 @@ void CVest::SecondaryAttack()
 	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 2.0;
 }
 
+BOOL CVest::DisarmForEMP( void )
+{
+	if (!m_fProximityMode && !m_fDetonationStarted)
+		return FALSE;
+
+	SetProximityMode( FALSE );
+	m_fDetonationStarted = FALSE;
+	m_fAcceleratedDetonation = FALSE;
+	SetThink( NULL );
+	pev->nextthink = -1;
+
+#ifndef CLIENT_DLL
+	if (m_pPlayer && allowvoiceovers.value)
+		STOP_SOUND(ENT(m_pPlayer->pev), CHAN_VOICE, "vest_attack.wav");
+#endif
+
+	if (m_pPlayer)
+		m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 0.25f;
+
+	m_flNextPrimaryAttack = UTIL_WeaponTimeBase() + 0.25f;
+	m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 0.25f;
+	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 0.35f;
+
+	return TRUE;
+}
+
 void CVest::RetireThink( )
 {
 	SetProximityMode( FALSE );

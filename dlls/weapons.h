@@ -1111,12 +1111,15 @@ public:
 
 	void PrimaryAttack( void );
 	void SecondaryAttack( void );
+	void Reload( void );
 	void WeaponIdle( void );
 	
 	void StartFire( void );
 	void Fire( Vector vecOrigSrc, Vector vecDirShooting, float flDamage );
 	float GetFullChargeTime( void );
 	int m_iBeam;
+	int m_iEmpPulseSprite;
+	int m_iEmpPulseIceSprite;
 	int m_iSoundState; // don't save this
 
 	// was this weapon just fired primary or secondary?
@@ -1131,6 +1134,8 @@ public:
 		return FALSE;
 #endif
 	}
+
+	virtual BOOL AcceptReload( void ) { return TRUE; }
 
 private:
 	unsigned short m_usGaussFire;
@@ -1480,6 +1485,7 @@ public:
 	void EXPORT GoneThink( void );
 	void EXPORT ProximityThink( void );
 	void RetireThink( void );
+	BOOL DisarmForEMP( void );
 
 	void Holster( int skiplocal = 0 );
 	void WeaponIdle( void );

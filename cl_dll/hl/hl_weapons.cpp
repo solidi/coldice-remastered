@@ -821,6 +821,8 @@ enum e_protips {
 	RAIL_TIP,
 	EGON_TIP,
 	CHAINGUN_TIP,
+	NUKE_TIP,
+	GAUSS_TIP,
 };
 
 extern void ProTip(int id, const char *message);
@@ -884,6 +886,7 @@ void HUD_WeaponsPostThink( local_state_s *from, local_state_s *to, usercmd_t *cm
 
 		case WEAPON_GAUSS:
 			pWeapon = &g_Gauss;
+			ProTip(GAUSS_TIP, "Hold RELOAD to fire a disarming EMP blast");
 			break;
 
 		case WEAPON_EGON:
@@ -993,6 +996,7 @@ void HUD_WeaponsPostThink( local_state_s *from, local_state_s *to, usercmd_t *cm
 
 		case WEAPON_NUKE:
 			pWeapon = &g_Nuke;
+			ProTip(NUKE_TIP, "Use RELOAD button to place a nuclear proximity mine");
 			break;
 
 		case WEAPON_DEAGLE:
