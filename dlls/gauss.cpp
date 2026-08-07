@@ -34,6 +34,9 @@
 #define GAUSS_EMP_STATE_CHARGING	5
 #define GAUSS_EMP_MIN_RADIUS		96.0f
 #define GAUSS_EMP_MAX_RADIUS		512.0f
+#define GAUSS_EMP_START_COST		5
+#define GAUSS_EMP_AMMO_BURN_INTERVAL_MP	0.10f
+#define GAUSS_EMP_AMMO_BURN_INTERVAL_SP	0.30f
 #define GAUSS_EMP_RELEASE_COOLDOWN	0.65f
 #define GAUSS_EMP_FAIL_COOLDOWN	0.35f
 
@@ -62,6 +65,17 @@ static float GaussEmpChargeFrac( float flChargeDuration, float flChargeTimeToMax
 		flChargeFrac = 1.0f;
 
 	return flChargeFrac;
+}
+
+static float GaussEmpRadiusForCharge( float flChargeDuration, float flChargeTimeToMax )
+{
+	float flRadius = GAUSS_EMP_MIN_RADIUS + ((GAUSS_EMP_MAX_RADIUS - GAUSS_EMP_MIN_RADIUS) * GaussEmpChargeFrac( flChargeDuration, flChargeTimeToMax ));
+	if (flRadius < GAUSS_EMP_MIN_RADIUS)
+		flRadius = GAUSS_EMP_MIN_RADIUS;
+	else if (flRadius > GAUSS_EMP_MAX_RADIUS)
+		flRadius = GAUSS_EMP_MAX_RADIUS;
+
+	return flRadius;
 }
 
 #ifndef CLIENT_DLL
@@ -101,6 +115,8 @@ static void GaussEmpPulseFx( CBasePlayer *pPlayer, float flRadius, int iWarmPuls
 	if (!pPlayer)
 		return;
 
+	const float flRingRadius = (flRadius < GAUSS_EMP_MIN_RADIUS) ? GAUSS_EMP_MIN_RADIUS : ((flRadius > GAUSS_EMP_MAX_RADIUS) ? GAUSS_EMP_MAX_RADIUS : flRadius);
+
 	const BOOL bIce = (icesprites.value != 0.0f);
 	const int iSprite = bIce ? iIcePulseSprite : iWarmPulseSprite;
 	const int iColorR = bIce ? 0 : 255;
@@ -110,10 +126,6 @@ static void GaussEmpPulseFx( CBasePlayer *pPlayer, float flRadius, int iWarmPuls
 	Vector vecCenter = pPlayer->pev->origin;
 	vecCenter.z += 32;
 
-	float flRadiusHeight = flRadius;
-	if (flRadiusHeight < 64.0f)
-		flRadiusHeight = 64.0f;
-
 	MESSAGE_BEGIN( MSG_PVS, SVC_TEMPENTITY, vecCenter );
 		WRITE_BYTE( TE_BEAMDISK );
 		WRITE_COORD( vecCenter.x );
@@ -121,7 +133,7 @@ static void GaussEmpPulseFx( CBasePlayer *pPlayer, float flRadius, int iWarmPuls
 		WRITE_COORD( vecCenter.z );
 		WRITE_COORD( vecCenter.x );
 		WRITE_COORD( vecCenter.y );
-		WRITE_COORD( vecCenter.z + flRadiusHeight );
+		WRITE_COORD( vecCenter.z + flRingRadius );
 		WRITE_SHORT( g_sModelLightning );
 		WRITE_BYTE( 0 );
 		WRITE_BYTE( 0 );
@@ -142,7 +154,7 @@ static void GaussEmpPulseFx( CBasePlayer *pPlayer, float flRadius, int iWarmPuls
 		WRITE_COORD( vecCenter.z );
 		WRITE_COORD( vecCenter.x );
 		WRITE_COORD( vecCenter.y );
-		WRITE_COORD( vecCenter.z + flRadiusHeight );
+		WRITE_COORD( vecCenter.z + flRingRadius );
 		WRITE_SHORT( g_sModelLightning );
 		WRITE_BYTE( 0 );
 		WRITE_BYTE( 0 );
@@ -158,7 +170,7 @@ static void GaussEmpPulseFx( CBasePlayer *pPlayer, float flRadius, int iWarmPuls
 
 	if (iSprite > 0)
 	{
-		int iScale = (int)(flRadius * 0.08f);
+		int iScale = (int)(flRingRadius * 0.08f);
 		if (iScale < 16)
 			iScale = 16;
 		if (iScale > 64)
@@ -570,6 +582,12 @@ void CGauss::Reload( void )
 	if (m_fInAttack > 0 && m_fInAttack < GAUSS_EMP_STATE_SPINUP)
 		return;
 
+#ifdef CLIENT_DLL
+	const float flEmpBurnInterval = bIsMultiplayer() ? GAUSS_EMP_AMMO_BURN_INTERVAL_MP : GAUSS_EMP_AMMO_BURN_INTERVAL_SP;
+#else
+	const float flEmpBurnInterval = g_pGameRules->IsMultiplayer() ? GAUSS_EMP_AMMO_BURN_INTERVAL_MP : GAUSS_EMP_AMMO_BURN_INTERVAL_SP;
+#endif
+
 	if (m_pPlayer->pev->waterlevel == 3)
 	{
 		if (m_fInAttack >= GAUSS_EMP_STATE_SPINUP)
@@ -592,6 +610,18 @@ void CGauss::Reload( void )
 
 	if (m_fInAttack == 0)
 	{
+		if (m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] < GAUSS_EMP_START_COST)
+		{
+			EMIT_SOUND(ENT(m_pPlayer->pev), CHAN_WEAPON, "weapons/357_cock1.wav", 0.8, ATTN_NORM);
+			m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + GAUSS_EMP_FAIL_COOLDOWN;
+			m_flNextPrimaryAttack = m_flNextSecondaryAttack = GetNextAttackDelay( GAUSS_EMP_FAIL_COOLDOWN );
+			m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + GAUSS_EMP_FAIL_COOLDOWN;
+			return;
+		}
+
+		m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] -= GAUSS_EMP_START_COST;
+		m_pPlayer->m_flNextAmmoBurn = UTIL_WeaponTimeBase() + flEmpBurnInterval;
+
 		m_fPrimaryFire = FALSE;
 		m_fInAttack = GAUSS_EMP_STATE_SPINUP;
 		m_flStartThrow = gpGlobals->time;
@@ -616,6 +646,15 @@ void CGauss::Reload( void )
 
 	if (m_fInAttack >= GAUSS_EMP_STATE_SPINUP)
 	{
+		if (UTIL_WeaponTimeBase() >= m_pPlayer->m_flNextAmmoBurn)
+		{
+			if (m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] > 0)
+			{
+				m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType]--;
+			}
+			m_pPlayer->m_flNextAmmoBurn = UTIL_WeaponTimeBase() + flEmpBurnInterval;
+		}
+
 		float flChargeDuration = gpGlobals->time - m_flStartThrow;
 		float flChargeFrac = GaussEmpChargeFrac( flChargeDuration, GetFullChargeTime() );
 
@@ -893,9 +932,7 @@ void CGauss::WeaponIdle( void )
 
 	if (m_fInAttack >= GAUSS_EMP_STATE_SPINUP)
 	{
-		float flChargeDuration = gpGlobals->time - m_flStartThrow;
-		float flChargeFrac = GaussEmpChargeFrac( flChargeDuration, GetFullChargeTime() );
-		float flRadius = GAUSS_EMP_MIN_RADIUS + ((GAUSS_EMP_MAX_RADIUS - GAUSS_EMP_MIN_RADIUS) * flChargeFrac);
+		const float flRadius = GaussEmpRadiusForCharge( gpGlobals->time - m_flStartThrow, GetFullChargeTime() );
 
 		PLAYBACK_EVENT_FULL( FEV_NOTHOST | FEV_RELIABLE, m_pPlayer->edict(), m_usGaussFire, 0.01, (float *)&m_pPlayer->pev->origin, (float *)&m_pPlayer->pev->angles, 0.0, 0.0, 0, 0, 0, 1 );
 		SendWeaponAnim( GAUSS_FIRE2 );
