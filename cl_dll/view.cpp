@@ -58,6 +58,7 @@ void V_SmoothInterpolateAngles(float* startAngle, float* endAngle, float* finalA
 
 #include "r_studioint.h"
 #include "com_model.h"
+#include "studio.h"
 #include "kbutton.h"
 
 extern engine_studio_api_t IEngineStudio;
@@ -542,6 +543,19 @@ V_CalcRefdef
 static float lastFovSights = -1;
 static float defaultFovSights = 0;
 
+static bool ViewModelHasIronSightAttachments(model_t *model)
+{
+	if (!model)
+		return false;
+
+	studiohdr_t *studioHeader = static_cast<studiohdr_t *>(IEngineStudio.Mod_Extradata(model));
+	if (!studioHeader)
+		return false;
+
+	// Ironsight uses attachment 1 for position and attachment 2 for angle offsets.
+	return studioHeader->numattachments >= 3;
+}
+
 void V_CalcNormalRefdef ( struct ref_params_s *pparams )
 {
 	static Vector vecLerpedYaw;
@@ -795,7 +809,7 @@ void V_CalcNormalRefdef ( struct ref_params_s *pparams )
 	if (view->model != NULL) {
 		Vector position = view->model->aim_punch, angles = view->model->aim_angles;
 
-		if (Length(position) > 1) {
+		if (ViewModelHasIronSightAttachments(view->model) && Length(position) > 1) {
 			V_IronSight(position, angles, pparams->time, pparams->frametime, view, pparams->forward, pparams->up, pparams->right);
 		}
 		else
