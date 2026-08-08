@@ -2030,8 +2030,8 @@ void PM_Duck( void )
 		pmove->oldbuttons &= ~IN_DUCK;
 	}
 
-	// Prevent ducking if the iuser3 variable is set
-	if ( pmove->iuser3 || pmove->dead )
+	// Prevent ducking while limbo menu mode is active (iuser3 > 0)
+	if ( pmove->iuser3 > 0 || pmove->dead )
 	{
 		// Try to unduck
 		if ( pmove->flags & FL_DUCKING )
