@@ -1099,7 +1099,7 @@ void CProxMine::DrugCloudThink( void )
 			if (tr.flFraction < 1.0f && tr.pHit != pTarget->edict())
 				continue;
 
-			pTarget->TakeDamage( pev, pevOwner, PROXMINE_DRUG_TICK_DAMAGE, DMG_POISON | DMG_CONFUSE | DMG_NEVERGIB );
+			pTarget->TakeDamage( pev, pevOwner, pev->dmg, DMG_POISON | DMG_CONFUSE | DMG_NEVERGIB );
 		}
 	}
 
