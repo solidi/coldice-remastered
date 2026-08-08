@@ -1819,9 +1819,9 @@ void ClientCommand( edict_t *pEntity )
 	}
 	else if (FStrEq(pcmd, "auto_join" ))
 	{
-		if ( pev->iuser3 > 0 )
+		CBasePlayer * pPlayer = GetClassPtr((CBasePlayer *)pev);
+		if ( pev->iuser3 > 0 || pPlayer->IsObserver() || pPlayer->IsSpectator() )
 		{
-			CBasePlayer * pPlayer = GetClassPtr((CBasePlayer *)pev);
 			pPlayer->m_bWantsToPlay = TRUE;	// commit to play
 			pPlayer->m_iObserverWeapon = OBS_MENU_3;
 			// In round-based modes the gamerules CheckClients/InsertClientsIntoArena will
@@ -1847,9 +1847,9 @@ void ClientCommand( edict_t *pEntity )
 	{
 		if ( g_pGameRules->IsCtF() || g_pGameRules->IsColdSpot() || g_pGameRules->IsKickTheSnowball() )
 		{
-			if (pev->iuser3 > 0)
+			CBasePlayer * pPlayer = GetClassPtr((CBasePlayer *)pev);
+			if (pev->iuser3 > 0 || pPlayer->IsObserver() || pPlayer->IsSpectator())
 			{
-				CBasePlayer * pPlayer = GetClassPtr((CBasePlayer *)pev);
 				pPlayer->m_iObserverWeapon = OBS_MENU_1;
 				pPlayer->ExitObserver();
 			}
@@ -1863,9 +1863,9 @@ void ClientCommand( edict_t *pEntity )
 	{
 		if ( g_pGameRules->IsCtF() || g_pGameRules->IsColdSpot() || g_pGameRules->IsKickTheSnowball() )
 		{
-			if (pev->iuser3 > 0)
+			CBasePlayer * pPlayer = GetClassPtr((CBasePlayer *)pev);
+			if (pev->iuser3 > 0 || pPlayer->IsObserver() || pPlayer->IsSpectator())
 			{
-				CBasePlayer * pPlayer = GetClassPtr((CBasePlayer *)pev);
 				pPlayer->m_iObserverWeapon = OBS_MENU_2;
 				pPlayer->ExitObserver();
 			}
