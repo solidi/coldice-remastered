@@ -49,6 +49,9 @@ void CVice::Precache( void )
 	PRECACHE_MODEL("models/v_vice.mdl");
 	PRECACHE_SOUND("drinking.wav");
 	PRECACHE_SOUND("smoking.wav");
+	PRECACHE_SOUND("fists_miss.wav");
+
+	UTIL_PrecacheOther( "monster_satchel" );
 
 	m_usVice = PRECACHE_EVENT ( 1, "events/vice.sc" );
 }
@@ -112,6 +115,49 @@ void CVice::SecondaryAttack()
 	pev->nextthink = gpGlobals->time + 2.0;
 	m_flNextPrimaryAttack = m_flNextSecondaryAttack = GetNextAttackDelay(4.0);
 
+}
+
+void CVice::Reload()
+{
+	if ( !(m_pPlayer->m_afButtonPressed & IN_RELOAD) )
+		return;
+
+	SendWeaponAnim( VICE_DRINK );
+	m_pPlayer->SetAnimation( PLAYER_ATTACK1 );
+	m_pPlayer->pev->punchangle = Vector( -3, -2, -2 );
+
+	Vector vecAiming = m_pPlayer->GetAutoaimVector( AUTOAIM_5DEGREES );
+	UTIL_MakeVectors( m_pPlayer->pev->v_angle );
+	Vector vecSrc = m_pPlayer->GetGunPosition() + gpGlobals->v_forward * 12 + gpGlobals->v_right * 6;
+	Vector vecThrow = vecAiming * 280 + m_pPlayer->pev->velocity;
+
+	BOOL bThrown = FALSE;
+#ifndef CLIENT_DLL
+	CBaseEntity *pPackage = Create( "monster_satchel", vecSrc, vecAiming, m_pPlayer->edict() );
+	if (pPackage)
+	{
+		pPackage->pev->spawnflags |= SF_SATCHEL_DRUG_PACKAGE;
+		pPackage->pev->velocity = vecThrow;
+		pPackage->pev->avelocity.y = RANDOM_LONG(140, 280);
+		bThrown = TRUE;
+	}
+
+	EMIT_SOUND( ENT(m_pPlayer->pev), CHAN_WEAPON, "fists_miss.wav", 1, ATTN_NORM );
+#endif
+
+	m_flNextPrimaryAttack = m_flNextSecondaryAttack = GetNextAttackDelay(1.0);
+	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 1.0;
+	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 1.0;
+
+	#ifndef CLIENT_DLL
+	if (bThrown)
+	{
+		m_pPlayer->m_iWeapons2 &= ~(1<<(WEAPON_VICE - 32));
+		RetireWeapon();
+		SetThink( &CVice::DestroyItem );
+		pev->nextthink = gpGlobals->time + 0.1;
+	}
+	#endif
 }
 
 void CVice::ReduceHealth()

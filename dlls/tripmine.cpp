@@ -526,12 +526,18 @@ void CTripmine::WeaponIdle( void )
 #define PROXMINE_SCAN_RATE		0.15f
 #define PROXMINE_DETECT_RADIUS	200.0f
 #define PROXMINE_NUCLEAR_DETECT_RADIUS	220.0f
+#define PROXMINE_DRUG_DETECT_RADIUS	160.0f
 #define PROXMINE_BLINK_RATE		0.5f
+#define PROXMINE_DRUG_RADIUS	150.0f
+#define PROXMINE_DRUG_DURATION	1.5f
+#define PROXMINE_DRUG_TICK_INTERVAL	0.25f
+#define PROXMINE_DRUG_TICK_DAMAGE	6.0f
 
 LINK_ENTITY_TO_CLASS( monster_proxmine, CProxMine );
 
 static int g_iProxMineNukeExpSprite = 0;
 static int g_iProxMineNukeIceExpSprite = 0;
+static int g_iProxMineDrugSprite = 0;
 
 TYPEDESCRIPTION	CProxMine::m_SaveData[] =
 {
@@ -545,6 +551,8 @@ TYPEDESCRIPTION	CProxMine::m_SaveData[] =
 	DEFINE_FIELD( CProxMine, m_flBlinkNext, FIELD_TIME ),
 	DEFINE_FIELD( CProxMine, m_iBlinkOn, FIELD_INTEGER ),
 	DEFINE_FIELD( CProxMine, m_flScanNext, FIELD_TIME ),
+	DEFINE_FIELD( CProxMine, m_flDrugCloudEnd, FIELD_TIME ),
+	DEFINE_FIELD( CProxMine, m_flDrugNextTick, FIELD_TIME ),
 };
 
 IMPLEMENT_SAVERESTORE( CProxMine, CGrenade );
@@ -553,6 +561,7 @@ void CProxMine::Precache( void )
 {
 	PRECACHE_MODEL( "models/w_satchel.mdl" );
 	PRECACHE_MODEL( "sprites/glow01.spr" );
+	g_iProxMineDrugSprite = PRECACHE_MODEL( "sprites/animglow01.spr" );
 	g_iProxMineNukeExpSprite = PRECACHE_MODEL( "sprites/nuke2.spr" );
 	g_iProxMineNukeIceExpSprite = PRECACHE_MODEL( "sprites/ice_nuke2.spr" );
 	PRECACHE_SOUND( "weapons/mine_deploy.wav" );
@@ -581,6 +590,8 @@ void CProxMine::Spawn( void )
 	m_flBlinkNext = 0;
 	m_iBlinkOn = 0;
 	m_flScanNext = 0;
+	m_flDrugCloudEnd = 0;
+	m_flDrugNextTick = 0;
 	m_pIndicator = NULL;
 
 	SetThink( &CProxMine::PowerupThink );
@@ -589,6 +600,8 @@ void CProxMine::Spawn( void )
 	pev->takedamage = DAMAGE_YES;
 	if ( FBitSet( pev->spawnflags, SF_PROXMINE_NUCLEAR ) )
 		pev->dmg = gSkillData.plrDmgNuke;
+	else if ( FBitSet( pev->spawnflags, SF_PROXMINE_DRUG ) )
+		pev->dmg = PROXMINE_DRUG_TICK_DAMAGE;
 	else
 		pev->dmg = gSkillData.plrDmgTripmine;
 	pev->health = 1;
@@ -633,7 +646,23 @@ void CProxMine::MakeIndicator( void )
 	m_pIndicator = CSprite::SpriteCreate( "sprites/glow01.spr", vecSpot, FALSE );
 	if (m_pIndicator)
 	{
-		m_pIndicator->SetTransparency( kRenderGlow, 255, 32, 32, 220, kRenderFxNoDissipation );
+		int r = 255;
+		int g = 32;
+		int b = 32;
+		if ( FBitSet( pev->spawnflags, SF_PROXMINE_NUCLEAR ) )
+		{
+			r = 0;
+			g = 113;
+			b = 230;
+		}
+		else if ( FBitSet( pev->spawnflags, SF_PROXMINE_DRUG ) )
+		{
+			r = 32;
+			g = 255;
+			b = 64;
+		}
+
+		m_pIndicator->SetTransparency( kRenderGlow, r, g, b, 220, kRenderFxNoDissipation );
 		m_pIndicator->SetScale( 0.4 );
 	}
 }
@@ -726,7 +755,8 @@ void CProxMine::PowerupThink( void )
 void CProxMine::ProxThink( void )
 {
 	const BOOL bNuclear = FBitSet( pev->spawnflags, SF_PROXMINE_NUCLEAR );
-	const float flDetectRadius = bNuclear ? PROXMINE_NUCLEAR_DETECT_RADIUS : PROXMINE_DETECT_RADIUS;
+	const BOOL bDrug = FBitSet( pev->spawnflags, SF_PROXMINE_DRUG );
+	const float flDetectRadius = bNuclear ? PROXMINE_NUCLEAR_DETECT_RADIUS : (bDrug ? PROXMINE_DRUG_DETECT_RADIUS : PROXMINE_DETECT_RADIUS);
 
 	// host moved? disarm.
 	if (m_hOwner != NULL && (m_posOwner != m_hOwner->pev->origin || m_angleOwner != m_hOwner->pev->angles))
@@ -826,6 +856,7 @@ void CProxMine::Killed( entvars_t *pevAttacker, int iGib )
 void CProxMine::DelayDeathThink( void )
 {
 	KillIndicator();
+	const BOOL bDrug = FBitSet( pev->spawnflags, SF_PROXMINE_DRUG );
 
 	if ( FBitSet( pev->spawnflags, SF_PROXMINE_NUCLEAR ) )
 	{
@@ -956,9 +987,123 @@ void CProxMine::DelayDeathThink( void )
 		return;
 	}
 
+	if ( bDrug )
+	{
+		int r = 32;
+		int g = 255;
+		int b = 64;
+		if (icesprites.value)
+		{
+			r = 0;
+			g = 113;
+			b = 230;
+		}
+
+		MESSAGE_BEGIN( MSG_PVS, SVC_TEMPENTITY );
+			WRITE_BYTE( TE_BEAMCYLINDER );
+			WRITE_COORD( pev->origin.x );
+			WRITE_COORD( pev->origin.y );
+			WRITE_COORD( pev->origin.z + 12 );
+			WRITE_COORD( pev->origin.x );
+			WRITE_COORD( pev->origin.y );
+			WRITE_COORD( pev->origin.z + PROXMINE_DRUG_RADIUS );
+			WRITE_SHORT( g_sModelLightning );
+			WRITE_BYTE( 0 );
+			WRITE_BYTE( 0 );
+			WRITE_BYTE( 10 );
+			WRITE_BYTE( 20 );
+			WRITE_BYTE( 8 );
+			WRITE_BYTE( r );
+			WRITE_BYTE( g );
+			WRITE_BYTE( b );
+			WRITE_BYTE( 200 );
+			WRITE_BYTE( 0 );
+		MESSAGE_END();
+
+		MESSAGE_BEGIN( MSG_PVS, SVC_TEMPENTITY );
+			WRITE_BYTE( TE_DLIGHT );
+			WRITE_COORD( pev->origin.x );
+			WRITE_COORD( pev->origin.y );
+			WRITE_COORD( pev->origin.z + 8 );
+			WRITE_BYTE( 16 );
+			WRITE_BYTE( r );
+			WRITE_BYTE( g );
+			WRITE_BYTE( b );
+			WRITE_BYTE( 6 );
+			WRITE_BYTE( 64 );
+		MESSAGE_END();
+
+		MESSAGE_BEGIN( MSG_PVS, SVC_TEMPENTITY );
+			WRITE_BYTE( TE_SPRITE );
+			WRITE_COORD( pev->origin.x );
+			WRITE_COORD( pev->origin.y );
+			WRITE_COORD( pev->origin.z + 8 );
+			WRITE_SHORT( g_iProxMineDrugSprite );
+			WRITE_BYTE( 8 );
+			WRITE_BYTE( 200 );
+		MESSAGE_END();
+
+		pev->solid = SOLID_NOT;
+		pev->effects |= EF_NODRAW;
+		m_flDrugCloudEnd = gpGlobals->time + PROXMINE_DRUG_DURATION;
+		m_flDrugNextTick = gpGlobals->time;
+		SetThink( &CProxMine::DrugCloudThink );
+		pev->nextthink = gpGlobals->time + 0.05;
+		return;
+	}
+
 	TraceResult tr;
 	UTIL_TraceLine( pev->origin + m_vecDir * 8, pev->origin - m_vecDir * 64, dont_ignore_monsters, ENT(pev), &tr );
 	Explode( &tr, DMG_BLAST );
+}
+
+void CProxMine::DrugCloudThink( void )
+{
+	if (gpGlobals->time >= m_flDrugCloudEnd)
+	{
+		UTIL_Remove( this );
+		return;
+	}
+
+	if (gpGlobals->time >= m_flDrugNextTick)
+	{
+		m_flDrugNextTick = gpGlobals->time + PROXMINE_DRUG_TICK_INTERVAL;
+
+		entvars_t *pevOwner = m_pRealOwner ? VARS( m_pRealOwner ) : pev;
+		CBaseEntity *pTarget = NULL;
+		while ((pTarget = UTIL_FindEntityInSphere( pTarget, pev->origin, PROXMINE_DRUG_RADIUS )) != NULL)
+		{
+			if (pTarget->edict() == edict())
+				continue;
+			if (!pTarget->pev->takedamage || pTarget->pev->takedamage == DAMAGE_NO)
+				continue;
+			if (pTarget->pev->health <= 0)
+				continue;
+			if (!pTarget->IsPlayer() && !(pTarget->pev->flags & FL_MONSTER))
+				continue;
+
+			if (m_pRealOwner)
+			{
+				if (pTarget->edict() == m_pRealOwner)
+					continue;
+				if (pTarget->IsPlayer() && g_pGameRules)
+				{
+					CBaseEntity *pOwnerEnt = CBaseEntity::Instance( m_pRealOwner );
+					if (pOwnerEnt && g_pGameRules->PlayerRelationship( pTarget, pOwnerEnt ) == GR_TEAMMATE)
+						continue;
+				}
+			}
+
+			TraceResult tr;
+			UTIL_TraceLine( pev->origin, pTarget->Center(), dont_ignore_monsters, ENT(pev), &tr );
+			if (tr.flFraction < 1.0f && tr.pHit != pTarget->edict())
+				continue;
+
+			pTarget->TakeDamage( pev, pevOwner, PROXMINE_DRUG_TICK_DAMAGE, DMG_POISON | DMG_CONFUSE | DMG_NEVERGIB );
+		}
+	}
+
+	pev->nextthink = gpGlobals->time + 0.05;
 }
 
 #endif // !CLIENT_DLL
@@ -978,7 +1123,7 @@ void CProxMine::DelayDeathThink( void )
 //    it from angles.
 //=========================================================
 #ifndef CLIENT_DLL
-BOOL DeployProxMineAt( CBasePlayer *pPlayer, const Vector &vecOrigin, const Vector &vecSurfaceNormal, BOOL bNuclear )
+BOOL DeployProxMineAt( CBasePlayer *pPlayer, const Vector &vecOrigin, const Vector &vecSurfaceNormal, BOOL bNuclear, BOOL bDrug )
 {
 	if (!pPlayer)
 		return FALSE;
@@ -1004,12 +1149,14 @@ BOOL DeployProxMineAt( CBasePlayer *pPlayer, const Vector &vecOrigin, const Vect
 	pevMine->movedir = vecNormal;
 	if (bNuclear)
 		pevMine->spawnflags |= SF_PROXMINE_NUCLEAR;
+	if (bDrug)
+		pevMine->spawnflags |= SF_PROXMINE_DRUG;
 
 	DispatchSpawn( pent );
 	return TRUE;
 }
 
-BOOL DeployProxMine( CBasePlayer *pPlayer, BOOL bNuclear )
+BOOL DeployProxMine( CBasePlayer *pPlayer, BOOL bNuclear, BOOL bDrug )
 {
 	UTIL_MakeVectors( pPlayer->pev->v_angle + pPlayer->pev->punchangle );
 	Vector vecSrc = pPlayer->GetGunPosition();
@@ -1030,7 +1177,7 @@ BOOL DeployProxMine( CBasePlayer *pPlayer, BOOL bNuclear )
 		return FALSE;
 
 	Vector vecOrigin = tr.vecEndPos + tr.vecPlaneNormal * 8;
-	return DeployProxMineAt( pPlayer, vecOrigin, tr.vecPlaneNormal, bNuclear );
+	return DeployProxMineAt( pPlayer, vecOrigin, tr.vecPlaneNormal, bNuclear, bDrug );
 }
 #endif
 

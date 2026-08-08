@@ -24,8 +24,8 @@ void DeactivateSatchels( CBasePlayer *pOwner );
 void DeactivateItems( CBasePlayer *pOwner, const char *item );
 void DeactivatePortals( CBasePlayer *pOwner );
 void DeactivateDecoys( CBasePlayer *pOwner );
-BOOL DeployProxMine( CBasePlayer *pPlayer, BOOL bNuclear = FALSE );
-BOOL DeployProxMineAt( CBasePlayer *pPlayer, const Vector &vecOrigin, const Vector &vecSurfaceNormal, BOOL bNuclear = FALSE );
+BOOL DeployProxMine( CBasePlayer *pPlayer, BOOL bNuclear = FALSE, BOOL bDrug = FALSE );
+BOOL DeployProxMineAt( CBasePlayer *pPlayer, const Vector &vecOrigin, const Vector &vecSurfaceNormal, BOOL bNuclear = FALSE, BOOL bDrug = FALSE );
 
 // Contact Grenade / Timed grenade / Satchel Charge
 class CGrenade : public CBaseMonster
@@ -73,6 +73,8 @@ public:
 #define SF_GRENADE_FREEZE_PAYLOAD          0x0008
 #define SF_SATCHEL_NUKE_PACKAGE            0x0010
 #define SF_PROXMINE_NUCLEAR                0x0020
+#define SF_SATCHEL_DRUG_PACKAGE            0x0040
+#define SF_PROXMINE_DRUG                   0x0080
 
 
 // constant items
@@ -1342,6 +1344,7 @@ public:
 	void EXPORT PowerupThink( void );
 	void EXPORT ProxThink( void );
 	void EXPORT DelayDeathThink( void );
+	void EXPORT DrugCloudThink( void );
 	void Killed( entvars_t *pevAttacker, int iGib );
 
 	void MakeIndicator( void );
@@ -1358,6 +1361,8 @@ private:
 	float		m_flBlinkNext;
 	int			m_iBlinkOn;
 	float		m_flScanNext;
+	float		m_flDrugCloudEnd;
+	float		m_flDrugNextTick;
 };
 
 class CTripmineGrenade : public CGrenade
@@ -2897,6 +2902,7 @@ public:
    void ReduceHealth( void );
    void PrimaryAttack( void );
    void SecondaryAttack( void );
+	void Reload( void );
    BOOL DeployLowKey( void );
    BOOL Deploy( void );
    void Holster( int skiplocal = 0 );
@@ -2912,6 +2918,8 @@ public:
 		return FALSE;
 #endif
 	}
+
+	virtual BOOL AcceptReload( void ) { return TRUE; }
 
 private:
 	unsigned short m_usVice;
