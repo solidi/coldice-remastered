@@ -33,6 +33,18 @@ extern int gmsgShowTimer;
 extern int gmsgPlayClientSound;
 extern int gmsgDEraser;
 extern int gmsgBanner;
+extern int gmsgStatusIcon;
+
+static void PP_SendPropCameraIcon( CBasePlayer *pPlayer, int enable )
+{
+	if ( !pPlayer || FBitSet( pPlayer->pev->flags, FL_FAKECLIENT ) )
+		return;
+
+	MESSAGE_BEGIN( MSG_ONE, gmsgStatusIcon, NULL, pPlayer->edict() );
+		WRITE_BYTE( enable ? 1 : 0 );
+		WRITE_STRING( "cam_prop" );
+	MESSAGE_END();
+}
 
 class CPropDecoy : public CBaseEntity
 {
@@ -400,6 +412,23 @@ void CHalfLifePropHunt::RestoreWorldPickupsForRound( void )
 
 void CHalfLifePropHunt::DetermineWinner( void )
 {
+	// Prop winners leave the round in third camera; clear the prop camera icon
+	// before winner presentation so their post-round camera state is reset.
+	if ( m_iPropsRemain > 0 )
+	{
+		for ( int i = 1; i <= gpGlobals->maxClients; i++ )
+		{
+			CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
+			if ( !plr || !plr->IsPlayer() || !plr->IsInArena )
+				continue;
+			if ( plr->pev->fuser4 < TEAM_PROPS )
+				continue;
+
+			PP_SendPropCameraIcon( plr, 0 );
+			plr->m_fCameraDelay = 0;
+		}
+	}
+
 	int highest = -9999;
 	BOOL IsEqual = FALSE;
 	CBasePlayer *highballer = NULL;
@@ -1068,6 +1097,7 @@ void CHalfLifePropHunt::PlayerSpawn( CBasePlayer *pPlayer )
 	char *key = g_engfuncs.pfnGetInfoKeyBuffer(pPlayer->edict());
 
 	PlayFootstepSounds(pPlayer, 1.0);
+	pPlayer->m_fCameraDelay = 0;
 
 	if ( pPlayer->pev->fuser4 >= TEAM_PROPS )
 	{
@@ -1083,7 +1113,8 @@ void CHalfLifePropHunt::PlayerSpawn( CBasePlayer *pPlayer )
 		pPlayer->pev->fuser1 = 0; // hunter self-cost tracker (unused for props)
 		pPlayer->pev->fuser2 = 0; // prop morph cooldown
 		pPlayer->GiveNamedItem("weapon_handgrenade");
-		CLIENT_COMMAND(pPlayer->edict(), "thirdperson\n");
+		if ( !FBitSet(pPlayer->pev->flags, FL_FAKECLIENT) )
+			pPlayer->m_fCameraDelay = gpGlobals->time + 1.0f;
 	}
 	else
 	{
@@ -1093,6 +1124,7 @@ void CHalfLifePropHunt::PlayerSpawn( CBasePlayer *pPlayer )
 		// Hunters always start with a flamethrower
 		pPlayer->GiveNamedItem("weapon_flamethrower");
 		pPlayer->GiveAmmo( FUEL_MAX_CARRY, "uranium", FUEL_MAX_CARRY );
+		PP_SendPropCameraIcon( pPlayer, 0 );
 	}
 
 	// notify everyone's HUD of the team change
@@ -1143,10 +1175,13 @@ BOOL CHalfLifePropHunt::FPlayerCanTakeDamage( CBasePlayer *pPlayer, CBaseEntity 
 		ReleasePropAnchor(pPlayer);   // restore any +use-morph item before the team flip
 		PlayFootstepSounds(pPlayer, 1.0);
 
-		CLIENT_COMMAND(pPlayer->edict(), "firstperson\n");
 		pPlayer->pev->fuser4 = 0;
 		pPlayer->pev->fuser3 = 1; // bot timer to unfreeze
 		pPlayer->pev->fuser1 = 0; // reset hunter self-cost shot tracker
+		if ( !FBitSet(pPlayer->pev->flags, FL_FAKECLIENT) )
+			pPlayer->m_fCameraDelay = gpGlobals->time + 1.0f;
+		else
+			pPlayer->m_fCameraDelay = 0;
 		pPlayer->pev->health = 100;
 		pPlayer->pev->max_health = 100;
 		// Cancel prop haste
@@ -1341,6 +1376,13 @@ void CHalfLifePropHunt::MonsterKilled( CBaseMonster *pVictim, entvars_t *pKiller
 void CHalfLifePropHunt::PlayerThink( CBasePlayer *pPlayer )
 {
 	CHalfLifeMultiplay::PlayerThink(pPlayer);
+
+	if ( !FBitSet(pPlayer->pev->flags, FL_FAKECLIENT) &&
+		pPlayer->m_fCameraDelay && pPlayer->m_fCameraDelay <= gpGlobals->time )
+	{
+		PP_SendPropCameraIcon( pPlayer, pPlayer->pev->fuser4 >= TEAM_PROPS ? 1 : 0 );
+		pPlayer->m_fCameraDelay = 0;
+	}
 
 	if (pPlayer->pev->fuser4 >= TEAM_PROPS)
 	{	
