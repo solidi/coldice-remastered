@@ -425,6 +425,10 @@ extern int gmsgPlayClientSound;
 
 static void RTVTickServerEpoch( void );
 static void RTVSyncVoteWindowEpoch( int &voteEpoch, float &voteTime, int &needsVotes, int (&votes)[33], edict_t **ppInitiator = NULL );
+static BOOL RTVIsEligibleHumanVoter( CBasePlayer *pPlayer );
+static int RTVCountEligibleHumanVoters( void );
+static int RTVComputeNeededVotes( void );
+static int RTVCountEligibleVotes( const int (&votes)[33] );
 
 void GameplayVote(edict_t *pEntity, const char *text)
 {
@@ -449,16 +453,8 @@ void GameplayVote(edict_t *pEntity, const char *text)
 		// Start vote, capture player count for majority count
 		if (m_fVoteTime < gpGlobals->time)
 		{
-			int players = 0;
-			for (int i = 1; i <= gpGlobals->maxClients; i++)
-			{
-				CBasePlayer *pPlayer = (CBasePlayer *)UTIL_PlayerByIndex(i);
-				if (pPlayer && !FBitSet(pPlayer->pev->flags, FL_FAKECLIENT) && !pPlayer->HasDisconnected)
-					players++;
-			}
-
 			m_fVoteTime = gpGlobals->time + rtvtime.value;
-			m_iNeedsVotes = (players / 2) + 1;
+			m_iNeedsVotes = RTVComputeNeededVotes();
 
 			// Person who calls, also votes.
 			memset(m_iVotes, 0, sizeof(m_iVotes));
@@ -483,32 +479,28 @@ void GameplayVote(edict_t *pEntity, const char *text)
 		}
 		else
 		{
-			// Hasn't voted.
-			if (m_iVotes[ENTINDEX(pEntity)] <= 0)
+			int voterIndex = ENTINDEX(pEntity);
+			BOOL bNewVote = FALSE;
+			if (voterIndex >= 1 && voterIndex <= 32 && m_iVotes[voterIndex] <= 0)
 			{
-				m_iVotes[ENTINDEX(pEntity)] = 1;
+				m_iVotes[voterIndex] = 1;
+				bNewVote = TRUE;
+			}
 
-				// Tally
-				int votes = 0;
-				for (int i = 1; i <= gpGlobals->maxClients; i++)
-				{
-					CBaseEntity *p = UTIL_PlayerByIndex(i);
-					if (p && m_iVotes[p->entindex()] > 0)
-						votes++;
-				}
+			m_iNeedsVotes = RTVComputeNeededVotes();
+			int votes = RTVCountEligibleVotes(m_iVotes);
 
-				// Confirm
-				if (votes >= m_iNeedsVotes)
-				{
-					m_iNeedsVotes = m_fVoteTime = 0;
-					UTIL_ClientPrintAll(HUD_PRINTTALK, "[VOTE] Vote success!\n");
-					g_pGameRules->EndMultiplayerGame();
-				}
-				else
-				{
-					UTIL_ClientPrintAll(HUD_PRINTTALK,
-						UTIL_VarArgs("[VOTE] %s voted (%d / %d)\n", STRING(pEntity->v.netname), votes, m_iNeedsVotes));
-				}
+			// Confirm
+			if (votes >= m_iNeedsVotes)
+			{
+				m_iNeedsVotes = m_fVoteTime = 0;
+				UTIL_ClientPrintAll(HUD_PRINTTALK, "[VOTE] Vote success!\n");
+				g_pGameRules->EndMultiplayerGame();
+			}
+			else if (bNewVote)
+			{
+				UTIL_ClientPrintAll(HUD_PRINTTALK,
+					UTIL_VarArgs("[VOTE] %s voted (%d / %d)\n", STRING(pEntity->v.netname), votes, m_iNeedsVotes));
 			}
 		}
 	}
@@ -591,6 +583,67 @@ static void RTVSyncVoteWindowEpoch( int &voteEpoch, float &voteTime, int &needsV
 
 	if ( ppInitiator )
 		*ppInitiator = NULL;
+}
+
+static BOOL RTVIsEligibleHumanVoter( CBasePlayer *pPlayer )
+{
+	if ( !pPlayer || !pPlayer->IsPlayer() )
+		return FALSE;
+
+	if ( pPlayer->HasDisconnected )
+		return FALSE;
+
+	if ( !pPlayer->IsNetClient() )
+		return FALSE;
+
+	if ( FBitSet( pPlayer->pev->flags, FL_FAKECLIENT ) || FBitSet( pPlayer->pev->flags, FL_PROXY ) )
+		return FALSE;
+
+	if ( pPlayer->IsObserver() || pPlayer->IsSpectator() )
+		return FALSE;
+
+	return TRUE;
+}
+
+static int RTVCountEligibleHumanVoters( void )
+{
+	int players = 0;
+
+	for ( int i = 1; i <= gpGlobals->maxClients; i++ )
+	{
+		CBasePlayer *pPlayer = (CBasePlayer *)UTIL_PlayerByIndex( i );
+		if ( RTVIsEligibleHumanVoter( pPlayer ) )
+			players++;
+	}
+
+	return players;
+}
+
+static int RTVComputeNeededVotes( void )
+{
+	int players = RTVCountEligibleHumanVoters();
+	if ( players < 1 )
+		players = 1;
+
+	return ( players / 2 ) + 1;
+}
+
+static int RTVCountEligibleVotes( const int (&votes)[33] )
+{
+	int tally = 0;
+
+	for ( int i = 1; i <= gpGlobals->maxClients; i++ )
+	{
+		CBasePlayer *pPlayer = (CBasePlayer *)UTIL_PlayerByIndex( i );
+		if ( !RTVIsEligibleHumanVoter( pPlayer ) )
+			continue;
+
+		int entIndex = pPlayer->entindex();
+		if ( entIndex >= 1 && entIndex <= 32 && votes[entIndex] > 0 )
+			tally++;
+	}
+
+	return tally;
 }
 
 static void RTVGateClear( void )
@@ -722,16 +775,8 @@ void MutatorVote(edict_t *pEntity, const char *text)
 		// Start vote, capture player count for majority count
 		if (m_fVoteTime < gpGlobals->time)
 		{
-			int players = 0;
-			for (int i = 1; i <= gpGlobals->maxClients; i++)
-			{
-				CBasePlayer *pPlayer = (CBasePlayer *)UTIL_PlayerByIndex(i);
-				if (pPlayer && !FBitSet(pPlayer->pev->flags, FL_FAKECLIENT) && !pPlayer->HasDisconnected)
-					players++;
-			}
-
 			m_fVoteTime = gpGlobals->time + rtvtime.value;
-			m_iNeedsVotes = (players / 2) + 1;
+			m_iNeedsVotes = RTVComputeNeededVotes();
 
 			// Person who calls, also votes.
 			memset(m_iVotes, 0, sizeof(m_iVotes));
@@ -758,33 +803,29 @@ void MutatorVote(edict_t *pEntity, const char *text)
 		}
 		else
 		{
-			// Hasn't voted.
-			if (m_iVotes[ENTINDEX(pEntity)] <= 0)
+			int voterIndex = ENTINDEX(pEntity);
+			BOOL bNewVote = FALSE;
+			if (voterIndex >= 1 && voterIndex <= 32 && m_iVotes[voterIndex] <= 0)
 			{
-				m_iVotes[ENTINDEX(pEntity)] = 1;
+				m_iVotes[voterIndex] = 1;
+				bNewVote = TRUE;
+			}
 
-				// Tally
-				int votes = 0;
-				for (int i = 1; i <= gpGlobals->maxClients; i++)
-				{
-					CBaseEntity *p = UTIL_PlayerByIndex(i);
-					if (p && m_iVotes[p->entindex()] > 0)
-						votes++;
-				}
+			m_iNeedsVotes = RTVComputeNeededVotes();
+			int votes = RTVCountEligibleVotes(m_iVotes);
 
-				// Confirm
-				if (votes >= m_iNeedsVotes)
-				{
-					m_iNeedsVotes = m_fVoteTime = 0;
-					UTIL_ClientPrintAll(HUD_PRINTTALK, "[VOTE] Mutator vote success!\n");
-					g_pGameRules->VoteForMutator();
-					RTVGateBeginVoting(RTV_GATE_KIND_MUTATOR, gpGlobals->time + voting.value);
-				}
-				else
-				{
-					UTIL_ClientPrintAll(HUD_PRINTTALK,
-						UTIL_VarArgs("[VOTE] %s voted (%d / %d)\n", STRING(pEntity->v.netname), votes, m_iNeedsVotes));
-				}
+			// Confirm
+			if (votes >= m_iNeedsVotes)
+			{
+				m_iNeedsVotes = m_fVoteTime = 0;
+				UTIL_ClientPrintAll(HUD_PRINTTALK, "[VOTE] Mutator vote success!\n");
+				g_pGameRules->VoteForMutator();
+				RTVGateBeginVoting(RTV_GATE_KIND_MUTATOR, gpGlobals->time + voting.value);
+			}
+			else if (bNewVote)
+			{
+				UTIL_ClientPrintAll(HUD_PRINTTALK,
+					UTIL_VarArgs("[VOTE] %s voted (%d / %d)\n", STRING(pEntity->v.netname), votes, m_iNeedsVotes));
 			}
 		}
 	}
@@ -812,16 +853,8 @@ void GameModeVoteRTV(edict_t *pEntity, const char *text)
 
 		if (m_fVoteTime < gpGlobals->time)
 		{
-			int players = 0;
-			for (int i = 1; i <= gpGlobals->maxClients; i++)
-			{
-				CBasePlayer *p = (CBasePlayer *)UTIL_PlayerByIndex(i);
-				if (p && !FBitSet(p->pev->flags, FL_FAKECLIENT) && !p->HasDisconnected)
-					players++;
-			}
-
 			m_fVoteTime = gpGlobals->time + rtvtime.value;
-			m_iNeedsVotes = (players / 2) + 1;
+			m_iNeedsVotes = RTVComputeNeededVotes();
 
 			memset(m_iVotes, 0, sizeof(m_iVotes));
 			m_iVotes[ENTINDEX(pEntity)] = 1;
@@ -857,41 +890,39 @@ void GameModeVoteRTV(edict_t *pEntity, const char *text)
 		}
 		else
 		{
-			if (m_iVotes[ENTINDEX(pEntity)] <= 0)
+			int voterIndex = ENTINDEX(pEntity);
+			BOOL bNewVote = FALSE;
+			if (voterIndex >= 1 && voterIndex <= 32 && m_iVotes[voterIndex] <= 0)
 			{
-				m_iVotes[ENTINDEX(pEntity)] = 1;
+				m_iVotes[voterIndex] = 1;
+				bNewVote = TRUE;
+			}
 
-				int votes = 0;
-				for (int i = 1; i <= gpGlobals->maxClients; i++)
-				{
-					CBaseEntity *p = UTIL_PlayerByIndex(i);
-					if (p && m_iVotes[p->entindex()] > 0)
-						votes++;
-				}
+			m_iNeedsVotes = RTVComputeNeededVotes();
+			int votes = RTVCountEligibleVotes(m_iVotes);
 
-				if (votes >= m_iNeedsVotes)
+			if (votes >= m_iNeedsVotes)
+			{
+				m_iNeedsVotes = m_fVoteTime = 0;
+				UTIL_ClientPrintAll(HUD_PRINTTALK, "[VOTE] Gamemodes vote success!\n");
+				CHalfLifeMultiplay *mp = (CHalfLifeMultiplay *)g_pGameRules;
+				if (mp)
 				{
-					m_iNeedsVotes = m_fVoteTime = 0;
-					UTIL_ClientPrintAll(HUD_PRINTTALK, "[VOTE] Gamemodes vote success!\n");
-					CHalfLifeMultiplay *mp = (CHalfLifeMultiplay *)g_pGameRules;
-					if (mp)
-					{
-						mp->VoteForGameplayRTV();
-						if (mp->m_fGameplayVoteTime > gpGlobals->time)
-							RTVGateBeginVoting(RTV_GATE_KIND_GAMEMODES, mp->m_fGameplayVoteTime);
-						else
-							RTVGateBeginCooldown(RTV_GATE_KIND_GAMEMODES);
-					}
+					mp->VoteForGameplayRTV();
+					if (mp->m_fGameplayVoteTime > gpGlobals->time)
+						RTVGateBeginVoting(RTV_GATE_KIND_GAMEMODES, mp->m_fGameplayVoteTime);
 					else
-					{
 						RTVGateBeginCooldown(RTV_GATE_KIND_GAMEMODES);
-					}
 				}
 				else
 				{
-					UTIL_ClientPrintAll(HUD_PRINTTALK,
-						UTIL_VarArgs("[VOTE] %s voted (%d / %d)\n", STRING(pEntity->v.netname), votes, m_iNeedsVotes));
+					RTVGateBeginCooldown(RTV_GATE_KIND_GAMEMODES);
 				}
+			}
+			else if (bNewVote)
+			{
+				UTIL_ClientPrintAll(HUD_PRINTTALK,
+					UTIL_VarArgs("[VOTE] %s voted (%d / %d)\n", STRING(pEntity->v.netname), votes, m_iNeedsVotes));
 			}
 		}
 	}
@@ -919,16 +950,8 @@ void MapVoteRTV(edict_t *pEntity, const char *text)
 
 		if (m_fVoteTime < gpGlobals->time)
 		{
-			int players = 0;
-			for (int i = 1; i <= gpGlobals->maxClients; i++)
-			{
-				CBasePlayer *p = (CBasePlayer *)UTIL_PlayerByIndex(i);
-				if (p && !FBitSet(p->pev->flags, FL_FAKECLIENT) && !p->HasDisconnected)
-					players++;
-			}
-
 			m_fVoteTime = gpGlobals->time + rtvtime.value;
-			m_iNeedsVotes = (players / 2) + 1;
+			m_iNeedsVotes = RTVComputeNeededVotes();
 
 			memset(m_iVotes, 0, sizeof(m_iVotes));
 			m_iVotes[ENTINDEX(pEntity)] = 1;
@@ -964,41 +987,39 @@ void MapVoteRTV(edict_t *pEntity, const char *text)
 		}
 		else
 		{
-			if (m_iVotes[ENTINDEX(pEntity)] <= 0)
+			int voterIndex = ENTINDEX(pEntity);
+			BOOL bNewVote = FALSE;
+			if (voterIndex >= 1 && voterIndex <= 32 && m_iVotes[voterIndex] <= 0)
 			{
-				m_iVotes[ENTINDEX(pEntity)] = 1;
+				m_iVotes[voterIndex] = 1;
+				bNewVote = TRUE;
+			}
 
-				int votes = 0;
-				for (int i = 1; i <= gpGlobals->maxClients; i++)
-				{
-					CBaseEntity *p = UTIL_PlayerByIndex(i);
-					if (p && m_iVotes[p->entindex()] > 0)
-						votes++;
-				}
+			m_iNeedsVotes = RTVComputeNeededVotes();
+			int votes = RTVCountEligibleVotes(m_iVotes);
 
-				if (votes >= m_iNeedsVotes)
+			if (votes >= m_iNeedsVotes)
+			{
+				m_iNeedsVotes = m_fVoteTime = 0;
+				UTIL_ClientPrintAll(HUD_PRINTTALK, "[VOTE] Maps vote success!\n");
+				CHalfLifeMultiplay *mp = (CHalfLifeMultiplay *)g_pGameRules;
+				if (mp)
 				{
-					m_iNeedsVotes = m_fVoteTime = 0;
-					UTIL_ClientPrintAll(HUD_PRINTTALK, "[VOTE] Maps vote success!\n");
-					CHalfLifeMultiplay *mp = (CHalfLifeMultiplay *)g_pGameRules;
-					if (mp)
-					{
-						mp->VoteForMapRTV();
-						if (mp->m_fMapVoteTime > gpGlobals->time)
-							RTVGateBeginVoting(RTV_GATE_KIND_MAPS, mp->m_fMapVoteTime);
-						else
-							RTVGateBeginCooldown(RTV_GATE_KIND_MAPS);
-					}
+					mp->VoteForMapRTV();
+					if (mp->m_fMapVoteTime > gpGlobals->time)
+						RTVGateBeginVoting(RTV_GATE_KIND_MAPS, mp->m_fMapVoteTime);
 					else
-					{
 						RTVGateBeginCooldown(RTV_GATE_KIND_MAPS);
-					}
 				}
 				else
 				{
-					UTIL_ClientPrintAll(HUD_PRINTTALK,
-						UTIL_VarArgs("[VOTE] %s voted (%d / %d)\n", STRING(pEntity->v.netname), votes, m_iNeedsVotes));
+					RTVGateBeginCooldown(RTV_GATE_KIND_MAPS);
 				}
+			}
+			else if (bNewVote)
+			{
+				UTIL_ClientPrintAll(HUD_PRINTTALK,
+					UTIL_VarArgs("[VOTE] %s voted (%d / %d)\n", STRING(pEntity->v.netname), votes, m_iNeedsVotes));
 			}
 		}
 	}
@@ -1425,16 +1446,8 @@ void GameOptionsVote(edict_t *pEntity, const char *text)
 		// Start vote
 		if (m_fVoteTime < gpGlobals->time)
 		{
-			int players = 0;
-			for (int i = 1; i <= gpGlobals->maxClients; i++)
-			{
-				CBasePlayer *pPlayer = (CBasePlayer *)UTIL_PlayerByIndex(i);
-				if (pPlayer && !FBitSet(pPlayer->pev->flags, FL_FAKECLIENT) && !pPlayer->HasDisconnected)
-					players++;
-			}
-
 			m_fVoteTime = gpGlobals->time + rtvtime.value;
-			m_iNeedsVotes = (players / 2) + 1;
+			m_iNeedsVotes = RTVComputeNeededVotes();
 			m_pInitiator = pEntity;
 
 			memset(m_iVotes, 0, sizeof(m_iVotes));
@@ -1473,43 +1486,41 @@ void GameOptionsVote(edict_t *pEntity, const char *text)
 		}
 		else
 		{
-			if (m_iVotes[ENTINDEX(pEntity)] <= 0)
+			int voterIndex = ENTINDEX(pEntity);
+			BOOL bNewVote = FALSE;
+			if (voterIndex >= 1 && voterIndex <= 32 && m_iVotes[voterIndex] <= 0)
 			{
-				m_iVotes[ENTINDEX(pEntity)] = 1;
+				m_iVotes[voterIndex] = 1;
+				bNewVote = TRUE;
+			}
 
-				int votes = 0;
-				for (int i = 1; i <= gpGlobals->maxClients; i++)
-				{
-					CBaseEntity *p = UTIL_PlayerByIndex(i);
-					if (p && m_iVotes[p->entindex()] > 0)
-						votes++;
-				}
+			m_iNeedsVotes = RTVComputeNeededVotes();
+			int votes = RTVCountEligibleVotes(m_iVotes);
 
-				if (votes >= m_iNeedsVotes)
+			if (votes >= m_iNeedsVotes)
+			{
+				m_iNeedsVotes = m_fVoteTime = 0;
+				UTIL_ClientPrintAll(HUD_PRINTTALK, "[VOTE] Game-options vote success!\n");
+				CHalfLifeMultiplay *mp = (CHalfLifeMultiplay *)g_pGameRules;
+				if (mp)
 				{
-					m_iNeedsVotes = m_fVoteTime = 0;
-					UTIL_ClientPrintAll(HUD_PRINTTALK, "[VOTE] Game-options vote success!\n");
-					CHalfLifeMultiplay *mp = (CHalfLifeMultiplay *)g_pGameRules;
-					if (mp)
-					{
-						mp->m_pGameOptionsRTVInitiator = m_pInitiator;
-						mp->VoteForGameOptions(TRUE);
-						if (mp->m_fGameOptionsVoteTime > gpGlobals->time)
-							RTVGateBeginVoting(RTV_GATE_KIND_GAMEOPTIONS, mp->m_fGameOptionsVoteTime);
-						else
-							RTVGateBeginCooldown(RTV_GATE_KIND_GAMEOPTIONS);
-					}
+					mp->m_pGameOptionsRTVInitiator = m_pInitiator;
+					mp->VoteForGameOptions(TRUE);
+					if (mp->m_fGameOptionsVoteTime > gpGlobals->time)
+						RTVGateBeginVoting(RTV_GATE_KIND_GAMEOPTIONS, mp->m_fGameOptionsVoteTime);
 					else
-					{
 						RTVGateBeginCooldown(RTV_GATE_KIND_GAMEOPTIONS);
-					}
-					m_pInitiator = NULL;
 				}
 				else
 				{
-					UTIL_ClientPrintAll(HUD_PRINTTALK,
-						UTIL_VarArgs("[VOTE] %s voted (%d / %d)\n", STRING(pEntity->v.netname), votes, m_iNeedsVotes));
+					RTVGateBeginCooldown(RTV_GATE_KIND_GAMEOPTIONS);
 				}
+				m_pInitiator = NULL;
+			}
+			else if (bNewVote)
+			{
+				UTIL_ClientPrintAll(HUD_PRINTTALK,
+					UTIL_VarArgs("[VOTE] %s voted (%d / %d)\n", STRING(pEntity->v.netname), votes, m_iNeedsVotes));
 			}
 		}
 	}
@@ -1540,16 +1551,8 @@ void ServerOptionsVote(edict_t *pEntity, const char *text)
 
 		if (m_fVoteTime < gpGlobals->time)
 		{
-			int players = 0;
-			for (int i = 1; i <= gpGlobals->maxClients; i++)
-			{
-				CBasePlayer *p = (CBasePlayer *)UTIL_PlayerByIndex(i);
-				if (p && !FBitSet(p->pev->flags, FL_FAKECLIENT) && !p->HasDisconnected)
-					players++;
-			}
-
 			m_fVoteTime = gpGlobals->time + rtvtime.value;
-			m_iNeedsVotes = (players / 2) + 1;
+			m_iNeedsVotes = RTVComputeNeededVotes();
 			m_pInitiator = pEntity;
 
 			memset(m_iVotes, 0, sizeof(m_iVotes));
@@ -1588,43 +1591,41 @@ void ServerOptionsVote(edict_t *pEntity, const char *text)
 		}
 		else
 		{
-			if (m_iVotes[ENTINDEX(pEntity)] <= 0)
+			int voterIndex = ENTINDEX(pEntity);
+			BOOL bNewVote = FALSE;
+			if (voterIndex >= 1 && voterIndex <= 32 && m_iVotes[voterIndex] <= 0)
 			{
-				m_iVotes[ENTINDEX(pEntity)] = 1;
+				m_iVotes[voterIndex] = 1;
+				bNewVote = TRUE;
+			}
 
-				int votes = 0;
-				for (int i = 1; i <= gpGlobals->maxClients; i++)
-				{
-					CBaseEntity *p = UTIL_PlayerByIndex(i);
-					if (p && m_iVotes[p->entindex()] > 0)
-						votes++;
-				}
+			m_iNeedsVotes = RTVComputeNeededVotes();
+			int votes = RTVCountEligibleVotes(m_iVotes);
 
-				if (votes >= m_iNeedsVotes)
+			if (votes >= m_iNeedsVotes)
+			{
+				m_iNeedsVotes = m_fVoteTime = 0;
+				UTIL_ClientPrintAll(HUD_PRINTTALK, "[VOTE] Server-options vote success!\n");
+				CHalfLifeMultiplay *mp = (CHalfLifeMultiplay *)g_pGameRules;
+				if (mp)
 				{
-					m_iNeedsVotes = m_fVoteTime = 0;
-					UTIL_ClientPrintAll(HUD_PRINTTALK, "[VOTE] Server-options vote success!\n");
-					CHalfLifeMultiplay *mp = (CHalfLifeMultiplay *)g_pGameRules;
-					if (mp)
-					{
-						mp->m_pServerOptionsRTVInitiator = m_pInitiator;
-						mp->VoteForServerOptions(TRUE);
-						if (mp->m_fServerOptionsVoteTime > gpGlobals->time)
-							RTVGateBeginVoting(RTV_GATE_KIND_SERVEROPTIONS, mp->m_fServerOptionsVoteTime);
-						else
-							RTVGateBeginCooldown(RTV_GATE_KIND_SERVEROPTIONS);
-					}
+					mp->m_pServerOptionsRTVInitiator = m_pInitiator;
+					mp->VoteForServerOptions(TRUE);
+					if (mp->m_fServerOptionsVoteTime > gpGlobals->time)
+						RTVGateBeginVoting(RTV_GATE_KIND_SERVEROPTIONS, mp->m_fServerOptionsVoteTime);
 					else
-					{
 						RTVGateBeginCooldown(RTV_GATE_KIND_SERVEROPTIONS);
-					}
-					m_pInitiator = NULL;
 				}
 				else
 				{
-					UTIL_ClientPrintAll(HUD_PRINTTALK,
-						UTIL_VarArgs("[VOTE] %s voted (%d / %d)\n", STRING(pEntity->v.netname), votes, m_iNeedsVotes));
+					RTVGateBeginCooldown(RTV_GATE_KIND_SERVEROPTIONS);
 				}
+				m_pInitiator = NULL;
+			}
+			else if (bNewVote)
+			{
+				UTIL_ClientPrintAll(HUD_PRINTTALK,
+					UTIL_VarArgs("[VOTE] %s voted (%d / %d)\n", STRING(pEntity->v.netname), votes, m_iNeedsVotes));
 			}
 		}
 	}
