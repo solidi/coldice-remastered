@@ -33,6 +33,26 @@ extern int gmsgTeamInfo;
 extern int gmsgDEraser;
 extern int gmsgBanner;
 
+static int ArenaGetRoundFragLimit( void )
+{
+	int fragLimit = (int)CVAR_GET_FLOAT("mp_roundfraglimit");
+	if ( fragLimit < 0 )
+		fragLimit = 0;
+	return fragLimit;
+}
+
+static int ArenaGetFragsToGo( int roundFragLimit, float currentFrags )
+{
+	if ( roundFragLimit <= 0 )
+		return 0;
+
+	int fragsToGo = roundFragLimit - (int)currentFrags;
+	if ( fragsToGo < 0 )
+		fragsToGo = 0;
+
+	return fragsToGo;
+}
+
 CHalfLifeArena::CHalfLifeArena()
 {
 	m_iFirstBloodDecided = TRUE; // no first blood award
@@ -112,6 +132,8 @@ void CHalfLifeArena::Think( void )
 
 	if ( g_GameInProgress )
 	{
+		const int roundFragLimit = ArenaGetRoundFragLimit();
+
 		CBasePlayer *pPlayer1 = (CBasePlayer *)UTIL_PlayerByIndex( m_iPlayer1 );
 		CBasePlayer *pPlayer2 = (CBasePlayer *)UTIL_PlayerByIndex( m_iPlayer2 );
 
@@ -257,7 +279,10 @@ void CHalfLifeArena::Think( void )
 							pPlayer2->pev->health,
 							pPlayer2->pev->armorvalue));
 							WRITE_BYTE(0);
-							WRITE_STRING("");
+							if (roundFragLimit > 0)
+								WRITE_STRING(UTIL_VarArgs("First to %d frags", roundFragLimit));
+							else
+								WRITE_STRING("No frag limit");
 						MESSAGE_END();
 					}
 
@@ -274,7 +299,7 @@ void CHalfLifeArena::Think( void )
 
 				// is currently in this game of arena.
 				// and frags are >= set server value.
-				if ( plr->IsInArena && plr->pev->frags >= roundfraglimit.value )
+				if ( roundFragLimit > 0 && plr->IsInArena && plr->pev->frags >= roundFragLimit )
 				{
 					m_flPlayer1MissingSince = 0;
 					m_flPlayer2MissingSince = 0;
@@ -329,7 +354,10 @@ void CHalfLifeArena::Think( void )
 								pPlayer2->pev->health,
 								pPlayer2->pev->armorvalue));
 								WRITE_BYTE(0);
-								WRITE_STRING("");
+								if (roundFragLimit > 0)
+									WRITE_STRING(UTIL_VarArgs("First to %d frags", roundFragLimit));
+								else
+									WRITE_STRING("No frag limit");
 							MESSAGE_END();
 						}
 					} else {
@@ -651,6 +679,7 @@ void CHalfLifeArena::Think( void )
 
 		m_iCountDown = 5;
 		m_fWaitForPlayersTime = -1;
+		const int roundFragLimit = ArenaGetRoundFragLimit();
 
 		MESSAGE_BEGIN(MSG_BROADCAST, gmsgBanner);
 			WRITE_STRING(UTIL_VarArgs("%s (%d) Vs. %s (%d)", STRING(pPlayer1->pev->netname), pPlayer1->m_iRoundWins, STRING(pPlayer2->pev->netname), pPlayer2->m_iRoundWins));
@@ -662,7 +691,10 @@ void CHalfLifeArena::Think( void )
 		{
 			MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, pPlayer1->edict());
 				WRITE_STRING(UTIL_VarArgs("Defeat %s", STRING(pPlayer2->pev->netname)));
-				WRITE_STRING(UTIL_VarArgs("Frags to go: %d", int(roundfraglimit.value - pPlayer1->pev->frags)));
+				if (roundFragLimit > 0)
+					WRITE_STRING(UTIL_VarArgs("Frags to go: %d", ArenaGetFragsToGo(roundFragLimit, pPlayer1->pev->frags)));
+				else
+					WRITE_STRING("Frags to go: No limit");
 				WRITE_BYTE(0);
 				if (roundlimit.value > 0)
 					WRITE_STRING(UTIL_VarArgs("Round %d of %d", m_iSuccessfulRounds+1, (int)roundlimit.value));
@@ -675,7 +707,10 @@ void CHalfLifeArena::Think( void )
 		{
 			MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, pPlayer2->edict());
 				WRITE_STRING(UTIL_VarArgs("Defeat %s", STRING(pPlayer1->pev->netname)));
-				WRITE_STRING(UTIL_VarArgs("Frags to go: %d", int(roundfraglimit.value - pPlayer2->pev->frags)));
+				if (roundFragLimit > 0)
+					WRITE_STRING(UTIL_VarArgs("Frags to go: %d", ArenaGetFragsToGo(roundFragLimit, pPlayer2->pev->frags)));
+				else
+					WRITE_STRING("Frags to go: No limit");
 				WRITE_BYTE(0);
 				if (roundlimit.value > 0)
 					WRITE_STRING(UTIL_VarArgs("Round %d of %d", m_iSuccessfulRounds+1, (int)roundlimit.value));
@@ -797,17 +832,22 @@ BOOL CHalfLifeArena::FPlayerCanRespawn( CBasePlayer *pPlayer )
 	if ( !g_GameInProgress )
 		return FALSE;
 
+	const int roundFragLimit = ArenaGetRoundFragLimit();
+
 	CBasePlayer *pPlayer1 = (CBasePlayer *)UTIL_PlayerByIndex( m_iPlayer1 );
 	CBasePlayer *pPlayer2 = (CBasePlayer *)UTIL_PlayerByIndex( m_iPlayer2 );
 
 	// Allow respawn if player is in the current match and has not yet reached frag limit
 	if (pPlayer1 && pPlayer2 && (pPlayer1 == pPlayer || pPlayer2 == pPlayer))
 	{
+		if (roundFragLimit <= 0)
+			return TRUE;
+
 		int fragsToGo = 0;
 		if (pPlayer1 == pPlayer)
-			fragsToGo = int(roundfraglimit.value - pPlayer2->pev->frags);
+			fragsToGo = ArenaGetFragsToGo(roundFragLimit, pPlayer2->pev->frags);
 		else if (pPlayer2 == pPlayer)
-			fragsToGo = int(roundfraglimit.value - pPlayer1->pev->frags);
+			fragsToGo = ArenaGetFragsToGo(roundFragLimit, pPlayer1->pev->frags);
 		return fragsToGo >= 1;
 	}
 
@@ -823,46 +863,63 @@ void CHalfLifeArena::PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller, ent
 
 	if ( g_GameInProgress )
 	{
+		const int roundFragLimit = ArenaGetRoundFragLimit();
+		const bool hasFragLimit = (roundFragLimit > 0);
+
 		CBasePlayer *pPlayer1 = (CBasePlayer *)UTIL_PlayerByIndex( m_iPlayer1 );
 		CBasePlayer *pPlayer2 = (CBasePlayer *)UTIL_PlayerByIndex( m_iPlayer2 );
 
 		if (pPlayer1 && pPlayer2)
 		{
-			int fragsToGo = int(roundfraglimit.value - pPlayer1->pev->frags);
+			int fragsToGo = ArenaGetFragsToGo(roundFragLimit, pPlayer1->pev->frags);
+			int progress = 0;
+			if (hasFragLimit)
+				progress = (int)fmin(fmax(0, (pPlayer1->pev->frags / roundFragLimit) * 100), 100);
 			if (!FBitSet(pPlayer1->pev->flags, FL_FAKECLIENT))
 			{
 				MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, pPlayer1->edict());
-					if (fragsToGo >= 1)
+					if (!hasFragLimit || fragsToGo >= 1)
 						WRITE_STRING(UTIL_VarArgs("Defeat %s", STRING(pPlayer2->pev->netname)));
 					else
 						WRITE_STRING(UTIL_VarArgs("You Defeated %s!", STRING(pPlayer2->pev->netname)));
-					if (fragsToGo >= 1)
-						WRITE_STRING(UTIL_VarArgs("They need: %d", int(roundfraglimit.value - pPlayer2->pev->frags)));
+					if (hasFragLimit && fragsToGo >= 1)
+						WRITE_STRING(UTIL_VarArgs("They need: %d", ArenaGetFragsToGo(roundFragLimit, pPlayer2->pev->frags)));
+					else if (!hasFragLimit)
+						WRITE_STRING("No frag limit");
 					else
 						WRITE_STRING("");
-					WRITE_BYTE(fmin(fmax(0, (pPlayer1->pev->frags / roundfraglimit.value) * 100), 100));
-					if (fragsToGo < 1)
+					WRITE_BYTE(progress);
+					if (hasFragLimit && fragsToGo < 1)
 						WRITE_STRING("You are the WINNER!");
+					else if (!hasFragLimit)
+						WRITE_STRING("Win by highest frags at time limit");
 					else
 						WRITE_STRING(UTIL_VarArgs("You need: %d", fragsToGo));
 				MESSAGE_END();
 			}
 
-			fragsToGo = int(roundfraglimit.value - pPlayer2->pev->frags);
+			fragsToGo = ArenaGetFragsToGo(roundFragLimit, pPlayer2->pev->frags);
+			progress = 0;
+			if (hasFragLimit)
+				progress = (int)fmin(fmax(0, (pPlayer2->pev->frags / roundFragLimit) * 100), 100);
 			if (!FBitSet(pPlayer2->pev->flags, FL_FAKECLIENT))
 			{
 				MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgObjective, NULL, pPlayer2->edict());
-					if (fragsToGo >= 1)
+					if (!hasFragLimit || fragsToGo >= 1)
 						WRITE_STRING(UTIL_VarArgs("Defeat %s", STRING(pPlayer1->pev->netname)));
 					else
 						WRITE_STRING(UTIL_VarArgs("You Defeated %s!", STRING(pPlayer1->pev->netname)));
-					if (fragsToGo >= 1)
-						WRITE_STRING(UTIL_VarArgs("They need: %d", int(roundfraglimit.value - pPlayer1->pev->frags)));
+					if (hasFragLimit && fragsToGo >= 1)
+						WRITE_STRING(UTIL_VarArgs("They need: %d", ArenaGetFragsToGo(roundFragLimit, pPlayer1->pev->frags)));
+					else if (!hasFragLimit)
+						WRITE_STRING("No frag limit");
 					else
 						WRITE_STRING("");
-					WRITE_BYTE(fmin(fmax(0, (pPlayer2->pev->frags / roundfraglimit.value) * 100), 100));
-					if (fragsToGo < 1)
+					WRITE_BYTE(progress);
+					if (hasFragLimit && fragsToGo < 1)
 						WRITE_STRING("You are the WINNER!");
+					else if (!hasFragLimit)
+						WRITE_STRING("Win by highest frags at time limit");
 					else
 						WRITE_STRING(UTIL_VarArgs("You need: %d", fragsToGo));
 				MESSAGE_END();
