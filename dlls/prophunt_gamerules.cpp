@@ -329,6 +329,75 @@ void CHalfLifePropHunt::ReleasePropAnchor( CBasePlayer *pProp )
 	pProp->m_iPropAnchorSavedSolid = 0;
 }
 
+void CHalfLifePropHunt::RestoreWorldPickupsForRound( void )
+{
+	for ( int i = gpGlobals->maxClients + 1; i < gpGlobals->maxEntities; i++ )
+	{
+		edict_t *pEdict = INDEXENT( i );
+		if ( FNullEnt( pEdict ) || pEdict->free )
+			continue;
+
+		CBaseEntity *pEnt = CBaseEntity::Instance( pEdict );
+		if ( !pEnt || !pEnt->pev )
+			continue;
+
+		const char *cn = STRING( pEnt->pev->classname );
+		if ( !cn || !*cn )
+			continue;
+
+		if ( strncmp( cn, "weapon_", 7 ) == 0 )
+		{
+			CBasePlayerItem *pWeapon = (CBasePlayerItem *)pEnt;
+			if ( !pWeapon || pWeapon->m_pPlayer )
+				continue;
+
+			// Skip hidden packed weapons inside weaponboxes/inventories.
+			if ( !FNullEnt( pWeapon->pev->owner ) )
+				continue;
+
+			if ( (pWeapon->pev->effects & EF_NODRAW) || pWeapon->pev->solid == SOLID_NOT )
+				pWeapon->Materialize();
+
+			pWeapon->pev->health = 1;
+			pWeapon->pev->takedamage = DAMAGE_YES;
+		}
+		else if ( strncmp( cn, "ammo_", 5 ) == 0 )
+		{
+			CBasePlayerAmmo *pAmmo = (CBasePlayerAmmo *)pEnt;
+
+			// Map/world ammo has no owner; skip entity-owned internals.
+			if ( !FNullEnt( pAmmo->pev->owner ) )
+				continue;
+
+			if ( (pAmmo->pev->effects & EF_NODRAW) || pAmmo->pev->solid == SOLID_NOT )
+				pAmmo->Materialize();
+
+			pAmmo->pev->solid = SOLID_BBOX;
+			pAmmo->pev->health = 1;
+			pAmmo->pev->takedamage = DAMAGE_YES;
+			UTIL_SetSize( pAmmo->pev, VEC_HUMAN_HULL_MIN, VEC_HUMAN_HULL_MAX );
+			UTIL_SetOrigin( pAmmo->pev, pAmmo->pev->origin );
+		}
+		else if ( strncmp( cn, "item_", 5 ) == 0 )
+		{
+			CItem *pItem = (CItem *)pEnt;
+
+			// Map/world items have no owner; skip entity-owned internals.
+			if ( !FNullEnt( pItem->pev->owner ) )
+				continue;
+
+			if ( (pItem->pev->effects & EF_NODRAW) || pItem->pev->solid == SOLID_NOT )
+				pItem->Materialize();
+
+			pItem->pev->solid = SOLID_BBOX;
+			pItem->pev->health = 1;
+			pItem->pev->takedamage = DAMAGE_YES;
+			UTIL_SetSize( pItem->pev, VEC_HUMAN_HULL_MIN, VEC_HUMAN_HULL_MAX );
+			UTIL_SetOrigin( pItem->pev, pItem->pev->origin );
+		}
+	}
+}
+
 void CHalfLifePropHunt::DetermineWinner( void )
 {
 	int highest = -9999;
@@ -828,6 +897,10 @@ void CHalfLifePropHunt::Think( void )
 
 		//frags + time.
 		SetRoundLimits();
+
+		// Round-start world reset: re-materialize map pickups so props always have
+		// stable anchors before hunters are released.
+		RestoreWorldPickupsForRound();
 
 		// Balance teams
   		// Implementing Fisher–Yates shuffle
@@ -1413,17 +1486,17 @@ BOOL CHalfLifePropHunt::AllowRuneSpawn( const char *szRune )
 
 int CHalfLifePropHunt::WeaponShouldRespawn( CBasePlayerItem *pWeapon )
 {
-	return GR_WEAPON_RESPAWN_NO;
+	return CHalfLifeMultiplay::WeaponShouldRespawn( pWeapon );
 }
 
 int CHalfLifePropHunt::ItemShouldRespawn( CItem *pItem )
 {
-	return GR_ITEM_RESPAWN_NO;
+	return CHalfLifeMultiplay::ItemShouldRespawn( pItem );
 }
 
 int CHalfLifePropHunt::AmmoShouldRespawn( CBasePlayerAmmo *pAmmo )
 {
-	return GR_AMMO_RESPAWN_NO;
+	return CHalfLifeMultiplay::AmmoShouldRespawn( pAmmo );
 }
 
 BOOL CHalfLifePropHunt::IsTeamplay( void )

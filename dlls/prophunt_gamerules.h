@@ -61,6 +61,8 @@ public:
 	void ReleasePropAnchor( CBasePlayer *pProp );
 
 private:
+	void RestoreWorldPickupsForRound( void );
+
 	int m_iHuntersStarted;
 	int m_iHuntersRemain;
 	int m_iPropsRemain;
