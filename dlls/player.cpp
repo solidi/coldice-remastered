@@ -4899,8 +4899,7 @@ void CBasePlayer::SelectItem(const char *pstr)
 	if (!pstr)
 		return;
 
-	if (!ShouldWeaponSwitch())
-		return;
+	// cl_aws controls auto-pickup switching only; manual selection must always work.
 
 	CBasePlayerItem *pItem = NULL;
 
