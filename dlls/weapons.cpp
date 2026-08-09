@@ -2402,8 +2402,16 @@ void CWeaponBox::Touch( CBaseEntity *pOther )
 				pItem = m_rgpPlayerItems[ i ];
 				m_rgpPlayerItems[ i ] = m_rgpPlayerItems[ i ]->m_pNext;// unlink this weapon from the box
 
-				if ( !g_pGameRules->CanHaveNamedItem( (CBasePlayer *)pOther, STRING(pItem->pev->classname) ) )
+				// Loot uses CanHavePlayerItem for touch-time limit/hint behavior.
+				if ( g_pGameRules->IsLoot() )
+				{
+					if ( !g_pGameRules->CanHavePlayerItem( pPlayer, pItem ) )
+						continue;
+				}
+				else if ( !g_pGameRules->CanHaveNamedItem( pPlayer, STRING(pItem->pev->classname) ) )
+				{
 					continue;
+				}
 
 				if ( pPlayer->AddPlayerItem( pItem ) )
 				{

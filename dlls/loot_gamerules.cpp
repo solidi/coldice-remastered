@@ -2303,6 +2303,10 @@ BOOL CHalfLifeLoot::CanHaveNamedItem( CBasePlayer *pPlayer, const char *pszItemN
 	if ( !pszItemName || strncmp( pszItemName, "weapon_", 7 ) != 0 )
 		return CHalfLifeMultiplay::CanHaveNamedItem( pPlayer, pszItemName );
 
+	// Fists are always allowed.
+	if ( !strcmp(pszItemName, "weapon_fists") )
+		return CHalfLifeMultiplay::CanHaveNamedItem( pPlayer, pszItemName );
+
 	// Determine whether this player benefits from loot-advantage (3-weapon rule)
 	BOOL hasLootAdvantage = pPlayer->m_bHoldingLoot;
 	if ( !hasLootAdvantage && pPlayer->m_iLootTeam >= 0 )
@@ -2322,7 +2326,22 @@ BOOL CHalfLifeLoot::CanHaveNamedItem( CBasePlayer *pPlayer, const char *pszItemN
 
 	int maxWeapons = hasLootAdvantage ? 3 : 1;
 	if ( CountNonFistWeapons( pPlayer ) >= maxWeapons )
+	{
+		// Keep denial messaging consistent for named-item pickups (e.g. weaponbox contents).
+		int slot = ENTINDEX( pPlayer->edict() );
+		if ( slot >= 1 && slot <= 32 && gpGlobals->time >= m_flWeaponHintTime[slot] )
+		{
+			m_flWeaponHintTime[slot] = gpGlobals->time + 2.0f;
+			if ( !FBitSet(pPlayer->pev->flags, FL_FAKECLIENT) )
+			{
+				ClientPrint( pPlayer->pev, HUD_PRINTCENTER,
+				    maxWeapons == 1
+				        ? "Drop your weapon first!"
+				        : "Drop a weapon first!" );
+			}
+		}
 		return FALSE;  // At limit; +use swap in player.cpp handles the swap
+	}
 
 	return CHalfLifeMultiplay::CanHaveNamedItem( pPlayer, pszItemName );
 }
