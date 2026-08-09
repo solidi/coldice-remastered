@@ -1,4 +1,4 @@
-//========= Copyright © 1996-2002, Valve LLC, All rights reserved. ============
+//========= Copyright ï¿½ 1996-2002, Valve LLC, All rights reserved. ============
 //
 // Purpose: 
 //
@@ -18,8 +18,38 @@
 
 using namespace vgui;
 
+bool HandleScrollPanelMouseWheel( ScrollPanel *pScrollPanel, int delta );
+
 namespace
 {
+class CScrollPanelWheelInput : public InputSignal
+{
+private:
+	ScrollPanel *_scrollPanel;
+
+public:
+	CScrollPanelWheelInput( ScrollPanel *pScrollPanel )
+	{
+		_scrollPanel = pScrollPanel;
+	}
+
+	virtual void cursorMoved(int x,int y,Panel* panel) {}
+	virtual void cursorEntered(Panel* panel) {}
+	virtual void cursorExited(Panel* panel) {}
+	virtual void mousePressed(MouseCode code,Panel* panel) {}
+	virtual void mouseReleased(MouseCode code,Panel* panel) {}
+	virtual void mouseDoublePressed(MouseCode code,Panel* panel) {}
+	virtual void keyPressed(KeyCode code,Panel* panel) {}
+	virtual void keyTyped(KeyCode code,Panel* panel) {}
+	virtual void keyReleased(KeyCode code,Panel* panel) {}
+	virtual void keyFocusTicked(Panel* panel) {}
+
+	virtual void mouseWheeled(int delta,Panel* panel)
+	{
+		HandleScrollPanelMouseWheel( _scrollPanel, delta );
+	}
+};
+
 class FooTablePanel : public TablePanel
 {
 private:
@@ -147,9 +177,12 @@ ControlConfigPanel::ControlConfigPanel(int x,int y,int wide,int tall) : Panel(x,
 	_scrollPanel->getClient()->setPaintBackgroundEnabled(false);
 	_scrollPanel->getClient()->setPaintEnabled(false);
 	_scrollPanel->setScrollBarVisible(false,true);
+	_scrollPanel->addInputSignal( new CScrollPanelWheelInput( _scrollPanel ) );
+	_scrollPanel->getClient()->addInputSignal( new CScrollPanelWheelInput( _scrollPanel ) );
 
 	_tablePanel=new FooTablePanel(this,0,0,_scrollPanel->getClient()->getWide(),800, 3);
 	_tablePanel->setParent(_scrollPanel->getClient());
+	_tablePanel->addInputSignal( new CScrollPanelWheelInput( _scrollPanel ) );
 	_tablePanel->setHeaderPanel(_headerPanel);
 	_tablePanel->setBgColor(Color(200,0,0,255));
 	_tablePanel->setFgColor(Color(Scheme::sc_primary2));

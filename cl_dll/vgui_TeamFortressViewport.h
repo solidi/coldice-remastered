@@ -73,6 +73,7 @@ class TeamFortressViewport;
 char* GetVGUITGAName(const char *pszName);
 BitmapTGA *LoadTGAForRes(const char* pImageName);
 void ScaleColors( int &r, int &g, int &b, int a );
+bool HandleScrollPanelMouseWheel( ScrollPanel *pScrollPanel, int delta );
 
 struct MutatorInfo {
 	const char* name;
@@ -965,11 +966,36 @@ public:
 	void mouseReleased(MouseCode code,Panel* panel) {};
 	void mouseDoublePressed(MouseCode code,Panel* panel) {};
 	void cursorExited(Panel* panel) {};
-	void mouseWheeled(int delta,Panel* panel) {};
+	void mouseWheeled(int delta,Panel* panel);
 	void keyPressed(KeyCode code,Panel* panel) {};
 	void keyTyped(KeyCode code,Panel* panel) {};
 	void keyReleased(KeyCode code,Panel* panel) {};
 	void keyFocusTicked(Panel* panel) {};
+};
+
+class CHandler_MenuWheelForward : public InputSignal
+{
+private:
+	CMenuPanel *m_pMenuPanel;
+
+public:
+	CHandler_MenuWheelForward( CMenuPanel *pMenuPanel )
+	{
+		m_pMenuPanel = pMenuPanel;
+	}
+
+	virtual void cursorMoved(int x,int y,Panel* panel) {};
+	virtual void cursorEntered(Panel* panel) {};
+	virtual void cursorExited(Panel* Panel) {};
+	virtual void mousePressed(MouseCode code,Panel* panel) {};
+	virtual void mouseReleased(MouseCode code,Panel* panel) {};
+	virtual void mouseDoublePressed(MouseCode code,Panel* panel) {};
+	virtual void keyPressed(KeyCode code,Panel* panel) {};
+	virtual void keyTyped(KeyCode code,Panel* panel) {};
+	virtual void keyReleased(KeyCode code,Panel* panel) {};
+	virtual void keyFocusTicked(Panel* panel) {};
+
+	virtual void mouseWheeled(int delta,Panel* panel);
 };
 
 class CHandler_ButtonHighlight : public InputSignal
@@ -994,7 +1020,7 @@ public:
 	virtual void mouseReleased(MouseCode code,Panel* panel) {};
 	virtual void cursorMoved(int x,int y,Panel* panel) {};
 	virtual void mouseDoublePressed(MouseCode code,Panel* panel)  {};
-	virtual void mouseWheeled(int delta,Panel* panel) {};
+	virtual void mouseWheeled(int delta,Panel* panel);
 	virtual void keyPressed(KeyCode code,Panel* panel) {};
 	virtual void keyTyped(KeyCode code,Panel* panel) {};
 	virtual void keyReleased(KeyCode code,Panel* panel) {};
@@ -1689,6 +1715,7 @@ public:
 
 	// Numeric input
 	virtual bool SlotInput( int iSlot ) { return false; };
+	virtual bool MouseWheeled( int delta ) { return false; };
 	virtual void SetActiveInfo( int iInput ) {};
 };
 
@@ -1751,6 +1778,7 @@ public:
 	virtual void Update( void );
 	virtual void SetActiveInfo( int iInput );
 	virtual void Initialize( void );
+	virtual bool MouseWheeled( int delta ) { return HandleScrollPanelMouseWheel( m_pScrollPanel, delta ); };
 
 	virtual void Reset( void )
 	{
@@ -1869,6 +1897,7 @@ public:
 	virtual void Update( void );
 	virtual void SetActiveInfo( int iInput );
 	virtual void Initialize( void );
+	virtual bool MouseWheeled( int delta ) { return HandleScrollPanelMouseWheel( m_pScrollPanel, delta ); };
 
 	virtual void Reset( void )
 	{
@@ -1906,6 +1935,7 @@ public:
 	virtual void Update( void );
 	virtual void SetActiveInfo( int iInput );
 	virtual void Initialize( void );
+	virtual bool MouseWheeled( int delta ) { return HandleScrollPanelMouseWheel( m_pScrollPanel, delta ); };
 
 	// Builds (or rebuilds) the per-map vote buttons against the current
 	// dynamic map list (g_szClientMaps[]). Called from Open().
@@ -1948,6 +1978,7 @@ public:
 	virtual void Update( void );
 	virtual void SetActiveInfo( int iInput );
 	virtual void Initialize( void );
+	virtual bool MouseWheeled( int delta ) { return HandleScrollPanelMouseWheel( m_pScrollPanel, delta ); };
 
 	virtual void Reset( void )
 	{
@@ -1993,6 +2024,7 @@ public:
 	virtual void Open( void );
 	virtual void Update( void );
 	virtual void Initialize( void );
+	virtual bool MouseWheeled( int delta ) { return HandleScrollPanelMouseWheel( m_pScrollPanel, delta ); };
 
 	virtual void Reset( void )
 	{
@@ -2033,6 +2065,7 @@ public:
 	virtual void Open( void );
 	virtual void Update( void );
 	virtual void Initialize( void );
+	virtual bool MouseWheeled( int delta ) { return HandleScrollPanelMouseWheel( m_pScrollPanel, delta ); };
 
 	virtual void Reset( void )
 	{
@@ -2073,6 +2106,7 @@ public:
 	virtual void Update( void );
 	virtual void SetActiveInfo( int iInput );
 	virtual void paintBackground( void );
+	virtual bool MouseWheeled( int delta ) { return HandleScrollPanelMouseWheel( m_pScrollPanel, delta ); };
 
 	virtual void Initialize( void );
 

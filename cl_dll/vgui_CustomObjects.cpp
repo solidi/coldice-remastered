@@ -72,6 +72,38 @@ BitmapTGA *LoadTGAForRes( const char* pImageName )
 	return pTGA;
 }
 
+bool HandleScrollPanelMouseWheel( ScrollPanel *pScrollPanel, int delta )
+{
+	if ( !pScrollPanel || delta == 0 )
+		return false;
+
+	int wheelSteps = delta;
+	if ( wheelSteps >= 120 || wheelSteps <= -120 )
+		wheelSteps /= 120;
+
+	if ( wheelSteps == 0 )
+		wheelSteps = ( delta > 0 ) ? 1 : -1;
+
+	if ( wheelSteps > 8 )
+		wheelSteps = 8;
+	else if ( wheelSteps < -8 )
+		wheelSteps = -8;
+
+	int horizontal = 0;
+	int vertical = 0;
+	pScrollPanel->getScrollValue( horizontal, vertical );
+
+	const int kWheelPixels = 24;
+	int nextVertical = vertical - ( wheelSteps * kWheelPixels );
+	pScrollPanel->setScrollValue( horizontal, nextVertical );
+
+	int updatedHorizontal = 0;
+	int updatedVertical = 0;
+	pScrollPanel->getScrollValue( updatedHorizontal, updatedVertical );
+
+	return ( updatedVertical != vertical );
+}
+
 //===========================================================
 // All TFC Hud buttons are derived from this one.
 CommandButton::CommandButton( const char* text,int x,int y,int wide,int tall, bool bNoHighlight) : Button("",x,y,wide,tall)
@@ -529,6 +561,36 @@ void CHandler_MenuButtonOver::cursorEntered(Panel *panel)
 	{
 		m_pMenuPanel->SetActiveInfo( m_iButton );
 	}
+}
+
+void CHandler_MenuButtonOver::mouseWheeled(int delta,Panel* panel)
+{
+	if ( m_pMenuPanel )
+	{
+		m_pMenuPanel->MouseWheeled( delta );
+		return;
+	}
+
+	if ( gViewPort && gViewPort->m_pCurrentMenu )
+		gViewPort->m_pCurrentMenu->MouseWheeled( delta );
+}
+
+void CHandler_MenuWheelForward::mouseWheeled(int delta,Panel* panel)
+{
+	if ( m_pMenuPanel )
+	{
+		m_pMenuPanel->MouseWheeled( delta );
+		return;
+	}
+
+	if ( gViewPort && gViewPort->m_pCurrentMenu )
+		gViewPort->m_pCurrentMenu->MouseWheeled( delta );
+}
+
+void CHandler_ButtonHighlight::mouseWheeled(int delta,Panel* panel)
+{
+	if ( gViewPort && gViewPort->m_pCurrentMenu )
+		gViewPort->m_pCurrentMenu->MouseWheeled( delta );
 }
 
 void CMenuHandler_StringCommandClassSelect::actionPerformed(Panel* panel)

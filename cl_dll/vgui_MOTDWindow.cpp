@@ -47,9 +47,11 @@ class CMessageWindowPanel : public CMenuPanel
 {
 public:
 	CMessageWindowPanel( const char *szMOTD, const char *szTitle, int iShadeFullScreen, int iRemoveMe, int x, int y, int wide, int tall );
+	virtual bool MouseWheeled( int delta ) { return HandleScrollPanelMouseWheel( m_pScrollPanel, delta ); };
 
 private:
 	CTransparentPanel *m_pBackgroundPanel;
+	ScrollPanel *m_pScrollPanel;
 
 };
 
@@ -100,17 +102,17 @@ CMessageWindowPanel::CMessageWindowPanel( const char *szMOTD, const char *szTitl
 	pLabel->setText( "%s", szTitle);
 
 	// Create the Scroll panel
-	ScrollPanel *pScrollPanel = new CTFScrollPanel( iXPos + XRES(16), iYPos + MOTD_TITLE_Y*2 + YRES(16), iXSize - XRES(32), iYSize - (YRES(48) + BUTTON_SIZE_Y*2) );
-	pScrollPanel->setParent(this);
+	m_pScrollPanel = new CTFScrollPanel( iXPos + XRES(16), iYPos + MOTD_TITLE_Y*2 + YRES(16), iXSize - XRES(32), iYSize - (YRES(48) + BUTTON_SIZE_Y*2) );
+	m_pScrollPanel->setParent(this);
 	
 	//force the scrollbars on so clientClip will take them in account after the validate
-	pScrollPanel->setScrollBarAutoVisible(false, false);
-	pScrollPanel->setScrollBarVisible(true, true);
-	pScrollPanel->validate();
+	m_pScrollPanel->setScrollBarAutoVisible(false, false);
+	m_pScrollPanel->setScrollBarVisible(true, true);
+	m_pScrollPanel->validate();
 
 	// Create the text panel
 	TextPanel *pText = new TextPanel( "", 0,0, 64,64);
-	pText->setParent( pScrollPanel->getClient() );
+	pText->setParent( m_pScrollPanel->getClient() );
 
 	// get the font and colors from the scheme
 	pText->setFont( pSchemes->getFont(hMOTDText) );
@@ -127,17 +129,17 @@ CMessageWindowPanel::CMessageWindowPanel( const char *szMOTD, const char *szTitl
 	//  width is critical for getting the "wrapped" size right.
 	// You'll see a horizontal scroll bar if there is a single word that won't wrap in the
 	//  specified width.
-	pText->getTextImage()->setSize(pScrollPanel->getClientClip()->getWide(), pScrollPanel->getClientClip()->getTall());
+	pText->getTextImage()->setSize(m_pScrollPanel->getClientClip()->getWide(), m_pScrollPanel->getClientClip()->getTall());
 	pText->getTextImage()->getTextSizeWrapped( iScrollSizeX, iScrollSizeY );
 	
 	// Now resize the textpanel to fit the scrolled size
 	pText->setSize( iScrollSizeX , iScrollSizeY );
 
 	//turn the scrollbars back into automode
-	pScrollPanel->setScrollBarAutoVisible(true, true);
-	pScrollPanel->setScrollBarVisible(false, false);
+	m_pScrollPanel->setScrollBarAutoVisible(true, true);
+	m_pScrollPanel->setScrollBarVisible(false, false);
 
-	pScrollPanel->validate();
+	m_pScrollPanel->validate();
 
 	ColorButton *pButton = new ColorButton( CHudTextMessage::BufferedLocaliseTextString( "#Menu_OK" ), iXPos + XRES(16), iYPos + iYSize - YRES(16) - BUTTON_SIZE_Y, CMENU_SIZE_X, BUTTON_SIZE_Y, FALSE, TRUE);
 	pButton->addActionSignal(new CMenuHandler_TextWindow(HIDE_TEXTWINDOW));

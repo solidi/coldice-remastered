@@ -71,6 +71,8 @@ CVoteMutatorPanel::CVoteMutatorPanel(int iTrans, int iRemoveMe, int x,int y,int 
 	m_pScrollPanelBorder = new LineBorder( Color(r, g, b, 255) );
 	m_pScrollPanel->setBorder( m_pScrollPanelBorder );
 	m_pScrollPanel->validate();
+	m_pScrollPanel->addInputSignal( new CHandler_MenuWheelForward(this) );
+	m_pScrollPanel->getClient()->addInputSignal( new CHandler_MenuWheelForward(this) );
 
 	// Create the buttons inside scroll panel
 	int positionCount = 0;
@@ -137,6 +139,7 @@ CVoteMutatorPanel::CVoteMutatorPanel(int iTrans, int iRemoveMe, int x,int y,int 
 		pSchemes->getFgColor( hTitleScheme, r, g, b, a );
 		m_pVoteTallyLabels[i]->setFgColor( r, g, b, a );
 		m_pVoteTallyLabels[i]->setBgColor( 0, 0, 0, 255 );
+		m_pVoteTallyLabels[i]->addInputSignal( new CHandler_MenuWheelForward(this) );
 		
 		// Add subtitle label as a child of the button
 		Label *pSubtitle = new Label( "", XRES(5), MUTATORMENU_BUTTON_SIZE_Y - YRES(16) );
@@ -150,6 +153,7 @@ CVoteMutatorPanel::CVoteMutatorPanel(int iTrans, int iRemoveMe, int x,int y,int 
 		pSubtitle->setFgColor( sr, sg, sb, sa );
 		pSubtitle->setBgColor( 0, 0, 0, 255 );
 		pSubtitle->setText( sMutators[i].description );
+		pSubtitle->addInputSignal( new CHandler_MenuWheelForward(this) );
 
 		// Synthetic slot injected right after CHAOS.
 		if ( i == 0 )
@@ -172,6 +176,7 @@ CVoteMutatorPanel::CVoteMutatorPanel(int iTrans, int iRemoveMe, int x,int y,int 
 			m_pInstantButton->setBoundKey( (char)255 );
 			m_pInstantButton->setContentAlignment( vgui::Label::a_northwest );
 			m_pInstantButton->addActionSignal( pASignalInstant );
+			m_pInstantButton->addInputSignal( new CHandler_MenuButtonOver(this, MUTATOR_MENU_INSTANT_SLOT) );
 			m_pInstantButton->setParent( m_pScrollPanel->getClient() );
 			m_pInstantButton->setFont( pSchemes->getFont(hTitleScheme) );
 
@@ -182,6 +187,7 @@ CVoteMutatorPanel::CVoteMutatorPanel(int iTrans, int iRemoveMe, int x,int y,int 
 			m_pInstantVoteTallyLabel->setSize( XRES(10), YRES(18) );
 			m_pInstantVoteTallyLabel->setFgColor( r, g, b, a );
 			m_pInstantVoteTallyLabel->setBgColor( 0, 0, 0, 255 );
+			m_pInstantVoteTallyLabel->addInputSignal( new CHandler_MenuWheelForward(this) );
 
 			Label *pInstantSubtitle = new Label( "", XRES(5), MUTATORMENU_BUTTON_SIZE_Y - YRES(16) );
 			pInstantSubtitle->setParent( m_pInstantButton );
@@ -190,6 +196,7 @@ CVoteMutatorPanel::CVoteMutatorPanel(int iTrans, int iRemoveMe, int x,int y,int 
 			pInstantSubtitle->setFgColor( sr, sg, sb, sa );
 			pInstantSubtitle->setBgColor( 0, 0, 0, 255 );
 			pInstantSubtitle->setText( "swapped stats, tripmines, etc." );
+			pInstantSubtitle->addInputSignal( new CHandler_MenuWheelForward(this) );
 		}
 	}
 	
