@@ -599,9 +599,6 @@ static BOOL RTVIsEligibleHumanVoter( CBasePlayer *pPlayer )
 	if ( FBitSet( pPlayer->pev->flags, FL_FAKECLIENT ) || FBitSet( pPlayer->pev->flags, FL_PROXY ) )
 		return FALSE;
 
-	if ( pPlayer->IsObserver() || pPlayer->IsSpectator() )
-		return FALSE;
-
 	return TRUE;
 }
 
@@ -764,8 +761,6 @@ void MutatorVote(edict_t *pEntity, const char *text)
 	CBasePlayer *pPlayer = NULL;
 	entvars_t *pev = &pEntity->v;
 	pPlayer = GetClassPtr((CBasePlayer *)pev);
-	if (pEntity->v.iuser1 == OBS_ROAMING || pPlayer->IsSpectator())
-		return; // spectators can't call or vote
 
 	if (voting.value && UTIL_stristr(text, "mutators"))
 	{
@@ -843,8 +838,6 @@ void GameModeVoteRTV(edict_t *pEntity, const char *text)
 	CBasePlayer *pPlayer = NULL;
 	entvars_t *pev = &pEntity->v;
 	pPlayer = GetClassPtr((CBasePlayer *)pev);
-	if (pEntity->v.iuser1 == OBS_ROAMING || pPlayer->IsSpectator())
-		return;
 
 	if (voting.value && UTIL_stristr(text, "gamemodes"))
 	{
@@ -940,8 +933,6 @@ void MapVoteRTV(edict_t *pEntity, const char *text)
 	CBasePlayer *pPlayer = NULL;
 	entvars_t *pev = &pEntity->v;
 	pPlayer = GetClassPtr((CBasePlayer *)pev);
-	if (pEntity->v.iuser1 == OBS_ROAMING || pPlayer->IsSpectator())
-		return;
 
 	if (voting.value && UTIL_stristr(text, "maps"))
 	{
@@ -1435,8 +1426,6 @@ void GameOptionsVote(edict_t *pEntity, const char *text)
 	CBasePlayer *pPlayer = NULL;
 	entvars_t *pev = &pEntity->v;
 	pPlayer = GetClassPtr((CBasePlayer *)pev);
-	if (pEntity->v.iuser1 == OBS_ROAMING || pPlayer->IsSpectator())
-		return; // spectators can't call or vote
 
 	if (voting.value && UTIL_stristr(text, "gameoptions"))
 	{
@@ -1541,8 +1530,6 @@ void ServerOptionsVote(edict_t *pEntity, const char *text)
 	CBasePlayer *pPlayer = NULL;
 	entvars_t *pev = &pEntity->v;
 	pPlayer = GetClassPtr((CBasePlayer *)pev);
-	if (pEntity->v.iuser1 == OBS_ROAMING || pPlayer->IsSpectator())
-		return;
 
 	if (voting.value && UTIL_stristr(text, "serveroptions"))
 	{
