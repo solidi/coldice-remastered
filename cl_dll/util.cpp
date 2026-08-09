@@ -190,16 +190,48 @@ int GetSleeveModelIndex()
 	return ClampModelIndex(gHUD.m_SleeveModelIndex, SLEEVE_ORANGE, SLEEVE_GREEN);
 }
 
-static bool GetTeamForcedSleeveModelIndex(int &sleeveIndex)
+static bool TryGetLocalPlayerSpecial(int &special)
 {
+	special = 0;
+
 	cl_entity_t *local = gEngfuncs.GetLocalPlayer();
 	if (!local)
 		return false;
 
+#if defined(WIN32) && defined(_MSC_VER)
+	__try
+	{
+#endif
+		const int localIndex = local->index;
+		const int maxClients = gEngfuncs.GetMaxClients();
+		if (localIndex < 1 || localIndex > maxClients)
+			return false;
+
+		cl_entity_t *localByIndex = gEngfuncs.GetEntityByIndex(localIndex);
+		if (!localByIndex)
+			return false;
+
+		special = (int)localByIndex->curstate.fuser4;
+#if defined(WIN32) && defined(_MSC_VER)
+	}
+	__except (EXCEPTION_EXECUTE_HANDLER)
+	{
+		return false;
+	}
+#endif
+
+	return true;
+}
+
+static bool GetTeamForcedSleeveModelIndex(int &sleeveIndex)
+{
 	if (!ShouldForceTeamSleeveModel())
 		return false;
 
-	const int special = (int)local->curstate.fuser4;
+	int special = 0;
+	if (!TryGetLocalPlayerSpecial(special))
+		return false;
+
 	if (special == RADAR_TEAM_RED ||
 		special == RADAR_ARENA_RED ||
 		special == RADAR_BUSTER ||
@@ -293,51 +325,54 @@ unsigned long HudColor()
 	// Special case for red team in game modes
 	if (gHUD.m_GameMode)
 	{
-		cl_entity_t *local = gEngfuncs.GetLocalPlayer();
-		if (local->curstate.fuser4 == RADAR_TEAM_RED || 
-			local->curstate.fuser4 == RADAR_ARENA_RED ||
-			local->curstate.fuser4 == RADAR_BUSTER ||
-			local->curstate.fuser4 == RADAR_VIRUS ||
-			(local->curstate.fuser4 > 0 && gHUD.m_GameMode == GAME_PROPHUNT))
+		int special = 0;
+		if (TryGetLocalPlayerSpecial(special))
 		{
-			if (colorchange != RGB_REDISH)
+			if (special == RADAR_TEAM_RED ||
+				special == RADAR_ARENA_RED ||
+				special == RADAR_BUSTER ||
+				special == RADAR_VIRUS ||
+				(special > 0 && gHUD.m_GameMode == GAME_PROPHUNT))
 			{
-				gEngfuncs.pfnClientCmd("con_color \"255 80 0\"\n");
-				gEngfuncs.pfnClientCmd("tracerred \"1\"\ntracerblue \"0\"\ntracergreen \"0\"\n");
-				colorchange = RGB_REDISH;
+				if (colorchange != RGB_REDISH)
+				{
+					gEngfuncs.pfnClientCmd("con_color \"255 80 0\"\n");
+					gEngfuncs.pfnClientCmd("tracerred \"1\"\ntracerblue \"0\"\ntracergreen \"0\"\n");
+					colorchange = RGB_REDISH;
+				}
+				return RGB_REDISH;
 			}
-			return RGB_REDISH;
-		}
-		else if (local->curstate.fuser4 == RADAR_CHUMTOAD ||
-				 local->curstate.fuser4 == RADAR_TEAM_GREEN)
-		{
-			if (colorchange != RGB_GREENISH)
+			else if (special == RADAR_CHUMTOAD ||
+					 special == RADAR_TEAM_GREEN)
 			{
-				gEngfuncs.pfnClientCmd("con_color \"0 200 0\"\n");
-				gEngfuncs.pfnClientCmd("tracerred \"0\"\ntracerblue \"0\"\ntracergreen \"1\"\n");
-				colorchange = RGB_GREENISH;
+				if (colorchange != RGB_GREENISH)
+				{
+					gEngfuncs.pfnClientCmd("con_color \"0 200 0\"\n");
+					gEngfuncs.pfnClientCmd("tracerred \"0\"\ntracerblue \"0\"\ntracergreen \"1\"\n");
+					colorchange = RGB_GREENISH;
+				}
+				return RGB_GREENISH;
 			}
-			return RGB_GREENISH;
-		}
-		else if (local->curstate.fuser4 == RADAR_TEAM_YELLOW)
-		{
-			if (colorchange != RGB_YELLOWISH)
+			else if (special == RADAR_TEAM_YELLOW)
 			{
-				gEngfuncs.pfnClientCmd("con_color \"255 180 30\"\n");
-				gEngfuncs.pfnClientCmd("tracerred \"1\"\ntracerblue \"0\"\ntracergreen \"0.8\"\n");
-				colorchange = RGB_YELLOWISH;
+				if (colorchange != RGB_YELLOWISH)
+				{
+					gEngfuncs.pfnClientCmd("con_color \"255 180 30\"\n");
+					gEngfuncs.pfnClientCmd("tracerred \"1\"\ntracerblue \"0\"\ntracergreen \"0.8\"\n");
+					colorchange = RGB_YELLOWISH;
+				}
+				return RGB_YELLOWISH;
 			}
-			return RGB_YELLOWISH;
-		}
-		else if (local->curstate.fuser4 == RADAR_LOOT)
-		{
-			if (colorchange != RGB_ORANGEISH)
+			else if (special == RADAR_LOOT)
 			{
-				gEngfuncs.pfnClientCmd("con_color \"255 95 30\"\n");
-				gEngfuncs.pfnClientCmd("tracerred \"1\"\ntracerblue \"0\"\ntracergreen \"0.65\"\n");
-				colorchange = RGB_ORANGEISH;
+				if (colorchange != RGB_ORANGEISH)
+				{
+					gEngfuncs.pfnClientCmd("con_color \"255 95 30\"\n");
+					gEngfuncs.pfnClientCmd("tracerred \"1\"\ntracerblue \"0\"\ntracergreen \"0.65\"\n");
+					colorchange = RGB_ORANGEISH;
+				}
+				return RGB_ORANGEISH;
 			}
-			return RGB_ORANGEISH;
 		}
 	}
 
