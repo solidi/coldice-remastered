@@ -122,7 +122,7 @@ void CSatchelCharge::SatchelSlide( CBaseEntity *pOther )
 		return;
 
 #ifndef CLIENT_DLL
-	if ( FBitSet( pev->spawnflags, SF_SATCHEL_NUKE_PACKAGE ) || FBitSet( pev->spawnflags, SF_SATCHEL_DRUG_PACKAGE ) )
+	if ( FBitSet( pev->spawnflags, SF_SATCHEL_NUKE_PACKAGE ) || FBitSet( pev->spawnflags, SF_SATCHEL_DRUG_PACKAGE ) || FBitSet( pev->spawnflags, SF_SATCHEL_PROX_PACKAGE ) )
 	{
 		const BOOL bNuclearPackage = FBitSet( pev->spawnflags, SF_SATCHEL_NUKE_PACKAGE );
 		const BOOL bDrugPackage = FBitSet( pev->spawnflags, SF_SATCHEL_DRUG_PACKAGE );
@@ -231,7 +231,7 @@ void CSatchelCharge :: SatchelThink( void )
 		pev->velocity.z -= 8;
 	}
 
-	if ( !FBitSet( pev->spawnflags, SF_SATCHEL_NUKE_PACKAGE ) && !FBitSet( pev->spawnflags, SF_SATCHEL_DRUG_PACKAGE ) && !m_transformed && pev->velocity.Length() < 150 ) {
+	if ( !FBitSet( pev->spawnflags, SF_SATCHEL_NUKE_PACKAGE ) && !FBitSet( pev->spawnflags, SF_SATCHEL_DRUG_PACKAGE ) && !FBitSet( pev->spawnflags, SF_SATCHEL_PROX_PACKAGE ) && !m_transformed && pev->velocity.Length() < 150 ) {
 		MESSAGE_BEGIN( MSG_PVS, SVC_TEMPENTITY, pev->origin );
 			WRITE_BYTE( TE_SMOKE );
 			WRITE_COORD( pev->origin.x );

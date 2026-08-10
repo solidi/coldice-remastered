@@ -75,6 +75,7 @@ public:
 #define SF_PROXMINE_NUCLEAR                0x0020
 #define SF_SATCHEL_DRUG_PACKAGE            0x0040
 #define SF_PROXMINE_DRUG                   0x0080
+#define SF_SATCHEL_PROX_PACKAGE            0x0100
 
 
 // constant items
@@ -1804,6 +1805,10 @@ public:
 	}
 
 private:
+	void CyclePrimaryMode( void );
+	void PrintPrimaryMode( void );
+	BOOL FireSelectedPrimaryMode( const Vector &vecSrc, const Vector &vecAiming );
+	int m_iPrimaryMode;
 	unsigned short m_usGrenadeLauncher;
 };
 
