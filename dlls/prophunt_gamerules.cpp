@@ -1523,6 +1523,20 @@ void CHalfLifePropHunt::PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller, 
 	CHalfLifeMultiplay::PlayerKilled(pVictim, pKiller, pInflictor);
 }
 
+#if defined( GRAPPLING_HOOK )
+BOOL CHalfLifePropHunt::AllowGrapplingHook( CBasePlayer *pPlayer )
+{
+	if ( !pPlayer )
+		return FALSE;
+
+	// Props are never allowed to deploy the grappling hook in Prop Hunt.
+	if ( pPlayer->pev->fuser4 >= TEAM_PROPS )
+		return FALSE;
+
+	return CHalfLifeMultiplay::AllowGrapplingHook( pPlayer );
+}
+# endif
+
 BOOL CHalfLifePropHunt::AllowRuneSpawn( const char *szRune )
 {
 	return FALSE;

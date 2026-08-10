@@ -43,6 +43,9 @@ public:
 	virtual void DetermineWinner( void );
 	virtual void ClientDisconnected( edict_t *pClient );
 	virtual void PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller, entvars_t *pInflictor );
+	#if defined( GRAPPLING_HOOK )
+	virtual BOOL AllowGrapplingHook( CBasePlayer *pPlayer );
+	# endif
 	virtual BOOL AllowRuneSpawn( const char *szRune );
 	virtual int WeaponShouldRespawn( CBasePlayerItem *pWeapon );
 	virtual int ItemShouldRespawn( CItem *pItem );
