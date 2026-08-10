@@ -51,6 +51,7 @@ class CPropDecoy : public CBaseEntity
 public:
 	void Precache ( void );
 	void Spawn( void );
+	int TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int bitsDamageType );
 	virtual int ObjectCaps( void ) { return (CBaseEntity::ObjectCaps() & ~FCAP_ACROSS_TRANSITION) | FCAP_PORTAL; }
 	void EXPORT PropDecoyTouch( CBaseEntity *pOther );
 	void EXPORT PropDecoyThink( void );
@@ -101,6 +102,22 @@ void CPropDecoy::Spawn( void )
 	}
 
 	//pev->owner = NULL;
+}
+
+int CPropDecoy::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int bitsDamageType )
+{
+	if ( !pev->takedamage )
+		return 0;
+
+	// Snowcross nuclear sweep is a trigger_hurt pass; decoys should not be
+	// considered "destroyed" by map-scripted hurt volumes.
+	if ( (pevInflictor && FClassnameIs( pevInflictor, "trigger_hurt" )) ||
+		 (pevAttacker && FClassnameIs( pevAttacker, "trigger_hurt" )) )
+	{
+		return 0;
+	}
+
+	return CBaseEntity::TakeDamage( pevInflictor, pevAttacker, flDamage, bitsDamageType );
 }
 
 void CPropDecoy::Killed( entvars_t *pevAttacker, int iGib )
