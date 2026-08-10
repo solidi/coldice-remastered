@@ -33,12 +33,25 @@ extern int gmsgShowTimer;
 extern int gmsgPlayClientSound;
 extern int gmsgDEraser;
 extern int gmsgBanner;
+extern int gmsgStatusIcon;
+
+static void PP_SendPropCameraIcon( CBasePlayer *pPlayer, int enable )
+{
+	if ( !pPlayer || FBitSet( pPlayer->pev->flags, FL_FAKECLIENT ) )
+		return;
+
+	MESSAGE_BEGIN( MSG_ONE, gmsgStatusIcon, NULL, pPlayer->edict() );
+		WRITE_BYTE( enable ? 1 : 0 );
+		WRITE_STRING( "cam_prop" );
+	MESSAGE_END();
+}
 
 class CPropDecoy : public CBaseEntity
 {
 public:
 	void Precache ( void );
 	void Spawn( void );
+	int TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int bitsDamageType );
 	virtual int ObjectCaps( void ) { return (CBaseEntity::ObjectCaps() & ~FCAP_ACROSS_TRANSITION) | FCAP_PORTAL; }
 	void EXPORT PropDecoyTouch( CBaseEntity *pOther );
 	void EXPORT PropDecoyThink( void );
@@ -89,6 +102,22 @@ void CPropDecoy::Spawn( void )
 	}
 
 	//pev->owner = NULL;
+}
+
+int CPropDecoy::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int bitsDamageType )
+{
+	if ( !pev->takedamage )
+		return 0;
+
+	// Snowcross nuclear sweep is a trigger_hurt pass; decoys should not be
+	// considered "destroyed" by map-scripted hurt volumes.
+	if ( (pevInflictor && FClassnameIs( pevInflictor, "trigger_hurt" )) ||
+		 (pevAttacker && FClassnameIs( pevAttacker, "trigger_hurt" )) )
+	{
+		return 0;
+	}
+
+	return CBaseEntity::TakeDamage( pevInflictor, pevAttacker, flDamage, bitsDamageType );
 }
 
 void CPropDecoy::Killed( entvars_t *pevAttacker, int iGib )
@@ -329,8 +358,96 @@ void CHalfLifePropHunt::ReleasePropAnchor( CBasePlayer *pProp )
 	pProp->m_iPropAnchorSavedSolid = 0;
 }
 
+void CHalfLifePropHunt::RestoreWorldPickupsForRound( void )
+{
+	for ( int i = gpGlobals->maxClients + 1; i < gpGlobals->maxEntities; i++ )
+	{
+		edict_t *pEdict = INDEXENT( i );
+		if ( FNullEnt( pEdict ) || pEdict->free )
+			continue;
+
+		CBaseEntity *pEnt = CBaseEntity::Instance( pEdict );
+		if ( !pEnt || !pEnt->pev )
+			continue;
+
+		const char *cn = STRING( pEnt->pev->classname );
+		if ( !cn || !*cn )
+			continue;
+
+		if ( strncmp( cn, "weapon_", 7 ) == 0 )
+		{
+			CBasePlayerItem *pWeapon = (CBasePlayerItem *)pEnt;
+			if ( !pWeapon || pWeapon->m_pPlayer )
+				continue;
+
+			// Skip hidden packed weapons inside weaponboxes/inventories.
+			if ( !FNullEnt( pWeapon->pev->owner ) )
+				continue;
+
+			if ( (pWeapon->pev->effects & EF_NODRAW) || pWeapon->pev->solid == SOLID_NOT )
+				pWeapon->Materialize();
+
+			pWeapon->pev->health = 1;
+			pWeapon->pev->takedamage = DAMAGE_YES;
+		}
+		else if ( strncmp( cn, "ammo_", 5 ) == 0 )
+		{
+			CBasePlayerAmmo *pAmmo = (CBasePlayerAmmo *)pEnt;
+
+			// Map/world ammo has no owner; skip entity-owned internals.
+			if ( !FNullEnt( pAmmo->pev->owner ) )
+				continue;
+
+			if ( (pAmmo->pev->effects & EF_NODRAW) || pAmmo->pev->solid == SOLID_NOT )
+				pAmmo->Materialize();
+
+			pAmmo->pev->solid = SOLID_BBOX;
+			pAmmo->pev->health = 1;
+			pAmmo->pev->takedamage = DAMAGE_YES;
+			UTIL_SetSize( pAmmo->pev, VEC_HUMAN_HULL_MIN, VEC_HUMAN_HULL_MAX );
+			UTIL_SetOrigin( pAmmo->pev, pAmmo->pev->origin );
+		}
+		else if ( strncmp( cn, "item_", 5 ) == 0 )
+		{
+CItem *pItem = dynamic_cast<CItem *>(pEnt);
+			if ( !pItem )
+				continue;
+
+			// Map/world items have no owner; skip entity-owned internals.
+			if ( !FNullEnt( pItem->pev->owner ) )
+				continue;
+
+			if ( (pItem->pev->effects & EF_NODRAW) || pItem->pev->solid == SOLID_NOT )
+				pItem->Materialize();
+
+			pItem->pev->solid = SOLID_BBOX;
+			pItem->pev->health = 1;
+			pItem->pev->takedamage = DAMAGE_YES;
+			UTIL_SetSize( pItem->pev, VEC_HUMAN_HULL_MIN, VEC_HUMAN_HULL_MAX );
+			UTIL_SetOrigin( pItem->pev, pItem->pev->origin );
+		}
+	}
+}
+
 void CHalfLifePropHunt::DetermineWinner( void )
 {
+	// Prop winners leave the round in third camera; clear the prop camera icon
+	// before winner presentation so their post-round camera state is reset.
+	if ( m_iPropsRemain > 0 )
+	{
+		for ( int i = 1; i <= gpGlobals->maxClients; i++ )
+		{
+			CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
+			if ( !plr || !plr->IsPlayer() || !plr->IsInArena )
+				continue;
+			if ( plr->pev->fuser4 < TEAM_PROPS )
+				continue;
+
+			PP_SendPropCameraIcon( plr, 0 );
+			plr->m_fCameraDelay = 0;
+		}
+	}
+
 	int highest = -9999;
 	BOOL IsEqual = FALSE;
 	CBasePlayer *highballer = NULL;
@@ -829,6 +946,10 @@ void CHalfLifePropHunt::Think( void )
 		//frags + time.
 		SetRoundLimits();
 
+		// Round-start world reset: re-materialize map pickups so props always have
+		// stable anchors before hunters are released.
+		RestoreWorldPickupsForRound();
+
 		// Balance teams
   		// Implementing Fisher–Yates shuffle
 		int i, j, tmp; // create local variables to hold values for shuffle
@@ -995,6 +1116,7 @@ void CHalfLifePropHunt::PlayerSpawn( CBasePlayer *pPlayer )
 	char *key = g_engfuncs.pfnGetInfoKeyBuffer(pPlayer->edict());
 
 	PlayFootstepSounds(pPlayer, 1.0);
+	pPlayer->m_fCameraDelay = 0;
 
 	if ( pPlayer->pev->fuser4 >= TEAM_PROPS )
 	{
@@ -1010,7 +1132,8 @@ void CHalfLifePropHunt::PlayerSpawn( CBasePlayer *pPlayer )
 		pPlayer->pev->fuser1 = 0; // hunter self-cost tracker (unused for props)
 		pPlayer->pev->fuser2 = 0; // prop morph cooldown
 		pPlayer->GiveNamedItem("weapon_handgrenade");
-		CLIENT_COMMAND(pPlayer->edict(), "thirdperson\n");
+		if ( !FBitSet(pPlayer->pev->flags, FL_FAKECLIENT) )
+			pPlayer->m_fCameraDelay = gpGlobals->time + 1.0f;
 	}
 	else
 	{
@@ -1020,6 +1143,7 @@ void CHalfLifePropHunt::PlayerSpawn( CBasePlayer *pPlayer )
 		// Hunters always start with a flamethrower
 		pPlayer->GiveNamedItem("weapon_flamethrower");
 		pPlayer->GiveAmmo( FUEL_MAX_CARRY, "uranium", FUEL_MAX_CARRY );
+		PP_SendPropCameraIcon( pPlayer, 0 );
 	}
 
 	// notify everyone's HUD of the team change
@@ -1070,10 +1194,13 @@ BOOL CHalfLifePropHunt::FPlayerCanTakeDamage( CBasePlayer *pPlayer, CBaseEntity 
 		ReleasePropAnchor(pPlayer);   // restore any +use-morph item before the team flip
 		PlayFootstepSounds(pPlayer, 1.0);
 
-		CLIENT_COMMAND(pPlayer->edict(), "firstperson\n");
 		pPlayer->pev->fuser4 = 0;
 		pPlayer->pev->fuser3 = 1; // bot timer to unfreeze
 		pPlayer->pev->fuser1 = 0; // reset hunter self-cost shot tracker
+		if ( !FBitSet(pPlayer->pev->flags, FL_FAKECLIENT) )
+			pPlayer->m_fCameraDelay = gpGlobals->time + 1.0f;
+		else
+			pPlayer->m_fCameraDelay = 0;
 		pPlayer->pev->health = 100;
 		pPlayer->pev->max_health = 100;
 		// Cancel prop haste
@@ -1269,6 +1396,13 @@ void CHalfLifePropHunt::PlayerThink( CBasePlayer *pPlayer )
 {
 	CHalfLifeMultiplay::PlayerThink(pPlayer);
 
+	if ( !FBitSet(pPlayer->pev->flags, FL_FAKECLIENT) &&
+		pPlayer->m_fCameraDelay && pPlayer->m_fCameraDelay <= gpGlobals->time )
+	{
+		PP_SendPropCameraIcon( pPlayer, pPlayer->pev->fuser4 >= TEAM_PROPS ? 1 : 0 );
+		pPlayer->m_fCameraDelay = 0;
+	}
+
 	if (pPlayer->pev->fuser4 >= TEAM_PROPS)
 	{	
 		pPlayer->pev->air_finished = gpGlobals->time + 10; // never drown
@@ -1406,6 +1540,20 @@ void CHalfLifePropHunt::PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller, 
 	CHalfLifeMultiplay::PlayerKilled(pVictim, pKiller, pInflictor);
 }
 
+#if defined( GRAPPLING_HOOK )
+BOOL CHalfLifePropHunt::AllowGrapplingHook( CBasePlayer *pPlayer )
+{
+	if ( !pPlayer )
+		return FALSE;
+
+	// Props are never allowed to deploy the grappling hook in Prop Hunt.
+	if ( pPlayer->pev->fuser4 >= TEAM_PROPS )
+		return FALSE;
+
+	return CHalfLifeMultiplay::AllowGrapplingHook( pPlayer );
+}
+# endif
+
 BOOL CHalfLifePropHunt::AllowRuneSpawn( const char *szRune )
 {
 	return FALSE;
@@ -1413,17 +1561,17 @@ BOOL CHalfLifePropHunt::AllowRuneSpawn( const char *szRune )
 
 int CHalfLifePropHunt::WeaponShouldRespawn( CBasePlayerItem *pWeapon )
 {
-	return GR_WEAPON_RESPAWN_NO;
+	return CHalfLifeMultiplay::WeaponShouldRespawn( pWeapon );
 }
 
 int CHalfLifePropHunt::ItemShouldRespawn( CItem *pItem )
 {
-	return GR_ITEM_RESPAWN_NO;
+	return CHalfLifeMultiplay::ItemShouldRespawn( pItem );
 }
 
 int CHalfLifePropHunt::AmmoShouldRespawn( CBasePlayerAmmo *pAmmo )
 {
-	return GR_AMMO_RESPAWN_NO;
+	return CHalfLifeMultiplay::AmmoShouldRespawn( pAmmo );
 }
 
 BOOL CHalfLifePropHunt::IsTeamplay( void )

@@ -65,6 +65,8 @@ CVoteServerOptionsPanel::CVoteServerOptionsPanel( int iTrans, int iRemoveMe, int
 	m_pScrollPanelBorder = new LineBorder( Color( r, g, b, 255 ) );
 	m_pScrollPanel->setBorder( m_pScrollPanelBorder );
 	m_pScrollPanel->validate();
+	m_pScrollPanel->addInputSignal( new CHandler_MenuWheelForward(this) );
+	m_pScrollPanel->getClient()->addInputSignal( new CHandler_MenuWheelForward(this) );
 
 	m_iRowCount = 0;
 	m_fAutoCloseTime = 0;
@@ -131,6 +133,7 @@ void CVoteServerOptionsPanel::BuildRows( void )
 		pWait->setContentAlignment( vgui::Label::a_west );
 		pWait->setFgColor( r, g, b, 0 );
 		pWait->setBgColor( 0, 0, 0, 255 );
+		pWait->addInputSignal( new CHandler_MenuWheelForward(this) );
 		m_pRowLabels[0] = pWait;
 		m_pScrollPanel->validate();
 		return;
@@ -152,6 +155,7 @@ void CVoteServerOptionsPanel::BuildRows( void )
 		m_pRowLabels[k]->setContentAlignment( vgui::Label::a_west );
 		m_pRowLabels[k]->setFgColor( r, g, b, 0 );
 		m_pRowLabels[k]->setBgColor( 0, 0, 0, 255 );
+		m_pRowLabels[k]->addInputSignal( new CHandler_MenuWheelForward(this) );
 
 		char titleBuf[80];
 		_snprintf( titleBuf, sizeof(titleBuf), " %s%s",
@@ -196,6 +200,7 @@ void CVoteServerOptionsPanel::BuildRows( void )
 			m_pRowVoteTallies[k][o]->setContentAlignment( vgui::Label::a_northeast );
 			m_pRowVoteTallies[k][o]->setFgColor( r, g, b, 0 );
 			m_pRowVoteTallies[k][o]->setBgColor( 0, 0, 0, 255 );
+			m_pRowVoteTallies[k][o]->addInputSignal( new CHandler_MenuWheelForward(this) );
 		}
 	}
 

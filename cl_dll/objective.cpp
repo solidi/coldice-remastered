@@ -26,10 +26,16 @@ int CHudObjective::VidInit()
 int CHudObjective::MsgFunc_Objective(const char *pszName,  int iSize, void *pbuf)
 {
 	BEGIN_READ( pbuf, iSize );
-	strcpy(m_szGoalMessage, READ_STRING());
-	strcpy(m_szInfoMessage, READ_STRING());
+	const char *goal = READ_STRING();
+	strncpy( m_szGoalMessage, goal ? goal : "", sizeof(m_szGoalMessage) - 1 );
+	m_szGoalMessage[sizeof(m_szGoalMessage) - 1] = '\0';
+	const char *info = READ_STRING();
+	strncpy( m_szInfoMessage, info ? info : "", sizeof(m_szInfoMessage) - 1 );
+	m_szInfoMessage[sizeof(m_szInfoMessage) - 1] = '\0';
 	m_iPercent = READ_BYTE();
-	strcpy(m_szWinsMessage, READ_STRING());
+	const char *wins = READ_STRING();
+	strncpy( m_szWinsMessage, wins ? wins : "", sizeof(m_szWinsMessage) - 1 );
+	m_szWinsMessage[sizeof(m_szWinsMessage) - 1] = '\0';
 	return 1;
 }
 

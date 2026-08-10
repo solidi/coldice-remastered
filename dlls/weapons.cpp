@@ -740,6 +740,11 @@ int CBasePlayerItem::TakeDamage( entvars_t* pevInflictor, entvars_t* pevAttacker
 	if ( pev->effects & EF_NODRAW )
 		return 0;
 
+	// In Prop Hunt, map-spawned pickups should survive scripted trigger_hurt sweeps.
+	if ( g_pGameRules->IsPropHunt() && pevInflictor &&
+		FClassnameIs( pevInflictor, "trigger_hurt" ) && FNullEnt( pev->owner ) )
+		return 0;
+
 	if (!g_pGameRules->IsPropHunt() && pevInflictor == pevAttacker)
 		return 0;
 
@@ -1880,6 +1885,11 @@ int CBasePlayerAmmo::TakeDamage( entvars_t* pevInflictor, entvars_t* pevAttacker
 	if ( pev->effects & EF_NODRAW )
 		return 0;
 
+	// In Prop Hunt, map-spawned pickups should survive scripted trigger_hurt sweeps.
+	if ( g_pGameRules->IsPropHunt() && pevInflictor &&
+		FClassnameIs( pevInflictor, "trigger_hurt" ) && FNullEnt( pev->owner ) )
+		return 0;
+
 #ifndef CLIENT_DLL
 	if (pev->health > 0 && flDamage > 0)
 	{
@@ -1987,6 +1997,9 @@ CBaseEntity* CBasePlayerAmmo::Respawn( void )
 	pev->effects |= EF_NODRAW;
 	SetTouch( NULL );
 
+	if ( g_pGameRules->IsPropHunt() )
+		pev->solid = SOLID_NOT;
+
 	UTIL_SetOrigin( pev, g_pGameRules->VecAmmoRespawnSpot( this ) );// move to wherever I'm supposed to repawn.
 
 	SetThink( &CBasePlayerAmmo::Materialize );
@@ -2010,6 +2023,16 @@ void CBasePlayerAmmo::Materialize( void )
 		pev->effects &= ~EF_NODRAW;
 		pev->effects |= EF_MUZZLEFLASH;
 	}
+
+	if ( g_pGameRules->IsPropHunt() )
+	{
+		pev->solid = SOLID_BBOX;
+		pev->health = 1;
+		pev->takedamage = DAMAGE_YES;
+		UTIL_SetSize(pev, VEC_HUMAN_HULL_MIN, VEC_HUMAN_HULL_MAX);
+	}
+
+	UTIL_SetOrigin( pev, pev->origin );
 
 	SetTouch( &CBasePlayerAmmo::DefaultTouch );
 }

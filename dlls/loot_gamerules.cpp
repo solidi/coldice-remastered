@@ -948,25 +948,9 @@ void CHalfLifeLoot::StartRound( int clients )
 		WRITE_STRING( "frost" );
 	MESSAGE_END();
 
-	// Update all player HUDs
-	for ( int i = 1; i <= gpGlobals->maxClients; i++ )
-	{
-		CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
-		if ( !plr || !plr->IsPlayer() ) continue;
-
-		MESSAGE_BEGIN( MSG_ALL, gmsgTeamInfo );
-			WRITE_BYTE( ENTINDEX(plr->edict()) );
-			WRITE_STRING( plr->m_szTeamName );
-		MESSAGE_END();
-
-		MESSAGE_BEGIN( MSG_ALL, gmsgScoreInfo );
-			WRITE_BYTE ( ENTINDEX(plr->edict()) );
-			WRITE_SHORT( plr->pev->frags );
-			WRITE_SHORT( plr->m_iDeaths );
-			WRITE_SHORT( plr->m_iRoundWins );
-			WRITE_SHORT( GetTeamIndex(plr->m_szTeamName) + 1 );
-		MESSAGE_END();
-	}
+	// PlayerSpawn already emits TeamInfo/ScoreInfo for each arena player.
+	// Do not re-broadcast the full roster here; it doubles reliable traffic
+	// during round start and can overflow clients that are still connecting.
 
 	g_GameInProgress      = TRUE;  // already set before InsertClientsIntoArena; kept for clarity
 	m_iCountDown          = 5;
@@ -1666,13 +1650,15 @@ void CHalfLifeLoot::Think( void )
 		{
 			CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex( i );
 			if ( plr && plr->IsPlayer() && !plr->HasDisconnected &&
-			     !FBitSet(plr->pev->flags, FL_FAKECLIENT) )
+			     !FBitSet(plr->pev->flags, FL_FAKECLIENT) &&
+			     plr->m_iShowGameModeMessage > -1 )
 			{
 				MESSAGE_BEGIN( MSG_ONE, gmsgBanner, NULL, plr->edict() );
 					WRITE_STRING( "Loot" );
 					WRITE_STRING( "Partner with that guy next to you, and score the loot!" );
 					WRITE_BYTE( 80 );
 				MESSAGE_END();
+				plr->m_iShowGameModeMessage = -1;
 			}
 		}
 		m_fSendBannerTime = 0;
@@ -2317,6 +2303,10 @@ BOOL CHalfLifeLoot::CanHaveNamedItem( CBasePlayer *pPlayer, const char *pszItemN
 	if ( !pszItemName || strncmp( pszItemName, "weapon_", 7 ) != 0 )
 		return CHalfLifeMultiplay::CanHaveNamedItem( pPlayer, pszItemName );
 
+	// Fists are always allowed.
+	if ( !strcmp(pszItemName, "weapon_fists") )
+		return CHalfLifeMultiplay::CanHaveNamedItem( pPlayer, pszItemName );
+
 	// Determine whether this player benefits from loot-advantage (3-weapon rule)
 	BOOL hasLootAdvantage = pPlayer->m_bHoldingLoot;
 	if ( !hasLootAdvantage && pPlayer->m_iLootTeam >= 0 )
@@ -2336,7 +2326,22 @@ BOOL CHalfLifeLoot::CanHaveNamedItem( CBasePlayer *pPlayer, const char *pszItemN
 
 	int maxWeapons = hasLootAdvantage ? 3 : 1;
 	if ( CountNonFistWeapons( pPlayer ) >= maxWeapons )
+	{
+		// Keep denial messaging consistent for named-item pickups (e.g. weaponbox contents).
+		int slot = ENTINDEX( pPlayer->edict() );
+		if ( slot >= 1 && slot <= 32 && gpGlobals->time >= m_flWeaponHintTime[slot] )
+		{
+			m_flWeaponHintTime[slot] = gpGlobals->time + 2.0f;
+			if ( !FBitSet(pPlayer->pev->flags, FL_FAKECLIENT) )
+			{
+				ClientPrint( pPlayer->pev, HUD_PRINTCENTER,
+				    maxWeapons == 1
+				        ? "Drop your weapon first!"
+				        : "Drop a weapon first!" );
+			}
+		}
 		return FALSE;  // At limit; +use swap in player.cpp handles the swap
+	}
 
 	return CHalfLifeMultiplay::CanHaveNamedItem( pPlayer, pszItemName );
 }

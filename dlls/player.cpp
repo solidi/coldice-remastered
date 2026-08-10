@@ -1322,6 +1322,7 @@ void CBasePlayer::Killed( entvars_t *pevAttacker, int iGib )
 		pev->renderamt = 0;
 		pev->flags &= ~FL_FROZEN;
 		pev->iuser4 = 0;
+		m_bControlFrozen = FALSE;
 	}
 
 	SetAnimation( PLAYER_DIE );
@@ -4317,7 +4318,8 @@ void CBasePlayer::PostThink()
 				pev->renderfx = kRenderFxNone;
 				pev->rendercolor = g_vecZero;
 				m_iFreezeCounter = pev->renderamt = 0;
-				pev->flags &= ~FL_FROZEN;
+				if (!m_bControlFrozen)
+					pev->flags &= ~FL_FROZEN;
 				m_iFreezeCounter = -1;
 			}
 		}
@@ -4327,7 +4329,7 @@ void CBasePlayer::PostThink()
 
 		m_fThawTime = gpGlobals->time + 0.1;
 	}
-	else if (m_iFreezeCounter < 0 && (pev->flags & FL_FROZEN) && !FBitSet(pev->flags, FL_GODMODE)) {
+	else if (m_iFreezeCounter < 0 && (pev->flags & FL_FROZEN) && !FBitSet(pev->flags, FL_GODMODE) && !m_bControlFrozen) {
 		// Counter already past zero but FL_FROZEN never got cleared — happens
 		// when an external path (gamerules kill, respawn, godmode toggle)
 		// reset m_iFreezeCounter without dropping the flag.  Without this
@@ -4564,6 +4566,7 @@ void CBasePlayer::Spawn( void )
 	m_iWeapons2 = 0;
 	m_iFreezeCounter 	= -1;
 	pev->iuser4         = -1; // Cross-DLL freeze signal for grave_bot; mirrors m_iFreezeCounter.
+	m_bControlFrozen    = FALSE;
 	pHeldItem = NULL;
 	m_iHoldingItem = FALSE;
 	m_fSelacoSliding = m_fSelacoHit = FALSE;
@@ -4899,8 +4902,7 @@ void CBasePlayer::SelectItem(const char *pstr)
 	if (!pstr)
 		return;
 
-	if (!ShouldWeaponSwitch())
-		return;
+	// cl_aws controls auto-pickup switching only; manual selection must always work.
 
 	CBasePlayerItem *pItem = NULL;
 
@@ -7844,6 +7846,8 @@ int CBasePlayer :: Illumination( void )
 
 void CBasePlayer :: EnableControl(BOOL fControl)
 {
+	m_bControlFrozen = !fControl;
+
 	if (!fControl)
 		pev->flags |= FL_FROZEN;
 	else

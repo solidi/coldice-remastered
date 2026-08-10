@@ -229,6 +229,7 @@ public:
 	float m_fOffhandTime;
 	float m_fThawTime;
 	int m_iFreezeCounter;
+	BOOL m_bControlFrozen;
 	float m_fJumpHeight;
 	float m_fGrenadeTime;
 	float m_fKickEndTime; // pev->nextthink cannot be used consistently

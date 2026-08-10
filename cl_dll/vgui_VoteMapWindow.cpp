@@ -67,6 +67,8 @@ CVoteMapPanel::CVoteMapPanel(int iTrans, int iRemoveMe, int x,int y,int wide,int
 	m_pScrollPanelBorder = new LineBorder( Color(r, g, b, 255) );
 	m_pScrollPanel->setBorder( m_pScrollPanelBorder );
 	m_pScrollPanel->validate();
+	m_pScrollPanel->addInputSignal( new CHandler_MenuWheelForward(this) );
+	m_pScrollPanel->getClient()->addInputSignal( new CHandler_MenuWheelForward(this) );
 
 	// Buttons are constructed lazily in Open() because the dynamic map list
 	// (g_szClientMaps[] / g_iClientMapCount) may not have arrived yet at
@@ -182,6 +184,7 @@ void CVoteMapPanel::BuildButtons( void )
 		m_pVoteTallyLabels[i]->setSize( XRES(10), YRES(18) );
 		m_pVoteTallyLabels[i]->setFgColor( r, g, b, a );
 		m_pVoteTallyLabels[i]->setBgColor( 0, 0, 0, 255 );
+		m_pVoteTallyLabels[i]->addInputSignal( new CHandler_MenuWheelForward(this) );
 	}
 
 	m_pScrollPanel->validate();

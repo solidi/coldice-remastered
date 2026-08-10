@@ -375,22 +375,22 @@ int CHud :: MsgFunc_PlayCSound( const char *pszName, int iSize, void *pbuf )
 			PlaySound("plats/elevbell1.wav", 1);
 			break;
 		case CLIENT_SOUND_NOPE:
-			PlaySound("sound/nope.wav", 1);
+			PlaySound("nope.wav", 1);
 			break;
 		case CLIENT_SOUND_SOCCER:
-			PlaySound("sound/soccer.wav", 1);
+			PlaySound("soccer.wav", 1);
 			break;
 		case CLIENT_SOUND_GOL:
-			PlaySound("sound/gol.wav", 1);
+			PlaySound("gol.wav", 1);
 			break;
 		case CLIENT_SOUND_AIRHORN:
-			PlaySound("sound/airhorn.wav", 1);
+			PlaySound("airhorn.wav", 1);
 			break;
 		case CLIENT_SOUND_CLAPPING:
-			PlaySound("sound/goal_1.wav", 1);
+			PlaySound("goal_1.wav", 1);
 			break;
 		case CLIENT_SOUND_VOTEGAMEOPTIONS:
-			PlaySound("sound/gameoptions.wav", 1);
+			PlaySound("gameoptions.wav", 1);
 			break;
 	}
 	return 1;

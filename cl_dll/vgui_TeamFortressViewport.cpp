@@ -722,7 +722,13 @@ public:
 	}
 
 	virtual void mouseDoublePressed(MouseCode code,Panel* panel) {}
-	virtual void mouseWheeled(int delta,Panel* panel) {}
+	virtual void mouseWheeled(int delta,Panel* panel)
+	{
+		if ( gViewPort && gViewPort->m_pCurrentMenu )
+		{
+			gViewPort->m_pCurrentMenu->MouseWheeled( delta );
+		}
+	}
 	virtual void keyPressed(KeyCode code,Panel* panel) {}
 	virtual void keyTyped(KeyCode code,Panel* panel) {}
 	virtual void keyReleased(KeyCode code,Panel* panel) {}
@@ -2624,6 +2630,15 @@ int	TeamFortressViewport::KeyInput( int down, int keynum, const char *pszCurrent
 	if (m_pCurrentMenu && gEngfuncs.Con_IsVisible() == false)
 	{
 		int iMenuID = m_pCurrentMenu->GetMenuID();
+
+		// Wheel fallback for legacy input paths where mouse wheel arrives as
+		// key events instead of VGUI mouseWheeled callbacks.
+		if ( down && ( keynum == K_MWHEELUP || keynum == K_MWHEELDOWN ) )
+		{
+			const int wheelDelta = ( keynum == K_MWHEELUP ) ? 1 : -1;
+			m_pCurrentMenu->MouseWheeled( wheelDelta );
+			return 0;
+		}
 
 		// Get number keys as Input for Team/Class menus
 		if (iMenuID == MENU_TEAM || iMenuID == MENU_CLASS)

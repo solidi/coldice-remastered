@@ -180,6 +180,9 @@ CBaseEntity* CItem::Respawn( void )
 	SetTouch( NULL );
 	pev->effects |= EF_NODRAW;
 
+	if ( g_pGameRules->IsPropHunt() )
+		pev->solid = SOLID_NOT;
+
 	UTIL_SetOrigin( pev, g_pGameRules->VecItemRespawnSpot( this ) );// blip to whereever you should respawn.
 
 	SetThink ( &CItem::Materialize );
@@ -203,6 +206,16 @@ void CItem::Materialize( void )
 		}
 	}
 
+	if ( g_pGameRules->IsPropHunt() )
+	{
+		pev->solid = SOLID_BBOX;
+		pev->health = 1;
+		pev->takedamage = DAMAGE_YES;
+		UTIL_SetSize(pev, VEC_HUMAN_HULL_MIN, VEC_HUMAN_HULL_MAX);
+	}
+
+	UTIL_SetOrigin( pev, pev->origin );
+
 	SetTouch( &CItem::ItemTouch );
 }
 
@@ -212,6 +225,11 @@ int CItem::TakeDamage( entvars_t* pevInflictor, entvars_t* pevAttacker, float fl
 		return 0;
 
 	if ( pev->effects & EF_NODRAW )
+		return 0;
+
+	// In Prop Hunt, map-spawned pickups should survive scripted trigger_hurt sweeps.
+	if ( g_pGameRules->IsPropHunt() && pevInflictor &&
+		FClassnameIs( pevInflictor, "trigger_hurt" ) && FNullEnt( pev->owner ) )
 		return 0;
 
 #ifndef CLIENT_DLL

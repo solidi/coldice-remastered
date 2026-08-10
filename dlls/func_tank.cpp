@@ -92,11 +92,12 @@ public:
 	BOOL OnControls( entvars_t *pevTest );
 	BOOL StartControl( CBasePlayer* pController );
 	void StopControl( void );
+	CBasePlayer *Controller( void );
 	void ControllerPostFrame( void );
 
 
 protected:
-	CBasePlayer* m_pController;
+	EHANDLE		m_hController;
 	float		m_flNextAttack;
 	Vector		m_vecControllerUsePos;
 	
@@ -154,7 +155,7 @@ TYPEDESCRIPTION	CFuncTank::m_SaveData[] =
 	DEFINE_FIELD( CFuncTank, m_bulletType, FIELD_INTEGER ),
 	DEFINE_FIELD( CFuncTank, m_sightOrigin, FIELD_VECTOR ),
 	DEFINE_FIELD( CFuncTank, m_spread, FIELD_INTEGER ),
-	DEFINE_FIELD( CFuncTank, m_pController, FIELD_CLASSPTR ),
+	DEFINE_FIELD( CFuncTank, m_hController, FIELD_EHANDLE ),
 	DEFINE_FIELD( CFuncTank, m_vecControllerUsePos, FIELD_VECTOR ),
 	DEFINE_FIELD( CFuncTank, m_flNextAttack, FIELD_TIME ),
 	DEFINE_FIELD( CFuncTank, m_iBulletDamage, FIELD_INTEGER ),
@@ -339,9 +340,25 @@ BOOL CFuncTank :: OnControls( entvars_t *pevTest )
 	return FALSE;
 }
 
+CBasePlayer *CFuncTank::Controller( void )
+{
+	edict_t *pControllerEdict = m_hController.Get();
+	if ( !pControllerEdict )
+		return NULL;
+
+	CBaseEntity *pController = (CBaseEntity *)GET_PRIVATE( pControllerEdict );
+	if ( pController && pController->IsPlayer() )
+		return (CBasePlayer *)pController;
+
+	return NULL;
+}
+
 BOOL CFuncTank :: StartControl( CBasePlayer *pController )
 {
-	if ( m_pController != NULL )
+	if ( Controller() != NULL )
+		return FALSE;
+
+	if ( !pController )
 		return FALSE;
 
 	// Team only or disabled?
@@ -353,17 +370,17 @@ BOOL CFuncTank :: StartControl( CBasePlayer *pController )
 
 	ALERT( at_console, "using TANK!\n");
 
-	m_pController = pController;
-	if ( m_pController->m_pActiveItem )
+	m_hController = pController;
+	if ( pController->m_pActiveItem )
 	{
-		m_pController->m_pActiveItem->Holster();
-		m_pController->pev->weaponmodel = 0;
-		m_pController->pev->viewmodel = 0; 
+		pController->m_pActiveItem->Holster();
+		pController->pev->weaponmodel = 0;
+		pController->pev->viewmodel = 0; 
 
 	}
 
-	m_pController->m_iHideHUD |= HIDEHUD_WEAPONS;
-	m_vecControllerUsePos = m_pController->pev->origin;
+	pController->m_iHideHUD |= HIDEHUD_WEAPONS;
+	m_vecControllerUsePos = pController->pev->origin;
 	
 	pev->nextthink = pev->ltime + 0.1;
 	
@@ -372,19 +389,27 @@ BOOL CFuncTank :: StartControl( CBasePlayer *pController )
 
 void CFuncTank :: StopControl()
 {
-	// TODO: bring back the controllers current weapon
-	if ( !m_pController )
-		return;
+	CBasePlayer *pController = Controller();
 
-	if ( m_pController->m_pActiveItem )
-		m_pController->m_pActiveItem->Deploy();
+	// TODO: bring back the controllers current weapon
+	if ( !pController )
+	{
+		m_hController = NULL;
+		return;
+	}
+
+	if ( pController->m_pActiveItem )
+		pController->m_pActiveItem->Deploy();
 
 	ALERT( at_console, "stopped using TANK\n");
 
-	m_pController->m_iHideHUD &= ~HIDEHUD_WEAPONS;
+	pController->m_iHideHUD &= ~HIDEHUD_WEAPONS;
+
+	if ( pController->m_pTank == this )
+		pController->m_pTank = NULL;
 
 	pev->nextthink = 0;
-	m_pController = NULL;
+	m_hController = NULL;
 
 	if ( IsActive() )
 		pev->nextthink = pev->ltime + 1.0;
@@ -393,23 +418,31 @@ void CFuncTank :: StopControl()
 // Called each frame by the player's ItemPostFrame
 void CFuncTank :: ControllerPostFrame( void )
 {
-	ASSERT(m_pController != NULL);
+	CBasePlayer *pController = Controller();
+	if ( !pController )
+		return;
+
+	ASSERT( pController->m_pTank == this );
+	if ( pController->m_pTank != this )
+	{
+		m_hController = NULL;
+		return;
+	}
 
 	if ( gpGlobals->time < m_flNextAttack )
 		return;
 
-	if ( m_pController->pev->button & IN_ATTACK )
+	if ( pController->pev->button & IN_ATTACK )
 	{
 		Vector vecForward;
 		UTIL_MakeVectorsPrivate( pev->angles, vecForward, NULL, NULL );
 
 		m_fireLast = gpGlobals->time - (1/m_fireRate) - 0.01;  // to make sure the gun doesn't fire too many bullets
 
-		Fire( BarrelPosition(), vecForward, m_pController->pev );
+		Fire( BarrelPosition(), vecForward, pController->pev );
 		
 		// HACKHACK -- make some noise (that the AI can hear)
-		if ( m_pController && m_pController->IsPlayer() )
-			((CBasePlayer *)m_pController)->m_iWeaponVolume = LOUD_GUN_VOLUME;
+		pController->m_iWeaponVolume = LOUD_GUN_VOLUME;
 
 		m_flNextAttack = gpGlobals->time + (1/m_fireRate);
 	}
@@ -422,17 +455,25 @@ void CFuncTank :: Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE u
 	if ( pev->spawnflags & SF_TANK_CANCONTROL )
 	{  // player controlled turret
 
-		if ( pActivator->Classify() != CLASS_PLAYER )
+		if ( !pActivator || pActivator->Classify() != CLASS_PLAYER )
 			return;
+
+		CBasePlayer *pPlayer = (CBasePlayer *)pActivator;
+		CBasePlayer *pController = Controller();
 
 		if ( value == 2 && useType == USE_SET )
 		{
-			ControllerPostFrame();
+			if ( pController && pController == pPlayer )
+				ControllerPostFrame();
+			else if ( pPlayer->m_pTank == this )
+				pPlayer->m_pTank = NULL;
 		}
-		else if ( !m_pController && useType != USE_OFF )
+		else if ( !pController && useType != USE_OFF )
 		{
-			((CBasePlayer*)pActivator)->m_pTank = this;
-			StartControl( (CBasePlayer*)pActivator );
+			if ( StartControl( pPlayer ) )
+				pPlayer->m_pTank = this;
+			else if ( pPlayer->m_pTank == this )
+				pPlayer->m_pTank = NULL;
 		}
 		else
 		{
@@ -488,12 +529,13 @@ void CFuncTank::TrackTarget( void )
 	BOOL updateTime = FALSE, lineOfSight;
 	Vector angles, direction, targetPosition, barrelEnd;
 	edict_t *pTarget;
+	CBasePlayer *pController = Controller();
 
 	// Get a position to aim for
-	if (m_pController)
+	if ( pController )
 	{
 		// Tanks attempt to mirror the player's angles
-		angles = m_pController->pev->v_angle;
+		angles = pController->pev->v_angle;
 		angles[0] = 0 - angles[0];
 		pev->nextthink = pev->ltime + 0.05;
 	}
@@ -593,7 +635,7 @@ void CFuncTank::TrackTarget( void )
 	else if ( pev->avelocity.x < -m_pitchRate )
 		pev->avelocity.x = -m_pitchRate;
 
-	if ( m_pController )
+	if ( pController )
 		return;
 
 	if ( CanFire() && ( (fabs(distX) < m_pitchTolerance && fabs(distY) < m_yawTolerance) || (pev->spawnflags & SF_TANK_LINEOFSIGHT) ) )
@@ -946,6 +988,8 @@ void CFuncTankMortar::KeyValue( KeyValueData *pkvd )
 
 void CFuncTankMortar::Fire( const Vector &barrelEnd, const Vector &forward, entvars_t *pevAttacker )
 {
+	CBasePlayer *pController = Controller();
+
 	if ( m_fireLast != 0 )
 	{
 		int bulletCount = (gpGlobals->time - m_fireLast) * m_fireRate;
@@ -959,7 +1003,7 @@ void CFuncTankMortar::Fire( const Vector &barrelEnd, const Vector &forward, entv
 
 			TankTrace( barrelEnd, forward, gTankSpread[m_spread], tr );
 
-			ExplosionCreate( tr.vecEndPos, pev->angles, m_pController != NULL ? m_pController->edict() : edict(), pev->impulse, TRUE );
+			ExplosionCreate( tr.vecEndPos, pev->angles, pController != NULL ? pController->edict() : edict(), pev->impulse, TRUE );
 
 			CFuncTank::Fire( barrelEnd, forward, pev );
 		}

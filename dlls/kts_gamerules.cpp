@@ -858,7 +858,7 @@ void CKtsSnowball::ResetToMidpoint( void )
 	{
 		UTIL_ClientPrintAll(HUD_PRINTTALK, "Ball reset to mid field!\n");
 
-		MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
+		MESSAGE_BEGIN( MSG_ALL, gmsgPlayClientSound );
 			WRITE_BYTE(CLIENT_SOUND_AIRHORN);
 		MESSAGE_END();
 	}
@@ -1210,7 +1210,7 @@ void CHalfLifeKickTheSnowball::SpawnBallAtMidpoint( void )
 	if (!pRedGoal || !pBlueGoal)
 		return;
 
-	MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
+	MESSAGE_BEGIN( MSG_ALL, gmsgPlayClientSound );
 		WRITE_BYTE(CLIENT_SOUND_SOCCER);
 	MESSAGE_END();
 
@@ -1245,7 +1245,7 @@ void CHalfLifeKickTheSnowball::OnGoalScored( int scoringTeam, CBaseEntity *pScor
 	if (!pScoredBall)
 		return;
 
-	MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
+	MESSAGE_BEGIN( MSG_ALL, gmsgPlayClientSound );
 		WRITE_BYTE(CLIENT_SOUND_GOL);
 	MESSAGE_END();
 
