@@ -392,7 +392,9 @@ void CHalfLifePropHunt::RestoreWorldPickupsForRound( void )
 		}
 		else if ( strncmp( cn, "item_", 5 ) == 0 )
 		{
-			CItem *pItem = (CItem *)pEnt;
+CItem *pItem = dynamic_cast<CItem *>(pEnt);
+			if ( !pItem )
+				continue;
 
 			// Map/world items have no owner; skip entity-owned internals.
 			if ( !FNullEnt( pItem->pev->owner ) )
