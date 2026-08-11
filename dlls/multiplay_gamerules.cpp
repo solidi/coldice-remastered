@@ -2388,9 +2388,12 @@ void CHalfLifeMultiplay :: PlayerThink( CBasePlayer *pPlayer )
 
 	if (pPlayer->m_fEffectTime && pPlayer->m_fEffectTime <= gpGlobals->time)
 	{
-		pPlayer->pev->rendermode = kRenderTransAdd;
-		pPlayer->pev->renderfx = kRenderFxStrobeFaster;
-		pPlayer->pev->renderamt = 125;
+		if (pPlayer->m_fLastSpawnTime && pPlayer->m_fLastSpawnTime > gpGlobals->time)
+		{
+			pPlayer->pev->rendermode = kRenderTransAdd;
+			pPlayer->pev->renderfx = kRenderFxStrobeFaster;
+			pPlayer->pev->renderamt = 125;
+		}
 		pPlayer->m_fEffectTime = 0;
 	}
 
