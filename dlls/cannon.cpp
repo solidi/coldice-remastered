@@ -714,6 +714,7 @@ void CCannon::Reload()
 	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + flCooldown;
 	m_flNextPrimaryAttack = m_flNextSecondaryAttack = GetNextAttackDelay(flCooldown);
 	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 0.65f;
+	m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] -= CANNON_SHOCKWAVE_AMMO_COST;
 	m_flNextShockwaveTime = gpGlobals->time + flCooldown;
 	return;
 #else
