@@ -1662,7 +1662,9 @@ public:
 
 	void PrimaryAttack( void );
 	void SecondaryAttack( void );
+	void Reload( void );
 	void WeaponIdle( void );
+	virtual BOOL AcceptReload( void ) { return TRUE; }
 
 	virtual BOOL UseDecrement( void )
 	{
@@ -1676,6 +1678,9 @@ public:
 private:
 	unsigned short m_usCannon;
 	unsigned short m_usCannonFlak;
+	int m_iShockwaveBurstSprite;
+	int m_iShockwaveFlashSprite;
+	float m_flNextShockwaveTime;
 };
 
 class CFlak : public CGrenade
