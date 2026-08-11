@@ -2329,16 +2329,19 @@ void CHalfLifeMultiplay :: PlayerThink( CBasePlayer *pPlayer )
 			{
 				CBasePlayerWeapon *pWeapon = (CBasePlayerWeapon*)pPlayer->m_pActiveItem->GetWeaponPtr();
 
-				if (pWeapon && pWeapon->m_iPrimaryAmmoType >= 0 &&
-					pPlayer->m_rgAmmo[pWeapon->m_iPrimaryAmmoType] < pWeapon->iMaxAmmo1()) {
-					pPlayer->m_rgAmmo[pWeapon->m_iPrimaryAmmoType] += 1;
-					UTIL_ScreenFade( pPlayer, Vector(200,200,0), .5, .5, 32, FFADE_IN);
-					pPlayer->m_flRuneHealTime = gpGlobals->time + 1.0;
-				} else if (pWeapon && pWeapon->m_iSecondaryAmmoType >= 0 &&
-					pPlayer->m_rgAmmo[pWeapon->m_iSecondaryAmmoType] < pWeapon->iMaxAmmo2()) {
-					pPlayer->m_rgAmmo[pWeapon->m_iSecondaryAmmoType] += 1;
-					UTIL_ScreenFade( pPlayer, Vector(200,200,0), .5, .5, 32, FFADE_IN);
-					pPlayer->m_flRuneHealTime = gpGlobals->time + 1.0;
+				if (pWeapon && pWeapon->m_iId != WEAPON_NUKE)
+				{
+					if (pWeapon->m_iPrimaryAmmoType >= 0 &&
+						pPlayer->m_rgAmmo[pWeapon->m_iPrimaryAmmoType] < pWeapon->iMaxAmmo1()) {
+						pPlayer->m_rgAmmo[pWeapon->m_iPrimaryAmmoType] += 1;
+						UTIL_ScreenFade( pPlayer, Vector(200,200,0), .5, .5, 32, FFADE_IN);
+						pPlayer->m_flRuneHealTime = gpGlobals->time + 1.0;
+					} else if (pWeapon->m_iSecondaryAmmoType >= 0 &&
+						pPlayer->m_rgAmmo[pWeapon->m_iSecondaryAmmoType] < pWeapon->iMaxAmmo2()) {
+						pPlayer->m_rgAmmo[pWeapon->m_iSecondaryAmmoType] += 1;
+						UTIL_ScreenFade( pPlayer, Vector(200,200,0), .5, .5, 32, FFADE_IN);
+						pPlayer->m_flRuneHealTime = gpGlobals->time + 1.0;
+					}
 				}
 			}
 		}
