@@ -36,6 +36,16 @@ enum cannon_e {
 	CANNON_DRAW1
 };
 
+static const int CANNON_SHOCKWAVE_AMMO_COST = 2;
+static const float CANNON_SHOCKWAVE_RADIUS = 180.0f;
+static const float CANNON_SHOCKWAVE_FORCE_MIN = 900.0f;
+static const float CANNON_SHOCKWAVE_FORCE_MAX = 1450.0f;
+static const float CANNON_SHOCKWAVE_UPLIFT_MIN = 150.0f;
+static const float CANNON_SHOCKWAVE_UPLIFT_MAX = 280.0f;
+static const float CANNON_SHOCKWAVE_DAMAGE = 6.0f;
+static const float CANNON_SHOCKWAVE_COOLDOWN = 4.5f;
+static const float CANNON_SHOCKWAVE_FAIL_COOLDOWN = 0.45f;
+
 #ifdef CANNON
 LINK_ENTITY_TO_CLASS( weapon_cannon, CCannon );
 #endif
@@ -243,6 +253,235 @@ void CFlak :: Precache( void )
 
 LINK_ENTITY_TO_CLASS( flak, CFlak );
 
+static BOOL CannonShockwaveHasLOS( CBasePlayer *pOwner, CBaseEntity *pTarget, const Vector &vecStart )
+{
+	if (!pOwner || !pTarget)
+		return FALSE;
+
+	TraceResult tr;
+	UTIL_TraceLine( vecStart, pTarget->Center(), dont_ignore_monsters, ENT( pOwner->pev ), &tr );
+
+	return (tr.flFraction >= 1.0f || tr.pHit == pTarget->edict());
+}
+
+static BOOL CannonShockwaveIsSwattableProjectile( CBaseEntity *pEntity )
+{
+	if (!pEntity || !pEntity->pev)
+		return FALSE;
+
+	const char *pszClassname = STRING( pEntity->pev->classname );
+	if (!pszClassname)
+		return FALSE;
+
+	if (!strncmp( pszClassname, "weapon_", 7 ) ||
+		!strncmp( pszClassname, "ammo_", 5 ) ||
+		!strncmp( pszClassname, "item_", 5 ))
+	{
+		return FALSE;
+	}
+
+	if (FClassnameIs( pEntity->pev, "grenade" ) ||
+		FClassnameIs( pEntity->pev, "freezegrenade" ) ||
+		FClassnameIs( pEntity->pev, "rpg_rocket" ) ||
+		FClassnameIs( pEntity->pev, "nuke_rocket" ) ||
+		FClassnameIs( pEntity->pev, "drunk_rocket" ) ||
+		FClassnameIs( pEntity->pev, "flak" ) ||
+		FClassnameIs( pEntity->pev, "flak_bomb" ) ||
+		FClassnameIs( pEntity->pev, "flameball" ) ||
+		FClassnameIs( pEntity->pev, "snowbomb" ) ||
+		FClassnameIs( pEntity->pev, "plasma" ) ||
+		FClassnameIs( pEntity->pev, "monster_snark" ) ||
+		FClassnameIs( pEntity->pev, "monster_chumtoad" ) ||
+		FClassnameIs( pEntity->pev, "hornet" ) ||
+		FClassnameIs( pEntity->pev, "disc" ) ||
+		FClassnameIs( pEntity->pev, "kts_snowball" ) ||
+		FClassnameIs( pEntity->pev, "flying_crowbar" ) ||
+		FClassnameIs( pEntity->pev, "flying_wrench" ) ||
+		FClassnameIs( pEntity->pev, "flying_knife" ))
+	{
+		return TRUE;
+	}
+
+	if ((pEntity->pev->movetype == MOVETYPE_BOUNCE ||
+		 pEntity->pev->movetype == MOVETYPE_BOUNCEMISSILE ||
+		 pEntity->pev->movetype == MOVETYPE_FLY ||
+		 pEntity->pev->movetype == MOVETYPE_TOSS) &&
+		pEntity->pev->solid != SOLID_NOT &&
+		pEntity->pev->solid != SOLID_BSP)
+	{
+		return TRUE;
+	}
+
+	return FALSE;
+}
+
+static BOOL CannonShockwaveCanAffectTarget( CBasePlayer *pOwner, CBaseEntity *pTarget )
+{
+	if (!pOwner || !pTarget || !pTarget->pev || pTarget == pOwner)
+		return FALSE;
+
+	if (FClassnameIs( pTarget->pev, "worldspawn" ))
+		return FALSE;
+
+	if (pTarget->IsPlayer() || (pTarget->pev->flags & FL_MONSTER))
+		return pTarget->IsAlive();
+
+	return CannonShockwaveIsSwattableProjectile( pTarget );
+}
+
+static BOOL CannonShockwaveAffectTarget( CBasePlayer *pOwner, CBaseEntity *pTarget, const Vector &vecBurstOrigin, BOOL &bDidDamage )
+{
+	bDidDamage = FALSE;
+
+	if (!CannonShockwaveCanAffectTarget( pOwner, pTarget ) || !CannonShockwaveHasLOS( pOwner, pTarget, vecBurstOrigin ))
+		return FALSE;
+
+	Vector vecToTarget = pTarget->Center() - vecBurstOrigin;
+	const float flDistance = vecToTarget.Length();
+
+	if (flDistance > CANNON_SHOCKWAVE_RADIUS)
+		return FALSE;
+
+	Vector vecLaunchDir = vecToTarget;
+	vecLaunchDir.z = 0.0f;
+
+	if (vecLaunchDir.Length() <= 0.01f)
+	{
+		vecLaunchDir = gpGlobals->v_forward;
+		vecLaunchDir.z = 0.0f;
+	}
+
+	if (vecLaunchDir.Length() <= 0.01f)
+		vecLaunchDir = Vector(1, 0, 0);
+	else
+		vecLaunchDir = vecLaunchDir.Normalize();
+
+	float flScale = 1.0f - (flDistance / CANNON_SHOCKWAVE_RADIUS);
+	if (flScale < 0.0f)
+		flScale = 0.0f;
+	if (flScale > 1.0f)
+		flScale = 1.0f;
+
+	const float flForce = CANNON_SHOCKWAVE_FORCE_MIN + (CANNON_SHOCKWAVE_FORCE_MAX - CANNON_SHOCKWAVE_FORCE_MIN) * flScale;
+	const float flUplift = CANNON_SHOCKWAVE_UPLIFT_MIN + (CANNON_SHOCKWAVE_UPLIFT_MAX - CANNON_SHOCKWAVE_UPLIFT_MIN) * flScale;
+
+	pTarget->pev->flags &= ~FL_ONGROUND;
+	pTarget->pev->velocity = vecLaunchDir * flForce + pOwner->pev->velocity * 0.30f;
+	pTarget->pev->velocity.z += flUplift;
+
+	if ((pTarget->IsPlayer() || (pTarget->pev->flags & FL_MONSTER)) && pTarget->pev->takedamage != DAMAGE_NO)
+	{
+		pTarget->TakeDamage( pOwner->pev, pOwner->pev, CANNON_SHOCKWAVE_DAMAGE, DMG_SONIC | DMG_NEVERGIB );
+		bDidDamage = TRUE;
+	}
+
+	return TRUE;
+}
+
+static void CannonShockwaveBurstFX( CBasePlayer *pOwner, int iBeamSprite, int iFlashSprite, const Vector &vecOrigin )
+{
+	if (!pOwner || (iBeamSprite <= 0 && iFlashSprite <= 0))
+		return;
+
+	if (iBeamSprite > 0)
+	{
+		MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
+			WRITE_BYTE( TE_BEAMDISK );
+			WRITE_COORD( vecOrigin.x );
+			WRITE_COORD( vecOrigin.y );
+			WRITE_COORD( vecOrigin.z );
+			WRITE_COORD( vecOrigin.x );
+			WRITE_COORD( vecOrigin.y );
+			WRITE_COORD( vecOrigin.z + CANNON_SHOCKWAVE_RADIUS );
+			WRITE_SHORT( iBeamSprite );
+			WRITE_BYTE( 0 );
+			WRITE_BYTE( 0 );
+			WRITE_BYTE( 10 );
+			WRITE_BYTE( 34 );
+			WRITE_BYTE( 0 );
+			if ( icesprites.value )
+			{
+				WRITE_BYTE( 0 );
+				WRITE_BYTE( 113 );
+				WRITE_BYTE( 230 );
+			}
+			else
+			{
+				WRITE_BYTE( 255 );
+				WRITE_BYTE( 180 );
+				WRITE_BYTE( 48 );
+			}
+			WRITE_BYTE( 255 );
+			WRITE_BYTE( 0 );
+		MESSAGE_END();
+
+		MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
+			WRITE_BYTE( TE_BEAMCYLINDER );
+			WRITE_COORD( vecOrigin.x );
+			WRITE_COORD( vecOrigin.y );
+			WRITE_COORD( vecOrigin.z + 8 );
+			WRITE_COORD( vecOrigin.x );
+			WRITE_COORD( vecOrigin.y );
+			WRITE_COORD( vecOrigin.z + CANNON_SHOCKWAVE_RADIUS );
+			WRITE_SHORT( iBeamSprite );
+			WRITE_BYTE( 0 );
+			WRITE_BYTE( 0 );
+			WRITE_BYTE( 10 );
+			WRITE_BYTE( 24 );
+			WRITE_BYTE( 0 );
+			if ( icesprites.value )
+			{
+				WRITE_BYTE( 0 );
+				WRITE_BYTE( 113 );
+				WRITE_BYTE( 230 );
+			}
+			else
+			{
+				WRITE_BYTE( 255 );
+				WRITE_BYTE( 210 );
+				WRITE_BYTE( 72 );
+			}
+			WRITE_BYTE( 240 );
+			WRITE_BYTE( 0 );
+		MESSAGE_END();
+	}
+
+	if (iFlashSprite > 0)
+	{
+		MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
+			WRITE_BYTE( TE_SPRITE );
+			WRITE_COORD( vecOrigin.x );
+			WRITE_COORD( vecOrigin.y );
+			WRITE_COORD( vecOrigin.z + 12 );
+			WRITE_SHORT( iFlashSprite );
+			WRITE_BYTE( 22 );
+			WRITE_BYTE( 180 );
+		MESSAGE_END();
+	}
+
+	MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
+		WRITE_BYTE( TE_DLIGHT );
+		WRITE_COORD( vecOrigin.x );
+		WRITE_COORD( vecOrigin.y );
+		WRITE_COORD( vecOrigin.z + 8 );
+		WRITE_BYTE( 42 );
+		if ( icesprites.value )
+		{
+			WRITE_BYTE( 0 );
+			WRITE_BYTE( 113 );
+			WRITE_BYTE( 230 );
+		}
+		else
+		{
+			WRITE_BYTE( 255 );
+			WRITE_BYTE( 180 );
+			WRITE_BYTE( 48 );
+		}
+		WRITE_BYTE( 6 );
+		WRITE_BYTE( 30 );
+	MESSAGE_END();
+}
+
 #endif
 
 //=========================================================
@@ -251,6 +490,8 @@ LINK_ENTITY_TO_CLASS( flak, CFlak );
 void CCannon::Precache( void )
 {
 	PRECACHE_MODEL("models/v_cannon.mdl");
+	m_iShockwaveBurstSprite = PRECACHE_MODEL("sprites/lgtning.spr");
+	m_iShockwaveFlashSprite = PRECACHE_MODEL("sprites/glowbig.spr");
 
 	PRECACHE_SOUND("items/9mmclip1.wav");
 
@@ -260,6 +501,7 @@ void CCannon::Precache( void )
 	PRECACHE_SOUND("weapons/rocketfire1.wav");
 	PRECACHE_SOUND("weapons/glauncher.wav"); // alternative fire sound
 	PRECACHE_SOUND("cannon_fire.wav");
+	PRECACHE_SOUND("common/wpn_denyselect.wav");
 
 	m_usCannon = PRECACHE_EVENT ( 1, "events/cannon.sc" );
 	m_usCannonFlak = PRECACHE_EVENT ( 1, "events/cannon_flak.sc" );
@@ -267,6 +509,10 @@ void CCannon::Precache( void )
 
 void CCannon::Spawn( )
 {
+	m_iShockwaveBurstSprite = 0;
+	m_iShockwaveFlashSprite = 0;
+	m_flNextShockwaveTime = 0;
+
 	Precache( );
 	m_iId = WEAPON_CANNON;
 
@@ -423,6 +669,85 @@ void CCannon::PrimaryAttack()
 	{
 		PlayEmptySound( );
 	}
+}
+
+void CCannon::Reload()
+{
+	if (!m_pPlayer)
+		return;
+
+	if (!(m_pPlayer->m_afButtonPressed & IN_RELOAD))
+		return;
+
+	if (gpGlobals->time < m_flNextShockwaveTime)
+		return;
+
+	const float flWeaponMultiplier = (g_pGameRules ? g_pGameRules->WeaponMultipler() : 1.0f);
+	const float flFailCooldown = CANNON_SHOCKWAVE_FAIL_COOLDOWN * flWeaponMultiplier;
+	const float flCooldown = CANNON_SHOCKWAVE_COOLDOWN * flWeaponMultiplier;
+
+	if (m_pPlayer->pev->waterlevel == 3)
+	{
+#ifndef CLIENT_DLL
+		EMIT_SOUND( ENT(m_pPlayer->pev), CHAN_ITEM, "common/wpn_denyselect.wav", 0.8f, ATTN_NORM );
+#endif
+		m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + flFailCooldown;
+		m_flNextPrimaryAttack = m_flNextSecondaryAttack = GetNextAttackDelay(flFailCooldown);
+		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + flFailCooldown;
+		m_flNextShockwaveTime = gpGlobals->time + flFailCooldown;
+		return;
+	}
+
+	if (m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] < CANNON_SHOCKWAVE_AMMO_COST)
+	{
+		PlayEmptySound();
+		m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + flFailCooldown;
+		m_flNextPrimaryAttack = m_flNextSecondaryAttack = GetNextAttackDelay(flFailCooldown);
+		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + flFailCooldown;
+		m_flNextShockwaveTime = gpGlobals->time + flFailCooldown;
+		return;
+	}
+
+	SendWeaponAnim( CANNON_SPINUP );
+
+#ifdef CLIENT_DLL
+	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + flCooldown;
+	m_flNextPrimaryAttack = m_flNextSecondaryAttack = GetNextAttackDelay(flCooldown);
+	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 0.65f;
+	m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] -= CANNON_SHOCKWAVE_AMMO_COST;
+	m_flNextShockwaveTime = gpGlobals->time + flCooldown;
+	return;
+#else
+	UTIL_MakeVectors( m_pPlayer->pev->v_angle );
+	const Vector vecBurstOrigin = m_pPlayer->pev->origin + gpGlobals->v_up * 36.0f;
+
+	int iTargetsPushed = 0;
+	CBaseEntity *pEntity = NULL;
+	while ((pEntity = UTIL_FindEntityInSphere( pEntity, vecBurstOrigin, CANNON_SHOCKWAVE_RADIUS )) != NULL)
+	{
+		BOOL bDidDamage = FALSE;
+		if (CannonShockwaveAffectTarget( m_pPlayer, pEntity, vecBurstOrigin, bDidDamage ))
+			iTargetsPushed++;
+	}
+
+	m_pPlayer->ExpireSpawnProtection();
+	m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] -= CANNON_SHOCKWAVE_AMMO_COST;
+	m_pPlayer->m_iWeaponVolume = LOUD_GUN_VOLUME;
+	m_pPlayer->m_iWeaponFlash = BRIGHT_GUN_FLASH;
+
+	EMIT_SOUND( ENT(m_pPlayer->pev), CHAN_WEAPON, "weapons/rocketfire1.wav", 1.0f, ATTN_NORM );
+	CannonShockwaveBurstFX( m_pPlayer, m_iShockwaveBurstSprite, m_iShockwaveFlashSprite, vecBurstOrigin );
+
+	if (iTargetsPushed > 0)
+	{
+		m_pPlayer->SetAnimation( PLAYER_ATTACK1 );
+	}
+
+	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + flCooldown;
+	m_flNextPrimaryAttack = m_flNextSecondaryAttack = GetNextAttackDelay(flCooldown);
+	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 0.65f;
+	m_flNextShockwaveTime = gpGlobals->time + flCooldown;
+#endif
 }
 
 void CCannon::WeaponIdle( void )

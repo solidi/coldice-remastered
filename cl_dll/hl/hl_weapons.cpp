@@ -441,7 +441,7 @@ void CBasePlayerWeapon::ItemPostFrame( void )
 			PrimaryAttack();
 		}
 	}
-	else if ( m_pPlayer->pev->button & IN_RELOAD && iMaxClip() != WEAPON_NOCLIP && !m_fInReload ) 
+	else if ( m_pPlayer->pev->button & IN_RELOAD && (iMaxClip() != WEAPON_NOCLIP || AcceptReload()) && !m_fInReload ) 
 	{
 		// reload when reload is pressed, or if no buttons are down and weapon is empty.
 		Reload();
@@ -821,6 +821,7 @@ enum e_protips {
 	RAIL_TIP,
 	EGON_TIP,
 	CHAINGUN_TIP,
+	CANNON_TIP,
 	NUKE_TIP,
 	GAUSS_TIP,
 };
@@ -947,6 +948,7 @@ void HUD_WeaponsPostThink( local_state_s *from, local_state_s *to, usercmd_t *cm
 
 		case WEAPON_CANNON:
 			pWeapon = &g_Cannon;
+			ProTip(CANNON_TIP, "Use RELOAD to blast a close-range shockwave");
 			break;
 
 		case WEAPON_MAG60:
