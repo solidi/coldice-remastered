@@ -361,8 +361,12 @@ void CDualFlameThrower::Reload( void )
 		EndAttack();
 	}
 
+	if (m_pPlayer->m_flNextAttack > UTIL_WeaponTimeBase())
+		return;
+
 	m_fSecondaryFireTime = 0;
 	m_pPlayer->pev->playerclass = 0;
+	const int iAmmoPerPool = DUAL_FLAMETHROWER_NAPALM_POOL_COUNT;
 
 	if (m_pPlayer->pev->waterlevel == 3)
 	{
@@ -372,7 +376,7 @@ void CDualFlameThrower::Reload( void )
 		return;
 	}
 
-	if (m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] <= 0)
+	if (m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] < iAmmoPerPool)
 	{
 		PlayEmptySound();
 		m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 0.15;
@@ -397,7 +401,7 @@ void CDualFlameThrower::Reload( void )
 		return;
 	}
 
-	int iPoolBudget = m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType];
+	int iPoolBudget = m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] / iAmmoPerPool;
 	if (iPoolBudget > DUAL_FLAMETHROWER_NAPALM_POOL_COUNT)
 		iPoolBudget = DUAL_FLAMETHROWER_NAPALM_POOL_COUNT;
 
@@ -412,7 +416,7 @@ void CDualFlameThrower::Reload( void )
 		return;
 	}
 
-	m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] -= iPoolsSpawned * DUAL_FLAMETHROWER_NAPALM_POOL_COUNT;
+	m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] -= iPoolsSpawned * iAmmoPerPool;
 	if (m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] < 0)
 		m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] = 0;
 
