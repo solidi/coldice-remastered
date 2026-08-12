@@ -4690,6 +4690,13 @@ void CBasePlayer::Spawn( void )
 
 void CBasePlayer::ExpireSpawnProtection( void )
 {
+	if (!m_fLastSpawnTime && !m_fEffectTime)
+		return;
+
+	// Cancel any delayed spawn-shield visual so it cannot re-apply after
+	// protection has already been force-expired by an offensive action.
+	m_fEffectTime = 0;
+
 	if (!m_fLastSpawnTime)
 		return;
 
