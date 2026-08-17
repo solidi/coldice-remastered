@@ -34,6 +34,7 @@ private:
 	BOOL m_fFatalPull;
 	BOOL m_fVictimPhysicsCaptured;
 	int m_iVictimMoveType;
+	int m_iVictimSolid;
 	float m_flVictimGravity;
 	float m_flVictimFriction;
 	float m_flFatalAbortTime;

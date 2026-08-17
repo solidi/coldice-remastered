@@ -37,6 +37,7 @@ CHook *CHook::HookCreate( CBasePlayer *owner )
 	pHook->m_fFatalPull = FALSE;
 	pHook->m_fVictimPhysicsCaptured = FALSE;
 	pHook->m_iVictimMoveType = MOVETYPE_WALK;
+	pHook->m_iVictimSolid = SOLID_SLIDEBOX;
 	pHook->m_flVictimGravity = 1;
 	pHook->m_flVictimFriction = 1;
 	pHook->m_flFatalAbortTime = 0;
@@ -61,6 +62,7 @@ void CHook::Precache( )
 {
 	PRECACHE_SOUND("weapons/xbow_hitbod1.wav");
 	PRECACHE_SOUND("grapple_hit.wav");
+	PRECACHE_SOUND("get_over_here.wav");
 	PRECACHE_SOUND("fists_hitbod.wav");
 	PRECACHE_SOUND("fists_shoryuken.wav");
 
@@ -91,12 +93,10 @@ void CHook::RestoreFatalVictimPhysics( void )
 	if ( pVictimEnt && pVictimEnt->IsPlayer() )
 	{
 		CBasePlayer *pVictim = (CBasePlayer *)pVictimEnt;
-		if ( pVictim->IsAlive() )
-		{
-			pVictim->pev->movetype = m_iVictimMoveType;
-			pVictim->pev->gravity = m_flVictimGravity;
-			pVictim->pev->friction = m_flVictimFriction;
-		}
+		pVictim->pev->movetype = m_iVictimMoveType;
+		pVictim->pev->solid = m_iVictimSolid;
+		pVictim->pev->gravity = m_flVictimGravity;
+		pVictim->pev->friction = m_flVictimFriction;
 	}
 
 	m_hFatalVictim = NULL;
@@ -124,11 +124,13 @@ void CHook::BeginFatalPull( CBasePlayer *pVictim )
 	m_fFatalPull = TRUE;
 	m_flFatalAbortTime = gpGlobals->time + HOOK_FATAL_PULL_TIMEOUT;
 	m_iVictimMoveType = pVictim->pev->movetype;
+	m_iVictimSolid = pVictim->pev->solid;
 	m_flVictimGravity = pVictim->pev->gravity;
 	m_flVictimFriction = pVictim->pev->friction;
 	m_fVictimPhysicsCaptured = TRUE;
 
-	pVictim->pev->movetype = MOVETYPE_FLY;
+	pVictim->pev->movetype = MOVETYPE_NOCLIP;
+	pVictim->pev->solid = SOLID_NOT;
 	pVictim->pev->gravity = 0;
 	pVictim->pev->friction = 0;
 	ClearBits( pVictim->pev->flags, FL_ONGROUND );
@@ -145,6 +147,7 @@ void CHook::BeginFatalPull( CBasePlayer *pVictim )
 	pev->velocity = g_vecZero;
 	pev->nextthink = gpGlobals->time + 0.05;
 
+	EMIT_SOUND_DYN( ENT(pOwner->pev), CHAN_VOICE, "get_over_here.wav", 1, ATTN_NORM, 0, 100 );
 	EMIT_SOUND( ENT(pev), CHAN_WEAPON, "grapple_hit.wav", 1, ATTN_NORM );
 }
 
@@ -170,16 +173,17 @@ void CHook::DoFatalUppercut( CBasePlayer *pOwner, CBasePlayer *pVictim )
 	EMIT_SOUND_DYN( ENT(pOwner->pev), CHAN_BODY, "fists_shoryuken.wav", 1, ATTN_NORM, 0, 98 + RANDOM_LONG(0,3) );
 	EMIT_SOUND( ENT(pOwner->pev), CHAN_BODY, "fists_hitbod.wav", 1, ATTN_NORM );
 
-	pVictim->ExpireSpawnProtection();
-	ClearBits( pVictim->pev->flags, FL_ONGROUND );
-	pVictim->pev->velocity = gpGlobals->v_forward * HOOK_FATAL_UPPERCUT_LAUNCH_FWD + Vector( 0, 0, HOOK_FATAL_UPPERCUT_LAUNCH_Z );
-
 	if ( m_fVictimPhysicsCaptured )
 	{
 		pVictim->pev->movetype = m_iVictimMoveType;
+		pVictim->pev->solid = m_iVictimSolid;
 		pVictim->pev->gravity = m_flVictimGravity;
 		pVictim->pev->friction = m_flVictimFriction;
 	}
+
+	pVictim->ExpireSpawnProtection();
+	ClearBits( pVictim->pev->flags, FL_ONGROUND );
+	pVictim->pev->velocity = gpGlobals->v_forward * HOOK_FATAL_UPPERCUT_LAUNCH_FWD + Vector( 0, 0, HOOK_FATAL_UPPERCUT_LAUNCH_Z );
 
 	const float flFatalDamage = pVictim->pev->health + pVictim->pev->max_health + 200.0f;
 	pVictim->TakeDamage( pev, pOwner->pev, flFatalDamage, DMG_PUNCH | DMG_NEVERGIB );
@@ -226,7 +230,8 @@ void CHook::UpdateFatalPull( void )
 	Vector vecDelta = vecTarget - pVictim->pev->origin;
 	float flDistance = vecDelta.Length();
 
-	pVictim->pev->movetype = MOVETYPE_FLY;
+	pVictim->pev->movetype = MOVETYPE_NOCLIP;
+	pVictim->pev->solid = SOLID_NOT;
 	pVictim->pev->gravity = 0;
 	pVictim->pev->friction = 0;
 	ClearBits( pVictim->pev->flags, FL_ONGROUND );
@@ -237,7 +242,13 @@ void CHook::UpdateFatalPull( void )
 		if ( flSpeed > HOOK_FATAL_PULL_SPEED_MAX )
 			flSpeed = HOOK_FATAL_PULL_SPEED_MAX;
 
-		pVictim->pev->velocity = vecDelta.Normalize() * flSpeed;
+		Vector vecDir = vecDelta.Normalize();
+		float flStep = flSpeed * 0.05;
+		if ( flStep > flDistance )
+			flStep = flDistance;
+
+		UTIL_SetOrigin( pVictim->pev, pVictim->pev->origin + vecDir * flStep );
+		pVictim->pev->velocity = vecDir * flSpeed;
 	}
 	else
 	{
