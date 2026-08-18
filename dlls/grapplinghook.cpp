@@ -168,10 +168,10 @@ void CHook::DoFatalUppercut( CBasePlayer *pOwner, CBasePlayer *pVictim )
 		pOwner->SetAnimation( PLAYER_PUNCH );
 		pOwner->pev->punchangle = Vector( -10, 0, 0 );
 	}
-	pOwner->pev->velocity = pOwner->pev->velocity + ( gpGlobals->v_up * 300 );
+	pOwner->pev->velocity = pOwner->pev->velocity + Vector( 0, 0, 300 );
 
 	EMIT_SOUND_DYN( ENT(pOwner->pev), CHAN_BODY, "fists_shoryuken.wav", 1, ATTN_NORM, 0, 98 + RANDOM_LONG(0,3) );
-	EMIT_SOUND( ENT(pOwner->pev), CHAN_BODY, "fists_hitbod.wav", 1, ATTN_NORM );
+	EMIT_SOUND( ENT(pVictim->pev), CHAN_BODY, "fists_hitbod.wav", 1, ATTN_NORM );
 
 	if ( m_fVictimPhysicsCaptured )
 	{
