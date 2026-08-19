@@ -866,6 +866,33 @@ void CGameRules::SpawnMutators(CBasePlayer *pPlayer)
 		pPlayer->pev->flags |= FL_GODMODE;
 }
 
+int CGameRules::GiveCurrentWeaponAmmoBonus(CBasePlayer *pPlayer)
+{
+	if (!pPlayer || !pPlayer->m_pActiveItem)
+		return 0;
+
+	CBasePlayerWeapon *pActiveWeapon = (CBasePlayerWeapon *)pPlayer->m_pActiveItem->GetWeaponPtr();
+	if (!pActiveWeapon)
+		return 0;
+
+	const char *pszAmmoName = pActiveWeapon->pszAmmo1();
+	const int iMaxAmmo = pActiveWeapon->iMaxAmmo1();
+	const int iAmmoType = pActiveWeapon->PrimaryAmmoIndex();
+
+	if (!pszAmmoName || !*pszAmmoName || iMaxAmmo <= 0 || iAmmoType < 0)
+		return 0;
+
+	int iBonusAmmo = pActiveWeapon->iMaxClip();
+	if (iBonusAmmo <= 0)
+		iBonusAmmo = fmax(1, iMaxAmmo / 8);
+
+	iBonusAmmo = fmin(iBonusAmmo, iMaxAmmo);
+	if (iBonusAmmo <= 0)
+		return 0;
+
+	return pPlayer->GiveAmmo(iBonusAmmo, (char *)pszAmmoName, iMaxAmmo);
+}
+
 void CGameRules::GiveMutators(CBasePlayer *pPlayer)
 {
 	if (!pPlayer->IsAlive())
@@ -1178,7 +1205,7 @@ extern int gmsgPlayClientSound;
 
 void CGameRules::AddInstantMutator(void)
 {
-	int max_instant_mutators = 13;
+	int max_instant_mutators = 14;
 	int random = RANDOM_LONG(0, max_instant_mutators);
 	UTIL_LogPrintf("Instant mutator \"%d\" enabled at %.2f\n", random, gpGlobals->time);
 
@@ -1438,6 +1465,18 @@ void CGameRules::AddInstantMutator(void)
 				}
 			}
 			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] Human assassin!\n");
+			break;
+		case 14:
+			for (int i = 1; i <= gpGlobals->maxClients; ++i)
+			{
+				CBaseEntity *pPlayer = UTIL_PlayerByIndex( i );
+				CBasePlayer *pl = (CBasePlayer *)pPlayer;
+				if (pPlayer && pPlayer->IsPlayer() && !pl->IsSpectator() && pl->IsAlive() && !pl->HasDisconnected)
+				{
+					GiveCurrentWeaponAmmoBonus(pl);
+				}
+			}
+			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] Extra Ammo!\n");
 			break;
 	}
 
