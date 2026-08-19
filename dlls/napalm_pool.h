@@ -28,6 +28,8 @@ public:
     static CNapalmPool *CreatePool( entvars_t *pevOwner, const Vector &vecOrigin,
         const Vector &vecSurfaceNormal, float flDamagePerTick, float flRadius, float flLifetime );
     static int DeployPools( CBasePlayer *pPlayer, int iDesiredPools, float flDamagePerTick, float flRadius );
+    static int DeployExplosionPools( const Vector &vecOrigin, float flDamage, float flRadius,
+        entvars_t *pevOwner, edict_t *pIgnoreEntity );
 
     void Spawn( void );
     void Precache( void );
