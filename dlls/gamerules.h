@@ -186,6 +186,7 @@ public:
 	virtual BOOL AllowGrapplingHook( CBasePlayer *pPlayer ) = FALSE;
 #endif
 
+	int GiveCurrentWeaponAmmoBonus( CBasePlayer *pPlayer );
 	virtual void EnvMutators( void );
 	virtual void SpawnMutators( CBasePlayer *pPlayer );
 	virtual BOOL WeaponMutators( CBasePlayerWeapon *pWeapon );

@@ -339,27 +339,7 @@ void CHalfLifeHorde::Think( void )
 						// Survivors keep their position between waves; grant a small
 						// ammo top-up for the currently selected weapon to reduce
 						// forced scavenging downtime.
-						CBasePlayerWeapon *pActiveWeapon = plr->m_pActiveItem
-							? (CBasePlayerWeapon *)plr->m_pActiveItem->GetWeaponPtr()
-							: NULL;
-
-						if (pActiveWeapon)
-						{
-							const char *pszAmmoName = pActiveWeapon->pszAmmo1();
-							const int iMaxAmmo = pActiveWeapon->iMaxAmmo1();
-							const int iAmmoType = pActiveWeapon->PrimaryAmmoIndex();
-
-							if (pszAmmoName && *pszAmmoName && iMaxAmmo > 0 && iAmmoType >= 0)
-							{
-								int iBonusAmmo = pActiveWeapon->iMaxClip();
-								if (iBonusAmmo <= 0)
-									iBonusAmmo = fmax(1, iMaxAmmo / 8);
-
-								iBonusAmmo = fmin(iBonusAmmo, iMaxAmmo);
-								if (iBonusAmmo > 0)
-									plr->GiveAmmo(iBonusAmmo, (char *)pszAmmoName, iMaxAmmo);
-							}
-						}
+						GiveCurrentWeaponAmmoBonus(plr);
 					}
 
 					MESSAGE_BEGIN(MSG_ALL, gmsgScoreInfo);
