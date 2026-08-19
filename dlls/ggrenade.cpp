@@ -29,6 +29,7 @@
 #include "game.h"
 #include "gamerules.h"
 #include "player.h"
+#include "napalm_pool.h"
 
 
 //===================grenade
@@ -184,6 +185,7 @@ void CGrenade::Explode( TraceResult *pTrace, int bitsDamageType )
 	pev->owner = NULL; // can't traceline attack owner if this is set
 
 	RadiusDamage ( pev, pevOwner, pev->dmg, CLASS_NONE, bitsDamageType );
+	CNapalmPool::DeployExplosionPools( pev->origin, pev->dmg, pev->dmg * 2.5f, pevOwner, ENT( pev ) );
 
 	enum decal_e decal = DECAL_SCORCH1;
 	int index = RANDOM_LONG(0, 1);

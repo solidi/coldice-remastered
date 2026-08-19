@@ -30,6 +30,14 @@ static const float NAPALM_DAMAGE_INTERVAL = 0.3f;
 static const float NAPALM_FX_INTERVAL = 0.15f;
 static const float NAPALM_SURFACE_OFFSET = 2.0f;
 static const float NAPALM_TRACE_DISTANCE = 320.0f;
+static const float NAPALM_EXPLOSION_RADIUS_STEP = 140.0f;
+static const float NAPALM_EXPLOSION_MIN_RADIUS = 96.0f;
+static const float NAPALM_EXPLOSION_MIN_PATTERN_RADIUS = 56.0f;
+static const float NAPALM_EXPLOSION_MAX_PATTERN_RADIUS = 220.0f;
+static const float NAPALM_EXPLOSION_POOL_SPACING = 52.0f;
+static const int NAPALM_EXPLOSION_MAX_POOLS = 4;
+static const int NAPALM_EXPLOSION_LOCAL_POOL_CAP = 10;
+static const int NAPALM_EXPLOSION_GLOBAL_POOL_CAP = 72;
 
 static BOOL IsValidNapalmSurface( CBaseEntity *pEntity )
 {
@@ -51,6 +59,94 @@ static Vector BuildNapalmTangent( const Vector &vecNormal )
         return Vector( 1, 0, 0 );
 
     return vecTangent.Normalize();
+}
+
+static int CountNapalmPoolsNear( const Vector &vecOrigin, float flRadius, int iStopAt )
+{
+    int iCount = 0;
+    CBaseEntity *pEntity = NULL;
+
+    while ((pEntity = UTIL_FindEntityInSphere( pEntity, vecOrigin, flRadius )) != NULL)
+    {
+        if (!FClassnameIs( pEntity->pev, "napalm_pool" ))
+            continue;
+
+        iCount++;
+        if (iCount >= iStopAt)
+            break;
+    }
+
+    return iCount;
+}
+
+static int CountNapalmPoolsTotal( int iStopAt )
+{
+    int iCount = 0;
+    CBaseEntity *pEntity = NULL;
+
+    while ((pEntity = UTIL_FindEntityByClassname( pEntity, "napalm_pool" )) != NULL)
+    {
+        iCount++;
+        if (iCount >= iStopAt)
+            break;
+    }
+
+    return iCount;
+}
+
+static BOOL HasNapalmPoolNearby( const Vector &vecOrigin, float flRadius )
+{
+    return CountNapalmPoolsNear( vecOrigin, flRadius, 1 ) > 0;
+}
+
+static entvars_t *ResolveNapalmOwner( entvars_t *pevOwner )
+{
+    if (pevOwner == NULL)
+        return NULL;
+
+    edict_t *pOwnerEdict = ENT( pevOwner );
+    if (FNullEnt( pOwnerEdict ) || pOwnerEdict->free)
+        return NULL;
+
+    CBaseEntity *pOwner = CBaseEntity::Instance( pOwnerEdict );
+    if (pOwner == NULL)
+        return NULL;
+
+    if (pOwner->IsPlayer())
+    {
+        CBasePlayer *pPlayerOwner = (CBasePlayer *)pOwner;
+        if (pPlayerOwner->HasDisconnected)
+            return NULL;
+    }
+
+    return pOwner->pev;
+}
+
+static BOOL TryCreateExplosionPool( const TraceResult &trPool, BOOL bRequireWallLike,
+    entvars_t *pevOwner, float flDamagePerTick, float flPoolRadius )
+{
+    if (trPool.fStartSolid || trPool.flFraction >= 1.0f)
+        return FALSE;
+
+    CBaseEntity *pPoolSurface = CBaseEntity::Instance( trPool.pHit );
+    if (!IsValidNapalmSurface( pPoolSurface ))
+        return FALSE;
+
+    Vector vecPoolNormal = trPool.vecPlaneNormal;
+    if (vecPoolNormal.Length() < 0.001f)
+        vecPoolNormal = Vector( 0, 0, 1 );
+    vecPoolNormal = vecPoolNormal.Normalize();
+
+    if (bRequireWallLike && fabs( vecPoolNormal.z ) > 0.70f)
+        return FALSE;
+
+    Vector vecPoolOrigin = trPool.vecEndPos + vecPoolNormal * NAPALM_SURFACE_OFFSET;
+
+    if (HasNapalmPoolNearby( vecPoolOrigin, NAPALM_EXPLOSION_POOL_SPACING ))
+        return FALSE;
+
+    return CNapalmPool::CreatePool( pevOwner, vecPoolOrigin, vecPoolNormal,
+        flDamagePerTick, flPoolRadius, NAPALM_DEFAULT_LIFETIME ) != NULL;
 }
 
 TYPEDESCRIPTION CNapalmPool::m_SaveData[] =
@@ -211,6 +307,117 @@ int CNapalmPool::DeployPools( CBasePlayer *pPlayer, int iDesiredPools, float flD
 #endif
 }
 
+int CNapalmPool::DeployExplosionPools( const Vector &vecOrigin, float flDamage, float flRadius,
+    entvars_t *pevOwner, edict_t *pIgnoreEntity )
+{
+#ifndef CLIENT_DLL
+    if (flDamage <= 0 || flRadius < NAPALM_EXPLOSION_MIN_RADIUS)
+        return 0;
+
+    if (UTIL_PointContents( vecOrigin ) == CONTENTS_WATER)
+        return 0;
+
+    int iDesiredPools = (int)(flRadius / NAPALM_EXPLOSION_RADIUS_STEP);
+    if (iDesiredPools < 1)
+        iDesiredPools = 1;
+    if (iDesiredPools > NAPALM_EXPLOSION_MAX_POOLS)
+        iDesiredPools = NAPALM_EXPLOSION_MAX_POOLS;
+
+    if (iDesiredPools <= 0)
+        return 0;
+
+    float flPatternRadius = flRadius * 0.32f;
+    if (flPatternRadius < NAPALM_EXPLOSION_MIN_PATTERN_RADIUS)
+        flPatternRadius = NAPALM_EXPLOSION_MIN_PATTERN_RADIUS;
+    if (flPatternRadius > NAPALM_EXPLOSION_MAX_PATTERN_RADIUS)
+        flPatternRadius = NAPALM_EXPLOSION_MAX_PATTERN_RADIUS;
+
+    int iNearbyPools = CountNapalmPoolsNear( vecOrigin,
+        flPatternRadius + NAPALM_EXPLOSION_POOL_SPACING, NAPALM_EXPLOSION_LOCAL_POOL_CAP );
+    if (iNearbyPools >= NAPALM_EXPLOSION_LOCAL_POOL_CAP)
+        return 0;
+
+    int iTotalPools = CountNapalmPoolsTotal( NAPALM_EXPLOSION_GLOBAL_POOL_CAP );
+    if (iTotalPools >= NAPALM_EXPLOSION_GLOBAL_POOL_CAP)
+        return 0;
+
+    int iPoolBudget = iDesiredPools;
+    int iLocalBudget = NAPALM_EXPLOSION_LOCAL_POOL_CAP - iNearbyPools;
+    int iGlobalBudget = NAPALM_EXPLOSION_GLOBAL_POOL_CAP - iTotalPools;
+
+    if (iPoolBudget > iLocalBudget)
+        iPoolBudget = iLocalBudget;
+    if (iPoolBudget > iGlobalBudget)
+        iPoolBudget = iGlobalBudget;
+
+    if (iPoolBudget <= 0)
+        return 0;
+
+    float flDamagePerTick = flDamage * 0.008f;
+    if (flDamagePerTick < 0.8f)
+        flDamagePerTick = 0.8f;
+    if (flDamagePerTick > 1.5f)
+        flDamagePerTick = 1.5f;
+
+    float flPoolRadius = flRadius * 0.18f;
+    if (flPoolRadius < 36.0f)
+        flPoolRadius = 36.0f;
+    if (flPoolRadius > 56.0f)
+        flPoolRadius = 56.0f;
+
+    entvars_t *pevValidOwner = ResolveNapalmOwner( pevOwner );
+
+    int iCreated = 0;
+    int iProbeCount = iPoolBudget * 4;
+    if (iProbeCount < 6)
+        iProbeCount = 6;
+
+    Vector vecWallTraceStart = vecOrigin + Vector( 0, 0, 12 );
+
+    for (int i = 0; i < iProbeCount && iCreated < iPoolBudget; ++i)
+    {
+        float flAngle = ((float)i / (float)iProbeCount) * 6.283185307f;
+        Vector vecDir( cos( flAngle ), sin( flAngle ), 0 );
+
+        float flRingScale = (i & 1) ? 1.0f : 0.62f;
+        float flProbeDist = flPatternRadius * flRingScale;
+        Vector vecProbeCenter = vecOrigin + vecDir * flProbeDist;
+
+        TraceResult trFloor;
+        UTIL_TraceLine( vecProbeCenter + Vector( 0, 0, 48 ), vecProbeCenter - Vector( 0, 0, 120 ),
+            dont_ignore_monsters, pIgnoreEntity, &trFloor );
+
+        if (TryCreateExplosionPool( trFloor, FALSE, pevValidOwner, flDamagePerTick, flPoolRadius ))
+        {
+            iCreated++;
+            if (iCreated >= iPoolBudget)
+                break;
+        }
+
+        TraceResult trWall;
+        UTIL_TraceLine( vecWallTraceStart, vecWallTraceStart + vecDir * (flProbeDist + 56.0f),
+            dont_ignore_monsters, pIgnoreEntity, &trWall );
+
+        if (TryCreateExplosionPool( trWall, TRUE, pevValidOwner, flDamagePerTick, flPoolRadius ))
+            iCreated++;
+    }
+
+    if (iCreated <= 0)
+    {
+        TraceResult trCenter;
+        UTIL_TraceLine( vecOrigin + Vector( 0, 0, 40 ), vecOrigin - Vector( 0, 0, 120 ),
+            dont_ignore_monsters, pIgnoreEntity, &trCenter );
+
+        if (TryCreateExplosionPool( trCenter, FALSE, pevValidOwner, flDamagePerTick, flPoolRadius ))
+            iCreated = 1;
+    }
+
+    return iCreated;
+#else
+    return 0;
+#endif
+}
+
 void CNapalmPool::Spawn( void )
 {
     Precache();
@@ -332,7 +539,7 @@ void CNapalmPool::BurnThink( void )
             entvars_t *pevAttacker = pev;
             if (m_hNapalmOwner)
                 pevAttacker = m_hNapalmOwner->pev;
-            else if (pev->owner)
+            else if (!FNullEnt( pev->owner ) && !pev->owner->free)
                 pevAttacker = VARS( pev->owner );
 
             pTarget->TakeDamage( pev, pevAttacker, m_flDamagePerTick, DMG_BURN | DMG_NEVERGIB );
