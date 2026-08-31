@@ -72,6 +72,59 @@ extern CGraph	WorldGraph;
 #define	FLASH_DRAIN_TIME	 1.2 //100 units/3 minutes
 #define	FLASH_CHARGE_TIME	 0.2 // 100 units/20 seconds  (seconds per unit)
 
+#define FLOOR_IS_LAVA_INTERVAL_SECONDS 0.75f
+#define FLOOR_IS_LAVA_BURN_SECONDS 0.2f
+#define FLOOR_IS_LAVA_MIN_BURN_SECONDS 0.1f
+
+static BOOL IsFloorIsLavaBrush( edict_t *pGround )
+{
+	if ( !pGround )
+		return FALSE;
+
+	if ( ENTINDEX( pGround ) == 0 )
+		return TRUE;
+
+	CBaseEntity *pGroundEntity = CBaseEntity::Instance( pGround );
+	if ( !pGroundEntity || !pGroundEntity->pev )
+		return FALSE;
+
+	if ( pGroundEntity->IsPlayer() || pGroundEntity->MyMonsterPointer() )
+		return FALSE;
+
+	return ( pGroundEntity->pev->solid == SOLID_BSP || FBitSet( pGroundEntity->pev->flags, FL_WORLDBRUSH ) );
+}
+
+static BOOL IsTouchingFloorIsLavaSurface( CBasePlayer *pPlayer )
+{
+	if ( !pPlayer || !pPlayer->pev )
+		return FALSE;
+
+	if ( !FBitSet( pPlayer->pev->flags, FL_ONGROUND ) )
+		return FALSE;
+
+	if ( pPlayer->IsOnLadder() || pPlayer->pev->waterlevel >= 2 )
+		return FALSE;
+
+	if ( IsFloorIsLavaBrush( pPlayer->pev->groundentity ) )
+		return TRUE;
+
+	TraceResult tr;
+	Vector vecStart = pPlayer->pev->origin + Vector( 0, 0, 8 );
+	Vector vecEnd = vecStart - Vector( 0, 0, 48 );
+	UTIL_TraceLine( vecStart, vecEnd, ignore_monsters, pPlayer->edict(), &tr );
+
+	if ( tr.flFraction >= 1.0f )
+		return FALSE;
+
+	if ( tr.vecPlaneNormal.z < 0.35f )
+		return FALSE;
+
+	if ( !tr.pHit )
+		return TRUE;
+
+	return IsFloorIsLavaBrush( tr.pHit );
+}
+
 // Global Savedata for player
 TYPEDESCRIPTION	CBasePlayer::m_playerSaveData[] = 
 {
@@ -4255,6 +4308,16 @@ void CBasePlayer::PostThink()
 
 	UpdatePlayerSound();
 
+	if (g_pGameRules && g_pGameRules->MutatorEnabled(MUTATOR_FLOORISLAVA) &&
+		IsAlive() && !IsSpectator() && m_flFloorIsLavaTime <= gpGlobals->time &&
+		IsTouchingFloorIsLavaSurface(this))
+	{
+		m_flFloorIsLavaTime = gpGlobals->time + FLOOR_IS_LAVA_INTERVAL_SECONDS;
+		m_fBurnTime = fmin(10.0f, fmax(m_fBurnTime, FLOOR_IS_LAVA_MIN_BURN_SECONDS) + FLOOR_IS_LAVA_BURN_SECONDS);
+		if (m_hFlameOwner == NULL)
+			m_hFlameOwner = this;
+	}
+
 	// Check for sky texture touch mutator (skyhook)
 	if (g_pGameRules && g_pGameRules->MutatorEnabled(MUTATOR_SKYHOOK) && m_TextureTouchTime <= gpGlobals->time)
 	{
@@ -4587,6 +4650,7 @@ void CBasePlayer::Spawn( void )
 	m_flEjectShotShell = 0;
 	m_fCameraDelay = 0;
 	m_fCelebrateTime = 0;
+	m_flFloorIsLavaTime = 0;
 
 	g_engfuncs.pfnSetPhysicsKeyValue( edict(), "slj", "0" );
 	g_engfuncs.pfnSetPhysicsKeyValue( edict(), "hl", "1" );

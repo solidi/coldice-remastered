@@ -253,6 +253,7 @@ MutatorInfo sMutators[] = {
 	{ "fastweapons", "pew pew pew" },
 	{ "firebullets", "lead on fire" },
 	{ "firestarter", "everything's on fire" },
+	{ "floorislava", "the ground scorches your boots" },
 	{ "fog", "see nothing, shoot nothing" },
 	{ "godmode", "invincibility" },
 	{ "goldenguns", "like Goldeneye" },
