@@ -278,6 +278,7 @@ MutatorInfo sMutators[] = {
 	{ "minime", "small but mighty" },
 	{ "mirror", "why does the map look weird?" },
 	{ "napkinstory", "it's a napkin story" },
+	{ "negativepi", "pi is now -1" },
 	{ "noclip", "walk through walls" },
 	{ "noradar", "cannot see the radar" },
 	{ "noreload", "no need to reload" },

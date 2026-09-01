@@ -270,7 +270,7 @@ int CNapalmPool::DeployPools( CBasePlayer *pPlayer, int iDesiredPools, float flD
         Vector vecOffset = g_vecZero;
         if (i > 0)
         {
-            float flAngle = (float)(i - 1) / (float)iRingDivisor * 6.283185307f;
+            float flAngle = (float)(i - 1) / (float)iRingDivisor * (float)(2.0 * M_PI);
             vecOffset = (vecTangent * cos( flAngle ) + vecBitangent * sin( flAngle )) * flSpread;
         }
 
@@ -376,7 +376,7 @@ int CNapalmPool::DeployExplosionPools( const Vector &vecOrigin, float flDamage, 
 
     for (int i = 0; i < iProbeCount && iCreated < iPoolBudget; ++i)
     {
-        float flAngle = ((float)i / (float)iProbeCount) * 6.283185307f;
+        float flAngle = ((float)i / (float)iProbeCount) * (float)(2.0 * M_PI);
         Vector vecDir( cos( flAngle ), sin( flAngle ), 0 );
 
         float flRingScale = (i & 1) ? 1.0f : 0.62f;

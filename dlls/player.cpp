@@ -4654,6 +4654,7 @@ void CBasePlayer::Spawn( void )
 
 	g_engfuncs.pfnSetPhysicsKeyValue( edict(), "slj", "0" );
 	g_engfuncs.pfnSetPhysicsKeyValue( edict(), "hl", "1" );
+	g_engfuncs.pfnSetPhysicsKeyValue( edict(), "negpi", ( g_pGameRules && g_pGameRules->MutatorEnabled(MUTATOR_NEGATIVEPI) ) ? "1" : "0" );
 	g_engfuncs.pfnSetPhysicsKeyValue(edict(), "jumpheight", CVAR_GET_STRING("sv_jumpheight"));
 	m_fJumpHeight = atof(CVAR_GET_STRING("sv_jumpheight"));
 
@@ -4890,6 +4891,7 @@ int CBasePlayer::Restore( CRestore &restore )
 	}
 
 	g_engfuncs.pfnSetPhysicsKeyValue( edict(), "hl", "1" );
+	g_engfuncs.pfnSetPhysicsKeyValue( edict(), "negpi", ( g_pGameRules && g_pGameRules->MutatorEnabled(MUTATOR_NEGATIVEPI) ) ? "1" : "0" );
 
 	if ( m_fLongJump )
 	{

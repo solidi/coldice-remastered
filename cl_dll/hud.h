@@ -542,6 +542,16 @@ struct mutators_t
 bool MutatorEnabled(int mutatorId);
 mutators_t GetMutator(int mutatorId);
 
+inline double GetMutatorAwarePi( void )
+{
+	return MutatorEnabled( MUTATOR_NEGATIVEPI ) ? -1.0 : 3.14159265358979323846;
+}
+
+#ifdef M_PI
+#undef M_PI
+#endif
+#define M_PI (GetMutatorAwarePi())
+
 class CHudStatusIcons: public CHudBase
 {
 public:

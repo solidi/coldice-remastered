@@ -110,6 +110,7 @@ DLL_GLOBAL const char *g_szMutators[] = {
 	"minime",
 	"mirror",
 	"napkinstory",
+	"negativepi",
 	"noclip",
 	"noradar",
 	"noreload",
@@ -801,6 +802,11 @@ void CGameRules::SpawnMutators(CBasePlayer *pPlayer)
 		g_engfuncs.pfnSetPhysicsKeyValue(pPlayer->edict(), "topsy", "1");
 	else
 		g_engfuncs.pfnSetPhysicsKeyValue(pPlayer->edict(), "topsy", "0");
+
+	if (MutatorEnabled(MUTATOR_NEGATIVEPI))
+		g_engfuncs.pfnSetPhysicsKeyValue(pPlayer->edict(), "negpi", "1");
+	else
+		g_engfuncs.pfnSetPhysicsKeyValue(pPlayer->edict(), "negpi", "0");
 
 	if (MutatorEnabled(MUTATOR_MEGASPEED))
 		g_engfuncs.pfnSetPhysicsKeyValue(pPlayer->edict(), "haste", "1");
@@ -1806,6 +1812,12 @@ void CGameRules::MutatorsThink(void)
 					g_engfuncs.pfnSetPhysicsKeyValue(pPlayer->edict(), "topsy", "1");
 				} else {
 					g_engfuncs.pfnSetPhysicsKeyValue(pPlayer->edict(), "topsy", "0");
+				}
+
+				if (MutatorEnabled(MUTATOR_NEGATIVEPI)) {
+					g_engfuncs.pfnSetPhysicsKeyValue(pPlayer->edict(), "negpi", "1");
+				} else {
+					g_engfuncs.pfnSetPhysicsKeyValue(pPlayer->edict(), "negpi", "0");
 				}
 
 				if (MutatorEnabled(MUTATOR_ICE))

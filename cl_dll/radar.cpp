@@ -8,7 +8,7 @@
 #include "triangleapi.h"
 #include "vgui_TeamFortressViewport.h"
 
-#define PI_180 (3.14159265358979 / 180.0)
+#define PI_180 ((float)M_PI / 180.0f)
 #define MAX_DISTANCE 1000
 
 // Behind Indicator Configuration
