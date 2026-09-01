@@ -146,6 +146,7 @@ DLL_GLOBAL const char *g_szMutators[] = {
 	"tinnitus",
 	"toilet",
 	"topsyturvy",
+	"triplebang",
 	"turrets",
 	"upsidedown",
 	"vested",

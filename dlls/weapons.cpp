@@ -611,6 +611,10 @@ TYPEDESCRIPTION	CBasePlayerWeapon::m_SaveData[] =
 	DEFINE_FIELD( CBasePlayerWeapon, m_iSecondaryAmmoType, FIELD_INTEGER ),
 	DEFINE_FIELD( CBasePlayerWeapon, m_iClip, FIELD_INTEGER ),
 	DEFINE_FIELD( CBasePlayerWeapon, m_iDefaultAmmo, FIELD_INTEGER ),
+	DEFINE_FIELD( CBasePlayerWeapon, m_iTripleBangShotsPending, FIELD_INTEGER ),
+	DEFINE_FIELD( CBasePlayerWeapon, m_iTripleBangPreClip, FIELD_INTEGER ),
+	DEFINE_FIELD( CBasePlayerWeapon, m_iTripleBangPrePrimaryAmmo, FIELD_INTEGER ),
+	DEFINE_FIELD( CBasePlayerWeapon, m_iTripleBangPreSecondaryAmmo, FIELD_INTEGER ),
 //	DEFINE_FIELD( CBasePlayerWeapon, m_iClientClip, FIELD_INTEGER )	 , reset to zero on load so hud gets updated correctly
 //  DEFINE_FIELD( CBasePlayerWeapon, m_iClientWeaponState, FIELD_INTEGER ), reset to zero on load so hud gets updated correctly
 };
@@ -1090,6 +1094,300 @@ BOOL CanAttack( float attack_time, float curtime, BOOL isPredicted )
 	}
 }
 
+typedef void (CBasePlayerWeapon::*weapon_attack_fn)( void );
+
+typedef struct triplebang_ammo_state_s
+{
+	int clip;
+	int primaryAmmoIndex;
+	int secondaryAmmoIndex;
+	int primaryAmmo;
+	int secondaryAmmo;
+} triplebang_ammo_state_t;
+
+static const float TRIPLEBANG_BURST_DELAY = 0.15f;
+
+static BOOL TripleBangShouldSkipWeapon( const CBasePlayerWeapon *pWeapon )
+{
+	if (!pWeapon)
+		return TRUE;
+
+	switch (pWeapon->m_iId)
+	{
+		// Skip utility, placeable, and complex charge/beam weapons.
+		case WEAPON_CHAINSAW:
+		case WEAPON_GRAVITYGUN:
+		case WEAPON_ASHPOD:
+		case WEAPON_EGON:
+		case WEAPON_HANDGRENADE:
+		case WEAPON_SATCHEL:
+		case WEAPON_TRIPMINE:
+		case WEAPON_SNARK:
+		case WEAPON_CHUMTOAD:
+		case WEAPON_SNOWBALL:
+		case WEAPON_NUKE:
+		case WEAPON_VEST:
+		case WEAPON_ZAPGUN:
+			return TRUE;
+		default:
+			break;
+	}
+
+	return FALSE;
+}
+
+static BOOL TripleBangIsTimedBurstWeapon( const CBasePlayerWeapon *pWeapon )
+{
+	if (!pWeapon)
+		return FALSE;
+
+	switch (pWeapon->m_iId)
+	{
+		case WEAPON_GLOCK:
+		case WEAPON_DUAL_GLOCK:
+		case WEAPON_PYTHON:
+		case WEAPON_DEAGLE:
+		case WEAPON_DUAL_DEAGLE:
+		case WEAPON_MP5:
+		case WEAPON_SMG:
+		case WEAPON_DUAL_SMG:
+		case WEAPON_MAG60:
+		case WEAPON_DUAL_MAG60:
+		case WEAPON_CHAINGUN:
+		case WEAPON_DUAL_CHAINGUN:
+		case WEAPON_SHOTGUN:
+		case WEAPON_12GAUGE:
+		case WEAPON_SAWEDOFF:
+		case WEAPON_DUAL_SAWEDOFF:
+		case WEAPON_USAS:
+		case WEAPON_DUAL_USAS:
+		case WEAPON_SNIPER_RIFLE:
+		case WEAPON_CROSSBOW:
+		case WEAPON_FREEZEGUN:
+		case WEAPON_RPG:
+		case WEAPON_DUAL_RPG:
+		case WEAPON_GLAUNCHER:
+		case WEAPON_CANNON:
+		case WEAPON_FLAMETHROWER:
+		case WEAPON_DUAL_FLAMETHROWER:
+		case WEAPON_CROWBAR:
+		case WEAPON_ROCKETCROWBAR:
+		case WEAPON_KNIFE:
+		case WEAPON_WRENCH:
+		case WEAPON_DUAL_WRENCH:
+		case WEAPON_FISTS:
+		case WEAPON_GAUSS:
+		case WEAPON_HORNETGUN:
+		case WEAPON_DUAL_HORNETGUN:
+		case WEAPON_RAILGUN:
+		case WEAPON_DUAL_RAILGUN:
+			return TRUE;
+		default:
+			break;
+	}
+
+	return FALSE;
+}
+
+static int TripleBangBurstCount( void )
+{
+	return 3;
+}
+
+static int ReadPlayerAmmoSafe( CBasePlayer *pPlayer, int ammoIndex )
+{
+	if (!pPlayer || ammoIndex < 0 || ammoIndex >= MAX_AMMO_SLOTS)
+		return 0;
+	return pPlayer->m_rgAmmo[ammoIndex];
+}
+
+static void WritePlayerAmmoSafe( CBasePlayer *pPlayer, int ammoIndex, int value )
+{
+	if (!pPlayer || ammoIndex < 0 || ammoIndex >= MAX_AMMO_SLOTS)
+		return;
+	pPlayer->m_rgAmmo[ammoIndex] = value;
+}
+
+static int TripleBangPendingCount( int pendingSigned )
+{
+	return (pendingSigned < 0) ? -pendingSigned : pendingSigned;
+}
+
+static void TripleBangResetBurstState( CBasePlayerWeapon *pWeapon )
+{
+	if (!pWeapon)
+		return;
+
+	pWeapon->m_iTripleBangShotsPending = 0;
+	pWeapon->m_iTripleBangPreClip = 0;
+	pWeapon->m_iTripleBangPrePrimaryAmmo = 0;
+	pWeapon->m_iTripleBangPreSecondaryAmmo = 0;
+}
+
+static triplebang_ammo_state_t CaptureTripleBangAmmoState( CBasePlayerWeapon *pWeapon )
+{
+	triplebang_ammo_state_t state;
+	state.clip = pWeapon->m_iClip;
+	state.primaryAmmoIndex = pWeapon->PrimaryAmmoIndex();
+	state.secondaryAmmoIndex = pWeapon->SecondaryAmmoIndex();
+	state.primaryAmmo = ReadPlayerAmmoSafe(pWeapon->m_pPlayer, state.primaryAmmoIndex);
+	state.secondaryAmmo = ReadPlayerAmmoSafe(pWeapon->m_pPlayer, state.secondaryAmmoIndex);
+	return state;
+}
+
+static void RestoreTripleBangAmmoState( CBasePlayerWeapon *pWeapon, const triplebang_ammo_state_t &state )
+{
+	if (!pWeapon || !pWeapon->m_pPlayer)
+		return;
+
+	pWeapon->m_iClip = state.clip;
+	WritePlayerAmmoSafe(pWeapon->m_pPlayer, state.primaryAmmoIndex, state.primaryAmmo);
+	WritePlayerAmmoSafe(pWeapon->m_pPlayer, state.secondaryAmmoIndex, state.secondaryAmmo);
+}
+
+static void TripleBangStorePreShotState( CBasePlayerWeapon *pWeapon, const triplebang_ammo_state_t &state )
+{
+	if (!pWeapon)
+		return;
+
+	pWeapon->m_iTripleBangPreClip = state.clip;
+	pWeapon->m_iTripleBangPrePrimaryAmmo = state.primaryAmmo;
+	pWeapon->m_iTripleBangPreSecondaryAmmo = state.secondaryAmmo;
+}
+
+static triplebang_ammo_state_t TripleBangLoadPreShotState( CBasePlayerWeapon *pWeapon )
+{
+	triplebang_ammo_state_t state;
+	state.clip = pWeapon->m_iTripleBangPreClip;
+	state.primaryAmmoIndex = pWeapon->PrimaryAmmoIndex();
+	state.secondaryAmmoIndex = pWeapon->SecondaryAmmoIndex();
+	state.primaryAmmo = pWeapon->m_iTripleBangPrePrimaryAmmo;
+	state.secondaryAmmo = pWeapon->m_iTripleBangPreSecondaryAmmo;
+	return state;
+}
+
+static void TripleBangScheduleQueuedShot( CBasePlayerWeapon *pWeapon )
+{
+	if (!pWeapon)
+		return;
+
+	const float multipler = g_pGameRules->WeaponMultipler();
+	const float flNextShot = UTIL_WeaponTimeBase() + (TRIPLEBANG_BURST_DELAY * multipler);
+	pWeapon->m_flNextPrimaryAttack = flNextShot;
+	pWeapon->m_flNextSecondaryAttack = flNextShot;
+}
+
+static BOOL DispatchQueuedTripleBangAttack( CBasePlayerWeapon *pWeapon, BOOL tripleBangEnabled )
+{
+	if (!pWeapon || !pWeapon->m_pPlayer)
+		return FALSE;
+
+	if (!pWeapon->m_iTripleBangShotsPending)
+		return FALSE;
+
+	if (!tripleBangEnabled || TripleBangShouldSkipWeapon(pWeapon) || !TripleBangIsTimedBurstWeapon(pWeapon))
+	{
+		TripleBangResetBurstState(pWeapon);
+		return FALSE;
+	}
+
+	// Lock manual fire input while queued follow-up shots are pending.
+	pWeapon->m_pPlayer->pev->button &= ~IN_ATTACK;
+	pWeapon->m_pPlayer->pev->button &= ~IN_ATTACK2;
+
+	if (!CanAttack(pWeapon->m_flNextPrimaryAttack, gpGlobals->time, pWeapon->UseDecrement()) ||
+		!CanAttack(pWeapon->m_flNextSecondaryAttack, gpGlobals->time, pWeapon->UseDecrement()))
+	{
+		return TRUE;
+	}
+
+	const BOOL secondaryBurst = (pWeapon->m_iTripleBangShotsPending < 0);
+	weapon_attack_fn attackFn = secondaryBurst ? &CBasePlayerWeapon::SecondaryAttack : &CBasePlayerWeapon::PrimaryAttack;
+
+	const triplebang_ammo_state_t singleShotState = CaptureTripleBangAmmoState(pWeapon);
+	const triplebang_ammo_state_t preShotState = TripleBangLoadPreShotState(pWeapon);
+
+	RestoreTripleBangAmmoState(pWeapon, preShotState);
+	(pWeapon->*attackFn)();
+	RestoreTripleBangAmmoState(pWeapon, singleShotState);
+
+	const float multipler = g_pGameRules->WeaponMultipler();
+	if (secondaryBurst)
+		pWeapon->m_flNextPrimaryAttack = pWeapon->m_flNextSecondaryAttack = (pWeapon->m_flNextSecondaryAttack * multipler);
+	else
+		pWeapon->m_flNextPrimaryAttack = pWeapon->m_flNextSecondaryAttack = (pWeapon->m_flNextPrimaryAttack * multipler);
+
+	const int remaining = TripleBangPendingCount(pWeapon->m_iTripleBangShotsPending) - 1;
+	if (remaining <= 0)
+	{
+		TripleBangResetBurstState(pWeapon);
+	}
+	else
+	{
+		pWeapon->m_iTripleBangShotsPending = secondaryBurst ? -remaining : remaining;
+		TripleBangScheduleQueuedShot(pWeapon);
+	}
+
+	pWeapon->m_pPlayer->TabulateAmmo();
+	return TRUE;
+}
+
+static BOOL DispatchTripleBangAttack( CBasePlayerWeapon *pWeapon, weapon_attack_fn attackFn, BOOL allowTripleBang, BOOL secondaryAttack )
+{
+	if (!pWeapon || !pWeapon->m_pPlayer)
+		return FALSE;
+
+	if (!allowTripleBang || TripleBangShouldSkipWeapon(pWeapon))
+	{
+		TripleBangResetBurstState(pWeapon);
+		(pWeapon->*attackFn)();
+		return FALSE;
+	}
+
+	const int burstCount = TripleBangBurstCount();
+	if (burstCount <= 1)
+	{
+		TripleBangResetBurstState(pWeapon);
+		(pWeapon->*attackFn)();
+		return FALSE;
+	}
+
+	if (!TripleBangIsTimedBurstWeapon(pWeapon))
+	{
+		const triplebang_ammo_state_t preShotState = CaptureTripleBangAmmoState(pWeapon);
+		(pWeapon->*attackFn)();
+		const triplebang_ammo_state_t singleShotState = CaptureTripleBangAmmoState(pWeapon);
+
+		for (int i = 1; i < burstCount; ++i)
+		{
+			RestoreTripleBangAmmoState(pWeapon, preShotState);
+			(pWeapon->*attackFn)();
+		}
+
+		RestoreTripleBangAmmoState(pWeapon, singleShotState);
+		TripleBangResetBurstState(pWeapon);
+		pWeapon->m_pPlayer->TabulateAmmo();
+		return FALSE;
+	}
+
+	const triplebang_ammo_state_t preShotState = CaptureTripleBangAmmoState(pWeapon);
+	(pWeapon->*attackFn)();
+	const triplebang_ammo_state_t singleShotState = CaptureTripleBangAmmoState(pWeapon);
+
+	if (pWeapon->m_fFireOnEmpty)
+	{
+		TripleBangResetBurstState(pWeapon);
+		return FALSE;
+	}
+
+	TripleBangStorePreShotState(pWeapon, preShotState);
+	pWeapon->m_iTripleBangShotsPending = secondaryAttack ? -(burstCount - 1) : (burstCount - 1);
+	TripleBangScheduleQueuedShot(pWeapon);
+	RestoreTripleBangAmmoState(pWeapon, singleShotState);
+	pWeapon->m_pPlayer->TabulateAmmo();
+	return TRUE;
+}
+
 void CBasePlayerWeapon::ItemPostFrame( void )
 {
 	/*
@@ -1334,6 +1632,12 @@ void CBasePlayerWeapon::ItemPostFrame( void )
 
 	BOOL canFire = FALSE;
 	float multipler = g_pGameRules->WeaponMultipler();
+	const BOOL tripleBangEnabled = g_pGameRules->MutatorEnabled(MUTATOR_TRIPLEBANG);
+
+	if (DispatchQueuedTripleBangAttack(this, tripleBangEnabled))
+	{
+		return;
+	}
 
 	if ((m_pPlayer->pev->button & IN_ATTACK2) && CanAttack( m_flNextSecondaryAttack, gpGlobals->time, UseDecrement() ) )
 	{
@@ -1360,8 +1664,9 @@ void CBasePlayerWeapon::ItemPostFrame( void )
 				if (canFire)
 				{
 					m_pPlayer->ExpireSpawnProtection();
-					SecondaryAttack();
-					m_flNextPrimaryAttack = m_flNextSecondaryAttack = (m_flNextSecondaryAttack * multipler);
+					const BOOL queuedBurstStarted = DispatchTripleBangAttack(this, &CBasePlayerWeapon::SecondaryAttack, tripleBangEnabled && !m_fFireOnEmpty, TRUE);
+					if (!queuedBurstStarted)
+						m_flNextPrimaryAttack = m_flNextSecondaryAttack = (m_flNextSecondaryAttack * multipler);
 				}
 			}
 			m_bFired = TRUE;
@@ -1371,8 +1676,9 @@ void CBasePlayerWeapon::ItemPostFrame( void )
 			if (canFire)
 			{
 				m_pPlayer->ExpireSpawnProtection();
-				SecondaryAttack();
-				m_flNextPrimaryAttack = m_flNextSecondaryAttack = (m_flNextSecondaryAttack * multipler);
+				const BOOL queuedBurstStarted = DispatchTripleBangAttack(this, &CBasePlayerWeapon::SecondaryAttack, tripleBangEnabled && !m_fFireOnEmpty, TRUE);
+				if (!queuedBurstStarted)
+					m_flNextPrimaryAttack = m_flNextSecondaryAttack = (m_flNextSecondaryAttack * multipler);
 			}
 		}
 		m_pPlayer->pev->button &= ~IN_ATTACK2;
@@ -1404,11 +1710,14 @@ void CBasePlayerWeapon::ItemPostFrame( void )
 				if (canFire)
 				{
 					m_pPlayer->ExpireSpawnProtection();
-					PrimaryAttack();
-					const float flNextSecondary = m_flNextSecondaryAttack;
-					m_flNextPrimaryAttack = m_flNextSecondaryAttack = (m_flNextPrimaryAttack * multipler);
-					if ( m_iId == WEAPON_FREEZEGUN )
-						m_flNextSecondaryAttack = flNextSecondary * multipler;
+					const BOOL queuedBurstStarted = DispatchTripleBangAttack(this, &CBasePlayerWeapon::PrimaryAttack, tripleBangEnabled && !m_fFireOnEmpty, FALSE);
+					if (!queuedBurstStarted)
+					{
+						const float flNextSecondary = m_flNextSecondaryAttack;
+						m_flNextPrimaryAttack = m_flNextSecondaryAttack = (m_flNextPrimaryAttack * multipler);
+						if ( m_iId == WEAPON_FREEZEGUN )
+							m_flNextSecondaryAttack = flNextSecondary * multipler;
+					}
 				}
 			}
 			m_bFired = TRUE;
@@ -1419,11 +1728,14 @@ void CBasePlayerWeapon::ItemPostFrame( void )
 			// Allow passthru for satchels
 			if (!m_fFireOnEmpty || canFire)
 				m_pPlayer->ExpireSpawnProtection();
-			PrimaryAttack();
-			const float flNextSecondary = m_flNextSecondaryAttack;
-			m_flNextPrimaryAttack = m_flNextSecondaryAttack = (m_flNextPrimaryAttack * multipler);
-			if ( m_iId == WEAPON_FREEZEGUN )
-				m_flNextSecondaryAttack = flNextSecondary * multipler;
+			const BOOL queuedBurstStarted = DispatchTripleBangAttack(this, &CBasePlayerWeapon::PrimaryAttack, tripleBangEnabled && !m_fFireOnEmpty, FALSE);
+			if (!queuedBurstStarted)
+			{
+				const float flNextSecondary = m_flNextSecondaryAttack;
+				m_flNextPrimaryAttack = m_flNextSecondaryAttack = (m_flNextPrimaryAttack * multipler);
+				if ( m_iId == WEAPON_FREEZEGUN )
+					m_flNextSecondaryAttack = flNextSecondary * multipler;
+			}
 		}
 	}
 	else if ( m_pPlayer->pev->button & IN_RELOAD && (iMaxClip() != WEAPON_NOCLIP || AcceptReload()) && !m_fInReload ) 
@@ -1547,6 +1859,7 @@ int CBasePlayerWeapon::AddDuplicate( CBasePlayerItem *pOriginal )
 int CBasePlayerWeapon::AddToPlayer( CBasePlayer *pPlayer )
 {
 	int bResult = CBasePlayerItem::AddToPlayer( pPlayer );
+	TripleBangResetBurstState(this);
 
 	if (FBitSet(pPlayer->pev->flags, FL_FAKECLIENT))
 	{
@@ -1802,6 +2115,7 @@ BOOL CBasePlayerWeapon :: DefaultDeploy( char *szViewModel, char *szWeaponModel,
 	m_pPlayer->m_flNextAttack = (UTIL_WeaponTimeBase() + 0.25) * multipler;
 	m_flTimeWeaponIdle = (UTIL_WeaponTimeBase() + 1.0) * multipler;
 	m_flLastFireTime = 0.0;
+	TripleBangResetBurstState(this);
 
 	return TRUE;
 }
@@ -1812,6 +2126,7 @@ void CBasePlayerWeapon :: DefaultHolster(int iAnim, int body)
 	float multipler = g_pGameRules->WeaponMultipler();
 	m_pPlayer->m_flNextAttack = (UTIL_WeaponTimeBase() + 0.25) * multipler;
 	m_flTimeWeaponIdle = UTIL_SharedRandomFloat( m_pPlayer->random_seed, 10, 15 );
+	TripleBangResetBurstState(this);
 	SendWeaponAnim(iAnim, 1, body);
 }
 
@@ -1873,6 +2188,7 @@ int CBasePlayerWeapon::SecondaryAmmoIndex( void )
 void CBasePlayerWeapon::Holster( int skiplocal /* = 0 */ )
 {
 	m_fInReload = FALSE; // cancel any reload in progress.
+	TripleBangResetBurstState(this);
 	m_pPlayer->pev->viewmodel = 0; 
 	m_pPlayer->pev->weaponmodel = 0;
 }

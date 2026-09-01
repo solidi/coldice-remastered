@@ -314,6 +314,7 @@ MutatorInfo sMutators[] = {
 	{ "tinnitus", "ringing in your ears" },
 	{ "toilet", "why are there toilets?" },
 	{ "topsyturvy", "topsyturvy" },
+	{ "triplebang", "every trigger pulls three shots" },
 	{ "turrets", "they shoot everyone" },
 	{ "upsidedown", "why is everything upside down?" },
 	{ "vested", "explosive fun for everyone" },

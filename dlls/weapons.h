@@ -513,6 +513,11 @@ public:
 	int		m_iDefaultAmmo;// how much ammo you get when you pick up this weapon as placed by a level designer.
 	int		m_bFired;
 
+	int		m_iTripleBangShotsPending;
+	int		m_iTripleBangPreClip;
+	int		m_iTripleBangPrePrimaryAmmo;
+	int		m_iTripleBangPreSecondaryAmmo;
+
 	// hle time creep vars
 	float	m_flPrevPrimaryAttack;
 	float	m_flLastFireTime;			
