@@ -4325,15 +4325,9 @@ void CBasePlayer::PostThink()
 			m_hFlameOwner = this;
 	}
 
-	const int waterType = pev->watertype;
-	const int kWaterCurrentMax = -9;
-	const int kWaterCurrentMin = -14;
-	const BOOL isWaterMutatorVolume =
-		waterType == CONTENT_WATER ||
-		(waterType <= kWaterCurrentMax && waterType >= kWaterCurrentMin);
-
 	if (g_pGameRules && g_pGameRules->MutatorEnabled(MUTATOR_WATERHURT) &&
-		IsAlive() && !IsSpectator() && pev->waterlevel > 0 && isWaterMutatorVolume)
+		IsAlive() && !IsSpectator() && pev->waterlevel > 0 &&
+		(pev->watertype == CONTENT_WATER || (pev->watertype <= -9 && pev->watertype >= -14)))
 	{
 		pev->health = 0;
 		Killed(VARS(eoNullEntity), GIB_ALWAYS);
