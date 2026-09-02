@@ -153,6 +153,7 @@ DLL_GLOBAL const char *g_szMutators[] = {
 	"upsidedown",
 	"vested",
 	"volatile",
+	"waterhurt",
 };
 
 static void FreeMutatorChain(mutators_t *head)

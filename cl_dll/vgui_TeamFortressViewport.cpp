@@ -321,6 +321,7 @@ MutatorInfo sMutators[] = {
 	{ "upsidedown", "why is everything upside down?" },
 	{ "vested", "explosive fun for everyone" },
 	{ "volatile", "things get crazy" },
+	{ "waterhurt", "touch water and explode" },
 	{ "RANDOM", "don't make me think" },
 };
 

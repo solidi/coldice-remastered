@@ -4325,6 +4325,21 @@ void CBasePlayer::PostThink()
 			m_hFlameOwner = this;
 	}
 
+	const int waterType = pev->watertype;
+	const int kWaterCurrentMax = -9;
+	const int kWaterCurrentMin = -14;
+	const BOOL isWaterMutatorVolume =
+		waterType == CONTENT_WATER ||
+		(waterType <= kWaterCurrentMax && waterType >= kWaterCurrentMin);
+
+	if (g_pGameRules && g_pGameRules->MutatorEnabled(MUTATOR_WATERHURT) &&
+		IsAlive() && !IsSpectator() && pev->waterlevel > 0 && isWaterMutatorVolume)
+	{
+		pev->health = 0;
+		Killed(VARS(eoNullEntity), GIB_ALWAYS);
+		return;
+	}
+
 	// Check for sky texture touch mutator (skyhook)
 	if (g_pGameRules && g_pGameRules->MutatorEnabled(MUTATOR_SKYHOOK) && m_TextureTouchTime <= gpGlobals->time)
 	{
