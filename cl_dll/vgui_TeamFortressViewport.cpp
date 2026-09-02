@@ -309,6 +309,7 @@ MutatorInfo sMutators[] = {
 	{ "snowballs", "it's snowball fight time" },
 	{ "speedup", "speedup" },
 	{ "stahp", "make it stop" },
+	{ "stomponhead", "land on heads for instant gibs" },
 	{ "superjump", "higher than ever" },
 	{ "thirdperson", "see yourself die" },
 	{ "three", "three mutators at once" },

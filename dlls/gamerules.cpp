@@ -141,6 +141,7 @@ DLL_GLOBAL const char *g_szMutators[] = {
 	"snowballs",
 	"speedup",
 	"stahp",
+	"stomponhead",
 	"superjump",
 	"thirdperson",
 	"three",
@@ -682,6 +683,18 @@ void CGameRules::EnvMutators( void )
 
 		if (pPlayer && pPlayer->IsPlayer() && !pl->HasDisconnected)
 		{
+			if (MutatorEnabled(MUTATOR_STOMPONHEAD))
+			{
+				if (!pl->IsSpectator() && pl->IsAlive() && pl->pev->gravity >= 0.9f)
+					pl->pev->gravity = 0.70f;
+			}
+			else if (pl->pev->gravity > 0.69f && pl->pev->gravity < 0.71f)
+			{
+				// Preserve native Shidden dealter gravity when stomp mutator is not active.
+				if (!IsShidden() || pl->pev->fuser4 <= 0)
+					pl->pev->gravity = 1.0f;
+			}
+
 			if (MutatorEnabled(MUTATOR_TINNITUS))
 			{
 				if (strcmp(g_engfuncs.pfnGetPhysicsKeyValue(pPlayer->edict(), "prop"), "2") != 0)
@@ -816,6 +829,9 @@ void CGameRules::SpawnMutators(CBasePlayer *pPlayer)
 
 	if (MutatorEnabled(MUTATOR_LIGHTSOUT))
 		pPlayer->FlashlightTurnOn();
+
+	if (MutatorEnabled(MUTATOR_STOMPONHEAD) && !pPlayer->IsSpectator() && pPlayer->pev->gravity >= 0.9f)
+		pPlayer->pev->gravity = 0.70f;
 
 	if (MutatorEnabled(MUTATOR_SANTAHAT))
 		pPlayer->m_flNextSantaSound = gpGlobals->time + RANDOM_FLOAT(10,15);

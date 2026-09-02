@@ -3228,6 +3228,11 @@ void CBasePlayer::PreThink(void)
 		return;
 	}
 
+	if ( g_pGameRules->MutatorEnabled(MUTATOR_STOMPONHEAD) && pev->gravity >= 0.9f )
+	{
+		pev->gravity = 0.70f;
+	}
+
 	// So the correct flags get sent to client asap.
 	//
 	if ( m_afPhysicsFlags & PFLAG_ONTRAIN )
@@ -4143,25 +4148,27 @@ void CBasePlayer :: UpdatePlayerSound ( void )
 }
 
 
-// Shidden stomp mechanic: dealters (invisible team) can instantly kill smelters
-// by jumping and falling on top of them.
-void CBasePlayer::CheckShiddenStomp( void )
+// Head stomp mechanic:
+// - In Shidden: preserve the original dealter -> smelter stomp behavior.
+// - With stomponhead mutator: any active player can stomp any active player.
+void CBasePlayer::CheckHeadStomp( void )
 {
-	// Only active in Shidden mode
-	if ( !g_pGameRules->IsShidden() )
+	const BOOL isShidden = g_pGameRules->IsShidden();
+	const BOOL isStompOnHead = g_pGameRules->MutatorEnabled(MUTATOR_STOMPONHEAD);
+
+	if ( !isShidden && !isStompOnHead )
 		return;
 
-	// Only dealters can stomp (fuser4 > 0)
-	if ( pev->fuser4 <= 0 )
+	if ( isShidden && !isStompOnHead && pev->fuser4 <= 0 )
 		return;
 
-	// Need a meaningful downward fall velocity to register a stomp.
-	// Dealters have reduced gravity (~0.65), so the threshold is lower than
-	// the standard fall-damage speed.
+	if ( isStompOnHead && (IsSpectator() || !IsAlive()) )
+		return;
+
+	// Keep the Shidden threshold so stomp timing/feel is consistent.
 	if ( m_flFallVelocity < 200.0f )
 		return;
 
-	// Search for smelters within stomping range of the dealter's feet.
 	CBaseEntity *pEntity = NULL;
 	while ( ( pEntity = UTIL_FindEntityInSphere( pEntity, pev->origin, 48 ) ) != NULL )
 	{
@@ -4173,28 +4180,28 @@ void CBasePlayer::CheckShiddenStomp( void )
 		if ( pVictim == this )
 			continue;
 
-		if ( !pVictim->IsAlive() )
+		if ( !pVictim->IsAlive() || pVictim->IsSpectator() || pVictim->HasDisconnected )
 			continue;
 
-		if ( !pVictim->IsInArena )
-			continue;
+		// In vanilla Shidden, only smelters are valid stomp targets.
+		if ( !isStompOnHead )
+		{
+			if ( !pVictim->IsInArena )
+				continue;
 
-		// Target must be a smelter (fuser4 == 0)
-		if ( pVictim->pev->fuser4 != 0 )
-			continue;
+			if ( pVictim->pev->fuser4 != 0 )
+				continue;
+		}
 
-		// The smelter must be at or below the dealter's feet level.
-		// Player origins sit at the base of the hull; allow +36 units of
-		// vertical tolerance to cover the top of a standing smelter's head.
+		// Player origins sit at the base of the hull; allow +36 units to hit head-level landings.
 		if ( pVictim->pev->origin.z > pev->origin.z + 36 )
 			continue;
 
-		// Stomp! Kill the smelter instantly.
-		// Use Killed() directly to bypass FPlayerCanTakeDamage (which would
-		// otherwise intercept the hit as a fart-freeze instead of a kill).
 		UTIL_ClientPrintAll( HUD_PRINTTALK,
-			UTIL_VarArgs( "[Shidden] %s stomped %s!\n",
-				STRING( pev->netname ), STRING( pVictim->pev->netname ) ) );
+			UTIL_VarArgs( "%s %s stomped %s!\n",
+				isStompOnHead ? "[StompOnHead]" : "[Shidden]",
+				STRING( pev->netname ),
+				STRING( pVictim->pev->netname ) ) );
 
 		MESSAGE_BEGIN( MSG_PVS, SVC_TEMPENTITY, pVictim->pev->origin );
 			WRITE_BYTE( TE_SMOKE );
@@ -4209,7 +4216,7 @@ void CBasePlayer::CheckShiddenStomp( void )
 		pVictim->pev->health = 0;
 		pVictim->Killed( pev, GIB_ALWAYS );
 
-		// Bounce the dealter upward slightly so they don't clip into the floor.
+		// Small bounce so stomper does not clip into victim/floor stack.
 		pev->velocity.z = 250;
 	}
 }
@@ -4288,7 +4295,7 @@ void CBasePlayer::PostThink()
 			CSoundEnt::InsertSound ( bits_SOUND_PLAYER, pev->origin, m_flFallVelocity, 0.2 );
 			// ALERT( at_console, "fall %f\n", m_flFallVelocity );
 		}
-		CheckShiddenStomp();
+		CheckHeadStomp();
 		m_flFallVelocity = 0;
 	}
 
