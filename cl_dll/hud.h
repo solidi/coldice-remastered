@@ -934,11 +934,18 @@ private:
 public:
 	HSPRITE GetSprite( int index ) 
 	{
-		return (index < 0) ? 0 : m_rghSprites[index];
+		if (index < 0 || index >= m_iSpriteCount)
+			return 0;
+
+		return m_rghSprites[index];
 	}
 
 	wrect_t& GetSpriteRect( int index )
 	{
+		static wrect_t s_EmptyRect = { 0, 0, 0, 0 };
+		if (index < 0 || index >= m_iSpriteCount)
+			return s_EmptyRect;
+
 		return m_rgrcRects[index];
 	}
 

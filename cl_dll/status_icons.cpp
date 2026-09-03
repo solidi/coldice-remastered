@@ -221,6 +221,9 @@ int CHudStatusIcons::MsgFunc_StatusIcon( const char *pszName, int iSize, void *p
 // add the icon to the icon list, and set it's drawing color
 void CHudStatusIcons::EnableIcon( char *pszIconName, float timeToLive, float startTime )
 {
+	if ( !pszIconName || !*pszIconName )
+		return;
+
 	int i;
 	// check to see if the sprite is in the current list
 	for ( i = 0; i < MAX_ICONSPRITES; i++ )
@@ -248,11 +251,21 @@ void CHudStatusIcons::EnableIcon( char *pszIconName, float timeToLive, float sta
 	// Load the sprite and add it to the list
 	// the sprite must be listed in hud.txt
 	int spr_index = gHUD.GetSpriteIndex( pszIconName );
+	if ( spr_index < 0 )
+	{
+		gEngfuncs.Con_DPrintf("[Mutators] Missing HUD sprite alias '%s' in sprites/hud.txt\n", pszIconName);
+		return;
+	}
+
 	m_IconList[i].spr = gHUD.GetSprite( spr_index );
+	if ( !m_IconList[i].spr )
+		return;
+
 	m_IconList[i].rc = gHUD.GetSpriteRect( spr_index );
 	m_IconList[i].timeToLive = timeToLive;
 	m_IconList[i].startTime = startTime;
-	strcpy( m_IconList[i].szSpriteName, pszIconName );
+	strncpy( m_IconList[i].szSpriteName, pszIconName, sizeof(m_IconList[i].szSpriteName) - 1 );
+	m_IconList[i].szSpriteName[sizeof(m_IconList[i].szSpriteName) - 1] = '\0';
 }
 
 void CHudStatusIcons::DisableIcon( char *pszIconName )
@@ -282,6 +295,9 @@ void CHudStatusIcons::DrawMutators( void )
 
 void CHudStatusIcons::ToggleMutatorIcon(int mutatorId, const char *mutator)
 {
+	if (mutatorId < 0 || mutatorId >= MAX_MUTATORS_CL || !mutator || !*mutator)
+		return;
+
 	int r, g, b;
 	UnpackRGB(r,g,b, HudColor());
 	ScaleColors(r, g, b, MIN_ALPHA);

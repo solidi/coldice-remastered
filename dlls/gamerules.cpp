@@ -1183,15 +1183,34 @@ void CGameRules::AddRandomMutator(const char *cvarName, BOOL withBar, BOOL three
 
 		// Found a valid mutator, add it
 		cvar_t *cvarp = CVAR_GET_POINTER(cvarName);
+		if (!cvarp || !cvarp->name || !cvarp->string)
+		{
+			ALERT(at_console, "[Mutators] Failed to resolve cvar \"%s\"\n", cvarName ? cvarName : "<null>");
+			return;
+		}
+
 		char mutatorToAdd[512];
+		int prefixWritten = 0;
 		if (withBar || three)
-			sprintf(mutatorToAdd, "%s;", tryIt);
+			prefixWritten = snprintf(mutatorToAdd, sizeof(mutatorToAdd), "%s;", tryIt);
 		else
-			sprintf(mutatorToAdd, "%s 0;", tryIt);
-		
+			prefixWritten = snprintf(mutatorToAdd, sizeof(mutatorToAdd), "%s 0;", tryIt);
+
+		if (prefixWritten < 0 || prefixWritten >= (int)sizeof(mutatorToAdd))
+		{
+			ALERT(at_console, "[Mutators] Failed to enqueue mutator \"%s\" (buffer too small)\n", tryIt);
+			return;
+		}
+
 		if (strlen(cvarp->string))
 		{
-			strcat(mutatorToAdd, cvarp->string);
+			const int remaining = (int)sizeof(mutatorToAdd) - prefixWritten;
+			const int appended = snprintf(mutatorToAdd + prefixWritten, remaining, "%s", cvarp->string);
+			if (appended < 0 || appended >= remaining)
+			{
+				ALERT(at_console, "[Mutators] Skipping enqueue, cvar \"%s\" list too long\n", cvarp->name);
+				return;
+			}
 		}
 		CVAR_SET_STRING(cvarp->name, mutatorToAdd);
 
@@ -1533,7 +1552,12 @@ void CGameRules::MutatorsThink(void)
 			char *mutator;
 			char list[512];
 			char second[512] = {""};
-			strcpy(list, mutatorlist.string);
+				const int listWritten = snprintf(list, sizeof(list), "%s", mutatorlist.string);
+				if (listWritten < 0 || listWritten >= (int)sizeof(list))
+				{
+					ALERT(at_console, "[Mutators] sv_mutatorlist exceeded parser buffer and was truncated\n");
+					list[sizeof(list) - 1] = '\0';
+				}
 			mutator = strtok( list, ";" );
 			BOOL first = FALSE;
 			while ( mutator != NULL && *mutator )
@@ -1545,11 +1569,22 @@ void CGameRules::MutatorsThink(void)
 				}
 				else
 				{
-					// Append "name;" without a leading separator
-					if (strlen(second))
-						sprintf(second + strlen(second), ";%s", mutator);
-					else
-						sprintf(second, "%s", mutator);
+						// Append "name;" without a leading separator.
+						size_t secondLen = strlen(second);
+						if (secondLen < sizeof(second) - 1)
+						{
+							int appendWritten = 0;
+							if (secondLen)
+								appendWritten = snprintf(second + secondLen, sizeof(second) - secondLen, ";%s", mutator);
+							else
+								appendWritten = snprintf(second, sizeof(second), "%s", mutator);
+
+							if (appendWritten < 0 || appendWritten >= (int)(sizeof(second) - secondLen))
+							{
+								ALERT(at_console, "[Mutators] sv_mutatorlist remainder exceeded buffer and was truncated\n");
+								second[sizeof(second) - 1] = '\0';
+							}
+						}
 				}
 				mutator = strtok( NULL, ";" );
 			}
@@ -1614,7 +1649,7 @@ void CGameRules::MutatorsThink(void)
 							BOOL add = TRUE;
 							while (t != NULL)
 							{
-								if (t->mutatorId == i)
+								if (t->mutatorId == (i + 1))
 								{
 									add = FALSE;
 								}
