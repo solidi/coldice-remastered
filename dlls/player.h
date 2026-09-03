@@ -235,14 +235,15 @@ public:
 	float m_fKickEndTime; // pev->nextthink cannot be used consistently
 
 	void CalculateToSelacoSlide( void );
-	void StartSelacoSlide( void );
+	void StartSelacoSlide( BOOL forceSlide = FALSE );
 	void TraceHitOfSelacoSlide( void );
-	void EndSelacoSlide( void );
+	void EndSelacoSlide( BOOL forceEnd = FALSE );
 	float m_fSelacoButtonTime;
 	float m_fSelacoIncrement;
 	int m_fSelacoZ;
 	int m_fSelacoCount;
 	BOOL m_fSelacoSliding;
+	BOOL m_fSelacoForced;
 	BOOL m_fSelacoHit;
 	float m_fSelacoLastX, m_fSelacoLastY;
 

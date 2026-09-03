@@ -135,6 +135,7 @@ DLL_GLOBAL const char *g_szMutators[] = {
 	"santahat",
 	"sildenafil",
 	"skyhook",
+	"slide",
 	"slowbullets",
 	"slowmo",
 	"slowweapons",
@@ -1824,6 +1825,16 @@ void CGameRules::MutatorsThink(void)
 			if (pPlayer && pPlayer->IsPlayer() && !pl->IsObserver())
 			{
 				pl->m_iShowMutatorMessage = gpGlobals->time + 2.0;
+
+				if (MutatorEnabled(MUTATOR_SLIDE))
+				{
+					if (pl->IsAlive())
+						pl->StartSelacoSlide(TRUE);
+				}
+				else if (pl->m_fSelacoForced)
+				{
+					pl->EndSelacoSlide(TRUE);
+				}
 
 				if (MutatorEnabled(MUTATOR_TOPSYTURVY)) {
 					g_engfuncs.pfnSetPhysicsKeyValue(pPlayer->edict(), "topsy", "1");

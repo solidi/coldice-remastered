@@ -3406,13 +3406,21 @@ void CBasePlayer::PreThink(void)
 		}
 	}
 
-	if (m_iKeyboardAcrobatics)
+	BOOL forceSlideMutator = g_pGameRules && g_pGameRules->MutatorEnabled(MUTATOR_SLIDE);
+
+	if (m_iKeyboardAcrobatics && !forceSlideMutator)
 		CalculateToSelacoSlide();
 
 	if (!m_fSelacoHit)
 		TraceHitOfSelacoSlide();
 
-	EndSelacoSlide();
+	if (!forceSlideMutator && m_fSelacoForced)
+		EndSelacoSlide(TRUE);
+	else
+		EndSelacoSlide();
+
+	if (forceSlideMutator)
+		StartSelacoSlide(TRUE);
 
 	if (m_iKeyboardAcrobatics)
 		CalculateToFlip();
@@ -4648,7 +4656,7 @@ void CBasePlayer::Spawn( void )
 	m_bControlFrozen    = FALSE;
 	pHeldItem = NULL;
 	m_iHoldingItem = FALSE;
-	m_fSelacoSliding = m_fSelacoHit = FALSE;
+	m_fSelacoSliding = m_fSelacoForced = m_fSelacoHit = FALSE;
 	m_fOffhandTime = m_fSelacoIncrement = m_fSelacoButtonTime = 0;
 	m_fSelacoZ = VEC_VIEW.z;
 	m_fSelacoCount = 0;
@@ -5673,53 +5681,87 @@ enum SELACO_SLIDE {
 	SLIDE_RETRACT
 };
 
-void CBasePlayer::StartSelacoSlide( void )
+void CBasePlayer::StartSelacoSlide( BOOL forceSlide )
 {
-	if (!acrobatics.value)
+	if (!forceSlide && !acrobatics.value)
 		return;
 
-	if (m_fForceGrabTime >= gpGlobals->time)
+	if (!forceSlide && m_fForceGrabTime >= gpGlobals->time)
 		return;
 
-	if (m_pActiveItem && !((CBasePlayerWeapon *)m_pActiveItem)->CanSlide())
+	if (!forceSlide && m_pActiveItem && !((CBasePlayerWeapon *)m_pActiveItem)->CanSlide())
 		return;
 
-	// Prop limitation
-	if ( g_pGameRules->IsPropHunt() && pev->fuser4 >= TEAM_PROPS )
+	// Prop limitation only applies to manual slide activation.
+	if (!forceSlide && g_pGameRules->IsPropHunt() && pev->fuser4 >= TEAM_PROPS)
 		return;
 
-	if (!m_fSelacoSliding && m_fOffhandTime < gpGlobals->time) {
-		if (FBitSet(pev->flags, FL_ONGROUND) && pev->velocity.Length() > 50) {
-			m_EFlags &= ~EFLAG_CANCEL;
-			m_EFlags |= EFLAG_SLIDE;
+	if (m_fSelacoSliding)
+		return;
 
-			UTIL_MakeVectors(pev->angles);
-			pev->friction = 0.05;
-			pev->velocity = (gpGlobals->v_forward * 900);
-			m_fSelacoLastX = pev->velocity.x;
-			m_fSelacoLastY = pev->velocity.y;
-			m_fOffhandTime = gpGlobals->time + 1.25;
-			m_fSelacoSliding = TRUE;
-			pev->fov = m_iFOV = 105;
+	if (!forceSlide && m_fOffhandTime >= gpGlobals->time)
+		return;
 
-			SetAnimation( PLAYER_SLIDE );
+	if (!FBitSet(pev->flags, FL_ONGROUND))
+		return;
 
-			UTIL_ScreenShake( pev->origin, 15.0, 55.0, 1.25, 15.0 );
+	if (!forceSlide && pev->velocity.Length() <= 50)
+		return;
 
-			EMIT_SOUND(ENT(pev), CHAN_BODY, "slide_on_gravel.wav", 1, ATTN_NORM);
-			MESSAGE_BEGIN( MSG_ONE, gmsgAcrobatics, NULL, pev );
-				WRITE_BYTE( ACROBATICS_SELACO_SLIDE );
-			MESSAGE_END();
+	m_EFlags &= ~EFLAG_CANCEL;
+	m_EFlags |= EFLAG_SLIDE;
 
-			if (!g_pGameRules->MutatorEnabled(MUTATOR_MINIME))
-			{
-				m_fSelacoZ = VEC_DUCK_HULL_MIN.z + 6;
-				pev->view_ofs[2] = m_fSelacoZ;
-			}
+	Vector slideDirection;
+	if (forceSlide)
+	{
+		UTIL_MakeVectors(Vector(0, pev->v_angle.y, 0));
+		slideDirection = g_vecZero;
 
-			pev->punchangle.z = 15;
-		}
+		if (pev->button & IN_FORWARD)
+			slideDirection = slideDirection + gpGlobals->v_forward;
+		if (pev->button & IN_BACK)
+			slideDirection = slideDirection - gpGlobals->v_forward;
+		if (pev->button & IN_MOVERIGHT)
+			slideDirection = slideDirection + gpGlobals->v_right;
+		if (pev->button & IN_MOVELEFT)
+			slideDirection = slideDirection - gpGlobals->v_right;
+
+		slideDirection.z = 0;
+		if (slideDirection.Length2D() <= 0.1f)
+			slideDirection = gpGlobals->v_forward;
+		else
+			slideDirection = slideDirection.Normalize();
 	}
+	else
+	{
+		UTIL_MakeVectors(pev->angles);
+		slideDirection = gpGlobals->v_forward;
+	}
+
+	pev->friction = 0.05;
+	pev->velocity = slideDirection * 900;
+	m_fSelacoLastX = pev->velocity.x;
+	m_fSelacoLastY = pev->velocity.y;
+	m_fOffhandTime = gpGlobals->time + 1.25;
+	m_fSelacoSliding = TRUE;
+	pev->fov = m_iFOV = 105;
+
+	SetAnimation( PLAYER_SLIDE );
+
+	UTIL_ScreenShake( pev->origin, 15.0, 55.0, 1.25, 15.0 );
+
+	EMIT_SOUND(ENT(pev), CHAN_BODY, "slide_on_gravel.wav", 1, ATTN_NORM);
+	MESSAGE_BEGIN( MSG_ONE, gmsgAcrobatics, NULL, pev );
+		WRITE_BYTE( ACROBATICS_SELACO_SLIDE );
+	MESSAGE_END();
+
+	if (!g_pGameRules->MutatorEnabled(MUTATOR_MINIME))
+	{
+		m_fSelacoZ = VEC_DUCK_HULL_MIN.z + 6;
+		pev->view_ofs[2] = m_fSelacoZ;
+	}
+
+	pev->punchangle.z = 15;
 }
 
 void CBasePlayer::TraceHitOfSelacoSlide( void )
@@ -5908,28 +5950,32 @@ void CBasePlayer::TraceHitOfSelacoSlide( void )
 	}
 }
 
-void CBasePlayer::EndSelacoSlide( void )
+void CBasePlayer::EndSelacoSlide( BOOL forceEnd )
 {
-	if (m_fSelacoSliding && m_fOffhandTime < gpGlobals->time) {
-		pev->fov = m_iFOV = 0;
-		m_fSelacoSliding = m_fSelacoHit = FALSE;
-		m_fOffhandTime = m_fSelacoIncrement = m_fSelacoButtonTime = 0;
-		if (g_pGameRules->MutatorEnabled(MUTATOR_ICE))
-			pev->friction = 0.3;
-		else
-			pev->friction = 1.0;
-		m_fSelacoCount = 0;
+	if (!m_fSelacoSliding)
+		return;
 
-		if (!g_pGameRules->MutatorEnabled(MUTATOR_MINIME))
-		{
-			m_fSelacoZ = VEC_VIEW.z;
-			pev->view_ofs[2] = m_fSelacoZ;
-		}
+	if (!forceEnd && m_fOffhandTime >= gpGlobals->time)
+		return;
 
-		m_fSelacoIncrement = gpGlobals->time + 0.2;
+	pev->fov = m_iFOV = 0;
+	m_fSelacoSliding = m_fSelacoForced = m_fSelacoHit = FALSE;
+	m_fOffhandTime = m_fSelacoIncrement = m_fSelacoButtonTime = 0;
+	if (g_pGameRules->MutatorEnabled(MUTATOR_ICE))
+		pev->friction = 0.3;
+	else
+		pev->friction = 1.0;
+	m_fSelacoCount = 0;
 
-		m_EFlags &= ~EFLAG_SLIDE_RETRACT & ~EFLAG_SLIDE;
+	if (!g_pGameRules->MutatorEnabled(MUTATOR_MINIME))
+	{
+		m_fSelacoZ = VEC_VIEW.z;
+		pev->view_ofs[2] = m_fSelacoZ;
 	}
+
+	m_fSelacoIncrement = gpGlobals->time + 0.2;
+
+	m_EFlags &= ~EFLAG_SLIDE_RETRACT & ~EFLAG_SLIDE;
 }
 
 void CBasePlayer::CalculateToFlip( void )
