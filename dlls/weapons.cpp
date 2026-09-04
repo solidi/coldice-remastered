@@ -2511,6 +2511,10 @@ TYPEDESCRIPTION	CWeaponBox::m_SaveData[] =
 	DEFINE_ARRAY( CWeaponBox, m_rgiszAmmo, FIELD_STRING, MAX_AMMO_SLOTS ),
 	DEFINE_ARRAY( CWeaponBox, m_rgpPlayerItems, FIELD_CLASSPTR, MAX_ITEM_TYPES ),
 	DEFINE_FIELD( CWeaponBox, m_cAmmoTypes, FIELD_INTEGER ),
+	DEFINE_FIELD( CWeaponBox, m_hVictorMagnetTarget, FIELD_EHANDLE ),
+	DEFINE_FIELD( CWeaponBox, m_flVictorMagnetExpireTime, FIELD_TIME ),
+	DEFINE_FIELD( CWeaponBox, m_flVictorMagnetKillTime, FIELD_TIME ),
+	DEFINE_FIELD( CWeaponBox, m_fVictorMagnetActive, FIELD_BOOLEAN ),
 };
 
 IMPLEMENT_SAVERESTORE( CWeaponBox, CBaseEntity );
@@ -2546,6 +2550,10 @@ void CWeaponBox :: KeyValue( KeyValueData *pkvd )
 void CWeaponBox::Spawn( void )
 {
 	Precache( );
+	m_hVictorMagnetTarget = NULL;
+	m_flVictorMagnetExpireTime = 0;
+	m_flVictorMagnetKillTime = 0;
+	m_fVictorMagnetActive = FALSE;
 
 	pev->movetype = MOVETYPE_TOSS;
 	pev->solid = SOLID_TRIGGER;
@@ -2659,13 +2667,110 @@ void CWeaponBox::Kill( void )
 	UTIL_Remove( this );
 }
 
+void CWeaponBox::SetVictorMagnetTarget( CBasePlayer *pVictor )
+{
+	if ( !pVictor || !pVictor->IsPlayer() || !pVictor->IsAlive() || pVictor->HasDisconnected )
+		return;
+
+	m_hVictorMagnetTarget = pVictor;
+	m_flVictorMagnetExpireTime = gpGlobals->time + 10.0f;
+	m_flVictorMagnetKillTime = ( pev->nextthink > gpGlobals->time ) ? pev->nextthink : ( gpGlobals->time + 30.0f );
+	m_fVictorMagnetActive = TRUE;
+
+	pev->movetype = MOVETYPE_NOCLIP;
+	pev->solid = SOLID_TRIGGER;
+	pev->gravity = 0.0f;
+	pev->velocity = g_vecZero;
+	pev->avelocity = g_vecZero;
+
+	SetThink( &CWeaponBox::VictorMagnetThink );
+	pev->nextthink = gpGlobals->time + 0.05f;
+}
+
+void CWeaponBox::DisableVictorMagnet( void )
+{
+	m_hVictorMagnetTarget = NULL;
+	m_flVictorMagnetExpireTime = 0;
+	m_fVictorMagnetActive = FALSE;
+
+	pev->movetype = MOVETYPE_TOSS;
+	pev->gravity = 1.0f;
+	pev->velocity.x *= 0.25f;
+	pev->velocity.y *= 0.25f;
+	if ( pev->velocity.z > 0 )
+		pev->velocity.z = 0;
+	pev->velocity.z -= 64.0f;
+
+	SetThink( &CWeaponBox::Kill );
+	pev->nextthink = ( m_flVictorMagnetKillTime > gpGlobals->time ) ? m_flVictorMagnetKillTime : ( gpGlobals->time + 0.1f );
+}
+
+void CWeaponBox::VictorMagnetThink( void )
+{
+	if ( !m_fVictorMagnetActive )
+	{
+		DisableVictorMagnet();
+		return;
+	}
+
+	if ( !g_pGameRules || !g_pGameRules->MutatorEnabled( MUTATOR_VICTOR ) )
+	{
+		DisableVictorMagnet();
+		return;
+	}
+
+	if ( m_flVictorMagnetExpireTime > 0 && gpGlobals->time >= m_flVictorMagnetExpireTime )
+	{
+		DisableVictorMagnet();
+		return;
+	}
+
+	CBaseEntity *pTargetEntity = m_hVictorMagnetTarget;
+	if ( !pTargetEntity || !pTargetEntity->IsPlayer() )
+	{
+		DisableVictorMagnet();
+		return;
+	}
+
+	CBasePlayer *pVictor = (CBasePlayer *)pTargetEntity;
+	if ( !pVictor->IsAlive() || pVictor->HasDisconnected || pVictor->pev->deadflag != DEAD_NO )
+	{
+		DisableVictorMagnet();
+		return;
+	}
+
+	Vector vecTarget = pVictor->pev->origin + Vector( 0, 0, -28 );
+	Vector vecDelta = vecTarget - pev->origin;
+	float flDist = vecDelta.Length();
+
+	if ( flDist <= 24.0f )
+	{
+		Touch( pVictor );
+		return;
+	}
+
+	float flSpeed = ( flDist < 160.0f ) ? ( flDist * 3.0f ) : 600.0f;
+	Vector vecDesired = vecDelta.Normalize() * flSpeed;
+	pev->velocity = pev->velocity + ( vecDesired - pev->velocity ) * 0.4f;
+	pev->avelocity = g_vecZero;
+	pev->nextthink = gpGlobals->time + RANDOM_FLOAT( 0.04f, 0.08f );
+}
+
 //=========================================================
 // CWeaponBox - Touch: try to add my contents to the toucher
 // if the toucher is a player.
 //=========================================================
 void CWeaponBox::Touch( CBaseEntity *pOther )
 {
-	if ( !(pev->flags & FL_ONGROUND ) )
+	if ( m_fVictorMagnetActive )
+	{
+		CBaseEntity *pVictor = m_hVictorMagnetTarget;
+		if ( pVictor == NULL || pOther != pVictor )
+		{
+			return;
+		}
+	}
+	else if ( !(pev->flags & FL_ONGROUND ) )
 	{
 		return;
 	}

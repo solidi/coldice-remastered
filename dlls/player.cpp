@@ -125,6 +125,19 @@ static BOOL IsTouchingFloorIsLavaSurface( CBasePlayer *pPlayer )
 	return IsFloorIsLavaBrush( tr.pHit );
 }
 
+static CBasePlayer *GetLiveFragVictor( EHANDLE hVictor )
+{
+	CBaseEntity *pEntity = hVictor;
+	if ( !pEntity || !pEntity->IsPlayer() )
+		return NULL;
+
+	CBasePlayer *pVictor = (CBasePlayer *)pEntity;
+	if ( !pVictor->IsAlive() || pVictor->HasDisconnected || pVictor->pev->deadflag != DEAD_NO )
+		return NULL;
+
+	return pVictor;
+}
+
 // Global Savedata for player
 TYPEDESCRIPTION	CBasePlayer::m_playerSaveData[] = 
 {
@@ -931,7 +944,7 @@ int CBasePlayer :: TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, 
 //
 // This is pretty brute force :(
 //=========================================================
-void CBasePlayer::PackDeadPlayerItems( void )
+void CBasePlayer::PackDeadPlayerItems( CBasePlayer *pFragVictor )
 {
 	int iWeaponRules;
 	int iAmmoRules;
@@ -1079,6 +1092,8 @@ void CBasePlayer::PackDeadPlayerItems( void )
 
 		if (pWeaponBox != NULL)
 		{
+			BOOL bCanUseVictorMagnet = TRUE;
+
 			pWeaponBox->pev->angles.x = 0;// don't let weaponbox tilt.
 			pWeaponBox->pev->angles.z = 0;
 
@@ -1117,6 +1132,7 @@ void CBasePlayer::PackDeadPlayerItems( void )
 				else
 				{
 					UTIL_Remove(pWeaponBox);
+					bCanUseVictorMagnet = FALSE;
 				}
 			}
 			else
@@ -1141,6 +1157,13 @@ void CBasePlayer::PackDeadPlayerItems( void )
 				}
 
 				pWeaponBox->pev->velocity = pev->velocity * 1.2;// weaponbox has player's velocity, then some.
+			}
+
+			if ( bCanUseVictorMagnet &&
+				 g_pGameRules->MutatorEnabled( MUTATOR_VICTOR ) &&
+				 pFragVictor && pFragVictor != this )
+			{
+				pWeaponBox->SetVictorMagnetTarget( pFragVictor );
 			}
 		}
 	}
@@ -1343,6 +1366,18 @@ entvars_t *g_pevLastInflictor;  // Set in combat.cpp.  Used to pass the damage i
 void CBasePlayer::Killed( entvars_t *pevAttacker, int iGib )
 {
 	CSound *pSound;
+	m_hLastFragVictor = NULL;
+
+	if ( pevAttacker && pevAttacker != pev )
+	{
+		CBaseEntity *pKillerEntity = CBaseEntity::Instance( pevAttacker );
+		if ( pKillerEntity && pKillerEntity->IsPlayer() )
+		{
+			CBasePlayer *pKillerPlayer = (CBasePlayer *)pKillerEntity;
+			if ( pKillerPlayer->IsAlive() && !pKillerPlayer->HasDisconnected )
+				m_hLastFragVictor = pKillerPlayer;
+		}
+	}
 
 	// Holster weapon immediately, to allow it to cleanup
 	if ( m_pActiveItem && m_pActiveItem->m_pPlayer )
@@ -2043,7 +2078,9 @@ void CBasePlayer::PlayerDeathThink(void)
 		m_bChilldemicPendingConvert = FALSE;
 
 		if (HasWeapons())
-			PackDeadPlayerItems();
+			PackDeadPlayerItems( GetLiveFragVictor( m_hLastFragVictor ) );
+
+		m_hLastFragVictor = NULL;
 
 		// In-place revival: skip GetPlayerSpawnSpot so we don't fire spawn-point
 		// targets or risk EntSelectSpawnPoint telefragging another player when no
@@ -2100,8 +2137,10 @@ void CBasePlayer::PlayerDeathThink(void)
 		// will sometimes crash coming back from CBasePlayer::Killed() if they kill their owner because the
 		// player class sometimes is freed. It's safer to manipulate the weapons once we know
 		// we aren't calling into any of their code anymore through the player pointer.
-		PackDeadPlayerItems();
+		PackDeadPlayerItems( GetLiveFragVictor( m_hLastFragVictor ) );
 	}
+
+	m_hLastFragVictor = NULL;
 
 
 	if (pev->modelindex /*&& (!m_fSequenceFinished)*/ && (pev->deadflag == DEAD_DYING))

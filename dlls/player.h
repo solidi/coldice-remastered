@@ -371,7 +371,7 @@ public:
 	virtual int		Save( CSave &save );
 	virtual int		Restore( CRestore &restore );
 	void RenewItems(void);
-	void PackDeadPlayerItems( void );
+	void PackDeadPlayerItems( CBasePlayer *pFragVictor = NULL );
 	void RemoveAllItems( BOOL removeSuit );
 	BOOL SwitchWeapon( CBasePlayerItem *pWeapon );
 	BOOL ShouldWeaponSwitch();
@@ -518,6 +518,7 @@ public:
 	int m_iJumpCount;
 
 	EHANDLE pLastAssist;
+	EHANDLE m_hLastFragVictor;
 	int m_iAssists;
 
 	EHANDLE pFlag;

@@ -628,6 +628,8 @@ class CWeaponBox : public CBaseEntity
 	void Precache( void );
 	void Spawn( void );
 	void Touch( CBaseEntity *pOther );
+	void EXPORT VictorMagnetThink( void );
+	void DisableVictorMagnet( void );
 	void KeyValue( KeyValueData *pkvd );
 	BOOL IsEmpty( void );
 	int  GiveAmmo( int iCount, char *szName, int iMax, int *pIndex = NULL );
@@ -643,6 +645,7 @@ public:
 	BOOL HasWeapon( CBasePlayerItem *pCheckItem );
 	BOOL PackWeapon( CBasePlayerItem *pWeapon );
 	BOOL PackAmmo( int iszName, int iCount );
+	void SetVictorMagnetTarget( CBasePlayer *pVictor );
 	
 	CBasePlayerItem	*m_rgpPlayerItems[MAX_ITEM_TYPES];// one slot for each 
 
@@ -650,6 +653,10 @@ public:
 	int	m_rgAmmo[MAX_AMMO_SLOTS];// ammo quantities
 
 	int m_cAmmoTypes;// how many ammo types packed into this box (if packed by a level designer)
+	EHANDLE m_hVictorMagnetTarget;
+	float m_flVictorMagnetExpireTime;
+	float m_flVictorMagnetKillTime;
+	BOOL m_fVictorMagnetActive;
 };
 
 #ifdef CLIENT_DLL

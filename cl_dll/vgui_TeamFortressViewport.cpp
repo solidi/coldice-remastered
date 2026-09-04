@@ -322,6 +322,7 @@ MutatorInfo sMutators[] = {
 	{ "turrets", "they shoot everyone" },
 	{ "upsidedown", "why is everything upside down?" },
 	{ "vested", "explosive fun for everyone" },
+	{ "victor", "fragged drops fly only to the fragger" },
 	{ "volatile", "things get crazy" },
 	{ "waterhurt", "touch water and explode" },
 	{ "RANDOM", "don't make me think" },
