@@ -280,6 +280,7 @@ MutatorInfo sMutators[] = {
 	{ "napkinstory", "it's a napkin story" },
 	{ "negativepi", "pi is now -1" },
 	{ "noclip", "walk through walls" },
+	{ "nomouse", "alive players lose mouse input" },
 	{ "noradar", "cannot see the radar" },
 	{ "noreload", "no need to reload" },
 	{ "notify", "where is my phone?" },
