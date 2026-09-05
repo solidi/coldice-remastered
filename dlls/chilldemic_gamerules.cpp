@@ -767,6 +767,25 @@ void CHalfLifeChilldemic::PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller
 {
 	CHalfLifeMultiplay::PlayerKilled(pVictim, pKiller, pInflictor);
 
+	BOOL pacifistPlayerKill = FALSE;
+	if (MutatorEnabled(MUTATOR_PACIFIST))
+	{
+		CBaseEntity *pKillerEnt = CBaseEntity::Instance(pKiller);
+		CBasePlayer *pKillerPlayer = NULL;
+
+		if (pKillerEnt && pKillerEnt->Classify() == CLASS_PLAYER)
+			pKillerPlayer = (CBasePlayer *)pKillerEnt;
+		else if (pKillerEnt && pKillerEnt->Classify() == CLASS_VEHICLE)
+		{
+			CBasePlayer *pDriver = (CBasePlayer *)((CFuncVehicle *)pKillerEnt)->m_pDriver;
+			if (pDriver)
+				pKillerPlayer = pDriver;
+		}
+
+		if (pKillerPlayer && pKillerPlayer->pev != pVictim->pev)
+			pacifistPlayerKill = TRUE;
+	}
+
 	int survivors_left = 0, skeletons_left = 0;
 	for (int i = 1; i <= gpGlobals->maxClients; i++) {
 		if (m_iPlayersInArena[i-1] > 0)
@@ -788,7 +807,8 @@ void CHalfLifeChilldemic::PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller
 	// Person was survivor
 	if ( pVictim->pev->fuser4 == 0 )
 	{
-		pVictim->pev->frags = 0; // clear immediately for winner determination
+		if (!pacifistPlayerKill)
+			pVictim->pev->frags = 0; // clear immediately for winner determination
 		if (survivors_left >= 1)
 		{
 			UTIL_ClientPrintAll(HUD_PRINTTALK,
@@ -815,7 +835,8 @@ void CHalfLifeChilldemic::PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller
 		// Special case, last survivor, dispatched skeletons sent to observer.
 		if (m_iSurvivorsRemain <= 1 && !pVictim->HasDisconnected)
 		{
-			pVictim->pev->frags = 0; // clear immediately for winner determination
+			if (!pacifistPlayerKill)
+				pVictim->pev->frags = 0; // clear immediately for winner determination
 			pVictim->m_flForceToObserverTime = gpGlobals->time + 2.0;
 			MESSAGE_BEGIN( MSG_ONE, gmsgStatusIcon, NULL, pVictim->edict() );
 				WRITE_BYTE(0);

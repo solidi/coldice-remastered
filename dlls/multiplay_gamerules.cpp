@@ -2726,8 +2726,8 @@ void CHalfLifeMultiplay :: PlayerKilled( CBasePlayer *pVictim, entvars_t *pKille
 
 	CBasePlayer *peKiller = NULL;
 	CBaseEntity *ktmp = CBaseEntity::Instance( pKiller );
-
-	pVictim->m_iDeaths += 1;
+	BOOL pacifistEnabled = MutatorEnabled(MUTATOR_PACIFIST);
+	BOOL pacifistPlayerKill = FALSE;
 
 
 	FireTargets( "game_playerdie", pVictim, pVictim, USE_TOGGLE, 0 );
@@ -2745,6 +2745,12 @@ void CHalfLifeMultiplay :: PlayerKilled( CBasePlayer *pVictim, entvars_t *pKille
 		}
 	}
 
+	if (pacifistEnabled && ktmp && ktmp->IsPlayer() && pVictim->pev != pKiller)
+		pacifistPlayerKill = TRUE;
+
+	if (!pacifistPlayerKill)
+		pVictim->m_iDeaths += 1;
+
 	if ( pVictim->pev == pKiller )
 	{  // killed self
 		int fragsToRemove = 1;
@@ -2754,10 +2760,18 @@ void CHalfLifeMultiplay :: PlayerKilled( CBasePlayer *pVictim, entvars_t *pKille
 	}
 	else if ( ktmp && ktmp->IsPlayer() )
 	{
-		// if a player dies in a deathmatch game and the killer is a client, award the killer some points
-		pKiller->frags += IPointsForKill( peKiller, pVictim );
-		if (peKiller->m_iAssists && (peKiller->m_iAssists % 3 == 0))
+		if (pacifistPlayerKill)
+		{
+			// Pacifist reverses PvP frag credit and does not count as a death on the victim.
+			pVictim->pev->frags += 1;
+		}
+		else
+		{
+			// if a player dies in a deathmatch game and the killer is a client, award the killer some points
 			pKiller->frags += IPointsForKill( peKiller, pVictim );
+			if (peKiller->m_iAssists && (peKiller->m_iAssists % 3 == 0))
+				pKiller->frags += IPointsForKill( peKiller, pVictim );
+		}
 
 		if (!UTIL_GetAlivePlayersInSphere(peKiller, 1024) &&
 			peKiller->m_iAutoTaunt &&
@@ -2771,7 +2785,8 @@ void CHalfLifeMultiplay :: PlayerKilled( CBasePlayer *pVictim, entvars_t *pKille
 			MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
 				WRITE_BYTE(CLIENT_SOUND_FIRSTBLOOD);
 			MESSAGE_END();
-			pKiller->frags += IPointsForKill( peKiller, pVictim );
+			if (!pacifistPlayerKill)
+				pKiller->frags += IPointsForKill( peKiller, pVictim );
 			m_iFirstBloodDecided = TRUE;
 		}
 		else if (pVictim->m_LastHitGroup == HITGROUP_HEAD)

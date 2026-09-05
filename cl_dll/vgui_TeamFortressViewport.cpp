@@ -286,6 +286,7 @@ MutatorInfo sMutators[] = {
 	{ "notify", "where is my phone?" },
 	{ "notthebees", "stings like a bee" },
 	{ "oldtime", "aka boomer tv mode" },
+	{ "pacifist", "frags reward the victim" },
 	{ "paintball", "paint on the walls" },
 	{ "paper", "everything's made of paper" },
 	{ "piratehat", "arrrr matey" },
