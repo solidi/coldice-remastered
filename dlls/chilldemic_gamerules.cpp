@@ -765,26 +765,12 @@ void CHalfLifeChilldemic::ClientUserInfoChanged( CBasePlayer *pPlayer, char *inf
 
 void CHalfLifeChilldemic::PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller, entvars_t *pInflictor )
 {
+	int deathsBefore = pVictim->m_iDeaths;
 	CHalfLifeMultiplay::PlayerKilled(pVictim, pKiller, pInflictor);
 
-	BOOL pacifistPlayerKill = FALSE;
-	if (MutatorEnabled(MUTATOR_PACIFIST))
-	{
-		CBaseEntity *pKillerEnt = CBaseEntity::Instance(pKiller);
-		CBasePlayer *pKillerPlayer = NULL;
-
-		if (pKillerEnt && pKillerEnt->Classify() == CLASS_PLAYER)
-			pKillerPlayer = (CBasePlayer *)pKillerEnt;
-		else if (pKillerEnt && pKillerEnt->Classify() == CLASS_VEHICLE)
-		{
-			CBasePlayer *pDriver = (CBasePlayer *)((CFuncVehicle *)pKillerEnt)->m_pDriver;
-			if (pDriver)
-				pKillerPlayer = pDriver;
-		}
-
-		if (pKillerPlayer && pKillerPlayer->pev != pVictim->pev)
-			pacifistPlayerKill = TRUE;
-	}
+	// Base mutator logic skips death increment only for pacifist PvP kills.
+	BOOL pacifistPlayerKill = MutatorEnabled(MUTATOR_PACIFIST) &&
+		(pVictim->m_iDeaths == deathsBefore);
 
 	int survivors_left = 0, skeletons_left = 0;
 	for (int i = 1; i <= gpGlobals->maxClients; i++) {
