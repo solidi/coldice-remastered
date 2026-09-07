@@ -361,6 +361,9 @@ void CHalfLifeColdSkull::PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller,
 {
 	CHalfLifeMultiplay::PlayerKilled( pVictim, pKiller, pInflictor );
 
+	if (MutatorEnabled(MUTATOR_REVIVE) && pVictim->m_bMutatorPendingRevive)
+		return;
+
 	CBasePlayer *peKiller = NULL;
 	CBaseEntity *ktmp = CBaseEntity::Instance( pKiller );
 	if ( ktmp && (ktmp->Classify() == CLASS_PLAYER))

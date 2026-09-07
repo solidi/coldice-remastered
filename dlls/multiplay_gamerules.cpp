@@ -2727,7 +2727,9 @@ void CHalfLifeMultiplay :: PlayerKilled( CBasePlayer *pVictim, entvars_t *pKille
 	CBasePlayer *peKiller = NULL;
 	CBaseEntity *ktmp = CBaseEntity::Instance( pKiller );
 	BOOL pacifistEnabled = MutatorEnabled(MUTATOR_PACIFIST);
+	BOOL reviveEnabled = MutatorEnabled(MUTATOR_REVIVE);
 	BOOL pacifistPlayerKill = FALSE;
+	BOOL revivePlayerKill = FALSE;
 
 
 	FireTargets( "game_playerdie", pVictim, pVictim, USE_TOGGLE, 0 );
@@ -2745,10 +2747,13 @@ void CHalfLifeMultiplay :: PlayerKilled( CBasePlayer *pVictim, entvars_t *pKille
 		}
 	}
 
-	if (pacifistEnabled && ktmp && ktmp->IsPlayer() && pVictim->pev != pKiller)
+	if (reviveEnabled && ktmp && ktmp->IsPlayer() && pVictim->pev != pKiller && pVictim->m_bMutatorPendingRevive)
+		revivePlayerKill = TRUE;
+
+	if (!revivePlayerKill && pacifistEnabled && ktmp && ktmp->IsPlayer() && pVictim->pev != pKiller)
 		pacifistPlayerKill = TRUE;
 
-	if (!pacifistPlayerKill)
+	if (!pacifistPlayerKill && !revivePlayerKill)
 		pVictim->m_iDeaths += 1;
 
 	if ( pVictim->pev == pKiller )
@@ -2765,7 +2770,7 @@ void CHalfLifeMultiplay :: PlayerKilled( CBasePlayer *pVictim, entvars_t *pKille
 			// Pacifist reverses PvP frag credit and does not count as a death on the victim.
 			pVictim->pev->frags += 1;
 		}
-		else
+		else if (!revivePlayerKill)
 		{
 			// if a player dies in a deathmatch game and the killer is a client, award the killer some points
 			pKiller->frags += IPointsForKill( peKiller, pVictim );
@@ -2773,23 +2778,24 @@ void CHalfLifeMultiplay :: PlayerKilled( CBasePlayer *pVictim, entvars_t *pKille
 				pKiller->frags += IPointsForKill( peKiller, pVictim );
 		}
 
-		if (!UTIL_GetAlivePlayersInSphere(peKiller, 1024) &&
+		if (!revivePlayerKill &&
+			!UTIL_GetAlivePlayersInSphere(peKiller, 1024) &&
 			peKiller->m_iAutoTaunt &&
 			peKiller->m_pActiveItem &&
 			FBitSet(peKiller->m_pActiveItem->iFlags(), ITEM_FLAG_SINGLE_HAND))
 			peKiller->m_fTauntTime = gpGlobals->time + 0.75;
 
-		if (!m_iFirstBloodDecided && PlayerRelationship( pVictim, peKiller ) != GR_TEAMMATE)
+		if (!revivePlayerKill && !m_iFirstBloodDecided && PlayerRelationship( pVictim, peKiller ) != GR_TEAMMATE)
 		{
 			UTIL_ClientPrintAll(HUD_PRINTCENTER, UTIL_VarArgs("%s achieves first blood!\n", STRING(pKiller->netname) ));
 			MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
 				WRITE_BYTE(CLIENT_SOUND_FIRSTBLOOD);
 			MESSAGE_END();
-			if (!pacifistPlayerKill)
+			if (!pacifistPlayerKill && !revivePlayerKill)
 				pKiller->frags += IPointsForKill( peKiller, pVictim );
 			m_iFirstBloodDecided = TRUE;
 		}
-		else if (pVictim->m_LastHitGroup == HITGROUP_HEAD)
+		else if (!revivePlayerKill && pVictim->m_LastHitGroup == HITGROUP_HEAD)
 		{
 			if (!FBitSet(pKiller->flags, FL_FAKECLIENT))
 			{
@@ -2800,7 +2806,7 @@ void CHalfLifeMultiplay :: PlayerKilled( CBasePlayer *pVictim, entvars_t *pKille
 			pKiller->health += 5;
 		}
 
-		if (g_pGameRules->MutatorEnabled(MUTATOR_LOOPBACK))
+		if (!revivePlayerKill && g_pGameRules->MutatorEnabled(MUTATOR_LOOPBACK))
 		{
 			MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
 				WRITE_BYTE( TE_TELEPORT	); 
@@ -2823,7 +2829,8 @@ void CHalfLifeMultiplay :: PlayerKilled( CBasePlayer *pVictim, entvars_t *pKille
 			MESSAGE_END();
 		}
 
-		FireTargets( "game_playerkill", ktmp, ktmp, USE_TOGGLE, 0 );
+		if (!revivePlayerKill)
+			FireTargets( "game_playerkill", ktmp, ktmp, USE_TOGGLE, 0 );
 	}
 	else
 	{  // killed by the world

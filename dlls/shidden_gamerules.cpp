@@ -870,9 +870,14 @@ BOOL CHalfLifeShidden::FPlayerCanRespawn( CBasePlayer *pPlayer )
 
 void CHalfLifeShidden::PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller, entvars_t *pInflictor )
 {
-	pVictim->pev->frags = 0; // clear immediately for winner determination
+	BOOL revivePlayerKill = MutatorEnabled(MUTATOR_REVIVE) && pVictim->m_bMutatorPendingRevive;
+	if (!revivePlayerKill)
+		pVictim->pev->frags = 0; // clear immediately for winner determination
 
 	CHalfLifeMultiplay::PlayerKilled(pVictim, pKiller, pInflictor);
+
+	if (revivePlayerKill)
+		return;
 
 	int smelters_left = 0;
 	int dealters_left = 0;

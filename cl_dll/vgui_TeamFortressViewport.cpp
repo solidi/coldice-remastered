@@ -297,6 +297,7 @@ MutatorInfo sMutators[] = {
 	{ "railguns", "shoot rails" },
 	{ "randomweapon", "surprise me" },
 	{ "rats", "more rats, more fun" },
+	{ "revive", "first lethal frag revives once per spawn" },
 	{ "ricochet", "bounce shots" },
 	{ "rocketbees", "explosive bees" },
 	{ "rocketcrowbar", "rocket and crowbar combo" },

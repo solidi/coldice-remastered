@@ -756,7 +756,24 @@ int CBasePlayer :: TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, 
 	}
 
 	const int iDamage = (int)flDamage;
-	if (g_pGameRules->IsChilldemic() && IsInArena && !IsSpectator() &&
+	if (g_pGameRules->MutatorEnabled(MUTATOR_REVIVE) &&
+		!m_bMutatorReviveUsed && !m_bMutatorPendingRevive &&
+		!IsSpectator() &&
+		iDamage > 0 && iDamage >= pev->health)
+	{
+		if (pAttacker && pAttacker->IsPlayer() && pAttacker != this)
+		{
+			CBasePlayer *pAttackerPlayer = (CBasePlayer *)pAttacker;
+			if (pAttackerPlayer->IsAlive() && !pAttackerPlayer->HasDisconnected)
+			{
+				m_bMutatorPendingRevive = TRUE;
+				m_vecMutatorReviveOrigin = pev->origin;
+				m_vecMutatorReviveAngles = pev->angles;
+			}
+		}
+	}
+
+	if (!m_bMutatorPendingRevive && g_pGameRules->IsChilldemic() && IsInArena && !IsSpectator() &&
 		pev->fuser4 != RADAR_VIRUS && iDamage > 0 && iDamage >= pev->health)
 	{
 		m_bChilldemicPendingConvert = TRUE;
@@ -2073,6 +2090,62 @@ BOOL CBasePlayer::IsOnLadder( void )
 
 void CBasePlayer::PlayerDeathThink(void)
 {
+	if (m_bMutatorPendingRevive)
+	{
+		const Vector reviveOrigin = m_vecMutatorReviveOrigin;
+		const Vector reviveAngles = m_vecMutatorReviveAngles;
+
+		m_bMutatorPendingRevive = FALSE;
+		m_bChilldemicPendingConvert = FALSE;
+
+		if (HasWeapons())
+			PackDeadPlayerItems( GetLiveFragVictor( m_hLastFragVictor ) );
+
+		m_hLastFragVictor = NULL;
+
+		MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
+			WRITE_BYTE( TE_TELEPORT );
+			WRITE_COORD( pev->origin.x );
+			WRITE_COORD( pev->origin.y );
+			WRITE_COORD( pev->origin.z );
+		MESSAGE_END();
+
+		// In-place revival: skip GetPlayerSpawnSpot so we don't fire spawn-point
+		// targets or risk EntSelectSpawnPoint telefragging another player when no
+		// free info_player_deathmatch is available. We teleport back to the death
+		// origin ourselves below.
+		m_bSkipSpawnPointSelect = TRUE;
+		Spawn();
+		m_bMutatorReviveUsed = TRUE;
+		UTIL_SetOrigin(pev, reviveOrigin);
+		pev->angles = pev->v_angle = reviveAngles;
+		pev->velocity = g_vecZero;
+		pev->basevelocity = g_vecZero;
+		pev->avelocity = g_vecZero;
+		pev->fixangle = TRUE;
+
+		MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
+			WRITE_BYTE( TE_TELEPORT );
+			WRITE_COORD( pev->origin.x );
+			WRITE_COORD( pev->origin.y );
+			WRITE_COORD( pev->origin.z );
+		MESSAGE_END();
+
+		if (spawnprotectiontime.value > 0)
+		{
+			pev->flags |= FL_GODMODE;
+			m_fLastSpawnTime = gpGlobals->time + spawnprotectiontime.value;
+			m_fEffectTime = gpGlobals->time + 0.25f;
+		}
+
+		UTIL_ScreenFade(this, Vector(80, 180, 255), 0.20f, 0.35f, 140, FFADE_IN);
+
+		// Prevent PlayerDeathThink from firing again. Spawn() does not reset
+		// nextthink, so the old value from Killed() would re-trigger this think.
+		pev->nextthink = -1;
+		return;
+	}
+
 	if (m_bChilldemicPendingConvert)
 	{
 		m_bChilldemicPendingConvert = FALSE;
@@ -4693,6 +4766,10 @@ void CBasePlayer::Spawn( void )
 	m_iFreezeCounter 	= -1;
 	pev->iuser4         = -1; // Cross-DLL freeze signal for grave_bot; mirrors m_iFreezeCounter.
 	m_bControlFrozen    = FALSE;
+	m_bMutatorPendingRevive = FALSE;
+	m_bMutatorReviveUsed = FALSE;
+	m_vecMutatorReviveOrigin = g_vecZero;
+	m_vecMutatorReviveAngles = g_vecZero;
 	pHeldItem = NULL;
 	m_iHoldingItem = FALSE;
 	m_fSelacoSliding = m_fSelacoForced = m_fSelacoHit = FALSE;

@@ -283,6 +283,10 @@ void ClientPutInServer( edict_t *pEntity )
 	pPlayer->m_bChilldemicPendingConvert = FALSE;
 	pPlayer->m_vecChilldemicRespawnOrigin = g_vecZero;
 	pPlayer->m_vecChilldemicRespawnAngles = g_vecZero;
+	pPlayer->m_bMutatorPendingRevive = FALSE;
+	pPlayer->m_bMutatorReviveUsed = FALSE;
+	pPlayer->m_vecMutatorReviveOrigin = g_vecZero;
+	pPlayer->m_vecMutatorReviveAngles = g_vecZero;
 
 	// Allocate a CBasePlayer for pev, and call spawn
 	pPlayer->Spawn();

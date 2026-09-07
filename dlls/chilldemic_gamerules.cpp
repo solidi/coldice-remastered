@@ -768,6 +768,9 @@ void CHalfLifeChilldemic::PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller
 	int deathsBefore = pVictim->m_iDeaths;
 	CHalfLifeMultiplay::PlayerKilled(pVictim, pKiller, pInflictor);
 
+	if (MutatorEnabled(MUTATOR_REVIVE) && pVictim->m_bMutatorPendingRevive)
+		return;
+
 	// Base mutator logic skips death increment only for pacifist PvP kills.
 	BOOL pacifistPlayerKill = MutatorEnabled(MUTATOR_PACIFIST) &&
 		(pVictim->m_iDeaths == deathsBefore);

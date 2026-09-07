@@ -922,7 +922,9 @@ void CHalfLifeLastManStanding::PlayerKilled( CBasePlayer *pVictim, entvars_t *pK
 	if ( g_GameInProgress )
 	{
 		// Reduce frags only if killed by another, multiplayer rules handle environment frag reduction.
-		if ( pVictim->pev != pKiller && ktmp && ktmp->IsPlayer() && !MutatorEnabled(MUTATOR_PACIFIST) )
+		if ( pVictim->pev != pKiller && ktmp && ktmp->IsPlayer() &&
+			!MutatorEnabled(MUTATOR_PACIFIST) &&
+			!(MutatorEnabled(MUTATOR_REVIVE) && pVictim->m_bMutatorPendingRevive) )
 		{
 			pVictim->pev->frags -= 1;
 			MESSAGE_BEGIN( MSG_ALL, gmsgScoreInfo );

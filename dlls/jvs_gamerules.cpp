@@ -663,6 +663,9 @@ void CHalfLifeJesusVsSanta::PlayerKilled( CBasePlayer *pVictim, entvars_t *pKill
 {
 	CHalfLifeMultiplay::PlayerKilled(pVictim, pKiller, pInflictor);
 
+	if (MutatorEnabled(MUTATOR_REVIVE) && pVictim->m_bMutatorPendingRevive)
+		return;
+
 	if ( !pVictim->IsArmoredMan )
 	{
 		int clientsLeft = 0;

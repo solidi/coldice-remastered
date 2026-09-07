@@ -260,6 +260,10 @@ public:
 	BOOL m_bChilldemicPendingConvert;
 	Vector m_vecChilldemicRespawnOrigin;
 	Vector m_vecChilldemicRespawnAngles;
+	BOOL m_bMutatorPendingRevive;
+	BOOL m_bMutatorReviveUsed;
+	Vector m_vecMutatorReviveOrigin;
+	Vector m_vecMutatorReviveAngles;
 	// One-shot: suppress SetDefaultPlayerTeam + GetPlayerSpawnSpot inside Spawn()
 	// for in-place revivals (e.g. Chilldemic infection) that must not fire
 	// info_player_deathmatch targets or telefrag another player via EntSelectSpawnPoint.

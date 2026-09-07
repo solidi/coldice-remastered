@@ -321,6 +321,9 @@ void CHalfLifeGunGame::PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller, e
 
 	CHalfLifeMultiplay::PlayerKilled( pVictim, pKiller, pInflictor );
 
+	if (MutatorEnabled(MUTATOR_REVIVE) && pVictim->m_bMutatorPendingRevive)
+		return;
+
 	// Go back in levels when killed self or suicide
 	if (ktmp)
 	{
