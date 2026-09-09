@@ -529,6 +529,58 @@ void V_DoPunchAngles(struct ref_params_s *pparams)
 	V_DropPunchAngle ( pparams->frametime * 2, (float *)&ev_punchangle );
 }
 
+static void V_ApplyDrunkMutator( struct ref_params_s *pparams )
+{
+	static float flNextDrunkPunch = 0;
+	const float flDrunkScale = 0.8f;
+
+	if (!MutatorEnabled(MUTATOR_DRUNK) || gEngfuncs.IsSpectateOnly() ||
+		g_iUser1 > 0 || pparams->health <= 0 || CL_IsThirdPerson())
+	{
+		flNextDrunkPunch = 0;
+		return;
+	}
+
+	// Keep the camera in motion continuously so the effect stays disorienting.
+	pparams->viewangles[PITCH] += sin(pparams->time * 1.75f) * (3.0f * flDrunkScale);
+	pparams->viewangles[YAW] += sin(pparams->time * 1.10f) * (4.5f * flDrunkScale);
+	pparams->viewangles[ROLL] += cos(pparams->time * 2.15f) * (6.0f * flDrunkScale);
+
+	const float punchLen = sqrt(
+		ev_punchangle[PITCH] * ev_punchangle[PITCH] +
+		ev_punchangle[YAW] * ev_punchangle[YAW] +
+		ev_punchangle[ROLL] * ev_punchangle[ROLL]);
+
+	if (punchLen < 15.0f && pparams->time >= flNextDrunkPunch)
+	{
+		const float flPulseYaw = 180.0f * flDrunkScale;
+		const float flPulsePitch = 120.0f * flDrunkScale;
+		const int iPulseDirection = gEngfuncs.pfnRandomLong(0, 3);
+
+		ev_punchangle[PITCH] = 0.0f;
+		ev_punchangle[YAW] = 0.0f;
+		ev_punchangle[ROLL] = 0.0f;
+
+		switch (iPulseDirection)
+		{
+			case 0: // left
+				ev_punchangle[YAW] = -flPulseYaw;
+				break;
+			case 1: // right
+				ev_punchangle[YAW] = flPulseYaw;
+				break;
+			case 2: // up
+				ev_punchangle[PITCH] = -flPulsePitch;
+				break;
+			default: // down
+				ev_punchangle[PITCH] = flPulsePitch;
+				break;
+		}
+
+		flNextDrunkPunch = pparams->time + 0.35f;
+	}
+}
+
 /*
 ==================
 V_CalcRefdef
@@ -780,6 +832,8 @@ void V_CalcNormalRefdef ( struct ref_params_s *pparams )
 	{
 		pparams->viewangles[ROLL] = 80; //total view
 	}
+
+	V_ApplyDrunkMutator(pparams);
 
 	if (cl_glasshud->value) {
 		V_GlassHud(bob, pparams->time, pparams->frametime);

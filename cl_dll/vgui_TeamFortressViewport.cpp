@@ -249,6 +249,7 @@ MutatorInfo sMutators[] = {
 	{ "credits", "watch the credits roll" },
 	{ "dealter", "what's that smell?" },
 	{ "dontshoot", "no trigger fingers" },
+	{ "drunk", "your view keeps swaying and spinning" },
 	{ "explosiveai", "explosiveai" },
 	{ "fastweapons", "pew pew pew" },
 	{ "firebullets", "lead on fire" },

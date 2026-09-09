@@ -81,6 +81,7 @@ DLL_GLOBAL const char *g_szMutators[] = {
 	"credits",
 	"dealter",
 	"dontshoot",
+	"drunk",
 	"explosiveai",
 	"fastweapons",
 	"firebullets",
