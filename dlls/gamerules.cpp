@@ -92,6 +92,7 @@ DLL_GLOBAL const char *g_szMutators[] = {
 	"goldenguns",
 	"grenades",
 	"halflife",
+	"headshot",
 	"ice",
 	"infiniteammo",
 	"instagib",

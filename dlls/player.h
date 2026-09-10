@@ -264,6 +264,11 @@ public:
 	BOOL m_bMutatorReviveUsed;
 	Vector m_vecMutatorReviveOrigin;
 	Vector m_vecMutatorReviveAngles;
+	// Last player-vs-player hit metadata for mutators that need reliable
+	// "final blow" validation beyond m_LastHitGroup's legacy usage.
+	EHANDLE m_hLastPvpHitAttacker;
+	float m_flLastPvpHitTime;
+	int m_iLastPvpHitGroup;
 	// One-shot: suppress SetDefaultPlayerTeam + GetPlayerSpawnSpot inside Spawn()
 	// for in-place revivals (e.g. Chilldemic infection) that must not fire
 	// info_player_deathmatch targets or telefrag another player via EntSelectSpawnPoint.

@@ -138,6 +138,23 @@ static CBasePlayer *GetLiveFragVictor( EHANDLE hVictor )
 	return pVictor;
 }
 
+static BOOL IsHeadshotPvpFinalBlow( CBasePlayer *pVictim, CBasePlayer *pAttacker )
+{
+	if ( !pVictim || !pAttacker || pVictim == pAttacker )
+		return FALSE;
+
+	if ( pVictim->m_hLastPvpHitAttacker != pAttacker )
+		return FALSE;
+
+	if ( pVictim->m_iLastPvpHitGroup != HITGROUP_HEAD )
+		return FALSE;
+
+	if ( pVictim->m_flLastPvpHitTime <= 0.0f )
+		return FALSE;
+
+	return ( gpGlobals->time - pVictim->m_flLastPvpHitTime ) <= 0.30f;
+}
+
 // Global Savedata for player
 TYPEDESCRIPTION	CBasePlayer::m_playerSaveData[] = 
 {
@@ -577,6 +594,13 @@ void CBasePlayer :: TraceAttack( entvars_t *pevAttacker, float flDamage, Vector 
 		CBasePlayer *pVictim = GetClassPtr((CBasePlayer *)pev);
 		CBasePlayer *pAttacker = GetClassPtr((CBasePlayer *)pevAttacker);
 
+		if (pAttacker && pAttacker->IsPlayer() && pAttacker != pVictim)
+		{
+			pVictim->m_hLastPvpHitAttacker = pAttacker;
+			pVictim->m_flLastPvpHitTime = gpGlobals->time;
+			pVictim->m_iLastPvpHitGroup = ptr->iHitgroup;
+		}
+
 		if (pAttacker && pAttacker->IsPlayer())
 		{
 			// Set the assist if the player is not the killing blow
@@ -756,10 +780,25 @@ int CBasePlayer :: TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, 
 	}
 
 	const int iDamage = (int)flDamage;
+	if (g_pGameRules->MutatorEnabled(MUTATOR_HEADSHOT) &&
+		pAttacker && pAttacker->IsPlayer() && pAttacker != this &&
+		iDamage > 0 && iDamage >= pev->health)
+	{
+		CBasePlayer *pAttackerPlayer = (CBasePlayer *)pAttacker;
+		if (!IsHeadshotPvpFinalBlow(this, pAttackerPlayer))
+		{
+			const float flNonLethalCap = fmax(0.0f, pev->health - 1.0f);
+			flDamage = fmin(flDamage, flNonLethalCap);
+			if (flDamage <= 0.0f)
+				return 0;
+		}
+	}
+
+	const int iDamageFinal = (int)flDamage;
 	if (g_pGameRules->MutatorEnabled(MUTATOR_REVIVE) &&
 		!m_bMutatorReviveUsed && !m_bMutatorPendingRevive &&
 		!IsSpectator() &&
-		iDamage > 0 && iDamage >= pev->health)
+		iDamageFinal > 0 && iDamageFinal >= pev->health)
 	{
 		if (pAttacker && pAttacker->IsPlayer() && pAttacker != this)
 		{
@@ -774,7 +813,7 @@ int CBasePlayer :: TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, 
 	}
 
 	if (!m_bMutatorPendingRevive && g_pGameRules->IsChilldemic() && IsInArena && !IsSpectator() &&
-		pev->fuser4 != RADAR_VIRUS && iDamage > 0 && iDamage >= pev->health)
+		pev->fuser4 != RADAR_VIRUS && iDamageFinal > 0 && iDamageFinal >= pev->health)
 	{
 		m_bChilldemicPendingConvert = TRUE;
 		m_vecChilldemicRespawnOrigin = pev->origin;
@@ -1383,6 +1422,25 @@ entvars_t *g_pevLastInflictor;  // Set in combat.cpp.  Used to pass the damage i
 void CBasePlayer::Killed( entvars_t *pevAttacker, int iGib )
 {
 	CSound *pSound;
+	if (g_pGameRules && g_pGameRules->MutatorEnabled(MUTATOR_HEADSHOT) && pevAttacker && pevAttacker != pev)
+	{
+		CBaseEntity *pKillerEntity = CBaseEntity::Instance( pevAttacker );
+		if (pKillerEntity && pKillerEntity->IsPlayer())
+		{
+			CBasePlayer *pKillerPlayer = (CBasePlayer *)pKillerEntity;
+			if (!IsHeadshotPvpFinalBlow(this, pKillerPlayer))
+			{
+				if (!FBitSet(pevAttacker->flags, FL_FAKECLIENT))
+					ClientPrint(pevAttacker, HUD_PRINTCENTER, "Headshot required for frag!\n");
+
+				if (pev->health <= 0)
+					pev->health = 1;
+				pev->deadflag = DEAD_NO;
+				return;
+			}
+		}
+	}
+
 	m_hLastFragVictor = NULL;
 
 	if ( pevAttacker && pevAttacker != pev )
@@ -4770,6 +4828,9 @@ void CBasePlayer::Spawn( void )
 	m_bMutatorReviveUsed = FALSE;
 	m_vecMutatorReviveOrigin = g_vecZero;
 	m_vecMutatorReviveAngles = g_vecZero;
+	m_hLastPvpHitAttacker = NULL;
+	m_flLastPvpHitTime = 0;
+	m_iLastPvpHitGroup = HITGROUP_GENERIC;
 	pHeldItem = NULL;
 	m_iHoldingItem = FALSE;
 	m_fSelacoSliding = m_fSelacoForced = m_fSelacoHit = FALSE;

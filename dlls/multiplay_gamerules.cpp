@@ -2720,6 +2720,23 @@ int CHalfLifeMultiplay :: IPointsForKill( CBasePlayer *pAttacker, CBasePlayer *p
 //=========================================================
 #define	HITGROUP_HEAD 1
 
+static BOOL IsHeadshotFragEligible( CBasePlayer *pVictim, CBaseEntity *pKiller )
+{
+	if ( !pVictim || !pKiller || !pKiller->IsPlayer() )
+		return FALSE;
+
+	if ( pVictim->m_hLastPvpHitAttacker != pKiller )
+		return FALSE;
+
+	if ( pVictim->m_iLastPvpHitGroup != HITGROUP_HEAD )
+		return FALSE;
+
+	if ( pVictim->m_flLastPvpHitTime <= 0.0f )
+		return FALSE;
+
+	return ( gpGlobals->time - pVictim->m_flLastPvpHitTime ) <= 0.30f;
+}
+
 void CHalfLifeMultiplay :: PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller, entvars_t *pInflictor )
 {
 	DeathNotice( pVictim, pKiller, pInflictor );
@@ -2727,8 +2744,10 @@ void CHalfLifeMultiplay :: PlayerKilled( CBasePlayer *pVictim, entvars_t *pKille
 	CBasePlayer *peKiller = NULL;
 	CBaseEntity *ktmp = CBaseEntity::Instance( pKiller );
 	BOOL pacifistEnabled = MutatorEnabled(MUTATOR_PACIFIST);
+	BOOL headshotEnabled = MutatorEnabled(MUTATOR_HEADSHOT);
 	BOOL reviveEnabled = MutatorEnabled(MUTATOR_REVIVE);
 	BOOL pacifistPlayerKill = FALSE;
+	BOOL headshotPlayerKill = FALSE;
 	BOOL revivePlayerKill = FALSE;
 
 
@@ -2750,7 +2769,12 @@ void CHalfLifeMultiplay :: PlayerKilled( CBasePlayer *pVictim, entvars_t *pKille
 	if (reviveEnabled && ktmp && ktmp->IsPlayer() && pVictim->pev != pKiller && pVictim->m_bMutatorPendingRevive)
 		revivePlayerKill = TRUE;
 
-	if (!revivePlayerKill && pacifistEnabled && ktmp && ktmp->IsPlayer() && pVictim->pev != pKiller)
+	if (!revivePlayerKill && headshotEnabled && ktmp && ktmp->IsPlayer() && pVictim->pev != pKiller)
+		headshotPlayerKill = IsHeadshotFragEligible(pVictim, ktmp);
+
+	BOOL headshotFragCreditAllowed = (!headshotEnabled || headshotPlayerKill);
+
+	if (!revivePlayerKill && pacifistEnabled && ktmp && ktmp->IsPlayer() && pVictim->pev != pKiller && headshotFragCreditAllowed)
 		pacifistPlayerKill = TRUE;
 
 	if (!pacifistPlayerKill && !revivePlayerKill)
@@ -2770,12 +2794,17 @@ void CHalfLifeMultiplay :: PlayerKilled( CBasePlayer *pVictim, entvars_t *pKille
 			// Pacifist reverses PvP frag credit and does not count as a death on the victim.
 			pVictim->pev->frags += 1;
 		}
-		else if (!revivePlayerKill)
+		else if (!revivePlayerKill && headshotFragCreditAllowed)
 		{
 			// if a player dies in a deathmatch game and the killer is a client, award the killer some points
 			pKiller->frags += IPointsForKill( peKiller, pVictim );
 			if (peKiller->m_iAssists && (peKiller->m_iAssists % 3 == 0))
 				pKiller->frags += IPointsForKill( peKiller, pVictim );
+		}
+		else if (!revivePlayerKill && headshotEnabled && !headshotPlayerKill)
+		{
+			if (!FBitSet(pKiller->flags, FL_FAKECLIENT))
+				ClientPrint(pKiller, HUD_PRINTCENTER, "Headshot required for frag!\n");
 		}
 
 		if (!revivePlayerKill &&
@@ -2785,7 +2814,7 @@ void CHalfLifeMultiplay :: PlayerKilled( CBasePlayer *pVictim, entvars_t *pKille
 			FBitSet(peKiller->m_pActiveItem->iFlags(), ITEM_FLAG_SINGLE_HAND))
 			peKiller->m_fTauntTime = gpGlobals->time + 0.75;
 
-		if (!revivePlayerKill && !m_iFirstBloodDecided && PlayerRelationship( pVictim, peKiller ) != GR_TEAMMATE)
+		if (!revivePlayerKill && headshotFragCreditAllowed && !m_iFirstBloodDecided && PlayerRelationship( pVictim, peKiller ) != GR_TEAMMATE)
 		{
 			UTIL_ClientPrintAll(HUD_PRINTCENTER, UTIL_VarArgs("%s achieves first blood!\n", STRING(pKiller->netname) ));
 			MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
@@ -2795,7 +2824,7 @@ void CHalfLifeMultiplay :: PlayerKilled( CBasePlayer *pVictim, entvars_t *pKille
 				pKiller->frags += IPointsForKill( peKiller, pVictim );
 			m_iFirstBloodDecided = TRUE;
 		}
-		else if (!revivePlayerKill && pVictim->m_LastHitGroup == HITGROUP_HEAD)
+		else if (!revivePlayerKill && ((headshotEnabled && headshotPlayerKill) || (!headshotEnabled && pVictim->m_LastHitGroup == HITGROUP_HEAD)))
 		{
 			if (!FBitSet(pKiller->flags, FL_FAKECLIENT))
 			{
