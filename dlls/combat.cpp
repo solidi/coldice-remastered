@@ -45,6 +45,29 @@ extern entvars_t *g_pevLastInflictor;
 #define	HUMAN_GIB_COUNT			6
 #define ALIEN_GIB_COUNT			4
 
+static BOOL IsRocketJumpInflictor( entvars_t *pevInflictor )
+{
+	if ( FNullEnt( pevInflictor ) )
+		return FALSE;
+
+	return FClassnameIs( pevInflictor, "rpg_rocket" ) ||
+		FClassnameIs( pevInflictor, "rocketcrowbar" );
+}
+
+static BOOL IsRocketJumpSelfBlast( entvars_t *pevVictim, entvars_t *pevInflictor, entvars_t *pevAttacker, int bitsDamageType )
+{
+	if ( !g_pGameRules || !g_pGameRules->MutatorEnabled( MUTATOR_ROCKETJUMP ) )
+		return FALSE;
+
+	if ( !pevVictim || FNullEnt( pevAttacker ) || pevAttacker != pevVictim )
+		return FALSE;
+
+	if ( !FBitSet( bitsDamageType, DMG_BLAST ) )
+		return FALSE;
+
+	return IsRocketJumpInflictor( pevInflictor );
+}
+
 
 // HACKHACK -- The gib velocity equations don't work
 void CGib :: LimitVelocity( void )
@@ -1016,6 +1039,8 @@ int CBaseMonster :: TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker,
 {
 	float	flTake;
 	Vector	vecDir;
+	CBaseEntity *pInflictor = NULL;
+	const BOOL bRocketJumpSelfBlast = IsRocketJumpSelfBlast( pev, pevInflictor, pevAttacker, bitsDamageType );
 
 	if (!pev->takedamage)
 		return 0;
@@ -1034,6 +1059,14 @@ int CBaseMonster :: TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker,
 	//!!!LATER - make armor consideration here!
 	flTake = flDamage;
 
+	if ( IsPlayer() && bRocketJumpSelfBlast )
+	{
+		// Keep rocket impulse from original blast damage while limiting health loss.
+		const float flRocketJumpSelfDamageCap = 12.0f;
+		if ( flTake > flRocketJumpSelfDamageCap )
+			flTake = flRocketJumpSelfDamageCap;
+	}
+
 	// set damage type sustained
 	m_bitsDamageType |= bitsDamageType;
 
@@ -1041,7 +1074,7 @@ int CBaseMonster :: TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker,
 	vecDir = Vector( 0, 0, 0 );
 	if (!FNullEnt( pevInflictor ))
 	{
-		CBaseEntity *pInflictor = CBaseEntity :: Instance( pevInflictor );
+		pInflictor = CBaseEntity :: Instance( pevInflictor );
 		if (pInflictor)
 		{
 			vecDir = ( pInflictor->Center() - Vector ( 0, 0, 10 ) - Center() ).Normalize();
@@ -1071,7 +1104,27 @@ int CBaseMonster :: TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker,
 	// if this is a player, move him around!
 	if ( ( !FNullEnt( pevInflictor ) ) && (pev->movetype == MOVETYPE_WALK) && (!pevAttacker || pevAttacker->solid != SOLID_TRIGGER) )
 	{
-		pev->velocity = pev->velocity + vecDir * -DamageForce( flDamage );
+		float flKnockbackForce = DamageForce( flDamage );
+
+		if ( IsPlayer() && bRocketJumpSelfBlast && pInflictor )
+		{
+			const float flHeightDelta = Center().z - pInflictor->Center().z;
+			if ( flHeightDelta > 0.0f )
+			{
+				// Shots detonating below the player get extra lift for classic rocket jumping.
+				float flBelowScale = flHeightDelta / 64.0f;
+				if ( flBelowScale > 1.0f )
+					flBelowScale = 1.0f;
+
+				flKnockbackForce *= 1.0f + (0.65f * flBelowScale);
+
+				if ( vecDir.z > -0.25f )
+					vecDir.z = -0.25f;
+				vecDir = vecDir.Normalize();
+			}
+		}
+
+		pev->velocity = pev->velocity + vecDir * -flKnockbackForce;
 	}
 
 	// do the damage
@@ -1308,25 +1361,34 @@ void RadiusDamage( Vector vecSrc, entvars_t *pevInflictor, entvars_t *pevAttacke
 				}
 
 				float iceDamage = 0;
-				iceDamage += ::IceExplode(GetClassPtr((CBaseEntity *)pevAttacker), pEntity, bitsDamageType);
+				int iEntityDamageType = bitsDamageType;
+				if ( IsRocketJumpSelfBlast( pEntity->pev, pevInflictor, pevAttacker, bitsDamageType ) )
+				{
+					iEntityDamageType &= ~DMG_BURN;
+				}
+
+				iceDamage += ::IceExplode(GetClassPtr((CBaseEntity *)pevAttacker), pEntity, iEntityDamageType);
 				if (iceDamage)
+				{
 					bitsDamageType |= DMG_NEVERGIB;
+					iEntityDamageType |= DMG_NEVERGIB;
+				}
 				flAdjustedDamage += iceDamage;
 
 				// ALERT( at_console, "hit %s\n", STRING( pEntity->pev->classname ) );
 				if (tr.flFraction != 1.0)
 				{
 					ClearMultiDamage( );
-					pEntity->TraceAttack( pevInflictor, flAdjustedDamage, (tr.vecEndPos - vecSrc).Normalize( ), &tr, bitsDamageType );
+					pEntity->TraceAttack( pevInflictor, flAdjustedDamage, (tr.vecEndPos - vecSrc).Normalize( ), &tr, iEntityDamageType );
 					ApplyMultiDamage( pevInflictor, pevAttacker );
 				}
 				else
 				{
-					pEntity->TakeDamage ( pevInflictor, pevAttacker, flAdjustedDamage, bitsDamageType );
+					pEntity->TakeDamage ( pevInflictor, pevAttacker, flAdjustedDamage, iEntityDamageType );
 				}
 
 				//if (pEntity->edict() != pev->owner)
-				if (FBitSet(bitsDamageType, DMG_BURN))
+				if (FBitSet(iEntityDamageType, DMG_BURN))
 				{
 					pEntity->m_fBurnTime = pEntity->m_fBurnTime + RANDOM_FLOAT(1.0, 3.0);
 					pEntity->m_hFlameOwner = CBaseEntity::Instance(pevAttacker);

@@ -303,6 +303,7 @@ MutatorInfo sMutators[] = {
 	{ "ricochet", "bounce shots" },
 	{ "rocketbees", "explosive bees" },
 	{ "rocketcrowbar", "rocket and crowbar combo" },
+	{ "rocketjump", "minimal self rocket damage for high jumps" },
 	{ "rockets", "more rockets, more fun" },
 	{ "sanic", "wtf is going on" },
 	{ "santahat", "festive headgear" },
