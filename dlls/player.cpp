@@ -75,6 +75,7 @@ extern CGraph	WorldGraph;
 #define FLOOR_IS_LAVA_INTERVAL_SECONDS 0.75f
 #define FLOOR_IS_LAVA_BURN_SECONDS 0.2f
 #define FLOOR_IS_LAVA_MIN_BURN_SECONDS 0.1f
+#define SLEEPY_TIME 3.0f
 
 static BOOL IsFloorIsLavaBrush( edict_t *pGround )
 {
@@ -4493,6 +4494,14 @@ void CBasePlayer::PostThink()
 
 	UpdatePlayerSound();
 
+	if (g_pGameRules && g_pGameRules->MutatorEnabled(MUTATOR_SLEEPY) &&
+		!FBitSet(pev->flags, FL_FAKECLIENT) && !IsSpectator() &&
+		pev->deadflag == DEAD_NO && m_flSleepyTime <= gpGlobals->time)
+	{
+		UTIL_ScreenFade(this, Vector(0, 0, 0), 1.75f, 0.1f, 255, FFADE_IN);
+		m_flSleepyTime = gpGlobals->time + SLEEPY_TIME;
+	}
+
 	if (g_pGameRules && g_pGameRules->MutatorEnabled(MUTATOR_FLOORISLAVA) &&
 		IsAlive() && !IsSpectator() && m_flFloorIsLavaTime <= gpGlobals->time &&
 		IsTouchingFloorIsLavaSurface(this))
@@ -4852,6 +4861,7 @@ void CBasePlayer::Spawn( void )
 	m_fCameraDelay = 0;
 	m_fCelebrateTime = 0;
 	m_flFloorIsLavaTime = 0;
+	m_flSleepyTime = 0;
 
 	g_engfuncs.pfnSetPhysicsKeyValue( edict(), "slj", "0" );
 	g_engfuncs.pfnSetPhysicsKeyValue( edict(), "hl", "1" );

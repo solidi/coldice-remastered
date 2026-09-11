@@ -308,6 +308,7 @@ MutatorInfo sMutators[] = {
 	{ "santahat", "festive headgear" },
 	{ "sildenafil", "boost your blue game" },
 	{ "skyhook", "the sky's the hard limit" },
+	{ "sleepy", "fading blackout pulses" },
 	{ "slide", "continuous selaco slide" },
 	{ "slowbullets", "take it slow" },
 	{ "slowmo", "slowmo" },

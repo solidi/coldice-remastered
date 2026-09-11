@@ -140,6 +140,7 @@ DLL_GLOBAL const char *g_szMutators[] = {
 	"santahat",
 	"sildenafil",
 	"skyhook",
+	"sleepy",
 	"slide",
 	"slowbullets",
 	"slowmo",
