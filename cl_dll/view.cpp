@@ -541,6 +541,10 @@ static void V_ApplyDrunkMutator( struct ref_params_s *pparams )
 		return;
 	}
 
+	// pparams->time restarts on map change; drop a stale future schedule.
+	if (flNextDrunkPunch > pparams->time + 1.0f)
+		flNextDrunkPunch = 0;
+
 	// Keep the camera in motion continuously so the effect stays disorienting.
 	pparams->viewangles[PITCH] += sin(pparams->time * 1.75f) * (3.0f * flDrunkScale);
 	pparams->viewangles[YAW] += sin(pparams->time * 1.10f) * (4.5f * flDrunkScale);

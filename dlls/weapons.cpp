@@ -1175,6 +1175,7 @@ static BOOL TripleBangIsTimedBurstWeapon( const CBasePlayerWeapon *pWeapon )
 		case WEAPON_KNIFE:
 		case WEAPON_WRENCH:
 		case WEAPON_DUAL_WRENCH:
+		case WEAPON_ZAPGUN:
 		case WEAPON_FISTS:
 		case WEAPON_GAUSS:
 		case WEAPON_HORNETGUN:

@@ -260,7 +260,7 @@ MutatorInfo sMutators[] = {
 	{ "goldenguns", "like Goldeneye" },
 	{ "grenades", "more grenades, more fun" },
 	{ "halflife", "back to the roots" },
-	{ "headshot", "only headshots award frags" },
+	{ "headshot", "only headshots can kill" },
 	{ "ice", "slippery as ever" },
 	{ "infiniteammo", "no need to reload" },
 	{ "instagib", "one hit kills, no weapons" },

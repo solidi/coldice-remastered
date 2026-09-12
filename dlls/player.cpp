@@ -825,6 +825,15 @@ int CBasePlayer :: TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, 
 	// as an int (zero) and think the player is dead! (this will incite a clientside screentilt, etc)
 	fTookDamage = CBaseMonster::TakeDamage(pevInflictor, pevAttacker, (int)flDamage, bitsDamageType);
 
+	// The blow was predicted lethal but the player survived it (godmode, vest, headshot
+	// cap, mode damage rules). Disarm the queued states so the next unrelated death
+	// does not consume the revive or trigger a Chilldemic conversion.
+	if (pev->health > 0 && IsAlive())
+	{
+		m_bMutatorPendingRevive = FALSE;
+		m_bChilldemicPendingConvert = FALSE;
+	}
+
 	// reset damage time countdown for each type of time based damage player just sustained
 
 	{
@@ -1437,6 +1446,9 @@ void CBasePlayer::Killed( entvars_t *pevAttacker, int iGib )
 				if (pev->health <= 0)
 					pev->health = 1;
 				pev->deadflag = DEAD_NO;
+				// The player is staying alive, so nothing queued for their death may fire later.
+				m_bMutatorPendingRevive = FALSE;
+				m_bChilldemicPendingConvert = FALSE;
 				return;
 			}
 		}
@@ -2149,6 +2161,11 @@ BOOL CBasePlayer::IsOnLadder( void )
 
 void CBasePlayer::PlayerDeathThink(void)
 {
+	// Every gamerules PlayerKilled hook gates on both flags, so honour a mid-round
+	// mutator toggle here too and fall through to the normal death sequence.
+	if (m_bMutatorPendingRevive && (!g_pGameRules || !g_pGameRules->MutatorEnabled(MUTATOR_REVIVE)))
+		m_bMutatorPendingRevive = FALSE;
+
 	if (m_bMutatorPendingRevive)
 	{
 		const Vector reviveOrigin = m_vecMutatorReviveOrigin;
@@ -4376,6 +4393,18 @@ void CBasePlayer::CheckHeadStomp( void )
 		if ( pVictim->pev->origin.z > pev->origin.z + 36 )
 			continue;
 
+		const float flVictimHealthBefore = pVictim->pev->health;
+
+		pVictim->pev->health = 0;
+		pVictim->Killed( pev, GIB_ALWAYS );
+
+		// Another mutator (e.g. headshot) may veto the kill and keep the victim alive.
+		if ( pVictim->IsAlive() )
+		{
+			pVictim->pev->health = flVictimHealthBefore;
+			continue;
+		}
+
 		UTIL_ClientPrintAll( HUD_PRINTTALK,
 			UTIL_VarArgs( "%s %s stomped %s!\n",
 				isStompOnHead ? "[StompOnHead]" : "[Shidden]",
@@ -4391,9 +4420,6 @@ void CBasePlayer::CheckHeadStomp( void )
 			WRITE_BYTE( 48 ); // scale * 10
 			WRITE_BYTE( 4 ); // framerate
 		MESSAGE_END();
-
-		pVictim->pev->health = 0;
-		pVictim->Killed( pev, GIB_ALWAYS );
 
 		// Small bounce so stomper does not clip into victim/floor stack.
 		pev->velocity.z = 250;
@@ -5931,6 +5957,8 @@ void CBasePlayer::StartSelacoSlide( BOOL forceSlide )
 	m_fSelacoLastY = pev->velocity.y;
 	m_fOffhandTime = gpGlobals->time + 1.25;
 	m_fSelacoSliding = TRUE;
+	// Lets the slide mutator being turned off mid-round force an immediate stop.
+	m_fSelacoForced = forceSlide;
 	pev->fov = m_iFOV = 105;
 
 	SetAnimation( PLAYER_SLIDE );
