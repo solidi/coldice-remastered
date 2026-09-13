@@ -22,6 +22,9 @@
 #include "Exports.h"
 
 #include "fog.h"
+#include "com_model.h"
+#include "studio.h"
+#include "StudioModelRenderer.h"
 
 
 #ifndef M_PI
@@ -807,7 +810,7 @@ void V_CalcNormalRefdef ( struct ref_params_s *pparams )
 	}
 
 	if (view->model != NULL) {
-		Vector position = view->model->aim_punch, angles = view->model->aim_angles;
+		Vector position = g_vViewModelAimPunch, angles = g_vViewModelAimAngles;
 
 		if (ViewModelHasIronSightAttachments(view->model) && Length(position) > 1) {
 			V_IronSight(position, angles, pparams->time, pparams->frametime, view, pparams->forward, pparams->up, pparams->right);

@@ -202,4 +202,10 @@ public:
 
 extern float(*BoneOrigin)[MAXSTUDIOBONES][3][4];
 
+// Iron-sight aim attachments harvested from the current view model each frame.
+// Lives here instead of model_t because model_t is shared with the engine and
+// must not be extended.
+extern Vector g_vViewModelAimPunch;
+extern Vector g_vViewModelAimAngles;
+
 #endif // STUDIOMODELRENDERER_H

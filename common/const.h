@@ -741,9 +741,9 @@ typedef unsigned short 		word;
 #undef true
 #undef false
 
-#ifndef __cplusplus
+#if !defined(__cplusplus) && (!defined(__STDC_VERSION__) || __STDC_VERSION__ <= 201710L)
 typedef enum {false, true}	qboolean;
-#else 
+#else
 typedef int qboolean;
 #endif
 
