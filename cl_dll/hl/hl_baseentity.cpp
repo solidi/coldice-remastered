@@ -268,7 +268,7 @@ void CBasePlayer :: DeathSound( void ) { }
 int CBasePlayer :: TakeHealth( float flHealth, int bitsDamageType ) { return 0; }
 void CBasePlayer :: TraceAttack( entvars_t *pevAttacker, float flDamage, Vector vecDir, TraceResult *ptr, int bitsDamageType) { }
 int CBasePlayer :: TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int bitsDamageType ) { return 0; }
-void CBasePlayer::PackDeadPlayerItems( void ) { }
+void CBasePlayer::PackDeadPlayerItems( CBasePlayer *pFragVictor ) { }
 void CBasePlayer::RemoveAllItems( BOOL removeSuit ) { }
 void CBasePlayer::SetAnimation( PLAYER_ANIM playerAnim ) { }
 void CBasePlayer::WaterMove() { }

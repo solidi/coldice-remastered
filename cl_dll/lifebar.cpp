@@ -268,7 +268,7 @@ int CHudLifeBar::MsgFunc_MLifeBar(const char *pszName, int iSize, void *pbuf)
 					dmg.worldPosition[0] = dmg.worldPosition[1] = dmg.worldPosition[2] = 0.0f;
 					dmg.positionSet = false;
 				}
-				float angle = gEngfuncs.pfnRandomFloat(0.0f, 2.0f * 3.14159265f);
+				float angle = gEngfuncs.pfnRandomFloat(0.0f, 2.0f * (float)M_PI);
 				float speed = gEngfuncs.pfnRandomFloat(15.0f, 35.0f);
 				dmg.horizVelX = cosf(angle) * speed;
 				dmg.horizVelY = sinf(angle) * speed;
@@ -419,7 +419,7 @@ void CHudLifeBar::AddDamageNumber(int playerIndex, int damage, int attackerIndex
 			m_DamageNumbers[playerIndex][i].worldPosition[2] = pClient->origin[2] + gEngfuncs.pfnRandomFloat(40, 45);  // Above player's head
 			
 			// Random horizontal arc: pick a direction angle and a small drift speed
-			float horizAngle = gEngfuncs.pfnRandomFloat(0.0f, 2.0f * 3.14159265f);
+			float horizAngle = gEngfuncs.pfnRandomFloat(0.0f, 2.0f * (float)M_PI);
 			float horizSpeed = gEngfuncs.pfnRandomFloat(15.0f, 35.0f);
 			m_DamageNumbers[playerIndex][i].horizVelX = cosf(horizAngle) * horizSpeed;
 			m_DamageNumbers[playerIndex][i].horizVelY = sinf(horizAngle) * horizSpeed;

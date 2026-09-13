@@ -80,8 +80,18 @@ typedef int EOFFSET;
 // In case it's not alread defined
 typedef int BOOL;
 
-// In case this ever changes
-#define M_PI			3.14159265358979323846
+inline double UTIL_GetMutatorAwarePi( void )
+{
+	if ( g_pGameRules && g_pGameRules->MutatorEnabled( MUTATOR_NEGATIVEPI ) )
+		return -1.0;
+
+	return 3.14159265358979323846;
+}
+
+#ifdef M_PI
+#undef M_PI
+#endif
+#define M_PI			(UTIL_GetMutatorAwarePi())
 
 // Keeps clutter down a bit, when declaring external entity/global method prototypes
 #define DECLARE_GLOBAL_METHOD(MethodName)  extern void UTIL_DLLEXPORT MethodName( void )

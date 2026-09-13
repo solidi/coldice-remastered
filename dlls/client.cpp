@@ -283,6 +283,10 @@ void ClientPutInServer( edict_t *pEntity )
 	pPlayer->m_bChilldemicPendingConvert = FALSE;
 	pPlayer->m_vecChilldemicRespawnOrigin = g_vecZero;
 	pPlayer->m_vecChilldemicRespawnAngles = g_vecZero;
+	pPlayer->m_bMutatorPendingRevive = FALSE;
+	pPlayer->m_bMutatorReviveUsed = FALSE;
+	pPlayer->m_vecMutatorReviveOrigin = g_vecZero;
+	pPlayer->m_vecMutatorReviveAngles = g_vecZero;
 
 	// Allocate a CBasePlayer for pev, and call spawn
 	pPlayer->Spawn();
@@ -3495,6 +3499,10 @@ int GetWeaponData( struct edict_s *player, struct weapon_data_s *info )
 						item->iuser1					= gun->m_chargeReady;
 						item->iuser2					= gun->m_fInAttack;
 						item->iuser3					= gun->m_fireState;
+						item->m_iWeaponState			= gun->m_iTripleBangShotsPending;
+						item->m_flPumpTime				= (float)gun->m_iTripleBangPreClip;
+						item->m_fNextAimBonus			= (float)gun->m_iTripleBangPrePrimaryAmmo;
+						item->m_flNextReload			= (float)gun->m_iTripleBangPreSecondaryAmmo;
 						item->m_fReloadTime				= ( gun->m_flNextSmashCharge > gpGlobals->time ) ? ( gun->m_flNextSmashCharge - gpGlobals->time ) : 0.0f;
 						
 											

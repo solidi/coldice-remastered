@@ -33,6 +33,7 @@ int	g_iVisibleMouse = 0;
 
 extern cl_enginefunc_t gEngfuncs;
 extern int iMouseInUse;
+extern int g_iAlive;
 
 extern kbutton_t	in_strafe;
 extern kbutton_t	in_mlook;
@@ -83,6 +84,26 @@ int			mouse_oldbuttonstate;
 POINT		current_pos;
 int			old_mouse_x, old_mouse_y, mx_accum, my_accum;
 float		mouse_x, mouse_y;
+
+static bool IN_IsNoMouseMutatorActive( void )
+{
+	return MutatorEnabled(MUTATOR_NOMOUSE) &&
+		g_iUser1 < 1 &&
+		!gEngfuncs.IsSpectateOnly() &&
+		g_iAlive &&
+		!gHUD.m_iIntermission;
+}
+
+static void IN_ReleasePressedMouseButtons( void )
+{
+	for (int i = 0; i < mouse_buttons; i++)
+	{
+		if (mouse_oldbuttonstate & (1 << i))
+			gEngfuncs.Key_Event(K_MOUSE1 + i, 0);
+	}
+
+	mouse_oldbuttonstate = 0;
+}
 
 static int	restore_spi;
 static int	originalmouseparms[3], newmouseparms[3] = {0, 0, 1};
@@ -383,6 +404,12 @@ void CL_DLLEXPORT IN_MouseEvent (int mstate)
 	if ( iMouseInUse || g_iVisibleMouse )
 		return;
 
+	if ( IN_IsNoMouseMutatorActive() )
+	{
+		IN_ReleasePressedMouseButtons();
+		return;
+	}
+
 	// perform button actions
 	for (i=0 ; i<mouse_buttons ; i++)
 	{
@@ -551,6 +578,21 @@ void IN_MouseMove ( float frametime, usercmd_t *cmd)
 
 		// Apply custom mouse scaling/acceleration
 		IN_ScaleMouse( &mouse_x, &mouse_y );
+
+		if ( IN_IsNoMouseMutatorActive() )
+		{
+			// Drain raw/cursor deltas while nomouse is active so view does not jump after it expires.
+			IN_ReleasePressedMouseButtons();
+			mouse_x = 0;
+			mouse_y = 0;
+			mx_accum = 0;
+			my_accum = 0;
+			old_mouse_x = 0;
+			old_mouse_y = 0;
+			IN_ResetMouse();
+			gEngfuncs.SetViewAngles( (float *)viewangles );
+			return;
+		}
 
 		// add mouse X/Y movement to cmd
 		if ( (in_strafe.state & 1) || (lookstrafe->value && (in_mlook.state & 1) ))

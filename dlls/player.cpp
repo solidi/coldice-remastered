@@ -72,6 +72,90 @@ extern CGraph	WorldGraph;
 #define	FLASH_DRAIN_TIME	 1.2 //100 units/3 minutes
 #define	FLASH_CHARGE_TIME	 0.2 // 100 units/20 seconds  (seconds per unit)
 
+#define FLOOR_IS_LAVA_INTERVAL_SECONDS 0.75f
+#define FLOOR_IS_LAVA_BURN_SECONDS 0.2f
+#define FLOOR_IS_LAVA_MIN_BURN_SECONDS 0.1f
+#define SLEEPY_TIME 3.0f
+
+static BOOL IsFloorIsLavaBrush( edict_t *pGround )
+{
+	if ( !pGround )
+		return FALSE;
+
+	if ( ENTINDEX( pGround ) == 0 )
+		return TRUE;
+
+	CBaseEntity *pGroundEntity = CBaseEntity::Instance( pGround );
+	if ( !pGroundEntity || !pGroundEntity->pev )
+		return FALSE;
+
+	if ( pGroundEntity->IsPlayer() || pGroundEntity->MyMonsterPointer() )
+		return FALSE;
+
+	return ( pGroundEntity->pev->solid == SOLID_BSP || FBitSet( pGroundEntity->pev->flags, FL_WORLDBRUSH ) );
+}
+
+static BOOL IsTouchingFloorIsLavaSurface( CBasePlayer *pPlayer )
+{
+	if ( !pPlayer || !pPlayer->pev )
+		return FALSE;
+
+	if ( !FBitSet( pPlayer->pev->flags, FL_ONGROUND ) )
+		return FALSE;
+
+	if ( pPlayer->IsOnLadder() || pPlayer->pev->waterlevel >= 2 )
+		return FALSE;
+
+	if ( IsFloorIsLavaBrush( pPlayer->pev->groundentity ) )
+		return TRUE;
+
+	TraceResult tr;
+	Vector vecStart = pPlayer->pev->origin + Vector( 0, 0, 8 );
+	Vector vecEnd = vecStart - Vector( 0, 0, 48 );
+	UTIL_TraceLine( vecStart, vecEnd, ignore_monsters, pPlayer->edict(), &tr );
+
+	if ( tr.flFraction >= 1.0f )
+		return FALSE;
+
+	if ( tr.vecPlaneNormal.z < 0.35f )
+		return FALSE;
+
+	if ( !tr.pHit )
+		return TRUE;
+
+	return IsFloorIsLavaBrush( tr.pHit );
+}
+
+static CBasePlayer *GetLiveFragVictor( EHANDLE hVictor )
+{
+	CBaseEntity *pEntity = hVictor;
+	if ( !pEntity || !pEntity->IsPlayer() )
+		return NULL;
+
+	CBasePlayer *pVictor = (CBasePlayer *)pEntity;
+	if ( !pVictor->IsAlive() || pVictor->HasDisconnected || pVictor->pev->deadflag != DEAD_NO )
+		return NULL;
+
+	return pVictor;
+}
+
+static BOOL IsHeadshotPvpFinalBlow( CBasePlayer *pVictim, CBasePlayer *pAttacker )
+{
+	if ( !pVictim || !pAttacker || pVictim == pAttacker )
+		return FALSE;
+
+	if ( pVictim->m_hLastPvpHitAttacker != pAttacker )
+		return FALSE;
+
+	if ( pVictim->m_iLastPvpHitGroup != HITGROUP_HEAD )
+		return FALSE;
+
+	if ( pVictim->m_flLastPvpHitTime <= 0.0f )
+		return FALSE;
+
+	return ( gpGlobals->time - pVictim->m_flLastPvpHitTime ) <= 0.30f;
+}
+
 // Global Savedata for player
 TYPEDESCRIPTION	CBasePlayer::m_playerSaveData[] = 
 {
@@ -511,6 +595,13 @@ void CBasePlayer :: TraceAttack( entvars_t *pevAttacker, float flDamage, Vector 
 		CBasePlayer *pVictim = GetClassPtr((CBasePlayer *)pev);
 		CBasePlayer *pAttacker = GetClassPtr((CBasePlayer *)pevAttacker);
 
+		if (pAttacker && pAttacker->IsPlayer() && pAttacker != pVictim)
+		{
+			pVictim->m_hLastPvpHitAttacker = pAttacker;
+			pVictim->m_flLastPvpHitTime = gpGlobals->time;
+			pVictim->m_iLastPvpHitGroup = ptr->iHitgroup;
+		}
+
 		if (pAttacker && pAttacker->IsPlayer())
 		{
 			// Set the assist if the player is not the killing blow
@@ -690,8 +781,40 @@ int CBasePlayer :: TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, 
 	}
 
 	const int iDamage = (int)flDamage;
-	if (g_pGameRules->IsChilldemic() && IsInArena && !IsSpectator() &&
-		pev->fuser4 != RADAR_VIRUS && iDamage > 0 && iDamage >= pev->health)
+	if (g_pGameRules->MutatorEnabled(MUTATOR_HEADSHOT) &&
+		pAttacker && pAttacker->IsPlayer() && pAttacker != this &&
+		iDamage > 0 && iDamage >= pev->health)
+	{
+		CBasePlayer *pAttackerPlayer = (CBasePlayer *)pAttacker;
+		if (!IsHeadshotPvpFinalBlow(this, pAttackerPlayer))
+		{
+			const float flNonLethalCap = fmax(0.0f, pev->health - 1.0f);
+			flDamage = fmin(flDamage, flNonLethalCap);
+			if (flDamage <= 0.0f)
+				return 0;
+		}
+	}
+
+	const int iDamageFinal = (int)flDamage;
+	if (g_pGameRules->MutatorEnabled(MUTATOR_REVIVE) &&
+		!m_bMutatorReviveUsed && !m_bMutatorPendingRevive &&
+		!IsSpectator() &&
+		iDamageFinal > 0 && iDamageFinal >= pev->health)
+	{
+		if (pAttacker && pAttacker->IsPlayer() && pAttacker != this)
+		{
+			CBasePlayer *pAttackerPlayer = (CBasePlayer *)pAttacker;
+			if (!pAttackerPlayer->HasDisconnected)
+			{
+				m_bMutatorPendingRevive = TRUE;
+				m_vecMutatorReviveOrigin = pev->origin;
+				m_vecMutatorReviveAngles = pev->angles;
+			}
+		}
+	}
+
+	if (!m_bMutatorPendingRevive && g_pGameRules->IsChilldemic() && IsInArena && !IsSpectator() &&
+		pev->fuser4 != RADAR_VIRUS && iDamageFinal > 0 && iDamageFinal >= pev->health)
 	{
 		m_bChilldemicPendingConvert = TRUE;
 		m_vecChilldemicRespawnOrigin = pev->origin;
@@ -701,6 +824,15 @@ int CBasePlayer :: TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, 
 	// this cast to INT is critical!!! If a player ends up with 0.5 health, the engine will get that
 	// as an int (zero) and think the player is dead! (this will incite a clientside screentilt, etc)
 	fTookDamage = CBaseMonster::TakeDamage(pevInflictor, pevAttacker, (int)flDamage, bitsDamageType);
+
+	// The blow was predicted lethal but the player survived it (godmode, vest, headshot
+	// cap, mode damage rules). Disarm the queued states so the next unrelated death
+	// does not consume the revive or trigger a Chilldemic conversion.
+	if (pev->health > 0 && IsAlive())
+	{
+		m_bMutatorPendingRevive = FALSE;
+		m_bChilldemicPendingConvert = FALSE;
+	}
 
 	// reset damage time countdown for each type of time based damage player just sustained
 
@@ -878,7 +1010,7 @@ int CBasePlayer :: TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, 
 //
 // This is pretty brute force :(
 //=========================================================
-void CBasePlayer::PackDeadPlayerItems( void )
+void CBasePlayer::PackDeadPlayerItems( CBasePlayer *pFragVictor )
 {
 	int iWeaponRules;
 	int iAmmoRules;
@@ -1026,6 +1158,8 @@ void CBasePlayer::PackDeadPlayerItems( void )
 
 		if (pWeaponBox != NULL)
 		{
+			BOOL bCanUseVictorMagnet = TRUE;
+
 			pWeaponBox->pev->angles.x = 0;// don't let weaponbox tilt.
 			pWeaponBox->pev->angles.z = 0;
 
@@ -1064,6 +1198,7 @@ void CBasePlayer::PackDeadPlayerItems( void )
 				else
 				{
 					UTIL_Remove(pWeaponBox);
+					bCanUseVictorMagnet = FALSE;
 				}
 			}
 			else
@@ -1088,6 +1223,13 @@ void CBasePlayer::PackDeadPlayerItems( void )
 				}
 
 				pWeaponBox->pev->velocity = pev->velocity * 1.2;// weaponbox has player's velocity, then some.
+			}
+
+			if ( bCanUseVictorMagnet &&
+				 g_pGameRules->MutatorEnabled( MUTATOR_VICTOR ) &&
+				 pFragVictor && pFragVictor != this )
+			{
+				pWeaponBox->SetVictorMagnetTarget( pFragVictor );
 			}
 		}
 	}
@@ -1290,6 +1432,40 @@ entvars_t *g_pevLastInflictor;  // Set in combat.cpp.  Used to pass the damage i
 void CBasePlayer::Killed( entvars_t *pevAttacker, int iGib )
 {
 	CSound *pSound;
+	if (g_pGameRules && g_pGameRules->MutatorEnabled(MUTATOR_HEADSHOT) && pevAttacker && pevAttacker != pev)
+	{
+		CBaseEntity *pKillerEntity = CBaseEntity::Instance( pevAttacker );
+		if (pKillerEntity && pKillerEntity->IsPlayer())
+		{
+			CBasePlayer *pKillerPlayer = (CBasePlayer *)pKillerEntity;
+			if (!IsHeadshotPvpFinalBlow(this, pKillerPlayer))
+			{
+				if (!FBitSet(pevAttacker->flags, FL_FAKECLIENT))
+					ClientPrint(pevAttacker, HUD_PRINTCENTER, "Headshot required for frag!\n");
+
+				if (pev->health <= 0)
+					pev->health = 1;
+				pev->deadflag = DEAD_NO;
+				// The player is staying alive, so nothing queued for their death may fire later.
+				m_bMutatorPendingRevive = FALSE;
+				m_bChilldemicPendingConvert = FALSE;
+				return;
+			}
+		}
+	}
+
+	m_hLastFragVictor = NULL;
+
+	if ( pevAttacker && pevAttacker != pev )
+	{
+		CBaseEntity *pKillerEntity = CBaseEntity::Instance( pevAttacker );
+		if ( pKillerEntity && pKillerEntity->IsPlayer() )
+		{
+			CBasePlayer *pKillerPlayer = (CBasePlayer *)pKillerEntity;
+			if ( pKillerPlayer->IsAlive() && !pKillerPlayer->HasDisconnected )
+				m_hLastFragVictor = pKillerPlayer;
+		}
+	}
 
 	// Holster weapon immediately, to allow it to cleanup
 	if ( m_pActiveItem && m_pActiveItem->m_pPlayer )
@@ -1985,12 +2161,75 @@ BOOL CBasePlayer::IsOnLadder( void )
 
 void CBasePlayer::PlayerDeathThink(void)
 {
+	// Every gamerules PlayerKilled hook gates on both flags, so honour a mid-round
+	// mutator toggle here too and fall through to the normal death sequence.
+	if (m_bMutatorPendingRevive && (!g_pGameRules || !g_pGameRules->MutatorEnabled(MUTATOR_REVIVE)))
+		m_bMutatorPendingRevive = FALSE;
+
+	if (m_bMutatorPendingRevive)
+	{
+		const Vector reviveOrigin = m_vecMutatorReviveOrigin;
+		const Vector reviveAngles = m_vecMutatorReviveAngles;
+
+		m_bMutatorPendingRevive = FALSE;
+		m_bChilldemicPendingConvert = FALSE;
+
+		if (HasWeapons())
+			PackDeadPlayerItems( GetLiveFragVictor( m_hLastFragVictor ) );
+
+		m_hLastFragVictor = NULL;
+
+		MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
+			WRITE_BYTE( TE_TELEPORT );
+			WRITE_COORD( pev->origin.x );
+			WRITE_COORD( pev->origin.y );
+			WRITE_COORD( pev->origin.z );
+		MESSAGE_END();
+
+		// In-place revival: skip GetPlayerSpawnSpot so we don't fire spawn-point
+		// targets or risk EntSelectSpawnPoint telefragging another player when no
+		// free info_player_deathmatch is available. We teleport back to the death
+		// origin ourselves below.
+		m_bSkipSpawnPointSelect = TRUE;
+		Spawn();
+		m_bMutatorReviveUsed = TRUE;
+		UTIL_SetOrigin(pev, reviveOrigin);
+		pev->angles = pev->v_angle = reviveAngles;
+		pev->velocity = g_vecZero;
+		pev->basevelocity = g_vecZero;
+		pev->avelocity = g_vecZero;
+		pev->fixangle = TRUE;
+
+		MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
+			WRITE_BYTE( TE_TELEPORT );
+			WRITE_COORD( pev->origin.x );
+			WRITE_COORD( pev->origin.y );
+			WRITE_COORD( pev->origin.z );
+		MESSAGE_END();
+
+		if (spawnprotectiontime.value > 0)
+		{
+			pev->flags |= FL_GODMODE;
+			m_fLastSpawnTime = gpGlobals->time + spawnprotectiontime.value;
+			m_fEffectTime = gpGlobals->time + 0.25f;
+		}
+
+		UTIL_ScreenFade(this, Vector(80, 180, 255), 0.20f, 0.35f, 140, FFADE_IN);
+
+		// Prevent PlayerDeathThink from firing again. Spawn() does not reset
+		// nextthink, so the old value from Killed() would re-trigger this think.
+		pev->nextthink = -1;
+		return;
+	}
+
 	if (m_bChilldemicPendingConvert)
 	{
 		m_bChilldemicPendingConvert = FALSE;
 
 		if (HasWeapons())
-			PackDeadPlayerItems();
+			PackDeadPlayerItems( GetLiveFragVictor( m_hLastFragVictor ) );
+
+		m_hLastFragVictor = NULL;
 
 		// In-place revival: skip GetPlayerSpawnSpot so we don't fire spawn-point
 		// targets or risk EntSelectSpawnPoint telefragging another player when no
@@ -2047,8 +2286,10 @@ void CBasePlayer::PlayerDeathThink(void)
 		// will sometimes crash coming back from CBasePlayer::Killed() if they kill their owner because the
 		// player class sometimes is freed. It's safer to manipulate the weapons once we know
 		// we aren't calling into any of their code anymore through the player pointer.
-		PackDeadPlayerItems();
+		PackDeadPlayerItems( GetLiveFragVictor( m_hLastFragVictor ) );
 	}
+
+	m_hLastFragVictor = NULL;
 
 
 	if (pev->modelindex /*&& (!m_fSequenceFinished)*/ && (pev->deadflag == DEAD_DYING))
@@ -3175,6 +3416,11 @@ void CBasePlayer::PreThink(void)
 		return;
 	}
 
+	if ( g_pGameRules->MutatorEnabled(MUTATOR_STOMPONHEAD) && pev->gravity >= 0.9f )
+	{
+		pev->gravity = 0.70f;
+	}
+
 	// So the correct flags get sent to client asap.
 	//
 	if ( m_afPhysicsFlags & PFLAG_ONTRAIN )
@@ -3348,13 +3594,21 @@ void CBasePlayer::PreThink(void)
 		}
 	}
 
-	if (m_iKeyboardAcrobatics)
+	BOOL forceSlideMutator = g_pGameRules && g_pGameRules->MutatorEnabled(MUTATOR_SLIDE);
+
+	if (m_iKeyboardAcrobatics && !forceSlideMutator)
 		CalculateToSelacoSlide();
 
 	if (!m_fSelacoHit)
 		TraceHitOfSelacoSlide();
 
-	EndSelacoSlide();
+	if (!forceSlideMutator && m_fSelacoForced)
+		EndSelacoSlide(TRUE);
+	else
+		EndSelacoSlide();
+
+	if (forceSlideMutator)
+		StartSelacoSlide(TRUE);
 
 	if (m_iKeyboardAcrobatics)
 		CalculateToFlip();
@@ -4090,25 +4344,27 @@ void CBasePlayer :: UpdatePlayerSound ( void )
 }
 
 
-// Shidden stomp mechanic: dealters (invisible team) can instantly kill smelters
-// by jumping and falling on top of them.
-void CBasePlayer::CheckShiddenStomp( void )
+// Head stomp mechanic:
+// - In Shidden: preserve the original dealter -> smelter stomp behavior.
+// - With stomponhead mutator: any active player can stomp any active player.
+void CBasePlayer::CheckHeadStomp( void )
 {
-	// Only active in Shidden mode
-	if ( !g_pGameRules->IsShidden() )
+	const BOOL isShidden = g_pGameRules->IsShidden();
+	const BOOL isStompOnHead = g_pGameRules->MutatorEnabled(MUTATOR_STOMPONHEAD);
+
+	if ( !isShidden && !isStompOnHead )
 		return;
 
-	// Only dealters can stomp (fuser4 > 0)
-	if ( pev->fuser4 <= 0 )
+	if ( isShidden && !isStompOnHead && pev->fuser4 <= 0 )
 		return;
 
-	// Need a meaningful downward fall velocity to register a stomp.
-	// Dealters have reduced gravity (~0.65), so the threshold is lower than
-	// the standard fall-damage speed.
+	if ( isStompOnHead && (IsSpectator() || !IsAlive()) )
+		return;
+
+	// Keep the Shidden threshold so stomp timing/feel is consistent.
 	if ( m_flFallVelocity < 200.0f )
 		return;
 
-	// Search for smelters within stomping range of the dealter's feet.
 	CBaseEntity *pEntity = NULL;
 	while ( ( pEntity = UTIL_FindEntityInSphere( pEntity, pev->origin, 48 ) ) != NULL )
 	{
@@ -4120,28 +4376,40 @@ void CBasePlayer::CheckShiddenStomp( void )
 		if ( pVictim == this )
 			continue;
 
-		if ( !pVictim->IsAlive() )
+		if ( !pVictim->IsAlive() || pVictim->IsSpectator() || pVictim->HasDisconnected )
 			continue;
 
-		if ( !pVictim->IsInArena )
-			continue;
+		// In vanilla Shidden, only smelters are valid stomp targets.
+		if ( !isStompOnHead )
+		{
+			if ( !pVictim->IsInArena )
+				continue;
 
-		// Target must be a smelter (fuser4 == 0)
-		if ( pVictim->pev->fuser4 != 0 )
-			continue;
+			if ( pVictim->pev->fuser4 != 0 )
+				continue;
+		}
 
-		// The smelter must be at or below the dealter's feet level.
-		// Player origins sit at the base of the hull; allow +36 units of
-		// vertical tolerance to cover the top of a standing smelter's head.
+		// Player origins sit at the base of the hull; allow +36 units to hit head-level landings.
 		if ( pVictim->pev->origin.z > pev->origin.z + 36 )
 			continue;
 
-		// Stomp! Kill the smelter instantly.
-		// Use Killed() directly to bypass FPlayerCanTakeDamage (which would
-		// otherwise intercept the hit as a fart-freeze instead of a kill).
+		const float flVictimHealthBefore = pVictim->pev->health;
+
+		pVictim->pev->health = 0;
+		pVictim->Killed( pev, GIB_ALWAYS );
+
+		// Another mutator (e.g. headshot) may veto the kill and keep the victim alive.
+		if ( pVictim->IsAlive() )
+		{
+			pVictim->pev->health = flVictimHealthBefore;
+			continue;
+		}
+
 		UTIL_ClientPrintAll( HUD_PRINTTALK,
-			UTIL_VarArgs( "[Shidden] %s stomped %s!\n",
-				STRING( pev->netname ), STRING( pVictim->pev->netname ) ) );
+			UTIL_VarArgs( "%s %s stomped %s!\n",
+				isStompOnHead ? "[StompOnHead]" : "[Shidden]",
+				STRING( pev->netname ),
+				STRING( pVictim->pev->netname ) ) );
 
 		MESSAGE_BEGIN( MSG_PVS, SVC_TEMPENTITY, pVictim->pev->origin );
 			WRITE_BYTE( TE_SMOKE );
@@ -4153,10 +4421,7 @@ void CBasePlayer::CheckShiddenStomp( void )
 			WRITE_BYTE( 4 ); // framerate
 		MESSAGE_END();
 
-		pVictim->pev->health = 0;
-		pVictim->Killed( pev, GIB_ALWAYS );
-
-		// Bounce the dealter upward slightly so they don't clip into the floor.
+		// Small bounce so stomper does not clip into victim/floor stack.
 		pev->velocity.z = 250;
 	}
 }
@@ -4235,7 +4500,7 @@ void CBasePlayer::PostThink()
 			CSoundEnt::InsertSound ( bits_SOUND_PLAYER, pev->origin, m_flFallVelocity, 0.2 );
 			// ALERT( at_console, "fall %f\n", m_flFallVelocity );
 		}
-		CheckShiddenStomp();
+		CheckHeadStomp();
 		m_flFallVelocity = 0;
 	}
 
@@ -4254,6 +4519,33 @@ void CBasePlayer::PostThink()
 	CheckPowerups(pev);
 
 	UpdatePlayerSound();
+
+	if (g_pGameRules && g_pGameRules->MutatorEnabled(MUTATOR_SLEEPY) &&
+		!FBitSet(pev->flags, FL_FAKECLIENT) && !IsSpectator() &&
+		pev->deadflag == DEAD_NO && m_flSleepyTime <= gpGlobals->time)
+	{
+		UTIL_ScreenFade(this, Vector(0, 0, 0), 1.75f, 0.1f, 255, FFADE_IN);
+		m_flSleepyTime = gpGlobals->time + SLEEPY_TIME;
+	}
+
+	if (g_pGameRules && g_pGameRules->MutatorEnabled(MUTATOR_FLOORISLAVA) &&
+		IsAlive() && !IsSpectator() && m_flFloorIsLavaTime <= gpGlobals->time &&
+		IsTouchingFloorIsLavaSurface(this))
+	{
+		m_flFloorIsLavaTime = gpGlobals->time + FLOOR_IS_LAVA_INTERVAL_SECONDS;
+		m_fBurnTime = fmin(10.0f, fmax(m_fBurnTime, FLOOR_IS_LAVA_MIN_BURN_SECONDS) + FLOOR_IS_LAVA_BURN_SECONDS);
+		if (m_hFlameOwner == NULL)
+			m_hFlameOwner = this;
+	}
+
+	if (g_pGameRules && g_pGameRules->MutatorEnabled(MUTATOR_WATERHURT) &&
+		IsAlive() && !IsSpectator() && pev->waterlevel > 0 &&
+		(pev->watertype == CONTENT_WATER || (pev->watertype <= -9 && pev->watertype >= -14)))
+	{
+		pev->health = 0;
+		Killed(VARS(eoNullEntity), GIB_ALWAYS);
+		return;
+	}
 
 	// Check for sky texture touch mutator (skyhook)
 	if (g_pGameRules && g_pGameRules->MutatorEnabled(MUTATOR_SKYHOOK) && m_TextureTouchTime <= gpGlobals->time)
@@ -4567,9 +4859,16 @@ void CBasePlayer::Spawn( void )
 	m_iFreezeCounter 	= -1;
 	pev->iuser4         = -1; // Cross-DLL freeze signal for grave_bot; mirrors m_iFreezeCounter.
 	m_bControlFrozen    = FALSE;
+	m_bMutatorPendingRevive = FALSE;
+	m_bMutatorReviveUsed = FALSE;
+	m_vecMutatorReviveOrigin = g_vecZero;
+	m_vecMutatorReviveAngles = g_vecZero;
+	m_hLastPvpHitAttacker = NULL;
+	m_flLastPvpHitTime = 0;
+	m_iLastPvpHitGroup = HITGROUP_GENERIC;
 	pHeldItem = NULL;
 	m_iHoldingItem = FALSE;
-	m_fSelacoSliding = m_fSelacoHit = FALSE;
+	m_fSelacoSliding = m_fSelacoForced = m_fSelacoHit = FALSE;
 	m_fOffhandTime = m_fSelacoIncrement = m_fSelacoButtonTime = 0;
 	m_fSelacoZ = VEC_VIEW.z;
 	m_fSelacoCount = 0;
@@ -4587,9 +4886,12 @@ void CBasePlayer::Spawn( void )
 	m_flEjectShotShell = 0;
 	m_fCameraDelay = 0;
 	m_fCelebrateTime = 0;
+	m_flFloorIsLavaTime = 0;
+	m_flSleepyTime = 0;
 
 	g_engfuncs.pfnSetPhysicsKeyValue( edict(), "slj", "0" );
 	g_engfuncs.pfnSetPhysicsKeyValue( edict(), "hl", "1" );
+	g_engfuncs.pfnSetPhysicsKeyValue( edict(), "negpi", ( g_pGameRules && g_pGameRules->MutatorEnabled(MUTATOR_NEGATIVEPI) ) ? "1" : "0" );
 	g_engfuncs.pfnSetPhysicsKeyValue(edict(), "jumpheight", CVAR_GET_STRING("sv_jumpheight"));
 	m_fJumpHeight = atof(CVAR_GET_STRING("sv_jumpheight"));
 
@@ -4826,6 +5128,7 @@ int CBasePlayer::Restore( CRestore &restore )
 	}
 
 	g_engfuncs.pfnSetPhysicsKeyValue( edict(), "hl", "1" );
+	g_engfuncs.pfnSetPhysicsKeyValue( edict(), "negpi", ( g_pGameRules && g_pGameRules->MutatorEnabled(MUTATOR_NEGATIVEPI) ) ? "1" : "0" );
 
 	if ( m_fLongJump )
 	{
@@ -5591,53 +5894,89 @@ enum SELACO_SLIDE {
 	SLIDE_RETRACT
 };
 
-void CBasePlayer::StartSelacoSlide( void )
+void CBasePlayer::StartSelacoSlide( BOOL forceSlide )
 {
-	if (!acrobatics.value)
+	if (!forceSlide && !acrobatics.value)
 		return;
 
-	if (m_fForceGrabTime >= gpGlobals->time)
+	if (!forceSlide && m_fForceGrabTime >= gpGlobals->time)
 		return;
 
-	if (m_pActiveItem && !((CBasePlayerWeapon *)m_pActiveItem)->CanSlide())
+	if (!forceSlide && m_pActiveItem && !((CBasePlayerWeapon *)m_pActiveItem)->CanSlide())
 		return;
 
-	// Prop limitation
-	if ( g_pGameRules->IsPropHunt() && pev->fuser4 >= TEAM_PROPS )
+	// Prop limitation only applies to manual slide activation.
+	if (!forceSlide && g_pGameRules->IsPropHunt() && pev->fuser4 >= TEAM_PROPS)
 		return;
 
-	if (!m_fSelacoSliding && m_fOffhandTime < gpGlobals->time) {
-		if (FBitSet(pev->flags, FL_ONGROUND) && pev->velocity.Length() > 50) {
-			m_EFlags &= ~EFLAG_CANCEL;
-			m_EFlags |= EFLAG_SLIDE;
+	if (m_fSelacoSliding)
+		return;
 
-			UTIL_MakeVectors(pev->angles);
-			pev->friction = 0.05;
-			pev->velocity = (gpGlobals->v_forward * 900);
-			m_fSelacoLastX = pev->velocity.x;
-			m_fSelacoLastY = pev->velocity.y;
-			m_fOffhandTime = gpGlobals->time + 1.25;
-			m_fSelacoSliding = TRUE;
-			pev->fov = m_iFOV = 105;
+	if (!forceSlide && m_fOffhandTime >= gpGlobals->time)
+		return;
 
-			SetAnimation( PLAYER_SLIDE );
+	if (!FBitSet(pev->flags, FL_ONGROUND))
+		return;
 
-			UTIL_ScreenShake( pev->origin, 15.0, 55.0, 1.25, 15.0 );
+	if (!forceSlide && pev->velocity.Length() <= 50)
+		return;
 
-			EMIT_SOUND(ENT(pev), CHAN_BODY, "slide_on_gravel.wav", 1, ATTN_NORM);
-			MESSAGE_BEGIN( MSG_ONE, gmsgAcrobatics, NULL, pev );
-				WRITE_BYTE( ACROBATICS_SELACO_SLIDE );
-			MESSAGE_END();
+	m_EFlags &= ~EFLAG_CANCEL;
+	m_EFlags |= EFLAG_SLIDE;
 
-			if (!g_pGameRules->MutatorEnabled(MUTATOR_MINIME))
-			{
-				m_fSelacoZ = VEC_DUCK_HULL_MIN.z + 6;
-				pev->view_ofs[2] = m_fSelacoZ;
-			}
+	Vector slideDirection;
+	if (forceSlide)
+	{
+		UTIL_MakeVectors(Vector(0, pev->v_angle.y, 0));
+		slideDirection = g_vecZero;
 
-			pev->punchangle.z = 15;
-		}
+		if (pev->button & IN_FORWARD)
+			slideDirection = slideDirection + gpGlobals->v_forward;
+		if (pev->button & IN_BACK)
+			slideDirection = slideDirection - gpGlobals->v_forward;
+		if (pev->button & IN_MOVERIGHT)
+			slideDirection = slideDirection + gpGlobals->v_right;
+		if (pev->button & IN_MOVELEFT)
+			slideDirection = slideDirection - gpGlobals->v_right;
+
+		slideDirection.z = 0;
+		if (slideDirection.Length2D() <= 0.1f)
+			slideDirection = gpGlobals->v_forward;
+		else
+			slideDirection = slideDirection.Normalize();
 	}
+	else
+	{
+		UTIL_MakeVectors(pev->angles);
+		slideDirection = gpGlobals->v_forward;
+	}
+
+	pev->friction = 0.05;
+	pev->velocity = slideDirection * 900;
+	m_fSelacoLastX = pev->velocity.x;
+	m_fSelacoLastY = pev->velocity.y;
+	m_fOffhandTime = gpGlobals->time + 1.25;
+	m_fSelacoSliding = TRUE;
+	// Lets the slide mutator being turned off mid-round force an immediate stop.
+	m_fSelacoForced = forceSlide;
+	pev->fov = m_iFOV = 105;
+
+	SetAnimation( PLAYER_SLIDE );
+
+	UTIL_ScreenShake( pev->origin, 15.0, 55.0, 1.25, 15.0 );
+
+	EMIT_SOUND(ENT(pev), CHAN_BODY, "slide_on_gravel.wav", 1, ATTN_NORM);
+	MESSAGE_BEGIN( MSG_ONE, gmsgAcrobatics, NULL, pev );
+		WRITE_BYTE( ACROBATICS_SELACO_SLIDE );
+	MESSAGE_END();
+
+	if (!g_pGameRules->MutatorEnabled(MUTATOR_MINIME))
+	{
+		m_fSelacoZ = VEC_DUCK_HULL_MIN.z + 6;
+		pev->view_ofs[2] = m_fSelacoZ;
+	}
+
+	pev->punchangle.z = 15;
 }
 
 void CBasePlayer::TraceHitOfSelacoSlide( void )
@@ -5826,28 +6165,32 @@ void CBasePlayer::TraceHitOfSelacoSlide( void )
 	}
 }
 
-void CBasePlayer::EndSelacoSlide( void )
+void CBasePlayer::EndSelacoSlide( BOOL forceEnd )
 {
-	if (m_fSelacoSliding && m_fOffhandTime < gpGlobals->time) {
-		pev->fov = m_iFOV = 0;
-		m_fSelacoSliding = m_fSelacoHit = FALSE;
-		m_fOffhandTime = m_fSelacoIncrement = m_fSelacoButtonTime = 0;
-		if (g_pGameRules->MutatorEnabled(MUTATOR_ICE))
-			pev->friction = 0.3;
-		else
-			pev->friction = 1.0;
-		m_fSelacoCount = 0;
+	if (!m_fSelacoSliding)
+		return;
 
-		if (!g_pGameRules->MutatorEnabled(MUTATOR_MINIME))
-		{
-			m_fSelacoZ = VEC_VIEW.z;
-			pev->view_ofs[2] = m_fSelacoZ;
-		}
+	if (!forceEnd && m_fOffhandTime >= gpGlobals->time)
+		return;
 
-		m_fSelacoIncrement = gpGlobals->time + 0.2;
+	pev->fov = m_iFOV = 0;
+	m_fSelacoSliding = m_fSelacoForced = m_fSelacoHit = FALSE;
+	m_fOffhandTime = m_fSelacoIncrement = m_fSelacoButtonTime = 0;
+	if (g_pGameRules->MutatorEnabled(MUTATOR_ICE))
+		pev->friction = 0.3;
+	else
+		pev->friction = 1.0;
+	m_fSelacoCount = 0;
 
-		m_EFlags &= ~EFLAG_SLIDE_RETRACT & ~EFLAG_SLIDE;
+	if (!g_pGameRules->MutatorEnabled(MUTATOR_MINIME))
+	{
+		m_fSelacoZ = VEC_VIEW.z;
+		pev->view_ofs[2] = m_fSelacoZ;
 	}
+
+	m_fSelacoIncrement = gpGlobals->time + 0.2;
+
+	m_EFlags &= ~EFLAG_SLIDE_RETRACT & ~EFLAG_SLIDE;
 }
 
 void CBasePlayer::CalculateToFlip( void )

@@ -765,7 +765,15 @@ void CHalfLifeChilldemic::ClientUserInfoChanged( CBasePlayer *pPlayer, char *inf
 
 void CHalfLifeChilldemic::PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller, entvars_t *pInflictor )
 {
+	int deathsBefore = pVictim->m_iDeaths;
 	CHalfLifeMultiplay::PlayerKilled(pVictim, pKiller, pInflictor);
+
+	if (MutatorEnabled(MUTATOR_REVIVE) && pVictim->m_bMutatorPendingRevive)
+		return;
+
+	// Base mutator logic skips death increment only for pacifist PvP kills.
+	BOOL pacifistPlayerKill = MutatorEnabled(MUTATOR_PACIFIST) &&
+		(pVictim->m_iDeaths == deathsBefore);
 
 	int survivors_left = 0, skeletons_left = 0;
 	for (int i = 1; i <= gpGlobals->maxClients; i++) {
@@ -788,7 +796,8 @@ void CHalfLifeChilldemic::PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller
 	// Person was survivor
 	if ( pVictim->pev->fuser4 == 0 )
 	{
-		pVictim->pev->frags = 0; // clear immediately for winner determination
+		if (!pacifistPlayerKill)
+			pVictim->pev->frags = 0; // clear immediately for winner determination
 		if (survivors_left >= 1)
 		{
 			UTIL_ClientPrintAll(HUD_PRINTTALK,
@@ -815,7 +824,8 @@ void CHalfLifeChilldemic::PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller
 		// Special case, last survivor, dispatched skeletons sent to observer.
 		if (m_iSurvivorsRemain <= 1 && !pVictim->HasDisconnected)
 		{
-			pVictim->pev->frags = 0; // clear immediately for winner determination
+			if (!pacifistPlayerKill)
+				pVictim->pev->frags = 0; // clear immediately for winner determination
 			pVictim->m_flForceToObserverTime = gpGlobals->time + 2.0;
 			MESSAGE_BEGIN( MSG_ONE, gmsgStatusIcon, NULL, pVictim->edict() );
 				WRITE_BYTE(0);

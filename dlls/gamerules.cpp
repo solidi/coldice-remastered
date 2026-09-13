@@ -81,15 +81,18 @@ DLL_GLOBAL const char *g_szMutators[] = {
 	"credits",
 	"dealter",
 	"dontshoot",
+	"drunk",
 	"explosiveai",
 	"fastweapons",
 	"firebullets",
 	"firestarter",
+	"floorislava",
 	"fog",
 	"godmode",
 	"goldenguns",
 	"grenades",
 	"halflife",
+	"headshot",
 	"ice",
 	"infiniteammo",
 	"instagib",
@@ -109,12 +112,15 @@ DLL_GLOBAL const char *g_szMutators[] = {
 	"minime",
 	"mirror",
 	"napkinstory",
+	"negativepi",
 	"noclip",
+	"nomouse",
 	"noradar",
 	"noreload",
 	"notify",
 	"notthebees",
 	"oldtime",
+	"pacifist",
 	"paintball",
 	"paper",
 	"piratehat",
@@ -125,30 +131,38 @@ DLL_GLOBAL const char *g_szMutators[] = {
 	"railguns",
 	"randomweapon",
 	"rats",
+	"revive",
 	"ricochet",
 	"rocketbees",
 	"rocketcrowbar",
+	"rocketjump",
 	"rockets",
 	"sanic",
 	"santahat",
 	"sildenafil",
 	"skyhook",
+	"sleepy",
+	"slide",
 	"slowbullets",
 	"slowmo",
 	"slowweapons",
 	"snowballs",
 	"speedup",
 	"stahp",
+	"stomponhead",
 	"superjump",
 	"thirdperson",
 	"three",
 	"tinnitus",
 	"toilet",
 	"topsyturvy",
+	"triplebang",
 	"turrets",
 	"upsidedown",
 	"vested",
+	"victor",
 	"volatile",
+	"waterhurt",
 };
 
 static void FreeMutatorChain(mutators_t *head)
@@ -679,6 +693,18 @@ void CGameRules::EnvMutators( void )
 
 		if (pPlayer && pPlayer->IsPlayer() && !pl->HasDisconnected)
 		{
+			if (MutatorEnabled(MUTATOR_STOMPONHEAD))
+			{
+				if (!pl->IsSpectator() && pl->IsAlive() && pl->pev->gravity >= 0.9f)
+					pl->pev->gravity = 0.70f;
+			}
+			else if (pl->pev->gravity > 0.69f && pl->pev->gravity < 0.71f)
+			{
+				// Preserve native Shidden dealter gravity when stomp mutator is not active.
+				if (!IsShidden() || pl->pev->fuser4 <= 0)
+					pl->pev->gravity = 1.0f;
+			}
+
 			if (MutatorEnabled(MUTATOR_TINNITUS))
 			{
 				if (strcmp(g_engfuncs.pfnGetPhysicsKeyValue(pPlayer->edict(), "prop"), "2") != 0)
@@ -800,6 +826,11 @@ void CGameRules::SpawnMutators(CBasePlayer *pPlayer)
 	else
 		g_engfuncs.pfnSetPhysicsKeyValue(pPlayer->edict(), "topsy", "0");
 
+	if (MutatorEnabled(MUTATOR_NEGATIVEPI))
+		g_engfuncs.pfnSetPhysicsKeyValue(pPlayer->edict(), "negpi", "1");
+	else
+		g_engfuncs.pfnSetPhysicsKeyValue(pPlayer->edict(), "negpi", "0");
+
 	if (MutatorEnabled(MUTATOR_MEGASPEED))
 		g_engfuncs.pfnSetPhysicsKeyValue(pPlayer->edict(), "haste", "1");
 
@@ -808,6 +839,9 @@ void CGameRules::SpawnMutators(CBasePlayer *pPlayer)
 
 	if (MutatorEnabled(MUTATOR_LIGHTSOUT))
 		pPlayer->FlashlightTurnOn();
+
+	if (MutatorEnabled(MUTATOR_STOMPONHEAD) && !pPlayer->IsSpectator() && pPlayer->pev->gravity >= 0.9f)
+		pPlayer->pev->gravity = 0.70f;
 
 	if (MutatorEnabled(MUTATOR_SANTAHAT))
 		pPlayer->m_flNextSantaSound = gpGlobals->time + RANDOM_FLOAT(10,15);
@@ -1157,15 +1191,34 @@ void CGameRules::AddRandomMutator(const char *cvarName, BOOL withBar, BOOL three
 
 		// Found a valid mutator, add it
 		cvar_t *cvarp = CVAR_GET_POINTER(cvarName);
+		if (!cvarp || !cvarp->name || !cvarp->string)
+		{
+			ALERT(at_console, "[Mutators] Failed to resolve cvar \"%s\"\n", cvarName ? cvarName : "<null>");
+			return;
+		}
+
 		char mutatorToAdd[512];
+		int prefixWritten = 0;
 		if (withBar || three)
-			sprintf(mutatorToAdd, "%s;", tryIt);
+			prefixWritten = snprintf(mutatorToAdd, sizeof(mutatorToAdd), "%s;", tryIt);
 		else
-			sprintf(mutatorToAdd, "%s 0;", tryIt);
-		
+			prefixWritten = snprintf(mutatorToAdd, sizeof(mutatorToAdd), "%s 0;", tryIt);
+
+		if (prefixWritten < 0 || prefixWritten >= (int)sizeof(mutatorToAdd))
+		{
+			ALERT(at_console, "[Mutators] Failed to enqueue mutator \"%s\" (buffer too small)\n", tryIt);
+			return;
+		}
+
 		if (strlen(cvarp->string))
 		{
-			strcat(mutatorToAdd, cvarp->string);
+			const int remaining = (int)sizeof(mutatorToAdd) - prefixWritten;
+			const int appended = snprintf(mutatorToAdd + prefixWritten, remaining, "%s", cvarp->string);
+			if (appended < 0 || appended >= remaining)
+			{
+				ALERT(at_console, "[Mutators] Skipping enqueue, cvar \"%s\" list too long\n", cvarp->name);
+				return;
+			}
 		}
 		CVAR_SET_STRING(cvarp->name, mutatorToAdd);
 
@@ -1507,7 +1560,12 @@ void CGameRules::MutatorsThink(void)
 			char *mutator;
 			char list[512];
 			char second[512] = {""};
-			strcpy(list, mutatorlist.string);
+				const int listWritten = snprintf(list, sizeof(list), "%s", mutatorlist.string);
+				if (listWritten < 0 || listWritten >= (int)sizeof(list))
+				{
+					ALERT(at_console, "[Mutators] sv_mutatorlist exceeded parser buffer and was truncated\n");
+					list[sizeof(list) - 1] = '\0';
+				}
 			mutator = strtok( list, ";" );
 			BOOL first = FALSE;
 			while ( mutator != NULL && *mutator )
@@ -1519,11 +1577,22 @@ void CGameRules::MutatorsThink(void)
 				}
 				else
 				{
-					// Append "name;" without a leading separator
-					if (strlen(second))
-						sprintf(second + strlen(second), ";%s", mutator);
-					else
-						sprintf(second, "%s", mutator);
+						// Append "name;" without a leading separator.
+						size_t secondLen = strlen(second);
+						if (secondLen < sizeof(second) - 1)
+						{
+							int appendWritten = 0;
+							if (secondLen)
+								appendWritten = snprintf(second + secondLen, sizeof(second) - secondLen, ";%s", mutator);
+							else
+								appendWritten = snprintf(second, sizeof(second), "%s", mutator);
+
+							if (appendWritten < 0 || appendWritten >= (int)(sizeof(second) - secondLen))
+							{
+								ALERT(at_console, "[Mutators] sv_mutatorlist remainder exceeded buffer and was truncated\n");
+								second[sizeof(second) - 1] = '\0';
+							}
+						}
 				}
 				mutator = strtok( NULL, ";" );
 			}
@@ -1588,7 +1657,7 @@ void CGameRules::MutatorsThink(void)
 							BOOL add = TRUE;
 							while (t != NULL)
 							{
-								if (t->mutatorId == i)
+								if (t->mutatorId == (i + 1))
 								{
 									add = FALSE;
 								}
@@ -1800,10 +1869,26 @@ void CGameRules::MutatorsThink(void)
 			{
 				pl->m_iShowMutatorMessage = gpGlobals->time + 2.0;
 
+				if (MutatorEnabled(MUTATOR_SLIDE))
+				{
+					if (pl->IsAlive())
+						pl->StartSelacoSlide(TRUE);
+				}
+				else if (pl->m_fSelacoForced)
+				{
+					pl->EndSelacoSlide(TRUE);
+				}
+
 				if (MutatorEnabled(MUTATOR_TOPSYTURVY)) {
 					g_engfuncs.pfnSetPhysicsKeyValue(pPlayer->edict(), "topsy", "1");
 				} else {
 					g_engfuncs.pfnSetPhysicsKeyValue(pPlayer->edict(), "topsy", "0");
+				}
+
+				if (MutatorEnabled(MUTATOR_NEGATIVEPI)) {
+					g_engfuncs.pfnSetPhysicsKeyValue(pPlayer->edict(), "negpi", "1");
+				} else {
+					g_engfuncs.pfnSetPhysicsKeyValue(pPlayer->edict(), "negpi", "0");
 				}
 
 				if (MutatorEnabled(MUTATOR_ICE))

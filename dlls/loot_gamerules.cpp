@@ -2207,6 +2207,9 @@ void CHalfLifeLoot::PlayerKilled( CBasePlayer *pVictim,
 {
 	CHalfLifeMultiplay::PlayerKilled( pVictim, pKiller, pInflictor );
 
+	if (MutatorEnabled(MUTATOR_REVIVE) && pVictim->m_bMutatorPendingRevive)
+		return;
+
 	if ( pVictim->m_bHoldingLoot )
 	{
 		UTIL_MakeVectors( pVictim->pev->v_angle );

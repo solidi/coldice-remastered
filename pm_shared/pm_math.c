@@ -16,6 +16,7 @@
 
 #include "mathlib.h"
 #include "const.h"
+#include "pm_defs.h"
 #include <math.h>
 
 // up / down
@@ -26,6 +27,25 @@
 #define	ROLL	2 
 
 #pragma warning(disable : 4244)
+
+extern playermove_t *pmove;
+
+static float PM_GetMutatorAwarePi( void )
+{
+	if ( pmove && pmove->PM_Info_ValueForKey )
+	{
+		const char *negPi = pmove->PM_Info_ValueForKey( pmove->physinfo, "negpi" );
+		if ( negPi && negPi[0] == '1' )
+			return -1.0f;
+	}
+
+	return 3.14159265358979323846f;
+}
+
+#ifdef M_PI
+#undef M_PI
+#endif
+#define M_PI (PM_GetMutatorAwarePi())
 
 #ifndef DISABLE_VEC_ORIGIN
 vec3_t vec3_origin = {0,0,0};

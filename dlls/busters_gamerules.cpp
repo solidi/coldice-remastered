@@ -400,6 +400,12 @@ int CMultiplayBusters::IPointsForKill( CBasePlayer* pAttacker, CBasePlayer* pKil
 
 void CMultiplayBusters::PlayerKilled( CBasePlayer* pVictim, entvars_t* pKiller, entvars_t* pInflictor )
 {
+	if (MutatorEnabled(MUTATOR_REVIVE) && pVictim->m_bMutatorPendingRevive)
+	{
+		CHalfLifeMultiplay::PlayerKilled( pVictim, pKiller, pInflictor );
+		return;
+	}
+
 	BOOL bVictimWasBuster = IsPlayerBusting( pVictim );
 	if ( bVictimWasBuster )
 	{

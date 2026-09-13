@@ -235,14 +235,15 @@ public:
 	float m_fKickEndTime; // pev->nextthink cannot be used consistently
 
 	void CalculateToSelacoSlide( void );
-	void StartSelacoSlide( void );
+	void StartSelacoSlide( BOOL forceSlide = FALSE );
 	void TraceHitOfSelacoSlide( void );
-	void EndSelacoSlide( void );
+	void EndSelacoSlide( BOOL forceEnd = FALSE );
 	float m_fSelacoButtonTime;
 	float m_fSelacoIncrement;
 	int m_fSelacoZ;
 	int m_fSelacoCount;
 	BOOL m_fSelacoSliding;
+	BOOL m_fSelacoForced;
 	BOOL m_fSelacoHit;
 	float m_fSelacoLastX, m_fSelacoLastY;
 
@@ -259,6 +260,15 @@ public:
 	BOOL m_bChilldemicPendingConvert;
 	Vector m_vecChilldemicRespawnOrigin;
 	Vector m_vecChilldemicRespawnAngles;
+	BOOL m_bMutatorPendingRevive;
+	BOOL m_bMutatorReviveUsed;
+	Vector m_vecMutatorReviveOrigin;
+	Vector m_vecMutatorReviveAngles;
+	// Last player-vs-player hit metadata for mutators that need reliable
+	// "final blow" validation beyond m_LastHitGroup's legacy usage.
+	EHANDLE m_hLastPvpHitAttacker;
+	float m_flLastPvpHitTime;
+	int m_iLastPvpHitGroup;
 	// One-shot: suppress SetDefaultPlayerTeam + GetPlayerSpawnSpot inside Spawn()
 	// for in-place revivals (e.g. Chilldemic infection) that must not fire
 	// info_player_deathmatch targets or telefrag another player via EntSelectSpawnPoint.
@@ -370,7 +380,7 @@ public:
 	virtual int		Save( CSave &save );
 	virtual int		Restore( CRestore &restore );
 	void RenewItems(void);
-	void PackDeadPlayerItems( void );
+	void PackDeadPlayerItems( CBasePlayer *pFragVictor = NULL );
 	void RemoveAllItems( BOOL removeSuit );
 	BOOL SwitchWeapon( CBasePlayerItem *pWeapon );
 	BOOL ShouldWeaponSwitch();
@@ -436,7 +446,7 @@ public:
 	void SetSuitUpdate(char *name, int fgroup, int iNoRepeat);
 	void UpdateGeigerCounter( void );
 	void CheckTimeBasedDamage( void );
-	void CheckShiddenStomp( void );
+	void CheckHeadStomp( void );
 
 	BOOL FBecomeProne ( void );
 	void BarnacleVictimBitten ( entvars_t *pevBarnacle );
@@ -517,6 +527,7 @@ public:
 	int m_iJumpCount;
 
 	EHANDLE pLastAssist;
+	EHANDLE m_hLastFragVictor;
 	int m_iAssists;
 
 	EHANDLE pFlag;
@@ -544,6 +555,8 @@ public:
 	BOOL m_iExitObserver;
 
 	float m_TextureTouchTime = 0;
+	float m_flFloorIsLavaTime = 0;
+	float m_flSleepyTime = 0;
 
 	float m_fFeignTime;
 
