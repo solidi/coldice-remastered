@@ -804,7 +804,7 @@ int CBasePlayer :: TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, 
 		if (pAttacker && pAttacker->IsPlayer() && pAttacker != this)
 		{
 			CBasePlayer *pAttackerPlayer = (CBasePlayer *)pAttacker;
-			if (pAttackerPlayer->IsAlive() && !pAttackerPlayer->HasDisconnected)
+			if (!pAttackerPlayer->HasDisconnected)
 			{
 				m_bMutatorPendingRevive = TRUE;
 				m_vecMutatorReviveOrigin = pev->origin;

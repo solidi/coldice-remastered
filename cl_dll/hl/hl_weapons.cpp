@@ -362,6 +362,12 @@ static BOOL DispatchQueuedTripleBangAttack( CBasePlayerWeapon *pWeapon, BOOL tri
 	(pWeapon->*attackFn)();
 	RestoreTripleBangAmmoState(pWeapon, singleShotState);
 
+	const float multiplier = TripleBangBurstMultiplier();
+	if (secondaryBurst)
+		pWeapon->m_flNextPrimaryAttack = pWeapon->m_flNextSecondaryAttack = pWeapon->m_flNextSecondaryAttack * multiplier;
+	else
+		pWeapon->m_flNextPrimaryAttack = pWeapon->m_flNextSecondaryAttack = pWeapon->m_flNextPrimaryAttack * multiplier;
+
 	const int remaining = TripleBangPendingCount(pWeapon->m_iTripleBangShotsPending) - 1;
 	if (remaining <= 0)
 	{
