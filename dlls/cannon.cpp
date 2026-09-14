@@ -52,6 +52,11 @@ LINK_ENTITY_TO_CLASS( weapon_cannon, CCannon );
 
 #ifndef CLIENT_DLL
 
+static const float CANNON_FLAK_TOUCH_COOLDOWN = 0.25f;
+static const float CANNON_FLAK_BOUNCE_SOUND_MIN_SPEED = 280.0f;
+static const float CANNON_FLAK_BOUNCE_SOUND_GLOBAL_COOLDOWN = 0.06f;
+static float g_flNextCannonFlakBounceSoundTime = 0.0f;
+
 CFlakBomb *CFlakBomb::CreateFlakBomb( Vector vecOrigin, Vector vecAngles, CBaseEntity *pOwner )
 {
 	CFlakBomb *pBomb = GetClassPtr( (CFlakBomb *)NULL );
@@ -223,10 +228,17 @@ void CFlak :: FlakTouch ( CBaseEntity *pOther )
 	}
 
 	pev->movetype = MOVETYPE_BOUNCE;
+	const float flImpactSpeed = pev->velocity.Length();
 	pev->velocity = pev->velocity * 0.7;
 
 	if (m_flNextAttack < gpGlobals->time ) {
-		EMIT_SOUND( ENT(pev), CHAN_VOICE, "debris/concrete2.wav", 1, 0.8 );
+		// Prevent a whole flak cluster from blasting bounce audio on the same server tick.
+		if (flImpactSpeed >= CANNON_FLAK_BOUNCE_SOUND_MIN_SPEED && gpGlobals->time >= g_flNextCannonFlakBounceSoundTime)
+		{
+			const float flVolume = (flImpactSpeed >= 700.0f) ? 0.80f : 0.55f;
+			EMIT_SOUND_DYN( ENT(pev), CHAN_VOICE, "debris/concrete2.wav", flVolume, 0.8f, 0, 96 + RANDOM_LONG(0, 8) );
+			g_flNextCannonFlakBounceSoundTime = gpGlobals->time + CANNON_FLAK_BOUNCE_SOUND_GLOBAL_COOLDOWN;
+		}
 
 		if ( pOther->pev->takedamage )
 		{
@@ -240,7 +252,7 @@ void CFlak :: FlakTouch ( CBaseEntity *pOther )
 			}
 		}
 
-		m_flNextAttack = gpGlobals->time + 0.25;
+		m_flNextAttack = gpGlobals->time + CANNON_FLAK_TOUCH_COOLDOWN;
 	}
 }
 
