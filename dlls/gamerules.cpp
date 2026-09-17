@@ -82,6 +82,7 @@ DLL_GLOBAL const char *g_szMutators[] = {
 	"dealter",
 	"dontshoot",
 	"drunk",
+	"expcrowbar",
 	"explosiveai",
 	"fastweapons",
 	"firebullets",
@@ -938,6 +939,11 @@ void CGameRules::GiveMutators(CBasePlayer *pPlayer)
 			pPlayer->GiveNamedItem("weapon_rocketcrowbar");
 			pPlayer->SelectItem("weapon_rocketcrowbar");
 		}
+	}
+
+	if (MutatorEnabled(MUTATOR_EXPCROWBAR)) {
+		if (!pPlayer->HasNamedPlayerItem("weapon_crowbar"))
+			pPlayer->GiveNamedItem("weapon_crowbar");
 	}
 
 	if (MutatorEnabled(MUTATOR_INSTAGIB)) {
@@ -1913,6 +1919,14 @@ void CGameRules::MutatorsThink(void)
 					pl->m_flNextSantaSound = 0;
 
 				GiveMutators(pl);
+
+				// Explosive Crowbar swaps the crowbar's view/player models, so re-deploy on either toggle edge.
+				if (pl->IsAlive() && pl->m_pActiveItem && FClassnameIs(pl->m_pActiveItem->pev, "weapon_crowbar"))
+				{
+					const char *pszWantedModel = MutatorEnabled(MUTATOR_EXPCROWBAR) ? "models/v_rocketcrowbar.mdl" : "models/v_crowbar.mdl";
+					if (!FStrEq(STRING(pl->pev->viewmodel), pszWantedModel))
+						pl->m_pActiveItem->Deploy();
+				}
 
 				if (MutatorEnabled(MUTATOR_INVISIBLE))
 				{

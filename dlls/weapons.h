@@ -720,6 +720,7 @@ public:
 	int Swing( int fFirst );
 	BOOL DeployLowKey( void );
 	BOOL Deploy( void );
+	BOOL DeployExplosive( int iAnim );
 	void Holster( int skiplocal = 0 );
 	void WeaponIdle( void );
 	int m_iSwing;

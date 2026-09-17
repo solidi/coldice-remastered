@@ -23,6 +23,63 @@
 #include "gamerules.h"
 #include "game.h"
 
+#ifdef CLIENT_DLL
+extern bool MutatorEnabled( int mutatorId );
+#else
+#include "soundent.h"
+#include "decals.h"
+#endif
+
+#define EXPCROWBAR_VIEW_MODEL	"models/v_rocketcrowbar.mdl"
+#define EXPCROWBAR_BLAST_DAMAGE	100.0f
+#define EXPCROWBAR_BLAST_RADIUS	250.0f
+
+static BOOL ExplosiveCrowbarActive( void )
+{
+#ifdef CLIENT_DLL
+	return MutatorEnabled( MUTATOR_EXPCROWBAR ) ? TRUE : FALSE;
+#else
+	return g_pGameRules && g_pGameRules->MutatorEnabled( MUTATOR_EXPCROWBAR );
+#endif
+}
+
+#ifndef CLIENT_DLL
+// Blast is deliberately attacker-immune: only bystanders, props and the world take it.
+static void ExplosiveCrowbarBlast( entvars_t *pevInflictor, entvars_t *pevAttacker, TraceResult *pTrace )
+{
+	Vector vecOrigin = pTrace->vecEndPos + pTrace->vecPlaneNormal * 8;
+	int iContents = UTIL_PointContents( vecOrigin );
+
+	MESSAGE_BEGIN( MSG_PAS, SVC_TEMPENTITY, vecOrigin );
+		WRITE_BYTE( TE_EXPLOSION );
+		WRITE_COORD( vecOrigin.x );
+		WRITE_COORD( vecOrigin.y );
+		WRITE_COORD( vecOrigin.z );
+		if ( iContents != CONTENTS_WATER )
+			WRITE_SHORT( icesprites.value ? g_sModelIndexIceFireball : g_sModelIndexFireball );
+		else
+			WRITE_SHORT( g_sModelIndexWExplosion );
+		WRITE_BYTE( 25 );	// scale * 10
+		WRITE_BYTE( 15 );	// framerate
+		WRITE_BYTE( TE_EXPLFLAG_NONE );
+	MESSAGE_END();
+
+	CSoundEnt::InsertSound( bits_SOUND_COMBAT, vecOrigin, NORMAL_EXPLOSION_VOLUME, 3.0 );
+
+	enum decal_e decal = DECAL_SCORCH1;
+	int index = RANDOM_LONG( 0, 1 );
+	if ( g_pGameRules->MutatorEnabled( MUTATOR_PAINTBALL ) )
+	{
+		decal = DECAL_PAINTL1;
+		index = RANDOM_LONG( 0, 7 );
+	}
+	UTIL_DecalTrace( pTrace, decal + index );
+
+	RadiusDamage( vecOrigin, pevInflictor, pevAttacker, EXPCROWBAR_BLAST_DAMAGE, EXPCROWBAR_BLAST_RADIUS,
+		CLASS_NONE, DMG_BLAST | DMG_BURN, TRUE );
+}
+#endif
+
 class CFlyingCrowbar : public CBaseEntity
 {
 public:
@@ -88,6 +145,7 @@ void CCrowbar::Spawn( )
 void CCrowbar::Precache( void )
 {
 	PRECACHE_MODEL("models/v_crowbar.mdl");
+	PRECACHE_MODEL(EXPCROWBAR_VIEW_MODEL);	// expcrowbar mutator can swap to this at any time
 	PRECACHE_SOUND("cbar_hit1.wav");
 	PRECACHE_SOUND("weapons/cbar_hit2.wav");
 	PRECACHE_SOUND("cbar_hitbod1.wav");
@@ -137,6 +195,8 @@ BOOL CCrowbar::DeployLowKey( )
 	m_flReleaseThrow = -1;
 	m_flSmashStart = 0;
 	m_flNextSmashCharge = 0;
+	if ( ExplosiveCrowbarActive() )
+		return DeployExplosive( CROWBAR_DRAW_LOWKEY );
 	return DefaultDeploy( "models/v_crowbar.mdl", "models/p_weapons.mdl", CROWBAR_DRAW_LOWKEY, "crowbar" );
 }
 
@@ -146,7 +206,21 @@ BOOL CCrowbar::Deploy( )
 	m_flReleaseThrow = -1;
 	m_flSmashStart = 0;
 	m_flNextSmashCharge = 0;
+	if ( ExplosiveCrowbarActive() )
+		return DeployExplosive( CROWBAR_DRAW );
 	return DefaultDeploy( "models/v_crowbar.mdl", "models/p_weapons.mdl", CROWBAR_DRAW, "crowbar" );
+}
+
+// Explosive Crowbar borrows the rocket crowbar view model and p_weapons body so the ability reads visually.
+BOOL CCrowbar::DeployExplosive( int iAnim )
+{
+	if ( !DefaultDeploy( EXPCROWBAR_VIEW_MODEL, "models/p_weapons.mdl", iAnim, "crowbar" ) )
+		return FALSE;
+
+#ifndef CLIENT_DLL
+	m_pPlayer->pev->team = WEAPON_ROCKETCROWBAR - 1;
+#endif
+	return TRUE;
 }
 
 BOOL CCrowbar::CanSlide()
@@ -195,6 +269,14 @@ void CCrowbar::SecondaryAttack()
 		return PrimaryAttack();
 	}
 
+	// v_rocketcrowbar.mdl has no pull_back/throw sequences, so the throw degrades to a normal swing.
+	if ( ExplosiveCrowbarActive() )
+	{
+		PrimaryAttack();
+		m_flNextSecondaryAttack = m_flNextPrimaryAttack;
+		return;
+	}
+
 	if (m_flSmashStart > 0)
 		return;
 
@@ -225,6 +307,14 @@ void CCrowbar::Reload( void )
 	{
 		m_flNextPrimaryAttack = UTIL_WeaponTimeBase() + 0.5;
 		return PrimaryAttack();
+	}
+
+	// Same missing-sequence problem as the throw: the charged smash degrades to a normal swing.
+	if ( ExplosiveCrowbarActive() )
+	{
+		PrimaryAttack();
+		m_pPlayer->m_flNextAttack = m_flNextPrimaryAttack;
+		return;
 	}
 
 	// Don't interleave with the throw pull-back.
@@ -480,6 +570,9 @@ int CCrowbar::Swing( int fFirst )
 		}	
 		ApplyMultiDamage( m_pPlayer->pev, m_pPlayer->pev );
 
+		if ( ExplosiveCrowbarActive() )
+			ExplosiveCrowbarBlast( m_pPlayer->pev, m_pPlayer->pev, &tr );
+
 		// play thwack, smack, or dong sound
 		float flVol = 1.0;
 		int fHitWorld = TRUE;
@@ -665,12 +758,15 @@ void CFlyingCrowbar::Precache( )
 
 void CFlyingCrowbar::SpinTouch( CBaseEntity *pOther )
 {
+	// Capture the impact plane now; later effects can overwrite the engine's global trace.
+	TraceResult trTouch = UTIL_GetGlobalTrace( );
+
 	// We touched something in the game. Look to see if the object
 	// is allowed to take damage.
 	if (pOther->pev->takedamage)
 	{
 		// Get the traceline info to the target.
-		TraceResult tr = UTIL_GetGlobalTrace( );
+		TraceResult tr = trTouch;
 
 		// Apply damage to the target. If we have an owner stored, use that one,
 		// otherwise count it as self-inflicted.
@@ -706,6 +802,9 @@ void CFlyingCrowbar::SpinTouch( CBaseEntity *pOther )
 	pev->solid = SOLID_NOT;
 
 	#ifndef CLIENT_DLL
+	if ( ExplosiveCrowbarActive() )
+		ExplosiveCrowbarBlast( pev, ( m_hOwner != NULL ) ? m_hOwner->pev : pev, &trTouch );
+
 	CBasePlayer *pPlayer = (CBasePlayer *)GET_PRIVATE(pev->owner);
 	if (pPlayer && g_pGameRules->DeadPlayerWeapons(pPlayer) != GR_PLR_DROP_GUN_NO)
 	{
