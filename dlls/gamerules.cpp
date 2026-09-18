@@ -83,6 +83,7 @@ DLL_GLOBAL const char *g_szMutators[] = {
 	"dontshoot",
 	"drunk",
 	"expcrowbar",
+	"exploder",
 	"explosiveai",
 	"fastweapons",
 	"firebullets",
@@ -1552,6 +1553,52 @@ void CGameRules::AddInstantMutator(void)
 	MESSAGE_END();
 }
 
+// exploder mutator tuning
+#define EXPLODER_BLAST_DAMAGE	140.0f	// RadiusDamage derives the blast radius as damage * 2.5
+#define EXPLODER_MIN_FUSE		4.0f
+#define EXPLODER_MAX_FUSE		45.0f
+#define EXPLODER_CHANCE			35		// percent chance to actually detonate when a fuse expires
+
+// Every living participant carries a randomly timed fuse; when it burns down they
+// get a percentage roll to detonate where they stand.
+void CGameRules::ExploderMutatorThink(void)
+{
+	const BOOL enabled = MutatorEnabled(MUTATOR_EXPLODER);
+
+	for (int i = 1; i <= gpGlobals->maxClients; i++)
+	{
+		CBasePlayer *pPlayer = (CBasePlayer *)UTIL_PlayerByIndex(i);
+
+		if (!pPlayer || !pPlayer->IsPlayer())
+			continue;
+
+		if (!enabled || !pPlayer->IsAlive() || pPlayer->IsObserver() ||
+			pPlayer->pev->deadflag != DEAD_NO || FBitSet(pPlayer->pev->flags, FL_GODMODE))
+		{
+			pPlayer->m_flExploderTime = 0;
+			continue;
+		}
+
+		if (pPlayer->m_flExploderTime == 0)
+		{
+			pPlayer->m_flExploderTime = gpGlobals->time + RANDOM_FLOAT(EXPLODER_MIN_FUSE, EXPLODER_MAX_FUSE);
+			continue;
+		}
+
+		if (pPlayer->m_flExploderTime > gpGlobals->time)
+			continue;
+
+		pPlayer->m_flExploderTime = gpGlobals->time + RANDOM_FLOAT(EXPLODER_MIN_FUSE, EXPLODER_MAX_FUSE);
+
+		if (RANDOM_LONG(1, 100) > EXPLODER_CHANCE)
+			continue;
+
+		UTIL_LogPrintf("Mutator \"exploder\" detonated \"%s\" at %.2f\n", STRING(pPlayer->pev->netname), gpGlobals->time);
+
+		CGrenade::Vest(pPlayer->pev, pPlayer->pev->origin, EXPLODER_BLAST_DAMAGE);
+	}
+}
+
 void CGameRules::MutatorsThink(void)
 {
 	// Don't process mutators during round intermission
@@ -1808,6 +1855,8 @@ void CGameRules::MutatorsThink(void)
 		}
 		else
 			m_flInstantMutatorTime = -1;
+
+		ExploderMutatorThink();
 
 		m_flAddMutatorTime = gpGlobals->time + 1.0;
 	}

@@ -196,6 +196,7 @@ public:
 	virtual void AddInstantMutator( void );
 	virtual void AddRandomMutator( const char *cvarName, BOOL withBar=FALSE, BOOL perm=FALSE );
 	virtual void MutatorsThink( void );
+	void ExploderMutatorThink( void );
 	virtual BOOL MutatorAllowed(const char *mutator) = FALSE;
 	virtual void CheckGameMode( void );
 	virtual void PauseMutators( void );

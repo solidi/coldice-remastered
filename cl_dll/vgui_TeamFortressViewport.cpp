@@ -251,6 +251,7 @@ MutatorInfo sMutators[] = {
 	{ "dontshoot", "no trigger fingers" },
 	{ "drunk", "your view keeps swaying and spinning" },
 	{ "expcrowbar", "crowbar swings detonate" },
+	{ "exploder", "everyone is a walking time bomb" },
 	{ "explosiveai", "explosiveai" },
 	{ "fastweapons", "pew pew pew" },
 	{ "firebullets", "lead on fire" },

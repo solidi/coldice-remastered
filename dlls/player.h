@@ -336,6 +336,9 @@ public:
 	float m_flNextSantaSound;
 	float m_flNextPropSound;
 
+	// exploder mutator: gpGlobals->time of this player's next detonation roll (0 = unscheduled)
+	float m_flExploderTime = 0;
+
 	float m_fNextScreamSound;
 
 	void StartForceGrab( void );
