@@ -133,6 +133,7 @@ DLL_GLOBAL const char *g_szMutators[] = {
 	"railguns",
 	"randomweapon",
 	"rats",
+	"regen",
 	"revive",
 	"ricochet",
 	"rocketbees",

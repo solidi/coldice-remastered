@@ -560,6 +560,7 @@ public:
 	float m_TextureTouchTime = 0;
 	float m_flFloorIsLavaTime = 0;
 	float m_flSleepyTime = 0;
+	float m_flMutatorRegenTime = 0;
 
 	float m_fFeignTime;
 

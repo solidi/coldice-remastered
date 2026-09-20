@@ -2291,62 +2291,6 @@ void CHalfLifeMultiplay :: PlayerThink( CBasePlayer *pPlayer )
 			pPlayer->m_iFlashBattery = 100;
 	}
 
-	if (pPlayer->m_fHasRune == RUNE_VAMPIRE && pPlayer->m_fVampireHealth > 0)
-	{
-		//under limit, increase damage / 2.
-		if ( pPlayer->pev->health < pPlayer->pev->max_health )
-			pPlayer->pev->health += pPlayer->m_fVampireHealth;
-
-		//over the limit, go back to max.
-		if ( pPlayer->pev->health > pPlayer->pev->max_health )
-			pPlayer->pev->health = pPlayer->pev->max_health;
-
-		UTIL_ScreenFade(pPlayer, Vector(200, 0, 0), .5, .5, 32, FFADE_IN);
-
-		pPlayer->m_fVampireHealth = 0;
-	}
-
-	if ( pPlayer->m_fHasRune == RUNE_REGEN )
-	{
-		if ( pPlayer->m_flRuneHealTime < gpGlobals->time )
-		{
-			if (pPlayer->pev->health < pPlayer->pev->max_health) {
-				pPlayer->pev->health += 1;
-				UTIL_ScreenFade( pPlayer, Vector(200,0,200), .5, .5, 32, FFADE_IN);
-				pPlayer->m_flRuneHealTime = gpGlobals->time + 1.0;
-			} else if (pPlayer->pev->armorvalue < pPlayer->pev->max_health) {
-				pPlayer->pev->armorvalue += 1;
-				UTIL_ScreenFade( pPlayer, Vector(200,0,200), .5, .5, 32, FFADE_IN);
-				pPlayer->m_flRuneHealTime = gpGlobals->time + 1.0;
-			}
-		}
-	}
-	else if ( pPlayer->m_fHasRune == RUNE_AMMO )
-	{
-		if ( pPlayer->m_flRuneHealTime < gpGlobals->time )
-		{
-			if (pPlayer->m_pActiveItem)
-			{
-				CBasePlayerWeapon *pWeapon = (CBasePlayerWeapon*)pPlayer->m_pActiveItem->GetWeaponPtr();
-
-				if (pWeapon && pWeapon->m_iId != WEAPON_NUKE)
-				{
-					if (pWeapon->m_iPrimaryAmmoType >= 0 &&
-						pPlayer->m_rgAmmo[pWeapon->m_iPrimaryAmmoType] < pWeapon->iMaxAmmo1()) {
-						pPlayer->m_rgAmmo[pWeapon->m_iPrimaryAmmoType] += 1;
-						UTIL_ScreenFade( pPlayer, Vector(200,200,0), .5, .5, 32, FFADE_IN);
-						pPlayer->m_flRuneHealTime = gpGlobals->time + 1.0;
-					} else if (pWeapon->m_iSecondaryAmmoType >= 0 &&
-						pPlayer->m_rgAmmo[pWeapon->m_iSecondaryAmmoType] < pWeapon->iMaxAmmo2()) {
-						pPlayer->m_rgAmmo[pWeapon->m_iSecondaryAmmoType] += 1;
-						UTIL_ScreenFade( pPlayer, Vector(200,200,0), .5, .5, 32, FFADE_IN);
-						pPlayer->m_flRuneHealTime = gpGlobals->time + 1.0;
-					}
-				}
-			}
-		}
-	}
-
 	if ( g_fGameOver )
 	{
 		// check for button presses
