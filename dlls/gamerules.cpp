@@ -66,6 +66,7 @@ DLL_GLOBAL const char *g_szMutators[] = {
 	"chaos",
 	"999",
 	"amidead",
+	"ammoregen",
 	"astronaut",
 	"autoaim",
 	"barrels",

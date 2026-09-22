@@ -561,6 +561,7 @@ public:
 	float m_flFloorIsLavaTime = 0;
 	float m_flSleepyTime = 0;
 	float m_flMutatorRegenTime = 0;
+	float m_flMutatorAmmoRegenTime = 0;
 
 	float m_fFeignTime;
 

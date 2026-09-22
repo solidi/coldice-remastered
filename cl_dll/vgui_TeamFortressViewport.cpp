@@ -234,6 +234,7 @@ MutatorInfo sMutators[] = {
 	{ "CHAOS", "cycle all on a timer" },
 	{ "999", "no one dies, really" },
 	{ "amidead", "tilt to the left" },
+	{ "ammoregen", "everyone slowly regenerates active weapon ammo" },
 	{ "astronaut", "lightweight" },
 	{ "autoaim", "its like cheating" },
 	{ "barrels", "gravity gun of fun" },
