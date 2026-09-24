@@ -163,6 +163,7 @@ DLL_GLOBAL const char *g_szMutators[] = {
 	"triplebang",
 	"turrets",
 	"upsidedown",
+	"vampire",
 	"vested",
 	"victor",
 	"volatile",

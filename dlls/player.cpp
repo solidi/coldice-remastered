@@ -214,7 +214,14 @@ static void HandleSharedRuneAndRegenThink( CBasePlayer *pPlayer )
 	if ( pPlayer->HasDisconnected || !pPlayer->IsAlive() || pPlayer->IsSpectator() || pPlayer->pev->deadflag != DEAD_NO )
 		return;
 
-	if ( pPlayer->m_fHasRune == RUNE_VAMPIRE && pPlayer->m_fVampireHealth > 0 )
+	const BOOL hasVampireEffect = ( pPlayer->m_fHasRune == RUNE_VAMPIRE ) ||
+		g_pGameRules->MutatorEnabled( MUTATOR_VAMPIRE );
+
+	if ( !hasVampireEffect )
+	{
+		pPlayer->m_fVampireHealth = 0;
+	}
+	else if ( pPlayer->m_fVampireHealth > 0 )
 	{
 		if ( pPlayer->pev->health < pPlayer->pev->max_health )
 			pPlayer->pev->health += pPlayer->m_fVampireHealth;
@@ -713,7 +720,10 @@ void CBasePlayer :: TraceAttack( entvars_t *pevAttacker, float flDamage, Vector 
 				pLastAssist = pAttacker;
 		}
 
-		if ( pAttacker->IsPlayer() && pAttacker->m_fHasRune == RUNE_VAMPIRE && (pVictim != pAttacker) )
+		const BOOL vampireMutatorEnabled = g_pGameRules && g_pGameRules->MutatorEnabled( MUTATOR_VAMPIRE );
+
+		if ( pAttacker && pAttacker->IsPlayer() && ( pVictim != pAttacker ) && flDamage > 0 &&
+			( pAttacker->m_fHasRune == RUNE_VAMPIRE || vampireMutatorEnabled ) )
 		{
 			pAttacker->m_fVampireHealth = (flDamage / 2);
 		}

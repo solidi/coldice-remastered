@@ -1067,6 +1067,16 @@ int CBaseMonster :: TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker,
 			flTake = flRocketJumpSelfDamageCap;
 	}
 
+	if ( !IsPlayer() && g_pGameRules && g_pGameRules->MutatorEnabled( MUTATOR_VAMPIRE ) &&
+		flDamage > 0 && !FNullEnt( pevAttacker ) )
+	{
+		CBaseEntity *pAttackerEntity = CBaseEntity::Instance( pevAttacker );
+		if ( pAttackerEntity && pAttackerEntity->IsPlayer() && pAttackerEntity->pev != pev )
+		{
+			((CBasePlayer *)pAttackerEntity)->m_fVampireHealth = (flDamage / 2);
+		}
+	}
+
 	// set damage type sustained
 	m_bitsDamageType |= bitsDamageType;
 

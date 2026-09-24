@@ -331,6 +331,7 @@ MutatorInfo sMutators[] = {
 	{ "triplebang", "every trigger pulls three shots" },
 	{ "turrets", "they shoot everyone" },
 	{ "upsidedown", "why is everything upside down?" },
+	{ "vampire", "deal damage to drain health" },
 	{ "vested", "explosive fun for everyone" },
 	{ "victor", "fragged drops fly only to the fragger" },
 	{ "volatile", "things get crazy" },
