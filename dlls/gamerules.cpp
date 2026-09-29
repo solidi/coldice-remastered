@@ -91,6 +91,7 @@ DLL_GLOBAL const char *g_szMutators[] = {
 	"firestarter",
 	"floorislava",
 	"fog",
+	"fragswap",
 	"godmode",
 	"goldenguns",
 	"grenades",

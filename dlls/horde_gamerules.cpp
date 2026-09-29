@@ -1006,7 +1006,7 @@ BOOL CHalfLifeHorde::FPlayerCanRespawn( CBasePlayer *pPlayer )
 void CHalfLifeHorde::PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller, entvars_t *pInflictor )
 {
 	BOOL revivePlayerKill = MutatorEnabled(MUTATOR_REVIVE) && pVictim->m_bMutatorPendingRevive;
-	if (!revivePlayerKill)
+	if (!revivePlayerKill && !MutatorEnabled(MUTATOR_FRAGSWAP))
 		pVictim->pev->frags = 0; // clear immediately for winner determination
 
 	CHalfLifeMultiplay::PlayerKilled(pVictim, pKiller, pInflictor);

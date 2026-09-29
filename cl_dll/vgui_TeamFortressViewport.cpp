@@ -259,6 +259,7 @@ MutatorInfo sMutators[] = {
 	{ "firestarter", "everything's on fire" },
 	{ "floorislava", "the ground scorches your boots" },
 	{ "fog", "see nothing, shoot nothing" },
+	{ "fragswap", "frag scores swap between attacker and victim" },
 	{ "godmode", "invincibility" },
 	{ "goldenguns", "like Goldeneye" },
 	{ "grenades", "more grenades, more fun" },

@@ -2687,6 +2687,7 @@ void CHalfLifeMultiplay :: PlayerKilled( CBasePlayer *pVictim, entvars_t *pKille
 
 	CBasePlayer *peKiller = NULL;
 	CBaseEntity *ktmp = CBaseEntity::Instance( pKiller );
+	BOOL fragSwapEnabled = MutatorEnabled(MUTATOR_FRAGSWAP);
 	BOOL pacifistEnabled = MutatorEnabled(MUTATOR_PACIFIST);
 	BOOL headshotEnabled = MutatorEnabled(MUTATOR_HEADSHOT);
 	BOOL reviveEnabled = MutatorEnabled(MUTATOR_REVIVE);
@@ -2718,7 +2719,7 @@ void CHalfLifeMultiplay :: PlayerKilled( CBasePlayer *pVictim, entvars_t *pKille
 
 	BOOL headshotFragCreditAllowed = (!headshotEnabled || headshotPlayerKill);
 
-	if (!revivePlayerKill && pacifistEnabled && ktmp && ktmp->IsPlayer() && pVictim->pev != pKiller && headshotFragCreditAllowed)
+	if (!fragSwapEnabled && !revivePlayerKill && pacifistEnabled && ktmp && ktmp->IsPlayer() && pVictim->pev != pKiller && headshotFragCreditAllowed)
 		pacifistPlayerKill = TRUE;
 
 	if (!pacifistPlayerKill && !revivePlayerKill)
@@ -2733,6 +2734,11 @@ void CHalfLifeMultiplay :: PlayerKilled( CBasePlayer *pVictim, entvars_t *pKille
 	}
 	else if ( ktmp && ktmp->IsPlayer() )
 	{
+		int attackerFragsBefore = (int)pKiller->frags;
+		int victimFragsBefore = (int)pVictim->pev->frags;
+		int attackerFragDelta = 0;
+		BOOL fragSwapPlayerKill = fragSwapEnabled && !revivePlayerKill && headshotFragCreditAllowed;
+
 		if (pacifistPlayerKill)
 		{
 			// Pacifist reverses PvP frag credit and does not count as a death on the victim.
@@ -2741,9 +2747,15 @@ void CHalfLifeMultiplay :: PlayerKilled( CBasePlayer *pVictim, entvars_t *pKille
 		else if (!revivePlayerKill && headshotFragCreditAllowed)
 		{
 			// if a player dies in a deathmatch game and the killer is a client, award the killer some points
-			pKiller->frags += IPointsForKill( peKiller, pVictim );
+			int fragReward = IPointsForKill( peKiller, pVictim );
+			pKiller->frags += fragReward;
+			attackerFragDelta += fragReward;
 			if (peKiller->m_iAssists && (peKiller->m_iAssists % 3 == 0))
-				pKiller->frags += IPointsForKill( peKiller, pVictim );
+			{
+				fragReward = IPointsForKill( peKiller, pVictim );
+				pKiller->frags += fragReward;
+				attackerFragDelta += fragReward;
+			}
 		}
 		else if (!revivePlayerKill && headshotEnabled && !headshotPlayerKill)
 		{
@@ -2765,7 +2777,11 @@ void CHalfLifeMultiplay :: PlayerKilled( CBasePlayer *pVictim, entvars_t *pKille
 				WRITE_BYTE(CLIENT_SOUND_FIRSTBLOOD);
 			MESSAGE_END();
 			if (!pacifistPlayerKill && !revivePlayerKill)
-				pKiller->frags += IPointsForKill( peKiller, pVictim );
+			{
+				int firstBloodReward = IPointsForKill( peKiller, pVictim );
+				pKiller->frags += firstBloodReward;
+				attackerFragDelta += firstBloodReward;
+			}
 			m_iFirstBloodDecided = TRUE;
 		}
 		else if (!revivePlayerKill && ((headshotEnabled && headshotPlayerKill) || (!headshotEnabled && pVictim->m_LastHitGroup == HITGROUP_HEAD)))
@@ -2777,6 +2793,13 @@ void CHalfLifeMultiplay :: PlayerKilled( CBasePlayer *pVictim, entvars_t *pKille
 				MESSAGE_END();
 			}
 			pKiller->health += 5;
+		}
+
+		if (fragSwapPlayerKill)
+		{
+			// Redirect normal killer frag gain to the victim and give the killer the victim's pre-kill frag total.
+			pVictim->pev->frags = attackerFragsBefore + attackerFragDelta;
+			pKiller->frags = victimFragsBefore;
 		}
 
 		if (!revivePlayerKill && g_pGameRules->MutatorEnabled(MUTATOR_LOOPBACK))
