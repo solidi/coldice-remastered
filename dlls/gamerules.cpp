@@ -151,6 +151,7 @@ DLL_GLOBAL const char *g_szMutators[] = {
 	"slowbullets",
 	"slowmo",
 	"slowweapons",
+	"snarkbar",
 	"snowballs",
 	"speedup",
 	"stahp",
@@ -946,7 +947,7 @@ void CGameRules::GiveMutators(CBasePlayer *pPlayer)
 		}
 	}
 
-	if (MutatorEnabled(MUTATOR_EXPCROWBAR)) {
+	if (MutatorEnabled(MUTATOR_EXPCROWBAR) || MutatorEnabled(MUTATOR_SNARKBAR)) {
 		if (!pPlayer->HasNamedPlayerItem("weapon_crowbar"))
 			pPlayer->GiveNamedItem("weapon_crowbar");
 	}

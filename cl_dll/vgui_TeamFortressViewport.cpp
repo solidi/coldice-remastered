@@ -319,6 +319,7 @@ MutatorInfo sMutators[] = {
 	{ "slowbullets", "take it slow" },
 	{ "slowmo", "slowmo" },
 	{ "slowweapons", "weapons take their time" },
+	{ "snarkbar", "thrown crowbar impacts release five snarks" },
 	{ "snowballs", "it's snowball fight time" },
 	{ "speedup", "speedup" },
 	{ "stahp", "make it stop" },
