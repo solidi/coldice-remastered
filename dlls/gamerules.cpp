@@ -1696,10 +1696,14 @@ void CGameRules::MutatorsThink(void)
 				}
 				else
 				{
+					BOOL knownMutator = FALSE;
+
 					for (int i = 0; i < MAX_MUTATORS; i++)
 					{
 						if (strstr(addmutator.string, g_szMutators[i]) || addmutator.value == (i + 1))
 						{
+							knownMutator = TRUE;
+
 							// Special pass
 							if (strstr(addmutator.string, "three"))
 							{
@@ -1762,6 +1766,11 @@ void CGameRules::MutatorsThink(void)
 
 							break;
 						}
+					}
+
+					if (!knownMutator)
+					{
+						ALERT(at_console, "Mutator \"%s\" is unknown and cannot be applied.\n", addmutator.string);
 					}
 				}
 			}
