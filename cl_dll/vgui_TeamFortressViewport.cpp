@@ -254,6 +254,7 @@ MutatorInfo sMutators[] = {
 	{ "expcrowbar", "crowbar swings detonate" },
 	{ "exploder", "everyone is a walking time bomb" },
 	{ "explosiveai", "explosiveai" },
+	{ "fadetoblack", "lower health darkens vision and boosts your damage" },
 	{ "fastweapons", "pew pew pew" },
 	{ "firebullets", "lead on fire" },
 	{ "firestarter", "everything's on fire" },

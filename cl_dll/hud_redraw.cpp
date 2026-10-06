@@ -49,6 +49,90 @@ extern cvar_t *cl_respawnbar;
 
 extern float g_NotifyTime;
 
+static int GetFadeToBlackOverlayAlpha()
+{
+	if (!MutatorEnabled(MUTATOR_FADETOBLACK))
+		return 0;
+
+	if (gEngfuncs.IsSpectateOnly())
+		return 0;
+
+	cl_entity_s *pLocal = gEngfuncs.GetLocalPlayer();
+	if (!pLocal || !pLocal->player)
+		return 0;
+
+	if (g_iUser1 > 0 || pLocal->curstate.iuser1 > 0)
+		return 0;
+
+	int currentHealth = pLocal->curstate.health;
+	if (currentHealth <= 0)
+		currentHealth = gHUD.m_Health.m_iHealth;
+
+	if (currentHealth <= 0)
+		return 0;
+
+	const int assumedMaxHealth = MutatorEnabled(MUTATOR_999) ? 999 : 100;
+	float healthRatio = (float)currentHealth / (float)assumedMaxHealth;
+	if (healthRatio < 0.0f)
+		healthRatio = 0.0f;
+	else if (healthRatio > 1.0f)
+		healthRatio = 1.0f;
+
+	const float missingHealth = 1.0f - healthRatio;
+	// Blend linear + quadratic ramps so fade starts earlier but still gets severe near death.
+	const float intensity = (missingHealth * 0.55f) + (missingHealth * missingHealth * 0.45f);
+	int alpha = (int)(intensity * 235.0f);
+	if (alpha < 0)
+		alpha = 0;
+	else if (alpha > 235)
+		alpha = 235;
+
+	return alpha;
+}
+
+static void DrawFadeToBlackOverlay(int alpha)
+{
+	if (alpha <= 0)
+		return;
+
+#ifndef __APPLE__
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glEnable(GL_BLEND);
+	glDisable(GL_DEPTH_TEST);
+	glDisable(GL_TEXTURE_2D);
+	glDisable(GL_TEXTURE_RECTANGLE_NV);
+
+	glMatrixMode(GL_MODELVIEW);
+	glPushMatrix();
+	glLoadIdentity();
+
+	glMatrixMode(GL_PROJECTION);
+	glPushMatrix();
+	glLoadIdentity();
+	glOrtho(0, 1, 1, 0, 0.1, 100);
+
+	glColor4f(0.0f, 0.0f, 0.0f, (float)alpha / 255.0f);
+
+	glBegin(GL_QUADS);
+	glVertex3f(0, 1, -1);
+	glVertex3f(0, 0, -1);
+	glVertex3f(1, 0, -1);
+	glVertex3f(1, 1, -1);
+	glEnd();
+
+	glMatrixMode(GL_PROJECTION);
+	glPopMatrix();
+
+	glMatrixMode(GL_MODELVIEW);
+	glPopMatrix();
+
+	glEnable(GL_DEPTH_TEST);
+	glDisable(GL_BLEND);
+#else
+	FillRGBA(0, 0, ScreenWidth, ScreenHeight, 0, 0, 0, alpha);
+#endif
+}
+
 // Think
 void CHud::Think(void)
 {
@@ -357,6 +441,12 @@ int CHud :: Redraw( float flTime, int intermission )
 			FillRGBA(ScreenWidth / 2 - (max / 2), ScreenHeight - (ScreenHeight * .2), max, height, r, g, b, 20);
 			FillRGBA(ScreenWidth / 2 - (timeLeft / 2), ScreenHeight - (ScreenHeight * .2), timeLeft, height, r, g, b, 164);
 		}
+	}
+
+	const int fadeToBlackAlpha = GetFadeToBlackOverlayAlpha();
+	if (fadeToBlackAlpha > 0)
+	{
+		DrawFadeToBlackOverlay(fadeToBlackAlpha);
 	}
 
 	if (g_WallClimb && g_WallClimb < gEngfuncs.GetClientTime())

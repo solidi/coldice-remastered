@@ -68,6 +68,39 @@ static BOOL IsRocketJumpSelfBlast( entvars_t *pevVictim, entvars_t *pevInflictor
 	return IsRocketJumpInflictor( pevInflictor );
 }
 
+static float GetFadeToBlackDamageScale( entvars_t *pevVictim, entvars_t *pevAttacker, float flDamage )
+{
+	if ( flDamage <= 0 || !g_pGameRules || !g_pGameRules->MutatorEnabled( MUTATOR_FADETOBLACK ) )
+		return 1.0f;
+
+	if ( !pevVictim || FNullEnt( pevAttacker ) || pevVictim == pevAttacker )
+		return 1.0f;
+
+	CBaseEntity *pAttackerEntity = CBaseEntity::Instance( pevAttacker );
+	if ( !pAttackerEntity || !pAttackerEntity->IsPlayer() )
+		return 1.0f;
+
+	CBasePlayer *pAttacker = (CBasePlayer *)pAttackerEntity;
+	if ( !pAttacker->IsAlive() || pAttacker->IsObserver() || pAttacker->pev->iuser1 != 0 || pAttacker->pev->deadflag != DEAD_NO )
+		return 1.0f;
+
+	float flMaxHealth = pAttacker->pev->max_health;
+	if ( flMaxHealth <= 1.0f )
+		flMaxHealth = 100.0f;
+
+	float flHealthRatio = pAttacker->pev->health / flMaxHealth;
+	if ( flHealthRatio < 0.0f )
+		flHealthRatio = 0.0f;
+	else if ( flHealthRatio > 1.0f )
+		flHealthRatio = 1.0f;
+
+	const float flMissingHealth = 1.0f - flHealthRatio;
+	const float flBonusCurve = flMissingHealth * flMissingHealth;
+
+	// At full health damage stays normal, and approaches 3x as health nears zero.
+	return 1.0f + (flBonusCurve * 2.0f);
+}
+
 
 // HACKHACK -- The gib velocity equations don't work
 void CGib :: LimitVelocity( void )
@@ -1065,6 +1098,13 @@ int CBaseMonster :: TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker,
 		const float flRocketJumpSelfDamageCap = 12.0f;
 		if ( flTake > flRocketJumpSelfDamageCap )
 			flTake = flRocketJumpSelfDamageCap;
+	}
+
+	const float flFadeToBlackScale = GetFadeToBlackDamageScale( pev, pevAttacker, flDamage );
+	if ( flFadeToBlackScale > 1.0f )
+	{
+		flDamage *= flFadeToBlackScale;
+		flTake *= flFadeToBlackScale;
 	}
 
 	if ( !IsPlayer() && g_pGameRules && g_pGameRules->MutatorEnabled( MUTATOR_VAMPIRE ) &&
