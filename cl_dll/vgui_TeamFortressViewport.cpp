@@ -285,6 +285,7 @@ MutatorInfo sMutators[] = {
 	{ "minime", "small but mighty" },
 	{ "mirror", "why does the map look weird?" },
 	{ "napkinstory", "it's a napkin story" },
+	{ "nelliaschoice", "one random non-movement bind becomes lethal" },
 	{ "negativepi", "pi is now -1" },
 	{ "noclip", "walk through walls" },
 	{ "nomouse", "alive players lose mouse input" },

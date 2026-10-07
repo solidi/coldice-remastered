@@ -117,6 +117,7 @@ DLL_GLOBAL const char *g_szMutators[] = {
 	"minime",
 	"mirror",
 	"napkinstory",
+	"nelliaschoice",
 	"negativepi",
 	"noclip",
 	"nomouse",
@@ -171,6 +172,31 @@ DLL_GLOBAL const char *g_szMutators[] = {
 	"victor",
 	"volatile",
 	"waterhurt",
+};
+
+typedef struct nellia_choice_button_s
+{
+	int buttonMask;
+	const char *name;
+} nellia_choice_button_t;
+
+enum
+{
+	NELLIA_KEY_USE = (1 << 5),
+	NELLIA_KEY_ATTACK2 = (1 << 11),
+	NELLIA_KEY_RELOAD = (1 << 13),
+	NELLIA_KEY_ALT1 = (1 << 16),
+	NELLIA_KEY_SCORE = (1 << 15),
+	NELLIA_KEY_IRONSIGHT = (1 << 14)
+};
+
+static const nellia_choice_button_t g_NelliaChoiceButtons[] = {
+	{ NELLIA_KEY_USE, "USE" },
+	{ NELLIA_KEY_ATTACK2, "SECONDARY ATTACK" },
+	{ NELLIA_KEY_RELOAD, "RELOAD" },
+	{ NELLIA_KEY_ALT1, "ALT1" },
+	{ NELLIA_KEY_IRONSIGHT, "IRONSIGHT" },
+	{ NELLIA_KEY_SCORE, "SCORE" },
 };
 
 static void FreeMutatorChain(mutators_t *head)
@@ -1151,6 +1177,71 @@ mutators_t *CGameRules::GetMutators()
 	return m_Mutators;
 }
 
+void CGameRules::ClearNelliaChoiceDangerKey(void)
+{
+	m_iNelliaChoiceDangerButton = 0;
+	m_szNelliaChoiceDangerKey[0] = '\0';
+}
+
+void CGameRules::RollNelliaChoiceDangerKey(void)
+{
+	const int keyCount = (int)ARRAYSIZE(g_NelliaChoiceButtons);
+	if (keyCount <= 0)
+	{
+		ClearNelliaChoiceDangerKey();
+		return;
+	}
+
+	const int keyIndex = RANDOM_LONG(0, keyCount - 1);
+	m_iNelliaChoiceDangerButton = g_NelliaChoiceButtons[keyIndex].buttonMask;
+	strncpy(m_szNelliaChoiceDangerKey, g_NelliaChoiceButtons[keyIndex].name, sizeof(m_szNelliaChoiceDangerKey) - 1);
+	m_szNelliaChoiceDangerKey[sizeof(m_szNelliaChoiceDangerKey) - 1] = '\0';
+
+	char message[128];
+	const int written = snprintf(message, sizeof(message), "%s is the danger key!\n", m_szNelliaChoiceDangerKey);
+	if (written > 0)
+		UTIL_ClientPrintAll(HUD_PRINTCENTER, message);
+
+	UTIL_LogPrintf("Mutator \"nelliaschoice\" selected danger key \"%s\" at %.2f\n", m_szNelliaChoiceDangerKey, gpGlobals->time);
+}
+
+BOOL CGameRules::CheckNelliaChoiceDangerKey(CBasePlayer *pPlayer)
+{
+	if (!pPlayer || !MutatorEnabled(MUTATOR_NELLIASCHOICE) || !m_iNelliaChoiceDangerButton)
+		return FALSE;
+
+	if (!pPlayer->IsAlive() || pPlayer->IsObserver() || pPlayer->HasDisconnected || pPlayer->pev->deadflag != DEAD_NO)
+		return FALSE;
+
+	if (!(pPlayer->m_afButtonPressed & m_iNelliaChoiceDangerButton))
+		return FALSE;
+
+	char message[128];
+	const char *dangerKey = m_szNelliaChoiceDangerKey[0] ? m_szNelliaChoiceDangerKey : "UNKNOWN";
+	const int messageWritten = snprintf(message, sizeof(message), "Danger key: %s\n", dangerKey);
+	if (messageWritten > 0)
+	{
+		ClientPrint(pPlayer->pev, HUD_PRINTCENTER, message);
+		UTIL_ClientPrintAll(HUD_PRINTCENTER, message);
+	}
+
+	UTIL_LogPrintf("Mutator \"nelliaschoice\" detonated \"%s\" with key \"%s\" at %.2f\n",
+		STRING(pPlayer->pev->netname),
+		dangerKey,
+		gpGlobals->time);
+
+	CGrenade::Vest(pPlayer->pev, pPlayer->pev->origin, 140.0f);
+
+	if (pPlayer->IsAlive())
+	{
+		pPlayer->pev->flags &= ~FL_GODMODE;
+		pPlayer->pev->health = 0;
+		pPlayer->Killed(pPlayer->pev, pPlayer->pev, GIB_ALWAYS);
+	}
+
+	return TRUE;
+}
+
 void CGameRules::AddRandomMutator(const char *cvarName, BOOL withBar, BOOL three)
 {
 	int mutatorTime = fmin(fmax(mutatortime.value, 10), 120);
@@ -1664,9 +1755,17 @@ void CGameRules::MutatorsThink(void)
 
 		if (strlen(addmutator.string))
 		{
-			if (g_pGameRules->MutatorAllowed(addmutator.string))
+			char addMutatorName[64] = "";
+			if (sscanf(addmutator.string, "%63s", addMutatorName) != 1)
+				addMutatorName[0] = '\0';
+
+			char *idEnd = NULL;
+			long requestedMutatorId = strtol(addMutatorName, &idEnd, 10);
+			BOOL hasNumericMutatorId = (addMutatorName[0] != '\0' && idEnd != NULL && *idEnd == '\0');
+
+			if (g_pGameRules->MutatorAllowed(addMutatorName))
 			{
-				if (strstr(addmutator.string, "chaos") || !strcmp(addmutator.string, "1"))
+				if (!stricmp(addMutatorName, "chaos") || (hasNumericMutatorId && requestedMutatorId == MUTATOR_CHAOS))
 				{
 					m_flChaosMutatorTime = gpGlobals->time + choasIncrement;
 					MESSAGE_BEGIN(MSG_ALL, gmsgChaos);
@@ -1674,12 +1773,12 @@ void CGameRules::MutatorsThink(void)
 					MESSAGE_END();
 					ALERT(at_console, "Mutator chaos enabled.\n");
 				}
-				else if (!strcmp(addmutator.string, "unchaos"))
+				else if (!stricmp(addMutatorName, "unchaos"))
 				{
 					m_flChaosMutatorTime = 0;
 					ALERT(at_console, "Mutator chaos disabled.\n");
 				}
-				else if (!strcmp(addmutator.string, "clear"))
+				else if (!stricmp(addMutatorName, "clear"))
 				{
 					MESSAGE_BEGIN(MSG_ALL, gmsgAddMutator);
 						WRITE_BYTE(254);
@@ -1701,12 +1800,13 @@ void CGameRules::MutatorsThink(void)
 
 					for (int i = 0; i < MAX_MUTATORS; i++)
 					{
-						if (strstr(addmutator.string, g_szMutators[i]) || addmutator.value == (i + 1))
+						if (!stricmp(addMutatorName, g_szMutators[i]) ||
+							(hasNumericMutatorId && requestedMutatorId == (i + 1)))
 						{
 							knownMutator = TRUE;
 
 							// Special pass
-							if (strstr(addmutator.string, "three"))
+							if (!stricmp(addMutatorName, "three"))
 							{
 								BOOL bar=FALSE, three=TRUE;
 								AddRandomMutator("sv_mutatorlist", bar, three);
@@ -1761,6 +1861,8 @@ void CGameRules::MutatorsThink(void)
 								m_Mutators = mutator;
 
 								UTIL_LogPrintf("Mutator \"%s\" enabled at %.2f until %.2f\n", g_szMutators[i], gpGlobals->time, mutator->timeToLive);
+								if ((i + 1) == MUTATOR_NELLIASCHOICE)
+									RollNelliaChoiceDangerKey();
 
 								m_flDetectedMutatorChange = gpGlobals->time + 1.0;
 							}
@@ -1799,6 +1901,8 @@ void CGameRules::MutatorsThink(void)
 			if (m->timeToLive <= gpGlobals->time && m->timeToLive != -1)
 			{
 				UTIL_LogPrintf( "Mutator \"%s\" disabled at %.2f\n", g_szMutators[m->mutatorId-1], gpGlobals->time);
+				if (m->mutatorId == MUTATOR_NELLIASCHOICE)
+					ClearNelliaChoiceDangerKey();
 
 				m_flDetectedMutatorChange = gpGlobals->time + 1.0;
 				mutatorListChanged = TRUE;
@@ -1882,6 +1986,16 @@ void CGameRules::MutatorsThink(void)
 		RefreshSkillData();
 
 		EnvMutators();
+
+		if (MutatorEnabled(MUTATOR_NELLIASCHOICE))
+		{
+			if (!m_iNelliaChoiceDangerButton)
+				RollNelliaChoiceDangerKey();
+		}
+		else
+		{
+			ClearNelliaChoiceDangerKey();
+		}
 
 		if (m_JopeCheck) {
 			UTIL_ClientPrintAll(HUD_PRINTCENTER, "The JOPE is over with!\n");

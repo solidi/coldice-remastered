@@ -3530,6 +3530,9 @@ void CBasePlayer::PreThink(void)
 		return;
 	}
 
+	if (g_pGameRules && g_pGameRules->CheckNelliaChoiceDangerKey(this))
+		return;
+
 	if ( g_pGameRules->MutatorEnabled(MUTATOR_STOMPONHEAD) && pev->gravity >= 0.9f )
 	{
 		pev->gravity = 0.70f;
