@@ -331,6 +331,7 @@ int CHud :: Redraw( float flTime, int intermission )
 
 	int r, g, b;
 	UnpackRGB(r, g, b, HudColor());
+	const bool noHudMutator = MutatorEnabled(MUTATOR_NOHUD);
 	
 	// draw all registered HUD elements
 	if ( m_pCvarDraw->value )
@@ -344,19 +345,26 @@ int CHud :: Redraw( float flTime, int intermission )
 				if ( !intermission )
 				{
 					if ( (pList->p->m_iFlags & HUD_ACTIVE) && !(m_iHideHUDDisplay & HIDEHUD_ALL) )
-						pList->p->Draw(flTime);
+					{
+						if (!noHudMutator || pList->p == &m_StatusIcons || pList->p == &m_Ammo)
+							pList->p->Draw(flTime);
+					}
 				}
 				else
 				{  // it's an intermission,  so only draw hud elements that are set to draw during intermissions
 					if ( pList->p->m_iFlags & HUD_INTERMISSION )
-						pList->p->Draw( flTime );
+					{
+						if (!noHudMutator || pList->p == &m_StatusIcons || pList->p == &m_Ammo)
+							pList->p->Draw( flTime );
+					}
 				}
 			}
 			else
 			{
 				if ( ( pList->p == &m_Benchmark ) &&
 					 ( pList->p->m_iFlags & HUD_ACTIVE ) &&
-					 !( m_iHideHUDDisplay & HIDEHUD_ALL ) )
+					 !( m_iHideHUDDisplay & HIDEHUD_ALL ) &&
+					 !noHudMutator )
 				{
 					pList->p->Draw(flTime);
 				}
@@ -372,7 +380,7 @@ int CHud :: Redraw( float flTime, int intermission )
 	HUD_DrawOrthoTriangles();
 
 	// are we in demo mode? do we need to draw the logo in the top corner?
-	if (m_iLogo)
+	if (m_iLogo && !noHudMutator)
 	{
 		int x, y, i;
 
@@ -419,7 +427,7 @@ int CHud :: Redraw( float flTime, int intermission )
 	}
 	*/
 
-	if (m_ShowKeyboard)
+	if (m_ShowKeyboard && !noHudMutator)
 	{
 		HSPRITE m_hStatic = SPR_Load("sprites/keyboard.spr");
 		SPR_Set(m_hStatic, r, g, b);

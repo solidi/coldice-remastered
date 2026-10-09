@@ -120,6 +120,7 @@ DLL_GLOBAL const char *g_szMutators[] = {
 	"nelliaschoice",
 	"negativepi",
 	"noclip",
+	"nohud",
 	"nomouse",
 	"noradar",
 	"noreload",

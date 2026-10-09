@@ -288,6 +288,7 @@ MutatorInfo sMutators[] = {
 	{ "nelliaschoice", "one random non-movement bind becomes lethal" },
 	{ "negativepi", "pi is now -1" },
 	{ "noclip", "walk through walls" },
+	{ "nohud", "hide all hud elements except its own status icon" },
 	{ "nomouse", "alive players lose mouse input" },
 	{ "noradar", "cannot see the radar" },
 	{ "noreload", "no need to reload" },

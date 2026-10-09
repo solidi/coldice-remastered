@@ -64,15 +64,17 @@ void CHudStatusIcons::Reset( void )
 // Draw status icons along the left-hand side of the screen
 int CHudStatusIcons::Draw( float flTime )
 {
-	if (gEngfuncs.IsSpectateOnly() || gHUD.m_iShowingWeaponMenu)
+	const bool noHudMutator = MutatorEnabled(MUTATOR_NOHUD);
+
+	if ((gEngfuncs.IsSpectateOnly() || gHUD.m_iShowingWeaponMenu) && !noHudMutator)
 		return 1;
 
-	if (g_iUser3 >= OBS_BEGIN && g_iUser3 <= OBS_END) // when there is a menu, don't show status icons
+	if ((g_iUser3 >= OBS_BEGIN && g_iUser3 <= OBS_END) && !noHudMutator) // when there is a menu, don't show status icons
 		return 1;
 
 	// Chaos bar
 	int time = gHUD.m_ChaosTime;
-	if (time > gHUD.m_flTime)
+	if (!noHudMutator && time > gHUD.m_flTime)
 	{
 		int minutes = fmin(fmax(0, (int)( gHUD.m_ChaosTime - gHUD.m_flTime ) / 60), 99);
 		int seconds = fmin(fmax(0, (int)( gHUD.m_ChaosTime - gHUD.m_flTime ) - (minutes * 60)), 59);
@@ -98,6 +100,9 @@ int CHudStatusIcons::Draw( float flTime )
 	{
 		if ( m_IconList[i].spr )
 		{
+			if (noHudMutator && stricmp(m_IconList[i].szSpriteName, "nohud") != 0)
+				continue;
+
 			// Label the icon for clarity
 			const char *szSpriteName = m_IconList[i].szSpriteName;
 			if (strncmp(szSpriteName, "rune_", 5) == 0)
