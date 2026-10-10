@@ -43,6 +43,7 @@
 #include	"busters_gamerules.h"
 #include	"coldspot_gamerules.h"
 #include	"shake.h"
+#include	"in_buttons.h"
 
 extern edict_t *EntSelectSpawnPoint( CBaseEntity *pPlayer );
 
@@ -66,6 +67,7 @@ DLL_GLOBAL const char *g_szMutators[] = {
 	"chaos",
 	"999",
 	"amidead",
+	"ammoregen",
 	"astronaut",
 	"autoaim",
 	"barrels",
@@ -82,12 +84,16 @@ DLL_GLOBAL const char *g_szMutators[] = {
 	"dealter",
 	"dontshoot",
 	"drunk",
+	"expcrowbar",
+	"exploder",
 	"explosiveai",
+	"fadetoblack",
 	"fastweapons",
 	"firebullets",
 	"firestarter",
 	"floorislava",
 	"fog",
+	"fragswap",
 	"godmode",
 	"goldenguns",
 	"grenades",
@@ -113,7 +119,9 @@ DLL_GLOBAL const char *g_szMutators[] = {
 	"mirror",
 	"napkinstory",
 	"negativepi",
+	"nelliaschoice",
 	"noclip",
+	"nohud",
 	"nomouse",
 	"noradar",
 	"noreload",
@@ -131,6 +139,7 @@ DLL_GLOBAL const char *g_szMutators[] = {
 	"railguns",
 	"randomweapon",
 	"rats",
+	"regen",
 	"revive",
 	"ricochet",
 	"rocketbees",
@@ -146,6 +155,7 @@ DLL_GLOBAL const char *g_szMutators[] = {
 	"slowbullets",
 	"slowmo",
 	"slowweapons",
+	"snarkbar",
 	"snowballs",
 	"speedup",
 	"stahp",
@@ -159,10 +169,27 @@ DLL_GLOBAL const char *g_szMutators[] = {
 	"triplebang",
 	"turrets",
 	"upsidedown",
+	"vampire",
 	"vested",
 	"victor",
 	"volatile",
 	"waterhurt",
+};
+
+typedef struct nellia_choice_button_s
+{
+	int buttonMask;
+	const char *name;
+} nellia_choice_button_t;
+
+// Movement keys are deliberately excluded so the mutator cannot make a player undroppable.
+static const nellia_choice_button_t g_NelliaChoiceButtons[] = {
+	{ IN_USE, "USE" },
+	{ IN_ATTACK2, "SECONDARY ATTACK" },
+	{ IN_RELOAD, "RELOAD" },
+	{ IN_ALT1, "ALT1" },
+	{ IN_IRONSIGHT, "IRONSIGHT" },
+	{ IN_SCORE, "SCORE" },
 };
 
 static void FreeMutatorChain(mutators_t *head)
@@ -940,6 +967,11 @@ void CGameRules::GiveMutators(CBasePlayer *pPlayer)
 		}
 	}
 
+	if (MutatorEnabled(MUTATOR_EXPCROWBAR) || MutatorEnabled(MUTATOR_SNARKBAR)) {
+		if (!pPlayer->HasNamedPlayerItem("weapon_crowbar"))
+			pPlayer->GiveNamedItem("weapon_crowbar");
+	}
+
 	if (MutatorEnabled(MUTATOR_INSTAGIB)) {
 		if (!pPlayer->HasNamedPlayerItem("weapon_zapgun"))
 		{
@@ -1136,6 +1168,71 @@ BOOL CGameRules::MutatorEnabled(int mutatorId)
 mutators_t *CGameRules::GetMutators()
 {
 	return m_Mutators;
+}
+
+void CGameRules::ClearNelliaChoiceDangerKey(void)
+{
+	m_iNelliaChoiceDangerButton = 0;
+	m_szNelliaChoiceDangerKey[0] = '\0';
+}
+
+void CGameRules::RollNelliaChoiceDangerKey(void)
+{
+	const int keyCount = (int)ARRAYSIZE(g_NelliaChoiceButtons);
+	if (keyCount <= 0)
+	{
+		ClearNelliaChoiceDangerKey();
+		return;
+	}
+
+	const int keyIndex = RANDOM_LONG(0, keyCount - 1);
+	m_iNelliaChoiceDangerButton = g_NelliaChoiceButtons[keyIndex].buttonMask;
+	strncpy(m_szNelliaChoiceDangerKey, g_NelliaChoiceButtons[keyIndex].name, sizeof(m_szNelliaChoiceDangerKey) - 1);
+	m_szNelliaChoiceDangerKey[sizeof(m_szNelliaChoiceDangerKey) - 1] = '\0';
+
+	char message[128];
+	const int written = snprintf(message, sizeof(message), "%s is the danger key!\n", m_szNelliaChoiceDangerKey);
+	if (written > 0)
+		UTIL_ClientPrintAll(HUD_PRINTCENTER, message);
+
+	UTIL_LogPrintf("Mutator \"nelliaschoice\" selected danger key \"%s\" at %.2f\n", m_szNelliaChoiceDangerKey, gpGlobals->time);
+}
+
+BOOL CGameRules::CheckNelliaChoiceDangerKey(CBasePlayer *pPlayer)
+{
+	if (!pPlayer || !MutatorEnabled(MUTATOR_NELLIASCHOICE) || !m_iNelliaChoiceDangerButton)
+		return FALSE;
+
+	if (!pPlayer->IsAlive() || pPlayer->IsObserver() || pPlayer->HasDisconnected || pPlayer->pev->deadflag != DEAD_NO)
+		return FALSE;
+
+	if (!(pPlayer->m_afButtonPressed & m_iNelliaChoiceDangerButton))
+		return FALSE;
+
+	char message[128];
+	const char *dangerKey = m_szNelliaChoiceDangerKey[0] ? m_szNelliaChoiceDangerKey : "UNKNOWN";
+	const int messageWritten = snprintf(message, sizeof(message), "Danger key: %s\n", dangerKey);
+	if (messageWritten > 0)
+	{
+		ClientPrint(pPlayer->pev, HUD_PRINTCENTER, message);
+		UTIL_ClientPrintAll(HUD_PRINTCENTER, message);
+	}
+
+	UTIL_LogPrintf("Mutator \"nelliaschoice\" detonated \"%s\" with key \"%s\" at %.2f\n",
+		STRING(pPlayer->pev->netname),
+		dangerKey,
+		gpGlobals->time);
+
+	CGrenade::Vest(pPlayer->pev, pPlayer->pev->origin, 140.0f);
+
+	if (pPlayer->IsAlive())
+	{
+		pPlayer->pev->flags &= ~FL_GODMODE;
+		pPlayer->pev->health = 0;
+		pPlayer->Killed(pPlayer->pev, pPlayer->pev, GIB_ALWAYS);
+	}
+
+	return TRUE;
 }
 
 void CGameRules::AddRandomMutator(const char *cvarName, BOOL withBar, BOOL three)
@@ -1546,6 +1643,52 @@ void CGameRules::AddInstantMutator(void)
 	MESSAGE_END();
 }
 
+// exploder mutator tuning
+#define EXPLODER_BLAST_DAMAGE	140.0f	// RadiusDamage derives the blast radius as damage * 2.5
+#define EXPLODER_MIN_FUSE		4.0f
+#define EXPLODER_MAX_FUSE		45.0f
+#define EXPLODER_CHANCE			35		// percent chance to actually detonate when a fuse expires
+
+// Every living participant carries a randomly timed fuse; when it burns down they
+// get a percentage roll to detonate where they stand.
+void CGameRules::ExploderMutatorThink(void)
+{
+	const BOOL enabled = MutatorEnabled(MUTATOR_EXPLODER);
+
+	for (int i = 1; i <= gpGlobals->maxClients; i++)
+	{
+		CBasePlayer *pPlayer = (CBasePlayer *)UTIL_PlayerByIndex(i);
+
+		if (!pPlayer || !pPlayer->IsPlayer())
+			continue;
+
+		if (!enabled || !pPlayer->IsAlive() || pPlayer->IsObserver() ||
+			pPlayer->pev->deadflag != DEAD_NO || FBitSet(pPlayer->pev->flags, FL_GODMODE))
+		{
+			pPlayer->m_flExploderTime = 0;
+			continue;
+		}
+
+		if (pPlayer->m_flExploderTime == 0)
+		{
+			pPlayer->m_flExploderTime = gpGlobals->time + RANDOM_FLOAT(EXPLODER_MIN_FUSE, EXPLODER_MAX_FUSE);
+			continue;
+		}
+
+		if (pPlayer->m_flExploderTime > gpGlobals->time)
+			continue;
+
+		pPlayer->m_flExploderTime = gpGlobals->time + RANDOM_FLOAT(EXPLODER_MIN_FUSE, EXPLODER_MAX_FUSE);
+
+		if (RANDOM_LONG(1, 100) > EXPLODER_CHANCE)
+			continue;
+
+		UTIL_LogPrintf("Mutator \"exploder\" detonated \"%s\" at %.2f\n", STRING(pPlayer->pev->netname), gpGlobals->time);
+
+		CGrenade::Vest(pPlayer->pev, pPlayer->pev->origin, EXPLODER_BLAST_DAMAGE);
+	}
+}
+
 void CGameRules::MutatorsThink(void)
 {
 	// Don't process mutators during round intermission
@@ -1605,9 +1748,31 @@ void CGameRules::MutatorsThink(void)
 
 		if (strlen(addmutator.string))
 		{
-			if (g_pGameRules->MutatorAllowed(addmutator.string))
+			char addMutatorName[64] = "";
+			if (sscanf(addmutator.string, "%63s", addMutatorName) != 1)
+				addMutatorName[0] = '\0';
+
+			char *idEnd = NULL;
+			long requestedMutatorId = strtol(addMutatorName, &idEnd, 10);
+			BOOL hasNumericMutatorId = (addMutatorName[0] != '\0' && idEnd != NULL && *idEnd == '\0');
+
+			int resolvedMutatorIndex = -1;
+			for (int i = 0; i < MAX_MUTATORS; i++)
 			{
-				if (strstr(addmutator.string, "chaos") || !strcmp(addmutator.string, "1"))
+				if (!stricmp(addMutatorName, g_szMutators[i]) ||
+					(hasNumericMutatorId && requestedMutatorId == (i + 1)))
+				{
+					resolvedMutatorIndex = i;
+					break;
+				}
+			}
+
+			// Mode filters match case-sensitively against canonical names, so never hand them raw user input.
+			const char *filterMutatorName = (resolvedMutatorIndex >= 0) ? g_szMutators[resolvedMutatorIndex] : addMutatorName;
+
+			if (g_pGameRules->MutatorAllowed(filterMutatorName))
+			{
+				if ((resolvedMutatorIndex + 1) == MUTATOR_CHAOS)
 				{
 					m_flChaosMutatorTime = gpGlobals->time + choasIncrement;
 					MESSAGE_BEGIN(MSG_ALL, gmsgChaos);
@@ -1615,12 +1780,12 @@ void CGameRules::MutatorsThink(void)
 					MESSAGE_END();
 					ALERT(at_console, "Mutator chaos enabled.\n");
 				}
-				else if (!strcmp(addmutator.string, "unchaos"))
+				else if (!stricmp(addMutatorName, "unchaos"))
 				{
 					m_flChaosMutatorTime = 0;
 					ALERT(at_console, "Mutator chaos disabled.\n");
 				}
-				else if (!strcmp(addmutator.string, "clear"))
+				else if (!stricmp(addMutatorName, "clear"))
 				{
 					MESSAGE_BEGIN(MSG_ALL, gmsgAddMutator);
 						WRITE_BYTE(254);
@@ -1638,12 +1803,16 @@ void CGameRules::MutatorsThink(void)
 				}
 				else
 				{
+					BOOL knownMutator = FALSE;
+
 					for (int i = 0; i < MAX_MUTATORS; i++)
 					{
-						if (strstr(addmutator.string, g_szMutators[i]) || addmutator.value == (i + 1))
+						if (i == resolvedMutatorIndex)
 						{
+							knownMutator = TRUE;
+
 							// Special pass
-							if (strstr(addmutator.string, "three"))
+							if ((i + 1) == MUTATOR_THREE)
 							{
 								BOOL bar=FALSE, three=TRUE;
 								AddRandomMutator("sv_mutatorlist", bar, three);
@@ -1698,12 +1867,19 @@ void CGameRules::MutatorsThink(void)
 								m_Mutators = mutator;
 
 								UTIL_LogPrintf("Mutator \"%s\" enabled at %.2f until %.2f\n", g_szMutators[i], gpGlobals->time, mutator->timeToLive);
+								if ((i + 1) == MUTATOR_NELLIASCHOICE)
+									RollNelliaChoiceDangerKey();
 
 								m_flDetectedMutatorChange = gpGlobals->time + 1.0;
 							}
 
 							break;
 						}
+					}
+
+					if (!knownMutator)
+					{
+						ALERT(at_console, "Mutator \"%s\" is unknown and cannot be applied.\n", addmutator.string);
 					}
 				}
 			}
@@ -1731,6 +1907,8 @@ void CGameRules::MutatorsThink(void)
 			if (m->timeToLive <= gpGlobals->time && m->timeToLive != -1)
 			{
 				UTIL_LogPrintf( "Mutator \"%s\" disabled at %.2f\n", g_szMutators[m->mutatorId-1], gpGlobals->time);
+				if (m->mutatorId == MUTATOR_NELLIASCHOICE)
+					ClearNelliaChoiceDangerKey();
 
 				m_flDetectedMutatorChange = gpGlobals->time + 1.0;
 				mutatorListChanged = TRUE;
@@ -1803,6 +1981,8 @@ void CGameRules::MutatorsThink(void)
 		else
 			m_flInstantMutatorTime = -1;
 
+		ExploderMutatorThink();
+
 		m_flAddMutatorTime = gpGlobals->time + 1.0;
 	}
 
@@ -1812,6 +1992,16 @@ void CGameRules::MutatorsThink(void)
 		RefreshSkillData();
 
 		EnvMutators();
+
+		if (MutatorEnabled(MUTATOR_NELLIASCHOICE))
+		{
+			if (!m_iNelliaChoiceDangerButton)
+				RollNelliaChoiceDangerKey();
+		}
+		else
+		{
+			ClearNelliaChoiceDangerKey();
+		}
 
 		if (m_JopeCheck) {
 			UTIL_ClientPrintAll(HUD_PRINTCENTER, "The JOPE is over with!\n");
@@ -1913,6 +2103,16 @@ void CGameRules::MutatorsThink(void)
 					pl->m_flNextSantaSound = 0;
 
 				GiveMutators(pl);
+
+				// Explosive Crowbar swaps the crowbar's view/player models, so re-deploy on either toggle edge.
+				// Snarkbar needs the throw sequences, so it keeps the stock model (see CCrowbar::Deploy).
+				if (pl->IsAlive() && pl->m_pActiveItem && FClassnameIs(pl->m_pActiveItem->pev, "weapon_crowbar"))
+				{
+					const BOOL wantsExplosiveModel = MutatorEnabled(MUTATOR_EXPCROWBAR) && !MutatorEnabled(MUTATOR_SNARKBAR);
+					const char *pszWantedModel = wantsExplosiveModel ? "models/v_rocketcrowbar.mdl" : "models/v_crowbar.mdl";
+					if (!FStrEq(STRING(pl->pev->viewmodel), pszWantedModel))
+						pl->m_pActiveItem->Deploy();
+				}
 
 				if (MutatorEnabled(MUTATOR_INVISIBLE))
 				{

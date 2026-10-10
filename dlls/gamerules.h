@@ -196,6 +196,8 @@ public:
 	virtual void AddInstantMutator( void );
 	virtual void AddRandomMutator( const char *cvarName, BOOL withBar=FALSE, BOOL perm=FALSE );
 	virtual void MutatorsThink( void );
+	virtual BOOL CheckNelliaChoiceDangerKey( CBasePlayer *pPlayer );
+	void ExploderMutatorThink( void );
 	virtual BOOL MutatorAllowed(const char *mutator) = FALSE;
 	virtual void CheckGameMode( void );
 	virtual void PauseMutators( void );
@@ -251,6 +253,8 @@ private:
 	float m_flChaosMutatorTime = 0;
 	float m_flInstantMutatorTime = 0;
 	float m_flDetectedMutatorChange = 0;
+	int m_iNelliaChoiceDangerButton = 0;
+	char m_szNelliaChoiceDangerKey[32] = "";
 	mutators_t *m_Mutators = NULL;
 
 	// Round-based mutator pause/restore system
@@ -258,6 +262,9 @@ private:
 	mutators_t *m_SavedMutators = NULL;
 	float m_flSavedChaosMutatorTime = 0;
 	float m_flPausedTimeDelta = 0;
+
+	void RollNelliaChoiceDangerKey( void );
+	void ClearNelliaChoiceDangerKey( void );
 };
 
 extern CGameRules *InstallGameRules( void );

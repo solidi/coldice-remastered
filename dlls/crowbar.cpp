@@ -23,6 +23,189 @@
 #include "gamerules.h"
 #include "game.h"
 
+#ifdef CLIENT_DLL
+extern bool MutatorEnabled( int mutatorId );
+#else
+#include "soundent.h"
+#include "decals.h"
+#endif
+
+#define EXPCROWBAR_VIEW_MODEL	"models/v_rocketcrowbar.mdl"
+#define EXPCROWBAR_BLAST_DAMAGE	100.0f
+#define EXPCROWBAR_BLAST_RADIUS	250.0f
+
+#define SNARKBAR_SNARK_COUNT	5
+#define SNARKBAR_RING_RADIUS	18.0f
+#define SNARKBAR_SURFACE_PUSH	14.0f
+
+static BOOL ExplosiveCrowbarActive( void )
+{
+#ifdef CLIENT_DLL
+	return MutatorEnabled( MUTATOR_EXPCROWBAR ) ? TRUE : FALSE;
+#else
+	return g_pGameRules && g_pGameRules->MutatorEnabled( MUTATOR_EXPCROWBAR );
+#endif
+}
+
+static BOOL SnarkbarActive( void )
+{
+#ifdef CLIENT_DLL
+	return MutatorEnabled( MUTATOR_SNARKBAR ) ? TRUE : FALSE;
+#else
+	return g_pGameRules && g_pGameRules->MutatorEnabled( MUTATOR_SNARKBAR );
+#endif
+}
+
+// v_rocketcrowbar.mdl has no pull_back/throw sequences, so swapping to it disables the
+// throw and the charged smash. Snarkbar needs the throw, so it wins the model slot.
+static BOOL ExplosiveCrowbarModelActive( void )
+{
+	return ExplosiveCrowbarActive() && !SnarkbarActive();
+}
+
+#ifndef CLIENT_DLL
+// Blast is deliberately attacker-immune: only bystanders, props and the world take it.
+static void ExplosiveCrowbarBlast( entvars_t *pevInflictor, entvars_t *pevAttacker, TraceResult *pTrace )
+{
+	Vector vecOrigin = pTrace->vecEndPos + pTrace->vecPlaneNormal * 8;
+	int iContents = UTIL_PointContents( vecOrigin );
+
+	MESSAGE_BEGIN( MSG_PAS, SVC_TEMPENTITY, vecOrigin );
+		WRITE_BYTE( TE_EXPLOSION );
+		WRITE_COORD( vecOrigin.x );
+		WRITE_COORD( vecOrigin.y );
+		WRITE_COORD( vecOrigin.z );
+		if ( iContents != CONTENTS_WATER )
+			WRITE_SHORT( icesprites.value ? g_sModelIndexIceFireball : g_sModelIndexFireball );
+		else
+			WRITE_SHORT( g_sModelIndexWExplosion );
+		WRITE_BYTE( 25 );	// scale * 10
+		WRITE_BYTE( 15 );	// framerate
+		WRITE_BYTE( TE_EXPLFLAG_NONE );
+	MESSAGE_END();
+
+	CSoundEnt::InsertSound( bits_SOUND_COMBAT, vecOrigin, NORMAL_EXPLOSION_VOLUME, 3.0 );
+
+	enum decal_e decal = DECAL_SCORCH1;
+	int index = RANDOM_LONG( 0, 1 );
+	if ( g_pGameRules->MutatorEnabled( MUTATOR_PAINTBALL ) )
+	{
+		decal = DECAL_PAINTL1;
+		index = RANDOM_LONG( 0, 7 );
+	}
+	UTIL_DecalTrace( pTrace, decal + index );
+
+	RadiusDamage( vecOrigin, pevInflictor, pevAttacker, EXPCROWBAR_BLAST_DAMAGE, EXPCROWBAR_BLAST_RADIUS,
+		CLASS_NONE, DMG_BLAST | DMG_BURN, TRUE );
+}
+
+static BOOL FindSnarkbarSpawnPoint( const Vector &vecImpact, const Vector &vecNormal, const Vector &vecLateral, edict_t *pentIgnore, Vector *pOut )
+{
+	for ( int attempt = 0; attempt < 4; ++attempt )
+	{
+		const float flWallPush = SNARKBAR_SURFACE_PUSH + attempt * 10.0f;
+		const float flLift = 4.0f + attempt * 8.0f;
+		Vector vecCandidate = vecImpact + vecNormal * flWallPush + vecLateral + Vector( 0, 0, flLift );
+
+		TraceResult trOccupancy;
+		UTIL_TraceHull( vecCandidate, vecCandidate, dont_ignore_monsters, head_hull, pentIgnore, &trOccupancy );
+		if ( trOccupancy.fStartSolid || trOccupancy.fAllSolid )
+			continue;
+
+		TraceResult trDrop;
+		UTIL_TraceHull( vecCandidate + Vector( 0, 0, 16 ), vecCandidate - Vector( 0, 0, 64 ),
+			dont_ignore_monsters, head_hull, pentIgnore, &trDrop );
+
+		if ( !trDrop.fStartSolid && trDrop.flFraction < 1.0f )
+		{
+			vecCandidate = trDrop.vecEndPos + trDrop.vecPlaneNormal * 6;
+
+			TraceResult trFinal;
+			UTIL_TraceHull( vecCandidate, vecCandidate, dont_ignore_monsters, head_hull, pentIgnore, &trFinal );
+			if ( trFinal.fStartSolid || trFinal.fAllSolid )
+				continue;
+		}
+
+		*pOut = vecCandidate;
+		return TRUE;
+	}
+
+	return FALSE;
+}
+
+static void SpawnSnarkbarWave( entvars_t *pevCrowbar, EHANDLE &hOwner, const TraceResult *pTrace )
+{
+	if ( !SnarkbarActive() || !pevCrowbar )
+		return;
+
+	edict_t *pentOwner = NULL;
+	if ( hOwner != NULL )
+		pentOwner = hOwner->edict();
+	else if ( pevCrowbar->owner )
+		pentOwner = pevCrowbar->owner;
+
+	Vector vecImpact = pTrace ? pTrace->vecEndPos : pevCrowbar->origin;
+	Vector vecNormal = pTrace ? pTrace->vecPlaneNormal : g_vecZero;
+
+	if ( vecNormal.Length() < 0.01f )
+		vecNormal = -pevCrowbar->velocity;
+
+	if ( vecNormal.Length() < 0.01f )
+		vecNormal = Vector( 0, 0, 1 );
+	else
+		vecNormal = vecNormal.Normalize();
+
+	Vector vecUpRef = ( vecNormal.z > 0.75f || vecNormal.z < -0.75f ) ? Vector( 1, 0, 0 ) : Vector( 0, 0, 1 );
+	Vector vecRight = CrossProduct( vecNormal, vecUpRef );
+	if ( vecRight.Length() < 0.01f )
+		vecRight = Vector( 1, 0, 0 );
+	else
+		vecRight = vecRight.Normalize();
+
+	Vector vecForward = CrossProduct( vecRight, vecNormal );
+	if ( vecForward.Length() < 0.01f )
+		vecForward = Vector( 0, 1, 0 );
+	else
+		vecForward = vecForward.Normalize();
+
+	const Vector vecRingDirs[SNARKBAR_SNARK_COUNT] = {
+		vecForward,
+		(vecForward * 0.309f) + (vecRight * 0.951f),
+		(vecForward * -0.809f) + (vecRight * 0.588f),
+		(vecForward * -0.809f) + (vecRight * -0.588f),
+		(vecForward * 0.309f) + (vecRight * -0.951f),
+	};
+
+	int spawned = 0;
+	for ( int attempt = 0; attempt < 20 && spawned < SNARKBAR_SNARK_COUNT; ++attempt )
+	{
+		const int slot = attempt % SNARKBAR_SNARK_COUNT;
+		const float flRadius = SNARKBAR_RING_RADIUS + ( attempt / SNARKBAR_SNARK_COUNT ) * 10.0f;
+		Vector vecLateral = vecRingDirs[slot] * flRadius;
+
+		Vector vecSpawn;
+		if ( !FindSnarkbarSpawnPoint( vecImpact, vecNormal, vecLateral, ENT( pevCrowbar ), &vecSpawn ) )
+			continue;
+
+		CBaseEntity *pSnark = CBaseEntity::Create( "monster_snark", vecSpawn, g_vecZero, pentOwner );
+		if ( !pSnark )
+			continue;
+
+		Vector vecOut = vecLateral;
+		if ( vecOut.Length() < 0.01f )
+			vecOut = vecForward;
+		else
+			vecOut = vecOut.Normalize();
+
+		pSnark->pev->velocity = vecNormal * RANDOM_FLOAT( 80, 140 ) +
+			vecOut * RANDOM_FLOAT( 110, 180 ) +
+			Vector( 0, 0, RANDOM_FLOAT( 120, 190 ) );
+
+		spawned++;
+	}
+}
+#endif
+
 class CFlyingCrowbar : public CBaseEntity
 {
 public:
@@ -88,6 +271,7 @@ void CCrowbar::Spawn( )
 void CCrowbar::Precache( void )
 {
 	PRECACHE_MODEL("models/v_crowbar.mdl");
+	PRECACHE_MODEL(EXPCROWBAR_VIEW_MODEL);	// expcrowbar mutator can swap to this at any time
 	PRECACHE_SOUND("cbar_hit1.wav");
 	PRECACHE_SOUND("weapons/cbar_hit2.wav");
 	PRECACHE_SOUND("cbar_hitbod1.wav");
@@ -96,6 +280,10 @@ void CCrowbar::Precache( void )
 	PRECACHE_SOUND("weapons/cbar_miss1.wav");
 
 	m_usCrowbar = PRECACHE_EVENT ( 1, "events/crowbar.sc" );
+
+#ifndef CLIENT_DLL
+	UTIL_PrecacheOther("monster_snark");
+#endif
 }
 
 
@@ -137,6 +325,8 @@ BOOL CCrowbar::DeployLowKey( )
 	m_flReleaseThrow = -1;
 	m_flSmashStart = 0;
 	m_flNextSmashCharge = 0;
+	if ( ExplosiveCrowbarModelActive() )
+		return DeployExplosive( CROWBAR_DRAW_LOWKEY );
 	return DefaultDeploy( "models/v_crowbar.mdl", "models/p_weapons.mdl", CROWBAR_DRAW_LOWKEY, "crowbar" );
 }
 
@@ -146,7 +336,21 @@ BOOL CCrowbar::Deploy( )
 	m_flReleaseThrow = -1;
 	m_flSmashStart = 0;
 	m_flNextSmashCharge = 0;
+	if ( ExplosiveCrowbarModelActive() )
+		return DeployExplosive( CROWBAR_DRAW );
 	return DefaultDeploy( "models/v_crowbar.mdl", "models/p_weapons.mdl", CROWBAR_DRAW, "crowbar" );
+}
+
+// Explosive Crowbar borrows the rocket crowbar view model and p_weapons body so the ability reads visually.
+BOOL CCrowbar::DeployExplosive( int iAnim )
+{
+	if ( !DefaultDeploy( EXPCROWBAR_VIEW_MODEL, "models/p_weapons.mdl", iAnim, "crowbar" ) )
+		return FALSE;
+
+#ifndef CLIENT_DLL
+	m_pPlayer->pev->team = WEAPON_ROCKETCROWBAR - 1;
+#endif
+	return TRUE;
 }
 
 BOOL CCrowbar::CanSlide()
@@ -195,6 +399,14 @@ void CCrowbar::SecondaryAttack()
 		return PrimaryAttack();
 	}
 
+	// v_rocketcrowbar.mdl has no pull_back/throw sequences, so the throw degrades to a normal swing.
+	if ( ExplosiveCrowbarModelActive() )
+	{
+		PrimaryAttack();
+		m_flNextSecondaryAttack = m_flNextPrimaryAttack;
+		return;
+	}
+
 	if (m_flSmashStart > 0)
 		return;
 
@@ -225,6 +437,14 @@ void CCrowbar::Reload( void )
 	{
 		m_flNextPrimaryAttack = UTIL_WeaponTimeBase() + 0.5;
 		return PrimaryAttack();
+	}
+
+	// Same missing-sequence problem as the throw: the charged smash degrades to a normal swing.
+	if ( ExplosiveCrowbarModelActive() )
+	{
+		PrimaryAttack();
+		m_pPlayer->m_flNextAttack = m_flNextPrimaryAttack;
+		return;
 	}
 
 	// Don't interleave with the throw pull-back.
@@ -480,6 +700,9 @@ int CCrowbar::Swing( int fFirst )
 		}	
 		ApplyMultiDamage( m_pPlayer->pev, m_pPlayer->pev );
 
+		if ( ExplosiveCrowbarActive() )
+			ExplosiveCrowbarBlast( m_pPlayer->pev, m_pPlayer->pev, &tr );
+
 		// play thwack, smack, or dong sound
 		float flVol = 1.0;
 		int fHitWorld = TRUE;
@@ -661,16 +884,23 @@ void CFlyingCrowbar::Precache( )
    PRECACHE_SOUND ("cbar_hitbod1.wav");
    PRECACHE_SOUND ("cbar_hit1.wav");
    PRECACHE_SOUND ("weapons/cbar_miss1.wav");
+
+#ifndef CLIENT_DLL
+	UTIL_PrecacheOther("monster_snark");
+#endif
 }
 
 void CFlyingCrowbar::SpinTouch( CBaseEntity *pOther )
 {
+	// Capture the impact plane now; later effects can overwrite the engine's global trace.
+	TraceResult trTouch = UTIL_GetGlobalTrace( );
+
 	// We touched something in the game. Look to see if the object
 	// is allowed to take damage.
 	if (pOther->pev->takedamage)
 	{
 		// Get the traceline info to the target.
-		TraceResult tr = UTIL_GetGlobalTrace( );
+		TraceResult tr = trTouch;
 
 		// Apply damage to the target. If we have an owner stored, use that one,
 		// otherwise count it as self-inflicted.
@@ -706,6 +936,11 @@ void CFlyingCrowbar::SpinTouch( CBaseEntity *pOther )
 	pev->solid = SOLID_NOT;
 
 	#ifndef CLIENT_DLL
+	if ( ExplosiveCrowbarActive() )
+		ExplosiveCrowbarBlast( pev, ( m_hOwner != NULL ) ? m_hOwner->pev : pev, &trTouch );
+
+	SpawnSnarkbarWave( pev, m_hOwner, &trTouch );
+
 	CBasePlayer *pPlayer = (CBasePlayer *)GET_PRIVATE(pev->owner);
 	if (pPlayer && g_pGameRules->DeadPlayerWeapons(pPlayer) != GR_PLR_DROP_GUN_NO)
 	{

@@ -590,6 +590,14 @@ int CHudAmmo::MsgFunc_HideWeapon( const char *pszName, int iSize, void *pbuf )
 	if (gEngfuncs.IsSpectateOnly())
 		return 1;
 
+	if (MutatorEnabled(MUTATOR_NOHUD))
+	{
+		static wrect_t nullrc;
+		gpActiveSel = NULL;
+		SetCrosshair( 0, nullrc, 0, 0, 0 );
+		return 1;
+	}
+
 	if ( gHUD.m_iHideHUDDisplay & ( HIDEHUD_WEAPONS | HIDEHUD_ALL ) )
 	{
 		static wrect_t nullrc;
@@ -665,6 +673,12 @@ int CHudAmmo::MsgFunc_CurWeapon(const char *pszName, int iSize, void *pbuf )
 		return 1;
 
 	m_pWeapon = pWeapon;
+
+	if (MutatorEnabled(MUTATOR_NOHUD))
+	{
+		SetCrosshair(0, nullrc, 0, 0, 0);
+		return 1;
+	}
 
 	int r,g,b;
 	UnpackRGB(r,g,b, HudColor());
@@ -908,6 +922,17 @@ void CHudAmmo::UserCmd_PrevWeapon(void)
 
 int CHudAmmo::Draw(float flTime)
 {
+	static wrect_t nullrc;
+	static bool noHudCrosshairHidden = false;
+
+	if (MutatorEnabled(MUTATOR_NOHUD))
+	{
+		gpActiveSel = NULL;
+		SetCrosshair(0, nullrc, 0, 0, 0);
+		noHudCrosshairHidden = true;
+		return 1;
+	}
+
 	int a, x, y, r, g, b;
 	int AmmoWidth;
 
@@ -1112,11 +1137,12 @@ int CHudAmmo::Draw(float flTime)
 	}
 
 
-	if ( m_pWeapon && HudColor() != oldCrosshairValue ) {
+	if ( m_pWeapon && (HudColor() != oldCrosshairValue || noHudCrosshairHidden) ) {
 		int r,g,b;
 		UnpackRGB(r, g, b, HudColor());
 		SetCrosshair( m_pWeapon->hCrosshair, m_pWeapon->rcCrosshair, r, g, b );
 		oldCrosshairValue = HudColor();
+		noHudCrosshairHidden = false;
 	}
 
 	return 1;

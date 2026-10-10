@@ -156,6 +156,117 @@ static BOOL IsHeadshotPvpFinalBlow( CBasePlayer *pVictim, CBasePlayer *pAttacker
 	return ( gpGlobals->time - pVictim->m_flLastPvpHitTime ) <= 0.30f;
 }
 
+static BOOL ApplyRegenPulse( CBasePlayer *pPlayer, const Vector &fadeColor )
+{
+	if ( !pPlayer || !pPlayer->pev )
+		return FALSE;
+
+	if ( pPlayer->pev->health < pPlayer->pev->max_health )
+	{
+		pPlayer->pev->health += 1;
+		UTIL_ScreenFade( pPlayer, fadeColor, .5, .5, 32, FFADE_IN );
+		return TRUE;
+	}
+
+	if ( pPlayer->pev->armorvalue < pPlayer->pev->max_health )
+	{
+		pPlayer->pev->armorvalue += 1;
+		UTIL_ScreenFade( pPlayer, fadeColor, .5, .5, 32, FFADE_IN );
+		return TRUE;
+	}
+
+	return FALSE;
+}
+
+static BOOL ApplyAmmoRegenPulse( CBasePlayer *pPlayer )
+{
+	if ( !pPlayer || !pPlayer->pev || !pPlayer->m_pActiveItem )
+		return FALSE;
+
+	CBasePlayerWeapon *pWeapon = (CBasePlayerWeapon *)pPlayer->m_pActiveItem->GetWeaponPtr();
+	if ( !pWeapon || pWeapon->m_iId == WEAPON_NUKE )
+		return FALSE;
+
+	if ( pWeapon->m_iPrimaryAmmoType >= 0 &&
+		pPlayer->m_rgAmmo[pWeapon->m_iPrimaryAmmoType] < pWeapon->iMaxAmmo1() )
+	{
+		pPlayer->m_rgAmmo[pWeapon->m_iPrimaryAmmoType] += 1;
+		UTIL_ScreenFade( pPlayer, Vector(200, 200, 0), .5, .5, 32, FFADE_IN );
+		return TRUE;
+	}
+
+	if ( pWeapon->m_iSecondaryAmmoType >= 0 &&
+		pPlayer->m_rgAmmo[pWeapon->m_iSecondaryAmmoType] < pWeapon->iMaxAmmo2() )
+	{
+		pPlayer->m_rgAmmo[pWeapon->m_iSecondaryAmmoType] += 1;
+		UTIL_ScreenFade( pPlayer, Vector(200, 200, 0), .5, .5, 32, FFADE_IN );
+		return TRUE;
+	}
+
+	return FALSE;
+}
+
+static void HandleSharedRuneAndRegenThink( CBasePlayer *pPlayer )
+{
+	if ( !pPlayer || !pPlayer->pev || !g_pGameRules )
+		return;
+
+	if ( pPlayer->HasDisconnected || !pPlayer->IsAlive() || pPlayer->IsSpectator() || pPlayer->pev->deadflag != DEAD_NO )
+		return;
+
+	const BOOL hasVampireEffect = ( pPlayer->m_fHasRune == RUNE_VAMPIRE ) ||
+		g_pGameRules->MutatorEnabled( MUTATOR_VAMPIRE );
+
+	if ( !hasVampireEffect )
+	{
+		pPlayer->m_fVampireHealth = 0;
+	}
+	else if ( pPlayer->m_fVampireHealth > 0 )
+	{
+		if ( pPlayer->pev->health < pPlayer->pev->max_health )
+			pPlayer->pev->health += pPlayer->m_fVampireHealth;
+
+		if ( pPlayer->pev->health > pPlayer->pev->max_health )
+			pPlayer->pev->health = pPlayer->pev->max_health;
+
+		UTIL_ScreenFade( pPlayer, Vector(200, 0, 0), .5, .5, 32, FFADE_IN );
+		pPlayer->m_fVampireHealth = 0;
+	}
+
+	if ( pPlayer->m_fHasRune == RUNE_REGEN && pPlayer->m_flRuneHealTime < gpGlobals->time )
+	{
+		if ( ApplyRegenPulse( pPlayer, Vector(200, 0, 200) ) )
+			pPlayer->m_flRuneHealTime = gpGlobals->time + 1.0;
+	}
+	else if ( pPlayer->m_fHasRune == RUNE_AMMO && pPlayer->m_flRuneHealTime < gpGlobals->time )
+	{
+		if ( ApplyAmmoRegenPulse( pPlayer ) )
+			pPlayer->m_flRuneHealTime = gpGlobals->time + 1.0;
+	}
+
+	if ( !g_pGameRules->MutatorEnabled(MUTATOR_REGEN) )
+	{
+		pPlayer->m_flMutatorRegenTime = 0;
+	}
+	else if ( pPlayer->m_fHasRune != RUNE_REGEN &&
+		pPlayer->m_flMutatorRegenTime < gpGlobals->time &&
+		ApplyRegenPulse( pPlayer, Vector(200, 0, 200) ) )
+	{
+		pPlayer->m_flMutatorRegenTime = gpGlobals->time + 1.0;
+	}
+
+	if ( !g_pGameRules->MutatorEnabled(MUTATOR_AMMOREGEN) )
+	{
+		pPlayer->m_flMutatorAmmoRegenTime = 0;
+	}
+	else if ( pPlayer->m_fHasRune != RUNE_AMMO &&
+		pPlayer->m_flMutatorAmmoRegenTime < gpGlobals->time &&
+		ApplyAmmoRegenPulse( pPlayer ) )
+	{
+		pPlayer->m_flMutatorAmmoRegenTime = gpGlobals->time + 1.0;
+	}
+}
+
 // Global Savedata for player
 TYPEDESCRIPTION	CBasePlayer::m_playerSaveData[] = 
 {
@@ -607,11 +718,6 @@ void CBasePlayer :: TraceAttack( entvars_t *pevAttacker, float flDamage, Vector 
 			// Set the assist if the player is not the killing blow
 			if (flDamage < pev->health)
 				pLastAssist = pAttacker;
-		}
-
-		if ( pAttacker->IsPlayer() && pAttacker->m_fHasRune == RUNE_VAMPIRE && (pVictim != pAttacker) )
-		{
-			pAttacker->m_fVampireHealth = (flDamage / 2);
 		}
 
 		if ( pAttacker->IsPlayer() && pAttacker->m_fHasRune == RUNE_STRENGTH && (pVictim != pAttacker) )
@@ -3416,6 +3522,9 @@ void CBasePlayer::PreThink(void)
 		return;
 	}
 
+	if (g_pGameRules && g_pGameRules->CheckNelliaChoiceDangerKey(this))
+		return;
+
 	if ( g_pGameRules->MutatorEnabled(MUTATOR_STOMPONHEAD) && pev->gravity >= 0.9f )
 	{
 		pev->gravity = 0.70f;
@@ -4519,6 +4628,7 @@ void CBasePlayer::PostThink()
 	CheckPowerups(pev);
 
 	UpdatePlayerSound();
+	HandleSharedRuneAndRegenThink( this );
 
 	if (g_pGameRules && g_pGameRules->MutatorEnabled(MUTATOR_SLEEPY) &&
 		!FBitSet(pev->flags, FL_FAKECLIENT) && !IsSpectator() &&
@@ -4888,6 +4998,11 @@ void CBasePlayer::Spawn( void )
 	m_fCelebrateTime = 0;
 	m_flFloorIsLavaTime = 0;
 	m_flSleepyTime = 0;
+	m_flMutatorRegenTime = 0;
+	m_flMutatorAmmoRegenTime = 0;
+	m_flExploderTime = 0;
+	// Credit now accumulates, so drop anything banked before the previous death.
+	m_fVampireHealth = 0;
 
 	g_engfuncs.pfnSetPhysicsKeyValue( edict(), "slj", "0" );
 	g_engfuncs.pfnSetPhysicsKeyValue( edict(), "hl", "1" );
