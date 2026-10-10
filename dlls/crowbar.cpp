@@ -47,6 +47,22 @@ static BOOL ExplosiveCrowbarActive( void )
 #endif
 }
 
+static BOOL SnarkbarActive( void )
+{
+#ifdef CLIENT_DLL
+	return MutatorEnabled( MUTATOR_SNARKBAR ) ? TRUE : FALSE;
+#else
+	return g_pGameRules && g_pGameRules->MutatorEnabled( MUTATOR_SNARKBAR );
+#endif
+}
+
+// v_rocketcrowbar.mdl has no pull_back/throw sequences, so swapping to it disables the
+// throw and the charged smash. Snarkbar needs the throw, so it wins the model slot.
+static BOOL ExplosiveCrowbarModelActive( void )
+{
+	return ExplosiveCrowbarActive() && !SnarkbarActive();
+}
+
 #ifndef CLIENT_DLL
 // Blast is deliberately attacker-immune: only bystanders, props and the world take it.
 static void ExplosiveCrowbarBlast( entvars_t *pevInflictor, entvars_t *pevAttacker, TraceResult *pTrace )
@@ -81,11 +97,6 @@ static void ExplosiveCrowbarBlast( entvars_t *pevInflictor, entvars_t *pevAttack
 
 	RadiusDamage( vecOrigin, pevInflictor, pevAttacker, EXPCROWBAR_BLAST_DAMAGE, EXPCROWBAR_BLAST_RADIUS,
 		CLASS_NONE, DMG_BLAST | DMG_BURN, TRUE );
-}
-
-static BOOL SnarkbarActive( void )
-{
-	return g_pGameRules && g_pGameRules->MutatorEnabled( MUTATOR_SNARKBAR );
 }
 
 static BOOL FindSnarkbarSpawnPoint( const Vector &vecImpact, const Vector &vecNormal, const Vector &vecLateral, edict_t *pentIgnore, Vector *pOut )
@@ -314,7 +325,7 @@ BOOL CCrowbar::DeployLowKey( )
 	m_flReleaseThrow = -1;
 	m_flSmashStart = 0;
 	m_flNextSmashCharge = 0;
-	if ( ExplosiveCrowbarActive() )
+	if ( ExplosiveCrowbarModelActive() )
 		return DeployExplosive( CROWBAR_DRAW_LOWKEY );
 	return DefaultDeploy( "models/v_crowbar.mdl", "models/p_weapons.mdl", CROWBAR_DRAW_LOWKEY, "crowbar" );
 }
@@ -325,7 +336,7 @@ BOOL CCrowbar::Deploy( )
 	m_flReleaseThrow = -1;
 	m_flSmashStart = 0;
 	m_flNextSmashCharge = 0;
-	if ( ExplosiveCrowbarActive() )
+	if ( ExplosiveCrowbarModelActive() )
 		return DeployExplosive( CROWBAR_DRAW );
 	return DefaultDeploy( "models/v_crowbar.mdl", "models/p_weapons.mdl", CROWBAR_DRAW, "crowbar" );
 }
@@ -389,7 +400,7 @@ void CCrowbar::SecondaryAttack()
 	}
 
 	// v_rocketcrowbar.mdl has no pull_back/throw sequences, so the throw degrades to a normal swing.
-	if ( ExplosiveCrowbarActive() )
+	if ( ExplosiveCrowbarModelActive() )
 	{
 		PrimaryAttack();
 		m_flNextSecondaryAttack = m_flNextPrimaryAttack;
@@ -429,7 +440,7 @@ void CCrowbar::Reload( void )
 	}
 
 	// Same missing-sequence problem as the throw: the charged smash degrades to a normal swing.
-	if ( ExplosiveCrowbarActive() )
+	if ( ExplosiveCrowbarModelActive() )
 	{
 		PrimaryAttack();
 		m_pPlayer->m_flNextAttack = m_flNextPrimaryAttack;

@@ -5008,6 +5008,7 @@ void CBasePlayer::Spawn( void )
 	m_flSleepyTime = 0;
 	m_flMutatorRegenTime = 0;
 	m_flMutatorAmmoRegenTime = 0;
+	m_flExploderTime = 0;
 
 	g_engfuncs.pfnSetPhysicsKeyValue( edict(), "slj", "0" );
 	g_engfuncs.pfnSetPhysicsKeyValue( edict(), "hl", "1" );

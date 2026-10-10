@@ -126,6 +126,9 @@ static void DrawFadeToBlackOverlay(int alpha)
 	glMatrixMode(GL_MODELVIEW);
 	glPopMatrix();
 
+	// Restore the state the HUD/VGUI passes that run after us expect.
+	glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+	glEnable(GL_TEXTURE_2D);
 	glEnable(GL_DEPTH_TEST);
 	glDisable(GL_BLEND);
 #else

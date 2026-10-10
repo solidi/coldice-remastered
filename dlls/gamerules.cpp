@@ -43,6 +43,7 @@
 #include	"busters_gamerules.h"
 #include	"coldspot_gamerules.h"
 #include	"shake.h"
+#include	"in_buttons.h"
 
 extern edict_t *EntSelectSpawnPoint( CBaseEntity *pPlayer );
 
@@ -117,8 +118,8 @@ DLL_GLOBAL const char *g_szMutators[] = {
 	"minime",
 	"mirror",
 	"napkinstory",
-	"nelliaschoice",
 	"negativepi",
+	"nelliaschoice",
 	"noclip",
 	"nohud",
 	"nomouse",
@@ -181,23 +182,14 @@ typedef struct nellia_choice_button_s
 	const char *name;
 } nellia_choice_button_t;
 
-enum
-{
-	NELLIA_KEY_USE = (1 << 5),
-	NELLIA_KEY_ATTACK2 = (1 << 11),
-	NELLIA_KEY_RELOAD = (1 << 13),
-	NELLIA_KEY_ALT1 = (1 << 16),
-	NELLIA_KEY_SCORE = (1 << 15),
-	NELLIA_KEY_IRONSIGHT = (1 << 14)
-};
-
+// Movement keys are deliberately excluded so the mutator cannot make a player undroppable.
 static const nellia_choice_button_t g_NelliaChoiceButtons[] = {
-	{ NELLIA_KEY_USE, "USE" },
-	{ NELLIA_KEY_ATTACK2, "SECONDARY ATTACK" },
-	{ NELLIA_KEY_RELOAD, "RELOAD" },
-	{ NELLIA_KEY_ALT1, "ALT1" },
-	{ NELLIA_KEY_IRONSIGHT, "IRONSIGHT" },
-	{ NELLIA_KEY_SCORE, "SCORE" },
+	{ IN_USE, "USE" },
+	{ IN_ATTACK2, "SECONDARY ATTACK" },
+	{ IN_RELOAD, "RELOAD" },
+	{ IN_ALT1, "ALT1" },
+	{ IN_IRONSIGHT, "IRONSIGHT" },
+	{ IN_SCORE, "SCORE" },
 };
 
 static void FreeMutatorChain(mutators_t *head)
@@ -2100,9 +2092,11 @@ void CGameRules::MutatorsThink(void)
 				GiveMutators(pl);
 
 				// Explosive Crowbar swaps the crowbar's view/player models, so re-deploy on either toggle edge.
+				// Snarkbar needs the throw sequences, so it keeps the stock model (see CCrowbar::Deploy).
 				if (pl->IsAlive() && pl->m_pActiveItem && FClassnameIs(pl->m_pActiveItem->pev, "weapon_crowbar"))
 				{
-					const char *pszWantedModel = MutatorEnabled(MUTATOR_EXPCROWBAR) ? "models/v_rocketcrowbar.mdl" : "models/v_crowbar.mdl";
+					const BOOL wantsExplosiveModel = MutatorEnabled(MUTATOR_EXPCROWBAR) && !MutatorEnabled(MUTATOR_SNARKBAR);
+					const char *pszWantedModel = wantsExplosiveModel ? "models/v_rocketcrowbar.mdl" : "models/v_crowbar.mdl";
 					if (!FStrEq(STRING(pl->pev->viewmodel), pszWantedModel))
 						pl->m_pActiveItem->Deploy();
 				}
