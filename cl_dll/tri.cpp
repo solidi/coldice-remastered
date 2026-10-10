@@ -30,6 +30,10 @@ extern IParticleMan *g_pParticleMan;
 extern cvar_t *cl_weather;
 extern cvar_t *cl_particlesystem;
 
+#ifndef __APPLE__
+void MyFavTexture_Frame( void );
+#endif
+
 /*
 =================
 HUD_DrawNormalTriangles
@@ -40,6 +44,10 @@ Non-transparent triangles-- add them here
 void CL_DLLEXPORT HUD_DrawNormalTriangles( void )
 {
 //	RecClDrawNormalTriangles();
+
+#ifndef __APPLE__
+	MyFavTexture_Frame();
+#endif
 
 	gHUD.m_Spectator.DrawOverview();
 

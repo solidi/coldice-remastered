@@ -132,6 +132,7 @@ HL1_OBJS = \
 	$(HL1_OBJ_DIR)/menu.o \
 	$(HL1_OBJ_DIR)/message.o \
 	$(HL1_OBJ_DIR)/MOTD.o \
+	$(HL1_OBJ_DIR)/mutator_myfavtexture.o \
 	$(HL1_OBJ_DIR)/mutator_tinnitus.o \
 	$(HL1_OBJ_DIR)/nukecrosshair.o \
 	$(HL1_OBJ_DIR)/objective.o \

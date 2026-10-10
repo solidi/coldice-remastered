@@ -117,6 +117,7 @@ DLL_GLOBAL const char *g_szMutators[] = {
 	"megarun",
 	"minime",
 	"mirror",
+	"myfavtexture",
 	"napkinstory",
 	"negativepi",
 	"nelliaschoice",
