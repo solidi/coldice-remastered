@@ -1756,9 +1756,23 @@ void CGameRules::MutatorsThink(void)
 			long requestedMutatorId = strtol(addMutatorName, &idEnd, 10);
 			BOOL hasNumericMutatorId = (addMutatorName[0] != '\0' && idEnd != NULL && *idEnd == '\0');
 
-			if (g_pGameRules->MutatorAllowed(addMutatorName))
+			int resolvedMutatorIndex = -1;
+			for (int i = 0; i < MAX_MUTATORS; i++)
 			{
-				if (!stricmp(addMutatorName, "chaos") || (hasNumericMutatorId && requestedMutatorId == MUTATOR_CHAOS))
+				if (!stricmp(addMutatorName, g_szMutators[i]) ||
+					(hasNumericMutatorId && requestedMutatorId == (i + 1)))
+				{
+					resolvedMutatorIndex = i;
+					break;
+				}
+			}
+
+			// Mode filters match case-sensitively against canonical names, so never hand them raw user input.
+			const char *filterMutatorName = (resolvedMutatorIndex >= 0) ? g_szMutators[resolvedMutatorIndex] : addMutatorName;
+
+			if (g_pGameRules->MutatorAllowed(filterMutatorName))
+			{
+				if ((resolvedMutatorIndex + 1) == MUTATOR_CHAOS)
 				{
 					m_flChaosMutatorTime = gpGlobals->time + choasIncrement;
 					MESSAGE_BEGIN(MSG_ALL, gmsgChaos);
@@ -1793,13 +1807,12 @@ void CGameRules::MutatorsThink(void)
 
 					for (int i = 0; i < MAX_MUTATORS; i++)
 					{
-						if (!stricmp(addMutatorName, g_szMutators[i]) ||
-							(hasNumericMutatorId && requestedMutatorId == (i + 1)))
+						if (i == resolvedMutatorIndex)
 						{
 							knownMutator = TRUE;
 
 							// Special pass
-							if (!stricmp(addMutatorName, "three"))
+							if ((i + 1) == MUTATOR_THREE)
 							{
 								BOOL bar=FALSE, three=TRUE;
 								AddRandomMutator("sv_mutatorlist", bar, three);
