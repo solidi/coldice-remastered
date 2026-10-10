@@ -38,6 +38,11 @@
 #include "rain.h"
 #include "colorcor.h"
 
+#ifdef _WIN32
+#include <windows.h>
+#include <psapi.h>
+#endif
+
 hud_player_info_t	 g_PlayerInfoList[MAX_PLAYERS+1];	   // player info from the engine
 extra_player_info_t  g_PlayerExtraInfo[MAX_PLAYERS+1];   // additional player info sent directly to the client dll
 
@@ -76,6 +81,7 @@ cvar_t *cl_crosshairammo;
 cvar_t *cl_respawnbar;
 cvar_t *cl_showposition;
 cvar_t *cl_thirdcamera;
+cvar_t *cl_memtelemetry;
 
 cvar_t *cl_vmx;
 cvar_t *cl_vmy;
@@ -87,6 +93,56 @@ cvar_t *cl_vmpitch;
 cvar_t *cl_vmroll;
 cvar_t *cl_vmyaw;
 cvar_t *cl_ifov;
+
+static void LogClientMemTelemetry(const char *phase)
+{
+	if (!cl_memtelemetry || cl_memtelemetry->value <= 0)
+		return;
+
+#ifdef _WIN32
+	typedef BOOL(WINAPI *GetProcessMemoryInfoFn)(HANDLE, PPROCESS_MEMORY_COUNTERS, DWORD);
+	HMODULE hPsapi = GetModuleHandleA("psapi.dll");
+	if (!hPsapi)
+		hPsapi = LoadLibraryA("psapi.dll");
+
+	if (hPsapi)
+	{
+		GetProcessMemoryInfoFn pGetProcessMemoryInfo =
+			(GetProcessMemoryInfoFn)GetProcAddress(hPsapi, "GetProcessMemoryInfo");
+
+		if (pGetProcessMemoryInfo)
+		{
+			PROCESS_MEMORY_COUNTERS pmc;
+			memset(&pmc, 0, sizeof(pmc));
+			pmc.cb = sizeof(pmc);
+
+			if (pGetProcessMemoryInfo(GetCurrentProcess(), &pmc, sizeof(pmc)))
+			{
+				unsigned long wsKb = (unsigned long)(pmc.WorkingSetSize / 1024);
+				unsigned long pfKb = (unsigned long)(pmc.PagefileUsage / 1024);
+				gEngfuncs.Con_DPrintf("[MemTelemetry][client] %s ws_kb=%lu pagefile_kb=%lu\n", phase, wsKb, pfKb);
+				return;
+			}
+		}
+	}
+
+	MEMORYSTATUSEX ms;
+	memset(&ms, 0, sizeof(ms));
+	ms.dwLength = sizeof(ms);
+	if (GlobalMemoryStatusEx(&ms))
+	{
+		unsigned long availPhysMb = (unsigned long)(ms.ullAvailPhys / (1024ULL * 1024ULL));
+		unsigned long availVirtMb = (unsigned long)(ms.ullAvailVirtual / (1024ULL * 1024ULL));
+		gEngfuncs.Con_DPrintf("[MemTelemetry][client] %s avail_phys_mb=%lu avail_virt_mb=%lu\n", phase, availPhysMb, availVirtMb);
+	}
+	else
+	{
+		gEngfuncs.Con_DPrintf("[MemTelemetry][client] %s memory snapshot unavailable\n", phase);
+	}
+#else
+	gEngfuncs.Con_DPrintf("[MemTelemetry][client] %s telemetry unsupported on this platform\n", phase);
+#endif
+}
 
 
 class CHLVoiceStatusHelper : public IVoiceStatusHelper
@@ -679,6 +735,8 @@ void CHud :: Init( void )
 	cl_respawnbar = CVAR_CREATE("cl_respawnbar", "1", FCVAR_ARCHIVE);
 	cl_showposition = CVAR_CREATE( "cl_showposition", "1", FCVAR_ARCHIVE );
 	cl_thirdcamera = CVAR_CREATE( "cl_thirdcamera", "1", FCVAR_ARCHIVE );
+	cl_memtelemetry = CVAR_CREATE( "cl_memtelemetry", "1", FCVAR_ARCHIVE );
+	LogClientMemTelemetry("CHud::Init post-cvar");
 	m_WeaponModelIndex = cl_weaponmodel ? (int)cl_weaponmodel->value : SKIN_ICE;
 	m_SleeveModelIndex = cl_sleevemodel ? (int)cl_sleevemodel->value : SLEEVE_BLUE;
 
@@ -766,6 +824,7 @@ void CHud :: Init( void )
 	m_Menu.Init();
 	
 	ServersInit();
+	LogClientMemTelemetry("CHud::Init after-servers");
 
 	MsgFunc_ResetHUD(0, 0, NULL );
 }
@@ -820,6 +879,7 @@ int CHud :: GetSpriteIndex( const char *SpriteName )
 
 void CHud :: VidInit( void )
 {
+	LogClientMemTelemetry("CHud::VidInit begin");
 	m_scrinfo.iSize = sizeof(m_scrinfo);
 	GetScreenInfo(&m_scrinfo);
 
@@ -947,6 +1007,7 @@ void CHud :: VidInit( void )
 	g_ImGUIManager.VidInit();
 #endif
 	m_Particle.VidInit();
+	LogClientMemTelemetry("CHud::VidInit end");
 }
 
 int CHud::MsgFunc_Logo(const char *pszName,  int iSize, void *pbuf)

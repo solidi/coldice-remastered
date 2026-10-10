@@ -46,6 +46,11 @@
 #include "effects.h"
 #include <time.h>
 
+#ifdef _WIN32
+#include <windows.h>
+#include <psapi.h>
+#endif
+
 
 #if defined( GRAPPLING_HOOK )
 #include "grapplinghook.h"
@@ -70,6 +75,56 @@ extern cvar_t allow_spectators;
 extern int g_teamplay;
 
 void LinkUserMessages( void );
+
+static void LogServerMemTelemetry(const char *phase)
+{
+	if (memtelemetry.value <= 0)
+		return;
+
+#ifdef _WIN32
+	typedef BOOL(WINAPI *GetProcessMemoryInfoFn)(HANDLE, PPROCESS_MEMORY_COUNTERS, DWORD);
+	HMODULE hPsapi = GetModuleHandleA("psapi.dll");
+	if (!hPsapi)
+		hPsapi = LoadLibraryA("psapi.dll");
+
+	if (hPsapi)
+	{
+		GetProcessMemoryInfoFn pGetProcessMemoryInfo =
+			(GetProcessMemoryInfoFn)GetProcAddress(hPsapi, "GetProcessMemoryInfo");
+
+		if (pGetProcessMemoryInfo)
+		{
+			PROCESS_MEMORY_COUNTERS pmc;
+			memset(&pmc, 0, sizeof(pmc));
+			pmc.cb = sizeof(pmc);
+
+			if (pGetProcessMemoryInfo(GetCurrentProcess(), &pmc, sizeof(pmc)))
+			{
+				unsigned long wsKb = (unsigned long)(pmc.WorkingSetSize / 1024);
+				unsigned long pfKb = (unsigned long)(pmc.PagefileUsage / 1024);
+				UTIL_LogPrintf((char *)"[MemTelemetry][server] %s ws_kb=%lu pagefile_kb=%lu\n", (char *)phase, wsKb, pfKb);
+				return;
+			}
+		}
+	}
+
+	MEMORYSTATUSEX ms;
+	memset(&ms, 0, sizeof(ms));
+	ms.dwLength = sizeof(ms);
+	if (GlobalMemoryStatusEx(&ms))
+	{
+		unsigned long availPhysMb = (unsigned long)(ms.ullAvailPhys / (1024ULL * 1024ULL));
+		unsigned long availVirtMb = (unsigned long)(ms.ullAvailVirtual / (1024ULL * 1024ULL));
+		UTIL_LogPrintf((char *)"[MemTelemetry][server] %s avail_phys_mb=%lu avail_virt_mb=%lu\n", (char *)phase, availPhysMb, availVirtMb);
+	}
+	else
+	{
+		UTIL_LogPrintf((char *)"[MemTelemetry][server] %s memory snapshot unavailable\n", (char *)phase);
+	}
+#else
+	UTIL_LogPrintf((char *)"[MemTelemetry][server] %s telemetry unsupported on this platform\n", (char *)phase);
+#endif
+}
 
 /*
  * used by kill command and disconnect command
@@ -305,6 +360,8 @@ void ClientPutInServer( edict_t *pEntity )
 
 	// Reset interpolation during first frame
 	pPlayer->pev->effects |= EF_NOINTERP;
+
+	LogServerMemTelemetry("ClientPutInServer");
 }
 
 #include "voice_gamemgr.h"
@@ -2489,6 +2546,7 @@ void ServerDeactivate( void )
 	}
 
 	g_serveractive = 0;
+	LogServerMemTelemetry("ServerDeactivate");
 
 	// Peform any shutdown operations here...
 	//
@@ -2504,6 +2562,7 @@ void ServerActivate( edict_t *pEdictList, int edictCount, int clientMax )
 
 	// Every call to ServerActivate should be matched by a call to ServerDeactivate
 	g_serveractive = 1;
+	LogServerMemTelemetry("ServerActivate begin");
 
 	// Clients have not been initialized yet
 	for ( i = 0; i < edictCount; i++ )
@@ -2529,6 +2588,7 @@ void ServerActivate( edict_t *pEdictList, int edictCount, int clientMax )
 
 	// Link user messages here to make sure first client can get them...
 	LinkUserMessages();
+	LogServerMemTelemetry("ServerActivate end");
 }
 
 

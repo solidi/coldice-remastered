@@ -105,6 +105,7 @@ extern cvar_t   royaledamage;
 extern cvar_t   prophunttime;
 extern cvar_t   prophealth;
 extern cvar_t   hunterselfcost;
+extern cvar_t   memtelemetry;
 
 // Engine Cvars
 extern cvar_t	*g_psv_gravity;
