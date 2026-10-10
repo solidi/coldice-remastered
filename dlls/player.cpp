@@ -720,14 +720,6 @@ void CBasePlayer :: TraceAttack( entvars_t *pevAttacker, float flDamage, Vector 
 				pLastAssist = pAttacker;
 		}
 
-		const BOOL vampireMutatorEnabled = g_pGameRules && g_pGameRules->MutatorEnabled( MUTATOR_VAMPIRE );
-
-		if ( pAttacker && pAttacker->IsPlayer() && ( pVictim != pAttacker ) && flDamage > 0 &&
-			( pAttacker->m_fHasRune == RUNE_VAMPIRE || vampireMutatorEnabled ) )
-		{
-			pAttacker->m_fVampireHealth = (flDamage / 2);
-		}
-
 		if ( pAttacker->IsPlayer() && pAttacker->m_fHasRune == RUNE_STRENGTH && (pVictim != pAttacker) )
 		{
 			flDamage *= 1.5; // 150%
@@ -5009,6 +5001,8 @@ void CBasePlayer::Spawn( void )
 	m_flMutatorRegenTime = 0;
 	m_flMutatorAmmoRegenTime = 0;
 	m_flExploderTime = 0;
+	// Credit now accumulates, so drop anything banked before the previous death.
+	m_fVampireHealth = 0;
 
 	g_engfuncs.pfnSetPhysicsKeyValue( edict(), "slj", "0" );
 	g_engfuncs.pfnSetPhysicsKeyValue( edict(), "hl", "1" );

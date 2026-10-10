@@ -33,6 +33,7 @@
 #include "player.h"
 #include "game.h"
 #include "gamerules.h"
+#include "items.h"
 
 extern int gmsgMonsterLifeBar;  // Registered in player.cpp
 extern DLL_GLOBAL Vector		g_vecAttackDir;
@@ -66,6 +67,24 @@ static BOOL IsRocketJumpSelfBlast( entvars_t *pevVictim, entvars_t *pevInflictor
 		return FALSE;
 
 	return IsRocketJumpInflictor( pevInflictor );
+}
+
+// Credit only health the victim actually lost, so blocked, absorbed and overkill damage never heals.
+static void AccrueVampireHealth( entvars_t *pevVictim, entvars_t *pevAttacker, float flHealthRemoved )
+{
+	if ( flHealthRemoved <= 0 || !pevVictim || FNullEnt( pevAttacker ) || pevAttacker == pevVictim )
+		return;
+
+	CBaseEntity *pAttackerEntity = CBaseEntity::Instance( pevAttacker );
+	if ( !pAttackerEntity || !pAttackerEntity->IsPlayer() )
+		return;
+
+	CBasePlayer *pAttacker = (CBasePlayer *)pAttackerEntity;
+	if ( pAttacker->m_fHasRune != RUNE_VAMPIRE &&
+		!( g_pGameRules && g_pGameRules->MutatorEnabled( MUTATOR_VAMPIRE ) ) )
+		return;
+
+	pAttacker->m_fVampireHealth += flHealthRemoved / 2;
 }
 
 static float GetFadeToBlackDamageScale( entvars_t *pevVictim, entvars_t *pevAttacker, float flDamage )
@@ -1107,16 +1126,6 @@ int CBaseMonster :: TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker,
 		flTake *= flFadeToBlackScale;
 	}
 
-	if ( !IsPlayer() && g_pGameRules && g_pGameRules->MutatorEnabled( MUTATOR_VAMPIRE ) &&
-		flDamage > 0 && !FNullEnt( pevAttacker ) )
-	{
-		CBaseEntity *pAttackerEntity = CBaseEntity::Instance( pevAttacker );
-		if ( pAttackerEntity && pAttackerEntity->IsPlayer() && pAttackerEntity->pev != pev )
-		{
-			((CBasePlayer *)pAttackerEntity)->m_fVampireHealth = (flDamage / 2);
-		}
-	}
-
 	// set damage type sustained
 	m_bitsDamageType |= bitsDamageType;
 
@@ -1178,7 +1187,9 @@ int CBaseMonster :: TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker,
 	}
 
 	// do the damage
+	const float flHealthBeforeHit = pev->health;
 	pev->health -= flTake;
+	AccrueVampireHealth( pev, pevAttacker, flHealthBeforeHit - fmax( pev->health, 0.0f ) );
 
 	// Notify clients of horde monster health change so damage numbers can be shown
 	if (g_pGameRules->IsHorde() && pev->fuser4 == RADAR_HORDE && pev->max_health > 0)
