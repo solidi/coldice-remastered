@@ -284,6 +284,7 @@ MutatorInfo sMutators[] = {
 	{ "megarun", "faster than fast" },
 	{ "minime", "small but mighty" },
 	{ "mirror", "why does the map look weird?" },
+	{ "myfavtexture", "every wall wears the same texture" },
 	{ "napkinstory", "it's a napkin story" },
 	{ "negativepi", "pi is now -1" },
 	{ "nelliaschoice", "one random non-movement bind becomes lethal" },
