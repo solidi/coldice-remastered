@@ -415,6 +415,7 @@ public:
 	int VidInit( void );
 	int Draw(float flTime);
 	int MsgFunc_Battery(const char *pszName,  int iSize, void *pbuf );
+	int GetBattery( void ) const { return m_iBat; }
 	
 private:
 	HSPRITE m_hSprite1;
@@ -541,6 +542,11 @@ struct mutators_t
 
 bool MutatorEnabled(int mutatorId);
 mutators_t GetMutator(int mutatorId);
+
+bool GoldenEye_Active( void );
+void GoldenEye_OnDamage( void );
+void GoldenEye_Reset( void );
+void GoldenEye_Draw( int health, int armor );
 
 inline double GetMutatorAwarePi( void )
 {

@@ -88,6 +88,8 @@ void CHudHealth::Reset( void )
 	{
 		m_dmg[i].fExpire = 0;
 	}
+
+	GoldenEye_Reset();
 }
 
 int CHudHealth::VidInit(void)
@@ -114,6 +116,9 @@ int CHudHealth:: MsgFunc_Health(const char *pszName,  int iSize, void *pbuf )
 	// Only update the fade if we've changed health
 	if (x != m_iHealth)
 	{
+		if (x < m_iHealth)
+			GoldenEye_OnDamage();
+
 		m_fFade = FADE_TIME;
 		m_iHealth = x;
 
@@ -144,7 +149,10 @@ int CHudHealth:: MsgFunc_Damage(const char *pszName,  int iSize, void *pbuf )
 
 	// Actually took damage?
 	if ( damageTaken > 0 || armor > 0 )
+	{
 		CalcDamageDirection(vecFrom);
+		GoldenEye_OnDamage();
+	}
 
 	return 1;
 }
@@ -230,7 +238,12 @@ int CHudHealth::Draw(float flTime)
 	ScaleColors(r, g, b, a );
 
 	// Only draw health if we have the suit.
-	if (gHUD.m_iWeaponBits & (1<<(WEAPON_SUIT)))
+	if (GoldenEye_Active())
+	{
+		if (gHUD.m_iWeaponBits & (1<<(WEAPON_SUIT)))
+			GoldenEye_Draw(m_iHealth, gHUD.m_Battery.GetBattery());
+	}
+	else if (gHUD.m_iWeaponBits & (1<<(WEAPON_SUIT)))
 	{
 		HealthWidth = gHUD.GetSpriteRect(gHUD.m_HUD_number_0).right - gHUD.GetSpriteRect(gHUD.m_HUD_number_0).left;
 		int CrossWidth = gHUD.GetSpriteRect(m_HUD_cross).right - gHUD.GetSpriteRect(m_HUD_cross).left;
