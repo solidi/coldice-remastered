@@ -277,6 +277,7 @@ MutatorInfo sMutators[] = {
 	{ "jeepathon", "drive all the jeeps" },
 	{ "jope", "it's an inside thing" },
 	{ "lightsout", "see nothing, shoot nothing" },
+	{ "linemode", "007 line mode, black lines on white" },
 	{ "longjump", "power packed jumps" },
 	{ "loopback", "wormhole to your victims" },
 	{ "marshmellow", "soft and squishy" },

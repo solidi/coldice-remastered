@@ -110,6 +110,7 @@ DLL_GLOBAL const char *g_szMutators[] = {
 	"jeepathon",
 	"jope",
 	"lightsout",
+	"linemode",
 	"longjump",
 	"loopback",
 	"marshmellow",
