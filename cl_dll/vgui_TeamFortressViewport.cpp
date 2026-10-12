@@ -262,6 +262,7 @@ MutatorInfo sMutators[] = {
 	{ "fog", "see nothing, shoot nothing" },
 	{ "fragswap", "frag scores swap between attacker and victim" },
 	{ "godmode", "invincibility" },
+	{ "goldeneye", "classic 007 health and armor bars when hurt" },
 	{ "goldenguns", "like Goldeneye" },
 	{ "grenades", "more grenades, more fun" },
 	{ "halflife", "back to the roots" },

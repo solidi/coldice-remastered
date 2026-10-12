@@ -90,6 +90,10 @@ int CHudBattery::Draw(float flTime)
 	if ( gHUD.m_iHideHUDDisplay & HIDEHUD_HEALTH )
 		return 1;
 
+	// The goldeneye bars drawn by CHudHealth replace the suit icon and number.
+	if ( GoldenEye_Active() )
+		return 1;
+
 	int r, g, b, x, y, a;
 	wrect_t rc;
 
