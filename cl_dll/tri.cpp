@@ -49,6 +49,8 @@ void CL_DLLEXPORT HUD_DrawNormalTriangles( void )
 	MyFavTexture_Frame();
 #endif
 
+	LineMode_CaptureScene();
+
 	gHUD.m_Spectator.DrawOverview();
 
 	gFog.HUD_DrawNormalTriangles();
