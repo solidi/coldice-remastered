@@ -588,6 +588,71 @@ static void V_ApplyDrunkMutator( struct ref_params_s *pparams )
 	}
 }
 
+// Cant the viewmodel inward while running forward and not attacking.
+static void V_SprintWeapon( struct ref_params_s *pparams, cl_entity_t *view )
+{
+	extern cvar_t *m_pCvarRighthand;
+	static float flSprintFrac = 0;
+	static float flLastBusyTime = 0;
+
+	if (cl_weaponsway->value != 1 || g_iUser1 || gEngfuncs.IsSpectateOnly() ||
+		pparams->health <= 0 || CL_IsThirdPerson() ||
+		!strncmp(view->model->name, "models/v_dual_", strlen("models/v_dual_")))
+	{
+		flSprintFrac = 0;
+		return;
+	}
+
+	// pparams->time restarts on map change; drop a stale timestamp.
+	if (flLastBusyTime > pparams->time)
+		flLastBusyTime = 0;
+
+	const float clientTime = gEngfuncs.GetClientTime();
+
+	// Offhand actions (kick, punch, grenade, etc.) share the viewmodel transform.
+	const bool busy = (pparams->cmd->buttons & (IN_ATTACK | IN_ATTACK2 | IN_RELOAD)) ||
+		gHUD.m_flExtraViewModelTime > clientTime;
+	if (busy)
+		flLastBusyTime = pparams->time;
+
+	const float speed = sqrt(pparams->simvel[0] * pparams->simvel[0] + pparams->simvel[1] * pparams->simvel[1]);
+
+	// 210 matches the pm_shared footstep run threshold (velrun).
+	const bool running = speed >= 210.0f && pparams->cmd->forwardmove > 0 &&
+		!(pparams->cmd->buttons & IN_DUCK) && pparams->waterlevel < 2 &&
+		!gEngfuncs.IsNoClipping() && !g_IronSight && g_AcrobatTime < clientTime &&
+		(pparams->time - flLastBusyTime) > 0.4f;
+
+	float rate = running ? 6.0f : 10.0f;
+	if (busy)
+		rate = 25.0f;
+	flSprintFrac += ((running ? 1.0f : 0.0f) - flSprintFrac) * fmin(1.0f, pparams->frametime * rate);
+
+	if (flSprintFrac < 0.001f)
+	{
+		flSprintFrac = 0;
+		return;
+	}
+
+	const float k = flSprintFrac * flSprintFrac * (3.0f - 2.0f * flSprintFrac);
+
+	// Mirror the inward direction when the viewmodel is drawn flipped (see CStudioModelRenderer::FlipViewModel).
+	const bool flipped = !m_pCvarRighthand->value ||
+		(m_pCvarRighthand->value == -1 && !strcmp(view->model->name, "models/v_knife.mdl"));
+	const float side = flipped ? -1.0f : 1.0f;
+
+	view->angles[YAW] += 14.0f * k * side;
+	view->angles[ROLL] -= 10.0f * k * side;
+	view->angles[PITCH] -= 5.0f * k;
+
+	for (int i = 0; i < 3; i++)
+	{
+		view->origin[i] -= pparams->right[i] * (1.5f * k * side);
+		view->origin[i] -= pparams->up[i] * (1.5f * k);
+		view->origin[i] -= pparams->forward[i] * (1.0f * k);
+	}
+}
+
 /*
 ==================
 V_CalcRefdef
@@ -881,26 +946,9 @@ void V_CalcNormalRefdef ( struct ref_params_s *pparams )
 		if (cl_weaponretract->value) {
 			V_RetractWeapon(pparams, view);
 		}
+
+		V_SprintWeapon(pparams, view);
 	}
-
-/*
-	// running hold down viewmodel
-	float holdTarget = 0;
-	float holdTargetYaw = 0;
-	if (fabs(pparams->simvel[0]) > 150 || fabs(pparams->simvel[1]) > 150)
-	{
-		holdTarget = -20;
-		holdTargetYaw = 25 * (90 - fabs(pparams->viewangles[PITCH])) / 90;
-	}
-
-	static float lerpedHold = 0;
-	static float lerpedHoldYaw = 0;
-	lerpedHold = lerp(lerpedHold, holdTarget, gHUD.m_flTimeDelta * 3.0f);
-	lerpedHoldYaw = lerp(lerpedHoldYaw, holdTargetYaw, gHUD.m_flTimeDelta * 3.0f);
-
-	view->angles[PITCH] += lerpedHold;
-	view->angles[YAW] += lerpedHoldYaw;
-*/
 
 	if (gEngfuncs.GetMaxClients() == 1)
 	{
