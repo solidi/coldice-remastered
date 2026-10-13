@@ -157,6 +157,13 @@ int CHornet::IRelationship ( CBaseEntity *pTarget )
 		return R_NO;
 	}
 
+	// Invisible players (cloak rune, Invisible mutator, Shidden dealters) can't be seen unless revealed by attacking.
+	if ( pTarget->IsPlayer() && ( FBitSet( pTarget->pev->effects, EF_NODRAW ) ||
+		 ( pTarget->pev->rendermode == kRenderTransAlpha && pTarget->pev->renderamt < HORNET_CLOAK_REVEAL_ALPHA ) ) )
+	{
+		return R_NO;
+	}
+
 	// Player-fired hornets only chase players the active gamerules consider hostile
 	// (teamplay teammates, CtC non-holders, Horde survivors, etc. are skipped).
 	if ( pTarget->IsPlayer() && !FNullEnt( pev->owner ) && ( pev->owner->v.flags & FL_CLIENT ) )
