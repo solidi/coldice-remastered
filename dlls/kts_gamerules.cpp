@@ -74,6 +74,16 @@ extern int gmsgStatusIcon;
 #define KTS_STRIP_NEUTRAL_TIME             0.35f
 #define KTS_REACQUIRE_COOLDOWN_SAME_PLAYER 0.60f
 
+// Scrum referee: a contested crowd that keeps the ball penned in gets it popped loose
+#define KTS_SCRUM_RADIUS          256.0f  // players this close to the ball count toward the crowd
+#define KTS_SCRUM_MIN_PLAYERS     4       // crowd size (both teams present) that arms the stall timer
+#define KTS_SCRUM_STALL_TIME      2.5f    // seconds the ball may stay penned before it is popped
+#define KTS_SCRUM_MAX_TRAVEL      256.0f  // ball travel from the anchor that counts as escaping
+#define KTS_SCRUM_POP_SPEED       320.0f  // horizontal pop speed
+#define KTS_SCRUM_POP_LIFT        420.0f  // vertical pop speed
+#define KTS_SCRUM_NO_CAPTURE_TIME 1.0f    // nobody may auto-capture right after a pop
+#define KTS_SCRUM_GOAL_AVOID_DIST 512.0f  // never pop toward a goal closer than this
+
 //=========================================================
 // CKtsSnowball — physics snowball entity
 //=========================================================
@@ -103,9 +113,13 @@ public:
 	int     m_iNoRecaptureEntIndex;  // controller blocked from immediate re-capture
 	float   m_fNoRecaptureUntil;
 	BOOL    m_bWasGravityHeld;       // transition flag for gravity hold -> loose
+	float   m_fScrumStartTime;       // -1 while no contested crowd surrounds the ball
+	Vector  m_vScrumAnchor;          // ball origin when the current stall window began
 
 	void BeginAutoCaptureBlock( CBasePlayer *pPreviousController, float flNoAutoCaptureTime, float flNoRecaptureTime );
 	BOOL CanPlayerAutoCapture( CBasePlayer *pPlayer );
+	BOOL UpdateScrum( void );
+	void BreakScrum( CBasePlayer **ppCrowd, int iCrowd );
 };
 
 static BOOL KtsCanPlayerStripDribbler( CBasePlayer *pDribbler, CBaseEntity *pAttacker )
@@ -181,6 +195,8 @@ void CKtsSnowball::Spawn( void )
 	m_iNoRecaptureEntIndex = 0;
 	m_fNoRecaptureUntil    = 0.0f;
 	m_bWasGravityHeld      = FALSE;
+	m_fScrumStartTime      = -1.0f;
+	m_vScrumAnchor         = pev->origin;
 	pev->iuser1    = 0;
 	pev->iuser2    = 0;
 	pev->iuser3    = 0;
@@ -224,6 +240,160 @@ BOOL CKtsSnowball::CanPlayerAutoCapture( CBasePlayer *pPlayer )
 	return TRUE;
 }
 
+// Holstering does not release a gravity-gun hold, so check every owned gun, not just active ones.
+static void KtsReleaseGravityGunHolds( CBaseEntity *pBall )
+{
+	for (int i = 1; i <= gpGlobals->maxClients; i++)
+	{
+		CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex(i);
+		if (!plr || !plr->IsPlayer() || plr->HasDisconnected)
+			continue;
+
+		for (int slot = 0; slot < MAX_ITEM_TYPES; slot++)
+		{
+			for (CBasePlayerItem *pItem = plr->m_rgpPlayerItems[slot]; pItem; pItem = pItem->m_pNext)
+			{
+				if (pItem->m_iId != WEAPON_GRAVITYGUN)
+					continue;
+
+				CGravityGun *pGun = (CGravityGun *)pItem;
+				if ((CBaseEntity *)pGun->m_pCurrentEntity == pBall)
+				{
+					pGun->m_pCurrentEntity = NULL;
+					STOP_SOUND(ENT(plr->pev), CHAN_WEAPON, "ambience/pulsemachine.wav");
+				}
+			}
+		}
+	}
+}
+
+// Returns TRUE when the ball was popped out of a stalled scrum this tick.
+BOOL CKtsSnowball::UpdateScrum( void )
+{
+	if (!g_pGameRules || !g_pGameRules->IsKickTheSnowball())
+		return FALSE;
+
+	CBasePlayer *pCrowd[32];
+	int iCrowd = 0;
+	BOOL bBlue = FALSE, bRed = FALSE;
+
+	for (int i = 1; i <= gpGlobals->maxClients && iCrowd < (int)ARRAYSIZE(pCrowd); i++)
+	{
+		CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex(i);
+		if (!plr || !plr->IsPlayer() || plr->HasDisconnected) continue;
+		if (plr->pev->deadflag != DEAD_NO || plr->IsSpectator()) continue;
+		if ((plr->pev->origin - pev->origin).Length() > KTS_SCRUM_RADIUS) continue;
+
+		pCrowd[iCrowd++] = plr;
+		if (plr->pev->fuser4 == TEAM_RED)
+			bRed = TRUE;
+		else
+			bBlue = TRUE;
+	}
+
+	if (iCrowd < KTS_SCRUM_MIN_PLAYERS || !bBlue || !bRed)
+	{
+		m_fScrumStartTime = -1.0f;
+		return FALSE;
+	}
+
+	if (m_fScrumStartTime < 0.0f || (pev->origin - m_vScrumAnchor).Length() > KTS_SCRUM_MAX_TRAVEL)
+	{
+		m_fScrumStartTime = gpGlobals->time;
+		m_vScrumAnchor    = pev->origin;
+		return FALSE;
+	}
+
+	if (gpGlobals->time - m_fScrumStartTime < KTS_SCRUM_STALL_TIME)
+		return FALSE;
+
+	BreakScrum(pCrowd, iCrowd);
+	return TRUE;
+}
+
+// Drop ball: release every form of control, then pop the ball toward the most open side.
+void CKtsSnowball::BreakScrum( CBasePlayer **ppCrowd, int iCrowd )
+{
+	m_fScrumStartTime = -1.0f;
+
+	if (m_hDribbler)
+	{
+		CBaseEntity *pDribEnt = (CBaseEntity *)m_hDribbler;
+		g_pGameRules->DropCharm((pDribEnt && pDribEnt->IsPlayer()) ? (CBasePlayer *)pDribEnt : NULL, pev->origin);
+	}
+
+	KtsReleaseGravityGunHolds(this);
+	pev->iuser3       = 0;
+	m_bWasGravityHeld = FALSE;
+
+	if (!FNullEnt(pev->owner))
+	{
+		CBaseEntity *pGrabber = CBaseEntity::Instance(pev->owner);
+		if (pGrabber && pGrabber->IsPlayer())
+			((CBasePlayer *)pGrabber)->EndForceGrab();
+		pev->owner  = NULL;
+		pev->iuser1 = 0;
+	}
+
+	CHalfLifeKickTheSnowball *pKts = (CHalfLifeKickTheSnowball *)g_pGameRules;
+	CBaseEntity *pGoals[2] = { (CBaseEntity *)pKts->pRedGoal, (CBaseEntity *)pKts->pBlueGoal };
+
+	// Score 8 headings: wall clearance, minus crowd bodies and nearby goals in that heading.
+	Vector vecPopDir = g_vecZero;
+	float  flBestScore = -9999.0f;
+	float  flYawBase = RANDOM_FLOAT(0.0f, 45.0f);
+	for (int d = 0; d < 8; d++)
+	{
+		UTIL_MakeVectors(Vector(0, flYawBase + d * 45.0f, 0));
+		Vector vecDir = gpGlobals->v_forward;
+
+		TraceResult tr;
+		UTIL_TraceLine(pev->origin, pev->origin + vecDir * 256.0f, ignore_monsters, ENT(pev), &tr);
+		float flScore = tr.flFraction;
+
+		for (int i = 0; i < iCrowd; i++)
+		{
+			Vector vecTo = ppCrowd[i]->pev->origin - pev->origin;
+			vecTo.z = 0.0f;
+			if (vecTo.Length() > 1.0f && DotProduct(vecDir, vecTo.Normalize()) > 0.5f)
+				flScore -= 0.25f;
+		}
+
+		for (int g = 0; g < 2; g++)
+		{
+			if (!pGoals[g])
+				continue;
+
+			Vector vecTo = pGoals[g]->pev->origin - pev->origin;
+			vecTo.z = 0.0f;
+			float flGoalDist = vecTo.Length();
+			if (flGoalDist > 1.0f && flGoalDist < KTS_SCRUM_GOAL_AVOID_DIST &&
+				DotProduct(vecDir, vecTo.Normalize()) > 0.5f)
+				flScore -= 2.0f;
+		}
+
+		if (flScore > flBestScore)
+		{
+			flBestScore = flScore;
+			vecPopDir   = vecDir;
+		}
+	}
+
+	pev->velocity = vecPopDir * KTS_SCRUM_POP_SPEED + Vector(0, 0, KTS_SCRUM_POP_LIFT);
+	ClearBits(pev->flags, FL_ONGROUND);
+	m_fStuckTime = -1.0f;
+	// Extends the 0.35s window DropCharm may have set; keeps its same-player recapture block.
+	m_fNoAutoCaptureUntil = gpGlobals->time + KTS_SCRUM_NO_CAPTURE_TIME;
+
+	EMIT_SOUND_DYN(ENT(pev), CHAN_AUTO, "ball_bounce.wav", 1.0f, ATTN_NORM, 0, 120);
+
+	for (int i = 0; i < iCrowd; i++)
+	{
+		if (!FBitSet(ppCrowd[i]->pev->flags, FL_FAKECLIENT))
+			ClientPrint(ppCrowd[i]->pev, HUD_PRINTCENTER, "Scrum! Ball popped loose\n");
+	}
+}
+
 void CKtsSnowball::BallThink( void )
 {
 	// Cache ball speed before any collision physics can modify pev->velocity.
@@ -250,6 +420,13 @@ void CKtsSnowball::BallThink( void )
 		if (!FNullEnt(pGrabber))
 			m_hLastToucher = CBaseEntity::Instance(pGrabber);
 		pev->iuser2 = 0;
+	}
+
+	// Runs before the gravity-held early-out so an orphaned hold inside a scrum is also broken.
+	if (UpdateScrum())
+	{
+		pev->nextthink = gpGlobals->time + 0.1f;
+		return;
 	}
 
 	// Gravity-gun hold and dribble are mutually exclusive states.
@@ -828,6 +1005,7 @@ void CKtsSnowball::ResetToMidpoint( void )
 	m_iNoRecaptureEntIndex = 0;
 	m_fNoRecaptureUntil    = 0.0f;
 	m_bWasGravityHeld      = FALSE;
+	m_fScrumStartTime      = -1.0f;
 	pev->iuser1    = 0;
 	pev->iuser2    = 0;
 	pev->iuser3    = 0;
