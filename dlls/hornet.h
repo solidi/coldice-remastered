@@ -24,6 +24,8 @@
 #define HORNET_RED_SPEED		(float)600
 #define HORNET_ORANGE_SPEED		(float)800
 #define	HORNET_BUZZ_VOLUME		(float)0.8
+// Cloaked players read idle at ~50 and flash above this while attacking (CBasePlayer::PreThink).
+#define HORNET_CLOAK_REVEAL_ALPHA	128
 
 extern int iHornetPuff;
 
