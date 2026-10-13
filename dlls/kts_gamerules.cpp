@@ -246,7 +246,7 @@ static void KtsReleaseGravityGunHolds( CBaseEntity *pBall )
 	for (int i = 1; i <= gpGlobals->maxClients; i++)
 	{
 		CBasePlayer *plr = (CBasePlayer *)UTIL_PlayerByIndex(i);
-		if (!plr || !plr->IsPlayer())
+		if (!plr || !plr->IsPlayer() || plr->HasDisconnected)
 			continue;
 
 		for (int slot = 0; slot < MAX_ITEM_TYPES; slot++)
