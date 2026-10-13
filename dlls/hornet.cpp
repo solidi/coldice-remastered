@@ -23,6 +23,7 @@
 #include	"weapons.h"
 #include	"soundent.h"
 #include	"hornet.h"
+#include	"player.h"
 #include	"gamerules.h"
 #include	"game.h"
 
@@ -150,6 +151,26 @@ int CHornet::IRelationship ( CBaseEntity *pTarget )
 		return R_NO;
 	}
 
+	// Spectators, the loose CtC toad, etc. can't be hurt, so don't chase them.
+	if ( pTarget->pev->takedamage == DAMAGE_NO )
+	{
+		return R_NO;
+	}
+
+	// Player-fired hornets only chase players the active gamerules consider hostile
+	// (teamplay teammates, CtC non-holders, Horde survivors, etc. are skipped).
+	if ( pTarget->IsPlayer() && !FNullEnt( pev->owner ) && ( pev->owner->v.flags & FL_CLIENT ) )
+	{
+		CBasePlayer *pOwner = (CBasePlayer *)CBaseEntity::Instance( pev->owner );
+		if ( !pOwner || pTarget == pOwner )
+			return R_NO;
+
+		// ShouldAutoAim/PlayerRelationship are side-effect free; FPlayerCanTakeDamage is not.
+		if ( g_pGameRules->PlayerRelationship( pOwner, pTarget ) == GR_TEAMMATE ||
+			 !g_pGameRules->ShouldAutoAim( pOwner, pTarget->edict() ) )
+			return R_NO;
+	}
+
 	return CBaseMonster :: IRelationship( pTarget );
 }
 
@@ -272,6 +293,12 @@ void CHornet :: TrackTarget ( void )
 		return;
 	}
 
+	// Drop targets that died or stopped being hostile (e.g. CtC holder dropped the toad).
+	if ( m_hEnemy != NULL && ( !m_hEnemy->IsAlive() || ( m_hEnemy->IsPlayer() && IRelationship( m_hEnemy ) <= R_NO ) ) )
+	{
+		m_hEnemy = NULL;
+	}
+
 	// UNDONE: The player pointer should come back after returning from another level
 	if ( m_hEnemy == NULL )
 	{// enemy is dead.
@@ -382,7 +409,8 @@ void CHornet :: TrackTouch ( CBaseEntity *pOther )
 		return;
 	}
 
-	if ( IRelationship( pOther ) <= R_NO )
+	// Contact uses the stock class table; gamerules gate the actual damage.
+	if ( CBaseMonster::IRelationship( pOther ) <= R_NO )
 	{
 		// hit something we don't want to hurt, so turn around.
 
