@@ -2457,7 +2457,8 @@ CMenuPanel* TeamFortressViewport::ShowCookiesMenu( void )
 {
 	if ( gEngfuncs.pDemoAPI->IsPlayingback() )
 		return NULL;
-	if ( !m_pCookiesMenu )
+	// Do not queue the cookie wall behind another menu.
+	if ( !m_pCookiesMenu || m_pCurrentMenu )
 		return NULL;
 
 	m_pCookiesMenu->Reset();
