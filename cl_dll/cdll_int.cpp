@@ -255,6 +255,7 @@ int CL_DLLEXPORT HUD_Redraw( float time, int intermission )
 #endif
 
 	LineMode_Draw();
+	Blur_Draw();
 
 	gHUD.Redraw( time, intermission );
 
