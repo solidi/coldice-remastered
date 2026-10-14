@@ -241,6 +241,7 @@ MutatorInfo sMutators[] = {
 	{ "berserker", "fists and chainsaws" },
 	{ "bigfoot", "step over anything" },
 	{ "bighead", "like Goldeneye" },
+	{ "blur", "everything smears when it moves" },
 	{ "busters", "i ain't afraid of no ghosts" },
 	{ "chumxplode", "that's a lot of chum" },
 	{ "closeup", "everything is bigger up close" },
