@@ -780,6 +780,7 @@ TeamFortressViewport::TeamFortressViewport(int x,int y,int wide,int tall) : Pane
 	m_pVoteMutatorMenu = NULL;
 	m_pVoteGameOptionsMenu = NULL;
 	m_pVoteServerOptionsMenu = NULL;
+	m_pCookiesMenu = NULL;
 
 	Initialize();
 	addInputSignal( new CViewPortInputHandler );
@@ -843,6 +844,7 @@ TeamFortressViewport::TeamFortressViewport(int x,int y,int wide,int tall) : Pane
 	CreateVoteMutatorMenu();
 	CreateVoteGameOptionsMenu();
 	CreateVoteServerOptionsMenu();
+	CreateCookiesMenu();
 
 	// Init command menus
 	m_iNumMenus = 0;
@@ -2158,6 +2160,14 @@ void TeamFortressViewport::ShowVGUIMenu( int iMenu, int timer )
 		}
 	}
 
+	// The cookie wall is a gag; it must never hold a server-driven vote panel in the queue.
+	if ( m_pCurrentMenu && m_pCurrentMenu->GetMenuID() == MENU_COOKIES &&
+		( iMenu == MENU_VOTEGAMEPLAY || iMenu == MENU_VOTEMAP || iMenu == MENU_VOTEMUTATOR
+		|| iMenu == MENU_VOTEGAMEOPTIONS || iMenu == MENU_VOTESERVEROPTIONS ) )
+	{
+		HideTopMenu();
+	}
+
 	switch ( iMenu )
 	{
 	case MENU_TEAM:		
@@ -2202,6 +2212,10 @@ void TeamFortressViewport::ShowVGUIMenu( int iMenu, int timer )
 
 	case MENU_VOTESERVEROPTIONS:
 		pNewMenu = ShowVoteServerOptionsMenu(timer);
+		break;
+
+	case MENU_COOKIES:
+		pNewMenu = ShowCookiesMenu();
 		break;
 
 	default:
@@ -2433,6 +2447,28 @@ void TeamFortressViewport::CreateVoteServerOptionsMenu()
 	m_pVoteServerOptionsMenu = new CVoteServerOptionsPanel(35, false, 0, 0, ScreenWidth, ScreenHeight);
 	m_pVoteServerOptionsMenu->setParent(this);
 	m_pVoteServerOptionsMenu->setVisible( false );
+}
+
+//======================================================================================
+// COOKIE WALL ("Accept All Cookies" instant mutator)
+//======================================================================================
+
+CMenuPanel* TeamFortressViewport::ShowCookiesMenu( void )
+{
+	if ( gEngfuncs.pDemoAPI->IsPlayingback() )
+		return NULL;
+	if ( !m_pCookiesMenu )
+		return NULL;
+
+	m_pCookiesMenu->Reset();
+	return m_pCookiesMenu;
+}
+
+void TeamFortressViewport::CreateCookiesMenu( void )
+{
+	m_pCookiesMenu = new CCookiesPanel(60, false, 0, 0, ScreenWidth, ScreenHeight);
+	m_pCookiesMenu->setParent(this);
+	m_pCookiesMenu->setVisible( false );
 }
 
 //======================================================================================
@@ -2933,6 +2969,20 @@ int TeamFortressViewport::MsgFunc_VoteMutator( const char *pszName, int iSize, v
 		SetVoteModeLabel( g_szMutatorVoteModeClient, -1 );
 		HideVGUIMenu();
 	}
+
+	return 1;
+}
+
+int TeamFortressViewport::MsgFunc_Cookies( const char *pszName, int iSize, void *pbuf )
+{
+	BEGIN_READ( pbuf, iSize );
+	int allowDisconnect = READ_BYTE();
+
+	if ( !m_pCookiesMenu || gEngfuncs.IsSpectateOnly() )
+		return 1;
+
+	m_pCookiesMenu->SetAllowDisconnect( allowDisconnect != 0 );
+	ShowVGUIMenu( MENU_COOKIES );
 
 	return 1;
 }

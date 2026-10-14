@@ -1356,10 +1356,11 @@ void CGameRules::AddRandomMutator(const char *cvarName, BOOL withBar, BOOL three
 }
 
 extern int gmsgPlayClientSound;
+extern int gmsgCookies;
 
 void CGameRules::AddInstantMutator(void)
 {
-	int max_instant_mutators = 14;
+	int max_instant_mutators = 15;
 	int random = RANDOM_LONG(0, max_instant_mutators);
 	UTIL_LogPrintf("Instant mutator \"%d\" enabled at %.2f\n", random, gpGlobals->time);
 
@@ -1631,6 +1632,23 @@ void CGameRules::AddInstantMutator(void)
 				}
 			}
 			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] Extra Ammo!\n");
+			break;
+		case 15:
+			for (int i = 1; i <= gpGlobals->maxClients; ++i)
+			{
+				CBaseEntity *pPlayer = UTIL_PlayerByIndex( i );
+				CBasePlayer *pl = (CBasePlayer *)pPlayer;
+				if (pPlayer && pPlayer->IsPlayer() && !pl->IsSpectator() && !pl->IsObserver() && pl->IsAlive()
+					&& !pl->HasDisconnected && !FBitSet(pPlayer->pev->flags, FL_FAKECLIENT))
+				{
+					// A listen server host that disconnects shuts the match down for everyone.
+					const BOOL listenHost = !IS_DEDICATED_SERVER() && i == 1;
+					MESSAGE_BEGIN(MSG_ONE, gmsgCookies, NULL, pPlayer->edict());
+						WRITE_BYTE(listenHost ? 0 : 1);
+					MESSAGE_END();
+				} 
+			}
+			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] Accept All Cookies!\n");
 			break;
 	}
 

@@ -425,6 +425,7 @@ int gmsgSafeSpot = 0;
 int gmsgDEraser = 0;
 int gmsgBanner = 0;
 int gmsgSpecialEntity = 0;
+int gmsgCookies = 0;
 
 void LinkUserMessages( void )
 {
@@ -506,6 +507,7 @@ void LinkUserMessages( void )
 	gmsgDEraser = REG_USER_MSG("DEraser", 0);
 	gmsgBanner = REG_USER_MSG("Banner", -1);
 	gmsgSpecialEntity = REG_USER_MSG("SpecEnt", -1);
+	gmsgCookies = REG_USER_MSG("Cookies", 1); // BYTE allowDisconnect
 }
 
 LINK_ENTITY_TO_CLASS( player, CBasePlayer );
