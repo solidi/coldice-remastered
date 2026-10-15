@@ -1357,6 +1357,7 @@ void CGameRules::AddRandomMutator(const char *cvarName, BOOL withBar, BOOL three
 
 extern int gmsgPlayClientSound;
 extern int gmsgCookies;
+extern int gmsgBSOD;
 
 // Values are written to the server log, so keep them stable and append new entries before the count.
 enum instant_mutator_e
@@ -1377,13 +1378,15 @@ enum instant_mutator_e
 	INSTANT_HUMAN_ASSASSIN = 13,
 	INSTANT_EXTRA_AMMO = 14,
 	INSTANT_ACCEPT_ALL_COOKIES = 15,
+	INSTANT_BSOD = 16,
 	INSTANT_MUTATOR_COUNT
 };
 
 void CGameRules::AddInstantMutator(void)
 {
-	int random = RANDOM_LONG(0, INSTANT_MUTATOR_COUNT - 1);
+	int random = INSTANT_BSOD;
 	UTIL_LogPrintf("Instant mutator \"%d\" enabled at %.2f\n", random, gpGlobals->time);
+	BOOL broadcastChicken = TRUE;
 
 	switch (random)
 	{
@@ -1671,12 +1674,36 @@ void CGameRules::AddInstantMutator(void)
 			}
 			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] Accept All Cookies!\n");
 			break;
+		case INSTANT_BSOD:
+			for (int i = 1; i <= gpGlobals->maxClients; ++i)
+			{
+				CBaseEntity *pPlayer = UTIL_PlayerByIndex( i );
+				CBasePlayer *pl = (CBasePlayer *)pPlayer;
+				if (pPlayer && pPlayer->IsPlayer() && !pl->IsSpectator() && !pl->IsObserver() && pl->IsAlive()
+					&& !pl->HasDisconnected && !FBitSet(pPlayer->pev->flags, FL_FAKECLIENT))
+				{
+					MESSAGE_BEGIN(MSG_ONE, gmsgBSOD, NULL, pPlayer->edict());
+					MESSAGE_END();
+				}
+				else if (pPlayer && pPlayer->IsPlayer() && !pl->HasDisconnected && !FBitSet(pPlayer->pev->flags, FL_FAKECLIENT))
+				{
+					// The chicken shares the local sound channel and would cut off bsod.wav, so only non-BSOD clients get it.
+					MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgPlayClientSound, NULL, pPlayer->edict());
+						WRITE_BYTE(CLIENT_SOUND_CHICKEN);
+					MESSAGE_END();
+				}
+			}
+			broadcastChicken = FALSE;
+			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] Blue Screen of Death!\n");
+			break;
 	}
 
-	// Instant mutators do not have client side integration.
-	MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
-		WRITE_BYTE(CLIENT_SOUND_CHICKEN);
-	MESSAGE_END();
+	if (broadcastChicken)
+	{
+		MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
+			WRITE_BYTE(CLIENT_SOUND_CHICKEN);
+		MESSAGE_END();
+	}
 
 	// Continue chaos timer bar
 	int mutatorTime = fmin(fmax(mutatortime.value, 10), 120);

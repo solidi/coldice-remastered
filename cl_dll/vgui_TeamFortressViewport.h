@@ -47,6 +47,7 @@
 #define MENU_VOTEGAMEOPTIONS		13
 #define MENU_VOTESERVEROPTIONS	14
 #define MENU_COOKIES				15
+#define MENU_BSOD					16
 #endif
 using namespace vgui;
 
@@ -69,6 +70,7 @@ class CVoteMutatorPanel;
 class CVoteGameOptionsPanel;
 class CVoteServerOptionsPanel;
 class CCookiesPanel;
+class CBSODPanel;
 class CTeamMenuPanel;
 class TeamFortressViewport;
 
@@ -548,6 +550,8 @@ private:
 	CMenuPanel*	 ShowVoteServerOptionsMenu( int timer );
 	void		 CreateCookiesMenu( void );
 	CMenuPanel*	 ShowCookiesMenu( void );
+	void		 CreateBSODMenu( void );
+	CMenuPanel*	 ShowBSODMenu( void );
 	
 	// Scheme handler
 	CSchemeManager m_SchemeManager;
@@ -667,6 +671,7 @@ public:
 	int MsgFunc_VoteSrvOp( const char *pszName, int iSize, void *pbuf ); // open/close server-options vote panel
 	int MsgFunc_SOptFor( const char *pszName, int iSize, void *pbuf );   // mirrored per-item vote
 	int MsgFunc_Cookies( const char *pszName, int iSize, void *pbuf );   // accept-all-cookies instant mutator
+	int MsgFunc_BSOD( const char *pszName, int iSize, void *pbuf );      // bsod instant mutator
 
 	// Input
 	bool SlotInput( int iSlot );
@@ -697,6 +702,7 @@ public:
 	CVoteGameOptionsPanel	*m_pVoteGameOptionsMenu;
 	CVoteServerOptionsPanel	*m_pVoteServerOptionsMenu;
 	CCookiesPanel		*m_pCookiesMenu;
+	CBSODPanel			*m_pBSODMenu;
 };
 
 //============================================================
@@ -2106,6 +2112,19 @@ public:
 
 	void SetAllowDisconnect( bool bAllow ) { m_bAllowDisconnect = bAllow; }
 	void Choose( bool bReject );
+};
+
+// Full-screen fake crash screen shown by the "bsod" instant mutator.
+// Implementation lives in vgui_BSODWindow.cpp.
+class CBSODPanel : public CMenuPanel
+{
+public:
+	CBSODPanel( int iTrans, int iRemoveMe, int x, int y, int wide, int tall );
+
+	virtual void Open( void );
+	virtual void paintBackground( void );
+
+	void Dismiss( void );
 };
 
 class CTeamMenuPanel : public CMenuPanel
