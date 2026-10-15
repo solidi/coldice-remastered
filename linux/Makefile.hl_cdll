@@ -160,6 +160,7 @@ HL1_OBJS = \
 	$(HL1_OBJ_DIR)/vgui_ClassMenu.o \
 	$(HL1_OBJ_DIR)/vgui_ConsolePanel.o \
 	$(HL1_OBJ_DIR)/vgui_ControlConfigPanel.o \
+	$(HL1_OBJ_DIR)/vgui_CookiesWindow.o \
 	$(HL1_OBJ_DIR)/vgui_CustomObjects.o \
 	$(HL1_OBJ_DIR)/vgui_MOTDWindow.o \
 	$(HL1_OBJ_DIR)/vgui_SchemeManager.o \

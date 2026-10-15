@@ -427,6 +427,13 @@ int __MsgFunc_SOptFor(const char *pszName, int iSize, void *pbuf)
 	return 0;
 }
 
+int __MsgFunc_Cookies(const char *pszName, int iSize, void *pbuf)
+{
+	if (gViewPort)
+		return gViewPort->MsgFunc_Cookies( pszName, iSize, pbuf );
+	return 0;
+}
+
 int __MsgFunc_BuildSt(const char *pszName, int iSize, void *pbuf)
 {
 	if (gViewPort)
@@ -628,6 +635,7 @@ void CHud :: Init( void )
 	HOOK_MESSAGE( SrvOpts );
 	HOOK_MESSAGE( VoteSrvOp );
 	HOOK_MESSAGE( SOptFor );
+	HOOK_MESSAGE( Cookies );
 	HOOK_MESSAGE( AddMut );
 	HOOK_MESSAGE( Chaos );
 	HOOK_MESSAGE( Spot );

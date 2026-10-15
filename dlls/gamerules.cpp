@@ -1356,19 +1356,41 @@ void CGameRules::AddRandomMutator(const char *cvarName, BOOL withBar, BOOL three
 }
 
 extern int gmsgPlayClientSound;
+extern int gmsgCookies;
+
+// Values are written to the server log, so keep them stable and append new entries before the count.
+enum instant_mutator_e
+{
+	INSTANT_NOTHING = 0,
+	INSTANT_PLUS_1_HEALTH = 1,
+	INSTANT_SWAP_HEALTH_ARMOR = 2,
+	INSTANT_PLUS_100_HEALTH = 3,
+	INSTANT_PLUS_100_ARMOR = 4,
+	INSTANT_1_HEALTH = 5,
+	INSTANT_NICE = 6,
+	INSTANT_SIX_SEVEN = 7,
+	INSTANT_HOT_POTATO = 8,
+	INSTANT_RANDOM_DAMAGE = 9,
+	INSTANT_TRIPMINE = 10,
+	INSTANT_PET_SNARK = 11,
+	INSTANT_PET_CHUMTOAD = 12,
+	INSTANT_HUMAN_ASSASSIN = 13,
+	INSTANT_EXTRA_AMMO = 14,
+	INSTANT_ACCEPT_ALL_COOKIES = 15,
+	INSTANT_MUTATOR_COUNT
+};
 
 void CGameRules::AddInstantMutator(void)
 {
-	int max_instant_mutators = 14;
-	int random = RANDOM_LONG(0, max_instant_mutators);
+	int random = RANDOM_LONG(0, INSTANT_MUTATOR_COUNT - 1);
 	UTIL_LogPrintf("Instant mutator \"%d\" enabled at %.2f\n", random, gpGlobals->time);
 
 	switch (random)
 	{
-		case 0:
+		case INSTANT_NOTHING:
 			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] Nothing selected!\n");
 			break;
-		case 1:
+		case INSTANT_PLUS_1_HEALTH:
 			for (int i = 1; i <= gpGlobals->maxClients; i++)
 			{
 				CBaseEntity *pPlayer = UTIL_PlayerByIndex( i );
@@ -1378,7 +1400,7 @@ void CGameRules::AddInstantMutator(void)
 			}
 			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] +1 health!\n");
 			break;
-		case 2:
+		case INSTANT_SWAP_HEALTH_ARMOR:
 			for (int i = 1; i <= gpGlobals->maxClients; i++)
 			{
 				CBaseEntity *pPlayer = UTIL_PlayerByIndex( i );
@@ -1402,7 +1424,7 @@ void CGameRules::AddInstantMutator(void)
 			}
 			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] Swap health and armor!\n");
 			break;
-		case 3:
+		case INSTANT_PLUS_100_HEALTH:
 			for (int i = 1; i <= gpGlobals->maxClients; i++)
 			{
 				CBaseEntity *pPlayer = UTIL_PlayerByIndex( i );
@@ -1412,7 +1434,7 @@ void CGameRules::AddInstantMutator(void)
 			}
 			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] +100 health!\n");
 			break;
-		case 4:
+		case INSTANT_PLUS_100_ARMOR:
 			for (int i = 1; i <= gpGlobals->maxClients; i++)
 			{
 				CBaseEntity *pPlayer = UTIL_PlayerByIndex( i );
@@ -1422,7 +1444,7 @@ void CGameRules::AddInstantMutator(void)
 			}
 			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] +100 armor!\n");
 			break;
-		case 5:
+		case INSTANT_1_HEALTH:
 			for (int i = 1; i <= gpGlobals->maxClients; i++)
 			{
 				CBaseEntity *pPlayer = UTIL_PlayerByIndex( i );
@@ -1433,7 +1455,7 @@ void CGameRules::AddInstantMutator(void)
 			}
 			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] 1 health!\n");
 			break;
-		case 6:
+		case INSTANT_NICE:
 			for (int i = 1; i <= gpGlobals->maxClients; i++)
 			{
 				CBaseEntity *pPlayer = UTIL_PlayerByIndex( i );
@@ -1446,7 +1468,7 @@ void CGameRules::AddInstantMutator(void)
 			}
 			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] Nice!\n");
 			break;
-		case 7:
+		case INSTANT_SIX_SEVEN:
 			for (int i = 1; i <= gpGlobals->maxClients; i++)
 			{
 				CBaseEntity *pPlayer = UTIL_PlayerByIndex( i );
@@ -1460,7 +1482,7 @@ void CGameRules::AddInstantMutator(void)
 			}
 			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] Six, seeeeven!\n");
 			break;
-		case 8:
+		case INSTANT_HOT_POTATO:
 			for (int i = 1; i <= gpGlobals->maxClients; ++i)
 			{
 				CBaseEntity *pPlayer = UTIL_PlayerByIndex( i );
@@ -1482,7 +1504,7 @@ void CGameRules::AddInstantMutator(void)
 			}
 			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] Hot potato!\n");
 			break;
-		case 9:
+		case INSTANT_RANDOM_DAMAGE:
 			for (int i = 1; i <= gpGlobals->maxClients; ++i)
 			{
 				CBaseEntity *pPlayer = UTIL_PlayerByIndex( i );
@@ -1493,7 +1515,7 @@ void CGameRules::AddInstantMutator(void)
 			}
 			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] Random damage!\n");
 			break;
-		case 10:
+		case INSTANT_TRIPMINE:
 			for (int i = 1; i <= gpGlobals->maxClients; ++i)
 			{
 				CBaseEntity *pPlayer = UTIL_PlayerByIndex( i );
@@ -1519,7 +1541,7 @@ void CGameRules::AddInstantMutator(void)
 			}
 			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] Tripmine!\n");
 			break;
-		case 11:
+		case INSTANT_PET_SNARK:
 			for (int i = 1; i <= gpGlobals->maxClients; ++i)
 			{
 				CBaseEntity *pPlayer = UTIL_PlayerByIndex( i );
@@ -1552,7 +1574,7 @@ void CGameRules::AddInstantMutator(void)
 			}
 			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] Pet Snark!\n");
 			break;
-		case 12:
+		case INSTANT_PET_CHUMTOAD:
 			if (!g_pGameRules->MutatorAllowed("chumxplode"))
 				break;
 
@@ -1588,7 +1610,7 @@ void CGameRules::AddInstantMutator(void)
 			}
 			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] Pet Chumtoad!\n");
 			break;
-		case 13:
+		case INSTANT_HUMAN_ASSASSIN:
 			for (int i = 1; i <= gpGlobals->maxClients; ++i)
 			{
 				CBaseEntity *pPlayer = UTIL_PlayerByIndex( i );
@@ -1620,7 +1642,7 @@ void CGameRules::AddInstantMutator(void)
 			}
 			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] Human assassin!\n");
 			break;
-		case 14:
+		case INSTANT_EXTRA_AMMO:
 			for (int i = 1; i <= gpGlobals->maxClients; ++i)
 			{
 				CBaseEntity *pPlayer = UTIL_PlayerByIndex( i );
@@ -1631,6 +1653,23 @@ void CGameRules::AddInstantMutator(void)
 				}
 			}
 			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] Extra Ammo!\n");
+			break;
+		case INSTANT_ACCEPT_ALL_COOKIES:
+			for (int i = 1; i <= gpGlobals->maxClients; ++i)
+			{
+				CBaseEntity *pPlayer = UTIL_PlayerByIndex( i );
+				CBasePlayer *pl = (CBasePlayer *)pPlayer;
+				if (pPlayer && pPlayer->IsPlayer() && !pl->IsSpectator() && !pl->IsObserver() && pl->IsAlive()
+					&& !pl->HasDisconnected && !FBitSet(pPlayer->pev->flags, FL_FAKECLIENT))
+				{
+					// A listen server host that disconnects shuts the match down for everyone.
+					const BOOL listenHost = !IS_DEDICATED_SERVER() && i == 1;
+					MESSAGE_BEGIN(MSG_ONE, gmsgCookies, NULL, pPlayer->edict());
+						WRITE_BYTE(listenHost ? 0 : 1);
+					MESSAGE_END();
+				} 
+			}
+			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] Accept All Cookies!\n");
 			break;
 	}
 

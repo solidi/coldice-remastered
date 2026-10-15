@@ -30,6 +30,8 @@ These instructions guide Copilot reviews for C/C++ changes under this source tre
 5. Build system and project files
 - Review updates in project/build config files to ensure both DLL targets are still included and configured.
 - Flag missing source additions/removals that could cause one target to silently diverge.
+- Project files of record: `projects/vs2019/hldll.vcxproj` + `.filters`, `projects/vs2019/hl_cdll.vcxproj` + `.filters`, `linux/Makefile.hldll`, `linux/Makefile.hl_cdll`. A new `.cpp` must appear in the matching `.vcxproj`, `.vcxproj.filters` and Linux makefile.
+- `vs2019` is the only Visual Studio project set (`projects/vs2010` was removed). Legacy MSVC 6 `.dsp`/`.dsw` files are not maintained; do not request updates to them.
 
 ## Validation Expectations
 - Require practical validation notes for non-trivial changes:

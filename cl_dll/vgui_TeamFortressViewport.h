@@ -46,6 +46,7 @@
 #define MENU_VOTEMUTATOR			12
 #define MENU_VOTEGAMEOPTIONS		13
 #define MENU_VOTESERVEROPTIONS	14
+#define MENU_COOKIES				15
 #endif
 using namespace vgui;
 
@@ -67,6 +68,7 @@ class CVoteMapPanel;
 class CVoteMutatorPanel;
 class CVoteGameOptionsPanel;
 class CVoteServerOptionsPanel;
+class CCookiesPanel;
 class CTeamMenuPanel;
 class TeamFortressViewport;
 
@@ -544,6 +546,8 @@ private:
 	CMenuPanel*	 ShowVoteGameOptionsMenu( int timer );
 	void		 CreateVoteServerOptionsMenu( void );
 	CMenuPanel*	 ShowVoteServerOptionsMenu( int timer );
+	void		 CreateCookiesMenu( void );
+	CMenuPanel*	 ShowCookiesMenu( void );
 	
 	// Scheme handler
 	CSchemeManager m_SchemeManager;
@@ -662,6 +666,7 @@ public:
 	int MsgFunc_SrvOpts( const char *pszName, int iSize, void *pbuf );   // server-options manifest (chunked)
 	int MsgFunc_VoteSrvOp( const char *pszName, int iSize, void *pbuf ); // open/close server-options vote panel
 	int MsgFunc_SOptFor( const char *pszName, int iSize, void *pbuf );   // mirrored per-item vote
+	int MsgFunc_Cookies( const char *pszName, int iSize, void *pbuf );   // accept-all-cookies instant mutator
 
 	// Input
 	bool SlotInput( int iSlot );
@@ -691,6 +696,7 @@ public:
 	CVoteMutatorPanel	*m_pVoteMutatorMenu;
 	CVoteGameOptionsPanel	*m_pVoteGameOptionsMenu;
 	CVoteServerOptionsPanel	*m_pVoteServerOptionsMenu;
+	CCookiesPanel		*m_pCookiesMenu;
 };
 
 //============================================================
@@ -2081,6 +2087,25 @@ public:
 	void OnRowButton( int row, int option );
 
 	float m_iTime;
+};
+
+// Full-screen cookie consent wall shown by the "Accept All Cookies" instant mutator.
+// Implementation lives in vgui_CookiesWindow.cpp.
+class CCookiesPanel : public CMenuPanel
+{
+private:
+	LineBorder			*m_pWindowBorder;
+	CTFScrollPanel		*m_pScrollPanel;
+	bool				m_bAllowDisconnect;
+
+public:
+	CCookiesPanel( int iTrans, int iRemoveMe, int x, int y, int wide, int tall );
+
+	virtual void Open( void );
+	virtual bool MouseWheeled( int delta ) { return HandleScrollPanelMouseWheel( m_pScrollPanel, delta ); };
+
+	void SetAllowDisconnect( bool bAllow ) { m_bAllowDisconnect = bAllow; }
+	void Choose( bool bReject );
 };
 
 class CTeamMenuPanel : public CMenuPanel
