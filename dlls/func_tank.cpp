@@ -52,6 +52,7 @@ public:
 	void	Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value );
 	void	Think( void );
 	void	TrackTarget( void );
+	virtual void UpdateOnRemove( void );
 
 	virtual void Fire( const Vector &barrelEnd, const Vector &forward, entvars_t *pevAttacker );
 	virtual Vector UpdateTargetPosition( CBaseEntity *pTarget )
@@ -760,6 +761,13 @@ void CFuncTank::StopRotSound( void )
 	pev->spawnflags &= ~SF_TANK_SOUNDON;
 }
 
+void CFuncTank::UpdateOnRemove( void )
+{
+	// Otherwise the controller keeps a holstered weapon and hidden weapon HUD.
+	StopControl();
+	CBaseEntity::UpdateOnRemove();
+}
+
 class CFuncTankGun : public CFuncTank
 {
 public:
@@ -816,6 +824,7 @@ public:
 	void	KeyValue( KeyValueData *pkvd );
 	void	Fire( const Vector &barrelEnd, const Vector &forward, entvars_t *pevAttacker );
 	void	Think( void );
+	void	UpdateOnRemove( void );
 	CLaser *GetLaser( void );
 
 	virtual int	Save( CSave &save );
@@ -892,6 +901,16 @@ void CFuncTankLaser::Think( void )
 		m_pLaser->TurnOff();
 
 	CFuncTank::Think();
+}
+
+
+void CFuncTankLaser::UpdateOnRemove( void )
+{
+	// Only this tank's Think turns the beam off, so a shot fired this frame would stay lit.
+	if ( m_pLaser )
+		m_pLaser->TurnOff();
+
+	CFuncTank::UpdateOnRemove();
 }
 
 
@@ -1029,13 +1048,13 @@ public:
 	virtual int	Restore( CRestore &restore );
 	static TYPEDESCRIPTION m_SaveData[];
 
-	CFuncTank *m_pTank;
+	EHANDLE m_hTank;
 };
 LINK_ENTITY_TO_CLASS( func_tankcontrols, CFuncTankControls );
 
 TYPEDESCRIPTION	CFuncTankControls::m_SaveData[] = 
 {
-	DEFINE_FIELD( CFuncTankControls, m_pTank, FIELD_CLASSPTR ),
+	DEFINE_FIELD( CFuncTankControls, m_hTank, FIELD_EHANDLE ),
 };
 
 IMPLEMENT_SAVERESTORE( CFuncTankControls, CBaseEntity );
@@ -1048,10 +1067,9 @@ int	CFuncTankControls :: ObjectCaps( void )
 
 void CFuncTankControls :: Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useType, float value )
 { // pass the Use command onto the controls
-	if ( m_pTank )
-		m_pTank->Use( pActivator, pCaller, useType, value );
-
-	ASSERT( m_pTank != NULL );	// if this fails,  most likely means save/restore hasn't worked properly
+	CFuncTank *pTank = (CFuncTank *)(CBaseEntity *)m_hTank;
+	if ( pTank )
+		pTank->Use( pActivator, pCaller, useType, value );
 }
 
 
@@ -1070,7 +1088,7 @@ void CFuncTankControls :: Think( void )
 		return;
 	}
 
-	m_pTank = (CFuncTank*)Instance(pTarget);
+	m_hTank = Instance(pTarget);
 }
 
 void CFuncTankControls::Spawn( void )
