@@ -1384,7 +1384,7 @@ enum instant_mutator_e
 
 void CGameRules::AddInstantMutator(void)
 {
-	int random = INSTANT_BSOD;
+	int random = RANDOM_LONG(0, INSTANT_MUTATOR_COUNT - 1);
 	UTIL_LogPrintf("Instant mutator \"%d\" enabled at %.2f\n", random, gpGlobals->time);
 	BOOL broadcastChicken = TRUE;
 
