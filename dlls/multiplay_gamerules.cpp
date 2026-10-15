@@ -1673,7 +1673,7 @@ void CHalfLifeMultiplay::RemoveAndFillItems( void )
 	const char *pRechargeThese[] =
 	{
 		"func_recharge",
-		"func_healthrecharger",
+		"func_healthcharger",
 	};
 
 	pEntity = NULL;
