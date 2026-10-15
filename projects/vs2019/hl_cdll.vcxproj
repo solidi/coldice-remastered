@@ -166,6 +166,7 @@
     <ClCompile Include="..\..\cl_dll\triapihud.cpp" />
     <ClCompile Include="..\..\cl_dll\util.cpp" />
     <ClCompile Include="..\..\cl_dll\vgui_ClassMenu.cpp" />
+    <ClCompile Include="..\..\cl_dll\vgui_BSODWindow.cpp" />
     <ClCompile Include="..\..\cl_dll\vgui_ControlConfigPanel.cpp" />
     <ClCompile Include="..\..\cl_dll\vgui_CookiesWindow.cpp" />
     <ClCompile Include="..\..\cl_dll\vgui_CustomObjects.cpp" />

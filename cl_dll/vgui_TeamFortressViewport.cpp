@@ -781,6 +781,7 @@ TeamFortressViewport::TeamFortressViewport(int x,int y,int wide,int tall) : Pane
 	m_pVoteGameOptionsMenu = NULL;
 	m_pVoteServerOptionsMenu = NULL;
 	m_pCookiesMenu = NULL;
+	m_pBSODMenu = NULL;
 
 	Initialize();
 	addInputSignal( new CViewPortInputHandler );
@@ -845,6 +846,7 @@ TeamFortressViewport::TeamFortressViewport(int x,int y,int wide,int tall) : Pane
 	CreateVoteGameOptionsMenu();
 	CreateVoteServerOptionsMenu();
 	CreateCookiesMenu();
+	CreateBSODMenu();
 
 	// Init command menus
 	m_iNumMenus = 0;
@@ -2160,8 +2162,8 @@ void TeamFortressViewport::ShowVGUIMenu( int iMenu, int timer )
 		}
 	}
 
-	// The cookie wall is a gag; it must never hold a server-driven vote panel in the queue.
-	if ( m_pCurrentMenu && m_pCurrentMenu->GetMenuID() == MENU_COOKIES &&
+	// Gag menus must never hold a server-driven vote panel in the queue.
+	if ( m_pCurrentMenu && ( m_pCurrentMenu->GetMenuID() == MENU_COOKIES || m_pCurrentMenu->GetMenuID() == MENU_BSOD ) &&
 		( iMenu == MENU_VOTEGAMEPLAY || iMenu == MENU_VOTEMAP || iMenu == MENU_VOTEMUTATOR
 		|| iMenu == MENU_VOTEGAMEOPTIONS || iMenu == MENU_VOTESERVEROPTIONS ) )
 	{
@@ -2216,6 +2218,10 @@ void TeamFortressViewport::ShowVGUIMenu( int iMenu, int timer )
 
 	case MENU_COOKIES:
 		pNewMenu = ShowCookiesMenu();
+		break;
+
+	case MENU_BSOD:
+		pNewMenu = ShowBSODMenu();
 		break;
 
 	default:
@@ -2470,6 +2476,29 @@ void TeamFortressViewport::CreateCookiesMenu( void )
 	m_pCookiesMenu = new CCookiesPanel(60, false, 0, 0, ScreenWidth, ScreenHeight);
 	m_pCookiesMenu->setParent(this);
 	m_pCookiesMenu->setVisible( false );
+}
+
+//======================================================================================
+// BLUE SCREEN OF DEATH ("bsod" instant mutator)
+//======================================================================================
+
+CMenuPanel* TeamFortressViewport::ShowBSODMenu( void )
+{
+	if ( gEngfuncs.pDemoAPI->IsPlayingback() )
+		return NULL;
+	// Do not queue the crash screen behind another menu.
+	if ( !m_pBSODMenu || m_pCurrentMenu )
+		return NULL;
+
+	m_pBSODMenu->Reset();
+	return m_pBSODMenu;
+}
+
+void TeamFortressViewport::CreateBSODMenu( void )
+{
+	m_pBSODMenu = new CBSODPanel(0, false, 0, 0, ScreenWidth, ScreenHeight);
+	m_pBSODMenu->setParent(this);
+	m_pBSODMenu->setVisible( false );
 }
 
 //======================================================================================
@@ -2984,6 +3013,16 @@ int TeamFortressViewport::MsgFunc_Cookies( const char *pszName, int iSize, void 
 
 	m_pCookiesMenu->SetAllowDisconnect( allowDisconnect != 0 );
 	ShowVGUIMenu( MENU_COOKIES );
+
+	return 1;
+}
+
+int TeamFortressViewport::MsgFunc_BSOD( const char *pszName, int iSize, void *pbuf )
+{
+	if ( !m_pBSODMenu || gEngfuncs.IsSpectateOnly() )
+		return 1;
+
+	ShowVGUIMenu( MENU_BSOD );
 
 	return 1;
 }
