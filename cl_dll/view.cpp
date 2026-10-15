@@ -593,35 +593,41 @@ static void V_SprintWeapon( struct ref_params_s *pparams, cl_entity_t *view )
 {
 	extern cvar_t *m_pCvarRighthand;
 	static float flSprintFrac = 0;
-	static float flLastBusyTime = 0;
+	static float flRunStartTime = -1;
 
 	if (cl_weaponsway->value != 1 || g_iUser1 || gEngfuncs.IsSpectateOnly() ||
 		pparams->health <= 0 || CL_IsThirdPerson() ||
 		!strncmp(view->model->name, "models/v_dual_", strlen("models/v_dual_")))
 	{
 		flSprintFrac = 0;
+		flRunStartTime = -1;
 		return;
 	}
 
 	// pparams->time restarts on map change; drop a stale timestamp.
-	if (flLastBusyTime > pparams->time)
-		flLastBusyTime = 0;
+	if (flRunStartTime > pparams->time)
+		flRunStartTime = -1;
 
 	const float clientTime = gEngfuncs.GetClientTime();
 
 	// Offhand actions (kick, punch, grenade, etc.) share the viewmodel transform.
 	const bool busy = (pparams->cmd->buttons & (IN_ATTACK | IN_ATTACK2 | IN_RELOAD)) ||
 		gHUD.m_flExtraViewModelTime > clientTime;
-	if (busy)
-		flLastBusyTime = pparams->time;
 
 	const float speed = sqrt(pparams->simvel[0] * pparams->simvel[0] + pparams->simvel[1] * pparams->simvel[1]);
 
 	// 210 matches the pm_shared footstep run threshold (velrun).
-	const bool running = speed >= 210.0f && pparams->cmd->forwardmove > 0 &&
+	const bool movingFast = !busy && speed >= 210.0f && pparams->cmd->forwardmove > 0 &&
 		!(pparams->cmd->buttons & IN_DUCK) && pparams->waterlevel < 2 &&
-		!gEngfuncs.IsNoClipping() && !g_IronSight && g_AcrobatTime < clientTime &&
-		(pparams->time - flLastBusyTime) > 0.4f;
+		!gEngfuncs.IsNoClipping() && !g_IronSight && g_AcrobatTime < clientTime;
+
+	if (!movingFast)
+		flRunStartTime = -1;
+	else if (flRunStartTime < 0)
+		flRunStartTime = pparams->time;
+
+	// Require sustained running so forward double-taps (slide input) don't twitch the pose.
+	const bool running = flRunStartTime >= 0 && (pparams->time - flRunStartTime) >= 0.5f;
 
 	float rate = running ? 6.0f : 10.0f;
 	if (busy)
