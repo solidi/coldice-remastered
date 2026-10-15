@@ -1670,8 +1670,16 @@ void CGameRules::AddInstantMutator(void)
 					MESSAGE_BEGIN(MSG_ONE, gmsgCookies, NULL, pPlayer->edict());
 						WRITE_BYTE(listenHost ? 0 : 1);
 					MESSAGE_END();
-				} 
+				}
+				else if (pPlayer && pPlayer->IsPlayer() && !pl->HasDisconnected && !FBitSet(pPlayer->pev->flags, FL_FAKECLIENT))
+				{
+					// The chicken shares the local sound channel and would cut off acceptall.wav, so only clients without the wall get it.
+					MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgPlayClientSound, NULL, pPlayer->edict());
+						WRITE_BYTE(CLIENT_SOUND_CHICKEN);
+					MESSAGE_END();
+				}
 			}
+			broadcastChicken = FALSE;
 			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] Accept All Cookies!\n");
 			break;
 		case INSTANT_BSOD:

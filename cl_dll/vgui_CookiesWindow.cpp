@@ -163,6 +163,8 @@ void CCookiesPanel::Open( void )
 
 	m_pScrollPanel->setScrollValue( 0, 0 );
 
+	PlaySound( "acceptall.wav", 1 );
+
 	CMenuPanel::Open();
 }
 
