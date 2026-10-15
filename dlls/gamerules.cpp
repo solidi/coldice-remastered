@@ -1442,19 +1442,16 @@ static void RemoveRandomFuncClass(void)
 		if (loopSound)
 			STOP_SOUND(pEntity->edict(), CHAN_STATIC, loopSound);
 
-		if (pEntity->pev->velocity != g_vecZero || pEntity->pev->avelocity != g_vecZero)
+		const string_t noises[] = { pEntity->pev->noise, pEntity->pev->noise1, pEntity->pev->noise2, pEntity->pev->noise3 };
+		for (int n = 0; n < (int)ARRAYSIZE(noises); n++)
 		{
-			const string_t noises[] = { pEntity->pev->noise, pEntity->pev->noise1, pEntity->pev->noise2, pEntity->pev->noise3 };
-			for (int n = 0; n < (int)ARRAYSIZE(noises); n++)
-			{
-				if (FStringNull(noises[n]))
-					continue;
+			if (FStringNull(noises[n]))
+				continue;
 
-				const char *sample = STRING(noises[n]);
-				const size_t length = strlen(sample);
-				if (length > 4 && !stricmp(sample + length - 4, ".wav"))
-					STOP_SOUND(pEntity->edict(), CHAN_STATIC, sample);
-			}
+			const char *sample = STRING(noises[n]);
+			const size_t length = strlen(sample);
+			if (length > 4 && !stricmp(sample + length - 4, ".wav"))
+				STOP_SOUND(pEntity->edict(), CHAN_STATIC, sample);
 		}
 
 		UTIL_Remove(pEntity);
