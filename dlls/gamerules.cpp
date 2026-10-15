@@ -1359,6 +1359,112 @@ extern int gmsgPlayClientSound;
 extern int gmsgCookies;
 extern int gmsgBSOD;
 
+// Every func_* class linked by the server DLL. loopSound is a hard-coded CHAN_STATIC loop the class plays while in use.
+static const struct
+{
+	const char *classname;
+	const char *loopSound;
+} g_RemovableFuncClasses[] =
+{
+	{ "func_breakable", NULL },
+	{ "func_button", NULL },
+	{ "func_conveyor", NULL },
+	{ "func_door", NULL },
+	{ "func_door_rotating", NULL },
+	{ "func_friction", NULL },
+	{ "func_guntarget", NULL },
+	{ "func_healthcharger", "items/medcharge4.wav" },
+	{ "func_illusionary", NULL },
+	{ "func_ladder", NULL },
+	{ "func_monsterclip", NULL },
+	{ "func_mortar_field", NULL },
+	{ "func_pendulum", NULL },
+	{ "func_plat", NULL },
+	{ "func_platrot", NULL },
+	{ "func_pushable", NULL },
+	{ "func_recharge", "items/suitcharge1.wav" },
+	{ "func_rot_button", NULL },
+	{ "func_rotating", NULL },
+	{ "func_tank", NULL },
+	{ "func_tankcontrols", NULL },
+	{ "func_tanklaser", NULL },
+	{ "func_tankmortar", NULL },
+	{ "func_tankrocket", NULL },
+	{ "func_trackautochange", NULL },
+	{ "func_trackchange", NULL },
+	{ "func_tracktrain", NULL },
+	{ "func_train", NULL },
+	{ "func_traincontrols", NULL },
+	{ "func_vehicle", NULL },
+	{ "func_vehiclecontrols", NULL },
+	{ "func_wall", NULL },
+	{ "func_wall_toggle", NULL },
+	{ "func_water", NULL },
+};
+
+// Removes every entity of one random func_* class present on the map. Nothing comes back until the next map.
+static void RemoveRandomFuncClass(void)
+{
+	int present[ARRAYSIZE(g_RemovableFuncClasses)];
+	int presentCount = 0;
+
+	for (int i = 0; i < (int)ARRAYSIZE(g_RemovableFuncClasses); i++)
+	{
+		CBaseEntity *pEntity = NULL;
+		while ((pEntity = UTIL_FindEntityByClassname(pEntity, g_RemovableFuncClasses[i].classname)) != NULL)
+		{
+			if (!FBitSet(pEntity->pev->flags, FL_KILLME))
+			{
+				present[presentCount++] = i;
+				break;
+			}
+		}
+	}
+
+	if (presentCount == 0)
+	{
+		UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] Remove func_*: nothing left to remove!\n");
+		return;
+	}
+
+	const int key = present[RANDOM_LONG(0, presentCount - 1)];
+	const char *classname = g_RemovableFuncClasses[key].classname;
+	const char *loopSound = g_RemovableFuncClasses[key].loopSound;
+	int removed = 0;
+
+	CBaseEntity *pEntity = NULL;
+	while ((pEntity = UTIL_FindEntityByClassname(pEntity, classname)) != NULL)
+	{
+		if (FBitSet(pEntity->pev->flags, FL_KILLME))
+			continue;
+
+		// Looping CHAN_STATIC sounds keep playing on clients after their entity is gone.
+		if (loopSound)
+			STOP_SOUND(pEntity->edict(), CHAN_STATIC, loopSound);
+
+		const string_t noises[] = { pEntity->pev->noise, pEntity->pev->noise1, pEntity->pev->noise2, pEntity->pev->noise3 };
+		for (int n = 0; n < (int)ARRAYSIZE(noises); n++)
+		{
+			if (FStringNull(noises[n]))
+				continue;
+
+			const char *sample = STRING(noises[n]);
+			const size_t length = strlen(sample);
+			if (length > 4 && !stricmp(sample + length - 4, ".wav"))
+				STOP_SOUND(pEntity->edict(), CHAN_STATIC, sample);
+		}
+
+		UTIL_Remove(pEntity);
+		removed++;
+	}
+
+	char message[128];
+	if (snprintf(message, sizeof(message), "[Mutators] Remove func_*: %s was removed!\n", classname) > 0)
+		UTIL_ClientPrintAll(HUD_PRINTTALK, message);
+
+	UTIL_LogPrintf("Instant mutator \"Remove func_*\" removed %d \"%s\" at %.2f\n", removed, classname, gpGlobals->time);
+}
+
 // Values are written to the server log, so keep them stable and append new entries before the count.
 enum instant_mutator_e
 {
@@ -1379,6 +1485,7 @@ enum instant_mutator_e
 	INSTANT_EXTRA_AMMO = 14,
 	INSTANT_ACCEPT_ALL_COOKIES = 15,
 	INSTANT_BSOD = 16,
+	INSTANT_REMOVE_FUNC = 17,
 	INSTANT_MUTATOR_COUNT
 };
 
@@ -1703,6 +1810,9 @@ void CGameRules::AddInstantMutator(void)
 			}
 			broadcastChicken = FALSE;
 			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] Blue Screen of Death!\n");
+			break;
+		case INSTANT_REMOVE_FUNC:
+			RemoveRandomFuncClass();
 			break;
 	}
 

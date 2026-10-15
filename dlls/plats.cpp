@@ -251,7 +251,7 @@ public:
 	virtual int	ObjectCaps( void ) { return (CBaseEntity :: ObjectCaps() & ~FCAP_ACROSS_TRANSITION) | FCAP_DONT_SAVE; }
 	void SpawnInsideTrigger( CFuncPlat *pPlatform );
 	void Touch( CBaseEntity *pOther );
-	CFuncPlat *m_pPlatform;
+	EHANDLE m_hPlatform;
 };
 
 
@@ -350,24 +350,24 @@ static void PlatSpawnInsideTrigger(entvars_t* pevPlatform)
 //
 void CPlatTrigger :: SpawnInsideTrigger( CFuncPlat *pPlatform )
 {
-	m_pPlatform = pPlatform;
+	m_hPlatform = pPlatform;
 	// Create trigger entity, "point" it at the owning platform, give it a touch method
 	pev->solid		= SOLID_TRIGGER;
 	pev->movetype	= MOVETYPE_NONE;
 	pev->origin = pPlatform->pev->origin;
 
 	// Establish the trigger field's size
-	Vector vecTMin = m_pPlatform->pev->mins + Vector ( 25 , 25 , 0 );
-	Vector vecTMax = m_pPlatform->pev->maxs + Vector ( 25 , 25 , 8 );
-	vecTMin.z = vecTMax.z - ( m_pPlatform->m_vecPosition1.z - m_pPlatform->m_vecPosition2.z + 8 );
-	if (m_pPlatform->pev->size.x <= 50)
+	Vector vecTMin = pPlatform->pev->mins + Vector ( 25 , 25 , 0 );
+	Vector vecTMax = pPlatform->pev->maxs + Vector ( 25 , 25 , 8 );
+	vecTMin.z = vecTMax.z - ( pPlatform->m_vecPosition1.z - pPlatform->m_vecPosition2.z + 8 );
+	if (pPlatform->pev->size.x <= 50)
 	{
-		vecTMin.x = (m_pPlatform->pev->mins.x + m_pPlatform->pev->maxs.x) / 2;
+		vecTMin.x = (pPlatform->pev->mins.x + pPlatform->pev->maxs.x) / 2;
 		vecTMax.x = vecTMin.x + 1;
 	}
-	if (m_pPlatform->pev->size.y <= 50)
+	if (pPlatform->pev->size.y <= 50)
 	{
-		vecTMin.y = (m_pPlatform->pev->mins.y + m_pPlatform->pev->maxs.y) / 2;
+		vecTMin.y = (pPlatform->pev->mins.y + pPlatform->pev->maxs.y) / 2;
 		vecTMax.y = vecTMin.y + 1;
 	}
 	UTIL_SetSize ( pev, vecTMin, vecTMax );
@@ -379,20 +379,28 @@ void CPlatTrigger :: SpawnInsideTrigger( CFuncPlat *pPlatform )
 //
 void CPlatTrigger :: Touch( CBaseEntity *pOther )
 {
+	CFuncPlat *pPlatform = (CFuncPlat *)(CBaseEntity *)m_hPlatform;
+	if ( !pPlatform )
+	{
+		// The platform was removed at runtime, so this trigger has nothing left to drive.
+		UTIL_Remove( this );
+		return;
+	}
+
 	// Ignore touches by non-players
 	entvars_t*	pevToucher = pOther->pev;
 	if ( !FClassnameIs (pevToucher, "player") )
 		return;
 
 	// Ignore touches by corpses
-	if (!pOther->IsAlive()||!m_pPlatform||!m_pPlatform->pev)
+	if (!pOther->IsAlive())
 		return;
 	
 	// Make linked platform go up/down.
-	if (m_pPlatform->m_toggle_state == TS_AT_BOTTOM)
-		m_pPlatform->GoUp();
-	else if (m_pPlatform->m_toggle_state == TS_AT_TOP)
-		m_pPlatform->pev->nextthink = m_pPlatform->pev->ltime + 1;// delay going down
+	if (pPlatform->m_toggle_state == TS_AT_BOTTOM)
+		pPlatform->GoUp();
+	else if (pPlatform->m_toggle_state == TS_AT_TOP)
+		pPlatform->pev->nextthink = pPlatform->pev->ltime + 1;// delay going down
 }
 
 
@@ -1654,6 +1662,7 @@ public:
 	static	TYPEDESCRIPTION m_SaveData[];
 
 	virtual void	OverrideReset( void );
+	virtual void	UpdateOnRemove( void );
 
 
 	CPathTrack		*m_trackTop;
@@ -1762,6 +1771,18 @@ void CFuncTrackChange::OverrideReset( void )
 {
 	pev->nextthink = pev->ltime + 1.0;
 	SetThink( &CFuncTrackChange::Find );
+}
+
+void CFuncTrackChange::UpdateOnRemove( void )
+{
+	// A carried train moves on the velocity this platform gave it and would drift away forever.
+	if ( m_code == TRAIN_FOLLOWING && m_train && (m_toggle_state == TS_GOING_UP || m_toggle_state == TS_GOING_DOWN) )
+	{
+		m_train->pev->velocity = g_vecZero;
+		m_train->pev->avelocity = g_vecZero;
+	}
+
+	CFuncPlatRot::UpdateOnRemove();
 }
 
 void CFuncTrackChange :: Find( void )
@@ -2090,7 +2111,7 @@ void CFuncTrackAuto :: Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_T
 	{
 		if ( pTarget )
 			pTarget = pTarget->GetNext();
-		if ( pTarget && m_train->m_ppath != pTarget && ShouldToggle( useType, m_targetState ) )
+		if ( pTarget && (!m_train || m_train->m_ppath != pTarget) && ShouldToggle( useType, m_targetState ) )
 		{
 			if ( m_targetState == TS_AT_TOP )
 				m_targetState = TS_AT_BOTTOM;
@@ -2100,6 +2121,28 @@ void CFuncTrackAuto :: Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_T
 
 		UpdateAutoTargets( m_targetState );
 	}
+}
+
+
+void CFuncTrackTrain :: UpdateOnRemove( void )
+{
+	// Track changers keep a raw pointer to their train; drop it so they keep working as plain elevators.
+	static const char *changers[] = { "func_trackchange", "func_trackautochange" };
+	for ( int i = 0; i < (int)ARRAYSIZE( changers ); i++ )
+	{
+		CBaseEntity *pEntity = NULL;
+		while ( (pEntity = UTIL_FindEntityByClassname( pEntity, changers[i] )) != NULL )
+		{
+			CFuncTrackChange *pChange = (CFuncTrackChange *)pEntity;
+			if ( pChange->m_train == this )
+			{
+				pChange->m_train = NULL;
+				pChange->m_code = TRAIN_SAFE;
+			}
+		}
+	}
+
+	CBaseEntity::UpdateOnRemove();
 }
 
 
