@@ -8690,7 +8690,11 @@ void CBasePlayer::DropPlayerItem ( char *pszItemName, BOOL weaponbox, BOOL explo
 			if (weaponbox)
 				pWeaponBox = (CWeaponBox *)CBaseEntity::Create( "weaponbox", pev->origin + gpGlobals->v_forward * 10, pev->angles, edict() );
 			else if (RemovePlayerItem(pWeapon))
-				pWeapon->Kill(); // RemovePlayerItem only unlinks; the thrown weapon would otherwise leak as a hidden edict
+			{
+				if (m_pLastRef == pWeapon)
+					m_pLastRef = NULL;
+				pWeapon->Kill();
+			}
 
 			if (pWeaponBox != NULL)
 			{

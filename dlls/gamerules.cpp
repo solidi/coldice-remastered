@@ -1522,6 +1522,9 @@ static int BuildWeaponCandidates(int *ids, CBasePlayer *pFor)
 
 static void UnarmPlayer(CBasePlayer *pl)
 {
+	if (g_pGameRules->IsCtC() && pl->m_iHoldingChumtoad)
+		return;
+
 	pl->RemoveAllItems(FALSE);
 	pl->GiveNamedItem("weapon_fists");
 }
@@ -1578,6 +1581,12 @@ static const struct
 
 static void InstantUnarm(void)
 {
+	if (!InstantWeaponsAllowed())
+	{
+		UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] Unarmed: nothing allowed here!\n");
+		return;
+	}
+
 	for (int i = 1; i <= gpGlobals->maxClients; i++)
 	{
 		CBasePlayer *pl = (CBasePlayer *)UTIL_PlayerByIndex(i);
