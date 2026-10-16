@@ -48,6 +48,8 @@ class CWorldRunes : public CBaseEntity
 public:
 	static void Create( void );
 	static void DropRune(CBasePlayer *pPlayer);
+	static const char *ClearRune(CBasePlayer *pPlayer);
+	static BOOL GiveRune(CBasePlayer *pPlayer, const char *szRuneClass);
 	void Spawn( void );
 	void EXPORT SpawnRunes( void );
 	void Precache( void );

@@ -1172,11 +1172,14 @@ CBaseEntity *CWorldRunes::SelectSpawnPoint(const char *spot)
 	return pSpot;
 }
 
-void CWorldRunes::DropRune(CBasePlayer *pPlayer) {
+// Takes the held rune away without leaving it in the world. Returns its classname, or NULL if none was held.
+const char *CWorldRunes::ClearRune(CBasePlayer *pPlayer)
+{
 	if (!pPlayer->m_fHasRune)
-		return;
+		return NULL;
 
-	char *sz_Rune;
+	const char *sz_Rune;
+	const char *sz_Icon = NULL;
 	switch (pPlayer->m_fHasRune)
 	{
 		case RUNE_FRAG:
@@ -1212,6 +1215,11 @@ void CWorldRunes::DropRune(CBasePlayer *pPlayer) {
 				else if (g_pGameRules->IsSnowballFight())
 					pPlayer->RemoveNamedItem("weapon_glauncher");
 			}
+			// Match the mode-specific icon CAmmoRune::MyTouch enabled.
+			if (g_pGameRules->IsInstagib())
+				sz_Icon = "rune_hornet";
+			else if (g_pGameRules->IsSnowballFight())
+				sz_Icon = "rune_slauncher";
 			break;
 		default:
 			sz_Rune = "rune_strength";
@@ -1233,18 +1241,45 @@ void CWorldRunes::DropRune(CBasePlayer *pPlayer) {
 		pPlayer->pev->renderamt = 0;
 	}
 
-	UTIL_MakeVectors(pPlayer->pev->v_angle);
-	CRune *pRune = (CRune *)CBaseEntity::Create(sz_Rune, pPlayer->GetGunPosition( ) + gpGlobals->v_forward * 32, pPlayer->pev->angles, pPlayer->edict());
-	if (pRune != NULL)
-		pRune->pev->velocity = gpGlobals->v_forward * 300 + gpGlobals->v_forward * 100;
-
 	if (!FBitSet(pPlayer->pev->flags, FL_FAKECLIENT))
 	{
 		MESSAGE_BEGIN( MSG_ONE, gmsgStatusIcon, NULL, pPlayer->pev );
 			WRITE_BYTE(0);
-			WRITE_STRING(sz_Rune);
+			WRITE_STRING(sz_Icon ? sz_Icon : sz_Rune);
 		MESSAGE_END();
 	}
+
+	return sz_Rune;
+}
+
+void CWorldRunes::DropRune(CBasePlayer *pPlayer) {
+	const char *sz_Rune = ClearRune(pPlayer);
+	if (!sz_Rune)
+		return;
+
+	UTIL_MakeVectors(pPlayer->pev->v_angle);
+	CRune *pRune = (CRune *)CBaseEntity::Create((char *)sz_Rune, pPlayer->GetGunPosition( ) + gpGlobals->v_forward * 32, pPlayer->pev->angles, pPlayer->edict());
+	if (pRune != NULL)
+		pRune->pev->velocity = gpGlobals->v_forward * 300 + gpGlobals->v_forward * 100;
+}
+
+// RuneTouch ignores runes that are not on the ground, so the rune is grounded and touched directly.
+BOOL CWorldRunes::GiveRune(CBasePlayer *pPlayer, const char *szRuneClass)
+{
+	if (!pPlayer || !szRuneClass || pPlayer->m_fHasRune)
+		return FALSE;
+
+	CBaseEntity *pRune = CBaseEntity::Create((char *)szRuneClass, pPlayer->pev->origin, g_vecZero, NULL);
+	if (!pRune)
+		return FALSE;
+
+	pRune->pev->flags |= FL_ONGROUND;
+	pRune->Touch(pPlayer);
+
+	if (!FBitSet(pRune->pev->flags, FL_KILLME))
+		UTIL_Remove(pRune);
+
+	return pPlayer->m_fHasRune != 0;
 }
 
 const char *pPlaces[] =

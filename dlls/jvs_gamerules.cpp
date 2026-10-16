@@ -623,7 +623,7 @@ void CHalfLifeJesusVsSanta::PlayerSpawn( CBasePlayer *pPlayer )
 		pPlayer->GiveExplosives();
 		pPlayer->pev->health = pPlayer->pev->armorvalue = pPlayer->pev->max_health = 750;
 		g_engfuncs.pfnSetPhysicsKeyValue(pPlayer->edict(), "haste", "1");
-		pPlayer->GiveNamedItem("rune_cloak");
+		CWorldRunes::GiveRune(pPlayer, "rune_cloak");
 		strncpy( pPlayer->m_szTeamName, "jesus", TEAM_NAME_LENGTH );
 		g_engfuncs.pfnSetClientKeyValue(ENTINDEX(pPlayer->edict()),
 			g_engfuncs.pfnGetInfoKeyBuffer(pPlayer->edict()), "model", "jesus");
