@@ -1152,7 +1152,12 @@ void CBasePlayer::PackDeadPlayerItems( CBasePlayer *pFragVictor )
 			}
 		}
 
-		if (!found)
+		// Jesus's cloak rune belongs to Jesus vs Santa; a dropped one would cloak a Santa.
+		if (IsArmoredMan)
+		{
+			CWorldRunes::ClearRune(this);
+		}
+		else if (!found)
 		{
 			CWorldRunes::DropRune(this);
 		}
@@ -5136,7 +5141,11 @@ void CBasePlayer::ExpireSpawnProtection( void )
 		pev->renderamt = 0;
 	}
 
-	if (g_pGameRules->MutatorEnabled(MUTATOR_INVISIBLE))
+	// The spawn shield replaced the cloak rune's render state.
+	if (m_fHasRune == RUNE_CLOAK)
+		pev->renderfx = kRenderFxNone;
+
+	if (m_fHasRune == RUNE_CLOAK || g_pGameRules->MutatorEnabled(MUTATOR_INVISIBLE))
 		MakeInvisible();
 }
 
@@ -8680,8 +8689,12 @@ void CBasePlayer::DropPlayerItem ( char *pszItemName, BOOL weaponbox, BOOL explo
 			CWeaponBox *pWeaponBox = NULL;
 			if (weaponbox)
 				pWeaponBox = (CWeaponBox *)CBaseEntity::Create( "weaponbox", pev->origin + gpGlobals->v_forward * 10, pev->angles, edict() );
-			else
-				RemovePlayerItem(pWeapon);
+			else if (RemovePlayerItem(pWeapon))
+			{
+				if (m_pLastRef == pWeapon)
+					m_pLastRef = NULL;
+				pWeapon->Kill();
+			}
 
 			if (pWeaponBox != NULL)
 			{

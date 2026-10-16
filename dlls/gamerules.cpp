@@ -1465,6 +1465,671 @@ static void RemoveRandomFuncClass(void)
 	UTIL_LogPrintf("Instant mutator \"Remove func_*\" removed %d \"%s\" at %.2f\n", removed, classname, gpGlobals->time);
 }
 
+// GoldSrc caps maxplayers at 32.
+static const int MAX_INSTANT_TARGETS = 32;
+
+static BOOL IsInstantTarget(CBaseEntity *pEntity)
+{
+	if (!pEntity || !pEntity->IsPlayer())
+		return FALSE;
+
+	CBasePlayer *pl = (CBasePlayer *)pEntity;
+	return !pl->IsSpectator() && !pl->IsObserver() && pl->IsAlive() && !pl->HasDisconnected;
+}
+
+// Fists are always owned, the nuke is too destructive, and vice/fingergun belong to the godmode/dontshoot mutators.
+static BOOL IsWithheldWeapon(const char *name)
+{
+	return !stricmp(name, "weapon_fists") || !stricmp(name, "weapon_nuke")
+		|| !stricmp(name, "weapon_vice") || !stricmp(name, "weapon_fingergun");
+}
+
+// Modes that refuse the randomweapon mutator (weapon progression, loadout or weapon-count rules) refuse weapon grants too.
+static BOOL InstantWeaponsAllowed(void)
+{
+	return g_pGameRules->MutatorAllowed("randomweapon");
+}
+
+// pFor == NULL asks whether any target may have it.
+static BOOL TargetCanHave(CBasePlayer *pFor, const char *name)
+{
+	if (pFor)
+		return g_pGameRules->CanHaveNamedItem(pFor, name);
+
+	for (int i = 1; i <= gpGlobals->maxClients; i++)
+	{
+		CBasePlayer *pl = (CBasePlayer *)UTIL_PlayerByIndex(i);
+		if (IsInstantTarget(pl) && g_pGameRules->CanHaveNamedItem(pl, name))
+			return TRUE;
+	}
+
+	return FALSE;
+}
+
+// Fills ids with ItemInfoArray indexes of every precached weapon that may be handed out; refused weapons are never rolled.
+static int BuildWeaponCandidates(int *ids, CBasePlayer *pFor)
+{
+	int count = 0;
+	for (int id = 0; id < MAX_WEAPONS; id++)
+	{
+		const char *name = CBasePlayerItem::ItemInfoArray[id].pszName;
+		if (name && !IsWithheldWeapon(name) && g_pGameRules->CanRandomizeWeapon(name) && TargetCanHave(pFor, name))
+			ids[count++] = id;
+	}
+
+	return count;
+}
+
+static void UnarmPlayer(CBasePlayer *pl)
+{
+	if (g_pGameRules->IsCtC() && pl->m_iHoldingChumtoad)
+		return;
+
+	pl->RemoveAllItems(FALSE);
+	pl->GiveNamedItem("weapon_fists");
+}
+
+static const struct
+{
+	const char *classname;
+	const char *name;
+} g_InstantItems[] =
+{
+	{ "item_battery", "Battery" },
+	{ "item_healthkit", "Health Kit" },
+	{ "item_longjump", "Long Jump Module" },
+};
+
+static const struct
+{
+	const char *classname;
+	const char *name;
+	int id;
+} g_InstantRunes[] =
+{
+	{ "rune_ammo", "Ammo Rune", RUNE_AMMO },
+	{ "rune_cloak", "Cloak Rune", RUNE_CLOAK },
+	{ "rune_frag", "Frag Rune", RUNE_FRAG },
+	{ "rune_gravity", "Gravity Rune", RUNE_GRAVITY },
+	{ "rune_haste", "Haste Rune", RUNE_HASTE },
+	{ "rune_protect", "Protect Rune", RUNE_PROTECT },
+	{ "rune_regen", "Regen Rune", RUNE_REGEN },
+	{ "rune_strength", "Strength Rune", RUNE_STRENGTH },
+	{ "rune_vampire", "Vampire Rune", RUNE_VAMPIRE },
+};
+
+static const struct
+{
+	const char *single;
+	const char *dual;
+} g_DualWieldPairs[] =
+{
+	{ "weapon_9mmhandgun", "weapon_dual_glock" },
+	{ "weapon_chaingun", "weapon_dual_chaingun" },
+	{ "weapon_deagle", "weapon_dual_deagle" },
+	{ "weapon_flamethrower", "weapon_dual_flamethrower" },
+	{ "weapon_glock", "weapon_dual_glock" },
+	{ "weapon_hornetgun", "weapon_dual_hornetgun" },
+	{ "weapon_mag60", "weapon_dual_mag60" },
+	{ "weapon_railgun", "weapon_dual_railgun" },
+	{ "weapon_rpg", "weapon_dual_rpg" },
+	{ "weapon_sawedoff", "weapon_dual_sawedoff" },
+	{ "weapon_smg", "weapon_dual_smg" },
+	{ "weapon_usas", "weapon_dual_usas" },
+	{ "weapon_wrench", "weapon_dual_wrench" },
+};
+
+static void InstantUnarm(void)
+{
+	if (!InstantWeaponsAllowed())
+	{
+		UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] Unarmed: nothing allowed here!\n");
+		return;
+	}
+
+	for (int i = 1; i <= gpGlobals->maxClients; i++)
+	{
+		CBasePlayer *pl = (CBasePlayer *)UTIL_PlayerByIndex(i);
+		if (IsInstantTarget(pl))
+			UnarmPlayer(pl);
+	}
+
+	UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] Unarmed!\n");
+}
+
+static void InstantRandomWeapon(void)
+{
+	int ids[MAX_WEAPONS];
+	const int count = InstantWeaponsAllowed() ? BuildWeaponCandidates(ids, NULL) : 0;
+	if (count == 0)
+	{
+		UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] Random Weapon: nothing allowed here!\n");
+		return;
+	}
+
+	const ItemInfo &info = CBasePlayerItem::ItemInfoArray[ids[RANDOM_LONG(0, count - 1)]];
+	for (int i = 1; i <= gpGlobals->maxClients; i++)
+	{
+		CBasePlayer *pl = (CBasePlayer *)UTIL_PlayerByIndex(i);
+		if (!IsInstantTarget(pl))
+			continue;
+
+		pl->GiveNamedItem(info.pszName);
+		pl->SelectItem(info.pszName);
+	}
+
+	const char *displayName = info.pszDisplayName;
+	if (!displayName || !*displayName)
+		displayName = strncmp(info.pszName, "weapon_", 7) ? info.pszName : info.pszName + 7;
+
+	UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] Random Weapon: %s!\n", displayName);
+}
+
+static void InstantAllGuns(void)
+{
+	int ids[MAX_WEAPONS];
+	const int count = InstantWeaponsAllowed() ? BuildWeaponCandidates(ids, NULL) : 0;
+	if (count == 0)
+	{
+		UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] All Guns: nothing allowed here!\n");
+		return;
+	}
+
+	for (int i = 1; i <= gpGlobals->maxClients; i++)
+	{
+		CBasePlayer *pl = (CBasePlayer *)UTIL_PlayerByIndex(i);
+		if (!IsInstantTarget(pl))
+			continue;
+
+		const char *active = pl->m_pActiveItem ? STRING(pl->m_pActiveItem->pev->classname) : NULL;
+		for (int k = 0; k < count; k++)
+		{
+			const char *name = CBasePlayerItem::ItemInfoArray[ids[k]].pszName;
+			if (!pl->HasNamedPlayerItem(name))
+				pl->GiveNamedItem(name);
+		}
+
+		// Pickups auto-switch by weight; keep the player on what they were holding.
+		if (active)
+			pl->SelectItem(active);
+	}
+
+	UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] All Guns!\n");
+}
+
+static void InstantRandomItem(void)
+{
+	int candidates[ARRAYSIZE(g_InstantItems)];
+	int count = 0;
+	for (int k = 0; k < (int)ARRAYSIZE(g_InstantItems); k++)
+	{
+		if (TargetCanHave(NULL, g_InstantItems[k].classname))
+			candidates[count++] = k;
+	}
+
+	if (count == 0)
+	{
+		UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] Random Item: nothing allowed here!\n");
+		return;
+	}
+
+	const int item = candidates[RANDOM_LONG(0, count - 1)];
+	for (int i = 1; i <= gpGlobals->maxClients; i++)
+	{
+		CBasePlayer *pl = (CBasePlayer *)UTIL_PlayerByIndex(i);
+		if (IsInstantTarget(pl))
+			pl->GiveNamedItem(g_InstantItems[item].classname);
+	}
+
+	UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] Random Item: %s!\n", g_InstantItems[item].name);
+}
+
+static void InstantRandomRune(void)
+{
+	int candidates[ARRAYSIZE(g_InstantRunes)];
+	int count = 0;
+	if (allowrunes.value > 0)
+	{
+		for (int k = 0; k < (int)ARRAYSIZE(g_InstantRunes); k++)
+		{
+			if (g_pGameRules->AllowRuneSpawn(g_InstantRunes[k].classname))
+				candidates[count++] = k;
+		}
+	}
+
+	if (count == 0)
+	{
+		UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] Random Rune: nothing allowed here!\n");
+		return;
+	}
+
+	const int rune = candidates[RANDOM_LONG(0, count - 1)];
+	for (int i = 1; i <= gpGlobals->maxClients; i++)
+	{
+		CBasePlayer *pl = (CBasePlayer *)UTIL_PlayerByIndex(i);
+		// Jesus's cloak rune belongs to Jesus vs Santa.
+		if (!IsInstantTarget(pl) || pl->IsArmoredMan || pl->m_fHasRune == g_InstantRunes[rune].id)
+			continue;
+
+		CWorldRunes::ClearRune(pl);
+		CWorldRunes::GiveRune(pl, g_InstantRunes[rune].classname);
+	}
+
+	UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] Random Rune: %s!\n", g_InstantRunes[rune].name);
+}
+
+static void InstantButterfingers(void)
+{
+	BOOL allowed = FALSE;
+	if (weaponstay.value <= 0)
+	{
+		for (int i = 1; i <= gpGlobals->maxClients && !allowed; i++)
+		{
+			CBasePlayer *pl = (CBasePlayer *)UTIL_PlayerByIndex(i);
+			allowed = IsInstantTarget(pl) && g_pGameRules->IsAllowedToDropWeapon(pl);
+		}
+	}
+
+	if (!allowed)
+	{
+		UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] Butterfingers: nothing allowed here!\n");
+		return;
+	}
+
+	for (int i = 1; i <= gpGlobals->maxClients; i++)
+	{
+		CBasePlayer *pl = (CBasePlayer *)UTIL_PlayerByIndex(i);
+		if (IsInstantTarget(pl) && pl->m_pActiveItem && !FBitSet(pl->m_pActiveItem->iFlags(), ITEM_FLAG_NODROP))
+			pl->DropPlayerItem("");
+	}
+
+	UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] Butterfingers!\n");
+}
+
+static void InstantDualWield(void)
+{
+	if (!InstantWeaponsAllowed())
+	{
+		UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] Dual Wield: nothing allowed here!\n");
+		return;
+	}
+
+	for (int i = 1; i <= gpGlobals->maxClients; i++)
+	{
+		CBasePlayer *pl = (CBasePlayer *)UTIL_PlayerByIndex(i);
+		if (!IsInstantTarget(pl) || !pl->m_pActiveItem)
+			continue;
+
+		const char *active = STRING(pl->m_pActiveItem->pev->classname);
+		for (int k = 0; k < (int)ARRAYSIZE(g_DualWieldPairs); k++)
+		{
+			if (stricmp(active, g_DualWieldPairs[k].single))
+				continue;
+
+			const char *dual = g_DualWieldPairs[k].dual;
+			if (g_pGameRules->CanRandomizeWeapon(dual))
+			{
+				if (!pl->HasNamedPlayerItem(dual))
+					pl->GiveNamedItem(dual);
+				pl->SelectItem(dual);
+			}
+			break;
+		}
+	}
+
+	UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] Dual Wield!\n");
+}
+
+static void InstantRoulette(void)
+{
+	BOOL rolled = FALSE;
+	if (InstantWeaponsAllowed())
+	{
+		for (int i = 1; i <= gpGlobals->maxClients; i++)
+		{
+			CBasePlayer *pl = (CBasePlayer *)UTIL_PlayerByIndex(i);
+			if (!IsInstantTarget(pl))
+				continue;
+
+			int ids[MAX_WEAPONS];
+			const int count = BuildWeaponCandidates(ids, pl);
+			if (count == 0)
+				continue;
+
+			// Move weapons the player does not own yet to the front and roll among those first.
+			int unowned = 0;
+			for (int k = 0; k < count; k++)
+			{
+				if (!pl->HasNamedPlayerItem(CBasePlayerItem::ItemInfoArray[ids[k]].pszName))
+				{
+					const int swap = ids[unowned];
+					ids[unowned++] = ids[k];
+					ids[k] = swap;
+				}
+			}
+
+			const char *name = CBasePlayerItem::ItemInfoArray[ids[RANDOM_LONG(0, (unowned ? unowned : count) - 1)]].pszName;
+			pl->GiveNamedItem(name);
+			pl->SelectItem(name);
+			rolled = TRUE;
+		}
+	}
+
+	if (!rolled)
+	{
+		UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] Weapon Roulette: nothing allowed here!\n");
+		return;
+	}
+
+	UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] Weapon Roulette!\n");
+}
+
+static void InstantRuneBurst(void)
+{
+	int dropped = 0;
+	for (int i = 1; i <= gpGlobals->maxClients; i++)
+	{
+		CBasePlayer *pl = (CBasePlayer *)UTIL_PlayerByIndex(i);
+		// Jesus's cloak rune belongs to Jesus vs Santa.
+		if (IsInstantTarget(pl) && pl->m_fHasRune && !pl->IsArmoredMan)
+		{
+			CWorldRunes::DropRune(pl);
+			dropped++;
+		}
+	}
+
+	if (dropped == 0)
+		UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] Rune Burst: nobody had a rune!\n");
+	else
+		UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] Rune Burst!\n");
+}
+
+static void InstantRobinHood(void)
+{
+	if (!InstantWeaponsAllowed())
+	{
+		UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] Robin Hood: nothing allowed here!\n");
+		return;
+	}
+
+	CBasePlayer *pRich = NULL;
+	CBasePlayer *pPoor = NULL;
+	int richTies = 0;
+	int poorTies = 0;
+	for (int i = 1; i <= gpGlobals->maxClients; i++)
+	{
+		CBasePlayer *pl = (CBasePlayer *)UTIL_PlayerByIndex(i);
+		if (!IsInstantTarget(pl))
+			continue;
+
+		// Ties are broken uniformly by reservoir sampling.
+		if (!pRich || pl->pev->frags > pRich->pev->frags)
+		{
+			pRich = pl;
+			richTies = 1;
+		}
+		else if (pl->pev->frags == pRich->pev->frags && RANDOM_LONG(1, ++richTies) == 1)
+			pRich = pl;
+
+		if (!pPoor || pl->pev->frags < pPoor->pev->frags)
+		{
+			pPoor = pl;
+			poorTies = 1;
+		}
+		else if (pl->pev->frags == pPoor->pev->frags && RANDOM_LONG(1, ++poorTies) == 1)
+			pPoor = pl;
+	}
+
+	if (!pRich || pRich->pev->frags <= pPoor->pev->frags)
+	{
+		UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] Robin Hood: nobody to rob!\n");
+		return;
+	}
+
+	const char *loot[MAX_WEAPONS];
+	int lootCount = 0;
+	for (int slot = 0; slot < MAX_ITEM_TYPES; slot++)
+	{
+		CBasePlayerItem *pItem = pRich->m_rgpPlayerItems[slot];
+		while (pItem && pItem->m_pPlayer == pRich && lootCount < MAX_WEAPONS)
+		{
+			const char *name = STRING(pItem->pev->classname);
+			if (!IsWithheldWeapon(name) && g_pGameRules->CanRandomizeWeapon(name))
+				loot[lootCount++] = name;
+			pItem = pItem->m_pNext;
+		}
+	}
+
+	UnarmPlayer(pRich);
+	for (int k = 0; k < lootCount; k++)
+	{
+		if (!pPoor->HasNamedPlayerItem(loot[k]))
+			pPoor->GiveNamedItem(loot[k]);
+	}
+
+	UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] Robin Hood: %s was robbed, %s got the loot!\n",
+		STRING(pRich->pev->netname), STRING(pPoor->pev->netname));
+}
+
+// One precached pickup per ammo type. A full player's pickup fails and GiveNamedItem removes it, so nothing spills.
+static const struct
+{
+	const char *classname;
+	const char *name;
+} g_InstantAmmo[] =
+{
+	{ "ammo_357", ".357 Rounds" },
+	{ "ammo_9mmAR", "9mm Rounds" },
+	{ "ammo_ARgrenades", "AR Grenades" },
+	{ "ammo_buckshot", "Buckshot" },
+	{ "ammo_crossbow", "Crossbow Bolts" },
+	{ "ammo_gaussclip", "Uranium" },
+	{ "ammo_rpgclip", "Rockets" },
+};
+
+static void InstantRandomAmmo(void)
+{
+	int candidates[ARRAYSIZE(g_InstantAmmo)];
+	int count = 0;
+	for (int k = 0; k < (int)ARRAYSIZE(g_InstantAmmo); k++)
+	{
+		if (TargetCanHave(NULL, g_InstantAmmo[k].classname))
+			candidates[count++] = k;
+	}
+
+	if (count == 0)
+	{
+		UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] Random Ammo: nothing allowed here!\n");
+		return;
+	}
+
+	const int ammo = candidates[RANDOM_LONG(0, count - 1)];
+	for (int i = 1; i <= gpGlobals->maxClients; i++)
+	{
+		CBasePlayer *pl = (CBasePlayer *)UTIL_PlayerByIndex(i);
+		if (IsInstantTarget(pl))
+			pl->GiveNamedItem(g_InstantAmmo[ammo].classname);
+	}
+
+	UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] Random Ammo: %s!\n", g_InstantAmmo[ammo].name);
+}
+
+static void InstantHotfingers(void)
+{
+	BOOL allowed = FALSE;
+	if (weaponstay.value <= 0 && !g_pGameRules->MutatorEnabled(MUTATOR_RICOCHET))
+	{
+		for (int i = 1; i <= gpGlobals->maxClients && !allowed; i++)
+		{
+			CBasePlayer *pl = (CBasePlayer *)UTIL_PlayerByIndex(i);
+			allowed = IsInstantTarget(pl) && g_pGameRules->IsAllowedToDropWeapon(pl);
+		}
+	}
+
+	if (!allowed)
+	{
+		UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] Hotfingers: nothing allowed here!\n");
+		return;
+	}
+
+	for (int i = 1; i <= gpGlobals->maxClients; i++)
+	{
+		CBasePlayer *pl = (CBasePlayer *)UTIL_PlayerByIndex(i);
+		if (!IsInstantTarget(pl) || !pl->m_pActiveItem || !g_pGameRules->IsAllowedToDropWeapon(pl))
+			continue;
+
+		// ThrowWeapon launches the explosive before dropping, so a weapon that cannot be dropped would be duplicated.
+		CBasePlayerWeapon *pWeapon = (CBasePlayerWeapon *)pl->m_pActiveItem->GetWeaponPtr();
+		if (pWeapon && !FBitSet(pWeapon->iFlags(), ITEM_FLAG_NODROP) && pWeapon->CanHolster())
+			pWeapon->ThrowWeapon(TRUE);
+	}
+
+	UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] Hotfingers!\n");
+}
+
+static void FillAmmo(CBasePlayer *pl, const char *ammoName, int maxCarry)
+{
+	if (!ammoName || !*ammoName || maxCarry <= 0)
+		return;
+
+	const int index = CBasePlayer::GetAmmoIndex(ammoName);
+	if (index < 0)
+		return;
+
+	const int missing = maxCarry - pl->AmmoInventory(index);
+	if (missing > 0)
+		pl->GiveAmmo(missing, (char *)ammoName, maxCarry);
+}
+
+static void InstantMaxAmmo(void)
+{
+	for (int i = 1; i <= gpGlobals->maxClients; i++)
+	{
+		CBasePlayer *pl = (CBasePlayer *)UTIL_PlayerByIndex(i);
+		if (!IsInstantTarget(pl) || !pl->m_pActiveItem)
+			continue;
+
+		CBasePlayerWeapon *pWeapon = (CBasePlayerWeapon *)pl->m_pActiveItem->GetWeaponPtr();
+		// More nukes are too destructive, and extra chumtoads would add charms in Capture the Chumtoad.
+		if (!pWeapon || pWeapon->m_iId == WEAPON_NUKE || (pWeapon->m_iId == WEAPON_CHUMTOAD && g_pGameRules->IsCtC()))
+			continue;
+
+		FillAmmo(pl, pWeapon->pszAmmo1(), pWeapon->iMaxAmmo1());
+		FillAmmo(pl, pWeapon->pszAmmo2(), pWeapon->iMaxAmmo2());
+	}
+
+	UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] Max Ammo!\n");
+}
+
+static void InstantDryFire(void)
+{
+	for (int i = 1; i <= gpGlobals->maxClients; i++)
+	{
+		CBasePlayer *pl = (CBasePlayer *)UTIL_PlayerByIndex(i);
+		if (!IsInstantTarget(pl) || !pl->m_pActiveItem)
+			continue;
+
+		CBasePlayerWeapon *pWeapon = (CBasePlayerWeapon *)pl->m_pActiveItem->GetWeaponPtr();
+		if (!pWeapon || pWeapon->m_iId == WEAPON_NUKE || pWeapon->iMaxClip() <= 0)
+			continue;
+
+		pWeapon->m_iClip = 0;
+		// A queued triplebang shot restores the pre-burst clip, so cancel the rest of the burst.
+		pWeapon->m_iTripleBangShotsPending = 0;
+	}
+
+	UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] Dry Fire!\n");
+}
+
+static void InstantPassItLeft(void)
+{
+	if (!InstantWeaponsAllowed())
+	{
+		UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] Pass It Left: nothing allowed here!\n");
+		return;
+	}
+
+	CBasePlayer *ring[MAX_INSTANT_TARGETS];
+	const char *passed[MAX_INSTANT_TARGETS];
+	int count = 0;
+	for (int i = 1; i <= gpGlobals->maxClients && count < MAX_INSTANT_TARGETS; i++)
+	{
+		CBasePlayer *pl = (CBasePlayer *)UTIL_PlayerByIndex(i);
+		if (IsInstantTarget(pl))
+			ring[count++] = pl;
+	}
+
+	if (count < 2)
+	{
+		UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] Pass It Left: nobody to pass to!\n");
+		return;
+	}
+
+	// Decide every pass before touching inventories; a weapon the receiver may not hold stays with its owner.
+	for (int k = 0; k < count; k++)
+	{
+		passed[k] = NULL;
+		CBasePlayerItem *pActive = ring[k]->m_pActiveItem;
+		if (!pActive || !pActive->CanHolster())
+			continue;
+
+		const char *name = STRING(pActive->pev->classname);
+		if (!IsWithheldWeapon(name) && g_pGameRules->CanRandomizeWeapon(name)
+			&& g_pGameRules->CanHaveNamedItem(ring[(k + 1) % count], name))
+			passed[k] = name;
+	}
+
+	for (int k = 0; k < count; k++)
+	{
+		if (passed[k])
+			ring[k]->RemoveNamedItem(passed[k]);
+	}
+
+	for (int k = 0; k < count; k++)
+	{
+		if (!passed[k])
+			continue;
+
+		CBasePlayer *pReceiver = ring[(k + 1) % count];
+		pReceiver->GiveNamedItem(passed[k]);
+		pReceiver->SelectItem(passed[k]);
+	}
+
+	UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] Pass It Left!\n");
+}
+
+static void InstantRuneShuffle(void)
+{
+	CBasePlayer *holders[MAX_INSTANT_TARGETS];
+	int count = 0;
+	for (int i = 1; i <= gpGlobals->maxClients && count < MAX_INSTANT_TARGETS; i++)
+	{
+		CBasePlayer *pl = (CBasePlayer *)UTIL_PlayerByIndex(i);
+		// Jesus's cloak rune belongs to Jesus vs Santa.
+		if (IsInstantTarget(pl) && pl->m_fHasRune && !pl->IsArmoredMan)
+			holders[count++] = pl;
+	}
+
+	if (count < 2)
+	{
+		UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] Rune Shuffle: nobody to shuffle!\n");
+		return;
+	}
+
+	// Clear every holder first; GiveRune refuses players who still hold a rune.
+	const char *runes[MAX_INSTANT_TARGETS];
+	for (int k = 0; k < count; k++)
+		runes[k] = CWorldRunes::ClearRune(holders[k]);
+
+	for (int k = 0; k < count; k++)
+	{
+		if (runes[k])
+			CWorldRunes::GiveRune(holders[(k + 1) % count], runes[k]);
+	}
+
+	UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] Rune Shuffle!\n");
+}
+
 // Values are written to the server log, so keep them stable and append new entries before the count.
 enum instant_mutator_e
 {
@@ -1486,12 +2151,31 @@ enum instant_mutator_e
 	INSTANT_ACCEPT_ALL_COOKIES = 15,
 	INSTANT_BSOD = 16,
 	INSTANT_REMOVE_FUNC = 17,
+	INSTANT_UNARM = 18,
+	INSTANT_RANDOM_WEAPON = 19,
+	INSTANT_ALL_GUNS = 20,
+	INSTANT_RANDOM_ITEM = 21,
+	INSTANT_RANDOM_RUNE = 22,
+	INSTANT_BUTTERFINGERS = 23,
+	INSTANT_DUAL_WIELD = 24,
+	INSTANT_ROULETTE = 25,
+	INSTANT_RUNE_BURST = 26,
+	INSTANT_ROBIN_HOOD = 27,
+	INSTANT_RANDOM_AMMO = 28,
+	INSTANT_HOTFINGERS = 29,
+	INSTANT_MAX_AMMO = 30,
+	INSTANT_DRY_FIRE = 31,
+	INSTANT_PASS_IT_LEFT = 32,
+	INSTANT_RUNE_SHUFFLE = 33,
 	INSTANT_MUTATOR_COUNT
 };
 
 void CGameRules::AddInstantMutator(void)
 {
 	int random = RANDOM_LONG(0, INSTANT_MUTATOR_COUNT - 1);
+	// allguns adds ~45 weapon edicts per player at once, enough to exhaust the edict pool on a full server.
+	while (random == INSTANT_ALL_GUNS && IsMultiplayer())
+		random = RANDOM_LONG(0, INSTANT_MUTATOR_COUNT - 1);
 	UTIL_LogPrintf("Instant mutator \"%d\" enabled at %.2f\n", random, gpGlobals->time);
 	BOOL broadcastChicken = TRUE;
 
@@ -1813,6 +2497,54 @@ void CGameRules::AddInstantMutator(void)
 			break;
 		case INSTANT_REMOVE_FUNC:
 			RemoveRandomFuncClass();
+			break;
+		case INSTANT_UNARM:
+			InstantUnarm();
+			break;
+		case INSTANT_RANDOM_WEAPON:
+			InstantRandomWeapon();
+			break;
+		case INSTANT_ALL_GUNS:
+			InstantAllGuns();
+			break;
+		case INSTANT_RANDOM_ITEM:
+			InstantRandomItem();
+			break;
+		case INSTANT_RANDOM_RUNE:
+			InstantRandomRune();
+			break;
+		case INSTANT_BUTTERFINGERS:
+			InstantButterfingers();
+			break;
+		case INSTANT_DUAL_WIELD:
+			InstantDualWield();
+			break;
+		case INSTANT_ROULETTE:
+			InstantRoulette();
+			break;
+		case INSTANT_RUNE_BURST:
+			InstantRuneBurst();
+			break;
+		case INSTANT_ROBIN_HOOD:
+			InstantRobinHood();
+			break;
+		case INSTANT_RANDOM_AMMO:
+			InstantRandomAmmo();
+			break;
+		case INSTANT_HOTFINGERS:
+			InstantHotfingers();
+			break;
+		case INSTANT_MAX_AMMO:
+			InstantMaxAmmo();
+			break;
+		case INSTANT_DRY_FIRE:
+			InstantDryFire();
+			break;
+		case INSTANT_PASS_IT_LEFT:
+			InstantPassItLeft();
+			break;
+		case INSTANT_RUNE_SHUFFLE:
+			InstantRuneShuffle();
 			break;
 	}
 

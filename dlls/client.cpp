@@ -1748,7 +1748,8 @@ void ClientCommand( edict_t *pEntity )
 	{
 		CBasePlayer *pPlayer = GetClassPtr((CBasePlayer *)pev);
 
-		if ( pPlayer->m_fHasRune )
+		// Jesus's cloak rune belongs to Jesus vs Santa.
+		if ( pPlayer->m_fHasRune && !pPlayer->IsArmoredMan )
 		{
 			CWorldRunes::DropRune(pPlayer);
 			ClientPrint(pPlayer->pev, HUD_PRINTCENTER, "Discarded Rune\n");
