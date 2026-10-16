@@ -1859,7 +1859,8 @@ static void InstantRobinHood(void)
 	for (int i = 1; i <= gpGlobals->maxClients; i++)
 	{
 		CBasePlayer *pl = (CBasePlayer *)UTIL_PlayerByIndex(i);
-		if (!IsInstantTarget(pl))
+		// The chumtoad carrier keeps their weapons (UnarmPlayer) and refuses new ones.
+		if (!IsInstantTarget(pl) || (g_pGameRules->IsCtC() && pl->m_iHoldingChumtoad))
 			continue;
 
 		// Ties are broken uniformly by reservoir sampling.

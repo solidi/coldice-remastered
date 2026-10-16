@@ -7722,6 +7722,10 @@ int CBasePlayer::RemovePlayerItem( CBasePlayerItem *pItem )
 	if ( m_pLastItem == pItem )
 		m_pLastItem = NULL;
 
+	// Holster-mode SelectLastItem promotes m_pLastRef; callers often Kill() the item next.
+	if ( m_pLastRef == pItem )
+		m_pLastRef = NULL;
+
 	CBasePlayerItem *pPrev = m_rgpPlayerItems[pItem->iItemSlot()];
 
 	if (pPrev == pItem)
@@ -8690,11 +8694,7 @@ void CBasePlayer::DropPlayerItem ( char *pszItemName, BOOL weaponbox, BOOL explo
 			if (weaponbox)
 				pWeaponBox = (CWeaponBox *)CBaseEntity::Create( "weaponbox", pev->origin + gpGlobals->v_forward * 10, pev->angles, edict() );
 			else if (RemovePlayerItem(pWeapon))
-			{
-				if (m_pLastRef == pWeapon)
-					m_pLastRef = NULL;
 				pWeapon->Kill();
-			}
 
 			if (pWeaponBox != NULL)
 			{
