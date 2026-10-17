@@ -22,6 +22,7 @@ These instructions guide Copilot reviews for C/C++ changes under this source tre
 3. ABI and interface stability
 - Highlight changes to shared structs, serialization/network payloads, exported interfaces, and virtual class layouts.
 - Flag any ordering/packing changes that can break compatibility.
+- Exception: renumbering `MUTATOR_*` IDs in `common/const.h` to keep them alphabetical is intended (see item 6).
 
 4. C++ correctness and safety
 - Prioritize null safety, bounds checks, lifetime ownership, initialization order, and error handling.
@@ -33,7 +34,9 @@ These instructions guide Copilot reviews for C/C++ changes under this source tre
 - Project files of record: `projects/vs2019/hldll.vcxproj` + `.filters`, `projects/vs2019/hl_cdll.vcxproj` + `.filters`, `linux/Makefile.hldll`, `linux/Makefile.hl_cdll`. A new `.cpp` must appear in the matching `.vcxproj`, `.vcxproj.filters` and Linux makefile.
 - `vs2019` is the only Visual Studio project set (`projects/vs2010` was removed). Legacy MSVC 6 `.dsp`/`.dsw` files are not maintained; do not request updates to them.
 
-6. Mutator mode filters
+6. Mutator IDs and mode filters
+- Mutator IDs are renumbered on purpose. `MUTATOR_*` IDs follow alphabetical order, so a new mutator is inserted at its alphabetical place and every later ID shifts by one. Do not flag the shift or ask to restore old values and append the new mutator at the end. Numeric IDs (`sv_addmutator <number>`, `gmsgAddMutator`, vote numbers, the `startspot` mirror, grave_bot) only have to agree within one release: client, server and bot ship together, and configs should use mutator names.
+- Instead, check that the lists in this tree moved in lockstep: `common/const.h`, `g_szMutators[]` (`dlls/gamerules.cpp`), `sMutators[]` (`cl_dll/vgui_TeamFortressViewport.cpp`) and `MAX_MUTATORS` / `MAX_MUTATORS_CL`. The bot's `const.h`, `settings.scr` and docs live in the parent `workspace/` repo.
 - A new mutator (full `MUTATOR_*` or instant `INSTANT_*`) must come with a review of every game mode's filter: `CHalfLifeMultiplay::MutatorAllowed` (base), `CHalfLifeRules::MutatorAllowed` (single player) and each `*_gamerules.cpp` override. Modes without an override inherit the base.
 - Blocks follow `if (strstr(mutator, g_szMutators[MUTATOR_X - 1]) || atoi(mutator) == MUTATOR_X) return FALSE;` placed before the base-class chain. `strstr` also matches longer names that contain the blocked one.
 - Instants have no `MutatorAllowed` path; mode restrictions must be gates inside the instant itself.
