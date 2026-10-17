@@ -2146,6 +2146,29 @@ int CStudioModelRenderer::StudioDrawPlayer( int flags, entity_state_t *pplayer )
 		m_pCurrentEntity->curstate.gaitsequence = 0;
 	}
 
+	// vvvvvv: players walking on the ceiling are drawn rolled 180 (server sends the roll)
+	bool vvvvvvFlipped = false;
+	if (MutatorEnabled(MUTATOR_VVVVVV) && !prophunt)
+	{
+		cl_entity_t *localPlayer = gEngfuncs.GetLocalPlayer();
+		float roll = fmod(m_pCurrentEntity->angles[ROLL], 360.0f);
+		if (roll < 0)
+			roll += 360.0f;
+
+		if (localPlayer && m_pCurrentEntity->index == localPlayer->index)
+		{
+			vvvvvvFlipped = VVVVVV_LocalFlipped();
+			if (vvvvvvFlipped)
+				m_pCurrentEntity->angles[ROLL] = 180;
+			else if (roll > 90.0f && roll < 270.0f)
+				m_pCurrentEntity->angles[ROLL] = 0;
+		}
+		else
+		{
+			vvvvvvFlipped = roll > 90.0f && roll < 270.0f;
+		}
+	}
+
 	if (pplayer->gaitsequence)
 	{
 		vec3_t orig_angles;
@@ -2155,8 +2178,23 @@ int CStudioModelRenderer::StudioDrawPlayer( int flags, entity_state_t *pplayer )
 		//m_pCurrentEntity->baseline.angles = Vector(0,0,0);
 		//m_pCurrentEntity->angles = Vector(0,0,0);
 		VectorCopy( m_pCurrentEntity->angles, orig_angles );
+
+		// Aim blend and torso twist are model space, so mirror them for an upside down body
+		if (vvvvvvFlipped)
+			m_pCurrentEntity->angles[PITCH] = -m_pCurrentEntity->angles[PITCH];
 	
 		StudioProcessGait( pplayer );
+
+		if (vvvvvvFlipped)
+		{
+			m_pCurrentEntity->angles[PITCH] = -m_pCurrentEntity->angles[PITCH];
+			m_pCurrentEntity->latched.prevangles[PITCH] = m_pCurrentEntity->angles[PITCH];
+			for (int i = 0; i < 4; i++)
+			{
+				m_pCurrentEntity->curstate.controller[i] = 255 - m_pCurrentEntity->curstate.controller[i];
+				m_pCurrentEntity->latched.prevcontroller[i] = m_pCurrentEntity->curstate.controller[i];
+			}
+		}
 
 		m_pPlayerInfo->gaitsequence = pplayer->gaitsequence;
 		m_pPlayerInfo = NULL;

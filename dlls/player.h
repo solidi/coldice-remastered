@@ -339,6 +339,13 @@ public:
 	// exploder mutator: gpGlobals->time of this player's next detonation roll (0 = unscheduled)
 	float m_flExploderTime = 0;
 
+	// vvvvvv mutator: physinfo "vvv" is on for this player; pev->fuser1 > 0 = walking on the ceiling
+	BOOL m_fGravityFlipAllowed = FALSE;
+	BOOL m_fGravityFlipFallGrace = FALSE; // no fall damage on the landing after a forced unflip
+	void SyncGravityFlipMutator( void );
+	void ClearGravityFlip( void );
+	BOOL IsGravityFlipped( void );
+
 	float m_fNextScreamSound;
 
 	void StartForceGrab( void );

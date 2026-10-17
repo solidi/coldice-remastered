@@ -36,6 +36,7 @@ extern int g_iUser1;
 extern float g_SlideTime;
 extern cvar_t *cl_gunsmoke;
 extern bool MutatorEnabled(int mutatorId);
+extern int g_iVVVVVVFlipped;
 
 // Pool of client side entities/entvars_t
 static entvars_t	ev[ MAX_WEAPONS + 1 ];
@@ -1800,6 +1801,9 @@ void CL_DLLEXPORT HUD_PostRunCmd( struct local_state_s *from, struct local_state
 //	RecClPostRunCmd(from, to, cmd, runfuncs, time, random_seed);
 
 	g_runfuncs = runfuncs;
+
+	// Predicted vvvvvv gravity flip (pmove->fuser1), read by the camera and input
+	g_iVVVVVVFlipped = to->client.fuser1 > 0 ? 1 : 0;
 
 #if defined( CLIENT_WEAPONS )
 	if ( cl_lw && cl_lw->value )

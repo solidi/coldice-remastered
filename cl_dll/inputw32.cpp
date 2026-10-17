@@ -481,14 +481,25 @@ void IN_ScaleMouse( float *x, float *y )
 	if ( g_iUser1 < 1 && !gEngfuncs.IsSpectateOnly() )
 	{
 		// flips left/right only
-		if ( MutatorEnabled(MUTATOR_MIRROR) || 
-			 MutatorEnabled(MUTATOR_TOPSYTURVY) || 
-			 MutatorEnabled(MUTATOR_UPSIDEDOWN) )
-			*x *= -1;
+		bool flipX = MutatorEnabled(MUTATOR_MIRROR) || 
+					 MutatorEnabled(MUTATOR_TOPSYTURVY) || 
+					 MutatorEnabled(MUTATOR_UPSIDEDOWN);
 
 		// flip up/down only
-		if ( MutatorEnabled(MUTATOR_TOPSYTURVY) ||
-			 MutatorEnabled(MUTATOR_UPSIDEDOWN) )
+		bool flipY = MutatorEnabled(MUTATOR_TOPSYTURVY) ||
+					 MutatorEnabled(MUTATOR_UPSIDEDOWN);
+
+		// vvvvvv rolls the camera another 180 while on the ceiling
+		if ( VVVVVV_LocalFlipped() )
+		{
+			flipX = !flipX;
+			flipY = !flipY;
+		}
+
+		if ( flipX )
+			*x *= -1;
+
+		if ( flipY )
 			*y *= -1;
 	}
 }

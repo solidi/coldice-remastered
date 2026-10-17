@@ -177,6 +177,7 @@ DLL_GLOBAL const char *g_szMutators[] = {
 	"vested",
 	"victor",
 	"volatile",
+	"vvvvvv",
 	"waterhurt",
 };
 
