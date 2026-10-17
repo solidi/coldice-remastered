@@ -50,6 +50,7 @@ void CL_DLLEXPORT HUD_DrawNormalTriangles( void )
 #endif
 
 	LineMode_CaptureScene();
+	DiscoMode_CaptureScene();
 
 	gHUD.m_Spectator.DrawOverview();
 

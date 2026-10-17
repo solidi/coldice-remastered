@@ -133,6 +133,7 @@ HL1_OBJS = \
 	$(HL1_OBJ_DIR)/message.o \
 	$(HL1_OBJ_DIR)/MOTD.o \
 	$(HL1_OBJ_DIR)/mutator_blur.o \
+	$(HL1_OBJ_DIR)/mutator_discomode.o \
 	$(HL1_OBJ_DIR)/mutator_goldeneye.o \
 	$(HL1_OBJ_DIR)/mutator_linemode.o \
 	$(HL1_OBJ_DIR)/mutator_myfavtexture.o \
