@@ -33,6 +33,12 @@ These instructions guide Copilot reviews for C/C++ changes under this source tre
 - Project files of record: `projects/vs2019/hldll.vcxproj` + `.filters`, `projects/vs2019/hl_cdll.vcxproj` + `.filters`, `linux/Makefile.hldll`, `linux/Makefile.hl_cdll`. A new `.cpp` must appear in the matching `.vcxproj`, `.vcxproj.filters` and Linux makefile.
 - `vs2019` is the only Visual Studio project set (`projects/vs2010` was removed). Legacy MSVC 6 `.dsp`/`.dsw` files are not maintained; do not request updates to them.
 
+6. Mutator mode filters
+- A new mutator (full `MUTATOR_*` or instant `INSTANT_*`) must come with a review of every game mode's filter: `CHalfLifeMultiplay::MutatorAllowed` (base), `CHalfLifeRules::MutatorAllowed` (single player) and each `*_gamerules.cpp` override. Modes without an override inherit the base.
+- Blocks follow `if (strstr(mutator, g_szMutators[MUTATOR_X - 1]) || atoi(mutator) == MUTATOR_X) return FALSE;` placed before the base-class chain. `strstr` also matches longer names that contain the blocked one.
+- Instants have no `MutatorAllowed` path; mode restrictions must be gates inside the instant itself.
+- Flag a new mutator with no recorded review ("Mode filters" line in `workspace/ai/mutator_system.md`).
+
 ## Validation Expectations
 - Require practical validation notes for non-trivial changes:
   - build client DLL,
