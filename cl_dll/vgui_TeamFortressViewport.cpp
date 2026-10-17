@@ -250,6 +250,7 @@ MutatorInfo sMutators[] = {
 	{ "crate", "boxed into nostalgia" },
 	{ "credits", "watch the credits roll" },
 	{ "dealter", "what's that smell?" },
+	{ "discomode", "007 disco mode, psychedelic flashing colors" },
 	{ "dontshoot", "no trigger fingers" },
 	{ "drunk", "your view keeps swaying and spinning" },
 	{ "expcrowbar", "crowbar swings detonate" },

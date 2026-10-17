@@ -551,6 +551,9 @@ void GoldenEye_Draw( int health, int armor );
 void LineMode_CaptureScene( void );
 void LineMode_Draw( void );
 
+void DiscoMode_CaptureScene( void );
+void DiscoMode_Draw( void );
+
 void Blur_Draw( void );
 
 bool VVVVVV_LocalFlipped( void );
