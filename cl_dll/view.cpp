@@ -954,6 +954,8 @@ void V_CalcNormalRefdef ( struct ref_params_s *pparams )
 	{
 		pparams->viewangles[ROLL] += 180.0f * flFlip;
 		view->angles[ROLL] += 180.0f * flFlip;
+		view->curstate.angles[ROLL] += 180.0f * flFlip;
+		view->latched.prevangles[ROLL] += 180.0f * flFlip;
 	}
 
 	V_ApplyDrunkMutator(pparams);

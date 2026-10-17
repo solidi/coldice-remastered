@@ -4610,7 +4610,7 @@ void CBasePlayer::PostThink()
 	// vvvvvv: keep hitboxes upside down with the model while on the ceiling
 	if ( IsGravityFlipped() )
 		pev->angles.z = 180;
-	else if ( IsRolledOver( pev->angles.z ) )
+	else if ( m_fGravityFlipAllowed && IsRolledOver( pev->angles.z ) )
 		pev->angles.z = 0;
 
 	// Handle Tank controlling
