@@ -1515,6 +1515,10 @@ BOOL CHalfLifePropHunt::MutatorAllowed(const char *mutator)
 	if (strstr(mutator, g_szMutators[MUTATOR_TOILET - 1]) || atoi(mutator) == MUTATOR_TOILET)
 		return FALSE;
 
+	// Hunters use pev->fuser1, which vvvvvv uses for the gravity flip
+	if (strstr(mutator, g_szMutators[MUTATOR_VVVVVV - 1]) || atoi(mutator) == MUTATOR_VVVVVV)
+		return FALSE;
+
 	return CHalfLifeMultiplay::MutatorAllowed(mutator);
 }
 

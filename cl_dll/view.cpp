@@ -681,6 +681,37 @@ static bool ViewModelHasIronSightAttachments(model_t *model)
 	return studioHeader->numattachments >= 3;
 }
 
+// Predicted pmove->fuser1 from HUD_PostRunCmd: the local player walks on the ceiling (vvvvvv).
+int g_iVVVVVVFlipped = 0;
+
+bool VVVVVV_LocalFlipped( void )
+{
+	return g_iVVVVVVFlipped && MutatorEnabled(MUTATOR_VVVVVV) && g_iUser1 < 1 && !gEngfuncs.IsSpectateOnly();
+}
+
+#define VVVVVV_ROLL_TIME 0.2f
+
+// 0 = upright, 1 = upside down, eased so the camera rolls over instead of snapping.
+static float V_VVVVVVFlipAmount( struct ref_params_s *pparams )
+{
+	static float flFlipFrac = 0;
+	static float flLastTime = 0;
+
+	const float target = (VVVVVV_LocalFlipped() && pparams->health > 0) ? 1.0f : 0.0f;
+	const float dt = pparams->time - flLastTime;
+	flLastTime = pparams->time;
+
+	// pparams->time restarts on map change
+	if (dt < 0 || dt > 0.5f || pparams->health <= 0)
+		flFlipFrac = target;
+	else if (flFlipFrac < target)
+		flFlipFrac = fmin(target, flFlipFrac + dt / VVVVVV_ROLL_TIME);
+	else if (flFlipFrac > target)
+		flFlipFrac = fmax(target, flFlipFrac - dt / VVVVVV_ROLL_TIME);
+
+	return flFlipFrac * flFlipFrac * (3.0f - 2.0f * flFlipFrac);
+}
+
 void V_CalcNormalRefdef ( struct ref_params_s *pparams )
 {
 	static Vector vecLerpedYaw;
@@ -698,6 +729,13 @@ void V_CalcNormalRefdef ( struct ref_params_s *pparams )
 	cl_entity_t *pwater;
 
 	V_DriftPitch ( pparams );
+
+	const float flFlip = V_VVVVVVFlipAmount( pparams );
+	const float flUp = 1.0f - 2.0f * flFlip;
+
+	// Glide the eye through the hull while the predicted view_ofs has already flipped sign
+	if ( flFlip > 0 && flFlip < 1 )
+		pparams->viewheight[2] = fabs( pparams->viewheight[2] ) * flUp;
 
 	if ( gEngfuncs.IsSpectateOnly() )
 	{
@@ -717,11 +755,11 @@ void V_CalcNormalRefdef ( struct ref_params_s *pparams )
 	bob = V_CalcBob ( pparams );
 
 	if (MutatorEnabled(MUTATOR_MINIME))
-		pparams->viewheight[2] -= 24;
+		pparams->viewheight[2] -= 24 * flUp;
 
 	// refresh position
 	VectorCopy ( pparams->simorg, pparams->vieworg );
-	pparams->vieworg[2] += ( bob );
+	pparams->vieworg[2] += ( bob * flUp );
 	VectorAdd( pparams->vieworg, pparams->viewheight, pparams->vieworg );
 
 	VectorCopy ( pparams->cl_viewangles, pparams->viewangles );
@@ -807,6 +845,7 @@ void V_CalcNormalRefdef ( struct ref_params_s *pparams )
 
 	// offsets
 	VectorCopy( pparams->cl_viewangles, angles );
+	angles[ROLL] += 180.0f * flFlip;
 
 	AngleVectors ( angles, pparams->forward, pparams->right, pparams->up );
 
@@ -829,7 +868,7 @@ void V_CalcNormalRefdef ( struct ref_params_s *pparams )
 		CL_CameraOffset( (float *)&ofs );
 
 		VectorCopy( ofs, camAngles );
-		camAngles[ ROLL ]	= 0;
+		camAngles[ ROLL ]	= 180.0f * flFlip;
 
 		AngleVectors( camAngles, camForward, camRight, camUp );
 
@@ -888,7 +927,7 @@ void V_CalcNormalRefdef ( struct ref_params_s *pparams )
 	{
 		view->origin[ i ] += bob * 0.4 * pparams->forward[ i ];
 	}
-	view->origin[2] += bob;
+	view->origin[2] += bob * flUp;
 
 	// throw in a little tilt.
 	extern cvar_t *cl_bobtilt;
@@ -909,6 +948,14 @@ void V_CalcNormalRefdef ( struct ref_params_s *pparams )
 	if (MutatorEnabled(MUTATOR_AMIDEAD))
 	{
 		pparams->viewangles[ROLL] = 80; //total view
+	}
+
+	if (flFlip > 0)
+	{
+		pparams->viewangles[ROLL] += 180.0f * flFlip;
+		view->angles[ROLL] += 180.0f * flFlip;
+		view->curstate.angles[ROLL] += 180.0f * flFlip;
+		view->latched.prevangles[ROLL] += 180.0f * flFlip;
 	}
 
 	V_ApplyDrunkMutator(pparams);
@@ -1025,7 +1072,7 @@ void V_CalcNormalRefdef ( struct ref_params_s *pparams )
 
 	// smooth out stair step ups
 #if 1
-	if ( !pparams->smoothing && pparams->onground && pparams->simorg[2] - oldz > 0)
+	if ( !pparams->smoothing && pparams->onground && flFlip == 0 && pparams->simorg[2] - oldz > 0)
 	{
 		float steptime;
 		

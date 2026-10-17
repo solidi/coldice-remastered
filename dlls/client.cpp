@@ -3129,6 +3129,12 @@ int AddToFullPack( struct entity_state_s *state, int e, edict_t *ent, edict_t *h
 //		
 		state->usehull      = ( ent->v.flags & FL_DUCKING ) ? 1 : 0;
 		state->health		= ent->v.health; // radar
+
+		if ( entity && ((CBasePlayer *)entity)->IsGravityFlipped() )
+		{
+			state->angles[2] = 180;
+			state->effects |= EF_INVLIGHT;
+		}
 	}
 
 	// Entities and players
@@ -3583,6 +3589,9 @@ void UpdateClientData ( const edict_t *ent, int sendweapons, struct clientdata_s
 	cd->weaponanim		= pev->weaponanim;
 
 	cd->pushmsec		= pev->pushmsec;
+
+	// vvvvvv gravity flip state, predicted by pm_shared
+	cd->fuser1			= pev->fuser1;
 
 	//Spectator mode
 	if ( pevOrg != NULL )

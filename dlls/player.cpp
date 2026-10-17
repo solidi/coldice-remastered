@@ -2950,6 +2950,10 @@ void CBasePlayer::ClimbingPhysics()
 	if (g_pGameRules->MutatorEnabled(MUTATOR_NOCLIP))
 		return;
 
+	// Climb traces assume the floor is below the player
+	if (m_fGravityFlipAllowed)
+		return;
+
 	// Prevent running double jump flip with grapple attempt
 	if (m_fFlipTime >= gpGlobals->time)
 		return;
@@ -3167,6 +3171,47 @@ void CBasePlayer::PlayerBurn(void)
 	m_fBurnTime = m_fBurnTime - 0.1;
 }
 
+static BOOL IsRolledOver( float roll )
+{
+	roll = fmod( roll, 360.0f );
+	if ( roll < 0 )
+		roll += 360.0f;
+	return roll > 90.0f && roll < 270.0f;
+}
+
+void CBasePlayer::SyncGravityFlipMutator( void )
+{
+	BOOL allowed = g_pGameRules && g_pGameRules->MutatorEnabled( MUTATOR_VVVVVV ) && !FBitSet( pev->flags, FL_FAKECLIENT );
+	BOOL active = atoi( g_engfuncs.pfnInfoKeyValue( (char *)ENGINE_GETPHYSINFO( edict() ), "vvv" ) ) == 1;
+
+	m_fGravityFlipAllowed = allowed;
+	if ( allowed == active )
+		return;
+
+	g_engfuncs.pfnSetPhysicsKeyValue( edict(), "vvv", allowed ? "1" : "0" );
+	ClearGravityFlip();
+}
+
+void CBasePlayer::ClearGravityFlip( void )
+{
+	if ( pev->fuser1 > 0 && pev->view_ofs.z < 0 && pev->deadflag == DEAD_NO )
+		pev->view_ofs.z = -pev->view_ofs.z;
+
+	if ( pev->fuser1 > 0 )
+		m_fGravityFlipFallGrace = TRUE;
+	pev->fuser1 = 0;
+
+	if ( IsRolledOver( pev->angles.z ) )
+		pev->angles.z = 0;
+	if ( IsRolledOver( pev->v_angle.z ) )
+		pev->v_angle.z = 0;
+}
+
+BOOL CBasePlayer::IsGravityFlipped( void )
+{
+	return m_fGravityFlipAllowed && pev->fuser1 > 0 && pev->deadflag == DEAD_NO && !pev->iuser1;
+}
+
 void CBasePlayer::Jump()
 {
 	Vector		vecWallCheckDir;// direction we're tracing a line to find a wall when walljumping
@@ -3179,6 +3224,14 @@ void CBasePlayer::Jump()
 	
 	if (pev->waterlevel >= 2)
 	{
+		return;
+	}
+
+	// vvvvvv: jump flips gravity in pm_shared, so no air jumps or acrobatics
+	if ( m_fGravityFlipAllowed )
+	{
+		if ( FBitSet( m_afButtonPressed, IN_JUMP ) && FBitSet( pev->flags, FL_ONGROUND ) )
+			SetAnimation( PLAYER_JUMP );
 		return;
 	}
 
@@ -3494,6 +3547,8 @@ void CBasePlayer::PreThink(void)
 	if ( g_fGameOver )
 		return;         // intermission or finale
 
+	SyncGravityFlipMutator();
+
 	UTIL_MakeVectors(pev->v_angle);             // is this still used?
 	
 	ItemPreFrame( );
@@ -3645,7 +3700,7 @@ void CBasePlayer::PreThink(void)
 
 	if ( !FBitSet ( pev->flags, FL_ONGROUND ) )
 	{
-		m_flFallVelocity = -pev->velocity.z;
+		m_flFallVelocity = IsGravityFlipped() ? pev->velocity.z : -pev->velocity.z;
 	}
 
 	// StudioFrameAdvance( );//!!!HACKHACK!!! Can't be hit by traceline when not animating?
@@ -4552,6 +4607,12 @@ void CBasePlayer::PostThink()
 	if (!IsAlive())
 		goto pt_end;
 
+	// vvvvvv: keep hitboxes upside down with the model while on the ceiling
+	if ( IsGravityFlipped() )
+		pev->angles.z = 180;
+	else if ( m_fGravityFlipAllowed && IsRolledOver( pev->angles.z ) )
+		pev->angles.z = 0;
+
 	// Handle Tank controlling
 	if ( m_pTank != NULL )
 	{ // if they've moved too far from the gun,  or selected a weapon, unuse the gun
@@ -4587,7 +4648,7 @@ void CBasePlayer::PostThink()
 			// if ( !pev->groundentity || VARS(pev->groundentity)->velocity.z == 0 )
 				// EMIT_SOUND(ENT(pev), CHAN_BODY, "player/pl_wade1.wav", 1, ATTN_NORM);
 		}
-		else if ( m_flFallVelocity > PLAYER_MAX_SAFE_FALL_SPEED )
+		else if ( m_flFallVelocity > PLAYER_MAX_SAFE_FALL_SPEED && !m_fGravityFlipAllowed && !m_fGravityFlipFallGrace )
 		{// after this point, we start doing damage
 			
 			float flFallDamage = g_pGameRules->FlPlayerFallDamage( this );
@@ -4620,6 +4681,7 @@ void CBasePlayer::PostThink()
 		}
 		CheckHeadStomp();
 		m_flFallVelocity = 0;
+		m_fGravityFlipFallGrace = FALSE;
 	}
 
 	// select the proper animation for the player character	
@@ -5016,6 +5078,9 @@ void CBasePlayer::Spawn( void )
 	g_engfuncs.pfnSetPhysicsKeyValue( edict(), "slj", "0" );
 	g_engfuncs.pfnSetPhysicsKeyValue( edict(), "hl", "1" );
 	g_engfuncs.pfnSetPhysicsKeyValue( edict(), "negpi", ( g_pGameRules && g_pGameRules->MutatorEnabled(MUTATOR_NEGATIVEPI) ) ? "1" : "0" );
+	SyncGravityFlipMutator();
+	if ( m_fGravityFlipAllowed )
+		ClearGravityFlip();
 	g_engfuncs.pfnSetPhysicsKeyValue(edict(), "jumpheight", CVAR_GET_STRING("sv_jumpheight"));
 	m_fJumpHeight = atof(CVAR_GET_STRING("sv_jumpheight"));
 
@@ -5257,6 +5322,7 @@ int CBasePlayer::Restore( CRestore &restore )
 
 	g_engfuncs.pfnSetPhysicsKeyValue( edict(), "hl", "1" );
 	g_engfuncs.pfnSetPhysicsKeyValue( edict(), "negpi", ( g_pGameRules && g_pGameRules->MutatorEnabled(MUTATOR_NEGATIVEPI) ) ? "1" : "0" );
+	SyncGravityFlipMutator();
 
 	if ( m_fLongJump )
 	{

@@ -641,11 +641,20 @@ void CL_AdjustAngles ( float frametime, float *viewangles )
 	bool mirrorenabled = MutatorEnabled(MUTATOR_MIRROR) && !g_iUser1 && !gEngfuncs.IsSpectateOnly();
 	bool upsidedownenabled = (MutatorEnabled(MUTATOR_TOPSYTURVY) ||
 							  MutatorEnabled(MUTATOR_UPSIDEDOWN)) && !g_iUser1 && !gEngfuncs.IsSpectateOnly();
+	bool flipyaw = mirrorenabled || upsidedownenabled;
+	bool flippitch = upsidedownenabled;
+
+	// vvvvvv rolls the camera another 180, so turning follows the rolled screen
+	if (VVVVVV_LocalFlipped())
+	{
+		flipyaw = !flipyaw;
+		flippitch = !flippitch;
+	}
 
 	if (!(in_strafe.state & 1))
 	{
-		viewangles[YAW] -= speed*yawspeed*CL_KeyState ((mirrorenabled || upsidedownenabled ? &in_left : &in_right));
-		viewangles[YAW] += speed*yawspeed*CL_KeyState ((mirrorenabled || upsidedownenabled ? &in_right : &in_left));
+		viewangles[YAW] -= speed*yawspeed*CL_KeyState ((flipyaw ? &in_left : &in_right));
+		viewangles[YAW] += speed*yawspeed*CL_KeyState ((flipyaw ? &in_right : &in_left));
 
 		viewangles[YAW] = anglemod(viewangles[YAW]);
 	}
@@ -656,8 +665,8 @@ void CL_AdjustAngles ( float frametime, float *viewangles )
 		viewangles[PITCH] += speed*cl_pitchspeed->value * CL_KeyState ((mirrorenabled ? &in_forward : &in_back));
 	}
 	
-	up = CL_KeyState ((upsidedownenabled ? &in_lookdown : &in_lookup));
-	down = CL_KeyState((upsidedownenabled ? &in_lookup : &in_lookdown));
+	up = CL_KeyState ((flippitch ? &in_lookdown : &in_lookup));
+	down = CL_KeyState((flippitch ? &in_lookup : &in_lookdown));
 
 	viewangles[PITCH] -= speed*cl_pitchspeed->value * up;
 	viewangles[PITCH] += speed*cl_pitchspeed->value * down;
@@ -674,6 +683,10 @@ void CL_AdjustAngles ( float frametime, float *viewangles )
 		viewangles[ROLL] = 50;
 	if (viewangles[ROLL] < -50)
 		viewangles[ROLL] = -50;
+
+	// A server fixangle can carry the 180 roll of an upside down vvvvvv player
+	if (MutatorEnabled(MUTATOR_VVVVVV))
+		viewangles[ROLL] = 0;
 }
 
 /*

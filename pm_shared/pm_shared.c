@@ -155,6 +155,23 @@ static char grgchTextureType[CTEXTURESMAX];
 
 int g_onladder = 0;
 
+// VVVVVV: physinfo "vvv" enables the gravity flip, pmove->fuser1 > 0 is the predicted flipped state.
+// -1 while the player walks on the ceiling.
+static float g_flPmUp = 1.0f;
+#define VVVVVV_PUSH_SPEED	200
+
+static qboolean PM_VVVVVVEnabled( void )
+{
+	return atoi( pmove->PM_Info_ValueForKey( pmove->physinfo, "vvv" ) ) == 1 ? true : false;
+}
+
+static void PM_SetVVVVVVFlip( qboolean flipped )
+{
+	pmove->fuser1 = flipped ? 1.0f : 0.0f;
+	g_flPmUp = flipped ? -1.0f : 1.0f;
+	pmove->view_ofs[2] = g_flPmUp * ( ( pmove->flags & FL_DUCKING ) ? VEC_DUCK_VIEW : VEC_VIEW );
+}
+
 void PM_SwapTextures( int i, int j )
 {
 	char chTemp;
@@ -487,7 +504,7 @@ void PM_CatagorizeTextureType( void )
 	VectorCopy( pmove->origin, end );
 
 	// Straight down
-	end[2] -= 64;
+	end[2] -= 64 * g_flPmUp;
 
 	// Fill in default values, just in case.
 	pmove->sztexturename[0] = '\0';
@@ -573,8 +590,8 @@ void PM_UpdateStepSound( void )
 
 		height = pmove->player_maxs[ pmove->usehull ][ 2 ] - pmove->player_mins[ pmove->usehull ][ 2 ];
 
-		knee[2] = pmove->origin[2] - 0.3 * height;
-		feet[2] = pmove->origin[2] - 0.5 * height;
+		knee[2] = pmove->origin[2] - 0.3 * height * g_flPmUp;
+		feet[2] = pmove->origin[2] - 0.5 * height * g_flPmUp;
 
 		// find out what we're stepping in or on...
 		if (fLadder)
@@ -798,7 +815,7 @@ void PM_AddCorrectGravity ()
 
 	// Add gravity so they'll be in the correct position during movement
 	// yes, this 0.5 looks wrong, but it's not.  
-	pmove->velocity[2] -= (ent_gravity * pmove->movevars->gravity * 0.5 * pmove->frametime );
+	pmove->velocity[2] -= (g_flPmUp * ent_gravity * pmove->movevars->gravity * 0.5 * pmove->frametime );
 	pmove->velocity[2] += pmove->basevelocity[2] * pmove->frametime;
 	pmove->basevelocity[2] = 0;
 
@@ -819,7 +836,7 @@ void PM_FixupGravityVelocity ()
 		ent_gravity = 1.0;
 
 	// Get the correct velocity for the end of the dt 
-  	pmove->velocity[2] -= (ent_gravity * pmove->movevars->gravity * pmove->frametime * 0.5 );
+  	pmove->velocity[2] -= (g_flPmUp * ent_gravity * pmove->movevars->gravity * pmove->frametime * 0.5 );
 
 	PM_CheckVelocity();
 }
@@ -908,7 +925,7 @@ int PM_FlyMove (void)
 
 		// If the plane we hit has a high z component in the normal, then
 		//  it's probably a floor
-		if (trace.plane.normal[2] > 0.7)
+		if (trace.plane.normal[2] * g_flPmUp > 0.7)
 		{
 			blocked |= 1;		// floor
 		}
@@ -946,7 +963,7 @@ int PM_FlyMove (void)
 		{
 			for ( i = 0; i < numplanes; i++ )
 			{
-				if ( planes[i][2] > 0.7  )
+				if ( planes[i][2] * g_flPmUp > 0.7  )
 				{// floor or slope
 					PM_ClipVelocity( original_velocity, planes[i], new_velocity, 1 );
 					VectorCopy( new_velocity, original_velocity );
@@ -1185,7 +1202,7 @@ void PM_WalkMove ()
 
 	// Start out up one stair height
 	VectorCopy (pmove->origin, dest);
-	dest[2] += pmove->movevars->stepsize;
+	dest[2] += pmove->movevars->stepsize * g_flPmUp;
 	
 	trace = pmove->PM_PlayerTrace (pmove->origin, dest, PM_NORMAL, -1 );
 	// If we started okay and made it part of the way at least,
@@ -1202,13 +1219,13 @@ void PM_WalkMove ()
 // Now try going back down from the end point
 //  press down the stepheight
 	VectorCopy (pmove->origin, dest);
-	dest[2] -= pmove->movevars->stepsize;
+	dest[2] -= pmove->movevars->stepsize * g_flPmUp;
 	
 	trace = pmove->PM_PlayerTrace (pmove->origin, dest, PM_NORMAL, -1 );
 
 	// If we are not on the ground any more then
 	//  use the original movement attempt
-	if ( trace.plane.normal[2] < 0.7)
+	if ( trace.plane.normal[2] * g_flPmUp < 0.7)
 		goto usedown;
 	// If the trace ended up in empty space, copy the end
 	//  over to the origin.
@@ -1276,8 +1293,11 @@ void PM_Friction (void)
 
 		start[0] = stop[0] = pmove->origin[0] + vel[0]/speed*16;
 		start[1] = stop[1] = pmove->origin[1] + vel[1]/speed*16;
-		start[2] = pmove->origin[2] + pmove->player_mins[pmove->usehull][2];
-		stop[2] = start[2] - 34;
+		if ( g_flPmUp < 0 )
+			start[2] = pmove->origin[2] + pmove->player_maxs[pmove->usehull][2];
+		else
+			start[2] = pmove->origin[2] + pmove->player_mins[pmove->usehull][2];
+		stop[2] = start[2] - 34 * g_flPmUp;
 
 		trace = pmove->PM_PlayerTrace (start, stop, PM_NORMAL, -1 );
 
@@ -1605,9 +1625,9 @@ void PM_CatagorizePosition (void)
 
 	point[0] = pmove->origin[0];
 	point[1] = pmove->origin[1];
-	point[2] = pmove->origin[2] - 2;
+	point[2] = pmove->origin[2] - 2 * g_flPmUp;
 
-	if (pmove->velocity[2] > 180)   // Shooting up really fast.  Definitely not on ground.
+	if (pmove->velocity[2] * g_flPmUp > 180)   // Shooting up really fast.  Definitely not on ground.
 	{
 		pmove->onground = -1;
 	}
@@ -1616,7 +1636,7 @@ void PM_CatagorizePosition (void)
 		// Try and move down.
 		tr = pmove->PM_PlayerTrace (pmove->origin, point, PM_NORMAL, -1 );
 		// If we hit a steep plane, we are not on ground
-		if ( tr.plane.normal[2] < 0.7)
+		if ( tr.plane.normal[2] * g_flPmUp < 0.7)
 			pmove->onground = -1;	// too steep
 		else
 			pmove->onground = tr.ent;  // Otherwise, point to index of ent under us.
@@ -1977,7 +1997,7 @@ void PM_UnDuck( void )
 	{
 		for ( i = 0; i < 3; i++ )
 		{
-			newOrigin[i] += ( pmove->player_mins[1][i] - pmove->player_mins[0][i] );
+			newOrigin[i] += ( pmove->player_mins[1][i] - pmove->player_mins[0][i] ) * g_flPmUp;
 		}
 	}
 	
@@ -1999,7 +2019,7 @@ void PM_UnDuck( void )
 
 		pmove->flags &= ~FL_DUCKING;
 		pmove->bInDuck  = false;
-		pmove->view_ofs[2] = VEC_VIEW;
+		pmove->view_ofs[2] = VEC_VIEW * g_flPmUp;
 		pmove->flDuckTime = 0;
 		
 		VectorCopy( newOrigin, pmove->origin );
@@ -2068,7 +2088,7 @@ void PM_Duck( void )
 					 ( pmove->onground == -1 ) )
 				{
 					pmove->usehull = 1;
-					pmove->view_ofs[2] = VEC_DUCK_VIEW;
+					pmove->view_ofs[2] = VEC_DUCK_VIEW * g_flPmUp;
 					pmove->flags |= FL_DUCKING;
 					pmove->bInDuck = false;
 
@@ -2077,10 +2097,10 @@ void PM_Duck( void )
 					{
 						for ( i = 0; i < 3; i++ )
 						{
-							pmove->origin[i] -= ( pmove->player_mins[1][i] - pmove->player_mins[0][i] );
+							pmove->origin[i] -= ( pmove->player_mins[1][i] - pmove->player_mins[0][i] ) * g_flPmUp;
 						}
 						// See if we are stuck?
-						PM_FixPlayerCrouchStuck( STUCK_MOVEUP );
+						PM_FixPlayerCrouchStuck( g_flPmUp < 0 ? STUCK_MOVEDOWN : STUCK_MOVEUP );
 
 						// Recatagorize position since ducking can change origin
 						PM_CatagorizePosition();
@@ -2092,7 +2112,7 @@ void PM_Duck( void )
 
 					// Calc parametric time
 					duckFraction = PM_SplineFraction( time, (1.0/TIME_TO_DUCK) );
-					pmove->view_ofs[2] = ((VEC_DUCK_VIEW - fMore ) * duckFraction) + (VEC_VIEW * (1-duckFraction));
+					pmove->view_ofs[2] = g_flPmUp * ( ((VEC_DUCK_VIEW - fMore ) * duckFraction) + (VEC_VIEW * (1-duckFraction)) );
 				}
 			}
 		}
@@ -2599,6 +2619,22 @@ void PM_Jump (void)
 		return;
 	}
 
+	// VVVVVV: jump only flips gravity, and only from a surface
+	if ( PM_VVVVVVEnabled() )
+	{
+		if ( !( pmove->oldbuttons & IN_JUMP ) && pmove->onground != -1 && pmove->movetype == MOVETYPE_WALK )
+		{
+			PM_SetVVVVVVFlip( g_flPmUp > 0 );
+			pmove->onground = -1;
+			pmove->velocity[2] = -g_flPmUp * VVVVVV_PUSH_SPEED;
+
+			PM_PlayStepSound( PM_MapTextureTypeStepType( pmove->chtexturetype ), 1.0 );
+		}
+
+		pmove->oldbuttons |= IN_JUMP;
+		return;
+	}
+
 	int jump_pressed = (( pmove->oldbuttons ^ pmove->cmd.buttons ) & pmove->cmd.buttons) & IN_JUMP ? 1 : 0;
 	float jump_multipler = 1.0;
 
@@ -2978,6 +3014,10 @@ void PM_CheckParamters( void )
 		pmove->angles[PITCH] =	v_angle[PITCH];
 		pmove->angles[YAW]   =	v_angle[YAW];
 
+		// Upside down on the ceiling: also mirrors pmove->right so strafing follows the rolled screen
+		if ( g_flPmUp < 0 )
+			pmove->angles[ROLL] += 180;
+
 		if (!pmove->multiplayer)
 		{
 			if (atoi(pmove->PM_Info_ValueForKey( pmove->physinfo, "topsy")) &&
@@ -3052,6 +3092,17 @@ void PM_PlayerMove ( qboolean server )
 	// Are we running server code?
 	pmove->server = server;                
 
+	g_flPmUp = 1.0f;
+	if ( PM_VVVVVVEnabled() && pmove->fuser1 > 0 )
+	{
+		if ( pmove->spectator || pmove->iuser1 > 0 || pmove->dead )
+			pmove->fuser1 = 0;
+		else if ( pmove->movetype == MOVETYPE_NOCLIP || pmove->waterlevel >= 2 )
+			PM_SetVVVVVVFlip( false );
+		else
+			g_flPmUp = -1.0f;
+	}
+
 	// Adjust speeds etc.
 	PM_CheckParamters();
 
@@ -3088,20 +3139,24 @@ void PM_PlayerMove ( qboolean server )
 	// Now that we are "unstuck", see where we are ( waterlevel and type, pmove->onground ).
 	PM_CatagorizePosition();
 
+	// VVVVVV: swimming always uses normal gravity
+	if ( g_flPmUp < 0 && pmove->waterlevel >= 2 )
+		PM_SetVVVVVVFlip( false );
+
 	// Store off the starting water level
 	pmove->oldwaterlevel = pmove->waterlevel;
 
 	// If we are not on ground, store off how fast we are moving down
 	if ( pmove->onground == -1 )
 	{
-		pmove->flFallVelocity = -pmove->velocity[2];
+		pmove->flFallVelocity = -pmove->velocity[2] * g_flPmUp;
 	}
 
 	g_onladder = 0;
 	// Don't run ladder code if dead or on a train
 	if ( !pmove->dead && !(pmove->flags & FL_ONTRAIN) )
 	{
-		pLadder = PM_Ladder();
+		pLadder = ( g_flPmUp > 0 ) ? PM_Ladder() : NULL;
 		if ( pLadder )
 		{
 			g_onladder = 1;

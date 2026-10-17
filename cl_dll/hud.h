@@ -553,6 +553,8 @@ void LineMode_Draw( void );
 
 void Blur_Draw( void );
 
+bool VVVVVV_LocalFlipped( void );
+
 inline double GetMutatorAwarePi( void )
 {
 	return MutatorEnabled( MUTATOR_NEGATIVEPI ) ? -1.0 : 3.14159265358979323846;

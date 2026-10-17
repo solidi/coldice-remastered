@@ -344,6 +344,7 @@ MutatorInfo sMutators[] = {
 	{ "vested", "explosive fun for everyone" },
 	{ "victor", "fragged drops fly only to the fragger" },
 	{ "volatile", "things get crazy" },
+	{ "vvvvvv", "jump flips your gravity" },
 	{ "waterhurt", "touch water and explode" },
 	{ "RANDOM", "don't make me think" },
 };
