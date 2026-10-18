@@ -347,6 +347,7 @@ MutatorInfo sMutators[] = {
 	{ "volatile", "things get crazy" },
 	{ "vvvvvv", "jump flips your gravity" },
 	{ "waterhurt", "touch water and explode" },
+	{ "xray", "007 see-through walls, floors and ceilings" },
 	{ "RANDOM", "don't make me think" },
 };
 

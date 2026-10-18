@@ -1519,6 +1519,10 @@ BOOL CHalfLifePropHunt::MutatorAllowed(const char *mutator)
 	if (strstr(mutator, g_szMutators[MUTATOR_VVVVVV - 1]) || atoi(mutator) == MUTATOR_VVVVVV)
 		return FALSE;
 
+	// Seeing through walls gives every hiding spot away
+	if (strstr(mutator, g_szMutators[MUTATOR_XRAY - 1]) || atoi(mutator) == MUTATOR_XRAY)
+		return FALSE;
+
 	return CHalfLifeMultiplay::MutatorAllowed(mutator);
 }
 

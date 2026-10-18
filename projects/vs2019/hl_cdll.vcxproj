@@ -120,6 +120,7 @@
     <ClCompile Include="..\..\cl_dll\mutator_linemode.cpp" />
     <ClCompile Include="..\..\cl_dll\mutator_myfavtexture.cpp" />
     <ClCompile Include="..\..\cl_dll\mutator_tinnitus.cpp" />
+    <ClCompile Include="..\..\cl_dll\mutator_xray.cpp" />
     <ClCompile Include="..\..\cl_dll\ev_common.cpp" />
     <ClCompile Include="..\..\cl_dll\ev_hldm.cpp" />
     <ClCompile Include="..\..\cl_dll\flashlight.cpp" />

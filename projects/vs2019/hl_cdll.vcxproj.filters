@@ -267,6 +267,9 @@
     <ClCompile Include="..\..\cl_dll\mutator_tinnitus.cpp">
       <Filter>Source Files\cl_dll</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\cl_dll\mutator_xray.cpp">
+      <Filter>Source Files\cl_dll</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\cl_dll\objective.cpp">
       <Filter>Source Files\cl_dll</Filter>
     </ClCompile>

@@ -1615,7 +1615,7 @@ int CStudioModelRenderer::StudioDrawModel( int flags )
 		if (m_pCvarGlowModels && m_pCvarGlowModels->value)
 		{
 			// clientside batterylight lightning effect
-			if (!strcmp(m_pCurrentEntity->model->name, "models/w_battery.mdl") && (m_pCurrentEntity->curstate.body == 0 || m_pCurrentEntity->curstate.body == 3))
+			if (!XRay_SecondView() && !strcmp(m_pCurrentEntity->model->name, "models/w_battery.mdl") && (m_pCurrentEntity->curstate.body == 0 || m_pCurrentEntity->curstate.body == 3))
 			{
 				dlight_t* dl = gEngfuncs.pEfxAPI->CL_AllocDlight(0);
 				VectorCopy(m_pCurrentEntity->curstate.origin, dl->origin);

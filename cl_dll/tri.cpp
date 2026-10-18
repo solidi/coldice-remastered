@@ -45,6 +45,8 @@ void CL_DLLEXPORT HUD_DrawNormalTriangles( void )
 {
 //	RecClDrawNormalTriangles();
 
+	XRay_NormalTriangles();
+
 #ifndef __APPLE__
 	MyFavTexture_Frame();
 #endif
@@ -103,6 +105,8 @@ void CL_DLLEXPORT HUD_DrawTransparentTriangles( void )
 	}
 
 	gFog.HUD_DrawTransparentTriangles();
+
+	XRay_TransparentTriangles();
 }
 
 void DrawCrosshair()

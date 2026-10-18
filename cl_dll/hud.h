@@ -556,6 +556,15 @@ void DiscoMode_Draw( void );
 
 void Blur_Draw( void );
 
+bool XRay_BeginSecondView( struct ref_params_s *pparams );
+void XRay_RequestSecondView( struct ref_params_s *pparams );
+void XRay_NormalTriangles( void );
+void XRay_TransparentTriangles( void );
+void XRay_EndFrame( void );
+bool XRay_SecondView( void );
+void XRay_BeginStudio( void );
+void XRay_EndStudio( void );
+
 bool VVVVVV_LocalFlipped( void );
 
 inline double GetMutatorAwarePi( void )
