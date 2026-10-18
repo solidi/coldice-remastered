@@ -1,4 +1,4 @@
-//========= Copyright © 1996-2002, Valve LLC, All rights reserved. ============
+//========= Copyright ï¿½ 1996-2002, Valve LLC, All rights reserved. ============
 //
 // Purpose: 
 //
@@ -60,7 +60,42 @@ R_StudioDrawPlayer
 */
 int R_StudioDrawPlayer( int flags, entity_state_t *pplayer )
 {
-	return g_StudioRenderer.StudioDrawPlayer( flags, pplayer );
+	if ( !XRay_SecondView() )
+		return g_StudioRenderer.StudioDrawPlayer( flags, pplayer );
+
+	// xray's second view of the frame only renders: no events, and gait stays on the first view's clock
+	if ( MutatorEnabled( MUTATOR_SANIC ) )
+		return 1;
+
+	if ( !( flags & STUDIO_RENDER ) )
+		return 0;
+
+	player_info_t *info = NULL;
+	if ( pplayer && pplayer->number >= 1 && pplayer->number <= gEngfuncs.GetMaxClients() )
+		info = IEngineStudio.PlayerInfo( pplayer->number - 1 );
+
+	float gaitframe = 0.0f;
+	float gaityaw = 0.0f;
+	vec3_t prevgaitorigin = { 0.0f, 0.0f, 0.0f };
+	if ( info )
+	{
+		gaitframe = info->gaitframe;
+		gaityaw = info->gaityaw;
+		VectorCopy( info->prevgaitorigin, prevgaitorigin );
+	}
+
+	XRay_BeginStudio();
+	int result = g_StudioRenderer.StudioDrawPlayer( flags & ~STUDIO_EVENTS, pplayer );
+	XRay_EndStudio();
+
+	if ( info )
+	{
+		info->gaitframe = gaitframe;
+		info->gaityaw = gaityaw;
+		VectorCopy( prevgaitorigin, info->prevgaitorigin );
+	}
+
+	return result;
 }
 
 /*
@@ -71,7 +106,16 @@ R_StudioDrawModel
 */
 int R_StudioDrawModel( int flags )
 {
-	return g_StudioRenderer.StudioDrawModel( flags );
+	if ( !XRay_SecondView() )
+		return g_StudioRenderer.StudioDrawModel( flags );
+
+	if ( !( flags & STUDIO_RENDER ) )
+		return 0;
+
+	XRay_BeginStudio();
+	int result = g_StudioRenderer.StudioDrawModel( flags & ~STUDIO_EVENTS );
+	XRay_EndStudio();
+	return result;
 }
 
 /*

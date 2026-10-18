@@ -248,6 +248,8 @@ int CL_DLLEXPORT HUD_Redraw( float time, int intermission )
 {
 //	RecClHudRedraw(time, intermission);
 
+	XRay_EndFrame();
+
 #ifndef __APPLE__
 	extern cvar_t *cl_portalmirror;
 	if (cl_portalmirror && cl_portalmirror->value)

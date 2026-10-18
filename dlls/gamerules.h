@@ -619,7 +619,7 @@ protected:
 };
 
 extern CGameRules*	g_pGameRules;
-#define MAX_MUTATORS MUTATOR_WATERHURT
+#define MAX_MUTATORS MUTATOR_XRAY
 extern const char *g_szMutators[MAX_MUTATORS];
 
 // Dynamic server map list, parsed from mapcycle.txt at runtime.

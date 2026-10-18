@@ -2157,6 +2157,9 @@ void CL_DLLEXPORT V_CalcRefdef( struct ref_params_s *pparams )
 {
 //	RecClCalcRefdef(pparams);
 
+	if ( XRay_BeginSecondView( pparams ) )
+		return;
+
 	// intermission / finale rendering
 	if ( pparams->intermission )
 	{	
@@ -2178,6 +2181,8 @@ void CL_DLLEXPORT V_CalcRefdef( struct ref_params_s *pparams )
 	}
 
 	g_ViewParams = *pparams;
+
+	XRay_RequestSecondView( pparams );
 
 /*
 // Example of how to overlay the whole screen with red at 50 % alpha

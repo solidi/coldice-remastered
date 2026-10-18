@@ -180,6 +180,7 @@ DLL_GLOBAL const char *g_szMutators[] = {
 	"volatile",
 	"vvvvvv",
 	"waterhurt",
+	"xray",
 };
 
 typedef struct nellia_choice_button_s
