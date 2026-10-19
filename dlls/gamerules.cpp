@@ -2134,6 +2134,76 @@ static void InstantRuneShuffle(void)
 	UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] Rune Shuffle!\n");
 }
 
+#define VOLLEY_COUNT	5
+#define VOLLEY_SPREAD	8.0f	// degrees of yaw between neighbouring throws
+#define VOLLEY_SPACING	12.0f	// flying_* boxes are 8 units wide and collide with each other, so the fan starts spread out
+#define VOLLEY_SPEED	1000.0f
+
+static BOOL CanThrowVolley(CBasePlayer *pl, const char *weapon)
+{
+	return IsInstantTarget(pl) && !FBitSet(pl->pev->flags, FL_FROZEN) && g_pGameRules->CanHaveNamedItem(pl, weapon);
+}
+
+// Everyone who may hold the weapon throws a fan of its flying_* projectile, launched like the weapon's own throw.
+static void InstantVolley(const char *projectile, const char *weapon, const char *throwSound, const char *name)
+{
+	BOOL allowed = FALSE;
+	if (InstantWeaponsAllowed())
+	{
+		for (int i = 1; i <= gpGlobals->maxClients && !allowed; i++)
+			allowed = CanThrowVolley((CBasePlayer *)UTIL_PlayerByIndex(i), weapon);
+	}
+
+	if (!allowed)
+	{
+		UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] %s: nothing allowed here!\n", name);
+		return;
+	}
+
+	for (int i = 1; i <= gpGlobals->maxClients; i++)
+	{
+		CBasePlayer *pl = (CBasePlayer *)UTIL_PlayerByIndex(i);
+		if (!CanThrowVolley(pl, weapon))
+			continue;
+
+		UTIL_MakeVectors(pl->pev->v_angle);
+		const Vector vecRight = gpGlobals->v_right;
+		const Vector vecSrc = pl->GetGunPosition();
+
+		for (int k = 0; k < VOLLEY_COUNT; k++)
+		{
+			const float offset = k - (VOLLEY_COUNT - 1) * 0.5f;
+			Vector vecAim = pl->pev->v_angle;
+			// Positive yaw turns left; subtract so each throw flies away from the side it starts on instead of crossing.
+			vecAim.y -= offset * VOLLEY_SPREAD;
+			UTIL_MakeVectors(vecAim);
+			const Vector vecDir = gpGlobals->v_forward;
+			const Vector vecStart = vecSrc + vecDir * 16 + vecRight * (offset * VOLLEY_SPACING);
+
+			TraceResult tr;
+			UTIL_TraceLine(vecSrc, vecStart, ignore_monsters, pl->edict(), &tr);
+			if (tr.fStartSolid || tr.flFraction < 1.0f)
+				continue;
+
+			Vector vecAngles = UTIL_VecToAngles(vecDir);
+			vecAngles.z = vecDir.z - 90;
+			CBaseEntity *pThrown = CBaseEntity::Create((char *)projectile, vecStart, vecAngles, pl->edict());
+			if (!pThrown)
+				continue;
+
+			SetBits(pThrown->pev->spawnflags, SF_FLYING_VOLLEY);
+			pThrown->pev->velocity = vecDir * VOLLEY_SPEED + pl->pev->velocity;
+			pThrown->pev->avelocity.x = -1000;
+			pThrown->pev->gravity = 0.25;
+		}
+
+		pl->SetAnimation(PLAYER_ATTACK1);
+		EMIT_SOUND_DYN(pl->edict(), CHAN_WEAPON, throwSound, 1, ATTN_NORM, 0, 94 + RANDOM_LONG(0, 0xF));
+	}
+
+	UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] %s!\n", name);
+}
+
 // Operators type these values into sv_addinstantmutator. Keep them in ASCII order of the trailing names
 // (the names in server_commands.txt); a new instant goes in its alphabetical place and every later value shifts.
 enum instant_mutator_e
@@ -2152,26 +2222,29 @@ enum instant_mutator_e
 	INSTANT_HOT_POTATO = 11,			// hot potato
 	INSTANT_HOTFINGERS = 12,			// hotfingers
 	INSTANT_HUMAN_ASSASSIN = 13,		// human assassin
-	INSTANT_MAX_AMMO = 14,				// maxammo
-	INSTANT_NICE = 15,					// nice
-	INSTANT_NOTHING = 16,				// nothing
-	INSTANT_PASS_IT_LEFT = 17,			// passitleft
-	INSTANT_PET_CHUMTOAD = 18,			// pet chumtoad
-	INSTANT_PET_SNARK = 19,				// pet snark
-	INSTANT_RANDOM_DAMAGE = 20,			// random damage
-	INSTANT_RANDOM_AMMO = 21,			// randomammo
-	INSTANT_RANDOM_ITEM = 22,			// randomitem
-	INSTANT_RANDOM_RUNE = 23,			// randomrune
-	INSTANT_RANDOM_WEAPON = 24,			// randomweapon
-	INSTANT_REMOVE_FUNC = 25,			// remove func_*
-	INSTANT_ROBIN_HOOD = 26,			// robinhood
-	INSTANT_ROULETTE = 27,				// roulette
-	INSTANT_RUNE_BURST = 28,			// runeburst
-	INSTANT_RUNE_SHUFFLE = 29,			// runeshuffle
-	INSTANT_SIX_SEVEN = 30,				// six seven
-	INSTANT_SWAP_HEALTH_ARMOR = 31,		// swap health and armor
-	INSTANT_TRIPMINE = 32,				// tripmine
-	INSTANT_UNARM = 33,					// unarm
+	INSTANT_KNIFE_VOLLEY = 14,			// knifevolley
+	INSTANT_MAX_AMMO = 15,				// maxammo
+	INSTANT_NICE = 16,					// nice
+	INSTANT_NOTHING = 17,				// nothing
+	INSTANT_PASS_IT_LEFT = 18,			// passitleft
+	INSTANT_PET_CHUMTOAD = 19,			// pet chumtoad
+	INSTANT_PET_SNARK = 20,				// pet snark
+	INSTANT_PIPE_VOLLEY = 21,			// pipevolley
+	INSTANT_RANDOM_DAMAGE = 22,			// random damage
+	INSTANT_RANDOM_AMMO = 23,			// randomammo
+	INSTANT_RANDOM_ITEM = 24,			// randomitem
+	INSTANT_RANDOM_RUNE = 25,			// randomrune
+	INSTANT_RANDOM_WEAPON = 26,			// randomweapon
+	INSTANT_REMOVE_FUNC = 27,			// remove func_*
+	INSTANT_ROBIN_HOOD = 28,			// robinhood
+	INSTANT_ROULETTE = 29,				// roulette
+	INSTANT_RUNE_BURST = 30,			// runeburst
+	INSTANT_RUNE_SHUFFLE = 31,			// runeshuffle
+	INSTANT_SIX_SEVEN = 32,				// six seven
+	INSTANT_SWAP_HEALTH_ARMOR = 33,		// swap health and armor
+	INSTANT_TRIPMINE = 34,				// tripmine
+	INSTANT_UNARM = 35,					// unarm
+	INSTANT_WRENCH_VOLLEY = 36,			// wrenchvolley
 	INSTANT_MUTATOR_COUNT
 };
 
@@ -2366,6 +2439,9 @@ void CGameRules::AddInstantMutator(int index)
 			}
 			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] Human assassin!\n");
 			break;
+		case INSTANT_KNIFE_VOLLEY:
+			InstantVolley("flying_knife", "weapon_knife", "knife_miss2.wav", "Knife Volley");
+			break;
 		case INSTANT_MAX_AMMO:
 			InstantMaxAmmo();
 			break;
@@ -2456,6 +2532,9 @@ void CGameRules::AddInstantMutator(int index)
 				}
 			}
 			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] Pet Snark!\n");
+			break;
+		case INSTANT_PIPE_VOLLEY:
+			InstantVolley("flying_crowbar", "weapon_crowbar", "weapons/cbar_miss1.wav", "Pipe Volley");
 			break;
 		case INSTANT_RANDOM_DAMAGE:
 			for (int i = 1; i <= gpGlobals->maxClients; ++i)
@@ -2561,6 +2640,9 @@ void CGameRules::AddInstantMutator(int index)
 			break;
 		case INSTANT_UNARM:
 			InstantUnarm();
+			break;
+		case INSTANT_WRENCH_VOLLEY:
+			InstantVolley("flying_wrench", "weapon_wrench", "wrench_miss1.wav", "Wrench Volley");
 			break;
 	}
 

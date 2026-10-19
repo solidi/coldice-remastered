@@ -2334,6 +2334,9 @@ private:
 	unsigned short m_usSmg;
 };
 
+// flying_crowbar / flying_knife / flying_wrench thrown by a volley instant mutator: vanish on impact, no weapon drop.
+#define SF_FLYING_VOLLEY	(1 << 0)
+
 class CFlyingWrench : public CBaseEntity
 {
 public:
