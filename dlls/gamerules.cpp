@@ -2134,60 +2134,69 @@ static void InstantRuneShuffle(void)
 	UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] Rune Shuffle!\n");
 }
 
-// Values are written to the server log, so keep them stable and append new entries before the count.
+// Operators type these values into sv_addinstantmutator. Keep them in ASCII order of the trailing names
+// (the names in server_commands.txt); a new instant goes in its alphabetical place and every later value shifts.
 enum instant_mutator_e
 {
-	INSTANT_NOTHING = 0,
-	INSTANT_PLUS_1_HEALTH = 1,
-	INSTANT_SWAP_HEALTH_ARMOR = 2,
-	INSTANT_PLUS_100_HEALTH = 3,
-	INSTANT_PLUS_100_ARMOR = 4,
-	INSTANT_1_HEALTH = 5,
-	INSTANT_NICE = 6,
-	INSTANT_SIX_SEVEN = 7,
-	INSTANT_HOT_POTATO = 8,
-	INSTANT_RANDOM_DAMAGE = 9,
-	INSTANT_TRIPMINE = 10,
-	INSTANT_PET_SNARK = 11,
-	INSTANT_PET_CHUMTOAD = 12,
-	INSTANT_HUMAN_ASSASSIN = 13,
-	INSTANT_EXTRA_AMMO = 14,
-	INSTANT_ACCEPT_ALL_COOKIES = 15,
-	INSTANT_BSOD = 16,
-	INSTANT_REMOVE_FUNC = 17,
-	INSTANT_UNARM = 18,
-	INSTANT_RANDOM_WEAPON = 19,
-	INSTANT_ALL_GUNS = 20,
-	INSTANT_RANDOM_ITEM = 21,
-	INSTANT_RANDOM_RUNE = 22,
-	INSTANT_BUTTERFINGERS = 23,
-	INSTANT_DUAL_WIELD = 24,
-	INSTANT_ROULETTE = 25,
-	INSTANT_RUNE_BURST = 26,
-	INSTANT_ROBIN_HOOD = 27,
-	INSTANT_RANDOM_AMMO = 28,
-	INSTANT_HOTFINGERS = 29,
-	INSTANT_MAX_AMMO = 30,
-	INSTANT_DRY_FIRE = 31,
-	INSTANT_PASS_IT_LEFT = 32,
-	INSTANT_RUNE_SHUFFLE = 33,
+	INSTANT_PLUS_1_HEALTH = 0,			// +1 health
+	INSTANT_PLUS_100_ARMOR = 1,			// +100 armor
+	INSTANT_PLUS_100_HEALTH = 2,		// +100 health
+	INSTANT_1_HEALTH = 3,				// 1 health
+	INSTANT_ACCEPT_ALL_COOKIES = 4,		// accept all cookies
+	INSTANT_ALL_GUNS = 5,				// allguns
+	INSTANT_BSOD = 6,					// bsod
+	INSTANT_BUTTERFINGERS = 7,			// butterfingers
+	INSTANT_DRY_FIRE = 8,				// dryfire
+	INSTANT_DUAL_WIELD = 9,				// dualwield
+	INSTANT_EXTRA_AMMO = 10,			// extra ammo
+	INSTANT_HOT_POTATO = 11,			// hot potato
+	INSTANT_HOTFINGERS = 12,			// hotfingers
+	INSTANT_HUMAN_ASSASSIN = 13,		// human assassin
+	INSTANT_MAX_AMMO = 14,				// maxammo
+	INSTANT_NICE = 15,					// nice
+	INSTANT_NOTHING = 16,				// nothing
+	INSTANT_PASS_IT_LEFT = 17,			// passitleft
+	INSTANT_PET_CHUMTOAD = 18,			// pet chumtoad
+	INSTANT_PET_SNARK = 19,				// pet snark
+	INSTANT_RANDOM_DAMAGE = 20,			// random damage
+	INSTANT_RANDOM_AMMO = 21,			// randomammo
+	INSTANT_RANDOM_ITEM = 22,			// randomitem
+	INSTANT_RANDOM_RUNE = 23,			// randomrune
+	INSTANT_RANDOM_WEAPON = 24,			// randomweapon
+	INSTANT_REMOVE_FUNC = 25,			// remove func_*
+	INSTANT_ROBIN_HOOD = 26,			// robinhood
+	INSTANT_ROULETTE = 27,				// roulette
+	INSTANT_RUNE_BURST = 28,			// runeburst
+	INSTANT_RUNE_SHUFFLE = 29,			// runeshuffle
+	INSTANT_SIX_SEVEN = 30,				// six seven
+	INSTANT_SWAP_HEALTH_ARMOR = 31,		// swap health and armor
+	INSTANT_TRIPMINE = 32,				// tripmine
+	INSTANT_UNARM = 33,					// unarm
 	INSTANT_MUTATOR_COUNT
 };
 
-void CGameRules::AddInstantMutator(void)
+void CGameRules::AddInstantMutator(int index)
 {
-	int random = RANDOM_LONG(0, INSTANT_MUTATOR_COUNT - 1);
+	const BOOL forced = (index >= 0 && index < INSTANT_MUTATOR_COUNT);
+	int instant = index;
 	// allguns adds ~45 weapon edicts per player at once, enough to exhaust the edict pool on a full server.
-	while (random == INSTANT_ALL_GUNS && IsMultiplayer())
-		random = RANDOM_LONG(0, INSTANT_MUTATOR_COUNT - 1);
-	UTIL_LogPrintf("Instant mutator \"%d\" enabled at %.2f\n", random, gpGlobals->time);
+	if (!forced)
+	{
+		do
+			instant = RANDOM_LONG(0, INSTANT_MUTATOR_COUNT - 1);
+		while (instant == INSTANT_ALL_GUNS && IsMultiplayer());
+	}
+	else if (instant == INSTANT_ALL_GUNS && IsMultiplayer())
+	{
+		ALERT(at_console, "Instant mutator \"%d\" (allguns) is single player only.\n", instant);
+		return;
+	}
+	UTIL_LogPrintf("Instant mutator \"%d\" enabled at %.2f\n", instant, gpGlobals->time);
 	BOOL broadcastChicken = TRUE;
 
-	switch (random)
+	// Cases follow instant_mutator_e order.
+	switch (instant)
 	{
-		case INSTANT_NOTHING:
-			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] Nothing selected!\n");
-			break;
 		case INSTANT_PLUS_1_HEALTH:
 			for (int i = 1; i <= gpGlobals->maxClients; i++)
 			{
@@ -2198,29 +2207,15 @@ void CGameRules::AddInstantMutator(void)
 			}
 			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] +1 health!\n");
 			break;
-		case INSTANT_SWAP_HEALTH_ARMOR:
+		case INSTANT_PLUS_100_ARMOR:
 			for (int i = 1; i <= gpGlobals->maxClients; i++)
 			{
 				CBaseEntity *pPlayer = UTIL_PlayerByIndex( i );
 				CBasePlayer *pl = (CBasePlayer *)pPlayer;
-				if (pPlayer && pPlayer->IsPlayer() && !pl->IsSpectator() && pl->IsAlive()
-					&& !pl->HasDisconnected && !FBitSet(pPlayer->pev->flags, FL_GODMODE))
-				{
-					if (pPlayer->pev->armorvalue <= 0)
-					{
-					int temp = pPlayer->pev->health;
-					pPlayer->pev->health = 1;
-					pPlayer->pev->armorvalue = temp;
-					}
-					else
-					{
-						int temp = pPlayer->pev->health;
-						pPlayer->pev->health = pPlayer->pev->armorvalue;
-						pPlayer->pev->armorvalue = temp;
-					}
-				}
+				if (pPlayer && pPlayer->IsPlayer() && !pl->IsSpectator() && pl->IsAlive() && !pl->HasDisconnected)
+					pPlayer->pev->armorvalue = fmin(pPlayer->pev->armorvalue + 100.0f, pPlayer->pev->max_health);
 			}
-			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] Swap health and armor!\n");
+			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] +100 armor!\n");
 			break;
 		case INSTANT_PLUS_100_HEALTH:
 			for (int i = 1; i <= gpGlobals->maxClients; i++)
@@ -2231,16 +2226,6 @@ void CGameRules::AddInstantMutator(void)
 					pPlayer->pev->health = fmin(pPlayer->pev->health + 100.0f, pPlayer->pev->max_health);
 			}
 			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] +100 health!\n");
-			break;
-		case INSTANT_PLUS_100_ARMOR:
-			for (int i = 1; i <= gpGlobals->maxClients; i++)
-			{
-				CBaseEntity *pPlayer = UTIL_PlayerByIndex( i );
-				CBasePlayer *pl = (CBasePlayer *)pPlayer;
-				if (pPlayer && pPlayer->IsPlayer() && !pl->IsSpectator() && pl->IsAlive() && !pl->HasDisconnected)
-					pPlayer->pev->armorvalue = fmin(pPlayer->pev->armorvalue + 100.0f, pPlayer->pev->max_health);
-			}
-			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] +100 armor!\n");
 			break;
 		case INSTANT_1_HEALTH:
 			for (int i = 1; i <= gpGlobals->maxClients; i++)
@@ -2253,32 +2238,76 @@ void CGameRules::AddInstantMutator(void)
 			}
 			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] 1 health!\n");
 			break;
-		case INSTANT_NICE:
-			for (int i = 1; i <= gpGlobals->maxClients; i++)
+		case INSTANT_ACCEPT_ALL_COOKIES:
+			for (int i = 1; i <= gpGlobals->maxClients; ++i)
+			{
+				CBaseEntity *pPlayer = UTIL_PlayerByIndex( i );
+				CBasePlayer *pl = (CBasePlayer *)pPlayer;
+				if (pPlayer && pPlayer->IsPlayer() && !pl->IsSpectator() && !pl->IsObserver() && pl->IsAlive()
+					&& !pl->HasDisconnected && !FBitSet(pPlayer->pev->flags, FL_FAKECLIENT))
+				{
+					// A listen server host that disconnects shuts the match down for everyone.
+					const BOOL listenHost = !IS_DEDICATED_SERVER() && i == 1;
+					MESSAGE_BEGIN(MSG_ONE, gmsgCookies, NULL, pPlayer->edict());
+						WRITE_BYTE(listenHost ? 0 : 1);
+					MESSAGE_END();
+				}
+				else if (pPlayer && pPlayer->IsPlayer() && !pl->HasDisconnected && !FBitSet(pPlayer->pev->flags, FL_FAKECLIENT))
+				{
+					// The chicken shares the local sound channel and would cut off acceptall.wav, so only clients without the wall get it.
+					MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgPlayClientSound, NULL, pPlayer->edict());
+						WRITE_BYTE(CLIENT_SOUND_CHICKEN);
+					MESSAGE_END();
+				}
+			}
+			broadcastChicken = FALSE;
+			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] Accept All Cookies!\n");
+			break;
+		case INSTANT_ALL_GUNS:
+			InstantAllGuns();
+			break;
+		case INSTANT_BSOD:
+			for (int i = 1; i <= gpGlobals->maxClients; ++i)
+			{
+				CBaseEntity *pPlayer = UTIL_PlayerByIndex( i );
+				CBasePlayer *pl = (CBasePlayer *)pPlayer;
+				if (pPlayer && pPlayer->IsPlayer() && !pl->IsSpectator() && !pl->IsObserver() && pl->IsAlive()
+					&& !pl->HasDisconnected && !FBitSet(pPlayer->pev->flags, FL_FAKECLIENT))
+				{
+					MESSAGE_BEGIN(MSG_ONE, gmsgBSOD, NULL, pPlayer->edict());
+					MESSAGE_END();
+				}
+				else if (pPlayer && pPlayer->IsPlayer() && !pl->HasDisconnected && !FBitSet(pPlayer->pev->flags, FL_FAKECLIENT))
+				{
+					// The chicken shares the local sound channel and would cut off bsod.wav, so only non-BSOD clients get it.
+					MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgPlayClientSound, NULL, pPlayer->edict());
+						WRITE_BYTE(CLIENT_SOUND_CHICKEN);
+					MESSAGE_END();
+				}
+			}
+			broadcastChicken = FALSE;
+			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] Blue Screen of Death!\n");
+			break;
+		case INSTANT_BUTTERFINGERS:
+			InstantButterfingers();
+			break;
+		case INSTANT_DRY_FIRE:
+			InstantDryFire();
+			break;
+		case INSTANT_DUAL_WIELD:
+			InstantDualWield();
+			break;
+		case INSTANT_EXTRA_AMMO:
+			for (int i = 1; i <= gpGlobals->maxClients; ++i)
 			{
 				CBaseEntity *pPlayer = UTIL_PlayerByIndex( i );
 				CBasePlayer *pl = (CBasePlayer *)pPlayer;
 				if (pPlayer && pPlayer->IsPlayer() && !pl->IsSpectator() && pl->IsAlive() && !pl->HasDisconnected)
 				{
-					pPlayer->pev->health = 69;
-					pPlayer->pev->armorvalue = 69;
+					GiveCurrentWeaponAmmoBonus(pl);
 				}
 			}
-			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] Nice!\n");
-			break;
-		case INSTANT_SIX_SEVEN:
-			for (int i = 1; i <= gpGlobals->maxClients; i++)
-			{
-				CBaseEntity *pPlayer = UTIL_PlayerByIndex( i );
-				CBasePlayer *pl = (CBasePlayer *)pPlayer;
-				if (pPlayer && pPlayer->IsPlayer() && !pl->IsSpectator() && pl->IsAlive()
-					&& !pl->HasDisconnected && !FBitSet(pPlayer->pev->flags, FL_GODMODE))
-				{
-					pPlayer->pev->health = 67;
-					pPlayer->pev->armorvalue = 67;
-				}
-			}
-			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] Six, seeeeven!\n");
+			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] Extra Ammo!\n");
 			break;
 		case INSTANT_HOT_POTATO:
 			for (int i = 1; i <= gpGlobals->maxClients; ++i)
@@ -2302,44 +2331,10 @@ void CGameRules::AddInstantMutator(void)
 			}
 			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] Hot potato!\n");
 			break;
-		case INSTANT_RANDOM_DAMAGE:
-			for (int i = 1; i <= gpGlobals->maxClients; ++i)
-			{
-				CBaseEntity *pPlayer = UTIL_PlayerByIndex( i );
-				CBasePlayer *pl = (CBasePlayer *)pPlayer;
-				if (pPlayer && pPlayer->IsPlayer() && !pl->IsSpectator() && pl->IsAlive()
-					&& !pl->HasDisconnected && !FBitSet(pPlayer->pev->flags, FL_GODMODE))
-					pPlayer->TakeDamage(VARS(eoNullEntity), VARS(eoNullEntity), RANDOM_FLOAT(10.0f, 20.0f), DMG_SLASH);
-			}
-			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] Random damage!\n");
+		case INSTANT_HOTFINGERS:
+			InstantHotfingers();
 			break;
-		case INSTANT_TRIPMINE:
-			for (int i = 1; i <= gpGlobals->maxClients; ++i)
-			{
-				CBaseEntity *pPlayer = UTIL_PlayerByIndex( i );
-				CBasePlayer *pl = (CBasePlayer *)pPlayer;
-				if (pPlayer && pPlayer->IsPlayer() && !pl->IsSpectator() && pl->IsAlive() && !pl->HasDisconnected)
-				{
-					TraceResult tr;
-					UTIL_MakeVectors( pPlayer->pev->v_angle + pPlayer->pev->punchangle );
-					Vector org = pPlayer->pev->origin;
-					Vector dist = org + gpGlobals->v_forward * 64;
-					UTIL_TraceLine( dist, dist + Vector(0, 0, -128), dont_ignore_monsters, ENT( pPlayer->pev ), &tr );
-
-					if (tr.fAllSolid == 0 && tr.fStartSolid == 0 && tr.flFraction < 1.0)
-					{
-						CBaseEntity *pEntity = CBaseEntity::Instance( tr.pHit );
-						if (pEntity && !(pEntity->pev->flags & FL_CONVEYOR))
-						{
-							Vector angles = UTIL_VecToAngles( tr.vecPlaneNormal );
-							CBaseEntity::Create( "monster_tripmine", tr.vecEndPos + tr.vecPlaneNormal * 8, angles, pPlayer->edict() );
-						}
-					}
-				}
-			}
-			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] Tripmine!\n");
-			break;
-		case INSTANT_PET_SNARK:
+		case INSTANT_HUMAN_ASSASSIN:
 			for (int i = 1; i <= gpGlobals->maxClients; ++i)
 			{
 				CBaseEntity *pPlayer = UTIL_PlayerByIndex( i );
@@ -2350,6 +2345,7 @@ void CGameRules::AddInstantMutator(void)
 					Vector trace_origin;
 					vec3_t forward, right, up, vEntityForward = pPlayer->pev->v_angle;
 					vEntityForward[0] = 0;
+					vEntityForward[2] = 0;
 					g_engfuncs.pfnAngleVectors(vEntityForward, forward, right, up);
 					vEntityForward = forward;
 					g_engfuncs.pfnAngleVectors(pPlayer->pev->v_angle, forward, right, up);
@@ -2360,17 +2356,37 @@ void CGameRules::AddInstantMutator(void)
 			
 					Vector vTraceForward = (flAimDownFraction * vEntityForward) + (1 - flAimDownFraction) * forward;
 					// find place to toss monster
-					UTIL_TraceLine(trace_origin + vTraceForward * 24, trace_origin + forward * 60, dont_ignore_monsters, NULL, &tr);
-
-					if (tr.fAllSolid == 0 && tr.fStartSolid == 0 && tr.flFraction > 0.25)
+					UTIL_TraceLine(trace_origin + vTraceForward * 24, trace_origin + forward * 96, dont_ignore_monsters, NULL, &tr);
+					// UTIL_LogPrintf("tr.flFraction is %.2f, tr.fAllSolid is %d, tr.fStartSolid is %d\n", tr.flFraction, tr.fAllSolid, tr.fStartSolid);
+					if (tr.fAllSolid == 0 && tr.fStartSolid == 0 && tr.flFraction > 0.45)
 					{
-						CBaseEntity *pSqueak = CBaseEntity::Create( "monster_snark", tr.vecEndPos, pPlayer->pev->v_angle, pPlayer->edict() );
-						if (pSqueak)
-							pSqueak->pev->velocity = vTraceForward * 300 + pPlayer->pev->velocity;
+						CBaseEntity *pAssassin = CBaseEntity::Create( "monster_human_assassin", tr.vecEndPos, g_vecZero, pPlayer->edict() );
 					}
 				}
 			}
-			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] Pet Snark!\n");
+			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] Human assassin!\n");
+			break;
+		case INSTANT_MAX_AMMO:
+			InstantMaxAmmo();
+			break;
+		case INSTANT_NICE:
+			for (int i = 1; i <= gpGlobals->maxClients; i++)
+			{
+				CBaseEntity *pPlayer = UTIL_PlayerByIndex( i );
+				CBasePlayer *pl = (CBasePlayer *)pPlayer;
+				if (pPlayer && pPlayer->IsPlayer() && !pl->IsSpectator() && pl->IsAlive() && !pl->HasDisconnected)
+				{
+					pPlayer->pev->health = 69;
+					pPlayer->pev->armorvalue = 69;
+				}
+			}
+			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] Nice!\n");
+			break;
+		case INSTANT_NOTHING:
+			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] Nothing selected!\n");
+			break;
+		case INSTANT_PASS_IT_LEFT:
+			InstantPassItLeft();
 			break;
 		case INSTANT_PET_CHUMTOAD:
 			if (!g_pGameRules->MutatorAllowed("chumxplode"))
@@ -2408,7 +2424,7 @@ void CGameRules::AddInstantMutator(void)
 			}
 			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] Pet Chumtoad!\n");
 			break;
-		case INSTANT_HUMAN_ASSASSIN:
+		case INSTANT_PET_SNARK:
 			for (int i = 1; i <= gpGlobals->maxClients; ++i)
 			{
 				CBaseEntity *pPlayer = UTIL_PlayerByIndex( i );
@@ -2419,7 +2435,6 @@ void CGameRules::AddInstantMutator(void)
 					Vector trace_origin;
 					vec3_t forward, right, up, vEntityForward = pPlayer->pev->v_angle;
 					vEntityForward[0] = 0;
-					vEntityForward[2] = 0;
 					g_engfuncs.pfnAngleVectors(vEntityForward, forward, right, up);
 					vEntityForward = forward;
 					g_engfuncs.pfnAngleVectors(pPlayer->pev->v_angle, forward, right, up);
@@ -2430,86 +2445,31 @@ void CGameRules::AddInstantMutator(void)
 			
 					Vector vTraceForward = (flAimDownFraction * vEntityForward) + (1 - flAimDownFraction) * forward;
 					// find place to toss monster
-					UTIL_TraceLine(trace_origin + vTraceForward * 24, trace_origin + forward * 96, dont_ignore_monsters, NULL, &tr);
-					// UTIL_LogPrintf("tr.flFraction is %.2f, tr.fAllSolid is %d, tr.fStartSolid is %d\n", tr.flFraction, tr.fAllSolid, tr.fStartSolid);
-					if (tr.fAllSolid == 0 && tr.fStartSolid == 0 && tr.flFraction > 0.45)
+					UTIL_TraceLine(trace_origin + vTraceForward * 24, trace_origin + forward * 60, dont_ignore_monsters, NULL, &tr);
+
+					if (tr.fAllSolid == 0 && tr.fStartSolid == 0 && tr.flFraction > 0.25)
 					{
-						CBaseEntity *pAssassin = CBaseEntity::Create( "monster_human_assassin", tr.vecEndPos, g_vecZero, pPlayer->edict() );
+						CBaseEntity *pSqueak = CBaseEntity::Create( "monster_snark", tr.vecEndPos, pPlayer->pev->v_angle, pPlayer->edict() );
+						if (pSqueak)
+							pSqueak->pev->velocity = vTraceForward * 300 + pPlayer->pev->velocity;
 					}
 				}
 			}
-			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] Human assassin!\n");
+			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] Pet Snark!\n");
 			break;
-		case INSTANT_EXTRA_AMMO:
+		case INSTANT_RANDOM_DAMAGE:
 			for (int i = 1; i <= gpGlobals->maxClients; ++i)
 			{
 				CBaseEntity *pPlayer = UTIL_PlayerByIndex( i );
 				CBasePlayer *pl = (CBasePlayer *)pPlayer;
-				if (pPlayer && pPlayer->IsPlayer() && !pl->IsSpectator() && pl->IsAlive() && !pl->HasDisconnected)
-				{
-					GiveCurrentWeaponAmmoBonus(pl);
-				}
+				if (pPlayer && pPlayer->IsPlayer() && !pl->IsSpectator() && pl->IsAlive()
+					&& !pl->HasDisconnected && !FBitSet(pPlayer->pev->flags, FL_GODMODE))
+					pPlayer->TakeDamage(VARS(eoNullEntity), VARS(eoNullEntity), RANDOM_FLOAT(10.0f, 20.0f), DMG_SLASH);
 			}
-			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] Extra Ammo!\n");
+			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] Random damage!\n");
 			break;
-		case INSTANT_ACCEPT_ALL_COOKIES:
-			for (int i = 1; i <= gpGlobals->maxClients; ++i)
-			{
-				CBaseEntity *pPlayer = UTIL_PlayerByIndex( i );
-				CBasePlayer *pl = (CBasePlayer *)pPlayer;
-				if (pPlayer && pPlayer->IsPlayer() && !pl->IsSpectator() && !pl->IsObserver() && pl->IsAlive()
-					&& !pl->HasDisconnected && !FBitSet(pPlayer->pev->flags, FL_FAKECLIENT))
-				{
-					// A listen server host that disconnects shuts the match down for everyone.
-					const BOOL listenHost = !IS_DEDICATED_SERVER() && i == 1;
-					MESSAGE_BEGIN(MSG_ONE, gmsgCookies, NULL, pPlayer->edict());
-						WRITE_BYTE(listenHost ? 0 : 1);
-					MESSAGE_END();
-				}
-				else if (pPlayer && pPlayer->IsPlayer() && !pl->HasDisconnected && !FBitSet(pPlayer->pev->flags, FL_FAKECLIENT))
-				{
-					// The chicken shares the local sound channel and would cut off acceptall.wav, so only clients without the wall get it.
-					MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgPlayClientSound, NULL, pPlayer->edict());
-						WRITE_BYTE(CLIENT_SOUND_CHICKEN);
-					MESSAGE_END();
-				}
-			}
-			broadcastChicken = FALSE;
-			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] Accept All Cookies!\n");
-			break;
-		case INSTANT_BSOD:
-			for (int i = 1; i <= gpGlobals->maxClients; ++i)
-			{
-				CBaseEntity *pPlayer = UTIL_PlayerByIndex( i );
-				CBasePlayer *pl = (CBasePlayer *)pPlayer;
-				if (pPlayer && pPlayer->IsPlayer() && !pl->IsSpectator() && !pl->IsObserver() && pl->IsAlive()
-					&& !pl->HasDisconnected && !FBitSet(pPlayer->pev->flags, FL_FAKECLIENT))
-				{
-					MESSAGE_BEGIN(MSG_ONE, gmsgBSOD, NULL, pPlayer->edict());
-					MESSAGE_END();
-				}
-				else if (pPlayer && pPlayer->IsPlayer() && !pl->HasDisconnected && !FBitSet(pPlayer->pev->flags, FL_FAKECLIENT))
-				{
-					// The chicken shares the local sound channel and would cut off bsod.wav, so only non-BSOD clients get it.
-					MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgPlayClientSound, NULL, pPlayer->edict());
-						WRITE_BYTE(CLIENT_SOUND_CHICKEN);
-					MESSAGE_END();
-				}
-			}
-			broadcastChicken = FALSE;
-			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] Blue Screen of Death!\n");
-			break;
-		case INSTANT_REMOVE_FUNC:
-			RemoveRandomFuncClass();
-			break;
-		case INSTANT_UNARM:
-			InstantUnarm();
-			break;
-		case INSTANT_RANDOM_WEAPON:
-			InstantRandomWeapon();
-			break;
-		case INSTANT_ALL_GUNS:
-			InstantAllGuns();
+		case INSTANT_RANDOM_AMMO:
+			InstantRandomAmmo();
 			break;
 		case INSTANT_RANDOM_ITEM:
 			InstantRandomItem();
@@ -2517,11 +2477,14 @@ void CGameRules::AddInstantMutator(void)
 		case INSTANT_RANDOM_RUNE:
 			InstantRandomRune();
 			break;
-		case INSTANT_BUTTERFINGERS:
-			InstantButterfingers();
+		case INSTANT_RANDOM_WEAPON:
+			InstantRandomWeapon();
 			break;
-		case INSTANT_DUAL_WIELD:
-			InstantDualWield();
+		case INSTANT_REMOVE_FUNC:
+			RemoveRandomFuncClass();
+			break;
+		case INSTANT_ROBIN_HOOD:
+			InstantRobinHood();
 			break;
 		case INSTANT_ROULETTE:
 			InstantRoulette();
@@ -2529,26 +2492,75 @@ void CGameRules::AddInstantMutator(void)
 		case INSTANT_RUNE_BURST:
 			InstantRuneBurst();
 			break;
-		case INSTANT_ROBIN_HOOD:
-			InstantRobinHood();
-			break;
-		case INSTANT_RANDOM_AMMO:
-			InstantRandomAmmo();
-			break;
-		case INSTANT_HOTFINGERS:
-			InstantHotfingers();
-			break;
-		case INSTANT_MAX_AMMO:
-			InstantMaxAmmo();
-			break;
-		case INSTANT_DRY_FIRE:
-			InstantDryFire();
-			break;
-		case INSTANT_PASS_IT_LEFT:
-			InstantPassItLeft();
-			break;
 		case INSTANT_RUNE_SHUFFLE:
 			InstantRuneShuffle();
+			break;
+		case INSTANT_SIX_SEVEN:
+			for (int i = 1; i <= gpGlobals->maxClients; i++)
+			{
+				CBaseEntity *pPlayer = UTIL_PlayerByIndex( i );
+				CBasePlayer *pl = (CBasePlayer *)pPlayer;
+				if (pPlayer && pPlayer->IsPlayer() && !pl->IsSpectator() && pl->IsAlive()
+					&& !pl->HasDisconnected && !FBitSet(pPlayer->pev->flags, FL_GODMODE))
+				{
+					pPlayer->pev->health = 67;
+					pPlayer->pev->armorvalue = 67;
+				}
+			}
+			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] Six, seeeeven!\n");
+			break;
+		case INSTANT_SWAP_HEALTH_ARMOR:
+			for (int i = 1; i <= gpGlobals->maxClients; i++)
+			{
+				CBaseEntity *pPlayer = UTIL_PlayerByIndex( i );
+				CBasePlayer *pl = (CBasePlayer *)pPlayer;
+				if (pPlayer && pPlayer->IsPlayer() && !pl->IsSpectator() && pl->IsAlive()
+					&& !pl->HasDisconnected && !FBitSet(pPlayer->pev->flags, FL_GODMODE))
+				{
+					if (pPlayer->pev->armorvalue <= 0)
+					{
+					int temp = pPlayer->pev->health;
+					pPlayer->pev->health = 1;
+					pPlayer->pev->armorvalue = temp;
+					}
+					else
+					{
+						int temp = pPlayer->pev->health;
+						pPlayer->pev->health = pPlayer->pev->armorvalue;
+						pPlayer->pev->armorvalue = temp;
+					}
+				}
+			}
+			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] Swap health and armor!\n");
+			break;
+		case INSTANT_TRIPMINE:
+			for (int i = 1; i <= gpGlobals->maxClients; ++i)
+			{
+				CBaseEntity *pPlayer = UTIL_PlayerByIndex( i );
+				CBasePlayer *pl = (CBasePlayer *)pPlayer;
+				if (pPlayer && pPlayer->IsPlayer() && !pl->IsSpectator() && pl->IsAlive() && !pl->HasDisconnected)
+				{
+					TraceResult tr;
+					UTIL_MakeVectors( pPlayer->pev->v_angle + pPlayer->pev->punchangle );
+					Vector org = pPlayer->pev->origin;
+					Vector dist = org + gpGlobals->v_forward * 64;
+					UTIL_TraceLine( dist, dist + Vector(0, 0, -128), dont_ignore_monsters, ENT( pPlayer->pev ), &tr );
+
+					if (tr.fAllSolid == 0 && tr.fStartSolid == 0 && tr.flFraction < 1.0)
+					{
+						CBaseEntity *pEntity = CBaseEntity::Instance( tr.pHit );
+						if (pEntity && !(pEntity->pev->flags & FL_CONVEYOR))
+						{
+							Vector angles = UTIL_VecToAngles( tr.vecPlaneNormal );
+							CBaseEntity::Create( "monster_tripmine", tr.vecEndPos + tr.vecPlaneNormal * 8, angles, pPlayer->edict() );
+						}
+					}
+				}
+			}
+			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] Tripmine!\n");
+			break;
+		case INSTANT_UNARM:
+			InstantUnarm();
 			break;
 	}
 
@@ -2559,12 +2571,15 @@ void CGameRules::AddInstantMutator(void)
 		MESSAGE_END();
 	}
 
-	// Continue chaos timer bar
-	int mutatorTime = fmin(fmax(mutatortime.value, 10), 120);
-	float choasIncrement = mutatorTime;
-	MESSAGE_BEGIN(MSG_ALL, gmsgChaos);
-		WRITE_BYTE(choasIncrement);
-	MESSAGE_END();
+	// Continue chaos timer bar; an operator-invoked instant does not move the cadence, so it leaves the bar alone.
+	if (!forced)
+	{
+		int mutatorTime = fmin(fmax(mutatortime.value, 10), 120);
+		float choasIncrement = mutatorTime;
+		MESSAGE_BEGIN(MSG_ALL, gmsgChaos);
+			WRITE_BYTE(choasIncrement);
+		MESSAGE_END();
+	}
 }
 
 // exploder mutator tuning
@@ -2813,6 +2828,20 @@ void CGameRules::MutatorsThink(void)
 			}
 
 			CVAR_SET_STRING("sv_addmutator", "");
+		}
+
+		if (strlen(addinstantmutator.string))
+		{
+			char *indexEnd = NULL;
+			const long instantIndex = strtol(addinstantmutator.string, &indexEnd, 10);
+			const BOOL isIndex = (indexEnd != addinstantmutator.string && *indexEnd == '\0');
+
+			if (isIndex && instantIndex >= 0 && instantIndex < INSTANT_MUTATOR_COUNT)
+				AddInstantMutator((int)instantIndex);
+			else if (!isIndex || instantIndex != -1) // -1 is "none" in the server settings dialog
+				ALERT(at_console, "Instant mutator \"%s\" is unknown, use an index from 0 to %d.\n", addinstantmutator.string, INSTANT_MUTATOR_COUNT - 1);
+
+			CVAR_SET_STRING("sv_addinstantmutator", "");
 		}
 
 		// remove old

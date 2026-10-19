@@ -22,7 +22,7 @@ These instructions guide Copilot reviews for C/C++ changes under this source tre
 3. ABI and interface stability
 - Highlight changes to shared structs, serialization/network payloads, exported interfaces, and virtual class layouts.
 - Flag any ordering/packing changes that can break compatibility.
-- Exception: renumbering `MUTATOR_*` IDs in `common/const.h` to keep them alphabetical is intended (see item 6).
+- Exception: renumbering `MUTATOR_*` IDs in `common/const.h` and `INSTANT_*` values in `dlls/gamerules.cpp` to keep them alphabetical is intended (see item 6).
 
 4. C++ correctness and safety
 - Prioritize null safety, bounds checks, lifetime ownership, initialization order, and error handling.
@@ -40,6 +40,7 @@ These instructions guide Copilot reviews for C/C++ changes under this source tre
 - A new mutator (full `MUTATOR_*` or instant `INSTANT_*`) must come with a review of every game mode's filter: `CHalfLifeMultiplay::MutatorAllowed` (base), `CHalfLifeRules::MutatorAllowed` (single player) and each `*_gamerules.cpp` override. Modes without an override inherit the base.
 - Blocks follow `if (strstr(mutator, g_szMutators[MUTATOR_X - 1]) || atoi(mutator) == MUTATOR_X) return FALSE;` placed before the base-class chain. `strstr` also matches longer names that contain the blocked one.
 - Instants have no `MutatorAllowed` path; mode restrictions must be gates inside the instant itself.
+- Instant indices (`instant_mutator_e` in `dlls/gamerules.cpp`, used by `sv_addinstantmutator <index>`) are also renumbered on purpose: they follow the alphabetical (ASCII) order of the name in the trailing comment on each enum line, so a new instant is inserted at its alphabetical place and every later value shifts by one. Do not ask to append it at the end; flag an entry that is out of order or missing its name comment, or a `case` in the `AddInstantMutator` switch that is not in enum order. The index lists in `server_commands.txt`, `settings.scr`, `readme.txt` and the docs live in the parent `workspace/` repo.
 - Flag a new mutator with no recorded review ("Mode filters" line in `workspace/ai/mutator_system.md`).
 
 ## Validation Expectations

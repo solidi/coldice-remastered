@@ -94,6 +94,7 @@ cvar_t	ctfdistance = {"mp_ctfdistance","512", FCVAR_SERVER };
 cvar_t	ktsspawn1 = {"mp_ktsspawn1","info_player_deathmatch", FCVAR_SERVER };
 cvar_t	ktsspawn2 = {"mp_ktsspawn2","info_player_deathmatch", FCVAR_SERVER };
 cvar_t	addmutator = {"sv_addmutator","", FCVAR_SERVER | FCVAR_UNLOGGED };
+cvar_t	addinstantmutator = {"sv_addinstantmutator","", FCVAR_SERVER | FCVAR_UNLOGGED };
 cvar_t	instantmutators = {"sv_instantmutators","0", FCVAR_SERVER | FCVAR_UNLOGGED };
 cvar_t	mutatorlist = {"sv_mutatorlist","", FCVAR_SERVER | FCVAR_UNLOGGED };
 cvar_t	mutatorcount = {"sv_mutatorcount","3", FCVAR_SERVER };
@@ -773,6 +774,7 @@ void GameDLLInit( void )
 	CVAR_REGISTER(&ktsspawn1);
 	CVAR_REGISTER(&ktsspawn2);
 	CVAR_REGISTER(&addmutator);
+	CVAR_REGISTER(&addinstantmutator);
 	CVAR_REGISTER(&instantmutators);
 	CVAR_REGISTER(&mutatorcount);
 	CVAR_REGISTER(&mutatorlist);

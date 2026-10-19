@@ -193,7 +193,7 @@ public:
 	virtual void GiveMutators( CBasePlayer *pPlayer );
 	virtual BOOL MutatorEnabled(int mutatorId);
 	virtual mutators_t *GetMutators( void );
-	virtual void AddInstantMutator( void );
+	virtual void AddInstantMutator( int index = -1 );
 	virtual void AddRandomMutator( const char *cvarName, BOOL withBar=FALSE, BOOL perm=FALSE );
 	virtual void MutatorsThink( void );
 	virtual BOOL CheckNelliaChoiceDangerKey( CBasePlayer *pPlayer );
