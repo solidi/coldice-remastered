@@ -2204,6 +2204,55 @@ static void InstantVolley(const char *projectile, const char *weapon, const char
 	UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] %s!\n", name);
 }
 
+#define MINEPARTY_DROP_RANGE	256.0f
+
+static BOOL CanJoinMineParty(CBasePlayer *pl, BOOL bNuclear)
+{
+	// Modes that refuse the nuke (Chilldemic, Horde, JvS, Shidden) refuse its global kill too.
+	return IsInstantTarget(pl) && !FBitSet(pl->pev->flags, FL_FROZEN)
+		&& g_pGameRules->CanHaveNamedItem(pl, "weapon_tripmine")
+		&& (!bNuclear || g_pGameRules->CanHaveNamedItem(pl, "weapon_nuke"));
+}
+
+// Drops a party proxmine (armed after 2.5 s) on the floor under every eligible player, owned by that player.
+static void InstantMineParty(BOOL bNuclear, BOOL bDrug, const char *name)
+{
+	BOOL allowed = FALSE;
+	if (InstantWeaponsAllowed())
+	{
+		for (int i = 1; i <= gpGlobals->maxClients && !allowed; i++)
+			allowed = CanJoinMineParty((CBasePlayer *)UTIL_PlayerByIndex(i), bNuclear);
+	}
+
+	if (!allowed)
+	{
+		UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] %s: nothing allowed here!\n", name);
+		return;
+	}
+
+	for (int i = 1; i <= gpGlobals->maxClients; i++)
+	{
+		CBasePlayer *pl = (CBasePlayer *)UTIL_PlayerByIndex(i);
+		if (!CanJoinMineParty(pl, bNuclear))
+			continue;
+
+		TraceResult tr;
+		UTIL_TraceLine(pl->pev->origin, pl->pev->origin - Vector(0, 0, MINEPARTY_DROP_RANGE), ignore_monsters, pl->edict(), &tr);
+		if (tr.fStartSolid || tr.flFraction >= 1.0f || tr.vecPlaneNormal.z < 0.7f)
+			continue;
+
+		// Same mount rules as a player-placed proxmine.
+		CBaseEntity *pFloor = CBaseEntity::Instance(tr.pHit);
+		if (!pFloor || FBitSet(pFloor->pev->flags, FL_CONVEYOR)
+			|| (pFloor->pev->movetype != MOVETYPE_NONE && pFloor->pev->movetype != MOVETYPE_PUSH))
+			continue;
+
+		DeployProxMineAt(pl, tr.vecEndPos + tr.vecPlaneNormal * 8, tr.vecPlaneNormal, bNuclear, bDrug, TRUE);
+	}
+
+	UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] %s! Run!\n", name);
+}
+
 // Operators type these values into sv_addinstantmutator. Keep them in ASCII order of the trailing names
 // (the names in server_commands.txt); a new instant goes in its alphabetical place and every later value shifts.
 enum instant_mutator_e
@@ -2216,35 +2265,38 @@ enum instant_mutator_e
 	INSTANT_ALL_GUNS = 5,				// allguns
 	INSTANT_BSOD = 6,					// bsod
 	INSTANT_BUTTERFINGERS = 7,			// butterfingers
-	INSTANT_DRY_FIRE = 8,				// dryfire
-	INSTANT_DUAL_WIELD = 9,				// dualwield
-	INSTANT_EXTRA_AMMO = 10,			// extra ammo
-	INSTANT_HOT_POTATO = 11,			// hot potato
-	INSTANT_HOTFINGERS = 12,			// hotfingers
-	INSTANT_HUMAN_ASSASSIN = 13,		// human assassin
-	INSTANT_KNIFE_VOLLEY = 14,			// knifevolley
-	INSTANT_MAX_AMMO = 15,				// maxammo
-	INSTANT_NICE = 16,					// nice
-	INSTANT_NOTHING = 17,				// nothing
-	INSTANT_PASS_IT_LEFT = 18,			// passitleft
-	INSTANT_PET_CHUMTOAD = 19,			// pet chumtoad
-	INSTANT_PET_SNARK = 20,				// pet snark
-	INSTANT_PIPE_VOLLEY = 21,			// pipevolley
-	INSTANT_RANDOM_DAMAGE = 22,			// random damage
-	INSTANT_RANDOM_AMMO = 23,			// randomammo
-	INSTANT_RANDOM_ITEM = 24,			// randomitem
-	INSTANT_RANDOM_RUNE = 25,			// randomrune
-	INSTANT_RANDOM_WEAPON = 26,			// randomweapon
-	INSTANT_REMOVE_FUNC = 27,			// remove func_*
-	INSTANT_ROBIN_HOOD = 28,			// robinhood
-	INSTANT_ROULETTE = 29,				// roulette
-	INSTANT_RUNE_BURST = 30,			// runeburst
-	INSTANT_RUNE_SHUFFLE = 31,			// runeshuffle
-	INSTANT_SIX_SEVEN = 32,				// six seven
-	INSTANT_SWAP_HEALTH_ARMOR = 33,		// swap health and armor
-	INSTANT_TRIPMINE = 34,				// tripmine
-	INSTANT_UNARM = 35,					// unarm
-	INSTANT_WRENCH_VOLLEY = 36,			// wrenchvolley
+	INSTANT_DRUG_PARTY = 8,				// drugparty
+	INSTANT_DRY_FIRE = 9,				// dryfire
+	INSTANT_DUAL_WIELD = 10,			// dualwield
+	INSTANT_EXTRA_AMMO = 11,			// extra ammo
+	INSTANT_HOT_POTATO = 12,			// hot potato
+	INSTANT_HOTFINGERS = 13,			// hotfingers
+	INSTANT_HUMAN_ASSASSIN = 14,		// human assassin
+	INSTANT_KNIFE_VOLLEY = 15,			// knifevolley
+	INSTANT_MAX_AMMO = 16,				// maxammo
+	INSTANT_NICE = 17,					// nice
+	INSTANT_NOTHING = 18,				// nothing
+	INSTANT_NUKE_PARTY = 19,			// nukeparty
+	INSTANT_PASS_IT_LEFT = 20,			// passitleft
+	INSTANT_PET_CHUMTOAD = 21,			// pet chumtoad
+	INSTANT_PET_SNARK = 22,				// pet snark
+	INSTANT_PIPE_VOLLEY = 23,			// pipevolley
+	INSTANT_PROX_PARTY = 24,			// proxparty
+	INSTANT_RANDOM_DAMAGE = 25,			// random damage
+	INSTANT_RANDOM_AMMO = 26,			// randomammo
+	INSTANT_RANDOM_ITEM = 27,			// randomitem
+	INSTANT_RANDOM_RUNE = 28,			// randomrune
+	INSTANT_RANDOM_WEAPON = 29,			// randomweapon
+	INSTANT_REMOVE_FUNC = 30,			// remove func_*
+	INSTANT_ROBIN_HOOD = 31,			// robinhood
+	INSTANT_ROULETTE = 32,				// roulette
+	INSTANT_RUNE_BURST = 33,			// runeburst
+	INSTANT_RUNE_SHUFFLE = 34,			// runeshuffle
+	INSTANT_SIX_SEVEN = 35,				// six seven
+	INSTANT_SWAP_HEALTH_ARMOR = 36,		// swap health and armor
+	INSTANT_TRIPMINE = 37,				// tripmine
+	INSTANT_UNARM = 38,					// unarm
+	INSTANT_WRENCH_VOLLEY = 39,			// wrenchvolley
 	INSTANT_MUTATOR_COUNT
 };
 
@@ -2364,6 +2416,9 @@ void CGameRules::AddInstantMutator(int index)
 		case INSTANT_BUTTERFINGERS:
 			InstantButterfingers();
 			break;
+		case INSTANT_DRUG_PARTY:
+			InstantMineParty(FALSE, TRUE, "Drug Party");
+			break;
 		case INSTANT_DRY_FIRE:
 			InstantDryFire();
 			break;
@@ -2461,6 +2516,9 @@ void CGameRules::AddInstantMutator(int index)
 		case INSTANT_NOTHING:
 			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] Nothing selected!\n");
 			break;
+		case INSTANT_NUKE_PARTY:
+			InstantMineParty(TRUE, FALSE, "Nuke Party");
+			break;
 		case INSTANT_PASS_IT_LEFT:
 			InstantPassItLeft();
 			break;
@@ -2535,6 +2593,9 @@ void CGameRules::AddInstantMutator(int index)
 			break;
 		case INSTANT_PIPE_VOLLEY:
 			InstantVolley("flying_crowbar", "weapon_crowbar", "weapons/cbar_miss1.wav", "Pipe Volley");
+			break;
+		case INSTANT_PROX_PARTY:
+			InstantMineParty(FALSE, FALSE, "Prox Party");
 			break;
 		case INSTANT_RANDOM_DAMAGE:
 			for (int i = 1; i <= gpGlobals->maxClients; ++i)

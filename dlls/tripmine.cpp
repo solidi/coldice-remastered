@@ -532,6 +532,7 @@ void CTripmine::WeaponIdle( void )
 #define PROXMINE_DRUG_DURATION	1.5f
 #define PROXMINE_DRUG_TICK_INTERVAL	0.25f
 #define PROXMINE_DRUG_TICK_DAMAGE	6.0f
+#define PROXMINE_PARTY_LIFETIME	10.0f	// a party mine that nobody set off is removed this long after arming
 
 LINK_ENTITY_TO_CLASS( monster_proxmine, CProxMine );
 
@@ -553,6 +554,7 @@ TYPEDESCRIPTION	CProxMine::m_SaveData[] =
 	DEFINE_FIELD( CProxMine, m_flScanNext, FIELD_TIME ),
 	DEFINE_FIELD( CProxMine, m_flDrugCloudEnd, FIELD_TIME ),
 	DEFINE_FIELD( CProxMine, m_flDrugNextTick, FIELD_TIME ),
+	DEFINE_FIELD( CProxMine, m_flPartyEnd, FIELD_TIME ),
 };
 
 IMPLEMENT_SAVERESTORE( CProxMine, CGrenade );
@@ -592,6 +594,7 @@ void CProxMine::Spawn( void )
 	m_flScanNext = 0;
 	m_flDrugCloudEnd = 0;
 	m_flDrugNextTick = 0;
+	m_flPartyEnd = 0;
 	m_pIndicator = NULL;
 
 	SetThink( &CProxMine::PowerupThink );
@@ -685,7 +688,9 @@ void CProxMine::PowerupThink( void )
 		// find the surface we're sitting on
 		edict_t *oldowner = pev->owner;
 		pev->owner = NULL;
-		UTIL_TraceLine( pev->origin + m_vecDir * 8, pev->origin - m_vecDir * 32, dont_ignore_monsters, ENT(pev), &tr );
+		// A party mine lies under its placer's feet, so players must not count as the surface.
+		const IGNORE_MONSTERS surfaceTrace = FBitSet( pev->spawnflags, SF_PROXMINE_PARTY ) ? ignore_monsters : dont_ignore_monsters;
+		UTIL_TraceLine( pev->origin + m_vecDir * 8, pev->origin - m_vecDir * 32, surfaceTrace, ENT(pev), &tr );
 		if (tr.fStartSolid || (oldowner && tr.pHit == oldowner))
 		{
 			pev->owner = oldowner;
@@ -703,7 +708,7 @@ void CProxMine::PowerupThink( void )
 		else
 		{
 			TraceResult trReverse;
-			UTIL_TraceLine( pev->origin - m_vecDir * 8, pev->origin + m_vecDir * 32, dont_ignore_monsters, ENT(pev), &trReverse );
+			UTIL_TraceLine( pev->origin - m_vecDir * 8, pev->origin + m_vecDir * 32, surfaceTrace, ENT(pev), &trReverse );
 			if (trReverse.flFraction < 1.0)
 			{
 				pev->owner = trReverse.pHit;
@@ -743,6 +748,9 @@ void CProxMine::PowerupThink( void )
 
 		MakeIndicator();
 
+		if ( FBitSet( pev->spawnflags, SF_PROXMINE_PARTY ) )
+			m_flPartyEnd = gpGlobals->time + PROXMINE_PARTY_LIFETIME;
+
 		m_flScanNext = gpGlobals->time;
 		m_flBlinkNext = gpGlobals->time;
 		SetThink( &CProxMine::ProxThink );
@@ -756,6 +764,7 @@ void CProxMine::ProxThink( void )
 {
 	const BOOL bNuclear = FBitSet( pev->spawnflags, SF_PROXMINE_NUCLEAR );
 	const BOOL bDrug = FBitSet( pev->spawnflags, SF_PROXMINE_DRUG );
+	const BOOL bParty = FBitSet( pev->spawnflags, SF_PROXMINE_PARTY );
 	const float flDetectRadius = bNuclear ? PROXMINE_NUCLEAR_DETECT_RADIUS : (bDrug ? PROXMINE_DRUG_DETECT_RADIUS : PROXMINE_DETECT_RADIUS);
 
 	// host moved? disarm.
@@ -764,6 +773,14 @@ void CProxMine::ProxThink( void )
 		pev->owner = m_pRealOwner;
 		pev->health = 0;
 		Killed( VARS( pev->owner ), GIB_NORMAL );
+		return;
+	}
+
+	if (bParty && gpGlobals->time >= m_flPartyEnd)
+	{
+		KillIndicator();
+		UTIL_Sparks( pev->origin );
+		UTIL_Remove( this );
 		return;
 	}
 
@@ -795,12 +812,15 @@ void CProxMine::ProxThink( void )
 			if (!pTarget->IsPlayer() && !(pTarget->pev->flags & FL_MONSTER))
 				continue;
 
-			// ignore the placer and their teammates
+			// ignore the placer (a party mine catches them too) and their teammates
 			if (m_pRealOwner)
 			{
 				if (pTarget->edict() == m_pRealOwner)
-					continue;
-				if (!bNuclear && pTarget->IsPlayer() && g_pGameRules)
+				{
+					if (!bParty)
+						continue;
+				}
+				else if (!bNuclear && pTarget->IsPlayer() && g_pGameRules)
 				{
 					CBaseEntity *pOwnerEnt = CBaseEntity::Instance( m_pRealOwner );
 					if (pOwnerEnt && g_pGameRules->PlayerRelationship( pTarget, pOwnerEnt ) == GR_TEAMMATE)
@@ -842,7 +862,12 @@ void CProxMine::Killed( entvars_t *pevAttacker, int iGib )
 {
 	pev->takedamage = DAMAGE_NO;
 
-	if (pevAttacker && (pevAttacker->flags & FL_CLIENT))
+	// A party mine keeps crediting the player it was dropped on, whoever sets it off.
+	if (FBitSet( pev->spawnflags, SF_PROXMINE_PARTY ) && m_pRealOwner)
+	{
+		pev->owner = m_pRealOwner;
+	}
+	else if (pevAttacker && (pevAttacker->flags & FL_CLIENT))
 	{
 		pev->owner = ENT( pevAttacker );
 	}
@@ -946,6 +971,7 @@ void CProxMine::DelayDeathThink( void )
 		edict_t *pEdict = g_engfuncs.pfnPEntityOfEntIndex( 1 );
 		CBaseEntity *pEntity;
 		extern entvars_t *g_pevLastInflictor;
+		const BOOL bParty = FBitSet( pev->spawnflags, SF_PROXMINE_PARTY );
 
 		for ( int i = 1; i < gpGlobals->maxEntities; i++, pEdict++ )
 		{
@@ -955,7 +981,9 @@ void CProxMine::DelayDeathThink( void )
 			if (!(pEdict->v.flags & (FL_CLIENT | FL_MONSTER)))
 				continue;
 
-			if (m_pRealOwner && pEdict == m_pRealOwner)
+			// A party mine catches its own placer too.
+			const BOOL bPlacer = m_pRealOwner && pEdict == m_pRealOwner;
+			if (bPlacer && !bParty)
 				continue;
 
 			pEntity = CBaseEntity::Instance( pEdict );
@@ -969,7 +997,7 @@ void CProxMine::DelayDeathThink( void )
 			if (FBitSet( pEntity->pev->flags, FL_GODMODE ) || pEntity->pev->iuser1)
 				continue;
 
-			if (g_pGameRules && m_pRealOwner)
+			if (!bPlacer && g_pGameRules && m_pRealOwner)
 			{
 				CBaseEntity *pOwnerEnt = CBaseEntity::Instance( m_pRealOwner );
 				if (pOwnerEnt && g_pGameRules->PlayerRelationship( pOwnerEnt, pEntity ) != GR_NOTTEAMMATE)
@@ -1085,8 +1113,11 @@ void CProxMine::DrugCloudThink( void )
 			if (m_pRealOwner)
 			{
 				if (pTarget->edict() == m_pRealOwner)
-					continue;
-				if (pTarget->IsPlayer() && g_pGameRules)
+				{
+					if (!FBitSet( pev->spawnflags, SF_PROXMINE_PARTY ))
+						continue;
+				}
+				else if (pTarget->IsPlayer() && g_pGameRules)
 				{
 					CBaseEntity *pOwnerEnt = CBaseEntity::Instance( m_pRealOwner );
 					if (pOwnerEnt && g_pGameRules->PlayerRelationship( pTarget, pOwnerEnt ) == GR_TEAMMATE)
@@ -1123,7 +1154,7 @@ void CProxMine::DrugCloudThink( void )
 //    it from angles.
 //=========================================================
 #ifndef CLIENT_DLL
-BOOL DeployProxMineAt( CBasePlayer *pPlayer, const Vector &vecOrigin, const Vector &vecSurfaceNormal, BOOL bNuclear, BOOL bDrug )
+BOOL DeployProxMineAt( CBasePlayer *pPlayer, const Vector &vecOrigin, const Vector &vecSurfaceNormal, BOOL bNuclear, BOOL bDrug, BOOL bParty )
 {
 	if (!pPlayer)
 		return FALSE;
@@ -1151,6 +1182,8 @@ BOOL DeployProxMineAt( CBasePlayer *pPlayer, const Vector &vecOrigin, const Vect
 		pevMine->spawnflags |= SF_PROXMINE_NUCLEAR;
 	if (bDrug)
 		pevMine->spawnflags |= SF_PROXMINE_DRUG;
+	if (bParty)
+		pevMine->spawnflags |= SF_PROXMINE_PARTY;
 
 	DispatchSpawn( pent );
 	return TRUE;

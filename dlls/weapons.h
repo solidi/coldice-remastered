@@ -25,7 +25,7 @@ void DeactivateItems( CBasePlayer *pOwner, const char *item );
 void DeactivatePortals( CBasePlayer *pOwner );
 void DeactivateDecoys( CBasePlayer *pOwner );
 BOOL DeployProxMine( CBasePlayer *pPlayer, BOOL bNuclear = FALSE, BOOL bDrug = FALSE );
-BOOL DeployProxMineAt( CBasePlayer *pPlayer, const Vector &vecOrigin, const Vector &vecSurfaceNormal, BOOL bNuclear = FALSE, BOOL bDrug = FALSE );
+BOOL DeployProxMineAt( CBasePlayer *pPlayer, const Vector &vecOrigin, const Vector &vecSurfaceNormal, BOOL bNuclear = FALSE, BOOL bDrug = FALSE, BOOL bParty = FALSE );
 
 // Contact Grenade / Timed grenade / Satchel Charge
 class CGrenade : public CBaseMonster
@@ -76,6 +76,8 @@ public:
 #define SF_SATCHEL_DRUG_PACKAGE            0x0040
 #define SF_PROXMINE_DRUG                   0x0080
 #define SF_SATCHEL_PROX_PACKAGE            0x0100
+// Dropped by a party instant mutator: also triggers on and hits its placer, keeps the placer's frag credit, expires.
+#define SF_PROXMINE_PARTY                  0x0400
 
 
 // constant items
@@ -1377,6 +1379,7 @@ private:
 	float		m_flScanNext;
 	float		m_flDrugCloudEnd;
 	float		m_flDrugNextTick;
+	float		m_flPartyEnd;
 };
 
 class CTripmineGrenade : public CGrenade
