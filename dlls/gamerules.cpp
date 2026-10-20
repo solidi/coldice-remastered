@@ -44,6 +44,7 @@
 #include	"coldspot_gamerules.h"
 #include	"shake.h"
 #include	"in_buttons.h"
+#include	"func_break.h"
 
 extern edict_t *EntSelectSpawnPoint( CBaseEntity *pPlayer );
 
@@ -2253,6 +2254,94 @@ static void InstantMineParty(BOOL bNuclear, BOOL bDrug, const char *name)
 	UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] %s! Run!\n", name);
 }
 
+#define KABOOM_MAGNITUDE	100		// hand-grenade sized; RadiusDamage reaches magnitude * 2.5
+
+// Edict-free stand-in for env_explosion: one blast per breakable would otherwise spawn an explosion plus up to three spark showers each.
+static void KaboomBlast(CBaseEntity *pBreakable, const Vector &vecCenter)
+{
+	MESSAGE_BEGIN(MSG_PAS, SVC_TEMPENTITY, vecCenter);
+		WRITE_BYTE(TE_EXPLOSION);
+		WRITE_COORD(vecCenter.x);
+		WRITE_COORD(vecCenter.y);
+		WRITE_COORD(vecCenter.z);
+		WRITE_SHORT(icesprites.value ? g_sModelIndexIceFireball : g_sModelIndexFireball);
+		WRITE_BYTE(30);	// scale * 10, what env_explosion uses for this magnitude
+		WRITE_BYTE(15);	// framerate
+		WRITE_BYTE(TE_EXPLFLAG_NONE);
+	MESSAGE_END();
+
+	// The breakable is the inflictor so the trace skips it; like env_explosion, deaths count as world kills.
+	::RadiusDamage(vecCenter, pBreakable->pev, pBreakable->pev, KABOOM_MAGNITUDE, KABOOM_MAGNITUDE * 2.5f, CLASS_NONE, DMG_BLAST);
+}
+
+static BOOL IsKaboomTarget(CBreakable *pBreakable)
+{
+	// Trigger-only breakables (map scripting) and ones already broken or waiting to respawn have takedamage off.
+	return !FBitSet(pBreakable->pev->flags, FL_KILLME) && pBreakable->pev->takedamage != DAMAGE_NO
+		&& pBreakable->pev->solid != SOLID_NOT && pBreakable->IsBreakable();
+}
+
+static void InstantKaboom(void)
+{
+	int count = 0;
+	CBaseEntity *pEntity = NULL;
+	while ((pEntity = UTIL_FindEntityByClassname(pEntity, "func_breakable")) != NULL)
+	{
+		if (IsKaboomTarget((CBreakable *)pEntity))
+			count++;
+	}
+
+	if (count == 0)
+	{
+		UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] Kaboom: nothing left to blow up!\n");
+		return;
+	}
+
+	struct KaboomTarget
+	{
+		EHANDLE hBreakable;
+		Vector vecCenter;
+		BOOL nativeBlast;
+	};
+	KaboomTarget *targets = new KaboomTarget[count];
+
+	int listed = 0;
+	pEntity = NULL;
+	while (listed < count && (pEntity = UTIL_FindEntityByClassname(pEntity, "func_breakable")) != NULL)
+	{
+		CBreakable *pBreakable = (CBreakable *)pEntity;
+		if (!IsKaboomTarget(pBreakable))
+			continue;
+
+		targets[listed].hBreakable = pBreakable;
+		targets[listed].vecCenter = pBreakable->Center();
+		targets[listed].nativeBlast = pBreakable->Explodable();
+		// Every blast below would otherwise break listed breakables early, before their own blast.
+		pBreakable->pev->takedamage = DAMAGE_NO;
+		listed++;
+	}
+
+	// Use() breaks them the way a trigger does: gibs, sound, targets, spawn object, respawn timer, own explodemagnitude blast.
+	for (int i = 0; i < listed; i++)
+	{
+		// A target fired by an earlier break may already have broken or removed this one.
+		CBaseEntity *pBreakable = targets[i].hBreakable;
+		if (pBreakable && !FBitSet(pBreakable->pev->flags, FL_KILLME) && pBreakable->pev->solid != SOLID_NOT)
+			pBreakable->Use(NULL, NULL, USE_ON, 0);
+	}
+
+	for (int i = 0; i < listed; i++)
+	{
+		if (!targets[i].nativeBlast && targets[i].hBreakable != NULL)
+			KaboomBlast(targets[i].hBreakable, targets[i].vecCenter);
+	}
+
+	delete[] targets;
+
+	UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] Kaboom!\n");
+	UTIL_LogPrintf("Instant mutator \"kaboom\" blew up %d \"func_breakable\" at %.2f\n", listed, gpGlobals->time);
+}
+
 // Operators type these values into sv_addinstantmutator. Keep them in ASCII order of the trailing names
 // (the names in server_commands.txt); a new instant goes in its alphabetical place and every later value shifts.
 enum instant_mutator_e
@@ -2272,31 +2361,32 @@ enum instant_mutator_e
 	INSTANT_HOT_POTATO = 12,			// hot potato
 	INSTANT_HOTFINGERS = 13,			// hotfingers
 	INSTANT_HUMAN_ASSASSIN = 14,		// human assassin
-	INSTANT_KNIFE_VOLLEY = 15,			// knifevolley
-	INSTANT_MAX_AMMO = 16,				// maxammo
-	INSTANT_NICE = 17,					// nice
-	INSTANT_NOTHING = 18,				// nothing
-	INSTANT_NUKE_PARTY = 19,			// nukeparty
-	INSTANT_PASS_IT_LEFT = 20,			// passitleft
-	INSTANT_PET_CHUMTOAD = 21,			// pet chumtoad
-	INSTANT_PET_SNARK = 22,				// pet snark
-	INSTANT_PIPE_VOLLEY = 23,			// pipevolley
-	INSTANT_PROX_PARTY = 24,			// proxparty
-	INSTANT_RANDOM_DAMAGE = 25,			// random damage
-	INSTANT_RANDOM_AMMO = 26,			// randomammo
-	INSTANT_RANDOM_ITEM = 27,			// randomitem
-	INSTANT_RANDOM_RUNE = 28,			// randomrune
-	INSTANT_RANDOM_WEAPON = 29,			// randomweapon
-	INSTANT_REMOVE_FUNC = 30,			// remove func_*
-	INSTANT_ROBIN_HOOD = 31,			// robinhood
-	INSTANT_ROULETTE = 32,				// roulette
-	INSTANT_RUNE_BURST = 33,			// runeburst
-	INSTANT_RUNE_SHUFFLE = 34,			// runeshuffle
-	INSTANT_SIX_SEVEN = 35,				// six seven
-	INSTANT_SWAP_HEALTH_ARMOR = 36,		// swap health and armor
-	INSTANT_TRIPMINE = 37,				// tripmine
-	INSTANT_UNARM = 38,					// unarm
-	INSTANT_WRENCH_VOLLEY = 39,			// wrenchvolley
+	INSTANT_KABOOM = 15,				// kaboom
+	INSTANT_KNIFE_VOLLEY = 16,			// knifevolley
+	INSTANT_MAX_AMMO = 17,				// maxammo
+	INSTANT_NICE = 18,					// nice
+	INSTANT_NOTHING = 19,				// nothing
+	INSTANT_NUKE_PARTY = 20,			// nukeparty
+	INSTANT_PASS_IT_LEFT = 21,			// passitleft
+	INSTANT_PET_CHUMTOAD = 22,			// pet chumtoad
+	INSTANT_PET_SNARK = 23,				// pet snark
+	INSTANT_PIPE_VOLLEY = 24,			// pipevolley
+	INSTANT_PROX_PARTY = 25,			// proxparty
+	INSTANT_RANDOM_DAMAGE = 26,			// random damage
+	INSTANT_RANDOM_AMMO = 27,			// randomammo
+	INSTANT_RANDOM_ITEM = 28,			// randomitem
+	INSTANT_RANDOM_RUNE = 29,			// randomrune
+	INSTANT_RANDOM_WEAPON = 30,			// randomweapon
+	INSTANT_REMOVE_FUNC = 31,			// remove func_*
+	INSTANT_ROBIN_HOOD = 32,			// robinhood
+	INSTANT_ROULETTE = 33,				// roulette
+	INSTANT_RUNE_BURST = 34,			// runeburst
+	INSTANT_RUNE_SHUFFLE = 35,			// runeshuffle
+	INSTANT_SIX_SEVEN = 36,				// six seven
+	INSTANT_SWAP_HEALTH_ARMOR = 37,		// swap health and armor
+	INSTANT_TRIPMINE = 38,				// tripmine
+	INSTANT_UNARM = 39,					// unarm
+	INSTANT_WRENCH_VOLLEY = 40,			// wrenchvolley
 	INSTANT_MUTATOR_COUNT
 };
 
@@ -2493,6 +2583,9 @@ void CGameRules::AddInstantMutator(int index)
 				}
 			}
 			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] Human assassin!\n");
+			break;
+		case INSTANT_KABOOM:
+			InstantKaboom();
 			break;
 		case INSTANT_KNIFE_VOLLEY:
 			InstantVolley("flying_knife", "weapon_knife", "knife_miss2.wav", "Knife Volley");
