@@ -7,8 +7,9 @@
 // buffer is copied to a texture and a full-screen GLSL pass paints every pixel
 // white except geometric edges, which are inked black. Window depth is affine
 // in 1/z, so it is linear across any plane in screen space; a non-zero second
-// difference marks a crease or a silhouette. Runs before the HUD, so the HUD
-// draws normally on top.
+// difference marks a crease or a silhouette. Runs before the HUD. Additive HUD
+// sprites vanish on white, so the image is drawn inverted while the HUD draws
+// and inverted back afterwards, which turns the HUD into black ink.
 //
 
 #include "hud.h"
@@ -95,6 +96,7 @@ typedef struct
 typedef struct
 {
 	GLint depth;
+	GLint color;
 	GLint origin;
 	GLint texel;
 	GLint step;
@@ -102,6 +104,8 @@ typedef struct
 	GLint farRatio;
 	GLint threshold;
 	GLint epsilon;
+	GLint paper;
+	GLint hud;
 } linemode_uniforms_t;
 
 static const char kVertexShader[] =
@@ -111,9 +115,12 @@ static const char kVertexShader[] =
 	"	gl_Position = gl_Vertex;\n"
 	"}\n";
 
+// u_paper = 1 draws black lines on white, 0 the inverted image the HUD is drawn over.
+// u_hud = 1 inverts that image back from u_color, the HUD by its brightest channel.
 static const char kFragmentShader[] =
 	"#version 110\n"
 	"uniform sampler2D u_depth;\n"
+	"uniform sampler2D u_color;\n"
 	"uniform vec2 u_origin;\n"
 	"uniform vec2 u_texel;\n"
 	"uniform float u_step;\n"
@@ -121,6 +128,8 @@ static const char kFragmentShader[] =
 	"uniform float u_farRatio;\n"
 	"uniform float u_threshold;\n"
 	"uniform float u_epsilon;\n"
+	"uniform float u_paper;\n"
+	"uniform float u_hud;\n"
 	"\n"
 	"float Depth(vec2 uv)\n"
 	"{\n"
@@ -139,12 +148,20 @@ static const char kFragmentShader[] =
 	"void main()\n"
 	"{\n"
 	"	vec2 uv = (gl_FragCoord.xy - u_origin) * u_texel;\n"
-	"	float center = Depth(uv);\n"
-	"	float bend = max(max(Bend(uv, center, vec2(u_step, 0.0)), Bend(uv, center, vec2(0.0, u_step))),\n"
-	"		max(Bend(uv, center, vec2(u_step, u_step)), Bend(uv, center, vec2(u_step, -u_step))));\n"
-	"	float slopeChange = (bend - u_epsilon) / max(u_farRatio - center, 0.000001);\n"
-	"	float ink = smoothstep(u_threshold, u_threshold * 2.0, slopeChange);\n"
-	"	gl_FragColor = vec4(vec3(1.0 - ink), 1.0);\n"
+	"	if (u_hud > 0.5)\n"
+	"	{\n"
+	"		vec3 c = texture2D(u_color, uv).rgb;\n"
+	"		gl_FragColor = vec4(vec3(1.0 - max(c.r, max(c.g, c.b))), 1.0);\n"
+	"	}\n"
+	"	else\n"
+	"	{\n"
+	"		float center = Depth(uv);\n"
+	"		float bend = max(max(Bend(uv, center, vec2(u_step, 0.0)), Bend(uv, center, vec2(0.0, u_step))),\n"
+	"			max(Bend(uv, center, vec2(u_step, u_step)), Bend(uv, center, vec2(u_step, -u_step))));\n"
+	"		float slopeChange = (bend - u_epsilon) / max(u_farRatio - center, 0.000001);\n"
+	"		float ink = smoothstep(u_threshold, u_threshold * 2.0, slopeChange);\n"
+	"		gl_FragColor = vec4(vec3(mix(u_paper, 1.0 - u_paper, ink)), 1.0);\n"
+	"	}\n"
 	"}\n";
 
 static linemode_gl_t s_GL;
@@ -159,6 +176,14 @@ static int s_iDepthWidth = 0;
 static int s_iDepthHeight = 0;
 static float s_flDepthUlp = 1.0f / 16777215.0f;
 static bool s_bVerifyCopy = false;
+
+static GLuint s_HudTexture = 0;
+static int s_iHudWidth = 0;
+static int s_iHudHeight = 0;
+
+// Set while the viewport below holds the inverted image the HUD is drawn over.
+static bool s_bHudInverted = false;
+static GLint s_HudRect[4];
 
 // 3D view state, captured mid-scene because HUD_Redraw runs in 2D state.
 static bool s_bCaptured = false;
@@ -279,6 +304,7 @@ static bool LineMode_EnsureProgram( void )
 	}
 
 	s_Uniforms.depth = s_GL.GetUniformLocation(program, "u_depth");
+	s_Uniforms.color = s_GL.GetUniformLocation(program, "u_color");
 	s_Uniforms.origin = s_GL.GetUniformLocation(program, "u_origin");
 	s_Uniforms.texel = s_GL.GetUniformLocation(program, "u_texel");
 	s_Uniforms.step = s_GL.GetUniformLocation(program, "u_step");
@@ -286,6 +312,8 @@ static bool LineMode_EnsureProgram( void )
 	s_Uniforms.farRatio = s_GL.GetUniformLocation(program, "u_farRatio");
 	s_Uniforms.threshold = s_GL.GetUniformLocation(program, "u_threshold");
 	s_Uniforms.epsilon = s_GL.GetUniformLocation(program, "u_epsilon");
+	s_Uniforms.paper = s_GL.GetUniformLocation(program, "u_paper");
+	s_Uniforms.hud = s_GL.GetUniformLocation(program, "u_hud");
 
 	s_Program = program;
 	return true;
@@ -341,6 +369,65 @@ static bool LineMode_CopyDepth( int x, int y, int width, int height )
 	return true;
 }
 
+// Expects GL_TEXTURE0 active; leaves the HUD copy bound there.
+static bool LineMode_CopyHud( const GLint *rect )
+{
+	bool specify = rect[2] != s_iHudWidth || rect[3] != s_iHudHeight;
+	if (!s_HudTexture || !glIsTexture(s_HudTexture))
+	{
+		glGenTextures(1, &s_HudTexture);
+		specify = true;
+	}
+
+	glBindTexture(GL_TEXTURE_2D, s_HudTexture);
+
+	if (specify)
+	{
+		for (int i = 0; i < LINEMODE_MAX_GL_ERRORS && glGetError() != GL_NO_ERROR; i++)
+			;
+
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, rect[2], rect[3], 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+	}
+
+	glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, rect[0], rect[1], rect[2], rect[3]);
+
+	if (specify)
+	{
+		if (glGetError() != GL_NO_ERROR)
+			return LineMode_Fail("frame buffer could not be copied");
+		s_iHudWidth = rect[2];
+		s_iHudHeight = rect[3];
+	}
+
+	return true;
+}
+
+// Expects the program bound and its uniforms set.
+static void LineMode_DrawQuad( const GLint *rect )
+{
+	glViewport(rect[0], rect[1], rect[2], rect[3]);
+	glDisable(GL_DEPTH_TEST);
+	glDepthMask(GL_FALSE);
+	glDisable(GL_BLEND);
+	glDisable(GL_ALPHA_TEST);
+	glDisable(GL_CULL_FACE);
+	glDisable(GL_SCISSOR_TEST);
+	glDisable(GL_STENCIL_TEST);
+	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
+	glBegin(GL_QUADS);
+	glVertex2f(-1.0f, -1.0f);
+	glVertex2f(1.0f, -1.0f);
+	glVertex2f(1.0f, 1.0f);
+	glVertex2f(-1.0f, 1.0f);
+	glEnd();
+}
+
 // Called from HUD_DrawNormalTriangles while the world projection is current.
 void LineMode_CaptureScene( void )
 {
@@ -379,12 +466,14 @@ void LineMode_Draw( void )
 {
 	const bool captured = s_bCaptured;
 	s_bCaptured = false;
+	s_bHudInverted = false;
 
 	if (!captured || !LineMode_Active() || !LineMode_EnsureProgram())
 		return;
 
-	const int x = s_Viewport[0];
-	const int y = s_Viewport[1];
+	// discomode recolours the image and virtualboy turns the HUD red, so they keep it upright.
+	const bool invert = !MutatorEnabled(MUTATOR_DISCOMODE) && !MutatorEnabled(MUTATOR_VIRTUALBOY);
+
 	const int width = s_Viewport[2];
 	const int height = s_Viewport[3];
 
@@ -400,43 +489,74 @@ void LineMode_Draw( void )
 	glPushAttrib(GL_ENABLE_BIT | GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_TEXTURE_BIT | GL_VIEWPORT_BIT | GL_POLYGON_BIT | GL_SCISSOR_BIT);
 	s_GL.ActiveTexture(GL_TEXTURE0);
 
-	if (LineMode_CopyDepth(x, y, width, height))
+	if (LineMode_CopyDepth(s_Viewport[0], s_Viewport[1], width, height))
 	{
-		glViewport(x, y, width, height);
-		glDisable(GL_DEPTH_TEST);
-		glDepthMask(GL_FALSE);
-		glDisable(GL_BLEND);
-		glDisable(GL_ALPHA_TEST);
-		glDisable(GL_CULL_FACE);
-		glDisable(GL_SCISSOR_TEST);
-		glDisable(GL_STENCIL_TEST);
-		glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
-		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-
 		const float rangeSpan = fabsf(s_DepthRange[1] - s_DepthRange[0]);
 
 		s_GL.UseProgram(s_Program);
 		s_GL.Uniform1i(s_Uniforms.depth, 0);
-		s_GL.Uniform2f(s_Uniforms.origin, (float)x, (float)y);
+		s_GL.Uniform1i(s_Uniforms.color, 0);
+		s_GL.Uniform2f(s_Uniforms.origin, (float)s_Viewport[0], (float)s_Viewport[1]);
 		s_GL.Uniform2f(s_Uniforms.texel, 1.0f / (float)width, 1.0f / (float)height);
 		s_GL.Uniform1f(s_Uniforms.step, step);
 		s_GL.Uniform2f(s_Uniforms.range, s_DepthRange[0], s_DepthRange[1]);
 		s_GL.Uniform1f(s_Uniforms.farRatio, s_flFarRatio);
 		s_GL.Uniform1f(s_Uniforms.threshold, LINEMODE_CREASE_SLOPE * step * s_flPixelSlope);
 		s_GL.Uniform1f(s_Uniforms.epsilon, LINEMODE_DEPTH_ULPS * s_flDepthUlp / rangeSpan);
+		s_GL.Uniform1f(s_Uniforms.paper, invert ? 0.0f : 1.0f);
+		s_GL.Uniform1f(s_Uniforms.hud, 0.0f);
+		LineMode_DrawQuad(s_Viewport);
+		s_GL.UseProgram((GLuint)previousProgram);
 
-		glBegin(GL_QUADS);
-		glVertex2f(-1.0f, -1.0f);
-		glVertex2f(1.0f, -1.0f);
-		glVertex2f(1.0f, 1.0f);
-		glVertex2f(-1.0f, 1.0f);
-		glEnd();
+		if (invert)
+		{
+			memcpy(s_HudRect, s_Viewport, sizeof(s_HudRect));
+			s_bHudInverted = true;
+		}
+	}
 
+	glPopAttrib();
+	s_GL.ActiveTexture((GLenum)previousUnit);
+}
+
+// Called right after gHUD.Redraw: inverts the image back, and the HUD drawn over it turns into black ink.
+void LineMode_DrawHud( void )
+{
+	if (!s_bHudInverted)
+		return;
+	s_bHudInverted = false;
+
+	// No mutator check: it may have expired during gHUD.Redraw, and the image is still inverted.
+	if (!s_Program || !s_GL.IsProgram(s_Program))
+		return;
+
+	GLint previousProgram = 0;
+	GLint previousUnit = GL_TEXTURE0;
+	glGetIntegerv(GL_CURRENT_PROGRAM, &previousProgram);
+	glGetIntegerv(GL_ACTIVE_TEXTURE, &previousUnit);
+
+	glPushAttrib(GL_ENABLE_BIT | GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_TEXTURE_BIT | GL_VIEWPORT_BIT | GL_POLYGON_BIT | GL_SCISSOR_BIT);
+	s_GL.ActiveTexture(GL_TEXTURE0);
+
+	if (LineMode_CopyHud(s_HudRect))
+	{
+		s_GL.UseProgram(s_Program);
+		s_GL.Uniform1i(s_Uniforms.color, 0);
+		s_GL.Uniform2f(s_Uniforms.origin, (float)s_HudRect[0], (float)s_HudRect[1]);
+		s_GL.Uniform2f(s_Uniforms.texel, 1.0f / (float)s_HudRect[2], 1.0f / (float)s_HudRect[3]);
+		s_GL.Uniform1f(s_Uniforms.hud, 1.0f);
+		LineMode_DrawQuad(s_HudRect);
 		s_GL.UseProgram((GLuint)previousProgram);
 	}
 
 	glPopAttrib();
 	s_GL.ActiveTexture((GLenum)previousUnit);
+}
+
+// True while the HUD is being drawn over the inverted image; dark overlays must draw white.
+bool LineMode_HudInverted( void )
+{
+	return s_bHudInverted;
 }
 
 #else
@@ -447,6 +567,15 @@ void LineMode_CaptureScene( void )
 
 void LineMode_Draw( void )
 {
+}
+
+void LineMode_DrawHud( void )
+{
+}
+
+bool LineMode_HudInverted( void )
+{
+	return false;
 }
 
 #endif

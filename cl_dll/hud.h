@@ -550,6 +550,8 @@ void GoldenEye_Draw( int health, int armor );
 
 void LineMode_CaptureScene( void );
 void LineMode_Draw( void );
+void LineMode_DrawHud( void );
+bool LineMode_HudInverted( void );
 
 void DiscoMode_CaptureScene( void );
 void DiscoMode_Draw( void );
