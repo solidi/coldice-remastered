@@ -550,11 +550,17 @@ void GoldenEye_Draw( int health, int armor );
 
 void LineMode_CaptureScene( void );
 void LineMode_Draw( void );
+void LineMode_DrawHud( void );
+bool LineMode_HudInverted( void );
 
 void DiscoMode_CaptureScene( void );
 void DiscoMode_Draw( void );
 
 void Blur_Draw( void );
+
+void VirtualBoy_CaptureScene( void );
+void VirtualBoy_Draw( void );
+void VirtualBoy_DrawHud( void );
 
 bool XRay_BeginSecondView( struct ref_params_s *pparams );
 void XRay_RequestSecondView( struct ref_params_s *pparams );

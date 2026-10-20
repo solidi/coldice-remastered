@@ -111,7 +111,9 @@ static void DrawFadeToBlackOverlay(int alpha)
 	glLoadIdentity();
 	glOrtho(0, 1, 1, 0, 0.1, 100);
 
-	glColor4f(0.0f, 0.0f, 0.0f, (float)alpha / 255.0f);
+	// linemode inverts the image back after the HUD, so black has to be drawn as white.
+	const float shade = LineMode_HudInverted() ? 1.0f : 0.0f;
+	glColor4f(shade, shade, shade, (float)alpha / 255.0f);
 
 	glBegin(GL_QUADS);
 	glVertex3f(0, 1, -1);
