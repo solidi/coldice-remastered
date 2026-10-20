@@ -110,7 +110,7 @@ void CFlyingWrench::SpinTouch( CBaseEntity *pOther )
 
 #ifndef CLIENT_DLL
 	CBasePlayer *pPlayer = (CBasePlayer *)GET_PRIVATE(pev->owner);
-	if (pPlayer && g_pGameRules->DeadPlayerWeapons(pPlayer) != GR_PLR_DROP_GUN_NO)
+	if (pPlayer && !FBitSet(pev->spawnflags, SF_FLYING_VOLLEY) && g_pGameRules->DeadPlayerWeapons(pPlayer) != GR_PLR_DROP_GUN_NO)
 	{
 		CBasePlayerWeapon *pItem = (CBasePlayerWeapon *)Create( "weapon_wrench",
 											pev->origin , pev->angles, edict() );

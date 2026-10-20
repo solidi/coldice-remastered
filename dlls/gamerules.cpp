@@ -44,6 +44,7 @@
 #include	"coldspot_gamerules.h"
 #include	"shake.h"
 #include	"in_buttons.h"
+#include	"func_break.h"
 
 extern edict_t *EntSelectSpawnPoint( CBaseEntity *pPlayer );
 
@@ -2045,6 +2046,19 @@ static void InstantDryFire(void)
 	UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] Dry Fire!\n");
 }
 
+static void InstantNoArmor(void)
+{
+	for (int i = 1; i <= gpGlobals->maxClients; i++)
+	{
+		CBasePlayer *pl = (CBasePlayer *)UTIL_PlayerByIndex(i);
+		// JvS Jesus's 750 armor belongs to the mode, like his cloak rune.
+		if (IsInstantTarget(pl) && !FBitSet(pl->pev->flags, FL_GODMODE) && !pl->IsArmoredMan)
+			pl->pev->armorvalue = 0;
+	}
+
+	UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] No Armor!\n");
+}
+
 static void InstantPassItLeft(void)
 {
 	if (!InstantWeaponsAllowed())
@@ -2134,6 +2148,213 @@ static void InstantRuneShuffle(void)
 	UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] Rune Shuffle!\n");
 }
 
+#define VOLLEY_COUNT	5
+#define VOLLEY_SPREAD	8.0f	// degrees of yaw between neighbouring throws
+#define VOLLEY_SPACING	12.0f	// flying_* boxes are 8 units wide and collide with each other, so the fan starts spread out
+#define VOLLEY_SPEED	1000.0f
+
+static BOOL CanThrowVolley(CBasePlayer *pl, const char *weapon)
+{
+	return IsInstantTarget(pl) && !FBitSet(pl->pev->flags, FL_FROZEN) && g_pGameRules->CanHaveNamedItem(pl, weapon);
+}
+
+// Everyone who may hold the weapon throws a fan of its flying_* projectile, launched like the weapon's own throw.
+static void InstantVolley(const char *projectile, const char *weapon, const char *throwSound, const char *name)
+{
+	BOOL allowed = FALSE;
+	if (InstantWeaponsAllowed())
+	{
+		for (int i = 1; i <= gpGlobals->maxClients && !allowed; i++)
+			allowed = CanThrowVolley((CBasePlayer *)UTIL_PlayerByIndex(i), weapon);
+	}
+
+	if (!allowed)
+	{
+		UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] %s: nothing allowed here!\n", name);
+		return;
+	}
+
+	for (int i = 1; i <= gpGlobals->maxClients; i++)
+	{
+		CBasePlayer *pl = (CBasePlayer *)UTIL_PlayerByIndex(i);
+		if (!CanThrowVolley(pl, weapon))
+			continue;
+
+		UTIL_MakeVectors(pl->pev->v_angle);
+		const Vector vecRight = gpGlobals->v_right;
+		const Vector vecSrc = pl->GetGunPosition();
+
+		for (int k = 0; k < VOLLEY_COUNT; k++)
+		{
+			const float offset = k - (VOLLEY_COUNT - 1) * 0.5f;
+			Vector vecAim = pl->pev->v_angle;
+			// Positive yaw turns left; subtract so each throw flies away from the side it starts on instead of crossing.
+			vecAim.y -= offset * VOLLEY_SPREAD;
+			UTIL_MakeVectors(vecAim);
+			const Vector vecDir = gpGlobals->v_forward;
+			const Vector vecStart = vecSrc + vecDir * 16 + vecRight * (offset * VOLLEY_SPACING);
+
+			TraceResult tr;
+			UTIL_TraceLine(vecSrc, vecStart, ignore_monsters, pl->edict(), &tr);
+			if (tr.fStartSolid || tr.flFraction < 1.0f)
+				continue;
+
+			Vector vecAngles = UTIL_VecToAngles(vecDir);
+			vecAngles.z = vecDir.z - 90;
+			CBaseEntity *pThrown = CBaseEntity::Create((char *)projectile, vecStart, vecAngles, pl->edict());
+			if (!pThrown)
+				continue;
+
+			SetBits(pThrown->pev->spawnflags, SF_FLYING_VOLLEY);
+			pThrown->pev->velocity = vecDir * VOLLEY_SPEED + pl->pev->velocity;
+			pThrown->pev->avelocity.x = -1000;
+			pThrown->pev->gravity = 0.25;
+		}
+
+		pl->SetAnimation(PLAYER_ATTACK1);
+		EMIT_SOUND_DYN(pl->edict(), CHAN_WEAPON, throwSound, 1, ATTN_NORM, 0, 94 + RANDOM_LONG(0, 0xF));
+	}
+
+	UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] %s!\n", name);
+}
+
+#define MINEPARTY_DROP_RANGE	256.0f
+
+static BOOL CanJoinMineParty(CBasePlayer *pl, BOOL bNuclear)
+{
+	// Modes that refuse the nuke (Chilldemic, Horde, JvS, Shidden) refuse its global kill too.
+	return IsInstantTarget(pl) && !FBitSet(pl->pev->flags, FL_FROZEN)
+		&& g_pGameRules->CanHaveNamedItem(pl, "weapon_tripmine")
+		&& (!bNuclear || g_pGameRules->CanHaveNamedItem(pl, "weapon_nuke"));
+}
+
+// Drops a party proxmine (armed after 2.5 s) on the floor under every eligible player, owned by that player.
+static void InstantMineParty(BOOL bNuclear, BOOL bDrug, const char *name)
+{
+	BOOL allowed = FALSE;
+	if (InstantWeaponsAllowed())
+	{
+		for (int i = 1; i <= gpGlobals->maxClients && !allowed; i++)
+			allowed = CanJoinMineParty((CBasePlayer *)UTIL_PlayerByIndex(i), bNuclear);
+	}
+
+	if (!allowed)
+	{
+		UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] %s: nothing allowed here!\n", name);
+		return;
+	}
+
+	for (int i = 1; i <= gpGlobals->maxClients; i++)
+	{
+		CBasePlayer *pl = (CBasePlayer *)UTIL_PlayerByIndex(i);
+		if (!CanJoinMineParty(pl, bNuclear))
+			continue;
+
+		TraceResult tr;
+		UTIL_TraceLine(pl->pev->origin, pl->pev->origin - Vector(0, 0, MINEPARTY_DROP_RANGE), ignore_monsters, pl->edict(), &tr);
+		if (tr.fStartSolid || tr.flFraction >= 1.0f || tr.vecPlaneNormal.z < 0.7f)
+			continue;
+
+		// Same mount rules as a player-placed proxmine.
+		CBaseEntity *pFloor = CBaseEntity::Instance(tr.pHit);
+		if (!pFloor || FBitSet(pFloor->pev->flags, FL_CONVEYOR)
+			|| (pFloor->pev->movetype != MOVETYPE_NONE && pFloor->pev->movetype != MOVETYPE_PUSH))
+			continue;
+
+		DeployProxMineAt(pl, tr.vecEndPos + tr.vecPlaneNormal * 8, tr.vecPlaneNormal, bNuclear, bDrug, TRUE);
+	}
+
+	UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] %s! Run!\n", name);
+}
+
+#define KABOOM_MAGNITUDE	100		// hand-grenade sized; RadiusDamage reaches magnitude * 2.5
+
+// Edict-free stand-in for env_explosion: one blast per breakable would otherwise spawn an explosion plus up to three spark showers each.
+static void KaboomBlast(CBaseEntity *pBreakable, const Vector &vecCenter)
+{
+	MESSAGE_BEGIN(MSG_PAS, SVC_TEMPENTITY, vecCenter);
+		WRITE_BYTE(TE_EXPLOSION);
+		WRITE_COORD(vecCenter.x);
+		WRITE_COORD(vecCenter.y);
+		WRITE_COORD(vecCenter.z);
+		WRITE_SHORT(icesprites.value ? g_sModelIndexIceFireball : g_sModelIndexFireball);
+		WRITE_BYTE(30);	// scale * 10, what env_explosion uses for this magnitude
+		WRITE_BYTE(15);	// framerate
+		WRITE_BYTE(TE_EXPLFLAG_NONE);
+	MESSAGE_END();
+
+	// The breakable is the inflictor so the trace skips it; like env_explosion, deaths count as world kills.
+	::RadiusDamage(vecCenter, pBreakable->pev, pBreakable->pev, KABOOM_MAGNITUDE, KABOOM_MAGNITUDE * 2.5f, CLASS_NONE, DMG_BLAST);
+}
+
+static BOOL IsKaboomTarget(CBreakable *pBreakable)
+{
+	// Trigger-only breakables (map scripting) and ones already broken or waiting to respawn have takedamage off.
+	return !FBitSet(pBreakable->pev->flags, FL_KILLME) && pBreakable->pev->takedamage != DAMAGE_NO
+		&& pBreakable->pev->solid != SOLID_NOT && pBreakable->IsBreakable();
+}
+
+static void InstantKaboom(void)
+{
+	int count = 0;
+	CBaseEntity *pEntity = NULL;
+	while ((pEntity = UTIL_FindEntityByClassname(pEntity, "func_breakable")) != NULL)
+	{
+		if (IsKaboomTarget((CBreakable *)pEntity))
+			count++;
+	}
+
+	if (count == 0)
+	{
+		UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] Kaboom: nothing left to blow up!\n");
+		return;
+	}
+
+	struct KaboomTarget
+	{
+		EHANDLE hBreakable;
+		Vector vecCenter;
+		BOOL nativeBlast;
+	};
+	KaboomTarget *targets = new KaboomTarget[count];
+
+	int listed = 0;
+	pEntity = NULL;
+	while (listed < count && (pEntity = UTIL_FindEntityByClassname(pEntity, "func_breakable")) != NULL)
+	{
+		CBreakable *pBreakable = (CBreakable *)pEntity;
+		if (!IsKaboomTarget(pBreakable))
+			continue;
+
+		targets[listed].hBreakable = pBreakable;
+		targets[listed].vecCenter = pBreakable->Center();
+		targets[listed].nativeBlast = pBreakable->Explodable();
+		// Every blast below would otherwise break listed breakables early, before their own blast.
+		pBreakable->pev->takedamage = DAMAGE_NO;
+		listed++;
+	}
+
+	// Use() breaks them the way a trigger does: gibs, sound, targets, spawn object, respawn timer, own explodemagnitude blast.
+	for (int i = 0; i < listed; i++)
+	{
+		// A target fired by an earlier break may already have broken or removed this one.
+		CBaseEntity *pBreakable = targets[i].hBreakable;
+		if (pBreakable && !FBitSet(pBreakable->pev->flags, FL_KILLME) && pBreakable->pev->solid != SOLID_NOT)
+			pBreakable->Use(NULL, NULL, USE_ON, 0);
+	}
+
+	for (int i = 0; i < listed; i++)
+	{
+		if (!targets[i].nativeBlast && targets[i].hBreakable != NULL)
+			KaboomBlast(targets[i].hBreakable, targets[i].vecCenter);
+	}
+
+	delete[] targets;
+
+	UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] Kaboom!\n");
+	UTIL_LogPrintf("Instant mutator \"kaboom\" blew up %d \"func_breakable\" at %.2f\n", listed, gpGlobals->time);
+}
+
 // Operators type these values into sv_addinstantmutator. Keep them in ASCII order of the trailing names
 // (the names in server_commands.txt); a new instant goes in its alphabetical place and every later value shifts.
 enum instant_mutator_e
@@ -2146,32 +2367,40 @@ enum instant_mutator_e
 	INSTANT_ALL_GUNS = 5,				// allguns
 	INSTANT_BSOD = 6,					// bsod
 	INSTANT_BUTTERFINGERS = 7,			// butterfingers
-	INSTANT_DRY_FIRE = 8,				// dryfire
-	INSTANT_DUAL_WIELD = 9,				// dualwield
-	INSTANT_EXTRA_AMMO = 10,			// extra ammo
-	INSTANT_HOT_POTATO = 11,			// hot potato
-	INSTANT_HOTFINGERS = 12,			// hotfingers
-	INSTANT_HUMAN_ASSASSIN = 13,		// human assassin
-	INSTANT_MAX_AMMO = 14,				// maxammo
-	INSTANT_NICE = 15,					// nice
-	INSTANT_NOTHING = 16,				// nothing
-	INSTANT_PASS_IT_LEFT = 17,			// passitleft
-	INSTANT_PET_CHUMTOAD = 18,			// pet chumtoad
-	INSTANT_PET_SNARK = 19,				// pet snark
-	INSTANT_RANDOM_DAMAGE = 20,			// random damage
-	INSTANT_RANDOM_AMMO = 21,			// randomammo
-	INSTANT_RANDOM_ITEM = 22,			// randomitem
-	INSTANT_RANDOM_RUNE = 23,			// randomrune
-	INSTANT_RANDOM_WEAPON = 24,			// randomweapon
-	INSTANT_REMOVE_FUNC = 25,			// remove func_*
-	INSTANT_ROBIN_HOOD = 26,			// robinhood
-	INSTANT_ROULETTE = 27,				// roulette
-	INSTANT_RUNE_BURST = 28,			// runeburst
-	INSTANT_RUNE_SHUFFLE = 29,			// runeshuffle
-	INSTANT_SIX_SEVEN = 30,				// six seven
-	INSTANT_SWAP_HEALTH_ARMOR = 31,		// swap health and armor
-	INSTANT_TRIPMINE = 32,				// tripmine
-	INSTANT_UNARM = 33,					// unarm
+	INSTANT_DRUG_PARTY = 8,				// drugparty
+	INSTANT_DRY_FIRE = 9,				// dryfire
+	INSTANT_DUAL_WIELD = 10,			// dualwield
+	INSTANT_EXTRA_AMMO = 11,			// extra ammo
+	INSTANT_HOT_POTATO = 12,			// hot potato
+	INSTANT_HOTFINGERS = 13,			// hotfingers
+	INSTANT_HUMAN_ASSASSIN = 14,		// human assassin
+	INSTANT_KABOOM = 15,				// kaboom
+	INSTANT_KNIFE_VOLLEY = 16,			// knifevolley
+	INSTANT_MAX_AMMO = 17,				// maxammo
+	INSTANT_NICE = 18,					// nice
+	INSTANT_NO_ARMOR = 19,				// noarmor
+	INSTANT_NOTHING = 20,				// nothing
+	INSTANT_NUKE_PARTY = 21,			// nukeparty
+	INSTANT_PASS_IT_LEFT = 22,			// passitleft
+	INSTANT_PET_CHUMTOAD = 23,			// pet chumtoad
+	INSTANT_PET_SNARK = 24,				// pet snark
+	INSTANT_PIPE_VOLLEY = 25,			// pipevolley
+	INSTANT_PROX_PARTY = 26,			// proxparty
+	INSTANT_RANDOM_DAMAGE = 27,			// random damage
+	INSTANT_RANDOM_AMMO = 28,			// randomammo
+	INSTANT_RANDOM_ITEM = 29,			// randomitem
+	INSTANT_RANDOM_RUNE = 30,			// randomrune
+	INSTANT_RANDOM_WEAPON = 31,			// randomweapon
+	INSTANT_REMOVE_FUNC = 32,			// remove func_*
+	INSTANT_ROBIN_HOOD = 33,			// robinhood
+	INSTANT_ROULETTE = 34,				// roulette
+	INSTANT_RUNE_BURST = 35,			// runeburst
+	INSTANT_RUNE_SHUFFLE = 36,			// runeshuffle
+	INSTANT_SIX_SEVEN = 37,				// six seven
+	INSTANT_SWAP_HEALTH_ARMOR = 38,		// swap health and armor
+	INSTANT_TRIPMINE = 39,				// tripmine
+	INSTANT_UNARM = 40,					// unarm
+	INSTANT_WRENCH_VOLLEY = 41,			// wrenchvolley
 	INSTANT_MUTATOR_COUNT
 };
 
@@ -2291,6 +2520,9 @@ void CGameRules::AddInstantMutator(int index)
 		case INSTANT_BUTTERFINGERS:
 			InstantButterfingers();
 			break;
+		case INSTANT_DRUG_PARTY:
+			InstantMineParty(FALSE, TRUE, "Drug Party");
+			break;
 		case INSTANT_DRY_FIRE:
 			InstantDryFire();
 			break;
@@ -2366,6 +2598,12 @@ void CGameRules::AddInstantMutator(int index)
 			}
 			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] Human assassin!\n");
 			break;
+		case INSTANT_KABOOM:
+			InstantKaboom();
+			break;
+		case INSTANT_KNIFE_VOLLEY:
+			InstantVolley("flying_knife", "weapon_knife", "knife_miss2.wav", "Knife Volley");
+			break;
 		case INSTANT_MAX_AMMO:
 			InstantMaxAmmo();
 			break;
@@ -2382,8 +2620,14 @@ void CGameRules::AddInstantMutator(int index)
 			}
 			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] Nice!\n");
 			break;
+		case INSTANT_NO_ARMOR:
+			InstantNoArmor();
+			break;
 		case INSTANT_NOTHING:
 			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] Nothing selected!\n");
+			break;
+		case INSTANT_NUKE_PARTY:
+			InstantMineParty(TRUE, FALSE, "Nuke Party");
 			break;
 		case INSTANT_PASS_IT_LEFT:
 			InstantPassItLeft();
@@ -2456,6 +2700,12 @@ void CGameRules::AddInstantMutator(int index)
 				}
 			}
 			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] Pet Snark!\n");
+			break;
+		case INSTANT_PIPE_VOLLEY:
+			InstantVolley("flying_crowbar", "weapon_crowbar", "weapons/cbar_miss1.wav", "Pipe Volley");
+			break;
+		case INSTANT_PROX_PARTY:
+			InstantMineParty(FALSE, FALSE, "Prox Party");
 			break;
 		case INSTANT_RANDOM_DAMAGE:
 			for (int i = 1; i <= gpGlobals->maxClients; ++i)
@@ -2561,6 +2811,9 @@ void CGameRules::AddInstantMutator(int index)
 			break;
 		case INSTANT_UNARM:
 			InstantUnarm();
+			break;
+		case INSTANT_WRENCH_VOLLEY:
+			InstantVolley("flying_wrench", "weapon_wrench", "wrench_miss1.wav", "Wrench Volley");
 			break;
 	}
 

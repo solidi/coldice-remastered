@@ -939,10 +939,12 @@ void CFlyingCrowbar::SpinTouch( CBaseEntity *pOther )
 	if ( ExplosiveCrowbarActive() )
 		ExplosiveCrowbarBlast( pev, ( m_hOwner != NULL ) ? m_hOwner->pev : pev, &trTouch );
 
-	SpawnSnarkbarWave( pev, m_hOwner, &trTouch );
+	// A full server's volley would release hundreds of snarks and run out of edicts.
+	if ( !FBitSet( pev->spawnflags, SF_FLYING_VOLLEY ) )
+		SpawnSnarkbarWave( pev, m_hOwner, &trTouch );
 
 	CBasePlayer *pPlayer = (CBasePlayer *)GET_PRIVATE(pev->owner);
-	if (pPlayer && g_pGameRules->DeadPlayerWeapons(pPlayer) != GR_PLR_DROP_GUN_NO)
+	if (pPlayer && !FBitSet(pev->spawnflags, SF_FLYING_VOLLEY) && g_pGameRules->DeadPlayerWeapons(pPlayer) != GR_PLR_DROP_GUN_NO)
 	{
 		CBasePlayerWeapon *pItem = (CBasePlayerWeapon *)Create( "weapon_crowbar",
 								pev->origin , pev->angles, edict() );
