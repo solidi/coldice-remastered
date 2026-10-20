@@ -178,7 +178,7 @@ void CColorCor::DrawColorCor()
 	}
 	
 	// Special color for sildenafil mutator
-	if (MutatorEnabled(MUTATOR_SILDENAFIL))
+	if (MutatorEnabled(MUTATOR_SILDENAFIL) && !MutatorEnabled(MUTATOR_VIRTUALBOY))
 	{
 		r = 0;
 		g = 113;
