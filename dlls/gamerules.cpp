@@ -2046,6 +2046,19 @@ static void InstantDryFire(void)
 	UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] Dry Fire!\n");
 }
 
+static void InstantNoArmor(void)
+{
+	for (int i = 1; i <= gpGlobals->maxClients; i++)
+	{
+		CBasePlayer *pl = (CBasePlayer *)UTIL_PlayerByIndex(i);
+		// JvS Jesus's 750 armor belongs to the mode, like his cloak rune.
+		if (IsInstantTarget(pl) && !FBitSet(pl->pev->flags, FL_GODMODE) && !pl->IsArmoredMan)
+			pl->pev->armorvalue = 0;
+	}
+
+	UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] No Armor!\n");
+}
+
 static void InstantPassItLeft(void)
 {
 	if (!InstantWeaponsAllowed())
@@ -2365,28 +2378,29 @@ enum instant_mutator_e
 	INSTANT_KNIFE_VOLLEY = 16,			// knifevolley
 	INSTANT_MAX_AMMO = 17,				// maxammo
 	INSTANT_NICE = 18,					// nice
-	INSTANT_NOTHING = 19,				// nothing
-	INSTANT_NUKE_PARTY = 20,			// nukeparty
-	INSTANT_PASS_IT_LEFT = 21,			// passitleft
-	INSTANT_PET_CHUMTOAD = 22,			// pet chumtoad
-	INSTANT_PET_SNARK = 23,				// pet snark
-	INSTANT_PIPE_VOLLEY = 24,			// pipevolley
-	INSTANT_PROX_PARTY = 25,			// proxparty
-	INSTANT_RANDOM_DAMAGE = 26,			// random damage
-	INSTANT_RANDOM_AMMO = 27,			// randomammo
-	INSTANT_RANDOM_ITEM = 28,			// randomitem
-	INSTANT_RANDOM_RUNE = 29,			// randomrune
-	INSTANT_RANDOM_WEAPON = 30,			// randomweapon
-	INSTANT_REMOVE_FUNC = 31,			// remove func_*
-	INSTANT_ROBIN_HOOD = 32,			// robinhood
-	INSTANT_ROULETTE = 33,				// roulette
-	INSTANT_RUNE_BURST = 34,			// runeburst
-	INSTANT_RUNE_SHUFFLE = 35,			// runeshuffle
-	INSTANT_SIX_SEVEN = 36,				// six seven
-	INSTANT_SWAP_HEALTH_ARMOR = 37,		// swap health and armor
-	INSTANT_TRIPMINE = 38,				// tripmine
-	INSTANT_UNARM = 39,					// unarm
-	INSTANT_WRENCH_VOLLEY = 40,			// wrenchvolley
+	INSTANT_NO_ARMOR = 19,				// noarmor
+	INSTANT_NOTHING = 20,				// nothing
+	INSTANT_NUKE_PARTY = 21,			// nukeparty
+	INSTANT_PASS_IT_LEFT = 22,			// passitleft
+	INSTANT_PET_CHUMTOAD = 23,			// pet chumtoad
+	INSTANT_PET_SNARK = 24,				// pet snark
+	INSTANT_PIPE_VOLLEY = 25,			// pipevolley
+	INSTANT_PROX_PARTY = 26,			// proxparty
+	INSTANT_RANDOM_DAMAGE = 27,			// random damage
+	INSTANT_RANDOM_AMMO = 28,			// randomammo
+	INSTANT_RANDOM_ITEM = 29,			// randomitem
+	INSTANT_RANDOM_RUNE = 30,			// randomrune
+	INSTANT_RANDOM_WEAPON = 31,			// randomweapon
+	INSTANT_REMOVE_FUNC = 32,			// remove func_*
+	INSTANT_ROBIN_HOOD = 33,			// robinhood
+	INSTANT_ROULETTE = 34,				// roulette
+	INSTANT_RUNE_BURST = 35,			// runeburst
+	INSTANT_RUNE_SHUFFLE = 36,			// runeshuffle
+	INSTANT_SIX_SEVEN = 37,				// six seven
+	INSTANT_SWAP_HEALTH_ARMOR = 38,		// swap health and armor
+	INSTANT_TRIPMINE = 39,				// tripmine
+	INSTANT_UNARM = 40,					// unarm
+	INSTANT_WRENCH_VOLLEY = 41,			// wrenchvolley
 	INSTANT_MUTATOR_COUNT
 };
 
@@ -2605,6 +2619,9 @@ void CGameRules::AddInstantMutator(int index)
 				}
 			}
 			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] Nice!\n");
+			break;
+		case INSTANT_NO_ARMOR:
+			InstantNoArmor();
 			break;
 		case INSTANT_NOTHING:
 			UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] Nothing selected!\n");
