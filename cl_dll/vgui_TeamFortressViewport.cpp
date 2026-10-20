@@ -344,6 +344,7 @@ MutatorInfo sMutators[] = {
 	{ "vampire", "deal damage to drain health" },
 	{ "vested", "explosive fun for everyone" },
 	{ "victor", "fragged drops fly only to the fragger" },
+	{ "virtualboy", "red and black, like a 1995 headset" },
 	{ "volatile", "things get crazy" },
 	{ "vvvvvv", "jump flips your gravity" },
 	{ "waterhurt", "touch water and explode" },

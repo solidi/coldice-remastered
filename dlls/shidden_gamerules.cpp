@@ -1023,6 +1023,10 @@ BOOL CHalfLifeShidden::MutatorAllowed(const char *mutator)
 	if (strstr(mutator, g_szMutators[MUTATOR_DEALTER - 1]) || atoi(mutator) == MUTATOR_DEALTER)
 		return FALSE;
 
+	// Translucent dealters still write depth, so the wireframe edges would outline them
+	if (strstr(mutator, g_szMutators[MUTATOR_VIRTUALBOY - 1]) || atoi(mutator) == MUTATOR_VIRTUALBOY)
+		return FALSE;
+
 	return CHalfLifeMultiplay::MutatorAllowed(mutator);
 }
 

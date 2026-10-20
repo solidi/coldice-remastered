@@ -556,6 +556,10 @@ void DiscoMode_Draw( void );
 
 void Blur_Draw( void );
 
+void VirtualBoy_CaptureScene( void );
+void VirtualBoy_Draw( void );
+void VirtualBoy_DrawHud( void );
+
 bool XRay_BeginSecondView( struct ref_params_s *pparams );
 void XRay_RequestSecondView( struct ref_params_s *pparams );
 void XRay_NormalTriangles( void );

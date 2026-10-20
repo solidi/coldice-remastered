@@ -259,8 +259,11 @@ int CL_DLLEXPORT HUD_Redraw( float time, int intermission )
 	LineMode_Draw();
 	DiscoMode_Draw();
 	Blur_Draw();
+	VirtualBoy_Draw();
 
 	gHUD.Redraw( time, intermission );
+
+	VirtualBoy_DrawHud();
 
 #ifndef __APPLE__
 	extern cvar_t *cl_screeneffects;
