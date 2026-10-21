@@ -951,6 +951,10 @@ BOOL CHalfLifeChilldemic::CanHavePlayerAmmo( CBasePlayer *pPlayer, CBasePlayerAm
 
 BOOL CHalfLifeChilldemic::MutatorAllowed(const char *mutator)
 {
+	// Skeletons (50 HP) would get 999 and keep it after expiry, since the clamp skips the virus team
+	if (strstr(mutator, g_szMutators[MUTATOR_999 - 1]) || atoi(mutator) == MUTATOR_999)
+		return FALSE;
+
 	if (strstr(mutator, g_szMutators[MUTATOR_THIRDPERSON - 1]) || atoi(mutator) == MUTATOR_THIRDPERSON)
 		return FALSE;
 

@@ -1023,6 +1023,10 @@ BOOL CHalfLifeShidden::MutatorAllowed(const char *mutator)
 	if (strstr(mutator, g_szMutators[MUTATOR_DEALTER - 1]) || atoi(mutator) == MUTATOR_DEALTER)
 		return FALSE;
 
+	// The sanic sprite ignores render mode, so it would show invisible dealters
+	if (strstr(mutator, g_szMutators[MUTATOR_SANIC - 1]) || atoi(mutator) == MUTATOR_SANIC)
+		return FALSE;
+
 	// Translucent dealters still write depth, so the wireframe edges would outline them
 	if (strstr(mutator, g_szMutators[MUTATOR_VIRTUALBOY - 1]) || atoi(mutator) == MUTATOR_VIRTUALBOY)
 		return FALSE;

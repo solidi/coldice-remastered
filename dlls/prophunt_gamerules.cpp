@@ -1512,6 +1512,10 @@ BOOL CHalfLifePropHunt::MutatorAllowed(const char *mutator)
 	if (strstr(mutator, g_szMutators[MUTATOR_PUMPKIN - 1]) || atoi(mutator) == MUTATOR_PUMPKIN)
 		return FALSE;
 
+	// The client draws an opaque sanic sprite on every player, props included
+	if (strstr(mutator, g_szMutators[MUTATOR_SANIC - 1]) || atoi(mutator) == MUTATOR_SANIC)
+		return FALSE;
+
 	if (strstr(mutator, g_szMutators[MUTATOR_TOILET - 1]) || atoi(mutator) == MUTATOR_TOILET)
 		return FALSE;
 
