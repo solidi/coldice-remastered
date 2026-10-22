@@ -119,6 +119,7 @@
     <ClCompile Include="..\..\cl_dll\mutator_goldeneye.cpp" />
     <ClCompile Include="..\..\cl_dll\mutator_linemode.cpp" />
     <ClCompile Include="..\..\cl_dll\mutator_myfavtexture.cpp" />
+    <ClCompile Include="..\..\cl_dll\mutator_nobackgrounds.cpp" />
     <ClCompile Include="..\..\cl_dll\mutator_tinnitus.cpp" />
     <ClCompile Include="..\..\cl_dll\mutator_virtualboy.cpp" />
     <ClCompile Include="..\..\cl_dll\mutator_xray.cpp" />

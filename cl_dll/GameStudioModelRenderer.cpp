@@ -61,7 +61,12 @@ R_StudioDrawPlayer
 int R_StudioDrawPlayer( int flags, entity_state_t *pplayer )
 {
 	if ( !XRay_SecondView() )
-		return g_StudioRenderer.StudioDrawPlayer( flags, pplayer );
+	{
+		NoBackgrounds_BeginStudio();
+		int result = g_StudioRenderer.StudioDrawPlayer( flags, pplayer );
+		NoBackgrounds_EndStudio();
+		return result;
+	}
 
 	// xray's second view of the frame only renders: no events, and gait stays on the first view's clock
 	if ( MutatorEnabled( MUTATOR_SANIC ) )
@@ -107,7 +112,12 @@ R_StudioDrawModel
 int R_StudioDrawModel( int flags )
 {
 	if ( !XRay_SecondView() )
-		return g_StudioRenderer.StudioDrawModel( flags );
+	{
+		NoBackgrounds_BeginStudio();
+		int result = g_StudioRenderer.StudioDrawModel( flags );
+		NoBackgrounds_EndStudio();
+		return result;
+	}
 
 	if ( !( flags & STUDIO_RENDER ) )
 		return 0;

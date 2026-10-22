@@ -41,6 +41,7 @@ public:
 	void BlendFog( void );
 
 	bool CullFogBBox ( Vector mins, Vector maxs );
+	bool GetActiveColor( float *rgb ) const;
 
 	void HUD_CreateEntities( void );
 	void V_CalcRefDef( const ref_params_t* pparams );

@@ -571,6 +571,13 @@ bool XRay_SecondView( void );
 void XRay_BeginStudio( void );
 void XRay_EndStudio( void );
 
+void NoBackgrounds_BeginView( struct ref_params_s *pparams );
+void NoBackgrounds_NormalTriangles( void );
+void NoBackgrounds_EndFrame( void );
+void NoBackgrounds_BeginStudio( void );
+void NoBackgrounds_EndStudio( void );
+void NoBackgrounds_AddEntity( int type, struct cl_entity_s *ent );
+
 bool VVVVVV_LocalFlipped( void );
 
 inline double GetMutatorAwarePi( void )

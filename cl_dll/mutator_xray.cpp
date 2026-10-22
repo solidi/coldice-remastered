@@ -275,7 +275,8 @@ bool CXRay::Fail( const char *reason )
 
 bool CXRay::Active( void ) const
 {
-	if (m_bFailed || g_fXashEngine || !MutatorEnabled(MUTATOR_XRAY))
+	// nobackgrounds owns GL_CLIP_PLANE0 and leaves nothing to peel.
+	if (m_bFailed || g_fXashEngine || !MutatorEnabled(MUTATOR_XRAY) || MutatorEnabled(MUTATOR_NOBACKGROUNDS))
 		return false;
 
 	return IEngineStudio.IsHardware && IEngineStudio.IsHardware() == 1;
