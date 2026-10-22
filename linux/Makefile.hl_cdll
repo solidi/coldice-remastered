@@ -137,6 +137,7 @@ HL1_OBJS = \
 	$(HL1_OBJ_DIR)/mutator_goldeneye.o \
 	$(HL1_OBJ_DIR)/mutator_linemode.o \
 	$(HL1_OBJ_DIR)/mutator_myfavtexture.o \
+	$(HL1_OBJ_DIR)/mutator_nobackgrounds.o \
 	$(HL1_OBJ_DIR)/mutator_tinnitus.o \
 	$(HL1_OBJ_DIR)/mutator_virtualboy.o \
 	$(HL1_OBJ_DIR)/mutator_xray.o \

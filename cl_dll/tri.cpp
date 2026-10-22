@@ -45,6 +45,7 @@ void CL_DLLEXPORT HUD_DrawNormalTriangles( void )
 {
 //	RecClDrawNormalTriangles();
 
+	NoBackgrounds_NormalTriangles();
 	XRay_NormalTriangles();
 
 #ifndef __APPLE__

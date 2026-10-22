@@ -126,6 +126,7 @@ DLL_GLOBAL const char *g_szMutators[] = {
 	"napkinstory",
 	"negativepi",
 	"nelliaschoice",
+	"nobackgrounds",
 	"noclip",
 	"nohud",
 	"nomouse",

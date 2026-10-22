@@ -292,6 +292,7 @@ MutatorInfo sMutators[] = {
 	{ "napkinstory", "it's a napkin story" },
 	{ "negativepi", "pi is now -1" },
 	{ "nelliaschoice", "one random non-movement bind becomes lethal" },
+	{ "nobackgrounds", "007 level geometry vanishes, objects stay" },
 	{ "noclip", "walk through walls" },
 	{ "nohud", "hide all hud elements except its own status icon" },
 	{ "nomouse", "alive players lose mouse input" },

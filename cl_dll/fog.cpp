@@ -168,6 +168,17 @@ bool CFog::CullFogBBox( Vector mins, Vector maxs )
 	return false;
 }
 
+bool CFog::GetActiveColor( float *rgb ) const
+{
+	if (!m_fogParams.enddist && !m_fogParams.startdist)
+		return false;
+
+	rgb[0] = m_fogParams.color.x;
+	rgb[1] = m_fogParams.color.y;
+	rgb[2] = m_fogParams.color.z;
+	return true;
+}
+
 int CFog::MsgFunc_Fog( const char *pszName, int iSize, void *pBuf )
 {
 	BEGIN_READ(pBuf, iSize);
