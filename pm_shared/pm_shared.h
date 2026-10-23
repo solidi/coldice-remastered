@@ -45,4 +45,11 @@ char PM_FindTextureType( char *name );
 #define OBS_MENU_3				2
 #define OBS_MENU_4				3
 
+// Movement mutator bits, sent to pm_shared in physinfo "mv"
+#define MV_NOJUMP				(1<<0)
+#define MV_NODUCK				(1<<1)
+#define MV_DUCKED				(1<<2)
+#define MV_FLY					(1<<3)
+#define MV_AUTORUN				(1<<4)
+
 #endif

@@ -2950,6 +2950,10 @@ void CBasePlayer::ClimbingPhysics()
 	if (g_pGameRules->MutatorEnabled(MUTATOR_NOCLIP))
 		return;
 
+	// fly rises with jump instead of climbing
+	if (m_iMoveMutators & MV_FLY)
+		return;
+
 	// Climb traces assume the floor is below the player
 	if (m_fGravityFlipAllowed)
 		return;
@@ -3212,6 +3216,66 @@ BOOL CBasePlayer::IsGravityFlipped( void )
 	return m_fGravityFlipAllowed && pev->fuser1 > 0 && pev->deadflag == DEAD_NO && !pev->iuser1;
 }
 
+void CBasePlayer::SyncMoveMutators( void )
+{
+	int bits = 0;
+
+	// Intermission: a forced duck would count as the button press that ends it
+	if ( g_pGameRules && !g_fGameOver )
+	{
+		if ( g_pGameRules->MutatorEnabled( MUTATOR_NOJUMP ) )
+			bits |= MV_NOJUMP;
+
+		if ( g_pGameRules->MutatorEnabled( MUTATOR_NODUCK ) )
+			bits |= MV_NODUCK;
+		else if ( g_pGameRules->MutatorEnabled( MUTATOR_DUCKED ) )
+			bits |= MV_DUCKED;
+
+		// grave_bot walks its waypoints and stops for lifts and doors, so it keeps its own steering
+		if ( !FBitSet( pev->flags, FL_FAKECLIENT ) )
+		{
+			if ( g_pGameRules->MutatorEnabled( MUTATOR_FLY ) )
+				bits |= MV_FLY;
+			if ( g_pGameRules->MutatorEnabled( MUTATOR_AUTORUN ) )
+				bits |= MV_AUTORUN;
+		}
+	}
+
+	if ( ( m_iMoveMutators & MV_FLY ) && !( bits & MV_FLY ) )
+		m_fFlyFallGrace = TRUE;
+	m_iMoveMutators = bits;
+
+	if ( atoi( g_engfuncs.pfnInfoKeyValue( (char *)ENGINE_GETPHYSINFO( edict() ), "mv" ) ) != bits )
+	{
+		char szBits[8];
+		sprintf( szBits, "%d", bits );
+		g_engfuncs.pfnSetPhysicsKeyValue( edict(), "mv", szBits );
+	}
+}
+
+// pm_shared filters its own copy of the usercmd; this keeps pev->button (acrobatics, animations) in step
+void CBasePlayer::ApplyMoveMutatorButtons( void )
+{
+	if ( !m_iMoveMutators || pev->deadflag != DEAD_NO || pev->iuser1 || pev->iuser3 > 0 )
+		return;
+
+	if ( ( m_iMoveMutators & MV_NOJUMP ) && pev->waterlevel < 2 )
+		pev->button &= ~IN_JUMP;
+
+	if ( m_iMoveMutators & MV_NODUCK )
+		pev->button &= ~IN_DUCK;
+	else if ( m_iMoveMutators & MV_DUCKED )
+		pev->button |= IN_DUCK;
+	else if ( ( m_iMoveMutators & MV_FLY ) && !FBitSet( pev->flags, FL_ONGROUND ) )
+		pev->button &= ~IN_DUCK;
+
+	if ( m_iMoveMutators & MV_AUTORUN )
+	{
+		pev->button |= IN_FORWARD;
+		pev->button &= ~IN_BACK;
+	}
+}
+
 void CBasePlayer::Jump()
 {
 	Vector		vecWallCheckDir;// direction we're tracing a line to find a wall when walljumping
@@ -3234,6 +3298,10 @@ void CBasePlayer::Jump()
 			SetAnimation( PLAYER_JUMP );
 		return;
 	}
+
+	// fly: jump rises in pm_shared, so no air jumps, flips or long jumps
+	if ( m_iMoveMutators & MV_FLY )
+		return;
 
 	// jump velocity is sqrt( height * gravity * 2)
 
@@ -3535,6 +3603,9 @@ void CBasePlayer::UpdateStatusBar()
 
 void CBasePlayer::PreThink(void)
 {
+	SyncMoveMutators();
+	ApplyMoveMutatorButtons();
+
 	int buttonsChanged = (m_afButtonLast ^ pev->button);	// These buttons have changed this frame
 	
 	// Debounced button codes for pressed/released
@@ -3698,7 +3769,9 @@ void CBasePlayer::PreThink(void)
 	if ((pev->button & IN_DUCK) || FBitSet(pev->flags,FL_DUCKING) || (m_afPhysicsFlags & PFLAG_DUCKING) )
 		Duck();
 
-	if ( !FBitSet ( pev->flags, FL_ONGROUND ) )
+	if ( m_iMoveMutators & MV_FLY )
+		m_flFallVelocity = 0;
+	else if ( !FBitSet ( pev->flags, FL_ONGROUND ) )
 	{
 		m_flFallVelocity = IsGravityFlipped() ? pev->velocity.z : -pev->velocity.z;
 	}
@@ -4648,7 +4721,7 @@ void CBasePlayer::PostThink()
 			// if ( !pev->groundentity || VARS(pev->groundentity)->velocity.z == 0 )
 				// EMIT_SOUND(ENT(pev), CHAN_BODY, "player/pl_wade1.wav", 1, ATTN_NORM);
 		}
-		else if ( m_flFallVelocity > PLAYER_MAX_SAFE_FALL_SPEED && !m_fGravityFlipAllowed && !m_fGravityFlipFallGrace )
+		else if ( m_flFallVelocity > PLAYER_MAX_SAFE_FALL_SPEED && !m_fGravityFlipAllowed && !m_fGravityFlipFallGrace && !m_fFlyFallGrace )
 		{// after this point, we start doing damage
 			
 			float flFallDamage = g_pGameRules->FlPlayerFallDamage( this );
@@ -4682,6 +4755,7 @@ void CBasePlayer::PostThink()
 		CheckHeadStomp();
 		m_flFallVelocity = 0;
 		m_fGravityFlipFallGrace = FALSE;
+		m_fFlyFallGrace = FALSE;
 	}
 
 	// select the proper animation for the player character	
@@ -5081,6 +5155,8 @@ void CBasePlayer::Spawn( void )
 	SyncGravityFlipMutator();
 	if ( m_fGravityFlipAllowed )
 		ClearGravityFlip();
+	SyncMoveMutators();
+	m_fFlyFallGrace = FALSE;
 	g_engfuncs.pfnSetPhysicsKeyValue(edict(), "jumpheight", CVAR_GET_STRING("sv_jumpheight"));
 	m_fJumpHeight = atof(CVAR_GET_STRING("sv_jumpheight"));
 
@@ -5323,6 +5399,7 @@ int CBasePlayer::Restore( CRestore &restore )
 	g_engfuncs.pfnSetPhysicsKeyValue( edict(), "hl", "1" );
 	g_engfuncs.pfnSetPhysicsKeyValue( edict(), "negpi", ( g_pGameRules && g_pGameRules->MutatorEnabled(MUTATOR_NEGATIVEPI) ) ? "1" : "0" );
 	SyncGravityFlipMutator();
+	SyncMoveMutators();
 
 	if ( m_fLongJump )
 	{
@@ -6421,6 +6498,9 @@ void CBasePlayer::StartRightFlip( void )
 	if (!acrobatics.value)
 		return;
 
+	if (m_iMoveMutators & MV_NOJUMP)
+		return;
+
 	if (pev->waterlevel == 3)
 		return;
 
@@ -6445,6 +6525,9 @@ void CBasePlayer::StartRightFlip( void )
 void CBasePlayer::StartLeftFlip( void )
 {
 	if (!acrobatics.value)
+		return;
+
+	if (m_iMoveMutators & MV_NOJUMP)
 		return;
 
 	if (pev->waterlevel == 3)
@@ -6472,6 +6555,9 @@ void CBasePlayer::StartBackFlip( void )
 	if (!acrobatics.value)
 		return;
 
+	if (m_iMoveMutators & MV_NOJUMP)
+		return;
+
 	if (pev->waterlevel == 3)
 		return;
 
@@ -6495,6 +6581,9 @@ void CBasePlayer::StartBackFlip( void )
 void CBasePlayer::StartFrontFlip( void )
 {
 	if (!acrobatics.value)
+		return;
+
+	if (m_iMoveMutators & MV_NOJUMP)
 		return;
 
 	if (pev->waterlevel == 3)
@@ -6522,6 +6611,10 @@ void CBasePlayer::StartFrontFlip( void )
 void CBasePlayer::StartHurricaneKick( void )
 {
 	if (!acrobatics.value)
+		return;
+
+	// the kick launches 300 up, which is a jump
+	if (m_iMoveMutators & MV_NOJUMP)
 		return;
 
 	if (pev->waterlevel == 3)
