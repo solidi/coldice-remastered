@@ -1071,6 +1071,32 @@ int CBaseMonster :: TakeHealth (float flHealth, int bitsDamageType)
 	return CBaseEntity::TakeHealth(flHealth, bitsDamageType);
 }
 
+#define HITSTUN_TIME		0.3f	// GoldenEye 007 style flinch: no moving, no attacking
+#define HITSTUN_RECOVERY	0.4f	// once a stun ends, hits cannot stun again for this long
+// Damage over time would keep its victim stunned for as long as it ticks
+#define HITSTUN_IGNORE_DMG	( DMG_BURN | DMG_DROWN | DMG_PARALYZE | DMG_NERVEGAS | DMG_POISON | DMG_RADIATION | \
+							  DMG_DROWNRECOVER | DMG_ACID | DMG_SLOWBURN | DMG_SLOWFREEZE )
+
+// hitstun mutator. Players are held by pev->maxspeed (CBasePlayer::SyncMoveMutators) and
+// m_flNextAttack; monsters by CallMonsterThink and CBaseTurret::ActiveThink.
+void CBaseMonster::ApplyHitStun( entvars_t *pevAttacker, int bitsDamageType )
+{
+	if ( !g_pGameRules->MutatorEnabled( MUTATOR_HITSTUN ) )
+		return;
+
+	// Self damage: rocket jumps, dontshoot, poison ticks
+	if ( pevAttacker == pev || ( bitsDamageType & HITSTUN_IGNORE_DMG ) )
+		return;
+
+	if ( gpGlobals->time < m_flHitStunEnd + HITSTUN_RECOVERY )
+		return;
+
+	m_flHitStunEnd = gpGlobals->time + HITSTUN_TIME;
+
+	if ( IsPlayer() )
+		m_flNextAttack = fmax( m_flNextAttack, UTIL_WeaponTimeBase() + HITSTUN_TIME );
+}
+
 /*
 ============
 TakeDamage
@@ -1243,6 +1269,9 @@ int CBaseMonster :: TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker,
 
 		return 0;
 	}
+
+	if ( flTake > 0 )
+		ApplyHitStun( pevAttacker, bitsDamageType );
 
 	// react to the damage (get mad)
 	if ( (pev->flags & FL_MONSTER) && !FNullEnt(pevAttacker) )

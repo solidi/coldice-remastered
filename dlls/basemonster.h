@@ -85,6 +85,8 @@ public:
 
 	float				m_flNextAttack;		// cannot attack again until this time
 
+	float				m_flHitStunEnd;		// hitstun mutator: cannot move or attack until this time
+
 	int					m_bitsDamageType;	// what types of damage has monster (player) taken
 	BYTE				m_rgbTimeBasedDamage[CDMG_TIMEBASED];
 
@@ -140,7 +142,9 @@ public:
 
 // stuff written for new state machine
 		virtual void MonsterThink( void );
-		void EXPORT	CallMonsterThink( void ) { this->MonsterThink(); }
+		void EXPORT	CallMonsterThink( void );
+		void ApplyHitStun( entvars_t *pevAttacker, int bitsDamageType );
+		BOOL IsHitStunned( void );
 		virtual int IRelationship ( CBaseEntity *pTarget );
 		virtual void MonsterInit ( void );
 		virtual void MonsterInitDead( void );	// Call after animation/pose is set up

@@ -1494,6 +1494,13 @@ BOOL CHalfLifePropHunt::FPlayerCanRespawn( CBasePlayer *pPlayer )
 
 BOOL CHalfLifePropHunt::MutatorAllowed(const char *mutator)
 {
+	// Props hide by standing still
+	if (strstr(mutator, g_szMutators[MUTATOR_AUTORUN - 1]) || atoi(mutator) == MUTATOR_AUTORUN)
+		return FALSE;
+
+	if (strstr(mutator, g_szMutators[MUTATOR_POGO - 1]) || atoi(mutator) == MUTATOR_POGO)
+		return FALSE;
+
 	if (strstr(mutator, g_szMutators[MUTATOR_SANTAHAT - 1]) || atoi(mutator) == MUTATOR_SANTAHAT)
 		return FALSE;
 
