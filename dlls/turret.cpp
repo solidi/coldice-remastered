@@ -473,6 +473,9 @@ void CBaseTurret::ActiveThink(void)
 	pev->nextthink = gpGlobals->time + 0.1;
 	StudioFrameAdvance( );
 
+	if ( IsHitStunned() )
+		return;
+
 	if ((!m_iOn) || (m_hEnemy == NULL))
 	{
 		m_hEnemy = NULL;
@@ -1052,6 +1055,9 @@ int CBaseTurret::TakeDamage(entvars_t *pevInflictor, entvars_t *pevAttacker, flo
 		}
 	}
 
+	if (flDamage > 0)
+		ApplyHitStun(pevAttacker, bitsDamageType);
+
 	return 1;
 }
 
@@ -1262,6 +1268,9 @@ int CSentry::TakeDamage(entvars_t *pevInflictor, entvars_t *pevAttacker, float f
 
 		return 0;
 	}
+
+	if (flDamage > 0)
+		ApplyHitStun(pevAttacker, bitsDamageType);
 
 	return 1;
 }

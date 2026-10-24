@@ -346,9 +346,10 @@ public:
 	void ClearGravityFlip( void );
 	BOOL IsGravityFlipped( void );
 
-	// autorun/ducked/fly/noduck/nojump: MV_* bits (pm_shared.h) mirrored in physinfo "mv"
+	// autorun/backwards/ducked/fly/heavy/noduck/nojump/pinball/planted/pogo: MV_* bits (pm_shared.h) mirrored in physinfo "mv"
 	int m_iMoveMutators = 0;
 	BOOL m_fFlyFallGrace = FALSE; // no fall damage on the landing after fly ends
+	BOOL m_fHitStunned = FALSE; // hitstun mutator: m_flHitStunEnd is running, pev->maxspeed holds HITSTUN_MAXSPEED
 	void SyncMoveMutators( void );
 	void ApplyMoveMutatorButtons( void );
 

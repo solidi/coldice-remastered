@@ -51,5 +51,13 @@ char PM_FindTextureType( char *name );
 #define MV_DUCKED				(1<<2)
 #define MV_FLY					(1<<3)
 #define MV_AUTORUN				(1<<4)
+#define MV_BACKWARDS			(1<<5)
+#define MV_HEAVY				(1<<6)
+#define MV_PLANTED				(1<<7)
+#define MV_PINBALL				(1<<8)
+#define MV_POGO					(1<<9)
+
+// hitstun mutator: the server sets pev->maxspeed to this while a player is stunned (sent as clientdata maxspeed)
+#define HITSTUN_MAXSPEED		1.0f
 
 #endif

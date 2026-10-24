@@ -587,6 +587,26 @@ void CBaseMonster :: Burn( void )
 	}
 }
 
+BOOL CBaseMonster::IsHitStunned( void )
+{
+	return m_flHitStunEnd > gpGlobals->time && pev->deadflag == DEAD_NO && pev->health > 0;
+}
+
+void CBaseMonster::CallMonsterThink( void )
+{
+	// hitstun: no AI, schedules, movement or attack events until it wears off; the animation keeps playing
+	if ( IsHitStunned() )
+	{
+		pev->nextthink = gpGlobals->time + 0.1;
+		StudioFrameAdvance();
+		if ( pev->movetype == MOVETYPE_FLY )
+			pev->velocity = g_vecZero;
+		return;
+	}
+
+	MonsterThink();
+}
+
 //=========================================================
 // Monster Think - calls out to core AI functions and handles this
 // monster's specific animation events

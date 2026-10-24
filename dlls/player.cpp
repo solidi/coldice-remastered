@@ -3231,6 +3231,15 @@ void CBasePlayer::SyncMoveMutators( void )
 		else if ( g_pGameRules->MutatorEnabled( MUTATOR_DUCKED ) )
 			bits |= MV_DUCKED;
 
+		if ( g_pGameRules->MutatorEnabled( MUTATOR_HEAVY ) )
+			bits |= MV_HEAVY;
+		if ( g_pGameRules->MutatorEnabled( MUTATOR_PLANTED ) )
+			bits |= MV_PLANTED;
+		if ( g_pGameRules->MutatorEnabled( MUTATOR_PINBALL ) )
+			bits |= MV_PINBALL;
+		if ( g_pGameRules->MutatorEnabled( MUTATOR_POGO ) )
+			bits |= MV_POGO;
+
 		// grave_bot walks its waypoints and stops for lifts and doors, so it keeps its own steering
 		if ( !FBitSet( pev->flags, FL_FAKECLIENT ) )
 		{
@@ -3238,6 +3247,8 @@ void CBasePlayer::SyncMoveMutators( void )
 				bits |= MV_FLY;
 			if ( g_pGameRules->MutatorEnabled( MUTATOR_AUTORUN ) )
 				bits |= MV_AUTORUN;
+			if ( g_pGameRules->MutatorEnabled( MUTATOR_BACKWARDS ) )
+				bits |= MV_BACKWARDS;
 		}
 	}
 
@@ -3251,16 +3262,29 @@ void CBasePlayer::SyncMoveMutators( void )
 		sprintf( szBits, "%d", bits );
 		g_engfuncs.pfnSetPhysicsKeyValue( edict(), "mv", szBits );
 	}
+
+	// hitstun: maxspeed is predicted clientdata, so the client stops moving in step with the server
+	m_fHitStunned = IsHitStunned() && !pev->iuser1 && !g_fGameOver;
+	if ( m_fHitStunned )
+		pev->maxspeed = HITSTUN_MAXSPEED;
+	else if ( pev->maxspeed == HITSTUN_MAXSPEED )
+		pev->maxspeed = 0;
 }
 
 // pm_shared filters its own copy of the usercmd; this keeps pev->button (acrobatics, animations) in step
 void CBasePlayer::ApplyMoveMutatorButtons( void )
 {
-	if ( !m_iMoveMutators || pev->deadflag != DEAD_NO || pev->iuser1 || pev->iuser3 > 0 )
+	if ( ( !m_iMoveMutators && !m_fHitStunned ) || pev->deadflag != DEAD_NO || pev->iuser1 || pev->iuser3 > 0 )
 		return;
 
+	BOOL jumpBlocked = FALSE;
+	const int moveButtons = IN_FORWARD | IN_BACK | IN_MOVELEFT | IN_MOVERIGHT;
+
 	if ( ( m_iMoveMutators & MV_NOJUMP ) && pev->waterlevel < 2 )
+	{
 		pev->button &= ~IN_JUMP;
+		jumpBlocked = TRUE;
+	}
 
 	if ( m_iMoveMutators & MV_NODUCK )
 		pev->button &= ~IN_DUCK;
@@ -3274,6 +3298,29 @@ void CBasePlayer::ApplyMoveMutatorButtons( void )
 		pev->button |= IN_FORWARD;
 		pev->button &= ~IN_BACK;
 	}
+
+	if ( m_iMoveMutators & MV_BACKWARDS )
+	{
+		const int buttons = pev->button;
+		pev->button &= ~moveButtons;
+		if ( buttons & IN_FORWARD )
+			pev->button |= IN_BACK;
+		if ( buttons & IN_BACK )
+			pev->button |= IN_FORWARD;
+		if ( buttons & IN_MOVELEFT )
+			pev->button |= IN_MOVERIGHT;
+		if ( buttons & IN_MOVERIGHT )
+			pev->button |= IN_MOVELEFT;
+	}
+
+	if ( m_fHitStunned || ( ( m_iMoveMutators & MV_PLANTED ) && ( pev->button & ( IN_ATTACK | IN_ATTACK2 ) ) ) )
+	{
+		pev->button &= ~( moveButtons | IN_JUMP );
+		jumpBlocked = TRUE;
+	}
+
+	if ( ( m_iMoveMutators & MV_POGO ) && !jumpBlocked && FBitSet( pev->flags, FL_ONGROUND ) && !FBitSet( pev->flags, FL_FROZEN ) )
+		pev->button |= IN_JUMP;
 }
 
 void CBasePlayer::Jump()
@@ -5155,6 +5202,7 @@ void CBasePlayer::Spawn( void )
 	SyncGravityFlipMutator();
 	if ( m_fGravityFlipAllowed )
 		ClearGravityFlip();
+	m_flHitStunEnd = 0;
 	SyncMoveMutators();
 	m_fFlyFallGrace = FALSE;
 	g_engfuncs.pfnSetPhysicsKeyValue(edict(), "jumpheight", CVAR_GET_STRING("sv_jumpheight"));

@@ -176,10 +176,26 @@ static void PM_SetVVVVVVFlip( qboolean flipped )
 static int g_iPmMoveMutators = 0;
 // Jump/duck as the client sent them; fly rises and sinks with these even under nojump/noduck/ducked.
 static int g_iPmFlyButtons = 0;
+// nojump, planted firing or hitstun took jump away this frame, so pogo must not put it back
+static qboolean g_bPmJumpBlocked = false;
+
+#define PM_MOVE_BUTTONS		( IN_FORWARD | IN_BACK | IN_MOVELEFT | IN_MOVERIGHT )
+#define PM_HEAVY_GRAVITY	2.0f
+#define PINBALL_MIN_SPEED	150.0f	// slower wall hits still slide
+#define PINBALL_BOUNCE		1.5f	// rebound speed per unit of impact speed
+#define PINBALL_MIN_KICK	450.0f	// slowest rebound off the wall
+#define PINBALL_HOP			200.0f	// airborne, ground friction and acceleration cannot eat the rebound
+
+// pinball: last wall PM_FlyMove hit this frame
+static qboolean g_bPmWallHit = false;
+static vec3_t g_vPmWallNormal;
 
 static void PM_ApplyMoveMutators( void )
 {
+	int buttons;
+
 	g_iPmMoveMutators = 0;
+	g_bPmJumpBlocked = false;
 	g_iPmFlyButtons = pmove->cmd.buttons & ( IN_JUMP | IN_DUCK );
 
 	if ( pmove->spectator || pmove->iuser1 > 0 || pmove->iuser3 > 0 || pmove->dead )
@@ -189,16 +205,50 @@ static void PM_ApplyMoveMutators( void )
 
 	// Jump still swims up
 	if ( ( g_iPmMoveMutators & MV_NOJUMP ) && pmove->waterlevel < 2 )
+	{
 		pmove->cmd.buttons &= ~IN_JUMP;
+		g_bPmJumpBlocked = true;
+	}
 
 	if ( g_iPmMoveMutators & MV_NODUCK )
 		pmove->cmd.buttons &= ~IN_DUCK;
 	else if ( g_iPmMoveMutators & MV_DUCKED )
 		pmove->cmd.buttons |= IN_DUCK;
 
-	// PM_CheckParamters scales this down to the player's own max speed
+	// PM_CheckParamters scales this down to the player's own max speed; ladders read the buttons
 	if ( g_iPmMoveMutators & MV_AUTORUN )
+	{
 		pmove->cmd.forwardmove = pmove->maxspeed;
+		pmove->cmd.buttons = ( pmove->cmd.buttons | IN_FORWARD ) & ~IN_BACK;
+	}
+
+	if ( g_iPmMoveMutators & MV_BACKWARDS )
+	{
+		buttons = pmove->cmd.buttons;
+		pmove->cmd.forwardmove = -pmove->cmd.forwardmove;
+		pmove->cmd.sidemove = -pmove->cmd.sidemove;
+		pmove->cmd.buttons &= ~PM_MOVE_BUTTONS;
+		if ( buttons & IN_FORWARD )
+			pmove->cmd.buttons |= IN_BACK;
+		if ( buttons & IN_BACK )
+			pmove->cmd.buttons |= IN_FORWARD;
+		if ( buttons & IN_MOVELEFT )
+			pmove->cmd.buttons |= IN_MOVERIGHT;
+		if ( buttons & IN_MOVERIGHT )
+			pmove->cmd.buttons |= IN_MOVELEFT;
+	}
+
+	// planted roots the player while firing, hitstun while stunned
+	if ( ( ( g_iPmMoveMutators & MV_PLANTED ) && ( pmove->cmd.buttons & ( IN_ATTACK | IN_ATTACK2 ) ) ) ||
+		pmove->clientmaxspeed == HITSTUN_MAXSPEED )
+	{
+		pmove->cmd.forwardmove = 0;
+		pmove->cmd.sidemove = 0;
+		pmove->cmd.upmove = 0;
+		pmove->cmd.buttons &= ~( PM_MOVE_BUTTONS | IN_JUMP );
+		g_iPmFlyButtons = 0;
+		g_bPmJumpBlocked = true;
+	}
 }
 
 static qboolean PM_Flying( void )
@@ -208,6 +258,36 @@ static qboolean PM_Flying( void )
 
 	// MOVETYPE_FLY is the ladder state, PM_PlayerMove turns it back into WALK
 	return pmove->movetype == MOVETYPE_WALK || pmove->movetype == MOVETYPE_FLY ? true : false;
+}
+
+// pinball: a hard wall hit kicks the player back off the wall like a bumper instead of sliding along it.
+// pre is the velocity before the move; stairs keep their speed, so only a move the wall stopped bounces.
+static void PM_PinballBounce( vec3_t pre, qboolean hop )
+{
+	float into, after, kick;
+	int i;
+
+	if ( !( g_iPmMoveMutators & MV_PINBALL ) || !g_bPmWallHit )
+		return;
+
+	into = DotProduct( pre, g_vPmWallNormal );
+	after = DotProduct( pmove->velocity, g_vPmWallNormal );
+
+	if ( into > -PINBALL_MIN_SPEED || after < into * 0.5f )
+		return;
+
+	kick = max( -into * PINBALL_BOUNCE, PINBALL_MIN_KICK );
+
+	// keep the speed along the wall, replace the speed into it with the kick away from it
+	for ( i = 0; i < 2; i++ )
+		pmove->velocity[i] = pre[i] + ( kick - into ) * g_vPmWallNormal[i];
+
+	if ( hop )
+	{
+		if ( pmove->velocity[2] * g_flPmUp < PINBALL_HOP )
+			pmove->velocity[2] = PINBALL_HOP * g_flPmUp;
+		pmove->onground = -1;
+	}
 }
 
 void PM_SwapTextures( int i, int j )
@@ -851,6 +931,9 @@ void PM_AddCorrectGravity ()
 	else
 		ent_gravity = 1.0;
 
+	if ( g_iPmMoveMutators & MV_HEAVY )
+		ent_gravity *= PM_HEAVY_GRAVITY;
+
 	// Add gravity so they'll be in the correct position during movement
 	// yes, this 0.5 looks wrong, but it's not.  
 	pmove->velocity[2] -= (g_flPmUp * ent_gravity * pmove->movevars->gravity * 0.5 * pmove->frametime );
@@ -872,6 +955,9 @@ void PM_FixupGravityVelocity ()
 		ent_gravity = pmove->gravity;
 	else
 		ent_gravity = 1.0;
+
+	if ( g_iPmMoveMutators & MV_HEAVY )
+		ent_gravity *= PM_HEAVY_GRAVITY;
 
 	// Get the correct velocity for the end of the dt 
   	pmove->velocity[2] -= (g_flPmUp * ent_gravity * pmove->movevars->gravity * pmove->frametime * 0.5 );
@@ -973,6 +1059,12 @@ int PM_FlyMove (void)
 		{
 			blocked |= 2;		// step / wall
 			//Con_DPrintf("Blocked by %i\n", trace.ent);
+		}
+
+		if ( fabs( trace.plane.normal[2] ) < 0.7f )
+		{
+			g_bPmWallHit = true;
+			VectorCopy( trace.plane.normal, g_vPmWallNormal );
 		}
 
 		// Reduce amount of pmove->frametime left by total time left * fraction
@@ -3187,6 +3279,7 @@ static void PM_FlyMutatorMove( void )
 
 	VectorCopy( pmove->origin, original );
 	VectorCopy( pmove->velocity, originalvel );
+	g_bPmWallHit = false;
 
 	// Blocked by a wall: also try the move one step higher, so stairs still work
 	if ( PM_FlyMove() & 2 )
@@ -3226,6 +3319,8 @@ static void PM_FlyMutatorMove( void )
 			VectorCopy( downvel, pmove->velocity );
 		}
 	}
+
+	PM_PinballBounce( originalvel, false );
 
 	VectorSubtract( pmove->velocity, pmove->basevelocity, pmove->velocity );
 	PM_CheckVelocity();
@@ -3468,6 +3563,16 @@ void PM_PlayerMove ( qboolean server )
 
 		// Not underwater
 		{
+			vec3_t vecPrePinball;
+
+			// pogo: every landing jumps again
+			if ( ( g_iPmMoveMutators & MV_POGO ) && !g_bPmJumpBlocked && pmove->onground != -1 &&
+				!pLadder && !( pmove->flags & FL_FROZEN ) )
+			{
+				pmove->cmd.buttons |= IN_JUMP;
+				pmove->oldbuttons &= ~IN_JUMP;
+			}
+
 			// Was jump button pressed?
 			if ( pmove->cmd.buttons & IN_JUMP )
 			{
@@ -3492,6 +3597,9 @@ void PM_PlayerMove ( qboolean server )
 			// Make sure velocity is valid.
 			PM_CheckVelocity();
 
+			VectorCopy( pmove->velocity, vecPrePinball );
+			g_bPmWallHit = false;
+
 			// Are we on ground now
 			if ( pmove->onground != -1 )
 			{
@@ -3512,6 +3620,8 @@ void PM_PlayerMove ( qboolean server )
 				
 			// Make sure velocity is valid.
 			PM_CheckVelocity();
+
+			PM_PinballBounce( vecPrePinball, true );
 
 			// Add any remaining gravitational component.
 			if ( !PM_InWater() )
