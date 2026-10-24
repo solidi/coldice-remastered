@@ -430,6 +430,10 @@ void CFuncTank :: ControllerPostFrame( void )
 		return;
 	}
 
+	// hitstun: the controller's m_flNextAttack does not reach the tank's own cooldown
+	if ( pController->IsHitStunned() )
+		return;
+
 	if ( gpGlobals->time < m_flNextAttack )
 		return;
 

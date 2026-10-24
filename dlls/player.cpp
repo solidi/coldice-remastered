@@ -6797,6 +6797,10 @@ void CBasePlayer::AutoMelee()
 	if (pev->flags & FL_FROZEN)
 		return;
 
+	// Runs on its own cooldown, so m_flNextAttack does not hold it
+	if (IsHitStunned())
+		return;
+
 	if (g_pGameRules->IsPropHunt())
 		return;
 

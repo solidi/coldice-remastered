@@ -3222,6 +3222,10 @@ static void PM_FlyMutatorMove( void )
 	vec3_t		original, originalvel, down, downvel, dest;
 	pmtrace_t	trace;
 
+	// A water jump in progress blocks PM_Accelerate, and only the walk branch counts it down
+	pmove->waterjumptime = 0;
+	pmove->flags &= ~FL_WATERJUMP;
+
 	// Friction on every axis: without gravity nothing else stops a drift
 	speed = Length( pmove->velocity );
 	if ( speed < 1 )
