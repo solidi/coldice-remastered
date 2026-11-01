@@ -48,6 +48,7 @@
 #define MENU_VOTESERVEROPTIONS	14
 #define MENU_COOKIES				15
 #define MENU_BSOD					16
+#define MENU_VOTEBOTOPTIONS		17
 #endif
 using namespace vgui;
 
@@ -69,6 +70,7 @@ class CVoteMapPanel;
 class CVoteMutatorPanel;
 class CVoteGameOptionsPanel;
 class CVoteServerOptionsPanel;
+class CVoteBotOptionsPanel;
 class CCookiesPanel;
 class CBSODPanel;
 class CTeamMenuPanel;
@@ -548,6 +550,8 @@ private:
 	CMenuPanel*	 ShowVoteGameOptionsMenu( int timer );
 	void		 CreateVoteServerOptionsMenu( void );
 	CMenuPanel*	 ShowVoteServerOptionsMenu( int timer );
+	void		 CreateVoteBotOptionsMenu( void );
+	CMenuPanel*	 ShowVoteBotOptionsMenu( int timer );
 	void		 CreateCookiesMenu( void );
 	CMenuPanel*	 ShowCookiesMenu( void );
 	void		 CreateBSODMenu( void );
@@ -670,6 +674,9 @@ public:
 	int MsgFunc_SrvOpts( const char *pszName, int iSize, void *pbuf );   // server-options manifest (chunked)
 	int MsgFunc_VoteSrvOp( const char *pszName, int iSize, void *pbuf ); // open/close server-options vote panel
 	int MsgFunc_SOptFor( const char *pszName, int iSize, void *pbuf );   // mirrored per-item vote
+	int MsgFunc_BotOpts( const char *pszName, int iSize, void *pbuf );   // bot-options manifest (chunked)
+	int MsgFunc_VoteBotOp( const char *pszName, int iSize, void *pbuf ); // open/close bot-options RTV vote panel
+	int MsgFunc_BOptFor( const char *pszName, int iSize, void *pbuf );   // mirrored per-item vote
 	int MsgFunc_Cookies( const char *pszName, int iSize, void *pbuf );   // accept-all-cookies instant mutator
 	int MsgFunc_BSOD( const char *pszName, int iSize, void *pbuf );      // bsod instant mutator
 
@@ -701,6 +708,7 @@ public:
 	CVoteMutatorPanel	*m_pVoteMutatorMenu;
 	CVoteGameOptionsPanel	*m_pVoteGameOptionsMenu;
 	CVoteServerOptionsPanel	*m_pVoteServerOptionsMenu;
+	CVoteBotOptionsPanel	*m_pVoteBotOptionsMenu;
 	CCookiesPanel		*m_pCookiesMenu;
 	CBSODPanel			*m_pBSODMenu;
 };
@@ -1881,6 +1889,29 @@ extern bool                   g_bServerOptsResendRequested;
 extern bool                   g_bServerOptionsAutoCloseOnComplete;
 extern char                   g_szServerOptionsVoteModeClient[32];
 
+// ---------------------------------------------------------------------------
+// Bot-options voting (mirrors botoptions.txt parsed by the server).
+// Same row layout as server-options, capped at 16 rows, RTV-only.
+// Populated by TeamFortressViewport::MsgFunc_BotOpts (streamed a few seconds
+// after connect). Active subset arrives via MsgFunc_VoteBotOp.
+// Live per-player votes are mirrored by MsgFunc_BOptFor.
+// ---------------------------------------------------------------------------
+#define MAX_CLIENT_BOT_OPTIONS			16
+
+typedef client_server_option_t client_bot_option_t;
+
+extern client_bot_option_t g_BotOptionsClient[MAX_CLIENT_BOT_OPTIONS];
+extern int                 g_iBotOptionsClientCount;
+extern int                 g_iBotOptionsRevisionClient;
+extern bool                g_bBotOptionsReceived;
+extern int                 g_iActiveBotOptionsClient[MAX_CLIENT_BOT_OPTIONS];
+extern int                 g_iActiveBotOptionsClientCount;
+extern int                 g_PlayerBotOptVote[MAX_PLAYERS + 1][MAX_CLIENT_BOT_OPTIONS];
+extern bool                g_bBotOptsResendRequested;
+extern bool                g_bBotOptionsAutoCloseOnComplete;
+extern char                g_szBotOptionsVoteModeClient[32];
+extern int                 g_iBotOptionsVoteRevisionClient; // revision the open vote was sent with
+
 class CVoteGameplayPanel : public CMenuPanel
 {
 private:
@@ -2091,6 +2122,51 @@ public:
 
 	void BuildRows( void );
 	void OnRowButton( int row, int option );
+
+	float m_iTime;
+};
+
+// ---------------------------------------------------------------------------
+// CVoteBotOptionsPanel -- the RTV-only bot-options vote window. Same per-row
+// layout as CVoteServerOptionsPanel, backed by g_BotOptionsClient[]. Because
+// the bot manifest streams a few seconds after connect, the panel rebuilds
+// itself if it opened before the manifest arrived.
+// Implementation lives in vgui_VoteBotOptionsWindow.cpp.
+// ---------------------------------------------------------------------------
+class CVoteBotOptionsPanel : public CMenuPanel
+{
+private:
+	CTFScrollPanel		*m_pScrollPanel;
+	LineBorder		*m_pScrollPanelBorder;
+	Label			*m_pTitleLabel;
+	Label			*m_pRowLabels[MAX_CLIENT_BOT_OPTIONS];
+	ColorButton		*m_pRowButtons[MAX_CLIENT_BOT_OPTIONS][MAX_CLIENT_SERVER_OPTION_VALUES];
+	LineBorder		*m_pRowButtonBorders[MAX_CLIENT_BOT_OPTIONS][MAX_CLIENT_SERVER_OPTION_VALUES];
+	Label			*m_pRowVoteTallies[MAX_CLIENT_BOT_OPTIONS][MAX_CLIENT_SERVER_OPTION_VALUES];
+
+	int				m_iRowCount;
+	bool			m_bWaitingForManifest; // rows not built yet; rebuild once the manifest lands
+	float				m_fStartTime;
+	float				m_fAutoCloseTime;
+
+public:
+	CVoteBotOptionsPanel( int iTrans, int iRemoveMe, int x, int y, int wide, int tall );
+
+	virtual bool SlotInput( int iSlot );
+	virtual void Open( void );
+	virtual void Update( void );
+	virtual void Initialize( void );
+	virtual bool MouseWheeled( int delta ) { return HandleScrollPanelMouseWheel( m_pScrollPanel, delta ); };
+
+	virtual void Reset( void )
+	{
+		CMenuPanel::Reset();
+		m_fStartTime = gHUD.m_flTime;
+		m_iTime = 30.0;
+		m_fAutoCloseTime = 0;
+	}
+
+	void BuildRows( void );
 
 	float m_iTime;
 };

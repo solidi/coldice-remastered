@@ -427,6 +427,27 @@ int __MsgFunc_SOptFor(const char *pszName, int iSize, void *pbuf)
 	return 0;
 }
 
+int __MsgFunc_BotOpts(const char *pszName, int iSize, void *pbuf)
+{
+	if (gViewPort)
+		return gViewPort->MsgFunc_BotOpts( pszName, iSize, pbuf );
+	return 0;
+}
+
+int __MsgFunc_VoteBotOp(const char *pszName, int iSize, void *pbuf)
+{
+	if (gViewPort)
+		return gViewPort->MsgFunc_VoteBotOp( pszName, iSize, pbuf );
+	return 0;
+}
+
+int __MsgFunc_BOptFor(const char *pszName, int iSize, void *pbuf)
+{
+	if (gViewPort)
+		return gViewPort->MsgFunc_BOptFor( pszName, iSize, pbuf );
+	return 0;
+}
+
 int __MsgFunc_Cookies(const char *pszName, int iSize, void *pbuf)
 {
 	if (gViewPort)
@@ -642,6 +663,9 @@ void CHud :: Init( void )
 	HOOK_MESSAGE( SrvOpts );
 	HOOK_MESSAGE( VoteSrvOp );
 	HOOK_MESSAGE( SOptFor );
+	HOOK_MESSAGE( BotOpts );
+	HOOK_MESSAGE( VoteBotOp );
+	HOOK_MESSAGE( BOptFor );
 	HOOK_MESSAGE( Cookies );
 	HOOK_MESSAGE( BSOD );
 	HOOK_MESSAGE( AddMut );

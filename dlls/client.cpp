@@ -450,7 +450,8 @@ void GameplayVote(edict_t *pEntity, const char *text)
 			!UTIL_stristr( text, "maps" ) &&
 			!UTIL_stristr( text, "mutators" ) &&
 			!UTIL_stristr( text, "gameoptions" ) &&
-			!UTIL_stristr( text, "serveroptions" ) );
+			!UTIL_stristr( text, "serveroptions" ) &&
+			!UTIL_stristr( text, "botoptions" ) );
 
 	if ( voting.value && wantsGenericRTV )
 	{
@@ -517,7 +518,8 @@ enum rtv_gate_kind_e
 	RTV_GATE_KIND_MAPS,
 	RTV_GATE_KIND_MUTATOR,
 	RTV_GATE_KIND_GAMEOPTIONS,
-	RTV_GATE_KIND_SERVEROPTIONS
+	RTV_GATE_KIND_SERVEROPTIONS,
+	RTV_GATE_KIND_BOTOPTIONS
 };
 
 enum rtv_gate_state_e
@@ -541,6 +543,7 @@ static const char *RTVGateKindName( int kind )
 	case RTV_GATE_KIND_MUTATOR: return "mutators";
 	case RTV_GATE_KIND_GAMEOPTIONS: return "gameoptions";
 	case RTV_GATE_KIND_SERVEROPTIONS: return "serveroptions";
+	case RTV_GATE_KIND_BOTOPTIONS: return "botoptions";
 	default: return "startup";
 	}
 }
@@ -1026,6 +1029,7 @@ void GameModeVoteRTV(edict_t *pEntity, const char *text);
 void MapVoteRTV(edict_t *pEntity, const char *text);
 void GameOptionsVote(edict_t *pEntity, const char *text);
 void ServerOptionsVote(edict_t *pEntity, const char *text);
+void BotOptionsVote(edict_t *pEntity, const char *text);
 
 //// HOST_SAY
 // String comes in as
@@ -1175,6 +1179,7 @@ void Host_Say( edict_t *pEntity, int teamonly )
 	MutatorVote(pEntity, text);
 	GameOptionsVote(pEntity, text);
 	ServerOptionsVote(pEntity, text);
+	BotOptionsVote(pEntity, text);
 
 	char * temp;
 	if ( teamonly )
@@ -1220,6 +1225,7 @@ extern int gmsgVoteOpts;
 extern int gmsgVOptFor;
 extern int gmsgVoteSrvOp;
 extern int gmsgSOptFor;
+extern int gmsgBOptFor;
 extern char *gamePlayModes[];
 
 void Vote( CBasePlayer *pPlayer, int vote )
@@ -1411,6 +1417,62 @@ void VoteServerOption( CBasePlayer *pPlayer, int item, int option )
 
 	ClientPrint(pPlayer->pev, HUD_PRINTTALK, UTIL_VarArgs("[VOTE] You voted \"%s\" on %s.\n",
 		g_ServerOptions[realIdx].labels[option - 1], g_ServerOptions[realIdx].title));
+
+	pPlayer->m_fVoteCoolDown = gpGlobals->time + 0.5;
+}
+
+// Cast a vote for one of an active bot-option item's options (RTV only).
+//   item    : 1-based index into m_iActiveBotOptions
+//   option  : 1-based index into the item's options array
+void VoteBotOption( CBasePlayer *pPlayer, int item, int option )
+{
+	if (pPlayer->m_fVoteCoolDown >= gpGlobals->time)
+	{
+		ALERT(at_aiconsole, "id[%d] votebotopt cool down time left: %.2f\n", pPlayer->entindex(), pPlayer->m_fVoteCoolDown - gpGlobals->time);
+		return;
+	}
+
+	CHalfLifeMultiplay *mp = g_pGameRules && g_pGameRules->IsMultiplayer() ? (CHalfLifeMultiplay *)g_pGameRules : NULL;
+	if (!mp || mp->m_fBotOptionsVoteTime <= gpGlobals->time)
+	{
+		ClientPrint(pPlayer->pev, HUD_PRINTTALK, "[VOTE] No bot-options vote is currently open.\n");
+		return;
+	}
+
+	int active = mp->m_iActiveBotOptionsCount;
+	if (item < 1 || item > active)
+	{
+		ALERT(at_aiconsole, "id[%d] votebotopt item %d out of range (1..%d)\n", pPlayer->entindex(), item, active);
+		return;
+	}
+	int itemArrayIdx = item - 1;
+	int realIdx = mp->m_iActiveBotOptions[itemArrayIdx];
+	if (realIdx < 0 || realIdx >= g_iBotOptionsCount)
+		return;
+	int numOpts = g_BotOptions[realIdx].numOptions;
+	if (option < 1 || option > numOpts)
+	{
+		ALERT(at_aiconsole, "id[%d] votebotopt option %d out of range (1..%d) for item %d\n", pPlayer->entindex(), option, numOpts, item);
+		return;
+	}
+
+	int entIdx = pPlayer->entindex();
+	if (entIdx < 1 || entIdx > 32)
+		return;
+	mp->m_iBotOptionsVotes[entIdx - 1][itemArrayIdx] = option - 1;
+
+	MESSAGE_BEGIN(MSG_ALL, gmsgBOptFor);
+		WRITE_BYTE(entIdx);
+		WRITE_BYTE(item);
+		WRITE_BYTE(option);
+	MESSAGE_END();
+
+	MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgPlayClientSound, NULL, pPlayer->edict());
+		WRITE_BYTE(CLIENT_SOUND_GREATJOB);
+	MESSAGE_END();
+
+	ClientPrint(pPlayer->pev, HUD_PRINTTALK, UTIL_VarArgs("[VOTE] You voted \"%s\" on %s.\n",
+		g_BotOptions[realIdx].labels[option - 1], g_BotOptions[realIdx].title));
 
 	pPlayer->m_fVoteCoolDown = gpGlobals->time + 0.5;
 }
@@ -1618,6 +1680,106 @@ void ServerOptionsVote(edict_t *pEntity, const char *text)
 				UTIL_ClientPrintAll(HUD_PRINTTALK,
 					UTIL_VarArgs("[VOTE] %s voted (%d / %d)\n", STRING(pEntity->v.netname), votes, m_iNeedsVotes));
 			}
+		}
+	}
+}
+
+// Starts the bot-options RTV vote and moves the shared RTV gate to its
+// voting (or cooldown, if nothing opened) state.
+static void BotOptionsOpenVote( edict_t *pInitiator )
+{
+	CHalfLifeMultiplay *mp = g_pGameRules && g_pGameRules->IsMultiplayer() ? (CHalfLifeMultiplay *)g_pGameRules : NULL;
+	if (mp)
+	{
+		mp->m_pBotOptionsRTVInitiator = pInitiator;
+		mp->VoteForBotOptions();
+		if (mp->m_fBotOptionsVoteTime > gpGlobals->time)
+			RTVGateBeginVoting(RTV_GATE_KIND_BOTOPTIONS, mp->m_fBotOptionsVoteTime);
+		else
+			RTVGateBeginCooldown(RTV_GATE_KIND_BOTOPTIONS);
+	}
+	else
+	{
+		RTVGateBeginCooldown(RTV_GATE_KIND_BOTOPTIONS);
+	}
+}
+
+// Chat-driven RTV for bot-options. Mirrors ServerOptionsVote(); substring
+// match on "botoptions". Bot options are an in-match RTV only: they never
+// appear in the end-of-game vote sequence and cannot start during intermission.
+void BotOptionsVote(edict_t *pEntity, const char *text)
+{
+	static float m_fVoteTime = 0;
+	static int   m_iNeedsVotes = 0;
+	static int   m_iVotes[33];
+	static edict_t *m_pInitiator = NULL;
+	static int m_iVoteEpoch = -1;
+
+	RTVSyncVoteWindowEpoch( m_iVoteEpoch, m_fVoteTime, m_iNeedsVotes, m_iVotes, &m_pInitiator );
+
+	if (!voting.value || !UTIL_stristr(text, "botoptions"))
+		return;
+
+	if (g_fGameOver || !g_pGameRules || !g_pGameRules->IsMultiplayer())
+	{
+		ClientPrint(&pEntity->v, HUD_PRINTTALK, "[VOTE] Bot options can only be voted on during a match.\n");
+		return;
+	}
+
+	if (RTVGateBlocksCall(pEntity, RTV_GATE_KIND_BOTOPTIONS))
+		return;
+
+	if (m_fVoteTime < gpGlobals->time)
+	{
+		m_fVoteTime = gpGlobals->time + rtvtime.value;
+		m_iNeedsVotes = RTVComputeNeededVotes();
+		m_pInitiator = pEntity;
+
+		memset(m_iVotes, 0, sizeof(m_iVotes));
+		m_iVotes[ENTINDEX(pEntity)] = 1;
+
+		MESSAGE_BEGIN(MSG_ALL, gmsgPlayClientSound);
+			WRITE_BYTE(CLIENT_SOUND_VOTESTARTED);
+		MESSAGE_END();
+
+		if (m_iNeedsVotes <= 1)
+		{
+			m_iNeedsVotes = m_fVoteTime = 0;
+			UTIL_ClientPrintAll(HUD_PRINTTALK, "[VOTE] Single person gets the vote.\n");
+			BotOptionsOpenVote(m_pInitiator);
+			m_pInitiator = NULL;
+		}
+		else
+		{
+			RTVGateBeginCollecting(RTV_GATE_KIND_BOTOPTIONS, rtvtime.value);
+			UTIL_ClientPrintAll(HUD_PRINTTALK,
+				UTIL_VarArgs("[VOTE] We need %.0f vote(s) in %.0f seconds. Others, type \"botoptions\" to vote.\n", fmax(1, m_iNeedsVotes - 1), rtvtime.value));
+		}
+	}
+	else
+	{
+		int voterIndex = ENTINDEX(pEntity);
+		BOOL bNewVote = FALSE;
+		if (voterIndex >= 1 && voterIndex <= 32 && m_iVotes[voterIndex] <= 0)
+		{
+			m_iVotes[voterIndex] = 1;
+			bNewVote = TRUE;
+		}
+
+		m_iNeedsVotes = RTVComputeNeededVotes();
+		int votes = RTVCountEligibleVotes(m_iVotes);
+
+		if (votes >= m_iNeedsVotes)
+		{
+			m_iNeedsVotes = m_fVoteTime = 0;
+			UTIL_ClientPrintAll(HUD_PRINTTALK, "[VOTE] Bot-options vote success!\n");
+			BotOptionsOpenVote(m_pInitiator);
+			m_pInitiator = NULL;
+		}
+		else if (bNewVote)
+		{
+			UTIL_ClientPrintAll(HUD_PRINTTALK,
+				UTIL_VarArgs("[VOTE] %s voted (%d / %d)\n", STRING(pEntity->v.netname), votes, m_iNeedsVotes));
 		}
 	}
 }
@@ -1948,6 +2110,20 @@ void ClientCommand( edict_t *pEntity )
 			VoteServerOption(pPlayer, item, option);
 		}
 	}
+	else if ( FStrEq(pcmd, "votebotopt" ) )
+	{
+		CBasePlayer *pPlayer = GetClassPtr((CBasePlayer *)pev);
+		int item = (CMD_ARGC() > 1) ? atoi(CMD_ARGV(1)) : -1;
+		int option = (CMD_ARGC() > 2) ? atoi(CMD_ARGV(2)) : -1;
+		if (item < 1 || option < 1)
+		{
+			ClientPrint(pev, HUD_PRINTCONSOLE, "usage: votebotopt <itemIndex> <optionIndex>\n");
+		}
+		else
+		{
+			VoteBotOption(pPlayer, item, option);
+		}
+	}
 	else if ( FStrEq(pcmd, "gameoptions_resend" ) )
 	{
 		CBasePlayer *pPlayer = GetClassPtr((CBasePlayer *)pev);
@@ -1978,6 +2154,22 @@ void ClientCommand( edict_t *pEntity )
 			if (mp)
 				mp->SendServerOptionsToClient( pEntity );
 			pPlayer->m_fServerOptsResendCoolDown = gpGlobals->time + 5.0;
+		}
+	}
+	else if ( FStrEq(pcmd, "botoptions_resend" ) )
+	{
+		CBasePlayer *pPlayer = GetClassPtr((CBasePlayer *)pev);
+		if (pPlayer->m_fBotOptsResendCoolDown > gpGlobals->time)
+		{
+			ClientPrint(pev, HUD_PRINTCONSOLE, UTIL_VarArgs("botoptions_resend: cooldown %.1fs\n",
+				pPlayer->m_fBotOptsResendCoolDown - gpGlobals->time));
+		}
+		else
+		{
+			CHalfLifeMultiplay *mp = g_pGameRules && g_pGameRules->IsMultiplayer() ? (CHalfLifeMultiplay *)g_pGameRules : NULL;
+			if (mp)
+				mp->SendBotOptionsToClient( pEntity );
+			pPlayer->m_fBotOptsResendCoolDown = gpGlobals->time + 5.0;
 		}
 	}
 	else if ( FStrEq(pcmd, "gameoptions_status" ) )
@@ -2025,6 +2217,30 @@ void ClientCommand( edict_t *pEntity )
 			for (int i = 0; i < g_iServerOptionsCount; i++)
 			{
 				const server_option_t &it = g_ServerOptions[i];
+				cvar_t *cv = CVAR_GET_POINTER(it.cvar);
+				ClientPrint(pev, HUD_PRINTCONSOLE, UTIL_VarArgs("  #%d cvar=%s value=\"%s\" restart=%d title=\"%s\" opts=%d\n",
+					i + 1, it.cvar, cv ? cv->string : "(unregistered)", it.restart ? 1 : 0, it.title, it.numOptions));
+			}
+		}
+	}
+	else if ( FStrEq(pcmd, "botoptions_status" ) )
+	{
+		BOOL allowed = ( ENTINDEX(pEntity) == 1 && !IS_DEDICATED_SERVER() ) ||
+		               ( CVAR_GET_FLOAT("sv_cheats") != 0.0f );
+		if (!allowed)
+		{
+			ClientPrint(pev, HUD_PRINTCONSOLE, "botoptions_status: not authorized (listenserver host or sv_cheats only)\n");
+		}
+		else
+		{
+			EnsureBotOptionsList();
+			ClientPrint(pev, HUD_PRINTCONSOLE, UTIL_VarArgs("[BotOptions] revision=%d, loaded=%d/%d, parse-errors=%d\n",
+				g_iBotOptionsRevision, g_iBotOptionsCount, MAX_BOT_OPTIONS, g_iBotOptionsParseErrors));
+			for (int i = 0; i < g_iBotOptionsParseLogCount; i++)
+				ClientPrint(pev, HUD_PRINTCONSOLE, UTIL_VarArgs("  %s\n", g_szBotOptionsParseLog[i]));
+			for (int i = 0; i < g_iBotOptionsCount; i++)
+			{
+				const bot_option_t &it = g_BotOptions[i];
 				cvar_t *cv = CVAR_GET_POINTER(it.cvar);
 				ClientPrint(pev, HUD_PRINTCONSOLE, UTIL_VarArgs("  #%d cvar=%s value=\"%s\" restart=%d title=\"%s\" opts=%d\n",
 					i + 1, it.cvar, cv ? cv->string : "(unregistered)", it.restart ? 1 : 0, it.title, it.numOptions));

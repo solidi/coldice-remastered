@@ -389,6 +389,10 @@ public:
 #define VOTE_MAPS_TRANSITION 5
 #define VOTE_MAPS_OPEN 6
 
+// Bot-options manifest cap (botoptions.txt rows). Defined here because
+// CHalfLifeMultiplay sizes its RTV vote arrays with it.
+#define MAX_BOT_OPTIONS 16
+
 //=========================================================
 // CHalfLifeMultiplay - rules for the basic half life multiplayer
 // competition
@@ -513,6 +517,7 @@ public:
 	virtual void VoteForMapRTV( void );
 	virtual void VoteForGameOptions( BOOL fromRTV );
 	virtual void VoteForServerOptions( BOOL fromRTV );
+	virtual void VoteForBotOptions( void );           // RTV-only; never part of the intermission sequence
 	int RandomizeMutator( void );
 
 	virtual BOOL IsArmoredMan( CBasePlayer *pPlayer ) { return FALSE; }
@@ -540,13 +545,17 @@ public:
 	void CheckMutatorRTV( void );
 	void CheckGameOptionsRTV( void );                 // public: mid-game game-options RTV timer
 	void CheckServerOptionsRTV( void );               // public: mid-game server-options RTV timer
-	void PumpClientManifestSends( void );             // public: paced map/options manifest streaming
-	void SendGameOptionsToClient( edict_t *client );  // public: client.cpp::gameoptions_resend command
-	void SendServerOptionsToClient( edict_t *client );// public: client.cpp::serveroptions_resend command
+	void CheckBotOptionsRTV( BOOL forceClose = FALSE );// public: bot-options RTV timer (forceClose ends it early)
+	void PumpClientManifestSends( void );             // public: paced, one-chunk-per-client manifest streaming
+	void SendGameOptionsToClient( edict_t *client );  // public: queue a paced game-options resend (gameoptions_resend)
+	void SendServerOptionsToClient( edict_t *client );// public: queue a paced server-options resend (serveroptions_resend)
+	void SendBotOptionsToClient( edict_t *client );   // public: queue a paced bot-options resend (botoptions_resend)
 	void BuildActiveGameOptions( void );              // public: filter g_GameOptions[] for the current g_GameMode
 	void BuildActiveServerOptions( void );            // public: currently all g_ServerOptions[] rows
+	void BuildActiveBotOptions( void );               // public: currently all g_BotOptions[] rows
 	void TallyGameOptionsVote( BOOL fromRTV );        // public: count + apply per-item votes
 	void TallyServerOptionsVote( BOOL fromRTV );      // public: count + apply per-item votes
+	void TallyBotOptionsVote( BOOL allowRestart );    // public: count + apply per-item votes (RTV only)
 
 	// Game-options voting state (per intermission / per RTV cycle).
 	// m_iActiveGameOptions[] holds indices into g_GameOptions[] for items
@@ -574,7 +583,16 @@ public:
 	edict_t *m_pServerOptionsRTVInitiator;
 	float    m_fServerOptionsVoteTime;          // mid-game RTV open expiry (0 = inactive)
 
-	int      m_iElectedGameMode;                // gameplay-vote winner pending mp_gamemode apply; -1 = use g_GameMode
+	// Bot-options voting state (RTV-only, global rows from botoptions.txt).
+	int      m_iActiveBotOptions[MAX_BOT_OPTIONS];
+	int      m_iActiveBotOptionsCount;
+	int      m_iBotOptionsVotes[32][MAX_BOT_OPTIONS]; // [entindex-1][activeItemIdx] -> option index, -1 unvoted
+	float    m_fBotOptionsLastSent[32];
+	int      m_iBotOptionsRevisionSent[32];
+	edict_t *m_pBotOptionsRTVInitiator;
+	float    m_fBotOptionsVoteTime;             // RTV open expiry (0 = inactive)
+
+	int      m_iElectedGameMode;                 // gameplay-vote winner pending mp_gamemode apply; -1 = use g_GameMode
 	float    m_fGameplayVoteTime;               // mid-game gamemodes RTV open expiry (0 = inactive)
 	float    m_fMapVoteTime;                    // mid-game maps RTV open expiry (0 = inactive)
 	BOOL     m_bSkipIntermissionVoting;         // set by gameplay/maps RTV success to keep intermission short/no extra votes
@@ -586,6 +604,10 @@ public:
 	int      m_iGameOptionsStreamSeq[32];
 	int      m_iServerOptionsStreamNext[32];
 	int      m_iServerOptionsStreamSeq[32];
+	int      m_iBotOptionsStreamNext[32];
+	int      m_iBotOptionsStreamSeq[32];
+	float    m_fBotOptionsStreamStart[32];      // bot manifest is held until this time (sent after connect settles)
+	float    m_fManifestNextSend[32];           // per-client pacing: no manifest chunk before this time
 
 protected:
 	virtual void ChangeLevel( void );
@@ -706,5 +728,22 @@ extern int  g_iServerOptionsParseLogCount;
 
 void BuildServerOptionsList( void );      // (re)parse serveroptions.txt; bumps revision
 void EnsureServerOptionsList( void );     // build only if not yet built / file changed
+
+// Dynamic bot-options manifest, parsed from botoptions.txt at runtime.
+// Same row format, caps and parser as server-options (global rows, no "game"
+// token), capped at MAX_BOT_OPTIONS rows. Voted only through the "botoptions"
+// chat RTV; never part of the end-of-game vote sequence.
+// See workspace/ai/bot_options_system.md for the full spec.
+typedef server_option_t bot_option_t;
+
+extern bot_option_t g_BotOptions[MAX_BOT_OPTIONS];
+extern int          g_iBotOptionsCount;
+extern int          g_iBotOptionsRevision;
+extern int          g_iBotOptionsParseErrors;
+extern char         g_szBotOptionsParseLog[SERVER_OPTIONS_PARSE_LOG_LINES][SERVER_OPTIONS_PARSE_LOG_WIDTH];
+extern int          g_iBotOptionsParseLogCount;
+
+void BuildBotOptionsList( void );         // (re)parse botoptions.txt; bumps revision
+void EnsureBotOptionsList( void );        // build only if not yet built
 
 #endif	//GAMERULES_H
