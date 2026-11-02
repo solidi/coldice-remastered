@@ -935,6 +935,13 @@ typedef struct
 
 #define MAX_MUTATORS_CL	(MUTATOR_XRAY + 1) // MUTATOR_XRAY + RANDOM
 
+// Mutator vote IDs ("vote N") past the real mutators 1..MUTATOR_XRAY. Shared by
+// the server tally and the client panel. Synthetic slots, not in g_szMutators[].
+#define MUTATOR_VOTE_RANDOM		(MAX_MUTATORS_CL)		// server picks a real mutator
+#define MUTATOR_VOTE_INSTANT	(MAX_MUTATORS_CL + 1)	// toggles sv_instantmutators
+#define MUTATOR_VOTE_CLEAR		(MAX_MUTATORS_CL + 2)	// "No mutators, please."; wins ties
+#define MUTATOR_VOTE_SLOTS		(MUTATOR_VOTE_CLEAR)	// vote IDs 1..MUTATOR_VOTE_SLOTS
+
 #define GAME_FFA 0
 #define GAME_ARENA 1
 #define GAME_LMS 2

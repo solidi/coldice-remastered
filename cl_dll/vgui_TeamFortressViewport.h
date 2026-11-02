@@ -1996,6 +1996,10 @@ public:
 	float m_iTime;
 };
 
+// Synthetic mutator-vote buttons placed right after CHAOS: INSTANT MUTATORS
+// (vote MUTATOR_VOTE_INSTANT) and CLEAR (vote MUTATOR_VOTE_CLEAR), see const.h.
+#define MUTATOR_MENU_SPECIAL_SLOTS	2
+
 class CVoteMutatorPanel : public CMenuPanel
 {
 private:
@@ -2004,9 +2008,9 @@ private:
 	ColorButton			*m_pButtons[MAX_MUTATORS_CL];
 	LineBorder			*m_pButtonBorders[MAX_MUTATORS_CL];
 	Label				*m_pVoteTallyLabels[MAX_MUTATORS_CL];
-	ColorButton			*m_pInstantButton;
-	LineBorder			*m_pInstantButtonBorder;
-	Label				*m_pInstantVoteTallyLabel;
+	ColorButton			*m_pSpecialButtons[MUTATOR_MENU_SPECIAL_SLOTS];
+	LineBorder			*m_pSpecialButtonBorders[MUTATOR_MENU_SPECIAL_SLOTS];
+	Label				*m_pSpecialVoteTallyLabels[MUTATOR_MENU_SPECIAL_SLOTS];
 	Label 				*pTitleLabel;
 
 	int					m_iCurrentInfo;

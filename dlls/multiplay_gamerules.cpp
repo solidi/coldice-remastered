@@ -339,6 +339,79 @@ char *gamePlayModes[] = {
 extern void Vote( CBasePlayer *pPlayer, int vote );
 extern const char *szGameModeList[TOTAL_GAME_MODES];
 
+/*
+==============
+TallyMutatorVotes
+
+Shared by the end-of-game mutator phase and the mutator RTV. Counts
+m_iVoteCount[] (vote IDs 1..MUTATOR_VOTE_SLOTS, see const.h) and ranks the
+top three of the real mutators, RANDOM and INSTANT MUTATORS (0-based slot =
+vote ID - 1; -1 when nobody voted for it). CLEAR is not ranked: it wins when it
+has votes and ties or beats the most-voted other slot, which cancels every
+mutator (including INSTANT MUTATORS).
+==============
+*/
+// The synthetic vote IDs in const.h assume RANDOM sits right after the last real mutator.
+typedef char mutator_vote_ids_follow_max_mutators[ ( MUTATOR_VOTE_RANDOM == MAX_MUTATORS + 1 ) ? 1 : -1 ];
+
+struct mutator_vote_tally_t
+{
+	int first, second, third;     // vote counts, -1 = no such slot
+	int fIndex, sIndex, tIndex;   // 0-based slots
+	int clearVotes;
+	BOOL clearWins;
+};
+
+static mutator_vote_tally_t TallyMutatorVotes( const int *voteCount )
+{
+	int vote[MUTATOR_VOTE_SLOTS];
+	memset( vote, -1, sizeof(vote) );
+
+	for ( int j = 1; j <= gpGlobals->maxClients; j++ )
+	{
+		int slot = voteCount[j - 1] - 1;
+		if ( slot >= 0 && slot < MUTATOR_VOTE_SLOTS )
+		{
+			if ( vote[slot] == -1 ) vote[slot] = 0;
+			vote[slot]++;
+		}
+	}
+
+	mutator_vote_tally_t t;
+	t.clearVotes = ( vote[MUTATOR_VOTE_CLEAR - 1] > 0 ) ? vote[MUTATOR_VOTE_CLEAR - 1] : 0;
+	vote[MUTATOR_VOTE_CLEAR - 1] = -1;
+
+	t.first = t.second = t.third = -1;
+	t.fIndex = t.sIndex = t.tIndex = -1;
+	for ( int i = 0; i < MUTATOR_VOTE_SLOTS; i++ )
+	{
+		if ( vote[i] > t.first )
+		{
+			t.tIndex = t.sIndex;
+			t.third = t.second;
+			t.sIndex = t.fIndex;
+			t.second = t.first;
+			t.fIndex = i;
+			t.first = vote[i];
+		}
+		else if ( vote[i] > t.second )
+		{
+			t.tIndex = t.sIndex;
+			t.third = t.second;
+			t.sIndex = i;
+			t.second = vote[i];
+		}
+		else if ( vote[i] > t.third )
+		{
+			t.tIndex = i;
+			t.third = vote[i];
+		}
+	}
+
+	t.clearWins = ( t.clearVotes > 0 && t.clearVotes >= t.first ) ? TRUE : FALSE;
+	return t;
+}
+
 int CHalfLifeMultiplay::RandomizeMutator( void )
 {
 	int attempts = 3, mutatorVote = 1;
@@ -669,59 +742,24 @@ void CHalfLifeMultiplay :: Think ( void )
 					WRITE_BYTE(0);
 				MESSAGE_END();
 
-				// tally votes
-				int vote[MAX_MUTATORS+2]; // +1 RANDOM, +1 INSTANT MUTATORS (synthetic)
-				memset(vote, -1, sizeof(vote));
-
-				for (int j = 1; j <= gpGlobals->maxClients; j++)
-				{
-					int mutatorIndex = g_pGameRules->m_iVoteCount[j-1];
-					if ((mutatorIndex-1) >= 0 && (mutatorIndex-1) <= MAX_MUTATORS + 1 /*instant*/)
-					{
-						if (vote[mutatorIndex-1] == -1) vote[mutatorIndex-1] = 0;
-						vote[mutatorIndex-1]++;
-					}
-					// ALERT(at_console, "mutatorIndex=%d vote[%d]=%d\n", mutatorIndex-1, mutatorIndex-1, vote[mutatorIndex-1]);
-				}
-
-				int first, second, third;
-				third = first = second = -1;
-				int fIndex, sIndex, tIndex;
-				fIndex = sIndex = tIndex = -1;
-
-				for (int i = 0; i <= MAX_MUTATORS + 1 /*instant*/; i++)
-				{
-					if (vote[i] > first)
-					{
-						tIndex = sIndex;
-						third = second;
-						sIndex = fIndex;
-						second = first;
-						fIndex = i;
-						first = vote[i];
-					}
-					else if (vote[i] > second)
-					{
-						tIndex = sIndex;
-						third = second;
-						sIndex = i;
-						second = vote[i];
-					}
-					else if (vote[i] > third)
-					{
-						tIndex = i;
-						third = vote[i];
-					}
-				}
+				mutator_vote_tally_t tally = TallyMutatorVotes(m_iVoteCount);
+				int first = tally.first, second = tally.second, third = tally.third;
+				int fIndex = tally.fIndex, sIndex = tally.sIndex, tIndex = tally.tIndex;
 
 				memset(m_iVoteCount, -1, sizeof(m_iVoteCount));
 
-				ALERT(at_aiconsole, "first=%d, fIndex=%d, second=%d, sIndex=%d, third=%d, tIndex=%d\n", first, fIndex, second, sIndex, third, tIndex);
+				ALERT(at_aiconsole, "first=%d, fIndex=%d, second=%d, sIndex=%d, third=%d, tIndex=%d, clear=%d\n", first, fIndex, second, sIndex, third, tIndex, tally.clearVotes);
 
-				const int kRandomIndex = MAX_MUTATORS;      // vote id MAX_MUTATORS + 1
-				const int kInstantIndex = MAX_MUTATORS + 1; // vote id MAX_MUTATORS + 2
+				const int kRandomIndex = MUTATOR_VOTE_RANDOM - 1;
+				const int kInstantIndex = MUTATOR_VOTE_INSTANT - 1;
 
-				if (first < 0 && second < 0 && third < 0)
+				if (tally.clearWins)
+				{
+					SERVER_COMMAND("sv_instantmutators 0\n");
+					SERVER_COMMAND("sv_mutatorlist \"\"\n");
+					UTIL_ClientPrintAll(HUD_PRINTTALK, UTIL_VarArgs("[VOTE] CLEAR wins with %d votes. No mutators next map.\n", tally.clearVotes));
+				}
+				else if (first < 0 && second < 0 && third < 0)
 				{
 					UTIL_ClientPrintAll(HUD_PRINTTALK, "[VOTE] Not enough votes received for mutators.\n");
 					SERVER_COMMAND("sv_instantmutators 0\n");
@@ -1278,6 +1316,7 @@ void CHalfLifeMultiplay::SettleOpenRTVVotes( void )
 #define BOT_VOTE_MAX_DELAY 4.5f    // every bot has voted (all rows) by this long after opening
 #define BOT_VOTE_ROW_GAP_MIN 0.25f // gap between a bot's picks on an option ballot
 #define BOT_VOTE_ROW_GAP_MAX 0.7f
+#define BOT_VOTE_CLEAR_CHANCE 5    // percent of mutator votes a bot spends on CLEAR
 
 static BOOL IsVotingBot( CBasePlayer *pPlayer )
 {
@@ -1384,6 +1423,8 @@ void CHalfLifeMultiplay::ProcessBotVotes( void )
 				pick = RANDOM_LONG( 1, TOTAL_GAME_MODES + 2 );
 			else if ( m_iBotVoteKind == BOT_VOTE_MAP )
 				pick = RANDOM_LONG( 1, ( g_iServerMapCount > 0 ? g_iServerMapCount : 1 ) + 1 );
+			else if ( RANDOM_LONG( 1, 100 ) <= BOT_VOTE_CLEAR_CHANCE )
+				pick = MUTATOR_VOTE_CLEAR;
 			else
 				pick = RandomizeMutator(); // a real mutator the current mode allows
 
@@ -1484,60 +1525,27 @@ void CHalfLifeMultiplay::CheckMutatorRTV( BOOL forceClose )
 				WRITE_BYTE(0);
 			MESSAGE_END();
 
-			// tally votes
-			int vote[MAX_MUTATORS+2]; // +1 RANDOM, +1 INSTANT MUTATORS (synthetic)
-			memset(vote, -1, sizeof(vote));
-
 			MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
 				WRITE_BYTE( CLIENT_SOUND_EBELL );
 			MESSAGE_END();
 
-			for (int j = 1; j <= gpGlobals->maxClients; j++)
-			{
-				int mutatorIndex = g_pGameRules->m_iVoteCount[j-1];
-				if ((mutatorIndex-1) >= 0 && (mutatorIndex-1) <= MAX_MUTATORS + 1 /*instant*/)
-				{
-					if (vote[mutatorIndex-1] == -1) vote[mutatorIndex-1] = 0;
-					vote[mutatorIndex-1]++;
-				}
-			}
-
-			int first, second, third;
-			third = first = second = -1;
-			int fIndex, sIndex, tIndex;
-			fIndex = sIndex = tIndex = -1;
-
-			for (int i = 0; i <= MAX_MUTATORS + 1 /*instant*/; i++)
-			{
-				if (vote[i] > first)
-				{
-					tIndex = sIndex;
-					third = second;
-					sIndex = fIndex;
-					second = first;
-					fIndex = i;
-					first = vote[i];
-				}
-				else if (vote[i] > second)
-				{
-					tIndex = sIndex;
-					third = second;
-					sIndex = i;
-					second = vote[i];
-				}
-				else if (vote[i] > third)
-				{
-					tIndex = i;
-					third = vote[i];
-				}
-			}
+			mutator_vote_tally_t tally = TallyMutatorVotes(m_iVoteCount);
+			int first = tally.first, second = tally.second, third = tally.third;
+			int fIndex = tally.fIndex, sIndex = tally.sIndex, tIndex = tally.tIndex;
 
 			memset(m_iVoteCount, -1, sizeof(m_iVoteCount));
 
-			const int kRandomIndex = MAX_MUTATORS;      // vote id MAX_MUTATORS + 1
-			const int kInstantIndex = MAX_MUTATORS + 1; // vote id MAX_MUTATORS + 2
+			const int kRandomIndex = MUTATOR_VOTE_RANDOM - 1;
+			const int kInstantIndex = MUTATOR_VOTE_INSTANT - 1;
 
-			if (first < 0 && second < 0 && third < 0)
+			if (tally.clearWins)
+			{
+				// VoteForMutator() already cleared the running mutators; keep it that way.
+				CVAR_SET_STRING("sv_instantmutators", "0");
+				SERVER_COMMAND("sv_mutatorlist \"\"\n");
+				UTIL_ClientPrintAll(HUD_PRINTTALK, UTIL_VarArgs("[VOTE] CLEAR wins with %d votes. No mutators, please!\n", tally.clearVotes));
+			}
+			else if (first < 0 && second < 0 && third < 0)
 			{
 				UTIL_ClientPrintAll(HUD_PRINTTALK, "[VOTE] Not enough votes received for mutators.\n");
 				CVAR_SET_STRING("sv_instantmutators", "0");

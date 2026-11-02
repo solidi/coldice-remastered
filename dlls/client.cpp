@@ -1298,9 +1298,10 @@ void Vote( CBasePlayer *pPlayer, int vote )
 			}
 			else
 			{
-				const int instantVoteId = MAX_MUTATORS + 2; // synthetic mutator vote slot
-				if ( vote == instantVoteId )
+				if ( vote == MUTATOR_VOTE_INSTANT )
 					voteDisplayName = "INSTANT MUTATORS";
+				else if ( vote == MUTATOR_VOTE_CLEAR )
+					voteDisplayName = "CLEAR";
 				else
 					voteDisplayName = (vote < 1 || vote > MAX_MUTATORS) ? "random" : g_szMutators[vote-1];
 			}
