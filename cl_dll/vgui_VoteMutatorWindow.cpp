@@ -34,10 +34,23 @@
 #define MUTATORMENU_BUTTON_SPACER_Y		YRES(4)
 #define MUTATORMENU_BUTTON_SPACER_X		XRES(8)
 
-// Synthetic mutator-vote option (not part of g_szMutators[]).
-#define MUTATOR_VOTE_INSTANT            (MAX_MUTATORS_CL + 1)
-#define MUTATOR_MENU_INSTANT_SLOT       MAX_MUTATORS_CL
-#define MUTATOR_MENU_TOTAL_SLOTS        (MAX_MUTATORS_CL + 1)
+// Vote slots (0-based = vote ID - 1): real mutators + RANDOM, then the
+// synthetic INSTANT MUTATORS and CLEAR slots (vote IDs in const.h).
+#define MUTATOR_MENU_TOTAL_SLOTS        MUTATOR_VOTE_SLOTS
+#define MUTATOR_MENU_CLEAR_SLOT         (MUTATOR_VOTE_CLEAR - 1)
+
+// Synthetic buttons, created in this order right after CHAOS: INSTANT takes
+// row 1 left, CLEAR row 1 right (under CHAOS); every mutator follows them.
+static const struct
+{
+	int voteId;
+	const char *title;
+	const char *subtitle;
+} s_MutatorSpecialSlots[MUTATOR_MENU_SPECIAL_SLOTS] =
+{
+	{ MUTATOR_VOTE_INSTANT, "INSTANT", "swapped stats, tripmines, etc." },
+	{ MUTATOR_VOTE_CLEAR,   "CLEAR",   "No mutators, please." },
+};
 
 // Creation
 CVoteMutatorPanel::CVoteMutatorPanel(int iTrans, int iRemoveMe, int x,int y,int wide,int tall) : CMenuPanel(iTrans, iRemoveMe, x,y,wide,tall)
@@ -76,9 +89,12 @@ CVoteMutatorPanel::CVoteMutatorPanel(int iTrans, int iRemoveMe, int x,int y,int 
 
 	// Create the buttons inside scroll panel
 	int positionCount = 0;
-	m_pInstantButton = NULL;
-	m_pInstantButtonBorder = NULL;
-	m_pInstantVoteTallyLabel = NULL;
+	for (int k = 0; k < MUTATOR_MENU_SPECIAL_SLOTS; k++)
+	{
+		m_pSpecialButtons[k] = NULL;
+		m_pSpecialButtonBorders[k] = NULL;
+		m_pSpecialVoteTallyLabels[k] = NULL;
+	}
 	for (int i = 0; i < MAX_MUTATORS_CL; i++)
 	{
 		m_pButtons[i] = NULL;
@@ -155,48 +171,51 @@ CVoteMutatorPanel::CVoteMutatorPanel(int iTrans, int iRemoveMe, int x,int y,int 
 		pSubtitle->setText( sMutators[i].description );
 		pSubtitle->addInputSignal( new CHandler_MenuWheelForward(this) );
 
-		// Synthetic slot injected right after CHAOS.
+		// Synthetic slots injected right after CHAOS.
 		if ( i == 0 )
 		{
-			int instantColumn = (positionCount + 1) % 2;
-			int instantRow = (positionCount + 1) / 2;
-			positionCount++;
+			for ( int k = 0; k < MUTATOR_MENU_SPECIAL_SLOTS; k++ )
+			{
+				int specialColumn = (positionCount + 1) % 2;
+				int specialRow = (positionCount + 1) / 2;
+				positionCount++;
 
-			int iXPosInstant = MUTATORMENU_BUTTON_SPACER_X + (instantColumn * (MUTATORMENU_BUTTON_SIZE_X + MUTATORMENU_BUTTON_SPACER_X));
-			int iYPosInstant = MUTATORMENU_BUTTON_SPACER_Y + (instantRow * (MUTATORMENU_BUTTON_SIZE_Y + MUTATORMENU_BUTTON_SPACER_Y));
+				int iXPosSpecial = MUTATORMENU_BUTTON_SPACER_X + (specialColumn * (MUTATORMENU_BUTTON_SIZE_X + MUTATORMENU_BUTTON_SPACER_X));
+				int iYPosSpecial = MUTATORMENU_BUTTON_SPACER_Y + (specialRow * (MUTATORMENU_BUTTON_SIZE_Y + MUTATORMENU_BUTTON_SPACER_Y));
 
-			char voteCommandInstant[16];
-			sprintf(voteCommandInstant, "vote %d", MUTATOR_VOTE_INSTANT);
-			ActionSignal *pASignalInstant = new CMenuHandler_StringCommandClassSelect(voteCommandInstant, false );
+				char voteCommandSpecial[16];
+				sprintf(voteCommandSpecial, "vote %d", s_MutatorSpecialSlots[k].voteId);
+				ActionSignal *pASignalSpecial = new CMenuHandler_StringCommandClassSelect(voteCommandSpecial, false );
 
-			m_pInstantButton = new ColorButton( "INSTANT", iXPosInstant, iYPosInstant,
-				MUTATORMENU_BUTTON_SIZE_X, MUTATORMENU_BUTTON_SIZE_Y, false, true );
-			m_pInstantButtonBorder = new LineBorder( Color(r, g, b, a) );
-			m_pInstantButton->setBorder( m_pInstantButtonBorder );
-			m_pInstantButton->setBoundKey( (char)255 );
-			m_pInstantButton->setContentAlignment( vgui::Label::a_northwest );
-			m_pInstantButton->addActionSignal( pASignalInstant );
-			m_pInstantButton->addInputSignal( new CHandler_MenuButtonOver(this, MUTATOR_MENU_INSTANT_SLOT) );
-			m_pInstantButton->setParent( m_pScrollPanel->getClient() );
-			m_pInstantButton->setFont( pSchemes->getFont(hTitleScheme) );
+				m_pSpecialButtons[k] = new ColorButton( (char *)s_MutatorSpecialSlots[k].title, iXPosSpecial, iYPosSpecial,
+					MUTATORMENU_BUTTON_SIZE_X, MUTATORMENU_BUTTON_SIZE_Y, false, true );
+				m_pSpecialButtonBorders[k] = new LineBorder( Color(r, g, b, a) );
+				m_pSpecialButtons[k]->setBorder( m_pSpecialButtonBorders[k] );
+				m_pSpecialButtons[k]->setBoundKey( (char)255 );
+				m_pSpecialButtons[k]->setContentAlignment( vgui::Label::a_northwest );
+				m_pSpecialButtons[k]->addActionSignal( pASignalSpecial );
+				m_pSpecialButtons[k]->addInputSignal( new CHandler_MenuButtonOver(this, s_MutatorSpecialSlots[k].voteId - 1) );
+				m_pSpecialButtons[k]->setParent( m_pScrollPanel->getClient() );
+				m_pSpecialButtons[k]->setFont( pSchemes->getFont(hTitleScheme) );
 
-			m_pInstantVoteTallyLabel = new Label( "0", MUTATORMENU_BUTTON_SIZE_X - XRES(25), YRES(10) );
-			m_pInstantVoteTallyLabel->setParent( m_pInstantButton );
-			m_pInstantVoteTallyLabel->setFont( pSchemes->getFont(hTitleScheme) );
-			m_pInstantVoteTallyLabel->setContentAlignment( vgui::Label::a_east );
-			m_pInstantVoteTallyLabel->setSize( XRES(10), YRES(18) );
-			m_pInstantVoteTallyLabel->setFgColor( r, g, b, a );
-			m_pInstantVoteTallyLabel->setBgColor( 0, 0, 0, 255 );
-			m_pInstantVoteTallyLabel->addInputSignal( new CHandler_MenuWheelForward(this) );
+				m_pSpecialVoteTallyLabels[k] = new Label( "0", MUTATORMENU_BUTTON_SIZE_X - XRES(25), YRES(10) );
+				m_pSpecialVoteTallyLabels[k]->setParent( m_pSpecialButtons[k] );
+				m_pSpecialVoteTallyLabels[k]->setFont( pSchemes->getFont(hTitleScheme) );
+				m_pSpecialVoteTallyLabels[k]->setContentAlignment( vgui::Label::a_east );
+				m_pSpecialVoteTallyLabels[k]->setSize( XRES(10), YRES(18) );
+				m_pSpecialVoteTallyLabels[k]->setFgColor( r, g, b, a );
+				m_pSpecialVoteTallyLabels[k]->setBgColor( 0, 0, 0, 255 );
+				m_pSpecialVoteTallyLabels[k]->addInputSignal( new CHandler_MenuWheelForward(this) );
 
-			Label *pInstantSubtitle = new Label( "", XRES(5), MUTATORMENU_BUTTON_SIZE_Y - YRES(16) );
-			pInstantSubtitle->setParent( m_pInstantButton );
-			pInstantSubtitle->setFont( pSchemes->getFont(hClassWindowText) );
-			pInstantSubtitle->setContentAlignment( vgui::Label::a_west );
-			pInstantSubtitle->setFgColor( sr, sg, sb, sa );
-			pInstantSubtitle->setBgColor( 0, 0, 0, 255 );
-			pInstantSubtitle->setText( "swapped stats, tripmines, etc." );
-			pInstantSubtitle->addInputSignal( new CHandler_MenuWheelForward(this) );
+				Label *pSpecialSubtitle = new Label( "", XRES(5), MUTATORMENU_BUTTON_SIZE_Y - YRES(16) );
+				pSpecialSubtitle->setParent( m_pSpecialButtons[k] );
+				pSpecialSubtitle->setFont( pSchemes->getFont(hClassWindowText) );
+				pSpecialSubtitle->setContentAlignment( vgui::Label::a_west );
+				pSpecialSubtitle->setFgColor( sr, sg, sb, sa );
+				pSpecialSubtitle->setBgColor( 0, 0, 0, 255 );
+				pSpecialSubtitle->setText( s_MutatorSpecialSlots[k].subtitle );
+				pSpecialSubtitle->addInputSignal( new CHandler_MenuWheelForward(this) );
+			}
 		}
 	}
 	
@@ -215,43 +234,35 @@ void CVoteMutatorPanel::Update()
 	int votes[MUTATOR_MENU_TOTAL_SLOTS];
 	int myVote = -1;
 
-	// Count votes
 	for (int j = 0; j < MAX_MUTATORS_CL; j++)
 	{
 		if (m_pButtons[j])
 			m_pButtons[j]->setArmed(false);
-		votes[j] = 0;
 	}
-	votes[MUTATOR_MENU_INSTANT_SLOT] = 0;
-	if (m_pInstantButton)
-		m_pInstantButton->setArmed(false);
-
-	// Count votes
-	for ( int i = 0; i < MAX_MUTATORS_CL; i++ )
+	for (int k = 0; k < MUTATOR_MENU_SPECIAL_SLOTS; k++)
 	{
-		for ( int j = 1; j <= MAX_PLAYERS; j++ )
-		{
-			if ( g_PlayerInfoList[j].thisplayer )
-				myVote = g_PlayerExtraInfo[j].vote;
-
-			if (g_PlayerExtraInfo[j].vote == (i + 1))
-				votes[i] += 1;
-		}
+		if (m_pSpecialButtons[k])
+			m_pSpecialButtons[k]->setArmed(false);
 	}
 
+	// Count votes (slot = vote ID - 1)
+	memset(votes, 0, sizeof(votes));
 	for ( int j = 1; j <= MAX_PLAYERS; j++ )
 	{
 		if ( g_PlayerInfoList[j].thisplayer )
 			myVote = g_PlayerExtraInfo[j].vote;
 
-		if ( g_PlayerExtraInfo[j].vote == MUTATOR_VOTE_INSTANT )
-			votes[MUTATOR_MENU_INSTANT_SLOT] += 1;
+		int slot = g_PlayerExtraInfo[j].vote - 1;
+		if ( slot >= 0 && slot < MUTATOR_MENU_TOTAL_SLOTS )
+			votes[slot] += 1;
 	}
 
+	// Top three outlined in green, as the server ranks them. CLEAR is not
+	// ranked: when it ties or beats the leader it alone is outlined.
 	int highest = -1, hi = -1;
 	for ( int i = 0; i < MUTATOR_MENU_TOTAL_SLOTS; i++ )
 	{
-		if (highest < votes[i])
+		if (i != MUTATOR_MENU_CLEAR_SLOT && highest < votes[i])
 		{
 			highest = votes[i];
 			hi = i;
@@ -262,7 +273,7 @@ void CVoteMutatorPanel::Update()
 
 	for ( int i = 0; i < MUTATOR_MENU_TOTAL_SLOTS; i++ )
 	{
-		if (second < votes[i] && second <= highest && i != hi)
+		if (i != MUTATOR_MENU_CLEAR_SLOT && second < votes[i] && second <= highest && i != hi)
 		{
 			second = votes[i];
 			s = i;
@@ -272,11 +283,17 @@ void CVoteMutatorPanel::Update()
 	int third = -1, t = -1;
 	for ( int i = 0; i < MUTATOR_MENU_TOTAL_SLOTS; i++ )
 	{
-		if (third < votes[i] && third <= second && i != hi && i != s)
+		if (i != MUTATOR_MENU_CLEAR_SLOT && third < votes[i] && third <= second && i != hi && i != s)
 		{
 			third = votes[i];
 			t = i;
 		}
+	}
+
+	if ( votes[MUTATOR_MENU_CLEAR_SLOT] > 0 && votes[MUTATOR_MENU_CLEAR_SLOT] >= highest )
+	{
+		hi = MUTATOR_MENU_CLEAR_SLOT;
+		s = t = -1;
 	}
 
 	// Update scroll panel border and scrollbar colors (once per update, not per button)
@@ -370,65 +387,72 @@ void CVoteMutatorPanel::Update()
 		}
 	}
 
-	if ( m_pInstantButton )
+	for ( int k = 0; k < MUTATOR_MENU_SPECIAL_SLOTS; k++ )
 	{
-		if ( m_pInstantVoteTallyLabel )
+		ColorButton *pButton = m_pSpecialButtons[k];
+		LineBorder *pBorder = m_pSpecialButtonBorders[k];
+		Label *pTally = m_pSpecialVoteTallyLabels[k];
+		if ( !pButton )
+			continue;
+
+		int voteId = s_MutatorSpecialSlots[k].voteId;
+		int slot = voteId - 1;
+
+		if ( pTally )
 		{
 			char voteSz[16];
-			sprintf(voteSz, "%d", votes[MUTATOR_MENU_INSTANT_SLOT]);
-			m_pInstantVoteTallyLabel->setText(voteSz);
-			m_pInstantVoteTallyLabel->setFgColor(r, g, b, 0);
+			sprintf(voteSz, "%d", votes[slot]);
+			pTally->setText(voteSz);
+			pTally->setFgColor(r, g, b, 0);
 		}
 
 		Color borderColor;
-		if ( myVote == MUTATOR_VOTE_INSTANT )
+		if ( myVote == voteId )
 		{
-			m_pInstantButton->setArmed(true);
+			pButton->setArmed(true);
 			borderColor = Color( 255, 255, 255, a );
-			if ( m_pInstantVoteTallyLabel )
-				m_pInstantVoteTallyLabel->setFgColor(255, 255, 255, 0);
+			if ( pTally )
+				pTally->setFgColor(255, 255, 255, 0);
+		}
+		else if ((slot == hi || slot == s || slot == t) && votes[slot] > 0)
+		{
+			borderColor = Color( 0, 255, 0, a );
 		}
 		else
 		{
-			if ((MUTATOR_MENU_INSTANT_SLOT == hi || MUTATOR_MENU_INSTANT_SLOT == s || MUTATOR_MENU_INSTANT_SLOT == t)
-				&& votes[MUTATOR_MENU_INSTANT_SLOT] > 0)
-			{
-				borderColor = Color( 0, 255, 0, a );
-			}
-			else
-			{
-				borderColor = Color( r, g, b, a );
-			}
+			borderColor = Color( r, g, b, a );
 		}
 
-		if ( m_pInstantButtonBorder )
+		if ( pBorder )
 		{
 			int br, bg, bb, ba;
 			borderColor.getColor(br, bg, bb, ba);
-			m_pInstantButtonBorder->setLineColor(br, bg, bb, ba);
-			m_pInstantButton->setBorder( m_pInstantButtonBorder );
+			pBorder->setLineColor(br, bg, bb, ba);
+			pButton->setBorder( pBorder );
 		}
 
-		m_pInstantButton->setUnArmedColor(r, g, b, 0);
-		if ( votes[MUTATOR_MENU_INSTANT_SLOT] > 0 )
+		pButton->setUnArmedColor(r, g, b, 0);
+		if ( votes[slot] > 0 )
 		{
-			m_pInstantButton->setArmed(true);
-			m_pInstantButton->setBgColor(r, g, b, 255);
-			if ( myVote == MUTATOR_VOTE_INSTANT )
-				m_pInstantButton->setArmedColor(255, 255, 255, 0);
+			pButton->setArmed(true);
+			pButton->setBgColor(r, g, b, 255);
+			if ( myVote == voteId )
+				pButton->setArmedColor(255, 255, 255, 0);
 			else
-				m_pInstantButton->setArmedColor(r, g, b, 0);
+				pButton->setArmedColor(r, g, b, 0);
 		}
-		else if ( m_pInstantButtonBorder )
+		else if ( pBorder )
 		{
-			m_pInstantButtonBorder->setLineColor(r, g, b, a);
-			m_pInstantButton->setBorder( m_pInstantButtonBorder );
+			pBorder->setLineColor(r, g, b, a);
+			pButton->setBorder( pBorder );
 		}
 	}
 
 	const char *myVoteName = "None";
 	if ( myVote == MUTATOR_VOTE_INSTANT )
 		myVoteName = "INSTANT";
+	else if ( myVote == MUTATOR_VOTE_CLEAR )
+		myVoteName = "CLEAR";
 	else if ( myVote > 0 && myVote <= MAX_MUTATORS_CL )
 		myVoteName = sMutators[myVote - 1].name;
 

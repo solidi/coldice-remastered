@@ -168,13 +168,17 @@ void CHalfLifeGunGame::Think( void )
 		g_pGameRules->CheckGameMode();
 	}
 
-	CheckMutatorRTV();
-
 	if ( g_fGameOver )
 	{
 		CHalfLifeMultiplay::Think();
 		return;
 	}
+
+	// The base Think() only runs at game over here, so drive the RTV vote
+	// timers and manifest streaming ourselves (an RTV may end the game).
+	VoteThink();
+	if ( g_fGameOver )
+		return;
 
 	float flTimeLimit = CVAR_GET_FLOAT("mp_timelimit") * 60;
 	

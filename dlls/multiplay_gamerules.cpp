@@ -59,6 +59,9 @@ extern int gmsgVOptFor;
 extern int gmsgSrvOpts;
 extern int gmsgVoteSrvOp;
 extern int gmsgSOptFor;
+extern int gmsgBotOpts;
+extern int gmsgVoteBotOp;
+extern int gmsgBOptFor;
 
 extern DLL_GLOBAL int g_GameMode;
 extern int gmsgPlayClientSound;
@@ -105,6 +108,7 @@ CHalfLifeMultiplay :: CHalfLifeMultiplay()
 
 	RefreshSkillData();
 	m_flIntermissionEndTime = 0;
+	m_flIntermissionVoteShift = 0;
 	m_iFirstBloodDecided = FALSE;
 	g_flIntermissionStartTime = 0;
 	memset(m_iVoteCount, -1, sizeof(m_iVoteCount));
@@ -123,6 +127,11 @@ CHalfLifeMultiplay :: CHalfLifeMultiplay()
 	memset(m_iServerOptionsVotes, -1, sizeof(m_iServerOptionsVotes));
 	memset(m_fServerOptionsLastSent, 0, sizeof(m_fServerOptionsLastSent));
 	memset(m_iServerOptionsRevisionSent, 0, sizeof(m_iServerOptionsRevisionSent));
+	m_iActiveBotOptionsCount = 0;
+	memset(m_iActiveBotOptions, 0, sizeof(m_iActiveBotOptions));
+	memset(m_iBotOptionsVotes, -1, sizeof(m_iBotOptionsVotes));
+	memset(m_fBotOptionsLastSent, 0, sizeof(m_fBotOptionsLastSent));
+	memset(m_iBotOptionsRevisionSent, 0, sizeof(m_iBotOptionsRevisionSent));
 	for ( int i = 0; i < 32; i++ )
 	{
 		m_iMapListStreamNext[i] = -1;
@@ -131,6 +140,10 @@ CHalfLifeMultiplay :: CHalfLifeMultiplay()
 		m_iGameOptionsStreamSeq[i] = 0;
 		m_iServerOptionsStreamNext[i] = -1;
 		m_iServerOptionsStreamSeq[i] = 0;
+		m_iBotOptionsStreamNext[i] = -1;
+		m_iBotOptionsStreamSeq[i] = 0;
+		m_fBotOptionsStreamStart[i] = 0;
+		m_fManifestNextSend[i] = 0;
 	}
 	m_bGameOptionsRTVOnly = FALSE;
 	m_pGameOptionsRTVInitiator = NULL;
@@ -138,10 +151,18 @@ CHalfLifeMultiplay :: CHalfLifeMultiplay()
 	m_bServerOptionsRTVOnly = FALSE;
 	m_pServerOptionsRTVInitiator = NULL;
 	m_fServerOptionsVoteTime = 0;
+	m_pBotOptionsRTVInitiator = NULL;
+	m_fBotOptionsVoteTime = 0;
 	m_iElectedGameMode = -1;
 	m_fGameplayVoteTime = 0;
 	m_fMapVoteTime = 0;
 	m_bSkipIntermissionVoting = FALSE;
+	m_fLastVoteCastTime = 0;
+	m_fEarlyCloseNoticeEnd = 0;
+	m_iBotVoteKind = BOT_VOTE_NONE;
+	m_fBotVoteDeadline = 0;
+	memset(m_fBotVoteNext, 0, sizeof(m_fBotVoteNext));
+	memset(m_iBotVoteRow, 0, sizeof(m_iBotVoteRow));
 	
 	// 11/8/98
 	// Modified by YWB:  Server .cfg file is now a cvar, so that 
@@ -277,7 +298,21 @@ int             g_iServerOptionsRevision = 0;
 int             g_iServerOptionsParseErrors = 0;
 char            g_szServerOptionsParseLog[SERVER_OPTIONS_PARSE_LOG_LINES][SERVER_OPTIONS_PARSE_LOG_WIDTH];
 int             g_iServerOptionsParseLogCount = 0;
-static char     g_szPreviousServerOptionsFile[64] = "";
+
+// Dynamic bot-options manifest (built from botoptions.txt at runtime).
+// Same row format and parser as server-options; RTV-only vote.
+bot_option_t    g_BotOptions[MAX_BOT_OPTIONS];
+int             g_iBotOptionsCount = 0;
+int             g_iBotOptionsRevision = 0;
+int             g_iBotOptionsParseErrors = 0;
+char            g_szBotOptionsParseLog[SERVER_OPTIONS_PARSE_LOG_LINES][SERVER_OPTIONS_PARSE_LOG_WIDTH];
+int             g_iBotOptionsParseLogCount = 0;
+
+// Manifest stream pacing (see PumpClientManifestSends). Each human client gets
+// at most one manifest chunk per interval, streams are served one at a time in
+// priority order, and the bot manifest waits until the connect burst settles.
+#define MANIFEST_STREAM_INTERVAL 0.1f   // seconds between manifest chunks to one client (~1.9 KB/s worst case)
+#define BOT_OPTIONS_SEND_DELAY   5.0f   // seconds after InitHUD before the bot manifest may stream
 
 char *gamePlayModes[] = {
 	"Deathmatch",		// 0  GAME_FFA
@@ -303,6 +338,79 @@ char *gamePlayModes[] = {
 
 extern void Vote( CBasePlayer *pPlayer, int vote );
 extern const char *szGameModeList[TOTAL_GAME_MODES];
+
+/*
+==============
+TallyMutatorVotes
+
+Shared by the end-of-game mutator phase and the mutator RTV. Counts
+m_iVoteCount[] (vote IDs 1..MUTATOR_VOTE_SLOTS, see const.h) and ranks the
+top three of the real mutators, RANDOM and INSTANT MUTATORS (0-based slot =
+vote ID - 1; -1 when nobody voted for it). CLEAR is not ranked: it wins when it
+has votes and ties or beats the most-voted other slot, which cancels every
+mutator (including INSTANT MUTATORS).
+==============
+*/
+// The synthetic vote IDs in const.h assume RANDOM sits right after the last real mutator.
+typedef char mutator_vote_ids_follow_max_mutators[ ( MUTATOR_VOTE_RANDOM == MAX_MUTATORS + 1 ) ? 1 : -1 ];
+
+struct mutator_vote_tally_t
+{
+	int first, second, third;     // vote counts, -1 = no such slot
+	int fIndex, sIndex, tIndex;   // 0-based slots
+	int clearVotes;
+	BOOL clearWins;
+};
+
+static mutator_vote_tally_t TallyMutatorVotes( const int *voteCount )
+{
+	int vote[MUTATOR_VOTE_SLOTS];
+	memset( vote, -1, sizeof(vote) );
+
+	for ( int j = 1; j <= gpGlobals->maxClients; j++ )
+	{
+		int slot = voteCount[j - 1] - 1;
+		if ( slot >= 0 && slot < MUTATOR_VOTE_SLOTS )
+		{
+			if ( vote[slot] == -1 ) vote[slot] = 0;
+			vote[slot]++;
+		}
+	}
+
+	mutator_vote_tally_t t;
+	t.clearVotes = ( vote[MUTATOR_VOTE_CLEAR - 1] > 0 ) ? vote[MUTATOR_VOTE_CLEAR - 1] : 0;
+	vote[MUTATOR_VOTE_CLEAR - 1] = -1;
+
+	t.first = t.second = t.third = -1;
+	t.fIndex = t.sIndex = t.tIndex = -1;
+	for ( int i = 0; i < MUTATOR_VOTE_SLOTS; i++ )
+	{
+		if ( vote[i] > t.first )
+		{
+			t.tIndex = t.sIndex;
+			t.third = t.second;
+			t.sIndex = t.fIndex;
+			t.second = t.first;
+			t.fIndex = i;
+			t.first = vote[i];
+		}
+		else if ( vote[i] > t.second )
+		{
+			t.tIndex = t.sIndex;
+			t.third = t.second;
+			t.sIndex = i;
+			t.second = vote[i];
+		}
+		else if ( vote[i] > t.third )
+		{
+			t.tIndex = i;
+			t.third = vote[i];
+		}
+	}
+
+	t.clearWins = ( t.clearVotes > 0 && t.clearVotes >= t.first ) ? TRUE : FALSE;
+	return t;
+}
 
 int CHalfLifeMultiplay::RandomizeMutator( void )
 {
@@ -352,12 +460,7 @@ void CHalfLifeMultiplay :: Think ( void )
 	int frags_remaining = 0;
 	int time_remaining = 0;
 
-	CheckMutatorRTV();
-	CheckGameplayRTV();
-	CheckMapRTV();
-	CheckGameOptionsRTV();
-	CheckServerOptionsRTV();
-	PumpClientManifestSends();
+	VoteThink();
 
 	if ( g_fGameOver )   // someone else quit the game already
 	{
@@ -368,15 +471,20 @@ void CHalfLifeMultiplay :: Think ( void )
 		else if ( time > MAX_INTERMISSION_TIME )
 			CVAR_SET_STRING( "mp_chattime", UTIL_dtos1( MAX_INTERMISSION_TIME ) );
 
+		// Recomputed every frame, so schedule cuts (early close, skipped phases)
+		// live in m_flIntermissionVoteShift rather than in this value.
 		int timeLeft = m_bSkipIntermissionVoting ? 0 : (int)(voting.value * 5) + 15;
-		m_flIntermissionEndTime = g_flIntermissionStartTime + mp_chattime.value + timeLeft;
+		m_flIntermissionEndTime = g_flIntermissionStartTime + mp_chattime.value + timeLeft - m_flIntermissionVoteShift;
 
 		if (voting.value >= 10 && !m_bSkipIntermissionVoting)
 		{
+			CheckIntermissionVoteEarlyClose( timeLeft );
+
 			if (m_iVoteUnderway == VOTE_GAMEPLAY_TRANSITION &&
 				((m_flIntermissionEndTime - mp_chattime.value - (timeLeft - 3)) < gpGlobals->time))
 			{
 				m_iVoteUnderway = VOTE_GAMEPLAY_OPEN;
+				memset(m_iVoteCount, -1, sizeof(m_iVoteCount));
 
 				MESSAGE_BEGIN(MSG_ALL, gmsgVoteGameplay);
 					WRITE_BYTE(voting.value);
@@ -385,15 +493,7 @@ void CHalfLifeMultiplay :: Think ( void )
 					WRITE_BYTE(CLIENT_SOUND_VOTEGAME);
 				MESSAGE_END();
 
-				// Bots get a vote
-				for (int i = 1; i <= gpGlobals->maxClients; i++)
-				{
-					CBasePlayer *pPlayer = (CBasePlayer *)UTIL_PlayerByIndex( i );
-					if (pPlayer && FBitSet(pPlayer->pev->flags, FL_FAKECLIENT) && !pPlayer->HasDisconnected)
-					{
-						::Vote(pPlayer, RANDOM_LONG(1, TOTAL_GAME_MODES + 2 /*random*/));
-					}
-				}
+				ScheduleBotVotes(BOT_VOTE_GAMEPLAY);
 			}
 			// Game mode vote ended
 			else if (m_iVoteUnderway == VOTE_GAMEPLAY_OPEN &&
@@ -488,6 +588,7 @@ void CHalfLifeMultiplay :: Think ( void )
 					// time back so we don't have dead air.
 					UTIL_ClientPrintAll(HUD_PRINTTALK, "[VOTE] No game options to vote on for current mode.\n");
 					m_iVoteUnderway = VOTE_SERVEROPTIONS_TRANSITION;
+					m_flIntermissionVoteShift += voting.value;
 					m_flIntermissionEndTime -= voting.value;
 				}
 				else
@@ -524,31 +625,9 @@ void CHalfLifeMultiplay :: Think ( void )
 						WRITE_BYTE(CLIENT_SOUND_VOTEGAMEOPTIONS);  // shared opening tone
 					MESSAGE_END();
 
-					// Reset tally and have bots cast random per-item votes.
-					// Broadcast each so clients populate g_PlayerOptVote[][] and
-					// see the bot's vote in the live tally (matches VoteOption()).
+					// Reset tally; bots vote each row shortly after (ProcessBotVotes).
 					memset(m_iGameOptionsVotes, -1, sizeof(m_iGameOptionsVotes));
-					for (int i = 1; i <= gpGlobals->maxClients; i++)
-					{
-						CBasePlayer *pPlayer = (CBasePlayer *)UTIL_PlayerByIndex(i);
-						if (pPlayer && FBitSet(pPlayer->pev->flags, FL_FAKECLIENT) && !pPlayer->HasDisconnected)
-						{
-							for (int k = 0; k < m_iActiveGameOptionsCount; k++)
-							{
-								int realIdx = m_iActiveGameOptions[k];
-								int numOpts = g_GameOptions[realIdx].numOptions;
-								if (numOpts < 2) continue;
-								int pick = RANDOM_LONG(0, numOpts - 1);
-								m_iGameOptionsVotes[i - 1][k] = pick;
-
-								MESSAGE_BEGIN(MSG_ALL, gmsgVOptFor);
-									WRITE_BYTE(i);           // client index, 1-based
-									WRITE_BYTE(k + 1);       // item, 1-based
-									WRITE_BYTE(pick + 1);    // option, 1-based
-								MESSAGE_END();
-							}
-						}
-					}
+					ScheduleBotVotes(BOT_VOTE_GAMEOPTIONS);
 				}
 			}
 
@@ -578,6 +657,7 @@ void CHalfLifeMultiplay :: Think ( void )
 				{
 					UTIL_ClientPrintAll(HUD_PRINTTALK, "[VOTE] No server options to vote on.\n");
 					m_iVoteUnderway = VOTE_MUTATORS_TRANSITION;
+					m_flIntermissionVoteShift += voting.value;
 					m_flIntermissionEndTime -= voting.value;
 				}
 				else
@@ -612,27 +692,7 @@ void CHalfLifeMultiplay :: Think ( void )
 					MESSAGE_END();
 
 					memset(m_iServerOptionsVotes, -1, sizeof(m_iServerOptionsVotes));
-					for (int i = 1; i <= gpGlobals->maxClients; i++)
-					{
-						CBasePlayer *pPlayer = (CBasePlayer *)UTIL_PlayerByIndex(i);
-						if (pPlayer && FBitSet(pPlayer->pev->flags, FL_FAKECLIENT) && !pPlayer->HasDisconnected)
-						{
-							for (int k = 0; k < m_iActiveServerOptionsCount; k++)
-							{
-								int realIdx = m_iActiveServerOptions[k];
-								int numOpts = g_ServerOptions[realIdx].numOptions;
-								if (numOpts < 2) continue;
-								int pick = RANDOM_LONG(0, numOpts - 1);
-								m_iServerOptionsVotes[i - 1][k] = pick;
-
-								MESSAGE_BEGIN(MSG_ALL, gmsgSOptFor);
-									WRITE_BYTE(i);           // client index, 1-based
-									WRITE_BYTE(k + 1);       // item, 1-based
-									WRITE_BYTE(pick + 1);    // option, 1-based
-								MESSAGE_END();
-							}
-						}
-					}
+					ScheduleBotVotes(BOT_VOTE_SERVEROPTIONS);
 				}
 			}
 
@@ -656,6 +716,7 @@ void CHalfLifeMultiplay :: Think ( void )
 				((m_flIntermissionEndTime - mp_chattime.value - (timeLeft - (voting.value * 3) - 12)) < gpGlobals->time))
 			{
 				m_iVoteUnderway = VOTE_MUTATORS_OPEN;
+				memset(m_iVoteCount, -1, sizeof(m_iVoteCount));
 				int modeForVote = ( m_iElectedGameMode >= 0 ) ? m_iElectedGameMode : g_GameMode;
 				if ( modeForVote < 0 ) modeForVote = GAME_FFA;
 				if ( modeForVote > TOTAL_GAME_MODES ) modeForVote = TOTAL_GAME_MODES;
@@ -668,15 +729,7 @@ void CHalfLifeMultiplay :: Think ( void )
 					WRITE_BYTE(CLIENT_SOUND_VOTEMUTATOR);
 				MESSAGE_END();
 
-				// Bots get a vote
-				for (int i = 1; i <= gpGlobals->maxClients; i++)
-				{
-					CBasePlayer *pPlayer = (CBasePlayer *)UTIL_PlayerByIndex( i );
-					if (pPlayer && FBitSet(pPlayer->pev->flags, FL_FAKECLIENT) && !pPlayer->HasDisconnected)
-					{
-						::Vote(pPlayer, RandomizeMutator());
-					}
-				}
+				ScheduleBotVotes(BOT_VOTE_MUTATOR);
 			}
 
 			// Mutator vote ended
@@ -689,59 +742,24 @@ void CHalfLifeMultiplay :: Think ( void )
 					WRITE_BYTE(0);
 				MESSAGE_END();
 
-				// tally votes
-				int vote[MAX_MUTATORS+2]; // +1 RANDOM, +1 INSTANT MUTATORS (synthetic)
-				memset(vote, -1, sizeof(vote));
-
-				for (int j = 1; j <= gpGlobals->maxClients; j++)
-				{
-					int mutatorIndex = g_pGameRules->m_iVoteCount[j-1];
-					if ((mutatorIndex-1) >= 0 && (mutatorIndex-1) <= MAX_MUTATORS + 1 /*instant*/)
-					{
-						if (vote[mutatorIndex-1] == -1) vote[mutatorIndex-1] = 0;
-						vote[mutatorIndex-1]++;
-					}
-					// ALERT(at_console, "mutatorIndex=%d vote[%d]=%d\n", mutatorIndex-1, mutatorIndex-1, vote[mutatorIndex-1]);
-				}
-
-				int first, second, third;
-				third = first = second = -1;
-				int fIndex, sIndex, tIndex;
-				fIndex = sIndex = tIndex = -1;
-
-				for (int i = 0; i <= MAX_MUTATORS + 1 /*instant*/; i++)
-				{
-					if (vote[i] > first)
-					{
-						tIndex = sIndex;
-						third = second;
-						sIndex = fIndex;
-						second = first;
-						fIndex = i;
-						first = vote[i];
-					}
-					else if (vote[i] > second)
-					{
-						tIndex = sIndex;
-						third = second;
-						sIndex = i;
-						second = vote[i];
-					}
-					else if (vote[i] > third)
-					{
-						tIndex = i;
-						third = vote[i];
-					}
-				}
+				mutator_vote_tally_t tally = TallyMutatorVotes(m_iVoteCount);
+				int first = tally.first, second = tally.second, third = tally.third;
+				int fIndex = tally.fIndex, sIndex = tally.sIndex, tIndex = tally.tIndex;
 
 				memset(m_iVoteCount, -1, sizeof(m_iVoteCount));
 
-				ALERT(at_aiconsole, "first=%d, fIndex=%d, second=%d, sIndex=%d, third=%d, tIndex=%d\n", first, fIndex, second, sIndex, third, tIndex);
+				ALERT(at_aiconsole, "first=%d, fIndex=%d, second=%d, sIndex=%d, third=%d, tIndex=%d, clear=%d\n", first, fIndex, second, sIndex, third, tIndex, tally.clearVotes);
 
-				const int kRandomIndex = MAX_MUTATORS;      // vote id MAX_MUTATORS + 1
-				const int kInstantIndex = MAX_MUTATORS + 1; // vote id MAX_MUTATORS + 2
+				const int kRandomIndex = MUTATOR_VOTE_RANDOM - 1;
+				const int kInstantIndex = MUTATOR_VOTE_INSTANT - 1;
 
-				if (first < 0 && second < 0 && third < 0)
+				if (tally.clearWins)
+				{
+					SERVER_COMMAND("sv_instantmutators 0\n");
+					SERVER_COMMAND("sv_mutatorlist \"\"\n");
+					UTIL_ClientPrintAll(HUD_PRINTTALK, UTIL_VarArgs("[VOTE] CLEAR wins with %d votes. No mutators next map.\n", tally.clearVotes));
+				}
+				else if (first < 0 && second < 0 && third < 0)
 				{
 					UTIL_ClientPrintAll(HUD_PRINTTALK, "[VOTE] Not enough votes received for mutators.\n");
 					SERVER_COMMAND("sv_instantmutators 0\n");
@@ -819,6 +837,7 @@ void CHalfLifeMultiplay :: Think ( void )
 				((m_flIntermissionEndTime - mp_chattime.value - (timeLeft - (voting.value * 4) - 15)) < gpGlobals->time))
 			{
 				m_iVoteUnderway = VOTE_MAPS_OPEN;
+				memset(m_iVoteCount, -1, sizeof(m_iVoteCount));
 				int modeForVote = ( m_iElectedGameMode >= 0 ) ? m_iElectedGameMode : g_GameMode;
 				if ( modeForVote < 0 ) modeForVote = GAME_FFA;
 				if ( modeForVote > TOTAL_GAME_MODES ) modeForVote = TOTAL_GAME_MODES;
@@ -834,17 +853,7 @@ void CHalfLifeMultiplay :: Think ( void )
 					WRITE_BYTE(CLIENT_SOUND_VOTEMAP);
 				MESSAGE_END();
 
-				// Bots get a vote (1..count is a real map, count+1 is RANDOM)
-				int maxVote = g_iServerMapCount + 1;
-				if (maxVote < 2) maxVote = 2; // safety
-				for (int i = 1; i <= gpGlobals->maxClients; i++)
-				{
-					CBasePlayer *pPlayer = (CBasePlayer *)UTIL_PlayerByIndex( i );
-					if (pPlayer && FBitSet(pPlayer->pev->flags, FL_FAKECLIENT) && !pPlayer->HasDisconnected)
-					{
-						::Vote(pPlayer, RANDOM_LONG(1, maxVote));
-					}
-				}
+				ScheduleBotVotes(BOT_VOTE_MAP);
 			}
 
 			// Map vote ended
@@ -1071,7 +1080,429 @@ void CHalfLifeMultiplay :: Think ( void )
 #endif
 }
 
-void CHalfLifeMultiplay::CheckMutatorRTV( void )
+// ---------------------------------------------------------------------------
+// Early vote close. Once every eligible human (RTVIsEligibleHumanVoter) has a
+// full ballot in the open vote, it closes VOTE_EARLY_CLOSE_DELAY seconds after
+// the last vote was cast, or at its normal end if that comes first. Revising a
+// vote counts as casting one. Applies to every RTV vote and every end-of-game
+// vote phase. Bots are ignored (they vote when a panel opens), and a vote with
+// no eligible humans runs its full length.
+// ---------------------------------------------------------------------------
+
+#define VOTE_EARLY_CLOSE_DELAY 2.0f
+
+enum vote_ballot_e
+{
+	VOTE_BALLOT_SINGLE = 0,      // one pick in m_iVoteCount (gameplay, mutator, map)
+	VOTE_BALLOT_GAMEOPTIONS,     // every active row in m_iGameOptionsVotes
+	VOTE_BALLOT_SERVEROPTIONS,   // every active row in m_iServerOptionsVotes
+	VOTE_BALLOT_BOTOPTIONS       // every active row in m_iBotOptionsVotes
+};
+
+static BOOL BallotRowsVoted( const int *rowVotes, int rowCount )
+{
+	if ( rowCount <= 0 )
+		return FALSE;
+	for ( int k = 0; k < rowCount; k++ )
+	{
+		if ( rowVotes[k] < 0 )
+			return FALSE;
+	}
+	return TRUE;
+}
+
+BOOL CHalfLifeMultiplay::AllEligibleVotersVoted( int ballot )
+{
+	int eligible = 0;
+
+	for ( int i = 1; i <= gpGlobals->maxClients; i++ )
+	{
+		CBasePlayer *pPlayer = (CBasePlayer *)UTIL_PlayerByIndex( i );
+		if ( !RTVIsEligibleHumanVoter( pPlayer ) )
+			continue;
+
+		eligible++;
+		int idx = i - 1;
+		BOOL voted = FALSE;
+		switch ( ballot )
+		{
+		case VOTE_BALLOT_SINGLE:
+			voted = ( m_iVoteCount[idx] >= 1 ) ? TRUE : FALSE;
+			break;
+		case VOTE_BALLOT_GAMEOPTIONS:
+			voted = BallotRowsVoted( m_iGameOptionsVotes[idx], m_iActiveGameOptionsCount );
+			break;
+		case VOTE_BALLOT_SERVEROPTIONS:
+			voted = BallotRowsVoted( m_iServerOptionsVotes[idx], m_iActiveServerOptionsCount );
+			break;
+		case VOTE_BALLOT_BOTOPTIONS:
+			voted = BallotRowsVoted( m_iBotOptionsVotes[idx], m_iActiveBotOptionsCount );
+			break;
+		}
+		if ( !voted )
+			return FALSE;
+	}
+
+	return ( eligible > 0 ) ? TRUE : FALSE;
+}
+
+// Returns when the open vote with this ballot and nominal end should close.
+float CHalfLifeMultiplay::VoteEarlyCloseTime( int ballot, float nominalEnd )
+{
+	// Bots vote a few seconds after the panel opens; wait for them too.
+	if ( !AllEligibleVotersVoted( ballot ) || BotVotesPending() )
+		return nominalEnd;
+
+	float closeAt = m_fLastVoteCastTime + VOTE_EARLY_CLOSE_DELAY;
+	if ( closeAt >= nominalEnd )
+		return nominalEnd;
+
+	// Announce once per vote window, and only when it saves real time.
+	if ( fabs( m_fEarlyCloseNoticeEnd - nominalEnd ) > 0.01f )
+	{
+		m_fEarlyCloseNoticeEnd = nominalEnd;
+		if ( nominalEnd - closeAt >= 1.0f )
+			UTIL_ClientPrintAll( HUD_PRINTTALK, "[VOTE] All votes are in. Closing the vote early.\n" );
+	}
+
+	return closeAt;
+}
+
+// Pulls an open RTV vote's end time in to now when it is due to close early,
+// so its Check*RTV() tallies this frame. voteEnd is that RTV's m_f*VoteTime.
+void CHalfLifeMultiplay::EarlyCloseRTVWindow( float &voteEnd, int ballot )
+{
+	if ( voteEnd <= gpGlobals->time )
+		return; // not open, or already closing this frame
+
+	if ( gpGlobals->time < VoteEarlyCloseTime( ballot, voteEnd ) )
+		return;
+
+	voteEnd = gpGlobals->time;
+	RTVGateVoteClosedEarly( voteEnd );
+}
+
+void CHalfLifeMultiplay::CheckRTVVoteEarlyClose( void )
+{
+	EarlyCloseRTVWindow( m_fGameplayVoteTime, VOTE_BALLOT_SINGLE );
+	EarlyCloseRTVWindow( m_fMapVoteTime, VOTE_BALLOT_SINGLE );
+	EarlyCloseRTVWindow( m_fMutatorVoteTime, VOTE_BALLOT_SINGLE );
+	EarlyCloseRTVWindow( m_fGameOptionsVoteTime, VOTE_BALLOT_GAMEOPTIONS );
+	EarlyCloseRTVWindow( m_fServerOptionsVoteTime, VOTE_BALLOT_SERVEROPTIONS );
+	EarlyCloseRTVWindow( m_fBotOptionsVoteTime, VOTE_BALLOT_BOTOPTIONS );
+}
+
+/*
+==============
+CheckIntermissionVoteEarlyClose
+
+End-of-game phase k (1 gameplay, 2 game-options, 3 server-options, 4 mutator,
+5 map) ends at the same time the "vote ended" checks in Think() use:
+  m_flIntermissionEndTime - mp_chattime - (timeLeft - voting*k - 3*k)
+Closing early cuts the remaining time from the whole schedule, so the current
+phase ends this frame and the 3s transitions, later phases and the post-vote
+chat time keep their lengths.
+==============
+*/
+void CHalfLifeMultiplay::CheckIntermissionVoteEarlyClose( int timeLeft )
+{
+	int phase, ballot;
+	switch ( m_iVoteUnderway )
+	{
+	case VOTE_GAMEPLAY_OPEN:      phase = 1; ballot = VOTE_BALLOT_SINGLE; break;
+	case VOTE_GAMEOPTIONS_OPEN:   phase = 2; ballot = VOTE_BALLOT_GAMEOPTIONS; break;
+	case VOTE_SERVEROPTIONS_OPEN: phase = 3; ballot = VOTE_BALLOT_SERVEROPTIONS; break;
+	case VOTE_MUTATORS_OPEN:      phase = 4; ballot = VOTE_BALLOT_SINGLE; break;
+	case VOTE_MAPS_OPEN:          phase = 5; ballot = VOTE_BALLOT_SINGLE; break;
+	default: return;
+	}
+
+	float phaseEnd = m_flIntermissionEndTime - mp_chattime.value - ( timeLeft - ( voting.value * phase ) - ( 3 * phase ) );
+	if ( phaseEnd <= gpGlobals->time )
+		return;
+
+	if ( gpGlobals->time < VoteEarlyCloseTime( ballot, phaseEnd ) )
+		return;
+
+	// The phase-end checks use a strict '<', so land just before now.
+	float cut = ( phaseEnd - gpGlobals->time ) + 0.001f;
+	m_flIntermissionVoteShift += cut;
+	m_flIntermissionEndTime -= cut;
+}
+
+/*
+==============
+VoteThink
+
+Per-frame vote work that must run in every game mode, mid-match and during
+intermission: early close of RTV votes, the RTV vote timers, and paced
+manifest streaming. Called from Think(); mode Think() overrides that skip the
+base Think() mid-match (Teamplay, GunGame) call it directly.
+==============
+*/
+void CHalfLifeMultiplay::VoteThink( void )
+{
+	ProcessBotVotes();
+	CheckRTVVoteEarlyClose();
+	CheckMutatorRTV();
+	CheckGameplayRTV();
+	CheckMapRTV();
+	CheckGameOptionsRTV();
+	CheckServerOptionsRTV();
+	CheckBotOptionsRTV();
+	PumpClientManifestSends();
+}
+
+/*
+==============
+SettleOpenRTVVotes
+
+RTV votes are in-match only. GoToIntermission() calls this before it sets up
+the end-of-game votes so no RTV vote stays open into intermission, where it
+would share ballots and panels with the matching end-of-game phase (and,
+with early close, could overlap it). Each open RTV closes and tallies now:
+options apply without a map restart, and a winning gameplay/map RTV skips
+the end-of-game votes instead of ending the game a second time.
+==============
+*/
+void CHalfLifeMultiplay::SettleOpenRTVVotes( void )
+{
+	BOOL settled = FALSE;
+
+	if ( m_fGameplayVoteTime > 0 )
+	{
+		CheckGameplayRTV( TRUE );
+		settled = TRUE;
+	}
+	if ( m_fMapVoteTime > 0 )
+	{
+		CheckMapRTV( TRUE );
+		settled = TRUE;
+	}
+	if ( m_fMutatorVoteTime > 0 )
+	{
+		CheckMutatorRTV( TRUE );
+		settled = TRUE;
+	}
+	if ( m_fGameOptionsVoteTime > 0 )
+	{
+		CheckGameOptionsRTV( TRUE );
+		settled = TRUE;
+	}
+	if ( m_fServerOptionsVoteTime > 0 )
+	{
+		CheckServerOptionsRTV( TRUE );
+		settled = TRUE;
+	}
+	if ( m_fBotOptionsVoteTime > 0 )
+	{
+		CheckBotOptionsRTV( TRUE );
+		settled = TRUE;
+	}
+
+	if ( settled )
+		RTVGateVoteClosedEarly( gpGlobals->time );
+}
+
+// ---------------------------------------------------------------------------
+// Bot voting. Every vote panel (RTV and end-of-game) calls ScheduleBotVotes()
+// when it opens; ProcessBotVotes() (VoteThink) then casts each bot's vote like
+// a human would: a short random "reading" delay, then for option ballots one
+// row at a time with small gaps. Every bot has finished within
+// BOT_VOTE_MAX_DELAY of the panel opening. sv_botsvote 0 keeps bots out.
+// ---------------------------------------------------------------------------
+
+#define BOT_VOTE_MIN_DELAY 0.75f   // fastest first pick after a panel opens
+#define BOT_VOTE_MAX_DELAY 4.5f    // every bot has voted (all rows) by this long after opening
+#define BOT_VOTE_ROW_GAP_MIN 0.25f // gap between a bot's picks on an option ballot
+#define BOT_VOTE_ROW_GAP_MAX 0.7f
+#define BOT_VOTE_CLEAR_CHANCE 5    // percent of mutator votes a bot spends on CLEAR
+
+static BOOL IsVotingBot( CBasePlayer *pPlayer )
+{
+	return ( pPlayer && FBitSet( pPlayer->pev->flags, FL_FAKECLIENT ) && !pPlayer->HasDisconnected ) ? TRUE : FALSE;
+}
+
+// TRUE while the vote this kind belongs to is still taking votes.
+BOOL CHalfLifeMultiplay::BotVoteKindOpen( int kind )
+{
+	float now = gpGlobals->time;
+	switch ( kind )
+	{
+	case BOT_VOTE_GAMEPLAY:      return m_iVoteUnderway == VOTE_GAMEPLAY_OPEN || m_fGameplayVoteTime > now;
+	case BOT_VOTE_MAP:           return m_iVoteUnderway == VOTE_MAPS_OPEN || m_fMapVoteTime > now;
+	case BOT_VOTE_MUTATOR:       return m_iVoteUnderway == VOTE_MUTATORS_OPEN || m_fMutatorVoteTime > now;
+	case BOT_VOTE_GAMEOPTIONS:   return m_iVoteUnderway == VOTE_GAMEOPTIONS_OPEN || m_fGameOptionsVoteTime > now;
+	case BOT_VOTE_SERVEROPTIONS: return m_iVoteUnderway == VOTE_SERVEROPTIONS_OPEN || m_fServerOptionsVoteTime > now;
+	case BOT_VOTE_BOTOPTIONS:    return m_fBotOptionsVoteTime > now;
+	}
+	return FALSE;
+}
+
+void CHalfLifeMultiplay::ScheduleBotVotes( int kind )
+{
+	m_iBotVoteKind = BOT_VOTE_NONE;
+	memset( m_fBotVoteNext, 0, sizeof(m_fBotVoteNext) );
+	memset( m_iBotVoteRow, 0, sizeof(m_iBotVoteRow) );
+
+	if ( botsvote.value <= 0 || kind == BOT_VOTE_NONE )
+		return;
+
+	// Keep short RTV windows (mp_voting < 9) votable: finish within half the window.
+	float maxDelay = BOT_VOTE_MAX_DELAY;
+	if ( maxDelay > voting.value * 0.5f )
+		maxDelay = voting.value * 0.5f;
+	if ( maxDelay < 0.5f )
+		maxDelay = 0.5f;
+	float minDelay = BOT_VOTE_MIN_DELAY;
+	if ( minDelay > maxDelay * 0.5f )
+		minDelay = maxDelay * 0.5f;
+
+	m_fBotVoteDeadline = gpGlobals->time + maxDelay;
+
+	BOOL anyBot = FALSE;
+	for ( int i = 1; i <= gpGlobals->maxClients; i++ )
+	{
+		if ( !IsVotingBot( (CBasePlayer *)UTIL_PlayerByIndex( i ) ) )
+			continue;
+
+		// Average of two rolls: most bots pick mid-window, a few are quick or slow.
+		float spread = ( RANDOM_FLOAT( 0, 1 ) + RANDOM_FLOAT( 0, 1 ) ) * 0.5f;
+		m_fBotVoteNext[i - 1] = gpGlobals->time + minDelay + ( maxDelay - minDelay ) * spread;
+		anyBot = TRUE;
+	}
+
+	if ( anyBot )
+		m_iBotVoteKind = kind;
+}
+
+BOOL CHalfLifeMultiplay::BotVotesPending( void )
+{
+	if ( m_iBotVoteKind == BOT_VOTE_NONE || botsvote.value <= 0 || !BotVoteKindOpen( m_iBotVoteKind ) )
+		return FALSE;
+
+	for ( int i = 1; i <= gpGlobals->maxClients; i++ )
+	{
+		if ( m_fBotVoteNext[i - 1] > 0 && IsVotingBot( (CBasePlayer *)UTIL_PlayerByIndex( i ) ) )
+			return TRUE;
+	}
+	return FALSE;
+}
+
+void CHalfLifeMultiplay::ProcessBotVotes( void )
+{
+	if ( m_iBotVoteKind == BOT_VOTE_NONE )
+		return;
+
+	// The vote closed (or bots were switched off): drop whatever is left.
+	if ( botsvote.value <= 0 || !BotVoteKindOpen( m_iBotVoteKind ) )
+	{
+		m_iBotVoteKind = BOT_VOTE_NONE;
+		memset( m_fBotVoteNext, 0, sizeof(m_fBotVoteNext) );
+		return;
+	}
+
+	for ( int i = 1; i <= gpGlobals->maxClients; i++ )
+	{
+		int idx = i - 1;
+		if ( m_fBotVoteNext[idx] <= 0 || m_fBotVoteNext[idx] > gpGlobals->time )
+			continue;
+
+		CBasePlayer *pPlayer = (CBasePlayer *)UTIL_PlayerByIndex( i );
+		if ( !IsVotingBot( pPlayer ) )
+		{
+			m_fBotVoteNext[idx] = 0;
+			continue;
+		}
+
+		if ( m_iBotVoteKind == BOT_VOTE_GAMEPLAY || m_iBotVoteKind == BOT_VOTE_MAP || m_iBotVoteKind == BOT_VOTE_MUTATOR )
+		{
+			// Single pick; same choice ranges as a human's panel (last id is RANDOM).
+			int pick;
+			if ( m_iBotVoteKind == BOT_VOTE_GAMEPLAY )
+				pick = RANDOM_LONG( 1, TOTAL_GAME_MODES + 2 );
+			else if ( m_iBotVoteKind == BOT_VOTE_MAP )
+				pick = RANDOM_LONG( 1, ( g_iServerMapCount > 0 ? g_iServerMapCount : 1 ) + 1 );
+			else if ( RANDOM_LONG( 1, 100 ) <= BOT_VOTE_CLEAR_CHANCE )
+				pick = MUTATOR_VOTE_CLEAR;
+			else
+				pick = RandomizeMutator(); // a real mutator the current mode allows
+
+			pPlayer->m_fVoteCoolDown = 0;
+			::Vote( pPlayer, pick );
+			m_fBotVoteNext[idx] = 0;
+			continue;
+		}
+
+		// Option ballots: vote rows in order. Rows due after the deadline are
+		// all cast on the deadline so the bot is never later than that.
+		int *votes;
+		const int *active;
+		int rowCount, msgType;
+		switch ( m_iBotVoteKind )
+		{
+		case BOT_VOTE_GAMEOPTIONS:
+			votes = m_iGameOptionsVotes[idx]; active = m_iActiveGameOptions;
+			rowCount = m_iActiveGameOptionsCount; msgType = gmsgVOptFor;
+			break;
+		case BOT_VOTE_SERVEROPTIONS:
+			votes = m_iServerOptionsVotes[idx]; active = m_iActiveServerOptions;
+			rowCount = m_iActiveServerOptionsCount; msgType = gmsgSOptFor;
+			break;
+		default: // BOT_VOTE_BOTOPTIONS
+			votes = m_iBotOptionsVotes[idx]; active = m_iActiveBotOptions;
+			rowCount = m_iActiveBotOptionsCount; msgType = gmsgBOptFor;
+			break;
+		}
+
+		while ( m_fBotVoteNext[idx] > 0 && m_fBotVoteNext[idx] <= gpGlobals->time )
+		{
+			int row = m_iBotVoteRow[idx];
+			if ( row >= rowCount )
+			{
+				m_fBotVoteNext[idx] = 0;
+				break;
+			}
+
+			int realIdx = active[row];
+			int numOpts;
+			if ( m_iBotVoteKind == BOT_VOTE_GAMEOPTIONS )
+				numOpts = ( realIdx >= 0 && realIdx < g_iGameOptionsCount ) ? g_GameOptions[realIdx].numOptions : 0;
+			else if ( m_iBotVoteKind == BOT_VOTE_SERVEROPTIONS )
+				numOpts = ( realIdx >= 0 && realIdx < g_iServerOptionsCount ) ? g_ServerOptions[realIdx].numOptions : 0;
+			else
+				numOpts = ( realIdx >= 0 && realIdx < g_iBotOptionsCount ) ? g_BotOptions[realIdx].numOptions : 0;
+
+			if ( numOpts >= 2 )
+			{
+				int pick = RANDOM_LONG( 0, numOpts - 1 );
+				votes[row] = pick;
+				m_fLastVoteCastTime = gpGlobals->time;
+
+				// Mirror to every client's live tally, as VoteOption() does for humans.
+				MESSAGE_BEGIN( MSG_ALL, msgType );
+					WRITE_BYTE( i );         // client index, 1-based
+					WRITE_BYTE( row + 1 );   // item, 1-based
+					WRITE_BYTE( pick + 1 );  // option, 1-based
+				MESSAGE_END();
+			}
+
+			m_iBotVoteRow[idx] = row + 1;
+			if ( row + 1 >= rowCount )
+			{
+				m_fBotVoteNext[idx] = 0;
+				break;
+			}
+
+			float next = gpGlobals->time + RANDOM_FLOAT( BOT_VOTE_ROW_GAP_MIN, BOT_VOTE_ROW_GAP_MAX );
+			if ( next > m_fBotVoteDeadline )
+				next = ( m_fBotVoteDeadline > gpGlobals->time ) ? m_fBotVoteDeadline : gpGlobals->time;
+			m_fBotVoteNext[idx] = next;
+		}
+	}
+}
+
+void CHalfLifeMultiplay::CheckMutatorRTV( BOOL forceClose )
 {
 	if ( m_fMutatorVoteTime )
 	{
@@ -1088,66 +1519,33 @@ void CHalfLifeMultiplay::CheckMutatorRTV( void )
 			}
 		}
 
-		if ( m_fMutatorVoteTime <= gpGlobals->time )
+		if ( forceClose || m_fMutatorVoteTime <= gpGlobals->time )
 		{
 			MESSAGE_BEGIN(MSG_ALL, gmsgVoteMutator);
 				WRITE_BYTE(0);
 			MESSAGE_END();
 
-			// tally votes
-			int vote[MAX_MUTATORS+2]; // +1 RANDOM, +1 INSTANT MUTATORS (synthetic)
-			memset(vote, -1, sizeof(vote));
-
 			MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
 				WRITE_BYTE( CLIENT_SOUND_EBELL );
 			MESSAGE_END();
 
-			for (int j = 1; j <= gpGlobals->maxClients; j++)
-			{
-				int mutatorIndex = g_pGameRules->m_iVoteCount[j-1];
-				if ((mutatorIndex-1) >= 0 && (mutatorIndex-1) <= MAX_MUTATORS + 1 /*instant*/)
-				{
-					if (vote[mutatorIndex-1] == -1) vote[mutatorIndex-1] = 0;
-					vote[mutatorIndex-1]++;
-				}
-			}
-
-			int first, second, third;
-			third = first = second = -1;
-			int fIndex, sIndex, tIndex;
-			fIndex = sIndex = tIndex = -1;
-
-			for (int i = 0; i <= MAX_MUTATORS + 1 /*instant*/; i++)
-			{
-				if (vote[i] > first)
-				{
-					tIndex = sIndex;
-					third = second;
-					sIndex = fIndex;
-					second = first;
-					fIndex = i;
-					first = vote[i];
-				}
-				else if (vote[i] > second)
-				{
-					tIndex = sIndex;
-					third = second;
-					sIndex = i;
-					second = vote[i];
-				}
-				else if (vote[i] > third)
-				{
-					tIndex = i;
-					third = vote[i];
-				}
-			}
+			mutator_vote_tally_t tally = TallyMutatorVotes(m_iVoteCount);
+			int first = tally.first, second = tally.second, third = tally.third;
+			int fIndex = tally.fIndex, sIndex = tally.sIndex, tIndex = tally.tIndex;
 
 			memset(m_iVoteCount, -1, sizeof(m_iVoteCount));
 
-			const int kRandomIndex = MAX_MUTATORS;      // vote id MAX_MUTATORS + 1
-			const int kInstantIndex = MAX_MUTATORS + 1; // vote id MAX_MUTATORS + 2
+			const int kRandomIndex = MUTATOR_VOTE_RANDOM - 1;
+			const int kInstantIndex = MUTATOR_VOTE_INSTANT - 1;
 
-			if (first < 0 && second < 0 && third < 0)
+			if (tally.clearWins)
+			{
+				// VoteForMutator() already cleared the running mutators; keep it that way.
+				CVAR_SET_STRING("sv_instantmutators", "0");
+				SERVER_COMMAND("sv_mutatorlist \"\"\n");
+				UTIL_ClientPrintAll(HUD_PRINTTALK, UTIL_VarArgs("[VOTE] CLEAR wins with %d votes. No mutators, please!\n", tally.clearVotes));
+			}
+			else if (first < 0 && second < 0 && third < 0)
 			{
 				UTIL_ClientPrintAll(HUD_PRINTTALK, "[VOTE] Not enough votes received for mutators.\n");
 				CVAR_SET_STRING("sv_instantmutators", "0");
@@ -1174,7 +1572,8 @@ void CHalfLifeMultiplay::CheckMutatorRTV( void )
 
 				const BOOL instantEnabled = (fIndex == kInstantIndex) || (sIndex == kInstantIndex) || (tIndex == kInstantIndex);
 				CVAR_SET_STRING("sv_instantmutators", instantEnabled ? "1" : "0");
-				if (instantEnabled)
+				// forceClose: the match is ending, so don't fire an instant mutator now.
+				if (instantEnabled && !forceClose)
 					g_pGameRules->AddInstantMutator();
 
 				int chosen[3];
@@ -1223,12 +1622,16 @@ void CHalfLifeMultiplay::CheckMutatorRTV( void )
 	}
 }
 
-void CHalfLifeMultiplay::CheckGameplayRTV( void )
+void CHalfLifeMultiplay::CheckGameplayRTV( BOOL forceClose )
 {
 	if ( m_fGameplayVoteTime <= 0 )
 		return;
-	if ( gpGlobals->time < m_fGameplayVoteTime )
+	if ( !forceClose && gpGlobals->time < m_fGameplayVoteTime )
 		return;
+
+	// Cleared before the tally: a winning vote ends the game, and
+	// GoToIntermission() settles any RTV that still looks open.
+	m_fGameplayVoteTime = 0;
 
 	MESSAGE_BEGIN(MSG_ALL, gmsgVoteGameplay);
 		WRITE_BYTE(0);
@@ -1293,22 +1696,25 @@ void CHalfLifeMultiplay::CheckGameplayRTV( void )
 		UTIL_ClientPrintAll(HUD_PRINTTALK,
 			UTIL_VarArgs("[VOTE] RTV success! Gameplay mode changing to %s. Ending game to intermission...\n", gamePlayModes[gameIndex]));
 		m_bSkipIntermissionVoting = TRUE;
-		EndMultiplayerGame();
+		if ( !forceClose ) // forceClose: GoToIntermission() is already ending the game
+			EndMultiplayerGame();
 	}
 
 	MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
 		WRITE_BYTE( CLIENT_SOUND_EBELL );
 	MESSAGE_END();
-
-	m_fGameplayVoteTime = 0;
 }
 
-void CHalfLifeMultiplay::CheckMapRTV( void )
+void CHalfLifeMultiplay::CheckMapRTV( BOOL forceClose )
 {
 	if ( m_fMapVoteTime <= 0 )
 		return;
-	if ( gpGlobals->time < m_fMapVoteTime )
+	if ( !forceClose && gpGlobals->time < m_fMapVoteTime )
 		return;
+
+	// Cleared before the tally: a winning vote ends the game, and
+	// GoToIntermission() settles any RTV that still looks open.
+	m_fMapVoteTime = 0;
 
 	MESSAGE_BEGIN(MSG_ALL, gmsgVoteMap);
 		WRITE_BYTE(0);
@@ -1367,15 +1773,14 @@ void CHalfLifeMultiplay::CheckMapRTV( void )
 			UTIL_ClientPrintAll(HUD_PRINTTALK,
 				UTIL_VarArgs("[VOTE] RTV success! Map changing to %s. Ending game to intermission...\n", g_szServerMaps[m_iDecidedMapIndex]));
 			m_bSkipIntermissionVoting = TRUE;
-			EndMultiplayerGame();
+			if ( !forceClose ) // forceClose: GoToIntermission() is already ending the game
+				EndMultiplayerGame();
 		}
 	}
 
 	MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
 		WRITE_BYTE( CLIENT_SOUND_EBELL );
 	MESSAGE_END();
-
-	m_fMapVoteTime = 0;
 }
 
 void CHalfLifeMultiplay::VoteForGameplayRTV( void )
@@ -1397,14 +1802,11 @@ void CHalfLifeMultiplay::VoteForGameplayRTV( void )
 	{
 		CBasePlayer *pPlayer = (CBasePlayer *)UTIL_PlayerByIndex( i );
 		if (pPlayer && !pPlayer->HasDisconnected)
-		{
 			pPlayer->m_fVoteCoolDown = 0;
-			if (FBitSet(pPlayer->pev->flags, FL_FAKECLIENT))
-				::Vote(pPlayer, RANDOM_LONG(1, TOTAL_GAME_MODES + 2 /*random*/));
-		}
 	}
 
 	m_fGameplayVoteTime = gpGlobals->time + voting.value;
+	ScheduleBotVotes(BOT_VOTE_GAMEPLAY);
 }
 
 void CHalfLifeMultiplay::VoteForMapRTV( void )
@@ -1433,20 +1835,15 @@ void CHalfLifeMultiplay::VoteForMapRTV( void )
 		WRITE_BYTE(CLIENT_SOUND_VOTEMAP);
 	MESSAGE_END();
 
-	int maxVote = g_iServerMapCount + 1;
-	if (maxVote < 2) maxVote = 2;
 	for (int i = 1; i <= gpGlobals->maxClients; i++)
 	{
 		CBasePlayer *pPlayer = (CBasePlayer *)UTIL_PlayerByIndex( i );
 		if (pPlayer && !pPlayer->HasDisconnected)
-		{
 			pPlayer->m_fVoteCoolDown = 0;
-			if (FBitSet(pPlayer->pev->flags, FL_FAKECLIENT))
-				::Vote(pPlayer, RANDOM_LONG(1, maxVote));
-		}
 	}
 
 	m_fMapVoteTime = gpGlobals->time + voting.value;
+	ScheduleBotVotes(BOT_VOTE_MAP);
 }
 
 void CHalfLifeMultiplay::VoteForMutator( void )
@@ -1459,6 +1856,7 @@ void CHalfLifeMultiplay::VoteForMutator( void )
 
 	SERVER_COMMAND("sv_addmutator \"clear\"\n");
 	CVAR_SET_STRING("sv_instantmutators", "0");
+	memset(m_iVoteCount, -1, sizeof(m_iVoteCount));
 
 	MESSAGE_BEGIN( MSG_ALL, gmsgVoteMutator );
 		WRITE_BYTE(voting.value);
@@ -1468,19 +1866,15 @@ void CHalfLifeMultiplay::VoteForMutator( void )
 		WRITE_BYTE(CLIENT_SOUND_VOTEMUTATOR);
 	MESSAGE_END();
 
-	// Bots get a vote
 	for (int i = 1; i <= gpGlobals->maxClients; i++)
 	{
 		CBasePlayer *pPlayer = (CBasePlayer *)UTIL_PlayerByIndex( i );
 		if (pPlayer && !pPlayer->HasDisconnected)
-		{
 			pPlayer->m_fVoteCoolDown = 0;
-			if (FBitSet(pPlayer->pev->flags, FL_FAKECLIENT))
-				::Vote(pPlayer, RandomizeMutator());
-		}
 	}
 
 	m_fMutatorVoteTime = gpGlobals->time + voting.value;
+	ScheduleBotVotes(BOT_VOTE_MUTATOR);
 }
 
 int CHalfLifeMultiplay::CheckClients( void )
@@ -1950,6 +2344,19 @@ BOOL CHalfLifeMultiplay :: ClientConnected( edict_t *pEntity, const char *pszNam
 			pPlayer->IsInArena = FALSE;
 			pPlayer->HasDisconnected = TRUE; // The client is connecting, so set this to true until they have fully connected.
 		}
+
+		// Ballots are stored per slot. A client taking over a slot mid-vote must
+		// not inherit the previous occupant's votes (tally and early close).
+		int idx = ENTINDEX( pEntity );
+		if ( idx >= 1 && idx <= 32 )
+		{
+			m_iVoteCount[idx - 1] = -1;
+			memset( m_iGameOptionsVotes[idx - 1], -1, sizeof(m_iGameOptionsVotes[0]) );
+			memset( m_iServerOptionsVotes[idx - 1], -1, sizeof(m_iServerOptionsVotes[0]) );
+			memset( m_iBotOptionsVotes[idx - 1], -1, sizeof(m_iBotOptionsVotes[0]) );
+			m_fBotVoteNext[idx - 1] = 0;
+			m_iBotVoteRow[idx - 1] = 0;
+		}
 	}
 
 	g_VoiceGameMgr.ClientConnected(pEntity);
@@ -2080,9 +2487,11 @@ void CHalfLifeMultiplay :: InitHUD( CBasePlayer *pl )
 	// Don't send the MOTD since there is always a spectator menu.
 	// SendMOTDToClient( pl->edict() );
 
-	// Send the dynamic map list (parsed from mapcyclefile) to the new client so
-	// the vgui vote menu can show the right entries. Re-sent on every InitHUD
-	// in case the file changed between connections.
+	// Queue the dynamic map list and option manifests for the new client. They
+	// are streamed by PumpClientManifestSends() one paced chunk at a time, in
+	// priority order, so connecting never floods the client's reliable channel.
+	// Bot options are not needed at connect and are held back a few seconds.
+	// Re-queued on every InitHUD in case the files changed between connections.
 	if (!FBitSet(pl->pev->flags, FL_FAKECLIENT))
 	{
 		int idx = ENTINDEX( pl->edict() );
@@ -2094,6 +2503,10 @@ void CHalfLifeMultiplay :: InitHUD( CBasePlayer *pl )
 			m_iGameOptionsStreamSeq[idx - 1] = 0;
 			m_iServerOptionsStreamNext[idx - 1] = 0;
 			m_iServerOptionsStreamSeq[idx - 1] = 0;
+			m_iBotOptionsStreamNext[idx - 1] = 0;
+			m_iBotOptionsStreamSeq[idx - 1] = 0;
+			m_fBotOptionsStreamStart[idx - 1] = gpGlobals->time + BOT_OPTIONS_SEND_DELAY;
+			m_fManifestNextSend[idx - 1] = 0;
 		}
 	}
 
@@ -2149,6 +2562,12 @@ void CHalfLifeMultiplay :: ClientDisconnected( edict_t *pClient )
 			m_iGameOptionsStreamSeq[idx - 1] = 0;
 			m_iServerOptionsStreamNext[idx - 1] = -1;
 			m_iServerOptionsStreamSeq[idx - 1] = 0;
+			m_iBotOptionsStreamNext[idx - 1] = -1;
+			m_iBotOptionsStreamSeq[idx - 1] = 0;
+			m_fBotOptionsStreamStart[idx - 1] = 0;
+			m_fManifestNextSend[idx - 1] = 0;
+			m_fBotOptionsLastSent[idx - 1] = 0;
+			m_iBotOptionsRevisionSent[idx - 1] = 0;
 		}
 
 		if ( pPlayer )
@@ -3655,6 +4074,11 @@ void CHalfLifeMultiplay :: GoToIntermission( void )
 
 	PauseMutators();
 
+	// RTV votes are in-match only: settle any still open so none overlaps (and
+	// swallows) the end-of-game vote phases. Must run before the voting setup
+	// below, since a winning gameplay/map RTV sets m_bSkipIntermissionVoting.
+	SettleOpenRTVVotes();
+
 	MESSAGE_BEGIN(MSG_ALL, SVC_INTERMISSION);
 	MESSAGE_END();
 
@@ -3680,6 +4104,8 @@ void CHalfLifeMultiplay :: GoToIntermission( void )
 
 	m_flIntermissionEndTime = gpGlobals->time + ( (int)mp_chattime.value );
 	g_flIntermissionStartTime = gpGlobals->time;
+	m_flIntermissionVoteShift = 0;
+	m_fEarlyCloseNoticeEnd = 0;
 
 	if (voting.value >= 10 && !m_bSkipIntermissionVoting)
 	{
@@ -4366,7 +4792,6 @@ void CHalfLifeMultiplay :: SendMOTDToClient( edict_t *client )
 extern int gmsgMapList;
 
 #define MAP_LIST_MAPS_PER_CHUNK 4   // header(4) + 4*(name<=32 + size byte) ~= 136 bytes; well under 192-byte cap
-#define MANIFEST_STREAM_CHUNKS_PER_THINK 1
 
 /*
 ==============
@@ -4878,20 +5303,53 @@ void EnsureGameOptionsList( void )
 }
 
 // ---------------------------------------------------------------------------
-// Server-options manifest: parser, cache, broadcast, and active-subset builder.
-// Mirrors game-options but has no per-row game-mode filter key.
-// File-format spec lives in workspace/ai/server_options_system.md.
+// Global option manifests: serveroptions.txt and botoptions.txt.
+// Both share one row format (server_option_t), parser, wire layout and tally;
+// they differ only in file name, row cap and storage. Mirrors game-options but
+// has no per-row game-mode filter key.
+// File-format specs live in workspace/ai/server_options_system.md and
+// workspace/ai/bot_options_system.md.
 // ---------------------------------------------------------------------------
 
 #define SERVER_OPTIONS_MAX_MSG_BYTES      192
 #define SERVER_OPTIONS_CHUNK_HEADER_BYTES 5
 #define SERVER_OPTIONS_CHUNK_BUDGET_BYTES (SERVER_OPTIONS_MAX_MSG_BYTES - 4)
 
-static void ServerOptionsLogf( int line, const char *fmt, ... )
+struct global_option_manifest_t
 {
-	if ( g_iServerOptionsParseLogCount >= SERVER_OPTIONS_PARSE_LOG_LINES )
+	const char      *filename;    // parsed with LOAD_FILE_FOR_ME
+	const char      *tag;         // log prefix, e.g. "ServerOptions"
+	const char      *statusCmd;   // diagnostic console command named in logs
+	server_option_t *items;
+	int              maxItems;
+	int             *count;
+	int             *revision;
+	int             *parseErrors;
+	char           (*parseLog)[SERVER_OPTIONS_PARSE_LOG_WIDTH];
+	int             *parseLogCount;
+};
+
+static const global_option_manifest_t g_ServerOptionsManifest =
+{
+	"serveroptions.txt", "ServerOptions", "serveroptions_status",
+	g_ServerOptions, MAX_SERVER_OPTIONS,
+	&g_iServerOptionsCount, &g_iServerOptionsRevision, &g_iServerOptionsParseErrors,
+	g_szServerOptionsParseLog, &g_iServerOptionsParseLogCount
+};
+
+static const global_option_manifest_t g_BotOptionsManifest =
+{
+	"botoptions.txt", "BotOptions", "botoptions_status",
+	g_BotOptions, MAX_BOT_OPTIONS,
+	&g_iBotOptionsCount, &g_iBotOptionsRevision, &g_iBotOptionsParseErrors,
+	g_szBotOptionsParseLog, &g_iBotOptionsParseLogCount
+};
+
+static void GlobalOptionsLogf( const global_option_manifest_t &m, int line, const char *fmt, ... )
+{
+	if ( *m.parseLogCount >= SERVER_OPTIONS_PARSE_LOG_LINES )
 	{
-		g_iServerOptionsParseErrors++;
+		(*m.parseErrors)++;
 		return;
 	}
 	char body[SERVER_OPTIONS_PARSE_LOG_WIDTH];
@@ -4899,10 +5357,10 @@ static void ServerOptionsLogf( int line, const char *fmt, ... )
 	va_start( ap, fmt );
 	vsnprintf( body, sizeof(body), fmt, ap );
 	va_end( ap );
-	snprintf( g_szServerOptionsParseLog[g_iServerOptionsParseLogCount], SERVER_OPTIONS_PARSE_LOG_WIDTH,
+	snprintf( m.parseLog[*m.parseLogCount], SERVER_OPTIONS_PARSE_LOG_WIDTH,
 		"line %d: %s", line, body );
-	g_iServerOptionsParseLogCount++;
-	g_iServerOptionsParseErrors++;
+	(*m.parseLogCount)++;
+	(*m.parseErrors)++;
 }
 
 static int ServerOptionsWireSize( const server_option_t &it )
@@ -4924,29 +5382,25 @@ static int ServerOptionsWireSize( const server_option_t &it )
 	return bytes;
 }
 
-void BuildServerOptionsList( void )
+static void BuildGlobalOptionsList( const global_option_manifest_t &m )
 {
-	const char *filename = "serveroptions.txt";
 	int length = 0;
-	char *pFile = (char *)LOAD_FILE_FOR_ME( (char *)filename, &length );
+	char *pFile = (char *)LOAD_FILE_FOR_ME( (char *)m.filename, &length );
 
-	g_iServerOptionsCount = 0;
-	g_iServerOptionsParseErrors = 0;
-	g_iServerOptionsParseLogCount = 0;
-	memset( g_ServerOptions, 0, sizeof(g_ServerOptions) );
-
-	strncpy( g_szPreviousServerOptionsFile, filename, sizeof(g_szPreviousServerOptionsFile) - 1 );
-	g_szPreviousServerOptionsFile[sizeof(g_szPreviousServerOptionsFile) - 1] = 0;
+	*m.count = 0;
+	*m.parseErrors = 0;
+	*m.parseLogCount = 0;
+	memset( m.items, 0, sizeof(server_option_t) * m.maxItems );
 
 	if ( !pFile || length <= 0 )
 	{
 		if ( pFile )
 			FREE_FILE( pFile );
-		ALERT( at_notice, "[ServerOptions] serveroptions.txt not present; vote phase disabled.\n" );
+		ALERT( at_notice, "[%s] %s not present; vote phase disabled.\n", m.tag, m.filename );
 		return;
 	}
 
-	g_iServerOptionsRevision++;
+	(*m.revision)++;
 
 	int line = 1;
 	int itemSerial = 0;
@@ -4961,7 +5415,7 @@ void BuildServerOptionsList( void )
 
 		if ( !strcmp( com_token, "{" ) || !strcmp( com_token, "}" ) )
 		{
-			ServerOptionsLogf( line, "expected item title, got \"%s\"", com_token );
+			GlobalOptionsLogf( m, line, "expected item title, got \"%s\"", com_token );
 			continue;
 		}
 
@@ -4972,11 +5426,11 @@ void BuildServerOptionsList( void )
 		int itemLine = line;
 		itemSerial++;
 
-		if ( g_iServerOptionsCount >= MAX_SERVER_OPTIONS )
+		if ( *m.count >= m.maxItems )
 		{
 			if ( !capped )
 			{
-				ServerOptionsLogf( itemLine, "reached %d-item cap, ignoring remaining entries", MAX_SERVER_OPTIONS );
+				GlobalOptionsLogf( m, itemLine, "reached %d-item cap, ignoring remaining entries", m.maxItems );
 				capped = TRUE;
 			}
 			int depth = 0;
@@ -4993,7 +5447,7 @@ void BuildServerOptionsList( void )
 		cursor = GameOptionsParse( cursor, &line );
 		if ( !cursor || strcmp( com_token, "{" ) != 0 )
 		{
-			ServerOptionsLogf( itemLine, "item #%d: expected '{'", itemSerial );
+			GlobalOptionsLogf( m, itemLine, "item #%d: expected '{'", itemSerial );
 			break;
 		}
 
@@ -5010,7 +5464,7 @@ void BuildServerOptionsList( void )
 			cursor = GameOptionsParse( cursor, &line );
 			if ( !cursor || !com_token[0] )
 			{
-				ServerOptionsLogf( itemLine, "item #%d: EOF inside block", itemSerial );
+				GlobalOptionsLogf( m, itemLine, "item #%d: EOF inside block", itemSerial );
 				itemBad = TRUE;
 				break;
 			}
@@ -5026,7 +5480,7 @@ void BuildServerOptionsList( void )
 				cursor = GameOptionsParse( cursor, &line );
 				if ( !cursor || strcmp( com_token, "{" ) != 0 )
 				{
-					ServerOptionsLogf( itemLine, "item #%d: options block missing '{'", itemSerial );
+					GlobalOptionsLogf( m, itemLine, "item #%d: options block missing '{'", itemSerial );
 					itemBad = TRUE;
 					break;
 				}
@@ -5035,7 +5489,7 @@ void BuildServerOptionsList( void )
 					cursor = GameOptionsParse( cursor, &line );
 					if ( !cursor || !com_token[0] )
 					{
-						ServerOptionsLogf( itemLine, "item #%d: EOF inside options block", itemSerial );
+						GlobalOptionsLogf( m, itemLine, "item #%d: EOF inside options block", itemSerial );
 						itemBad = TRUE;
 						break;
 					}
@@ -5049,7 +5503,7 @@ void BuildServerOptionsList( void )
 					cursor = GameOptionsParse( cursor, &line );
 					if ( !cursor )
 					{
-						ServerOptionsLogf( itemLine, "item #%d: EOF after option label \"%s\"", itemSerial, label );
+						GlobalOptionsLogf( m, itemLine, "item #%d: EOF after option label \"%s\"", itemSerial, label );
 						itemBad = TRUE;
 						break;
 					}
@@ -5057,23 +5511,23 @@ void BuildServerOptionsList( void )
 
 					if ( item.numOptions >= MAX_SERVER_OPTION_VALUES )
 					{
-						ServerOptionsLogf( itemLine, "item #%d: more than %d options, extras ignored", itemSerial, MAX_SERVER_OPTION_VALUES );
+						GlobalOptionsLogf( m, itemLine, "item #%d: more than %d options, extras ignored", itemSerial, MAX_SERVER_OPTION_VALUES );
 						continue;
 					}
 					if ( !label[0] || strlen( label ) >= MAX_SERVER_OPTION_LABEL )
 					{
-						ServerOptionsLogf( itemLine, "item #%d: option label \"%s\" too long or empty, skipped", itemSerial, label );
+						GlobalOptionsLogf( m, itemLine, "item #%d: option label \"%s\" too long or empty, skipped", itemSerial, label );
 						continue;
 					}
 					const char *effective = ( rawValue && rawValue[0] ) ? rawValue : label;
 					if ( strlen( effective ) >= MAX_SERVER_OPTION_VALUE )
 					{
-						ServerOptionsLogf( itemLine, "item #%d: option value \"%s\" too long, skipped", itemSerial, effective );
+						GlobalOptionsLogf( m, itemLine, "item #%d: option value \"%s\" too long, skipped", itemSerial, effective );
 						continue;
 					}
 					if ( !GameOptionsValueClean( effective ) )
 					{
-						ServerOptionsLogf( itemLine, "item #%d: option value \"%s\" contains forbidden character, skipped", itemSerial, effective );
+						GlobalOptionsLogf( m, itemLine, "item #%d: option value \"%s\" contains forbidden character, skipped", itemSerial, effective );
 						continue;
 					}
 					strncpy( item.labels[item.numOptions], label, MAX_SERVER_OPTION_LABEL - 1 );
@@ -5087,7 +5541,7 @@ void BuildServerOptionsList( void )
 			cursor = GameOptionsParse( cursor, &line );
 			if ( !cursor )
 			{
-				ServerOptionsLogf( itemLine, "item #%d: EOF after key \"%s\"", itemSerial, key );
+				GlobalOptionsLogf( m, itemLine, "item #%d: EOF after key \"%s\"", itemSerial, key );
 				itemBad = TRUE;
 				break;
 			}
@@ -5097,17 +5551,17 @@ void BuildServerOptionsList( void )
 			{
 				if ( !value || !value[0] )
 				{
-					ServerOptionsLogf( itemLine, "item #%d: empty cvar field, skipped", itemSerial );
+					GlobalOptionsLogf( m, itemLine, "item #%d: empty cvar field, skipped", itemSerial );
 					itemBad = TRUE;
 				}
 				else if ( strlen( value ) >= MAX_SERVER_OPTION_CVAR )
 				{
-					ServerOptionsLogf( itemLine, "item #%d: cvar \"%s\" too long, skipped", itemSerial, value );
+					GlobalOptionsLogf( m, itemLine, "item #%d: cvar \"%s\" too long, skipped", itemSerial, value );
 					itemBad = TRUE;
 				}
 				else if ( !GameOptionsCvarNameClean( value ) )
 				{
-					ServerOptionsLogf( itemLine, "item #%d: cvar \"%s\" has invalid characters, skipped", itemSerial, value );
+					GlobalOptionsLogf( m, itemLine, "item #%d: cvar \"%s\" has invalid characters, skipped", itemSerial, value );
 					itemBad = TRUE;
 				}
 				else
@@ -5125,7 +5579,7 @@ void BuildServerOptionsList( void )
 				}
 				else
 				{
-					ServerOptionsLogf( itemLine, "item #%d: title \"%s\" empty or too long, ignored", itemSerial, value ? value : "" );
+					GlobalOptionsLogf( m, itemLine, "item #%d: title \"%s\" empty or too long, ignored", itemSerial, value ? value : "" );
 				}
 			}
 			else if ( !stricmp( key, "restart" ) )
@@ -5134,7 +5588,7 @@ void BuildServerOptionsList( void )
 			}
 			else if ( !stricmp( key, "game" ) )
 			{
-				ServerOptionsLogf( itemLine, "item #%d: key \"game\" is not supported in serveroptions.txt", itemSerial );
+				GlobalOptionsLogf( m, itemLine, "item #%d: key \"game\" is not supported in %s", itemSerial, m.filename );
 				itemBad = TRUE;
 			}
 			else
@@ -5142,19 +5596,19 @@ void BuildServerOptionsList( void )
 				const char *effective = ( value && value[0] ) ? value : key;
 				if ( item.numOptions >= MAX_SERVER_OPTION_VALUES )
 				{
-					ServerOptionsLogf( itemLine, "item #%d: more than %d options, \"%s\" ignored", itemSerial, MAX_SERVER_OPTION_VALUES, key );
+					GlobalOptionsLogf( m, itemLine, "item #%d: more than %d options, \"%s\" ignored", itemSerial, MAX_SERVER_OPTION_VALUES, key );
 				}
 				else if ( strlen( key ) >= MAX_SERVER_OPTION_LABEL )
 				{
-					ServerOptionsLogf( itemLine, "item #%d: option label \"%s\" too long, skipped", itemSerial, key );
+					GlobalOptionsLogf( m, itemLine, "item #%d: option label \"%s\" too long, skipped", itemSerial, key );
 				}
 				else if ( strlen( effective ) >= MAX_SERVER_OPTION_VALUE )
 				{
-					ServerOptionsLogf( itemLine, "item #%d: option value \"%s\" too long, skipped", itemSerial, effective );
+					GlobalOptionsLogf( m, itemLine, "item #%d: option value \"%s\" too long, skipped", itemSerial, effective );
 				}
 				else if ( !GameOptionsValueClean( effective ) )
 				{
-					ServerOptionsLogf( itemLine, "item #%d: option value \"%s\" contains forbidden character, skipped", itemSerial, effective );
+					GlobalOptionsLogf( m, itemLine, "item #%d: option value \"%s\" contains forbidden character, skipped", itemSerial, effective );
 				}
 				else
 				{
@@ -5170,38 +5624,38 @@ void BuildServerOptionsList( void )
 
 		if ( !haveCvar )
 		{
-			ServerOptionsLogf( itemLine, "item #%d: missing cvar field, skipped", itemSerial );
+			GlobalOptionsLogf( m, itemLine, "item #%d: missing cvar field, skipped", itemSerial );
 			continue;
 		}
 		if ( !haveTitle )
 		{
-			ServerOptionsLogf( itemLine, "item #%d (%s): missing title, skipped", itemSerial, item.cvar );
+			GlobalOptionsLogf( m, itemLine, "item #%d (%s): missing title, skipped", itemSerial, item.cvar );
 			continue;
 		}
 		if ( item.numOptions < 2 )
 		{
-			ServerOptionsLogf( itemLine, "item #%d (%s): need 2-5 options, got %d, skipped", itemSerial, item.cvar, item.numOptions );
+			GlobalOptionsLogf( m, itemLine, "item #%d (%s): need 2-5 options, got %d, skipped", itemSerial, item.cvar, item.numOptions );
 			continue;
 		}
 		int wireBytes = ServerOptionsWireSize( item ) + SERVER_OPTIONS_CHUNK_HEADER_BYTES;
 		if ( wireBytes > SERVER_OPTIONS_CHUNK_BUDGET_BYTES )
 		{
-			ServerOptionsLogf( itemLine,
+			GlobalOptionsLogf( m, itemLine,
 				"item #%d (%s): serialized size %d exceeds %d-byte message budget, skipped",
 				itemSerial, item.cvar, wireBytes, SERVER_OPTIONS_CHUNK_BUDGET_BYTES );
 			continue;
 		}
 		if ( !CVAR_GET_POINTER( item.cvar ) )
 		{
-			ServerOptionsLogf( itemLine, "item #%d: cvar \"%s\" is not registered, skipped", itemSerial, item.cvar );
+			GlobalOptionsLogf( m, itemLine, "item #%d: cvar \"%s\" is not registered, skipped", itemSerial, item.cvar );
 			continue;
 		}
 		BOOL dup = FALSE;
-		for ( int k = 0; k < g_iServerOptionsCount; k++ )
+		for ( int k = 0; k < *m.count; k++ )
 		{
-			if ( !stricmp( g_ServerOptions[k].cvar, item.cvar ) )
+			if ( !stricmp( m.items[k].cvar, item.cvar ) )
 			{
-				ServerOptionsLogf( itemLine, "item #%d: duplicate cvar \"%s\" already at item %d, skipped", itemSerial, item.cvar, k + 1 );
+				GlobalOptionsLogf( m, itemLine, "item #%d: duplicate cvar \"%s\" already at item %d, skipped", itemSerial, item.cvar, k + 1 );
 				dup = TRUE;
 				break;
 			}
@@ -5209,19 +5663,24 @@ void BuildServerOptionsList( void )
 		if ( dup )
 			continue;
 
-		g_ServerOptions[g_iServerOptionsCount] = item;
-		g_iServerOptionsCount++;
+		m.items[*m.count] = item;
+		(*m.count)++;
 	}
 
 	FREE_FILE( pFile );
 
-	int errs = g_iServerOptionsParseErrors;
-	ALERT( at_notice, "[ServerOptions] Loaded %d item(s) from serveroptions.txt (%d error(s), %d warning(s))\n",
-		g_iServerOptionsCount, errs, 0 );
+	int errs = *m.parseErrors;
+	ALERT( at_notice, "[%s] Loaded %d item(s) from %s (%d error(s), %d warning(s))\n",
+		m.tag, *m.count, m.filename, errs, 0 );
 	if ( errs > 0 )
-		ALERT( at_notice, "[ServerOptions] Use 'serveroptions_status' for details.\n" );
-	if ( g_iServerOptionsCount == 0 && length > 0 )
-		ALERT( at_notice, "[ServerOptions] WARNING: no valid items loaded; vote phase will be skipped.\n" );
+		ALERT( at_notice, "[%s] Use '%s' for details.\n", m.tag, m.statusCmd );
+	if ( *m.count == 0 && length > 0 )
+		ALERT( at_notice, "[%s] WARNING: no valid items loaded; vote phase will be skipped.\n", m.tag );
+}
+
+void BuildServerOptionsList( void )
+{
+	BuildGlobalOptionsList( g_ServerOptionsManifest );
 }
 
 void EnsureServerOptionsList( void )
@@ -5230,86 +5689,30 @@ void EnsureServerOptionsList( void )
 		BuildServerOptionsList();
 }
 
-void CHalfLifeMultiplay::SendServerOptionsToClient( edict_t *client )
+void BuildBotOptionsList( void )
 {
-	if ( !client )
-		return;
+	BuildGlobalOptionsList( g_BotOptionsManifest );
+}
 
-	EnsureServerOptionsList();
-
-	int total = g_iServerOptionsCount;
-	int seq = 0;
-	int sent = 0;
-
-	do
-	{
-		int chunkSize = 0;
-		int bytesUsed = SERVER_OPTIONS_CHUNK_HEADER_BYTES;
-		while ( sent + chunkSize < total )
-		{
-			const server_option_t &it = g_ServerOptions[sent + chunkSize];
-			int itemBytes = ServerOptionsWireSize( it );
-			if ( bytesUsed + itemBytes > SERVER_OPTIONS_CHUNK_BUDGET_BYTES )
-				break;
-			bytesUsed += itemBytes;
-			chunkSize++;
-		}
-		if ( chunkSize < 0 )
-			chunkSize = 0;
-		if ( chunkSize == 0 && sent < total )
-			chunkSize = 1;
-
-		BOOL isLast = ( sent + chunkSize >= total ) ? TRUE : FALSE;
-
-		MESSAGE_BEGIN( MSG_ONE, gmsgSrvOpts, NULL, client );
-			WRITE_BYTE( g_iServerOptionsRevision & 0xFF );
-			WRITE_BYTE( seq );
-			WRITE_BYTE( isLast ? 1 : 0 );
-			WRITE_BYTE( total );
-			WRITE_BYTE( chunkSize );
-			for ( int i = 0; i < chunkSize; i++ )
-			{
-				const server_option_t &it = g_ServerOptions[sent + i];
-				WRITE_STRING( it.cvar );
-				WRITE_STRING( it.title );
-				WRITE_BYTE( it.restart ? 1 : 0 );
-				WRITE_BYTE( it.numOptions );
-				for ( int o = 0; o < it.numOptions; o++ )
-				{
-					WRITE_STRING( it.labels[o] );
-					WRITE_STRING( it.values[o] );
-				}
-			}
-		MESSAGE_END();
-
-		sent += chunkSize;
-		seq++;
-	}
-	while ( sent < total );
-
-	int idx = ENTINDEX( client );
-	if ( idx >= 1 && idx <= 32 )
-	{
-		m_fServerOptionsLastSent[idx - 1] = gpGlobals->time;
-		m_iServerOptionsRevisionSent[idx - 1] = g_iServerOptionsRevision;
-		m_iServerOptionsStreamNext[idx - 1] = -1;
-		m_iServerOptionsStreamSeq[idx - 1] = 0;
-	}
+void EnsureBotOptionsList( void )
+{
+	if ( g_iBotOptionsCount == 0 && g_iBotOptionsRevision == 0 )
+		BuildBotOptionsList();
 }
 
 /*
 ==============
-SendGameOptionsToClient
+WriteGlobalOptionsChunk
 
-Streams the manifest to one client in chunks. Format per chunk (all chunks
-carry the manifest revision so the client can detect mid-cycle reloads):
-  BYTE  revision     // G6: stamped on every chunk
+Writes one byte-budgeted chunk of a global options manifest (SrvOpts and
+BotOpts share this layout) starting at item `sent`. Returns the number of
+items written and reports whether the chunk was the final one.
+  BYTE  revision     // stamped on every chunk
   BYTE  seq          // chunk index, 0-based
   BYTE  isLast       // 1 on the final chunk, 0 otherwise
   BYTE  total        // total item count (only meaningful on seq==0)
-	BYTE  numInChunk   // byte-budgeted dynamic count; may be 0 on empty manifest
+  BYTE  numInChunk   // byte-budgeted dynamic count; may be 0 on empty manifest
   repeat numInChunk:
-    STRING game
     STRING cvar
     STRING title
     BYTE   restart
@@ -5319,106 +5722,139 @@ carry the manifest revision so the client can detect mid-cycle reloads):
       STRING value
 ==============
 */
-void CHalfLifeMultiplay::SendGameOptionsToClient( edict_t *client )
+static int WriteGlobalOptionsChunk( edict_t *client, int msgType, int revision,
+	const server_option_t *items, int total, int sent, int seq, BOOL *pIsLast )
 {
-	if ( !client )
-		return;
+	if ( total < 0 ) total = 0;
+	if ( sent < 0 ) sent = 0;
+	if ( sent > total ) sent = total;
 
-	EnsureGameOptionsList();
-
-	int total = g_iGameOptionsCount;
-	int seq = 0;
-	int sent = 0;
-
-	do
+	int chunkSize = 0;
+	int bytesUsed = SERVER_OPTIONS_CHUNK_HEADER_BYTES;
+	while ( sent + chunkSize < total )
 	{
-		int chunkSize = 0;
-		int bytesUsed = GAME_OPTIONS_CHUNK_HEADER_BYTES;
-		while ( sent + chunkSize < total )
-		{
-			const game_option_t &it = g_GameOptions[sent + chunkSize];
-			int itemBytes = GameOptionsWireSize( it );
-			if ( bytesUsed + itemBytes > GAME_OPTIONS_CHUNK_BUDGET_BYTES )
-				break;
-			bytesUsed += itemBytes;
-			chunkSize++;
-		}
-		if ( chunkSize < 0 )
-			chunkSize = 0;
-		if ( chunkSize == 0 && sent < total )
-		{
-			// Should not happen because BuildGameOptionsList filters oversize items.
-			chunkSize = 1;
-		}
+		int itemBytes = ServerOptionsWireSize( items[sent + chunkSize] );
+		if ( bytesUsed + itemBytes > SERVER_OPTIONS_CHUNK_BUDGET_BYTES )
+			break;
+		bytesUsed += itemBytes;
+		chunkSize++;
+	}
+	if ( chunkSize == 0 && sent < total )
+		chunkSize = 1; // oversized items are filtered during parse; this is a safety fallback
 
-		BOOL isLast = ( sent + chunkSize >= total ) ? TRUE : FALSE;
+	BOOL isLast = ( sent + chunkSize >= total ) ? TRUE : FALSE;
 
-		MESSAGE_BEGIN( MSG_ONE, gmsgGameOpts, NULL, client );
-			WRITE_BYTE( g_iGameOptionsRevision & 0xFF );
-			WRITE_BYTE( seq );
-			WRITE_BYTE( isLast ? 1 : 0 );
-			WRITE_BYTE( total );
-			WRITE_BYTE( chunkSize );
-			for ( int i = 0; i < chunkSize; i++ )
+	MESSAGE_BEGIN( MSG_ONE, msgType, NULL, client );
+		WRITE_BYTE( revision & 0xFF );
+		WRITE_BYTE( seq );
+		WRITE_BYTE( isLast ? 1 : 0 );
+		WRITE_BYTE( total );
+		WRITE_BYTE( chunkSize );
+		for ( int g = 0; g < chunkSize; g++ )
+		{
+			const server_option_t &it = items[sent + g];
+			WRITE_STRING( it.cvar );
+			WRITE_STRING( it.title );
+			WRITE_BYTE( it.restart ? 1 : 0 );
+			WRITE_BYTE( it.numOptions );
+			for ( int o = 0; o < it.numOptions; o++ )
 			{
-				const game_option_t &it = g_GameOptions[sent + i];
-				WRITE_STRING( it.game );
-				WRITE_STRING( it.cvar );
-				WRITE_STRING( it.title );
-				WRITE_BYTE( it.restart ? 1 : 0 );
-				WRITE_BYTE( it.numOptions );
-				for ( int o = 0; o < it.numOptions; o++ )
-				{
-					WRITE_STRING( it.labels[o] );
-					WRITE_STRING( it.values[o] );
-				}
+				WRITE_STRING( it.labels[o] );
+				WRITE_STRING( it.values[o] );
 			}
-		MESSAGE_END();
+		}
+	MESSAGE_END();
 
-		sent += chunkSize;
-		seq++;
-	}
-	while ( sent < total );
-
-	int idx = ENTINDEX( client );
-	if ( idx >= 1 && idx <= 32 )
-	{
-		m_fGameOptionsLastSent[idx - 1] = gpGlobals->time;
-		m_iGameOptionsRevisionSent[idx - 1] = g_iGameOptionsRevision;
-		m_iGameOptionsStreamNext[idx - 1] = -1;
-		m_iGameOptionsStreamSeq[idx - 1] = 0;
-	}
+	if ( pIsLast )
+		*pIsLast = isLast;
+	return chunkSize;
 }
 
+/*
+==============
+SendGameOptionsToClient / SendServerOptionsToClient / SendBotOptionsToClient
+
+Resend requests (gameoptions_resend, serveroptions_resend, botoptions_resend)
+restart the client's manifest stream instead of bursting every chunk in one
+frame; PumpClientManifestSends() delivers it at the paced rate. An explicit
+bot-options resend skips the connect delay because the client asked for it.
+==============
+*/
+void CHalfLifeMultiplay::SendGameOptionsToClient( edict_t *client )
+{
+	int idx = client ? ENTINDEX( client ) : 0;
+	if ( idx < 1 || idx > 32 )
+		return;
+	m_iGameOptionsStreamNext[idx - 1] = 0;
+	m_iGameOptionsStreamSeq[idx - 1] = 0;
+}
+
+void CHalfLifeMultiplay::SendServerOptionsToClient( edict_t *client )
+{
+	int idx = client ? ENTINDEX( client ) : 0;
+	if ( idx < 1 || idx > 32 )
+		return;
+	m_iServerOptionsStreamNext[idx - 1] = 0;
+	m_iServerOptionsStreamSeq[idx - 1] = 0;
+}
+
+void CHalfLifeMultiplay::SendBotOptionsToClient( edict_t *client )
+{
+	int idx = client ? ENTINDEX( client ) : 0;
+	if ( idx < 1 || idx > 32 )
+		return;
+	m_iBotOptionsStreamNext[idx - 1] = 0;
+	m_iBotOptionsStreamSeq[idx - 1] = 0;
+	m_fBotOptionsStreamStart[idx - 1] = 0;
+}
+
+/*
+==============
+PumpClientManifestSends
+
+Streams the dynamic manifests (MapList, GameOpts, SrvOpts, BotOpts) to human
+clients. So connecting or opening a vote never floods a client's reliable
+channel, each client gets at most one chunk per MANIFEST_STREAM_INTERVAL and
+only one manifest streams at a time, in priority order: map list, game
+options, server options, then bot options. The bot manifest is also held
+until m_fBotOptionsStreamStart (BOT_OPTIONS_SEND_DELAY after InitHUD) since it
+is only needed for a mid-game RTV.
+
+GameOpts chunk layout (SrvOpts/BotOpts: see WriteGlobalOptionsChunk):
+  BYTE  revision, seq, isLast, total, numInChunk
+  repeat numInChunk:
+    STRING game, cvar, title; BYTE restart; BYTE numOptions
+    repeat numOptions: STRING label, STRING value
+==============
+*/
 void CHalfLifeMultiplay::PumpClientManifestSends( void )
 {
-	BOOL needsMapList = FALSE;
-	BOOL needsGameOpts = FALSE;
-	BOOL needsServerOpts = FALSE;
+	BOOL ensuredMapList = FALSE;
+	BOOL ensuredGameOpts = FALSE;
+	BOOL ensuredServerOpts = FALSE;
+	BOOL ensuredBotOpts = FALSE;
 
 	for ( int i = 1; i <= gpGlobals->maxClients; i++ )
 	{
 		int idx = i - 1;
-		if ( m_iMapListStreamNext[idx] >= 0 ) needsMapList = TRUE;
-		if ( m_iGameOptionsStreamNext[idx] >= 0 ) needsGameOpts = TRUE;
-		if ( m_iServerOptionsStreamNext[idx] >= 0 ) needsServerOpts = TRUE;
-	}
+		if ( m_fManifestNextSend[idx] > gpGlobals->time )
+			continue;
 
-	if ( needsMapList ) EnsureServerMapList();
-	if ( needsGameOpts ) EnsureGameOptionsList();
-	if ( needsServerOpts ) EnsureServerOptionsList();
+		BOOL botReady = ( m_iBotOptionsStreamNext[idx] >= 0 && gpGlobals->time >= m_fBotOptionsStreamStart[idx] ) ? TRUE : FALSE;
+		if ( m_iMapListStreamNext[idx] < 0 && m_iGameOptionsStreamNext[idx] < 0 &&
+			m_iServerOptionsStreamNext[idx] < 0 && !botReady )
+			continue;
 
-	for ( int i = 1; i <= gpGlobals->maxClients; i++ )
-	{
 		CBasePlayer *pPlayer = (CBasePlayer *)UTIL_PlayerByIndex( i );
 		if ( !pPlayer || FBitSet( pPlayer->pev->flags, FL_FAKECLIENT ) || pPlayer->HasDisconnected )
 			continue;
 
 		edict_t *client = pPlayer->edict();
-		int idx = i - 1;
 
-		for ( int sentChunks = 0; sentChunks < MANIFEST_STREAM_CHUNKS_PER_THINK && m_iMapListStreamNext[idx] >= 0; sentChunks++ )
+		if ( m_iMapListStreamNext[idx] >= 0 )
 		{
+			if ( !ensuredMapList ) { EnsureServerMapList(); ensuredMapList = TRUE; }
+
 			int total = g_iServerMapCount;
 			int sent = m_iMapListStreamNext[idx];
 			int seq = m_iMapListStreamSeq[idx];
@@ -5432,10 +5868,8 @@ void CHalfLifeMultiplay::PumpClientManifestSends( void )
 			}
 			else
 			{
-				if ( sent < 0 ) sent = 0;
 				if ( sent > total ) sent = total;
-				int remaining = total - sent;
-				chunkSize = remaining;
+				chunkSize = total - sent;
 				if ( chunkSize > MAP_LIST_MAPS_PER_CHUNK )
 					chunkSize = MAP_LIST_MAPS_PER_CHUNK;
 				if ( chunkSize < 0 )
@@ -5466,9 +5900,10 @@ void CHalfLifeMultiplay::PumpClientManifestSends( void )
 				m_iMapListStreamSeq[idx] = seq + 1;
 			}
 		}
-
-		for ( int sentChunks = 0; sentChunks < MANIFEST_STREAM_CHUNKS_PER_THINK && m_iGameOptionsStreamNext[idx] >= 0; sentChunks++ )
+		else if ( m_iGameOptionsStreamNext[idx] >= 0 )
 		{
+			if ( !ensuredGameOpts ) { EnsureGameOptionsList(); ensuredGameOpts = TRUE; }
+
 			int total = g_iGameOptionsCount;
 			int sent = m_iGameOptionsStreamNext[idx];
 			int seq = m_iGameOptionsStreamSeq[idx];
@@ -5482,7 +5917,6 @@ void CHalfLifeMultiplay::PumpClientManifestSends( void )
 			}
 			else
 			{
-				if ( sent < 0 ) sent = 0;
 				if ( sent > total ) sent = total;
 				int bytesUsed = GAME_OPTIONS_CHUNK_HEADER_BYTES;
 				while ( sent + chunkSize < total )
@@ -5534,59 +5968,18 @@ void CHalfLifeMultiplay::PumpClientManifestSends( void )
 				m_iGameOptionsStreamSeq[idx] = seq + 1;
 			}
 		}
-
-		for ( int sentChunks = 0; sentChunks < MANIFEST_STREAM_CHUNKS_PER_THINK && m_iServerOptionsStreamNext[idx] >= 0; sentChunks++ )
+		else if ( m_iServerOptionsStreamNext[idx] >= 0 )
 		{
+			if ( !ensuredServerOpts ) { EnsureServerOptionsList(); ensuredServerOpts = TRUE; }
+
 			int total = g_iServerOptionsCount;
 			int sent = m_iServerOptionsStreamNext[idx];
+			if ( sent > total ) sent = total;
 			int seq = m_iServerOptionsStreamSeq[idx];
 
-			int chunkSize = 0;
 			BOOL isLast = FALSE;
-			if ( total <= 0 )
-			{
-				chunkSize = 0;
-				isLast = TRUE;
-			}
-			else
-			{
-				if ( sent < 0 ) sent = 0;
-				if ( sent > total ) sent = total;
-				int bytesUsed = SERVER_OPTIONS_CHUNK_HEADER_BYTES;
-				while ( sent + chunkSize < total )
-				{
-					const server_option_t &it = g_ServerOptions[sent + chunkSize];
-					int itemBytes = ServerOptionsWireSize( it );
-					if ( bytesUsed + itemBytes > SERVER_OPTIONS_CHUNK_BUDGET_BYTES )
-						break;
-					bytesUsed += itemBytes;
-					chunkSize++;
-				}
-				if ( chunkSize == 0 && sent < total )
-					chunkSize = 1; // oversized items are filtered during parse; this is a safety fallback
-				isLast = ( sent + chunkSize >= total ) ? TRUE : FALSE;
-			}
-
-			MESSAGE_BEGIN( MSG_ONE, gmsgSrvOpts, NULL, client );
-				WRITE_BYTE( g_iServerOptionsRevision & 0xFF );
-				WRITE_BYTE( seq );
-				WRITE_BYTE( isLast ? 1 : 0 );
-				WRITE_BYTE( total );
-				WRITE_BYTE( chunkSize );
-				for ( int g = 0; g < chunkSize; g++ )
-				{
-					const server_option_t &it = g_ServerOptions[sent + g];
-					WRITE_STRING( it.cvar );
-					WRITE_STRING( it.title );
-					WRITE_BYTE( it.restart ? 1 : 0 );
-					WRITE_BYTE( it.numOptions );
-					for ( int o = 0; o < it.numOptions; o++ )
-					{
-						WRITE_STRING( it.labels[o] );
-						WRITE_STRING( it.values[o] );
-					}
-				}
-			MESSAGE_END();
+			int chunkSize = WriteGlobalOptionsChunk( client, gmsgSrvOpts, g_iServerOptionsRevision,
+				g_ServerOptions, total, sent, seq, &isLast );
 
 			if ( isLast )
 			{
@@ -5601,6 +5994,34 @@ void CHalfLifeMultiplay::PumpClientManifestSends( void )
 				m_iServerOptionsStreamSeq[idx] = seq + 1;
 			}
 		}
+		else // botReady
+		{
+			if ( !ensuredBotOpts ) { EnsureBotOptionsList(); ensuredBotOpts = TRUE; }
+
+			int total = g_iBotOptionsCount;
+			int sent = m_iBotOptionsStreamNext[idx];
+			if ( sent > total ) sent = total;
+			int seq = m_iBotOptionsStreamSeq[idx];
+
+			BOOL isLast = FALSE;
+			int chunkSize = WriteGlobalOptionsChunk( client, gmsgBotOpts, g_iBotOptionsRevision,
+				g_BotOptions, total, sent, seq, &isLast );
+
+			if ( isLast )
+			{
+				m_iBotOptionsStreamNext[idx] = -1;
+				m_iBotOptionsStreamSeq[idx] = 0;
+				m_fBotOptionsLastSent[idx] = gpGlobals->time;
+				m_iBotOptionsRevisionSent[idx] = g_iBotOptionsRevision;
+			}
+			else
+			{
+				m_iBotOptionsStreamNext[idx] = sent + chunkSize;
+				m_iBotOptionsStreamSeq[idx] = seq + 1;
+			}
+		}
+
+		m_fManifestNextSend[idx] = gpGlobals->time + MANIFEST_STREAM_INTERVAL;
 	}
 }
 
@@ -5656,6 +6077,17 @@ void CHalfLifeMultiplay::BuildActiveServerOptions( void )
 	{
 		m_iActiveServerOptions[m_iActiveServerOptionsCount] = i;
 		m_iActiveServerOptionsCount++;
+	}
+}
+
+// Bot-options rows are global too: the active set is the full loaded manifest.
+void CHalfLifeMultiplay::BuildActiveBotOptions( void )
+{
+	m_iActiveBotOptionsCount = 0;
+	for ( int i = 0; i < g_iBotOptionsCount && m_iActiveBotOptionsCount < MAX_BOT_OPTIONS; i++ )
+	{
+		m_iActiveBotOptions[m_iActiveBotOptionsCount] = i;
+		m_iActiveBotOptionsCount++;
 	}
 }
 
@@ -5774,16 +6206,28 @@ void CHalfLifeMultiplay::TallyGameOptionsVote( BOOL fromRTV )
 	}
 }
 
-void CHalfLifeMultiplay::TallyServerOptionsVote( BOOL fromRTV )
+/*
+==============
+TallyGlobalOptionRows
+
+Shared server-options / bot-options tally. Each active row applies its
+most-voted option via CVAR_SET_STRING (ties -> uniform random pick); rows
+with no votes leave the cvar unchanged. `votes` is the [32][stride]
+per-player vote matrix (option index, -1 unvoted). Same G7/G7.1/G7.2 guards
+as TallyGameOptionsVote. Returns TRUE if an applied row has restart=1.
+==============
+*/
+static BOOL TallyGlobalOptionRows( const server_option_t *items, int itemCount,
+	const int *active, int activeCount, const int *votes, int stride )
 {
 	BOOL needsRestart = FALSE;
 
-	for ( int k = 0; k < m_iActiveServerOptionsCount; k++ )
+	for ( int k = 0; k < activeCount; k++ )
 	{
-		int realIdx = m_iActiveServerOptions[k];
-		if ( realIdx < 0 || realIdx >= g_iServerOptionsCount )
+		int realIdx = active[k];
+		if ( realIdx < 0 || realIdx >= itemCount )
 			continue;
-		const server_option_t &it = g_ServerOptions[realIdx];
+		const server_option_t &it = items[realIdx];
 		int numOpts = it.numOptions;
 		if ( numOpts < 2 )
 			continue;
@@ -5793,7 +6237,7 @@ void CHalfLifeMultiplay::TallyServerOptionsVote( BOOL fromRTV )
 
 		for ( int p = 0; p < 32; p++ )
 		{
-			int v = m_iServerOptionsVotes[p][k];
+			int v = votes[p * stride + k];
 			if ( v >= 0 && v < numOpts )
 				counts[v]++;
 		}
@@ -5857,12 +6301,36 @@ void CHalfLifeMultiplay::TallyServerOptionsVote( BOOL fromRTV )
 			needsRestart = TRUE;
 	}
 
+	return needsRestart;
+}
+
+static void RestartCurrentMap( void )
+{
+	const char *mapName = STRING( gpGlobals->mapname );
+	if ( mapName && mapName[0] && IS_MAP_VALID( (char *)mapName ) )
+		SERVER_COMMAND( UTIL_VarArgs( "changelevel %s\n", mapName ) );
+}
+
+void CHalfLifeMultiplay::TallyServerOptionsVote( BOOL fromRTV )
+{
+	BOOL needsRestart = TallyGlobalOptionRows( g_ServerOptions, g_iServerOptionsCount,
+		m_iActiveServerOptions, m_iActiveServerOptionsCount,
+		&m_iServerOptionsVotes[0][0], (int)( sizeof(m_iServerOptionsVotes[0]) / sizeof(int) ) );
+
 	if ( fromRTV && needsRestart )
-	{
-		const char *mapName = STRING( gpGlobals->mapname );
-		if ( mapName && mapName[0] && IS_MAP_VALID( (char *)mapName ) )
-			SERVER_COMMAND( UTIL_VarArgs( "changelevel %s\n", mapName ) );
-	}
+		RestartCurrentMap();
+}
+
+// Bot options are RTV-only, so a restart row always restarts the map, except
+// when the vote is force-closed by GoToIntermission (the map changes anyway).
+void CHalfLifeMultiplay::TallyBotOptionsVote( BOOL allowRestart )
+{
+	BOOL needsRestart = TallyGlobalOptionRows( g_BotOptions, g_iBotOptionsCount,
+		m_iActiveBotOptions, m_iActiveBotOptionsCount,
+		&m_iBotOptionsVotes[0][0], (int)( sizeof(m_iBotOptionsVotes[0]) / sizeof(int) ) );
+
+	if ( allowRestart && needsRestart )
+		RestartCurrentMap();
 }
 
 /*
@@ -5937,30 +6405,7 @@ void CHalfLifeMultiplay::VoteForGameOptions( BOOL fromRTV )
 	if ( fromRTV )
 		m_fGameOptionsVoteTime = gpGlobals->time + voting.value;
 
-	// Bots get a random per-item vote. Broadcast each so clients see the
-	// tally update; the VoteOption() path does this for humans, but bots
-	// never enter that path, so we replicate the broadcast inline.
-	for ( int i = 1; i <= gpGlobals->maxClients; i++ )
-	{
-		CBasePlayer *pPlayer = (CBasePlayer *)UTIL_PlayerByIndex( i );
-		if ( pPlayer && FBitSet( pPlayer->pev->flags, FL_FAKECLIENT ) && !pPlayer->HasDisconnected )
-		{
-			for ( int k = 0; k < m_iActiveGameOptionsCount; k++ )
-			{
-				int realIdx = m_iActiveGameOptions[k];
-				int numOpts = g_GameOptions[realIdx].numOptions;
-				if ( numOpts < 2 ) continue;
-				int pick = RANDOM_LONG( 0, numOpts - 1 );
-				m_iGameOptionsVotes[i - 1][k] = pick;
-
-				MESSAGE_BEGIN( MSG_ALL, gmsgVOptFor );
-					WRITE_BYTE( i );           // client index, 1-based
-					WRITE_BYTE( k + 1 );       // item, 1-based
-					WRITE_BYTE( pick + 1 );    // option, 1-based
-				MESSAGE_END();
-			}
-		}
-	}
+	ScheduleBotVotes( BOT_VOTE_GAMEOPTIONS );
 }
 
 /*
@@ -5973,11 +6418,11 @@ expires. For an RTV-triggered vote there is no intermission scheduler, so
 we run a tiny standalone timer here.
 ==============
 */
-void CHalfLifeMultiplay::CheckGameOptionsRTV( void )
+void CHalfLifeMultiplay::CheckGameOptionsRTV( BOOL forceClose )
 {
 	if ( m_fGameOptionsVoteTime <= 0 )
 		return;
-	if ( gpGlobals->time < m_fGameOptionsVoteTime )
+	if ( !forceClose && gpGlobals->time < m_fGameOptionsVoteTime )
 		return;
 
 	// Close panel for everyone.
@@ -5987,7 +6432,8 @@ void CHalfLifeMultiplay::CheckGameOptionsRTV( void )
 		WRITE_BYTE( 0 );  // count
 	MESSAGE_END();
 
-	TallyGameOptionsVote( TRUE );
+	// forceClose comes from GoToIntermission: the map changes anyway, so no restart.
+	TallyGameOptionsVote( !forceClose );
 
 	MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
 		WRITE_BYTE( CLIENT_SOUND_EBELL );
@@ -6056,34 +6502,14 @@ void CHalfLifeMultiplay::VoteForServerOptions( BOOL fromRTV )
 	if ( fromRTV )
 		m_fServerOptionsVoteTime = gpGlobals->time + voting.value;
 
-	for ( int i = 1; i <= gpGlobals->maxClients; i++ )
-	{
-		CBasePlayer *pPlayer = (CBasePlayer *)UTIL_PlayerByIndex( i );
-		if ( pPlayer && FBitSet( pPlayer->pev->flags, FL_FAKECLIENT ) && !pPlayer->HasDisconnected )
-		{
-			for ( int k = 0; k < m_iActiveServerOptionsCount; k++ )
-			{
-				int realIdx = m_iActiveServerOptions[k];
-				int numOpts = g_ServerOptions[realIdx].numOptions;
-				if ( numOpts < 2 ) continue;
-				int pick = RANDOM_LONG( 0, numOpts - 1 );
-				m_iServerOptionsVotes[i - 1][k] = pick;
-
-				MESSAGE_BEGIN( MSG_ALL, gmsgSOptFor );
-					WRITE_BYTE( i );
-					WRITE_BYTE( k + 1 );
-					WRITE_BYTE( pick + 1 );
-				MESSAGE_END();
-			}
-		}
-	}
+	ScheduleBotVotes( BOT_VOTE_SERVEROPTIONS );
 }
 
-void CHalfLifeMultiplay::CheckServerOptionsRTV( void )
+void CHalfLifeMultiplay::CheckServerOptionsRTV( BOOL forceClose )
 {
 	if ( m_fServerOptionsVoteTime <= 0 )
 		return;
-	if ( gpGlobals->time < m_fServerOptionsVoteTime )
+	if ( !forceClose && gpGlobals->time < m_fServerOptionsVoteTime )
 		return;
 
 	MESSAGE_BEGIN( MSG_ALL, gmsgVoteSrvOp );
@@ -6092,7 +6518,8 @@ void CHalfLifeMultiplay::CheckServerOptionsRTV( void )
 		WRITE_BYTE( 0 );
 	MESSAGE_END();
 
-	TallyServerOptionsVote( TRUE );
+	// forceClose comes from GoToIntermission: the map changes anyway, so no restart.
+	TallyServerOptionsVote( !forceClose );
 
 	MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
 		WRITE_BYTE( CLIENT_SOUND_EBELL );
@@ -6101,6 +6528,113 @@ void CHalfLifeMultiplay::CheckServerOptionsRTV( void )
 	m_fServerOptionsVoteTime = 0;
 	m_bServerOptionsRTVOnly = FALSE;
 	m_pServerOptionsRTVInitiator = NULL;
+}
+
+/*
+==============
+VoteForBotOptions
+
+RTV one-shot, called from client.cpp::BotOptionsVote() once enough "botoptions"
+chat votes accumulate. Opens the bot-options panel for `voting.value` seconds;
+CheckBotOptionsRTV() tallies when it expires. Bot options never join the
+end-of-game vote sequence. Zero rows -> direct reply to the initiator only.
+==============
+*/
+void CHalfLifeMultiplay::VoteForBotOptions( void )
+{
+	EnsureBotOptionsList();
+	BuildActiveBotOptions();
+
+	if ( m_iActiveBotOptionsCount == 0 )
+	{
+		if ( m_pBotOptionsRTVInitiator )
+		{
+			ClientPrint( &m_pBotOptionsRTVInitiator->v, HUD_PRINTTALK,
+				"[VOTE] No bot options available.\n" );
+		}
+		else
+		{
+			UTIL_ClientPrintAll( HUD_PRINTTALK,
+				"[VOTE] No bot options available.\n" );
+		}
+		m_pBotOptionsRTVInitiator = NULL;
+		return;
+	}
+
+	int modeForVote = g_GameMode;
+	if ( modeForVote < 0 ) modeForVote = GAME_FFA;
+	if ( modeForVote > TOTAL_GAME_MODES ) modeForVote = TOTAL_GAME_MODES;
+
+	// G5: every human needs the current manifest now. A stream still held by
+	// the connect delay is released; a stale or missing one restarts.
+	for ( int i = 1; i <= gpGlobals->maxClients; i++ )
+	{
+		CBasePlayer *pPlayer = (CBasePlayer *)UTIL_PlayerByIndex( i );
+		if ( !pPlayer || FBitSet( pPlayer->pev->flags, FL_FAKECLIENT ) || pPlayer->HasDisconnected )
+			continue;
+
+		int idx = i - 1;
+		if ( m_iBotOptionsStreamNext[idx] >= 0 )
+		{
+			m_fBotOptionsStreamStart[idx] = 0;
+		}
+		else if ( m_iBotOptionsRevisionSent[idx] != g_iBotOptionsRevision )
+		{
+			m_iBotOptionsStreamNext[idx] = 0;
+			m_iBotOptionsStreamSeq[idx] = 0;
+			m_fBotOptionsStreamStart[idx] = 0;
+		}
+	}
+
+	memset( m_iBotOptionsVotes, -1, sizeof(m_iBotOptionsVotes) );
+
+	MESSAGE_BEGIN( MSG_ALL, gmsgVoteBotOp );
+		WRITE_BYTE( g_iBotOptionsRevision & 0xFF );
+		WRITE_BYTE( (int)voting.value );
+		WRITE_BYTE( m_iActiveBotOptionsCount );
+		for ( int k = 0; k < m_iActiveBotOptionsCount; k++ )
+			WRITE_BYTE( m_iActiveBotOptions[k] );
+		WRITE_BYTE( modeForVote );
+		WRITE_BYTE( 1 ); // flags bit 0: auto-close after local player voted every row (RTV)
+	MESSAGE_END();
+	MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
+		WRITE_BYTE( CLIENT_SOUND_VOTEGAMEOPTIONS );
+	MESSAGE_END();
+
+	m_fBotOptionsVoteTime = gpGlobals->time + voting.value;
+	ScheduleBotVotes( BOT_VOTE_BOTOPTIONS );
+}
+
+/*
+==============
+CheckBotOptionsRTV
+
+Closes the bot-options panel and tallies once the RTV window expires.
+forceClose settles it immediately (GoToIntermission) and skips restart rows.
+==============
+*/
+void CHalfLifeMultiplay::CheckBotOptionsRTV( BOOL forceClose )
+{
+	if ( m_fBotOptionsVoteTime <= 0 )
+		return;
+	if ( !forceClose && gpGlobals->time < m_fBotOptionsVoteTime )
+		return;
+
+	m_fBotOptionsVoteTime = 0;
+
+	MESSAGE_BEGIN( MSG_ALL, gmsgVoteBotOp );
+		WRITE_BYTE( g_iBotOptionsRevision & 0xFF );
+		WRITE_BYTE( 0 );  // timer = 0 -> close
+		WRITE_BYTE( 0 );  // count
+	MESSAGE_END();
+
+	TallyBotOptionsVote( !forceClose );
+
+	MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
+		WRITE_BYTE( CLIENT_SOUND_EBELL );
+	MESSAGE_END();
+
+	m_pBotOptionsRTVInitiator = NULL;
 }
 
 BOOL CHalfLifeMultiplay::MutatorAllowed(const char *mutator)

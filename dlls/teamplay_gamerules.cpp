@@ -93,6 +93,12 @@ void CHalfLifeTeamplay :: Think ( void )
 		return;
 	}
 
+	// The base Think() only runs at game over here, so drive the RTV vote
+	// timers and manifest streaming ourselves (an RTV may end the game).
+	VoteThink();
+	if ( g_fGameOver )
+		return;
+
 	// No checks during intermission
 	if ( !m_flIntermissionEndTime )
 	{

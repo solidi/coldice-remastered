@@ -198,6 +198,23 @@ bool                   g_bServerOptsResendRequested      = false;
 bool                   g_bServerOptionsAutoCloseOnComplete = false;
 char                   g_szServerOptionsVoteModeClient[32] = "?";
 
+// ---------------------------------------------------------------------------
+// Dynamic client-side bot-options list, populated by MsgFunc_BotOpts.
+// Mirrors the server's g_BotOptions[] (botoptions.txt). Cvar names and values
+// are drained for stream alignment and never retained client-side.
+// ---------------------------------------------------------------------------
+client_bot_option_t g_BotOptionsClient[MAX_CLIENT_BOT_OPTIONS];
+int                 g_iBotOptionsClientCount       = 0;
+int                 g_iBotOptionsRevisionClient    = -1;
+bool                g_bBotOptionsReceived          = false;
+int                 g_iActiveBotOptionsClient[MAX_CLIENT_BOT_OPTIONS];
+int                 g_iActiveBotOptionsClientCount = 0;
+int                 g_PlayerBotOptVote[MAX_PLAYERS + 1][MAX_CLIENT_BOT_OPTIONS];
+bool                g_bBotOptsResendRequested      = false;
+bool                g_bBotOptionsAutoCloseOnComplete = false;
+char                g_szBotOptionsVoteModeClient[32] = "?";
+int                 g_iBotOptionsVoteRevisionClient = -1;
+
 static void SetVoteModeLabel( char *dst, int modeIndex )
 {
 	const int modeCount = (int)( sizeof( sGameplayModes ) / sizeof( sGameplayModes[0] ) );
@@ -796,6 +813,7 @@ TeamFortressViewport::TeamFortressViewport(int x,int y,int wide,int tall) : Pane
 	m_pVoteMutatorMenu = NULL;
 	m_pVoteGameOptionsMenu = NULL;
 	m_pVoteServerOptionsMenu = NULL;
+	m_pVoteBotOptionsMenu = NULL;
 	m_pCookiesMenu = NULL;
 	m_pBSODMenu = NULL;
 
@@ -861,6 +879,7 @@ TeamFortressViewport::TeamFortressViewport(int x,int y,int wide,int tall) : Pane
 	CreateVoteMutatorMenu();
 	CreateVoteGameOptionsMenu();
 	CreateVoteServerOptionsMenu();
+	CreateVoteBotOptionsMenu();
 	CreateCookiesMenu();
 	CreateBSODMenu();
 
@@ -924,6 +943,10 @@ void TeamFortressViewport::Initialize( void )
 	if (m_pVoteServerOptionsMenu)
 	{
 		m_pVoteServerOptionsMenu->Initialize();
+	}
+	if (m_pVoteBotOptionsMenu)
+	{
+		m_pVoteBotOptionsMenu->Initialize();
 	}
 	if (m_pScoreBoard)
 	{
@@ -2181,7 +2204,7 @@ void TeamFortressViewport::ShowVGUIMenu( int iMenu, int timer )
 	// Gag menus must never hold a server-driven vote panel in the queue.
 	if ( m_pCurrentMenu && ( m_pCurrentMenu->GetMenuID() == MENU_COOKIES || m_pCurrentMenu->GetMenuID() == MENU_BSOD ) &&
 		( iMenu == MENU_VOTEGAMEPLAY || iMenu == MENU_VOTEMAP || iMenu == MENU_VOTEMUTATOR
-		|| iMenu == MENU_VOTEGAMEOPTIONS || iMenu == MENU_VOTESERVEROPTIONS ) )
+		|| iMenu == MENU_VOTEGAMEOPTIONS || iMenu == MENU_VOTESERVEROPTIONS || iMenu == MENU_VOTEBOTOPTIONS ) )
 	{
 		HideTopMenu();
 	}
@@ -2230,6 +2253,10 @@ void TeamFortressViewport::ShowVGUIMenu( int iMenu, int timer )
 
 	case MENU_VOTESERVEROPTIONS:
 		pNewMenu = ShowVoteServerOptionsMenu(timer);
+		break;
+
+	case MENU_VOTEBOTOPTIONS:
+		pNewMenu = ShowVoteBotOptionsMenu(timer);
 		break;
 
 	case MENU_COOKIES:
@@ -2472,6 +2499,29 @@ void TeamFortressViewport::CreateVoteServerOptionsMenu()
 }
 
 //======================================================================================
+// VOTE BOT-OPTIONS MENU (RTV only)
+//======================================================================================
+
+CMenuPanel* TeamFortressViewport::ShowVoteBotOptionsMenu(int timer)
+{
+	if ( gEngfuncs.pDemoAPI->IsPlayingback() )
+		return NULL;
+	if ( !m_pVoteBotOptionsMenu )
+		return NULL;
+
+	m_pVoteBotOptionsMenu->Reset();
+	m_pVoteBotOptionsMenu->m_iTime = timer;
+	return m_pVoteBotOptionsMenu;
+}
+
+void TeamFortressViewport::CreateVoteBotOptionsMenu()
+{
+	m_pVoteBotOptionsMenu = new CVoteBotOptionsPanel(35, false, 0, 0, ScreenWidth, ScreenHeight);
+	m_pVoteBotOptionsMenu->setParent(this);
+	m_pVoteBotOptionsMenu->setVisible( false );
+}
+
+//======================================================================================
 // COOKIE WALL ("Accept All Cookies" instant mutator)
 //======================================================================================
 
@@ -2552,6 +2602,8 @@ void TeamFortressViewport::UpdateOnPlayerInfo()
 		m_pVoteGameOptionsMenu->Update();
 	if (m_pVoteServerOptionsMenu && m_pVoteServerOptionsMenu->isVisible())
 		m_pVoteServerOptionsMenu->Update();
+	if (m_pVoteBotOptionsMenu && m_pVoteBotOptionsMenu->isVisible())
+		m_pVoteBotOptionsMenu->Update();
 	if (m_pScoreBoard)
 		m_pScoreBoard->Update();
 }
@@ -2671,6 +2723,10 @@ void TeamFortressViewport::paintBackground()
 	if ( m_pVoteServerOptionsMenu && m_pVoteServerOptionsMenu->isVisible() )
 	{
 		m_pVoteServerOptionsMenu->Update();
+	}
+	if ( m_pVoteBotOptionsMenu && m_pVoteBotOptionsMenu->isVisible() )
+	{
+		m_pVoteBotOptionsMenu->Update();
 	}
 
 	int extents[4];
@@ -3416,6 +3472,168 @@ int TeamFortressViewport::MsgFunc_SOptFor( const char *pszName, int iSize, void 
 	if ( option < 1 || option > MAX_CLIENT_SERVER_OPTION_VALUES )   return 1;
 
 	g_PlayerSrvOptVote[client][item - 1] = option - 1;
+	return 1;
+}
+
+// MsgFunc_BotOpts -- receive chunked bot-options manifest from server.
+// Same chunk layout as SrvOpts. The server streams it a few seconds after
+// connect (or immediately when a bot-options RTV opens / a resend is asked).
+int TeamFortressViewport::MsgFunc_BotOpts( const char *pszName, int iSize, void *pbuf )
+{
+	BEGIN_READ( pbuf, iSize );
+	int revision   = READ_BYTE();
+	int seq        = READ_BYTE();
+	int isLast     = READ_BYTE();
+	int total      = READ_BYTE();
+	int numInChunk = READ_BYTE();
+
+	if ( seq != 0 && revision != g_iBotOptionsRevisionClient )
+	{
+		g_iBotOptionsClientCount = 0;
+		g_bBotOptionsReceived = false;
+		if ( !g_bBotOptsResendRequested )
+		{
+			g_bBotOptsResendRequested = true;
+			gEngfuncs.pfnClientCmd( "botoptions_resend\n" );
+		}
+		return 1;
+	}
+
+	if ( seq == 0 )
+	{
+		g_iBotOptionsClientCount = 0;
+		g_iBotOptionsRevisionClient = revision;
+		g_bBotOptionsReceived = false;
+		g_bBotOptsResendRequested = false;
+	}
+
+	for ( int i = 0; i < numInChunk; i++ )
+	{
+		if ( g_iBotOptionsClientCount >= MAX_CLIENT_BOT_OPTIONS )
+		{
+			READ_STRING(); READ_STRING(); READ_BYTE();
+			int nopt = READ_BYTE();
+			for ( int o = 0; o < nopt; o++ ) { READ_STRING(); READ_STRING(); }
+			continue;
+		}
+		client_bot_option_t &slot = g_BotOptionsClient[g_iBotOptionsClientCount];
+		const char *tmp;
+
+		READ_STRING(); // cvar -- server-only
+		tmp = READ_STRING();
+		strncpy( slot.title, tmp ? tmp : "", sizeof(slot.title) - 1 );
+		slot.title[sizeof(slot.title) - 1] = 0;
+
+		int restart = READ_BYTE();
+		int nopt = READ_BYTE();
+		int keep = nopt;
+		if ( keep < 0 ) keep = 0;
+		if ( keep > MAX_CLIENT_SERVER_OPTION_VALUES ) keep = MAX_CLIENT_SERVER_OPTION_VALUES;
+
+		slot.restart = restart ? 1 : 0;
+		slot.numOptions = keep;
+
+		for ( int o = 0; o < nopt; o++ )
+		{
+			tmp = READ_STRING();
+			if ( o < keep )
+			{
+				strncpy( slot.labels[o], tmp ? tmp : "", sizeof(slot.labels[o]) - 1 );
+				slot.labels[o][sizeof(slot.labels[o]) - 1] = 0;
+			}
+			READ_STRING(); // value -- server-only
+		}
+
+		g_iBotOptionsClientCount++;
+	}
+
+	if ( isLast )
+		g_bBotOptionsReceived = true;
+
+	return 1;
+}
+
+// MsgFunc_VoteBotOp -- open or close the bot-options RTV vote panel.
+// Format: BYTE revision, BYTE timer, BYTE activeCount, BYTE[activeCount] indices,
+//         [optional] BYTE modeIndex, BYTE flags (bit0: auto-close once all rows voted)
+// timer == 0 closes the panel and clears the mirrored votes.
+int TeamFortressViewport::MsgFunc_VoteBotOp( const char *pszName, int iSize, void *pbuf )
+{
+	BEGIN_READ( pbuf, iSize );
+	int revision    = READ_BYTE();
+	int timer       = READ_BYTE();
+	int activeCount = READ_BYTE();
+
+	if ( timer == 0 )
+	{
+		for ( int i = 0; i <= MAX_PLAYERS; i++ )
+			for ( int k = 0; k < MAX_CLIENT_BOT_OPTIONS; k++ )
+				g_PlayerBotOptVote[i][k] = -1;
+		g_iActiveBotOptionsClientCount = 0;
+		g_bBotOptionsAutoCloseOnComplete = false;
+		SetVoteModeLabel( g_szBotOptionsVoteModeClient, -1 );
+		HideVGUIMenu();
+		return 1;
+	}
+
+	if ( activeCount < 0 ) activeCount = 0;
+	int readCount = activeCount;
+	if ( activeCount > MAX_CLIENT_BOT_OPTIONS ) activeCount = MAX_CLIENT_BOT_OPTIONS;
+	g_iActiveBotOptionsClientCount = activeCount;
+	for ( int k = 0; k < readCount; k++ )
+	{
+		int realIdx = READ_BYTE();
+		if ( k < activeCount )
+			g_iActiveBotOptionsClient[k] = realIdx;
+	}
+
+	int modeIndex = -1;
+	int flags = 0;
+	int remaining = iSize - ( 3 + readCount );
+	if ( remaining >= 2 )
+	{
+		modeIndex = READ_BYTE();
+		flags = READ_BYTE();
+	}
+	else if ( remaining >= 1 )
+	{
+		flags = READ_BYTE();
+	}
+	g_bBotOptionsAutoCloseOnComplete = ( flags & 0x01 ) ? true : false;
+	SetVoteModeLabel( g_szBotOptionsVoteModeClient, modeIndex );
+	g_iBotOptionsVoteRevisionClient = revision;
+
+	for ( int i = 0; i <= MAX_PLAYERS; i++ )
+		for ( int k = 0; k < MAX_CLIENT_BOT_OPTIONS; k++ )
+			g_PlayerBotOptVote[i][k] = -1;
+
+	if ( revision != g_iBotOptionsRevisionClient || !g_bBotOptionsReceived )
+	{
+		if ( !g_bBotOptsResendRequested )
+		{
+			g_bBotOptsResendRequested = true;
+			gEngfuncs.pfnClientCmd( "botoptions_resend\n" );
+		}
+		// G4: still open a placeholder panel; it rebuilds once the manifest lands.
+	}
+
+	ShowVGUIMenu( MENU_VOTEBOTOPTIONS, timer );
+	return 1;
+}
+
+// MsgFunc_BOptFor -- mirror one client's per-item bot-options vote.
+int TeamFortressViewport::MsgFunc_BOptFor( const char *pszName, int iSize, void *pbuf )
+{
+	BEGIN_READ( pbuf, iSize );
+	int client = READ_BYTE();
+	int item   = READ_BYTE();
+	int option = READ_BYTE();
+
+	if ( client < 1 || client > MAX_PLAYERS ) return 1;
+	if ( item   < 1 || item   > g_iActiveBotOptionsClientCount ) return 1;
+	if ( option < 1 || option > MAX_CLIENT_SERVER_OPTION_VALUES ) return 1;
+
+	g_PlayerBotOptVote[client][item - 1] = option - 1;
 	return 1;
 }
 

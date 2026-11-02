@@ -645,7 +645,7 @@ void CHud::ShowTextTips( void ) {
 		return;
 	}
 
-	const int MESSAGE_SIZE = 45;
+	const int MESSAGE_SIZE = 46;
 
 	const char* messageList[MESSAGE_SIZE] = {
 		"Tired of blue skins? Type \"cl_weaponmodel 0\" in the console switches to real-life skins.\n",
@@ -691,6 +691,7 @@ void CHud::ShowTextTips( void ) {
 		"Type \"cl_thirdcamera 0\" to turn off thirdperson in gamemodes.\n",
 		"Type \"gameoptions\" in the chat to start an option rtv request.\n",
 		"Type \"serveroptions\" in the chat to start an option rtv request.\n",
+		"Type \"botoptions\" in the chat to start a bot option rtv request.\n",
 		"Type \"gamemodes\" in the chat to start a game mode rtv request.\n",
 		"Type \"maps\" in the chat to start a map rtv request.\n",
 	};

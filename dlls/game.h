@@ -82,6 +82,7 @@ extern cvar_t   breakabletime;
 extern cvar_t   voting;
 extern cvar_t   rtvtime;
 extern cvar_t   rtvcooldown;
+extern cvar_t   botsvote;
 extern cvar_t   spawnprotectiontime;
 extern cvar_t   chaosfilter;
 extern cvar_t   meleedrop;
