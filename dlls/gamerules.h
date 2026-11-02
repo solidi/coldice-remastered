@@ -389,6 +389,18 @@ public:
 #define VOTE_MAPS_TRANSITION 5
 #define VOTE_MAPS_OPEN 6
 
+// Which vote panel bots are voting in (CHalfLifeMultiplay::ScheduleBotVotes).
+enum bot_vote_kind_e
+{
+	BOT_VOTE_NONE = 0,
+	BOT_VOTE_GAMEPLAY,
+	BOT_VOTE_MAP,
+	BOT_VOTE_MUTATOR,
+	BOT_VOTE_GAMEOPTIONS,
+	BOT_VOTE_SERVEROPTIONS,
+	BOT_VOTE_BOTOPTIONS
+};
+
 // Bot-options manifest cap (botoptions.txt rows). Defined here because
 // CHalfLifeMultiplay sizes its RTV vote arrays with it.
 #define MAX_BOT_OPTIONS 16
@@ -543,6 +555,9 @@ public:
 	void VoteThink( void );                           // public: RTV timers, early vote close, manifest streaming; every frame in every mode
 	void CheckRTVVoteEarlyClose( void );              // public: close an open RTV vote once every eligible human has voted
 	void SettleOpenRTVVotes( void );                  // public: GoToIntermission tallies every still-open RTV (no restart, no game end)
+	void ScheduleBotVotes( int kind );                // public: a vote panel opened; queue delayed bot votes (BOT_VOTE_*)
+	void ProcessBotVotes( void );                     // public: cast due bot votes for the open vote (VoteThink)
+	BOOL BotVotesPending( void );                     // public: a bot still has to vote in the open vote (holds early close)
 	void CheckGameplayRTV( BOOL forceClose = FALSE );
 	void CheckMapRTV( BOOL forceClose = FALSE );
 	void CheckMutatorRTV( BOOL forceClose = FALSE );
@@ -602,6 +617,12 @@ public:
 	float    m_fLastVoteCastTime;               // time of the latest vote on any panel; early close fires VOTE_EARLY_CLOSE_DELAY after it
 	float    m_fEarlyCloseNoticeEnd;            // nominal end of the vote window the "all votes are in" notice was printed for
 
+	// Delayed bot voting (ScheduleBotVotes / ProcessBotVotes). One vote is open at a time.
+	int      m_iBotVoteKind;                    // BOT_VOTE_* of the open vote, BOT_VOTE_NONE when idle
+	float    m_fBotVoteDeadline;                // every bot has finished voting by this time
+	float    m_fBotVoteNext[32];                // [entindex-1] time of the bot's next pick, 0 = done / not voting
+	int      m_iBotVoteRow[32];                 // [entindex-1] next row to vote on (per-row option ballots)
+
 	// Per-client manifest stream cursors. -1 means idle/no pending stream.
 	int      m_iMapListStreamNext[32];
 	int      m_iMapListStreamSeq[32];
@@ -627,6 +648,7 @@ protected:
 	BOOL AllEligibleVotersVoted( int ballot );
 	float VoteEarlyCloseTime( int ballot, float nominalEnd );
 	void EarlyCloseRTVWindow( float &voteEnd, int ballot );
+	BOOL BotVoteKindOpen( int kind );
 
 	// Cold Ice Remastered Game Modes
 	float m_fSendArmoredManMessage = 0;

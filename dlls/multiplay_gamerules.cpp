@@ -159,6 +159,10 @@ CHalfLifeMultiplay :: CHalfLifeMultiplay()
 	m_bSkipIntermissionVoting = FALSE;
 	m_fLastVoteCastTime = 0;
 	m_fEarlyCloseNoticeEnd = 0;
+	m_iBotVoteKind = BOT_VOTE_NONE;
+	m_fBotVoteDeadline = 0;
+	memset(m_fBotVoteNext, 0, sizeof(m_fBotVoteNext));
+	memset(m_iBotVoteRow, 0, sizeof(m_iBotVoteRow));
 	
 	// 11/8/98
 	// Modified by YWB:  Server .cfg file is now a cvar, so that 
@@ -416,15 +420,7 @@ void CHalfLifeMultiplay :: Think ( void )
 					WRITE_BYTE(CLIENT_SOUND_VOTEGAME);
 				MESSAGE_END();
 
-				// Bots get a vote
-				for (int i = 1; i <= gpGlobals->maxClients; i++)
-				{
-					CBasePlayer *pPlayer = (CBasePlayer *)UTIL_PlayerByIndex( i );
-					if (pPlayer && FBitSet(pPlayer->pev->flags, FL_FAKECLIENT) && !pPlayer->HasDisconnected)
-					{
-						::Vote(pPlayer, RANDOM_LONG(1, TOTAL_GAME_MODES + 2 /*random*/));
-					}
-				}
+				ScheduleBotVotes(BOT_VOTE_GAMEPLAY);
 			}
 			// Game mode vote ended
 			else if (m_iVoteUnderway == VOTE_GAMEPLAY_OPEN &&
@@ -556,31 +552,9 @@ void CHalfLifeMultiplay :: Think ( void )
 						WRITE_BYTE(CLIENT_SOUND_VOTEGAMEOPTIONS);  // shared opening tone
 					MESSAGE_END();
 
-					// Reset tally and have bots cast random per-item votes.
-					// Broadcast each so clients populate g_PlayerOptVote[][] and
-					// see the bot's vote in the live tally (matches VoteOption()).
+					// Reset tally; bots vote each row shortly after (ProcessBotVotes).
 					memset(m_iGameOptionsVotes, -1, sizeof(m_iGameOptionsVotes));
-					for (int i = 1; i <= gpGlobals->maxClients; i++)
-					{
-						CBasePlayer *pPlayer = (CBasePlayer *)UTIL_PlayerByIndex(i);
-						if (pPlayer && FBitSet(pPlayer->pev->flags, FL_FAKECLIENT) && !pPlayer->HasDisconnected)
-						{
-							for (int k = 0; k < m_iActiveGameOptionsCount; k++)
-							{
-								int realIdx = m_iActiveGameOptions[k];
-								int numOpts = g_GameOptions[realIdx].numOptions;
-								if (numOpts < 2) continue;
-								int pick = RANDOM_LONG(0, numOpts - 1);
-								m_iGameOptionsVotes[i - 1][k] = pick;
-
-								MESSAGE_BEGIN(MSG_ALL, gmsgVOptFor);
-									WRITE_BYTE(i);           // client index, 1-based
-									WRITE_BYTE(k + 1);       // item, 1-based
-									WRITE_BYTE(pick + 1);    // option, 1-based
-								MESSAGE_END();
-							}
-						}
-					}
+					ScheduleBotVotes(BOT_VOTE_GAMEOPTIONS);
 				}
 			}
 
@@ -645,27 +619,7 @@ void CHalfLifeMultiplay :: Think ( void )
 					MESSAGE_END();
 
 					memset(m_iServerOptionsVotes, -1, sizeof(m_iServerOptionsVotes));
-					for (int i = 1; i <= gpGlobals->maxClients; i++)
-					{
-						CBasePlayer *pPlayer = (CBasePlayer *)UTIL_PlayerByIndex(i);
-						if (pPlayer && FBitSet(pPlayer->pev->flags, FL_FAKECLIENT) && !pPlayer->HasDisconnected)
-						{
-							for (int k = 0; k < m_iActiveServerOptionsCount; k++)
-							{
-								int realIdx = m_iActiveServerOptions[k];
-								int numOpts = g_ServerOptions[realIdx].numOptions;
-								if (numOpts < 2) continue;
-								int pick = RANDOM_LONG(0, numOpts - 1);
-								m_iServerOptionsVotes[i - 1][k] = pick;
-
-								MESSAGE_BEGIN(MSG_ALL, gmsgSOptFor);
-									WRITE_BYTE(i);           // client index, 1-based
-									WRITE_BYTE(k + 1);       // item, 1-based
-									WRITE_BYTE(pick + 1);    // option, 1-based
-								MESSAGE_END();
-							}
-						}
-					}
+					ScheduleBotVotes(BOT_VOTE_SERVEROPTIONS);
 				}
 			}
 
@@ -702,15 +656,7 @@ void CHalfLifeMultiplay :: Think ( void )
 					WRITE_BYTE(CLIENT_SOUND_VOTEMUTATOR);
 				MESSAGE_END();
 
-				// Bots get a vote
-				for (int i = 1; i <= gpGlobals->maxClients; i++)
-				{
-					CBasePlayer *pPlayer = (CBasePlayer *)UTIL_PlayerByIndex( i );
-					if (pPlayer && FBitSet(pPlayer->pev->flags, FL_FAKECLIENT) && !pPlayer->HasDisconnected)
-					{
-						::Vote(pPlayer, RandomizeMutator());
-					}
-				}
+				ScheduleBotVotes(BOT_VOTE_MUTATOR);
 			}
 
 			// Mutator vote ended
@@ -869,17 +815,7 @@ void CHalfLifeMultiplay :: Think ( void )
 					WRITE_BYTE(CLIENT_SOUND_VOTEMAP);
 				MESSAGE_END();
 
-				// Bots get a vote (1..count is a real map, count+1 is RANDOM)
-				int maxVote = g_iServerMapCount + 1;
-				if (maxVote < 2) maxVote = 2; // safety
-				for (int i = 1; i <= gpGlobals->maxClients; i++)
-				{
-					CBasePlayer *pPlayer = (CBasePlayer *)UTIL_PlayerByIndex( i );
-					if (pPlayer && FBitSet(pPlayer->pev->flags, FL_FAKECLIENT) && !pPlayer->HasDisconnected)
-					{
-						::Vote(pPlayer, RANDOM_LONG(1, maxVote));
-					}
-				}
+				ScheduleBotVotes(BOT_VOTE_MAP);
 			}
 
 			// Map vote ended
@@ -1175,7 +1111,8 @@ BOOL CHalfLifeMultiplay::AllEligibleVotersVoted( int ballot )
 // Returns when the open vote with this ballot and nominal end should close.
 float CHalfLifeMultiplay::VoteEarlyCloseTime( int ballot, float nominalEnd )
 {
-	if ( !AllEligibleVotersVoted( ballot ) )
+	// Bots vote a few seconds after the panel opens; wait for them too.
+	if ( !AllEligibleVotersVoted( ballot ) || BotVotesPending() )
 		return nominalEnd;
 
 	float closeAt = m_fLastVoteCastTime + VOTE_EARLY_CLOSE_DELAY;
@@ -1267,6 +1204,7 @@ base Think() mid-match (Teamplay, GunGame) call it directly.
 */
 void CHalfLifeMultiplay::VoteThink( void )
 {
+	ProcessBotVotes();
 	CheckRTVVoteEarlyClose();
 	CheckMutatorRTV();
 	CheckGameplayRTV();
@@ -1326,6 +1264,201 @@ void CHalfLifeMultiplay::SettleOpenRTVVotes( void )
 
 	if ( settled )
 		RTVGateVoteClosedEarly( gpGlobals->time );
+}
+
+// ---------------------------------------------------------------------------
+// Bot voting. Every vote panel (RTV and end-of-game) calls ScheduleBotVotes()
+// when it opens; ProcessBotVotes() (VoteThink) then casts each bot's vote like
+// a human would: a short random "reading" delay, then for option ballots one
+// row at a time with small gaps. Every bot has finished within
+// BOT_VOTE_MAX_DELAY of the panel opening. sv_botsvote 0 keeps bots out.
+// ---------------------------------------------------------------------------
+
+#define BOT_VOTE_MIN_DELAY 0.75f   // fastest first pick after a panel opens
+#define BOT_VOTE_MAX_DELAY 4.5f    // every bot has voted (all rows) by this long after opening
+#define BOT_VOTE_ROW_GAP_MIN 0.25f // gap between a bot's picks on an option ballot
+#define BOT_VOTE_ROW_GAP_MAX 0.7f
+
+static BOOL IsVotingBot( CBasePlayer *pPlayer )
+{
+	return ( pPlayer && FBitSet( pPlayer->pev->flags, FL_FAKECLIENT ) && !pPlayer->HasDisconnected ) ? TRUE : FALSE;
+}
+
+// TRUE while the vote this kind belongs to is still taking votes.
+BOOL CHalfLifeMultiplay::BotVoteKindOpen( int kind )
+{
+	float now = gpGlobals->time;
+	switch ( kind )
+	{
+	case BOT_VOTE_GAMEPLAY:      return m_iVoteUnderway == VOTE_GAMEPLAY_OPEN || m_fGameplayVoteTime > now;
+	case BOT_VOTE_MAP:           return m_iVoteUnderway == VOTE_MAPS_OPEN || m_fMapVoteTime > now;
+	case BOT_VOTE_MUTATOR:       return m_iVoteUnderway == VOTE_MUTATORS_OPEN || m_fMutatorVoteTime > now;
+	case BOT_VOTE_GAMEOPTIONS:   return m_iVoteUnderway == VOTE_GAMEOPTIONS_OPEN || m_fGameOptionsVoteTime > now;
+	case BOT_VOTE_SERVEROPTIONS: return m_iVoteUnderway == VOTE_SERVEROPTIONS_OPEN || m_fServerOptionsVoteTime > now;
+	case BOT_VOTE_BOTOPTIONS:    return m_fBotOptionsVoteTime > now;
+	}
+	return FALSE;
+}
+
+void CHalfLifeMultiplay::ScheduleBotVotes( int kind )
+{
+	m_iBotVoteKind = BOT_VOTE_NONE;
+	memset( m_fBotVoteNext, 0, sizeof(m_fBotVoteNext) );
+	memset( m_iBotVoteRow, 0, sizeof(m_iBotVoteRow) );
+
+	if ( botsvote.value <= 0 || kind == BOT_VOTE_NONE )
+		return;
+
+	// Keep short RTV windows (mp_voting < 9) votable: finish within half the window.
+	float maxDelay = BOT_VOTE_MAX_DELAY;
+	if ( maxDelay > voting.value * 0.5f )
+		maxDelay = voting.value * 0.5f;
+	if ( maxDelay < 0.5f )
+		maxDelay = 0.5f;
+	float minDelay = BOT_VOTE_MIN_DELAY;
+	if ( minDelay > maxDelay * 0.5f )
+		minDelay = maxDelay * 0.5f;
+
+	m_fBotVoteDeadline = gpGlobals->time + maxDelay;
+
+	BOOL anyBot = FALSE;
+	for ( int i = 1; i <= gpGlobals->maxClients; i++ )
+	{
+		if ( !IsVotingBot( (CBasePlayer *)UTIL_PlayerByIndex( i ) ) )
+			continue;
+
+		// Average of two rolls: most bots pick mid-window, a few are quick or slow.
+		float spread = ( RANDOM_FLOAT( 0, 1 ) + RANDOM_FLOAT( 0, 1 ) ) * 0.5f;
+		m_fBotVoteNext[i - 1] = gpGlobals->time + minDelay + ( maxDelay - minDelay ) * spread;
+		anyBot = TRUE;
+	}
+
+	if ( anyBot )
+		m_iBotVoteKind = kind;
+}
+
+BOOL CHalfLifeMultiplay::BotVotesPending( void )
+{
+	if ( m_iBotVoteKind == BOT_VOTE_NONE || botsvote.value <= 0 || !BotVoteKindOpen( m_iBotVoteKind ) )
+		return FALSE;
+
+	for ( int i = 1; i <= gpGlobals->maxClients; i++ )
+	{
+		if ( m_fBotVoteNext[i - 1] > 0 && IsVotingBot( (CBasePlayer *)UTIL_PlayerByIndex( i ) ) )
+			return TRUE;
+	}
+	return FALSE;
+}
+
+void CHalfLifeMultiplay::ProcessBotVotes( void )
+{
+	if ( m_iBotVoteKind == BOT_VOTE_NONE )
+		return;
+
+	// The vote closed (or bots were switched off): drop whatever is left.
+	if ( botsvote.value <= 0 || !BotVoteKindOpen( m_iBotVoteKind ) )
+	{
+		m_iBotVoteKind = BOT_VOTE_NONE;
+		memset( m_fBotVoteNext, 0, sizeof(m_fBotVoteNext) );
+		return;
+	}
+
+	for ( int i = 1; i <= gpGlobals->maxClients; i++ )
+	{
+		int idx = i - 1;
+		if ( m_fBotVoteNext[idx] <= 0 || m_fBotVoteNext[idx] > gpGlobals->time )
+			continue;
+
+		CBasePlayer *pPlayer = (CBasePlayer *)UTIL_PlayerByIndex( i );
+		if ( !IsVotingBot( pPlayer ) )
+		{
+			m_fBotVoteNext[idx] = 0;
+			continue;
+		}
+
+		if ( m_iBotVoteKind == BOT_VOTE_GAMEPLAY || m_iBotVoteKind == BOT_VOTE_MAP || m_iBotVoteKind == BOT_VOTE_MUTATOR )
+		{
+			// Single pick; same choice ranges as a human's panel (last id is RANDOM).
+			int pick;
+			if ( m_iBotVoteKind == BOT_VOTE_GAMEPLAY )
+				pick = RANDOM_LONG( 1, TOTAL_GAME_MODES + 2 );
+			else if ( m_iBotVoteKind == BOT_VOTE_MAP )
+				pick = RANDOM_LONG( 1, ( g_iServerMapCount > 0 ? g_iServerMapCount : 1 ) + 1 );
+			else
+				pick = RandomizeMutator(); // a real mutator the current mode allows
+
+			pPlayer->m_fVoteCoolDown = 0;
+			::Vote( pPlayer, pick );
+			m_fBotVoteNext[idx] = 0;
+			continue;
+		}
+
+		// Option ballots: vote rows in order. Rows due after the deadline are
+		// all cast on the deadline so the bot is never later than that.
+		int *votes;
+		const int *active;
+		int rowCount, msgType;
+		switch ( m_iBotVoteKind )
+		{
+		case BOT_VOTE_GAMEOPTIONS:
+			votes = m_iGameOptionsVotes[idx]; active = m_iActiveGameOptions;
+			rowCount = m_iActiveGameOptionsCount; msgType = gmsgVOptFor;
+			break;
+		case BOT_VOTE_SERVEROPTIONS:
+			votes = m_iServerOptionsVotes[idx]; active = m_iActiveServerOptions;
+			rowCount = m_iActiveServerOptionsCount; msgType = gmsgSOptFor;
+			break;
+		default: // BOT_VOTE_BOTOPTIONS
+			votes = m_iBotOptionsVotes[idx]; active = m_iActiveBotOptions;
+			rowCount = m_iActiveBotOptionsCount; msgType = gmsgBOptFor;
+			break;
+		}
+
+		while ( m_fBotVoteNext[idx] > 0 && m_fBotVoteNext[idx] <= gpGlobals->time )
+		{
+			int row = m_iBotVoteRow[idx];
+			if ( row >= rowCount )
+			{
+				m_fBotVoteNext[idx] = 0;
+				break;
+			}
+
+			int realIdx = active[row];
+			int numOpts;
+			if ( m_iBotVoteKind == BOT_VOTE_GAMEOPTIONS )
+				numOpts = ( realIdx >= 0 && realIdx < g_iGameOptionsCount ) ? g_GameOptions[realIdx].numOptions : 0;
+			else if ( m_iBotVoteKind == BOT_VOTE_SERVEROPTIONS )
+				numOpts = ( realIdx >= 0 && realIdx < g_iServerOptionsCount ) ? g_ServerOptions[realIdx].numOptions : 0;
+			else
+				numOpts = ( realIdx >= 0 && realIdx < g_iBotOptionsCount ) ? g_BotOptions[realIdx].numOptions : 0;
+
+			if ( numOpts >= 2 )
+			{
+				int pick = RANDOM_LONG( 0, numOpts - 1 );
+				votes[row] = pick;
+				m_fLastVoteCastTime = gpGlobals->time;
+
+				// Mirror to every client's live tally, as VoteOption() does for humans.
+				MESSAGE_BEGIN( MSG_ALL, msgType );
+					WRITE_BYTE( i );         // client index, 1-based
+					WRITE_BYTE( row + 1 );   // item, 1-based
+					WRITE_BYTE( pick + 1 );  // option, 1-based
+				MESSAGE_END();
+			}
+
+			m_iBotVoteRow[idx] = row + 1;
+			if ( row + 1 >= rowCount )
+			{
+				m_fBotVoteNext[idx] = 0;
+				break;
+			}
+
+			float next = gpGlobals->time + RANDOM_FLOAT( BOT_VOTE_ROW_GAP_MIN, BOT_VOTE_ROW_GAP_MAX );
+			if ( next > m_fBotVoteDeadline )
+				next = ( m_fBotVoteDeadline > gpGlobals->time ) ? m_fBotVoteDeadline : gpGlobals->time;
+			m_fBotVoteNext[idx] = next;
+		}
+	}
 }
 
 void CHalfLifeMultiplay::CheckMutatorRTV( BOOL forceClose )
@@ -1661,14 +1794,11 @@ void CHalfLifeMultiplay::VoteForGameplayRTV( void )
 	{
 		CBasePlayer *pPlayer = (CBasePlayer *)UTIL_PlayerByIndex( i );
 		if (pPlayer && !pPlayer->HasDisconnected)
-		{
 			pPlayer->m_fVoteCoolDown = 0;
-			if (FBitSet(pPlayer->pev->flags, FL_FAKECLIENT))
-				::Vote(pPlayer, RANDOM_LONG(1, TOTAL_GAME_MODES + 2 /*random*/));
-		}
 	}
 
 	m_fGameplayVoteTime = gpGlobals->time + voting.value;
+	ScheduleBotVotes(BOT_VOTE_GAMEPLAY);
 }
 
 void CHalfLifeMultiplay::VoteForMapRTV( void )
@@ -1697,20 +1827,15 @@ void CHalfLifeMultiplay::VoteForMapRTV( void )
 		WRITE_BYTE(CLIENT_SOUND_VOTEMAP);
 	MESSAGE_END();
 
-	int maxVote = g_iServerMapCount + 1;
-	if (maxVote < 2) maxVote = 2;
 	for (int i = 1; i <= gpGlobals->maxClients; i++)
 	{
 		CBasePlayer *pPlayer = (CBasePlayer *)UTIL_PlayerByIndex( i );
 		if (pPlayer && !pPlayer->HasDisconnected)
-		{
 			pPlayer->m_fVoteCoolDown = 0;
-			if (FBitSet(pPlayer->pev->flags, FL_FAKECLIENT))
-				::Vote(pPlayer, RANDOM_LONG(1, maxVote));
-		}
 	}
 
 	m_fMapVoteTime = gpGlobals->time + voting.value;
+	ScheduleBotVotes(BOT_VOTE_MAP);
 }
 
 void CHalfLifeMultiplay::VoteForMutator( void )
@@ -1733,19 +1858,15 @@ void CHalfLifeMultiplay::VoteForMutator( void )
 		WRITE_BYTE(CLIENT_SOUND_VOTEMUTATOR);
 	MESSAGE_END();
 
-	// Bots get a vote
 	for (int i = 1; i <= gpGlobals->maxClients; i++)
 	{
 		CBasePlayer *pPlayer = (CBasePlayer *)UTIL_PlayerByIndex( i );
 		if (pPlayer && !pPlayer->HasDisconnected)
-		{
 			pPlayer->m_fVoteCoolDown = 0;
-			if (FBitSet(pPlayer->pev->flags, FL_FAKECLIENT))
-				::Vote(pPlayer, RandomizeMutator());
-		}
 	}
 
 	m_fMutatorVoteTime = gpGlobals->time + voting.value;
+	ScheduleBotVotes(BOT_VOTE_MUTATOR);
 }
 
 int CHalfLifeMultiplay::CheckClients( void )
@@ -2225,6 +2346,8 @@ BOOL CHalfLifeMultiplay :: ClientConnected( edict_t *pEntity, const char *pszNam
 			memset( m_iGameOptionsVotes[idx - 1], -1, sizeof(m_iGameOptionsVotes[0]) );
 			memset( m_iServerOptionsVotes[idx - 1], -1, sizeof(m_iServerOptionsVotes[0]) );
 			memset( m_iBotOptionsVotes[idx - 1], -1, sizeof(m_iBotOptionsVotes[0]) );
+			m_fBotVoteNext[idx - 1] = 0;
+			m_iBotVoteRow[idx - 1] = 0;
 		}
 	}
 
@@ -6274,30 +6397,7 @@ void CHalfLifeMultiplay::VoteForGameOptions( BOOL fromRTV )
 	if ( fromRTV )
 		m_fGameOptionsVoteTime = gpGlobals->time + voting.value;
 
-	// Bots get a random per-item vote. Broadcast each so clients see the
-	// tally update; the VoteOption() path does this for humans, but bots
-	// never enter that path, so we replicate the broadcast inline.
-	for ( int i = 1; i <= gpGlobals->maxClients; i++ )
-	{
-		CBasePlayer *pPlayer = (CBasePlayer *)UTIL_PlayerByIndex( i );
-		if ( pPlayer && FBitSet( pPlayer->pev->flags, FL_FAKECLIENT ) && !pPlayer->HasDisconnected )
-		{
-			for ( int k = 0; k < m_iActiveGameOptionsCount; k++ )
-			{
-				int realIdx = m_iActiveGameOptions[k];
-				int numOpts = g_GameOptions[realIdx].numOptions;
-				if ( numOpts < 2 ) continue;
-				int pick = RANDOM_LONG( 0, numOpts - 1 );
-				m_iGameOptionsVotes[i - 1][k] = pick;
-
-				MESSAGE_BEGIN( MSG_ALL, gmsgVOptFor );
-					WRITE_BYTE( i );           // client index, 1-based
-					WRITE_BYTE( k + 1 );       // item, 1-based
-					WRITE_BYTE( pick + 1 );    // option, 1-based
-				MESSAGE_END();
-			}
-		}
-	}
+	ScheduleBotVotes( BOT_VOTE_GAMEOPTIONS );
 }
 
 /*
@@ -6394,27 +6494,7 @@ void CHalfLifeMultiplay::VoteForServerOptions( BOOL fromRTV )
 	if ( fromRTV )
 		m_fServerOptionsVoteTime = gpGlobals->time + voting.value;
 
-	for ( int i = 1; i <= gpGlobals->maxClients; i++ )
-	{
-		CBasePlayer *pPlayer = (CBasePlayer *)UTIL_PlayerByIndex( i );
-		if ( pPlayer && FBitSet( pPlayer->pev->flags, FL_FAKECLIENT ) && !pPlayer->HasDisconnected )
-		{
-			for ( int k = 0; k < m_iActiveServerOptionsCount; k++ )
-			{
-				int realIdx = m_iActiveServerOptions[k];
-				int numOpts = g_ServerOptions[realIdx].numOptions;
-				if ( numOpts < 2 ) continue;
-				int pick = RANDOM_LONG( 0, numOpts - 1 );
-				m_iServerOptionsVotes[i - 1][k] = pick;
-
-				MESSAGE_BEGIN( MSG_ALL, gmsgSOptFor );
-					WRITE_BYTE( i );
-					WRITE_BYTE( k + 1 );
-					WRITE_BYTE( pick + 1 );
-				MESSAGE_END();
-			}
-		}
-	}
+	ScheduleBotVotes( BOT_VOTE_SERVEROPTIONS );
 }
 
 void CHalfLifeMultiplay::CheckServerOptionsRTV( BOOL forceClose )
@@ -6514,28 +6594,7 @@ void CHalfLifeMultiplay::VoteForBotOptions( void )
 	MESSAGE_END();
 
 	m_fBotOptionsVoteTime = gpGlobals->time + voting.value;
-
-	for ( int i = 1; i <= gpGlobals->maxClients; i++ )
-	{
-		CBasePlayer *pPlayer = (CBasePlayer *)UTIL_PlayerByIndex( i );
-		if ( pPlayer && FBitSet( pPlayer->pev->flags, FL_FAKECLIENT ) && !pPlayer->HasDisconnected )
-		{
-			for ( int k = 0; k < m_iActiveBotOptionsCount; k++ )
-			{
-				int realIdx = m_iActiveBotOptions[k];
-				int numOpts = g_BotOptions[realIdx].numOptions;
-				if ( numOpts < 2 ) continue;
-				int pick = RANDOM_LONG( 0, numOpts - 1 );
-				m_iBotOptionsVotes[i - 1][k] = pick;
-
-				MESSAGE_BEGIN( MSG_ALL, gmsgBOptFor );
-					WRITE_BYTE( i );
-					WRITE_BYTE( k + 1 );
-					WRITE_BYTE( pick + 1 );
-				MESSAGE_END();
-			}
-		}
-	}
+	ScheduleBotVotes( BOT_VOTE_BOTOPTIONS );
 }
 
 /*

@@ -432,6 +432,7 @@ static void RTVSyncVoteWindowEpoch( int &voteEpoch, float &voteTime, int &needsV
 static int RTVCountEligibleHumanVoters( void );
 static int RTVComputeNeededVotes( void );
 static int RTVCountEligibleVotes( const int (&votes)[33] );
+static BOOL RTVBlockedAfterMatch( edict_t *pEntity );
 
 void GameplayVote(edict_t *pEntity, const char *text)
 {
@@ -454,6 +455,9 @@ void GameplayVote(edict_t *pEntity, const char *text)
 
 	if ( voting.value && wantsGenericRTV )
 	{
+		if ( RTVBlockedAfterMatch( pEntity ) )
+			return;
+
 		// Start vote, capture player count for majority count
 		if (m_fVoteTime < gpGlobals->time)
 		{
@@ -731,8 +735,22 @@ static void RTVGateRefresh( void )
 	RTVGateBeginCooldown( g_iRTVGateKind );
 }
 
+// RTVs are in-match only. Once the game is over the end-of-game votes own the
+// ballots and panels, so an RTV started then would reset the open phase.
+static BOOL RTVBlockedAfterMatch( edict_t *pEntity )
+{
+	if ( !g_fGameOver )
+		return FALSE;
+
+	ClientPrint( &pEntity->v, HUD_PRINTTALK, "[VOTE] RTV is only available during a match. Use the end of game votes.\n" );
+	return TRUE;
+}
+
 static BOOL RTVGateBlocksCall( edict_t *pEntity, int requestedKind )
 {
+	if ( RTVBlockedAfterMatch( pEntity ) )
+		return TRUE;
+
 	RTVGateRefresh();
 
 	if ( g_iRTVGateState == RTV_GATE_STATE_IDLE )
@@ -1733,7 +1751,7 @@ void BotOptionsVote(edict_t *pEntity, const char *text)
 	if (!voting.value || !UTIL_stristr(text, "botoptions"))
 		return;
 
-	if (g_fGameOver || !g_pGameRules || !g_pGameRules->IsMultiplayer())
+	if (!g_pGameRules || !g_pGameRules->IsMultiplayer())
 	{
 		ClientPrint(&pEntity->v, HUD_PRINTTALK, "[VOTE] Bot options can only be voted on during a match.\n");
 		return;
