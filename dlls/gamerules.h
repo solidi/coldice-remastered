@@ -540,11 +540,14 @@ public:
 
 	void SavePlayerModel(CBasePlayer *pPlayer);
 	void ResetPlayerSettings(CBasePlayer *pPlayer);
-	void CheckGameplayRTV( void );
-	void CheckMapRTV( void );
-	void CheckMutatorRTV( void );
-	void CheckGameOptionsRTV( void );                 // public: mid-game game-options RTV timer
-	void CheckServerOptionsRTV( void );               // public: mid-game server-options RTV timer
+	void VoteThink( void );                           // public: RTV timers, early vote close, manifest streaming; every frame in every mode
+	void CheckRTVVoteEarlyClose( void );              // public: close an open RTV vote once every eligible human has voted
+	void SettleOpenRTVVotes( void );                  // public: GoToIntermission tallies every still-open RTV (no restart, no game end)
+	void CheckGameplayRTV( BOOL forceClose = FALSE );
+	void CheckMapRTV( BOOL forceClose = FALSE );
+	void CheckMutatorRTV( BOOL forceClose = FALSE );
+	void CheckGameOptionsRTV( BOOL forceClose = FALSE );   // public: mid-game game-options RTV timer (forceClose ends it early)
+	void CheckServerOptionsRTV( BOOL forceClose = FALSE ); // public: mid-game server-options RTV timer (forceClose ends it early)
 	void CheckBotOptionsRTV( BOOL forceClose = FALSE );// public: bot-options RTV timer (forceClose ends it early)
 	void PumpClientManifestSends( void );             // public: paced, one-chunk-per-client manifest streaming
 	void SendGameOptionsToClient( edict_t *client );  // public: queue a paced game-options resend (gameoptions_resend)
@@ -596,6 +599,8 @@ public:
 	float    m_fGameplayVoteTime;               // mid-game gamemodes RTV open expiry (0 = inactive)
 	float    m_fMapVoteTime;                    // mid-game maps RTV open expiry (0 = inactive)
 	BOOL     m_bSkipIntermissionVoting;         // set by gameplay/maps RTV success to keep intermission short/no extra votes
+	float    m_fLastVoteCastTime;               // time of the latest vote on any panel; early close fires VOTE_EARLY_CLOSE_DELAY after it
+	float    m_fEarlyCloseNoticeEnd;            // nominal end of the vote window the "all votes are in" notice was printed for
 
 	// Per-client manifest stream cursors. -1 means idle/no pending stream.
 	int      m_iMapListStreamNext[32];
@@ -613,10 +618,15 @@ protected:
 	virtual void ChangeLevel( void );
 	virtual void GoToIntermission( void );
 	float m_flIntermissionEndTime;
+	float m_flIntermissionVoteShift;   // seconds cut from the intermission vote schedule (early close, skipped phases)
 	BOOL m_iEndIntermissionButtonHit;
 	int m_iDecidedMapIndex;
 	void SendMOTDToClient( edict_t *client );
 	void SendMapListToClient( edict_t *client );
+	void CheckIntermissionVoteEarlyClose( int timeLeft );
+	BOOL AllEligibleVotersVoted( int ballot );
+	float VoteEarlyCloseTime( int ballot, float nominalEnd );
+	void EarlyCloseRTVWindow( float &voteEnd, int ballot );
 
 	// Cold Ice Remastered Game Modes
 	float m_fSendArmoredManMessage = 0;
@@ -745,5 +755,11 @@ extern int          g_iBotOptionsParseLogCount;
 
 void BuildBotOptionsList( void );         // (re)parse botoptions.txt; bumps revision
 void EnsureBotOptionsList( void );        // build only if not yet built
+
+// client.cpp: a connected human who counts toward RTV quorum and early vote close
+// (not a bot, HLTV proxy or disconnecting client; spectators count).
+BOOL RTVIsEligibleHumanVoter( CBasePlayer *pPlayer );
+// client.cpp: pull the shared RTV gate's vote window end in when a vote closes early.
+void RTVGateVoteClosedEarly( float voteEndsAt );
 
 #endif	//GAMERULES_H

@@ -108,6 +108,7 @@ CHalfLifeMultiplay :: CHalfLifeMultiplay()
 
 	RefreshSkillData();
 	m_flIntermissionEndTime = 0;
+	m_flIntermissionVoteShift = 0;
 	m_iFirstBloodDecided = FALSE;
 	g_flIntermissionStartTime = 0;
 	memset(m_iVoteCount, -1, sizeof(m_iVoteCount));
@@ -156,6 +157,8 @@ CHalfLifeMultiplay :: CHalfLifeMultiplay()
 	m_fGameplayVoteTime = 0;
 	m_fMapVoteTime = 0;
 	m_bSkipIntermissionVoting = FALSE;
+	m_fLastVoteCastTime = 0;
+	m_fEarlyCloseNoticeEnd = 0;
 	
 	// 11/8/98
 	// Modified by YWB:  Server .cfg file is now a cvar, so that 
@@ -380,13 +383,7 @@ void CHalfLifeMultiplay :: Think ( void )
 	int frags_remaining = 0;
 	int time_remaining = 0;
 
-	CheckMutatorRTV();
-	CheckGameplayRTV();
-	CheckMapRTV();
-	CheckGameOptionsRTV();
-	CheckServerOptionsRTV();
-	CheckBotOptionsRTV();
-	PumpClientManifestSends();
+	VoteThink();
 
 	if ( g_fGameOver )   // someone else quit the game already
 	{
@@ -397,15 +394,20 @@ void CHalfLifeMultiplay :: Think ( void )
 		else if ( time > MAX_INTERMISSION_TIME )
 			CVAR_SET_STRING( "mp_chattime", UTIL_dtos1( MAX_INTERMISSION_TIME ) );
 
+		// Recomputed every frame, so schedule cuts (early close, skipped phases)
+		// live in m_flIntermissionVoteShift rather than in this value.
 		int timeLeft = m_bSkipIntermissionVoting ? 0 : (int)(voting.value * 5) + 15;
-		m_flIntermissionEndTime = g_flIntermissionStartTime + mp_chattime.value + timeLeft;
+		m_flIntermissionEndTime = g_flIntermissionStartTime + mp_chattime.value + timeLeft - m_flIntermissionVoteShift;
 
 		if (voting.value >= 10 && !m_bSkipIntermissionVoting)
 		{
+			CheckIntermissionVoteEarlyClose( timeLeft );
+
 			if (m_iVoteUnderway == VOTE_GAMEPLAY_TRANSITION &&
 				((m_flIntermissionEndTime - mp_chattime.value - (timeLeft - 3)) < gpGlobals->time))
 			{
 				m_iVoteUnderway = VOTE_GAMEPLAY_OPEN;
+				memset(m_iVoteCount, -1, sizeof(m_iVoteCount));
 
 				MESSAGE_BEGIN(MSG_ALL, gmsgVoteGameplay);
 					WRITE_BYTE(voting.value);
@@ -517,6 +519,7 @@ void CHalfLifeMultiplay :: Think ( void )
 					// time back so we don't have dead air.
 					UTIL_ClientPrintAll(HUD_PRINTTALK, "[VOTE] No game options to vote on for current mode.\n");
 					m_iVoteUnderway = VOTE_SERVEROPTIONS_TRANSITION;
+					m_flIntermissionVoteShift += voting.value;
 					m_flIntermissionEndTime -= voting.value;
 				}
 				else
@@ -607,6 +610,7 @@ void CHalfLifeMultiplay :: Think ( void )
 				{
 					UTIL_ClientPrintAll(HUD_PRINTTALK, "[VOTE] No server options to vote on.\n");
 					m_iVoteUnderway = VOTE_MUTATORS_TRANSITION;
+					m_flIntermissionVoteShift += voting.value;
 					m_flIntermissionEndTime -= voting.value;
 				}
 				else
@@ -685,6 +689,7 @@ void CHalfLifeMultiplay :: Think ( void )
 				((m_flIntermissionEndTime - mp_chattime.value - (timeLeft - (voting.value * 3) - 12)) < gpGlobals->time))
 			{
 				m_iVoteUnderway = VOTE_MUTATORS_OPEN;
+				memset(m_iVoteCount, -1, sizeof(m_iVoteCount));
 				int modeForVote = ( m_iElectedGameMode >= 0 ) ? m_iElectedGameMode : g_GameMode;
 				if ( modeForVote < 0 ) modeForVote = GAME_FFA;
 				if ( modeForVote > TOTAL_GAME_MODES ) modeForVote = TOTAL_GAME_MODES;
@@ -848,6 +853,7 @@ void CHalfLifeMultiplay :: Think ( void )
 				((m_flIntermissionEndTime - mp_chattime.value - (timeLeft - (voting.value * 4) - 15)) < gpGlobals->time))
 			{
 				m_iVoteUnderway = VOTE_MAPS_OPEN;
+				memset(m_iVoteCount, -1, sizeof(m_iVoteCount));
 				int modeForVote = ( m_iElectedGameMode >= 0 ) ? m_iElectedGameMode : g_GameMode;
 				if ( modeForVote < 0 ) modeForVote = GAME_FFA;
 				if ( modeForVote > TOTAL_GAME_MODES ) modeForVote = TOTAL_GAME_MODES;
@@ -1100,7 +1106,229 @@ void CHalfLifeMultiplay :: Think ( void )
 #endif
 }
 
-void CHalfLifeMultiplay::CheckMutatorRTV( void )
+// ---------------------------------------------------------------------------
+// Early vote close. Once every eligible human (RTVIsEligibleHumanVoter) has a
+// full ballot in the open vote, it closes VOTE_EARLY_CLOSE_DELAY seconds after
+// the last vote was cast, or at its normal end if that comes first. Revising a
+// vote counts as casting one. Applies to every RTV vote and every end-of-game
+// vote phase. Bots are ignored (they vote when a panel opens), and a vote with
+// no eligible humans runs its full length.
+// ---------------------------------------------------------------------------
+
+#define VOTE_EARLY_CLOSE_DELAY 2.0f
+
+enum vote_ballot_e
+{
+	VOTE_BALLOT_SINGLE = 0,      // one pick in m_iVoteCount (gameplay, mutator, map)
+	VOTE_BALLOT_GAMEOPTIONS,     // every active row in m_iGameOptionsVotes
+	VOTE_BALLOT_SERVEROPTIONS,   // every active row in m_iServerOptionsVotes
+	VOTE_BALLOT_BOTOPTIONS       // every active row in m_iBotOptionsVotes
+};
+
+static BOOL BallotRowsVoted( const int *rowVotes, int rowCount )
+{
+	if ( rowCount <= 0 )
+		return FALSE;
+	for ( int k = 0; k < rowCount; k++ )
+	{
+		if ( rowVotes[k] < 0 )
+			return FALSE;
+	}
+	return TRUE;
+}
+
+BOOL CHalfLifeMultiplay::AllEligibleVotersVoted( int ballot )
+{
+	int eligible = 0;
+
+	for ( int i = 1; i <= gpGlobals->maxClients; i++ )
+	{
+		CBasePlayer *pPlayer = (CBasePlayer *)UTIL_PlayerByIndex( i );
+		if ( !RTVIsEligibleHumanVoter( pPlayer ) )
+			continue;
+
+		eligible++;
+		int idx = i - 1;
+		BOOL voted = FALSE;
+		switch ( ballot )
+		{
+		case VOTE_BALLOT_SINGLE:
+			voted = ( m_iVoteCount[idx] >= 1 ) ? TRUE : FALSE;
+			break;
+		case VOTE_BALLOT_GAMEOPTIONS:
+			voted = BallotRowsVoted( m_iGameOptionsVotes[idx], m_iActiveGameOptionsCount );
+			break;
+		case VOTE_BALLOT_SERVEROPTIONS:
+			voted = BallotRowsVoted( m_iServerOptionsVotes[idx], m_iActiveServerOptionsCount );
+			break;
+		case VOTE_BALLOT_BOTOPTIONS:
+			voted = BallotRowsVoted( m_iBotOptionsVotes[idx], m_iActiveBotOptionsCount );
+			break;
+		}
+		if ( !voted )
+			return FALSE;
+	}
+
+	return ( eligible > 0 ) ? TRUE : FALSE;
+}
+
+// Returns when the open vote with this ballot and nominal end should close.
+float CHalfLifeMultiplay::VoteEarlyCloseTime( int ballot, float nominalEnd )
+{
+	if ( !AllEligibleVotersVoted( ballot ) )
+		return nominalEnd;
+
+	float closeAt = m_fLastVoteCastTime + VOTE_EARLY_CLOSE_DELAY;
+	if ( closeAt >= nominalEnd )
+		return nominalEnd;
+
+	// Announce once per vote window, and only when it saves real time.
+	if ( fabs( m_fEarlyCloseNoticeEnd - nominalEnd ) > 0.01f )
+	{
+		m_fEarlyCloseNoticeEnd = nominalEnd;
+		if ( nominalEnd - closeAt >= 1.0f )
+			UTIL_ClientPrintAll( HUD_PRINTTALK, "[VOTE] All votes are in. Closing the vote early.\n" );
+	}
+
+	return closeAt;
+}
+
+// Pulls an open RTV vote's end time in to now when it is due to close early,
+// so its Check*RTV() tallies this frame. voteEnd is that RTV's m_f*VoteTime.
+void CHalfLifeMultiplay::EarlyCloseRTVWindow( float &voteEnd, int ballot )
+{
+	if ( voteEnd <= gpGlobals->time )
+		return; // not open, or already closing this frame
+
+	if ( gpGlobals->time < VoteEarlyCloseTime( ballot, voteEnd ) )
+		return;
+
+	voteEnd = gpGlobals->time;
+	RTVGateVoteClosedEarly( voteEnd );
+}
+
+void CHalfLifeMultiplay::CheckRTVVoteEarlyClose( void )
+{
+	EarlyCloseRTVWindow( m_fGameplayVoteTime, VOTE_BALLOT_SINGLE );
+	EarlyCloseRTVWindow( m_fMapVoteTime, VOTE_BALLOT_SINGLE );
+	EarlyCloseRTVWindow( m_fMutatorVoteTime, VOTE_BALLOT_SINGLE );
+	EarlyCloseRTVWindow( m_fGameOptionsVoteTime, VOTE_BALLOT_GAMEOPTIONS );
+	EarlyCloseRTVWindow( m_fServerOptionsVoteTime, VOTE_BALLOT_SERVEROPTIONS );
+	EarlyCloseRTVWindow( m_fBotOptionsVoteTime, VOTE_BALLOT_BOTOPTIONS );
+}
+
+/*
+==============
+CheckIntermissionVoteEarlyClose
+
+End-of-game phase k (1 gameplay, 2 game-options, 3 server-options, 4 mutator,
+5 map) ends at the same time the "vote ended" checks in Think() use:
+  m_flIntermissionEndTime - mp_chattime - (timeLeft - voting*k - 3*k)
+Closing early cuts the remaining time from the whole schedule, so the current
+phase ends this frame and the 3s transitions, later phases and the post-vote
+chat time keep their lengths.
+==============
+*/
+void CHalfLifeMultiplay::CheckIntermissionVoteEarlyClose( int timeLeft )
+{
+	int phase, ballot;
+	switch ( m_iVoteUnderway )
+	{
+	case VOTE_GAMEPLAY_OPEN:      phase = 1; ballot = VOTE_BALLOT_SINGLE; break;
+	case VOTE_GAMEOPTIONS_OPEN:   phase = 2; ballot = VOTE_BALLOT_GAMEOPTIONS; break;
+	case VOTE_SERVEROPTIONS_OPEN: phase = 3; ballot = VOTE_BALLOT_SERVEROPTIONS; break;
+	case VOTE_MUTATORS_OPEN:      phase = 4; ballot = VOTE_BALLOT_SINGLE; break;
+	case VOTE_MAPS_OPEN:          phase = 5; ballot = VOTE_BALLOT_SINGLE; break;
+	default: return;
+	}
+
+	float phaseEnd = m_flIntermissionEndTime - mp_chattime.value - ( timeLeft - ( voting.value * phase ) - ( 3 * phase ) );
+	if ( phaseEnd <= gpGlobals->time )
+		return;
+
+	if ( gpGlobals->time < VoteEarlyCloseTime( ballot, phaseEnd ) )
+		return;
+
+	// The phase-end checks use a strict '<', so land just before now.
+	float cut = ( phaseEnd - gpGlobals->time ) + 0.001f;
+	m_flIntermissionVoteShift += cut;
+	m_flIntermissionEndTime -= cut;
+}
+
+/*
+==============
+VoteThink
+
+Per-frame vote work that must run in every game mode, mid-match and during
+intermission: early close of RTV votes, the RTV vote timers, and paced
+manifest streaming. Called from Think(); mode Think() overrides that skip the
+base Think() mid-match (Teamplay, GunGame) call it directly.
+==============
+*/
+void CHalfLifeMultiplay::VoteThink( void )
+{
+	CheckRTVVoteEarlyClose();
+	CheckMutatorRTV();
+	CheckGameplayRTV();
+	CheckMapRTV();
+	CheckGameOptionsRTV();
+	CheckServerOptionsRTV();
+	CheckBotOptionsRTV();
+	PumpClientManifestSends();
+}
+
+/*
+==============
+SettleOpenRTVVotes
+
+RTV votes are in-match only. GoToIntermission() calls this before it sets up
+the end-of-game votes so no RTV vote stays open into intermission, where it
+would share ballots and panels with the matching end-of-game phase (and,
+with early close, could overlap it). Each open RTV closes and tallies now:
+options apply without a map restart, and a winning gameplay/map RTV skips
+the end-of-game votes instead of ending the game a second time.
+==============
+*/
+void CHalfLifeMultiplay::SettleOpenRTVVotes( void )
+{
+	BOOL settled = FALSE;
+
+	if ( m_fGameplayVoteTime > 0 )
+	{
+		CheckGameplayRTV( TRUE );
+		settled = TRUE;
+	}
+	if ( m_fMapVoteTime > 0 )
+	{
+		CheckMapRTV( TRUE );
+		settled = TRUE;
+	}
+	if ( m_fMutatorVoteTime > 0 )
+	{
+		CheckMutatorRTV( TRUE );
+		settled = TRUE;
+	}
+	if ( m_fGameOptionsVoteTime > 0 )
+	{
+		CheckGameOptionsRTV( TRUE );
+		settled = TRUE;
+	}
+	if ( m_fServerOptionsVoteTime > 0 )
+	{
+		CheckServerOptionsRTV( TRUE );
+		settled = TRUE;
+	}
+	if ( m_fBotOptionsVoteTime > 0 )
+	{
+		CheckBotOptionsRTV( TRUE );
+		settled = TRUE;
+	}
+
+	if ( settled )
+		RTVGateVoteClosedEarly( gpGlobals->time );
+}
+
+void CHalfLifeMultiplay::CheckMutatorRTV( BOOL forceClose )
 {
 	if ( m_fMutatorVoteTime )
 	{
@@ -1117,7 +1345,7 @@ void CHalfLifeMultiplay::CheckMutatorRTV( void )
 			}
 		}
 
-		if ( m_fMutatorVoteTime <= gpGlobals->time )
+		if ( forceClose || m_fMutatorVoteTime <= gpGlobals->time )
 		{
 			MESSAGE_BEGIN(MSG_ALL, gmsgVoteMutator);
 				WRITE_BYTE(0);
@@ -1203,7 +1431,8 @@ void CHalfLifeMultiplay::CheckMutatorRTV( void )
 
 				const BOOL instantEnabled = (fIndex == kInstantIndex) || (sIndex == kInstantIndex) || (tIndex == kInstantIndex);
 				CVAR_SET_STRING("sv_instantmutators", instantEnabled ? "1" : "0");
-				if (instantEnabled)
+				// forceClose: the match is ending, so don't fire an instant mutator now.
+				if (instantEnabled && !forceClose)
 					g_pGameRules->AddInstantMutator();
 
 				int chosen[3];
@@ -1252,12 +1481,16 @@ void CHalfLifeMultiplay::CheckMutatorRTV( void )
 	}
 }
 
-void CHalfLifeMultiplay::CheckGameplayRTV( void )
+void CHalfLifeMultiplay::CheckGameplayRTV( BOOL forceClose )
 {
 	if ( m_fGameplayVoteTime <= 0 )
 		return;
-	if ( gpGlobals->time < m_fGameplayVoteTime )
+	if ( !forceClose && gpGlobals->time < m_fGameplayVoteTime )
 		return;
+
+	// Cleared before the tally: a winning vote ends the game, and
+	// GoToIntermission() settles any RTV that still looks open.
+	m_fGameplayVoteTime = 0;
 
 	MESSAGE_BEGIN(MSG_ALL, gmsgVoteGameplay);
 		WRITE_BYTE(0);
@@ -1322,22 +1555,25 @@ void CHalfLifeMultiplay::CheckGameplayRTV( void )
 		UTIL_ClientPrintAll(HUD_PRINTTALK,
 			UTIL_VarArgs("[VOTE] RTV success! Gameplay mode changing to %s. Ending game to intermission...\n", gamePlayModes[gameIndex]));
 		m_bSkipIntermissionVoting = TRUE;
-		EndMultiplayerGame();
+		if ( !forceClose ) // forceClose: GoToIntermission() is already ending the game
+			EndMultiplayerGame();
 	}
 
 	MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
 		WRITE_BYTE( CLIENT_SOUND_EBELL );
 	MESSAGE_END();
-
-	m_fGameplayVoteTime = 0;
 }
 
-void CHalfLifeMultiplay::CheckMapRTV( void )
+void CHalfLifeMultiplay::CheckMapRTV( BOOL forceClose )
 {
 	if ( m_fMapVoteTime <= 0 )
 		return;
-	if ( gpGlobals->time < m_fMapVoteTime )
+	if ( !forceClose && gpGlobals->time < m_fMapVoteTime )
 		return;
+
+	// Cleared before the tally: a winning vote ends the game, and
+	// GoToIntermission() settles any RTV that still looks open.
+	m_fMapVoteTime = 0;
 
 	MESSAGE_BEGIN(MSG_ALL, gmsgVoteMap);
 		WRITE_BYTE(0);
@@ -1396,15 +1632,14 @@ void CHalfLifeMultiplay::CheckMapRTV( void )
 			UTIL_ClientPrintAll(HUD_PRINTTALK,
 				UTIL_VarArgs("[VOTE] RTV success! Map changing to %s. Ending game to intermission...\n", g_szServerMaps[m_iDecidedMapIndex]));
 			m_bSkipIntermissionVoting = TRUE;
-			EndMultiplayerGame();
+			if ( !forceClose ) // forceClose: GoToIntermission() is already ending the game
+				EndMultiplayerGame();
 		}
 	}
 
 	MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
 		WRITE_BYTE( CLIENT_SOUND_EBELL );
 	MESSAGE_END();
-
-	m_fMapVoteTime = 0;
 }
 
 void CHalfLifeMultiplay::VoteForGameplayRTV( void )
@@ -1488,6 +1723,7 @@ void CHalfLifeMultiplay::VoteForMutator( void )
 
 	SERVER_COMMAND("sv_addmutator \"clear\"\n");
 	CVAR_SET_STRING("sv_instantmutators", "0");
+	memset(m_iVoteCount, -1, sizeof(m_iVoteCount));
 
 	MESSAGE_BEGIN( MSG_ALL, gmsgVoteMutator );
 		WRITE_BYTE(voting.value);
@@ -1978,6 +2214,17 @@ BOOL CHalfLifeMultiplay :: ClientConnected( edict_t *pEntity, const char *pszNam
 		{
 			pPlayer->IsInArena = FALSE;
 			pPlayer->HasDisconnected = TRUE; // The client is connecting, so set this to true until they have fully connected.
+		}
+
+		// Ballots are stored per slot. A client taking over a slot mid-vote must
+		// not inherit the previous occupant's votes (tally and early close).
+		int idx = ENTINDEX( pEntity );
+		if ( idx >= 1 && idx <= 32 )
+		{
+			m_iVoteCount[idx - 1] = -1;
+			memset( m_iGameOptionsVotes[idx - 1], -1, sizeof(m_iGameOptionsVotes[0]) );
+			memset( m_iServerOptionsVotes[idx - 1], -1, sizeof(m_iServerOptionsVotes[0]) );
+			memset( m_iBotOptionsVotes[idx - 1], -1, sizeof(m_iBotOptionsVotes[0]) );
 		}
 	}
 
@@ -3696,10 +3943,10 @@ void CHalfLifeMultiplay :: GoToIntermission( void )
 
 	PauseMutators();
 
-	// Bot options are an in-match RTV only. Settle an open bot vote now so its
-	// panel never sits on top of (and swallows) the end-of-game vote panels.
-	if ( m_fBotOptionsVoteTime > 0 )
-		CheckBotOptionsRTV( TRUE );
+	// RTV votes are in-match only: settle any still open so none overlaps (and
+	// swallows) the end-of-game vote phases. Must run before the voting setup
+	// below, since a winning gameplay/map RTV sets m_bSkipIntermissionVoting.
+	SettleOpenRTVVotes();
 
 	MESSAGE_BEGIN(MSG_ALL, SVC_INTERMISSION);
 	MESSAGE_END();
@@ -3726,6 +3973,8 @@ void CHalfLifeMultiplay :: GoToIntermission( void )
 
 	m_flIntermissionEndTime = gpGlobals->time + ( (int)mp_chattime.value );
 	g_flIntermissionStartTime = gpGlobals->time;
+	m_flIntermissionVoteShift = 0;
+	m_fEarlyCloseNoticeEnd = 0;
 
 	if (voting.value >= 10 && !m_bSkipIntermissionVoting)
 	{
@@ -6061,11 +6310,11 @@ expires. For an RTV-triggered vote there is no intermission scheduler, so
 we run a tiny standalone timer here.
 ==============
 */
-void CHalfLifeMultiplay::CheckGameOptionsRTV( void )
+void CHalfLifeMultiplay::CheckGameOptionsRTV( BOOL forceClose )
 {
 	if ( m_fGameOptionsVoteTime <= 0 )
 		return;
-	if ( gpGlobals->time < m_fGameOptionsVoteTime )
+	if ( !forceClose && gpGlobals->time < m_fGameOptionsVoteTime )
 		return;
 
 	// Close panel for everyone.
@@ -6075,7 +6324,8 @@ void CHalfLifeMultiplay::CheckGameOptionsRTV( void )
 		WRITE_BYTE( 0 );  // count
 	MESSAGE_END();
 
-	TallyGameOptionsVote( TRUE );
+	// forceClose comes from GoToIntermission: the map changes anyway, so no restart.
+	TallyGameOptionsVote( !forceClose );
 
 	MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
 		WRITE_BYTE( CLIENT_SOUND_EBELL );
@@ -6167,11 +6417,11 @@ void CHalfLifeMultiplay::VoteForServerOptions( BOOL fromRTV )
 	}
 }
 
-void CHalfLifeMultiplay::CheckServerOptionsRTV( void )
+void CHalfLifeMultiplay::CheckServerOptionsRTV( BOOL forceClose )
 {
 	if ( m_fServerOptionsVoteTime <= 0 )
 		return;
-	if ( gpGlobals->time < m_fServerOptionsVoteTime )
+	if ( !forceClose && gpGlobals->time < m_fServerOptionsVoteTime )
 		return;
 
 	MESSAGE_BEGIN( MSG_ALL, gmsgVoteSrvOp );
@@ -6180,7 +6430,8 @@ void CHalfLifeMultiplay::CheckServerOptionsRTV( void )
 		WRITE_BYTE( 0 );
 	MESSAGE_END();
 
-	TallyServerOptionsVote( TRUE );
+	// forceClose comes from GoToIntermission: the map changes anyway, so no restart.
+	TallyServerOptionsVote( !forceClose );
 
 	MESSAGE_BEGIN( MSG_BROADCAST, gmsgPlayClientSound );
 		WRITE_BYTE( CLIENT_SOUND_EBELL );

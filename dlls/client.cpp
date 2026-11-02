@@ -429,7 +429,6 @@ extern int gmsgPlayClientSound;
 
 static void RTVTickServerEpoch( void );
 static void RTVSyncVoteWindowEpoch( int &voteEpoch, float &voteTime, int &needsVotes, int (&votes)[33], edict_t **ppInitiator = NULL );
-static BOOL RTVIsEligibleHumanVoter( CBasePlayer *pPlayer );
 static int RTVCountEligibleHumanVoters( void );
 static int RTVComputeNeededVotes( void );
 static int RTVCountEligibleVotes( const int (&votes)[33] );
@@ -592,7 +591,8 @@ static void RTVSyncVoteWindowEpoch( int &voteEpoch, float &voteTime, int &needsV
 		*ppInitiator = NULL;
 }
 
-static BOOL RTVIsEligibleHumanVoter( CBasePlayer *pPlayer )
+// Also used by the gamerules to decide when every voter is in (early vote close).
+BOOL RTVIsEligibleHumanVoter( CBasePlayer *pPlayer )
 {
 	if ( !pPlayer || !pPlayer->IsPlayer() )
 		return FALSE;
@@ -683,6 +683,14 @@ static void RTVGateBeginVoting( int kind, float voteEndsAt )
 	g_iRTVGateKind = kind;
 	g_iRTVGateState = RTV_GATE_STATE_VOTING;
 	g_fRTVGateUntil = voteEndsAt;
+}
+
+// The gamerules closed the open RTV vote early (everyone voted). Pull the
+// gate's vote window end in with it so the cooldown is not held back.
+void RTVGateVoteClosedEarly( float voteEndsAt )
+{
+	if ( g_iRTVGateState == RTV_GATE_STATE_VOTING && voteEndsAt < g_fRTVGateUntil )
+		g_fRTVGateUntil = voteEndsAt;
 }
 
 static void RTVGateRefresh( void )
@@ -1240,6 +1248,8 @@ void Vote( CBasePlayer *pPlayer, int vote )
 			MESSAGE_END();
 
 			g_pGameRules->m_iVoteCount[pPlayer->entindex()-1] = vote;
+			if (g_pGameRules->IsMultiplayer())
+				((CHalfLifeMultiplay *)g_pGameRules)->m_fLastVoteCastTime = gpGlobals->time;
 
 			MESSAGE_BEGIN(MSG_ONE_UNRELIABLE, gmsgPlayClientSound, NULL, pPlayer->edict());
 				WRITE_BYTE(CLIENT_SOUND_GREATJOB);
@@ -1341,6 +1351,7 @@ void VoteOption( CBasePlayer *pPlayer, int item, int option )
 	if (entIdx < 1 || entIdx > 32)
 		return;
 	mp->m_iGameOptionsVotes[entIdx - 1][itemArrayIdx] = option - 1;
+	mp->m_fLastVoteCastTime = gpGlobals->time;
 
 	MESSAGE_BEGIN(MSG_ALL, gmsgVOptFor);
 		WRITE_BYTE(entIdx);
@@ -1404,6 +1415,7 @@ void VoteServerOption( CBasePlayer *pPlayer, int item, int option )
 	if (entIdx < 1 || entIdx > 32)
 		return;
 	mp->m_iServerOptionsVotes[entIdx - 1][itemArrayIdx] = option - 1;
+	mp->m_fLastVoteCastTime = gpGlobals->time;
 
 	MESSAGE_BEGIN(MSG_ALL, gmsgSOptFor);
 		WRITE_BYTE(entIdx);
@@ -1460,6 +1472,7 @@ void VoteBotOption( CBasePlayer *pPlayer, int item, int option )
 	if (entIdx < 1 || entIdx > 32)
 		return;
 	mp->m_iBotOptionsVotes[entIdx - 1][itemArrayIdx] = option - 1;
+	mp->m_fLastVoteCastTime = gpGlobals->time;
 
 	MESSAGE_BEGIN(MSG_ALL, gmsgBOptFor);
 		WRITE_BYTE(entIdx);
