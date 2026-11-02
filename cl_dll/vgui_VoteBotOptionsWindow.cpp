@@ -393,4 +393,12 @@ void CVoteBotOptionsPanel::Open( void )
 void CVoteBotOptionsPanel::Initialize( void )
 {
 	setVisible( false );
+	g_bBotOptionsReceived = false;
+	g_iBotOptionsRevisionClient = -1;
+	g_iBotOptionsVoteRevisionClient = -1;
+	g_iBotOptionsClientCount = 0;
+	g_iActiveBotOptionsClientCount = 0;
+	g_bBotOptsResendRequested = false;
+	g_bBotOptionsAutoCloseOnComplete = false;
+	memset( g_PlayerBotOptVote, -1, sizeof(g_PlayerBotOptVote) );
 }
