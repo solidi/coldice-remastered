@@ -610,9 +610,7 @@ void CBaseMonster::CallMonsterThink( void )
 	{
 		pev->nextthink = gpGlobals->time + 0.1;
 		m_flLastEventCheck += StudioFrameAdvance(); // keep the event cursor in step with the paused animtime
-		if ( pev->movetype == MOVETYPE_FLY )
-			pev->velocity = g_vecZero;
-		pev->avelocity = g_vecZero;
+		StopFrozenMovement();
 		return;
 	}
 
@@ -627,6 +625,16 @@ void CBaseMonster::CallMonsterThink( void )
 	}
 
 	MonsterThink();
+}
+
+// Touch attacks (headcrab and panther leaps, ichthyosaur bite) fire from the engine, not the
+// think, so a frozen monster would still land them. The callback is kept and resumes after the thaw.
+void CBaseMonster::Touch( CBaseEntity *pOther )
+{
+	if ( !IsPlayer() && IsFrozen() )
+		return;
+
+	CBaseEntity::Touch( pOther );
 }
 
 //=========================================================

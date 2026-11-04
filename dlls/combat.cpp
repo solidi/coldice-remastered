@@ -1187,9 +1187,28 @@ static void ApplyFreezeState( CBaseMonster *pMonster )
 	else
 	{
 		pev->framerate = 0;
+		pMonster->StopFrozenMovement();
 	}
 
 	pMonster->m_flFreezeNextTick = gpGlobals->time + FREEZE_TICK;
+}
+
+// Cancels a leap or charge in progress. Fliers and swimmers hang in place; anything
+// else keeps falling under gravity, straight down.
+void CBaseMonster::StopFrozenMovement( void )
+{
+	if ( pev->movetype == MOVETYPE_FLY )
+	{
+		pev->velocity = g_vecZero;
+	}
+	else
+	{
+		pev->velocity.x = pev->velocity.y = 0;
+		if ( pev->velocity.z > 0 )
+			pev->velocity.z = 0;
+	}
+
+	pev->avelocity = g_vecZero;
 }
 
 // Holds this player or monster for flDuration, or stacks flDuration on top of what is left.

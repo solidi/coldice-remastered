@@ -176,6 +176,8 @@ public:
 		float FreezeTimeLeft( void );
 		BOOL IceShatterPending( void );
 		void IceShatterEffect( void );
+		void StopFrozenMovement( void );
+		virtual void Touch( CBaseEntity *pOther );
 		virtual int IRelationship ( CBaseEntity *pTarget );
 		virtual void MonsterInit ( void );
 		virtual void MonsterInitDead( void );	// Call after animation/pose is set up
