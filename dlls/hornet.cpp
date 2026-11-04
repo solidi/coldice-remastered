@@ -68,6 +68,7 @@ void CHornet :: Spawn( void )
 	pev->takedamage = DAMAGE_YES;
 	pev->flags		|= FL_MONSTER;
 	pev->health		= 1;// weak!
+	m_bloodColor	= BLOOD_COLOR_GREEN; // alien blood like the agrunt that fires them; unset it was 0, black in the palette
 	
 	if ( g_pGameRules->IsMultiplayer() )
 	{
