@@ -455,11 +455,7 @@ int CDualWrench::Swing( int fFirst )
 
 		if (pEntity)
 		{
-			if (pEntity->pev->deadflag != DEAD_FAKING && FBitSet(pEntity->pev->flags, FL_FROZEN)) {
-				pEntity->pev->renderamt = 100;
-				flDamage = pEntity->pev->max_health * 4;
-				::IceExplode(m_pPlayer, pEntity, DMG_FREEZE);
-			}
+			flDamage = ::IceShatter(m_pPlayer, pEntity);
 
 			// play thwack, smack, or dong sound
 			if ( (m_flNextPrimaryAttack + 1 < UTIL_WeaponTimeBase() ) || g_pGameRules->IsMultiplayer() )

@@ -16,6 +16,15 @@
 #ifndef BASEMONSTER_H
 #define BASEMONSTER_H
 
+// Shared freeze (freeze gun plasma, freeze grenade, snow bombs, Shidden fart, confuse).
+// Players and monsters use the same timings; one 0.1s tick is one unit of glow shell thickness.
+#define FREEZE_TICK				0.1f
+#define FREEZE_HIT_TIME			1.5f	// each DMG_FREEZE splash hit stacks this much
+#define FREEZE_MAX_TIME			6.0f	// stacked freeze cap
+#define FREEZE_SHATTER_TIME		4.5f	// a hit that stacks past this shatters the ice (4 quick hits)
+#define FREEZE_SHELL_MAX		60		// ice shell thickness at FREEZE_MAX_TIME
+#define FREEZE_ICE_COLOR		Vector( 0, 115, 230 )
+
 //
 // generic Monster
 //
@@ -87,6 +96,18 @@ public:
 
 	float				m_flHitStunEnd;		// hitstun mutator: cannot move or attack until this time
 
+	// Shared freeze state, see Freeze()
+	BOOL				m_fFrozen;			// a freeze is applied and its render/flag changes still need undoing
+	float				m_flFreezeEnd;		// frozen until this time
+	float				m_flFreezeNextTick;	// next shell refresh
+	int					m_iFreezeShellMax;	// glow shell thickness cap, 0 = no shell (confuse)
+	Vector				m_vecFreezeColor;
+	float				m_flFreezeFramerate;	// monsters: animation rate restored on thaw
+	int					m_iFreezeRenderFx;		// render state from before the freeze
+	float				m_flFreezeRenderAmt;
+	Vector				m_vecFreezeRenderColor;
+	float				m_flIceShatterTime;	// time of a shattering hit; Killed() in the same frame shatters the body
+
 	int					m_bitsDamageType;	// what types of damage has monster (player) taken
 	BYTE				m_rgbTimeBasedDamage[CDMG_TIMEBASED];
 
@@ -145,6 +166,18 @@ public:
 		void EXPORT	CallMonsterThink( void );
 		void ApplyHitStun( entvars_t *pevAttacker, int bitsDamageType );
 		BOOL IsHitStunned( void );
+
+		BOOL CanIceFreeze( CBaseEntity *pAttacker );
+		void Freeze( float flDuration, BOOL fStack, const Vector &vecShellColor, int iShellMax );
+		void FreezeThink( void );
+		void Thaw( void );
+		void ClearFreeze( void );
+		BOOL IsFrozen( void );
+		float FreezeTimeLeft( void );
+		BOOL IceShatterPending( void );
+		void IceShatterEffect( void );
+		void StopFrozenMovement( void );
+		virtual void Touch( CBaseEntity *pOther );
 		virtual int IRelationship ( CBaseEntity *pTarget );
 		virtual void MonsterInit ( void );
 		virtual void MonsterInitDead( void );	// Call after animation/pose is set up

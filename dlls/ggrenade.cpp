@@ -784,7 +784,7 @@ void CFreezeGrenade::FreezeTumbleThink( void )
 void CFreezeGrenade::FreezeDetonate( void )
 {
 	const float flFreezeRadius = 128.0f;
-	const int minFreezeTicks = 30;
+	const float flMinFreezeTime = 3.0f;
 
 	TraceResult tr;
 	Vector vecSpot = pev->origin + Vector( 0, 0, 8 );
@@ -850,47 +850,28 @@ void CFreezeGrenade::FreezeDetonate( void )
 	pev->owner = NULL;
 	::RadiusDamage( pev->origin, pev, pevOwner, pev->dmg, flFreezeRadius, CLASS_NONE, DMG_BLAST | DMG_FREEZE | DMG_NEVERGIB );
 
-	// Ensure freeze is actually applied on blast hits even when the generic
-	// DMG_FREEZE helper does not freeze (for example, self-hit edge cases).
+	// Top every visible target up to flMinFreezeTime, including the thrower,
+	// which the DMG_FREEZE splash above skips.
 	CBaseEntity *pEntity = NULL;
 	while ( ( pEntity = UTIL_FindEntityInSphere( pEntity, pev->origin, flFreezeRadius ) ) != NULL )
 	{
-		if ( !pEntity->IsPlayer() || !pEntity->IsAlive() )
-			continue;
-
-		CBasePlayer *pPlayer = (CBasePlayer *)pEntity;
-		if ( FBitSet( pPlayer->pev->flags, FL_GODMODE ) || FBitSet( pPlayer->pev->effects, EF_NODRAW ) )
-			continue;
-
-		if ( g_pGameRules->IsArmoredMan( pPlayer ) )
-			continue;
-
-		if ( !g_pGameRules->FPlayerCanTakeDamage( pPlayer, pAttacker ) )
+		CBaseMonster *pMonster = pEntity->MyMonsterPointer();
+		if ( !pMonster || !pMonster->CanIceFreeze( pAttacker ) )
 			continue;
 
 		TraceResult trTarget;
-		Vector vecTarget = pPlayer->BodyTarget( pev->origin );
+		Vector vecTarget = pMonster->BodyTarget( pev->origin );
 		UTIL_TraceLine( pev->origin, vecTarget, dont_ignore_monsters, ENT(pev), &trTarget );
-		if ( trTarget.flFraction != 1.0 && trTarget.pHit != pPlayer->edict() )
+		if ( trTarget.flFraction != 1.0 && trTarget.pHit != pMonster->edict() )
 			continue;
 
-		int stacked = (int)pPlayer->pev->renderamt;
-		if ( stacked < minFreezeTicks )
-			stacked = minFreezeTicks;
-		if ( stacked > 60 )
-			stacked = 60;
+		if ( pMonster->FreezeTimeLeft() < 5 * FREEZE_TICK )
+			EMIT_SOUND( ENT(pMonster->pev), CHAN_BODY, "freezing.wav", 1, ATTN_NORM );
 
-		if ( pPlayer->m_iFreezeCounter < 5 )
-			EMIT_SOUND( ENT(pPlayer->pev), CHAN_BODY, "freezing.wav", 1, ATTN_NORM );
+		pMonster->Freeze( flMinFreezeTime, FALSE, FREEZE_ICE_COLOR, FREEZE_SHELL_MAX );
 
-		pPlayer->pev->renderfx = kRenderFxGlowShell;
-		pPlayer->pev->renderamt = (float)stacked;
-		pPlayer->pev->rendercolor.x = 0;
-		pPlayer->pev->rendercolor.y = 115;
-		pPlayer->pev->rendercolor.z = 230;
-		pPlayer->m_iFreezeCounter = stacked;
-		pPlayer->pev->iuser4 = pPlayer->m_iFreezeCounter;
-		UTIL_ScreenFade( pPlayer, Vector(0, 113, 230), 1, 2, 128, 0 );
+		if ( pMonster->IsPlayer() )
+			UTIL_ScreenFade( pMonster, Vector(0, 113, 230), 1, 2, 128, 0 );
 	}
 
 	EMIT_SOUND_DYN( ENT(pev), CHAN_WEAPON, "weapons/explode3.wav", 0.9, ATTN_NORM, 0, 100 );

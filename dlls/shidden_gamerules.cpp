@@ -625,8 +625,7 @@ void CHalfLifeShidden::PlayerSpawn( CBasePlayer *pPlayer )
 		pPlayer->pev->fuser4 = SHIDDEN_SMELTER;
 		pPlayer->pev->fuser3 = SHIDDEN_SMELTER;
 		pPlayer->pev->gravity = 1.0f;
-		pPlayer->m_iFreezeCounter = -1;
-		pPlayer->pev->iuser4 = -1;
+		pPlayer->ClearFreeze();
 		g_engfuncs.pfnSetPhysicsKeyValue(pPlayer->edict(), "haste", "0");
 		return;
 	}
@@ -770,7 +769,7 @@ BOOL CHalfLifeShidden::FPlayerCanTakeDamage( CBasePlayer *pPlayer, CBaseEntity *
 				return TRUE;
 
 			// Non-knife (fart) hit:
-			if ( pPlayer->m_iFreezeCounter > 0 )
+			if ( pPlayer->IsFrozen() )
 			{
 				ClientPrint( pAttackerPlayer->pev, HUD_PRINTCENTER, "Use your knife!\n" );
 				return FALSE; // already frozen — only knife finishes them
@@ -778,20 +777,12 @@ BOOL CHalfLifeShidden::FPlayerCanTakeDamage( CBasePlayer *pPlayer, CBaseEntity *
 
 			if (pPlayer->IsFartedOn || isFartDamage)
 			{
-				// Smelter is not frozen: freeze for ~5 seconds, deal no damage.
-				// Counter ticks down every 0.1s in player.cpp::PostThink. renderamt
-				// doubles as the kRenderFxGlowShell thickness, so 50 was visually
-				// huge; cap shell at SHIDDEN_FREEZE_SHELL_MAX and keep counter at
-				// SHIDDEN_FREEZE_TICKS so freeze duration is independent of glow size.
-				const int SHIDDEN_FREEZE_TICKS      = 50;  // 50 * 0.1s = 5s
-				const int SHIDDEN_FREEZE_SHELL_MAX  = 25;  // glow thickness cap
-				pPlayer->m_iFreezeCounter = SHIDDEN_FREEZE_TICKS;
-				pPlayer->pev->renderamt   = SHIDDEN_FREEZE_SHELL_MAX;
-				pPlayer->pev->iuser4 = pPlayer->m_iFreezeCounter; // cross-DLL signal for grave_bot
-				pPlayer->pev->renderfx   = kRenderFxGlowShell;
-				pPlayer->pev->rendercolor.x = 120;
-				pPlayer->pev->rendercolor.y = 220;
-				pPlayer->pev->rendercolor.z = 50; // green fart glow
+				// Smelter is not frozen: freeze for 5 seconds, deal no damage.
+				// The shared freeze keeps the duration independent of the glow
+				// shell, which is capped thinner than the ice shell.
+				const float SHIDDEN_FREEZE_TIME      = 5.0f;
+				const int   SHIDDEN_FREEZE_SHELL_MAX = 25;
+				pPlayer->Freeze( SHIDDEN_FREEZE_TIME, FALSE, Vector(120, 220, 50), SHIDDEN_FREEZE_SHELL_MAX ); // green fart glow
 				EMIT_SOUND( ENT(pPlayer->pev), CHAN_BODY, "freezing.wav", 1, ATTN_NORM );
 				UTIL_ScreenFade( pPlayer, Vector(120, 220, 50), 1, 2, 128, FFADE_IN );
 				ClientPrint( pPlayer->pev, HUD_PRINTCENTER, "Farted on! You're frozen!" );
@@ -812,7 +803,7 @@ void CHalfLifeShidden::FPlayerTookDamage( float flDamage, CBasePlayer *pVictim, 
 	// FPlayerCanTakeDamage already verified this is a dealter with a knife;
 	// here we force the kill regardless of remaining health.
 	if ( pKiller && pKiller->IsPlayer() &&
-		 pVictim->pev->fuser4 == SHIDDEN_SMELTER && pVictim->m_iFreezeCounter > 0 && pVictim->IsAlive() )
+		 pVictim->pev->fuser4 == SHIDDEN_SMELTER && pVictim->IsFrozen() && pVictim->IsAlive() )
 	{
 		CBasePlayer *pKillerPlayer = (CBasePlayer *)pKiller;
 		BOOL isOffhand = (gMultiDamage.pEntity == pVictim && (gMultiDamage.type & DMG_PUNCH || gMultiDamage.type & DMG_KICK) && 
@@ -823,11 +814,7 @@ void CHalfLifeShidden::FPlayerTookDamage( float flDamage, CBasePlayer *pVictim, 
 			 !isOffhand )
 		{
 			// Unfreeze first so Killed() doesn't re-enter freeze logic.
-			pVictim->m_iFreezeCounter = -1;
-			pVictim->pev->iuser4      = -1; // cross-DLL freeze signal
-			pVictim->pev->renderamt   = 0;
-			pVictim->pev->renderfx    = kRenderFxNone;
-			ClearBits( pVictim->pev->flags, FL_FROZEN );
+			pVictim->Thaw();
 
 			MESSAGE_BEGIN( MSG_PVS, SVC_TEMPENTITY, pVictim->pev->origin );
 				WRITE_BYTE( TE_SMOKE );

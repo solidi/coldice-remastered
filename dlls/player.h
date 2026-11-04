@@ -227,9 +227,7 @@ public:
 	int m_fHasRune;
 	float m_flRuneHealTime;
 	float m_fOffhandTime;
-	float m_fThawTime;
-	int m_iFreezeCounter;
-	BOOL m_bControlFrozen;
+	BOOL m_bControlFrozen; // EnableControl(FALSE) hold; the ice freeze must not drop FL_FROZEN under it
 	float m_fJumpHeight;
 	float m_fGrenadeTime;
 	float m_fKickEndTime; // pev->nextthink cannot be used consistently
@@ -629,6 +627,7 @@ extern int	gmsgHudText;
 extern BOOL gInitHUD;
 
 float IceExplode(CBaseEntity *pAttacker, CBaseEntity *pEntity, int bitsDamageType);
+float IceShatter(CBaseEntity *pAttacker, CBaseEntity *pEntity);
 void Confuse(CBaseEntity *pAttacker, CBaseEntity *pEntity, int bitsDamageType);
 
 #endif // PLAYER_H

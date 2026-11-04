@@ -443,10 +443,16 @@ void CBaseMonster :: GibMonster( void )
 		WRITE_SHORT( entindex() );
 	MESSAGE_END();
 
-	EMIT_SOUND(ENT(pev), CHAN_WEAPON, "common/bodysplat.wav", 1, ATTN_NORM);		
+	if ( !IceShatterPending() )
+		EMIT_SOUND(ENT(pev), CHAN_WEAPON, "common/bodysplat.wav", 1, ATTN_NORM);
 
+	// shattered ice: Killed() already threw the shards
+	if ( IceShatterPending() )
+	{
+		gibbed = TRUE;
+	}
 	// only humans throw skulls !!!UNDONE - eventually monsters will have their own sets of gibs
-	if ( HasHumanGibs() )
+	else if ( HasHumanGibs() )
 	{
 		if ( CVAR_GET_FLOAT("violence_hgibs") != 0 )	// Only the player will ever get here
 		{
@@ -707,7 +713,10 @@ void CBaseMonster::CallGibMonster( void )
 {
 	BOOL fade = FALSE;
 
-	if ( HasHumanGibs() )
+	// ice shards don't care about the violence cvars
+	if ( IceShatterPending() )
+		fade = FALSE;
+	else if ( HasHumanGibs() )
 	{
 		if ( CVAR_GET_FLOAT("violence_hgibs") == 0 )
 			fade = TRUE;
@@ -763,6 +772,14 @@ void CBaseMonster :: Killed( entvars_t *pevAttacker, int iGib )
 	}
 
 	Remember( bits_MEMORY_KILLED );
+
+	// A shattering freeze hit breaks the body into ice instead of leaving a corpse
+	if ( IceShatterPending() )
+	{
+		IceShatterEffect();
+		iGib = GIB_CLEAR;
+	}
+	Thaw();
 
 	if (m_IdealMonsterState != MONSTERSTATE_DEAD)
 		g_pGameRules->MonsterKilled(this, pevAttacker );
@@ -1095,6 +1112,262 @@ void CBaseMonster::ApplyHitStun( entvars_t *pevAttacker, int bitsDamageType )
 
 	if ( IsPlayer() )
 		m_flNextAttack = fmax( m_flNextAttack, UTIL_WeaponTimeBase() + HITSTUN_TIME );
+}
+
+//=========================================================
+// Freeze - shared by players and monsters.
+//
+// Players are held by FL_FROZEN (pmove, weapons, ACT_FROZEN) and tick from
+// CBasePlayer::PostThink. Monsters are held on their current animation frame
+// with no AI by CallMonsterThink, which also ticks them.
+//=========================================================
+
+// Self hits are filtered by the callers (the freeze grenade freezes its thrower).
+BOOL CBaseMonster::CanIceFreeze( CBaseEntity *pAttacker )
+{
+	if ( !pev->takedamage || pev->health <= 0 )
+		return FALSE;
+
+	if ( FBitSet( pev->flags, FL_GODMODE ) || FBitSet( pev->effects, EF_NODRAW ) )
+		return FALSE;
+
+	if ( IsPlayer() )
+	{
+		CBasePlayer *pPlayer = (CBasePlayer *)this;
+		if ( !pPlayer->IsAlive() || g_pGameRules->IsArmoredMan( pPlayer ) )
+			return FALSE;
+
+		return g_pGameRules->FPlayerCanTakeDamage( pPlayer, pAttacker );
+	}
+
+	if ( !FBitSet( pev->flags, FL_MONSTER ) || pev->deadflag != DEAD_NO )
+		return FALSE;
+
+	// TakeDamage won't kill a scripted monster, so the shatter would leave it standing
+	if ( m_MonsterState == MONSTERSTATE_SCRIPT )
+		return FALSE;
+
+	// Only CallMonsterThink ticks the freeze; custom thinkers (turrets, Apache, Nihilanth...) would never thaw
+	return m_pfnThink == static_cast<BASEPTR>( &CBaseMonster::CallMonsterThink );
+}
+
+BOOL CBaseMonster::IsFrozen( void )
+{
+	return m_fFrozen && m_flFreezeEnd > gpGlobals->time;
+}
+
+float CBaseMonster::FreezeTimeLeft( void )
+{
+	return IsFrozen() ? m_flFreezeEnd - gpGlobals->time : 0;
+}
+
+BOOL CBaseMonster::IceShatterPending( void )
+{
+	return m_flIceShatterTime > 0 && m_flIceShatterTime == gpGlobals->time;
+}
+
+// Applies the hold and refreshes the shell. Runs on every freeze and every FREEZE_TICK after.
+static void ApplyFreezeState( CBaseMonster *pMonster )
+{
+	entvars_t *pev = pMonster->pev;
+	const int iTicksLeft = (int)ceil( pMonster->FreezeTimeLeft() / FREEZE_TICK );
+
+	if ( pMonster->m_iFreezeShellMax > 0 )
+	{
+		pev->renderfx = kRenderFxGlowShell;
+		pev->rendercolor = pMonster->m_vecFreezeColor;
+		pev->renderamt = iTicksLeft < pMonster->m_iFreezeShellMax ? iTicksLeft : pMonster->m_iFreezeShellMax;
+	}
+
+	if ( pMonster->IsPlayer() )
+	{
+		pev->flags |= FL_FROZEN;
+		pev->iuser4 = iTicksLeft; // grave_bot reads this: > 0 is frozen ticks remaining
+	}
+	else
+	{
+		pev->framerate = 0;
+		pMonster->StopFrozenMovement();
+	}
+
+	pMonster->m_flFreezeNextTick = gpGlobals->time + FREEZE_TICK;
+}
+
+// Cancels a leap or charge in progress. Fliers and swimmers hang in place; anything
+// else keeps falling under gravity, straight down.
+void CBaseMonster::StopFrozenMovement( void )
+{
+	if ( pev->movetype == MOVETYPE_FLY )
+	{
+		pev->velocity = g_vecZero;
+	}
+	else
+	{
+		pev->velocity.x = pev->velocity.y = 0;
+		if ( pev->velocity.z > 0 )
+			pev->velocity.z = 0;
+	}
+
+	pev->avelocity = g_vecZero;
+}
+
+// Holds this player or monster for flDuration, or stacks flDuration on top of what is left.
+// iShellMax > 0 draws a glow shell of vecShellColor, thinning as the freeze runs out.
+void CBaseMonster::Freeze( float flDuration, BOOL fStack, const Vector &vecShellColor, int iShellMax )
+{
+	const float flLeft = FreezeTimeLeft();
+	float flTime = fStack ? flLeft + flDuration : fmax( flLeft, flDuration );
+	flTime = fmin( flTime, FREEZE_MAX_TIME );
+	if ( flTime <= 0 )
+		return;
+
+	if ( !m_fFrozen )
+	{
+		m_fFrozen = TRUE;
+		m_iFreezeShellMax = 0;
+		m_iFreezeRenderFx = pev->renderfx;
+		m_flFreezeRenderAmt = pev->renderamt;
+		m_vecFreezeRenderColor = pev->rendercolor;
+		m_flFreezeFramerate = pev->framerate;
+	}
+
+	m_flFreezeEnd = gpGlobals->time + flTime;
+
+	if ( iShellMax > 0 )
+	{
+		m_iFreezeShellMax = iShellMax;
+		m_vecFreezeColor = vecShellColor;
+	}
+
+	ApplyFreezeState( this );
+}
+
+void CBaseMonster::FreezeThink( void )
+{
+	if ( !m_fFrozen )
+		return;
+
+	if ( !IsFrozen() )
+		Thaw();
+	else if ( m_flFreezeNextTick <= gpGlobals->time )
+		ApplyFreezeState( this );
+}
+
+// Ends the freeze and puts back what it changed.
+void CBaseMonster::Thaw( void )
+{
+	if ( !m_fFrozen )
+		return;
+
+	if ( m_iFreezeShellMax > 0 )
+	{
+		pev->renderfx = m_iFreezeRenderFx;
+		pev->renderamt = m_flFreezeRenderAmt;
+		pev->rendercolor = m_vecFreezeRenderColor;
+	}
+
+	if ( IsPlayer() )
+	{
+		// EnableControl(FALSE) keeps its own hold
+		if ( !((CBasePlayer *)this)->m_bControlFrozen )
+			ClearBits( pev->flags, FL_FROZEN );
+	}
+	else
+	{
+		pev->framerate = m_flFreezeFramerate;
+	}
+
+	ClearFreeze();
+}
+
+// Drops the freeze state without touching render or flags (spawn, already cleaned up).
+void CBaseMonster::ClearFreeze( void )
+{
+	m_fFrozen = FALSE;
+	m_flFreezeEnd = 0;
+	m_iFreezeShellMax = 0;
+
+	if ( IsPlayer() )
+		pev->iuser4 = -1;
+}
+
+extern DLL_GLOBAL short g_Glass;
+
+void CBaseMonster::IceShatterEffect( void )
+{
+	MESSAGE_BEGIN( MSG_PVS, SVC_TEMPENTITY, pev->origin );
+		WRITE_BYTE( TE_BREAKMODEL );
+		// position
+		WRITE_COORD( pev->origin.x );
+		WRITE_COORD( pev->origin.y );
+		WRITE_COORD( pev->origin.z );
+		// size
+		WRITE_COORD( pev->size.x );
+		WRITE_COORD( pev->size.y );
+		WRITE_COORD( pev->size.z );
+		// velocity
+		WRITE_COORD( pev->velocity.x );
+		WRITE_COORD( pev->velocity.y );
+		WRITE_COORD( pev->velocity.z + 64 );
+		// randomization
+		WRITE_BYTE( 20 );
+		// model
+		WRITE_SHORT( g_Glass );
+		// # of shards
+		WRITE_BYTE( 12 );
+		// duration
+		WRITE_BYTE( 20 );
+		// flags
+		WRITE_BYTE( BREAK_GLASS );
+	MESSAGE_END();
+}
+
+// Marks the hit as shattering and returns damage that kills the target. Killed() in this
+// frame then breaks the body into ice instead of leaving a corpse or flesh gibs.
+static float ShatterIce( CBaseMonster *pMonster )
+{
+	pMonster->m_flIceShatterTime = gpGlobals->time;
+	return fmax( pMonster->pev->health, pMonster->pev->max_health ) * 4;
+}
+
+// DMG_FREEZE splash (freeze gun plasma, freeze grenade, snow bombs). Each hit stacks
+// FREEZE_HIT_TIME; a hit that stacks past FREEZE_SHATTER_TIME shatters the target.
+// Returns the extra damage to add to the hit.
+float IceExplode( CBaseEntity *pAttacker, CBaseEntity *pEntity, int bitsDamageType )
+{
+	if ( !FBitSet( bitsDamageType, DMG_FREEZE ) || !pEntity || pAttacker == pEntity )
+		return 0;
+
+	CBaseMonster *pMonster = pEntity->MyMonsterPointer();
+	if ( !pMonster || !pMonster->CanIceFreeze( pAttacker ) )
+		return 0;
+
+	if ( pMonster->FreezeTimeLeft() < 5 * FREEZE_TICK )
+		EMIT_SOUND( ENT( pMonster->pev ), CHAN_BODY, "freezing.wav", 1, ATTN_NORM );
+
+	pMonster->Freeze( FREEZE_HIT_TIME, TRUE, FREEZE_ICE_COLOR, FREEZE_SHELL_MAX );
+
+	if ( pMonster->IsPlayer() )
+		UTIL_ScreenFade( pMonster, Vector( 0, 113, 230 ), 1, 2, 128, FFADE_IN );
+
+	if ( pMonster->FreezeTimeLeft() > FREEZE_SHATTER_TIME )
+		return ShatterIce( pMonster );
+
+	return 0;
+}
+
+// Melee finisher (kick, slide, shoryuken, wrench) on a target that is already frozen.
+// Returns the extra damage to add to the hit, 0 if the target isn't frozen.
+float IceShatter( CBaseEntity *pAttacker, CBaseEntity *pEntity )
+{
+	if ( !pEntity || pAttacker == pEntity || pEntity->pev->deadflag == DEAD_FAKING )
+		return 0;
+
+	CBaseMonster *pMonster = pEntity->MyMonsterPointer();
+	if ( !pMonster || !pMonster->IsFrozen() || !pMonster->CanIceFreeze( pAttacker ) )
+		return 0;
+
+	return ShatterIce( pMonster );
 }
 
 /*

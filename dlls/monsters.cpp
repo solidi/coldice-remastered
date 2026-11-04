@@ -110,6 +110,16 @@ TYPEDESCRIPTION	CBaseMonster::m_SaveData[] =
 	DEFINE_FIELD( CBaseMonster, m_scriptState, FIELD_INTEGER ),
 	DEFINE_FIELD( CBaseMonster, m_pCine, FIELD_CLASSPTR ),
 	DEFINE_FIELD( CBaseMonster, m_fBurnTime, FIELD_FLOAT ),
+
+	DEFINE_FIELD( CBaseMonster, m_fFrozen, FIELD_BOOLEAN ),
+	DEFINE_FIELD( CBaseMonster, m_flFreezeEnd, FIELD_TIME ),
+	DEFINE_FIELD( CBaseMonster, m_flFreezeNextTick, FIELD_TIME ),
+	DEFINE_FIELD( CBaseMonster, m_iFreezeShellMax, FIELD_INTEGER ),
+	DEFINE_FIELD( CBaseMonster, m_vecFreezeColor, FIELD_VECTOR ),
+	DEFINE_FIELD( CBaseMonster, m_flFreezeFramerate, FIELD_FLOAT ),
+	DEFINE_FIELD( CBaseMonster, m_iFreezeRenderFx, FIELD_INTEGER ),
+	DEFINE_FIELD( CBaseMonster, m_flFreezeRenderAmt, FIELD_FLOAT ),
+	DEFINE_FIELD( CBaseMonster, m_vecFreezeRenderColor, FIELD_VECTOR ),
 };
 
 //IMPLEMENT_SAVERESTORE( CBaseMonster, CBaseToggle );
@@ -594,6 +604,16 @@ BOOL CBaseMonster::IsHitStunned( void )
 
 void CBaseMonster::CallMonsterThink( void )
 {
+	// frozen: no AI, schedules, movement or anim events, held on the frame it was on (there is no freeze animation)
+	FreezeThink();
+	if ( IsFrozen() )
+	{
+		pev->nextthink = gpGlobals->time + 0.1;
+		m_flLastEventCheck += StudioFrameAdvance(); // keep the event cursor in step with the paused animtime
+		StopFrozenMovement();
+		return;
+	}
+
 	// hitstun: no AI, schedules, movement or attack events until it wears off; the animation keeps playing
 	if ( IsHitStunned() )
 	{
@@ -605,6 +625,16 @@ void CBaseMonster::CallMonsterThink( void )
 	}
 
 	MonsterThink();
+}
+
+// Touch attacks (headcrab and panther leaps, ichthyosaur bite) fire from the engine, not the
+// think, so a frozen monster would still land them. The callback is kept and resumes after the thaw.
+void CBaseMonster::Touch( CBaseEntity *pOther )
+{
+	if ( !IsPlayer() && IsFrozen() )
+		return;
+
+	CBaseEntity::Touch( pOther );
 }
 
 //=========================================================
