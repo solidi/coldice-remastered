@@ -609,7 +609,7 @@ void CBaseMonster::CallMonsterThink( void )
 	if ( IsFrozen() )
 	{
 		pev->nextthink = gpGlobals->time + 0.1;
-		StudioFrameAdvance(); // framerate is 0; keeps animtime current so the thaw doesn't jump frames or Move()
+		m_flLastEventCheck += StudioFrameAdvance(); // keep the event cursor in step with the paused animtime
 		if ( pev->movetype == MOVETYPE_FLY )
 			pev->velocity = g_vecZero;
 		pev->avelocity = g_vecZero;

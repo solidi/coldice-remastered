@@ -1594,6 +1594,7 @@ void CBasePlayer::Killed( entvars_t *pevAttacker, int iGib )
 	{
 		IceShatterEffect();
 		pev->effects |= EF_NODRAW;
+		pev->solid = SOLID_NOT;
 		iGib = GIB_NEVER;
 	}
 	Thaw();
