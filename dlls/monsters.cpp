@@ -110,6 +110,16 @@ TYPEDESCRIPTION	CBaseMonster::m_SaveData[] =
 	DEFINE_FIELD( CBaseMonster, m_scriptState, FIELD_INTEGER ),
 	DEFINE_FIELD( CBaseMonster, m_pCine, FIELD_CLASSPTR ),
 	DEFINE_FIELD( CBaseMonster, m_fBurnTime, FIELD_FLOAT ),
+
+	DEFINE_FIELD( CBaseMonster, m_fFrozen, FIELD_BOOLEAN ),
+	DEFINE_FIELD( CBaseMonster, m_flFreezeEnd, FIELD_TIME ),
+	DEFINE_FIELD( CBaseMonster, m_flFreezeNextTick, FIELD_TIME ),
+	DEFINE_FIELD( CBaseMonster, m_iFreezeShellMax, FIELD_INTEGER ),
+	DEFINE_FIELD( CBaseMonster, m_vecFreezeColor, FIELD_VECTOR ),
+	DEFINE_FIELD( CBaseMonster, m_flFreezeFramerate, FIELD_FLOAT ),
+	DEFINE_FIELD( CBaseMonster, m_iFreezeRenderFx, FIELD_INTEGER ),
+	DEFINE_FIELD( CBaseMonster, m_flFreezeRenderAmt, FIELD_FLOAT ),
+	DEFINE_FIELD( CBaseMonster, m_vecFreezeRenderColor, FIELD_VECTOR ),
 };
 
 //IMPLEMENT_SAVERESTORE( CBaseMonster, CBaseToggle );
@@ -594,6 +604,18 @@ BOOL CBaseMonster::IsHitStunned( void )
 
 void CBaseMonster::CallMonsterThink( void )
 {
+	// frozen: no AI, schedules, movement or anim events, held on the frame it was on (there is no freeze animation)
+	FreezeThink();
+	if ( IsFrozen() )
+	{
+		pev->nextthink = gpGlobals->time + 0.1;
+		StudioFrameAdvance(); // framerate is 0; keeps animtime current so the thaw doesn't jump frames or Move()
+		if ( pev->movetype == MOVETYPE_FLY )
+			pev->velocity = g_vecZero;
+		pev->avelocity = g_vecZero;
+		return;
+	}
+
 	// hitstun: no AI, schedules, movement or attack events until it wears off; the animation keeps playing
 	if ( IsHitStunned() )
 	{

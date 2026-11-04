@@ -1588,6 +1588,21 @@ void CBasePlayer::Killed( entvars_t *pevAttacker, int iGib )
 		}
 	}
 
+	// Thaw before PlayerKilled so mode cleanup (flag/carrier glow) sees the pre-freeze render state.
+	// A shattering freeze hit leaves only ice shards.
+	if ( IceShatterPending() )
+	{
+		IceShatterEffect();
+		pev->effects |= EF_NODRAW;
+		iGib = GIB_NEVER;
+	}
+	Thaw();
+	if ( FBitSet( pev->flags, FL_FROZEN ) )
+	{
+		ClearBits( pev->flags, FL_FROZEN );
+		m_bControlFrozen = FALSE;
+	}
+
 	// Holster weapon immediately, to allow it to cleanup
 	if ( m_pActiveItem && m_pActiveItem->m_pPlayer )
 		m_pActiveItem->Holster( );
@@ -1611,15 +1626,6 @@ void CBasePlayer::Killed( entvars_t *pevAttacker, int iGib )
 		{
 			pSound->Reset();
 		}
-	}
-
-	// Unfreeze after death
-	if (pev->flags & FL_FROZEN) {
-		m_iFreezeCounter = 0;
-		pev->renderamt = 0;
-		pev->flags &= ~FL_FROZEN;
-		pev->iuser4 = 0;
-		m_bControlFrozen = FALSE;
 	}
 
 	SetAnimation( PLAYER_DIE );
@@ -4908,40 +4914,11 @@ void CBasePlayer::PostThink()
 		}
 	}
 
-	if (m_fThawTime <= gpGlobals->time && m_iFreezeCounter >= 0) {
-		if (!FBitSet(pev->flags, FL_GODMODE)) {
-			if (m_iFreezeCounter > 0) {
-				pev->flags |= FL_FROZEN;
-				pev->renderfx = kRenderFxGlowShell;
-				m_iFreezeCounter = --pev->renderamt;
-			} else if (m_iFreezeCounter == 0) {
-				pev->renderfx = kRenderFxNone;
-				pev->rendercolor = g_vecZero;
-				m_iFreezeCounter = pev->renderamt = 0;
-				if (!m_bControlFrozen)
-					pev->flags &= ~FL_FROZEN;
-				m_iFreezeCounter = -1;
-			}
-		}
+	FreezeThink();
 
-		// Cross-DLL signal for grave_bot: positive = frozen ticks remaining.
-		pev->iuser4 = m_iFreezeCounter;
-
-		m_fThawTime = gpGlobals->time + 0.1;
-	}
-	else if (m_iFreezeCounter < 0 && (pev->flags & FL_FROZEN) && !FBitSet(pev->flags, FL_GODMODE) && !m_bControlFrozen) {
-		// Counter already past zero but FL_FROZEN never got cleared — happens
-		// when an external path (gamerules kill, respawn, godmode toggle)
-		// reset m_iFreezeCounter without dropping the flag.  Without this
-		// the player stays glued in place forever.
-		pev->flags &= ~FL_FROZEN;
-		if (pev->renderfx == kRenderFxGlowShell) {
-			pev->renderfx    = kRenderFxNone;
-			pev->renderamt   = 0;
-			pev->rendercolor = g_vecZero;
-		}
-		pev->iuser4 = -1;
-	}
+	// FL_FROZEN with neither an ice freeze nor EnableControl(FALSE) behind it is stale; drop it so the player isn't glued in place
+	if ( !m_fFrozen && !m_bControlFrozen && FBitSet( pev->flags, FL_FROZEN ) )
+		ClearBits( pev->flags, FL_FROZEN );
 
 pt_end:
 #if defined( CLIENT_WEAPONS )
@@ -5164,8 +5141,8 @@ void CBasePlayer::Spawn( void )
 	m_EFlags = 0;
 	pev->weapons = 0;
 	m_iWeapons2 = 0;
-	m_iFreezeCounter 	= -1;
-	pev->iuser4         = -1; // Cross-DLL freeze signal for grave_bot; mirrors m_iFreezeCounter.
+	ClearFreeze();
+	m_flIceShatterTime = 0;
 	m_bControlFrozen    = FALSE;
 	m_bMutatorPendingRevive = FALSE;
 	m_bMutatorReviveUsed = FALSE;
@@ -6365,11 +6342,7 @@ void CBasePlayer::TraceHitOfSelacoSlide( void )
 					// play thwack, smack, or dong sound
 					if (pEntity)
 					{
-						if (pEntity->pev->deadflag != DEAD_FAKING && FBitSet(pEntity->pev->flags, FL_FROZEN)) {
-							pEntity->pev->renderamt = 100;
-							flDamage = pEntity->pev->max_health * 4;
-							::IceExplode(this, pEntity, DMG_FREEZE);
-						}
+						flDamage = ::IceShatter(this, pEntity);
 						pEntity->TraceAttack(pev, (gSkillData.plrDmgKick * 4) + flDamage, gpGlobals->v_forward, &tr, DMG_KICK | DMG_NEVERGIB );
 	
 						ApplyMultiDamage( pev, pev );
@@ -6464,12 +6437,7 @@ void CBasePlayer::TraceHitOfSelacoSlide( void )
 				{
 					ClearMultiDamage();
 
-					float flDamage = 0;
-					if (pObject->pev->deadflag != DEAD_FAKING && FBitSet(pObject->pev->flags, FL_FROZEN)) {
-						pObject->pev->renderamt = 100;
-						flDamage = pObject->pev->max_health * 4;
-						::IceExplode(this, pObject, DMG_FREEZE);
-					}
+					float flDamage = ::IceShatter(this, pObject);
 
 					TraceResult tr;
 					UTIL_TraceLine(pObject->pev->origin, pObject->pev->origin, dont_ignore_monsters, ENT( pev ), &tr);
@@ -6729,12 +6697,7 @@ void CBasePlayer::TraceHitOfFlip( void )
 		{
 			ClearMultiDamage( );
 
-			float flDamage = 0;
-			if (pObject->pev->deadflag != DEAD_FAKING && FBitSet(pObject->pev->flags, FL_FROZEN)) {
-				pObject->pev->renderamt = 100;
-				flDamage = pObject->pev->max_health * 4;
-				::IceExplode(this, pObject, DMG_FREEZE);
-			}
+			float flDamage = ::IceShatter(this, pObject);
 
 			TraceResult tr;
 			UTIL_TraceLine(pObject->pev->origin, pObject->pev->origin, dont_ignore_monsters, ENT( pev ), &tr);
@@ -9478,114 +9441,19 @@ void CInfoIntermission::Think ( void )
 LINK_ENTITY_TO_CLASS( info_intermission, CInfoIntermission );
 
 
-extern short g_Glass;
-
-float IceExplode(CBaseEntity *pAttacker, CBaseEntity *pEntity, int bitsDamageType)
-{
-	float flAdjustedDamage = 0;
-
-	if (!FBitSet(bitsDamageType, DMG_FREEZE))
-		return 0;
-
-	if (FBitSet(pEntity->pev->flags, FL_GODMODE))
-		return 0;
-
-	if (FBitSet(pEntity->pev->effects, EF_NODRAW))
-		return 0;
-
-	if (!pEntity->IsPlayer())
-		return 0;
-
-	if (g_pGameRules->IsArmoredMan(((CBasePlayer *)pEntity)))
-		return 0;
-
-	if (!g_pGameRules->FPlayerCanTakeDamage(((CBasePlayer *)pEntity), pAttacker))
-		return 0;
-
-	// Don't freeze myself
-	if (pAttacker == pEntity)
-		return 0;
-
-	if (((CBasePlayer *)pEntity)->m_iFreezeCounter < 5)
-		EMIT_SOUND(ENT(pEntity->pev), CHAN_BODY, "freezing.wav", 1, ATTN_NORM);
-	
-	pEntity->pev->renderfx = kRenderFxGlowShell;
-	// Cap stacked freeze hits so the glow shell can't grow unboundedly from
-	// repeated DMG_FREEZE applications. 60 leaves one stack above the kill
-	// threshold (>45) so the shatter branch still fires on overflow.
-	{
-		const int stacked = (int)pEntity->pev->renderamt + 15;
-		const int capped  = stacked < 60 ? stacked : 60;
-		pEntity->pev->renderamt = (float)capped;
-		((CBasePlayer *)pEntity)->m_iFreezeCounter = capped;
-	}
-	pEntity->pev->rendercolor.x = 0;
-	pEntity->pev->rendercolor.y = 115;
-	pEntity->pev->rendercolor.z = 230;
-
-	UTIL_ScreenFade(pEntity, Vector(0, 113, 230), 1, 2, 128, FFADE_IN);
-
-	if (((CBasePlayer *)pEntity)->m_iFreezeCounter > 45) {
-		pEntity->pev->effects = EF_NODRAW;
-
-		MESSAGE_BEGIN( MSG_PVS, SVC_TEMPENTITY, pEntity->pev->origin );
-			WRITE_BYTE( TE_BREAKMODEL);
-			// position
-			WRITE_COORD( pEntity->pev->origin.x );
-			WRITE_COORD( pEntity->pev->origin.y );
-			WRITE_COORD( pEntity->pev->origin.z );
-			// size
-			WRITE_COORD( pEntity->pev->size.x );
-			WRITE_COORD( pEntity->pev->size.y );
-			WRITE_COORD( pEntity->pev->size.z );
-			// velocity
-			WRITE_COORD( pEntity->pev->velocity.x );
-			WRITE_COORD( pEntity->pev->velocity.y );
-			WRITE_COORD( pEntity->pev->velocity.z + 64 );
-			// randomization
-			WRITE_BYTE( 20 );
-			// Model
-			WRITE_SHORT( g_Glass );	//model id#
-			// # of shards
-			WRITE_BYTE( 12 );
-			// duration
-			WRITE_BYTE( 20 );
-			// flags
-			WRITE_BYTE( BREAK_GLASS );
-		MESSAGE_END();
-
-		// Make sure to kill
-		flAdjustedDamage = pEntity->pev->max_health * 4;
-		((CBasePlayer *)pEntity)->m_iFreezeCounter = pEntity->pev->renderamt = 0;
-	}
-
-	return flAdjustedDamage;
-}
-
+// DMG_CONFUSE (zapgun, finger gun): a short daze through the shared freeze, with no ice shell.
 void Confuse(CBaseEntity *pAttacker, CBaseEntity *pEntity, int bitsDamageType)
 {
-	if (!FBitSet(bitsDamageType, DMG_CONFUSE))
+	if (!FBitSet(bitsDamageType, DMG_CONFUSE) || !pEntity->IsPlayer())
 		return;
 
-	if (FBitSet(pEntity->pev->flags, FL_GODMODE))
+	CBasePlayer *pPlayer = (CBasePlayer *)pEntity;
+	if (!pPlayer->CanIceFreeze(pAttacker))
 		return;
 
-	if (FBitSet(pEntity->pev->effects, EF_NODRAW))
-		return;
-
-	if (!pEntity->IsPlayer())
-		return;
-
-	if (g_pGameRules->IsArmoredMan(((CBasePlayer *)pEntity)))
-		return;
-
-	if (!g_pGameRules->FPlayerCanTakeDamage(((CBasePlayer *)pEntity), pAttacker))
-		return;
-
-	if (((CBasePlayer *)pEntity)->m_iFreezeCounter < 5)
-		// EMIT_SOUND(ENT(pEntity->pev), CHAN_BODY, "freezing.wav", 1, ATTN_NORM);
-
-	((CBasePlayer *)pEntity)->m_iFreezeCounter = pEntity->pev->renderamt = RANDOM_LONG(18, 25);
+	// Only re-daze once the current hold is nearly over
+	if (pPlayer->FreezeTimeLeft() < 5 * FREEZE_TICK)
+		pPlayer->Freeze(RANDOM_LONG(18, 25) * FREEZE_TICK, FALSE, g_vecZero, 0);
 
 	UTIL_ScreenFade(pEntity, Vector(255, 255, 0), 1, 2, 128, FFADE_IN);
 }

@@ -620,13 +620,10 @@ void CFlyingKnife::SpinTouch( CBaseEntity *pOther )
 			 pVictim->pev->fuser4 == 0 && pVictim->IsAlive() )
 		{
 			bShiddenHandled = true;
-			if ( pVictim->m_iFreezeCounter > 0 )
+			if ( pVictim->IsFrozen() )
 			{
 				// Frozen smelter: instant kill.
-				pVictim->m_iFreezeCounter = -1;
-				pVictim->pev->renderamt   = 0;
-				pVictim->pev->renderfx    = kRenderFxNone;
-				ClearBits( pVictim->pev->flags, FL_FROZEN );
+				pVictim->Thaw();
 
 				MESSAGE_BEGIN( MSG_PVS, SVC_TEMPENTITY, pVictim->pev->origin );
 					WRITE_BYTE( TE_SMOKE );
