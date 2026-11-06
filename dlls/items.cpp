@@ -31,6 +31,7 @@
 #include "shake.h"
 #include "game.h"
 #include "decals.h"
+#include "awards.h"
 
 extern int gmsgItemPickup;
 extern int gmsgStatusIcon;
@@ -361,6 +362,7 @@ class CItemBattery : public CItem
 
 			pPlayer->pev->armorvalue += gSkillData.batteryCapacity;
 			pPlayer->pev->armorvalue = fmin(pPlayer->pev->armorvalue, pPlayer->pev->max_health);
+			g_Awards.ArmorPickedUp( pPlayer );
 
 			EMIT_SOUND( pPlayer->edict(), CHAN_ITEM, "items/gunpickup2.wav", 1, ATTN_NORM );
 

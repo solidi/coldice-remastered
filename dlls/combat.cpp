@@ -34,6 +34,7 @@
 #include "game.h"
 #include "gamerules.h"
 #include "items.h"
+#include "awards.h"
 
 extern int gmsgMonsterLifeBar;  // Registered in player.cpp
 extern DLL_GLOBAL Vector		g_vecAttackDir;
@@ -782,7 +783,10 @@ void CBaseMonster :: Killed( entvars_t *pevAttacker, int iGib )
 	Thaw();
 
 	if (m_IdealMonsterState != MONSTERSTATE_DEAD)
+	{
 		g_pGameRules->MonsterKilled(this, pevAttacker );
+		g_Awards.MonsterKilled(this, pevAttacker);
+	}
 
 	// clear the deceased's sound channels.(may have been firing or reloading when killed)
 	EMIT_SOUND(ENT(pev), CHAN_WEAPON, "common/null.wav", 1, ATTN_NORM);
@@ -2015,6 +2019,9 @@ void CBaseMonster :: TraceAttack( entvars_t *pevAttacker, float flDamage, Vector
 		SpawnBlood(ptr->vecEndPos, BloodColor(), flDamage);// a little surface blood.
 		TraceBleed( flDamage, vecDir, ptr, bitsDamageType );
 		AddMultiDamage( pevAttacker, this, flDamage, bitsDamageType );
+
+		if ( ptr->iHitgroup == HITGROUP_HEAD )
+			g_Awards.Headshot( this, pevAttacker );
 	}
 }
 

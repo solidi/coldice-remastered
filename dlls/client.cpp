@@ -44,6 +44,7 @@
 #include "func_break.h"
 #include "const.h"
 #include "effects.h"
+#include "awards.h"
 #include <time.h>
 
 
@@ -136,6 +137,9 @@ extern int gmsgFlameKill;
 extern int gmsgDelPart;
 void ClientDisconnect( edict_t *pEntity )
 {
+	// Awards are never persisted: wipe the slot even during intermission.
+	g_Awards.ClientDisconnected( pEntity );
+
 	if (g_fGameOver)
 		return;
 
@@ -287,6 +291,9 @@ void ClientPutInServer( edict_t *pEntity )
 	pPlayer->m_bMutatorReviveUsed = FALSE;
 	pPlayer->m_vecMutatorReviveOrigin = g_vecZero;
 	pPlayer->m_vecMutatorReviveAngles = g_vecZero;
+
+	// (Re)connecting players always start from the award baseline.
+	g_Awards.ClientPutInServer( pEntity );
 
 	// Allocate a CBasePlayer for pev, and call spawn
 	pPlayer->Spawn();
@@ -2837,6 +2844,8 @@ void StartFrame( void )
 {
 	if ( g_pGameRules )
 		g_pGameRules->Think();
+
+	g_Awards.Think();
 
 	if ( g_fGameOver )
 		return;

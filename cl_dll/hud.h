@@ -260,7 +260,11 @@ public:
 	int MsgFunc_ScoreInfo2( const char *pszName, int iSize, void *pbuf );
 	int MsgFunc_TeamInfo2( const char *pszName, int iSize, void *pbuf );
 	int MsgFunc_TeamScore2( const char *pszName, int iSize, void *pbuf );
+	int MsgFunc_Awards( const char *pszName, int iSize, void *pbuf );
 	void DeathMsg( int killer, int victim );
+
+	// Local player's awards header row ("Weapon / Award / Award"); false in single player.
+	bool GetAwardsText( char *szBuffer, int iBufferSize );
 
 	enum {
 		MAX_PLAYERS = 32,
@@ -276,6 +280,10 @@ public:
 	int m_fLastKillTime;
 	int m_iPlayerNum;
 	int m_iShowscoresHeld;
+
+	int m_iAwardsPacked;		// "Awards" message payload, see awards_shared.h
+	int m_iAwardsRowHeight;		// extra header row of the old scoreboard (0 when hidden)
+	int m_iAwardsExtraWidth;	// old scoreboard widening for a long awards row
 
 	cvar_t *cl_showpacketloss;
 

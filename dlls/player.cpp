@@ -38,6 +38,7 @@
 #include "pm_shared.h"
 #include "hltv.h"
 #include "items.h"
+#include "awards.h"
 #if defined( GRAPPLING_HOOK )
 #include "grapplinghook.h"
 #endif
@@ -430,6 +431,7 @@ int gmsgBanner = 0;
 int gmsgSpecialEntity = 0;
 int gmsgCookies = 0;
 int gmsgBSOD = 0;
+int gmsgAwards = 0;
 
 void LinkUserMessages( void )
 {
@@ -516,6 +518,7 @@ void LinkUserMessages( void )
 	gmsgSpecialEntity = REG_USER_MSG("SpecEnt", -1);
 	gmsgCookies = REG_USER_MSG("Cookies", 1); // BYTE allowDisconnect
 	gmsgBSOD = REG_USER_MSG("BSOD", 0);
+	gmsgAwards = REG_USER_MSG("Awards", 2); // SHORT packed weapon of choice + two awards (awards_shared.h)
 }
 
 LINK_ENTITY_TO_CLASS( player, CBasePlayer );
@@ -818,6 +821,9 @@ void CBasePlayer :: TraceAttack( entvars_t *pevAttacker, float flDamage, Vector 
 		{
 			SpawnBlood(ptr->vecEndPos, BloodColor(), flDamage);// a little surface blood.
 			TraceBleed( flDamage, vecDir, ptr, bitsDamageType );
+
+			if ( ptr->iHitgroup == HITGROUP_HEAD )
+				g_Awards.Headshot( this, pevAttacker );
 		}
 		AddMultiDamage( pevAttacker, this, flDamage, bitsDamageType );
 	}
@@ -940,6 +946,10 @@ int CBasePlayer :: TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, 
 	// this cast to INT is critical!!! If a player ends up with 0.5 health, the engine will get that
 	// as an int (zero) and think the player is dead! (this will incite a clientside screentilt, etc)
 	fTookDamage = CBaseMonster::TakeDamage(pevInflictor, pevAttacker, (int)flDamage, bitsDamageType);
+
+	// A killing blow returns 0 here, so test the health drop as well.
+	if ( fTookDamage || pev->health < flHealthPrev )
+		g_Awards.PlayerDamaged( this, pevInflictor, pevAttacker );
 
 	// The blow was predicted lethal but the player survived it (godmode, vest, headshot
 	// cap, mode damage rules). Disarm the queued states so the next unrelated death
@@ -1609,6 +1619,7 @@ void CBasePlayer::Killed( entvars_t *pevAttacker, int iGib )
 		m_pActiveItem->Holster( );
 
 	g_pGameRules->PlayerKilled( this, pevAttacker, g_pevLastInflictor );
+	g_Awards.PlayerKilled( this, pevAttacker );
 
 	STOP_SOUND( edict(), CHAN_VOICE, "scientist/scream1.wav" );
 
@@ -1849,6 +1860,10 @@ void CBasePlayer::SetAnimation( PLAYER_ANIM playerAnim )
 	int animDesired;
 	float speed;
 	char szAnim[64];
+
+	// Every weapon plays the attack animation when it fires.
+	if (playerAnim == PLAYER_ATTACK1)
+		g_Awards.ShotFired(this);
 
 	if (g_pGameRules->IsPropHunt() && pev->fuser4 >= TEAM_PROPS)
 	{
@@ -8184,6 +8199,7 @@ void CBasePlayer :: UpdateClientData( void )
 
 			g_pGameRules->InitHUD( this );
 			m_fGameHUDInitialized = TRUE;
+			g_Awards.ClientHUDInitialized( this );
 			
 			m_iObserverLastMode = OBS_ROAMING;
 			
