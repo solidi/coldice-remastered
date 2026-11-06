@@ -38,9 +38,9 @@
 #include "pm_shared.h"
 #include "hltv.h"
 #include "items.h"
+#include "awards.h"
 #if defined( GRAPPLING_HOOK )
 #include "grapplinghook.h"
-#include "awards.h"
 #endif
 
 // #define DUCKFIX
