@@ -24,7 +24,10 @@
 
 #include <string.h>
 #include <stdio.h>
+#include <ctype.h>
 #include "vgui_TeamFortressViewport.h"
+#include "ammohistory.h"
+#include "awards_shared.h"
 
 //DECLARE_COMMAND( m_Scoreboard, ShowScores );
 //DECLARE_COMMAND( m_Scoreboard, HideScores );
@@ -32,8 +35,181 @@
 DECLARE_MESSAGE( m_Scoreboard, ScoreInfo2 );
 DECLARE_MESSAGE( m_Scoreboard, TeamInfo2 );
 DECLARE_MESSAGE( m_Scoreboard, TeamScore2 );
+DECLARE_MESSAGE( m_Scoreboard, Awards );
 
 extern cvar_t *cl_oldscoreboard;
+
+// Award names, indexed by award_e (GoldenEye 007 N64 strings).
+static const char *g_szAwardNames[AWARD_COUNT] =
+{
+	"",
+	"Lemming Award",
+	"Where's the Ammo?",
+	"Where's the Armor?",
+	"AC-10 Award",
+	"Marksmanship Award",
+	"Most Professional",
+	"Most Deadly",
+	"Mostly Harmless",
+	"Most Cowardly",
+	"Most Frantic",
+	"Most Honorable",
+	"Most Dishonorable",
+	"Shortest Innings",
+	"Longest Innings",
+	"Double Kill",
+	"Triple Kill",
+	"Quad Kill (Doh!)",
+};
+
+// Short scoreboard names keyed by weapon classname (the WeaponList name), so the
+// table survives WEAPON_* renumbering. Unlisted weapons fall back to the classname.
+static const struct { const char *classname; const char *name; } g_AwardWeaponNames[] =
+{
+	{ "weapon_crowbar",				"Crowbar" },
+	{ "weapon_knife",				"Combat Knife" },
+	{ "weapon_wrench",				"Monkey Wrench" },
+	{ "weapon_chainsaw",			"Chainsaw" },
+	{ "weapon_rocketcrowbar",		"Rocket Crowbar" },
+	{ "weapon_gravitygun",			"Gravity Gun" },
+	{ "weapon_ashpod",				"Portal Gun" },
+	{ "weapon_portalgun",			"Portal Gun" },
+	{ "weapon_9mmhandgun",			"Silenced Handgun" },
+	{ "weapon_glock",				"Silenced Handgun" },
+	{ "weapon_357",					"44 Magnum" },
+	{ "weapon_python",				"44 Magnum" },
+	{ "weapon_deagle",				"Desert Eagle" },
+	{ "weapon_mag60",				"Mag 60" },
+	{ "weapon_smg",					"SMG" },
+	{ "weapon_sawedoff",			"Sawed-Off" },
+	{ "weapon_9mmAR",				"M16" },
+	{ "weapon_mp5",					"M16" },
+	{ "weapon_12gauge",				"12 Gauge" },
+	{ "weapon_shotgun",				"Assault Shotgun" },
+	{ "weapon_usas",				"USAS-12" },
+	{ "weapon_crossbow",			"Boltgun" },
+	{ "weapon_sniperrifle",			"Sniper Rifle" },
+	{ "weapon_chaingun",			"Chaingun" },
+	{ "weapon_freezegun",			"Freeze Gun" },
+	{ "weapon_rpg",					"RPG" },
+	{ "weapon_gauss",				"Gauss" },
+	{ "weapon_egon",				"Egon" },
+	{ "weapon_hornetgun",			"Hivehand" },
+	{ "weapon_railgun",				"Railgun" },
+	{ "weapon_glauncher",			"Grenade Launcher" },
+	{ "weapon_cannon",				"Assault Cannon" },
+	{ "weapon_nuke",				"Tactical Nuke" },
+	{ "weapon_snowball",			"Snowballs" },
+	{ "weapon_handgrenade",			"Cluster Grenades" },
+	{ "weapon_satchel",				"Satchels" },
+	{ "weapon_tripmine",			"Tripmines" },
+	{ "weapon_snark",				"Snarks" },
+	{ "weapon_chumtoad",			"Chumtoad" },
+	{ "weapon_vest",				"Dynamite Vest" },
+	{ "weapon_flamethrower",		"Flamethrower" },
+	{ "weapon_dual_wrench",			"Dual Wrenches" },
+	{ "weapon_dual_deagle",			"Dual Deagles" },
+	{ "weapon_dual_mag60",			"Dual Mag 60s" },
+	{ "weapon_dual_smg",			"Dual SMGs" },
+	{ "weapon_dual_sawedoff",		"Dual Sawed-Offs" },
+	{ "weapon_dual_usas",			"Dual USAS-12s" },
+	{ "weapon_dual_chaingun",		"Dual Chainguns" },
+	{ "weapon_dual_hornetgun",		"Dual Hivehands" },
+	{ "weapon_dual_railgun",		"Dual Railguns" },
+	{ "weapon_dual_rpg",			"Dual RPGs" },
+	{ "weapon_dual_flamethrower",	"Dual Flamethrowers" },
+	{ "weapon_zapgun",				"Zapgun" },
+	{ "weapon_dual_glock",			"Dual Glocks" },
+	{ "weapon_fingergun",			"Fingergun" },
+	{ "weapon_vice",				"Vice" },
+	{ "weapon_fists",				"Fists" },
+};
+
+static void GetAwardWeaponName( int iId, char *szBuffer, int iBufferSize )
+{
+	szBuffer[0] = 0;
+	if ( iId <= 0 || iId >= MAX_WEAPONS )
+		return;
+
+	const char *szClass = gWR.GetWeapon( iId )->szName;
+	if ( !szClass || !szClass[0] )
+		return;
+
+	for ( int i = 0; i < (int)( sizeof( g_AwardWeaponNames ) / sizeof( g_AwardWeaponNames[0] ) ); i++ )
+	{
+		if ( !stricmp( szClass, g_AwardWeaponNames[i].classname ) )
+		{
+			strncpy( szBuffer, g_AwardWeaponNames[i].name, iBufferSize - 1 );
+			szBuffer[iBufferSize - 1] = 0;
+			return;
+		}
+	}
+
+	// "weapon_new_thing" -> "New Thing"
+	if ( !strncmp( szClass, "weapon_", 7 ) )
+		szClass += 7;
+
+	int n = 0;
+	bool bWordStart = true;
+	for ( ; *szClass && n < iBufferSize - 1; szClass++ )
+	{
+		char c = ( *szClass == '_' ) ? ' ' : *szClass;
+		szBuffer[n++] = bWordStart ? toupper( c ) : c;
+		bWordStart = ( c == ' ' );
+	}
+	szBuffer[n] = 0;
+}
+
+bool CHudScoreboard :: GetAwardsText( char *szBuffer, int iBufferSize )
+{
+	szBuffer[0] = 0;
+
+	// Awards are a multiplayer-only feature.
+	if ( gEngfuncs.GetMaxClients() <= 1 )
+		return false;
+
+	char szWeapon[64];
+	GetAwardWeaponName( AWARDS_WEAPON( m_iAwardsPacked ), szWeapon, sizeof( szWeapon ) );
+
+	const char *szParts[3];
+	int iParts = 0;
+	if ( szWeapon[0] )
+		szParts[iParts++] = szWeapon;
+
+	int iFirst = AWARDS_FIRST( m_iAwardsPacked );
+	int iSecond = AWARDS_SECOND( m_iAwardsPacked );
+	if ( iFirst > AWARD_NONE && iFirst < AWARD_COUNT )
+		szParts[iParts++] = g_szAwardNames[iFirst];
+	if ( iSecond > AWARD_NONE && iSecond < AWARD_COUNT )
+		szParts[iParts++] = g_szAwardNames[iSecond];
+
+	if ( !iParts )
+	{
+		strncpy( szBuffer, "No awards yet", iBufferSize - 1 );
+		szBuffer[iBufferSize - 1] = 0;
+		return true;
+	}
+
+	for ( int i = 0; i < iParts; i++ )
+	{
+		if ( i )
+			strncat( szBuffer, " / ", iBufferSize - strlen( szBuffer ) - 1 );
+		strncat( szBuffer, szParts[i], iBufferSize - strlen( szBuffer ) - 1 );
+	}
+
+	return true;
+}
+
+int CHudScoreboard :: MsgFunc_Awards( const char *pszName, int iSize, void *pbuf )
+{
+	BEGIN_READ( pbuf, iSize );
+	m_iAwardsPacked = READ_SHORT() & 0xFFFF;
+
+	if ( gViewPort )
+		gViewPort->UpdateOnPlayerInfo();
+
+	return 1;
+}
 
 int CHudScoreboard :: Init( void )
 {
@@ -46,6 +222,7 @@ int CHudScoreboard :: Init( void )
 	HOOK_MESSAGE( ScoreInfo2 );
 	HOOK_MESSAGE( TeamScore2 );
 	HOOK_MESSAGE( TeamInfo2 );
+	HOOK_MESSAGE( Awards );
 
 	InitHUDData();
 
@@ -70,6 +247,11 @@ void CHudScoreboard :: InitHUDData( void )
 	m_iPlayerNum = 0;
 	m_iNumTeams = 0;
 	memset( g_TeamInfo, 0, sizeof g_TeamInfo );
+
+	// Awards restart from the baseline on every map / connect.
+	m_iAwardsPacked = 0;
+	m_iAwardsRowHeight = 0;
+	m_iAwardsExtraWidth = 0;
 
 	m_iFlags &= ~HUD_ACTIVE;  // starts out inactive
 
@@ -132,13 +314,32 @@ int CHudScoreboard :: Draw( float fTime )
 	// just sort the list on the fly
 	// list is sorted first by frags, then by deaths
 	float list_slot = 0;
+
+	FAR_RIGHT = can_show_packetloss ? PL_RANGE_MAX : PING_RANGE_MAX;
+	FAR_RIGHT += 5;
+
+	// Awards header row (weapon of choice + two awards); widen the board when it does not fit.
+	int mapnameMargin = 20;
+	char szAwards[128];
+	m_iAwardsRowHeight = 0;
+	m_iAwardsExtraWidth = 0;
+	if ( GetAwardsText( szAwards, sizeof( szAwards ) ) )
+	{
+		int awardsWide = 0, awardsTall = 0;
+		GetConsoleStringSize( szAwards, &awardsWide, &awardsTall );
+
+		m_iAwardsRowHeight = mapnameMargin;
+		m_iAwardsExtraWidth = ( awardsWide + 10 > FAR_RIGHT ) ? ( awardsWide + 10 - FAR_RIGHT ) : 0;
+		FAR_RIGHT += m_iAwardsExtraWidth;
+		SCOREBOARD_WIDTH += m_iAwardsExtraWidth;
+	}
+
 	int xpos_rel = (ScreenWidth - SCOREBOARD_WIDTH) / 2;
 
 	// Shift for spectators
 	int margin = 0;
 	if (g_iUser1)
 		margin += 54;
-	int mapnameMargin = 20;
 
 	// print the heading line
 	int ypos = ROW_RANGE_MIN + margin + mapnameMargin + (list_slot * ROW_GAP);
@@ -146,9 +347,6 @@ int CHudScoreboard :: Draw( float fTime )
 
 	int r, g, b;
 	UnpackRGB(r, g, b, HudColor());
-
-	FAR_RIGHT = can_show_packetloss ? PL_RANGE_MAX : PING_RANGE_MAX;
-	FAR_RIGHT += 5;
 
 	// Server name
 	char szServerName[256];
@@ -161,6 +359,14 @@ int CHudScoreboard :: Draw( float fTime )
 	sprintf( szTitle, "%s | %s", GetGameName(), GetMapName() );
 	FillRGBA( xpos - 5, ypos, FAR_RIGHT, 22, r, g, b, 50);
 	gHUD.DrawHudString( xpos, ypos, NAME_RANGE_MAX + xpos_rel, szTitle, r, g, b );
+
+	// Weapon of choice and awards
+	if ( m_iAwardsRowHeight )
+	{
+		ypos += m_iAwardsRowHeight;
+		FillRGBA( xpos - 5, ypos, FAR_RIGHT, 22, r, g, b, 50);
+		gHUD.DrawHudString( xpos, ypos, FAR_RIGHT + xpos_rel, szAwards, r, g, b );
+	}
 
 	ypos += mapnameMargin;
 
@@ -205,7 +411,7 @@ int CHudScoreboard :: Draw( float fTime )
 	}
 
 	list_slot += 1.2;
-	ypos = ROW_RANGE_MIN + margin + (2 * mapnameMargin) + (list_slot * ROW_GAP);
+	ypos = ROW_RANGE_MIN + margin + m_iAwardsRowHeight + (2 * mapnameMargin) + (list_slot * ROW_GAP);
 	xpos = NAME_RANGE_MIN + xpos_rel;
 	FillRGBA( xpos - 5, ypos, FAR_RIGHT, 1, r, g, b, 255);  // draw the seperator line
 	
@@ -325,7 +531,7 @@ int CHudScoreboard :: Draw( float fTime )
 		// draw out the best team
 		team_info_t *team_info = &g_TeamInfo[best_team];
 
-		ypos = ROW_RANGE_MIN + margin + (list_slot * ROW_GAP) + 20;
+		ypos = ROW_RANGE_MIN + margin + m_iAwardsRowHeight + (list_slot * ROW_GAP) + 20;
 
 		// check we haven't drawn too far down
 		if ( ypos > ROW_RANGE_MAX )  // don't draw to close to the lower border
@@ -409,6 +615,9 @@ int CHudScoreboard :: DrawPlayers( int xpos_rel, float list_slot, int nameoffset
 	if (g_iUser1)
 		margin += 54;
 
+	// Shift for the awards header row drawn by Draw()
+	margin += m_iAwardsRowHeight;
+
 	//  Packetloss removed on Kelly 'shipping nazi' Bailey's orders
 	if ( cl_showpacketloss && cl_showpacketloss->value && ( ScreenWidth >= 400 ) )
 	{
@@ -421,7 +630,7 @@ int CHudScoreboard :: DrawPlayers( int xpos_rel, float list_slot, int nameoffset
 	}
 
 	FAR_RIGHT = can_show_packetloss ? PL_RANGE_MAX : PING_RANGE_MAX;
-	FAR_RIGHT += 5;
+	FAR_RIGHT += 5 + m_iAwardsExtraWidth;
 
 	// Always sort wins on spctators if scorebased
 	bool sortByWins = SortByWins();

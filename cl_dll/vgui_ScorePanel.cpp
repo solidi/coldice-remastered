@@ -42,6 +42,7 @@ int EV_TFC_IsAllyTeam( int iTeam1, int iTeam2 );
 
 // Scoreboard dimensions
 #define SBOARD_TITLE_SIZE_Y			YRES(22)
+#define SBOARD_AWARDS_SIZE_Y		YRES(18)	// awards row; the header grid starts below it
 
 #define X_BORDER					XRES(4)
 
@@ -130,6 +131,16 @@ ScorePanel::ScorePanel(int x,int y,int wide,int tall) : Panel(x,y,wide,tall)
 	m_TitleLabel.setContentFitted(false);
 	m_TitleLabel.setParent(this);
 
+	// Second header row: weapon of choice and awards, styled like the title.
+	m_AwardsLabel.setFont(tfont);
+	m_AwardsLabel.setText("");
+	m_AwardsLabel.setBgColor( 0, 0, 0, 255 );
+	m_AwardsLabel.setFgColor( r, g, b, 0 );
+	m_AwardsLabel.setContentAlignment( vgui::Label::a_west );
+	m_AwardsLabel.setBounds(xpos, SBOARD_TITLE_SIZE_Y, wide - xpos - X_BORDER, SBOARD_TITLE_SIZE_Y);
+	m_AwardsLabel.setContentFitted(false);
+	m_AwardsLabel.setParent(this);
+
 	// Setup the header (labels like "name", "class", etc..).
 	m_HeaderGrid.SetDimensions(NUM_COLUMNS, 1);
 	m_HeaderGrid.SetSpacing(0, 0);
@@ -183,7 +194,7 @@ ScorePanel::ScorePanel(int x,int y,int wide,int tall) : Panel(x,y,wide,tall)
 	m_HeaderGrid.SetColumnWidth(NUM_COLUMNS - 1, (wide - X_BORDER) - (ex + ew));
 
 	m_HeaderGrid.AutoSetRowHeights();
-	m_HeaderGrid.setBounds(X_BORDER, SBOARD_TITLE_SIZE_Y, wide - X_BORDER*2, m_HeaderGrid.GetRowHeight(0));
+	m_HeaderGrid.setBounds(X_BORDER, SBOARD_TITLE_SIZE_Y + SBOARD_AWARDS_SIZE_Y, wide - X_BORDER*2, m_HeaderGrid.GetRowHeight(0));
 	m_HeaderGrid.setParent(this);
 	m_HeaderGrid.setBgColor(0,0,0,255);
 
@@ -273,6 +284,22 @@ void ScorePanel::Update()
 	UnpackRGB(r, g, b, HudColor());
 	m_TitleLabel.setFgColor( r, g, b, 0 );
 	m_TitleLabel.setText(sz);
+
+	// Awards row: title font when it fits, otherwise the small scoreboard font.
+	char szAwards[128];
+	gHUD.m_Scoreboard.GetAwardsText( szAwards, sizeof( szAwards ) );
+	{
+		CSchemeManager *pSchemes = gViewPort->GetSchemeManager();
+		Font *pFont = pSchemes->getFont( pSchemes->getSchemeHandle( "Scoreboard Title Text" ) );
+		int textWide = 0, textTall = 0;
+		pFont->getTextSize( szAwards, textWide, textTall );
+		if ( textWide > m_AwardsLabel.getWide() )
+			pFont = pSchemes->getFont( pSchemes->getSchemeHandle( "Scoreboard Small Text" ) );
+
+		m_AwardsLabel.setFont( pFont );
+		m_AwardsLabel.setFgColor( r, g, b, 0 );
+		m_AwardsLabel.setText( szAwards );
+	}
 
 	for (int i = 0; i < NUM_COLUMNS; i++)
 	{

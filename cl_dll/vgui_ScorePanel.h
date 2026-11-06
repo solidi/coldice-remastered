@@ -243,6 +243,7 @@ private:
 private:
 
 	Label			m_TitleLabel;
+	Label			m_AwardsLabel;		// weapon of choice + awards (second header row)
 	
 	// Here is how these controls are arranged hierarchically.
 	// m_HeaderGrid

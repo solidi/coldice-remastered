@@ -45,6 +45,7 @@
 #include	"shake.h"
 #include	"in_buttons.h"
 #include	"func_break.h"
+#include	"awards.h"
 
 extern edict_t *EntSelectSpawnPoint( CBaseEntity *pPlayer );
 
@@ -588,6 +589,9 @@ CGameRules *InstallGameRules( void )
 {
 	SERVER_COMMAND( "exec game.cfg\n" );
 	SERVER_EXECUTE( );
+
+	// New map: every award statistic starts from the baseline.
+	g_Awards.Reset();
 
 	if ( !gpGlobals->deathmatch )
 	{
