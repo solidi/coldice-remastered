@@ -221,7 +221,11 @@ void CMultiplayAwards::ShotFired( CBasePlayer *pShooter )
 
 void CMultiplayAwards::Headshot( CBaseEntity *pVictim, entvars_t *pevAttacker )
 {
-	if ( !IsActive() || g_fGameOver || !pVictim || !pevAttacker )
+	if ( !IsActive() || g_fGameOver || !pVictim || !pevAttacker || !pVictim->IsAlive() )
+		return;
+
+	CBaseMonster *pMonster = pVictim->MyMonsterPointer();
+	if ( pMonster && pMonster->HasMemory( bits_MEMORY_KILLED ) )
 		return;
 
 	if ( !pVictim->IsPlayer() && !IsCountedMonster( pVictim ) )
