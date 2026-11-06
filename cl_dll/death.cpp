@@ -118,6 +118,12 @@ int CHudDeathNotice :: VidInit( void )
 
 int CHudDeathNotice :: Draw( float flTime )
 {
+	if (gHUD.m_Scoreboard.m_iShowscoresHeld)
+		return 1;
+
+	if (gViewPort->IsScoreBoardVisible())
+		return 1;
+
 	int x, y, r, g, b;
 
 	for ( int i = 0; i < MAX_DEATHNOTICES; i++ )
