@@ -213,6 +213,10 @@ void CMultiplayAwards::ShotFired( CBasePlayer *pShooter )
 
 	s->lastShotTime = gpGlobals->time;
 	s->shots++;
+
+	int iId = ActiveWeaponId( pShooter );
+	if ( iId )
+		s->weaponShots[iId]++;
 }
 
 void CMultiplayAwards::Headshot( CBaseEntity *pVictim, entvars_t *pevAttacker )
@@ -323,6 +327,11 @@ void CMultiplayAwards::CreditKill( CBaseEntity *pAttacker )
 		return;
 
 	s->kills++;
+
+	// Credited to the weapon in hand when the kill landed.
+	int iId = ActiveWeaponId( pAttacker );
+	if ( iId )
+		s->weaponKills[iId]++;
 
 	for ( int i = 3; i > 0; i-- )
 		s->lastKillTimes[i] = s->lastKillTimes[i - 1];
@@ -474,18 +483,36 @@ int CMultiplayAwards::FindBest( const int *pPool, int iCount, const float *pValu
 	return iBest;
 }
 
+int CMultiplayAwards::ActiveWeaponId( CBaseEntity *pEntity ) const
+{
+	if ( !pEntity || !pEntity->IsPlayer() )
+		return WEAPON_NONE;
+
+	CBasePlayerItem *pItem = ( (CBasePlayer *)pEntity )->m_pActiveItem;
+	if ( !pItem || pItem->m_iId <= WEAPON_NONE || pItem->m_iId >= MAX_WEAPONS )
+		return WEAPON_NONE;
+
+	return pItem->m_iId;
+}
+
+// The N64 used time held alone, but here every respawn deploys the spawn
+// loadout, so idle spawn-weapon time would win most matches. Rank by kills,
+// then shots fired, then time held.
 int CMultiplayAwards::WeaponOfChoice( const stats_t &s ) const
 {
 	int iBest = WEAPON_NONE;
-	float flMost = 0;
 
 	for ( int i = WEAPON_NONE + 1; i < MAX_WEAPONS; i++ )
 	{
-		if ( s.weaponTime[i] > flMost )
-		{
-			flMost = s.weaponTime[i];
+		if ( !s.weaponKills[i] && !s.weaponShots[i] && s.weaponTime[i] <= 0 )
+			continue;
+
+		if ( iBest == WEAPON_NONE ||
+			s.weaponKills[i] > s.weaponKills[iBest] ||
+			( s.weaponKills[i] == s.weaponKills[iBest] &&
+				( s.weaponShots[i] > s.weaponShots[iBest] ||
+				( s.weaponShots[i] == s.weaponShots[iBest] && s.weaponTime[i] > s.weaponTime[iBest] ) ) ) )
 			iBest = i;
-		}
 	}
 
 	return iBest;

@@ -67,7 +67,9 @@ private:
 		BOOL	alive;
 		BOOL	hasLastPos;
 		Vector	lastPos;
-		float	weaponTime[MAX_WEAPONS];
+		float	weaponTime[MAX_WEAPONS];	// weapon of choice: kills, then shots, then time held
+		int		weaponKills[MAX_WEAPONS];
+		int		weaponShots[MAX_WEAPONS];
 		int		tieBreak;				// stable random tie-breaker
 		int		order[AWARD_COUNT - 1];	// stable random award pick order
 		int		packed;
@@ -85,6 +87,7 @@ private:
 	int CountOthersInView( CBasePlayer *pPlayer );
 	void Refresh( void );
 	int FindBest( const int *pPool, int iCount, const float *pValues, BOOL bHighest, const BOOL *pAllowed ) const;
+	int ActiveWeaponId( CBaseEntity *pEntity ) const;
 	int WeaponOfChoice( const stats_t &s ) const;
 
 	stats_t	m_Stats[AWARDS_MAX_PLAYERS + 1];
