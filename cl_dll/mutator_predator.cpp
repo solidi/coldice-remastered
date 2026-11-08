@@ -123,6 +123,9 @@ extern qboolean g_fXashEngine;
 #define PREDATOR_TEXTURE_DETAIL		0.04f	// heat added per unit of texture luminance around 0.45
 #define PREDATOR_LIGHT_DETAIL		0.05f	// heat added per unit of vertex lighting around 0.5
 #define PREDATOR_MAX_ENTITIES		4096
+#define PREDATOR_MAX_CORPSES		16		// body queue slots tracked (the server keeps 4)
+#define PREDATOR_CORPSE_JUMP		64.0f	// a body queue slot that moves this far between sightings was reused
+#define PREDATOR_FRESH_STATE		0.5f	// seconds; older entity states are not used to track deaths
 
 // The ice shell colour of CBaseMonster::Freeze (FREEZE_ICE_COLOR in dlls/basemonster.h).
 #define PREDATOR_ICE_R				0
@@ -221,6 +224,16 @@ typedef struct
 	int width;
 	int height;
 } predator_copy_t;
+
+// Cooling state of one body queue corpse (CopyToBodyQue, kRenderFxDeadPlayer).
+typedef struct
+{
+	int index;			// corpse entity, 0 = free
+	int owner;			// player it was copied from
+	float start;		// client time its cooling started
+	float seen;			// client time it was last drawn
+	float origin[3];
+} predator_corpse_t;
 
 // Frame state of the heat mask.
 enum
@@ -446,6 +459,10 @@ private:
 	bool EnsureTarget( int width, int height );
 	bool Copy( predator_copy_t &target, GLint internalFormat, GLenum format, GLenum type, const GLint *rect );
 	float CreatureHeat( int index, bool alive, float liveHeat, float now );
+	void Track( int index, bool alive, float now );
+	void TrackPlayers( float now );
+	float CorpseHeat( cl_entity_t *ent, int owner, float now );
+	float Cooled( float start, float liveHeat, float now ) const;
 
 	predator_gl_t m_GL = {};
 	predator_heat_uniforms_t m_HeatUniforms = {};
@@ -478,6 +495,10 @@ private:
 	// Client time each entity was last seen alive and first seen dead (-1 = never), for corpse cooling.
 	float m_flAliveTime[PREDATOR_MAX_ENTITIES];
 	float m_flDeadTime[PREDATOR_MAX_ENTITIES];
+	// The latest death seen and the first sighting alive after it; kept through respawn for the body queue.
+	float m_flLastDeath[PREDATOR_MAX_ENTITIES];
+	float m_flRespawnTime[PREDATOR_MAX_ENTITIES];
+	predator_corpse_t m_Corpses[PREDATOR_MAX_CORPSES] = {};
 };
 
 static CPredator g_Predator;
@@ -520,6 +541,8 @@ CPredator::CPredator( void )
 	{
 		m_flAliveTime[i] = -1.0f;
 		m_flDeadTime[i] = -1.0f;
+		m_flLastDeath[i] = -1.0f;
+		m_flRespawnTime[i] = -1.0f;
 	}
 }
 
@@ -759,26 +782,36 @@ void CPredator::BeginView( struct ref_params_s *pparams )
 
 	// The first view after HUD_Redraw starts a new frame; spectator insets keep writing into it.
 	if (m_iFrame == PREDATOR_FRAME_CLOSED)
+	{
 		m_iFrame = PREDATOR_FRAME_OPEN;
+		if (Active())
+			TrackPlayers(gEngfuncs.GetClientTime());
+	}
 }
 
-float CPredator::CreatureHeat( int index, bool alive, float liveHeat, float now )
+// Records alive / dead sightings of one entity index.
+void CPredator::Track( int index, bool alive, float now )
 {
 	if (index <= 0 || index >= PREDATOR_MAX_ENTITIES)
-		return alive ? liveHeat : PREDATOR_HEAT_CORPSE;
+		return;
 
 	// Client time restarts on a level change.
-	if (m_flAliveTime[index] > now + 1.0f || m_flDeadTime[index] > now + 1.0f)
+	if (m_flAliveTime[index] > now + 1.0f || m_flDeadTime[index] > now + 1.0f
+		|| m_flLastDeath[index] > now + 1.0f || m_flRespawnTime[index] > now + 1.0f)
 	{
 		m_flAliveTime[index] = -1.0f;
 		m_flDeadTime[index] = -1.0f;
+		m_flLastDeath[index] = -1.0f;
+		m_flRespawnTime[index] = -1.0f;
 	}
 
 	if (alive)
 	{
+		if (m_flDeadTime[index] >= 0.0f)
+			m_flRespawnTime[index] = now;
 		m_flAliveTime[index] = now;
 		m_flDeadTime[index] = -1.0f;
-		return liveHeat;
+		return;
 	}
 
 	// A body first seen dead (late join, PVS entry) starts half cooled.
@@ -786,11 +819,86 @@ float CPredator::CreatureHeat( int index, bool alive, float liveHeat, float now 
 	{
 		const bool justDied = m_flAliveTime[index] >= 0.0f && now - m_flAliveTime[index] < 1.0f;
 		m_flDeadTime[index] = justDied ? m_flAliveTime[index] : now - PREDATOR_COOL_TIME * 0.5f;
+		m_flLastDeath[index] = m_flDeadTime[index];
 	}
+}
 
-	float cooled = (now - m_flDeadTime[index]) / PREDATOR_COOL_TIME;
+// Players are tracked every frame, drawn or not (the local player in first person, death cam
+// observers), so the body queue knows when its owner died.
+void CPredator::TrackPlayers( float now )
+{
+	const int maxClients = gEngfuncs.GetMaxClients();
+	for (int i = 1; i <= maxClients && i < PREDATOR_MAX_ENTITIES; i++)
+	{
+		cl_entity_t *ent = gEngfuncs.GetEntityByIndex(i);
+		if (!ent || !ent->model || (ent->curstate.effects & EF_NODRAW) != 0)
+			continue;
+		if (now - ent->curstate.msg_time > PREDATOR_FRESH_STATE)
+			continue;
+		Track(i, ent->curstate.movetype != MOVETYPE_TOSS, now);
+	}
+}
+
+float CPredator::Cooled( float start, float liveHeat, float now ) const
+{
+	float cooled = (now - start) / PREDATOR_COOL_TIME;
 	cooled = cooled < 0.0f ? 0.0f : (cooled > 1.0f ? 1.0f : cooled);
 	return liveHeat + (PREDATOR_HEAT_CORPSE - liveHeat) * cooled;
+}
+
+float CPredator::CreatureHeat( int index, bool alive, float liveHeat, float now )
+{
+	if (index <= 0 || index >= PREDATOR_MAX_ENTITIES)
+		return alive ? liveHeat : PREDATOR_HEAT_CORPSE;
+
+	Track(index, alive, now);
+	return alive ? liveHeat : Cooled(m_flDeadTime[index], liveHeat, now);
+}
+
+// A player corpse in the body queue. CopyToBodyQue runs at death cam start or respawn, after the
+// owner died, and recycles a handful of slots; each new body continues the owner's cooling.
+float CPredator::CorpseHeat( cl_entity_t *ent, int owner, float now )
+{
+	predator_corpse_t *slot = NULL;
+	predator_corpse_t *oldest = &m_Corpses[0];
+	for (int i = 0; i < PREDATOR_MAX_CORPSES; i++)
+	{
+		if (m_Corpses[i].index == ent->index)
+		{
+			slot = &m_Corpses[i];
+			break;
+		}
+		if (m_Corpses[i].index == 0 || (oldest->index != 0 && m_Corpses[i].seen < oldest->seen))
+			oldest = &m_Corpses[i];
+	}
+
+	bool reused = slot == NULL || slot->owner != owner || slot->seen > now + 1.0f;
+	if (slot)
+	{
+		float delta[3];
+		VectorSubtract(ent->curstate.origin, slot->origin, delta);
+		reused = reused || Length(delta) > PREDATOR_CORPSE_JUMP;
+	}
+	else
+	{
+		slot = oldest;
+		slot->index = ent->index;
+	}
+
+	if (reused)
+	{
+		// The owner's latest death, unless the owner has lived again since (a death we did not see).
+		const float died = owner < PREDATOR_MAX_ENTITIES ? m_flLastDeath[owner] : -1.0f;
+		const float respawned = owner < PREDATOR_MAX_ENTITIES ? m_flRespawnTime[owner] : -1.0f;
+		const bool known = died >= 0.0f && died <= now && !(respawned > died && respawned < now - 1.0f);
+
+		slot->owner = owner;
+		slot->start = known ? died : now - PREDATOR_COOL_TIME * 0.5f;
+	}
+
+	slot->seen = now;
+	VectorCopy(ent->curstate.origin, slot->origin);
+	return Cooled(slot->start, PREDATOR_HEAT_PLAYER, now);
 }
 
 // Called once per StudioRenderFinal_Hardware. Returns the entity's heat, or < 0 to skip the heat pass.
@@ -814,7 +922,13 @@ float CPredator::StudioHeat( cl_entity_t *ent, int rendermode )
 
 	const int index = ent->index;
 	const float now = gEngfuncs.GetClientTime();
-	const bool player = ent->player || (index >= 1 && index <= gEngfuncs.GetMaxClients());
+	const int maxClients = gEngfuncs.GetMaxClients();
+
+	// Body queue corpse of a player (renderamt is the player index); drawn through StudioDrawPlayer.
+	if (ent->curstate.renderfx == kRenderFxDeadPlayer && ent->curstate.renderamt >= 1 && ent->curstate.renderamt <= maxClients)
+		return CorpseHeat(ent, ent->curstate.renderamt, now);
+
+	const bool player = ent->player || (index >= 1 && index <= maxClients);
 
 	// Players and monsters; both switch to MOVETYPE_TOSS when they die.
 	if (player || ent->curstate.solid == SOLID_SLIDEBOX)
