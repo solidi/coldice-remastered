@@ -1022,6 +1022,10 @@ BOOL CHalfLifeShidden::MutatorAllowed(const char *mutator)
 	if (strstr(mutator, g_szMutators[MUTATOR_VIRTUALBOY - 1]) || atoi(mutator) == MUTATOR_VIRTUALBOY)
 		return FALSE;
 
+	// Dealters flare body hot, with a heat halo, every time they attack
+	if (strstr(mutator, g_szMutators[MUTATOR_PREDATOR - 1]) || atoi(mutator) == MUTATOR_PREDATOR)
+		return FALSE;
+
 	return CHalfLifeMultiplay::MutatorAllowed(mutator);
 }
 

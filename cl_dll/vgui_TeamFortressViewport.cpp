@@ -335,6 +335,7 @@ MutatorInfo sMutators[] = {
 	{ "plumber", "it's a me, plumber!" },
 	{ "pogo", "every landing jumps again" },
 	{ "portal", "it's a portal gun!" },
+	{ "predator", "thermal vision, like a 1987 hunter" },
 	{ "pumpkin", "pumpkinheads!" },
 	{ "pushy", "push everyone around" },
 	{ "railguns", "shoot rails" },

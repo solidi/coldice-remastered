@@ -153,6 +153,7 @@ DLL_GLOBAL const char *g_szMutators[] = {
 	"plumber",
 	"pogo",
 	"portal",
+	"predator",
 	"pumpkin",
 	"pushy",
 	"railguns",

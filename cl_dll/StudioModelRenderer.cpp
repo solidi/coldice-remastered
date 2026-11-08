@@ -2614,6 +2614,9 @@ void CStudioModelRenderer::StudioRenderFinal_Hardware( void )
 
 	rendermode = IEngineStudio.GetForceFaceFlags() ? kRenderTransAdd : m_pCurrentEntity->curstate.rendermode;
 	IEngineStudio.SetupRenderer( rendermode );
+
+	// predator: heat of this entity, < 0 when it gets no heat mask pass
+	const float heat = Predator_StudioHeat( m_pCurrentEntity, rendermode );
 	
 	if (m_pCvarDrawEntities->value == 2)
 	{
@@ -2653,6 +2656,8 @@ void CStudioModelRenderer::StudioRenderFinal_Hardware( void )
 #endif
 			}
 			IEngineStudio.StudioDrawPoints();
+			if ( heat >= 0.0f )
+				Predator_DrawHeat( heat );
 			if ((m_pCurrentEntity->curstate.effects & EF_VIEWMODEL) != 0)
 			{
 #ifndef __APPLE__
