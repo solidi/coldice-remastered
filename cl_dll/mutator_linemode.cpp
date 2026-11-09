@@ -471,8 +471,8 @@ void LineMode_Draw( void )
 	if (!captured || !LineMode_Active() || !LineMode_EnsureProgram())
 		return;
 
-	// discomode recolours the image and virtualboy turns the HUD red, so they keep it upright.
-	const bool invert = !MutatorEnabled(MUTATOR_DISCOMODE) && !MutatorEnabled(MUTATOR_VIRTUALBOY);
+	// discomode and predator recolour the image and virtualboy turns the HUD red, so they keep it upright.
+	const bool invert = !MutatorEnabled(MUTATOR_DISCOMODE) && !MutatorEnabled(MUTATOR_PREDATOR) && !MutatorEnabled(MUTATOR_VIRTUALBOY);
 
 	const int width = s_Viewport[2];
 	const int height = s_Viewport[3];

@@ -2186,6 +2186,8 @@ void CL_DLLEXPORT V_CalcRefdef( struct ref_params_s *pparams )
 
 	NoBackgrounds_BeginView( pparams );
 
+	Predator_BeginView( pparams );
+
 /*
 // Example of how to overlay the whole screen with red at 50 % alpha
 #define SF_TEST

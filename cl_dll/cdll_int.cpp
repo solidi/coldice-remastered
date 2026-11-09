@@ -250,6 +250,7 @@ int CL_DLLEXPORT HUD_Redraw( float time, int intermission )
 
 	XRay_EndFrame();
 	NoBackgrounds_EndFrame();
+	Predator_EndFrame();
 
 #ifndef __APPLE__
 	extern cvar_t *cl_portalmirror;
@@ -259,6 +260,7 @@ int CL_DLLEXPORT HUD_Redraw( float time, int intermission )
 
 	LineMode_Draw();
 	DiscoMode_Draw();
+	Predator_Draw();
 	Blur_Draw();
 	VirtualBoy_Draw();
 

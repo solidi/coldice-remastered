@@ -566,6 +566,13 @@ void DiscoMode_Draw( void );
 
 void Blur_Draw( void );
 
+void Predator_BeginView( struct ref_params_s *pparams );
+float Predator_StudioHeat( struct cl_entity_s *ent, int rendermode );
+void Predator_DrawHeat( float heat );
+void Predator_CaptureScene( void );
+void Predator_EndFrame( void );
+void Predator_Draw( void );
+
 void VirtualBoy_CaptureScene( void );
 void VirtualBoy_Draw( void );
 void VirtualBoy_DrawHud( void );

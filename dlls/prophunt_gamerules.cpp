@@ -1519,6 +1519,10 @@ BOOL CHalfLifePropHunt::MutatorAllowed(const char *mutator)
 	if (strstr(mutator, g_szMutators[MUTATOR_PUMPKIN - 1]) || atoi(mutator) == MUTATOR_PUMPKIN)
 		return FALSE;
 
+	// Disguised players would glow body hot next to the cold real props
+	if (strstr(mutator, g_szMutators[MUTATOR_PREDATOR - 1]) || atoi(mutator) == MUTATOR_PREDATOR)
+		return FALSE;
+
 	// The client draws an opaque sanic sprite on every player, props included
 	if (strstr(mutator, g_szMutators[MUTATOR_SANIC - 1]) || atoi(mutator) == MUTATOR_SANIC)
 		return FALSE;
