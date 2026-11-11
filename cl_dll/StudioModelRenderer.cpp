@@ -27,6 +27,7 @@
 
 #include "view.h"
 #include "PlatformHeaders.h"
+#include "camera.h"
 
 #ifndef __APPLE__
 #define GL_CLAMP_TO_EDGE 0x812F
@@ -2529,10 +2530,29 @@ void CStudioModelRenderer::StudioRenderModel( void )
 	IEngineStudio.SetChromeOrigin();
 	IEngineStudio.SetForceFaceFlags( 0 );
 
+	// Third person body fade (local view only): the body pass is scaled, every
+	// other effect keeps the server render values it would normally draw with.
+	float fadeAlpha = 1.0f;
+	int serverMode = kRenderNormal, serverAmt = 0;
+	const bool fading = IEngineStudio.StudioSetRenderamt && CAM_GetBodyFade( m_pCurrentEntity, &fadeAlpha, &serverMode, &serverAmt );
+	const int entryAmt = m_pCurrentEntity->curstate.renderamt;
+	// a solid body normally draws at full blend; renderamt then only carries the glow shell thickness
+	const int serverBlendAmt = serverMode == kRenderNormal ? 255 : serverAmt;
+
+	if ( fading )
+		IEngineStudio.StudioSetRenderamt( (int)( serverBlendAmt * fadeAlpha ) );
+
 	if ( m_pCurrentEntity->curstate.renderfx == kRenderFxGlowShell )
 	{
 		m_pCurrentEntity->curstate.renderfx = kRenderFxNone;
 		StudioRenderFinal( );
+
+		if ( fading )
+		{
+			// shell keeps its usual blend, and its thickness in renderamt
+			IEngineStudio.StudioSetRenderamt( serverBlendAmt );
+			m_pCurrentEntity->curstate.renderamt = serverAmt;
+		}
 		
 		if ( !IEngineStudio.IsHardware() )
 		{
@@ -2553,6 +2573,12 @@ void CStudioModelRenderer::StudioRenderModel( void )
 	else
 	{
 		StudioRenderFinal( );
+	}
+
+	if ( fading )
+	{
+		m_pCurrentEntity->curstate.renderamt = entryAmt;
+		IEngineStudio.StudioSetRenderamt( entryAmt );
 	}
 }
 

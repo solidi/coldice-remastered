@@ -58,6 +58,7 @@ void V_SmoothInterpolateAngles(float* startAngle, float* endAngle, float* finalA
 #include "com_model.h"
 #include "studio.h"
 #include "kbutton.h"
+#include "camera.h"
 
 extern engine_studio_api_t IEngineStudio;
 
@@ -862,6 +863,7 @@ void V_CalcNormalRefdef ( struct ref_params_s *pparams )
 	if( CL_IsThirdPerson() )
 	{
 		vec3_t ofs;
+		const Vector camPivot = pparams->vieworg;
 
 		ofs[0] = ofs[1] = ofs[2] = 0.0;
 
@@ -900,10 +902,17 @@ void V_CalcNormalRefdef ( struct ref_params_s *pparams )
 		VectorCopy(vieworg, pparams->vieworg);
 
 		gEngfuncs.pEventAPI->EV_PopPMStates();
+
+		// walls pull the camera in; the body fades so it does not cover the view
+		if ( pparams->viewentity > pparams->maxclients )
+			CAM_ResetBodyFade();
+		else
+			CAM_UpdateBodyFade( (vieworg - camPivot).Length() );
 	}
 	else
 	{
 		vecLerpedYaw = Vector(0,0,0);
+		CAM_ResetBodyFade();
 	}
 
 	if (g_AcrobatTime > gEngfuncs.GetClientTime())
@@ -2159,6 +2168,10 @@ void CL_DLLEXPORT V_CalcRefdef( struct ref_params_s *pparams )
 
 	if ( XRay_BeginSecondView( pparams ) )
 		return;
+
+	// only V_CalcNormalRefdef measures the third person camera
+	if ( pparams->intermission || pparams->spectator || g_iUser1 )
+		CAM_ResetBodyFade();
 
 	// intermission / finale rendering
 	if ( pparams->intermission )

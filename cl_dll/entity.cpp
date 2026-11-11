@@ -23,6 +23,7 @@
 extern engine_studio_api_s IEngineStudio;
 
 #include "particleman.h"
+#include "camera.h"
 extern IParticleMan *g_pParticleMan;
 extern cvar_t *cl_announcehumor;
 extern cvar_t *cl_voiceoverpath;
@@ -85,6 +86,8 @@ int CL_DLLEXPORT HUD_AddEntity( int type, struct cl_entity_s *ent, const char *m
 			return 0;	// don't draw the player we are following in eye
 
 	}
+
+	CAM_ApplyBodyFade( type, ent );
 
 	return 1;
 }
