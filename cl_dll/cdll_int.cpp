@@ -47,6 +47,7 @@ extern "C"
 #include "../public/interface.h"
 
 #include "colorcor.h"
+#include "camera.h"
 
 cl_enginefunc_t gEngfuncs;
 CHud gHUD;
@@ -263,6 +264,9 @@ int CL_DLLEXPORT HUD_Redraw( float time, int intermission )
 	Predator_Draw();
 	Blur_Draw();
 	VirtualBoy_Draw();
+
+	// every 3D pass of this frame is done; the local body goes back to its server render values
+	CAM_RestoreBodyFade();
 
 	gHUD.Redraw( time, intermission );
 

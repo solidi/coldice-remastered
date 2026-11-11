@@ -20,6 +20,8 @@
 #include "event_api.h"
 #include "pm_defs.h"
 #include "cl_util.h"
+#include "cl_entity.h"
+#include "entity_types.h"
 
 #define VectorSubtract(a,b,c) {(c)[0]=(a)[0]-(b)[0];(c)[1]=(a)[1]-(b)[1];(c)[2]=(a)[2]-(b)[2];}
 
@@ -626,4 +628,139 @@ void CL_DLLEXPORT CL_CameraOffset( float *ofs )
 //	RecClCL_GetCameraOffsets(ofs);
 
 	VectorCopy( cam_ofs, ofs );
+}
+
+//-------------------------------------------------- Third person body fade
+
+#define CAM_FADE_SOLID_DIST	56.0f	// camera to eye distance at and beyond which the body is fully solid
+#define CAM_FADE_CLEAR_DIST	20.0f	// camera to eye distance at and below which the body is at CAM_FADE_MIN_ALPHA
+#define CAM_FADE_MIN_ALPHA	0.3f
+#define CAM_FADE_SPEED		4.0f	// alpha change per second
+
+static float cam_fadeAlpha = 1.0f;
+static float cam_fadeTime = 0.0f;
+
+// The local player's curstate while it is forced into the translucent list for
+// this frame. Only this client's copy of the entity is touched, and the server
+// values go back once the frame is drawn (CAM_RestoreBodyFade).
+static int cam_fadeForcedIndex = 0;
+static int cam_fadeForcedMode = kRenderNormal;
+static int cam_fadeForcedAmt = 0;
+
+static bool CAM_BodyFadeAllowed( void )
+{
+	return cam_thirdperson && !g_iUser1;
+}
+
+static bool CAM_IsLocalPlayer( const cl_entity_t *ent )
+{
+	cl_entity_t *local = gEngfuncs.GetLocalPlayer();
+	return ent && local && ent->index > 0 && ent->index == local->index;
+}
+
+void CAM_ResetBodyFade( void )
+{
+	cam_fadeAlpha = 1.0f;
+	cam_fadeTime = gEngfuncs.GetClientTime();
+}
+
+// camDist: distance from the player's eye to the final third person camera origin.
+void CAM_UpdateBodyFade( float camDist )
+{
+	if ( !CAM_BodyFadeAllowed() || camDist < 0.0f )
+	{
+		CAM_ResetBodyFade();
+		return;
+	}
+
+	float target = ( camDist - CAM_FADE_CLEAR_DIST ) / ( CAM_FADE_SOLID_DIST - CAM_FADE_CLEAR_DIST );
+	target = fmax( 0.0f, fmin( target, 1.0f ) );
+	target = CAM_FADE_MIN_ALPHA + ( 1.0f - CAM_FADE_MIN_ALPHA ) * target;
+
+	const float now = gEngfuncs.GetClientTime();
+	const float dt = now - cam_fadeTime;
+	cam_fadeTime = now;
+
+	// Extra views in the same frame do not advance the fade; a time reset (map change) snaps it.
+	if ( dt == 0.0f )
+		return;
+	if ( dt < 0.0f )
+	{
+		cam_fadeAlpha = target;
+		return;
+	}
+
+	const float step = CAM_FADE_SPEED * dt;
+	if ( cam_fadeAlpha < target )
+		cam_fadeAlpha = fmin( target, cam_fadeAlpha + step );
+	else
+		cam_fadeAlpha = fmax( target, cam_fadeAlpha - step );
+}
+
+// HUD_AddEntity: a solid player is drawn in the opaque pass, where blending would let
+// it hide everything drawn after it. Move this client's copy to the translucent list.
+void CAM_ApplyBodyFade( int type, struct cl_entity_s *ent )
+{
+	if ( type != ET_PLAYER || !CAM_IsLocalPlayer( ent ) )
+		return;
+
+	CAM_RestoreBodyFade();
+
+	if ( !CAM_BodyFadeAllowed() || cam_fadeAlpha >= 1.0f || ent->curstate.health <= 0 )
+		return;
+
+	// Server side transparency (invisibility, fading) already sorts it as translucent.
+	if ( ent->curstate.rendermode != kRenderNormal )
+		return;
+
+	cam_fadeForcedIndex = ent->index;
+	cam_fadeForcedMode = ent->curstate.rendermode;
+	cam_fadeForcedAmt = ent->curstate.renderamt;
+
+	ent->curstate.rendermode = kRenderTransTexture;
+	ent->curstate.renderamt = 255;
+}
+
+// HUD_Redraw: put the server's render values back once the frame is drawn.
+void CAM_RestoreBodyFade( void )
+{
+	if ( !cam_fadeForcedIndex )
+		return;
+
+	cl_entity_t *ent = gEngfuncs.GetEntityByIndex( cam_fadeForcedIndex );
+
+	// Values that no longer match were refreshed from the network; keep those.
+	if ( ent && ent->curstate.rendermode == kRenderTransTexture && ent->curstate.renderamt == 255 )
+	{
+		ent->curstate.rendermode = cam_fadeForcedMode;
+		ent->curstate.renderamt = cam_fadeForcedAmt;
+	}
+
+	cam_fadeForcedIndex = 0;
+}
+
+// StudioRenderModel: alpha to apply to ent's body, plus the server render values
+// that its other passes (glow shell) must keep using.
+bool CAM_GetBodyFade( const struct cl_entity_s *ent, float *alpha, int *serverMode, int *serverAmt )
+{
+	if ( !CAM_IsLocalPlayer( ent ) )
+		return false;
+
+	if ( cam_fadeForcedIndex == ent->index )
+	{
+		*serverMode = cam_fadeForcedMode;
+		*serverAmt = cam_fadeForcedAmt;
+	}
+	else
+	{
+		// A solid body that was not moved to the translucent list cannot blend safely.
+		if ( !CAM_BodyFadeAllowed() || cam_fadeAlpha >= 1.0f || ent->curstate.rendermode == kRenderNormal || ent->curstate.health <= 0 )
+			return false;
+
+		*serverMode = ent->curstate.rendermode;
+		*serverAmt = ent->curstate.renderamt;
+	}
+
+	*alpha = cam_fadeAlpha;
+	return true;
 }
