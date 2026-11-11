@@ -2576,7 +2576,10 @@ void CStudioModelRenderer::StudioRenderModel( void )
 	}
 
 	if ( fading )
+	{
+		m_pCurrentEntity->curstate.renderamt = entryAmt;
 		IEngineStudio.StudioSetRenderamt( entryAmt );
+	}
 }
 
 /*

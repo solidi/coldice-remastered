@@ -904,7 +904,10 @@ void V_CalcNormalRefdef ( struct ref_params_s *pparams )
 		gEngfuncs.pEventAPI->EV_PopPMStates();
 
 		// walls pull the camera in; the body fades so it does not cover the view
-		CAM_UpdateBodyFade( (vieworg - camPivot).Length() );
+		if ( pparams->viewentity > pparams->maxclients )
+			CAM_ResetBodyFade();
+		else
+			CAM_UpdateBodyFade( (vieworg - camPivot).Length() );
 	}
 	else
 	{
