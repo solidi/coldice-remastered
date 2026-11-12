@@ -618,6 +618,8 @@ public:
 	enum { 
 		MAX_ICONSPRITENAME_LENGTH = MAX_SPRITE_NAME_LENGTH,
 		MAX_ICONSPRITES = 4,
+		MAX_CENTERICONS = 12,
+		MAX_CENTERICONS_VISIBLE = 3,
 	};
 
 	
@@ -638,11 +640,15 @@ private:
 	} icon_sprite_t;
 
 	icon_sprite_t m_IconList[MAX_ICONSPRITES];
+	// FIFO queue of objective icons shown in the bottom-center stack
+	icon_sprite_t m_CenterIconList[MAX_CENTERICONS];
 	int m_LastMutatorStatus[MAX_MUTATORS_CL];
 
 	float m_flCheckMutators;
 
 	void ToggleMutatorIcon(int mutatorId, const char *mutator);
+	void DrawCenterIcons( void );
+	bool HasCamIcon( void );
 };
 
 //
