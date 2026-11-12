@@ -26,6 +26,9 @@
 #define RGB_GREENISH 0x0000B000 //0,200,0
 #define RGB_BLUEISH 0x0000A0FF //0,160,255
 #define RGB_ORANGEISH 0x00FF7518 //255,117,24
+#define RGB_PURPLEISH 0x009C13FF //156,19,255
+#define RGB_MAGENTAISH 0x00FF00FF //255,0,255
+#define RGB_WHITEISH 0x00FFFFFF //255,255,255
 
 #ifndef _WIN32
 #define _cdecl 
@@ -618,6 +621,8 @@ public:
 	enum { 
 		MAX_ICONSPRITENAME_LENGTH = MAX_SPRITE_NAME_LENGTH,
 		MAX_ICONSPRITES = 4,
+		MAX_CENTERICONS = 12,
+		MAX_CENTERICONS_VISIBLE = 3,
 	};
 
 	
@@ -638,11 +643,15 @@ private:
 	} icon_sprite_t;
 
 	icon_sprite_t m_IconList[MAX_ICONSPRITES];
+	// FIFO queue of objective icons shown in the bottom-center stack
+	icon_sprite_t m_CenterIconList[MAX_CENTERICONS];
 	int m_LastMutatorStatus[MAX_MUTATORS_CL];
 
 	float m_flCheckMutators;
 
 	void ToggleMutatorIcon(int mutatorId, const char *mutator);
+	void DrawCenterIcons( void );
+	bool HasCamIcon( void );
 };
 
 //

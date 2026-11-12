@@ -414,6 +414,77 @@ unsigned long HudColor()
 	return RGB_YELLOWISH;
 }
 
+// Objective cam_ and rune_ icons keep a fixed color regardless of the HUD hue
+unsigned long StatusIconColor(const char *pszIconName)
+{
+	if (!pszIconName)
+		return HudColor();
+
+	// Runes use the HUD color nearest their player shell (dlls/items.cpp)
+	if (!strnicmp(pszIconName, "rune_", 5))
+	{
+		const char *rune = pszIconName + 5;
+
+		if (!stricmp(rune, "frag") || !stricmp(rune, "strength"))
+			return RGB_PURPLEISH;	// shell 106,13,173
+
+		if (!stricmp(rune, "vampire"))
+			return RGB_REDISH;		// shell 200,0,0
+
+		if (!stricmp(rune, "protect"))
+			return RGB_GREENISH;	// shell 0,200,0
+
+		if (!stricmp(rune, "regen"))
+			return RGB_MAGENTAISH;	// shell 200,0,200
+
+		if (!stricmp(rune, "gravity"))
+			return RGB_BLUEISH;		// shell 0,115,230
+
+		if (!stricmp(rune, "haste") || !stricmp(rune, "ammo") ||
+			!stricmp(rune, "hornet") || !stricmp(rune, "slauncher"))
+			return RGB_YELLOWISH;	// shells 200,128,0 and 200,200,0
+
+		if (!stricmp(rune, "cloak"))
+			return RGB_WHITEISH;	// no shell, pickup fade 200,200,200
+
+		return HudColor();
+	}
+
+	if (strnicmp(pszIconName, "cam_", 4) != 0)
+		return HudColor();
+
+	const char *name = pszIconName + 4;
+
+	if (!stricmp(name, "flag"))
+	{
+		// Carriers hold the enemy flag
+		int special = 0;
+		if (TryGetLocalPlayerSpecial(special))
+		{
+			if (special == RADAR_TEAM_RED)
+				return RGB_BLUEISH;
+			if (special == RADAR_TEAM_BLUE)
+				return RGB_REDISH;
+		}
+		return HudColor();
+	}
+
+	if (!stricmp(name, "chumtoad") || !stricmp(name, "virus") ||
+		!stricmp(name, "zone") || !stricmp(name, "prop"))
+		return RGB_GREENISH;
+
+	if (!stricmp(name, "buster") || !stricmp(name, "danger"))
+		return RGB_REDISH;
+
+	if (!stricmp(name, "winner") || !stricmp(name, "dribble"))
+		return RGB_YELLOWISH;
+
+	if (!stricmp(name, "loot"))
+		return RGB_ORANGEISH;
+
+	return HudColor();
+}
+
 float lerp(float a, float b, float f)
 {
     return (a * (1.0 - f)) + (b * f);

@@ -31,8 +31,41 @@
 DECLARE_MESSAGE( m_StatusIcons, StatusIcon );
 
 extern float g_xP, g_yP;
+extern cvar_t *cl_hudbend;
 
 extern qboolean g_IronSight;
+
+// Icons besides cam_* and rune_* that belong in the bottom-center stack
+static const char *s_szCenterIcons[] =
+{
+	"longjump",
+};
+
+static bool IsCenterIcon( const char *pszIconName )
+{
+	if ( !pszIconName )
+		return false;
+
+	if ( !strnicmp( pszIconName, "cam_", 4 ) || !strnicmp( pszIconName, "rune_", 5 ) )
+		return true;
+
+	for ( int i = 0; i < (int)(sizeof(s_szCenterIcons) / sizeof(s_szCenterIcons[0])); i++ )
+	{
+		if ( !stricmp( pszIconName, s_szCenterIcons[i] ) )
+			return true;
+	}
+
+	return false;
+}
+
+static const char *IconLabel( const char *szSpriteName )
+{
+	if (strncmp(szSpriteName, "rune_", 5) == 0)
+		return szSpriteName + 5;
+	if (strncmp(szSpriteName, "cam_", 4) == 0)
+		return szSpriteName + 4;
+	return szSpriteName;
+}
 
 int CHudStatusIcons::Init( void )
 {
@@ -53,6 +86,7 @@ int CHudStatusIcons::VidInit( void )
 void CHudStatusIcons::Reset( void )
 {
 	memset( m_IconList, 0, sizeof m_IconList );
+	memset( m_CenterIconList, 0, sizeof m_CenterIconList );
 	memset( m_LastMutatorStatus, 0, sizeof m_LastMutatorStatus );
 	m_iFlags |= HUD_ACTIVE;
 	m_flCheckMutators = 0;
@@ -104,11 +138,7 @@ int CHudStatusIcons::Draw( float flTime )
 				continue;
 
 			// Label the icon for clarity
-			const char *szSpriteName = m_IconList[i].szSpriteName;
-			if (strncmp(szSpriteName, "rune_", 5) == 0)
-				szSpriteName += 5;
-			else if (strncmp(szSpriteName, "cam_", 4) == 0)
-				szSpriteName += 4;
+			const char *szSpriteName = IconLabel(m_IconList[i].szSpriteName);
 			int size = ConsoleStringLen(szSpriteName);
 
 			if (i < max)
@@ -141,6 +171,9 @@ int CHudStatusIcons::Draw( float flTime )
 			}
 		}
 	}
+
+	if (!noHudMutator)
+		DrawCenterIcons();
 
 	// clean up mutators
 	if (m_flCheckMutators < gHUD.m_flTime)
@@ -206,21 +239,100 @@ int CHudStatusIcons::MsgFunc_StatusIcon( const char *pszName, int iSize, void *p
 		else
 		{
 			// Only revert to first person if no other cam_ icons are still active
-			bool otherCamActive = false;
-			for (int i = 0; i < MAX_ICONSPRITES; i++)
-			{
-				if (m_IconList[i].spr && strstr(m_IconList[i].szSpriteName, "cam_"))
-				{
-					otherCamActive = true;
-					break;
-				}
-			}
-			if (!otherCamActive)
+			if (!HasCamIcon())
 				CAM_ToFirstPerson();
 		}
 	}
 
 	return 1;
+}
+
+bool CHudStatusIcons::HasCamIcon( void )
+{
+	for (int i = 0; i < MAX_CENTERICONS; i++)
+	{
+		if (m_CenterIconList[i].spr && strstr(m_CenterIconList[i].szSpriteName, "cam_"))
+			return true;
+	}
+
+	for (int i = 0; i < MAX_ICONSPRITES; i++)
+	{
+		if (m_IconList[i].spr && strstr(m_IconList[i].szSpriteName, "cam_"))
+			return true;
+	}
+
+	return false;
+}
+
+// Draw up to MAX_CENTERICONS_VISIBLE queued icons as a centered row whose
+// bottom sits on the health / HEV / ammo baseline
+void CHudStatusIcons::DrawCenterIcons( void )
+{
+	int visible[MAX_CENTERICONS_VISIBLE];
+	int slotWidth[MAX_CENTERICONS_VISIBLE];
+	int count = 0;
+	int totalWidth = 0;
+	int labelHeight = 0;
+
+	for (int i = 0; i < MAX_CENTERICONS && count < MAX_CENTERICONS_VISIBLE; i++)
+	{
+		if (!m_CenterIconList[i].spr)
+			continue;
+
+		int labelWidth = 0, height = 0;
+		GetConsoleStringSize(IconLabel(m_CenterIconList[i].szSpriteName), &labelWidth, &height);
+		labelHeight = fmax(labelHeight, height);
+
+		int iconWidth = m_CenterIconList[i].rc.right - m_CenterIconList[i].rc.left;
+		visible[count] = i;
+		slotWidth[count] = fmax(iconWidth, labelWidth);
+		totalWidth += slotWidth[count];
+		count++;
+	}
+
+	if (!count)
+		return;
+
+	const int gap = 16;
+	const int barGap = 3;
+	totalWidth += gap * (count - 1);
+
+	// Same baseline as the health / battery numbers, including hud bend lift
+	float up = cl_hudbend->value ? 1.5 : 1;
+	float numScale = (24 * cl_hudbend->value) * 4;
+	int rowBottom = (ScreenHeight - gHUD.m_iFontHeight * up - gHUD.m_iFontHeight / 2) + gHUD.m_iFontHeight + g_yP - numScale;
+	int labelY = rowBottom - labelHeight;
+
+	int x = (ScreenWidth / 2) - (totalWidth / 2) + g_xP;
+	for (int k = 0; k < count; k++)
+	{
+		icon_sprite_t *icon = &m_CenterIconList[visible[k]];
+		const char *label = IconLabel(icon->szSpriteName);
+		int iconWidth = icon->rc.right - icon->rc.left;
+		int iconHeight = icon->rc.bottom - icon->rc.top;
+		int iconX = x + (slotWidth[k] - iconWidth) / 2;
+		int iconY = labelY - barGap - iconHeight;
+
+		int r, g, b;
+		UnpackRGB(r, g, b, StatusIconColor(icon->szSpriteName));
+		ScaleColors(r, g, b, MIN_ALPHA);
+		SPR_Set(icon->spr, r, g, b);
+		SPR_DrawAdditive(0, iconX, iconY, &icon->rc);
+
+		// Timer bar
+		if (icon->timeToLive > 0 && icon->startTime > 0)
+		{
+			UnpackRGB(r, g, b, StatusIconColor(icon->szSpriteName));
+			ScaleColors(r, g, b, MAX_ALPHA);
+			float start = (float)icon->startTime;
+			int width = fmin(fmax(0, iconWidth - (((gHUD.m_flTime - start) / (icon->timeToLive - start)) * iconWidth)), iconWidth);
+			FillRGBA(iconX, iconY + iconHeight, width, 2, r, g, b, MAX_ALPHA);
+		}
+
+		DrawConsoleString(x + (slotWidth[k] - ConsoleStringLen(label)) / 2, labelY, label);
+
+		x += slotWidth[k] + gap;
+	}
 }
 
 // add the icon to the icon list, and set it's drawing color
@@ -229,27 +341,38 @@ void CHudStatusIcons::EnableIcon( char *pszIconName, float timeToLive, float sta
 	if ( !pszIconName || !*pszIconName )
 		return;
 
+	const bool center = IsCenterIcon( pszIconName );
+	icon_sprite_t *list = center ? m_CenterIconList : m_IconList;
+	const int listSize = center ? MAX_CENTERICONS : MAX_ICONSPRITES;
+
 	int i;
 	// check to see if the sprite is in the current list
-	for ( i = 0; i < MAX_ICONSPRITES; i++ )
+	for ( i = 0; i < listSize; i++ )
 	{
-		if ( !stricmp( m_IconList[i].szSpriteName, pszIconName ) )
+		if ( !stricmp( list[i].szSpriteName, pszIconName ) )
 			break;
 	}
 
-	if ( i == MAX_ICONSPRITES )
+	if ( i == listSize )
 	{
 		// icon not in list, so find an empty slot to add to
-		for ( i = 0; i < MAX_ICONSPRITES; i++ )
+		for ( i = 0; i < listSize; i++ )
 		{
-			if ( !m_IconList[i].spr )
+			if ( !list[i].spr )
 				break;
 		}
 	}
 
-	// if we've run out of space in the list, overwrite the first icon
-	if ( i == MAX_ICONSPRITES )
+	if ( i == listSize )
 	{
+		// a full center queue keeps its order, so drop the newcomer
+		if ( center )
+		{
+			gEngfuncs.Con_DPrintf("[StatusIcons] Center icon queue full, dropping '%s'\n", pszIconName);
+			return;
+		}
+
+		// if we've run out of space in the list, overwrite the first icon
 		i = 0;
 	}
 
@@ -262,19 +385,33 @@ void CHudStatusIcons::EnableIcon( char *pszIconName, float timeToLive, float sta
 		return;
 	}
 
-	m_IconList[i].spr = gHUD.GetSprite( spr_index );
-	if ( !m_IconList[i].spr )
+	list[i].spr = gHUD.GetSprite( spr_index );
+	if ( !list[i].spr )
 		return;
 
-	m_IconList[i].rc = gHUD.GetSpriteRect( spr_index );
-	m_IconList[i].timeToLive = timeToLive;
-	m_IconList[i].startTime = startTime;
-	strncpy( m_IconList[i].szSpriteName, pszIconName, sizeof(m_IconList[i].szSpriteName) - 1 );
-	m_IconList[i].szSpriteName[sizeof(m_IconList[i].szSpriteName) - 1] = '\0';
+	list[i].rc = gHUD.GetSpriteRect( spr_index );
+	list[i].timeToLive = timeToLive;
+	list[i].startTime = startTime;
+	strncpy( list[i].szSpriteName, pszIconName, sizeof(list[i].szSpriteName) - 1 );
+	list[i].szSpriteName[sizeof(list[i].szSpriteName) - 1] = '\0';
 }
 
 void CHudStatusIcons::DisableIcon( char *pszIconName )
 {
+	if ( !pszIconName )
+		return;
+
+	for ( int i = 0; i < MAX_CENTERICONS; i++ )
+	{
+		if ( !stricmp( m_CenterIconList[i].szSpriteName, pszIconName ) )
+		{
+			// close the gap so queued icons move up in order
+			memmove( &m_CenterIconList[i], &m_CenterIconList[i + 1], (MAX_CENTERICONS - i - 1) * sizeof(icon_sprite_t) );
+			memset( &m_CenterIconList[MAX_CENTERICONS - 1], 0, sizeof(icon_sprite_t) );
+			return;
+		}
+	}
+
 	// find the sprite is in the current list
 	for ( int i = 0; i < MAX_ICONSPRITES; i++ )
 	{
