@@ -116,7 +116,7 @@ int CHudStatusIcons::Draw( float flTime )
 				y -= ( m_IconList[i].rc.bottom - m_IconList[i].rc.top ) + 18;
 
 				int r, g, b;
-				UnpackRGB(r,g,b, HudColor());
+				UnpackRGB(r,g,b, StatusIconColor(m_IconList[i].szSpriteName));
 				ScaleColors(r, g, b, MIN_ALPHA);
 				SPR_Set( m_IconList[i].spr, r, g, b );
 				SPR_DrawAdditive( 0, x, y, &m_IconList[i].rc );
