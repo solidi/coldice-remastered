@@ -414,10 +414,43 @@ unsigned long HudColor()
 	return RGB_YELLOWISH;
 }
 
-// Objective cam_ icons keep a fixed color regardless of the HUD hue
+// Objective cam_ and rune_ icons keep a fixed color regardless of the HUD hue
 unsigned long StatusIconColor(const char *pszIconName)
 {
-	if (!pszIconName || strnicmp(pszIconName, "cam_", 4) != 0)
+	if (!pszIconName)
+		return HudColor();
+
+	// Runes use the HUD color nearest their player shell (dlls/items.cpp)
+	if (!strnicmp(pszIconName, "rune_", 5))
+	{
+		const char *rune = pszIconName + 5;
+
+		if (!stricmp(rune, "frag") || !stricmp(rune, "strength"))
+			return RGB_PURPLEISH;	// shell 106,13,173
+
+		if (!stricmp(rune, "vampire"))
+			return RGB_REDISH;		// shell 200,0,0
+
+		if (!stricmp(rune, "protect"))
+			return RGB_GREENISH;	// shell 0,200,0
+
+		if (!stricmp(rune, "regen"))
+			return RGB_MAGENTAISH;	// shell 200,0,200
+
+		if (!stricmp(rune, "gravity"))
+			return RGB_BLUEISH;		// shell 0,115,230
+
+		if (!stricmp(rune, "haste") || !stricmp(rune, "ammo") ||
+			!stricmp(rune, "hornet") || !stricmp(rune, "slauncher"))
+			return RGB_YELLOWISH;	// shells 200,128,0 and 200,200,0
+
+		if (!stricmp(rune, "cloak"))
+			return RGB_WHITEISH;	// no shell, pickup fade 200,200,200
+
+		return HudColor();
+	}
+
+	if (strnicmp(pszIconName, "cam_", 4) != 0)
 		return HudColor();
 
 	const char *name = pszIconName + 4;

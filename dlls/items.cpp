@@ -527,7 +527,8 @@ void CRune::RuneTouch( CBaseEntity *pOther )
 	pev->velocity = pev->velocity * 0.5;
 	pev->avelocity = pev->avelocity * 0.5;
 
-	if ( !(pev->flags & FL_ONGROUND ) )
+	// GiveNamedItem (e.g. the give cheat) touches the rune before it can land
+	if ( !(pev->flags & FL_ONGROUND ) && !FBitSet( pev->spawnflags, SF_GIVEITEM ) )
 	{
 		return;
 	}
