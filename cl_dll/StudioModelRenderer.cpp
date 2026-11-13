@@ -73,6 +73,7 @@ void CStudioModelRenderer::Init( void )
 	cl_weaponmodel			= gEngfuncs.pfnRegisterVariable ( "cl_weaponmodel", "0", FCVAR_ARCHIVE );
 	cl_sleevemodel			= gEngfuncs.pfnRegisterVariable ( "cl_sleevemodel", "1", FCVAR_ARCHIVE );
 	m_pCvarGlowModels		= gEngfuncs.pfnRegisterVariable ( "cl_glowmodels", "1", FCVAR_ARCHIVE );
+	WeaponGlow_Init();
 
 	m_pChromeSprite			= IEngineStudio.GetChromeSprite();
 
@@ -1291,6 +1292,42 @@ Vector cs_vo;
 Vector cs_va;
 float(*BoneOrigin)[MAXSTUDIOBONES][3][4];
 
+// World space bounds of the submodels this entity draws, from the bone transforms already set up.
+static bool StudioDrawnBounds( studiohdr_t *hdr, int body, float (*bones)[MAXSTUDIOBONES][3][4], float *mins, float *maxs )
+{
+	bool found = false;
+	mstudiobodyparts_t *pbodypart = (mstudiobodyparts_t *)((byte *)hdr + hdr->bodypartindex);
+
+	for (int i = 0; i < hdr->numbodyparts; i++, pbodypart++)
+	{
+		if (pbodypart->nummodels <= 0 || pbodypart->base <= 0)
+			continue;
+
+		const int index = (body / pbodypart->base) % pbodypart->nummodels;
+		mstudiomodel_t *psubmodel = (mstudiomodel_t *)((byte *)hdr + pbodypart->modelindex) + index;
+		const float *pverts = (const float *)((byte *)hdr + psubmodel->vertindex);
+		const byte *pvertbone = (const byte *)hdr + psubmodel->vertinfoindex;
+
+		for (int v = 0; v < psubmodel->numverts; v++)
+		{
+			if (pvertbone[v] >= hdr->numbones)
+				continue;
+
+			float world[3];
+			VectorTransform(pverts + v * 3, (*bones)[pvertbone[v]], world);
+
+			for (int k = 0; k < 3; k++)
+			{
+				if (!found || world[k] < mins[k]) mins[k] = world[k];
+				if (!found || world[k] > maxs[k]) maxs[k] = world[k];
+			}
+			found = true;
+		}
+	}
+
+	return found;
+}
+
 int CStudioModelRenderer::StudioDrawModel( int flags )
 {
 	alight_t lighting;
@@ -1402,8 +1439,13 @@ int CStudioModelRenderer::StudioDrawModel( int flags )
 
 	if (flags & STUDIO_RENDER)
 	{
+		const bool pickupGlow = WeaponGlow_IsPickup(m_pCurrentEntity);
+
 		lighting.plightvec = dir;
 		IEngineStudio.StudioDynamicLight(m_pCurrentEntity, &lighting );
+
+		if (pickupGlow)
+			WeaponGlow_Lighting(&lighting);
 
 		if (!strcmp(m_pCurrentEntity->model->name, "models/w_items.mdl") && m_pCurrentEntity->curstate.body == 10)
 		{
@@ -1612,6 +1654,13 @@ int CStudioModelRenderer::StudioDrawModel( int flags )
 #endif
 
 		StudioRenderModel( );
+
+		if (pickupGlow)
+		{
+			float mins[3], maxs[3];
+			if (StudioDrawnBounds(m_pStudioHeader, m_pCurrentEntity->curstate.body, IEngineStudio.IsHardware() ? m_pbonetransform : m_plighttransform, mins, maxs))
+				WeaponGlow_Add(m_pCurrentEntity, mins, maxs, m_vRenderOrigin, !XRay_SecondView());
+		}
 
 		if (m_pCvarGlowModels && m_pCvarGlowModels->value)
 		{

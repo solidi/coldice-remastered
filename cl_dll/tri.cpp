@@ -109,6 +109,8 @@ void CL_DLLEXPORT HUD_DrawTransparentTriangles( void )
 
 	gFog.HUD_DrawTransparentTriangles();
 
+	WeaponGlow_TransparentTriangles();
+
 	XRay_TransparentTriangles();
 }
 
