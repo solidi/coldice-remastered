@@ -315,13 +315,14 @@ void WeaponGlow_TransparentTriangles( void )
 		color24 unusedLight;
 		WeaponGlow_Colors( glowColor, &unusedLight );
 
-		glPushAttrib( GL_ENABLE_BIT | GL_COLOR_BUFFER_BIT | GL_CURRENT_BIT | GL_DEPTH_BUFFER_BIT | GL_LIGHTING_BIT );
+		glPushAttrib( GL_ENABLE_BIT | GL_COLOR_BUFFER_BIT | GL_CURRENT_BIT | GL_DEPTH_BUFFER_BIT | GL_LIGHTING_BIT | GL_FOG_BIT );
 
 		glDisable( GL_TEXTURE_2D );
 		glDisable( GL_CULL_FACE );
 		glDisable( GL_ALPHA_TEST );
-		// additive glow under fog would add the fog colour instead of fading out
-		glDisable( GL_FOG );
+		// Black fog attenuates additive light without adding the map's fog colour.
+		const GLfloat blackFog[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
+		glFogfv( GL_FOG_COLOR, blackFog );
 		glEnable( GL_DEPTH_TEST );
 		glDepthMask( GL_FALSE );
 		glEnable( GL_BLEND );

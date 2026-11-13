@@ -1658,7 +1658,7 @@ int CStudioModelRenderer::StudioDrawModel( int flags )
 		if (pickupGlow)
 		{
 			float mins[3], maxs[3];
-			if (StudioDrawnBounds(m_pStudioHeader, m_pCurrentEntity->curstate.body, m_pbonetransform, mins, maxs))
+			if (StudioDrawnBounds(m_pStudioHeader, m_pCurrentEntity->curstate.body, IEngineStudio.IsHardware() ? m_pbonetransform : m_plighttransform, mins, maxs))
 				WeaponGlow_Add(m_pCurrentEntity, mins, maxs, m_vRenderOrigin, !XRay_SecondView());
 		}
 
