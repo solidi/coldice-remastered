@@ -598,6 +598,12 @@ void NoBackgrounds_AddEntity( int type, struct cl_entity_s *ent );
 
 bool VVVVVV_LocalFlipped( void );
 
+void WeaponGlow_Init( void );
+bool WeaponGlow_IsPickup( struct cl_entity_s *ent );
+void WeaponGlow_Lighting( struct alight_s *lighting );
+void WeaponGlow_Add( struct cl_entity_s *ent, const float *mins, const float *maxs, const float *viewOrigin, bool addLight );
+void WeaponGlow_TransparentTriangles( void );
+
 inline double GetMutatorAwarePi( void )
 {
 	return MutatorEnabled( MUTATOR_NEGATIVEPI ) ? -1.0 : 3.14159265358979323846;

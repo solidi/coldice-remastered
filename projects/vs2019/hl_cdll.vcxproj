@@ -192,6 +192,7 @@
     <ClCompile Include="..\..\cl_dll\view.cpp" />
     <ClCompile Include="..\..\cl_dll\voice_status.cpp" />
     <ClCompile Include="..\..\cl_dll\wallclimb.cpp" />
+    <ClCompile Include="..\..\cl_dll\weapon_glow.cpp" />
     <ClCompile Include="..\..\cl_dll\FlameSystem.cpp" />
     <ClCompile Include="..\..\cl_dll\particlemgr.cpp" />
     <ClCompile Include="..\..\cl_dll\particlemsg.cpp" />
