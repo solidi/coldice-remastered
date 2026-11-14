@@ -47,6 +47,7 @@ extern float g_yP, g_xP;
 extern cvar_t *cl_hudbend;
 extern cvar_t *cl_radar;
 extern cvar_t *cl_crosshairammo;
+extern cvar_t *m_pCvarRighthand;
 
 void WeaponsResource :: LoadAllWeaponSprites( void )
 {
@@ -920,6 +921,73 @@ void CHudAmmo::UserCmd_PrevWeapon(void)
 // Drawing code
 //-------------------------------------------------------------------------
 
+enum crosshair_ammo_warning_e
+{
+	AMMOWARN_NONE = 0,
+	AMMOWARN_RELOAD,
+	AMMOWARN_LOW,
+	AMMOWARN_EMPTY,
+};
+
+#define AMMOWARN_BLINK_RATE	8.0f	// half-periods per second, 4 blinks per second
+#define AMMOWARN_GAP_X		4		// from the crosshair centre to the near text edge
+#define AMMOWARN_GAP_Y		26		// below the crosshair centre, clears the bracket art
+
+static int GetCrosshairAmmoWarning( WEAPON *pw )
+{
+	int reserve = gWR.CountAmmo(pw->iAmmoType);
+
+	if (pw->iClip >= 0 && pw->iMaxClip > 0)
+	{
+		if (pw->iClip > pw->iMaxClip / 4)
+			return AMMOWARN_NONE;
+
+		// noreload makes DefaultReload fail, so a reserve can never refill the clip
+		if (reserve > 0 && !MutatorEnabled(MUTATOR_NORELOAD))
+			return AMMOWARN_RELOAD;
+
+		return pw->iClip > 0 ? AMMOWARN_LOW : AMMOWARN_EMPTY;
+	}
+
+	if (reserve <= 0)
+		return AMMOWARN_EMPTY;
+
+	if (reserve <= fmax(1, pw->iMax1 / 10))
+		return AMMOWARN_LOW;
+
+	return AMMOWARN_NONE;
+}
+
+// Halo-style blinking ammo warning beside the crosshair, lower left by default
+// and mirrored to the lower right for left-handed players (cl_righthand 0).
+static void DrawCrosshairAmmoWarning( WEAPON *pw, int minY )
+{
+	int warning = GetCrosshairAmmoWarning(pw);
+	if (warning == AMMOWARN_NONE)
+		return;
+
+	if (((int)(gHUD.m_flTime * AMMOWARN_BLINK_RATE)) & 1)
+		return;
+
+	const char *text = "RELOAD";
+	if (warning == AMMOWARN_LOW)
+		text = "LOW AMMO";
+	else if (warning == AMMOWARN_EMPTY)
+		text = "NO AMMO";
+
+	int w = 0, h = 0;
+	GetConsoleStringSize(text, &w, &h);
+
+	bool leftHanded = m_pCvarRighthand && m_pCvarRighthand->value == 0;
+	int x = leftHanded ? (ScreenWidth / 2) + AMMOWARN_GAP_X : (ScreenWidth / 2) - AMMOWARN_GAP_X - w;
+	int y = (int)fmax((ScreenHeight / 2) + AMMOWARN_GAP_Y, minY);
+
+	int r, g, b;
+	UnpackRGB(r, g, b, warning == AMMOWARN_RELOAD ? HudColor() : RGB_REDISH);
+	gEngfuncs.pfnDrawSetTextColor(r / 255.0f, g / 255.0f, b / 255.0f);
+	DrawConsoleString(x, y, text);
+}
+
 int CHudAmmo::Draw(float flTime)
 {
 	static wrect_t nullrc;
@@ -975,6 +1043,7 @@ int CHudAmmo::Draw(float flTime)
 	ScaleColors(r, g, b, a );
 
 	bool crosshair_enabled = cl_crosshairammo && cl_crosshairammo->value && gEngfuncs.pfnGetCvarPointer("crosshair")->value;
+	int crosshairLabelsBottom = 0;
 
 	if (crosshair_enabled)
 	{
@@ -1020,6 +1089,9 @@ int CHudAmmo::Draw(float flTime)
 			total += h;
 			DrawConsoleString(ScreenWidth / 2 - (w / 2), total, "Ricochet");
 		}
+
+		if (total > (ScreenHeight / 2))
+			crosshairLabelsBottom = total + h + 2;
 	}
 
 	float up = cl_hudbend->value ? 1.5 : 1;
@@ -1115,6 +1187,9 @@ int CHudAmmo::Draw(float flTime)
 		int iOffset = (m_pWeapon->rcAmmo.bottom - m_pWeapon->rcAmmo.top)/16;
 		SPR_Set(m_pWeapon->hAmmo, r, g, b);
 		SPR_DrawAdditive(0, x, y - iOffset, &m_pWeapon->rcAmmo);
+
+		if (crosshair_enabled)
+			DrawCrosshairAmmoWarning(pw, crosshairLabelsBottom);
 	}
 
 	// Does weapon have seconday ammo?

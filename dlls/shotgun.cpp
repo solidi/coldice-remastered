@@ -22,6 +22,10 @@
 #include "player.h"
 #include "gamerules.h"
 
+#ifdef CLIENT_DLL
+extern bool MutatorEnabled( int mutatorId );
+#endif
+
 enum shotgun_e {
 	SHOTGUN_AIM = 0,
 	SHOTGUN_IDLE,
@@ -316,6 +320,13 @@ void CShotgun::Reload( void )
 
 	// don't reload until recoil is done
 	if (m_flNextPrimaryAttack > UTIL_WeaponTimeBase())
+		return;
+
+#ifdef CLIENT_DLL
+	if (MutatorEnabled(MUTATOR_NORELOAD))
+#else
+	if (g_pGameRules->MutatorEnabled(MUTATOR_NORELOAD))
+#endif
 		return;
 
 	// check to see if we're ready to reload
