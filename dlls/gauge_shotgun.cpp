@@ -23,6 +23,10 @@
 #include "gamerules.h"
 #include "game.h"
 
+#ifdef CLIENT_DLL
+extern bool MutatorEnabled( int mutatorId );
+#endif
+
 enum gauge_shotgun_e {
 	GAUGE_SHOTGUN_IDLE = 0,
 	GAUGE_SHOTGUN_IDLE4,
@@ -249,6 +253,13 @@ void C12Gauge::Reload( void )
 
 	// don't reload until recoil is done
 	if (m_flNextPrimaryAttack > UTIL_WeaponTimeBase())
+		return;
+
+#ifdef CLIENT_DLL
+	if (MutatorEnabled(MUTATOR_NORELOAD))
+#else
+	if (g_pGameRules->MutatorEnabled(MUTATOR_NORELOAD))
+#endif
 		return;
 
 	// check to see if we're ready to reload
