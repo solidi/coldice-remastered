@@ -157,8 +157,9 @@ void CHook::DoFatalUppercut( CBasePlayer *pOwner, CBasePlayer *pVictim )
 		return;
 
 	const float flPrevOffhandTime = pOwner->m_fOffhandTime;
-	if ( pOwner->m_pActiveItem )
-		((CBasePlayerWeapon *)pOwner->m_pActiveItem)->StartPunch( pOwner->m_iHoldingItem );
+	CBasePlayerWeapon *pHands = pOwner->GetOffhandWeapon();
+	if ( pHands )
+		pHands->StartPunch( pOwner->m_iHoldingItem );
 
 	BOOL bOffhandPunchStarted = ( pOwner->m_fOffhandTime > flPrevOffhandTime && pOwner->m_fOffhandTime > gpGlobals->time );
 

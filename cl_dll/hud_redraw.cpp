@@ -645,7 +645,7 @@ void CHud::ShowTextTips( void ) {
 		return;
 	}
 
-	const int MESSAGE_SIZE = 46;
+	const int MESSAGE_SIZE = 47;
 
 	const char* messageList[MESSAGE_SIZE] = {
 		"Tired of blue skins? Type \"cl_weaponmodel 0\" in the console switches to real-life skins.\n",
@@ -694,6 +694,7 @@ void CHud::ShowTextTips( void ) {
 		"Type \"botoptions\" in the chat to start a bot option rtv request.\n",
 		"Type \"gamemodes\" in the chat to start a game mode rtv request.\n",
 		"Type \"maps\" in the chat to start a map rtv request.\n",
+		"Holster your weapon to calm monsters and still kick or punch, press MOUSE3 or bind \"impulse 219\".\n",
 	};
 
 	// Unstick after a level change

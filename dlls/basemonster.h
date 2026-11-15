@@ -179,6 +179,9 @@ public:
 		void StopFrozenMovement( void );
 		virtual void Touch( CBaseEntity *pOther );
 		virtual int IRelationship ( CBaseEntity *pTarget );
+		BOOL IsGentleTowards( CBaseEntity *pTarget );	// target is a holstered (impulse 219) player this monster leaves alone
+		int EngageRelationship( CBaseEntity *pTarget );	// IRelationship, but hostility toward gentle players drops to R_NO
+		void ProvokedBy( entvars_t *pevAttacker, float flDamage );	// a player hurting a monster loses gentleness; call from every TakeDamage
 		virtual void MonsterInit ( void );
 		virtual void MonsterInitDead( void );	// Call after animation/pose is set up
 		virtual void BecomeDead( void );

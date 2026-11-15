@@ -716,7 +716,7 @@ void CDiablo::Look ( int iDistance )
 			
 			// Skip invalid targets: self, dead, neutral/friendly, godmode
 			if ( pPlayer && pPlayer != this && pPlayer->IsAlive() && 
-				 IRelationship( pPlayer ) > R_NO && 
+				 EngageRelationship( pPlayer ) > R_NO && 
 				 !IsInGodMode( pPlayer ) )
 			{
 				// Calculate distance and check if below us

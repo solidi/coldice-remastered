@@ -777,7 +777,7 @@ void CNihilanth :: NextActivity( )
 		return;
 	}
 
-	if (m_hEnemy != NULL && !m_hEnemy->IsAlive())
+	if (m_hEnemy != NULL && (!m_hEnemy->IsAlive() || IsGentleTowards( m_hEnemy )))
 	{
 		m_hEnemy = NULL;
 	}
@@ -1235,6 +1235,8 @@ int CNihilanth :: TakeDamage( entvars_t* pevInflictor, entvars_t* pevAttacker, f
 {
 	if (pevInflictor->owner == edict())
 		return 0;
+
+	ProvokedBy( pevAttacker, flDamage );
 
 	if (flDamage >= pev->health)
 	{

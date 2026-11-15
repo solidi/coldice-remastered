@@ -3093,7 +3093,8 @@ void CBasePlayerWeapon::ThrowGrenade(BOOL m_iCheckAmmo)
 		m_pPlayer->m_rgAmmo[index]--;
 	}
 
-	BOOL showModel = (m_pPlayer->m_pActiveItem && FBitSet(m_pPlayer->m_pActiveItem->iFlags(), ITEM_FLAG_SINGLE_HAND)) ||
+	BOOL showModel = !m_pPlayer->m_pActiveItem || // holstered: the throwing hand is free
+					 FBitSet(m_pPlayer->m_pActiveItem->iFlags(), ITEM_FLAG_SINGLE_HAND) ||
 					 g_pGameRules->MutatorEnabled(MUTATOR_RICOCHET);
 
 	if (showModel)
@@ -3204,7 +3205,14 @@ enum punch_e {
 
 void CBasePlayerWeapon::StartPunch( BOOL holdingSomething )
 {
-	if (!CanPunch() || m_pPlayer == NULL) {
+	if (m_pPlayer == NULL)
+		return;
+
+	// Holstered (impulse 219): this weapon is only a proxy for empty hands,
+	// so its own restrictions and timers do not apply.
+	BOOL bProxy = (m_pPlayer->m_pActiveItem != this);
+
+	if (!bProxy && !CanPunch()) {
 		return;
 	}
 
@@ -3214,7 +3222,7 @@ void CBasePlayerWeapon::StartPunch( BOOL holdingSomething )
 	if (m_pPlayer->m_fForceGrabTime >= gpGlobals->time)
 		return;
 
-	BOOL canUseOffhand = FBitSet(iFlags(), ITEM_FLAG_SINGLE_HAND);
+	BOOL canUseOffhand = bProxy || FBitSet(iFlags(), ITEM_FLAG_SINGLE_HAND);
 
 	if (!canUseOffhand && !CanAttack( m_flNextPrimaryAttack, gpGlobals->time, UseDecrement() )) {
 		return;
@@ -3241,7 +3249,9 @@ void CBasePlayerWeapon::StartPunch( BOOL holdingSomething )
 
 void CBasePlayerWeapon::PunchAttack( BOOL holdingSomething )
 {
-	BOOL checkWeapon = (!FBitSet(iFlags(), ITEM_FLAG_SINGLE_HAND) &&
+	BOOL bActive = (m_pPlayer->m_pActiveItem == this);
+	BOOL checkWeapon = (bActive &&
+						!FBitSet(iFlags(), ITEM_FLAG_SINGLE_HAND) &&
 						!g_pGameRules->MutatorEnabled(MUTATOR_RICOCHET));
 
 	if (checkWeapon)
@@ -3346,7 +3356,8 @@ void CBasePlayerWeapon::PunchAttack( BOOL holdingSomething )
 			flVol = 0.1;
 			fHitWorld = FALSE;
 
-			Deploy();
+			if (bActive)
+				Deploy();
 
 			UTIL_MakeVectors( m_pPlayer->pev->v_angle );
 			Vector smoke = tr.vecEndPos - gpGlobals->v_forward * 10;
@@ -3452,8 +3463,11 @@ void CBasePlayerWeapon::EndPunch( void )
 	if (m_trBootHit.flFraction < 1.0)
 		DecalGunshot( &m_trBootHit, BULLET_PLAYER_FIST );
 
-	if ((!FBitSet(iFlags(), ITEM_FLAG_SINGLE_HAND) &&
-		!g_pGameRules->MutatorEnabled(MUTATOR_RICOCHET)))
+	// Only the weapon still in hand redeploys; a holstered proxy (or a weapon
+	// switched away mid-punch) must not put its view model back.
+	if (m_pPlayer && m_pPlayer->m_pActiveItem == this &&
+		!FBitSet(iFlags(), ITEM_FLAG_SINGLE_HAND) &&
+		!g_pGameRules->MutatorEnabled(MUTATOR_RICOCHET))
 		DeployLowKey();
 
 	// Always cancel — guard against m_pPlayer being NULL if the weapon was
@@ -3464,7 +3478,11 @@ void CBasePlayerWeapon::EndPunch( void )
 
 void CBasePlayerWeapon::StartKick( BOOL holdingSomething )
 {
-	if (!CanKick() || m_pPlayer == NULL) {
+	if (m_pPlayer == NULL)
+		return;
+
+	// A holstered proxy has nothing in hand, so its CanKick() (e.g. the nuke) does not apply.
+	if (m_pPlayer->m_pActiveItem == this && !CanKick()) {
 		return;
 	}
 
@@ -3578,7 +3596,8 @@ void CBasePlayerWeapon::KickAttack( BOOL holdingSomething )
 			flVol = 0.1;
 			fHitWorld = FALSE;
 
-			Deploy();
+			if (m_pPlayer->m_pActiveItem == this)
+				Deploy();
 
 			UTIL_MakeVectors( m_pPlayer->pev->v_angle );
 			Vector smoke = tr.vecEndPos - gpGlobals->v_forward * 10;

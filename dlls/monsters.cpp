@@ -342,9 +342,11 @@ void CBaseMonster :: Look ( int iDistance )
 				 !FBitSet( pSightEnt->pev->spawnflags, SF_MONSTER_PRISONER )	&& 
 				 pSightEnt->pev->health > 0 )
 			{
+				int iRelationship = EngageRelationship( pSightEnt );
+
 				// the looker will want to consider this entity
 				// don't check anything else about an entity that can't be seen, or an entity that you don't care about.
-				if ( (IRelationship( pSightEnt ) != R_NO ||
+				if ( (iRelationship != R_NO ||
 					 (pev->owner != NULL && pSightEnt->pev->owner != NULL && pev->owner != pSightEnt->pev->owner)) &&
 					 FInViewCone( pSightEnt ) && !FBitSet( pSightEnt->pev->flags, FL_NOTARGET ) && FVisible( pSightEnt ) )
 				{
@@ -383,7 +385,7 @@ void CBaseMonster :: Look ( int iDistance )
 
 					// don't add the Enemy's relationship to the conditions. We only want to worry about conditions when
 					// we see monsters other than the Enemy.
-					switch ( IRelationship ( pSightEnt ) )
+					switch ( iRelationship )
 					{
 					case	R_NM:
 						iSighted |= bits_COND_SEE_NEMESIS;		
@@ -1202,8 +1204,10 @@ int CBaseMonster :: CheckEnemy ( CBaseEntity *pEnemy )
 	if ( pEnemy && pEnemy->IsPlayer() )
 	{
 		CBasePlayer *pPlr = (CBasePlayer *)pEnemy;
+		// A player who holstered (impulse 219) is released the same way, so the
+		// schedule drops m_hEnemy at a safe point instead of mid-attack.
 		if ( pPlr->IsObserver() || pPlr->IsSpectator() ||
-			FBitSet( pEnemy->pev->effects, EF_NODRAW ) )
+			FBitSet( pEnemy->pev->effects, EF_NODRAW ) || IsGentleTowards( pEnemy ) )
 		{
 			SetConditions ( bits_COND_ENEMY_DEAD );
 			ClearConditions( bits_COND_SEE_ENEMY | bits_COND_ENEMY_OCCLUDED );
@@ -1352,7 +1356,7 @@ BOOL CBaseMonster :: PopEnemy( )
 	{
 		if (m_hOldEnemy[i] != NULL)
 		{
-			if (m_hOldEnemy[i]->IsAlive( )) // cheat and know when they die
+			if (m_hOldEnemy[i]->IsAlive( ) && !IsGentleTowards( m_hOldEnemy[i] )) // cheat and know when they die
 			{
 				m_hEnemy = m_hOldEnemy[i];
 				m_vecEnemyLKP = m_vecOldEnemy[i];
@@ -2390,6 +2394,33 @@ int CBaseMonster::IRelationship ( CBaseEntity *pTarget )
 }
 
 //=========================================================
+// IsGentleTowards - TRUE when pTarget is a player who put
+// their weapon away (impulse 219) and has not hurt a monster
+// recently. Monsters a player spawned (snarks, pets, their
+// hornets) still fight for that player, so PvP is unchanged.
+//=========================================================
+BOOL CBaseMonster::IsGentleTowards( CBaseEntity *pTarget )
+{
+	if ( !pTarget || !pTarget->IsPlayer() || IsPlayer() )
+		return FALSE;
+
+	if ( !FNullEnt( pev->owner ) && FBitSet( pev->owner->v.flags, FL_CLIENT ) )
+		return FALSE;
+
+	return ((CBasePlayer *)pTarget)->IsGentle();
+}
+
+int CBaseMonster::EngageRelationship( CBaseEntity *pTarget )
+{
+	int iRelationship = IRelationship( pTarget );
+
+	if ( iRelationship > R_NO && IsGentleTowards( pTarget ) )
+		return R_NO;
+
+	return iRelationship;
+}
+
+//=========================================================
 // FindCover - tries to find a nearby node that will hide
 // the caller from its enemy. 
 //
@@ -2625,16 +2656,18 @@ CBaseEntity *CBaseMonster :: BestVisibleEnemy ( void )
 	{
 		if ( pNextEnt->IsAlive() && !FBitSet(pNextEnt->pev->flags, FL_GODMODE) )
 		{
-			if ( IRelationship( pNextEnt) > iBestRelationship )
+			int iRelationship = EngageRelationship( pNextEnt );
+
+			if ( iRelationship > iBestRelationship )
 			{
 				// this entity is disliked MORE than the entity that we 
 				// currently think is the best visible enemy. No need to do 
 				// a distance check, just get mad at this one for now.
-				iBestRelationship = IRelationship ( pNextEnt );
+				iBestRelationship = iRelationship;
 				iNearest = ( pNextEnt->pev->origin - pev->origin ).Length();
 				pReturn = pNextEnt;
 			}
-			else if ( IRelationship( pNextEnt) == iBestRelationship )
+			else if ( iRelationship == iBestRelationship )
 			{
 				// this entity is disliked just as much as the entity that
 				// we currently think is the best visible enemy, so we only
@@ -2644,7 +2677,7 @@ CBaseEntity *CBaseMonster :: BestVisibleEnemy ( void )
 				if ( iDist <= iNearest )
 				{
 					iNearest = iDist;
-					iBestRelationship = IRelationship ( pNextEnt );
+					iBestRelationship = iRelationship;
 					pReturn = pNextEnt;
 				}
 			}

@@ -98,6 +98,10 @@ enum sbar_data
 
 #define CHAT_INTERVAL 1.0f
 
+#define HOLSTER_PROVOKE_TIME 5.0f // seconds a holstered player stays a target after hurting a monster
+
+class CBasePlayerWeapon;
+
 #if defined( GRAPPLING_HOOK )
 class CHook;
 #endif
@@ -449,6 +453,21 @@ public:
 
 	void ChangeGun();
 	BOOL ReleaseHeldItem(float speed);
+
+	// Holster (impulse 219): nothing in hand, off-hand moves still work, monsters stay calm.
+	BOOL m_bHolstered;				// weapon put away on purpose; m_pActiveItem is NULL
+	int m_iHolsteredId;				// m_iId of the weapon to draw again (an id, never a stale pointer)
+	float m_flHolsterProvokeTime;	// hurting a monster blocks gentleness until this time
+	void ToggleHolster( void );
+	void HolsterWeapon( void );
+	void UnholsterWeapon( void );
+	void ClearHolster( void );
+	BOOL CanToggleHolster( void );
+	BOOL IsGentle( void );
+	void ProvokeMonsters( void );
+	CBasePlayerItem *FindHolsteredItem( BOOL fRequireDeploy );
+	CBasePlayerWeapon *GetOffhandWeapon( void );	// weapon that runs kick/punch/grenade, or NULL
+	void RestoreViewModel( void );
 
 	int  GiveAmmo( int iAmount, char *szName, int iMax );
 	void SendAmmoUpdate(void);
