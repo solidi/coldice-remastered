@@ -458,13 +458,7 @@ void CHudStatusIcons::ToggleMutatorIcon(int mutatorId, const char *mutator)
 		if (m_LastMutatorStatus[mutatorId] == 0)
 			return; // not currently active, so no need to disable
 
-		if (mutatorId == MUTATOR_LONGJUMP)
-		{
-			if (atoi(gEngfuncs.PhysInfo_ValueForKey("slj")) != 1)
-				DisableIcon((char *)mutator);
-		}
-		else
-			DisableIcon((char *)mutator);
+		DisableIcon((char *)mutator);
 
 		m_LastMutatorStatus[mutatorId] = 0;
 	}
