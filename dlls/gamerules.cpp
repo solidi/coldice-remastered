@@ -121,7 +121,6 @@ DLL_GLOBAL const char *g_szMutators[] = {
 	"jope",
 	"lightsout",
 	"linemode",
-	"longjump",
 	"loopback",
 	"marshmellow",
 	"maxpack",
@@ -1087,11 +1086,6 @@ void CGameRules::GiveMutators(CBasePlayer *pPlayer)
 		}
 	}
 
-	if (MutatorEnabled(MUTATOR_LONGJUMP)) {
-		if (!pPlayer->m_fLongJump && (pPlayer->pev->weapons & (1<<WEAPON_SUIT)))
-			pPlayer->GiveNamedItem("item_longjump");
-	}
-
 	if (MutatorEnabled(MUTATOR_GODMODE)) {
 		if (!pPlayer->HasNamedPlayerItem("weapon_vice"))
 		{
@@ -1704,6 +1698,31 @@ static void InstantRandomItem(void)
 	}
 
 	UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] Random Item: %s!\n", g_InstantItems[item].name);
+}
+
+// Goes through item_longjump, so the pickup notice, HUD icon and "slj" physinfo match a map pickup; the module lasts until death.
+static void InstantLongJump(void)
+{
+	BOOL allowed = FALSE;
+	for (int i = 1; i <= gpGlobals->maxClients; i++)
+	{
+		CBasePlayer *pl = (CBasePlayer *)UTIL_PlayerByIndex(i);
+		if (!IsInstantTarget(pl) || !(pl->pev->weapons & (1 << WEAPON_SUIT))
+			|| !g_pGameRules->CanHaveNamedItem(pl, "item_longjump"))
+			continue;
+
+		allowed = TRUE;
+		if (!pl->m_fLongJump)
+			pl->GiveNamedItem("item_longjump");
+	}
+
+	if (!allowed)
+	{
+		UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] Long Jump: nothing allowed here!\n");
+		return;
+	}
+
+	UTIL_ClientPrintAll(HUD_PRINTTALK, "[Mutators] Long Jump!\n");
 }
 
 static void InstantRandomRune(void)
@@ -2394,31 +2413,32 @@ enum instant_mutator_e
 	INSTANT_HUMAN_ASSASSIN = 14,		// human assassin
 	INSTANT_KABOOM = 15,				// kaboom
 	INSTANT_KNIFE_VOLLEY = 16,			// knifevolley
-	INSTANT_MAX_AMMO = 17,				// maxammo
-	INSTANT_NICE = 18,					// nice
-	INSTANT_NO_ARMOR = 19,				// noarmor
-	INSTANT_NOTHING = 20,				// nothing
-	INSTANT_NUKE_PARTY = 21,			// nukeparty
-	INSTANT_PASS_IT_LEFT = 22,			// passitleft
-	INSTANT_PET_CHUMTOAD = 23,			// pet chumtoad
-	INSTANT_PET_SNARK = 24,				// pet snark
-	INSTANT_PIPE_VOLLEY = 25,			// pipevolley
-	INSTANT_PROX_PARTY = 26,			// proxparty
-	INSTANT_RANDOM_DAMAGE = 27,			// random damage
-	INSTANT_RANDOM_AMMO = 28,			// randomammo
-	INSTANT_RANDOM_ITEM = 29,			// randomitem
-	INSTANT_RANDOM_RUNE = 30,			// randomrune
-	INSTANT_RANDOM_WEAPON = 31,			// randomweapon
-	INSTANT_REMOVE_FUNC = 32,			// remove func_*
-	INSTANT_ROBIN_HOOD = 33,			// robinhood
-	INSTANT_ROULETTE = 34,				// roulette
-	INSTANT_RUNE_BURST = 35,			// runeburst
-	INSTANT_RUNE_SHUFFLE = 36,			// runeshuffle
-	INSTANT_SIX_SEVEN = 37,				// six seven
-	INSTANT_SWAP_HEALTH_ARMOR = 38,		// swap health and armor
-	INSTANT_TRIPMINE = 39,				// tripmine
-	INSTANT_UNARM = 40,					// unarm
-	INSTANT_WRENCH_VOLLEY = 41,			// wrenchvolley
+	INSTANT_LONG_JUMP = 17,				// longjump
+	INSTANT_MAX_AMMO = 18,				// maxammo
+	INSTANT_NICE = 19,					// nice
+	INSTANT_NO_ARMOR = 20,				// noarmor
+	INSTANT_NOTHING = 21,				// nothing
+	INSTANT_NUKE_PARTY = 22,			// nukeparty
+	INSTANT_PASS_IT_LEFT = 23,			// passitleft
+	INSTANT_PET_CHUMTOAD = 24,			// pet chumtoad
+	INSTANT_PET_SNARK = 25,				// pet snark
+	INSTANT_PIPE_VOLLEY = 26,			// pipevolley
+	INSTANT_PROX_PARTY = 27,			// proxparty
+	INSTANT_RANDOM_DAMAGE = 28,			// random damage
+	INSTANT_RANDOM_AMMO = 29,			// randomammo
+	INSTANT_RANDOM_ITEM = 30,			// randomitem
+	INSTANT_RANDOM_RUNE = 31,			// randomrune
+	INSTANT_RANDOM_WEAPON = 32,			// randomweapon
+	INSTANT_REMOVE_FUNC = 33,			// remove func_*
+	INSTANT_ROBIN_HOOD = 34,			// robinhood
+	INSTANT_ROULETTE = 35,				// roulette
+	INSTANT_RUNE_BURST = 36,			// runeburst
+	INSTANT_RUNE_SHUFFLE = 37,			// runeshuffle
+	INSTANT_SIX_SEVEN = 38,				// six seven
+	INSTANT_SWAP_HEALTH_ARMOR = 39,		// swap health and armor
+	INSTANT_TRIPMINE = 40,				// tripmine
+	INSTANT_UNARM = 41,					// unarm
+	INSTANT_WRENCH_VOLLEY = 42,			// wrenchvolley
 	INSTANT_MUTATOR_COUNT
 };
 
@@ -2621,6 +2641,9 @@ void CGameRules::AddInstantMutator(int index)
 			break;
 		case INSTANT_KNIFE_VOLLEY:
 			InstantVolley("flying_knife", "weapon_knife", "knife_miss2.wav", "Knife Volley");
+			break;
+		case INSTANT_LONG_JUMP:
+			InstantLongJump();
 			break;
 		case INSTANT_MAX_AMMO:
 			InstantMaxAmmo();
