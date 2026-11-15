@@ -1394,6 +1394,8 @@ void CBasePlayer::RemoveAllItems( BOOL removeSuit )
 	m_pLastItem = NULL;
 	m_pLastRef  = NULL;  // prevent stale pointer surviving across death/respawn
 	ClearHolster();
+	// Every item below is Drop()'d, which replaces any pending EndPunch think.
+	ClearPunchAction( m_hPunchItem );
 
 	if ( m_pTank != NULL )
 	{
@@ -4027,6 +4029,10 @@ void CBasePlayer::PreThink(void)
 		m_fKickEndTime = 0;
 	}
 
+	// Backstop: the weapon running a punch was freed before EndPunch could fire.
+	if (FBitSet(m_EFlags, EFLAG_PUNCH) && m_hPunchItem == NULL)
+		m_EFlags &= ~EFLAG_PUNCH;
+
 	if (m_fOffhandTime && m_fOffhandTime < gpGlobals->time &&
 		(FBitSet(m_EFlags, EFLAG_THROW) || FBitSet(m_EFlags, EFLAG_GRENADE)))
 	{
@@ -5266,6 +5272,7 @@ void CBasePlayer::Spawn( void )
 	m_pLastRef  = NULL;  // prevent stale pointer surviving into new life
 	ClearHolster();
 	m_flHolsterProvokeTime = 0;
+	m_hPunchItem = NULL;
 	m_fInitHUD = TRUE;
 	m_iClientHideHUD = -1;  // force this to be recalculated
 	m_fWeapon = FALSE;
@@ -6879,20 +6886,31 @@ void CBasePlayer::UnholsterWeapon( void )
 	if ( !pItem )
 		return;
 
-	// SwitchWeapon clears m_bHolstered; holster-mode rules draw the weapon on
+	// FindHolsteredItem already applied CanDrawItem, which (unlike
+	// SwitchWeapon) keeps select-on-empty weapons such as an empty snowball.
+	// DrawWeapon clears m_bHolstered; holster-mode rules draw the weapon on
 	// the next ItemPreFrame instead of right away.
-	if ( SwitchWeapon( pItem ) )
-	{
-		m_iHolsteredId = 0;
-		if ( m_pActiveItem )
-			m_pActiveItem->UpdateItemInfo();
-	}
+	DrawWeapon( pItem );
+	m_iHolsteredId = 0;
+	if ( m_pActiveItem )
+		m_pActiveItem->UpdateItemInfo();
 }
 
 void CBasePlayer::ClearHolster( void )
 {
 	m_bHolstered = FALSE;
 	m_iHolsteredId = 0;
+}
+
+// Ends the punch owned by pItem (see m_hPunchItem). Only compares pItem, never
+// dereferences it, so it is safe for items already Kill()'d or Drop()'d.
+void CBasePlayer::ClearPunchAction( CBaseEntity *pItem )
+{
+	if ( !pItem || (CBaseEntity *)m_hPunchItem != pItem )
+		return;
+
+	m_hPunchItem = NULL;
+	m_EFlags &= ~EFLAG_PUNCH;
 }
 
 BOOL CBasePlayer::IsGentle( void )
@@ -6907,10 +6925,12 @@ void CBasePlayer::ProvokeMonsters( void )
 }
 
 // Prefers the holstered weapon; otherwise the first owned weapon. With
-// fRequireDeploy only weapons that can be drawn right now qualify.
+// fRequireDeploy only weapons that can be drawn right now qualify
+// (CanDrawItem), and a fallback with ammo beats an empty select-on-empty one.
 CBasePlayerItem *CBasePlayer::FindHolsteredItem( BOOL fRequireDeploy )
 {
 	CBasePlayerItem *pFallback = NULL;
+	CBasePlayerItem *pEmptyFallback = NULL;
 
 	for ( int i = 0; i < MAX_ITEM_TYPES; i++ )
 	{
@@ -6918,20 +6938,27 @@ CBasePlayerItem *CBasePlayer::FindHolsteredItem( BOOL fRequireDeploy )
 
 		while ( pItem && pItem->m_pPlayer == this )
 		{
-			if ( !fRequireDeploy || pItem->CanDeploy() )
+			if ( !fRequireDeploy || CanDrawItem( pItem ) )
 			{
 				if ( m_iHolsteredId > 0 && pItem->m_iId == m_iHolsteredId )
 					return pItem;
 
-				if ( !pFallback )
-					pFallback = pItem;
+				if ( !fRequireDeploy || pItem->CanDeploy() )
+				{
+					if ( !pFallback )
+						pFallback = pItem;
+				}
+				else if ( !pEmptyFallback )
+				{
+					pEmptyFallback = pItem;
+				}
 			}
 
 			pItem = pItem->m_pNext;
 		}
 	}
 
-	return pFallback;
+	return pFallback ? pFallback : pEmptyFallback;
 }
 
 // The weapon whose off-hand code (kick, punch, grenade, climb hands) runs for
@@ -8095,6 +8122,10 @@ int CBasePlayer::RemovePlayerItem( CBasePlayerItem *pItem )
 {
 	if (!pItem)
 		return FALSE;
+
+	// A holstered punch runs on an inactive proxy weapon; its EndPunch think is
+	// about to be replaced by Kill()/Drop(), so finish the punch here.
+	ClearPunchAction( pItem );
 		
 	if (m_pActiveItem == pItem)
 	{
@@ -8649,6 +8680,12 @@ void CBasePlayer :: UpdateClientData( void )
 	SendAmmoUpdate();
 
 	// Update all the items
+	// Holstered: the old weapon's state-0 CurWeapon does not change the
+	// client's selection, so tell it explicitly that nothing is in hand
+	// (also on a full resend, when m_fWeapon was reset).
+	BOOL bSendHolster = m_bHolstered && !m_pActiveItem &&
+						( m_pClientActiveItem != NULL || !m_fWeapon );
+
 	for ( int i = 0; i < MAX_ITEM_TYPES; i++ )
 	{
 		// Guard: m_pPlayer must be this player. A weapon pending removal has
@@ -8657,6 +8694,15 @@ void CBasePlayer :: UpdateClientData( void )
 		// reused the address and overwrote m_pPlayer with a different player.
 		if ( m_rgpPlayerItems[i] && m_rgpPlayerItems[i]->m_pPlayer == this )
 			m_rgpPlayerItems[i]->UpdateClientData( this );
+	}
+
+	if ( bSendHolster )
+	{
+		MESSAGE_BEGIN( MSG_ONE, gmsgCurWeapon, NULL, pev );
+			WRITE_BYTE( 0 );	// state
+			WRITE_BYTE( 0 );	// id 0 = no active weapon
+			WRITE_BYTE( 0 );	// clip
+		MESSAGE_END();
 	}
 
 	// Cache and client weapon change
@@ -9246,7 +9292,15 @@ BOOL CBasePlayer :: SwitchWeapon( CBasePlayerItem *pWeapon )
 	{
 		return FALSE;
 	}
-	
+
+	DrawWeapon( pWeapon );
+	return TRUE;
+}
+
+// The switch itself, without SwitchWeapon's CanDeploy() gate; callers must
+// have checked that pWeapon may be drawn (see CanDrawItem).
+void CBasePlayer :: DrawWeapon( CBasePlayerItem *pWeapon )
+{
 	ResetAutoaim( );
 	m_bHolstered = FALSE;
 
@@ -9269,8 +9323,27 @@ BOOL CBasePlayer :: SwitchWeapon( CBasePlayerItem *pWeapon )
 		m_pActiveItem = pWeapon;
 		pWeapon->Deploy( );
 	}
+}
 
-	return TRUE;
+// Like the engine's own rule in DefaultDeploy: a weapon may be drawn if it
+// can deploy, or if it is select-on-empty (snowball, satchel) and only
+// lacks ammo. The flag does not lift the player-wide deploy locks that
+// CBasePlayerWeapon::CanDeploy also applies (fake death, taunt cancel,
+// force grab).
+BOOL CBasePlayer :: CanDrawItem( CBasePlayerItem *pItem )
+{
+	if ( !pItem || pItem->m_pPlayer != this )
+		return FALSE;
+
+	if ( pItem->CanDeploy() )
+		return TRUE;
+
+	if ( !FBitSet( pItem->iFlags(), ITEM_FLAG_SELECTONEMPTY ) )
+		return FALSE;
+
+	return pev->deadflag != DEAD_FAKING &&
+		   m_fTauntCancelTime <= gpGlobals->time &&
+		   m_fForceGrabTime <= gpGlobals->time;
 }
 
 BOOL CBasePlayer::ShouldWeaponSwitch()

@@ -402,6 +402,8 @@ public:
 	void PackDeadPlayerItems( CBasePlayer *pFragVictor = NULL );
 	void RemoveAllItems( BOOL removeSuit );
 	BOOL SwitchWeapon( CBasePlayerItem *pWeapon );
+	void DrawWeapon( CBasePlayerItem *pWeapon );	// SwitchWeapon without the CanDeploy gate (server only)
+	BOOL CanDrawItem( CBasePlayerItem *pItem );		// CanDeploy, or select-on-empty with no player deploy lock
 	BOOL ShouldWeaponSwitch();
 	BOOL ShouldWeaponThrow();
 
@@ -462,6 +464,8 @@ public:
 	void HolsterWeapon( void );
 	void UnholsterWeapon( void );
 	void ClearHolster( void );
+	EHANDLE m_hPunchItem;	// weapon whose EndPunch think is pending (may be an inactive holster proxy)
+	void ClearPunchAction( CBaseEntity *pItem );
 	BOOL CanToggleHolster( void );
 	BOOL IsGentle( void );
 	void ProvokeMonsters( void );

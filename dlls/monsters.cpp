@@ -2396,15 +2396,28 @@ int CBaseMonster::IRelationship ( CBaseEntity *pTarget )
 //=========================================================
 // IsGentleTowards - TRUE when pTarget is a player who put
 // their weapon away (impulse 219) and has not hurt a monster
-// recently. Monsters a player spawned (snarks, pets, their
-// hornets) still fight for that player, so PvP is unchanged.
+// recently. Monsters a player spawned (snarks, chumtoads,
+// pets, their hornets) still fight for that player, so PvP
+// is unchanged.
 //=========================================================
+static BOOL IsClientEdict( edict_t *pEdict )
+{
+	return !FNullEnt( pEdict ) && !pEdict->free && FBitSet( pEdict->v.flags, FL_CLIENT );
+}
+
 BOOL CBaseMonster::IsGentleTowards( CBaseEntity *pTarget )
 {
 	if ( !pTarget || !pTarget->IsPlayer() || IsPlayer() )
 		return FALSE;
 
-	if ( !FNullEnt( pev->owner ) && FBitSet( pev->owner->v.flags, FL_CLIENT ) )
+	// Snarks and chumtoads clear pev->owner on their first bounce but keep
+	// the thrower in euser1 (see CSqueakGrenade/CChumtoadGrenade::Spawn).
+	if ( IsClientEdict( pev->owner ) || IsClientEdict( pev->euser1 ) )
+		return FALSE;
+
+	// The Capture the Chumtoad toad is the mode objective, not a hostile
+	// monster; its chase must not depend on the holster.
+	if ( FClassnameIs( pev, "monster_ctctoad" ) )
 		return FALSE;
 
 	return ((CBasePlayer *)pTarget)->IsGentle();

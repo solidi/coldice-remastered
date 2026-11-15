@@ -3450,6 +3450,7 @@ void CBasePlayerWeapon::PunchAttack( BOOL holdingSomething )
 
 	SetThink( &CBasePlayerWeapon::EndPunch );
 	pev->nextthink = gpGlobals->time + (0.28 * g_pGameRules->WeaponMultipler());
+	m_pPlayer->m_hPunchItem = this;
 
 	if (checkWeapon)
 	{
@@ -3473,7 +3474,11 @@ void CBasePlayerWeapon::EndPunch( void )
 	// Always cancel — guard against m_pPlayer being NULL if the weapon was
 	// removed from the player before this think fired.
 	if (m_pPlayer)
+	{
 		m_pPlayer->m_EFlags &= ~EFLAG_PUNCH;
+		if ((CBaseEntity *)m_pPlayer->m_hPunchItem == this)
+			m_pPlayer->m_hPunchItem = NULL;
+	}
 }
 
 void CBasePlayerWeapon::StartKick( BOOL holdingSomething )

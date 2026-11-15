@@ -37,6 +37,7 @@ public:
 	void Spawn( void );
 	void Precache( void );
 	CBaseEntity *TongueTouchEnt ( float *pflLength );
+	void ReleasePrey( void );
 	int  Classify ( void );
 	void HandleAnimEvent( MonsterEvent_t *pEvent );
 	void EXPORT BarnacleThink ( void );
@@ -159,6 +160,13 @@ void CBarnacle :: BarnacleThink ( void )
 			// someone (maybe even the barnacle) killed the prey. Reset barnacle.
 			m_fLiftingPrey = FALSE;// indicate that we're not lifting prey.
 			m_hEnemy = NULL;
+			return;
+		}
+
+		// A player who holstered (impulse 219) is let go, lifted or dangling.
+		if ( IsGentleTowards( m_hEnemy ) )
+		{
+			ReleasePrey();
 			return;
 		}
 
@@ -417,7 +425,7 @@ CBaseEntity *CBarnacle :: TongueTouchEnt ( float *pflLength )
 		for ( int i = 0; i < count; i++ )
 		{
 			// only clients and monsters
-			if ( pList[i] != this && IRelationship( pList[i] ) > R_NO && pList[ i ]->pev->deadflag == DEAD_NO )	// this ent is one of our enemies. Barnacle tries to eat it.
+			if ( pList[i] != this && EngageRelationship( pList[i] ) > R_NO && pList[ i ]->pev->deadflag == DEAD_NO )	// this ent is one of our enemies. Barnacle tries to eat it.
 			{
 				return pList[i];
 			}
@@ -425,4 +433,31 @@ CBaseEntity *CBarnacle :: TongueTouchEnt ( float *pflLength )
 	}
 
 	return NULL;
+}
+
+//=========================================================
+// ReleasePrey - let go of a living victim (a holstered
+// player). Same victim cleanup as Killed(), plus the player
+// movetype the grab forced to MOVETYPE_FLY.
+//=========================================================
+void CBarnacle :: ReleasePrey( void )
+{
+	CBaseEntity *pPrey = m_hEnemy;
+
+	m_hEnemy = NULL;
+	m_fLiftingPrey = FALSE;
+	m_flKillVictimTime = -1;
+
+	if ( pPrey )
+	{
+		CBaseMonster *pVictim = pPrey->MyMonsterPointer();
+		if ( pVictim )
+			pVictim->BarnacleVictimReleased();
+
+		if ( pPrey->IsPlayer() && pPrey->pev->movetype == MOVETYPE_FLY )
+			pPrey->pev->movetype = MOVETYPE_WALK;
+	}
+
+	SetActivity ( ACT_IDLE );
+	m_flTongueAdj = -100;
 }

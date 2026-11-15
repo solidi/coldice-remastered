@@ -644,6 +644,10 @@ int CHudAmmo::MsgFunc_CurWeapon(const char *pszName, int iSize, void *pbuf )
 	if ( iId < 1 )
 	{
 		SetCrosshair(0, nullrc, 0, 0, 0);
+		// id 0 = nothing in hand (holstered or stripped): drop the stale ammo
+		// display too. The next state-1 CurWeapon restores both.
+		if ( iId == 0 )
+			m_pWeapon = NULL;
 		return 0;
 	}
 

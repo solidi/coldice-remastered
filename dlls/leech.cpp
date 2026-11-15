@@ -585,6 +585,9 @@ void CLeech::SwimThink( void )
 	{
 	case MONSTERSTATE_COMBAT:
 		pTarget = m_hEnemy;
+		// A holstered (impulse 219) player is dropped like a lost target.
+		if ( pTarget && IsGentleTowards( pTarget ) )
+			pTarget = NULL;
 		if ( !pTarget )
 			SwitchLeechState();
 		else
