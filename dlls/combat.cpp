@@ -1390,6 +1390,21 @@ When a monster is poisoned via an arrow etc it takes all the poison damage at on
 GLOBALS ASSUMED SET:  g_iSkillLevel
 ============
 */
+//=========================================================
+// ProvokedBy - a player who hurts a monster loses holster
+// gentleness (impulse 219) for HOLSTER_PROVOKE_TIME.
+//=========================================================
+void CBaseMonster :: ProvokedBy( entvars_t *pevAttacker, float flDamage )
+{
+	if ( IsPlayer() || !FBitSet( pev->flags, FL_MONSTER ) || flDamage <= 0 ||
+		 !pevAttacker || !FBitSet( pevAttacker->flags, FL_CLIENT ) )
+		return;
+
+	CBaseEntity *pAttacker = CBaseEntity::Instance( pevAttacker );
+	if ( pAttacker && pAttacker->IsPlayer() )
+		((CBasePlayer *)pAttacker)->ProvokeMonsters();
+}
+
 int CBaseMonster :: TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int bitsDamageType )
 {
 	float	flTake;
@@ -1404,6 +1419,8 @@ int CBaseMonster :: TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker,
 	{
 		return DeadTakeDamage( pevInflictor, pevAttacker, flDamage, bitsDamageType );
 	}
+
+	ProvokedBy( pevAttacker, flDamage );
 
 	if ( pev->deadflag == DEAD_NO )
 	{

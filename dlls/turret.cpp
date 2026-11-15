@@ -476,7 +476,7 @@ void CBaseTurret::ActiveThink(void)
 	if ( IsHitStunned() )
 		return;
 
-	if ((!m_iOn) || (m_hEnemy == NULL))
+	if ((!m_iOn) || (m_hEnemy == NULL) || IsGentleTowards( m_hEnemy ))
 	{
 		m_hEnemy = NULL;
 		m_flLastSight = gpGlobals->time + m_flMaxWait;
@@ -1026,6 +1026,8 @@ int CBaseTurret::TakeDamage(entvars_t *pevInflictor, entvars_t *pevAttacker, flo
 	if ( !pev->takedamage )
 		return 0;
 
+	ProvokedBy( pevAttacker, flDamage );
+
 	if (!m_iOn)
 		flDamage /= 10.0;
 
@@ -1244,6 +1246,8 @@ int CSentry::TakeDamage(entvars_t *pevInflictor, entvars_t *pevAttacker, float f
 {
 	if ( !pev->takedamage )
 		return 0;
+
+	ProvokedBy( pevAttacker, flDamage );
 
 	if (!m_iOn)
 	{

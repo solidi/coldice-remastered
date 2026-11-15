@@ -302,7 +302,7 @@ void CHornet :: TrackTarget ( void )
 	}
 
 	// Drop targets that died or stopped being hostile (e.g. CtC holder dropped the toad).
-	if ( m_hEnemy != NULL && ( !m_hEnemy->IsAlive() || ( m_hEnemy->IsPlayer() && IRelationship( m_hEnemy ) <= R_NO ) ) )
+	if ( m_hEnemy != NULL && ( !m_hEnemy->IsAlive() || ( m_hEnemy->IsPlayer() && EngageRelationship( m_hEnemy ) <= R_NO ) ) )
 	{
 		m_hEnemy = NULL;
 	}
